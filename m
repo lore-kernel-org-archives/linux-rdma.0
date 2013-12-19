@@ -1,25 +1,37 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V6 for-next 0/7] IP based RoCE GID Addressing
-Date: Thu, 19 Dec 2013 15:31:25 +0200
-Message-ID: <52B2F52D.5040206@mellanox.com>
-References: <1386864197-10591-1-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1386864197-10591-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+From: Levente Kurusa <levex@linux.com>
+Subject: [PATCH 34/38] infiniband: core: add missing put_device call
+Date: Thu, 19 Dec 2013 16:06:48 +0100
+Message-ID: <1387465612-3673-35-git-send-email-levex@linux.com>
+References: <1387465612-3673-33-git-send-email-levex@linux.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1387465612-3673-33-git-send-email-levex@linux.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Levente Kurusa <levex@linux.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jeff Squyres <jsquyres@cisco.com>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+This is required so that we give up the last reference to the device.
 
-If it helps, you can pull this series from the git tree I posted earlier 
-today git://beany.openfabrics.org/~ogerlitz/linux-2.6.git for-next
+Signed-off-by: Levente Kurusa <levex@linux.com>
+---
+ drivers/infiniband/core/sysfs.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index faad2ca..bf279ce 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -824,8 +824,10 @@ int ib_device_register_sysfs(struct ib_device *device,
+ 	INIT_LIST_HEAD(&device->port_list);
+ 
+ 	ret = device_register(class_dev);
+-	if (ret)
++	if (ret) {
++		put_device(class_dev);
+ 		goto err;
++	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ib_class_attributes); ++i) {
+ 		ret = device_create_file(class_dev, ib_class_attributes[i]);
+-- 
+1.8.3.1
