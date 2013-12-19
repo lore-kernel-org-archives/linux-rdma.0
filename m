@@ -1,55 +1,97 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: randconfig build error with next-20131211, in
- drivers/infiniband/hw/usnic/usnic_uiom.c
-Date: Thu, 19 Dec 2013 22:38:23 +0000
-Message-ID: <B13BFDDB-0C52-4A27-B47B-05F71CB696FC@cisco.com>
-References: <CA+r1ZhhA1QDeNwvOb+Yn_eoQ9VPS2VmAkGZXt8HJRiagp-rvTg@mail.gmail.com>
- <52B350BC.8000903@infradead.org>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] infiniband-diags/vendstat: Fix GeneralInfo SW version
+Date: Thu, 19 Dec 2013 22:51:43 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04A11070@CRSMSX101.amr.corp.intel.com>
+References: <20131217152724.GA8696@r-ufm5-17.mtr.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52B350BC.8000903-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20131217152724.GA8696-Kyg1NGsloJ8bMuq+TCmafCexzy7lsfyC@public.gmane.org>
 Content-Language: en-US
-Content-ID: <55CA01CFE2F675498CC32E6AB632F62A-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jim Davis <jim.epost-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, "<linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Randy,
-	This - http://www.spinics.net/lists/linux-rdma/msg18126.html- has fix =
-for this.  Once the patch goes into ib for-next tree, the problem will =
-go away.
+Applied,
 
-Upinder
+Thanks,
+Ira
 
-On Dec 19, 2013, at 12:02 PM, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrot=
-e:
-
-> On 12/11/13 07:57, Jim Davis wrote:
->> Building with the attached random configuration file,
->>=20
->> drivers/infiniband/hw/usnic/usnic_uiom.c: In function
->> =91usnic_uiom_attach_dev_to_pd=92:
->> drivers/infiniband/hw/usnic/usnic_uiom.c:505:2: error: implicit decl=
-aration of f
->> unction =91iommu_domain_has_cap=92 [-Werror=3Dimplicit-function-decl=
-aration]
->>  if (!iommu_domain_has_cap(pd->domain, IOMMU_CAP_CACHE_COHERENCY)) {
->>  ^
->> cc1: some warnings being treated as errors
->> make[3]: *** [drivers/infiniband/hw/usnic/usnic_uiom.o] Error 1
->>=20
->=20
->=20
-> This build error still happens in linux-next of 20131219.
->=20
-> --=20
-> ~Randy
-
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Dan Ben Yosef
+> Sent: Tuesday, December 17, 2013 7:27 AM
+> To: Weiny, Ira
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH] infiniband-diags/vendstat: Fix GeneralInfo SW version
+> 
+> Fix the offset for GeneralInfo SWInfo for IS4
+> 
+> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  src/vendstat.c |   12 ++++++++++--
+>  1 files changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/vendstat.c b/src/vendstat.c index a53e80d..f28ff02 100644
+> --- a/src/vendstat.c
+> +++ b/src/vendstat.c
+> @@ -87,6 +87,7 @@ typedef struct {
+>  	uint32_t ext_major;
+>  	uint32_t ext_minor;
+>  	uint32_t ext_sub_minor;
+> +	uint32_t reserved[4];
+>  } is4_fw_ext_info_t;
+> 
+>  typedef struct {
+> @@ -324,6 +325,7 @@ int main(int argc, char **argv)
+>  	uint32_t fw_ver_major = 0;
+>  	uint32_t fw_ver_minor = 0;
+>  	uint32_t fw_ver_sub_minor = 0;
+> +	uint8_t sw_ver_major = 0, sw_ver_minor = 0, sw_ver_sub_minor =
+> 0;
+>  	is3_general_info_t *gi_is3;
+>  	is4_general_info_t *gi_is4;
+>  	const struct ibdiag_opt opts[] = {
+> @@ -415,10 +417,16 @@ int main(int argc, char **argv)
+>  		fw_ver_major = ntohl(gi_is4->ext_fw_info.ext_major);
+>  		fw_ver_minor = ntohl(gi_is4->ext_fw_info.ext_minor);
+>  		fw_ver_sub_minor = ntohl(gi_is4-
+> >ext_fw_info.ext_sub_minor);
+> +		sw_ver_major = gi_is4->sw_info.major;
+> +		sw_ver_minor = gi_is4->sw_info.minor;
+> +		sw_ver_sub_minor = gi_is4->sw_info.sub_minor;
+>  	} else {
+>  		fw_ver_major = gi_is3->fw_info.major;
+>  		fw_ver_minor = gi_is3->fw_info.minor;
+>  		fw_ver_sub_minor = gi_is3->fw_info.sub_minor;
+> +		sw_ver_major = gi_is3->sw_info.major;
+> +		sw_ver_minor = gi_is3->sw_info.minor;
+> +		sw_ver_sub_minor = gi_is3->sw_info.sub_minor;
+>  	}
+> 
+>  	if (general_info) {
+> @@ -435,8 +443,8 @@ int main(int argc, char **argv)
+>  		printf("fw_psid:     '%s'\n", gi_is3->fw_info.psid);
+>  		printf("fw_ini_ver:  %d\n",
+>  		       ntohl(gi_is3->fw_info.ini_file_version));
+> -		printf("sw_version:  %02d.%02d.%02d\n", gi_is3-
+> >sw_info.major,
+> -		       gi_is3->sw_info.minor, gi_is3->sw_info.sub_minor);
+> +		printf("sw_version:  %02d.%02d.%02d\n", sw_ver_major,
+> +		       sw_ver_minor, sw_ver_sub_minor);
+>  	}
+> 
+>  	if (xmit_wait) {
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
