@@ -1,73 +1,55 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] DAPL: Support for Linux on System z in libibverbs library
-Date: Fri, 20 Dec 2013 00:07:59 +0200
-Message-ID: <CAJZOPZL9tHzhAnc4t2QqRM-Wjhrd8P-bgQqYUfyaCwbee-i=Fg@mail.gmail.com>
-References: <1387453998-27416-1-git-send-email-alexey_ishchuk@ru.ibm.com>
-	<1387453998-27416-4-git-send-email-alexey_ishchuk@ru.ibm.com>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: randconfig build error with next-20131211, in
+ drivers/infiniband/hw/usnic/usnic_uiom.c
+Date: Thu, 19 Dec 2013 22:38:23 +0000
+Message-ID: <B13BFDDB-0C52-4A27-B47B-05F71CB696FC@cisco.com>
+References: <CA+r1ZhhA1QDeNwvOb+Yn_eoQ9VPS2VmAkGZXt8HJRiagp-rvTg@mail.gmail.com>
+ <52B350BC.8000903@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387453998-27416-4-git-send-email-alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <52B350BC.8000903-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <55CA01CFE2F675498CC32E6AB632F62A-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Klaus Wacker <klaus.wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+To: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jim Davis <jim.epost-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, "<linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 19, 2013, Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org> wrote:
+Randy,
+	This - http://www.spinics.net/lists/linux-rdma/msg18126.html- has fix =
+for this.  Once the patch goes into ib for-next tree, the problem will =
+go away.
 
->         * new Infiniband verb command identifier.
-> The new Infiniband verb command was added to allow data transfer from user
-> space applications to infiniband devices on System z.
+Upinder
 
-and does what? also note that your patches don't carry signature
+On Dec 19, 2013, at 12:02 PM, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrot=
+e:
 
+> On 12/11/13 07:57, Jim Davis wrote:
+>> Building with the attached random configuration file,
+>>=20
+>> drivers/infiniband/hw/usnic/usnic_uiom.c: In function
+>> =91usnic_uiom_attach_dev_to_pd=92:
+>> drivers/infiniband/hw/usnic/usnic_uiom.c:505:2: error: implicit decl=
+aration of f
+>> unction =91iommu_domain_has_cap=92 [-Werror=3Dimplicit-function-decl=
+aration]
+>>  if (!iommu_domain_has_cap(pd->domain, IOMMU_CAP_CACHE_COHERENCY)) {
+>>  ^
+>> cc1: some warnings being treated as errors
+>> make[3]: *** [drivers/infiniband/hw/usnic/usnic_uiom.o] Error 1
+>>=20
+>=20
+>=20
+> This build error still happens in linux-next of 20131219.
+>=20
+> --=20
+> ~Randy
 
->
->
-> diff -aurp /usr/src/packages/BUILD/libibverbs-1.1.7/include/infiniband/arch.h libibverbs-1.1.7/include/infiniband/arch.h
-> --- /usr/src/packages/BUILD/libibverbs-1.1.7/include/infiniband/arch.h  2011-02-03 19:36:36.000000000 +0100
-> +++ libibverbs-1.1.7/include/infiniband/arch.h  2013-12-11 16:46:18.713796712 +0100
-> @@ -115,6 +115,13 @@ static inline uint64_t ntohll(uint64_t x
->  #define wmb()   mb()
->  #define wc_wmb() wmb()
->
-> +#elif defined(__s390x__)
-> +
-> +#define mb()    asm volatile("" ::: "memory")
-> +#define rmb()   mb()
-> +#define wmb()   mb()
-> +#define wc_wmb() wmb()
-> +
->  #else
->
->  #warning No architecture specific defines found.  Using generic implementation.
-> diff -aurp /usr/src/packages/BUILD/libibverbs-1.1.7/include/infiniband/kern-abi.h libibverbs-1.1.7/include/infiniband/kern-abi.h
-> --- /usr/src/packages/BUILD/libibverbs-1.1.7/include/infiniband/kern-abi.h      2011-12-22 18:50:48.000000000 +0100
-> +++ libibverbs-1.1.7/include/infiniband/kern-abi.h      2013-12-11 16:46:18.713796712 +0100
-> @@ -85,7 +85,8 @@ enum {
->         IB_USER_VERBS_CMD_MODIFY_SRQ,
->         IB_USER_VERBS_CMD_QUERY_SRQ,
->         IB_USER_VERBS_CMD_DESTROY_SRQ,
-> -       IB_USER_VERBS_CMD_POST_SRQ_RECV
-> +       IB_USER_VERBS_CMD_POST_SRQ_RECV,
-> +       IB_USER_VERBS_CMD_KWRITE_MMIO=52
->  };
->
->  /*
-> @@ -804,6 +805,7 @@ enum {
->          * trick opcodes in IBV_INIT_CMD() doesn't break.
->          */
->         IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
-> +       IB_USER_VERBS_CMD_KWRITE_MMIO_V2 = -1,
->  };
->
->  struct ibv_destroy_cq_v1 {
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
