@@ -1,50 +1,35 @@
-From: Hariprasad S <hariprasad@chelsio.com>
-Subject: Re: [PATCH net v2 0/8] Fixes for server entries and server filter
- entries for Chelsio T4/T5
-Date: Thu, 19 Dec 2013 15:37:54 +0530
-Message-ID: <20131219100753.GA16770@hariprasad-pc>
-References: <1387364906-1967-1-git-send-email-hariprasad@chelsio.com>
- <20131218141647.0b0cf403@nehalam.linuxnetplumber.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131218141647.0b0cf403@nehalam.linuxnetplumber.net>
-Sender: netdev-owner@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, roland@purestorage.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, kumaras@chelsio.com, nirranjan@chelsio.com
+From: Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/core: OFED DAPL support on System z platform
+Date: Thu, 19 Dec 2013 12:53:13 +0100
+Message-ID: <1387453998-27416-1-git-send-email-alexey_ishchuk@ru.ibm.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, klaus.wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 18, 2013 at 14:16:47 -0800, Stephen Hemminger wrote:
-> While running namespace checks I found several this:
-> 
-> Subject: cxgb4: make functions static and remove dead code
-> 
-> Cleanup by making local functions static.
-> 
-> The code to load config file is unreachable in net-next, probably came
-> from some out of tree driver.
-> 
-> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
-> 
->
-[...]
+This patch series provides support for PCI devices on Linux on System z
+for userspace applications that use the DAPL library and its components to
+perform RDMA operations. The patch allows the userspace DAPL libraries to
+request priveleged CPU instruction execution in the kernel context required
+for PCI I/O.
 
-Hi Stephen,
+Alexey Ishchuk (1):
+  IB/core: OFED DAPL support on System z platform
 
-Thank you for providing the fix. This reported namespace bug seems to be related
-to existing code and not related to this patch series.
+ drivers/infiniband/core/uverbs.h      |  3 ++
+ drivers/infiniband/core/uverbs_cmd.c  | 46 ++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c |  8 +++++
+ drivers/infiniband/hw/mlx4/main.c     | 67 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h  |  8 +++++
+ include/rdma/ib_verbs.h               |  8 +++++
+ include/uapi/rdma/ib_user_verbs.h     | 22 ++++++++++++
+ 7 files changed, 162 insertions(+)
 
-However, we now found another namespace bug in this patch series. So we will
-respin this series with namespace fix.
+-- 
+1.8.3.4
 
-
-Hi David,
-
-Would you like to take this patch from Stephen separately, since it is not related
-to this patch-series ?
-Or should we include it as part of patch-series when we re-spin it as V3 ?
-
-
-Thanks,
-Hari.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
