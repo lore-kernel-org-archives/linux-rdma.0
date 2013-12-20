@@ -1,56 +1,77 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 0/15]: IB/usnic: Bug fixes
-Date: Fri, 20 Dec 2013 12:26:31 -0800
-Message-ID: <1387571206-8043-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 02/15] IB/usnic: Fix format not a string literal warning
+Date: Fri, 20 Dec 2013 12:26:33 -0800
+Message-ID: <1387571206-8043-3-git-send-email-umalhi@cisco.com>
+References: <1387571206-8043-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387571206-8043-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-@Roland - This patch set suceeds http://www.spinics.net/lists/linux-rdma/msg18126.html.  It is a superset of that patch set.
+usNIC calls printk w/o string literal in some instances.
+Change these instances so the call is made with string literal.
 
-This patch fixes the below bugs reported by kbuild robot, sparse and smatch.
-https://lists.01.org/pipermail/kbuild/2013-December/000877.html
-https://lists.01.org/pipermail/kbuild-all/2013-December/002354.html
-https://lists.01.org/pipermail/kbuild-all/2013-December/002335.html
-https://lists.01.org/pipermail/kbuild-all/2013-December/002337.html
-http://www.spinics.net/lists/linux-rdma/msg18047.html
-http://www.spinics.net/lists/linux-rdma/msg18048.html
-http://www.spinics.net/lists/linux-rdma/msg18049.html
-http://www.spinics.net/lists/linux-rdma/msg18050.html
+Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_ib_main.c   | 5 ++---
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 2 +-
+ drivers/infiniband/hw/usnic/usnic_vnic.c      | 2 --
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-As well as bugs found at Cisco.
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 1771eec..696e401 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -75,7 +75,7 @@ void usnic_ib_log_vf(struct usnic_ib_vf *vf)
+ {
+ 	char buf[1000];
+ 	usnic_ib_dump_vf(vf, buf, sizeof(buf));
+-	usnic_dbg(buf);
++	usnic_dbg("%s\n", buf);
+ }
 
-[PATCH for-next 01/15] IB/usnic: Fix stack frame size exceed warnings
-[PATCH for-next 02/15] IB/usnic: Fix format not a string literal
-[PATCH for-next 03/15] IB/usnic: Make usNIC built depend on Intel
-[PATCH for-next 04/15] IB/usnic: Fix error handling with
-[PATCH for-next 05/15] IB/usnic: Change BUG_ON to WARN_ON
-[PATCH for-next 06/15] IB/usnic: Initialize all of the data returned
-[PATCH for-next 07/15] IB/usnic: Fix printk format warnings
-[PATCH for-next 08/15] IB/usnic: Remove duplicate and unnecessary
-[PATCH for-next 09/15] IB/usnic: Fix sparse should be static warnings
-[PATCH for-next 10/15] IB/usnic: Fix accounting of qp_grp_ref_cnt
-[PATCH for-next 11/15] IB/usnic: Remove extraneous if check
-[PATCH for-next 12/15] IB/usnic: Change GFP_KERNEL TO GFP_ATOMIC if
-[PATCH for-next 13/15] IB/usnic: Handle NETDEV_CHANGE
-[PATCH for-next 14/15] IB/usnic: Use netdev_notifier_info_to_dev to
-[PATCH for-next 15/15] IB/usnic: Fix false log
+ /* Start of netdev section */
+@@ -372,8 +372,7 @@ static void usnic_ib_undiscover_pf(struct kref *kref)
+ 		}
+ 	}
 
-drivers/infiniband/hw/usnic/Kconfig                    |  3 +-
-drivers/infiniband/hw/usnic/usnic_fwd.c                |  2 +-
-drivers/infiniband/hw/usnic/usnic_ib_main.c            | 40 ++++++++---------
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c          | 52 +++++++++++------------
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h          | 12 +++---
-drivers/infiniband/hw/usnic/usnic_ib_sysfs.c           |  2 +-
-drivers/infiniband/hw/usnic/usnic_ib_verbs.c           | 10 +++--
-drivers/infiniband/hw/usnic/usnic_transport.c          |  4 +-
-drivers/infiniband/hw/usnic/usnic_transport.h          |  1 +
-drivers/infiniband/hw/usnic/usnic_uiom.c               | 36 +++++++++-------
-drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c |  2 +-
-drivers/infiniband/hw/usnic/usnic_vnic.c               | 24 ++++-------
-drivers/infiniband/hw/usnic/usnic_vnic.h               | 12 +++---
-13 files changed, 98 insertions(+), 102 deletions(-)
+-	if (!found)
+-		WARN("Failed to remove PF %s\n", pci_name(dev));
++	WARN(!found, "Failed to remove PF %s\n", pci_name(dev));
+
+ 	mutex_unlock(&usnic_ib_ibdev_list_lock);
+ }
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+index 5ba8678..f647b6b 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+@@ -432,7 +432,7 @@ static void log_spec(const struct usnic_vnic_res_spec
+ {
+ 	char buf[512];
+ 	usnic_vnic_spec_dump(buf, sizeof(buf), res_spec);
+-	usnic_dbg(buf);
++	usnic_dbg("%s\n", buf);
+ }
+
+ struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
+diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
+index 11c2449..ff0b32d 100644
+--- a/drivers/infiniband/hw/usnic/usnic_vnic.c
++++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
+@@ -182,8 +182,6 @@ int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
+ 				res_cnt);
+ 	}
+
+-	offset += scnprintf(buf + offset, buf_sz - offset,
+-				"\n");
+ 	return offset;
+ }
+
+--
+1.8.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
