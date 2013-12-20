@@ -1,40 +1,151 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 0/6] IB/usnic: usNIC UDP Support
-Date: Fri, 20 Dec 2013 12:38:17 -0800
-Message-ID: <1387571903-9398-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 2/6] IB/usnic: Add UDP support to usnic_fwd.[hc]
+Date: Fri, 20 Dec 2013 12:38:19 -0800
+Message-ID: <1387571903-9398-3-git-send-email-umalhi@cisco.com>
+References: <1387571903-9398-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387571903-9398-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch depends on http://www.spinics.net/lists/linux-rdma/msg18189.html.
+Add *ip field* to *struct usnic_fwd_dev* as well as new *functions* to
+manipulate the *ip field.*  Furthermore, add new functions for
+programming UDP flows in the forwarding device.
 
-This set of patches add UDP transport support on usNIC. Libusnic,
-a libibverbs driver, allocates a UDP socket in the kernel via the
-userspace socket API at ibv_create_qp time.  Then, the socket file
-descriptor is pushed down to usnic_verbs.ko via ibv_create_qp_cmd.
-Usnic_verbs bumps up the reference count on the socket, creates the qp,
-and programs the forwarding classifier in the NIC to forward UDP traffic on
-the socket fd, to the associated qp.  The forwarding classifier entry is
-released whenever the qp is destroyed.  The reference count on the socket
-is decremented after the forwarding classifier entry has been released.
+Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_fwd.c | 54 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/usnic/usnic_fwd.h | 21 +++++++++++++
+ 2 files changed, 75 insertions(+)
 
-The socket reference count is incremented in the first place to cover this
-case: A malicious user returns the UDP port to the kernel but does not
-destroy the qp or the associated forwarding entry in the NIC. Subsequently,
-the kernel may give the UDP port to another application, but because
-of the classifier entry in the NIC, the former user of the UDP port continues
-to receive the traffic.  Increasing the reference count on the socket
-guarantees that the socket will not go back to the kernel's free pool until
-both the application closes the socket and the forwarding entry in the NIC
-has been deleted.
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
+index b6e3d44..e801bdf 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.c
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
+@@ -95,6 +95,29 @@ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN])
+ 	spin_unlock(&ufdev->lock);
+ }
 
-[PATCH for-next 1/6] IB/usnic: Update ABI and Version file for UDP
-[PATCH for-next 2/6] IB/usnic: Add UDP support to usnic_fwd.[hc]
-[PATCH for-next 3/6] IB:usnic: Add UDP support to
-[PATCH for-next 4/6] IB/usnic: Add UDP support in u*verbs.c, u*main.c
-[PATCH for-next 5/6] IB/usnic: Add UDP support in
-[PATCH for-next 6/6] IB/core: Rename RMDA_TRANSPORT_USNIC
++int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
++{
++	int status;
++
++	spin_lock(&ufdev->lock);
++	if (ufdev->inaddr == 0) {
++		ufdev->inaddr = inaddr;
++		status = 0;
++	} else {
++		status = -EFAULT;
++	}
++	spin_unlock(&ufdev->lock);
++
++	return status;
++}
++
++void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev)
++{
++	spin_lock(&ufdev->lock);
++	ufdev->inaddr = 0;
++	spin_unlock(&ufdev->lock);
++}
++
+ void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev)
+ {
+ 	spin_lock(&ufdev->lock);
+@@ -126,6 +149,30 @@ static int usnic_fwd_dev_ready_locked(struct usnic_fwd_dev *ufdev)
+ 	return 0;
+ }
+
++static int validate_filter_locked(struct usnic_fwd_dev *ufdev,
++					struct filter *filter)
++{
++
++	WARN_ON(!spin_is_locked(&ufdev->lock));
++
++	if (filter->type == FILTER_IPV4_5TUPLE) {
++		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_AD))
++			return -EACCES;
++		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_PT))
++			return -EBUSY;
++		else if (ufdev->inaddr == 0)
++			return -EINVAL;
++		else if (filter->u.ipv4.dst_port == 0)
++			return -ERANGE;
++		else if (ntohl(ufdev->inaddr) != filter->u.ipv4.dst_addr)
++			return -EFAULT;
++		else
++			return 0;
++	}
++
++	return 0;
++}
++
+ static void fill_tlv(struct filter_tlv *tlv, struct filter *filter,
+ 		struct filter_action *action)
+ {
+@@ -177,6 +224,13 @@ usnic_fwd_alloc_flow(struct usnic_fwd_dev *ufdev, struct filter *filter,
+ 		goto out_free_tlv;
+ 	}
+
++	status = validate_filter_locked(ufdev, filter);
++	if (status) {
++		usnic_err("Failed to validate filter with status %d\n",
++				status);
++		goto out_free_tlv;
++	}
++
+ 	/* Issue Devcmd */
+ 	a0 = tlv_pa;
+ 	a1 = tlv_size;
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.h b/drivers/infiniband/hw/usnic/usnic_fwd.h
+index b146eb9..93713a2 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.h
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.h
+@@ -40,6 +40,7 @@ struct usnic_fwd_dev {
+ 	bool				link_up;
+ 	char				mac[ETH_ALEN];
+ 	unsigned int			mtu;
++	__be32				inaddr;
+ 	char				name[IFNAMSIZ+1];
+ };
+
+@@ -58,6 +59,8 @@ struct usnic_fwd_dev *usnic_fwd_dev_alloc(struct pci_dev *pdev);
+ void usnic_fwd_dev_free(struct usnic_fwd_dev *ufdev);
+
+ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN]);
++int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
++void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_down(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_set_mtu(struct usnic_fwd_dev *ufdev, unsigned int mtu);
+@@ -89,4 +92,22 @@ static inline void usnic_fwd_init_usnic_filter(struct filter *filter,
+ 	filter->u.usnic.usnic_id = usnic_id;
+ }
+
++static inline void usnic_fwd_init_udp_filter(struct filter *filter,
++						uint32_t daddr, uint16_t dport)
++{
++	filter->type = FILTER_IPV4_5TUPLE;
++	filter->u.ipv4.flags = FILTER_FIELD_5TUP_PROTO;
++	filter->u.ipv4.protocol = PROTO_UDP;
++
++	if (daddr) {
++		filter->u.ipv4.flags |= FILTER_FIELD_5TUP_DST_AD;
++		filter->u.ipv4.dst_addr = daddr;
++	}
++
++	if (dport) {
++		filter->u.ipv4.flags |= FILTER_FIELD_5TUP_DST_PT;
++		filter->u.ipv4.dst_port = dport;
++	}
++}
++
+ #endif /* !USNIC_FWD_H_ */
+--
+1.8.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
