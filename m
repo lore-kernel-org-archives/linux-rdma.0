@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 3/5] IB/usnic: Port over main.c and verbs.c to the usnic_fwd.h
-Date: Fri, 20 Dec 2013 12:30:23 -0800
-Message-ID: <1387571425-8566-4-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 5/5] IB/usnic: Port over sysfs to new usnic_fwd.h
+Date: Fri, 20 Dec 2013 12:30:25 -0800
+Message-ID: <1387571425-8566-6-git-send-email-umalhi@cisco.com>
 References: <1387571425-8566-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387571425-8566-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,260 +10,52 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch ports usnic_ib_main.c, usnic_ib_verbs.c and usnic_ib.h
-to the new interface of usnic_fwd.h.
+This patch ports usnic_ib_sysfs.c to the new interface of
+usnic_fwd.h.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib.h       |  3 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c  | 38 +++++++++++++++-------------
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 37 ++++++++++++++-------------
- 3 files changed, 39 insertions(+), 39 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib.h b/drivers/infiniband/hw/usnic/usnic_ib.h
-index 3511c85..92d9d9a 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib.h
-+++ b/drivers/infiniband/hw/usnic/usnic_ib.h
-@@ -57,13 +57,10 @@ struct usnic_ib_dev {
- 	struct pci_dev			*pdev;
- 	struct net_device		*netdev;
- 	struct usnic_fwd_dev		*ufdev;
--	bool				link_up;
- 	struct list_head		ib_dev_link;
- 	struct list_head		vf_dev_list;
- 	struct list_head		ctx_list;
- 	struct mutex			usdev_lock;
--	char				mac[ETH_ALEN];
--	unsigned int			mtu;
- 
- 	/* provisioning information */
- 	struct kref			vf_cnt;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index dc09c12..6ab0b41 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -150,15 +150,17 @@ static void usnic_ib_handle_usdev_event(struct usnic_ib_dev *us_ibdev,
- 	case NETDEV_UP:
- 	case NETDEV_DOWN:
- 	case NETDEV_CHANGE:
--		if (!us_ibdev->link_up && netif_carrier_ok(netdev)) {
--			us_ibdev->link_up = true;
-+		if (!us_ibdev->ufdev->link_up &&
-+				netif_carrier_ok(netdev)) {
-+			usnic_fwd_carrier_up(us_ibdev->ufdev);
- 			usnic_info("Link UP on %s\n", us_ibdev->ib_dev.name);
- 			ib_event.event = IB_EVENT_PORT_ACTIVE;
- 			ib_event.device = &us_ibdev->ib_dev;
- 			ib_event.element.port_num = 1;
- 			ib_dispatch_event(&ib_event);
--		} else if (us_ibdev->link_up && !netif_carrier_ok(netdev)) {
--			us_ibdev->link_up = false;
-+		} else if (us_ibdev->ufdev->link_up &&
-+				!netif_carrier_ok(netdev)) {
-+			usnic_fwd_carrier_down(us_ibdev->ufdev);
- 			usnic_info("Link DOWN on %s\n", us_ibdev->ib_dev.name);
- 			usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
- 			ib_event.event = IB_EVENT_PORT_ERR;
-@@ -172,17 +174,16 @@ static void usnic_ib_handle_usdev_event(struct usnic_ib_dev *us_ibdev,
- 		}
- 		break;
- 	case NETDEV_CHANGEADDR:
--		if (!memcmp(us_ibdev->mac, netdev->dev_addr,
--				sizeof(us_ibdev->mac))) {
-+		if (!memcmp(us_ibdev->ufdev->mac, netdev->dev_addr,
-+				sizeof(us_ibdev->ufdev->mac))) {
- 			usnic_dbg("Ignorning addr change on %s\n",
- 					us_ibdev->ib_dev.name);
- 		} else {
- 			usnic_info(" %s old mac: %pM new mac: %pM\n",
- 					us_ibdev->ib_dev.name,
--					us_ibdev->mac,
-+					us_ibdev->ufdev->mac,
- 					netdev->dev_addr);
--			memcpy(us_ibdev->mac, netdev->dev_addr,
--				sizeof(us_ibdev->mac));
-+			usnic_fwd_set_mac(us_ibdev->ufdev, netdev->dev_addr);
- 			usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
- 			ib_event.event = IB_EVENT_GID_CHANGE;
- 			ib_event.device = &us_ibdev->ib_dev;
-@@ -192,11 +193,11 @@ static void usnic_ib_handle_usdev_event(struct usnic_ib_dev *us_ibdev,
- 
- 		break;
- 	case NETDEV_CHANGEMTU:
--		if (us_ibdev->mtu != netdev->mtu) {
-+		if (us_ibdev->ufdev->mtu != netdev->mtu) {
- 			usnic_info("MTU Change on %s old: %u new: %u\n",
- 					us_ibdev->ib_dev.name,
--					us_ibdev->mtu, netdev->mtu);
--			us_ibdev->mtu = netdev->mtu;
-+					us_ibdev->ufdev->mtu, netdev->mtu);
-+			usnic_fwd_set_mtu(us_ibdev->ufdev, netdev->mtu);
- 			usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
- 		} else {
- 			usnic_dbg("Ignoring MTU change on %s\n",
-@@ -320,18 +321,19 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	if (ib_register_device(&us_ibdev->ib_dev, NULL))
- 		goto err_fwd_dealloc;
- 
--	us_ibdev->link_up = netif_carrier_ok(us_ibdev->netdev);
--	us_ibdev->mtu = us_ibdev->netdev->mtu;
--	memcpy(&us_ibdev->mac, us_ibdev->netdev->dev_addr,
--		sizeof(us_ibdev->mac));
--	usnic_mac_to_gid(us_ibdev->netdev->perm_addr, &gid.raw[0]);
-+	usnic_fwd_set_mtu(us_ibdev->ufdev, us_ibdev->netdev->mtu);
-+	usnic_fwd_set_mac(us_ibdev->ufdev, us_ibdev->netdev->dev_addr);
-+	if (netif_carrier_ok(us_ibdev->netdev))
-+		usnic_fwd_carrier_up(us_ibdev->ufdev);
-+
- 	memcpy(&us_ibdev->ib_dev.node_guid, &gid.global.interface_id,
- 		sizeof(gid.global.interface_id));
- 	kref_init(&us_ibdev->vf_cnt);
- 
- 	usnic_info("Added ibdev: %s netdev: %s with mac %pM Link: %u MTU: %u\n",
- 			us_ibdev->ib_dev.name, netdev_name(us_ibdev->netdev),
--			us_ibdev->mac, us_ibdev->link_up, us_ibdev->mtu);
-+			us_ibdev->ufdev->mac, us_ibdev->ufdev->link_up,
-+			us_ibdev->ufdev->mtu);
- 	return us_ibdev;
- 
- err_fwd_dealloc:
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 8f8dfa2..2217bc0 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -47,6 +47,7 @@ static int usnic_ib_fill_create_qp_resp(struct usnic_ib_qp_grp *qp_grp,
- 	struct pci_dev *pdev;
- 	struct vnic_dev_bar *bar;
- 	struct usnic_vnic_res_chunk *chunk;
-+	struct usnic_ib_qp_grp_flow *default_flow;
- 	int i, err;
- 
- 	memset(&resp, 0, sizeof(resp));
-@@ -69,7 +70,6 @@ static int usnic_ib_fill_create_qp_resp(struct usnic_ib_qp_grp *qp_grp,
- 	resp.vfid = usnic_vnic_get_index(qp_grp->vf->vnic);
- 	resp.bar_bus_addr = bar->bus_addr;
- 	resp.bar_len = bar->len;
--	resp.transport = qp_grp->transport;
- 
- 	chunk = usnic_ib_qp_grp_get_chunk(qp_grp, USNIC_VNIC_RES_TYPE_RQ);
- 	if (IS_ERR_OR_NULL(chunk)) {
-@@ -113,6 +113,10 @@ static int usnic_ib_fill_create_qp_resp(struct usnic_ib_qp_grp *qp_grp,
- 	for (i = 0; i < chunk->cnt; i++)
- 		resp.cq_idx[i] = chunk->res[i]->vnic_idx;
- 
-+	default_flow = list_first_entry(&qp_grp->flows_lst,
-+					struct usnic_ib_qp_grp_flow, link);
-+	resp.transport = default_flow->trans_type;
-+
- 	err = ib_copy_to_udata(udata, &resp, sizeof(resp));
- 	if (err) {
- 		usnic_err("Failed to copy udata for %s", us_ibdev->ib_dev.name);
-@@ -125,7 +129,7 @@ static int usnic_ib_fill_create_qp_resp(struct usnic_ib_qp_grp *qp_grp,
- static struct usnic_ib_qp_grp*
- find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 				struct usnic_ib_pd *pd,
--				enum usnic_transport_type transport,
-+				struct usnic_transport_spec *trans_spec,
- 				struct usnic_vnic_res_spec *res_spec)
- {
- 	struct usnic_ib_vf *vf;
-@@ -141,11 +145,6 @@ find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 		return NULL;
- 	}
- 
--	if (!us_ibdev->link_up) {
--		usnic_info("Cannot allocate qp b/c PF link is down\n");
--		return NULL;
--	}
--
- 	if (usnic_ib_share_vf) {
- 		/* Try to find resouces on a used vf which is in pd */
- 		dev_list = usnic_uiom_get_dev_list(pd->umem_pd);
-@@ -189,7 +188,7 @@ find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 	}
- 
- 	qp_grp = usnic_ib_qp_grp_create(us_ibdev->ufdev, vf, pd, res_spec,
--						transport);
-+						trans_spec);
- 	spin_unlock(&vf->lock);
- 	if (IS_ERR_OR_NULL(qp_grp)) {
- 		usnic_err("Failed to allocate qp_grp\n");
-@@ -253,7 +252,7 @@ int usnic_ib_query_device(struct ib_device *ibdev,
- 	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
- 	us_ibdev->netdev->ethtool_ops->get_settings(us_ibdev->netdev, &cmd);
- 	memset(props, 0, sizeof(*props));
--	usnic_mac_to_gid(us_ibdev->mac, &gid.raw[0]);
-+	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid.raw[0]);
- 	memcpy(&props->sys_image_guid, &gid.global.interface_id,
- 		sizeof(gid.global.interface_id));
- 	usnic_ib_fw_string_to_u64(&info.fw_version[0], &props->fw_ver);
-@@ -311,7 +310,7 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
- 	props->sm_lid = 0;
- 	props->sm_sl = 0;
- 
--	if (us_ibdev->link_up) {
-+	if (us_ibdev->ufdev->link_up) {
- 		props->state = IB_PORT_ACTIVE;
- 		props->phys_state = 5;
- 	} else {
-@@ -327,9 +326,9 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
- 	eth_speed_to_ib_speed(cmd.speed, &props->active_speed,
- 				&props->active_width);
- 	props->max_mtu = IB_MTU_4096;
--	props->active_mtu = iboe_get_mtu(us_ibdev->mtu);
-+	props->active_mtu = iboe_get_mtu(us_ibdev->ufdev->mtu);
- 	/* Userspace will adjust for hdrs */
--	props->max_msg_sz = us_ibdev->mtu;
-+	props->max_msg_sz = us_ibdev->ufdev->mtu;
- 	props->max_vl_num = 1;
- 	mutex_unlock(&us_ibdev->usdev_lock);
- 
-@@ -386,7 +385,7 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 
- 	mutex_lock(&us_ibdev->usdev_lock);
- 	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
--	usnic_mac_to_gid(us_ibdev->mac, &gid->raw[0]);
-+	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid->raw[0]);
- 	mutex_unlock(&us_ibdev->usdev_lock);
- 
- 	return 0;
-@@ -445,6 +444,7 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
- 	struct usnic_ib_ucontext *ucontext;
- 	int cq_cnt;
- 	struct usnic_vnic_res_spec res_spec;
-+	struct usnic_transport_spec trans_spec;
- 
- 	usnic_dbg("\n");
- 
-@@ -457,12 +457,14 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
- 		return ERR_PTR(-EINVAL);
- 	}
- 
-+	memset(&trans_spec, 0, sizeof(trans_spec));
-+	trans_spec.trans_type = USNIC_TRANSPORT_ROCE_CUSTOM;
- 	mutex_lock(&us_ibdev->usdev_lock);
--	cq_cnt = (init_attr->send_cq == init_attr->recv_cq) ? 1 : 2,
--	res_spec = min_transport_spec[USNIC_DEFAULT_TRANSPORT];
-+	cq_cnt = (init_attr->send_cq == init_attr->recv_cq) ? 1 : 2;
-+	res_spec = min_transport_spec[trans_spec.trans_type];
- 	usnic_vnic_res_spec_update(&res_spec, USNIC_VNIC_RES_TYPE_CQ, cq_cnt);
- 	qp_grp = find_free_vf_and_create_qp_grp(us_ibdev, to_upd(pd),
--						USNIC_DEFAULT_TRANSPORT,
-+						&trans_spec,
- 						&res_spec);
- 	if (IS_ERR_OR_NULL(qp_grp)) {
- 		err = (qp_grp ? PTR_ERR(qp_grp) : -ENOMEM);
-@@ -522,8 +524,7 @@ int usnic_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	/* TODO: Future Support All States */
- 	mutex_lock(&qp_grp->vf->pf->usdev_lock);
- 	if ((attr_mask & IB_QP_STATE) && attr->qp_state == IB_QPS_INIT) {
--		status = usnic_ib_qp_grp_modify(qp_grp, IB_QPS_INIT,
--					&qp_grp->filters[DFLT_FILTER_IDX]);
-+		status = usnic_ib_qp_grp_modify(qp_grp, IB_QPS_INIT, NULL);
- 	} else if ((attr_mask & IB_QP_STATE) && attr->qp_state == IB_QPS_RTR) {
- 		status = usnic_ib_qp_grp_modify(qp_grp, IB_QPS_RTR, NULL);
- 	} else if ((attr_mask & IB_QP_STATE) && attr->qp_state == IB_QPS_RTS) {
--- 
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
+index bad985e..3e58842 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
+@@ -104,7 +104,7 @@ usnic_ib_show_config(struct device *device, struct device_attribute *attr,
+ 			PCI_SLOT(us_ibdev->pdev->devfn),
+ 			PCI_FUNC(us_ibdev->pdev->devfn),
+ 			netdev_name(us_ibdev->netdev),
+-			us_ibdev->mac,
++			us_ibdev->ufdev->mac,
+ 			atomic_read(&us_ibdev->vf_cnt.refcount));
+ 		UPDATE_PTR_LEFT(n, ptr, left);
+
+@@ -239,21 +239,17 @@ static ssize_t summary_show(struct usnic_ib_qp_grp *qp_grp, char *buf)
+ 	int left;
+ 	char *ptr;
+ 	struct usnic_vnic_res_chunk *res_chunk;
+-	struct usnic_fwd_filter_hndl *default_filter_hndl;
+ 	struct usnic_vnic_res *vnic_res;
+
+ 	left = PAGE_SIZE;
+ 	ptr = buf;
+-	default_filter_hndl = list_first_entry(&qp_grp->filter_hndls,
+-					struct usnic_fwd_filter_hndl, link);
+
+ 	n = scnprintf(ptr, left,
+-			"QPN: %d State: (%s) PID: %u VF Idx: %hu Filter ID: 0x%x ",
++			"QPN: %d State: (%s) PID: %u VF Idx: %hu ",
+ 			qp_grp->ibqp.qp_num,
+ 			usnic_ib_qp_grp_state_to_string(qp_grp->state),
+ 			qp_grp->owner_pid,
+-			usnic_vnic_get_index(qp_grp->vf->vnic),
+-			default_filter_hndl->id);
++			usnic_vnic_get_index(qp_grp->vf->vnic));
+ 	UPDATE_PTR_LEFT(n, ptr, left);
+
+ 	for (i = 0; qp_grp->res_chunk_list[i]; i++) {
+--
 1.8.1
 
 --
