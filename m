@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 6/6] IB/core: Rename RMDA_TRANSPORT_USNIC
-Date: Fri, 20 Dec 2013 12:38:23 -0800
-Message-ID: <1387571903-9398-7-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 1/6] IB/usnic: Update ABI and Version file for UDP support
+Date: Fri, 20 Dec 2013 12:38:18 -0800
+Message-ID: <1387571903-9398-2-git-send-email-umalhi@cisco.com>
 References: <1387571903-9398-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387571903-9398-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,51 +10,71 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch renames RDMA_TRANSPORT_USNIC to RDMA_TRANSPORT_USNIC_UDP.
-usNIC traffic will go over UDP, hence _UDP suffix is apt.
+Expand the kernel/userspace interface so userspace may push down
+a socket file descriptor to usNIC.  Also, bump up the abi and version
+numbers.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 4 ++--
- include/rdma/ib_verbs.h         | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/usnic/usnic.h     |  4 ++--
+ drivers/infiniband/hw/usnic/usnic_abi.h | 12 ++++++++++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index d4f6ddf..1428adc 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -115,7 +115,7 @@ rdma_node_get_transport(enum rdma_node_type node_type)
- 	case RDMA_NODE_RNIC:
- 		return RDMA_TRANSPORT_IWARP;
- 	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
-+		return RDMA_TRANSPORT_USNIC_UDP;
- 	default:
- 		BUG();
- 		return 0;
-@@ -132,7 +132,7 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
- 	case RDMA_TRANSPORT_IB:
- 		return IB_LINK_LAYER_INFINIBAND;
- 	case RDMA_TRANSPORT_IWARP:
--	case RDMA_TRANSPORT_USNIC:
-+	case RDMA_TRANSPORT_USNIC_UDP:
- 		return IB_LINK_LAYER_ETHERNET;
- 	default:
- 		return IB_LINK_LAYER_UNSPECIFIED;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 979874c..485a8e0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -74,7 +74,7 @@ enum rdma_node_type {
- enum rdma_transport_type {
- 	RDMA_TRANSPORT_IB,
- 	RDMA_TRANSPORT_IWARP,
--	RDMA_TRANSPORT_USNIC
-+	RDMA_TRANSPORT_USNIC_UDP
+diff --git a/drivers/infiniband/hw/usnic/usnic.h b/drivers/infiniband/hw/usnic/usnic.h
+index d741c76..5be13d8 100644
+--- a/drivers/infiniband/hw/usnic/usnic.h
++++ b/drivers/infiniband/hw/usnic/usnic.h
+@@ -23,7 +23,7 @@
+
+ #define PCI_DEVICE_ID_CISCO_VIC_USPACE_NIC	0x00cf	/* User space NIC */
+
+-#define DRV_VERSION    "1.0.2"
+-#define DRV_RELDATE    "September 09, 2013"
++#define DRV_VERSION    "1.0.3"
++#define DRV_RELDATE    "December 19, 2013"
+
+ #endif /* USNIC_H_ */
+diff --git a/drivers/infiniband/hw/usnic/usnic_abi.h b/drivers/infiniband/hw/usnic/usnic_abi.h
+index 7eb49f4..730a371 100644
+--- a/drivers/infiniband/hw/usnic/usnic_abi.h
++++ b/drivers/infiniband/hw/usnic/usnic_abi.h
+@@ -21,7 +21,7 @@
+ #define USNIC_ABI_H
+
+ /* ABI between userspace and kernel */
+-#define USNIC_UVERBS_ABI_VERSION	2
++#define USNIC_UVERBS_ABI_VERSION	3
+
+ #define USNIC_QP_GRP_MAX_WQS		8
+ #define USNIC_QP_GRP_MAX_RQS		8
+@@ -30,7 +30,8 @@
+ enum usnic_transport_type {
+ 	USNIC_TRANSPORT_UNKNOWN		= 0,
+ 	USNIC_TRANSPORT_ROCE_CUSTOM	= 1,
+-	USNIC_TRANSPORT_MAX		= 2,
++	USNIC_TRANSPORT_IPV4_UDP	= 2,
++	USNIC_TRANSPORT_MAX		= 3,
  };
- 
- enum rdma_transport_type
--- 
+
+ struct usnic_transport_spec {
+@@ -39,9 +40,16 @@ struct usnic_transport_spec {
+ 		struct {
+ 			uint16_t	port_num;
+ 		} usnic_roce;
++		struct {
++			uint32_t	sock_fd;
++		} udp;
+ 	};
+ };
+
++struct usnic_ib_create_qp_cmd {
++	struct usnic_transport_spec	spec;
++};
++
+ /*TODO: Future - usnic_modify_qp needs to pass in generic filters */
+ struct usnic_ib_create_qp_resp {
+ 	u32				vfid;
+--
 1.8.1
 
 --
