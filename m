@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 15/15] IB/usnic: Fix false log
-Date: Fri, 20 Dec 2013 12:26:46 -0800
-Message-ID: <1387571206-8043-16-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 03/15] IB/usnic: Make usNIC built depend on Intel IOMMU
+Date: Fri, 20 Dec 2013 12:26:34 -0800
+Message-ID: <1387571206-8043-4-git-send-email-umalhi@cisco.com>
 References: <1387571206-8043-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387571206-8043-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,27 +10,32 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC is falsing printing an error if usnic_ib_qp_grp_modify
-succeeds.
+usNIC requires Intel IOMMU to be present in order to function
+correctly.  This patch adds a dependency on CONFIG_INTEL_IOMMU
+of CONFIG_INFINIBAND_USNIC.  It also fixes iommu_domain_has_cap
+not found error that is thrown if usNIC is built with !CONFIG_IOMMU_API.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/usnic/Kconfig | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index bbe614b..dc09c12 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -115,7 +115,7 @@ static void usnic_ib_qp_grp_modify_active_to_err(struct usnic_ib_dev *us_ibdev)
- 				status = usnic_ib_qp_grp_modify(qp_grp,
- 								IB_QPS_ERR,
- 								NULL);
--				if (!status) {
-+				if (status) {
- 					usnic_err("Failed to transistion qp grp %u from %s to %s\n",
- 						qp_grp->grp_id,
- 						usnic_ib_qp_grp_state_to_string
+diff --git a/drivers/infiniband/hw/usnic/Kconfig b/drivers/infiniband/hw/usnic/Kconfig
+index 0f14b6d..2cc8ba0 100644
+--- a/drivers/infiniband/hw/usnic/Kconfig
++++ b/drivers/infiniband/hw/usnic/Kconfig
+@@ -1,10 +1,9 @@
+ config INFINIBAND_USNIC
+ 	tristate "Verbs support for Cisco VIC"
+-	depends on NETDEVICES && ETHERNET && PCI
++	depends on NETDEVICES && ETHERNET && PCI && INTEL_IOMMU
+ 	select ENIC
+ 	select NET_VENDOR_CISCO
+ 	select PCI_IOV
+-	select IOMMU_SUPPORT
+ 	select INFINIBAND_USER_ACCESS
+ 	---help---
+ 	  This is a low-level driver for Cisco's Virtual Interface
 -- 
 1.8.1
 
