@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/6] IB/usnic: Add UDP support in usnic_ib_qp_grp.[hc]
-Date: Fri, 20 Dec 2013 12:38:22 -0800
-Message-ID: <1387571903-9398-6-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 4/6] IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h
+Date: Fri, 20 Dec 2013 12:38:21 -0800
+Message-ID: <1387571903-9398-5-git-send-email-umalhi@cisco.com>
 References: <1387571903-9398-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387571903-9398-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,168 +10,284 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-UDP support for qp_grps/qps.
+Add supports for:
+	1) Parsing the socket file descriptor pass down from userspace.
+	2) IP notifiers
+	3) Encoding the IP in the GID
+	4) Other aux. changes to support UDP
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 88 +++++++++++++++++++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h | 11 ++++
- 2 files changed, 99 insertions(+)
+ drivers/infiniband/hw/usnic/usnic_common_util.h | 17 +++++
+ drivers/infiniband/hw/usnic/usnic_ib_main.c     | 84 ++++++++++++++++++++++++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c    | 44 ++++++++++---
+ 3 files changed, 136 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index bf3a2aa..71efb8d 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -246,6 +246,80 @@ static void release_roce_custom_flow(struct usnic_ib_qp_grp_flow *qp_flow)
+diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
+index 128550a..afd8bfa 100644
+--- a/drivers/infiniband/hw/usnic/usnic_common_util.h
++++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
+@@ -36,6 +36,23 @@ usnic_mac_to_gid(const char *const mac, char *raw_gid)
  }
 
- static struct usnic_ib_qp_grp_flow*
-+create_udp_flow(struct usnic_ib_qp_grp *qp_grp,
-+		struct usnic_transport_spec *trans_spec)
+ static inline void
++usnic_mac_ip_to_gid(const char *const mac, const uint32_t inaddr, char *raw_gid)
 +{
-+	struct socket *sock;
-+	int sock_fd;
-+	int err;
-+	struct filter filter;
-+	struct usnic_filter_action uaction;
-+	struct usnic_ib_qp_grp_flow *qp_flow;
-+	struct usnic_fwd_flow *flow;
-+	enum usnic_transport_type trans_type;
-+	uint32_t addr;
-+	uint16_t port_num;
-+	int proto;
-+
-+	trans_type = trans_spec->trans_type;
-+	sock_fd = trans_spec->udp.sock_fd;
-+
-+	/* Get and check socket */
-+	sock = usnic_transport_get_socket(sock_fd);
-+	if (IS_ERR_OR_NULL(sock))
-+		return ERR_CAST(sock);
-+
-+	err = usnic_transport_sock_get_addr(sock, &proto, &addr, &port_num);
-+	if (err)
-+		goto out_put_sock;
-+
-+	if (proto != IPPROTO_UDP) {
-+		usnic_err("Protocol for fd %d is not UDP", sock_fd);
-+		err = -EPERM;
-+		goto out_put_sock;
-+	}
-+
-+	/* Create flow */
-+	usnic_fwd_init_udp_filter(&filter, addr, port_num);
-+	err = init_filter_action(qp_grp, &uaction);
-+	if (err)
-+		goto out_put_sock;
-+
-+	flow = usnic_fwd_alloc_flow(qp_grp->ufdev, &filter, &uaction);
-+	if (IS_ERR_OR_NULL(flow)) {
-+		usnic_err("Unable to alloc flow failed with err %ld\n",
-+				PTR_ERR(flow));
-+		err = (flow) ? PTR_ERR(flow) : -EFAULT;
-+		goto out_put_sock;
-+	}
-+
-+	/* Create qp_flow */
-+	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
-+	if (IS_ERR_OR_NULL(qp_flow)) {
-+		err = (qp_flow) ? PTR_ERR(qp_flow) : -ENOMEM;
-+		goto out_dealloc_flow;
-+	}
-+	qp_flow->flow = flow;
-+	qp_flow->trans_type = trans_type;
-+	qp_flow->udp.sock = sock;
-+	qp_flow->qp_grp = qp_grp;
-+	return qp_flow;
-+
-+out_dealloc_flow:
-+	usnic_fwd_dealloc_flow(flow);
-+out_put_sock:
-+	usnic_transport_put_socket(sock);
-+	return ERR_PTR(err);
++	raw_gid[0] = 0xfe;
++	raw_gid[1] = 0x80;
++	memset(&raw_gid[2], 0, 2);
++	memcpy(&raw_gid[4], &inaddr, 4);
++	raw_gid[8] = mac[0]^2;
++	raw_gid[9] = mac[1];
++	raw_gid[10] = mac[2];
++	raw_gid[11] = 0xff;
++	raw_gid[12] = 0xfe;
++	raw_gid[13] = mac[3];
++	raw_gid[14] = mac[4];
++	raw_gid[15] = mac[5];
 +}
 +
-+static void release_udp_flow(struct usnic_ib_qp_grp_flow *qp_flow)
-+{
-+	usnic_fwd_dealloc_flow(qp_flow->flow);
-+	usnic_transport_put_socket(qp_flow->udp.sock);
-+	kfree(qp_flow);
-+}
-+
-+static struct usnic_ib_qp_grp_flow*
- create_and_add_flow(struct usnic_ib_qp_grp *qp_grp,
- 			struct usnic_transport_spec *trans_spec)
++static inline void
+ usnic_write_gid_if_id_from_mac(char *mac, char *raw_gid)
  {
-@@ -257,6 +331,9 @@ create_and_add_flow(struct usnic_ib_qp_grp *qp_grp,
- 	case USNIC_TRANSPORT_ROCE_CUSTOM:
- 		qp_flow = create_roce_custom_flow(qp_grp, trans_spec);
- 		break;
-+	case USNIC_TRANSPORT_IPV4_UDP:
-+		qp_flow = create_udp_flow(qp_grp, trans_spec);
-+		break;
- 	default:
- 		usnic_err("Unsupported transport %u\n",
- 				trans_spec->trans_type);
-@@ -278,6 +355,9 @@ static void release_and_remove_flow(struct usnic_ib_qp_grp_flow *qp_flow)
- 	case USNIC_TRANSPORT_ROCE_CUSTOM:
- 		release_roce_custom_flow(qp_flow);
- 		break;
-+	case USNIC_TRANSPORT_IPV4_UDP:
-+		release_udp_flow(qp_flow);
-+		break;
- 	default:
- 		WARN(1, "Unsupported transport %u\n",
- 				qp_flow->trans_type);
-@@ -544,11 +624,19 @@ static int qp_grp_id_from_flow(struct usnic_ib_qp_grp_flow *qp_flow,
- 				uint32_t *id)
- {
- 	enum usnic_transport_type trans_type = qp_flow->trans_type;
-+	int err;
+ 	raw_gid[8] = mac[0]^2;
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 6ab0b41..3b7e8bd 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -25,6 +25,7 @@
+  */
 
- 	switch (trans_type) {
- 	case USNIC_TRANSPORT_ROCE_CUSTOM:
- 		*id = qp_flow->usnic_roce.port_num;
- 		break;
-+	case USNIC_TRANSPORT_IPV4_UDP:
-+		err = usnic_transport_sock_get_addr(qp_flow->udp.sock,
-+							NULL, NULL,
-+							(uint16_t *) id);
-+		if (err)
-+			return err;
-+		break;
- 	default:
- 		usnic_err("Unsupported transport %u\n", trans_type);
- 		return -EINVAL;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
-index 570fea2..a8ba1b9 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
-@@ -56,6 +56,9 @@ struct usnic_ib_qp_grp_flow {
- 		struct {
- 			uint16_t	port_num;
- 		} usnic_roce;
-+		struct {
-+			struct socket	*sock;
-+		} udp;
- 	};
- 	struct usnic_ib_qp_grp		*qp_grp;
- 	struct list_head		link;
-@@ -76,6 +79,14 @@ usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] = {
- 			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
- 		},
- 	},
-+	{ /*USNIC_TRANSPORT_IPV4_UDP*/
-+		.resources = {
-+			{.type = USNIC_VNIC_RES_TYPE_WQ,	.cnt = 1,},
-+			{.type = USNIC_VNIC_RES_TYPE_RQ,	.cnt = 1,},
-+			{.type = USNIC_VNIC_RES_TYPE_CQ,	.cnt = 1,},
-+			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
-+		},
-+	},
+ #include <linux/module.h>
++#include <linux/inetdevice.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/errno.h>
+@@ -236,13 +237,79 @@ static struct notifier_block usnic_ib_netdevice_notifier = {
  };
+ /* End of netdev section */
 
- const char *usnic_ib_qp_grp_state_to_string(enum ib_qp_state state);
++/* Start of inet section */
++static int usnic_ib_handle_inet_event(struct usnic_ib_dev *us_ibdev,
++					unsigned long event, void *ptr)
++{
++	struct in_ifaddr *ifa = ptr;
++	struct ib_event ib_event;
++
++	mutex_lock(&us_ibdev->usdev_lock);
++
++	switch (event) {
++	case NETDEV_DOWN:
++		usnic_info("%s via ip notifiers",
++				usnic_ib_netdev_event_to_string(event));
++		usnic_fwd_del_ipaddr(us_ibdev->ufdev);
++		usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
++		ib_event.event = IB_EVENT_GID_CHANGE;
++		ib_event.device = &us_ibdev->ib_dev;
++		ib_event.element.port_num = 1;
++		ib_dispatch_event(&ib_event);
++		break;
++	case NETDEV_UP:
++		usnic_fwd_add_ipaddr(us_ibdev->ufdev, ifa->ifa_address);
++		usnic_info("%s via ip notifiers: ip %pI4",
++				usnic_ib_netdev_event_to_string(event),
++				&us_ibdev->ufdev->inaddr);
++		ib_event.event = IB_EVENT_GID_CHANGE;
++		ib_event.device = &us_ibdev->ib_dev;
++		ib_event.element.port_num = 1;
++		ib_dispatch_event(&ib_event);
++		break;
++	default:
++		usnic_info("Ignorning event %s on %s",
++				usnic_ib_netdev_event_to_string(event),
++				us_ibdev->ib_dev.name);
++	}
++	mutex_unlock(&us_ibdev->usdev_lock);
++
++	return NOTIFY_DONE;
++}
++
++static int usnic_ib_inetaddr_event(struct notifier_block *notifier,
++					unsigned long event, void *ptr)
++{
++	struct usnic_ib_dev *us_ibdev;
++	struct in_ifaddr *ifa = ptr;
++	struct net_device *netdev = ifa->ifa_dev->dev;
++
++	mutex_lock(&usnic_ib_ibdev_list_lock);
++	list_for_each_entry(us_ibdev, &usnic_ib_ibdev_list, ib_dev_link) {
++		if (us_ibdev->netdev == netdev) {
++			usnic_ib_handle_inet_event(us_ibdev, event, ptr);
++			break;
++		}
++	}
++	mutex_unlock(&usnic_ib_ibdev_list_lock);
++
++	return NOTIFY_DONE;
++}
++static struct notifier_block usnic_ib_inetaddr_notifier = {
++	.notifier_call = usnic_ib_inetaddr_event
++};
++/* End of inet section*/
++
+ /* Start of PF discovery section */
+ static void *usnic_ib_device_add(struct pci_dev *dev)
+ {
+ 	struct usnic_ib_dev *us_ibdev;
+ 	union ib_gid gid;
++	struct in_ifaddr *in;
++	struct net_device *netdev;
+
+ 	usnic_dbg("\n");
++	netdev = pci_get_drvdata(dev);
+
+ 	us_ibdev = (struct usnic_ib_dev *)ib_alloc_device(sizeof(*us_ibdev));
+ 	if (IS_ERR_OR_NULL(us_ibdev)) {
+@@ -326,6 +393,12 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ 	if (netif_carrier_ok(us_ibdev->netdev))
+ 		usnic_fwd_carrier_up(us_ibdev->ufdev);
+
++	in = ((struct in_device *)(netdev->ip_ptr))->ifa_list;
++	if (in != NULL)
++		usnic_fwd_add_ipaddr(us_ibdev->ufdev, in->ifa_address);
++
++	usnic_mac_ip_to_gid(us_ibdev->netdev->perm_addr,
++				us_ibdev->ufdev->inaddr, &gid.raw[0]);
+ 	memcpy(&us_ibdev->ib_dev.node_guid, &gid.global.interface_id,
+ 		sizeof(gid.global.interface_id));
+ 	kref_init(&us_ibdev->vf_cnt);
+@@ -555,16 +628,24 @@ static int __init usnic_ib_init(void)
+ 		goto out_pci_unreg;
+ 	}
+
++	err = register_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
++	if (err) {
++		usnic_err("Failed to register inet addr notifier\n");
++		goto out_unreg_netdev_notifier;
++	}
++
+ 	err = usnic_transport_init();
+ 	if (err) {
+ 		usnic_err("Failed to initialize transport\n");
+-		goto out_unreg_netdev_notifier;
++		goto out_unreg_inetaddr_notifier;
+ 	}
+
+ 	usnic_debugfs_init();
+
+ 	return 0;
+
++out_unreg_inetaddr_notifier:
++	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
+ out_unreg_netdev_notifier:
+ 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
+ out_pci_unreg:
+@@ -580,6 +661,7 @@ static void __exit usnic_ib_destroy(void)
+ 	usnic_dbg("\n");
+ 	usnic_debugfs_exit();
+ 	usnic_transport_fini();
++	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
+ 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
+ 	pci_unregister_driver(&usnic_ib_pci_driver);
+ 	usnic_uiom_fini();
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index 2217bc0..937113f 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -230,6 +230,15 @@ static void eth_speed_to_ib_speed(int speed, u8 *active_speed,
+ 	}
+ }
+
++static int create_qp_validate_user_data(struct usnic_ib_create_qp_cmd cmd)
++{
++	if (cmd.spec.trans_type <= USNIC_TRANSPORT_UNKNOWN ||
++			cmd.spec.trans_type >= USNIC_TRANSPORT_MAX)
++		return -EINVAL;
++
++	return 0;
++}
++
+ /* Start of ib callback functions */
+
+ enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
+@@ -252,7 +261,8 @@ int usnic_ib_query_device(struct ib_device *ibdev,
+ 	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
+ 	us_ibdev->netdev->ethtool_ops->get_settings(us_ibdev->netdev, &cmd);
+ 	memset(props, 0, sizeof(*props));
+-	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid.raw[0]);
++	usnic_mac_ip_to_gid(us_ibdev->ufdev->mac, us_ibdev->ufdev->inaddr,
++			&gid.raw[0]);
+ 	memcpy(&props->sys_image_guid, &gid.global.interface_id,
+ 		sizeof(gid.global.interface_id));
+ 	usnic_ib_fw_string_to_u64(&info.fw_version[0], &props->fw_ver);
+@@ -310,12 +320,15 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+ 	props->sm_lid = 0;
+ 	props->sm_sl = 0;
+
+-	if (us_ibdev->ufdev->link_up) {
+-		props->state = IB_PORT_ACTIVE;
+-		props->phys_state = 5;
+-	} else {
++	if (!us_ibdev->ufdev->link_up) {
+ 		props->state = IB_PORT_DOWN;
+ 		props->phys_state = 3;
++	} else if (!us_ibdev->ufdev->inaddr) {
++		props->state = IB_PORT_INIT;
++		props->phys_state = 4;
++	} else {
++		props->state = IB_PORT_ACTIVE;
++		props->phys_state = 5;
+ 	}
+
+ 	props->port_cap_flags = 0;
+@@ -385,7 +398,8 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+
+ 	mutex_lock(&us_ibdev->usdev_lock);
+ 	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
+-	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid->raw[0]);
++	usnic_mac_ip_to_gid(us_ibdev->ufdev->mac, us_ibdev->ufdev->inaddr,
++			&gid->raw[0]);
+ 	mutex_unlock(&us_ibdev->usdev_lock);
+
+ 	return 0;
+@@ -444,6 +458,7 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
+ 	struct usnic_ib_ucontext *ucontext;
+ 	int cq_cnt;
+ 	struct usnic_vnic_res_spec res_spec;
++	struct usnic_ib_create_qp_cmd cmd;
+ 	struct usnic_transport_spec trans_spec;
+
+ 	usnic_dbg("\n");
+@@ -451,14 +466,27 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
+ 	ucontext = to_uucontext(pd->uobject->context);
+ 	us_ibdev = to_usdev(pd->device);
+
++	err = ib_copy_from_udata(&cmd, udata, sizeof(cmd));
++	if (err) {
++		usnic_err("%s: cannot copy udata for create_qp\n",
++				us_ibdev->ib_dev.name);
++		return ERR_PTR(-EINVAL);
++	}
++
++	err = create_qp_validate_user_data(cmd);
++	if (err) {
++		usnic_err("%s: Failed to validate user data\n",
++				us_ibdev->ib_dev.name);
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	if (init_attr->qp_type != IB_QPT_UD) {
+ 		usnic_err("%s asked to make a non-UD QP: %d\n",
+ 				us_ibdev->ib_dev.name, init_attr->qp_type);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+
+-	memset(&trans_spec, 0, sizeof(trans_spec));
+-	trans_spec.trans_type = USNIC_TRANSPORT_ROCE_CUSTOM;
++	trans_spec = cmd.spec;
+ 	mutex_lock(&us_ibdev->usdev_lock);
+ 	cq_cnt = (init_attr->send_cq == init_attr->recv_cq) ? 1 : 2;
+ 	res_spec = min_transport_spec[trans_spec.trans_type];
 --
 1.8.1
 
