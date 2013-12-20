@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 4/6] IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h
-Date: Fri, 20 Dec 2013 12:38:21 -0800
-Message-ID: <1387571903-9398-5-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 3/6] IB:usnic: Add UDP support to usnic_transport.[hc]
+Date: Fri, 20 Dec 2013 12:38:20 -0800
+Message-ID: <1387571903-9398-4-git-send-email-umalhi@cisco.com>
 References: <1387571903-9398-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387571903-9398-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,284 +10,215 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add supports for:
-	1) Parsing the socket file descriptor pass down from userspace.
-	2) IP notifiers
-	3) Encoding the IP in the GID
-	4) Other aux. changes to support UDP
+This patch provides API for rest of usNIC code to increment or decrement
+socket's reference count. Auxiliary socket APIs are also provided.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_common_util.h | 17 +++++
- drivers/infiniband/hw/usnic/usnic_ib_main.c     | 84 ++++++++++++++++++++++++-
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c    | 44 ++++++++++---
- 3 files changed, 136 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_transport.c | 93 +++++++++++++++++++++++++--
+ drivers/infiniband/hw/usnic/usnic_transport.h | 19 ++++++
+ 2 files changed, 105 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
-index 128550a..afd8bfa 100644
---- a/drivers/infiniband/hw/usnic/usnic_common_util.h
-+++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
-@@ -36,6 +36,23 @@ usnic_mac_to_gid(const char *const mac, char *raw_gid)
- }
-
- static inline void
-+usnic_mac_ip_to_gid(const char *const mac, const uint32_t inaddr, char *raw_gid)
-+{
-+	raw_gid[0] = 0xfe;
-+	raw_gid[1] = 0x80;
-+	memset(&raw_gid[2], 0, 2);
-+	memcpy(&raw_gid[4], &inaddr, 4);
-+	raw_gid[8] = mac[0]^2;
-+	raw_gid[9] = mac[1];
-+	raw_gid[10] = mac[2];
-+	raw_gid[11] = 0xff;
-+	raw_gid[12] = 0xfe;
-+	raw_gid[13] = mac[3];
-+	raw_gid[14] = mac[4];
-+	raw_gid[15] = mac[5];
-+}
-+
-+static inline void
- usnic_write_gid_if_id_from_mac(char *mac, char *raw_gid)
- {
- 	raw_gid[8] = mac[0]^2;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 6ab0b41..3b7e8bd 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -25,6 +25,7 @@
+diff --git a/drivers/infiniband/hw/usnic/usnic_transport.c b/drivers/infiniband/hw/usnic/usnic_transport.c
+index 723bd6c..73dffc9 100644
+--- a/drivers/infiniband/hw/usnic/usnic_transport.c
++++ b/drivers/infiniband/hw/usnic/usnic_transport.c
+@@ -16,8 +16,10 @@
+  *
   */
-
+ #include <linux/bitmap.h>
++#include <linux/file.h>
  #include <linux/module.h>
-+#include <linux/inetdevice.h>
- #include <linux/init.h>
  #include <linux/slab.h>
- #include <linux/errno.h>
-@@ -236,13 +237,79 @@ static struct notifier_block usnic_ib_netdevice_notifier = {
- };
- /* End of netdev section */
++#include <net/inet_sock.h>
 
-+/* Start of inet section */
-+static int usnic_ib_handle_inet_event(struct usnic_ib_dev *us_ibdev,
-+					unsigned long event, void *ptr)
-+{
-+	struct in_ifaddr *ifa = ptr;
-+	struct ib_event ib_event;
-+
-+	mutex_lock(&us_ibdev->usdev_lock);
-+
-+	switch (event) {
-+	case NETDEV_DOWN:
-+		usnic_info("%s via ip notifiers",
-+				usnic_ib_netdev_event_to_string(event));
-+		usnic_fwd_del_ipaddr(us_ibdev->ufdev);
-+		usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
-+		ib_event.event = IB_EVENT_GID_CHANGE;
-+		ib_event.device = &us_ibdev->ib_dev;
-+		ib_event.element.port_num = 1;
-+		ib_dispatch_event(&ib_event);
-+		break;
-+	case NETDEV_UP:
-+		usnic_fwd_add_ipaddr(us_ibdev->ufdev, ifa->ifa_address);
-+		usnic_info("%s via ip notifiers: ip %pI4",
-+				usnic_ib_netdev_event_to_string(event),
-+				&us_ibdev->ufdev->inaddr);
-+		ib_event.event = IB_EVENT_GID_CHANGE;
-+		ib_event.device = &us_ibdev->ib_dev;
-+		ib_event.element.port_num = 1;
-+		ib_dispatch_event(&ib_event);
-+		break;
-+	default:
-+		usnic_info("Ignorning event %s on %s",
-+				usnic_ib_netdev_event_to_string(event),
-+				us_ibdev->ib_dev.name);
-+	}
-+	mutex_unlock(&us_ibdev->usdev_lock);
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static int usnic_ib_inetaddr_event(struct notifier_block *notifier,
-+					unsigned long event, void *ptr)
-+{
-+	struct usnic_ib_dev *us_ibdev;
-+	struct in_ifaddr *ifa = ptr;
-+	struct net_device *netdev = ifa->ifa_dev->dev;
-+
-+	mutex_lock(&usnic_ib_ibdev_list_lock);
-+	list_for_each_entry(us_ibdev, &usnic_ib_ibdev_list, ib_dev_link) {
-+		if (us_ibdev->netdev == netdev) {
-+			usnic_ib_handle_inet_event(us_ibdev, event, ptr);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&usnic_ib_ibdev_list_lock);
-+
-+	return NOTIFY_DONE;
-+}
-+static struct notifier_block usnic_ib_inetaddr_notifier = {
-+	.notifier_call = usnic_ib_inetaddr_event
-+};
-+/* End of inet section*/
-+
- /* Start of PF discovery section */
- static void *usnic_ib_device_add(struct pci_dev *dev)
+ #include "usnic_transport.h"
+ #include "usnic_log.h"
+@@ -28,13 +30,15 @@ static u16 roce_next_port = 1;
+ #define ROCE_BITMAP_SZ ((1 << (8 /*CHAR_BIT*/ * sizeof(u16)))/8 /*CHAR BIT*/)
+ static DEFINE_SPINLOCK(roce_bitmap_lock);
+
+-static const char *transport_to_str(enum usnic_transport_type type)
++const char *usnic_transport_to_str(enum usnic_transport_type type)
  {
- 	struct usnic_ib_dev *us_ibdev;
- 	union ib_gid gid;
-+	struct in_ifaddr *in;
-+	struct net_device *netdev;
-
- 	usnic_dbg("\n");
-+	netdev = pci_get_drvdata(dev);
-
- 	us_ibdev = (struct usnic_ib_dev *)ib_alloc_device(sizeof(*us_ibdev));
- 	if (IS_ERR_OR_NULL(us_ibdev)) {
-@@ -326,6 +393,12 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	if (netif_carrier_ok(us_ibdev->netdev))
- 		usnic_fwd_carrier_up(us_ibdev->ufdev);
-
-+	in = ((struct in_device *)(netdev->ip_ptr))->ifa_list;
-+	if (in != NULL)
-+		usnic_fwd_add_ipaddr(us_ibdev->ufdev, in->ifa_address);
-+
-+	usnic_mac_ip_to_gid(us_ibdev->netdev->perm_addr,
-+				us_ibdev->ufdev->inaddr, &gid.raw[0]);
- 	memcpy(&us_ibdev->ib_dev.node_guid, &gid.global.interface_id,
- 		sizeof(gid.global.interface_id));
- 	kref_init(&us_ibdev->vf_cnt);
-@@ -555,16 +628,24 @@ static int __init usnic_ib_init(void)
- 		goto out_pci_unreg;
- 	}
-
-+	err = register_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
-+	if (err) {
-+		usnic_err("Failed to register inet addr notifier\n");
-+		goto out_unreg_netdev_notifier;
-+	}
-+
- 	err = usnic_transport_init();
- 	if (err) {
- 		usnic_err("Failed to initialize transport\n");
--		goto out_unreg_netdev_notifier;
-+		goto out_unreg_inetaddr_notifier;
- 	}
-
- 	usnic_debugfs_init();
-
- 	return 0;
-
-+out_unreg_inetaddr_notifier:
-+	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
- out_unreg_netdev_notifier:
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- out_pci_unreg:
-@@ -580,6 +661,7 @@ static void __exit usnic_ib_destroy(void)
- 	usnic_dbg("\n");
- 	usnic_debugfs_exit();
- 	usnic_transport_fini();
-+	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- 	pci_unregister_driver(&usnic_ib_pci_driver);
- 	usnic_uiom_fini();
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 2217bc0..937113f 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -230,6 +230,15 @@ static void eth_speed_to_ib_speed(int speed, u8 *active_speed,
+ 	switch (type) {
+ 	case USNIC_TRANSPORT_UNKNOWN:
+ 		return "Unknown";
+ 	case USNIC_TRANSPORT_ROCE_CUSTOM:
+ 		return "roce custom";
++	case USNIC_TRANSPORT_IPV4_UDP:
++		return "IPv4 UDP";
+ 	case USNIC_TRANSPORT_MAX:
+ 		return "Max?";
+ 	default:
+@@ -42,6 +46,24 @@ static const char *transport_to_str(enum usnic_transport_type type)
  	}
  }
 
-+static int create_qp_validate_user_data(struct usnic_ib_create_qp_cmd cmd)
++int usnic_transport_sock_to_str(char *buf, int buf_sz,
++					struct socket *sock)
 +{
-+	if (cmd.spec.trans_type <= USNIC_TRANSPORT_UNKNOWN ||
-+			cmd.spec.trans_type >= USNIC_TRANSPORT_MAX)
++	int err;
++	uint32_t addr;
++	uint16_t port;
++	int proto;
++
++	memset(buf, 0, buf_sz);
++	err = usnic_transport_sock_get_addr(sock, &proto, &addr, &port);
++	if (err)
++		return 0;
++
++	addr = htonl(addr);
++	return scnprintf(buf, buf_sz, "Proto:%u Addr:%pI4 Port:%hu",
++			proto, &addr, port);
++}
++
+ /*
+  * reserve a port number.  if "0" specified, we will try to pick one
+  * starting at roce_next_port.  roce_next_port will take on the values
+@@ -60,7 +82,7 @@ u16 usnic_transport_rsrv_port(enum usnic_transport_type type, u16 port_num)
+ 			roce_next_port = (port_num & 4095) + 1;
+ 		} else if (test_bit(port_num, roce_bitmap)) {
+ 			usnic_err("Failed to allocate port for %s\n",
+-					transport_to_str(type));
++					usnic_transport_to_str(type));
+ 			spin_unlock(&roce_bitmap_lock);
+ 			goto out_fail;
+ 		}
+@@ -68,12 +90,12 @@ u16 usnic_transport_rsrv_port(enum usnic_transport_type type, u16 port_num)
+ 		spin_unlock(&roce_bitmap_lock);
+ 	} else {
+ 		usnic_err("Failed to allocate port - transport %s unsupported\n",
+-				transport_to_str(type));
++				usnic_transport_to_str(type));
+ 		goto out_fail;
+ 	}
+
+ 	usnic_dbg("Allocating port %hu for %s\n", port_num,
+-			transport_to_str(type));
++			usnic_transport_to_str(type));
+ 	return port_num;
+
+ out_fail:
+@@ -86,19 +108,19 @@ void usnic_transport_unrsrv_port(enum usnic_transport_type type, u16 port_num)
+ 		spin_lock(&roce_bitmap_lock);
+ 		if (!port_num) {
+ 			usnic_err("Unreserved unvalid port num 0 for %s\n",
+-					transport_to_str(type));
++					usnic_transport_to_str(type));
+ 			goto out_roce_custom;
+ 		}
+
+ 		if (!test_bit(port_num, roce_bitmap)) {
+ 			usnic_err("Unreserving invalid %hu for %s\n",
+ 					port_num,
+-					transport_to_str(type));
++					usnic_transport_to_str(type));
+ 			goto out_roce_custom;
+ 		}
+ 		bitmap_clear(roce_bitmap, port_num, 1);
+ 		usnic_dbg("Freeing port %hu for %s\n", port_num,
+-				transport_to_str(type));
++				usnic_transport_to_str(type));
+ out_roce_custom:
+ 		spin_unlock(&roce_bitmap_lock);
+ 	} else {
+@@ -106,6 +128,63 @@ out_roce_custom:
+ 	}
+ }
+
++struct socket *usnic_transport_get_socket(int sock_fd)
++{
++	struct socket *sock;
++	int err;
++	char buf[25];
++
++	/* sockfd_lookup will internally do a fget */
++	sock = sockfd_lookup(sock_fd, &err);
++	if (!sock) {
++		usnic_err("Unable to lookup socket for fd %d with err %d\n",
++				sock_fd, err);
++		return ERR_PTR(-ENOENT);
++	}
++
++	usnic_transport_sock_to_str(buf, sizeof(buf), sock);
++	usnic_dbg("Get sock %s\n", buf);
++
++	return sock;
++}
++
++void usnic_transport_put_socket(struct socket *sock)
++{
++	char buf[100];
++
++	usnic_transport_sock_to_str(buf, sizeof(buf), sock);
++	usnic_dbg("Put sock %s\n", buf);
++	sockfd_put(sock);
++}
++
++int usnic_transport_sock_get_addr(struct socket *sock, int *proto,
++					uint32_t *addr, uint16_t *port)
++{
++	int len;
++	int err;
++	struct sockaddr_in sock_addr;
++
++	err = sock->ops->getname(sock,
++				(struct sockaddr *)&sock_addr,
++				&len, 0);
++	if (err)
++		return err;
++
++	if (sock_addr.sin_family != AF_INET)
 +		return -EINVAL;
++
++	if (proto)
++		*proto = sock->sk->sk_protocol;
++	if (port)
++		*port = ntohs(((struct sockaddr_in *)&sock_addr)->sin_port);
++	if (addr)
++		*addr = ntohl(((struct sockaddr_in *)
++					&sock_addr)->sin_addr.s_addr);
 +
 +	return 0;
 +}
 +
- /* Start of ib callback functions */
-
- enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
-@@ -252,7 +261,8 @@ int usnic_ib_query_device(struct ib_device *ibdev,
- 	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
- 	us_ibdev->netdev->ethtool_ops->get_settings(us_ibdev->netdev, &cmd);
- 	memset(props, 0, sizeof(*props));
--	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid.raw[0]);
-+	usnic_mac_ip_to_gid(us_ibdev->ufdev->mac, us_ibdev->ufdev->inaddr,
-+			&gid.raw[0]);
- 	memcpy(&props->sys_image_guid, &gid.global.interface_id,
- 		sizeof(gid.global.interface_id));
- 	usnic_ib_fw_string_to_u64(&info.fw_version[0], &props->fw_ver);
-@@ -310,12 +320,15 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
- 	props->sm_lid = 0;
- 	props->sm_sl = 0;
-
--	if (us_ibdev->ufdev->link_up) {
--		props->state = IB_PORT_ACTIVE;
--		props->phys_state = 5;
--	} else {
-+	if (!us_ibdev->ufdev->link_up) {
- 		props->state = IB_PORT_DOWN;
- 		props->phys_state = 3;
-+	} else if (!us_ibdev->ufdev->inaddr) {
-+		props->state = IB_PORT_INIT;
-+		props->phys_state = 4;
-+	} else {
-+		props->state = IB_PORT_ACTIVE;
-+		props->phys_state = 5;
- 	}
-
- 	props->port_cap_flags = 0;
-@@ -385,7 +398,8 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
-
- 	mutex_lock(&us_ibdev->usdev_lock);
- 	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
--	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid->raw[0]);
-+	usnic_mac_ip_to_gid(us_ibdev->ufdev->mac, us_ibdev->ufdev->inaddr,
-+			&gid->raw[0]);
- 	mutex_unlock(&us_ibdev->usdev_lock);
-
- 	return 0;
-@@ -444,6 +458,7 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
- 	struct usnic_ib_ucontext *ucontext;
- 	int cq_cnt;
- 	struct usnic_vnic_res_spec res_spec;
-+	struct usnic_ib_create_qp_cmd cmd;
- 	struct usnic_transport_spec trans_spec;
-
- 	usnic_dbg("\n");
-@@ -451,14 +466,27 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
- 	ucontext = to_uucontext(pd->uobject->context);
- 	us_ibdev = to_usdev(pd->device);
-
-+	err = ib_copy_from_udata(&cmd, udata, sizeof(cmd));
-+	if (err) {
-+		usnic_err("%s: cannot copy udata for create_qp\n",
-+				us_ibdev->ib_dev.name);
-+		return ERR_PTR(-EINVAL);
-+	}
 +
-+	err = create_qp_validate_user_data(cmd);
-+	if (err) {
-+		usnic_err("%s: Failed to validate user data\n",
-+				us_ibdev->ib_dev.name);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	if (init_attr->qp_type != IB_QPT_UD) {
- 		usnic_err("%s asked to make a non-UD QP: %d\n",
- 				us_ibdev->ib_dev.name, init_attr->qp_type);
- 		return ERR_PTR(-EINVAL);
- 	}
+ int usnic_transport_init(void)
+ {
+ 	roce_bitmap = kzalloc(ROCE_BITMAP_SZ, GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/usnic/usnic_transport.h b/drivers/infiniband/hw/usnic/usnic_transport.h
+index 091fdaf..21371bb 100644
+--- a/drivers/infiniband/hw/usnic/usnic_transport.h
++++ b/drivers/infiniband/hw/usnic/usnic_transport.h
+@@ -21,8 +21,27 @@
 
--	memset(&trans_spec, 0, sizeof(trans_spec));
--	trans_spec.trans_type = USNIC_TRANSPORT_ROCE_CUSTOM;
-+	trans_spec = cmd.spec;
- 	mutex_lock(&us_ibdev->usdev_lock);
- 	cq_cnt = (init_attr->send_cq == init_attr->recv_cq) ? 1 : 2;
- 	res_spec = min_transport_spec[trans_spec.trans_type];
+ #include "usnic_abi.h"
+
++const char *usnic_transport_to_str(enum usnic_transport_type trans_type);
++/*
++ * Returns number of bytes written, excluding null terminator. If
++ * nothing was written, the function returns 0.
++ */
++int usnic_transport_sock_to_str(char *buf, int buf_sz,
++					struct socket *sock);
+ u16 usnic_transport_rsrv_port(enum usnic_transport_type type, u16 port_num);
+ void usnic_transport_unrsrv_port(enum usnic_transport_type type, u16 port_num);
++/*
++ * Do a fget on the socket refered to by sock_fd and returns the socket.
++ * Socket will not be destroyed before usnic_transport_put_socket has
++ * been called.
++ */
++struct socket *usnic_transport_get_socket(int sock_fd);
++void usnic_transport_put_socket(struct socket *sock);
++/*
++ * Call usnic_transport_get_socket before calling *_sock_get_addr
++ */
++int usnic_transport_sock_get_addr(struct socket *sock, int *proto,
++					uint32_t *addr, uint16_t *port);
+ int usnic_transport_init(void);
+ void usnic_transport_fini(void);
+ #endif /* !USNIC_TRANSPORT_H */
 --
 1.8.1
 
