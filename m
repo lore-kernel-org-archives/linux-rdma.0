@@ -1,53 +1,44 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH for-next 5/9] IB/usnic: Change BUG_ON to WARN_ON
-Date: Sat, 21 Dec 2013 11:04:09 +0100
-Message-ID: <52B56799.2010306@acm.org>
-References: <1387298917-7365-1-git-send-email-umalhi@cisco.com> <1387298917-7365-6-git-send-email-umalhi@cisco.com>
+Subject: Re: [PATCH for-next 7/9] IB/usnic: Fix printk format warnings
+Date: Sat, 21 Dec 2013 11:07:03 +0100
+Message-ID: <52B56847.5070209@acm.org>
+References: <1387298917-7365-1-git-send-email-umalhi@cisco.com> <1387298917-7365-8-git-send-email-umalhi@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387298917-7365-6-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1387298917-7365-8-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 12/17/13 17:48, Upinder Malhi wrote:
-> usNIC calls BUG_ON(spinlock_is_held..) at few places.  In some of these
-> instances, the call is made with another spinlock already held.  Change
-> all such calls in usNIC to WARN_ON to make it fool-proof.
-> 
-> Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 16 ++++++++--------
->  drivers/infiniband/hw/usnic/usnic_uiom.c      |  2 +-
->  2 files changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-> index f647b6b..ad57a77 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-> @@ -82,7 +82,7 @@ static int add_fwd_filter(struct usnic_ib_qp_grp *qp_grp,
->  	struct usnic_vnic_res_chunk *chunk;
->  	int rq_idx;
+> diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+> index 359897d..0477d70 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_uiom.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+> @@ -81,15 +81,16 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
+>  	struct usnic_uiom_chunk *chunk, *tmp;
+>  	struct page *page;
+>  	int i;
+> +	dma_addr_t pa;
 >  
-> -	BUG_ON(!spin_is_locked(&qp_grp->lock));
-> +	WARN_ON(!spin_is_locked(&qp_grp->lock));
->  
->  	chunk = usnic_ib_qp_grp_get_chunk(qp_grp, USNIC_VNIC_RES_TYPE_RQ);
->  	if (IS_ERR_OR_NULL(chunk) || chunk->cnt < 1) {
+>  	list_for_each_entry_safe(chunk, tmp, chunk_list, list) {
+>  		for (i = 0; i < chunk->nents; i++) {
+>  			page = sg_page(&chunk->page_list[i]);
+> +			pa = sg_phys(&chunk->page_list[i]);
+>  			if (dirty)
+>  				set_page_dirty_lock(page);
+>  			put_page(page);
+> -			usnic_dbg("pa: 0x%llx\n",
+> -					sg_phys(&chunk->page_list[i]));
+> +			usnic_dbg("pa: %pa\n", &pa);
+>  		}
+>  		kfree(chunk);
+>  	}
 
-Please consider using lockdep_assert_held() instead of
-BUG_ON(!spin_is_locked()) or WARN_ON(!spin_is_locked()). Both the old
-code and the new code will fail on uniprocessor systems with
-CONFIG_DEBUG_SPINLOCK=n. From include/linux/spinlock_up.h:
-
-#ifdef CONFIG_DEBUG_SPINLOCK
-...
-#else /* DEBUG_SPINLOCK */
-#define arch_spin_is_locked(lock)	((void)(lock), 0)
-...
-#endif
+Maybe I'm missing something, but is there any reason why in the above a
+regular for-loop is used instead of for_each_sg() ?
 
 Bart.
 
