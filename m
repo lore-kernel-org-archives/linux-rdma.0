@@ -1,65 +1,40 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH for-next V1] IB/usnic: Fix userspace/kernel ABI alignment
- discrepancy
-Date: Sat, 21 Dec 2013 10:52:00 +0100
-Message-ID: <52B564C0.2090606@acm.org>
-References: <BB49315F-37F6-4B91-9374-E7C886DA2B3D@cisco.com>
+Subject: Re: [PATCH for-next 2/9] IB/usnic: Fix format not a string literal
+ warnings
+Date: Sat, 21 Dec 2013 10:58:12 +0100
+Message-ID: <52B56634.1020300@acm.org>
+References: <1387298917-7365-1-git-send-email-umalhi@cisco.com> <1387298917-7365-3-git-send-email-umalhi@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BB49315F-37F6-4B91-9374-E7C886DA2B3D-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1387298917-7365-3-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> Dreier" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/21/13 03:05, Upinder Malhi (umalhi) wrote:
-> Change from V0:
-> Make reserved field 9 bytes instead of 8 bytes.
+On 12/17/13 17:48, Upinder Malhi wrote:
+> Few printks in usnic are called w/o a string literal.
+> Intel GCC is throwing warnings and this patch provides a fix
+> for these.
 > 
-> This patch depends on http://www.spinics.net/lists/linux-rdma/msg18193.html.
+> [ ... ]
+> @@ -372,8 +372,7 @@ static void usnic_ib_undiscover_pf(struct kref *kref)
+>  		}
+>  	}
 > 
-> Change the type of the reserve field to u32 from u64 in
-> usnic_ib_create_qp_resp bc u64 will align differently for
-> 32 and 64 bit archs.  And reserve even more space for future
-> expansion.
+> -	if (!found)
+> -		WARN("Failed to remove PF %s\n", pci_name(dev));
+> +	WARN(found, "Failed to remove PF %s\n", pci_name(dev));
 > 
-> Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> ---
-> drivers/infiniband/hw/usnic/usnic_abi.h | 4 ++--
-> 1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/usnic/usnic_abi.h b/drivers/infiniband/hw/usnic/usnic_abi.h
-> index 730a371..6c56fbf 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_abi.h
-> +++ b/drivers/infiniband/hw/usnic/usnic_abi.h
-> @@ -21,7 +21,7 @@
-> #define USNIC_ABI_H
-> 
-> /* ABI between userspace and kernel */
-> -#define USNIC_UVERBS_ABI_VERSION	3
-> +#define USNIC_UVERBS_ABI_VERSION	4
-> 
-> #define USNIC_QP_GRP_MAX_WQS		8
-> #define USNIC_QP_GRP_MAX_RQS		8
-> @@ -67,7 +67,7 @@ struct usnic_ib_create_qp_resp {
-> 	u32				rq_idx[USNIC_QP_GRP_MAX_RQS];
-> 	u32				cq_idx[USNIC_QP_GRP_MAX_CQS];
-> 	u32				transport;
-> -	u64				reserved;
-> +	u32				reserved[9];
-> };
-> 
-> #endif /* USNIC_ABI_H */
+>  	mutex_unlock(&usnic_ib_ibdev_list_lock);
+>  }
 
-Sorry but to me it seems like the patch description does not match the
-patch itself. In the patch I see an increase of the size of "reserved"
-from 8 to 36 bytes while the description says that the size of that
-member has been increased from 8 to 9 bytes ?
+The old code printed a warning if found == 0. The new code prints a
+warning if found != 0. If this is on purpose I think this change should
+be in a separate patch.
 
 Bart.
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
