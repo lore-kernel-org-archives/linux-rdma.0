@@ -1,23 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net v2 0/8] Fixes for server entries and server filter
- entries for Chelsio T4/T5
-Date: Sun, 22 Dec 2013 18:09:56 -0500 (EST)
-Message-ID: <20131222.180956.1606680303406177838.davem@davemloft.net>
-References: <1387364906-1967-1-git-send-email-hariprasad@chelsio.com>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Subject: [PATCH 11/21] infiniband: slight optimization of addr compare
+Date: Mon, 23 Dec 2013 13:10:40 +0800
+Message-ID: <52B7C5D0.8040502@huawei.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1387364906-1967-1-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: hariprasad@chelsio.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, roland@purestorage.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, kumaras@chelsio.com, nirranjan@chelsio.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hariprasad Shenai <hariprasad@chelsio.com>
-Date: Wed, 18 Dec 2013 16:38:18 +0530
+Use the recently added and possibly more efficient
+ether_addr_equal_unaligned to instead of memcmp.
 
-> This patch series provides miscelleneous fixes for Chelsio T4/T5 adapters
-> related to server entries and server filter entries.
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Wang Weidong <wangweidong1@huawei.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ drivers/infiniband/hw/nes/nes_cm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Series applied, thanks.
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 6b29249..7c07edc 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1354,8 +1354,7 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
+ 				  neigh->ha, ntohl(rt->rt_gateway));
+ 
+ 			if (arpindex >= 0) {
+-				if (!memcmp(nesadapter->arp_table[arpindex].mac_addr,
+-					    neigh->ha, ETH_ALEN)) {
++				if (ether_addr_equal_unaligned(nesadapter->arp_table[arpindex].mac_addr, neigh->ha)) {
+ 					/* Mac address same as in nes_arp_table */
+ 					goto out;
+ 				}
+-- 
+1.8.0
