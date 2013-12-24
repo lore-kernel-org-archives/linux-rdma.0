@@ -1,35 +1,43 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: memory sinhronization and replication
-Date: Tue, 24 Dec 2013 10:12:35 +0400
-Message-ID: <CACaajQvg0gwStW6mELvdJ1UWP5DOyDGRQEtQ51RLdxUAZxN6rA@mail.gmail.com>
-References: <CACaajQvhEVZLqMQY8EOVpvoUT5cF6uLwXGqYJMfnmuqfxeykNw@mail.gmail.com>
- <CADPSxAgWwaO-4H4e3cWQnkt=xxEd20W-e=Bh8GUdE1oK5na5Qw@mail.gmail.com>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Subject: [PATCH v2 10/20] infiniband: slight optimization of addr compare
+Date: Tue, 24 Dec 2013 19:28:34 +0800
+Message-ID: <52B96FE2.807@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAgWwaO-4H4e3cWQnkt=xxEd20W-e=Bh8GUdE1oK5na5Qw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2013/12/24 Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> I am not sure if I understand your question correctly. Copying data
-> between two machines is straightforward with RDMA: the verbs
-> operations do exactly that.
+Use the possibly more efficient ether_addr_equal
+to instead of memcmp.
 
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Wang Weidong <wangweidong1@huawei.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ drivers/infiniband/hw/nes/nes_cm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Thanks. I need something like this:
-Two servers write data to some storage (sata disks).
-On OS level i have disk cache read/write, that i need to have on both
-servers identical for failover.
-
-
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 6b29249..9c9f2f5 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1354,8 +1354,7 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
+ 				  neigh->ha, ntohl(rt->rt_gateway));
+ 
+ 			if (arpindex >= 0) {
+-				if (!memcmp(nesadapter->arp_table[arpindex].mac_addr,
+-					    neigh->ha, ETH_ALEN)) {
++				if (ether_addr_equal(nesadapter->arp_table[arpindex].mac_addr, neigh->ha)) {
+ 					/* Mac address same as in nes_arp_table */
+ 					goto out;
+ 				}
 -- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.0
