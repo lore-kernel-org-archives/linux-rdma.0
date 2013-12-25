@@ -1,7 +1,7 @@
 From: Ding Tianhong <dingtianhong@huawei.com>
-Subject: [PATCH v2 10/20] infiniband: slight optimization of addr compare
-Date: Tue, 24 Dec 2013 19:28:34 +0800
-Message-ID: <52B96FE2.807@huawei.com>
+Subject: [PATCH v3 09/19] infiniband: slight optimization of addr compare
+Date: Wed, 25 Dec 2013 11:28:47 +0800
+Message-ID: <52BA50EF.90603@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
