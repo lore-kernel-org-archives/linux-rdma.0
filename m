@@ -1,138 +1,43 @@
-From: "Zhang, Yang Z" <yang.z.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Xen-devel] BUG: bad page map under Xen
-Date: Thu, 26 Dec 2013 06:39:25 +0000
-Message-ID: <A9667DDFB95DB7438FA9D7D576C3D87E0A99CE00@SHSMSX104.ccr.corp.intel.com>
-References: <52652534.2040303@oracle.com>
-	<526545E002000078000FC5F1@nat28.tlf.novell.com>
-	<52652E95.3020305@oracle.com> <20131021140607.GQ20913@ics.muni.cz>
-	<20131021141855.GA4211@phenom.dumpdata.com>
-	<5265560602000078000FC73E@nat28.tlf.novell.com>
-	<20131021144407.GC4560@phenom.dumpdata.com>
-	<5265609802000078000FC7B7@nat28.tlf.novell.com>
-	<20131023153645.GA28011@phenom.dumpdata.com>	<5269A865.2010100@cantab.net>
- <20131025142147.GB3742@phenom.dumpdata.com>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Subject: [PATCH v3.5 09/19] infiniband: slight optimization of addr compare
+Date: Thu, 26 Dec 2013 19:40:50 +0800
+Message-ID: <52BC15C2.70402@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131025142147.GB3742-6K5HmflnPlqSPmnEAIUT9EEOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Vrabel <dvrabel-5LkwijKnu/2sTnJN9+BGXg@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lukas Hejtmanek <xhejtman-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>, Jan Beulich <JBeulich-IBi9RG/b67k@public.gmane.org>, "xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org" <xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org>, "Liu, Jijiang" <jijiang.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Konrad Rzeszutek Wilk wrote on 2013-10-25:
-> On Fri, Oct 25, 2013 at 12:08:21AM +0100, David Vrabel wrote:
->> On 23/10/13 16:36, Konrad Rzeszutek Wilk wrote:
->>> On Mon, Oct 21, 2013 at 04:12:56PM +0100, Jan Beulich wrote:
->>>>>>> On 21.10.13 at 16:44, Konrad Rzeszutek Wilk
-> <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>>>> On Mon, Oct 21, 2013 at 03:27:50PM +0100, Jan Beulich wrote:
->>>>>>>>> On 21.10.13 at 16:18, Konrad Rzeszutek Wilk
-> <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>>>>>> On Mon, Oct 21, 2013 at 04:06:07PM +0200, Lukas Hejtmanek wrote:
->>>>>>>>         Region 2: Memory at 380fff000000 (64-bit,
->>>>>>>> prefetchable) [size=8M]
->>>>>>> ...
->>>>>>> --- a/arch/x86/xen/setup.c
->>>>>>> +++ b/arch/x86/xen/setup.c
->>>>>>> @@ -92,6 +92,9 @@ static void __init xen_add_extra_mem(u64
->>>>>>> start,
->>>>>>> u64 size)
->>>>>>> 
->>>>>>>                 __set_phys_to_machine(pfn,
-> INVALID_P2M_ENTRY);
->>>>>>>         }
->>>>>>> +       /* Anything past the balloon area is marked as identity.
->>>>>>> */ +       for (pfn = xen_max_p2m_pfn; pfn < MAX_DOMAIN_PAGES;
->>>>>>> pfn++) +               __set_phys_to_machine(pfn,
-> IDENTITY_FRAME(pfn));
->>>>>> 
->>>>>> Hardly - MAX_DOMAIN_PAGES derives from
->>>>>> CONFIG_XEN_MAX_DOMAIN_MEMORY, which in turn is unrelated to where
->>>>>> MMIO might be. Should you perhaps simply start from
->>>>> 
->>>>> Looks like your mailer ate some words.
->>>> 
->>>> I don't think so - they're all there in the text you quoted.
->>>> 
->>>>>> an all 1:1 mapping, inserting the RAM translations as you find
->>>>>> them?
->>>>> 
->>>>> 
->>>>> Yeah, as this code can be called for the regions under 4GB.
->>>>> Definitly needs more analysis.
->>>>> 
->>>>> Were you suggesting a lookup when we scan the PCI devices?
-> (xen_add_device)?
->>>> 
->>>> That was for PVH, and is obviously fragile, as there can be MMIO
->>>> regions not matched by any PCI device's BAR. We could hope for all
->>>> of them to be below 4Gb, but I think (based on logs I got to see
->>>> recently from a certain vendor's upcoming systems) this isn't
->>>> going to work out.
->>> 
->>> This is the patch I had in mind that I think will fix these issues.
->>> But I would appreciate testing it and naturally send me the dmesg
->>> if
-> possible.
->> 
->> I think there is a simpler way to handle this.
->> 
->> If INVALID_P2M_ENTRY implies 1:1 and we arrange:
-> 
-> I am a bit afraid to make that assumption.
->> 
->> a) pfn_to_mfn() to return pfn if the mfn is missing in the p2m
-> 
-> The balloon pages are of missing type (initially). And they should
-> return INVALID_P2M_ENTRY at start - later on they will return the scratch_page.
-> 
->> b) mfn_to_pfn() to return mfn if p2m(m2p(mfn)) != mfn and there is
->> no m2p override.
-> 
-> The toolstack can map pages that are are p2m(p2m(mfn)) != mfn and have
-> no m2p override.
-> 
->> 
->> Then:
->> 
->> a) The identity p2m entries can be removed.
->> b) _PAGE_IOMAP becomes unnecessary.
-> 
-> You still need it for the toolstack to map other guests pages.
-> (xen_privcmd_map).
-> 
-> I think for right now to fix this issue going ahead and setting
-> 1-1 in the P2M for affected devices (PCI and MCFG) is simpler, b/c:
->  - We only do it when said device is in the guest (so if you launch
->    and PCI PV guest you can still migrate it - after unplugging the
->    device). Assuming all 1-1 regions might not be a healthy (I had a
->    heck of time fixing all of the migration issues when I wrote the 1:1
->    code). - It will make PVH hypercall to mark I/O regions easier.
->    Instead of it assuming that all non-RAM space is I/O regions it will
->    be able to selectively setup the entries for said regions. I think
->    that is what Jan suggested?
->  - This is a bug - so lets fix it as a bug first.
-> Redoing the P2M is certainly an option but I am not signing up for that this year.
-> Let me post my two patches that fix this for PCI devices and MCFG areas.
-> 
+Use the possibly more efficient ether_addr_equal
+to instead of memcmp.
 
-Any conclusion for this issue? Our custom also saw the same issue that they want to map an MMIO to userspace address(through UIO approach), but current ->mmap function call remap_pfn_range without setting _PAGE_IOMAP and cause the host crashed. It seems all userspace device drivers that tries to map device's mmio will caused host crashed.
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Wang Weidong <wangweidong1@huawei.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ drivers/infiniband/hw/nes/nes_cm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-They are using 3.10 kernel.
-
-> _______________________________________________
-> Xen-devel mailing list
-> Xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org
-> http://lists.xen.org/xen-devel
-
-
-Best regards,
-Yang
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 6b29249..9c9f2f5 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1354,8 +1354,7 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
+ 				  neigh->ha, ntohl(rt->rt_gateway));
+ 
+ 			if (arpindex >= 0) {
+-				if (!memcmp(nesadapter->arp_table[arpindex].mac_addr,
+-					    neigh->ha, ETH_ALEN)) {
++				if (ether_addr_equal(nesadapter->arp_table[arpindex].mac_addr, neigh->ha)) {
+ 					/* Mac address same as in nes_arp_table */
+ 					goto out;
+ 				}
+-- 
+1.8.0
