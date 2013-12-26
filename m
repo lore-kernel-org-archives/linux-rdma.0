@@ -1,43 +1,51 @@
-From: Ding Tianhong <dingtianhong@huawei.com>
-Subject: [PATCH v3.5 09/19] infiniband: slight optimization of addr compare
-Date: Thu, 26 Dec 2013 19:40:50 +0800
-Message-ID: <52BC15C2.70402@huawei.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_ucast_file.c: Fix crash when port is invalid in
+ LFT file
+Date: Thu, 26 Dec 2013 08:39:12 -0500
+Message-ID: <52BC3180.1090203@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the possibly more efficient ether_addr_equal
-to instead of memcmp.
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Faisal Latif <faisal.latif@intel.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Wang Weidong <wangweidong1@huawei.com>
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_cm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ opensm/osm_ucast_file.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 6b29249..9c9f2f5 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1354,8 +1354,7 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
- 				  neigh->ha, ntohl(rt->rt_gateway));
- 
- 			if (arpindex >= 0) {
--				if (!memcmp(nesadapter->arp_table[arpindex].mac_addr,
--					    neigh->ha, ETH_ALEN)) {
-+				if (ether_addr_equal(nesadapter->arp_table[arpindex].mac_addr, neigh->ha)) {
- 					/* Mac address same as in nes_arp_table */
- 					goto out;
- 				}
+diff --git a/opensm/osm_ucast_file.c b/opensm/osm_ucast_file.c
+index 2c2bf0c..a5408af 100644
+--- a/opensm/osm_ucast_file.c
++++ b/opensm/osm_ucast_file.c
+@@ -216,6 +216,17 @@ static int do_ucast_file_load(void *context)
+ 					file_name, lineno, p);
+ 				goto Exit;
+ 			}
++			if (port_num >=
++				osm_node_get_num_physp(p_sw->p_node)) {
++					OSM_LOG(&p_osm->log, OSM_LOG_ERROR,
++						"Invalid port %d found "
++						"for switch %016" PRIx64 "\n",
++						port_num,
++						cl_ntoh64(osm_node_get_node_guid
++							(p_sw->p_node)));
++					goto Exit;
++			}
++
+ 			p = q;
+ 			/* additionally try to extract guid */
+ 			q = strstr(p, " portguid 0x");
 -- 
-1.8.0
+1.7.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
