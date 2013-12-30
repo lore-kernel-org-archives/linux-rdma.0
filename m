@@ -1,50 +1,56 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: fix insert of
- invalid lid 0xFFFF into lid_port hash_table
-Date: Mon, 30 Dec 2013 09:50:59 -0500
-Message-ID: <52C18853.8080107@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_db_files.c: Some minor fixes/improvements to osm_db_store
+Date: Mon, 30 Dec 2013 10:59:54 -0500
+Message-ID: <52C1987A.6000802@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+1. Check p_domain_imp->dirty flag under lock
+2. Handle malloc failure for temporary file name
+3. Move malloc outside of lock
+
+Items 1 and 2 above were:
+Pointed-out-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+in http://marc.info/?l=linux-rdma&m=138763427730411&w=2
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibnetdisc/src/ibnetdisc.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
-
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 9d120dd..121fe35 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -647,11 +647,13 @@ void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable)
- 	uint16_t base_lid = port->base_lid;
- 	uint16_t lid_mask = ((1 << port->lmc) -1);
- 	uint16_t lid = 0;
--
--	/* We add the port for all lids
--	 * so it is easier to find any "random" lid specified */
--	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
--		g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
-+	/* 0 < valid lid <= 0xbfff */
-+	if (base_lid > 0 && base_lid <= 0xbfff) {
-+		/* We add the port for all lids
-+		 * so it is easier to find any "random" lid specified */
-+		for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
-+			g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
-+		}
- 	}
- }
+diff --git a/opensm/osm_db_files.c b/opensm/osm_db_files.c
+index 38ee9a9..b43b5e6 100644
+--- a/opensm/osm_db_files.c
++++ b/opensm/osm_db_files.c
+@@ -475,16 +475,21 @@ int osm_db_store(IN osm_db_domain_t * p_domain,
  
--- 
-1.7.8.2
-
+ 	p_domain_imp = (osm_db_domain_imp_t *) p_domain->p_domain_imp;
+ 
+-	if (p_domain_imp->dirty == FALSE)
+-		goto Exit;
+-
+ 	p_tmp_file_name = malloc(sizeof(char) *
+ 				 (strlen(p_domain_imp->file_name) + 8));
++	if (!p_tmp_file_name) {
++		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6113: "
++			"Failed to allocate memory for temporary file name\n");
++		goto Exit;
++	}
+ 	strcpy(p_tmp_file_name, p_domain_imp->file_name);
+ 	strcat(p_tmp_file_name, ".tmp");
+ 
+ 	cl_spinlock_acquire(&p_domain_imp->lock);
+ 
++	if (p_domain_imp->dirty == FALSE)
++		goto Exit;
++
+ 	/* open up the output file */
+ 	p_file = fopen(p_tmp_file_name, "w");
+ 	if (!p_file) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
