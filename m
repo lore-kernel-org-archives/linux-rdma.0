@@ -1,41 +1,47 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_trap_rcv.c: fix race condition during sweep
-Date: Mon, 30 Dec 2013 07:24:57 -0500
-Message-ID: <52C16619.2000703@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: fix insert of
+ invalid lid 0xFFFF into lid_port hash_table
+Date: Mon, 30 Dec 2013 09:50:59 -0500
+Message-ID: <52C18853.8080107@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If SM receives trap 128 from a physp it didn't discover yet, it will
-crash.
-
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_trap_rcv.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ libibnetdisc/src/ibnetdisc.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
-index 72df5db..d5f646f 100644
---- a/opensm/osm_trap_rcv.c
-+++ b/opensm/osm_trap_rcv.c
-@@ -568,7 +568,8 @@ check_sweep:
- 	if (osm_log_is_active_v2(sm->p_log, OSM_LOG_INFO, FILE_ID)) {
- 		if (ib_notice_is_generic(p_ntci) &&
- 		    cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == SM_LINK_STATE_CHANGED_TRAP) {
--			p_path = osm_physp_get_dr_path_ptr(p_physp);
-+			p_path = (p_physp) ?
-+			    osm_physp_get_dr_path_ptr(p_physp) : NULL;
- 			if (p_path) {
- 				n = sprintf(buf, "SM class trap %u: ",
- 					    cl_ntoh16(p_ntci->g_or_v.generic.trap_num));
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 9d120dd..121fe35 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -647,11 +647,13 @@ void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable)
+ 	uint16_t base_lid = port->base_lid;
+ 	uint16_t lid_mask = ((1 << port->lmc) -1);
+ 	uint16_t lid = 0;
+-
+-	/* We add the port for all lids
+-	 * so it is easier to find any "random" lid specified */
+-	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
+-		g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
++	/* 0 < valid lid <= 0xbfff */
++	if (base_lid > 0 && base_lid <= 0xbfff) {
++		/* We add the port for all lids
++		 * so it is easier to find any "random" lid specified */
++		for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
++			g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
++		}
+ 	}
+ }
+ 
 -- 
 1.7.8.2
 
