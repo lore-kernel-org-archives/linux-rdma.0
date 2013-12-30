@@ -1,73 +1,58 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 5/25] IB/mlx4: fix error return code
-Date: Sun, 29 Dec 2013 23:47:20 +0100
-Message-ID: <1388357260-4843-6-git-send-email-Julia.Lawall@lip6.fr>
-References: <1388357260-4843-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1388357260-4843-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: kernel-janitors@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_ucast_ftree.c: replace assert with error return
+ value
+Date: Mon, 30 Dec 2013 07:24:48 -0500
+Message-ID: <52C16610.4080402@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Set the return variable to an error code as done elsewhere in the function.
+Removed assert in fabric_create_leaf_switch_array() that checks that the
+number of leafs is > 1. Instead the function returns -1, which fails the
+routing engine.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Not tested.
+ opensm/osm_ucast_ftree.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
- drivers/infiniband/hw/mlx4/sysfs.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
+index 581c233..4cec0ae 100644
+--- a/opensm/osm_ucast_ftree.c
++++ b/opensm/osm_ucast_ftree.c
+@@ -1719,12 +1719,19 @@ static int fabric_create_leaf_switch_array(IN ftree_fabric_t * p_ftree)
+ 			last_leaf_idx = i;
+ 		}
+ 	}
+-	CL_ASSERT(first_leaf_idx < last_leaf_idx);
+ 
+ 	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
+ 		"Full leaf array info: first_leaf_idx = %u, last_leaf_idx = %u\n",
+ 		first_leaf_idx, last_leaf_idx);
+ 
++	if (first_leaf_idx >= last_leaf_idx) {
++		osm_log_v2(&p_ftree->p_osm->log, OSM_LOG_INFO, FILE_ID,
++			   "Faild to find leaf switches - topology is not "
++			   "fat-tree\n");
++		res = -1;
++		goto Exit;
++	}
++
+ 	/* Create array of REAL leaf switches, sorted by index.
+ 	   This array may contain switches at the same rank w/o CNs,
+ 	   in case this is the order of indexing. */
+-- 
+1.7.8.2
 
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index 97516eb..db2ea31 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -582,8 +582,10 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
- 	p->pkey_group.attrs =
- 		alloc_group_attrs(show_port_pkey, store_port_pkey,
- 				  dev->dev->caps.pkey_table_len[port_num]);
--	if (!p->pkey_group.attrs)
-+	if (!p->pkey_group.attrs) {
-+		ret = -ENOMEM;
- 		goto err_alloc;
-+	}
- 
- 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
- 	if (ret)
-@@ -591,8 +593,10 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
- 
- 	p->gid_group.name  = "gid_idx";
- 	p->gid_group.attrs = alloc_group_attrs(show_port_gid_idx, NULL, 1);
--	if (!p->gid_group.attrs)
-+	if (!p->gid_group.attrs) {
-+		ret = -ENOMEM;
- 		goto err_free_pkey;
-+	}
- 
- 	ret = sysfs_create_group(&p->kobj, &p->gid_group);
- 	if (ret)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
