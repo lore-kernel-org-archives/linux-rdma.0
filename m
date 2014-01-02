@@ -1,77 +1,44 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
- information to stdout
-Date: Thu, 2 Jan 2014 08:44:15 +0200
-Message-ID: <20140102064415.GA4568@r-ufm96.mtr.labs.mlnx>
+From: Ilya Kalistru <stebanoid-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Native IB connection setup.
+Date: Thu, 2 Jan 2014 12:11:03 +0400
+Message-ID: <CAKxz9HDpu6-R8HbP6kFw1TU-Px-vrGOB7JVOTdRAFyXiDTdKjg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Write to stdout the route-path when smp returns
-with status error.
+Happy New Year, ladies and gentlemen!
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibnetdisc/src/internal.h  |   10 +++++++---
- libibnetdisc/src/query_smp.c |    6 ++++++
- 2 files changed, 13 insertions(+), 3 deletions(-)
+I'm developing some sort of "hardware InfiniBand server" runing on
+FPGA and delivering some data to PC using RDMA_WRITE operation.
+I've already had Physical Link Up and Logical Link Up between my
+device and PC with Mellanox HCA.
+I see GUID and LID of my device when I runing ibstatus or
+ibnetdiscover command on PC and therefore I think subnet configuration
+is ok.
 
-diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
-index 1ccd29c..47b2a4c 100644
---- a/libibnetdisc/src/internal.h
-+++ b/libibnetdisc/src/internal.h
-@@ -42,12 +42,16 @@
- #include <complib/cl_qmap.h>
- #include <glib.h>
- 
-+#define	IBND_ERROR(fmt, ...) \
-+		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ## __VA_ARGS__)
-+
-+#define	IBND_INFO(fmt, ...) \
-+		printf("%s:%u; " fmt, __FILE__, __LINE__, ## __VA_ARGS__);
-+
- #define	IBND_DEBUG(fmt, ...) \
- 	if (ibdebug) { \
--		printf("%s:%u; " fmt, __FILE__, __LINE__, ## __VA_ARGS__); \
-+		IBND_INFO(fmt,## __VA_ARGS__); \
- 	}
--#define	IBND_ERROR(fmt, ...) \
--		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ## __VA_ARGS__)
- 
- /* HASH table defines */
- #define HASHGUID(guid) ((uint32_t)(((uint32_t)(guid) * 101) ^ ((uint32_t)((guid) >> 32) * 103)))
-diff --git a/libibnetdisc/src/query_smp.c b/libibnetdisc/src/query_smp.c
-index 28620b4..ac4984e 100644
---- a/libibnetdisc/src/query_smp.c
-+++ b/libibnetdisc/src/query_smp.c
-@@ -192,6 +192,9 @@ static int process_one_recv(smp_engine_t * engine)
- 		goto error;
- 
- 	if ((status = umad_status(umad))) {
-+		IBND_INFO("umad (%s Attr 0x%x:%u) bad status %d; %s\n",
-+			   portid2str(&smp->path), smp->rpc.attr.id,
-+			   smp->rpc.attr.mod, status, strerror(status));
- 		IBND_ERROR("umad (%s Attr 0x%x:%u) bad status %d; %s\n",
- 			   portid2str(&smp->path), smp->rpc.attr.id,
- 			   smp->rpc.attr.mod, status, strerror(status));
-@@ -199,6 +202,9 @@ static int process_one_recv(smp_engine_t * engine)
- 			rc = mlnx_ext_port_info_err(engine, smp, mad,
- 						    smp->cb_data);
- 	} else if ((status = mad_get_field(mad, 0, IB_DRSMP_STATUS_F))) {
-+		IBND_INFO("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
-+			   portid2str(&smp->path), smp->rpc.attr.id,
-+			   smp->rpc.attr.mod, status);
- 		IBND_ERROR("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
- 			   portid2str(&smp->path), smp->rpc.attr.id,
- 			   smp->rpc.attr.mod, status);
--- 
-1.7.1
+Now I have a problem with connection setup. Because I'm only who is
+developing this device and it's a problem to add extra protocols in
+FPGA firmware I don't want to use any something like getaddrinfo()
+(they use IPoIB)...
+I'm going to use native IB CM REQ/REP/RTU MADs for connection setup,
+but I don't know how.
 
+I think that I should request GUID to LID resolution at first. Like
+rdma_resolve_addr()/rdma_resolve_route() but from GUID not from IP.
+Second (I think) I should use ib_send_cm_req() and ib_send_cm_rtu()
+with well known ServiceID (I select it) to establish connection.
+
+I'm not a programmer and have no experience with programming of
+network based applications and therefore I will be thankful very much
+if you help me with example of programm code using native IB
+connection setup technics or any other help.
+
+
+P.S. It's my first time I'm using mailing list. I'm sorry, if I'm
+doing something wrong.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
