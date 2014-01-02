@@ -1,55 +1,49 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: failure to get gid with rdma_bind_addr with >= 3.10 kernels
-Date: Thu, 02 Jan 2014 16:17:07 +0100
-Message-ID: <1388675827.22995.7.camel@localhost.localdomain>
-References: <527F6896.1080802@mellanox.com> <527F69B1.9070701@mellanox.com>
-	 <1828884A29C6694DAF28B7E6B8A8237388CF6F78@ORSMSX109.amr.corp.intel.com>
-	 <00000142485f86e5-c3027528-9892-4d5c-8d72-0ed5f98666c4-000000@email.amazonses.com>
-	 <1828884A29C6694DAF28B7E6B8A8237388CF6FD0@ORSMSX109.amr.corp.intel.com>
-	 <52C533C0.3070103@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Fwd: IPoIB and STP
+Date: Thu, 02 Jan 2014 11:23:46 -0500
+Message-ID: <52C59292.8030903@dev.mellanox.co.il>
+References: <CAJH6TXgBySmP9JG=dt1Gp8_oYPBK+g=O84DOjpUu-sZZJ9p-6g@mail.gmail.com> <CAJH6TXibJknwQJz-zB4KC=Lf-ewCaRaRZTGiMu9VHJV_Vr8OjQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52C533C0.3070103-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAJH6TXibJknwQJz-zB4KC=Lf-ewCaRaRZTGiMu9VHJV_Vr8OjQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 12/28/2013 6:08 AM, Gandalf Corvotempesta wrote:
+> Hi,
+> i'm trying to configure a redundant IPoIB network.
+> Obviously, IB switches doesn't talk IP and so doesn't have STP support.
+> 
+> How can I interconnect two different switches with multiple cables and
+> avoid loops?
+> 
+> For example:
+> http://pastebin.com/raw.php?i=w8ySRibG
+> 
+> To have a fully redundant network, I have to interconnect switch1 and
+> switch2 at least with 2 cables and enable STP to avoit loops
+> 
+> Is OpenSM smart enough to detect a multiple link and shutdown one port
+> automatically (doing the same as STP) ?
 
-Le jeudi 02 janvier 2014 =C3=A0 11:39 +0200, Or Gerlitz a =C3=A9crit :
+SM doesn't need to shut down redundant links. It can use multiple links
+as long as it is required to ensure that there are no cyclic flow
+control dependencies. The SM configures this via the switch forwarding
+tables and the SL to VL mapping on the ports in the subnet.
 
-> Can you please prepare a fresh (gift to 2014) release of librdmacm, s=
-uch=20
-> that distributions && people using kernels >=3D 3.11 will be able to =
-have=20
-> this functionality restored once they upgrade librdmacm.
->=20
+-- Hal
 
-Why is this issue addressed by a patch in librdmacm ?
-
-After reading quickly the thread, I still believe that's sound like a
-kernel regression which broke existing userspace applications.
-
-So a patch must be applied on the kernel to fix that regression.
-
-Introducing AF_IB must not have changed the behavor for existing
-applications. Existing applications must not need a new librdmacm when
-they don't use newer kernel extensions.
-
-Regards.
-
-PS: Happy new (gregorian calendar's) year 2014 and best wishes ;)
-
---=20
-Yann Droneaud
-OPTEYA
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
