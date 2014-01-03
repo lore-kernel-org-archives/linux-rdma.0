@@ -1,92 +1,36 @@
-From: Ilya Kalistru <stebanoid-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Native IB connection setup.
-Date: Fri, 3 Jan 2014 22:33:47 +0400
-Message-ID: <CAKxz9HAoCxEZA=DPaJc2TmwotBFsXLdWogr6c379zr4M6-A0Fg@mail.gmail.com>
-References: <CAKxz9HDpu6-R8HbP6kFw1TU-Px-vrGOB7JVOTdRAFyXiDTdKjg@mail.gmail.com>
-	<52C54937.7020003@mellanox.com>
-	<52C56FB8.1080509@dev.mellanox.co.il>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Stepping down
+Date: Fri, 03 Jan 2014 16:16:10 -0500
+Message-ID: <1388783770.20053.10.camel@haswell.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52C56FB8.1080509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you very much!
-I'm going to study this examples.
-In SRP code I've found process of connection establishment with
-REQ/REP/RTU messages.
-Moreover, I've found that SAQUERY tool in infiniband-diags package
-contains functions of NAME -> LID resolution and I think I can use it
-to learn how do they do such things.
+Today was my last day at ORNL, and my future endeavors will leave even
+less time to maintain the SRP initiator.
 
-I don't know what is AF_IB and how I can use it, but I'll study
-rstream and ucmatose sources too.
+My thanks especially go to Bart, for keeping the pressure to improve
+alive, and for driving so many of those improvements.
 
-2014/1/2 Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
-> On 1/2/2014 6:10 AM, Sagi Grimberg wrote:
->> On 1/2/2014 10:11 AM, Ilya Kalistru wrote:
->>> Happy New Year, ladies and gentlemen!
->>>
->>> I'm developing some sort of "hardware InfiniBand server" runing on
->>> FPGA and delivering some data to PC using RDMA_WRITE operation.
->>> I've already had Physical Link Up and Logical Link Up between my
->>> device and PC with Mellanox HCA.
->>> I see GUID and LID of my device when I runing ibstatus or
->>> ibnetdiscover command on PC and therefore I think subnet configuration
->>> is ok.
->>>
->>> Now I have a problem with connection setup. Because I'm only who is
->>> developing this device and it's a problem to add extra protocols in
->>> FPGA firmware I don't want to use any something like getaddrinfo()
->>> (they use IPoIB)...
->>> I'm going to use native IB CM REQ/REP/RTU MADs for connection setup,
->>> but I don't know how.
->>>
->>> I think that I should request GUID to LID resolution at first. Like
->>> rdma_resolve_addr()/rdma_resolve_route() but from GUID not from IP.
->>> Second (I think) I should use ib_send_cm_req() and ib_send_cm_rtu()
->>> with well known ServiceID (I select it) to establish connection.
->>>
->>> I'm not a programmer and have no experience with programming of
->>> network based applications and therefore I will be thankful very much
->>> if you help me with example of programm code using native IB
->>> connection setup technics or any other help.
->>
->> You can  have a look in SRP (SCSI RDMA Protocol under
->> drivers/infiniband/ulp/srp) as a reference for native IB connection
->> establishment.
->
-> There are 2 basic approaches for this:
->
-> As Sagi wrote, first approach is IB CM/UCM which is the approach used by
-> SRP and IPoIB-CM.
->
-> Also, RDMA CM now supports AF_IB. A "recent" kernel (and "recent"
-> librdmacm if user space app) are needed for this approach. There are 2
-> example user space applications which show how to use this (rstream and
-> ucmatose).
->
-> Both require some information from SA PathRecord on the active (client)
-> side of the connection.
->
-> -- Hal
->
->>> P.S. It's my first time I'm using mailing list. I'm sorry, if I'm
->>> doing something wrong.
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message tomajordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info athttp://vger.kernel.org/majordomo-info.html
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6c20792..a36f1b5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7466,7 +7466,6 @@ S:	Maintained
+ F:	drivers/scsi/sr*
+ 
+ SCSI RDMA PROTOCOL (SRP) INITIATOR
+-M:	David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ S:	Supported
+ W:	http://www.openfabrics.org
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
