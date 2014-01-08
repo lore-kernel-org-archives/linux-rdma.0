@@ -1,100 +1,69 @@
 From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 4/9] IB/usnic: Fix error handling with
- IS_ERR_OR_NULL
-Date: Wed, 8 Jan 2014 00:11:02 +0000
-Message-ID: <03E95B5A-4394-451C-969C-A869D8EDF345@cisco.com>
-References: <1387298917-7365-1-git-send-email-umalhi@cisco.com>
- <1387298917-7365-5-git-send-email-umalhi@cisco.com>
- <52B566A9.1080908@acm.org> <3A32A946-EB43-4609-A04A-3BB846C442DB@cisco.com>
+Subject: Re: [PATCH -next] IB/usnic: fix some error return code
+Date: Wed, 8 Jan 2014 00:31:40 +0000
+Message-ID: <97F52CD2-C7EE-4009-AD75-C77168D10DAF@cisco.com>
+References: <CAPgLHd_evqPnt2rjTX3B=jhfD5qmvDk_QdKBgTE2iSZiWw7mOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3A32A946-EB43-4609-A04A-3BB846C442DB-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CAPgLHd_evqPnt2rjTX3B=jhfD5qmvDk_QdKBgTE2iSZiWw7mOg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-Content-ID: <34A6B7028AA2DF4DBEE3F3A6D9BB825C-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Content-ID: <3F071ED1E362F14B96631CB06CFAFF99-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "<sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "<yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>" <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looking through the usNIC code, it uses the below notation everywhere in the code.  Hence, I will not change the below patch, so the notation is consistent with rest of the code and will get rid of all of the extraneous parentheses in another cosmetic patch.
+http://www.spinics.net/lists/linux-rdma/msg18127.html is a superset of patch below.  There is a slight difference in handling of the return value of usnic_ib_discover_pf between the patches, but the difference is superficial.  
 
 Upinder
 
+On Dec 15, 2013, at 9:50 PM, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-On Jan 7, 2014, at 2:03 PM, Upinder Malhi (umalhi) <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
-
-> Ack.  Will comply.
+> From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 > 
-> Upinder
+> This patch make usnic_ib_discover_pf() only return ERR_PTR()
+> only and fix to return a negative error code from the error
+> handling case instead of 0.
 > 
-> On Dec 21, 2013, at 2:00 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+> ---
+> drivers/infiniband/hw/usnic/usnic_ib_main.c | 7 +++++--
+> 1 file changed, 5 insertions(+), 2 deletions(-)
 > 
->> On 12/17/13 17:48, Upinder Malhi wrote:
->>> Errors with IS_ERR_OR_NULL are not handleded correctly in few places
->>> in usNIC.  This patch remedies that.
->>> 
->>> Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
->>> ---
->>> drivers/infiniband/hw/usnic/usnic_ib_main.c  | 10 ++++++----
->>> drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  2 +-
->>> 2 files changed, 7 insertions(+), 5 deletions(-)
->>> 
->>> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
->>> index 4d8cadc..7200861 100644
->>> --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
->>> +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
->>> @@ -398,13 +398,14 @@ static struct usnic_ib_dev *usnic_ib_discover_pf(struct usnic_vnic *vnic)
->>> 
->>> 	us_ibdev = usnic_ib_device_add(parent_pci);
->>> 	if (IS_ERR_OR_NULL(us_ibdev)) {
->>> -		us_ibdev = ERR_PTR(-EINVAL);
->>> +		us_ibdev = (us_ibdev) ? us_ibdev : ERR_PTR(-EFAULT);
->>> 		goto out;
->>> 	}
->>> 
->>> 	err = usnic_ib_sysfs_register_usdev(us_ibdev);
->>> 	if (err) {
->>> 		usnic_ib_device_remove(us_ibdev);
->>> +		us_ibdev = ERR_PTR(err);
->>> 		goto out;
->>> 	}
->>> 
->>> @@ -459,9 +460,10 @@ int usnic_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->>> 	}
->>> 
->>> 	pf = usnic_ib_discover_pf(vf->vnic);
->>> -	if (!pf) {
->>> -		usnic_err("Failed to discover pf of vnic %s with err%d\n",
->>> -				pci_name(pdev), err);
->>> +	if (IS_ERR_OR_NULL(pf)) {
->>> +		usnic_err("Failed to discover pf of vnic %s with err%ld\n",
->>> +				pci_name(pdev), PTR_ERR(pf));
->>> +		err = (pf ? PTR_ERR(pf) : -EFAULT);
->>> 		goto out_clean_vnic;
->>> 	}
->>> 
->>> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
->>> index d305e4e..e19ca90 100644
->>> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
->>> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
->>> @@ -574,7 +574,7 @@ struct ib_mr *usnic_ib_reg_mr(struct ib_pd *pd, u64 start, u64 length,
->>> 	mr->umem = usnic_uiom_reg_get(to_upd(pd)->umem_pd, start, length,
->>> 					access_flags, 0);
->>> 	if (IS_ERR_OR_NULL(mr->umem)) {
->>> -		err = PTR_ERR(mr->umem);
->>> +		err = (mr->umem) ? PTR_ERR(mr->umem) : -EFAULT;
->>> 		goto err_free;
->>> 	}
->> 
->> Three out of four of the above changes introduce superfluous
->> parentheses. Please do not introduce superfluous parentheses that do not
->> improve readability.
->> 
->> Bart.
->> 
->> 
+> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> index 2bbfa09..e07cccc 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> @@ -406,6 +406,7 @@ static struct usnic_ib_dev *usnic_ib_discover_pf(struct usnic_vnic *vnic)
+> 	err = usnic_ib_sysfs_register_usdev(us_ibdev);
+> 	if (err) {
+> 		usnic_ib_device_remove(us_ibdev);
+> +		us_ibdev = ERR_PTR(err);
+> 		goto out;
+> 	}
+> 
+> @@ -460,7 +461,8 @@ int usnic_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+> 	}
+> 
+> 	pf = usnic_ib_discover_pf(vf->vnic);
+> -	if (!pf) {
+> +	if (IS_ERR(pf)) {
+> +		err = PTR_ERR(pf);
+> 		usnic_err("Failed to discover pf of vnic %s with err%d\n",
+> 				pci_name(pdev), err);
+> 		goto out_clean_vnic;
+> @@ -543,7 +545,8 @@ static int __init usnic_ib_init(void)
+> 		return err;
+> 	}
+> 
+> -	if (pci_register_driver(&usnic_ib_pci_driver)) {
+> +	err = pci_register_driver(&usnic_ib_pci_driver);
+> +	if (err) {
+> 		usnic_err("Unable to register with PCI\n");
+> 		goto out_umem_fini;
+> 	}
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
