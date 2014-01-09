@@ -1,36 +1,58 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 15/15] IB/usnic: Fix false log
-Date: Thu,  9 Jan 2014 14:47:43 -0800
-Message-ID: <1389307663-11296-16-git-send-email-umalhi@cisco.com>
-References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 6/6] IB/core: Add RDMA_TRANSPORT_USNIC_UDP
+Date: Thu,  9 Jan 2014 14:48:19 -0800
+Message-ID: <1389307699-11545-7-git-send-email-umalhi@cisco.com>
+References: <1389307699-11545-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1389307699-11545-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC is falsing printing an error if usnic_ib_qp_grp_modify
-succeeds.
+Add RDMA_TRANSPORT_USNIC_UDP which will be used by usNIC.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/verbs.c | 3 ++-
+ include/rdma/ib_verbs.h         | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index bbe614b..dc09c12 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -115,7 +115,7 @@ static void usnic_ib_qp_grp_modify_active_to_err(struct usnic_ib_dev *us_ibdev)
- 				status = usnic_ib_qp_grp_modify(qp_grp,
- 								IB_QPS_ERR,
- 								NULL);
--				if (!status) {
-+				if (status) {
- 					usnic_err("Failed to transistion qp grp %u from %s to %s\n",
- 						qp_grp->grp_id,
- 						usnic_ib_qp_grp_state_to_string
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index d4f6ddf..fae0b08 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -115,7 +115,7 @@ rdma_node_get_transport(enum rdma_node_type node_type)
+ 	case RDMA_NODE_RNIC:
+ 		return RDMA_TRANSPORT_IWARP;
+ 	case RDMA_NODE_USNIC:
+-		return RDMA_TRANSPORT_USNIC;
++		return RDMA_TRANSPORT_USNIC_UDP;
+ 	default:
+ 		BUG();
+ 		return 0;
+@@ -133,6 +133,7 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
+ 		return IB_LINK_LAYER_INFINIBAND;
+ 	case RDMA_TRANSPORT_IWARP:
+ 	case RDMA_TRANSPORT_USNIC:
++	case RDMA_TRANSPORT_USNIC_UDP:
+ 		return IB_LINK_LAYER_ETHERNET;
+ 	default:
+ 		return IB_LINK_LAYER_UNSPECIFIED;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 979874c..5c84e5f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -74,7 +74,8 @@ enum rdma_node_type {
+ enum rdma_transport_type {
+ 	RDMA_TRANSPORT_IB,
+ 	RDMA_TRANSPORT_IWARP,
+-	RDMA_TRANSPORT_USNIC
++	RDMA_TRANSPORT_USNIC,
++	RDMA_TRANSPORT_USNIC_UDP
+ };
+ 
+ enum rdma_transport_type
 -- 
 1.8.1
 
