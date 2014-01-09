@@ -1,49 +1,45 @@
-From: "Dr. Musa Hamed" <drmusahamed01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: I have a very lucrative Business
-Date: Wed, 8 Jan 2014 21:47:31 +0100
-Message-ID: <CALS90i9nMs6jMoH2O5S68sPF=juYOV2sfMAwaBekL8ccz3eSOQ__31780.7372929112$1389215874$gmane$org@mail.gmail.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] RDMA/cxgb4: silence GCC warning
+Date: Thu, 09 Jan 2014 11:53:27 +0100
+Message-ID: <1389264807.11777.6.camel@x41>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@chelsio.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-ATTN: Dear,
+Building mem.o for 32 bits x86 triggers a GCC warning:
+    drivers/infiniband/hw/cxgb4/mem.c: In function '_c4iw_write_mem_dma_aligned':
+    drivers/infiniband/hw/cxgb4/mem.c:79:25: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
 
-I am Dr. Musa Hamed Executive Director of the Bank of Africa
-Plc B.O.A,Cotonou Benin Rep. I have a very lucrative Business proposal
-worth of 21,500,000.00 USD.
+Silence that warning by casting "&wr_wait" to unsigned long before
+casting it to __be64. That's what _c4iw_write_mem_inline() already does.
 
-An Iraqi named Hamadi Hashem a business man made a fixed deposit of
-21,500,000.00 USD . Upon maturity several notices was sent to him,
-even during the war,eleven years ago (2003) up till this date. Again
-after the war another notification was sent and still no response came
-from him. it has been found out that Hamadi Hashem and his family had
-been killed during the war in bomb blast that hit their home at
-Mukaradeeb where his personal oil well was. I am prepared to split the
-funds with you 50%:50%.By placing you as the NEXT OF KIN to his
-deposit.
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+0) Compile tested only (on 32 bit x86): I do not have this hardware.
 
-Should you be interested in doing this deal with me, please send me
-the following information:
+1) This warning was introduced in v3.10-rc1, through commit 42b6a949903d
+("RDMA/cxgb4: Use DSGLs for fastreg and adapter memory writes for T5.").
 
-(1) Your Name
-(2) Resident Address
-(3) Your Occupation
-(4) Your Phone Number
-(5) Date of Birth
-(6) Resident Country
+ drivers/infiniband/hw/cxgb4/mem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-And I will prefer you to reach me privately and securely on my personal
-email address: dr.musahamed30-Qt13gs6zZMY@public.gmane.org
-Tel: +229-988-400-97
-
-I will provide you with further information as soon as I hear
-positively from you.
-
-Regards,
-Dr. Musa Hamed
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 84e4500..41b1195 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -76,7 +76,7 @@ static int _c4iw_write_mem_dma_aligned(struct c4iw_rdev *rdev, u32 addr,
+ 	INIT_ULPTX_WR(req, wr_len, 0, 0);
+ 	req->wr.wr_hi = cpu_to_be32(FW_WR_OP(FW_ULPTX_WR) |
+ 			(wait ? FW_WR_COMPL(1) : 0));
+-	req->wr.wr_lo = wait ? (__force __be64)&wr_wait : 0;
++	req->wr.wr_lo = wait ? (__force __be64)(unsigned long) &wr_wait : 0L;
+ 	req->wr.wr_mid = cpu_to_be32(FW_WR_LEN16(DIV_ROUND_UP(wr_len, 16)));
+ 	req->cmd = cpu_to_be32(ULPTX_CMD(ULP_TX_MEM_WRITE));
+ 	req->cmd |= cpu_to_be32(V_T5_ULP_MEMIO_ORDER(1));
+-- 
+1.8.4.2
