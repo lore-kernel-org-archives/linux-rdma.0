@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 03/15] IB/usnic: Make usNIC built depend on Intel IOMMU
-Date: Thu,  9 Jan 2014 14:47:31 -0800
-Message-ID: <1389307663-11296-4-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 13/15] IB/usnic: Handle NETDEV_CHANGE
+Date: Thu,  9 Jan 2014 14:47:41 -0800
+Message-ID: <1389307663-11296-14-git-send-email-umalhi@cisco.com>
 References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,32 +10,53 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC requires Intel IOMMU to be present in order to function
-correctly.  This patch adds a dependency on CONFIG_INTEL_IOMMU
-of CONFIG_INFINIBAND_USNIC.  It also fixes iommu_domain_has_cap
-not found error that is thrown if usNIC is built with !CONFIG_IOMMU_API.
+usNIC netdev notifier handler does not correctly handle the
+NETDEV_CHANGE event.  This patch adds handling for NETDEV_CHANGE.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/Kconfig | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_main.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/Kconfig b/drivers/infiniband/hw/usnic/Kconfig
-index 0f14b6d..2cc8ba0 100644
---- a/drivers/infiniband/hw/usnic/Kconfig
-+++ b/drivers/infiniband/hw/usnic/Kconfig
-@@ -1,10 +1,9 @@
- config INFINIBAND_USNIC
- 	tristate "Verbs support for Cisco VIC"
--	depends on NETDEVICES && ETHERNET && PCI
-+	depends on NETDEVICES && ETHERNET && PCI && INTEL_IOMMU
- 	select ENIC
- 	select NET_VENDOR_CISCO
- 	select PCI_IOV
--	select IOMMU_SUPPORT
- 	select INFINIBAND_USER_ACCESS
- 	---help---
- 	  This is a low-level driver for Cisco's Virtual Interface
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 1cf22d5..ae4e544 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -148,20 +148,16 @@ static void usnic_ib_handle_usdev_event(struct usnic_ib_dev *us_ibdev,
+ 		ib_dispatch_event(&ib_event);
+ 		break;
+ 	case NETDEV_UP:
+-		if (!us_ibdev->link_up) {
++	case NETDEV_DOWN:
++	case NETDEV_CHANGE:
++		if (!us_ibdev->link_up && netif_carrier_ok(netdev)) {
+ 			us_ibdev->link_up = true;
+ 			usnic_info("Link UP on %s\n", us_ibdev->ib_dev.name);
+ 			ib_event.event = IB_EVENT_PORT_ACTIVE;
+ 			ib_event.device = &us_ibdev->ib_dev;
+ 			ib_event.element.port_num = 1;
+ 			ib_dispatch_event(&ib_event);
+-		} else {
+-			usnic_dbg("Ignorning Link UP on %s\n",
+-					us_ibdev->ib_dev.name);
+-		}
+-		break;
+-	case NETDEV_DOWN:
+-		if (us_ibdev->link_up) {
++		} else if (us_ibdev->link_up && !netif_carrier_ok(netdev)) {
+ 			us_ibdev->link_up = false;
+ 			usnic_info("Link DOWN on %s\n", us_ibdev->ib_dev.name);
+ 			usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
+@@ -170,7 +166,8 @@ static void usnic_ib_handle_usdev_event(struct usnic_ib_dev *us_ibdev,
+ 			ib_event.element.port_num = 1;
+ 			ib_dispatch_event(&ib_event);
+ 		} else {
+-			usnic_dbg("Ignorning Link DOWN on %s\n",
++			usnic_dbg("Ignorning %s on %s\n",
++					usnic_ib_netdev_event_to_string(event),
+ 					us_ibdev->ib_dev.name);
+ 		}
+ 		break;
 -- 
 1.8.1
 
