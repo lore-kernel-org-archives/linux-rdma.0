@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 12/15] IB/usnic: Change GFP_KERNEL TO GFP_ATOMIC if spinlock is held
-Date: Thu,  9 Jan 2014 14:47:40 -0800
-Message-ID: <1389307663-11296-13-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 14/15] IB/usnic: Use netdev_notifier_info_to_dev to get netdev
+Date: Thu,  9 Jan 2014 14:47:42 -0800
+Message-ID: <1389307663-11296-15-git-send-email-umalhi@cisco.com>
 References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,86 +10,28 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC code at few places, calls kzalloc with GFP_KERNEL flag while
-holding a spinlock.  Change GPF_KERNEL to GFP_ATOMIC at such places.
+usNIC netdev notifier is casting the *ptr directly to netdev.
+This is a bug.  The netdev pointer should be retrieved via
+netdev_notifier_info_to_dev.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_fwd.c                | 2 +-
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c          | 4 ++--
- drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c | 2 +-
- drivers/infiniband/hw/usnic/usnic_vnic.c               | 4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
-index b5719fc..8e42216 100644
---- a/drivers/infiniband/hw/usnic/usnic_fwd.c
-+++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
-@@ -98,7 +98,7 @@ int usnic_fwd_add_usnic_filter(struct usnic_fwd_dev *ufdev, int vnic_idx,
- 		return -ENOMEM;
- 	}
- 
--	usnic_filter_hndl = kzalloc(sizeof(*usnic_filter_hndl), GFP_KERNEL);
-+	usnic_filter_hndl = kzalloc(sizeof(*usnic_filter_hndl), GFP_ATOMIC);
- 	if (!usnic_filter_hndl) {
- 		usnic_err("Failed to allocate memory for hndl\n");
- 		pci_free_consistent(pdev, tlv_size, tlv, tlv_pa);
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index 06c21be..5a873f5 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -346,7 +346,7 @@ alloc_res_chunk_list(struct usnic_vnic *vnic,
- 	}
- 
- 	res_chunk_list = kzalloc(sizeof(*res_chunk_list)*(res_lst_sz+1),
--					GFP_KERNEL);
-+					GFP_ATOMIC);
- 	if (!res_chunk_list)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -464,7 +464,7 @@ usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
- 		return ERR_PTR(-EINVAL);
- 	}
- 
--	qp_grp = kzalloc(sizeof(*qp_grp), GFP_KERNEL);
-+	qp_grp = kzalloc(sizeof(*qp_grp), GFP_ATOMIC);
- 	if (!qp_grp) {
- 		usnic_err("Unable to alloc qp_grp - Out of memory\n");
- 		return NULL;
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c b/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
-index b6e3a6b..7e1dafc 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
-@@ -39,7 +39,7 @@ usnic_uiom_interval_node_alloc(long int start, long int last, int ref_cnt,
- 				int flags)
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index ae4e544..bbe614b 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -216,7 +216,7 @@ static int usnic_ib_netdevice_event(struct notifier_block *notifier,
  {
- 	struct usnic_uiom_interval_node *interval = kzalloc(sizeof(*interval),
--								GFP_KERNEL);
-+								GFP_ATOMIC);
- 	if (!interval)
- 		return NULL;
+ 	struct usnic_ib_dev *us_ibdev;
  
-diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
-index 74e4e5b..656b88c 100644
---- a/drivers/infiniband/hw/usnic/usnic_vnic.c
-+++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
-@@ -225,14 +225,14 @@ usnic_vnic_get_resources(struct usnic_vnic *vnic, enum usnic_vnic_res_type type,
- 	if (usnic_vnic_res_free_cnt(vnic, type) < cnt || cnt < 1 || !owner)
- 		return ERR_PTR(-EINVAL);
+-	struct net_device *netdev = ptr;
++	struct net_device *netdev = netdev_notifier_info_to_dev(ptr);
  
--	ret = kzalloc(sizeof(*ret), GFP_KERNEL);
-+	ret = kzalloc(sizeof(*ret), GFP_ATOMIC);
- 	if (!ret) {
- 		usnic_err("Failed to allocate chunk for %s - Out of memory\n",
- 				usnic_vnic_pci_name(vnic));
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	ret->res = kzalloc(sizeof(*(ret->res))*cnt, GFP_KERNEL);
-+	ret->res = kzalloc(sizeof(*(ret->res))*cnt, GFP_ATOMIC);
- 	if (!ret->res) {
- 		usnic_err("Failed to allocate resources for %s. Out of memory\n",
- 				usnic_vnic_pci_name(vnic));
+ 	mutex_lock(&usnic_ib_ibdev_list_lock);
+ 	list_for_each_entry(us_ibdev, &usnic_ib_ibdev_list, ib_dev_link) {
 -- 
 1.8.1
 
