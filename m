@@ -1,154 +1,148 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 08/15] IB/usnic: Remove duplicate and unnecessary consts
-Date: Thu,  9 Jan 2014 14:47:36 -0800
-Message-ID: <1389307663-11296-9-git-send-email-umalhi@cisco.com>
-References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 2/6] IB/usnic: Add UDP support to usnic_fwd.[hc]
+Date: Thu,  9 Jan 2014 14:48:15 -0800
+Message-ID: <1389307699-11545-3-git-send-email-umalhi@cisco.com>
+References: <1389307699-11545-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1389307699-11545-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sparse, https://lists.01.org/pipermail/kbuild/2013-December/000877.html,
-gave lots of duplicate const warnings.  Remove the duplicate const as well
-as the original const bc both consts are unnecessary.
+Add *ip field* to *struct usnic_fwd_dev* as well as new *functions* to
+manipulate the *ip field.*  Furthermore, add new functions for
+programming UDP flows in the forwarding device.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 19 +++++++++----------
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h | 12 +++++-------
- drivers/infiniband/hw/usnic/usnic_vnic.c      | 12 +++++-------
- drivers/infiniband/hw/usnic/usnic_vnic.h      | 12 +++++-------
- 4 files changed, 24 insertions(+), 31 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_fwd.c | 54 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/usnic/usnic_fwd.h | 21 +++++++++++++
+ 2 files changed, 75 insertions(+)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index 5165be6..2043c5d 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -332,8 +332,8 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
+index 33fdd77..e3c9bd9 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.c
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
+@@ -95,6 +95,29 @@ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN])
+ 	spin_unlock(&ufdev->lock);
  }
  
- struct usnic_vnic_res_chunk**
--alloc_res_chunk_list(struct usnic_vnic *vnic, const struct usnic_vnic_res_spec
--			const *res_spec, void *owner_obj)
-+alloc_res_chunk_list(struct usnic_vnic *vnic,
-+			struct usnic_vnic_res_spec *res_spec, void *owner_obj)
++int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
++{
++	int status;
++
++	spin_lock(&ufdev->lock);
++	if (ufdev->inaddr == 0) {
++		ufdev->inaddr = inaddr;
++		status = 0;
++	} else {
++		status = -EFAULT;
++	}
++	spin_unlock(&ufdev->lock);
++
++	return status;
++}
++
++void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev)
++{
++	spin_lock(&ufdev->lock);
++	ufdev->inaddr = 0;
++	spin_unlock(&ufdev->lock);
++}
++
+ void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev)
  {
- 	enum usnic_vnic_res_type res_type;
- 	struct usnic_vnic_res_chunk **res_chunk_list;
-@@ -427,20 +427,19 @@ static void qp_grp_and_vf_unbind(struct usnic_ib_qp_grp *qp_grp)
- 	qp_grp->vf = NULL;
- }
- 
--static void log_spec(const struct usnic_vnic_res_spec
--					const *res_spec)
-+static void log_spec(struct usnic_vnic_res_spec *res_spec)
- {
- 	char buf[512];
- 	usnic_vnic_spec_dump(buf, sizeof(buf), res_spec);
- 	usnic_dbg("%s\n", buf);
- }
- 
--struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
--				struct usnic_ib_vf *vf,
--				struct usnic_ib_pd *pd,
--				const struct usnic_vnic_res_spec
--				const *res_spec,
--				enum usnic_transport_type transport)
-+struct usnic_ib_qp_grp *
-+usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
-+			struct usnic_ib_vf *vf,
-+			struct usnic_ib_pd *pd,
-+			struct usnic_vnic_res_spec *res_spec,
-+			enum usnic_transport_type transport)
- {
- 	struct usnic_ib_qp_grp *qp_grp;
- 	u16 port_num;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
-index 37423f8..6416a95 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
-@@ -75,13 +75,11 @@ usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] = {
- const char *usnic_ib_qp_grp_state_to_string(enum ib_qp_state state);
- int usnic_ib_qp_grp_dump_hdr(char *buf, int buf_sz);
- int usnic_ib_qp_grp_dump_rows(void *obj, char *buf, int buf_sz);
--struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
--						struct usnic_ib_vf *vf,
--						struct usnic_ib_pd *pd,
--						const struct usnic_vnic_res_spec
--						const *res_spec,
--						enum usnic_transport_type
--							transport);
-+struct usnic_ib_qp_grp *
-+usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
-+			struct usnic_ib_pd *pd,
-+			struct usnic_vnic_res_spec *res_spec,
-+			enum usnic_transport_type transport);
- void usnic_ib_qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp);
- int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
- 				enum ib_qp_state new_state,
-diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
-index 02d66d9..5a50acb 100644
---- a/drivers/infiniband/hw/usnic/usnic_vnic.c
-+++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
-@@ -138,10 +138,8 @@ void usnic_vnic_res_spec_update(struct usnic_vnic_res_spec *spec,
- 	WARN_ON(1);
- }
- 
--int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec
--					const *min_spec,
--					const struct usnic_vnic_res_spec
--					const *res_spec)
-+int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec *min_spec,
-+					struct usnic_vnic_res_spec *res_spec)
- {
- 	int found, i, j;
- 
-@@ -165,8 +163,8 @@ int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec
+ 	spin_lock(&ufdev->lock);
+@@ -126,6 +149,30 @@ static int usnic_fwd_dev_ready_locked(struct usnic_fwd_dev *ufdev)
  	return 0;
  }
  
--int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
--						const *res_spec)
-+int usnic_vnic_spec_dump(char *buf, int buf_sz,
-+				struct usnic_vnic_res_spec *res_spec)
++static int validate_filter_locked(struct usnic_fwd_dev *ufdev,
++					struct filter *filter)
++{
++
++	lockdep_assert_held(&ufdev->lock);
++
++	if (filter->type == FILTER_IPV4_5TUPLE) {
++		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_AD))
++			return -EACCES;
++		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_PT))
++			return -EBUSY;
++		else if (ufdev->inaddr == 0)
++			return -EINVAL;
++		else if (filter->u.ipv4.dst_port == 0)
++			return -ERANGE;
++		else if (ntohl(ufdev->inaddr) != filter->u.ipv4.dst_addr)
++			return -EFAULT;
++		else
++			return 0;
++	}
++
++	return 0;
++}
++
+ static void fill_tlv(struct filter_tlv *tlv, struct filter *filter,
+ 		struct filter_action *action)
  {
- 	enum usnic_vnic_res_type res_type;
- 	int res_cnt;
-@@ -186,7 +184,7 @@ int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
+@@ -177,6 +224,13 @@ usnic_fwd_alloc_flow(struct usnic_fwd_dev *ufdev, struct filter *filter,
+ 		goto out_free_tlv;
+ 	}
+ 
++	status = validate_filter_locked(ufdev, filter);
++	if (status) {
++		usnic_err("Failed to validate filter with status %d\n",
++				status);
++		goto out_free_tlv;
++	}
++
+ 	/* Issue Devcmd */
+ 	a0 = tlv_pa;
+ 	a1 = tlv_size;
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.h b/drivers/infiniband/hw/usnic/usnic_fwd.h
+index b146eb9..93713a2 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.h
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.h
+@@ -40,6 +40,7 @@ struct usnic_fwd_dev {
+ 	bool				link_up;
+ 	char				mac[ETH_ALEN];
+ 	unsigned int			mtu;
++	__be32				inaddr;
+ 	char				name[IFNAMSIZ+1];
+ };
+ 
+@@ -58,6 +59,8 @@ struct usnic_fwd_dev *usnic_fwd_dev_alloc(struct pci_dev *pdev);
+ void usnic_fwd_dev_free(struct usnic_fwd_dev *ufdev);
+ 
+ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN]);
++int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
++void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_down(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_set_mtu(struct usnic_fwd_dev *ufdev, unsigned int mtu);
+@@ -89,4 +92,22 @@ static inline void usnic_fwd_init_usnic_filter(struct filter *filter,
+ 	filter->u.usnic.usnic_id = usnic_id;
  }
  
- int usnic_vnic_check_room(struct usnic_vnic *vnic,
--			const struct usnic_vnic_res_spec const *res_spec)
-+				struct usnic_vnic_res_spec *res_spec)
- {
- 	int i;
- 	enum usnic_vnic_res_type res_type;
-diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.h b/drivers/infiniband/hw/usnic/usnic_vnic.h
-index 0a69a5d..14d931a 100644
---- a/drivers/infiniband/hw/usnic/usnic_vnic.h
-+++ b/drivers/infiniband/hw/usnic/usnic_vnic.h
-@@ -77,14 +77,12 @@ int usnic_vnic_dump(struct usnic_vnic *vnic, char *buf, int buf_sz,
- void usnic_vnic_res_spec_update(struct usnic_vnic_res_spec *spec,
- 				enum usnic_vnic_res_type trgt_type,
- 				u16 cnt);
--int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec
--					const *min_spec,
--					const struct usnic_vnic_res_spec
--					const *res_spec);
--int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
--						const *res_spec);
-+int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec *min_spec,
-+					struct usnic_vnic_res_spec *res_spec);
-+int usnic_vnic_spec_dump(char *buf, int buf_sz,
-+				struct usnic_vnic_res_spec *res_spec);
- int usnic_vnic_check_room(struct usnic_vnic *vnic,
--			const struct usnic_vnic_res_spec const *res_spec);
-+				struct usnic_vnic_res_spec *res_spec);
- int usnic_vnic_res_cnt(struct usnic_vnic *vnic,
- 				enum usnic_vnic_res_type type);
- int usnic_vnic_res_free_cnt(struct usnic_vnic *vnic,
++static inline void usnic_fwd_init_udp_filter(struct filter *filter,
++						uint32_t daddr, uint16_t dport)
++{
++	filter->type = FILTER_IPV4_5TUPLE;
++	filter->u.ipv4.flags = FILTER_FIELD_5TUP_PROTO;
++	filter->u.ipv4.protocol = PROTO_UDP;
++
++	if (daddr) {
++		filter->u.ipv4.flags |= FILTER_FIELD_5TUP_DST_AD;
++		filter->u.ipv4.dst_addr = daddr;
++	}
++
++	if (dport) {
++		filter->u.ipv4.flags |= FILTER_FIELD_5TUP_DST_PT;
++		filter->u.ipv4.dst_port = dport;
++	}
++}
++
+ #endif /* !USNIC_FWD_H_ */
 -- 
 1.8.1
 
