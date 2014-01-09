@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 09/15] IB/usnic: Fix sparse should be static warnings
-Date: Thu,  9 Jan 2014 14:47:37 -0800
-Message-ID: <1389307663-11296-10-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 08/15] IB/usnic: Remove duplicate and unnecessary consts
+Date: Thu,  9 Jan 2014 14:47:36 -0800
+Message-ID: <1389307663-11296-9-git-send-email-umalhi@cisco.com>
 References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,121 +10,145 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sparse spit out few functions should be static warnings.  This
-patch provides a fix for the warnings.
+Sparse, https://lists.01.org/pipermail/kbuild/2013-December/000877.html,
+gave lots of duplicate const warnings.  Remove the duplicate const as well
+as the original const bc both consts are unnecessary.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c   | 4 +++-
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 4 ++--
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  | 2 +-
- drivers/infiniband/hw/usnic/usnic_transport.c | 4 ++--
- drivers/infiniband/hw/usnic/usnic_transport.h | 1 +
- drivers/infiniband/hw/usnic/usnic_uiom.c      | 2 +-
- 6 files changed, 10 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 19 +++++++++----------
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h | 12 +++++-------
+ drivers/infiniband/hw/usnic/usnic_vnic.c      | 12 +++++-------
+ drivers/infiniband/hw/usnic/usnic_vnic.h      | 12 +++++-------
+ 4 files changed, 24 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index bf9c2d7..1cf22d5 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -423,7 +423,8 @@ static DEFINE_PCI_DEVICE_TABLE(usnic_ib_pci_ids) = {
- 	{0,}
- };
- 
--int usnic_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-+static int usnic_ib_pci_probe(struct pci_dev *pdev,
-+				const struct pci_device_id *id)
- {
- 	int err;
- 	struct usnic_ib_dev *pf;
-@@ -579,6 +580,7 @@ static void __exit usnic_ib_destroy(void)
- {
- 	usnic_dbg("\n");
- 	usnic_debugfs_exit();
-+	usnic_transport_fini();
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- 	pci_unregister_driver(&usnic_ib_pci_driver);
- 	usnic_uiom_fini();
 diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index 2043c5d..e7bec23 100644
+index 5165be6..2043c5d 100644
 --- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
 +++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -331,7 +331,7 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
- 	return status;
+@@ -332,8 +332,8 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
  }
  
--struct usnic_vnic_res_chunk**
-+static struct usnic_vnic_res_chunk**
- alloc_res_chunk_list(struct usnic_vnic *vnic,
- 			struct usnic_vnic_res_spec *res_spec, void *owner_obj)
+ struct usnic_vnic_res_chunk**
+-alloc_res_chunk_list(struct usnic_vnic *vnic, const struct usnic_vnic_res_spec
+-			const *res_spec, void *owner_obj)
++alloc_res_chunk_list(struct usnic_vnic *vnic,
++			struct usnic_vnic_res_spec *res_spec, void *owner_obj)
  {
-@@ -377,7 +377,7 @@ out_free_res:
- 	return ERR_PTR(err);
+ 	enum usnic_vnic_res_type res_type;
+ 	struct usnic_vnic_res_chunk **res_chunk_list;
+@@ -427,20 +427,19 @@ static void qp_grp_and_vf_unbind(struct usnic_ib_qp_grp *qp_grp)
+ 	qp_grp->vf = NULL;
  }
  
--void free_qp_grp_res(struct usnic_vnic_res_chunk **res_chunk_list)
-+static void free_qp_grp_res(struct usnic_vnic_res_chunk **res_chunk_list)
+-static void log_spec(const struct usnic_vnic_res_spec
+-					const *res_spec)
++static void log_spec(struct usnic_vnic_res_spec *res_spec)
+ {
+ 	char buf[512];
+ 	usnic_vnic_spec_dump(buf, sizeof(buf), res_spec);
+ 	usnic_dbg("%s\n", buf);
+ }
+ 
+-struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
+-				struct usnic_ib_vf *vf,
+-				struct usnic_ib_pd *pd,
+-				const struct usnic_vnic_res_spec
+-				const *res_spec,
+-				enum usnic_transport_type transport)
++struct usnic_ib_qp_grp *
++usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
++			struct usnic_ib_vf *vf,
++			struct usnic_ib_pd *pd,
++			struct usnic_vnic_res_spec *res_spec,
++			enum usnic_transport_type transport)
+ {
+ 	struct usnic_ib_qp_grp *qp_grp;
+ 	u16 port_num;
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
+index 37423f8..6416a95 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
++++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
+@@ -75,13 +75,11 @@ usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] = {
+ const char *usnic_ib_qp_grp_state_to_string(enum ib_qp_state state);
+ int usnic_ib_qp_grp_dump_hdr(char *buf, int buf_sz);
+ int usnic_ib_qp_grp_dump_rows(void *obj, char *buf, int buf_sz);
+-struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
+-						struct usnic_ib_vf *vf,
+-						struct usnic_ib_pd *pd,
+-						const struct usnic_vnic_res_spec
+-						const *res_spec,
+-						enum usnic_transport_type
+-							transport);
++struct usnic_ib_qp_grp *
++usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
++			struct usnic_ib_pd *pd,
++			struct usnic_vnic_res_spec *res_spec,
++			enum usnic_transport_type transport);
+ void usnic_ib_qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp);
+ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
+ 				enum ib_qp_state new_state,
+diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
+index 02d66d9..5a50acb 100644
+--- a/drivers/infiniband/hw/usnic/usnic_vnic.c
++++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
+@@ -138,10 +138,8 @@ void usnic_vnic_res_spec_update(struct usnic_vnic_res_spec *spec,
+ 	WARN_ON(1);
+ }
+ 
+-int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec
+-					const *min_spec,
+-					const struct usnic_vnic_res_spec
+-					const *res_spec)
++int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec *min_spec,
++					struct usnic_vnic_res_spec *res_spec)
+ {
+ 	int found, i, j;
+ 
+@@ -165,8 +163,8 @@ int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec
+ 	return 0;
+ }
+ 
+-int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
+-						const *res_spec)
++int usnic_vnic_spec_dump(char *buf, int buf_sz,
++				struct usnic_vnic_res_spec *res_spec)
+ {
+ 	enum usnic_vnic_res_type res_type;
+ 	int res_cnt;
+@@ -186,7 +184,7 @@ int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
+ }
+ 
+ int usnic_vnic_check_room(struct usnic_vnic *vnic,
+-			const struct usnic_vnic_res_spec const *res_spec)
++				struct usnic_vnic_res_spec *res_spec)
  {
  	int i;
- 	for (i = 0; res_chunk_list[i]; i++)
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-index e7925e4..bad985e 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-@@ -282,7 +282,7 @@ static struct attribute *usnic_ib_qpn_default_attrs[] = {
- 	NULL
- };
- 
--struct kobj_type usnic_ib_qpn_type = {
-+static struct kobj_type usnic_ib_qpn_type = {
- 	.sysfs_ops = &usnic_ib_qpn_sysfs_ops,
- 	.default_attrs = usnic_ib_qpn_default_attrs
- };
-diff --git a/drivers/infiniband/hw/usnic/usnic_transport.c b/drivers/infiniband/hw/usnic/usnic_transport.c
-index 6f3d245..723bd6c 100644
---- a/drivers/infiniband/hw/usnic/usnic_transport.c
-+++ b/drivers/infiniband/hw/usnic/usnic_transport.c
-@@ -26,7 +26,7 @@
- static unsigned long *roce_bitmap;
- static u16 roce_next_port = 1;
- #define ROCE_BITMAP_SZ ((1 << (8 /*CHAR_BIT*/ * sizeof(u16)))/8 /*CHAR BIT*/)
--DEFINE_SPINLOCK(roce_bitmap_lock);
-+static DEFINE_SPINLOCK(roce_bitmap_lock);
- 
- static const char *transport_to_str(enum usnic_transport_type type)
- {
-@@ -106,7 +106,7 @@ out_roce_custom:
- 	}
- }
- 
--int usnic_transport_init()
-+int usnic_transport_init(void)
- {
- 	roce_bitmap = kzalloc(ROCE_BITMAP_SZ, GFP_KERNEL);
- 	if (!roce_bitmap) {
-diff --git a/drivers/infiniband/hw/usnic/usnic_transport.h b/drivers/infiniband/hw/usnic/usnic_transport.h
-index e4c924e..091fdaf 100644
---- a/drivers/infiniband/hw/usnic/usnic_transport.h
-+++ b/drivers/infiniband/hw/usnic/usnic_transport.h
-@@ -24,4 +24,5 @@
- u16 usnic_transport_rsrv_port(enum usnic_transport_type type, u16 port_num);
- void usnic_transport_unrsrv_port(enum usnic_transport_type type, u16 port_num);
- int usnic_transport_init(void);
-+void usnic_transport_fini(void);
- #endif /* !USNIC_TRANSPORT_H */
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 0477d70..200941f 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -46,7 +46,7 @@
- #include "usnic_uiom.h"
- #include "usnic_uiom_interval_tree.h"
- 
--struct workqueue_struct *usnic_uiom_wq;
-+static struct workqueue_struct *usnic_uiom_wq;
- 
- #define USNIC_UIOM_PAGE_CHUNK						\
- 	((PAGE_SIZE - offsetof(struct usnic_uiom_chunk, page_list))	/\
+ 	enum usnic_vnic_res_type res_type;
+diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.h b/drivers/infiniband/hw/usnic/usnic_vnic.h
+index 0a69a5d..14d931a 100644
+--- a/drivers/infiniband/hw/usnic/usnic_vnic.h
++++ b/drivers/infiniband/hw/usnic/usnic_vnic.h
+@@ -77,14 +77,12 @@ int usnic_vnic_dump(struct usnic_vnic *vnic, char *buf, int buf_sz,
+ void usnic_vnic_res_spec_update(struct usnic_vnic_res_spec *spec,
+ 				enum usnic_vnic_res_type trgt_type,
+ 				u16 cnt);
+-int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec
+-					const *min_spec,
+-					const struct usnic_vnic_res_spec
+-					const *res_spec);
+-int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
+-						const *res_spec);
++int usnic_vnic_res_spec_satisfied(const struct usnic_vnic_res_spec *min_spec,
++					struct usnic_vnic_res_spec *res_spec);
++int usnic_vnic_spec_dump(char *buf, int buf_sz,
++				struct usnic_vnic_res_spec *res_spec);
+ int usnic_vnic_check_room(struct usnic_vnic *vnic,
+-			const struct usnic_vnic_res_spec const *res_spec);
++				struct usnic_vnic_res_spec *res_spec);
+ int usnic_vnic_res_cnt(struct usnic_vnic *vnic,
+ 				enum usnic_vnic_res_type type);
+ int usnic_vnic_res_free_cnt(struct usnic_vnic *vnic,
 -- 
 1.8.1
 
