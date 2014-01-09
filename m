@@ -1,72 +1,61 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 04/15] IB/usnic: Fix error handling with IS_ERR_OR_NULL
-Date: Thu,  9 Jan 2014 14:47:32 -0800
-Message-ID: <1389307663-11296-5-git-send-email-umalhi@cisco.com>
-References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 00/15] IB/usnic: Bug fixes
+Date: Thu,  9 Jan 2014 14:47:28 -0800
+Message-ID: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Errors with IS_ERR_OR_NULL are not handleded correctly in few places
-in usNIC.  This patch remedies that.
+This patch fixes the below bugs reported by kbuild robot, sparse and smatch.
+https://lists.01.org/pipermail/kbuild/2013-December/000877.html
+https://lists.01.org/pipermail/kbuild-all/2013-December/002354.html
+https://lists.01.org/pipermail/kbuild-all/2013-December/002335.html
+https://lists.01.org/pipermail/kbuild-all/2013-December/002337.html
+http://www.spinics.net/lists/linux-rdma/msg18047.html
+http://www.spinics.net/lists/linux-rdma/msg18048.html
+http://www.spinics.net/lists/linux-rdma/msg18049.html
+http://www.spinics.net/lists/linux-rdma/msg18050.html
 
-Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_main.c  | 10 ++++++----
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  2 +-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+As well as bugs found at Cisco.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 696e401..bf9c2d7 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -398,13 +398,14 @@ static struct usnic_ib_dev *usnic_ib_discover_pf(struct usnic_vnic *vnic)
- 
- 	us_ibdev = usnic_ib_device_add(parent_pci);
- 	if (IS_ERR_OR_NULL(us_ibdev)) {
--		us_ibdev = ERR_PTR(-EINVAL);
-+		us_ibdev = (us_ibdev) ? us_ibdev : ERR_PTR(-EFAULT);
- 		goto out;
- 	}
- 
- 	err = usnic_ib_sysfs_register_usdev(us_ibdev);
- 	if (err) {
- 		usnic_ib_device_remove(us_ibdev);
-+		us_ibdev = ERR_PTR(err);
- 		goto out;
- 	}
- 
-@@ -459,9 +460,10 @@ int usnic_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	}
- 
- 	pf = usnic_ib_discover_pf(vf->vnic);
--	if (!pf) {
--		usnic_err("Failed to discover pf of vnic %s with err%d\n",
--				pci_name(pdev), err);
-+	if (IS_ERR_OR_NULL(pf)) {
-+		usnic_err("Failed to discover pf of vnic %s with err%ld\n",
-+				pci_name(pdev), PTR_ERR(pf));
-+		err = (pf ? PTR_ERR(pf) : -EFAULT);
- 		goto out_clean_vnic;
- 	}
- 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index d305e4e..e19ca90 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -574,7 +574,7 @@ struct ib_mr *usnic_ib_reg_mr(struct ib_pd *pd, u64 start, u64 length,
- 	mr->umem = usnic_uiom_reg_get(to_upd(pd)->umem_pd, start, length,
- 					access_flags, 0);
- 	if (IS_ERR_OR_NULL(mr->umem)) {
--		err = PTR_ERR(mr->umem);
-+		err = (mr->umem) ? PTR_ERR(mr->umem) : -EFAULT;
- 		goto err_free;
- 	}
- 
--- 
+V1 Changes:
+Use lockdep_assert instead of spin_is_locked(...
+
+Upinder Malhi (15):
+  IB/usnic: Fix stack frame size exceed warnings
+  IB/usnic: Fix format not a string literal warning
+  IB/usnic: Make usNIC built depend on Intel IOMMU
+  IB/usnic: Fix error handling with IS_ERR_OR_NULL
+  IB/usnic: Change BUG_ON to lockdep_assert_held
+  IB/usnic: Initialize all of the data returned to userspace
+  IB/usnic: Fix printk format warnings
+  IB/usnic: Remove duplicate and unnecessary consts
+  IB/usnic: Fix sparse should be static warnings
+  IB/usnic: Fix accounting of qp_grp_ref_cnt
+  IB/usnic: Remove extraneous if check
+  IB/usnic: Change GFP_KERNEL TO GFP_ATOMIC if spinlock is held
+  IB/usnic: Handle NETDEV_CHANGE
+  IB/usnic: Use netdev_notifier_info_to_dev to get netdev
+  IB/usnic: Fix false log
+
+ drivers/infiniband/hw/usnic/Kconfig                |  3 +-
+ drivers/infiniband/hw/usnic/usnic_fwd.c            |  2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c        | 40 ++++++++---------
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      | 52 +++++++++++-----------
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      | 12 +++--
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       |  2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c       | 10 +++--
+ drivers/infiniband/hw/usnic/usnic_transport.c      |  4 +-
+ drivers/infiniband/hw/usnic/usnic_transport.h      |  1 +
+ drivers/infiniband/hw/usnic/usnic_uiom.c           | 36 ++++++++-------
+ .../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  2 +-
+ drivers/infiniband/hw/usnic/usnic_vnic.c           | 24 ++++------
+ drivers/infiniband/hw/usnic/usnic_vnic.h           | 12 +++--
+ 13 files changed, 98 insertions(+), 102 deletions(-)
+
+--
 1.8.1
 
 --
