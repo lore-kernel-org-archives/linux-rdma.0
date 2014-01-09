@@ -1,293 +1,95 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 4/6] IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h
-Date: Thu,  9 Jan 2014 14:48:17 -0800
-Message-ID: <1389307699-11545-5-git-send-email-umalhi@cisco.com>
-References: <1389307699-11545-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH v1 for-next 12/15] IB/usnic: Change GFP_KERNEL TO GFP_ATOMIC if spinlock is held
+Date: Thu,  9 Jan 2014 14:47:40 -0800
+Message-ID: <1389307663-11296-13-git-send-email-umalhi@cisco.com>
+References: <1389307663-11296-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389307699-11545-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1389307663-11296-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add supports for:
-	1) Parsing the socket file descriptor pass down from userspace.
-	2) IP notifiers
-	3) Encoding the IP in the GID
-	4) Other aux. changes to support UDP
+usNIC code at few places, calls kzalloc with GFP_KERNEL flag while
+holding a spinlock.  Change GPF_KERNEL to GFP_ATOMIC at such places.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_common_util.h | 17 +++++
- drivers/infiniband/hw/usnic/usnic_ib_main.c     | 84 ++++++++++++++++++++++++-
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c    | 44 ++++++++++---
- 3 files changed, 136 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_fwd.c                | 2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c          | 4 ++--
+ drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c | 2 +-
+ drivers/infiniband/hw/usnic/usnic_vnic.c               | 4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
-index 128550a..afd8bfa 100644
---- a/drivers/infiniband/hw/usnic/usnic_common_util.h
-+++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
-@@ -36,6 +36,23 @@ usnic_mac_to_gid(const char *const mac, char *raw_gid)
- }
- 
- static inline void
-+usnic_mac_ip_to_gid(const char *const mac, const uint32_t inaddr, char *raw_gid)
-+{
-+	raw_gid[0] = 0xfe;
-+	raw_gid[1] = 0x80;
-+	memset(&raw_gid[2], 0, 2);
-+	memcpy(&raw_gid[4], &inaddr, 4);
-+	raw_gid[8] = mac[0]^2;
-+	raw_gid[9] = mac[1];
-+	raw_gid[10] = mac[2];
-+	raw_gid[11] = 0xff;
-+	raw_gid[12] = 0xfe;
-+	raw_gid[13] = mac[3];
-+	raw_gid[14] = mac[4];
-+	raw_gid[15] = mac[5];
-+}
-+
-+static inline void
- usnic_write_gid_if_id_from_mac(char *mac, char *raw_gid)
- {
- 	raw_gid[8] = mac[0]^2;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 6ab0b41..3b7e8bd 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -25,6 +25,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/inetdevice.h>
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/errno.h>
-@@ -236,13 +237,79 @@ static struct notifier_block usnic_ib_netdevice_notifier = {
- };
- /* End of netdev section */
- 
-+/* Start of inet section */
-+static int usnic_ib_handle_inet_event(struct usnic_ib_dev *us_ibdev,
-+					unsigned long event, void *ptr)
-+{
-+	struct in_ifaddr *ifa = ptr;
-+	struct ib_event ib_event;
-+
-+	mutex_lock(&us_ibdev->usdev_lock);
-+
-+	switch (event) {
-+	case NETDEV_DOWN:
-+		usnic_info("%s via ip notifiers",
-+				usnic_ib_netdev_event_to_string(event));
-+		usnic_fwd_del_ipaddr(us_ibdev->ufdev);
-+		usnic_ib_qp_grp_modify_active_to_err(us_ibdev);
-+		ib_event.event = IB_EVENT_GID_CHANGE;
-+		ib_event.device = &us_ibdev->ib_dev;
-+		ib_event.element.port_num = 1;
-+		ib_dispatch_event(&ib_event);
-+		break;
-+	case NETDEV_UP:
-+		usnic_fwd_add_ipaddr(us_ibdev->ufdev, ifa->ifa_address);
-+		usnic_info("%s via ip notifiers: ip %pI4",
-+				usnic_ib_netdev_event_to_string(event),
-+				&us_ibdev->ufdev->inaddr);
-+		ib_event.event = IB_EVENT_GID_CHANGE;
-+		ib_event.device = &us_ibdev->ib_dev;
-+		ib_event.element.port_num = 1;
-+		ib_dispatch_event(&ib_event);
-+		break;
-+	default:
-+		usnic_info("Ignorning event %s on %s",
-+				usnic_ib_netdev_event_to_string(event),
-+				us_ibdev->ib_dev.name);
-+	}
-+	mutex_unlock(&us_ibdev->usdev_lock);
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static int usnic_ib_inetaddr_event(struct notifier_block *notifier,
-+					unsigned long event, void *ptr)
-+{
-+	struct usnic_ib_dev *us_ibdev;
-+	struct in_ifaddr *ifa = ptr;
-+	struct net_device *netdev = ifa->ifa_dev->dev;
-+
-+	mutex_lock(&usnic_ib_ibdev_list_lock);
-+	list_for_each_entry(us_ibdev, &usnic_ib_ibdev_list, ib_dev_link) {
-+		if (us_ibdev->netdev == netdev) {
-+			usnic_ib_handle_inet_event(us_ibdev, event, ptr);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&usnic_ib_ibdev_list_lock);
-+
-+	return NOTIFY_DONE;
-+}
-+static struct notifier_block usnic_ib_inetaddr_notifier = {
-+	.notifier_call = usnic_ib_inetaddr_event
-+};
-+/* End of inet section*/
-+
- /* Start of PF discovery section */
- static void *usnic_ib_device_add(struct pci_dev *dev)
- {
- 	struct usnic_ib_dev *us_ibdev;
- 	union ib_gid gid;
-+	struct in_ifaddr *in;
-+	struct net_device *netdev;
- 
- 	usnic_dbg("\n");
-+	netdev = pci_get_drvdata(dev);
- 
- 	us_ibdev = (struct usnic_ib_dev *)ib_alloc_device(sizeof(*us_ibdev));
- 	if (IS_ERR_OR_NULL(us_ibdev)) {
-@@ -326,6 +393,12 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	if (netif_carrier_ok(us_ibdev->netdev))
- 		usnic_fwd_carrier_up(us_ibdev->ufdev);
- 
-+	in = ((struct in_device *)(netdev->ip_ptr))->ifa_list;
-+	if (in != NULL)
-+		usnic_fwd_add_ipaddr(us_ibdev->ufdev, in->ifa_address);
-+
-+	usnic_mac_ip_to_gid(us_ibdev->netdev->perm_addr,
-+				us_ibdev->ufdev->inaddr, &gid.raw[0]);
- 	memcpy(&us_ibdev->ib_dev.node_guid, &gid.global.interface_id,
- 		sizeof(gid.global.interface_id));
- 	kref_init(&us_ibdev->vf_cnt);
-@@ -555,16 +628,24 @@ static int __init usnic_ib_init(void)
- 		goto out_pci_unreg;
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
+index b5719fc..8e42216 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.c
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
+@@ -98,7 +98,7 @@ int usnic_fwd_add_usnic_filter(struct usnic_fwd_dev *ufdev, int vnic_idx,
+ 		return -ENOMEM;
  	}
  
-+	err = register_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
-+	if (err) {
-+		usnic_err("Failed to register inet addr notifier\n");
-+		goto out_unreg_netdev_notifier;
-+	}
-+
- 	err = usnic_transport_init();
- 	if (err) {
- 		usnic_err("Failed to initialize transport\n");
--		goto out_unreg_netdev_notifier;
-+		goto out_unreg_inetaddr_notifier;
+-	usnic_filter_hndl = kzalloc(sizeof(*usnic_filter_hndl), GFP_KERNEL);
++	usnic_filter_hndl = kzalloc(sizeof(*usnic_filter_hndl), GFP_ATOMIC);
+ 	if (!usnic_filter_hndl) {
+ 		usnic_err("Failed to allocate memory for hndl\n");
+ 		pci_free_consistent(pdev, tlv_size, tlv, tlv_pa);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+index 06c21be..5a873f5 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+@@ -346,7 +346,7 @@ alloc_res_chunk_list(struct usnic_vnic *vnic,
  	}
  
- 	usnic_debugfs_init();
+ 	res_chunk_list = kzalloc(sizeof(*res_chunk_list)*(res_lst_sz+1),
+-					GFP_KERNEL);
++					GFP_ATOMIC);
+ 	if (!res_chunk_list)
+ 		return ERR_PTR(-ENOMEM);
  
- 	return 0;
- 
-+out_unreg_inetaddr_notifier:
-+	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
- out_unreg_netdev_notifier:
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- out_pci_unreg:
-@@ -580,6 +661,7 @@ static void __exit usnic_ib_destroy(void)
- 	usnic_dbg("\n");
- 	usnic_debugfs_exit();
- 	usnic_transport_fini();
-+	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- 	pci_unregister_driver(&usnic_ib_pci_driver);
- 	usnic_uiom_fini();
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 2217bc0..937113f 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -230,6 +230,15 @@ static void eth_speed_to_ib_speed(int speed, u8 *active_speed,
- 	}
- }
- 
-+static int create_qp_validate_user_data(struct usnic_ib_create_qp_cmd cmd)
-+{
-+	if (cmd.spec.trans_type <= USNIC_TRANSPORT_UNKNOWN ||
-+			cmd.spec.trans_type >= USNIC_TRANSPORT_MAX)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /* Start of ib callback functions */
- 
- enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
-@@ -252,7 +261,8 @@ int usnic_ib_query_device(struct ib_device *ibdev,
- 	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
- 	us_ibdev->netdev->ethtool_ops->get_settings(us_ibdev->netdev, &cmd);
- 	memset(props, 0, sizeof(*props));
--	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid.raw[0]);
-+	usnic_mac_ip_to_gid(us_ibdev->ufdev->mac, us_ibdev->ufdev->inaddr,
-+			&gid.raw[0]);
- 	memcpy(&props->sys_image_guid, &gid.global.interface_id,
- 		sizeof(gid.global.interface_id));
- 	usnic_ib_fw_string_to_u64(&info.fw_version[0], &props->fw_ver);
-@@ -310,12 +320,15 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
- 	props->sm_lid = 0;
- 	props->sm_sl = 0;
- 
--	if (us_ibdev->ufdev->link_up) {
--		props->state = IB_PORT_ACTIVE;
--		props->phys_state = 5;
--	} else {
-+	if (!us_ibdev->ufdev->link_up) {
- 		props->state = IB_PORT_DOWN;
- 		props->phys_state = 3;
-+	} else if (!us_ibdev->ufdev->inaddr) {
-+		props->state = IB_PORT_INIT;
-+		props->phys_state = 4;
-+	} else {
-+		props->state = IB_PORT_ACTIVE;
-+		props->phys_state = 5;
- 	}
- 
- 	props->port_cap_flags = 0;
-@@ -385,7 +398,8 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 
- 	mutex_lock(&us_ibdev->usdev_lock);
- 	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
--	usnic_mac_to_gid(us_ibdev->ufdev->mac, &gid->raw[0]);
-+	usnic_mac_ip_to_gid(us_ibdev->ufdev->mac, us_ibdev->ufdev->inaddr,
-+			&gid->raw[0]);
- 	mutex_unlock(&us_ibdev->usdev_lock);
- 
- 	return 0;
-@@ -444,6 +458,7 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
- 	struct usnic_ib_ucontext *ucontext;
- 	int cq_cnt;
- 	struct usnic_vnic_res_spec res_spec;
-+	struct usnic_ib_create_qp_cmd cmd;
- 	struct usnic_transport_spec trans_spec;
- 
- 	usnic_dbg("\n");
-@@ -451,14 +466,27 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
- 	ucontext = to_uucontext(pd->uobject->context);
- 	us_ibdev = to_usdev(pd->device);
- 
-+	err = ib_copy_from_udata(&cmd, udata, sizeof(cmd));
-+	if (err) {
-+		usnic_err("%s: cannot copy udata for create_qp\n",
-+				us_ibdev->ib_dev.name);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	err = create_qp_validate_user_data(cmd);
-+	if (err) {
-+		usnic_err("%s: Failed to validate user data\n",
-+				us_ibdev->ib_dev.name);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	if (init_attr->qp_type != IB_QPT_UD) {
- 		usnic_err("%s asked to make a non-UD QP: %d\n",
- 				us_ibdev->ib_dev.name, init_attr->qp_type);
+@@ -464,7 +464,7 @@ usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
  		return ERR_PTR(-EINVAL);
  	}
  
--	memset(&trans_spec, 0, sizeof(trans_spec));
--	trans_spec.trans_type = USNIC_TRANSPORT_ROCE_CUSTOM;
-+	trans_spec = cmd.spec;
- 	mutex_lock(&us_ibdev->usdev_lock);
- 	cq_cnt = (init_attr->send_cq == init_attr->recv_cq) ? 1 : 2;
- 	res_spec = min_transport_spec[trans_spec.trans_type];
+-	qp_grp = kzalloc(sizeof(*qp_grp), GFP_KERNEL);
++	qp_grp = kzalloc(sizeof(*qp_grp), GFP_ATOMIC);
+ 	if (!qp_grp) {
+ 		usnic_err("Unable to alloc qp_grp - Out of memory\n");
+ 		return NULL;
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c b/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
+index b6e3a6b..7e1dafc 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
+@@ -39,7 +39,7 @@ usnic_uiom_interval_node_alloc(long int start, long int last, int ref_cnt,
+ 				int flags)
+ {
+ 	struct usnic_uiom_interval_node *interval = kzalloc(sizeof(*interval),
+-								GFP_KERNEL);
++								GFP_ATOMIC);
+ 	if (!interval)
+ 		return NULL;
+ 
+diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
+index 74e4e5b..656b88c 100644
+--- a/drivers/infiniband/hw/usnic/usnic_vnic.c
++++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
+@@ -225,14 +225,14 @@ usnic_vnic_get_resources(struct usnic_vnic *vnic, enum usnic_vnic_res_type type,
+ 	if (usnic_vnic_res_free_cnt(vnic, type) < cnt || cnt < 1 || !owner)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	ret = kzalloc(sizeof(*ret), GFP_KERNEL);
++	ret = kzalloc(sizeof(*ret), GFP_ATOMIC);
+ 	if (!ret) {
+ 		usnic_err("Failed to allocate chunk for %s - Out of memory\n",
+ 				usnic_vnic_pci_name(vnic));
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	ret->res = kzalloc(sizeof(*(ret->res))*cnt, GFP_KERNEL);
++	ret->res = kzalloc(sizeof(*(ret->res))*cnt, GFP_ATOMIC);
+ 	if (!ret->res) {
+ 		usnic_err("Failed to allocate resources for %s. Out of memory\n",
+ 				usnic_vnic_pci_name(vnic));
 -- 
 1.8.1
 
