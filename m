@@ -1,61 +1,152 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-next 0/6] IB/usnic: usNIC UDP Support
-Date: Thu,  9 Jan 2014 14:48:13 -0800
-Message-ID: <1389307699-11545-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next] IB/usnic: Remove superflous parentheses
+Date: Thu,  9 Jan 2014 14:48:36 -0800
+Message-ID: <1389307716-11627-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Depends on "[PATCH v2 for-next] IB/usnic: Revamp usnic_fwd.h" series.
+Depends on "[PATCH v1 for-next] IB/usnic: usNIC UDP Support" series.
 
-This set of patches add UDP transport support on usNIC. Libusnic,
-a libibverbs driver, allocates a UDP socket in the kernel via the
-userspace socket API at ibv_create_qp time.  Then, the socket file
-descriptor is pushed down to usnic_verbs.ko via ibv_create_qp_cmd.
-Usnic_verbs bumps up the reference count on the socket, creates the qp,
-and programs the forwarding classifier in the NIC to forward UDP traffic on
-the socket fd, to the associated qp.  The forwarding classifier entry is
-released whenever the qp is destroyed.  The reference count on the socket
-is decremented after the forwarding classifier entry has been released.
+Remove superflous parentheses from one line ifs.
 
-The socket reference count is incremented in the first place to cover this
-case: A malicious user returns the UDP port to the kernel but does not
-destroy the qp or the associated forwarding entry in the NIC. Subsequently,
-the kernel may give the UDP port to another application, but because
-of the classifier entry in the NIC, the former user of the UDP port continues
-to receive the traffic.  Increasing the reference count on the socket
-guarantees that the socket will not go back to the kernel's free pool until
-both the application closes the socket and the forwarding entry in the NIC
-has been deleted.
+Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_ib_main.c   |  6 +++---
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 18 +++++++++---------
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c  |  4 ++--
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-V1 changes:
-Use lockdep_assert instead of spin_is_locked(...
-Add RDMA_TRANSPORT_USNIC_UDP as a new transport instead of renaming RDMA_TRANSPORT_USNIC
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 3b7e8bd..f7be445 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -470,7 +470,7 @@ static struct usnic_ib_dev *usnic_ib_discover_pf(struct usnic_vnic *vnic)
 
-Upinder Malhi (6):
-  IB/usnic: Update ABI and Version file for UDP support
-  IB/usnic: Add UDP support to usnic_fwd.[hc]
-  IB:usnic: Add UDP support to usnic_transport.[hc]
-  IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h
-  IB/usnic: Add UDP support in usnic_ib_qp_grp.[hc]
-  IB/core: Add RDMA_TRANSPORT_USNIC_UDP
+ 	us_ibdev = usnic_ib_device_add(parent_pci);
+ 	if (IS_ERR_OR_NULL(us_ibdev)) {
+-		us_ibdev = (us_ibdev) ? us_ibdev : ERR_PTR(-EFAULT);
++		us_ibdev = us_ibdev ? us_ibdev : ERR_PTR(-EFAULT);
+ 		goto out;
+ 	}
 
- drivers/infiniband/core/verbs.c                 |  3 +-
- drivers/infiniband/hw/usnic/usnic.h             |  4 +-
- drivers/infiniband/hw/usnic/usnic_abi.h         | 12 +++-
- drivers/infiniband/hw/usnic/usnic_common_util.h | 17 +++++
- drivers/infiniband/hw/usnic/usnic_fwd.c         | 54 ++++++++++++++
- drivers/infiniband/hw/usnic/usnic_fwd.h         | 21 ++++++
- drivers/infiniband/hw/usnic/usnic_ib_main.c     | 84 +++++++++++++++++++++-
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c   | 88 +++++++++++++++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h   | 11 +++
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c    | 44 +++++++++---
- drivers/infiniband/hw/usnic/usnic_transport.c   | 93 +++++++++++++++++++++++--
- drivers/infiniband/hw/usnic/usnic_transport.h   | 19 +++++
- include/rdma/ib_verbs.h                         |  3 +-
- 13 files changed, 431 insertions(+), 22 deletions(-)
+@@ -526,7 +526,7 @@ static int usnic_ib_pci_probe(struct pci_dev *pdev,
+
+ 	vf->vnic = usnic_vnic_alloc(pdev);
+ 	if (IS_ERR_OR_NULL(vf->vnic)) {
+-		err = (vf->vnic ? PTR_ERR(vf->vnic) : -ENOMEM);
++		err = vf->vnic ? PTR_ERR(vf->vnic) : -ENOMEM;
+ 		usnic_err("Failed to alloc vnic for %s with err %d\n",
+ 				pci_name(pdev), err);
+ 		goto out_release_regions;
+@@ -536,7 +536,7 @@ static int usnic_ib_pci_probe(struct pci_dev *pdev,
+ 	if (IS_ERR_OR_NULL(pf)) {
+ 		usnic_err("Failed to discover pf of vnic %s with err%ld\n",
+ 				pci_name(pdev), PTR_ERR(pf));
+-		err = (pf ? PTR_ERR(pf) : -EFAULT);
++		err = pf ? PTR_ERR(pf) : -EFAULT;
+ 		goto out_clean_vnic;
+ 	}
+
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+index 7967c8b..7ecc606 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+@@ -215,14 +215,14 @@ create_roce_custom_flow(struct usnic_ib_qp_grp *qp_grp,
+ 	if (IS_ERR_OR_NULL(flow)) {
+ 		usnic_err("Unable to alloc flow failed with err %ld\n",
+ 				PTR_ERR(flow));
+-		err = (flow) ? PTR_ERR(flow) : -EFAULT;
++		err = flow ? PTR_ERR(flow) : -EFAULT;
+ 		goto out_unreserve_port;
+ 	}
+
+ 	/* Create Flow Handle */
+ 	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
+ 	if (IS_ERR_OR_NULL(qp_flow)) {
+-		err = (qp_flow) ? PTR_ERR(qp_flow) : -ENOMEM;
++		err = qp_flow ? PTR_ERR(qp_flow) : -ENOMEM;
+ 		goto out_dealloc_flow;
+ 	}
+ 	qp_flow->flow = flow;
+@@ -290,14 +290,14 @@ create_udp_flow(struct usnic_ib_qp_grp *qp_grp,
+ 	if (IS_ERR_OR_NULL(flow)) {
+ 		usnic_err("Unable to alloc flow failed with err %ld\n",
+ 				PTR_ERR(flow));
+-		err = (flow) ? PTR_ERR(flow) : -EFAULT;
++		err = flow ? PTR_ERR(flow) : -EFAULT;
+ 		goto out_put_sock;
+ 	}
+
+ 	/* Create qp_flow */
+ 	qp_flow = kzalloc(sizeof(*qp_flow), GFP_ATOMIC);
+ 	if (IS_ERR_OR_NULL(qp_flow)) {
+-		err = (qp_flow) ? PTR_ERR(qp_flow) : -ENOMEM;
++		err = qp_flow ? PTR_ERR(qp_flow) : -ENOMEM;
+ 		goto out_dealloc_flow;
+ 	}
+ 	qp_flow->flow = flow;
+@@ -419,7 +419,7 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
+ 				qp_flow = create_and_add_flow(qp_grp,
+ 								trans_spec);
+ 				if (IS_ERR_OR_NULL(qp_flow)) {
+-					status = (qp_flow) ? PTR_ERR(qp_flow) : -EFAULT;
++					status = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
+ 					break;
+ 				}
+ 			} else {
+@@ -434,7 +434,7 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
+ 				qp_flow = create_and_add_flow(qp_grp,
+ 								trans_spec);
+ 				if (IS_ERR_OR_NULL(qp_flow)) {
+-					status = (qp_flow) ? PTR_ERR(qp_flow) : -EFAULT;
++					status = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
+ 					break;
+ 				}
+ 			} else {
+@@ -547,8 +547,8 @@ alloc_res_chunk_list(struct usnic_vnic *vnic,
+ 		res_chunk_list[i] = usnic_vnic_get_resources(vnic, res_type,
+ 					res_cnt, owner_obj);
+ 		if (IS_ERR_OR_NULL(res_chunk_list[i])) {
+-			err = (res_chunk_list[i] ?
+-					PTR_ERR(res_chunk_list[i]) : -ENOMEM);
++			err = res_chunk_list[i] ?
++					PTR_ERR(res_chunk_list[i]) : -ENOMEM;
+ 			usnic_err("Failed to get %s from %s with err %d\n",
+ 				usnic_vnic_res_type_to_str(res_type),
+ 				usnic_vnic_pci_name(vnic),
+@@ -701,7 +701,7 @@ usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
+ 	if (IS_ERR_OR_NULL(qp_flow)) {
+ 		usnic_err("Unable to create and add flow with err %ld\n",
+ 				PTR_ERR(qp_flow));
+-		err = (qp_flow) ? PTR_ERR(qp_flow) : -EFAULT;
++		err = qp_flow ? PTR_ERR(qp_flow) : -EFAULT;
+ 		goto out_qp_grp_vf_unbind;
+ 	}
+
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index 937113f..d48d2c0 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -495,7 +495,7 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
+ 						&trans_spec,
+ 						&res_spec);
+ 	if (IS_ERR_OR_NULL(qp_grp)) {
+-		err = (qp_grp ? PTR_ERR(qp_grp) : -ENOMEM);
++		err = qp_grp ? PTR_ERR(qp_grp) : -ENOMEM;
+ 		goto out_release_mutex;
+ 	}
+
+@@ -605,7 +605,7 @@ struct ib_mr *usnic_ib_reg_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mr->umem = usnic_uiom_reg_get(to_upd(pd)->umem_pd, start, length,
+ 					access_flags, 0);
+ 	if (IS_ERR_OR_NULL(mr->umem)) {
+-		err = (mr->umem) ? PTR_ERR(mr->umem) : -EFAULT;
++		err = mr->umem ? PTR_ERR(mr->umem) : -EFAULT;
+ 		goto err_free;
+ 	}
 
 --
 1.8.1
