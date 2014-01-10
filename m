@@ -1,57 +1,23 @@
-From: franklinbuthelezi1-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
-Subject: =?UTF-8?Q?DiePresse.com_Mein_Freund,_der_Fahrradh=C3=A4ndler?=
-Date: Fri, 10 Jan 2014 13:33:52 +0100 (CET)
-Message-ID: <2070693369.1389357232567.JavaMail.root@dpoportal4.diepresse.apa.net>
-Reply-To: franklinbuthelezi1-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: Western Union <vicente.felix-0apC9+3LIkFfyO9Q7EP/yw@public.gmane.org>
+Subject: (unknown)
+Date: Fri, 10 Jan 2014 05:13:45 -0300 (BRT)
+Message-ID: <1925869113.97887.1389341625165.JavaMail.root@mpal.mp.br>
+Reply-To: Western Union <westernunionmespn-Mj/0Miq2reM@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Subject: 
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-=46olgender Artikel auf http://diepresse.com wird Ihnen von Franklin Bu=
-thelezi empfohlen:
-
-Mein Freund, der Fahrradh=C3=A4ndler
-Manche Dinge ver=C3=A4ndern sich =C3=BCber die langen Wintermonate hinw=
-eg.=20
-
-http://diepresse.com/home/leben/mode/kolumnezumtag/548717/index.do
-
-Notiz:
-Dear friend,
-=20
-I am the international operations manager of ABSA bank South Africa. My=
- name is Franklin Buthelezi. I have a sensitive and private offer from =
-the top executive to seek your partnership in re-profiling some offshor=
-e investment funds worth 11.5M U.S.D (Eleven Million five hundred thous=
-and United States Dollars) I am constrained however to withhold most of=
- the details for now. This is a legitimate transaction.=20
-=20
-If we agree on the terms you will be given 15% of the total funds, if y=
-ou are interested please write back via email providing me your persona=
-l details and phone number for further directives.
-=20
-If you are interested and willing to render your assistance please resp=
-ond via my private email address stated below.
-=20
-I look forward to your response.
-=20
-Best regards
-=46ranklin Buthelezi
-Email: franklinbuthelezi1-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 
 
-------------------------------------
-DiePresse.com =C3=BCbernimmt keine Haftung f=C3=BCr den Inhalt der pers=
-=C3=B6nlichen Nachricht.
+Confirm your 500,000,00 Euros. Contact claims office via : wu.claimsoffice-9uewiaClKEY@public.gmane.org
 
-=C2=A9 DiePresse.com - http://diepresse.com
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
