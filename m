@@ -1,44 +1,76 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: [PATCH 09/11] IB/isert: Accept RDMA_WRITE completions
-Date: Sat, 11 Jan 2014 23:14:57 +0200
-Message-ID: <CAJZOPZKAH6+4XPv-ua13C5skGYZHXB=tnOFT-7FSNZ5SXKhZMA@mail.gmail.com>
-References: <1389285658-7037-1-git-send-email-sagig@mellanox.com>
-	<1389285658-7037-10-git-send-email-sagig@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next] IB/usnic: Expose flows via debugfs
+Date: Sun, 12 Jan 2014 11:32:55 +0200
+Message-ID: <52D26147.4010709@mellanox.com>
+References: <6F4F8D2C-F10F-4697-ABD5-552D2E696361@cisco.com> <52B6BDAF.6030407@mellanox.com> <BC780FB0-731D-42FA-B003-E61B473B23E2@cisco.com> <52CD16CE.7080804@mellanox.com> <BDC9DBAD-3303-4A61-85C6-4F49957E693E@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1389285658-7037-10-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: target-devel <target-devel@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, "oren@mellanox.com" <oren@mellanox.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BDC9DBAD-3303-4A61-85C6-4F49957E693E-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> Dreier" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 9, 2014 at 6:40 PM, Sagi Grimberg <sagig@mellanox.com> wrote:
-> In case of protected transactions, we will need to check the
-> protection status of the transaction before sending SCSI response.
-> So be ready for RDMA_WRITE completions. currently we don't ask
-> for these completions, but for T10-PI we will.
-> @@ -1721,9 +1735,9 @@ __isert_send_completion(struct iser_tx_desc *tx_desc,
->                                           isert_conn, ib_dev);
->                 break;
->         case ISER_IB_RDMA_WRITE:
-> -               pr_err("isert_send_completion: Got ISER_IB_RDMA_WRITE\n");
-> -               dump_stack();
-> -               break;
-> +               pr_debug("isert_send_completion: Got ISER_IB_RDMA_WRITE\n");
-> +               atomic_dec(&isert_conn->post_send_buf_count);
-> +               isert_completion_rdma_write(tx_desc, isert_cmd);
+On 08/01/2014 20:57, Upinder Malhi (umalhi) wrote:
+> Or,
+> 	Yeah, I did think about extending the existing infrastructure to export HW specific stats and exposing some stats via standard infrastructure.  Besides the below, there are few other drawbacks with exposing statistics via netlink:
+> 1) Having a two part solution, users space and kernel, will make changing the code more difficult.  Anytime another attributed is exposed, code in the kernel needs to be added to handle backwards compatibility with userspace (as I said we are going to add more stuff incrementally).
 
-are we doing fall through here? why?
->         case ISER_IB_RDMA_READ:
->                 pr_debug("isert_send_completion: Got ISER_IB_RDMA_READ:\n");
+There are thousands if not millions LOCs over the kernel and user space 
+tools which use netlink. Indeed when you have two for tango you 
+sometimes change one side, sometimes the other and sometimes both.  A 
+claim that "its easier to maintain  things when all the code resides in 
+the kernel" can't be really taken seriously into account.  Netlink is 
+used all over the place, so everyone's wrong?
+
+
+
+> 2)  The Cisco VIC series cards, that is our NIC, cannot do flow stats well.  Specially, it only reports Rx byte count for a flow and doesn't report any statistics on the Tx side.  Hence, exposing these via  a standard interface to a user is going to be confusing and misleading.
+
+1st use the standard/existing interface to report the open sessions and 
+later we'll take it from there re the byte counts.
 
 
 >
-> --
-> 1.7.1
+> Hence, at least for Cisco VIC, we want to keep these flow stats in debugfs where they can be easily extended and extra effort is required to get to them.
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Upinder
+>
+> On Jan 8, 2014, at 1:13 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>
+>> On 08/01/2014 00:29, Upinder Malhi (umalhi) wrote:
+>>> Or, The flows contain Cisco VIC specific stuff - Ex. the hardware flow id; and they will contain more cisco specific things.  Hence, they are exported via debugfs.
+>> You should be able to enhance the rdma netlink infrastructure to allow for exporting HW dependent attributes to user space -- did you look on that?
+>>
+>> Also, you should make sure to expose the non HW specific attributes of the sessions through the standard infrastructure.
+>>
+>> Or.
+>>
+>>
+>>
+>>
+>>> Upinder
+>>>
+>>> On Dec 22, 2013, at 2:23 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>>
+>>>> On 20/12/2013 23:37, Upinder Malhi (umalhi) wrote:
+>>>>> This patch depends onhttp://www.spinics.net/lists/linux-rdma/msg18193.html
+>>>> Why use proprietary debugfs code  to display flows? you can (and should) use the rdma subsystem netlink infrastructure for that, see these
+>>>> two commits
+>>>>
+>>>>
+>>>> 753f618 RDMA/cma: Add support for netlink statistics export
+>>>> b2cbae2 RDMA: Add netlink infrastructure
+>>>>
+>>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
