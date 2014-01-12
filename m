@@ -1,43 +1,38 @@
-From: Svetlana Mavrina <another.karnil@gmail.com>
-Subject: [PATCH] amso1100: Add check if cache memory was allocated before freeing it
-Date: Sun, 12 Jan 2014 11:56:09 +0000
-Message-ID: <1389527769-6602-1-git-send-email-another.karnil@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tom@opengridcomputing.com
-Cc: Svetlana Mavrina <another.karnil@gmail.com>, swise@opengridcomputing.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 09/11] IB/isert: Accept RDMA_WRITE completions
+Date: Sun, 12 Jan 2014 14:32:41 +0200
+Message-ID: <52D28B69.6010304@dev.mellanox.co.il>
+References: <1389285658-7037-1-git-send-email-sagig@mellanox.com>	<1389285658-7037-10-git-send-email-sagig@mellanox.com> <CAJZOPZKAH6+4XPv-ua13C5skGYZHXB=tnOFT-7FSNZ5SXKhZMA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CAJZOPZKAH6+4XPv-ua13C5skGYZHXB=tnOFT-7FSNZ5SXKhZMA@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Or Gerlitz <or.gerlitz@gmail.com>, Sagi Grimberg <sagig@mellanox.com>
+Cc: target-devel <target-devel@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, "oren@mellanox.com" <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Svetlana Mavrina <another.karnil@gmail.com>
+On 1/11/2014 11:14 PM, Or Gerlitz wrote:
+> On Thu, Jan 9, 2014 at 6:40 PM, Sagi Grimberg <sagig@mellanox.com> wrote:
+>> In case of protected transactions, we will need to check the
+>> protection status of the transaction before sending SCSI response.
+>> So be ready for RDMA_WRITE completions. currently we don't ask
+>> for these completions, but for T10-PI we will.
+>> @@ -1721,9 +1735,9 @@ __isert_send_completion(struct iser_tx_desc *tx_desc,
+>>                                            isert_conn, ib_dev);
+>>                  break;
+>>          case ISER_IB_RDMA_WRITE:
+>> -               pr_err("isert_send_completion: Got ISER_IB_RDMA_WRITE\n");
+>> -               dump_stack();
+>> -               break;
+>> +               pr_debug("isert_send_completion: Got ISER_IB_RDMA_WRITE\n");
+>> +               atomic_dec(&isert_conn->post_send_buf_count);
+>> +               isert_completion_rdma_write(tx_desc, isert_cmd);
+> are we doing fall through here? why?
 
-There is a path in handle_vq() where kmem_cache_free()
-can be called with pointer to a local variable.
-It can happen if vq_repbuf_alloc() failed to allocate memory from cache
-and req is NULL.
+Ohhhh, somehow i missed it in squash... Will fix, Thanks!
 
-The patch adds check if cache memory was allocated before freeing it.
-
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Svetlana Mavrina <another.karnil@gmail.com>
-Reviewed-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/infiniband/hw/amso1100/c2_intr.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/amso1100/c2_intr.c b/drivers/infiniband/hw/amso1100/c2_intr.c
-index 8951db4ae29d..3a17d9b36dba 100644
---- a/drivers/infiniband/hw/amso1100/c2_intr.c
-+++ b/drivers/infiniband/hw/amso1100/c2_intr.c
-@@ -169,7 +169,8 @@ static void handle_vq(struct c2_dev *c2dev, u32 mq_index)
- 		 * We should never get here, as the adapter should
- 		 * never send us a reply that we're not expecting.
- 		 */
--		vq_repbuf_free(c2dev, host_msg);
-+		if (reply_msg != NULL)
-+			vq_repbuf_free(c2dev, host_msg);
- 		pr_debug("handle_vq: UNEXPECTEDLY got NULL req\n");
- 		return;
- 	}
--- 
-1.8.1.2
+>>          case ISER_IB_RDMA_READ:
+>>                  pr_debug("isert_send_completion: Got ISER_IB_RDMA_READ:\n");
+>
