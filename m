@@ -1,57 +1,71 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH 06/11] IB/isert: Initialize T10-PI resources
-Date: Sun, 12 Jan 2014 16:12:50 +0200
-Message-ID: <52D2A2E2.6040502@mellanox.com>
-References: <1389285658-7037-1-git-send-email-sagig@mellanox.com>	<1389285658-7037-7-git-send-email-sagig@mellanox.com> <CAJZOPZLXNkf9XYFsDa3NcYKyySg2H_ARyrVzomYmbYQVqNRPLQ@mail.gmail.com> <52D28D96.9000207@dev.mellanox.co.il>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: fix insert
+ of invalid lid 0xFFFF into lid_port hash_table
+Date: Sun, 12 Jan 2014 15:34:03 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04A93D22@CRSMSX101.amr.corp.intel.com>
+References: <52C18853.8080107@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <52D28D96.9000207@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Or Gerlitz <or.gerlitz@gmail.com>, Sagi Grimberg <sagig@mellanox.com>
-Cc: target-devel <target-devel@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, "oren@mellanox.com" <oren@mellanox.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52C18853.8080107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/01/2014 14:41, Sagi Grimberg wrote:
->>> --- a/drivers/infiniband/ulp/isert/ib_isert.h
->>> +++ b/drivers/infiniband/ulp/isert/ib_isert.h
->>> @@ -48,11 +48,21 @@ struct iser_tx_desc {
->>>          struct ib_send_wr send_wr;
->>>   } __packed;
->>>
->>> +struct pi_context {
->>> +       struct ib_mr                   *prot_mr;
->>> +       bool prot_key_valid;
->>> +       struct ib_fast_reg_page_list   *prot_frpl;
->>> +       struct ib_mr                   *sig_mr;
->>> +       bool sig_key_valid;
->>> +};
->>> +
->>>   struct fast_reg_descriptor {
->>> -       struct list_head        list;
->>> -       struct ib_mr            *data_mr;
->>> -       struct ib_fast_reg_page_list    *data_frpl;
->>> -       bool                    valid;
->>> +       struct list_head                list;
->>> +       struct ib_mr                   *data_mr;
->>> +       bool data_key_valid;
->>> +       struct ib_fast_reg_page_list   *data_frpl;
->>> +       bool                            protected;
->> no need for many bools in one structure... each one needs a bit,
->> correct? so embed them in one variable
->
-> I figured it will be more explicit this way. protected boolean 
-> indicates if we should check the data-integrity status, and the other 
-> 3 indicates if the relevant MR is valid (no need to execute local 
-> invalidation). Do you think I should compact it somehow? usually 
-> xxx_valid booleans will align together although not always. 
+Good catch some comments below.
 
-I didn't note there are so many booleans there... sure, my personal 
-preference is compaction, e.g have one field names flags and multiple 
-bit locations marking the different flags e.g
+> -----Original Message-----
+> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Monday, December 30, 2013 6:51 AM
+> To: Ira Weiny
+> Cc: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org); Dan Ben-Yosef
+> Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: fix insert of invalid
+> lid 0xFFFF into lid_port hash_table
+> 
+> From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  libibnetdisc/src/ibnetdisc.c |   12 +++++++-----
+>  1 files changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c index
+> 9d120dd..121fe35 100644
+> --- a/libibnetdisc/src/ibnetdisc.c
+> +++ b/libibnetdisc/src/ibnetdisc.c
+> @@ -647,11 +647,13 @@ void add_to_portlid_hash(ibnd_port_t * port,
+> GHashTable *htable)
+>  	uint16_t base_lid = port->base_lid;
+>  	uint16_t lid_mask = ((1 << port->lmc) -1);
+>  	uint16_t lid = 0;
+> -
+> -	/* We add the port for all lids
+> -	 * so it is easier to find any "random" lid specified */
+> -	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
+> -		g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
+> +	/* 0 < valid lid <= 0xbfff */
+> +	if (base_lid > 0 && base_lid <= 0xbfff) {
 
-FAST_REG_DESC_VALID
-FAST_REG_DESC_DATA_KEY_VALID
-FAST_REG_DESC_PROTECTED
-etc
+Shouldn't we check the "max LID" (based on LMC) here to make sure they are all vaild?
+
+Ira
+
+> +		/* We add the port for all lids
+> +		 * so it is easier to find any "random" lid specified */
+> +		for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
+> +			g_hash_table_insert(htable, GINT_TO_POINTER(lid),
+> port);
+> +		}
+>  	}
+>  }
+> 
+> --
+> 1.7.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
