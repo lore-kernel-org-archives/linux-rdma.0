@@ -1,69 +1,96 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: fix insert
- of invalid lid 0xFFFF into lid_port hash_table
-Date: Sun, 12 Jan 2014 15:34:03 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04A93D22@CRSMSX101.amr.corp.intel.com>
-References: <52C18853.8080107@dev.mellanox.co.il>
+Subject: RE: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
+ information to stdout
+Date: Sun, 12 Jan 2014 15:37:50 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04A94D41@CRSMSX101.amr.corp.intel.com>
+References: <20140102064415.GA4568@r-ufm96.mtr.labs.mlnx>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52C18853.8080107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20140102064415.GA4568-d8864ACYL78DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Good catch some comments below.
-
 > -----Original Message-----
-> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
-> Sent: Monday, December 30, 2013 6:51 AM
-> To: Ira Weiny
-> Cc: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org); Dan Ben-Yosef
-> Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: fix insert of invalid
-> lid 0xFFFF into lid_port hash_table
+> From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> Sent: Wednesday, January 01, 2014 10:44 PM
+> Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
+> information to stdout
 > 
-> From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  libibnetdisc/src/ibnetdisc.c |   12 +++++++-----
->  1 files changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c index
-> 9d120dd..121fe35 100644
-> --- a/libibnetdisc/src/ibnetdisc.c
-> +++ b/libibnetdisc/src/ibnetdisc.c
-> @@ -647,11 +647,13 @@ void add_to_portlid_hash(ibnd_port_t * port,
-> GHashTable *htable)
->  	uint16_t base_lid = port->base_lid;
->  	uint16_t lid_mask = ((1 << port->lmc) -1);
->  	uint16_t lid = 0;
-> -
-> -	/* We add the port for all lids
-> -	 * so it is easier to find any "random" lid specified */
-> -	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
-> -		g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
-> +	/* 0 < valid lid <= 0xbfff */
-> +	if (base_lid > 0 && base_lid <= 0xbfff) {
+> Write to stdout the route-path when smp returns with status error.
 
-Shouldn't we check the "max LID" (based on LMC) here to make sure they are all vaild?
+As part of a library this will affect many tools outputs and perhaps subsequently any scripts written against those tools.
+
+Is this really a requirement or simply a "nice to have"?
 
 Ira
 
-> +		/* We add the port for all lids
-> +		 * so it is easier to find any "random" lid specified */
-> +		for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
-> +			g_hash_table_insert(htable, GINT_TO_POINTER(lid),
-> port);
-> +		}
->  	}
->  }
 > 
+> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  libibnetdisc/src/internal.h  |   10 +++++++---
+>  libibnetdisc/src/query_smp.c |    6 ++++++
+>  2 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h index
+> 1ccd29c..47b2a4c 100644
+> --- a/libibnetdisc/src/internal.h
+> +++ b/libibnetdisc/src/internal.h
+> @@ -42,12 +42,16 @@
+>  #include <complib/cl_qmap.h>
+>  #include <glib.h>
+> 
+> +#define	IBND_ERROR(fmt, ...) \
+> +		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
+> __VA_ARGS__)
+> +
+> +#define	IBND_INFO(fmt, ...) \
+> +		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
+> __VA_ARGS__);
+> +
+>  #define	IBND_DEBUG(fmt, ...) \
+>  	if (ibdebug) { \
+> -		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
+> __VA_ARGS__); \
+> +		IBND_INFO(fmt,## __VA_ARGS__); \
+>  	}
+> -#define	IBND_ERROR(fmt, ...) \
+> -		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
+> __VA_ARGS__)
+> 
+>  /* HASH table defines */
+>  #define HASHGUID(guid) ((uint32_t)(((uint32_t)(guid) * 101) ^
+> ((uint32_t)((guid) >> 32) * 103))) diff --git a/libibnetdisc/src/query_smp.c
+> b/libibnetdisc/src/query_smp.c index 28620b4..ac4984e 100644
+> --- a/libibnetdisc/src/query_smp.c
+> +++ b/libibnetdisc/src/query_smp.c
+> @@ -192,6 +192,9 @@ static int process_one_recv(smp_engine_t * engine)
+>  		goto error;
+> 
+>  	if ((status = umad_status(umad))) {
+> +		IBND_INFO("umad (%s Attr 0x%x:%u) bad status %d; %s\n",
+> +			   portid2str(&smp->path), smp->rpc.attr.id,
+> +			   smp->rpc.attr.mod, status, strerror(status));
+>  		IBND_ERROR("umad (%s Attr 0x%x:%u) bad status %d;
+> %s\n",
+>  			   portid2str(&smp->path), smp->rpc.attr.id,
+>  			   smp->rpc.attr.mod, status, strerror(status)); @@ -
+> 199,6 +202,9 @@ static int process_one_recv(smp_engine_t * engine)
+>  			rc = mlnx_ext_port_info_err(engine, smp, mad,
+>  						    smp->cb_data);
+>  	} else if ((status = mad_get_field(mad, 0, IB_DRSMP_STATUS_F))) {
+> +		IBND_INFO("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
+> +			   portid2str(&smp->path), smp->rpc.attr.id,
+> +			   smp->rpc.attr.mod, status);
+>  		IBND_ERROR("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
+>  			   portid2str(&smp->path), smp->rpc.attr.id,
+>  			   smp->rpc.attr.mod, status);
 > --
-> 1.7.8.2
+> 1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
