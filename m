@@ -1,64 +1,89 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: linux rdma 3.14 merge plans
-Date: Mon, 13 Jan 2014 12:32:51 -0800
-Message-ID: <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
-References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
-	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
-	 <52CD1C68.4050406@mellanox.com>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next] IB/usnic: Expose flows via debugfs
+Date: Mon, 13 Jan 2014 22:14:02 +0000
+Message-ID: <9D597492-61CB-4C2D-9853-87EEFEA64BEA@cisco.com>
+References: <6F4F8D2C-F10F-4697-ABD5-552D2E696361@cisco.com>
+ <52B6BDAF.6030407@mellanox.com>
+ <BC780FB0-731D-42FA-B003-E61B473B23E2@cisco.com>
+ <52CD16CE.7080804@mellanox.com>
+ <BDC9DBAD-3303-4A61-85C6-4F49957E693E@cisco.com>
+ <52D26147.4010709@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52CD1C68.4050406-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <52D26147.4010709-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <61B70DA3F20EA9488BC89E13C385F4DE-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> Dreier" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland & Co,
+We are happy to use netlink if it makes sense.  What you are saying is: Netlink is used all over the kernel.  Bc it is used all over the kernel, it must be the right answer for all userspace/kernel interactions.  Therefore, if something doesn't use netlink, it must be wrong (ex. procfs, sysfs, debugfs).
 
-Just curious if your planning to take a look at this series soon for
-v3.14 code..?
+We want to put the rx byte/packet count in debug fs because it is intended for developers.  We do not want to put these in a common infrastructure bc as we have found internally, lacking tx statistics confuses users.  We are being asked to write the ib core statistics infrastructure, that if it was available today, we would not use.  So unless someone else jumps in here, we are going to keep these in the debug fs.
 
-As you might imagine, I'd like to see it merged this round in order to
-move forward on iser-target protection for v3.15.
+Upinder
 
-Are there any specific issues that you'd like to see addressed for an
-initial merge..?
+On Jan 12, 2014, at 1:32 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-Thank you,
+> On 08/01/2014 20:57, Upinder Malhi (umalhi) wrote:
+>> Or,
+>> 	Yeah, I did think about extending the existing infrastructure to export HW specific stats and exposing some stats via standard infrastructure.  Besides the below, there are few other drawbacks with exposing statistics via netlink:
+>> 1) Having a two part solution, users space and kernel, will make changing the code more difficult.  Anytime another attributed is exposed, code in the kernel needs to be added to handle backwards compatibility with userspace (as I said we are going to add more stuff incrementally).
+> 
+> There are thousands if not millions LOCs over the kernel and user space tools which use netlink. Indeed when you have two for tango you sometimes change one side, sometimes the other and sometimes both.  A claim that "its easier to maintain  things when all the code resides in the kernel" can't be really taken seriously into account.  Netlink is used all over the place, so everyone's wrong?
 
---nab
-
-On Wed, 2014-01-08 at 11:37 +0200, Or Gerlitz wrote:
-> On 08/01/2014 02:51, Roland Dreier wrote:
-> > The data integrity stuff I'm not so sure about.  Sean raised some I
-> think legitimate questions about whether all this should be added to
-> the verbs API and I want to see more discussion or at least have a
-> deep think about this myself before comitting.
-> 
-> Well, re the deep think thing, we have problem here -- the patches were 
-> posted three months ago, on Oct 15th 2013, and so far not a single bit 
-> of input from you. Can you take a look on that as soon as possible and 
-> let us know your thoughts?
-> 
-> As for the questions posed by Sean -- Sagi, Tzahi and myself provided 
-> detailed answers. Taking into account the small scale of the rdma 
-> community, I don't see any other choice other than the guy wearing the 
-> maintainer hat to step in and provide his say or follow up questions 
-> that would cut things out or  revive the discussion.
-> 
-> Or.
 > 
 > 
 > 
+>> 2)  The Cisco VIC series cards, that is our NIC, cannot do flow stats well.  Specially, it only reports Rx byte count for a flow and doesn't report any statistics on the Tx side.  Hence, exposing these via  a standard interface to a user is going to be confusing and misleading.
 > 
+> 1st use the standard/existing interface to report the open sessions and later we'll take it from there re the byte counts.
+> 
+> 
+>> 
+>> Hence, at least for Cisco VIC, we want to keep these flow stats in debugfs where they can be easily extended and extra effort is required to get to them.
+>> 
+>> Upinder
+>> 
+>> On Jan 8, 2014, at 1:13 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> 
+>>> On 08/01/2014 00:29, Upinder Malhi (umalhi) wrote:
+>>>> Or, The flows contain Cisco VIC specific stuff - Ex. the hardware flow id; and they will contain more cisco specific things.  Hence, they are exported via debugfs.
+>>> You should be able to enhance the rdma netlink infrastructure to allow for exporting HW dependent attributes to user space -- did you look on that?
+>>> 
+>>> Also, you should make sure to expose the non HW specific attributes of the sessions through the standard infrastructure.
+>>> 
+>>> Or.
+>>> 
+>>> 
+>>> 
+>>> 
+>>>> Upinder
+>>>> 
+>>>> On Dec 22, 2013, at 2:23 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>>> 
+>>>>> On 20/12/2013 23:37, Upinder Malhi (umalhi) wrote:
+>>>>>> This patch depends onhttp://www.spinics.net/lists/linux-rdma/msg18193.html
+>>>>> Why use proprietary debugfs code  to display flows? you can (and should) use the rdma subsystem netlink infrastructure for that, see these
+>>>>> two commits
+>>>>> 
+>>>>> 
+>>>>> 753f618 RDMA/cma: Add support for netlink statistics export
+>>>>> b2cbae2 RDMA: Add netlink infrastructure
+>>>>> 
+>>>>> 
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
