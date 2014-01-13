@@ -1,30 +1,66 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH 07/11] IB/isert: pass scatterlist instead of cmd to
- fast_reg_mr routine
-Date: Mon, 13 Jan 2014 11:45:51 -0800
-Message-ID: <1389642351.5567.451.camel@haakon3.risingtidesystems.com>
-References: <1389285658-7037-1-git-send-email-sagig@mellanox.com>
-	 <1389285658-7037-8-git-send-email-sagig@mellanox.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Mon, 13 Jan 2014 12:32:51 -0800
+Message-ID: <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	 <52CD1C68.4050406@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1389285658-7037-8-git-send-email-sagig@mellanox.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: target-devel@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, martin.petersen@oracle.com, ogerlitz@mellanox.com, oren@mellanox.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52CD1C68.4050406-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2014-01-09 at 18:40 +0200, Sagi Grimberg wrote:
-> This routine may help for protection registration as well.
-> This patch does not change any functionality.
-> 
-> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
-> ---
->  drivers/infiniband/ulp/isert/ib_isert.c |   28 ++++++++++++----------------
->  1 files changed, 12 insertions(+), 16 deletions(-)
+Hi Roland & Co,
 
-Also applied to for-next.
+Just curious if your planning to take a look at this series soon for
+v3.14 code..?
+
+As you might imagine, I'd like to see it merged this round in order to
+move forward on iser-target protection for v3.15.
+
+Are there any specific issues that you'd like to see addressed for an
+initial merge..?
+
+Thank you,
 
 --nab
 
+On Wed, 2014-01-08 at 11:37 +0200, Or Gerlitz wrote:
+> On 08/01/2014 02:51, Roland Dreier wrote:
+> > The data integrity stuff I'm not so sure about.  Sean raised some I
+> think legitimate questions about whether all this should be added to
+> the verbs API and I want to see more discussion or at least have a
+> deep think about this myself before comitting.
+> 
+> Well, re the deep think thing, we have problem here -- the patches were 
+> posted three months ago, on Oct 15th 2013, and so far not a single bit 
+> of input from you. Can you take a look on that as soon as possible and 
+> let us know your thoughts?
+> 
+> As for the questions posed by Sean -- Sagi, Tzahi and myself provided 
+> detailed answers. Taking into account the small scale of the rdma 
+> community, I don't see any other choice other than the guy wearing the 
+> maintainer hat to step in and provide his say or follow up questions 
+> that would cut things out or  revive the discussion.
+> 
+> Or.
+> 
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
