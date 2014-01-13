@@ -1,97 +1,34 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
- information to stdout
-Date: Sun, 12 Jan 2014 15:37:50 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04A94D41@CRSMSX101.amr.corp.intel.com>
-References: <20140102064415.GA4568@r-ufm96.mtr.labs.mlnx>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Question about CPU-HCA interaction
+Date: Mon, 13 Jan 2014 04:04:04 -0500
+Message-ID: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140102064415.GA4568-d8864ACYL78DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Wednesday, January 01, 2014 10:44 PM
-> Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
-> information to stdout
-> 
-> Write to stdout the route-path when smp returns with status error.
+Hi.
 
-As part of a library this will affect many tools outputs and perhaps subsequently any scripts written against those tools.
+I wanted to understand the PCIe usage while issuing Infiniband verbs.
+When posting a verb to a queue pair, how is the request descriptor
+written to the HCA? IMO, there are two options for this:
 
-Is this really a requirement or simply a "nice to have"?
+1. CPU prepares the descriptor in local memory. After preparing the
+descriptor, it writes the location of the descriptor to a hardwired
+register on the HCA (this process is called "ringing the doorbell"?).
+The HCA then reads the descriptor via DMA.
 
-Ira
+2. The CPU writes the entire descriptor to the HCA's memory via PCIe
+MMIO. Then, it rings the doorbell to alert the HCA.
 
-> 
-> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  libibnetdisc/src/internal.h  |   10 +++++++---
->  libibnetdisc/src/query_smp.c |    6 ++++++
->  2 files changed, 13 insertions(+), 3 deletions(-)
-> 
-> diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h index
-> 1ccd29c..47b2a4c 100644
-> --- a/libibnetdisc/src/internal.h
-> +++ b/libibnetdisc/src/internal.h
-> @@ -42,12 +42,16 @@
->  #include <complib/cl_qmap.h>
->  #include <glib.h>
-> 
-> +#define	IBND_ERROR(fmt, ...) \
-> +		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
-> __VA_ARGS__)
-> +
-> +#define	IBND_INFO(fmt, ...) \
-> +		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
-> __VA_ARGS__);
-> +
->  #define	IBND_DEBUG(fmt, ...) \
->  	if (ibdebug) { \
-> -		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
-> __VA_ARGS__); \
-> +		IBND_INFO(fmt,## __VA_ARGS__); \
->  	}
-> -#define	IBND_ERROR(fmt, ...) \
-> -		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
-> __VA_ARGS__)
-> 
->  /* HASH table defines */
->  #define HASHGUID(guid) ((uint32_t)(((uint32_t)(guid) * 101) ^
-> ((uint32_t)((guid) >> 32) * 103))) diff --git a/libibnetdisc/src/query_smp.c
-> b/libibnetdisc/src/query_smp.c index 28620b4..ac4984e 100644
-> --- a/libibnetdisc/src/query_smp.c
-> +++ b/libibnetdisc/src/query_smp.c
-> @@ -192,6 +192,9 @@ static int process_one_recv(smp_engine_t * engine)
->  		goto error;
-> 
->  	if ((status = umad_status(umad))) {
-> +		IBND_INFO("umad (%s Attr 0x%x:%u) bad status %d; %s\n",
-> +			   portid2str(&smp->path), smp->rpc.attr.id,
-> +			   smp->rpc.attr.mod, status, strerror(status));
->  		IBND_ERROR("umad (%s Attr 0x%x:%u) bad status %d;
-> %s\n",
->  			   portid2str(&smp->path), smp->rpc.attr.id,
->  			   smp->rpc.attr.mod, status, strerror(status)); @@ -
-> 199,6 +202,9 @@ static int process_one_recv(smp_engine_t * engine)
->  			rc = mlnx_ext_port_info_err(engine, smp, mad,
->  						    smp->cb_data);
->  	} else if ((status = mad_get_field(mad, 0, IB_DRSMP_STATUS_F))) {
-> +		IBND_INFO("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
-> +			   portid2str(&smp->path), smp->rpc.attr.id,
-> +			   smp->rpc.attr.mod, status);
->  		IBND_ERROR("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
->  			   portid2str(&smp->path), smp->rpc.attr.id,
->  			   smp->rpc.attr.mod, status);
-> --
-> 1.7.1
+To me, the first one makes more sense, but I'm not sure. It would be
+great if someone could tell more about this.
 
+Thanks for your help.
+
+--Anuj
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
