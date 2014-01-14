@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 12/14] IB/mlx5: Allow creation of QPs with zero length work queues
-Date: Tue, 14 Jan 2014 17:45:21 +0200
-Message-ID: <1389714323-20130-13-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 14/14] IB/mlx5: Remove old field for create mkey mailbox
+Date: Tue, 14 Jan 2014 17:45:23 +0200
+Message-ID: <1389714323-20130-15-git-send-email-eli@mellanox.com>
 References: <1389714323-20130-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389714323-20130-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,108 +10,27 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The current code attmepts to call ib_umem_get() even if the length is zero
-which causes a failure. Since the spec allows zero length work queues, change
-the code so we don't call ib_umem_get() in those cases.
+Align to firmware specification.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 49 ++++++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 20 deletions(-)
+ include/linux/mlx5/device.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 87b7fb1..70dd770 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -523,12 +523,12 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- {
- 	struct mlx5_ib_ucontext *context;
- 	struct mlx5_ib_create_qp ucmd;
--	int page_shift;
-+	int page_shift = 0;
- 	int uar_index;
- 	int npages;
--	u32 offset;
-+	u32 offset = 0;
- 	int uuarn;
--	int ncont;
-+	int ncont = 0;
- 	int err;
- 
- 	err = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
-@@ -564,23 +564,29 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	if (err)
- 		goto err_uuar;
- 
--	qp->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--			       qp->buf_size, 0, 0);
--	if (IS_ERR(qp->umem)) {
--		mlx5_ib_dbg(dev, "umem_get failed\n");
--		err = PTR_ERR(qp->umem);
--		goto err_uuar;
-+	if (ucmd.buf_addr && qp->buf_size) {
-+		qp->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
-+				       qp->buf_size, 0, 0);
-+		if (IS_ERR(qp->umem)) {
-+			mlx5_ib_dbg(dev, "umem_get failed\n");
-+			err = PTR_ERR(qp->umem);
-+			goto err_uuar;
-+		}
-+	} else {
-+		qp->umem = NULL;
- 	}
- 
--	mlx5_ib_cont_pages(qp->umem, ucmd.buf_addr, &npages, &page_shift,
--			   &ncont, NULL);
--	err = mlx5_ib_get_buf_offset(ucmd.buf_addr, page_shift, &offset);
--	if (err) {
--		mlx5_ib_warn(dev, "bad offset\n");
--		goto err_umem;
-+	if (qp->umem) {
-+		mlx5_ib_cont_pages(qp->umem, ucmd.buf_addr, &npages, &page_shift,
-+				   &ncont, NULL);
-+		err = mlx5_ib_get_buf_offset(ucmd.buf_addr, page_shift, &offset);
-+		if (err) {
-+			mlx5_ib_warn(dev, "bad offset\n");
-+			goto err_umem;
-+		}
-+		mlx5_ib_dbg(dev, "addr 0x%llx, size %d, npages %d, page_shift %d, ncont %d, offset %d\n",
-+			    ucmd.buf_addr, qp->buf_size, npages, page_shift, ncont, offset);
- 	}
--	mlx5_ib_dbg(dev, "addr 0x%llx, size %d, npages %d, page_shift %d, ncont %d, offset %d\n",
--		    ucmd.buf_addr, qp->buf_size, npages, page_shift, ncont, offset);
- 
- 	*inlen = sizeof(**in) + sizeof(*(*in)->pas) * ncont;
- 	*in = mlx5_vzalloc(*inlen);
-@@ -588,7 +594,8 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		err = -ENOMEM;
- 		goto err_umem;
- 	}
--	mlx5_ib_populate_pas(dev, qp->umem, page_shift, (*in)->pas, 0);
-+	if (qp->umem)
-+		mlx5_ib_populate_pas(dev, qp->umem, page_shift, (*in)->pas, 0);
- 	(*in)->ctx.log_pg_sz_remote_qpn =
- 		cpu_to_be32((page_shift - MLX5_ADAPTER_PAGE_SHIFT) << 24);
- 	(*in)->ctx.params2 = cpu_to_be32(offset << 6);
-@@ -619,7 +626,8 @@ err_free:
- 	mlx5_vfree(*in);
- 
- err_umem:
--	ib_umem_release(qp->umem);
-+	if (qp->umem)
-+		ib_umem_release(qp->umem);
- 
- err_uuar:
- 	free_uuar(&context->uuari, uuarn);
-@@ -632,7 +640,8 @@ static void destroy_qp_user(struct ib_pd *pd, struct mlx5_ib_qp *qp)
- 
- 	context = to_mucontext(pd->uobject->context);
- 	mlx5_ib_db_unmap_user(context, &qp->db);
--	ib_umem_release(qp->umem);
-+	if (qp->umem)
-+		ib_umem_release(qp->umem);
- 	free_uuar(&context->uuari, qp->uuarn);
- }
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 1d05909..817a6fa 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -849,8 +849,8 @@ struct mlx5_create_mkey_mbox_in {
+ 	struct mlx5_mkey_seg	seg;
+ 	u8			rsvd1[16];
+ 	__be32			xlat_oct_act_size;
+-	__be32			bsf_coto_act_size;
+-	u8			rsvd2[168];
++	__be32			rsvd2;
++	u8			rsvd3[168];
+ 	__be64			pas[0];
+ };
  
 -- 
 1.8.5.2
