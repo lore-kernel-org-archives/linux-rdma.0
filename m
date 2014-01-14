@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 10/14] net/mlx5_core: Improve debugfs readability
-Date: Tue, 14 Jan 2014 17:45:19 +0200
-Message-ID: <1389714323-20130-11-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 11/14] mlx5_core: Fix PowerPC support
+Date: Tue, 14 Jan 2014 17:45:20 +0200
+Message-ID: <1389714323-20130-12-git-send-email-eli@mellanox.com>
 References: <1389714323-20130-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389714323-20130-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,157 +10,69 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use strings to display transport service or state of QPs. Use numerical value
-for MTU of a QP.
+1. Fix derivation of sub-page index from the dma address in free_4k.
+2. Fix the DMA address passed to dma_unmap_page by masking it properly.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/debugfs.c | 39 +++++++++++++++++---
- include/linux/mlx5/qp.h                           | 45 +++++++++++++++++++++++
- 2 files changed, 78 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c | 9 +++++----
+ include/linux/mlx5/device.h                         | 3 ++-
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-index 80f6d12..10e1f1a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-@@ -275,7 +275,7 @@ void mlx5_cq_debugfs_cleanup(struct mlx5_core_dev *dev)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+index c35c432..d59790a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+@@ -99,7 +99,7 @@ enum {
+ 
+ enum {
+ 	MLX5_MAX_RECLAIM_TIME_MILI	= 5000,
+-	MLX5_NUM_4K_IN_PAGE		= PAGE_SIZE / 4096,
++	MLX5_NUM_4K_IN_PAGE		= PAGE_SIZE / MLX5_ADAPTER_PAGE_SIZE,
+ };
+ 
+ static int insert_page(struct mlx5_core_dev *dev, u64 addr, struct page *page, u16 func_id)
+@@ -206,7 +206,7 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
+ 	if (!fp->free_count)
+ 		list_del(&fp->list);
+ 
+-	*addr = fp->addr + n * 4096;
++	*addr = fp->addr + n * MLX5_ADAPTER_PAGE_SIZE;
+ 
+ 	return 0;
  }
- 
- static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
--			 int index)
-+			 int index, int *is_str)
- {
- 	struct mlx5_query_qp_mbox_out *out;
- 	struct mlx5_qp_context *ctx;
-@@ -293,19 +293,40 @@ static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
- 		goto out;
+@@ -222,14 +222,15 @@ static void free_4k(struct mlx5_core_dev *dev, u64 addr)
+ 		return;
  	}
  
-+	*is_str = 0;
- 	ctx = &out->ctx;
- 	switch (index) {
- 	case QP_PID:
- 		param = qp->pid;
- 		break;
- 	case QP_STATE:
--		param = be32_to_cpu(ctx->flags) >> 28;
-+		param = (u64)mlx5_qp_state_str(be32_to_cpu(ctx->flags) >> 28);
-+		*is_str = 1;
- 		break;
- 	case QP_XPORT:
--		param = (be32_to_cpu(ctx->flags) >> 16) & 0xff;
-+		param = (u64)mlx5_qp_type_str((be32_to_cpu(ctx->flags) >> 16) & 0xff);
-+		*is_str = 1;
- 		break;
- 	case QP_MTU:
--		param = ctx->mtu_msgmax >> 5;
-+		switch (ctx->mtu_msgmax >> 5) {
-+		case IB_MTU_256:
-+			param = 256;
-+			break;
-+		case IB_MTU_512:
-+			param = 512;
-+			break;
-+		case IB_MTU_1024:
-+			param = 1024;
-+			break;
-+		case IB_MTU_2048:
-+			param = 2048;
-+			break;
-+		case IB_MTU_4096:
-+			param = 4096;
-+			break;
-+		default:
-+			param = 0;
-+		}
- 		break;
- 	case QP_N_RECV:
- 		param = 1 << ((ctx->rq_size_stride >> 3) & 0xf);
-@@ -414,6 +435,7 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 	struct mlx5_field_desc *desc;
- 	struct mlx5_rsc_debug *d;
- 	char tbuf[18];
-+	int is_str = 0;
- 	u64 field;
- 	int ret;
+-	n = (addr & ~PAGE_MASK) % 4096;
++	n = (addr & ~PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
+ 	fwp->free_count++;
+ 	set_bit(n, &fwp->bitmask);
+ 	if (fwp->free_count == MLX5_NUM_4K_IN_PAGE) {
+ 		rb_erase(&fwp->rb_node, &dev->priv.page_root);
+ 		if (fwp->free_count != 1)
+ 			list_del(&fwp->list);
+-		dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
++		dma_unmap_page(&dev->pdev->dev, addr & PAGE_MASK, PAGE_SIZE,
++			       DMA_BIDIRECTIONAL);
+ 		__free_page(fwp->page);
+ 		kfree(fwp);
+ 	} else if (fwp->free_count == 1) {
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 87e2371..1d05909 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -234,7 +234,8 @@ enum {
+ };
  
-@@ -424,7 +446,7 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 	d = (void *)(desc - desc->i) - sizeof(*d);
- 	switch (d->type) {
- 	case MLX5_DBG_RSC_QP:
--		field = qp_read_field(d->dev, d->object, desc->i);
-+		field = qp_read_field(d->dev, d->object, desc->i, &is_str);
- 		break;
+ enum {
+-	MLX5_ADAPTER_PAGE_SHIFT		= 12
++	MLX5_ADAPTER_PAGE_SHIFT		= 12,
++	MLX5_ADAPTER_PAGE_SIZE		= 1 << MLX5_ADAPTER_PAGE_SHIFT,
+ };
  
- 	case MLX5_DBG_RSC_EQ:
-@@ -440,7 +462,12 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 		return -EINVAL;
- 	}
- 
--	ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
-+
-+	if (is_str)
-+		ret = snprintf(tbuf, sizeof(tbuf), "%s\n", (const char *)field);
-+	else
-+		ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
-+
- 	if (ret > 0) {
- 		if (copy_to_user(buf, tbuf, ret))
- 			return -EFAULT;
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index d9e3eac..d51eff7 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -464,4 +464,49 @@ void mlx5_cleanup_qp_table(struct mlx5_core_dev *dev);
- int mlx5_debug_qp_add(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
- void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
- 
-+static inline const char *mlx5_qp_type_str(int type)
-+{
-+	switch (type) {
-+	case MLX5_QP_ST_RC: return "RC";
-+	case MLX5_QP_ST_UC: return "C";
-+	case MLX5_QP_ST_UD: return "UD";
-+	case MLX5_QP_ST_XRC: return "XRC";
-+	case MLX5_QP_ST_MLX: return "MLX";
-+	case MLX5_QP_ST_QP0: return "QP0";
-+	case MLX5_QP_ST_QP1: return "QP1";
-+	case MLX5_QP_ST_RAW_ETHERTYPE: return "RAW_ETHERTYPE";
-+	case MLX5_QP_ST_RAW_IPV6: return "RAW_IPV6";
-+	case MLX5_QP_ST_SNIFFER: return "SNIFFER";
-+	case MLX5_QP_ST_SYNC_UMR: return "SYNC_UMR";
-+	case MLX5_QP_ST_PTP_1588: return "PTP_1588";
-+	case MLX5_QP_ST_REG_UMR: return "REG_UMR";
-+	default: return "Invalid transport type";
-+	}
-+}
-+
-+static inline const char *mlx5_qp_state_str(int state)
-+{
-+	switch (state) {
-+	case MLX5_QP_STATE_RST:
-+	return "RST";
-+	case MLX5_QP_STATE_INIT:
-+	return "INIT";
-+	case MLX5_QP_STATE_RTR:
-+	return "RTR";
-+	case MLX5_QP_STATE_RTS:
-+	return "RTS";
-+	case MLX5_QP_STATE_SQER:
-+	return "SQER";
-+	case MLX5_QP_STATE_SQD:
-+	return "SQD";
-+	case MLX5_QP_STATE_ERR:
-+	return "ERR";
-+	case MLX5_QP_STATE_SQ_DRAINING:
-+	return "SQ_DRAINING";
-+	case MLX5_QP_STATE_SUSPENDED:
-+	return "SUSPENDED";
-+	default: return "Invalid QP state";
-+	}
-+}
-+
- #endif /* MLX5_QP_H */
+ enum {
 -- 
 1.8.5.2
 
