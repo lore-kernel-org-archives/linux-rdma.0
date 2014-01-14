@@ -1,53 +1,33 @@
-From: Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org>
-Subject: RE: Question about CPU-HCA interaction
-Date: Tue, 14 Jan 2014 02:08:15 +0000
-Message-ID: <8687DAA2193C594F89AAA8D4EFFF767F1E253D33@BBYEXM01.pmc-sierra.internal>
-References: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w@mail.gmail.com>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Latest Merge of usNIC Code
+Date: Tue, 14 Jan 2014 02:10:03 +0000
+Message-ID: <B3B80E62-A858-4B93-BBCF-B3D2B9255ECE@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
+Content-ID: <A2AECCD5E56AD94E96BF3D5CB33D40B9-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> Dreier" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-QWN0dWFsbHkgdGhlIGZpcnN0IG9uZSBpcyB3aWRlbHkgdXNlZCBieSBtYW55IFBDSUUgSU8gY2Fy
-ZC4gVGhlIHNpbWlsYXIgd2F5IGlzIHVzZWQgYnkgU0FTL0ZDIEhCQSwgd2hlcmUsIHRoZXJlIGlz
-IGFsc28gYSBzaW1pbGFyIHF1ZXVlIHBhaXIgZXhpc3RpbmcgaW4gYm90aCBkcml2ZXIgbWVtb3J5
-IHNwYWNlIGFuZCBQQ0lFIGFkZHJlc3Mgc3BhY2UsIG9uZSBjb25zdW1lciBxdWV1ZSBhbmQgb25l
-IHByb2R1Y2VyIHF1ZXVlLCBpbiB0aGUgUENJRSBCQVIgc3BhY2UsIHRoZXJlIGlzIGEgcmVnaXN0
-ZXIgbmFtZWQgInByb2R1Y2VyIGluZGV4Iiwgd2hpY2ggaXMgdXBkYXRlZCBieSBob3N0IGRyaXZl
-ciB3aGVuIHRoZSB1cHBlciBsYXllciBnZW5lcmF0ZSBhIG5ldyBJTyByZXF1ZXN0IGFuZCBwdXQg
-aW50byB0aGUgcHJvZHVjZXIgcXVldWUgaW4gdGhlIGRyaXZlciBtZW1vcnkgc3BhY2UuIFRoaXMg
-cmVnaXN0ZXIgdXBkYXRlIGFjdGlvbiB3aWxsIGNhdXNlIGEgaW50ZXJydXB0IHRvIHRoZSBQQ0lF
-IGNhcmQncyBJTyBjb250cm9sbGVyIGFuZCB0aGVuIERNQSBmb3JtIGhvc3QgZHJpdmVyIG1lbW9y
-eSdzIHByb2R1Y2VyIHF1ZXVlIHRvIGZldGNoIHRoZSBJTyByZXF1ZXN0IGFuZCBoYW5kbGUgaXQs
-IHRoZW4gRE1BIHdyaXRlIHRvIHRoZSBkcml2ZXIncyBjb25zdW1lciBxdWV1ZSBhIG5ldyBpdGVt
-IHRvIGluZm9ybSB0aGUgZHJpdmVyIHRoYXQgdGhpcyBJTyBpcyBkb25lLg0KDQpIb3BlIHRoYXQg
-aGVscC4NCg0KRG9uZw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGludXgt
-cmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZnZXIu
-a2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFudWogS2FsaWENClNlbnQ6IDIwMTTE6jHUwjEzyNUg
-MTc6MDQNClRvOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUXVlc3Rpb24g
-YWJvdXQgQ1BVLUhDQSBpbnRlcmFjdGlvbg0KDQpIaS4NCg0KSSB3YW50ZWQgdG8gdW5kZXJzdGFu
-ZCB0aGUgUENJZSB1c2FnZSB3aGlsZSBpc3N1aW5nIEluZmluaWJhbmQgdmVyYnMuDQpXaGVuIHBv
-c3RpbmcgYSB2ZXJiIHRvIGEgcXVldWUgcGFpciwgaG93IGlzIHRoZSByZXF1ZXN0IGRlc2NyaXB0
-b3Igd3JpdHRlbiB0byB0aGUgSENBPyBJTU8sIHRoZXJlIGFyZSB0d28gb3B0aW9ucyBmb3IgdGhp
-czoNCg0KMS4gQ1BVIHByZXBhcmVzIHRoZSBkZXNjcmlwdG9yIGluIGxvY2FsIG1lbW9yeS4gQWZ0
-ZXIgcHJlcGFyaW5nIHRoZSBkZXNjcmlwdG9yLCBpdCB3cml0ZXMgdGhlIGxvY2F0aW9uIG9mIHRo
-ZSBkZXNjcmlwdG9yIHRvIGEgaGFyZHdpcmVkIHJlZ2lzdGVyIG9uIHRoZSBIQ0EgKHRoaXMgcHJv
-Y2VzcyBpcyBjYWxsZWQgInJpbmdpbmcgdGhlIGRvb3JiZWxsIj8pLg0KVGhlIEhDQSB0aGVuIHJl
-YWRzIHRoZSBkZXNjcmlwdG9yIHZpYSBETUEuDQoNCjIuIFRoZSBDUFUgd3JpdGVzIHRoZSBlbnRp
-cmUgZGVzY3JpcHRvciB0byB0aGUgSENBJ3MgbWVtb3J5IHZpYSBQQ0llIE1NSU8uIFRoZW4sIGl0
-IHJpbmdzIHRoZSBkb29yYmVsbCB0byBhbGVydCB0aGUgSENBLg0KDQpUbyBtZSwgdGhlIGZpcnN0
-IG9uZSBtYWtlcyBtb3JlIHNlbnNlLCBidXQgSSdtIG5vdCBzdXJlLiBJdCB3b3VsZCBiZSBncmVh
-dCBpZiBzb21lb25lIGNvdWxkIHRlbGwgbW9yZSBhYm91dCB0aGlzLg0KDQpUaGFua3MgZm9yIHlv
-dXIgaGVscC4NCg0KLS1BbnVqDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNl
-bmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5IG9mIGEgbWVz
-c2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8gYXQg
-IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Roland,
+	Looks like these patches got dropped from your latest merge of usNIC t=
+o for-next.
+
+1. http://www.spinics.net/lists/linux-rdma/msg18218.html/http://www.spi=
+nics.net/lists/linux-rdma/msg18205.html
+2. http://www.spinics.net/lists/linux-rdma/msg18202.html
+3. http://www.spinics.net/lists/linux-rdma/msg18055.html
+
+And for this patch:
+http://www.spinics.net/lists/linux-rdma/msg18171.html
+4. Looks like somehow "WARN(!found..." became "WARN(found=85"
+
+Upinder--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
