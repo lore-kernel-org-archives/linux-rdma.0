@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 11/14] mlx5_core: Fix PowerPC support
-Date: Tue, 14 Jan 2014 17:45:20 +0200
-Message-ID: <1389714323-20130-12-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 13/14] IB/mlx5: Abort driver cleanup if teardown hca fails
+Date: Tue, 14 Jan 2014 17:45:22 +0200
+Message-ID: <1389714323-20130-14-git-send-email-eli@mellanox.com>
 References: <1389714323-20130-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389714323-20130-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,69 +10,42 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-1. Fix derivation of sub-page index from the dma address in free_4k.
-2. Fix the DMA address passed to dma_unmap_page by masking it properly.
+Do not continue with cleanup flow. If this ever happens we can check which
+resources remained open.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c | 9 +++++----
- include/linux/mlx5/device.h                         | 3 ++-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-index c35c432..d59790a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -99,7 +99,7 @@ enum {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 40a9f5e..a064f06 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -460,7 +460,10 @@ disable_msix:
  
- enum {
- 	MLX5_MAX_RECLAIM_TIME_MILI	= 5000,
--	MLX5_NUM_4K_IN_PAGE		= PAGE_SIZE / 4096,
-+	MLX5_NUM_4K_IN_PAGE		= PAGE_SIZE / MLX5_ADAPTER_PAGE_SIZE,
- };
+ err_stop_poll:
+ 	mlx5_stop_health_poll(dev);
+-	mlx5_cmd_teardown_hca(dev);
++	if (mlx5_cmd_teardown_hca(dev)) {
++		dev_err(&dev->pdev->dev, "tear_down_hca failed, skip cleanup\n");
++		return err;
++	}
  
- static int insert_page(struct mlx5_core_dev *dev, u64 addr, struct page *page, u16 func_id)
-@@ -206,7 +206,7 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
- 	if (!fp->free_count)
- 		list_del(&fp->list);
- 
--	*addr = fp->addr + n * 4096;
-+	*addr = fp->addr + n * MLX5_ADAPTER_PAGE_SIZE;
- 
- 	return 0;
- }
-@@ -222,14 +222,15 @@ static void free_4k(struct mlx5_core_dev *dev, u64 addr)
- 		return;
- 	}
- 
--	n = (addr & ~PAGE_MASK) % 4096;
-+	n = (addr & ~PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
- 	fwp->free_count++;
- 	set_bit(n, &fwp->bitmask);
- 	if (fwp->free_count == MLX5_NUM_4K_IN_PAGE) {
- 		rb_erase(&fwp->rb_node, &dev->priv.page_root);
- 		if (fwp->free_count != 1)
- 			list_del(&fwp->list);
--		dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-+		dma_unmap_page(&dev->pdev->dev, addr & PAGE_MASK, PAGE_SIZE,
-+			       DMA_BIDIRECTIONAL);
- 		__free_page(fwp->page);
- 		kfree(fwp);
- 	} else if (fwp->free_count == 1) {
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 87e2371..1d05909 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -234,7 +234,8 @@ enum {
- };
- 
- enum {
--	MLX5_ADAPTER_PAGE_SHIFT		= 12
-+	MLX5_ADAPTER_PAGE_SHIFT		= 12,
-+	MLX5_ADAPTER_PAGE_SIZE		= 1 << MLX5_ADAPTER_PAGE_SHIFT,
- };
- 
- enum {
+ err_pagealloc_stop:
+ 	mlx5_pagealloc_stop(dev);
+@@ -503,7 +506,10 @@ void mlx5_dev_cleanup(struct mlx5_core_dev *dev)
+ 	mlx5_eq_cleanup(dev);
+ 	mlx5_disable_msix(dev);
+ 	mlx5_stop_health_poll(dev);
+-	mlx5_cmd_teardown_hca(dev);
++	if (mlx5_cmd_teardown_hca(dev)) {
++		dev_err(&dev->pdev->dev, "tear_down_hca failed, skip cleanup\n");
++		return;
++	}
+ 	mlx5_pagealloc_stop(dev);
+ 	mlx5_reclaim_startup_pages(dev);
+ 	mlx5_core_disable_hca(dev);
 -- 
 1.8.5.2
 
