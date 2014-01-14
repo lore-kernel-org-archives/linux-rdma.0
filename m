@@ -1,60 +1,211 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 00/14] Patch set for 3.14
-Date: Tue, 14 Jan 2014 17:45:09 +0200
-Message-ID: <1389714323-20130-1-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 03/14] IB/mlx5: Fix micro UAR allocator
+Date: Tue, 14 Jan 2014 17:45:12 +0200
+Message-ID: <1389714323-20130-4-git-send-email-eli@mellanox.com>
+References: <1389714323-20130-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1389714323-20130-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+The micro UAR (uuar) allocator had a bug which resulted from the fact that in
+each UAR we only have two micro UARs avaialable, those at index 0 and 1. This
+patch defines iterators to aid in traversing the list of available micro UARs
+when allocating a uuar.
 
-This is mlx5 update for 3.14, it includes fixes and small features
-(implementation for the cq modify and resize verbs). The patches contain
-changes to both mlx5_ib and mlx5_core but for the sake of simplicity I am
-sending you all of them.
+In addition, change the logic in create_user_qp() so that if high class
+allocation fails (high class means lower latency), we revert to medium class
+and not to the low class.
 
-Thanks,
-Eli
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 13 ++++---
+ drivers/infiniband/hw/mlx5/qp.c   | 77 +++++++++++++++++++++++++++++----------
+ include/linux/mlx5/device.h       |  7 ++--
+ 3 files changed, 70 insertions(+), 27 deletions(-)
 
-Dan Carpenter (1):
-  mlx5_core: Remove dead code
-
-Eli Cohen (12):
-  IB/mlx5: Remove unused coded in mr.c
-  IB/mlx5: Fix micro UAR allocator
-  IB/mlx5: Clear out struct before create QP command
-  net/mlx5_core: Use mlx5 core style warning
-  IB/mlx5: Make sure doorbell record is visible before doorbell
-  IB/mlx5: Implement modify CQ
-  IB/mlx5: Add support for resize CQ
-  net/mlx5_core: Improve debugfs readability
-  mlx5_core: Fix PowerPC support
-  IB/mlx5: Allow creation of QPs with zero length work queues
-  IB/mlx5: Abort driver cleanup if teardown hca fails
-  IB/mlx5: Remove old field for create mkey mailbox
-
-Haggai Eran (1):
-  net/mlx5_core: Fix out arg size in access_register command
-
- drivers/infiniband/hw/mlx5/cq.c                    | 306 +++++++++++++++++++--
- drivers/infiniband/hw/mlx5/main.c                  |  13 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h               |   4 +-
- drivers/infiniband/hw/mlx5/mr.c                    |   1 -
- drivers/infiniband/hw/mlx5/qp.c                    | 130 ++++++---
- drivers/infiniband/hw/mlx5/user.h                  |   3 +
- drivers/net/ethernet/mellanox/mlx5/core/cq.c       |  17 +-
- drivers/net/ethernet/mellanox/mlx5/core/debugfs.c  |  39 ++-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     |  10 +-
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    |  13 +-
- drivers/net/ethernet/mellanox/mlx5/core/port.c     |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/qp.c       |   5 +-
- include/linux/mlx5/cq.h                            |  18 +-
- include/linux/mlx5/device.h                        |  31 ++-
- include/linux/mlx5/qp.h                            |  45 +++
- 15 files changed, 542 insertions(+), 95 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 3065341..9660d09 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -541,6 +541,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	struct mlx5_ib_ucontext *context;
+ 	struct mlx5_uuar_info *uuari;
+ 	struct mlx5_uar *uars;
++	int gross_uuars;
+ 	int num_uars;
+ 	int uuarn;
+ 	int err;
+@@ -559,11 +560,13 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	if (req.total_num_uuars == 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	req.total_num_uuars = ALIGN(req.total_num_uuars, MLX5_BF_REGS_PER_PAGE);
++	req.total_num_uuars = ALIGN(req.total_num_uuars,
++				    MLX5_NON_FP_BF_REGS_PER_PAGE);
+ 	if (req.num_low_latency_uuars > req.total_num_uuars - 1)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	num_uars = req.total_num_uuars / MLX5_BF_REGS_PER_PAGE;
++	num_uars = req.total_num_uuars / MLX5_NON_FP_BF_REGS_PER_PAGE;
++	gross_uuars = num_uars * MLX5_BF_REGS_PER_PAGE;
+ 	resp.qp_tab_size      = 1 << dev->mdev.caps.log_max_qp;
+ 	resp.bf_reg_size      = dev->mdev.caps.bf_reg_size;
+ 	resp.cache_line_size  = L1_CACHE_BYTES;
+@@ -585,7 +588,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 		goto out_ctx;
+ 	}
+ 
+-	uuari->bitmap = kcalloc(BITS_TO_LONGS(req.total_num_uuars),
++	uuari->bitmap = kcalloc(BITS_TO_LONGS(gross_uuars),
+ 				sizeof(*uuari->bitmap),
+ 				GFP_KERNEL);
+ 	if (!uuari->bitmap) {
+@@ -595,13 +598,13 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	/*
+ 	 * clear all fast path uuars
+ 	 */
+-	for (i = 0; i < req.total_num_uuars; i++) {
++	for (i = 0; i < gross_uuars; i++) {
+ 		uuarn = i & 3;
+ 		if (uuarn == 2 || uuarn == 3)
+ 			set_bit(i, uuari->bitmap);
+ 	}
+ 
+-	uuari->count = kcalloc(req.total_num_uuars, sizeof(*uuari->count), GFP_KERNEL);
++	uuari->count = kcalloc(gross_uuars, sizeof(*uuari->count), GFP_KERNEL);
+ 	if (!uuari->count) {
+ 		err = -ENOMEM;
+ 		goto out_bitmap;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 7c6b4ba..a056c24 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -340,14 +340,57 @@ static int qp_has_rq(struct ib_qp_init_attr *attr)
+ 	return 1;
+ }
+ 
++static int first_med_uuar(void)
++{
++	return 1;
++}
++
++static int next_uuar(int n)
++{
++	n++;
++
++	while (((n % 4) & 2))
++		n++;
++
++	return n;
++}
++
++static int num_med_uuar(struct mlx5_uuar_info *uuari)
++{
++	int n;
++
++	n = uuari->num_uars * MLX5_NON_FP_BF_REGS_PER_PAGE -
++		uuari->num_low_latency_uuars - 1;
++
++	return n >= 0 ? n : 0;
++}
++
++static int max_uuari(struct mlx5_uuar_info *uuari)
++{
++	return uuari->num_uars * 4;
++}
++
++static int first_hi_uuar(struct mlx5_uuar_info *uuari)
++{
++	int med;
++	int i;
++	int t;
++
++	med = num_med_uuar(uuari);
++	for (t = 0, i = first_med_uuar();; i = next_uuar(i)) {
++		t++;
++		if (t == med)
++			return next_uuar(i);
++	}
++
++	return 0;
++}
++
+ static int alloc_high_class_uuar(struct mlx5_uuar_info *uuari)
+ {
+-	int nuuars = uuari->num_uars * MLX5_BF_REGS_PER_PAGE;
+-	int start_uuar;
+ 	int i;
+ 
+-	start_uuar = nuuars - uuari->num_low_latency_uuars;
+-	for (i = start_uuar; i < nuuars; i++) {
++	for (i = first_hi_uuar(uuari); i < max_uuari(uuari); i = next_uuar(i)) {
+ 		if (!test_bit(i, uuari->bitmap)) {
+ 			set_bit(i, uuari->bitmap);
+ 			uuari->count[i]++;
+@@ -360,19 +403,10 @@ static int alloc_high_class_uuar(struct mlx5_uuar_info *uuari)
+ 
+ static int alloc_med_class_uuar(struct mlx5_uuar_info *uuari)
+ {
+-	int nuuars = uuari->num_uars * MLX5_BF_REGS_PER_PAGE;
+-	int minidx = 1;
+-	int uuarn;
+-	int end;
++	int minidx = first_med_uuar();
+ 	int i;
+ 
+-	end = nuuars - uuari->num_low_latency_uuars;
+-
+-	for (i = 1; i < end; i++) {
+-		uuarn = i & 3;
+-		if (uuarn == 2 || uuarn == 3)
+-			continue;
+-
++	for (i = first_med_uuar(); i < first_hi_uuar(uuari); i = next_uuar(i)) {
+ 		if (uuari->count[i] < uuari->count[minidx])
+ 			minidx = i;
+ 	}
+@@ -510,11 +544,16 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	uuarn = alloc_uuar(&context->uuari, MLX5_IB_LATENCY_CLASS_HIGH);
+ 	if (uuarn < 0) {
+ 		mlx5_ib_dbg(dev, "failed to allocate low latency UUAR\n");
+-		mlx5_ib_dbg(dev, "reverting to high latency\n");
+-		uuarn = alloc_uuar(&context->uuari, MLX5_IB_LATENCY_CLASS_LOW);
++		mlx5_ib_dbg(dev, "reverting to medium latency\n");
++		uuarn = alloc_uuar(&context->uuari, MLX5_IB_LATENCY_CLASS_MEDIUM);
+ 		if (uuarn < 0) {
+-			mlx5_ib_dbg(dev, "uuar allocation failed\n");
+-			return uuarn;
++			mlx5_ib_dbg(dev, "failed to allocate medium latency UUAR\n");
++			mlx5_ib_dbg(dev, "reverting to high latency\n");
++			uuarn = alloc_uuar(&context->uuari, MLX5_IB_LATENCY_CLASS_LOW);
++			if (uuarn < 0) {
++				mlx5_ib_warn(dev, "uuar allocation failed\n");
++				return uuarn;
++			}
+ 		}
+ 	}
+ 
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index da78875..2c1c62e 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -104,9 +104,10 @@ enum {
+ };
+ 
+ enum {
+-	MLX5_BF_REGS_PER_PAGE	= 4,
+-	MLX5_MAX_UAR_PAGES	= 1 << 8,
+-	MLX5_MAX_UUARS		= MLX5_MAX_UAR_PAGES * MLX5_BF_REGS_PER_PAGE,
++	MLX5_BF_REGS_PER_PAGE		= 4,
++	MLX5_MAX_UAR_PAGES		= 1 << 8,
++	MLX5_NON_FP_BF_REGS_PER_PAGE	= 2,
++	MLX5_MAX_UUARS	= MLX5_MAX_UAR_PAGES * MLX5_NON_FP_BF_REGS_PER_PAGE,
+ };
+ 
+ enum {
 -- 
 1.8.5.2
 
