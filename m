@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 09/14] IB/mlx5: Add support for resize CQ
-Date: Tue, 14 Jan 2014 17:45:18 +0200
-Message-ID: <1389714323-20130-10-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 08/14] IB/mlx5: Implement modify CQ
+Date: Tue, 14 Jan 2014 17:45:17 +0200
+Message-ID: <1389714323-20130-9-git-send-email-eli@mellanox.com>
 References: <1389714323-20130-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389714323-20130-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,509 +10,150 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Implement resize CQ which is a mandatory verb in mlx5.
+Modify CQ is used by ULPs like IPoIB to change moderation parameters. This
+patch adds such support in mlx5.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Conflicts:
-	include/linux/mlx5/device.h
 ---
- drivers/infiniband/hw/mlx5/cq.c              | 282 +++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |   3 +-
- drivers/infiniband/hw/mlx5/user.h            |   3 +
- drivers/net/ethernet/mellanox/mlx5/core/cq.c |   4 +-
- include/linux/mlx5/cq.h                      |  12 +-
- include/linux/mlx5/device.h                  |   2 +
- 6 files changed, 284 insertions(+), 22 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c              | 26 +++++++++++++++++++++++++-
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c | 17 +++++++++++++++--
+ include/linux/mlx5/cq.h                      |  8 ++++----
+ include/linux/mlx5/device.h                  | 15 +++++++++++++++
+ 4 files changed, 59 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index b4c122e..50b03a8 100644
+index b726274..b4c122e 100644
 --- a/drivers/infiniband/hw/mlx5/cq.c
 +++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -73,14 +73,24 @@ static void *get_cqe(struct mlx5_ib_cq *cq, int n)
- 	return get_cqe_from_buf(&cq->buf, n, cq->mcq.cqe_sz);
- }
+@@ -818,7 +818,31 @@ void mlx5_ib_cq_clean(struct mlx5_ib_cq *cq, u32 qpn, struct mlx5_ib_srq *srq)
  
-+static u8 sw_ownership_bit(int n, int nent)
-+{
-+	return (n & nent) ? 1 : 0;
-+}
-+
- static void *get_sw_cqe(struct mlx5_ib_cq *cq, int n)
- {
- 	void *cqe = get_cqe(cq, n & cq->ibcq.cqe);
- 	struct mlx5_cqe64 *cqe64;
- 
- 	cqe64 = (cq->mcq.cqe_sz == 64) ? cqe : cqe + 64;
--	return ((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^
--		!!(n & (cq->ibcq.cqe + 1))) ? NULL : cqe;
-+
-+	if (likely((cqe64->op_own) >> 4 != MLX5_CQE_INVALID) &&
-+	    !((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^ !!(n & (cq->ibcq.cqe + 1)))) {
-+		return cqe;
-+	} else {
-+		return NULL;
-+	}
- }
- 
- static void *next_cqe_sw(struct mlx5_ib_cq *cq)
-@@ -351,6 +361,11 @@ static void handle_atomics(struct mlx5_ib_qp *qp, struct mlx5_cqe64 *cqe64,
- 	qp->sq.last_poll = tail;
- }
- 
-+static void free_cq_buf(struct mlx5_ib_dev *dev, struct mlx5_ib_cq_buf *buf)
-+{
-+	mlx5_buf_free(&dev->mdev, &buf->buf);
-+}
-+
- static int mlx5_poll_one(struct mlx5_ib_cq *cq,
- 			 struct mlx5_ib_qp **cur_qp,
- 			 struct ib_wc *wc)
-@@ -366,6 +381,7 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
- 	void *cqe;
- 	int idx;
- 
-+repoll:
- 	cqe = next_cqe_sw(cq);
- 	if (!cqe)
- 		return -EAGAIN;
-@@ -379,7 +395,18 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
- 	 */
- 	rmb();
- 
--	/* TBD: resize CQ */
-+	opcode = cqe64->op_own >> 4;
-+	if (unlikely(opcode == MLX5_CQE_RESIZE_CQ)) {
-+		if (likely(cq->resize_buf)) {
-+			free_cq_buf(dev, &cq->buf);
-+			cq->buf = *cq->resize_buf;
-+			kfree(cq->resize_buf);
-+			cq->resize_buf = NULL;
-+			goto repoll;
-+		} else {
-+			mlx5_ib_warn(dev, "unexpected resize cqe\n");
-+		}
-+	}
- 
- 	qpn = ntohl(cqe64->sop_drop_qpn) & 0xffffff;
- 	if (!*cur_qp || (qpn != (*cur_qp)->ibqp.qp_num)) {
-@@ -398,7 +425,6 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
- 	}
- 
- 	wc->qp  = &(*cur_qp)->ibqp;
--	opcode = cqe64->op_own >> 4;
- 	switch (opcode) {
- 	case MLX5_CQE_REQ:
- 		wq = &(*cur_qp)->sq;
-@@ -503,15 +529,11 @@ static int alloc_cq_buf(struct mlx5_ib_dev *dev, struct mlx5_ib_cq_buf *buf,
- 		return err;
- 
- 	buf->cqe_size = cqe_size;
-+	buf->nent = nent;
- 
- 	return 0;
- }
- 
--static void free_cq_buf(struct mlx5_ib_dev *dev, struct mlx5_ib_cq_buf *buf)
--{
--	mlx5_buf_free(&dev->mdev, &buf->buf);
--}
--
- static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 			  struct ib_ucontext *context, struct mlx5_ib_cq *cq,
- 			  int entries, struct mlx5_create_cq_mbox_in **cqb,
-@@ -576,16 +598,16 @@ static void destroy_cq_user(struct mlx5_ib_cq *cq, struct ib_ucontext *context)
- 	ib_umem_release(cq->buf.umem);
- }
- 
--static void init_cq_buf(struct mlx5_ib_cq *cq, int nent)
-+static void init_cq_buf(struct mlx5_ib_cq *cq, struct mlx5_ib_cq_buf *buf)
- {
- 	int i;
- 	void *cqe;
- 	struct mlx5_cqe64 *cqe64;
- 
--	for (i = 0; i < nent; i++) {
--		cqe = get_cqe(cq, i);
--		cqe64 = (cq->buf.cqe_size == 64) ? cqe : cqe + 64;
--		cqe64->op_own = 0xf1;
-+	for (i = 0; i < buf->nent; i++) {
-+		cqe = get_cqe_from_buf(buf, i, buf->cqe_size);
-+		cqe64 = buf->cqe_size == 64 ? cqe : cqe + 64;
-+		cqe64->op_own = MLX5_CQE_INVALID << 4;
- 	}
- }
- 
-@@ -610,7 +632,7 @@ static int create_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
- 	if (err)
- 		goto err_db;
- 
--	init_cq_buf(cq, entries);
-+	init_cq_buf(cq, &cq->buf);
- 
- 	*inlen = sizeof(**cqb) + sizeof(*(*cqb)->pas) * cq->buf.buf.npages;
- 	*cqb = mlx5_vzalloc(*inlen);
-@@ -836,7 +858,7 @@ int mlx5_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
- 	in->ctx.cq_period = cpu_to_be16(cq_period);
- 	in->ctx.cq_max_count = cpu_to_be16(cq_count);
- 	in->field_select = cpu_to_be32(fsel);
--	err = mlx5_core_modify_cq(&dev->mdev, &mcq->mcq, in);
-+	err = mlx5_core_modify_cq(&dev->mdev, &mcq->mcq, in, sizeof(*in));
- 	kfree(in);
- 
- 	if (err)
-@@ -845,9 +867,235 @@ int mlx5_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
- 	return err;
- }
- 
-+static int resize_user(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
-+		       int entries, struct ib_udata *udata, int *npas,
-+		       int *page_shift, int *cqe_size)
-+{
-+	struct mlx5_ib_resize_cq ucmd;
-+	struct ib_umem *umem;
-+	int err;
-+	int npages;
-+	struct ib_ucontext *context = cq->buf.umem->context;
-+
-+	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd)))
-+		return -EFAULT;
-+
-+	umem = ib_umem_get(context, ucmd.buf_addr, entries * ucmd.cqe_size,
-+			   IB_ACCESS_LOCAL_WRITE, 1);
-+	if (IS_ERR(umem)) {
-+		err = PTR_ERR(umem);
-+		return err;
-+	}
-+
-+	mlx5_ib_cont_pages(umem, ucmd.buf_addr, &npages, page_shift,
-+			   npas, NULL);
-+
-+	cq->resize_umem = umem;
-+	*cqe_size = ucmd.cqe_size;
-+
-+	return 0;
-+}
-+
-+static void un_resize_user(struct mlx5_ib_cq *cq)
-+{
-+	ib_umem_release(cq->resize_umem);
-+}
-+
-+static int resize_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
-+			 int entries, int cqe_size)
-+{
-+	int err;
-+
-+	cq->resize_buf = kzalloc(sizeof(*cq->resize_buf), GFP_KERNEL);
-+	if (!cq->resize_buf)
-+		return -ENOMEM;
-+
-+	err = alloc_cq_buf(dev, cq->resize_buf, entries, cqe_size);
-+	if (err)
-+		goto ex;
-+
-+	init_cq_buf(cq, cq->resize_buf);
-+
-+	return 0;
-+
-+ex:
-+	kfree(cq->resize_buf);
-+	return err;
-+}
-+
-+static void un_resize_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
-+{
-+	free_cq_buf(dev, cq->resize_buf);
-+	cq->resize_buf = NULL;
-+}
-+
-+static int copy_resize_cqes(struct mlx5_ib_cq *cq)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(cq->ibcq.device);
-+	struct mlx5_cqe64 *scqe64;
-+	struct mlx5_cqe64 *dcqe64;
-+	void *start_cqe;
-+	void *scqe;
-+	void *dcqe;
-+	int ssize;
-+	int dsize;
-+	int i;
-+	u8 sw_own;
-+
-+	ssize = cq->buf.cqe_size;
-+	dsize = cq->resize_buf->cqe_size;
-+	if (ssize != dsize) {
-+		mlx5_ib_warn(dev, "resize from different cqe size is not supported\n");
-+		return -EINVAL;
-+	}
-+
-+	i = cq->mcq.cons_index;
-+	scqe = get_sw_cqe(cq, i);
-+	scqe64 = ssize == 64 ? scqe : scqe + 64;
-+	start_cqe = scqe;
-+	if (!scqe) {
-+		mlx5_ib_warn(dev, "expected cqe in sw ownership\n");
-+		return -EINVAL;
-+	}
-+
-+	while ((scqe64->op_own >> 4) != MLX5_CQE_RESIZE_CQ) {
-+		dcqe = get_cqe_from_buf(cq->resize_buf,
-+					(i + 1) & (cq->resize_buf->nent),
-+					dsize);
-+		dcqe64 = dsize == 64 ? dcqe : dcqe + 64;
-+		sw_own = sw_ownership_bit(i + 1, cq->resize_buf->nent);
-+		memcpy(dcqe, scqe, dsize);
-+		dcqe64->op_own = (dcqe64->op_own & ~MLX5_CQE_OWNER_MASK) | sw_own;
-+
-+		++i;
-+		scqe = get_sw_cqe(cq, i);
-+		scqe64 = ssize == 64 ? scqe : scqe + 64;
-+		if (!scqe) {
-+			mlx5_ib_warn(dev, "expected cqe in sw ownership\n");
-+			return -EINVAL;
-+		}
-+
-+		if (scqe == start_cqe) {
-+			pr_warn("resize CQ failed to get resize CQE, CQN 0x%x\n",
-+				cq->mcq.cqn);
-+			return -ENOMEM;
-+		}
-+	}
-+	++cq->mcq.cons_index;
-+	return 0;
-+}
-+
- int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ int mlx5_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
  {
 -	return -ENOSYS;
-+	struct mlx5_ib_dev *dev = to_mdev(ibcq->device);
-+	struct mlx5_ib_cq *cq = to_mcq(ibcq);
 +	struct mlx5_modify_cq_mbox_in *in;
++	struct mlx5_ib_dev *dev = to_mdev(cq->device);
++	struct mlx5_ib_cq *mcq = to_mcq(cq);
 +	int err;
-+	int npas;
-+	int page_shift;
-+	int inlen;
-+	int uninitialized_var(cqe_size);
-+	unsigned long flags;
++	u32 fsel;
 +
-+	if (!(dev->mdev.caps.flags & MLX5_DEV_CAP_FLAG_RESIZE_CQ)) {
-+		pr_info("Firmware does not support resize CQ\n");
++	if (!(dev->mdev.caps.flags & MLX5_DEV_CAP_FLAG_CQ_MODER))
 +		return -ENOSYS;
-+	}
 +
-+	if (entries < 1)
-+		return -EINVAL;
++	in = kzalloc(sizeof(*in), GFP_KERNEL);
++	if (!in)
++		return -ENOMEM;
 +
-+	entries = roundup_pow_of_two(entries + 1);
-+	if (entries > dev->mdev.caps.max_cqes + 1)
-+		return -EINVAL;
-+
-+	if (entries == ibcq->cqe + 1)
-+		return 0;
-+
-+	mutex_lock(&cq->resize_mutex);
-+	if (udata) {
-+		err = resize_user(dev, cq, entries, udata, &npas, &page_shift,
-+				  &cqe_size);
-+	} else {
-+		cqe_size = 64;
-+		err = resize_kernel(dev, cq, entries, cqe_size);
-+		if (!err) {
-+			npas = cq->resize_buf->buf.npages;
-+			page_shift = cq->resize_buf->buf.page_shift;
-+		}
-+	}
++	in->cqn = cpu_to_be32(mcq->mcq.cqn);
++	fsel = (MLX5_CQ_MODIFY_PERIOD | MLX5_CQ_MODIFY_COUNT);
++	in->ctx.cq_period = cpu_to_be16(cq_period);
++	in->ctx.cq_max_count = cpu_to_be16(cq_count);
++	in->field_select = cpu_to_be32(fsel);
++	err = mlx5_core_modify_cq(&dev->mdev, &mcq->mcq, in);
++	kfree(in);
 +
 +	if (err)
-+		goto ex;
++		mlx5_ib_warn(dev, "modify cq 0x%x failed\n", mcq->mcq.cqn);
 +
-+	inlen = sizeof(*in) + npas * sizeof(in->pas[0]);
-+	in = mlx5_vzalloc(inlen);
-+	if (!in) {
-+		err = -ENOMEM;
-+		goto ex_resize;
-+	}
-+
-+	if (udata)
-+		mlx5_ib_populate_pas(dev, cq->resize_umem, page_shift,
-+				     in->pas, 0);
-+	else
-+		mlx5_fill_page_array(&cq->resize_buf->buf, in->pas);
-+
-+	in->field_select = cpu_to_be32(MLX5_MODIFY_CQ_MASK_LOG_SIZE  |
-+				       MLX5_MODIFY_CQ_MASK_PG_OFFSET |
-+				       MLX5_MODIFY_CQ_MASK_PG_SIZE);
-+	in->ctx.log_pg_sz = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
-+	in->ctx.cqe_sz_flags = cqe_sz_to_mlx_sz(cqe_size) << 5;
-+	in->ctx.page_offset = 0;
-+	in->ctx.log_sz_usr_page = cpu_to_be32(ilog2(entries) << 24);
-+	in->hdr.opmod = cpu_to_be16(MLX5_CQ_OPMOD_RESIZE);
-+	in->cqn = cpu_to_be32(cq->mcq.cqn);
-+
-+	err = mlx5_core_modify_cq(&dev->mdev, &cq->mcq, in, inlen);
-+	if (err)
-+		goto ex_alloc;
-+
-+	if (udata) {
-+		cq->ibcq.cqe = entries - 1;
-+		ib_umem_release(cq->buf.umem);
-+		cq->buf.umem = cq->resize_umem;
-+		cq->resize_umem = NULL;
-+	} else {
-+		struct mlx5_ib_cq_buf tbuf;
-+		int resized = 0;
-+
-+		spin_lock_irqsave(&cq->lock, flags);
-+		if (cq->resize_buf) {
-+			err = copy_resize_cqes(cq);
-+			if (!err) {
-+				tbuf = cq->buf;
-+				cq->buf = *cq->resize_buf;
-+				kfree(cq->resize_buf);
-+				cq->resize_buf = NULL;
-+				resized = 1;
-+			}
-+		}
-+		cq->ibcq.cqe = entries - 1;
-+		spin_unlock_irqrestore(&cq->lock, flags);
-+		if (resized)
-+			free_cq_buf(dev, &tbuf);
-+	}
-+	mutex_unlock(&cq->resize_mutex);
-+
-+	mlx5_vfree(in);
-+	return 0;
-+
-+ex_alloc:
-+	mlx5_vfree(in);
-+
-+ex_resize:
-+	if (udata)
-+		un_resize_user(cq);
-+	else
-+		un_resize_kernel(dev, cq);
-+ex:
-+	mutex_unlock(&cq->resize_mutex);
 +	return err;
  }
  
- int mlx5_ib_get_cqe_size(struct mlx5_ib_dev *dev, struct ib_cq *ibcq)
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 5acef30..389e319 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -195,6 +195,7 @@ struct mlx5_ib_cq_buf {
- 	struct mlx5_buf		buf;
- 	struct ib_umem		*umem;
- 	int			cqe_size;
-+	int			nent;
- };
- 
- enum mlx5_ib_qp_flags {
-@@ -220,7 +221,7 @@ struct mlx5_ib_cq {
- 	/* protect resize cq
- 	 */
- 	struct mutex		resize_mutex;
--	struct mlx5_ib_cq_resize *resize_buf;
-+	struct mlx5_ib_cq_buf  *resize_buf;
- 	struct ib_umem	       *resize_umem;
- 	int			cqe_size;
- };
-diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
-index a886de3..32a2a5d 100644
---- a/drivers/infiniband/hw/mlx5/user.h
-+++ b/drivers/infiniband/hw/mlx5/user.h
-@@ -93,6 +93,9 @@ struct mlx5_ib_create_cq_resp {
- 
- struct mlx5_ib_resize_cq {
- 	__u64	buf_addr;
-+	__u16	cqe_size;
-+	__u16	reserved0;
-+	__u32	reserved1;
- };
- 
- struct mlx5_ib_create_srq {
+ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index e6fedcf..43c5f48 100644
+index c2d660b..e6fedcf 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -201,14 +201,14 @@ EXPORT_SYMBOL(mlx5_core_query_cq);
+@@ -201,10 +201,23 @@ EXPORT_SYMBOL(mlx5_core_query_cq);
  
  
  int mlx5_core_modify_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			struct mlx5_modify_cq_mbox_in *in)
-+			struct mlx5_modify_cq_mbox_in *in, int in_sz)
+-			int type, struct mlx5_cq_modify_params *params)
++			struct mlx5_modify_cq_mbox_in *in)
  {
- 	struct mlx5_modify_cq_mbox_out out;
- 	int err;
+-	return -ENOSYS;
++	struct mlx5_modify_cq_mbox_out out;
++	int err;
++
++	memset(&out, 0, sizeof(out));
++	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MODIFY_CQ);
++	err = mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out));
++	if (err)
++		return err;
++
++	if (out.hdr.status)
++		return mlx5_cmd_status_to_err(&out.hdr);
++
++	return 0;
+ }
++EXPORT_SYMBOL(mlx5_core_modify_cq);
  
- 	memset(&out, 0, sizeof(out));
- 	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MODIFY_CQ);
--	err = mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out));
-+	err = mlx5_cmd_exec(dev, in, in_sz, &out, sizeof(out));
- 	if (err)
- 		return err;
- 
+ int mlx5_init_cq_table(struct mlx5_core_dev *dev)
+ {
 diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index c3cf5a4..2202c7f 100644
+index 3db67f7..c3cf5a4 100644
 --- a/include/linux/mlx5/cq.h
 +++ b/include/linux/mlx5/cq.h
-@@ -79,9 +79,10 @@ enum {
- 	MLX5_CQE_RESP_SEND	= 2,
- 	MLX5_CQE_RESP_SEND_IMM	= 3,
- 	MLX5_CQE_RESP_SEND_INV	= 4,
--	MLX5_CQE_RESIZE_CQ	= 0xff, /* TBD */
-+	MLX5_CQE_RESIZE_CQ	= 5,
- 	MLX5_CQE_REQ_ERR	= 13,
- 	MLX5_CQE_RESP_ERR	= 14,
-+	MLX5_CQE_INVALID	= 15,
+@@ -85,9 +85,9 @@ enum {
  };
  
  enum {
-@@ -90,6 +91,13 @@ enum {
- 	MLX5_CQ_MODIFY_OVERRUN	= 1 << 2,
+-	MLX5_CQ_MODIFY_RESEIZE = 0,
+-	MLX5_CQ_MODIFY_MODER = 1,
+-	MLX5_CQ_MODIFY_MAPPING = 2,
++	MLX5_CQ_MODIFY_PERIOD	= 1 << 0,
++	MLX5_CQ_MODIFY_COUNT	= 1 << 1,
++	MLX5_CQ_MODIFY_OVERRUN	= 1 << 2,
  };
  
-+enum {
-+	MLX5_CQ_OPMOD_RESIZE		= 1,
-+	MLX5_MODIFY_CQ_MASK_LOG_SIZE	= 1 << 0,
-+	MLX5_MODIFY_CQ_MASK_PG_OFFSET	= 1 << 1,
-+	MLX5_MODIFY_CQ_MASK_PG_SIZE	= 1 << 2,
-+};
-+
  struct mlx5_cq_modify_params {
- 	int	type;
- 	union {
-@@ -158,7 +166,7 @@ int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
+@@ -158,7 +158,7 @@ int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
  int mlx5_core_query_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
  		       struct mlx5_query_cq_mbox_out *out);
  int mlx5_core_modify_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			struct mlx5_modify_cq_mbox_in *in);
-+			struct mlx5_modify_cq_mbox_in *in, int in_sz);
+-			int type, struct mlx5_cq_modify_params *params);
++			struct mlx5_modify_cq_mbox_in *in);
  int mlx5_debug_cq_add(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
  void mlx5_debug_cq_remove(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
  
 diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index dbb03ca..87e2371 100644
+index 2c1c62e..dbb03ca 100644
 --- a/include/linux/mlx5/device.h
 +++ b/include/linux/mlx5/device.h
-@@ -178,6 +178,7 @@ enum {
+@@ -177,6 +177,7 @@ enum {
+ 	MLX5_DEV_CAP_FLAG_APM		= 1LL << 17,
  	MLX5_DEV_CAP_FLAG_ATOMIC	= 1LL << 18,
  	MLX5_DEV_CAP_FLAG_ON_DMND_PG	= 1LL << 24,
- 	MLX5_DEV_CAP_FLAG_CQ_MODER	= 1LL << 29,
-+	MLX5_DEV_CAP_FLAG_RESIZE_CQ	= 1LL << 30,
++	MLX5_DEV_CAP_FLAG_CQ_MODER	= 1LL << 29,
  	MLX5_DEV_CAP_FLAG_RESIZE_SRQ	= 1LL << 32,
  	MLX5_DEV_CAP_FLAG_REMOTE_FENCE	= 1LL << 38,
  	MLX5_DEV_CAP_FLAG_TLP_HINTS	= 1LL << 39,
-@@ -710,6 +711,7 @@ struct mlx5_modify_cq_mbox_in {
+@@ -698,6 +699,19 @@ struct mlx5_query_cq_mbox_out {
+ 	__be64			pas[0];
+ };
  
- struct mlx5_modify_cq_mbox_out {
++struct mlx5_modify_cq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			cqn;
++	__be32			field_select;
++	struct mlx5_cq_context	ctx;
++	u8			rsvd[192];
++	__be64			pas[0];
++};
++
++struct mlx5_modify_cq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++};
++
+ struct mlx5_enable_hca_mbox_in {
+ 	struct mlx5_inbox_hdr	hdr;
+ 	u8			rsvd[8];
+@@ -872,6 +886,7 @@ struct mlx5_modify_mkey_mbox_in {
+ 
+ struct mlx5_modify_mkey_mbox_out {
  	struct mlx5_outbox_hdr	hdr;
 +	u8			rsvd[8];
  };
  
- struct mlx5_enable_hca_mbox_in {
+ struct mlx5_dump_mkey_mbox_in {
 -- 
 1.8.5.2
 
