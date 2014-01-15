@@ -1,51 +1,42 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm 4/4] osm_trap_rcv.c: Removed unneeded lock when disabling
- port
-Date: Wed, 15 Jan 2014 15:29:07 -0500
-Message-ID: <52D6EF93.7030105@dev.mellanox.co.il>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Wed, 15 Jan 2014 13:15:41 -0800
+Message-ID: <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	 <52CD1C68.4050406@mellanox.com>
+	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1389645171.5567.459.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From 0ff054ae2f6e53e9e908f72f23b35cb40b3aeab4 Mon Sep 17 00:00:00 2001
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Sun, 5 May 2013 12:20:40 +0300
-Subject: [PATCH 4/4] osm_trap_rcv.c: Removed unneeded lock when disabling
- port
+On Mon, 2014-01-13 at 12:32 -0800, Nicholas A. Bellinger wrote:
+> Hi Roland & Co,
+> 
+> Just curious if your planning to take a look at this series soon for
+> v3.14 code..?
+> 
+> As you might imagine, I'd like to see it merged this round in order to
+> move forward on iser-target protection for v3.15.
+> 
+> Are there any specific issues that you'd like to see addressed for an
+> initial merge..?
 
-When disabling a noisy port, read-lock was taken twice.
+Hi again Roland,
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_trap_rcv.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Ping^2..?  We're quite eager to see this code merged this round.
 
-diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
-index 2623536..472083d 100644
---- a/opensm/osm_trap_rcv.c
-+++ b/opensm/osm_trap_rcv.c
-@@ -258,13 +258,11 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- 		pi->master_sm_base_lid = sm->p_subn->sm_base_lid;
- 	}
- 
--	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
- 			   payload, sizeof(payload), IB_MAD_ATTR_PORT_INFO,
- 			   cl_hton32(osm_physp_get_port_num(p)),
- 			   FALSE, m_key,
- 			   CL_DISP_MSGID_NONE, &context);
--	CL_PLOCK_RELEASE(sm->p_lock);
- 	return status;
- }
- 
--- 
-1.7.8.2
+Is there a specific issue on these patches preventing a v3.14 merge..?
+
+Thank you,
+
+--nab
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
