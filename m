@@ -1,75 +1,120 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next] IB/core: Add a dependency of ib_core in ib_addr
-Date: Thu, 16 Jan 2014 17:16:47 +0200
-Message-ID: <1389885408-21897-1-git-send-email-matanb@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_prtn_config.c: Some changes to osm_prtn_config_parse_file
+Date: Thu, 16 Jan 2014 11:18:50 -0500
+Message-ID: <52D8066A.3070109@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IP based addressing introduces the usage of
-rdma_addr_find_dmac_by_grh within ib_core.
-Since this function is declared in ib_addr, ib_addr
-should be a part of the INFINIBAND modules, rather than
-INFINIBAND_ADDR_TRANS.
+>From 48c9f436d6c85d32d2748ba4c2756e2736bc5e7e Mon Sep 17 00:00:00 2001
+From: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 16 Jan 2014 18:15:02 +0200
+Subject: [PATCH] osm_prtn_config.c: Some changes to
+ osm_prtn_config_parse_file
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+in terms of deciding when partition file is valid or not and
+hence when to fallback to default partition configuration.
+
+Improvements to commit 5a97c782a4b4f968c2d964c371decec5083f8499
+    Try default partition config if parsing partitions.conf fails
+
+Specific changes are:
+break out of global while on a parsing failure
+change is_parse_success to int from boolean and reverse logic setting this
+also, detect whether there is at least one valid partition parsed
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Hi Roland,
+ opensm/osm_prtn_config.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-This patch adds ib_addr and its dependencies to the INFINIBAND module.
-Since ib_core uses ib_addr to resolve the MAC address, this introduces
-a direct dependency of INFINIBAND in INET.
-
-Regards,
-Matan
-
- drivers/infiniband/Kconfig       |    5 +++--
- drivers/infiniband/core/Makefile |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 10219ee..7708939 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -3,6 +3,8 @@ menuconfig INFINIBAND
- 	depends on PCI || BROKEN
- 	depends on HAS_IOMEM
- 	depends on NET
-+	depends on INET
-+	depends on m || IPV6 != m
- 	---help---
- 	  Core support for InfiniBand (IB).  Make sure to also select
- 	  any protocols you wish to use as well as drivers for your
-@@ -38,8 +40,7 @@ config INFINIBAND_USER_MEM
+diff --git a/opensm/osm_prtn_config.c b/opensm/osm_prtn_config.c
+index 9bad7a7..100282a 100644
+--- a/opensm/osm_prtn_config.c
++++ b/opensm/osm_prtn_config.c
+@@ -697,7 +697,7 @@ done:
+ }
  
- config INFINIBAND_ADDR_TRANS
- 	bool
--	depends on INET
--	depends on !(INFINIBAND = y && IPV6 = m)
-+	depends on INFINIBAND
- 	default y
+ /**
+- * @return -1 on error, 0 on success
++ * @return 1 on error, 0 on success
+  */
+ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 			       const char *file_name)
+@@ -706,7 +706,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 	struct part_conf *conf = NULL;
+ 	FILE *file;
+ 	int lineno;
+-	boolean_t is_parse_success;
++	int is_parse_success;
  
- source "drivers/infiniband/hw/mthca/Kconfig"
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index c8bbaef..3ab3865 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -1,8 +1,9 @@
--infiniband-$(CONFIG_INFINIBAND_ADDR_TRANS)	:= ib_addr.o rdma_cm.o
-+infiniband-$(CONFIG_INFINIBAND_ADDR_TRANS)	:= rdma_cm.o
- user_access-$(CONFIG_INFINIBAND_ADDR_TRANS)	:= rdma_ucm.o
+ 	file = fopen(file_name, "r");
+ 	if (!file) {
+@@ -718,7 +718,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
  
- obj-$(CONFIG_INFINIBAND) +=		ib_core.o ib_mad.o ib_sa.o \
--					ib_cm.o iw_cm.o $(infiniband-y)
-+					ib_cm.o iw_cm.o ib_addr.o \
-+					$(infiniband-y)
- obj-$(CONFIG_INFINIBAND_USER_MAD) +=	ib_umad.o
- obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
- 					$(user_access-y)
+ 	lineno = 0;
+ 
+-	is_parse_success = FALSE;
++	is_parse_success = 0;
+ 
+ 	while (fgets(line, sizeof(line) - 1, file) != NULL) {
+ 		char *q, *p = line;
+@@ -730,8 +730,6 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 		q = strchr(p, '#');
+ 		if (q)
+ 			*q = '\0';
+-		else
+-			is_parse_success = TRUE;
+ 
+ 		do {
+ 			int len;
+@@ -749,7 +747,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 					"PARSE ERROR: line %d: "
+ 					"internal: cannot create config\n",
+ 					lineno);
+-				is_parse_success = FALSE;
++				is_parse_success = -1;
+ 				break;
+ 			}
+ 
+@@ -759,10 +757,12 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 
+ 			len = parse_part_conf(conf, p, lineno);
+ 			if (len < 0) {
+-				is_parse_success = FALSE;
++				is_parse_success = -1;
+ 				break;
+ 			}
+ 
++			is_parse_success = 1;
++
+ 			p += len;
+ 
+ 			if (q) {
+@@ -770,12 +770,12 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 				conf = NULL;
+ 			}
+ 		} while (q);
++
++		if (is_parse_success == -1)
++			break;
+ 	}
+ 
+ 	fclose(file);
+ 
+-	if (is_parse_success)
+-		return 0;
+-	else
+-		return -1;
++	return (is_parse_success == 1) ? 0 : 1;
+ }
 -- 
-1.7.1
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
