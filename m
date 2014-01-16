@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/2] IB/usnic: Advertise usNIC devices as RDMA_NODE_USNIC_UDP
-Date: Wed, 15 Jan 2014 17:02:37 -0800
-Message-ID: <1389834157-16635-3-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 1/2] IB/core: Add support for RDMA_NODE_USNIC_UDP
+Date: Wed, 15 Jan 2014 17:02:36 -0800
+Message-ID: <1389834157-16635-2-git-send-email-umalhi@cisco.com>
 References: <1389834157-16635-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1389834157-16635-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,27 +10,52 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC default transport is UDP.  Hence, advertise
-RDMA_NODE_USNIC_UDP by default for usNIC devices.
+Add the complementary RDMA_NODE_USNIC_UDP for RDMA_TRANSPORT_USNIC_UDP.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/sysfs.c | 1 +
+ drivers/infiniband/core/verbs.c | 2 ++
+ include/rdma/ib_verbs.h         | 1 +
+ 3 files changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 7d2efd4..fb6d026 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -332,7 +332,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	us_ibdev->pdev = dev;
- 	us_ibdev->netdev = pci_get_drvdata(dev);
- 	us_ibdev->ib_dev.owner = THIS_MODULE;
--	us_ibdev->ib_dev.node_type = RDMA_NODE_USNIC;
-+	us_ibdev->ib_dev.node_type = RDMA_NODE_USNIC_UDP;
- 	us_ibdev->ib_dev.phys_port_cnt = USNIC_IB_PORT_CNT;
- 	us_ibdev->ib_dev.num_comp_vectors = USNIC_IB_NUM_COMP_VECTORS;
- 	us_ibdev->ib_dev.dma_device = &dev->dev;
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index faad2ca..7d3292c 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -613,6 +613,7 @@ static ssize_t show_node_type(struct device *device,
+ 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
+ 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
+ 	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
++	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
+ 	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
+ 	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
+ 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index c1cfeda..3ac7951 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -118,6 +118,8 @@ rdma_node_get_transport(enum rdma_node_type node_type)
+ 	case RDMA_NODE_RNIC:
+ 		return RDMA_TRANSPORT_IWARP;
+ 	case RDMA_NODE_USNIC:
++		return RDMA_TRANSPORT_USNIC;
++	case RDMA_NODE_USNIC_UDP:
+ 		return RDMA_TRANSPORT_USNIC_UDP;
+ 	default:
+ 		BUG();
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index dbf6a3c..8d4a1c0 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -70,6 +70,7 @@ enum rdma_node_type {
+ 	RDMA_NODE_IB_ROUTER,
+ 	RDMA_NODE_RNIC,
+ 	RDMA_NODE_USNIC,
++	RDMA_NODE_USNIC_UDP,
+ };
+ 
+ enum rdma_transport_type {
 -- 
 1.8.2.1
 
