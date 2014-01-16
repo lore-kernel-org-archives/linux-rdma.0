@@ -1,61 +1,47 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH -next] IB/cm: Fix missing unlock on error in cm_init_qp_rtr_attr()
-Date: Thu, 16 Jan 2014 13:27:52 +0200
-Message-ID: <52D7C238.9030806@mellanox.com>
-References: <CAPgLHd92QCSZmjtgO9216MbD2b_i40nwzU_=fwx5-aeB=YvumQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH for-next] IB/mlx4: Add dependency INET
+Date: Thu, 16 Jan 2014 17:16:48 +0200
+Message-ID: <1389885408-21897-2-git-send-email-matanb@mellanox.com>
+References: <1389885408-21897-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPgLHd92QCSZmjtgO9216MbD2b_i40nwzU_=fwx5-aeB=YvumQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1389885408-21897-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, zhaohongjiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 16/1/2014 10:28 AM, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
->
-> Add the missing unlock before return from function cm_init_qp_rtr_attr()
-> in the error handling case.
->
-> Fixes: dd5f03beb4f7 ('IB/core: Ethernet L2 attributes in verbs/cm structures')
-> Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
-> ---
->   drivers/infiniband/core/cm.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index c6d543c..0601b9d 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -3526,8 +3526,10 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
->   		*qp_attr_mask = IB_QP_STATE | IB_QP_AV | IB_QP_PATH_MTU |
->   				IB_QP_DEST_QPN | IB_QP_RQ_PSN;
->   		qp_attr->ah_attr = cm_id_priv->av.ah_attr;
-> -		if (!cm_id_priv->av.valid)
-> +		if (!cm_id_priv->av.valid) {
+Since mlx4_ib supports IP based addressing, a dependency on
+INET should be added. This is mandatory since mlx4_ib
+registers itself to net device events.
 
-Hi,
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Hi Roland,
 
-Thanks for the fix.
+The mlx4_ib driver registers itself to network events.
+This is mandatory for adding IP based GIDs.
+Thus, we need to introduce a new dependency on INET.
 
-> +			spin_unlock_irqrestore(&cm_id_priv->lock, flags);
->   			return -EINVAL;
-> +		}
-
-Another option is to go with "goto style" error-handling. This could 
-have some future benefit if this code will get more complicated 
-(introducing more error flows).
-
-
->   		if (cm_id_priv->av.ah_attr.vlan_id != 0xffff) {
->   			qp_attr->vlan_id = cm_id_priv->av.ah_attr.vlan_id;
->   			*qp_attr_mask |= IB_QP_VID;
->
-
-Regards,
+Thanks,
 Matan
+
+ drivers/infiniband/hw/mlx4/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx4/Kconfig b/drivers/infiniband/hw/mlx4/Kconfig
+index 24ab11a..fc01dea 100644
+--- a/drivers/infiniband/hw/mlx4/Kconfig
++++ b/drivers/infiniband/hw/mlx4/Kconfig
+@@ -1,6 +1,6 @@
+ config MLX4_INFINIBAND
+ 	tristate "Mellanox ConnectX HCA support"
+-	depends on NETDEVICES && ETHERNET && PCI
++	depends on NETDEVICES && ETHERNET && PCI && INET
+ 	select NET_VENDOR_MELLANOX
+ 	select MLX4_CORE
+ 	---help---
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
