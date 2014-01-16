@@ -1,107 +1,63 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 09/14] IB/mlx5: Add support for resize CQ
-Date: Thu, 16 Jan 2014 10:58:07 +0100
-Message-ID: <1389866287.572.32.camel@localhost.localdomain>
-References: <1389714323-20130-1-git-send-email-eli@mellanox.com>
-	 <1389714323-20130-10-git-send-email-eli@mellanox.com>
-	 <1389717410.1585.67.camel@localhost.localdomain>
-	 <20140115073316.GB31664@mtldesk30>
-	 <1389780175.572.10.camel@localhost.localdomain>
-	 <20140115112416.GD31664@mtldesk30>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH -next] IB/cm: Fix missing unlock on error in cm_init_qp_rtr_attr()
+Date: Thu, 16 Jan 2014 13:27:52 +0200
+Message-ID: <52D7C238.9030806@mellanox.com>
+References: <CAPgLHd92QCSZmjtgO9216MbD2b_i40nwzU_=fwx5-aeB=YvumQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140115112416.GD31664@mtldesk30>
+In-Reply-To: <CAPgLHd92QCSZmjtgO9216MbD2b_i40nwzU_=fwx5-aeB=YvumQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, zhaohongjiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+On 16/1/2014 10:28 AM, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+>
+> Add the missing unlock before return from function cm_init_qp_rtr_attr()
+> in the error handling case.
+>
+> Fixes: dd5f03beb4f7 ('IB/core: Ethernet L2 attributes in verbs/cm structures')
+> Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+> ---
+>   drivers/infiniband/core/cm.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index c6d543c..0601b9d 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -3526,8 +3526,10 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
+>   		*qp_attr_mask = IB_QP_STATE | IB_QP_AV | IB_QP_PATH_MTU |
+>   				IB_QP_DEST_QPN | IB_QP_RQ_PSN;
+>   		qp_attr->ah_attr = cm_id_priv->av.ah_attr;
+> -		if (!cm_id_priv->av.valid)
+> +		if (!cm_id_priv->av.valid) {
 
 Hi,
 
-Le mercredi 15 janvier 2014 =C3=A0 13:24 +0200, Eli Cohen a =C3=A9crit =
-:
-> On Wed, Jan 15, 2014 at 11:02:55AM +0100, Yann Droneaud wrote:
-> >=20
-> > Is libmlx5/libibverbs the ABI ?
-> >=20
-> > Unfortunately, anybody is allowed to access the kernel uverbs API
-> > directly, so we must take care of the kernel ABI, just in case.
-> >
->=20
-> I am not sure I understand the question but libibverbs to libmlx5
-> relation is somehow like the relationship between ib_core and mlx5_ib=
-=2E
-> e.g. libibverbs sets the API and libmlx5 implements it.
+Thanks for the fix.
 
-It's a theoretical question:
-where to draw the line of the kernel ABI when it comes to uverbs ?
-Is it write() + all the data structures for request and response ?
-Or is it libibverbs + provider specific library ?
+> +			spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+>   			return -EINVAL;
+> +		}
 
-In second case, we can change the behavor of the uverbs provided that i=
-t
-doesn't interfere with libibverbs: modifying corner case behavors which
-were never hit by libibverbs is then safe: it won't break userspace
-application.
+Another option is to go with "goto style" error-handling. This could 
+have some future benefit if this code will get more complicated 
+(introducing more error flows).
 
-But in the first case, we cannot for sure attest that modifying behavor
-will not break hypothetical userspace application issuing uverbs comman=
-d
-without going through libibverbs: such specific/specialized application
-might call uverbs in a way different that libibverbs which could break.
 
-I'm not aware of such unknown application, but I believe it could exist=
-s
-in the "proprietary" world.
+>   		if (cm_id_priv->av.ah_attr.vlan_id != 0xffff) {
+>   			qp_attr->vlan_id = cm_id_priv->av.ah_attr.vlan_id;
+>   			*qp_attr_mask |= IB_QP_VID;
+>
 
-> >=20
-> > For code not yet part of a released kernel version, we can fix that=
-=2E
-> > But for all other, it would require proper checking/thinking before
-> > rejecting reserved field not set to 0 since it might theoterically =
-break
-> > existing userspace program: it will be a departure from previous AB=
-I.
-> >=20
->=20
-> Yes, this needs to be done carefully for each driver. We need to chec=
-k
-> if either libibverbs or any other provider library clears the struct
-> before sending. If this is the case then it should be safe to fix the
-> kernel part.
->=20
-> >=20
-> > I would found more readable to have the two locks held next each ot=
-her.
-> > YMMV.
-> >=20
-> I am not following you here. Please be more specific.
-
-I thought that reworking the code to move mutex_lock(&cq->resize_mutex)
-and spin_lock_irqsave(&cq->lock, flags); next to each other
-could show that the first one would not be needed: perhaps is it
-possible doing:
- - prepare everything,
- - take the lock,
- - swap,
- - release the lock,
- - clean up.
-(oh, that remind me RCU).
-
-I agree that resizing the CQ is not a frequent operation, so trying to
-rewrite the code as I suggest won't give a lot of advantages.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+Regards,
+Matan
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
