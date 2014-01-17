@@ -1,77 +1,40 @@
-From: Michal Schmidt <mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IPoIB: report operstate consistently when brought up without a link
-Date: Fri, 17 Jan 2014 19:47:25 +0100
-Message-ID: <1389984445-29360-1-git-send-email-mschmidt@redhat.com>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Fri, 17 Jan 2014 17:02:49 -0500
+Message-ID: <yq1d2jquv06.fsf@sermon.lab.mkp.net>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	<CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	<52CD1C68.4050406@mellanox.com>
+	<1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+	<1389820541.5567.543.camel@haakon3.risingtidesystems.com>
+	<CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
+	<1389906852.5567.668.camel@haakon3.risingtidesystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1389906852.5567.668.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+	(Nicholas A. Bellinger's message of "Thu, 16 Jan 2014 13:14:12 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-After booting without a working link, "ip link" shows:
+>>>>> "nab" == Nicholas A Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> writes:
 
- 5: mlx4_ib1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast
- state DOWN qlen 256
-    ...
- 7: mlx4_ib1.8003@mlx4_ib1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc
- pfifo_fast state DOWN qlen 256
-    ...
+nab> So there is not a interface in SCSI land for interacting (directly)
+nab> with hardware protection support, as it's primarily just telling
+nab> SCSI what protection modes are supported while the rest is
+nab> implemented in vendor specific firmware interfaces.  (CC'ing MKP)
 
-Then after connecting and disconnecting the link, which should result
-in exactly the same state as before, it shows:
+I've worked on getting my DIX1.1 changes ready for submission the last
+couple of days. That'll take the magic out of firmware and into the SCSI
+stack.
 
- 5: mlx4_ib1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast
- state DOWN qlen 256
-    ...
- 7: mlx4_ib1.8003@mlx4_ib1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc
- pfifo_fast state LOWERLAYERDOWN qlen 256
-    ...
+I'll get those patches out early next week. They are fairly trivial but
+do require some changes to mptNsas, lpfc and qla2xxx.
 
-Notice the (now correct) LOWERLAYERDOWN operstate shown for the mlx4_ib1.8003
-interface. Ideally the identical state would be shown right after boot.
-
-The problem is related to the calling of netif_carrier_off() in network drivers.
-For a long time it was known that doing netif_carrier_off() before registering
-the netdevice would result in the interface's operstate being shown as UNKNOWN
-if the device was brought up without a working link. This problem was fixed in
-commit 8f4cccbbd92 ('net: Set device operstate at registration time'), but
-still there remains the minor inconsistency demonstrated above.
-
-This patch fixes it by moving ipoib's call to netif_carrier_off() into the
-.ndo_open method, which is where network drivers ordinarily do it.
-With the patch when doing the same test as above, the operstate of
-mlx4_ib1.8003 is shown as LOWERLAYERDOWN right after boot.
-
-Signed-off-by: Michal Schmidt <mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index d64ed05..5786a78 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -104,6 +104,8 @@ int ipoib_open(struct net_device *dev)
- 
- 	ipoib_dbg(priv, "bringing up interface\n");
- 
-+	netif_carrier_off(dev);
-+
- 	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
- 
- 	if (ipoib_pkey_dev_delay_open(dev))
-@@ -1366,8 +1368,6 @@ void ipoib_setup(struct net_device *dev)
- 
- 	memcpy(dev->broadcast, ipv4_bcast_addr, INFINIBAND_ALEN);
- 
--	netif_carrier_off(dev);
--
- 	priv->dev = dev;
- 
- 	spin_lock_init(&priv->lock);
 -- 
-1.8.4.2
-
+Martin K. Petersen	Oracle Linux Engineering
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
