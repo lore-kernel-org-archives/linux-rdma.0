@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH] IB/mlx5: Fix siganture rule constants according to FW specifications
-Date: Sun, 19 Jan 2014 11:26:52 +0200
-Message-ID: <1390123612-30252-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH] IB/mlx5: Fix signature rule constants according to FW specifications
+Date: Sun, 19 Jan 2014 12:37:38 +0200
+Message-ID: <1390127858-9806-1-git-send-email-sagig@mellanox.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 Sender: target-devel-owner@vger.kernel.org
 To: nab@linux-iscsi.org
