@@ -1,109 +1,38 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
- information to stdout
-Date: Sun, 19 Jan 2014 10:19:53 +0200
-Message-ID: <20140119081953.GB26599@r-ufm96.mtr.labs.mlnx>
-References: <20140102064415.GA4568@r-ufm96.mtr.labs.mlnx>
- <2807E5FD2F6FDA4886F6618EAC48510E04A94D41@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E04A94D41-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH] IB/mlx5: Fix smatch warnings
+Date: Sun, 19 Jan 2014 11:23:57 +0200
+Message-ID: <1390123437-27517-1-git-send-email-sagig@mellanox.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: nab@linux-iscsi.org
+Cc: dan.carpenter@oracle.com, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:37 Sun 12 Jan     , Weiny, Ira wrote:
-> > -----Original Message-----
-> > From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> > Sent: Wednesday, January 01, 2014 10:44 PM
-> > Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
-> > information to stdout
-> > 
-> > Write to stdout the route-path when smp returns with status error.
-> 
-> As part of a library this will affect many tools outputs and perhaps subsequently any scripts written against those tools.
-> 
-> Is this really a requirement or simply a "nice to have"?
-That was a customer request to get the query path to stdout when getting an error.
+Possible double free on in-mailbox.
 
-This way when getting smp error they could see DR path to the node in stdout.
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/mr.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
--- Dan
-
-> 
-> Ira
-> 
-> > 
-> > Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  libibnetdisc/src/internal.h  |   10 +++++++---
-> >  libibnetdisc/src/query_smp.c |    6 ++++++
-> >  2 files changed, 13 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h index
-> > 1ccd29c..47b2a4c 100644
-> > --- a/libibnetdisc/src/internal.h
-> > +++ b/libibnetdisc/src/internal.h
-> > @@ -42,12 +42,16 @@
-> >  #include <complib/cl_qmap.h>
-> >  #include <glib.h>
-> > 
-> > +#define	IBND_ERROR(fmt, ...) \
-> > +		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
-> > __VA_ARGS__)
-> > +
-> > +#define	IBND_INFO(fmt, ...) \
-> > +		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
-> > __VA_ARGS__);
-> > +
-> >  #define	IBND_DEBUG(fmt, ...) \
-> >  	if (ibdebug) { \
-> > -		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
-> > __VA_ARGS__); \
-> > +		IBND_INFO(fmt,## __VA_ARGS__); \
-> >  	}
-> > -#define	IBND_ERROR(fmt, ...) \
-> > -		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
-> > __VA_ARGS__)
-> > 
-> >  /* HASH table defines */
-> >  #define HASHGUID(guid) ((uint32_t)(((uint32_t)(guid) * 101) ^
-> > ((uint32_t)((guid) >> 32) * 103))) diff --git a/libibnetdisc/src/query_smp.c
-> > b/libibnetdisc/src/query_smp.c index 28620b4..ac4984e 100644
-> > --- a/libibnetdisc/src/query_smp.c
-> > +++ b/libibnetdisc/src/query_smp.c
-> > @@ -192,6 +192,9 @@ static int process_one_recv(smp_engine_t * engine)
-> >  		goto error;
-> > 
-> >  	if ((status = umad_status(umad))) {
-> > +		IBND_INFO("umad (%s Attr 0x%x:%u) bad status %d; %s\n",
-> > +			   portid2str(&smp->path), smp->rpc.attr.id,
-> > +			   smp->rpc.attr.mod, status, strerror(status));
-> >  		IBND_ERROR("umad (%s Attr 0x%x:%u) bad status %d;
-> > %s\n",
-> >  			   portid2str(&smp->path), smp->rpc.attr.id,
-> >  			   smp->rpc.attr.mod, status, strerror(status)); @@ -
-> > 199,6 +202,9 @@ static int process_one_recv(smp_engine_t * engine)
-> >  			rc = mlnx_ext_port_info_err(engine, smp, mad,
-> >  						    smp->cb_data);
-> >  	} else if ((status = mad_get_field(mad, 0, IB_DRSMP_STATUS_F))) {
-> > +		IBND_INFO("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
-> > +			   portid2str(&smp->path), smp->rpc.attr.id,
-> > +			   smp->rpc.attr.mod, status);
-> >  		IBND_ERROR("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
-> >  			   portid2str(&smp->path), smp->rpc.attr.id,
-> >  			   smp->rpc.attr.mod, status);
-> > --
-> > 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index bc27f6b..f023711 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1050,13 +1050,13 @@ struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
+ 	in->seg.flags = MLX5_PERM_UMR_EN | access_mode;
+ 	err = mlx5_core_create_mkey(&dev->mdev, &mr->mmr, in, sizeof(*in),
+ 				    NULL, NULL, NULL);
+-	kfree(in);
+ 	if (err)
+ 		goto err_destroy_psv;
+ 
+ 	mr->ibmr.lkey = mr->mmr.key;
+ 	mr->ibmr.rkey = mr->mmr.key;
+ 	mr->umem = NULL;
++	kfree(in);
+ 
+ 	return &mr->ibmr;
+ 
+-- 
+1.7.8.2
