@@ -1,48 +1,61 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH] IB/mlx5: Fix signature rule constants according to FW
- specifications
-Date: Sun, 19 Jan 2014 15:07:10 +0200
-Message-ID: <52DBCDFE.3080005@dev.mellanox.co.il>
-References: <1390127858-9806-1-git-send-email-sagig@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next] IB/mlx4: Add dependency INET
+Date: Mon, 20 Jan 2014 00:32:46 +0200
+Message-ID: <52DC528E.2040404@mellanox.com>
+References: <1389885408-21897-1-git-send-email-matanb@mellanox.com> <1389885408-21897-2-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1390127858-9806-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>, nab@linux-iscsi.org
-Cc: linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1389885408-21897-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/19/2014 12:37 PM, Sagi Grimberg wrote:
-> Use DIF CRC INC with apptag escape (0x8) and update IP-CSUM entries.
+On 16/01/2014 17:16, Matan Barak wrote:
+> Since mlx4_ib supports IP based addressing, a dependency on
+> INET should be added. This is mandatory since mlx4_ib
+> registers itself to net device events.
 >
-> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->   drivers/infiniband/hw/mlx5/qp.c |    6 +++---
->   1 files changed, 3 insertions(+), 3 deletions(-)
+> Hi Roland,
 >
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index 7981620..58c4735 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -1952,9 +1952,9 @@ static int format_selector(struct ib_sig_attrs *attr,
->   {
->   
->   #define FORMAT_DIF_NONE		0
-> -#define FORMAT_DIF_CRC_INC	4
-> -#define FORMAT_DIF_CSUM_INC	12
-> -#define FORMAT_DIF_CRC_NO_INC	13
-> +#define FORMAT_DIF_CRC_INC	8
-> +#define FORMAT_DIF_CRC_NO_INC	12
-> +#define FORMAT_DIF_CSUM_INC	13
->   #define FORMAT_DIF_CSUM_NO_INC	14
->   
->   	switch (domain->sig.dif.type) {
+> The mlx4_ib driver registers itself to network events.
+> This is mandatory for adding IP based GIDs.
+> Thus, we need to introduce a new dependency on INET.
 
-Just a clarification,
+Roland, I see that you've picked this patch, thanks. Note the same patch 
+need to be done for ocrdma, since
+it also registered to the notifiers under the IP addressing patches.
 
-This patch along with "Fix smatch warnings" are incremental patches to 
-v4 of pending Signature verbs patchset.
+Or.
 
-Sagi.
+
+
+
+>
+> Thanks,
+> Matan
+>
+>   drivers/infiniband/hw/mlx4/Kconfig |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/mlx4/Kconfig b/drivers/infiniband/hw/mlx4/Kconfig
+> index 24ab11a..fc01dea 100644
+> --- a/drivers/infiniband/hw/mlx4/Kconfig
+> +++ b/drivers/infiniband/hw/mlx4/Kconfig
+> @@ -1,6 +1,6 @@
+>   config MLX4_INFINIBAND
+>   	tristate "Mellanox ConnectX HCA support"
+> -	depends on NETDEVICES && ETHERNET && PCI
+> +	depends on NETDEVICES && ETHERNET && PCI && INET
+>   	select NET_VENDOR_MELLANOX
+>   	select MLX4_CORE
+>   	---help---
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
