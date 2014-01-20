@@ -1,37 +1,52 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch] IB/usnic: use GFP_ATOMIC under spinlock
-Date: Mon, 20 Jan 2014 13:32:49 +0300
-Message-ID: <20140120103248.GE14233@elgon.mountain>
-References: <20131211223934.GB3955@elgon.mountain>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Mon, 20 Jan 2014 13:40:55 +0100
+Message-ID: <52DD1957.90108@acm.org>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com> <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20131211223934.GB3955-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+In-Reply-To: <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is called from qp_grp_and_vf_bind() and we are holding the
-"vf->lock" so the allocation can't sleep.
+On 01/08/14 01:51, Roland Dreier wrote:
+> On Tue, Jan 7, 2014 at 1:02 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Currently there is single patch for 3.14 on your for-next branch, the
+>> usnic driver. With 3.13 being on rc7 and likely to be released next
+>> week, are you planning any other merges for 3.14? we have patches
+>> waiting for weeks and months without any comment from you.
+> 
+> I am definitely planning on merging the new IBoE IP addressing stuff,
+> since we seem to have solved the ABI issues.
+> 
+> The UD flow steering patches seem good and I will take a closer look soon.
+> 
+> And there are quite a few usnic patches still to pick up.
+> 
+> I'm confident that will all make it.
+> 
+> 
+> The data integrity stuff I'm not so sure about.  Sean raised some I
+> think legitimate questions about whether all this should be added to
+> the verbs API and I want to see more discussion or at least have a
+> deep think about this myself before comitting.
 
-Fixes: e3cf00d0a87f ('IB/usnic: Add Cisco VIC low-level hardware driver')
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Hi Roland,
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index ae6934c0d05a..16755cdab2c0 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -498,7 +498,7 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
- 	struct usnic_uiom_dev *uiom_dev;
- 	int err;
- 
--	uiom_dev = kzalloc(sizeof(*uiom_dev), GFP_KERNEL);
-+	uiom_dev = kzalloc(sizeof(*uiom_dev), GFP_ATOMIC);
- 	if (!uiom_dev)
- 		return -ENOMEM;
- 	uiom_dev->dev = dev;
+In his role as SRP maintainer Dave Dillow had acked a few SRP initiator
+patches three weeks ago (see also
+http://thread.gmane.org/gmane.linux.scsi/86532/focus=87013). As far as I
+can see these patches are not yet in your for-next branch ? Do you see
+any chance to get these included in kernel 3.14 ?
+
+Thanks,
+
+Bart.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
