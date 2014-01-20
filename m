@@ -1,60 +1,37 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next] IB/mlx4: Add dependency INET
-Date: Mon, 20 Jan 2014 00:32:46 +0200
-Message-ID: <52DC528E.2040404@mellanox.com>
-References: <1389885408-21897-1-git-send-email-matanb@mellanox.com> <1389885408-21897-2-git-send-email-matanb@mellanox.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] IB/usnic: use GFP_ATOMIC under spinlock
+Date: Mon, 20 Jan 2014 13:32:49 +0300
+Message-ID: <20140120103248.GE14233@elgon.mountain>
+References: <20131211223934.GB3955@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389885408-21897-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20131211223934.GB3955-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 16/01/2014 17:16, Matan Barak wrote:
-> Since mlx4_ib supports IP based addressing, a dependency on
-> INET should be added. This is mandatory since mlx4_ib
-> registers itself to net device events.
->
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> Hi Roland,
->
-> The mlx4_ib driver registers itself to network events.
-> This is mandatory for adding IP based GIDs.
-> Thus, we need to introduce a new dependency on INET.
+This is called from qp_grp_and_vf_bind() and we are holding the
+"vf->lock" so the allocation can't sleep.
 
-Roland, I see that you've picked this patch, thanks. Note the same patch 
-need to be done for ocrdma, since
-it also registered to the notifiers under the IP addressing patches.
+Fixes: e3cf00d0a87f ('IB/usnic: Add Cisco VIC low-level hardware driver')
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Or.
-
-
-
-
->
-> Thanks,
-> Matan
->
->   drivers/infiniband/hw/mlx4/Kconfig |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/mlx4/Kconfig b/drivers/infiniband/hw/mlx4/Kconfig
-> index 24ab11a..fc01dea 100644
-> --- a/drivers/infiniband/hw/mlx4/Kconfig
-> +++ b/drivers/infiniband/hw/mlx4/Kconfig
-> @@ -1,6 +1,6 @@
->   config MLX4_INFINIBAND
->   	tristate "Mellanox ConnectX HCA support"
-> -	depends on NETDEVICES && ETHERNET && PCI
-> +	depends on NETDEVICES && ETHERNET && PCI && INET
->   	select NET_VENDOR_MELLANOX
->   	select MLX4_CORE
->   	---help---
-
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index ae6934c0d05a..16755cdab2c0 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -498,7 +498,7 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
+ 	struct usnic_uiom_dev *uiom_dev;
+ 	int err;
+ 
+-	uiom_dev = kzalloc(sizeof(*uiom_dev), GFP_KERNEL);
++	uiom_dev = kzalloc(sizeof(*uiom_dev), GFP_ATOMIC);
+ 	if (!uiom_dev)
+ 		return -ENOMEM;
+ 	uiom_dev->dev = dev;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
