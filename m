@@ -1,7 +1,7 @@
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Subject: Re: SRP initiator driver maintainership
-Date: Tue, 21 Jan 2014 11:17:01 +0100
-Message-ID: <52DE491D.6010306@profitbricks.com>
+Date: Tue, 21 Jan 2014 11:18:24 +0100
+Message-ID: <52DE4970.9070406@profitbricks.com>
 References: <1388783770.20053.10.camel@haswell.thedillows.org> <52DD5ED4.3050000@acm.org> <52DE45ED.8060703@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -9,11 +9,11 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <52DE45ED.8060703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/21/2014 11:03 AM, Sagi Grimberg wrote:
+On 21.01.2014 11:03, Sagi Grimberg wrote:
 > On 1/20/2014 7:37 PM, Bart Van Assche wrote:
 >> On 01/03/14 22:16, David Dillow wrote:
 >>> Today was my last day at ORNL, and my future endeavors will leave even
@@ -68,15 +68,11 @@ On 01/21/2014 11:03 AM, Sagi Grimberg wrote:
 > and I think Bart is a perfect match for SRP maintainership.
 > 
 > Sagi.
-Vote for Bart, he is improving SRP consistently, does good job on this.
 
-Jack
++1 from me for Bart! Thanks for the collaboration!
 
-
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Sebastian
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
