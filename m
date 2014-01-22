@@ -1,8 +1,8 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v1] libibverbs: Add support for usNIC nodes and
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1] libibverbs: Add support for usNIC nodes and
  transports
-Date: Wed, 22 Jan 2014 21:12:45 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D1567F@ORSMSX109.amr.corp.intel.com>
+Date: Wed, 22 Jan 2014 21:53:56 +0000
+Message-ID: <14B25DF4-F8CB-4C05-B9A2-124DF16CA3B3@cisco.com>
 References: <1390360721-14894-1-git-send-email-umalhi@cisco.com>
  <1828884A29C6694DAF28B7E6B8A8237388D1516D@ORSMSX109.amr.corp.intel.com>
  <97D33F82-21BA-4885-A909-7DCDBFCACD36@cisco.com>
@@ -10,35 +10,51 @@ References: <1390360721-14894-1-git-send-email-umalhi@cisco.com>
  <D0DEB791-D0BE-489F-AA66-7055099108B0@cisco.com>
  <1828884A29C6694DAF28B7E6B8A8237388D155AC@ORSMSX109.amr.corp.intel.com>
  <4791BCBA-FF5C-4F4D-90D1-C5B7981B02E4@cisco.com>
+ <1828884A29C6694DAF28B7E6B8A8237388D1567F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4791BCBA-FF5C-4F4D-90D1-C5B7981B02E4-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D1567F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
+Content-ID: <5D1DD559707E0142A430A2B059FEB8A4-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >> 	AFAIK can see from the code, the CA node type corresponds to the
-> >> "IBV_TRANSPORT_IB."  The packet format might change slightly depending
-> on
-> >> QP type, but the *base* transport remains IB.
-> >
-> > You're right from an API perspective.  The actual transport layer is
-> reported by verbs using multiple fields: transport + QP type.
-> 
-> I don't know what you mean.  The transport is independent of the QP type.
-> static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
-> ...
-> 	printf("\ttransport:\t\t\t%s (%d)\n",
-> 	       transport_str(ib_dev->transport_type), ib_dev-
-> >transport_type);
-> ...
-> Am I looking in the right place?
+Understood that the QP type, transport_type combination is implicit.
 
-I'm simply saying that, for IB, what we call the QP type is actually the transport level protocol.  IIRC, when iwarp was added, we added transport_type to distinguish between QP type RC being IB or iWarp transport.  The result is that the actual transport level protocol is some combination between QP type and transport_type.
+I do not believe that a new QP type is justified though, for the reason given.  usNIC HCA UD QPs will either all be on custom RoCE transport or all on UDP.  Mixing is not allowed.
+
+Upinder
+
+On Jan 22, 2014, at 1:12 PM, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ wrote:
+
+>>>> 	AFAIK can see from the code, the CA node type corresponds to the
+>>>> "IBV_TRANSPORT_IB."  The packet format might change slightly depending
+>> on
+>>>> QP type, but the *base* transport remains IB.
+>>> 
+>>> You're right from an API perspective.  The actual transport layer is
+>> reported by verbs using multiple fields: transport + QP type.
+>> 
+>> I don't know what you mean.  The transport is independent of the QP type.
+>> static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+>> ...
+>> 	printf("\ttransport:\t\t\t%s (%d)\n",
+>> 	       transport_str(ib_dev->transport_type), ib_dev-
+>>> transport_type);
+>> ...
+>> Am I looking in the right place?
+> 
+> I'm simply saying that, for IB, what we call the QP type is actually the transport level protocol.  IIRC, when iwarp was added, we added transport_type to distinguish between QP type RC being IB or iWarp transport.  The result is that the actual transport level protocol is some combination between QP type and transport_type.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
