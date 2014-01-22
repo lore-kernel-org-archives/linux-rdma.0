@@ -1,61 +1,51 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v1] libibverbs: Add support for usNIC nodes and
- transports
-Date: Wed, 22 Jan 2014 21:53:56 +0000
-Message-ID: <14B25DF4-F8CB-4C05-B9A2-124DF16CA3B3@cisco.com>
-References: <1390360721-14894-1-git-send-email-umalhi@cisco.com>
- <1828884A29C6694DAF28B7E6B8A8237388D1516D@ORSMSX109.amr.corp.intel.com>
- <97D33F82-21BA-4885-A909-7DCDBFCACD36@cisco.com>
- <1828884A29C6694DAF28B7E6B8A8237388D15319@ORSMSX109.amr.corp.intel.com>
- <D0DEB791-D0BE-489F-AA66-7055099108B0@cisco.com>
- <1828884A29C6694DAF28B7E6B8A8237388D155AC@ORSMSX109.amr.corp.intel.com>
- <4791BCBA-FF5C-4F4D-90D1-C5B7981B02E4@cisco.com>
- <1828884A29C6694DAF28B7E6B8A8237388D1567F@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V1 0/2] Fix build warnings in the IB core and mlx4_ib
+Date: Thu, 23 Jan 2014 00:19:26 +0200
+Message-ID: <CAJZOPZKWfC0iM=peVguA5H+TNOuETJa5sFccQUiy79QH9LCvvg@mail.gmail.com>
+References: <1383466844-8805-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D1567F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Content-ID: <5D1DD559707E0142A430A2B059FEB8A4-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <1383466844-8805-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Understood that the QP type, transport_type combination is implicit.
+On Sun, Nov 3, 2013 at 10:20 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Roland,
+>
+> This little patch set removes the current "make W=1" build warnings from the IB core
+> and the mlx4_ib driver, which would help when we examine new patches to make sure they
+> don't add any warnings..
 
-I do not believe that a new QP type is justified though, for the reason given.  usNIC HCA UD QPs will either all be on custom RoCE transport or all on UDP.  Mixing is not allowed.
+Hi Roland,
 
-Upinder
+Can this tiny patch set  be added for 3.14?
 
-On Jan 22, 2014, at 1:12 PM, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- wrote:
+Or.
 
->>>> 	AFAIK can see from the code, the CA node type corresponds to the
->>>> "IBV_TRANSPORT_IB."  The packet format might change slightly depending
->> on
->>>> QP type, but the *base* transport remains IB.
->>> 
->>> You're right from an API perspective.  The actual transport layer is
->> reported by verbs using multiple fields: transport + QP type.
->> 
->> I don't know what you mean.  The transport is independent of the QP type.
->> static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
->> ...
->> 	printf("\ttransport:\t\t\t%s (%d)\n",
->> 	       transport_str(ib_dev->transport_type), ib_dev-
->>> transport_type);
->> ...
->> Am I looking in the right place?
-> 
-> I'm simply saying that, for IB, what we call the QP type is actually the transport level protocol.  IIRC, when iwarp was added, we added transport_type to distinguish between QP type RC being IB or iWarp transport.  The result is that the actual transport level protocol is some combination between QP type and transport_type.
-> 
+>
+> changes from V0:
+>  - returned call to iwcm->destroy_listen which was wrongly removed,
+>    spotted by Sean.
+>
+> Or.
+>
+> Or Gerlitz (2):
+>   IB/core: Fix build warnings
+>   IB/mlx4: Fix build warnings
+>
+>  drivers/infiniband/core/iwcm.c  |    3 +--
+>  drivers/infiniband/core/sysfs.c |    2 +-
+>  drivers/infiniband/core/verbs.c |    3 +--
+>  drivers/infiniband/hw/mlx4/qp.c |    2 +-
+>  4 files changed, 4 insertions(+), 6 deletions(-)
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
