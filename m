@@ -1,45 +1,65 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] [TRIVIAL] opensm: Fix small compile error
-Date: Tue, 21 Jan 2014 23:33:09 -0500
-Message-ID: <52DF4A05.3060202@dev.mellanox.co.il>
-References: <1390348306.6153.356.camel@auk59.llnl.gov>
+From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: FW: [PATCH v1] IB/CMA: Fix to handle global/non-linklocal IPv6
+ address in cma_check_linklocal()
+Date: Wed, 22 Jan 2014 05:49:38 +0000
+Message-ID: <7F44EA5110810A40B7DAFB605C41975D2CA643F2@CMEXMB1.ad.emulex.com>
+References: <490f7bb9-cfb2-4225-abd7-c0441878330f@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1390348306.6153.356.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <490f7bb9-cfb2-4225-abd7-c0441878330f-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Al,
+Roland,
+            It's been a couple of months since I posted this, could you please apply this patch and/or respond ? 
 
-On 1/21/2014 6:51 PM, Albert Chu wrote:
-> Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> ---
->  osmeventplugin/src/osmeventplugin.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/osmeventplugin/src/osmeventplugin.c b/osmeventplugin/src/osmeventplugin.c
-> index 1eaf7ea..0feada8 100644
-> --- a/osmeventplugin/src/osmeventplugin.c
-> +++ b/osmeventplugin/src/osmeventplugin.c
-> @@ -195,7 +195,7 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
->  		fprintf(log->log_file, "Heavy sweep completed\n");
->  		break;
->  	case OSM_EVENT_ID_UCAST_ROUTING_DONE:
-> -		fprintf(log->log_file, "Unicast routing completed %d\n", event_data);
-> +		fprintf(log->log_file, "Unicast routing completed %p\n", event_data);
+Thanks
+Som
 
-I see the problem. I have a different fix for this. Patch shortly.
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Somnath Kotur
+Sent: Saturday, November 16, 2013 9:30 AM
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Somnath Kotur
+Subject: [PATCH v1] IB/CMA: Fix to handle global/non-linklocal IPv6 address in cma_check_linklocal()
 
--- Hal
+Even if the addr is not a linklocal address, the code treats it as such and assigns the bound dev addr to the scope id of the address which is invalid.
+Fix by checking if it's a link local address first and return 0 if not.
 
->  		break;
->  	case OSM_EVENT_ID_STATE_CHANGE:
->  		fprintf(log->log_file, "SM state changed\n");
+Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+Incorporated comments from Philip and Sean Hefty.
 
+ drivers/infiniband/core/cma.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c index dab4b41..7f8ee93 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2466,8 +2466,11 @@ static int cma_check_linklocal(struct rdma_dev_addr *dev_addr,
+ 		return 0;
+ 
+ 	sin6 = (struct sockaddr_in6 *) addr;
+-	if ((ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL) &&
+-	    !sin6->sin6_scope_id)
++
++	if (!(ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL))
++		return 0;
++
++	if (!sin6->sin6_scope_id)
+ 			return -EINVAL;
+ 
+ 	dev_addr->bound_dev_if = sin6->sin6_scope_id;
+--
+1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
