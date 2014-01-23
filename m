@@ -1,113 +1,183 @@
-From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Subject: How to find what's holding uverbs from detaching an Infiniband SR-IOV
- VF?
-Date: Thu, 23 Jan 2014 14:25:21 +0100
-Message-ID: <52E11841.1020407@simula.no>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next V1 1/2] IB/core: Fix build warnings
+Date: Thu, 23 Jan 2014 16:15:38 +0100
+Message-ID: <1390490138.11718.23.camel@localhost.localdomain>
+References: <1383466844-8805-1-git-send-email-ogerlitz@mellanox.com>
+		 <1383466844-8805-2-git-send-email-ogerlitz@mellanox.com>
+	 <1390470420.9865.1.camel@localhost.localdomain>
+	 <52E10B12.2080504@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52E10B12.2080504-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+Hi Or,
 
-I am trying to detach an Infiniband SR-IOV Virtual Function with active 
-communication (perftest ib_send_bw --rdma_cm is running) from a Virtual 
-Machine, with the intention to eventually migrate it.
+Le jeudi 23 janvier 2014 =C3=A0 14:29 +0200, Or Gerlitz a =C3=A9crit :
+> On 23/01/2014 11:47, Yann Droneaud wrote:
+> > Le dimanche 03 novembre 2013 =C3=A0 10:20 +0200, Or Gerlitz a =C3=A9=
+crit :
+> >> >Fix the below few "make W=3D1" build warnings we have on the IB c=
+ore.
+> >> >
+> >> >drivers/infiniband/core/sysfs.c: In function =E2=80=98state_show=E2=
+=80=99:
+> >> >drivers/infiniband/core/sysfs.c:107: warning: comparison of unsig=
+ned expression >=3D 0 is always true
+> >> >drivers/infiniband/core/verbs.c: In function =E2=80=98ib_modify_q=
+p_is_ok=E2=80=99:
+> >> >drivers/infiniband/core/verbs.c:783: warning: comparison of unsig=
+ned expression < 0 is always false
+> >> >drivers/infiniband/core/verbs.c:784: warning: comparison of unsig=
+ned expression < 0 is always false
+> >> >drivers/infiniband/core/iwcm.c: In function =E2=80=98destroy_cm_i=
+d=E2=80=99:
+> >> >drivers/infiniband/core/iwcm.c:330: warning: variable =E2=80=98re=
+t=E2=80=99 set but not used
+> >> >
+> >> >Signed-off-by: Or Gerlitz<ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Yann Droneaud<ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+> >
+> > PS: Perhaps you could split the patch in two parts: one to remove t=
+he
+> > unused variable, and another to remove the check on unsigned variab=
+les ?
 
-The problem in short (more details below):
-What fails is that in the detach process, the code execution hangs in 
-line wait_for_completion(&uverbs_dev->comp); called from the 
-ib_uverbs_remove_one() function located in file 
-drivers/infiniband/core/uverbs_main.c and the VF cannot be detached. How 
-can I find what's holding the uverbs from being removed?
+> Roland decided not to take the  unsigned expression < 0 patches, writ=
+ing=20
+> to me
+>=20
+> "I applied the unused variable fix, but the others seem not needed,
+> because the latest kernel seems to include -Wno-sign-compare."
+>=20
+> what's your thinking?
+>=20
 
---------
+I think Roland should write to the list instead of answering privately,
+but you're probably not asking my opinion about this matter.
 
-In more detail:
+Regarding the warnings, I've double check GCC behavor. AFAICT it's not
+related to -Wno-sign-compare enabled or not, but some subtle issue.
 
-I use Mellanox OFED distribution which supports SR-IOV 
-(MLNX_OFED_LINUX-2.0-3.0.0-rhel6.4-x86_64) and my code changes all take 
-place in kernel and userspace drivers of the virtual machine itself 
-(nothing is changed in the drivers installed in the hypervisor), as I 
-want to make the detach transparent to the user application.
+The actual option to trigger the warning is -Wtype-limits, and it's
+implied with -Wextra. And -Wextra is enabled with make W=3D1.
 
-A similar work by Wei Lin Guay has solved this problem as described in 
-this presentation (found here: 
-https://www.openfabrics.org/ofa-documents/presentations/doc_download/526-prototyping-live-migration-with-sr-iov-supported-infiniband.html), 
-but following the same logic doesn't seem to work when I try to 
-implement his ideas in the latest drivers.
+A simple test case such as the one below will trigger the warning:
 
-My programming logic:
-1. When a userspace app using Infiniband starts, it registers it's PID 
-to the Kernel
-2. When the pci hotplug asks for device removal, the kernel sends a 
-signal to the registered PIDs in the userspace
-3. The userspace library libmlx4 calls the
-      - ibv_destroy_qp() for all active QPs.
-      - rdma_destroy_event_channel() for the existing rdma event channels.
-      - ibv_close_device() for the active uverbs devices.
+  int f(unsigned int ui)
+  {
+      if (ui < 0)
+         return -1;
 
-Eventually I do not see any rdma_cm or uverbs0 file descriptors under 
-/proc/PID/fd/ on the virtual machine, the device is not visible in the 
-lspci command output, but it's still there in the ibstat command output. 
-However, the device cannot be detached (and consequently migrate) until 
-I kill the application manually by sending a SIGINT to it (ctrl+C).
-For the moment I don't care if the connection is broken (from the 
-application point of view).
+      return 0;
+  }
 
-Any advice is highly appreciated on how to find what's holding the 
-uverbs which will enable a successful detach of the SR-IOV VF.
+Tested with GCC 4.8.2 under Fedora 20, compiled for x86_64,
+cross-compiled for ARM and Power (ppc64), it produces the warning:
 
-Thank you.
+$ gcc -Wtype-limits -c warning-simple.c=20
+warning-simple.c: In function 'f':
+warning-simple.c:3:3: warning: comparison of unsigned expression < 0 is
+always false [-Wtype-limits]
+   if (ui < 0)
+   ^
 
-This is the Kernel Call Trace that I get after 120 seconds of waiting 
-without killing the application manually:
-INFO: task kacpi_hotplug:26 blocked for more than 120 seconds.
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-kacpi_hotplug D 0000000000000000     0    26      2 0x00000000
-  ffff88011de179b0 0000000000000046 ffff88011fe7fe00 0000000000000000
-  ffff88011de17970 ffffffff81338ac0 ffff88011de17970 0000000000000012
-  ffff88011de0e5f8 ffff88011de17fd8 000000000000fb88 ffff88011de0e5f8
-Call Trace:
-  [<ffffffff81338ac0>] ? vt_console_print+0x260/0x330
-  [<ffffffff8106e585>] ? __call_console_drivers+0x75/0x90
-  [<ffffffff8150efa5>] schedule_timeout+0x215/0x2e0
-  [<ffffffff8106f341>] ? vprintk+0x251/0x560
-  [<ffffffff8150ec23>] wait_for_common+0x123/0x180
-  [<ffffffff81063410>] ? default_wake_function+0x0/0x20
-  [<ffffffff8150ed3d>] wait_for_completion+0x1d/0x20
-  [<ffffffffa0157125>] ib_uverbs_remove_one+0x85/0xb0 [ib_uverbs]
-  [<ffffffffa016acdf>] ib_unregister_device+0x4f/0x100 [ib_core]
-  [<ffffffffa0197be9>] mlx4_ib_remove+0x69/0x210 [mlx4_ib]
-  [<ffffffffa0128de1>] mlx4_remove_device+0x71/0x90 [mlx4_core]
-  [<ffffffffa0128e4b>] mlx4_unregister_device+0x4b/0xb0 [mlx4_core]
-  [<ffffffffa012ab74>] mlx4_remove_one+0x94/0x360 [mlx4_core]
-  [<ffffffff8109cfc5>] ? __blocking_notifier_call_chain+0x65/0x80
-  [<ffffffff8129a4d7>] pci_device_remove+0x37/0x70
-  [<ffffffff8135ef3f>] __device_release_driver+0x6f/0xe0
-  [<ffffffff8135f0ad>] device_release_driver+0x2d/0x40
-  [<ffffffff8135e293>] bus_remove_device+0xa3/0x100
-  [<ffffffff8135bf3d>] device_del+0x12d/0x1e0
-  [<ffffffff8135c012>] device_unregister+0x22/0x60
-  [<ffffffff81293754>] pci_stop_bus_device+0x94/0xa0
-  [<ffffffff812ab31a>] acpiphp_disable_slot+0x9a/0x1d0
-  [<ffffffff812abd9d>] _handle_hotplug_event_func+0xed/0x1d0
-  [<ffffffff8109708e>] ? prepare_to_wait+0x4e/0x80
-  [<ffffffff812abcb0>] ? _handle_hotplug_event_func+0x0/0x1d0
-  [<ffffffff81090be0>] worker_thread+0x170/0x2a0
-  [<ffffffff81096da0>] ? autoremove_wake_function+0x0/0x40
-  [<ffffffff81090a70>] ? worker_thread+0x0/0x2a0
-  [<ffffffff81096a36>] kthread+0x96/0xa0
-  [<ffffffff8100c0ca>] child_rip+0xa/0x20
-  [<ffffffff810969a0>] ? kthread+0x0/0xa0
-  [<ffffffff8100c0c0>] ? child_rip+0x0/0x20
+The same will happen with a more elaborate condition:
 
-Regards,
-Vangelis
+$ diff -u1 warning-simple.c warning-elaborate.c
+--- warning-simple.c
++++ warning-elaborate.c
+@@ -2,3 +2,3 @@
+ {
+-  if (ui < 0)
++  if (ui < 0 || ui > 1000)
+     return -1;
+
+$ gcc -Wtype-limits  -c warning-elaborate.c=20
+warning-elaborate.c: In function 'f':
+warning-elaborate.c:3:3: warning: comparison of unsigned expression < 0
+is always false [-Wtype-limits]
+   if (ui < 0 || ui > 1000)
+   ^
+
+But as noted by Roland, the error is not shown when compiling the kerne=
+l
+InfiniBand modules. Which might sound surprising since the code your
+patch was about looks really like my simplified test case.
+=20
+One must note that your patch is about fixing comparaison of enum type
+against 0.
+
+So, let's try with the following test case which replaces unsigned int
+with an enum:
+
+  enum e {
+    E0,
+    E1,
+  };
+
+  int f(enum e ee)
+  {
+    if (ee < 0)
+      return -1;
+
+    if (ee > 1000)
+      return -1;
+
+    return 0;
+  }
+
+Then no warning is reported while compiling this testcase with GCC 4.8
+under Fedora 20, compiled for x86_64, cross-compiled for ARM and Power
+(ppc64).
+
+Indeed, an enum is mostly like an int.
+
+That explains why Roland and I weren't able to notice the warning when
+compiling with W=3D1.
+
+To trigger the warning, because it can triggered, one should built for
+an ABI that mandate either unsigned enums or short enums.
+
+=46or those who want to try this other side of the ABI world, short enu=
+ms
+can be enabled for free with -fshort-enums (use with care).
+
+In this case multiple warnings are reported:
+
+$ gcc -fshort-enums -Wtype-limits -c warning-enum.c=20
+warning-enum.c: In function 'f':
+warning-enum.c:8:3: warning: comparison is always false due to limited
+range of data type [-Wtype-limits]
+   if (ee < 0) {
+   ^
+warning-enum.c:11:3: warning: comparison is always false due to limited
+range of data type [-Wtype-limits]
+   if (ee > 1000) {
+   ^
+
+(For C++, have a look at -fstrict-enums).
+
+To conclude, I think you will have to give some details on your build
+environment so that we could reproduce the warning.
+
+In the mean time, Roland was right to apply on the subset of your patch
+that remove the unused variable.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
