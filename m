@@ -1,59 +1,90 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next] IB/usnic: Fix smatch endianness error
-Date: Thu, 23 Jan 2014 22:38:04 +0000
-Message-ID: <2FE80B3D-7377-4A6B-80CC-E9A1955E3CDE@cisco.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Question about CPU-HCA interaction
+Date: Fri, 24 Jan 2014 00:34:58 -0500
+Message-ID: <CADPSxAhQSHd81q3PsN=d1hAmxSp9kGZb1UwgciKTWWsYHvwwDQ@mail.gmail.com>
+References: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w@mail.gmail.com>
+	<8687DAA2193C594F89AAA8D4EFFF767F1E253D33@BBYEXM01.pmc-sierra.internal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <177E9B7020533444BCA7EAF6505CA404-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <8687DAA2193C594F89AAA8D4EFFF767F1E253D33-DSFXGzmeEH52L3XCsXW7nW2JBhF/6DRPtVSa9H69ks0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org Dreier" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Error reported at http://marc.info/?l=linux-rdma&m=138995755801039&w=2
+This is pretty late, but I'm pretty sure that the entire WQE is
+written via PIO to the HCA. Here are some references.
 
-Fix short to int cast for big endian systems.
+1. Performance analysis of ConnectX
+(http://nowlab.cse.ohio-state.edu/publications/conf-presentations/2007/=
+surs-hoti07.pdf).
+It says that in ConnectX, PIO is used to writing the WQE (along with
+the inlined payload) to the HCA.
 
-Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+2. http://comments.gmane.org/gmane.linux.drivers.openib/61682
+discusses doing PIO to BlueFlame pages.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index 7ecc606..f8dfd76 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -629,6 +629,7 @@ static int qp_grp_id_from_flow(struct usnic_ib_qp_grp_flow *qp_flow,
- {
- 	enum usnic_transport_type trans_type = qp_flow->trans_type;
- 	int err;
-+	uint16_t port_num = 0;
- 
- 	switch (trans_type) {
- 	case USNIC_TRANSPORT_ROCE_CUSTOM:
-@@ -637,9 +638,15 @@ static int qp_grp_id_from_flow(struct usnic_ib_qp_grp_flow *qp_flow,
- 	case USNIC_TRANSPORT_IPV4_UDP:
- 		err = usnic_transport_sock_get_addr(qp_flow->udp.sock,
- 							NULL, NULL,
--							(uint16_t *) id);
-+							&port_num);
- 		if (err)
- 			return err;
-+		/*
-+		 * Copy port_num to stack first and then to *id,
-+		 * so that the short to int cast works for little
-+		 * and big endian systems.
-+		 */
-+		*id = port_num;
- 		break;
- 	default:
- 		usnic_err("Unsupported transport %u\n", trans_type);
--- 
-1.8.2.1
+I had a related question. How is the CQE pushed from the HCA to the
+CPU? Is it a DMA write? Or can PCI devices write to system memory too
+(just as CPUs can write to the PCIe device's memory).
 
+Anuj
+
+
+
+On Mon, Jan 13, 2014 at 9:08 PM, Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org> wrote=
+:
+> Actually the first one is widely used by many PCIE IO card. The simil=
+ar way is used by SAS/FC HBA, where, there is also a similar queue pair=
+ existing in both driver memory space and PCIE address space, one consu=
+mer queue and one producer queue, in the PCIE BAR space, there is a reg=
+ister named "producer index", which is updated by host driver when the =
+upper layer generate a new IO request and put into the producer queue i=
+n the driver memory space. This register update action will cause a int=
+errupt to the PCIE card's IO controller and then DMA form host driver m=
+emory's producer queue to fetch the IO request and handle it, then DMA =
+write to the driver's consumer queue a new item to inform the driver th=
+at this IO is done.
+>
+> Hope that help.
+>
+> Dong
+>
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.=
+kernel.org] On Behalf Of Anuj Kalia
+> Sent: 2014=E5=B9=B41=E6=9C=8813=E6=97=A5 17:04
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Question about CPU-HCA interaction
+>
+> Hi.
+>
+> I wanted to understand the PCIe usage while issuing Infiniband verbs.
+> When posting a verb to a queue pair, how is the request descriptor wr=
+itten to the HCA? IMO, there are two options for this:
+>
+> 1. CPU prepares the descriptor in local memory. After preparing the d=
+escriptor, it writes the location of the descriptor to a hardwired regi=
+ster on the HCA (this process is called "ringing the doorbell"?).
+> The HCA then reads the descriptor via DMA.
+>
+> 2. The CPU writes the entire descriptor to the HCA's memory via PCIe =
+MMIO. Then, it rings the doorbell to alert the HCA.
+>
+> To me, the first one makes more sense, but I'm not sure. It would be =
+great if someone could tell more about this.
+>
+> Thanks for your help.
+>
+> --Anuj
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo i=
+nfo at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
