@@ -1,122 +1,135 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Question about CPU-HCA interaction
-Date: Fri, 24 Jan 2014 01:05:13 -0500
-Message-ID: <CADPSxAjx6tRMWP==oDsG3ydViT0_hQMM-y3tRNJTFMXtbw=r3w@mail.gmail.com>
-References: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w@mail.gmail.com>
-	<8687DAA2193C594F89AAA8D4EFFF767F1E253D33@BBYEXM01.pmc-sierra.internal>
-	<CADPSxAhQSHd81q3PsN=d1hAmxSp9kGZb1UwgciKTWWsYHvwwDQ@mail.gmail.com>
-	<8687DAA2193C594F89AAA8D4EFFF767F1E255D09@BBYEXM01.pmc-sierra.internal>
+From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Subject: Re: How to find what's holding uverbs from detaching an Infiniband
+ SR-IOV VF?
+Date: Fri, 24 Jan 2014 14:03:18 +0100
+Message-ID: <52E26496.9020301@simula.no>
+References: <52E11841.1020407@simula.no> <CAJZOPZ+8G_nMH2Z4mfZNFAsiwWruh+ysXQ6cpJDpy3gadp_aXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8687DAA2193C594F89AAA8D4EFFF767F1E255D09-DSFXGzmeEH52L3XCsXW7nW2JBhF/6DRPtVSa9H69ks0@public.gmane.org>
+In-Reply-To: <CAJZOPZ+8G_nMH2Z4mfZNFAsiwWruh+ysXQ6cpJDpy3gadp_aXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ok. Thanks for the information.
+Thanks for the reply,
 
-Looking at cq.c in the mlx4 driver, it seems to be using a doorbell
-for the CQE. I think the CPU does some kind of uncacheable read from
-the PCI device to detect completions. Can someone please confirm this?
-There is so little information available online :(.
+Indeed, I tried a different application (much simpler than perftest) and 
+it worked.
 
---Anuj
+Are "known facts" like the one you refer to documented anywhere, and if 
+so could point me in right direction for further studying?
 
-On Fri, Jan 24, 2014 at 12:53 AM, Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org> wrot=
-e:
-> One thing I am sure is PCIE device can write to host RAM without noti=
-fying the CPU(of course bus arbitration against CPU is necessary ), onl=
-y if this device support bus mastering DMA or another named third party=
- DMA. Device use PCIE address space to kick off the transport, the addr=
-ess will be translated by PCIE RC to host RAM, or if there is a IOMMU, =
-the IOMMU will do a second translate after RC's translation, into host =
-RAM physical address.
->
-> Dong
->
-> -----Original Message-----
-> From: Anuj Kalia [mailto:anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: 2014=E5=B9=B41=E6=9C=8824=E6=97=A5 13:35
-> To: Dong Zhang
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: Question about CPU-HCA interaction
->
-> This is pretty late, but I'm pretty sure that the entire WQE is writt=
-en via PIO to the HCA. Here are some references.
->
-> 1. Performance analysis of ConnectX
-> (http://nowlab.cse.ohio-state.edu/publications/conf-presentations/200=
-7/surs-hoti07.pdf).
-> It says that in ConnectX, PIO is used to writing the WQE (along with =
-the inlined payload) to the HCA.
->
-> 2. http://comments.gmane.org/gmane.linux.drivers.openib/61682
-> discusses doing PIO to BlueFlame pages.
->
-> I had a related question. How is the CQE pushed from the HCA to the C=
-PU? Is it a DMA write? Or can PCI devices write to system memory too (j=
-ust as CPUs can write to the PCIe device's memory).
->
-> Anuj
+On 01/23/2014 06:40 PM, Or Gerlitz wrote:
+> On Thu, Jan 23, 2014 at 3:25 PM, Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org> wrote:
+>> I am trying to detach an Infiniband SR-IOV Virtual Function with active
+>> communication (perftest ib_send_bw --rdma_cm is running) from a Virtual
+>> Machine, with the intention to eventually migrate it.
+>>
+>> The problem in short (more details below):
+>> What fails is that in the detach process, the code execution hangs in line
+>> wait_for_completion(&uverbs_dev->comp);
+> This is design shortage of that portion of the IB stack, facts are
+> known. If you have nicely behaving user space apps that use librdmacm
+> and responds to device removal event, it works, else not.
 >
 >
 >
-> On Mon, Jan 13, 2014 at 9:08 PM, Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org> wro=
-te:
->> Actually the first one is widely used by many PCIE IO card. The simi=
-lar way is used by SAS/FC HBA, where, there is also a similar queue pai=
-r existing in both driver memory space and PCIE address space, one cons=
-umer queue and one producer queue, in the PCIE BAR space, there is a re=
-gister named "producer index", which is updated by host driver when the=
- upper layer generate a new IO request and put into the producer queue =
-in the driver memory space. This register update action will cause a in=
-terrupt to the PCIE card's IO controller and then DMA form host driver =
-memory's producer queue to fetch the IO request and handle it, then DMA=
- write to the driver's consumer queue a new item to inform the driver t=
-hat this IO is done.
+>> called from the ib_uverbs_remove_one() function located in file
+>> drivers/infiniband/core/uverbs_main.c and the VF cannot be detached. How can
+>> I find what's holding the uverbs from being removed?
 >>
->> Hope that help.
+>> --------
 >>
->> Dong
+>> In more detail:
 >>
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Anuj Kalia
->> Sent: 2014=E5=B9=B41=E6=9C=8813=E6=97=A5 17:04
->> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Question about CPU-HCA interaction
+>> I use Mellanox OFED distribution which supports SR-IOV
+>> (MLNX_OFED_LINUX-2.0-3.0.0-rhel6.4-x86_64) and my code changes all take
+>> place in kernel and userspace drivers of the virtual machine itself (nothing
+>> is changed in the drivers installed in the hypervisor), as I want to make
+>> the detach transparent to the user application.
 >>
->> Hi.
+>> A similar work by Wei Lin Guay has solved this problem as described in this
+>> presentation (found here:
+>> https://www.openfabrics.org/ofa-documents/presentations/doc_download/526-prototyping-live-migration-with-sr-iov-supported-infiniband.html),
+>> but following the same logic doesn't seem to work when I try to implement
+>> his ideas in the latest drivers.
 >>
->> I wanted to understand the PCIe usage while issuing Infiniband verbs=
-=2E
->> When posting a verb to a queue pair, how is the request descriptor w=
-ritten to the HCA? IMO, there are two options for this:
+>> My programming logic:
+>> 1. When a userspace app using Infiniband starts, it registers it's PID to
+>> the Kernel
+>> 2. When the pci hotplug asks for device removal, the kernel sends a signal
+>> to the registered PIDs in the userspace
+>> 3. The userspace library libmlx4 calls the
+>>       - ibv_destroy_qp() for all active QPs.
+>>       - rdma_destroy_event_channel() for the existing rdma event channels.
+>>       - ibv_close_device() for the active uverbs devices.
 >>
->> 1. CPU prepares the descriptor in local memory. After preparing the =
-descriptor, it writes the location of the descriptor to a hardwired reg=
-ister on the HCA (this process is called "ringing the doorbell"?).
->> The HCA then reads the descriptor via DMA.
+>> Eventually I do not see any rdma_cm or uverbs0 file descriptors under
+>> /proc/PID/fd/ on the virtual machine, the device is not visible in the lspci
+>> command output, but it's still there in the ibstat command output. However,
+>> the device cannot be detached (and consequently migrate) until I kill the
+>> application manually by sending a SIGINT to it (ctrl+C).
+>> For the moment I don't care if the connection is broken (from the
+>> application point of view).
 >>
->> 2. The CPU writes the entire descriptor to the HCA's memory via PCIe=
- MMIO. Then, it rings the doorbell to alert the HCA.
+>> Any advice is highly appreciated on how to find what's holding the uverbs
+>> which will enable a successful detach of the SR-IOV VF.
 >>
->> To me, the first one makes more sense, but I'm not sure. It would be=
- great if someone could tell more about this.
+>> Thank you.
 >>
->> Thanks for your help.
+>> This is the Kernel Call Trace that I get after 120 seconds of waiting
+>> without killing the application manually:
+>> INFO: task kacpi_hotplug:26 blocked for more than 120 seconds.
+>> "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+>> kacpi_hotplug D 0000000000000000     0    26      2 0x00000000
+>>   ffff88011de179b0 0000000000000046 ffff88011fe7fe00 0000000000000000
+>>   ffff88011de17970 ffffffff81338ac0 ffff88011de17970 0000000000000012
+>>   ffff88011de0e5f8 ffff88011de17fd8 000000000000fb88 ffff88011de0e5f8
+>> Call Trace:
+>>   [<ffffffff81338ac0>] ? vt_console_print+0x260/0x330
+>>   [<ffffffff8106e585>] ? __call_console_drivers+0x75/0x90
+>>   [<ffffffff8150efa5>] schedule_timeout+0x215/0x2e0
+>>   [<ffffffff8106f341>] ? vprintk+0x251/0x560
+>>   [<ffffffff8150ec23>] wait_for_common+0x123/0x180
+>>   [<ffffffff81063410>] ? default_wake_function+0x0/0x20
+>>   [<ffffffff8150ed3d>] wait_for_completion+0x1d/0x20
+>>   [<ffffffffa0157125>] ib_uverbs_remove_one+0x85/0xb0 [ib_uverbs]
+>>   [<ffffffffa016acdf>] ib_unregister_device+0x4f/0x100 [ib_core]
+>>   [<ffffffffa0197be9>] mlx4_ib_remove+0x69/0x210 [mlx4_ib]
+>>   [<ffffffffa0128de1>] mlx4_remove_device+0x71/0x90 [mlx4_core]
+>>   [<ffffffffa0128e4b>] mlx4_unregister_device+0x4b/0xb0 [mlx4_core]
+>>   [<ffffffffa012ab74>] mlx4_remove_one+0x94/0x360 [mlx4_core]
+>>   [<ffffffff8109cfc5>] ? __blocking_notifier_call_chain+0x65/0x80
+>>   [<ffffffff8129a4d7>] pci_device_remove+0x37/0x70
+>>   [<ffffffff8135ef3f>] __device_release_driver+0x6f/0xe0
+>>   [<ffffffff8135f0ad>] device_release_driver+0x2d/0x40
+>>   [<ffffffff8135e293>] bus_remove_device+0xa3/0x100
+>>   [<ffffffff8135bf3d>] device_del+0x12d/0x1e0
+>>   [<ffffffff8135c012>] device_unregister+0x22/0x60
+>>   [<ffffffff81293754>] pci_stop_bus_device+0x94/0xa0
+>>   [<ffffffff812ab31a>] acpiphp_disable_slot+0x9a/0x1d0
+>>   [<ffffffff812abd9d>] _handle_hotplug_event_func+0xed/0x1d0
+>>   [<ffffffff8109708e>] ? prepare_to_wait+0x4e/0x80
+>>   [<ffffffff812abcb0>] ? _handle_hotplug_event_func+0x0/0x1d0
+>>   [<ffffffff81090be0>] worker_thread+0x170/0x2a0
+>>   [<ffffffff81096da0>] ? autoremove_wake_function+0x0/0x40
+>>   [<ffffffff81090a70>] ? worker_thread+0x0/0x2a0
+>>   [<ffffffff81096a36>] kthread+0x96/0xa0
+>>   [<ffffffff8100c0ca>] child_rip+0xa/0x20
+>>   [<ffffffff810969a0>] ? kthread+0x0/0xa0
+>>   [<ffffffff8100c0c0>] ? child_rip+0x0/0x20
 >>
->> --Anuj
+>> Regards,
+>> Vangelis
 >> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-"
->> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
->> info at  http://vger.kernel.org/majordomo-info.html
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
