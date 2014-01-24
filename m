@@ -1,82 +1,122 @@
-From: Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org>
-Subject: RE: Question about CPU-HCA interaction
-Date: Fri, 24 Jan 2014 05:53:09 +0000
-Message-ID: <8687DAA2193C594F89AAA8D4EFFF767F1E255D09@BBYEXM01.pmc-sierra.internal>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Question about CPU-HCA interaction
+Date: Fri, 24 Jan 2014 01:05:13 -0500
+Message-ID: <CADPSxAjx6tRMWP==oDsG3ydViT0_hQMM-y3tRNJTFMXtbw=r3w@mail.gmail.com>
 References: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w@mail.gmail.com>
 	<8687DAA2193C594F89AAA8D4EFFF767F1E253D33@BBYEXM01.pmc-sierra.internal>
- <CADPSxAhQSHd81q3PsN=d1hAmxSp9kGZb1UwgciKTWWsYHvwwDQ@mail.gmail.com>
+	<CADPSxAhQSHd81q3PsN=d1hAmxSp9kGZb1UwgciKTWWsYHvwwDQ@mail.gmail.com>
+	<8687DAA2193C594F89AAA8D4EFFF767F1E255D09@BBYEXM01.pmc-sierra.internal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAhQSHd81q3PsN=d1hAmxSp9kGZb1UwgciKTWWsYHvwwDQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <8687DAA2193C594F89AAA8D4EFFF767F1E255D09-DSFXGzmeEH52L3XCsXW7nW2JBhF/6DRPtVSa9H69ks0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T25lIHRoaW5nIEkgYW0gc3VyZSBpcyBQQ0lFIGRldmljZSBjYW4gd3JpdGUgdG8gaG9zdCBSQU0g
-d2l0aG91dCBub3RpZnlpbmcgdGhlIENQVShvZiBjb3Vyc2UgYnVzIGFyYml0cmF0aW9uIGFnYWlu
-c3QgQ1BVIGlzIG5lY2Vzc2FyeSApLCBvbmx5IGlmIHRoaXMgZGV2aWNlIHN1cHBvcnQgYnVzIG1h
-c3RlcmluZyBETUEgb3IgYW5vdGhlciBuYW1lZCB0aGlyZCBwYXJ0eSBETUEuIERldmljZSB1c2Ug
-UENJRSBhZGRyZXNzIHNwYWNlIHRvIGtpY2sgb2ZmIHRoZSB0cmFuc3BvcnQsIHRoZSBhZGRyZXNz
-IHdpbGwgYmUgdHJhbnNsYXRlZCBieSBQQ0lFIFJDIHRvIGhvc3QgUkFNLCBvciBpZiB0aGVyZSBp
-cyBhIElPTU1VLCB0aGUgSU9NTVUgd2lsbCBkbyBhIHNlY29uZCB0cmFuc2xhdGUgYWZ0ZXIgUkMn
-cyB0cmFuc2xhdGlvbiwgaW50byBob3N0IFJBTSBwaHlzaWNhbCBhZGRyZXNzLg0KDQpEb25nDQoN
-Ci0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBBbnVqIEthbGlhIFttYWlsdG86YW51
-amthbGlhaWl0ZEBnbWFpbC5jb21dIA0KU2VudDogMjAxNOW5tDHmnIgyNOaXpSAxMzozNQ0KVG86
-IERvbmcgWmhhbmcNCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUmU6
-IFF1ZXN0aW9uIGFib3V0IENQVS1IQ0EgaW50ZXJhY3Rpb24NCg0KVGhpcyBpcyBwcmV0dHkgbGF0
-ZSwgYnV0IEknbSBwcmV0dHkgc3VyZSB0aGF0IHRoZSBlbnRpcmUgV1FFIGlzIHdyaXR0ZW4gdmlh
-IFBJTyB0byB0aGUgSENBLiBIZXJlIGFyZSBzb21lIHJlZmVyZW5jZXMuDQoNCjEuIFBlcmZvcm1h
-bmNlIGFuYWx5c2lzIG9mIENvbm5lY3RYDQooaHR0cDovL25vd2xhYi5jc2Uub2hpby1zdGF0ZS5l
-ZHUvcHVibGljYXRpb25zL2NvbmYtcHJlc2VudGF0aW9ucy8yMDA3L3N1cnMtaG90aTA3LnBkZiku
-DQpJdCBzYXlzIHRoYXQgaW4gQ29ubmVjdFgsIFBJTyBpcyB1c2VkIHRvIHdyaXRpbmcgdGhlIFdR
-RSAoYWxvbmcgd2l0aCB0aGUgaW5saW5lZCBwYXlsb2FkKSB0byB0aGUgSENBLg0KDQoyLiBodHRw
-Oi8vY29tbWVudHMuZ21hbmUub3JnL2dtYW5lLmxpbnV4LmRyaXZlcnMub3BlbmliLzYxNjgyDQpk
-aXNjdXNzZXMgZG9pbmcgUElPIHRvIEJsdWVGbGFtZSBwYWdlcy4NCg0KSSBoYWQgYSByZWxhdGVk
-IHF1ZXN0aW9uLiBIb3cgaXMgdGhlIENRRSBwdXNoZWQgZnJvbSB0aGUgSENBIHRvIHRoZSBDUFU/
-IElzIGl0IGEgRE1BIHdyaXRlPyBPciBjYW4gUENJIGRldmljZXMgd3JpdGUgdG8gc3lzdGVtIG1l
-bW9yeSB0b28gKGp1c3QgYXMgQ1BVcyBjYW4gd3JpdGUgdG8gdGhlIFBDSWUgZGV2aWNlJ3MgbWVt
-b3J5KS4NCg0KQW51ag0KDQoNCg0KT24gTW9uLCBKYW4gMTMsIDIwMTQgYXQgOTowOCBQTSwgRG9u
-ZyBaaGFuZyA8RG9uZy5aaGFuZ0BwbWNzLmNvbT4gd3JvdGU6DQo+IEFjdHVhbGx5IHRoZSBmaXJz
-dCBvbmUgaXMgd2lkZWx5IHVzZWQgYnkgbWFueSBQQ0lFIElPIGNhcmQuIFRoZSBzaW1pbGFyIHdh
-eSBpcyB1c2VkIGJ5IFNBUy9GQyBIQkEsIHdoZXJlLCB0aGVyZSBpcyBhbHNvIGEgc2ltaWxhciBx
-dWV1ZSBwYWlyIGV4aXN0aW5nIGluIGJvdGggZHJpdmVyIG1lbW9yeSBzcGFjZSBhbmQgUENJRSBh
-ZGRyZXNzIHNwYWNlLCBvbmUgY29uc3VtZXIgcXVldWUgYW5kIG9uZSBwcm9kdWNlciBxdWV1ZSwg
-aW4gdGhlIFBDSUUgQkFSIHNwYWNlLCB0aGVyZSBpcyBhIHJlZ2lzdGVyIG5hbWVkICJwcm9kdWNl
-ciBpbmRleCIsIHdoaWNoIGlzIHVwZGF0ZWQgYnkgaG9zdCBkcml2ZXIgd2hlbiB0aGUgdXBwZXIg
-bGF5ZXIgZ2VuZXJhdGUgYSBuZXcgSU8gcmVxdWVzdCBhbmQgcHV0IGludG8gdGhlIHByb2R1Y2Vy
-IHF1ZXVlIGluIHRoZSBkcml2ZXIgbWVtb3J5IHNwYWNlLiBUaGlzIHJlZ2lzdGVyIHVwZGF0ZSBh
-Y3Rpb24gd2lsbCBjYXVzZSBhIGludGVycnVwdCB0byB0aGUgUENJRSBjYXJkJ3MgSU8gY29udHJv
-bGxlciBhbmQgdGhlbiBETUEgZm9ybSBob3N0IGRyaXZlciBtZW1vcnkncyBwcm9kdWNlciBxdWV1
-ZSB0byBmZXRjaCB0aGUgSU8gcmVxdWVzdCBhbmQgaGFuZGxlIGl0LCB0aGVuIERNQSB3cml0ZSB0
-byB0aGUgZHJpdmVyJ3MgY29uc3VtZXIgcXVldWUgYSBuZXcgaXRlbSB0byBpbmZvcm0gdGhlIGRy
-aXZlciB0aGF0IHRoaXMgSU8gaXMgZG9uZS4NCj4NCj4gSG9wZSB0aGF0IGhlbHAuDQo+DQo+IERv
-bmcNCj4NCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1v
-d25lckB2Z2VyLmtlcm5lbC5vcmcgDQo+IFttYWlsdG86bGludXgtcmRtYS1vd25lckB2Z2VyLmtl
-cm5lbC5vcmddIE9uIEJlaGFsZiBPZiBBbnVqIEthbGlhDQo+IFNlbnQ6IDIwMTTlubQx5pyIMTPm
-l6UgMTc6MDQNCj4gVG86IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFF1
-ZXN0aW9uIGFib3V0IENQVS1IQ0EgaW50ZXJhY3Rpb24NCj4NCj4gSGkuDQo+DQo+IEkgd2FudGVk
-IHRvIHVuZGVyc3RhbmQgdGhlIFBDSWUgdXNhZ2Ugd2hpbGUgaXNzdWluZyBJbmZpbmliYW5kIHZl
-cmJzLg0KPiBXaGVuIHBvc3RpbmcgYSB2ZXJiIHRvIGEgcXVldWUgcGFpciwgaG93IGlzIHRoZSBy
-ZXF1ZXN0IGRlc2NyaXB0b3Igd3JpdHRlbiB0byB0aGUgSENBPyBJTU8sIHRoZXJlIGFyZSB0d28g
-b3B0aW9ucyBmb3IgdGhpczoNCj4NCj4gMS4gQ1BVIHByZXBhcmVzIHRoZSBkZXNjcmlwdG9yIGlu
-IGxvY2FsIG1lbW9yeS4gQWZ0ZXIgcHJlcGFyaW5nIHRoZSBkZXNjcmlwdG9yLCBpdCB3cml0ZXMg
-dGhlIGxvY2F0aW9uIG9mIHRoZSBkZXNjcmlwdG9yIHRvIGEgaGFyZHdpcmVkIHJlZ2lzdGVyIG9u
-IHRoZSBIQ0EgKHRoaXMgcHJvY2VzcyBpcyBjYWxsZWQgInJpbmdpbmcgdGhlIGRvb3JiZWxsIj8p
-Lg0KPiBUaGUgSENBIHRoZW4gcmVhZHMgdGhlIGRlc2NyaXB0b3IgdmlhIERNQS4NCj4NCj4gMi4g
-VGhlIENQVSB3cml0ZXMgdGhlIGVudGlyZSBkZXNjcmlwdG9yIHRvIHRoZSBIQ0EncyBtZW1vcnkg
-dmlhIFBDSWUgTU1JTy4gVGhlbiwgaXQgcmluZ3MgdGhlIGRvb3JiZWxsIHRvIGFsZXJ0IHRoZSBI
-Q0EuDQo+DQo+IFRvIG1lLCB0aGUgZmlyc3Qgb25lIG1ha2VzIG1vcmUgc2Vuc2UsIGJ1dCBJJ20g
-bm90IHN1cmUuIEl0IHdvdWxkIGJlIGdyZWF0IGlmIHNvbWVvbmUgY291bGQgdGVsbCBtb3JlIGFi
-b3V0IHRoaXMuDQo+DQo+IFRoYW5rcyBmb3IgeW91ciBoZWxwLg0KPg0KPiAtLUFudWoNCj4gLS0N
-Cj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
-aWJlIGxpbnV4LXJkbWEiIA0KPiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21v
-QHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyANCj4gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
-a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Ok. Thanks for the information.
+
+Looking at cq.c in the mlx4 driver, it seems to be using a doorbell
+for the CQE. I think the CPU does some kind of uncacheable read from
+the PCI device to detect completions. Can someone please confirm this?
+There is so little information available online :(.
+
+--Anuj
+
+On Fri, Jan 24, 2014 at 12:53 AM, Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org> wrot=
+e:
+> One thing I am sure is PCIE device can write to host RAM without noti=
+fying the CPU(of course bus arbitration against CPU is necessary ), onl=
+y if this device support bus mastering DMA or another named third party=
+ DMA. Device use PCIE address space to kick off the transport, the addr=
+ess will be translated by PCIE RC to host RAM, or if there is a IOMMU, =
+the IOMMU will do a second translate after RC's translation, into host =
+RAM physical address.
+>
+> Dong
+>
+> -----Original Message-----
+> From: Anuj Kalia [mailto:anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Sent: 2014=E5=B9=B41=E6=9C=8824=E6=97=A5 13:35
+> To: Dong Zhang
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: Question about CPU-HCA interaction
+>
+> This is pretty late, but I'm pretty sure that the entire WQE is writt=
+en via PIO to the HCA. Here are some references.
+>
+> 1. Performance analysis of ConnectX
+> (http://nowlab.cse.ohio-state.edu/publications/conf-presentations/200=
+7/surs-hoti07.pdf).
+> It says that in ConnectX, PIO is used to writing the WQE (along with =
+the inlined payload) to the HCA.
+>
+> 2. http://comments.gmane.org/gmane.linux.drivers.openib/61682
+> discusses doing PIO to BlueFlame pages.
+>
+> I had a related question. How is the CQE pushed from the HCA to the C=
+PU? Is it a DMA write? Or can PCI devices write to system memory too (j=
+ust as CPUs can write to the PCIe device's memory).
+>
+> Anuj
+>
+>
+>
+> On Mon, Jan 13, 2014 at 9:08 PM, Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org> wro=
+te:
+>> Actually the first one is widely used by many PCIE IO card. The simi=
+lar way is used by SAS/FC HBA, where, there is also a similar queue pai=
+r existing in both driver memory space and PCIE address space, one cons=
+umer queue and one producer queue, in the PCIE BAR space, there is a re=
+gister named "producer index", which is updated by host driver when the=
+ upper layer generate a new IO request and put into the producer queue =
+in the driver memory space. This register update action will cause a in=
+terrupt to the PCIE card's IO controller and then DMA form host driver =
+memory's producer queue to fetch the IO request and handle it, then DMA=
+ write to the driver's consumer queue a new item to inform the driver t=
+hat this IO is done.
+>>
+>> Hope that help.
+>>
+>> Dong
+>>
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Anuj Kalia
+>> Sent: 2014=E5=B9=B41=E6=9C=8813=E6=97=A5 17:04
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Question about CPU-HCA interaction
+>>
+>> Hi.
+>>
+>> I wanted to understand the PCIe usage while issuing Infiniband verbs=
+=2E
+>> When posting a verb to a queue pair, how is the request descriptor w=
+ritten to the HCA? IMO, there are two options for this:
+>>
+>> 1. CPU prepares the descriptor in local memory. After preparing the =
+descriptor, it writes the location of the descriptor to a hardwired reg=
+ister on the HCA (this process is called "ringing the doorbell"?).
+>> The HCA then reads the descriptor via DMA.
+>>
+>> 2. The CPU writes the entire descriptor to the HCA's memory via PCIe=
+ MMIO. Then, it rings the doorbell to alert the HCA.
+>>
+>> To me, the first one makes more sense, but I'm not sure. It would be=
+ great if someone could tell more about this.
+>>
+>> Thanks for your help.
+>>
+>> --Anuj
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
+>> info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
