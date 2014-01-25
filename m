@@ -1,52 +1,144 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] infiniband-diags 1.6.3 release
-Date: Sat, 25 Jan 2014 03:58:38 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04ADAA62@CRSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
+ information to stdout
+Date: Sat, 25 Jan 2014 10:28:18 -0500
+Message-ID: <52E3D812.9030009@dev.mellanox.co.il>
+References: <20140102064415.GA4568@r-ufm96.mtr.labs.mlnx> <2807E5FD2F6FDA4886F6618EAC48510E04A94D41@CRSMSX101.amr.corp.intel.com> <20140119081953.GB26599@r-ufm96.mtr.labs.mlnx> <2807E5FD2F6FDA4886F6618EAC48510E04ADA47A@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E04ADA47A-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Rupert Dance (rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org)'" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new release of infiniband-diags.
+On 1/24/2014 8:20 PM, Weiny, Ira wrote:
+>> -----Original Message-----
+>> From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+>> Sent: Sunday, January 19, 2014 12:20 AM
+>> To: Weiny, Ira
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve log
+>> information to stdout
+>>
+>> On 15:37 Sun 12 Jan     , Weiny, Ira wrote:
+>>>> -----Original Message-----
+>>>> From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+>>>> Sent: Wednesday, January 01, 2014 10:44 PM
+>>>> Subject: [PATCH infiniband-diags] libibnetdisc/ibnetdisc.c: improve
+>>>> log information to stdout
+>>>>
+>>>> Write to stdout the route-path when smp returns with status error.
+>>>
+>>> As part of a library this will affect many tools outputs and perhaps
+>> subsequently any scripts written against those tools.
+>>>
+>>> Is this really a requirement or simply a "nice to have"?
+>> That was a customer request to get the query path to stdout when getting an
+>> error.
+>>
+>> This way when getting smp error they could see DR path to the node in
+>> stdout.
+> 
+> I think this is ok, 
 
-Tarball available in:
+Doesn't this change the ibnetdiscover output file format when such
+errors are encountered ?
 
-http://www.openfabrics.org/downloads/management/
-       
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
+If so, what happens in terms of tools which parse this ?
 
-md5sum:
-6e9c8c5517c690923163cca89710bf2b  infiniband-diags-1.6.3.tar.gz
+Should IBND_INFO output be prepended with "# " as that would be safer in
+terms of sticking within current output file definition and provides
+such feature ?
 
-All component versions are from recent master branch. Full list of
-changes is below.
+-- Hal
 
-Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-        infiniband-diags: Check node-name-map strings when querying by name
-
-Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-        libibnetdisc/ibnetdisc.c: improve log information to stdout
-        libibnetdisc/ibnetdisc.c: fix insert of invalid lid 0xFFFF into lid_port hash_table
-        ibtracert.c: Add 'force' flag to man page
-        infiniband-diags/vendstat: Fix GeneralInfo SW version
-        ibportstate: on/off option is missing in help
-        iblinkinfo: Remove "-R" option from man page
-        ibaddr: Add missing -t option to manpage
-
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-        ibdiag_sa.c: Output attribute ID in hex rather than decimal
-
-Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-        infiniband-diags: fail configure if glib2 is not found
-
-Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-        Fix errors triggered by autoregen.sh
-        get_lid_from_name(): Remove an unused variable
+> applied thanks,
+> Ira
+> 
+>>
+>> -- Dan
+>>
+>>>
+>>> Ira
+>>>
+>>>>
+>>>> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>> ---
+>>>>  libibnetdisc/src/internal.h  |   10 +++++++---
+>>>>  libibnetdisc/src/query_smp.c |    6 ++++++
+>>>>  2 files changed, 13 insertions(+), 3 deletions(-)
+>>>>
+>>>> diff --git a/libibnetdisc/src/internal.h
+>>>> b/libibnetdisc/src/internal.h index 1ccd29c..47b2a4c 100644
+>>>> --- a/libibnetdisc/src/internal.h
+>>>> +++ b/libibnetdisc/src/internal.h
+>>>> @@ -42,12 +42,16 @@
+>>>>  #include <complib/cl_qmap.h>
+>>>>  #include <glib.h>
+>>>>
+>>>> +#define	IBND_ERROR(fmt, ...) \
+>>>> +		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
+>>>> __VA_ARGS__)
+>>>> +
+>>>> +#define	IBND_INFO(fmt, ...) \
+>>>> +		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
+>>>> __VA_ARGS__);
+>>>> +
+>>>>  #define	IBND_DEBUG(fmt, ...) \
+>>>>  	if (ibdebug) { \
+>>>> -		printf("%s:%u; " fmt, __FILE__, __LINE__, ##
+>>>> __VA_ARGS__); \
+>>>> +		IBND_INFO(fmt,## __VA_ARGS__); \
+>>>>  	}
+>>>> -#define	IBND_ERROR(fmt, ...) \
+>>>> -		fprintf(stderr, "%s:%u; " fmt, __FILE__, __LINE__, ##
+>>>> __VA_ARGS__)
+>>>>
+>>>>  /* HASH table defines */
+>>>>  #define HASHGUID(guid) ((uint32_t)(((uint32_t)(guid) * 101) ^
+>>>> ((uint32_t)((guid) >> 32) * 103))) diff --git
+>>>> a/libibnetdisc/src/query_smp.c b/libibnetdisc/src/query_smp.c index
+>>>> 28620b4..ac4984e 100644
+>>>> --- a/libibnetdisc/src/query_smp.c
+>>>> +++ b/libibnetdisc/src/query_smp.c
+>>>> @@ -192,6 +192,9 @@ static int process_one_recv(smp_engine_t *
+>> engine)
+>>>>  		goto error;
+>>>>
+>>>>  	if ((status = umad_status(umad))) {
+>>>> +		IBND_INFO("umad (%s Attr 0x%x:%u) bad status %d; %s\n",
+>>>> +			   portid2str(&smp->path), smp->rpc.attr.id,
+>>>> +			   smp->rpc.attr.mod, status, strerror(status));
+>>>>  		IBND_ERROR("umad (%s Attr 0x%x:%u) bad status %d;
+>> %s\n",
+>>>>  			   portid2str(&smp->path), smp->rpc.attr.id,
+>>>>  			   smp->rpc.attr.mod, status, strerror(status)); @@ -
+>>>> 199,6 +202,9 @@ static int process_one_recv(smp_engine_t * engine)
+>>>>  			rc = mlnx_ext_port_info_err(engine, smp, mad,
+>>>>  						    smp->cb_data);
+>>>>  	} else if ((status = mad_get_field(mad, 0, IB_DRSMP_STATUS_F))) {
+>>>> +		IBND_INFO("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
+>>>> +			   portid2str(&smp->path), smp->rpc.attr.id,
+>>>> +			   smp->rpc.attr.mod, status);
+>>>>  		IBND_ERROR("mad (%s Attr 0x%x:%u) bad status 0x%x\n",
+>>>>  			   portid2str(&smp->path), smp->rpc.attr.id,
+>>>>  			   smp->rpc.attr.mod, status);
+>>>> --
+>>>> 1.7.1
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+>> majordomo
+>>> info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
