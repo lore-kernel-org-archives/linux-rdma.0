@@ -1,33 +1,24 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] infiniband-diags 1.6.4 release
-Date: Sun, 26 Jan 2014 06:21:29 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04ADDF4A@CRSMSX101.amr.corp.intel.com>
+From: Abdul Nasser <abdulnas500-TIpE5U3ByZhUD6l512u9tw@public.gmane.org>
+Subject: Kind Regards
+Date: Sun, 26 Jan 2014 21:51:55 +0000
+Message-ID: <SECEXCHANGEbtIXwGO500003f8d@mail.standardelectronics.com>
+Reply-To: s.abdulnasser-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Recipients <abdulnas500-TIpE5U3ByZhUD6l512u9tw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new release of infiniband-diags.
+Greetings,
+My name is Abdul Nasser Sokariah and I am writing you from Syria, I choose to contact you directly as I need a reliable person to trust who can help me handle my huge deposit  with a vault company in EUROPE, and based on my present situation in Syria, I need you urgently to take possession of everything and further modalities/directives will follow.Please reply to my private  Email: nasserabdul190-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 
-Tarball available in:
+I wait for your response.
 
-http://www.openfabrics.org/downloads/management/
-       
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
-
-md5sum:
-01fe2c5f60c2bd2975018bc572190fe4  infiniband-diags-1.6.4.tar.gz
-
-All component versions are from recent master branch. Full list of changes is below.
-
-<REVERT>
-Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-        libibnetdisc/ibnetdisc.c: improve log information to stdout
-
+Yours truly,
+Abdul Nasser Sokariah
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
