@@ -1,24 +1,21 @@
-From: Abdul Nasser <abdulnas500-TIpE5U3ByZhUD6l512u9tw@public.gmane.org>
-Subject: Kind Regards
-Date: Sun, 26 Jan 2014 22:31:03 +0000
-Message-ID: <SECEXCHANGEqL5HmCCl0000625c@mail.standardelectronics.com>
-Reply-To: s.abdulnasser-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Question about CPU-HCA interaction
+Date: Mon, 27 Jan 2014 13:24:41 -0600 (CST)
+Message-ID: <alpine.DEB.2.10.1401271324310.8949@nuc>
+References: <CADPSxAht4-xBBn0UtNV5PzZxH1qHF0f7VN6TK9vWbEMB8mpa5w@mail.gmail.com> <8687DAA2193C594F89AAA8D4EFFF767F1E253D33@BBYEXM01.pmc-sierra.internal>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <8687DAA2193C594F89AAA8D4EFFF767F1E253D33-DSFXGzmeEH52L3XCsXW7nW2JBhF/6DRPtVSa9H69ks0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <abdulnas500-TIpE5U3ByZhUD6l512u9tw@public.gmane.org>
+To: Dong Zhang <Dong.Zhang-PwyqCcigF0Q@public.gmane.org>
+Cc: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Greetings,
-My name is Abdul Nasser Sokariah and I am writing you from Syria, I choose to contact you directly as I need a reliable person to trust who can help me handle my huge deposit  with a vault company in EUROPE, and based on my present situation in Syria, I need you urgently to take possession of everything and further modalities/directives will follow.Please reply to my private  Email: nasserabdul190-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+On Tue, 14 Jan 2014, Dong Zhang wrote:
 
-I wait for your response.
+> QWN0dWFsbHkgdGhlIGZpcnN0IG9uZSBpcyB3aWRlbHkgdXNlZCBieSBtYW55IFBDSUUgSU8gY2Fy
 
-Yours truly,
-Abdul Nasser Sokariah
+Huh?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
