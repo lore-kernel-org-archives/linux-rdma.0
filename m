@@ -1,14 +1,14 @@
 From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] RDMA/ocrdma: Eq full catastrophe avoidance
- Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Date: Wed, 29 Jan 2014 11:47:03 +0000
-Message-ID: <95363a40-6909-40cf-a8b4-806f534c0d9f@CMEXHTCAS2.ad.emulex.com>
-References: <9b651e91-9df3-45de-8a68-5501274e2ace@CMEXHTCAS1.ad.emulex.com>
+Subject: RE: [PATCH 1/1] RDMA/ocrdma: read ASIC_ID register to select
+ asic_gen
+Date: Wed, 29 Jan 2014 11:47:14 +0000
+Message-ID: <756de14d-8be8-4210-b4b3-7cefc84c1816@CMEXHTCAS2.ad.emulex.com>
+References: <5d603dd9-df72-4469-bb14-8ce1614bc717@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9b651e91-9df3-45de-8a68-5501274e2ace-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+In-Reply-To: <5d603dd9-df72-4469-bb14-8ce1614bc717-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -25,335 +25,156 @@ Due to IP based GID changes, this won't apply clean, We are planning to send you
 
 -----Original Message-----
 From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
-Sent: Saturday, December 14, 2013 12:07 PM
+Sent: Saturday, December 14, 2013 12:53 PM
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Devesh Sharma
-Subject: [PATCH] RDMA/ocrdma: Eq full catastrophe avoidance Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/1] RDMA/ocrdma: read ASIC_ID register to select asic_gen
 
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Stale entries in the CQ being destroyed causes hardware to generate EQEs indefinetly for a given CQ.
-Thus causing uncontrolled execution of irq_handler. This patch fixes this using following sementics:
+ocrdma driver selects execution path based on sli_family and asic generation number.
+this introduces reading asic gen number from pci register instead of obtining from emulex NIC driver.
 
-    * irq_handler will ring EQ doorbell atleast once and implement budgeting scheme.
-    * cq_destroy will count number of valid entires during destroy and ring
-      cq-db so that hadrware does not generate uncontrolled EQE.
-    * cq_destroy will synchronize with last running irq_handler instance.
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |   15 ++++-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   58 ++++++++++---------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   80 +++++++++++++++++++++++----
- 3 files changed, 111 insertions(+), 42 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |   15 +++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    6 +++---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |   17 +++++++++++++++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    6 +++---
+ 5 files changed, 37 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index adc11d1..5747fde 100644
+index 294dd27..24157f0 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -183,8 +183,7 @@ struct ocrdma_cq {
- 			 */
- 	u32 max_hw_cqe;
- 	bool phase_change;
--	bool armed, solicited;
--	bool arm_needed;
-+	bool deferred_arm, deferred_sol;
+@@ -424,4 +424,19 @@ static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)  }
  
- 	spinlock_t cq_lock ____cacheline_aligned; /* provide synchronization
- 						   * to cq polling
-@@ -197,6 +196,7 @@ struct ocrdma_cq {
- 	struct ocrdma_ucontext *ucontext;
- 	dma_addr_t pa;
- 	u32 len;
-+	u32 cqe_cnt;
  
- 	/* head of all qp's sq and rq for which cqes need to be flushed
- 	 * by the software.
-@@ -422,5 +422,16 @@ static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)
- 		OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
- }
- 
-+static inline int ocrdma_get_eq_table_index(struct ocrdma_dev *dev, int 
-+eqid) {
-+	int indx;
-+
-+	for (indx = 0; indx < dev->eq_cnt; indx++) {
-+		if (dev->eq_tbl[indx].q.id == eqid)
-+			return indx;
++static inline u8 ocrdma_get_asic_type(struct ocrdma_dev *dev) {
++	u32 asic_id;
++	u8 asic_gen = 0xF;
++	if (dev->nic_info.dev_family == 0xF) {
++		pci_read_config_dword(dev->nic_info.pdev,
++						OCRDMA_SLI_ASIC_ID_OFFSET,
++						&asic_id);
++		asic_gen = (asic_id & OCRDMA_SLI_ASIC_GEN_NUM_MASK) >>
++				OCRDMA_SLI_ASIC_GEN_NUM_SHIFT;
 +	}
-+	return -EINVAL;
++
++	return asic_gen;
 +}
- 
-+int ocrdma_get_irq(struct ocrdma_dev *dev, struct ocrdma_eq *eq);
++
  #endif
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 50219ab..9490b41 100644
+index 56bf32f..ccb7245 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -444,7 +444,7 @@ mbx_err:
- 	return status;
- }
+@@ -1036,7 +1036,7 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
+ 	attr->max_inline_data =
+ 	    attr->wqe_size - (sizeof(struct ocrdma_hdr_wqe) +
+ 			      sizeof(struct ocrdma_sge));
+-	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
++	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
+ 		attr->ird = 1;
+ 		attr->ird_page_size = OCRDMA_MIN_Q_PAGE_SIZE;
+ 		attr->num_ird_pages = MAX_OCRDMA_IRD_PAGES; @@ -1380,7 +1380,7 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, struct ocrdma_cq *cq,
+ 		       __func__, dev->id, dev->attr.max_cqe, entries);
+ 		return -EINVAL;
+ 	}
+-	if (dpp_cq && (dev->nic_info.dev_family != OCRDMA_GEN2_FAMILY))
++	if (dpp_cq && (ocrdma_get_asic_type(dev) != OCRDMA_ASIC_GEN_SKH_R))
+ 		return -EINVAL;
  
--static int ocrdma_get_irq(struct ocrdma_dev *dev, struct ocrdma_eq *eq)
-+int ocrdma_get_irq(struct ocrdma_dev *dev, struct ocrdma_eq *eq)
- {
- 	int irq;
+ 	if (dpp_cq) {
+@@ -1439,7 +1439,7 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, struct ocrdma_cq *cq,
+ 	}
+ 	/* shared eq between all the consumer cqs. */
+ 	cmd->cmd.eqn = cq->eqn;
+-	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
++	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
+ 		if (dpp_cq)
+ 			cmd->cmd.pgsz_pgcnt |= OCRDMA_CREATE_CQ_DPP <<
+ 				OCRDMA_CREATE_CQ_TYPE_SHIFT;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 91443bc..fc25c5a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -344,7 +344,7 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
  
-@@ -526,6 +526,7 @@ static u32 ocrdma_encoded_q_len(int q_len)
- 	return len_encoded;
- }
+ 	dev->ibdev.process_mad = ocrdma_process_mad;
  
-+
- static int ocrdma_mbx_create_mq(struct ocrdma_dev *dev,
- 				struct ocrdma_queue_info *mq,
- 				struct ocrdma_queue_info *cq)
-@@ -574,6 +575,7 @@ static int ocrdma_create_mq(struct ocrdma_dev *dev)
- 	if (status)
- 		goto alloc_err;
+-	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
++	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
+ 		dev->ibdev.uverbs_cmd_mask |=
+ 		     OCRDMA_UVERBS(CREATE_SRQ) |
+ 		     OCRDMA_UVERBS(MODIFY_SRQ) |
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index 9f9570e..7d70107 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -30,8 +30,16 @@
  
-+	dev->eq_tbl[0].cq_cnt++;
- 	status = ocrdma_mbx_mq_cq_create(dev, &dev->mq.cq, &dev->eq_tbl[0].q);
- 	if (status)
- 		goto mbx_cq_free;
-@@ -858,16 +860,8 @@ static void ocrdma_qp_cq_handler(struct ocrdma_dev *dev, u16 cq_idx)
- 		BUG();
+ #define Bit(_b) (1 << (_b))
  
- 	cq = dev->cq_tbl[cq_idx];
--	if (cq == NULL) {
--		pr_err("%s%d invalid id=0x%x\n", __func__, dev->id, cq_idx);
-+	if (cq == NULL)
- 		return;
--	}
--	spin_lock_irqsave(&cq->cq_lock, flags);
--	cq->armed = false;
--	cq->solicited = false;
--	spin_unlock_irqrestore(&cq->cq_lock, flags);
--
--	ocrdma_ring_cq_db(dev, cq->id, false, false, 0);
+-#define OCRDMA_GEN1_FAMILY	0xB
+-#define OCRDMA_GEN2_FAMILY	0x2
++enum {
++	OCRDMA_ASIC_GEN_SKH_R = 0x04,
++	OCRDMA_ASIC_GEN_LANCER = 0x0B
++};
++
++enum {
++	OCRDMA_ASIC_REV_A0 = 0x00,
++	OCRDMA_ASIC_REV_B0 = 0x10,
++	OCRDMA_ASIC_REV_C0 = 0x20
++};
  
- 	if (cq->ibcq.comp_handler) {
- 		spin_lock_irqsave(&cq->comp_handler_lock, flags); @@ -892,27 +886,35 @@ static irqreturn_t ocrdma_irq_handler(int irq, void *handle)
- 	struct ocrdma_dev *dev = eq->dev;
- 	struct ocrdma_eqe eqe;
- 	struct ocrdma_eqe *ptr;
--	u16 eqe_popped = 0;
- 	u16 cq_id;
--	while (1) {
-+	int budget = eq->cq_cnt;
-+
-+	do {
- 		ptr = ocrdma_get_eqe(eq);
- 		eqe = *ptr;
- 		ocrdma_le32_to_cpu(&eqe, sizeof(eqe));
- 		if ((eqe.id_valid & OCRDMA_EQE_VALID_MASK) == 0)
- 			break;
--		eqe_popped += 1;
-+
- 		ptr->id_valid = 0;
-+		/* ring eq doorbell as soon as its consumed. */
-+		ocrdma_ring_eq_db(dev, eq->q.id, false, true, 1);
- 		/* check whether its CQE or not. */
- 		if ((eqe.id_valid & OCRDMA_EQE_FOR_CQE_MASK) == 0) {
- 			cq_id = eqe.id_valid >> OCRDMA_EQE_RESOURCE_ID_SHIFT;
- 			ocrdma_cq_handler(dev, cq_id);
- 		}
- 		ocrdma_eq_inc_tail(eq);
--	}
--	ocrdma_ring_eq_db(dev, eq->q.id, true, true, eqe_popped);
--	/* Ring EQ doorbell with num_popped to 0 to enable interrupts again. */
--	if (dev->nic_info.intr_mode == BE_INTERRUPT_MODE_INTX)
--		ocrdma_ring_eq_db(dev, eq->q.id, true, true, 0);
-+
-+		/* There can be a stale EQE after the last bound CQ is
-+		 * destroyed. EQE valid and budget == 0 implies this.
-+		 */
-+		if (budget)
-+			budget--;
-+
-+	} while (budget);
-+
-+	ocrdma_ring_eq_db(dev, eq->q.id, true, true, 0);
- 	return IRQ_HANDLED;
- }
+ #define OCRDMA_SUBSYS_ROCE 10
+ enum {
+@@ -138,6 +146,11 @@ enum {
+ #define OCRDMA_MIN_Q_PAGE_SIZE (4096)
+ #define OCRDMA_MAX_Q_PAGES     (8)
  
-@@ -1357,12 +1359,12 @@ static void ocrdma_unbind_eq(struct ocrdma_dev *dev, u16 eq_id)
- 	int i;
- 
- 	mutex_lock(&dev->dev_lock);
--	for (i = 0; i < dev->eq_cnt; i++) {
--		if (dev->eq_tbl[i].q.id != eq_id)
--			continue;
--		dev->eq_tbl[i].cq_cnt -= 1;
--		break;
--	}
++#define OCRDMA_SLI_ASIC_ID_OFFSET      0x9C
++#define OCRDMA_SLI_ASIC_REV_MASK       0x000000FF
++#define OCRDMA_SLI_ASIC_GEN_NUM_MASK   0x0000FF00
++#define OCRDMA_SLI_ASIC_GEN_NUM_SHIFT  0x08
 +
-+	i = ocrdma_get_eq_table_index(dev, eq_id);
-+	if (i == -EINVAL)
-+		BUG();
-+	dev->eq_tbl[i].cq_cnt -= 1;
-+
- 	mutex_unlock(&dev->dev_lock);
- }
- 
-@@ -1417,6 +1419,8 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, struct ocrdma_cq *cq,
- 	cq->eqn = ocrdma_bind_eq(dev);
- 	cmd->cmd.req.rsvd_version = OCRDMA_CREATE_CQ_VER3;
- 	cqe_count = cq->len / cqe_size;
-+	cq->cqe_cnt = cqe_count;
-+
- 	if (cqe_count > 1024) {
- 		/* Set cnt to 3 to indicate more than 1024 cq entries */
- 		cmd->cmd.ev_cnt_flags |= (0x3 << OCRDMA_CREATE_CQ_CNT_SHIFT); @@ -1484,12 +1488,10 @@ int ocrdma_mbx_destroy_cq(struct ocrdma_dev *dev, struct ocrdma_cq *cq)
- 	    (cq->id << OCRDMA_DESTROY_CQ_QID_SHIFT) &
- 	    OCRDMA_DESTROY_CQ_QID_MASK;
- 
--	ocrdma_unbind_eq(dev, cq->eqn);
- 	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
--	if (status)
--		goto mbx_err;
-+	ocrdma_unbind_eq(dev, cq->eqn);
- 	dma_free_coherent(&dev->nic_info.pdev->dev, cq->len, cq->va, cq->pa);
--mbx_err:
-+
- 	kfree(cmd);
- 	return status;
- }
+ /*
+ # 0: 4K Bytes
+ # 1: 8K Bytes
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 69f1d12..e07b8c5 100644
+index 7686dce..2edbda6 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -927,9 +927,7 @@ struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev, int entries, int vector,
- 			goto ctx_err;
+@@ -267,7 +267,7 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
+ 
+ 	if (udata && uctx) {
+ 		pd->dpp_enabled =
+-			dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY;
++			ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R;
+ 		pd->num_dpp_qp =
+ 			pd->dpp_enabled ? OCRDMA_PD_MAX_DPP_ENABLED_QP : 0;
  	}
- 	cq->phase = OCRDMA_CQE_VALID;
--	cq->arm_needed = true;
- 	dev->cq_tbl[cq->id] = cq;
--
- 	return &cq->ibcq;
- 
- ctx_err:
-@@ -952,13 +950,53 @@ int ocrdma_resize_cq(struct ib_cq *ibcq, int new_cnt,
- 	return status;
- }
- 
-+void ocrdma_flush_cq(struct ocrdma_cq *cq) {
-+	int cqe_cnt;
-+	int valid_count = 0;
-+	unsigned long flags;
-+
-+	struct ocrdma_dev *dev = get_ocrdma_dev(cq->ibcq.device);
-+	struct ocrdma_cqe *cqe = NULL;
-+
-+	cqe = cq->va;
-+	cqe_cnt = cq->cqe_cnt;
-+
-+	/* Last irq might have scheduled a polling thread
-+	 * sync-up with it before hard flushing.
-+	 */
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+	while (cqe_cnt) {
-+		if (is_cqe_valid(cq, cqe))
-+			valid_count++;
-+		cqe++;
-+		cqe_cnt--;
-+	}
-+	ocrdma_ring_cq_db(dev, cq->id, false, false, valid_count);
-+	spin_unlock_irqrestore(&cq->cq_lock, flags); }
-+
- int ocrdma_destroy_cq(struct ib_cq *ibcq)  {
- 	int status;
- 	struct ocrdma_cq *cq = get_ocrdma_cq(ibcq);
-+	struct ocrdma_eq *eq = NULL;
- 	struct ocrdma_dev *dev = get_ocrdma_dev(ibcq->device);
- 	int pdid = 0;
-+	u32 irq, indx;
- 
-+	dev->cq_tbl[cq->id] = NULL;
-+
-+	indx = ocrdma_get_eq_table_index(dev, cq->eqn);
-+
-+	if (indx == -EINVAL)
-+		BUG();
-+	eq = &dev->eq_tbl[indx];
-+
-+	irq = ocrdma_get_irq(dev, eq);
-+	synchronize_irq(irq);
-+
-+	ocrdma_flush_cq(cq);
- 	status = ocrdma_mbx_destroy_cq(dev, cq);
- 
- 	if (cq->ucontext) {
-@@ -969,7 +1007,6 @@ int ocrdma_destroy_cq(struct ib_cq *ibcq)
- 				ocrdma_get_db_addr(dev, pdid),
- 				dev->nic_info.db_page_size);
- 	}
--	dev->cq_tbl[cq->id] = NULL;
- 
- 	kfree(cq);
- 	return status;
-@@ -2706,10 +2743,17 @@ expand_cqe:
- 	}
- stop_cqe:
- 	cq->getp = cur_getp;
--	if (polled_hw_cqes || expand || stop) {
--		ocrdma_ring_cq_db(dev, cq->id, cq->armed, cq->solicited,
-+	if (polled_hw_cqes && cq->deferred_arm) {
-+		ocrdma_ring_cq_db(dev, cq->id, true, cq->deferred_sol,
-+				  polled_hw_cqes);
-+		cq->deferred_arm = false;
-+		cq->deferred_sol = false;
-+	} else if (polled_hw_cqes) {
-+		/* We need to pop the CQE. No need to arm */
-+		ocrdma_ring_cq_db(dev, cq->id, false, false,
- 				  polled_hw_cqes);
- 	}
-+
- 	return i;
- }
- 
-@@ -2784,25 +2828,37 @@ int ocrdma_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags cq_flags)
- 	u16 cur_getp;
- 	struct ocrdma_cqe *cqe;
- 	unsigned long flags;
-+	bool arm_needed = false, sol_needed = false;
- 
- 	cq_id = cq->id;
- 
- 	spin_lock_irqsave(&cq->cq_lock, flags);
- 	if (cq_flags & IB_CQ_NEXT_COMP || cq_flags & IB_CQ_SOLICITED)
--		cq->armed = true;
-+		arm_needed = true;
- 	if (cq_flags & IB_CQ_SOLICITED)
--		cq->solicited = true;
-+		sol_needed = true;
- 
- 	cur_getp = cq->getp;
- 	cqe = cq->va + cur_getp;
- 
- 	/* check whether any valid cqe exist or not, if not then safe to
--	 * arm. If cqe is not yet consumed, then let it get consumed and then
--	 * we arm it to avoid false interrupts.
-+	 * arm. If cqe is not yet consumed, then we defer arming until first
-+	 * CQE is polled from CQ.
- 	 */
--	if (!is_cqe_valid(cq, cqe) || cq->arm_needed) {
--		cq->arm_needed = false;
--		ocrdma_ring_cq_db(dev, cq_id, cq->armed, cq->solicited, 0);
-+	if (!is_cqe_valid(cq, cqe)) {
-+		ocrdma_ring_cq_db(dev, cq_id, arm_needed, sol_needed, 0);
-+	} else {
-+		if (!arm_needed) {
-+			/* Arming not required. Just notify the CQ
-+			 * for solicit requested.
-+			 */
-+			ocrdma_ring_cq_db(dev, cq_id, false, sol_needed, 0);
-+			cq->deferred_sol = false;
-+			cq->deferred_arm = false;
-+		} else {
-+			cq->deferred_arm = arm_needed;
-+			cq->deferred_sol = sol_needed;
-+		}
- 	}
- 	spin_unlock_irqrestore(&cq->cq_lock, flags);
- 	return 0;
+@@ -1132,7 +1132,7 @@ err:
+ static void ocrdma_set_qp_db(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
+ 			     struct ocrdma_pd *pd)
+ {
+-	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
++	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
+ 		qp->sq_db = dev->nic_info.db +
+ 			(pd->id * dev->nic_info.db_page_size) +
+ 			OCRDMA_DB_GEN2_SQ_OFFSET;
+@@ -1658,7 +1658,7 @@ static int ocrdma_copy_srq_uresp(struct ocrdma_dev *dev, struct ocrdma_srq *srq,
+ 	    (srq->pd->id * dev->nic_info.db_page_size);
+ 	uresp.db_page_size = dev->nic_info.db_page_size;
+ 	uresp.num_rqe_allocated = srq->rq.max_cnt;
+-	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
++	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
+ 		uresp.db_rq_offset = OCRDMA_DB_GEN2_RQ_OFFSET;
+ 		uresp.db_shift = 24;
+ 	} else {
 --
 1.7.1
 
