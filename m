@@ -1,14 +1,14 @@
 From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 1/1] RDMA/ocrdma: read ASIC_ID register to select
+Subject: RE: [PATCH V1 1/2] RDMA/ocrdma: read ASIC_ID register to select
  asic_gen
-Date: Wed, 29 Jan 2014 11:47:14 +0000
-Message-ID: <756de14d-8be8-4210-b4b3-7cefc84c1816@CMEXHTCAS2.ad.emulex.com>
-References: <5d603dd9-df72-4469-bb14-8ce1614bc717@CMEXHTCAS2.ad.emulex.com>
+Date: Wed, 29 Jan 2014 11:47:23 +0000
+Message-ID: <451e5674-170c-443b-96fc-22efc465ef7f@CMEXHTCAS1.ad.emulex.com>
+References: <79bacedd-020c-4c36-85fc-a87c05a46b75@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5d603dd9-df72-4469-bb14-8ce1614bc717-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+In-Reply-To: <79bacedd-020c-4c36-85fc-a87c05a46b75-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -25,10 +25,10 @@ Due to IP based GID changes, this won't apply clean, We are planning to send you
 
 -----Original Message-----
 From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
-Sent: Saturday, December 14, 2013 12:53 PM
+Sent: Saturday, December 14, 2013 2:35 PM
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Devesh Sharma
-Subject: [PATCH 1/1] RDMA/ocrdma: read ASIC_ID register to select asic_gen
+Subject: [PATCH V1 1/2] RDMA/ocrdma: read ASIC_ID register to select asic_gen
 
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
