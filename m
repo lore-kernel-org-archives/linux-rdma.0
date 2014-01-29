@@ -1,50 +1,155 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: linux rdma 3.14 merge plans
-Date: Wed, 29 Jan 2014 15:13:21 +0100
-Message-ID: <52E90C81.9040800@acm.org>
-References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>	<CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>	<52CD1C68.4050406@mellanox.com>	<1389645171.5567.459.camel@haakon3.risingtidesystems.com>	<1389820541.5567.543.camel@haakon3.risingtidesystems.com>	<CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>	<1389906852.5567.668.camel@haakon3.risingtidesystems.com>	<CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>	<1390102949.5567.749.camel@haakon3.risingtidesystems.com>	<52DBB4F1.4020400@mellanox.com>	<CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>	<CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>	<CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>	<52DF93D3
- .6030509@dev.mellanox.co.il> <CAJZOPZLBECYXrpp0GY0uUvyf+XbiLHhXdVukniPXD4AWZObymg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] IB/mlx5: Fix binary compatibility with libmlx5
+Date: Wed, 29 Jan 2014 16:27:29 +0200
+Message-ID: <1391005649-17932-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLBECYXrpp0GY0uUvyf+XbiLHhXdVukniPXD4AWZObymg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/28/14 22:02, Or Gerlitz wrote:
->>>> Roland, ping! the signature patches were posted > three months ago.
+Commit c1be523 "Fix micro UAR allocator" broke binary compatibility between
+libmlx5 and mlx5_ib since it defines a different value to the number of micro
+UARs per page, leading to wrong calculation in libmlx5. This patch defines
+struct mlx5_ib_alloc_ucontext_req_v2 as an extension to struct
+mlx5_ib_alloc_ucontext_req.  The extended size is determined in
+mlx5_ib_alloc_ucontext() and in case of old library we use uuarn 0 which works
+fine. For new libraries we use the more sophisticated allocation algorithm.
 
-I have a question about RDMA and T10-DIF support. The Linux block layer,
-the Linux SCSI core, Linux filesystems and block drivers all support
-discontiguous buffers. These are buffers that cannot be mapped onto a
-single contiguous range of virtual memory addresses. I think the RDMA
-FMR and FR memory registration mechanisms only support mapping a range
-of addresses that can be mapped onto a contiguous region of virtual
-addresses. This means that either multiple RDMA memory regions are
-needed to map a discontiguous buffer or that the buffer contents has to
-be copied before associating it with a memory region. What I understood
-from the mlx5 T10-DIF patch series is that the API introduced in that
-patch series is such that only a single memory region per data transfer
-operation is supported. This made me wonder how to support T10-DIF for
-discontiguous buffers. Would one of the options below perhaps be an
-appropriate solution ?
-- Add a flag in struct request_queue that tells the block layer to use a
-  bounce buffer (data copying) for I/O requests with a discontiguous
-  data buffer. The block layer already supports copying data buffers for
-  which e.g. DMA alignment requirements are not met. Rework patch
-  "IB/iser: Introduce fast memory registration model" (commit
-  5587856c9659ac2d6ab201141aa8a5c2ff3be4cd) such that it takes advantage
-  of that new flag. See also blk_rq_map_user_iov() for an example of
-  how the block layer decides when copying a data buffer is necessary.
-- Modify the patches that add T10-DIF such that discontiguous buffers
-  are supported.
+Fixes: c1be523 ('Fix micro UAR allocator')
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-Sorry that I had not realized this before.
+Hi Roland, 
 
-Bart.
+This fixes a regression introduced during the 3.14 merge window, and must
+be applied for 3.14, thanks
+
+Eli
+
+ drivers/infiniband/hw/mlx5/main.c | 19 +++++++++++++++++--
+ drivers/infiniband/hw/mlx5/qp.c   | 11 +++++++++--
+ drivers/infiniband/hw/mlx5/user.h |  7 +++++++
+ include/linux/mlx5/driver.h       |  1 +
+ 4 files changed, 34 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 9660d09..e24d912 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -536,24 +536,38 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 						  struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+-	struct mlx5_ib_alloc_ucontext_req req;
++	struct mlx5_ib_alloc_ucontext_req_v2 req;
+ 	struct mlx5_ib_alloc_ucontext_resp resp;
+ 	struct mlx5_ib_ucontext *context;
+ 	struct mlx5_uuar_info *uuari;
+ 	struct mlx5_uar *uars;
+ 	int gross_uuars;
+ 	int num_uars;
++	int ver;
+ 	int uuarn;
+ 	int err;
+ 	int i;
++	int reqlen;
+ 
+ 	if (!dev->ib_active)
+ 		return ERR_PTR(-EAGAIN);
+ 
+-	err = ib_copy_from_udata(&req, udata, sizeof(req));
++	memset(&req, 0, sizeof(req));
++	reqlen = udata->inlen - sizeof(struct ib_uverbs_get_context);
++	if (reqlen == sizeof(struct mlx5_ib_alloc_ucontext_req))
++		ver = 0;
++	else if (reqlen == sizeof(struct mlx5_ib_alloc_ucontext_req_v2))
++		ver = 2;
++	else
++		return ERR_PTR(-EINVAL);
++
++	err = ib_copy_from_udata(&req, udata, reqlen);
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
++	if (req.flags || req.reserved)
++		return ERR_PTR(-EINVAL);
++
+ 	if (req.total_num_uuars > MLX5_MAX_UUARS)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -626,6 +640,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	if (err)
+ 		goto out_uars;
+ 
++	uuari->ver = ver;
+ 	uuari->num_low_latency_uuars = req.num_low_latency_uuars;
+ 	uuari->uars = uars;
+ 	uuari->num_uars = num_uars;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 492dc33..300475c 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -430,11 +430,17 @@ static int alloc_uuar(struct mlx5_uuar_info *uuari,
+ 		break;
+ 
+ 	case MLX5_IB_LATENCY_CLASS_MEDIUM:
+-		uuarn = alloc_med_class_uuar(uuari);
++		if (uuari->ver < 2)
++			uuarn = -ENOMEM;
++		else
++			uuarn = alloc_med_class_uuar(uuari);
+ 		break;
+ 
+ 	case MLX5_IB_LATENCY_CLASS_HIGH:
+-		uuarn = alloc_high_class_uuar(uuari);
++		if (uuari->ver < 2)
++			uuarn = -ENOMEM;
++		else
++			uuarn = alloc_high_class_uuar(uuari);
+ 		break;
+ 
+ 	case MLX5_IB_LATENCY_CLASS_FAST_PATH:
+@@ -559,6 +565,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		}
+ 	}
+ 
++
+ 	uar_index = uuarn_to_uar_index(&context->uuari, uuarn);
+ 	mlx5_ib_dbg(dev, "uuarn 0x%x, uar_index 0x%x\n", uuarn, uar_index);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
+index 32a2a5d..0f4f8e4 100644
+--- a/drivers/infiniband/hw/mlx5/user.h
++++ b/drivers/infiniband/hw/mlx5/user.h
+@@ -62,6 +62,13 @@ struct mlx5_ib_alloc_ucontext_req {
+ 	__u32	num_low_latency_uuars;
+ };
+ 
++struct mlx5_ib_alloc_ucontext_req_v2 {
++	__u32	total_num_uuars;
++	__u32	num_low_latency_uuars;
++	__u32	flags;
++	__u32	reserved;
++};
++
+ struct mlx5_ib_alloc_ucontext_resp {
+ 	__u32	qp_tab_size;
+ 	__u32	bf_reg_size;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 554548c..32cb18c 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -227,6 +227,7 @@ struct mlx5_uuar_info {
+ 	 * protect uuar allocation data structs
+ 	 */
+ 	struct mutex		lock;
++	u32			ver;
+ };
+ 
+ struct mlx5_bf {
+-- 
+1.8.5.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
