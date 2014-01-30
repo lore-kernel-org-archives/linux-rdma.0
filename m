@@ -1,117 +1,255 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] ibsim 0.6 release
-Date: Thu, 30 Jan 2014 16:52:46 -0500
-Message-ID: <52EAC9AE.8070601@dev.mellanox.co.il>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: Change SDMA progression mode depending on single-
+ or mulit-rail.
+Date: Thu, 30 Jan 2014 17:36:00 -0500
+Message-ID: <20140130223600.952.78553.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new 0.6 release of ibsim.
+From: CQ Tang <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Tarball is available in:
-http://www.openfabrics.org/downloads/management/
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
+Improve performance by changing the behavour of the driver when all SDMA
+descriptors are in use, and the processes adding new descriptors are
+single- or multi-rail.
 
-md5sum:
-d08e196d980e7c88066b3e5e25bf5432  ibsim-0.6.tar.gz
+For single-rail processes, the driver will block the call and finish
+posting all SDMA descriptors onto the hardware queue before returning
+back to PSM.  Repeated kernel calls are slower than blocking.
 
-All component versions are from recent master branch. Full list of
-changes is below.
+For multi-rail processes, the driver will return to PSM as quick as
+possible so PSM can feed packets to other rail.  If all hardware queues
+are full, PSM will buffer the remaining SDMA descriptors until notified
+by interrupt that space is available.
 
-Al Chu (4):
-      Fix PerformanceSet parsing corner case
-      Output error on bad input to PerformanceSet
-      ibsim: Do not return allportselect for non-switches
-      ibsim: Remove parse corner case with full ibnetdiscover output
+This patch builds a red-black tree to track the number rails opened by
+a particular PID. If the number is more than one, it is a multi-rail
+PSM process, otherwise, it is a single-rail process.
 
-Albert Chu (1):
-      ibsim: Fix typo in help
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: John A Gregor <john.a.gregor-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: CQ Tang <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_user_sdma.c |  136 ++++++++++++++++++++++++++---
+ 1 file changed, 123 insertions(+), 13 deletions(-)
 
-Alex Netes (1):
-      ibsim: fix double slash in include the path
-
-David McMillen (1):
-      umad2sim: Segmentation fault fix
-
-Doron Shoham (1):
-      ibsim: support xmitwait counters
-
-Hal Rosenstock (14):
-      ibsim/sim_mad.c: Add sim support for PerfMgt ClassPortInfo
-      ibsim: Eliminate unused modified variable
-      ibsim: Change lid print format to unsigned
-      ibsim/sim.h: Better portinfo alignment in Port struct
-      ibsim: Handle sim_init_net errors better
-      ibsim/sim_net.c: Eliminate IsLEDInfoSupported PortInfo CapabilityMask bit
-      ibsim/sim_mad.c: Eliminate a couple of unneeded blank lines
-      ibsim/sim_mad.c: Better error handling in send_trap
-      ibsim: Some cosmetic changes
-      ibsim/sim_cmd.c: Cosmetic change to error message
-      ibsim/sim_cmd.c: Fix help for error command
-      ibsim/sim_cmd.c: Allow error command on attributes for switch port 0
-      sim_client.c: Set issm flag on connect when SIM_SET_ISSM set
-      ibsim/ibsim.c: Bump version to 0.6
-
-Huang, Parry W (2):
-      ibsim/ibsim.c: Fixed bug regarding undefined commands
-      ibsim/sim_cmd.c: Fixed help output for dump command
-
-Huang, Perry (3):
-      ibsim/sim.h: Add support for optional performance attributes.
-      ibsim/sim_mad.c: Add read/reset functions for optional performance attributes.
-      ibsim/sim_cmd: Add command to set perf. counters.
-
-Ira Weiny (1):
-      tests/subnet_discover: And I found the other reason (Re: Found one reason libibnetdisc is slower than subnet_discover)
-
-Jon Stanley (1):
-      ibsim/sim_cmd: Fix compile errors
-
-Nicolas Morey Chaisemartin (1):
-      Socket name can be forced by exporting IBSIM_SOCKNAME before starting ibsim and/or preloading umad2sim so multiple simulator can run on the same system at the same time
-
-Nicolas Morey-Chaisemartin (1):
-      ibsim: Fixed custom release in SPEC file
-
-Sasha Khapyorsky (23):
-      tests/mcast_storm: code consolidation
-      tests/mcast_storm: add mcmember parameters
-      ibsim: remove libibcommon dependencies
-      ibsim/sim_cmd.c: fix printf format
-      ibsim: fix port initial state
-      ibsim: fix LocalPortNum in PortInfo response
-      tests/mcast_storm.c: fix gid file parser
-      ibsim: fix C99 non complaint types
-      mcast_storm.c: migrate to newer libibmad API
-      tests/mcast_storm.c: fix numeric GID parser
-      tests/mcast_storm.c: fix uninitialized variable use
-      tests/mcast_storm.c: fix mcmember parameters initialization
-      tests/mcast_storm: fix MGID command line parser
-      tests/mcast_storm.c: support comments in gid file
-      tests/mcast_storm.c: report error response status
-      tests/subnet_discover: discover test utility
-      tests/query_many: simple utility to send many SMP queries
-      tests/subnet_discover: limit possible number of hops
-      tests/subnet_discover: add --help option
-      tests/subnet_discover: --maxsmps (-n) option
-      tests/subnet_discover.c: print useful information
-      tests/subnet_discover: report unresponded transactions
-      tests/subnet_discover: verbose node discovery printout
-
-hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org (4):
-      ibsim/sim_net.c: In new_node, fix nodetype in nodeinfo for router nodes
-      ibsim/sim_client.c: In sim_client_init, return -1 on error
-      ibsim: Eliminate unneeded argument in sim_client_init
-      ibsim/sim_client.c: Eliminate unneeded qp param from sim_init
-
-sebastien dugue (1):
-      ibsim - Fix umad2sim build with glibc >= 2.10
-
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+index 165aee2..b225645 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -52,6 +52,17 @@
+ /* attempt to drain the queue for 5secs */
+ #define QIB_USER_SDMA_DRAIN_TIMEOUT 500
+ 
++/*
++ * track how many times a process open this driver.
++ */
++struct rb_root qib_user_sdma_rb_root = RB_ROOT;
++
++struct qib_user_sdma_rb_node {
++	struct rb_node node;
++	int refcount;
++	pid_t pid;
++};
++
+ struct qib_user_sdma_pkt {
+ 	struct list_head list;  /* list element */
+ 
+@@ -120,15 +131,60 @@ struct qib_user_sdma_queue {
+ 	/* dma page table */
+ 	struct rb_root dma_pages_root;
+ 
++	struct qib_user_sdma_rb_node *sdma_rb_node;
++
+ 	/* protect everything above... */
+ 	struct mutex lock;
+ };
+ 
++static struct qib_user_sdma_rb_node *
++qib_user_sdma_rb_search(struct rb_root *root, pid_t pid)
++{
++	struct qib_user_sdma_rb_node *sdma_rb_node;
++	struct rb_node *node = root->rb_node;
++
++	while (node) {
++		sdma_rb_node = container_of(node,
++			struct qib_user_sdma_rb_node, node);
++		if (pid < sdma_rb_node->pid)
++			node = node->rb_left;
++		else if (pid > sdma_rb_node->pid)
++			node = node->rb_right;
++		else
++			return sdma_rb_node;
++	}
++	return NULL;
++}
++
++static int
++qib_user_sdma_rb_insert(struct rb_root *root, struct qib_user_sdma_rb_node *new)
++{
++	struct rb_node **node = &(root->rb_node);
++	struct rb_node *parent = NULL;
++	struct qib_user_sdma_rb_node *got;
++
++	while (*node) {
++		got = container_of(*node, struct qib_user_sdma_rb_node, node);
++		parent = *node;
++		if (new->pid < got->pid)
++			node = &((*node)->rb_left);
++		else if (new->pid > got->pid)
++			node = &((*node)->rb_right);
++		else
++			return 0;
++	}
++
++	rb_link_node(&new->node, parent, node);
++	rb_insert_color(&new->node, root);
++	return 1;
++}
++
+ struct qib_user_sdma_queue *
+ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ {
+ 	struct qib_user_sdma_queue *pq =
+ 		kmalloc(sizeof(struct qib_user_sdma_queue), GFP_KERNEL);
++	struct qib_user_sdma_rb_node *sdma_rb_node;
+ 
+ 	if (!pq)
+ 		goto done;
+@@ -138,6 +194,7 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ 	pq->num_pending = 0;
+ 	pq->num_sending = 0;
+ 	pq->added = 0;
++	pq->sdma_rb_node = NULL;
+ 
+ 	INIT_LIST_HEAD(&pq->sent);
+ 	spin_lock_init(&pq->sent_lock);
+@@ -163,8 +220,30 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ 
+ 	pq->dma_pages_root = RB_ROOT;
+ 
++	sdma_rb_node = qib_user_sdma_rb_search(&qib_user_sdma_rb_root,
++					current->pid);
++	if (sdma_rb_node) {
++		sdma_rb_node->refcount++;
++	} else {
++		int ret;
++		sdma_rb_node = kmalloc(sizeof(
++			struct qib_user_sdma_rb_node), GFP_KERNEL);
++		if (!sdma_rb_node)
++			goto err_rb;
++
++		sdma_rb_node->refcount = 1;
++		sdma_rb_node->pid = current->pid;
++
++		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
++					sdma_rb_node);
++		BUG_ON(ret == 0);
++	}
++	pq->sdma_rb_node = sdma_rb_node;
++
+ 	goto done;
+ 
++err_rb:
++	dma_pool_destroy(pq->header_cache);
+ err_slab:
+ 	kmem_cache_destroy(pq->pkt_slab);
+ err_kfree:
+@@ -1020,8 +1099,13 @@ void qib_user_sdma_queue_destroy(struct qib_user_sdma_queue *pq)
+ 	if (!pq)
+ 		return;
+ 
+-	kmem_cache_destroy(pq->pkt_slab);
++	pq->sdma_rb_node->refcount--;
++	if (pq->sdma_rb_node->refcount == 0) {
++		rb_erase(&pq->sdma_rb_node->node, &qib_user_sdma_rb_root);
++		kfree(pq->sdma_rb_node);
++	}
+ 	dma_pool_destroy(pq->header_cache);
++	kmem_cache_destroy(pq->pkt_slab);
+ 	kfree(pq);
+ }
+ 
+@@ -1241,26 +1325,52 @@ static int qib_user_sdma_push_pkts(struct qib_pportdata *ppd,
+ 				 struct qib_user_sdma_queue *pq,
+ 				 struct list_head *pktlist, int count)
+ {
+-	int ret = 0;
+ 	unsigned long flags;
+ 
+ 	if (unlikely(!(ppd->lflags & QIBL_LINKACTIVE)))
+ 		return -ECOMM;
+ 
+-	spin_lock_irqsave(&ppd->sdma_lock, flags);
+-
+-	if (unlikely(!__qib_sdma_running(ppd))) {
+-		ret = -ECOMM;
+-		goto unlock;
++	/* non-blocking mode */
++	if (pq->sdma_rb_node->refcount > 1) {
++		spin_lock_irqsave(&ppd->sdma_lock, flags);
++		if (unlikely(!__qib_sdma_running(ppd))) {
++			spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++			return -ECOMM;
++		}
++		pq->num_pending += count;
++		list_splice_tail_init(pktlist, &ppd->sdma_userpending);
++		qib_user_sdma_send_desc(ppd, &ppd->sdma_userpending);
++		spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++		return 0;
+ 	}
+ 
++	/* In this case, descriptors from this process are not
++	 * linked to ppd pending queue, interrupt handler
++	 * won't update this process, it is OK to directly
++	 * modify without sdma lock.
++	 */
++
++
+ 	pq->num_pending += count;
+-	list_splice_tail_init(pktlist, &ppd->sdma_userpending);
+-	qib_user_sdma_send_desc(ppd, &ppd->sdma_userpending);
++	/*
++	 * Blocking mode for single rail process, we must
++	 * release/regain sdma_lock to give other process
++	 * chance to make progress. This is important for
++	 * performance.
++	 */
++	do {
++		spin_lock_irqsave(&ppd->sdma_lock, flags);
++		if (unlikely(!__qib_sdma_running(ppd))) {
++			spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++			return -ECOMM;
++		}
++		qib_user_sdma_send_desc(ppd, pktlist);
++		if (!list_empty(pktlist))
++			qib_sdma_make_progress(ppd);
++		spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++	} while (!list_empty(pktlist));
+ 
+-unlock:
+-	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
+-	return ret;
++	return 0;
+ }
+ 
+ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
+@@ -1290,7 +1400,7 @@ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
+ 		qib_user_sdma_queue_clean(ppd, pq);
+ 
+ 	while (dim) {
+-		int mxp = 8;
++		int mxp = 1;
+ 		int ndesc = 0;
+ 
+ 		ret = qib_user_sdma_queue_pkts(dd, ppd, pq,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
