@@ -1,40 +1,60 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ewg] [ANNOUNCE] opensm 3.3.17 release
-Date: Fri, 31 Jan 2014 09:42:20 -0500
-Message-ID: <52EBB64C.9080401@dev.mellanox.co.il>
-References: <52EAB319.2090900@dev.mellanox.co.il> <CAJZOPZLuOcoFipZOPGPr9aTWi4erF=Qme0eFakLLA4eodQWUKQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLuOcoFipZOPGPr9aTWi4erF=Qme0eFakLLA4eodQWUKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+From: Alexander Gordeev <agordeev@redhat.com>
+Subject: [PATCH 19/34] mlx5: Use pci_enable_msix_range()
+Date: Fri, 31 Jan 2014 16:08:38 +0100
+Message-ID: <bf395f4c5a111f0f3766ce4be08e72177e227412.1391172839.git.agordeev@redhat.com>
+References: <cover.1391172839.git.agordeev@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1391172839.git.agordeev@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Alexander Gordeev <agordeev@redhat.com>, Eli Cohen <eli@mellanox.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/31/2014 9:18 AM, Or Gerlitz wrote:
-> On Thu, Jan 30, 2014 , Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> There is a new 3.3.17 release of OpenSM.
->>
->> Tarball is available in:
->> http://www.openfabrics.org/downloads/management/
->> (listed in http://www.openfabrics.org/downloads/management/latest.txt)
->>
->> md5sum:
->> 9c1b85e47ab495110c1944e0f4d634b7  opensm-3.3.17.tar.gz
->>
->> All component versions are from recent master branch.
-> 
-> what components are you referring to?
+As result of deprecation of MSI-X/MSI enablement functions
+pci_enable_msix() and pci_enable_msi_block() all drivers
+using these two interfaces need to be updated to use the
+new pci_enable_msi_range() and pci_enable_msix_range()
+interfaces.
 
-opensm and it's internal libraries.
+Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/main.c |   16 +++++-----------
+ 1 files changed, 5 insertions(+), 11 deletions(-)
 
->> Full list of changes is below.
-> [...]
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index a064f06..81df046 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -116,7 +116,6 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
+ 	struct mlx5_eq_table *table = &dev->priv.eq_table;
+ 	int num_eqs = 1 << dev->caps.log_max_eq;
+ 	int nvec;
+-	int err;
+ 	int i;
+ 
+ 	nvec = dev->caps.num_ports * num_online_cpus() + MLX5_EQ_VEC_COMP_BASE;
+@@ -131,17 +130,12 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
+ 	for (i = 0; i < nvec; i++)
+ 		table->msix_arr[i].entry = i;
+ 
+-retry:
+-	table->num_comp_vectors = nvec - MLX5_EQ_VEC_COMP_BASE;
+-	err = pci_enable_msix(dev->pdev, table->msix_arr, nvec);
+-	if (err <= 0) {
+-		return err;
+-	} else if (err > 2) {
+-		nvec = err;
+-		goto retry;
+-	}
++	nvec = pci_enable_msix_range(dev->pdev, table->msix_arr,
++				     MLX5_EQ_VEC_COMP_BASE, nvec);
++	if (nvec < 0)
++		return nvec;
+ 
+-	mlx5_core_dbg(dev, "received %d MSI vectors out of %d requested\n", err, nvec);
++	table->num_comp_vectors = nvec - MLX5_EQ_VEC_COMP_BASE;
+ 
+ 	return 0;
+ }
+-- 
+1.7.7.6
