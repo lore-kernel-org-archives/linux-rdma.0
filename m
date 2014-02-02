@@ -1,10 +1,10 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 2/2] Add ibv_query_port_ex support
-Date: Sun,  2 Feb 2014 17:55:01 +0200
-Message-ID: <1391356501-4270-3-git-send-email-ogerlitz@mellanox.com>
-References: <1391356501-4270-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH libibverbs 3/3] Add ibv_query_port_ex support
+Date: Sun,  2 Feb 2014 17:54:42 +0200
+Message-ID: <1391356482-4228-4-git-send-email-ogerlitz@mellanox.com>
+References: <1391356482-4228-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391356501-4270-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1391356482-4228-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,186 +12,185 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds the extended support for ibv_query_port in libmlx4.
+This patch adds extended support for ibv_query_port.
 
 This allows to request fields that aren't availible by the current
 ibv_query_port API and avoid fetching from vendor library fields that
 the user doesn't need, which gives more room for optimizations.
 
-Also, it adds caching of link layer's type and the port caps.
-
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx4.c  |    4 +++
- src/mlx4.h  |    9 +++++++
- src/verbs.c |   78 ++++++++++++++++++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 85 insertions(+), 6 deletions(-)
+ include/infiniband/verbs.h |  102 ++++++++++++++++++++++++++++++++++++++++++++
+ src/device.c               |    2 +
+ src/verbs.c                |    7 ++-
+ 3 files changed, 109 insertions(+), 2 deletions(-)
 
-diff --git a/src/mlx4.c b/src/mlx4.c
-index ca91df4..58f5435 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -157,6 +157,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 
- 	context->qp_table_shift = ffs(context->num_qps) - 1 - MLX4_QP_TABLE_BITS;
- 	context->qp_table_mask	= (1 << context->qp_table_shift) - 1;
-+	for (i = 0; i < MLX4_PORTS_NUM; ++i)
-+		context->port_query_cache[i].valid = 0;
- 
- 	pthread_mutex_init(&context->qp_table_mutex, NULL);
- 	for (i = 0; i < MLX4_QP_TABLE_SIZE; ++i)
-@@ -205,6 +207,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
- 
- 	verbs_set_ctx_op(verbs_ctx, drv_ibv_create_ah_ex, mlx4_create_ah_ex);
-+	verbs_set_ctx_op(verbs_ctx, drv_query_port_ex,
-+			 mlx4_query_port_ex);
- 	verbs_ctx->has_comp_mask = VERBS_CONTEXT_CREATE_AH;
- 
- 	return 0;
-diff --git a/src/mlx4.h b/src/mlx4.h
-index b7afa31..446e3b5 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -40,6 +40,8 @@
- #include <infiniband/arch.h>
- #include <infiniband/verbs.h>
- 
-+#define MLX4_PORTS_NUM 2
-+
- #ifdef HAVE_VALGRIND_MEMCHECK_H
- 
- #  include <valgrind/memcheck.h>
-@@ -189,6 +191,11 @@ struct mlx4_context {
- 	pthread_mutex_t			db_list_mutex;
- 	int				cqe_size;
- 	struct mlx4_xsrq_table		xsrq_table;
-+	struct {
-+		uint8_t			valid;
-+		uint8_t			link_layer;
-+		enum ibv_port_cap_flags	caps;
-+	} port_query_cache[MLX4_PORTS_NUM];
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 1bb47ec..4ea5745 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -480,6 +480,69 @@ struct ibv_ah_attr_ex {
+ 	uint16_t vid;
  };
  
- struct mlx4_buf {
-@@ -354,6 +361,8 @@ int mlx4_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *attr);
- int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr);
-+int mlx4_query_port_ex(struct ibv_context *context, uint8_t port_num,
-+		       struct ibv_port_attr_ex *port_attr);
++enum {
++	IBV_QUERY_PORT_EX_STATE			= 1 << 0,
++	IBV_QUERY_PORT_EX_MAX_MTU		= 1 << 1,
++	IBV_QUERY_PORT_EX_ACTIVE_MTU		= 1 << 2,
++	IBV_QUERY_PORT_EX_GID_TBL_LEN		= 1 << 3,
++	IBV_QUERY_PORT_EX_CAP_FLAGS		= 1 << 4,
++	IBV_QUERY_PORT_EX_MAX_MSG_SZ		= 1 << 5,
++	IBV_QUERY_PORT_EX_BAD_PKEY_CNTR		= 1 << 6,
++	IBV_QUERY_PORT_EX_QKEY_VIOL_CNTR	= 1 << 7,
++	IBV_QUERY_PORT_EX_PKEY_TBL_LEN		= 1 << 8,
++	IBV_QUERY_PORT_EX_LID			= 1 << 9,
++	IBV_QUERY_PORT_EX_SM_LID		= 1 << 10,
++	IBV_QUERY_PORT_EX_LMC			= 1 << 11,
++	IBV_QUERY_PORT_EX_MAX_VL_NUM		= 1 << 12,
++	IBV_QUERY_PORT_EX_SM_SL			= 1 << 13,
++	IBV_QUERY_PORT_EX_SUBNET_TIMEOUT	= 1 << 14,
++	IBV_QUERY_PORT_EX_INIT_TYPE_REPLY	= 1 << 15,
++	IBV_QUERY_PORT_EX_ACTIVE_WIDTH		= 1 << 16,
++	IBV_QUERY_PORT_EX_ACTIVE_SPEED		= 1 << 17,
++	IBV_QUERY_PORT_EX_PHYS_STATE		= 1 << 18,
++	IBV_QUERY_PORT_EX_LINK_LAYER		= 1 << 19,
++	/* mask of the fields that exists in the standard query_port_command */
++	IBV_QUERY_PORT_EX_STD_MASK		= (1 << 20) - 1,
++	/* mask of all supported fields */
++	IBV_QUERY_PORT_EX_MASK			= IBV_QUERY_PORT_EX_STD_MASK,
++};
++
++enum ibv_query_port_ex_attr_mask {
++	IBV_QUERY_PORT_EX_ATTR_MASK1		= 1 << 0,
++	IBV_QUERY_PORT_EX_ATTR_MASKS		= (1 << 1) - 1
++};
++
++struct ibv_port_attr_ex {
++	union {
++		struct {
++			enum ibv_port_state	state;
++			enum ibv_mtu		max_mtu;
++			enum ibv_mtu		active_mtu;
++			int			gid_tbl_len;
++			uint32_t		port_cap_flags;
++			uint32_t		max_msg_sz;
++			uint32_t		bad_pkey_cntr;
++			uint32_t		qkey_viol_cntr;
++			uint16_t		pkey_tbl_len;
++			uint16_t		lid;
++			uint16_t		sm_lid;
++			uint8_t			lmc;
++			uint8_t			max_vl_num;
++			uint8_t			sm_sl;
++			uint8_t			subnet_timeout;
++			uint8_t			init_type_reply;
++			uint8_t			active_width;
++			uint8_t			active_speed;
++			uint8_t			phys_state;
++			uint8_t			link_layer;
++			uint8_t			reserved;
++		};
++		struct ibv_port_attr		port_attr;
++	};
++	uint32_t		comp_mask;
++	uint32_t		mask1;
++};
++
  
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context);
- int mlx4_free_pd(struct ibv_pd *pd);
-diff --git a/src/verbs.c b/src/verbs.c
-index 38fa3d3..a46e26c 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -70,8 +70,63 @@ int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr)
- {
- 	struct ibv_query_port cmd;
-+	int err;
-+
-+	err = ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
-+	if (!err) {
-+		struct mlx4_context *mctx = to_mctx(context);
-+		if (!mctx->port_query_cache[port - 1].valid) {
-+			mctx->port_query_cache[port - 1].link_layer =
-+				attr->link_layer;
-+			mctx->port_query_cache[port - 1].caps =
-+				attr->port_cap_flags;
-+			mctx->port_query_cache[port - 1].valid = 1;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+int mlx4_query_port_ex(struct ibv_context *context, uint8_t port_num,
-+		       struct ibv_port_attr_ex *port_attr)
+ enum ibv_srq_attr_mask {
+ 	IBV_SRQ_MAX_WR	= 1 << 0,
+@@ -893,6 +956,10 @@ enum verbs_context_mask {
+ 
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	int (*drv_query_port_ex)(struct ibv_context *context, uint8_t port_num,
++				 struct ibv_port_attr_ex *port_attr);
++	int (*lib_query_port_ex)(struct ibv_context *context, uint8_t port_num,
++				  struct ibv_port_attr_ex *port_attr);
+ 	struct ibv_ah * (*drv_ibv_create_ah_ex)(struct ibv_pd *pd,
+ 						struct ibv_ah_attr *attr,
+ 						struct ibv_ah_attr_ex *attr_ex);
+@@ -1022,6 +1089,41 @@ static inline int ___ibv_query_port(struct ibv_context *context,
+ #define ibv_query_port(context, port_num, port_attr) \
+ 	___ibv_query_port(context, port_num, port_attr)
+ 
++static inline int ibv_query_port_ex(struct ibv_context *context,
++				    uint8_t port_num,
++				    struct ibv_port_attr_ex *port_attr)
 +{
++	struct verbs_context *vctx;
++
++	if (0 == port_attr->comp_mask)
++		return ibv_query_port(context, port_num,
++				      &port_attr->port_attr);
++
 +	/* Check that only valid flags were given */
 +	if ((!port_attr->comp_mask & IBV_QUERY_PORT_EX_ATTR_MASK1) ||
 +	    (port_attr->comp_mask & ~IBV_QUERY_PORT_EX_ATTR_MASKS) ||
 +	    (port_attr->mask1 & ~IBV_QUERY_PORT_EX_MASK)) {
-+		return -EINVAL;
++		errno = EINVAL;
++		return -errno;
 +	}
 +
-+	/* Optimize the link type query */
-+	if (port_attr->comp_mask == IBV_QUERY_PORT_EX_ATTR_MASK1) {
-+		if (!(port_attr->mask1 & ~(IBV_QUERY_PORT_EX_LINK_LAYER |
-+					   IBV_QUERY_PORT_EX_CAP_FLAGS))) {
-+			struct mlx4_context *mctx = to_mctx(context);
-+			if (port_num > MLX4_PORTS_NUM)
-+				return -EINVAL;
-+			if (mctx->port_query_cache[port_num - 1].valid) {
-+				if (port_attr->mask1 &
-+				    IBV_QUERY_PORT_EX_LINK_LAYER)
-+					port_attr->link_layer =
-+						mctx->
-+						port_query_cache[port_num - 1].
-+						link_layer;
-+				if (port_attr->mask1 &
-+				    IBV_QUERY_PORT_EX_CAP_FLAGS)
-+					port_attr->port_cap_flags =
-+						mctx->
-+						port_query_cache[port_num - 1].
-+						caps;
-+				return 0;
-+			}
-+		}
-+		if (port_attr->mask1 & IBV_QUERY_PORT_EX_STD_MASK) {
-+			return mlx4_query_port(context, port_num,
-+					       &port_attr->port_attr);
-+		}
++	vctx = verbs_get_ctx_op(context, lib_query_port_ex);
++
++	if (!vctx) {
++		/* Fallback to legacy mode */
++		if (port_attr->comp_mask == IBV_QUERY_PORT_EX_ATTR_MASK1 &&
++		    !(port_attr->mask1 & ~IBV_QUERY_PORT_EX_STD_MASK))
++			return ibv_query_port(context, port_num,
++					      &port_attr->port_attr);
++
++		/* Unsupported field was requested */
++		errno = ENOSYS;
++		return -errno;
 +	}
- 
--	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof cmd);
-+	return -EOPNOTSUPP;
- }
- 
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context)
-@@ -787,9 +842,17 @@ static struct ibv_ah *mlx4_create_ah_common(struct ibv_pd *pd,
- 					    struct ibv_ah_attr *attr)
- {
- 	struct mlx4_ah *ah;
--	struct ibv_port_attr port_attr;
-+	struct mlx4_context *mctx;
-+	struct ibv_port_attr_ex port_attr;
 +
-+	mctx = to_mctx(pd->context);
- 
--	if (ibv_query_port(pd->context, attr->port_num, &port_attr))
-+	if (attr->port_num < 1 || attr->port_num > MLX4_PORTS_NUM)
-+		return NULL;
-+	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
-+	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER;
++	return vctx->lib_query_port_ex(context, port_num, port_attr);
++}
 +
-+	if (ibv_query_port_ex(pd->context, attr->port_num, &port_attr))
- 		return NULL;
+ /**
+  * ibv_query_gid - Get a GID table entry
+  */
+diff --git a/src/device.c b/src/device.c
+index beb7b3c..29ad726 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -169,6 +169,8 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 		 * context_ex->lib_new_func1 = __verbs_new_func1;
+ 		 * context_ex->lib_new_func2 = __verbs_new_func2;
+ 		 */
++		 context_ex->lib_query_port_ex =
++			 context_ex->drv_query_port_ex;
+ 	}
  
- 	ah = malloc(sizeof *ah);
-@@ -827,12 +890,15 @@ static struct ibv_ah *mlx4_create_ah_common(struct ibv_pd *pd,
- struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- {
- 	struct ibv_ah *ah = mlx4_create_ah_common(pd, attr);
+ 	context->device = device;
+diff --git a/src/verbs.c b/src/verbs.c
+index f0537eb..cb71c59 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -550,7 +550,7 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	int err;
+ 	struct ibv_ah *ah = NULL;
+ #ifndef NRESOLVE_NEIGH
 -	struct ibv_port_attr port_attr;
 +	struct ibv_port_attr_ex port_attr;
-+
+ 	int dst_family;
+ 	int src_family;
+ 	int oif;
+@@ -570,7 +570,10 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 		goto return_ah;
+ 	}
+ 
+-	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
 +	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
-+	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER;
++	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER |
++			  IBV_QUERY_PORT_EX_CAP_FLAGS;
++	err = ibv_query_port_ex(pd->context, attr->port_num, &port_attr);
  
- 	if (NULL != ah &&
--	    !ibv_query_port(pd->context, attr->port_num, &port_attr) &&
-+	    !ibv_query_port_ex(pd->context, attr->port_num, &port_attr) &&
- 	    (port_attr.link_layer != IBV_LINK_LAYER_ETHERNET ||
--	    !mlx4_resolve_grh_to_l2(pd, to_mah(ah), attr)))
-+	     !mlx4_resolve_grh_to_l2(pd, to_mah(ah), attr)))
- 		return ah;
- 
- 	if (ah)
+ 	if (err) {
+ 		fprintf(stderr, PFX "ibv_create_ah failed to query port.\n");
 -- 
 1.7.1
 
