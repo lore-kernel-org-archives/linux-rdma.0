@@ -1,198 +1,29 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 3/3] Add ibv_query_port_ex support
-Date: Sun,  2 Feb 2014 17:54:42 +0200
-Message-ID: <1391356482-4228-4-git-send-email-ogerlitz@mellanox.com>
-References: <1391356482-4228-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH libmlx4 0/2] Add support for UD QPs under RoCE IP addressing
+Date: Sun,  2 Feb 2014 17:54:59 +0200
+Message-ID: <1391356501-4270-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391356482-4228-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Roland and Yishai
 
-This patch adds extended support for ibv_query_port.
+This series adds support for Ethernet L2 address resolution for UD QPs, whose 
+L2 address-handles, unlike RC/UC/XRC/etc QPs are set from user space without
+going through uverbs and the kernel IB core.
 
-This allows to request fields that aren't availible by the current
-ibv_query_port API and avoid fetching from vendor library fields that
-the user doesn't need, which gives more room for optimizations.
+Matan and Or.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/infiniband/verbs.h |  102 ++++++++++++++++++++++++++++++++++++++++++++
- src/device.c               |    2 +
- src/verbs.c                |    7 ++-
- 3 files changed, 109 insertions(+), 2 deletions(-)
+Matan Barak (2):
+  Add RoCE IP based addressing support for UD QPs
+  Add ibv_query_port_ex support
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 1bb47ec..4ea5745 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -480,6 +480,69 @@ struct ibv_ah_attr_ex {
- 	uint16_t vid;
- };
- 
-+enum {
-+	IBV_QUERY_PORT_EX_STATE			= 1 << 0,
-+	IBV_QUERY_PORT_EX_MAX_MTU		= 1 << 1,
-+	IBV_QUERY_PORT_EX_ACTIVE_MTU		= 1 << 2,
-+	IBV_QUERY_PORT_EX_GID_TBL_LEN		= 1 << 3,
-+	IBV_QUERY_PORT_EX_CAP_FLAGS		= 1 << 4,
-+	IBV_QUERY_PORT_EX_MAX_MSG_SZ		= 1 << 5,
-+	IBV_QUERY_PORT_EX_BAD_PKEY_CNTR		= 1 << 6,
-+	IBV_QUERY_PORT_EX_QKEY_VIOL_CNTR	= 1 << 7,
-+	IBV_QUERY_PORT_EX_PKEY_TBL_LEN		= 1 << 8,
-+	IBV_QUERY_PORT_EX_LID			= 1 << 9,
-+	IBV_QUERY_PORT_EX_SM_LID		= 1 << 10,
-+	IBV_QUERY_PORT_EX_LMC			= 1 << 11,
-+	IBV_QUERY_PORT_EX_MAX_VL_NUM		= 1 << 12,
-+	IBV_QUERY_PORT_EX_SM_SL			= 1 << 13,
-+	IBV_QUERY_PORT_EX_SUBNET_TIMEOUT	= 1 << 14,
-+	IBV_QUERY_PORT_EX_INIT_TYPE_REPLY	= 1 << 15,
-+	IBV_QUERY_PORT_EX_ACTIVE_WIDTH		= 1 << 16,
-+	IBV_QUERY_PORT_EX_ACTIVE_SPEED		= 1 << 17,
-+	IBV_QUERY_PORT_EX_PHYS_STATE		= 1 << 18,
-+	IBV_QUERY_PORT_EX_LINK_LAYER		= 1 << 19,
-+	/* mask of the fields that exists in the standard query_port_command */
-+	IBV_QUERY_PORT_EX_STD_MASK		= (1 << 20) - 1,
-+	/* mask of all supported fields */
-+	IBV_QUERY_PORT_EX_MASK			= IBV_QUERY_PORT_EX_STD_MASK,
-+};
-+
-+enum ibv_query_port_ex_attr_mask {
-+	IBV_QUERY_PORT_EX_ATTR_MASK1		= 1 << 0,
-+	IBV_QUERY_PORT_EX_ATTR_MASKS		= (1 << 1) - 1
-+};
-+
-+struct ibv_port_attr_ex {
-+	union {
-+		struct {
-+			enum ibv_port_state	state;
-+			enum ibv_mtu		max_mtu;
-+			enum ibv_mtu		active_mtu;
-+			int			gid_tbl_len;
-+			uint32_t		port_cap_flags;
-+			uint32_t		max_msg_sz;
-+			uint32_t		bad_pkey_cntr;
-+			uint32_t		qkey_viol_cntr;
-+			uint16_t		pkey_tbl_len;
-+			uint16_t		lid;
-+			uint16_t		sm_lid;
-+			uint8_t			lmc;
-+			uint8_t			max_vl_num;
-+			uint8_t			sm_sl;
-+			uint8_t			subnet_timeout;
-+			uint8_t			init_type_reply;
-+			uint8_t			active_width;
-+			uint8_t			active_speed;
-+			uint8_t			phys_state;
-+			uint8_t			link_layer;
-+			uint8_t			reserved;
-+		};
-+		struct ibv_port_attr		port_attr;
-+	};
-+	uint32_t		comp_mask;
-+	uint32_t		mask1;
-+};
-+
- 
- enum ibv_srq_attr_mask {
- 	IBV_SRQ_MAX_WR	= 1 << 0,
-@@ -893,6 +956,10 @@ enum verbs_context_mask {
- 
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	int (*drv_query_port_ex)(struct ibv_context *context, uint8_t port_num,
-+				 struct ibv_port_attr_ex *port_attr);
-+	int (*lib_query_port_ex)(struct ibv_context *context, uint8_t port_num,
-+				  struct ibv_port_attr_ex *port_attr);
- 	struct ibv_ah * (*drv_ibv_create_ah_ex)(struct ibv_pd *pd,
- 						struct ibv_ah_attr *attr,
- 						struct ibv_ah_attr_ex *attr_ex);
-@@ -1022,6 +1089,41 @@ static inline int ___ibv_query_port(struct ibv_context *context,
- #define ibv_query_port(context, port_num, port_attr) \
- 	___ibv_query_port(context, port_num, port_attr)
- 
-+static inline int ibv_query_port_ex(struct ibv_context *context,
-+				    uint8_t port_num,
-+				    struct ibv_port_attr_ex *port_attr)
-+{
-+	struct verbs_context *vctx;
-+
-+	if (0 == port_attr->comp_mask)
-+		return ibv_query_port(context, port_num,
-+				      &port_attr->port_attr);
-+
-+	/* Check that only valid flags were given */
-+	if ((!port_attr->comp_mask & IBV_QUERY_PORT_EX_ATTR_MASK1) ||
-+	    (port_attr->comp_mask & ~IBV_QUERY_PORT_EX_ATTR_MASKS) ||
-+	    (port_attr->mask1 & ~IBV_QUERY_PORT_EX_MASK)) {
-+		errno = EINVAL;
-+		return -errno;
-+	}
-+
-+	vctx = verbs_get_ctx_op(context, lib_query_port_ex);
-+
-+	if (!vctx) {
-+		/* Fallback to legacy mode */
-+		if (port_attr->comp_mask == IBV_QUERY_PORT_EX_ATTR_MASK1 &&
-+		    !(port_attr->mask1 & ~IBV_QUERY_PORT_EX_STD_MASK))
-+			return ibv_query_port(context, port_num,
-+					      &port_attr->port_attr);
-+
-+		/* Unsupported field was requested */
-+		errno = ENOSYS;
-+		return -errno;
-+	}
-+
-+	return vctx->lib_query_port_ex(context, port_num, port_attr);
-+}
-+
- /**
-  * ibv_query_gid - Get a GID table entry
-  */
-diff --git a/src/device.c b/src/device.c
-index beb7b3c..29ad726 100644
---- a/src/device.c
-+++ b/src/device.c
-@@ -169,6 +169,8 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
- 		 * context_ex->lib_new_func1 = __verbs_new_func1;
- 		 * context_ex->lib_new_func2 = __verbs_new_func2;
- 		 */
-+		 context_ex->lib_query_port_ex =
-+			 context_ex->drv_query_port_ex;
- 	}
- 
- 	context->device = device;
-diff --git a/src/verbs.c b/src/verbs.c
-index f0537eb..cb71c59 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -550,7 +550,7 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 	int err;
- 	struct ibv_ah *ah = NULL;
- #ifndef NRESOLVE_NEIGH
--	struct ibv_port_attr port_attr;
-+	struct ibv_port_attr_ex port_attr;
- 	int dst_family;
- 	int src_family;
- 	int oif;
-@@ -570,7 +570,10 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 		goto return_ah;
- 	}
- 
--	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
-+	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
-+	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER |
-+			  IBV_QUERY_PORT_EX_CAP_FLAGS;
-+	err = ibv_query_port_ex(pd->context, attr->port_num, &port_attr);
- 
- 	if (err) {
- 		fprintf(stderr, PFX "ibv_create_ah failed to query port.\n");
--- 
-1.7.1
+ src/mlx4.c  |    7 +++
+ src/mlx4.h  |   11 +++++
+ src/verbs.c |  140 +++++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 149 insertions(+), 9 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
