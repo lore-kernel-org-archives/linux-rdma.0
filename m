@@ -1,150 +1,82 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 1/2] Add RoCE IP based addressing support for UD QPs
-Date: Sun,  2 Feb 2014 17:55:00 +0200
-Message-ID: <1391356501-4270-2-git-send-email-ogerlitz@mellanox.com>
-References: <1391356501-4270-1-git-send-email-ogerlitz@mellanox.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Need help with strange mlx4_core error
+Date: Mon, 3 Feb 2014 07:35:46 +0400
+Message-ID: <CACaajQtQGZSepA8VLK1K20OspNa_WTv1DQ8SWYV7O9y6QV-Tgg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391356501-4270-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi all. After switching to kernel 3.10 i get sometimes errors in dmesg
+like this:
+[Sun Jan 26 09:58:50 2014] <mlx4_ib> destroy_qp_common: modify QP
+007def to RESET failed.
+[Sun Jan 26 20:27:52 2014] <mlx4_ib> destroy_qp_common: modify QP
+0221ca to RESET failed.
+[Mon Jan 27 03:44:20 2014] <mlx4_ib> destroy_qp_common: modify QP
+0232ad to RESET failed.
+[Mon Jan 27 14:23:25 2014] mlx4_core 0000:03:00.0: command 0x19
+failed: fw status = 0x9
+[Mon Jan 27 14:23:25 2014] ib0: failed to modify QP to INIT: -9
+[Mon Jan 27 16:37:00 2014] <mlx4_ib> destroy_qp_common: modify QP
+00258a to RESET failed.
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0: Internal error detected:
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[00]: 001805a5
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[01]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[02]: 20060384
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[03]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[04]: 0018050c
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[05]: 00000001
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[06]: 00002cd4
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[07]: 00000084
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[08]: 0000f8af
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[09]: 00004000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[0a]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[0b]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[0c]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[0d]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[0e]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_core 0000:03:00.0:   buf[0f]: 00000000
+[Mon Jan 27 16:58:26 2014] mlx4_en 0000:03:00.0: Internal error
+detected, restarting device
+[Mon Jan 27 16:58:35 2014] <mlx4_ib> destroy_qp_common: modify QP
+002cd4 to RESET failed.
+[Mon Jan 27 16:58:35 2014] ib0: dev_queue_xmit failed to requeue packet
+[Mon Jan 27 16:58:35 2014] ib0: dev_queue_xmit failed to requeue packet
+[Mon Jan 27 16:58:35 2014] ib0: dev_queue_xmit failed to requeue packet
+[Mon Jan 27 16:58:36 2014] mlx4_core: Initializing 0000:03:00.0
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 59 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 60 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 61 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 62 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 63 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 64 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 65 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 66 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 67 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 68 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 69 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 70 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: irq 71 for MSI/MSI-X
+[Mon Jan 27 16:58:38 2014] mlx4_core 0000:03:00.0: command 0xc failed:
+fw status = 0x40
+[Mon Jan 27 16:58:38 2014] mlx4_en 0000:03:00.0: UDP RSS is not
+supported on this device.
 
-In order to implement IP based addressing for UD QPs, we need a way to
-resolve the Ethernet L2 addresses. The Eth L2 params are passed to the
-provider driver from libibverbs using the extended verb drv_ibv_create_ah_ex.
+I don't know what traffic can trigger this (i'm using IPoIB with
+connected mode) but i think this can happening then someone send
+massive udp traffic.
+What can i do to fix this issue? When error appears ib0 device (IPoIB)
+goes to down.
 
-That is,libmlx4 gets the extra mac and vlan-id params from libibverbs and
-sets the mlx4_ah relevant attributes.
+Very big thanks for all help.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx4.c  |    3 ++
- src/mlx4.h  |    2 +
- src/verbs.c |   68 +++++++++++++++++++++++++++++++++++++++++++++++++++++-----
- 3 files changed, 67 insertions(+), 6 deletions(-)
-
-diff --git a/src/mlx4.c b/src/mlx4.c
-index c6e4c5c..ca91df4 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -204,6 +204,9 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, create_qp_ex, mlx4_create_qp_ex);
- 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
- 
-+	verbs_set_ctx_op(verbs_ctx, drv_ibv_create_ah_ex, mlx4_create_ah_ex);
-+	verbs_ctx->has_comp_mask = VERBS_CONTEXT_CREATE_AH;
-+
- 	return 0;
- 
- }
-diff --git a/src/mlx4.h b/src/mlx4.h
-index d71450f..b7afa31 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -431,6 +431,8 @@ struct mlx4_qp *mlx4_find_qp(struct mlx4_context *ctx, uint32_t qpn);
- int mlx4_store_qp(struct mlx4_context *ctx, uint32_t qpn, struct mlx4_qp *qp);
- void mlx4_clear_qp(struct mlx4_context *ctx, uint32_t qpn);
- struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr);
-+struct ibv_ah *mlx4_create_ah_ex(struct ibv_pd *pd, struct ibv_ah_attr *attr,
-+				 struct ibv_ah_attr_ex *attr_ex);
- int mlx4_destroy_ah(struct ibv_ah *ah);
- int mlx4_alloc_av(struct mlx4_pd *pd, struct ibv_ah_attr *attr,
- 		   struct mlx4_ah *ah);
-diff --git a/src/verbs.c b/src/verbs.c
-index 623d576..38fa3d3 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -783,7 +783,8 @@ static int mlx4_resolve_grh_to_l2(struct ibv_pd *pd, struct mlx4_ah *ah,
- 	return 0;
- }
- 
--struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
-+static struct ibv_ah *mlx4_create_ah_common(struct ibv_pd *pd,
-+					    struct ibv_ah_attr *attr)
- {
- 	struct mlx4_ah *ah;
- 	struct ibv_port_attr port_attr;
-@@ -820,13 +821,68 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 		memcpy(ah->av.dgid, attr->grh.dgid.raw, 16);
- 	}
- 
--	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
--		if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
--			free(ah);
--			return NULL;
-+	return &ah->ibv_ah;
-+}
-+
-+struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
-+{
-+	struct ibv_ah *ah = mlx4_create_ah_common(pd, attr);
-+	struct ibv_port_attr port_attr;
-+
-+	if (NULL != ah &&
-+	    !ibv_query_port(pd->context, attr->port_num, &port_attr) &&
-+	    (port_attr.link_layer != IBV_LINK_LAYER_ETHERNET ||
-+	    !mlx4_resolve_grh_to_l2(pd, to_mah(ah), attr)))
-+		return ah;
-+
-+	if (ah)
-+		free(ah);
-+	return NULL;
-+}
-+
-+#define MLX4_CREATE_AH_EX_SUPPORTED_LL LL_ADDRESS_ETH
-+struct ibv_ah *mlx4_create_ah_ex(struct ibv_pd *pd, struct ibv_ah_attr *attr,
-+				 struct ibv_ah_attr_ex *attr_ex)
-+{
-+	struct ibv_ah *ah = mlx4_create_ah_common(pd, attr);
-+	struct mlx4_ah *mah;
-+
-+	if (NULL == ah)
-+		return NULL;
-+
-+	mah = to_mah(ah);
-+
-+	/* mlx4 provider currently only support ethernet extensions */
-+	if (attr_ex->comp_mask & IBV_AH_ATTR_EX_LL &&
-+	    ~MLX4_CREATE_AH_EX_SUPPORTED_LL & attr_ex->ll_address.type &&
-+	    0 == attr_ex->ll_address.len)
-+		goto err;
-+
-+	if (LL_ADDRESS_ETH == attr_ex->ll_address.type) {
-+		/* link layer is ethernet */
-+		if (6 != attr_ex->ll_address.len ||
-+		    NULL == attr_ex->ll_address.address)
-+			goto err;
-+
-+		memcpy(mah->mac, attr_ex->ll_address.address,
-+		       attr_ex->ll_address.len);
-+
-+		if (attr_ex->comp_mask & IBV_AH_ATTR_EX_VID) {
-+			if (attr_ex->vid <= 0xfff) {
-+				mah->av.port_pd |= htonl(1 << 29);
-+				mah->vlan = attr_ex->vid |
-+					    ((attr->sl & 7) << 13);
-+			} else {
-+				goto err;
-+			}
- 		}
-+	}
- 
--	return &ah->ibv_ah;
-+	return ah;
-+
-+err:
-+	free(ah);
-+	return NULL;
- }
- 
- int mlx4_destroy_ah(struct ibv_ah *ah)
 -- 
-1.7.1
-
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
