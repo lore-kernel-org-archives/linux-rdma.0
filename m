@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 6/8] NFS: advertise only supported callback netids
-Date: Mon, 03 Feb 2014 16:02:40 -0500
-Message-ID: <20140203210240.3533.87689.stgit@manet.1015granger.net>
+Subject: [PATCH 7/8] NFS: Use port 20049 by default for NFS/RDMA mounts
+Date: Mon, 03 Feb 2014 16:02:50 -0500
+Message-ID: <20140203210250.3533.66371.stgit@manet.1015granger.net>
 References: <20140203205903.3533.39213.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,73 +13,60 @@ To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-NFSv4.0 clients use the SETCLIENTID operation to inform NFS servers
-how to contact a client's callback service.  If a server cannot
-contact a client's callback service, that server will not delegate
-to that client, which results in a performance loss.
+When providing NFSv2 and v3 service via RDMA, NFS servers MAY use an
+alternative well-known port number, 20049.  They are not required to
+register the service with their local rpcbind.  At least one server
+implementation I am aware of does not register.
 
-Our client advertises "rdma" as the callback netid when the forward
-channel is "rdma".  But our client always starts only "tcp" and
-"tcp6" callback services.
+When providing NFSv4 service via RDMA, the server MUST use the
+alternative port number, 20049.  As with NFSv4 on IP-based
+transports, clients SHOULD connect to this port without consulting
+the server's rpcbind, so we can't expect rpcbind to help here
+either.
 
-Instead of advertising the forward channel netid, advertise "tcp"
-or "tcp6" as the callback netid, based on the value of the
-clientaddr mount option, since those are what our client currently
-supports.
+See section 6 of RFC 5667 for details.
 
-(Note: this approach is appropriate for older kernels too, but this
-patch doesn't apply cleanly on kernels earlier than 3.11).
+Today, admins are required to specify "port=" when mounting an
+NFS/RDMA server.  To comply with RFC 5667 and for cross-
+compatibility with heterogenous automounter maps, provide the proper
+default port when mounting with "proto=rdma".
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=69171
+If the server does not use port 20049, the "port=" mount option is
+still required to mount successfully.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=68401
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.11+
 ---
 
- fs/nfs/nfs4proc.c |   24 ++++++++++++++++++------
- 1 files changed, 18 insertions(+), 6 deletions(-)
+ fs/nfs/super.c           |    2 ++
+ include/uapi/linux/nfs.h |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
-index 15052b8..09dd967 100644
---- a/fs/nfs/nfs4proc.c
-+++ b/fs/nfs/nfs4proc.c
-@@ -4883,6 +4883,20 @@ nfs4_init_uniform_client_string(const struct nfs_client *clp,
- 				nodename);
- }
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index 910ed90..6432600 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -2157,6 +2157,8 @@ static int nfs_validate_text_mount_data(void *options,
+ 	} else
+ 		nfs_set_mount_transport_protocol(args);
  
-+/*
-+ * nfs4_callback_up_net() starts only "tcp" and "tcp6" callback
-+ * services.  Advertise one based on the address family of the
-+ * clientaddr.
-+ */
-+static unsigned int
-+nfs4_init_callback_netid(const struct nfs_client *clp, char *buf, size_t len)
-+{
-+	if (strchr(clp->cl_ipaddr, ':') != NULL)
-+		return scnprintf(buf, len, "tcp6");
-+	else
-+		return scnprintf(buf, len, "tcp");
-+}
-+
- /**
-  * nfs4_proc_setclientid - Negotiate client ID
-  * @clp: state data structure
-@@ -4924,12 +4938,10 @@ int nfs4_proc_setclientid(struct nfs_client *clp, u32 program,
- 						setclientid.sc_name,
- 						sizeof(setclientid.sc_name));
- 	/* cb_client4 */
--	rcu_read_lock();
--	setclientid.sc_netid_len = scnprintf(setclientid.sc_netid,
--				sizeof(setclientid.sc_netid), "%s",
--				rpc_peeraddr2str(clp->cl_rpcclient,
--							RPC_DISPLAY_NETID));
--	rcu_read_unlock();
-+	setclientid.sc_netid_len =
-+				nfs4_init_callback_netid(clp,
-+						setclientid.sc_netid,
-+						sizeof(setclientid.sc_netid));
- 	setclientid.sc_uaddr_len = scnprintf(setclientid.sc_uaddr,
- 				sizeof(setclientid.sc_uaddr), "%s.%u.%u",
- 				clp->cl_ipaddr, port >> 8, port & 255);
++	if (args->nfs_server.protocol == XPRT_TRANSPORT_RDMA)
++		port = NFS_RDMA_PORT;
+ 	nfs_set_port(sap, &args->nfs_server.port, port);
+ 
+ 	return nfs_parse_devname(dev_name,
+diff --git a/include/uapi/linux/nfs.h b/include/uapi/linux/nfs.h
+index 5199a36..ccc6f8d 100644
+--- a/include/uapi/linux/nfs.h
++++ b/include/uapi/linux/nfs.h
+@@ -9,6 +9,7 @@
+ 
+ #define NFS_PROGRAM	100003
+ #define NFS_PORT	2049
++#define NFS_RDMA_PORT	20049
+ #define NFS_MAXDATA	8192
+ #define NFS_MAXPATHLEN	1024
+ #define NFS_MAXNAMLEN	255
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
