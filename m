@@ -1,80 +1,35 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/3] Add ibv_port_cap_flags
-Date: Mon, 3 Feb 2014 09:50:06 +0200
-Message-ID: <52EF4A2E.30904@mellanox.com>
-References: <1391356482-4228-1-git-send-email-ogerlitz@mellanox.com> <1391356482-4228-2-git-send-email-ogerlitz@mellanox.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Need help with strange mlx4_core error
+Date: Mon, 3 Feb 2014 12:54:42 +0200
+Message-ID: <CAJZOPZKydkaoru0XyT1nHQ5t9BGJQxbq1r4RcGZ0Gq9E9VGs=A@mail.gmail.com>
+References: <CACaajQtQGZSepA8VLK1K20OspNa_WTv1DQ8SWYV7O9y6QV-Tgg@mail.gmail.com>
+	<CAJZOPZJmdGutUQZ4icBrKRq-YPwD8TqtoLH9SgqNVx_CDjL0TQ@mail.gmail.com>
+	<CACaajQtHzF9g2kp9MrAaQsvKUQdr10YVa+Np1danmAcR_rvLqg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391356482-4228-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CACaajQtHzF9g2kp9MrAaQsvKUQdr10YVa+Np1danmAcR_rvLqg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/2/2014 5:54 PM, Or Gerlitz wrote:
-> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, Feb 3, 2014 at 9:27 AM, Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org> wrote:
+> 2014-02-03 Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>> What kernel you used before? can you please send here the dmesg output when
+>> the mlx4_core driver loads with debug_level=1
 >
-> Add an enum that describes ibv_port_cap_flags that complies
-> with the respective kernel enum and modify the existing
-> field in struct ibv_port_attr to be of that type.
 >
-> This value could be fetched when using ibv_query_port.
->
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   include/infiniband/verbs.h |   24 +++++++++++++++++++++++-
->   1 files changed, 23 insertions(+), 1 deletions(-)
->
-> diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-> index 5064636..ba29919 100644
-> --- a/include/infiniband/verbs.h
-> +++ b/include/infiniband/verbs.h
-> @@ -186,12 +186,34 @@ enum {
->   	IBV_LINK_LAYER_ETHERNET,
->   };
->
-> +enum ibv_port_cap_flags {
-> +	IBV_PORT_SM				= 1 <<  1,
-> +	IBV_PORT_NOTICE_SUP			= 1 <<  2,
-> +	IBV_PORT_TRAP_SUP			= 1 <<  3,
-> +	IBV_PORT_OPT_IPD_SUP			= 1 <<  4,
-> +	IBV_PORT_AUTO_MIGR_SUP			= 1 <<  5,
-> +	IBV_PORT_SL_MAP_SUP			= 1 <<  6,
-> +	IBV_PORT_MKEY_NVRAM			= 1 <<  7,
-> +	IBV_PORT_PKEY_NVRAM			= 1 <<  8,
-> +	IBV_PORT_LED_INFO_SUP			= 1 <<  9,
-> +	IBV_PORT_SYS_IMAGE_GUID_SUP		= 1 << 11,
-> +	IBV_PORT_PKEY_SW_EXT_PORT_TRAP_SUP	= 1 << 12,
-> +	IBV_PORT_EXTENDED_SPEEDS_SUP		= 1 << 14,
-> +	IBV_PORT_CM_SUP				= 1 << 16,
-> +	IBV_PORT_SNMP_TUNNEL_SUP		= 1 << 17,
-> +	IBV_PORT_REINIT_SUP			= 1 << 18,
-> +	IBV_PORT_DEVICE_MGMT_SUP		= 1 << 19,
-> +	IBV_PORT_VENDOR_CLASS			= 1 << 24,
-> +	IBV_PORT_CLIENT_REG_SUP			= 1 << 25,
-> +	IBV_PORT_IP_BASED_GIDS			= 1 << 26,
-> +};
-> +
->   struct ibv_port_attr {
->   	enum ibv_port_state	state;
->   	enum ibv_mtu		max_mtu;
->   	enum ibv_mtu		active_mtu;
->   	int			gid_tbl_len;
-> -	uint32_t		port_cap_flags;
-> +	enum ibv_port_cap_flags	port_cap_flags;
+> Before that i'm using 2.6.32 from debian squeeze... dmesg:
+> [583789.683677] mlx4_core: Mellanox ConnectX core driver v1.1 (Dec, 2011)
+> [583789.683710] mlx4_core: Initializing 0000:03:00.0
+> [583790.687071] mlx4_core 0000:03:00.0: FW version 2.6.900 (cmd intf
+> rev 3), max commands 16
 
-This should be left as uint32_t as sizeof(enum...) != sizeof(uint32_t) 
-in some platforms/compilers.
-Thanks Ira for catching this.
 
->   	uint32_t		max_msg_sz;
->   	uint32_t		bad_pkey_cntr;
->   	uint32_t		qkey_viol_cntr;
->
-
+This is pretty much very old firmware, could you update it please with
+the latest GA from the mellanox site and see if things smile back?
+also send the "lspci | grep -i Mellanox"
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
