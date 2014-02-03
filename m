@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/8] SUNRPC: Fix large reads on NFS/RDMA
-Date: Mon, 03 Feb 2014 16:02:06 -0500
-Message-ID: <20140203210206.3533.26891.stgit@manet.1015granger.net>
+Subject: [PATCH 3/8] SUNRPC: remove KERN_INFO from dprintk() call sites
+Date: Mon, 03 Feb 2014 16:02:15 -0500
+Message-ID: <20140203210215.3533.98794.stgit@manet.1015granger.net>
 References: <20140203205903.3533.39213.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,50 +13,47 @@ To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-After commit a11a2bf4, "SUNRPC: Optimise away unnecessary data moves
-in xdr_align_pages", Thu Aug 2 13:21:43 2012, READs larger than a
-few hundred bytes via NFS/RDMA no longer work.  This commit exposed
-a long-standing bug in rpcrdma_inline_fixup().
+The use of KERN_INFO causes garbage characters to appear when
+debugging is enabled.
 
-I reproduce this with an rsize=4096 mount using the cthon04 basic
-tests.  Test 5 fails with an EIO error.
-
-For my reproducer, kernel log shows:
-
-  NFS: server cheating in read reply: count 4096 > recvd 0
-
-rpcrdma_inline_fixup() is zeroing the xdr_stream::page_len field,
-and xdr_align_pages() is now returning that value to the READ XDR
-decoder function.
-
-That field is set up by xdr_inline_pages() by the READ XDR encoder
-function.  As far as I can tell, it is supposed to be left alone
-after that, as it describes the dimensions of the reply xdr_stream,
-not the contents of that stream.
-
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=68391
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.7+
 ---
 
- net/sunrpc/xprtrdma/rpc_rdma.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index e03725b..96ead52 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -649,9 +649,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 				break;
- 			page_base = 0;
- 		}
--		rqst->rq_rcv_buf.page_len = olen - copy_len;
--	} else
--		rqst->rq_rcv_buf.page_len = 0;
-+	}
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 285dc08..1eb9c46 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -733,7 +733,7 @@ static void __exit xprt_rdma_cleanup(void)
+ {
+ 	int rc;
  
- 	if (copy_len && rqst->rq_rcv_buf.tail[0].iov_len) {
- 		curlen = copy_len;
+-	dprintk(KERN_INFO "RPCRDMA Module Removed, deregister RPC RDMA transport\n");
++	dprintk("RPCRDMA Module Removed, deregister RPC RDMA transport\n");
+ #ifdef RPC_DEBUG
+ 	if (sunrpc_table_header) {
+ 		unregister_sysctl_table(sunrpc_table_header);
+@@ -755,14 +755,14 @@ static int __init xprt_rdma_init(void)
+ 	if (rc)
+ 		return rc;
+ 
+-	dprintk(KERN_INFO "RPCRDMA Module Init, register RPC RDMA transport\n");
++	dprintk("RPCRDMA Module Init, register RPC RDMA transport\n");
+ 
+-	dprintk(KERN_INFO "Defaults:\n");
+-	dprintk(KERN_INFO "\tSlots %d\n"
++	dprintk("Defaults:\n");
++	dprintk("\tSlots %d\n"
+ 		"\tMaxInlineRead %d\n\tMaxInlineWrite %d\n",
+ 		xprt_rdma_slot_table_entries,
+ 		xprt_rdma_max_inline_read, xprt_rdma_max_inline_write);
+-	dprintk(KERN_INFO "\tPadding %d\n\tMemreg %d\n",
++	dprintk("\tPadding %d\n\tMemreg %d\n",
+ 		xprt_rdma_inline_write_padding, xprt_rdma_memreg_strategy);
+ 
+ #ifdef RPC_DEBUG
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
