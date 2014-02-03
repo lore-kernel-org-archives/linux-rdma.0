@@ -1,30 +1,42 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 5/5] opensm: Resend LFTs/VLArb/SL2VL MADs in case of error
-Date: Mon, 03 Feb 2014 14:43:02 -0500
-Message-ID: <52EFF146.9000102@dev.mellanox.co.il>
-References: <1391425516-14462-1-git-send-email-alexne@mellanox.com> <1391425516-14462-5-git-send-email-alexne@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/8] Fixes for NFS/RDMA client
+Date: Mon, 03 Feb 2014 16:01:47 -0500
+Message-ID: <20140203205903.3533.39213.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391425516-14462-5-git-send-email-alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/3/2014 6:05 AM, Alex Netes wrote:
-> There are several MADs that we only SET during the sweep (and never
-> GET).
-> Zero the stored block, so in case the MAD will end up with error,
-> we will resend it during the next sweep.
-> 
-> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-Thanks. Applied.
+Chuck Lever (8):
+      NFS: incorrect "port=" value in /proc/mounts
+      NFS: Use port 20049 by default for NFS/RDMA mounts
+      NFS: advertise only supported callback netids
+      NFS: Add debugging message in nfs4_callback_null()
+      SUNRPC: Display tk_pid where possible
+      SUNRPC: remove KERN_INFO from dprintk() call sites
+      SUNRPC: Fix large reads on NFS/RDMA
+      NFS: Fix READDIR oops with NFSv4 on RDMA
 
--- Hal
+
+ fs/nfs/callback_xdr.c           |    1 
+ fs/nfs/client.c                 |    1 
+ fs/nfs/nfs4proc.c               |   24 +++++++++---
+ fs/nfs/nfs4xdr.c                |    3 -
+ fs/nfs/super.c                  |    2 +
+ include/uapi/linux/nfs.h        |    1 
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   80 ++++++++++++++++++++++-----------------
+ net/sunrpc/xprtrdma/transport.c |   29 ++++++++------
+ 8 files changed, 86 insertions(+), 55 deletions(-)
+
+-- 
+Chuck Lever
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
