@@ -1,47 +1,35 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 8/8] NFS: incorrect "port=" value in /proc/mounts
-Date: Mon, 03 Feb 2014 16:02:58 -0500
-Message-ID: <20140203210258.3533.80680.stgit@manet.1015granger.net>
-References: <20140203205903.3533.39213.stgit@manet.1015granger.net>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: Need help with strange mlx4_core error
+Date: Tue, 4 Feb 2014 01:19:49 +0400
+Message-ID: <CACaajQs9ANqLX7m=TcR2wT6wkiS-M5uVvAnQrvGWPmukZnLqcg@mail.gmail.com>
+References: <CACaajQtQGZSepA8VLK1K20OspNa_WTv1DQ8SWYV7O9y6QV-Tgg@mail.gmail.com>
+ <CAJZOPZJmdGutUQZ4icBrKRq-YPwD8TqtoLH9SgqNVx_CDjL0TQ@mail.gmail.com>
+ <CACaajQtHzF9g2kp9MrAaQsvKUQdr10YVa+Np1danmAcR_rvLqg@mail.gmail.com> <CAJZOPZKydkaoru0XyT1nHQ5t9BGJQxbq1r4RcGZ0Gq9E9VGs=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140203205903.3533.39213.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <CAJZOPZKydkaoru0XyT1nHQ5t9BGJQxbq1r4RcGZ0Gq9E9VGs=A@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Mounting with "-o vers=4" shows the following in /proc/mounts:
+2014-02-03 Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+> This is pretty much very old firmware, could you update it please with
+> the latest GA from the mellanox site and see if things smile back?
+> also send the "lspci | grep -i Mellanox"
 
-  ... namlen=255,hard,proto=tcp,port=0,timeo=600,retrans=2, ...
-                                ^^^^^^
 
-The default port, 2049, was actually used, but was never recorded
-in this mount point's nfs_server.
+Thanks. I'm try to connect with supermicro team, because blade from
+supermicro and mellanox mftlint can't upgrade firmware =(.
+lspci output:
+03:00.0 InfiniBand: Mellanox Technologies MT26428 [ConnectX VPI PCIe
+2.0 5GT/s - IB QDR / 10GigE] (rev a0)
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=69241
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
----
-
- fs/nfs/client.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/fs/nfs/client.c b/fs/nfs/client.c
-index 1d09289..2bb6dee 100644
---- a/fs/nfs/client.c
-+++ b/fs/nfs/client.c
-@@ -924,6 +924,7 @@ void nfs_server_copy_userdata(struct nfs_server *target, struct nfs_server *sour
- 	target->flags = source->flags;
- 	target->rsize = source->rsize;
- 	target->wsize = source->wsize;
-+	target->port = source->port;
- 	target->acregmin = source->acregmin;
- 	target->acregmax = source->acregmax;
- 	target->acdirmin = source->acdirmin;
-
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
