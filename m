@@ -1,40 +1,30 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 4/5] opensm/osm_port_info_rcv.c: Reread pkeys from SP0 if switch rebooted during a sweep
-Date: Mon,  3 Feb 2014 13:05:15 +0200
-Message-ID: <1391425516-14462-4-git-send-email-alexne@mellanox.com>
-References: <1391425516-14462-1-git-send-email-alexne@mellanox.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] libmlx5 1.0.1 released
+Date: Mon, 3 Feb 2014 16:04:44 +0200
+Message-ID: <20140203140444.GB20224@mtldesk30>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391425516-14462-1-git-send-email-alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SM may miss switch reboot because of a long sweep. In that case it won't
-reread pkey tables from Switch Port 0.
+Hi,
+I would like to announce the availability of libmlx5 version 1.0.1, the provider
+library for Mellanox Connect-IB devices.
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_port_info_rcv.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+This version brings:
 
-diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
-index d813f1a..eb68dbf 100644
---- a/opensm/osm_port_info_rcv.c
-+++ b/opensm/osm_port_info_rcv.c
-@@ -796,7 +796,8 @@ void osm_pi_rcv_process(IN void *context, IN void *data)
- 		/*
- 		   Get the tables on the physp.
- 		 */
--		if (p_physp->need_update)
-+		if (p_physp->need_update || (p_node->sw &&
-+					     p_node->sw->need_update))
- 			pi_rcv_get_pkey_slvl_vla_tables(sm, p_node, p_physp);
- 
- 	}
--- 
-1.7.1
+Fixes to micro UAR allocator
+Implementation of modify CQ
 
+The library can be found here:
+www.openfabrics.org/downloads/mlx5/libmlx5-1.0.1.tar.gz
+
+Thanks,
+Eli
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
