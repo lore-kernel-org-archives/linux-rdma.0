@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 09/17] RDMA/ocrdma: Memory leak fix in ocrdma_dereg_mr
-Date: Tue, 4 Feb 2014 11:57:02 +0530
-Message-ID: <d3b83fe5-3070-49fa-b35a-fc101750c130@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH for-next 12/17] RDMA/ocrdma: Handle CQ overrun error
+Date: Tue, 4 Feb 2014 11:57:05 +0530
+Message-ID: <69264470-f4d5-4ecd-8c04-d987e452693e@CMEXHTCAS2.ad.emulex.com>
 References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,28 +14,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Fix for memory leak in ocrdma_dereg_mr.
+Update the variables to handle CQ overrun errors
 
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index ef4e92e..96d1e85 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -840,8 +840,7 @@ int ocrdma_dereg_mr(struct ib_mr *ib_mr)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 2ed6aa1..6a36476 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -640,7 +640,7 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
+ {
+ 	struct ocrdma_qp *qp = NULL;
+ 	struct ocrdma_cq *cq = NULL;
+-	struct ib_event ib_evt;
++	struct ib_event ib_evt = { 0 };
+ 	int cq_event = 0;
+ 	int qp_event = 1;
+ 	int srq_event = 0;
+@@ -665,6 +665,8 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
+ 	case OCRDMA_CQ_OVERRUN_ERROR:
+ 		ib_evt.element.cq = &cq->ibcq;
+ 		ib_evt.event = IB_EVENT_CQ_ERR;
++		cq_event = 1;
++		qp_event = 0;
+ 		break;
+ 	case OCRDMA_CQ_QPCAT_ERROR:
+ 		ib_evt.element.qp = &qp->ibqp;
+@@ -726,6 +728,7 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
+ 						     qp->srq->ibsrq.
+ 						     srq_context);
+ 	} else if (dev_event) {
++		pr_err("%s: Fatal event received\n", dev->ibdev.name);
+ 		ib_dispatch_event(&ib_evt);
+ 	}
  
- 	status = ocrdma_mbx_dealloc_lkey(dev, mr->hwmr.fr_mr, mr->hwmr.lkey);
- 
--	if (mr->hwmr.fr_mr == 0)
--		ocrdma_free_mr_pbl_tbl(dev, &mr->hwmr);
-+	ocrdma_free_mr_pbl_tbl(dev, &mr->hwmr);
- 
- 	/* it could be user registered memory. */
- 	if (mr->umem)
 -- 
 1.7.1
 
