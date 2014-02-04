@@ -1,325 +1,47 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 17/17] RDMA/ocrdma: code clean-up
-Date: Tue, 4 Feb 2014 11:57:10 +0530
-Message-ID: <f3b828a8-1cae-4712-9a12-2fbc81d8a251@CMEXHTCAS2.ad.emulex.com>
-References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
+Subject: [PATCH master] RDMA/ocrdma: Fix load time panic during GID table init
+Date: Tue, 4 Feb 2014 12:10:48 +0530
+Message-ID: <bc0e7e5d-45c2-453f-ba7c-c81a1b1d1d94@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391495230-28021-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, selvin.xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, selvin.xavier-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-
-Driver code is cleaned up and couple of cosmetic changes are introduced.
-also modifying GSI QP to error during ocrdma_close is fixed.
+driver should use rdma_vlan_dev_real_dev() instead of using vlan_dev_real_dev()
+while building GID table for a vlan interface.
 
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |    6 ++----
- drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |    4 +---
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   20 ++++++++------------
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |   16 ++++++++--------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   22 +++-------------------
- 7 files changed, 24 insertions(+), 48 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 3042c87..19011db 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -35,6 +35,7 @@
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_addr.h>
- 
- #include <be_roce.h>
- #include "ocrdma_sli.h"
-@@ -234,7 +235,7 @@ struct ocrdma_dev {
- 	struct list_head entry;
- 	struct rcu_head rcu;
- 	int id;
--	struct ocrdma_mr *stag_arr[OCRDMA_MAX_STAG];
-+	u64 stag_arr[OCRDMA_MAX_STAG];
- 	u16 pvid;
- 	u32 asic_id;
- 
-@@ -287,7 +288,6 @@ struct ocrdma_cq {
- 
- struct ocrdma_pd {
- 	struct ib_pd ibpd;
--	struct ocrdma_dev *dev;
- 	struct ocrdma_ucontext *uctx;
- 	u32 id;
- 	int num_dpp_qp;
-@@ -372,10 +372,8 @@ struct ocrdma_qp {
- 	bool dpp_enabled;
- 	u8 *ird_q_va;
- 	bool signaled;
--	u16 db_cache;
- };
- 
--
- struct ocrdma_ucontext {
- 	struct ib_ucontext ibucontext;
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
-index 5a82ce5..1554cca 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
-@@ -108,9 +108,7 @@ struct ocrdma_create_qp_uresp {
- 	u32 db_sq_offset;
- 	u32 db_rq_offset;
- 	u32 db_shift;
--	u64 rsvd1;
--	u64 rsvd2;
--	u64 rsvd3;
-+	u64 rsvd[11];
- } __packed;
- 
- struct ocrdma_create_srq_uresp {
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index 3407114..d4cc01f 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -100,7 +100,7 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
- 	if (!(attr->ah_flags & IB_AH_GRH))
- 		return ERR_PTR(-EINVAL);
- 
--	ah = kzalloc(sizeof *ah, GFP_ATOMIC);
-+	ah = kzalloc(sizeof(*ah), GFP_ATOMIC);
- 	if (!ah)
- 		return ERR_PTR(-ENOMEM);
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 34cc74e..57ee726 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -32,7 +32,6 @@
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_user_verbs.h>
--#include <rdma/ib_addr.h>
- 
- #include "ocrdma.h"
- #include "ocrdma_hw.h"
-@@ -386,8 +385,8 @@ static void ocrdma_build_q_pages(struct ocrdma_pa *q_pa, int cnt,
- 	}
- }
- 
--static int ocrdma_mbx_delete_q(struct ocrdma_dev *dev, struct ocrdma_queue_info *q,
--			       int queue_type)
-+static int ocrdma_mbx_delete_q(struct ocrdma_dev *dev,
-+			       struct ocrdma_queue_info *q, int queue_type)
- {
- 	u8 opcode = 0;
- 	int status;
-@@ -778,7 +777,6 @@ static void ocrdma_process_grp5_aync(struct ocrdma_dev *dev,
- 	}
- }
- 
--
- static void ocrdma_process_acqe(struct ocrdma_dev *dev, void *ae_cqe)
- {
- 	/* async CQE processing */
-@@ -825,8 +823,6 @@ static int ocrdma_mq_cq_handler(struct ocrdma_dev *dev, u16 cq_id)
- 			ocrdma_process_acqe(dev, cqe);
- 		else if (cqe->valid_ae_cmpl_cons & OCRDMA_MCQE_CMPL_MASK)
- 			ocrdma_process_mcqe(dev, cqe);
--		else
--			pr_err("%s() cqe->compl is not set.\n", __func__);
- 		memset(cqe, 0, sizeof(struct ocrdma_mcqe));
- 		ocrdma_mcq_inc_tail(dev);
- 	}
-@@ -1050,6 +1046,9 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	attr->max_qp =
- 	    (rsp->qp_srq_cq_ird_ord & OCRDMA_MBX_QUERY_CFG_MAX_QP_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_QP_SHIFT;
-+	attr->max_srq =
-+		(rsp->max_srq_rpir_qps & OCRDMA_MBX_QUERY_CFG_MAX_SRQ_MASK) >>
-+		OCRDMA_MBX_QUERY_CFG_MAX_SRQ_OFFSET;
- 	attr->max_send_sge = ((rsp->max_write_send_sge &
- 			       OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK) >>
- 			      OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT);
-@@ -1065,9 +1064,6 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	attr->max_ord_per_qp = (rsp->max_ird_ord_per_qp &
- 				OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_SHIFT;
--	attr->max_srq =
--		(rsp->max_srq_rpir_qps & OCRDMA_MBX_QUERY_CFG_MAX_SRQ_MASK) >>
--		OCRDMA_MBX_QUERY_CFG_MAX_SRQ_OFFSET;
- 	attr->max_ird_per_qp = (rsp->max_ird_ord_per_qp &
- 				OCRDMA_MBX_QUERY_CFG_MAX_IRD_PER_QP_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_IRD_PER_QP_SHIFT;
-@@ -1411,7 +1407,7 @@ static int ocrdma_build_q_conf(u32 *num_entries, int entry_size,
- 
- static int ocrdma_mbx_create_ah_tbl(struct ocrdma_dev *dev)
- {
--	int i ;
-+	int i;
- 	int status = 0;
- 	int max_ah;
- 	struct ocrdma_create_ah_tbl *cmd;
-@@ -2279,7 +2275,7 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 	memcpy(&cmd->params.dgid[0], &ah_attr->grh.dgid.raw[0],
- 	       sizeof(cmd->params.dgid));
- 	status = ocrdma_query_gid(&qp->dev->ibdev, 1,
--			 ah_attr->grh.sgid_index, &sgid);
-+			ah_attr->grh.sgid_index, &sgid);
- 	if (status)
- 		return status;
- 
-@@ -2668,7 +2664,7 @@ static int ocrdma_create_eqs(struct ocrdma_dev *dev)
- 
- 	for (i = 0; i < num_eq; i++) {
- 		status = ocrdma_create_eq(dev, &dev->eq_tbl[i],
--					  OCRDMA_EQ_LEN);
-+					OCRDMA_EQ_LEN);
- 		if (status) {
- 			status = -EINVAL;
- 			break;
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 2dcd2c9..7901d17 100644
+index 91443bc..f7b1b27 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -488,7 +488,7 @@ static int ocrdma_close(struct ocrdma_dev *dev)
- 		cur_qp = dev->qp_tbl;
- 		for (i = 0; i < OCRDMA_MAX_QP; i++) {
- 			qp = cur_qp[i];
--			if (qp) {
-+			if (qp && qp->ibqp.qp_type != IB_QPT_GSI) {
- 				/* change the QP state to ERROR */
- 				_ocrdma_modify_qp(&qp->ibqp, &attrs, attr_mask);
+@@ -161,7 +161,9 @@ static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
  
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 6e048b7..96c9ee6 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -152,11 +152,10 @@ enum {
- #define OCRDMA_MIN_Q_PAGE_SIZE (4096)
- #define OCRDMA_MAX_Q_PAGES     (8)
- 
--#define OCRDMA_SLI_ASIC_ID_OFFSET      0x9C
--#define OCRDMA_SLI_ASIC_REV_MASK       0x000000FF
--#define OCRDMA_SLI_ASIC_GEN_NUM_MASK   0x0000FF00
--#define OCRDMA_SLI_ASIC_GEN_NUM_SHIFT  0x08
--
-+#define OCRDMA_SLI_ASIC_ID_OFFSET	0x9C
-+#define OCRDMA_SLI_ASIC_REV_MASK	0x000000FF
-+#define OCRDMA_SLI_ASIC_GEN_NUM_MASK	0x0000FF00
-+#define OCRDMA_SLI_ASIC_GEN_NUM_SHIFT	0x08
- /*
- # 0: 4K Bytes
- # 1: 8K Bytes
-@@ -633,7 +632,7 @@ enum {
- 
- enum {
- 	OCRDMA_CREATE_CQ_VER2			= 2,
--	OCRDMA_CREATE_CQ_VER3                   = 3,
-+	OCRDMA_CREATE_CQ_VER3			= 3,
- 
- 	OCRDMA_CREATE_CQ_PAGE_CNT_MASK		= 0xFFFF,
- 	OCRDMA_CREATE_CQ_PAGE_SIZE_SHIFT	= 16,
-@@ -1093,6 +1092,7 @@ enum {
- 	OCRDMA_MODIFY_QP_RSP_MAX_ORD_MASK	= 0xFFFF <<
- 					OCRDMA_MODIFY_QP_RSP_MAX_ORD_SHIFT
- };
-+
- struct ocrdma_modify_qp_rsp {
- 	struct ocrdma_mqe_hdr hdr;
- 	struct ocrdma_mbx_rsp rsp;
-@@ -1105,8 +1105,8 @@ struct ocrdma_query_qp {
- 	struct ocrdma_mqe_hdr hdr;
- 	struct ocrdma_mbx_hdr req;
- 
--#define OCRDMA_QUERY_UP_QP_ID_SHIFT 0
--#define OCRDMA_QUERY_UP_QP_ID_MASK   0xFFFFFF
-+#define OCRDMA_QUERY_UP_QP_ID_SHIFT	0
-+#define OCRDMA_QUERY_UP_QP_ID_MASK	0xFFFFFF
- 	u32 qp_id;
- };
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 1582ecb..7fdd49c 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -53,7 +53,7 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
- 
- 	dev = get_ocrdma_dev(ibdev);
- 	memset(sgid, 0, sizeof(*sgid));
--	if (index >= OCRDMA_MAX_SGID)
-+	if (index > OCRDMA_MAX_SGID)
- 		return -EINVAL;
- 
- 	memcpy(sgid, &dev->sgid_tbl[index], sizeof(*sgid));
-@@ -144,7 +144,6 @@ static inline void get_link_speed_and_width(struct ocrdma_dev *dev,
+ 	rcu_read_lock();
+ 	for_each_netdev_rcu(&init_net, tmp) {
+-		if (netdev == tmp || vlan_dev_real_dev(tmp) == netdev) {
++		if (
++			netdev && (netdev == tmp ||
++				rdma_vlan_dev_real_dev(tmp) == netdev)) {
+ 			if (!netif_running(tmp) || !netif_oper_up(tmp))
+ 				continue;
+ 			if (netdev != tmp) {
+@@ -208,7 +210,7 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+ 	is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
+ 	if (is_vlan) {
+ 		vid = vlan_dev_vlan_id(netdev);
+-		netdev = vlan_dev_real_dev(netdev);
++		netdev = rdma_vlan_dev_real_dev(netdev);
  	}
- }
  
--
- int ocrdma_query_port(struct ib_device *ibdev,
- 		      u8 port, struct ib_port_attr *props)
- {
-@@ -1210,7 +1209,6 @@ static void ocrdma_set_qp_init_params(struct ocrdma_qp *qp,
- 	qp->signaled = (attrs->sq_sig_type == IB_SIGNAL_ALL_WR) ? true : false;
- }
- 
--
- static void ocrdma_store_gsi_qp_cq(struct ocrdma_dev *dev,
- 				   struct ib_qp_init_attr *attrs)
- {
-@@ -1296,17 +1294,6 @@ gen_err:
- 	return ERR_PTR(status);
- }
- 
--
--static void ocrdma_flush_rq_db(struct ocrdma_qp *qp)
--{
--	if (qp->db_cache) {
--		u32 val = qp->rq.dbid | (qp->db_cache <<
--				OCRDMA_DB_RQ_SHIFT);
--		iowrite32(val, qp->rq_db);
--		qp->db_cache = 0;
--	}
--}
--
- int _ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		      int attr_mask)
- {
-@@ -1325,9 +1312,6 @@ int _ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	if (status < 0)
- 		return status;
- 	status = ocrdma_mbx_modify_qp(dev, qp, attr, attr_mask, old_qps);
--	if (!status && attr_mask & IB_QP_STATE && attr->qp_state == IB_QPS_RTR)
--		ocrdma_flush_rq_db(qp);
--
- 	return status;
- }
- 
-@@ -2042,7 +2026,7 @@ static int ocrdma_build_fr(struct ocrdma_qp *qp, struct ocrdma_hdr_wqe *hdr,
- 	fast_reg->num_sges = wr->wr.fast_reg.page_list_len;
- 	fast_reg->size_sge =
- 		get_encoded_page_size(1 << wr->wr.fast_reg.page_shift);
--	mr = (struct ocrdma_mr *) (unsigned long) qp->dev->stag_arr[(hdr->lkey >> 8) &
-+	mr = (struct ocrdma_mr *)qp->dev->stag_arr[(hdr->lkey >> 8) &
- 		(OCRDMA_MAX_STAG - 1)];
- 	build_frmr_pbes(wr, mr->hwmr.pbl_table, &mr->hwmr);
- 	return 0;
-@@ -2877,7 +2861,7 @@ struct ib_mr *ocrdma_alloc_frmr(struct ib_pd *ibpd, int max_page_list_len)
- 		goto mbx_err;
- 	mr->ibmr.rkey = mr->hwmr.lkey;
- 	mr->ibmr.lkey = mr->hwmr.lkey;
--	dev->stag_arr[(mr->hwmr.lkey >> 8) & (OCRDMA_MAX_STAG - 1)] = mr;
-+	dev->stag_arr[(mr->hwmr.lkey >> 8) & (OCRDMA_MAX_STAG - 1)] = (u64)mr;
- 	return &mr->ibmr;
- mbx_err:
- 	ocrdma_free_mr_pbl_tbl(dev, &mr->hwmr);
+ 	rcu_read_lock();
 -- 
 1.7.1
 
