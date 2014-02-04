@@ -1,49 +1,56 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_qos.c: Fix possible seg fault
-Date: Tue, 04 Feb 2014 09:56:36 -0500
-Message-ID: <52F0FFA4.6000807@dev.mellanox.co.il>
+From: "Hebenstreit, Michael" <michael.hebenstreit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: problems with offloading checksums
+Date: Tue, 4 Feb 2014 16:20:27 +0000
+Message-ID: <B4E6F7EB08816A4692C7420D7E8F8CBD866FCB99@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jens Domke <domke.j.aa@m.titech.ac.jp>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hardware: Intel EP server with 2x "Intel(R) Xeon(R) CPU E5-2697 v2 @ 2.=
+70GHz"
+IB cards: =A0QLogic Corp. IBA7322 QDR InfiniBand HCA (rev 02) , Mellano=
+x Technologies MT27500 Family [ConnectX-3]
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+OS: Redhat 6.4, kernel updated to latest RH supplied kernel via KSplice=
+ technology
+InfiniBand Software: tried IntelIB-IFS.RHEL6-x86_64.7.2.1.1.22 (based o=
+n OFED 1.5.4.1) or OFED-3.5-MIC-alpha1
 
-Pointed-out-by: Jens Domke <domke.j.aa@m.titech.ac.jp>
-Introduced by commit 1633550020087f3296dbc2f7b1dd533cd83a6398
+Problem - offloading checksumming does not work, although the Kernel do=
+cumentation indicates it does
 
-If force_update is set, p_tbl isn't initialized
+       [root@eha001 ~]# ethtool -K ib0 tx on
+       Cannot set device tx-checksumming settings: Operation not suppor=
+ted
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_qos.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+IPoIB connected mode is switched of:
 
-diff --git a/opensm/osm_qos.c b/opensm/osm_qos.c
-index f55a509..b174f66 100644
---- a/opensm/osm_qos.c
-+++ b/opensm/osm_qos.c
-@@ -248,8 +248,9 @@ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
- 		tbl.raw_vl_by_sl[i] = (vl1 << 4) | vl2;
- 	}
- 
--	if (!force_update && (p_tbl = osm_physp_get_slvl_tbl(p, in_port)) &&
--	    !memcmp(p_tbl, &tbl, sizeof(tbl)))
-+	p_tbl = osm_physp_get_slvl_tbl(p, in_port);
-+
-+	if (!force_update && !memcmp(p_tbl, &tbl, sizeof(tbl)))
- 		return IB_SUCCESS;
- 
- 	p_mad = osm_qos_mad_create(sm, p, sizeof(tbl), (uint8_t *) & tbl,
--- 
-1.7.8.2
+       SET_IPOIB_CM=3Dno
+
+This problem exists on both Mellanox/Qlogic cards with either SW stack =
+mentioned. Could anyone advise on this problem?
+
+Thanks
+Michael
+
+-----------------------------------------------------------------------=
+-
+Michael Hebenstreit=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Sen=
+ior Cluster Architect
+Intel Corporation, MS: RR1-105/H14=A0 Software and Services Group/DCE
+4100 Sara Road=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=
+=A0 Tel.:=A0=A0 +1 505-794-3144=20
+Rio Rancho, NM 87124
+UNITED STATES=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0 E-mail: michael.hebenstreit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
