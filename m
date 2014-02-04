@@ -1,143 +1,59 @@
-From: Jens Domke <domke.j.aa@m.titech.ac.jp>
-Subject: Re: [PATCH 5/5] opensm: Resend LFTs/VLArb/SL2VL MADs in case of error
-Date: Tue, 04 Feb 2014 14:54:38 +0900
-Message-ID: <52F0809E.5020306@m.titech.ac.jp>
-References: <1391425516-14462-1-git-send-email-alexne@mellanox.com> <1391425516-14462-5-git-send-email-alexne@mellanox.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 00/17] ocrdma driver code sync-up
+Date: Tue, 4 Feb 2014 11:56:53 +0530
+Message-ID: <efde0f4e-f596-4817-a356-e38b76f0c8b8@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010204090805070205020502"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391425516-14462-5-git-send-email-alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, selvin.xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010204090805070205020502
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+This patch series contains bug fixes ocrdma driver. Also
+added routines for retrieving controller information
+and statistics from the hardware.
 
-Dear Alex,
+Please apply the patch series to for-next tree.
 
-the memset call in sl2vl_update_table causes segmentation faults if 
-force_update=1, since p_tbl won't get anything assigned and remains NULL.
-Please, find a possible fix attached.
+Devesh Sharma (9):
+  RDMA/ocrdma: Eq full catastrophe avoidance
+  RDMA/ocrdma: SQ and RQ doorbell offset clean up
+  RDMA/ocrdma: read ASIC_ID register to select asic_gen
+  RDMA/ocrdma: Allow DPP QP creation
+  RDMA/ocrdma: ABI versioning between ocrdma and be2net
+  be2net: adding abi version between be2net and ocrdma
+  RDMA/ocrdma: update version string
+  RDMA/ocrdma: increment abi version count
+  RDMA/ocrdma: code clean-up
 
-Regards,
-Jens
+Selvin Xavier (8):
+  RDMA/ocrdma: Memory leak fix in ocrdma_dereg_mr
+  RDMA/ocrdma: Use non zero tag in SRQ posting
+  RDMA/ocrdma: Display proper value for max_mw
+  RDMA/ocrdma: Handle CQ overrun error
+  RDMA/ocrdma: Support non-embedded mailbox commands
+  RDMA/ocrdma: Query controller information
+  RDMA/ocrdma: Support for Skyhawk statistics
+  RDMA/ocrdma: Display fw version
 
-On 03.02.14 20:05, Alex Netes wrote:
-> There are several MADs that we only SET during the sweep (and never
-> GET).
-> Zero the stored block, so in case the MAD will end up with error,
-> we will resend it during the next sweep.
->
-> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   opensm/osm_qos.c       |   13 +++++++++++++
->   opensm/osm_ucast_mgr.c |    7 +++++++
->   2 files changed, 20 insertions(+), 0 deletions(-)
->
-> diff --git a/opensm/osm_qos.c b/opensm/osm_qos.c
-> index a301803..473e3c8 100644
-> --- a/opensm/osm_qos.c
-> +++ b/opensm/osm_qos.c
-> @@ -183,6 +183,13 @@ static ib_api_status_t vlarb_update_table_block(osm_sm_t * sm,
->   	if (!p_mad)
->   		return IB_INSUFFICIENT_MEMORY;
->
-> +	/*
-> +	 * Zero the stored VL Arbitration block, so in case the MAD will
-> +	 * end up with error, we will resend it in the next sweep.
-> +	 */
-> +	memset(&p->vl_arb[block_num], 0,
-> +	       block_length * sizeof(block.vl_entry[0]));
-> +
->   	cl_qlist_insert_tail(mad_list, &p_mad->list_item);
->
->   	return IB_SUCCESS;
-> @@ -272,6 +279,12 @@ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
->   	if (!p_mad)
->   		return IB_INSUFFICIENT_MEMORY;
->
-> +	/*
-> +	 * Zero the stored SL2VL block, so in case the MAD will
-> +	 * end up with error, we will resend it in the next sweep.
-> +	 */
-> +	memset(p_tbl, 0, sizeof(tbl));
-> +
->   	cl_qlist_insert_tail(mad_list, &p_mad->list_item);
->   	return IB_SUCCESS;
->   }
-> diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
-> index 8194307..c8a7360 100644
-> --- a/opensm/osm_ucast_mgr.c
-> +++ b/opensm/osm_ucast_mgr.c
-> @@ -1002,6 +1002,13 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
->   		    IB_SMP_DATA_SIZE))
->   		return 0;
->
-> +	/*
-> +	 * Zero the stored LFT block, so in case the MAD will end up
-> +	 * with error, we will resend it in the next sweep.
-> +	 */
-> +	memset(p_sw->lft + block_id_ho * IB_SMP_DATA_SIZE, OSM_NO_PATH,
-> +	       IB_SMP_DATA_SIZE);
-> +
->   	OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
->   		"Writing FT block %u to switch 0x%" PRIx64 "\n", block_id_ho,
->   		cl_ntoh64(context.lft_context.node_guid));
->
+ drivers/infiniband/hw/ocrdma/Makefile       |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |  110 ++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |    7 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  291 ++++++++++---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |    3 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   65 +++-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  261 +++++++++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  623 +++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.h |   54 +++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  163 ++++---
+ drivers/net/ethernet/emulex/benet/be_roce.c |    6 +
+ drivers/net/ethernet/emulex/benet/be_roce.h |    3 +
+ 13 files changed, 1434 insertions(+), 156 deletions(-)
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_stats.h
 
---------------010204090805070205020502
-Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
- name="0001-osm_qos.c-fix-potential-segmentation-fault.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-osm_qos.c-fix-potential-segmentation-fault.patch"
-
->From 3cbe8f10c4ab7d83c5898b67e42d9e99be355c05 Mon Sep 17 00:00:00 2001
-From: Jens Domke <domke.j.aa@m.titech.ac.jp>
-Date: Tue, 4 Feb 2014 14:47:44 +0900
-Subject: [PATCH 1/1] osm_qos.c: fix potential segmentation fault
-
-if force_update=1, then p_tbl remains NULL and therefore memset
-crashes
-
-Signed-off-by: Jens Domke <domke.j.aa@m.titech.ac.jp>
----
- opensm/osm_qos.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/opensm/osm_qos.c b/opensm/osm_qos.c
-index 473e3c8..76f0ff6 100644
---- a/opensm/osm_qos.c
-+++ b/opensm/osm_qos.c
-@@ -252,7 +252,7 @@ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
- 					  const ib_slvl_table_t * sl2vl_table,
- 					  cl_qlist_t *mad_list)
- {
--	ib_slvl_table_t tbl, *p_tbl;
-+	ib_slvl_table_t tbl, *p_tbl = NULL;
- 	unsigned vl_mask;
- 	uint8_t vl1, vl2;
- 	int i;
-@@ -283,7 +283,8 @@ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
- 	 * Zero the stored SL2VL block, so in case the MAD will
- 	 * end up with error, we will resend it in the next sweep.
- 	 */
--	memset(p_tbl, 0, sizeof(tbl));
-+	if (p_tbl)
-+		memset(p_tbl, 0, sizeof(tbl));
- 
- 	cl_qlist_insert_tail(mad_list, &p_mad->list_item);
- 	return IB_SUCCESS;
--- 
-1.7.1
-
-
---------------010204090805070205020502--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
