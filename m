@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 10/17] RDMA/ocrdma: Use non zero tag in SRQ posting
-Date: Tue, 4 Feb 2014 11:57:03 +0530
-Message-ID: <1ca3afeb-0c8b-492b-a510-e00f0351c5c6@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH for-next 06/17] be2net: adding abi version between be2net and ocrdma
+Date: Tue, 4 Feb 2014 11:56:59 +0530
+Message-ID: <425fa100-debb-4e7e-8e2c-cc8b290055f4@CMEXHTCAS2.ad.emulex.com>
 References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,94 +9,58 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1391495230-28021-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, selvin.xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, selvin.xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+This patch adds abi versioning between be2net and ocrdma
+driver modules. This is to catch the functional incompatibilities
+in the two drivers.
 
-As part of SRQ receive buffers posting we populate a non-zero tag
-which will be returned in SRQ receive completions.
-
-Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   28 +++++++++++++++++---------
- 1 files changed, 18 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/emulex/benet/be_roce.c |    6 ++++++
+ drivers/net/ethernet/emulex/benet/be_roce.h |    3 +++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 96d1e85..811f660 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1538,7 +1538,7 @@ static void ocrdma_discard_cqes(struct ocrdma_qp *qp, struct ocrdma_cq *cq)
- 	int discard_cnt = 0;
- 	u32 cur_getp, stop_getp;
- 	struct ocrdma_cqe *cqe;
--	u32 qpn = 0;
-+	u32 qpn = 0, wqe_idx = 0;
+diff --git a/drivers/net/ethernet/emulex/benet/be_roce.c b/drivers/net/ethernet/emulex/benet/be_roce.c
+index 9cd5415..aa7f943 100644
+--- a/drivers/net/ethernet/emulex/benet/be_roce.c
++++ b/drivers/net/ethernet/emulex/benet/be_roce.c
+@@ -35,6 +35,12 @@ static void _be_roce_dev_add(struct be_adapter *adapter)
  
- 	spin_lock_irqsave(&cq->cq_lock, cq_flags);
- 
-@@ -1567,24 +1567,29 @@ static void ocrdma_discard_cqes(struct ocrdma_qp *qp, struct ocrdma_cq *cq)
- 		if (qpn == 0 || qpn != qp->id)
- 			goto skip_cqe;
- 
--		/* mark cqe discarded so that it is not picked up later
--		 * in the poll_cq().
--		 */
--		discard_cnt += 1;
--		cqe->cmn.qpn = 0;
- 		if (is_cqe_for_sq(cqe)) {
- 			ocrdma_hwq_inc_tail(&qp->sq);
- 		} else {
- 			if (qp->srq) {
-+				wqe_idx = (le32_to_cpu(cqe->rq.buftag_qpn) >>
-+					OCRDMA_CQE_BUFTAG_SHIFT) &
-+					qp->srq->rq.max_wqe_idx;
-+				if (wqe_idx < 1)
-+					BUG();
- 				spin_lock_irqsave(&qp->srq->q_lock, flags);
- 				ocrdma_hwq_inc_tail(&qp->srq->rq);
--				ocrdma_srq_toggle_bit(qp->srq, cur_getp);
-+				ocrdma_srq_toggle_bit(qp->srq, wqe_idx - 1);
- 				spin_unlock_irqrestore(&qp->srq->q_lock, flags);
- 
- 			} else {
- 				ocrdma_hwq_inc_tail(&qp->rq);
- 			}
- 		}
-+		/* mark cqe discarded so that it is not picked up later
-+		 * in the poll_cq().
-+		 */
-+		discard_cnt += 1;
-+		cqe->cmn.qpn = 0;
- skip_cqe:
- 		cur_getp = (cur_getp + 1) % cq->max_hw_cqe;
- 	} while (cur_getp != stop_getp);
-@@ -2238,7 +2243,7 @@ static int ocrdma_srq_get_idx(struct ocrdma_srq *srq)
- 
- 	if (row == srq->bit_fields_len)
- 		BUG();
--	return indx;
-+	return indx + 1; /* Use from index 1 */
- }
- 
- static void ocrdma_ring_srq_db(struct ocrdma_srq *srq)
-@@ -2575,10 +2580,13 @@ static void ocrdma_update_free_srq_cqe(struct ib_wc *ibwc,
- 
- 	srq = get_ocrdma_srq(qp->ibqp.srq);
- 	wqe_idx = (le32_to_cpu(cqe->rq.buftag_qpn) >>
--			OCRDMA_CQE_BUFTAG_SHIFT) & srq->rq.max_wqe_idx;
-+		OCRDMA_CQE_BUFTAG_SHIFT) & srq->rq.max_wqe_idx;
-+	if (wqe_idx < 1)
-+		BUG();
+ 	if (!ocrdma_drv)
+ 		return;
 +
- 	ibwc->wr_id = srq->rqe_wr_id_tbl[wqe_idx];
- 	spin_lock_irqsave(&srq->q_lock, flags);
--	ocrdma_srq_toggle_bit(srq, wqe_idx);
-+	ocrdma_srq_toggle_bit(srq, wqe_idx - 1);
- 	spin_unlock_irqrestore(&srq->q_lock, flags);
- 	ocrdma_hwq_inc_tail(&srq->rq);
- }
++	if (ocrdma_drv->be_abi_version != BE_ROCE_ABI_VERSION) {
++		dev_warn(&pdev->dev, "Cannot initialize RoCE due to ocrdma ABI mismatch\n");
++		return;
++	}
++
+ 	if (pdev->device == OC_DEVICE_ID5) {
+ 		/* only msix is supported on these devices */
+ 		if (!msix_enabled(adapter))
+diff --git a/drivers/net/ethernet/emulex/benet/be_roce.h b/drivers/net/ethernet/emulex/benet/be_roce.h
+index 2cd1129..1bfb161 100644
+--- a/drivers/net/ethernet/emulex/benet/be_roce.h
++++ b/drivers/net/ethernet/emulex/benet/be_roce.h
+@@ -21,6 +21,8 @@
+ #include <linux/pci.h>
+ #include <linux/netdevice.h>
+ 
++#define BE_ROCE_ABI_VERSION	1
++
+ struct ocrdma_dev;
+ 
+ enum be_interrupt_mode {
+@@ -52,6 +54,7 @@ struct be_dev_info {
+ /* ocrdma driver register's the callback functions with nic driver. */
+ struct ocrdma_driver {
+ 	unsigned char name[32];
++	u32 be_abi_version;
+ 	struct ocrdma_dev *(*add) (struct be_dev_info *dev_info);
+ 	void (*remove) (struct ocrdma_dev *);
+ 	void (*state_change_handler) (struct ocrdma_dev *, u32 new_state);
 -- 
 1.7.1
 
