@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 12/17] RDMA/ocrdma: Handle CQ overrun error
-Date: Tue, 4 Feb 2014 11:57:05 +0530
-Message-ID: <69264470-f4d5-4ecd-8c04-d987e452693e@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH for-next 10/17] RDMA/ocrdma: Use non zero tag in SRQ posting
+Date: Tue, 4 Feb 2014 11:57:03 +0530
+Message-ID: <1ca3afeb-0c8b-492b-a510-e00f0351c5c6@CMEXHTCAS2.ad.emulex.com>
 References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,44 +14,89 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Update the variables to handle CQ overrun errors
+As part of SRQ receive buffers posting we populate a non-zero tag
+which will be returned in SRQ receive completions.
 
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   28 +++++++++++++++++---------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 2ed6aa1..6a36476 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -640,7 +640,7 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
- {
- 	struct ocrdma_qp *qp = NULL;
- 	struct ocrdma_cq *cq = NULL;
--	struct ib_event ib_evt;
-+	struct ib_event ib_evt = { 0 };
- 	int cq_event = 0;
- 	int qp_event = 1;
- 	int srq_event = 0;
-@@ -665,6 +665,8 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
- 	case OCRDMA_CQ_OVERRUN_ERROR:
- 		ib_evt.element.cq = &cq->ibcq;
- 		ib_evt.event = IB_EVENT_CQ_ERR;
-+		cq_event = 1;
-+		qp_event = 0;
- 		break;
- 	case OCRDMA_CQ_QPCAT_ERROR:
- 		ib_evt.element.qp = &qp->ibqp;
-@@ -726,6 +728,7 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
- 						     qp->srq->ibsrq.
- 						     srq_context);
- 	} else if (dev_event) {
-+		pr_err("%s: Fatal event received\n", dev->ibdev.name);
- 		ib_dispatch_event(&ib_evt);
- 	}
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 96d1e85..811f660 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1538,7 +1538,7 @@ static void ocrdma_discard_cqes(struct ocrdma_qp *qp, struct ocrdma_cq *cq)
+ 	int discard_cnt = 0;
+ 	u32 cur_getp, stop_getp;
+ 	struct ocrdma_cqe *cqe;
+-	u32 qpn = 0;
++	u32 qpn = 0, wqe_idx = 0;
  
+ 	spin_lock_irqsave(&cq->cq_lock, cq_flags);
+ 
+@@ -1567,24 +1567,29 @@ static void ocrdma_discard_cqes(struct ocrdma_qp *qp, struct ocrdma_cq *cq)
+ 		if (qpn == 0 || qpn != qp->id)
+ 			goto skip_cqe;
+ 
+-		/* mark cqe discarded so that it is not picked up later
+-		 * in the poll_cq().
+-		 */
+-		discard_cnt += 1;
+-		cqe->cmn.qpn = 0;
+ 		if (is_cqe_for_sq(cqe)) {
+ 			ocrdma_hwq_inc_tail(&qp->sq);
+ 		} else {
+ 			if (qp->srq) {
++				wqe_idx = (le32_to_cpu(cqe->rq.buftag_qpn) >>
++					OCRDMA_CQE_BUFTAG_SHIFT) &
++					qp->srq->rq.max_wqe_idx;
++				if (wqe_idx < 1)
++					BUG();
+ 				spin_lock_irqsave(&qp->srq->q_lock, flags);
+ 				ocrdma_hwq_inc_tail(&qp->srq->rq);
+-				ocrdma_srq_toggle_bit(qp->srq, cur_getp);
++				ocrdma_srq_toggle_bit(qp->srq, wqe_idx - 1);
+ 				spin_unlock_irqrestore(&qp->srq->q_lock, flags);
+ 
+ 			} else {
+ 				ocrdma_hwq_inc_tail(&qp->rq);
+ 			}
+ 		}
++		/* mark cqe discarded so that it is not picked up later
++		 * in the poll_cq().
++		 */
++		discard_cnt += 1;
++		cqe->cmn.qpn = 0;
+ skip_cqe:
+ 		cur_getp = (cur_getp + 1) % cq->max_hw_cqe;
+ 	} while (cur_getp != stop_getp);
+@@ -2238,7 +2243,7 @@ static int ocrdma_srq_get_idx(struct ocrdma_srq *srq)
+ 
+ 	if (row == srq->bit_fields_len)
+ 		BUG();
+-	return indx;
++	return indx + 1; /* Use from index 1 */
+ }
+ 
+ static void ocrdma_ring_srq_db(struct ocrdma_srq *srq)
+@@ -2575,10 +2580,13 @@ static void ocrdma_update_free_srq_cqe(struct ib_wc *ibwc,
+ 
+ 	srq = get_ocrdma_srq(qp->ibqp.srq);
+ 	wqe_idx = (le32_to_cpu(cqe->rq.buftag_qpn) >>
+-			OCRDMA_CQE_BUFTAG_SHIFT) & srq->rq.max_wqe_idx;
++		OCRDMA_CQE_BUFTAG_SHIFT) & srq->rq.max_wqe_idx;
++	if (wqe_idx < 1)
++		BUG();
++
+ 	ibwc->wr_id = srq->rqe_wr_id_tbl[wqe_idx];
+ 	spin_lock_irqsave(&srq->q_lock, flags);
+-	ocrdma_srq_toggle_bit(srq, wqe_idx);
++	ocrdma_srq_toggle_bit(srq, wqe_idx - 1);
+ 	spin_unlock_irqrestore(&srq->q_lock, flags);
+ 	ocrdma_hwq_inc_tail(&srq->rq);
+ }
 -- 
 1.7.1
 
