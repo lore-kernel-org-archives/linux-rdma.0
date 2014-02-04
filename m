@@ -1,24 +1,36 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: librdmacm 1.0.18  + more
-Date: Tue, 4 Feb 2014 09:53:45 +0200
-Message-ID: <52F09C89.3070509@mellanox.com>
-References: <52EDE0FB.5090208@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388D185E9@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jens Domke <domke.j.aa@m.titech.ac.jp>
+Subject: [PATCH 1/1] OpenSM: osm_ucast_dfsssp.c - prevent double free error
+Date: Tue,  4 Feb 2014 21:18:46 +0900
+Message-ID: <1391516326-11399-1-git-send-email-domke.j.aa@m.titech.ac.jp>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D185E9-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/02/2014 21:12, Hefty, Sean wrote:
->> I just noted you've tagged librdmacm  1.0.18 last week, but there was no
->> >"announce" email, was it just forgotten or something is stillmissing there?
-> I was waiting for a note from Vlad that he had pulled it into OFED, and that it was working fine.
->   
-and... do we have this clearance note from the EWG for librdmacm 1.0.18?
+an error in the routing execution can cause a second
+free() call on sw_list, which results in a 'double free' error
+
+Signed-off-by: Jens Domke <domke.j.aa@m.titech.ac.jp>
+---
+ opensm/osm_ucast_dfsssp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/opensm/osm_ucast_dfsssp.c b/opensm/osm_ucast_dfsssp.c
+index 5eaff3d..ec69df0 100644
+--- a/opensm/osm_ucast_dfsssp.c
++++ b/opensm/osm_ucast_dfsssp.c
+@@ -2382,6 +2382,7 @@ static int dfsssp_do_dijkstra_routing(void *context)
+ 
+ 	/* the intermediate array lived long enough */
+ 	free(sw_list);
++	sw_list = NULL;
+ 	/* same is true for the compute node and I/O guid map */
+ 	destroy_guid_map(&cn_tbl);
+ 	cn_nodes_provided = FALSE;
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
