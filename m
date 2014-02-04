@@ -1,50 +1,24 @@
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH master] RDMA/ocrdma: Fix load time panic during GID table init
-Date: Tue, 4 Feb 2014 12:10:48 +0530
-Message-ID: <bc0e7e5d-45c2-453f-ba7c-c81a1b1d1d94@CMEXHTCAS2.ad.emulex.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: librdmacm 1.0.18  + more
+Date: Tue, 4 Feb 2014 09:53:45 +0200
+Message-ID: <52F09C89.3070509@mellanox.com>
+References: <52EDE0FB.5090208@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388D185E9@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D185E9-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, selvin.xavier-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-driver should use rdma_vlan_dev_real_dev() instead of using vlan_dev_real_dev()
-while building GID table for a vlan interface.
-
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 91443bc..f7b1b27 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -161,7 +161,9 @@ static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
- 
- 	rcu_read_lock();
- 	for_each_netdev_rcu(&init_net, tmp) {
--		if (netdev == tmp || vlan_dev_real_dev(tmp) == netdev) {
-+		if (
-+			netdev && (netdev == tmp ||
-+				rdma_vlan_dev_real_dev(tmp) == netdev)) {
- 			if (!netif_running(tmp) || !netif_oper_up(tmp))
- 				continue;
- 			if (netdev != tmp) {
-@@ -208,7 +210,7 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
- 	is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
- 	if (is_vlan) {
- 		vid = vlan_dev_vlan_id(netdev);
--		netdev = vlan_dev_real_dev(netdev);
-+		netdev = rdma_vlan_dev_real_dev(netdev);
- 	}
- 
- 	rcu_read_lock();
--- 
-1.7.1
-
+On 03/02/2014 21:12, Hefty, Sean wrote:
+>> I just noted you've tagged librdmacm  1.0.18 last week, but there was no
+>> >"announce" email, was it just forgotten or something is stillmissing there?
+> I was waiting for a note from Vlad that he had pulled it into OFED, and that it was working fine.
+>   
+and... do we have this clearance note from the EWG for librdmacm 1.0.18?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
