@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 11/17] RDMA/ocrdma: Display proper value for max_mw
-Date: Tue, 4 Feb 2014 11:57:04 +0530
-Message-ID: <bdba0093-b754-4f29-a03f-f4f50d1789eb@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH for-next 14/17] RDMA/ocrdma: Query controller information
+Date: Tue, 4 Feb 2014 11:57:07 +0530
+Message-ID: <c7192ac6-c1c8-453f-95dc-a815f9937ff0@CMEXHTCAS2.ad.emulex.com>
 References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,53 +14,373 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Fixing the max_mw value
+Issue mailbox commands to query ocrdma controller
+information and phy information and print them
+while adding ocrdma device.
 
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    1 +
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
- 3 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h      |   33 +++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c   |  106 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.h   |    1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |    6 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h  |   81 +++++++++++++++++++++-
+ 5 files changed, 226 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 00b3a29..4ea8496 100644
+index 4ea8496..885ac2e 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -67,6 +67,7 @@ struct ocrdma_dev_attr {
- 	int max_mr;
- 	u64 max_mr_size;
- 	u32 max_num_mr_pbl;
-+	int max_mw;
- 	int max_fmr;
- 	int max_map_per_fmr;
- 	int max_pages_per_frmr;
+@@ -44,6 +44,11 @@
+ #define OCRDMA_ROCE_DRV_DESC "Emulex OneConnect RoCE Driver"
+ #define OCRDMA_NODE_DESC "Emulex OneConnect RoCE HCA"
+ 
++#define OC_NAME_SH	OCRDMA_NODE_DESC "(Skyhawk)"
++#define OC_NAME_UNKNOWN OCRDMA_NODE_DESC "(Unknown)"
++
++#define OC_SKH_DEVICE_PF 0x720
++#define OC_SKH_DEVICE_VF 0x728
+ #define OCRDMA_MAX_AH 512
+ 
+ #define OCRDMA_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
+@@ -86,6 +91,12 @@ struct ocrdma_dev_attr {
+ 	u8 num_ird_pages;
+ };
+ 
++struct ocrdma_dma_mem {
++	void *va;
++	dma_addr_t pa;
++	u32 size;
++};
++
+ struct ocrdma_pbl {
+ 	void *va;
+ 	dma_addr_t pa;
+@@ -151,6 +162,14 @@ struct ocrdma_mr {
+ 	struct ocrdma_hw_mr hwmr;
+ };
+ 
++
++struct phy_info {
++	u16 auto_speeds_supported;
++	u16 fixed_speeds_supported;
++	u16 phy_type;
++	u16 interface_type;
++};
++
+ struct ocrdma_dev {
+ 	struct ib_device ibdev;
+ 	struct ocrdma_dev_attr attr;
+@@ -194,6 +213,9 @@ struct ocrdma_dev {
+ 	struct mqe_ctx mqe_ctx;
+ 
+ 	struct be_dev_info nic_info;
++	struct phy_info phy;
++	char model_number[32];
++	u32 hba_port_num;
+ 
+ 	struct list_head entry;
+ 	struct rcu_head rcu;
+@@ -434,6 +456,17 @@ static inline int ocrdma_resolve_dmac(struct ocrdma_dev *dev,
+ 	return 0;
+ }
+ 
++static inline char *hca_name(struct ocrdma_dev *dev)
++{
++	switch (dev->nic_info.pdev->device) {
++	case OC_SKH_DEVICE_PF:
++	case OC_SKH_DEVICE_VF:
++		return OC_NAME_SH;
++	default:
++		return OC_NAME_UNKNOWN;
++	}
++}
++
+ static inline int ocrdma_get_eq_table_index(struct ocrdma_dev *dev,
+ 		int eqid)
+ {
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index c25445d..2ed6aa1 100644
+index 7ca83eb..7c467b6 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1016,6 +1016,7 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	attr->local_ca_ack_delay = (rsp->max_pd_ca_ack_delay &
- 				    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT;
-+	attr->max_mw = rsp->max_mw;
- 	attr->max_mr = rsp->max_mr;
- 	attr->max_mr_size = ~0ull;
- 	attr->max_fmr = 0;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 811f660..1582ecb 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -89,7 +89,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
- 	attr->max_cq = dev->attr.max_cq;
- 	attr->max_cqe = dev->attr.max_cqe;
- 	attr->max_mr = dev->attr.max_mr;
--	attr->max_mw = 0;
-+	attr->max_mw = dev->attr.max_mw;
- 	attr->max_pd = dev->attr.max_pd;
- 	attr->atomic_cap = 0;
- 	attr->max_fmr = 0;
+@@ -243,6 +243,23 @@ static int ocrdma_get_mbx_errno(u32 status)
+ 	return err_num;
+ }
+ 
++char *port_speed_string(struct ocrdma_dev *dev)
++{
++	char *str = "";
++	u16 speeds_supported;
++
++	speeds_supported = dev->phy.fixed_speeds_supported |
++				dev->phy.auto_speeds_supported;
++	if (speeds_supported & OCRDMA_PHY_SPEED_40GBPS)
++		str = "40Gbps ";
++	else if (speeds_supported & OCRDMA_PHY_SPEED_10GBPS)
++		str = "10Gbps ";
++	else if (speeds_supported & OCRDMA_PHY_SPEED_1GBPS)
++		str = "1Gbps ";
++
++	return str;
++}
++
+ static int ocrdma_get_mbx_cqe_errno(u16 cqe_status)
+ {
+ 	int err_num = -EINVAL;
+@@ -332,6 +349,11 @@ static void *ocrdma_init_emb_mqe(u8 opcode, u32 cmd_len)
+ 	return mqe;
+ }
+ 
++static void *ocrdma_alloc_mqe(void)
++{
++	return kzalloc(sizeof(struct ocrdma_mqe), GFP_KERNEL);
++}
++
+ static void ocrdma_free_q(struct ocrdma_dev *dev, struct ocrdma_queue_info *q)
+ {
+ 	dma_free_coherent(&dev->nic_info.pdev->dev, q->size, q->va, q->dma);
+@@ -1154,6 +1176,54 @@ mbx_err:
+ 	return status;
+ }
+ 
++int ocrdma_mbx_get_ctrl_attribs(struct ocrdma_dev *dev)
++{
++	int status = -ENOMEM;
++	struct ocrdma_dma_mem dma;
++	struct ocrdma_mqe *mqe;
++	struct ocrdma_get_ctrl_attribs_rsp *ctrl_attr_rsp;
++	struct mgmt_hba_attribs *hba_attribs;
++
++	mqe = ocrdma_alloc_mqe();
++	if (!mqe)
++		return status;
++	memset(mqe, 0, sizeof(*mqe));
++
++	dma.size = sizeof(struct ocrdma_get_ctrl_attribs_rsp);
++	dma.va	 = dma_alloc_coherent(&dev->nic_info.pdev->dev,
++					dma.size, &dma.pa, GFP_KERNEL);
++	if (!dma.va)
++		goto free_mqe;
++
++	mqe->hdr.pyld_len = dma.size;
++	mqe->hdr.spcl_sge_cnt_emb |=
++			(1 << OCRDMA_MQE_HDR_SGE_CNT_SHIFT) &
++			OCRDMA_MQE_HDR_SGE_CNT_MASK;
++	mqe->u.nonemb_req.sge[0].pa_lo = (u32) (dma.pa & 0xffffffff);
++	mqe->u.nonemb_req.sge[0].pa_hi = (u32) upper_32_bits(dma.pa);
++	mqe->u.nonemb_req.sge[0].len = dma.size;
++
++	memset(dma.va, 0, dma.size);
++	ocrdma_init_mch((struct ocrdma_mbx_hdr *)dma.va,
++			OCRDMA_CMD_GET_CTRL_ATTRIBUTES,
++			OCRDMA_SUBSYS_COMMON,
++			dma.size);
++
++	status = ocrdma_nonemb_mbx_cmd(dev, mqe, dma.va);
++	if (!status) {
++		ctrl_attr_rsp = (struct ocrdma_get_ctrl_attribs_rsp *)dma.va;
++		hba_attribs = &ctrl_attr_rsp->ctrl_attribs.hba_attribs;
++
++		dev->hba_port_num = hba_attribs->phy_port;
++		strncpy(dev->model_number,
++			hba_attribs->controller_model_number, 31);
++	}
++	dma_free_coherent(&dev->nic_info.pdev->dev, dma.size, dma.va, dma.pa);
++free_mqe:
++	kfree(mqe);
++	return status;
++}
++
+ static int ocrdma_mbx_query_dev(struct ocrdma_dev *dev)
+ {
+ 	int status = -ENOMEM;
+@@ -1201,6 +1271,35 @@ mbx_err:
+ 	return status;
+ }
+ 
++int ocrdma_mbx_get_phy_info(struct ocrdma_dev *dev)
++{
++	int status = -ENOMEM;
++	struct ocrdma_mqe *cmd;
++	struct ocrdma_get_phy_info_rsp *rsp;
++
++	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_PHY_DETAILS, sizeof(*cmd));
++	if (!cmd)
++		return status;
++
++	ocrdma_init_mch((struct ocrdma_mbx_hdr *)&cmd->u.cmd[0],
++			OCRDMA_CMD_PHY_DETAILS, OCRDMA_SUBSYS_COMMON,
++			sizeof(*cmd));
++
++	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
++	if (status)
++		goto mbx_err;
++
++	rsp = (struct ocrdma_get_phy_info_rsp *)cmd;
++	dev->phy.phy_type = le16_to_cpu(rsp->phy_type);
++	dev->phy.auto_speeds_supported  =
++			le16_to_cpu(rsp->auto_speeds_supported);
++	dev->phy.fixed_speeds_supported =
++			le16_to_cpu(rsp->fixed_speeds_supported);
++mbx_err:
++	kfree(cmd);
++	return status;
++}
++
+ int ocrdma_mbx_alloc_pd(struct ocrdma_dev *dev, struct ocrdma_pd *pd)
+ {
+ 	int status = -ENOMEM;
+@@ -2572,6 +2671,13 @@ int ocrdma_init_hw(struct ocrdma_dev *dev)
+ 	status = ocrdma_mbx_create_ah_tbl(dev);
+ 	if (status)
+ 		goto conf_err;
++	status = ocrdma_mbx_get_phy_info(dev);
++	if (status)
++		goto conf_err;
++	status = ocrdma_mbx_get_ctrl_attribs(dev);
++	if (status)
++		goto conf_err;
++
+ 	return 0;
+ 
+ conf_err:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
+index 4ceaca1..c6561b7 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
+@@ -134,4 +134,5 @@ bool ocrdma_is_qp_in_rq_flushlist(struct ocrdma_cq *, struct ocrdma_qp *);
+ void ocrdma_flush_qp(struct ocrdma_qp *);
+ int ocrdma_get_irq(struct ocrdma_dev *dev, struct ocrdma_eq *eq);
+ 
++char *port_speed_string(struct ocrdma_dev *dev);
+ #endif				/* __OCRDMA_HW_H__ */
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index b301f64..a609b5c 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -372,6 +372,12 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ 	spin_lock(&ocrdma_devlist_lock);
+ 	list_add_tail_rcu(&dev->entry, &ocrdma_dev_list);
+ 	spin_unlock(&ocrdma_devlist_lock);
++	pr_info("%s %s: %s \"%s\" port %d\n",
++		dev_name(&dev->nic_info.pdev->dev), hca_name(dev),
++		port_speed_string(dev), dev->model_number,
++		dev->hba_port_num);
++	pr_info("%s ocrdma%d driver loaded successfully\n",
++		dev_name(&dev->nic_info.pdev->dev), dev->id);
+ 	return dev;
+ 
+ alloc_err:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index de4ebfc..9e72aec 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -82,12 +82,14 @@ enum {
+ 	OCRDMA_CMD_CREATE_CQ		= 12,
+ 	OCRDMA_CMD_CREATE_EQ		= 13,
+ 	OCRDMA_CMD_CREATE_MQ		= 21,
++	OCRDMA_CMD_GET_CTRL_ATTRIBUTES  = 32,
+ 	OCRDMA_CMD_GET_FW_VER		= 35,
+ 	OCRDMA_CMD_DELETE_MQ		= 53,
+ 	OCRDMA_CMD_DELETE_CQ		= 54,
+ 	OCRDMA_CMD_DELETE_EQ		= 55,
+ 	OCRDMA_CMD_GET_FW_CONFIG	= 58,
+-	OCRDMA_CMD_CREATE_MQ_EXT	= 90
++	OCRDMA_CMD_CREATE_MQ_EXT	= 90,
++	OCRDMA_CMD_PHY_DETAILS		= 102
+ };
+ 
+ enum {
+@@ -578,6 +580,30 @@ enum {
+ 	OCRDMA_FN_MODE_RDMA	= 0x4
+ };
+ 
++struct ocrdma_get_phy_info_rsp {
++	struct ocrdma_mqe_hdr hdr;
++	struct ocrdma_mbx_rsp rsp;
++
++	u16 phy_type;
++	u16 interface_type;
++	u32 misc_params;
++	u16 ext_phy_details;
++	u16 rsvd;
++	u16 auto_speeds_supported;
++	u16 fixed_speeds_supported;
++	u32 future_use[2];
++};
++
++enum {
++	OCRDMA_PHY_SPEED_ZERO = 0x0,
++	OCRDMA_PHY_SPEED_10MBPS = 0x1,
++	OCRDMA_PHY_SPEED_100MBPS = 0x2,
++	OCRDMA_PHY_SPEED_1GBPS = 0x4,
++	OCRDMA_PHY_SPEED_10GBPS = 0x8,
++	OCRDMA_PHY_SPEED_40GBPS = 0x20
++};
++
++
+ struct ocrdma_get_link_speed_rsp {
+ 	struct ocrdma_mqe_hdr hdr;
+ 	struct ocrdma_mbx_rsp rsp;
+@@ -1719,4 +1745,57 @@ struct ocrdma_av {
+ 	u32 valid;
+ } __packed;
+ 
++struct mgmt_hba_attribs {
++	u8 flashrom_version_string[32];
++	u8 manufacturer_name[32];
++	u32 supported_modes;
++	u32 rsvd0[3];
++	u8 ncsi_ver_string[12];
++	u32 default_extended_timeout;
++	u8 controller_model_number[32];
++	u8 controller_description[64];
++	u8 controller_serial_number[32];
++	u8 ip_version_string[32];
++	u8 firmware_version_string[32];
++	u8 bios_version_string[32];
++	u8 redboot_version_string[32];
++	u8 driver_version_string[32];
++	u8 fw_on_flash_version_string[32];
++	u32 functionalities_supported;
++	u16 max_cdblength;
++	u8 asic_revision;
++	u8 generational_guid[16];
++	u8 hba_port_count;
++	u16 default_link_down_timeout;
++	u8 iscsi_ver_min_max;
++	u8 multifunction_device;
++	u8 cache_valid;
++	u8 hba_status;
++	u8 max_domains_supported;
++	u8 phy_port;
++	u32 firmware_post_status;
++	u32 hba_mtu[8];
++	u32 rsvd1[4];
++};
++
++struct mgmt_controller_attrib {
++	struct mgmt_hba_attribs hba_attribs;
++	u16 pci_vendor_id;
++	u16 pci_device_id;
++	u16 pci_sub_vendor_id;
++	u16 pci_sub_system_id;
++	u8 pci_bus_number;
++	u8 pci_device_number;
++	u8 pci_function_number;
++	u8 interface_type;
++	u64 unique_identifier;
++	u32 rsvd0[5];
++};
++
++struct ocrdma_get_ctrl_attribs_rsp {
++	struct ocrdma_mbx_hdr hdr;
++	struct mgmt_controller_attrib ctrl_attribs;
++};
++
++
+ #endif				/* __OCRDMA_SLI_H__ */
 -- 
 1.7.1
 
