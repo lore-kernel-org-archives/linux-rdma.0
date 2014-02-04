@@ -1,49 +1,47 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.14] IB/iser: Avoid dereferncing iscsi_iser conn object when not bound to iser connection
-Date: Tue,  4 Feb 2014 16:54:54 +0200
-Message-ID: <1391525694-29455-1-git-send-email-ogerlitz@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_qos.c: Fix possible seg fault
+Date: Tue, 04 Feb 2014 09:56:36 -0500
+Message-ID: <52F0FFA4.6000807@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jens Domke <domke.j.aa@m.titech.ac.jp>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Fix possible NULL pointer dereference in disconnection flow. This can
-happen if the target disconnected/rejected the connection request, e.g
-before the binding stage between iscsi connection to the transport connection.
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Pointed-out-by: Jens Domke <domke.j.aa@m.titech.ac.jp>
+Introduced by commit 1633550020087f3296dbc2f7b1dd533cd83a6398
+
+If force_update is set, p_tbl isn't initialized
+
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ opensm/osm_qos.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index afe9567..ca37ede 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -652,9 +652,13 @@ static int iser_disconnected_handler(struct rdma_cm_id *cma_id)
- 	/* getting here when the state is UP means that the conn is being *
- 	 * terminated asynchronously from the iSCSI layer's perspective.  */
- 	if (iser_conn_state_comp_exch(ib_conn, ISER_CONN_UP,
--				      ISER_CONN_TERMINATING))
--		iscsi_conn_failure(ib_conn->iser_conn->iscsi_conn,
--				   ISCSI_ERR_CONN_FAILED);
-+					ISER_CONN_TERMINATING)){
-+		if (ib_conn->iser_conn)
-+			iscsi_conn_failure(ib_conn->iser_conn->iscsi_conn,
-+					   ISCSI_ERR_CONN_FAILED);
-+		else
-+			iser_err("iscsi_iser connection isn't bound\n");
-+	}
+diff --git a/opensm/osm_qos.c b/opensm/osm_qos.c
+index f55a509..b174f66 100644
+--- a/opensm/osm_qos.c
++++ b/opensm/osm_qos.c
+@@ -248,8 +248,9 @@ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
+ 		tbl.raw_vl_by_sl[i] = (vl1 << 4) | vl2;
+ 	}
  
- 	/* Complete the termination process if no posts are pending */
- 	if (ib_conn->post_recv_buf_count == 0 &&
+-	if (!force_update && (p_tbl = osm_physp_get_slvl_tbl(p, in_port)) &&
+-	    !memcmp(p_tbl, &tbl, sizeof(tbl)))
++	p_tbl = osm_physp_get_slvl_tbl(p, in_port);
++
++	if (!force_update && !memcmp(p_tbl, &tbl, sizeof(tbl)))
+ 		return IB_SUCCESS;
+ 
+ 	p_mad = osm_qos_mad_create(sm, p, sizeof(tbl), (uint8_t *) & tbl,
 -- 
-1.7.1
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
