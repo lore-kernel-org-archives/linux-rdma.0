@@ -1,84 +1,48 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] librdmacm 1.0.18 release
-Date: Wed, 5 Feb 2014 17:55:08 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D18EB2@ORSMSX109.amr.corp.intel.com>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB: Refactor umem to use linear SG table
+Date: Wed, 5 Feb 2014 18:57:53 +0000
+Message-ID: <03AE0136-67D9-4259-97FA-0F5727E40625@cisco.com>
+References: <1390909215-5331-1-git-send-email-ogerlitz@mellanox.com>
+ <52E7AA22.8020700@mellanox.com>
+ <1F4FC384-349B-4F37-B06E-214A0B8570DE@cisco.com>
+ <6B2A6E60C06CCC42AE31809BF572352B8CF3AC3B@MTLDAG02.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6B2A6E60C06CCC42AE31809BF572352B8CF3AC3B-LSMZvP3E4uyuSA5JZHE7gA@public.gmane.org>
 Content-Language: en-US
+Content-ID: <C6E63E3C0F600546B509CEC816278850-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new 1.0.18 release of the librdmacm available.  It may be downloaded from:
 
-http://www.openfabrics.org/downloads/rdmacm/
+On Feb 2, 2014, at 11:30 PM, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-md5sum
-786b76ce5f1da97d2b0fd8d787a7add0  librdmacm-1.0.18.tar.gz
+Follow up.
+> You can probably offer a patch to ib_umem_get, passing a flag to it identifying if
+> it should also do the DMA mapping, and use the same code base as the rest of the
+> IB drivers.
+The usnic memory management stuff is entirely freed of ib objects.  If we were to move to using ib_umem_get, the code would get corrupted with ib objects.  There are also other subtle minor differences.  The overlap with ib_umem_get is minor, so I am not going to port this code over to use ib_umem_get.
+> 
+> A better solution would be to fix Intel's IOMMU code such that it works properly if
+> the page is mapped using both dma_map_sg and the IOMMU API.
+> 
+> 
+>> 
+>> Any particular reason that the code in usNIC that walks the chunk sg's isn't
+>> ported to the linear SG table?
+> 
+> As your code didn't use the API which we changed, we preferred avoiding changing
+> it, to avoid introducing issues into the code, especially when we don't have the
+> needed hardware to test your code on.
+> 
+> You are more than welcome to implement a similar change in your code, or port
+> your code to use the ib_umem_get API.
+I will submit a patch for this.
 
-The following changes were made between 1.0.17 and 1.0.18.
-
-Bart Van Assche (6):
-      Add "foreign" option to AM_INIT_AUTOMAKE
-      Makefile.am: Fix an automake warning
-      [1/4] acm: Remove the unused variable 'pri_path'
-      [2/4] cma: Remove the unused variable 'id_priv'
-      [3/4] rsocket: Remove the unused variable 'ret'
-      [4/4] Declare 'server_port' as an unsigned variable
-
-Guy Shapiro (1):
-      librdmacm: Some fixes to man pages
-
-Hal Rosenstock (4):
-      [librdmacm] man/rdma_create_id.3: Add RDMA_PS_IB port space description
-      [librdmacm] rstream.c: Indicate when specified address family is unknown
-      [librdmacm] man/rstream.1: Update man page to be consistent with rstream -
-      [librdmacm] Makefile.am: Add missing riostream man page to man_MANS
-
-Jeff Squyres (1):
-      autogen.sh: Use autoreconf in autogen.sh
-
-Or Gerlitz (1):
-      librdmacm: Add directives on binding to IPv6 any address to man pages
-
-Sean Hefty (22):
-      rsocket: Merge usage of wr_id between stream and datagram svcs
-      rsocket: Add support for iWarp
-      lib: Rename configure.in to configure.ac
-      cmatose: Allow user to specify address format
-      acm: Define needed ACM protocol messages
-      init: Remove USE_IB_ACM configuration option
-      rsockets: Support native IB addressing on connected rsockets
-      examples: Add support for native IB addressing to samples
-      rsockets: Add ability to set the IB route directly
-      rsocket: Return 0 on success for SOL_RDMA options
-      rstream: Use rsocket option to set route directly
-      cmtime: Add example program that times rdma cm calls
-      cmtime: Add ability to time rdma_bind_addr calls
-      cmtime: Allow user to specify timeout values
-      cmtime: Add retry support for address and route resolution
-      rsocket: Update rsocket man page
-      rsockets: Handle race between rshutdown and rpoll
-      Retrieve SGID after calling rdma_bind_addr
-      rping: Fix server reporting error on exit
-      librdmacm: Check 'init' under mutex
-      udaddy: Remove support for port space IB
-      librdmacm 1.0.18
-
-Susan K. Coulter (1):
-      rsocket: Add keepalive logic
-
-Yan Droneaud (1):
-      examples: Add cmtime to .gitignore
-
-Yann Droneaud (5):
-      configure: Apply updates proposed by autoupdate
-      configure: Use automake's option "subdir-objects"
-      Add .gitignore rules
-      Open files with "close on exec" flag
-      Remove executable mode bit on text files
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
