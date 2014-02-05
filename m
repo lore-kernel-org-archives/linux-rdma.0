@@ -1,29 +1,23 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-3.14 1/5] IB/mlx4: Make sure GID index 0 is always
- occupied
-Date: Wed, 5 Feb 2014 15:52:32 +0200
-Message-ID: <52F24220.8000607@mellanox.com>
-References: <1391605982-4348-1-git-send-email-ogerlitz@mellanox.com> <1391605982-4348-2-git-send-email-ogerlitz@mellanox.com>
+From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ceph-users] Help needed porting Ceph to RSockets
+Date: Wed, 5 Feb 2014 14:58:37 +0100
+Message-ID: <CAJH6TXg83TdBM3tXu12MPn-WD8H3dgqZX2LjnAXmnVyo46dsFg@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237388CA7C88@ORSMSX109.amr.corp.intel.com>
+	<20130910154847.3fb7dd02@doppio>
+	<1828884A29C6694DAF28B7E6B8A8237388CF3072@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1391605982-4348-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CF3072-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>, Matthew Anderson <manderson8787-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/02/2014 15:12, Or Gerlitz wrote:
-> From: Moni Shoua<monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
->
-> Make sure that for Ethernet ports, the port GID table index 0 is always
-> occupied with a default GID of the relevant IPv6 link-local adderss.
->
-> This provides better user-experience for legacy applications that don't use
-> the rdma-cm and where working on index 0 prior to the IP addressing change.
-Roland, I see here small typo "where" instead of "were", care to fix 
-that yourself?
+2013-10-31 Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
+> Can you please try the attached patch in place of all previous patches?
+
+Any updates on ceph with rsockets?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
