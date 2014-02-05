@@ -1,59 +1,33 @@
-From: "Hebenstreit, Michael" <michael.hebenstreit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ipoib - problems with offloading checksums
-Date: Wed, 5 Feb 2014 14:36:20 +0000
-Message-ID: <B4E6F7EB08816A4692C7420D7E8F8CBD866FD448@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/1] opensm/osm_node_info_rcv.c: Fix multiple switch discovery
+ during a sweep
+Date: Wed, 05 Feb 2014 09:43:31 -0500
+Message-ID: <52F24E13.7060903@dev.mellanox.co.il>
+References: <1391594898-18129-1-git-send-email-alexne@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1391594898-18129-1-git-send-email-alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Problem - offloading checksumms does not work, although the Kernel docu=
-mentation indicates it should
+On 2/5/2014 5:08 AM, Alex Netes wrote:
+> Because of the race between Get(SwitchInfo) and Get(NodeInfo) to the
+> same switch, SM will send additional Get(SwitchInfo) before it get a
+> first reply. In a sequence SM will send many redundant MADs and slow
+> down the discovery process significantly.
+> With this fix, when a switch doesn't respond to Get(SwitchInfo) once
+> during the sweep it will be dropped.
+> 
+> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-       [root@eha001 ~]# ethtool -K ib0 tx on
-       Cannot set device tx-checksumming settings: Operation not suppor=
-ted
+Thanks. Applied.
 
-IPoIB connected mode is switched of:
-
-       SET_IPOIB_CM=3Dno
-
-This problem exists on both Mellanox/Qlogic cards with either SW stack =
-mentioned. Could anyone advise on this problem?
-
-
-Hardware: Intel EP server with 2x "Intel(R) Xeon(R) CPU E5-2697 v2 @ 2.=
-70GHz"
-IB cards:  QLogic Corp. IBA7322 QDR InfiniBand HCA (rev 02) , Mellanox =
-Technologies MT27500 Family [ConnectX-3]
-
-OS: Redhat 6.4, kernel updated to latest RH supplied kernel via KSplice=
- technology=20
-InfiniBand Software: tried IntelIB-IFS.RHEL6-x86_64.7.2.1.1.22 (based o=
-n OFED 1.5.4.1) or OFED-3.5-MIC-alpha1
-
-
-Many thanks
-Michael
-
-
------------------------------------------------------------------------=
--
-Michael Hebenstreit=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Sen=
-ior Cluster Architect
-Intel Corporation, MS: RR1-105/H14=A0 Software and Services Group/DCE
-4100 Sara Road             =A0=A0=A0=A0=A0=A0=A0=A0 Tel.:=A0=A0 +1 505-=
-794-3144=20
-Rio Rancho, NM 87124
-UNITED STATES=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0 E-mail: michael.hebenstreit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-
+-- Hal
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
