@@ -1,64 +1,59 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm: Rename ib_switch_info_set_state_change function in ib_types.h
-Date: Wed,  5 Feb 2014 14:25:11 +0200
-Message-ID: <1391603111-21633-1-git-send-email-alexne@mellanox.com>
+From: "Hebenstreit, Michael" <michael.hebenstreit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ipoib - problems with offloading checksums
+Date: Wed, 5 Feb 2014 14:36:20 +0000
+Message-ID: <B4E6F7EB08816A4692C7420D7E8F8CBD866FD448@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Function name collides with a function defined ibutils package.
-New name: ib_switch_info_state_change_set
+Problem - offloading checksumms does not work, although the Kernel docu=
+mentation indicates it should
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/iba/ib_types.h |    6 +++---
- opensm/osm_state_mgr.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+       [root@eha001 ~]# ethtool -K ib0 tx on
+       Cannot set device tx-checksumming settings: Operation not suppor=
+ted
 
-diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
-index 249ee16..a0bb31c 100644
---- a/include/iba/ib_types.h
-+++ b/include/iba/ib_types.h
-@@ -6507,9 +6507,9 @@ ib_switch_info_clear_state_change(IN ib_switch_info_t * const p_si)
- * SEE ALSO
- *********/
- 
--/****f* IBA Base: Types/ib_switch_info_set_state_change
-+/****f* IBA Base: Types/ib_switch_info_state_change_set
- * NAME
--*	ib_switch_info_set_state_change
-+*	ib_switch_info_state_change_set
- *
- * DESCRIPTION
- *	Clears the switch's state change bit.
-@@ -6517,7 +6517,7 @@ ib_switch_info_clear_state_change(IN ib_switch_info_t * const p_si)
- * SYNOPSIS
- */
- static inline void OSM_API
--ib_switch_info_set_state_change(IN ib_switch_info_t * const p_si)
-+ib_switch_info_state_change_set(IN ib_switch_info_t * const p_si)
- {
- 	p_si->life_state = (uint8_t) ((p_si->life_state & ~IB_SWITCH_PSC) | IB_SWITCH_PSC);
- }
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index 5080b22..f9b20e2 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -559,7 +559,7 @@ static void state_mgr_reset_state_change_bit(IN cl_map_item_t * obj,
- 
- 	si = p_sw->switch_info;
- 
--	ib_switch_info_set_state_change(&si);
-+	ib_switch_info_state_change_set(&si);
- 
- 	OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 		"Resetting PortStateChange on switch GUID 0x%016" PRIx64 "\n",
--- 
-1.7.1
+IPoIB connected mode is switched of:
+
+       SET_IPOIB_CM=3Dno
+
+This problem exists on both Mellanox/Qlogic cards with either SW stack =
+mentioned. Could anyone advise on this problem?
+
+
+Hardware: Intel EP server with 2x "Intel(R) Xeon(R) CPU E5-2697 v2 @ 2.=
+70GHz"
+IB cards:  QLogic Corp. IBA7322 QDR InfiniBand HCA (rev 02) , Mellanox =
+Technologies MT27500 Family [ConnectX-3]
+
+OS: Redhat 6.4, kernel updated to latest RH supplied kernel via KSplice=
+ technology=20
+InfiniBand Software: tried IntelIB-IFS.RHEL6-x86_64.7.2.1.1.22 (based o=
+n OFED 1.5.4.1) or OFED-3.5-MIC-alpha1
+
+
+Many thanks
+Michael
+
+
+-----------------------------------------------------------------------=
+-
+Michael Hebenstreit=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Sen=
+ior Cluster Architect
+Intel Corporation, MS: RR1-105/H14=A0 Software and Services Group/DCE
+4100 Sara Road             =A0=A0=A0=A0=A0=A0=A0=A0 Tel.:=A0=A0 +1 505-=
+794-3144=20
+Rio Rancho, NM 87124
+UNITED STATES=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0 E-mail: michael.hebenstreit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
