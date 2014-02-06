@@ -1,28 +1,86 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 15/17] RDMA/ocrdma: Support for Skyhawk statistics
-Date: Thu, 6 Feb 2014 23:07:22 +0200
-Message-ID: <CAJZOPZ+ajdDtehBJnwUGA5mgMM2aDn1JsY=0Pas3Se-WfZYs4A@mail.gmail.com>
-References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
-	<91cc4eb6-5895-486d-b6b9-8a97b79dfc71@CMEXHTCAS2.ad.emulex.com>
-	<CAJZOPZK-w98t0=K4AUceKPCbwjd75BBjG325YgbQ-iV-ETosPg@mail.gmail.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] IB/srpt: replace strict_strtoul() with kstrtoul()
+Date: Thu, 06 Feb 2014 14:14:25 -0800
+Message-ID: <1391724865.14985.12.camel@haakon3.risingtidesystems.com>
+References: <000501cf2219$1031f530$3095df90$%han@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZK-w98t0=K4AUceKPCbwjd75BBjG325YgbQ-iV-ETosPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <000501cf2219$1031f530$3095df90$%han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- On Tue, Feb 4, 2014 Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> Issue mailbox command to get the statistics counters from the skyhawk
-> hardware
+On Wed, 2014-02-05 at 11:22 +0900, Jingoo Han wrote:
+> The usage of strict_strtoul() is not preferred, because
+> strict_strtoul() is obsolete. Thus, kstrtoul() should be
+> used.
+> 
+> Signed-off-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> ---
 
-Reading from the HW the RC transport stats/errors is OK, but there's no
-justification to display them using debugfs, since the IB core has the
-infrastructure for you to plugin and get that to user space through the
-existing sysfs.
+Applied to target-pending/queue.
+
+Thanks!
+
+--nab
+
+>  drivers/infiniband/ulp/srpt/ib_srpt.c |   14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 520a7e5..0e537d8 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -3666,9 +3666,9 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rdma_size(
+>  	unsigned long val;
+>  	int ret;
+>  
+> -	ret = strict_strtoul(page, 0, &val);
+> +	ret = kstrtoul(page, 0, &val);
+>  	if (ret < 0) {
+> -		pr_err("strict_strtoul() failed with ret: %d\n", ret);
+> +		pr_err("kstrtoul() failed with ret: %d\n", ret);
+>  		return -EINVAL;
+>  	}
+>  	if (val > MAX_SRPT_RDMA_SIZE) {
+> @@ -3706,9 +3706,9 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rsp_size(
+>  	unsigned long val;
+>  	int ret;
+>  
+> -	ret = strict_strtoul(page, 0, &val);
+> +	ret = kstrtoul(page, 0, &val);
+>  	if (ret < 0) {
+> -		pr_err("strict_strtoul() failed with ret: %d\n", ret);
+> +		pr_err("kstrtoul() failed with ret: %d\n", ret);
+>  		return -EINVAL;
+>  	}
+>  	if (val > MAX_SRPT_RSP_SIZE) {
+> @@ -3746,9 +3746,9 @@ static ssize_t srpt_tpg_attrib_store_srp_sq_size(
+>  	unsigned long val;
+>  	int ret;
+>  
+> -	ret = strict_strtoul(page, 0, &val);
+> +	ret = kstrtoul(page, 0, &val);
+>  	if (ret < 0) {
+> -		pr_err("strict_strtoul() failed with ret: %d\n", ret);
+> +		pr_err("kstrtoul() failed with ret: %d\n", ret);
+>  		return -EINVAL;
+>  	}
+>  	if (val > MAX_SRPT_SRQ_SIZE) {
+> @@ -3793,7 +3793,7 @@ static ssize_t srpt_tpg_store_enable(
+>  	unsigned long tmp;
+>          int ret;
+>  
+> -	ret = strict_strtoul(page, 0, &tmp);
+> +	ret = kstrtoul(page, 0, &tmp);
+>  	if (ret < 0) {
+>  		printk(KERN_ERR "Unable to extract srpt_tpg_store_enable\n");
+>  		return -EINVAL;
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
