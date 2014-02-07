@@ -1,40 +1,53 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-3.14] IB/mlx4: Report using RoCE IP based gids in port caps
-Date: Fri, 7 Feb 2014 09:32:02 +0200
-Message-ID: <CAJZOPZJ31NfhfqWb2RMDdBLer7SikG8h1tQiB5i2PJBfezphbQ@mail.gmail.com>
-References: <1391356314-3963-1-git-send-email-ogerlitz@mellanox.com>
-	<CAG4TOxOS8iM2VPk_GB8nR3AUkwXgN8DpGLLVtTOT6HtgO=SH4A@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter
+Date: Fri, 7 Feb 2014 14:07:28 +0300
+Message-ID: <20140207110728.GA6470@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxOS8iM2VPk_GB8nR3AUkwXgN8DpGLLVtTOT6HtgO=SH4A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 7, 2014 at 9:07 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Sun, Feb 2, 2014 at 7:51 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> For user-space RoCE UD QPs we need to know the GID format that the
->> kernel uses, e.g when working over older kernels. For that end, add
->> new port capability IB_PORT_IP_BASED_GIDS and report it when a port
->> query is issued.
->
-> I'm a little worried here.  Does old libibverbs (which doesn't know
-> anything about this flag) still work on a new kernel with the IP-based
-> GIDs?  Or have we broken ABI?
+Hello Parav Pandit,
 
-That's one of the benefits introduced by the "IB/mlx4: Make sure GID
-index 0 is always occupied" patch I sent you earlier this week. Index
-0 in the gid table will contain the IPv6 link local based GID from
-which the address handle is correctly derived also by old
-libibverbs/libmlx4.
+The patch fe2caefcdf58: "RDMA/ocrdma: Add driver for Emulex
+OneConnect IBoE RDMA adapter" from Mar 21, 2012, leads to the
+following static checker warning:
 
-> Also why does only mlx4 get modified here?  Didn't we modify ocrdma to
-> use IP-based GIDs too?
+	drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:1419 ocrdma_query_qp()
+	warn: right shifting to zero
 
-right, should be fixed, can you carry that fix into ocrdma or want V1
-of the patch with the fix?
+drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+  1414          qp_attr->ah_attr.grh.sgid_index = qp->sgid_idx;
+  1415          qp_attr->ah_attr.grh.hop_limit = (params.hop_lmt_rq_psn &
+  1416                                            OCRDMA_QP_PARAMS_HOP_LMT_MASK) >>
+  1417                                                  OCRDMA_QP_PARAMS_HOP_LMT_SHIFT;
+  1418          qp_attr->ah_attr.grh.traffic_class = (params.tclass_sq_psn &
+  1419                                                OCRDMA_QP_PARAMS_SQ_PSN_MASK) >>
+  1420                                                  OCRDMA_QP_PARAMS_TCLASS_SHIFT;
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+We always set traffic_class to zero.  Maybe OCRDMA_QP_PARAMS_TCLASS_MASK
+was intended instead of OCRDMA_QP_PARAMS_SQ_PSN_MASK?
+
+Btw, the reason we are seing this bug is because the names are horrible.
+Try reading the variable names out loud.  OCRDMA_QP_PARAMS_SQ_PSN_MASK
+is 6 words.  It's 16 syllables long.  It takes me about 4 seconds to
+just pronounce it.  The next one is almost identical except for one or
+two characters in the middle.  http://www.spotthedifference.com
+
+Even though the variable names are longer than a Tolstoy novel, I still
+have no idea what they mean.  I know that the "T" in
+OCRDMA_QP_PARAMS_TCLASS_SHIFT stands for "traffic" but when it comes to
+the "SQ_PSN" then I have no idea about that.
+
+  1421  
+  1422          qp_attr->ah_attr.ah_flags = IB_AH_GRH;
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
