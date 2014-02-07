@@ -1,87 +1,107 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH] IB/srpt: replace strict_strtoul() with kstrtoul()
-Date: Thu, 06 Feb 2014 14:14:25 -0800
-Message-ID: <1391724865.14985.12.camel@haakon3.risingtidesystems.com>
-References: <000501cf2219$1031f530$3095df90$%han@samsung.com>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Thu, 06 Feb 2014 16:02:03 -0800
+Message-ID: <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	 <52CD1C68.4050406@mellanox.com>
+	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+	 <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
+	 <1389906852.5567.668.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
+	 <1390102949.5567.749.camel@haakon3.risingtidesystems.com>
+	 <52DBB4F1.4020400@mellanox.com>
+	 <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
+	 <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
+	 <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
+	 <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <000501cf2219$1031f530$3095df90$%han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Or Gerlitz <or.gerlitz@gmail.com>, Hefty Sean <sean.hefty@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, target-devel <target-devel@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2014-02-05 at 11:22 +0900, Jingoo Han wrote:
-> The usage of strict_strtoul() is not preferred, because
-> strict_strtoul() is obsolete. Thus, kstrtoul() should be
-> used.
-> 
-> Signed-off-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> ---
+Hi Roland,
 
-Applied to target-pending/queue.
+On Tue, 2014-01-21 at 23:27 -0800, Nicholas A. Bellinger wrote:
+> Roland & Co,
+>=20
+> On Tue, 2014-01-21 at 16:43 -0800, Roland Dreier wrote:
+> > On Tue, Jan 21, 2014 at 2:00 PM, Or Gerlitz <or.gerlitz@gmail.com> =
+wrote:
+> > > Roland, ping! the signature patches were posted > three months ag=
+o. We
+> > > deserve a response from the maintainer that goes beyond "I need t=
+o
+> > > think on that".
+> > >
+> > > Responsiveness was stated by Linus to be the #1 requirement from
+> > > kernel maintainers.
+> >=20
+> > Or, I'm not sure what response you're after from me.  Linus has als=
+o
+> > said that maintainers should say "no" a lot more
+> > (http://lwn.net/Articles/571995/) so maybe you want me to say, "No,=
+ I
+> > won't merge this patch set, since it adds a bunch of complexity to
+> > support a feature no one really cares about."  Is that it?=20
+>=20
+> The patch set proposed by Sagi + Or is modest in terms of LOC to core=
+ IB
+> code, and includes mostly mlx5 specific driver changes that enables H=
+W
+> offloads.
+>=20
+> > (And yes I
+> > am skeptical about this stuff =E2=80=94 I work at an enterprise sto=
+rage
+> > company and even here it's hard to find anyone who cares about
+> > DIF/DIX, especially offload features that stop it from being
+> > end-to-end)
+> >=20
+>=20
+> My understanding is most HBAs capable of T10 PI offload in DIX PASS +
+> VERIFY mode are already implementing DIX INSERT + STRIP modes in vari=
+ous
+> capacities to support legacy environments.
+>=20
+> Beyond the DIX INSERT + STRIP case for enterprise storage, the amount=
+ of
+> FC + SAS HBAs that already support T10 PI metadata is substantial.
+>=20
+> > I'm sure you're not expecting me to say, "Sure, I'll merge it witho=
+ut
+> > understanding the problem it's solving or how it's doing that,"
+> > especially given the your recent history of pushing me to merge stu=
+ff
+> > like the IP-RoCE patches back when they broke the userspace ABI.
+>=20
+> With the merge window now upon us, there is a understandable reluctan=
+ce
+> to merge new features.  Given the amount of time the series has spent=
+ on
+> the list, it is however a good candidate to consider for an exception=
+=2E
+>=20
+> Short of that, are you planning to accept the series for the next rou=
+nd
+> once the current merge window closes..?
+>=20
+> We'd really like to start enabling fabrics with these types of offloa=
+ds
+> for v3.15.=20
+>=20
 
-Thanks!
+Now with the initial DIF backend taraget support in place for v3.14-rc1
+code, we'd like to move forward on iser-target related pieces for T10
+PI.
+
+Can you give us an estimate of when you'll have some time to give
+feedback on the outstanding patches..?
 
 --nab
-
->  drivers/infiniband/ulp/srpt/ib_srpt.c |   14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 520a7e5..0e537d8 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -3666,9 +3666,9 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rdma_size(
->  	unsigned long val;
->  	int ret;
->  
-> -	ret = strict_strtoul(page, 0, &val);
-> +	ret = kstrtoul(page, 0, &val);
->  	if (ret < 0) {
-> -		pr_err("strict_strtoul() failed with ret: %d\n", ret);
-> +		pr_err("kstrtoul() failed with ret: %d\n", ret);
->  		return -EINVAL;
->  	}
->  	if (val > MAX_SRPT_RDMA_SIZE) {
-> @@ -3706,9 +3706,9 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rsp_size(
->  	unsigned long val;
->  	int ret;
->  
-> -	ret = strict_strtoul(page, 0, &val);
-> +	ret = kstrtoul(page, 0, &val);
->  	if (ret < 0) {
-> -		pr_err("strict_strtoul() failed with ret: %d\n", ret);
-> +		pr_err("kstrtoul() failed with ret: %d\n", ret);
->  		return -EINVAL;
->  	}
->  	if (val > MAX_SRPT_RSP_SIZE) {
-> @@ -3746,9 +3746,9 @@ static ssize_t srpt_tpg_attrib_store_srp_sq_size(
->  	unsigned long val;
->  	int ret;
->  
-> -	ret = strict_strtoul(page, 0, &val);
-> +	ret = kstrtoul(page, 0, &val);
->  	if (ret < 0) {
-> -		pr_err("strict_strtoul() failed with ret: %d\n", ret);
-> +		pr_err("kstrtoul() failed with ret: %d\n", ret);
->  		return -EINVAL;
->  	}
->  	if (val > MAX_SRPT_SRQ_SIZE) {
-> @@ -3793,7 +3793,7 @@ static ssize_t srpt_tpg_store_enable(
->  	unsigned long tmp;
->          int ret;
->  
-> -	ret = strict_strtoul(page, 0, &tmp);
-> +	ret = kstrtoul(page, 0, &tmp);
->  	if (ret < 0) {
->  		printk(KERN_ERR "Unable to extract srpt_tpg_store_enable\n");
->  		return -EINVAL;
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
