@@ -1,60 +1,45 @@
 From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter
-Date: Fri, 7 Feb 2014 11:51:53 +0000
-Message-ID: <b326dba2-aae1-4a20-918a-d49ff79a7c48@CMEXHTCAS2.ad.emulex.com>
-References: <20140207110728.GA6470@elgon.mountain>
+Subject: RE: [PATCH for-next 15/17] RDMA/ocrdma: Support for Skyhawk
+ statistics
+Date: Sat, 8 Feb 2014 04:26:37 +0000
+Message-ID: <424c56ee-b168-48e2-a298-f30a326ee8d0@CMEXHTCAS1.ad.emulex.com>
+References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
+	<91cc4eb6-5895-486d-b6b9-8a97b79dfc71@CMEXHTCAS2.ad.emulex.com>
+	<CAJZOPZK-w98t0=K4AUceKPCbwjd75BBjG325YgbQ-iV-ETosPg@mail.gmail.com>
+ <CAJZOPZ+ajdDtehBJnwUGA5mgMM2aDn1JsY=0Pas3Se-WfZYs4A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140207110728.GA6470-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+In-Reply-To: <CAJZOPZ+ajdDtehBJnwUGA5mgMM2aDn1JsY=0Pas3Se-WfZYs4A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Parav Pandit <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dan,
+Hi Or,
 
-Thanks for the note, we will supply this patch to fix this on linux-rdma asap.
+We are having some 200 Odds vendor specific stats to be displayed. With sysfs infrastructure for IB devices we found that each stat will correspond to one file in sysfs tree therefore it will constitute a large number of files in ocrdma tree per port, situation will worsen if SRIOV and Multichannel comes into picture, On the other hand, with debugfs it is possible to have one file displaying multiple stats thus, drastically reducing the number of sysfs file entries.
+
+We had a discussion with Roland on this, and he gave us a go-ahead on this as well.
+However, if you still think we should honor IB-diag infra, we are open to populate IB-compliant stats into that framework as well along with debugfs entries.
 
 -Regards
- Devesh
+ Devesh 
 
 -----Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Dan Carpenter
-Sent: Friday, February 07, 2014 4:37 PM
-To: Parav Pandit
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: re: RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
+Sent: Friday, February 07, 2014 2:37 AM
+To: Devesh Sharma
+Cc: linux-rdma; Roland Dreier; Selvin Xavier
+Subject: Re: [PATCH for-next 15/17] RDMA/ocrdma: Support for Skyhawk statistics
 
-Hello Parav Pandit,
+ On Tue, Feb 4, 2014 Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> Issue mailbox command 
+> to get the statistics counters from the skyhawk hardware
 
-The patch fe2caefcdf58: "RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter" from Mar 21, 2012, leads to the following static checker warning:
-
-	drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:1419 ocrdma_query_qp()
-	warn: right shifting to zero
-
-drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-  1414          qp_attr->ah_attr.grh.sgid_index = qp->sgid_idx;
-  1415          qp_attr->ah_attr.grh.hop_limit = (params.hop_lmt_rq_psn &
-  1416                                            OCRDMA_QP_PARAMS_HOP_LMT_MASK) >>
-  1417                                                  OCRDMA_QP_PARAMS_HOP_LMT_SHIFT;
-  1418          qp_attr->ah_attr.grh.traffic_class = (params.tclass_sq_psn &
-  1419                                                OCRDMA_QP_PARAMS_SQ_PSN_MASK) >>
-  1420                                                  OCRDMA_QP_PARAMS_TCLASS_SHIFT;
-                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ We always set traffic_class to zero.  Maybe OCRDMA_QP_PARAMS_TCLASS_MASK was intended instead of OCRDMA_QP_PARAMS_SQ_PSN_MASK?
-
-Btw, the reason we are seing this bug is because the names are horrible.
-Try reading the variable names out loud.  OCRDMA_QP_PARAMS_SQ_PSN_MASK is 6 words.  It's 16 syllables long.  It takes me about 4 seconds to just pronounce it.  The next one is almost identical except for one or two characters in the middle.  http://www.spotthedifference.com
-
-Even though the variable names are longer than a Tolstoy novel, I still have no idea what they mean.  I know that the "T" in OCRDMA_QP_PARAMS_TCLASS_SHIFT stands for "traffic" but when it comes to the "SQ_PSN" then I have no idea about that.
-
-  1421  
-  1422          qp_attr->ah_attr.ah_flags = IB_AH_GRH;
-
-regards,
-dan carpenter
+Reading from the HW the RC transport stats/errors is OK, but there's no justification to display them using debugfs, since the IB core has the infrastructure for you to plugin and get that to user space through the existing sysfs.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
