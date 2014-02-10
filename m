@@ -1,49 +1,54 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ocrdma: fix traffic class shift
-Date: Mon, 10 Feb 2014 12:28:21 +0300
-Message-ID: <20140210092821.GA26776@mwanda>
-References: <8b417e9b-fb15-4585-aba3-e9be06b7b12a@CMEXHTCAS2.ad.emulex.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/4] NULL undeclared on Fedora
+Date: Mon, 10 Feb 2014 12:52:47 +0100
+Message-ID: <1392033167.11170.22.camel@localhost.localdomain>
+References: <54347E5A035A054EAE9D05927FB467F972DEC731@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8b417e9b-fb15-4585-aba3-e9be06b7b12a-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+In-Reply-To: <54347E5A035A054EAE9D05927FB467F972DEC731-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 10, 2014 at 01:48:58PM +0530, Devesh Sharma wrote:
-> Use correct value for obtaining traffic class from device
-> response for Query QP request.
-> 
-> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Hi,
 
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-regards,
-dan carpenter
-
+Le lundi 10 f=C3=A9vrier 2014 =C3=A0 07:45 +0000, Davis, Arlin R a =C3=A9=
+crit :
+>  Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> index 7686dce..998f0de 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -1415,7 +1415,7 @@ int ocrdma_query_qp(struct ib_qp *ibqp,
->  					  OCRDMA_QP_PARAMS_HOP_LMT_MASK) >>
->  						OCRDMA_QP_PARAMS_HOP_LMT_SHIFT;
->  	qp_attr->ah_attr.grh.traffic_class = (params.tclass_sq_psn &
-> -					      OCRDMA_QP_PARAMS_SQ_PSN_MASK) >>
-> +					      OCRDMA_QP_PARAMS_TCLASS_MASK) >>
->  						OCRDMA_QP_PARAMS_TCLASS_SHIFT;
->  
->  	qp_attr->ah_attr.ah_flags = IB_AH_GRH;
-> -- 
-> 1.7.1
+>  dat/include/dat2/dat_platform_specific.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/dat/include/dat2/dat_platform_specific.h b/dat/include/d=
+at2/dat_platform_specific.h
+> index ba4cfbc..8d62bd0 100644
+> --- a/dat/include/dat2/dat_platform_specific.h
+> +++ b/dat/include/dat2/dat_platform_specific.h
+> @@ -147,6 +147,7 @@ typedef DAT_UINT64		DAT_PADDR;
+>  #if defined(__KERNEL__)
+>  #include <linux/types.h>
+>  #else
+> +#include <stdio.h>
+
+You could use #include <stddef.h> if only NULL is needed
+http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stddef.h.html
+
+>  #include <sys/types.h>
+>  #include <linux/stddef.h>
+>  #endif /* defined(__KERNEL__) */
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
