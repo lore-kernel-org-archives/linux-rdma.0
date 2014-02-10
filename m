@@ -1,36 +1,39 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] dist: ib collective extension include files missing
-Date: Mon, 10 Feb 2014 07:46:10 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F972DEC74C@ORSMSX101.amr.corp.intel.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/ocrdma: fix traffic class shift
+Date: Mon, 10 Feb 2014 13:48:58 +0530
+Message-ID: <8b417e9b-fb15-4585-aba3-e9be06b7b12a@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQpTaWduZWQtb2ZmLWJ5OiBBcmxpbiBEYXZpcyA8YXJsaW4uci5kYXZpc0BpbnRlbC5jb20+DQot
-LS0NCiBNYWtlZmlsZS5hbSB8ICAgIDQgKysrLQ0KIDEgZmlsZXMgY2hhbmdlZCwgMyBpbnNlcnRp
-b25zKCspLCAxIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvTWFrZWZpbGUuYW0gYi9NYWtl
-ZmlsZS5hbQ0KaW5kZXggNzQ0MTM0OC4uNDdhOWQ5YyAxMDA3NTUNCi0tLSBhL01ha2VmaWxlLmFt
-DQorKysgYi9NYWtlZmlsZS5hbQ0KQEAgLTU0OCw2ICs1NDgsOCBAQCBFWFRSQV9ESVNUID0gZGF0
-L2NvbW1vbi9kYXRfZGljdGlvbmFyeS5oIFwNCiAJICAgICBkYXBsL2luY2x1ZGUvZGFwbF92ZW5k
-b3IuaCBcDQogCSAgICAgZGFwbC9vcGVuaWJfY29tbW9uL2RhcGxfaWJfZHRvLmggXA0KIAkgICAg
-IGRhcGwvb3BlbmliX2NvbW1vbi9kYXBsX2liX2NvbW1vbi5oIFwNCisJICAgICBkYXBsL29wZW5p
-Yl9jb21tb24vY29sbGVjdGl2ZXMvaWJfY29sbGVjdGl2ZXMuaCBcDQorCSAgICAgZGFwbC9vcGVu
-aWJfY29tbW9uL2NvbGxlY3RpdmVzL2ZjYV9wcm92aWRlci5oIFwNCiAJICAgICBkYXBsL29wZW5p
-Yl9jbWEvZGFwbF9pYl91dGlsLmggXA0KIAkgICAgIGRhcGwvb3BlbmliX2NtYS9saW51eC9vcGVu
-aWJfb3NkLmggXA0KIAkgICAgIGRhcGwvb3BlbmliX3NjbS9kYXBsX2liX3V0aWwuaCBcDQpAQCAt
-NTkwLDcgKzU5Miw3IEBAIEVYVFJBX0RJU1QgPSBkYXQvY29tbW9uL2RhdF9kaWN0aW9uYXJ5Lmgg
-XA0KIAkgICAgIHRlc3QvZGFwbHRlc3QvaW5jbHVkZS9kYXBsX3RyYW5zYWN0aW9uX3N0YXRzLmgg
-XA0KIAkgICAgIHRlc3QvZGFwbHRlc3QvaW5jbHVkZS9kYXBsX3RyYW5zYWN0aW9uX3Rlc3QuaCBc
-DQogCSAgICAgdGVzdC9kYXBsdGVzdC9pbmNsdWRlL2RhcGxfdmVyc2lvbi5oIFwNCi0JICAgICB0
-ZXN0L2RhcGx0ZXN0L21kZXAvbGludXgvZGFwbF9tZGVwX3VzZXIuaCAkKFhIRUFERVJTKQ0KKwkg
-ICAgIHRlc3QvZGFwbHRlc3QvbWRlcC9saW51eC9kYXBsX21kZXBfdXNlci5oDQogCSANCiBkaXN0
-LWhvb2s6IGRhcGwuc3BlYyANCiAJY3AgZGFwbC5zcGVjICQoZGlzdGRpcikNCi0tIA0KMS43LjMN
-Cg0KDQoNCg==
+Use correct value for obtaining traffic class from device
+response for Query QP request.
+
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 7686dce..998f0de 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1415,7 +1415,7 @@ int ocrdma_query_qp(struct ib_qp *ibqp,
+ 					  OCRDMA_QP_PARAMS_HOP_LMT_MASK) >>
+ 						OCRDMA_QP_PARAMS_HOP_LMT_SHIFT;
+ 	qp_attr->ah_attr.grh.traffic_class = (params.tclass_sq_psn &
+-					      OCRDMA_QP_PARAMS_SQ_PSN_MASK) >>
++					      OCRDMA_QP_PARAMS_TCLASS_MASK) >>
+ 						OCRDMA_QP_PARAMS_TCLASS_SHIFT;
+ 
+ 	qp_attr->ah_attr.ah_flags = IB_AH_GRH;
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
