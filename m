@@ -1,121 +1,34 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v2] IB/CMA: Fix initialization of hop_limit instead of
- hardcode to 1.
-Date: Tue, 11 Feb 2014 05:47:11 +0000
-Message-ID: <7F44EA5110810A40B7DAFB605C41975D302A7842@CMEXMB1.ad.emulex.com>
-References: <90ba6b41-2a1a-4419-bb49-4ed8c216e2a7@CMEXHTCAS2.ad.emulex.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 15/17] RDMA/ocrdma: Support for Skyhawk statistics
+Date: Tue, 11 Feb 2014 09:57:21 +0200
+Message-ID: <52F9D7E1.8050700@mellanox.com>
+References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>	<91cc4eb6-5895-486d-b6b9-8a97b79dfc71@CMEXHTCAS2.ad.emulex.com>	<CAJZOPZK-w98t0=K4AUceKPCbwjd75BBjG325YgbQ-iV-ETosPg@mail.gmail.com> <CAJZOPZ+ajdDtehBJnwUGA5mgMM2aDn1JsY=0Pas3Se-WfZYs4A@mail.gmail.com> <424c56ee-b168-48e2-a298-f30a326ee8d0@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <90ba6b41-2a1a-4419-bb49-4ed8c216e2a7-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <424c56ee-b168-48e2-a298-f30a326ee8d0-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
-	Could you please ack/respond?
+On 08/02/2014 06:26, Devesh Sharma wrote:
+> We are having some 200 Odds vendor specific stats to be displayed. With sysfs infrastructure for IB devices [..] We had a discussion with Roland on this, and he gave us a go-ahead on this as well.
 
-Thanks
-Som
+Roland, what's wrong with  either plugging into the framework for IB 
+statistics set by commit 7f624d023b5fb "RDMA/core: Add iWARP protocol 
+statistics attributes in sysfs" for the IBTA defined statistics and have 
+the vendor propeitary stats to be reported through the rdma netlink 
+code, or having it all go through netlink (better to my taste).
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Somnath Kotur
-> Sent: Tuesday, January 28, 2014 12:34 PM
-> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Somnath Kotur
-> Subject: [PATCH v2] IB/CMA: Fix initialization of hop_limit instead of
-> hardcode to 1.
-> 
-> As suggested by Sean Hefty, take into account src/dst addresses on different
-> subnets and set hop_limit in cma_resolve_iboe_route accordingly instead of
-> blind hardcode to 1 or any other value.
-> 
-> Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> ---
-> Incorporated comments by Sean Hefty
-> 
->  drivers/infiniband/core/addr.c |    5 +++++
->  drivers/infiniband/core/cma.c  |    2 +-
->  include/rdma/ib_addr.h         |    1 +
->  3 files changed, 7 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-> index e90f2b2..6fa4721 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -250,6 +250,8 @@ static int addr4_resolve(struct sockaddr_in *src_in,
->  		goto put;
->  	}
-> 
-> +	addr->uses_gateway = rt->rt_uses_gateway;
-> +
->  	ret = dst_fetch_ha(&rt->dst, addr, &fl4.daddr);
->  put:
->  	ip_rt_put(rt);
-> @@ -263,6 +265,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
->  			 struct rdma_dev_addr *addr)
->  {
->  	struct flowi6 fl6;
-> +	struct rt6_info *rt;
->  	struct dst_entry *dst;
->  	int ret;
-> 
-> @@ -275,6 +278,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
->  	if ((ret = dst->error))
->  		goto put;
-> 
-> +	rt = (struct rt6_info *)dst;
->  	if (ipv6_addr_any(&fl6.saddr)) {
->  		ret = ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)-
-> >dev,
->  					 &fl6.daddr, 0, &fl6.saddr);
-> @@ -298,6 +302,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
->  		goto put;
->  	}
-> 
-> +	addr->uses_gateway = rt->rt6i_flags & RTF_GATEWAY;
->  	ret = dst_fetch_ha(dst, addr, &fl6.daddr);
->  put:
->  	dst_release(dst);
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 8e49db6..ae60104 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -1902,7 +1902,7 @@ static int cma_resolve_iboe_route(struct
-> rdma_id_private *id_priv)
->  	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr-
-> >dev_addr.src_dev_addr, vid);
->  	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr-
-> >dev_addr.dst_dev_addr, vid);
-> 
-> -	route->path_rec->hop_limit = 1;
-> +	route->path_rec->hop_limit = addr->uses_gateway ? 0xFF : 1;
->  	route->path_rec->reversible = 1;
->  	route->path_rec->pkey = cpu_to_be16(0xffff);
->  	route->path_rec->mtu_selector = IB_SA_EQ; diff --git
-> a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h index f3ac0f2..24bc985
-> 100644
-> --- a/include/rdma/ib_addr.h
-> +++ b/include/rdma/ib_addr.h
-> @@ -64,6 +64,7 @@ struct rdma_dev_addr {
->  	unsigned char dst_dev_addr[MAX_ADDR_LEN];
->  	unsigned char broadcast[MAX_ADDR_LEN];
->  	unsigned short dev_type;
-> +	bool uses_gateway;
->  	int bound_dev_if;
->  	enum rdma_transport_type transport;
->  };
-> --
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Or.
+
+> we found that each stat will correspond to one file in sysfs tree therefore it will constitute a large number of files in ocrdma tree per port, situation will worsen if SRIOV and Multichannel comes into picture, On the other hand, with debugfs it is possible to have one file displaying multiple stats thus, drastically reducing the number of sysfs file entries.
+>
+> We had a discussion with Roland on this, and he gave us a go-ahead on this as well.
+> However, if you still think we should honor IB-diag infra, we are open to populate IB-compliant stats into that framework as well along with debugfs entries.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
