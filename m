@@ -1,200 +1,32 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libmlx4 2/2] Add ibv_query_port_ex support
-Date: Tue, 11 Feb 2014 14:31:15 +0200
-Message-ID: <1392121875-9712-3-git-send-email-ogerlitz@mellanox.com>
-References: <1392121875-9712-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 libmlx4 0/2] Add support for UD QPs under RoCE IP addressing
+Date: Tue, 11 Feb 2014 14:31:13 +0200
+Message-ID: <1392121875-9712-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392121875-9712-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Roland and Yishai,
 
-This patch adds the new extended support for query_port.
-The purpose of this is:
-1. Request fields that aren't availible by today's ibv_query_port
-2. Don't fetch fields that the user doesn't need. Hence, there is
-   more chance to optimize.
-3. Cache link layer's type in mlx4_context.
-   Caching will allow us to avoid ibv_query_port calls and save time
-   in ibv_create_ah.
+This series adds support for Ethernet L2 address resolution for UD QPs, whose
+L2 address-handles, unlike RC/UC/XRC/etc QPs are set from user space without
+going through uverbs and the kernel IB core.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx4.c  |    4 +++
- src/mlx4.h  |    9 +++++++
- src/verbs.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
- 3 files changed, 80 insertions(+), 6 deletions(-)
+Matan and Or
 
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 807540d..d967ef5 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -157,6 +157,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 
- 	context->qp_table_shift = ffs(context->num_qps) - 1 - MLX4_QP_TABLE_BITS;
- 	context->qp_table_mask	= (1 << context->qp_table_shift) - 1;
-+	for (i = 0; i < MLX4_PORTS_NUM; ++i)
-+		context->port_query_cache[i].valid = 0;
- 
- 	pthread_mutex_init(&context->qp_table_mutex, NULL);
- 	for (i = 0; i < MLX4_QP_TABLE_SIZE; ++i)
-@@ -206,6 +208,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
- 
- 	verbs_set_ctx_op(verbs_ctx, drv_ibv_create_ah_ex, mlx4_create_ah_ex);
-+	verbs_set_ctx_op(verbs_ctx, drv_query_port_ex,
-+			 mlx4_query_port_ex);
- 
- 	return 0;
- 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index 3015357..06fd2ba 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -40,6 +40,8 @@
- #include <infiniband/arch.h>
- #include <infiniband/verbs.h>
- 
-+#define MLX4_PORTS_NUM 2
-+
- #ifdef HAVE_VALGRIND_MEMCHECK_H
- 
- #  include <valgrind/memcheck.h>
-@@ -189,6 +191,11 @@ struct mlx4_context {
- 	pthread_mutex_t			db_list_mutex;
- 	int				cqe_size;
- 	struct mlx4_xsrq_table		xsrq_table;
-+	struct {
-+		uint8_t			valid;
-+		uint8_t			link_layer;
-+		enum ibv_port_cap_flags	caps;
-+	} port_query_cache[MLX4_PORTS_NUM];
- };
- 
- struct mlx4_buf {
-@@ -354,6 +361,8 @@ int mlx4_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *attr);
- int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr);
-+int mlx4_query_port_ex(struct ibv_context *context, uint8_t port_num,
-+		       struct ibv_port_attr_ex *port_attr);
- 
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context);
- int mlx4_free_pd(struct ibv_pd *pd);
-diff --git a/src/verbs.c b/src/verbs.c
-index e322a34..b29f0a6 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -70,8 +70,63 @@ int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr)
- {
- 	struct ibv_query_port cmd;
-+	int err;
-+
-+	err = ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
-+	if (!err && port <= MLX4_PORTS_NUM && port > 0) {
-+		struct mlx4_context *mctx = to_mctx(context);
-+		if (!mctx->port_query_cache[port - 1].valid) {
-+			mctx->port_query_cache[port - 1].link_layer =
-+				attr->link_layer;
-+			mctx->port_query_cache[port - 1].caps =
-+				attr->port_cap_flags;
-+			mctx->port_query_cache[port - 1].valid = 1;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+int mlx4_query_port_ex(struct ibv_context *context, uint8_t port_num,
-+		       struct ibv_port_attr_ex *port_attr)
-+{
-+	/* Check that only valid flags were given */
-+	if (!(port_attr->comp_mask & IBV_QUERY_PORT_EX_ATTR_MASK1) ||
-+	    (port_attr->comp_mask & ~IBV_QUERY_PORT_EX_ATTR_MASKS) ||
-+	    (port_attr->mask1 & ~IBV_QUERY_PORT_EX_MASK)) {
-+		return EINVAL;
-+	}
- 
--	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof cmd);
-+	/* Optimize the link type query */
-+	if (port_attr->comp_mask == IBV_QUERY_PORT_EX_ATTR_MASK1) {
-+		if (!(port_attr->mask1 & ~(IBV_QUERY_PORT_EX_LINK_LAYER |
-+					   IBV_QUERY_PORT_EX_CAP_FLAGS))) {
-+			struct mlx4_context *mctx = to_mctx(context);
-+			if (port_num <= 0 || port_num > MLX4_PORTS_NUM)
-+				return EINVAL;
-+			if (mctx->port_query_cache[port_num - 1].valid) {
-+				if (port_attr->mask1 &
-+				    IBV_QUERY_PORT_EX_LINK_LAYER)
-+					port_attr->link_layer =
-+						mctx->
-+						port_query_cache[port_num - 1].
-+						link_layer;
-+				if (port_attr->mask1 &
-+				    IBV_QUERY_PORT_EX_CAP_FLAGS)
-+					port_attr->port_cap_flags =
-+						mctx->
-+						port_query_cache[port_num - 1].
-+						caps;
-+				return 0;
-+			}
-+		}
-+		if (port_attr->mask1 & IBV_QUERY_PORT_EX_STD_MASK) {
-+			return mlx4_query_port(context, port_num,
-+					       &port_attr->port_attr);
-+		}
-+	}
-+
-+	return EOPNOTSUPP;
- }
- 
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context)
-@@ -824,15 +879,18 @@ static struct ibv_ah *mlx4_create_ah_common(struct ibv_pd *pd,
- struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- {
- 	struct ibv_ah *ah;
--	struct ibv_port_attr port_attr;
-+	struct ibv_port_attr_ex port_attr;
-+
-+	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
-+	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER;
- 
--	if (ibv_query_port(pd->context, attr->port_num, &port_attr))
-+	if (ibv_query_port_ex(pd->context, attr->port_num, &port_attr))
- 		return NULL;
- 
- 	ah = mlx4_create_ah_common(pd, attr, port_attr.link_layer);
- 	if (NULL != ah &&
- 	    (port_attr.link_layer != IBV_LINK_LAYER_ETHERNET ||
--	    !mlx4_resolve_grh_to_l2(pd, to_mah(ah), attr)))
-+	     !mlx4_resolve_grh_to_l2(pd, to_mah(ah), attr)))
- 		return ah;
- 
- 	if (ah)
-@@ -843,11 +901,14 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- struct ibv_ah *mlx4_create_ah_ex(struct ibv_pd *pd,
- 				 struct ibv_ah_attr_ex *attr_ex)
- {
--	struct ibv_port_attr port_attr;
-+	struct ibv_port_attr_ex port_attr;
- 	struct ibv_ah *ah;
- 	struct mlx4_ah *mah;
- 
--	if (ibv_query_port(pd->context, attr_ex->port_num, &port_attr))
-+	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
-+	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER;
-+
-+	if (ibv_query_port_ex(pd->context, attr_ex->port_num, &port_attr))
- 		return NULL;
- 
- 	ah = mlx4_create_ah_common(pd, (struct ibv_ah_attr *)attr_ex,
--- 
-1.7.1
+ - better checking for invalid port numbers
+ - create_ah_ex in libmlx4 conforms to the verbs extensions mechanism
+
+Matan Barak (2):
+  Add RoCE IP based addressing support for UD QPs
+  Add ibv_query_port_ex support
+
+ src/mlx4.c  |    9 +++-
+ src/mlx4.h  |   11 ++++
+ src/verbs.c |  153 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 160 insertions(+), 13 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
