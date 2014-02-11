@@ -1,65 +1,45 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/4] NULL undeclared on Fedora
-Date: Tue, 11 Feb 2014 12:37:31 +0100
-Message-ID: <1392118651.11170.31.camel@localhost.localdomain>
-References: <54347E5A035A054EAE9D05927FB467F972DEC731@ORSMSX101.amr.corp.intel.com>
-	 <1392033167.11170.22.camel@localhost.localdomain>
-	 <54347E5A035A054EAE9D05927FB467F972DEC88A@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 libibverbs 0/3] Add support for UD QPs under RoCE IP addressing
+Date: Tue, 11 Feb 2014 14:31:01 +0200
+Message-ID: <1392121864-9672-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54347E5A035A054EAE9D05927FB467F972DEC88A-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi Roland,
 
-Le lundi 10 f=C3=A9vrier 2014 =C3=A0 19:14 +0000, Davis, Arlin R a =C3=A9=
-crit :
-> > > --- a/dat/include/dat2/dat_platform_specific.h
-> > > +++ b/dat/include/dat2/dat_platform_specific.h
-> > > @@ -147,6 +147,7 @@ typedef DAT_UINT64		DAT_PADDR;
-> > >  #if defined(__KERNEL__)
-> > >  #include <linux/types.h>
-> > >  #else
-> > > +#include <stdio.h>
-> >=20
-> > You could use #include <stddef.h> if only NULL is needed
-> > http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/stddef.h.h=
-tml
->=20
-> There was an issue with Fedora where linux/stddef.h is empty. Looks l=
-ike
-> I need to clean this up and use <stddef.h> instead of <linux/stddef.h=
->=20
-> for the non-kernel build.
->=20
+This series adds support for Ethernet L2 address resolution for UD QPs, whose
+L2 address-handles, unlike RC/UC/XRC/etc QPs are set from user space without
+going through uverbs and the kernel IB core.
 
-In the kernel sources include/uapi/linux/stddef.h has only one line :
-#include <linux/compiler.h>.
+Matan and Or.
 
-And <linux/compiler.h> is in include/linux/compiler.h thus not made
-available to userspace: it's removed as part of header sanitise process
-in make headers_install (see scripts/headers_install.sh).
+changes from V0:
+ - don't change struct ibv_port_attr flags field from uint32_t 
+   to enum (size could change)
 
-I believe empty linux/stddef.h is kept for userspace compatibility:
-http://codesearch.debian.net/search?q=3D%23include+%3Clinux%2Fstddef.h%=
-3E
+ - ibv_ah_attr_ex is extendable and contains ibv_ah_attr
+ 
 
-Newer userspace code should probably not use it anymore.
+Matan Barak (3):
+  Add ibv_port_cap_flags
+  Use neighbour lookup for RoCE UD QPs Eth L2 resolution
+  Add ibv_query_port_ex support
 
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+ Makefile.am                |    3 +
+ configure.ac               |   11 +
+ include/infiniband/verbs.h |  159 ++++++++-
+ src/device.c               |    2 +
+ src/neigh.c                |  866 ++++++++++++++++++++++++++++++++++++++++++++
+ src/neigh.h                |   42 +++
+ src/verbs.c                |  163 ++++++++-
+ 7 files changed, 1243 insertions(+), 3 deletions(-)
+ create mode 100644 src/neigh.c
+ create mode 100644 src/neigh.h
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
