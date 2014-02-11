@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libibverbs 1/3] Add ibv_port_cap_flags
-Date: Tue, 11 Feb 2014 14:31:02 +0200
-Message-ID: <1392121864-9672-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 libibverbs 3/3] Add ibv_query_port_ex support
+Date: Tue, 11 Feb 2014 14:31:04 +0200
+Message-ID: <1392121864-9672-4-git-send-email-ogerlitz@mellanox.com>
 References: <1392121864-9672-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1392121864-9672-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,51 +12,185 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add an enum that describes ibv_port_cap_flags that complies
-with the respective kernel enum and modify the existing
-field in struct ibv_port_attr to be of that type.
+This patch adds extended support for ibv_query_port.
 
-This value could be fetched when using ibv_query_port.
+This allows to request fields that aren't availible by the current
+ibv_query_port API and avoid fetching from vendor library fields that
+the user doesn't need, which gives more room for optimizations.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ include/infiniband/verbs.h |  102 ++++++++++++++++++++++++++++++++++++++++++++
+ src/device.c               |    2 +
+ src/verbs.c                |    7 ++-
+ 3 files changed, 109 insertions(+), 2 deletions(-)
 
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 5064636..a79a1de 100644
+index 63c4756..4efcdb6 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -186,6 +186,28 @@ enum {
- 	IBV_LINK_LAYER_ETHERNET,
+@@ -487,6 +487,69 @@ struct ibv_ah_attr_ex {
+ 	uint16_t		vid;
  };
  
-+enum ibv_port_cap_flags {
-+	IBV_PORT_SM				= 1 <<  1,
-+	IBV_PORT_NOTICE_SUP			= 1 <<  2,
-+	IBV_PORT_TRAP_SUP			= 1 <<  3,
-+	IBV_PORT_OPT_IPD_SUP			= 1 <<  4,
-+	IBV_PORT_AUTO_MIGR_SUP			= 1 <<  5,
-+	IBV_PORT_SL_MAP_SUP			= 1 <<  6,
-+	IBV_PORT_MKEY_NVRAM			= 1 <<  7,
-+	IBV_PORT_PKEY_NVRAM			= 1 <<  8,
-+	IBV_PORT_LED_INFO_SUP			= 1 <<  9,
-+	IBV_PORT_SYS_IMAGE_GUID_SUP		= 1 << 11,
-+	IBV_PORT_PKEY_SW_EXT_PORT_TRAP_SUP	= 1 << 12,
-+	IBV_PORT_EXTENDED_SPEEDS_SUP		= 1 << 14,
-+	IBV_PORT_CM_SUP				= 1 << 16,
-+	IBV_PORT_SNMP_TUNNEL_SUP		= 1 << 17,
-+	IBV_PORT_REINIT_SUP			= 1 << 18,
-+	IBV_PORT_DEVICE_MGMT_SUP		= 1 << 19,
-+	IBV_PORT_VENDOR_CLASS			= 1 << 24,
-+	IBV_PORT_CLIENT_REG_SUP			= 1 << 25,
-+	IBV_PORT_IP_BASED_GIDS			= 1 << 26,
++enum {
++	IBV_QUERY_PORT_EX_STATE			= 1 << 0,
++	IBV_QUERY_PORT_EX_MAX_MTU		= 1 << 1,
++	IBV_QUERY_PORT_EX_ACTIVE_MTU		= 1 << 2,
++	IBV_QUERY_PORT_EX_GID_TBL_LEN		= 1 << 3,
++	IBV_QUERY_PORT_EX_CAP_FLAGS		= 1 << 4,
++	IBV_QUERY_PORT_EX_MAX_MSG_SZ		= 1 << 5,
++	IBV_QUERY_PORT_EX_BAD_PKEY_CNTR		= 1 << 6,
++	IBV_QUERY_PORT_EX_QKEY_VIOL_CNTR	= 1 << 7,
++	IBV_QUERY_PORT_EX_PKEY_TBL_LEN		= 1 << 8,
++	IBV_QUERY_PORT_EX_LID			= 1 << 9,
++	IBV_QUERY_PORT_EX_SM_LID		= 1 << 10,
++	IBV_QUERY_PORT_EX_LMC			= 1 << 11,
++	IBV_QUERY_PORT_EX_MAX_VL_NUM		= 1 << 12,
++	IBV_QUERY_PORT_EX_SM_SL			= 1 << 13,
++	IBV_QUERY_PORT_EX_SUBNET_TIMEOUT	= 1 << 14,
++	IBV_QUERY_PORT_EX_INIT_TYPE_REPLY	= 1 << 15,
++	IBV_QUERY_PORT_EX_ACTIVE_WIDTH		= 1 << 16,
++	IBV_QUERY_PORT_EX_ACTIVE_SPEED		= 1 << 17,
++	IBV_QUERY_PORT_EX_PHYS_STATE		= 1 << 18,
++	IBV_QUERY_PORT_EX_LINK_LAYER		= 1 << 19,
++	/* mask of the fields that exists in the standard query_port_command */
++	IBV_QUERY_PORT_EX_STD_MASK		= (1 << 20) - 1,
++	/* mask of all supported fields */
++	IBV_QUERY_PORT_EX_MASK			= IBV_QUERY_PORT_EX_STD_MASK,
 +};
 +
- struct ibv_port_attr {
- 	enum ibv_port_state	state;
- 	enum ibv_mtu		max_mtu;
++enum ibv_query_port_ex_attr_mask {
++	IBV_QUERY_PORT_EX_ATTR_MASK1		= 1 << 0,
++	IBV_QUERY_PORT_EX_ATTR_MASKS		= (1 << 1) - 1
++};
++
++struct ibv_port_attr_ex {
++	union {
++		struct {
++			enum ibv_port_state	state;
++			enum ibv_mtu		max_mtu;
++			enum ibv_mtu		active_mtu;
++			int			gid_tbl_len;
++			uint32_t		port_cap_flags;
++			uint32_t		max_msg_sz;
++			uint32_t		bad_pkey_cntr;
++			uint32_t		qkey_viol_cntr;
++			uint16_t		pkey_tbl_len;
++			uint16_t		lid;
++			uint16_t		sm_lid;
++			uint8_t			lmc;
++			uint8_t			max_vl_num;
++			uint8_t			sm_sl;
++			uint8_t			subnet_timeout;
++			uint8_t			init_type_reply;
++			uint8_t			active_width;
++			uint8_t			active_speed;
++			uint8_t			phys_state;
++			uint8_t			link_layer;
++			uint8_t			reserved;
++		};
++		struct ibv_port_attr		port_attr;
++	};
++	uint32_t		comp_mask;
++	uint32_t		mask1;
++};
++
+ 
+ enum ibv_srq_attr_mask {
+ 	IBV_SRQ_MAX_WR	= 1 << 0,
+@@ -900,6 +963,10 @@ enum verbs_context_mask {
+ 
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	int (*drv_query_port_ex)(struct ibv_context *context, uint8_t port_num,
++				 struct ibv_port_attr_ex *port_attr);
++	int (*lib_query_port_ex)(struct ibv_context *context, uint8_t port_num,
++				  struct ibv_port_attr_ex *port_attr);
+ 	struct ibv_ah * (*drv_ibv_create_ah_ex)(struct ibv_pd *pd,
+ 						struct ibv_ah_attr_ex *attr);
+ 	struct ibv_qp *(*open_qp)(struct ibv_context *context,
+@@ -1028,6 +1095,41 @@ static inline int ___ibv_query_port(struct ibv_context *context,
+ #define ibv_query_port(context, port_num, port_attr) \
+ 	___ibv_query_port(context, port_num, port_attr)
+ 
++static inline int ibv_query_port_ex(struct ibv_context *context,
++				    uint8_t port_num,
++				    struct ibv_port_attr_ex *port_attr)
++{
++	struct verbs_context *vctx;
++
++	if (0 == port_attr->comp_mask)
++		return ibv_query_port(context, port_num,
++				      &port_attr->port_attr);
++
++	/* Check that only valid flags were given */
++	if ((!port_attr->comp_mask & IBV_QUERY_PORT_EX_ATTR_MASK1) ||
++	    (port_attr->comp_mask & ~IBV_QUERY_PORT_EX_ATTR_MASKS) ||
++	    (port_attr->mask1 & ~IBV_QUERY_PORT_EX_MASK)) {
++		errno = EINVAL;
++		return -errno;
++	}
++
++	vctx = verbs_get_ctx_op(context, lib_query_port_ex);
++
++	if (!vctx) {
++		/* Fallback to legacy mode */
++		if (port_attr->comp_mask == IBV_QUERY_PORT_EX_ATTR_MASK1 &&
++		    !(port_attr->mask1 & ~IBV_QUERY_PORT_EX_STD_MASK))
++			return ibv_query_port(context, port_num,
++					      &port_attr->port_attr);
++
++		/* Unsupported field was requested */
++		errno = ENOSYS;
++		return -errno;
++	}
++
++	return vctx->lib_query_port_ex(context, port_num, port_attr);
++}
++
+ /**
+  * ibv_query_gid - Get a GID table entry
+  */
+diff --git a/src/device.c b/src/device.c
+index beb7b3c..29ad726 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -169,6 +169,8 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 		 * context_ex->lib_new_func1 = __verbs_new_func1;
+ 		 * context_ex->lib_new_func2 = __verbs_new_func2;
+ 		 */
++		 context_ex->lib_query_port_ex =
++			 context_ex->drv_query_port_ex;
+ 	}
+ 
+ 	context->device = device;
+diff --git a/src/verbs.c b/src/verbs.c
+index 219e503..9bad068 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -550,7 +550,7 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	int err;
+ 	struct ibv_ah *ah = NULL;
+ #ifndef NRESOLVE_NEIGH
+-	struct ibv_port_attr port_attr;
++	struct ibv_port_attr_ex port_attr;
+ 	int dst_family;
+ 	int src_family;
+ 	int oif;
+@@ -570,7 +570,10 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 		goto return_ah;
+ 	}
+ 
+-	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
++	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
++	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER |
++			  IBV_QUERY_PORT_EX_CAP_FLAGS;
++	err = ibv_query_port_ex(pd->context, attr->port_num, &port_attr);
+ 
+ 	if (err) {
+ 		fprintf(stderr, PFX "ibv_create_ah failed to query port.\n");
 -- 
 1.7.1
 
