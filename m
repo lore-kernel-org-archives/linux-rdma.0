@@ -1,59 +1,72 @@
-From: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: qib_lookup_qpn() appears to leak pointer out of rcu_read_unlock()
-Date: Wed, 12 Feb 2014 06:55:43 -0800
-Message-ID: <20140212145543.GY4250@linux.vnet.ibm.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: qib_lookup_qpn() appears to leak pointer out of
+ rcu_read_unlock()
+Date: Wed, 12 Feb 2014 14:57:14 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC211F3D75@FMSMSX107.amr.corp.intel.com>
 References: <20140212003511.GA27242@linux.vnet.ibm.com>
  <32E1700B9017364D9B60AED9960492BC211F3D24@FMSMSX107.amr.corp.intel.com>
-Reply-To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+ <20140212145543.GY4250@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC211F3D24-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20140212145543.GY4250-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 12, 2014 at 01:59:30PM +0000, Marciniszyn, Mike wrote:
-> > So what am I missing here?
-> > 
-> 
-> The atomic increment of a reference count:
+BTW, I am considering eliminating the atomic_inc() in favor of widening the scope of the rcu lock expanse.
 
-Got it, thank you, apologies for the noise!
+Mike
 
-							Thanx, Paul
-
-> struct qib_qp *qib_lookup_qpn(struct qib_ibport *ibp, u32 qpn)
-> {
->         struct qib_qp *qp = NULL;
+> -----Original Message-----
+> From: Paul E. McKenney [mailto:paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org]
+> Sent: Wednesday, February 12, 2014 9:56 AM
+> To: Marciniszyn, Mike
+> Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Hefty, Sean; hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: qib_lookup_qpn() appears to leak pointer out of rcu_read_unlock()
 > 
->         rcu_read_lock();
->         if (unlikely(qpn <= 1)) {
->                 if (qpn == 0)
->                         qp = rcu_dereference(ibp->qp0);
->                 else
->                         qp = rcu_dereference(ibp->qp1);
->                 if (qp)
->                         atomic_inc(&qp->refcount); <--------------------------
->         } else {
->                 struct qib_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
->                 unsigned n = qpn_hash(dev, qpn);
+> On Wed, Feb 12, 2014 at 01:59:30PM +0000, Marciniszyn, Mike wrote:
+> > > So what am I missing here?
+> > >
+> >
+> > The atomic increment of a reference count:
 > 
->                 for (qp = rcu_dereference(dev->qp_table[n]); qp;
->                         qp = rcu_dereference(qp->next))
->                         if (qp->ibqp.qp_num == qpn) {
->                                 atomic_inc(&qp->refcount); <---------------------
->                                 break;
->                         }
->         }
->         rcu_read_unlock();
->         return qp;
-> }
+> Got it, thank you, apologies for the noise!
 > 
-> Mike
+> 							Thanx, Paul
 > 
+> > struct qib_qp *qib_lookup_qpn(struct qib_ibport *ibp, u32 qpn) {
+> >         struct qib_qp *qp = NULL;
+> >
+> >         rcu_read_lock();
+> >         if (unlikely(qpn <= 1)) {
+> >                 if (qpn == 0)
+> >                         qp = rcu_dereference(ibp->qp0);
+> >                 else
+> >                         qp = rcu_dereference(ibp->qp1);
+> >                 if (qp)
+> >                         atomic_inc(&qp->refcount); <--------------------------
+> >         } else {
+> >                 struct qib_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
+> >                 unsigned n = qpn_hash(dev, qpn);
+> >
+> >                 for (qp = rcu_dereference(dev->qp_table[n]); qp;
+> >                         qp = rcu_dereference(qp->next))
+> >                         if (qp->ibqp.qp_num == qpn) {
+> >                                 atomic_inc(&qp->refcount); <---------------------
+> >                                 break;
+> >                         }
+> >         }
+> >         rcu_read_unlock();
+> >         return qp;
+> > }
+> >
+> > Mike
+> >
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
