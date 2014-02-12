@@ -1,21 +1,19 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 1/3] Add ibv_port_cap_flags
-Date: Wed, 12 Feb 2014 10:20:58 +0200
-Message-ID: <52FB2EEA.2030902@mellanox.com>
-References: <1392121864-9672-1-git-send-email-ogerlitz@mellanox.com>	 <1392121864-9672-2-git-send-email-ogerlitz@mellanox.com> <1392126809.11170.32.camel@localhost.localdomain>
+From: 2014 Heritage Foundation Board <sifi.bouaziz-jHBqxI1HPOVFngycNdebug@public.gmane.org>
+Subject: Cash Awaiting Pick Up..
+Date: Wed, 12 Feb 2014 10:13:00 +0100 (CET)
+Message-ID: <a0e7879a-4cf2-4fcf-966b-5fe677b6fbde__8641.04619618065$1392198917$gmane$org@mbox12>
+Reply-To: Mrs Hillary Florence <heritdept-kGM0oXzJM5p02iOg2JU2CQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392126809.11170.32.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/02/2014 15:53, Yann Droneaud wrote:
-> The last part is no more true.
-sure, will fix that for V2, thanks for spotting this!
+
+
+This is to re-notify you that you have $500,000.00 waiting for pick-up at Money Gram, Contact 
+Mrs Hillary Florence via email : heritdept-kGM0oXzJM5p02iOg2JU2CQ@public.gmane.org for claims.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
