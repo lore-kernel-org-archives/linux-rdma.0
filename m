@@ -1,46 +1,70 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: add missing serdes init sequeuce
-Date: Wed, 12 Feb 2014 11:54:15 -0500
-Message-ID: <20140212165415.25744.84561.stgit@phlsvslse11.ph.intel.com>
+From: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: mlx4 qp allocation
+Date: Thu, 13 Feb 2014 00:18:22 +0530
+Message-ID: <CANwwZzUMPvvOEWN5xA+eOiT9uA4zOG+-cDhCks4Utv+8fqao9g@mail.gmail.com>
+References: <CANwwZzUfoNB1pyyu8VC2Do3mvCBOmeam+_9CAEW-eQbVCMdHNQ@mail.gmail.com>
+	<20140211133141.7d5f4929@jpm-OptiPlex-GX620>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140211133141.7d5f4929@jpm-OptiPlex-GX620>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Research has shown that commit a77fcf89
-("IB/qib: Use a single txselect module parameter for serdes tuning")
-missed a key serdes init sequence.
+Hi Jack,
 
-This patch add that sequence.
+Thanks for the reply. Now I understand. On a related note, I had the
+following question. Would really appreciate if you can help answer the
+same:
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Considering the resources QPs, CQs, EQs etc after going through the
+code my understanding is that:
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 5bfc02f..d1bd213 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -2395,6 +2395,11 @@ static int qib_7322_bringup_serdes(struct qib_pportdata *ppd)
- 	qib_write_kreg_port(ppd, krp_ibcctrl_a, ppd->cpspec->ibcctrl_a);
- 	qib_write_kreg(dd, kr_scratch, 0ULL);
- 
-+	/* ensure previous Tx parameters are not still forced */
-+	qib_write_kreg_port(ppd, krp_tx_deemph_override,
-+		SYM_MASK(IBSD_TX_DEEMPHASIS_OVERRIDE_0,
-+		reset_tx_deemphasis_override));
-+
- 	if (qib_compat_ddr_negotiate) {
- 		ppd->cpspec->ibdeltainprog = 1;
- 		ppd->cpspec->ibsymsnap = read_7322_creg32_port(ppd,
+1. Physical Function Driver/Hypervisor allocates memory only for the
+ICM space for these resources.
+2. Virtual Function Driver needs to allocate corresponding system
+memory for the resources
 
+For e.g let's say I need 32K QPs, 64K CQs, 512 EQs, the PF driver
+allocates the memory only for the ICM.
+
+The VFs need to allocate the memory for Send Queue Buffer, Receive
+Queue Buffer, Completion Queue Buffer, Event Queue Buffer.
+
+Is that right?
+
+Also, as the QPs, CQs etc are created by the HCA when ALLOC_RES
+command is issued, does the PF driver need to maintain anything to
+associate the QPs, CQs created by the HCA with owners(VFs) possessing
+them?
+
+I would really appreciate your help!
+
+Thanks so much..
+
+Best Regards,
+Bob
+
+
+On Tue, Feb 11, 2014 at 5:01 PM, Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Wed, 29 Jan 2014 15:52:09 +0530
+> Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+>> These paths are taken based on the return value of mlx4_is_func(dev).
+>> This is true for MASTER or SLAVE which I believe is Physical Function
+>> Driver/Virtual Function Driver. So for SRIOV, it covers all cases.
+>>
+>> The MAP_ICM portion which gets executed as part of __mlx4_qp_alloc_icm
+>> never gets called??
+>
+> For slaves (VFs), the command is sent via the comm channel to the
+> Hypervisor.  It is the Hypervisor which invokes map_icm on behalf of
+> that slave.
+>
+> -Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
