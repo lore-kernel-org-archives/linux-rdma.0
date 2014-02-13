@@ -1,40 +1,59 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] IB/CMA: Fix initialization of hop_limit instead of
- hardcode to 1.
-Date: Thu, 13 Feb 2014 15:05:09 -0800
-Message-ID: <CAG4TOxOTU_0CcN-s_1R6XXfA8wHdZ0gKgst8-y9qmApV-ScPiA@mail.gmail.com>
-References: <90ba6b41-2a1a-4419-bb49-4ed8c216e2a7@CMEXHTCAS2.ad.emulex.com>
- <7F44EA5110810A40B7DAFB605C41975D302A7842@CMEXMB1.ad.emulex.com>
- <CAG4TOxO=eovTf+ygZX7O1wfHy2FUU_zxv_vsZXx262bG=PLfuw@mail.gmail.com> <7F44EA5110810A40B7DAFB605C41975D302A94EC@CMEXMB1.ad.emulex.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Michael Neuling <mikey-/owAOxkjmzZAfugRpC6u6w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Remove dependency on X86
+Date: Fri, 14 Feb 2014 10:29:49 +1100
+Message-ID: <31741.1392334189@ale.ozlabs.ibm.com>
+References: <1392317393-26762-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D302A94EC-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-reply-to: <1392317393-26762-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 12, 2014 at 9:44 PM, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> Hi Roland,
->
->              Yes you are correct, currently it is not routable , and this
-> would probably be the first gentle step in enabling it to be so.
->
-> Also, I did see that in ib_init_ah_from_wc() currently , it is already being
-> set to 0xff , so this would add symmetry and enable it both ways Iff needed
-> of course.
->
-> Do you think this should go into for-next instead ?
+Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-I'm still trying to understand why this patch should go anywhere.
-Repeating my previous question: is there any practical situation where
-this makes a difference?
+> Remove dependency of mlx5_ib on X86 arch since there is no such dependency.
+>
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If not then wouldn't it make sense to design how routable IBoE will
-work overall before tinkering with minor stuff like this?
+There's another Kconfig you need to fix as well.  Full patch below.
+With this it compiles and loads on powerpc.
 
- - R.
+
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+IB/mlx5: Remove dependency on X86
+
+Remove dependency of mlx5_ib on X86 arch since there is no such
+dependency.
+
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Michael Neuling <mikey-/owAOxkjmzZAfugRpC6u6w@public.gmane.org>
+
+diff --git a/drivers/infiniband/hw/mlx5/Kconfig b/drivers/infiniband/hw/mlx5/Kconfig
+index 8e6aebf..10df386 100644
+--- a/drivers/infiniband/hw/mlx5/Kconfig
++++ b/drivers/infiniband/hw/mlx5/Kconfig
+@@ -1,6 +1,6 @@
+ config MLX5_INFINIBAND
+ 	tristate "Mellanox Connect-IB HCA support"
+-	depends on NETDEVICES && ETHERNET && PCI && X86
++	depends on NETDEVICES && ETHERNET && PCI
+ 	select NET_VENDOR_MELLANOX
+ 	select MLX5_CORE
+ 	---help---
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+index 157fe8d..8ff57e8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+@@ -4,5 +4,5 @@
+ 
+ config MLX5_CORE
+ 	tristate
+-	depends on PCI && X86
++	depends on PCI
+ 	default n
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
