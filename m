@@ -1,58 +1,38 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH master] RDMA/ocrdma: Fix load time panic during GID table init
-Date: Thu, 13 Feb 2014 15:02:56 -0800
-Message-ID: <CAG4TOxPmO2-_gGLd=urBZevzboiFLr4iEqskpxVBCurb4kmWNg@mail.gmail.com>
-References: <bc0e7e5d-45c2-453f-ba7c-c81a1b1d1d94@CMEXHTCAS2.ad.emulex.com>
+Subject: Re: [PATCH v2] IB/CMA: Fix initialization of hop_limit instead of
+ hardcode to 1.
+Date: Thu, 13 Feb 2014 15:05:09 -0800
+Message-ID: <CAG4TOxOTU_0CcN-s_1R6XXfA8wHdZ0gKgst8-y9qmApV-ScPiA@mail.gmail.com>
+References: <90ba6b41-2a1a-4419-bb49-4ed8c216e2a7@CMEXHTCAS2.ad.emulex.com>
+ <7F44EA5110810A40B7DAFB605C41975D302A7842@CMEXMB1.ad.emulex.com>
+ <CAG4TOxO=eovTf+ygZX7O1wfHy2FUU_zxv_vsZXx262bG=PLfuw@mail.gmail.com> <7F44EA5110810A40B7DAFB605C41975D302A94EC@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bc0e7e5d-45c2-453f-ba7c-c81a1b1d1d94-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D302A94EC-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+To: Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 3, 2014 at 10:40 PM, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+On Wed, Feb 12, 2014 at 9:44 PM, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> Hi Roland,
 >
-> driver should use rdma_vlan_dev_real_dev() instead of using vlan_dev_real_dev()
-> while building GID table for a vlan interface.
+>              Yes you are correct, currently it is not routable , and this
+> would probably be the first gentle step in enabling it to be so.
 >
-> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
+> Also, I did see that in ib_init_ah_from_wc() currently , it is already being
+> set to 0xff , so this would add symmetry and enable it both ways Iff needed
+> of course.
 >
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> index 91443bc..f7b1b27 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> @@ -161,7 +161,9 @@ static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
->
->         rcu_read_lock();
->         for_each_netdev_rcu(&init_net, tmp) {
-> -               if (netdev == tmp || vlan_dev_real_dev(tmp) == netdev) {
-> +               if (
-> +                       netdev && (netdev == tmp ||
-> +                               rdma_vlan_dev_real_dev(tmp) == netdev)) {
->                         if (!netif_running(tmp) || !netif_oper_up(tmp))
->                                 continue;
->                         if (netdev != tmp) {
-> @@ -208,7 +210,7 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
->         is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
->         if (is_vlan) {
->                 vid = vlan_dev_vlan_id(netdev);
-> -               netdev = vlan_dev_real_dev(netdev);
-> +               netdev = rdma_vlan_dev_real_dev(netdev);
->         }
->
->         rcu_read_lock();
+> Do you think this should go into for-next instead ?
 
-I applied this for my next pull request to go into 3.14, but I had to
-massage it quite a bit to get it to apply.  There was only one call to
-vlan_dev_real_dev(), and the context was a bit different.
+I'm still trying to understand why this patch should go anywhere.
+Repeating my previous question: is there any practical situation where
+this makes a difference?
 
-I guess this is on top of some other patch set?  But I'm assuming we
-need the fix for 3.14 even without those other patches.
+If not then wouldn't it make sense to design how routable IBoE will
+work overall before tinkering with minor stuff like this?
 
  - R.
 --
