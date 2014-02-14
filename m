@@ -1,82 +1,56 @@
 From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH master] RDMA/ocrdma: Fix load time panic during GID
- table init
-Date: Fri, 14 Feb 2014 06:01:13 +0000
-Message-ID: <fe4011f3-3d3b-4920-8201-fb337da52c76@CMEXHTCAS1.ad.emulex.com>
-References: <bc0e7e5d-45c2-453f-ba7c-c81a1b1d1d94@CMEXHTCAS2.ad.emulex.com>
- <CAG4TOxPmO2-_gGLd=urBZevzboiFLr4iEqskpxVBCurb4kmWNg@mail.gmail.com>
+Subject: RE: [PATCH for-next 15/17] RDMA/ocrdma: Support for Skyhawk
+ statistics
+Date: Fri, 14 Feb 2014 06:16:37 +0000
+Message-ID: <8db16c88-7b7f-4fd0-94f5-bc3268d6ae58@CMEXHTCAS2.ad.emulex.com>
+References: <1391495230-28021-1-git-send-email-devesh.sharma@emulex.com>
+ <91cc4eb6-5895-486d-b6b9-8a97b79dfc71@CMEXHTCAS2.ad.emulex.com>
+ <CAJZOPZK-w98t0=K4AUceKPCbwjd75BBjG325YgbQ-iV-ETosPg@mail.gmail.com>
+ <CAJZOPZ+ajdDtehBJnwUGA5mgMM2aDn1JsY=0Pas3Se-WfZYs4A@mail.gmail.com>
+ <424c56ee-b168-48e2-a298-f30a326ee8d0@CMEXHTCAS1.ad.emulex.com>
+ <20140208191633.GA24320@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxPmO2-_gGLd=urBZevzboiFLr4iEqskpxVBCurb4kmWNg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20140208191633.GA24320-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Hello all,
 
-The patch was cut before Or's IP based GID changes in master, and is expected as a bug fix for 3.13 .x. I think I am late for this to happen. 
-
-Yes, this needs a fix even in 3.14.
-After Or's IP based GID changes the context has been changed _from_ 
-ocrdma_inet6addr_event() and  ocrdma_add_vlan_sgids() _to_ ocrdma_addr_event() causing only one call to rdma_vlan_dev_real_dev.
+We would like to keep this patch for debugging purpose and we will submit another patch which will be compliant with IB-stack sysfs infrastructure once this set of patch are into the mainstream.
+If any ABI for debugfs is changed, we will follow the changes.
 
 -Regards
  Devesh
-
 -----Original Message-----
-From: roland.dreier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:roland.dreier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Roland Dreier
-Sent: Friday, February 14, 2014 4:33 AM
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+Sent: Sunday, February 09, 2014 12:47 AM
 To: Devesh Sharma
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Selvin Xavier
-Subject: Re: [PATCH master] RDMA/ocrdma: Fix load time panic during GID table init
+Cc: Or Gerlitz; linux-rdma; Roland Dreier; Selvin Xavier
+Subject: Re: [PATCH for-next 15/17] RDMA/ocrdma: Support for Skyhawk statistics
 
-On Mon, Feb 3, 2014 at 10:40 PM, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
->
-> driver should use rdma_vlan_dev_real_dev() instead of using 
-> vlan_dev_real_dev() while building GID table for a vlan interface.
->
-> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c 
-> b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> index 91443bc..f7b1b27 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> @@ -161,7 +161,9 @@ static void ocrdma_add_vlan_sgids(struct 
-> ocrdma_dev *dev)
->
->         rcu_read_lock();
->         for_each_netdev_rcu(&init_net, tmp) {
-> -               if (netdev == tmp || vlan_dev_real_dev(tmp) == netdev) {
-> +               if (
-> +                       netdev && (netdev == tmp ||
-> +                               rdma_vlan_dev_real_dev(tmp) == 
-> + netdev)) {
->                         if (!netif_running(tmp) || !netif_oper_up(tmp))
->                                 continue;
->                         if (netdev != tmp) { @@ -208,7 +210,7 @@ 
-> static int ocrdma_inet6addr_event(struct notifier_block *notifier,
->         is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
->         if (is_vlan) {
->                 vid = vlan_dev_vlan_id(netdev);
-> -               netdev = vlan_dev_real_dev(netdev);
-> +               netdev = rdma_vlan_dev_real_dev(netdev);
->         }
->
->         rcu_read_lock();
+On Sat, Feb 08, 2014 at 04:26:37AM +0000, Devesh Sharma wrote:
 
-I applied this for my next pull request to go into 3.14, but I had to massage it quite a bit to get it to apply.  There was only one call to vlan_dev_real_dev(), and the context was a bit different.
+> We are having some 200 Odds vendor specific stats to be displayed. 
+> With sysfs infrastructure for IB devices we found that each stat will 
+> correspond to one file in sysfs tree therefore it will constitute a 
+> large number of files in ocrdma tree per port, situation will worsen 
+> if SRIOV and Multichannel comes into picture, On the other hand, with 
+> debugfs it is possible to have one file displaying multiple stats 
+> thus, drastically reducing the number of sysfs file entries.
 
-I guess this is on top of some other patch set?  But I'm assuming we need the fix for 3.14 even without those other patches.
+This really is what netlink is for.
 
- - R.
+Remember, debugfs is not a stable ABI area, it could change at any moment, You must not ship tools to end users that process these stats if they come out through debugfs - it is not a way to bypass the kernel API rules. It is just something for developers to use.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
