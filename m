@@ -1,50 +1,89 @@
-From: "Dr.William Davies" <purchase-iWkfCuf1Dv8t08DiuWRmVZ/QNRX+jHPU@public.gmane.org>
-Subject: Re: Instructions to release your payment.
-Date: Fri, 14 Feb 2014 18:06:49 +0530
-Message-ID: <05850bfa675129882bc42edd957194c7__16573.4255141162$1392389469$gmane$org@127.0.0.1>
-Reply-To: williamdavies54-/E1597aS9LT10XsdtD+oqA@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri, 14 Feb 2014 09:51:51 -0800
+Message-ID: <1392400311-14879-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Attention
+Hi Linus,
 
-Sir,
+Please pull from
 
-Following an application brought, seeking the release of your due payment
-through British bank, I am directed to inform you that the application has
-been approved and Natwest bank of London has been mandated to make transfer
-of your payment to the bank account you will nominate. Please kindly reply
-for immediate release of your US$6.2 Million to you nominates account.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
-Sir, for the avoidance of doubts, reconfirm the following information to
-me to enable us forward same to Natwest bank to contact you for your
-payment.
+----------------------------------------------------------------
 
-Name:
+RDMA/InfiniBand fixes for 3.14-rc3:
+ - Fix some rough edges from the "IP addressing for IBoE" merge
+ - Other misc fixes, mostly to hardware drivers
 
-Address:
+----------------------------------------------------------------
+Dan Carpenter (1):
+      IB/iser: Fix use after free in iser_snd_completion()
 
-Tel/Fax No.:
+Devesh Sharma (2):
+      RDMA/ocrdma: Fix traffic class shift
+      RDMA/ocrdma: Fix load time panic during GID table init
 
-Nationality:
+Eli Cohen (4):
+      IB/mlx5: Fix RC transport send queue overhead computation
+      IB/mlx5: Fix binary compatibility with libmlx5
+      IB/mlx5: Don't set "block multicast loopback" capability
+      IB/mlx5: Remove dependency on X86
 
-Occupation:
+Julia Lawall (2):
+      RDMA/nes: Fix error return code
+      RDMA/amso1100: Fix error return code
 
-Date of birth: 
+Kumar Sanghvi (1):
+      RDMA/cxgb4: Add missing neigh_release in LE-Workaround path
 
-As soon as I received the above information, I will forward them to
-Natwest bank to contact you for your approved payment. Please see in the
-attachment, letter I wrote to Natwest bank informing them of the
-transaction
+Matan Barak (1):
+      IB/mlx4: Don't allocate range of steerable UD QPs for Ethernet-only device
 
-Yours faithfully
+Mike Marciniszyn (1):
+      IB/qib: Add missing serdes init sequence
 
-Dr.William Davies
-Chairman,British Banking Regulatory Board.
+Moni Shoua (6):
+      IB/mlx4: Make sure GID index 0 is always occupied
+      IB/mlx4: Move rtnl locking to the right place
+      IB/mlx4: Do IBoE locking earlier when initializing the GID table
+      IB/mlx4: Do IBoE GID table resets per-port
+      IB/mlx4: Build the port IBoE GID table properly under bonding
+      IB: Report using RoCE IP based gids in port caps
+
+Roi Dayan (1):
+      IB/iser: Avoid dereferencing iscsi_iser conn object when not bound to iser connection
+
+Roland Dreier (2):
+      mlx5: Add include of <linux/slab.h> because of kzalloc()/kfree() use
+      Merge branches 'cma', 'cxgb4', 'iser', 'misc', 'mlx4', 'mlx5', 'nes', 'ocrdma', 'qib' and 'usnic' into for-next
+
+Upinder Malhi (1):
+      IB/usnic: Fix smatch endianness error
+
+ drivers/infiniband/hw/amso1100/c2.c             |   4 +-
+ drivers/infiniband/hw/amso1100/c2_rnic.c        |   3 +-
+ drivers/infiniband/hw/cxgb4/cm.c                |   1 +
+ drivers/infiniband/hw/mlx4/main.c               | 185 +++++++++++++++++-------
+ drivers/infiniband/hw/mlx5/Kconfig              |   2 +-
+ drivers/infiniband/hw/mlx5/main.c               |  22 ++-
+ drivers/infiniband/hw/mlx5/qp.c                 |  18 ++-
+ drivers/infiniband/hw/mlx5/user.h               |   7 +
+ drivers/infiniband/hw/nes/nes.c                 |   5 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c      |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c     |   4 +-
+ drivers/infiniband/hw/qib/qib_iba7322.c         |   5 +
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c   |   9 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c    |   3 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c        |  10 +-
+ drivers/net/ethernet/mellanox/mlx5/core/Kconfig |   2 +-
+ include/linux/mlx5/driver.h                     |   3 +
+ include/rdma/ib_verbs.h                         |   3 +-
+ 18 files changed, 214 insertions(+), 74 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
