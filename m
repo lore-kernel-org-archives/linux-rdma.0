@@ -1,101 +1,57 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH v1 03/12] Target/file: place escape values for protection information format
-Date: Sun, 16 Feb 2014 19:38:08 +0200
-Message-ID: <1392572297-5333-4-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 01/12] Target/transport: Allocate protection sg if needed
+Date: Sun, 16 Feb 2014 19:38:06 +0200
+Message-ID: <1392572297-5333-2-git-send-email-sagig@mellanox.com>
 References: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: nab@linux-iscsi.org
-Cc: target-devel@vger.kernel.org, roland@kernel.org, linux-rdma@vger.kernel.org, ogerlitz@mellanox.com, oren@mellanox.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1392572297-5333-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
+Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-No need to actually compute protection information when formatting
+In case protection information is involved, allocate
+protection SG-list for transport.
 
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/target/target_core_file.c |   40 +------------------------------------
- 1 files changed, 1 insertions(+), 39 deletions(-)
+ drivers/target/target_core_transport.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/target/target_core_file.c b/drivers/target/target_core_file.c
-index cf991a9..7d6cdda 100644
---- a/drivers/target/target_core_file.c
-+++ b/drivers/target/target_core_file.c
-@@ -854,25 +854,6 @@ static int fd_init_prot(struct se_device *dev)
- 	return 0;
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index 24b4f65..f029bb7 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -2036,6 +2036,10 @@ static inline void transport_free_pages(struct se_cmd *cmd)
+ 	transport_free_sgl(cmd->t_bidi_data_sg, cmd->t_bidi_data_nents);
+ 	cmd->t_bidi_data_sg = NULL;
+ 	cmd->t_bidi_data_nents = 0;
++
++	transport_free_sgl(cmd->t_prot_sg, cmd->t_prot_nents);
++	cmd->t_prot_sg = NULL;
++	cmd->t_prot_nents = 0;
  }
  
--static void fd_init_format_buf(struct se_device *dev, unsigned char *buf,
--			       u32 unit_size, u32 *ref_tag, u16 app_tag,
--			       bool inc_reftag)
--{
--	unsigned char *p = buf;
--	int i;
--
--	for (i = 0; i < unit_size; i += dev->prot_length) {
--		*((u16 *)&p[0]) = 0xffff;
--		*((__be16 *)&p[2]) = cpu_to_be16(app_tag);
--		*((__be32 *)&p[4]) = cpu_to_be32(*ref_tag);
--
--		if (inc_reftag)
--			(*ref_tag)++;
--
--		p += dev->prot_length;
--	}
--}
--
- static int fd_format_prot(struct se_device *dev)
- {
- 	struct fd_dev *fd_dev = FD_DEV(dev);
-@@ -880,10 +861,8 @@ static int fd_format_prot(struct se_device *dev)
- 	sector_t prot_length, prot;
- 	unsigned char *buf;
- 	loff_t pos = 0;
--	u32 ref_tag = 0;
- 	int unit_size = FDBD_FORMAT_UNIT_SIZE * dev->dev_attrib.block_size;
- 	int rc, ret = 0, size, len;
--	bool inc_reftag = false;
+ /**
+@@ -2199,6 +2203,14 @@ transport_generic_new_cmd(struct se_cmd *cmd)
+ 				return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+ 		}
  
- 	if (!dev->dev_attrib.pi_prot_type) {
- 		pr_err("Unable to format_prot while pi_prot_type == 0\n");
-@@ -894,37 +873,20 @@ static int fd_format_prot(struct se_device *dev)
- 		return -ENODEV;
- 	}
- 
--	switch (dev->dev_attrib.pi_prot_type) {
--	case TARGET_DIF_TYPE3_PROT:
--		ref_tag = 0xffffffff;
--		break;
--	case TARGET_DIF_TYPE2_PROT:
--	case TARGET_DIF_TYPE1_PROT:
--		inc_reftag = true;
--		break;
--	default:
--		break;
--	}
--
- 	buf = vzalloc(unit_size);
- 	if (!buf) {
- 		pr_err("Unable to allocate FILEIO prot buf\n");
- 		return -ENOMEM;
- 	}
--
- 	prot_length = (dev->transport->get_blocks(dev) + 1) * dev->prot_length;
- 	size = prot_length;
- 
- 	pr_debug("Using FILEIO prot_length: %llu\n",
- 		 (unsigned long long)prot_length);
- 
-+	memset(buf, 0xff, unit_size);
- 	for (prot = 0; prot < prot_length; prot += unit_size) {
--
--		fd_init_format_buf(dev, buf, unit_size, &ref_tag, 0xffff,
--				   inc_reftag);
--
- 		len = min(unit_size, size);
--
- 		rc = kernel_write(prot_fd, buf, len, pos);
- 		if (rc != len) {
- 			pr_err("vfs_write to prot file failed: %d\n", rc);
++		if (cmd->prot_type != TARGET_PROT_NORMAL) {
++			ret = target_alloc_sgl(&cmd->t_prot_sg,
++					       &cmd->t_prot_nents,
++					       cmd->prot_length, zero_flag);
++			if (ret < 0)
++				return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
++		}
++
+ 		ret = target_alloc_sgl(&cmd->t_data_sg, &cmd->t_data_nents,
+ 				       cmd->data_length, zero_flag);
+ 		if (ret < 0)
 -- 
 1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
