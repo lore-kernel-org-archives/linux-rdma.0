@@ -1,57 +1,82 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 01/12] Target/transport: Allocate protection sg if needed
-Date: Sun, 16 Feb 2014 19:38:06 +0200
-Message-ID: <1392572297-5333-2-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH v1 04/12] Target/sbc: don't return from sbc_check for non prot_sg
+Date: Sun, 16 Feb 2014 19:38:09 +0200
+Message-ID: <1392572297-5333-5-git-send-email-sagig@mellanox.com>
 References: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392572297-5333-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: nab@linux-iscsi.org
+Cc: target-devel@vger.kernel.org, roland@kernel.org, linux-rdma@vger.kernel.org, ogerlitz@mellanox.com, oren@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-In case protection information is involved, allocate
-protection SG-list for transport.
+For transports which use generic new command these
+buffers have yet to be allocated. Instead check afterwards
+if command required prot buffers but none are provided.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Also this way, target may support protection information
+against legacy initiators (writes are inserted and reads
+are stripped).
+
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/target/target_core_transport.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/target/target_core_sbc.c       |    3 ---
+ drivers/target/target_core_transport.c |   21 +++++++++++++++++----
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/target/target_core_sbc.c b/drivers/target/target_core_sbc.c
+index dfeb1c2..3f12726 100644
+--- a/drivers/target/target_core_sbc.c
++++ b/drivers/target/target_core_sbc.c
+@@ -649,9 +649,6 @@ sbc_check_prot(struct se_device *dev, struct se_cmd *cmd, unsigned char *cdb,
+ {
+ 	u8 protect = rwprotect(cdb);
+ 
+-	if (!cmd->t_prot_sg || !cmd->t_prot_nents)
+-		return true;
+-
+ 	switch (dev->dev_attrib.pi_prot_type) {
+ 	case TARGET_DIF_TYPE3_PROT:
+ 		cmd->reftag_seed = 0xffffffff;
 diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
-index 24b4f65..f029bb7 100644
+index f029bb7..3a5550a 100644
 --- a/drivers/target/target_core_transport.c
 +++ b/drivers/target/target_core_transport.c
-@@ -2036,6 +2036,10 @@ static inline void transport_free_pages(struct se_cmd *cmd)
- 	transport_free_sgl(cmd->t_bidi_data_sg, cmd->t_bidi_data_nents);
- 	cmd->t_bidi_data_sg = NULL;
- 	cmd->t_bidi_data_nents = 0;
+@@ -1365,6 +1365,13 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
+ 		target_put_sess_cmd(se_sess, se_cmd);
+ 		return 0;
+ 	}
 +
-+	transport_free_sgl(cmd->t_prot_sg, cmd->t_prot_nents);
-+	cmd->t_prot_sg = NULL;
-+	cmd->t_prot_nents = 0;
- }
- 
- /**
-@@ -2199,6 +2203,14 @@ transport_generic_new_cmd(struct se_cmd *cmd)
- 				return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
- 		}
- 
-+		if (cmd->prot_type != TARGET_PROT_NORMAL) {
-+			ret = target_alloc_sgl(&cmd->t_prot_sg,
-+					       &cmd->t_prot_nents,
-+					       cmd->prot_length, zero_flag);
-+			if (ret < 0)
-+				return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
-+		}
++	rc = target_setup_cmd_from_cdb(se_cmd, cdb);
++	if (rc != 0) {
++		transport_generic_request_failure(se_cmd, rc);
++		return 0;
++	}
 +
- 		ret = target_alloc_sgl(&cmd->t_data_sg, &cmd->t_data_nents,
- 				       cmd->data_length, zero_flag);
- 		if (ret < 0)
+ 	/*
+ 	 * Save pointers for SGLs containing protection information,
+ 	 * if present.
+@@ -1374,11 +1381,17 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
+ 		se_cmd->t_prot_nents = sgl_prot_count;
+ 	}
+ 
+-	rc = target_setup_cmd_from_cdb(se_cmd, cdb);
+-	if (rc != 0) {
+-		transport_generic_request_failure(se_cmd, rc);
+-		return 0;
++	/*
++	 * Fail if protection operation requiers protection
++	 * information buffers but None are provided!
++	 */
++	if ((!se_cmd->t_prot_sg || !se_cmd->t_prot_nents) &&
++	    (se_cmd->prot_op != TARGET_PROT_NORMAL)) {
++		pr_err("ERROR: protection information was requested but "
++		       "protection buffers weren't provided.\n");
++		return -EINVAL;
+ 	}
++
+ 	/*
+ 	 * When a non zero sgl_count has been passed perform SGL passthrough
+ 	 * mapping for pre-allocated fabric memory instead of having target
 -- 
 1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
