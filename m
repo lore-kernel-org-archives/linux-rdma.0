@@ -1,91 +1,283 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 07/12] Target/configfs: Expose iSCSI network portal group T10-PI support
-Date: Sun, 16 Feb 2014 19:38:12 +0200
-Message-ID: <1392572297-5333-8-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH v1 10/12] IB/isert: Initialize T10-PI resources
+Date: Sun, 16 Feb 2014 19:38:15 +0200
+Message-ID: <1392572297-5333-11-git-send-email-sagig@mellanox.com>
 References: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392572297-5333-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: nab@linux-iscsi.org
+Cc: target-devel@vger.kernel.org, roland@kernel.org, linux-rdma@vger.kernel.org, ogerlitz@mellanox.com, oren@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-User may enable T10-PI support per network portal group. any connection
-established on top of it, will be required to serve protected transactions.
+Introduce pi_context to hold relevant RDMA protection resources.
+We eliminate data_key_valid boolean and replace it with indicators
+container to indicate:
+- Is the descriptor protected (registered via signature MR)
+- Is the data_mr key valid (can spare LOCAL_INV WR)
+- Is the prot_mr key valid (can spare LOCAL_INV WR)
+- Is the sig_mr key valid (can spare LOCAL_INV WR)
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Upon connection establishment check if network portal is T10-PI
+enabled and allocate T10-PI resources if necessary, allocate
+signature enabled memory regions and mark connection queue-pair
+as signature enabled.
+
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/target/iscsi/iscsi_target_configfs.c |    6 ++++++
- drivers/target/iscsi/iscsi_target_tpg.c      |   19 +++++++++++++++++++
- drivers/target/iscsi/iscsi_target_tpg.h      |    1 +
- 3 files changed, 26 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c |  104 +++++++++++++++++++++++++++----
+ drivers/infiniband/ulp/isert/ib_isert.h |   23 ++++++-
+ 2 files changed, 110 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configfs.c
-index 1c0088f..fe35dcb 100644
---- a/drivers/target/iscsi/iscsi_target_configfs.c
-+++ b/drivers/target/iscsi/iscsi_target_configfs.c
-@@ -1052,6 +1052,11 @@ TPG_ATTR(demo_mode_discovery, S_IRUGO | S_IWUSR);
-  */
- DEF_TPG_ATTRIB(default_erl);
- TPG_ATTR(default_erl, S_IRUGO | S_IWUSR);
-+/*
-+ * Define iscsi_tpg_attrib_s_t10_pi
-+ */
-+DEF_TPG_ATTRIB(t10_pi);
-+TPG_ATTR(t10_pi, S_IRUGO | S_IWUSR);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 299df4d..64d5f06 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -87,7 +87,8 @@ isert_query_device(struct ib_device *ib_dev, struct ib_device_attr *devattr)
+ }
  
- static struct configfs_attribute *lio_target_tpg_attrib_attrs[] = {
- 	&iscsi_tpg_attrib_authentication.attr,
-@@ -1064,6 +1069,7 @@ static struct configfs_attribute *lio_target_tpg_attrib_attrs[] = {
- 	&iscsi_tpg_attrib_prod_mode_write_protect.attr,
- 	&iscsi_tpg_attrib_demo_mode_discovery.attr,
- 	&iscsi_tpg_attrib_default_erl.attr,
-+	&iscsi_tpg_attrib_t10_pi.attr,
- 	NULL,
- };
+ static int
+-isert_conn_setup_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id)
++isert_conn_setup_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id,
++		    u8 protection)
+ {
+ 	struct isert_device *device = isert_conn->conn_device;
+ 	struct ib_qp_init_attr attr;
+@@ -119,6 +120,8 @@ isert_conn_setup_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id)
+ 	attr.cap.max_recv_sge = 1;
+ 	attr.sq_sig_type = IB_SIGNAL_REQ_WR;
+ 	attr.qp_type = IB_QPT_RC;
++	if (protection)
++		attr.create_flags |= IB_QP_CREATE_SIGNATURE_EN;
  
-diff --git a/drivers/target/iscsi/iscsi_target_tpg.c b/drivers/target/iscsi/iscsi_target_tpg.c
-index 80ae14c..d95a5f2 100644
---- a/drivers/target/iscsi/iscsi_target_tpg.c
-+++ b/drivers/target/iscsi/iscsi_target_tpg.c
-@@ -860,3 +860,22 @@ int iscsit_ta_default_erl(
+ 	pr_debug("isert_conn_setup_qp cma_id->device: %p\n",
+ 		 cma_id->device);
+@@ -236,13 +239,18 @@ isert_create_device_ib_res(struct isert_device *device)
+ 		device->unreg_rdma_mem = isert_unmap_cmd;
+ 	}
+ 
++	/* Check signature cap */
++	device->pi_capable = dev_attr->device_cap_flags &
++			     IB_DEVICE_SIGNATURE_HANDOVER ? true : false;
++
+ 	device->cqs_used = min_t(int, num_online_cpus(),
+ 				 device->ib_device->num_comp_vectors);
+ 	device->cqs_used = min(ISERT_MAX_CQ, device->cqs_used);
+ 	pr_debug("Using %d CQs, device %s supports %d vectors support "
+-		 "Fast registration %d\n",
++		 "Fast registration %d pi_capable %d\n",
+ 		 device->cqs_used, device->ib_device->name,
+-		 device->ib_device->num_comp_vectors, device->use_fastreg);
++		 device->ib_device->num_comp_vectors, device->use_fastreg,
++		 device->pi_capable);
+ 	device->cq_desc = kzalloc(sizeof(struct isert_cq_desc) *
+ 				device->cqs_used, GFP_KERNEL);
+ 	if (!device->cq_desc) {
+@@ -395,6 +403,12 @@ isert_conn_free_fastreg_pool(struct isert_conn *isert_conn)
+ 		list_del(&fr_desc->list);
+ 		ib_free_fast_reg_page_list(fr_desc->data_frpl);
+ 		ib_dereg_mr(fr_desc->data_mr);
++		if (fr_desc->pi_ctx) {
++			ib_free_fast_reg_page_list(fr_desc->pi_ctx->prot_frpl);
++			ib_dereg_mr(fr_desc->pi_ctx->prot_mr);
++			ib_destroy_mr(fr_desc->pi_ctx->sig_mr);
++			kfree(fr_desc->pi_ctx);
++		}
+ 		kfree(fr_desc);
+ 		++i;
+ 	}
+@@ -406,8 +420,10 @@ isert_conn_free_fastreg_pool(struct isert_conn *isert_conn)
+ 
+ static int
+ isert_create_fr_desc(struct ib_device *ib_device, struct ib_pd *pd,
+-		     struct fast_reg_descriptor *fr_desc)
++		     struct fast_reg_descriptor *fr_desc, u8 protection)
+ {
++	int ret;
++
+ 	fr_desc->data_frpl = ib_alloc_fast_reg_page_list(ib_device,
+ 							 ISCSI_ISER_SG_TABLESIZE);
+ 	if (IS_ERR(fr_desc->data_frpl)) {
+@@ -420,19 +436,73 @@ isert_create_fr_desc(struct ib_device *ib_device, struct ib_pd *pd,
+ 	if (IS_ERR(fr_desc->data_mr)) {
+ 		pr_err("Failed to allocate data frmr err=%ld\n",
+ 		       PTR_ERR(fr_desc->data_mr));
+-		ib_free_fast_reg_page_list(fr_desc->data_frpl);
+-		return PTR_ERR(fr_desc->data_mr);
++		ret = PTR_ERR(fr_desc->data_mr);
++		goto err_data_frpl;
+ 	}
+ 	pr_debug("Create fr_desc %p page_list %p\n",
+ 		 fr_desc, fr_desc->data_frpl->page_list);
++	fr_desc->ind |= ISERT_DATA_KEY_VALID;
+ 
+-	fr_desc->valid = true;
++	if (protection) {
++		struct ib_mr_init_attr mr_init_attr = {0};
++		struct pi_context *pi_ctx;
++
++		fr_desc->pi_ctx = kzalloc(sizeof(*fr_desc->pi_ctx), GFP_KERNEL);
++		if (!fr_desc->pi_ctx) {
++			pr_err("Failed to allocate pi context\n");
++			ret = -ENOMEM;
++			goto err_data_mr;
++		}
++		pi_ctx = fr_desc->pi_ctx;
++
++		pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(ib_device,
++						    ISCSI_ISER_SG_TABLESIZE);
++		if (IS_ERR(pi_ctx->prot_frpl)) {
++			pr_err("Failed to allocate prot frpl err=%ld\n",
++			       PTR_ERR(pi_ctx->prot_frpl));
++			ret = PTR_ERR(pi_ctx->prot_frpl);
++			goto err_pi_ctx;
++		}
++
++		pi_ctx->prot_mr = ib_alloc_fast_reg_mr(pd, ISCSI_ISER_SG_TABLESIZE);
++		if (IS_ERR(pi_ctx->prot_mr)) {
++			pr_err("Failed to allocate prot frmr err=%ld\n",
++			       PTR_ERR(pi_ctx->prot_mr));
++			ret = PTR_ERR(pi_ctx->prot_mr);
++			goto err_prot_frpl;
++		}
++		fr_desc->ind |= ISERT_PROT_KEY_VALID;
++
++		mr_init_attr.max_reg_descriptors = 2;
++		mr_init_attr.flags |= IB_MR_SIGNATURE_EN;
++		pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
++		if (IS_ERR(pi_ctx->sig_mr)) {
++			pr_err("Failed to allocate signature enabled mr err=%ld\n",
++			       PTR_ERR(pi_ctx->sig_mr));
++			ret = PTR_ERR(pi_ctx->sig_mr);
++			goto err_prot_mr;
++		}
++		fr_desc->ind |= ISERT_SIG_KEY_VALID;
++	}
++	fr_desc->ind &= ~ISERT_PROTECTED;
  
  	return 0;
++err_prot_mr:
++	ib_dereg_mr(fr_desc->pi_ctx->prot_mr);
++err_prot_frpl:
++	ib_free_fast_reg_page_list(fr_desc->pi_ctx->prot_frpl);
++err_pi_ctx:
++	kfree(fr_desc->pi_ctx);
++err_data_mr:
++	ib_dereg_mr(fr_desc->data_mr);
++err_data_frpl:
++	ib_free_fast_reg_page_list(fr_desc->data_frpl);
++
++	return ret;
  }
-+
-+int iscsit_ta_t10_pi(
-+	struct iscsi_portal_group *tpg,
-+	u32 flag)
-+{
-+	struct iscsi_tpg_attrib *a = &tpg->tpg_attrib;
-+
-+	if ((flag != 0) && (flag != 1)) {
-+		pr_err("Illegal value %d\n", flag);
-+		return -EINVAL;
+ 
+ static int
+-isert_conn_create_fastreg_pool(struct isert_conn *isert_conn)
++isert_conn_create_fastreg_pool(struct isert_conn *isert_conn, u8 pi_support)
+ {
+ 	struct fast_reg_descriptor *fr_desc;
+ 	struct isert_device *device = isert_conn->conn_device;
+@@ -449,7 +519,8 @@ isert_conn_create_fastreg_pool(struct isert_conn *isert_conn)
+ 		}
+ 
+ 		ret = isert_create_fr_desc(device->ib_device,
+-					   isert_conn->conn_pd, fr_desc);
++					   isert_conn->conn_pd, fr_desc,
++					   pi_support);
+ 		if (ret) {
+ 			pr_err("Failed to create fastreg descriptor err=%d\n",
+ 			       ret);
+@@ -480,6 +551,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 	struct isert_device *device;
+ 	struct ib_device *ib_dev = cma_id->device;
+ 	int ret = 0;
++	u8 pi_support = np->tpg_np->tpg->tpg_attrib.t10_pi;
+ 
+ 	pr_debug("Entering isert_connect_request cma_id: %p, context: %p\n",
+ 		 cma_id, cma_id->context);
+@@ -570,8 +642,14 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 		goto out_mr;
+ 	}
+ 
++	if (pi_support && !device->pi_capable) {
++		pr_err("Protection information requested but not supported\n");
++		ret = -EINVAL;
++		goto out_mr;
 +	}
 +
-+	a->t10_pi = flag;
-+	pr_debug("iSCSI_TPG[%hu] - T10 Protection information bit:"
-+		" %s\n", tpg->tpgt, (a->t10_pi) ?
-+		"ON" : "OFF");
-+
-+	return 0;
-+}
-diff --git a/drivers/target/iscsi/iscsi_target_tpg.h b/drivers/target/iscsi/iscsi_target_tpg.h
-index 213c0fc..0a182f2 100644
---- a/drivers/target/iscsi/iscsi_target_tpg.h
-+++ b/drivers/target/iscsi/iscsi_target_tpg.h
-@@ -39,5 +39,6 @@ extern int iscsit_ta_demo_mode_write_protect(struct iscsi_portal_group *, u32);
- extern int iscsit_ta_prod_mode_write_protect(struct iscsi_portal_group *, u32);
- extern int iscsit_ta_demo_mode_discovery(struct iscsi_portal_group *, u32);
- extern int iscsit_ta_default_erl(struct iscsi_portal_group *, u32);
-+extern int iscsit_ta_t10_pi(struct iscsi_portal_group *, u32);
+ 	if (device->use_fastreg) {
+-		ret = isert_conn_create_fastreg_pool(isert_conn);
++		ret = isert_conn_create_fastreg_pool(isert_conn, pi_support);
+ 		if (ret) {
+ 			pr_err("Conn: %p failed to create fastreg pool\n",
+ 			       isert_conn);
+@@ -579,7 +657,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 		}
+ 	}
  
- #endif /* ISCSI_TARGET_TPG_H */
+-	ret = isert_conn_setup_qp(isert_conn, cma_id);
++	ret = isert_conn_setup_qp(isert_conn, cma_id, pi_support);
+ 	if (ret)
+ 		goto out_conn_dev;
+ 
+@@ -2227,7 +2305,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 	pagelist_len = isert_map_fr_pagelist(ib_dev, mem->sg, mem->nents,
+ 					     &fr_desc->data_frpl->page_list[0]);
+ 
+-	if (!fr_desc->valid) {
++	if (!(fr_desc->ind & ISERT_DATA_KEY_VALID)) {
+ 		memset(&inv_wr, 0, sizeof(inv_wr));
+ 		inv_wr.opcode = IB_WR_LOCAL_INV;
+ 		inv_wr.ex.invalidate_rkey = fr_desc->data_mr->rkey;
+@@ -2259,7 +2337,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 		pr_err("fast registration failed, ret:%d\n", ret);
+ 		return ret;
+ 	}
+-	fr_desc->valid = false;
++	fr_desc->ind &= ~ISERT_DATA_KEY_VALID;
+ 
+ 	sge->lkey = fr_desc->data_mr->lkey;
+ 	sge->addr = fr_desc->data_frpl->page_list[0] + page_off;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index 18cb2e4..d984172 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -48,11 +48,25 @@ struct iser_tx_desc {
+ 	struct ib_send_wr send_wr;
+ } __packed;
+ 
++enum isert_indicator {
++	ISERT_PROTECTED		= 1 << 0,
++	ISERT_DATA_KEY_VALID	= 1 << 1,
++	ISERT_PROT_KEY_VALID	= 1 << 2,
++	ISERT_SIG_KEY_VALID	= 1 << 3,
++};
++
++struct pi_context {
++	struct ib_mr		       *prot_mr;
++	struct ib_fast_reg_page_list   *prot_frpl;
++	struct ib_mr		       *sig_mr;
++};
++
+ struct fast_reg_descriptor {
+-	struct list_head	list;
+-	struct ib_mr		*data_mr;
+-	struct ib_fast_reg_page_list	*data_frpl;
+-	bool			valid;
++	struct list_head		list;
++	struct ib_mr		       *data_mr;
++	struct ib_fast_reg_page_list   *data_frpl;
++	u8				ind;
++	struct pi_context	       *pi_ctx;
+ };
+ 
+ struct isert_data_buf {
+@@ -148,6 +162,7 @@ struct isert_cq_desc {
+ 
+ struct isert_device {
+ 	int			use_fastreg;
++	bool			pi_capable;
+ 	int			cqs_used;
+ 	int			refcount;
+ 	int			cq_active_qps[ISERT_MAX_CQ];
 -- 
 1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
