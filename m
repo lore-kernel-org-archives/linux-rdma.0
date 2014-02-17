@@ -1,82 +1,69 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH v1 04/12] Target/sbc: don't return from sbc_check for non prot_sg
-Date: Sun, 16 Feb 2014 19:38:09 +0200
-Message-ID: <1392572297-5333-5-git-send-email-sagig@mellanox.com>
-References: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1392572297-5333-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: nab@linux-iscsi.org
-Cc: target-devel@vger.kernel.org, roland@kernel.org, linux-rdma@vger.kernel.org, ogerlitz@mellanox.com, oren@mellanox.com
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/mlx4: Build the port IBoE GID table properly under bonding
+Date: Mon, 17 Feb 2014 14:52:35 +0300
+Message-ID: <20140217115235.GA27933@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-For transports which use generic new command these
-buffers have yet to be allocated. Instead check afterwards
-if command required prot buffers but none are provided.
+Hello Moni Shoua,
 
-Also this way, target may support protection information
-against legacy initiators (writes are inserted and reads
-are stripped).
+This is a semi-automatic email about new static checker warnings.
 
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
----
- drivers/target/target_core_sbc.c       |    3 ---
- drivers/target/target_core_transport.c |   21 +++++++++++++++++----
- 2 files changed, 17 insertions(+), 7 deletions(-)
+The patch ad4885d279b6: "IB/mlx4: Build the port IBoE GID table
+properly under bonding" from Feb 5, 2014, leads to the following
+Smatch complaint:
 
-diff --git a/drivers/target/target_core_sbc.c b/drivers/target/target_core_sbc.c
-index dfeb1c2..3f12726 100644
---- a/drivers/target/target_core_sbc.c
-+++ b/drivers/target/target_core_sbc.c
-@@ -649,9 +649,6 @@ sbc_check_prot(struct se_device *dev, struct se_cmd *cmd, unsigned char *cdb,
- {
- 	u8 protect = rwprotect(cdb);
- 
--	if (!cmd->t_prot_sg || !cmd->t_prot_nents)
--		return true;
--
- 	switch (dev->dev_attrib.pi_prot_type) {
- 	case TARGET_DIF_TYPE3_PROT:
- 		cmd->reftag_seed = 0xffffffff;
-diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
-index f029bb7..3a5550a 100644
---- a/drivers/target/target_core_transport.c
-+++ b/drivers/target/target_core_transport.c
-@@ -1365,6 +1365,13 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
- 		target_put_sess_cmd(se_sess, se_cmd);
- 		return 0;
- 	}
-+
-+	rc = target_setup_cmd_from_cdb(se_cmd, cdb);
-+	if (rc != 0) {
-+		transport_generic_request_failure(se_cmd, rc);
-+		return 0;
-+	}
-+
- 	/*
- 	 * Save pointers for SGLs containing protection information,
- 	 * if present.
-@@ -1374,11 +1381,17 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
- 		se_cmd->t_prot_nents = sgl_prot_count;
- 	}
- 
--	rc = target_setup_cmd_from_cdb(se_cmd, cdb);
--	if (rc != 0) {
--		transport_generic_request_failure(se_cmd, rc);
--		return 0;
-+	/*
-+	 * Fail if protection operation requiers protection
-+	 * information buffers but None are provided!
-+	 */
-+	if ((!se_cmd->t_prot_sg || !se_cmd->t_prot_nents) &&
-+	    (se_cmd->prot_op != TARGET_PROT_NORMAL)) {
-+		pr_err("ERROR: protection information was requested but "
-+		       "protection buffers weren't provided.\n");
-+		return -EINVAL;
- 	}
-+
- 	/*
- 	 * When a non zero sgl_count has been passed perform SGL passthrough
- 	 * mapping for pre-allocated fabric memory instead of having target
--- 
-1.7.1
+drivers/infiniband/hw/mlx4/main.c:1749 mlx4_ib_scan_netdevs()
+	 error: we previously assumed 'curr_netdev' could be null (see line 1722)
+
+drivers/infiniband/hw/mlx4/main.c
+  1721	
+  1722			if (curr_netdev) {
+                            ^^^^^^^^^^^
+Check.
+
+  1723				port_state = (netif_running(curr_netdev) && netif_carrier_ok(curr_netdev)) ?
+  1724							IB_PORT_ACTIVE : IB_PORT_DOWN;
+  1725				mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
+  1726			} else {
+  1727				reset_gid_table(ibdev, port);
+  1728			}
+  1729			/* if using bonding/team and a slave port is down, we don't the bond IP
+  1730			 * based gids in the table since flows that select port by gid may get
+  1731			 * the down port.
+  1732			 */
+  1733			if (curr_master && (port_state == IB_PORT_DOWN)) {
+  1734				reset_gid_table(ibdev, port);
+  1735				mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
+  1736			}
+  1737			/* if bonding is used it is possible that we add it to masters
+  1738			 * only after IP address is assigned to the net bonding
+  1739			 * interface.
+  1740			*/
+  1741			if (curr_master && (old_master != curr_master)) {
+  1742				reset_gid_table(ibdev, port);
+  1743				mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
+  1744				mlx4_ib_get_dev_addr(curr_master, ibdev, port);
+  1745			}
+  1746	
+  1747			if (!curr_master && (old_master != curr_master)) {
+  1748				reset_gid_table(ibdev, port);
+  1749				mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
+                                                               ^^^^^^^^^^^
+Dereferenced without checking.
+
+  1750				mlx4_ib_get_dev_addr(curr_netdev, ibdev, port);
+  1751			}
+
+regards,
+dan carpenter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
