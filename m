@@ -1,110 +1,43 @@
-From: Alexander Gordeev <agordeev@redhat.com>
-Subject: [PATCH 2/2] qib: Use pci_enable_msix_range() instead of pci_enable_msix()
-Date: Tue, 18 Feb 2014 16:09:02 +0100
-Message-ID: <f0eabd77b96e0d679ce6c2e2e544c73063c508ee.1392733151.git.agordeev@redhat.com>
-References: <cover.1392733151.git.agordeev@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1392733151.git.agordeev@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Alexander Gordeev <agordeev@redhat.com>, Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: IB/srp: merge fixes from MLNX_OFED
+Date: Tue, 18 Feb 2014 17:47:15 +0100
+Message-ID: <53038E93.7050706@profitbricks.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As result of deprecation of MSI-X/MSI enablement functions
-pci_enable_msix() and pci_enable_msi_block() all drivers
-using these two interfaces need to be updated to use the
-new pci_enable_msi_range() and pci_enable_msix_range()
-interfaces.
+Hi Sagi,
 
-Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
-Cc: Mike Marciniszyn <infinipath@intel.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-pci@vger.kernel.org
----
- drivers/infiniband/hw/qib/qib_pcie.c |   55 +++++++++++++++++----------------
- 1 files changed, 28 insertions(+), 27 deletions(-)
+is that "/mswg/git/mlnx_ofed/mlnx-ofed-2.x-kernel.git" tree from the
+MLNX_OFED public by any chance?
 
-diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-index c8d9c4a..61a0046 100644
---- a/drivers/infiniband/hw/qib/qib_pcie.c
-+++ b/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -197,46 +197,47 @@ static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
- 			   struct qib_msix_entry *qib_msix_entry)
- {
- 	int ret;
--	u32 tabsize = 0;
--	u16 msix_flags;
-+	int nvec = *msixcnt;
- 	struct msix_entry *msix_entry;
- 	int i;
- 
-+	ret = pci_msix_vec_count(dd->pcidev);
-+	if (ret < 0)
-+		goto do_intx;
-+
-+	nvec = min(nvec, ret);
-+
- 	/* We can't pass qib_msix_entry array to qib_msix_setup
- 	 * so use a dummy msix_entry array and copy the allocated
- 	 * irq back to the qib_msix_entry array. */
--	msix_entry = kmalloc(*msixcnt * sizeof(*msix_entry), GFP_KERNEL);
--	if (!msix_entry) {
--		ret = -ENOMEM;
-+	msix_entry = kmalloc(nvec * sizeof(*msix_entry), GFP_KERNEL);
-+	if (!msix_entry)
- 		goto do_intx;
--	}
--	for (i = 0; i < *msixcnt; i++)
-+
-+	for (i = 0; i < nvec; i++)
- 		msix_entry[i] = qib_msix_entry[i].msix;
- 
--	pci_read_config_word(dd->pcidev, pos + PCI_MSIX_FLAGS, &msix_flags);
--	tabsize = 1 + (msix_flags & PCI_MSIX_FLAGS_QSIZE);
--	if (tabsize > *msixcnt)
--		tabsize = *msixcnt;
--	ret = pci_enable_msix(dd->pcidev, msix_entry, tabsize);
--	if (ret > 0) {
--		tabsize = ret;
--		ret = pci_enable_msix(dd->pcidev, msix_entry, tabsize);
--	}
--do_intx:
--	if (ret) {
--		qib_dev_err(dd,
--			"pci_enable_msix %d vectors failed: %d, falling back to INTx\n",
--			tabsize, ret);
--		tabsize = 0;
--	}
--	for (i = 0; i < tabsize; i++)
-+	ret = pci_enable_msix_range(dd->pcidev, msix_entry, 1, nvec);
-+	if (ret < 0)
-+		goto free_msix_entry;
-+	else
-+		nvec = ret;
-+
-+	for (i = 0; i < nvec; i++)
- 		qib_msix_entry[i].msix = msix_entry[i];
-+
- 	kfree(msix_entry);
--	*msixcnt = tabsize;
-+	*msixcnt = nvec;
-+	return;
- 
--	if (ret)
--		qib_enable_intx(dd->pcidev);
-+free_msix_entry:
-+	kfree(msix_entry);
- 
-+do_intx:
-+	qib_dev_err(dd, "pci_enable_msix_range %d vectors failed: %d, "
-+			"falling back to INTx\n", nvec, ret);
-+	*msixcnt = 0;
-+	qib_enable_intx(dd->pcidev);
- }
- 
- /**
--- 
-1.7.7.6
+There are fixes included relevant for the mainline. Would be strange if
+I would send the patches as somebody at Mellanox discovered and fixed
+the issues.
+
+I've hit a kernel panic today during testing caused by the loop around
+ib_fmr_pool_unmap(). The loop has been fixed in MLNX_OFED. So there
+should be a patch sent for it to the linux-rdma mailing list.
+
+I've also noticed the added target locking around target->free_tx
+handling in srp_rport_reconnect(). There are cases e.g. in
+srp_queuecommand() where holding the rport mutex isn't enough to protect
+it. So for me this looks right.
+
+Then, in srp_create_target() I've noticed the check of the return value
+of ib_query_gid(). Makes completely sense to check it.
+
+Please send patches for so obvious fixes to the mailing list! There is a
+very good chance that they get accepted.
+
+Cheers,
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
