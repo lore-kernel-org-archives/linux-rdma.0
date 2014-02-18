@@ -1,29 +1,51 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: IB/mlx4: Build the port IBoE GID table properly under bonding
-Date: Tue, 18 Feb 2014 16:32:53 +0200
-Message-ID: <53036F15.1080601@mellanox.com>
-References: <20140217115235.GA27933@elgon.mountain> <53036A88.5030306@mellanox.com> <20140218142858.GN26776@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140218142858.GN26776@mwanda>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Alexander Gordeev <agordeev@redhat.com>
+Subject: [PATCH 1/2] mthca: Use pci_enable_msix_range() instead of pci_enable_msix()
+Date: Tue, 18 Feb 2014 16:09:01 +0100
+Message-ID: <479c40ee9e4f3efa45aa6f57647ed1a1918e9deb.1392733151.git.agordeev@redhat.com>
+References: <cover.1392733151.git.agordeev@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <cover.1392733151.git.agordeev@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Alexander Gordeev <agordeev@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ha ha. Take another look. That's what I was just explaining about! :) On 
-line 1743 when curr_master is non-NULL then Smatch doesn't complain 
-because it understands about the relationship between curr_master and 
-curr_netdev. But here it is complaining about line 1749 where 
-curr_master is NULL so the implication doesn't apply. Nice, huh? 
-regards, dan carpenter
+As result of deprecation of MSI-X/MSI enablement functions
+pci_enable_msix() and pci_enable_msi_block() all drivers
+using these two interfaces need to be updated to use the
+new pci_enable_msi_range() and pci_enable_msix_range()
+interfaces.
 
-You're right :)
-I'll write the fix.
+Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+---
+ drivers/infiniband/hw/mthca/mthca_main.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
+index 87897b9..959d600 100644
+--- a/drivers/infiniband/hw/mthca/mthca_main.c
++++ b/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -858,13 +858,10 @@ static int mthca_enable_msi_x(struct mthca_dev *mdev)
+ 	entries[1].entry = 1;
+ 	entries[2].entry = 2;
+ 
+-	err = pci_enable_msix(mdev->pdev, entries, ARRAY_SIZE(entries));
+-	if (err) {
+-		if (err > 0)
+-			mthca_info(mdev, "Only %d MSI-X vectors available, "
+-				   "not using MSI-X\n", err);
++	err = pci_enable_msix_range(mdev->pdev, entries,
++				    ARRAY_SIZE(entries), ARRAY_SIZE(entries));
++	if (err < 0)
+ 		return err;
+-	}
+ 
+ 	mdev->eq_table.eq[MTHCA_EQ_COMP ].msi_x_vector = entries[0].vector;
+ 	mdev->eq_table.eq[MTHCA_EQ_ASYNC].msi_x_vector = entries[1].vector;
+-- 
+1.7.7.6
