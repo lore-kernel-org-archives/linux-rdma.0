@@ -1,40 +1,256 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: IB/srp: merge fixes from MLNX_OFED
-Date: Tue, 18 Feb 2014 18:05:29 +0100
-Message-ID: <530392D9.1010900@acm.org>
-References: <53038E93.7050706@profitbricks.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] IB/qib: Change SDMA progression mode depending on
+ single- or mulit-rail.
+Date: Tue, 18 Feb 2014 12:11:05 -0500
+Message-ID: <20140218171105.25666.68254.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53038E93.7050706-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/18/14 17:47, Sebastian Riemer wrote:
-> I've also noticed the added target locking around target->free_tx
-> handling in srp_rport_reconnect(). There are cases e.g. in
-> srp_queuecommand() where holding the rport mutex isn't enough to protect
-> it. So for me this looks right.
-> 
-> Then, in srp_create_target() I've noticed the check of the return value
-> of ib_query_gid(). Makes completely sense to check it.
-> 
-> Please send patches for so obvious fixes to the mailing list! There is a
-> very good chance that they get accepted.
+From: CQ Tang <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hello Sebastian,
+Improve performance by changing the behavour of the driver when all SDMA
+descriptors are in use, and the processes adding new descriptors are
+single- or multi-rail.
 
-If I hadn't been busy testing scsi-mq patches recently, the SRP
-initiator patches you referred to would already have been posted for
-review on the linux-rdma mailing list. I hope to find some time one of
-the next days to post a few SRP initiator patches on the linux-rdma
-mailing list - not only the ones referred to above but also a few other
-patches.
+For single-rail processes, the driver will block the call and finish
+posting all SDMA descriptors onto the hardware queue before returning
+back to PSM.  Repeated kernel calls are slower than blocking.
 
-Bart.
+For multi-rail processes, the driver will return to PSM as quick as
+possible so PSM can feed packets to other rail.  If all hardware queues
+are full, PSM will buffer the remaining SDMA descriptors until notified
+by interrupt that space is available.
+
+This patch builds a red-black tree to track the number rails opened by
+a particular PID. If the number is more than one, it is a multi-rail
+PSM process, otherwise, it is a single-rail process.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: John A Gregor <john.a.gregor-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: CQ Tang <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_user_sdma.c |  136 ++++++++++++++++++++++++++---
+ 1 file changed, 123 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+index 165aee2..b225645 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -52,6 +52,17 @@
+ /* attempt to drain the queue for 5secs */
+ #define QIB_USER_SDMA_DRAIN_TIMEOUT 500
+ 
++/*
++ * track how many times a process open this driver.
++ */
++struct rb_root qib_user_sdma_rb_root = RB_ROOT;
++
++struct qib_user_sdma_rb_node {
++	struct rb_node node;
++	int refcount;
++	pid_t pid;
++};
++
+ struct qib_user_sdma_pkt {
+ 	struct list_head list;  /* list element */
+ 
+@@ -120,15 +131,60 @@ struct qib_user_sdma_queue {
+ 	/* dma page table */
+ 	struct rb_root dma_pages_root;
+ 
++	struct qib_user_sdma_rb_node *sdma_rb_node;
++
+ 	/* protect everything above... */
+ 	struct mutex lock;
+ };
+ 
++static struct qib_user_sdma_rb_node *
++qib_user_sdma_rb_search(struct rb_root *root, pid_t pid)
++{
++	struct qib_user_sdma_rb_node *sdma_rb_node;
++	struct rb_node *node = root->rb_node;
++
++	while (node) {
++		sdma_rb_node = container_of(node,
++			struct qib_user_sdma_rb_node, node);
++		if (pid < sdma_rb_node->pid)
++			node = node->rb_left;
++		else if (pid > sdma_rb_node->pid)
++			node = node->rb_right;
++		else
++			return sdma_rb_node;
++	}
++	return NULL;
++}
++
++static int
++qib_user_sdma_rb_insert(struct rb_root *root, struct qib_user_sdma_rb_node *new)
++{
++	struct rb_node **node = &(root->rb_node);
++	struct rb_node *parent = NULL;
++	struct qib_user_sdma_rb_node *got;
++
++	while (*node) {
++		got = container_of(*node, struct qib_user_sdma_rb_node, node);
++		parent = *node;
++		if (new->pid < got->pid)
++			node = &((*node)->rb_left);
++		else if (new->pid > got->pid)
++			node = &((*node)->rb_right);
++		else
++			return 0;
++	}
++
++	rb_link_node(&new->node, parent, node);
++	rb_insert_color(&new->node, root);
++	return 1;
++}
++
+ struct qib_user_sdma_queue *
+ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ {
+ 	struct qib_user_sdma_queue *pq =
+ 		kmalloc(sizeof(struct qib_user_sdma_queue), GFP_KERNEL);
++	struct qib_user_sdma_rb_node *sdma_rb_node;
+ 
+ 	if (!pq)
+ 		goto done;
+@@ -138,6 +194,7 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ 	pq->num_pending = 0;
+ 	pq->num_sending = 0;
+ 	pq->added = 0;
++	pq->sdma_rb_node = NULL;
+ 
+ 	INIT_LIST_HEAD(&pq->sent);
+ 	spin_lock_init(&pq->sent_lock);
+@@ -163,8 +220,30 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ 
+ 	pq->dma_pages_root = RB_ROOT;
+ 
++	sdma_rb_node = qib_user_sdma_rb_search(&qib_user_sdma_rb_root,
++					current->pid);
++	if (sdma_rb_node) {
++		sdma_rb_node->refcount++;
++	} else {
++		int ret;
++		sdma_rb_node = kmalloc(sizeof(
++			struct qib_user_sdma_rb_node), GFP_KERNEL);
++		if (!sdma_rb_node)
++			goto err_rb;
++
++		sdma_rb_node->refcount = 1;
++		sdma_rb_node->pid = current->pid;
++
++		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
++					sdma_rb_node);
++		BUG_ON(ret == 0);
++	}
++	pq->sdma_rb_node = sdma_rb_node;
++
+ 	goto done;
+ 
++err_rb:
++	dma_pool_destroy(pq->header_cache);
+ err_slab:
+ 	kmem_cache_destroy(pq->pkt_slab);
+ err_kfree:
+@@ -1020,8 +1099,13 @@ void qib_user_sdma_queue_destroy(struct qib_user_sdma_queue *pq)
+ 	if (!pq)
+ 		return;
+ 
+-	kmem_cache_destroy(pq->pkt_slab);
++	pq->sdma_rb_node->refcount--;
++	if (pq->sdma_rb_node->refcount == 0) {
++		rb_erase(&pq->sdma_rb_node->node, &qib_user_sdma_rb_root);
++		kfree(pq->sdma_rb_node);
++	}
+ 	dma_pool_destroy(pq->header_cache);
++	kmem_cache_destroy(pq->pkt_slab);
+ 	kfree(pq);
+ }
+ 
+@@ -1241,26 +1325,52 @@ static int qib_user_sdma_push_pkts(struct qib_pportdata *ppd,
+ 				 struct qib_user_sdma_queue *pq,
+ 				 struct list_head *pktlist, int count)
+ {
+-	int ret = 0;
+ 	unsigned long flags;
+ 
+ 	if (unlikely(!(ppd->lflags & QIBL_LINKACTIVE)))
+ 		return -ECOMM;
+ 
+-	spin_lock_irqsave(&ppd->sdma_lock, flags);
+-
+-	if (unlikely(!__qib_sdma_running(ppd))) {
+-		ret = -ECOMM;
+-		goto unlock;
++	/* non-blocking mode */
++	if (pq->sdma_rb_node->refcount > 1) {
++		spin_lock_irqsave(&ppd->sdma_lock, flags);
++		if (unlikely(!__qib_sdma_running(ppd))) {
++			spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++			return -ECOMM;
++		}
++		pq->num_pending += count;
++		list_splice_tail_init(pktlist, &ppd->sdma_userpending);
++		qib_user_sdma_send_desc(ppd, &ppd->sdma_userpending);
++		spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++		return 0;
+ 	}
+ 
++	/* In this case, descriptors from this process are not
++	 * linked to ppd pending queue, interrupt handler
++	 * won't update this process, it is OK to directly
++	 * modify without sdma lock.
++	 */
++
++
+ 	pq->num_pending += count;
+-	list_splice_tail_init(pktlist, &ppd->sdma_userpending);
+-	qib_user_sdma_send_desc(ppd, &ppd->sdma_userpending);
++	/*
++	 * Blocking mode for single rail process, we must
++	 * release/regain sdma_lock to give other process
++	 * chance to make progress. This is important for
++	 * performance.
++	 */
++	do {
++		spin_lock_irqsave(&ppd->sdma_lock, flags);
++		if (unlikely(!__qib_sdma_running(ppd))) {
++			spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++			return -ECOMM;
++		}
++		qib_user_sdma_send_desc(ppd, pktlist);
++		if (!list_empty(pktlist))
++			qib_sdma_make_progress(ppd);
++		spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++	} while (!list_empty(pktlist));
+ 
+-unlock:
+-	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
+-	return ret;
++	return 0;
+ }
+ 
+ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
+@@ -1290,7 +1400,7 @@ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
+ 		qib_user_sdma_queue_clean(ppd, pq);
+ 
+ 	while (dim) {
+-		int mxp = 8;
++		int mxp = 1;
+ 		int ndesc = 0;
+ 
+ 		ret = qib_user_sdma_queue_pkts(dd, ppd, pq,
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
