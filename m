@@ -1,18 +1,18 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: [PATCH] IB/qib: Convert qib_user_sdma_pin_pages() to use
  get_user_pages_fast()
-Date: Tue, 18 Feb 2014 16:46:30 -0500
-Message-ID: <20140218214629.8685.24069.stgit@phlsvslse11.ph.intel.com>
+Date: Tue, 18 Feb 2014 16:53:20 -0500
+Message-ID: <20140218215320.9689.42270.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jan Kara <jack@suse.cz>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 
 commit 603e7729920e42b3c2f4dbfab9eef4878cb6e8fa upstream.
 
@@ -30,16 +30,16 @@ leave mmap_sem locking for mm.
 This deadlock has actually been observed in the wild when the node
 is under memory pressure.
 
-Patch against v3.10.
+Patch for v3.4.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Roland Dreier <roland@purestorage.com>
-[Backported to 3.10: (Thanks to Ben Huthings)
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+[Backported to 3.4: (Thank to Ben Hutchings)
  - Adjust context
  - Adjust indentation and nr_pages argument in qib_user_sdma_pin_pages()]
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
  drivers/infiniband/hw/qib/qib_user_sdma.c |    6 +-----
  1 file changed, 1 insertion(+), 5 deletions(-)
@@ -69,3 +69,8 @@ index 8244208..573b460 100644
  		if (ret <= 0)
  			goto done_unlock;
  		else {
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
