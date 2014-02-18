@@ -1,25 +1,41 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH 2/2] qib: Use pci_enable_msix_range() instead of
- pci_enable_msix()
-Date: Tue, 18 Feb 2014 16:52:14 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC211F5860@FMSMSX107.amr.corp.intel.com>
-References: <cover.1392733151.git.agordeev@redhat.com>
- <f0eabd77b96e0d679ce6c2e2e544c73063c508ee.1392733151.git.agordeev@redhat.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: IB/srp: merge fixes from MLNX_OFED
+Date: Tue, 18 Feb 2014 18:05:29 +0100
+Message-ID: <530392D9.1010900@acm.org>
+References: <53038E93.7050706@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f0eabd77b96e0d679ce6c2e2e544c73063c508ee.1392733151.git.agordeev@redhat.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexander Gordeev <agordeev@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: infinipath <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53038E93.7050706-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH 2/2] qib: Use pci_enable_msix_range() instead of
-> pci_enable_msix()
+On 02/18/14 17:47, Sebastian Riemer wrote:
+> I've also noticed the added target locking around target->free_tx
+> handling in srp_rport_reconnect(). There are cases e.g. in
+> srp_queuecommand() where holding the rport mutex isn't enough to protect
+> it. So for me this looks right.
 > 
-We are testing this now.
+> Then, in srp_create_target() I've noticed the check of the return value
+> of ib_query_gid(). Makes completely sense to check it.
+> 
+> Please send patches for so obvious fixes to the mailing list! There is a
+> very good chance that they get accepted.
 
-I suggest a subject/summary adding the IB/:
-IB/qib: Use pci_enable_msix_range() instead of pci_enable_msix()
+Hello Sebastian,
+
+If I hadn't been busy testing scsi-mq patches recently, the SRP
+initiator patches you referred to would already have been posted for
+review on the linux-rdma mailing list. I hope to find some time one of
+the next days to post a few SRP initiator patches on the linux-rdma
+mailing list - not only the ones referred to above but also a few other
+patches.
+
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
