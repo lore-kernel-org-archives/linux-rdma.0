@@ -1,126 +1,64 @@
-From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: net,IB/mlx: Bump all Mellanox driver versions
-Date: Wed, 19 Feb 2014 18:23:18 +0200
-Message-ID: <20140219162315.GA10262@mtl-eit-vdi-22.mtl.labs.mlnx>
-References: <1392824851-8667-1-git-send-email-amirv@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] infiniband, ocrdma, Fix compiler warning
+Date: Wed, 19 Feb 2014 17:47:55 +0100
+Message-ID: <1392828475.25314.1.camel@localhost.localdomain>
+References: <1392821725-14137-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1392824851-8667-1-git-send-email-amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1392821725-14137-1-git-send-email-prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Gottumukkala, Naresh" <B.A.L.NRaju.Gottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 19/02/14 17:47 +0200, Amir Vadai wrote:
-> Bump all Mellanox driver versions.
-> 
-> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> Hi,
-> 
-> We're changing the version scheme of our drivers.
-> I would be happy if it goes to net. Also, added here drivers from rdma tree,
-> because I would like it to be unified accorss all Mellanox's drivers.
-> 
-> Thanks,
-> Amir
-> 
->  drivers/infiniband/hw/mlx4/main.c              | 4 ++--
->  drivers/infiniband/hw/mlx5/main.c              | 4 ++--
->  drivers/net/ethernet/mellanox/mlx4/mlx4.h      | 4 ++--
->  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   | 4 ++--
->  drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ++--
->  5 files changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-> index e81c554..f9c12e9 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -53,8 +53,8 @@
->  #include "user.h"
->  
->  #define DRV_NAME	MLX4_IB_DRV_NAME
-> -#define DRV_VERSION	"1.0"
-> -#define DRV_RELDATE	"April 4, 2008"
-> +#define DRV_VERSION	"2.2-1"
-> +#define DRV_RELDATE	"Feb 2014"
->  
->  #define MLX4_IB_FLOW_MAX_PRIO 0xFFF
->  #define MLX4_IB_FLOW_QPN_MASK 0xFFFFFF
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index aa03e73..bf90057 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -46,8 +46,8 @@
->  #include "mlx5_ib.h"
->  
->  #define DRIVER_NAME "mlx5_ib"
-> -#define DRIVER_VERSION "1.0"
-> -#define DRIVER_RELDATE	"June 2013"
-> +#define DRIVER_VERSION "2.2-1"
-> +#define DRIVER_RELDATE	"Feb 2014"
->  
->  MODULE_AUTHOR("Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>");
->  MODULE_DESCRIPTION("Mellanox Connect-IB HCA IB driver");
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-> index 6b65f77..7aec6c8 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-> @@ -51,8 +51,8 @@
->  
->  #define DRV_NAME	"mlx4_core"
->  #define PFX		DRV_NAME ": "
-> -#define DRV_VERSION	"1.1"
-> -#define DRV_RELDATE	"Dec, 2011"
-> +#define DRV_VERSION	"2.2-1"
-> +#define DRV_RELDATE	"Feb, 2014"
->  
->  #define MLX4_FS_UDP_UC_EN		(1 << 1)
->  #define MLX4_FS_TCP_UC_EN		(1 << 2)
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-> index 9ca223b..b57e8c8 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-> @@ -57,8 +57,8 @@
->  #include "en_port.h"
->  
->  #define DRV_NAME	"mlx4_en"
-> -#define DRV_VERSION	"2.0"
-> -#define DRV_RELDATE	"Dec 2011"
-> +#define DRV_VERSION	"2.2-1"
-> +#define DRV_RELDATE	"Feb 2014"
->  
->  #define MLX4_EN_MSG_LEVEL	(NETIF_MSG_LINK | NETIF_MSG_IFDOWN)
->  
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> index a064f06..23b7e2d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> @@ -46,8 +46,8 @@
->  #include "mlx5_core.h"
->  
->  #define DRIVER_NAME "mlx5_core"
-> -#define DRIVER_VERSION "1.0"
-> -#define DRIVER_RELDATE	"June 2013"
-> +#define DRIVER_VERSION "2.2-1"
-> +#define DRIVER_RELDATE	"Feb 2014"
->  
->  MODULE_AUTHOR("Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>");
->  MODULE_DESCRIPTION("Mellanox ConnectX-IB HCA core library");
-> -- 
-> 1.8.3.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
 
-Adding linux-rdma and Roland to the CC
+Le mercredi 19 f=C3=A9vrier 2014 =C3=A0 09:55 -0500, Prarit Bhargava a =
+=C3=A9crit :
+> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c: In function =E2=80=98_oc=
+rdma_modify_qp=E2=80=99:
+> drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:1299:31: error: =E2=80=98=
+old_qps=E2=80=99 may be used uninitialized in this function [-Werror=3D=
+maybe-uninitialized]
+>   status =3D ocrdma_mbx_modify_qp(dev, qp, attr, attr_mask, old_qps);
+>=20
+> ocrdma_mbx_modify_qp() (and subsequent calls) doesn't appear to use o=
+ld_qps
+> so it doesn't need to be passed on.  Removing the variable results in=
+ the
+> warning going away.
+>=20
 
-Amir
+Nice to see this warning removed.
+
+> Signed-off-by: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>=20
+
+You should move the signed of after the Cc's.
+
+> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+^^^
+There's a missing Cc: tag
+
+> Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: "Gottumukkala, Naresh" <B.A.L.NRaju.Gottumukkala-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
