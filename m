@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH v2 03/12] Target/file: place escape values for protection information format
-Date: Wed, 19 Feb 2014 17:50:16 +0200
-Message-ID: <1392825025-29943-4-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v2 07/12] Target/configfs: Expose iSCSI network portal group T10-PI support
+Date: Wed, 19 Feb 2014 17:50:20 +0200
+Message-ID: <1392825025-29943-8-git-send-email-sagig@mellanox.com>
 References: <1392825025-29943-1-git-send-email-sagig@mellanox.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1392825025-29943-1-git-send-email-sagig@mellanox.com>
@@ -10,92 +10,77 @@ To: nab@linux-iscsi.org
 Cc: target-devel@vger.kernel.org, roland@kernel.org, linux-rdma@vger.kernel.org, oren@mellanox.com, martin.petersen@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-No need to actually compute protection information when formatting
+User may enable T10-PI support per network portal group. any connection
+established on top of it, will be required to serve protected transactions.
 
 Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/target/target_core_file.c |   40 +------------------------------------
- 1 files changed, 1 insertions(+), 39 deletions(-)
+ drivers/target/iscsi/iscsi_target_configfs.c |    6 ++++++
+ drivers/target/iscsi/iscsi_target_tpg.c      |   19 +++++++++++++++++++
+ drivers/target/iscsi/iscsi_target_tpg.h      |    1 +
+ 3 files changed, 26 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/target/target_core_file.c b/drivers/target/target_core_file.c
-index cf991a9..7d6cdda 100644
---- a/drivers/target/target_core_file.c
-+++ b/drivers/target/target_core_file.c
-@@ -854,25 +854,6 @@ static int fd_init_prot(struct se_device *dev)
+diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configfs.c
+index 1c0088f..fe35dcb 100644
+--- a/drivers/target/iscsi/iscsi_target_configfs.c
++++ b/drivers/target/iscsi/iscsi_target_configfs.c
+@@ -1052,6 +1052,11 @@ TPG_ATTR(demo_mode_discovery, S_IRUGO | S_IWUSR);
+  */
+ DEF_TPG_ATTRIB(default_erl);
+ TPG_ATTR(default_erl, S_IRUGO | S_IWUSR);
++/*
++ * Define iscsi_tpg_attrib_s_t10_pi
++ */
++DEF_TPG_ATTRIB(t10_pi);
++TPG_ATTR(t10_pi, S_IRUGO | S_IWUSR);
+ 
+ static struct configfs_attribute *lio_target_tpg_attrib_attrs[] = {
+ 	&iscsi_tpg_attrib_authentication.attr,
+@@ -1064,6 +1069,7 @@ static struct configfs_attribute *lio_target_tpg_attrib_attrs[] = {
+ 	&iscsi_tpg_attrib_prod_mode_write_protect.attr,
+ 	&iscsi_tpg_attrib_demo_mode_discovery.attr,
+ 	&iscsi_tpg_attrib_default_erl.attr,
++	&iscsi_tpg_attrib_t10_pi.attr,
+ 	NULL,
+ };
+ 
+diff --git a/drivers/target/iscsi/iscsi_target_tpg.c b/drivers/target/iscsi/iscsi_target_tpg.c
+index 80ae14c..d95a5f2 100644
+--- a/drivers/target/iscsi/iscsi_target_tpg.c
++++ b/drivers/target/iscsi/iscsi_target_tpg.c
+@@ -860,3 +860,22 @@ int iscsit_ta_default_erl(
+ 
  	return 0;
  }
++
++int iscsit_ta_t10_pi(
++	struct iscsi_portal_group *tpg,
++	u32 flag)
++{
++	struct iscsi_tpg_attrib *a = &tpg->tpg_attrib;
++
++	if ((flag != 0) && (flag != 1)) {
++		pr_err("Illegal value %d\n", flag);
++		return -EINVAL;
++	}
++
++	a->t10_pi = flag;
++	pr_debug("iSCSI_TPG[%hu] - T10 Protection information bit:"
++		" %s\n", tpg->tpgt, (a->t10_pi) ?
++		"ON" : "OFF");
++
++	return 0;
++}
+diff --git a/drivers/target/iscsi/iscsi_target_tpg.h b/drivers/target/iscsi/iscsi_target_tpg.h
+index 213c0fc..0a182f2 100644
+--- a/drivers/target/iscsi/iscsi_target_tpg.h
++++ b/drivers/target/iscsi/iscsi_target_tpg.h
+@@ -39,5 +39,6 @@ extern int iscsit_ta_demo_mode_write_protect(struct iscsi_portal_group *, u32);
+ extern int iscsit_ta_prod_mode_write_protect(struct iscsi_portal_group *, u32);
+ extern int iscsit_ta_demo_mode_discovery(struct iscsi_portal_group *, u32);
+ extern int iscsit_ta_default_erl(struct iscsi_portal_group *, u32);
++extern int iscsit_ta_t10_pi(struct iscsi_portal_group *, u32);
  
--static void fd_init_format_buf(struct se_device *dev, unsigned char *buf,
--			       u32 unit_size, u32 *ref_tag, u16 app_tag,
--			       bool inc_reftag)
--{
--	unsigned char *p = buf;
--	int i;
--
--	for (i = 0; i < unit_size; i += dev->prot_length) {
--		*((u16 *)&p[0]) = 0xffff;
--		*((__be16 *)&p[2]) = cpu_to_be16(app_tag);
--		*((__be32 *)&p[4]) = cpu_to_be32(*ref_tag);
--
--		if (inc_reftag)
--			(*ref_tag)++;
--
--		p += dev->prot_length;
--	}
--}
--
- static int fd_format_prot(struct se_device *dev)
- {
- 	struct fd_dev *fd_dev = FD_DEV(dev);
-@@ -880,10 +861,8 @@ static int fd_format_prot(struct se_device *dev)
- 	sector_t prot_length, prot;
- 	unsigned char *buf;
- 	loff_t pos = 0;
--	u32 ref_tag = 0;
- 	int unit_size = FDBD_FORMAT_UNIT_SIZE * dev->dev_attrib.block_size;
- 	int rc, ret = 0, size, len;
--	bool inc_reftag = false;
- 
- 	if (!dev->dev_attrib.pi_prot_type) {
- 		pr_err("Unable to format_prot while pi_prot_type == 0\n");
-@@ -894,37 +873,20 @@ static int fd_format_prot(struct se_device *dev)
- 		return -ENODEV;
- 	}
- 
--	switch (dev->dev_attrib.pi_prot_type) {
--	case TARGET_DIF_TYPE3_PROT:
--		ref_tag = 0xffffffff;
--		break;
--	case TARGET_DIF_TYPE2_PROT:
--	case TARGET_DIF_TYPE1_PROT:
--		inc_reftag = true;
--		break;
--	default:
--		break;
--	}
--
- 	buf = vzalloc(unit_size);
- 	if (!buf) {
- 		pr_err("Unable to allocate FILEIO prot buf\n");
- 		return -ENOMEM;
- 	}
--
- 	prot_length = (dev->transport->get_blocks(dev) + 1) * dev->prot_length;
- 	size = prot_length;
- 
- 	pr_debug("Using FILEIO prot_length: %llu\n",
- 		 (unsigned long long)prot_length);
- 
-+	memset(buf, 0xff, unit_size);
- 	for (prot = 0; prot < prot_length; prot += unit_size) {
--
--		fd_init_format_buf(dev, buf, unit_size, &ref_tag, 0xffff,
--				   inc_reftag);
--
- 		len = min(unit_size, size);
--
- 		rc = kernel_write(prot_fd, buf, len, pos);
- 		if (rc != len) {
- 			pr_err("vfs_write to prot file failed: %d\n", rc);
+ #endif /* ISCSI_TARGET_TPG_H */
 -- 
 1.7.1
