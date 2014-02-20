@@ -1,33 +1,24 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH 2/2] qib: Use pci_enable_msix_range() instead of
- pci_enable_msix()
-Date: Wed, 19 Feb 2014 23:11:39 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC211F62DC@FMSMSX107.amr.corp.intel.com>
-References: <cover.1392733151.git.agordeev@redhat.com>
- <f0eabd77b96e0d679ce6c2e2e544c73063c508ee.1392733151.git.agordeev@redhat.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 0/6] SRP initiator patches for kernel 3.15
+Date: Thu, 20 Feb 2014 11:50:41 +0100
+Message-ID: <5305DE01.7030004@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <f0eabd77b96e0d679ce6c2e2e544c73063c508ee.1392733151.git.agordeev@redhat.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Alexander Gordeev <agordeev@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Roland Dreier <roland@kernel.org>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Masanari Iida <standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH 2/2] qib: Use pci_enable_msix_range() instead of
-> pci_enable_msix()
-> 
-> As result of deprecation of MSI-X/MSI enablement functions
-> pci_enable_msix() and pci_enable_msi_block() all drivers using these two
-> interfaces need to be updated to use the new pci_enable_msi_range() and
-> pci_enable_msix_range() interfaces.
-> 
-> Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
-
-This worked fine!
-
-Roland, can you fix up the subject to change qib to IB/qib when you merge it?
-
-Acked-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+This patch series includes the following six patches:
+0001-scsi_transport_srp-Fix-two-kernel-doc-warnings.patch
+0002-IB-srp-Add-more-logging.patch
+0003-IB-srp-Fail-SCSI-commands-silently.patch
+0004-IB-srp-Avoid-duplicate-connections.patch
+0005-IB-srp-Make-writing-into-the-add_target-sysfs-attrib.patch
+0006-IB-srp-Avoid-that-writing-into-add_target-hangs-due-.patch
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
