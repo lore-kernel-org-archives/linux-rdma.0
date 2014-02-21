@@ -1,41 +1,49 @@
-From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/4] RDMA/libocrdma: Increment abi version count
-Date: Fri, 21 Feb 2014 11:01:44 +0530
-Message-ID: <1392960704-10871-4-git-send-email-devesh.sharma@emulex.com>
-References: <1392960704-10871-1-git-send-email-devesh.sharma@emulex.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 3/6] IB/srp: Fail SCSI commands silently
+Date: Fri, 21 Feb 2014 10:23:58 +0100
+Message-ID: <53071B2E.2050302@acm.org>
+References: <5305DE01.7030004@acm.org> <5305DE67.9070805@acm.org> <1392954937.26557.3.camel@haswell.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1392960704-10871-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1392954937.26557.3.camel-a7a0dvSY7KqLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+On 02/21/14 04:55, David Dillow wrote:
+> On Thu, 2014-02-20 at 11:52 +0100, Bart Van Assche wrote:
+>> Do not log SCSI command failures that are the result of a transport
+>> layer failure, a SCSI abort or SCSI reset. This patch is a slightly
+>> modified version of a patch posted by Sebastian Riemer in March 2013
+>> (see also http://thread.gmane.org/gmane.linux.drivers.rdma/15020/).
+>>
+>> This patch avoids that a system becomes unresponsive during failover
+>> of a large number of LUNs when kernel messages are logged to a serial
+>> console.
+> 
+> While I can see the utility for slow consoles, this should probably be
+> done in the SCSI lib, with a separate flag for indicating it is a
+> failure due to transport issues. That would allow the functionality to
+> be used by multiple drivers and verbosity configured in one place,
+> rather than patched in driver-by-driver.
 
-Increment the driver/library abi version count.
+Hello Dave,
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- src/ocrdma_abi.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+If it would be possible to move the code for setting the REQ_QUIET flag
+into the SCSI lib that would be great. However, as far as I know only
+the LLD knows which requests are in progress. A call to
+blk_start_request() makes blk_dequeue_request() remove a request from
+the queuelist in struct request_queue. I am not aware of any list in the
+block layer nor in the SCSI mid-layer that keeps track of requests that
+are in progress ?
 
-diff --git a/src/ocrdma_abi.h b/src/ocrdma_abi.h
-index 9b44cd3..88498a9 100644
---- a/src/ocrdma_abi.h
-+++ b/src/ocrdma_abi.h
-@@ -37,7 +37,7 @@
- 
- #include <infiniband/kern-abi.h>
- 
--#define OCRDMA_ABI_VERSION	1
-+#define OCRDMA_ABI_VERSION	2
- 
- #define Bit(_b) (1 << (_b))
- 
--- 
-1.7.1
+Thanks,
+
+Bart.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
