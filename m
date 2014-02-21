@@ -1,7 +1,7 @@
 From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/4] RDMA/libocrdma: un-map cqe memory in destroy_cq
-Date: Fri, 21 Feb 2014 11:01:43 +0530
-Message-ID: <1392960704-10871-3-git-send-email-devesh.sharma@emulex.com>
+Subject: [PATCH 4/4] RDMA/libocrdma: Increment abi version count
+Date: Fri, 21 Feb 2014 11:01:44 +0530
+Message-ID: <1392960704-10871-4-git-send-email-devesh.sharma@emulex.com>
 References: <1392960704-10871-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,33 +13,27 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-while calling detroy cq, the host memory used to hold CQEs
-needs to be unmapped.
+Increment the driver/library abi version count.
 
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- src/ocrdma_verbs.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ src/ocrdma_abi.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/src/ocrdma_verbs.c b/src/ocrdma_verbs.c
-index acf460f..96c5f78 100644
---- a/src/ocrdma_verbs.c
-+++ b/src/ocrdma_verbs.c
-@@ -356,9 +356,13 @@ int ocrdma_resize_cq(struct ibv_cq *ibcq, int new_entries)
- int ocrdma_destroy_cq(struct ibv_cq *ibv_cq)
- {
- 	struct ocrdma_cq *cq = get_ocrdma_cq(ibv_cq);
-+
- 	ibv_cmd_destroy_cq(ibv_cq);
- 	if (cq->db_va)
- 		munmap((void *)cq->db_va, cq->db_size);
-+	if (cq->va)
-+		munmap((void*)cq->va, cq->cq_mem_size);
-+
- 	free(cq);
- 	return 0;
- }
+diff --git a/src/ocrdma_abi.h b/src/ocrdma_abi.h
+index 9b44cd3..88498a9 100644
+--- a/src/ocrdma_abi.h
++++ b/src/ocrdma_abi.h
+@@ -37,7 +37,7 @@
+ 
+ #include <infiniband/kern-abi.h>
+ 
+-#define OCRDMA_ABI_VERSION	1
++#define OCRDMA_ABI_VERSION	2
+ 
+ #define Bit(_b) (1 << (_b))
+ 
 -- 
 1.7.1
 
