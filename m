@@ -1,41 +1,59 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 0/6] SRP initiator patches for kernel 3.15
-Date: Fri, 21 Feb 2014 13:20:09 +0100
-Message-ID: <53074479.5090300@acm.org>
-References: <5305DE01.7030004@acm.org> <CACaajQt5FVw-8rVhM1jwZPORGNdrAkTf-Gi3NdkKRnQaYde48Q@mail.gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [ANNOUNCE] libcxgb4-1.3.2 released.
+Date: Fri, 21 Feb 2014 10:25:10 -0600
+Message-ID: <53077DE6.7020301@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACaajQt5FVw-8rVhM1jwZPORGNdrAkTf-Gi3NdkKRnQaYde48Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Masanari Iida <standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/21/14 04:36, Vasiliy Tolstov wrote:
-> 2014-02-20 14:50 GMT+04:00 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
->> This patch series includes the following six patches:
->> 0001-scsi_transport_srp-Fix-two-kernel-doc-warnings.patch
->> 0002-IB-srp-Add-more-logging.patch
->> 0003-IB-srp-Fail-SCSI-commands-silently.patch
->> 0004-IB-srp-Avoid-duplicate-connections.patch
->> 0005-IB-srp-Make-writing-into-the-add_target-sysfs-attrib.patch
->> 0006-IB-srp-Avoid-that-writing-into-add_target-hangs-due-.patch
-> 
-> Is that possible to get some of this into stable 3.10.x?
 
-What I understood from Documentation/stable_kernel_rules.txt is that
-patches that fix a bug are acceptable for the stable kernel series but
-functionality changes not. So I think patches 4, 5 and 6 would be good
-candidates for the stable kernel series. Roland, do you want me to
-resend this series with "stable" tags added where appropriate or are you
-fine with adding this tag yourself to the last three patches ?
+The libcxgb4 package contains a userspace driver for Chelsio T4 and T5 
+iWARP RNICs.  It is a plug-in module for libibverbs that allows programs 
+to use Chelsio hardware directly from userspace.
 
-Thanks,
+A new release is available from:
 
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.openfabrics.org/downloads/cxgb4/libcxgb4-1.3.2.tar.gz
+
+with an md5sum of:
+
+d6e9b98f0d58dff639662eae9866541b
+
+The git tree is available at:
+
+git://www.openfabrics.org/~swise/libcxgb4
+
+The tag is v1.3.2
+
+Shortlog from v1.3.1:
+
+Steve Wise (16):
+       T4 onchip workaround: do the 16 4B MA writes just before DB ring.
+       Fix DEBUG code in c4iw_flush_hw_cq().
+       DB Drop Avoidance, Version 2.
+       unmap status page when freeing the context.
+       never consume a pending wr in sq flush.
+       iw_cxgb4/libcxgb4: swsq "signaled" state needs to mind sq_sig_all.
+       Remove dead raw qp code.
+       Remove dead SIM code.
+       Add common device id table and chip types.
+       Refresh t4 fw/hw reg files.
+       Update copyrights.
+       Call rmb() after reading valid gen bit.
+       Call wc_wmb() needed after DB writes.
+       Use V_PIDX_T5() for T5 devices in ring_db funcs.
+       Fixed compilation error with debug enabled.
+       Spin release 1.3.2.
