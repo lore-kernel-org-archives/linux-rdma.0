@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 04/10] IB/mlx5: Initialize mlx5_ib_qp signature related
-Date: Sun, 23 Feb 2014 14:19:07 +0200
-Message-ID: <1393157953-24834-5-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v5 07/10] IB/mlx5: Keep mlx5 MRs in a radix tree under device
+Date: Sun, 23 Feb 2014 14:19:10 +0200
+Message-ID: <1393157953-24834-8-git-send-email-sagig@mellanox.com>
 References: <1393157953-24834-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1393157953-24834-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,83 +10,142 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If user requested signature enable we Initialize
-relevant mlx5_ib_qp members. we mark the qp as sig_enable
-and we increase the effective SQ size, but still
-limit the user max_send_wr to original size computed.
-We also allow the create_qp routine to accept sig_enable
-create flag.
+This will be useful when processing signature errors
+on a specific key. The mlx5 driver will lookup the
+matching mlx5 memory region structure and mark it as
+dirty (contains signature errors).
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |    3 +++
- drivers/infiniband/hw/mlx5/qp.c      |   12 +++++++++---
- include/linux/mlx5/qp.h              |    1 +
- 3 files changed, 13 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 +
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c   |   24 ++++++++++++++++++++++++
+ include/linux/mlx5/driver.h                    |   18 ++++++++++++++++++
+ 3 files changed, 43 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 79c4f14..e438f08 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -189,6 +189,9 @@ struct mlx5_ib_qp {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index a064f06..96a0617 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -446,6 +446,7 @@ int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
+ 	mlx5_init_cq_table(dev);
+ 	mlx5_init_qp_table(dev);
+ 	mlx5_init_srq_table(dev);
++	mlx5_init_mr_table(dev);
  
- 	int			create_type;
- 	u32			pa_lkey;
+ 	return 0;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
+index bb746bb..4cc9276 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
+@@ -36,11 +36,24 @@
+ #include <linux/mlx5/cmd.h>
+ #include "mlx5_core.h"
+ 
++void mlx5_init_mr_table(struct mlx5_core_dev *dev)
++{
++	struct mlx5_mr_table *table = &dev->priv.mr_table;
 +
-+	/* Store signature errors */
-+	bool			signature_en;
- };
++	rwlock_init(&table->lock);
++	INIT_RADIX_TREE(&table->tree, GFP_ATOMIC);
++}
++
++void mlx5_cleanup_mr_table(struct mlx5_core_dev *dev)
++{
++}
++
+ int mlx5_core_create_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
+ 			  struct mlx5_create_mkey_mbox_in *in, int inlen,
+ 			  mlx5_cmd_cbk_t callback, void *context,
+ 			  struct mlx5_create_mkey_mbox_out *out)
+ {
++	struct mlx5_mr_table *table = &dev->priv.mr_table;
+ 	struct mlx5_create_mkey_mbox_out lout;
+ 	int err;
+ 	u8 key;
+@@ -73,14 +86,21 @@ int mlx5_core_create_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
+ 	mlx5_core_dbg(dev, "out 0x%x, key 0x%x, mkey 0x%x\n",
+ 		      be32_to_cpu(lout.mkey), key, mr->key);
  
- struct mlx5_ib_cq_buf {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 7dfe8a1..01999f3 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -256,8 +256,11 @@ static int calc_send_wqe(struct ib_qp_init_attr *attr)
- 	}
- 
- 	size += attr->cap.max_send_sge * sizeof(struct mlx5_wqe_data_seg);
--
--	return ALIGN(max_t(int, inl_size, size), MLX5_SEND_WQE_BB);
-+	if (attr->create_flags & IB_QP_CREATE_SIGNATURE_EN &&
-+	    ALIGN(max_t(int, inl_size, size), MLX5_SEND_WQE_BB) < MLX5_SIG_WQE_SIZE)
-+			return MLX5_SIG_WQE_SIZE;
-+	else
-+		return ALIGN(max_t(int, inl_size, size), MLX5_SEND_WQE_BB);
++	/* connect to MR tree */
++	write_lock_irq(&table->lock);
++	err = radix_tree_insert(&table->tree, mlx5_base_mkey(mr->key), mr);
++	write_unlock_irq(&table->lock);
++
+ 	return err;
  }
+ EXPORT_SYMBOL(mlx5_core_create_mkey);
  
- static int calc_sq_size(struct mlx5_ib_dev *dev, struct ib_qp_init_attr *attr,
-@@ -284,6 +287,9 @@ static int calc_sq_size(struct mlx5_ib_dev *dev, struct ib_qp_init_attr *attr,
- 		sizeof(struct mlx5_wqe_inline_seg);
- 	attr->cap.max_inline_data = qp->max_inline_data;
- 
-+	if (attr->create_flags & IB_QP_CREATE_SIGNATURE_EN)
-+		qp->signature_en = true;
-+
- 	wq_size = roundup_pow_of_two(attr->cap.max_send_wr * wqe_size);
- 	qp->sq.wqe_cnt = wq_size / MLX5_SEND_WQE_BB;
- 	if (qp->sq.wqe_cnt > dev->mdev.caps.max_wqes) {
-@@ -665,7 +671,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr)
+ {
++	struct mlx5_mr_table *table = &dev->priv.mr_table;
+ 	struct mlx5_destroy_mkey_mbox_in in;
+ 	struct mlx5_destroy_mkey_mbox_out out;
++	unsigned long flags;
  	int err;
  
- 	uuari = &dev->mdev.priv.uuari;
--	if (init_attr->create_flags)
-+	if (init_attr->create_flags & ~IB_QP_CREATE_SIGNATURE_EN)
- 		return -EINVAL;
+ 	memset(&in, 0, sizeof(in));
+@@ -95,6 +115,10 @@ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr)
+ 	if (out.hdr.status)
+ 		return mlx5_cmd_status_to_err(&out.hdr);
  
- 	if (init_attr->qp_type == MLX5_IB_QPT_REG_UMR)
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index d51eff7..c809725 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -37,6 +37,7 @@
- #include <linux/mlx5/driver.h>
++	write_lock_irqsave(&table->lock, flags);
++	radix_tree_delete(&table->tree, mlx5_base_mkey(mr->key));
++	write_unlock_irqrestore(&table->lock, flags);
++
+ 	return err;
+ }
+ EXPORT_SYMBOL(mlx5_core_destroy_mkey);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index e1cb657..e562e01 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -491,6 +491,13 @@ struct mlx5_srq_table {
+ 	struct radix_tree_root	tree;
+ };
  
- #define MLX5_INVALID_LKEY	0x100
-+#define MLX5_SIG_WQE_SIZE MLX5_SEND_WQE_BB * 5
++struct mlx5_mr_table {
++	/* protect radix tree
++	 */
++	rwlock_t		lock;
++	struct radix_tree_root	tree;
++};
++
+ struct mlx5_priv {
+ 	char			name[MLX5_MAX_NAME_LEN];
+ 	struct mlx5_eq_table	eq_table;
+@@ -520,6 +527,10 @@ struct mlx5_priv {
+ 	struct mlx5_cq_table	cq_table;
+ 	/* end: cq staff */
  
- enum mlx5_qp_optpar {
- 	MLX5_QP_OPTPAR_ALT_ADDR_PATH		= 1 << 0,
++	/* start: mr staff */
++	struct mlx5_mr_table	mr_table;
++	/* end: mr staff */
++
+ 	/* start: alloc staff */
+ 	struct mutex            pgdir_mutex;
+ 	struct list_head        pgdir_list;
+@@ -667,6 +678,11 @@ static inline void mlx5_vfree(const void *addr)
+ 		kfree(addr);
+ }
+ 
++static inline u32 mlx5_base_mkey(const u32 key)
++{
++	return key & 0xffffff00u;
++}
++
+ int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev);
+ void mlx5_dev_cleanup(struct mlx5_core_dev *dev);
+ int mlx5_cmd_init(struct mlx5_core_dev *dev);
+@@ -701,6 +717,8 @@ int mlx5_core_query_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+ 			struct mlx5_query_srq_mbox_out *out);
+ int mlx5_core_arm_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+ 		      u16 lwm, int is_srq);
++void mlx5_init_mr_table(struct mlx5_core_dev *dev);
++void mlx5_cleanup_mr_table(struct mlx5_core_dev *dev);
+ int mlx5_core_create_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
+ 			  struct mlx5_create_mkey_mbox_in *in, int inlen,
+ 			  mlx5_cmd_cbk_t callback, void *context,
 -- 
 1.7.1
 
