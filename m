@@ -1,346 +1,145 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 03/10] IB/mlx5, mlx5_core: Support for create_mr and destroy_mr
-Date: Sun, 23 Feb 2014 14:19:06 +0200
-Message-ID: <1393157953-24834-4-git-send-email-sagig@mellanox.com>
-References: <1393157953-24834-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v5 00/10] Introduce Signature feature
+Date: Sun, 23 Feb 2014 14:19:03 +0200
+Message-ID: <1393157953-24834-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393157953-24834-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Support create_mr and destroy_mr verbs.
-Creating ib_mr may be done for either ib_mr that will
-register regular page lists like alloc_fast_reg_mr routine,
-or indirect ib_mr's that can register other (pre-registered)
-ib_mr's in an indirect manner.
+This patchset Introduces Verbs level support for signature handover feature.
+Siganture is intended to implement end-to-end data integrity on a transactional
+basis in a completely offloaded manner.
 
-In addition user may request signature enable, that will mean
-that the created ib_mr may be attached with signature attributes
-(BSF, PSVs).
+There are several end-to-end data integrity methods used today in various
+applications and/or upper layer protocols such as T10-DIF defined by SCSI
+specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs support
+only for T10-DIF. The proposed framework allows adding more signature methods
+in the future.
 
-Currently we only allow direct/indirect registration modes.
+In T10-DIF, when a series of 512-byte data blocks are transferred, each block
+is followed by an 8-byte guard (note that other protection intervals may be used
+other then 512-bytes). The guard consists of CRC that protects the integrity of
+the data in the block, and tag that protects against mis-directed IOs and a free
+tag for application use.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c            |    2 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |    4 +
- drivers/infiniband/hw/mlx5/mr.c              |  111 ++++++++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/mr.c |   61 ++++++++++++++
- include/linux/mlx5/device.h                  |   25 ++++++
- include/linux/mlx5/driver.h                  |   19 +++++
- 6 files changed, 222 insertions(+), 0 deletions(-)
+Data can be protected when transferred over the wire, but can also be protected
+in the memory of the sender/receiver. This allows true end- to-end protection
+against bits flipping either over the wire, through gateways, in memory, over PCI, etc.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index aa03e73..7260a29 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1423,9 +1423,11 @@ static int init_one(struct pci_dev *pdev,
- 	dev->ib_dev.get_dma_mr		= mlx5_ib_get_dma_mr;
- 	dev->ib_dev.reg_user_mr		= mlx5_ib_reg_user_mr;
- 	dev->ib_dev.dereg_mr		= mlx5_ib_dereg_mr;
-+	dev->ib_dev.destroy_mr		= mlx5_ib_destroy_mr;
- 	dev->ib_dev.attach_mcast	= mlx5_ib_mcg_attach;
- 	dev->ib_dev.detach_mcast	= mlx5_ib_mcg_detach;
- 	dev->ib_dev.process_mad		= mlx5_ib_process_mad;
-+	dev->ib_dev.create_mr		= mlx5_ib_create_mr;
- 	dev->ib_dev.alloc_fast_reg_mr	= mlx5_ib_alloc_fast_reg_mr;
- 	dev->ib_dev.alloc_fast_reg_page_list = mlx5_ib_alloc_fast_reg_page_list;
- 	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 389e319..79c4f14 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -265,6 +265,7 @@ struct mlx5_ib_mr {
- 	enum ib_wc_status	status;
- 	struct mlx5_ib_dev     *dev;
- 	struct mlx5_create_mkey_mbox_out out;
-+	struct mlx5_core_sig_ctx    *sig;
- };
- 
- struct mlx5_ib_fast_reg_page_list {
-@@ -495,6 +496,9 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 				  u64 virt_addr, int access_flags,
- 				  struct ib_udata *udata);
- int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
-+int mlx5_ib_destroy_mr(struct ib_mr *ibmr);
-+struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
-+				struct ib_mr_init_attr *mr_init_attr);
- struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
- 					int max_page_list_len);
- struct ib_fast_reg_page_list *mlx5_ib_alloc_fast_reg_page_list(struct ib_device *ibdev,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 7c95ca1..032445c 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -992,6 +992,117 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
- 	return 0;
- }
- 
-+struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
-+				struct ib_mr_init_attr *mr_init_attr)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(pd->device);
-+	struct mlx5_create_mkey_mbox_in *in;
-+	struct mlx5_ib_mr *mr;
-+	int access_mode, err;
-+	int ndescs = roundup(mr_init_attr->max_reg_descriptors, 4);
-+
-+	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-+	if (!mr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	in = kzalloc(sizeof(*in), GFP_KERNEL);
-+	if (!in) {
-+		err = -ENOMEM;
-+		goto err_free;
-+	}
-+
-+	in->seg.status = 1 << 6; /* free */
-+	in->seg.xlt_oct_size = cpu_to_be32(ndescs);
-+	in->seg.qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
-+	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
-+	access_mode = MLX5_ACCESS_MODE_MTT;
-+
-+	if (mr_init_attr->flags & IB_MR_SIGNATURE_EN) {
-+		u32 psv_index[2];
-+
-+		in->seg.flags_pd = cpu_to_be32(be32_to_cpu(in->seg.flags_pd) |
-+							   MLX5_MKEY_BSF_EN);
-+		in->seg.bsfs_octo_size = cpu_to_be32(MLX5_MKEY_BSF_OCTO_SIZE);
-+		mr->sig = kzalloc(sizeof(*mr->sig), GFP_KERNEL);
-+		if (!mr->sig) {
-+			err = -ENOMEM;
-+			goto err_free_in;
-+		}
-+
-+		/* create mem & wire PSVs */
-+		err = mlx5_core_create_psv(&dev->mdev, to_mpd(pd)->pdn,
-+					   2, psv_index);
-+		if (err)
-+			goto err_free_sig;
-+
-+		access_mode = MLX5_ACCESS_MODE_KLM;
-+		mr->sig->psv_memory.psv_idx = psv_index[0];
-+		mr->sig->psv_wire.psv_idx = psv_index[1];
-+	}
-+
-+	in->seg.flags = MLX5_PERM_UMR_EN | access_mode;
-+	err = mlx5_core_create_mkey(&dev->mdev, &mr->mmr, in, sizeof(*in),
-+				    NULL, NULL, NULL);
-+	if (err)
-+		goto err_destroy_psv;
-+
-+	mr->ibmr.lkey = mr->mmr.key;
-+	mr->ibmr.rkey = mr->mmr.key;
-+	mr->umem = NULL;
-+	kfree(in);
-+
-+	return &mr->ibmr;
-+
-+err_destroy_psv:
-+	if (mr->sig) {
-+		if (mlx5_core_destroy_psv(&dev->mdev,
-+					  mr->sig->psv_memory.psv_idx))
-+			mlx5_ib_warn(dev, "failed to destroy mem psv %d\n",
-+				     mr->sig->psv_memory.psv_idx);
-+		if (mlx5_core_destroy_psv(&dev->mdev,
-+					  mr->sig->psv_wire.psv_idx))
-+			mlx5_ib_warn(dev, "failed to destroy wire psv %d\n",
-+				     mr->sig->psv_wire.psv_idx);
-+	}
-+err_free_sig:
-+	kfree(mr->sig);
-+err_free_in:
-+	kfree(in);
-+err_free:
-+	kfree(mr);
-+	return ERR_PTR(err);
-+}
-+
-+int mlx5_ib_destroy_mr(struct ib_mr *ibmr)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
-+	struct mlx5_ib_mr *mr = to_mmr(ibmr);
-+	int err;
-+
-+	if (mr->sig) {
-+		if (mlx5_core_destroy_psv(&dev->mdev,
-+					  mr->sig->psv_memory.psv_idx))
-+			mlx5_ib_warn(dev, "failed to destroy mem psv %d\n",
-+				     mr->sig->psv_memory.psv_idx);
-+		if (mlx5_core_destroy_psv(&dev->mdev,
-+					  mr->sig->psv_wire.psv_idx))
-+			mlx5_ib_warn(dev, "failed to destroy wire psv %d\n",
-+				     mr->sig->psv_wire.psv_idx);
-+		kfree(mr->sig);
-+	}
-+
-+	err = mlx5_core_destroy_mkey(&dev->mdev, &mr->mmr);
-+	if (err) {
-+		mlx5_ib_warn(dev, "failed to destroy mkey 0x%x (%d)\n",
-+			     mr->mmr.key, err);
-+		return err;
-+	}
-+
-+	kfree(mr);
-+
-+	return err;
-+}
-+
- struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
- 					int max_page_list_len)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-index 35e514d..bb746bb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-@@ -144,3 +144,64 @@ int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
- 	return err;
- }
- EXPORT_SYMBOL(mlx5_core_dump_fill_mkey);
-+
-+int mlx5_core_create_psv(struct mlx5_core_dev *dev, u32 pdn,
-+			 int npsvs, u32 *sig_index)
-+{
-+	struct mlx5_allocate_psv_in in;
-+	struct mlx5_allocate_psv_out out;
-+	int i, err;
-+
-+	if (npsvs > MLX5_MAX_PSVS)
-+		return -EINVAL;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_CREATE_PSV);
-+	in.npsv_pd = cpu_to_be32((npsvs << 28) | pdn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err) {
-+		mlx5_core_err(dev, "cmd exec failed %d\n", err);
-+		return err;
-+	}
-+
-+	if (out.hdr.status) {
-+		mlx5_core_err(dev, "create_psv bad status %d\n", out.hdr.status);
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+	}
-+
-+	for (i = 0; i < npsvs; i++)
-+		sig_index[i] = be32_to_cpu(out.psv_idx[i]) & 0xffffff;
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_create_psv);
-+
-+int mlx5_core_destroy_psv(struct mlx5_core_dev *dev, int psv_num)
-+{
-+	struct mlx5_destroy_psv_in in;
-+	struct mlx5_destroy_psv_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+
-+	in.psv_number = cpu_to_be32(psv_num);
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_PSV);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err) {
-+		mlx5_core_err(dev, "destroy_psv cmd exec failed %d\n", err);
-+		goto out;
-+	}
-+
-+	if (out.hdr.status) {
-+		mlx5_core_err(dev, "destroy_psv bad status %d\n", out.hdr.status);
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+		goto out;
-+	}
-+
-+out:
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_destroy_psv);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 817a6fa..f714fc4 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -48,6 +48,8 @@ enum {
- 	MLX5_MAX_COMMANDS		= 32,
- 	MLX5_CMD_DATA_BLOCK_SIZE	= 512,
- 	MLX5_PCI_CMD_XPORT		= 7,
-+	MLX5_MKEY_BSF_OCTO_SIZE		= 4,
-+	MLX5_MAX_PSVS			= 4,
- };
- 
- enum {
-@@ -936,4 +938,27 @@ enum {
- 	MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO	= 1 <<  0
- };
- 
-+struct mlx5_allocate_psv_in {
-+	struct mlx5_inbox_hdr   hdr;
-+	__be32			npsv_pd;
-+	__be32			rsvd_psv0;
-+};
-+
-+struct mlx5_allocate_psv_out {
-+	struct mlx5_outbox_hdr  hdr;
-+	u8			rsvd[8];
-+	__be32			psv_idx[4];
-+};
-+
-+struct mlx5_destroy_psv_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	__be32                  psv_number;
-+	u8                      rsvd[4];
-+};
-+
-+struct mlx5_destroy_psv_out {
-+	struct mlx5_outbox_hdr  hdr;
-+	u8                      rsvd[8];
-+};
-+
- #endif /* MLX5_DEVICE_H */
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 130bc8d..e1cb657 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -401,6 +401,22 @@ struct mlx5_eq {
- 	struct mlx5_rsc_debug	*dbg;
- };
- 
-+struct mlx5_core_psv {
-+	u32	psv_idx;
-+	struct psv_layout {
-+		u32	pd;
-+		u16	syndrome;
-+		u16	reserved;
-+		u16	bg;
-+		u16	app_tag;
-+		u32	ref_tag;
-+	} psv;
-+};
-+
-+struct mlx5_core_sig_ctx {
-+	struct mlx5_core_psv	psv_memory;
-+	struct mlx5_core_psv	psv_wire;
-+};
- 
- struct mlx5_core_mr {
- 	u64			iova;
-@@ -746,6 +762,9 @@ void mlx5_db_free(struct mlx5_core_dev *dev, struct mlx5_db *db);
- const char *mlx5_command_str(int command);
- int mlx5_cmdif_debugfs_init(struct mlx5_core_dev *dev);
- void mlx5_cmdif_debugfs_cleanup(struct mlx5_core_dev *dev);
-+int mlx5_core_create_psv(struct mlx5_core_dev *dev, u32 pdn,
-+			 int npsvs, u32 *sig_index);
-+int mlx5_core_destroy_psv(struct mlx5_core_dev *dev, int psv_num);
- 
- static inline u32 mlx5_mkey_to_idx(u32 mkey)
- {
--- 
-1.7.1
+While T10-DIF clearly defines that over the wire protection guards are interleaved
+into the data stream (each 512-Byte block followed by 8-byte guard), when in memory,
+the protection guards may reside in a buffer separated from the data. Depending on the
+application, it is usually easier to handle the data when it is contiguous.
+In this case the data buffer will be of size 512xN and the protection buffer will
+be of size 8xN (where N is the number of blocks in the transaction).
+
+There are 3 kinds of signature handover operation:
+1. Take unprotected data (from wire or memory) and ADD protection
+   guards.
+2. Take protetected data (from wire or memory), validate the data
+   integrity against the protection guards and STRIP the protection
+   guards.
+3. Take protected data (from wire or memory), validate the data
+   integrity against the protection guards and PASS the data with
+   the guards as-is.
+
+This translates to defining to the HCA how/if data protection exists in memory domain,
+and how/if data protection exists is wire domain.
+
+The way that data integrity is performed is by using a new kind of memory
+region: signature-enabled MR, and a new kind of work request: REG_SIG_MR.
+The REG_SIG_MR WR operates on the signature-enabled MR, and defines all the
+needed information for the signature handover (data buffer, protection buffer
+if needed and signature attributes). The result is an MR that can be used for
+data transfer as usual, that will also add/validate/strip/pass protection guards.
+
+When the data transfer is successfully completed, it does not mean that there are
+no integrity errors. The user must afterwards check the signature status of the
+handover operation using a new light-weight verb.
+
+This feature shall be used in storage upper layer protocols iSER/SRP implementing
+end-to-end data integrity T10-DIF. Following this patchset, ib_iser/ib_isert
+will use these verbs for T10-PI offload support.
+
+Patchset summary:
+- Intoduce verbs for create/destroy memory regions supporting signature.
+- Introduce IB core signature verbs API.
+- Implement mr create/destroy verbs in mlx5 driver.
+- Preperation patches for signature support in mlx5 driver.
+- Implement signature handover work request in mlx5 driver.
+- Implement signature error collection and handling in mlx5 driver.
+
+Changes from v4:
+- Update to for-next 3.14-rc2
+- IB/mlx5: Fix smatch warning.
+- IB/mlx5: Fix signature rules constants.
+- IB/mlx5: Allow create_qp to receive sig_enable create flag.
+- IB/mlx5: Remove redundant asignment.
+
+Changes from v3 (mostly bug fixes):
+- IB/core: Generalized ib_check_sig_status to a general ib_check_mr_status
+           for other light-weight status checks that may be used on ib_mr.
+- IB/core: Changed ib_sig_err to inform only expected and actual values
+           of the corrupted field (block guard, reference tag or application tag).
+- IB/mlx5: Fail un-supported protection intervals.
+- IB/mlx5: Fxied possible SQ corruption in REG_SIG_MR.
+- IB/mlx5: Fixed wr iterator wrong incrementation in mlx5_ib_post_send.
+- IB/mlx5: Avoid expanding the SQ depth for signature when wqe_size is
+           sufficient.
+
+Changes from v2 (mostly CR comments):
+- IB/core: Added comment on IB_T10DIF_CRC/CSUM declarations.
+- IB/core: Renamed block_size as pi_interval in ib_sig_attrs.
+- IB/core: Took t10_dif domain out of sig union (ib_sig_domain).
+- IB/mlx5: Fixed memory leak in create_mr
+- IB/mlx5: Remove redundant assignment in WQE initialization.
+- IB/mlx5: Fixed possible NULL dereference in check_sig_status
+           and set_sig_wr.
+- IB/mlx5: Added helper function to convert mkey to base key.
+- IB/mlx5: Reduced Fencing in compund REG_SIG_MR WR.
+- Resolved checkpatch warnings.
+
+Changes from v1:
+- IB/core: Reduced sizeof ib_send_wr by using wr->sg_list for data
+           and dedicated ib_sge for protection guards buffer.
+           Currently sig_handover extension does not increase sizeof ib_send_wr
+- IB/core: Change enum to int for container variables.
+- IB/mlx5: Validate wr->num_sge=1 for REG_SIG_MR work request.
+
+Changes from v0:
+- Commit messages: Added more detailed explanation for signature work request.
+- IB/core: Remove indirect memory registration enablement from create_mr.
+           Keep only signature enablement.
+- IB/mlx5: Changed signature error processing via MR radix lookup.
+
+Sagi Grimberg (10):
+  IB/core: Introduce protected memory regions
+  IB/core: Introduce Signature Verbs API
+  IB/mlx5, mlx5_core: Support for create_mr and destroy_mr
+  IB/mlx5: Initialize mlx5_ib_qp signature related
+  IB/mlx5: Break wqe handling to begin & finish routines
+  IB/mlx5: remove MTT access mode from umr flags helper function
+  IB/mlx5: Keep mlx5 MRs in a radix tree under device
+  IB/mlx5: Support IB_WR_REG_SIG_MR
+  IB/mlx5: Collect signature error completion
+  IB/mlx5: Publish support in signature feature
+
+ drivers/infiniband/core/verbs.c                |   47 ++
+ drivers/infiniband/hw/mlx5/cq.c                |   63 +++
+ drivers/infiniband/hw/mlx5/main.c              |   12 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h           |   14 +
+ drivers/infiniband/hw/mlx5/mr.c                |  158 +++++++
+ drivers/infiniband/hw/mlx5/qp.c                |  540 ++++++++++++++++++++++--
+ drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 +
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c   |   85 ++++
+ include/linux/mlx5/cq.h                        |    1 +
+ include/linux/mlx5/device.h                    |   43 ++
+ include/linux/mlx5/driver.h                    |   41 ++
+ include/linux/mlx5/qp.h                        |   67 +++
+ include/rdma/ib_verbs.h                        |  187 ++++++++-
+ 13 files changed, 1217 insertions(+), 42 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
