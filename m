@@ -1,94 +1,93 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v5 04/10] IB/mlx5: Initialize mlx5_ib_qp signature related
-Date: Mon, 24 Feb 2014 10:10:57 +0200
-Message-ID: <530AFE91.6040102@dev.mellanox.co.il>
-References: <1393157953-24834-1-git-send-email-sagig@mellanox.com>	 <1393157953-24834-5-git-send-email-sagig@mellanox.com> <1393224376.22656.13.camel@haakon3.risingtidesystems.com>
+Subject: Re: [PATCH v5 00/10] Introduce Signature feature
+Date: Mon, 24 Feb 2014 10:11:48 +0200
+Message-ID: <530AFEC4.6070209@dev.mellanox.co.il>
+References: <1393157953-24834-1-git-send-email-sagig@mellanox.com> <1393225299.22656.22.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393224376.22656.13.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <1393225299.22656.22.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/24/2014 8:46 AM, Nicholas A. Bellinger wrote:
+On 2/24/2014 9:01 AM, Nicholas A. Bellinger wrote:
 > On Sun, 2014-02-23 at 14:19 +0200, Sagi Grimberg wrote:
->> If user requested signature enable we Initialize
->> relevant mlx5_ib_qp members. we mark the qp as sig_enable
->> and we increase the effective SQ size, but still
->> limit the user max_send_wr to original size computed.
->> We also allow the create_qp routine to accept sig_enable
->> create flag.
+>> This patchset Introduces Verbs level support for signature handover feature.
+>> Siganture is intended to implement end-to-end data integrity on a transactional
+>> basis in a completely offloaded manner.
 >>
->> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/infiniband/hw/mlx5/mlx5_ib.h |    3 +++
->>   drivers/infiniband/hw/mlx5/qp.c      |   12 +++++++++---
->>   include/linux/mlx5/qp.h              |    1 +
->>   3 files changed, 13 insertions(+), 3 deletions(-)
+>> There are several end-to-end data integrity methods used today in various
+>> applications and/or upper layer protocols such as T10-DIF defined by SCSI
+>> specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs support
+>> only for T10-DIF. The proposed framework allows adding more signature methods
+>> in the future.
 >>
->> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
->> index 79c4f14..e438f08 100644
->> --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
->> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
->> @@ -189,6 +189,9 @@ struct mlx5_ib_qp {
->>   
->>   	int			create_type;
->>   	u32			pa_lkey;
->> +
->> +	/* Store signature errors */
->> +	bool			signature_en;
->>   };
->>   
->>   struct mlx5_ib_cq_buf {
->> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
->> index 7dfe8a1..01999f3 100644
->> --- a/drivers/infiniband/hw/mlx5/qp.c
->> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> <SNIP>
+>> In T10-DIF, when a series of 512-byte data blocks are transferred, each block
+>> is followed by an 8-byte guard (note that other protection intervals may be used
+>> other then 512-bytes). The guard consists of CRC that protects the integrity of
+>> the data in the block, and tag that protects against mis-directed IOs and a free
+>> tag for application use.
+>>
+>> Data can be protected when transferred over the wire, but can also be protected
+>> in the memory of the sender/receiver. This allows true end- to-end protection
+>> against bits flipping either over the wire, through gateways, in memory, over PCI, etc.
+>>
+>> While T10-DIF clearly defines that over the wire protection guards are interleaved
+>> into the data stream (each 512-Byte block followed by 8-byte guard), when in memory,
+>> the protection guards may reside in a buffer separated from the data. Depending on the
+>> application, it is usually easier to handle the data when it is contiguous.
+>> In this case the data buffer will be of size 512xN and the protection buffer will
+>> be of size 8xN (where N is the number of blocks in the transaction).
+>>
+>> There are 3 kinds of signature handover operation:
+>> 1. Take unprotected data (from wire or memory) and ADD protection
+>>     guards.
+>> 2. Take protetected data (from wire or memory), validate the data
+>>     integrity against the protection guards and STRIP the protection
+>>     guards.
+>> 3. Take protected data (from wire or memory), validate the data
+>>     integrity against the protection guards and PASS the data with
+>>     the guards as-is.
+>>
+>> This translates to defining to the HCA how/if data protection exists in memory domain,
+>> and how/if data protection exists is wire domain.
+>>
+>> The way that data integrity is performed is by using a new kind of memory
+>> region: signature-enabled MR, and a new kind of work request: REG_SIG_MR.
+>> The REG_SIG_MR WR operates on the signature-enabled MR, and defines all the
+>> needed information for the signature handover (data buffer, protection buffer
+>> if needed and signature attributes). The result is an MR that can be used for
+>> data transfer as usual, that will also add/validate/strip/pass protection guards.
+>>
+>> When the data transfer is successfully completed, it does not mean that there are
+>> no integrity errors. The user must afterwards check the signature status of the
+>> handover operation using a new light-weight verb.
+>>
+>> This feature shall be used in storage upper layer protocols iSER/SRP implementing
+>> end-to-end data integrity T10-DIF. Following this patchset, ib_iser/ib_isert
+>> will use these verbs for T10-PI offload support.
+>>
+>> Patchset summary:
+>> - Intoduce verbs for create/destroy memory regions supporting signature.
+>> - Introduce IB core signature verbs API.
+>> - Implement mr create/destroy verbs in mlx5 driver.
+>> - Preperation patches for signature support in mlx5 driver.
+>> - Implement signature handover work request in mlx5 driver.
+>> - Implement signature error collection and handling in mlx5 driver.
+>>
+>> Changes from v4:
+>> - Update to for-next 3.14-rc2
+> Series applied to target-pending/rdma-dif, minus the missing upstream
+> check in patch #5.
 >
->> @@ -665,7 +671,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
->>   	int err;
->>   
->>   	uuari = &dev->mdev.priv.uuari;
->> -	if (init_attr->create_flags)
->> +	if (init_attr->create_flags & ~IB_QP_CREATE_SIGNATURE_EN)
->>   		return -EINVAL;
->>   
->>   	if (init_attr->qp_type == MLX5_IB_QPT_REG_UMR)
+> Thanks Sagi!
 >
-> FYI, this particular block doesn't apply against >= v3.14-rc2 code.
->
-> Dropping it for now, and applying the rest as #5.
->
-> Please fix if necessary.
-
-This block comes from Eli's commit that exists in Roland tree:
-
-commit 1a4c3a3dc5fdeef2a7bdf4ac7d81df58c3c0a51e
-Author: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Date:   Thu Feb 6 17:41:25 2014 +0200
-
-     IB/mlx5: Don't set "block multicast loopback" capability
-
-     Currently Connect-IB does not support blocking multicast loopback, so
-     don't set IB_DEVICE_BLOCK_MULTICAST_LOOPBACK in the device caps.
-
-     Reported by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-     Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-     Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-
-It's OK for you to drop this block since it reference this specific commit.
-
 > --nab
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+Thanks Nic.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
