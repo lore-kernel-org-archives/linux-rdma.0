@@ -1,93 +1,88 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v5 00/10] Introduce Signature feature
-Date: Mon, 24 Feb 2014 10:11:48 +0200
-Message-ID: <530AFEC4.6070209@dev.mellanox.co.il>
-References: <1393157953-24834-1-git-send-email-sagig@mellanox.com> <1393225299.22656.22.camel@haakon3.risingtidesystems.com>
+Subject: Re: [PATCH 05/11] IB/iser: Replace fastreg descriptor valid bool
+ with indicators container
+Date: Mon, 24 Feb 2014 10:27:56 +0200
+Message-ID: <530B028C.7060405@dev.mellanox.co.il>
+References: <1393157974-24931-1-git-send-email-sagig@mellanox.com>	 <1393157974-24931-6-git-send-email-sagig@mellanox.com>	 <1393224839.22656.19.camel@haakon3.risingtidesystems.com> <1393227000.22656.24.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393225299.22656.22.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <1393227000.22656.24.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/24/2014 9:01 AM, Nicholas A. Bellinger wrote:
-> On Sun, 2014-02-23 at 14:19 +0200, Sagi Grimberg wrote:
->> This patchset Introduces Verbs level support for signature handover feature.
->> Siganture is intended to implement end-to-end data integrity on a transactional
->> basis in a completely offloaded manner.
+On 2/24/2014 9:30 AM, Nicholas A. Bellinger wrote:
+> On Sun, 2014-02-23 at 22:53 -0800, Nicholas A. Bellinger wrote:
+>> On Sun, 2014-02-23 at 14:19 +0200, Sagi Grimberg wrote:
+>>> In T10-PI support we will have memory keys for protection
+>>> buffers and signature transactions. We prefer to compact
+>>> indicators rather than keeping multiple bools.
+>>>
+>>> This commit does not change any functionality.
+>>>
+>>> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> ---
+>>>   drivers/infiniband/ulp/iser/iscsi_iser.h  |    8 ++++++--
+>>>   drivers/infiniband/ulp/iser/iser_memory.c |    4 ++--
+>>>   drivers/infiniband/ulp/iser/iser_verbs.c  |    2 +-
+>>>   3 files changed, 9 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+>>> index 5ffa92f..5f7dbfd 100644
+>>> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
+>>> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+>>> @@ -280,13 +280,17 @@ struct iser_device {
+>>>   							    enum iser_data_dir cmd_dir);
+>>>   };
+>>>   
+>>> +enum iser_reg_indicator {
+>>> +	ISER_DATA_KEY_VALID = 1 << 0,
+>>> +};
+>>> +
+>>>   struct fast_reg_descriptor {
+>>>   	struct list_head		  list;
+>>>   	/* For fast registration - FRWR */
+>>>   	struct ib_mr			 *data_mr;
+>>>   	struct ib_fast_reg_page_list     *data_frpl;
+>>> -	/* Valid for fast registration flag */
+>>> -	bool				  valid;
+>>> +	/* registration indicators container */
+>>> +	u8				  reg_indicators;
+>>>   };
+>>>   
+>>>   struct iser_conn {
+>>> diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+>>> index 0e029fe..3edab18 100644
+>>> --- a/drivers/infiniband/ulp/iser/iser_memory.c
+>>> +++ b/drivers/infiniband/ulp/iser/iser_memory.c
+>>> @@ -479,7 +479,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+>>>   		return -EINVAL;
+>>>   	}
+>>>   
+>>> -	if (!desc->valid) {
+>>> +	if (!(desc->reg_indicators & ISER_DATA_KEY_VALID)) {
+>>>   		memset(&inv_wr, 0, sizeof(inv_wr));
+>>>   		inv_wr.wr_id = ISER_FRWR_LI_WRID;
+>>>   		inv_wr.opcode = IB_WR_LOCAL_INV;
+>> This block doesn't apply either..
 >>
->> There are several end-to-end data integrity methods used today in various
->> applications and/or upper layer protocols such as T10-DIF defined by SCSI
->> specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs support
->> only for T10-DIF. The proposed framework allows adding more signature methods
->> in the future.
->>
->> In T10-DIF, when a series of 512-byte data blocks are transferred, each block
->> is followed by an 8-byte guard (note that other protection intervals may be used
->> other then 512-bytes). The guard consists of CRC that protects the integrity of
->> the data in the block, and tag that protects against mis-directed IOs and a free
->> tag for application use.
->>
->> Data can be protected when transferred over the wire, but can also be protected
->> in the memory of the sender/receiver. This allows true end- to-end protection
->> against bits flipping either over the wire, through gateways, in memory, over PCI, etc.
->>
->> While T10-DIF clearly defines that over the wire protection guards are interleaved
->> into the data stream (each 512-Byte block followed by 8-byte guard), when in memory,
->> the protection guards may reside in a buffer separated from the data. Depending on the
->> application, it is usually easier to handle the data when it is contiguous.
->> In this case the data buffer will be of size 512xN and the protection buffer will
->> be of size 8xN (where N is the number of blocks in the transaction).
->>
->> There are 3 kinds of signature handover operation:
->> 1. Take unprotected data (from wire or memory) and ADD protection
->>     guards.
->> 2. Take protetected data (from wire or memory), validate the data
->>     integrity against the protection guards and STRIP the protection
->>     guards.
->> 3. Take protected data (from wire or memory), validate the data
->>     integrity against the protection guards and PASS the data with
->>     the guards as-is.
->>
->> This translates to defining to the HCA how/if data protection exists in memory domain,
->> and how/if data protection exists is wire domain.
->>
->> The way that data integrity is performed is by using a new kind of memory
->> region: signature-enabled MR, and a new kind of work request: REG_SIG_MR.
->> The REG_SIG_MR WR operates on the signature-enabled MR, and defines all the
->> needed information for the signature handover (data buffer, protection buffer
->> if needed and signature attributes). The result is an MR that can be used for
->> data transfer as usual, that will also add/validate/strip/pass protection guards.
->>
->> When the data transfer is successfully completed, it does not mean that there are
->> no integrity errors. The user must afterwards check the signature status of the
->> handover operation using a new light-weight verb.
->>
->> This feature shall be used in storage upper layer protocols iSER/SRP implementing
->> end-to-end data integrity T10-DIF. Following this patchset, ib_iser/ib_isert
->> will use these verbs for T10-PI offload support.
->>
->> Patchset summary:
->> - Intoduce verbs for create/destroy memory regions supporting signature.
->> - Introduce IB core signature verbs API.
->> - Implement mr create/destroy verbs in mlx5 driver.
->> - Preperation patches for signature support in mlx5 driver.
->> - Implement signature handover work request in mlx5 driver.
->> - Implement signature error collection and handling in mlx5 driver.
->>
->> Changes from v4:
->> - Update to for-next 3.14-rc2
-> Series applied to target-pending/rdma-dif, minus the missing upstream
-> check in patch #5.
+>> ISER_FRWR_LI_WRID does not appear to be defined anywhere in v3.14-rc2
+>> code..?  Is this patch missing a new definition..?
+> Er, missed the bit wrt:
 >
-> Thanks Sagi!
+>     IB/iser: Suppress completion for fast registration work requests
+>
+> Applied along with ib_iser + ib_isert patches to target-pending/rdma-dif
 >
 > --nab
 
-Thanks Nic.
+OK, I see you got the missing piece.
+This fixes all your conflicts right (I verified it before myself)?
+
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
