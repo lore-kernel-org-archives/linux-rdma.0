@@ -1,55 +1,41 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 3/3] IB/srp: Protect free_tx iu list from concurrent flows
-Date: Mon, 24 Feb 2014 16:30:18 +0200
-Message-ID: <1393252218-30638-4-git-send-email-sagig@mellanox.com>
-References: <1393252218-30638-1-git-send-email-sagig@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_subnet.c: Fix resource leak guid2mkey parser (guid
+ validation function)
+Date: Mon, 24 Feb 2014 10:05:44 -0500
+Message-ID: <530B5FC8.5060403@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393252218-30638-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bvanassche-HInyCGIudOg@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-srp_reconnect_rport() serializes calls of srp_rport_reconnect()
-with srp_queuecommand(), srp_abort(), srp_reset_device(),
-srp_reset_host() via rport->mutex and also blocks srp_queuecommand();
-however, it cannot block scsi error handler commands (stu, tur).
-This may introduces corruption in free_tx IUs list and IU itself
+Fix resource leak after guid validation ("subn_validate_g2m")
 
-Signed-off-by: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ opensm/osm_subnet.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b615135..656602b 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -859,6 +859,7 @@ static int srp_rport_reconnect(struct srp_rport *rport)
- {
- 	struct srp_target_port *target = rport->lld_data;
- 	int i, ret;
-+	unsigned long flags;
- 
- 	srp_disconnect_target(target);
- 	/*
-@@ -882,9 +883,11 @@ static int srp_rport_reconnect(struct srp_rport *rport)
- 		srp_finish_req(target, req, DID_RESET << 16);
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index db8c2a0..77e486a 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -966,6 +966,7 @@ static void subn_validate_g2m(osm_subn_t *p_subn)
+ 					"guid:0x%016" PRIx64 "\n",
+ 					p_item->guid);
+ 		}
++		free(p_item);
  	}
  
-+	spin_lock_irqsave(&target->lock, flags);
- 	INIT_LIST_HEAD(&target->free_tx);
- 	for (i = 0; i < target->queue_size; ++i)
- 		list_add(&target->tx_ring[i]->list, &target->free_tx);
-+	spin_unlock_irqrestore(&target->lock, flags);
- 
- 	if (ret == 0)
- 		ret = srp_connect_target(target);
+ Exit:
 -- 
-1.7.1
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
