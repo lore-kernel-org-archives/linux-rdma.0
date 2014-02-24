@@ -1,94 +1,73 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH 05/11] IB/iser: Replace fastreg descriptor valid bool
- with indicators container
-Date: Mon, 24 Feb 2014 11:52:51 -0800
-Message-ID: <1393271571.10384.3.camel@haakon3.risingtidesystems.com>
-References: <1393157974-24931-1-git-send-email-sagig@mellanox.com>
-	 <1393157974-24931-6-git-send-email-sagig@mellanox.com>
-	 <1393224839.22656.19.camel@haakon3.risingtidesystems.com>
-	 <1393227000.22656.24.camel@haakon3.risingtidesystems.com>
-	 <530B028C.7060405@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 3/6] IB/srp: Fail SCSI commands silently
+Date: Mon, 24 Feb 2014 20:58:46 +0100
+Message-ID: <530BA476.7040005@acm.org>
+References: <5305DE01.7030004@acm.org> <5305DE67.9070805@acm.org>	 <1392954937.26557.3.camel@haswell.thedillows.org>	 <53071B2E.2050302@acm.org> <1393047697.12377.11.camel@haswell.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <530B028C.7060405@dev.mellanox.co.il>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Sagi Grimberg <sagig@mellanox.com>, roland@kernel.org, oren@mellanox.com, martin.petersen@oracle.com, michaelc@cs.wisc.edu, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1393047697.12377.11.camel-a7a0dvSY7KqLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2014-02-24 at 10:27 +0200, Sagi Grimberg wrote:
-> On 2/24/2014 9:30 AM, Nicholas A. Bellinger wrote:
-> > On Sun, 2014-02-23 at 22:53 -0800, Nicholas A. Bellinger wrote:
-> >> On Sun, 2014-02-23 at 14:19 +0200, Sagi Grimberg wrote:
-> >>> In T10-PI support we will have memory keys for protection
-> >>> buffers and signature transactions. We prefer to compact
-> >>> indicators rather than keeping multiple bools.
-> >>>
-> >>> This commit does not change any functionality.
-> >>>
-> >>> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
-> >>> ---
-> >>>   drivers/infiniband/ulp/iser/iscsi_iser.h  |    8 ++++++--
-> >>>   drivers/infiniband/ulp/iser/iser_memory.c |    4 ++--
-> >>>   drivers/infiniband/ulp/iser/iser_verbs.c  |    2 +-
-> >>>   3 files changed, 9 insertions(+), 5 deletions(-)
-> >>>
-> >>> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-> >>> index 5ffa92f..5f7dbfd 100644
-> >>> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-> >>> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-> >>> @@ -280,13 +280,17 @@ struct iser_device {
-> >>>   							    enum iser_data_dir cmd_dir);
-> >>>   };
-> >>>   
-> >>> +enum iser_reg_indicator {
-> >>> +	ISER_DATA_KEY_VALID = 1 << 0,
-> >>> +};
-> >>> +
-> >>>   struct fast_reg_descriptor {
-> >>>   	struct list_head		  list;
-> >>>   	/* For fast registration - FRWR */
-> >>>   	struct ib_mr			 *data_mr;
-> >>>   	struct ib_fast_reg_page_list     *data_frpl;
-> >>> -	/* Valid for fast registration flag */
-> >>> -	bool				  valid;
-> >>> +	/* registration indicators container */
-> >>> +	u8				  reg_indicators;
-> >>>   };
-> >>>   
-> >>>   struct iser_conn {
-> >>> diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-> >>> index 0e029fe..3edab18 100644
-> >>> --- a/drivers/infiniband/ulp/iser/iser_memory.c
-> >>> +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-> >>> @@ -479,7 +479,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
-> >>>   		return -EINVAL;
-> >>>   	}
-> >>>   
-> >>> -	if (!desc->valid) {
-> >>> +	if (!(desc->reg_indicators & ISER_DATA_KEY_VALID)) {
-> >>>   		memset(&inv_wr, 0, sizeof(inv_wr));
-> >>>   		inv_wr.wr_id = ISER_FRWR_LI_WRID;
-> >>>   		inv_wr.opcode = IB_WR_LOCAL_INV;
-> >> This block doesn't apply either..
-> >>
-> >> ISER_FRWR_LI_WRID does not appear to be defined anywhere in v3.14-rc2
-> >> code..?  Is this patch missing a new definition..?
-> > Er, missed the bit wrt:
-> >
-> >     IB/iser: Suppress completion for fast registration work requests
-> >
-> > Applied along with ib_iser + ib_isert patches to target-pending/rdma-dif
-> >
-> > --nab
+On 02/22/14 06:41, David Dillow wrote:
+> I didn't suggest that -- I'm saying add a common functionality to turn
+> on/off the message printing for commands that failed due to a dead
+> transport. If it is useful for SRP initiators, it is probably useful for
+> SAS and iSCSI imitators as well.
 > 
-> OK, I see you got the missing piece.
-> This fixes all your conflicts right (I verified it before myself)?
+> At a quick look, it seems you need to add a new value to the
+> rq_flag_bits enum in include/linux/blk_types.h, __REQ_FAILED_TRANSPORT,
+> somewhere before __REQ_NR_BITS. And a #define in the style of those
+> following it. Use that flag instead of REQ_QUIET in the patch we are
+> discussing, and change the code in scsi_lib.c to check
 > 
+>   ((req->cmd_flags & REQ_FAILED_TRANSPORT) && $user_wants_this_knob) || !(req->cmd_flags & REQ_QUIET)
+> 
+> before calling scsi_print_sense(), with appropriate naming, of course.
+> This gives you a central place to control it, and allows for consistency
+> between initiators.
+> 
+> I agree it is much easier to just fix it in SRP, especially given the
+> glacial rate of change for the SCSI mid-layer, but I really think a
+> central control and driver-by-driver enablement would be the best
+> approach. YMMV.
 
-All good, thanks. 
+Hello Dave,
 
---nab
+That makes sense to me. Do you think the (untested) patch below could
+be a valid alternative to the above proposal ?
 
+---
+ drivers/scsi/scsi_lib.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+index 7bd7f0d..124ab53 100644
+--- a/drivers/scsi/scsi_lib.c
++++ b/drivers/scsi/scsi_lib.c
+@@ -857,7 +857,8 @@ void scsi_io_completion(struct scsi_cmnd *cmd, unsigned int good_bytes)
+ 		 */
+ 		if ((sshdr.asc == 0x0) && (sshdr.ascq == 0x1d))
+ 			;
+-		else if (!(req->cmd_flags & REQ_QUIET))
++		else if (cmd->device->sdev_state != SDEV_TRANSPORT_OFFLINE &&
++			 !(req->cmd_flags & REQ_QUIET))
+ 			scsi_print_sense("", cmd);
+ 		result = 0;
+ 		/* BLOCK_PC may have set error */
+-- 
+1.8.4.5
+
+
+Thanks,
+
+Bart.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
