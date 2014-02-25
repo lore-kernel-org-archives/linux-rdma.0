@@ -1,76 +1,47 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH for-next 00/17] ocrdma driver code sync-up
-Date: Tue, 25 Feb 2014 06:05:15 +0000
-Message-ID: <4053ccb9-8984-4d97-ac55-32b8e5435bd7@CMEXHTCAS1.ad.emulex.com>
-References: <efde0f4e-f596-4817-a356-e38b76f0c8b8@CMEXHTCAS2.ad.emulex.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: issues with the rdma-cm server side mapping of IP to GID
+Date: Tue, 25 Feb 2014 10:18:55 +0200
+Message-ID: <530C51EF.2000509@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <efde0f4e-f596-4817-a356-e38b76f0c8b8-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Hi Sean,
 
-Do you have plans to pull-in these set of patches in the next merge cycle?
+We came across a pretty deadly situation with rdma-cm based 
+client/server application where the client set their RC QP to send to 
+HCA X on the server node but the server app opened their QP on HCA Y. 
+The result was un-acked RC packets and RC session failure.
 
--Regards
- Devesh
+This happened because the mapping between destination IP to destination 
+GID as seen by the client was different from what's present in the 
+server IP stack at the time the connection request arrived -- the server 
+side rdma-cm IP --> GID mapping is established by the 
+cma_translate_addr() call in cma_new_conn_id() which is done on the 
+destination IP taken from the RDMA-CM header in the CM REQ.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
-Sent: Tuesday, February 04, 2014 11:57 AM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Selvin Xavier; Devesh Sharma
-Subject: [PATCH for-next 00/17] ocrdma driver code sync-up 
+Such situation can happen in the following cases:
 
-This patch series contains bug fixes ocrdma driver. Also added routines for retrieving controller information and statistics from the hardware.
+1. net.ipv4.conf.default.arp_ignore equals 0 (the default)
+2. server side bonding/teaming fail-over when the Gratitous ARP sent was 
+lost
+3. re-order of ibM net-devices mapping to HCA PCI devices after server 
+boot/crash
+4. etc more
 
-Please apply the patch series to for-next tree.
+Basically, when the rdma-cm observes difference between the destination 
+GID as present in the IB path within
+the CM REQ to the one resolved locally,  we should at least print a 
+warning. Perhaps, we should reject the connection request? (in that 
+case, I wasn't sure what would be the appropriate reject reason), any 
+more ideas?
 
-Devesh Sharma (9):
-  RDMA/ocrdma: Eq full catastrophe avoidance
-  RDMA/ocrdma: SQ and RQ doorbell offset clean up
-  RDMA/ocrdma: read ASIC_ID register to select asic_gen
-  RDMA/ocrdma: Allow DPP QP creation
-  RDMA/ocrdma: ABI versioning between ocrdma and be2net
-  be2net: adding abi version between be2net and ocrdma
-  RDMA/ocrdma: update version string
-  RDMA/ocrdma: increment abi version count
-  RDMA/ocrdma: code clean-up
-
-Selvin Xavier (8):
-  RDMA/ocrdma: Memory leak fix in ocrdma_dereg_mr
-  RDMA/ocrdma: Use non zero tag in SRQ posting
-  RDMA/ocrdma: Display proper value for max_mw
-  RDMA/ocrdma: Handle CQ overrun error
-  RDMA/ocrdma: Support non-embedded mailbox commands
-  RDMA/ocrdma: Query controller information
-  RDMA/ocrdma: Support for Skyhawk statistics
-  RDMA/ocrdma: Display fw version
-
- drivers/infiniband/hw/ocrdma/Makefile       |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma.h       |  110 ++++-
- drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |    7 +-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  291 ++++++++++---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |    3 +
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   65 +++-
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  261 +++++++++++-
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  623 +++++++++++++++++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_stats.h |   54 +++
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  163 ++++---
- drivers/net/ethernet/emulex/benet/be_roce.c |    6 +
- drivers/net/ethernet/emulex/benet/be_roce.h |    3 +
- 13 files changed, 1434 insertions(+), 156 deletions(-)  create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_stats.c
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_stats.h
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
