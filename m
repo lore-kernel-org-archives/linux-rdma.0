@@ -1,51 +1,81 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 3/6] IB/srp: Fail SCSI commands silently
-Date: Wed, 26 Feb 2014 14:16:42 +0100
-Message-ID: <530DE93A.2040400@acm.org>
-References: <5305DE01.7030004@acm.org> <5305DE67.9070805@acm.org>			 <1392954937.26557.3.camel@haswell.thedillows.org>			 <53071B2E.2050302@acm.org>		 <1393047697.12377.11.camel@haswell.thedillows.org>		 <530BA476.7040005@acm.org>	 <1393302995.9096.1.camel@haswell.thedillows.org> <530C7175.5060907@acm.org> <1393396377.12328.5.camel@haswell.thedillows.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393396377.12328.5.camel-a7a0dvSY7KqLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Subject: [PATCH net-next 00/31] Misc. fixes for cxgb4 and iw_cxgb4
+Date: Wed, 26 Feb 2014 20:36:39 +0530
+Message-ID: <1393427230-14532-1-git-send-email-hariprasad@chelsio.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: davem@davemloft.net, roland@purestorage.com, kumaras@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, hariprasad@chelsio.com, nirranjan@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/26/14 07:32, David Dillow wrote:
-> On Tue, 2014-02-25 at 11:33 +0100, Bart Van Assche wrote:
->> Do you really think it is essential to introduce a
->> new flag in the block layer for the purpose of suppressing transport
->> layer error messages and to add support for that flag in the block
->> core and in the SCSI mid-layer ? To me it seems a lot simpler to use
->> the existing REQ_QUIET flag.
-> 
-> Yes, I think you want different semantics -- one is the requestor saying
-> "don't complain about this if it fails", the other is the LLD saying
-> "this failed due to transport failure, you may or may not want to report
-> it, under user control". But it doesn't necessarily have to be a new
-> block flag -- it may be as simple as adding a stanza in
-> scsi_io_completion() that looks like
-> 
-> if (cmd->device->sdev_state != SDEV_TRANSPORT_OFFLINE &&
->     user_want_to_silence_transport_errors)
-> 	req->cmd_flags |= REQ_QUIET;
-> 
-> if ((sshdr.asc == 0x0) && (sshdr.ascq == 0x1d))
-> 	;
-> else if (!(req->cmd_flags & REQ_QUIET))
-> 	scsi_print_sense("", cmd);
+Hi All,
 
-But this approach doesn't suppress the error messages printed by the
-block layer due to a transport layer failure. Additionally, the block
-layer is neither aware of the SCSI transport layer state nor of the ASC
-and ASCQ codes in the sense data. Hence my preference to keep patch 3/6
-as it has been posted at the start of this thread.
+This patch series provides miscelleneous fixes for Chelsio T4/T5 adapters
+related to cxgb4 related to sge and mtu. And includes DB Drop avoidance
+and other misc. fixes on iw-cxgb4.
 
-Bart.
+The patches series is created against David Miller's 'net-next' tree.
+And includes patches on cxgb4 and iw_cxgb4 driver.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We would like to request this patch series to get merged via David Miller's
+'net-next' tree.
+
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
+
+Thanks
+
+Kumar Sanghvi (6):
+  cxgb4: Fix some small bugs in t4_sge_init_soft() when our Page Size
+    is 64KB
+  cxgb4: Add code to dump SGE registers when hitting idma hangs
+  cxgb4: Rectify emitting messages about SGE Ingress DMA channels being
+    potentially stuck
+  cxgb4: Updates for T5 SGE's Egress Congestion Threshold
+  cxgb4: use spinlock_irqsave/spinlock_irqrestore for db lock.
+  Revert "cxgb4: Don't assume LSO only uses SGL path in t4_eth_xmit()"
+
+Steve Wise (25):
+  iw_cxgb4: cap CQ size at T4_MAX_IQ_SIZE.
+  iw_cxgb4: Allow loopback connections.
+  iw_cxgb4: release neigh entry in error paths.
+  iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE as negative advice.
+  cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes.
+  iw_cxgb4: use the BAR2/WC path for kernel QPs and T5 devices.
+  iw_cxgb4: Fix incorrect BUG_ON conditions.
+  iw_cxgb4: Mind the sq_sig_all/sq_sig_type QP attributes.
+  iw_cxgb4: default peer2peer mode to 1.
+  iw_cxgb4: save the correct map length for fast_reg_page_lists.
+  iw_cxgb4: don't leak skb in c4iw_uld_rx_handler().
+  iw_cxgb4: fix possible memory leak in RX_PKT processing.
+  iw_cxgb4: ignore read reponse type 1 CQEs.
+  iw_cxgb4: connect_request_upcall fixes.
+  iw_cxgb4: adjust tcp snd/rcv window based on link speed.
+  iw_cxgb4: update snd_seq when sending MPA messages.
+  iw_cxgb4: lock around accept/reject downcalls.
+  iw_cxgb4: drop RX_DATA packets if the endpoint is gone.
+  iw_cxgb4: rx_data() needs to hold the ep mutex.
+  iw_cxgb4: endpoint timeout fixes.
+  iw_cxgb4: rmb() after reading valid gen bit.
+  iw_cxgb4: wc_wmb() needed after DB writes.
+  iw_cxgb4: SQ flush fix.
+  iw_cxgb4: minor fixes/cleanup.
+  iw_cxgb4: Max fastreg depth depends on DSGL support.
+
+ drivers/infiniband/hw/cxgb4/cm.c                |  270 ++++++++++++++++-------
+ drivers/infiniband/hw/cxgb4/cq.c                |   50 +++--
+ drivers/infiniband/hw/cxgb4/device.c            |  237 +++++++++++++-------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   17 +-
+ drivers/infiniband/hw/cxgb4/mem.c               |   18 ++-
+ drivers/infiniband/hw/cxgb4/provider.c          |   46 ++++-
+ drivers/infiniband/hw/cxgb4/qp.c                |  216 +++++++++---------
+ drivers/infiniband/hw/cxgb4/resource.c          |   10 +-
+ drivers/infiniband/hw/cxgb4/t4.h                |   78 ++++++-
+ drivers/infiniband/hw/cxgb4/user.h              |    5 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |   11 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |   84 ++++---
+ drivers/net/ethernet/chelsio/cxgb4/sge.c        |  161 +++++++++-----
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      |  106 +++++++++
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |    2 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |    9 +
+ 16 files changed, 924 insertions(+), 396 deletions(-)
