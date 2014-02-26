@@ -1,34 +1,36 @@
-From: Hariprasad Shenai <hariprasad@chelsio.com>
-Subject: [PATCH net-next 06/31] iw_cxgb4: cap CQ size at T4_MAX_IQ_SIZE.
-Date: Wed, 26 Feb 2014 20:36:45 +0530
-Message-ID: <1393427230-14532-7-git-send-email-hariprasad@chelsio.com>
-References: <1393427230-14532-1-git-send-email-hariprasad@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1393427230-14532-1-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: davem@davemloft.net, roland@purestorage.com, kumaras@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, hariprasad@chelsio.com, nirranjan@chelsio.com
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] saquery.c: In print_node_record, change
+ LID print format
+Date: Wed, 26 Feb 2014 10:25:06 -0500
+Message-ID: <530E0752.1000709@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise@opengridcomputing.com>
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+"Standard" for LID printing is unsigned rather than signed decimal
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 88de3aa..c0673ac 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -881,7 +881,7 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev, int entries,
- 	/*
- 	 * Make actual HW queue 2x to avoid cdix_inc overflows.
- 	 */
--	hwentries = entries * 2;
-+	hwentries = min(entries * 2, T4_MAX_IQ_SIZE);
- 
- 	/*
- 	 * Make HW queue at least 64 entries so GTS updates aren't too
--- 
-1.7.1
+diff --git a/src/saquery.c b/src/saquery.c
+index 837d8ae..0f39064 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -186,7 +186,7 @@ static void print_node_record(ib_node_record_t * node_record)
+ 	switch (node_print_desc) {
+ 	case LID_ONLY:
+ 	case UNIQUE_LID_ONLY:
+-		printf("%d\n", cl_ntoh16(node_record->lid));
++		printf("%u\n", cl_ntoh16(node_record->lid));
+ 		return;
+ 	case GUID_ONLY:
+ 		printf("0x%016" PRIx64 "\n", cl_ntoh64(p_ni->port_guid));
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
