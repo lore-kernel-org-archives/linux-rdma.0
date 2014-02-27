@@ -1,52 +1,49 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 3/6] IB/srp: Fail SCSI commands silently
-Date: Thu, 27 Feb 2014 14:44:26 +0100
-Message-ID: <530F413A.3020706@acm.org>
-References: <5305DE01.7030004@acm.org> <5305DE67.9070805@acm.org>				 <1392954937.26557.3.camel@haswell.thedillows.org>				 <53071B2E.2050302@acm.org>			 <1393047697.12377.11.camel@haswell.thedillows.org>			 <530BA476.7040005@acm.org>		 <1393302995.9096.1.camel@haswell.thedillows.org>	 <530C7175.5060907@acm.org>	 <1393396377.12328.5.camel@haswell.thedillows.org>	 <530DE93A.2040400@acm.org> <1393480118.16410.10.camel@haswell.thedillows.org>
+Subject: Re: [PATCH v1 3/3] IB/srp: Protect free_tx iu list from concurrent
+ flows
+Date: Thu, 27 Feb 2014 15:22:28 +0100
+Message-ID: <530F4A24.1000802@acm.org>
+References: <1393252218-30638-1-git-send-email-sagig@mellanox.com> <1393252218-30638-4-git-send-email-sagig@mellanox.com> <530B677A.1040508@acm.org> <530F26CE.5070404@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1393480118.16410.10.camel-a7a0dvSY7KqLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <530F26CE.5070404-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/27/14 06:48, David Dillow wrote:
-> I don't see where the block level is printing messages about the failed
-> requests -- but maybe I'm missing it. I see scsi_done() ->
-> blk_complete_request() -> blk_done_softirq() -> scsi_softirq_done() ->
-> scsi_finish_command() -> scsi_io_completion()
+On 02/27/14 12:51, Sagi Grimberg wrote:
+> Regarding in_scsi_eh, can you end-up still posting a send if you are in
+> an interrupt context?
+> it's just that we have a *very* rare case (not easy to reproduce) in
+> RH6.5 where we end-up posting on a just destroyed QP
+> (race right in between destroy_qp and assignment of new qp in
+> srp_create_target_ib).
+> We tested it with in_scsi_eh patch and it still happened.
 > 
-> I'm not seeing where the errored block requests would be printed before
-> scsi_io_completion(), which is where we were talking about setting the
-> REQ_QUIET flag above.
-> 
-> What messages are you talking about -- even better if you can point to
-> where they come from -- but mainly which ones; I'm happy to track them
-> down myself. It's been a while since I've done a deep dive on this code,
-> so my apologies if it should be obvious to me...
+> As I see it, SRP problems comes in a distinct period when rport is in
+> state BLOCKED.
+> On one hand, all request processing are allowed (not failing commands),
+> and on the other reconnect flow may be running in concurrently.
+> Will it be acceptable to take the rport_mutex in queue_command if rport
+> is in BLOCKED state?
 
-Hello Dave,
+Hello Sagi,
 
-I think the call chain is as follows: scsi_io_completion() ->
-scsi_end_request() -> blk_end_request() -> blk_end_bidi_request() ->
-blk_update_bidi_request() -> blk_update_request(). That last function
-prints an error message for failed requests if REQ_QUIET has not been
-set. So this means that it's possible to set the REQ_QUIET flag from the
-SCSI mid-layer before the block layer checks that flag.
-
-> I agree it is the most expedient approach to solve Sebastian's immediate
-> problem, but I'd rather the solution be generic to the SCSI mid-layer so
-> it will be useful for others beyond SRP.
-
-It would be great if this would be solved in a more generic way. But
-please keep in mind that this is not just Sebastian's problem - other
-users have reported this before.
+The issue you described is probably specific to the RHEL backport of the
+SRP initiator and does not affect the upstream SRP initiator. The
+function scsi_request_fn_active() in drivers/scsi/scsi_transport_srp.c
+is used by srp_reconnect_rport() to wait until ongoing
+srp_queuecommand() calls have finished after the SCSI host state has
+been changed into BLOCKED. That function relies on a member variable of
+struct request_queue that has been introduced upstream in kernel 3.7.0.
+In other words, that function needs attention when porting the SRP
+initiator to RHEL 6. A small delay is probably sufficient to wait until
+ongoing srp_queuecommand() calls have finished.
 
 Bart.
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
