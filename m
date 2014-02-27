@@ -1,46 +1,72 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH net-next 10/31] cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes.
-Date: Thu, 27 Feb 2014 11:11:49 -0600
-Message-ID: <005101cf33df$00749e40$015ddac0$@opengridcomputing.com>
-References: <1393427230-14532-1-git-send-email-hariprasad@chelsio.com>	<1393427230-14532-11-git-send-email-hariprasad@chelsio.com> <20140226.181216.1563503549713890339.davem@davemloft.net>
+Subject: dapltest and listening endpoints.
+Date: Thu, 27 Feb 2014 11:35:30 -0600
+Message-ID: <005301cf33e2$4f61aae0$ee2500a0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140226.181216.1563503549713890339.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'David Miller' <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> > -static int allow_db_fc_on_t5;
-> > -module_param(allow_db_fc_on_t5, int, 0644);
-> > -MODULE_PARM_DESC(allow_db_fc_on_t5,
-> > -		 "Allow DB Flow Control on T5 (default = 0)");
-> > -
-> > -static int allow_db_coalescing_on_t5;
-> > -module_param(allow_db_coalescing_on_t5, int, 0644);
-> > -MODULE_PARM_DESC(allow_db_coalescing_on_t5,
-> > -		 "Allow DB Coalescing on T5 (default = 0)");
-> 
-> Module parameters are a user facing interface.
-> 
-> You cannot just delete, or change the semantics of, the ones you feel
-> like doing so to.
+Hey Arlin, I'm trying to clean up the dapl/iwarp/cxgb4 issues, and I'm
+seeing something strange.  Each time I run a transaction test, I see
+that listening endpoints are leaked or left around by the dapltest
+server.
 
-I see your point on user facing interfaces.   These module params were
-added initially to allow tweaking the db drop recovery for T5 devices in
-the thought that we might need it.  It turns out T5 doesn't suffer from
-this issue.  These params default to 0 anyway, and I doubt anyone has
-changed them.  Disabling the hw db coalescing feature proved problematic
-and it turned out to even make the issue worse, so I removed it totally
-at the recommendation from the HW engineers, and put in place the new
-design which better rate controls things under heavy load.
+Q: after a completed test, should the dapltest server process have
+destroyed all of its listening endpoints except for the one used to
+handle the next test?   Or does it maybe keep them around and reuse
+them?
 
-Steve.
+Here's the server's listening endpoints after running dapltest -T S -D
+chelsio  -n 62000:
+
+[root@rac1 ~]# cat /sys/kernel/debug/iw_cxgb4/0000\:06\:00.4/eps
+ep ffff8800db0ab200 cm_id ffff880188a9e400 state 1 flags 0x0 stid 960
+backlog 1024 192.168.170.55:62000
+
+Here are the server's endpoints after running this from the client: 
+
+dapltest -T T -s rac1-priv -D chelsio -n 62000 -i 1000 -t 16 -w 8 -R BE
+server SR 8192 client SR 1892 4 server RR 8192 client RR 8192 client SR
+100
+
+[root@rac1 ~]# cat /sys/kernel/debug/iw_cxgb4/0000\:06\:00.4/eps
+ep ffff8800db0ab200 cm_id ffff880188a9e400 state 1 flags 0x0 stid 960
+backlog 1024 192.168.170.55:62000
+ep ffff8800c92c8600 cm_id ffff880189669200 state 1 flags 0x0 stid 961
+backlog 1024 192.168.170.55:62001
+ep ffff8800ca857000 cm_id ffff880189669400 state 1 flags 0x0 stid 962
+backlog 1024 192.168.170.55:62009
+ep ffff8800ca2eb200 cm_id ffff8800c8335a00 state 1 flags 0x0 stid 963
+backlog 1024 192.168.170.55:62033
+ep ffff8800c8456200 cm_id ffff8800c92c8400 state 1 flags 0x0 stid 964
+backlog 1024 192.168.170.55:62017
+ep ffff8800c9c8ae00 cm_id ffff8800c8456000 state 1 flags 0x0 stid 966
+backlog 1024 192.168.170.55:62041
+ep ffff8800ca631c00 cm_id ffff8800c85ebe00 state 1 flags 0x0 stid 967
+backlog 1024 192.168.170.55:62025
+ep ffff8800cae09c00 cm_id ffff8800c9d20e00 state 1 flags 0x0 stid 968
+backlog 1024 192.168.170.55:62081
+ep ffff8800ca133a00 cm_id ffff8800c9c8ac00 state 1 flags 0x0 stid 970
+backlog 1024 192.168.170.55:62057
+ep ffff8800c9e01800 cm_id ffff8800ca631a00 state 1 flags 0x0 stid 972
+backlog 1024 192.168.170.55:62073
+ep ffff880189e39600 cm_id ffff8800c98bc800 state 1 flags 0x0 stid 975
+backlog 1024 192.168.170.55:62089
+ep ffff8801892ef000 cm_id ffff8800cad45200 state 1 flags 0x0 stid 977
+backlog 1024 192.168.170.55:62065
+ep ffff880189706200 cm_id ffff880189e39400 state 1 flags 0x0 stid 979
+backlog 1024 192.168.170.55:62121
+ep ffff88018a172c00 cm_id ffff88018a572e00 state 1 flags 0x0 stid 980
+backlog 1024 192.168.170.55:62105
+ep ffff88018aa2ec00 cm_id ffff88018a974e00 state 1 flags 0x0 stid 982
+backlog 1024 192.168.170.55:62113
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
