@@ -1,107 +1,51 @@
-From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] ibsim: allocate mft according to number of switch ports
-Date: Thu, 27 Feb 2014 14:48:36 +0200
-Message-ID: <1393505316-31115-1-git-send-email-danielk@mellanox.com>
-References: <danielk@mellanox.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 3/6] IB/srp: Fail SCSI commands silently
+Date: Thu, 27 Feb 2014 14:44:26 +0100
+Message-ID: <530F413A.3020706@acm.org>
+References: <5305DE01.7030004@acm.org> <5305DE67.9070805@acm.org>				 <1392954937.26557.3.camel@haswell.thedillows.org>				 <53071B2E.2050302@acm.org>			 <1393047697.12377.11.camel@haswell.thedillows.org>			 <530BA476.7040005@acm.org>		 <1393302995.9096.1.camel@haswell.thedillows.org>	 <530C7175.5060907@acm.org>	 <1393396377.12328.5.camel@haswell.thedillows.org>	 <530DE93A.2040400@acm.org> <1393480118.16410.10.camel@haswell.thedillows.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1393480118.16410.10.camel-a7a0dvSY7KqLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+On 02/27/14 06:48, David Dillow wrote:
+> I don't see where the block level is printing messages about the failed
+> requests -- but maybe I'm missing it. I see scsi_done() ->
+> blk_complete_request() -> blk_done_softirq() -> scsi_softirq_done() ->
+> scsi_finish_command() -> scsi_io_completion()
+> 
+> I'm not seeing where the errored block requests would be printed before
+> scsi_io_completion(), which is where we were talking about setting the
+> REQ_QUIET flag above.
+> 
+> What messages are you talking about -- even better if you can point to
+> where they come from -- but mainly which ones; I'm happy to track them
+> down myself. It's been a while since I've done a deep dive on this code,
+> so my apologies if it should be obvious to me...
 
-calculate number of port masks according to number of switch ports
-and allocate MFT accordingly
+Hello Dave,
 
-Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- ibsim/sim.h     |    5 ++---
- ibsim/sim_mad.c |    5 +++--
- ibsim/sim_net.c |    5 +++--
- 3 files changed, 8 insertions(+), 7 deletions(-)
+I think the call chain is as follows: scsi_io_completion() ->
+scsi_end_request() -> blk_end_request() -> blk_end_bidi_request() ->
+blk_update_bidi_request() -> blk_update_request(). That last function
+prints an error message for failed requests if REQ_QUIET has not been
+set. So this means that it's possible to set the REQ_QUIET flag from the
+SCSI mid-layer before the block layer checks that flag.
 
-diff --git a/ibsim/sim.h b/ibsim/sim.h
-index daeecec..6b33a2c 100644
---- a/ibsim/sim.h
-+++ b/ibsim/sim.h
-@@ -45,9 +45,7 @@
- #define MAXLINEARCAP	(30*1024)
- #define MAXMCASTCAP	1024
- #define LASTBLOCK32	(MAXMCASTCAP/32-1)
--// NUMBEROFPORTMASK means that 32port switches could only be build
--#define	NUMBEROFPORTMASK 2
--#define LASTPORTMASK	(NUMBEROFPORTMASK-1)
-+#define MCASTMASKSIZE    16
- // linkwidth == 4X - must be one width only 1,2 or 8
- #define LINKWIDTH_1x        1
- #define LINKWIDTH_4x        2
-@@ -318,6 +316,7 @@ struct Switch {
- 	int linearFDBtop;
- 	int portchange;
- 	int lifetime;
-+	int numportmask;
- 	uint8_t switchinfo[64];
- 	Node *node;
- 	uint8_t *fdb;
-diff --git a/ibsim/sim_mad.c b/ibsim/sim_mad.c
-index 223d507..d851aa8 100644
---- a/ibsim/sim_mad.c
-+++ b/ibsim/sim_mad.c
-@@ -532,18 +532,19 @@ static int do_multicastforwtbl(Port * port, unsigned op, uint32_t mod,
- 	int blockposition;
- 
- 	Switch *sw = port->node->sw;
-+	int lastportmask = sw->numportmask + 1;
- 
- 	if (!sw)		// not a Switch?
- 		return ERR_ATTR_UNSUPPORTED;
- 
- 	VERB("requested : Block32 %d PortMask %d", numBlock32, numPortMsk);
--	if (numBlock32 > LASTBLOCK32 || numPortMsk > LASTPORTMASK) {
-+	if (numBlock32 > LASTBLOCK32 || numPortMsk > lastportmask) {
- 		int8_t zeroblock[64] = { 0 };
- 		mad_set_array(data, 0, IB_MULTICAST_FORW_TBL_F, zeroblock);
- 		return 0;
- 	}
- 
--	blockposition = (numBlock32 * NUMBEROFPORTMASK + numPortMsk) * 64;
-+	blockposition = (numBlock32 * sw->numportmask + numPortMsk) * 64;
- 	if (op == IB_MAD_METHOD_SET)
- 		mad_get_array(data, 0, IB_MULTICAST_FORW_TBL_F,
- 			      sw->mfdb + blockposition);
-diff --git a/ibsim/sim_net.c b/ibsim/sim_net.c
-index 10820ba..fe4687a 100644
---- a/ibsim/sim_net.c
-+++ b/ibsim/sim_net.c
-@@ -245,6 +245,7 @@ static Switch *new_switch(Node * nd, int set_esp0)
- 	sw->node = nd;
- 	sw->linearcap = maxlinearcap;	// assume identical val for all switches
- 	sw->multicastcap = maxmcastcap;	// assume identical val for all switches
-+	sw->numportmask = (nd->numports + MCASTMASKSIZE) / MCASTMASKSIZE;
- 	memcpy(sw->switchinfo, switchinfo, sizeof(sw->switchinfo));
- 	mad_set_field(sw->switchinfo, 0, IB_SW_LINEAR_FDB_CAP_F, sw->linearcap);
- 	mad_set_field(sw->switchinfo, 0, IB_SW_MCAST_FDB_CAP_F,
-@@ -253,13 +254,13 @@ static Switch *new_switch(Node * nd, int set_esp0)
- 		mad_set_field(sw->switchinfo, 0, IB_SW_ENHANCED_PORT0_F,
- 			      set_esp0 > 0);
- 	sw->fdb = malloc(maxlinearcap*sizeof(sw->fdb[0]));
--	sw->mfdb = malloc(maxmcastcap*NUMBEROFPORTMASK*sizeof(uint16_t));
-+	sw->mfdb = malloc(maxmcastcap * sw->numportmask * sizeof(uint16_t));
- 	if (!sw->fdb || !sw->mfdb) {
- 		IBPANIC("new_switch: no mem: %m");
- 		return NULL;
- 	}
- 	memset(sw->fdb, 0xff, maxlinearcap*sizeof(sw->fdb[0]));
--	memset(sw->mfdb, 0, maxmcastcap*NUMBEROFPORTMASK*sizeof(uint16_t));
-+	memset(sw->mfdb, 0, maxmcastcap * sw->numportmask * sizeof(uint16_t));
- 
- 	return sw;
- }
--- 
-1.7.1
+> I agree it is the most expedient approach to solve Sebastian's immediate
+> problem, but I'd rather the solution be generic to the SCSI mid-layer so
+> it will be useful for others beyond SRP.
+
+It would be great if this would be solved in a more generic way. But
+please keep in mind that this is not just Sebastian's problem - other
+users have reported this before.
+
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
