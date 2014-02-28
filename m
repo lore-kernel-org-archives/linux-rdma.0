@@ -1,258 +1,127 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH RFC] dapltest: Add final send/recv "sync" for transaction	tests.
-Date: Fri, 28 Feb 2014 14:25:40 -0600
-Message-ID: <00b501cf34c3$3f50a2f0$bdf1e8d0$@opengridcomputing.com>
-References: <20140228171428.30473.82786.stgit@build.ogc.int>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Proposal for simplifying NFS/RDMA client memory registration
+Date: Fri, 28 Feb 2014 13:41:27 -0800
+Message-ID: <53110287.9000400@talpey.com>
+References: <01C4496A-F074-4F72-9DF0-6076C05E8A1F@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140228171428.30473.82786.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <01C4496A-F074-4F72-9DF0-6076C05E8A1F-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Arlin,
+On 2/26/2014 8:44 AM, Chuck Lever wrote:
+> Hi-
+>
+> Shirley Ma and I are reviving work on the NFS/RDMA client code base i=
+n the Linux kernel.  So far we=92ve built and run functional tests to d=
+etermine what is working and what is broken.
+>
+> One complication is the number of memory registration modes supported=
+ by the RPC/RDMA transport: there are seven.  These were added over the=
+ years to support particular HCAs or as proof-of-concept.  The transpor=
+t chooses a registration mode at mount time based on what the link HCA =
+supports.
+>
+> Not all HCAs support all memory registration modes, so our test matri=
+x is quite large.  I=92d like to propose removing support for one or mo=
+re of these memory registration modes in the name of making it easier t=
+o change this code and test it without breaking something that we can=92=
+t test.
+>
+> BOUNCEBUFFERS - All HCAs support this mode.  Does not use RDMA READ a=
+nd WRITE, and the client end copies data into place.  RDMA is offloaded=
+, by data copy is not.  I=92m told it was never intended for production=
+ use.
+>
+> REGISTER - Safe but relatively slow.  Uses reg_phys_mr verb which is =
+not supported in mlx4/mlx5, but all other HCAs/providers can use this m=
+ode.
+>
+> MEM_WINDOWS - Uses bind_mr verb.  Safe, but supports only a narrow ra=
+nge of HCAs.
+>
+> MEM_WINDOWS_ASYNC - Not always safe, and only a narrow range of HCAs =
+is supported.
+>
+> MTHCA_FMR - Uses alloc_fmr verb.  Safe, reasonably fast, but only a n=
+arrow range of older HCAs is supported.
 
-This fix isn't quite correct:  If one side finishes its transaction IO, then posts the final sync SEND, but the peer hasn't finished with its transaction IO, then the peer could post a READ request, for example, and then wait for the READ completion.  However the READ response would get sent behind the local side's final sync SEND and wouldn't be placed because the peer's final sync RECV hasn't been posted yet.  Sigh.  I'll need to think more on this, but I'd like feedback if anybody has opinions/questions/comments...
+The MTHCA FMR is not completely safe - it protects only on page
+boundaries, therefore the neighboring bytes are vulnerable to
+silent corruption (reads) and exposure (write).
 
-Steve.
+It is quite correct that they are supported on only a specific
+set of legacy Mellanox HCA. You should consider removing the
+code that looked for this PCI ID and attempted to alter the
+device's wire MTU, to overcome another of its limitations.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> Sent: Friday, February 28, 2014 11:14 AM
-> To: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH RFC] dapltest: Add final send/recv "sync" for transaction
-> tests.
-> 
-> The transaction tests need both sides to send a sync message after running
-> the test.  This ensures that all remote operations are complete before
-> dapltest deregeisters memory and disconnects the endpoints.
-> 
-> Without this logic, we see async errors on iwarp devices because a read
-> or write arrives after the rmr has been destroyed.  I believe this is
-> more likely to happen with iWARP than IB because iWARP completions only
-> indicate the local buffer can be reused.  It doesn't imply that the
-> message has even arrived at the peer, let alone been placed in memory.
-> 
-> I've tested this on cxgb4 only so far.
-> 
-> Similar logic is probably needed for the performance tests as well.
-> 
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
-> 
->  test/dapltest/test/dapl_transaction_stats.c |   10 ++
->  test/dapltest/test/dapl_transaction_test.c  |  139
-> +++++++++++++++++++++++++++
->  2 files changed, 149 insertions(+), 0 deletions(-)
-> 
-> diff --git a/test/dapltest/test/dapl_transaction_stats.c
-> b/test/dapltest/test/dapl_transaction_stats.c
-> index f9d6377..6422ee3 100644
-> --- a/test/dapltest/test/dapl_transaction_stats.c
-> +++ b/test/dapltest/test/dapl_transaction_stats.c
-> @@ -59,6 +59,16 @@
-> DT_transaction_stats_set_ready(DT_Tdep_Print_Head * phead,
->  	DT_Mdep_Unlock(&transaction_stats->lock);
->  }
-> 
-> +void
-> +DT_transaction_stats_reset_wait_count(DT_Tdep_Print_Head * phead,
-> +			       Transaction_Stats_t * transaction_stats,
-> +			       unsigned int num)
-> +{
-> +	DT_Mdep_Lock(&transaction_stats->lock);
-> +	transaction_stats->wait_count = num;
-> +	DT_Mdep_Unlock(&transaction_stats->lock);
-> +}
-> +
->  bool
->  DT_transaction_stats_wait_for_all(DT_Tdep_Print_Head * phead,
->  				  Transaction_Stats_t * transaction_stats)
-> diff --git a/test/dapltest/test/dapl_transaction_test.c
-> b/test/dapltest/test/dapl_transaction_test.c
-> index 779ea86..b94a2cc 100644
-> --- a/test/dapltest/test/dapl_transaction_test.c
-> +++ b/test/dapltest/test/dapl_transaction_test.c
-> @@ -1799,6 +1799,145 @@ DT_Transaction_Run(DT_Tdep_Print_Head *
-> phead, Transaction_Test_t * test_ptr)
->  		}		/* end loop for each op */
->  	}			/* end loop for iteration */
-> 
-> +	/*
-> +	 * Final sync up to ensure all previous remote operations have
-> +	 * finished.
-> +	 *
-> +	 * Without a final sync exchange, we see async errors on iwarp
-> +	 * devices because a read or write arrives after the rmr has
-> +	 * been destroyed.  I believe this is more likely to happen with
-> +	 * iWARP than IB because iWARP completions only indicate the
-> +	 * local buffer can be reused.  It doesn't imply that the
-> +	 * message has even arrived at the peer, let alone been placed in
-> memory.
-> +	 */
-> +	if (test_ptr->is_server) {
-> +		/*
-> +		 * Server
-> +		 */
-> +		DT_Tdep_PT_Debug(1,
-> +				 (phead,
-> +				  "Test[" F64x "]: Send Final Sync to
-> Client\n",
-> +				  test_ptr->base_port));
-> +		for (i = 0; i < test_ptr->cmd->eps_per_thread; i++) {
-> +			if (!DT_post_recv_buffer(phead,
-> +						 test_ptr-
-> >ep_context[i].ep_handle,
-> +						 test_ptr-
-> >ep_context[i].bp,
-> +						 SYNC_RECV_BUFFER_ID,
-> SYNC_BUFF_SIZE)) {
-> +				goto bail;
-> +			}
-> +			if (!DT_post_send_buffer(phead,
-> +						 test_ptr->ep_context[i].
-> +						 ep_handle,
-> +						 test_ptr-
-> >ep_context[i].bp,
-> +						 SYNC_SEND_BUFFER_ID,
-> +						 SYNC_BUFF_SIZE)) {
-> +				DT_Tdep_PT_Debug(1,
-> +						 (phead,
-> +						  "Test[" F64x
-> +						  "]: Server final sync send
-> error\n",
-> +						  test_ptr->base_port));
-> +				goto bail;
-> +			}
-> +		}
-> +		for (i = 0; i < test_ptr->cmd->eps_per_thread; i++) {
-> +			DAT_DTO_COMPLETION_EVENT_DATA dto_stat;
-> +
-> +			if (!DT_dto_event_wait(phead,
-> +					       test_ptr->ep_context[i].
-> +					       reqt_evd_hdl, &dto_stat)) {
-> +				DT_Tdep_PT_Debug(1,
-> +						 (phead,
-> +						  "Test[" F64x
-> +						  "]: Server final sync send
-> error\n",
-> +						  test_ptr->base_port));
-> +
-> +				goto bail;
-> +			}
-> +		}
-> +
-> +		DT_Tdep_PT_Debug(1,
-> +				 (phead,
-> +				  "Test[" F64x "]: Wait for Final Sync
-> Message\n",
-> +				  test_ptr->base_port));
-> +		for (i = 0; i < test_ptr->cmd->eps_per_thread; i++) {
-> +			DAT_DTO_COMPLETION_EVENT_DATA dto_stat;
-> +
-> +			if (!DT_dto_event_wait(phead,
-> +					       test_ptr->ep_context[i].
-> +					       recv_evd_hdl, &dto_stat)) {
-> +				DT_Tdep_PT_Debug(1,
-> +						 (phead,
-> +						  "Test[" F64x
-> +						  "]: Server final sync recv
-> error\n",
-> +						  test_ptr->base_port));
-> +				goto bail;
-> +			}
-> +		}
-> +	} else {
-> +
-> +		/*
-> +		 * Client
-> +		 */
-> +		DT_Tdep_PT_Debug(1,
-> +				 (phead,
-> +				  "Test[" F64x "]: Wait for Final Sync
-> Message\n",
-> +				  test_ptr->base_port));
-> +		DT_transaction_stats_reset_wait_count(phead,
-> +					       &test_ptr->pt_ptr->
-> +					       Client_Stats,
-> +					       test_ptr->cmd-
-> >eps_per_thread);
-> +		for (i = 0; i < test_ptr->cmd->eps_per_thread; i++) {
-> +			DAT_DTO_COMPLETION_EVENT_DATA dto_stat;
-> +
-> +			if (!DT_post_recv_buffer(phead,
-> +						 test_ptr-
-> >ep_context[i].ep_handle,
-> +						 test_ptr-
-> >ep_context[i].bp,
-> +						 SYNC_RECV_BUFFER_ID,
-> SYNC_BUFF_SIZE)) {
-> +				goto bail;
-> +			}
-> +			if (!DT_dto_event_wait(phead,
-> +					       test_ptr->ep_context[i].
-> +					       recv_evd_hdl, &dto_stat)) {
-> +				DT_Tdep_PT_Debug(1,
-> +						 (phead,
-> +						  "Test[" F64x
-> +						  "]: Client final sync recv
-> error\n",
-> +						  test_ptr->base_port));
-> +				goto bail;
-> +			}
-> +			DT_transaction_stats_set_ready(phead,
-> +						       &test_ptr->pt_ptr->
-> +						       Client_Stats);
-> +		}
-> +		DT_Tdep_PT_Debug(1,
-> +				 (phead, "Test[" F64x "]: Send Final Sync
-> Msg\n",
-> +				  test_ptr->base_port));
-> +		for (i = 0; i < test_ptr->cmd->eps_per_thread; i++) {
-> +			if (!DT_post_send_buffer(phead,
-> +						 test_ptr->ep_context[i].
-> +						 ep_handle,
-> +						 test_ptr-
-> >ep_context[i].bp,
-> +						 SYNC_SEND_BUFFER_ID,
-> +						 SYNC_BUFF_SIZE)) {
-> +				DT_Tdep_PT_Debug(1,
-> +						 (phead,
-> +						  "Test[" F64x
-> +						  "]: Client sync send
-> error\n",
-> +						  test_ptr->base_port));
-> +				goto bail;
-> +			}
-> +		}
-> +		for (i = 0; i < test_ptr->cmd->eps_per_thread; i++) {
-> +			DAT_DTO_COMPLETION_EVENT_DATA dto_stat;
-> +
-> +			if (!DT_dto_event_wait(phead,
-> +					       test_ptr->ep_context[i].
-> +					       reqt_evd_hdl, &dto_stat)) {
-> +				goto bail;
-> +			}
-> +		}
-> +	}
-> +
->  	/* end time and print stats */
->  	test_ptr->stats.end_time = DT_Mdep_GetTime();
->  	if (!test_ptr->pt_ptr->local_is_server) {
-> 
+>
+> FRMR - Safe, generally fast.  Currently the preferred registration mo=
+de, but is not supported with some older HCAs/providers.
+
+This should be, by far, the preferred mode. Also, if I recall
+correctly, the server depends on this mode being available/supported.
+However, it may not be supported by Soft iWARP. Physical addressing
+is used.
+
+>
+> ALLPHYSICAL - Usually fast, but not safe as it exposes client memory.=
+  All HCAs support this mode.
+
+Not safe is an understatement. It exposes all of client physical
+memory to the peer, for both read and write. A simple pointer error
+on the server will silently corrupt the client. This mode was
+intended only for testing, and in experimental deployments.
+
+
+Tom.
+
+>
+>
+> I propose removing BOUNCEBUFFERS since it is not intended for product=
+ion use.
+>
+> I propose removing ALLPHYSICAL and MEM_WINDOWS_ASYNC as they are not =
+generally safe.  RFC 5666 suggests that unsafe memory registration mode=
+s be avoided.
+>
+> I propose removing MEM_WINDOWS as it adds complexity without adding a=
+ lot of HCA compatibility.
+>
+> I propose removing MTHCA_FMR as I=92m told it is hard to obtain HCAs =
+we would need for testing this registration mode, and these are all old=
+ adapters anyway.
+>
+> This leaves NFS/RDMA client support for REGISTER and FRMR, which shou=
+ld cover all existing HCAs, and it is easy to test both of these memory=
+ registration modes with just one or two well-picked HCAs.
+>
+> We would contribute these changes to the client code base.  The NFS/R=
+DMA server code could use similar attention, but we are not volunteerin=
+g to change it at this time.
+>
+> Thoughts/comments?
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
+in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
