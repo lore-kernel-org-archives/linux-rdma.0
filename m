@@ -1,48 +1,93 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: Need help with strange mlx4_core error
-Date: Sun, 2 Mar 2014 00:06:12 +0400
-Message-ID: <CACaajQt_-pxQyLJoDTMTSJ_nnkNCJ5N0UQQZm1=32u4gA_B7KA@mail.gmail.com>
-References: <CACaajQtQGZSepA8VLK1K20OspNa_WTv1DQ8SWYV7O9y6QV-Tgg@mail.gmail.com>
- <CAJZOPZJmdGutUQZ4icBrKRq-YPwD8TqtoLH9SgqNVx_CDjL0TQ@mail.gmail.com>
- <CACaajQtHzF9g2kp9MrAaQsvKUQdr10YVa+Np1danmAcR_rvLqg@mail.gmail.com>
- <CAJZOPZKydkaoru0XyT1nHQ5t9BGJQxbq1r4RcGZ0Gq9E9VGs=A@mail.gmail.com>
- <CACaajQs9ANqLX7m=TcR2wT6wkiS-M5uVvAnQrvGWPmukZnLqcg@mail.gmail.com>
- <CACaajQuRzBy3oV+-3+NjyE9muGKPN3YQUd5wnkkcoak0GSP=uw@mail.gmail.com>
- <CACaajQtKvihFu6X-+9N3VvVKK4Jw3eADBOENhuM+-4s8s=PsUQ@mail.gmail.com>
- <CACaajQuQ+mbwhp4jxUt+9r4Rq=14oBUqC-=xx6J3EGpAfecG-Q@mail.gmail.com>
- <5311D799.2090607@acm.org> <CACaajQuPrAFNAR8d4NphuVRH+pVGC-Yv=afS1cbkrg=48M8ROg@mail.gmail.com>
- <CACaajQuXn5+-KQh_XtB3bb-1q9C+5ezAEh26C1TYT=5ncYJvCw@mail.gmail.com> <531217AD.3030807@acm.org>
+From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: Proposal for simplifying NFS/RDMA client memory registration
+Date: Sat, 01 Mar 2014 15:29:09 -0600
+Message-ID: <53125125.9010709@opengridcomputing.com>
+References: <01C4496A-F074-4F72-9DF0-6076C05E8A1F@oracle.com> <53110287.9000400@talpey.com> <CABgxfbHwo13ma=-Xn+S36WwD8LVNLdw6UHztFe8EkCA_=NBenw@mail.gmail.com> <CABgxfbHg0B02c2zpYdCB4pUZZhhA4aKRuyh4Kx=NE1yAisFLLQ@mail.gmail.com> <B83B4DA6-E9CF-4DF3-9227-5EF9B4D25F4D@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <531217AD.3030807-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <B83B4DA6-E9CF-4DF3-9227-5EF9B4D25F4D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2014-03-01 21:23 GMT+04:00 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
-> I have seen this issue myself with the 3.0 mlx4_en driver but do not see
-> it anymore with the latest version of this driver. I do not know which
-> patch fixes this issue. But I have been wondering whether it could have
-> been the following patch:
->
-> commit 0cc5c8bf11852dec3225fda2f53a599243095d23
->
-> net/mlx4_en: Fix a race between napi poll function and RX ring cleanup
->
-> The RX rings were cleaned while there was still possible RX traffic
-> completion handling. Change the sequence of events so that the port is
-> closed and the QPs are being stopped before RX cleanup.
+Hi Chuck,
 
+I have a patch for the server side that simplifies the memory registrat=
+ion=20
+and fixes a bug where the server ignores the FRMR hardware limits. This=
+=20
+bug is actually upstream now.
 
-Thanks! I'm try it.
+I have been sitting on it because it's a big patch and will require a l=
+ot=20
+of testing/review to get it upstream. This is Just an FYI in case there=
+ is=20
+someone on your team who has the bandwidth to take this work and finish=
+ it up.
 
--- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+Thanks,
+Tom
+
+On 2/28/14 8:59 PM, Chuck Lever wrote:
+> Hi Wendy-
+>
+> On Feb 28, 2014, at 5:26 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
+ote:
+>
+>> On Fri, Feb 28, 2014 at 2:20 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8@public.gmane.org=
+m> wrote:
+>>> ni i...On Fri, Feb 28, 2014 at 1:41 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>=
+ wrote:
+>>>> On 2/26/2014 8:44 AM, Chuck Lever wrote:
+>>>>> Hi-
+>>>>>
+>>>>> Shirley Ma and I are reviving work on the NFS/RDMA client code ba=
+se in
+>>>>> the Linux kernel.  So far we've built and run functional tests to=
+ determine
+>>>>> what is working and what is broken.
+>>>>>
+>>>>> [snip]
+>>>
+>>>>> ALLPHYSICAL - Usually fast, but not safe as it exposes client mem=
+ory.
+>>>>> All HCAs support this mode.
+>>>>
+>>>> Not safe is an understatement. It exposes all of client physical
+>>>> memory to the peer, for both read and write. A simple pointer erro=
+r
+>>>> on the server will silently corrupt the client. This mode was
+>>>> intended only for testing, and in experimental deployments.
+>> (sorry, resend .. previous reply bounced back due to gmail html form=
+at)
+>>
+>> Please keep "ALLPHYSICAL" for now  - as our embedded system needs it=
+=2E
+> This is just the client side.  Confirming that you still need support=
+ for the ALLPHYSICAL memory registration mode in the NFS/RDMA client.
+>
+> Do you have plans to move to a mode that is less risky?  If not, can =
+we depend on you to perform regular testing with ALLPHYSICAL as we upda=
+te the client code?  Do you have any bug fixes you=92d like to merge up=
+stream?
+>
+> --
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
