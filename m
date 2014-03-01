@@ -1,378 +1,86 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] IB/qib: Modify software pma counters to use percpu
- variables
-Date: Sat, 01 Mar 2014 10:29:48 -0500
-Message-ID: <20140301152947.23347.32757.stgit@phlsvslse11.ph.intel.com>
-References: <20140301152917.23347.64976.stgit@phlsvslse11.ph.intel.com>
+From: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Proposal for simplifying NFS/RDMA client memory registration
+Date: Sat, 1 Mar 2014 11:00:22 -0500
+Message-ID: <20140301110022.417eb088@tlielax.poochiereds.net>
+References: <01C4496A-F074-4F72-9DF0-6076C05E8A1F@oracle.com>
+	<53110287.9000400@talpey.com>
+	<CABgxfbHwo13ma=-Xn+S36WwD8LVNLdw6UHztFe8EkCA_=NBenw@mail.gmail.com>
+	<CABgxfbHg0B02c2zpYdCB4pUZZhhA4aKRuyh4Kx=NE1yAisFLLQ@mail.gmail.com>
+	<B83B4DA6-E9CF-4DF3-9227-5EF9B4D25F4D@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140301152917.23347.64976.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <B83B4DA6-E9CF-4DF3-9227-5EF9B4D25F4D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The counters, unicast_xmit, unicast_rcv, multicast_xmit, multicast_rcv
-are now maintained as percpu variables.
+On Fri, 28 Feb 2014 21:59:00 -0500
+Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-The mad code is modified to add a z_ latch so that the percpu counters
-monotonically increase with appropriate adjustments in the reset,
-read logic to maintain the z_ latch.
+> Hi Wendy-
+>=20
+> On Feb 28, 2014, at 5:26 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
+ote:
+>=20
+> > On Fri, Feb 28, 2014 at 2:20 PM, Wendy Cheng <s.wendy.cheng@gmail.c=
+om> wrote:
+> >> ni i...On Fri, Feb 28, 2014 at 1:41 PM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org=
+> wrote:
+> >>>=20
+> >>> On 2/26/2014 8:44 AM, Chuck Lever wrote:
+> >>>>=20
+> >>>> Hi-
+> >>>>=20
+> >>>> Shirley Ma and I are reviving work on the NFS/RDMA client code b=
+ase in
+> >>>> the Linux kernel.  So far we've built and run functional tests t=
+o determine
+> >>>> what is working and what is broken.
+> >>>>=20
+> >>>> [snip]
+> >>=20
+> >>=20
+> >>>>=20
+> >>>> ALLPHYSICAL - Usually fast, but not safe as it exposes client me=
+mory.
+> >>>> All HCAs support this mode.
+> >>>=20
+> >>>=20
+> >>> Not safe is an understatement. It exposes all of client physical
+> >>> memory to the peer, for both read and write. A simple pointer err=
+or
+> >>> on the server will silently corrupt the client. This mode was
+> >>> intended only for testing, and in experimental deployments.
+> >=20
+> > (sorry, resend .. previous reply bounced back due to gmail html for=
+mat)
+> >=20
+> > Please keep "ALLPHYSICAL" for now  - as our embedded system needs i=
+t.
+>=20
+> This is just the client side.  Confirming that you still need support=
+ for the ALLPHYSICAL memory registration mode in the NFS/RDMA client.
+>=20
+> Do you have plans to move to a mode that is less risky?  If not, can =
+we depend on you to perform regular testing with ALLPHYSICAL as we upda=
+te the client code?  Do you have any bug fixes you=92d like to merge up=
+stream?
+>=20
 
-This patch also corrects the fact the unitcast_xmit wasn't handled
-at all for UC and RC QPs.
+Also, given that ALLPHYSICAL isn't considered safe, we should at the
+very least require some sort of explicit opt-in before allowing it to b=
+e
+used. Perhaps either a Kconfig option, or maybe a runtime switch like a
+module parm?
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib.h         |    2 +
- drivers/infiniband/hw/qib/qib_iba6120.c |    4 ++-
- drivers/infiniband/hw/qib/qib_iba7220.c |    4 ++-
- drivers/infiniband/hw/qib/qib_iba7322.c |    6 ++++
- drivers/infiniband/hw/qib/qib_init.c    |   22 +++++++++++-----
- drivers/infiniband/hw/qib/qib_mad.c     |   44 +++++++++++++++++++++++++------
- drivers/infiniband/hw/qib/qib_rc.c      |    2 +
- drivers/infiniband/hw/qib/qib_ruc.c     |    1 +
- drivers/infiniband/hw/qib/qib_ud.c      |    6 ++--
- drivers/infiniband/hw/qib/qib_verbs.c   |    4 +--
- drivers/infiniband/hw/qib/qib_verbs.h   |   16 ++++++++---
- 11 files changed, 83 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index f044430..c00ae09 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1186,7 +1186,7 @@ int qib_setup_eagerbufs(struct qib_ctxtdata *);
- void qib_set_ctxtcnt(struct qib_devdata *);
- int qib_create_ctxts(struct qib_devdata *dd);
- struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *, u32, int);
--void qib_init_pportdata(struct qib_pportdata *, struct qib_devdata *, u8, u8);
-+int qib_init_pportdata(struct qib_pportdata *, struct qib_devdata *, u8, u8);
- void qib_free_ctxtdata(struct qib_devdata *, struct qib_ctxtdata *);
- 
- u32 qib_kreceive(struct qib_ctxtdata *, u32 *, u32 *);
-diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
-index b9bea2e..d68266a 100644
---- a/drivers/infiniband/hw/qib/qib_iba6120.c
-+++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -3265,7 +3265,9 @@ static int init_6120_variables(struct qib_devdata *dd)
- 
- 	dd->eep_st_masks[2].errs_to_log = ERR_MASK(ResetNegated);
- 
--	qib_init_pportdata(ppd, dd, 0, 1);
-+	ret = qib_init_pportdata(ppd, dd, 0, 1);
-+	if (ret)
-+		goto bail;
- 	ppd->link_width_supported = IB_WIDTH_1X | IB_WIDTH_4X;
- 	ppd->link_speed_supported = QIB_IB_SDR;
- 	ppd->link_width_enabled = IB_WIDTH_4X;
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index 28063d4..7dec89f 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -4059,7 +4059,9 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
- 	init_waitqueue_head(&cpspec->autoneg_wait);
- 	INIT_DELAYED_WORK(&cpspec->autoneg_work, autoneg_7220_work);
- 
--	qib_init_pportdata(ppd, dd, 0, 1);
-+	ret = qib_init_pportdata(ppd, dd, 0, 1);
-+	if (ret)
-+		goto bail;
- 	ppd->link_width_supported = IB_WIDTH_1X | IB_WIDTH_4X;
- 	ppd->link_speed_supported = QIB_IB_SDR | QIB_IB_DDR;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 8441579..a7eb325 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6544,7 +6544,11 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
- 		}
- 
- 		dd->num_pports++;
--		qib_init_pportdata(ppd, dd, pidx, dd->num_pports);
-+		ret = qib_init_pportdata(ppd, dd, pidx, dd->num_pports);
-+		if (ret) {
-+			dd->num_pports--;
-+			goto bail;
-+		}
- 
- 		ppd->link_width_supported = IB_WIDTH_1X | IB_WIDTH_4X;
- 		ppd->link_width_enabled = IB_WIDTH_4X;
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index e32096e..dabbc9b 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -233,7 +233,7 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt,
- /*
-  * Common code for initializing the physical port structure.
-  */
--void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
-+int qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
- 			u8 hw_pidx, u8 port)
- {
- 	int size;
-@@ -243,6 +243,7 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
- 
- 	spin_lock_init(&ppd->sdma_lock);
- 	spin_lock_init(&ppd->lflags_lock);
-+	spin_lock_init(&ppd->cc_shadow_lock);
- 	init_waitqueue_head(&ppd->state_wait);
- 
- 	init_timer(&ppd->symerr_clear_timer);
-@@ -250,8 +251,10 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
- 	ppd->symerr_clear_timer.data = (unsigned long)ppd;
- 
- 	ppd->qib_wq = NULL;
--
--	spin_lock_init(&ppd->cc_shadow_lock);
-+	ppd->ibport_data.pmastats =
-+		alloc_percpu(struct qib_pma_counters);
-+	if (!ppd->ibport_data.pmastats)
-+		return -ENOMEM;
- 
- 	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES)
- 		goto bail;
-@@ -299,7 +302,7 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
- 		goto bail_3;
- 	}
- 
--	return;
-+	return 0;
- 
- bail_3:
- 	kfree(ppd->ccti_entries_shadow);
-@@ -313,7 +316,7 @@ bail_1:
- bail:
- 	/* User is intentionally disabling the congestion control agent */
- 	if (!qib_cc_table_size)
--		return;
-+		return 0;
- 
- 	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES) {
- 		qib_cc_table_size = 0;
-@@ -324,7 +327,7 @@ bail:
- 
- 	qib_dev_err(dd, "Congestion Control Agent disabled for port %d\n",
- 		port);
--	return;
-+	return 0;
- }
- 
- static int init_pioavailregs(struct qib_devdata *dd)
-@@ -635,6 +638,12 @@ wq_error:
- 	return -ENOMEM;
- }
- 
-+static void qib_free_pportdata(struct qib_pportdata *ppd)
-+{
-+	free_percpu(ppd->ibport_data.pmastats);
-+	ppd->ibport_data.pmastats = NULL;
-+}
-+
- /**
-  * qib_init - do the actual initialization sequence on the chip
-  * @dd: the qlogic_ib device
-@@ -922,6 +931,7 @@ static void qib_shutdown_device(struct qib_devdata *dd)
- 			destroy_workqueue(ppd->qib_wq);
- 			ppd->qib_wq = NULL;
- 		}
-+		qib_free_pportdata(ppd);
- 	}
- 
- 	qib_update_eeprom_log(dd);
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index ccb1191..edad991 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -1634,6 +1634,23 @@ static int pma_get_portcounters_cong(struct ib_pma_mad *pmp,
- 	return reply((struct ib_smp *)pmp);
- }
- 
-+static void qib_snapshot_pmacounters(
-+	struct qib_ibport *ibp,
-+	struct qib_pma_counters *pmacounters)
-+{
-+	struct qib_pma_counters *p;
-+	int cpu;
-+
-+	memset(pmacounters, 0, sizeof(*pmacounters));
-+	for_each_possible_cpu(cpu) {
-+		p = per_cpu_ptr(ibp->pmastats, cpu);
-+		pmacounters->n_unicast_xmit += p->n_unicast_xmit;
-+		pmacounters->n_unicast_rcv += p->n_unicast_rcv;
-+		pmacounters->n_multicast_xmit += p->n_multicast_xmit;
-+		pmacounters->n_multicast_rcv += p->n_multicast_rcv;
-+	}
-+}
-+
- static int pma_get_portcounters_ext(struct ib_pma_mad *pmp,
- 				    struct ib_device *ibdev, u8 port)
- {
-@@ -1642,6 +1659,7 @@ static int pma_get_portcounters_ext(struct ib_pma_mad *pmp,
- 	struct qib_ibport *ibp = to_iport(ibdev, port);
- 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
- 	u64 swords, rwords, spkts, rpkts, xwait;
-+	struct qib_pma_counters pma;
- 	u8 port_select = p->port_select;
- 
- 	memset(pmp->data, 0, sizeof(pmp->data));
-@@ -1664,10 +1682,17 @@ static int pma_get_portcounters_ext(struct ib_pma_mad *pmp,
- 	p->port_rcv_data = cpu_to_be64(rwords);
- 	p->port_xmit_packets = cpu_to_be64(spkts);
- 	p->port_rcv_packets = cpu_to_be64(rpkts);
--	p->port_unicast_xmit_packets = cpu_to_be64(ibp->n_unicast_xmit);
--	p->port_unicast_rcv_packets = cpu_to_be64(ibp->n_unicast_rcv);
--	p->port_multicast_xmit_packets = cpu_to_be64(ibp->n_multicast_xmit);
--	p->port_multicast_rcv_packets = cpu_to_be64(ibp->n_multicast_rcv);
-+
-+	qib_snapshot_pmacounters(ibp, &pma);
-+
-+	p->port_unicast_xmit_packets = cpu_to_be64(pma.n_unicast_xmit
-+		- ibp->z_unicast_xmit);
-+	p->port_unicast_rcv_packets = cpu_to_be64(pma.n_unicast_rcv
-+		- ibp->z_unicast_rcv);
-+	p->port_multicast_xmit_packets = cpu_to_be64(pma.n_multicast_xmit
-+		- ibp->z_multicast_xmit);
-+	p->port_multicast_rcv_packets = cpu_to_be64(pma.n_multicast_rcv
-+		- ibp->z_multicast_rcv);
- 
- bail:
- 	return reply((struct ib_smp *) pmp);
-@@ -1795,6 +1820,7 @@ static int pma_set_portcounters_ext(struct ib_pma_mad *pmp,
- 	struct qib_ibport *ibp = to_iport(ibdev, port);
- 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
- 	u64 swords, rwords, spkts, rpkts, xwait;
-+	struct qib_pma_counters pma;
- 
- 	qib_snapshot_counters(ppd, &swords, &rwords, &spkts, &rpkts, &xwait);
- 
-@@ -1810,17 +1836,19 @@ static int pma_set_portcounters_ext(struct ib_pma_mad *pmp,
- 	if (p->counter_select & IB_PMA_SELX_PORT_RCV_PACKETS)
- 		ibp->z_port_rcv_packets = rpkts;
- 
-+	qib_snapshot_pmacounters(ibp, &pma);
-+
- 	if (p->counter_select & IB_PMA_SELX_PORT_UNI_XMIT_PACKETS)
--		ibp->n_unicast_xmit = 0;
-+		ibp->z_unicast_xmit = pma.n_unicast_xmit;
- 
- 	if (p->counter_select & IB_PMA_SELX_PORT_UNI_RCV_PACKETS)
--		ibp->n_unicast_rcv = 0;
-+		ibp->z_unicast_rcv = pma.n_unicast_rcv;
- 
- 	if (p->counter_select & IB_PMA_SELX_PORT_MULTI_XMIT_PACKETS)
--		ibp->n_multicast_xmit = 0;
-+		ibp->z_multicast_xmit = pma.n_multicast_xmit;
- 
- 	if (p->counter_select & IB_PMA_SELX_PORT_MULTI_RCV_PACKETS)
--		ibp->n_multicast_rcv = 0;
-+		ibp->z_multicast_rcv = pma.n_multicast_rcv;
- 
- 	return pma_get_portcounters_ext(pmp, ibdev, port);
- }
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index 3ab3413..2f25018 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -752,7 +752,7 @@ void qib_send_rc_ack(struct qib_qp *qp)
- 	qib_flush_wc();
- 	qib_sendbuf_done(dd, pbufn);
- 
--	ibp->n_unicast_xmit++;
-+	this_cpu_inc(ibp->pmastats->n_unicast_xmit);
- 	goto done;
- 
- queue_ack:
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index 357b6cf..4c07a8b 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -703,6 +703,7 @@ void qib_make_ruc_header(struct qib_qp *qp, struct qib_other_headers *ohdr,
- 	ohdr->bth[0] = cpu_to_be32(bth0);
- 	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
- 	ohdr->bth[2] = cpu_to_be32(bth2);
-+	this_cpu_inc(ibp->pmastats->n_unicast_xmit);
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 3ad651c..aaf7039 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -280,11 +280,11 @@ int qib_make_ud_req(struct qib_qp *qp)
- 	ah_attr = &to_iah(wqe->wr.wr.ud.ah)->attr;
- 	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE) {
- 		if (ah_attr->dlid != QIB_PERMISSIVE_LID)
--			ibp->n_multicast_xmit++;
-+			this_cpu_inc(ibp->pmastats->n_multicast_xmit);
- 		else
--			ibp->n_unicast_xmit++;
-+			this_cpu_inc(ibp->pmastats->n_unicast_xmit);
- 	} else {
--		ibp->n_unicast_xmit++;
-+		this_cpu_inc(ibp->pmastats->n_unicast_xmit);
- 		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
- 		if (unlikely(lid == ppd->lid)) {
- 			/*
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 092b0bb..1b00734 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -662,7 +662,7 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
- 		mcast = qib_mcast_find(ibp, &hdr->u.l.grh.dgid);
- 		if (mcast == NULL)
- 			goto drop;
--		ibp->n_multicast_rcv++;
-+		this_cpu_inc(ibp->pmastats->n_multicast_rcv);
- 		list_for_each_entry_rcu(p, &mcast->qp_list, list)
- 			qib_qp_rcv(rcd, hdr, 1, data, tlen, p->qp);
- 		/*
-@@ -689,7 +689,7 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
- 			rcd->lookaside_qpn = qp_num;
- 		} else
- 			qp = rcd->lookaside_qp;
--		ibp->n_unicast_rcv++;
-+		this_cpu_inc(ibp->pmastats->n_unicast_rcv);
- 		qib_qp_rcv(rcd, hdr, lnh == QIB_LRH_GRH, data, tlen, qp);
- 	}
- 	return;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index a01c7d2..bfc8948 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -664,6 +664,13 @@ struct qib_opcode_stats_perctx {
- 	struct qib_opcode_stats stats[128];
- };
- 
-+struct qib_pma_counters {
-+	u64 n_unicast_xmit;     /* total unicast packets sent */
-+	u64 n_unicast_rcv;      /* total unicast packets received */
-+	u64 n_multicast_xmit;   /* total multicast packets sent */
-+	u64 n_multicast_rcv;    /* total multicast packets received */
-+};
-+
- struct qib_ibport {
- 	struct qib_qp __rcu *qp0;
- 	struct qib_qp __rcu *qp1;
-@@ -680,10 +687,11 @@ struct qib_ibport {
- 	__be64 mkey;
- 	__be64 guids[QIB_GUIDS_PER_PORT	- 1];	/* writable GUIDs */
- 	u64 tid;		/* TID for traps */
--	u64 n_unicast_xmit;     /* total unicast packets sent */
--	u64 n_unicast_rcv;      /* total unicast packets received */
--	u64 n_multicast_xmit;   /* total multicast packets sent */
--	u64 n_multicast_rcv;    /* total multicast packets received */
-+	struct qib_pma_counters __percpu *pmastats;
-+	u64 z_unicast_xmit;     /* starting count for PMA */
-+	u64 z_unicast_rcv;      /* starting count for PMA */
-+	u64 z_multicast_xmit;   /* starting count for PMA */
-+	u64 z_multicast_rcv;    /* starting count for PMA */
- 	u64 z_symbol_error_counter;             /* starting count for PMA */
- 	u64 z_link_error_recovery_counter;      /* starting count for PMA */
- 	u64 z_link_downed_counter;              /* starting count for PMA */
-
+Wendy, would that be acceptable?
+--=20
+Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
