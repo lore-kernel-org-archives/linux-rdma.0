@@ -1,8 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/qib: Add percpu counter replacing qib_devdata
- int_counter
-Date: Sat, 01 Mar 2014 10:29:42 -0500
-Message-ID: <20140301152942.23347.5752.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/2] IB/qib: Modify software pma counters to use percpu
+ variables
+Date: Sat, 01 Mar 2014 10:29:48 -0500
+Message-ID: <20140301152947.23347.32757.stgit@phlsvslse11.ph.intel.com>
 References: <20140301152917.23347.64976.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,306 +14,363 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch replaces the dd->int_counter with a percpu counter.
+The counters, unicast_xmit, unicast_rcv, multicast_xmit, multicast_rcv
+are now maintained as percpu variables.
 
-The maintanance of qib_stats.sps_ints and int_counter are
-combined into the new counter.
+The mad code is modified to add a z_ latch so that the percpu counters
+monotonically increase with appropriate adjustments in the reset,
+read logic to maintain the z_ latch.
 
-There are two new functions added to read the counter:
-- qib_int_counter (for a particular qib_devdata)
-- qib_sps_ints (for all HCAs)
-
-A z_int_counter is added to allow the interrupt detection logic
-to determine if interrupts have occured since z_int_counter
-was "reset".
+This patch also corrects the fact the unitcast_xmit wasn't handled
+at all for UC and RC QPs.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h         |   10 +++++--
- drivers/infiniband/hw/qib/qib_fs.c      |    1 +
- drivers/infiniband/hw/qib/qib_iba6120.c |    7 ++---
- drivers/infiniband/hw/qib/qib_iba7220.c |    8 ++---
- drivers/infiniband/hw/qib/qib_iba7322.c |   31 ++++++---------------
- drivers/infiniband/hw/qib/qib_init.c    |   46 ++++++++++++++++++++++++++++---
- 6 files changed, 66 insertions(+), 37 deletions(-)
+ drivers/infiniband/hw/qib/qib.h         |    2 +
+ drivers/infiniband/hw/qib/qib_iba6120.c |    4 ++-
+ drivers/infiniband/hw/qib/qib_iba7220.c |    4 ++-
+ drivers/infiniband/hw/qib/qib_iba7322.c |    6 ++++
+ drivers/infiniband/hw/qib/qib_init.c    |   22 +++++++++++-----
+ drivers/infiniband/hw/qib/qib_mad.c     |   44 +++++++++++++++++++++++++------
+ drivers/infiniband/hw/qib/qib_rc.c      |    2 +
+ drivers/infiniband/hw/qib/qib_ruc.c     |    1 +
+ drivers/infiniband/hw/qib/qib_ud.c      |    6 ++--
+ drivers/infiniband/hw/qib/qib_verbs.c   |    4 +--
+ drivers/infiniband/hw/qib/qib_verbs.h   |   16 ++++++++---
+ 11 files changed, 83 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 1946101..f044430 100644
+index f044430..c00ae09 100644
 --- a/drivers/infiniband/hw/qib/qib.h
 +++ b/drivers/infiniband/hw/qib/qib.h
-@@ -868,8 +868,10 @@ struct qib_devdata {
- 	/* last buffer for user use */
- 	u32 lastctxt_piobuf;
+@@ -1186,7 +1186,7 @@ int qib_setup_eagerbufs(struct qib_ctxtdata *);
+ void qib_set_ctxtcnt(struct qib_devdata *);
+ int qib_create_ctxts(struct qib_devdata *dd);
+ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *, u32, int);
+-void qib_init_pportdata(struct qib_pportdata *, struct qib_devdata *, u8, u8);
++int qib_init_pportdata(struct qib_pportdata *, struct qib_devdata *, u8, u8);
+ void qib_free_ctxtdata(struct qib_devdata *, struct qib_ctxtdata *);
  
--	/* saturating counter of (non-port-specific) device interrupts */
--	u32 int_counter;
-+	/* reset value */
-+	u64 z_int_counter;
-+	/* percpu intcounter */
-+	u64 __percpu *int_counter;
- 
- 	/* pio bufs allocated per ctxt */
- 	u32 pbufsctxt;
-@@ -1449,6 +1451,10 @@ void qib_nomsi(struct qib_devdata *);
- void qib_nomsix(struct qib_devdata *);
- void qib_pcie_getcmd(struct qib_devdata *, u16 *, u8 *, u8 *);
- void qib_pcie_reenable(struct qib_devdata *, u16, u8, u8);
-+/* interrupts for device */
-+u64 qib_int_counter(struct qib_devdata *);
-+/* interrupt for all devices */
-+u64 qib_sps_ints(void);
- 
- /*
-  * dma_addr wrappers - all 0's invalid for hw
-diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
-index c61e2a9..cab610c 100644
---- a/drivers/infiniband/hw/qib/qib_fs.c
-+++ b/drivers/infiniband/hw/qib/qib_fs.c
-@@ -105,6 +105,7 @@ static int create_file(const char *name, umode_t mode,
- static ssize_t driver_stats_read(struct file *file, char __user *buf,
- 				 size_t count, loff_t *ppos)
- {
-+	qib_stats.sps_ints = qib_sps_ints();
- 	return simple_read_from_buffer(buf, count, ppos, &qib_stats,
- 				       sizeof qib_stats);
- }
+ u32 qib_kreceive(struct qib_ctxtdata *, u32 *, u32 *);
 diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
-index 84e593d..b9bea2e 100644
+index b9bea2e..d68266a 100644
 --- a/drivers/infiniband/hw/qib/qib_iba6120.c
 +++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -1634,9 +1634,7 @@ static irqreturn_t qib_6120intr(int irq, void *data)
- 		goto bail;
- 	}
+@@ -3265,7 +3265,9 @@ static int init_6120_variables(struct qib_devdata *dd)
  
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
+ 	dd->eep_st_masks[2].errs_to_log = ERR_MASK(ResetNegated);
  
- 	if (unlikely(istat & (~QLOGIC_IB_I_BITSEXTANT |
- 			      QLOGIC_IB_I_GPIO | QLOGIC_IB_I_ERROR)))
-@@ -1808,7 +1806,8 @@ static int qib_6120_setup_reset(struct qib_devdata *dd)
- 	 * isn't set.
- 	 */
- 	dd->flags &= ~(QIB_INITTED | QIB_PRESENT);
--	dd->int_counter = 0; /* so we check interrupts work again */
-+	/* so we check interrupts work again */
-+	dd->z_int_counter = qib_int_counter(dd);
- 	val = dd->control | QLOGIC_IB_C_RESET;
- 	writeq(val, &dd->kregbase[kr_control]);
- 	mb(); /* prevent compiler re-ordering around actual reset */
+-	qib_init_pportdata(ppd, dd, 0, 1);
++	ret = qib_init_pportdata(ppd, dd, 0, 1);
++	if (ret)
++		goto bail;
+ 	ppd->link_width_supported = IB_WIDTH_1X | IB_WIDTH_4X;
+ 	ppd->link_speed_supported = QIB_IB_SDR;
+ 	ppd->link_width_enabled = IB_WIDTH_4X;
 diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index 454c2e7..28063d4 100644
+index 28063d4..7dec89f 100644
 --- a/drivers/infiniband/hw/qib/qib_iba7220.c
 +++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -1962,10 +1962,7 @@ static irqreturn_t qib_7220intr(int irq, void *data)
- 		goto bail;
- 	}
+@@ -4059,7 +4059,9 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
+ 	init_waitqueue_head(&cpspec->autoneg_wait);
+ 	INIT_DELAYED_WORK(&cpspec->autoneg_work, autoneg_7220_work);
  
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
--
-+	this_cpu_inc(*dd->int_counter);
- 	if (unlikely(istat & (~QLOGIC_IB_I_BITSEXTANT |
- 			      QLOGIC_IB_I_GPIO | QLOGIC_IB_I_ERROR)))
- 		unlikely_7220_intr(dd, istat);
-@@ -2120,7 +2117,8 @@ static int qib_setup_7220_reset(struct qib_devdata *dd)
- 	 * isn't set.
- 	 */
- 	dd->flags &= ~(QIB_INITTED | QIB_PRESENT);
--	dd->int_counter = 0; /* so we check interrupts work again */
-+	/* so we check interrupts work again */
-+	dd->z_int_counter = qib_int_counter(dd);
- 	val = dd->control | QLOGIC_IB_C_RESET;
- 	writeq(val, &dd->kregbase[kr_control]);
- 	mb(); /* prevent compiler reordering around actual reset */
+-	qib_init_pportdata(ppd, dd, 0, 1);
++	ret = qib_init_pportdata(ppd, dd, 0, 1);
++	if (ret)
++		goto bail;
+ 	ppd->link_width_supported = IB_WIDTH_1X | IB_WIDTH_4X;
+ 	ppd->link_speed_supported = QIB_IB_SDR | QIB_IB_DDR;
+ 
 diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index d1bd213..8441579 100644
+index 8441579..a7eb325 100644
 --- a/drivers/infiniband/hw/qib/qib_iba7322.c
 +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -3115,9 +3115,7 @@ static irqreturn_t qib_7322intr(int irq, void *data)
- 		goto bail;
- 	}
+@@ -6544,7 +6544,11 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
+ 		}
  
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
+ 		dd->num_pports++;
+-		qib_init_pportdata(ppd, dd, pidx, dd->num_pports);
++		ret = qib_init_pportdata(ppd, dd, pidx, dd->num_pports);
++		if (ret) {
++			dd->num_pports--;
++			goto bail;
++		}
  
- 	/* handle "errors" of various kinds first, device ahead of port */
- 	if (unlikely(istat & (~QIB_I_BITSEXTANT | QIB_I_GPIO |
-@@ -3186,9 +3184,7 @@ static irqreturn_t qib_7322pintr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ((1ULL << QIB_I_RCVAVAIL_LSB) |
-@@ -3215,9 +3211,7 @@ static irqreturn_t qib_7322bufavail(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, QIB_I_SPIOBUFAVAIL);
-@@ -3248,9 +3242,7 @@ static irqreturn_t sdma_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3277,9 +3269,7 @@ static irqreturn_t sdma_idle_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3306,9 +3296,7 @@ static irqreturn_t sdma_progress_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3336,9 +3324,7 @@ static irqreturn_t sdma_cleanup_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3723,7 +3709,8 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
- 	dd->pport->cpspec->ibsymdelta = 0;
- 	dd->pport->cpspec->iblnkerrdelta = 0;
- 	dd->pport->cpspec->ibmalfdelta = 0;
--	dd->int_counter = 0; /* so we check interrupts work again */
-+	/* so we check interrupts work again */
-+	dd->z_int_counter = qib_int_counter(dd);
- 
- 	/*
- 	 * Keep chip from being accessed until we are ready.  Use
+ 		ppd->link_width_supported = IB_WIDTH_1X | IB_WIDTH_4X;
+ 		ppd->link_width_enabled = IB_WIDTH_4X;
 diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 24e802f..e32096e 100644
+index e32096e..dabbc9b 100644
 --- a/drivers/infiniband/hw/qib/qib_init.c
 +++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -525,6 +525,7 @@ static void enable_chip(struct qib_devdata *dd)
- static void verify_interrupt(unsigned long opaque)
+@@ -233,7 +233,7 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt,
+ /*
+  * Common code for initializing the physical port structure.
+  */
+-void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
++int qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 			u8 hw_pidx, u8 port)
  {
- 	struct qib_devdata *dd = (struct qib_devdata *) opaque;
-+	u64 int_counter;
+ 	int size;
+@@ -243,6 +243,7 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
  
- 	if (!dd)
- 		return; /* being torn down */
-@@ -533,7 +534,8 @@ static void verify_interrupt(unsigned long opaque)
- 	 * If we don't have a lid or any interrupts, let the user know and
- 	 * don't bother checking again.
- 	 */
--	if (dd->int_counter == 0) {
-+	int_counter = qib_int_counter(dd) - dd->z_int_counter;
-+	if (int_counter == 0) {
- 		if (!dd->f_intr_fallback(dd))
- 			dev_err(&dd->pcidev->dev,
- 				"No interrupts detected, not usable.\n");
-@@ -1079,9 +1081,34 @@ void qib_free_devdata(struct qib_devdata *dd)
- #ifdef CONFIG_DEBUG_FS
- 	qib_dbg_ibdev_exit(&dd->verbs_dev);
- #endif
-+	free_percpu(dd->int_counter);
- 	ib_dealloc_device(&dd->verbs_dev.ibdev);
+ 	spin_lock_init(&ppd->sdma_lock);
+ 	spin_lock_init(&ppd->lflags_lock);
++	spin_lock_init(&ppd->cc_shadow_lock);
+ 	init_waitqueue_head(&ppd->state_wait);
+ 
+ 	init_timer(&ppd->symerr_clear_timer);
+@@ -250,8 +251,10 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 	ppd->symerr_clear_timer.data = (unsigned long)ppd;
+ 
+ 	ppd->qib_wq = NULL;
+-
+-	spin_lock_init(&ppd->cc_shadow_lock);
++	ppd->ibport_data.pmastats =
++		alloc_percpu(struct qib_pma_counters);
++	if (!ppd->ibport_data.pmastats)
++		return -ENOMEM;
+ 
+ 	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES)
+ 		goto bail;
+@@ -299,7 +302,7 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 		goto bail_3;
+ 	}
+ 
+-	return;
++	return 0;
+ 
+ bail_3:
+ 	kfree(ppd->ccti_entries_shadow);
+@@ -313,7 +316,7 @@ bail_1:
+ bail:
+ 	/* User is intentionally disabling the congestion control agent */
+ 	if (!qib_cc_table_size)
+-		return;
++		return 0;
+ 
+ 	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES) {
+ 		qib_cc_table_size = 0;
+@@ -324,7 +327,7 @@ bail:
+ 
+ 	qib_dev_err(dd, "Congestion Control Agent disabled for port %d\n",
+ 		port);
+-	return;
++	return 0;
  }
  
-+u64 qib_int_counter(struct qib_devdata *dd)
+ static int init_pioavailregs(struct qib_devdata *dd)
+@@ -635,6 +638,12 @@ wq_error:
+ 	return -ENOMEM;
+ }
+ 
++static void qib_free_pportdata(struct qib_pportdata *ppd)
 +{
++	free_percpu(ppd->ibport_data.pmastats);
++	ppd->ibport_data.pmastats = NULL;
++}
++
+ /**
+  * qib_init - do the actual initialization sequence on the chip
+  * @dd: the qlogic_ib device
+@@ -922,6 +931,7 @@ static void qib_shutdown_device(struct qib_devdata *dd)
+ 			destroy_workqueue(ppd->qib_wq);
+ 			ppd->qib_wq = NULL;
+ 		}
++		qib_free_pportdata(ppd);
+ 	}
+ 
+ 	qib_update_eeprom_log(dd);
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index ccb1191..edad991 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -1634,6 +1634,23 @@ static int pma_get_portcounters_cong(struct ib_pma_mad *pmp,
+ 	return reply((struct ib_smp *)pmp);
+ }
+ 
++static void qib_snapshot_pmacounters(
++	struct qib_ibport *ibp,
++	struct qib_pma_counters *pmacounters)
++{
++	struct qib_pma_counters *p;
 +	int cpu;
-+	u64 int_counter = 0;
 +
-+	for_each_possible_cpu(cpu)
-+		int_counter += *per_cpu_ptr(dd->int_counter, cpu);
-+	return int_counter;
++	memset(pmacounters, 0, sizeof(*pmacounters));
++	for_each_possible_cpu(cpu) {
++		p = per_cpu_ptr(ibp->pmastats, cpu);
++		pmacounters->n_unicast_xmit += p->n_unicast_xmit;
++		pmacounters->n_unicast_rcv += p->n_unicast_rcv;
++		pmacounters->n_multicast_xmit += p->n_multicast_xmit;
++		pmacounters->n_multicast_rcv += p->n_multicast_rcv;
++	}
 +}
 +
-+u64 qib_sps_ints(void)
-+{
-+	unsigned long flags;
-+	struct qib_devdata *dd;
-+	u64 sps_ints = 0;
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+	list_for_each_entry(dd, &qib_dev_list, list) {
-+		sps_ints += qib_int_counter(dd);
-+	}
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+	return sps_ints;
-+}
-+
- /*
-  * Allocate our primary per-unit data structure.  Must be done via verbs
-  * allocator, because the verbs cleanup process both does cleanup and
-@@ -1114,6 +1141,13 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
- 		dd->unit = ret;
- 		list_add(&dd->list, &qib_dev_list);
- 	}
-+	dd->int_counter = alloc_percpu(u64);
-+	if (!dd->int_counter) {
-+		ret = -ENOMEM;
-+		qib_early_err(&pdev->dev,
-+			      "Could not allocate per-cpu int_counter\n");
-+		goto bail_dealloc;
-+	}
+ static int pma_get_portcounters_ext(struct ib_pma_mad *pmp,
+ 				    struct ib_device *ibdev, u8 port)
+ {
+@@ -1642,6 +1659,7 @@ static int pma_get_portcounters_ext(struct ib_pma_mad *pmp,
+ 	struct qib_ibport *ibp = to_iport(ibdev, port);
+ 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
+ 	u64 swords, rwords, spkts, rpkts, xwait;
++	struct qib_pma_counters pma;
+ 	u8 port_select = p->port_select;
  
- 	spin_unlock_irqrestore(&qib_devs_lock, flags);
- 	idr_preload_end();
-@@ -1124,9 +1158,7 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
- #ifdef CONFIG_DEBUG_FS
- 		qib_dbg_ibdev_exit(&dd->verbs_dev);
- #endif
--		ib_dealloc_device(&dd->verbs_dev.ibdev);
--		dd = ERR_PTR(ret);
--		goto bail;
-+		goto bail_dealloc;
- 	}
- 
- 	if (!qib_cpulist_count) {
-@@ -1142,6 +1174,12 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 	memset(pmp->data, 0, sizeof(pmp->data));
+@@ -1664,10 +1682,17 @@ static int pma_get_portcounters_ext(struct ib_pma_mad *pmp,
+ 	p->port_rcv_data = cpu_to_be64(rwords);
+ 	p->port_xmit_packets = cpu_to_be64(spkts);
+ 	p->port_rcv_packets = cpu_to_be64(rpkts);
+-	p->port_unicast_xmit_packets = cpu_to_be64(ibp->n_unicast_xmit);
+-	p->port_unicast_rcv_packets = cpu_to_be64(ibp->n_unicast_rcv);
+-	p->port_multicast_xmit_packets = cpu_to_be64(ibp->n_multicast_xmit);
+-	p->port_multicast_rcv_packets = cpu_to_be64(ibp->n_multicast_rcv);
++
++	qib_snapshot_pmacounters(ibp, &pma);
++
++	p->port_unicast_xmit_packets = cpu_to_be64(pma.n_unicast_xmit
++		- ibp->z_unicast_xmit);
++	p->port_unicast_rcv_packets = cpu_to_be64(pma.n_unicast_rcv
++		- ibp->z_unicast_rcv);
++	p->port_multicast_xmit_packets = cpu_to_be64(pma.n_multicast_xmit
++		- ibp->z_multicast_xmit);
++	p->port_multicast_rcv_packets = cpu_to_be64(pma.n_multicast_rcv
++		- ibp->z_multicast_rcv);
  
  bail:
- 	return dd;
-+bail_dealloc:
-+	/* dd allocated, maybe counter too, not in list */
-+	free_percpu(dd->int_counter);
-+	ib_dealloc_device(&dd->verbs_dev.ibdev);
-+	dd = ERR_PTR(ret);
-+	goto bail;
+ 	return reply((struct ib_smp *) pmp);
+@@ -1795,6 +1820,7 @@ static int pma_set_portcounters_ext(struct ib_pma_mad *pmp,
+ 	struct qib_ibport *ibp = to_iport(ibdev, port);
+ 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
+ 	u64 swords, rwords, spkts, rpkts, xwait;
++	struct qib_pma_counters pma;
+ 
+ 	qib_snapshot_counters(ppd, &swords, &rwords, &spkts, &rpkts, &xwait);
+ 
+@@ -1810,17 +1836,19 @@ static int pma_set_portcounters_ext(struct ib_pma_mad *pmp,
+ 	if (p->counter_select & IB_PMA_SELX_PORT_RCV_PACKETS)
+ 		ibp->z_port_rcv_packets = rpkts;
+ 
++	qib_snapshot_pmacounters(ibp, &pma);
++
+ 	if (p->counter_select & IB_PMA_SELX_PORT_UNI_XMIT_PACKETS)
+-		ibp->n_unicast_xmit = 0;
++		ibp->z_unicast_xmit = pma.n_unicast_xmit;
+ 
+ 	if (p->counter_select & IB_PMA_SELX_PORT_UNI_RCV_PACKETS)
+-		ibp->n_unicast_rcv = 0;
++		ibp->z_unicast_rcv = pma.n_unicast_rcv;
+ 
+ 	if (p->counter_select & IB_PMA_SELX_PORT_MULTI_XMIT_PACKETS)
+-		ibp->n_multicast_xmit = 0;
++		ibp->z_multicast_xmit = pma.n_multicast_xmit;
+ 
+ 	if (p->counter_select & IB_PMA_SELX_PORT_MULTI_RCV_PACKETS)
+-		ibp->n_multicast_rcv = 0;
++		ibp->z_multicast_rcv = pma.n_multicast_rcv;
+ 
+ 	return pma_get_portcounters_ext(pmp, ibdev, port);
+ }
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 3ab3413..2f25018 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -752,7 +752,7 @@ void qib_send_rc_ack(struct qib_qp *qp)
+ 	qib_flush_wc();
+ 	qib_sendbuf_done(dd, pbufn);
+ 
+-	ibp->n_unicast_xmit++;
++	this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+ 	goto done;
+ 
+ queue_ack:
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index 357b6cf..4c07a8b 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -703,6 +703,7 @@ void qib_make_ruc_header(struct qib_qp *qp, struct qib_other_headers *ohdr,
+ 	ohdr->bth[0] = cpu_to_be32(bth0);
+ 	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
+ 	ohdr->bth[2] = cpu_to_be32(bth2);
++	this_cpu_inc(ibp->pmastats->n_unicast_xmit);
  }
  
- /*
+ /**
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
+index 3ad651c..aaf7039 100644
+--- a/drivers/infiniband/hw/qib/qib_ud.c
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -280,11 +280,11 @@ int qib_make_ud_req(struct qib_qp *qp)
+ 	ah_attr = &to_iah(wqe->wr.wr.ud.ah)->attr;
+ 	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE) {
+ 		if (ah_attr->dlid != QIB_PERMISSIVE_LID)
+-			ibp->n_multicast_xmit++;
++			this_cpu_inc(ibp->pmastats->n_multicast_xmit);
+ 		else
+-			ibp->n_unicast_xmit++;
++			this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+ 	} else {
+-		ibp->n_unicast_xmit++;
++		this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+ 		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
+ 		if (unlikely(lid == ppd->lid)) {
+ 			/*
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 092b0bb..1b00734 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -662,7 +662,7 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+ 		mcast = qib_mcast_find(ibp, &hdr->u.l.grh.dgid);
+ 		if (mcast == NULL)
+ 			goto drop;
+-		ibp->n_multicast_rcv++;
++		this_cpu_inc(ibp->pmastats->n_multicast_rcv);
+ 		list_for_each_entry_rcu(p, &mcast->qp_list, list)
+ 			qib_qp_rcv(rcd, hdr, 1, data, tlen, p->qp);
+ 		/*
+@@ -689,7 +689,7 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+ 			rcd->lookaside_qpn = qp_num;
+ 		} else
+ 			qp = rcd->lookaside_qp;
+-		ibp->n_unicast_rcv++;
++		this_cpu_inc(ibp->pmastats->n_unicast_rcv);
+ 		qib_qp_rcv(rcd, hdr, lnh == QIB_LRH_GRH, data, tlen, qp);
+ 	}
+ 	return;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index a01c7d2..bfc8948 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -664,6 +664,13 @@ struct qib_opcode_stats_perctx {
+ 	struct qib_opcode_stats stats[128];
+ };
+ 
++struct qib_pma_counters {
++	u64 n_unicast_xmit;     /* total unicast packets sent */
++	u64 n_unicast_rcv;      /* total unicast packets received */
++	u64 n_multicast_xmit;   /* total multicast packets sent */
++	u64 n_multicast_rcv;    /* total multicast packets received */
++};
++
+ struct qib_ibport {
+ 	struct qib_qp __rcu *qp0;
+ 	struct qib_qp __rcu *qp1;
+@@ -680,10 +687,11 @@ struct qib_ibport {
+ 	__be64 mkey;
+ 	__be64 guids[QIB_GUIDS_PER_PORT	- 1];	/* writable GUIDs */
+ 	u64 tid;		/* TID for traps */
+-	u64 n_unicast_xmit;     /* total unicast packets sent */
+-	u64 n_unicast_rcv;      /* total unicast packets received */
+-	u64 n_multicast_xmit;   /* total multicast packets sent */
+-	u64 n_multicast_rcv;    /* total multicast packets received */
++	struct qib_pma_counters __percpu *pmastats;
++	u64 z_unicast_xmit;     /* starting count for PMA */
++	u64 z_unicast_rcv;      /* starting count for PMA */
++	u64 z_multicast_xmit;   /* starting count for PMA */
++	u64 z_multicast_rcv;    /* starting count for PMA */
+ 	u64 z_symbol_error_counter;             /* starting count for PMA */
+ 	u64 z_link_error_recovery_counter;      /* starting count for PMA */
+ 	u64 z_link_downed_counter;              /* starting count for PMA */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
