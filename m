@@ -1,28 +1,42 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: Need help with strange mlx4_core error
-Date: Sat, 01 Mar 2014 13:50:33 +0100
-Message-ID: <5311D799.2090607@acm.org>
-References: <CACaajQtQGZSepA8VLK1K20OspNa_WTv1DQ8SWYV7O9y6QV-Tgg@mail.gmail.com> <CAJZOPZJmdGutUQZ4icBrKRq-YPwD8TqtoLH9SgqNVx_CDjL0TQ@mail.gmail.com> <CACaajQtHzF9g2kp9MrAaQsvKUQdr10YVa+Np1danmAcR_rvLqg@mail.gmail.com> <CAJZOPZKydkaoru0XyT1nHQ5t9BGJQxbq1r4RcGZ0Gq9E9VGs=A@mail.gmail.com> <CACaajQs9ANqLX7m=TcR2wT6wkiS-M5uVvAnQrvGWPmukZnLqcg@mail.gmail.com> <CACaajQuRzBy3oV+-3+NjyE9muGKPN3YQUd5wnkkcoak0GSP=uw@mail.gmail.com> <CACaajQtKvihFu6X-+9N3VvVKK4Jw3eADBOENhuM+-4s8s=PsUQ@mail.gmail.com> <CACaajQuQ+mbwhp4jxUt+9r4Rq=14oBUqC-=xx6J3EGpAfecG-Q@mail.gmail.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/2] qib percpu counters
+Date: Sat, 01 Mar 2014 10:29:36 -0500
+Message-ID: <20140301152917.23347.64976.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACaajQuQ+mbwhp4jxUt+9r4Rq=14oBUqC-=xx6J3EGpAfecG-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/28/14 19:35, Vasiliy Tolstov wrote:
-> [292670.940309] WARNING: at
-> /tmp/buildd/linux-3.10.11/net/sched/sch_generic.c:255
-> dev_watchdog+0xe3/0x153()
-> [292670.940359] NETDEV WATCHDOG: ib0 (mlx4_core): transmit queue 0 timed out
+The following series implements percpu counters
+for high frequency counts.
 
-I'm not sure but I think there is a fix in kernel 3.11 for this issue.
+---
 
-Bart.
+Mike Marciniszyn (2):
+      IB/qib: Add percpu counter replacing qib_devdata int_counter
+      IB/qib: Modify software pma counters to use percpu variables
 
+
+ drivers/infiniband/hw/qib/qib.h         |   12 ++++-
+ drivers/infiniband/hw/qib/qib_fs.c      |    1 
+ drivers/infiniband/hw/qib/qib_iba6120.c |   11 +++--
+ drivers/infiniband/hw/qib/qib_iba7220.c |   12 +++--
+ drivers/infiniband/hw/qib/qib_iba7322.c |   37 ++++++-----------
+ drivers/infiniband/hw/qib/qib_init.c    |   68 ++++++++++++++++++++++++++-----
+ drivers/infiniband/hw/qib/qib_mad.c     |   44 ++++++++++++++++----
+ drivers/infiniband/hw/qib/qib_rc.c      |    2 -
+ drivers/infiniband/hw/qib/qib_ruc.c     |    1 
+ drivers/infiniband/hw/qib/qib_ud.c      |    6 +--
+ drivers/infiniband/hw/qib/qib_verbs.c   |    4 +-
+ drivers/infiniband/hw/qib/qib_verbs.h   |   16 +++++--
+ 12 files changed, 149 insertions(+), 65 deletions(-)
+
+-- 
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
