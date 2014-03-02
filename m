@@ -1,473 +1,271 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 18/20] IB/mlx5: Handle page faults
-Date: Sun,  2 Mar 2014 12:49:36 +0200
-Message-ID: <1393757378-16412-19-git-send-email-haggaie@mellanox.com>
+Subject: [RFC 15/20] IB/mlx5: Add mlx5_ib_update_mtt to update page tables after creation
+Date: Sun,  2 Mar 2014 12:49:33 +0200
+Message-ID: <1393757378-16412-16-git-send-email-haggaie@mellanox.com>
 References: <1393757378-16412-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1393757378-16412-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-GN/RETWesp1BDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch implement a page fault handler (leaving the pages pinned as
-of time being). The page fault handler handles initiator and responder
-page faults for UD/RC transports, and for send/receive operations.
+The new function allows updating the page tables of a memory region after it
+was created. This can be used to handle page faults and page invalidations.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Since mlx5_ib_update_mtt will need to work from within page invalidation, so
+it must not block on memory allocation. It employs an atomic memory allocation
+mechanism that is used as a fallback when kmalloc(GFP_ATOMIC) fails.
+
+In order to reuse code from mlx5_ib_populate_pas, the patch splits this
+function and add the needed parameters.
+
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shachar Raindel <raindel-GN/RETWesp1BDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 396 +++++++++++++++++++++++++++++++++++++++
- include/linux/mlx5/qp.h          |   7 +
- 2 files changed, 403 insertions(+)
+ drivers/infiniband/hw/mlx5/mem.c     |  19 +++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   5 ++
+ drivers/infiniband/hw/mlx5/mr.c      | 130 ++++++++++++++++++++++++++++++++++-
+ include/linux/mlx5/device.h          |   1 +
+ 4 files changed, 148 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index f297f14..c6da238 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -30,6 +30,9 @@
-  * SOFTWARE.
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index d760bfb..a1a748e 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -139,11 +139,14 @@ static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
+  * dev - mlx5_ib device
+  * umem - umem to use to fill the pages
+  * page_shift - determines the page size used in the resulting array
++ * offset - offset into the umem to start from
++ * num_pages - total number of pages to fill
+  * pas - bus addresses array to fill
+  * access_flags - access flags to set on all present pages
   */
+-void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+-			  int page_shift, __be64 *pas, int access_flags)
++void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
++			  int page_shift, size_t offset, size_t num_pages,
++			  __be64 *pas, int access_flags)
+ {
+ 	int shift = page_shift - PAGE_SHIFT;
+ 	int mask = (1 << shift) - 1;
+@@ -157,15 +160,16 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 	const bool odp = umem->odp_data != NULL;
  
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_umem_odp.h>
+ 	if (odp) {
+-		int num_pages = ib_umem_num_pages(umem);
+ 		WARN_ON(shift != 0);
+ 		WARN_ON(access_flags != (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE));
+ 		for (i = 0; i < num_pages; ++i) {
+-			dma_addr_t pa = umem->odp_data->dma_list[i];
++			dma_addr_t pa = umem->odp_data->dma_list[offset + i];
+ 			pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
+ 		}
+ 		return;
+ 	}
 +
- #include "mlx5_ib.h"
++	BUG_ON(!odp && offset);
+ #endif
  
- struct workqueue_struct *mlx5_ib_page_fault_wq;
-@@ -94,12 +97,405 @@ static void mlx5_ib_page_fault_resume(struct mlx5_ib_qp *qp,
- 		       qp->mqp.qpn);
+ 	i = 0;
+@@ -188,6 +192,13 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 	}
  }
  
-+/*
-+ * Handle a single data segment in a page-fault WQE.
-+ *
-+ * Returns number of pages retrieved on success. The caller will continue to
-+ * the next data segment.
-+ * Can return the following error codes:
-+ * -EAGAIN to designate a temporary error. The caller will abort handling the
-+ *  page fault and resolve it.
-+ * -EFAULT when there's an error mapping the requested pages. The caller will
-+ *  abort the page fault handling and possibly move the QP to an error state.
-+ * On other errors the QP should also be closed with an error.
-+ */
-+static int pagefault_single_data_segment(struct mlx5_ib_qp *qp,
-+		struct mlx5_ib_pfault *pfault, u32 key, u64 io_virt,
-+		size_t bcnt, u32 *bytes_mapped)
++void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
++			  int page_shift, __be64 *pas, int access_flags)
 +{
-+	struct mlx5_ib_dev *mib_dev = to_mdev(qp->ibqp.pd->device);
-+	int srcu_key;
-+	u64 start_idx;
-+	int npages = 0, ret = 0;
-+	struct mlx5_ib_mr *mr;
-+	srcu_key = srcu_read_lock(&mib_dev->mr_srcu);
-+	mr = mlx5_ib_odp_find_mr_lkey(mib_dev, key);
-+	/*
-+	 * If we didn't find the MR, it means the MR was closed while we were
-+	 * handling the ODP event. In this case we return -EFAULT so that the
-+	 * QP will be closed.
-+	 */
-+	if (!mr || !mr->ibmr.pd) {
-+		pr_err("Failed to find relevant mr for lkey=0x%06x, probably the MR was destroyed\n",
-+		       key);
-+		ret = -EFAULT;
-+		goto srcu_unlock;
-+	}
-+	if (!mr->umem->odp_data) {
-+		pr_debug("skipping non ODP MR (lkey=0x%06x) in page fault handler.\n",
-+			 key);
-+		if (bytes_mapped)
-+			*bytes_mapped +=
-+				(bcnt - pfault->mpfault.bytes_committed);
-+		goto srcu_unlock;
-+	}
-+	if (mr->ibmr.pd != qp->ibqp.pd) {
-+		pr_err("Page-fault with different PDs for QP and MR.\n");
-+		ret = -EFAULT;
-+		goto srcu_unlock;
-+	}
-+
-+	/*
-+	 * Avoid branches - this code will perform correctly
-+	 * in all iterations (in iteration 2 and above,
-+	 * gather_commit == 0).
-+	 */
-+	io_virt += pfault->mpfault.bytes_committed;
-+	bcnt -= pfault->mpfault.bytes_committed;
-+
-+	start_idx = (io_virt - (mr->mmr.iova & PAGE_MASK)) >> PAGE_SHIFT;
-+
-+	npages = ib_umem_odp_map_dma_pages(mr->umem, io_virt, bcnt,
-+			mr->umem->writable ?
-+				(ODP_READ_ALLOWED_BIT | ODP_WRITE_ALLOWED_BIT) :
-+				ODP_READ_ALLOWED_BIT,
-+			atomic_read(&mr->umem->odp_data->notifiers_seq));
-+	if (npages < 0) {
-+		ret = npages;
-+		goto srcu_unlock;
-+	}
-+
-+	if (npages > 0) {
-+		mutex_lock(&mr->umem->odp_data->umem_mutex);
-+		/*
-+		 * No need to check whether the MTTs really belong to
-+		 * this MR, since ib_umem_odp_map_dma_pages already
-+		 * checks this.
-+		 */
-+		ret = mlx5_ib_update_mtt(mr, start_idx, npages, 0);
-+		mutex_unlock(&mr->umem->odp_data->umem_mutex);
-+
-+		if (bytes_mapped) {
-+			u32 new_mappings = npages * PAGE_SIZE -
-+				(io_virt - round_down(io_virt, PAGE_SIZE));
-+			*bytes_mapped += min_t(u32, new_mappings, bcnt);
-+		}
-+	}
-+	if (ret) {
-+		pr_err("Failed to update mkey page tables\n");
-+		ret = -EAGAIN;
-+		goto srcu_unlock;
-+	}
-+
-+srcu_unlock:
-+	srcu_read_unlock(&mib_dev->mr_srcu, srcu_key);
-+	pfault->mpfault.bytes_committed = 0;
-+	return ret ? ret : npages;
++	return __mlx5_ib_populate_pas(dev, umem, page_shift, 0,
++				      ib_umem_num_pages(umem), pas,
++				      access_flags);
 +}
-+
-+/**
-+ * Parse a series of data segments for page fault handling.
-+ *
-+ * @qp the QP on which the fault occurred.
-+ * @pfault contains page fault information.
-+ * @wqe points at the first data segment in the WQE.
-+ * @wqe_end points after the end of the WQE.
-+ * @bytes_mapped receives the number of bytes that the function was able to
-+ *               map. This allows the caller to decide intelligently whether
-+ *               enough memory was mapped to resolve the page fault
-+ *               successfully (e.g. enough for the next MTU, or the entire
-+ *               WQE).
-+ * @total_wqe_bytes receives the total data size of this WQE in bytes (minus
-+ *                  the committed bytes).
-+ *
-+ * Returns the number of pages loaded if positive, zero for an empty WQE, or a
-+ * negative error code.
-+ */
-+static int pagefault_data_segments(struct mlx5_ib_qp *qp,
-+		struct mlx5_ib_pfault *pfault, void *wqe, void *wqe_end,
-+		u32 *bytes_mapped, u32 *total_wqe_bytes, int receive_queue)
-+{
-+	int ret = 0, npages = 0;
-+	u64 io_virt;
-+	u32 key;
-+	u32 byte_count;
-+	size_t bcnt;
-+	int inline_segment;
-+
-+	/* Skip SRQ next-WQE segment. */
-+	if (receive_queue && qp->ibqp.srq)
-+		wqe += sizeof(struct mlx5_wqe_srq_next_seg);
-+
-+	if (bytes_mapped)
-+		*bytes_mapped = 0;
-+	if (total_wqe_bytes)
-+		*total_wqe_bytes = 0;
-+
-+	while (wqe < wqe_end) {
-+		struct mlx5_wqe_data_seg *dseg = wqe;
-+		io_virt = be64_to_cpu(dseg->addr);
-+		key = be32_to_cpu(dseg->lkey);
-+		byte_count = be32_to_cpu(dseg->byte_count);
-+		inline_segment = !!(byte_count &  MLX5_INLINE_SEG);
-+		bcnt	       = byte_count & ~MLX5_INLINE_SEG;
-+
-+		if (inline_segment) {
-+			bcnt = bcnt & MLX5_WQE_INLINE_SEG_BYTE_COUNT_MASK;
-+			wqe += ALIGN(sizeof(struct mlx5_wqe_inline_seg) + bcnt,
-+				     16);
-+		} else {
-+			wqe += sizeof(*dseg);
-+		}
-+
-+		/* receive WQE end of sg list. */
-+		if (receive_queue && bcnt == 0 && key == MLX5_INVALID_LKEY &&
-+		    io_virt == 0)
-+			break;
-+
-+		if (!inline_segment && total_wqe_bytes) {
-+			*total_wqe_bytes += bcnt - min_t(size_t, bcnt,
-+					pfault->mpfault.bytes_committed);
-+		}
-+
-+		/* A zero length data segment designates a length of 2GB. */
-+		if (bcnt == 0)
-+			bcnt = 1U << 31;
-+
-+		if (inline_segment || bcnt <= pfault->mpfault.bytes_committed) {
-+			pfault->mpfault.bytes_committed -=
-+				min_t(size_t, bcnt,
-+				      pfault->mpfault.bytes_committed);
-+			continue;
-+		}
-+
-+		ret = pagefault_single_data_segment(qp, pfault,
-+				key, io_virt, bcnt, bytes_mapped);
-+		if (ret < 0)
-+			break;
-+		npages += ret;
-+	}
-+
-+	return ret < 0 ? ret : npages;
-+}
-+
-+/*
-+ * Parse initiator WQE. Advances the wqe pointer to point at the
-+ * scatter-gather list, and set wqe_end to the end of the WQE.
-+ */
-+static int mlx5_ib_mr_initiator_pfault_handler(
-+	struct mlx5_ib_qp *qp, struct mlx5_ib_pfault *pfault,
-+	void **wqe, void **wqe_end, int wqe_length)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.pd->device);
-+	struct mlx5_wqe_ctrl_seg *ctrl = *wqe;
-+	u16 wqe_index = pfault->mpfault.wqe.wqe_index;
-+	unsigned ds, opcode;
-+#if defined(DEBUG)
-+	u32 ctrl_wqe_index, ctrl_qpn;
-+#endif
-+
-+	ds = be32_to_cpu(ctrl->qpn_ds) & MLX5_WQE_CTRL_DS_MASK;
-+	if (ds * MLX5_WQE_DS_UNITS > wqe_length) {
-+		mlx5_ib_err(dev, "Unable to read the complete WQE. ds = 0x%x, ret = 0x%x\n",
-+			    ds, wqe_length);
-+		return -EFAULT;
-+	}
-+
-+	if (ds == 0) {
-+		mlx5_ib_err(dev, "Got WQE with zero DS. wqe_index=%x, qpn=%x\n",
-+			    wqe_index, qp->mqp.qpn);
-+		return -EFAULT;
-+	}
-+
-+#if defined(DEBUG)
-+	ctrl_wqe_index = (be32_to_cpu(ctrl->opmod_idx_opcode) &
-+			MLX5_WQE_CTRL_WQE_INDEX_MASK) >>
-+			MLX5_WQE_CTRL_WQE_INDEX_SHIFT;
-+	if (wqe_index != ctrl_wqe_index) {
-+		mlx5_ib_err(dev, "Got WQE with invalid wqe_index. wqe_index=0x%x, qpn=0x%x ctrl->wqe_index=0x%x\n",
-+			    wqe_index, qp->mqp.qpn,
-+			    ctrl_wqe_index);
-+		return -EFAULT;
-+	}
-+
-+	ctrl_qpn = (be32_to_cpu(ctrl->qpn_ds) & MLX5_WQE_CTRL_QPN_MASK) >>
-+		MLX5_WQE_CTRL_QPN_SHIFT;
-+	if (qp->mqp.qpn != ctrl_qpn) {
-+		mlx5_ib_err(dev, "Got WQE with incorrect QP number. wqe_index=0x%x, qpn=0x%x ctrl->qpn=0x%x\n",
-+			    wqe_index, qp->mqp.qpn,
-+			    ctrl_qpn);
-+		return -EFAULT;
-+	}
-+#endif /* DEBUG */
-+
-+	*wqe_end = *wqe + ds * MLX5_WQE_DS_UNITS;
-+	*wqe += sizeof(*ctrl);
-+
-+	opcode = be32_to_cpu(ctrl->opmod_idx_opcode) &
-+		 MLX5_WQE_CTRL_OPCODE_MASK;
-+	switch (qp->ibqp.qp_type) {
-+	case IB_QPT_RC:
-+		switch (opcode) {
-+		case MLX5_OPCODE_SEND:
-+		case MLX5_OPCODE_SEND_IMM:
-+		case MLX5_OPCODE_SEND_INVAL:
-+			if (!(dev->odp_caps.per_transport_caps.rc_odp_caps &
-+			      IB_ODP_SUPPORT_SEND))
-+				goto invalid_transport_or_opcode;
-+			break;
-+		case MLX5_OPCODE_RDMA_WRITE:
-+		case MLX5_OPCODE_RDMA_WRITE_IMM:
-+			if (!(dev->odp_caps.per_transport_caps.rc_odp_caps &
-+			      IB_ODP_SUPPORT_WRITE))
-+				goto invalid_transport_or_opcode;
-+			*wqe += sizeof(struct mlx5_wqe_raddr_seg);
-+			break;
-+		default:
-+			goto invalid_transport_or_opcode;
-+		}
-+		break;
-+	case IB_QPT_UD:
-+		switch (opcode) {
-+		case MLX5_OPCODE_SEND:
-+		case MLX5_OPCODE_SEND_IMM:
-+			if (!(dev->odp_caps.per_transport_caps.ud_odp_caps &
-+			      IB_ODP_SUPPORT_SEND))
-+				goto invalid_transport_or_opcode;
-+			*wqe += sizeof(struct mlx5_wqe_datagram_seg);
-+			break;
-+		default:
-+			goto invalid_transport_or_opcode;
-+		}
-+		break;
-+	default:
-+invalid_transport_or_opcode:
-+		mlx5_ib_err(dev, "ODP fault on QP of an unsupported opcode or transport. transport: 0x%x opcode: 0x%x.\n",
-+			    qp->ibqp.qp_type, opcode);
-+		return -EFAULT;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Parse responder WQE. Advances the wqe pointer to point at the
-+ * scatter-gather list, and set wqe_end to the end of the WQE.
-+ */
-+static int mlx5_ib_mr_responder_pfault_handler(
-+	struct mlx5_ib_qp *qp, struct mlx5_ib_pfault *pfault,
-+	void **wqe, void **wqe_end, int wqe_length)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.pd->device);
-+	struct mlx5_ib_wq *wq = &qp->rq;
-+	int wqe_size = 1 << wq->wqe_shift;
-+
-+	if (qp->ibqp.srq) {
-+		mlx5_ib_err(dev, "ODP fault on SRQ is not supported\n");
-+		return -EFAULT;
-+	}
-+
-+	if (qp->wq_sig) {
-+		mlx5_ib_err(dev, "ODP fault with WQE signatures is not supported\n");
-+		return -EFAULT;
-+	}
-+
-+	if (wqe_size > wqe_length) {
-+		mlx5_ib_err(dev, "Couldn't read all of the receive WQE's content\n");
-+		return -EFAULT;
-+	}
-+
-+	switch (qp->ibqp.qp_type) {
-+	case IB_QPT_RC:
-+		if (!(dev->odp_caps.per_transport_caps.rc_odp_caps &
-+		      IB_ODP_SUPPORT_RECV))
-+			goto invalid_transport_or_opcode;
-+		break;
-+	default:
-+invalid_transport_or_opcode:
-+		mlx5_ib_err(dev, "ODP fault on QP of an unsupported transport. transport: 0x%x\n",
-+			    qp->ibqp.qp_type);
-+		return -EFAULT;
-+	}
-+
-+	*wqe_end = *wqe + wqe_size;
-+
-+	return 0;
-+}
-+
-+static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_qp *qp,
-+					  struct mlx5_ib_pfault *pfault)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.pd->device);
-+	int ret;
-+	void *wqe, *wqe_end;
-+	u32 bytes_mapped, total_wqe_bytes;
-+	char *buffer = NULL;
-+	int resume_with_error = 0;
-+	u16 wqe_index = pfault->mpfault.wqe.wqe_index;
-+	int requestor = pfault->mpfault.flags & MLX5_PFAULT_REQUESTOR;
-+
-+	buffer = (char *)__get_free_page(GFP_KERNEL);
-+	if (!buffer) {
-+		mlx5_ib_err(dev, "Error allocating memory for IO page fault handling.\n");
-+		resume_with_error = 1;
-+		goto resolve_page_fault;
-+	}
-+
-+	ret = mlx5_ib_read_user_wqe(qp, requestor, wqe_index, buffer,
-+				    PAGE_SIZE);
-+	if (ret < 0) {
-+		mlx5_ib_err(dev, "Failed reading a WQE following page fault, error=%x, wqe_index=%x, qpn=%x\n",
-+			    -ret, wqe_index, qp->mqp.qpn);
-+		resume_with_error = 1;
-+		goto resolve_page_fault;
-+	}
-+
-+	wqe = buffer;
-+	if (requestor)
-+		ret = mlx5_ib_mr_initiator_pfault_handler(qp, pfault, &wqe,
-+				&wqe_end, ret);
-+	else
-+		ret = mlx5_ib_mr_responder_pfault_handler(qp, pfault, &wqe,
-+				&wqe_end, ret);
-+	if (ret < 0) {
-+		resume_with_error = 1;
-+		goto resolve_page_fault;
-+	}
-+
-+	if (wqe >= wqe_end) {
-+		mlx5_ib_err(dev, "ODP fault on invalid WQE.\n");
-+		resume_with_error = 1;
-+		goto resolve_page_fault;
-+	}
-+
-+	ret = pagefault_data_segments(qp, pfault, wqe, wqe_end, &bytes_mapped,
-+			&total_wqe_bytes, !requestor);
-+	if (ret == -EAGAIN) {
-+		goto resolve_page_fault;
-+	} else if (ret < 0 || total_wqe_bytes > bytes_mapped) {
-+		mlx5_ib_err(dev, "Error getting user pages for page fault. Error: 0x%x\n",
-+			    -ret);
-+		resume_with_error = 1;
-+		goto resolve_page_fault;
-+	}
-+
-+resolve_page_fault:
-+	mlx5_ib_page_fault_resume(qp, pfault, resume_with_error);
-+	mlx5_ib_dbg(dev, "PAGE FAULT completed. QP 0x%x resume_with_error=%d, flags: 0x%x\n",
-+		    qp->mqp.qpn, resume_with_error, pfault->mpfault.flags);
-+
-+	free_page((unsigned long)buffer);
-+}
-+
- void mlx5_ib_mr_pfault_handler(struct mlx5_ib_qp *qp,
- 			       struct mlx5_ib_pfault *pfault)
+ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
  {
- 	u8 event_subtype = pfault->mpfault.event_subtype;
- 
- 	switch (event_subtype) {
-+	case MLX5_PFAULT_SUBTYPE_WQE:
-+		mlx5_ib_mr_wqe_pfault_handler(qp, pfault);
-+		break;
- 	default:
- 		pr_warn("Invalid page fault event subtype: 0x%x\n",
- 			event_subtype);
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index 52a2ea8..cbf544b1 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -183,7 +183,12 @@ struct mlx5_wqe_ctrl_seg {
+ 	u64 page_size;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index dd93790..f48a511 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -537,6 +537,8 @@ struct ib_mr *mlx5_ib_get_dma_mr(struct ib_pd *pd, int acc);
+ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
+ 				  struct ib_udata *udata);
++int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index,
++		       int npages, int zap);
+ int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
+ int mlx5_ib_destroy_mr(struct ib_mr *ibmr);
+ struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
+@@ -568,6 +570,9 @@ int mlx5_ib_init_fmr(struct mlx5_ib_dev *dev);
+ void mlx5_ib_cleanup_fmr(struct mlx5_ib_dev *dev);
+ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
+ 			int *ncont, int *order);
++void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
++			  int page_shift, size_t offset, size_t num_pages,
++			  __be64 *pas, int access_flags);
+ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 			  int page_shift, __be64 *pas, int access_flags);
+ void mlx5_ib_copy_pas(u64 *old, u64 *new, int step, int num);
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 5ea099e..1071cb5 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -44,9 +44,12 @@ enum {
+ 	MAX_PENDING_REG_MR = 8,
  };
  
- #define MLX5_WQE_CTRL_DS_MASK 0x3f
-+#define MLX5_WQE_CTRL_QPN_MASK 0xffffff00
-+#define MLX5_WQE_CTRL_QPN_SHIFT 8
- #define MLX5_WQE_DS_UNITS 16
-+#define MLX5_WQE_CTRL_OPCODE_MASK 0xff
-+#define MLX5_WQE_CTRL_WQE_INDEX_MASK 0x00ffff00
-+#define MLX5_WQE_CTRL_WQE_INDEX_SHIFT 8
- 
- struct mlx5_wqe_xrc_seg {
- 	__be32			xrc_srqn;
-@@ -288,6 +293,8 @@ struct mlx5_wqe_signature_seg {
- 	u8	rsvd1[11];
- };
- 
-+#define MLX5_WQE_INLINE_SEG_BYTE_COUNT_MASK 0x3ff
+-enum {
+-	MLX5_UMR_ALIGN	= 2048
+-};
++#define MLX5_UMR_ALIGN 2048
 +
- struct mlx5_wqe_inline_seg {
- 	__be32	byte_count;
- };
++static __be64 mlx5_ib_update_mtt_emergency_buffer[
++		MLX5_UMR_MTT_MIN_CHUNK_SIZE/sizeof(__be64)]
++	__aligned(MLX5_UMR_ALIGN);
++static DEFINE_MUTEX(mlx5_ib_update_mtt_emergency_buffer_mutex);
+ 
+ static int order2idx(struct mlx5_ib_dev *dev, int order)
+ {
+@@ -815,6 +818,127 @@ free_mr:
+ 	return mr;
+ }
+ 
++int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
++		       int zap)
++{
++	struct mlx5_ib_dev *dev = mr->dev;
++	struct device *ddev = dev->ib_dev.dma_device;
++	struct umr_common *umrc = &dev->umrc;
++	struct mlx5_ib_umr_context umr_context;
++	struct ib_umem *umem = mr->umem;
++	int size;
++	__be64 *pas;
++	dma_addr_t dma;
++	struct ib_send_wr wr, *bad;
++	struct mlx5_umr_wr *umrwr = (struct mlx5_umr_wr *)&wr.wr.fast_reg;
++	struct ib_sge sg;
++	int err = 0;
++	const int page_index_alignment = MLX5_UMR_MTT_ALIGNMENT / sizeof(u64);
++	const int page_index_mask = page_index_alignment - 1;
++	size_t pages_mapped = 0;
++	size_t pages_to_map = 0;
++	size_t pages_iter = 0;
++	int use_emergency_buf = 0;
++
++	/* UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes,
++	 * so we need to align the offset and length accordingly */
++	if (start_page_index & page_index_mask) {
++		npages += start_page_index & page_index_mask;
++		start_page_index &= ~page_index_mask;
++	}
++
++	pages_to_map = ALIGN(npages, page_index_alignment);
++
++	if (start_page_index + pages_to_map > MLX5_MAX_UMR_PAGES)
++		return -EINVAL;
++
++	size = sizeof(u64) * pages_to_map;
++	size = min_t(int, PAGE_SIZE, size);
++	/* We allocate with GFP_ATOMIC to avoid recursion into page-reclaim
++	 * code, when we are called from an invalidation. The pas buffer must
++	 * be 2k-aligned for Connect-IB. */
++	pas = (__be64 *)get_zeroed_page(GFP_ATOMIC);
++	if (!pas) {
++		mlx5_ib_warn(dev, "unable to allocate memory during MTT update, falling back to slower chunked mechanism.\n");
++		pas = mlx5_ib_update_mtt_emergency_buffer;
++		size = MLX5_UMR_MTT_MIN_CHUNK_SIZE;
++		use_emergency_buf = 1;
++		mutex_lock(&mlx5_ib_update_mtt_emergency_buffer_mutex);
++		memset(pas, 0, size);
++	}
++	pages_iter = size / sizeof(u64);
++	dma = dma_map_single(ddev, pas, size,
++				 DMA_TO_DEVICE);
++	if (dma_mapping_error(ddev, mr->dma)) {
++		mlx5_ib_err(dev, "unable to map DMA during MTT update.\n");
++		err = -ENOMEM;
++		goto free_pas;
++	}
++
++	for (pages_mapped = 0;
++	     pages_mapped < pages_to_map && !err;
++	     pages_mapped += pages_iter, start_page_index += pages_iter) {
++		dma_sync_single_for_cpu(ddev, dma, size, DMA_TO_DEVICE);
++
++		npages = min_t(size_t,
++			       pages_iter,
++			       ib_umem_num_pages(umem) - start_page_index);
++
++		if (!zap) {
++			__mlx5_ib_populate_pas(dev, umem, PAGE_SHIFT,
++					       start_page_index, npages, pas,
++					       MLX5_IB_MTT_PRESENT);
++			/* Clear padding after the pages brought from the
++			 * umem. */
++			memset(pas + npages, 0, size - npages * sizeof(u64));
++		}
++
++		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
++
++		memset(&wr, 0, sizeof(wr));
++		wr.wr_id = (u64)(unsigned long)&umr_context;
++
++		sg.addr = dma;
++		sg.length = ALIGN(npages * sizeof(u64),
++				MLX5_UMR_MTT_ALIGNMENT);
++		sg.lkey = dev->umrc.mr->lkey;
++
++		wr.send_flags = MLX5_IB_SEND_UMR_CHECK_FREE |
++				MLX5_IB_SEND_UMR_UPDATE_MTT;
++		wr.sg_list = &sg;
++		wr.num_sge = 1;
++		wr.opcode = MLX5_IB_WR_UMR;
++		umrwr->npages = sg.length / sizeof(u64);
++		umrwr->page_shift = PAGE_SHIFT;
++		umrwr->mkey = mr->mmr.key;
++		umrwr->target.offset = start_page_index;
++
++		mlx5_ib_init_umr_context(&umr_context);
++		down(&umrc->sem);
++		err = ib_post_send(umrc->qp, &wr, &bad);
++		if (err) {
++			mlx5_ib_err(dev, "UMR post send failed, err %d\n", err);
++		} else {
++			wait_for_completion(&umr_context.done);
++			if (umr_context.status != IB_WC_SUCCESS) {
++				mlx5_ib_err(dev, "UMR completion failed, code %d\n",
++					    umr_context.status);
++				err = -EFAULT;
++			}
++		}
++		up(&umrc->sem);
++	}
++	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
++
++free_pas:
++	if (!use_emergency_buf)
++		free_page((unsigned long)pas);
++	else
++		mutex_unlock(&mlx5_ib_update_mtt_emergency_buffer_mutex);
++
++	return err;
++}
++
+ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+ 				     u64 length, struct ib_umem *umem,
+ 				     int npages, int page_shift,
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index e0abd4e..852ef51 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -151,6 +151,7 @@ enum {
+ 
+ #define MLX5_UMR_MTT_ALIGNMENT 0x40
+ #define MLX5_UMR_MTT_MASK      (MLX5_UMR_MTT_ALIGNMENT - 1)
++#define MLX5_UMR_MTT_MIN_CHUNK_SIZE MLX5_UMR_MTT_ALIGNMENT
+ 
+ enum mlx5_event {
+ 	MLX5_EVENT_TYPE_COMP		   = 0x0,
 -- 
 1.7.11.2
 
