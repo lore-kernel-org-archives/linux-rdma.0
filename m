@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 13/20] IB/mlx5: Implement the ODP capability query verb
-Date: Sun,  2 Mar 2014 12:49:31 +0200
-Message-ID: <1393757378-16412-14-git-send-email-haggaie@mellanox.com>
+Subject: [RFC 07/20] IB/mlx5: Add MR to radix tree in reg_mr_callback
+Date: Sun,  2 Mar 2014 12:49:25 +0200
+Message-ID: <1393757378-16412-8-git-send-email-haggaie@mellanox.com>
 References: <1393757378-16412-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1393757378-16412-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,171 +10,48 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The patch adds infrastructure to support the ODP capability query verb in the
-mlx5 driver. The verb will read the capabilities from the device, and enable
-only those capabilities that both the driver and the device supports.
-At this point ODP is not supported, so no capability is copied from the
-device, but the patch exposes the global ODP device capability bit to
-designate that the new verb can be called.
+For memory regions that are allocated using reg_umr, the suffix of
+mlx5_core_create_mkey isn't being called. Instead the creation is completed in
+a callback function (reg_mr_callback). This means that these MRs aren't being
+added to the MR radix tree. The patch add them in the callback.
 
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+A later patch that adds page fault handling uses the MR radix tree to find the
+MR pointer given an key that is read from the page fault event from hardware,
+or from the WQE that caused the page fault. Therefore we need all MRs,
+including those created with the reg_mr_callback to be in that tree.
+
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/Makefile  |  1 +
- drivers/infiniband/hw/mlx5/main.c    | 13 +++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  8 +++++
- drivers/infiniband/hw/mlx5/odp.c     | 69 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 91 insertions(+)
- create mode 100644 drivers/infiniband/hw/mlx5/odp.c
+ drivers/infiniband/hw/mlx5/mr.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
-index 4ea0135..27a7015 100644
---- a/drivers/infiniband/hw/mlx5/Makefile
-+++ b/drivers/infiniband/hw/mlx5/Makefile
-@@ -1,3 +1,4 @@
- obj-$(CONFIG_MLX5_INFINIBAND)	+= mlx5_ib.o
- 
- mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o
-+mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 7b9c078..f8015ac 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -318,6 +318,12 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 					   props->max_mcast_grp;
- 	props->max_map_per_fmr = INT_MAX; /* no limit in ConnectIB */
- 
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	if (dev->mdev.caps.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG)
-+		props->device_cap_flags |= IB_DEVICE_ON_DEMAND_PAGING;
-+	props->odp_caps = dev->odp_caps;
-+#endif
-+
- out:
- 	kfree(in_mad);
- 	kfree(out_mad);
-@@ -1397,6 +1403,10 @@ static int init_one(struct pci_dev *pdev,
- 		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	dev->ib_dev.uverbs_ex_cmd_mask =
-+		(1ull << IB_USER_VERBS_EX_CMD_QUERY_ODP_CAPS);
-+#endif
- 
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
-@@ -1441,6 +1451,9 @@ static int init_one(struct pci_dev *pdev,
- 	dev->ib_dev.alloc_fast_reg_page_list = mlx5_ib_alloc_fast_reg_page_list;
- 	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
- 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	mlx5_ib_internal_query_odp_caps(dev);
-+#endif
- 
- 	if (mdev->caps.flags & MLX5_DEV_CAP_FLAG_XRC) {
- 		dev->ib_dev.alloc_xrcd = mlx5_ib_alloc_xrcd;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 29f58c1..767e791 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -392,6 +392,9 @@ struct mlx5_ib_dev {
- 	struct mlx5_mr_cache		cache;
- 	struct timer_list		delay_timer;
- 	int				fill_delay;
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	struct ib_odp_caps	odp_caps;
-+#endif
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-@@ -569,6 +572,11 @@ void mlx5_umr_cq_handler(struct ib_cq *cq, void *cq_context);
- int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
- 			    struct ib_mr_status *mr_status);
- 
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+int mlx5_ib_query_odp_caps(struct ib_device *ibdev, struct ib_odp_caps *caps);
-+int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev);
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-+
- static inline void init_query_mad(struct ib_smp *mad)
- {
- 	mad->base_version  = 1;
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-new file mode 100644
-index 0000000..71ef604
---- /dev/null
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -0,0 +1,69 @@
-+/*
-+ * Copyright (c) 2014 Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include "mlx5_ib.h"
-+
-+#define COPY_ODP_BIT_MLX_TO_IB(reg, ib_caps, field_name, bit_name) do {	\
-+	if (be32_to_cpu(reg.field_name) & MLX5_ODP_SUPPORT_##bit_name)	\
-+		ib_caps->field_name |= IB_ODP_SUPPORT_##bit_name;	\
-+} while (0)
-+
-+int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev)
-+{
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 24a68aa..f447257 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -73,6 +73,8 @@ static void reg_mr_callback(int status, void *context)
+ 	struct mlx5_cache_ent *ent = &cache->ent[c];
+ 	u8 key;
+ 	unsigned long flags;
++	struct mlx5_mr_table *table = &dev->mdev.priv.mr_table;
 +	int err;
-+	struct mlx5_odp_caps hw_caps;
-+	struct ib_odp_caps *caps = &dev->odp_caps;
+ 
+ 	spin_lock_irqsave(&ent->lock, flags);
+ 	ent->pending--;
+@@ -107,6 +109,13 @@ static void reg_mr_callback(int status, void *context)
+ 	ent->cur++;
+ 	ent->size++;
+ 	spin_unlock_irqrestore(&ent->lock, flags);
 +
-+	memset(caps, 0, sizeof(*caps));
-+
-+	if (!(dev->mdev.caps.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG))
-+		return 0;
-+
-+	err = mlx5_query_odp_caps(&dev->mdev, &hw_caps);
++	write_lock_irq(&table->lock);
++	err = radix_tree_insert(&table->tree, mlx5_base_mkey(mr->mmr.key),
++				&mr->mmr);
 +	if (err)
-+		goto out;
-+
-+	/* At this point we would copy the capability bits that the driver
-+	 * supports from the hw_caps struct to the caps struct. However, no
-+	 * such capabilities are supported so far. */
-+out:
-+	return err;
-+}
-+
-+int mlx5_ib_query_odp_caps(struct ib_device *ibdev, struct ib_odp_caps *caps)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+
-+	memcpy(caps, &dev->odp_caps, sizeof(*caps));
-+
-+	return 0;
-+}
++		pr_err("Error inserting to mr tree. 0x%x\n", -err);
++	write_unlock_irq(&table->lock);
+ }
+ 
+ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
 -- 
 1.7.11.2
 
