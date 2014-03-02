@@ -1,45 +1,203 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: issues with the rdma-cm server side mapping of IP to GID
-Date: Sun, 2 Mar 2014 10:51:19 +0200
-Message-ID: <5312F107.2000404@mellanox.com>
-References: <530C51EF.2000509@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388D1F0BD@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC 00/20] On demand paging
+Date: Sun,  2 Mar 2014 12:49:18 +0200
+Message-ID: <1393757378-16412-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D1F0BD-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/03/2014 01:50, Hefty, Sean wrote:
->> Such situation can happen in the following cases:
->>
->> 1. net.ipv4.conf.default.arp_ignore equals 0 (the default)
->> 2. server side bonding/teaming fail-over when the Gratitous ARP sent was
->> lost
->> 3. re-order of ibM net-devices mapping to HCA PCI devices after server
->> boot/crash
->> 4. etc more
->>
->> Basically, when the rdma-cm observes difference between the destination GID as present in the IB path within the CM REQ to the one resolved locally,  we should at least print a warning. Perhaps, we should reject the connection request? (in that case, I wasn't sure what would be the appropriate reject reason), any more ideas?
-> I'm not sure that this results in a single error case.
+The following set of patches implements on-demand paging (ODP) support
+in the RDMA stack and in the mlx5_ib Infiniband driver.
 
-Sorry... I'm not sure to follow, can you elaborate a bit more?
+What is on-demand paging?
 
-> Can the kernel rdma_cm check for net.ipv4.default.arp_ignore on startup and at least print a warning if that is wrong?
+Applications register memory with an RDMA adapter using system calls,
+and subsequently post IO operations that refer to the corresponding
+virtual addresses directly to HW. Until now, this was achieved by
+pinning the memory during the registration calls. The goal of on demand
+paging is to avoid pinning the pages of registered memory regions (MRs).
+This will allow users the same flexibility they get when swapping any
+other part of their processes address spaces. Instead of requiring the
+entire MR to fit in physical memory, we can allow the MR to be larger,
+and only fit the current working set in physical memory.
 
-I am not sure, and anyway, please note that I brought at least two more 
-use cases where the problem happens
+This can make programming with RDMA much simpler. Today, developers that
+are working with more data than their RAM can hold need either to
+deregister and reregister memory regions throughout their process's
+life, or keep a single memory region and copy the data to it. On demand
+paging will allow these developers to register a single MR at the
+beginning of their process's life, and let the operating system manage
+which pages needs to be fetched at a given time. In the future, we might
+be able to provide a single memory access key for each process that
+would provide the entire process's address as one large memory region,
+and the developers wouldn't need to register memory regions at all.
 
-- following server side bonding fail-over
+How does page faults generally work?
 
-- following server side reboot after which the PCI ordering changes 
-between two HCAs and hence ibM devices change their PCI association
+With pinned memory regions, the driver would map the virtual addresses
+to bus addresses, and pass these addresses to the HCA to associate them
+with the new MR. With ODP, the driver is now allowed to mark some of the
+pages in the MR as not-present. When the HCA attempts to perform memory
+access for a communication operation, it notices the page is not
+present, and raises a page fault event to the driver. In addition, the
+HCA performs whatever operation is required by the transport protocol to
+suspend communication until the page fault is resolved.
 
-Or.
+Upon receiving the page fault interrupt, the driver first needs to know
+on which virtual address the page fault occurred, and on what memory
+key. When handling send/receive operations, this information is inside
+the work queue. The driver reads the needed work queue elements, and
+parses them to gather the address and memory key. For other RDMA
+operations, the event generated by the HCA only contains the virtual
+address and rkey, as there are no work queue elements involved.
 
+Having the rkey, the driver can find the relevant memory region in its
+data structures, and calculate the actual pages needed to complete the
+operation. It then uses get_user_pages to retrieve the needed pages back
+to the memory, obtains dma mapping, and passes the addresses to the HCA.
+Finally, the driver notifies the HCA it can continue operation on the
+queue pair that encountered the page fault. The pages that
+get_user_pages returned are unpinned immediately by releasing their
+reference.
+
+How are invalidations handled?
+
+The patches add infrastructure to subscribe the RDMA stack as an mmu
+notifier client [1]. Each process that uses ODP register a notifier client.
+When receiving page invalidation notifications, they are passed to the
+mlx5_ib driver, which updates the HCA with new, not-present mappings.
+Only after flushing the HCA's page table caches the notifier returns,
+allowing the kernel to release the pages.
+
+What operations are supported?
+
+Currently only send, receive and RDMA write operations are supported on the
+RC protocol, and also send operations on the UD protocol. We hope to
+implement support for other transports and operations in the future.
+
+The structure of the patchset
+
+First, the patches apply against the for-next branch in the
+roland/infiniband.git tree, with the signature patches [2] applied, and also
+the patch that refactors umem to use a linear SG table [3].
+
+Patches 1-5:
+The first set of patches adds page fault support to the IB core layer,
+allowing MRs to be registered without their pages to be pinned. The first
+patch adds capability bits, configuration options, and a method for
+querying whether the paging capabilities from user-space. The next two
+patches (2-3) make some necessary changes to the ib_umem type. Patches
+4 and 5 add paging support and invalidation support respectively.
+
+Patches 6-9:
+The next set of patches contain some minor fixes to the mlx5 driver that
+were needed. Patches 6-7 fix a two bugs that may affect the paging code,
+and patches 8-9 add code to store missing information in mlx5 structures
+that is needed for the paging code to work correctly.
+
+Patches 10-16:
+This set of patches add small size new functionality to the mlx5 driver and
+builds toward paging support. Patches 10-11 make changes to UMR mechanism
+(an internal mechanism used by mlx5 to update device page mappings).
+Patch 12 adds infrastructure support for page fault handling to the
+mlx5_core module. Patch 13 queries the device for paging capabilities, and
+patch 15 adds a function to do partial device page table updates. Finally,
+patch 16 adds a helper function to read information from user-space work
+queues in the driver's context.
+
+Patches 17-20:
+The fourth part of this patch set finally adds paging support to the mlx5
+driver. Patch 17 adds in mlx5_ib the infrastructure to handle page faults
+coming from mlx5_core. Patch 18 adds the code to handle UD send page faults
+and RC send and receive page faults. Patch 19 adds support for page faults
+caused by RDMA write operations, and patch 20 adds invalidation support to
+the mlx5 driver, allowing pages to be unmapped dynamically.
+
+[1] Integrating KVM with the Linux Memory Management (presentation),
+    Andrea Archangeli
+    http://www.linux-kvm.org/wiki/images/3/33/KvmForum2008%24kdf2008_15.pdf
+
+[2] [PATCH v5 00/10] Introduce Signature feature
+    http://marc.info/?l=linux-rdma&m=139315796528067&w=2
+
+[3] [PATCH] IB: Refactor umem to use linear SG table
+    http://marc.info/?l=linux-rdma&m=139090922810663&w=2
+
+Haggai Eran (13):
+  IB/core: Replace ib_umem's offset field with a full address
+  IB/core: Add umem function to read data from user-space
+  IB/mlx5: Fix error handling in reg_umr
+  IB/mlx5: Add MR to radix tree in reg_mr_callback
+  mlx5: Store MR attributes in mlx5_mr_core during creation and after
+    UMR
+  IB/mlx5: Set QP offsets and parameters for user QPs and not just for
+    kernel QPs
+  IB/mlx5: Enhance UMR support to allow partial page table update
+  net/mlx5_core: Add support for page faults events and low level
+    handling
+  IB/mlx5: Implement the ODP capability query verb
+  IB/mlx5: Changes in memory region creation to support on-demand
+    paging
+  IB/mlx5: Add mlx5_ib_update_mtt to update page tables after creation
+  IB/mlx5: Add function to read WQE from user-space
+  IB/mlx5: Handle page faults
+
+Sagi Grimberg (2):
+  IB/core: Add flags for on demand paging support
+  IB/mlx5: Page faults handling infrastructure
+
+Shachar Raindel (5):
+  IB/core: Add support for on demand paging regions
+  IB/core: Implement support for MMU notifiers regarding on demand
+    paging regions
+  IB/mlx5: Refactor UMR to have its own context struct
+  IB/mlx5: Add support for RDMA write responder page faults
+  IB/mlx5: Implement on demand paging by adding support for MMU
+    notifiers
+
+ drivers/infiniband/Kconfig                     |  11 +
+ drivers/infiniband/core/Makefile               |   1 +
+ drivers/infiniband/core/umem.c                 |  63 +-
+ drivers/infiniband/core/umem_odp.c             | 611 +++++++++++++++++++
+ drivers/infiniband/core/umem_rbtree.c          |  94 +++
+ drivers/infiniband/core/uverbs.h               |   1 +
+ drivers/infiniband/core/uverbs_cmd.c           |  84 +++
+ drivers/infiniband/core/uverbs_main.c          |   7 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c   |   2 +-
+ drivers/infiniband/hw/ehca/ehca_mrmw.c         |   2 +-
+ drivers/infiniband/hw/ipath/ipath_mr.c         |   2 +-
+ drivers/infiniband/hw/mlx5/Makefile            |   1 +
+ drivers/infiniband/hw/mlx5/main.c              |  42 +-
+ drivers/infiniband/hw/mlx5/mem.c               |  67 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h           | 124 +++-
+ drivers/infiniband/hw/mlx5/mr.c                | 378 +++++++++---
+ drivers/infiniband/hw/mlx5/odp.c               | 777 +++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/qp.c                | 199 +++++--
+ drivers/infiniband/hw/nes/nes_verbs.c          |   4 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   2 +-
+ drivers/infiniband/hw/qib/qib_mr.c             |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c   |  11 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c   |  35 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c |   8 +-
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c   |   4 +
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c   | 134 ++++-
+ include/linux/mlx5/device.h                    |  73 ++-
+ include/linux/mlx5/driver.h                    |  21 +-
+ include/linux/mlx5/qp.h                        |  63 ++
+ include/rdma/ib_umem.h                         |  29 +-
+ include/rdma/ib_umem_odp.h                     | 156 +++++
+ include/rdma/ib_verbs.h                        |  47 +-
+ include/uapi/rdma/ib_user_verbs.h              |  18 +-
+ 33 files changed, 2917 insertions(+), 156 deletions(-)
+ create mode 100644 drivers/infiniband/core/umem_odp.c
+ create mode 100644 drivers/infiniband/core/umem_rbtree.c
+ create mode 100644 drivers/infiniband/hw/mlx5/odp.c
+ create mode 100644 include/rdma/ib_umem_odp.h
+
+-- 
+1.7.11.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
