@@ -1,76 +1,26 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH v1 10/13] IB/iser: Support T10-PI operations
-Date: Mon, 03 Mar 2014 10:23:44 +0200
-Message-ID: <53143C10.3020905@dev.mellanox.co.il>
-References: <1393499589-15633-1-git-send-email-sagig@mellanox.com> <1393499589-15633-11-git-send-email-sagig@mellanox.com> <531408C8.10107@cs.wisc.edu>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] ipath: Fix potential buffer overrun in sending diag
+ packet routine.
+Date: Mon, 3 Mar 2014 12:22:08 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC211FA846@FMSMSX107.amr.corp.intel.com>
+References: <20140217205430.17335.36028.stgit@phlsvslse11.ph.intel.com>
+ <20140217210120.17335.50718.stgit@phlsvslse11.ph.intel.com>
+ <20140301203028.GJ26071@ngolde.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <531408C8.10107@cs.wisc.edu>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Mike Christie <michaelc@cs.wisc.edu>, Sagi Grimberg <sagig@mellanox.com>
-Cc: roland@kernel.org, nab@linux-iscsi.org, oren@mellanox.com, martin.petersen@oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140301203028.GJ26071-d12P2N94aB+zQB+pC5nmwQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nico Golde <nico-d12P2N94aB+zQB+pC5nmwQ@public.gmane.org>
+Cc: Fabian Yamaguchi <fabs-RB2+QK86ijKzQB+pC5nmwQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/3/2014 6:44 AM, Mike Christie wrote:
-> On 02/27/2014 05:13 AM, Sagi Grimberg wrote:
->> diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
->> index 58e14c7..7fd95fe 100644
->> --- a/drivers/infiniband/ulp/iser/iser_initiator.c
->> +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
->> @@ -62,6 +62,17 @@ static int iser_prepare_read_cmd(struct iscsi_task *task,
->>   	if (err)
->>   		return err;
->>   
->> +	if (scsi_prot_sg_count(iser_task->sc)) {
->> +		struct iser_data_buf *pbuf_in = &iser_task->prot[ISER_DIR_IN];
->> +
->> +		err = iser_dma_map_task_data(iser_task,
->> +					     pbuf_in,
->> +					     ISER_DIR_IN,
->> +					     DMA_FROM_DEVICE);
->> +		if (err)
->> +			return err;
->> +	}
->> +
->>   	if (edtl > iser_task->data[ISER_DIR_IN].data_len) {
->>   		iser_err("Total data length: %ld, less than EDTL: "
->>   			 "%d, in READ cmd BHS itt: %d, conn: 0x%p\n",
->> @@ -113,6 +124,17 @@ iser_prepare_write_cmd(struct iscsi_task *task,
->>   	if (err)
->>   		return err;
->>   
->> +	if (scsi_prot_sg_count(iser_task->sc)) {
->> +		struct iser_data_buf *pbuf_out = &iser_task->prot[ISER_DIR_OUT];
->> +
->> +		err = iser_dma_map_task_data(iser_task,
->> +					     pbuf_out,
->> +					     ISER_DIR_OUT,
->> +					     DMA_TO_DEVICE);
->> +		if (err)
->> +			return err;
->> +	}
->> +
->
-> The xmit_task callout does handle failures like EINVAL. If the above map
-> calls fail then you would get infinite retries. You would currently want
-> to do the mapping in the init_task callout instead.
-
-Same applies to the data dma_mapping that already exist in xmit_task today.
-I can move it to init_task, but to me, dma_mapping is not really an init 
-operation
-but part of xmit stage.
-
-> If it makes it easier on the driver implementation then it is ok to
-> modify the xmit_task callers so that they handle multiple error codes
-> for drivers like iser that have the xmit_task callout called from
-> iscsi_queuecommand.
-
-This sounds somewhat better to me.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+PiBXYXMgdGhpcyBwYXRjaCBldmVyIGFjY2VwdGVkIHVwc3RyZWFtPyBJIGRvbid0IHNlZSB0aGlz
+IG9uIGdpdC5rZXJuZWwub3JnLg0KPiANCg0KUm9sYW5kIGlzIHRoZSBSRE1BL0lCIG1haW50YWlu
+ZXIuDQoNClRoZSB0aW1pbmcgaXMgdXAgdG8gaGltLg0KDQpNaWtlDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
