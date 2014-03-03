@@ -1,57 +1,74 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: issues with the rdma-cm server side mapping of IP to GID
-Date: Mon, 3 Mar 2014 17:15:36 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D1F440@ORSMSX109.amr.corp.intel.com>
-References: <530C51EF.2000509@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237388D1F0BD@ORSMSX109.amr.corp.intel.com>
-	<5312F107.2000404@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237388D1F39F@ORSMSX109.amr.corp.intel.com>
- <CAJZOPZ+ZC62FeZCy17ZMkzkxqrTdTrNRDs+nWQQ4Xjb9Sx5T3A@mail.gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCHv2 net-next 09/31] iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE
+ as negative advice.
+Date: Mon, 03 Mar 2014 21:44:24 +0300
+Message-ID: <5314CD88.5060701@cogentembedded.com>
+References: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com> <1393828875-13452-10-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+ZC62FeZCy17ZMkzkxqrTdTrNRDs+nWQQ4Xjb9Sx5T3A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1393828875-13452-10-git-send-email-hariprasad@chelsio.com>
+Sender: netdev-owner@vger.kernel.org
+To: Hariprasad Shenai <hariprasad@chelsio.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: davem@davemloft.net, roland@purestorage.com, kumaras@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, nirranjan@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-> >>> I'm not sure that this results in a single error case.
-> 
-> >> Sorry... I'm not sure to follow, can you elaborate a bit more?
-> 
-> > We don't know what type of device responds to the ARP query.  It could
-> come from an ethernet device.
-> 
-> Yep, this issue is really nasty..., but wait, you mentioned Ethernet,
-> well, if the fabric is IB we do know that the GID in the REQ belongs
-> to an HCA of that server node, b/c the client did route (== path
-> query) resolution based on this DGID and their CM REQ landed in our
-> hands, right?
-> 
-> We could come and say that we adhere to the IP --> GID mapping as
-> present in the CM REQ (GID in the path, IP in the CMA header) and
-> associate the newly created CMA ID with the device/port where this GID
-> resides, no matter what the local IP stack has to say. This would
-> work, but for people that seek HA for their apps, multiple sessions
-> can be created over the same server hca/port where they wanted them to
-> be spreaded...  what we can when such inconsistency is observed by the
-> rdma-cm is the following
-> 
-> 1. print warning to the system log
-> 2. reject the connection request
-> 3. send Gratuitous ARP to update client nodes IPoIB neighbour IP --> GID
-> mapping
-> 
-> I suggest that we 1st debate/agree on something that makes sense with
-> IB and later see how it would work for RoCE
+Hello.
 
-I wasn't referring to RoCE.  I was simply saying that this problem may result in multiple errors.  It's possible that we may never reach the point of sending a CM REQ.  It seems best to try to detect this problem as early as possible.
+On 03/03/2014 09:40 AM, Hariprasad Shenai wrote:
 
-If a CM REQ actually gets to the remote side, it could be rejected as an invalid GID, and the client could retry the request.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Steve Wise <swise@opengridcomputing.com>
+
+> Based on original work by Anand Priyadarshee <anandp@chelsio.com>.
+
+> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> ---
+>   drivers/infiniband/hw/cxgb4/cm.c            |   25 +++++++++++++------------
+>   drivers/net/ethernet/chelsio/cxgb4/t4_msg.h |    1 +
+>   2 files changed, 14 insertions(+), 12 deletions(-)
+
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> index 74a2250..9387f74 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -1648,6 +1648,16 @@ static inline int act_open_has_tid(int status)
+>   	       status != CPL_ERR_ARP_MISS;
+>   }
+>
+> +/*
+> + * Returns whether a CPL status conveys negative advice.
+
+    Could fix the comment style to comply with the networking coding standards 
+while at it.
+
+> + */
+> +static int is_neg_adv(unsigned int status)
+> +{
+> +	return status == CPL_ERR_RTX_NEG_ADVICE ||
+> +	       status == CPL_ERR_PERSIST_NEG_ADVICE ||
+> +	       status == CPL_ERR_KEEPALV_NEG_ADVICE;
+> +}
+> +
+>   #define ACT_OPEN_RETRY_COUNT 2
+>
+>   static int import_ep(struct c4iw_ep *ep, int iptype, __u8 *peer_ip,
+[...]
+> @@ -2266,15 +2276,6 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+>   	return 0;
+>   }
+>
+> -/*
+> - * Returns whether an ABORT_REQ_RSS message is a negative advice.
+> - */
+> -static int is_neg_adv_abort(unsigned int status)
+> -{
+> -	return status == CPL_ERR_RTX_NEG_ADVICE ||
+> -	       status == CPL_ERR_PERSIST_NEG_ADVICE;
+> -}
+> -
+>   static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+>   {
+>   	struct cpl_abort_req_rss *req = cplhdr(skb);
+
+WBR, Sergei
