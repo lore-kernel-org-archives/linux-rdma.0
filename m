@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad@chelsio.com>
-Subject: [PATCHv2 net-next 06/31] iw_cxgb4: cap CQ size at T4_MAX_IQ_SIZE.
-Date: Mon,  3 Mar 2014 12:10:50 +0530
-Message-ID: <1393828875-13452-7-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCHv2 net-next 07/31] iw_cxgb4: Allow loopback connections.
+Date: Mon,  3 Mar 2014 12:10:51 +0530
+Message-ID: <1393828875-13452-8-git-send-email-hariprasad@chelsio.com>
 References: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com>
@@ -12,23 +12,27 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise@opengridcomputing.com>
 
+find_route() must treat loopback as a valid
+egress interface.
+
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 ---
- drivers/infiniband/hw/cxgb4/cq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 88de3aa..c0673ac 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -881,7 +881,7 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev, int entries,
- 	/*
- 	 * Make actual HW queue 2x to avoid cdix_inc overflows.
- 	 */
--	hwentries = entries * 2;
-+	hwentries = min(entries * 2, T4_MAX_IQ_SIZE);
- 
- 	/*
- 	 * Make HW queue at least 64 entries so GTS updates aren't too
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index d286bde..360807e 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -400,7 +400,8 @@ static struct dst_entry *find_route(struct c4iw_dev *dev, __be32 local_ip,
+ 	n = dst_neigh_lookup(&rt->dst, &peer_ip);
+ 	if (!n)
+ 		return NULL;
+-	if (!our_interface(dev, n->dev)) {
++	if (!our_interface(dev, n->dev) &&
++	    !(n->dev->flags & IFF_LOOPBACK)) {
+ 		dst_release(&rt->dst);
+ 		return NULL;
+ 	}
 -- 
 1.7.1
