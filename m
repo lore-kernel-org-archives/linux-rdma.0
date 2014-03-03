@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad@chelsio.com>
-Subject: [PATCHv2 net-next 21/31] iw_cxgb4: update snd_seq when sending MPA messages.
-Date: Mon,  3 Mar 2014 12:11:05 +0530
-Message-ID: <1393828875-13452-22-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCHv2 net-next 23/31] iw_cxgb4: drop RX_DATA packets if the endpoint is gone.
+Date: Mon,  3 Mar 2014 12:11:07 +0530
+Message-ID: <1393828875-13452-24-git-send-email-hariprasad@chelsio.com>
 References: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com>
@@ -14,36 +14,21 @@ From: Steve Wise <swise@opengridcomputing.com>
 
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 ---
- drivers/infiniband/hw/cxgb4/cm.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 81fbc6e..11c99a6 100644
+index cbeaa58..2930e91 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -777,6 +777,7 @@ static void send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
- 	start_ep_timer(ep);
- 	state_set(&ep->com, MPA_REQ_SENT);
- 	ep->mpa_attr.initiator = 1;
-+	ep->snd_seq += mpalen;
- 	return;
- }
+@@ -1544,6 +1544,8 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	__u8 status = hdr->status;
  
-@@ -856,6 +857,7 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
- 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
- 	BUG_ON(ep->mpa_skb);
- 	ep->mpa_skb = skb;
-+	ep->snd_seq += mpalen;
- 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
- }
- 
-@@ -940,6 +942,7 @@ static int send_mpa_reply(struct c4iw_ep *ep, const void *pdata, u8 plen)
- 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
- 	ep->mpa_skb = skb;
- 	state_set(&ep->com, MPA_REP_SENT);
-+	ep->snd_seq += mpalen;
- 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
- }
- 
+ 	ep = lookup_tid(t, tid);
++	if (!ep)
++		return 0;
+ 	PDBG("%s ep %p tid %u dlen %u\n", __func__, ep, ep->hwtid, dlen);
+ 	skb_pull(skb, sizeof(*hdr));
+ 	skb_trim(skb, dlen);
 -- 
 1.7.1
