@@ -1,37 +1,82 @@
-From: Hariprasad Shenai <hariprasad@chelsio.com>
-Subject: [PATCHv2 net-next 14/31] iw_cxgb4: default peer2peer mode to 1.
-Date: Mon,  3 Mar 2014 12:10:58 +0530
-Message-ID: <1393828875-13452-15-git-send-email-hariprasad@chelsio.com>
-References: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1393828875-13452-1-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: davem@davemloft.net, roland@purestorage.com, kumaras@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, hariprasad@chelsio.com, nirranjan@chelsio.com
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH v1 11/13] SCSI/libiscsi: Add check_protection callback
+ for transports
+Date: Mon, 03 Mar 2014 10:08:54 +0200
+Message-ID: <53143896.6080105@dev.mellanox.co.il>
+References: <1393499589-15633-1-git-send-email-sagig@mellanox.com> <1393499589-15633-12-git-send-email-sagig@mellanox.com> <531407FF.1040702@cs.wisc.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <531407FF.1040702@cs.wisc.edu>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Mike Christie <michaelc@cs.wisc.edu>, Sagi Grimberg <sagig@mellanox.com>
+Cc: roland@kernel.org, nab@linux-iscsi.org, oren@mellanox.com, martin.petersen@oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise@opengridcomputing.com>
+On 3/3/2014 6:41 AM, Mike Christie wrote:
+> On 02/27/2014 05:13 AM, Sagi Grimberg wrote:
+>> diff --git a/drivers/scsi/libiscsi.c b/drivers/scsi/libiscsi.c
+>> index 4046241..a58a6bb 100644
+>> --- a/drivers/scsi/libiscsi.c
+>> +++ b/drivers/scsi/libiscsi.c
+>> @@ -395,6 +395,10 @@ static int iscsi_prep_scsi_cmd_pdu(struct iscsi_task *task)
+>>   		if (rc)
+>>   			return rc;
+>>   	}
+>> +
+>> +	if (scsi_get_prot_op(sc) != SCSI_PROT_NORMAL)
+>> +		task->protected = true;
+>> +
+>>   	if (sc->sc_data_direction == DMA_TO_DEVICE) {
+>>   		unsigned out_len = scsi_out(sc)->length;
+>>   		struct iscsi_r2t_info *r2t = &task->unsol_r2t;
+>> @@ -823,6 +827,33 @@ static void iscsi_scsi_cmd_rsp(struct iscsi_conn *conn, struct iscsi_hdr *hdr,
+>>   
+>>   	sc->result = (DID_OK << 16) | rhdr->cmd_status;
+>>   
+>> +	if (task->protected) {
+>> +		sector_t sector;
+>> +		u8 ascq;
+>> +
+>> +		/**
+>> +		 * Transports that didn't implement check_protection
+>> +		 * callback but still published T10-PI support to scsi-mid
+>> +		 * deserve this BUG_ON.
+>> +		 **/
+>> +		 BUG_ON(!session->tt->check_protection);
+> Extra space before BUG_ON.
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
----
- drivers/infiniband/hw/cxgb4/cm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+I'll add.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 9387f74..d21ac15 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -98,9 +98,9 @@ int c4iw_debug;
- module_param(c4iw_debug, int, 0644);
- MODULE_PARM_DESC(c4iw_debug, "Enable debug logging (default=0)");
- 
--static int peer2peer;
-+static int peer2peer = 1;
- module_param(peer2peer, int, 0644);
--MODULE_PARM_DESC(peer2peer, "Support peer2peer ULPs (default=0)");
-+MODULE_PARM_DESC(peer2peer, "Support peer2peer ULPs (default=1)");
- 
- static int p2p_type = FW_RI_INIT_P2PTYPE_READ_REQ;
- module_param(p2p_type, int, 0644);
--- 
-1.7.1
+>> +
+>> +		ascq = session->tt->check_protection(task, &sector);
+>> +		if (ascq) {
+>> +			sc->result = DRIVER_SENSE << 24 | DID_ABORT << 16 |
+>> +				     SAM_STAT_CHECK_CONDITION;
+> I am not sure what the reason for the DID_ABORT is here. I do not think
+> we want that, because we just want scsi-ml to evaluate the sense error
+> part of the failure. It works ok today, but the DID_ABORT error can
+> possibly be evaluated before the sense so you might miss passing that
+> info to upper layers.
+
+That makes sense to me. I can remove DID_ABORT.
+
+>
+>> +			scsi_build_sense_buffer(1, sc->sense_buffer,
+>> +						ILLEGAL_REQUEST, 0x10, ascq);
+>> +			sc->sense_buffer[7] = 0xc; /* Additional sense length */
+>> +			sc->sense_buffer[8] = 0;   /* Information desc type */
+>> +			sc->sense_buffer[9] = 0xa; /* Additional desc length */
+>> +			sc->sense_buffer[10] = 0x80; /* Validity bit */
+>> +
+>> +			put_unaligned_be64(sector, &sc->sense_buffer[12]);
+>> +			goto out;
+>> +		}
+>> +	}
+>> +
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
