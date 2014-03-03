@@ -1,46 +1,38 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Proposal for simplifying NFS/RDMA client memory registration
-Date: Mon, 3 Mar 2014 12:33:39 -0800
-Message-ID: <CABgxfbFrgKvRkELvna6DQgE+zqy1GPrM_x1GVv7tW+UbcDuYUA@mail.gmail.com>
-References: <01C4496A-F074-4F72-9DF0-6076C05E8A1F@oracle.com>
-	<E755E683-C064-4ED3-8448-C61F4E5AF16E@oracle.com>
-	<20140303190733.GA4556@infradead.org>
-	<79E85B7D-5ECC-4A63-BB07-C45A570DA53D@emc.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V2] dapltest: Add final send/recv "sync" for transaction
+ tests.
+Date: Mon, 3 Mar 2014 22:49:11 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F972DF08F3@ORSMSX101.amr.corp.intel.com>
+References: <20140303161321.8393.85018.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <79E85B7D-5ECC-4A63-BB07-C45A570DA53D-mb1K0bWo544@public.gmane.org>
+In-Reply-To: <20140303161321.8393.85018.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "faibish, sorin" <faibish_sorin-mb1K0bWo544@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 3, 2014 at 11:54 AM, faibish, sorin <faibish_sorin-mb1K0bWo544@public.gmane.org> wrote:
->
-> > On Mar 3, 2014, at 7:09 PM, "Christoph Hellwig" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> >
-> >> On Mon, Mar 03, 2014 at 12:02:33PM -0500, Chuck Lever wrote:
-> >> All HCAs in 3.13 (and rxe) can support either MTHCA_FMR or FRMR or both. Wendy?s HCA supports only ALLPHYSICAL.
-> >
-> > Is Wendy planning to submit her HCA driver ASAP?  If not there's not
-> > reason to keep ALLPHYSICAL either.
-> I second Christoph. Legacy is good as long as there are users of Linux with the legacy server. I would say that the only reason to keep it is if Linux server will support it. Same we apply to Lustre client in kernel.
->
-> ./Sorin
->
-> >
-> >> Does it make sense to deprecate then remove the registration modes in the first list?
-> >
-> > Yes.
-> >
->
-
-After discussing this with my manager, we'll let it go for now ...
-will re-submit the full patch set in the future when we finalize the
-plan.
-
-Thanks,
-Wendy
+PiBUaGUgdHJhbnNhY3Rpb24gdGVzdHMgbmVlZCBib3RoIHNpZGVzIHRvIHNlbmQgYSBzeW5jIG1l
+c3NhZ2UgYWZ0ZXIgcnVubmluZw0KPiB0aGUgdGVzdC4gIFRoaXMgZW5zdXJlcyB0aGF0IGFsbCBy
+ZW1vdGUgb3BlcmF0aW9ucyBhcmUgY29tcGxldGUgYmVmb3JlDQo+IGRhcGx0ZXN0IGRlcmVnZWlz
+dGVycyBtZW1vcnkgYW5kIGRpc2Nvbm5lY3RzIHRoZSBlbmRwb2ludHMuDQo+IA0KPiBXaXRob3V0
+IHRoaXMgbG9naWMsIHdlIHNlZSBpbnRlcm1pdHRlbnQgYXN5bmMgZXJyb3JzIG9uIGl3YXJwIGRl
+dmljZXMNCj4gYmVjYXVzZSBhIHJlYWQgcmVzcG9uc2Ugb3Igd3JpdGUgYXJyaXZlcyBhZnRlciB0
+aGUgcm1yIGhhcyBiZWVuIGRlc3Ryb3llZC4NCj4gSSBiZWxpZXZlIHRoaXMgaXMgbW9yZSBsaWtl
+bHkgdG8gaGFwcGVuIHdpdGggaVdBUlAgdGhhbiBJQiBiZWNhdXNlIGlXQVJQDQo+IGNvbXBsZXRp
+b25zIG9ubHkgaW5kaWNhdGUgdGhlIGxvY2FsIGJ1ZmZlciBjYW4gYmUgcmV1c2VkLiAgSXQgZG9l
+c24ndCBpbXBseQ0KPiB0aGF0IHRoZSBtZXNzYWdlIGhhcyBldmVuIGFycml2ZWQgYXQgdGhlIHBl
+ZXIsIGxldCBhbG9uZSBiZWVuIHBsYWNlZCBpbiB0aGUNCj4gcGVlciBhcHBsaWNhdGlvbidzIG1l
+bW9yeS4NCj4gDQo+IENoYW5nZXMgZnJvbSBWMToNCj4gDQo+IC0gYWxsb2NhdGUgbmV3IHNlbmQv
+cmVjdiBidWZmZXJzIGZvciB0aGUgRmluYWwgU3luYyBtZXNzYWdlLg0KPiANCj4gLSBwb3N0IHRo
+ZSBGaW5hbCBTeW5jIHJlY3YgYnVmZmVyIGF0IHRoZSBiZWdpbm5pbmcgb2YgdGhlIGZpbmFsIGl0
+ZXJhdGlvbiBvZiBhIHRlc3QuDQo+IA0KPiAtIHRlc3RzIG9rIG9uIGN4Z2I0IGFuZCBtbHg0IGRl
+dmljZXMuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBTdGV2ZSBXaXNlIDxzd2lzZUBvcGVuZ3JpZGNv
+bXB1dGluZy5jb20+DQo+IC0tLQ0KDQpBY2tlZC1ieTogQXJsaW4gRGF2aXMgPGFybGluLnIuZGF2
+aXNAaW50ZWwuY29tPg0KDQpUaGFua3MhDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
