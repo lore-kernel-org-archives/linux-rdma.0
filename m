@@ -1,36 +1,24 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] saquery.c: In query_sa_cpi, make error
- message consistent
-Date: Tue, 4 Mar 2014 00:35:51 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04B194FF@CRSMSX101.amr.corp.intel.com>
-References: <530E0777.1060606@dev.mellanox.co.il>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V2] dapltest: Add final send/recv "sync" for transaction
+ tests.
+Date: Tue, 4 Mar 2014 00:48:01 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F972DF09C6@ORSMSX101.amr.corp.intel.com>
+References: <20140303161321.8393.85018.stgit@build.ogc.int>
+ <003d01cf3702$847cafe0$8d760fa0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <530E0777.1060606-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <003d01cf3702$847cafe0$8d760fa0$@opengridcomputing.com>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
-> Sent: Wednesday, February 26, 2014 7:26 AM
-> To: Weiny, Ira
-> Cc: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
-> Subject: [PATCH infiniband-diags] saquery.c: In query_sa_cpi, make error
-> message consistent
-> 
-> 
-> with similar message in get_any_records
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks applied,
-Ira
- 
+PiBIZXkgQXJsaW4sDQo+IA0KPiBJJ2QgbGlrZSB0byBnZXQgdGhpcyBmaXggaW50byBPRkVELTMu
+MTIgaWYgcG9zc2libGUuDQo+IA0KDQpPaywgSSB3aWxsIGluY2x1ZGUgdGhpcyBmaXggaW4gdGhl
+IG5leHQgZGFwbCBwYWNrYWdlIHRhcmdldGVkIGZvciBPRkVELTMuMTIgUkMyLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
