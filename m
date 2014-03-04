@@ -1,25 +1,25 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V2] dapltest: Add final send/recv "sync" for transaction
- tests.
-Date: Tue, 4 Mar 2014 00:48:01 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F972DF09C6@ORSMSX101.amr.corp.intel.com>
-References: <20140303161321.8393.85018.stgit@build.ogc.int>
- <003d01cf3702$847cafe0$8d760fa0$@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz@mellanox.com>
+Subject: Re: [PATCH 4/6] iser-target: Fix post_send_buf_count for RDMA READ/WRITE
+Date: Tue, 4 Mar 2014 09:49:50 +0200
+Message-ID: <5315859E.7050202@mellanox.com>
+References: <1393891265-22910-1-git-send-email-nab@daterainc.com> <1393891265-22910-5-git-send-email-nab@daterainc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <003d01cf3702$847cafe0$8d760fa0$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1393891265-22910-5-git-send-email-nab@daterainc.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@daterainc.com>, target-devel <target-devel@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, Nicholas Bellinger <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBIZXkgQXJsaW4sDQo+IA0KPiBJJ2QgbGlrZSB0byBnZXQgdGhpcyBmaXggaW50byBPRkVELTMu
-MTIgaWYgcG9zc2libGUuDQo+IA0KDQpPaywgSSB3aWxsIGluY2x1ZGUgdGhpcyBmaXggaW4gdGhl
-IG5leHQgZGFwbCBwYWNrYWdlIHRhcmdldGVkIGZvciBPRkVELTMuMTIgUkMyLg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 04/03/2014 02:01, Nicholas A. Bellinger wrote:
+> This is necessary because even though IB_SEND_SIGNALED is
+> not set for RDMA WRITEs + READs, during a QP failure event
+> the work requests will be returned with exception status
+> from the TX completion queue.
+
+Impossible... for rdma reads we must ask for completing, since we should 
+write the data
+for the back-end, I assume it's just wrong mentioning of rdma-read here, 
+right?
