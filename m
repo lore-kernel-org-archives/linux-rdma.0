@@ -1,51 +1,47 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCHv3 net-next 09/31] iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE
- as negative advice.
-Date: Tue, 04 Mar 2014 20:48:44 +0300
-Message-ID: <531611FC.4000202@cogentembedded.com>
-References: <1393936917-25847-1-git-send-email-hariprasad@chelsio.com> <1393936917-25847-10-git-send-email-hariprasad@chelsio.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH v1 10/13] IB/iser: Support T10-PI operations
+Date: Tue, 04 Mar 2014 19:04:05 +0200
+Message-ID: <53160785.4060507@dev.mellanox.co.il>
+References: <1393499589-15633-1-git-send-email-sagig@mellanox.com> <1393499589-15633-11-git-send-email-sagig@mellanox.com> <531408C8.10107@cs.wisc.edu> <53159F09.6050802@mellanox.com> <5315A3E4.508@dev.mellanox.co.il> <5315B83D.6060503@mellanox.com> <5315E6DD.4060909@dev.mellanox.co.il> <5315FC64.2020207@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1393936917-25847-10-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: Hariprasad Shenai <hariprasad@chelsio.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: davem@davemloft.net, roland@purestorage.com, kumaras@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, nirranjan@chelsio.com
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <5315FC64.2020207@mellanox.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>, Mike Christie <michaelc@cs.wisc.edu>, Sagi Grimberg <sagig@mellanox.com>
+Cc: roland@kernel.org, nab@linux-iscsi.org, oren@mellanox.com, martin.petersen@oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/04/2014 03:41 PM, Hariprasad Shenai wrote:
-
-> From: Steve Wise <swise@opengridcomputing.com>
-
-> Based on original work by Anand Priyadarshee <anandp@chelsio.com>.
-
-> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-[...]
-
-> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-> index 74a2250..c63dfe5 100644
-> --- a/drivers/infiniband/hw/cxgb4/cm.c
-> +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> @@ -1648,6 +1648,15 @@ static inline int act_open_has_tid(int status)
->   	       status != CPL_ERR_ARP_MISS;
->   }
+On 3/4/2014 6:16 PM, Or Gerlitz wrote:
+> On 04/03/2014 16:44, Sagi Grimberg wrote:
+>>>> @@ -1707,10 +1707,17 @@ int iscsi_queuecommand(struct Scsi_Host 
+>>>> *host, struct scsi_cmnd *sc)
+>>>>                                 goto prepd_fault;
+>>>>                         }
+>>>>                 }
+>>>> -               if (session->tt->xmit_task(task)) {
+>>>> -                       session->cmdsn--;
+>>>> -                       reason = FAILURE_SESSION_NOT_READY;
+>>>> -                       goto prepd_reject;
+>>>> +
+>>>> +               reason = session->tt->xmit_task(task);
+>>>> +               if (reason) {
+>>>> +                       if (reason == -ENOMEM || reason == -EAGAIN) {
+>>>> +                               session->cmdsn--;
+>>>
+>>> I am pretty sure this has to be done anyway, no matter why the 
+>>> xmit_task callback failed
+>>
+>> Even if we abort? this just follows the same logic as 
+>> iscsi_prep_scsi_cmd_pdu error flow.
 >
-> +/* Returns whether a CPL status conveys negative advice.
-> + */
+> yes, take a 2nd look on iscsi_prep_scsi_cmd_pdu and you'll see that 
+> all the possible error cases take place **before** session->cmdsn is 
+> incremented
 
-    Hm, why not just make this one-line comment? Sorry that I haven't said 
-that before.
+Ahhh, yes... So dec the cmdsn regardless.
 
-> +static int is_neg_adv(unsigned int status)
-> +{
-> +	return status == CPL_ERR_RTX_NEG_ADVICE ||
-> +	       status == CPL_ERR_PERSIST_NEG_ADVICE ||
-> +	       status == CPL_ERR_KEEPALV_NEG_ADVICE;
-> +}
-> +
->   #define ACT_OPEN_RETRY_COUNT 2
->
->   static int import_ep(struct c4iw_ep *ep, int iptype, __u8 *peer_ip,
+Mike, are you on board with this?
 
-WBR, Sergei
+Sagi.
