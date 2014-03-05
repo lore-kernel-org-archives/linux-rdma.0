@@ -1,72 +1,58 @@
-From: Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH net-next 10/31] cxgb4/iw_cxgb4: Doorbell Drop Avoidance
- Bug Fixes.
-Date: Wed, 5 Mar 2014 11:04:14 +0530
-Message-ID: <20140305053413.GB23862@hariprasad-pc>
-References: <1393427230-14532-11-git-send-email-hariprasad@chelsio.com>
- <20140226.181216.1563503549713890339.davem@davemloft.net>
- <005101cf33df$00749e40$015ddac0$@opengridcomputing.com>
- <20140227.130544.1892840202381139797.davem@davemloft.net>
- <1393975366.16256.23.camel@deadeye.wl.decadent.org.uk>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Wed, 05 Mar 2014 01:54:09 -0800
+Message-ID: <1394013249.19539.17.camel@haakon3.risingtidesystems.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	 <52CD1C68.4050406@mellanox.com>
+	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+	 <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
+	 <1389906852.5567.668.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
+	 <1390102949.5567.749.camel@haakon3.risingtidesystems.com>
+	 <52DBB4F1.4020400@mellanox.com>
+	 <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
+	 <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
+	 <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
+	 <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
+	 <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1393975366.16256.23.camel-nDn/Rdv9kqW9Jme8/bJn5UCKIB8iOfG2tUK59QYPAWc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Or Gerlitz <or.gerlitz@gmail.com>, Hefty Sean <sean.hefty@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, target-devel <target-devel@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 04, 2014 at 23:22:46 +0000, Ben Hutchings wrote:
-> On Thu, 2014-02-27 at 13:05 -0500, David Miller wrote:
-> > From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > Date: Thu, 27 Feb 2014 11:11:49 -0600
-> > 
-> > >> 
-> > >> > -static int allow_db_fc_on_t5;
-> > >> > -module_param(allow_db_fc_on_t5, int, 0644);
-> > >> > -MODULE_PARM_DESC(allow_db_fc_on_t5,
-> > >> > -           "Allow DB Flow Control on T5 (default = 0)");
-> > >> > -
-> > >> > -static int allow_db_coalescing_on_t5;
-> > >> > -module_param(allow_db_coalescing_on_t5, int, 0644);
-> > >> > -MODULE_PARM_DESC(allow_db_coalescing_on_t5,
-> > >> > -           "Allow DB Coalescing on T5 (default = 0)");
-> > >> 
-> > >> Module parameters are a user facing interface.
-> > >> 
-> > >> You cannot just delete, or change the semantics of, the ones you feel
-> > >> like doing so to.
-> > > 
-> > > I see your point on user facing interfaces.   These module params were
-> > > added initially to allow tweaking the db drop recovery for T5 devices in
-> > > the thought that we might need it.  It turns out T5 doesn't suffer from
-> > > this issue.  These params default to 0 anyway, and I doubt anyone has
-> > > changed them.  Disabling the hw db coalescing feature proved problematic
-> > > and it turned out to even make the issue worse, so I removed it totally
-> > > at the recommendation from the HW engineers, and put in place the new
-> > > design which better rate controls things under heavy load.
-> > 
-> > You have to keep the old ones around.
+On Thu, 2014-02-06 at 16:04 -0800, Roland Dreier wrote:
+> On Thu, Feb 6, 2014 at 4:02 PM, Nicholas A. Bellinger
+> <nab@linux-iscsi.org> wrote:
+> > Can you give us an estimate of when you'll have some time to give
+> > feedback on the outstanding patches..?
 > 
-> Setting an unknown module parameter now results in a warning (since
-> 3.11), so removing a parameter isn't so disruptive as it used to be.
+> I hope to get to it in the next few weeks.
 > 
-> Obviously this is removing a feature, but as the feature sounds like it
-> was only marginally useful I think it's a perfectly valid change.
-> 
-> Ben.
+>  - R.
 
-Thanks Ben for letting us know that things have changed post 3.11 kernel.
+Hi Roland,
 
-Hi David,
-Would you be OK if we remove the unused module_param now when we re-submit the series ?
+We'd very much like to move forward with the verbs + mlx5 + LIO target
+PI related patches for v3.15 code.
 
+Given the verbs + mlx5 changes have undergone ~5 months of review at
+this point, I'd like to go ahead and get them in target-pending/for-next
+ASAP to continue making forward progress towards a mainline merge.
 
-Thanks,
--Hari.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm happy with the state of the iser-target related changes, and Sagi &
+Co are making good progress on the iser-initiator related patches with
+Mike.
+
+That all said, do you have an objection wrt taking this bits through
+target-pending..?  Given the dependencies involved, that would seem the
+most logical path to take.
+
+--nab 
