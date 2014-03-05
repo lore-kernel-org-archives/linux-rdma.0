@@ -1,45 +1,87 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sm_state_mgr.c: Reconfigure the fabric when receiving
- HANDOVER/POLLING_TIMEOUT in MASTER state
-Date: Wed, 05 Mar 2014 11:33:33 -0500
-Message-ID: <531751DD.7060906@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH v2 00/13] T10-PI support for iSER initiator
+Date: Wed,  5 Mar 2014 19:43:38 +0200
+Message-ID: <1394041431-28399-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: roland@kernel.org, nab@linux-iscsi.org, michaelc@cs.wisc.edu
+Cc: martin.petersen@oracle.com, oren@mellanox.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Sun, 5 Aug 2012 11:50:07 +0300
+Hey Roland, Nic, Mike and Co
 
-When SM in MASTER state, receives HANDOVER request from some other
-MASTER SM or it didn't response (POLLING_TIMEOUT), we must reconfigure
-the whole fabric as it was the first SM sweep, as we don't know what
-the other MASTER SM configured earlier.
+This patchset adds T10 protection information offload support over
+RDMA signature verbs API. This set, along with the iSER target set,
+allow end-to-end protection information passthrough and validation.
+The patchset was tested against Linux SCSI target with iSER DIF
+support applied.
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sm_state_mgr.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+iSER T10-PI support enablement is currently controlled with
+module parameters (similar to lpfc for example) which make them
+global. In the next phase we can consider passing these parameters
+from iscsid nl messages, which would make them per-connection.
 
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index e5a11da..5e4b06a 100644
---- a/opensm/osm_sm_state_mgr.c
-+++ b/opensm/osm_sm_state_mgr.c
-@@ -450,6 +450,8 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 */
- 			sm->p_subn->set_client_rereg_on_sweep = TRUE;
- 			sm->polling_sm_guid = 0;
-+			sm->p_subn->first_time_master_sweep = TRUE;
-+			sm->p_subn->coming_out_of_standby = TRUE;
- 			sm->p_subn->force_heavy_sweep = TRUE;
- 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
- 			break;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The approach I took with respect to escalating protection information
+errors was minimal iSCSI intervention in protection information affairs.
+I added libiscsi a hook asking the transport to check the protection
+information status, and construct the proper sense data in case of errors
+(the alternative of letting the transport to construct sense data seemed
+much less appealing).
+
+Note that this patchset comes on top of a pending patch for iSER to suppress
+fastreg completions (http://marc.info/?l=linux-rdma&m=139047309831997&w=2).
+
+v0 patches are available in target-pending git repo (branch rdma-dif) and
+passed 0-DAY testing.
+
+Roland, I would like to hear your feedback on this.
+
+The set is ordered by the following:
+- Preparation patches (non/minor functionality changes).
+- Add protection information execution support.
+- Add protection information status check facilities.
+- Publish T10-DIF support to SCSI mid-layer according to
+  IB device capabilities.
+
+Changes from v1:
+- Removed extra space (BUG_ON).
+- Dropped DID_ABORT from sc result for data integrity errors.
+- Fixed failed sector report.
+
+Changes from v0:
+- Fix protection information dma registration for unaligned scatterlists
+  which may happen when the block layer merges bios.
+- Don't fail connections on devices without DIF support - warn and continue
+  without DIF.
+- reword FR -> FastReg
+
+Alex Tabachnik (2):
+  IB/iser: Introduce pi_enable, pi_guard module parameters
+  IB/iser: Initialize T10-PI resources
+
+Sagi Grimberg (11):
+  IB/iser: Avoid FRWR notation, use fastreg instead
+  IB/iser: Push the decision what memory key to use into fast_reg_mr
+    routine
+  IB/iser: Move fast_reg_descriptor initialization to a function
+  IB/iser: Keep IB device attributes under iser_device
+  IB/iser: Replace fastreg descriptor valid bool with indicators
+    container
+  IB/iser: Generalize iser_unmap_task_data and
+    finalize_rdma_unaligned_sg
+  IB/iser: Generalize fall_to_bounce_buf routine
+  IB/iser: Support T10-PI operations
+  SCSI/libiscsi: Add check_protection callback for transports
+  IB/iser: Implement check_protection
+  IB/iser: Publish T10-PI support to SCSI midlayer
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   46 +++-
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |   71 ++++-
+ drivers/infiniband/ulp/iser/iser_initiator.c |   98 +++++-
+ drivers/infiniband/ulp/iser/iser_memory.c    |  445 +++++++++++++++++++-------
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  287 ++++++++++++-----
+ drivers/scsi/libiscsi.c                      |   32 ++
+ include/scsi/libiscsi.h                      |    4 +
+ include/scsi/scsi_transport_iscsi.h          |    1 +
+ 8 files changed, 771 insertions(+), 213 deletions(-)
+
