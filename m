@@ -1,54 +1,59 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: linux rdma 3.14 merge plans
-Date: Wed, 05 Mar 2014 11:03:38 -0800
-Message-ID: <1394046218.20601.12.camel@haakon3.risingtidesystems.com>
-References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
-	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
-	 <52CD1C68.4050406@mellanox.com>
-	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
-	 <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
-	 <1389906852.5567.668.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
-	 <1390102949.5567.749.camel@haakon3.risingtidesystems.com>
-	 <52DBB4F1.4020400@mellanox.com>
-	 <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
-	 <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
-	 <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
-	 <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
-	 <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
-	 <1394013249.19539.17.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxNRkAUH5Jsd67--ydWtUJqE1=pnVSuorgn4vNQiuYx1wg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAG4TOxNRkAUH5Jsd67--ydWtUJqE1=pnVSuorgn4vNQiuYx1wg@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Or Gerlitz <or.gerlitz@gmail.com>, Hefty Sean <sean.hefty@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, target-devel <target-devel@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, linux-kernel <linux-kernel@vger.kernel.org>
+From: Casey Leedom <leedom@chelsio.com>
+Subject: Re: [PATCHv3 net-next 00/31] Misc. fixes for cxgb4 and iw_cxgb4
+Date: Wed, 5 Mar 2014 11:15:33 -0800
+Message-ID: <9E6E5D92-7F25-49A3-BEB5-424CCE2F725D@chelsio.com>
+References: <1393936917-25847-1-git-send-email-hariprasad@chelsio.com> <20140304.132226.75524344104026791.davem@davemloft.net> <20140305053024.GA23862@hariprasad-pc>
+Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20140305053024.GA23862@hariprasad-pc>
+Sender: netdev-owner@vger.kernel.org
+To: Hariprasad S <hariprasad@chelsio.com>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, roland@purestorage.com, kumaras@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, santosh@chelsio.com, nirranjan@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2014-03-05 at 07:18 -0800, Roland Dreier wrote:
-> On Wed, Mar 5, 2014 at 1:54 AM, Nicholas A. Bellinger
-> <nab@linux-iscsi.org> wrote:
-> > That all said, do you have an objection wrt taking this bits through
-> > target-pending..?  Given the dependencies involved, that would seem the
-> > most logical path to take.
-> 
-> Perhaps not surprisingly, I would prefer to get a chance to review a
-> major change to the core RDMA midlayer rather than having you merge it
-> through your tree.  So yes I do object.  Please give me a chance to
-> review and merge it.  I am working on that this week.
-> 
+  Yes, thanks mightily for your help and advice and sorry for the size =
+of the updates.  Hari has taken on the very difficult task of synchroni=
+zing our out-of-kernel development branch with the in-kernel code.  The=
+se two code bases have drifted apart quite a bit because of the difficu=
+lty of translating our out-of-kernel changes into the in-kernel driver =
+which uses completely different symbolic register constants.  This has =
+led many of us to defer propagating our out-of-kernel work into the in-=
+kernel driver =97 partly because of the difficulty and party because of=
+ the error prone nature of the effort: there are many symbolic register=
+ constants which have the exact same name but have completely different=
+ values which has tripped us up at least twice, introducing bugs into t=
+he kernel.org driver.  If there=92s ever an opportunity to revisit the =
+decision to have us use these different constants we would be Very Exci=
+ted =85 :-)
 
-Great.  We'll be looking for a response by the end of the week.
+Casey
 
-Otherwise if you end up not having time, we'd still like to move forward
-for v3.15 given the amount of review the series has already gotten on
-the list.
 
-Thank you,
 
---nab
+On Mar 4, 2014, at 9:30 PM, Hariprasad S <hariprasad@chelsio.com> wrote=
+:
+
+> On Tue, Mar 04, 2014 at 13:22:26 -0500, David Miller wrote:
+>>=20
+>> BTW, if you're frustrated from having to send these patches so many
+>> times because of changes being requested, this is the main reason
+>> why you shouldn't queue up such enormous numbers of patches at one
+>> time.
+>>=20
+>> Please try to keep your future submissions sizes more reasonable,
+>> perhaps ~10 patches or so at most.
+>>=20
+>> Thanks.
+>=20
+> Sure, thanks for the suggestion.
+> I will just re-post the revert patch on cxgb4 now, part of this serie=
+s, which is=20
+> causing regression.
+> And, I will split the rest of patch-series into 8-10 patches and re-s=
+ubmit.
+>=20
+>=20
+> Thanks for the review comments!
+> -Hari.
