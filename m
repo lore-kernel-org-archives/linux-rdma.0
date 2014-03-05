@@ -1,321 +1,39 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.12 rc1 release is available
-Date: Wed, 05 Mar 2014 17:00:40 +0200
-Message-ID: <53173C18.7060602@dev.mellanox.co.il>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Wed, 5 Mar 2014 07:18:54 -0800
+Message-ID: <CAG4TOxNRkAUH5Jsd67--ydWtUJqE1=pnVSuorgn4vNQiuYx1wg@mail.gmail.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+ <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+ <52CD1C68.4050406@mellanox.com> <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+ <1389820541.5567.543.camel@haakon3.risingtidesystems.com> <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
+ <1389906852.5567.668.camel@haakon3.risingtidesystems.com> <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
+ <1390102949.5567.749.camel@haakon3.risingtidesystems.com> <52DBB4F1.4020400@mellanox.com>
+ <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
+ <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
+ <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
+ <1390375658.5567.917.camel@haakon3.risingtidesystems.com> <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
+ <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com> <1394013249.19539.17.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060004060909070707030406"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1394013249.19539.17.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060004060909070707030406
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, Mar 5, 2014 at 1:54 AM, Nicholas A. Bellinger
+<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> That all said, do you have an objection wrt taking this bits through
+> target-pending..?  Given the dependencies involved, that would seem the
+> most logical path to take.
 
-OFED-3.12-rc1 is available at:
-http://www.openfabrics.org/downloads/OFED/ofed-3.12/OFED-3.12-rc1.tgz
+Perhaps not surprisingly, I would prefer to get a chance to review a
+major change to the core RDMA midlayer rather than having you merge it
+through your tree.  So yes I do object.  Please give me a chance to
+review and merge it.  I am working on that this week.
 
-To get BUILD_ID run ofed_info
-
-Please report any issues in bugzilla https://bugs.openfabrics.org/  for
-OFED 3.12
-
-
-OFED-3.12-rc1 Main Changes from OFED 3.5-2
--------------------------------------------------------------------------------
-1. Add support for the OSes
-    - RedHat EL6.5
-2. New drivers available
-    - ocrdma
-    - libocrdma-1.0.2
-    - mlx5
-    - libmlx5-1.0.1
-3. Updated packages:
-    - dapl-2.0.40
-    - ibsim-0.6
-    - infiniband-diags-1.6.4
-    - infinipath-psm-3.2-2_ga8c3e3e_open
-    - libcxgb4-1.3.2
-    - libibmad-1.3.11
-    - libibumad-1.3.9
-    - libipathverbs-1.2.1
-    - libnes-1.1.4
-    - librdmacm-1.0.18
-    - mstflint-3.5.0
-    - opensm-3.3.17
-    - perftest-2.0-0.80.g54c73c6
-    - srptools-1.0.2
-
-
-Regards,
-Vladimir
-
---------------060004060909070707030406
-Content-Type: text/plain; charset=UTF-8;
- name="OFED_3.12_rc1_release_notes.txt"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment;
- filename="OFED_3.12_rc1_release_notes.txt"
-
-	    Open Fabrics Enterprise Distribution (OFED)
-	          Version 3.12-rc1 Release Notes
-	               February 2014
-
-===============================================================================
-Table of Contents
-===============================================================================
-1. Overview, which includes:
-	- OFED Distribution Rev 3.12-rc1 Contents
-	- Supported Platforms and Operating Systems
-	- Supported HCA and RNIC Adapter Cards and Firmware Versions
-	- Tested Switch Platforms
-	- Third party Test Packages
-	- OFED sources
-2. Change log
-3. Known Issues
-
-===============================================================================
-1. Overview
-===============================================================================
-These are the release notes of OpenFabrics Enterprise Distribution (OFED)
-release 3.12-rc1. The OFED software package is composed of several software modules,
-and is intended for use on a computer cluster constructed as an InfiniBand
-Fabric, an iWARP Network or a RoCE Fabric.
-
-Note: If you plan to upgrade the OFED package on your cluster, please upgrade
-all of its nodes to this new version.
-
-
-1.1 OFED 3.12-rc1 Contents
------------------------
-The OFED package contains the following components:
- - OpenFabrics core and ULPs:
-	- IB HCA drivers (mthca, mlx4, mlx5, qib, ehca, ocrdma)
-	- iWARP RNIC driver (cxgb3, cxgb4, nes)
-	- RoCE drivers (mlx4, ocrdma)
-	- ib core
-- Upper Layer Protocols: IPoIB, SRP Initiator and target, iSER
-	  Initiator and target, RDS, uDAPL, qlgc_vnic and NFS-RDMA*.
- - OpenFabrics utilities:
-	- OpenSM (OSM): InfiniBand Subnet Manager
-	- Diagnostic tools
-	- Performance tests
- - Extra packages:
-	- infinipath-psm: Performance-Scaled Messaging API, an accelerated
-	  interface to Intel(R) HCAs
- - Sources of all software modules (under conditions mentioned in the modules'
-   LICENSE files)
- - Documentation
-
-
-1.2 Supported Platforms and Operating Systems
----------------------------------------------
-  o   CPU architectures:
-	- x86_64
-	- x86
-	- ppc64
-
-  o   Linux Operating Systems:
-	- RedHat EL6.4 		2.6.32-358.el6
-	- RedHat EL6.5 		2.6.32-431.el6
-	- SLES11 SP3		3.0.76-0.9.1
-	- kernel.org		3.12    *
-
-      * Minimal QA for these versions.
-
-1.3 HCAs and RNICs Supported
-----------------------------
-This release supports IB HCAs by IBM, Intel and Mellanox Technologies, iWARP RNICs by Chelsio Communications and Intel and RoCE adapters by IBM and Mellanox.
-
-InfiniBand Adapters
-  o   IBM HCAs:
-	- GX Dual-port SDR 4x IB HCA
-	- GX Dual-port SDR 12x IB HCA
-	- GX Dual-port DDR 4x IB HCA
-	- GX Dual-port DDR 12x IB HCA
-
-  o   Intel (formerly QLogic) HCAs:
-	- Intel(R) True Scale DDR PCIe x8 and x16 HCAs
-	- Intel(R) True Scale QDR PCIe x8 Gen2 HCAs
-
-  o   Mellanox Technologies HCAs (SDR, DDR and QDR Modes are Supported):
-	- ConnectX(R) and ConnectX EN (fw-25408 Rev 2.9.1000)
-	- ConnectX-2 (fw-ConnectX2 Rev 2.9.1000)
-  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):
-	- ConnectX-3 (fw-ConnectX3 Rev 2.30.8000)
-  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):
-	- Connect-IB™ (fw-ConnectIB.mlx Rev 10.10.2000 and above)
-
-	For official firmware versions please see:
-	http://www.mellanox.com/content/pages.php?pg=firmware_download
-
-iWARP Adapters
-  o   Chelsio RNICs:
-	- S310/S320 10GbE Storage Accelerators
-	- R310/R320 10GbE iWARP Adapters
-	- T4 Based Adapters with the exception of the T420-SO-CR
-
-  o   Intel RNICs:
-	- NE020 10Gb iWARP Adapter
-
-RoCE Adapters
- o   IBM
-	- IBM Flex System EN4132 2-port 10 GbE RoCE
-	- IBM EL27 PCIe LP 2-Port 10GbE RoCE SFP+ adapter
-	- IBM EC28 PCIe 2-Port 10GbE RoCE SFP+ adapter
-
-  o   Mellanox
-	- ConnectX-2 EN (fw-ConnectX2 Rev 2.9.1200)
-	- ConnectX-3 EN (fw-ConnectX3 Rev 2.11.0500)
-
-1.4 Switches Supported
-----------------------
-This release was tested with switches and gateways provided by the following
-companies:
-InfiniBand Switches
-  o   Flextronics
-	- F-X430044
-  o   Intel (formerly QLogic)
-	- 12200
-  o   Mellanox
-	- IS-5030
-	- SX6025
-	- SX6036
-
-iWARP Switches
-  o   Fujitsu
-	- XG2000C 10Gb Ethernet Switch
-
-RoCE Switches
-  o   Arista
-  o   BLADE Network Technologies (BNT)
-  o   Mellanox
-	- SX1036
-	- SX1024
-	- SX1016
-
-1.5 Third Party Packages
-------------------------
-The following third party packages have been tested with OFED 3.12-rc1:
-- Open MPI - 1.6.5
-- Intel MPI 4.1
-
-1.6 OFED Sources
-----------------
-All sources are located under git://git.openfabrics.org/
-
-Linux:
-------
-URL: git://git.openfabrics.org/compat-rdma/linux-3.12.git
-Branch: master
-
-- Linux kernel sub-tree that includes files relevant for the OFED project only.
-  Based on v3.12. Used to shorten git clone time.
-  Note: the regular Linux git tree can be used as well.
-
-compat:
--------
-URL: git://git.openfabrics.org/compat-rdma/compat.git
-Branch: ofed
-
-- Based on compat project (https://github.com/mcgrof/compat). The compat module
-  provides functionality introduced in newer kernels to older kernels through a
-  set of header files and exported symbols.
-  See https://github.com/mcgrof/compat/wiki for details.
-- Used to replace kernel_addons in the previous OFED kernel tree.
-
-compat-rdma:
-------------
-URL: git://git.openfabrics.org/compat-rdma/compat-rdma.git
-Branch: master
-
-User level Sources are downloaded from http://www.openfabrics.org/downloads/
-as written in the BUILD_ID
-
-The kernel sources are based on Linux 3.12 mainline kernel. Its patches
-are included in the OFED sources directory.
-For details see HOWTO.build_ofed.
-
-The list of maintainers is available under:
-http://www.openfabrics.org/downloads/MAINTAINERS
-
-===============================================================================
-2. Change log
-===============================================================================
-OFED-3.12-rc1 Main Changes from OFED 3.5-2
--------------------------------------------------------------------------------
-1. Add support for the OSes
-   - RedHat EL6.5
-2. New drivers available
-   - ocrdma
-   - libocrdma-1.0.2
-   - mlx5
-   - libmlx5-1.0.1
-3. Updated packages:
-   - dapl-2.0.40
-   - ibsim-0.6
-   - infiniband-diags-1.6.4
-   - infinipath-psm-3.2-2_ga8c3e3e_open
-   - libcxgb4-1.3.2
-   - libibmad-1.3.11
-   - libibumad-1.3.9
-   - libipathverbs-1.2.1
-   - libnes-1.1.4
-   - librdmacm-1.0.18
-   - mstflint-3.5.0
-   - opensm-3.3.17
-   - perftest-2.0-0.80.g54c73c6
-   - srptools-1.0.2
-
-===============================================================================
-3. Known Issues
-===============================================================================
-The following is a list of general limitations and known issues of the various
-components of the OFED 3.12-rc1 release.
-
-01. When upgrading from an earlier OFED version, the installation script does
-    not stop the earlier OFED version prior to uninstalling it.
-    Workaround: Stop the old OFED stack (/etc/init.d/openibd stop) before
-    upgrading to OFED 3.5 or reboot the server after OFED installation.
-02. Memory registration by the user is limited according to administrator
-    setting. See "Pinning (Locking) User Memory Pages" in OFED_tips.txt for
-    system configuration.
-03. Fork support from kernel 2.6.12 and above is available provided
-    that applications do not use threads. fork() is supported as long as the
-    parent process does not run before the child exits or calls exec().
-    The former can be achieved by calling wait(childpid), and the latter can be
-    achieved by application specific means.  The Posix system() call is
-    supported.
-04. The qib driver is supported only on 64-bit platforms.
-05. IPoIB: brctl utilities do not work on IPoIB interfaces. The reason for that
-    is that these utilities support devices of type Ethernet only.
-06. In case uninstall is failing, check the error log and remove
-    the remaining RPMs manually using 'rpm -e <rpms list>'.
-07. On SLES11.x, set allow_unsupported_modules parameter to 1 in file:
-    /etc/modprobe.d/unsupported-modules. Without this the modules will not
-    load.
-08. RDS is supported only on kernel.org 3.5 and not on any distro OS.
-09. RHEL 6.5 is not supported in 3.12-rc1 but will be supported in the next OFED
-    version which is OFED 3.12
-10. Mellanox ConnectIB HCAs are not supported in OFED 3.12-rc1. See OFED 3.12
-11. There are known issues with iWARP using Chelsio adapters which will be
-    resolved in OFED 3.12. See Bugs 2402, 2441 and 2445
-12. There is an issue with PSM when compiling with gcc >= 4.6. This will be
-    resolved in OFED 3.12 - see Bug 2430
-13. There is an issue with NFSoRDMA when running on Power PC. This will be
-    resolved in OFED 3.12 - see Bug 2449
-14. Newer SLES or RHEL patch kernels that are updates to the original kernel that is included in the
-    original SLES or RHEL distibutions may not work with OFED-3.12-rc1. The list of kernels that are supported are listed in
-    section 1.2.
-
-Note: See the release notes of each component for additional issues.
-
-
---------------060004060909070707030406--
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
