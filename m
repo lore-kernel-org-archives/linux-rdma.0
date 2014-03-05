@@ -1,58 +1,65 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: linux rdma 3.14 merge plans
-Date: Wed, 05 Mar 2014 01:54:09 -0800
-Message-ID: <1394013249.19539.17.camel@haakon3.risingtidesystems.com>
-References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
-	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
-	 <52CD1C68.4050406@mellanox.com>
-	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
-	 <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
-	 <1389906852.5567.668.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
-	 <1390102949.5567.749.camel@haakon3.risingtidesystems.com>
-	 <52DBB4F1.4020400@mellanox.com>
-	 <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
-	 <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
-	 <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
-	 <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
-	 <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
-	 <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv3 net-next 00/31] Misc. fixes for cxgb4 and iw_cxgb4
+Date: Wed, 5 Mar 2014 13:30:45 +0200
+Message-ID: <53170AE5.1030602@mellanox.com>
+References: <1393936917-25847-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Or Gerlitz <or.gerlitz@gmail.com>, Hefty Sean <sean.hefty@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, target-devel <target-devel@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1393936917-25847-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2014-02-06 at 16:04 -0800, Roland Dreier wrote:
-> On Thu, Feb 6, 2014 at 4:02 PM, Nicholas A. Bellinger
-> <nab@linux-iscsi.org> wrote:
-> > Can you give us an estimate of when you'll have some time to give
-> > feedback on the outstanding patches..?
-> 
-> I hope to get to it in the next few weeks.
-> 
->  - R.
+On 04/03/2014 14:41, Hariprasad Shenai wrote:
+> Hariprasad Shenai (1):
+>    Revert "cxgb4: Don't assume LSO only uses SGL path in t4_eth_xmit()"
+>
+> Kumar Sanghvi (5):
+>    cxgb4: Fix some small bugs in t4_sge_init_soft() when our Page Size is
+>      64KB
+>    cxgb4: Add code to dump SGE registers when hitting idma hangs
+>    cxgb4: Rectify emitting messages about SGE Ingress DMA channels being
+>      potentially stuck
+>    cxgb4: Updates for T5 SGE's Egress Congestion Threshold
+>    cxgb4: use spinlock_irqsave/spinlock_irqrestore for db lock.
+>
+> Steve Wise (25):
+>    iw_cxgb4: cap CQ size at T4_MAX_IQ_SIZE.
+>    iw_cxgb4: Allow loopback connections.
+>    iw_cxgb4: release neigh entry in error paths.
+>    iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE as negative advice.
+>    cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes.
+>    iw_cxgb4: use the BAR2/WC path for kernel QPs and T5 devices.
+>    iw_cxgb4: Fix incorrect BUG_ON conditions.
+>    iw_cxgb4: Mind the sq_sig_all/sq_sig_type QP attributes.
+>    iw_cxgb4: default peer2peer mode to 1.
+>    iw_cxgb4: save the correct map length for fast_reg_page_lists.
+>    iw_cxgb4: don't leak skb in c4iw_uld_rx_handler().
+>    iw_cxgb4: fix possible memory leak in RX_PKT processing.
+>    iw_cxgb4: ignore read reponse type 1 CQEs.
+>    iw_cxgb4: connect_request_upcall fixes.
+>    iw_cxgb4: adjust tcp snd/rcv window based on link speed.
+>    iw_cxgb4: update snd_seq when sending MPA messages.
+>    iw_cxgb4: lock around accept/reject downcalls.
+>    iw_cxgb4: drop RX_DATA packets if the endpoint is gone.
+>    iw_cxgb4: rx_data() needs to hold the ep mutex.
+>    iw_cxgb4: endpoint timeout fixes.
+>    iw_cxgb4: rmb() after reading valid gen bit.
+>    iw_cxgb4: wc_wmb() needed after DB writes.
+>    iw_cxgb4: SQ flush fix.
+>    iw_cxgb4: minor fixes
+>    iw_cxgb4: Max fastreg depth depends on DSGL support.
 
-Hi Roland,
-
-We'd very much like to move forward with the verbs + mlx5 + LIO target
-PI related patches for v3.15 code.
-
-Given the verbs + mlx5 changes have undergone ~5 months of review at
-this point, I'd like to go ahead and get them in target-pending/for-next
-ASAP to continue making forward progress towards a mainline merge.
-
-I'm happy with the state of the iser-target related changes, and Sagi &
-Co are making good progress on the iser-initiator related patches with
-Mike.
-
-That all said, do you have an objection wrt taking this bits through
-target-pending..?  Given the dependencies involved, that would seem the
-most logical path to take.
-
---nab 
+Also, not sure if this is addressed by the coding style or patch 
+submission guide, but I think the common/proper way to set subject 
+(title) line for kernel patches is to avoid a period in the end of the 
+sentence, since this is single line. Anyway, you were not consistent 
+about this tiny detail... some patches subject line end with period some 
+don't, I vote to remove...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
