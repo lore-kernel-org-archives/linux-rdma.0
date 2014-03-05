@@ -1,122 +1,54 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sm_state_mgr.c: Fix opensm crash after handover
-Date: Wed, 05 Mar 2014 13:49:07 -0500
-Message-ID: <531771A3.1090906@dev.mellanox.co.il>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: linux rdma 3.14 merge plans
+Date: Wed, 05 Mar 2014 11:03:38 -0800
+Message-ID: <1394046218.20601.12.camel@haakon3.risingtidesystems.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	 <52CD1C68.4050406@mellanox.com>
+	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+	 <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
+	 <1389906852.5567.668.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
+	 <1390102949.5567.749.camel@haakon3.risingtidesystems.com>
+	 <52DBB4F1.4020400@mellanox.com>
+	 <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
+	 <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
+	 <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
+	 <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
+	 <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
+	 <1394013249.19539.17.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNRkAUH5Jsd67--ydWtUJqE1=pnVSuorgn4vNQiuYx1wg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CAG4TOxNRkAUH5Jsd67--ydWtUJqE1=pnVSuorgn4vNQiuYx1wg@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Or Gerlitz <or.gerlitz@gmail.com>, Hefty Sean <sean.hefty@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, target-devel <target-devel@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Mon, 8 Apr 2013 20:09:23 +0300
+On Wed, 2014-03-05 at 07:18 -0800, Roland Dreier wrote:
+> On Wed, Mar 5, 2014 at 1:54 AM, Nicholas A. Bellinger
+> <nab@linux-iscsi.org> wrote:
+> > That all said, do you have an objection wrt taking this bits through
+> > target-pending..?  Given the dependencies involved, that would seem the
+> > most logical path to take.
+> 
+> Perhaps not surprisingly, I would prefer to get a chance to review a
+> major change to the core RDMA midlayer rather than having you merge it
+> through your tree.  So yes I do object.  Please give me a chance to
+> review and merge it.  I am working on that this week.
+> 
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sm_state_mgr.c |   29 +++++++++++++++++++++--------
- 1 files changed, 21 insertions(+), 8 deletions(-)
+Great.  We'll be looking for a response by the end of the week.
 
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index 5e4b06a..2c26d38 100644
---- a/opensm/osm_sm_state_mgr.c
-+++ b/opensm/osm_sm_state_mgr.c
-@@ -1,6 +1,6 @@
- /*
-+ * Copyright (c) 2002-2013 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-- * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
-  *
-@@ -297,15 +297,17 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 * Update the state of the SM to MASTER
- 			 */
- 			/* Turn on the first_time_master_sweep flag */
--			sm->p_subn->first_time_master_sweep = TRUE;
- 			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
- 			osm_report_sm_state(sm);
- 			/*
- 			 * Make sure to set the subnet master_sm_base_lid
- 			 * to the sm_base_lid value
- 			 */
-+			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
-+			sm->p_subn->first_time_master_sweep = TRUE;
- 			sm->p_subn->master_sm_base_lid =
- 			    sm->p_subn->sm_base_lid;
-+			CL_PLOCK_RELEASE(sm->p_lock)
- 			break;
- 		case OSM_SM_SIGNAL_MASTER_OR_HIGHER_SM_DETECTED:
- 			/*
-@@ -318,8 +320,9 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 * Since another SM is doing the LFT config - we should not
- 			 * ignore the results of it
- 			 */
-+			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
- 			sm->p_subn->ignore_existing_lfts = FALSE;
--
-+			CL_PLOCK_RELEASE(sm->p_lock);
- 			sm_state_mgr_start_polling(sm);
- 			break;
- 		case OSM_SM_SIGNAL_HANDOVER:
-@@ -351,7 +354,9 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 */
- 			sm->p_subn->sm_state = IB_SMINFO_STATE_DISCOVERING;
- 			osm_report_sm_state(sm);
-+			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
- 			sm->p_subn->coming_out_of_standby = TRUE;
-+			CL_PLOCK_RELEASE(sm->p_lock);
- 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
- 			break;
- 		case OSM_SM_SIGNAL_DISABLE:
-@@ -367,6 +372,7 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 * OPTIONAL: send ACKNOWLEDGE
- 			 */
- 			/* Turn on the first_time_master_sweep flag */
-+			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
- 			sm->p_subn->first_time_master_sweep = TRUE;
- 			/*
- 			 * Turn on the force_heavy_sweep - we want a
-@@ -374,15 +380,19 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 */
- 			sm->p_subn->force_heavy_sweep = TRUE;
- 
--			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
--			osm_report_sm_state(sm);
- 			/*
- 			 * Make sure to set the subnet master_sm_base_lid
- 			 * to the sm_base_lid value
- 			 */
- 			sm->p_subn->master_sm_base_lid =
- 			    sm->p_subn->sm_base_lid;
-+
- 			sm->p_subn->coming_out_of_standby = TRUE;
-+
-+			CL_PLOCK_RELEASE(sm->p_lock);
-+
-+			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
-+			osm_report_sm_state(sm);
- 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
- 			break;
- 		case OSM_SM_SIGNAL_ACKNOWLEDGE:
-@@ -448,11 +458,13 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			/* Force set_client_rereg_on_sweep, we don't know what the other
- 			 * SM may have configure/done on the fabric.
- 			 */
-+			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
- 			sm->p_subn->set_client_rereg_on_sweep = TRUE;
- 			sm->polling_sm_guid = 0;
- 			sm->p_subn->first_time_master_sweep = TRUE;
- 			sm->p_subn->coming_out_of_standby = TRUE;
- 			sm->p_subn->force_heavy_sweep = TRUE;
-+			CL_PLOCK_RELEASE(sm->p_lock);
- 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
- 			break;
- 		case OSM_SM_SIGNAL_HANDOVER_SENT:
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Otherwise if you end up not having time, we'd still like to move forward
+for v3.15 given the amount of review the series has already gotten on
+the list.
+
+Thank you,
+
+--nab
