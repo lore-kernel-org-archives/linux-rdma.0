@@ -1,94 +1,121 @@
-From: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
-Subject: Re: [PATCH v1 10/13] IB/iser: Support T10-PI operations
-Date: Wed, 05 Mar 2014 11:55:26 -0600
-Message-ID: <5317650E.40306@cs.wisc.edu>
-References: <1393499589-15633-1-git-send-email-sagig@mellanox.com> <1393499589-15633-11-git-send-email-sagig@mellanox.com> <531408C8.10107@cs.wisc.edu> <53159F09.6050802@mellanox.com> <5315A3E4.508@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_sm_state_mgr.c: Fix opensm crash after handover
+Date: Wed, 05 Mar 2014 13:49:07 -0500
+Message-ID: <531771A3.1090906@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5315A3E4.508-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/04/2014 03:59 AM, Sagi Grimberg wrote:
-> On 3/4/2014 11:38 AM, Or Gerlitz wrote:
->> On 03/03/2014 06:44, Mike Christie wrote:
->>> The xmit_task callout does handle failures like EINVAL. If the above map
->>> calls fail then you would get infinite retries. You would currently want
->>> to do the mapping in the init_task callout instead.
->>>
->>> If it makes it easier on the driver implementation then it is ok to
->>> modify the xmit_task callers so that they handle multiple error codes
->>> for drivers like iser that have the xmit_task callout called from
->>> iscsi_queuecommand.
->>
->> Mike,
->>
->> After looking on the code with Sagi,  it seems to us that the correct
->> way to go here, would be to enhance in iscsi_queuecommand the
->> processing of the result returned by session->tt->xmit_task(task) to
->> behave in a similar manner to how the return value of
->> iscsi_prep_scsi_cmd_pdu() is treated. E.g for errors such as ENOMEM
->> and EGAIN take the "reject" flow which would cause the SCSI midlayer
->> to retry the command and for other return values go to the "fault"
->> flow which will cause the ML to abort the command.
->>
->> Or.
->>
-> 
-> Yes, we were thinking about the following:
-> --- a/drivers/scsi/libiscsi.c
-> +++ b/drivers/scsi/libiscsi.c
-> @@ -1707,10 +1707,17 @@ int iscsi_queuecommand(struct Scsi_Host *host,
-> struct scsi_cmnd *sc)
->                                 goto prepd_fault;
->                         }
->                 }
-> -               if (session->tt->xmit_task(task)) {
-> -                       session->cmdsn--;
-> -                       reason = FAILURE_SESSION_NOT_READY;
-> -                       goto prepd_reject;
-> +
-> +               reason = session->tt->xmit_task(task);
-> +               if (reason) {
-> +                       if (reason == -ENOMEM || reason == -EAGAIN) {
-> +                               session->cmdsn--;
-> +                               reason = FAILURE_SESSION_NOT_READY;
-> +                               goto prepd_reject;
-> +                       } else {
-> +                               sc->result = DID_ABORT << 16;
-> +                               goto prepd_fault;
-> +                       }
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Mon, 8 Apr 2013 20:09:23 +0300
 
-Or is correct.
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_sm_state_mgr.c |   29 +++++++++++++++++++++--------
+ 1 files changed, 21 insertions(+), 8 deletions(-)
 
-If iscsi_prep_scsi_cmd_pdu is successful then it will increment cmdsn.
-
-In this code path for xmit_task above, we assume that the driver can
-either take the entire command and can send it here, or return error and
-we requeue. For your new error case where we cannot send the command due
-to a hard failure so we want to fail the command, then we still need to
-decrement the cmdsn or there would be a hole since it was never put on
-the wire.
-
-Also, it is probably safest to check for the error code you are adding
-support for:
-
-reason = session->tt->xmit_task(task);
-if (reason) {
-	session->cmdsn--;
-
-	if (reason == -EINVAL) {
-		sc->result = DID_ABORT << 16;
-		goto prepd_fault;
-	} else {
-		sc->result = DID_ABORT << 16;
-		goto prepd_fault;
-	}
-}
+diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
+index 5e4b06a..2c26d38 100644
+--- a/opensm/osm_sm_state_mgr.c
++++ b/opensm/osm_sm_state_mgr.c
+@@ -1,6 +1,6 @@
+ /*
++ * Copyright (c) 2002-2013 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
+  *
+@@ -297,15 +297,17 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			 * Update the state of the SM to MASTER
+ 			 */
+ 			/* Turn on the first_time_master_sweep flag */
+-			sm->p_subn->first_time_master_sweep = TRUE;
+ 			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
+ 			osm_report_sm_state(sm);
+ 			/*
+ 			 * Make sure to set the subnet master_sm_base_lid
+ 			 * to the sm_base_lid value
+ 			 */
++			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
++			sm->p_subn->first_time_master_sweep = TRUE;
+ 			sm->p_subn->master_sm_base_lid =
+ 			    sm->p_subn->sm_base_lid;
++			CL_PLOCK_RELEASE(sm->p_lock)
+ 			break;
+ 		case OSM_SM_SIGNAL_MASTER_OR_HIGHER_SM_DETECTED:
+ 			/*
+@@ -318,8 +320,9 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			 * Since another SM is doing the LFT config - we should not
+ 			 * ignore the results of it
+ 			 */
++			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
+ 			sm->p_subn->ignore_existing_lfts = FALSE;
+-
++			CL_PLOCK_RELEASE(sm->p_lock);
+ 			sm_state_mgr_start_polling(sm);
+ 			break;
+ 		case OSM_SM_SIGNAL_HANDOVER:
+@@ -351,7 +354,9 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			 */
+ 			sm->p_subn->sm_state = IB_SMINFO_STATE_DISCOVERING;
+ 			osm_report_sm_state(sm);
++			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
+ 			sm->p_subn->coming_out_of_standby = TRUE;
++			CL_PLOCK_RELEASE(sm->p_lock);
+ 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+ 			break;
+ 		case OSM_SM_SIGNAL_DISABLE:
+@@ -367,6 +372,7 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			 * OPTIONAL: send ACKNOWLEDGE
+ 			 */
+ 			/* Turn on the first_time_master_sweep flag */
++			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
+ 			sm->p_subn->first_time_master_sweep = TRUE;
+ 			/*
+ 			 * Turn on the force_heavy_sweep - we want a
+@@ -374,15 +380,19 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			 */
+ 			sm->p_subn->force_heavy_sweep = TRUE;
+ 
+-			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
+-			osm_report_sm_state(sm);
+ 			/*
+ 			 * Make sure to set the subnet master_sm_base_lid
+ 			 * to the sm_base_lid value
+ 			 */
+ 			sm->p_subn->master_sm_base_lid =
+ 			    sm->p_subn->sm_base_lid;
++
+ 			sm->p_subn->coming_out_of_standby = TRUE;
++
++			CL_PLOCK_RELEASE(sm->p_lock);
++
++			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
++			osm_report_sm_state(sm);
+ 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+ 			break;
+ 		case OSM_SM_SIGNAL_ACKNOWLEDGE:
+@@ -448,11 +458,13 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			/* Force set_client_rereg_on_sweep, we don't know what the other
+ 			 * SM may have configure/done on the fabric.
+ 			 */
++			CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
+ 			sm->p_subn->set_client_rereg_on_sweep = TRUE;
+ 			sm->polling_sm_guid = 0;
+ 			sm->p_subn->first_time_master_sweep = TRUE;
+ 			sm->p_subn->coming_out_of_standby = TRUE;
+ 			sm->p_subn->force_heavy_sweep = TRUE;
++			CL_PLOCK_RELEASE(sm->p_lock);
+ 			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+ 			break;
+ 		case OSM_SM_SIGNAL_HANDOVER_SENT:
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
