@@ -1,86 +1,52 @@
-From: sagi grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/6] iser-target: Fix active I/O shutdown related issues
-Date: Thu, 6 Mar 2014 16:05:02 +0200
-Message-ID: <5318808E.5080207@mellanox.com>
-References: <1393891265-22910-1-git-send-email-nab@daterainc.com>	 <5315EE7C.3030806@dev.mellanox.co.il>	 <1393978007.30113.4.camel@haakon3.risingtidesystems.com>	 <531714BE.2060401@dev.mellanox.co.il> <1394057083.20601.51.camel@haakon3.risingtidesystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm/osm_sminfo_rcv.c: send trap144 to a newly found MASTER SM when in MASTER state
+Date: Thu,  6 Mar 2014 15:01:01 +0200
+Message-ID: <1394110861-6128-1-git-send-email-alexne@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1394057083.20601.51.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/6/2014 12:04 AM, Nicholas A. Bellinger wrote:
-> On Wed, 2014-03-05 at 14:12 +0200, Sagi Grimberg wrote:
->> On 3/5/2014 2:06 AM, Nicholas A. Bellinger wrote:
->>> On Tue, 2014-03-04 at 17:17 +0200, Sagi Grimberg wrote:
->>>> On 3/4/2014 2:00 AM, Nicholas A. Bellinger wrote:
->>>>> From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
->>>>>
-> <SNIP>
->
->>>> More on cleanup flow. isert_cma_handler does not handle
->>>> RDMA_CM_EVENT_TIMEWAIT_EXIT.
->>>> To be more specific, according to IB spec, when initiating disconnect
->>>> (rdma_disconnect/ib_send_cm_dreq),
->>>> one should not destroy a used qp until getting TIMEWAIT_EXIT CM event.
->>>> We are working on this in iSER initiator.
->>>> It might lead to "stale connection" CM rejects on future connections
->>>> (SRP also does not do that).
->>>>
->>> <nod>, I noticed that as well during recent debugging.
->>>
->>> However, AFAICT the RDMA_CM_EVENT_TIMEWAIT_EVENT doesn't (always) occur
->>> on the target side after a RDMA_CM_EVENT_DISCONNECTED, and thus far I've
->>> not been able to ascertain what's different about the shutdown sequence
->>> that would make this happen, or not happen..
->>>
->>> Any ideas..?
->> That's probably because the cm_id is destroyed before you get the event.
->> There is a specific
->> timout computation to get this event (see IB spec). If you will attempt
->> to disconnect while
->> the link is down (initiator won't receive it and send you disconnect
->> back), you should be able
->> to see this event. As I understand, in order to comply the spec, the QP
->> (and the cm_id afterwards)
->> should be destroyed only when getting this event and not before.
->>
-> <nod>, thanks for the additional background.
->
-> So currently rdma_destroy_qp() + rdma_destroy_id() is being done via
-> isert_connect_release(), which occurs after the final isert_put_conn()
-> happens from either the RDMA_CM_EVENT_DISCONNECTED handler, or within
-> isert_free_conn() in one of the per connection kernel thread contexts
-> via iscsit_close_connection().
->
-> If I understand the above correctly, the isert_put_conn() should move
-> from the RDMA_CM_EVENT_DISCONNECTED handler into the TIMEWAIT_EVENT
-> handler, yes..?
+Before this patch, when SM in Master state finds other Master SM, it
+sends trap144 to previously found Master SM/SM with higher priority when
+it was in Discovering/Standby state.
+This can lead to wrong behaviour in a multi-SM topolgy:
 
-Yes.
+Setup: SM1 with priority 1, SM2 with priority 2, SM3 with priority 3.
+Flow:
+1. setting SM3 to ignore SMInfo MADs -> SM2 become master
+2. setting SM2 to ignore SMInfo MADs -> SM1 become master
+3. setting SM2 to accept SMInfo MADs
+4. SM2 sends SMInfo to SM1 -> finds that SM1 is master
+5. SM2 sends trap144 to SM3 instead of sending it to SM1
 
-> And it's safe to assume that DISCONNECTED will always occur before
-> TIMEWAIT_EVENT, right..?
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_sminfo_rcv.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-DISCONNECTED event may not even come at all (in case the initiator 
-didn't call rdma_disconnect). no guarantees here..
-But, if once we get the TIMEWAIT event, we destroy the qp and the 
-*cm_id*, we won't get any CM events at all.
-As I understand, we don't even need to explicitly destroy the cm_id, we 
-can just return a non-zero return from cma_handler
-for TIMEWAIT events which will cause rdma_cm to implicitly destroy the 
-cm_id.
-
-Hope this helps,
-
-Sagi.
-
-> --nab
->
+diff --git a/opensm/osm_sminfo_rcv.c b/opensm/osm_sminfo_rcv.c
+index 9f62f9f..100a82d 100644
+--- a/opensm/osm_sminfo_rcv.c
++++ b/opensm/osm_sminfo_rcv.c
+@@ -395,8 +395,13 @@ static void smi_rcv_process_get_sm(IN osm_sm_t * sm,
+ 			if (sm->polling_sm_guid) {
+ 				if (smi_rcv_remote_sm_is_higher(sm, p_smi))
+ 					sm->p_subn->force_heavy_sweep = TRUE;
+-				else
++				else {
++					/* Update master_sm_guid to the GUID of the newly
++					 * found MASTER SM and send trap 144 to it.
++					 */
++					sm->master_sm_guid = sm->polling_sm_guid;
+ 					osm_send_trap144(sm, TRAP_144_MASK_SM_PRIORITY_CHANGE);
++				}
+ 				osm_sm_state_mgr_signal_master_is_alive(sm);
+ 			} else {
+ 				/* This is a response we got while sweeping the subnet.
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
