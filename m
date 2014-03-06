@@ -1,26 +1,42 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] Revert "Reset client reregistration when receiving
- handover"
-Date: Thu, 06 Mar 2014 08:46:42 -0500
-Message-ID: <53187C42.7070808@dev.mellanox.co.il>
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH opensm] Revert "Reset client reregistration when
+ receiving handover"
+Date: Thu, 6 Mar 2014 13:53:09 +0000
+Message-ID: <D150189008CAE54A8720151FC1977DE796195AE3@MTLDAG01.mtl.com>
+References: <53187C42.7070808@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53187C42.7070808-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+Regarding the comment in the reverted patch:
+-	   3. set_client_rereg_on_sweep is TRUE.  The one situation in which this
+-	   is true but first_time_master_sweep is FALSE is when the SM receives
+-	   a HANDOVER while in master.  We don't want to re-setup everything by
+-	   setting first_time_master_sweep, but we do want to reset up this.
+
+We saw several cases when it was not enough to send only PortInfo in case of multiple Master SMs in the fabric.
+Master SM should re-setup everything when it receives HANDOVER in Master state. This is needed since Master SM is not aware of changes in PKeys/LFTs/MFTs/QoS that another Master SM could introduce.
+
+-----Original Message-----
+From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org] 
+Sent: Thursday, March 06, 2014 3:47 PM
+To: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org); Vladimir Koushnir
+Cc: Alex Netes; Chu, Al
+Subject: [PATCH opensm] Revert "Reset client reregistration when receiving handover"
 
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Date: Mon, 3 Dec 2012 14:45:24 +0200
 
 This reverts commit f4722b0f833ed7a060f80b6757cfb9af78252678.
 
-This patch is no longer needed since first_master_sweep is now set
-when reaching MASTER state even if SM was in MASTER before. This is
-equivalent to the set_client_rereg_on_sweep flag that was added in
-the patch being reverted.
+This patch is no longer needed since first_master_sweep is now set when reaching MASTER state even if SM was in MASTER before. This is equivalent to the set_client_rereg_on_sweep flag that was added in the patch being reverted.
 
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -32,8 +48,7 @@ Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
  opensm/osm_state_mgr.c      |    2 +-
  5 files changed, 11 insertions(+), 31 deletions(-)
 
-diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
-index 35d022b..37e0fb3 100644
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h index 35d022b..37e0fb3 100644
 --- a/include/opensm/osm_subnet.h
 +++ b/include/opensm/osm_subnet.h
 @@ -763,7 +763,6 @@ typedef struct osm_subn {
@@ -72,8 +87,7 @@ index 35d022b..37e0fb3 100644
  *		the master state, and set it back to FALSE at the end of the
  *		drop manager. This is done since at the end of the drop manager
  *		we have updated all the ports that are reachable, and from now
-diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-index 665b8a5..1a05902 100644
+diff --git a/opensm/osm_console.c b/opensm/osm_console.c index 665b8a5..1a05902 100644
 --- a/opensm/osm_console.c
 +++ b/opensm/osm_console.c
 @@ -512,7 +512,6 @@ static void print_status(osm_opensm_t * p_osm, FILE * out)
@@ -92,8 +106,7 @@ index 665b8a5..1a05902 100644
  			p_osm->subn.coming_out_of_standby);
  		dump_sms(p_osm, out);
  		fprintf(out, "\n");
-diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
-index 757a9e3..ba103cb 100644
+diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c index 757a9e3..ba103cb 100644
 --- a/opensm/osm_lid_mgr.c
 +++ b/opensm/osm_lid_mgr.c
 @@ -1034,9 +1034,7 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
@@ -122,8 +135,7 @@ index 757a9e3..ba103cb 100644
  		send_set = TRUE;
  
  	if (!send_set)
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index 868caed..76ccf81 100644
+diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c index 868caed..76ccf81 100644
 --- a/opensm/osm_sm_state_mgr.c
 +++ b/opensm/osm_sm_state_mgr.c
 @@ -455,11 +455,7 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
@@ -137,9 +149,7 @@ index 868caed..76ccf81 100644
 -			sm->p_subn->set_client_rereg_on_sweep = TRUE;
  			sm->polling_sm_guid = 0;
  			sm->p_subn->first_time_master_sweep = TRUE;
- 			sm->p_subn->coming_out_of_standby = TRUE;
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index c4f4978..1872f31 100644
+ 			sm->p_subn->coming_out_of_standby = TRUE; diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c index c4f4978..1872f31 100644
 --- a/opensm/osm_state_mgr.c
 +++ b/opensm/osm_state_mgr.c
 @@ -1538,7 +1538,6 @@ repeat_discovery:
