@@ -1,49 +1,104 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v1 1/3] IB/srp: Fix crash when unmapping data loop
-Date: Fri, 07 Mar 2014 09:13:57 +0100
-Message-ID: <53197FC5.4090102@acm.org>
-References: <1393252218-30638-1-git-send-email-sagig@mellanox.com> <1393252218-30638-2-git-send-email-sagig@mellanox.com> <530B6444.1000805@acm.org> <530F225E.5070500@dev.mellanox.co.il> <53183B71.4090609@acm.org> <53189526.2010704@mellanox.com> <53189DDE.7090003@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv4 net-next 00/32] Misc. fixes for cxgb4 and iw_cxgb4
+Date: Fri,  7 Mar 2014 16:02:57 +0530
+Message-ID: <1394188409-9739-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53189DDE.7090003-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, sagi grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/06/14 17:10, Sagi Grimberg wrote:
-> So I took Roland latest 3.14-rc1 and tried to reproduce this issue using
-> HCA with no FMRs support and was *NOT* able to reproduce this issue. This
-> issue reproduced for me on RH6 backported srp and I can't tell where is
-> the delta at the moment. Perhaps Sebastian can share his scenario that
-> reproduces this issue and was solved by the patch I proposed.
-> 
-> I suggest to try and reproduce it with your ib_srp-backport code over
-> RH6, worth a look right?
+Hi All,
 
-Hello Sagi,
+This patch series provides miscelleneous fixes for Chelsio T4/T5 adapters
+related to cxgb4 related to sge and mtu. And includes DB Drop avoidance
+and other misc. fixes on iw-cxgb4.
 
-It would help if you could explain why you are concerned about holding a
-spin lock during the srp_post_send() call. According to
-Documentation/infiniband/core_locking.txt ib_post_send() is not allowed
-to sleep. And before the SCSI host lock push-down the SCSI host lock was
-held around the srp_queuecommand() invocation. In other words, holding a
-spin lock around the srp_post_send() call in srp_queuecommand() is
-neither new nor disallowed by the RDMA API documentation. And if there
-would be any (legacy?) RDMA HCA drivers that are not upstream and for
-which it is not safe to invoke ib_post_send() with a spin lock held, how
-about invoking srp_post_send() in distro's that support these drivers
-without holding target->lock ? The patch I posted fixes a race between
-srp_finish_req() and the error path in srp_queuecommand by setting
-req->scmnd after the srp_post_send() call instead of before. Holding
-target->lock around the srp_post_send() call and the req->scmnd
-assignment is only needed to avoid the (theoretical) race where
-processing of an SRP reply would already have been started before
-req->scmnd has been assigned by srp_queuecommand().
+The patches series is created against David Miller's 'net-next' tree.
+And includes patches on cxgb4 and iw_cxgb4 driver.
 
-Bart.
+We would like to request this patch series to get merged via David Miller's
+'net-next' tree.
+
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
+
+Thanks
+
+V4:
+   Fixed review comments given by Sergei Shtylyov, Joe Perches, Or Gerlitz.
+   And, dropped un-used module_params based on comment from Ben Hutchings.
+   Also adds a new patch ("cxgb4: Calculate len properly for LSO
+   path") which fixes regression.
+V3:
+   Fixed warnings reported by checkpatch.pl --strict & use networking code
+   multi-line comments. Also includes fixes based on review comments given by
+   Sergei Shtylyov.
+V2:
+   Dont drop existing module parameters.
+   (cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes.) 
+
+
+Hariprasad Shenai (1):
+  iw_cxgb4: Use pr_warn_ratelimited
+
+Kumar Sanghvi (6):
+  cxgb4: Fix some small bugs in t4_sge_init_soft() when our Page Size is
+    64KB
+  cxgb4: Add code to dump SGE registers when hitting idma hangs
+  cxgb4: Rectify emitting messages about SGE Ingress DMA channels being
+    potentially stuck
+  cxgb4: Updates for T5 SGE's Egress Congestion Threshold
+  cxgb4: use spinlock_irqsave/spinlock_irqrestore for db lock
+  cxgb4: Calculate len properly for LSO path
+
+Steve Wise (25):
+  iw_cxgb4: cap CQ size at T4_MAX_IQ_SIZE
+  iw_cxgb4: Allow loopback connections
+  iw_cxgb4: release neigh entry in error paths
+  iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE as negative advice
+  cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes
+  iw_cxgb4: use the BAR2/WC path for kernel QPs and T5 devices
+  iw_cxgb4: Fix incorrect BUG_ON conditions
+  iw_cxgb4: Mind the sq_sig_all/sq_sig_type QP attributes
+  iw_cxgb4: default peer2peer mode to 1
+  iw_cxgb4: save the correct map length for fast_reg_page_lists
+  iw_cxgb4: don't leak skb in c4iw_uld_rx_handler()
+  iw_cxgb4: fix possible memory leak in RX_PKT processing
+  iw_cxgb4: ignore read reponse type 1 CQEs
+  iw_cxgb4: connect_request_upcall fixes
+  iw_cxgb4: adjust tcp snd/rcv window based on link speed
+  iw_cxgb4: update snd_seq when sending MPA messages
+  iw_cxgb4: lock around accept/reject downcalls
+  iw_cxgb4: drop RX_DATA packets if the endpoint is gone
+  iw_cxgb4: rx_data() needs to hold the ep mutex
+  iw_cxgb4: endpoint timeout fixes
+  iw_cxgb4: rmb() after reading valid gen bit
+  iw_cxgb4: wc_wmb() needed after DB writes
+  iw_cxgb4: SQ flush fix
+  iw_cxgb4: minor fixes
+  iw_cxgb4: Max fastreg depth depends on DSGL support
+
+ drivers/infiniband/hw/cxgb4/cm.c                | 269 +++++++++++++++++-------
+ drivers/infiniband/hw/cxgb4/cq.c                |  54 +++--
+ drivers/infiniband/hw/cxgb4/device.c            | 239 +++++++++++++--------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |  17 +-
+ drivers/infiniband/hw/cxgb4/mem.c               |  18 +-
+ drivers/infiniband/hw/cxgb4/provider.c          |  46 +++-
+ drivers/infiniband/hw/cxgb4/qp.c                | 216 ++++++++++---------
+ drivers/infiniband/hw/cxgb4/resource.c          |  10 +-
+ drivers/infiniband/hw/cxgb4/t4.h                |  78 ++++++-
+ drivers/infiniband/hw/cxgb4/user.h              |   5 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  11 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  84 +++++---
+ drivers/net/ethernet/chelsio/cxgb4/sge.c        | 130 +++++++++---
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      | 106 ++++++++++
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |   2 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |   9 +
+ 16 files changed, 914 insertions(+), 380 deletions(-)
+
+-- 
+1.8.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
