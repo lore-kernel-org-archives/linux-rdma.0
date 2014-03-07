@@ -1,50 +1,50 @@
-From: Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv3 net-next 00/31] Misc. fixes for cxgb4 and iw_cxgb4
-Date: Fri, 7 Mar 2014 11:47:03 +0530
-Message-ID: <20140307061700.GD23862@hariprasad-pc>
-References: <1393936917-25847-1-git-send-email-hariprasad@chelsio.com>
- <20140304.132226.75524344104026791.davem@davemloft.net>
- <20140305053024.GA23862@hariprasad-pc>
- <008a01cf38ce$c883e820$598bb860$@opengridcomputing.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH v1 1/3] IB/srp: Fix crash when unmapping data loop
+Date: Fri, 07 Mar 2014 09:13:57 +0100
+Message-ID: <53197FC5.4090102@acm.org>
+References: <1393252218-30638-1-git-send-email-sagig@mellanox.com> <1393252218-30638-2-git-send-email-sagig@mellanox.com> <530B6444.1000805@acm.org> <530F225E.5070500@dev.mellanox.co.il> <53183B71.4090609@acm.org> <53189526.2010704@mellanox.com> <53189DDE.7090003@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <008a01cf38ce$c883e820$598bb860$@opengridcomputing.com>
+In-Reply-To: <53189DDE.7090003-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'David Miller' <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, sagi grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 05, 2014 at 17:58:19 -0600, Steve Wise wrote:
-> > > BTW, if you're frustrated from having to send these patches so many
-> > > times because of changes being requested, this is the main reason
-> > > why you shouldn't queue up such enormous numbers of patches at one
-> > > time.
-> > >
-> > > Please try to keep your future submissions sizes more reasonable,
-> > > perhaps ~10 patches or so at most.
-> > >
-> > > Thanks.
-> > 
-> > Sure, thanks for the suggestion.
-> > I will just re-post the revert patch on cxgb4 now, part of this
-> series, which is
-> > causing regression.
-> > And, I will split the rest of patch-series into 8-10 patches and
-> re-submit.
+On 03/06/14 17:10, Sagi Grimberg wrote:
+> So I took Roland latest 3.14-rc1 and tried to reproduce this issue using
+> HCA with no FMRs support and was *NOT* able to reproduce this issue. This
+> issue reproduced for me on RH6 backported srp and I can't tell where is
+> the delta at the moment. Perhaps Sebastian can share his scenario that
+> reproduces this issue and was solved by the patch I proposed.
 > 
-> I think you should keep this series as-is since folks have been
-> reviewing it as such.  
-> Then going forward, we need to submit smaller sets more frequently...
-> 
-> Steve.
-> 
->
+> I suggest to try and reproduce it with your ib_srp-backport code over
+> RH6, worth a look right?
 
-OK..
+Hello Sagi,
 
--Hari
+It would help if you could explain why you are concerned about holding a
+spin lock during the srp_post_send() call. According to
+Documentation/infiniband/core_locking.txt ib_post_send() is not allowed
+to sleep. And before the SCSI host lock push-down the SCSI host lock was
+held around the srp_queuecommand() invocation. In other words, holding a
+spin lock around the srp_post_send() call in srp_queuecommand() is
+neither new nor disallowed by the RDMA API documentation. And if there
+would be any (legacy?) RDMA HCA drivers that are not upstream and for
+which it is not safe to invoke ib_post_send() with a spin lock held, how
+about invoking srp_post_send() in distro's that support these drivers
+without holding target->lock ? The patch I posted fixes a race between
+srp_finish_req() and the error path in srp_queuecommand by setting
+req->scmnd after the srp_post_send() call instead of before. Holding
+target->lock around the srp_post_send() call and the req->scmnd
+assignment is only needed to avoid the (theoretical) race where
+processing of an SRP reply would already have been started before
+req->scmnd has been assigned by srp_queuecommand().
+
+Bart.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
