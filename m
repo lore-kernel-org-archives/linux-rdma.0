@@ -1,231 +1,66 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 1/3] IB/srp: Fix crash when unmapping data loop
-Date: Thu, 06 Mar 2014 18:10:06 +0200
-Message-ID: <53189DDE.7090003@dev.mellanox.co.il>
-References: <1393252218-30638-1-git-send-email-sagig@mellanox.com> <1393252218-30638-2-git-send-email-sagig@mellanox.com> <530B6444.1000805@acm.org> <530F225E.5070500@dev.mellanox.co.il> <53183B71.4090609@acm.org> <53189526.2010704@mellanox.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: linux rdma 3.14 merge plans
+Date: Fri, 7 Mar 2014 05:07:34 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FDDD50E@CMEXMB1.ad.emulex.com>
+References: <CAJZOPZ+4yQ-sT=ks7+eiJjkxOjy5w=BmG16JVcUPiuVsof7qEA@mail.gmail.com>
+	 <CAG4TOxOMmvFWnkU3DBn33rscEKh2_YfbUCKY=iY8PCVN3+nEsA@mail.gmail.com>
+	 <52CD1C68.4050406@mellanox.com>
+	 <1389645171.5567.459.camel@haakon3.risingtidesystems.com>
+	 <1389820541.5567.543.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNa32sLxifPx_f8sW04B_qSh01WWfWjRvam6fjvFLDXSQ@mail.gmail.com>
+	 <1389906852.5567.668.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxPeYQ=e5LdJft1Hkx8donUQjJaKDEAv3iRLGxPYJQ_b9w@mail.gmail.com>
+	 <1390102949.5567.749.camel@haakon3.risingtidesystems.com>
+	 <52DBB4F1.4020400@mellanox.com>
+	 <CAJZOPZJFbcTh2zO8mos0M+gv0LW-Gmh877Vxe4tLvfPX19oqTw@mail.gmail.com>
+	 <CAJZOPZLuz-Z59agBd0Q9J2=sSG-F+Y8MrJkoGbtiF5M+CnKU1g@mail.gmail.com>
+	 <CAG4TOxPLEfyWsUDf4_371u=_=tOgW2v5J4zSz8xx73DfziZOZg@mail.gmail.com>
+	 <1390375658.5567.917.camel@haakon3.risingtidesystems.com>
+	 <1391731323.14985.56.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNpnMMR-vfAVa+m6f-z82msxygADUkJ7mmrKtzHCOqdhA@mail.gmail.com>
+	 <1394013249.19539.17.camel@haakon3.risingtidesystems.com>
+	 <CAG4TOxNRkAUH5Jsd67--ydWtUJqE1=pnVSuorgn4vNQiuYx1wg@mail.gmail.com>
+ <1394046218.20601.12.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53189526.2010704-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1394046218.20601.12.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sagi grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/6/2014 5:32 PM, sagi grimberg wrote:
-> On 3/6/2014 11:10 AM, Bart Van Assche wrote:
->> On 02/27/14 12:32, Sagi Grimberg wrote:
->>> As I recall  (need to re-confirm this), the problem was that in 
->>> unstable
->>> ports condition srp_abort is
->>> called invoking srp_free_req (unmap call #1) and reconnect process (or
->>> reset_device or terminate_io)
->>> finishes all requests in the request ring (unmap call #2). when FMRs 
->>> are
->>> used then nfmr goes to zero
->>> the first time, but when FMRs are not supported nfmr goes from 0 to -1
->>> causing the crash since nfmr condition
->>> is not safe.
->> Hello Sagi,
->>
->> Thinking further about this, it looks to me like the only way to avoid
->> that srp_terminate_io() triggers a race condition with the error path
->> in srp_queuecommand() is to set req->scmnd only if srp_post_send() has
->> succeeded. How about the patch below ? That patch should ensure that
->> srp_unmap_data() is only called once for each request and hence should
->> avoid triggering the crash you mentioned.
->
-> Hey Bart, Thanks for taking the time to think on this issue.
->
-> I see your point, and it might work. let me try it out (if I won't get 
-> to it today I'll do it on Sunday)
-> and reply if that resolves the issue.
->
-> Sagi.
->
-
-Hey Bart (replying to my own email...),
-
-So I took Roland latest 3.14-rc1 and tried to reproduce this issue using 
-HCA with no FMRs support and
-was *NOT* able to reproduce this issue. This issue reproduced for me on 
-RH6 backported srp and
-I can't tell where is the delta at the moment. Perhaps Sebastian can 
-share his scenario that reproduces
-this issue and was solved by the patch I proposed.
-
-I suggest to try and reproduce it with your ib_srp-backport code over 
-RH6, worth a look right?
-
-If this is a false alarm, then I'm sorry for the bother...
-
-Sagi.
-
->> Thanks,
->>
->> Bart.
->>
->> [PATCH] IB/srp: Fix a race condition between fast failing I/O and I/O 
->> queueing
->>
->> Avoid that srp_unmap_data() can get invoked concurrently by
->> srp_terminate_io() and from the error path in srp_queuecommand()
->> if srp_post_send() fails.
->>
->> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
->> ---
->>   drivers/infiniband/ulp/srp/ib_srp.c | 46 
->> +++++++++++++++++++++----------------
->>   1 file changed, 26 insertions(+), 20 deletions(-)
->>
->> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c 
->> b/drivers/infiniband/ulp/srp/ib_srp.c
->> index 7858240..85eb59f 100644
->> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->> @@ -783,6 +783,7 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
->>    * srp_claim_req - Take ownership of the scmnd associated with a 
->> request.
->>    * @target: SRP target port.
->>    * @req: SRP request.
->> + * @sdev: If not NULL, only take ownership for this SCSI device.
->>    * @scmnd: If NULL, take ownership of @req->scmnd. If not NULL, 
->> only take
->>    *         ownership of @req->scmnd if it equals @scmnd.
->>    *
->> @@ -791,16 +792,17 @@ static void srp_unmap_data(struct scsi_cmnd 
->> *scmnd,
->>    */
->>   static struct scsi_cmnd *srp_claim_req(struct srp_target_port *target,
->>                          struct srp_request *req,
->> +                       struct scsi_device *sdev,
->>                          struct scsi_cmnd *scmnd)
->>   {
->>       unsigned long flags;
->>         spin_lock_irqsave(&target->lock, flags);
->> -    if (!scmnd) {
->> +    if (req->scmnd &&
->> +        (!sdev || req->scmnd->device == sdev) &&
->> +        (!scmnd || req->scmnd == scmnd)) {
->>           scmnd = req->scmnd;
->>           req->scmnd = NULL;
->> -    } else if (req->scmnd == scmnd) {
->> -        req->scmnd = NULL;
->>       } else {
->>           scmnd = NULL;
->>       }
->> @@ -827,9 +829,10 @@ static void srp_free_req(struct srp_target_port 
->> *target,
->>   }
->>     static void srp_finish_req(struct srp_target_port *target,
->> -               struct srp_request *req, int result)
->> +               struct srp_request *req, struct scsi_device *sdev,
->> +               int result)
->>   {
->> -    struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
->> +    struct scsi_cmnd *scmnd = srp_claim_req(target, req, sdev, NULL);
->>         if (scmnd) {
->>           srp_free_req(target, req, scmnd, 0);
->> @@ -845,7 +848,7 @@ static void srp_terminate_io(struct srp_rport 
->> *rport)
->>         for (i = 0; i < target->req_ring_size; ++i) {
->>           struct srp_request *req = &target->req_ring[i];
->> -        srp_finish_req(target, req, DID_TRANSPORT_FAILFAST << 16);
->> +        srp_finish_req(target, req, NULL, DID_TRANSPORT_FAILFAST << 
->> 16);
->>       }
->>   }
->>   @@ -882,7 +885,7 @@ static int srp_rport_reconnect(struct srp_rport 
->> *rport)
->>         for (i = 0; i < target->req_ring_size; ++i) {
->>           struct srp_request *req = &target->req_ring[i];
->> -        srp_finish_req(target, req, DID_RESET << 16);
->> +        srp_finish_req(target, req, NULL, DID_RESET << 16);
->>       }
->>         INIT_LIST_HEAD(&target->free_tx);
->> @@ -1290,7 +1293,7 @@ static void srp_process_rsp(struct 
->> srp_target_port *target, struct srp_rsp *rsp)
->>           complete(&target->tsk_mgmt_done);
->>       } else {
->>           req = &target->req_ring[rsp->tag];
->> -        scmnd = srp_claim_req(target, req, NULL);
->> +        scmnd = srp_claim_req(target, req, NULL, NULL);
->>           if (!scmnd) {
->>               shost_printk(KERN_ERR, target->scsi_host,
->>                        "Null scmnd for RSP w/tag %016llx\n",
->> @@ -1509,7 +1512,7 @@ static int srp_queuecommand(struct Scsi_Host 
->> *shost, struct scsi_cmnd *scmnd)
->>       struct srp_cmd *cmd;
->>       struct ib_device *dev;
->>       unsigned long flags;
->> -    int len, result;
->> +    int len, result, ret = 0;
->>       const bool in_scsi_eh = !in_interrupt() && current == 
->> shost->ehandler;
->>         /*
->> @@ -1552,8 +1555,7 @@ static int srp_queuecommand(struct Scsi_Host 
->> *shost, struct scsi_cmnd *scmnd)
->>       cmd->tag    = req->index;
->>       memcpy(cmd->cdb, scmnd->cmnd, scmnd->cmd_len);
->>   -    req->scmnd    = scmnd;
->> -    req->cmd      = iu;
->> +    req->cmd = iu;
->>         len = srp_map_data(scmnd, target, req);
->>       if (len < 0) {
->> @@ -1565,7 +1567,14 @@ static int srp_queuecommand(struct Scsi_Host 
->> *shost, struct scsi_cmnd *scmnd)
->>       ib_dma_sync_single_for_device(dev, iu->dma, target->max_iu_len,
->>                         DMA_TO_DEVICE);
->>   -    if (srp_post_send(target, iu, len)) {
->> +    spin_lock_irqsave(&target->lock, flags);
->> +    if (srp_post_send(target, iu, len) == 0)
->> +        req->scmnd = scmnd;
->> +    else
->> +        ret = SCSI_MLQUEUE_HOST_BUSY;
->> +    spin_unlock_irqrestore(&target->lock, flags);
->> +
->> +    if (ret) {
->>           shost_printk(KERN_ERR, target->scsi_host, PFX "Send 
->> failed\n");
->>           goto err_unmap;
->>       }
->> @@ -1574,7 +1583,7 @@ unlock_rport:
->>       if (in_scsi_eh)
->>           mutex_unlock(&rport->mutex);
->>   -    return 0;
->> +    return ret;
->>     err_unmap:
->>       srp_unmap_data(scmnd, target, req);
->> @@ -1588,10 +1597,8 @@ err_iu:
->>   err_unlock:
->>       spin_unlock_irqrestore(&target->lock, flags);
->>   -    if (in_scsi_eh)
->> -        mutex_unlock(&rport->mutex);
->> -
->> -    return SCSI_MLQUEUE_HOST_BUSY;
->> +    ret = SCSI_MLQUEUE_HOST_BUSY;
->> +    goto unlock_rport;
->>   }
->>     /*
->> @@ -2008,7 +2015,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
->>         shost_printk(KERN_ERR, target->scsi_host, "SRP abort called\n");
->>   -    if (!req || !srp_claim_req(target, req, scmnd))
->> +    if (!req || !srp_claim_req(target, req, NULL, scmnd))
->>           return SUCCESS;
->>       if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
->>                     SRP_TSK_ABORT_TASK) == 0)
->> @@ -2039,8 +2046,7 @@ static int srp_reset_device(struct scsi_cmnd 
->> *scmnd)
->>         for (i = 0; i < target->req_ring_size; ++i) {
->>           struct srp_request *req = &target->req_ring[i];
->> -        if (req->scmnd && req->scmnd->device == scmnd->device)
->> -            srp_finish_req(target, req, DID_RESET << 16);
->> +        srp_finish_req(target, req, scmnd->device, DID_RESET << 16);
->>       }
->>         return SUCCESS;
->
-
+SGkgUm9sYW5kLA0KDQpJcyBpdCBva2F5IHRvIHNlbmQgbmV4dCBzZXJpZXMgb2YgcGF0Y2hlcyBl
+dmVuIGlmIHByZXZpb3VzIHNlcmllcyBpcyBub3QgYWNjZXB0ZWQgeWV0IGluIHlvdXIgdHJlZT8g
+T2ZmLWNvdXJzZSBJIHdpbGwgY3V0IHBhdGNoZXMgb24gdG9wIG9mIHByZXZpb3VzIHNlcmllcyBv
+ZiBwYXRjaGVzLg0KDQotUmVnYXJkcw0KIERldmVzaA0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51
+eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE5pY2hvbGFzIEEuIEJl
+bGxpbmdlcg0KU2VudDogVGh1cnNkYXksIE1hcmNoIDA2LCAyMDE0IDEyOjM0IEFNDQpUbzogUm9s
+YW5kIERyZWllcg0KQ2M6IE9yIEdlcmxpdHo7IEhlZnR5IFNlYW47IGxpbnV4LXJkbWE7IE1hcnRp
+biBLLiBQZXRlcnNlbjsgdGFyZ2V0LWRldmVsOyBTYWdpIEdyaW1iZXJnOyBsaW51eC1rZXJuZWwN
+ClN1YmplY3Q6IFJlOiBsaW51eCByZG1hIDMuMTQgbWVyZ2UgcGxhbnMNCg0KT24gV2VkLCAyMDE0
+LTAzLTA1IGF0IDA3OjE4IC0wODAwLCBSb2xhbmQgRHJlaWVyIHdyb3RlOg0KPiBPbiBXZWQsIE1h
+ciA1LCAyMDE0IGF0IDE6NTQgQU0sIE5pY2hvbGFzIEEuIEJlbGxpbmdlciANCj4gPG5hYkBsaW51
+eC1pc2NzaS5vcmc+IHdyb3RlOg0KPiA+IFRoYXQgYWxsIHNhaWQsIGRvIHlvdSBoYXZlIGFuIG9i
+amVjdGlvbiB3cnQgdGFraW5nIHRoaXMgYml0cyB0aHJvdWdoIA0KPiA+IHRhcmdldC1wZW5kaW5n
+Li4/ICBHaXZlbiB0aGUgZGVwZW5kZW5jaWVzIGludm9sdmVkLCB0aGF0IHdvdWxkIHNlZW0gDQo+
+ID4gdGhlIG1vc3QgbG9naWNhbCBwYXRoIHRvIHRha2UuDQo+IA0KPiBQZXJoYXBzIG5vdCBzdXJw
+cmlzaW5nbHksIEkgd291bGQgcHJlZmVyIHRvIGdldCBhIGNoYW5jZSB0byByZXZpZXcgYSANCj4g
+bWFqb3IgY2hhbmdlIHRvIHRoZSBjb3JlIFJETUEgbWlkbGF5ZXIgcmF0aGVyIHRoYW4gaGF2aW5n
+IHlvdSBtZXJnZSBpdCANCj4gdGhyb3VnaCB5b3VyIHRyZWUuICBTbyB5ZXMgSSBkbyBvYmplY3Qu
+ICBQbGVhc2UgZ2l2ZSBtZSBhIGNoYW5jZSB0byANCj4gcmV2aWV3IGFuZCBtZXJnZSBpdC4gIEkg
+YW0gd29ya2luZyBvbiB0aGF0IHRoaXMgd2Vlay4NCj4gDQoNCkdyZWF0LiAgV2UnbGwgYmUgbG9v
+a2luZyBmb3IgYSByZXNwb25zZSBieSB0aGUgZW5kIG9mIHRoZSB3ZWVrLg0KDQpPdGhlcndpc2Ug
+aWYgeW91IGVuZCB1cCBub3QgaGF2aW5nIHRpbWUsIHdlJ2Qgc3RpbGwgbGlrZSB0byBtb3ZlIGZv
+cndhcmQgZm9yIHYzLjE1IGdpdmVuIHRoZSBhbW91bnQgb2YgcmV2aWV3IHRoZSBzZXJpZXMgaGFz
+IGFscmVhZHkgZ290dGVuIG9uIHRoZSBsaXN0Lg0KDQpUaGFuayB5b3UsDQoNCi0tbmFiDQoNCg0K
+DQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vi
+c2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
+dmdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5l
+bC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
