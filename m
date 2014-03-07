@@ -1,296 +1,230 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 1/2] IB/qib: Add percpu counter replacing qib_devdata
- int_counter
-Date: Fri, 07 Mar 2014 08:40:49 -0500
-Message-ID: <20140307134049.10019.20314.stgit@phlsvslse11.ph.intel.com>
-References: <20140307134028.10019.55008.stgit@phlsvslse11.ph.intel.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: NFS over RDMA crashing
+Date: Fri, 7 Mar 2014 10:59:18 -0600
+Message-ID: <003601cf3a26$94523ee0$bcf6bca0$@opengridcomputing.com>
+References: <51127B3F.2090200@mellanox.com> <20130206222435.GL16417@fieldses.org> <20130207164134.GK3222@fieldses.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140307134028.10019.55008.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20130207164134.GK3222-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, 'Yan Burman' <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch replaces the dd->int_counter with a percpu counter.
+Resurrecting an old issue :)
 
-The maintanance of qib_stats.sps_ints and int_counter are
-combined into the new counter.
+More inline below...
 
-There are two new functions added to read the counter:
-- qib_int_counter (for a particular qib_devdata)
-- qib_sps_ints (for all HCAs)
+> -----Original Message-----
+> From: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-nfs-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of J. Bruce Fields
+> Sent: Thursday, February 07, 2013 10:42 AM
+> To: Yan Burman
+> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
+> Subject: Re: NFS over RDMA crashing
+> 
+> On Wed, Feb 06, 2013 at 05:24:35PM -0500, J. Bruce Fields wrote:
+> > On Wed, Feb 06, 2013 at 05:48:15PM +0200, Yan Burman wrote:
+> > > When killing mount command that got stuck:
+> > > -------------------------------------------
+> > >
+> > > BUG: unable to handle kernel paging request at ffff880324dc7ff8
+> > > IP: [<ffffffffa05f3dfb>] rdma_read_xdr+0x8bb/0xd40 [svcrdma]
+> > > PGD 1a0c063 PUD 32f82e063 PMD 32f2fd063 PTE 8000000324dc7161
+> > > Oops: 0003 [#1] PREEMPT SMP
+> > > Modules linked in: md5 ib_ipoib xprtrdma svcrdma rdma_cm ib_cm
+> iw_cm
+> > > ib_addr nfsd exportfs netconsole ip6table_filter ip6_tables
+> > > iptable_filter ip_tables ebtable_nat nfsv3 nfs_acl ebtables
+x_tables
+> > > nfsv4 auth_rpcgss nfs lockd autofs4 sunrpc target_core_iblock
+> > > target_core_file target_core_pscsi target_core_mod configfs 8021q
+> > > bridge stp llc ipv6 dm_mirror dm_region_hash dm_log vhost_net
+> > > macvtap macvlan tun uinput iTCO_wdt iTCO_vendor_support kvm_intel
+> > > kvm crc32c_intel microcode pcspkr joydev i2c_i801 lpc_ich mfd_core
+> > > ehci_pci ehci_hcd sg ioatdma ixgbe mdio mlx4_ib ib_sa ib_mad
+> ib_core
+> > > mlx4_en mlx4_core igb hwmon dca ptp pps_core button dm_mod ext3
+> jbd
+> > > sd_mod ata_piix libata uhci_hcd megaraid_sas scsi_mod
+> > > CPU 6
+> > > Pid: 4744, comm: nfsd Not tainted 3.8.0-rc5+ #4 Supermicro
+> > > X8DTH-i/6/iF/6F/X8DTH
+> > > RIP: 0010:[<ffffffffa05f3dfb>]  [<ffffffffa05f3dfb>]
+> > > rdma_read_xdr+0x8bb/0xd40 [svcrdma]
+> > > RSP: 0018:ffff880324c3dbf8  EFLAGS: 00010297
+> > > RAX: ffff880324dc8000 RBX: 0000000000000001 RCX:
+> ffff880324dd8428
+> > > RDX: ffff880324dc7ff8 RSI: ffff880324dd8428 RDI: ffffffff81149618
+> > > RBP: ffff880324c3dd78 R08: 000060f9c0000860 R09:
+> 0000000000000001
+> > > R10: ffff880324dd8000 R11: 0000000000000001 R12: ffff8806299dcb10
+> > > R13: 0000000000000003 R14: 0000000000000001 R15:
+> 0000000000000010
+> > > FS:  0000000000000000(0000) GS:ffff88063fc00000(0000)
+> knlGS:0000000000000000
+> > > CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> > > CR2: ffff880324dc7ff8 CR3: 0000000001a0b000 CR4:
+> 00000000000007e0
+> > > DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+> 0000000000000000
+> > > DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7:
+> 0000000000000400
+> > > Process nfsd (pid: 4744, threadinfo ffff880324c3c000, task
+> ffff880330550000)
+> > > Stack:
+> > >  ffff880324c3dc78 ffff880324c3dcd8 0000000000000282
+> ffff880631cec000
+> > >  ffff880324dd8000 ffff88062ed33040 0000000124c3dc48
+> ffff880324dd8000
+> > >  ffff88062ed33058 ffff880630ce2b90 ffff8806299e8000
+> 0000000000000003
+> > > Call Trace:
+> > >  [<ffffffffa05f466e>] svc_rdma_recvfrom+0x3ee/0xd80 [svcrdma]
+> > >  [<ffffffff81086540>] ? try_to_wake_up+0x2f0/0x2f0
+> > >  [<ffffffffa045963f>] svc_recv+0x3ef/0x4b0 [sunrpc]
+> > >  [<ffffffffa0571db0>] ? nfsd_svc+0x740/0x740 [nfsd]
+> > >  [<ffffffffa0571e5d>] nfsd+0xad/0x130 [nfsd]
+> > >  [<ffffffffa0571db0>] ? nfsd_svc+0x740/0x740 [nfsd]
+> > >  [<ffffffff81071df6>] kthread+0xd6/0xe0
+> > >  [<ffffffff81071d20>] ? __init_kthread_worker+0x70/0x70
+> > >  [<ffffffff814b462c>] ret_from_fork+0x7c/0xb0
+> > >  [<ffffffff81071d20>] ? __init_kthread_worker+0x70/0x70
+> > > Code: 63 c2 49 8d 8c c2 18 02 00 00 48 39 ce 77 e1 49 8b 82 40 0a
+00
+> > > 00 48 39 c6 0f 84 92 f7 ff ff 90 48 8d 50 f8 49 89 92 40 0a 00 00
+> > > <48> c7 40 f8 00 00 00 00 49 8b 82 40 0a 00 00 49 3b 82 30 0a 00
+> > > RIP  [<ffffffffa05f3dfb>] rdma_read_xdr+0x8bb/0xd40 [svcrdma]
+> > >  RSP <ffff880324c3dbf8>
+> > > CR2: ffff880324dc7ff8
+> > > ---[ end trace 06d0384754e9609a ]---
+> > >
+> > >
+> > > It seems that commit afc59400d6c65bad66d4ad0b2daf879cbff8e23e
+> > > "nfsd4: cleanup: replace rq_resused count by rq_next_page pointer"
+> > > is responsible for the crash (it seems to be crashing in
+> > > net/sunrpc/xprtrdma/svc_rdma_recvfrom.c:527)
+> > > It may be because I have CONFIG_DEBUG_SET_MODULE_RONX and
+> > > CONFIG_DEBUG_RODATA enabled. I did not try to disable them yet.
+> > >
+> > > When I moved to commit
+> 79f77bf9a4e3dd5ead006b8f17e7c4ff07d8374e I
+> > > was no longer getting the server crashes,
+> > > so the reset of my tests were done using that point (it is
+somewhere
+> > > in the middle of 3.7.0-rc2).
+> >
+> > OK, so this part's clearly my fault--I'll work on a patch, but the
+> > rdma's use of the ->rq_pages array is pretty confusing.
+> 
+> Does this help?
+> 
+> They must have added this for some reason, but I'm not seeing how it
+> could have ever done anything....
+> 
+> --b.
+> 
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> index 0ce7552..e8f25ec 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> @@ -520,13 +520,6 @@ next_sge:
+>  	for (ch_no = 0; &rqstp->rq_pages[ch_no] < rqstp->rq_respages;
+> ch_no++)
+>  		rqstp->rq_pages[ch_no] = NULL;
+> 
+> -	/*
+> -	 * Detach res pages. If svc_release sees any it will attempt to
+> -	 * put them.
+> -	 */
+> -	while (rqstp->rq_next_page != rqstp->rq_respages)
+> -		*(--rqstp->rq_next_page) = NULL;
+> -
+>  	return err;
+>  }
+> 
 
-A z_int_counter is added to allow the interrupt detection logic
-to determine if interrupts have occured since z_int_counter
-was "reset".
+I can reproduce this server crash readily on a recent net-next tree.  I
+added the above change, and see a different crash:
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib.h         |   10 +++++++--
- drivers/infiniband/hw/qib/qib_fs.c      |    1 +
- drivers/infiniband/hw/qib/qib_iba6120.c |    7 +++---
- drivers/infiniband/hw/qib/qib_iba7220.c |    8 +++----
- drivers/infiniband/hw/qib/qib_iba7322.c |   31 ++++++++-------------------
- drivers/infiniband/hw/qib/qib_init.c    |   36 ++++++++++++++++++++++++++++++-
- 6 files changed, 59 insertions(+), 34 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 1946101..f044430 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -868,8 +868,10 @@ struct qib_devdata {
- 	/* last buffer for user use */
- 	u32 lastctxt_piobuf;
- 
--	/* saturating counter of (non-port-specific) device interrupts */
--	u32 int_counter;
-+	/* reset value */
-+	u64 z_int_counter;
-+	/* percpu intcounter */
-+	u64 __percpu *int_counter;
- 
- 	/* pio bufs allocated per ctxt */
- 	u32 pbufsctxt;
-@@ -1449,6 +1451,10 @@ void qib_nomsi(struct qib_devdata *);
- void qib_nomsix(struct qib_devdata *);
- void qib_pcie_getcmd(struct qib_devdata *, u16 *, u8 *, u8 *);
- void qib_pcie_reenable(struct qib_devdata *, u16, u8, u8);
-+/* interrupts for device */
-+u64 qib_int_counter(struct qib_devdata *);
-+/* interrupt for all devices */
-+u64 qib_sps_ints(void);
- 
- /*
-  * dma_addr wrappers - all 0's invalid for hw
-diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
-index c61e2a9..cab610c 100644
---- a/drivers/infiniband/hw/qib/qib_fs.c
-+++ b/drivers/infiniband/hw/qib/qib_fs.c
-@@ -105,6 +105,7 @@ static int create_file(const char *name, umode_t mode,
- static ssize_t driver_stats_read(struct file *file, char __user *buf,
- 				 size_t count, loff_t *ppos)
- {
-+	qib_stats.sps_ints = qib_sps_ints();
- 	return simple_read_from_buffer(buf, count, ppos, &qib_stats,
- 				       sizeof qib_stats);
- }
-diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
-index 84e593d..b9bea2e 100644
---- a/drivers/infiniband/hw/qib/qib_iba6120.c
-+++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -1634,9 +1634,7 @@ static irqreturn_t qib_6120intr(int irq, void *data)
- 		goto bail;
- 	}
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	if (unlikely(istat & (~QLOGIC_IB_I_BITSEXTANT |
- 			      QLOGIC_IB_I_GPIO | QLOGIC_IB_I_ERROR)))
-@@ -1808,7 +1806,8 @@ static int qib_6120_setup_reset(struct qib_devdata *dd)
- 	 * isn't set.
- 	 */
- 	dd->flags &= ~(QIB_INITTED | QIB_PRESENT);
--	dd->int_counter = 0; /* so we check interrupts work again */
-+	/* so we check interrupts work again */
-+	dd->z_int_counter = qib_int_counter(dd);
- 	val = dd->control | QLOGIC_IB_C_RESET;
- 	writeq(val, &dd->kregbase[kr_control]);
- 	mb(); /* prevent compiler re-ordering around actual reset */
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index 454c2e7..28063d4 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -1962,10 +1962,7 @@ static irqreturn_t qib_7220intr(int irq, void *data)
- 		goto bail;
- 	}
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
--
-+	this_cpu_inc(*dd->int_counter);
- 	if (unlikely(istat & (~QLOGIC_IB_I_BITSEXTANT |
- 			      QLOGIC_IB_I_GPIO | QLOGIC_IB_I_ERROR)))
- 		unlikely_7220_intr(dd, istat);
-@@ -2120,7 +2117,8 @@ static int qib_setup_7220_reset(struct qib_devdata *dd)
- 	 * isn't set.
- 	 */
- 	dd->flags &= ~(QIB_INITTED | QIB_PRESENT);
--	dd->int_counter = 0; /* so we check interrupts work again */
-+	/* so we check interrupts work again */
-+	dd->z_int_counter = qib_int_counter(dd);
- 	val = dd->control | QLOGIC_IB_C_RESET;
- 	writeq(val, &dd->kregbase[kr_control]);
- 	mb(); /* prevent compiler reordering around actual reset */
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index d1bd213..8441579 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -3115,9 +3115,7 @@ static irqreturn_t qib_7322intr(int irq, void *data)
- 		goto bail;
- 	}
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* handle "errors" of various kinds first, device ahead of port */
- 	if (unlikely(istat & (~QIB_I_BITSEXTANT | QIB_I_GPIO |
-@@ -3186,9 +3184,7 @@ static irqreturn_t qib_7322pintr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ((1ULL << QIB_I_RCVAVAIL_LSB) |
-@@ -3215,9 +3211,7 @@ static irqreturn_t qib_7322bufavail(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, QIB_I_SPIOBUFAVAIL);
-@@ -3248,9 +3242,7 @@ static irqreturn_t sdma_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3277,9 +3269,7 @@ static irqreturn_t sdma_idle_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3306,9 +3296,7 @@ static irqreturn_t sdma_progress_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3336,9 +3324,7 @@ static irqreturn_t sdma_cleanup_intr(int irq, void *data)
- 		 */
- 		return IRQ_HANDLED;
- 
--	qib_stats.sps_ints++;
--	if (dd->int_counter != (u32) -1)
--		dd->int_counter++;
-+	this_cpu_inc(*dd->int_counter);
- 
- 	/* Clear the interrupt bit we expect to be set. */
- 	qib_write_kreg(dd, kr_intclear, ppd->hw_pidx ?
-@@ -3723,7 +3709,8 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
- 	dd->pport->cpspec->ibsymdelta = 0;
- 	dd->pport->cpspec->iblnkerrdelta = 0;
- 	dd->pport->cpspec->ibmalfdelta = 0;
--	dd->int_counter = 0; /* so we check interrupts work again */
-+	/* so we check interrupts work again */
-+	dd->z_int_counter = qib_int_counter(dd);
- 
- 	/*
- 	 * Keep chip from being accessed until we are ready.  Use
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 76c3e17..6d26299 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -525,6 +525,7 @@ static void enable_chip(struct qib_devdata *dd)
- static void verify_interrupt(unsigned long opaque)
- {
- 	struct qib_devdata *dd = (struct qib_devdata *) opaque;
-+	u64 int_counter;
- 
- 	if (!dd)
- 		return; /* being torn down */
-@@ -533,7 +534,8 @@ static void verify_interrupt(unsigned long opaque)
- 	 * If we don't have a lid or any interrupts, let the user know and
- 	 * don't bother checking again.
- 	 */
--	if (dd->int_counter == 0) {
-+	int_counter = qib_int_counter(dd) - dd->z_int_counter;
-+	if (int_counter == 0) {
- 		if (!dd->f_intr_fallback(dd))
- 			dev_err(&dd->pcidev->dev,
- 				"No interrupts detected, not usable.\n");
-@@ -1079,9 +1081,34 @@ void qib_free_devdata(struct qib_devdata *dd)
- #ifdef CONFIG_DEBUG_FS
- 	qib_dbg_ibdev_exit(&dd->verbs_dev);
- #endif
-+	free_percpu(dd->int_counter);
- 	ib_dealloc_device(&dd->verbs_dev.ibdev);
- }
- 
-+u64 qib_int_counter(struct qib_devdata *dd)
-+{
-+	int cpu;
-+	u64 int_counter = 0;
-+
-+	for_each_possible_cpu(cpu)
-+		int_counter += *per_cpu_ptr(dd->int_counter, cpu);
-+	return int_counter;
-+}
-+
-+u64 qib_sps_ints(void)
-+{
-+	unsigned long flags;
-+	struct qib_devdata *dd;
-+	u64 sps_ints = 0;
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+	list_for_each_entry(dd, &qib_dev_list, list) {
-+		sps_ints += qib_int_counter(dd);
-+	}
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+	return sps_ints;
-+}
-+
- /*
-  * Allocate our primary per-unit data structure.  Must be done via verbs
-  * allocator, because the verbs cleanup process both does cleanup and
-@@ -1119,6 +1146,13 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
- 			      "Could not allocate unit ID: error %d\n", -ret);
- 		goto bail;
- 	}
-+	dd->int_counter = alloc_percpu(u64);
-+	if (!dd->int_counter) {
-+		ret = -ENOMEM;
-+		qib_early_err(&pdev->dev,
-+			      "Could not allocate per-cpu int_counter\n");
-+		goto bail;
-+	}
- 
- 	if (!qib_cpulist_count) {
- 		u32 count = num_online_cpus();
+[  192.764773] BUG: unable to handle kernel paging request at
+0000100000000000
+[  192.765688] IP: [<ffffffff8113c159>] put_page+0x9/0x50
+[  192.765688] PGD 0
+[  192.765688] Oops: 0000 [#1] SMP DEBUG_PAGEALLOC
+[  192.765688] Modules linked in: nfsd lockd nfs_acl exportfs
+auth_rpcgss oid_registry svcrdma tg3 ip6table_filter ip6_tables
+ebtable_nat ebtables nf_conntrack_ipv4 nf_defrag_ipv4 xt_state
+nf_conntrack ipt_REJECT xt_CHECKSUM iptable_mangle iptable_filter
+ip_tables bridge stp llc autofs4 sunrpc rdma_ucm rdma_cm iw_cm ib_ipoib
+ib_cm ib_uverbs ib_umad iw_nes libcrc32c iw_cxgb4 iw_cxgb3 cxgb3 mdio
+ib_qib dca mlx4_en ib_mthca vhost_net macvtap macvlan vhost tun
+kvm_intel kvm uinput ipmi_si ipmi_msghandler iTCO_wdt
+iTCO_vendor_support dcdbas sg microcode pcspkr mlx4_ib ib_sa serio_raw
+ib_mad ib_core ib_addr ipv6 ptp pps_core lpc_ich mfd_core i5100_edac
+edac_core mlx4_core cxgb4 ext4 jbd2 mbcache sd_mod crc_t10dif
+crct10dif_common sr_mod cdrom pata_acpi ata_generic ata_piix radeon ttm
+drm_kms_helper drm i2c_algo_bit
+[  192.765688]  i2c_core dm_mirror dm_region_hash dm_log dm_mod [last
+unloaded: tg3]
+[  192.765688] CPU: 1 PID: 6590 Comm: nfsd Not tainted
+3.14.0-rc3-pending+ #5
+[  192.765688] Hardware name: Dell Inc. PowerEdge R300/0TY179, BIOS
+1.3.0 08/15/2008
+[  192.765688] task: ffff8800b75c62c0 ti: ffff8801faa4a000 task.ti:
+ffff8801faa4a000
+[  192.765688] RIP: 0010:[<ffffffff8113c159>]  [<ffffffff8113c159>]
+put_page+0x9/0x50
+[  192.765688] RSP: 0018:ffff8801faa4be28  EFLAGS: 00010206
+[  192.765688] RAX: ffff8801fa9542a8 RBX: ffff8801fa954000 RCX:
+0000000000000001
+[  192.765688] RDX: ffff8801fa953e10 RSI: 0000000000000200 RDI:
+0000100000000000
+[  192.765688] RBP: ffff8801faa4be28 R08: 000000009b8d39b9 R09:
+0000000000000017
+[  192.765688] R10: 0000000000000000 R11: 0000000000000000 R12:
+ffff8800cb2e7c00
+[  192.765688] R13: ffff8801fa954210 R14: 0000000000000000 R15:
+0000000000000000
+[  192.765688] FS:  0000000000000000(0000) GS:ffff88022ec80000(0000)
+knlGS:0000000000000000
+[  192.765688] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  192.765688] CR2: 0000100000000000 CR3: 00000000b9a5a000 CR4:
+00000000000007e0
+[  192.765688] Stack:
+[  192.765688]  ffff8801faa4be58 ffffffffa0881f4e ffff880204dd0e00
+ffff8801fa954000
+[  192.765688]  ffff880204dd0e00 ffff8800cb2e7c00 ffff8801faa4be88
+ffffffffa08825f5
+[  192.765688]  ffff8801fa954000 ffff8800b75c62c0 ffffffff81ae5ac0
+ffffffffa08cf930
+[  192.765688] Call Trace:
+[  192.765688]  [<ffffffffa0881f4e>] svc_xprt_release+0x6e/0xf0 [sunrpc]
+[  192.765688]  [<ffffffffa08825f5>] svc_recv+0x165/0x190 [sunrpc]
+[  192.765688]  [<ffffffffa08cf930>] ? nfsd_pool_stats_release+0x60/0x60
+[nfsd]
+[  192.765688]  [<ffffffffa08cf9e5>] nfsd+0xb5/0x160 [nfsd]
+[  192.765688]  [<ffffffffa08cf930>] ? nfsd_pool_stats_release+0x60/0x60
+[nfsd]
+[  192.765688]  [<ffffffff8107471e>] kthread+0xce/0xf0
+[  192.765688]  [<ffffffff81074650>] ?
+kthread_freezable_should_stop+0x70/0x70
+[  192.765688]  [<ffffffff81584e2c>] ret_from_fork+0x7c/0xb0
+[  192.765688]  [<ffffffff81074650>] ?
+kthread_freezable_should_stop+0x70/0x70
+[  192.765688] Code: 8d 7b 10 e8 ea fa ff ff 48 c7 03 00 00 00 00 48 83
+c4 08 5b c9 c3 66 66 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 66 66 66
+66 90 <66> f7 07 00 c0 75 32 8b 47 1c 48 8d 57 1c 85 c0 74 1c f0 ff 0a
+[  192.765688] RIP  [<ffffffff8113c159>] put_page+0x9/0x50
+[  192.765688]  RSP <ffff8801faa4be28>
+[  192.765688] CR2: 0000100000000000
+crash>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
