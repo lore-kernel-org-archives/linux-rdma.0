@@ -1,32 +1,54 @@
-From: Kleber Sacilotto de Souza <klebers@linux.vnet.ibm.com>
-Subject: [PATCH] IB/mlx5_core: remove unreachable function call in module init
-Date: Fri,  7 Mar 2014 19:48:25 -0300
-Message-ID: <1394232505-12142-1-git-send-email-klebers@linux.vnet.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Eli Cohen <eli@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Kleber Sacilotto de Souza <klebers@linux.vnet.ibm.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCHv4 net-next 05/32] cxgb4: use
+ spinlock_irqsave/spinlock_irqrestore for db lock
+Date: Sat, 08 Mar 2014 00:43:12 -0500 (EST)
+Message-ID: <20140308.004312.1333337731427216882.davem@davemloft.net>
+References: <1394188409-9739-1-git-send-email-hariprasad@chelsio.com>
+	<1394188409-9739-6-git-send-email-hariprasad@chelsio.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1394188409-9739-6-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The call to mlx5_health_cleanup() in the module init function can never
-be reached. Removing it.
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Fri,  7 Mar 2014 16:03:02 +0530
 
-Signed-off-by: Kleber Sacilotto de Souza <klebers@linux.vnet.ibm.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> @@ -3585,9 +3585,11 @@ static void disable_txq_db(struct sge_txq *q)
+>  
+>  static void enable_txq_db(struct sge_txq *q)
+>  {
+> -	spin_lock_irq(&q->db_lock);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&q->db_lock, flags);
+>  	q->db_disabled = 0;
+> -	spin_unlock_irq(&q->db_lock);
+> +	spin_unlock_irqrestore(&q->db_lock, flags);
+>  }
+>  
+>  static void disable_dbs(struct adapter *adap)
+> @@ -3617,9 +3619,10 @@ static void enable_dbs(struct adapter *adap)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 6f7c866..77ac95f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -531,7 +531,6 @@ static int __init init(void)
- 
- 	return 0;
- 
--	mlx5_health_cleanup();
- err_debug:
- 	mlx5_unregister_debugfs();
- 	return err;
--- 
-1.7.1
+At least be consistent when making changes like this.
+
+You are changing from spin_{un,}lock_irq() to
+spin_{un,}lock_irq{save,restore}() here in enable_txq_db()
+but not in disable_txq_db().
+
+But both of those functions are invoked, via one level of
+indirection, from the same exact function: process_db_drop()
+
+Futhermore, this function process_db_drop() runs via a workqueue, and
+therefore always runs with interrupts enabled.  So you shouldn't need
+to use the save/restore spinlock variants at all.  Plain
+spin_lock_irq() and spin_unlock_irq(), as is currently coded, is
+perfectly fine.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
