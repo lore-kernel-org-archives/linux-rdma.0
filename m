@@ -1,47 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCHv5 net-next 08/31] iw_cxgb4: release neigh entry in
- error paths
-Date: Mon, 10 Mar 2014 13:35:44 -0400 (EDT)
-Message-ID: <20140310.133544.1092785181480653530.davem@davemloft.net>
-References: <1394471308-4304-1-git-send-email-hariprasad@chelsio.com>
-	<1394471308-4304-9-git-send-email-hariprasad@chelsio.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCHv5 net-next 00/31] Misc. fixes for cxgb4 and iw_cxgb4
+Date: Mon, 10 Mar 2014 13:01:33 -0500
+Message-ID: <004101cf3c8a$c58d02e0$50a708a0$@opengridcomputing.com>
+References: <1394471308-4304-1-git-send-email-hariprasad@chelsio.com> <20140310.133503.1268399872836123591.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1394471308-4304-9-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: hariprasad@chelsio.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, roland@purestorage.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, kumaras@chelsio.com, nirranjan@chelsio.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140310.133503.1268399872836123591.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'David Miller' <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hariprasad Shenai <hariprasad@chelsio.com>
-Date: Mon, 10 Mar 2014 22:38:05 +0530
+> 
+> >    Dropped patch "cxgb4: use spinlock_irqsave/spinlock_irqrestore
+for db
+> lock".
+> >    save/restore spinlock variants are not required - thanks to
+review by
+> >    David Miller.
+> 
+> That is absolutely not what I said.
+> 
+> I said that specific instances of the transformation were not correct,
+> the rest were and were absolutely necessary.
+> 
 
-> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-> index 360807e..74a2250 100644
-> --- a/drivers/infiniband/hw/cxgb4/cm.c
-> +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> @@ -3350,10 +3350,9 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
->  	if (!e) {
->  		pr_err("%s - failed to allocate l2t entry!\n",
->  		       __func__);
-> -		goto free_dst;
-> +		goto free_neigh;
->  	}
->  
-> -	neigh_release(neigh);
->  	step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
->  	rss_qid = dev->rdev.lldi.rxq_ids[pi->port_id * step];
->  	window = (__force u16) htons((__force u16)tcph->window);
-> @@ -3373,6 +3372,8 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
->  			      tcph->source, ntohl(tcph->seq), filter, window,
->  			      rss_qid, pi->port_id);
->  	cxgb4_l2t_release(e);
-> +free_neigh:
-> +	neigh_release(neigh);
->  free_dst:
+The remaining changes from the removed patch are moved into patch 10/31
+(Doorbell Drop Avoidance Bug Fixes).  10/31 has the driver call
+disable_txq_db() from an interrupt handler, and I thought it would be
+better to put all the changes to fix how the db lock is acquired into
+this one patch.   
 
-It is so much easier to just move the existing neigh_release() call right
-before the if(!e) test, that way you don't need a completely new label and
-code block to fix this bug.
+We forgot mention this in the cover letter.  Sorry about that.
+
+Steve.
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
