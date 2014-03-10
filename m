@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v2 2/7] IB/srp: Check ib_query_gid return value
-Date: Mon, 10 Mar 2014 12:42:21 +0100
-Message-ID: <531DA51D.2050804@acm.org>
+Subject: [PATCH v2 3/7] IB/srp: Add more logging
+Date: Mon, 10 Mar 2014 12:43:15 +0100
+Message-ID: <531DA553.9020605@acm.org>
 References: <531DA483.3010400@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,31 +13,66 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Log sgid and dgid when reporting that a login has been rejected or when
+a host has been added. This makes it easy to figure out which initiator
+and target ports these messages apply to.
 
-Detected by Coverity.
-
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 529b6bc..8903226 100644
+index 8903226..2ec9c05 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2649,7 +2649,9 @@ static ssize_t srp_create_target(struct device *dev,
+@@ -1804,8 +1804,10 @@ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
+ 				shost_printk(KERN_WARNING, shost,
+ 					     PFX "SRP_LOGIN_REJ: requested max_it_iu_len too large\n");
+ 			else
+-				shost_printk(KERN_WARNING, shost,
+-					    PFX "SRP LOGIN REJECTED, reason 0x%08x\n", reason);
++				shost_printk(KERN_WARNING, shost, PFX
++					     "SRP LOGIN from %pI6 to %pI6 REJECTED, reason 0x%08x\n",
++					     target->path.sgid.raw,
++					     target->orig_dgid, reason);
+ 		} else
+ 			shost_printk(KERN_WARNING, shost,
+ 				     "  REJ reason: IB_CM_REJ_CONSUMER_DEFINED,"
+@@ -2653,15 +2655,6 @@ static ssize_t srp_create_target(struct device *dev,
  	if (ret)
  		goto err_free_mem;
  
--	ib_query_gid(ibdev, host->port, 0, &target->path.sgid);
-+	ret = ib_query_gid(ibdev, host->port, 0, &target->path.sgid);
-+	if (ret)
-+		goto err_free_mem;
+-	shost_printk(KERN_DEBUG, target->scsi_host, PFX
+-		     "new target: id_ext %016llx ioc_guid %016llx pkey %04x "
+-		     "service_id %016llx dgid %pI6\n",
+-	       (unsigned long long) be64_to_cpu(target->id_ext),
+-	       (unsigned long long) be64_to_cpu(target->ioc_guid),
+-	       be16_to_cpu(target->path.pkey),
+-	       (unsigned long long) be64_to_cpu(target->service_id),
+-	       target->path.dgid.raw);
+-
+ 	ret = srp_create_target_ib(target);
+ 	if (ret)
+ 		goto err_free_mem;
+@@ -2681,6 +2674,14 @@ static ssize_t srp_create_target(struct device *dev,
+ 	if (ret)
+ 		goto err_disconnect;
  
- 	shost_printk(KERN_DEBUG, target->scsi_host, PFX
- 		     "new target: id_ext %016llx ioc_guid %016llx pkey %04x "
++	shost_printk(KERN_DEBUG, target->scsi_host, PFX
++		     "new target: id_ext %016llx ioc_guid %016llx pkey %04x service_id %016llx sgid %pI6 dgid %pI6\n",
++		     be64_to_cpu(target->id_ext),
++		     be64_to_cpu(target->ioc_guid),
++		     be16_to_cpu(target->path.pkey),
++		     be64_to_cpu(target->service_id),
++		     target->path.sgid.raw, target->path.dgid.raw);
++
+ 	return count;
+ 
+ err_disconnect:
 -- 
 1.8.4.5
 
