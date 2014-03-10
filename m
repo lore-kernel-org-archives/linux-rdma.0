@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v2 3/7] IB/srp: Add more logging
-Date: Mon, 10 Mar 2014 12:43:15 +0100
-Message-ID: <531DA553.9020605@acm.org>
+Subject: [PATCH v2 4/7] IB/srp: Avoid duplicate connections
+Date: Mon, 10 Mar 2014 12:44:14 +0100
+Message-ID: <531DA58E.40605@acm.org>
 References: <531DA483.3010400@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,66 +13,76 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Log sgid and dgid when reporting that a login has been rejected or when
-a host has been added. This makes it easy to figure out which initiator
-and target ports these messages apply to.
+The connection uniqueness check is performed before a new connection
+is added to the target list. This patch protects both actions by a
+mutex such that simultaneous writes from two different threads into the
+"add_target" variable do not result in duplicate connections.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 12 +++++++++---
+ drivers/infiniband/ulp/srp/ib_srp.h |  1 +
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 8903226..2ec9c05 100644
+index 2ec9c05..3294f10 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1804,8 +1804,10 @@ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
- 				shost_printk(KERN_WARNING, shost,
- 					     PFX "SRP_LOGIN_REJ: requested max_it_iu_len too large\n");
- 			else
--				shost_printk(KERN_WARNING, shost,
--					    PFX "SRP LOGIN REJECTED, reason 0x%08x\n", reason);
-+				shost_printk(KERN_WARNING, shost, PFX
-+					     "SRP LOGIN from %pI6 to %pI6 REJECTED, reason 0x%08x\n",
-+					     target->path.sgid.raw,
-+					     target->orig_dgid, reason);
- 		} else
- 			shost_printk(KERN_WARNING, shost,
- 				     "  REJ reason: IB_CM_REJ_CONSUMER_DEFINED,"
-@@ -2653,15 +2655,6 @@ static ssize_t srp_create_target(struct device *dev,
- 	if (ret)
- 		goto err_free_mem;
+@@ -2614,6 +2614,8 @@ static ssize_t srp_create_target(struct device *dev,
+ 	target->tl_retry_count	= 7;
+ 	target->queue_size	= SRP_DEFAULT_QUEUE_SIZE;
  
--	shost_printk(KERN_DEBUG, target->scsi_host, PFX
--		     "new target: id_ext %016llx ioc_guid %016llx pkey %04x "
--		     "service_id %016llx dgid %pI6\n",
--	       (unsigned long long) be64_to_cpu(target->id_ext),
--	       (unsigned long long) be64_to_cpu(target->ioc_guid),
--	       be16_to_cpu(target->path.pkey),
--	       (unsigned long long) be64_to_cpu(target->service_id),
--	       target->path.dgid.raw);
--
- 	ret = srp_create_target_ib(target);
- 	if (ret)
- 		goto err_free_mem;
-@@ -2681,6 +2674,14 @@ static ssize_t srp_create_target(struct device *dev,
- 	if (ret)
- 		goto err_disconnect;
- 
-+	shost_printk(KERN_DEBUG, target->scsi_host, PFX
-+		     "new target: id_ext %016llx ioc_guid %016llx pkey %04x service_id %016llx sgid %pI6 dgid %pI6\n",
-+		     be64_to_cpu(target->id_ext),
-+		     be64_to_cpu(target->ioc_guid),
-+		     be16_to_cpu(target->path.pkey),
-+		     be64_to_cpu(target->service_id),
-+		     target->path.sgid.raw, target->path.dgid.raw);
++	mutex_lock(&host->add_target_mutex);
 +
- 	return count;
+ 	ret = srp_parse_options(buf, target);
+ 	if (ret)
+ 		goto err;
+@@ -2682,7 +2684,11 @@ static ssize_t srp_create_target(struct device *dev,
+ 		     be64_to_cpu(target->service_id),
+ 		     target->path.sgid.raw, target->path.dgid.raw);
+ 
+-	return count;
++	ret = count;
++
++out:
++	mutex_unlock(&host->add_target_mutex);
++	return ret;
  
  err_disconnect:
+ 	srp_disconnect_target(target);
+@@ -2698,8 +2704,7 @@ err_free_mem:
+ 
+ err:
+ 	scsi_host_put(target_host);
+-
+-	return ret;
++	goto out;
+ }
+ 
+ static DEVICE_ATTR(add_target, S_IWUSR, NULL, srp_create_target);
+@@ -2735,6 +2740,7 @@ static struct srp_host *srp_add_port(struct srp_device *device, u8 port)
+ 	INIT_LIST_HEAD(&host->target_list);
+ 	spin_lock_init(&host->target_lock);
+ 	init_completion(&host->released);
++	mutex_init(&host->add_target_mutex);
+ 	host->srp_dev = device;
+ 	host->port = port;
+ 
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 5756810..aad27b7 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -105,6 +105,7 @@ struct srp_host {
+ 	spinlock_t		target_lock;
+ 	struct completion	released;
+ 	struct list_head	list;
++	struct mutex		add_target_mutex;
+ };
+ 
+ struct srp_request {
 -- 
 1.8.4.5
 
