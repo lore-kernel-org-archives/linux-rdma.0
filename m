@@ -1,81 +1,72 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Suppress a sparse warning
-Date: Mon, 10 Mar 2014 16:02:13 +0100
-Message-ID: <1394463733.3257.62.camel@localhost.localdomain>
-References: <531DAEA1.7060703@acm.org>
-	 <1394458406.3257.53.camel@localhost.localdomain> <531DCB7D.9020104@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_state_mgr.c: Clear first time sweep even after
+ subnet error
+Date: Mon, 10 Mar 2014 11:21:51 -0400
+Message-ID: <531DD88F.3030802@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <531DCB7D.9020104-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Date: Wed, 24 Nov 2010 11:18:44 +0200
 
-Le lundi 10 mars 2014 =C3=A0 15:26 +0100, Bart Van Assche a =C3=A9crit =
-:
-> On 03/10/14 14:33, Yann Droneaud wrote:
-> > Le lundi 10 mars 2014 =C3=A0 13:22 +0100, Bart Van Assche a =C3=A9c=
-rit :
-> >> Suppress the following sparse warning:
-> >> include/rdma/ib_addr.h:187:24: warning: cast removes address space=
- of expression
-> >=20
-> > You should explain why there's a warning here, and why is it safe t=
-o
-> > cast. (I believe it's related to RCU domain ?)
->=20
-> Hello Yann,
->=20
-> Now that I've had a closer look at the code in include/rdma/ib_addr.h=
-,
-> that code probably isn't safe. How about the (untested) patch below ?
->=20
+Clear first time sweep even after subnet initialization error.
+Wait sweep interval between heavy sweeps after subnet init error.
 
-Thanks for investigating.
+Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_state_mgr.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-I'm not an expert in RCU, but I believe it then miss the RCU annotation=
-s
-around the RCU reader section (ensure correct ordering if I recall
-correctly).
-
-Cc: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-
-> diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-> index ce55906..5a416ac 100644
-> --- a/include/rdma/ib_addr.h
-> +++ b/include/rdma/ib_addr.h
-> @@ -184,7 +184,7 @@ static inline void iboe_addr_get_sgid(struct rdma=
-_dev_addr *dev_addr,
-> =20
->  	dev =3D dev_get_by_index(&init_net, dev_addr->bound_dev_if);
->  	if (dev) {
-
-+		rcu_read_lock();
-
-> -		ip4 =3D (struct in_device *)dev->ip_ptr;
-> +		ip4 =3D __in_dev_get_rcu(dev);
-
->  		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
->  			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
->  					       (struct in6_addr *)gid);
-
-+		rcu_read_unlock();
-
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 1872f31..baeff05 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1156,6 +1156,10 @@ static void do_sweep(osm_sm_t * sm)
+ 	osm_remote_sm_t *p_remote_sm;
+ 	unsigned config_parsed = 0;
+ 
++	/* after subnet initialization error, run heavy sweep */
++	if (sm->p_subn->subnet_initialization_error)
++		sm->p_subn->force_heavy_sweep = TRUE;
++
+ 	if (sm->p_subn->force_heavy_sweep) {
+ 		if (osm_subn_rescan_conf_files(sm->p_subn) < 0)
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 331A: "
+@@ -1526,6 +1530,7 @@ repeat_discovery:
+ 
+ 	/* in any case we zero this flag */
+ 	sm->p_subn->coming_out_of_standby = FALSE;
++	sm->p_subn->first_time_master_sweep = FALSE;
+ 
+ 	/* If there were errors - then the subnet is not really up */
+ 	if (sm->p_subn->subnet_initialization_error == TRUE) {
+@@ -1537,7 +1542,6 @@ repeat_discovery:
+ 		sm->p_subn->need_update = 0;
+ 		osm_dump_all(sm->p_subn->p_osm);
+ 		state_mgr_up_msg(sm);
+-		sm->p_subn->first_time_master_sweep = FALSE;
+ 
+ 		if (OSM_LOG_IS_ACTIVE_V2(sm->p_log, OSM_LOG_VERBOSE) ||
+ 		    sm->p_subn->opt.sa_db_dump)
+@@ -1554,8 +1558,7 @@ repeat_discovery:
+ 
+ 	/* if we got a signal to force heavy sweep or errors
+ 	 * in the middle of the sweep - try another sweep. */
+-	if (sm->p_subn->force_heavy_sweep
+-	    || sm->p_subn->subnet_initialization_error)
++	if (sm->p_subn->force_heavy_sweep)
+ 		osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+ 
+ 	/* Write a new copy of our persistent guid2mkey database */
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
