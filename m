@@ -1,98 +1,166 @@
-From: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Suppress a sparse warning
-Date: Mon, 10 Mar 2014 09:08:03 -0700
-Message-ID: <20140310160803.GC21124@linux.vnet.ibm.com>
-References: <531DAEA1.7060703@acm.org>
- <1394458406.3257.53.camel@localhost.localdomain>
- <531DCB7D.9020104@acm.org>
- <1394463733.3257.62.camel@localhost.localdomain>
-Reply-To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1394463733.3257.62.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Subject: [PATCHv5 net-next 02/31] cxgb4: Add code to dump SGE registers when hitting idma hangs
+Date: Mon, 10 Mar 2014 22:37:59 +0530
+Message-ID: <1394471308-4304-3-git-send-email-hariprasad@chelsio.com>
+References: <1394471308-4304-1-git-send-email-hariprasad@chelsio.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1394471308-4304-1-git-send-email-hariprasad@chelsio.com>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: davem@davemloft.net, roland@purestorage.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, santosh@chelsio.com, kumaras@chelsio.com, nirranjan@chelsio.com, hariprasad@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 10, 2014 at 04:02:13PM +0100, Yann Droneaud wrote:
-> Hi,
->=20
-> Le lundi 10 mars 2014 =E0 15:26 +0100, Bart Van Assche a =E9crit :
-> > On 03/10/14 14:33, Yann Droneaud wrote:
-> > > Le lundi 10 mars 2014 =E0 13:22 +0100, Bart Van Assche a =E9crit =
-:
-> > >> Suppress the following sparse warning:
-> > >> include/rdma/ib_addr.h:187:24: warning: cast removes address spa=
-ce of expression
-> > >=20
-> > > You should explain why there's a warning here, and why is it safe=
- to
-> > > cast. (I believe it's related to RCU domain ?)
-> >=20
-> > Hello Yann,
-> >=20
-> > Now that I've had a closer look at the code in include/rdma/ib_addr=
-=2Eh,
-> > that code probably isn't safe. How about the (untested) patch below=
- ?
-> >=20
->=20
-> Thanks for investigating.
->=20
-> I'm not an expert in RCU, but I believe it then miss the RCU annotati=
-ons
-> around the RCU reader section (ensure correct ordering if I recall
-> correctly).
->=20
-> Cc: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+From: Kumar Sanghvi <kumaras@chelsio.com>
 
-If the rcu_read_lock() isn't supplied by all callers to this function,
-then yes, it needs to be supplied as Yann shows below.
+Based on original work by Casey Leedom <leedom@chelsio.com>
 
-The CONFIG_PROVE_RCU=3Dy Kconfig option can help determine that they ar=
-e
-needed, but of course cannot prove that they are not needed, at least
-not unless you have a workload that exercises all possible calls to
-this function.
+Signed-off-by: Kumar Sanghvi <kumaras@chelsio.com>
+---
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h   |   1 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c   | 106 +++++++++++++++++++++++++++
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h |   3 +
+ 3 files changed, 110 insertions(+)
 
-							Thanx, Paul
-
-> > diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-> > index ce55906..5a416ac 100644
-> > --- a/include/rdma/ib_addr.h
-> > +++ b/include/rdma/ib_addr.h
-> > @@ -184,7 +184,7 @@ static inline void iboe_addr_get_sgid(struct rd=
-ma_dev_addr *dev_addr,
-> > =20
-> >  	dev =3D dev_get_by_index(&init_net, dev_addr->bound_dev_if);
-> >  	if (dev) {
->=20
-> +		rcu_read_lock();
->=20
-> > -		ip4 =3D (struct in_device *)dev->ip_ptr;
-> > +		ip4 =3D __in_dev_get_rcu(dev);
->=20
-> >  		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
-> >  			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
-> >  					       (struct in6_addr *)gid);
->=20
-> +		rcu_read_unlock();
->=20
->=20
-> Regards.
->=20
-> --=20
-> Yann Droneaud
-> OPTEYA
->=20
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+index 944f2cb..509c976 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
++++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+@@ -1032,4 +1032,5 @@ void t4_db_dropped(struct adapter *adapter);
+ int t4_mem_win_read_len(struct adapter *adap, u32 addr, __be32 *data, int len);
+ int t4_fwaddrspace_write(struct adapter *adap, unsigned int mbox,
+ 			 u32 addr, u32 val);
++void t4_sge_decode_idma_state(struct adapter *adapter, int state);
+ #endif /* __CXGB4_H__ */
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c b/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+index d3c2a51..fb2fe65 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
++++ b/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+@@ -2597,6 +2597,112 @@ int t4_mdio_wr(struct adapter *adap, unsigned int mbox, unsigned int phy_addr,
+ }
+ 
+ /**
++ *	t4_sge_decode_idma_state - decode the idma state
++ *	@adap: the adapter
++ *	@state: the state idma is stuck in
++ */
++void t4_sge_decode_idma_state(struct adapter *adapter, int state)
++{
++	static const char * const t4_decode[] = {
++		"IDMA_IDLE",
++		"IDMA_PUSH_MORE_CPL_FIFO",
++		"IDMA_PUSH_CPL_MSG_HEADER_TO_FIFO",
++		"Not used",
++		"IDMA_PHYSADDR_SEND_PCIEHDR",
++		"IDMA_PHYSADDR_SEND_PAYLOAD_FIRST",
++		"IDMA_PHYSADDR_SEND_PAYLOAD",
++		"IDMA_SEND_FIFO_TO_IMSG",
++		"IDMA_FL_REQ_DATA_FL_PREP",
++		"IDMA_FL_REQ_DATA_FL",
++		"IDMA_FL_DROP",
++		"IDMA_FL_H_REQ_HEADER_FL",
++		"IDMA_FL_H_SEND_PCIEHDR",
++		"IDMA_FL_H_PUSH_CPL_FIFO",
++		"IDMA_FL_H_SEND_CPL",
++		"IDMA_FL_H_SEND_IP_HDR_FIRST",
++		"IDMA_FL_H_SEND_IP_HDR",
++		"IDMA_FL_H_REQ_NEXT_HEADER_FL",
++		"IDMA_FL_H_SEND_NEXT_PCIEHDR",
++		"IDMA_FL_H_SEND_IP_HDR_PADDING",
++		"IDMA_FL_D_SEND_PCIEHDR",
++		"IDMA_FL_D_SEND_CPL_AND_IP_HDR",
++		"IDMA_FL_D_REQ_NEXT_DATA_FL",
++		"IDMA_FL_SEND_PCIEHDR",
++		"IDMA_FL_PUSH_CPL_FIFO",
++		"IDMA_FL_SEND_CPL",
++		"IDMA_FL_SEND_PAYLOAD_FIRST",
++		"IDMA_FL_SEND_PAYLOAD",
++		"IDMA_FL_REQ_NEXT_DATA_FL",
++		"IDMA_FL_SEND_NEXT_PCIEHDR",
++		"IDMA_FL_SEND_PADDING",
++		"IDMA_FL_SEND_COMPLETION_TO_IMSG",
++		"IDMA_FL_SEND_FIFO_TO_IMSG",
++		"IDMA_FL_REQ_DATAFL_DONE",
++		"IDMA_FL_REQ_HEADERFL_DONE",
++	};
++	static const char * const t5_decode[] = {
++		"IDMA_IDLE",
++		"IDMA_ALMOST_IDLE",
++		"IDMA_PUSH_MORE_CPL_FIFO",
++		"IDMA_PUSH_CPL_MSG_HEADER_TO_FIFO",
++		"IDMA_SGEFLRFLUSH_SEND_PCIEHDR",
++		"IDMA_PHYSADDR_SEND_PCIEHDR",
++		"IDMA_PHYSADDR_SEND_PAYLOAD_FIRST",
++		"IDMA_PHYSADDR_SEND_PAYLOAD",
++		"IDMA_SEND_FIFO_TO_IMSG",
++		"IDMA_FL_REQ_DATA_FL",
++		"IDMA_FL_DROP",
++		"IDMA_FL_DROP_SEND_INC",
++		"IDMA_FL_H_REQ_HEADER_FL",
++		"IDMA_FL_H_SEND_PCIEHDR",
++		"IDMA_FL_H_PUSH_CPL_FIFO",
++		"IDMA_FL_H_SEND_CPL",
++		"IDMA_FL_H_SEND_IP_HDR_FIRST",
++		"IDMA_FL_H_SEND_IP_HDR",
++		"IDMA_FL_H_REQ_NEXT_HEADER_FL",
++		"IDMA_FL_H_SEND_NEXT_PCIEHDR",
++		"IDMA_FL_H_SEND_IP_HDR_PADDING",
++		"IDMA_FL_D_SEND_PCIEHDR",
++		"IDMA_FL_D_SEND_CPL_AND_IP_HDR",
++		"IDMA_FL_D_REQ_NEXT_DATA_FL",
++		"IDMA_FL_SEND_PCIEHDR",
++		"IDMA_FL_PUSH_CPL_FIFO",
++		"IDMA_FL_SEND_CPL",
++		"IDMA_FL_SEND_PAYLOAD_FIRST",
++		"IDMA_FL_SEND_PAYLOAD",
++		"IDMA_FL_REQ_NEXT_DATA_FL",
++		"IDMA_FL_SEND_NEXT_PCIEHDR",
++		"IDMA_FL_SEND_PADDING",
++		"IDMA_FL_SEND_COMPLETION_TO_IMSG",
++	};
++	static const u32 sge_regs[] = {
++		SGE_DEBUG_DATA_LOW_INDEX_2,
++		SGE_DEBUG_DATA_LOW_INDEX_3,
++		SGE_DEBUG_DATA_HIGH_INDEX_10,
++	};
++	const char **sge_idma_decode;
++	int sge_idma_decode_nstates;
++	int i;
++
++	if (is_t4(adapter->params.chip)) {
++		sge_idma_decode = (const char **)t4_decode;
++		sge_idma_decode_nstates = ARRAY_SIZE(t4_decode);
++	} else {
++		sge_idma_decode = (const char **)t5_decode;
++		sge_idma_decode_nstates = ARRAY_SIZE(t5_decode);
++	}
++
++	if (state < sge_idma_decode_nstates)
++		CH_WARN(adapter, "idma state %s\n", sge_idma_decode[state]);
++	else
++		CH_WARN(adapter, "idma state %d unknown\n", state);
++
++	for (i = 0; i < ARRAY_SIZE(sge_regs); i++)
++		CH_WARN(adapter, "SGE register %#x value %#x\n",
++			sge_regs[i], t4_read_reg(adapter, sge_regs[i]));
++}
++
++/**
+  *      t4_fw_hello - establish communication with FW
+  *      @adap: the adapter
+  *      @mbox: mailbox to use for the FW command
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h b/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
+index 4082522..33cf9ef 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
++++ b/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
+@@ -278,6 +278,9 @@
+ #define SGE_DEBUG_INDEX 0x10cc
+ #define SGE_DEBUG_DATA_HIGH 0x10d0
+ #define SGE_DEBUG_DATA_LOW 0x10d4
++#define SGE_DEBUG_DATA_LOW_INDEX_2	0x12c8
++#define SGE_DEBUG_DATA_LOW_INDEX_3	0x12cc
++#define SGE_DEBUG_DATA_HIGH_INDEX_10	0x12a8
+ #define SGE_INGRESS_QUEUES_PER_PAGE_PF 0x10f4
+ 
+ #define S_HP_INT_THRESH    28
+-- 
+1.8.4
