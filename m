@@ -1,87 +1,80 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH 0/6] iser-target: Fix active I/O shutdown related issues
-Date: Mon, 10 Mar 2014 15:00:11 -0700
-Message-ID: <1394488811.16214.32.camel@haakon3.risingtidesystems.com>
-References: <1393891265-22910-1-git-send-email-nab@daterainc.com>
-	 <5315EE7C.3030806@dev.mellanox.co.il>
-	 <1393978007.30113.4.camel@haakon3.risingtidesystems.com>
-	 <531714BE.2060401@dev.mellanox.co.il>
-	 <1394057083.20601.51.camel@haakon3.risingtidesystems.com>
-	 <5318808E.5080207@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <5318808E.5080207@mellanox.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: sagi grimberg <sagig@mellanox.com>
-Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, "Nicholas A. Bellinger" <nab@daterainc.com>, target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: [PATCH for v3.14 0/5] Coccicheck / coccinelle catched errors on ib/hw
+Date: Mon, 10 Mar 2014 23:06:24 +0100
+Message-ID: <cover.1394485254.git.ydroneaud@opteya.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Roland Dreier <roland@purestorage.com>, Roland Dreier <roland@kernel.org>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Faisal Latif <faisal.latif@intel.com>, "Tatyana E. Nikolova" <tatyana.e.nikolova@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: linux-rdma@vger.kernel.org, Yann Droneaud <ydroneaud@opteya.com>, stable@vger.kernel.org, infinipath@intel.com, Julia Lawall <julia.lawall@lip6.fr>, cocci@systeme.lip6.fr
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2014-03-06 at 16:05 +0200, sagi grimberg wrote:
-> On 3/6/2014 12:04 AM, Nicholas A. Bellinger wrote:
-> > On Wed, 2014-03-05 at 14:12 +0200, Sagi Grimberg wrote:
-> >> On 3/5/2014 2:06 AM, Nicholas A. Bellinger wrote:
-> >>> On Tue, 2014-03-04 at 17:17 +0200, Sagi Grimberg wrote:
-> >>>> On 3/4/2014 2:00 AM, Nicholas A. Bellinger wrote:
+Hi all,
 
-<SNIP>
+Please find small but important fixes on InfiniBand/iWARP RDMA drivers for
+problems found while using coccinelle (spatch) or coccicheck.
 
-> >>> <nod>, I noticed that as well during recent debugging.
-> >>>
-> >>> However, AFAICT the RDMA_CM_EVENT_TIMEWAIT_EVENT doesn't (always) occur
-> >>> on the target side after a RDMA_CM_EVENT_DISCONNECTED, and thus far I've
-> >>> not been able to ascertain what's different about the shutdown sequence
-> >>> that would make this happen, or not happen..
-> >>>
-> >>> Any ideas..?
-> >> That's probably because the cm_id is destroyed before you get the event.
-> >> There is a specific
-> >> timout computation to get this event (see IB spec). If you will attempt
-> >> to disconnect while
-> >> the link is down (initiator won't receive it and send you disconnect
-> >> back), you should be able
-> >> to see this event. As I understand, in order to comply the spec, the QP
-> >> (and the cm_id afterwards)
-> >> should be destroyed only when getting this event and not before.
-> >>
-> > <nod>, thanks for the additional background.
-> >
-> > So currently rdma_destroy_qp() + rdma_destroy_id() is being done via
-> > isert_connect_release(), which occurs after the final isert_put_conn()
-> > happens from either the RDMA_CM_EVENT_DISCONNECTED handler, or within
-> > isert_free_conn() in one of the per connection kernel thread contexts
-> > via iscsit_close_connection().
-> >
-> > If I understand the above correctly, the isert_put_conn() should move
-> > from the RDMA_CM_EVENT_DISCONNECTED handler into the TIMEWAIT_EVENT
-> > handler, yes..?
-> 
-> Yes.
-> 
-> > And it's safe to assume that DISCONNECTED will always occur before
-> > TIMEWAIT_EVENT, right..?
-> 
-> DISCONNECTED event may not even come at all (in case the initiator 
-> didn't call rdma_disconnect). no guarantees here..
-> But, if once we get the TIMEWAIT event, we destroy the qp and the 
-> *cm_id*, we won't get any CM events at all.
-> As I understand, we don't even need to explicitly destroy the cm_id, we 
-> can just return a non-zero return from cma_handler
-> for TIMEWAIT events which will cause rdma_cm to implicitly destroy the 
-> cm_id.
-> 
+I'm trying to patch callers of ib_copy_{from,to}_udata() to use the error
+code returned by functions using a semantic patch to be applied with
+coccinelle. The current semantic patch could be found in a git repository
+hosted on gitorious.org [1].
 
-Mmmm, if that's the case then I'm more confused about how reference
-counting for isert_conn should work wrt TIMEWAIT_EVENT than before..  ;)
+But while I'm not yet ready to submit the resulting patches to rewrite calls
+to ib_copy_{from,to}_udata(), I'm submitting today important fixes for errors
+encountered during the conversion: I've found that three callers were not
+setting proper error code when failing.
 
-As mentioned earlier, the first isert_put_conn() occurs from the per
-connection process context after calling rdma_disconnect(), and the
-second from the disconnected event handler.
+The third one is especially nasty as it would make (specific) application
+crashes on most configuration, or, if the kernel wasn't protecting itself
+from NULL pointer dereferences, it could allow some exploits to be successfully
+executed. Hopefully, /proc/sys/vm/mmap_min_addr is here to protect us.
+But more, it's only applicable to NetEffect iWARP driver, so I believe the
+vulnerability is so impracticable that it's not even worth mentioning it.
+People interested could find some details in the README file from a dedicated
+git repository along a test program used to try to trigger the NULL pointer
+dereference, again hosted on gitorious.og [2]. It's mostly theoretical as
+I haven't access to a NetEffect iWARP HCA to really exercise the test program
+against the iw_nes driver.
 
-Your comment above would seem to indicate that iser-target code should
-be waiting to receive TIMEWAIT_EVENT, instead of pro-actively calling
-rdma_disconnect() to trigger the disconnect.  Is that correct..?
+I've done a limited manual review of other infiniband/hw/ drivers with the help
+of another semantic patch from mine [3] (I'm a bit ashamed of it, as it's very
+crude and don't use all of the feature offered by coccinelle) and found no
+other potential kernel NULL dereference that could be triggered from uverbs
+layer. But you, driver maintainers, should not trust me and do your own review.
 
---nab
+The last patches are fixes for warnings reported by coccicheck.
+For those who don't use it so much, coccicheck can be executed
+just like sparse or smatch when building the kernel using:
 
+    make C=2 CHECK=scripts/coccicheck <targets>
+
+You will see that it's able to catch errors that the two others
+static analyzers are not reporting. I'm proposing fixes for the most noticeable
+ones.
+
+Thanks for reviewing, testing and applying for v3.14 and stable.
+
+Regards.
+
+Links:
+
+[1] https://www.gitorious.org/opteya/coccib/source/75ebf2c1033c64c1d81df13e4ae44ee99c989eba:ib_copy_udata.cocci
+[2] https://www.gitorious.org/opteya/ib-hw-nes-create-qp-null
+[3] https://www.gitorious.org/opteya/coccib/source/75ebf2c1033c64c1d81df13e4ae44ee99c989eba:NULL.cocci
+
+Yann Droneaud (5):
+  IB/ehca: returns an error on ib_copy_to_udata() failure
+  IB/mthca: returns an error on ib_copy_to_udata() failure
+  IB/nes: returns an error on ib_copy_from_udata() failure instead of
+    NULL
+  IB/qib: add missing braces in do_qib_user_sdma_queue_create()
+  IB/qib: fixup indentation in qib_ib_rcv()
+
+ drivers/infiniband/hw/ehca/ehca_cq.c         | 1 +
+ drivers/infiniband/hw/mthca/mthca_provider.c | 1 +
+ drivers/infiniband/hw/nes/nes_verbs.c        | 2 +-
+ drivers/infiniband/hw/qib/qib_file_ops.c     | 3 ++-
+ drivers/infiniband/hw/qib/qib_verbs.c        | 4 ++--
+ 5 files changed, 7 insertions(+), 4 deletions(-)
+
+-- 
+1.8.5.3
