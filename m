@@ -1,51 +1,87 @@
-From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv5 net-next 15/31] iw_cxgb4: save the correct map length
- for fast_reg_page_lists
-Date: Mon, 10 Mar 2014 13:09:21 -0700
-Message-ID: <1394482161.21085.6.camel@joe-AO722>
-References: <1394471308-4304-1-git-send-email-hariprasad@chelsio.com>
-	 <1394471308-4304-16-git-send-email-hariprasad@chelsio.com>
-	 <531E23E9.4030702@cogentembedded.com>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH 0/6] iser-target: Fix active I/O shutdown related issues
+Date: Mon, 10 Mar 2014 15:00:11 -0700
+Message-ID: <1394488811.16214.32.camel@haakon3.risingtidesystems.com>
+References: <1393891265-22910-1-git-send-email-nab@daterainc.com>
+	 <5315EE7C.3030806@dev.mellanox.co.il>
+	 <1393978007.30113.4.camel@haakon3.risingtidesystems.com>
+	 <531714BE.2060401@dev.mellanox.co.il>
+	 <1394057083.20601.51.camel@haakon3.risingtidesystems.com>
+	 <5318808E.5080207@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <531E23E9.4030702-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Cc: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <5318808E.5080207@mellanox.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: sagi grimberg <sagig@mellanox.com>
+Cc: Sagi Grimberg <sagig@dev.mellanox.co.il>, "Nicholas A. Bellinger" <nab@daterainc.com>, target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2014-03-10 at 23:43 +0300, Sergei Shtylyov wrote:
-> Hello.
+On Thu, 2014-03-06 at 16:05 +0200, sagi grimberg wrote:
+> On 3/6/2014 12:04 AM, Nicholas A. Bellinger wrote:
+> > On Wed, 2014-03-05 at 14:12 +0200, Sagi Grimberg wrote:
+> >> On 3/5/2014 2:06 AM, Nicholas A. Bellinger wrote:
+> >>> On Tue, 2014-03-04 at 17:17 +0200, Sagi Grimberg wrote:
+> >>>> On 3/4/2014 2:00 AM, Nicholas A. Bellinger wrote:
+
+<SNIP>
+
+> >>> <nod>, I noticed that as well during recent debugging.
+> >>>
+> >>> However, AFAICT the RDMA_CM_EVENT_TIMEWAIT_EVENT doesn't (always) occur
+> >>> on the target side after a RDMA_CM_EVENT_DISCONNECTED, and thus far I've
+> >>> not been able to ascertain what's different about the shutdown sequence
+> >>> that would make this happen, or not happen..
+> >>>
+> >>> Any ideas..?
+> >> That's probably because the cm_id is destroyed before you get the event.
+> >> There is a specific
+> >> timout computation to get this event (see IB spec). If you will attempt
+> >> to disconnect while
+> >> the link is down (initiator won't receive it and send you disconnect
+> >> back), you should be able
+> >> to see this event. As I understand, in order to comply the spec, the QP
+> >> (and the cm_id afterwards)
+> >> should be destroyed only when getting this event and not before.
+> >>
+> > <nod>, thanks for the additional background.
+> >
+> > So currently rdma_destroy_qp() + rdma_destroy_id() is being done via
+> > isert_connect_release(), which occurs after the final isert_put_conn()
+> > happens from either the RDMA_CM_EVENT_DISCONNECTED handler, or within
+> > isert_free_conn() in one of the per connection kernel thread contexts
+> > via iscsit_close_connection().
+> >
+> > If I understand the above correctly, the isert_put_conn() should move
+> > from the RDMA_CM_EVENT_DISCONNECTED handler into the TIMEWAIT_EVENT
+> > handler, yes..?
 > 
-> On 03/10/2014 08:08 PM, Hariprasad Shenai wrote:
-> > From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > We cannot save the mapped length using the rdma max_page_list_len field
-> > of the ib_fast_reg_page_list struct because the core code uses it.  This
-> > results in an incorrect unmap of the page list in c4iw_free_fastreg_pbl().
-[]
-> > diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-[]
-> > @@ -903,7 +903,11 @@ struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(struct ib_device *device,
-> >   	dma_unmap_addr_set(c4pl, mapping, dma_addr);
-> >   	c4pl->dma_addr = dma_addr;
-> >   	c4pl->dev = dev;
-> > -	c4pl->ibpl.max_page_list_len = pll_len;
-> > +	c4pl->pll_len = pll_len;
-> > +
-> > +	PDBG("%s c4pl %p pll_len %u page_list %p dma_addr %p\n",
-> > +	     __func__, c4pl, c4pl->pll_len, c4pl->ibpl.page_list,
-> > +	     (void *)c4pl->dma_addr);
+> Yes.
 > 
->     There's %pad format for printing dma_addr_t, no need to cast and use %p.
+> > And it's safe to assume that DISCONNECTED will always occur before
+> > TIMEWAIT_EVENT, right..?
+> 
+> DISCONNECTED event may not even come at all (in case the initiator 
+> didn't call rdma_disconnect). no guarantees here..
+> But, if once we get the TIMEWAIT event, we destroy the qp and the 
+> *cm_id*, we won't get any CM events at all.
+> As I understand, we don't even need to explicitly destroy the cm_id, we 
+> can just return a non-zero return from cma_handler
+> for TIMEWAIT events which will cause rdma_cm to implicitly destroy the 
+> cm_id.
+> 
 
-This would also probably give a gcc warning
-when the sizeof a dma_addr_t is not the same
-size as a void *.
+Mmmm, if that's the case then I'm more confused about how reference
+counting for isert_conn should work wrt TIMEWAIT_EVENT than before..  ;)
 
+As mentioned earlier, the first isert_put_conn() occurs from the per
+connection process context after calling rdma_disconnect(), and the
+second from the disconnected event handler.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your comment above would seem to indicate that iser-target code should
+be waiting to receive TIMEWAIT_EVENT, instead of pro-actively calling
+rdma_disconnect() to trigger the disconnect.  Is that correct..?
+
+--nab
+
