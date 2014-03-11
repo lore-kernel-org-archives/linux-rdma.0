@@ -1,67 +1,78 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next] IB/mad: Check and handle potential DMA mapping errors
-Date: Tue, 11 Mar 2014 14:41:47 +0200
-Message-ID: <1394541707-9282-1-git-send-email-ogerlitz@mellanox.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 1/3] IB/srp: Fix crash when unmapping data loop
+Date: Tue, 11 Mar 2014 15:38:00 +0200
+Message-ID: <531F11B8.5030202@dev.mellanox.co.il>
+References: <1393252218-30638-1-git-send-email-sagig@mellanox.com> <1393252218-30638-2-git-send-email-sagig@mellanox.com> <530B6444.1000805@acm.org> <530F225E.5070500@dev.mellanox.co.il> <53183B71.4090609@acm.org> <53189526.2010704@mellanox.com> <53189DDE.7090003@dev.mellanox.co.il> <53197FC5.4090102@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53197FC5.4090102-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, sagi grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 3/7/2014 10:13 AM, Bart Van Assche wrote:
+> On 03/06/14 17:10, Sagi Grimberg wrote:
+>> So I took Roland latest 3.14-rc1 and tried to reproduce this issue using
+>> HCA with no FMRs support and was *NOT* able to reproduce this issue. This
+>> issue reproduced for me on RH6 backported srp and I can't tell where is
+>> the delta at the moment. Perhaps Sebastian can share his scenario that
+>> reproduces this issue and was solved by the patch I proposed.
+>>
+>> I suggest to try and reproduce it with your ib_srp-backport code over
+>> RH6, worth a look right?
+> Hello Sagi,
 
-Running over a kernel built with DMA_API_DEBUG and not checking for
-DMA mapping error triggers a kernel stack trace with "DMA-API: device
-driver failed to check map error" message. So adding it here, for the
-sake of being more robust and eliminating the false-positives stack traces.
+Hey Bart,
 
-Signed-off-by: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/mad.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+A bit late but I hope not too late...
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 4c837e6..ab31f13 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1022,12 +1022,21 @@ int ib_send_mad(struct ib_mad_send_wr_private *mad_send_wr)
- 					mad_send_wr->send_buf.mad,
- 					sge[0].length,
- 					DMA_TO_DEVICE);
-+	if (unlikely(ib_dma_mapping_error(mad_agent->device, sge[0].addr)))
-+		return -ENOMEM;
-+
- 	mad_send_wr->header_mapping = sge[0].addr;
- 
- 	sge[1].addr = ib_dma_map_single(mad_agent->device,
- 					ib_get_payload(mad_send_wr),
- 					sge[1].length,
- 					DMA_TO_DEVICE);
-+	if (unlikely(ib_dma_mapping_error(mad_agent->device, sge[1].addr))) {
-+		ib_dma_unmap_single(mad_agent->device,
-+				    mad_send_wr->header_mapping,
-+				    sge[0].length, DMA_TO_DEVICE);
-+		return -ENOMEM;
-+	}
- 	mad_send_wr->payload_mapping = sge[1].addr;
- 
- 	spin_lock_irqsave(&qp_info->send_queue.lock, flags);
-@@ -2590,6 +2599,11 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 						 sizeof *mad_priv -
- 						   sizeof mad_priv->header,
- 						 DMA_FROM_DEVICE);
-+		if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
-+						  sg_list.addr))) {
-+			ret = -ENOMEM;
-+			break;
-+		}
- 		mad_priv->header.mapping = sg_list.addr;
- 		recv_wr.wr_id = (unsigned long)&mad_priv->header.mad_list;
- 		mad_priv->header.mad_list.mad_queue = recv_queue;
--- 
-1.7.1
+> It would help if you could explain why you are concerned about holding a
+> spin lock during the srp_post_send() call. According to
+> Documentation/infiniband/core_locking.txt ib_post_send() is not allowed
+> to sleep.
 
+Correct, taking the spinlock around ib_post_send is allowed and I don't 
+think any HCA drivers
+will ever sleep there.
+
+>   And before the SCSI host lock push-down the SCSI host lock was
+> held around the srp_queuecommand() invocation. In other words, holding a
+> spin lock around the srp_post_send() call in srp_queuecommand() is
+> neither new nor disallowed by the RDMA API documentation.
+
+I just noted that I think it should be avoided due to performance reasons.
+We are going towards scsi-mq and I suspect fast-path spinlocks will 
+become much
+more expensive in this era, and we should try to avoid them rather than 
+take them.
+
+>   And if there
+> would be any (legacy?) RDMA HCA drivers that are not upstream and for
+> which it is not safe to invoke ib_post_send() with a spin lock held, how
+> about invoking srp_post_send() in distro's that support these drivers
+> without holding target->lock ?
+
+I don't think we need to worry about that.
+
+>   The patch I posted fixes a race between
+> srp_finish_req() and the error path in srp_queuecommand by setting
+> req->scmnd after the srp_post_send() call instead of before.
+
+Yes, I agree this would help.
+
+>   Holding
+> target->lock around the srp_post_send() call and the req->scmnd
+> assignment is only needed to avoid the (theoretical) race where
+> processing of an SRP reply would already have been started before
+> req->scmnd has been assigned by srp_queuecommand().
+
+I see... will assigning scmnd = NULL only if srp_post_send will fail, 
+and restore the assignment as before help?
+
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
