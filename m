@@ -1,91 +1,113 @@
-From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] RDMA/nes: Fix for passing a valid QP pointer to the user
- space library
-Date: Tue, 11 Mar 2014 14:20:17 -0500
-Message-ID: <20140311192017.GA18980@TENIKOLO-MOBL1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: clsoto@linux.vnet.ibm.com
+Subject: [Patch 1/2] IB/mlx5: Implementation of PCI error handler
+Date: Tue, 11 Mar 2014 22:42:20 -0500
+Message-ID: <20140312034512.065218504@linux.vnet.ibm.com>
+References: <20140312034219.637916521@linux.vnet.ibm.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline; filename=ib_mlx5_add_pci_error.patch
+Sender: netdev-owner@vger.kernel.org
+To: eli@mellanox.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+Cc: brking@linux.vnet.ibm.com, Carol Soto <clsoto@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix for passing a valid QP pointer to the user space library
+This patch is to add PCI error handler function support for mlx5.
+Created the functions for error_detected and slot_rest, plus will
+send a port down event to users when the driver error_detected
+function is invoked. This is to prevent a hang seeing in
+mcast_remove_one at the time ib_unregister_device is called for the
+ib_sa module. It will fail hardware commands while the driver is
+handling a PCI error. It will reduce the hardware commands timeout
+to 10 msecs so it does not hang waiting for an interrupt of the
+completion of the hardware command.
 
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Carol Soto <clsoto@linux.vnet.ibm.com>
 ---
- drivers/infiniband/hw/nes/nes_cm.c    |    2 +-
- drivers/infiniband/hw/nes/nes_user.h  |    5 +++--
- drivers/infiniband/hw/nes/nes_verbs.c |    2 ++
- drivers/infiniband/hw/nes/nes_verbs.h |    1 +
- 4 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c             |   32 +++++++++++++++++++++++++-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c |    7 +++++
+ include/linux/mlx5/driver.h                   |    4 +--
+ 3 files changed, 40 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index e852a3a..dfa9df4 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -657,7 +657,7 @@ static void build_rdma0_msg(struct nes_cm_node *cm_node, struct nes_qp **nesqp_a
- 	struct nes_qp *nesqp = *nesqp_addr;
- 	struct nes_hw_qp_wqe *wqe = &nesqp->hwqp.sq_vbase[0];
+Index: b/drivers/infiniband/hw/mlx5/main.c
+===================================================================
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1508,11 +1508,41 @@ static DEFINE_PCI_DEVICE_TABLE(mlx5_ib_p
  
--	u64temp = (unsigned long)nesqp;
-+	u64temp = (unsigned long)nesqp->nesuqp_addr;
- 	u64temp |= NES_SW_CONTEXT_ALIGN >> 1;
- 	set_wqe_64bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_COMP_CTX_LOW_IDX, u64temp);
+ MODULE_DEVICE_TABLE(pci, mlx5_ib_pci_table);
  
-diff --git a/drivers/infiniband/hw/nes/nes_user.h b/drivers/infiniband/hw/nes/nes_user.h
-index 4926de7..529c421 100644
---- a/drivers/infiniband/hw/nes/nes_user.h
-+++ b/drivers/infiniband/hw/nes/nes_user.h
-@@ -39,8 +39,8 @@
- 
- #include <linux/types.h>
- 
--#define NES_ABI_USERSPACE_VER 1
--#define NES_ABI_KERNEL_VER    1
-+#define NES_ABI_USERSPACE_VER 2
-+#define NES_ABI_KERNEL_VER    2
- 
- /*
-  * Make sure that all structs defined in this file remain laid out so
-@@ -78,6 +78,7 @@ struct nes_create_cq_req {
- 
- struct nes_create_qp_req {
- 	__u64 user_wqe_buffers;
-+	__u64 user_qp_buffer;
++static pci_ers_result_t mlx5_pci_err_detected(struct pci_dev *pdev,
++					      pci_channel_state_t state)
++{
++	struct mlx5_ib_dev *dev = mlx5_pci2ibdev(pdev);
++	struct mlx5_core_dev *mdev = &dev->mdev;
++	u8 port;
++
++	/* To avoid the mcast hang with ipoib up */
++	for (port = 1; port <= dev->mdev.caps.num_ports; port++)
++		mlx5_ib_event(mdev, MLX5_DEV_EVENT_PORT_DOWN, &port);
++
++	remove_one(pdev);
++
++	return state == pci_channel_io_perm_failure ?
++		PCI_ERS_RESULT_DISCONNECT : PCI_ERS_RESULT_NEED_RESET;
++}
++
++static pci_ers_result_t mlx5_pci_slot_reset(struct pci_dev *pdev)
++{
++	int ret = init_one(pdev, 0);
++
++	return ret ? PCI_ERS_RESULT_DISCONNECT : PCI_ERS_RESULT_RECOVERED;
++}
++
++static const struct pci_error_handlers mlx5_err_handler = {
++	.error_detected = mlx5_pci_err_detected,
++	.slot_reset     = mlx5_pci_slot_reset,
++};
++
+ static struct pci_driver mlx5_ib_driver = {
+ 	.name		= DRIVER_NAME,
+ 	.id_table	= mlx5_ib_pci_table,
+ 	.probe		= init_one,
+-	.remove		= remove_one
++	.remove		= remove_one,
++	.err_handler	= &mlx5_err_handler,
  };
  
- enum iwnes_memreg_type {
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 8308e36..797d887 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1191,6 +1191,8 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
- 				if (req.user_wqe_buffers) {
- 					virt_wqs = 1;
- 				}
-+				if (req.user_qp_buffer)
-+					nesqp->nesuqp_addr = req.user_qp_buffer;
- 				if ((ibpd->uobject) && (ibpd->uobject->context)) {
- 					nesqp->user_mode = 1;
- 					nes_ucontext = to_nesucontext(ibpd->uobject->context);
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.h b/drivers/infiniband/hw/nes/nes_verbs.h
-index 0eff7c4..309b31c 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.h
-+++ b/drivers/infiniband/hw/nes/nes_verbs.h
-@@ -184,5 +184,6 @@ struct nes_qp {
- 	u8                    pau_busy;
- 	u8                    pau_pending;
- 	u8                    pau_state;
-+	__u64                 nesuqp_addr;
+ static int __init mlx5_ib_init(void)
+Index: b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+===================================================================
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -646,6 +646,13 @@ static int mlx5_cmd_invoke(struct mlx5_c
+ 	if (callback && page_queue)
+ 		return -EINVAL;
+ 
++	if (pci_channel_offline(dev->pdev)) {
++		/* Device is going through error recovery
++		 * and cannot accept commands.
++		 */
++		return -EIO;
++	}
++
+ 	ent = alloc_cmd(cmd, in, out, uout, uout_size, callback, context,
+ 			page_queue);
+ 	if (IS_ERR(ent))
+Index: b/include/linux/mlx5/driver.h
+===================================================================
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -51,10 +51,10 @@ enum {
  };
- #endif			/* NES_VERBS_H */
+ 
+ enum {
+-	/* one minute for the sake of bringup. Generally, commands must always
++	/* 10 msecs for the sake of bringup. Generally, commands must always
+ 	 * complete and we may need to increase this timeout value
+ 	 */
+-	MLX5_CMD_TIMEOUT_MSEC	= 7200 * 1000,
++	MLX5_CMD_TIMEOUT_MSEC	= 10 * 1000,
+ 	MLX5_CMD_WQ_MAX_NAME	= 32,
+ };
+ 
+
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
