@@ -1,71 +1,83 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Suppress a sparse warning
-Date: Wed, 12 Mar 2014 19:54:51 +0200
-Message-ID: <53209F6B.7050400@mellanox.com>
-References: <531DAEA1.7060703@acm.org> <1394458406.3257.53.camel@localhost.localdomain> <531DCB7D.9020104@acm.org> <1394463733.3257.62.camel@localhost.localdomain> <20140310160803.GC21124@linux.vnet.ibm.com> <532033C5.7030803@acm.org>
+From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+Subject: Re: [Patch 1/2] IB/mlx5: Implementation of PCI error handler
+Date: Wed, 12 Mar 2014 18:34:12 +0000
+Message-ID: <1394649252.23624.36.camel@deadeye.wl.decadent.org.uk>
+References: <20140312034219.637916521@linux.vnet.ibm.com>
+	 <20140312034512.065218504@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-ZAXA0Q2YwrYEMud+aMJK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <532033C5.7030803-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <20140312034512.065218504-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/12/2014 12:15 PM, Bart Van Assche wrote:
-> On 03/10/14 17:08, Paul E. McKenney wrote:
->> On Mon, Mar 10, 2014 at 04:02:13PM +0100, Yann Droneaud wrote:
->>> Hi,
->>>
->>> Le lundi 10 mars 2014 =E0 15:26 +0100, Bart Van Assche a =E9crit :
->>>> On 03/10/14 14:33, Yann Droneaud wrote:
->>>>> Le lundi 10 mars 2014 =E0 13:22 +0100, Bart Van Assche a =E9crit =
-:
->>>>>> Suppress the following sparse warning:
->>>>>> include/rdma/ib_addr.h:187:24: warning: cast removes address spa=
-ce of expression
->>>>> You should explain why there's a warning here, and why is it safe=
- to
->>>>> cast. (I believe it's related to RCU domain ?)
->>>> Hello Yann,
->>>>
->>>> Now that I've had a closer look at the code in include/rdma/ib_add=
-r.h,
->>>> that code probably isn't safe. How about the (untested) patch belo=
-w ?
->>>>
->>> Thanks for investigating.
->>>
->>> I'm not an expert in RCU, but I believe it then miss the RCU annota=
-tions
->>> around the RCU reader section (ensure correct ordering if I recall
->>> correctly).
->>>
->>> Cc: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
->> If the rcu_read_lock() isn't supplied by all callers to this functio=
-n,
->> then yes, it needs to be supplied as Yann shows below.
->>
->> The CONFIG_PROVE_RCU=3Dy Kconfig option can help determine that they=
- are
->> needed, but of course cannot prove that they are not needed, at leas=
-t
->> not unless you have a workload that exercises all possible calls to
->> this function.
-> Hello Moni,
->
-> I think this warning got introduced via commit "IB/cma: IBoE (RoCE)
-> IP-based GID addressing" (7b85627b9f02f9b0fb2ef5f021807f4251135857;
-> December 12, 2013). Can you follow this up further ?
->
-> Thanks,
->
-> Bart.
-Sure. I'll look into it.
+
+--=-ZAXA0Q2YwrYEMud+aMJK
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, 2014-03-11 at 22:42 -0500, clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org wrote:
+[...]
+> Index: b/include/linux/mlx5/driver.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- a/include/linux/mlx5/driver.h
+> +++ b/include/linux/mlx5/driver.h
+> @@ -51,10 +51,10 @@ enum {
+>  };
+> =20
+>  enum {
+> -       /* one minute for the sake of bringup. Generally, commands must a=
+lways
+> +       /* 10 msecs for the sake of bringup. Generally, commands must alw=
+ays
+>          * complete and we may need to increase this timeout value
+>          */
+> -       MLX5_CMD_TIMEOUT_MSEC   =3D 7200 * 1000,
+> +       MLX5_CMD_TIMEOUT_MSEC   =3D 10 * 1000,
+
+You seem to be changing the timeout from 2 hours (not one minute) to 10
+seconds (not milliseconds).
+
+Ben.
+
+>         MLX5_CMD_WQ_MAX_NAME    =3D 32,
+>  };
+> =20
+>=20
+
+--=20
+Ben Hutchings
+Any sufficiently advanced bug is indistinguishable from a feature.
+
+--=-ZAXA0Q2YwrYEMud+aMJK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIVAwUAUyCopOe/yOyVhhEJAQrN3w/+JAggVZ5WL4Wc8knoOCwGfr99e1kkhgOq
+EjiMU/4N1hIuROMp5l0VgGn1gqldJf+kYjSm3G4k7ICOssAbWPlEs1ZdTUukAMLj
+qhMfZBUHZDZJUTSSIUljvfCdzwCggs53nImiDC5bRXyRQfiHH1DywyKSazpimjQK
+SLGUoySJOMCIWv1zkih4YFcIDu5OW+zZ0jA4hNolC6YViReIzrpyISC/7mSSHGfB
+NiV97QpIizk8JVrevIIywbZqh/ZcmmMjnJFcRYrg3pHqiGLjztWyc8UHaN1RXmti
++Xhk8SYPxIkQX4lsQgeGmOuQOQRZWFnzTSuCiaPlXPmpjf9Rpnq7Ej/7gRu1egMi
+j8Ksq1RKuhxUuTKGJnZxZyU2bYrmTyKxynbG6V1bFtVQx4Ov3qX1mqKJkbHWa9YK
+TKV8jrcUFA5ehwgV7f3sJlVsWxBhfQAa6PyYy5Q0nOXwL2qEw/FKEOuryxLwy2k5
+MXdd8xmQ6tnRoK9dDICPgeHT4reuIjKLb3wH5uIJgzGvADMzU84UnRO13I6dNHIg
+MsL+pCzgUJwEIyfQ/DHrzXuC2NcXzRI692TWxoCWFen6vYP+4PnvcYAs+RSrf4uM
+rnpRb8D11r83sMHVYCusDo4WVNLajEGu0ylC8t7WstJfAbFNeJutqOec7a/Qj6VM
+UVpJxSa2REw=
+=Zg1I
+-----END PGP SIGNATURE-----
+
+--=-ZAXA0Q2YwrYEMud+aMJK--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
