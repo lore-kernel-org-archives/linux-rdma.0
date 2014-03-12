@@ -1,162 +1,102 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v1 1/3] IB/srp: Fix crash when unmapping data loop
-Date: Wed, 12 Mar 2014 14:16:14 +0100
-Message-ID: <53205E1E.3070304@acm.org>
-References: <1393252218-30638-1-git-send-email-sagig@mellanox.com> <1393252218-30638-2-git-send-email-sagig@mellanox.com> <530B6444.1000805@acm.org> <530F225E.5070500@dev.mellanox.co.il> <53183B71.4090609@acm.org> <53189526.2010704@mellanox.com> <53189DDE.7090003@dev.mellanox.co.il> <53197FC5.4090102@acm.org> <531F11B8.5030202@dev.mellanox.co.il> <531F14D0.7010608@acm.org> <531F18A7.1000907@dev.mellanox.co.il> <531F1DBD.9070505@acm.org> <531F2221.2090403@dev.mellanox.co.il> <531F2501.9090005@acm.org> <531F2C2C.7080306@dev.mellanox.co.il>
+From: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFS over RDMA crashing
+Date: Wed, 12 Mar 2014 09:33:00 -0400
+Message-ID: <20140312093300.7a434cbb@tlielax.poochiereds.net>
+References: <51127B3F.2090200@mellanox.com>
+	<20130206222435.GL16417@fieldses.org>
+	<20130207164134.GK3222@fieldses.org>
+	<003601cf3a26$94523ee0$bcf6bca0$@opengridcomputing.com>
+	<005d01cf3a45$94ced0d0$be6c7270$@opengridcomputing.com>
+	<531B47B3.1070503@opengridcomputing.com>
+	<531B6D90.2090208@opengridcomputing.com>
+	<531B79F8.2020008@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <531F2C2C.7080306-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <531B79F8.2020008-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, sagi grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yan Burman' <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/11/14 16:30, Sagi Grimberg wrote:
-> State FAIL_FAST must come *after* stated BLOCKED. Do you think that
-> taking the lock
-> once the rport transitions to state BLOCKED suffices? I'm aiming to
-> avoid this lock in
-> the sunny-day flow. Taking this lock always to protect against some
-> error flow
-> that might occur feels somewhat wrong to me.
+On Sat, 08 Mar 2014 14:13:44 -0600
+Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
 
-Hello Sagi,
+> On 3/8/2014 1:20 PM, Steve Wise wrote:
+> >
+> >> I removed your change and started debugging original crash that 
+> >> happens on top-o-tree.   Seems like rq_next_pages is screwed up.  It 
+> >> should always be >= rq_respages, yes?  I added a BUG_ON() to assert 
+> >> this in rdma_read_xdr() we hit the BUG_ON(). Look
+> >>
+> >> crash> svc_rqst.rq_next_page 0xffff8800b84e6000
+> >>   rq_next_page = 0xffff8800b84e6228
+> >> crash> svc_rqst.rq_respages 0xffff8800b84e6000
+> >>   rq_respages = 0xffff8800b84e62a8
+> >>
+> >> Any ideas Bruce/Tom?
+> >>
+> >
+> > Guys, the patch below seems to fix the problem.  Dunno if it is 
+> > correct though.  What do you think?
+> >
+> > diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c 
+> > b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> > index 0ce7552..6d62411 100644
+> > --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> > +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> > @@ -90,6 +90,7 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
+> >                 sge_no++;
+> >         }
+> >         rqstp->rq_respages = &rqstp->rq_pages[sge_no];
+> > +       rqstp->rq_next_page = rqstp->rq_respages;
+> >
+> >         /* We should never run out of SGE because the limit is defined to
+> >          * support the max allowed RPC data length
+> > @@ -276,6 +277,7 @@ static int fast_reg_read_chunks(struct 
+> > svcxprt_rdma *xprt,
+> >
+> >         /* rq_respages points one past arg pages */
+> >         rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
+> > +       rqstp->rq_next_page = rqstp->rq_respages;
+> >
+> >         /* Create the reply and chunk maps */
+> >         offset = 0;
+> >
+> >
+> 
+> While this patch avoids the crashing, it apparently isn't correct...I'm 
+> getting IO errors reading files over the mount. :)
+> 
 
-I agree that today the SRP initiator only invokes srp_terminate_io()
-after having quiesced I/O first so from that point of view it is not
-necessary to add more locking in srp_queuecommand(). However, since
-this is nontrivial I'd like to trigger a kernel warning if
-srp_terminate_io() is ever invoked concurrently with
-srp_queuecommand(). Additionally, I think the code in
-srp_reset_device() can trigger a race with the I/O completion path. How
-about addressing all this with the patch below ?
+I hit the same oops and tested your patch and it seems to have fixed
+that particular panic, but I still see a bunch of other mem corruption
+oopses even with it. I'll look more closely at that when I get some
+time.
 
-Thanks,
+FWIW, I can easily reproduce that by simply doing something like:
 
-Bart.
+    $ dd if=/dev/urandom of=/file/on/nfsordma/mount bs=4k count=1
 
-[PATCH] IB/srp: Fix a race condition between failing I/O and I/O completion
+I'm not sure why you're not seeing any panics with your patch in place.
+Perhaps it's due to hw differences between our test rigs.
 
-Avoid that srp_terminate_io() can access req->scmnd after it has been
-cleared by the I/O completion code. Do this by protecting req->scmnd
-accesses from srp_terminate_io() via locking
+The EIO problem that you're seeing is likely the same client bug that
+Chuck recently fixed in this patch:
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+    [PATCH 2/8] SUNRPC: Fix large reads on NFS/RDMA
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index a64e469..66a908b 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -783,6 +783,7 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
-  * srp_claim_req - Take ownership of the scmnd associated with a request.
-  * @target: SRP target port.
-  * @req: SRP request.
-+ * @sdev: If not NULL, only take ownership for this SCSI device.
-  * @scmnd: If NULL, take ownership of @req->scmnd. If not NULL, only take
-  *         ownership of @req->scmnd if it equals @scmnd.
-  *
-@@ -791,16 +792,17 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
-  */
- static struct scsi_cmnd *srp_claim_req(struct srp_target_port *target,
- 				       struct srp_request *req,
-+				       struct scsi_device *sdev,
- 				       struct scsi_cmnd *scmnd)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&target->lock, flags);
--	if (!scmnd) {
-+	if (req->scmnd &&
-+	    (!sdev || req->scmnd->device == sdev) &&
-+	    (!scmnd || req->scmnd == scmnd)) {
- 		scmnd = req->scmnd;
- 		req->scmnd = NULL;
--	} else if (req->scmnd == scmnd) {
--		req->scmnd = NULL;
- 	} else {
- 		scmnd = NULL;
- 	}
-@@ -827,9 +829,10 @@ static void srp_free_req(struct srp_target_port *target,
- }
- 
- static void srp_finish_req(struct srp_target_port *target,
--			   struct srp_request *req, int result)
-+			   struct srp_request *req, struct scsi_device *sdev,
-+			   int result)
- {
--	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
-+	struct scsi_cmnd *scmnd = srp_claim_req(target, req, sdev, NULL);
- 
- 	if (scmnd) {
- 		srp_free_req(target, req, scmnd, 0);
-@@ -841,11 +844,20 @@ static void srp_finish_req(struct srp_target_port *target,
- static void srp_terminate_io(struct srp_rport *rport)
- {
- 	struct srp_target_port *target = rport->lld_data;
-+	struct Scsi_Host *shost = target->scsi_host;
-+	struct scsi_device *sdev;
- 	int i;
- 
-+	/*
-+	 * Invoking srp_terminate_io() while srp_queuecommand() is running
-+	 * is not safe. Hence the warning statement below.
-+	 */
-+	shost_for_each_device(sdev, shost)
-+		WARN_ON_ONCE(sdev->request_queue->request_fn_active);
-+
- 	for (i = 0; i < target->req_ring_size; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
--		srp_finish_req(target, req, DID_TRANSPORT_FAILFAST << 16);
-+		srp_finish_req(target, req, NULL, DID_TRANSPORT_FAILFAST << 16);
- 	}
- }
- 
-@@ -882,7 +894,7 @@ static int srp_rport_reconnect(struct srp_rport *rport)
- 
- 	for (i = 0; i < target->req_ring_size; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
--		srp_finish_req(target, req, DID_RESET << 16);
-+		srp_finish_req(target, req, NULL, DID_RESET << 16);
- 	}
- 
- 	INIT_LIST_HEAD(&target->free_tx);
-@@ -1290,7 +1302,7 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
- 		complete(&target->tsk_mgmt_done);
- 	} else {
- 		req = &target->req_ring[rsp->tag];
--		scmnd = srp_claim_req(target, req, NULL);
-+		scmnd = srp_claim_req(target, req, NULL, NULL);
- 		if (!scmnd) {
- 			shost_printk(KERN_ERR, target->scsi_host,
- 				     "Null scmnd for RSP w/tag %016llx\n",
-@@ -2008,7 +2020,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
- 
- 	shost_printk(KERN_ERR, target->scsi_host, "SRP abort called\n");
- 
--	if (!req || !srp_claim_req(target, req, scmnd))
-+	if (!req || !srp_claim_req(target, req, NULL, scmnd))
- 		return SUCCESS;
- 	if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
- 			      SRP_TSK_ABORT_TASK) == 0)
-@@ -2039,8 +2051,7 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
- 
- 	for (i = 0; i < target->req_ring_size; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
--		if (req->scmnd && req->scmnd->device == scmnd->device)
--			srp_finish_req(target, req, DID_RESET << 16);
-+		srp_finish_req(target, req, scmnd->device, DID_RESET << 16);
- 	}
- 
- 	return SUCCESS;
+AIUI, Trond is merging that set for 3.15, so I'd make sure your client
+has those patches when testing.
+
+Finally, I also have a forthcoming patch to fix non-page aligned NFS
+READs as well. I'm hesitant to send that out though until I can at
+least run the connectathon testsuite against this server. The WRITE
+oopses sort of prevent that for now...
+
 -- 
-1.8.4.5
-
-
+Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
