@@ -1,164 +1,123 @@
-From: Jeffrey Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFS over RDMA crashing
-Date: Wed, 12 Mar 2014 11:29:09 -0400
-Message-ID: <20140312112909.58788783@ipyr.poochiereds.net>
-References: <51127B3F.2090200@mellanox.com>
-	<20130206222435.GL16417@fieldses.org>
-	<20130207164134.GK3222@fieldses.org>
-	<003601cf3a26$94523ee0$bcf6bca0$@opengridcomputing.com>
-	<005d01cf3a45$94ced0d0$be6c7270$@opengridcomputing.com>
-	<531B47B3.1070503@opengridcomputing.com>
-	<531B6D90.2090208@opengridcomputing.com>
-	<531B79F8.2020008@opengridcomputing.com>
-	<20140312093300.7a434cbb@tlielax.poochiereds.net>
-	<731A7629-7DBB-4FC3-8F21-70380705ED4E@primarydata.com>
-	<20140312102806.435847a7@ipyr.poochiereds.net>
-	<56B1FEC7-8514-4B2B-851B-7BC965A26AA8@primarydata.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv6 net-next 00/31] Misc. fixes for cxgb4 and iw_cxgb4
+Date: Wed, 12 Mar 2014 21:20:15 +0530
+Message-ID: <1394639446-6504-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56B1FEC7-8514-4B2B-851B-7BC965A26AA8-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Dr Fields James Bruce <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tucker Tom <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Lever Charles Edward <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 12 Mar 2014 11:03:52 -0400
-Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
+Hi All,
 
->=20
-> On Mar 12, 2014, at 10:28, Jeffrey Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->=20
-> > On Wed, 12 Mar 2014 10:05:24 -0400
-> > Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
-> >=20
-> >>=20
-> >> On Mar 12, 2014, at 9:33, Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> >>=20
-> >>> On Sat, 08 Mar 2014 14:13:44 -0600
-> >>> Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> >>>=20
-> >>>> On 3/8/2014 1:20 PM, Steve Wise wrote:
-> >>>>>=20
-> >>>>>> I removed your change and started debugging original crash
-> >>>>>> that happens on top-o-tree.   Seems like rq_next_pages is
-> >>>>>> screwed up.  It should always be >=3D rq_respages, yes?  I add=
-ed
-> >>>>>> a BUG_ON() to assert this in rdma_read_xdr() we hit the
-> >>>>>> BUG_ON(). Look
-> >>>>>>=20
-> >>>>>> crash> svc_rqst.rq_next_page 0xffff8800b84e6000
-> >>>>>> rq_next_page =3D 0xffff8800b84e6228
-> >>>>>> crash> svc_rqst.rq_respages 0xffff8800b84e6000
-> >>>>>> rq_respages =3D 0xffff8800b84e62a8
-> >>>>>>=20
-> >>>>>> Any ideas Bruce/Tom?
-> >>>>>>=20
-> >>>>>=20
-> >>>>> Guys, the patch below seems to fix the problem.  Dunno if it is=
-=20
-> >>>>> correct though.  What do you think?
-> >>>>>=20
-> >>>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c=20
-> >>>>> b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> >>>>> index 0ce7552..6d62411 100644
-> >>>>> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> >>>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> >>>>> @@ -90,6 +90,7 @@ static void rdma_build_arg_xdr(struct svc_rqs=
-t
-> >>>>> *rqstp, sge_no++;
-> >>>>>      }
-> >>>>>      rqstp->rq_respages =3D &rqstp->rq_pages[sge_no];
-> >>>>> +       rqstp->rq_next_page =3D rqstp->rq_respages;
-> >>>>>=20
-> >>>>>      /* We should never run out of SGE because the limit is
-> >>>>> defined to
-> >>>>>       * support the max allowed RPC data length
-> >>>>> @@ -276,6 +277,7 @@ static int fast_reg_read_chunks(struct=20
-> >>>>> svcxprt_rdma *xprt,
-> >>>>>=20
-> >>>>>      /* rq_respages points one past arg pages */
-> >>>>>      rqstp->rq_respages =3D &rqstp->rq_arg.pages[page_no];
-> >>>>> +       rqstp->rq_next_page =3D rqstp->rq_respages;
-> >>>>>=20
-> >>>>>      /* Create the reply and chunk maps */
-> >>>>>      offset =3D 0;
-> >>>>>=20
-> >>>>>=20
-> >>>>=20
-> >>>> While this patch avoids the crashing, it apparently isn't
-> >>>> correct...I'm getting IO errors reading files over the mount. :)
-> >>>>=20
-> >>>=20
-> >>> I hit the same oops and tested your patch and it seems to have
-> >>> fixed that particular panic, but I still see a bunch of other mem
-> >>> corruption oopses even with it. I'll look more closely at that
-> >>> when I get some time.
-> >>>=20
-> >>> FWIW, I can easily reproduce that by simply doing something like:
-> >>>=20
-> >>>  $ dd if=3D/dev/urandom of=3D/file/on/nfsordma/mount bs=3D4k coun=
-t=3D1
-> >>>=20
-> >>> I'm not sure why you're not seeing any panics with your patch in
-> >>> place. Perhaps it's due to hw differences between our test rigs.
-> >>>=20
-> >>> The EIO problem that you're seeing is likely the same client bug
-> >>> that Chuck recently fixed in this patch:
-> >>>=20
-> >>>  [PATCH 2/8] SUNRPC: Fix large reads on NFS/RDMA
-> >>>=20
-> >>> AIUI, Trond is merging that set for 3.15, so I'd make sure your
-> >>> client has those patches when testing.
-> >>>=20
-> >>=20
-> >> Nothing is in my queue yet.
-> >>=20
-> >=20
-> > Doh! Any reason not to merge that set from Chuck? They do fix a
-> > couple of nasty client bugs=E2=80=A6
-> >=20
->=20
-> Most of them are one-line debugging dprintks which I do not intend to
-> apply.
->=20
+This patch series provides miscelleneous fixes for Chelsio T4/T5 adapters
+related to cxgb4 related to sge and mtu. And includes DB Drop avoidance
+and other misc. fixes on iw-cxgb4.
 
-=46air enough. Those are certainly not necessary, but some of them clea=
-n
-up existing printks and probably do need to go in. That said, debugging
-this stuff is *really* difficult so having extra debug printks in place
-seems like a good thing (unless you're arguing for moving wholesale to
-tracepoints instead).
+The patches series is created against David Miller's 'net-next' tree.
+And includes patches on cxgb4 and iw_cxgb4 driver.
 
-> One of them confuses a readdir optimisation with a bugfix; at the
-> very least the patch comments need changing.
+We would like to request this patch series to get merged via David Miller's
+'net-next' tree.
 
-I'll leave that to Chuck to comment on. I had the impression that it
-was a bugfix, but maybe there's some better way to handle that bug.
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
 
->  That leaves 2 that can
-> go in, however as they are clearly insufficient to make RDMA safe for
-> general use, they certainly do not warrant a stable@ label. The
-> workaround for the Oopses is simple: use TCP.
->=20
+Thanks
 
-Yeah, it's definitely rickety, but it's in and we do need to get fixes
-merged to this code. I'm ok with dropping the stable labels on those
-patches, but if we're going to declare this stuff "not stable enough
-for general use" then I think that we should take an aggressive approac=
-h
-on merging fixes to it.
+V6:
+   In patch 8/31, move the existing neigh_release() call right before the
+   if(!e) test, that way you don't need a completely new label and code block
+   to fix this bug - thanks to review by David Miller
+   In patch 15/31, use %pad to print dma_addr - thanks to review by Joe Perches
+   In patch 10/31, add the "STOPPED" state string to db_state_str - thanks
+   to review by Steve Wise
+   In patch 10/31, t4_db_dropped() needs to disable dbs and send DB_FULL
+   event to iw_cxgb4 - thanks to review by Steve Wise
+V5:
+   Dropped patch "cxgb4: use spinlock_irqsave/spinlock_irqrestore for db lock".
+   The remaining changes from the removed patch are moved into patch 10/31
+   ("Doorbell Drop Avoidance Bug Fixes").  10/31 has the driver call
+   disable_txq_db() from an interrupt handler, and I thought it would be
+   better to put all the changes to fix how the db lock is acquired into
+   this one patch.   
+   save/restore spinlock variants are not required - thanks to review by
+   David Miller.
+V4:
+   Fixed review comments given by Sergei Shtylyov, Joe Perches, Or Gerlitz.
+   And, dropped un-used module_params based on comment from Ben Hutchings.
+   Also adds a new patch ("cxgb4: Calculate len properly for LSO
+   path") which fixes regression.
+V3:
+   Fixed warnings reported by checkpatch.pl --strict & use networking code
+   multi-line comments. Also includes fixes based on review comments given by
+   Sergei Shtylyov.
+V2:
+   Dont drop existing module parameters.
+   (cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes.)
 
-=46WIW, I also notice that Kconfig doesn't show the option to actually
-enable/disable RDMA transports. I'll post a patch to fix that soon.
-Since this stuff is not very safe to use, then we should make it
-reasonably simple to disable it.
 
---=20
-Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Hariprasad Shenai (1):
+  iw_cxgb4: Use pr_warn_ratelimited
+
+Kumar Sanghvi (5):
+  cxgb4: Fix some small bugs in t4_sge_init_soft() when our Page Size is
+    64KB
+  cxgb4: Add code to dump SGE registers when hitting idma hangs
+  cxgb4: Rectify emitting messages about SGE Ingress DMA channels being
+    potentially stuck
+  cxgb4: Updates for T5 SGE's Egress Congestion Threshold
+  cxgb4: Calculate len properly for LSO path
+
+Steve Wise (25):
+  iw_cxgb4: cap CQ size at T4_MAX_IQ_SIZE
+  iw_cxgb4: Allow loopback connections
+  iw_cxgb4: release neigh entry
+  iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE as negative advice
+  cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes
+  iw_cxgb4: use the BAR2/WC path for kernel QPs and T5 devices
+  iw_cxgb4: Fix incorrect BUG_ON conditions
+  iw_cxgb4: Mind the sq_sig_all/sq_sig_type QP attributes
+  iw_cxgb4: default peer2peer mode to 1
+  iw_cxgb4: save the correct map length for fast_reg_page_lists
+  iw_cxgb4: don't leak skb in c4iw_uld_rx_handler()
+  iw_cxgb4: fix possible memory leak in RX_PKT processing
+  iw_cxgb4: ignore read reponse type 1 CQEs
+  iw_cxgb4: connect_request_upcall fixes
+  iw_cxgb4: adjust tcp snd/rcv window based on link speed
+  iw_cxgb4: update snd_seq when sending MPA messages
+  iw_cxgb4: lock around accept/reject downcalls
+  iw_cxgb4: drop RX_DATA packets if the endpoint is gone
+  iw_cxgb4: rx_data() needs to hold the ep mutex
+  iw_cxgb4: endpoint timeout fixes
+  iw_cxgb4: rmb() after reading valid gen bit
+  iw_cxgb4: wc_wmb() needed after DB writes
+  iw_cxgb4: SQ flush fix
+  iw_cxgb4: minor fixes
+  iw_cxgb4: Max fastreg depth depends on DSGL support
+
+ drivers/infiniband/hw/cxgb4/cm.c                | 266 +++++++++++++++++-------
+ drivers/infiniband/hw/cxgb4/cq.c                |  54 +++--
+ drivers/infiniband/hw/cxgb4/device.c            | 241 +++++++++++++--------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |  17 +-
+ drivers/infiniband/hw/cxgb4/mem.c               |  18 +-
+ drivers/infiniband/hw/cxgb4/provider.c          |  46 +++-
+ drivers/infiniband/hw/cxgb4/qp.c                | 216 ++++++++++---------
+ drivers/infiniband/hw/cxgb4/resource.c          |  10 +-
+ drivers/infiniband/hw/cxgb4/t4.h                |  78 ++++++-
+ drivers/infiniband/hw/cxgb4/user.h              |   5 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  11 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  84 ++++----
+ drivers/net/ethernet/chelsio/cxgb4/sge.c        | 130 +++++++++---
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      | 106 ++++++++++
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |   2 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |   9 +
+ 16 files changed, 913 insertions(+), 380 deletions(-)
+
+-- 
+1.8.4
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
