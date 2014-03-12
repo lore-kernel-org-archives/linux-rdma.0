@@ -1,126 +1,71 @@
-From: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Subject: [Patch 2/2] IB/mlx5: Free resources during PCI error
-Date: Tue, 11 Mar 2014 22:42:21 -0500
-Message-ID: <20140312034512.232925284@linux.vnet.ibm.com>
-References: <20140312034219.637916521@linux.vnet.ibm.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Suppress a sparse warning
+Date: Wed, 12 Mar 2014 11:15:33 +0100
+Message-ID: <532033C5.7030803@acm.org>
+References: <531DAEA1.7060703@acm.org> <1394458406.3257.53.camel@localhost.localdomain> <531DCB7D.9020104@acm.org> <1394463733.3257.62.camel@localhost.localdomain> <20140310160803.GC21124@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=ib_mlx5_free_resources_during_pci_error.patch
+In-Reply-To: <20140310160803.GC21124-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Carol Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is to make sure that during a pci error, the remove_one
-function frees the resources even though the hardware command failed
-to avoid memory leaks when the adapter recovers.  Also make sure that
-remove_one function goes thru all the functions like disable all irqs
-and disable pci so when the remove_one function is done then the eehd
-daemon will continue the recovery process.
+On 03/10/14 17:08, Paul E. McKenney wrote:
+> On Mon, Mar 10, 2014 at 04:02:13PM +0100, Yann Droneaud wrote:
+>> Hi,
+>>
+>> Le lundi 10 mars 2014 =E0 15:26 +0100, Bart Van Assche a =E9crit :
+>>> On 03/10/14 14:33, Yann Droneaud wrote:
+>>>> Le lundi 10 mars 2014 =E0 13:22 +0100, Bart Van Assche a =E9crit :
+>>>>> Suppress the following sparse warning:
+>>>>> include/rdma/ib_addr.h:187:24: warning: cast removes address spac=
+e of expression
+>>>>
+>>>> You should explain why there's a warning here, and why is it safe =
+to
+>>>> cast. (I believe it's related to RCU domain ?)
+>>>
+>>> Hello Yann,
+>>>
+>>> Now that I've had a closer look at the code in include/rdma/ib_addr=
+=2Eh,
+>>> that code probably isn't safe. How about the (untested) patch below=
+ ?
+>>>
+>>
+>> Thanks for investigating.
+>>
+>> I'm not an expert in RCU, but I believe it then miss the RCU annotat=
+ions
+>> around the RCU reader section (ensure correct ordering if I recall
+>> correctly).
+>>
+>> Cc: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+>=20
+> If the rcu_read_lock() isn't supplied by all callers to this function=
+,
+> then yes, it needs to be supplied as Yann shows below.
+>=20
+> The CONFIG_PROVE_RCU=3Dy Kconfig option can help determine that they =
+are
+> needed, but of course cannot prove that they are not needed, at least
+> not unless you have a workload that exercises all possible calls to
+> this function.
 
-Signed-off-by: Carol Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/mr.c                |    9 ++++++---
- drivers/infiniband/hw/mlx5/qp.c                |    6 +++++-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c   |    8 +++-----
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 -
- include/linux/mlx5/driver.h                    |    2 +-
- 5 files changed, 15 insertions(+), 11 deletions(-)
+Hello Moni,
 
-Index: b/drivers/infiniband/hw/mlx5/mr.c
-===================================================================
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -471,9 +471,12 @@ static void clean_keys(struct mlx5_ib_de
- 		ent->size--;
- 		spin_unlock_irq(&ent->lock);
- 		err = mlx5_core_destroy_mkey(&dev->mdev, &mr->mmr);
--		if (err)
--			mlx5_ib_warn(dev, "failed destroy mkey\n");
--		else
-+		if (err) {
-+			if (pci_channel_offline(dev->mdev.pdev))
-+				kfree(mr);
-+			else
-+				mlx5_ib_warn(dev, "failed destroy mkey\n");
-+		} else
- 			kfree(mr);
- 	}
- }
-Index: b/drivers/infiniband/hw/mlx5/qp.c
-===================================================================
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2564,7 +2564,11 @@ int mlx5_ib_dealloc_xrcd(struct ib_xrcd 
- 
- 	err = mlx5_core_xrcd_dealloc(&dev->mdev, xrcdn);
- 	if (err) {
--		mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n", xrcdn);
-+		if (pci_channel_offline(dev->mdev.pdev))
-+			kfree(xrcd);
-+		else
-+			mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n",
-+				     xrcdn);
- 		return err;
- 	}
- 
-Index: b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-===================================================================
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -482,14 +482,12 @@ err1:
- 	return err;
- }
- 
--int mlx5_stop_eqs(struct mlx5_core_dev *dev)
-+void mlx5_stop_eqs(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_eq_table *table = &dev->priv.eq_table;
- 	int err;
- 
--	err = mlx5_destroy_unmap_eq(dev, &table->pages_eq);
--	if (err)
--		return err;
-+	mlx5_destroy_unmap_eq(dev, &table->pages_eq);
- 
- 	mlx5_destroy_unmap_eq(dev, &table->async_eq);
- 	mlx5_cmd_use_polling(dev);
-@@ -498,7 +496,7 @@ int mlx5_stop_eqs(struct mlx5_core_dev *
- 	if (err)
- 		mlx5_cmd_use_events(dev);
- 
--	return err;
-+	return;
- }
- 
- int mlx5_core_eq_query(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
-Index: b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-===================================================================
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -508,7 +508,6 @@ void mlx5_dev_cleanup(struct mlx5_core_d
- 	mlx5_stop_health_poll(dev);
- 	if (mlx5_cmd_teardown_hca(dev)) {
- 		dev_err(&dev->pdev->dev, "tear_down_hca failed, skip cleanup\n");
--		return;
- 	}
- 	mlx5_pagealloc_stop(dev);
- 	mlx5_reclaim_startup_pages(dev);
-Index: b/include/linux/mlx5/driver.h
-===================================================================
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -721,7 +721,7 @@ int mlx5_create_map_eq(struct mlx5_core_
- 		       int nent, u64 mask, const char *name, struct mlx5_uar *uar);
- int mlx5_destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq);
- int mlx5_start_eqs(struct mlx5_core_dev *dev);
--int mlx5_stop_eqs(struct mlx5_core_dev *dev);
-+void mlx5_stop_eqs(struct mlx5_core_dev *dev);
- int mlx5_core_attach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn);
- int mlx5_core_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn);
- 
+I think this warning got introduced via commit "IB/cma: IBoE (RoCE)
+IP-based GID addressing" (7b85627b9f02f9b0fb2ef5f021807f4251135857;
+December 12, 2013). Can you follow this up further ?
 
--- 
+Thanks,
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
