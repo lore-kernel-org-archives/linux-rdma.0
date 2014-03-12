@@ -1,71 +1,38 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Suppress a sparse warning
-Date: Wed, 12 Mar 2014 11:15:33 +0100
-Message-ID: <532033C5.7030803@acm.org>
-References: <531DAEA1.7060703@acm.org> <1394458406.3257.53.camel@localhost.localdomain> <531DCB7D.9020104@acm.org> <1394463733.3257.62.camel@localhost.localdomain> <20140310160803.GC21124@linux.vnet.ibm.com>
+Subject: Re: IB/mlx4: Build the port IBoE GID table properly under bonding
+Date: Wed, 12 Mar 2014 11:17:23 +0100
+Message-ID: <53203433.5060603@acm.org>
+References: <20140217115235.GA27933@elgon.mountain> <53036A88.5030306@mellanox.com> <20140218142858.GN26776@mwanda> <53036F15.1080601@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140310160803.GC21124-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <53036F15.1080601-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/10/14 17:08, Paul E. McKenney wrote:
-> On Mon, Mar 10, 2014 at 04:02:13PM +0100, Yann Droneaud wrote:
->> Hi,
->>
->> Le lundi 10 mars 2014 =E0 15:26 +0100, Bart Van Assche a =E9crit :
->>> On 03/10/14 14:33, Yann Droneaud wrote:
->>>> Le lundi 10 mars 2014 =E0 13:22 +0100, Bart Van Assche a =E9crit :
->>>>> Suppress the following sparse warning:
->>>>> include/rdma/ib_addr.h:187:24: warning: cast removes address spac=
-e of expression
->>>>
->>>> You should explain why there's a warning here, and why is it safe =
-to
->>>> cast. (I believe it's related to RCU domain ?)
->>>
->>> Hello Yann,
->>>
->>> Now that I've had a closer look at the code in include/rdma/ib_addr=
-=2Eh,
->>> that code probably isn't safe. How about the (untested) patch below=
- ?
->>>
->>
->> Thanks for investigating.
->>
->> I'm not an expert in RCU, but I believe it then miss the RCU annotat=
-ions
->> around the RCU reader section (ensure correct ordering if I recall
->> correctly).
->>
->> Cc: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
->=20
-> If the rcu_read_lock() isn't supplied by all callers to this function=
-,
-> then yes, it needs to be supplied as Yann shows below.
->=20
-> The CONFIG_PROVE_RCU=3Dy Kconfig option can help determine that they =
-are
-> needed, but of course cannot prove that they are not needed, at least
-> not unless you have a workload that exercises all possible calls to
-> this function.
+On 02/18/14 15:32, Moni Shoua wrote:
+>> Ha ha. Take another look. That's what I was just explaining about! :) On
+>> line 1743 when curr_master is non-NULL then Smatch doesn't complain
+>> because it understands about the relationship between curr_master and
+>> curr_netdev. But here it is complaining about line 1749 where
+>> curr_master is NULL so the implication doesn't apply. Nice, huh?
+>> regards, dan carpenter
+> 
+> You're right :)
+> I'll write the fix.
 
 Hello Moni,
 
-I think this warning got introduced via commit "IB/cma: IBoE (RoCE)
-IP-based GID addressing" (7b85627b9f02f9b0fb2ef5f021807f4251135857;
-December 12, 2013). Can you follow this up further ?
+Have you already had a chance to look further into this issue ?
 
 Thanks,
 
 Bart.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
