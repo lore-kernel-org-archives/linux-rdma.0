@@ -1,7 +1,8 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v3 4/7] IB/srp: Avoid duplicate connections
-Date: Fri, 14 Mar 2014 13:52:45 +0100
-Message-ID: <5322FB9D.4090106@acm.org>
+Subject: [PATCH v3 5/7] IB/srp: Make writing into the "add_target" sysfs attribute
+ interruptible
+Date: Fri, 14 Mar 2014 13:53:10 +0100
+Message-ID: <5322FBB6.2090401@acm.org>
 References: <531DA483.3010400@acm.org> <5322FAF8.6020504@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,79 +14,53 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Masanari Iida <standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The connection uniqueness check is performed before a new connection
-is added to the target list. This patch protects both actions by a
-mutex such that simultaneous writes from two different threads into the
-"add_target" variable do not result in duplicate connections.
+Avoid that stopping srp_daemon takes unusually long due to a cable
+pull by making writing into the "add_target" sysfs attribute
+interruptible.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 12 +++++++++---
- drivers/infiniband/ulp/srp/ib_srp.h |  1 +
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-b/drivers/infiniband/ulp/srp/ib_srp.c
-index 2ec9c05..3294f10 100644
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 3294f10..481c873 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2614,6 +2614,8 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->tl_retry_count	= 7;
- 	target->queue_size	= SRP_DEFAULT_QUEUE_SIZE;
-
-+	mutex_lock(&host->add_target_mutex);
+@@ -411,6 +411,8 @@ static void srp_path_rec_completion(int status,
+ 
+ static int srp_lookup_path(struct srp_target_port *target)
+ {
++	int ret;
 +
- 	ret = srp_parse_options(buf, target);
- 	if (ret)
- 		goto err;
-@@ -2682,7 +2684,11 @@ static ssize_t srp_create_target(struct device *dev,
- 		     be64_to_cpu(target->service_id),
- 		     target->path.sgid.raw, target->path.dgid.raw);
-
--	return count;
-+	ret = count;
-+
-+out:
-+	mutex_unlock(&host->add_target_mutex);
-+	return ret;
-
- err_disconnect:
- 	srp_disconnect_target(target);
-@@ -2698,8 +2704,7 @@ err_free_mem:
-
- err:
- 	scsi_host_put(target_host);
--
--	return ret;
-+	goto out;
- }
-
- static DEVICE_ATTR(add_target, S_IWUSR, NULL, srp_create_target);
-@@ -2735,6 +2740,7 @@ static struct srp_host *srp_add_port(struct
-srp_device *device, u8 port)
- 	INIT_LIST_HEAD(&host->target_list);
- 	spin_lock_init(&host->target_lock);
- 	init_completion(&host->released);
-+	mutex_init(&host->add_target_mutex);
- 	host->srp_dev = device;
- 	host->port = port;
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h
-b/drivers/infiniband/ulp/srp/ib_srp.h
-index 5756810..aad27b7 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -105,6 +105,7 @@ struct srp_host {
- 	spinlock_t		target_lock;
- 	struct completion	released;
- 	struct list_head	list;
-+	struct mutex		add_target_mutex;
- };
-
- struct srp_request {
+ 	target->path.numb_path = 1;
+ 
+ 	init_completion(&target->done);
+@@ -431,7 +433,9 @@ static int srp_lookup_path(struct srp_target_port *target)
+ 	if (target->path_query_id < 0)
+ 		return target->path_query_id;
+ 
+-	wait_for_completion(&target->done);
++	ret = wait_for_completion_interruptible(&target->done);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (target->status < 0)
+ 		shost_printk(KERN_WARNING, target->scsi_host,
+@@ -710,7 +714,9 @@ static int srp_connect_target(struct srp_target_port *target)
+ 		ret = srp_send_req(target);
+ 		if (ret)
+ 			return ret;
+-		wait_for_completion(&target->done);
++		ret = wait_for_completion_interruptible(&target->done);
++		if (ret < 0)
++			return ret;
+ 
+ 		/*
+ 		 * The CM event handling code will set status to
 -- 
 1.8.4.5
 
