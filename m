@@ -1,8 +1,8 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v3 6/7] IB/srp: Avoid that writing into "add_target" hangs
- due to a cable pull
-Date: Fri, 14 Mar 2014 13:53:40 +0100
-Message-ID: <5322FBD4.80503@acm.org>
+Subject: [PATCH v3 7/7] IB/srp: Fix a race condition between failing I/O and
+ I/O completion
+Date: Fri, 14 Mar 2014 13:54:11 +0100
+Message-ID: <5322FBF3.9040407@acm.org>
 References: <531DA483.3010400@acm.org> <5322FAF8.6020504@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -14,43 +14,123 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Masanari Iida <standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a cable is pulled while srp_connect_target() is in progress
-that can result in that function never to return. That makes the
-process, e.g. srp_daemon, that invoked this function unkillable.
-Avoid this by letting srp_connect_target() finish if the event
-IB_CM_TIMEWAIT_EXIT is received. This patch fixes a hang with the
-following call trace:
- [<ffffffff814eae85>] schedule_timeout+0x215/0x2e0
- [<ffffffff814eab03>] wait_for_common+0x123/0x180
- [<ffffffff814eac1d>] wait_for_completion+0x1d/0x20
- [<ffffffffa03b398c>] srp_connect_target+0x1dc/0x410 [ib_srp]
- [<ffffffffa03b5809>] srp_create_target+0xba9/0xe70 [ib_srp]
- [<ffffffff8133e590>] dev_attr_store+0x20/0x30
- [<ffffffff811eb8f5>] sysfs_write_file+0xe5/0x170
- [<ffffffff811767c8>] vfs_write+0xb8/0x1a0
- [<ffffffff811770c1>] sys_write+0x51/0x90
- [<ffffffff8100b072>] system_call_fastpath+0x16/0x1b
+Avoid that srp_terminate_io() can access req->scmnd after it has been
+cleared by the I/O completion code. Do this by protecting req->scmnd
+accesses from srp_terminate_io() via locking
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 481c873..a64e469 100644
+index a64e469..66a908b 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1871,6 +1871,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 	case IB_CM_TIMEWAIT_EXIT:
- 		shost_printk(KERN_ERR, target->scsi_host,
- 			     PFX "connection closed\n");
-+		comp = 1;
+@@ -783,6 +783,7 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
+  * srp_claim_req - Take ownership of the scmnd associated with a request.
+  * @target: SRP target port.
+  * @req: SRP request.
++ * @sdev: If not NULL, only take ownership for this SCSI device.
+  * @scmnd: If NULL, take ownership of @req->scmnd. If not NULL, only take
+  *         ownership of @req->scmnd if it equals @scmnd.
+  *
+@@ -791,16 +792,17 @@ static void srp_unmap_data(struct scsi_cmnd *scmnd,
+  */
+ static struct scsi_cmnd *srp_claim_req(struct srp_target_port *target,
+ 				       struct srp_request *req,
++				       struct scsi_device *sdev,
+ 				       struct scsi_cmnd *scmnd)
+ {
+ 	unsigned long flags;
  
- 		target->status = 0;
- 		break;
+ 	spin_lock_irqsave(&target->lock, flags);
+-	if (!scmnd) {
++	if (req->scmnd &&
++	    (!sdev || req->scmnd->device == sdev) &&
++	    (!scmnd || req->scmnd == scmnd)) {
+ 		scmnd = req->scmnd;
+ 		req->scmnd = NULL;
+-	} else if (req->scmnd == scmnd) {
+-		req->scmnd = NULL;
+ 	} else {
+ 		scmnd = NULL;
+ 	}
+@@ -827,9 +829,10 @@ static void srp_free_req(struct srp_target_port *target,
+ }
+ 
+ static void srp_finish_req(struct srp_target_port *target,
+-			   struct srp_request *req, int result)
++			   struct srp_request *req, struct scsi_device *sdev,
++			   int result)
+ {
+-	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
++	struct scsi_cmnd *scmnd = srp_claim_req(target, req, sdev, NULL);
+ 
+ 	if (scmnd) {
+ 		srp_free_req(target, req, scmnd, 0);
+@@ -841,11 +844,20 @@ static void srp_finish_req(struct srp_target_port *target,
+ static void srp_terminate_io(struct srp_rport *rport)
+ {
+ 	struct srp_target_port *target = rport->lld_data;
++	struct Scsi_Host *shost = target->scsi_host;
++	struct scsi_device *sdev;
+ 	int i;
+ 
++	/*
++	 * Invoking srp_terminate_io() while srp_queuecommand() is running
++	 * is not safe. Hence the warning statement below.
++	 */
++	shost_for_each_device(sdev, shost)
++		WARN_ON_ONCE(sdev->request_queue->request_fn_active);
++
+ 	for (i = 0; i < target->req_ring_size; ++i) {
+ 		struct srp_request *req = &target->req_ring[i];
+-		srp_finish_req(target, req, DID_TRANSPORT_FAILFAST << 16);
++		srp_finish_req(target, req, NULL, DID_TRANSPORT_FAILFAST << 16);
+ 	}
+ }
+ 
+@@ -882,7 +894,7 @@ static int srp_rport_reconnect(struct srp_rport *rport)
+ 
+ 	for (i = 0; i < target->req_ring_size; ++i) {
+ 		struct srp_request *req = &target->req_ring[i];
+-		srp_finish_req(target, req, DID_RESET << 16);
++		srp_finish_req(target, req, NULL, DID_RESET << 16);
+ 	}
+ 
+ 	INIT_LIST_HEAD(&target->free_tx);
+@@ -1290,7 +1302,7 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
+ 		complete(&target->tsk_mgmt_done);
+ 	} else {
+ 		req = &target->req_ring[rsp->tag];
+-		scmnd = srp_claim_req(target, req, NULL);
++		scmnd = srp_claim_req(target, req, NULL, NULL);
+ 		if (!scmnd) {
+ 			shost_printk(KERN_ERR, target->scsi_host,
+ 				     "Null scmnd for RSP w/tag %016llx\n",
+@@ -2008,7 +2020,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 
+ 	shost_printk(KERN_ERR, target->scsi_host, "SRP abort called\n");
+ 
+-	if (!req || !srp_claim_req(target, req, scmnd))
++	if (!req || !srp_claim_req(target, req, NULL, scmnd))
+ 		return SUCCESS;
+ 	if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
+ 			      SRP_TSK_ABORT_TASK) == 0)
+@@ -2039,8 +2051,7 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
+ 
+ 	for (i = 0; i < target->req_ring_size; ++i) {
+ 		struct srp_request *req = &target->req_ring[i];
+-		if (req->scmnd && req->scmnd->device == scmnd->device)
+-			srp_finish_req(target, req, DID_RESET << 16);
++		srp_finish_req(target, req, scmnd->device, DID_RESET << 16);
+ 	}
+ 
+ 	return SUCCESS;
 -- 
 1.8.4.5
 
