@@ -1,8 +1,8 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v3 5/7] IB/srp: Make writing into the "add_target" sysfs attribute
- interruptible
-Date: Fri, 14 Mar 2014 13:53:10 +0100
-Message-ID: <5322FBB6.2090401@acm.org>
+Subject: [PATCH v3 6/7] IB/srp: Avoid that writing into "add_target" hangs
+ due to a cable pull
+Date: Fri, 14 Mar 2014 13:53:40 +0100
+Message-ID: <5322FBD4.80503@acm.org>
 References: <531DA483.3010400@acm.org> <5322FAF8.6020504@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -14,53 +14,43 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Masanari Iida <standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that stopping srp_daemon takes unusually long due to a cable
-pull by making writing into the "add_target" sysfs attribute
-interruptible.
+If a cable is pulled while srp_connect_target() is in progress
+that can result in that function never to return. That makes the
+process, e.g. srp_daemon, that invoked this function unkillable.
+Avoid this by letting srp_connect_target() finish if the event
+IB_CM_TIMEWAIT_EXIT is received. This patch fixes a hang with the
+following call trace:
+ [<ffffffff814eae85>] schedule_timeout+0x215/0x2e0
+ [<ffffffff814eab03>] wait_for_common+0x123/0x180
+ [<ffffffff814eac1d>] wait_for_completion+0x1d/0x20
+ [<ffffffffa03b398c>] srp_connect_target+0x1dc/0x410 [ib_srp]
+ [<ffffffffa03b5809>] srp_create_target+0xba9/0xe70 [ib_srp]
+ [<ffffffff8133e590>] dev_attr_store+0x20/0x30
+ [<ffffffff811eb8f5>] sysfs_write_file+0xe5/0x170
+ [<ffffffff811767c8>] vfs_write+0xb8/0x1a0
+ [<ffffffff811770c1>] sys_write+0x51/0x90
+ [<ffffffff8100b072>] system_call_fastpath+0x16/0x1b
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 3294f10..481c873 100644
+index 481c873..a64e469 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -411,6 +411,8 @@ static void srp_path_rec_completion(int status,
+@@ -1871,6 +1871,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 	case IB_CM_TIMEWAIT_EXIT:
+ 		shost_printk(KERN_ERR, target->scsi_host,
+ 			     PFX "connection closed\n");
++		comp = 1;
  
- static int srp_lookup_path(struct srp_target_port *target)
- {
-+	int ret;
-+
- 	target->path.numb_path = 1;
- 
- 	init_completion(&target->done);
-@@ -431,7 +433,9 @@ static int srp_lookup_path(struct srp_target_port *target)
- 	if (target->path_query_id < 0)
- 		return target->path_query_id;
- 
--	wait_for_completion(&target->done);
-+	ret = wait_for_completion_interruptible(&target->done);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (target->status < 0)
- 		shost_printk(KERN_WARNING, target->scsi_host,
-@@ -710,7 +714,9 @@ static int srp_connect_target(struct srp_target_port *target)
- 		ret = srp_send_req(target);
- 		if (ret)
- 			return ret;
--		wait_for_completion(&target->done);
-+		ret = wait_for_completion_interruptible(&target->done);
-+		if (ret < 0)
-+			return ret;
- 
- 		/*
- 		 * The CM event handling code will set status to
+ 		target->status = 0;
+ 		break;
 -- 
 1.8.4.5
 
