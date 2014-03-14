@@ -1,48 +1,100 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH net-next 0/2] Doorbell drop Avoidance Bug fix for iw_cxgb4
-Date: Fri, 14 Mar 2014 21:52:06 +0530
-Message-ID: <1394814128-8815-1-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH net-next 1/2] cxgb4/iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE as negative advice
+Date: Fri, 14 Mar 2014 21:52:07 +0530
+Message-ID: <1394814128-8815-2-git-send-email-hariprasad@chelsio.com>
+References: <1394814128-8815-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1394814128-8815-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-This patch series provides fixes for Chelsio T4/T5 adapters
-related to DB Drop avoidance and other small fix related to keepalive on
-iw-cxgb4.
+Based on original work by Anand Priyadarshee <anandp-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>.
 
-The patches series is created against David Miller's 'net-next' tree.
-And includes patches on cxgb4 and iw_cxgb4 driver.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c            | 24 ++++++++++++------------
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h |  1 +
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
-We would like to request this patch series to get merged via David Miller's
-'net-next' tree.
-
-We have included all the maintainers of respective drivers. Kindly review the
-change and let us know in case of any review comments.
-
-Thanks
-
-
-Steve Wise (2):
-  cxgb4/iw_cxgb4: Treat CPL_ERR_KEEPALV_NEG_ADVICE as negative advice
-  cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes
-
- drivers/infiniband/hw/cxgb4/cm.c                |  24 ++--
- drivers/infiniband/hw/cxgb4/device.c            | 177 ++++++++++++++----------
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   9 +-
- drivers/infiniband/hw/cxgb4/provider.c          |  43 +++++-
- drivers/infiniband/hw/cxgb4/qp.c                | 140 +++++++++----------
- drivers/infiniband/hw/cxgb4/t4.h                |   6 +
- drivers/infiniband/hw/cxgb4/user.h              |   5 +
- drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |   1 +
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  87 +++++++-----
- drivers/net/ethernet/chelsio/cxgb4/sge.c        |   8 +-
- drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |   1 +
- 11 files changed, 299 insertions(+), 202 deletions(-)
-
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index d286bde..7e98a58 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -1647,6 +1647,15 @@ static inline int act_open_has_tid(int status)
+ 	       status != CPL_ERR_ARP_MISS;
+ }
+ 
++/* Returns whether a CPL status conveys negative advice.
++ */
++static int is_neg_adv(unsigned int status)
++{
++	return status == CPL_ERR_RTX_NEG_ADVICE ||
++	       status == CPL_ERR_PERSIST_NEG_ADVICE ||
++	       status == CPL_ERR_KEEPALV_NEG_ADVICE;
++}
++
+ #define ACT_OPEN_RETRY_COUNT 2
+ 
+ static int import_ep(struct c4iw_ep *ep, int iptype, __u8 *peer_ip,
+@@ -1835,7 +1844,7 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	PDBG("%s ep %p atid %u status %u errno %d\n", __func__, ep, atid,
+ 	     status, status2errno(status));
+ 
+-	if (status == CPL_ERR_RTX_NEG_ADVICE) {
++	if (is_neg_adv(status)) {
+ 		printk(KERN_WARNING MOD "Connection problems for atid %u\n",
+ 			atid);
+ 		return 0;
+@@ -2265,15 +2274,6 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	return 0;
+ }
+ 
+-/*
+- * Returns whether an ABORT_REQ_RSS message is a negative advice.
+- */
+-static int is_neg_adv_abort(unsigned int status)
+-{
+-	return status == CPL_ERR_RTX_NEG_ADVICE ||
+-	       status == CPL_ERR_PERSIST_NEG_ADVICE;
+-}
+-
+ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ {
+ 	struct cpl_abort_req_rss *req = cplhdr(skb);
+@@ -2287,7 +2287,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	unsigned int tid = GET_TID(req);
+ 
+ 	ep = lookup_tid(t, tid);
+-	if (is_neg_adv_abort(req->status)) {
++	if (is_neg_adv(req->status)) {
+ 		PDBG("%s neg_adv_abort ep %p tid %u\n", __func__, ep,
+ 		     ep->hwtid);
+ 		return 0;
+@@ -3570,7 +3570,7 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		kfree_skb(skb);
+ 		return 0;
+ 	}
+-	if (is_neg_adv_abort(req->status)) {
++	if (is_neg_adv(req->status)) {
+ 		PDBG("%s neg_adv_abort ep %p tid %u\n", __func__, ep,
+ 		     ep->hwtid);
+ 		kfree_skb(skb);
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h b/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h
+index cd6874b..f2738c7 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h
++++ b/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h
+@@ -116,6 +116,7 @@ enum CPL_error {
+ 	CPL_ERR_KEEPALIVE_TIMEDOUT = 34,
+ 	CPL_ERR_RTX_NEG_ADVICE     = 35,
+ 	CPL_ERR_PERSIST_NEG_ADVICE = 36,
++	CPL_ERR_KEEPALV_NEG_ADVICE = 37,
+ 	CPL_ERR_ABORT_FAILED       = 42,
+ 	CPL_ERR_IWARP_FLM          = 50,
+ };
 -- 
 1.8.4
 
