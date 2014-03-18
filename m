@@ -1,82 +1,29 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next] IB/mad: Check and handle potential DMA mapping errors
-Date: Tue, 18 Mar 2014 22:54:57 +0200
-Message-ID: <CAJZOPZ+GM-sAepmGMp_5nEzkdZhY_DsTd_1riSEFJcj9PPFLPQ@mail.gmail.com>
-References: <1394541707-9282-1-git-send-email-ogerlitz@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv2] ibsim: allocate mft according to number of switch ports
+Date: Tue, 18 Mar 2014 18:48:55 -0400
+Message-ID: <5328CD57.1080408@dev.mellanox.co.il>
+References: <1395161599-29980-1-git-send-email-danielk@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1394541707-9282-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1395161599-29980-1-git-send-email-danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 11, 2014 at 2:41 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Running over a kernel built with DMA_API_DEBUG and not checking for
-> DMA mapping error triggers a kernel stack trace with "DMA-API: device
-> driver failed to check map error" message. So adding it here, for the
-> sake of being more robust and eliminating the false-positives stack traces.
+On 3/18/2014 12:53 PM, Daniel Klein wrote:
+> calculate number of port masks according to number of switch ports
+> and allocate MFT accordingly
+> 
+> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I am sure this patch was in for-next couple of hours ago, now it seems
-to be gone from there, is that?
+Thanks. Applied.
 
-Or.
-
->
-> Signed-off-by: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/mad.c |   14 ++++++++++++++
->  1 files changed, 14 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 4c837e6..ab31f13 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -1022,12 +1022,21 @@ int ib_send_mad(struct ib_mad_send_wr_private *mad_send_wr)
->                                         mad_send_wr->send_buf.mad,
->                                         sge[0].length,
->                                         DMA_TO_DEVICE);
-> +       if (unlikely(ib_dma_mapping_error(mad_agent->device, sge[0].addr)))
-> +               return -ENOMEM;
-> +
->         mad_send_wr->header_mapping = sge[0].addr;
->
->         sge[1].addr = ib_dma_map_single(mad_agent->device,
->                                         ib_get_payload(mad_send_wr),
->                                         sge[1].length,
->                                         DMA_TO_DEVICE);
-> +       if (unlikely(ib_dma_mapping_error(mad_agent->device, sge[1].addr))) {
-> +               ib_dma_unmap_single(mad_agent->device,
-> +                                   mad_send_wr->header_mapping,
-> +                                   sge[0].length, DMA_TO_DEVICE);
-> +               return -ENOMEM;
-> +       }
->         mad_send_wr->payload_mapping = sge[1].addr;
->
->         spin_lock_irqsave(&qp_info->send_queue.lock, flags);
-> @@ -2590,6 +2599,11 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
->                                                  sizeof *mad_priv -
->                                                    sizeof mad_priv->header,
->                                                  DMA_FROM_DEVICE);
-> +               if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
-> +                                                 sg_list.addr))) {
-> +                       ret = -ENOMEM;
-> +                       break;
-> +               }
->                 mad_priv->header.mapping = sg_list.addr;
->                 recv_wr.wr_id = (unsigned long)&mad_priv->header.mad_list;
->                 mad_priv->header.mad_list.mad_queue = recv_queue;
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
