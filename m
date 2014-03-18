@@ -1,73 +1,82 @@
-From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH master] RDMA/ocrdma: unregister inet notifier while unloading ocrdma
-Date: Tue, 18 Mar 2014 14:54:56 +0530
-Message-ID: <0d6fca73-a4aa-43ea-b08c-63edd88d0011@CMEXHTCAS1.ad.emulex.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next] IB/mad: Check and handle potential DMA mapping errors
+Date: Tue, 18 Mar 2014 22:54:57 +0200
+Message-ID: <CAJZOPZ+GM-sAepmGMp_5nEzkdZhY_DsTd_1riSEFJcj9PPFLPQ@mail.gmail.com>
+References: <1394541707-9282-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1394541707-9282-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Unregister the inet notifier during ocrdma unload to avoid the panic after
-driver unload.
+On Tue, Mar 11, 2014 at 2:41 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Running over a kernel built with DMA_API_DEBUG and not checking for
+> DMA mapping error triggers a kernel stack trace with "DMA-API: device
+> driver failed to check map error" message. So adding it here, for the
+> sake of being more robust and eliminating the false-positives stack traces.
 
-Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+I am sure this patch was in for-next couple of hours ago, now it seems
+to be gone from there, is that?
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 1a8a945..d75a718 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -487,6 +487,11 @@ static void ocrdma_unregister_inet6addr_notifier(void)
- #endif
- }
- 
-+static void ocrdma_unregister_inetaddr_notifier(void)
-+{
-+	unregister_inetaddr_notifier(&ocrdma_inetaddr_notifier);
-+}
-+
- static int __init ocrdma_init_module(void)
- {
- 	int status;
-@@ -498,13 +503,19 @@ static int __init ocrdma_init_module(void)
- #if IS_ENABLED(CONFIG_IPV6)
- 	status = register_inet6addr_notifier(&ocrdma_inet6addr_notifier);
- 	if (status)
--		return status;
-+		goto err_notifier6;
- #endif
- 
- 	status = be_roce_register_driver(&ocrdma_drv);
- 	if (status)
--		ocrdma_unregister_inet6addr_notifier();
-+		goto err_be_reg;
- 
-+	return 0;
-+
-+err_be_reg:
-+	ocrdma_unregister_inet6addr_notifier();
-+err_notifier6:
-+	ocrdma_unregister_inetaddr_notifier();
- 	return status;
- }
- 
-@@ -512,6 +523,7 @@ static void __exit ocrdma_exit_module(void)
- {
- 	be_roce_unregister_driver(&ocrdma_drv);
- 	ocrdma_unregister_inet6addr_notifier();
-+	ocrdma_unregister_inetaddr_notifier();
- }
- 
- module_init(ocrdma_init_module);
--- 
-1.6.0.2
+Or.
 
+>
+> Signed-off-by: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/mad.c |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 4c837e6..ab31f13 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -1022,12 +1022,21 @@ int ib_send_mad(struct ib_mad_send_wr_private *mad_send_wr)
+>                                         mad_send_wr->send_buf.mad,
+>                                         sge[0].length,
+>                                         DMA_TO_DEVICE);
+> +       if (unlikely(ib_dma_mapping_error(mad_agent->device, sge[0].addr)))
+> +               return -ENOMEM;
+> +
+>         mad_send_wr->header_mapping = sge[0].addr;
+>
+>         sge[1].addr = ib_dma_map_single(mad_agent->device,
+>                                         ib_get_payload(mad_send_wr),
+>                                         sge[1].length,
+>                                         DMA_TO_DEVICE);
+> +       if (unlikely(ib_dma_mapping_error(mad_agent->device, sge[1].addr))) {
+> +               ib_dma_unmap_single(mad_agent->device,
+> +                                   mad_send_wr->header_mapping,
+> +                                   sge[0].length, DMA_TO_DEVICE);
+> +               return -ENOMEM;
+> +       }
+>         mad_send_wr->payload_mapping = sge[1].addr;
+>
+>         spin_lock_irqsave(&qp_info->send_queue.lock, flags);
+> @@ -2590,6 +2599,11 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+>                                                  sizeof *mad_priv -
+>                                                    sizeof mad_priv->header,
+>                                                  DMA_FROM_DEVICE);
+> +               if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
+> +                                                 sg_list.addr))) {
+> +                       ret = -ENOMEM;
+> +                       break;
+> +               }
+>                 mad_priv->header.mapping = sg_list.addr;
+>                 recv_wr.wr_id = (unsigned long)&mad_priv->header.mad_list;
+>                 mad_priv->header.mad_list.mad_queue = recv_queue;
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
