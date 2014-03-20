@@ -1,41 +1,63 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/8] iw_cxgb4: Allow loopback connections
-Date: Wed, 19 Mar 2014 17:44:39 +0530
-Message-ID: <1395231285-4495-3-git-send-email-hariprasad@chelsio.com>
-References: <1395231285-4495-1-git-send-email-hariprasad@chelsio.com>
+From: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] ibutils/ibis: fix ibis_get_local_ports_info uninitialized
+ variable
+Date: Thu, 20 Mar 2014 10:40:33 +0200
+Message-ID: <532AA981.9080403@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1395231285-4495-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-find_route() must treat loopback as a valid egress interface.
+Initialize attr_array before calling osm_vendor_get_all_port_attr
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ ibis/src/ibis.i          |    1 +
+ ibis/src/ibis_wrap.c     |    1 +
+ ibis/src/ibissh_wrap.cpp |    1 +
+ 3 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 7e98a58..8332994 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -400,7 +400,8 @@ static struct dst_entry *find_route(struct c4iw_dev *dev, __be32 local_ip,
- 	n = dst_neigh_lookup(&rt->dst, &peer_ip);
- 	if (!n)
- 		return NULL;
--	if (!our_interface(dev, n->dev)) {
-+	if (!our_interface(dev, n->dev) &&
-+	    !(n->dev->flags & IFF_LOOPBACK)) {
- 		dst_release(&rt->dst);
- 		return NULL;
- 	}
--- 
-1.8.4
-
+diff --git a/ibis/src/ibis.i b/ibis/src/ibis.i
+index 8fc4440..28a0912 100644
+--- a/ibis/src/ibis.i
++++ b/ibis/src/ibis.i
+@@ -385,6 +385,7 @@ ibisp_is_debug(void)
+ 	 static char res[128];
+ 	 Tcl_Obj *p_obj;
+ 
++    memset(attr_array, 0, MAX_LOCAL_IBPORTS*sizeof(ib_port_attr_t));
+     if (!IbisObj.initialized)
+     {
+       Tcl_SetStringObj(
+diff --git a/ibis/src/ibis_wrap.c b/ibis/src/ibis_wrap.c
+index 5098c2a..ee97601 100644
+--- a/ibis/src/ibis_wrap.c
++++ b/ibis/src/ibis_wrap.c
+@@ -3209,6 +3209,7 @@ typedef struct {
+ 	 static char res[128];
+ 	 Tcl_Obj *p_obj;
+ 
++    memset(attr_array, 0, MAX_LOCAL_IBPORTS*sizeof(ib_port_attr_t));
+     if (!IbisObj.initialized)
+     {
+       Tcl_SetStringObj(
+diff --git a/ibis/src/ibissh_wrap.cpp b/ibis/src/ibissh_wrap.cpp
+index f75cde6..917904f 100644
+--- a/ibis/src/ibissh_wrap.cpp
++++ b/ibis/src/ibissh_wrap.cpp
+@@ -3209,6 +3209,7 @@ typedef struct {
+ 	 static char res[128];
+ 	 Tcl_Obj *p_obj;
+ 
++    memset(attr_array, 0, MAX_LOCAL_IBPORTS*sizeof(ib_port_attr_t));
+     if (!IbisObj.initialized)
+     {
+       Tcl_SetStringObj(
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
