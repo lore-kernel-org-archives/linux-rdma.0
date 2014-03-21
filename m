@@ -1,35 +1,37 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 0/8] Misc. fixes for iw_cxgb4
-Date: Thu, 20 Mar 2014 13:34:43 -0500
-Message-ID: <011501cf446b$0ff18670$2fd49350$@opengridcomputing.com>
-References: <1395231285-4495-1-git-send-email-hariprasad@chelsio.com> <CAL1RGDUXDjLGuwe9Z5V+cci9gya9NgdLNtJErH0mW-Z12++0rA@mail.gmail.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ibacm: properly check return from ibv_open_device
+Date: Fri, 21 Mar 2014 07:23:08 -0700
+Message-ID: <20140321072308.ed70c376a0708ccb11583a6b@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUXDjLGuwe9Z5V+cci9gya9NgdLNtJErH0mW-Z12++0rA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Roland Dreier' <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Kumar SANGHVI' <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Thanks, applied all except
-> 
->   iw_cxgb4: use the BAR2/WC path for kernel QPs and T5 devices
-> 
-> which doesn't apply to my tree (seems to depend on patches only in net-next).
 
-Perhaps you can hang onto this patch and apply it once net-next gets merged into Linus'
-tree?  Then it will apply cleanly.
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/acme.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-
-Steve.
-
-
+diff --git a/src/acme.c b/src/acme.c
+index b122e58..d3d6303 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -353,7 +353,7 @@ static int open_verbs(void)
+ 
+ 	for (i = 0; i < dev_cnt; i++) {
+ 		verbs[i] = ibv_open_device(dev_array[i]);
+-		if (!verbs) {
++		if (!verbs[i]) {
+ 			printf("ibv_open_device - failed to open device\n");
+ 			ret = -1;
+ 			goto err2;
+-- 
+1.7.12
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
