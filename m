@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 5/8] iw_cxgb4: update snd_seq when sending MPA messages
-Date: Fri, 21 Mar 2014 20:40:34 +0530
-Message-ID: <1395414637-8298-6-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH 8/8] iw_cxgb4: rx_data() needs to hold the ep mutex
+Date: Fri, 21 Mar 2014 20:40:37 +0530
+Message-ID: <1395414637-8298-9-git-send-email-hariprasad@chelsio.com>
 References: <1395414637-8298-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395414637-8298-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -12,37 +12,92 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
+To avoid racing with other threads doing close/flush/whatever, rx_data()
+should hold the endpoint mutex.
+
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/cxgb4/cm.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 6bfef31..a1bc41d 100644
+index 57344a3..fe5db3c 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -762,6 +762,7 @@ static void send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
- 	start_ep_timer(ep);
- 	state_set(&ep->com, MPA_REQ_SENT);
- 	ep->mpa_attr.initiator = 1;
-+	ep->snd_seq += mpalen;
- 	return;
- }
+@@ -1170,7 +1170,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	 * the connection.
+ 	 */
+ 	stop_ep_timer(ep);
+-	if (state_read(&ep->com) != MPA_REQ_SENT)
++	if (ep->com.state != MPA_REQ_SENT)
+ 		return;
  
-@@ -841,6 +842,7 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
- 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
- 	BUG_ON(ep->mpa_skb);
- 	ep->mpa_skb = skb;
-+	ep->snd_seq += mpalen;
- 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
- }
+ 	/*
+@@ -1245,7 +1245,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	 * start reply message including private data. And
+ 	 * the MPA header is valid.
+ 	 */
+-	state_set(&ep->com, FPDU_MODE);
++	__state_set(&ep->com, FPDU_MODE);
+ 	ep->mpa_attr.crc_enabled = (mpa->flags & MPA_CRC) | crc_enabled ? 1 : 0;
+ 	ep->mpa_attr.recv_marker_enabled = markers_enabled;
+ 	ep->mpa_attr.xmit_marker_enabled = mpa->flags & MPA_MARKERS ? 1 : 0;
+@@ -1360,7 +1360,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	}
+ 	goto out;
+ err:
+-	state_set(&ep->com, ABORTING);
++	__state_set(&ep->com, ABORTING);
+ 	send_abort(ep, skb, GFP_KERNEL);
+ out:
+ 	connect_reply_upcall(ep, err);
+@@ -1375,7 +1375,7 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
  
-@@ -925,6 +927,7 @@ static int send_mpa_reply(struct c4iw_ep *ep, const void *pdata, u8 plen)
- 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
- 	ep->mpa_skb = skb;
- 	state_set(&ep->com, MPA_REP_SENT);
-+	ep->snd_seq += mpalen;
- 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+ 
+-	if (state_read(&ep->com) != MPA_REQ_WAIT)
++	if (ep->com.state != MPA_REQ_WAIT)
+ 		return;
+ 
+ 	/*
+@@ -1496,7 +1496,7 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	     ep->mpa_attr.xmit_marker_enabled, ep->mpa_attr.version,
+ 	     ep->mpa_attr.p2p_type);
+ 
+-	state_set(&ep->com, MPA_REQ_RCVD);
++	__state_set(&ep->com, MPA_REQ_RCVD);
+ 	stop_ep_timer(ep);
+ 
+ 	/* drive upcall */
+@@ -1526,11 +1526,12 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	PDBG("%s ep %p tid %u dlen %u\n", __func__, ep, ep->hwtid, dlen);
+ 	skb_pull(skb, sizeof(*hdr));
+ 	skb_trim(skb, dlen);
++	mutex_lock(&ep->com.mutex);
+ 
+ 	/* update RX credits */
+ 	update_rx_credits(ep, dlen);
+ 
+-	switch (state_read(&ep->com)) {
++	switch (ep->com.state) {
+ 	case MPA_REQ_SENT:
+ 		ep->rcv_seq += dlen;
+ 		process_mpa_reply(ep, skb);
+@@ -1546,7 +1547,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
+ 			pr_err("%s Unexpected streaming data." \
+ 			       " qpid %u ep %p state %d tid %u status %d\n",
+ 			       __func__, ep->com.qp->wq.sq.qid, ep,
+-			       state_read(&ep->com), ep->hwtid, status);
++			       ep->com.state, ep->hwtid, status);
+ 		attrs.next_state = C4IW_QP_STATE_TERMINATE;
+ 		c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
+ 			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
+@@ -1555,6 +1556,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	default:
+ 		break;
+ 	}
++	mutex_unlock(&ep->com.mutex);
+ 	return 0;
  }
  
 -- 
