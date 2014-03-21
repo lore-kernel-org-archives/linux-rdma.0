@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 8/8] iw_cxgb4: rx_data() needs to hold the ep mutex
-Date: Fri, 21 Mar 2014 20:40:37 +0530
-Message-ID: <1395414637-8298-9-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH 6/8] iw_cxgb4: lock around accept/reject downcalls
+Date: Fri, 21 Mar 2014 20:40:35 +0530
+Message-ID: <1395414637-8298-7-git-send-email-hariprasad@chelsio.com>
 References: <1395414637-8298-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395414637-8298-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -12,94 +12,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-To avoid racing with other threads doing close/flush/whatever, rx_data()
-should hold the endpoint mutex.
+There is a race between ULP threads doing an accept/reject, and the
+ingress processing thread handling close/abort for the same connection.
+The accept/reject path needs to hold the lock to serialize these paths.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 57344a3..fe5db3c 100644
+index a1bc41d..b8f9e75 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1170,7 +1170,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * the connection.
- 	 */
- 	stop_ep_timer(ep);
--	if (state_read(&ep->com) != MPA_REQ_SENT)
-+	if (ep->com.state != MPA_REQ_SENT)
- 		return;
+@@ -760,7 +760,7 @@ static void send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
+ 	ep->mpa_skb = skb;
+ 	c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+ 	start_ep_timer(ep);
+-	state_set(&ep->com, MPA_REQ_SENT);
++	__state_set(&ep->com, MPA_REQ_SENT);
+ 	ep->mpa_attr.initiator = 1;
+ 	ep->snd_seq += mpalen;
+ 	return;
+@@ -926,7 +926,7 @@ static int send_mpa_reply(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	skb_get(skb);
+ 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
+ 	ep->mpa_skb = skb;
+-	state_set(&ep->com, MPA_REP_SENT);
++	__state_set(&ep->com, MPA_REP_SENT);
+ 	ep->snd_seq += mpalen;
+ 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+ }
+@@ -944,6 +944,7 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	PDBG("%s ep %p tid %u snd_isn %u rcv_isn %u\n", __func__, ep, tid,
+ 	     be32_to_cpu(req->snd_isn), be32_to_cpu(req->rcv_isn));
  
- 	/*
-@@ -1245,7 +1245,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * start reply message including private data. And
- 	 * the MPA header is valid.
- 	 */
--	state_set(&ep->com, FPDU_MODE);
-+	__state_set(&ep->com, FPDU_MODE);
- 	ep->mpa_attr.crc_enabled = (mpa->flags & MPA_CRC) | crc_enabled ? 1 : 0;
- 	ep->mpa_attr.recv_marker_enabled = markers_enabled;
- 	ep->mpa_attr.xmit_marker_enabled = mpa->flags & MPA_MARKERS ? 1 : 0;
-@@ -1360,7 +1360,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	}
- 	goto out;
- err:
--	state_set(&ep->com, ABORTING);
-+	__state_set(&ep->com, ABORTING);
- 	send_abort(ep, skb, GFP_KERNEL);
- out:
- 	connect_reply_upcall(ep, err);
-@@ -1375,7 +1375,7 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 
--	if (state_read(&ep->com) != MPA_REQ_WAIT)
-+	if (ep->com.state != MPA_REQ_WAIT)
- 		return;
- 
- 	/*
-@@ -1496,7 +1496,7 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 	     ep->mpa_attr.xmit_marker_enabled, ep->mpa_attr.version,
- 	     ep->mpa_attr.p2p_type);
- 
--	state_set(&ep->com, MPA_REQ_RCVD);
-+	__state_set(&ep->com, MPA_REQ_RCVD);
- 	stop_ep_timer(ep);
- 
- 	/* drive upcall */
-@@ -1526,11 +1526,12 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	PDBG("%s ep %p tid %u dlen %u\n", __func__, ep, ep->hwtid, dlen);
- 	skb_pull(skb, sizeof(*hdr));
- 	skb_trim(skb, dlen);
 +	mutex_lock(&ep->com.mutex);
+ 	dst_confirm(ep->dst);
  
- 	/* update RX credits */
- 	update_rx_credits(ep, dlen);
- 
--	switch (state_read(&ep->com)) {
-+	switch (ep->com.state) {
- 	case MPA_REQ_SENT:
- 		ep->rcv_seq += dlen;
- 		process_mpa_reply(ep, skb);
-@@ -1546,7 +1547,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 			pr_err("%s Unexpected streaming data." \
- 			       " qpid %u ep %p state %d tid %u status %d\n",
- 			       __func__, ep->com.qp->wq.sq.qid, ep,
--			       state_read(&ep->com), ep->hwtid, status);
-+			       ep->com.state, ep->hwtid, status);
- 		attrs.next_state = C4IW_QP_STATE_TERMINATE;
- 		c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
- 			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
-@@ -1555,6 +1556,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	default:
- 		break;
- 	}
+ 	/* setup the hwtid for this connection */
+@@ -967,7 +968,7 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		send_mpa_req(ep, skb, 1);
+ 	else
+ 		send_mpa_req(ep, skb, mpa_rev);
+-
 +	mutex_unlock(&ep->com.mutex);
  	return 0;
  }
  
+@@ -2511,22 +2512,28 @@ static int fw4_ack(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ int c4iw_reject_cr(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
+ {
+-	int err;
++	int err = 0;
++	int disconnect = 0;
+ 	struct c4iw_ep *ep = to_ep(cm_id);
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+ 
+-	if (state_read(&ep->com) == DEAD) {
++
++	mutex_lock(&ep->com.mutex);
++	if (ep->com.state == DEAD) {
+ 		c4iw_put_ep(&ep->com);
+ 		return -ECONNRESET;
+ 	}
+ 	set_bit(ULP_REJECT, &ep->com.history);
+-	BUG_ON(state_read(&ep->com) != MPA_REQ_RCVD);
++	BUG_ON(ep->com.state != MPA_REQ_RCVD);
+ 	if (mpa_rev == 0)
+ 		abort_connection(ep, NULL, GFP_KERNEL);
+ 	else {
+ 		err = send_mpa_reject(ep, pdata, pdata_len);
+-		err = c4iw_ep_disconnect(ep, 0, GFP_KERNEL);
++		disconnect = 1;
+ 	}
++	mutex_unlock(&ep->com.mutex);
++	if (disconnect)
++		err = c4iw_ep_disconnect(ep, 0, GFP_KERNEL);
+ 	c4iw_put_ep(&ep->com);
+ 	return 0;
+ }
+@@ -2541,12 +2548,14 @@ int c4iw_accept_cr(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	struct c4iw_qp *qp = get_qhp(h, conn_param->qpn);
+ 
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+-	if (state_read(&ep->com) == DEAD) {
++
++	mutex_lock(&ep->com.mutex);
++	if (ep->com.state == DEAD) {
+ 		err = -ECONNRESET;
+ 		goto err;
+ 	}
+ 
+-	BUG_ON(state_read(&ep->com) != MPA_REQ_RCVD);
++	BUG_ON(ep->com.state != MPA_REQ_RCVD);
+ 	BUG_ON(!qp);
+ 
+ 	set_bit(ULP_ACCEPT, &ep->com.history);
+@@ -2615,14 +2624,16 @@ int c4iw_accept_cr(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	if (err)
+ 		goto err1;
+ 
+-	state_set(&ep->com, FPDU_MODE);
++	__state_set(&ep->com, FPDU_MODE);
+ 	established_upcall(ep);
++	mutex_unlock(&ep->com.mutex);
+ 	c4iw_put_ep(&ep->com);
+ 	return 0;
+ err1:
+ 	ep->com.cm_id = NULL;
+ 	cm_id->rem_ref(cm_id);
+ err:
++	mutex_unlock(&ep->com.mutex);
+ 	c4iw_put_ep(&ep->com);
+ 	return err;
+ }
 -- 
 1.8.4
 
