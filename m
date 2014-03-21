@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 7/8] iw_cxgb4: drop RX_DATA packets if the endpoint is gone
-Date: Fri, 21 Mar 2014 20:40:36 +0530
-Message-ID: <1395414637-8298-8-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH 4/8] iw_cxgb4: connect_request_upcall fixes
+Date: Fri, 21 Mar 2014 20:40:33 +0530
+Message-ID: <1395414637-8298-5-git-send-email-hariprasad@chelsio.com>
 References: <1395414637-8298-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395414637-8298-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -12,24 +12,151 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
+When processing an MPA Start Request, if the listening endpoint is DEAD,
+then abort the connection.
+
+If the IWCM returns an error, then we must abort the connection and
+release resources.  Also abort_connection() should not post a CLOSE event,
+so clean that up too.
+
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/cxgb4/cm.c | 40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index b8f9e75..57344a3 100644
+index 773d010..6bfef31 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1521,6 +1521,8 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	__u8 status = hdr->status;
+@@ -968,13 +968,14 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	return 0;
+ }
  
- 	ep = lookup_tid(t, tid);
-+	if (!ep)
-+		return 0;
- 	PDBG("%s ep %p tid %u dlen %u\n", __func__, ep, ep->hwtid, dlen);
- 	skb_pull(skb, sizeof(*hdr));
- 	skb_trim(skb, dlen);
+-static void close_complete_upcall(struct c4iw_ep *ep)
++static void close_complete_upcall(struct c4iw_ep *ep, int status)
+ {
+ 	struct iw_cm_event event;
+ 
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+ 	memset(&event, 0, sizeof(event));
+ 	event.event = IW_CM_EVENT_CLOSE;
++	event.status = status;
+ 	if (ep->com.cm_id) {
+ 		PDBG("close complete delivered ep %p cm_id %p tid %u\n",
+ 		     ep, ep->com.cm_id, ep->hwtid);
+@@ -988,7 +989,6 @@ static void close_complete_upcall(struct c4iw_ep *ep)
+ static int abort_connection(struct c4iw_ep *ep, struct sk_buff *skb, gfp_t gfp)
+ {
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+-	close_complete_upcall(ep);
+ 	state_set(&ep->com, ABORTING);
+ 	set_bit(ABORT_CONN, &ep->com.history);
+ 	return send_abort(ep, skb, gfp);
+@@ -1067,9 +1067,10 @@ static void connect_reply_upcall(struct c4iw_ep *ep, int status)
+ 	}
+ }
+ 
+-static void connect_request_upcall(struct c4iw_ep *ep)
++static int connect_request_upcall(struct c4iw_ep *ep)
+ {
+ 	struct iw_cm_event event;
++	int ret;
+ 
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+ 	memset(&event, 0, sizeof(event));
+@@ -1094,15 +1095,14 @@ static void connect_request_upcall(struct c4iw_ep *ep)
+ 		event.private_data_len = ep->plen;
+ 		event.private_data = ep->mpa_pkt + sizeof(struct mpa_message);
+ 	}
+-	if (state_read(&ep->parent_ep->com) != DEAD) {
+-		c4iw_get_ep(&ep->com);
+-		ep->parent_ep->com.cm_id->event_handler(
+-						ep->parent_ep->com.cm_id,
+-						&event);
+-	}
++	c4iw_get_ep(&ep->com);
++	ret = ep->parent_ep->com.cm_id->event_handler(ep->parent_ep->com.cm_id,
++						      &event);
++	if (ret)
++		c4iw_put_ep(&ep->com);
+ 	set_bit(CONNREQ_UPCALL, &ep->com.history);
+ 	c4iw_put_ep(&ep->parent_ep->com);
+-	ep->parent_ep = NULL;
++	return ret;
+ }
+ 
+ static void established_upcall(struct c4iw_ep *ep)
+@@ -1401,7 +1401,6 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
+ 		return;
+ 
+ 	PDBG("%s enter (%s line %u)\n", __func__, __FILE__, __LINE__);
+-	stop_ep_timer(ep);
+ 	mpa = (struct mpa_message *) ep->mpa_pkt;
+ 
+ 	/*
+@@ -1494,9 +1493,17 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	     ep->mpa_attr.p2p_type);
+ 
+ 	state_set(&ep->com, MPA_REQ_RCVD);
++	stop_ep_timer(ep);
+ 
+ 	/* drive upcall */
+-	connect_request_upcall(ep);
++	mutex_lock(&ep->parent_ep->com.mutex);
++	if (ep->parent_ep->com.state != DEAD) {
++		if (connect_request_upcall(ep))
++			abort_connection(ep, skb, GFP_KERNEL);
++	} else {
++		abort_connection(ep, skb, GFP_KERNEL);
++	}
++	mutex_unlock(&ep->parent_ep->com.mutex);
+ 	return;
+ }
+ 
+@@ -2247,7 +2254,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 			c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
+ 				       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
+ 		}
+-		close_complete_upcall(ep);
++		close_complete_upcall(ep, 0);
+ 		__state_set(&ep->com, DEAD);
+ 		release = 1;
+ 		disconnect = 0;
+@@ -2426,7 +2433,7 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 					     C4IW_QP_ATTR_NEXT_STATE,
+ 					     &attrs, 1);
+ 		}
+-		close_complete_upcall(ep);
++		close_complete_upcall(ep, 0);
+ 		__state_set(&ep->com, DEAD);
+ 		release = 1;
+ 		break;
+@@ -2981,7 +2988,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 	rdev = &ep->com.dev->rdev;
+ 	if (c4iw_fatal_error(rdev)) {
+ 		fatal = 1;
+-		close_complete_upcall(ep);
++		close_complete_upcall(ep, -EIO);
+ 		ep->com.state = DEAD;
+ 	}
+ 	switch (ep->com.state) {
+@@ -3023,7 +3030,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 	if (close) {
+ 		if (abrupt) {
+ 			set_bit(EP_DISC_ABORT, &ep->com.history);
+-			close_complete_upcall(ep);
++			close_complete_upcall(ep, -ECONNRESET);
+ 			ret = send_abort(ep, NULL, gfp);
+ 		} else {
+ 			set_bit(EP_DISC_CLOSE, &ep->com.history);
+@@ -3435,6 +3442,7 @@ static void process_timeout(struct c4iw_ep *ep)
+ 				     &attrs, 1);
+ 		}
+ 		__state_set(&ep->com, ABORTING);
++		close_complete_upcall(ep, -ETIMEDOUT);
+ 		break;
+ 	default:
+ 		WARN(1, "%s unexpected state ep %p tid %u state %u\n",
 -- 
 1.8.4
 
