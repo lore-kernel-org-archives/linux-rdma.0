@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 6/9] ibacm: Change base endpoint name
-Date: Sun, 23 Mar 2014 13:18:18 -0700
-Message-ID: <1395605901-9080-7-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 2/9] ibacm: Rename client array
+Date: Sun, 23 Mar 2014 13:18:14 -0700
+Message-ID: <1395605901-9080-3-git-send-email-sean.hefty@intel.com>
 References: <1395605901-9080-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395605901-9080-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,48 +11,92 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Endpoints are given a string identifer (base name) that matches
-the first address assigned to the endpoint.  Store the endpoint
-string identifier separately from the address name, and identify
-the endpoint using the device name, port, and pkey.
+Rename the client array to client_array, to make it easier
+to distinguish between the array and local variables, which
+are also named client.
 
-The endpoint identifier is only used for logging purposes.
+And, hey, this found the bug in the previous patch.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ src/acm.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
 diff --git a/src/acm.c b/src/acm.c
-index 16e929b..a8a1fb9 100644
+index c403aa8..57d34dc 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -153,6 +153,7 @@ struct acm_ep {
- 	DLIST_ENTRY           entry;
- 	union acm_ep_info     addr[MAX_EP_ADDR];
- 	char                  name[MAX_EP_ADDR][ACM_MAX_ADDRESS];
-+	char		      id_string[ACM_MAX_ADDRESS];
- 	uint8_t               addr_type[MAX_EP_ADDR];
- 	void                  *dest_map[ACM_ADDRESS_RESERVED - 1];
- 	struct acm_dest       mc_dest[MAX_EP_MC];
-@@ -1394,7 +1395,7 @@ static void acm_process_recv(struct acm_ep *ep, struct ibv_wc *wc)
- {
- 	struct acm_mad *mad;
+@@ -210,7 +210,7 @@ static event_t timeout_event;
+ static atomic_t wait_cnt;
  
--	acm_log(2, "base endpoint name %s\n", ep->name[0]);
-+	acm_log(2, "base endpoint name %s\n", ep->id_string);
- 	mad = (struct acm_mad *) (uintptr_t) (wc->wr_id + sizeof(struct ibv_grh));
- 	switch (mad->mgmt_class) {
- 	case IB_MGMT_CLASS_SA:
-@@ -3057,6 +3058,8 @@ acm_alloc_ep(struct acm_port *port, uint16_t pkey, uint16_t pkey_index)
- 	DListInit(&ep->active_queue);
- 	DListInit(&ep->wait_queue);
- 	lock_init(&ep->lock);
-+	sprintf(ep->id_string, "%s-%d-0x%x", port->dev->verbs->device->name,
-+		port->port_num, pkey);
+ static SOCKET listen_socket;
+-static struct acm_client client[FD_SETSIZE - 1];
++static struct acm_client client_array[FD_SETSIZE - 1];
  
- 	return ep;
+ static FILE *flog;
+ static lock_t log_lock;
+@@ -1690,10 +1690,10 @@ static void acm_init_server(void)
+ 	int i;
+ 
+ 	for (i = 0; i < FD_SETSIZE - 1; i++) {
+-		lock_init(&client[i].lock);
+-		client[i].index = i;
+-		client[i].sock = INVALID_SOCKET;
+-		atomic_init(&client[i].refcnt);
++		lock_init(&client_array[i].lock);
++		client_array[i].index = i;
++		client_array[i].sock = INVALID_SOCKET;
++		atomic_init(&client_array[i].refcnt);
+ 	}
+ 
+ 	if (!(f = fopen("/var/run/ibacm.port", "w"))) {
+@@ -1758,7 +1758,7 @@ static void acm_svr_accept(void)
+ 	}
+ 
+ 	for (i = 0; i < FD_SETSIZE - 1; i++) {
+-		if (!atomic_get(&client[i].refcnt))
++		if (!atomic_get(&client_array[i].refcnt))
+ 			break;
+ 	}
+ 
+@@ -1768,8 +1768,8 @@ static void acm_svr_accept(void)
+ 		return;
+ 	}
+ 
+-	client[i].sock = s;
+-	atomic_set(&client[i].refcnt, 1);
++	client_array[i].sock = s;
++	atomic_set(&client_array[i].refcnt, 1);
+ 	acm_log(2, "assigned client %d\n", i);
  }
+ 
+@@ -2407,9 +2407,9 @@ static void acm_server(void)
+ 		FD_SET(listen_socket, &readfds);
+ 
+ 		for (i = 0; i < FD_SETSIZE - 1; i++) {
+-			if (client[i].sock != INVALID_SOCKET) {
+-				FD_SET(client[i].sock, &readfds);
+-				n = max(n, (int) client[i].sock);
++			if (client_array[i].sock != INVALID_SOCKET) {
++				FD_SET(client_array[i].sock, &readfds);
++				n = max(n, (int) client_array[i].sock);
+ 			}
+ 		}
+ 
+@@ -2423,10 +2423,10 @@ static void acm_server(void)
+ 			acm_svr_accept();
+ 
+ 		for (i = 0; i < FD_SETSIZE - 1; i++) {
+-			if (client[i].sock != INVALID_SOCKET &&
+-				FD_ISSET(client[i].sock, &readfds)) {
++			if (client_array[i].sock != INVALID_SOCKET &&
++				FD_ISSET(client_array[i].sock, &readfds)) {
+ 				acm_log(2, "receiving from client %d\n", i);
+-				acm_svr_receive(&client[i]);
++				acm_svr_receive(&client_array[i]);
+ 			}
+ 		}
+ 	}
 -- 
 1.7.3
 
