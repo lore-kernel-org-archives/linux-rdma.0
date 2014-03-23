@@ -1,10 +1,10 @@
 From: Monam Agarwal <monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] drivers/infiniband: Use RCU_INIT_POINTER(x, NULL) in hw/qib/qib_qp.c
-Date: Sun, 23 Mar 2014 02:08:00 +0530
-Message-ID: <1395520680-3459-1-git-send-email-monamagarwal123@gmail.com>
+Subject: [PATCH] drivers/infiniband: Use RCU_INIT_POINTER(x, NULL) in ulp/ipoib/ipoib_main.c
+Date: Sun, 23 Mar 2014 23:55:19 +0530
+Message-ID: <1395599119-6731-1-git-send-email-monamagarwal123@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, foraker1-i2BcT+NCU+M@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This patch replaces rcu_assign_pointer(x, NULL) with RCU_INIT_POINTER(x, NULL)
@@ -16,35 +16,22 @@ So, rcu_assign_pointer(p, NULL) can be safely converted to RCU_INIT_POINTER(p, N
 
 Signed-off-by: Monam Agarwal <monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_qp.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 0cad0c4..04c8b74 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -255,10 +255,10 @@ static void remove_qp(struct qib_ibdev *dev, struct qib_qp *qp)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5786a78..64cd5b5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1229,7 +1229,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 	}
  
- 	if (rcu_dereference_protected(ibp->qp0,
- 			lockdep_is_held(&dev->qpt_lock)) == qp) {
--		rcu_assign_pointer(ibp->qp0, NULL);
-+		RCU_INIT_POINTER(ibp->qp0, NULL);
- 	} else if (rcu_dereference_protected(ibp->qp1,
- 			lockdep_is_held(&dev->qpt_lock)) == qp) {
--		rcu_assign_pointer(ibp->qp1, NULL);
-+		RCU_INIT_POINTER(ibp->qp1, NULL);
- 	} else {
- 		struct qib_qp *q;
- 		struct qib_qp __rcu **qpp;
-@@ -315,7 +315,7 @@ unsigned qib_free_all_qps(struct qib_devdata *dd)
- 	for (n = 0; n < dev->qp_table_size; n++) {
- 		qp = rcu_dereference_protected(dev->qp_table[n],
- 			lockdep_is_held(&dev->qpt_lock));
--		rcu_assign_pointer(dev->qp_table[n], NULL);
-+		RCU_INIT_POINTER(dev->qp_table[n], NULL);
+ free_htbl:
+-	rcu_assign_pointer(ntbl->htbl, NULL);
++	RCU_INIT_POINTER(ntbl->htbl, NULL);
+ 	call_rcu(&htbl->rcu, neigh_hash_free_rcu);
  
- 		for (; qp; qp = rcu_dereference_protected(qp->next,
- 					lockdep_is_held(&dev->qpt_lock)))
+ out_unlock:
 -- 
 1.7.9.5
 
