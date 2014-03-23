@@ -1,39 +1,42 @@
-From: Monam Agarwal <monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] drivers/infiniband: Use RCU_INIT_POINTER(x, NULL) in ulp/ipoib/ipoib_main.c
-Date: Sun, 23 Mar 2014 23:55:19 +0530
-Message-ID: <1395599119-6731-1-git-send-email-monamagarwal123@gmail.com>
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 0/9] ibacm: Preparation for supporting different providers
+Date: Sun, 23 Mar 2014 13:18:12 -0700
+Message-ID: <1395605901-9080-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, foraker1-i2BcT+NCU+M@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch replaces rcu_assign_pointer(x, NULL) with RCU_INIT_POINTER(x, NULL)
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The rcu_assign_pointer() ensures that the initialization of a structure       
-is carried out before storing a pointer to that structure. 
-And in the case of the NULL pointer, there is no structure to initialize. 
-So, rcu_assign_pointer(p, NULL) can be safely converted to RCU_INIT_POINTER(p, NULL)
+In order to support other mechanisms for address and route resolution,
+such that those being defined for ibssa (scalable SA), ibacm will be
+restructured to support the concept of 'plug-in' providers.  The
+existing resolution mechanism will be converted into a provider,
+with the management of client requests moving into what will
+become the ibacm core.
 
-Signed-off-by: Monam Agarwal <monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The following patches prepare the code base for this split in
+functionality.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5786a78..64cd5b5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1229,7 +1229,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
- 	}
- 
- free_htbl:
--	rcu_assign_pointer(ntbl->htbl, NULL);
-+	RCU_INIT_POINTER(ntbl->htbl, NULL);
- 	call_rcu(&htbl->rcu, neigh_hash_free_rcu);
- 
- out_unlock:
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Sean Hefty (9):
+  ibacm: Release the refcnt on the correct client
+  ibacm: Rename client array
+  ibacm: Eliminate strict aliasing compiler warnings
+  ibacm: Relocate client refcnt
+  ibacm: Record index for source and destination addresses
+  ibacm: Change base endpoint name
+  ibacm: Reset endpoint state on error
+  ibacm: Store the base GID with acm_port
+  ibacm: Restructure acm_port_join
+
+ src/acm.c |  175 ++++++++++++++++++++++++++++++++++---------------------------
+ 1 files changed, 98 insertions(+), 77 deletions(-)
+
 -- 
-1.7.9.5
+1.7.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
