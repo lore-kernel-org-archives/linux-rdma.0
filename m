@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 8/9] ibacm: Store the base GID with acm_port
-Date: Sun, 23 Mar 2014 13:18:20 -0700
-Message-ID: <1395605901-9080-9-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 5/9] ibacm: Record index for source and destination addresses
+Date: Sun, 23 Mar 2014 13:18:17 -0700
+Message-ID: <1395605901-9080-6-git-send-email-sean.hefty@intel.com>
 References: <1395605901-9080-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395605901-9080-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,73 +11,165 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Record the base GID of a port with acm_port.  This avoids
-needing to query again for it later.
+When processing a resolve route message, record what
+index the source and destination addresses were located
+at directly into the message.  This replaces returning
+pointers to the source and destination address that must
+then be passed around.
+
+When provider plug-in support is added in subsequent
+patches, this will avoid pointer exchanges between the
+core and provider code.
+
+Fix a minor issue where the src_out field may be
+uninitialized (value read from client message).  Src_out
+now becomes a boolean value, rather than an index.  The
+actual location for the output is specified as an index.
+
+This change cleanups the call to acm_svr_select_src,
+which selects a source address.  It is only called when
+a source is needed, which is explicitly determined by
+seeing if src_out is set, rather than relying on a zero
+src type field.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c |   17 ++++++-----------
- 1 files changed, 6 insertions(+), 11 deletions(-)
+ src/acm.c |   54 ++++++++++++++++++++++++++++--------------------------
+ 1 files changed, 28 insertions(+), 26 deletions(-)
 
 diff --git a/src/acm.c b/src/acm.c
-index eba027d..2d9ecee 100644
+index 4fc650b..16e929b 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -117,6 +117,7 @@ struct acm_port {
- 	int                 mad_portid;
- 	int                 mad_agentid;
- 	struct acm_dest     sa_dest;
-+	union ibv_gid	    base_gid;
- 	enum ibv_port_state state;
- 	enum ibv_mtu        mtu;
- 	enum ibv_rate       rate;
-@@ -1569,34 +1570,25 @@ static void acm_port_join(struct acm_port *port)
- {
- 	struct acm_device *dev;
- 	struct acm_ep *ep;
--	union ibv_gid port_gid;
- 	DLIST_ENTRY *ep_entry;
--	int ret;
+@@ -49,6 +49,8 @@
+ #include "acm_mad.h"
  
- 	dev = port->dev;
- 	acm_log(1, "device %s port %d\n", dev->verbs->device->name,
- 		port->port_num);
+ #define src_out     data[0]
++#define src_index   data[1]
++#define dst_index   data[2]
  
--	ret = ibv_query_gid(dev->verbs, port->port_num, 0, &port_gid);
--	if (ret) {
--		acm_log(0, "ERROR - ibv_query_gid %d device %s port %d\n",
--			ret, dev->verbs->device->name, port->port_num);
--		return;
--	}
+ #define IB_LID_MCAST_START 0xc000
+ 
+@@ -1069,7 +1071,7 @@ acm_client_resolve_resp(struct acm_client *client, struct acm_msg *req_msg,
+ 		if (req_msg->hdr.src_out) {
+ 			msg.hdr.length += ACM_MSG_EP_LENGTH;
+ 			memcpy(&msg.resolve_data[1],
+-				&req_msg->resolve_data[req_msg->hdr.src_out],
++				&req_msg->resolve_data[req_msg->hdr.src_index],
+ 				ACM_MSG_EP_LENGTH);
+ 		}
+ 	}
+@@ -1980,9 +1982,6 @@ static int acm_svr_select_src(struct acm_ep_addr_data *src, struct acm_ep_addr_d
+ 	int ret;
+ 	SOCKET s;
+ 
+-	if (src->type)
+-		return 0;
 -
- 	for (ep_entry = port->ep_list.Next; ep_entry != &port->ep_list;
- 		 ep_entry = ep_entry->Next) {
+ 	acm_log(2, "selecting source address\n");
+ 	memset(&addr, 0, sizeof addr);
+ 	switch (dst->type) {
+@@ -2038,24 +2037,24 @@ out:
+  * references to the source and destination addresses.
+  * The message buffer contains extra address data buffers.  If a
+  * source address is not given, reference an empty address buffer,
+- * and we'll resolve a source address later.
++ * and we'll resolve a source address later.  Record the location of
++ * the source and destination addresses in the message header data
++ * to avoid further searches.
+  */
+-static uint8_t
+-acm_svr_verify_resolve(struct acm_msg *msg,
+-	struct acm_ep_addr_data **saddr, struct acm_ep_addr_data **daddr)
++static uint8_t acm_svr_verify_resolve(struct acm_msg *msg)
+ {
+-	struct acm_ep_addr_data *src = NULL, *dst = NULL;
+-	int i, cnt;
++	int i, cnt, have_dst = 0;
  
- 		ep = container_of(ep_entry, struct acm_ep, entry);
- 		ep->mc_cnt = 0;
--		acm_join_group(ep, &port_gid, 0, 0, 0, min_rate, min_mtu);
-+		acm_join_group(ep, &port->base_gid, 0, 0, 0, min_rate, min_mtu);
- 
- 		if ((ep->state = ep->mc_dest[0].state) != ACM_READY)
- 			continue;
- 
- 		if ((route_prot == ACM_ROUTE_PROT_ACM) &&
- 		    (port->rate != min_rate || port->mtu != min_mtu))
--			acm_join_group(ep, &port_gid, 0, 0, 0, port->rate, port->mtu);
-+			acm_join_group(ep, &port->base_gid, 0, 0, 0, port->rate, port->mtu);
+ 	if (msg->hdr.length < ACM_MSG_HDR_LENGTH) {
+ 		acm_log(0, "ERROR - invalid msg hdr length %d\n", msg->hdr.length);
+ 		return ACM_STATUS_EINVAL;
  	}
- 	acm_log(1, "joins for device %s port %d complete\n", dev->verbs->device->name,
- 		port->port_num);
-@@ -3206,6 +3198,9 @@ static void acm_port_up(struct acm_port *port)
- 		ret = ibv_query_gid(port->dev->verbs, port->port_num, port->gid_cnt, &gid);
- 		if (ret || !gid.global.interface_id)
- 			break;
-+
-+		if (port->gid_cnt == 0)
-+			port->base_gid = gid;
+ 
++	msg->hdr.src_out = 1;
+ 	cnt = (msg->hdr.length - ACM_MSG_HDR_LENGTH) / ACM_MSG_EP_LENGTH;
+ 	for (i = 0; i < cnt; i++) {
+ 		if (msg->resolve_data[i].flags & ACM_EP_FLAG_SOURCE) {
+-			if (src) {
++			if (!msg->hdr.src_out) {
+ 				acm_log(0, "ERROR - multiple sources specified\n");
+ 				return ACM_STATUS_ESRCADDR;
+ 			}
+@@ -2064,10 +2063,11 @@ acm_svr_verify_resolve(struct acm_msg *msg,
+ 				acm_log(0, "ERROR - unsupported source address type\n");
+ 				return ACM_STATUS_ESRCTYPE;
+ 			}
+-			src = &msg->resolve_data[i];
++			msg->hdr.src_out = 0;
++			msg->hdr.src_index = i;
+ 		}
+ 		if (msg->resolve_data[i].flags & ACM_EP_FLAG_DEST) {
+-			if (dst) {
++			if (have_dst) {
+ 				acm_log(0, "ERROR - multiple destinations specified\n");
+ 				return ACM_STATUS_EDESTADDR;
+ 			}
+@@ -2076,22 +2076,20 @@ acm_svr_verify_resolve(struct acm_msg *msg,
+ 				acm_log(0, "ERROR - unsupported destination address type\n");
+ 				return ACM_STATUS_EDESTTYPE;
+ 			}
+-			dst = &msg->resolve_data[i];
++			have_dst = 1;
++			msg->hdr.dst_index = i;
+ 		}
  	}
  
- 	port->lid = attr.lid;
+-	if (!dst) {
++	if (!have_dst) {
+ 		acm_log(0, "ERROR - destination address required\n");
+ 		return ACM_STATUS_EDESTTYPE;
+ 	}
+ 
+-	if (!src) {
+-		msg->hdr.src_out = i;
+-		src = &msg->resolve_data[i];
+-		memset(src, 0, sizeof *src);
++	if (msg->hdr.src_out) {
++		msg->hdr.src_index = i;
++		memset(&msg->resolve_data[i], 0, sizeof(struct acm_ep_addr_data));
+ 	}
+-	*saddr = src;
+-	*daddr = dst;
+ 	return ACM_STATUS_SUCCESS;
+ }
+ 
+@@ -2138,16 +2136,20 @@ acm_svr_resolve_dest(struct acm_client *client, struct acm_msg *msg)
+ 	int ret;
+ 
+ 	acm_log(2, "client %d\n", client->index);
+-	status = acm_svr_verify_resolve(msg, &saddr, &daddr);
++	status = acm_svr_verify_resolve(msg);
+ 	if (status) {
+ 		acm_log(0, "notice - misformatted or unsupported request\n");
+ 		return acm_client_resolve_resp(client, msg, NULL, status);
+ 	}
+ 
+-	status = acm_svr_select_src(saddr, daddr);
+-	if (status) {
+-		acm_log(0, "notice - unable to select suitable source address\n");
+-		return acm_client_resolve_resp(client, msg, NULL, status);
++	saddr = &msg->resolve_data[msg->hdr.src_index];
++	daddr = &msg->resolve_data[msg->hdr.dst_index];
++	if (msg->hdr.src_out) {
++		status = acm_svr_select_src(saddr, daddr);
++		if (status) {
++			acm_log(0, "notice - unable to select suitable source address\n");
++			return acm_client_resolve_resp(client, msg, NULL, status);
++		}
+ 	}
+ 
+ 	acm_format_name(2, log_data, sizeof log_data,
 -- 
 1.7.3
 
