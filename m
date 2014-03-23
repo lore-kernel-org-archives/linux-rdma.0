@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 2/9] ibacm: Rename client array
-Date: Sun, 23 Mar 2014 13:18:14 -0700
-Message-ID: <1395605901-9080-3-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 3/9] ibacm: Eliminate strict aliasing compiler warnings
+Date: Sun, 23 Mar 2014 13:18:15 -0700
+Message-ID: <1395605901-9080-4-git-send-email-sean.hefty@intel.com>
 References: <1395605901-9080-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395605901-9080-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,92 +11,71 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Rename the client array to client_array, to make it easier
-to distinguish between the array and local variables, which
-are also named client.
-
-And, hey, this found the bug in the previous patch.
+Use local variables and memcpy to defeat the
+compiler warning: dereferencing type-punned
+pointer will break strict-aliasing rules
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c |   28 ++++++++++++++--------------
- 1 files changed, 14 insertions(+), 14 deletions(-)
+ src/acm.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
 diff --git a/src/acm.c b/src/acm.c
-index c403aa8..57d34dc 100644
+index 57d34dc..c9e1b3c 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -210,7 +210,7 @@ static event_t timeout_event;
- static atomic_t wait_cnt;
+@@ -1598,13 +1598,15 @@ static void acm_process_timeouts(void)
+ 	DLIST_ENTRY *entry;
+ 	struct acm_send_msg *msg;
+ 	struct acm_resolve_rec *rec;
++	struct acm_mad *mad;
+ 	
+ 	while (!DListEmpty(&timeout_list)) {
+ 		entry = timeout_list.Next;
+ 		DListRemove(entry);
  
- static SOCKET listen_socket;
--static struct acm_client client[FD_SETSIZE - 1];
-+static struct acm_client client_array[FD_SETSIZE - 1];
+ 		msg = container_of(entry, struct acm_send_msg, entry);
+-		rec = (struct acm_resolve_rec *) ((struct acm_mad *) msg->data)->data;
++		mad = (struct acm_mad *) &msg->data[0];
++		rec = (struct acm_resolve_rec *) mad->data;
  
- static FILE *flog;
- static lock_t log_lock;
-@@ -1690,10 +1690,10 @@ static void acm_init_server(void)
- 	int i;
- 
- 	for (i = 0; i < FD_SETSIZE - 1; i++) {
--		lock_init(&client[i].lock);
--		client[i].index = i;
--		client[i].sock = INVALID_SOCKET;
--		atomic_init(&client[i].refcnt);
-+		lock_init(&client_array[i].lock);
-+		client_array[i].index = i;
-+		client_array[i].sock = INVALID_SOCKET;
-+		atomic_init(&client_array[i].refcnt);
- 	}
- 
- 	if (!(f = fopen("/var/run/ibacm.port", "w"))) {
-@@ -1758,7 +1758,7 @@ static void acm_svr_accept(void)
- 	}
- 
- 	for (i = 0; i < FD_SETSIZE - 1; i++) {
--		if (!atomic_get(&client[i].refcnt))
-+		if (!atomic_get(&client_array[i].refcnt))
+ 		acm_format_name(0, log_data, sizeof log_data,
+ 				rec->dest_type, rec->dest, sizeof rec->dest);
+@@ -2647,7 +2649,7 @@ static int acm_parse_osm_fullv1_paths(FILE *f, uint64_t *lid2guid, struct acm_ep
+ 	char s[128];
+ 	char *p, *ptr, *p_guid, *p_lid;
+ 	uint64_t guid;
+-	uint16_t lid, dlid;
++	uint16_t lid, dlid, net_dlid;
+ 	int sl, mtu, rate;
+ 	int ret = 1, i;
+ 	uint8_t addr[ACM_MAX_ADDRESS];
+@@ -2710,6 +2712,7 @@ static int acm_parse_osm_fullv1_paths(FILE *f, uint64_t *lid2guid, struct acm_ep
  			break;
- 	}
  
-@@ -1768,8 +1768,8 @@ static void acm_svr_accept(void)
- 		return;
- 	}
+ 		dlid = strtoul(p, NULL, 0);
++		net_dlid = htons(dlid);
  
--	client[i].sock = s;
--	atomic_set(&client[i].refcnt, 1);
-+	client_array[i].sock = s;
-+	atomic_set(&client_array[i].refcnt, 1);
- 	acm_log(2, "assigned client %d\n", i);
- }
- 
-@@ -2407,9 +2407,9 @@ static void acm_server(void)
- 		FD_SET(listen_socket, &readfds);
- 
- 		for (i = 0; i < FD_SETSIZE - 1; i++) {
--			if (client[i].sock != INVALID_SOCKET) {
--				FD_SET(client[i].sock, &readfds);
--				n = max(n, (int) client[i].sock);
-+			if (client_array[i].sock != INVALID_SOCKET) {
-+				FD_SET(client_array[i].sock, &readfds);
-+				n = max(n, (int) client_array[i].sock);
- 			}
- 		}
- 
-@@ -2423,10 +2423,10 @@ static void acm_server(void)
- 			acm_svr_accept();
- 
- 		for (i = 0; i < FD_SETSIZE - 1; i++) {
--			if (client[i].sock != INVALID_SOCKET &&
--				FD_ISSET(client[i].sock, &readfds)) {
-+			if (client_array[i].sock != INVALID_SOCKET &&
-+				FD_ISSET(client_array[i].sock, &readfds)) {
- 				acm_log(2, "receiving from client %d\n", i);
--				acm_svr_receive(&client[i]);
-+				acm_svr_receive(&client_array[i]);
- 			}
- 		}
- 	}
+ 		p = strtok_r(NULL, ":", &ptr);
+ 		if (!p)
+@@ -2740,7 +2743,7 @@ static int acm_parse_osm_fullv1_paths(FILE *f, uint64_t *lid2guid, struct acm_ep
+ 			memset(addr, 0, ACM_MAX_ADDRESS);
+ 			if (i == 0) {
+ 				addr_type = ACM_ADDRESS_LID;
+-				*((uint16_t *) addr) = htons(dlid);
++				memcpy(addr, &net_dlid, sizeof net_dlid);
+ 			} else {
+ 				addr_type = ACM_ADDRESS_GID;
+ 				memcpy(addr, &dgid, sizeof(dgid));
+@@ -2754,7 +2757,7 @@ static int acm_parse_osm_fullv1_paths(FILE *f, uint64_t *lid2guid, struct acm_ep
+ 			dest->path.sgid = sgid;
+ 			dest->path.slid = htons(ep->port->lid);
+ 			dest->path.dgid = dgid;
+-			dest->path.dlid = htons(dlid);
++			dest->path.dlid = net_dlid;
+ 			dest->path.reversible_numpath = IBV_PATH_RECORD_REVERSIBLE;
+ 			dest->path.pkey = htons(ep->pkey);
+ 			dest->path.mtu = (uint8_t) mtu;
 -- 
 1.7.3
 
