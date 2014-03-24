@@ -1,45 +1,55 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: device removal hangs where there are open uverbs refs
-Date: Mon, 24 Mar 2014 09:16:07 +0200
-Message-ID: <CAJZOPZ+No+UY+owMOCVFVWKOFy1xG4zsX23F9CT9ZXC2a0SNzA@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_qos_parser_y.y: Added range check for rate limit
+ parsing
+Date: Mon, 24 Mar 2014 07:33:34 -0400
+Message-ID: <5330180E.5030802@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+From: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->From time to time I get a customer case which goes through something
-like the below trace which steps on a design limitation of the
-upstream IB stack  -- namely, if you have a process with open uverbs
-reference -- device removal flow hangs and this would happen with any
-device/driver, nothing specific to mlx4. So... I think it's about time
-to address it.
+Signed-off-by: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+---
+ opensm/osm_qos_parser_y.y |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Can't we just foricibly close their uverbs file descriptor from within
-the kernel and drop the ref?
+diff --git a/opensm/osm_qos_parser_y.y b/opensm/osm_qos_parser_y.y
+index a1dbd37..1176a4b 100644
+--- a/opensm/osm_qos_parser_y.y
++++ b/opensm/osm_qos_parser_y.y
+@@ -61,6 +61,8 @@
+ #define OSM_QOS_POLICY_MAX_LINE_LEN         1024*10
+ #define OSM_QOS_POLICY_SL2VL_TABLE_LEN      IB_MAX_NUM_VLS
+ #define OSM_QOS_POLICY_MAX_VL_NUM           IB_MAX_NUM_VLS
++#define OSM_QOS_POLICY_MAX_RATE             IB_MAX_RATE
++#define OSM_QOS_POLICY_MIN_RATE             IB_MIN_RATE
+ 
+ typedef struct tmp_parser_struct_t_ {
+     char       str[OSM_QOS_POLICY_MAX_LINE_LEN];
+@@ -1879,6 +1881,13 @@ qos_level_rate_limit:    qos_level_rate_limit_start single_number {
+                             }
+                             list_iterator = cl_list_head(&tmp_parser_struct.num_list);
+                             p_num = (uint64_t*)cl_list_obj(list_iterator);
++                            if (*p_num > OSM_QOS_POLICY_MAX_RATE || *p_num < OSM_QOS_POLICY_MIN_RATE)
++                            {
++                                yyerror("rate limit is out of range, value: %d", *p_num);
++                                free(p_num);
++                                cl_list_remove_all(&tmp_parser_struct.num_list);
++                                return 1;
++                            }
+                             p_current_qos_level->rate_limit = (uint8_t)(*p_num);
+                             free(p_num);
+                             p_current_qos_level->rate_limit_set = TRUE;
+-- 
+1.7.8.2
 
-Or.
-
-INFO: task mlx4:2003 blocked for more than 120 seconds.
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-Call Trace:
-[<ffffffff814fe6a5>] schedule_timeout+0x215/0x2e0
-[<ffffffff814fe323>] wait_for_common+0x123/0x180
-[<ffffffff814fe43d>] wait_for_completion+0x1d/0x20
-[<ffffffffa04600b3>] ib_uverbs_remove_one+0x73/0xa0 [ib_uverbs]
-[<ffffffffa036fa6f>] ib_unregister_device+0x4f/0x100 [ib_core]
-[<ffffffffa038fd76>] mlx4_ib_remove+0x26/0x110 [mlx4_ib]
-[<ffffffffa0348391>] mlx4_remove_device+0x71/0x90 [mlx4_core]
-[<ffffffffa03483f3>] mlx4_unregister_device+0x43/0x90 [mlx4_core]
-[<ffffffffa0349bb8>] mlx4_change_port_types+0x68/0x120 [mlx4_core]
-[<ffffffffa03546ab>] mlx4_sense_port+0x9b/0xd0 [mlx4_core]
-[<ffffffff8108c760>] worker_thread+0x170/0x2a0
-[<ffffffff81091d66>] kthread+0x96/0xa0
-[<ffffffff8100c14a>] child_rip+0xa/0x20
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
