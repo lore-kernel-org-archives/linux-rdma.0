@@ -1,55 +1,72 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sa_mcmember_record.c: Fix removing members from
- existing mc group due to invalid requests
-Date: Mon, 24 Mar 2014 09:37:18 -0400
-Message-ID: <5330350E.3040203@dev.mellanox.co.il>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: device removal hangs where there are open uverbs refs
+Date: Mon, 24 Mar 2014 09:25:08 -0500
+Message-ID: <001401cf476c$db7e95e0$927bc1a0$@opengridcomputing.com>
+References: <CAJZOPZ+No+UY+owMOCVFVWKOFy1xG4zsX23F9CT9ZXC2a0SNzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZOPZ+No+UY+owMOCVFVWKOFy1xG4zsX23F9CT9ZXC2a0SNzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Or Gerlitz' <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Thu, 20 Mar 2014 10:26:51 +0200
 
-Bug description:
-If there is an existing well known group with only non-full members, and
-opensm receives an invalid join request. opensm removes all the
-member of the groups.
 
-Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sa_mcmember_record.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
+> Behalf Of Or Gerlitz
+> Sent: Monday, March 24, 2014 2:16 AM
+> To: Roland Dreier
+> Cc: Bart Van Assche; linux-rdma
+> Subject: device removal hangs where there are open uverbs refs
+> 
+> Hi Roland,
+> 
+> >From time to time I get a customer case which goes through something
+> like the below trace which steps on a design limitation of the
+> upstream IB stack  -- namely, if you have a process with open uverbs
+> reference -- device removal flow hangs and this would happen with any
+> device/driver, nothing specific to mlx4. So... I think it's about time
+> to address it.
+> 
+> Can't we just foricibly close their uverbs file descriptor from within
+> the kernel and drop the ref?
+>
 
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 96bddb7..85e7681 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -1177,7 +1177,8 @@ static void mcmr_rcv_join_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
- 	    || !(join_state != 0)) {
- 		char gid_str[INET6_ADDRSTRLEN];
- 		/* since we might have created the new group we need to cleanup */
--		osm_mgrp_cleanup(sa->p_subn, p_mgrp);
-+		if (is_new_group)
-+			osm_mgrp_cleanup(sa->p_subn, p_mgrp);
- 		CL_PLOCK_RELEASE(sa->p_lock);
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1B12: "
- 			"validate_more_comp_fields, validate_port_caps, "
-@@ -1214,7 +1215,8 @@ static void mcmr_rcv_join_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
- 					&mcmember_rec, proxy);
- 	if (!p_mcmr_port) {
- 		/* we fail to add the port so we might need to delete the group */
--		osm_mgrp_cleanup(sa->p_subn, p_mgrp);
-+		if (is_new_group)
-+			osm_mgrp_cleanup(sa->p_subn, p_mgrp);
- 		CL_PLOCK_RELEASE(sa->p_lock);
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1B06: "
- 			"osm_mgrp_add_port failed\n");
+Here is a previous thread discussing the issue in 2010: 
+
+http://marc.info/?l=linux-rdma&m=126961887406371&w=3
+
+
+ 
+> Or.
+> 
+> INFO: task mlx4:2003 blocked for more than 120 seconds.
+> "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> Call Trace:
+> [<ffffffff814fe6a5>] schedule_timeout+0x215/0x2e0
+> [<ffffffff814fe323>] wait_for_common+0x123/0x180
+> [<ffffffff814fe43d>] wait_for_completion+0x1d/0x20
+> [<ffffffffa04600b3>] ib_uverbs_remove_one+0x73/0xa0 [ib_uverbs]
+> [<ffffffffa036fa6f>] ib_unregister_device+0x4f/0x100 [ib_core]
+> [<ffffffffa038fd76>] mlx4_ib_remove+0x26/0x110 [mlx4_ib]
+> [<ffffffffa0348391>] mlx4_remove_device+0x71/0x90 [mlx4_core]
+> [<ffffffffa03483f3>] mlx4_unregister_device+0x43/0x90 [mlx4_core]
+> [<ffffffffa0349bb8>] mlx4_change_port_types+0x68/0x120 [mlx4_core]
+> [<ffffffffa03546ab>] mlx4_sense_port+0x9b/0xd0 [mlx4_core]
+> [<ffffffff8108c760>] worker_thread+0x170/0x2a0
+> [<ffffffff81091d66>] kthread+0x96/0xa0
+> [<ffffffff8100c14a>] child_rip+0xa/0x20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
