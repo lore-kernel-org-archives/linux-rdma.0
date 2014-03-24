@@ -1,72 +1,313 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: device removal hangs where there are open uverbs refs
-Date: Mon, 24 Mar 2014 09:25:08 -0500
-Message-ID: <001401cf476c$db7e95e0$927bc1a0$@opengridcomputing.com>
-References: <CAJZOPZ+No+UY+owMOCVFVWKOFy1xG4zsX23F9CT9ZXC2a0SNzA@mail.gmail.com>
+From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Lazy initialization for librdmacm
+Date: Mon, 24 Mar 2014 19:11:57 +0200
+Message-ID: <5330675D.9090602@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030105000002000206080005"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+No+UY+owMOCVFVWKOFy1xG4zsX23F9CT9ZXC2a0SNzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Or Gerlitz' <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------030105000002000206080005
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
+Hi Sean,
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
-> Behalf Of Or Gerlitz
-> Sent: Monday, March 24, 2014 2:16 AM
-> To: Roland Dreier
-> Cc: Bart Van Assche; linux-rdma
-> Subject: device removal hangs where there are open uverbs refs
-> 
-> Hi Roland,
-> 
-> >From time to time I get a customer case which goes through something
-> like the below trace which steps on a design limitation of the
-> upstream IB stack  -- namely, if you have a process with open uverbs
-> reference -- device removal flow hangs and this would happen with any
-> device/driver, nothing specific to mlx4. So... I think it's about time
-> to address it.
-> 
-> Can't we just foricibly close their uverbs file descriptor from within
-> the kernel and drop the ref?
->
+There was a request by teams in Oracle to decouple the HCA limited 
+ability to open device context and the rising amount of processes that 
+run on the servers.
+It appear that the lowest capable HCA become the limit to all the 
+processes that attempt to use the library.
+This patch try to decouple this by allowing the process to use the 
+library w/o implicitly opening the device.
+Device will be opened only when needed.
 
-Here is a previous thread discussing the issue in 2010: 
+BR, Shamir
 
-http://marc.info/?l=linux-rdma&m=126961887406371&w=3
+--------------030105000002000206080005
+Content-Type: text/x-patch;
+ name="librdmacm-lazy-initialization-for-ib-devices.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="librdmacm-lazy-initialization-for-ib-devices.patch"
 
+>From 4e2d1aafce5d1770e81a8e0f822876aa99f58331 Mon Sep 17 00:00:00 2001
+From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Mon, 24 Mar 2014 16:27:10 +0200
+Subject: [PATCH] librdmacm: lazy initialization for ib devices
 
+LIBRDMACM currently opens a device context per configured HCA. This is
+usually done in rdma_create_event_channel() or first time whenever
+ucma_init() is called. If a process is only going to use one of the
+configured HCAs/RDMA IPs then the remaining device contexts are not
+used/required. Opening a device context on each device apriori limits the
+maximum number of processes that can be supported on a node to the maximum
+number of open context supported per HCA regardless of number of HCAs present
+in the system.
+
+Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ src/cma.c | 152 ++++++++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 118 insertions(+), 34 deletions(-)
+
+diff --git a/src/cma.c b/src/cma.c
+index 0cf4203..56bfa14 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -74,7 +74,7 @@ do {						\
+ } while (0)
  
-> Or.
-> 
-> INFO: task mlx4:2003 blocked for more than 120 seconds.
-> "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> Call Trace:
-> [<ffffffff814fe6a5>] schedule_timeout+0x215/0x2e0
-> [<ffffffff814fe323>] wait_for_common+0x123/0x180
-> [<ffffffff814fe43d>] wait_for_completion+0x1d/0x20
-> [<ffffffffa04600b3>] ib_uverbs_remove_one+0x73/0xa0 [ib_uverbs]
-> [<ffffffffa036fa6f>] ib_unregister_device+0x4f/0x100 [ib_core]
-> [<ffffffffa038fd76>] mlx4_ib_remove+0x26/0x110 [mlx4_ib]
-> [<ffffffffa0348391>] mlx4_remove_device+0x71/0x90 [mlx4_core]
-> [<ffffffffa03483f3>] mlx4_unregister_device+0x43/0x90 [mlx4_core]
-> [<ffffffffa0349bb8>] mlx4_change_port_types+0x68/0x120 [mlx4_core]
-> [<ffffffffa03546ab>] mlx4_sense_port+0x9b/0xd0 [mlx4_core]
-> [<ffffffff8108c760>] worker_thread+0x170/0x2a0
-> [<ffffffff81091d66>] kthread+0x96/0xa0
-> [<ffffffff8100c14a>] child_rip+0xa/0x20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ struct cma_device {
+-	struct ibv_context *verbs;
++	struct ibv_context *lverbs; /* Lazy initialization */
+ 	struct ibv_pd	   *pd;
+ 	uint64_t	    guid;
+ 	int		    port_cnt;
+@@ -130,13 +130,20 @@ static fastlock_t idm_lock;
+ 
+ static void ucma_cleanup(void)
+ {
++	struct ibv_context *verbs;
++	struct ibv_pd *pd;
++
+ 	ucma_ib_cleanup();
+ 
+ 	if (cma_dev_cnt) {
+ 		while (cma_dev_cnt--) {
+-			if (cma_dev_array[cma_dev_cnt].refcnt)
+-				ibv_dealloc_pd(cma_dev_array[cma_dev_cnt].pd);
+-			ibv_close_device(cma_dev_array[cma_dev_cnt].verbs);
++			verbs = cma_dev_array[cma_dev_cnt].lverbs;
++			if (verbs) {
++				pd = cma_dev_array[cma_dev_cnt].pd;
++				if (cma_dev_array[cma_dev_cnt].refcnt)
++					ibv_dealloc_pd(pd);
++				ibv_close_device(verbs);
++			}
+ 		}
+ 
+ 		fastlock_destroy(&idm_lock);
+@@ -202,11 +209,77 @@ static void ucma_set_af_ib_support(void)
+ 	rdma_destroy_id(id);
+ }
+ 
+-int ucma_init(void)
++static int ucma_lazy_dev_init(int dev_index)
+ {
+ 	struct ibv_device **dev_list = NULL;
+ 	struct cma_device *cma_dev;
+ 	struct ibv_device_attr attr;
++	int ret = 0, i = dev_index, dev_cnt;
++
++	/* Quick check without lock to see if we're already initialized */
++	if (cma_dev_array[i].lverbs)
++		return 0;
++
++	pthread_mutex_lock(&mut);
++	if (cma_dev_array[i].lverbs) {
++		pthread_mutex_unlock(&mut);
++		return 0;
++	}
++
++	dev_list = ibv_get_device_list(&dev_cnt);
++	if (!dev_list) {
++		fprintf(stderr, PFX "Fatal: unable to get RDMA device list\n");
++		ret = ERR(ENODEV);
++		goto err1;
++	}
++
++	if (min(dev_cnt, cma_dev_cnt) <= i) {
++		fprintf(stderr, PFX
++			"Fatal: device index out of range, index %d, max %d\n",
++			i, min(dev_cnt, cma_dev_cnt));
++		ret = ERR(ENODEV);
++		goto err2;
++	}
++
++	cma_dev = &cma_dev_array[i];
++	cma_dev->lverbs = ibv_open_device(dev_list[i]);
++	if (!cma_dev->lverbs) {
++		fprintf(stderr, PFX "Fatal: unable to open RDMA device\n");
++		ret = ERR(ENODEV);
++		goto err2;
++	}
++
++	ret = ibv_query_device(cma_dev->lverbs, &attr);
++	if (ret) {
++		fprintf(stderr, PFX "Fatal: unable to query RDMA device\n");
++		ret = ERR(ret);
++		goto err3;
++	}
++
++	cma_dev->port_cnt = attr.phys_port_cnt;
++	cma_dev->max_qpsize = attr.max_qp_wr;
++	cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
++	cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
++
++	pthread_mutex_unlock(&mut);
++	ibv_free_device_list(dev_list);
++	return 0;
++
++err3:
++	ibv_close_device(cma_dev->lverbs);
++	cma_dev->lverbs = NULL;
++err2:
++	ibv_free_device_list(dev_list);
++err1:
++	pthread_mutex_unlock(&mut);
++	return ret;
++}
++
++
++int ucma_init(void)
++{
++	struct ibv_device **dev_list = NULL;
++	struct cma_device *cma_dev;
+ 	int i, ret, dev_cnt;
+ 
+ 	/* Quick check without lock to see if we're already initialized */
+@@ -243,29 +316,10 @@ int ucma_init(void)
+ 		goto err2;
+ 	}
+ 
+-	for (i = 0; dev_list[i];) {
++	for (i = 0; dev_list[i]; i++) {
+ 		cma_dev = &cma_dev_array[i];
+-
+ 		cma_dev->guid = ibv_get_device_guid(dev_list[i]);
+-		cma_dev->verbs = ibv_open_device(dev_list[i]);
+-		if (!cma_dev->verbs) {
+-			fprintf(stderr, PFX "Fatal: unable to open RDMA device\n");
+-			ret = ERR(ENODEV);
+-			goto err3;
+-		}
+-
+-		i++;
+-		ret = ibv_query_device(cma_dev->verbs, &attr);
+-		if (ret) {
+-			fprintf(stderr, PFX "Fatal: unable to query RDMA device\n");
+-			ret = ERR(ret);
+-			goto err3;
+-		}
+-
+-		cma_dev->port_cnt = attr.phys_port_cnt;
+-		cma_dev->max_qpsize = attr.max_qp_wr;
+-		cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
+-		cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
++		/* Open device only when needed... */
+ 	}
+ 
+ 	cma_dev_cnt = dev_cnt;
+@@ -274,10 +328,6 @@ int ucma_init(void)
+ 	ibv_free_device_list(dev_list);
+ 	return 0;
+ 
+-err3:
+-	while (i--)
+-		ibv_close_device(cma_dev_array[i].verbs);
+-	free(cma_dev_array);
+ err2:
+ 	ibv_free_device_list(dev_list);
+ err1:
+@@ -286,6 +336,31 @@ err1:
+ 	return ret;
+ }
+ 
++static struct ibv_context *ucma_get_verbs_index(int dev_index)
++{
++	int ret;
++
++	ret = ucma_lazy_dev_init(dev_index);
++	assert(!ret);
++
++	if (ret)
++		return NULL;
++
++	return cma_dev_array[dev_index].lverbs;
++}
++
++static struct ibv_context *ucma_get_verbs_guid(uint64_t guid)
++{
++	int i;
++
++	for (i = 0; i < cma_dev_cnt; i++) {
++		if (cma_dev_array[i].guid == guid)
++			return ucma_get_verbs_index(i);
++	}
++
++	return NULL;
++}
++
+ struct ibv_context **rdma_get_devices(int *num_devices)
+ {
+ 	struct ibv_context **devs = NULL;
+@@ -299,7 +374,7 @@ struct ibv_context **rdma_get_devices(int *num_devices)
+ 		goto out;
+ 
+ 	for (i = 0; i < cma_dev_cnt; i++)
+-		devs[i] = cma_dev_array[i].verbs;
++		devs[i] = ucma_get_verbs_index(i);
+ 	devs[i] = NULL;
+ out:
+ 	if (num_devices)
+@@ -348,6 +423,7 @@ void rdma_destroy_event_channel(struct rdma_event_channel *channel)
+ static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
+ {
+ 	struct cma_device *cma_dev;
++	struct ibv_context *verbs;
+ 	int i, ret = 0;
+ 
+ 	for (i = 0; i < cma_dev_cnt; i++) {
+@@ -358,9 +434,12 @@ static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
+ 
+ 	return ERR(ENODEV);
+ match:
++	verbs = ucma_get_verbs_index(i);
++	if (!verbs)
++		return ERR(ENODEV);
+ 	pthread_mutex_lock(&mut);
+ 	if (!cma_dev->refcnt++) {
+-		cma_dev->pd = ibv_alloc_pd(cma_dev_array[i].verbs);
++		cma_dev->pd = ibv_alloc_pd(verbs);
+ 		if (!cma_dev->pd) {
+ 			cma_dev->refcnt--;
+ 			ret = ERR(ENOMEM);
+@@ -368,7 +447,7 @@ match:
+ 		}
+ 	}
+ 	id_priv->cma_dev = cma_dev;
+-	id_priv->id.verbs = cma_dev->verbs;
++	id_priv->id.verbs = verbs;
+ 	id_priv->id.pd = cma_dev->pd;
+ out:
+ 	pthread_mutex_unlock(&mut);
+@@ -1022,11 +1101,16 @@ static int ucma_modify_qp_err(struct rdma_cm_id *id)
+ static int ucma_find_pkey(struct cma_device *cma_dev, uint8_t port_num,
+ 			  uint16_t pkey, uint16_t *pkey_index)
+ {
++	struct ibv_context *verbs;
+ 	int ret, i;
+ 	uint16_t chk_pkey;
+ 
++	verbs = ucma_get_verbs_guid(cma_dev->guid);
++	if (!verbs)
++		return ERR(ENODEV);
++
+ 	for (i = 0, ret = 0; !ret; i++) {
+-		ret = ibv_query_pkey(cma_dev->verbs, port_num, i, &chk_pkey);
++		ret = ibv_query_pkey(verbs, port_num, i, &chk_pkey);
+ 		if (!ret && pkey == chk_pkey) {
+ 			*pkey_index = (uint16_t) i;
+ 			return 0;
+-- 
+1.8.1.2
 
+
+--------------030105000002000206080005--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
