@@ -1,313 +1,168 @@
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Lazy initialization for librdmacm
-Date: Mon, 24 Mar 2014 19:11:57 +0200
-Message-ID: <5330675D.9090602@oracle.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_subnet.c: Fix bug in parsing configuration file
+Date: Mon, 24 Mar 2014 14:06:09 -0400
+Message-ID: <53307411.2090605@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030105000002000206080005"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030105000002000206080005
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Sun, 16 Mar 2014 17:35:13 +0200
 
-Hi Sean,
+Added handling a non numeric input for a numeric field
+(of the opensm configuration file) and a range check for those
+parameters.
 
-There was a request by teams in Oracle to decouple the HCA limited 
-ability to open device context and the rising amount of processes that 
-run on the servers.
-It appear that the lowest capable HCA become the limit to all the 
-processes that attempt to use the library.
-This patch try to decouple this by allowing the process to use the 
-library w/o implicitly opening the device.
-Device will be opened only when needed.
-
-BR, Shamir
-
---------------030105000002000206080005
-Content-Type: text/x-patch;
- name="librdmacm-lazy-initialization-for-ib-devices.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="librdmacm-lazy-initialization-for-ib-devices.patch"
-
->From 4e2d1aafce5d1770e81a8e0f822876aa99f58331 Mon Sep 17 00:00:00 2001
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Mon, 24 Mar 2014 16:27:10 +0200
-Subject: [PATCH] librdmacm: lazy initialization for ib devices
-
-LIBRDMACM currently opens a device context per configured HCA. This is
-usually done in rdma_create_event_channel() or first time whenever
-ucma_init() is called. If a process is only going to use one of the
-configured HCAs/RDMA IPs then the remaining device contexts are not
-used/required. Opening a device context on each device apriori limits the
-maximum number of processes that can be supported on a node to the maximum
-number of open context supported per HCA regardless of number of HCAs present
-in the system.
-
-Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cma.c | 152 ++++++++++++++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 118 insertions(+), 34 deletions(-)
+ opensm/osm_subnet.c |   75 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 68 insertions(+), 7 deletions(-)
 
-diff --git a/src/cma.c b/src/cma.c
-index 0cf4203..56bfa14 100644
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -74,7 +74,7 @@ do {						\
- } while (0)
- 
- struct cma_device {
--	struct ibv_context *verbs;
-+	struct ibv_context *lverbs; /* Lazy initialization */
- 	struct ibv_pd	   *pd;
- 	uint64_t	    guid;
- 	int		    port_cnt;
-@@ -130,13 +130,20 @@ static fastlock_t idm_lock;
- 
- static void ucma_cleanup(void)
- {
-+	struct ibv_context *verbs;
-+	struct ibv_pd *pd;
-+
- 	ucma_ib_cleanup();
- 
- 	if (cma_dev_cnt) {
- 		while (cma_dev_cnt--) {
--			if (cma_dev_array[cma_dev_cnt].refcnt)
--				ibv_dealloc_pd(cma_dev_array[cma_dev_cnt].pd);
--			ibv_close_device(cma_dev_array[cma_dev_cnt].verbs);
-+			verbs = cma_dev_array[cma_dev_cnt].lverbs;
-+			if (verbs) {
-+				pd = cma_dev_array[cma_dev_cnt].pd;
-+				if (cma_dev_array[cma_dev_cnt].refcnt)
-+					ibv_dealloc_pd(pd);
-+				ibv_close_device(verbs);
-+			}
- 		}
- 
- 		fastlock_destroy(&idm_lock);
-@@ -202,11 +209,77 @@ static void ucma_set_af_ib_support(void)
- 	rdma_destroy_id(id);
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index aedfbd5..61e1fc2 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -275,12 +275,56 @@ static void opts_setup_sm_priority(osm_subn_t *p_subn, void *p_val)
+ 	osm_set_sm_priority(p_sm, sm_priority);
  }
  
--int ucma_init(void)
-+static int ucma_lazy_dev_init(int dev_index)
- {
- 	struct ibv_device **dev_list = NULL;
- 	struct cma_device *cma_dev;
- 	struct ibv_device_attr attr;
-+	int ret = 0, i = dev_index, dev_cnt;
++static int opts_strtoul(uint32_t *val, IN char *p_val_str,
++			IN char *p_key, uint32_t max_value)
++{
++	char *endptr;
++	unsigned long int tmp_val;
 +
-+	/* Quick check without lock to see if we're already initialized */
-+	if (cma_dev_array[i].lverbs)
-+		return 0;
-+
-+	pthread_mutex_lock(&mut);
-+	if (cma_dev_array[i].lverbs) {
-+		pthread_mutex_unlock(&mut);
-+		return 0;
++	tmp_val = strtoul(p_val_str, &endptr, 0);
++	*val = tmp_val;
++	if (*p_val_str == '\0' || *endptr != '\0') {
++		log_report("-E- Parsing error in field %s, expected "
++			   "numeric input received: %s\n", p_key, p_val_str);
++		return -1;
 +	}
-+
-+	dev_list = ibv_get_device_list(&dev_cnt);
-+	if (!dev_list) {
-+		fprintf(stderr, PFX "Fatal: unable to get RDMA device list\n");
-+		ret = ERR(ENODEV);
-+		goto err1;
++	if (tmp_val > max_value ||
++	    ((tmp_val == ULONG_MAX) && errno == ERANGE)) {
++		log_report("-E- Parsing error in field %s, value out of range\n", p_key);
++		return -1;
 +	}
-+
-+	if (min(dev_cnt, cma_dev_cnt) <= i) {
-+		fprintf(stderr, PFX
-+			"Fatal: device index out of range, index %d, max %d\n",
-+			i, min(dev_cnt, cma_dev_cnt));
-+		ret = ERR(ENODEV);
-+		goto err2;
-+	}
-+
-+	cma_dev = &cma_dev_array[i];
-+	cma_dev->lverbs = ibv_open_device(dev_list[i]);
-+	if (!cma_dev->lverbs) {
-+		fprintf(stderr, PFX "Fatal: unable to open RDMA device\n");
-+		ret = ERR(ENODEV);
-+		goto err2;
-+	}
-+
-+	ret = ibv_query_device(cma_dev->lverbs, &attr);
-+	if (ret) {
-+		fprintf(stderr, PFX "Fatal: unable to query RDMA device\n");
-+		ret = ERR(ret);
-+		goto err3;
-+	}
-+
-+	cma_dev->port_cnt = attr.phys_port_cnt;
-+	cma_dev->max_qpsize = attr.max_qp_wr;
-+	cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
-+	cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
-+
-+	pthread_mutex_unlock(&mut);
-+	ibv_free_device_list(dev_list);
 +	return 0;
-+
-+err3:
-+	ibv_close_device(cma_dev->lverbs);
-+	cma_dev->lverbs = NULL;
-+err2:
-+	ibv_free_device_list(dev_list);
-+err1:
-+	pthread_mutex_unlock(&mut);
-+	return ret;
 +}
 +
-+
-+int ucma_init(void)
++static int opts_strtoull(uint64_t *val, IN char *p_val_str,
++			 IN char *p_key, uint64_t max_value)
 +{
-+	struct ibv_device **dev_list = NULL;
-+	struct cma_device *cma_dev;
- 	int i, ret, dev_cnt;
++	char *endptr;
++	unsigned long long int tmp_val;
++
++	tmp_val = strtoull(p_val_str, &endptr, 0);
++	*val = tmp_val;
++	if (*p_val_str == '\0' || *endptr != '\0') {
++		log_report("-E- Parsing error in field %s, expected "
++			   "numeric input received: %s\n", p_key, p_val_str);
++		return -1;
++	}
++	if (tmp_val > max_value || (tmp_val == ULLONG_MAX && errno == ERANGE)) {
++		log_report("-E- Parsing error in field %s, value out of range", p_key);
++		return -1;
++	}
++	return 0;
++}
++
+ static void opts_parse_net64(IN osm_subn_t *p_subn, IN char *p_key,
+ 			     IN char *p_val_str, void *p_v1, void *p_v2,
+ 			     void (*pfn)(osm_subn_t *, void *))
+ {
+ 	uint64_t *p_val1 = p_v1, *p_val2 = p_v2;
+-	uint64_t val = strtoull(p_val_str, NULL, 0);
++	uint64_t val;
++
++	if (opts_strtoull(&val, p_val_str, p_key, UINT64_MAX))
++		return;
  
- 	/* Quick check without lock to see if we're already initialized */
-@@ -243,29 +316,10 @@ int ucma_init(void)
- 		goto err2;
+ 	if (cl_hton64(val) != *p_val1) {
+ 		log_config_value(p_key, "0x%016" PRIx64, val);
+@@ -295,7 +339,10 @@ static void opts_parse_uint32(IN osm_subn_t *p_subn, IN char *p_key,
+ 			      void (*pfn)(osm_subn_t *, void *))
+ {
+ 	uint32_t *p_val1 = p_v1, *p_val2 = p_v2;
+-	uint32_t val = strtoul(p_val_str, NULL, 0);
++	uint32_t val;
++
++	if (opts_strtoul(&val, p_val_str, p_key, UINT32_MAX))
++		return;
+ 
+ 	if (val != *p_val1) {
+ 		log_config_value(p_key, "%u", val);
+@@ -310,7 +357,10 @@ static void opts_parse_net32(IN osm_subn_t *p_subn, IN char *p_key,
+ 			     void (*pfn)(osm_subn_t *, void *))
+ {
+ 	uint32_t *p_val1 = p_v1, *p_val2 = p_v2;
+-	uint32_t val = strtoul(p_val_str, NULL, 0);
++	uint32_t val;
++
++	if (opts_strtoul(&val, p_val_str, p_key, UINT32_MAX))
++		return;
+ 
+ 	if (cl_hton32(val) != *p_val1) {
+ 		log_config_value(p_key, "%u", val);
+@@ -320,7 +370,6 @@ static void opts_parse_net32(IN osm_subn_t *p_subn, IN char *p_key,
  	}
- 
--	for (i = 0; dev_list[i];) {
-+	for (i = 0; dev_list[i]; i++) {
- 		cma_dev = &cma_dev_array[i];
--
- 		cma_dev->guid = ibv_get_device_guid(dev_list[i]);
--		cma_dev->verbs = ibv_open_device(dev_list[i]);
--		if (!cma_dev->verbs) {
--			fprintf(stderr, PFX "Fatal: unable to open RDMA device\n");
--			ret = ERR(ENODEV);
--			goto err3;
--		}
--
--		i++;
--		ret = ibv_query_device(cma_dev->verbs, &attr);
--		if (ret) {
--			fprintf(stderr, PFX "Fatal: unable to query RDMA device\n");
--			ret = ERR(ret);
--			goto err3;
--		}
--
--		cma_dev->port_cnt = attr.phys_port_cnt;
--		cma_dev->max_qpsize = attr.max_qp_wr;
--		cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
--		cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
-+		/* Open device only when needed... */
- 	}
- 
- 	cma_dev_cnt = dev_cnt;
-@@ -274,10 +328,6 @@ int ucma_init(void)
- 	ibv_free_device_list(dev_list);
- 	return 0;
- 
--err3:
--	while (i--)
--		ibv_close_device(cma_dev_array[i].verbs);
--	free(cma_dev_array);
- err2:
- 	ibv_free_device_list(dev_list);
- err1:
-@@ -286,6 +336,31 @@ err1:
- 	return ret;
  }
  
-+static struct ibv_context *ucma_get_verbs_index(int dev_index)
-+{
-+	int ret;
-+
-+	ret = ucma_lazy_dev_init(dev_index);
-+	assert(!ret);
-+
-+	if (ret)
-+		return NULL;
-+
-+	return cma_dev_array[dev_index].lverbs;
-+}
-+
-+static struct ibv_context *ucma_get_verbs_guid(uint64_t guid)
-+{
-+	int i;
-+
-+	for (i = 0; i < cma_dev_cnt; i++) {
-+		if (cma_dev_array[i].guid == guid)
-+			return ucma_get_verbs_index(i);
-+	}
-+
-+	return NULL;
-+}
-+
- struct ibv_context **rdma_get_devices(int *num_devices)
+-
+ static void opts_parse_int32(IN osm_subn_t *p_subn, IN char *p_key,
+ 			     IN char *p_val_str, void *p_v1, void *p_v2,
+ 			     void (*pfn)(osm_subn_t *, void *))
+@@ -341,8 +390,12 @@ static void opts_parse_uint16(IN osm_subn_t *p_subn, IN char *p_key,
+ 			      void (*pfn)(osm_subn_t *, void *))
  {
- 	struct ibv_context **devs = NULL;
-@@ -299,7 +374,7 @@ struct ibv_context **rdma_get_devices(int *num_devices)
- 		goto out;
- 
- 	for (i = 0; i < cma_dev_cnt; i++)
--		devs[i] = cma_dev_array[i].verbs;
-+		devs[i] = ucma_get_verbs_index(i);
- 	devs[i] = NULL;
- out:
- 	if (num_devices)
-@@ -348,6 +423,7 @@ void rdma_destroy_event_channel(struct rdma_event_channel *channel)
- static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
- {
- 	struct cma_device *cma_dev;
-+	struct ibv_context *verbs;
- 	int i, ret = 0;
- 
- 	for (i = 0; i < cma_dev_cnt; i++) {
-@@ -358,9 +434,12 @@ static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
- 
- 	return ERR(ENODEV);
- match:
-+	verbs = ucma_get_verbs_index(i);
-+	if (!verbs)
-+		return ERR(ENODEV);
- 	pthread_mutex_lock(&mut);
- 	if (!cma_dev->refcnt++) {
--		cma_dev->pd = ibv_alloc_pd(cma_dev_array[i].verbs);
-+		cma_dev->pd = ibv_alloc_pd(verbs);
- 		if (!cma_dev->pd) {
- 			cma_dev->refcnt--;
- 			ret = ERR(ENOMEM);
-@@ -368,7 +447,7 @@ match:
- 		}
- 	}
- 	id_priv->cma_dev = cma_dev;
--	id_priv->id.verbs = cma_dev->verbs;
-+	id_priv->id.verbs = verbs;
- 	id_priv->id.pd = cma_dev->pd;
- out:
- 	pthread_mutex_unlock(&mut);
-@@ -1022,11 +1101,16 @@ static int ucma_modify_qp_err(struct rdma_cm_id *id)
- static int ucma_find_pkey(struct cma_device *cma_dev, uint8_t port_num,
- 			  uint16_t pkey, uint16_t *pkey_index)
- {
-+	struct ibv_context *verbs;
- 	int ret, i;
- 	uint16_t chk_pkey;
- 
-+	verbs = ucma_get_verbs_guid(cma_dev->guid);
-+	if (!verbs)
-+		return ERR(ENODEV);
+ 	uint16_t *p_val1 = p_v1, *p_val2 = p_v2;
+-	uint16_t val = (uint16_t) strtoul(p_val_str, NULL, 0);
++	uint32_t tmp_val;
 +
- 	for (i = 0, ret = 0; !ret; i++) {
--		ret = ibv_query_pkey(cma_dev->verbs, port_num, i, &chk_pkey);
-+		ret = ibv_query_pkey(verbs, port_num, i, &chk_pkey);
- 		if (!ret && pkey == chk_pkey) {
- 			*pkey_index = (uint16_t) i;
- 			return 0;
++	if (opts_strtoul(&tmp_val, p_val_str, p_key, UINT16_MAX))
++		return;
+ 
++	uint16_t val = (uint16_t) tmp_val;
+ 	if (val != *p_val1) {
+ 		log_config_value(p_key, "%u", val);
+ 		if (pfn)
+@@ -356,8 +409,12 @@ static void opts_parse_net16(IN osm_subn_t *p_subn, IN char *p_key,
+ 			     void (*pfn)(osm_subn_t *, void *))
+ {
+ 	uint16_t *p_val1 = p_v1, *p_val2 = p_v2;
+-	uint16_t val = strtoul(p_val_str, NULL, 0);
++	uint32_t tmp_val;
+ 
++	if (opts_strtoul(&tmp_val, p_val_str, p_key, UINT16_MAX))
++		return;
++
++	uint16_t val = (uint16_t) tmp_val;
+ 	if (cl_hton16(val) != *p_val1) {
+ 		log_config_value(p_key, "0x%04x", val);
+ 		if (pfn)
+@@ -371,8 +428,12 @@ static void opts_parse_uint8(IN osm_subn_t *p_subn, IN char *p_key,
+ 			     void (*pfn)(osm_subn_t *, void *))
+ {
+ 	uint8_t *p_val1 = p_v1, *p_val2 = p_v2;
+-	uint8_t val = strtoul(p_val_str, NULL, 0);
++	uint32_t tmp_val;
++
++	if (opts_strtoul(&tmp_val, p_val_str, p_key, UINT8_MAX))
++		return;
+ 
++	uint8_t val = (uint8_t) tmp_val;
+ 	if (val != *p_val1) {
+ 		log_config_value(p_key, "%u", val);
+ 		if (pfn)
 -- 
-1.8.1.2
+1.7.8.2
 
-
---------------030105000002000206080005--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
