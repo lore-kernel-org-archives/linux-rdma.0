@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 6/8] iw_cxgb4: Initialize reserved fields in a FW work request
-Date: Wed, 26 Mar 2014 18:53:57 +0530
-Message-ID: <1395840239-4368-7-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH 7/8] iw_cxgb4: Add missing debug stats
+Date: Wed, 26 Mar 2014 18:53:58 +0530
+Message-ID: <1395840239-4368-8-git-send-email-hariprasad@chelsio.com>
 References: <1395840239-4368-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395840239-4368-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -14,22 +14,46 @@ From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/qp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/cxgb4/mem.c      | 6 +++++-
+ drivers/infiniband/hw/cxgb4/resource.c | 6 +++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 0af82af..e865fa4 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -425,6 +425,8 @@ static int build_rdma_send(struct t4_sq *sq, union t4_wr *wqe,
- 	default:
- 		return -EINVAL;
- 	}
-+	wqe->send.r3 = 0;
-+	wqe->send.r4 = 0;
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index a5db32c..9e5d120 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -259,8 +259,12 @@ static int write_tpt_entry(struct c4iw_rdev *rdev, u32 reset_tpt_entry,
  
- 	plen = 0;
- 	if (wr->num_sge) {
+ 	if ((!reset_tpt_entry) && (*stag == T4_STAG_UNSET)) {
+ 		stag_idx = c4iw_get_resource(&rdev->resource.tpt_table);
+-		if (!stag_idx)
++		if (!stag_idx) {
++			mutex_lock(&rdev->stats.lock);
++			rdev->stats.stag.fail++;
++			mutex_unlock(&rdev->stats.lock);
+ 			return -ENOMEM;
++		}
+ 		mutex_lock(&rdev->stats.lock);
+ 		rdev->stats.stag.cur += 32;
+ 		if (rdev->stats.stag.cur > rdev->stats.stag.max)
+diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
+index 94b5fd9..67df71a 100644
+--- a/drivers/infiniband/hw/cxgb4/resource.c
++++ b/drivers/infiniband/hw/cxgb4/resource.c
+@@ -179,8 +179,12 @@ u32 c4iw_get_qpid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
+ 		kfree(entry);
+ 	} else {
+ 		qid = c4iw_get_resource(&rdev->resource.qid_table);
+-		if (!qid)
++		if (!qid) {
++			mutex_lock(&rdev->stats.lock);
++			rdev->stats.qid.fail++;
++			mutex_unlock(&rdev->stats.lock);
+ 			goto out;
++		}
+ 		mutex_lock(&rdev->stats.lock);
+ 		rdev->stats.qid.cur += rdev->qpmask + 1;
+ 		mutex_unlock(&rdev->stats.lock);
 -- 
 1.8.4
 
