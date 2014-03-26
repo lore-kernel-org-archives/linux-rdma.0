@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/8] iw_cxgb4: Max fastreg depth depends on DSGL support
-Date: Wed, 26 Mar 2014 18:53:55 +0530
-Message-ID: <1395840239-4368-5-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH 6/8] iw_cxgb4: Initialize reserved fields in a FW work request
+Date: Wed, 26 Mar 2014 18:53:57 +0530
+Message-ID: <1395840239-4368-7-git-send-email-hariprasad@chelsio.com>
 References: <1395840239-4368-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395840239-4368-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -12,64 +12,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-The max depth of a fastreg mr depends on whether the device supports
-DSGL or not.  So compute it dynamically based on the device support and
-the module use_dsgl option.
-
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/provider.c | 2 +-
- drivers/infiniband/hw/cxgb4/qp.c       | 3 ++-
- drivers/infiniband/hw/cxgb4/t4.h       | 9 ++++++++-
- 3 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/cxgb4/qp.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 7e94c9a..deaaa21 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -287,7 +287,7 @@ static int c4iw_query_device(struct ib_device *ibdev,
- 	props->max_mr = c4iw_num_stags(&dev->rdev);
- 	props->max_pd = T4_MAX_NUM_PD;
- 	props->local_ca_ack_delay = 0;
--	props->max_fast_reg_page_list_len = T4_MAX_FR_DEPTH;
-+	props->max_fast_reg_page_list_len = t4_max_fr_depth(use_dsgl);
- 
- 	return 0;
- }
 diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 8ad7d2e..0af82af 100644
+index 0af82af..e865fa4 100644
 --- a/drivers/infiniband/hw/cxgb4/qp.c
 +++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -555,7 +555,8 @@ static int build_fastreg(struct t4_sq *sq, union t4_wr *wqe,
- 	int pbllen = roundup(wr->wr.fast_reg.page_list_len * sizeof(u64), 32);
- 	int rem;
- 
--	if (wr->wr.fast_reg.page_list_len > T4_MAX_FR_DEPTH)
-+	if (wr->wr.fast_reg.page_list_len >
-+	    t4_max_fr_depth(use_dsgl))
+@@ -425,6 +425,8 @@ static int build_rdma_send(struct t4_sq *sq, union t4_wr *wqe,
+ 	default:
  		return -EINVAL;
+ 	}
++	wqe->send.r3 = 0;
++	wqe->send.r4 = 0;
  
- 	wqe->fr.qpbinde_to_dcacpu = 0;
-diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
-index 62017a7..1ba7a87 100644
---- a/drivers/infiniband/hw/cxgb4/t4.h
-+++ b/drivers/infiniband/hw/cxgb4/t4.h
-@@ -84,7 +84,14 @@ struct t4_status_page {
- 			sizeof(struct fw_ri_isgl)) / sizeof(struct fw_ri_sge))
- #define T4_MAX_FR_IMMD ((T4_SQ_NUM_BYTES - sizeof(struct fw_ri_fr_nsmr_wr) - \
- 			sizeof(struct fw_ri_immd)) & ~31UL)
--#define T4_MAX_FR_DEPTH (1024 / sizeof(u64))
-+#define T4_MAX_FR_IMMD_DEPTH (T4_MAX_FR_IMMD / sizeof(u64))
-+#define T4_MAX_FR_DSGL 1024
-+#define T4_MAX_FR_DSGL_DEPTH (T4_MAX_FR_DSGL / sizeof(u64))
-+
-+static inline int t4_max_fr_depth(int use_dsgl)
-+{
-+	return use_dsgl ? T4_MAX_FR_DSGL_DEPTH : T4_MAX_FR_IMMD_DEPTH;
-+}
- 
- #define T4_RQ_NUM_SLOTS 2
- #define T4_RQ_NUM_BYTES (T4_EQ_ENTRY_SIZE * T4_RQ_NUM_SLOTS)
+ 	plen = 0;
+ 	if (wr->num_sge) {
 -- 
 1.8.4
 
