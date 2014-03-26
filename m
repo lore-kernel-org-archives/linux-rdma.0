@@ -1,59 +1,111 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH net-next 2/2] cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes
-Date: Wed, 26 Mar 2014 10:58:35 -0500
-Message-ID: <007101cf490c$3ec7cb30$bc576190$@opengridcomputing.com>
-References: <1394814128-8815-1-git-send-email-hariprasad@chelsio.com>	 <1394814128-8815-3-git-send-email-hariprasad@chelsio.com> <1395848977.3297.15.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next] IB/core: Don't resolve passive side RoCE L2 address in cma req handler
+Date: Wed, 26 Mar 2014 18:23:31 +0200
+Message-ID: <1395851011-8081-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1395848977.3297.15.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Yann Droneaud' <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+The code that resolves the passive side source mac within the rdma_cm 
+connection request handler was both redundant and buggy, remove it.
 
-> > +		uresp.status_page_size = PAGE_SIZE;
-> > +
-> > +		spin_lock(&context->mmap_lock);
-> > +		uresp.status_page_key = context->key;
-> > +		context->key += PAGE_SIZE;
-> > +		spin_unlock(&context->mmap_lock);
-> > +
-> 
-> Is it really necessary to spinlock here since context is local to the
-> function ?
-> 
+It was redundant since later, when an RC QP is modified to RTR state 
+the resolution will take place in the ib_core module. It was buggy b/c
+this callback also deals with UD SIDR exchange under which we wrongly
+looked on the REQ member of the CM event and dereferenced a random value.
 
-You're correct.
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-> 
-> [...]
-> 
-> > diff --git a/drivers/infiniband/hw/cxgb4/user.h b/drivers/infiniband/hw/cxgb4/user.h
-> > index 32b754c..11ccd27 100644
-> > --- a/drivers/infiniband/hw/cxgb4/user.h
-> > +++ b/drivers/infiniband/hw/cxgb4/user.h
-> > @@ -70,4 +70,9 @@ struct c4iw_create_qp_resp {
-> >  	__u32 qid_mask;
-> >  	__u32 flags;
-> >  };
-> > +
-> > +struct c4iw_alloc_ucontext_resp {
-> > +	__u64 status_page_key;
-> > +	__u32 status_page_size;
-> > +};
-> 
-> If this is going to be part of the ABI, mind add an explicit padding to
-> align the structure on 64bits.
-> 
+Hi Roland, we're post 3.14-rc8 and hence I assume will go to 3.15-rc1 
+and once there we will post it to -stable to it gets into 3.14.y
 
-Sounds good.  Can you provide patches for these?
+That nasty random deref wasn't causing instant crashes, but rather only 
+when running on lengthy QA loops, so we missed it through the submission.
 
+ drivers/infiniband/core/cm.c  |   17 -----------------
+ drivers/infiniband/core/cma.c |   17 -----------------
+ include/rdma/ib_cm.h          |    1 -
+ 3 files changed, 0 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 0601b9d..c323917 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -349,23 +349,6 @@ static void cm_init_av_for_response(struct cm_port *port, struct ib_wc *wc,
+ 			   grh, &av->ah_attr);
+ }
+ 
+-int ib_update_cm_av(struct ib_cm_id *id, const u8 *smac, const u8 *alt_smac)
+-{
+-	struct cm_id_private *cm_id_priv;
+-
+-	cm_id_priv = container_of(id, struct cm_id_private, id);
+-
+-	if (smac != NULL)
+-		memcpy(cm_id_priv->av.smac, smac, sizeof(cm_id_priv->av.smac));
+-
+-	if (alt_smac != NULL)
+-		memcpy(cm_id_priv->alt_av.smac, alt_smac,
+-		       sizeof(cm_id_priv->alt_av.smac));
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(ib_update_cm_av);
+-
+ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+ {
+ 	struct cm_device *cm_dev;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 199958d..7e8c3d5 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1336,28 +1336,11 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+ 	ret = conn_id->id.event_handler(&conn_id->id, &event);
+ 	if (ret)
+ 		goto err3;
+-
+-	if (is_iboe) {
+-		if (ib_event->param.req_rcvd.primary_path != NULL)
+-			rdma_addr_find_smac_by_sgid(
+-				&ib_event->param.req_rcvd.primary_path->sgid,
+-				psmac, NULL);
+-		else
+-			psmac = NULL;
+-		if (ib_event->param.req_rcvd.alternate_path != NULL)
+-			rdma_addr_find_smac_by_sgid(
+-				&ib_event->param.req_rcvd.alternate_path->sgid,
+-				palt_smac, NULL);
+-		else
+-			palt_smac = NULL;
+-	}
+ 	/*
+ 	 * Acquire mutex to prevent user executing rdma_destroy_id()
+ 	 * while we're accessing the cm_id.
+ 	 */
+ 	mutex_lock(&lock);
+-	if (is_iboe)
+-		ib_update_cm_av(cm_id, psmac, palt_smac);
+ 	if (cma_comp(conn_id, RDMA_CM_CONNECT) &&
+ 	    (conn_id->id.qp_type != IB_QPT_UD))
+ 		ib_send_cm_mra(cm_id, CMA_CM_MRA_SETTING, NULL, 0);
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index f29e3a2..0e3ff30 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -601,5 +601,4 @@ struct ib_cm_sidr_rep_param {
+ int ib_send_cm_sidr_rep(struct ib_cm_id *cm_id,
+ 			struct ib_cm_sidr_rep_param *param);
+ 
+-int ib_update_cm_av(struct ib_cm_id *id, const u8 *smac, const u8 *alt_smac);
+ #endif /* IB_CM_H */
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
