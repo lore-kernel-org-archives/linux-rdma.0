@@ -1,113 +1,63 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next] IB/core: Don't resolve passive side RoCE L2 address in cma req handler
-Date: Wed, 26 Mar 2014 18:23:31 +0200
-Message-ID: <1395851011-8081-1-git-send-email-ogerlitz@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next] IB/core: Don't resolve passive side RoCE L2
+ address in cma req handler
+Date: Wed, 26 Mar 2014 18:10:24 +0100
+Message-ID: <1395853824.3297.34.camel@localhost.localdomain>
+References: <1395851011-8081-1-git-send-email-ogerlitz@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1395851011-8081-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi,
 
-The code that resolves the passive side source mac within the rdma_cm 
-connection request handler was both redundant and buggy, remove it.
+Le mercredi 26 mars 2014 =C3=A0 18:23 +0200, Or Gerlitz a =C3=A9crit :
+> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> The code that resolves the passive side source mac within the rdma_cm=
+=20
+> connection request handler was both redundant and buggy, remove it.
+>=20
+> It was redundant since later, when an RC QP is modified to RTR state=20
+> the resolution will take place in the ib_core module. It was buggy b/=
+c
+> this callback also deals with UD SIDR exchange under which we wrongly
+> looked on the REQ member of the CM event and dereferenced a random va=
+lue.
+>=20
 
-It was redundant since later, when an RC QP is modified to RTR state 
-the resolution will take place in the ib_core module. It was buggy b/c
-this callback also deals with UD SIDR exchange under which we wrongly
-looked on the REQ member of the CM event and dereferenced a random value.
+Is that a revert of some patch ?
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>=20
+> Hi Roland, we're post 3.14-rc8 and hence I assume will go to 3.15-rc1=
+=20
+> and once there we will post it to -stable to it gets into 3.14.y
+>=20
 
-Hi Roland, we're post 3.14-rc8 and hence I assume will go to 3.15-rc1 
-and once there we will post it to -stable to it gets into 3.14.y
+Just add Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-That nasty random deref wasn't causing instant crashes, but rather only 
-when running on lengthy QA loops, so we missed it through the submission.
+See:
 
- drivers/infiniband/core/cm.c  |   17 -----------------
- drivers/infiniband/core/cma.c |   17 -----------------
- include/rdma/ib_cm.h          |    1 -
- 3 files changed, 0 insertions(+), 35 deletions(-)
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Doc=
+umentation/stable_kernel_rules.txt?id=3Dv3.14-rc8#n36
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 0601b9d..c323917 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -349,23 +349,6 @@ static void cm_init_av_for_response(struct cm_port *port, struct ib_wc *wc,
- 			   grh, &av->ah_attr);
- }
- 
--int ib_update_cm_av(struct ib_cm_id *id, const u8 *smac, const u8 *alt_smac)
--{
--	struct cm_id_private *cm_id_priv;
--
--	cm_id_priv = container_of(id, struct cm_id_private, id);
--
--	if (smac != NULL)
--		memcpy(cm_id_priv->av.smac, smac, sizeof(cm_id_priv->av.smac));
--
--	if (alt_smac != NULL)
--		memcpy(cm_id_priv->alt_av.smac, alt_smac,
--		       sizeof(cm_id_priv->alt_av.smac));
--
--	return 0;
--}
--EXPORT_SYMBOL(ib_update_cm_av);
--
- static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
- {
- 	struct cm_device *cm_dev;
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 199958d..7e8c3d5 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1336,28 +1336,11 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	ret = conn_id->id.event_handler(&conn_id->id, &event);
- 	if (ret)
- 		goto err3;
--
--	if (is_iboe) {
--		if (ib_event->param.req_rcvd.primary_path != NULL)
--			rdma_addr_find_smac_by_sgid(
--				&ib_event->param.req_rcvd.primary_path->sgid,
--				psmac, NULL);
--		else
--			psmac = NULL;
--		if (ib_event->param.req_rcvd.alternate_path != NULL)
--			rdma_addr_find_smac_by_sgid(
--				&ib_event->param.req_rcvd.alternate_path->sgid,
--				palt_smac, NULL);
--		else
--			palt_smac = NULL;
--	}
- 	/*
- 	 * Acquire mutex to prevent user executing rdma_destroy_id()
- 	 * while we're accessing the cm_id.
- 	 */
- 	mutex_lock(&lock);
--	if (is_iboe)
--		ib_update_cm_av(cm_id, psmac, palt_smac);
- 	if (cma_comp(conn_id, RDMA_CM_CONNECT) &&
- 	    (conn_id->id.qp_type != IB_QPT_UD))
- 		ib_send_cm_mra(cm_id, CMA_CM_MRA_SETTING, NULL, 0);
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index f29e3a2..0e3ff30 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -601,5 +601,4 @@ struct ib_cm_sidr_rep_param {
- int ib_send_cm_sidr_rep(struct ib_cm_id *cm_id,
- 			struct ib_cm_sidr_rep_param *param);
- 
--int ib_update_cm_av(struct ib_cm_id *id, const u8 *smac, const u8 *alt_smac);
- #endif /* IB_CM_H */
--- 
-1.7.1
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
