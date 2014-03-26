@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/8] iw_cxgb4: endpoint timeout fixes
-Date: Wed, 26 Mar 2014 18:53:52 +0530
-Message-ID: <1395840239-4368-2-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH 3/8] iw_cxgb4: SQ flush fix
+Date: Wed, 26 Mar 2014 18:53:54 +0530
+Message-ID: <1395840239-4368-4-git-send-email-hariprasad@chelsio.com>
 References: <1395840239-4368-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395840239-4368-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -12,271 +12,118 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-1) timedout endpoint processing can be starved. If there is continual
-CPL messages flowing into the driver, the endpoint timeout processing
-can be starved.  This condition exposed the other bugs below.
+There is a race when moving a QP from RTS->CLOSING where a SQ work
+request could be posted after the FW receives the RDMA_RI/FINI WR.
+The SQ work request will never get processed, and should be completed
+with FLUSHED status.  Function c4iw_flush_sq(), however was dropping
+the oldest SQ work request when in CLOSING or IDLE states, instead of
+completing the pending work request. If that oldest pending work request
+was actually complete and has a CQE in the CQ, then when that CQE is
+proceessed in poll_cq, we'll BUG_ON() due to the inconsistent SQ/CQ state.
 
-Solution: In process_work(), call process_timedout_eps() after each CPL
-is processed.
+This is a very small timing hole and has only been hit once so far.
 
-2) Connection events can be processed even though the endpoint is on
-the timeout list.  If the endpoint is scheduled for timeout processing,
-then we must ignore MPA Start Requests and Replies.
+The fix is two-fold:
 
-Solution: Change stop_ep_timer() to return 1 if the ep has already been
-queued for timeout processing.  All the callers of stop_ep_timer() need
-to check this and act accordingly.  There are just a few cases where
-the caller needs to do something different if stop_ep_timer() returns 1:
+1) c4iw_flush_sq() MUST always flush all non-completed WRs with FLUSHED
+status regardless of the QP state.
 
-1) in process_mpa_reply(), ignore the reply and  process_timeout()
-will abort the connection.
-
-2) in process_mpa_request, ignore the request and process_timeout()
-will abort the connection.
-
-It is ok for callers of stop_ep_timer() to abort the connection since
-that will leave the state in ABORTING or DEAD, and process_timeout()
-now ignores timeouts when the ep is in these states.
-
-3) Double insertion on the timeout list.  Since the endpoint timers are
-used for connection setup and teardown, we need to guard against the
-possibility that an endpoint is already on the timeout list.  This is
-a rare condition and only seen under heavy load and in the presense of
-the above 2 bugs.
-
-Solution: In ep_timeout(), don't queue the endpoint if it is already on
-the queue.
+2) In c4iw_modify_rc_qp(), always set the "in error" bit on the queue
+before moving the state out of RTS.  This ensures that the state
+transition will not happen while another thread is in post_rc_send(),
+because set_state() and post_rc_send() both aquire the qp spinlock.
+Also, once we transition the state out of RTS, subsequent calls to
+post_rc_send() will fail because the "in error" bit is set.  I don't
+think this fully closes the race where the FW can get a FINI followed a
+SQ work request being posted (because they are posted to differente EQs),
+but the #1 fix will handle the issue by flushing the SQ work request.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 89 +++++++++++++++++++++++++---------------
- 1 file changed, 56 insertions(+), 33 deletions(-)
+ drivers/infiniband/hw/cxgb4/cq.c | 22 ++++++++--------------
+ drivers/infiniband/hw/cxgb4/qp.c |  6 +++---
+ 2 files changed, 11 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index fe5db3c..471614e 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -173,12 +173,15 @@ static void start_ep_timer(struct c4iw_ep *ep)
- 	add_timer(&ep->timer);
- }
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index ce468e5..e17b155 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -235,27 +235,21 @@ int c4iw_flush_sq(struct c4iw_qp *qhp)
+ 	struct t4_cq *cq = &chp->cq;
+ 	int idx;
+ 	struct t4_swsqe *swsqe;
+-	int error = (qhp->attr.state != C4IW_QP_STATE_CLOSING &&
+-			qhp->attr.state != C4IW_QP_STATE_IDLE);
  
--static void stop_ep_timer(struct c4iw_ep *ep)
-+static int stop_ep_timer(struct c4iw_ep *ep)
- {
- 	PDBG("%s ep %p stopping\n", __func__, ep);
- 	del_timer_sync(&ep->timer);
--	if (!test_and_set_bit(TIMEOUT, &ep->com.flags))
-+	if (!test_and_set_bit(TIMEOUT, &ep->com.flags)) {
- 		c4iw_put_ep(&ep->com);
-+		return 0;
-+	}
-+	return 1;
- }
- 
- static int c4iw_l2t_send(struct c4iw_rdev *rdev, struct sk_buff *skb,
-@@ -1165,12 +1168,11 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 
- 	/*
--	 * Stop mpa timer.  If it expired, then the state has
--	 * changed and we bail since ep_timeout already aborted
--	 * the connection.
-+	 * Stop mpa timer.  If it expired, then
-+	 * we ignore the MPA reply.  process_timeout()
-+	 * will abort the connection.
- 	 */
--	stop_ep_timer(ep);
--	if (ep->com.state != MPA_REQ_SENT)
-+	if (stop_ep_timer(ep))
- 		return;
- 
- 	/*
-@@ -1375,15 +1377,12 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 
--	if (ep->com.state != MPA_REQ_WAIT)
--		return;
--
- 	/*
- 	 * If we get more than the supported amount of private data
- 	 * then we must fail this connection.
- 	 */
- 	if (ep->mpa_pkt_len + skb->len > sizeof(ep->mpa_pkt)) {
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		abort_connection(ep, skb, GFP_KERNEL);
- 		return;
+ 	if (wq->sq.flush_cidx == -1)
+ 		wq->sq.flush_cidx = wq->sq.cidx;
+ 	idx = wq->sq.flush_cidx;
+ 	BUG_ON(idx >= wq->sq.size);
+ 	while (idx != wq->sq.pidx) {
+-		if (error) {
+-			swsqe = &wq->sq.sw_sq[idx];
+-			BUG_ON(swsqe->flushed);
+-			swsqe->flushed = 1;
+-			insert_sq_cqe(wq, cq, swsqe);
+-			if (wq->sq.oldest_read == swsqe) {
+-				BUG_ON(swsqe->opcode != FW_RI_READ_REQ);
+-				advance_oldest_read(wq);
+-			}
+-			flushed++;
+-		} else {
+-			t4_sq_consume(wq);
++		swsqe = &wq->sq.sw_sq[idx];
++		BUG_ON(swsqe->flushed);
++		swsqe->flushed = 1;
++		insert_sq_cqe(wq, cq, swsqe);
++		if (wq->sq.oldest_read == swsqe) {
++			BUG_ON(swsqe->opcode != FW_RI_READ_REQ);
++			advance_oldest_read(wq);
+ 		}
++		flushed++;
+ 		if (++idx == wq->sq.size)
+ 			idx = 0;
  	}
-@@ -1413,13 +1412,13 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 	if (mpa->revision > mpa_rev) {
- 		printk(KERN_ERR MOD "%s MPA version mismatch. Local = %d,"
- 		       " Received = %d\n", __func__, mpa_rev, mpa->revision);
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		abort_connection(ep, skb, GFP_KERNEL);
- 		return;
- 	}
- 
- 	if (memcmp(mpa->key, MPA_KEY_REQ, sizeof(mpa->key))) {
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		abort_connection(ep, skb, GFP_KERNEL);
- 		return;
- 	}
-@@ -1430,7 +1429,7 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * Fail if there's too much private data.
- 	 */
- 	if (plen > MPA_MAX_PRIVATE_DATA) {
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		abort_connection(ep, skb, GFP_KERNEL);
- 		return;
- 	}
-@@ -1439,7 +1438,7 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * If plen does not account for pkt size
- 	 */
- 	if (ep->mpa_pkt_len > (sizeof(*mpa) + plen)) {
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		abort_connection(ep, skb, GFP_KERNEL);
- 		return;
- 	}
-@@ -1496,18 +1495,24 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 	     ep->mpa_attr.xmit_marker_enabled, ep->mpa_attr.version,
- 	     ep->mpa_attr.p2p_type);
- 
--	__state_set(&ep->com, MPA_REQ_RCVD);
--	stop_ep_timer(ep);
--
--	/* drive upcall */
--	mutex_lock(&ep->parent_ep->com.mutex);
--	if (ep->parent_ep->com.state != DEAD) {
--		if (connect_request_upcall(ep))
-+	/*
-+	 * If the endpoint timer already expired, then we ignore
-+	 * the start request.  process_timeout() will abort
-+	 * the connection.
-+	 */
-+	if (!stop_ep_timer(ep)) {
-+		__state_set(&ep->com, MPA_REQ_RCVD);
-+
-+		/* drive upcall */
-+		mutex_lock(&ep->parent_ep->com.mutex);
-+		if (ep->parent_ep->com.state != DEAD) {
-+			if (connect_request_upcall(ep))
-+				abort_connection(ep, skb, GFP_KERNEL);
-+		} else {
- 			abort_connection(ep, skb, GFP_KERNEL);
--	} else {
--		abort_connection(ep, skb, GFP_KERNEL);
-+		}
-+		mutex_unlock(&ep->parent_ep->com.mutex);
- 	}
--	mutex_unlock(&ep->parent_ep->com.mutex);
- 	return;
- }
- 
-@@ -2256,7 +2261,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
- 		disconnect = 0;
- 		break;
- 	case MORIBUND:
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		if (ep->com.cm_id && ep->com.qp) {
- 			attrs.next_state = C4IW_QP_STATE_IDLE;
- 			c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
-@@ -2325,10 +2330,10 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- 	case CONNECTING:
- 		break;
- 	case MPA_REQ_WAIT:
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		break;
- 	case MPA_REQ_SENT:
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		if (mpa_rev == 1 || (mpa_rev == 2 && ep->tried_with_mpa_v1))
- 			connect_reply_upcall(ep, -ECONNRESET);
- 		else {
-@@ -2433,7 +2438,7 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 		__state_set(&ep->com, MORIBUND);
- 		break;
- 	case MORIBUND:
--		stop_ep_timer(ep);
-+		(void)stop_ep_timer(ep);
- 		if ((ep->com.cm_id) && (ep->com.qp)) {
- 			attrs.next_state = C4IW_QP_STATE_IDLE;
- 			c4iw_modify_qp(ep->com.qp->rhp,
-@@ -3028,7 +3033,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 		if (!test_and_set_bit(CLOSE_SENT, &ep->com.flags)) {
- 			close = 1;
- 			if (abrupt) {
--				stop_ep_timer(ep);
-+				(void)stop_ep_timer(ep);
- 				ep->com.state = ABORTING;
- 			} else
- 				ep->com.state = MORIBUND;
-@@ -3462,6 +3467,16 @@ static void process_timeout(struct c4iw_ep *ep)
- 		__state_set(&ep->com, ABORTING);
- 		close_complete_upcall(ep, -ETIMEDOUT);
- 		break;
-+	case ABORTING:
-+	case DEAD:
-+
-+		/*
-+		 * These states are expected if the ep timed out at the same
-+		 * time as another thread was calling stop_ep_timer().
-+		 * So we silently do nothing for these states.
-+		 */
-+		abort = 0;
-+		break;
- 	default:
- 		WARN(1, "%s unexpected state ep %p tid %u state %u\n",
- 			__func__, ep, ep->hwtid, ep->com.state);
-@@ -3483,6 +3498,8 @@ static void process_timedout_eps(void)
- 
- 		tmp = timeout_list.next;
- 		list_del(tmp);
-+		tmp->next = NULL;
-+		tmp->prev = NULL;
- 		spin_unlock_irq(&timeout_lock);
- 		ep = list_entry(tmp, struct c4iw_ep, entry);
- 		process_timeout(ep);
-@@ -3499,6 +3516,7 @@ static void process_work(struct work_struct *work)
- 	unsigned int opcode;
- 	int ret;
- 
-+	process_timedout_eps();
- 	while ((skb = skb_dequeue(&rxq))) {
- 		rpl = cplhdr(skb);
- 		dev = *((struct c4iw_dev **) (skb->cb + sizeof(void *)));
-@@ -3508,8 +3526,8 @@ static void process_work(struct work_struct *work)
- 		ret = work_handlers[opcode](dev, skb);
- 		if (!ret)
- 			kfree_skb(skb);
-+		process_timedout_eps();
- 	}
--	process_timedout_eps();
- }
- 
- static DECLARE_WORK(skb_work, process_work);
-@@ -3521,8 +3539,13 @@ static void ep_timeout(unsigned long arg)
- 
- 	spin_lock(&timeout_lock);
- 	if (!test_and_set_bit(TIMEOUT, &ep->com.flags)) {
--		list_add_tail(&ep->entry, &timeout_list);
--		kickit = 1;
-+		/*
-+		 * Only insert if it is not already on the list.
-+		 */
-+		if (!ep->entry.next) {
-+			list_add_tail(&ep->entry, &timeout_list);
-+			kickit = 1;
-+		}
- 	}
- 	spin_unlock(&timeout_lock);
- 	if (kickit)
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 723ad29..8ad7d2e 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1333,6 +1333,7 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 		switch (attrs->next_state) {
+ 		case C4IW_QP_STATE_CLOSING:
+ 			BUG_ON(atomic_read(&qhp->ep->com.kref.refcount) < 2);
++			t4_set_wq_in_error(&qhp->wq);
+ 			set_state(qhp, C4IW_QP_STATE_CLOSING);
+ 			ep = qhp->ep;
+ 			if (!internal) {
+@@ -1340,16 +1341,15 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 				disconnect = 1;
+ 				c4iw_get_ep(&qhp->ep->com);
+ 			}
+-			t4_set_wq_in_error(&qhp->wq);
+ 			ret = rdma_fini(rhp, qhp, ep);
+ 			if (ret)
+ 				goto err;
+ 			break;
+ 		case C4IW_QP_STATE_TERMINATE:
++			t4_set_wq_in_error(&qhp->wq);
+ 			set_state(qhp, C4IW_QP_STATE_TERMINATE);
+ 			qhp->attr.layer_etype = attrs->layer_etype;
+ 			qhp->attr.ecode = attrs->ecode;
+-			t4_set_wq_in_error(&qhp->wq);
+ 			ep = qhp->ep;
+ 			disconnect = 1;
+ 			if (!internal)
+@@ -1362,8 +1362,8 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 			c4iw_get_ep(&qhp->ep->com);
+ 			break;
+ 		case C4IW_QP_STATE_ERROR:
+-			set_state(qhp, C4IW_QP_STATE_ERROR);
+ 			t4_set_wq_in_error(&qhp->wq);
++			set_state(qhp, C4IW_QP_STATE_ERROR);
+ 			if (!internal) {
+ 				abort = 1;
+ 				disconnect = 1;
 -- 
 1.8.4
 
