@@ -1,76 +1,42 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Kernel oops/panic with NFS over RDMA mount after disrupted Infiniband connection
-Date: Thu, 27 Mar 2014 08:59:06 -0700
-Message-ID: <B7D4A29C-5E1F-4B6C-A8FC-C46D8DF6A87D@oracle.com>
-References: <5332D425.3030803@ims.co.at> <4E6350BB-5E9C-40D9-8624-6CAA78E5B902@oracle.com> <lh0le0$u5$1@ger.gmane.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <lh0le0$u5$1@ger.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Reiter Rafael <rafael.reiter-cv18SyjCLaheoWH0uzbU5w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb4: Disable DSGL use.
+Date: Thu, 27 Mar 2014 12:03:47 -0500
+Message-ID: <20140327170346.19874.17772.stgit@build.ogc.int>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi-
+Current hardware doesn't correctly support DSGL.
 
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-On Mar 27, 2014, at 12:53 AM, Reiter Rafael <rafael.reiter-cv18SyjCLaheoWH0uzbU5w@public.gmane.org> w=
-rote:
+ drivers/infiniband/hw/cxgb4/mem.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> On 03/26/2014 07:15 PM, Chuck Lever wrote:
->>=20
->> Hi Rafael-
->>=20
->> I=92ll take a look. Can you report your HCA and how you reproduce th=
-is issue?
->=20
-> The HCA is Mellanox Technologies MT26428.
->=20
-> Reproduction:
-> 1) Mount a directory via NFS/RDMA
-> mount -t nfs -o port=3D20049,rdma,vers=3D4.0,timeo=3D900 172.16.100.2=
-:/ /mnt/
-> 2) Pull the Infiniband cable or use ibportstate to disrupt the Infini=
-band connection
-> 3) ls /mnt
-> 4) wait 5-30 seconds
-
-Thanks for the information.
-
-I have that HCA, but I won=92t have access to my test systems for a wee=
-k (traveling). So can you try this:
-
- # rpcdebug -m rpc -s trans
-
-then reproduce (starting with step 1 above). Some debugging output will=
- appear at the tail of /var/log/messages. Copy it to this thread.
-
->=20
->>=20
->> Do you (or does anyone) know whether OpenSuSE uses the stock upstrea=
-m providers, or has any of OFED been applied to this kernel?
->=20
-> My first post was misleading -- I use the vanilla 3.10.17 kernel, and=
- the error occurs with and without Mellanox OFED. The above report
-> references the vanilla kernel.
->=20
-> Rafael
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 0989871a..bad9268 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -37,9 +37,9 @@
+ 
+ #include "iw_cxgb4.h"
+ 
+-int use_dsgl = 1;
++int use_dsgl = 0;
+ module_param(use_dsgl, int, 0644);
+-MODULE_PARM_DESC(use_dsgl, "Use DSGL for PBL/FastReg (default=1)");
++MODULE_PARM_DESC(use_dsgl, "Use DSGL for PBL/FastReg (default=0)");
+ 
+ #define T4_ULPTX_MIN_IO 32
+ #define C4IW_MAX_INLINE_SIZE 96
 
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
