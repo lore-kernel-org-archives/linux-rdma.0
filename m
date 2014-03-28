@@ -1,7 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/4] IB/core: Remove overload in ib_sg_dma*
-Date: Fri, 28 Mar 2014 12:35:39 -0400
-Message-ID: <20140328163539.5773.94068.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/4] IB/qib: remove ib_sg_dma_address() and ib_sg_dma_len()
+ overloads
+Date: Fri, 28 Mar 2014 12:35:45 -0400
+Message-ID: <20140328163545.5773.46946.stgit@phlsvslse11.ph.intel.com>
 References: <20140328163500.5773.35838.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,67 +14,63 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The code is replaced by driver specific
-changes and avoids the pointer NULL test
-for drivers that don't overload these
-operations.
+The code is replaced by logic in the .map_sg overload.
 
-Suggested-by: <Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Suggested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Tested-by: Vinod Kumar <vinod.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/qib/qib_dma.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6793f32..5777716 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1266,10 +1266,6 @@ struct ib_dma_mapping_ops {
- 	void		(*unmap_sg)(struct ib_device *dev,
- 				    struct scatterlist *sg, int nents,
- 				    enum dma_data_direction direction);
--	u64		(*dma_address)(struct ib_device *dev,
--				       struct scatterlist *sg);
--	unsigned int	(*dma_len)(struct ib_device *dev,
--				   struct scatterlist *sg);
- 	void		(*sync_single_for_cpu)(struct ib_device *dev,
- 					       u64 dma_handle,
- 					       size_t size,
-@@ -2089,12 +2085,13 @@ static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
-  * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
-  * @dev: The device for which the DMA addresses were created
-  * @sg: The scatter/gather entry
-+ *
-+ * Note: this function is obsolete. To do: change all occurrences of
-+ * ib_sg_dma_address() into sg_dma_address().
-  */
- static inline u64 ib_sg_dma_address(struct ib_device *dev,
- 				    struct scatterlist *sg)
- {
--	if (dev->dma_ops)
--		return dev->dma_ops->dma_address(dev, sg);
- 	return sg_dma_address(sg);
+diff --git a/drivers/infiniband/hw/qib/qib_dma.c b/drivers/infiniband/hw/qib/qib_dma.c
+index 2920bb3..59fe092 100644
+--- a/drivers/infiniband/hw/qib/qib_dma.c
++++ b/drivers/infiniband/hw/qib/qib_dma.c
+@@ -108,6 +108,10 @@ static int qib_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+ 			ret = 0;
+ 			break;
+ 		}
++		sg->dma_address = addr + sg->offset;
++#ifdef CONFIG_NEED_SG_DMA_LENGTH
++		sg->dma_length = sg->length;
++#endif
+ 	}
+ 	return ret;
+ }
+@@ -119,21 +123,6 @@ static void qib_unmap_sg(struct ib_device *dev,
+ 	BUG_ON(!valid_dma_direction(direction));
  }
  
-@@ -2102,12 +2099,13 @@ static inline u64 ib_sg_dma_address(struct ib_device *dev,
-  * ib_sg_dma_len - Return the DMA length from a scatter/gather entry
-  * @dev: The device for which the DMA addresses were created
-  * @sg: The scatter/gather entry
-+ *
-+ * Note: this function is obsolete. To do: change all occurrences of
-+ * ib_sg_dma_len() into sg_dma_len().
-  */
- static inline unsigned int ib_sg_dma_len(struct ib_device *dev,
- 					 struct scatterlist *sg)
+-static u64 qib_sg_dma_address(struct ib_device *dev, struct scatterlist *sg)
+-{
+-	u64 addr = (u64) page_address(sg_page(sg));
+-
+-	if (addr)
+-		addr += sg->offset;
+-	return addr;
+-}
+-
+-static unsigned int qib_sg_dma_len(struct ib_device *dev,
+-				   struct scatterlist *sg)
+-{
+-	return sg->length;
+-}
+-
+ static void qib_sync_single_for_cpu(struct ib_device *dev, u64 addr,
+ 				    size_t size, enum dma_data_direction dir)
  {
--	if (dev->dma_ops)
--		return dev->dma_ops->dma_len(dev, sg);
- 	return sg_dma_len(sg);
- }
- 
+@@ -173,8 +162,6 @@ struct ib_dma_mapping_ops qib_dma_mapping_ops = {
+ 	.unmap_page = qib_dma_unmap_page,
+ 	.map_sg = qib_map_sg,
+ 	.unmap_sg = qib_unmap_sg,
+-	.dma_address = qib_sg_dma_address,
+-	.dma_len = qib_sg_dma_len,
+ 	.sync_single_for_cpu = qib_sync_single_for_cpu,
+ 	.sync_single_for_device = qib_sync_single_for_device,
+ 	.alloc_coherent = qib_dma_alloc_coherent,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
