@@ -1,8 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/4] IB/qib: remove ib_sg_dma_address() and ib_sg_dma_len()
- overloads
-Date: Fri, 28 Mar 2014 12:35:45 -0400
-Message-ID: <20140328163545.5773.46946.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 3/4] IB/ipath: remove ib_sg_dma_address() and
+ ib_sg_dma_len() overloads
+Date: Fri, 28 Mar 2014 12:35:50 -0400
+Message-ID: <20140328163550.5773.20441.stgit@phlsvslse11.ph.intel.com>
 References: <20140328163500.5773.35838.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -19,17 +19,16 @@ The code is replaced by logic in the .map_sg overload.
 Suggested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Tested-by: Vinod Kumar <vinod.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_dma.c |   21 ++++-----------------
- 1 file changed, 4 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_dma.c |   43 +++++++++++--------------------
+ 1 file changed, 15 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_dma.c b/drivers/infiniband/hw/qib/qib_dma.c
-index 2920bb3..59fe092 100644
---- a/drivers/infiniband/hw/qib/qib_dma.c
-+++ b/drivers/infiniband/hw/qib/qib_dma.c
-@@ -108,6 +108,10 @@ static int qib_map_sg(struct ib_device *dev, struct scatterlist *sgl,
+diff --git a/drivers/infiniband/hw/ipath/ipath_dma.c b/drivers/infiniband/hw/ipath/ipath_dma.c
+index 644c2c7..123a8c0 100644
+--- a/drivers/infiniband/hw/ipath/ipath_dma.c
++++ b/drivers/infiniband/hw/ipath/ipath_dma.c
+@@ -115,6 +115,10 @@ static int ipath_map_sg(struct ib_device *dev, struct scatterlist *sgl,
  			ret = 0;
  			break;
  		}
@@ -40,11 +39,11 @@ index 2920bb3..59fe092 100644
  	}
  	return ret;
  }
-@@ -119,21 +123,6 @@ static void qib_unmap_sg(struct ib_device *dev,
+@@ -126,21 +130,6 @@ static void ipath_unmap_sg(struct ib_device *dev,
  	BUG_ON(!valid_dma_direction(direction));
  }
  
--static u64 qib_sg_dma_address(struct ib_device *dev, struct scatterlist *sg)
+-static u64 ipath_sg_dma_address(struct ib_device *dev, struct scatterlist *sg)
 -{
 -	u64 addr = (u64) page_address(sg_page(sg));
 -
@@ -53,24 +52,44 @@ index 2920bb3..59fe092 100644
 -	return addr;
 -}
 -
--static unsigned int qib_sg_dma_len(struct ib_device *dev,
--				   struct scatterlist *sg)
+-static unsigned int ipath_sg_dma_len(struct ib_device *dev,
+-				     struct scatterlist *sg)
 -{
 -	return sg->length;
 -}
 -
- static void qib_sync_single_for_cpu(struct ib_device *dev, u64 addr,
- 				    size_t size, enum dma_data_direction dir)
- {
-@@ -173,8 +162,6 @@ struct ib_dma_mapping_ops qib_dma_mapping_ops = {
- 	.unmap_page = qib_dma_unmap_page,
- 	.map_sg = qib_map_sg,
- 	.unmap_sg = qib_unmap_sg,
--	.dma_address = qib_sg_dma_address,
--	.dma_len = qib_sg_dma_len,
- 	.sync_single_for_cpu = qib_sync_single_for_cpu,
- 	.sync_single_for_device = qib_sync_single_for_device,
- 	.alloc_coherent = qib_dma_alloc_coherent,
+ static void ipath_sync_single_for_cpu(struct ib_device *dev,
+ 				      u64 addr,
+ 				      size_t size,
+@@ -176,17 +165,15 @@ static void ipath_dma_free_coherent(struct ib_device *dev, size_t size,
+ }
+ 
+ struct ib_dma_mapping_ops ipath_dma_mapping_ops = {
+-	ipath_mapping_error,
+-	ipath_dma_map_single,
+-	ipath_dma_unmap_single,
+-	ipath_dma_map_page,
+-	ipath_dma_unmap_page,
+-	ipath_map_sg,
+-	ipath_unmap_sg,
+-	ipath_sg_dma_address,
+-	ipath_sg_dma_len,
+-	ipath_sync_single_for_cpu,
+-	ipath_sync_single_for_device,
+-	ipath_dma_alloc_coherent,
+-	ipath_dma_free_coherent
++	.mapping_error = ipath_mapping_error,
++	.map_single = ipath_dma_map_single,
++	.unmap_single = ipath_dma_unmap_single,
++	.map_page = ipath_dma_map_page,
++	.unmap_page = ipath_dma_unmap_page,
++	.map_sg = ipath_map_sg,
++	.unmap_sg = ipath_unmap_sg,
++	.sync_single_for_cpu = ipath_sync_single_for_cpu,
++	.sync_single_for_device = ipath_sync_single_for_device,
++	.alloc_coherent = ipath_dma_alloc_coherent,
++	.free_coherent = ipath_dma_free_coherent
+ };
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
