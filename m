@@ -1,25 +1,31 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 2/4] IB/ipath: remove ib_sg_dma_address() and
- ib_sg_dma_len() overloads
-Date: Fri, 28 Mar 2014 19:07:20 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC21223072@FMSMSX107.amr.corp.intel.com>
-References: <20140328172606.23646.35980.stgit@phlsvslse11.ph.intel.com>
-	 <20140328172647.23646.58499.stgit@phlsvslse11.ph.intel.com>
- <1396030191.3297.81.camel@localhost.localdomain>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [Patch 0/3] Hangs with IPoIB when doing PCI error injection
+Date: Fri, 28 Mar 2014 16:47:20 -0400 (EDT)
+Message-ID: <20140328.164720.2112966893481630828.davem@davemloft.net>
+References: <20140327142813.535289178@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1396030191.3297.81.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20140327142813.535289178-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBBbmQgc3RydWN0IGlwYXRoX2RtYV9tYXBwaW5nX29wcyB3YXMgY29udmVydGVkIHRvIEM5OSBp
-bml0aWFsaXplci4NCj4gDQoNClRoaXMgaXMgbm93IG1lbnRpb25lZCBpbiB0aGUgaXBhdGggcGF0
-Y2guDQo=
+From: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Date: Thu, 27 Mar 2014 09:28:13 -0500
+
+> This patch is to resolve some hangs we are seeing when doing PCI error injection
+> to Mellanox Infiniband cards. With this patch we make mlx4 driver send an IB_EVENT_DEVICE_FATAL 
+> to the users and added this event to event handlers to avoid these hangs. 
+> If IPoIB is in connected mode, then added to cm an event handler and tried to 
+> make sure that when it sees the fatal event it does not try to send anymore packet because
+> it will not receive any more completions or interrupts. 
+
+I'm assuming Roland will take this in via his tree.
+
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
