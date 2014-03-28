@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 14/16] ibacm: ib_acme remove IP addresses from ibacm_addr.cfg file generation
-Date: Thu, 27 Mar 2014 22:50:08 -0700
-Message-ID: <1395985810-23822-15-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 07/16] ibacm: convert logging in acm_util.c to acm_log
+Date: Thu, 27 Mar 2014 22:50:01 -0700
+Message-ID: <1395985810-23822-8-git-send-email-sean.hefty@intel.com>
 References: <1395985810-23822-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395985810-23822-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,183 +12,161 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+ib_acme build defines ACME_PRINTS which overrides acm_log to printf
+
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Makefile.am        |    3 +-
- linux/acme_linux.c |   95 ----------------------------------------------------
- man/ib_acme.1      |    3 +-
- src/acme.c         |   12 ++-----
- 4 files changed, 5 insertions(+), 108 deletions(-)
- delete mode 100644 linux/acme_linux.c
+ Makefile.am    |    2 +-
+ src/acm.c      |    6 ++----
+ src/acm_util.c |   21 +++++++++------------
+ src/acm_util.h |   12 ++++++++++++
+ 4 files changed, 24 insertions(+), 17 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index cab1ca1..9070a5a 100644
+index 539ef83..703030d 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -5,8 +5,7 @@ AM_CFLAGS = -g -Wall -D_GNU_SOURCE -DSYSCONFDIR=\"$(sysconfdir)\" -DBINDIR=\"$(b
- bin_PROGRAMS = util/ib_acme
- sbin_PROGRAMS = svc/ibacm
- svc_ibacm_SOURCES = src/acm.c src/acm_util.c
--util_ib_acme_SOURCES = src/acme.c linux/acme_linux.c src/libacm.c linux/libacm_linux.c \
--			src/parse.c src/acm_util.c
-+util_ib_acme_SOURCES = src/acme.c src/libacm.c linux/libacm_linux.c src/parse.c
+@@ -8,7 +8,7 @@ svc_ibacm_SOURCES = src/acm.c
+ util_ib_acme_SOURCES = src/acme.c linux/acme_linux.c src/libacm.c linux/libacm_linux.c \
+ 			src/parse.c src/acm_util.c
  svc_ibacm_CFLAGS = $(AM_CFLAGS)
- util_ib_acme_CFLAGS = $(AM_CFLAGS) -DACME_PRINTS
+-util_ib_acme_CFLAGS = $(AM_CFLAGS)
++util_ib_acme_CFLAGS = $(AM_CFLAGS) -DACME_PRINTS
  
-diff --git a/linux/acme_linux.c b/linux/acme_linux.c
-deleted file mode 100644
-index 33fafd2..0000000
---- a/linux/acme_linux.c
-+++ /dev/null
-@@ -1,95 +0,0 @@
--/*
-- * Copyright (c) 2009 Intel Corporation. All rights reserved.
-- *
-- * This software is available to you under the OpenIB.org BSD license
-- * below:
-- *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
-- *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
-- *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-- */
--
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--
--#include <infiniband/verbs.h>
--#include "acm_util.h"
--
--extern struct ibv_context **verbs;
--extern int dev_cnt;
--extern int verbose;
--
--static int
--get_devaddr(union ibv_gid *sgid, int *dev_index, uint8_t *port)
--{
--	struct ibv_device_attr dev_attr;
--	struct ibv_port_attr port_attr;
--	union ibv_gid gid;
--	int ret, i;
--
--	for (*dev_index = 0; *dev_index < dev_cnt; (*dev_index)++) {
--		ret = ibv_query_device(verbs[*dev_index], &dev_attr);
--		if (ret)
--			continue;
--
--		for (*port = 1; *port <= dev_attr.phys_port_cnt; (*port)++) {
--			ret = ibv_query_port(verbs[*dev_index], *port, &port_attr);
--			if (ret)
--				continue;
--
--			for (i = 0; i < port_attr.gid_tbl_len; i++) {
--				ret = ibv_query_gid(verbs[*dev_index], *port, i, &gid);
--				if (ret || !gid.global.interface_id)
--					break;
--
--				if (!memcmp(sgid->raw, gid.raw, sizeof gid))
--					return 0;
--			}
--		}
--	}
--	return -1;
--}
--
--static void iter_cb(char *ifname, union ibv_gid *gid, uint16_t pkey,
--		uint8_t addr_type, uint8_t *addr, size_t addr_len,
--		char *addr_name, void *ctx)
--{
--	FILE *f = (FILE *)ctx;
--	int ret;
--	int dev_index;
--	uint8_t port;
--
--	ret = get_devaddr(gid, &dev_index, &port);
--	if (ret) {
--		printf("Failed to find verbs device for %s\n", ifname);
--		return;
--	}
--
--	if (verbose)
--		printf("%s %s %d 0x%x\n", addr_name, verbs[dev_index]->device->name, port, pkey);
--	fprintf(f, "%s %s %d 0x%x\n", addr_name, verbs[dev_index]->device->name, port, pkey);
--}
--
--int gen_addr_ip(FILE *f)
--{
--	return acm_if_iter_sys(iter_cb, (void *)f);
--}
-diff --git a/man/ib_acme.1 b/man/ib_acme.1
-index b00b315..baa1dd6 100644
---- a/man/ib_acme.1
-+++ b/man/ib_acme.1
-@@ -55,8 +55,7 @@ performance of ACM cache lookups.  Defaults to 1.
- \-A [addr_file]
- With this option, the ib_acme utility automatically generates the address
- configuration file ibacm_addr.cfg.  The generated file is
--constructed using the system host name and any IP addresses that are
--assigned to IPoIB device instances.
-+constructed using the system host name.
- .TP
- \-O [opt_file]
- With this option, the ib_acme utility automatically generates the option
-diff --git a/src/acme.c b/src/acme.c
-index fbe9dbc..61797af 100644
---- a/src/acme.c
-+++ b/src/acme.c
-@@ -317,9 +317,11 @@ static void gen_addr_temp(FILE *f)
- 	fprintf(f, "# Entry format is:\n");
- 	fprintf(f, "# address device port pkey\n");
- 	fprintf(f, "#\n");
-+	fprintf(f, "# NOTE: IP addresses are now automatically read and monitored on the system.\n");
-+	fprintf(f, "#       They are therefore no longer required nor supported in this file\n");
-+	fprintf(f, "#\n");
- 	fprintf(f, "# The address may be one of the following:\n");
- 	fprintf(f, "# host_name - ascii character string, up to 31 characters\n");
--	fprintf(f, "# address - IPv4 or IPv6 formatted address\n");
- 	fprintf(f, "#\n");
- 	fprintf(f, "# device name - struct ibv_device name\n");
- 	fprintf(f, "# port number - valid port number on device (numbering starts at 1)\n");
-@@ -331,8 +333,6 @@ static void gen_addr_temp(FILE *f)
- 	fprintf(f, "# node31      ibv_device0 1 default\n");
- 	fprintf(f, "# node31-1    ibv_device0 1 0x00FF\n");
- 	fprintf(f, "# node31-2    ibv_device0 2 0x00FF\n");
--	fprintf(f, "# 192.168.0.1 ibv_device0 1 0xFFFF\n");
--	fprintf(f, "# 192.168.0.2 ibv_device0 2 default\n");
- }
+ ibacmincludedir = $(includedir)/infiniband
  
- static int open_verbs(void)
-@@ -449,12 +449,6 @@ static int gen_addr(void)
+diff --git a/src/acm.c b/src/acm.c
+index 82f9431..5dc2684 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -47,6 +47,7 @@
+ #include <dlist.h>
+ #include <search.h>
+ #include "acm_mad.h"
++#include "acm_util.h"
+ 
+ #define src_out     data[0]
+ 
+@@ -245,10 +246,7 @@ static uint8_t min_rate = IBV_RATE_10_GBPS;
+ static enum acm_route_preload route_preload;
+ static enum acm_addr_preload addr_preload;
+ 
+-#define acm_log(level, format, ...) \
+-	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
+-
+-static void acm_write(int level, const char *format, ...)
++void acm_write(int level, const char *format, ...)
+ {
+ 	va_list args;
+ 	struct timeval tv;
+diff --git a/src/acm_util.c b/src/acm_util.c
+index 922eceb..7a84ac7 100644
+--- a/src/acm_util.c
++++ b/src/acm_util.c
+@@ -52,7 +52,7 @@ int acm_if_is_ib(char *ifname)
+ 	snprintf(buf, sizeof buf, "//sys//class//net//%s//type", ifname);
+ 	f = fopen(buf, "r");
+ 	if (!f) {
+-		printf("failed to open %s\n", buf);
++		acm_log(0, "failed to open %s\n", buf);
+ 		return 0;
+ 	}
+ 
+@@ -60,6 +60,7 @@ int acm_if_is_ib(char *ifname)
+ 		type = strtol(buf, NULL, 0);
+ 		ret = (type == ARPHRD_INFINIBAND);
+ 	} else {
++		acm_log(0, "failed to read interface type\n");
+ 		ret = 0;
+ 	}
+ 
+@@ -76,7 +77,7 @@ int acm_if_get_pkey(char *ifname, uint16_t *pkey)
+ 	snprintf(buf, sizeof buf, "//sys//class//net//%s//pkey", ifname);
+ 	f = fopen(buf, "r");
+ 	if (!f) {
+-		printf("failed to open %s\n", buf);
++		acm_log(0, "failed to open %s\n", buf);
+ 		return -1;
+ 	}
+ 
+@@ -84,7 +85,7 @@ int acm_if_get_pkey(char *ifname, uint16_t *pkey)
+ 		*pkey = strtol(buf, &end, 16);
+ 		ret = 0;
+ 	} else {
+-		printf("failed to read pkey\n");
++		acm_log(0, "failed to read pkey\n");
+ 		ret = -1;
+ 	}
+ 
+@@ -101,7 +102,7 @@ int acm_if_get_sgid(char *ifname, union ibv_gid *sgid)
+ 	snprintf(buf, sizeof buf, "//sys//class//net//%s//address", ifname);
+ 	f = fopen(buf, "r");
+ 	if (!f) {
+-		printf("failed to open %s\n", buf);
++		acm_log(0, "failed to open %s\n", buf);
+ 		return -1;
+ 	}
+ 
+@@ -112,7 +113,7 @@ int acm_if_get_sgid(char *ifname, union ibv_gid *sgid)
+ 		}
+ 		ret = 0;
+ 	} else {
+-		printf("failed to read sgid\n");
++		acm_log(0, "failed to read sgid\n");
+ 		ret = -1;
+ 	}
+ 
+@@ -146,7 +147,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
+ 
+ 	ret = ioctl(s, SIOCGIFCONF, ifc);
+ 	if (ret < 0) {
+-		printf("ioctl ifconf error %d\n", ret);
++		acm_log(0, "ioctl ifconf error %d\n", ret);
  		goto out2;
  	}
  
--	ret = gen_addr_ip(f);
--	if (ret) {
--		printf("Failed to auto generate IP addresses in config file\n");
--		goto out2;
--	}
--
- out2:
- 	close_verbs();
- out1:
+@@ -169,16 +170,12 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
+ 			continue;
+ 
+ 		ret = acm_if_get_sgid(ifr[i].ifr_name, &sgid);
+-		if (ret) {
+-			printf("unable to get sgid\n");
++		if (ret)
+ 			continue;
+-		}
+ 
+ 		ret = acm_if_get_pkey(ifr[i].ifr_name, &pkey);
+-		if (ret) {
+-			printf("unable to get pkey\n");
++		if (ret)
+ 			continue;
+-		}
+ 
+ 		cb(ifr[i].ifr_name, &sgid, pkey, 0, NULL, 0, ip, ctx);
+ 	}
+diff --git a/src/acm_util.h b/src/acm_util.h
+index ea86133..4f111b6 100644
+--- a/src/acm_util.h
++++ b/src/acm_util.h
+@@ -32,6 +32,18 @@
+ 
+ #include <infiniband/verbs.h>
+ 
++#ifdef ACME_PRINTS
++
++#define acm_log(level, format, ...) \
++	printf(format, ## __VA_ARGS__)
++
++#else /* !ACME_PRINTS */
++#define acm_log(level, format, ...) \
++	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
++
++void acm_write(int level, const char *format, ...);
++#endif /* ACME_PRINTS */
++
+ int acm_if_is_ib(char *ifname);
+ int acm_if_get_pkey(char *ifname, uint16_t *pkey);
+ int acm_if_get_sgid(char *ifname, union ibv_gid *sgid);
 -- 
 1.7.3
 
