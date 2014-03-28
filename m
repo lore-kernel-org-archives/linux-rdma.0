@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 01/16] ibacm: get_devaddr remove unused variable from signature
-Date: Thu, 27 Mar 2014 22:49:55 -0700
-Message-ID: <1395985810-23822-2-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 13/16] ibacm: fix handling of aliased IPoIB devices
+Date: Thu, 27 Mar 2014 22:50:07 -0700
+Message-ID: <1395985810-23822-14-git-send-email-sean.hefty@intel.com>
 References: <1395985810-23822-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395985810-23822-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,30 +12,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
----
- linux/acme_linux.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ibX:Y devices don't have sysfs files directly.  They use the "base" interface
+of ibX.  The ioctl calls however include the full aliased name.
 
-diff --git a/linux/acme_linux.c b/linux/acme_linux.c
-index ef5b107..6978db7 100644
---- a/linux/acme_linux.c
-+++ b/linux/acme_linux.c
-@@ -102,7 +102,7 @@ get_sgid(struct ifreq *ifr, union ibv_gid *sgid)
- }
+Netlink does not have this problem as the interface name is reported as it
+appears in sysfs.
+
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/acm_util.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/src/acm_util.c b/src/acm_util.c
+index c3c5b69..da6d058 100644
+--- a/src/acm_util.c
++++ b/src/acm_util.c
+@@ -134,6 +134,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
+ 	uint8_t addr_type;
+ 	uint8_t addr[ACM_MAX_ADDRESS];
+ 	size_t addr_len;
++	char *alias_sep;
  
- static int
--get_devaddr(int s, struct ifreq *ifr,
-+get_devaddr(struct ifreq *ifr,
- 	int *dev_index, uint8_t *port, uint16_t *pkey)
- {
- 	struct ibv_device_attr dev_attr;
-@@ -199,7 +199,7 @@ int gen_addr_ip(FILE *f)
- 		if (ifr[i].ifr_hwaddr.sa_family != ARPHRD_INFINIBAND)
+ 	s = socket(AF_INET6, SOCK_DGRAM, 0);
+ 	if (!s)
+@@ -177,6 +178,12 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
  			continue;
+ 		}
  
--		ret = get_devaddr(s, &ifr[i], &dev_index, &port, &pkey);
-+		ret = get_devaddr(&ifr[i], &dev_index, &port, &pkey);
- 		if (ret)
++		acm_log(2, "%s\n", ifr[i].ifr_name);
++
++		alias_sep = strchr(ifr[i].ifr_name, ':');
++		if (alias_sep)
++			*alias_sep = '\0';
++
+ 		if (!acm_if_is_ib(ifr[i].ifr_name))
  			continue;
  
 -- 
