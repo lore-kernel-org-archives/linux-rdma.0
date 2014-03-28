@@ -1,8 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/4] IB/qib: remove ib_sg_dma_address() and
+Subject: [PATCH v2 3/4] IB/ehca: remove ib_sg_dma_address() and
  ib_sg_dma_len() overloads
-Date: Fri, 28 Mar 2014 13:26:42 -0400
-Message-ID: <20140328172641.23646.77421.stgit@phlsvslse11.ph.intel.com>
+Date: Fri, 28 Mar 2014 13:26:53 -0400
+Message-ID: <20140328172653.23646.12359.stgit@phlsvslse11.ph.intel.com>
 References: <20140328172606.23646.35980.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,69 +14,51 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove the overload for .dma_len and .dma_address
+These methods appear to only mimic the sg_dma_address()
+and sg_dma_len() behavior.
 
-The lack of these methods is compensated for by code changes
-to .map_sg to insure that the vanilla sg_dma_address() and
-sg_dma_len() will do the same thing as the equivalent
-former ib_sg_dma_address() and ib_sg_dma_len() calls
-into the drivers.
+They can be safely removed.
 
 Suggested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Tested-by: Vinod Kumar <vinod.kumar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_dma.c |   21 ++++-----------------
- 1 file changed, 4 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/ehca/ehca_mrmw.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_dma.c b/drivers/infiniband/hw/qib/qib_dma.c
-index 2920bb3..59fe092 100644
---- a/drivers/infiniband/hw/qib/qib_dma.c
-+++ b/drivers/infiniband/hw/qib/qib_dma.c
-@@ -108,6 +108,10 @@ static int qib_map_sg(struct ib_device *dev, struct scatterlist *sgl,
- 			ret = 0;
- 			break;
- 		}
-+		sg->dma_address = addr + sg->offset;
-+#ifdef CONFIG_NEED_SG_DMA_LENGTH
-+		sg->dma_length = sg->length;
-+#endif
- 	}
- 	return ret;
- }
-@@ -119,21 +123,6 @@ static void qib_unmap_sg(struct ib_device *dev,
- 	BUG_ON(!valid_dma_direction(direction));
+diff --git a/drivers/infiniband/hw/ehca/ehca_mrmw.c b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+index bcfb0c1..65873ee 100644
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c
++++ b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -2591,16 +2591,6 @@ static void ehca_dma_unmap_sg(struct ib_device *dev, struct scatterlist *sg,
+ 	/* This is only a stub; nothing to be done here */
  }
  
--static u64 qib_sg_dma_address(struct ib_device *dev, struct scatterlist *sg)
+-static u64 ehca_dma_address(struct ib_device *dev, struct scatterlist *sg)
 -{
--	u64 addr = (u64) page_address(sg_page(sg));
--
--	if (addr)
--		addr += sg->offset;
--	return addr;
+-	return sg->dma_address;
 -}
 -
--static unsigned int qib_sg_dma_len(struct ib_device *dev,
--				   struct scatterlist *sg)
+-static unsigned int ehca_dma_len(struct ib_device *dev, struct scatterlist *sg)
 -{
 -	return sg->length;
 -}
 -
- static void qib_sync_single_for_cpu(struct ib_device *dev, u64 addr,
- 				    size_t size, enum dma_data_direction dir)
- {
-@@ -173,8 +162,6 @@ struct ib_dma_mapping_ops qib_dma_mapping_ops = {
- 	.unmap_page = qib_dma_unmap_page,
- 	.map_sg = qib_map_sg,
- 	.unmap_sg = qib_unmap_sg,
--	.dma_address = qib_sg_dma_address,
--	.dma_len = qib_sg_dma_len,
- 	.sync_single_for_cpu = qib_sync_single_for_cpu,
- 	.sync_single_for_device = qib_sync_single_for_device,
- 	.alloc_coherent = qib_dma_alloc_coherent,
+ static void ehca_dma_sync_single_for_cpu(struct ib_device *dev, u64 addr,
+ 					 size_t size,
+ 					 enum dma_data_direction dir)
+@@ -2653,8 +2643,6 @@ struct ib_dma_mapping_ops ehca_dma_mapping_ops = {
+ 	.unmap_page             = ehca_dma_unmap_page,
+ 	.map_sg                 = ehca_dma_map_sg,
+ 	.unmap_sg               = ehca_dma_unmap_sg,
+-	.dma_address            = ehca_dma_address,
+-	.dma_len                = ehca_dma_len,
+ 	.sync_single_for_cpu    = ehca_dma_sync_single_for_cpu,
+ 	.sync_single_for_device = ehca_dma_sync_single_for_device,
+ 	.alloc_coherent         = ehca_dma_alloc_coherent,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
