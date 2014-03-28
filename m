@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 10/16] ibacm: add locking around end point address arrays
-Date: Thu, 27 Mar 2014 22:50:04 -0700
-Message-ID: <1395985810-23822-11-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 06/16] ibacm: move acm_if_iter_sys to acm_util.c
+Date: Thu, 27 Mar 2014 22:50:00 -0700
+Message-ID: <1395985810-23822-7-git-send-email-sean.hefty@intel.com>
 References: <1395985810-23822-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395985810-23822-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -14,36 +14,201 @@ From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ linux/acme_linux.c |   80 ---------------------------------------------------
+ src/acm_util.c     |   81 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+), 80 deletions(-)
 
-diff --git a/src/acm.c b/src/acm.c
-index c5da791..ebb48f4 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -92,7 +92,7 @@ enum acm_addr_preload {
- };
+diff --git a/linux/acme_linux.c b/linux/acme_linux.c
+index 187507d..33fafd2 100644
+--- a/linux/acme_linux.c
++++ b/linux/acme_linux.c
+@@ -30,14 +30,6 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <unistd.h>
+-#include <arpa/inet.h>
+-#include <sys/ioctl.h>
+-#include <net/if.h>
+-#include <netinet/in.h>
+-#include <sys/socket.h>
+-#include <sys/types.h>
+-#include <errno.h>
  
- /*
-- * Nested locking order: dest -> ep, dest -> port
-+ * Nested locking order: dest -> ep, dest -> port, port -> ep
-  */
- struct acm_dest {
- 	uint8_t                address[ACM_MAX_ADDRESS]; /* keep first */
-@@ -1830,8 +1830,12 @@ acm_get_port_ep(struct acm_port *port, struct acm_ep_addr_data *data)
- 		    (!data->info.path.pkey || (ntohs(data->info.path.pkey) == ep->pkey)))
- 			return ep;
+ #include <infiniband/verbs.h>
+ #include "acm_util.h"
+@@ -101,75 +93,3 @@ int gen_addr_ip(FILE *f)
+ {
+ 	return acm_if_iter_sys(iter_cb, (void *)f);
+ }
+-
+-int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
+-{
+-	struct ifconf *ifc;
+-	struct ifreq *ifr;
+-	char ip[INET6_ADDRSTRLEN];
+-	int s, ret, i, len;
+-	uint16_t pkey;
+-	union ibv_gid sgid;
+-
+-	s = socket(AF_INET6, SOCK_DGRAM, 0);
+-	if (!s)
+-		return -1;
+-
+-	len = sizeof(*ifc) + sizeof(*ifr) * 64;
+-	ifc = malloc(len);
+-	if (!ifc) {
+-		ret = -1;
+-		goto out1;
+-	}
+-
+-	memset(ifc, 0, len);
+-	ifc->ifc_len = len;
+-	ifc->ifc_req = (struct ifreq *) (ifc + 1);
+-
+-	ret = ioctl(s, SIOCGIFCONF, ifc);
+-	if (ret < 0) {
+-		printf("ioctl ifconf error %d\n", ret);
+-		goto out2;
+-	}
+-
+-	ifr = ifc->ifc_req;
+-	for (i = 0; i < ifc->ifc_len / sizeof(struct ifreq); i++) {
+-		switch (ifr[i].ifr_addr.sa_family) {
+-		case AF_INET:
+-			inet_ntop(ifr[i].ifr_addr.sa_family,
+-				&((struct sockaddr_in *) &ifr[i].ifr_addr)->sin_addr, ip, sizeof ip);
+-			break;
+-		case AF_INET6:
+-			inet_ntop(ifr[i].ifr_addr.sa_family,
+-				&((struct sockaddr_in6 *) &ifr[i].ifr_addr)->sin6_addr, ip, sizeof ip);
+-			break;
+-		default:
+-			continue;
+-		}
+-
+-		if (!acm_if_is_ib(ifr[i].ifr_name))
+-			continue;
+-
+-		ret = acm_if_get_sgid(ifr[i].ifr_name, &sgid);
+-		if (ret) {
+-			printf("unable to get sgid\n");
+-			continue;
+-		}
+-
+-		ret = acm_if_get_pkey(ifr[i].ifr_name, &pkey);
+-		if (ret) {
+-			printf("unable to get pkey\n");
+-			continue;
+-		}
+-
+-		cb(ifr[i].ifr_name, &sgid, pkey, 0, NULL, 0, ip, ctx);
+-	}
+-	ret = 0;
+-
+-out2:
+-	free(ifc);
+-out1:
+-	close(s);
+-	return ret;
+-
+-}
+diff --git a/src/acm_util.c b/src/acm_util.c
+index 519735a..922eceb 100644
+--- a/src/acm_util.c
++++ b/src/acm_util.c
+@@ -30,6 +30,15 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <net/if_arp.h>
++#include <string.h>
++#include <unistd.h>
++#include <arpa/inet.h>
++#include <sys/ioctl.h>
++#include <net/if.h>
++#include <netinet/in.h>
++#include <sys/socket.h>
++#include <sys/types.h>
++#include <errno.h>
  
--		if (acm_addr_index(ep, data->info.addr, (uint8_t) data->type) >= 0)
-+		lock_acquire(&ep->lock);
-+		if (acm_addr_index(ep, data->info.addr, (uint8_t) data->type) >= 0) {
-+			lock_release(&ep->lock);
- 			return ep;
+ #include "acm_util.h"
+ 
+@@ -110,3 +119,75 @@ int acm_if_get_sgid(char *ifname, union ibv_gid *sgid)
+ 	fclose(f);
+ 	return ret;
+ }
++
++int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
++{
++	struct ifconf *ifc;
++	struct ifreq *ifr;
++	char ip[INET6_ADDRSTRLEN];
++	int s, ret, i, len;
++	uint16_t pkey;
++	union ibv_gid sgid;
++
++	s = socket(AF_INET6, SOCK_DGRAM, 0);
++	if (!s)
++		return -1;
++
++	len = sizeof(*ifc) + sizeof(*ifr) * 64;
++	ifc = malloc(len);
++	if (!ifc) {
++		ret = -1;
++		goto out1;
++	}
++
++	memset(ifc, 0, len);
++	ifc->ifc_len = len;
++	ifc->ifc_req = (struct ifreq *) (ifc + 1);
++
++	ret = ioctl(s, SIOCGIFCONF, ifc);
++	if (ret < 0) {
++		printf("ioctl ifconf error %d\n", ret);
++		goto out2;
++	}
++
++	ifr = ifc->ifc_req;
++	for (i = 0; i < ifc->ifc_len / sizeof(struct ifreq); i++) {
++		switch (ifr[i].ifr_addr.sa_family) {
++		case AF_INET:
++			inet_ntop(ifr[i].ifr_addr.sa_family,
++				&((struct sockaddr_in *) &ifr[i].ifr_addr)->sin_addr, ip, sizeof ip);
++			break;
++		case AF_INET6:
++			inet_ntop(ifr[i].ifr_addr.sa_family,
++				&((struct sockaddr_in6 *) &ifr[i].ifr_addr)->sin6_addr, ip, sizeof ip);
++			break;
++		default:
++			continue;
 +		}
-+		lock_release(&ep->lock);
- 	}
- 
- 	return NULL;
++
++		if (!acm_if_is_ib(ifr[i].ifr_name))
++			continue;
++
++		ret = acm_if_get_sgid(ifr[i].ifr_name, &sgid);
++		if (ret) {
++			printf("unable to get sgid\n");
++			continue;
++		}
++
++		ret = acm_if_get_pkey(ifr[i].ifr_name, &pkey);
++		if (ret) {
++			printf("unable to get pkey\n");
++			continue;
++		}
++
++		cb(ifr[i].ifr_name, &sgid, pkey, 0, NULL, 0, ip, ctx);
++	}
++	ret = 0;
++
++out2:
++	free(ifc);
++out1:
++	close(s);
++	return ret;
++
++}
 -- 
 1.7.3
 
