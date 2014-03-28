@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 07/16] ibacm: convert logging in acm_util.c to acm_log
-Date: Thu, 27 Mar 2014 22:50:01 -0700
-Message-ID: <1395985810-23822-8-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 08/16] ibacm: add separate acm_ep_insert_addr function
+Date: Thu, 27 Mar 2014 22:50:02 -0700
+Message-ID: <1395985810-23822-9-git-send-email-sean.hefty@intel.com>
 References: <1395985810-23822-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1395985810-23822-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,161 +12,130 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-ib_acme build defines ACME_PRINTS which overrides acm_log to printf
+This is in preparation for netlink support which will do this dynamically.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Makefile.am    |    2 +-
- src/acm.c      |    6 ++----
- src/acm_util.c |   21 +++++++++------------
- src/acm_util.h |   12 ++++++++++++
- 4 files changed, 24 insertions(+), 17 deletions(-)
+ src/acm.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 58 insertions(+), 15 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 539ef83..703030d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -8,7 +8,7 @@ svc_ibacm_SOURCES = src/acm.c
- util_ib_acme_SOURCES = src/acme.c linux/acme_linux.c src/libacm.c linux/libacm_linux.c \
- 			src/parse.c src/acm_util.c
- svc_ibacm_CFLAGS = $(AM_CFLAGS)
--util_ib_acme_CFLAGS = $(AM_CFLAGS)
-+util_ib_acme_CFLAGS = $(AM_CFLAGS) -DACME_PRINTS
- 
- ibacmincludedir = $(includedir)/infiniband
- 
 diff --git a/src/acm.c b/src/acm.c
-index 82f9431..5dc2684 100644
+index 5dc2684..6bbc1e5 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -47,6 +47,7 @@
- #include <dlist.h>
- #include <search.h>
- #include "acm_mad.h"
-+#include "acm_util.h"
+@@ -2875,6 +2875,53 @@ static void acm_parse_hosts_file(struct acm_ep *ep)
+ 	fclose(f);
+ }
  
- #define src_out     data[0]
- 
-@@ -245,10 +246,7 @@ static uint8_t min_rate = IBV_RATE_10_GBPS;
- static enum acm_route_preload route_preload;
- static enum acm_addr_preload addr_preload;
- 
--#define acm_log(level, format, ...) \
--	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
--
--static void acm_write(int level, const char *format, ...)
-+void acm_write(int level, const char *format, ...)
++static int
++acm_ep_insert_addr(struct acm_ep *ep, uint8_t *addr, size_t addr_len, uint8_t addr_type)
++{
++	int i;
++	int ret = ENOMEM;
++	uint8_t tmp[ACM_MAX_ADDRESS];
++	char name_str[INET6_ADDRSTRLEN];
++
++	if (addr_len > ACM_MAX_ADDRESS)
++		return EINVAL;
++
++	memset(tmp, 0, sizeof tmp);
++	memcpy(tmp, addr, addr_len);
++
++	lock_acquire(&ep->lock);
++	if (acm_addr_index(ep, tmp, addr_type) < 0) {
++		for (i = 0; i < MAX_EP_ADDR; i++) {
++			if (ep->addr_type[i] == ACM_ADDRESS_INVALID) {
++
++				ep->addr_type[i] = addr_type;
++				memcpy(ep->addr[i].addr, tmp, ACM_MAX_ADDRESS);
++
++				switch (addr_type) {
++				case ACM_ADDRESS_IP:
++					inet_ntop(AF_INET, addr, name_str, sizeof name_str);
++					strncpy(ep->name[i], name_str, ACM_MAX_ADDRESS);
++					break;
++				case ACM_ADDRESS_IP6:
++					inet_ntop(AF_INET6, addr, name_str, sizeof name_str);
++					strncpy(ep->name[i], name_str, ACM_MAX_ADDRESS);
++					break;
++				case ACM_ADDRESS_NAME:
++					strncpy(ep->name[i], (const char *)addr, ACM_MAX_ADDRESS);
++					break;
++				}
++
++				ret = 0;
++				break;
++			}
++		}
++	} else {
++		ret = 0;
++	}
++	lock_release(&ep->lock);
++	return ret;
++}
++
+ static int acm_assign_ep_names(struct acm_ep *ep)
  {
- 	va_list args;
- 	struct timeval tv;
-diff --git a/src/acm_util.c b/src/acm_util.c
-index 922eceb..7a84ac7 100644
---- a/src/acm_util.c
-+++ b/src/acm_util.c
-@@ -52,7 +52,7 @@ int acm_if_is_ib(char *ifname)
- 	snprintf(buf, sizeof buf, "//sys//class//net//%s//type", ifname);
- 	f = fopen(buf, "r");
- 	if (!f) {
--		printf("failed to open %s\n", buf);
-+		acm_log(0, "failed to open %s\n", buf);
- 		return 0;
- 	}
+ 	FILE *faddr;
+@@ -2883,8 +2930,9 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 	char dev[32], addr[INET6_ADDRSTRLEN], pkey_str[8];
+ 	uint16_t pkey;
+ 	uint8_t type;
+-	int port, index = 0;
++	int port, ret = 0;
+ 	struct in6_addr ip_addr;
++	size_t addr_len;
  
-@@ -60,6 +60,7 @@ int acm_if_is_ib(char *ifname)
- 		type = strtol(buf, NULL, 0);
- 		ret = (type == ARPHRD_INFINIBAND);
- 	} else {
-+		acm_log(0, "failed to read interface type\n");
- 		ret = 0;
- 	}
- 
-@@ -76,7 +77,7 @@ int acm_if_get_pkey(char *ifname, uint16_t *pkey)
- 	snprintf(buf, sizeof buf, "//sys//class//net//%s//pkey", ifname);
- 	f = fopen(buf, "r");
- 	if (!f) {
--		printf("failed to open %s\n", buf);
-+		acm_log(0, "failed to open %s\n", buf);
- 		return -1;
- 	}
- 
-@@ -84,7 +85,7 @@ int acm_if_get_pkey(char *ifname, uint16_t *pkey)
- 		*pkey = strtol(buf, &end, 16);
- 		ret = 0;
- 	} else {
--		printf("failed to read pkey\n");
-+		acm_log(0, "failed to read pkey\n");
- 		ret = -1;
- 	}
- 
-@@ -101,7 +102,7 @@ int acm_if_get_sgid(char *ifname, union ibv_gid *sgid)
- 	snprintf(buf, sizeof buf, "//sys//class//net//%s//address", ifname);
- 	f = fopen(buf, "r");
- 	if (!f) {
--		printf("failed to open %s\n", buf);
-+		acm_log(0, "failed to open %s\n", buf);
- 		return -1;
- 	}
- 
-@@ -112,7 +113,7 @@ int acm_if_get_sgid(char *ifname, union ibv_gid *sgid)
- 		}
- 		ret = 0;
- 	} else {
--		printf("failed to read sgid\n");
-+		acm_log(0, "failed to read sgid\n");
- 		ret = -1;
- 	}
- 
-@@ -146,7 +147,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 
- 	ret = ioctl(s, SIOCGIFCONF, ifc);
- 	if (ret < 0) {
--		printf("ioctl ifconf error %d\n", ret);
-+		acm_log(0, "ioctl ifconf error %d\n", ret);
- 		goto out2;
- 	}
- 
-@@ -169,16 +170,12 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
+ 	dev_name = ep->port->dev->verbs->device->name;
+ 	acm_log(1, "device %s, port %d, pkey 0x%x\n",
+@@ -2903,12 +2951,16 @@ static int acm_assign_ep_names(struct acm_ep *ep)
  			continue;
  
- 		ret = acm_if_get_sgid(ifr[i].ifr_name, &sgid);
--		if (ret) {
--			printf("unable to get sgid\n");
-+		if (ret)
- 			continue;
--		}
+ 		acm_log(2, "%s", s);
+-		if (inet_pton(AF_INET, addr, &ip_addr) > 0)
++		if (inet_pton(AF_INET, addr, &ip_addr) > 0) {
+ 			type = ACM_ADDRESS_IP;
+-		else if (inet_pton(AF_INET6, addr, &ip_addr) > 0)
++			addr_len = 4;
++		} else if (inet_pton(AF_INET6, addr, &ip_addr) > 0) {
+ 			type = ACM_ADDRESS_IP6;
+-		else
++			addr_len = ACM_MAX_ADDRESS;
++		} else {
+ 			type = ACM_ADDRESS_NAME;
++			addr_len = strlen(addr);
++		}
  
- 		ret = acm_if_get_pkey(ifr[i].ifr_name, &pkey);
--		if (ret) {
--			printf("unable to get pkey\n");
-+		if (ret)
- 			continue;
--		}
+ 		if (stricmp(pkey_str, "default")) {
+ 			if (sscanf(pkey_str, "%hx", &pkey) != 1) {
+@@ -2922,17 +2974,8 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 		if (!stricmp(dev_name, dev) && (ep->port->port_num == (uint8_t) port) &&
+ 			(ep->pkey == pkey)) {
  
- 		cb(ifr[i].ifr_name, &sgid, pkey, 0, NULL, 0, ip, ctx);
+-			ep->addr_type[index] = type;
+ 			acm_log(1, "assigning %s\n", addr);
+-			strncpy(ep->name[index], addr, ACM_MAX_ADDRESS);
+-			if (type == ACM_ADDRESS_IP)
+-				memcpy(ep->addr[index].addr, &ip_addr, 4);
+-			else if (type == ACM_ADDRESS_IP6)
+-				memcpy(ep->addr[index].addr, &ip_addr, sizeof ip_addr);
+-			else
+-				strncpy((char *) ep->addr[index].addr, addr, ACM_MAX_ADDRESS);
+-
+-			if (++index == MAX_EP_ADDR) {
++			if ((ret = acm_ep_insert_addr(ep, (uint8_t *)&ip_addr, addr_len, type)) != 0) {
+ 				acm_log(1, "maximum number of names assigned to EP\n");
+ 				break;
+ 			}
+@@ -2940,7 +2983,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
  	}
-diff --git a/src/acm_util.h b/src/acm_util.h
-index ea86133..4f111b6 100644
---- a/src/acm_util.h
-+++ b/src/acm_util.h
-@@ -32,6 +32,18 @@
+ 	fclose(faddr);
  
- #include <infiniband/verbs.h>
+-	return !index;
++	return ret;
+ }
  
-+#ifdef ACME_PRINTS
-+
-+#define acm_log(level, format, ...) \
-+	printf(format, ## __VA_ARGS__)
-+
-+#else /* !ACME_PRINTS */
-+#define acm_log(level, format, ...) \
-+	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
-+
-+void acm_write(int level, const char *format, ...);
-+#endif /* ACME_PRINTS */
-+
- int acm_if_is_ib(char *ifname);
- int acm_if_get_pkey(char *ifname, uint16_t *pkey);
- int acm_if_get_sgid(char *ifname, union ibv_gid *sgid);
+ /*
 -- 
 1.7.3
 
