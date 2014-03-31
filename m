@@ -1,53 +1,27 @@
-From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: git.openfabrics.org is down?
-Date: Mon, 31 Mar 2014 15:29:57 +0200
-Message-ID: <53396DD5.5050403@gmail.com>
-References: <533940C2.3010407@gmail.com> <2807E5FD2F6FDA4886F6618EAC48510E04B364C6@CRSMSX101.amr.corp.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] drivers/infiniband: Use RCU_INIT_POINTER(x, NULL) in
+ hw/qib/qib_qp.c
+Date: Mon, 31 Mar 2014 17:40:05 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC21223916@FMSMSX107.amr.corp.intel.com>
+References: <1395520680-3459-1-git-send-email-monamagarwal123@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E04B364C6-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1395520680-3459-1-git-send-email-monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Monam Agarwal <monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/31/2014 03:23 PM, Weiny, Ira wrote:
-> From a post to OFA EWG list:
+> Subject: [PATCH] drivers/infiniband: Use RCU_INIT_POINTER(x, NULL) in
+> hw/qib/qib_qp.c
 > 
-> "The System Admin is in the process of moving everything from Ubuntu to RHEL
-> 6.5 - it may take a day to complete. Sorry for the inconvenience."
-> 
-> Ira
-> 
-Thanks Ira.
+> Signed-off-by: Monam Agarwal <monamagarwal123-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-> 
-> -----Original Message-----
-> *From: *Jack Wang [xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org <mailto:xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>]
-> *Sent: *Monday, March 31, 2014 03:18 AM Pacific Standard Time
-> *To: *linux-rdma
-> *Subject: *git.openfabrics.org is down?
-> 
-> Hi all,
-> 
-> When I try to clone repo, git error out
-> 
-> fatal: unable to connect to git.openfabrics.org:
-> git.openfabrics.org[0: 69.55.231.74]: errno=Connection refused
-> 
-> git web pages also do not exist any more, jump to bugzilla.
-> Anyone know why?
-> 
-> Regards,
-> Jack
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Thanks for the patch!
 
+Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
