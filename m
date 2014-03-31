@@ -1,37 +1,39 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: lazy initialization for ib devices]
-Date: Mon, 31 Mar 2014 07:55:03 +0300
-Message-ID: <CAJZOPZLd4mbpX1Vnqib-YOTE8fsBfTwJ45b5m+ChrKmS-EZ7Xg@mail.gmail.com>
-References: <20140327082325.GA5006@shamir-pc>
-	<5333E37B.5080202@mellanox.com>
-	<20140330102731.GA4433@shamir-pc>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] Fix missing source dir in configure.ac
+Date: Mon, 31 Mar 2014 10:03:19 +0300
+Message-ID: <20140331070319.GA15821@r-ufm96.mtr.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140330102731.GA4433@shamir-pc>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shamir Rabinovith <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 30, 2014 at 1:27 PM, Shamir Rabinovith
-<shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> On Thu, Mar 27, 2014 at 10:38:19AM +0200, Or Gerlitz wrote:
->> sorry, but you didn't provide an answer to my question - why is
->> ibv_open_device failing if called from N > M (what's
->> N and what's M) processes/threads.
->>
->> Or.
->
-> The limit is due to firmware UAR BAR size. The issue happen here:
-> ib_uverbs_get_context -> ibdev->alloc_ucontext -> mlx4_ib_alloc_ucontext
-> -> mlx4_uar_alloc -> mlx4_bitmap_alloc .
-[...]
+This fixes running configure outside the infiniband-diags dir
 
-So what **exact** operation in librdmacm fails after N processes
-loaded the library on a node with M HCAs and what are N and M?
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ configure.ac |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Or.
+diff --git a/configure.ac b/configure.ac
+index 122a029..232285f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -190,7 +190,7 @@ fi
+ if test x$have_rst2man == xyes; then
+ 	doc/generate
+ else
+-	if test -f doc/man/infiniband-diags.8.in; then
++	if test -f $srcdir/doc/man/infiniband-diags.8.in; then
+ 		echo "WARNING: 'rst2man' not found; using premade man pages"
+ 	else
+ 		echo "FAILED to find 'rst2man' required to build man pages"
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
