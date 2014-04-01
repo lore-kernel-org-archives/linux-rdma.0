@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH REPOST for-next 3/5] IB/iser: Print QP information once connection is established
-Date: Tue,  1 Apr 2014 16:28:40 +0300
-Message-ID: <1396358922-20599-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH REPOST for-next 4/5] IB/iser: Update Mellanox copyright note
+Date: Tue,  1 Apr 2014 16:28:41 +0300
+Message-ID: <1396358922-20599-5-git-send-email-ogerlitz@mellanox.com>
 References: <1396358922-20599-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1396358922-20599-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,43 +10,80 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add an iser info print with the local/remote QP information
-carried out when the connection is established. While on that,
-fix little leftover from the T10 work, and set a debug print
-to be carried in debug and not info level.
+Update Mellanox copyrights for 2014 on the iser initiator driver.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |    2 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |    2 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c |    2 +-
+ drivers/infiniband/ulp/iser/iser_memory.c    |    2 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c     |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index bfbbb2d..25f195e 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -5,7 +5,7 @@
+  * Copyright (C) 2004 Alex Aizman
+  * Copyright (C) 2005 Mike Christie
+  * Copyright (c) 2005, 2006 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2013 Mellanox Technologies. All rights reserved.
++ * Copyright (c) 2013-2014 Mellanox Technologies. All rights reserved.
+  * maintained by openib-general-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org
+  *
+  * This software is available to you under a choice of one of two
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 41fa5e9..a4e4876 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -8,7 +8,7 @@
+  *
+  * Copyright (c) 2004, 2005, 2006 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
+- * Copyright (c) 2013 Mellanox Technologies. All rights reserved.
++ * Copyright (c) 2013-2014 Mellanox Technologies. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
+index 4019090..2e2d903 100644
+--- a/drivers/infiniband/ulp/iser/iser_initiator.c
++++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004, 2005, 2006 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2013 Mellanox Technologies. All rights reserved.
++ * Copyright (c) 2013-2014 Mellanox Technologies. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index bc3f70e..47acd3a 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004, 2005, 2006 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2013 Mellanox Technologies. All rights reserved.
++ * Copyright (c) 2013-2014 Mellanox Technologies. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
 diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 2c9276a..2f5c45b 100644
+index 2f5c45b..dc97f93 100644
 --- a/drivers/infiniband/ulp/iser/iser_verbs.c
 +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -340,8 +340,8 @@ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
- 	}
- 	desc->reg_indicators &= ~ISER_FASTREG_PROTECTED;
- 
--	iser_info("Create fr_desc %p page_list %p\n",
--		  desc, desc->data_frpl->page_list);
-+	iser_dbg("Create fr_desc %p page_list %p\n",
-+		 desc, desc->data_frpl->page_list);
- 
- 	return 0;
- sig_mr_failure:
-@@ -728,6 +728,11 @@ failure:
- static void iser_connected_handler(struct rdma_cm_id *cma_id)
- {
- 	struct iser_conn *ib_conn;
-+	struct ib_qp_attr attr;
-+	struct ib_qp_init_attr init_attr;
-+
-+	(void)ib_query_qp(cma_id->qp, &attr, ~0, &init_attr);
-+	iser_info("remote qpn:%x my qpn:%x\n", attr.dest_qp_num, cma_id->qp->qp_num);
- 
- 	ib_conn = (struct iser_conn *)cma_id->context;
- 	ib_conn->state = ISER_CONN_UP;
+@@ -1,7 +1,7 @@
+ /*
+  * Copyright (c) 2004, 2005, 2006 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
+- * Copyright (c) 2013 Mellanox Technologies. All rights reserved.
++ * Copyright (c) 2013-2014 Mellanox Technologies. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
 -- 
 1.7.1
 
