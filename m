@@ -1,36 +1,37 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH for v3.14 0/5] Coccicheck / coccinelle catched errors on ib/hw
-Date: Tue, 1 Apr 2014 10:39:13 -0700
-Message-ID: <CAG4TOxNrO2uxMUNkF3je3jafP5dWpOP8yxTK12qDbk02ANnnbQ@mail.gmail.com>
-References: <cover.1394485254.git.ydroneaud@opteya.com> <1395753355.2895.12.camel@localhost.localdomain>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/5] IB/iser: Bump driver version to 1.3
+Date: Tue, 1 Apr 2014 21:42:00 +0300
+Message-ID: <CAJZOPZ+jdiiiSwguoBigG53PCc-hJehJaKPWxrTzGd_pFh6hww@mail.gmail.com>
+References: <1396358344-15191-1-git-send-email-ogerlitz@mellanox.com>
+	<1396358344-15191-5-git-send-email-ogerlitz@mellanox.com>
+	<2807E5FD2F6FDA4886F6618EAC48510E04B37325@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1395753355.2895.12.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E04B37325-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 25, 2014 at 6:15 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
-> Here removing stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org doesn't sound right.
+On Tue, Apr 1, 2014 at 8:05 PM, Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h
+>> b/drivers/infiniband/ulp/iser/iscsi_iser.h
+>> index a4e4876..324129f 100644
+>> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
+>> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+>> @@ -69,7 +69,7 @@
+>>
+>>  #define DRV_NAME     "iser"
+>>  #define PFX          DRV_NAME ": "
+>> -#define DRV_VER              "1.1"
+>> +#define DRV_VER              "1.3"
+>
+> Not that it matters much but it seems odd to go from 1.1 to 1.3...
 
-Sorry, I've added that back.
-
-> Could you help me to understand the reason why your selectively remove
-> some 'Cc:' on some patches while leaving them on other patches.
-
-Typically I don't see much point in putting a list of email addresses
-of people who might (or might not) have some connection to the patch
-into the changelog.  "Cc:" means "I tried to get this person's
-attention on the patch but they didn't reply in time" and I don't see
-much value in persisting that information forever, so I strip it when
-I catch it.  The IB/RDMA community has a lot of people for whom
-English is not their native language, so I'm pretty much in the habit
-of trying to polish all changelogs as they go by.  "Cc: stable" is of
-course the one exception to my stripping.
-
- - R.
+Indeed, but that's where we are... we have an internal version which
+went through v1.2 in a manner unnoticed by the upstream one... but now
+we're in sync, so
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
