@@ -1,68 +1,44 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH REPOST for-next 1/5] IB/iser: Drain the tx cq once before looping on the rx cq
-Date: Tue,  1 Apr 2014 16:28:38 +0300
-Message-ID: <1396358922-20599-2-git-send-email-ogerlitz@mellanox.com>
-References: <1396358922-20599-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH REPOST for-next 0/5] iser initiator updates
+Date: Tue,  1 Apr 2014 16:28:37 +0300
+Message-ID: <1396358922-20599-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1396358922-20599-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+-- fixed some minor errors, missing cover-letter, removed some leftovers 
+   that were sent by mistake, sorry for the spam!!
 
-The iser disconnection flow isn't done before all the inflight recv/send buffers
-posted to the QP are either flushed or normally completed to the CQ that
-serves this connection. The condition check is done in iser_handle_comp_error().
+Hi Roland,
 
-Currently, its possible for the send buffer completion which makes the posted
-send buffers counter to reach zero to be polled in the drain tx call which is
-after the rx cq was fully drained. Since this completion might be not an error
-one (e.g. of the logout request iSCSI PDU) we will skip iser_handle_comp_error()
-so the connection will never terminate from the iscsi stack point of view,
-and we hang.
+This series contains a fix from Roi to a nasty race, cleanup of purely 
+redundant strcutre from Ariel, and updates of copyright and version.
 
-To resolve this race, do the draining of the tx cq before the loop on the rx cq.
+This update was queued internally behind the large T10 patch set and hence 
+arrives a bit late, still, taking into account it's relatively small volume, 
+we'd like to get it in for 3.15. 
 
-Issue: 375623
+Or.
 
-Change-Id: I38952f738ac0e3373f6651987136bcc0fed18b7c
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_verbs.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+Ariel Nahum (1):
+  IB/iser: Remove struct iscsi_iser_conn
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index abbb6ec..a29f37e 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -1112,8 +1112,12 @@ static void iser_cq_tasklet_fn(unsigned long data)
- 	 struct iser_rx_desc *desc;
- 	 unsigned long	     xfer_len;
- 	struct iser_conn *ib_conn;
--	int completed_tx, completed_rx;
--	completed_tx = completed_rx = 0;
-+	int completed_tx, completed_rx = 0;
-+
-+	/* First do tx drain, so in a case where we have rx flushes and a successful
-+	 * tx completion we will still go through completion error handling.
-+	 */
-+	completed_tx = iser_drain_tx_cq(device, cq_index);
- 
- 	while (ib_poll_cq(cq, 1, &wc) == 1) {
- 		desc	 = (struct iser_rx_desc *) (unsigned long) wc.wr_id;
-@@ -1141,7 +1145,6 @@ static void iser_cq_tasklet_fn(unsigned long data)
- 	 * " would not cause interrupts to be missed"                       */
- 	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
- 
--	completed_tx += iser_drain_tx_cq(device, cq_index);
- 	iser_dbg("got %d rx %d tx completions\n", completed_rx, completed_tx);
- }
- 
--- 
-1.7.1
+Or Gerlitz (3):
+  IB/iser: Print QP information once connection is established
+  IB/iser: Update Mellanox copyright note
+  IB/iser: Bump driver version to 1.3
+
+Roi Dayan (1):
+  IB/iser: Drain the tx cq once before looping on the rx cq
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   47 +++++++++-------------
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |   14 ++-----
+ drivers/infiniband/ulp/iser/iser_initiator.c |   56 ++++++++++++--------------
+ drivers/infiniband/ulp/iser/iser_memory.c    |   22 +++++-----
+ drivers/infiniband/ulp/iser/iser_verbs.c     |   29 ++++++++-----
+ 5 files changed, 78 insertions(+), 90 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
