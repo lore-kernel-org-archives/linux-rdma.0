@@ -1,61 +1,46 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH librdmacm] cmtime: rework program to be multithread
-Date: Thu, 03 Apr 2014 17:35:28 -0400
-Message-ID: <533DD420.9080105@redhat.com>
-References: <1380055497-13940-1-git-send-email-dledford@redhat.com> <533B646A.1010406@redhat.com> <1828884A29C6694DAF28B7E6B8A8237388D530DB@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="NfiiB3I9VU86e8H5g8JUrf717ULALAf7d"
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 01/14] ibacm: get_devaddr remove unused variable from signature
+Date: Thu,  3 Apr 2014 20:51:41 -0400
+Message-ID: <1396572714-16498-2-git-send-email-ira.weiny@intel.com>
+References: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D530DB-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1396572714-16498-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---NfiiB3I9VU86e8H5g8JUrf717ULALAf7d
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On 4/3/2014 5:00 PM, Hefty, Sean wrote:
->> Ping.  I noticed this never got picked up.  Was there a problem, or ju=
-st
->> overlooked?
->=20
-> Sorry - but I think it just got dropped or lost.  Can you resend?  I do=
-n't see this available on patchworks, and it's not in my inbox any longer=
-=2E
+---
+ linux/acme_linux.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-I'll add it to the set that I'm currently working on.
+diff --git a/linux/acme_linux.c b/linux/acme_linux.c
+index ef5b107..6978db7 100644
+--- a/linux/acme_linux.c
++++ b/linux/acme_linux.c
+@@ -102,7 +102,7 @@ get_sgid(struct ifreq *ifr, union ibv_gid *sgid)
+ }
+ 
+ static int
+-get_devaddr(int s, struct ifreq *ifr,
++get_devaddr(struct ifreq *ifr,
+ 	int *dev_index, uint8_t *port, uint16_t *pkey)
+ {
+ 	struct ibv_device_attr dev_attr;
+@@ -199,7 +199,7 @@ int gen_addr_ip(FILE *f)
+ 		if (ifr[i].ifr_hwaddr.sa_family != ARPHRD_INFINIBAND)
+ 			continue;
+ 
+-		ret = get_devaddr(s, &ifr[i], &dev_index, &port, &pkey);
++		ret = get_devaddr(&ifr[i], &dev_index, &port, &pkey);
+ 		if (ret)
+ 			continue;
+ 
+-- 
+1.7.1
 
-
-
---NfiiB3I9VU86e8H5g8JUrf717ULALAf7d
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTPdQmAAoJELgmozMOVy/dpUQQALk1+DxTM+zUow1hRlqjWk4w
-DAcsXYg8qtAyEmW487qQ9QGVRli1ssDahDDeicBZmOFe4wBSNftsvdbeJzjHGpna
-2WEMkJqbSu1VlYiGPonF0r4ewKoHQ/w7dqxAqKxWRpdC37r52iTSlkl0gAo573sv
-P5eNO3GJuMsU5ApiygezNgUC9I1mChSoWU2Uu/seAUWFO3dWNAdOVXI3YtjFyT2l
-DrnV+73zBDAWJXid3WcGdItuasSpLpRKRlKm18tdY9W/K57ir0mWQb76l68qwGK4
-olDBOA1CoN3gAzqpWpv65+v13gJe/GS039Ft+tMMwHClbPyLAg/+2GOS6HyEOVBL
-sUtY9+axJi0vCfS/VEF+UVIVjJ4N48XRhs36brax9+Dbsc95utFt9FpHYHtH1ucS
-ol/7vXy7QDz7YG92q0GTsXvBSgmobIvl4CTT4TZXwJe+8IkpHJr48Z7OifOwj+QC
-y3/Q1ISRRrCQHq8HN/OSt4sdyZbsbPrCJRpHIXAinqvEn/S6syguqFZCNFx5S8lE
-I31ogxm91KzqxMrqvp+HiUYEgMmOWgiCrW59jcW67wbaEHbYBo9ibDNQU0Nbwjdn
-S9jOAFmNFKcxetInpDbPZ8vIoSYmW3/S1p+BwJzFesredvEXORJV78BGwXD9csC0
-OEBbKX9VIj8+kx7g1DFd
-=gqu5
------END PGP SIGNATURE-----
-
---NfiiB3I9VU86e8H5g8JUrf717ULALAf7d--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
