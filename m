@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 09/14] ibacm: read system IP's into endpoints at startup
-Date: Thu,  3 Apr 2014 20:51:49 -0400
-Message-ID: <1396572714-16498-10-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 08/14] ibacm: add separate acm_ep_insert_addr function
+Date: Thu,  3 Apr 2014 20:51:48 -0400
+Message-ID: <1396572714-16498-9-git-send-email-ira.weiny@intel.com>
 References: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1396572714-16498-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,171 +12,130 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-ibacm_addr.cfg is read after system is read which can add endpoints which are
-not active at start up.
-
-ibacm_addr.cfg can still specify names for end points
+This is in preparation for netlink support which will do this dynamically.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Makefile.am    |    2 +-
- src/acm.c      |   66 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/acm_util.c |   13 ++++++++++-
- 3 files changed, 79 insertions(+), 2 deletions(-)
+ src/acm.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 58 insertions(+), 15 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 703030d..cab1ca1 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -4,7 +4,7 @@ AM_CFLAGS = -g -Wall -D_GNU_SOURCE -DSYSCONFDIR=\"$(sysconfdir)\" -DBINDIR=\"$(b
- 
- bin_PROGRAMS = util/ib_acme
- sbin_PROGRAMS = svc/ibacm
--svc_ibacm_SOURCES = src/acm.c
-+svc_ibacm_SOURCES = src/acm.c src/acm_util.c
- util_ib_acme_SOURCES = src/acme.c linux/acme_linux.c src/libacm.c linux/libacm_linux.c \
- 			src/parse.c src/acm_util.c
- svc_ibacm_CFLAGS = $(AM_CFLAGS)
 diff --git a/src/acm.c b/src/acm.c
-index 6bbc1e5..af1c66e 100644
+index 5dc2684..6bbc1e5 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -46,6 +46,9 @@
- #include <infiniband/verbs.h>
- #include <dlist.h>
- #include <search.h>
-+#include <net/if.h>
-+#include <sys/ioctl.h>
-+#include <net/if_arp.h>
- #include "acm_mad.h"
- #include "acm_util.h"
- 
-@@ -2922,6 +2925,67 @@ acm_ep_insert_addr(struct acm_ep *ep, uint8_t *addr, size_t addr_len, uint8_t ad
- 	return ret;
+@@ -2875,6 +2875,53 @@ static void acm_parse_hosts_file(struct acm_ep *ep)
+ 	fclose(f);
  }
  
-+static struct acm_device *
-+acm_get_device_from_gid(union ibv_gid *sgid, uint8_t *port)
++static int
++acm_ep_insert_addr(struct acm_ep *ep, uint8_t *addr, size_t addr_len, uint8_t addr_type)
 +{
-+	DLIST_ENTRY *dev_entry;
-+	struct acm_device *dev;
-+	struct ibv_device_attr dev_attr;
-+	struct ibv_port_attr port_attr;
-+	union ibv_gid gid;
-+	int ret, i;
++	int i;
++	int ret = ENOMEM;
++	uint8_t tmp[ACM_MAX_ADDRESS];
++	char name_str[INET6_ADDRSTRLEN];
 +
-+	for (dev_entry = dev_list.Next; dev_entry != &dev_list;
-+		 dev_entry = dev_entry->Next) {
++	if (addr_len > ACM_MAX_ADDRESS)
++		return EINVAL;
 +
-+		dev = container_of(dev_entry, struct acm_device, entry);
++	memset(tmp, 0, sizeof tmp);
++	memcpy(tmp, addr, addr_len);
 +
-+		ret = ibv_query_device(dev->verbs, &dev_attr);
-+		if (ret)
-+			continue;
++	lock_acquire(&ep->lock);
++	if (acm_addr_index(ep, tmp, addr_type) < 0) {
++		for (i = 0; i < MAX_EP_ADDR; i++) {
++			if (ep->addr_type[i] == ACM_ADDRESS_INVALID) {
 +
-+		for (*port = 1; *port <= dev_attr.phys_port_cnt; (*port)++) {
-+			ret = ibv_query_port(dev->verbs, *port, &port_attr);
-+			if (ret)
-+				continue;
++				ep->addr_type[i] = addr_type;
++				memcpy(ep->addr[i].addr, tmp, ACM_MAX_ADDRESS);
 +
-+			for (i = 0; i < port_attr.gid_tbl_len; i++) {
-+				ret = ibv_query_gid(dev->verbs, *port, i, &gid);
-+				if (ret || !gid.global.interface_id)
++				switch (addr_type) {
++				case ACM_ADDRESS_IP:
++					inet_ntop(AF_INET, addr, name_str, sizeof name_str);
++					strncpy(ep->name[i], name_str, ACM_MAX_ADDRESS);
 +					break;
++				case ACM_ADDRESS_IP6:
++					inet_ntop(AF_INET6, addr, name_str, sizeof name_str);
++					strncpy(ep->name[i], name_str, ACM_MAX_ADDRESS);
++					break;
++				case ACM_ADDRESS_NAME:
++					strncpy(ep->name[i], (const char *)addr, ACM_MAX_ADDRESS);
++					break;
++				}
 +
-+				if (!memcmp(sgid->raw, gid.raw, sizeof gid))
-+					return dev;
++				ret = 0;
++				break;
 +			}
 +		}
++	} else {
++		ret = 0;
 +	}
-+	return NULL;
-+}
-+
-+static void acm_ep_ip_iter_cb(char *ifname, union ibv_gid *gid, uint16_t pkey,
-+		uint8_t addr_type, uint8_t *addr, size_t addr_len,
-+		char *addr_name, void *ctx)
-+{
-+	uint8_t port_num;
-+	struct acm_device *dev;
-+	struct acm_ep *ep = (struct acm_ep *)ctx;
-+
-+	dev = acm_get_device_from_gid(gid, &port_num);
-+	if (dev && ep->port->dev == dev
-+	    && ep->port->port_num == port_num && ep->pkey == pkey) {
-+		if (!acm_ep_insert_addr(ep, addr, addr_len, addr_type)) {
-+			acm_log(0, "Added %s %s %d 0x%x from %s\n", addr_name,
-+				dev->verbs->device->name, port_num, pkey,
-+				ifname);
-+		}
-+	}
-+}
-+
-+static int acm_get_system_ips(struct acm_ep *ep)
-+{
-+	return acm_if_iter_sys(acm_ep_ip_iter_cb, (void *)ep);
++	lock_release(&ep->lock);
++	return ret;
 +}
 +
  static int acm_assign_ep_names(struct acm_ep *ep)
  {
  	FILE *faddr;
-@@ -2938,6 +3002,8 @@ static int acm_assign_ep_names(struct acm_ep *ep)
- 	acm_log(1, "device %s, port %d, pkey 0x%x\n",
- 		dev_name, ep->port->port_num, ep->pkey);
- 
-+	acm_get_system_ips(ep);
-+
- 	if (!(faddr = acm_open_addr_file())) {
- 		acm_log(0, "ERROR - address file not found\n");
- 		return -1;
-diff --git a/src/acm_util.c b/src/acm_util.c
-index 7a84ac7..c3c5b69 100644
---- a/src/acm_util.c
-+++ b/src/acm_util.c
-@@ -40,6 +40,8 @@
- #include <sys/types.h>
- #include <errno.h>
- 
-+#include <infiniband/acm.h>
-+#include "acm_mad.h"
- #include "acm_util.h"
- 
- int acm_if_is_ib(char *ifname)
-@@ -129,6 +131,9 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	int s, ret, i, len;
+@@ -2883,8 +2930,9 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 	char dev[32], addr[INET6_ADDRSTRLEN], pkey_str[8];
  	uint16_t pkey;
- 	union ibv_gid sgid;
-+	uint8_t addr_type;
-+	uint8_t addr[ACM_MAX_ADDRESS];
+ 	uint8_t type;
+-	int port, index = 0;
++	int port, ret = 0;
+ 	struct in6_addr ip_addr;
 +	size_t addr_len;
  
- 	s = socket(AF_INET6, SOCK_DGRAM, 0);
- 	if (!s)
-@@ -155,10 +160,16 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	for (i = 0; i < ifc->ifc_len / sizeof(struct ifreq); i++) {
- 		switch (ifr[i].ifr_addr.sa_family) {
- 		case AF_INET:
-+			addr_type = ACM_ADDRESS_IP;
-+			memcpy(&addr, &((struct sockaddr_in *) &ifr[i].ifr_addr)->sin_addr, sizeof addr);
-+			addr_len = 4;
- 			inet_ntop(ifr[i].ifr_addr.sa_family,
- 				&((struct sockaddr_in *) &ifr[i].ifr_addr)->sin_addr, ip, sizeof ip);
- 			break;
- 		case AF_INET6:
-+			addr_type = ACM_ADDRESS_IP6;
-+			memcpy(&addr, &((struct sockaddr_in6 *) &ifr[i].ifr_addr)->sin6_addr, sizeof addr);
-+			addr_len = ACM_MAX_ADDRESS;
- 			inet_ntop(ifr[i].ifr_addr.sa_family,
- 				&((struct sockaddr_in6 *) &ifr[i].ifr_addr)->sin6_addr, ip, sizeof ip);
- 			break;
-@@ -177,7 +188,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 		if (ret)
+ 	dev_name = ep->port->dev->verbs->device->name;
+ 	acm_log(1, "device %s, port %d, pkey 0x%x\n",
+@@ -2903,12 +2951,16 @@ static int acm_assign_ep_names(struct acm_ep *ep)
  			continue;
  
--		cb(ifr[i].ifr_name, &sgid, pkey, 0, NULL, 0, ip, ctx);
-+		cb(ifr[i].ifr_name, &sgid, pkey, addr_type, addr, addr_len, ip, ctx);
- 	}
- 	ret = 0;
+ 		acm_log(2, "%s", s);
+-		if (inet_pton(AF_INET, addr, &ip_addr) > 0)
++		if (inet_pton(AF_INET, addr, &ip_addr) > 0) {
+ 			type = ACM_ADDRESS_IP;
+-		else if (inet_pton(AF_INET6, addr, &ip_addr) > 0)
++			addr_len = 4;
++		} else if (inet_pton(AF_INET6, addr, &ip_addr) > 0) {
+ 			type = ACM_ADDRESS_IP6;
+-		else
++			addr_len = ACM_MAX_ADDRESS;
++		} else {
+ 			type = ACM_ADDRESS_NAME;
++			addr_len = strlen(addr);
++		}
  
+ 		if (stricmp(pkey_str, "default")) {
+ 			if (sscanf(pkey_str, "%hx", &pkey) != 1) {
+@@ -2922,17 +2974,8 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 		if (!stricmp(dev_name, dev) && (ep->port->port_num == (uint8_t) port) &&
+ 			(ep->pkey == pkey)) {
+ 
+-			ep->addr_type[index] = type;
+ 			acm_log(1, "assigning %s\n", addr);
+-			strncpy(ep->name[index], addr, ACM_MAX_ADDRESS);
+-			if (type == ACM_ADDRESS_IP)
+-				memcpy(ep->addr[index].addr, &ip_addr, 4);
+-			else if (type == ACM_ADDRESS_IP6)
+-				memcpy(ep->addr[index].addr, &ip_addr, sizeof ip_addr);
+-			else
+-				strncpy((char *) ep->addr[index].addr, addr, ACM_MAX_ADDRESS);
+-
+-			if (++index == MAX_EP_ADDR) {
++			if ((ret = acm_ep_insert_addr(ep, (uint8_t *)&ip_addr, addr_len, type)) != 0) {
+ 				acm_log(1, "maximum number of names assigned to EP\n");
+ 				break;
+ 			}
+@@ -2940,7 +2983,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 	}
+ 	fclose(faddr);
+ 
+-	return !index;
++	return ret;
+ }
+ 
+ /*
 -- 
 1.7.1
 
