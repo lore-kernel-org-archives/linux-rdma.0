@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 11/14] ibacm: add/remove addr's in EP's when added/removed from the system.
-Date: Thu,  3 Apr 2014 20:51:51 -0400
-Message-ID: <1396572714-16498-12-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 13/14] ibacm: ib_acme remove IP addresses from ibacm_addr.cfg file generation
+Date: Thu,  3 Apr 2014 20:51:53 -0400
+Message-ID: <1396572714-16498-14-git-send-email-ira.weiny@intel.com>
 References: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1396572714-16498-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,259 +12,183 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This builds on the previous patch by reacting to the IP address changes
-monitored there.
-
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c |  188 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 184 insertions(+), 4 deletions(-)
+ Makefile.am        |    3 +-
+ linux/acme_linux.c |   95 ----------------------------------------------------
+ man/ib_acme.1      |    3 +-
+ src/acme.c         |   12 ++-----
+ 4 files changed, 5 insertions(+), 108 deletions(-)
+ delete mode 100644 linux/acme_linux.c
 
-diff --git a/src/acm.c b/src/acm.c
-index 45f3ed9..a6e24a9 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -796,6 +796,27 @@ out:
- 	lock_release(&ep->lock);
+diff --git a/Makefile.am b/Makefile.am
+index cab1ca1..9070a5a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -5,8 +5,7 @@ AM_CFLAGS = -g -Wall -D_GNU_SOURCE -DSYSCONFDIR=\"$(sysconfdir)\" -DBINDIR=\"$(b
+ bin_PROGRAMS = util/ib_acme
+ sbin_PROGRAMS = svc/ibacm
+ svc_ibacm_SOURCES = src/acm.c src/acm_util.c
+-util_ib_acme_SOURCES = src/acme.c linux/acme_linux.c src/libacm.c linux/libacm_linux.c \
+-			src/parse.c src/acm_util.c
++util_ib_acme_SOURCES = src/acme.c src/libacm.c linux/libacm_linux.c src/parse.c
+ svc_ibacm_CFLAGS = $(AM_CFLAGS)
+ util_ib_acme_CFLAGS = $(AM_CFLAGS) -DACME_PRINTS
+ 
+diff --git a/linux/acme_linux.c b/linux/acme_linux.c
+deleted file mode 100644
+index 33fafd2..0000000
+--- a/linux/acme_linux.c
++++ /dev/null
+@@ -1,95 +0,0 @@
+-/*
+- * Copyright (c) 2009 Intel Corporation. All rights reserved.
+- *
+- * This software is available to you under the OpenIB.org BSD license
+- * below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-
+-#include <infiniband/verbs.h>
+-#include "acm_util.h"
+-
+-extern struct ibv_context **verbs;
+-extern int dev_cnt;
+-extern int verbose;
+-
+-static int
+-get_devaddr(union ibv_gid *sgid, int *dev_index, uint8_t *port)
+-{
+-	struct ibv_device_attr dev_attr;
+-	struct ibv_port_attr port_attr;
+-	union ibv_gid gid;
+-	int ret, i;
+-
+-	for (*dev_index = 0; *dev_index < dev_cnt; (*dev_index)++) {
+-		ret = ibv_query_device(verbs[*dev_index], &dev_attr);
+-		if (ret)
+-			continue;
+-
+-		for (*port = 1; *port <= dev_attr.phys_port_cnt; (*port)++) {
+-			ret = ibv_query_port(verbs[*dev_index], *port, &port_attr);
+-			if (ret)
+-				continue;
+-
+-			for (i = 0; i < port_attr.gid_tbl_len; i++) {
+-				ret = ibv_query_gid(verbs[*dev_index], *port, i, &gid);
+-				if (ret || !gid.global.interface_id)
+-					break;
+-
+-				if (!memcmp(sgid->raw, gid.raw, sizeof gid))
+-					return 0;
+-			}
+-		}
+-	}
+-	return -1;
+-}
+-
+-static void iter_cb(char *ifname, union ibv_gid *gid, uint16_t pkey,
+-		uint8_t addr_type, uint8_t *addr, size_t addr_len,
+-		char *addr_name, void *ctx)
+-{
+-	FILE *f = (FILE *)ctx;
+-	int ret;
+-	int dev_index;
+-	uint8_t port;
+-
+-	ret = get_devaddr(gid, &dev_index, &port);
+-	if (ret) {
+-		printf("Failed to find verbs device for %s\n", ifname);
+-		return;
+-	}
+-
+-	if (verbose)
+-		printf("%s %s %d 0x%x\n", addr_name, verbs[dev_index]->device->name, port, pkey);
+-	fprintf(f, "%s %s %d 0x%x\n", addr_name, verbs[dev_index]->device->name, port, pkey);
+-}
+-
+-int gen_addr_ip(FILE *f)
+-{
+-	return acm_if_iter_sys(iter_cb, (void *)f);
+-}
+diff --git a/man/ib_acme.1 b/man/ib_acme.1
+index b00b315..baa1dd6 100644
+--- a/man/ib_acme.1
++++ b/man/ib_acme.1
+@@ -55,8 +55,7 @@ performance of ACM cache lookups.  Defaults to 1.
+ \-A [addr_file]
+ With this option, the ib_acme utility automatically generates the address
+ configuration file ibacm_addr.cfg.  The generated file is
+-constructed using the system host name and any IP addresses that are
+-assigned to IPoIB device instances.
++constructed using the system host name.
+ .TP
+ \-O [opt_file]
+ With this option, the ib_acme utility automatically generates the option
+diff --git a/src/acme.c b/src/acme.c
+index 9c5b4d4..d83e56f 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -317,9 +317,11 @@ static void gen_addr_temp(FILE *f)
+ 	fprintf(f, "# Entry format is:\n");
+ 	fprintf(f, "# address device port pkey\n");
+ 	fprintf(f, "#\n");
++	fprintf(f, "# NOTE: IP addresses are now automatically read and monitored on the system.\n");
++	fprintf(f, "#       Therefore they are no longer required in this file.\n");
++	fprintf(f, "#\n");
+ 	fprintf(f, "# The address may be one of the following:\n");
+ 	fprintf(f, "# host_name - ascii character string, up to 31 characters\n");
+-	fprintf(f, "# address - IPv4 or IPv6 formatted address\n");
+ 	fprintf(f, "#\n");
+ 	fprintf(f, "# device name - struct ibv_device name\n");
+ 	fprintf(f, "# port number - valid port number on device (numbering starts at 1)\n");
+@@ -331,8 +333,6 @@ static void gen_addr_temp(FILE *f)
+ 	fprintf(f, "# node31      ibv_device0 1 default\n");
+ 	fprintf(f, "# node31-1    ibv_device0 1 0x00FF\n");
+ 	fprintf(f, "# node31-2    ibv_device0 2 0x00FF\n");
+-	fprintf(f, "# 192.168.0.1 ibv_device0 1 0xFFFF\n");
+-	fprintf(f, "# 192.168.0.2 ibv_device0 2 default\n");
  }
  
-+static void acm_mark_addr_invalid(struct acm_ep *ep,
-+				  struct acm_ep_addr_data *data)
-+{
-+	int i;
-+
-+	lock_acquire(&ep->lock);
-+	for (i = 0; i < MAX_EP_ADDR; i++) {
-+		if (ep->addr_type[i] != data->type)
-+			continue;
-+
-+		if ((data->type == ACM_ADDRESS_NAME &&
-+		    !strnicmp((char *) ep->addr[i].name,
-+			      (char *) data->info.addr, ACM_MAX_ADDRESS)) ||
-+		     !memcmp(ep->addr[i].addr, data->info.addr, ACM_MAX_ADDRESS)) {
-+			ep->addr_type[i] = ACM_ADDRESS_INVALID;
-+			break;
-+		}
-+	}
-+	lock_release(&ep->lock);
-+}
-+
- static int acm_addr_index(struct acm_ep *ep, uint8_t *addr, uint8_t addr_type)
- {
- 	int i;
-@@ -2393,6 +2414,85 @@ out:
- 		acm_disconnect_client(client);
- }
- 
-+static struct acm_device *
-+acm_get_device_from_gid(union ibv_gid *sgid, uint8_t *port);
-+static struct acm_ep *acm_find_ep(struct acm_port *port, uint16_t pkey);
-+static int
-+acm_ep_insert_addr(struct acm_ep *ep, uint8_t *addr, size_t addr_len, uint8_t addr_type);
-+
-+static int acm_nl_to_addr_data(struct acm_ep_addr_data *ad,
-+				  int af_family, uint8_t *addr, size_t addr_len)
-+{
-+	if (addr_len > ACM_MAX_ADDRESS)
-+		return EINVAL;
-+
-+	/* find the ep associated with this address "if any" */
-+	switch (af_family) {
-+	case AF_INET:
-+		ad->type = ACM_ADDRESS_IP;
-+		break;
-+	case AF_INET6:
-+		ad->type = ACM_ADDRESS_IP6;
-+		break;
-+	default:
-+		return EINVAL;
-+	}
-+	memcpy(&ad->info.addr, addr, addr_len);
-+	return 0;
-+}
-+
-+static void acm_add_ep_ip(struct acm_ep_addr_data *data, char *ifname)
-+{
-+	struct acm_ep *ep;
-+	struct acm_device *dev;
-+	uint8_t port_num;
-+	uint16_t pkey;
-+	union ibv_gid sgid;
-+
-+	ep = acm_get_ep(data);
-+	if (ep) {
-+		acm_format_name(1, log_data, sizeof log_data,
-+				data->type, data->info.addr, sizeof data->info.addr);
-+		acm_log(1, "Address '%s' already available\n", log_data);
-+		return;
-+	}
-+
-+	if (acm_if_get_sgid(ifname, &sgid))
-+		return;
-+
-+	dev = acm_get_device_from_gid(&sgid, &port_num);
-+	if (!dev)
-+		return;
-+
-+	if (acm_if_get_pkey(ifname, &pkey))
-+		return;
-+
-+	acm_format_name(0, log_data, sizeof log_data,
-+			data->type, data->info.addr, sizeof data->info.addr);
-+	acm_log(0, " %s\n", log_data);
-+
-+	ep = acm_find_ep(&dev->port[port_num-1], pkey);
-+	if (ep) {
-+		if (acm_ep_insert_addr(ep, data->info.addr, sizeof data->info.addr, data->type))
-+			acm_log(0, "Failed to add '%s' to EP\n", log_data);
-+	} else {
-+		acm_log(0, "Failed to add '%s' no EP for pkey\n", log_data);
-+	}
-+}
-+
-+static void acm_rm_ep_ip(struct acm_ep_addr_data *data)
-+{
-+	struct acm_ep *ep;
-+
-+	ep = acm_get_ep(data);
-+	if (ep) {
-+		acm_format_name(0, log_data, sizeof log_data,
-+				data->type, data->info.addr, sizeof data->info.addr);
-+		acm_log(0, " %s\n", log_data);
-+		acm_mark_addr_invalid(ep, data);
-+	}
-+}
-+
- static int acm_ipnl_create(void)
- {
- 	struct sockaddr_nl addr;
-@@ -2414,6 +2514,72 @@ static int acm_ipnl_create(void)
- 	return 0;
- }
- 
-+static void acm_ip_iter_cb(char *ifname, union ibv_gid *gid, uint16_t pkey,
-+		uint8_t addr_type, uint8_t *addr, size_t addr_len,
-+		char *addr_name, void *ctx)
-+{
-+	int ret = EINVAL;
-+	struct acm_device *dev = NULL;
-+	struct acm_ep *ep = NULL;
-+	uint8_t port_num;
-+	char gid_str[INET6_ADDRSTRLEN];
-+
-+	dev = acm_get_device_from_gid(gid, &port_num);
-+	if (dev)
-+		ep = acm_find_ep(&dev->port[port_num-1], pkey);
-+
-+	if (ep)
-+		ret = acm_ep_insert_addr(ep, addr, addr_len, addr_type);
-+
-+	if (ret) {
-+		acm_format_name(2, log_data, sizeof log_data,
-+			addr_type, addr, addr_len);
-+		inet_ntop(AF_INET6, gid->raw, gid_str, sizeof(gid_str));
-+		acm_log(0, "Failed to add '%s' (gid %s; pkey 0x%x)\n",
-+			log_data, gid_str, pkey);
-+	}
-+}
-+
-+/* Netlink updates have indicated a failure which means we are no longer in
-+ * sync.  This should be a rare condition so we handle this with a "big
-+ * hammer" by clearing and re-reading all the system IP's.
-+ */
-+static int resync_system_ips(void)
-+{
-+	DLIST_ENTRY *dev_entry;
-+	struct acm_device *dev;
-+	int cnt;
-+
-+	acm_log(0, "Resyncing all IP's\n");
-+
-+	/* mark all IP's invalid */
-+	for (dev_entry = dev_list.Next; dev_entry != &dev_list;
-+	     dev_entry = dev_entry->Next) {
-+		struct acm_ep *ep = NULL;
-+		DLIST_ENTRY *entry;
-+
-+		dev = container_of(dev_entry, struct acm_device, entry);
-+
-+		for (cnt = 0; cnt < dev->port_cnt; cnt++) {
-+			struct acm_port *port = &dev->port[cnt];
-+
-+			for (entry = port->ep_list.Next; entry != &port->ep_list;
-+			     entry = entry->Next) {
-+				int i;
-+
-+				ep = container_of(entry, struct acm_ep, entry);
-+				for (i = 0; i < MAX_EP_ADDR; i++) {
-+					if (ep->addr_type[i] == ACM_ADDRESS_IP
-+					    || ep->addr_type[i] == ACM_ADDRESS_IP6)
-+						ep->addr_type[i] = ACM_ADDRESS_INVALID;
-+				}
-+			}
-+		}
-+	}
-+
-+	return acm_if_iter_sys(acm_ip_iter_cb, NULL);
-+}
-+
- #define NL_MSG_BUF_SIZE 4096
- static void acm_ipnl_handler(void)
- {
-@@ -2422,6 +2588,7 @@ static void acm_ipnl_handler(void)
- 	struct nlmsghdr *nlh;
- 	char name[IFNAMSIZ];
- 	char ip_str[INET6_ADDRSTRLEN];
-+	struct acm_ep_addr_data ad;
- 
- 	while ((len = recv(ip_mon_socket, buffer, NL_MSG_BUF_SIZE, 0)) > 0) {
- 		nlh = (struct nlmsghdr *)buffer;
-@@ -2437,9 +2604,14 @@ static void acm_ipnl_handler(void)
- 				if_indextoname(ifa->ifa_index, name);
- 				while (rtl && RTA_OK(rth, rtl)) {
- 					if (rth->rta_type == IFA_LOCAL) {
--						acm_log(0, "Address added %s : %s\n",
-+						acm_log(1, "New system address available %s : %s\n",
- 						        name, inet_ntop(ifa->ifa_family, RTA_DATA(rth),
- 							ip_str, sizeof(ip_str)));
-+						if (!acm_nl_to_addr_data(&ad, ifa->ifa_family,
-+								      RTA_DATA(rth),
-+								      RTA_PAYLOAD(rth))) {
-+							acm_add_ep_ip(&ad, name);
-+						}
- 					}
- 					rth = RTA_NEXT(rth, rtl);
- 				}
-@@ -2450,9 +2622,14 @@ static void acm_ipnl_handler(void)
- 				if_indextoname(ifa->ifa_index, name);
- 				while (rtl && RTA_OK(rth, rtl)) {
- 					if (rth->rta_type == IFA_LOCAL) {
--						acm_log(0, "Address deleted %s : %s\n",
-+						acm_log(1, "System address removed %s : %s\n",
- 						        name, inet_ntop(ifa->ifa_family, RTA_DATA(rth),
- 							ip_str, sizeof(ip_str)));
-+						if (!acm_nl_to_addr_data(&ad, ifa->ifa_family,
-+								      RTA_DATA(rth),
-+								      RTA_PAYLOAD(rth))) {
-+							acm_rm_ep_ip(&ad);
-+						}
- 					}
- 					rth = RTA_NEXT(rth, rtl);
- 				}
-@@ -2475,8 +2652,11 @@ static void acm_ipnl_handler(void)
- 			nlh = NLMSG_NEXT(nlh, len);
- 		}
+ static int open_verbs(void)
+@@ -449,12 +449,6 @@ static int gen_addr(void)
+ 		goto out2;
  	}
--	if (len < 0 && errno == ENOBUFS)
--		acm_log(0, "ENOBUFS returned from netlink... Resyncing all IP's\n");
-+
-+	if (len < 0 && errno == ENOBUFS) {
-+		acm_log(0, "ENOBUFS returned from netlink...\n");
-+		resync_system_ips();
-+	}
- }
  
- static void acm_server(void)
+-	ret = gen_addr_ip(f);
+-	if (ret) {
+-		printf("Failed to auto generate IP addresses in config file\n");
+-		goto out2;
+-	}
+-
+ out2:
+ 	close_verbs();
+ out1:
 -- 
 1.7.1
 
