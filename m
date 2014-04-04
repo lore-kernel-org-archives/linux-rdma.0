@@ -1,31 +1,90 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 0/14 V2] Add Dynamic IP processing to ibacm.
-Date: Thu,  3 Apr 2014 20:51:40 -0400
-Message-ID: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 03/14] ibacm: use sysfs (in acm_if_is_ib) rather than ioctl(... SIOCGIFHWADDR ...) to read interface type
+Date: Thu,  3 Apr 2014 20:51:43 -0400
+Message-ID: <1396572714-16498-4-git-send-email-ira.weiny@intel.com>
+References: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1396572714-16498-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a new version of the entire patch series.  In addition to fixing
-comments from Bart and Sean I removed the additional thread which removed the
-need for additional locking.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-[PATCH 01/14] ibacm: get_devaddr remove unused variable from signature
-[PATCH 02/14] ibacm: pass interface name rather than 'struct ifreq' to get_devaddr, get_sgid, and get_pkey
-[PATCH 03/14] ibacm: use sysfs (in acm_if_is_ib) rather than ioctl(... SIOCGIFHWADDR ...) to read interface type
-[PATCH 04/14] ibacm: move sysfs helper functions to acm_util 'module'
-[PATCH 05/14] ibacm: Move calling of helper functions out of get_devaddr
-[PATCH 06/14] ibacm: move acm_if_iter_sys to acm_util.c
-[PATCH 07/14] ibacm: convert logging in acm_util.c to acm_log
-[PATCH 08/14] ibacm: add separate acm_ep_insert_addr function
-[PATCH 09/14] ibacm: read system IP's into endpoints at startup
-[PATCH 10/14] ibacm: Add Netlink socket to monitor IP address changes
-[PATCH 11/14] ibacm: add/remove addr's in EP's when added/removed from the system.
-[PATCH 12/14] ibacm: fix handling of aliased IPoIB devices
-[PATCH 13/14] ibacm: ib_acme remove IP addresses from ibacm_addr.cfg file generation
-[PATCH 14/14] ibacm: by default remove processing of IP's from ibacm_addr.cfg
+Getting an interface type from sysfs is easier than using an ioctl when an
+interface name is readily available (as is the case with netlink.)
+
+In preparation for netlink support create a function which uses sysfs and use
+it instead of ioctls.
+
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ linux/acme_linux.c |   34 +++++++++++++++++++++++++++-------
+ 1 files changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/linux/acme_linux.c b/linux/acme_linux.c
+index 201ff19..0bd1f75 100644
+--- a/linux/acme_linux.c
++++ b/linux/acme_linux.c
+@@ -38,6 +38,7 @@
+ #include <netinet/in.h>
+ #include <sys/socket.h>
+ #include <sys/types.h>
++#include <errno.h>
+ 
+ #include <infiniband/verbs.h>
+ 
+@@ -101,6 +102,31 @@ get_sgid(char *ifname, union ibv_gid *sgid)
+ 	return ret;
+ }
+ 
++static int acm_if_is_ib(char *ifname)
++{
++	unsigned type;
++	char buf[128];
++	FILE *f;
++	int ret;
++
++	snprintf(buf, sizeof buf, "//sys//class//net//%s//type", ifname);
++	f = fopen(buf, "r");
++	if (!f) {
++		printf("failed to open %s\n", buf);
++		return 0;
++	}
++
++	if (fgets(buf, sizeof buf, f)) {
++		type = strtol(buf, NULL, 0);
++		ret = (type == ARPHRD_INFINIBAND);
++	} else {
++		ret = 0;
++	}
++
++	fclose(f);
++	return ret;
++}
++
+ static int
+ get_devaddr(char *ifname, int *dev_index, uint8_t *port, uint16_t *pkey)
+ {
+@@ -189,13 +215,7 @@ int gen_addr_ip(FILE *f)
+ 			continue;
+ 		}
+ 
+-		ret = ioctl(s, SIOCGIFHWADDR, &ifr[i]);
+-		if (ret) {
+-			printf("failed to get hw address %d\n", ret);
+-			continue;
+-		}
+-
+-		if (ifr[i].ifr_hwaddr.sa_family != ARPHRD_INFINIBAND)
++		if (!acm_if_is_ib(ifr[i].ifr_name))
+ 			continue;
+ 
+ 		ret = get_devaddr(ifr[i].ifr_name, &dev_index, &port, &pkey);
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
