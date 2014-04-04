@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 08/14] ibacm: add separate acm_ep_insert_addr function
-Date: Thu,  3 Apr 2014 20:51:48 -0400
-Message-ID: <1396572714-16498-9-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 10/14] ibacm: Add Netlink socket to monitor IP address changes
+Date: Thu,  3 Apr 2014 20:51:50 -0400
+Message-ID: <1396572714-16498-11-git-send-email-ira.weiny@intel.com>
 References: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1396572714-16498-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,130 +12,158 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This is in preparation for netlink support which will do this dynamically.
+Currently only reports events to the log.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++------------
- 1 files changed, 58 insertions(+), 15 deletions(-)
+ src/acm.c |   99 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 99 insertions(+), 0 deletions(-)
 
 diff --git a/src/acm.c b/src/acm.c
-index 5dc2684..6bbc1e5 100644
+index af1c66e..45f3ed9 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -2875,6 +2875,53 @@ static void acm_parse_hosts_file(struct acm_ep *ep)
- 	fclose(f);
+@@ -49,6 +49,9 @@
+ #include <net/if.h>
+ #include <sys/ioctl.h>
+ #include <net/if_arp.h>
++#include <netinet/in.h>
++#include <linux/netlink.h>
++#include <linux/rtnetlink.h>
+ #include "acm_mad.h"
+ #include "acm_util.h"
+ 
+@@ -214,6 +217,7 @@ static event_t timeout_event;
+ static atomic_t wait_cnt;
+ 
+ static SOCKET listen_socket;
++static SOCKET ip_mon_socket;
+ static struct acm_client client[FD_SETSIZE - 1];
+ 
+ static FILE *flog;
+@@ -2389,6 +2393,92 @@ out:
+ 		acm_disconnect_client(client);
  }
  
-+static int
-+acm_ep_insert_addr(struct acm_ep *ep, uint8_t *addr, size_t addr_len, uint8_t addr_type)
++static int acm_ipnl_create(void)
 +{
-+	int i;
-+	int ret = ENOMEM;
-+	uint8_t tmp[ACM_MAX_ADDRESS];
-+	char name_str[INET6_ADDRSTRLEN];
++	struct sockaddr_nl addr;
 +
-+	if (addr_len > ACM_MAX_ADDRESS)
-+		return EINVAL;
-+
-+	memset(tmp, 0, sizeof tmp);
-+	memcpy(tmp, addr, addr_len);
-+
-+	lock_acquire(&ep->lock);
-+	if (acm_addr_index(ep, tmp, addr_type) < 0) {
-+		for (i = 0; i < MAX_EP_ADDR; i++) {
-+			if (ep->addr_type[i] == ACM_ADDRESS_INVALID) {
-+
-+				ep->addr_type[i] = addr_type;
-+				memcpy(ep->addr[i].addr, tmp, ACM_MAX_ADDRESS);
-+
-+				switch (addr_type) {
-+				case ACM_ADDRESS_IP:
-+					inet_ntop(AF_INET, addr, name_str, sizeof name_str);
-+					strncpy(ep->name[i], name_str, ACM_MAX_ADDRESS);
-+					break;
-+				case ACM_ADDRESS_IP6:
-+					inet_ntop(AF_INET6, addr, name_str, sizeof name_str);
-+					strncpy(ep->name[i], name_str, ACM_MAX_ADDRESS);
-+					break;
-+				case ACM_ADDRESS_NAME:
-+					strncpy(ep->name[i], (const char *)addr, ACM_MAX_ADDRESS);
-+					break;
-+				}
-+
-+				ret = 0;
-+				break;
-+			}
-+		}
-+	} else {
-+		ret = 0;
++	if ((ip_mon_socket = socket(PF_NETLINK, SOCK_RAW | SOCK_NONBLOCK, NETLINK_ROUTE)) == -1) {
++		acm_log(0, "Failed to open NETLINK_ROUTE socket");
++		return EIO;
 +	}
-+	lock_release(&ep->lock);
-+	return ret;
++
++	memset(&addr, 0, sizeof(addr));
++	addr.nl_family = AF_NETLINK;
++	addr.nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR;
++
++	if (bind(ip_mon_socket, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
++		acm_log(0, "Failed to bind NETLINK_ROUTE socket");
++		return EIO;
++	}
++
++	return 0;
 +}
 +
- static int acm_assign_ep_names(struct acm_ep *ep)
- {
- 	FILE *faddr;
-@@ -2883,8 +2930,9 @@ static int acm_assign_ep_names(struct acm_ep *ep)
- 	char dev[32], addr[INET6_ADDRSTRLEN], pkey_str[8];
- 	uint16_t pkey;
- 	uint8_t type;
--	int port, index = 0;
-+	int port, ret = 0;
- 	struct in6_addr ip_addr;
-+	size_t addr_len;
- 
- 	dev_name = ep->port->dev->verbs->device->name;
- 	acm_log(1, "device %s, port %d, pkey 0x%x\n",
-@@ -2903,12 +2951,16 @@ static int acm_assign_ep_names(struct acm_ep *ep)
- 			continue;
- 
- 		acm_log(2, "%s", s);
--		if (inet_pton(AF_INET, addr, &ip_addr) > 0)
-+		if (inet_pton(AF_INET, addr, &ip_addr) > 0) {
- 			type = ACM_ADDRESS_IP;
--		else if (inet_pton(AF_INET6, addr, &ip_addr) > 0)
-+			addr_len = 4;
-+		} else if (inet_pton(AF_INET6, addr, &ip_addr) > 0) {
- 			type = ACM_ADDRESS_IP6;
--		else
-+			addr_len = ACM_MAX_ADDRESS;
-+		} else {
- 			type = ACM_ADDRESS_NAME;
-+			addr_len = strlen(addr);
++#define NL_MSG_BUF_SIZE 4096
++static void acm_ipnl_handler(void)
++{
++	int len;
++	char buffer[NL_MSG_BUF_SIZE];
++	struct nlmsghdr *nlh;
++	char name[IFNAMSIZ];
++	char ip_str[INET6_ADDRSTRLEN];
++
++	while ((len = recv(ip_mon_socket, buffer, NL_MSG_BUF_SIZE, 0)) > 0) {
++		nlh = (struct nlmsghdr *)buffer;
++		while ((NLMSG_OK(nlh, len)) && (nlh->nlmsg_type != NLMSG_DONE)) {
++			struct ifaddrmsg *ifa = (struct ifaddrmsg *) NLMSG_DATA(nlh);
++			struct ifinfomsg *ifi = (struct ifinfomsg *) NLMSG_DATA(nlh);
++			struct rtattr *rth = IFA_RTA(ifa);
++			int rtl = IFA_PAYLOAD(nlh);
++
++			switch (nlh->nlmsg_type) {
++			case RTM_NEWADDR:
++			{
++				if_indextoname(ifa->ifa_index, name);
++				while (rtl && RTA_OK(rth, rtl)) {
++					if (rth->rta_type == IFA_LOCAL) {
++						acm_log(0, "Address added %s : %s\n",
++						        name, inet_ntop(ifa->ifa_family, RTA_DATA(rth),
++							ip_str, sizeof(ip_str)));
++					}
++					rth = RTA_NEXT(rth, rtl);
++				}
++				break;
++			}
++			case RTM_DELADDR:
++			{
++				if_indextoname(ifa->ifa_index, name);
++				while (rtl && RTA_OK(rth, rtl)) {
++					if (rth->rta_type == IFA_LOCAL) {
++						acm_log(0, "Address deleted %s : %s\n",
++						        name, inet_ntop(ifa->ifa_family, RTA_DATA(rth),
++							ip_str, sizeof(ip_str)));
++					}
++					rth = RTA_NEXT(rth, rtl);
++				}
++				break;
++			}
++			case RTM_NEWLINK:
++			{
++				acm_log(2, "Link added : %s\n", if_indextoname(ifi->ifi_index, name));
++				break;
++			}
++			case RTM_DELLINK:
++			{
++				acm_log(2, "Link removed : %s\n", if_indextoname(ifi->ifi_index, name));
++				break;
++			}
++			default:
++				acm_log(2, "unknown netlink message\n");
++				break;
++			}
++			nlh = NLMSG_NEXT(nlh, len);
 +		}
++	}
++	if (len < 0 && errno == ENOBUFS)
++		acm_log(0, "ENOBUFS returned from netlink... Resyncing all IP's\n");
++}
++
+ static void acm_server(void)
+ {
+ 	fd_set readfds;
+@@ -2407,6 +2497,9 @@ static void acm_server(void)
+ 		FD_ZERO(&readfds);
+ 		FD_SET(listen_socket, &readfds);
  
- 		if (stricmp(pkey_str, "default")) {
- 			if (sscanf(pkey_str, "%hx", &pkey) != 1) {
-@@ -2922,17 +2974,8 @@ static int acm_assign_ep_names(struct acm_ep *ep)
- 		if (!stricmp(dev_name, dev) && (ep->port->port_num == (uint8_t) port) &&
- 			(ep->pkey == pkey)) {
++		n = max(n, (int) ip_mon_socket);
++		FD_SET(ip_mon_socket, &readfds);
++
+ 		for (i = 0; i < FD_SETSIZE - 1; i++) {
+ 			if (client[i].sock != INVALID_SOCKET) {
+ 				FD_SET(client[i].sock, &readfds);
+@@ -2423,6 +2516,9 @@ static void acm_server(void)
+ 		if (FD_ISSET(listen_socket, &readfds))
+ 			acm_svr_accept();
  
--			ep->addr_type[index] = type;
- 			acm_log(1, "assigning %s\n", addr);
--			strncpy(ep->name[index], addr, ACM_MAX_ADDRESS);
--			if (type == ACM_ADDRESS_IP)
--				memcpy(ep->addr[index].addr, &ip_addr, 4);
--			else if (type == ACM_ADDRESS_IP6)
--				memcpy(ep->addr[index].addr, &ip_addr, sizeof ip_addr);
--			else
--				strncpy((char *) ep->addr[index].addr, addr, ACM_MAX_ADDRESS);
--
--			if (++index == MAX_EP_ADDR) {
-+			if ((ret = acm_ep_insert_addr(ep, (uint8_t *)&ip_addr, addr_len, type)) != 0) {
- 				acm_log(1, "maximum number of names assigned to EP\n");
- 				break;
- 			}
-@@ -2940,7 +2983,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
++		if (FD_ISSET(ip_mon_socket, &readfds))
++			acm_ipnl_handler();
++
+ 		for (i = 0; i < FD_SETSIZE - 1; i++) {
+ 			if (client[i].sock != INVALID_SOCKET &&
+ 				FD_ISSET(client[i].sock, &readfds)) {
+@@ -3746,6 +3842,9 @@ int CDECL_FUNC main(int argc, char **argv)
+ 		return -1;
  	}
- 	fclose(faddr);
  
--	return !index;
-+	return ret;
- }
- 
- /*
++	acm_log(1, "creating IP Netlink socket\n");
++	acm_ipnl_create();
++
+ 	acm_activate_devices();
+ 	acm_log(1, "starting timeout/retry thread\n");
+ 	beginthread(acm_retry_handler, NULL);
 -- 
 1.7.1
 
