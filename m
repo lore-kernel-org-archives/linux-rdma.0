@@ -1,85 +1,133 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] ib_srpt: Use correct ib_sg_dma primitives
-Date: Mon, 07 Apr 2014 13:58:35 -0400
-Message-ID: <20140407175835.23417.13938.stgit@phlsvslse11.ph.intel.com>
+From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] NFS-RDMA: fix qp pointer validation checks
+Date: Tue, 8 Apr 2014 04:00:05 +0530
+Message-ID: <d4afd436-8e14-4729-9bc1-71ab9079a246@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: linux-rdma@vger.kernel.org, roland@purestorage.org, target-devel@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The code was incorrectly using sg_dma_address() and
-sg_dma_len() instead of ib_sg_dma_address() and
-ib_sg_dma_len().
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-This prevents srpt from functioning with the
-Intel HCA and indeed will corrupt memory
-badly.
+If the rdma_create_qp fails to create qp due to device firmware being in invalid state
+xprtrdma still tries to destroy the non-existant qp and ends up in a NULL pointer reference
+crash.
+Adding proper checks for vaidating QP pointer avoids this to happen.
 
-Cc: <stable@vger.kernel.org>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Tested-by: Vinod Kumar <vinod.kumar@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   34 ++++++++++++++++++++++++++++------
+ 1 files changed, 28 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 520a7e5..b4884ae 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1078,6 +1078,7 @@ static void srpt_unmap_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 				 struct srpt_send_ioctx *ioctx)
- {
-+	struct ib_device *dev = ch->sport->sdev->device;
- 	struct se_cmd *cmd;
- 	struct scatterlist *sg, *sg_orig;
- 	int sg_cnt;
-@@ -1124,7 +1125,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 9372656..c01d91e 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -620,7 +620,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+ 			__func__, rc);
+ 	}
+ 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+-		if (ia->ri_id->qp)
++		if (!IS_ERR(ia->ri_id->qp))
+ 			rdma_destroy_qp(ia->ri_id);
+ 		rdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = NULL;
+@@ -794,7 +794,7 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	dprintk("RPC:       %s: entering, connected is %d\n",
+ 		__func__, ep->rep_connected);
  
- 	db = ioctx->rbufs;
- 	tsize = cmd->data_length;
--	dma_len = sg_dma_len(&sg[0]);
-+	dma_len = ib_sg_dma_len(dev, &sg[0]);
- 	riu = ioctx->rdma_ius;
+-	if (ia->ri_id->qp) {
++	if (!IS_ERR(ia->ri_id->qp)) {
+ 		rc = rpcrdma_ep_disconnect(ep, ia);
+ 		if (rc)
+ 			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+@@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	if (ep->rep_connected != 0) {
+ 		struct rpcrdma_xprt *xprt;
+ retry:
+-		rc = rpcrdma_ep_disconnect(ep, ia);
+-		if (rc && rc != -ENOTCONN)
+-			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
++		if (!IS_ERR(ia->ri_id->qp)) {
++			rc = rpcrdma_ep_disconnect(ep, ia);
++			if (rc && rc != -ENOTCONN)
++				dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+ 				" status %i\n", __func__, rc);
++		}
+ 		rpcrdma_clean_cq(ep->rep_cq);
  
- 	/*
-@@ -1155,7 +1156,8 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 					++j;
- 					if (j < count) {
- 						sg = sg_next(sg);
--						dma_len = sg_dma_len(sg);
-+						dma_len = ib_sg_dma_len(
-+								dev, sg);
- 					}
- 				}
- 			} else {
-@@ -1192,8 +1194,8 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 	tsize = cmd->data_length;
- 	riu = ioctx->rdma_ius;
- 	sg = sg_orig;
--	dma_len = sg_dma_len(&sg[0]);
--	dma_addr = sg_dma_address(&sg[0]);
-+	dma_len = ib_sg_dma_len(dev, &sg[0]);
-+	dma_addr = ib_sg_dma_address(dev, &sg[0]);
+ 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
+@@ -859,7 +861,9 @@ retry:
+ 			goto out;
+ 		}
+ 		/* END TEMP */
+-		rdma_destroy_qp(ia->ri_id);
++		if (!IS_ERR(ia->ri_id->qp)) {
++			rdma_destroy_qp(ia->ri_id);
++		}
+ 		rdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = id;
+ 	}
+@@ -1557,6 +1561,13 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
  
- 	/* this second loop is really mapped sg_addres to rdma_iu->ib_sge */
- 	for (i = 0, j = 0;
-@@ -1216,8 +1218,10 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 					++j;
- 					if (j < count) {
- 						sg = sg_next(sg);
--						dma_len = sg_dma_len(sg);
--						dma_addr = sg_dma_address(sg);
-+						dma_len = ib_sg_dma_len(
-+								dev, sg);
-+						dma_addr = ib_sg_dma_address(
-+								dev, sg);
- 					}
- 				}
- 			} else {
++	if (IS_ERR(ia->ri_is->qp)) {
++		rc = PTR_ERR(ia->ri_is->qp);
++		while (i--)
++			rpcrdma_unmap_one(ia, --seg);
++		goto out;
++	}
++
+ 	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
+ 
+ 	if (rc) {
+@@ -1571,6 +1582,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 		seg1->mr_len = len;
+ 	}
+ 	*nsegs = i;
++out:
+ 	return rc;
+ }
+ 
+@@ -1592,6 +1604,10 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 
++	if (IS_ERR(ia->ri_id->qp)) {
++		return PTR_ERR(ia->ri_id->qp);
++	}
++
+ 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+ 	if (rc)
+ 		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
+@@ -1923,6 +1939,9 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
+ 		send_wr.send_flags = IB_SEND_SIGNALED;
+ 	}
+ 
++	if (IS_ERR(ia->ri_id->qp))
++		return PTR_ERR(ia->ri_id->qp);
++
+ 	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
+ 	if (rc)
+ 		dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
+@@ -1951,6 +1970,9 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+ 		rep->rr_iov.addr, rep->rr_iov.length, DMA_BIDIRECTIONAL);
+ 
+ 	DECR_CQCOUNT(ep);
++
++	if (IS_ERR(ia->ri_id->qp))
++		return PTR_ERR(ia->ri_id->qp);
+ 	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
+ 
+ 	if (rc)
+-- 
+1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
