@@ -1,131 +1,35 @@
-From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] NFS-RDMA: fix qp pointer validation checks
-Date: Tue, 8 Apr 2014 04:00:05 +0530
-Message-ID: <d4afd436-8e14-4729-9bc1-71ab9079a246@CMEXHTCAS1.ad.emulex.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Subject: Re: [PATCH] NFS-RDMA: fix qp pointer validation checks
+Date: Mon, 7 Apr 2014 19:27:57 -0400
+Message-ID: <61E8946F-3722-4707-A948-065D395C365A@primarydata.com>
+References: <d4afd436-8e14-4729-9bc1-71ab9079a246@CMEXHTCAS1.ad.emulex.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <d4afd436-8e14-4729-9bc1-71ab9079a246-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-If the rdma_create_qp fails to create qp due to device firmware being in invalid state
-xprtrdma still tries to destroy the non-existant qp and ends up in a NULL pointer reference
-crash.
-Adding proper checks for vaidating QP pointer avoids this to happen.
+On Apr 7, 2014, at 18:30, devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org wrote:
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |   34 ++++++++++++++++++++++++++++------
- 1 files changed, 28 insertions(+), 6 deletions(-)
+> From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> 
+> If the rdma_create_qp fails to create qp due to device firmware being in invalid state
+> xprtrdma still tries to destroy the non-existant qp and ends up in a NULL pointer reference
+> crash.
+> Adding proper checks for vaidating QP pointer avoids this to happen.
+> 
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 9372656..c01d91e 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -620,7 +620,7 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
- 			__func__, rc);
- 	}
- 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
--		if (ia->ri_id->qp)
-+		if (!IS_ERR(ia->ri_id->qp))
- 			rdma_destroy_qp(ia->ri_id);
- 		rdma_destroy_id(ia->ri_id);
- 		ia->ri_id = NULL;
-@@ -794,7 +794,7 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 	dprintk("RPC:       %s: entering, connected is %d\n",
- 		__func__, ep->rep_connected);
- 
--	if (ia->ri_id->qp) {
-+	if (!IS_ERR(ia->ri_id->qp)) {
- 		rc = rpcrdma_ep_disconnect(ep, ia);
- 		if (rc)
- 			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
-@@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 	if (ep->rep_connected != 0) {
- 		struct rpcrdma_xprt *xprt;
- retry:
--		rc = rpcrdma_ep_disconnect(ep, ia);
--		if (rc && rc != -ENOTCONN)
--			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
-+		if (!IS_ERR(ia->ri_id->qp)) {
-+			rc = rpcrdma_ep_disconnect(ep, ia);
-+			if (rc && rc != -ENOTCONN)
-+				dprintk("RPC:       %s: rpcrdma_ep_disconnect"
- 				" status %i\n", __func__, rc);
-+		}
- 		rpcrdma_clean_cq(ep->rep_cq);
- 
- 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
-@@ -859,7 +861,9 @@ retry:
- 			goto out;
- 		}
- 		/* END TEMP */
--		rdma_destroy_qp(ia->ri_id);
-+		if (!IS_ERR(ia->ri_id->qp)) {
-+			rdma_destroy_qp(ia->ri_id);
-+		}
- 		rdma_destroy_id(ia->ri_id);
- 		ia->ri_id = id;
- 	}
-@@ -1557,6 +1561,13 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
-+	if (IS_ERR(ia->ri_is->qp)) {
-+		rc = PTR_ERR(ia->ri_is->qp);
-+		while (i--)
-+			rpcrdma_unmap_one(ia, --seg);
-+		goto out;
-+	}
-+
- 	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
- 
- 	if (rc) {
-@@ -1571,6 +1582,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 		seg1->mr_len = len;
- 	}
- 	*nsegs = i;
-+out:
- 	return rc;
- }
- 
-@@ -1592,6 +1604,10 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
- 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
-+	if (IS_ERR(ia->ri_id->qp)) {
-+		return PTR_ERR(ia->ri_id->qp);
-+	}
-+
- 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
- 	if (rc)
- 		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
-@@ -1923,6 +1939,9 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
- 		send_wr.send_flags = IB_SEND_SIGNALED;
- 	}
- 
-+	if (IS_ERR(ia->ri_id->qp))
-+		return PTR_ERR(ia->ri_id->qp);
-+
- 	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
- 	if (rc)
- 		dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
-@@ -1951,6 +1970,9 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
- 		rep->rr_iov.addr, rep->rr_iov.length, DMA_BIDIRECTIONAL);
- 
- 	DECR_CQCOUNT(ep);
-+
-+	if (IS_ERR(ia->ri_id->qp))
-+		return PTR_ERR(ia->ri_id->qp);
- 	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
- 
- 	if (rc)
--- 
-1.7.1
+As far as I can see, rdma_create_qp() only sets id->qp on success. Otherwise it is left with the same value as it had on entry (i.e. NULL). What am I missing?
+
+_________________________________
+Trond Myklebust
+Linux NFS client maintainer, PrimaryData
+trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
