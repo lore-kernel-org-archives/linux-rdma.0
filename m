@@ -1,94 +1,19 @@
-From: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Why is Infiniband a "Lossless" medium?
-Date: Tue, 8 Apr 2014 09:54:39 -0700
-Message-ID: <CABqF1pY6LJt3WzdbBnV3tKND4=GPQMRO5DFsj2e9qDXfYsztLg@mail.gmail.com>
-References: <CADPSxAgq1YAY09A46jurpiuXiq4Ohboqnts4a0qt3BE0K_PW7g@mail.gmail.com>
-	<6B2A6E60C06CCC42AE31809BF572352B9ABACD98@MTLDAG01.mtl.com>
-	<alpine.DEB.2.10.1403171149370.12043@nuc>
-	<CADPSxAj40+mG+0gZ9E=a3W00cvWNFFJAAOM+pEoOUm0uhAMWQg@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/14 V2] Add Dynamic IP processing to ibacm.
+Date: Tue, 8 Apr 2014 21:53:04 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D546EB@ORSMSX109.amr.corp.intel.com>
+References: <1396572714-16498-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAj40+mG+0gZ9E=a3W00cvWNFFJAAOM+pEoOUm0uhAMWQg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1396572714-16498-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I would imagine that during failover scenarios, when certain port
-links go down and qps get destroyed, the underlying acks for messages
-might get lost. So even though your packet reached the other end, You
-cannot be definitive, and might get completion errors such as timeout,
-or flushed errors in this case. So then you will need higher level
-application logic to figure out which is the last message that got
-sent, because you will essentially be creating new qps on the failed
-over port (or device) and reconnecting. So IB cant help you out there
-wrt to message ordering from the perspective of your application.
-
--Lokesh
-
-
-On Tue, Mar 18, 2014 at 9:22 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Shachar,
-> Thanks for your response. It improved my understanding a lot.
->
-> Christoph,
-> Thanks for your response too. I understand the problem of buffer
-> overruns in SEND/RECV messages. However, my question was about packet
-> loss in the absence of these problems (for example, for RDMA writes
-> over UC).
->
-> --Anuj
->
->
->
-> On Mon, Mar 17, 2014 at 12:56 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
->> On Sun, 16 Mar 2014, Shachar Raindel wrote:
->>
->>> Infiniband is a lossless medium in the aspect of the switches and L2 buffering.
->>> This means that if the switch or HCA does not have buffer space to receive a packet, the remote side will not send it.
->>
->> If the receiving QP does not have buffers available then the HCA will
->> silently drop UD packets. This is somethig that tripped us up initialy. So
->> its lossless only from HCA to HCA not QP to QP.
->>
->>> Packet loss can still occur if there is physical level signal issue, or
->>> if the receiver did not post a receive WQE for the incoming message.
->>
->> Exactly. If the Os interrupts your receiving thread and you do not
->> replenish the receive buffers then you will be overrun and loose packets.
->>
->>> However, the first event is relatively rare, and the second will not
->>> happen if you are using RDMA writes over UC.
->>
->> The loss can be frequent because one is limited to 16k or so buffers
->> and those can be exhausted easily if sending lots of small packets over a
->> 40G or 56G link.
->>
->> F.e. 16000 buffers* 100 bytes each = 1.6MB. The NIC can send 4-5GB per
->> second so it takes only a fraction of a millisecond for the QP buffers to
->> be overrun. The scheduling interval is in the milliseconds. If the
->> scheduler takes you out during a packet burst then loss will occur.
->>
->> The nasty thing with the Mellanox HCAs is that the loss occurs silently.
->> No counters no nothing accounts for the packet loss. You still believe
->> that there was no loss because there is nothing there that could tell you
->> that an overrun occurred.
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Lokesh Agarwal
-Member of Technical Staff
-Oracle Corporation
-400 Oracle Pkwy, #1347
-Redwood City
-94065
+thanks - merged
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
