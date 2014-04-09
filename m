@@ -1,184 +1,180 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
-Date: Wed, 9 Apr 2014 23:56:03 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FDEAA43@CMEXMB1.ad.emulex.com>
-References: <014738b6-698e-4ea1-82f9-287378bfec19@CMEXHTCAS2.ad.emulex.com>
- <D7AB2150-5F25-4BA2-80D9-94890AD11F8F@primarydata.com>
- <F1C70AD6-BDD4-4534-8DC4-61D2767581D9@oracle.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2] NFS-RDMA: fix qp pointer validation checks
+Date: Thu, 10 Apr 2014 05:24:11 +0530
+Message-ID: <f02a9959-4530-474f-8076-1139362aaea6@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F1C70AD6-BDD4-4534-8DC4-61D2767581D9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Chuk and Trond
+If the rdma_create_qp fails to create qp due to device firmware being in invalid state
+xprtrdma still tries to destroy the non-existant qp and ends up in a NULL pointer reference
+crash.
+Adding proper checks for vaidating QP pointer avoids this to happen.
 
-I will resend a v2 for this. 
-What if ib_post_send() fails with immidate error, I that case also DECR_CQCOUNT() will be called but no completion will be reported. Will that not cause any problems?
-Also in rpcrdma_register_frmr_external() I am seeing DECT_CQCOUNT is called twice 
-First at line 1538 (unlikely however) and second at line 1562. Shouldn't  it be only at 1562?
+V0: Using IS_ERR() to check validity of qp pointer.
+V1: Use of IS_ERR() will not be able to catch NULL QP pointers as rdma_create_qp() returnes NULL in case
+    ib_create_qp verb is failed. Therefore, changed from usage of IS_ERR to null pointer check.
+V2: ib_post_send() should not abort after DECR_CQCOUNT() checking for NULL pointer was causing exit from functions
+    after decrementing CQCOUNT(). Fixed this in V2.
 
------Original Message-----
-From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org] 
-Sent: Thursday, April 10, 2014 1:57 AM
-To: Devesh Sharma
-Cc: Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Trond Myklebust
-Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/verbs.c |   92 ++++++++++++++++++++++++++-----------------
+ 1 files changed, 56 insertions(+), 36 deletions(-)
 
-
-On Apr 9, 2014, at 4:22 PM, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
-
-> Hi Devesh,
-> 
-> This looks a lot better. I still have a couple of small suggestions, though.
-> 
-> On Apr 9, 2014, at 14:40, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> 
->> If the rdma_create_qp fails to create qp due to device firmware being 
->> in invalid state xprtrdma still tries to destroy the non-existant qp 
->> and ends up in a NULL pointer reference crash.
->> Adding proper checks for vaidating QP pointer avoids this to happen.
->> 
->> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/verbs.c |   29 +++++++++++++++++++++++++----
->> 1 files changed, 25 insertions(+), 4 deletions(-)
->> 
->> diff --git a/net/sunrpc/xprtrdma/verbs.c 
->> b/net/sunrpc/xprtrdma/verbs.c index 9372656..902ac78 100644
->> --- a/net/sunrpc/xprtrdma/verbs.c
->> +++ b/net/sunrpc/xprtrdma/verbs.c
->> @@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
->> 	if (ep->rep_connected != 0) {
->> 		struct rpcrdma_xprt *xprt;
->> retry:
->> -		rc = rpcrdma_ep_disconnect(ep, ia);
->> -		if (rc && rc != -ENOTCONN)
->> -			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
->> +		if (ia->ri_id->qp) {
->> +			rc = rpcrdma_ep_disconnect(ep, ia);
->> +			if (rc && rc != -ENOTCONN)
->> +				dprintk("RPC:       %s: rpcrdma_ep_disconnect"
->> 				" status %i\n", __func__, rc);
->> +		}
->> 		rpcrdma_clean_cq(ep->rep_cq);
->> 
->> 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia); @@ -859,7 
->> +861,9 @@ retry:
->> 			goto out;
->> 		}
->> 		/* END TEMP */
->> -		rdma_destroy_qp(ia->ri_id);
->> +		if (ia->ri_id->qp) {
->> +			rdma_destroy_qp(ia->ri_id);
->> +		}
-> 
-> Nit: No need for braces here.
-> 
->> 		rdma_destroy_id(ia->ri_id);
->> 		ia->ri_id = id;
->> 	}
->> @@ -1557,6 +1561,13 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
->> 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
->> 	DECR_CQCOUNT(&r_xprt->rx_ep);
-
-I don't think you can DECR_CQCOUNT, then exit without posting the send. That will screw up the completion counter and result in a transport hang, won't it?
-
->> 
->> +	if (!ia->ri_is->qp) {
->> +		rc = -EINVAL;
->> +		while (i--)
->> +			rpcrdma_unmap_one(ia, --seg);
->> +		goto out;
->> +	}
-> 
-> Instead of duplicating the rpcrdma_unmap_one() cleanup here, why not 
-> just do
-> 
-> 	if (ia->ri_is->qp)
-> 		rc = ib_post_send(...)
-> 	else
-> 		rc = -EINVAL;
-> 
-> BTW: can we not simply test for ia->ri_is->qp before we even call rpcrdma_map_one() and hence bail out before we have to do any cleanup?
-> 
->> +
->> 	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
->> 
->> 	if (rc) {
->> @@ -1571,6 +1582,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
->> 		seg1->mr_len = len;
->> 	}
->> 	*nsegs = i;
->> +out:
->> 	return rc;
->> }
->> 
->> @@ -1592,6 +1604,9 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
->> 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
->> 	DECR_CQCOUNT(&r_xprt->rx_ep);
-
-Ditto.
-
->> 
->> +	if (!ia->ri_id->qp)
->> +		return -EINVAL;
->> +
->> 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
->> 	if (rc)
->> 		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
->> @@ -1923,6 +1938,9 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
->> 		send_wr.send_flags = IB_SEND_SIGNALED;
->> 	}
-
-Ditto.
-
->> 
->> +	if (!ia->ri_id->qp)
->> +		return -EINVAL;
->> +
->> 	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
->> 	if (rc)
->> 		dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
->> @@ -1951,6 +1969,9 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
->> 		rep->rr_iov.addr, rep->rr_iov.length, DMA_BIDIRECTIONAL);
->> 
->> 	DECR_CQCOUNT(ep);
-
-And here.
-
->> +
->> +	if (!ia->ri_id->qp)
->> +		return -EINVAL;
->> 	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
->> 
->> 	if (rc)
->> --
->> 1.7.1
->> 
-> 
-> _________________________________
-> Trond Myklebust
-> Linux NFS client maintainer, PrimaryData 
-> trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" 
-> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 9372656..9e56baf 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	if (ep->rep_connected != 0) {
+ 		struct rpcrdma_xprt *xprt;
+ retry:
+-		rc = rpcrdma_ep_disconnect(ep, ia);
+-		if (rc && rc != -ENOTCONN)
+-			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
++		if (ia->ri_id->qp) {
++			rc = rpcrdma_ep_disconnect(ep, ia);
++			if (rc && rc != -ENOTCONN)
++				dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+ 				" status %i\n", __func__, rc);
++		}
+ 		rpcrdma_clean_cq(ep->rep_cq);
+ 
+ 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
+@@ -859,7 +861,8 @@ retry:
+ 			goto out;
+ 		}
+ 		/* END TEMP */
+-		rdma_destroy_qp(ia->ri_id);
++		if (ia->ri_id->qp)
++			rdma_destroy_qp(ia->ri_id);
+ 		rdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = id;
+ 	}
+@@ -1555,22 +1558,30 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+ 				IB_ACCESS_REMOTE_READ);
+ 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+-	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 
+-	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
++	if (!ia->ri_is->qp) {
++		DECR_CQCOUNT(&r_xprt->rx_ep);
++		rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
+ 
+-	if (rc) {
+-		dprintk("RPC:       %s: failed ib_post_send for register,"
+-			" status %i\n", __func__, rc);
+-		while (i--)
+-			rpcrdma_unmap_one(ia, --seg);
++		if (rc) {
++			dprintk("RPC:       %s: failed ib_post_send for register,"
++				" status %i\n", __func__, rc);
++			goto out;
++		} else {
++			seg1->mr_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
++			seg1->mr_base = seg1->mr_dma + pageoff;
++			seg1->mr_nsegs = i;
++			seg1->mr_len = len;
++		}
+ 	} else {
+-		seg1->mr_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+-		seg1->mr_base = seg1->mr_dma + pageoff;
+-		seg1->mr_nsegs = i;
+-		seg1->mr_len = len;
++		rc = -EINVAL;
++		goto out;
+ 	}
++
+ 	*nsegs = i;
++out:
++	while (i--)
++		rpcrdma_unmap_one(ia, --seg);
+ 	return rc;
+ }
+ 
+@@ -1590,12 +1601,16 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+ 	invalidate_wr.send_flags = IB_SEND_SIGNALED;
+ 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+-	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 
+-	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+-	if (rc)
+-		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
+-			" status %i\n", __func__, rc);
++	if (ia->ri_id->qp) {
++		DECR_CQCOUNT(&r_xprt->rx_ep);
++		rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
++		if (rc)
++			dprintk("RPC:       %s: failed ib_post_send for invalidate,"
++				" status %i\n", __func__, rc);
++	} else
++		rc = -EINVAL;
++
+ 	return rc;
+ }
+ 
+@@ -1916,17 +1931,19 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
+ 		req->rl_send_iov[0].addr, req->rl_send_iov[0].length,
+ 		DMA_TO_DEVICE);
+ 
+-	if (DECR_CQCOUNT(ep) > 0)
+-		send_wr.send_flags = 0;
+-	else { /* Provider must take a send completion every now and then */
+-		INIT_CQCOUNT(ep);
+-		send_wr.send_flags = IB_SEND_SIGNALED;
+-	}
+-
+-	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
+-	if (rc)
+-		dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
+-			rc);
++	if (ia->ri_id->qp) {
++		if (DECR_CQCOUNT(ep) > 0)
++			send_wr.send_flags = 0;
++		else { /* Provider must take a send completion every now and then */
++			INIT_CQCOUNT(ep);
++			send_wr.send_flags = IB_SEND_SIGNALED
++		}
++		rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
++		if (rc)
++			dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
++				rc);
++	} else
++		rc = -EINVAL;
+ out:
+ 	return rc;
+ }
+@@ -1950,11 +1967,14 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+ 	ib_dma_sync_single_for_cpu(ia->ri_id->device,
+ 		rep->rr_iov.addr, rep->rr_iov.length, DMA_BIDIRECTIONAL);
+ 
+-	DECR_CQCOUNT(ep);
+-	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
++	if (ia->ri_id->qp) {
++		DECR_CQCOUNT(ep);
++		rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
++		if (rc)
++			dprintk("RPC:       %s: ib_post_recv returned %i\n", __func__,
++				rc);
++	} else
++		rc = -EINVAL;
+ 
+-	if (rc)
+-		dprintk("RPC:       %s: ib_post_recv returned %i\n", __func__,
+-			rc);
+ 	return rc;
+ }
+-- 
+1.7.1
 
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
