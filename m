@@ -1,137 +1,184 @@
-From: "Allen Andrews" <allen.andrews@cox.net>
-Subject: [PATCH] nfs-rdma: Fix for FMR leaks
-Date: Wed, 9 Apr 2014 15:40:02 -0700
-Message-ID: <002e01cf5444$a58c2c10$f0a48430$@cox.net>
-References: <nyc61n00p3VzoHe01yc7ug>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+Date: Wed, 9 Apr 2014 23:56:03 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FDEAA43@CMEXMB1.ad.emulex.com>
+References: <014738b6-698e-4ea1-82f9-287378bfec19@CMEXHTCAS2.ad.emulex.com>
+ <D7AB2150-5F25-4BA2-80D9-94890AD11F8F@primarydata.com>
+ <F1C70AD6-BDD4-4534-8DC4-61D2767581D9@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <nyc61n00p3VzoHe01yc7ug>
-Content-Language: en-us
-Sender: linux-kernel-owner@vger.kernel.org
-To: trond.myklebust@primarydata.com, linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <F1C70AD6-BDD4-4534-8DC4-61D2767581D9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Two memory region leaks iwere found during testing:
+Hi Chuk and Trond
 
-1. rpcrdma_buffer_create: While allocating RPCRDMA_FRMR's ib_alloc_fast_reg_mr is called and then ib_alloc_fast_reg_page_list is called.  If ib_alloc_fast_reg_page_list returns an error it bails out of the routine dropping the last ib_alloc_fast_reg_mr frmr region creating a memory leak.  Added code to dereg the last frmr if ib_alloc_fast_reg_page_list fails.
+I will resend a v2 for this. 
+What if ib_post_send() fails with immidate error, I that case also DECR_CQCOUNT() will be called but no completion will be reported. Will that not cause any problems?
+Also in rpcrdma_register_frmr_external() I am seeing DECT_CQCOUNT is called twice 
+First at line 1538 (unlikely however) and second at line 1562. Shouldn't  it be only at 1562?
 
-2. rpcrdma_buffer_destroy: While cleaning up, the routine will only free the MR's on the rb_mws list if there are rb_send_bufs present.  However, in rpcrdma_buffer_create while the rb_mws list is being built if one of the MR allocation requests fail after some MR's have been allocated on the rb_mws list the routine never gets to create any rb_send_bufs but instead jumps to the rpcrdma_buffer_destroy routine which will never free the MR's on rb_mws
-list because the rb_send_bufs were never created.   This leaks all the MR's
-on the rb_mws list that were created prior to one of the MR allocations failing.
+-----Original Message-----
+From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org] 
+Sent: Thursday, April 10, 2014 1:57 AM
+To: Devesh Sharma
+Cc: Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Trond Myklebust
+Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
 
-Issue(2) was seen during testing. Our adapter had a finite number of MR's available and we created enough connections to where we saw an MR allocation failure on our Nth NFS connection request. After the kernel cleaned up the resources it had allocated for the Nth connection we noticed that FMR's had been leaked due to the coding error described above.
 
-Issue(1) was seen during a code review while debugging issue(2).
+On Apr 9, 2014, at 4:22 PM, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
 
-Signed-off-by: Allen Andrews <allen.andrews@emulex.com>
----
+> Hi Devesh,
+> 
+> This looks a lot better. I still have a couple of small suggestions, though.
+> 
+> On Apr 9, 2014, at 14:40, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> If the rdma_create_qp fails to create qp due to device firmware being 
+>> in invalid state xprtrdma still tries to destroy the non-existant qp 
+>> and ends up in a NULL pointer reference crash.
+>> Adding proper checks for vaidating QP pointer avoids this to happen.
+>> 
+>> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> net/sunrpc/xprtrdma/verbs.c |   29 +++++++++++++++++++++++++----
+>> 1 files changed, 25 insertions(+), 4 deletions(-)
+>> 
+>> diff --git a/net/sunrpc/xprtrdma/verbs.c 
+>> b/net/sunrpc/xprtrdma/verbs.c index 9372656..902ac78 100644
+>> --- a/net/sunrpc/xprtrdma/verbs.c
+>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>> @@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+>> 	if (ep->rep_connected != 0) {
+>> 		struct rpcrdma_xprt *xprt;
+>> retry:
+>> -		rc = rpcrdma_ep_disconnect(ep, ia);
+>> -		if (rc && rc != -ENOTCONN)
+>> -			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+>> +		if (ia->ri_id->qp) {
+>> +			rc = rpcrdma_ep_disconnect(ep, ia);
+>> +			if (rc && rc != -ENOTCONN)
+>> +				dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+>> 				" status %i\n", __func__, rc);
+>> +		}
+>> 		rpcrdma_clean_cq(ep->rep_cq);
+>> 
+>> 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia); @@ -859,7 
+>> +861,9 @@ retry:
+>> 			goto out;
+>> 		}
+>> 		/* END TEMP */
+>> -		rdma_destroy_qp(ia->ri_id);
+>> +		if (ia->ri_id->qp) {
+>> +			rdma_destroy_qp(ia->ri_id);
+>> +		}
+> 
+> Nit: No need for braces here.
+> 
+>> 		rdma_destroy_id(ia->ri_id);
+>> 		ia->ri_id = id;
+>> 	}
+>> @@ -1557,6 +1561,13 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>> 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+>> 	DECR_CQCOUNT(&r_xprt->rx_ep);
 
- net/sunrpc/xprtrdma/verbs.c |   79 ++++++++++++++++++++++++-------------------
- 1 files changed, 44 insertions(+), 35 deletions(-)
+I don't think you can DECR_CQCOUNT, then exit without posting the send. That will screw up the completion counter and result in a transport hang, won't it?
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c index 9372656..54f592d 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1058,6 +1058,14 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 				dprintk("RPC:       %s: "
- 					"ib_alloc_fast_reg_page_list "
- 					"failed %i\n", __func__, rc);
-+
-+				rc = ib_dereg_mr(r->r.frmr.fr_mr);
-+				if (rc)
-+					dprintk("RPC:       %s:"
-+						" ib_dereg_mr"
-+						" failed %i\n",
-+						__func__, rc);
-+
- 				goto out;
- 			}
- 			list_add(&r->mw_list, &buf->rb_mws); @@ -1194,41 +1202,6 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
- 			kfree(buf->rb_recv_bufs[i]);
- 		}
- 		if (buf->rb_send_bufs && buf->rb_send_bufs[i]) {
--			while (!list_empty(&buf->rb_mws)) {
--				r = list_entry(buf->rb_mws.next,
--					struct rpcrdma_mw, mw_list);
--				list_del(&r->mw_list);
--				switch (ia->ri_memreg_strategy) {
--				case RPCRDMA_FRMR:
--					rc = ib_dereg_mr(r->r.frmr.fr_mr);
--					if (rc)
--						dprintk("RPC:       %s:"
--							" ib_dereg_mr"
--							" failed %i\n",
--							__func__, rc);
--					ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
--					break;
--				case RPCRDMA_MTHCAFMR:
--					rc = ib_dealloc_fmr(r->r.fmr);
--					if (rc)
--						dprintk("RPC:       %s:"
--							" ib_dealloc_fmr"
--							" failed %i\n",
--							__func__, rc);
--					break;
--				case RPCRDMA_MEMWINDOWS_ASYNC:
--				case RPCRDMA_MEMWINDOWS:
--					rc = ib_dealloc_mw(r->r.mw);
--					if (rc)
--						dprintk("RPC:       %s:"
--							" ib_dealloc_mw"
--							" failed %i\n",
--							__func__, rc);
--					break;
--				default:
--					break;
--				}
--			}
- 			rpcrdma_deregister_internal(ia,
- 					buf->rb_send_bufs[i]->rl_handle,
- 					&buf->rb_send_bufs[i]->rl_iov);
-@@ -1236,6 +1209,42 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
- 		}
- 	}
- 
-+	while (!list_empty(&buf->rb_mws)) {
-+		r = list_entry(buf->rb_mws.next,
-+			struct rpcrdma_mw, mw_list);
-+		list_del(&r->mw_list);
-+		switch (ia->ri_memreg_strategy) {
-+		case RPCRDMA_FRMR:
-+			rc = ib_dereg_mr(r->r.frmr.fr_mr);
-+			if (rc)
-+				dprintk("RPC:       %s:"
-+					" ib_dereg_mr"
-+					" failed %i\n",
-+					__func__, rc);
-+			ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
-+			break;
-+		case RPCRDMA_MTHCAFMR:
-+			rc = ib_dealloc_fmr(r->r.fmr);
-+			if (rc)
-+				dprintk("RPC:       %s:"
-+					" ib_dealloc_fmr"
-+					" failed %i\n",
-+					__func__, rc);
-+			break;
-+		case RPCRDMA_MEMWINDOWS_ASYNC:
-+		case RPCRDMA_MEMWINDOWS:
-+			rc = ib_dealloc_mw(r->r.mw);
-+			if (rc)
-+				dprintk("RPC:       %s:"
-+					" ib_dealloc_mw"
-+					" failed %i\n",
-+					__func__, rc);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
- 	kfree(buf->rb_pool);
- }
- 
+>> 
+>> +	if (!ia->ri_is->qp) {
+>> +		rc = -EINVAL;
+>> +		while (i--)
+>> +			rpcrdma_unmap_one(ia, --seg);
+>> +		goto out;
+>> +	}
+> 
+> Instead of duplicating the rpcrdma_unmap_one() cleanup here, why not 
+> just do
+> 
+> 	if (ia->ri_is->qp)
+> 		rc = ib_post_send(...)
+> 	else
+> 		rc = -EINVAL;
+> 
+> BTW: can we not simply test for ia->ri_is->qp before we even call rpcrdma_map_one() and hence bail out before we have to do any cleanup?
+> 
+>> +
+>> 	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
+>> 
+>> 	if (rc) {
+>> @@ -1571,6 +1582,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>> 		seg1->mr_len = len;
+>> 	}
+>> 	*nsegs = i;
+>> +out:
+>> 	return rc;
+>> }
+>> 
+>> @@ -1592,6 +1604,9 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
+>> 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+>> 	DECR_CQCOUNT(&r_xprt->rx_ep);
+
+Ditto.
+
+>> 
+>> +	if (!ia->ri_id->qp)
+>> +		return -EINVAL;
+>> +
+>> 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+>> 	if (rc)
+>> 		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
+>> @@ -1923,6 +1938,9 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
+>> 		send_wr.send_flags = IB_SEND_SIGNALED;
+>> 	}
+
+Ditto.
+
+>> 
+>> +	if (!ia->ri_id->qp)
+>> +		return -EINVAL;
+>> +
+>> 	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
+>> 	if (rc)
+>> 		dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
+>> @@ -1951,6 +1969,9 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+>> 		rep->rr_iov.addr, rep->rr_iov.length, DMA_BIDIRECTIONAL);
+>> 
+>> 	DECR_CQCOUNT(ep);
+
+And here.
+
+>> +
+>> +	if (!ia->ri_id->qp)
+>> +		return -EINVAL;
+>> 	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
+>> 
+>> 	if (rc)
+>> --
+>> 1.7.1
+>> 
+> 
+> _________________________________
+> Trond Myklebust
+> Linux NFS client maintainer, PrimaryData 
+> trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" 
+> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
