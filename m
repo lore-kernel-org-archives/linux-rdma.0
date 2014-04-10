@@ -1,18 +1,29 @@
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2] NFS-RDMA: fix qp pointer validation checks
-Date: Thu, 10 Apr 2014 05:26:16 +0530
-Message-ID: <1f4ed8ef-41f5-437e-9809-be52fec00df0@CMEXHTCAS2.ad.emulex.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V2] NFS-RDMA: fix qp pointer validation checks
+Date: Thu, 10 Apr 2014 00:28:47 +0000
+Message-ID: <6a8ebf48-e1d8-4255-8b85-43b1cd42d175@CMEXHTCAS2.ad.emulex.com>
+References: <f02a9959-4530-474f-8076-1139362aaea6@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f02a9959-4530-474f-8076-1139362aaea6-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org" <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the rdma_create_qp fails to create qp due to device firmware being in invalid state
-xprtrdma still tries to destroy the non-existant qp and ends up in a NULL pointer reference
-crash.
+Please ignore this mail. By mistake sent the wrong one.
+
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
+Sent: Thursday, April 10, 2014 5:24 AM
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org; Devesh Sharma
+Subject: [PATCH V2] NFS-RDMA: fix qp pointer validation checks
+
+If the rdma_create_qp fails to create qp due to device firmware being in invalid state xprtrdma still tries to destroy the non-existant qp and ends up in a NULL pointer reference crash.
 Adding proper checks for vaidating QP pointer avoids this to happen.
 
 V0: Using IS_ERR() to check validity of qp pointer.
@@ -26,8 +37,7 @@ Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.
  net/sunrpc/xprtrdma/verbs.c |   92 ++++++++++++++++++++++++++-----------------
  1 files changed, 56 insertions(+), 36 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 9372656..9e56baf 100644
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c index 9372656..9e56baf 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
 @@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
@@ -45,8 +55,7 @@ index 9372656..9e56baf 100644
 +		}
  		rpcrdma_clean_cq(ep->rep_cq);
  
- 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
-@@ -859,7 +861,8 @@ retry:
+ 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia); @@ -859,7 +861,8 @@ retry:
  			goto out;
  		}
  		/* END TEMP */
@@ -63,7 +72,7 @@ index 9372656..9e56baf 100644
 -	DECR_CQCOUNT(&r_xprt->rx_ep);
  
 -	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
-+	if (!ia->ri_id->qp) {
++	if (!ia->ri_is->qp) {
 +		DECR_CQCOUNT(&r_xprt->rx_ep);
 +		rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
  
@@ -171,9 +180,11 @@ index 9372656..9e56baf 100644
 -			rc);
  	return rc;
  }
--- 
+--
 1.7.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
