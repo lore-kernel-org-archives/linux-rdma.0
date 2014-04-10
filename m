@@ -1,369 +1,84 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] librdmacm: lazy initialization for ib devices
-Date: Thu, 10 Apr 2014 05:33:44 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D55026@ORSMSX109.amr.corp.intel.com>
-References: <20140325065839.GA3794@shamir-pc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libibverbs] Fix usage of libnl3
+Date: Thu, 10 Apr 2014 11:27:13 +0300
+Message-ID: <1397118433-8836-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140325065839.GA3794@shamir-pc>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> LIBRDMACM currently opens a device context per configured HCA. This is
-> usually done in rdma_create_event_channel() or first time whenever
-> ucma_init() is called. If a process is only going to use one of the
-> configured HCAs/RDMA IPs then the remaining device contexts are not
-> used/required. Opening a device context on each device apriori limits the
-> maximum number of processes that can be supported on a node to the maximum
-> number of open context supported per HCA regardless of number of HCAs
-> present
-> in the system.
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch didn't quite work.  Specifically, it has issues with datagram rsockets
-that results in the application crashing.  I reworked the patch, and it appears
-to be working so far.  (See end of email for updated patch).  Can you try it
-and let me know if it works for you as well?
+When using libnl3, libibverbs should be linked with
+libnl3 and not the utilities.
 
-I'm not thrilled about the updated patch because it has some inefficiencies,
-like getting the device list multiple times, but I didn't see a clean way to
-make the code more efficient.
-
-See a couple of comments below:
-
-> 
-> Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  src/cma.c | 152 ++++++++++++++++++++++++++++++++++++++++++++++++----------
-> ----
->  1 file changed, 118 insertions(+), 34 deletions(-)
-> 
-> diff --git a/src/cma.c b/src/cma.c
-> index 0cf4203..56bfa14 100644
-> --- a/src/cma.c
-> +++ b/src/cma.c
-> @@ -74,7 +74,7 @@ do {						\
->  } while (0)
-> 
->  struct cma_device {
-> -	struct ibv_context *verbs;
-> +	struct ibv_context *lverbs; /* Lazy initialization */
-
-nit - I wasn't fond of this name change
-
->  	struct ibv_pd	   *pd;
->  	uint64_t	    guid;
->  	int		    port_cnt;
-> @@ -130,13 +130,20 @@ static fastlock_t idm_lock;
-> 
->  static void ucma_cleanup(void)
->  {
-> +	struct ibv_context *verbs;
-> +	struct ibv_pd *pd;
-> +
->  	ucma_ib_cleanup();
-> 
->  	if (cma_dev_cnt) {
->  		while (cma_dev_cnt--) {
-> -			if (cma_dev_array[cma_dev_cnt].refcnt)
-> -				ibv_dealloc_pd(cma_dev_array[cma_dev_cnt].pd);
-> -			ibv_close_device(cma_dev_array[cma_dev_cnt].verbs);
-> +			verbs = cma_dev_array[cma_dev_cnt].lverbs;
-> +			if (verbs) {
-> +				pd = cma_dev_array[cma_dev_cnt].pd;
-> +				if (cma_dev_array[cma_dev_cnt].refcnt)
-> +					ibv_dealloc_pd(pd);
-> +				ibv_close_device(verbs);
-> +			}
->  		}
-> 
->  		fastlock_destroy(&idm_lock);
-> @@ -202,11 +209,77 @@ static void ucma_set_af_ib_support(void)
->  	rdma_destroy_id(id);
->  }
-> 
-> -int ucma_init(void)
-> +static int ucma_lazy_dev_init(int dev_index)
-
-I updated this call to take the cma_dev pointer directly.
-
-
-> @@ -1022,11 +1101,16 @@ static int ucma_modify_qp_err(struct rdma_cm_id
-> *id)
->  static int ucma_find_pkey(struct cma_device *cma_dev, uint8_t port_num,
->  			  uint16_t pkey, uint16_t *pkey_index)
->  {
-> +	struct ibv_context *verbs;
->  	int ret, i;
->  	uint16_t chk_pkey;
-> 
-> +	verbs = ucma_get_verbs_guid(cma_dev->guid);
-> +	if (!verbs)
-> +		return ERR(ENODEV);
-> +
->  	for (i = 0, ret = 0; !ret; i++) {
-> -		ret = ibv_query_pkey(cma_dev->verbs, port_num, i, &chk_pkey);
-> +		ret = ibv_query_pkey(verbs, port_num, i, &chk_pkey);
->  		if (!ret && pkey == chk_pkey) {
->  			*pkey_index = (uint16_t) i;
->  			return 0;
-
-I didn't understand why a change was made to this call.
-
-updated patch:
-
-librdmacm: Support lazy initialization
-
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-librdmacm currently opens a device context per configured HCA. This is
-usually done in rdma_create_event_channel() or first time whenever
-ucma_init() is called. If a process is only going to use one of the
-configured HCAs/RDMA IPs then the remaining device contexts are not
-used/required. Opening a device context on each device apriori limits the
-maximum number of processes that can be supported on a node to the maximum
-number of open context supported per HCA regardless of number of HCAs present
-in the system.
-
-Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cma.c |  133 ++++++++++++++++++++++++++++++++++++++++++++-----------------
- src/cma.h |    2 -
- 2 files changed, 98 insertions(+), 37 deletions(-)
+ Makefile.am |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/src/cma.c b/src/cma.c
-index 0cf4203..0dc229e 100644
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -122,6 +122,7 @@ struct cma_event {
+diff --git a/Makefile.am b/Makefile.am
+index add34b2..9293f86 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -17,7 +17,7 @@ if ! NO_RESOLVE_NEIGH
+ src_libibverbs_la_SOURCES += src/neigh.c
+ noinst_HEADERS = src/neigh.h
+ endif
+-src_libibverbs_la_LDFLAGS = -version-info 1 -export-dynamic \
++src_libibverbs_la_LDFLAGS = -version-info 1 -export-dynamic $(LIBNL_LIBS)\
+     $(libibverbs_version_script)
+ src_libibverbs_la_DEPENDENCIES = $(srcdir)/src/libibverbs.map
  
- static struct cma_device *cma_dev_array;
- static int cma_dev_cnt;
-+static int cma_init_cnt;
- static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
- static int abi_ver = RDMA_USER_CM_MAX_ABI_VERSION;
- int af_ib_support;
-@@ -134,9 +135,13 @@ static void ucma_cleanup(void)
+@@ -28,31 +28,31 @@ bin_PROGRAMS = examples/ibv_devices examples/ibv_devinfo \
+     examples/ibv_dcini examples/ibv_dctgt
  
- 	if (cma_dev_cnt) {
- 		while (cma_dev_cnt--) {
-+			if (!cma_dev_array[cma_dev_cnt].verbs)
-+				continue;
-+
- 			if (cma_dev_array[cma_dev_cnt].refcnt)
- 				ibv_dealloc_pd(cma_dev_array[cma_dev_cnt].pd);
- 			ibv_close_device(cma_dev_array[cma_dev_cnt].verbs);
-+			cma_init_cnt--;
- 		}
+ examples_ibv_devices_SOURCES = examples/device_list.c
+-examples_ibv_devices_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_devices_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_devinfo_SOURCES = examples/devinfo.c
+-examples_ibv_devinfo_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_devinfo_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_rc_pingpong_SOURCES = examples/rc_pingpong.c examples/pingpong.c
+-examples_ibv_rc_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_rc_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_uc_pingpong_SOURCES = examples/uc_pingpong.c examples/pingpong.c
+-examples_ibv_uc_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_uc_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_ud_pingpong_SOURCES = examples/ud_pingpong.c examples/pingpong.c
+-examples_ibv_ud_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_ud_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_srq_pingpong_SOURCES = examples/srq_pingpong.c examples/pingpong.c
+-examples_ibv_srq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_srq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_shared_mr_SOURCES = examples/shared_mr.c
+-examples_ibv_shared_mr_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_shared_mr_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_asyncwatch_SOURCES = examples/asyncwatch.c
+-examples_ibv_asyncwatch_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_asyncwatch_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_xsrq_pingpong_SOURCES = examples/xsrq_pingpong.c examples/pingpong.c
+-examples_ibv_xsrq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_xsrq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_cc_pingpong_SOURCES = examples/cc_pingpong.c
+-examples_ibv_cc_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_cc_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_task_pingpong_SOURCES = examples/task_pingpong.c
+-examples_ibv_task_pingpong_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_task_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_dcini_SOURCES = examples/dcini.c
+-examples_ibv_dcini_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_dcini_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_dctgt_SOURCES = examples/dctgt.c examples/pingpong.c examples/dc.h
+-examples_ibv_dctgt_LDADD = $(top_builddir)/src/libibverbs.la $(LIBNL_LIBS)
++examples_ibv_dctgt_LDADD = $(top_builddir)/src/libibverbs.la
  
- 		fastlock_destroy(&idm_lock);
-@@ -205,8 +210,6 @@ static void ucma_set_af_ib_support(void)
- int ucma_init(void)
- {
- 	struct ibv_device **dev_list = NULL;
--	struct cma_device *cma_dev;
--	struct ibv_device_attr attr;
- 	int i, ret, dev_cnt;
  
- 	/* Quick check without lock to see if we're already initialized */
-@@ -236,37 +239,15 @@ int ucma_init(void)
- 		ret = ERR(ENODEV);
- 		goto err2;
- 	}
--		
--	cma_dev_array = calloc(dev_cnt, sizeof *cma_dev);
-+
-+	cma_dev_array = calloc(dev_cnt, sizeof *cma_dev_array);
- 	if (!cma_dev_array) {
- 		ret = ERR(ENOMEM);
- 		goto err2;
- 	}
- 
--	for (i = 0; dev_list[i];) {
--		cma_dev = &cma_dev_array[i];
--
--		cma_dev->guid = ibv_get_device_guid(dev_list[i]);
--		cma_dev->verbs = ibv_open_device(dev_list[i]);
--		if (!cma_dev->verbs) {
--			fprintf(stderr, PFX "Fatal: unable to open RDMA device\n");
--			ret = ERR(ENODEV);
--			goto err3;
--		}
--
--		i++;
--		ret = ibv_query_device(cma_dev->verbs, &attr);
--		if (ret) {
--			fprintf(stderr, PFX "Fatal: unable to query RDMA device\n");
--			ret = ERR(ret);
--			goto err3;
--		}
--
--		cma_dev->port_cnt = attr.phys_port_cnt;
--		cma_dev->max_qpsize = attr.max_qp_wr;
--		cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
--		cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
--	}
-+	for (i = 0; dev_list[i]; i++)
-+		cma_dev_array[i].guid = ibv_get_device_guid(dev_list[i]);
- 
- 	cma_dev_cnt = dev_cnt;
- 	ucma_set_af_ib_support();
-@@ -274,10 +255,6 @@ int ucma_init(void)
- 	ibv_free_device_list(dev_list);
- 	return 0;
- 
--err3:
--	while (i--)
--		ibv_close_device(cma_dev_array[i].verbs);
--	free(cma_dev_array);
- err2:
- 	ibv_free_device_list(dev_list);
- err1:
-@@ -286,12 +263,93 @@ err1:
- 	return ret;
- }
- 
-+static struct ibv_context *ucma_open_device(uint64_t guid)
-+{
-+	struct ibv_device **dev_list;
-+	struct ibv_context *verbs = NULL;
-+	int i;
-+
-+	dev_list = ibv_get_device_list(NULL);
-+	if (!dev_list) {
-+		fprintf(stderr, PFX "Fatal: unable to get RDMA device list\n");
-+		return NULL;
-+	}
-+
-+	for (i = 0; dev_list[i]; i++) {
-+		if (ibv_get_device_guid(dev_list[i]) == guid) {
-+			verbs = ibv_open_device(dev_list[i]);
-+			break;
-+		}
-+	}
-+
-+	if (!verbs)
-+		fprintf(stderr, PFX "Fatal: unable to open RDMA device\n");
-+
-+	ibv_free_device_list(dev_list);
-+	return verbs;
-+}
-+
-+static int ucma_init_device(struct cma_device *cma_dev)
-+{
-+	struct ibv_device_attr attr;
-+	int ret;
-+
-+	if (cma_dev->verbs)
-+		return 0;
-+
-+	cma_dev->verbs = ucma_open_device(cma_dev->guid);
-+	if (!cma_dev->verbs)
-+		return ERR(ENODEV);
-+
-+	ret = ibv_query_device(cma_dev->verbs, &attr);
-+	if (ret) {
-+		fprintf(stderr, PFX "Fatal: unable to query RDMA device\n");
-+		ret = ERR(ret);
-+		goto err;
-+	}
-+
-+	cma_dev->port_cnt = attr.phys_port_cnt;
-+	cma_dev->max_qpsize = attr.max_qp_wr;
-+	cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
-+	cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
-+	cma_init_cnt++;
-+	return 0;
-+
-+err:
-+	ibv_close_device(cma_dev->verbs);
-+	cma_dev->verbs = NULL;
-+	return ret;
-+}
-+
-+int ucma_init_all(void)
-+{
-+	int i, ret = 0;
-+
-+	if (!cma_dev_cnt) {
-+		ret = ucma_init();
-+		if (ret)
-+			return ret;
-+	}
-+
-+	if (cma_init_cnt == cma_dev_cnt)
-+		return 0;
-+
-+	pthread_mutex_lock(&mut);
-+	for (i = 0; i < cma_dev_cnt; i++) {
-+		ret = ucma_init_device(&cma_dev_array[i]);
-+		if (ret)
-+			break;
-+	}
-+	pthread_mutex_unlock(&mut);
-+	return ret;
-+}
-+
- struct ibv_context **rdma_get_devices(int *num_devices)
- {
- 	struct ibv_context **devs = NULL;
- 	int i;
- 
--	if (ucma_init())
-+	if (ucma_init_all())
- 		goto out;
- 
- 	devs = malloc(sizeof *devs * (cma_dev_cnt + 1));
-@@ -348,7 +406,7 @@ void rdma_destroy_event_channel(struct rdma_event_channel *channel)
- static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
- {
- 	struct cma_device *cma_dev;
--	int i, ret = 0;
-+	int i, ret;
- 
- 	for (i = 0; i < cma_dev_cnt; i++) {
- 		cma_dev = &cma_dev_array[i];
-@@ -358,9 +416,12 @@ static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
- 
- 	return ERR(ENODEV);
- match:
-+	if ((ret = ucma_init_device(cma_dev)))
-+		return ret;
-+
- 	pthread_mutex_lock(&mut);
- 	if (!cma_dev->refcnt++) {
--		cma_dev->pd = ibv_alloc_pd(cma_dev_array[i].verbs);
-+		cma_dev->pd = ibv_alloc_pd(cma_dev->verbs);
- 		if (!cma_dev->pd) {
- 			cma_dev->refcnt--;
- 			ret = ERR(ENOMEM);
-@@ -2292,7 +2353,7 @@ int ucma_max_qpsize(struct rdma_cm_id *id)
- 	if (id && id_priv->cma_dev) {
- 		max_size = id_priv->cma_dev->max_qpsize;
- 	} else {
--		ucma_init();
-+		ucma_init_all();
- 		for (i = 0; i < cma_dev_cnt; i++) {
- 			if (!max_size || max_size > cma_dev_array[i].max_qpsize)
- 				max_size = cma_dev_array[i].max_qpsize;
-diff --git a/src/cma.h b/src/cma.h
-index 4c991b4..a7bab0f 100644
---- a/src/cma.h
-+++ b/src/cma.h
-@@ -158,7 +158,7 @@ static inline int ERR(int err)
- 	return -1;
- }
- 
--int ucma_init();
-+int ucma_init(void);
- extern int af_ib_support;
- 
- #define RAI_ROUTEONLY		0x01000000
-
+ # Enable ibverbs library test
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
