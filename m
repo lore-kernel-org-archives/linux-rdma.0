@@ -1,205 +1,256 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] xprtrdma: mind the device's max fast register page list depth
-Date: Thu, 10 Apr 2014 10:13:25 -0500
-Message-ID: <20140410151325.28724.92004.stgit@build.ogc.int>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+Date: Thu, 10 Apr 2014 17:42:49 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FDEB3B4@CMEXMB1.ad.emulex.com>
+References: <014738b6-698e-4ea1-82f9-287378bfec19@CMEXHTCAS2.ad.emulex.com>
+ <D7AB2150-5F25-4BA2-80D9-94890AD11F8F@primarydata.com>
+ <F1C70AD6-BDD4-4534-8DC4-61D2767581D9@oracle.com>
+ <EE7902D3F51F404C82415C4803930ACD3FDEAA43@CMEXMB1.ad.emulex.com>
+ <E66D006A-0D04-4602-8BF5-6834CACD2E24@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E66D006A-0D04-4602-8BF5-6834CACD2E24-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some rdma devices don't support a fast register page list depth of
-at least RPCRDMA_MAX_DATA_SEGS.  So xprtrdma needs to chunk its fast
-register regions according to the minimum of the device max supported
-depth or RPCRDMA_MAX_DATA_SEGS.
-
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- net/sunrpc/xprtrdma/rpc_rdma.c  |    2 -
- net/sunrpc/xprtrdma/verbs.c     |   64 ++++++++++++++++++++++++++++-----------
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 3 files changed, 47 insertions(+), 20 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 96ead52..14d7634 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -249,8 +249,6 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- 	req->rl_nchunks = nchunks;
- 
- 	BUG_ON(nchunks == 0);
--	BUG_ON((r_xprt->rx_ia.ri_memreg_strategy == RPCRDMA_FRMR)
--	       && (nchunks > 3));
- 
- 	/*
- 	 * finish off header. If write, marshal discrim and nchunks.
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 93726560..c08f193 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -539,6 +539,11 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
- 				__func__);
- 			memreg = RPCRDMA_REGISTER;
- #endif
-+		} else {
-+			/* Mind the ia limit on FRMR page list depth */
-+			ia->ri_max_frmr_depth = min_t(unsigned int,
-+				RPCRDMA_MAX_DATA_SEGS,
-+				devattr.max_fast_reg_page_list_len);
- 		}
- 		break;
- 	}
-@@ -659,24 +664,42 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 	ep->rep_attr.srq = NULL;
- 	ep->rep_attr.cap.max_send_wr = cdata->max_requests;
- 	switch (ia->ri_memreg_strategy) {
--	case RPCRDMA_FRMR:
-+	case RPCRDMA_FRMR: {
-+		int depth = 7;
-+
- 		/* Add room for frmr register and invalidate WRs.
- 		 * 1. FRMR reg WR for head
- 		 * 2. FRMR invalidate WR for head
--		 * 3. FRMR reg WR for pagelist
--		 * 4. FRMR invalidate WR for pagelist
-+		 * 3. N FRMR reg WRs for pagelist
-+		 * 4. N FRMR invalidate WRs for pagelist
- 		 * 5. FRMR reg WR for tail
- 		 * 6. FRMR invalidate WR for tail
- 		 * 7. The RDMA_SEND WR
- 		 */
--		ep->rep_attr.cap.max_send_wr *= 7;
-+
-+		/* Calculate N if the device max FRMR depth is smaller than
-+		 * RPCRDMA_MAX_DATA_SEGS.
-+		 */
-+		if (ia->ri_max_frmr_depth < RPCRDMA_MAX_DATA_SEGS) {
-+			int delta = RPCRDMA_MAX_DATA_SEGS -
-+				    ia->ri_max_frmr_depth;
-+
-+			do {
-+				depth += 2; /* FRMR reg + invalidate */
-+				delta -= ia->ri_max_frmr_depth;
-+			} while (delta > 0);
-+
-+		}
-+		ep->rep_attr.cap.max_send_wr *= depth;
- 		if (ep->rep_attr.cap.max_send_wr > devattr.max_qp_wr) {
--			cdata->max_requests = devattr.max_qp_wr / 7;
-+			cdata->max_requests = devattr.max_qp_wr / depth;
- 			if (!cdata->max_requests)
- 				return -EINVAL;
--			ep->rep_attr.cap.max_send_wr = cdata->max_requests * 7;
-+			ep->rep_attr.cap.max_send_wr = cdata->max_requests *
-+						       depth;
- 		}
- 		break;
-+	}
- 	case RPCRDMA_MEMWINDOWS_ASYNC:
- 	case RPCRDMA_MEMWINDOWS:
- 		/* Add room for mw_binds+unbinds - overkill! */
-@@ -1043,16 +1066,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 	case RPCRDMA_FRMR:
- 		for (i = buf->rb_max_requests * RPCRDMA_MAX_SEGS; i; i--) {
- 			r->r.frmr.fr_mr = ib_alloc_fast_reg_mr(ia->ri_pd,
--							 RPCRDMA_MAX_SEGS);
-+						ia->ri_max_frmr_depth);
- 			if (IS_ERR(r->r.frmr.fr_mr)) {
- 				rc = PTR_ERR(r->r.frmr.fr_mr);
- 				dprintk("RPC:       %s: ib_alloc_fast_reg_mr"
- 					" failed %i\n", __func__, rc);
- 				goto out;
- 			}
--			r->r.frmr.fr_pgl =
--				ib_alloc_fast_reg_page_list(ia->ri_id->device,
--							    RPCRDMA_MAX_SEGS);
-+			r->r.frmr.fr_pgl = ib_alloc_fast_reg_page_list(
-+						ia->ri_id->device,
-+						ia->ri_max_frmr_depth);
- 			if (IS_ERR(r->r.frmr.fr_pgl)) {
- 				rc = PTR_ERR(r->r.frmr.fr_pgl);
- 				dprintk("RPC:       %s: "
-@@ -1498,8 +1521,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	seg1->mr_offset -= pageoff;	/* start of page */
- 	seg1->mr_len += pageoff;
- 	len = -pageoff;
--	if (*nsegs > RPCRDMA_MAX_DATA_SEGS)
--		*nsegs = RPCRDMA_MAX_DATA_SEGS;
-+	if (*nsegs > ia->ri_max_frmr_depth)
-+		*nsegs = ia->ri_max_frmr_depth;
- 	for (page_no = i = 0; i < *nsegs;) {
- 		rpcrdma_map_one(ia, seg, writing);
- 		pa = seg->mr_dma;
-@@ -1796,6 +1819,7 @@ rpcrdma_register_external(struct rpcrdma_mr_seg *seg,
- {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
- 	int rc = 0;
-+	int tmp_nsegs = nsegs;
- 
- 	switch (ia->ri_memreg_strategy) {
- 
-@@ -1805,35 +1829,39 @@ rpcrdma_register_external(struct rpcrdma_mr_seg *seg,
- 		seg->mr_rkey = ia->ri_bind_mem->rkey;
- 		seg->mr_base = seg->mr_dma;
- 		seg->mr_nsegs = 1;
--		nsegs = 1;
-+		tmp_nsegs = 1;
- 		break;
- #endif
- 
- 	/* Registration using frmr registration */
- 	case RPCRDMA_FRMR:
--		rc = rpcrdma_register_frmr_external(seg, &nsegs, writing, ia, r_xprt);
-+		rc = rpcrdma_register_frmr_external(seg, &tmp_nsegs, writing,
-+						    ia, r_xprt);
- 		break;
- 
- 	/* Registration using fmr memory registration */
- 	case RPCRDMA_MTHCAFMR:
--		rc = rpcrdma_register_fmr_external(seg, &nsegs, writing, ia);
-+		rc = rpcrdma_register_fmr_external(seg, &tmp_nsegs, writing,
-+						   ia);
- 		break;
- 
- 	/* Registration using memory windows */
- 	case RPCRDMA_MEMWINDOWS_ASYNC:
- 	case RPCRDMA_MEMWINDOWS:
--		rc = rpcrdma_register_memwin_external(seg, &nsegs, writing, ia, r_xprt);
-+		rc = rpcrdma_register_memwin_external(seg, &tmp_nsegs, writing,
-+						      ia, r_xprt);
- 		break;
- 
- 	/* Default registration each time */
- 	default:
--		rc = rpcrdma_register_default_external(seg, &nsegs, writing, ia);
-+		rc = rpcrdma_register_default_external(seg, &tmp_nsegs, writing,
-+						       ia);
- 		break;
- 	}
- 	if (rc)
- 		return -1;
- 
--	return nsegs;
-+	return tmp_nsegs;
- }
- 
- int
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index cc1445d..98340a3 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -66,6 +66,7 @@ struct rpcrdma_ia {
- 	struct completion	ri_done;
- 	int			ri_async_rc;
- 	enum rpcrdma_memreg	ri_memreg_strategy;
-+	unsigned int		ri_max_frmr_depth;
- };
- 
- /*
+> -----Original Message-----
+> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
+> Sent: Thursday, April 10, 2014 5:56 AM
+> To: Devesh Sharma
+> Cc: Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Trond Myklebust
+> Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+> 
+> 
+> On Apr 9, 2014, at 7:56 PM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+> wrote:
+> 
+> > Hi Chuk and Trond
+> >
+> > I will resend a v2 for this.
+> > What if ib_post_send() fails with immidate error, I that case also
+> DECR_CQCOUNT() will be called but no completion will be reported. Will that
+> not cause any problems?
+> 
+> We should investigate whether an error return from ib_post_{send,recv}
+> means there will be no completion. But I've never seen these verbs fail in
+> practice, so I'm not in a hurry to make work for anyone! ;-)
+Any verb can fail, may be due to system is under memory pressure?
+> 
+> However it seems to me the new (!ia->ri_id->qp) checks outside the connect
+> logic are unnecessary.
+> 
+> Clearly, as you noticed, the ib_post_{send,recv} verbs do not check that their
+> "qp" argument is NULL before dereferencing it.
+> 
+> But I don't understand how xprtrdma can post any operation if the transport
+> isn't connected. In other words, how would it be possible to call
+> rpcrdma_ep_post_recv() if the connect had failed and there was no QP?
+> 
+> If disconnect wipes ia->ri_id->qp while there are still operations in progress,
+> that would be the real bug.
+Yes!, But I have seen one more kernel oops where QP is destroyed and xprtrdma still try to post in LOCAL_INV
+WR on a NULL QP pointer and hence system crashes. So, I think what you missioned is really happening. 
+> 
+> 
+> > Also in rpcrdma_register_frmr_external() I am seeing DECT_CQCOUNT is
+> > called twice First at line 1538 (unlikely however) and second at line 1562.
+> Shouldn't  it be only at 1562?
+> 
+> if (seg1->mr_chunk.rl_mw->r.frmr.state == FRMR_IS_VALID) then
+> rpcrdma_register_frmr_external() posts two Work Requests (LOCAL_INV
+> then FAST_REG_MR) with one ib_post_send(). Thus it is correct to
+> DECR_CQCOUNT twice in that case because each WR will trigger a separate
+> completion event.
+Oh! I missed that.
+> 
+> 
+> > -----Original Message-----
+> > From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
+> > Sent: Thursday, April 10, 2014 1:57 AM
+> > To: Devesh Sharma
+> > Cc: Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Trond
+> > Myklebust
+> > Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+> >
+> >
+> > On Apr 9, 2014, at 4:22 PM, Trond Myklebust
+> <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
+> >
+> >> Hi Devesh,
+> >>
+> >> This looks a lot better. I still have a couple of small suggestions, though.
+> >>
+> >> On Apr 9, 2014, at 14:40, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> wrote:
+> >>
+> >>> If the rdma_create_qp fails to create qp due to device firmware
+> >>> being in invalid state xprtrdma still tries to destroy the
+> >>> non-existant qp and ends up in a NULL pointer reference crash.
+> >>> Adding proper checks for vaidating QP pointer avoids this to happen.
+> >>>
+> >>> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> >>> ---
+> >>> net/sunrpc/xprtrdma/verbs.c |   29 +++++++++++++++++++++++++----
+> >>> 1 files changed, 25 insertions(+), 4 deletions(-)
+> >>>
+> >>> diff --git a/net/sunrpc/xprtrdma/verbs.c
+> >>> b/net/sunrpc/xprtrdma/verbs.c index 9372656..902ac78 100644
+> >>> --- a/net/sunrpc/xprtrdma/verbs.c
+> >>> +++ b/net/sunrpc/xprtrdma/verbs.c
+> >>> @@ -831,10 +831,12 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep,
+> struct rpcrdma_ia *ia)
+> >>> 	if (ep->rep_connected != 0) {
+> >>> 		struct rpcrdma_xprt *xprt;
+> >>> retry:
+> >>> -		rc = rpcrdma_ep_disconnect(ep, ia);
+> >>> -		if (rc && rc != -ENOTCONN)
+> >>> -			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+> >>> +		if (ia->ri_id->qp) {
+> >>> +			rc = rpcrdma_ep_disconnect(ep, ia);
+> >>> +			if (rc && rc != -ENOTCONN)
+> >>> +				dprintk("RPC:       %s:
+> rpcrdma_ep_disconnect"
+> >>> 				" status %i\n", __func__, rc);
+> >>> +		}
+> >>> 		rpcrdma_clean_cq(ep->rep_cq);
+> >>>
+> >>> 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia); @@ -
+> 859,7
+> >>> +861,9 @@ retry:
+> >>> 			goto out;
+> >>> 		}
+> >>> 		/* END TEMP */
+> >>> -		rdma_destroy_qp(ia->ri_id);
+> >>> +		if (ia->ri_id->qp) {
+> >>> +			rdma_destroy_qp(ia->ri_id);
+> >>> +		}
+> >>
+> >> Nit: No need for braces here.
+> >>
+> >>> 		rdma_destroy_id(ia->ri_id);
+> >>> 		ia->ri_id = id;
+> >>> 	}
+> >>> @@ -1557,6 +1561,13 @@ rpcrdma_register_frmr_external(struct
+> rpcrdma_mr_seg *seg,
+> >>> 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr-
+> >rkey;
+> >>> 	DECR_CQCOUNT(&r_xprt->rx_ep);
+> >
+> > I don't think you can DECR_CQCOUNT, then exit without posting the send.
+> That will screw up the completion counter and result in a transport hang,
+> won't it?
+> >
+> >>>
+> >>> +	if (!ia->ri_is->qp) {
+> >>> +		rc = -EINVAL;
+> >>> +		while (i--)
+> >>> +			rpcrdma_unmap_one(ia, --seg);
+> >>> +		goto out;
+> >>> +	}
+> >>
+> >> Instead of duplicating the rpcrdma_unmap_one() cleanup here, why not
+> >> just do
+> >>
+> >> 	if (ia->ri_is->qp)
+> >> 		rc = ib_post_send(...)
+> >> 	else
+> >> 		rc = -EINVAL;
+> >>
+> >> BTW: can we not simply test for ia->ri_is->qp before we even call
+> rpcrdma_map_one() and hence bail out before we have to do any cleanup?
+> >>
+> >>> +
+> >>> 	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
+> >>>
+> >>> 	if (rc) {
+> >>> @@ -1571,6 +1582,7 @@ rpcrdma_register_frmr_external(struct
+> rpcrdma_mr_seg *seg,
+> >>> 		seg1->mr_len = len;
+> >>> 	}
+> >>> 	*nsegs = i;
+> >>> +out:
+> >>> 	return rc;
+> >>> }
+> >>>
+> >>> @@ -1592,6 +1604,9 @@ rpcrdma_deregister_frmr_external(struct
+> rpcrdma_mr_seg *seg,
+> >>> 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw-
+> >r.frmr.fr_mr->rkey;
+> >>> 	DECR_CQCOUNT(&r_xprt->rx_ep);
+> >
+> > Ditto.
+> >
+> >>>
+> >>> +	if (!ia->ri_id->qp)
+> >>> +		return -EINVAL;
+> >>> +
+> >>> 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+> >>> 	if (rc)
+> >>> 		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
+> >>> @@ -1923,6 +1938,9 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
+> >>> 		send_wr.send_flags = IB_SEND_SIGNALED;
+> >>> 	}
+> >
+> > Ditto.
+> >
+> >>>
+> >>> +	if (!ia->ri_id->qp)
+> >>> +		return -EINVAL;
+> >>> +
+> >>> 	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
+> >>> 	if (rc)
+> >>> 		dprintk("RPC:       %s: ib_post_send returned %i\n",
+> __func__,
+> >>> @@ -1951,6 +1969,9 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+> >>> 		rep->rr_iov.addr, rep->rr_iov.length, DMA_BIDIRECTIONAL);
+> >>>
+> >>> 	DECR_CQCOUNT(ep);
+> >
+> > And here.
+> >
+> >>> +
+> >>> +	if (!ia->ri_id->qp)
+> >>> +		return -EINVAL;
+> >>> 	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
+> >>>
+> >>> 	if (rc)
+> >>> --
+> >>> 1.7.1
+> >>>
+> >>
+> >> _________________________________
+> >> Trond Myklebust
+> >> Linux NFS client maintainer, PrimaryData
+> >> trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-nfs"
+> >> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+> majordomo
+> >> info at  http://vger.kernel.org/majordomo-info.html
+> >
+> > --
+> > Chuck Lever
+> > chuck[dot]lever[at]oracle[dot]com
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+> majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+> 
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
