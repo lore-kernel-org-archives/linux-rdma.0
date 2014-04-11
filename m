@@ -1,191 +1,197 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] xprtrdma: mind the device's max fast register page list
- depth
-Date: Fri, 11 Apr 2014 14:11:10 -0500
-Message-ID: <53483E4E.9070607@opengridcomputing.com>
-References: <20140410151325.28724.92004.stgit@build.ogc.int> <577860CA-7ECC-4353-AED9-16C17A2B918D@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] nfs-rdma: Fix for FMR leaks
+Date: Fri, 11 Apr 2014 16:54:15 -0400
+Message-ID: <36E0E306-3227-4F42-AD1F-9A8B2AFB574E@oracle.com>
+References: <nyc61n00p3VzoHe01yc7ug> <002e01cf5444$a58c2c10$f0a48430$@cox.net>
+Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <577860CA-7ECC-4353-AED9-16C17A2B918D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <002e01cf5444$a58c2c10$f0a48430$@cox.net>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Allen Andrews <allen.andrews-j9pdmedNgrk@public.gmane.org>
+Cc: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/11/2014 1:34 PM, Chuck Lever wrote:
-> Hi Steve-
->
-> I reviewed and successfully tested this patch with mlx4 using FRMR an=
-d MTHCAFMR.
-> A couple of cosmetic notes are below:
->
->
-> On Apr 10, 2014, at 11:13 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org=
-> wrote:
->
->> Some rdma devices don't support a fast register page list depth of
->> at least RPCRDMA_MAX_DATA_SEGS.  So xprtrdma needs to chunk its fast
->> register regions according to the minimum of the device max supporte=
-d
->> depth or RPCRDMA_MAX_DATA_SEGS.
->>
->> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->> ---
->>
->> net/sunrpc/xprtrdma/rpc_rdma.c  |    2 -
->> net/sunrpc/xprtrdma/verbs.c     |   64 ++++++++++++++++++++++++++++-=
-----------
->> net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
->> 3 files changed, 47 insertions(+), 20 deletions(-)
->>
->> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rp=
-c_rdma.c
->> index 96ead52..14d7634 100644
->> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
->> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
->> @@ -249,8 +249,6 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, str=
-uct xdr_buf *target,
->> 	req->rl_nchunks =3D nchunks;
->>
->> 	BUG_ON(nchunks =3D=3D 0);
-> I don=92t see a path through rpcrdma_create_chunks() where nchunks ca=
-n be 0 here. If you
-> agree, can you remove the above BUG_ON as well, if you re-submit a ne=
-w version of this
-> patch?
+Hi Allen-
 
-Sure.
-
->> -	BUG_ON((r_xprt->rx_ia.ri_memreg_strategy =3D=3D RPCRDMA_FRMR)
->> -	       && (nchunks > 3));
->>
->> 	/*
->> 	 * finish off header. If write, marshal discrim and nchunks.
->> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs=
-=2Ec
->> index 93726560..c08f193 100644
->> --- a/net/sunrpc/xprtrdma/verbs.c
->> +++ b/net/sunrpc/xprtrdma/verbs.c
->> @@ -539,6 +539,11 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, stru=
-ct sockaddr *addr, int memreg)
->> 				__func__);
->> 			memreg =3D RPCRDMA_REGISTER;
->> #endif
->> +		} else {
->> +			/* Mind the ia limit on FRMR page list depth */
->> +			ia->ri_max_frmr_depth =3D min_t(unsigned int,
->> +				RPCRDMA_MAX_DATA_SEGS,
->> +				devattr.max_fast_reg_page_list_len);
->> 		}
->> 		break;
->> 	}
->> @@ -659,24 +664,42 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struc=
-t rpcrdma_ia *ia,
->> 	ep->rep_attr.srq =3D NULL;
->> 	ep->rep_attr.cap.max_send_wr =3D cdata->max_requests;
->> 	switch (ia->ri_memreg_strategy) {
->> -	case RPCRDMA_FRMR:
->> +	case RPCRDMA_FRMR: {
->> +		int depth =3D 7;
->> +
->> 		/* Add room for frmr register and invalidate WRs.
->> 		 * 1. FRMR reg WR for head
->> 		 * 2. FRMR invalidate WR for head
->> -		 * 3. FRMR reg WR for pagelist
->> -		 * 4. FRMR invalidate WR for pagelist
->> +		 * 3. N FRMR reg WRs for pagelist
->> +		 * 4. N FRMR invalidate WRs for pagelist
->> 		 * 5. FRMR reg WR for tail
->> 		 * 6. FRMR invalidate WR for tail
->> 		 * 7. The RDMA_SEND WR
->> 		 */
->> -		ep->rep_attr.cap.max_send_wr *=3D 7;
->> +
->> +		/* Calculate N if the device max FRMR depth is smaller than
->> +		 * RPCRDMA_MAX_DATA_SEGS.
->> +		 */
->> +		if (ia->ri_max_frmr_depth < RPCRDMA_MAX_DATA_SEGS) {
->> +			int delta =3D RPCRDMA_MAX_DATA_SEGS -
->> +				    ia->ri_max_frmr_depth;
->> +
->> +			do {
->> +				depth +=3D 2; /* FRMR reg + invalidate */
->> +				delta -=3D ia->ri_max_frmr_depth;
->> +			} while (delta > 0);
->> +
->> +		}
->> +		ep->rep_attr.cap.max_send_wr *=3D depth;
->> 		if (ep->rep_attr.cap.max_send_wr > devattr.max_qp_wr) {
->> -			cdata->max_requests =3D devattr.max_qp_wr / 7;
->> +			cdata->max_requests =3D devattr.max_qp_wr / depth;
->> 			if (!cdata->max_requests)
->> 				return -EINVAL;
->> -			ep->rep_attr.cap.max_send_wr =3D cdata->max_requests * 7;
->> +			ep->rep_attr.cap.max_send_wr =3D cdata->max_requests *
->> +						       depth;
->> 		}
->> 		break;
->> +	}
->> 	case RPCRDMA_MEMWINDOWS_ASYNC:
->> 	case RPCRDMA_MEMWINDOWS:
->> 		/* Add room for mw_binds+unbinds - overkill! */
->> @@ -1043,16 +1066,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer =
-*buf, struct rpcrdma_ep *ep,
->> 	case RPCRDMA_FRMR:
->> 		for (i =3D buf->rb_max_requests * RPCRDMA_MAX_SEGS; i; i--) {
->> 			r->r.frmr.fr_mr =3D ib_alloc_fast_reg_mr(ia->ri_pd,
->> -							 RPCRDMA_MAX_SEGS);
->> +						ia->ri_max_frmr_depth);
->> 			if (IS_ERR(r->r.frmr.fr_mr)) {
->> 				rc =3D PTR_ERR(r->r.frmr.fr_mr);
->> 				dprintk("RPC:       %s: ib_alloc_fast_reg_mr"
->> 					" failed %i\n", __func__, rc);
->> 				goto out;
->> 			}
->> -			r->r.frmr.fr_pgl =3D
->> -				ib_alloc_fast_reg_page_list(ia->ri_id->device,
->> -							    RPCRDMA_MAX_SEGS);
->> +			r->r.frmr.fr_pgl =3D ib_alloc_fast_reg_page_list(
->> +						ia->ri_id->device,
->> +						ia->ri_max_frmr_depth);
->> 			if (IS_ERR(r->r.frmr.fr_pgl)) {
->> 				rc =3D PTR_ERR(r->r.frmr.fr_pgl);
->> 				dprintk("RPC:       %s: "
->> @@ -1498,8 +1521,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_=
-mr_seg *seg,
->> 	seg1->mr_offset -=3D pageoff;	/* start of page */
->> 	seg1->mr_len +=3D pageoff;
->> 	len =3D -pageoff;
->> -	if (*nsegs > RPCRDMA_MAX_DATA_SEGS)
->> -		*nsegs =3D RPCRDMA_MAX_DATA_SEGS;
->> +	if (*nsegs > ia->ri_max_frmr_depth)
->> +		*nsegs =3D ia->ri_max_frmr_depth;
->> 	for (page_no =3D i =3D 0; i < *nsegs;) {
->> 		rpcrdma_map_one(ia, seg, writing);
->> 		pa =3D seg->mr_dma;
->> @@ -1796,6 +1819,7 @@ rpcrdma_register_external(struct rpcrdma_mr_se=
-g *seg,
->> {
->> 	struct rpcrdma_ia *ia =3D &r_xprt->rx_ia;
->> 	int rc =3D 0;
->> +	int tmp_nsegs =3D nsegs;
-> I don=92t understand what the changes to rpcrdma_register_external() =
-do. As a test, I reverted
-> these, and the patch behaves the same. Am I missing something?
-
-I mistakenly thought rpcrdma_register_external() was changing the=20
-callers nsegs variable.  But since its passed by value and not=20
-reference, that's not possible.  I'll remove this and retest, then send=
-=20
-out V2 of the patch with the BUG_ON() removed as well.
+I reviewed and tested your patch. Comments inline below.
 
 
-Thanks,
+On Apr 9, 2014, at 6:40 PM, Allen Andrews <allen.andrews-j9pdmedNgrk@public.gmane.org> wrote=
+:
 
-Steve.
+> Two memory region leaks iwere found during testing:
+>=20
+> 1. rpcrdma_buffer_create: While allocating RPCRDMA_FRMR's ib_alloc_fa=
+st_reg_mr is called and then ib_alloc_fast_reg_page_list is called.  If=
+ ib_alloc_fast_reg_page_list returns an error it bails out of the routi=
+ne dropping the last ib_alloc_fast_reg_mr frmr region creating a memory=
+ leak.  Added code to dereg the last frmr if ib_alloc_fast_reg_page_lis=
+t fails.
+>=20
+> 2. rpcrdma_buffer_destroy: While cleaning up, the routine will only f=
+ree the MR's on the rb_mws list if there are rb_send_bufs present.  How=
+ever, in rpcrdma_buffer_create while the rb_mws list is being built if =
+one of the MR allocation requests fail after some MR's have been alloca=
+ted on the rb_mws list the routine never gets to create any rb_send_buf=
+s but instead jumps to the rpcrdma_buffer_destroy routine which will ne=
+ver free the MR's on rb_mws
+> list because the rb_send_bufs were never created.   This leaks all th=
+e MR's
+> on the rb_mws list that were created prior to one of the MR allocatio=
+ns failing.
+>=20
+> Issue(2) was seen during testing. Our adapter had a finite number of =
+MR's available and we created enough connections to where we saw an MR =
+allocation failure on our Nth NFS connection request. After the kernel =
+cleaned up the resources it had allocated for the Nth connection we not=
+iced that FMR's had been leaked due to the coding error described above=
+=2E
+>=20
+> Issue(1) was seen during a code review while debugging issue(2).
+>=20
+> Signed-off-by: Allen Andrews <allen.andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>=20
+> net/sunrpc/xprtrdma/verbs.c |   79 ++++++++++++++++++++++++----------=
+---------
+> 1 files changed, 44 insertions(+), 35 deletions(-)
+>=20
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.=
+c index 9372656..54f592d 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1058,6 +1058,14 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *b=
+uf, struct rpcrdma_ep *ep,
+> 				dprintk("RPC:       %s: "
+> 					"ib_alloc_fast_reg_page_list "
+> 					"failed %i\n", __func__, rc);
+> +
+> +				rc =3D ib_dereg_mr(r->r.frmr.fr_mr);
+
+This clears =93rc,=94 wiping the error returned by ib_alloc_fast_reg_pa=
+ge_list().
+
+Then rpcrdma_buffer_create() returns zero, even though it failed, and x=
+prtrdma thinks the
+transport is set up and ready for use. Panic.
+
+I think you can safely ignore the return code from ib_dereg_mr() here.
+
+
+> +				if (rc)
+> +					dprintk("RPC:       %s:"
+> +						" ib_dereg_mr"
+> +						" failed %i\n",
+> +						__func__, rc);
+> +
+> 				goto out;
+> 			}
+> 			list_add(&r->mw_list, &buf->rb_mws); @@ -1194,41 +1202,6 @@ rpcrdm=
+a_buffer_destroy(struct rpcrdma_buffer *buf)
+
+This line is broken: the =93@@=93 should start on the next line. Some k=
+ind of e-mail snafu?
+
+
+> 			kfree(buf->rb_recv_bufs[i]);
+> 		}
+> 		if (buf->rb_send_bufs && buf->rb_send_bufs[i]) {
+> -			while (!list_empty(&buf->rb_mws)) {
+> -				r =3D list_entry(buf->rb_mws.next,
+> -					struct rpcrdma_mw, mw_list);
+> -				list_del(&r->mw_list);
+> -				switch (ia->ri_memreg_strategy) {
+> -				case RPCRDMA_FRMR:
+> -					rc =3D ib_dereg_mr(r->r.frmr.fr_mr);
+> -					if (rc)
+> -						dprintk("RPC:       %s:"
+> -							" ib_dereg_mr"
+> -							" failed %i\n",
+> -							__func__, rc);
+> -					ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
+> -					break;
+> -				case RPCRDMA_MTHCAFMR:
+> -					rc =3D ib_dealloc_fmr(r->r.fmr);
+> -					if (rc)
+> -						dprintk("RPC:       %s:"
+> -							" ib_dealloc_fmr"
+> -							" failed %i\n",
+> -							__func__, rc);
+> -					break;
+> -				case RPCRDMA_MEMWINDOWS_ASYNC:
+> -				case RPCRDMA_MEMWINDOWS:
+> -					rc =3D ib_dealloc_mw(r->r.mw);
+> -					if (rc)
+> -						dprintk("RPC:       %s:"
+> -							" ib_dealloc_mw"
+> -							" failed %i\n",
+> -							__func__, rc);
+> -					break;
+> -				default:
+> -					break;
+> -				}
+> -			}
+> 			rpcrdma_deregister_internal(ia,
+> 					buf->rb_send_bufs[i]->rl_handle,
+> 					&buf->rb_send_bufs[i]->rl_iov);
+> @@ -1236,6 +1209,42 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *=
+buf)
+> 		}
+> 	}
+>=20
+> +	while (!list_empty(&buf->rb_mws)) {
+> +		r =3D list_entry(buf->rb_mws.next,
+> +			struct rpcrdma_mw, mw_list);
+> +		list_del(&r->mw_list);
+> +		switch (ia->ri_memreg_strategy) {
+> +		case RPCRDMA_FRMR:
+> +			rc =3D ib_dereg_mr(r->r.frmr.fr_mr);
+> +			if (rc)
+> +				dprintk("RPC:       %s:"
+> +					" ib_dereg_mr"
+> +					" failed %i\n",
+> +					__func__, rc);
+> +			ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
+> +			break;
+> +		case RPCRDMA_MTHCAFMR:
+> +			rc =3D ib_dealloc_fmr(r->r.fmr);
+> +			if (rc)
+> +				dprintk("RPC:       %s:"
+> +					" ib_dealloc_fmr"
+> +					" failed %i\n",
+> +					__func__, rc);
+> +			break;
+> +		case RPCRDMA_MEMWINDOWS_ASYNC:
+> +		case RPCRDMA_MEMWINDOWS:
+> +			rc =3D ib_dealloc_mw(r->r.mw);
+> +			if (rc)
+> +				dprintk("RPC:       %s:"
+> +					" ib_dealloc_mw"
+> +					" failed %i\n",
+> +					__func__, rc);
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +	}
+> +
+> 	kfree(buf->rb_pool);
+> }
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
+in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
