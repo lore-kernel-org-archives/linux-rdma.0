@@ -1,89 +1,142 @@
-From: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: Rare Duplicate Completions
-Date: Thu, 10 Apr 2014 17:43:02 -0400
-Message-ID: <CAPb9-SGvewhDLzuNCB3jNAaxO4OFq7_Pbtp5rE7rnJ5k_x1u5g@mail.gmail.com>
-References: <CAPb9-SF6OS3xabKMJdT2Fe32=O1nOhS5y3Ng3ySQG3KOHvcV=Q@mail.gmail.com>
-	<53434A7A.7000504@acm.org>
-	<CAPb9-SEvrWWxWbjSDz5iVP16aRTbDd4tg-TN_af0ecB0o3m1Sw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Hannes Weisbach <hannes_weisbach-hi6Y0CQ0nG0@public.gmane.org>
+Subject: [PATCH] Add cleanup routines.
+Date: Fri, 11 Apr 2014 18:50:02 +0200
+Message-ID: <A521BD06-7228-4FA9-97DD-7DFA51BE7505@gmx.net>
+Reply-To: Hannes Weisbach <hannes_weisbach-hi6Y0CQ0nG0@public.gmane.org>,
+	  linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPb9-SEvrWWxWbjSDz5iVP16aRTbDd4tg-TN_af0ecB0o3m1Sw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Bert,
+Dynamically loaded library handles are saved in a list and dlclosed() on
+exit. The list of struct ibv_driver *, as well as the global
+struct ibv_device ** list are free()d.
 
-Thanks for the help. Unfortunately, it looks as if all of my
-message-passing and RDMA operations use the SIGNALED flag. I'm
-checking the  wc->status flag (==IBV_WC_SUCCESS), and it and
-everything in the message appears to be completely identical to the
-first completion. I notice that it only seems to happen when I have
-server processes (ie, listeners) that also open active connections to
-other listeners as well as accept connections from client processes. I
-perform both RDMA and message-passing across those server-to-server
-connections, so on a hunch I tried rewriting the RDMA operations as
-message-passing, but the problem still occurs. Thanks in advance for
-any other thoughts you might have.
+Signed-off-by: Hannes Weisbach <hannes_weisbach-hi6Y0CQ0nG0@public.gmane.org>
+---
+ src/device.c | 10 ++++++++++
+ src/init.c   | 51 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 56 insertions(+), 5 deletions(-)
 
-Cheers,
-Christopher
+diff --git a/src/device.c b/src/device.c
+index beb7b3c..d5b76bb 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -305,3 +305,13 @@ void __ibv_ack_async_event(struct ibv_async_event *event)
+ 	}
+ }
+ default_symver(__ibv_ack_async_event, ibv_ack_async_event);
++
++FINI static void ibverbs_deinit()
++{
++	size_t i;
++	for (i = 0; i < num_devices; i++) {
++		/* driver callback needed. May not be malloc'd memory */
++		free(device_list[i]);
++	}
++	free(device_list);
++}
+diff --git a/src/init.c b/src/init.c
+index d0e4b1c..2a8bca4 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -67,6 +67,11 @@ struct ibv_driver_name {
+ 	struct ibv_driver_name *next;
+ };
+ 
++struct ibv_so_list {
++	void *dlhandle;
++	struct ibv_so_list *next;
++};
++
+ struct ibv_driver {
+ 	const char	       *name;
+ 	ibv_driver_init_func	init_func;
+@@ -77,6 +82,7 @@ struct ibv_driver {
+ static struct ibv_sysfs_dev *sysfs_dev_list;
+ static struct ibv_driver_name *driver_name_list;
+ static struct ibv_driver *head_driver, *tail_driver;
++static struct ibv_so_list *so_list;
+ 
+ static int find_sysfs_devs(void)
+ {
+@@ -193,7 +199,14 @@ void verbs_register_driver(const char *name, verbs_driver_init_func init_func)
+ static void load_driver(const char *name)
+ {
+ 	char *so_name;
+-	void *dlhandle;
++	struct ibv_so_list *elem;
++	struct ibv_so_list **list;
++
++	elem = malloc(sizeof(*elem));
++	if(!elem)
++		return;
++
++	elem->next = NULL;
+ 
+ #define __IBV_QUOTE(x)	#x
+ #define IBV_QUOTE(x)	__IBV_QUOTE(x)
+@@ -205,16 +218,25 @@ static void load_driver(const char *name)
+ 		     name) < 0) {
+ 		fprintf(stderr, PFX "Warning: couldn't load driver '%s'.\n",
+ 			name);
+-		return;
++		goto err;
+ 	}
+ 
+-	dlhandle = dlopen(so_name, RTLD_NOW);
+-	if (!dlhandle) {
++	elem->dlhandle = dlopen(so_name, RTLD_NOW);
++	if (!elem->dlhandle) {
+ 		fprintf(stderr, PFX "Warning: couldn't load driver '%s': %s\n",
+ 			name, dlerror());
+-		goto out;
++		goto err;
+ 	}
+ 
++	for (list = &so_list; *list; list = &(*list)->next)
++		;
++
++	*list = elem;
++
++	goto out;
++
++err:
++	free(elem);
+ out:
+ 	free(so_name);
+ }
+@@ -573,3 +595,22 @@ out:
+ 
+ 	return num_devices;
+ }
++
++FINI static void unload_drivers()
++{
++	struct ibv_driver *driver;
++	struct ibv_so_list * list;
++
++	for (driver = head_driver; driver;) {
++		struct ibv_driver *tmp = driver;
++		driver = driver->next;
++		free(tmp);
++	}
++
++	for (list = so_list; list;) {
++		struct ibv_so_list *tmp = list;
++		list = list->next;
++		dlclose(tmp->dlhandle);
++		free(tmp);
++	}
++}
+-- 
+1.8.5.5
 
-On Thu, Apr 10, 2014 at 5:42 PM, Christopher Mitchell
-<christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org> wrote:
-> Bert,
->
-> Thanks for the help. Unfortunately, it looks as if all of my message-passing
-> and RDMA operations use the SIGNALED flag. I'm checking the  wc->status flag
-> (==IBV_WC_SUCCESS), and it and everything in the message appears to be
-> completely identical to the first completion. I notice that it only seems to
-> happen when I have server processes (ie, listeners) that also open active
-> connections to other listeners as well as accept connections from client
-> processes. I perform both RDMA and message-passing across those
-> server-to-server connections, so on a hunch I tried rewriting the RDMA
-> operations as message-passing, but the problem still occurs. Thanks in
-> advance for any other thoughts you might have.
->
-> Cheers,
-> Christopher
->
->
-> On Mon, Apr 7, 2014 at 9:01 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
->>
->> On 4/04/2014 10:00, Christopher Mitchell wrote:
->>>
->>> I am working on building a distributed Infiniband application, testing
->>> using Mellanox Connect-X HCAs. In very rare cases, perhaps once in a
->>> few million operations, I appear to be receiving duplicate completions
->>> or incorrect completions. For instance, I'll send out an RDMA request
->>> and receive a completion for a Verb message response I had just
->>> handled, or send a Verb message request and receive a duplicate Verb
->>> message completion.. Needless to say, this is introducing instability
->>> in my application. Does anyone have experience with a bug like this,
->>> or am I encountering some arcane issue in how I'm manipulating the
->>> HCA? I'd be more than happy to furnish relevant sections of code to
->>> help nail down the issue.
->>
->>
->> Hello Christopher,
->>
->> In e.g. the SCST SRP target driver there is code present that checks for
->> duplicate and/or missing completions. Although this code is being used
->> intensively I have not yet seen any error messages being logged by the code
->> that verifies completions. Note: something that is nontrivial in the RDMA
->> API and that you might already be aware of is that even for non-signaled
->> work requests a completion is delivered if that work request fails. If these
->> non-signaled work requests do not have a unique wr_id error completions for
->> these requests might be misinterpret as duplicate completions.
->>
->> Bart.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
