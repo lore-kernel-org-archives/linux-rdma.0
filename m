@@ -1,96 +1,105 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 5/8] xprtrdma: Simplify rpcrdma_deregister_external() synopsis
-Date: Mon, 14 Apr 2014 18:23:06 -0400
-Message-ID: <20140414222306.20646.68043.stgit@manet.1015granger.net>
+Subject: [PATCH 6/8] xprtrdma: Make rpcrdma_ep_destroy() return void
+Date: Mon, 14 Apr 2014 18:23:15 -0400
+Message-ID: <20140414222314.20646.16206.stgit@manet.1015granger.net>
 References: <20140414220041.20646.63991.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140414220041.20646.63991.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: All remaining callers of rpcrdma_deregister_external()
-pass NULL as the last argument, so remove that argument.
+Clean up: rpcrdma_ep_destroy() returns a value that is used
+only to print a debugging message. rpcrdma_ep_destroy() already
+prints debugging messages in all error cases.
+
+Make rpcrdma_ep_destroy() return void instead.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/rpc_rdma.c  |    2 +-
- net/sunrpc/xprtrdma/transport.c |    2 +-
- net/sunrpc/xprtrdma/verbs.c     |    8 +-------
+ net/sunrpc/xprtrdma/transport.c |    8 ++------
+ net/sunrpc/xprtrdma/verbs.c     |    7 +------
  net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
- 4 files changed, 4 insertions(+), 10 deletions(-)
+ 3 files changed, 4 insertions(+), 13 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index e4af26a..aac6adb 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -273,7 +273,7 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- out:
- 	for (pos = 0; nchunks--;)
- 		pos += rpcrdma_deregister_external(
--				&req->rl_segments[pos], r_xprt, NULL);
-+				&req->rl_segments[pos], r_xprt);
- 	return 0;
- }
- 
 diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index c23b0c1..430cabb 100644
+index 430cabb..d18b2a3 100644
 --- a/net/sunrpc/xprtrdma/transport.c
 +++ b/net/sunrpc/xprtrdma/transport.c
-@@ -575,7 +575,7 @@ xprt_rdma_free(void *buffer)
- 	for (i = 0; req->rl_nchunks;) {
- 		--req->rl_nchunks;
- 		i += rpcrdma_deregister_external(
--			&req->rl_segments[i], r_xprt, NULL);
-+			&req->rl_segments[i], r_xprt);
- 	}
+@@ -229,7 +229,6 @@ static void
+ xprt_rdma_destroy(struct rpc_xprt *xprt)
+ {
+ 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+-	int rc;
  
- 	if (req->rl_iov.length == 0) {	/* see allocate above */
+ 	dprintk("RPC:       %s: called\n", __func__);
+ 
+@@ -238,10 +237,7 @@ xprt_rdma_destroy(struct rpc_xprt *xprt)
+ 	xprt_clear_connected(xprt);
+ 
+ 	rpcrdma_buffer_destroy(&r_xprt->rx_buf);
+-	rc = rpcrdma_ep_destroy(&r_xprt->rx_ep, &r_xprt->rx_ia);
+-	if (rc)
+-		dprintk("RPC:       %s: rpcrdma_ep_destroy returned %i\n",
+-			__func__, rc);
++	rpcrdma_ep_destroy(&r_xprt->rx_ep, &r_xprt->rx_ia);
+ 	rpcrdma_ia_close(&r_xprt->rx_ia);
+ 
+ 	xprt_rdma_free_addresses(xprt);
+@@ -391,7 +387,7 @@ out4:
+ 	xprt_rdma_free_addresses(xprt);
+ 	rc = -EINVAL;
+ out3:
+-	(void) rpcrdma_ep_destroy(new_ep, &new_xprt->rx_ia);
++	rpcrdma_ep_destroy(new_ep, &new_xprt->rx_ia);
+ out2:
+ 	rpcrdma_ia_close(&new_xprt->rx_ia);
+ out1:
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 35c6699..2b763a2 100644
+index 2b763a2..0f8c22c 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1697,7 +1697,7 @@ rpcrdma_register_external(struct rpcrdma_mr_seg *seg,
- 
- int
- rpcrdma_deregister_external(struct rpcrdma_mr_seg *seg,
--		struct rpcrdma_xprt *r_xprt, void *r)
-+		struct rpcrdma_xprt *r_xprt)
+@@ -751,11 +751,8 @@ out1:
+  * Disconnect and destroy endpoint. After this, the only
+  * valid operations on the ep are to free it (if dynamically
+  * allocated) or re-create it.
+- *
+- * The caller's error handling must be sure to not leak the endpoint
+- * if this function fails.
+  */
+-int
++void
+ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
  {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
- 	int nsegs = seg->mr_nsegs, rc;
-@@ -1724,12 +1724,6 @@ rpcrdma_deregister_external(struct rpcrdma_mr_seg *seg,
- 		rc = rpcrdma_deregister_default_external(seg, ia);
- 		break;
- 	}
--	if (r) {
--		struct rpcrdma_rep *rep = r;
--		void (*func)(struct rpcrdma_rep *) = rep->rr_func;
--		rep->rr_func = NULL;
--		func(rep);	/* dereg done, callback now */
--	}
- 	return nsegs;
+ 	int rc;
+@@ -785,8 +782,6 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	if (rc)
+ 		dprintk("RPC:       %s: ib_destroy_cq returned %i\n",
+ 			__func__, rc);
+-
+-	return rc;
  }
  
+ /*
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index bf08ee0..3f44d6a 100644
+index 3f44d6a..362a19d 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -331,7 +331,7 @@ int rpcrdma_deregister_internal(struct rpcrdma_ia *,
- int rpcrdma_register_external(struct rpcrdma_mr_seg *,
- 				int, int, struct rpcrdma_xprt *);
- int rpcrdma_deregister_external(struct rpcrdma_mr_seg *,
--				struct rpcrdma_xprt *, void *);
-+				struct rpcrdma_xprt *);
+@@ -301,7 +301,7 @@ void rpcrdma_ia_close(struct rpcrdma_ia *);
+  */
+ int rpcrdma_ep_create(struct rpcrdma_ep *, struct rpcrdma_ia *,
+ 				struct rpcrdma_create_data_internal *);
+-int rpcrdma_ep_destroy(struct rpcrdma_ep *, struct rpcrdma_ia *);
++void rpcrdma_ep_destroy(struct rpcrdma_ep *, struct rpcrdma_ia *);
+ int rpcrdma_ep_connect(struct rpcrdma_ep *, struct rpcrdma_ia *);
+ int rpcrdma_ep_disconnect(struct rpcrdma_ep *, struct rpcrdma_ia *);
  
- /*
-  * RPC/RDMA connection management calls - xprtrdma/rpc_rdma.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
