@@ -1,104 +1,153 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/8] xprtrdma: Remove BOUNCEBUFFERS memory registration mode
-Date: Mon, 14 Apr 2014 18:22:41 -0400
-Message-ID: <20140414222241.20646.23399.stgit@manet.1015granger.net>
+Subject: [PATCH 3/8] xprtrdma: Disable ALLPHYSICAL mode by default
+Date: Mon, 14 Apr 2014 18:22:49 -0400
+Message-ID: <20140414222249.20646.47882.stgit@manet.1015granger.net>
 References: <20140414220041.20646.63991.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140414220041.20646.63991.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: This memory registration mode is slow and was never
-meant for use in production environments. Remove it to reduce
-implementation complexity.
+ALLPHYSICAL is not a safe memory registration mode because it
+permits NFS servers to write anywhere in a client's memory.  NFS
+server bugs could result in client memory being overwritten.
+
+This can be useful for embedded systems which do not support more
+surgical RDMA memory registration and protection methods. However,
+enterprise Linux distributions have expressed a desire to disable
+or remove it entirely.
+
+As a compromise (or as a step towards deprecation), add a CONFIG
+setting (by default N) to enable ALLPHYSICAL support.
+
+ALLPHYSICAL is now never a fallback choice when HCAs do not support
+the selected memory registration mode.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/rpc_rdma.c  |    8 --------
- net/sunrpc/xprtrdma/transport.c |   13 -------------
- net/sunrpc/xprtrdma/verbs.c     |    5 +----
- 3 files changed, 1 insertions(+), 25 deletions(-)
+ include/linux/sunrpc/xprtrdma.h |    3 ---
+ net/sunrpc/Kconfig              |   15 +++++++++++++++
+ net/sunrpc/xprtrdma/verbs.c     |   22 +++-------------------
+ 3 files changed, 18 insertions(+), 22 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index c296468..b963e50 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -439,14 +439,6 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 		wtype = rpcrdma_noch;
- 	BUG_ON(rtype != rpcrdma_noch && wtype != rpcrdma_noch);
+diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
+index c2f04e1..54e9b47 100644
+--- a/include/linux/sunrpc/xprtrdma.h
++++ b/include/linux/sunrpc/xprtrdma.h
+@@ -61,9 +61,6 @@
  
--	if (r_xprt->rx_ia.ri_memreg_strategy == RPCRDMA_BOUNCEBUFFERS &&
--	    (rtype != rpcrdma_noch || wtype != rpcrdma_noch)) {
--		/* forced to "pure inline"? */
--		dprintk("RPC:       %s: too much data (%d/%d) for inline\n",
--			__func__, rqst->rq_rcv_buf.len, rqst->rq_snd_buf.len);
--		return -1;
--	}
+ #define RPCRDMA_INLINE_PAD_THRESH  (512)/* payload threshold to pad (bytes) */
+ 
+-/* memory registration strategies */
+-#define RPCRDMA_PERSISTENT_REGISTRATION (1)
 -
- 	hdrlen = 28; /*sizeof *headerp;*/
- 	padlen = 0;
+ enum rpcrdma_memreg {
+ 	RPCRDMA_BOUNCEBUFFERS = 0,
+ 	RPCRDMA_REGISTER,
+diff --git a/net/sunrpc/Kconfig b/net/sunrpc/Kconfig
+index 0754d0f..af56554 100644
+--- a/net/sunrpc/Kconfig
++++ b/net/sunrpc/Kconfig
+@@ -58,6 +58,21 @@ config SUNRPC_XPRT_RDMA_CLIENT
  
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 1eb9c46..8c5035a 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -503,18 +503,6 @@ xprt_rdma_allocate(struct rpc_task *task, size_t size)
- 		 * If the allocation or registration fails, the RPC framework
- 		 * will (doggedly) retry.
- 		 */
--		if (rpcx_to_rdmax(xprt)->rx_ia.ri_memreg_strategy ==
--				RPCRDMA_BOUNCEBUFFERS) {
--			/* forced to "pure inline" */
--			dprintk("RPC:       %s: too much data (%zd) for inline "
--					"(r/w max %d/%d)\n", __func__, size,
--					rpcx_to_rdmad(xprt).inline_rsize,
--					rpcx_to_rdmad(xprt).inline_wsize);
--			size = req->rl_size;
--			rpc_exit(task, -EIO);		/* fail the operation */
--			rpcx_to_rdmax(xprt)->rx_stats.failed_marshal_count++;
--			goto out;
--		}
- 		if (task->tk_flags & RPC_TASK_SWAPPER)
- 			nreq = kmalloc(sizeof *req + size, GFP_ATOMIC);
- 		else
-@@ -543,7 +531,6 @@ xprt_rdma_allocate(struct rpc_task *task, size_t size)
- 		req = nreq;
- 	}
- 	dprintk("RPC:       %s: size %zd, request 0x%p\n", __func__, size, req);
--out:
- 	req->rl_connect_cookie = 0;	/* our reserved value */
- 	return req->rl_xdr_buf;
+ 	  If unsure, say N.
  
++config SUNRPC_XPRT_RDMA_CLIENT_ALLPHYSICAL
++	bool "Enable ALLPHYSICAL memory registration mode"
++	depends on SUNRPC_XPRT_RDMA_CLIENT
++	default N
++	help
++	  This option enables support for the ALLPHYSICAL memory
++	  registration mode.
++
++	  This mode is very fast but not safe because it registers
++	  and exposes all of local memory. This could allow an
++	  NFS server bug to corrupt client memory.
++
++	  N is almost always the correct choice unless you are
++	  sure what you are doing.
++
+ config SUNRPC_XPRT_RDMA_SERVER
+ 	tristate "RPC over RDMA Server Support"
+ 	depends on SUNRPC && INFINIBAND && INFINIBAND_ADDR_TRANS
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 422cf89..1fe554f 100644
+index 1fe554f..6373232 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -557,7 +557,6 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
- 	 * adapter.
- 	 */
- 	switch (memreg) {
--	case RPCRDMA_BOUNCEBUFFERS:
+@@ -506,19 +506,11 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ 		break;
+ 	case RPCRDMA_MTHCAFMR:
+ 		if (!ia->ri_id->device->alloc_fmr) {
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+-			dprintk("RPC:       %s: MTHCAFMR registration "
+-				"specified but not supported by adapter, "
+-				"using riskier RPCRDMA_ALLPHYSICAL\n",
+-				__func__);
+-			memreg = RPCRDMA_ALLPHYSICAL;
+-#else
+ 			dprintk("RPC:       %s: MTHCAFMR registration "
+ 				"specified but not supported by adapter, "
+ 				"using slower RPCRDMA_REGISTER\n",
+ 				__func__);
+ 			memreg = RPCRDMA_REGISTER;
+-#endif
+ 		}
+ 		break;
+ 	case RPCRDMA_FRMR:
+@@ -526,19 +518,11 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ 		if ((devattr.device_cap_flags &
+ 		     (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) !=
+ 		    (IB_DEVICE_MEM_MGT_EXTENSIONS|IB_DEVICE_LOCAL_DMA_LKEY)) {
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+-			dprintk("RPC:       %s: FRMR registration "
+-				"specified but not supported by adapter, "
+-				"using riskier RPCRDMA_ALLPHYSICAL\n",
+-				__func__);
+-			memreg = RPCRDMA_ALLPHYSICAL;
+-#else
+ 			dprintk("RPC:       %s: FRMR registration "
+ 				"specified but not supported by adapter, "
+ 				"using slower RPCRDMA_REGISTER\n",
+ 				__func__);
+ 			memreg = RPCRDMA_REGISTER;
+-#endif
+ 		} else {
+ 			/* Mind the ia limit on FRMR page list depth */
+ 			ia->ri_max_frmr_depth = min_t(unsigned int,
+@@ -560,7 +544,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
  	case RPCRDMA_REGISTER:
  	case RPCRDMA_FRMR:
  		break;
-@@ -778,9 +777,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
+-#if RPCRDMA_PERSISTENT_REGISTRATION
++#ifdef CONFIG_SUNRPC_XPRT_RDMA_CLIENT_ALLPHYSICAL
+ 	case RPCRDMA_ALLPHYSICAL:
+ 		mem_priv = IB_ACCESS_LOCAL_WRITE |
+ 				IB_ACCESS_REMOTE_WRITE |
+@@ -1824,7 +1808,7 @@ rpcrdma_register_external(struct rpcrdma_mr_seg *seg,
  
- 	/* Client offers RDMA Read but does not initiate */
- 	ep->rep_remote_cma.initiator_depth = 0;
--	if (ia->ri_memreg_strategy == RPCRDMA_BOUNCEBUFFERS)
--		ep->rep_remote_cma.responder_resources = 0;
--	else if (devattr.max_qp_rd_atom > 32)	/* arbitrary but <= 255 */
-+	if (devattr.max_qp_rd_atom > 32)	/* arbitrary but <= 255 */
- 		ep->rep_remote_cma.responder_resources = 32;
- 	else
- 		ep->rep_remote_cma.responder_resources = devattr.max_qp_rd_atom;
+ 	switch (ia->ri_memreg_strategy) {
+ 
+-#if RPCRDMA_PERSISTENT_REGISTRATION
++#ifdef CONFIG_SUNRPC_XPRT_RDMA_CLIENT_ALLPHYSICAL
+ 	case RPCRDMA_ALLPHYSICAL:
+ 		rpcrdma_map_one(ia, seg, writing);
+ 		seg->mr_rkey = ia->ri_bind_mem->rkey;
+@@ -1870,7 +1854,7 @@ rpcrdma_deregister_external(struct rpcrdma_mr_seg *seg,
+ 
+ 	switch (ia->ri_memreg_strategy) {
+ 
+-#if RPCRDMA_PERSISTENT_REGISTRATION
++#ifdef CONFIG_SUNRPC_XPRT_RDMA_CLIENT_ALLPHYSICAL
+ 	case RPCRDMA_ALLPHYSICAL:
+ 		BUG_ON(nsegs != 1);
+ 		rpcrdma_unmap_one(ia, seg);
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
