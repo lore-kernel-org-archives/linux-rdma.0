@@ -1,50 +1,49 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] ibacm: Fix invalid memory dereference in acm_process_join_resp
-Date: Sun, 13 Apr 2014 14:47:38 -0700
-Message-ID: <1397425658-30876-1-git-send-email-sean.hefty@intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_ucast_mgr.c: Fix duplicated error codes
+Date: Sun, 13 Apr 2014 20:33:06 -0400
+Message-ID: <534B2CC2.4080008@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 10 Apr 2014 11:33:03 +0300
 
-If a join request fails, the dest pointer may not be initialized.
-This can result in the ibacm daemon crashing.  Fix the crash and
-ensure that the multicast state is set correctly in case the
-join fails by initializing the state to ACM_INIT before sending
-the join request.
+3A05 is used 3 times, changed two of them.
 
-Problem reported by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/acm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ opensm/osm_ucast_mgr.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/acm.c b/src/acm.c
-index 851a258..fcbe313 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -801,7 +801,6 @@ err2:
- 	ibv_destroy_ah(dest->ah);
- 	dest->ah = NULL;
- err1:
--	dest->state = ACM_INIT;
- 	lock_release(&ep->lock);
- }
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 2329ea6..bb874de 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -700,7 +700,7 @@ static int ucast_mgr_setup_all_switches(osm_subn_t * p_subn)
+ 			p_subn->opt.port_search_ordering_file);
+ 		if (parse_node_map(p_subn->opt.port_search_ordering_file,
+ 				   set_search_ordering_ports, p_subn)) {
+-			OSM_LOG(&p_subn->p_osm->log, OSM_LOG_ERROR, "ERR 3A05: "
++			OSM_LOG(&p_subn->p_osm->log, OSM_LOG_ERROR, "ERR 3A0F: "
+ 				"cannot parse port_search_ordering_file \'%s\'\n",
+ 				p_subn->opt.port_search_ordering_file);
+ 		}
+@@ -1021,7 +1021,7 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
+ 			     CL_DISP_MSGID_NONE, &context);
  
-@@ -1568,6 +1567,7 @@ static void acm_join_group(struct acm_ep *ep, union ibv_gid *port_gid,
- 	acm_log(0, "%s %d pkey 0x%x, sl 0x%x, rate 0x%x, mtu 0x%x\n",
- 		ep->port->dev->verbs->device->name, ep->port->port_num,
- 		ep->pkey, sl, rate, mtu);
-+	ep->mc_dest[ep->mc_cnt].state = ACM_INIT;
- 	mad = (struct ib_sa_mad *) umad->data;
- 	acm_init_join(mad, port_gid, ep->pkey, tos, tclass, sl, rate, mtu);
- 	mc_rec = (struct ib_mc_member_rec *) mad->data;
--- 
-1.7.3
-
+ 	if (status != IB_SUCCESS) {
+-		OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR, "ERR 3A05: "
++		OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR, "ERR 3A10: "
+ 			"Sending linear fwd. tbl. block failed (%s)\n",
+ 			ib_get_err_str(status));
+ 		return -1;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
