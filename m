@@ -1,136 +1,137 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 8/8] xprtrdma: Reduce the number of hardway buffer allocations
-Date: Mon, 14 Apr 2014 18:23:31 -0400
-Message-ID: <20140414222331.20646.2267.stgit@manet.1015granger.net>
-References: <20140414220041.20646.63991.stgit@manet.1015granger.net>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+Date: Mon, 14 Apr 2014 22:46:09 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FDED915@CMEXMB1.ad.emulex.com>
+References: <014738b6-698e-4ea1-82f9-287378bfec19@CMEXHTCAS2.ad.emulex.com>
+ <D7AB2150-5F25-4BA2-80D9-94890AD11F8F@primarydata.com>
+ <F1C70AD6-BDD4-4534-8DC4-61D2767581D9@oracle.com>
+ <EE7902D3F51F404C82415C4803930ACD3FDEAA43@CMEXMB1.ad.emulex.com>
+ <E66D006A-0D04-4602-8BF5-6834CACD2E24@oracle.com>
+ <EE7902D3F51F404C82415C4803930ACD3FDEB3B4@CMEXMB1.ad.emulex.com>
+ <BD7B05C0-4733-4DD1-83F3-B30B6B0EE48C@oracle.com>
+ <EE7902D3F51F404C82415C4803930ACD3FDEB3DF@CMEXMB1.ad.emulex.com>
+ <56C87770-7940-4006-948C-FEF3C0EC4ACC@oracle.com>
+ <EE7902D3F51F404C82415C4803930ACD3FDEBD66@CMEXMB1.ad.emulex.com>
+ <5710A71F-C4D5-408B-9B41-07F21B5853F0@oracle.com>
+ <6837A427-B677-4CC7-A022-4FB9E52A3FC6@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140414220041.20646.63991.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <6837A427-B677-4CC7-A022-4FB9E52A3FC6-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-While marshaling an RPC/RDMA request, the inline rsize and wsize
-settings determine whether an inline request is used, or whether
-read and write chunks lists are built. The current default value of
-these settings is 1024. Any RPC request smaller than 1024 bytes is
-sent completely inline to the NFS server.
+Hi Chuck
 
-rpcrdma_buffer_create() allocates and pre-registers a set of RPC
-buffers for each transport instance, also based on the inline rsize
-and wsize settings.
+> -----Original Message-----
+> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
+> Sent: Tuesday, April 15, 2014 2:24 AM
+> To: Devesh Sharma
+> Cc: Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Trond Myklebust
+> Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
+> 
+> Hi Devesh-
+> 
+> 
+> On Apr 13, 2014, at 12:01 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> >
+> > On Apr 11, 2014, at 7:51 PM, Devesh Sharma
+> <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> wrote:
+> >
+> >> Hi  Chuck,
+> >> Yes that is the case, Following is the trace I got.
+> >>
+> >> <4>RPC:   355 setting alarm for 60000 ms
+> >> <4>RPC:   355 sync task going to sleep
+> >> <4>RPC:       xprt_rdma_connect_worker: reconnect
+> >> <4>RPC:       rpcrdma_ep_disconnect: rdma_disconnect -1
+> >> <4>RPC:       rpcrdma_ep_connect: rpcrdma_ep_disconnect status -1
+> >> <3>ocrdma_mbx_create_qp(0) rq_err
+> >> <3>ocrdma_mbx_create_qp(0) sq_err
+> >> <3>ocrdma_create_qp(0) error=-1
+> >> <4>RPC:       rpcrdma_ep_connect: rdma_create_qp failed -1
+> >> <4>RPC:   355 __rpc_wake_up_task (now 4296956756)
+> >> <4>RPC:   355 disabling timer
+> >> <4>RPC:   355 removed from queue ffff880454578258 "xprt_pending"
+> >> <4>RPC:       __rpc_wake_up_task done
+> >> <4>RPC:       xprt_rdma_connect_worker: exit
+> >> <4>RPC:   355 sync task resuming
+> >> <4>RPC:   355 xprt_connect_status: error 1 connecting to server
+> 192.168.1.1
+> >
+> > xprtrdma's connect worker is returning "1" instead of a negative errno.
+> > That's the bug that triggers this chain of events.
+> 
+> rdma_create_qp() has returned -EPERM. There's very little xprtrdma can do
+> if the provider won't even create a QP. That seems like a rare and fatal
+> problem.
+> 
+> For the moment, I'm inclined to think that a panic is correct behavior, since
+> there are outstanding registered memory regions that cannot be cleaned up
+> without a QP (see below).
+Well, I think the system should still remain alive. This will definatly cause a memory leak. But QP create failure does not mean system should also crash.
+I think for the time being it is worth to put Null pointer checks to prevent system from crash.
 
-RPC/RDMA requests and replies are built in these buffers. However,
-if an RPC/RDMA request is expected to be larger than 1024, a buffer
-has to be allocated and registered for that RPC, and deregistered
-and released when the RPC is complete. This is known has a
-"hardway allocation."
+> 
+> 
+> > RPC tasks waiting for the reconnect are awoken. xprt_connect_status()
+> > doesn't recognize a tk_status of "1", so it turns it into -EIO, and
+> > kills each waiting RPC task.
+> 
+> >> <4>RPC:       wake_up_next(ffff880454578190 "xprt_sending")
+> >> <4>RPC:   355 call_connect_status (status -5)
+> >> <4>RPC:   355 return 0, status -5
+> >> <4>RPC:   355 release task
+> >> <4>RPC:       wake_up_next(ffff880454578190 "xprt_sending")
+> >> <4>RPC:       xprt_rdma_free: called on 0x(null)
+> >
+> > And as part of exiting, the RPC task has to free its buffer.
+> >
+> > Not exactly sure why req->rl_nchunks is not zero for an NFSv4 GETATTR.
+> > This is why rpcrdma_deregister_external() is invoked here.
+> >
+> > Eventually this gets around to attempting to post a LOCAL_INV WR with
+> > ->qp set to NULL, and the panic below occurs.
+> 
+> This is a somewhat different problem.
+> 
+> Not only do we need to have a good ->qp here, but it has to be connected
+> and in the ready-to-send state before LOCAL_INV work requests can be
+> posted.
+> 
+> The implication of this is that if a server disconnects (server crash or network
+> partition), the client is stuck waiting for the server to come back before it can
+> deregister memory and retire outstanding RPC requests.
+This is a real problem to solve. In the existing state of xprtrdma code. Even a Server reboot will cause
+Client to crash.
+> 
+> This is bad for ^C or soft timeouts or umount ... when the server is
+> unavailable.
+> 
+> So I feel we need better clean-up when the client cannot reconnect.
+Unreg old frmrs with the help of new QP? Until the new QP is created with same PD and FRMR is bound to PD and not to QP.
+> Probably deregistering RPC chunk MR's before finally tearing down the old
+> QP is what is necessary.
 
-Since the introduction of NFSv4, the size of RPC requests has become
-larger, and hardway allocations are thus more frequent. Hardway
-allocations are significant overhead, and they waste the existing
-RPC buffers pre-allocated by rpcrdma_buffer_create().
+We need a scheme that handles Memory registrations separately from connection establishment and do book-keeping of which region is Registered and which one is not.
+Once the new connection is back. Either start using old mem-regions as it is, or invalidate old and re-register on the new QP.
+What is the existing scheme xprtrdma is following? Is it the same?
 
-We'd like fewer hardway allocations.
-
-Increasing the size of the pre-registered buffers is the most direct
-way to do this. However, a blanket increase of the inline thresholds
-has interoperability consequences.
-
-On my 64-bit system, rpcrdma_buffer_create() requests roughly 7000
-bytes for each RPC request buffer, using kmalloc(). This wastes
-nearly 1200 bytes because kmalloc() already returns an 8192-byte
-piece of memory for a 7000-byte allocation request, though the extra
-space remains unused.
-
-So let's round up the size of the pre-allocated buffers, and make
-use of the unused space in the kmalloc'd memory.
-
-This change reduces the amount of hardway allocated memory for an
-NFSv4 general connectathon run from 1322092 to 9472 bytes (99%).
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-
- net/sunrpc/xprtrdma/verbs.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 35f5ab6..9b038e1 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -50,6 +50,7 @@
- #include <linux/interrupt.h>
- #include <linux/pci.h>	/* for Tavor hack below */
- #include <linux/slab.h>
-+#include <asm/bitops.h>
- 
- #include "xprt_rdma.h"
- 
-@@ -976,7 +977,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 	struct rpcrdma_ia *ia, struct rpcrdma_create_data_internal *cdata)
- {
- 	char *p;
--	size_t len;
-+	size_t len, rlen, wlen;
- 	int i, rc;
- 	struct rpcrdma_mw *r;
- 
-@@ -1090,16 +1091,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 	 * Allocate/init the request/reply buffers. Doing this
- 	 * using kmalloc for now -- one for each buf.
- 	 */
-+	wlen = 1 << fls(cdata->inline_wsize + sizeof(struct rpcrdma_req));
-+	rlen = 1 << fls(cdata->inline_rsize + sizeof(struct rpcrdma_rep));
-+	dprintk("RPC:       %s: wlen = %zu, rlen = %zu\n",
-+		__func__, wlen, rlen);
-+
- 	for (i = 0; i < buf->rb_max_requests; i++) {
- 		struct rpcrdma_req *req;
- 		struct rpcrdma_rep *rep;
- 
--		len = cdata->inline_wsize + sizeof(struct rpcrdma_req);
--		/* RPC layer requests *double* size + 1K RPC_SLACK_SPACE! */
--		/* Typical ~2400b, so rounding up saves work later */
--		if (len < 4096)
--			len = 4096;
--		req = kmalloc(len, GFP_KERNEL);
-+		req = kmalloc(wlen, GFP_KERNEL);
- 		if (req == NULL) {
- 			dprintk("RPC:       %s: request buffer %d alloc"
- 				" failed\n", __func__, i);
-@@ -1111,16 +1112,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 		buf->rb_send_bufs[i]->rl_buffer = buf;
- 
- 		rc = rpcrdma_register_internal(ia, req->rl_base,
--				len - offsetof(struct rpcrdma_req, rl_base),
-+				wlen - offsetof(struct rpcrdma_req, rl_base),
- 				&buf->rb_send_bufs[i]->rl_handle,
- 				&buf->rb_send_bufs[i]->rl_iov);
- 		if (rc)
- 			goto out;
- 
--		buf->rb_send_bufs[i]->rl_size = len-sizeof(struct rpcrdma_req);
-+		buf->rb_send_bufs[i]->rl_size = wlen -
-+						sizeof(struct rpcrdma_req);
- 
--		len = cdata->inline_rsize + sizeof(struct rpcrdma_rep);
--		rep = kmalloc(len, GFP_KERNEL);
-+		rep = kmalloc(rlen, GFP_KERNEL);
- 		if (rep == NULL) {
- 			dprintk("RPC:       %s: reply buffer %d alloc failed\n",
- 				__func__, i);
-@@ -1132,7 +1133,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 		buf->rb_recv_bufs[i]->rr_buffer = buf;
- 
- 		rc = rpcrdma_register_internal(ia, rep->rr_base,
--				len - offsetof(struct rpcrdma_rep, rr_base),
-+				rlen - offsetof(struct rpcrdma_rep, rr_base),
- 				&buf->rb_recv_bufs[i]->rr_handle,
- 				&buf->rb_recv_bufs[i]->rr_iov);
- 		if (rc)
+I think it is possible to create FRMR on qp->qp_num = x while invalidate on qp->qp_num = y until qpx.pd == qpy.pd
+> 
+> I'll play around with this idea.
+> 
+> 
+> --
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+> 
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
