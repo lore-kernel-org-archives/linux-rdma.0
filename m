@@ -1,160 +1,109 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
-Date: Mon, 14 Apr 2014 20:39:58 -0400
-Message-ID: <C689AB91-46F6-4E96-A673-0DE76FE54CC4@oracle.com>
-References: <014738b6-698e-4ea1-82f9-287378bfec19@CMEXHTCAS2.ad.emulex.com> <D7AB2150-5F25-4BA2-80D9-94890AD11F8F@primarydata.com> <F1C70AD6-BDD4-4534-8DC4-61D2767581D9@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FDEAA43@CMEXMB1.ad.emulex.com> <E66D006A-0D04-4602-8BF5-6834CACD2E24@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FDEB3B4@CMEXMB1.ad.emulex.com> <BD7B05C0-4733-4DD1-83F3-B30B6B0EE48C@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FDEB3DF@CMEXMB1.ad.emulex.com> <56C87770-7940-4006-948C-FEF3C0EC4ACC@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FDEBD66@CMEXMB1.ad.emulex.com> <5710A71F-C4D5-408B-9B41-07F21B5853F0@oracle.com> <6837A427-B677-4CC7-A022-4FB9E52A3FC6@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FDED915@CMEXMB1.ad.emulex.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH]  libibmad/src/dump.c : Set the vlaue of
+ LinkWidthActive to undefined(width) when the port is down
+Date: Tue, 15 Apr 2014 09:43:16 -0700
+Message-ID: <20140415094316.f16055aaa70c239bd8fe7159@intel.com>
+References: <0a2301cf41e2$3ebde380$bc39aa80$@asaltech.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FDED915-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <0a2301cf41e2$3ebde380$bc39aa80$@asaltech.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+To: Ammar Haj Hamad <ahamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rafiw-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Ammar,
 
-On Apr 14, 2014, at 6:46 PM, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+This patch does not apply cleanly.
 
-> Hi Chuck
+09:41:21 > git am ../\[PATCH\]__libibmad_src_dump.c___Set_the_vlaue_of__LinkWidthActive_to_undefined\(width\)_when_the_port_is_down.eml 
+Applying: libibmad/src/dump.c : Set the vlaue of LinkWidthActive to undefined(width) when the port is down
+fatal: patch fragment without header at line 18: @@ -171,6 +171,9 @@ void mad_dump_linkwidth(char *buf, int bufsz, void *val,
+Patch failed at 0001 libibmad/src/dump.c : Set the vlaue of LinkWidthActive to undefined(width) when the port is down
+
+
+Also I don't think it showed up on linux-rdma.
+
+Could you make sure to send as plain text.  That could be why linux-rdma dropped it and I missed it.
+
+Thanks,
+Ira
+
+
+On Mon, 17 Mar 2014 15:10:10 +0200
+Ammar Haj Hamad <ahamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org> wrote:
+
+> This patch is to set the vlaue of LinkWidthActive to undefined({width}) when
+> the port is down
 > 
->> -----Original Message-----
->> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
->> Sent: Tuesday, April 15, 2014 2:24 AM
->> To: Devesh Sharma
->> Cc: Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Trond Myklebust
->> Subject: Re: [PATCH V1] NFS-RDMA: fix qp pointer validation checks
->> 
->> Hi Devesh-
->> 
->> 
->> On Apr 13, 2014, at 12:01 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> 
->>> 
->>> On Apr 11, 2014, at 7:51 PM, Devesh Sharma
->> <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> wrote:
->>> 
->>>> Hi  Chuck,
->>>> Yes that is the case, Following is the trace I got.
->>>> 
->>>> <4>RPC:   355 setting alarm for 60000 ms
->>>> <4>RPC:   355 sync task going to sleep
->>>> <4>RPC:       xprt_rdma_connect_worker: reconnect
->>>> <4>RPC:       rpcrdma_ep_disconnect: rdma_disconnect -1
->>>> <4>RPC:       rpcrdma_ep_connect: rpcrdma_ep_disconnect status -1
->>>> <3>ocrdma_mbx_create_qp(0) rq_err
->>>> <3>ocrdma_mbx_create_qp(0) sq_err
->>>> <3>ocrdma_create_qp(0) error=-1
->>>> <4>RPC:       rpcrdma_ep_connect: rdma_create_qp failed -1
->>>> <4>RPC:   355 __rpc_wake_up_task (now 4296956756)
->>>> <4>RPC:   355 disabling timer
->>>> <4>RPC:   355 removed from queue ffff880454578258 "xprt_pending"
->>>> <4>RPC:       __rpc_wake_up_task done
->>>> <4>RPC:       xprt_rdma_connect_worker: exit
->>>> <4>RPC:   355 sync task resuming
->>>> <4>RPC:   355 xprt_connect_status: error 1 connecting to server
->> 192.168.1.1
->>> 
->>> xprtrdma's connect worker is returning "1" instead of a negative errno.
->>> That's the bug that triggers this chain of events.
->> 
->> rdma_create_qp() has returned -EPERM. There's very little xprtrdma can do
->> if the provider won't even create a QP. That seems like a rare and fatal
->> problem.
->> 
->> For the moment, I'm inclined to think that a panic is correct behavior, since
->> there are outstanding registered memory regions that cannot be cleaned up
->> without a QP (see below).
-> Well, I think the system should still remain alive.
-
-Sure, in the long run. I'm not suggesting we leave it this way.
-
-> This will definatly cause a memory leak. But QP create failure does not mean system should also crash.
-
-It's more than leaked memory.  A permanent QP creation failure can
-leave pages in the page cache registered and pinned, as I understand
-it.
-
-> I think for the time being it is worth to put Null pointer checks to prevent system from crash.
-
-Common practice in the Linux kernel is to avoid unnecessary NULL
-checks.  Work-around fixes are typically rejected, and not with a
-happy face either.
-
-Once the connection tear-down code is fixed, it should be clear where
-NULL checks need to go.
-
->> 
->>> RPC tasks waiting for the reconnect are awoken. xprt_connect_status()
->>> doesn't recognize a tk_status of "1", so it turns it into -EIO, and
->>> kills each waiting RPC task.
->> 
->>>> <4>RPC:       wake_up_next(ffff880454578190 "xprt_sending")
->>>> <4>RPC:   355 call_connect_status (status -5)
->>>> <4>RPC:   355 return 0, status -5
->>>> <4>RPC:   355 release task
->>>> <4>RPC:       wake_up_next(ffff880454578190 "xprt_sending")
->>>> <4>RPC:       xprt_rdma_free: called on 0x(null)
->>> 
->>> And as part of exiting, the RPC task has to free its buffer.
->>> 
->>> Not exactly sure why req->rl_nchunks is not zero for an NFSv4 GETATTR.
->>> This is why rpcrdma_deregister_external() is invoked here.
->>> 
->>> Eventually this gets around to attempting to post a LOCAL_INV WR with
->>> ->qp set to NULL, and the panic below occurs.
->> 
->> This is a somewhat different problem.
->> 
->> Not only do we need to have a good ->qp here, but it has to be connected
->> and in the ready-to-send state before LOCAL_INV work requests can be
->> posted.
->> 
->> The implication of this is that if a server disconnects (server crash or network
->> partition), the client is stuck waiting for the server to come back before it can
->> deregister memory and retire outstanding RPC requests.
-> This is a real problem to solve. In the existing state of xprtrdma code. Even a Server reboot will cause
-> Client to crash.
-
-I don't see how that can happen if the HCA/provider manages to create
-a fresh QP successfully and then rdma_connect() succeeds.
-
-A soft timeout or a ^C while the server is rebooting might be a problem.
-
->> 
->> This is bad for ^C or soft timeouts or umount ... when the server is
->> unavailable.
->> 
->> So I feel we need better clean-up when the client cannot reconnect.
-> Unreg old frmrs with the help of new QP? Until the new QP is created with same PD and FRMR is bound to PD and not to QP.
->> Probably deregistering RPC chunk MR's before finally tearing down the old
->> QP is what is necessary.
+>  
 > 
-> We need a scheme that handles Memory registrations separately from connection establishment and do book-keeping of which region is Registered and which one is not.
-> Once the new connection is back. Either start using old mem-regions as it is, or invalidate old and re-register on the new QP.
-> What is the existing scheme xprtrdma is following? Is it the same?
+> Signed-off-by: Ammar Haj Hamad <ahamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+> 
+> ---
+> 
+> src/dump.c |    3 +++
+> 
+> 1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+>  
+> 
+> diff --git a/src/dump.c b/src/dump.c
+> 
+> index f77d739..4bc8153 100644
+> 
+> --- a/src/dump.c
+> 
+> +++ b/src/dump.c
+> 
+> @@ -171,6 +171,9 @@ void mad_dump_linkwidth(char *buf, int bufsz, void *val,
+> int valsz)
+> 
+>                int width = *(int *)val;
+> 
+>                 switch (width) {
+> 
+> +             case 0: 
+> 
+> +                             snprintf(buf , bufsz , "undefined (%d)",
+> width);
+> 
+> +                             break;
+> 
+>                case 1:
+> 
+>                                snprintf(buf, bufsz, "1X");
+> 
+>                                break;
+> 
+> -- 
+> 
+> 1.7.1
+> 
+>  
+> 
+>  
+> 
+>  
+> 
+>  
+> 
+>   _____  
+> 
+> Ammar Omar Haj Hamad |    Software Engineer           |   ASAL technologies
+> - Mellanox
+> 
+> Mobile : +970599751673  |    ahamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org   | Skype :
+> ammar.hajhamad.asal
+> 
+>  
+> 
 
-This is what is going on now.  Clearly, when managing its own memory
-resources, the client should never depend on the server ever coming
-back.
-
-The proposal is to deregister _before_ the old QP is torn down, using
-ib_dereg_mr() in the connect worker process.  All RPC requests on that
-connection should be sleeping waiting for the reconnect to complete.
-
-If chunks are created and marshaled during xprt_transmit(), the waiting
-RPC requests should simply re-register when they are ready to be sent
-again.
-
-> I think it is possible to create FRMR on qp->qp_num = x while invalidate on qp->qp_num = y until qpx.pd == qpy.pd
 
 -- 
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
-
+Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
