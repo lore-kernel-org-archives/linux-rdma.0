@@ -1,168 +1,58 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] nfs-rdma: Fix for FMR leaks
-Date: Tue, 15 Apr 2014 16:36:33 -0400
-Message-ID: <2649FF57-84A2-4848-BEAD-DCA7129E90D3@oracle.com>
-References: <20140415203434.5492.31538.stgit@bilbo>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140415203434.5492.31538.stgit@bilbo>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Allen Andrews <allen.andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: isabelle <contact_claude-uSTK/MBzOD0b1SvskN2V4Q@public.gmane.org>
+Subject: spende /Donation
+Date: Tue, 15 Apr 2014 21:47:38 +0200
+Message-ID: <yx4Sef42JyeoopbQKx5pAipXLBt1prSNuXPiRcWu1Nis__29778.2851303511$1397597321$gmane$org@isabelle.de>
+Reply-To: isabelle.claude654-QFKgK+z4sOrR7s880joybQ@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-On Apr 15, 2014, at 4:34 PM, Allen Andrews <allen.andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-
-> Two memory region leaks were found during testing:
-> 
-> 1. rpcrdma_buffer_create: While allocating RPCRDMA_FRMR's
-> ib_alloc_fast_reg_mr is called and then ib_alloc_fast_reg_page_list is
-> called.  If ib_alloc_fast_reg_page_list returns an error it bails out of
-> the routine dropping the last ib_alloc_fast_reg_mr frmr region creating a
-> memory leak.  Added code to dereg the last frmr if
-> ib_alloc_fast_reg_page_list fails.
-> 
-> 2. rpcrdma_buffer_destroy: While cleaning up, the routine will only free
-> the MR's on the rb_mws list if there are rb_send_bufs present.  However, in
-> rpcrdma_buffer_create while the rb_mws list is being built if one of the MR
-> allocation requests fail after some MR's have been allocated on the rb_mws
-> list the routine never gets to create any rb_send_bufs but instead jumps to
-> the rpcrdma_buffer_destroy routine which will never free the MR's on rb_mws
-> list because the rb_send_bufs were never created.   This leaks all the MR's
-> on the rb_mws list that were created prior to one of the MR allocations
-> failing.
-> 
-> Issue(2) was seen during testing. Our adapter had a finite number of MR's
-> available and we created enough connections to where we saw an MR
-> allocation failure on our Nth NFS connection request. After the kernel
-> cleaned up the resources it had allocated for the Nth connection we noticed
-> that FMR's had been leaked due to the coding error described above.
-> 
-> Issue(1) was seen during a code review while debugging issue(2).
-> 
-> Signed-off-by: Allen Andrews <allen.andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-
-Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> ---
-> 
-> net/sunrpc/xprtrdma/verbs.c |   73 ++++++++++++++++++++++---------------------
-> 1 files changed, 38 insertions(+), 35 deletions(-)
-> 
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 9372656..1683e05 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -1058,6 +1058,8 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
-> 				dprintk("RPC:       %s: "
-> 					"ib_alloc_fast_reg_page_list "
-> 					"failed %i\n", __func__, rc);
-> +
-> +				ib_dereg_mr(r->r.frmr.fr_mr);
-> 				goto out;
-> 			}
-> 			list_add(&r->mw_list, &buf->rb_mws);
-> @@ -1194,41 +1196,6 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
-> 			kfree(buf->rb_recv_bufs[i]);
-> 		}
-> 		if (buf->rb_send_bufs && buf->rb_send_bufs[i]) {
-> -			while (!list_empty(&buf->rb_mws)) {
-> -				r = list_entry(buf->rb_mws.next,
-> -					struct rpcrdma_mw, mw_list);
-> -				list_del(&r->mw_list);
-> -				switch (ia->ri_memreg_strategy) {
-> -				case RPCRDMA_FRMR:
-> -					rc = ib_dereg_mr(r->r.frmr.fr_mr);
-> -					if (rc)
-> -						dprintk("RPC:       %s:"
-> -							" ib_dereg_mr"
-> -							" failed %i\n",
-> -							__func__, rc);
-> -					ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
-> -					break;
-> -				case RPCRDMA_MTHCAFMR:
-> -					rc = ib_dealloc_fmr(r->r.fmr);
-> -					if (rc)
-> -						dprintk("RPC:       %s:"
-> -							" ib_dealloc_fmr"
-> -							" failed %i\n",
-> -							__func__, rc);
-> -					break;
-> -				case RPCRDMA_MEMWINDOWS_ASYNC:
-> -				case RPCRDMA_MEMWINDOWS:
-> -					rc = ib_dealloc_mw(r->r.mw);
-> -					if (rc)
-> -						dprintk("RPC:       %s:"
-> -							" ib_dealloc_mw"
-> -							" failed %i\n",
-> -							__func__, rc);
-> -					break;
-> -				default:
-> -					break;
-> -				}
-> -			}
-> 			rpcrdma_deregister_internal(ia,
-> 					buf->rb_send_bufs[i]->rl_handle,
-> 					&buf->rb_send_bufs[i]->rl_iov);
-> @@ -1236,6 +1203,42 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
-> 		}
-> 	}
-> 
-> +	while (!list_empty(&buf->rb_mws)) {
-> +		r = list_entry(buf->rb_mws.next,
-> +			struct rpcrdma_mw, mw_list);
-> +		list_del(&r->mw_list);
-> +		switch (ia->ri_memreg_strategy) {
-> +		case RPCRDMA_FRMR:
-> +			rc = ib_dereg_mr(r->r.frmr.fr_mr);
-> +			if (rc)
-> +				dprintk("RPC:       %s:"
-> +					" ib_dereg_mr"
-> +					" failed %i\n",
-> +					__func__, rc);
-> +			ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
-> +			break;
-> +		case RPCRDMA_MTHCAFMR:
-> +			rc = ib_dealloc_fmr(r->r.fmr);
-> +			if (rc)
-> +				dprintk("RPC:       %s:"
-> +					" ib_dealloc_fmr"
-> +					" failed %i\n",
-> +					__func__, rc);
-> +			break;
-> +		case RPCRDMA_MEMWINDOWS_ASYNC:
-> +		case RPCRDMA_MEMWINDOWS:
-> +			rc = ib_dealloc_mw(r->r.mw);
-> +			if (rc)
-> +				dprintk("RPC:       %s:"
-> +					" ib_dealloc_mw"
-> +					" failed %i\n",
-> +					__func__, rc);
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> 	kfree(buf->rb_pool);
-> }
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hallo
+Wenn ich diese Nachricht zu senden wollte, ist dies nicht einfach Zufal=
+l. Dies ist, weil Ihre e-Mail vom elektronischen Roboter gesichert mein=
+e WX.7AR BW ausgew=E4hlt wurde.
+Zun=E4chst m=F6chte ich mich f=FCr dieses Eindringen in Ihr Leben zu en=
+tschuldigen, obwohl ich zugeben, dass es mir sehr wichtig. Ich bin Isab=
+elle Vasudev. Ich leide an Krebs im Hals seit nun mehr als 3 Jahre und =
+eine halbe und es leider, mein Arzt hat gerade informiert mich, dass ic=
+h bin voller unheilbar und, dass meine Tage, wegen meinen etwas gez=E4h=
+lt sind abgebaut Zustand. Ich bin eine Witwe und ich habe keine Kind, d=
+as ich beginne zu bedauern.
+In der Tat ist der Grund, warum ich Sie kontaktieren bin, m=F6chte ich =
+einen Teil von meinem Grundst=FCck zu spenden, weil ich niemand, wer di=
+e Erben konnte. Ich habe fast mein ganzes Zeug, darunter ein Unternehme=
+n der Export von Holz, Gummi und Stahl-Industrie in Afrika, wo ich wohn=
+e nun mehr 10 Jahren, verkauft. Ein gro=DFer Teil der Gelder gesammelt =
+wurde mit unterschiedlichen Verb=E4nden humanit=E4ren Charakter =FCbera=
+ll in der Welt, aber besonders hier in Afrika bezahlt.
+Im Hinblick auf den Rest der Summe genau in H=F6he von 750.000, 00euros=
+ (sieben hundert und f=FCnfzig tausend Euro) auf eine gesperrte Mitarbe=
+iter-Account, meine letzte w=FCnschen w=FCrde Sie es spenden, so dass S=
+ie in Ihrer Branche und vor allem den humanit=E4ren investieren k=F6nne=
+n. Ich bin ganz bewusst was ich zu tun beabsichtigen, und ich denke, tr=
+otz der Tatsache, die wir nicht wissen, werdet ihr diese Summe gut nutz=
+en. Ich bitte Sie, bitte dieses Erbe zu akzeptieren, ohne jedoch Fragen=
+ Sie alles, was in zur=FCckgeben wenn es nicht immer denken, gutes zu t=
+un, um dich herum, was ich nicht getan habe, in meiner Existenz.
+Das hei=DFt, wird auf einer verantwortlichen Person und besonders gutem=
+ Glauben fallen zu lassen beruhigt, ich m=F6chte bitten, dass Sie bitte=
+ mich bei den meisten schnell kontaktieren, um weitere Erkl=E4rung =FCb=
+er die Gr=FCnde f=FCr meine Geste und den Verlauf der Dinge zu geben. B=
+itte kontaktieren Sie mich so bald wie m=F6glich, wenn Sie mein Angebot=
+ akzeptieren.
+Gott m=F6ge mit dir sein!
+Ich fordere Sie auf, mich =FCber meine pers=F6nliche e-Mail-Adresse zu =
+kontaktieren:
+Isabelle.claude654-QFKgK+z4sOrR7s880joybQ@public.gmane.org
+Der Frieden und Barmherzigkeit Gottes m=F6ge mit dir sein.
+Mrs Isabelle
 
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
