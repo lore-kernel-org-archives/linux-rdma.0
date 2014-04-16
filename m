@@ -1,77 +1,47 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 7/8] xprtrdma: Split the completion queue
-Date: Wed, 16 Apr 2014 14:21:33 -0400
-Message-ID: <FC61F219-ACA2-4CE8-BF02-1B8EE2464639@oracle.com>
-References: <20140414220041.20646.63991.stgit@manet.1015granger.net> <20140414222323.20646.66946.stgit@manet.1015granger.net> <534E7C1C.5070407@dev.mellanox.co.il> <534E8608.8030801@opengridcomputing.com> <E9B601B5-1984-40D8-914A-DDD1380E8183@oracle.com> <534EA06A.7090200@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] xprtrdma: Set LOCAL_WRITE for memory regions with REMOTE_WRITE
+Date: Wed, 16 Apr 2014 13:35:38 -0500
+Message-ID: <20140416183538.23742.54560.stgit@build.ogc.int>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <534EA06A.7090200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The commit below enforces the requirement that MRs with REMOTE_WRITE
+must also have LOCAL_WRITE:
 
-On Apr 16, 2014, at 11:23 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> =
-wrote:
+commit 1c636f801615bdfc9b1d46904e8258c7a025670b
+Author: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Date:   Thu Oct 31 15:26:32 2013 +0200
 
-> On 4/16/2014 6:08 PM, Chuck Lever wrote:
->> Hi Sagi-
->>=20
->> Thanks for the review! In-line replies below.
-> <SNIP>
->>=20
->>>> 2. If I understood correctly, I see that the CQs are loop-polled i=
-n an interrupt context.
->>>>    This may become problematic in stress workload where the CQ sim=
-ply never drains (imagine
->>>>    some studios task keeps posting WRs as soon as IOs complete). T=
-his will cause CQ poll loop
->>>>    to go on forever. This situation may cause starvation of other =
-CQs that share the same EQ (CPU
->>>>    is hogged by the endless poller).
->>>>    This may be solved in 2 ways:
->>>>    - Use blk-iopoll to maintain fairness - the downside will be mo=
-ving from interrupt context to soft-irq (slower).
->>>>    - Set some configurable budget to CQ poller - after finishing t=
-he budget, notify the CQ and bail.
->>>>      If there is another CQ waiting to get in - it's only fair tha=
-t it will be given with a chance, else another interrupt
->>>>      on that CQ will immediately come.
->> I think it would be a reasonable change to pass an array of WC=92s t=
-o
->> ib_poll_cq() just once in rpcrdma_{send,recv}cq_poll(), instead of
->> looping. Would that be enough?
->>=20
->> To be clear, my patch merely cleans up the completion handler logic,
->> which already did loop-polling. Should we consider this improvement
->> for another patch?
->=20
-> Well, I wasn't suggesting passing an array, carrying it around (or on=
- the stack for that manner) might be annoying...
-> I was suggesting a budget (poll loops or a time bound - jiffy is usua=
-lly well behaved).
+   IB/core: Encorce MR access rights rules on kernel consumers
 
-Passing a small array to ip_poll_cq() is actually easy to do, and is
-exactly equivalent to a poll budget. The struct ib_wc should be taken
-off the stack anyway, IMO.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-The only other example I see in 3.15 right now is IPoIB, which seems
-to do exactly this.
+ net/sunrpc/xprtrdma/verbs.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-I=92m testing a patch now. I=92d like to start simple and make it more
-complex only if we need to.
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 9b038e1..65ce677 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1637,7 +1637,8 @@ static int
+ rpcrdma_register_default_external(struct rpcrdma_mr_seg *seg,
+ 			int *nsegs, int writing, struct rpcrdma_ia *ia)
+ {
+-	int mem_priv = (writing ? IB_ACCESS_REMOTE_WRITE :
++	int mem_priv = (writing ? IB_ACCESS_REMOTE_WRITE |
++				  IB_ACCESS_LOCAL_WRITE :
+ 				  IB_ACCESS_REMOTE_READ);
+ 	struct rpcrdma_mr_seg *seg1 = seg;
+ 	struct ib_phys_buf ipb[RPCRDMA_MAX_DATA_SEGS];
 
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
