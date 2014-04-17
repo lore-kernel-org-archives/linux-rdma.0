@@ -1,65 +1,22 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 7/8] xprtrdma: Split the completion queue
-Date: Thu, 17 Apr 2014 09:34:19 -0500
-Message-ID: <003001cf5a4a$1e3f5320$5abdf960$@opengridcomputing.com>
-References: <20140414220041.20646.63991.stgit@manet.1015granger.net> <20140414222323.20646.66946.stgit@manet.1015granger.net> <534E7C1C.5070407@dev.mellanox.co.il> <534E8608.8030801@opengridcomputing.com> <E9B601B5-1984-40D8-914A-DDD1380E8183@oracle.com> <534EA06A.7090200@dev.mellanox.co.il> <FC61F219-ACA2-4CE8-BF02-1B8EE2464639@oracle.com> <534F7D5F.1090908@dev.mellanox.co.il> <A7E4B101-BAF0-480C-95AE-26BB845EE2C3@oracle.com>
+Subject: RE: [PATCH] svcrdma: refactor marshalling logic
+Date: Thu, 17 Apr 2014 12:59:19 -0500
+Message-ID: <006601cf5a66$c1576d10$44064730$@opengridcomputing.com>
+References: <20140410183723.29724.18665.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A7E4B101-BAF0-480C-95AE-26BB845EE2C3-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20140410183723.29724.18665.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Content-Language: en-us
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: 'Linux NFS Mailing List' <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-/Yg/VP3ZvrM@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
-> Behalf Of Chuck Lever
-> Sent: Thursday, April 17, 2014 8:55 AM
-> To: Sagi Grimberg
-> Cc: Steve Wise; Linux NFS Mailing List; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 7/8] xprtrdma: Split the completion queue
-> 
-> 
-> On Apr 17, 2014, at 3:06 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
-> > On 4/16/2014 9:21 PM, Chuck Lever wrote:
-> >> Passing a small array to ip_poll_cq() is actually easy to do, and is
-> >> exactly equivalent to a poll budget. The struct ib_wc should be taken
-> >> off the stack anyway, IMO.
-> >>
-> >> The only other example I see in 3.15 right now is IPoIB, which seems
-> >> to do exactly this.
-> >>
-> >> I'm testing a patch now. I'd like to start simple and make it more
-> >> complex only if we need to.
-> >
-> > What array size are you using? Note that if you use a small array it may be an
-overkill since
-> > a lot more interrupts are invoked (-> more latency). I found that for a high workload
-a
-> budget
-> > of 256/512/1024 keeps fairness and doesn't increase latency.
-> 
-> My array size is currently 4. It's a macro that can be changed easily.
-> 
-> By a very large majority, my workloads see only one WC per completion
-> upcall. However, I'm using an older card with simple synthetic benchmarks.
-> 
-> I don't want to make the array large because struct ib_wc is at least
-> 64 bytes on my systems - each WC array would be enormous and hardly ever
-> used. But we can dial it in over time.
-
-You could use a small array combined with a loop and a budget count.  So the code would
-grab, say, 4 at a time, and keep looping polling up to 4 until the CQ is empty or the
-desired budget is reached...
-
-Stevo
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
