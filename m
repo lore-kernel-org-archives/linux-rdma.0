@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH librdmacm 3/4] rsocket: Modify when control messages are available
-Date: Fri, 18 Apr 2014 14:55:42 -0700
-Message-ID: <1397858143-22402-3-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH librdmacm 2/4] rsocket: Dedicate a fixed number of SQEs for control messages
+Date: Fri, 18 Apr 2014 14:55:41 -0700
+Message-ID: <1397858143-22402-2-git-send-email-sean.hefty@intel.com>
 References: <1397858143-22402-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1397858143-22402-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,189 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Rsockets currently tracks how many control messages (i.e.
-entries in the send queue) that are available using a
-single ctrl_avail counter.  Seems simple enough.
+The number of SQEs allocated for control messages is set
+to 1 of 2 constant values (either 4 or 2).  A default
+value is used unless the size of the SQ is below a certain
+threshold (16 entries).  This results in additional code
+complexity, and it is highly unlikely that the SQ would
+ever be allocated smaller than 16 entries.
 
-However, control messages currently require the use of
-inline data.  In order to support control messages that
-do not use inline data, we need to associate each
-control message with a specific data buffer.  This will
-become easier to manage if we modify how we track when
-control messages are available.
-
-We replace the single ctrl_avail counter with two new
-counters.  The new counters conceptually treat control
-messages as if each message had its own sequence number.
-The sequence number will then be able to correspond to
-a specific data buffer in a follow up patch.
-
-ctrl_seqno will be used to indicate the current control
-message being sent.  ctrl_max_seqno will track the
-highest control message that may be sent.
-
-A side effect of this change is that we will be able to
-see how many control messages have been sent.  This also
-separates the updating of the control count on the
-sending  side, versus the receiving side.
+Simplify the code to use a single constant value for the
+number of SQEs allocated for control messages.  This will
+also help in subsequent patches that will need to deal
+with HCAs that do not support inline data.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/rsocket.c |   46 ++++++++++++++++++++++++++++++----------------
- 1 files changed, 30 insertions(+), 16 deletions(-)
+ src/rsocket.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/src/rsocket.c b/src/rsocket.c
-index ea18ba7..77b3979 100644
+index 7c5083c..ea18ba7 100644
 --- a/src/rsocket.c
 +++ b/src/rsocket.c
-@@ -308,7 +308,8 @@ struct rsocket {
- 			uint64_t	  tcp_opts;
- 			unsigned int	  keepalive_time;
+@@ -59,6 +59,7 @@
+ #define RS_OLAP_START_SIZE 2048
+ #define RS_MAX_TRANSFER 65536
+ #define RS_SNDLOWAT 2048
++#define RS_QP_MIN_SIZE 16
+ #define RS_QP_MAX_SIZE 0xFFFE
+ #define RS_QP_CTRL_SIZE 4
+ #define RS_CONN_RETRIES 6
+@@ -642,15 +643,13 @@ static void rs_set_qp_size(struct rsocket *rs)
  
--			int		  ctrl_avail;
-+			unsigned int	  ctrl_seqno;
-+			unsigned int	  ctrl_max_seqno;
- 			uint16_t	  sseq_no;
- 			uint16_t	  sseq_comp;
- 			uint16_t	  rseq_no;
-@@ -563,6 +564,7 @@ static void rs_remove(struct rsocket *rs)
- 	pthread_mutex_unlock(&mut);
+ 	if (rs->sq_size > max_size)
+ 		rs->sq_size = max_size;
+-	else if (rs->sq_size < 4)
+-		rs->sq_size = 4;
+-	if (rs->sq_size <= (RS_QP_CTRL_SIZE << 2))
+-		rs->ctrl_avail = 2;
++	else if (rs->sq_size < RS_QP_MIN_SIZE)
++		rs->sq_size = RS_QP_MIN_SIZE;
+ 
+ 	if (rs->rq_size > max_size)
+ 		rs->rq_size = max_size;
+-	else if (rs->rq_size < 4)
+-		rs->rq_size = 4;
++	else if (rs->rq_size < RS_QP_MIN_SIZE)
++		rs->rq_size = RS_QP_MIN_SIZE;
  }
  
-+/* We only inherit from listening sockets */
- static struct rsocket *rs_alloc(struct rsocket *inherited_rs, int type)
- {
- 	struct rsocket *rs;
-@@ -585,7 +587,7 @@ static struct rsocket *rs_alloc(struct rsocket *inherited_rs, int type)
- 		rs->sq_size = inherited_rs->sq_size;
- 		rs->rq_size = inherited_rs->rq_size;
- 		if (type == SOCK_STREAM) {
--			rs->ctrl_avail = inherited_rs->ctrl_avail;
-+			rs->ctrl_max_seqno = inherited_rs->ctrl_max_seqno;
- 			rs->target_iomap_size = inherited_rs->target_iomap_size;
- 		}
- 	} else {
-@@ -595,7 +597,7 @@ static struct rsocket *rs_alloc(struct rsocket *inherited_rs, int type)
- 		rs->sq_size = def_sqsize;
- 		rs->rq_size = def_rqsize;
- 		if (type == SOCK_STREAM) {
--			rs->ctrl_avail = RS_QP_CTRL_SIZE;
-+			rs->ctrl_max_seqno = RS_QP_CTRL_SIZE;
- 			rs->target_iomap_size = def_iomap_size;
- 		}
- 	}
-@@ -723,7 +725,7 @@ static int rs_init_bufs(struct rsocket *rs)
- 
- 	rs->rbuf_free_offset = rs->rbuf_size >> 1;
- 	rs->rbuf_bytes_avail = rs->rbuf_size >> 1;
--	rs->sqe_avail = rs->sq_size - rs->ctrl_avail;
-+	rs->sqe_avail = rs->sq_size - rs->ctrl_max_seqno;
- 	rs->rseq_comp = rs->rq_size >> 1;
- 	return 0;
- }
-@@ -1786,11 +1788,11 @@ static void rs_send_credits(struct rsocket *rs)
- 	struct ibv_sge ibsge;
- 	struct rs_sge sge;
- 
--	rs->ctrl_avail--;
-+	rs->ctrl_seqno++;
- 	rs->rseq_comp = rs->rseq_no + (rs->rq_size >> 1);
- 	if (rs->rbuf_bytes_avail >= (rs->rbuf_size >> 1)) {
- 		if (rs->opts & RS_OPT_MSG_SEND)
--			rs->ctrl_avail--;
-+			rs->ctrl_seqno++;
- 
- 		if (!(rs->opts & RS_OPT_SWAP_SGL)) {
- 			sge.addr = (uintptr_t) &rs->rbuf[rs->rbuf_free_offset];
-@@ -1824,16 +1826,27 @@ static void rs_send_credits(struct rsocket *rs)
- 	}
- }
- 
-+static inline int rs_ctrl_avail(struct rsocket *rs)
-+{
-+	return rs->ctrl_seqno != rs->ctrl_max_seqno;
-+}
-+
-+/* Protocols that do not support RDMA write with immediate may require 2 msgs */
-+static inline int rs_2ctrl_avail(struct rsocket *rs)
-+{
-+	return (int)((rs->ctrl_seqno + 1) - rs->ctrl_max_seqno) < 0;
-+}
-+
- static int rs_give_credits(struct rsocket *rs)
- {
- 	if (!(rs->opts & RS_OPT_MSG_SEND)) {
- 		return ((rs->rbuf_bytes_avail >= (rs->rbuf_size >> 1)) ||
- 			((short) ((short) rs->rseq_no - (short) rs->rseq_comp) >= 0)) &&
--		       rs->ctrl_avail && (rs->state & rs_connected);
-+		       rs_ctrl_avail(rs) && (rs->state & rs_connected);
- 	} else {
- 		return ((rs->rbuf_bytes_avail >= (rs->rbuf_size >> 1)) ||
- 			((short) ((short) rs->rseq_no - (short) rs->rseq_comp) >= 0)) &&
--		       (rs->ctrl_avail > 1) && (rs->state & rs_connected);
-+		       rs_2ctrl_avail(rs) && (rs->state & rs_connected);
- 	}
- }
- 
-@@ -1895,10 +1908,10 @@ static int rs_poll_cq(struct rsocket *rs)
- 		} else {
- 			switch  (rs_msg_op(rs_wr_data(wc.wr_id))) {
- 			case RS_OP_SGL:
--				rs->ctrl_avail++;
-+				rs->ctrl_max_seqno++;
- 				break;
- 			case RS_OP_CTRL:
--				rs->ctrl_avail++;
-+				rs->ctrl_max_seqno++;
- 				if (rs_msg_data(rs_wr_data(wc.wr_id)) == RS_CTRL_DISCONNECT)
- 					rs->state = rs_disconnected;
- 				break;
-@@ -2237,7 +2250,7 @@ static int rs_conn_can_send(struct rsocket *rs)
- 
- static int rs_conn_can_send_ctrl(struct rsocket *rs)
- {
--	return rs->ctrl_avail || !(rs->state & rs_connected);
-+	return rs_ctrl_avail(rs) || !(rs->state & rs_connected);
- }
- 
- static int rs_have_rdata(struct rsocket *rs)
-@@ -2252,7 +2265,8 @@ static int rs_conn_have_rdata(struct rsocket *rs)
- 
- static int rs_conn_all_sends_done(struct rsocket *rs)
- {
--	return ((rs->sqe_avail + rs->ctrl_avail) == rs->sq_size) ||
-+	return ((((int) rs->ctrl_max_seqno) - ((int) rs->ctrl_seqno)) +
-+		rs->sqe_avail == rs->sq_size) ||
- 	       !(rs->state & rs_connected);
- }
- 
-@@ -3189,14 +3203,14 @@ int rshutdown(int socket, int how)
- 				goto out;
- 			ctrl = RS_CTRL_DISCONNECT;
- 		}
--		if (!rs->ctrl_avail) {
-+		if (!rs_ctrl_avail(rs)) {
- 			ret = rs_process_cq(rs, 0, rs_conn_can_send_ctrl);
- 			if (ret)
- 				goto out;
- 		}
- 
--		if ((rs->state & rs_connected) && rs->ctrl_avail) {
--			rs->ctrl_avail--;
-+		if ((rs->state & rs_connected) && rs_ctrl_avail(rs)) {
-+			rs->ctrl_seqno++;
- 			ret = rs_post_msg(rs, rs_msg_set(RS_OP_CTRL, ctrl));
- 		}
- 	}
-@@ -4158,7 +4172,7 @@ static void tcp_svc_process_sock(struct rs_svc *svc)
- static void tcp_svc_send_keepalive(struct rsocket *rs)
- {
- 	fastlock_acquire(&rs->cq_lock);
--	if ((rs->ctrl_avail > 1) && (rs->state & rs_connected))
-+	if (rs_2ctrl_avail(rs) && (rs->state & rs_connected))
- 		rs_send_credits(rs);
- 	fastlock_release(&rs->cq_lock);
- }	
+ static void ds_set_qp_size(struct rsocket *rs)
 -- 
 1.7.3
 
