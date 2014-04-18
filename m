@@ -1,71 +1,60 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri, 18 Apr 2014 11:40:32 -0700
-Message-ID: <1397846432-20495-1-git-send-email-roland@kernel.org>
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH librdmacm 1/4] rsocket: Check max inline data after creating QP
+Date: Fri, 18 Apr 2014 14:55:40 -0700
+Message-ID: <1397858143-22402-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Please pull from
+The ipath provider will ignore the max_inline_size
+specified as input into ibv_create_qp and instead
+return the size that it supports (which is 0) on
+output.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+Update the actual inline size returned from create QP,
+and check that it meets the minimum requirement for
+rsockets.
 
-----------------------------------------------------------------
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/rsocket.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-InfiniBand/RDMA updates for 3.15-rc2:
+diff --git a/src/rsocket.c b/src/rsocket.c
+index 30ea55d..7c5083c 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -860,6 +860,10 @@ static int rs_create_ep(struct rsocket *rs)
+ 	if (ret)
+ 		return ret;
+ 
++	rs->sq_inline = qp_attr.cap.max_inline_data;
++	if (rs->sq_inline < RS_MIN_INLINE)
++		return ERR(EINVAL);
++
+ 	for (i = 0; i < rs->rq_size; i++) {
+ 		ret = rs_post_recv(rs);
+ 		if (ret)
+@@ -1491,6 +1495,12 @@ static int ds_create_qp(struct rsocket *rs, union socket_addr *src_addr,
+ 	if (ret)
+ 		goto err;
+ 
++	rs->sq_inline = qp_attr.cap.max_inline_data;
++	if (rs->sq_inline < RS_MIN_INLINE) {
++		ret = ERR(ENOMEM);
++		goto err;
++	}
++
+ 	ret = ds_add_qp_dest(qp, src_addr, addrlen);
+ 	if (ret)
+ 		goto err;
+-- 
+1.7.3
 
- - Mostly cxgb4 fixes unblocked by the merge of some prerequisites via
-   the net tree.
-
- - Drop deprecated MSI-X API use.
-
- - A couple other miscellaneous things.
-
-----------------------------------------------------------------
-Alexander Gordeev (2):
-      IB/qib: Use pci_enable_msix_range() instead of pci_enable_msix()
-      IB/mthca: Use pci_enable_msix_exact() instead of pci_enable_msix()
-
-Eli Cohen (1):
-      IB/mlx5: Add block multicast loopback support
-
-Hariprasad Shenai (1):
-      RDMA/cxgb4: Use pr_warn_ratelimited
-
-Roland Dreier (1):
-      Merge branches 'cxgb4', 'misc', 'mlx5' and 'qib' into for-next
-
-Steve Wise (9):
-      RDMA/cxgb4: Use the BAR2/WC path for kernel QPs and T5 devices
-      RDMA/cxgb4: Endpoint timeout fixes
-      RDMA/cxgb4: rmb() after reading valid gen bit
-      RDMA/cxgb4: SQ flush fix
-      RDMA/cxgb4: Max fastreg depth depends on DSGL support
-      RDMA/cxgb4: Initialize reserved fields in a FW work request
-      RDMA/cxgb4: Add missing debug stats
-      RDMA/cxgb4: Use uninitialized_var()
-      RDMA/cxgb4: Fix over-dereference when terminating
-
- drivers/infiniband/hw/cxgb4/cm.c         | 89 ++++++++++++++++++++------------
- drivers/infiniband/hw/cxgb4/cq.c         | 24 ++++-----
- drivers/infiniband/hw/cxgb4/device.c     | 41 ++++++++++++---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h   |  2 +
- drivers/infiniband/hw/cxgb4/mem.c        |  6 ++-
- drivers/infiniband/hw/cxgb4/provider.c   |  2 +-
- drivers/infiniband/hw/cxgb4/qp.c         | 70 +++++++++++++++----------
- drivers/infiniband/hw/cxgb4/resource.c   | 10 ++--
- drivers/infiniband/hw/cxgb4/t4.h         | 72 ++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx5/main.c        |  2 +
- drivers/infiniband/hw/mlx5/qp.c          | 12 +++++
- drivers/infiniband/hw/mthca/mthca_main.c |  8 +--
- drivers/infiniband/hw/qib/qib_pcie.c     | 55 ++++++++++----------
- include/linux/mlx5/device.h              |  1 +
- include/linux/mlx5/qp.h                  |  1 +
- 15 files changed, 270 insertions(+), 125 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
