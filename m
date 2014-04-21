@@ -1,46 +1,72 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
-Date: Tue, 22 Apr 2014 00:10:55 +0300
-Message-ID: <CAJZOPZ+FwPc3OSVyvk0i4=gX-x0zf_+M8zL1_t9HWmEKi5397Q@mail.gmail.com>
-References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org>
-	<CAJZOPZJfdaZ7QzgffzY9Ps-1aUCU+q_dSrj4XfekyfxNa-k+hg@mail.gmail.com>
-	<alpine.DEB.2.10.1404211605390.29907@gentwo.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 00/17] NFS/RDMA patches for review
+Date: Mon, 21 Apr 2014 18:00:45 -0400
+Message-ID: <20140421214442.12569.8950.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.10.1404211605390.29907-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 22, 2014 at 12:06 AM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> On Mon, 21 Apr 2014, Or Gerlitz wrote:
->
->> > Currently, there's no way for user-space applications to specify
->> > the IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK QP creation flags
->> > defined by commit 47ee1b9 "IB/core: Add support for multicast loopback blocking".
->> > As a result, applications who send and recieve on the same QP over
->> > the same multicast group get all their packets bouncded back to them,
->> > which is bad..
->>
->> Hi Christoph, I do see your P&F (Pain and Frustration), however, this
->> patch was only meant to be bandaid (*) for the fact that whole ~six
->> years elapsed since a basically proper patch that does the task was
->> posted http://lists.openfabrics.org/pipermail/general/2008-July/053021.html
->> and we still don't have uverbs support for QP creation flags!!
->>
->> Roland, how you prefer to move on here? we can come up with quick
->> patch that just uses the reserved field of struct ib_uverbs_create_qp
->> and would allow to support upto 8 creation flags, this would not
->> require new uverbs command, OK?
->
-> Urgh. So we have all these flags and we cannot use them?
+After folks tried out RPCRDMA_REGISTER support as I requested in
+the cover letter of the last version of this series, existing
+problems were discovered already in the upstream kernel, starting
+with the problem addressed by Steve's LOCAL_WRITE patch from last
+week.
 
-Christoph, the support (kernel IB core API and HW drivers e.g mlx4 and
-now also mlx5) is there for **kernel** consumers (e.g IPoIB). and
-missing for **user-space** consumers whose calls are tunneled through
-uverbs. The uverbs piece is the missing one.
+Rather than address them, this series simply removes what is now an
+obsolete memory registration mode.  For some time, HCAs that do not
+support FRMR fall back on ALLPHYSICAL mode, leaving REGISTER to
+gather bit rot.
+
+In addition I added three patches that implement improvements to
+the new split completion handler, based on suggestions from Sagi
+Grimberg.
+
+Test and review the "nfs-rdma-client" branch:
+
+  git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Thanks!
+
+---
+
+Allen Andrews (1):
+      nfs-rdma: Fix for FMR leaks
+
+Chuck Lever (15):
+      xprtrdma: Reduce the number of hardway buffer allocations
+      xprtrdma: Limit work done by completion handler
+      xprtrmda: Reduce calls to ib_poll_cq() in completion handlers
+      xprtrmda: Reduce lock contention in completion handlers
+      xprtrdma: Split the completion queue
+      xprtrdma: Make rpcrdma_ep_destroy() return void
+      xprtrdma: Simplify rpcrdma_deregister_external() synopsis
+      xprtrdma: Add CONFIG setting that can disable ALLPHYSICAL
+      xprtrdma: mount reports "Invalid mount option" if memreg mode not supported
+      xprtrdma: Fall back to MTHCAFMR when FRMR is not supported
+      xprtrdma: Remove REGISTER memory registration mode
+      xprtrdma: Remove MEMWINDOWS registration modes
+      xprtrdma: Remove BOUNCEBUFFERS memory registration mode
+      xprtrdma: RPC/RDMA must invoke xprt_wake_pending_tasks() in process context
+      xprtrdma: Enable RDMA pad optimization by default
+
+Steve Wise (1):
+      xprtrdma: mind the device's max fast register page list depth
+
+
+ include/linux/sunrpc/xprtrdma.h |    2 
+ net/sunrpc/Kconfig              |   14 +
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   63 +---
+ net/sunrpc/xprtrdma/transport.c |   34 --
+ net/sunrpc/xprtrdma/verbs.c     |  694 +++++++++++++++------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   16 +
+ 6 files changed, 316 insertions(+), 507 deletions(-)
+
+-- 
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
