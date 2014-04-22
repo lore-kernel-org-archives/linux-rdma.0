@@ -1,92 +1,22 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: IB/cma: Make timeout dependent on the subnet timeout
-Date: Tue, 22 Apr 2014 15:16:37 +0200
-Message-ID: <53566BB5.5030203@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
+Date: Tue, 22 Apr 2014 08:48:25 -0500 (CDT)
+Message-ID: <alpine.DEB.2.10.1404220844430.4876@gentwo.org>
+References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <CAJZOPZJfdaZ7QzgffzY9Ps-1aUCU+q_dSrj4XfekyfxNa-k+hg@mail.gmail.com> <alpine.DEB.2.10.1404211605390.29907@gentwo.org> <CAJZOPZ+FwPc3OSVyvk0i4=gX-x0zf_+M8zL1_t9HWmEKi5397Q@mail.gmail.com>
+ <alpine.DEB.2.10.1404211926050.31858@gentwo.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.10.1404211926050.31858-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The default RDMA/CM timeout and retry values are too large for small IB
-networks and make the SRP initiator reconnect mechanism unnecessary slow.
-Hence make the CM timeout dependent on the subnet timeout in IB networks.
-
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/cma.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 199958d..95528e1 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -60,7 +60,6 @@ MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("Generic RDMA CM Agent");
- MODULE_LICENSE("Dual BSD/GPL");
- 
--#define CMA_CM_RESPONSE_TIMEOUT 20
- #define CMA_MAX_CM_RETRIES 15
- #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
- #define CMA_IBOE_PACKET_LIFETIME 18
-@@ -2728,6 +2727,15 @@ out:
- 	return ret;
- }
- 
-+static u8 cma_get_ib_subnet_timeout(struct rdma_cm_id *id)
-+{
-+	struct ib_port_attr attr;
-+	int ret;
-+
-+	ret = ib_query_port(id->device, id->port_num, &attr);
-+	return ret == 0 ? attr.subnet_timeout : 18;
-+}
-+
- static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
- 			      struct rdma_conn_param *conn_param)
- {
-@@ -2735,6 +2743,7 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
- 	struct ib_cm_id	*id;
- 	void *private_data;
- 	int offset, ret;
-+	u8 cm_response_timeout = cma_get_ib_subnet_timeout(&id_priv->id) + 2;
- 
- 	memset(&req, 0, sizeof req);
- 	offset = cma_user_data_offset(id_priv);
-@@ -2771,7 +2780,7 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
- 
- 	req.path = id_priv->id.route.path_rec;
- 	req.service_id = rdma_get_service_id(&id_priv->id, cma_dst_addr(id_priv));
--	req.timeout_ms = 1 << (CMA_CM_RESPONSE_TIMEOUT - 8);
-+	req.timeout_ms = 1 << max(cm_response_timeout - 8, 0);
- 	req.max_cm_retries = CMA_MAX_CM_RETRIES;
- 
- 	ret = ib_send_cm_sidr_req(id_priv->cm_id.ib, &req);
-@@ -2792,6 +2801,7 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	void *private_data;
- 	struct ib_cm_id	*id;
- 	int offset, ret;
-+	u8 cm_response_timeout = cma_get_ib_subnet_timeout(&id_priv->id) + 2;
- 
- 	memset(&req, 0, sizeof req);
- 	offset = cma_user_data_offset(id_priv);
-@@ -2839,8 +2849,8 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	req.flow_control = conn_param->flow_control;
- 	req.retry_count = min_t(u8, 7, conn_param->retry_count);
- 	req.rnr_retry_count = min_t(u8, 7, conn_param->rnr_retry_count);
--	req.remote_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
--	req.local_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
-+	req.remote_cm_response_timeout = cm_response_timeout;
-+	req.local_cm_response_timeout = cm_response_timeout;
- 	req.max_cm_retries = CMA_MAX_CM_RETRIES;
- 	req.srq = id_priv->srq ? 1 : 0;
- 
--- 
-1.8.4.5
+Note that I am pretty unhappy about Mellanox right now. 8 year old patches
+that have never been refreshed? If I submit patchsets then I will post
+these things regularly until they are accepted. You need to have a patch
+queue or a git tree with up to date patches that contains all the patches
+you intend to merge.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
