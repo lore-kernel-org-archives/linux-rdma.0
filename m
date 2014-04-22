@@ -1,33 +1,54 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH V2 10/17] xprtrdma: Add CONFIG setting that can disable
- ALLPHYSICAL
-Date: Mon, 21 Apr 2014 23:23:38 -0700
-Message-ID: <20140422062338.GA23311@infradead.org>
-References: <20140421214442.12569.8950.stgit@manet.1015granger.net>
- <20140421220214.12569.23157.stgit@manet.1015granger.net>
+From: shamir rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] librdmacm: Fix verbs leak due to reentrancy issue
+Date: Tue, 22 Apr 2014 14:22:06 +0300
+Message-ID: <20140422112202.GA7440@shamir-pc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140421220214.12569.23157.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 21, 2014 at 06:02:14PM -0400, Chuck Lever wrote:
-> ALLPHYSICAL is not a safe memory registration mode because it
-> permits NFS servers to write anywhere in a client's memory.  NFS
-> server bugs could result in client memory being overwritten.
-> 
-> This can be useful for embedded systems which do not support more
-> surgical RDMA memory registration and protection methods, or for
-> bring-up of new HCA hardware.
-> 
-> However, enterprise Linux distributions have expressed a desire to
-> disable it in production environments.
+Sean,
 
-It's just as unsafe in embedded devices.  I think it should go
+I was out of work so I tested the patch "librdmacm: lazy initialization
+for ib devices" today. The patch works fine for my test case. The only
+concern I have is that I think the patch might leak verbs context. I
+think that any call to ucma_init_device must be done with mutex locked.
+Please correct me if I am wrong.
+
+Thanks, Shamir
+
+
+Signed-off-by: shamir rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ src/cma.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/cma.c b/src/cma.c
+index 0dc229e..42769cf 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -416,10 +416,13 @@ static int ucma_get_device(struct cma_id_private *id_priv, uint64_t guid)
+ 
+ 	return ERR(ENODEV);
+ match:
+-	if ((ret = ucma_init_device(cma_dev)))
++	pthread_mutex_lock(&mut);
++
++	if ((ret = ucma_init_device(cma_dev))) {
++		pthread_mutex_unlock(&mut);
+ 		return ret;
++	}
+ 
+-	pthread_mutex_lock(&mut);
+ 	if (!cma_dev->refcnt++) {
+ 		cma_dev->pd = ibv_alloc_pd(cma_dev->verbs);
+ 		if (!cma_dev->pd) {
+-- 
+1.7.9.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
