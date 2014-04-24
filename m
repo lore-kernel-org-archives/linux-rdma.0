@@ -1,8 +1,8 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 3.15-rc3--to=roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org 2/3] iw_cxgb4: force T5
-	connections to use TAHOE cong control
-Date: Thu, 24 Apr 2014 14:30:56 -0500
-Message-ID: <20140424193056.27784.25347.stgit@build.ogc.int>
+Subject: [PATCH 3.15-rc3--to=roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org 3/3] iw_cxgb4: only allow
+	kernel db ringing for T4 devs
+Date: Thu, 24 Apr 2014 14:31:02 -0500
+Message-ID: <20140424193101.27784.74460.stgit@build.ogc.int>
 References: <20140424193051.27784.22311.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,64 +13,35 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is required to work around a T5 HW issue.
+The whole db drop avoidance stuff is for T4 only.  So we cannot allow
+that to be enabled for T5 devices.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c          |    8 ++++++++
- drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |   14 ++++++++++++++
- 2 files changed, 22 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/cxgb4/qp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index f9b04bc..1f863a9 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -587,6 +587,10 @@ static int send_connect(struct c4iw_ep *ep)
- 		opt2 |= SACK_EN(1);
- 	if (wscale && enable_tcp_window_scaling)
- 		opt2 |= WND_SCALE_EN(1);
-+	if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
-+		opt2 |= T5_OPT_2_VALID;
-+		opt2 |= V_CONG_CNTRL(CONG_ALG_TAHOE);
-+	}
- 	t4_set_arp_err_handler(skb, NULL, act_open_req_arp_failure);
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index f18ef34..086f62f 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1777,11 +1777,15 @@ int c4iw_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	/*
+ 	 * Use SQ_PSN and RQ_PSN to pass in IDX_INC values for
+ 	 * ringing the queue db when we're in DB_FULL mode.
++	 * Only allow this on T4 devices.
+ 	 */
+ 	attrs.sq_db_inc = attr->sq_psn;
+ 	attrs.rq_db_inc = attr->rq_psn;
+ 	mask |= (attr_mask & IB_QP_SQ_PSN) ? C4IW_QP_ATTR_SQ_DB : 0;
+ 	mask |= (attr_mask & IB_QP_RQ_PSN) ? C4IW_QP_ATTR_RQ_DB : 0;
++	if (is_t5(to_c4iw_qp(ibqp)->rhp->rdev.lldi.adapter_type) &&
++	    (mask & (C4IW_QP_ATTR_SQ_DB|C4IW_QP_ATTR_RQ_DB)))
++		return -EINVAL;
  
- 	if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
-@@ -2018,6 +2022,10 @@ static void accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
- 		if (tcph->ece && tcph->cwr)
- 			opt2 |= CCTRL_ECN(1);
- 	}
-+	if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
-+		opt2 |= T5_OPT_2_VALID;
-+		opt2 |= V_CONG_CNTRL(CONG_ALG_TAHOE);
-+	}
- 
- 	rpl = cplhdr(skb);
- 	INIT_TP_WR(rpl, ep->hwtid);
-diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-index dc193c2..6121ca0 100644
---- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-+++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-@@ -836,4 +836,18 @@ struct ulptx_idata {
- #define V_RX_DACK_CHANGE(x) ((x) << S_RX_DACK_CHANGE)
- #define F_RX_DACK_CHANGE    V_RX_DACK_CHANGE(1U)
- 
-+enum {                     /* TCP congestion control algorithms */
-+	CONG_ALG_RENO,
-+	CONG_ALG_TAHOE,
-+	CONG_ALG_NEWRENO,
-+	CONG_ALG_HIGHSPEED
-+};
-+
-+#define S_CONG_CNTRL    14
-+#define M_CONG_CNTRL    0x3
-+#define V_CONG_CNTRL(x) ((x) << S_CONG_CNTRL)
-+#define G_CONG_CNTRL(x) (((x) >> S_CONG_CNTRL) & M_CONG_CNTRL)
-+
-+#define T5_OPT_2_VALID       (1 << 31)
-+
- #endif /* _T4FW_RI_API_H_ */
+ 	return c4iw_modify_qp(rhp, qhp, mask, &attrs, 0);
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
