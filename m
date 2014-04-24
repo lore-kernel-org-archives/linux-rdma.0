@@ -1,220 +1,77 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH RESEND 3.15-rc3 1/3] iw_cxgb4: Fix endpoint mutex deadlocks
-Date: Thu, 24 Apr 2014 14:31:53 -0500
-Message-ID: <20140424193153.27837.76419.stgit@build.ogc.int>
+Subject: [PATCH RESEND 3.15-rc3 2/3] iw_cxgb4: force T5 connections to use
+	TAHOE cong control
+Date: Thu, 24 Apr 2014 14:31:59 -0500
+Message-ID: <20140424193158.27837.83201.stgit@build.ogc.int>
+References: <20140424193153.27837.76419.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140424193153.27837.76419.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In cases where the cm calls c4iw_modify_rc_qp() with the endpoint
-mutex held, they must be called with internal == 1.  rx_data() and
-process_mpa_reply() are not doing this.  This causes a deadlock because
-c4iw_modify_rc_qp() might call c4iw_ep_disconnect() in some !internal
-cases, and c4iw_ep_disconnect() acquires the endpoint mutex.  The design
-was intended to only do the disconnect for !internal calls.
-
-Change rx_data(), FPDU_MODE case, to call c4iw_modify_rc_qp() with
-internal == 1, and then disconnect only after releasing the mutex.
-
-Change process_mpa_reply() to call c4iw_modify_rc_qp(TERMINATE) with
-internal == 1 and set a new attr flag telling it to send a TERMINATE
-message.  Previously this was implied by !internal.
-
-Change process_mpa_reply() to return whether the caller should disconnect
-after releasing the endpoint mutex.  Now rx_data() will do the disconnect
-in the cases where process_mpa_reply() wants to disconnect after the
-TERMINATE is sent.
-
-Change c4iw_modify_rc_qp() RTS->TERM to only disconnect if !internal, and
-to send a TERMINATE message if attrs->send_term is 1.
-
-Change abort_connection() to not aquire the ep mutex for setting the state, and
-make all calls to abort_connection() do so with the mutex held.
+This is required to work around a T5 HW issue.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c       |   31 ++++++++++++++++++++-----------
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |    1 +
- drivers/infiniband/hw/cxgb4/qp.c       |    9 +++++----
- 3 files changed, 26 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c          |    8 ++++++++
+ drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |   14 ++++++++++++++
+ 2 files changed, 22 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 185452a..f9b04bc 100644
+index f9b04bc..1f863a9 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -996,7 +996,7 @@ static void close_complete_upcall(struct c4iw_ep *ep, int status)
- static int abort_connection(struct c4iw_ep *ep, struct sk_buff *skb, gfp_t gfp)
- {
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
--	state_set(&ep->com, ABORTING);
-+	__state_set(&ep->com, ABORTING);
- 	set_bit(ABORT_CONN, &ep->com.history);
- 	return send_abort(ep, skb, gfp);
- }
-@@ -1154,7 +1154,7 @@ static int update_rx_credits(struct c4iw_ep *ep, u32 credits)
- 	return credits;
- }
+@@ -587,6 +587,10 @@ static int send_connect(struct c4iw_ep *ep)
+ 		opt2 |= SACK_EN(1);
+ 	if (wscale && enable_tcp_window_scaling)
+ 		opt2 |= WND_SCALE_EN(1);
++	if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
++		opt2 |= T5_OPT_2_VALID;
++		opt2 |= V_CONG_CNTRL(CONG_ALG_TAHOE);
++	}
+ 	t4_set_arp_err_handler(skb, NULL, act_open_req_arp_failure);
  
--static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
-+static int process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- {
- 	struct mpa_message *mpa;
- 	struct mpa_v2_conn_params *mpa_v2_params;
-@@ -1164,6 +1164,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	struct c4iw_qp_attributes attrs;
- 	enum c4iw_qp_attr_mask mask;
- 	int err;
-+	int disconnect = 0;
- 
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 
-@@ -1173,7 +1174,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * will abort the connection.
- 	 */
- 	if (stop_ep_timer(ep))
--		return;
-+		return 0;
- 
- 	/*
- 	 * If we get more than the supported amount of private data
-@@ -1195,7 +1196,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * if we don't even have the mpa message, then bail.
- 	 */
- 	if (ep->mpa_pkt_len < sizeof(*mpa))
--		return;
-+		return 0;
- 	mpa = (struct mpa_message *) ep->mpa_pkt;
- 
- 	/* Validate MPA header. */
-@@ -1235,7 +1236,7 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 	 * We'll continue process when more data arrives.
- 	 */
- 	if (ep->mpa_pkt_len < (sizeof(*mpa) + plen))
--		return;
-+		return 0;
- 
- 	if (mpa->flags & MPA_REJECT) {
- 		err = -ECONNREFUSED;
-@@ -1337,9 +1338,11 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 		attrs.layer_etype = LAYER_MPA | DDP_LLP;
- 		attrs.ecode = MPA_NOMATCH_RTR;
- 		attrs.next_state = C4IW_QP_STATE_TERMINATE;
-+		attrs.send_term = 1;
- 		err = c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
--				C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
-+				C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
- 		err = -ENOMEM;
-+		disconnect = 1;
- 		goto out;
+ 	if (is_t4(ep->com.dev->rdev.lldi.adapter_type)) {
+@@ -2018,6 +2022,10 @@ static void accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+ 		if (tcph->ece && tcph->cwr)
+ 			opt2 |= CCTRL_ECN(1);
  	}
++	if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
++		opt2 |= T5_OPT_2_VALID;
++		opt2 |= V_CONG_CNTRL(CONG_ALG_TAHOE);
++	}
  
-@@ -1355,9 +1358,11 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
- 		attrs.layer_etype = LAYER_MPA | DDP_LLP;
- 		attrs.ecode = MPA_INSUFF_IRD;
- 		attrs.next_state = C4IW_QP_STATE_TERMINATE;
-+		attrs.send_term = 1;
- 		err = c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
--				C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
-+				C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
- 		err = -ENOMEM;
-+		disconnect = 1;
- 		goto out;
- 	}
- 	goto out;
-@@ -1366,7 +1371,7 @@ err:
- 	send_abort(ep, skb, GFP_KERNEL);
- out:
- 	connect_reply_upcall(ep, err);
--	return;
-+	return disconnect;
- }
+ 	rpl = cplhdr(skb);
+ 	INIT_TP_WR(rpl, ep->hwtid);
+diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+index dc193c2..6121ca0 100644
+--- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
++++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+@@ -836,4 +836,18 @@ struct ulptx_idata {
+ #define V_RX_DACK_CHANGE(x) ((x) << S_RX_DACK_CHANGE)
+ #define F_RX_DACK_CHANGE    V_RX_DACK_CHANGE(1U)
  
- static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
-@@ -1524,6 +1529,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	unsigned int tid = GET_TID(hdr);
- 	struct tid_info *t = dev->rdev.lldi.tids;
- 	__u8 status = hdr->status;
-+	int disconnect = 0;
- 
- 	ep = lookup_tid(t, tid);
- 	if (!ep)
-@@ -1539,7 +1545,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	switch (ep->com.state) {
- 	case MPA_REQ_SENT:
- 		ep->rcv_seq += dlen;
--		process_mpa_reply(ep, skb);
-+		disconnect = process_mpa_reply(ep, skb);
- 		break;
- 	case MPA_REQ_WAIT:
- 		ep->rcv_seq += dlen;
-@@ -1555,13 +1561,16 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 			       ep->com.state, ep->hwtid, status);
- 		attrs.next_state = C4IW_QP_STATE_TERMINATE;
- 		c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
--			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
-+			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
-+		disconnect = 1;
- 		break;
- 	}
- 	default:
- 		break;
- 	}
- 	mutex_unlock(&ep->com.mutex);
-+	if (disconnect)
-+		c4iw_ep_disconnect(ep, 0, GFP_KERNEL);
- 	return 0;
- }
- 
-@@ -3482,9 +3491,9 @@ static void process_timeout(struct c4iw_ep *ep)
- 			__func__, ep, ep->hwtid, ep->com.state);
- 		abort = 0;
- 	}
--	mutex_unlock(&ep->com.mutex);
- 	if (abort)
- 		abort_connection(ep, NULL, GFP_KERNEL);
-+	mutex_unlock(&ep->com.mutex);
- 	c4iw_put_ep(&ep->com);
- }
- 
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 7b8c580..7474b49 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -435,6 +435,7 @@ struct c4iw_qp_attributes {
- 	u8 ecode;
- 	u16 sq_db_inc;
- 	u16 rq_db_inc;
-+	u8 send_term;
- };
- 
- struct c4iw_qp {
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 7b5114c..f18ef34 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1388,11 +1388,12 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 			qhp->attr.layer_etype = attrs->layer_etype;
- 			qhp->attr.ecode = attrs->ecode;
- 			ep = qhp->ep;
--			disconnect = 1;
--			c4iw_get_ep(&qhp->ep->com);
--			if (!internal)
-+			if (!internal) {
-+				c4iw_get_ep(&qhp->ep->com);
- 				terminate = 1;
--			else {
-+				disconnect = 1;
-+			} else {
-+				terminate = qhp->attr.send_term;
- 				ret = rdma_fini(rhp, qhp, ep);
- 				if (ret)
- 					goto err;
++enum {                     /* TCP congestion control algorithms */
++	CONG_ALG_RENO,
++	CONG_ALG_TAHOE,
++	CONG_ALG_NEWRENO,
++	CONG_ALG_HIGHSPEED
++};
++
++#define S_CONG_CNTRL    14
++#define M_CONG_CNTRL    0x3
++#define V_CONG_CNTRL(x) ((x) << S_CONG_CNTRL)
++#define G_CONG_CNTRL(x) (((x) >> S_CONG_CNTRL) & M_CONG_CNTRL)
++
++#define T5_OPT_2_VALID       (1 << 31)
++
+ #endif /* _T4FW_RI_API_H_ */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
