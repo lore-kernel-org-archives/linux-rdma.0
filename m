@@ -1,50 +1,129 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH RESEND 3.15-rc3 3/3] iw_cxgb4: only allow kernel db ringing
-	for T4 devs
-Date: Thu, 24 Apr 2014 14:32:04 -0500
-Message-ID: <20140424193204.27837.44736.stgit@build.ogc.int>
-References: <20140424193153.27837.76419.stgit@build.ogc.int>
+From: Hugh Dickins <hughd@google.com>
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in shared
+ areas
+Date: Thu, 24 Apr 2014 16:14:56 -0700 (PDT)
+Message-ID: <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140424193153.27837.76419.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20140424133055.GA13269@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Oleg Nesterov <oleg@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>, Konstantin Khlebnikov <koct9i@gmail.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The whole db drop avoidance stuff is for T4 only.  So we cannot allow
-that to be enabled for T5 devices.
+On Thu, 24 Apr 2014, Oleg Nesterov wrote:
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+> Hi Hugh,
+> 
+> Sorry for late reply. First of all, to avoid the confusion, I think the
+> patch is fine.
+> 
+> When I saw this patch I decided that uprobes should be updated accordingly,
+> but I just realized that I do not understand what should I write in the
+> changelog.
 
- drivers/infiniband/hw/cxgb4/qp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Thanks a lot for considering similar issues in uprobes, Oleg: I merely
+checked that its uses of get_user_pages() would not be problematic,
+and didn't look around to rediscover the worrying mm business that
+goes on down there in kernel/events.
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index f18ef34..086f62f 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1777,11 +1777,15 @@ int c4iw_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	/*
- 	 * Use SQ_PSN and RQ_PSN to pass in IDX_INC values for
- 	 * ringing the queue db when we're in DB_FULL mode.
-+	 * Only allow this on T4 devices.
- 	 */
- 	attrs.sq_db_inc = attr->sq_psn;
- 	attrs.rq_db_inc = attr->rq_psn;
- 	mask |= (attr_mask & IB_QP_SQ_PSN) ? C4IW_QP_ATTR_SQ_DB : 0;
- 	mask |= (attr_mask & IB_QP_RQ_PSN) ? C4IW_QP_ATTR_RQ_DB : 0;
-+	if (is_t5(to_c4iw_qp(ibqp)->rhp->rdev.lldi.adapter_type) &&
-+	    (mask & (C4IW_QP_ATTR_SQ_DB|C4IW_QP_ATTR_RQ_DB)))
-+		return -EINVAL;
- 
- 	return c4iw_modify_qp(rhp, qhp, mask, &attrs, 0);
- }
+> 
+> On 04/04, Hugh Dickins wrote:
+> >
+> > +		if (gup_flags & FOLL_WRITE) {
+> > +			if (!(vm_flags & VM_WRITE)) {
+> > +				if (!(gup_flags & FOLL_FORCE))
+> > +					goto efault;
+> > +				/*
+> > +				 * We used to let the write,force case do COW
+> > +				 * in a VM_MAYWRITE VM_SHARED !VM_WRITE vma, so
+> > +				 * ptrace could set a breakpoint in a read-only
+> > +				 * mapping of an executable, without corrupting
+> > +				 * the file (yet only when that file had been
+> > +				 * opened for writing!).  Anon pages in shared
+> > +				 * mappings are surprising: now just reject it.
+> > +				 */
+> > +				if (!is_cow_mapping(vm_flags)) {
+> > +					WARN_ON_ONCE(vm_flags & VM_MAYWRITE);
+> > +					goto efault;
+> > +				}
+> 
+> OK. But could you please clarify "Anon pages in shared mappings are surprising" ?
+> I mean, does this only apply to "VM_MAYWRITE VM_SHARED !VM_WRITE vma" mentioned
+> above or this is bad even if a !FMODE_WRITE file was mmaped as MAP_SHARED ?
+
+Good question. I simply didn't consider that - and (as you have realized)
+didn't need to consider it, because I was just stopping the problematic
+behaviour in gup(), and didn't need to consider whether other behaviour
+prohibited by gup() was actually unproblematic.
+
+> 
+> Yes, in this case this vma is not VM_SHARED and it is not VM_MAYWRITE, it is only
+> VM_MAYSHARE. This is in fact private mapping except mprotect(PROT_WRITE) will not
+> work.
+> 
+> But with or without this patch gup(FOLL_WRITE | FOLL_FORCE) won't work in this case,
+                     "this" meaning my patch rather than yours below
+> (although perhaps it could ?), is_cow_mapping() == F because of !VM_MAYWRITE.
+> 
+> However, currently uprobes assumes that a cowed anon page is fine in this case, and
+> this differs from gup().
+> 
+> So, what do you think about the patch below? It is probably fine in any case,
+> but is there any "strong" reason to follow the gup's behaviour and forbid the
+> anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
+
+I don't think there is a "strong" reason to forbid it.
+
+The strongest reason is simply that it's much safer if uprobes follows
+the same conventions as mm, and get_user_pages() happens to have
+forbidden that all along.
+
+The philosophical reason to forbid it is that the user mmapped with
+MAP_SHARED, and it's merely a kernel-internal detail that we flip off
+VM_SHARED and treat these read-only shared mappings very much like
+private mappings.  The user asked for MAP_SHARED, and we prefer to
+respect that by not letting private COWs creep in.
+
+We could treat those mappings even more like private mappings, and
+allow the COWs; but better to be strict about it, so long as doing
+so doesn't give you regressions.
+
+> 
+> Oleg.
+> 
+> --- x/kernel/events/uprobes.c
+> +++ x/kernel/events/uprobes.c
+> @@ -127,12 +127,13 @@ struct xol_area {
+>   */
+>  static bool valid_vma(struct vm_area_struct *vma, bool is_register)
+>  {
+> -	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
+> +	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
+
+I think a one-line patch changing VM_SHARED to VM_MAYSHARE would do it,
+wouldn't it?  And save you from having to export is_cow_mapping()
+from mm/memory.c.  (I used is_cow_mapping() because I had to make the
+test more complex anyway, just to exclude the case which had been
+oddly handled before.)
+
+Hugh
+
+>  
+>  	if (is_register)
+>  		flags |= VM_WRITE;
+>  
+> -	return vma->vm_file && (vma->vm_flags & flags) == VM_MAYEXEC;
+> +	return 	vma->vm_file && is_cow_mapping(vma->vm_flags) &&
+> +		(vma->vm_flags & flags) == VM_MAYEXEC;
+>  }
+>  
+>  static unsigned long offset_to_vaddr(struct vm_area_struct *vma, loff_t offset)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
