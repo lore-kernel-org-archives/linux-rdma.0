@@ -1,72 +1,42 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in
-	shared areas
-Date: Fri, 25 Apr 2014 21:09:31 +0200
-Message-ID: <20140425190931.GA11323@redhat.com>
-References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com> <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: Update Kconfig to include Chelsio T5 adapter.
+Date: Sat, 26 Apr 2014 00:51:18 +0530
+Message-ID: <1398453678-13108-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
-Sender: owner-linux-mm@kvack.org
-To: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>, Konstantin Khlebnikov <koct9i@gmail.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/24, Hugh Dickins wrote:
->
-> On Thu, 24 Apr 2014, Oleg Nesterov wrote:
->
-> > So, what do you think about the patch below? It is probably fine in any case,
-> > but is there any "strong" reason to follow the gup's behaviour and forbid the
-> > anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
->
-> I don't think there is a "strong" reason to forbid it.
->
-> The strongest reason is simply that it's much safer if uprobes follows
-> the same conventions as mm, and get_user_pages() happens to have
-> forbidden that all along.
->
-> The philosophical reason to forbid it is that the user mmapped with
-> MAP_SHARED, and it's merely a kernel-internal detail that we flip off
-> VM_SHARED and treat these read-only shared mappings very much like
-> private mappings.  The user asked for MAP_SHARED, and we prefer to
-> respect that by not letting private COWs creep in.
->
-> We could treat those mappings even more like private mappings, and
-> allow the COWs; but better to be strict about it, so long as doing
-> so doesn't give you regressions.
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Great, thanks a lot! I was worried I missed something subtle.
-
-And I forgot to mention, there is another reason why I would like to
-change uprobes to follow the same convention. I still think it would
-be better to kill __replace_page() and use gup(FOLL_WRITE | FORCE)
-in uprobe_write_opcode().
-
-
-> > --- x/kernel/events/uprobes.c
-> > +++ x/kernel/events/uprobes.c
-> > @@ -127,12 +127,13 @@ struct xol_area {
-> >   */
-> >  static bool valid_vma(struct vm_area_struct *vma, bool is_register)
-> >  {
-> > -	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
-> > +	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
->
-> I think a one-line patch changing VM_SHARED to VM_MAYSHARE would do it,
-> wouldn't it?  And save you from having to export is_cow_mapping()
-> from mm/memory.c.  (I used is_cow_mapping() because I had to make the
-> test more complex anyway, just to exclude the case which had been
-> oddly handled before.)
-
-Indeed, thanks!
-
-Oleg.
+diff --git a/drivers/infiniband/hw/cxgb4/Kconfig b/drivers/infiniband/hw/cxgb4/Kconfig
+index d4e8983..23f38cf 100644
+--- a/drivers/infiniband/hw/cxgb4/Kconfig
++++ b/drivers/infiniband/hw/cxgb4/Kconfig
+@@ -1,10 +1,10 @@
+ config INFINIBAND_CXGB4
+-	tristate "Chelsio T4 RDMA Driver"
++	tristate "Chelsio T4/T5 RDMA Driver"
+ 	depends on CHELSIO_T4 && INET && (IPV6 || IPV6=n)
+ 	select GENERIC_ALLOCATOR
+ 	---help---
+-	  This is an iWARP/RDMA driver for the Chelsio T4 1GbE and
+-	  10GbE adapters.
++	  This is an iWARP/RDMA driver for the Chelsio T4 and T5
++	  1GbE, 10GbE adapters and T5 40GbE adapter.
+ 
+ 	  For general information about Chelsio and our products, visit
+ 	  our website at <http://www.chelsio.com>.
+-- 
+1.8.4
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
