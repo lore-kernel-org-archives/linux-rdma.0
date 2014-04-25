@@ -1,35 +1,31 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IB/cma: Make timeout dependent on the subnet timeout
-Date: Fri, 25 Apr 2014 02:59:29 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373992F4F6E@ORSMSX109.amr.corp.intel.com>
-References: <53566BB5.5030203@acm.org>
- <1828884A29C6694DAF28B7E6B8A82373992F2F15@ORSMSX109.amr.corp.intel.com>
- <5357B25D.2000108@dev.mellanox.co.il> <5357B626.8050209@acm.org>
- <1828884A29C6694DAF28B7E6B8A82373992F32A2@ORSMSX109.amr.corp.intel.com>
- <5358BF9D.4030409@mellanox.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: isert for mellanox drivers
+Date: Thu, 24 Apr 2014 22:38:25 -0700
+Message-ID: <20140425053825.GB9435@infradead.org>
+References: <5DD781F004516D4BBC46D51FA58794102D464FFB@CMEXMB1.ad.emulex.com>
+ <5358B396.4060904@mellanox.com>
+ <20140424070804.GA20442@infradead.org>
+ <5358DF60.9010202@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5358BF9D.4030409-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5358DF60.9010202@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: sagi grimberg <sagig@mellanox.com>
+Cc: Christoph Hellwig <hch@infradead.org>, "tony.seo@samsung.com" <tony.seo@samsung.com>, Alex Leung <Alex.Leung@Emulex.Com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, target-devel <target-devel@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Oren Duer <oren@mellanox.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Sean, can't we have CMA to follow the same practice used in the CM where
-> we derive the RC QP timeout based on the packet life time retrieved in
-> path queries? e.g base the cm response time out on this value  too?
+On Thu, Apr 24, 2014 at 12:54:40PM +0300, sagi grimberg wrote:
+> Well, I feel the same way (although less harsh about it), I would
+> prefer to have it all inbox.
+> As I see it, OFED is useful for costumers who want to upgrade RDMA
+> functionality (or get Tech previews)
+> without upgrading their distro or wait for it to land upstream.
 
-We could.  The timeout that's being modified by the patch is the time needed by the remote peer to process the incoming message and send a response.  This time is in addition to the packet life time value that gets used.
+For that we have the compat drivers project, which could easily handle
+the rdma drivers as well.
 
-For a remote kernel agent, the time needed to respond to a CM message may be fairly small.  For a user space client, the time may be significant, on the order to seconds to minutes.  We can probably make due with a fairly short timeout, provided that MRAs are used by the remote side.
-
-There's no great solution that I can think of.  Maybe the RDMA CM can adjust the timeout based on the remote address, assuming that it can determine if the remote address is a user space or kernel agent.
-
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The problem with OFED is (or was last time a looked) that it's a big
+pile that includes backports, and new features not submitted or even
+rejected upstream.
