@@ -1,42 +1,43 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: Update Kconfig to include Chelsio T5 adapter.
-Date: Sat, 26 Apr 2014 00:51:18 +0530
-Message-ID: <1398453678-13108-1-git-send-email-hariprasad@chelsio.com>
+From: Hugh Dickins <hughd@google.com>
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in shared
+ areas
+Date: Fri, 25 Apr 2014 13:07:01 -0700 (PDT)
+Message-ID: <alpine.LSU.2.11.1404251254230.6272@eggly.anvils>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com> <alpine.LSU.2.11.1404241518510.4454@eggly.anvils> <20140425190931.GA11323@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20140425190931.GA11323@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Oleg Nesterov <oleg@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>, Konstantin Khlebnikov <koct9i@gmail.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/Kconfig | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Fri, 25 Apr 2014, Oleg Nesterov wrote:
+> 
+> And I forgot to mention, there is another reason why I would like to
+> change uprobes to follow the same convention. I still think it would
+> be better to kill __replace_page() and use gup(FOLL_WRITE | FORCE)
+> in uprobe_write_opcode().
 
-diff --git a/drivers/infiniband/hw/cxgb4/Kconfig b/drivers/infiniband/hw/cxgb4/Kconfig
-index d4e8983..23f38cf 100644
---- a/drivers/infiniband/hw/cxgb4/Kconfig
-+++ b/drivers/infiniband/hw/cxgb4/Kconfig
-@@ -1,10 +1,10 @@
- config INFINIBAND_CXGB4
--	tristate "Chelsio T4 RDMA Driver"
-+	tristate "Chelsio T4/T5 RDMA Driver"
- 	depends on CHELSIO_T4 && INET && (IPV6 || IPV6=n)
- 	select GENERIC_ALLOCATOR
- 	---help---
--	  This is an iWARP/RDMA driver for the Chelsio T4 1GbE and
--	  10GbE adapters.
-+	  This is an iWARP/RDMA driver for the Chelsio T4 and T5
-+	  1GbE, 10GbE adapters and T5 40GbE adapter.
- 
- 	  For general information about Chelsio and our products, visit
- 	  our website at <http://www.chelsio.com>.
--- 
-1.8.4
+Oh, please please do!  I assumed there was a good atomicity reason
+for doing it that way, but if you can do it with gup() please do so.
+
+I went off into a little rant about __replace_page() in my reply to you;
+but then felt that you had approached with an honest enquiry, and didn't
+deserve a rant in response, so I deleted it.
+
+And, of course, I'm conscious that I have from start to finish withheld
+my involvement from uprobes, and refused to review that __replace_page()
+(beyond insisting that it not be put in a common place for sharing with
+KSM, because I just couldn't guarantee it for uprobes).  I'm afraid that
+it's much like HWPoison to me, a complexity (nastiness?) way beyond what
+I have time to support myself.
+
+Hugh
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
