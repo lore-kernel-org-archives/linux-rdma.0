@@ -1,129 +1,108 @@
-From: Hugh Dickins <hughd@google.com>
-Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in shared
- areas
-Date: Thu, 24 Apr 2014 16:14:56 -0700 (PDT)
-Message-ID: <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
-References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] libvendor/osm_vendor_ibumad.c: Support GRH (for GS
+ classes)
+Date: Thu, 24 Apr 2014 22:37:42 -0400
+Message-ID: <5359CA76.6040508@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20140424133055.GA13269@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Oleg Nesterov <oleg@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>, Konstantin Khlebnikov <koct9i@gmail.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 24 Apr 2014, Oleg Nesterov wrote:
 
-> Hi Hugh,
-> 
-> Sorry for late reply. First of all, to avoid the confusion, I think the
-> patch is fine.
-> 
-> When I saw this patch I decided that uprobes should be updated accordingly,
-> but I just realized that I do not understand what should I write in the
-> changelog.
+If GRH is in incoming GS class management packet, convert umad GRH
+information to OpenSM GRH information. On outgoing side, convert
+OpenSM GRH information into umad GRH information.
 
-Thanks a lot for considering similar issues in uprobes, Oleg: I merely
-checked that its uses of get_user_pages() would not be problematic,
-and didn't look around to rediscover the worrying mm business that
-goes on down there in kernel/events.
+Note that only base port 0 (GID index 0) is supported.
 
-> 
-> On 04/04, Hugh Dickins wrote:
-> >
-> > +		if (gup_flags & FOLL_WRITE) {
-> > +			if (!(vm_flags & VM_WRITE)) {
-> > +				if (!(gup_flags & FOLL_FORCE))
-> > +					goto efault;
-> > +				/*
-> > +				 * We used to let the write,force case do COW
-> > +				 * in a VM_MAYWRITE VM_SHARED !VM_WRITE vma, so
-> > +				 * ptrace could set a breakpoint in a read-only
-> > +				 * mapping of an executable, without corrupting
-> > +				 * the file (yet only when that file had been
-> > +				 * opened for writing!).  Anon pages in shared
-> > +				 * mappings are surprising: now just reject it.
-> > +				 */
-> > +				if (!is_cow_mapping(vm_flags)) {
-> > +					WARN_ON_ONCE(vm_flags & VM_MAYWRITE);
-> > +					goto efault;
-> > +				}
-> 
-> OK. But could you please clarify "Anon pages in shared mappings are surprising" ?
-> I mean, does this only apply to "VM_MAYWRITE VM_SHARED !VM_WRITE vma" mentioned
-> above or this is bad even if a !FMODE_WRITE file was mmaped as MAP_SHARED ?
+This is mainly for SA although other GS classes could use it (but don't).
 
-Good question. I simply didn't consider that - and (as you have realized)
-didn't need to consider it, because I was just stopping the problematic
-behaviour in gup(), and didn't need to consider whether other behaviour
-prohibited by gup() was actually unproblematic.
+Note also that SA reports with GRH is not handled by this patch.
 
-> 
-> Yes, in this case this vma is not VM_SHARED and it is not VM_MAYWRITE, it is only
-> VM_MAYSHARE. This is in fact private mapping except mprotect(PROT_WRITE) will not
-> work.
-> 
-> But with or without this patch gup(FOLL_WRITE | FOLL_FORCE) won't work in this case,
-                     "this" meaning my patch rather than yours below
-> (although perhaps it could ?), is_cow_mapping() == F because of !VM_MAYWRITE.
-> 
-> However, currently uprobes assumes that a cowed anon page is fine in this case, and
-> this differs from gup().
-> 
-> So, what do you think about the patch below? It is probably fine in any case,
-> but is there any "strong" reason to follow the gup's behaviour and forbid the
-> anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
-
-I don't think there is a "strong" reason to forbid it.
-
-The strongest reason is simply that it's much safer if uprobes follows
-the same conventions as mm, and get_user_pages() happens to have
-forbidden that all along.
-
-The philosophical reason to forbid it is that the user mmapped with
-MAP_SHARED, and it's merely a kernel-internal detail that we flip off
-VM_SHARED and treat these read-only shared mappings very much like
-private mappings.  The user asked for MAP_SHARED, and we prefer to
-respect that by not letting private COWs creep in.
-
-We could treat those mappings even more like private mappings, and
-allow the COWs; but better to be strict about it, so long as doing
-so doesn't give you regressions.
-
-> 
-> Oleg.
-> 
-> --- x/kernel/events/uprobes.c
-> +++ x/kernel/events/uprobes.c
-> @@ -127,12 +127,13 @@ struct xol_area {
->   */
->  static bool valid_vma(struct vm_area_struct *vma, bool is_register)
->  {
-> -	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
-> +	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
-
-I think a one-line patch changing VM_SHARED to VM_MAYSHARE would do it,
-wouldn't it?  And save you from having to export is_cow_mapping()
-from mm/memory.c.  (I used is_cow_mapping() because I had to make the
-test more complex anyway, just to exclude the case which had been
-oddly handled before.)
-
-Hugh
-
->  
->  	if (is_register)
->  		flags |= VM_WRITE;
->  
-> -	return vma->vm_file && (vma->vm_flags & flags) == VM_MAYEXEC;
-> +	return 	vma->vm_file && is_cow_mapping(vma->vm_flags) &&
-> +		(vma->vm_flags & flags) == VM_MAYEXEC;
->  }
->  
->  static unsigned long offset_to_vaddr(struct vm_area_struct *vma, loff_t offset)
-
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
+index f9d3036..e9651f6 100644
+--- a/libvendor/osm_vendor_ibumad.c
++++ b/libvendor/osm_vendor_ibumad.c
+@@ -261,9 +261,20 @@ ib_mad_addr_conv(ib_user_mad_t * umad, osm_mad_addr_t * osm_mad_addr,
+ 	osm_mad_addr->addr_type.gsi.remote_qkey = ib_mad_addr->qkey;
+ 	osm_mad_addr->addr_type.gsi.pkey_ix = umad_get_pkey(umad);
+ 	osm_mad_addr->addr_type.gsi.service_level = ib_mad_addr->sl;
+-	osm_mad_addr->addr_type.gsi.global_route = 0;	/* FIXME: handle GRH */
+-	memset(&osm_mad_addr->addr_type.gsi.grh_info, 0,
+-	       sizeof osm_mad_addr->addr_type.gsi.grh_info);
++	if (ib_mad_addr->grh_present) {
++		osm_mad_addr->addr_type.gsi.global_route = 1;
++		osm_mad_addr->addr_type.gsi.grh_info.hop_limit = ib_mad_addr->hop_limit;
++		osm_mad_addr->addr_type.gsi.grh_info.ver_class_flow =
++			ib_grh_set_ver_class_flow(6,	/* GRH version */
++						  ib_mad_addr->traffic_class,
++						  ib_mad_addr->flow_label);
++		memcpy(&osm_mad_addr->addr_type.gsi.grh_info.dest_gid,
++		       &ib_mad_addr->gid, 16);
++	} else {
++		osm_mad_addr->addr_type.gsi.global_route = 0;
++		memset(&osm_mad_addr->addr_type.gsi.grh_info, 0,
++		       sizeof osm_mad_addr->addr_type.gsi.grh_info);
++	}
+ }
+ 
+ static void *swap_mad_bufs(osm_madw_t * p_madw, void *umad)
+@@ -290,6 +301,7 @@ static void *umad_receiver(void *p_ptr)
+ 	osm_mad_addr_t osm_addr;
+ 	osm_madw_t *p_madw, *p_req_madw;
+ 	ib_mad_t *p_mad, *p_req_mad;
++	ib_mad_addr_t *p_mad_addr;
+ 	void *umad = 0;
+ 	int mad_agent, length;
+ 
+@@ -342,6 +354,14 @@ static void *umad_receiver(void *p_ptr)
+ 		}
+ 
+ 		p_mad = (ib_mad_t *) umad_get_mad(umad);
++		p_mad_addr = umad_get_mad_addr(umad);
++		/* Only support GID index 0 currently */
++		if (p_mad_addr->grh_present && p_mad_addr->gid_index) {
++			OSM_LOG(p_ur->p_log, OSM_LOG_ERROR, "ERR 5409: "
++				"GRH received on GID index %d for mgmt class 0x%x\n",
++				p_mad_addr->gid_index, p_mad->mgmt_class);
++			continue;
++		}
+ 
+ 		ib_mad_addr_conv(umad, &osm_addr,
+ 				 p_mad->mgmt_class == IB_MCLASS_SUBN_LID ||
+@@ -1070,6 +1090,7 @@ osm_vendor_send(IN osm_bind_handle_t h_bind,
+ 	osm_mad_addr_t *const p_mad_addr = osm_madw_get_mad_addr_ptr(p_madw);
+ 	ib_mad_t *const p_mad = osm_madw_get_mad_ptr(p_madw);
+ 	ib_sa_mad_t *const p_sa = (ib_sa_mad_t *) p_mad;
++	ib_mad_addr_t mad_addr;
+ 	int ret = -1;
+ 	int __attribute__((__unused__)) is_rmpp = 0;
+ 	uint32_t sent_mad_size;
+@@ -1098,7 +1119,17 @@ osm_vendor_send(IN osm_bind_handle_t h_bind,
+ 			  p_mad_addr->addr_type.gsi.remote_qp,
+ 			  p_mad_addr->addr_type.gsi.service_level,
+ 			  IB_QP1_WELL_KNOWN_Q_KEY);
+-	umad_set_grh(p_vw->umad, NULL);	/* FIXME: GRH support */
++	if (p_mad_addr->addr_type.gsi.global_route) {
++		mad_addr.grh_present = 1;
++		mad_addr.gid_index = 0;
++		mad_addr.hop_limit = p_mad_addr->addr_type.gsi.grh_info.hop_limit;
++		ib_grh_get_ver_class_flow(p_mad_addr->addr_type.gsi.grh_info.ver_class_flow,
++					  NULL, &mad_addr.traffic_class,
++					  &mad_addr.flow_label);
++		memcpy(&mad_addr.gid, &p_mad_addr->addr_type.gsi.grh_info.dest_gid, 16);
++		umad_set_grh(p_vw->umad, &mad_addr);
++	} else
++		umad_set_grh(p_vw->umad, NULL);
+ 	umad_set_pkey(p_vw->umad, p_mad_addr->addr_type.gsi.pkey_ix);
+ 	if (ib_class_is_rmpp(p_mad->mgmt_class)) {	/* RMPP GS classes     FIXME: no GRH */
+ 		if (!ib_rmpp_is_flag_set((ib_rmpp_mad_t *) p_sa,
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
