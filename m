@@ -1,67 +1,110 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] svcrdma: refactor marshalling logic
-Date: Fri, 25 Apr 2014 08:34:46 -0500
-Message-ID: <535A6476.8080207@opengridcomputing.com>
-References: <20140410183723.29724.18665.stgit@build.ogc.int> <20140425105838.GE22295@fieldses.org> <6B12FA09-0E8C-497A-9145-E2B7CAB16C53@oracle.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] xprtrdma: Ensure ia->ri_id->qp is not NULL when reconnecting
+Date: Fri, 25 Apr 2014 10:16:19 -0400
+Message-ID: <20140425141031.7926.89796.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6B12FA09-0E8C-497A-9145-E2B7CAB16C53-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-/Yg/VP3ZvrM@public.gmane.org
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/25/2014 8:24 AM, Chuck Lever wrote:
-> Hi Bruce-
->
-> On Apr 25, 2014, at 6:58 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> w=
-rote:
->
->> On Thu, Apr 10, 2014 at 01:37:23PM -0500, Steve Wise wrote:
->>> From: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
->>>
->>> This patch refactors the marshalling logic to remove the intermedia=
-ry
->>> map structures.  It also fixes an existing bug where the NFSRDMA se=
-rver
->>> was not minding the device fast register page list length limitatio=
-ns.
->>>
->>> Signed-off-by: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
->>> ---
->>>
->>> include/linux/sunrpc/svc_rdma.h          |    3
->>> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  551 +++++++++----------=
------------
->>> net/sunrpc/xprtrdma/svc_rdma_sendto.c    |  230 +------------
->>> net/sunrpc/xprtrdma/svc_rdma_transport.c |   57 ++-
->>> 4 files changed, 222 insertions(+), 619 deletions(-)
->> Is it possible to make this change in more than one step?
->>
->> RDMA is pretty esoteric to most of us, so honestly this will probabl=
-y
->> get merged based just on your having tested it, but if it was possib=
-le
->> to break this up into smaller patches you might give us at least a
->> fighting chance of giving it some review=85.
-> I agree it could be broken up.
->
-> However, my testing revealed that the patch inadvertently breaks supp=
-ort
-> for HCAs that do not support FRMR.  I=92ve reported this to Steve and=
- Tom.
-> IMO you should wait for a newer version of the refactoring patch.
+Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> reports that after a
+disconnect, his HCA is failing to create a fresh QP, leaving
+ia_ri->ri_id->qp set to NULL. But xprtrdma still allows RPCs to
+wake up and post LOCAL_INV as they exit, causing an oops.
 
-I'll figure out the regression, and work with tom to repost this as a=20
-series.
+rpcrdma_ep_connect() is allowing the wake-up by leaking the QP
+creation error code (-EPERM in this case) to the RPC client's
+generic layer. xprt_connect_status() does not recognize -EPERM, so
+it kills pending RPC tasks immediately rather than retrying the
+connect.
 
-Steve.
+Re-arrange the QP creation logic so that when it fails on reconnect,
+it leaves ->qp with the old QP rather than NULL.  If pending RPC
+tasks wake and exit, LOCAL_INV work requests will flush rather than
+oops.
+
+On initial connect, leaving ->qp == NULL is OK, since there are no
+pending RPCs that might use ->qp. But be sure not to try to destroy
+a NULL QP when rpcrdma_ep_connect() is retried.
+
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+
+
+Hi-
+
+I tested with fault injection, but I've probably missed a corner
+case or two. Please test and review.  Thanks!
+
+
+ net/sunrpc/xprtrdma/verbs.c |   29 ++++++++++++++++++++---------
+ 1 files changed, 20 insertions(+), 9 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 85d4987..0f3ec65 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -867,6 +867,7 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	if (ep->rep_connected != 0) {
+ 		struct rpcrdma_xprt *xprt;
+ retry:
++		dprintk("RPC:       %s: reconnecting...\n", __func__);
+ 		rc = rpcrdma_ep_disconnect(ep, ia);
+ 		if (rc && rc != -ENOTCONN)
+ 			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+@@ -879,7 +880,7 @@ retry:
+ 		id = rpcrdma_create_id(xprt, ia,
+ 				(struct sockaddr *)&xprt->rx_data.addr);
+ 		if (IS_ERR(id)) {
+-			rc = PTR_ERR(id);
++			rc = -EHOSTUNREACH;
+ 			goto out;
+ 		}
+ 		/* TEMP TEMP TEMP - fail if new device:
+@@ -893,20 +894,30 @@ retry:
+ 			printk("RPC:       %s: can't reconnect on "
+ 				"different device!\n", __func__);
+ 			rdma_destroy_id(id);
+-			rc = -ENETDOWN;
++			rc = -ENETUNREACH;
+ 			goto out;
+ 		}
+ 		/* END TEMP */
++		rc = rdma_create_qp(id, ia->ri_pd, &ep->rep_attr);
++		if (rc) {
++			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
++				__func__, rc);
++			rdma_destroy_id(id);
++			rc = -ENETUNREACH;
++			goto out;
++		}
+ 		rdma_destroy_qp(ia->ri_id);
+ 		rdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = id;
+-	}
+-
+-	rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
+-	if (rc) {
+-		dprintk("RPC:       %s: rdma_create_qp failed %i\n",
+-			__func__, rc);
+-		goto out;
++	} else {
++		dprintk("RPC:       %s: connecting...\n", __func__);
++		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
++		if (rc) {
++			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
++				__func__, rc);
++			/* do not update ep->rep_connected */
++			return -ENETUNREACH;
++		}
+ 	}
+ 
+ /* XXX Tavor device performs badly with 2K MTU! */
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
