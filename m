@@ -1,34 +1,72 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: IB/cma: Make timeout dependent on the subnet timeout
-Date: Fri, 25 Apr 2014 19:47:18 +0200
-Message-ID: <535A9FA6.4020207@acm.org>
-References: <53566BB5.5030203@acm.org> <1828884A29C6694DAF28B7E6B8A82373992F2F15@ORSMSX109.amr.corp.intel.com> <5357B25D.2000108@dev.mellanox.co.il> <5357B626.8050209@acm.org> <1828884A29C6694DAF28B7E6B8A82373992F32A2@ORSMSX109.amr.corp.intel.com> <5358BF9D.4030409@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373992F4F6E@ORSMSX109.amr.corp.intel.com> <535A8BA6.4090603@acm.org> <1828884A29C6694DAF28B7E6B8A82373992F50A6@ORSMSX109.amr.corp.intel.com>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in
+	shared areas
+Date: Fri, 25 Apr 2014 21:09:31 +0200
+Message-ID: <20140425190931.GA11323@redhat.com>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com> <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373992F50A6-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
+Sender: owner-linux-mm@kvack.org
+To: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>, Konstantin Khlebnikov <koct9i@gmail.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/25/14 18:56, Hefty, Sean wrote:
-> Btw, up til now most of the requests regarding CM timeouts has been to
-> increase it.  We need to make sure that we don't end up breaking that.
-> Even if we set this timeout to 0, the total timeout for a connection
-> request is 2 x packet lifetime x # retries.  With a 1 second packet
-> lifetime, that's still 30 seconds.  What timeout range are you looking
-> for?  The app could always set a separate timer and cancel the request
-> as well.
+On 04/24, Hugh Dickins wrote:
+>
+> On Thu, 24 Apr 2014, Oleg Nesterov wrote:
+>
+> > So, what do you think about the patch below? It is probably fine in any case,
+> > but is there any "strong" reason to follow the gup's behaviour and forbid the
+> > anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
+>
+> I don't think there is a "strong" reason to forbid it.
+>
+> The strongest reason is simply that it's much safer if uprobes follows
+> the same conventions as mm, and get_user_pages() happens to have
+> forbidden that all along.
+>
+> The philosophical reason to forbid it is that the user mmapped with
+> MAP_SHARED, and it's merely a kernel-internal detail that we flip off
+> VM_SHARED and treat these read-only shared mappings very much like
+> private mappings.  The user asked for MAP_SHARED, and we prefer to
+> respect that by not letting private COWs creep in.
+>
+> We could treat those mappings even more like private mappings, and
+> allow the COWs; but better to be strict about it, so long as doing
+> so doesn't give you regressions.
 
-What I had noticed is that with the current timeout settings after a
-cable pull it can take really long before a cm_id object reaches
-TimeWait exit state. Timeout settings that are between 1/4th and 1/8th
-of the current settings result in more reasonable behavior.
+Great, thanks a lot! I was worried I missed something subtle.
 
-Bart.
+And I forgot to mention, there is another reason why I would like to
+change uprobes to follow the same convention. I still think it would
+be better to kill __replace_page() and use gup(FOLL_WRITE | FORCE)
+in uprobe_write_opcode().
+
+
+> > --- x/kernel/events/uprobes.c
+> > +++ x/kernel/events/uprobes.c
+> > @@ -127,12 +127,13 @@ struct xol_area {
+> >   */
+> >  static bool valid_vma(struct vm_area_struct *vma, bool is_register)
+> >  {
+> > -	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
+> > +	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
+>
+> I think a one-line patch changing VM_SHARED to VM_MAYSHARE would do it,
+> wouldn't it?  And save you from having to export is_cow_mapping()
+> from mm/memory.c.  (I used is_cow_mapping() because I had to make the
+> test more complex anyway, just to exclude the case which had been
+> oddly handled before.)
+
+Indeed, thanks!
+
+Oleg.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
