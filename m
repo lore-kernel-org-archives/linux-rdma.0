@@ -1,31 +1,27 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
-Date: Tue, 29 Apr 2014 12:32:04 -0500 (CDT)
-Message-ID: <alpine.DEB.2.10.1404291231250.26056@gentwo.org>
-References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <CAJZOPZJfdaZ7QzgffzY9Ps-1aUCU+q_dSrj4XfekyfxNa-k+hg@mail.gmail.com> <alpine.DEB.2.10.1404211605390.29907@gentwo.org> <CAJZOPZ+FwPc3OSVyvk0i4=gX-x0zf_+M8zL1_t9HWmEKi5397Q@mail.gmail.com>
- <alpine.DEB.2.10.1404211926050.31858@gentwo.org> <alpine.DEB.2.10.1404220844430.4876@gentwo.org> <53569261.9010805@mellanox.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] librdmacm: Fix verbs leak due to reentrancy issue
+Date: Wed, 30 Apr 2014 03:14:43 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373992F6185@ORSMSX109.amr.corp.intel.com>
+References: <20140422112202.GA7440@shamir-pc>
+ <1828884A29C6694DAF28B7E6B8A82373992F2EE8@ORSMSX109.amr.corp.intel.com>
+ <20140429134803.GA11791@shamir-pc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53569261.9010805-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20140429134803.GA11791@shamir-pc>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Shamir Rabinovith <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 22 Apr 2014, Or Gerlitz wrote:
+> librdmacm git (git://git.openfabrics.org/~shefty/librdmacm.git)
+> currently only has the lazy initialization patch (23ffef0 librdmacm:
+> Support lazy initialization) but this patch is missing. can you please
+> add this fix to the git if you approve it? thanks.
 
-> Chritoph, again I can hear your Pain and Frustration (BTW the patch is from
-> 2008 so only six years old...), when patches are repeatedly ignored, there's
-> no much point in reposting them again and again. We are making sure that large
-> patche sets are posted in a public git tree, for example the T10 signature
-> patches were on the floor for 5-6 months and eventually went into 3.15 and
-> during that hang time, we have put them in public git tree, I will make sure
-> we do it right away for the ODP patches and other user space patches (RoCE UD
-> and Flow-steering) that were posted here and still not accepted.
-
-Ok I saw the ODP patches. But where are the multicast block patches? Is
-there any way to move this forward?
-
+I pushed the fix upstream.  Thanks!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
