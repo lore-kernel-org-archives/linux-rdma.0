@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V3 16/17] xprtrdma: Ensure ia->ri_id->qp is not NULL when
-	reconnecting
-Date: Wed, 30 Apr 2014 15:31:47 -0400
-Message-ID: <20140430193147.5663.13351.stgit@manet.1015granger.net>
+Subject: [PATCH V3 17/17] xprtrdma: Remove Tavor MTU setting
+Date: Wed, 30 Apr 2014 15:31:55 -0400
+Message-ID: <20140430193155.5663.86148.stgit@manet.1015granger.net>
 References: <20140430191433.5663.16217.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,92 +13,47 @@ To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z
 Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> reports that after a
-disconnect, his HCA is failing to create a fresh QP, leaving
-ia_ri->ri_id->qp set to NULL. But xprtrdma still allows RPCs to
-wake up and post LOCAL_INV as they exit, causing an oops.
-
-rpcrdma_ep_connect() is allowing the wake-up by leaking the QP
-creation error code (-EPERM in this case) to the RPC client's
-generic layer. xprt_connect_status() does not recognize -EPERM, so
-it kills pending RPC tasks immediately rather than retrying the
-connect.
-
-Re-arrange the QP creation logic so that when it fails on reconnect,
-it leaves ->qp with the old QP rather than NULL.  If pending RPC
-tasks wake and exit, LOCAL_INV work requests will flush rather than
-oops.
-
-On initial connect, leaving ->qp == NULL is OK, since there are no
-pending RPCs that might use ->qp. But be sure not to try to destroy
-a NULL QP when rpcrdma_ep_connect() is retried.
+Clean up.  Remove HCA-specific clutter in xprtrdma, which is
+supposed to be device-independent.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/verbs.c |   29 ++++++++++++++++++++---------
- 1 files changed, 20 insertions(+), 9 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   14 --------------
+ 1 files changed, 0 insertions(+), 14 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index c80995a..54edf2a 100644
+index 54edf2a..515dfc1 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -867,6 +867,7 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 	if (ep->rep_connected != 0) {
- 		struct rpcrdma_xprt *xprt;
- retry:
-+		dprintk("RPC:       %s: reconnecting...\n", __func__);
- 		rc = rpcrdma_ep_disconnect(ep, ia);
- 		if (rc && rc != -ENOTCONN)
- 			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
-@@ -879,7 +880,7 @@ retry:
- 		id = rpcrdma_create_id(xprt, ia,
- 				(struct sockaddr *)&xprt->rx_data.addr);
- 		if (IS_ERR(id)) {
--			rc = PTR_ERR(id);
-+			rc = -EHOSTUNREACH;
- 			goto out;
+@@ -48,7 +48,6 @@
+  */
+ 
+ #include <linux/interrupt.h>
+-#include <linux/pci.h>	/* for Tavor hack below */
+ #include <linux/slab.h>
+ #include <asm/bitops.h>
+ 
+@@ -920,19 +919,6 @@ retry:
  		}
- 		/* TEMP TEMP TEMP - fail if new device:
-@@ -893,20 +894,30 @@ retry:
- 			printk("RPC:       %s: can't reconnect on "
- 				"different device!\n", __func__);
- 			rdma_destroy_id(id);
--			rc = -ENETDOWN;
-+			rc = -ENETUNREACH;
- 			goto out;
- 		}
- 		/* END TEMP */
-+		rc = rdma_create_qp(id, ia->ri_pd, &ep->rep_attr);
-+		if (rc) {
-+			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
-+				__func__, rc);
-+			rdma_destroy_id(id);
-+			rc = -ENETUNREACH;
-+			goto out;
-+		}
- 		rdma_destroy_qp(ia->ri_id);
- 		rdma_destroy_id(ia->ri_id);
- 		ia->ri_id = id;
--	}
--
--	rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
--	if (rc) {
--		dprintk("RPC:       %s: rdma_create_qp failed %i\n",
--			__func__, rc);
--		goto out;
-+	} else {
-+		dprintk("RPC:       %s: connecting...\n", __func__);
-+		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
-+		if (rc) {
-+			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
-+				__func__, rc);
-+			/* do not update ep->rep_connected */
-+			return -ENETUNREACH;
-+		}
  	}
  
- /* XXX Tavor device performs badly with 2K MTU! */
+-/* XXX Tavor device performs badly with 2K MTU! */
+-if (strnicmp(ia->ri_id->device->dma_device->bus->name, "pci", 3) == 0) {
+-	struct pci_dev *pcid = to_pci_dev(ia->ri_id->device->dma_device);
+-	if (pcid->device == PCI_DEVICE_ID_MELLANOX_TAVOR &&
+-	    (pcid->vendor == PCI_VENDOR_ID_MELLANOX ||
+-	     pcid->vendor == PCI_VENDOR_ID_TOPSPIN)) {
+-		struct ib_qp_attr attr = {
+-			.path_mtu = IB_MTU_1024
+-		};
+-		rc = ib_modify_qp(ia->ri_id->qp, &attr, IB_QP_PATH_MTU);
+-	}
+-}
+-
+ 	ep->rep_connected = 0;
+ 
+ 	rc = rdma_connect(ia->ri_id, &ep->rep_remote_cma);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
