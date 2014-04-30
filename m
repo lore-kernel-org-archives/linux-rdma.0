@@ -1,61 +1,32 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V3 17/17] xprtrdma: Remove Tavor MTU setting
-Date: Wed, 30 Apr 2014 15:31:55 -0400
-Message-ID: <20140430193155.5663.86148.stgit@manet.1015granger.net>
-References: <20140430191433.5663.16217.stgit@manet.1015granger.net>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NFSoRDMA developers bi-weekly meeting announcement (4/30)
+Date: Wed, 30 Apr 2014 22:39:39 +0300
+Message-ID: <CAJZOPZJioYdcbDGsk7278sZS7kD9W1dcGEGtYfsFk=Mm7DW3fQ@mail.gmail.com>
+References: <53614C03.80606@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140430191433.5663.16217.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53614C03.80606-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "<yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Cayton, Phil" <phil.cayton-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "<Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Allen Andrews <Allen.Andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, "<emossman-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>" <emossman-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.  Remove HCA-specific clutter in xprtrdma, which is
-supposed to be device-independent.
+On Wed, Apr 30, 2014 at 10:16 PM, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+[...]
+> 3. Upstream NFSoRDMA status:
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
 
- net/sunrpc/xprtrdma/verbs.c |   14 --------------
- 1 files changed, 0 insertions(+), 14 deletions(-)
+So does it currently works...? I understand that Yan tried it out
+today, and @ least one side just crashed.
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 54edf2a..515dfc1 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -48,7 +48,6 @@
-  */
- 
- #include <linux/interrupt.h>
--#include <linux/pci.h>	/* for Tavor hack below */
- #include <linux/slab.h>
- #include <asm/bitops.h>
- 
-@@ -920,19 +919,6 @@ retry:
- 		}
- 	}
- 
--/* XXX Tavor device performs badly with 2K MTU! */
--if (strnicmp(ia->ri_id->device->dma_device->bus->name, "pci", 3) == 0) {
--	struct pci_dev *pcid = to_pci_dev(ia->ri_id->device->dma_device);
--	if (pcid->device == PCI_DEVICE_ID_MELLANOX_TAVOR &&
--	    (pcid->vendor == PCI_VENDOR_ID_MELLANOX ||
--	     pcid->vendor == PCI_VENDOR_ID_TOPSPIN)) {
--		struct ib_qp_attr attr = {
--			.path_mtu = IB_MTU_1024
--		};
--		rc = ib_modify_qp(ia->ri_id->qp, &attr, IB_QP_PATH_MTU);
--	}
--}
--
- 	ep->rep_connected = 0;
- 
- 	rc = rdma_connect(ia->ri_id, &ep->rep_remote_cma);
+Chuck, I assume there is a configuration which basically works for you
+and allow you to develop the upstream patches, you send, right?  can
+you send us your .config and exact NFS/rNFS options you use and works
+basically OK?
 
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
