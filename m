@@ -1,95 +1,39 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFSoRDMA developers bi-weekly meeting announcement (4/30)
-Date: Wed, 30 Apr 2014 22:16:15 -0700
-Message-ID: <5361D89F.4070503@oracle.com>
-References: <53614C03.80606@oracle.com> <CAJZOPZJioYdcbDGsk7278sZS7kD9W1dcGEGtYfsFk=Mm7DW3fQ@mail.gmail.com> <BBF761A6-2407-4457-92D5-8C2EC736BC9D@oracle.com> <CAJZOPZJgp-QdxR+PmwACWOSc4h_167J0iBjfmMrPX8sek600WA@mail.gmail.com> <536161D0.3000600@oracle.com> <30686627.1636.1398902288314.JavaMail."Doug Ledford"@Phenom>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
+Date: Thu, 1 May 2014 09:12:23 +0300
+Message-ID: <5361E5C7.5030805@mellanox.com>
+References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <53619638.48ae0e0a.2e40.ffffec09SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <30686627.1636.1398902288314.JavaMail."Doug Ledford"@Phenom>
+In-Reply-To: <53619638.48ae0e0a.2e40.ffffec09SMTPIN_ADDED_BROKEN-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: yanb <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Phil Cayton <phil.cayton-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Susan K Coulter <skc-YOWKrPYUwWM@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Allen Andrews <Allen.Andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 01/05/2014 02:28, Doug Ledford wrote:
+> This seems like driving a thumb tack with a sledge hammer.  No doubt
+> the correct path here is to get the proper flag added to verbs multicast
+> attach command.  Or, do you still have a patch that does this the
+> right way?  Did the one from 2008 do it the right way or this way?
 
-On 04/30/2014 04:58 PM, Doug Ledford wrote:
-> On 04/302014 Shirley Ma wrote:
->> On 04/30/2014 01:00 PM, Or Gerlitz wrote:
->>> On Wed, Apr 30, 2014 at 10:47 PM, Chuck Lever
->>> <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>
->>>> If I understood Yan, he is trying to use NFS/RDMA in guests
->>>> (kvm?).  We
->>>> are pretty sure that is not working at the moment,
->>> can you provide a short 1-2 liner why/what is broken there? the
->>> only
->>> thing which I can think of to be not-supported over mlx4 VFs is the
->>> proprietary FMRs, but AFAIK, the nfs-rdma code doesn't even have a
->>> mode which uses them, right?
->> I've created Xen guest on DomU. Dom0 PF works which has no mtts been
->> enabled, however DomU I hit this problem by just mounting the file
->> system:
->> mlx4_core 0000:00:04.0: Failed to allocate mtts for 66 pages(order 7)
->> mlx4_core 0000:00:04.0: Failed to allocate mtts for 4096 pages(order
->> 12)
->> mlx4_core 0000:00:04.0: Failed to allocate mtts for 4096 pages(order
->> 12)
->>
->> RDMA microbenchmark perftest works ok. I enabled mtts scripts when
->> booting the Xen guest. cat /proc/mtrr:
-> What OS/RDMA stack are you using?  I'm not familiar with any mtts
-> scripts, however I know there is an mtrr fixup script I wrote for
-> the RDMA stack in Fedora/RHEL (and so I assume it's in Oracle Linux
-> too, but I haven't checked).  In fact, I assume that's the script
-> you are referring to based on the fact that your next bit of your
-> email cats the /proc/mtrr file.  But I don't believe whether there
-> is an mtrr setting mixup or not that is should have any impact on
-> the mtts allocations in the driver.  Even if your mtrr registers
-> were set incorrectly, the problem then becomes either A) a serious
-> performance bottleneck (in the case of Intel hardware that needs
-> write combining in order to get more than about 50MByte/s of
-> throughput on their cards) or B) failed operation because MMIO
-> writes to the card are being cached/write combined when they should
-> not be.
->
-> I suspect this is more likely Xen related than mtts/mtrr related.
-Yes. That's the script I used. I wonder whether it's possible to disable 
-mtrr on DomU guest to debug this. I am new to Xen.
->> [root@ca-nfsdev1vm1 log]# cat /proc/mtrr
->> reg00: base=0x0f0000000 ( 3840MB), size=  128MB, count=1: uncachable
->> reg01: base=0x0f8000000 ( 3968MB), size=   64MB, count=1: uncachable
->>
->> lspci -v
->> 00:04.0 InfiniBand: Mellanox Technologies MT25400 Family [ConnectX-2
->> Virtual Function] (rev b0)
->>       Subsystem: Mellanox Technologies Device 61b0
->>       Physical Slot: 4
->>       Flags: bus master, fast devsel, latency 0
->>       Memory at f0000000 (64-bit, prefetchable) [size=128M]
->>       Capabilities: [60] Express Endpoint, MSI 00
->>       Capabilities: [9c] MSI-X: Enable+ Count=4 Masked-
->>       Kernel driver in use: mlx4_core
->>       Kernel modules: mlx4_core
->>
->> I will need to find another machine to try KVM guest. Yan might hit a
->> different problem.
->>
->> I have ConnectX-2, FW level is 2.11.2012. Yan has ConnectX-3, he
->> tried
->> it on KVM guest.
->>>> but that is a priority
->>>> to get fixed. Shirley has a lab set up and has been looking into
->>>> it.
->> Shirley
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
->> in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+Doug, as I commented earlier on this thread, the correct way here is to 
+carry out the task is to repeat the QP creation flags which we have in 
+the kernel verbs API for years (see 
+IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK in ib_verbs.h and usage in IPoIB) 
+for the user space verbs API. The patch I provided to Christophand CO 
+was a band-aid to bring up a whole system on upstream and mlx4 where 
+this (avoiding multicast loopback) was the only/major missing piece.
 
+The patch posted back in 2008 is proper, but it added a whole new uverb 
+call/structure, where I think we can get along here with just re-using a 
+reserved field in the existing uverbs API, see my other post on this thread.
+
+Or.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
