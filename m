@@ -1,75 +1,35 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V3 17/17] xprtrdma: Remove Tavor MTU setting
-Date: Thu, 01 May 2014 03:36:19 -0400
-Message-ID: <5361F973.20707@dev.mellanox.co.il>
-References: <20140430191433.5663.16217.stgit@manet.1015granger.net> <20140430193155.5663.86148.stgit@manet.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140430193155.5663.86148.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
+Date: Thu, 1 May 2014 09:09:44 -0500 (CDT)
+Message-ID: <alpine.DEB.2.10.1405010907570.10334@gentwo.org>
+References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <5361871e.c793420a.67de.2282SMTPIN_ADDED_BROKEN@mx.google.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5361871e.c793420a.67de.2282SMTPIN_ADDED_BROKEN-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/30/2014 3:31 PM, Chuck Lever wrote:
-> Clean up.  Remove HCA-specific clutter in xprtrdma, which is
-> supposed to be device-independent.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> 
->  net/sunrpc/xprtrdma/verbs.c |   14 --------------
->  1 files changed, 0 insertions(+), 14 deletions(-)
-> 
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 54edf2a..515dfc1 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -48,7 +48,6 @@
->   */
->  
->  #include <linux/interrupt.h>
-> -#include <linux/pci.h>	/* for Tavor hack below */
->  #include <linux/slab.h>
->  #include <asm/bitops.h>
->  
-> @@ -920,19 +919,6 @@ retry:
->  		}
->  	}
->  
-> -/* XXX Tavor device performs badly with 2K MTU! */
-> -if (strnicmp(ia->ri_id->device->dma_device->bus->name, "pci", 3) == 0) {
-> -	struct pci_dev *pcid = to_pci_dev(ia->ri_id->device->dma_device);
-> -	if (pcid->device == PCI_DEVICE_ID_MELLANOX_TAVOR &&
-> -	    (pcid->vendor == PCI_VENDOR_ID_MELLANOX ||
-> -	     pcid->vendor == PCI_VENDOR_ID_TOPSPIN)) {
-> -		struct ib_qp_attr attr = {
-> -			.path_mtu = IB_MTU_1024
-> -		};
-> -		rc = ib_modify_qp(ia->ri_id->qp, &attr, IB_QP_PATH_MTU);
+On Wed, 30 Apr 2014, Doug Ledford wrote:
 
-Note that there is OpenSM option (enable_quirks) to return 1K MTU in SA
-PathRecord responses for Tavor so that can be used for this. The default
-setting for enable_quirks is FALSE so that would need changing.
+> > Add a module param to the mlx4_ib driver which allows to force all QP
+> > attachements to be carried out with multicast loopback prevented.
+>
+> This seems like driving a thumb tack with a sledge hammer.  No doubt
+> the correct path here is to get the proper flag added to verbs multicast
+> attach command.  Or, do you still have a patch that does this the
+> right way?  Did the one from 2008 do it the right way or this way?
 
--- Hal
+This is the least invasive approach to do what we need and this approach
+has been a part of OFED for long years.
 
-> -	}
-> -}
-> -
->  	ep->rep_connected = 0;
->  
->  	rc = rdma_connect(ia->ri_id, &ep->rep_remote_cma);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+The 2008 approach would be cleaner but it depends on an infrastructure
+change. I really would like to see that patch brought up to date and
+discussed.
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
