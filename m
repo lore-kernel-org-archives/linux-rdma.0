@@ -1,108 +1,94 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
-Date: Wed, 30 Apr 2014 19:28:27 -0400 (EDT)
-Message-ID: <2728.29594691775$1398904377@news.gmane.org>
-References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSoRDMA developers bi-weekly meeting announcement (4/30)
+Date: Wed, 30 Apr 2014 22:16:15 -0700
+Message-ID: <5361D89F.4070503@oracle.com>
+References: <53614C03.80606@oracle.com> <CAJZOPZJioYdcbDGsk7278sZS7kD9W1dcGEGtYfsFk=Mm7DW3fQ@mail.gmail.com> <BBF761A6-2407-4457-92D5-8C2EC736BC9D@oracle.com> <CAJZOPZJgp-QdxR+PmwACWOSc4h_167J0iBjfmMrPX8sek600WA@mail.gmail.com> <536161D0.3000600@oracle.com> <30686627.1636.1398902288314.JavaMail."Doug Ledford"@Phenom>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.10.1404211308140.29240-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <30686627.1636.1398902288314.JavaMail."Doug Ledford"@Phenom>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: yanb <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Phil Cayton <phil.cayton-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Susan K Coulter <skc-YOWKrPYUwWM@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Allen Andrews <Allen.Andrews-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
------ Original Message -----
-> We need this option for many hosts to avoid backflow of multicast
-> packages. Could we get that merged?
-> 
-> 
-> 
-> From 18ceae090b02b3055382e11c305dcb334d938122 Mon Sep 17 00:00:00
-> 2001
-> From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date: Tue, 4 Mar 2014 17:20:00 +0200
-> Subject: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
-> 
-> Currently, there's no way for user-space applications to specify
-> the IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK QP creation flags defined
-> by commit 47ee1b9 "IB/core: Add support for multicast loopback
-> blocking".
-> 
-> As a result, applications who send and recieve on the same QP over
-> the same multicast group get all their packets bouncded back to them,
-> which is bad..
-> 
-> Add a module param to the mlx4_ib driver which allows to force all QP
-> attachements to be carried out with multicast loopback prevented.
 
-This seems like driving a thumb tack with a sledge hammer.  No doubt
-the correct path here is to get the proper flag added to verbs multicast
-attach command.  Or, do you still have a patch that does this the
-right way?  Did the one from 2008 do it the right way or this way?
-
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx4/main.c |    9 +++++++--
->  1 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/main.c
-> b/drivers/infiniband/hw/mlx4/main.c
-> index e81c554..fa01a9e 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -68,6 +68,10 @@ int mlx4_ib_sm_guid_assign = 1;
->  module_param_named(sm_guid_assign, mlx4_ib_sm_guid_assign, int,
->  0444);
->  MODULE_PARM_DESC(sm_guid_assign, "Enable SM alias_GUID assignment if
->  sm_guid_assign > 0 (Default: 1)");
-> 
-> +int mlx4_block_loopback = 0;
-> +module_param_named(block_loopback, mlx4_block_loopback, int, 0644);
-> +MODULE_PARM_DESC(block_loopback, "Always block UD multicast loopback
-> packets if > 0");
-> +
->  static const char mlx4_ib_version[] =
->  	DRV_NAME ": Mellanox ConnectX InfiniBand driver v"
->  	DRV_VERSION " (" DRV_RELDATE ")\n";
-> @@ -1163,6 +1167,8 @@ static int mlx4_ib_mcg_attach(struct ib_qp
-> *ibqp, union ib_gid *gid, u16 lid)
->  	struct mlx4_ib_steering *ib_steering = NULL;
->  	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
->  		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
-> +	int block_mcast_loopback = (!!(mqp->flags &
-> MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK)) |
-> +				   mlx4_block_loopback;
-> 
->  	if (mdev->dev->caps.steering_mode ==
->  	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
-> @@ -1172,8 +1178,7 @@ static int mlx4_ib_mcg_attach(struct ib_qp
-> *ibqp, union ib_gid *gid, u16 lid)
->  	}
-> 
->  	err = mlx4_multicast_attach(mdev->dev, &mqp->mqp, gid->raw,
->  	mqp->port,
-> -				    !!(mqp->flags &
-> -				       MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK),
-> +				    block_mcast_loopback,
->  				    prot, &reg_id);
->  	if (err)
->  		goto err_malloc;
-> --
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
+On 04/30/2014 04:58 PM, Doug Ledford wrote:
+> On 04/302014 Shirley Ma wrote:
+>> On 04/30/2014 01:00 PM, Or Gerlitz wrote:
+>>> On Wed, Apr 30, 2014 at 10:47 PM, Chuck Lever
+>>> <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>
+>>>> If I understood Yan, he is trying to use NFS/RDMA in guests
+>>>> (kvm?).  We
+>>>> are pretty sure that is not working at the moment,
+>>> can you provide a short 1-2 liner why/what is broken there? the
+>>> only
+>>> thing which I can think of to be not-supported over mlx4 VFs is the
+>>> proprietary FMRs, but AFAIK, the nfs-rdma code doesn't even have a
+>>> mode which uses them, right?
+>> I've created Xen guest on DomU. Dom0 PF works which has no mtts been
+>> enabled, however DomU I hit this problem by just mounting the file
+>> system:
+>> mlx4_core 0000:00:04.0: Failed to allocate mtts for 66 pages(order 7)
+>> mlx4_core 0000:00:04.0: Failed to allocate mtts for 4096 pages(order
+>> 12)
+>> mlx4_core 0000:00:04.0: Failed to allocate mtts for 4096 pages(order
+>> 12)
+>>
+>> RDMA microbenchmark perftest works ok. I enabled mtts scripts when
+>> booting the Xen guest. cat /proc/mtrr:
+> What OS/RDMA stack are you using?  I'm not familiar with any mtts
+> scripts, however I know there is an mtrr fixup script I wrote for
+> the RDMA stack in Fedora/RHEL (and so I assume it's in Oracle Linux
+> too, but I haven't checked).  In fact, I assume that's the script
+> you are referring to based on the fact that your next bit of your
+> email cats the /proc/mtrr file.  But I don't believe whether there
+> is an mtrr setting mixup or not that is should have any impact on
+> the mtts allocations in the driver.  Even if your mtrr registers
+> were set incorrectly, the problem then becomes either A) a serious
+> performance bottleneck (in the case of Intel hardware that needs
+> write combining in order to get more than about 50MByte/s of
+> throughput on their cards) or B) failed operation because MMIO
+> writes to the card are being cached/write combined when they should
+> not be.
+>
+> I suspect this is more likely Xen related than mtts/mtrr related.
+Yes. That's the script I used. I wonder whether it's possible to disable 
+mtrr on DomU guest to debug this. I am new to Xen.
+>> [root@ca-nfsdev1vm1 log]# cat /proc/mtrr
+>> reg00: base=0x0f0000000 ( 3840MB), size=  128MB, count=1: uncachable
+>> reg01: base=0x0f8000000 ( 3968MB), size=   64MB, count=1: uncachable
+>>
+>> lspci -v
+>> 00:04.0 InfiniBand: Mellanox Technologies MT25400 Family [ConnectX-2
+>> Virtual Function] (rev b0)
+>>       Subsystem: Mellanox Technologies Device 61b0
+>>       Physical Slot: 4
+>>       Flags: bus master, fast devsel, latency 0
+>>       Memory at f0000000 (64-bit, prefetchable) [size=128M]
+>>       Capabilities: [60] Express Endpoint, MSI 00
+>>       Capabilities: [9c] MSI-X: Enable+ Count=4 Masked-
+>>       Kernel driver in use: mlx4_core
+>>       Kernel modules: mlx4_core
+>>
+>> I will need to find another machine to try KVM guest. Yan might hit a
+>> different problem.
+>>
+>> I have ConnectX-2, FW level is 2.11.2012. Yan has ConnectX-3, he
+>> tried
+>> it on KVM guest.
+>>>> but that is a priority
+>>>> to get fixed. Shirley has a lab set up and has been looking into
+>>>> it.
+>> Shirley
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>> in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
