@@ -1,45 +1,25 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/ipath: Translate legacy diagpkt into newer extended
- diagpkt
-Date: Fri, 02 May 2014 11:40:17 -0400
-Message-ID: <20140502154017.16783.60188.stgit@phlsvslse11.ph.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] librdmacm-1.0.16
+Date: Fri, 2 May 2014 16:22:49 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373992F7D57@ORSMSX109.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A61E63@ORSMSX101.amr.corp.intel.com>
+ <CAOzFzEgkqKYcP99sGC+SP-pgS2abt1wA9dtJ7x9O99kzO31xtw@mail.gmail.com>
+ <0000013921366b36-04885b8b-c34b-4c9c-99ab-f2719d29b40d-000000@email.amazonses.com>
+ <1828884A29C6694DAF28B7E6B8A8237346A7DA40@ORSMSX101.amr.corp.intel.com>
+ <loom.20140502T092150-125@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <loom.20140502T092150-125-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parthiban <parthiban.subramanian-OjWy+7uR+EU+Va1GwOuvDg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch addresses an issue where the legacy diagpacket is sent in from the
-user, but the driver operates on only the extended diagpkt. This patch
-specifically initializes the extended diagpkt based on the legacy packet.
+> Is this feature supported yet in 1.0.18 version?
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Reported-by: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/ipath/ipath_diag.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ipath/ipath_diag.c b/drivers/infiniband/hw/ipath/ipath_diag.c
-index e2f9a51..45802e9 100644
---- a/drivers/infiniband/hw/ipath/ipath_diag.c
-+++ b/drivers/infiniband/hw/ipath/ipath_diag.c
-@@ -346,6 +346,10 @@ static ssize_t ipath_diagpkt_write(struct file *fp,
- 			ret = -EFAULT;
- 			goto bail;
- 		}
-+		dp.len = odp.len;
-+		dp.unit = odp.unit;
-+		dp.data = odp.data;
-+		dp.pbc_wd = 0;
- 	} else {
- 		ret = -EINVAL;
- 		goto bail;
-
+What, exactly, does "this" refer to?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
