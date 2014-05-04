@@ -1,15 +1,15 @@
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: [PATCH 2/4] RDMA/mlx5: add missing padding at end of struct mlx5_ib_create_srq
-Date: Sun,  4 May 2014 23:21:14 +0200
-Message-ID: <160c8353b2ae45be0eb516c638fe58c74ac9d0cb.1399216475.git.ydroneaud@opteya.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 4/4] RDMA/cxgb4: add missing padding at end of struct c4iw_alloc_ucontext_resp
+Date: Sun,  4 May 2014 23:21:16 +0200
+Message-ID: <2236129ab4aa1ad1562858f363fb6fef0d6bc93b.1399216475.git.ydroneaud@opteya.com>
 References: <cover.1399216475.git.ydroneaud@opteya.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <cover.1399216475.git.ydroneaud@opteya.com>
-In-Reply-To: <cover.1399216475.git.ydroneaud@opteya.com>
-References: <cover.1399216475.git.ydroneaud@opteya.com>
-Sender: stable-owner@vger.kernel.org
-To: Eli Cohen <eli@mellanox.com>, Roland Dreier <roland@kernel.org>
-Cc: Yann Droneaud <ydroneaud@opteya.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1399216475.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1399216475.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+References: <cover.1399216475.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 i386 ABI disagree with most other ABIs regarding alignment
@@ -17,7 +17,7 @@ of data type larger than 4 bytes: on most ABIs a padding must
 be added at end of the structures, while it is not required on
 i386.
 
-So for most ABI struct mlx5_ib_create_srq get implicitly padded
+So for most ABI struct c4iw_alloc_ucontext_resp get implicitly padded
 to be aligned on a 8 bytes multiple, while for i386, such padding
 is not added.
 
@@ -26,98 +26,101 @@ Tool pahole could be used to find such implicit padding:
   $ pahole --anon_include \
            --nested_anon_include \
            --recursive \
-           --class_name mlx5_ib_create_srq \
-           drivers/infiniband/hw/mlx5/mlx5_ib.o
+           --class_name c4iw_alloc_ucontext_resp \
+           drivers/infiniband/hw/cxgb4/iw_cxgb4.o
 
 Then, structure layout can be compared between i386 and x86_64:
 
-  +++ obj-i386/drivers/infiniband/hw/mlx5/mlx5_ib.o.pahole.txt    2014-03-28 11:43:07.386413682 +0100
-  --- obj-x86_64/drivers/infiniband/hw/mlx5/mlx5_ib.o.pahole.txt  2014-03-27 13:06:17.788472721 +0100
-  @@ -69,7 +68,6 @@ struct mlx5_ib_create_srq {
-          __u64                      db_addr;              /*     8     8 */
-          __u32                      flags;                /*    16     4 */
+  +++ obj-i386/drivers/infiniband/hw/cxgb4/iw_cxgb4.o.pahole.txt   2014-03-28 11:43:05.547432195 +0100
+  --- obj-x86_64/drivers/infiniband/hw/cxgb4/iw_cxgb4.o.pahole.txt 2014-03-28 10:55:10.990133017 +0100
+  @@ -2,9 +2,8 @@ struct c4iw_alloc_ucontext_resp {
+          __u64                      status_page_key;      /*     0     8 */
+          __u32                      status_page_size;     /*     8     4 */
 
-  -       /* size: 20, cachelines: 1, members: 3 */
-  -       /* last cacheline: 20 bytes */
-  +       /* size: 24, cachelines: 1, members: 3 */
+  -       /* size: 12, cachelines: 1, members: 2 */
+  -       /* last cacheline: 12 bytes */
+  +       /* size: 16, cachelines: 1, members: 2 */
   +       /* padding: 4 */
-  +       /* last cacheline: 24 bytes */
+  +       /* last cacheline: 16 bytes */
    };
 
-ABI disagreement will make an x86_64 kernel try to read past
-the buffer provided by an i386 binary.
+This ABI disagreement will make an x86_64 kernel try to write
+past the buffer provided by an i386 binary.
 
 When boundary check will be implemented, the x86_64 kernel will
-refuse to read past the i386 userspace provided buffer and the
-uverb will fail.
+refuse to write past the i386 userspace provided buffer
+and the uverbs will fail.
 
-Anyway, if the structure lay in memory on a page boundary and
-next page is not mapped, ib_copy_from_udata() will fail and the
-uverb will fail.
+If the structure lay in memory on a page boundary and next page
+is not mapped, ib_copy_to_udata() will fail and the uverb
+will fail.
 
-This patch makes create_srq_user() takes care of the input
-data size to handle the case where no padding was provided.
+Additionally, as reported by Dan Carpenter, without the implicit
+padding being properly cleared, an information leak would take
+place in most architectures.
 
-This way, x86_64 kernel will be able to handle struct mlx5_ib_create_srq
-as sent by unpatched and patched i386 libmlx5.
+This patch adds an explicit padding to struct c4iw_alloc_ucontext_resp,
+and, like 92b0ca7cb149 ('IB/mlx5: Fix stack info leak in
+mlx5_ib_alloc_ucontext()'), makes function c4iw_alloc_ucontext()
+not writting this padding field to userspace. This way, x86_64 kernel
+will be able to write struct c4iw_alloc_ucontext_resp as expected by
+unpatched and patched i386 libcxgb4.
 
-Link: http://marc.info/?i=cover.1399216475.git.ydroneaud@opteya.com
-Cc: stable@vger.kernel.org
-Fixes: e126ba97dba9e ('mlx5: Add driver for Mellanox Connect-IB adapter')
-Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
+Link: http://marc.info/?i=cover.1399216475.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+Link: http://marc.info/?i=1395848977.3297.15.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org
+Link: http://marc.info/?i=20140328082428.GH25192@mwanda
+Fixes: 05eb23893c2c ('cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes')
+Reported-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/srq.c  | 18 +++++++++++++++---
- drivers/infiniband/hw/mlx5/user.h |  1 +
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/cxgb4/provider.c | 8 ++++++--
+ drivers/infiniband/hw/cxgb4/user.h     | 1 +
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 210b3eaf188a..38ca52181eb6 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -35,6 +35,7 @@
- #include <linux/mlx5/srq.h>
- #include <linux/slab.h>
- #include <rdma/ib_umem.h>
-+#include <rdma/ib_user_verbs.h>
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index a94a3e12c349..9ba01d524f51 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -122,7 +122,7 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
+ 	INIT_LIST_HEAD(&context->mmaps);
+ 	spin_lock_init(&context->mmap_lock);
  
- #include "mlx5_ib.h"
- #include "user.h"
-@@ -84,10 +85,21 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	int ncont;
- 	u32 offset;
+-	if (udata->outlen < sizeof(uresp)) {
++	if (udata->outlen < sizeof(uresp) - sizeof(uresp.reserved)) {
+ 		if (!warned++)
+ 			pr_err(MOD "Warning - downlevel libcxgb4 (non-fatal), device status page disabled.");
+ 		rhp->rdev.flags |= T4_STATUS_PAGE_DISABLED;
+@@ -134,13 +134,13 @@ static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
+ 		}
  
--	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
--		mlx5_ib_dbg(dev, "failed copy udata\n");
--		return -EFAULT;
-+	if (udata->inlen - sizeof(struct ib_uverbs_cmd_hdr) < sizeof(ucmd)) {
-+		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd) - sizeof(ucmd.reserved))) {
-+			mlx5_ib_dbg(dev, "failed copy udata\n");
-+			return -EFAULT;
-+		}
-+	} else {
-+		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
-+			mlx5_ib_dbg(dev, "failed copy udata\n");
-+			return -EFAULT;
-+		}
-+
-+		if (ucmd.reserved != 0)
-+			return -EINVAL;
- 	}
-+
- 	srq->wq_sig = !!(ucmd.flags & MLX5_SRQ_FLAG_SIGNATURE);
+ 		uresp.status_page_size = PAGE_SIZE;
  
- 	srq->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr, buf_size,
-diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
-index d44ecd2c2faf..d0ba264ac1ed 100644
---- a/drivers/infiniband/hw/mlx5/user.h
-+++ b/drivers/infiniband/hw/mlx5/user.h
-@@ -110,6 +110,7 @@ struct mlx5_ib_create_srq {
- 	__u64	buf_addr;
- 	__u64	db_addr;
- 	__u32	flags;
-+	__u32	reserved; /* explicit padding (optional on i386) */
+ 		spin_lock(&context->mmap_lock);
+ 		uresp.status_page_key = context->key;
+ 		context->key += PAGE_SIZE;
+ 		spin_unlock(&context->mmap_lock);
+ 
+-		ret = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
++		ret = ib_copy_to_udata(udata, &uresp, sizeof(uresp) - sizeof(uresp.reserved));
+ 		if (ret)
+ 			goto err_mm;
+ 
+diff --git a/drivers/infiniband/hw/cxgb4/user.h b/drivers/infiniband/hw/cxgb4/user.h
+index 9b7534b5f07d..cbd0ce170728 100644
+--- a/drivers/infiniband/hw/cxgb4/user.h
++++ b/drivers/infiniband/hw/cxgb4/user.h
+@@ -75,5 +75,6 @@ struct c4iw_create_qp_resp {
+ struct c4iw_alloc_ucontext_resp {
+ 	__u64 status_page_key;
+ 	__u32 status_page_size;
++	__u32 reserved; /* explicit padding (optional for i386) */
  };
- 
- struct mlx5_ib_create_srq_resp {
+ #endif
 -- 
 1.9.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
