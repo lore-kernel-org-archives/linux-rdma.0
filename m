@@ -1,42 +1,55 @@
-From: "Subramanian, Parthiban" <Parthiban.Subramanian-OjWy+7uR+EU+Va1GwOuvDg@public.gmane.org>
-Subject: RE: [ANNOUNCE] librdmacm-1.0.16
-Date: Sun, 4 May 2014 16:04:25 +0000
-Message-ID: <e1cd3a7693244e95ba082dd961b79ccb@SN2PR03MB048.namprd03.prod.outlook.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A61E63@ORSMSX101.amr.corp.intel.com>
- <CAOzFzEgkqKYcP99sGC+SP-pgS2abt1wA9dtJ7x9O99kzO31xtw@mail.gmail.com>
- <0000013921366b36-04885b8b-c34b-4c9c-99ab-f2719d29b40d-000000@email.amazonses.com>
- <1828884A29C6694DAF28B7E6B8A8237346A7DA40@ORSMSX101.amr.corp.intel.com>
- <loom.20140502T092150-125@post.gmane.org>
- <1828884A29C6694DAF28B7E6B8A82373992F7D57@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for v3.15 0/4] uverbs ABI fixes
+Date: Sun,  4 May 2014 23:21:12 +0200
+Message-ID: <cover.1399216475.git.ydroneaud@opteya.com>
+References: <1394814128-8815-1-git-send-email-hariprasad@chelsio.com> <1394814128-8815-3-git-send-email-hariprasad@chelsio.com> <1395848977.3297.15.camel@localhost.localdomain> <007101cf490c$3ec7cb30$bc576190$@opengridcomputing.com> <1394814128-8815-1-git-send-email-hariprasad@chelsio.com> <1394814128-8815-3-git-send-email-hariprasad@chelsio.com> <1395848977.3297.15.camel@localhost.localdomain> <20140328082428.GH25192@mwanda> <1396002468.3297.63.camel@localhost.localdomain> <20140502235616.GJ4963@mwanda>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373992F7D57-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
+Hi,
 
-Apologies for that. I was actually referring to the thread for supporting SOCK_DGRAM through rsocket. 
-http://comments.gmane.org/gmane.linux.drivers.rdma/12545
+Please find 4 patches which fix some issues regarding missing explicit
+padding at end of structure exchanged between kernel and userspace.
 
-Can you please let me know is UDP multicast supported through rsocket?
+These makes i386 userspace libraries and x86_64 kernel disagree about
+the size of the structures.
 
-Thanks,
-Parthiban
+Additionally, as reported by Dan Carpenter, in one case, stack information
+can be leaked by the kernel to userspace due to implicit padding being not
+initialized.
 
------Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Friday, May 02, 2014 9:53 PM
-To: Subramanian, Parthiban; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: RE: [ANNOUNCE] librdmacm-1.0.16
+Unfortunately, the data structure cannot be fixed alone as it would break
+existing applications. So in order to remain compatible with i386 libraries,
+providers (hw) functions are modified to use the input length to guess the
+expected format of the command in order to check the content of the reserved
+field for future usage. Other are modified to not write the padding field in
+response to make the kernel able to handle gracefully i386 userspace on x86_64.
 
-> Is this feature supported yet in 1.0.18 version?
+For full coherency, patches against the userspace libraries (libcxgb4 and
+libmlx5) will be submitted as a followup to update the data structure on
+userspace side.
 
-What, exactly, does "this" refer to?
+Yann Droneaud (4):
+  RDMA/mlx5: add missing padding at end of struct mlx5_ib_create_cq
+  RDMA/mlx5: add missing padding at end of struct mlx5_ib_create_srq
+  RDMA/cxgb4: add missing padding at end of struct c4iw_create_cq_resp
+  RDMA/cxgb4: add missing padding at end of struct
+    c4iw_alloc_ucontext_resp
+
+ drivers/infiniband/hw/cxgb4/cq.c       |  8 ++++++--
+ drivers/infiniband/hw/cxgb4/provider.c |  8 ++++++--
+ drivers/infiniband/hw/cxgb4/user.h     |  2 ++
+ drivers/infiniband/hw/mlx5/cq.c        | 13 +++++++++++--
+ drivers/infiniband/hw/mlx5/srq.c       | 18 +++++++++++++++---
+ drivers/infiniband/hw/mlx5/user.h      |  2 ++
+ 6 files changed, 42 insertions(+), 9 deletions(-)
+
+-- 
+1.9.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
