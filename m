@@ -1,30 +1,86 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
-Date: Mon, 5 May 2014 17:54:55 -0500 (CDT)
-Message-ID: <alpine.DEB.2.10.1405051754260.5069@gentwo.org>
-References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <53619638.48ae0e0a.2e40.ffffec09SMTPIN_ADDED_BROKEN@mx.google.com> <5361E5C7.5030805@mellanox.com> <1980561.1785.1398958457283.JavaMail."DougALedford"@Phenom>
- <1828884A29C6694DAF28B7E6B8A82373992F869F@ORSMSX109.amr.corp.intel.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] libibumad: add new registration ioctl
+Date: Mon, 5 May 2014 13:20:59 -0600
+Message-ID: <20140505192059.GC5743@obsidianresearch.com>
+References: <1399153023-25755-1-git-send-email-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373992F869F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1399153023-25755-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-??
+On Sat, May 03, 2014 at 05:37:03PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> This supports the new registration ioctl which the kernel is exporting.
+> Specifically this adds flags to the registration operation.  The first such
+> flag is to request user space RMPP.  Thus turning off kernel based RMPP
+> coalescing.
 
-On Mon, 5 May 2014, Hefty, Sean wrote:
+Did the kernel side get posted?
 
-> PiBJJ20gY3VyaW91cyB3aHkgdGhpcyBpcyBkb25lIGF0IFFQIGNyZWF0aW9uIHRpbWUuICBTaG91
-> bGQgdGhpcyBub3QNCj4gYmUgZG9uZSBhdCBtdWx0aWNhc3Qgam9pbiB0aW1lPyAgQSBzaW5nbGUg
-> UVAgY2FuIGJlIGEgbWVtYmVyIG9mIG1vcmUNCj4gdGhhbiBvbmUgTUMgZ3JvdXAsIHdvdWxkIGl0
-> IG5vdCBzZWVtIG1vcmUgY29ycmVjdCB0byB5b3UgdGhhdCB0aGUNCj4gbG9vcGJhY2sgc2hvdWxk
-> IGJlIHNwZWNpZmllZCBvbiBhIHBlciBncm91cCBiYXNpcyBhbmQgbm90IGEgcGVyIFFQDQo+IGJh
-> c2lzPw0KDQpJIGFncmVlIHdpdGggRG91ZyBoZXJlLiAgVGhpcyBtYWtlcyBtb3JlIHNlbnNlIHRv
-> IHNwZWNpZnkgb24gbXVsdGljYXN0IGF0dGFjaCB0aW1lLCBub3QgUVAgY3JlYXRpb24gdGltZS4g
-> DQo=
->
+> +struct umad_reg_attr {
+> +	uint16_t   struct_version;
+> +	uint8_t    mgmt_class;
+> +	uint8_t    mgmt_class_version;
+> +	uint32_t   flags;
+> +	uint64_t   method_mask[2];
+> +	uint8_t    oui[3]; /* network order */
+
+Seems like oui should just be a uint32_t in host order, doesn't make
+alot of API sense to burden callers with that detail.
+
+> +	uint8_t    rmpp_version;
+> +};
+> +int umad_register2(int port_fd, struct umad_reg_attr *attr,
+> +		   uint32_t *agent_id);
+
+verbs has been moving to using sizeof(struct umad_reg_attr) not a
+'struct_version', it would be nice to be consistent.
+
+> +
+> +
+>  int umad_debug(int level);
+>  void umad_addr_dump(ib_mad_addr_t * addr);
+>  void umad_dump(void *umad);
+> diff --git a/man/umad_register2.3 b/man/umad_register2.3
+> new file mode 100644
+> index 0000000..9086bb3
+> +++ b/man/umad_register2.3
+> @@ -0,0 +1,77 @@
+> +.\" -*- nroff -*-
+> +.\"
+> +.TH UMAD_REGISTER2 3  "March 25, 2014" "OpenIB" "OpenIB Programmer\'s Manual"
+> +.SH "NAME"
+> +umad_register2 \- register the specified management class and version for port
+> +.SH "SYNOPSIS"
+> +.nf
+> +.B #include <infiniband/umad.h>
+> +.sp
+> +.BI "int umad_register2(int " "port_fd" ", struct umad_reg_attr *" "attr" ", uint32_t *" "agent_id");
+> +.fi
+> +.SH "DESCRIPTION"
+> +.B umad_register2()
+> +registers for a MAD agent using the provided registration attributes
+> +
+> +.I port_fd\fR
+> +the port on which to register the agent
+> +
+> +.I attr\fR
+> +The registration attributes as defined by the structure passed.  See below for
+> +details of this structure.  Future structures may be defined.
+> +
+> +.I agent_id\fR
+> +returned on success.
+
+The man page should describe what agent_id should be used for.. (I
+expect it is the argument passed to umad_unregister?)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
