@@ -1,34 +1,30 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 4/4] RDMA/cxgb4: add missing padding at end of struct c4iw_alloc_ucontext_resp
-Date: Mon, 5 May 2014 12:01:40 -0500
-Message-ID: <006e01cf6883$af467af0$0dd370d0$@opengridcomputing.com>
-References: <cover.1399216475.git.ydroneaud@opteya.com>	 <2236129ab4aa1ad1562858f363fb6fef0d6bc93b.1399216475.git.ydroneaud@opteya.com>	 <005401cf6873$9216f6e0$b644e4a0$@opengridcomputing.com> <1399309159.2957.19.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
+Date: Mon, 5 May 2014 17:54:55 -0500 (CDT)
+Message-ID: <alpine.DEB.2.10.1405051754260.5069@gentwo.org>
+References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <53619638.48ae0e0a.2e40.ffffec09SMTPIN_ADDED_BROKEN@mx.google.com> <5361E5C7.5030805@mellanox.com> <1980561.1785.1398958457283.JavaMail."DougALedford"@Phenom>
+ <1828884A29C6694DAF28B7E6B8A82373992F869F@ORSMSX109.amr.corp.intel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399309159.2957.19.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373992F869F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Yann Droneaud' <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > This chunk doesn't apply.  Not sure why.  I can use -F 6 with patch, but it should apply
-> > cleanly. Can you please respin this against 89ca3b8 Linux 3.15-rc4?
-> >
-> 
-> I've hand-edited it before sending, but I've tested it with git am
-> against linux-next (as of today).
-> 
-> Anyway, I'm rolling an updated patchset. Sorry for the inconvenience.
+??
+
+On Mon, 5 May 2014, Hefty, Sean wrote:
+
+> PiBJJ20gY3VyaW91cyB3aHkgdGhpcyBpcyBkb25lIGF0IFFQIGNyZWF0aW9uIHRpbWUuICBTaG91
+> bGQgdGhpcyBub3QNCj4gYmUgZG9uZSBhdCBtdWx0aWNhc3Qgam9pbiB0aW1lPyAgQSBzaW5nbGUg
+> UVAgY2FuIGJlIGEgbWVtYmVyIG9mIG1vcmUNCj4gdGhhbiBvbmUgTUMgZ3JvdXAsIHdvdWxkIGl0
+> IG5vdCBzZWVtIG1vcmUgY29ycmVjdCB0byB5b3UgdGhhdCB0aGUNCj4gbG9vcGJhY2sgc2hvdWxk
+> IGJlIHNwZWNpZmllZCBvbiBhIHBlciBncm91cCBiYXNpcyBhbmQgbm90IGEgcGVyIFFQDQo+IGJh
+> c2lzPw0KDQpJIGFncmVlIHdpdGggRG91ZyBoZXJlLiAgVGhpcyBtYWtlcyBtb3JlIHNlbnNlIHRv
+> IHNwZWNpZnkgb24gbXVsdGljYXN0IGF0dGFjaCB0aW1lLCBub3QgUVAgY3JlYXRpb24gdGltZS4g
+> DQo=
 >
-
-No problem.  I hand applied it and tested these 2 + the libcxgb4 changes and they seem to work fine.  
- 
-Steve.
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
