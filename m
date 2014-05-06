@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 5/9] IB/srp: Introduce srp_finish_mapping()
-Date: Tue, 06 May 2014 14:53:44 +0200
-Message-ID: <5368DB58.6070502@acm.org>
+Subject: [PATCH 3/9] IB/srp: Introduce srp_alloc_fmr_pool()
+Date: Tue, 06 May 2014 14:52:21 +0200
+Message-ID: <5368DB05.4070600@acm.org>
 References: <5368DA5B.80609@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,7 +13,9 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch does not change any functionality.
+Introduce the srp_alloc_fmr_pool() function. Only set
+srp_dev->fmr_max_size if FMR pool creation succeeded. This change is
+safe since that variable is only used if FMR pool creation succeeded.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
@@ -22,74 +24,95 @@ Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 37 +++++++++++++++++++++++++------------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 56 ++++++++++++++++++++++---------------
+ 1 file changed, 33 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 5fb607b..ba434d6 100644
+index 8c03371..f41cc8c 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -935,16 +935,6 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
- 	struct ib_pool_fmr *fmr;
- 	u64 io_addr = 0;
- 
--	if (!state->npages)
--		return 0;
--
--	if (state->npages == 1) {
--		srp_map_desc(state, state->base_dma_addr, state->fmr_len,
--			     target->rkey);
--		state->npages = state->fmr_len = 0;
--		return 0;
--	}
--
- 	fmr = ib_fmr_pool_map_phys(dev->fmr_pool, state->pages,
- 				   state->npages, io_addr);
- 	if (IS_ERR(fmr))
-@@ -954,10 +944,33 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
- 	state->nfmr++;
- 
- 	srp_map_desc(state, 0, state->fmr_len, fmr->fmr->rkey);
--	state->npages = state->fmr_len = 0;
-+
- 	return 0;
+@@ -2792,13 +2792,43 @@ free_host:
+ 	return NULL;
  }
  
-+static int srp_finish_mapping(struct srp_map_state *state,
-+			      struct srp_target_port *target)
++static void srp_alloc_fmr_pool(struct srp_device *srp_dev)
 +{
-+	int ret = 0;
++	int max_pages_per_mr;
++	struct ib_fmr_pool_param fmr_param;
++	struct ib_fmr_pool *pool;
 +
-+	if (state->npages == 0)
-+		return 0;
++	srp_dev->fmr_pool = NULL;
 +
-+	if (state->npages == 1) {
-+		srp_map_desc(state, state->base_dma_addr, state->fmr_len,
-+			     target->rkey);
-+	} else {
-+		ret = srp_map_finish_fmr(state, target);
++	for (max_pages_per_mr = SRP_FMR_SIZE;
++	     max_pages_per_mr >= SRP_FMR_MIN_SIZE;
++	     max_pages_per_mr /= 2) {
++		memset(&fmr_param, 0, sizeof(fmr_param));
++		fmr_param.pool_size	    = SRP_FMR_POOL_SIZE;
++		fmr_param.dirty_watermark   = SRP_FMR_DIRTY_SIZE;
++		fmr_param.cache		    = 1;
++		fmr_param.max_pages_per_fmr = max_pages_per_mr;
++		fmr_param.page_shift	    = ilog2(srp_dev->fmr_page_size);
++		fmr_param.access	    = (IB_ACCESS_LOCAL_WRITE |
++					       IB_ACCESS_REMOTE_WRITE |
++					       IB_ACCESS_REMOTE_READ);
++
++		pool = ib_create_fmr_pool(srp_dev->pd, &fmr_param);
++		if (!IS_ERR(pool)) {
++			srp_dev->fmr_pool = pool;
++			srp_dev->fmr_max_size =
++				srp_dev->fmr_page_size * max_pages_per_mr;
++			break;
++		}
 +	}
-+
-+	if (ret == 0) {
-+		state->npages = 0;
-+		state->fmr_len = 0;
-+	}
-+
-+	return ret;
 +}
 +
- static void srp_map_update_start(struct srp_map_state *state,
- 				 struct scatterlist *sg, int sg_index,
- 				 dma_addr_t dma_addr)
-@@ -998,7 +1011,7 @@ static int srp_map_sg_entry(struct srp_map_state *state,
- 	 * avoided using FMR on such page fragments.
- 	 */
- 	if (dma_addr & ~dev->fmr_page_mask || dma_len > dev->fmr_max_size) {
--		ret = srp_map_finish_fmr(state, target);
-+		ret = srp_finish_mapping(state, target);
- 		if (ret)
- 			return ret;
+ static void srp_add_one(struct ib_device *device)
+ {
+ 	struct srp_device *srp_dev;
+ 	struct ib_device_attr *dev_attr;
+-	struct ib_fmr_pool_param fmr_param;
+ 	struct srp_host *host;
+-	int max_pages_per_fmr, fmr_page_shift, s, e, p;
++	int fmr_page_shift, s, e, p;
  
+ 	dev_attr = kmalloc(sizeof *dev_attr, GFP_KERNEL);
+ 	if (!dev_attr)
+@@ -2821,7 +2851,6 @@ static void srp_add_one(struct ib_device *device)
+ 	fmr_page_shift		= max(12, ffs(dev_attr->page_size_cap) - 1);
+ 	srp_dev->fmr_page_size	= 1 << fmr_page_shift;
+ 	srp_dev->fmr_page_mask	= ~((u64) srp_dev->fmr_page_size - 1);
+-	srp_dev->fmr_max_size	= srp_dev->fmr_page_size * SRP_FMR_SIZE;
+ 
+ 	INIT_LIST_HEAD(&srp_dev->dev_list);
+ 
+@@ -2837,26 +2866,7 @@ static void srp_add_one(struct ib_device *device)
+ 	if (IS_ERR(srp_dev->mr))
+ 		goto err_pd;
+ 
+-	for (max_pages_per_fmr = SRP_FMR_SIZE;
+-			max_pages_per_fmr >= SRP_FMR_MIN_SIZE;
+-			max_pages_per_fmr /= 2, srp_dev->fmr_max_size /= 2) {
+-		memset(&fmr_param, 0, sizeof fmr_param);
+-		fmr_param.pool_size	    = SRP_FMR_POOL_SIZE;
+-		fmr_param.dirty_watermark   = SRP_FMR_DIRTY_SIZE;
+-		fmr_param.cache		    = 1;
+-		fmr_param.max_pages_per_fmr = max_pages_per_fmr;
+-		fmr_param.page_shift	    = fmr_page_shift;
+-		fmr_param.access	    = (IB_ACCESS_LOCAL_WRITE |
+-					       IB_ACCESS_REMOTE_WRITE |
+-					       IB_ACCESS_REMOTE_READ);
+-
+-		srp_dev->fmr_pool = ib_create_fmr_pool(srp_dev->pd, &fmr_param);
+-		if (!IS_ERR(srp_dev->fmr_pool))
+-			break;
+-	}
+-
+-	if (IS_ERR(srp_dev->fmr_pool))
+-		srp_dev->fmr_pool = NULL;
++	srp_alloc_fmr_pool(srp_dev);
+ 
+ 	if (device->node_type == RDMA_NODE_IB_SWITCH) {
+ 		s = 0;
 -- 
 1.8.4.5
 
