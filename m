@@ -1,31 +1,57 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 2/5] ib/mad: update module to pr_* style print messages
-Date: Mon, 5 May 2014 20:53:56 -0600
-Message-ID: <20140506025356.GB2307@obsidianresearch.com>
-References: <1399340690-27677-1-git-send-email-ira.weiny@intel.com>
- <1399340690-27677-3-git-send-email-ira.weiny@intel.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH V2 RFC 0/3] svcrdma: refactor marshalling logic
+Date: Tue, 06 May 2014 12:46:21 -0500
+Message-ID: <20140506174621.18208.24242.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1399340690-27677-3-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 05, 2014 at 09:44:47PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Also combine previously line broken user-visible strings as per
-> Documentation/CodingStyle
+This patch series refactors the NFSRDMA server marshalling logic to
+remove the intermediary map structures.  It also fixes an existing bug
+where the NFSRDMA server was not minding the device fast register page
+list length limitations.
 
-These seem like nice cleanups, however it would be much nicer to use
-the dev_* versions when a struct device is available, I think many of
-these cases can reach the /dev/umadX struct device..
+I've also made a git repo available with these patches on top of 3.15-rc4:
 
-Jason
+git://git.openfabrics.org/~swise/linux svcrdma-refactor
+
+Changes since V1:
+
+- fixed regression for devices that don't support FRMRs (see
+  rdma_read_chunk_lcl())
+
+- split patch up for closer review.  However I request it be squashed
+  before merging as they is not bisectable, and I think these changes
+  should all be a single commit anyway.
+
+Please review, and test if you can.
+
+Signed-off-by: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+---
+
+Tom Tucker (3):
+      svcrdma: Sendto changes
+      svcrdma: Recvfrom changes
+      svcrdma: Transport and header file changes
+
+
+ include/linux/sunrpc/svc_rdma.h          |    3 
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  633 ++++++++++++------------------
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |  230 +----------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   62 ++-
+ 4 files changed, 318 insertions(+), 610 deletions(-)
+
+-- 
+
+Steve / Tom
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
