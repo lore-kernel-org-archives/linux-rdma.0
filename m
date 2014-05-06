@@ -1,73 +1,34 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 2/9] IB/srp: Introduce an additional local variable
-Date: Tue, 06 May 2014 14:51:43 +0200
-Message-ID: <5368DADF.2070105@acm.org>
-References: <5368DA5B.80609@acm.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 3/5] ib/mad: Add pr_notice messages for various
+ umad/mad registration failures
+Date: Mon, 5 May 2014 20:57:14 -0600
+Message-ID: <20140506025714.GC2307@obsidianresearch.com>
+References: <1399340690-27677-1-git-send-email-ira.weiny@intel.com>
+ <1399340690-27677-4-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5368DA5B.80609-HInyCGIudOg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1399340690-27677-4-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch does not change any functionality.
+On Mon, May 05, 2014 at 09:44:48PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+An empty commit message is not good enough for the mainline kernel,
+please describe motivation at least.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index cf80f7a..8c03371 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -290,6 +290,7 @@ static int srp_new_cm_id(struct srp_target_port *target)
- 
- static int srp_create_target_ib(struct srp_target_port *target)
- {
-+	struct srp_device *dev = target->srp_host->srp_dev;
- 	struct ib_qp_init_attr *init_attr;
- 	struct ib_cq *recv_cq, *send_cq;
- 	struct ib_qp *qp;
-@@ -299,16 +300,14 @@ static int srp_create_target_ib(struct srp_target_port *target)
- 	if (!init_attr)
- 		return -ENOMEM;
- 
--	recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
--			       srp_recv_completion, NULL, target,
-+	recv_cq = ib_create_cq(dev->dev, srp_recv_completion, NULL, target,
- 			       target->queue_size, target->comp_vector);
- 	if (IS_ERR(recv_cq)) {
- 		ret = PTR_ERR(recv_cq);
- 		goto err;
- 	}
- 
--	send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
--			       srp_send_completion, NULL, target,
-+	send_cq = ib_create_cq(dev->dev, srp_send_completion, NULL, target,
- 			       target->queue_size, target->comp_vector);
- 	if (IS_ERR(send_cq)) {
- 		ret = PTR_ERR(send_cq);
-@@ -327,7 +326,7 @@ static int srp_create_target_ib(struct srp_target_port *target)
- 	init_attr->send_cq             = send_cq;
- 	init_attr->recv_cq             = recv_cq;
- 
--	qp = ib_create_qp(target->srp_host->srp_dev->pd, init_attr);
-+	qp = ib_create_qp(dev->pd, init_attr);
- 	if (IS_ERR(qp)) {
- 		ret = PTR_ERR(qp);
- 		goto err_send_cq;
--- 
-1.8.4.5
+I am worried about log DOS potential here, it looks like many of these
+messages could be triggered by userspace? Have you thought about this?
 
+Generally moving this stuff to a pr_debug might be more appropriate,
+it is very unusual to have logging like this for malformed syscall
+arguments.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
