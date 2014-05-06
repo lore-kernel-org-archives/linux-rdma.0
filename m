@@ -1,28 +1,204 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
-Date: Tue, 6 May 2014 14:16:15 -0500 (CDT)
-Message-ID: <alpine.DEB.2.10.1405061414460.4548@gentwo.org>
-References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <53619638.48ae0e0a.2e40.ffffec09SMTPIN_ADDED_BROKEN@mx.google.com> <5361E5C7.5030805@mellanox.com> <1980561.1785.1398958457283.JavaMail."DougALedford"@Phenom> <1828884A29C6694DAF28B7E6B8A82373992F869F@ORSMSX109.amr.corp.intel.com>
- <alpine.DEB.2.10.1405051754260.5069@gentwo.org> <1828884A29C6694DAF28B7E6B8A82373992F899C@ORSMSX109.amr.corp.intel.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373992F899C-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH V2 RFC 1/3] svcrdma: Transport and header file changes
+Date: Tue, 6 May 2014 15:21:57 -0400
+Message-ID: <20140506192157.GJ18281@fieldses.org>
+References: <20140506174621.18208.24242.stgit@build.ogc.int>
+ <20140506174626.18208.95519.stgit@build.ogc.int>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140506174626.18208.95519.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 5 May 2014, Hefty, Sean wrote:
+On Tue, May 06, 2014 at 12:46:27PM -0500, Steve Wise wrote:
+> From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> 
+> Change poll logic to grab up to 6 completions at a time.
+> 
+> RDMA write and send completions no longer deal with fastreg objects.
+> 
+> Set SVCRDMA_DEVCAP_FAST_REG and allocate a dma_mr based on the device
+> capabilities.
+> 
+> Signed-off-by: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+> 
+>  include/linux/sunrpc/svc_rdma.h          |    3 -
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c |   62 +++++++++++++++++-------------
+>  2 files changed, 37 insertions(+), 28 deletions(-)
+> 
+> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+> index 0b8e3e6..5cf99a0 100644
+> --- a/include/linux/sunrpc/svc_rdma.h
+> +++ b/include/linux/sunrpc/svc_rdma.h
+> @@ -115,14 +115,13 @@ struct svc_rdma_fastreg_mr {
+>  	struct list_head frmr_list;
+>  };
+>  struct svc_rdma_req_map {
+> -	struct svc_rdma_fastreg_mr *frmr;
+>  	unsigned long count;
+>  	union {
+>  		struct kvec sge[RPCSVC_MAXPAGES];
+>  		struct svc_rdma_chunk_sge ch[RPCSVC_MAXPAGES];
+> +		unsigned long lkey[RPCSVC_MAXPAGES];
+>  	};
+>  };
+> -#define RDMACTXT_F_FAST_UNREG	1
+>  #define RDMACTXT_F_LAST_CTXT	2
+>  
+>  #define	SVCRDMA_DEVCAP_FAST_REG		1	/* fast mr registration */
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> index 25688fa..2c5b201 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -1,4 +1,5 @@
+>  /*
+> + * Copyright (c) 2014 Open Grid Computing, Inc. All rights reserved.
+>   * Copyright (c) 2005-2007 Network Appliance, Inc. All rights reserved.
+>   *
+>   * This software is available to you under a choice of one of two
+> @@ -160,7 +161,6 @@ struct svc_rdma_req_map *svc_rdma_get_req_map(void)
+>  		schedule_timeout_uninterruptible(msecs_to_jiffies(500));
+>  	}
+>  	map->count = 0;
+> -	map->frmr = NULL;
+>  	return map;
+>  }
+>  
+> @@ -336,22 +336,21 @@ static void process_context(struct svcxprt_rdma *xprt,
+>  
+>  	switch (ctxt->wr_op) {
+>  	case IB_WR_SEND:
+> -		if (test_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags))
+> -			svc_rdma_put_frmr(xprt, ctxt->frmr);
+> +		BUG_ON(ctxt->frmr);
+>  		svc_rdma_put_context(ctxt, 1);
+>  		break;
+>  
+>  	case IB_WR_RDMA_WRITE:
+> +		BUG_ON(ctxt->frmr);
+>  		svc_rdma_put_context(ctxt, 0);
+>  		break;
+>  
+>  	case IB_WR_RDMA_READ:
+>  	case IB_WR_RDMA_READ_WITH_INV:
+> +		svc_rdma_put_frmr(xprt, ctxt->frmr);
+>  		if (test_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags)) {
+>  			struct svc_rdma_op_ctxt *read_hdr = ctxt->read_hdr;
+>  			BUG_ON(!read_hdr);
+> -			if (test_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags))
+> -				svc_rdma_put_frmr(xprt, ctxt->frmr);
+>  			spin_lock_bh(&xprt->sc_rq_dto_lock);
+>  			set_bit(XPT_DATA, &xprt->sc_xprt.xpt_flags);
+>  			list_add_tail(&read_hdr->dto_q,
+> @@ -363,6 +362,7 @@ static void process_context(struct svcxprt_rdma *xprt,
+>  		break;
+>  
+>  	default:
+> +		BUG_ON(1);
+>  		printk(KERN_ERR "svcrdma: unexpected completion type, "
+>  		       "opcode=%d\n",
+>  		       ctxt->wr_op);
 
-> I agree with Doug here.  This makes more sense to specify on multicast atta=
-> ch time, not QP creation time.
+Note the printk's unreachable now.  Should some of these BUG_ON()'s be
+WARN_ON()'s?
 
-On topic response: Do devices support multicast loopback blocking on a
-multicast group? From what I can tell the multicast support in NICs is
-based on having a table with MAC addresses of the multicast groups that
-the NIC is able to receive.
+> @@ -378,29 +378,42 @@ static void process_context(struct svcxprt_rdma *xprt,
+>  static void sq_cq_reap(struct svcxprt_rdma *xprt)
+>  {
+>  	struct svc_rdma_op_ctxt *ctxt = NULL;
+> -	struct ib_wc wc;
+> +	struct ib_wc wc_a[6];
+> +	struct ib_wc *wc;
+>  	struct ib_cq *cq = xprt->sc_sq_cq;
+>  	int ret;
 
+May want to keep an eye on the stack usage here?
+
+--b.
+
+>  
+> +	memset(wc_a, 0, sizeof(wc_a));
+> +
+>  	if (!test_and_clear_bit(RDMAXPRT_SQ_PENDING, &xprt->sc_flags))
+>  		return;
+>  
+>  	ib_req_notify_cq(xprt->sc_sq_cq, IB_CQ_NEXT_COMP);
+>  	atomic_inc(&rdma_stat_sq_poll);
+> -	while ((ret = ib_poll_cq(cq, 1, &wc)) > 0) {
+> -		if (wc.status != IB_WC_SUCCESS)
+> -			/* Close the transport */
+> -			set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+> +	while ((ret = ib_poll_cq(cq, ARRAY_SIZE(wc_a), wc_a)) > 0) {
+> +		int i;
+>  
+> -		/* Decrement used SQ WR count */
+> -		atomic_dec(&xprt->sc_sq_count);
+> -		wake_up(&xprt->sc_send_wait);
+> +		for (i = 0; i < ret; i++) {
+> +			wc = &wc_a[i];
+> +			if (wc->status != IB_WC_SUCCESS) {
+> +				dprintk("svcrdma: sq wc err status %d\n",
+> +					wc->status);
+>  
+> -		ctxt = (struct svc_rdma_op_ctxt *)(unsigned long)wc.wr_id;
+> -		if (ctxt)
+> -			process_context(xprt, ctxt);
+> +				/* Close the transport */
+> +				set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+> +			}
+>  
+> -		svc_xprt_put(&xprt->sc_xprt);
+> +			/* Decrement used SQ WR count */
+> +			atomic_dec(&xprt->sc_sq_count);
+> +			wake_up(&xprt->sc_send_wait);
+> +
+> +			ctxt = (struct svc_rdma_op_ctxt *)
+> +				(unsigned long)wc->wr_id;
+> +			if (ctxt)
+> +				process_context(xprt, ctxt);
+> +
+> +			svc_xprt_put(&xprt->sc_xprt);
+> +		}
+>  	}
+>  
+>  	if (ctxt)
+> @@ -993,7 +1006,11 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+>  			need_dma_mr = 0;
+>  		break;
+>  	case RDMA_TRANSPORT_IB:
+> -		if (!(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
+> +		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
+> +			need_dma_mr = 1;
+> +			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+> +		} else if (!(devattr.device_cap_flags &
+> +			     IB_DEVICE_LOCAL_DMA_LKEY)) {
+>  			need_dma_mr = 1;
+>  			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+>  		} else
+> @@ -1190,14 +1207,7 @@ static int svc_rdma_has_wspace(struct svc_xprt *xprt)
+>  		container_of(xprt, struct svcxprt_rdma, sc_xprt);
+>  
+>  	/*
+> -	 * If there are fewer SQ WR available than required to send a
+> -	 * simple response, return false.
+> -	 */
+> -	if ((rdma->sc_sq_depth - atomic_read(&rdma->sc_sq_count) < 3))
+> -		return 0;
+> -
+> -	/*
+> -	 * ...or there are already waiters on the SQ,
+> +	 * If there are already waiters on the SQ,
+>  	 * return false.
+>  	 */
+>  	if (waitqueue_active(&rdma->sc_send_wait))
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
