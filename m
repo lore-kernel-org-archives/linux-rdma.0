@@ -1,138 +1,101 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 6/9] IB/srp: Make srp_alloc_req_data() reallocate request
- data
-Date: Tue, 06 May 2014 14:54:40 +0200
-Message-ID: <5368DB90.9050209@acm.org>
-References: <5368DA5B.80609@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 1/5] ib/umad: update module to pr_* style print messages
+Date: Mon,  5 May 2014 21:44:46 -0400
+Message-ID: <1399340690-27677-2-git-send-email-ira.weiny@intel.com>
+References: <1399340690-27677-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5368DA5B.80609-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1399340690-27677-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is needed by the patch that adds fast registration support.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Also combine previously line broken user-visible strings as per
+Documentation/CodingStyle
+
+"However, never break user-visible strings such as printk messages, because
+that breaks the ability to grep for them."
+
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 41 ++++++++++++++++++++++++-------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/user_mad.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index ba434d6..1c4b0d3 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -574,17 +574,18 @@ static void srp_disconnect_target(struct srp_target_port *target)
- 	}
- }
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index f0d588f..0df292a 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -33,6 +33,8 @@
+  * SOFTWARE.
+  */
  
--static void srp_free_req_data(struct srp_target_port *target)
-+static void srp_free_req_data(struct srp_target_port *target,
-+			      struct srp_request *req_ring)
- {
- 	struct ib_device *ibdev = target->srp_host->srp_dev->dev;
- 	struct srp_request *req;
- 	int i;
- 
--	if (!target->req_ring)
-+	if (!req_ring)
- 		return;
- 
- 	for (i = 0; i < target->req_ring_size; ++i) {
--		req = &target->req_ring[i];
-+		req = &req_ring[i];
- 		kfree(req->fmr_list);
- 		kfree(req->map_page);
- 		if (req->indirect_dma_addr) {
-@@ -595,27 +596,34 @@ static void srp_free_req_data(struct srp_target_port *target)
- 		kfree(req->indirect_desc);
- 	}
- 
--	kfree(target->req_ring);
--	target->req_ring = NULL;
-+	kfree(req_ring);
- }
- 
-+/**
-+ * srp_alloc_req_data() - allocate or reallocate request data
-+ * @target: SRP target port.
-+ *
-+ * If target->req_ring was non-NULL before this function got invoked it will
-+ * also be non-NULL after this function has finished.
-+ */
- static int srp_alloc_req_data(struct srp_target_port *target)
- {
- 	struct srp_device *srp_dev = target->srp_host->srp_dev;
- 	struct ib_device *ibdev = srp_dev->dev;
--	struct srp_request *req;
-+	struct list_head free_reqs;
-+	struct srp_request *req_ring, *req;
- 	dma_addr_t dma_addr;
- 	int i, ret = -ENOMEM;
- 
--	INIT_LIST_HEAD(&target->free_reqs);
-+	INIT_LIST_HEAD(&free_reqs);
- 
--	target->req_ring = kzalloc(target->req_ring_size *
--				   sizeof(*target->req_ring), GFP_KERNEL);
--	if (!target->req_ring)
-+	req_ring = kzalloc(target->req_ring_size * sizeof(*req_ring),
-+			   GFP_KERNEL);
-+	if (!req_ring)
- 		goto out;
- 
- 	for (i = 0; i < target->req_ring_size; ++i) {
--		req = &target->req_ring[i];
-+		req = &req_ring[i];
- 		req->fmr_list = kmalloc(target->cmd_sg_cnt * sizeof(void *),
- 					GFP_KERNEL);
- 		req->map_page = kmalloc(SRP_FMR_SIZE * sizeof(void *),
-@@ -632,11 +640,16 @@ static int srp_alloc_req_data(struct srp_target_port *target)
- 
- 		req->indirect_dma_addr = dma_addr;
- 		req->index = i;
--		list_add_tail(&req->list, &target->free_reqs);
-+		list_add_tail(&req->list, &free_reqs);
- 	}
-+	swap(target->req_ring, req_ring);
-+	INIT_LIST_HEAD(&target->free_reqs);
-+	list_splice(&free_reqs, &target->free_reqs);
- 	ret = 0;
- 
- out:
-+	srp_free_req_data(target, req_ring);
++#define pr_fmt(fmt) "user_mad: " fmt
 +
- 	return ret;
- }
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
+@@ -669,10 +671,9 @@ found:
+ 	if (!file->already_used) {
+ 		file->already_used = 1;
+ 		if (!file->use_pkey_index) {
+-			printk(KERN_WARNING "user_mad: process %s did not enable "
+-			       "P_Key index support.\n", current->comm);
+-			printk(KERN_WARNING "user_mad:   Documentation/infiniband/user_mad.txt "
+-			       "has info on the new ABI.\n");
++			pr_warn("process %s did not enable P_Key index support.\n",
++				current->comm);
++			pr_warn("   Documentation/infiniband/user_mad.txt has info on the new ABI.\n");
+ 		}
+ 	}
  
-@@ -669,7 +682,7 @@ static void srp_remove_target(struct srp_target_port *target)
- 	srp_free_target_ib(target);
- 	cancel_work_sync(&target->tl_err_work);
- 	srp_rport_put(target->rport);
--	srp_free_req_data(target);
-+	srp_free_req_data(target, target->req_ring);
+@@ -982,7 +983,7 @@ static int find_overflow_devnum(void)
+ 		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UMAD_MAX_PORTS * 2,
+ 					  "infiniband_mad");
+ 		if (ret) {
+-			printk(KERN_ERR "user_mad: couldn't register dynamic device number\n");
++			pr_err("couldn't register dynamic device number\n");
+ 			return ret;
+ 		}
+ 	}
+@@ -1187,14 +1188,14 @@ static int __init ib_umad_init(void)
+ 	ret = register_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2,
+ 				     "infiniband_mad");
+ 	if (ret) {
+-		printk(KERN_ERR "user_mad: couldn't register device number\n");
++		pr_err("couldn't register device number\n");
+ 		goto out;
+ 	}
  
- 	spin_lock(&target->srp_host->target_lock);
- 	list_del(&target->list);
-@@ -2750,7 +2763,7 @@ err_free_ib:
- 	srp_free_target_ib(target);
+ 	umad_class = class_create(THIS_MODULE, "infiniband_mad");
+ 	if (IS_ERR(umad_class)) {
+ 		ret = PTR_ERR(umad_class);
+-		printk(KERN_ERR "user_mad: couldn't create class infiniband_mad\n");
++		pr_err("couldn't create class infiniband_mad\n");
+ 		goto out_chrdev;
+ 	}
  
- err_free_mem:
--	srp_free_req_data(target);
-+	srp_free_req_data(target, target->req_ring);
+@@ -1202,13 +1203,13 @@ static int __init ib_umad_init(void)
  
- err:
- 	scsi_host_put(target_host);
+ 	ret = class_create_file(umad_class, &class_attr_abi_version.attr);
+ 	if (ret) {
+-		printk(KERN_ERR "user_mad: couldn't create abi_version attribute\n");
++		pr_err("couldn't create abi_version attribute\n");
+ 		goto out_class;
+ 	}
+ 
+ 	ret = ib_register_client(&umad_client);
+ 	if (ret) {
+-		printk(KERN_ERR "user_mad: couldn't register ib_umad client\n");
++		pr_err("couldn't register ib_umad client\n");
+ 		goto out_class;
+ 	}
+ 
 -- 
-1.8.4.5
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
