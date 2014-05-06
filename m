@@ -1,99 +1,24 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 7/9] IB/srp: Avoid triggering an infinite loop if memory mapping
- fails
-Date: Tue, 06 May 2014 14:55:33 +0200
-Message-ID: <5368DBC5.6070609@acm.org>
-References: <5368DA5B.80609@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/mlx4: Allow to always block UD multicast loopback
+Date: Mon, 5 May 2014 19:26:16 -0500 (CDT)
+Message-ID: <alpine.DEB.2.10.1405051925240.5069@gentwo.org>
+References: <alpine.DEB.2.10.1404211308140.29240@gentwo.org> <53619638.48ae0e0a.2e40.ffffec09SMTPIN_ADDED_BROKEN@mx.google.com> <5361E5C7.5030805@mellanox.com> <1980561.1785.1398958457283.JavaMail."DougALedford"@Phenom> <1828884A29C6694DAF28B7E6B8A82373992F869F@ORSMSX109.amr.corp.intel.com>
+ <alpine.DEB.2.10.1405051754260.5069@gentwo.org> <1828884A29C6694DAF28B7E6B8A82373992F899C@ORSMSX109.amr.corp.intel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5368DA5B.80609-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373992F899C-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Only request the SCSI mid-layer to retry a SCSI command after a
-temporary mapping failure (-ENOMEM) but not after a permanent
-mapping failure. This patch avoids that SCSI commands are retried
-indefinitely if a permanent memory mapping failure occurs.
+On Mon, 5 May 2014, Hefty, Sean wrote:
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+> I agree with Doug here.  This makes more sense to specify on multicast atta=
+> ch time, not QP creation time.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 1c4b0d3..af94381 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1564,7 +1564,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 	struct srp_cmd *cmd;
- 	struct ib_device *dev;
- 	unsigned long flags;
--	int len, result;
-+	int len, result, ret = SCSI_MLQUEUE_HOST_BUSY;
- 	const bool in_scsi_eh = !in_interrupt() && current == shost->ehandler;
- 
- 	/*
-@@ -1580,6 +1580,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 	if (unlikely(result)) {
- 		scmnd->result = result;
- 		scmnd->scsi_done(scmnd);
-+		ret = 0;
- 		goto unlock_rport;
- 	}
- 
-@@ -1613,7 +1614,12 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 	len = srp_map_data(scmnd, target, req);
- 	if (len < 0) {
- 		shost_printk(KERN_ERR, target->scsi_host,
--			     PFX "Failed to map data\n");
-+			     PFX "Failed to map data (%d)\n", len);
-+		if (len != -ENOMEM) {
-+			scmnd->result = DID_ERROR << 16;
-+			scmnd->scsi_done(scmnd);
-+			ret = 0;
-+		}
- 		goto err_iu;
- 	}
- 
-@@ -1625,11 +1631,13 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 		goto err_unmap;
- 	}
- 
-+	ret = 0;
-+
- unlock_rport:
- 	if (in_scsi_eh)
- 		mutex_unlock(&rport->mutex);
- 
--	return 0;
-+	return ret;
- 
- err_unmap:
- 	srp_unmap_data(scmnd, target, req);
-@@ -1643,10 +1651,7 @@ err_iu:
- err_unlock:
- 	spin_unlock_irqrestore(&target->lock, flags);
- 
--	if (in_scsi_eh)
--		mutex_unlock(&rport->mutex);
--
--	return SCSI_MLQUEUE_HOST_BUSY;
-+	goto unlock_rport;
- }
- 
- /*
--- 
-1.8.4.5
-
+I read somewhere that some android apps have a bug an do not properly set
+the fields in the header when sendiung a base 64 encoded message.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
