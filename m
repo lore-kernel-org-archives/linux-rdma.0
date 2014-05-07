@@ -1,62 +1,83 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_port_info_rcv.c: Fixed calculation of min_data_vls
-Date: Wed, 07 May 2014 09:25:04 -0400
-Message-ID: <536A3430.5060605@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/9] IB/srp: Introduce an additional local variable
+Date: Wed, 07 May 2014 15:52:36 +0200
+Message-ID: <536A3AA4.5010100@acm.org>
+References: <5368DA5B.80609@acm.org> <5368DADF.2070105@acm.org> <536A0CF7.7080307@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <536A0CF7.7080307-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Sun, 13 Apr 2014 15:26:47 +0300
+On 05/07/14 12:37, Sagi Grimberg wrote:
+> On 5/6/2014 3:51 PM, Bart Van Assche wrote:
+>> This patch does not change any functionality.
+>>
+>> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+>> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>> Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+>> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+>> ---
+>>   drivers/infiniband/ulp/srp/ib_srp.c | 9 ++++-----
+>>   1 file changed, 4 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+>> b/drivers/infiniband/ulp/srp/ib_srp.c
+>> index cf80f7a..8c03371 100644
+>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>> @@ -290,6 +290,7 @@ static int srp_new_cm_id(struct srp_target_port
+>> *target)
+>>     static int srp_create_target_ib(struct srp_target_port *target)
+>>   {
+>> +    struct srp_device *dev = target->srp_host->srp_dev;
+>>       struct ib_qp_init_attr *init_attr;
+>>       struct ib_cq *recv_cq, *send_cq;
+>>       struct ib_qp *qp;
+>> @@ -299,16 +300,14 @@ static int srp_create_target_ib(struct
+>> srp_target_port *target)
+>>       if (!init_attr)
+>>           return -ENOMEM;
+>>   -    recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
+>> -                   srp_recv_completion, NULL, target,
+>> +    recv_cq = ib_create_cq(dev->dev, srp_recv_completion, NULL, target,
+>>                      target->queue_size, target->comp_vector);
+>>       if (IS_ERR(recv_cq)) {
+>>           ret = PTR_ERR(recv_cq);
+>>           goto err;
+>>       }
+>>   -    send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
+>> -                   srp_send_completion, NULL, target,
+>> +    send_cq = ib_create_cq(dev->dev, srp_send_completion, NULL, target,
+>>                      target->queue_size, target->comp_vector);
+>>       if (IS_ERR(send_cq)) {
+>>           ret = PTR_ERR(send_cq);
+>> @@ -327,7 +326,7 @@ static int srp_create_target_ib(struct
+>> srp_target_port *target)
+>>       init_attr->send_cq             = send_cq;
+>>       init_attr->recv_cq             = recv_cq;
+>>   -    qp = ib_create_qp(target->srp_host->srp_dev->pd, init_attr);
+>> +    qp = ib_create_qp(dev->pd, init_attr);
+>>       if (IS_ERR(qp)) {
+>>           ret = PTR_ERR(qp);
+>>           goto err_send_cq;
+> 
+> I understand why you need it later, but I'm not sure that use_fastreg
+> should be a device attribute.
 
-Bug description:
-	opensm is not using future value of op_vls when calculating subnet's minimal op_vl. opensm calculates
-	minimal op_vls (sm->p_subn->min_data_vl) when receiving pi mads, and the linkmgr might update that
-	port's op_vls according to it's vl_cap. as a result, routing engines that depends on the minimal
-	op_vls (such as torus) might fail on the first heavy sweep. for example, if in the fabric there is a port
-	with op_vls = 1. vl_cap = 5, peer port vl_cap = 5. tours routing engine would fail on first sweep.
+Hello Sagi,
 
-Fix: now the calculation is done respective to vl_cap and max_op_vls
+Can you clarify this comment ? The use_fast_reg member variable is
+introduced in patch 9/9, so I'm not sure why a comment about that member
+variable is made on patch 2/9 ?
 
-Signed-off-by: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_port_info_rcv.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
-index eb68dbf..9707496 100644
---- a/opensm/osm_port_info_rcv.c
-+++ b/opensm/osm_port_info_rcv.c
-@@ -115,7 +115,9 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
- 			sm->p_subn->min_ca_rate = rate;
- 		}
- 
--		data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
-+		data_vls = 1U << (ib_port_info_get_vl_cap(p_pi) - 1);
-+		if (data_vls > sm->p_subn->opt.max_op_vls)
-+			data_vls = sm->p_subn->opt.max_op_vls;
- 		if (data_vls >= IB_MAX_NUM_VLS)
- 			data_vls = IB_MAX_NUM_VLS - 1;
- 		if ((uint8_t)data_vls < sm->p_subn->min_data_vls) {
-@@ -416,7 +418,9 @@ static void pi_rcv_process_switch_ext_port(IN osm_sm_t * sm,
- 	if (p_remote_physp) {
- 		p_remote_node = osm_physp_get_node_ptr(p_remote_physp);
- 		if (p_remote_node->sw) {
--			data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
-+			data_vls = 1U << (ib_port_info_get_vl_cap(p_pi) - 1);
-+			if (data_vls > sm->p_subn->opt.max_op_vls)
-+				data_vls = sm->p_subn->opt.max_op_vls;
- 			if (data_vls >= IB_MAX_NUM_VLS)
- 				data_vls = IB_MAX_NUM_VLS - 1;
- 			if ((uint8_t)data_vls < sm->p_subn->min_sw_data_vls) {
--- 
-1.7.8.2
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
