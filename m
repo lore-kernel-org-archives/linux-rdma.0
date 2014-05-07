@@ -1,13 +1,13 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 4/9] IB/srp: Introduce srp_map_fmr()
-Date: Wed, 07 May 2014 13:39:46 +0300
-Message-ID: <536A0D72.4010105@dev.mellanox.co.il>
-References: <5368DA5B.80609@acm.org> <5368DB2F.8020506@acm.org>
+Subject: Re: [PATCH 5/9] IB/srp: Introduce srp_finish_mapping()
+Date: Wed, 07 May 2014 13:41:54 +0300
+Message-ID: <536A0DF2.1050900@dev.mellanox.co.il>
+References: <5368DA5B.80609@acm.org> <5368DB58.6070502@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5368DB2F.8020506-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <5368DB58.6070502-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -23,116 +23,57 @@ On 5/6/2014 3:53 PM, Bart Van Assche wrote:
 > Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 > ---
->   drivers/infiniband/ulp/srp/ib_srp.c | 77 ++++++++++++++++++++++---------------
->   1 file changed, 45 insertions(+), 32 deletions(-)
+>   drivers/infiniband/ulp/srp/ib_srp.c | 37 +++++++++++++++++++++++++------------
+>   1 file changed, 25 insertions(+), 12 deletions(-)
 >
 > diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index f41cc8c..5fb607b 100644
+> index 5fb607b..ba434d6 100644
 > --- a/drivers/infiniband/ulp/srp/ib_srp.c
 > +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1047,12 +1047,54 @@ static int srp_map_sg_entry(struct srp_map_state *state,
->   	return ret;
->   }
+> @@ -935,16 +935,6 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+>   	struct ib_pool_fmr *fmr;
+>   	u64 io_addr = 0;
 >   
-> +static void srp_map_fmr(struct srp_map_state *state,
-> +			struct srp_target_port *target, struct srp_request *req,
-> +			struct scatterlist *scat, int count)
-> +{
-> +	struct srp_device *dev = target->srp_host->srp_dev;
-> +	struct ib_device *ibdev = dev->dev;
-> +	struct scatterlist *sg;
-> +	int i, use_fmr;
-> +
-> +	state->desc	= req->indirect_desc;
-> +	state->pages	= req->map_page;
-> +	state->next_fmr	= req->fmr_list;
-> +
-> +	use_fmr = dev->fmr_pool ? SRP_MAP_ALLOW_FMR : SRP_MAP_NO_FMR;
-> +
-> +	for_each_sg(scat, sg, count, i) {
-> +		if (srp_map_sg_entry(state, target, sg, i, use_fmr)) {
-> +			/* FMR mapping failed, so backtrack to the first
-> +			 * unmapped entry and continue on without using FMR.
-> +			 */
-> +			dma_addr_t dma_addr;
-> +			unsigned int dma_len;
-> +
-> +backtrack:
-> +			sg = state->unmapped_sg;
-> +			i = state->unmapped_index;
-> +
-> +			dma_addr = ib_sg_dma_address(ibdev, sg);
-> +			dma_len = ib_sg_dma_len(ibdev, sg);
-> +			dma_len -= (state->unmapped_addr - dma_addr);
-> +			dma_addr = state->unmapped_addr;
-> +			use_fmr = SRP_MAP_NO_FMR;
-> +			srp_map_desc(state, dma_addr, dma_len, target->rkey);
-> +		}
-> +	}
-> +
-> +	if (use_fmr == SRP_MAP_ALLOW_FMR && srp_map_finish_fmr(state, target))
-> +		goto backtrack;
-> +
-> +	req->nfmr = state->nfmr;
-> +}
-> +
->   static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_target_port *target,
->   			struct srp_request *req)
->   {
-> -	struct scatterlist *scat, *sg;
-> +	struct scatterlist *scat;
->   	struct srp_cmd *cmd = req->cmd->buf;
-> -	int i, len, nents, count, use_fmr;
-> +	int len, nents, count;
->   	struct srp_device *dev;
->   	struct ib_device *ibdev;
->   	struct srp_map_state state;
-> @@ -1111,35 +1153,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_target_port *target,
->   				   target->indirect_size, DMA_TO_DEVICE);
->   
->   	memset(&state, 0, sizeof(state));
-> -	state.desc	= req->indirect_desc;
-> -	state.pages	= req->map_page;
-> -	state.next_fmr	= req->fmr_list;
+> -	if (!state->npages)
+> -		return 0;
 > -
-> -	use_fmr = dev->fmr_pool ? SRP_MAP_ALLOW_FMR : SRP_MAP_NO_FMR;
-> -
-> -	for_each_sg(scat, sg, count, i) {
-> -		if (srp_map_sg_entry(&state, target, sg, i, use_fmr)) {
-> -			/* FMR mapping failed, so backtrack to the first
-> -			 * unmapped entry and continue on without using FMR.
-> -			 */
-> -			dma_addr_t dma_addr;
-> -			unsigned int dma_len;
-> -
-> -backtrack:
-> -			sg = state.unmapped_sg;
-> -			i = state.unmapped_index;
-> -
-> -			dma_addr = ib_sg_dma_address(ibdev, sg);
-> -			dma_len = ib_sg_dma_len(ibdev, sg);
-> -			dma_len -= (state.unmapped_addr - dma_addr);
-> -			dma_addr = state.unmapped_addr;
-> -			use_fmr = SRP_MAP_NO_FMR;
-> -			srp_map_desc(&state, dma_addr, dma_len, target->rkey);
-> -		}
+> -	if (state->npages == 1) {
+> -		srp_map_desc(state, state->base_dma_addr, state->fmr_len,
+> -			     target->rkey);
+> -		state->npages = state->fmr_len = 0;
+> -		return 0;
 > -	}
 > -
-> -	if (use_fmr == SRP_MAP_ALLOW_FMR && srp_map_finish_fmr(&state, target))
-> -		goto backtrack;
-> +	srp_map_fmr(&state, target, req, scat, count);
+>   	fmr = ib_fmr_pool_map_phys(dev->fmr_pool, state->pages,
+>   				   state->npages, io_addr);
+>   	if (IS_ERR(fmr))
+> @@ -954,10 +944,33 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+>   	state->nfmr++;
 >   
->   	/* We've mapped the request, now pull as much of the indirect
->   	 * descriptor table as we can into the command buffer. If this
-> @@ -1147,7 +1161,6 @@ backtrack:
->   	 * guaranteed to fit into the command, as the SCSI layer won't
->   	 * give us more S/G entries than we allow.
->   	 */
-> -	req->nfmr = state.nfmr;
->   	if (state.ndesc == 1) {
->   		/* FMR mapping was able to collapse this to one entry,
->   		 * so use a direct descriptor.
-Looks good.
+>   	srp_map_desc(state, 0, state->fmr_len, fmr->fmr->rkey);
+> -	state->npages = state->fmr_len = 0;
+> +
+>   	return 0;
+>   }
+>   
+> +static int srp_finish_mapping(struct srp_map_state *state,
+> +			      struct srp_target_port *target)
+> +{
+> +	int ret = 0;
+> +
+> +	if (state->npages == 0)
+> +		return 0;
+> +
+> +	if (state->npages == 1) {
+> +		srp_map_desc(state, state->base_dma_addr, state->fmr_len,
+> +			     target->rkey);
+> +	} else {
+> +		ret = srp_map_finish_fmr(state, target);
+> +	}
+> +
+
+Nit, can lose the brackets.
+Other than that, Looks good.
 
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
