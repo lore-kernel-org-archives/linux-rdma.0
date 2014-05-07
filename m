@@ -1,90 +1,47 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 2/9] IB/srp: Introduce an additional local variable
-Date: Wed, 07 May 2014 19:58:17 +0300
-Message-ID: <536A6629.1040503@dev.mellanox.co.il>
-References: <5368DA5B.80609@acm.org> <5368DADF.2070105@acm.org> <536A0CF7.7080307@dev.mellanox.co.il> <536A3AA4.5010100@acm.org>
+Subject: Re: [PATCH 6/9] IB/srp: Make srp_alloc_req_data() reallocate request
+ data
+Date: Wed, 07 May 2014 19:58:09 +0300
+Message-ID: <536A6621.9020308@dev.mellanox.co.il>
+References: <5368DA5B.80609@acm.org> <5368DB90.9050209@acm.org> <536A0FF7.7050608@dev.mellanox.co.il> <536A3F08.7030108@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <536A3AA4.5010100-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <536A3F08.7030108-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/7/2014 4:52 PM, Bart Van Assche wrote:
-> On 05/07/14 12:37, Sagi Grimberg wrote:
->> On 5/6/2014 3:51 PM, Bart Van Assche wrote:
->>> This patch does not change any functionality.
->>>
->>> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
->>> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->>> Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
->>> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
->>> ---
->>>    drivers/infiniband/ulp/srp/ib_srp.c | 9 ++++-----
->>>    1 file changed, 4 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
->>> b/drivers/infiniband/ulp/srp/ib_srp.c
->>> index cf80f7a..8c03371 100644
->>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->>> @@ -290,6 +290,7 @@ static int srp_new_cm_id(struct srp_target_port
->>> *target)
->>>      static int srp_create_target_ib(struct srp_target_port *target)
+On 5/7/2014 5:11 PM, Bart Van Assche wrote:
+> On 05/07/14 12:50, Sagi Grimberg wrote:
+>> On 5/6/2014 3:54 PM, Bart Van Assche wrote:
+>>> -static void srp_free_req_data(struct srp_target_port *target)
+>>> +static void srp_free_req_data(struct srp_target_port *target,
+>>> +                  struct srp_request *req_ring)
 >>>    {
->>> +    struct srp_device *dev = target->srp_host->srp_dev;
->>>        struct ib_qp_init_attr *init_attr;
->>>        struct ib_cq *recv_cq, *send_cq;
->>>        struct ib_qp *qp;
->>> @@ -299,16 +300,14 @@ static int srp_create_target_ib(struct
->>> srp_target_port *target)
->>>        if (!init_attr)
->>>            return -ENOMEM;
->>>    -    recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
->>> -                   srp_recv_completion, NULL, target,
->>> +    recv_cq = ib_create_cq(dev->dev, srp_recv_completion, NULL, target,
->>>                       target->queue_size, target->comp_vector);
->>>        if (IS_ERR(recv_cq)) {
->>>            ret = PTR_ERR(recv_cq);
->>>            goto err;
->>>        }
->>>    -    send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
->>> -                   srp_send_completion, NULL, target,
->>> +    send_cq = ib_create_cq(dev->dev, srp_send_completion, NULL, target,
->>>                       target->queue_size, target->comp_vector);
->>>        if (IS_ERR(send_cq)) {
->>>            ret = PTR_ERR(send_cq);
->>> @@ -327,7 +326,7 @@ static int srp_create_target_ib(struct
->>> srp_target_port *target)
->>>        init_attr->send_cq             = send_cq;
->>>        init_attr->recv_cq             = recv_cq;
->>>    -    qp = ib_create_qp(target->srp_host->srp_dev->pd, init_attr);
->>> +    qp = ib_create_qp(dev->pd, init_attr);
->>>        if (IS_ERR(qp)) {
->>>            ret = PTR_ERR(qp);
->>>            goto err_send_cq;
->> I understand why you need it later, but I'm not sure that use_fastreg
->> should be a device attribute.
+>>>        struct ib_device *ibdev = target->srp_host->srp_dev->dev;
+>>>        struct srp_request *req;
+>>>        int i;
+>>>    -    if (!target->req_ring)
+>>> +    if (!req_ring)
+>>>            return;
+>>>          for (i = 0; i < target->req_ring_size; ++i) {
+>>> -        req = &target->req_ring[i];
+>>> +        req = &req_ring[i];
+>> You loop for {ring A size} and operates on ring B elements. They will
+>> probably be the same but the notion seems buggy.
+>> Will it be better to untie this routine from srp_target_port at all?
 > Hello Sagi,
 >
-> Can you clarify this comment ? The use_fast_reg member variable is
-> introduced in patch 9/9, so I'm not sure why a comment about that member
-> variable is made on patch 2/9 ?
+> Had you noticed that target->req_ring_size is not modified during
+> resource allocation or reallocation ? That is why target->req_ring_size
+> has not been converted into a function argument in this patch.
 
-I was referring to the reason why you added local variable dev - it is 
-for use_fastreg right?
-Since I agree with you that use_fastreg can be a per-device attribute, 
-this comment is irrelevant.
+Yes, I guess I'm fine with that.
 
-So,
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Sagi.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
