@@ -1,21 +1,20 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/9] IB/srp: Fix kernel-doc warnings
-Date: Wed, 07 May 2014 13:35:12 +0300
-Message-ID: <536A0C60.4000307@dev.mellanox.co.il>
-References: <5368DA5B.80609@acm.org> <5368DAB2.2070006@acm.org>
+Subject: Re: [PATCH 2/9] IB/srp: Introduce an additional local variable
+Date: Wed, 07 May 2014 13:37:43 +0300
+Message-ID: <536A0CF7.7080307@dev.mellanox.co.il>
+References: <5368DA5B.80609@acm.org> <5368DADF.2070105@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5368DAB2.2070006-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <5368DADF.2070105-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/6/2014 3:50 PM, Bart Van Assche wrote:
-> Avoid that the kernel-doc tool warns about missing argument descriptions
-> for the ib_srp.[ch] source files.
+On 5/6/2014 3:51 PM, Bart Van Assche wrote:
+> This patch does not change any functionality.
 >
 > Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 > Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
@@ -24,45 +23,54 @@ On 5/6/2014 3:50 PM, Bart Van Assche wrote:
 > Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 > ---
->   drivers/infiniband/ulp/srp/ib_srp.c | 7 +++++++
->   1 file changed, 7 insertions(+)
+>   drivers/infiniband/ulp/srp/ib_srp.c | 9 ++++-----
+>   1 file changed, 4 insertions(+), 5 deletions(-)
 >
 > diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 66a908b..cf80f7a 100644
+> index cf80f7a..8c03371 100644
 > --- a/drivers/infiniband/ulp/srp/ib_srp.c
 > +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -813,6 +813,10 @@ static struct scsi_cmnd *srp_claim_req(struct srp_target_port *target,
+> @@ -290,6 +290,7 @@ static int srp_new_cm_id(struct srp_target_port *target)
 >   
->   /**
->    * srp_free_req() - Unmap data and add request to the free request list.
-> + * @target: SRP target port.
-> + * @req:    Request to be freed.
-> + * @scmnd:  SCSI command associated with @req.
-> + * @req_lim_delta: Amount to be added to @target->req_lim.
->    */
->   static void srp_free_req(struct srp_target_port *target,
->   			 struct srp_request *req, struct scsi_cmnd *scmnd,
-> @@ -1455,6 +1459,7 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
+>   static int srp_create_target_ib(struct srp_target_port *target)
+>   {
+> +	struct srp_device *dev = target->srp_host->srp_dev;
+>   	struct ib_qp_init_attr *init_attr;
+>   	struct ib_cq *recv_cq, *send_cq;
+>   	struct ib_qp *qp;
+> @@ -299,16 +300,14 @@ static int srp_create_target_ib(struct srp_target_port *target)
+>   	if (!init_attr)
+>   		return -ENOMEM;
 >   
->   /**
->    * srp_tl_err_work() - handle a transport layer error
-> + * @work: Work structure embedded in an SRP target port.
->    *
->    * Note: This function may get invoked before the rport has been created,
->    * hence the target->rport test.
-> @@ -2310,6 +2315,8 @@ static struct class srp_class = {
+> -	recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
+> -			       srp_recv_completion, NULL, target,
+> +	recv_cq = ib_create_cq(dev->dev, srp_recv_completion, NULL, target,
+>   			       target->queue_size, target->comp_vector);
+>   	if (IS_ERR(recv_cq)) {
+>   		ret = PTR_ERR(recv_cq);
+>   		goto err;
+>   	}
 >   
->   /**
->    * srp_conn_unique() - check whether the connection to a target is unique
-> + * @host:   SRP host.
-> + * @target: SRP target port.
->    */
->   static bool srp_conn_unique(struct srp_host *host,
->   			    struct srp_target_port *target)
+> -	send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
+> -			       srp_send_completion, NULL, target,
+> +	send_cq = ib_create_cq(dev->dev, srp_send_completion, NULL, target,
+>   			       target->queue_size, target->comp_vector);
+>   	if (IS_ERR(send_cq)) {
+>   		ret = PTR_ERR(send_cq);
+> @@ -327,7 +326,7 @@ static int srp_create_target_ib(struct srp_target_port *target)
+>   	init_attr->send_cq             = send_cq;
+>   	init_attr->recv_cq             = recv_cq;
+>   
+> -	qp = ib_create_qp(target->srp_host->srp_dev->pd, init_attr);
+> +	qp = ib_create_qp(dev->pd, init_attr);
+>   	if (IS_ERR(qp)) {
+>   		ret = PTR_ERR(qp);
+>   		goto err_send_cq;
 
-Looks good,
+I understand why you need it later, but I'm not sure that use_fastreg 
+should be a device attribute.
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
