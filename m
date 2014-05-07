@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_subnet.c: Enhance opensm conf file documentation
+Subject: [PATCH v2 opensm] osm_subnet.c: Enhance opensm conf file documentation
  for PerfMgr options
-Date: Wed, 07 May 2014 14:08:49 -0400
-Message-ID: <536A76B1.6060707@dev.mellanox.co.il>
+Date: Wed, 07 May 2014 14:10:37 -0400
+Message-ID: <536A771D.20602@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -16,13 +16,14 @@ List-Id: linux-rdma@vger.kernel.org
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+Change from version 1:
+Formatted properly for posting to linux-rdma
 
 diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
 index f30d852..8ee62d9 100644
 --- a/opensm/osm_subnet.c
 +++ b/opensm/osm_subnet.c
-@@ -2628,28 +2628,35 @@ int osm_subn_output_conf(FILE *out, IN
-osm_subn_opt_t * p_opts)
+@@ -2628,28 +2628,35 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
  	fprintf(out,
  		"#\n# Performance Manager Options\n#\n"
  		"# perfmgr enable\n"
@@ -30,8 +31,7 @@ osm_subn_opt_t * p_opts)
  		"perfmgr %s\n\n"
 -		"# perfmgr redirection enable\n"
 +		"# redirection enable\n"
-+		"# Redirection supported if TRUE and not supported if FALSE (default
-TRUE)\n"
++		"# Redirection supported if TRUE and not supported if FALSE (default TRUE)\n"
  		"perfmgr_redir %s\n\n"
 -		"# sweep time in seconds\n"
 +		"# sweep time in seconds (default %u seconds)\n"
@@ -48,8 +48,7 @@ TRUE)\n"
 +		"# Log error counters to opensm.log (default TRUE)\n"
  		"perfmgr_log_errors %s\n\n"
  		"# Query PerfMgrGet(ClassPortInfo) for extended capabilities\n"
-+		"# Extended capabilities include 64 bit extended counters and
-transmit wait support\n"
++		"# Extended capabilities include 64 bit extended counters and transmit wait support\n"
 +		"# default FALSE\n"
  		"perfmgr_query_cpi %s\n\n"
 -		"# Log xmit_wait errors\n"
