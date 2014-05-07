@@ -1,162 +1,71 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 9/9] IB/srp: Add fast registration support
-Date: Wed, 07 May 2014 20:19:43 +0300
-Message-ID: <536A6B2F.70807@dev.mellanox.co.il>
-References: <5368DA5B.80609@acm.org> <5368DC09.70608@acm.org> <536A1A3A.9090208@dev.mellanox.co.il> <536A4A68.4080605@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_subnet.c: Enhance opensm conf file documentation
+ for PerfMgr options
+Date: Wed, 07 May 2014 14:08:49 -0400
+Message-ID: <536A76B1.6060707@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <536A4A68.4080605-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Florent Parent <florent.parent-hUdP7zcY/u2zFPF/XzyFIQ@public.gmane.org>, "Susan Coulter (skc-YOWKrPYUwWM@public.gmane.org)" <skc-YOWKrPYUwWM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/7/2014 5:59 PM, Bart Van Assche wrote:
-> On 05/07/14 13:34, Sagi Grimberg wrote:
->>> +module_param(prefer_fr, bool, 0444);
->>> +MODULE_PARM_DESC(prefer_fr,
->>> +         "Whether to use FR if both FMR and FR are supported");
->> Will it be better to make it a per-target attribute?
-> Hello Sagi,
->
-> The only reason I introduced this kernel module parameter was to allow
-> me to test fast registration support on HCA's that support both FMR and
-> FR. I'm not sure it is useful to end users to configure this parameter.
-> Hence my preference to leave it global instead of converting it into a
-> per-target attribute.
 
-If you add a modparam, the user is allowed to use it.
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-AFAICT a user that will ask prefer_fr on station with device that 
-supports FR and a device that doesn't (don't know if even exists).
-per-target the conditions in add_one are correct per-device.
-
->>> +module_param(register_always, bool, 0444);
->>> +MODULE_PARM_DESC(register_always,
->>> +         "Use memory registration even for contiguous memory regions");
->>> +
->> This is a separate patch not related to fast registration support, I
->> suggest to post it as patch #10
-> OK, I will split this out into a separate patch.
->
->>> +static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port
->>> *target)
->>> +{
->>> +    struct srp_device *dev = target->srp_host->srp_dev;
->>> +    struct srp_fr_pool *pool;
->>> +    int max_pages_per_mr;
->>> +
->>> +    for (max_pages_per_mr = SRP_MAX_PAGES_PER_MR;
->>> +         max_pages_per_mr >= SRP_MIN_PAGES_PER_MR;
->>> +         max_pages_per_mr /= 2) {
->> Isn't there some device capability for that? maybe max_mr_size?
->> Also for smaller max_pages you won't be able to handle 512 pages in a
->> single cmnd (you would need 2 FRMRs).
->> At least a warning print?
-> I will look into using max_mr_size here. Using multiple registrations
-> per command should be fine in the context of the SRP protocol as long as
-> cmd_sg_entries has not been set to a very small value.
->
->>> +        pool = srp_create_fr_pool(dev->dev, dev->pd,
->>> +                      SRP_MDESC_PER_POOL, max_pages_per_mr);
->> 1024 FRMRs per connection?! we use 1024 FMRs for all connections
->> (per-device). I'd say that's a major over-allocation.
-> It depends on how many discontiguous I/O requests are submitted
-> concurrently. Anyway, how about limiting the number of memory regions to
-> the queue size ?
-
-Perhaps, but we will need to reserve some more for discontinuous IOs.
-It is heuristic, for FS in most cases IO will align nicely, for some 
-crazy DB applications - I'm not sure.
-
->
->>> -    init_attr->sq_sig_type         = IB_SIGNAL_ALL_WR;
->>> +    init_attr->sq_sig_type         = IB_SIGNAL_REQ_WR;
->> Will it be better to do this in a preparation patch? (not so important
->> to me)
-> This patch is the first patch for the SRP initiator in which work
-> requests are queued for which the IB_SEND_SIGNALED flag is not set. That
-> is why I had included the above change in this patch.
-
-Agreed
-P.S, can we consider also skip scsi_cmnd SEND completions?
-Currently SRP asks for completion but never really arm the CQ (only for 
-the first time).
-
->>> @@ -898,20 +1112,25 @@ static int srp_rport_reconnect(struct srp_rport
->>> *rport)
->>>         * callbacks will have finished before a new QP is allocated.
->>>         */
->>>        ret = srp_new_cm_id(target);
->>> +
->>> +    for (i = 0; i < target->req_ring_size; ++i) {
->>> +        struct srp_request *req = &target->req_ring[i];
->>> +        srp_finish_req(target, req, NULL, DID_RESET << 16);
->>> +    }
->> Can you explain why this moved here? I'm not sure I understand.
-> In fast registration mode calling srp_finish_req() can trigger rkey
-> invalidation. Trying to invalidate an rkey after the queue pair has been
-> destroyed and recreated would be wrong since that would cause the new
-> queue pair to transition into the error state. That is why this loop has
-> been moved up. Moving the srp_finish_req() loop up is safe since
-> srp_claim_req() prevents that any work completions that are received
-> after srp_finish_req() has finished cause any harm.
-
-Got it.
-
->
->>> +static int srp_map_finish_fr(struct srp_map_state *state,
->>> +                 struct srp_target_port *target)
->>> +{
->>> +    struct srp_device *dev = target->srp_host->srp_dev;
->>> +    struct ib_send_wr *bad_wr;
->>> +    struct ib_send_wr wr;
->>> +    struct srp_fr_desc *desc;
->>> +    u32 rkey;
->>> +
->>> +    desc = srp_fr_pool_get(target->fr_pool);
->>> +    if (!desc)
->>> +        return -ENOMEM;
->>> +
->>> +    rkey = ib_inc_rkey(desc->mr->rkey);
->>> +    ib_update_fast_reg_key(desc->mr, rkey);
->> Usually the inc_rkey is done right after the invalidation (but that's
->> not really an issue).
->> Maybe it is better here in case the target did remote invalidate (not
->> supported at the moment but maybe in the future?)
-> Indeed - if remote invalidation would be added later on the code for
-> incrementing the rkey would have to be moved anyway.
->
->>> @@ -2910,7 +3213,8 @@ static void srp_add_one(struct ib_device *device)
->>>        if (IS_ERR(srp_dev->mr))
->>>            goto err_pd;
->>>    -    srp_alloc_fmr_pool(srp_dev);
->>> +    if (!srp_dev->use_fast_reg)
->>> +        srp_alloc_fmr_pool(srp_dev);
->> So I ask here, are we OK with this asymmetry? FMRs are per-device and
->> FRMRs are per-target?
->> I have a feeling that converting FMRs to per-connection might simplify
->> things, what do you think?
-> Making the FMR pools per-device instead of per-target would cause the
-> FMR and FR pool allocation and deallocation code to appear in the same
-> functions but unfortunately wouldn't make this patch shorter. My goal
-> with this patch was to introduce fast registration support without
-> changing the FMR code too much.
-
-I understand, my concern is that by this asymmetric design we may get 
-different behaviors for a specific workload.
-For example revisiting the configurable queue_size work in SRP, I 
-pointed that for a large
-number of connection with long queues all stressing out the system, the 
-global FMR pool may not suffice.
-This may appear to the user by a periodic IO stalls, This will not 
-happen for a per-target FRMR pools
-(at least less likely to happen, or at the very least will happen under 
-different conditions).
-
-Sagi.
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index f30d852..8ee62d9 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -2628,28 +2628,35 @@ int osm_subn_output_conf(FILE *out, IN
+osm_subn_opt_t * p_opts)
+ 	fprintf(out,
+ 		"#\n# Performance Manager Options\n#\n"
+ 		"# perfmgr enable\n"
++		"# PerfMgr is enabled if TRUE and disabled if FALSE (default FALSE)\n"
+ 		"perfmgr %s\n\n"
+-		"# perfmgr redirection enable\n"
++		"# redirection enable\n"
++		"# Redirection supported if TRUE and not supported if FALSE (default
+TRUE)\n"
+ 		"perfmgr_redir %s\n\n"
+-		"# sweep time in seconds\n"
++		"# sweep time in seconds (default %u seconds)\n"
+ 		"perfmgr_sweep_time_s %u\n\n"
+-		"# Max outstanding queries\n"
++		"# Max outstanding queries (default %u)\n"
+ 		"perfmgr_max_outstanding_queries %u\n"
++		"# Ignore CAs on sweep (default FALSE)\n"
+ 		"perfmgr_ignore_cas %s\n\n"
+-		"# Remove missing nodes from DB\n"
++		"# Remove missing nodes from DB (default TRUE)\n"
+ 		"perfmgr_rm_nodes %s\n\n"
+-		"# Log error counters to opensm.log\n"
++		"# Log error counters to opensm.log (default TRUE)\n"
+ 		"perfmgr_log_errors %s\n\n"
+ 		"# Query PerfMgrGet(ClassPortInfo) for extended capabilities\n"
++		"# Extended capabilities include 64 bit extended counters and
+transmit wait support\n"
++		"# default FALSE\n"
+ 		"perfmgr_query_cpi %s\n\n"
+-		"# Log xmit_wait errors\n"
++		"# Log xmit_wait errors (default FALSE)\n"
+ 		"perfmgr_xmit_wait_log %s\n\n"
+ 		"# If logging xmit_wait's; set threshold (default %u)\n"
+ 		"perfmgr_xmit_wait_threshold %u\n\n"
+ 		,
+ 		p_opts->perfmgr ? "TRUE" : "FALSE",
+ 		p_opts->perfmgr_redir ? "TRUE" : "FALSE",
++		OSM_PERFMGR_DEFAULT_SWEEP_TIME_S,
+ 		p_opts->perfmgr_sweep_time_s,
++		OSM_PERFMGR_DEFAULT_MAX_OUTSTANDING_QUERIES,
+ 		p_opts->perfmgr_max_outstanding_queries,
+ 		p_opts->perfmgr_ignore_cas ? "TRUE" : "FALSE",
+ 		p_opts->perfmgr_rm_nodes ? "TRUE" : "FALSE",
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
