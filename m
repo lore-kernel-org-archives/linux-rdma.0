@@ -1,76 +1,47 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ANNOUNCE] libmlx4 1.0.6 is released
-Date: Thu, 08 May 2014 17:48:16 +0300
-Message-ID: <536B9930.9000701@dev.mellanox.co.il>
-References: <1399507582-23912-1-git-send-email-roland@kernel.org>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 9/9] IB/srp: Add fast registration support
+Date: Thu, 08 May 2014 18:16:04 +0300
+Message-ID: <536B9FB4.5040009@dev.mellanox.co.il>
+References: <5368DA5B.80609@acm.org> <5368DC09.70608@acm.org> <536A1A3A.9090208@dev.mellanox.co.il> <536A4A68.4080605@acm.org> <536A6B2F.70807@dev.mellanox.co.il> <536B7ABE.8080502@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399507582-23912-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <536B7ABE.8080502-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/8/2014 3:06 AM, Roland Dreier wrote:
-> libmlx4 is a library that allows programs to use RDMA "verbs" for
-> direct access to RDMA (currently InfiniBand and iWARP) hardware from
-> userspace.
->
-> The new stable release, 1.0.6, is available from
->
->      http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.6.tar.gz
->
-> with sha1sum
->
->      ee22cc20f537b5e794465682d97e5ad0647d9464  libmlx4-1.0.6.tar.gz
->
-> I also pushed the latest tree and tag out to kernel.org:
->
->      git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
->
-> (the name of the tag is libmlx4-1.0.6).
->
-> The main new features in this release are: generic infrastructure for
-> "verbs extensions", support for XRC, and support for flow steering.
-> This release requires libiverbs >=3D 1.1.8 to build.
->
-> This will be my last release of libmlx4; I am turning maintenance of
-> the library over to Mellanox.
+On 5/8/2014 3:38 PM, Bart Van Assche wrote:
+> On 05/07/14 19:19, Sagi Grimberg wrote:
+>> On 5/7/2014 5:59 PM, Bart Van Assche wrote:
+>>> On 05/07/14 13:34, Sagi Grimberg wrote:
+>>>>> +        pool = srp_create_fr_pool(dev->dev, dev->pd,
+>>>>> +                      SRP_MDESC_PER_POOL, max_pages_per_mr);
+>>>> 1024 FRMRs per connection?! we use 1024 FMRs for all connections
+>>>> (per-device). I'd say that's a major over-allocation.
+>>> It depends on how many discontiguous I/O requests are submitted
+>>> concurrently. Anyway, how about limiting the number of memory regions to
+>>> the queue size ?
+>> Perhaps, but we will need to reserve some more for discontinuous IOs.
+>> It is heuristic, for FS in most cases IO will align nicely, for some
+>> crazy DB applications - I'm not sure.
+> If srp_map_sg() runs out of memory descriptors it adds the remaining sg
+> entries to the SRP indirect descriptor without using memory
+> registration. In other words, I think a queue full of discontiguous I/O
+> requests should be handled properly by srp_map_sg().
 
-   Thanks Roland, I=92m taking the responsibility from Mellanox side on=
- libmlx4, hope to have a good cooperation with you.
-   My GIT tree to be used: git://openfabrics.org/~yishaih/libmlx4.git
+True, SRP can do without registration altogether by passing multiple 
+SGEs, we still strive
+to register memory though.
 
->
-> The git shortlog since libmlx4 1.0.5 is:
->
-> Matan Barak (1):
->        Add receive flow steering support
->
-> Roland Dreier (5):
->        resize_cq: Fix possible endless loop scanning CQ
->        Remove compatibility with libibverbs < 1.1.7
->        Use dh-autoreconf to fix build on ppc64el
->        Enable subdir-objects for automake
->        Roll libmlx4 1.0.6 release
->
-> Sean Hefty (1):
->        Add support for XRC QPs
->
-> Yishai Hadas (1):
->        Update to use libiverbs extension support / verbs_register_dri=
-ver()
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Would you consider making it configurable with default to queue_size?
+This way the user which is (hopefully) aware of it's typical IO pattern 
+can choose a suitable value.
 
+Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
