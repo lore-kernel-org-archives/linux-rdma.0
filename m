@@ -1,108 +1,76 @@
-From: Senn Klemens <klemens.senn-cv18SyjCLaheoWH0uzbU5w@public.gmane.org>
-Subject: Soft lockup in unloading kernel modules
-Date: Thu, 08 May 2014 16:28:30 +0200
-Message-ID: <lkg4ae$hj7$1@ger.gmane.org>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [ANNOUNCE] libmlx4 1.0.6 is released
+Date: Thu, 08 May 2014 17:48:16 +0300
+Message-ID: <536B9930.9000701@dev.mellanox.co.il>
+References: <1399507582-23912-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1399507582-23912-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 5/8/2014 3:06 AM, Roland Dreier wrote:
+> libmlx4 is a library that allows programs to use RDMA "verbs" for
+> direct access to RDMA (currently InfiniBand and iWARP) hardware from
+> userspace.
+>
+> The new stable release, 1.0.6, is available from
+>
+>      http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.6.tar.gz
+>
+> with sha1sum
+>
+>      ee22cc20f537b5e794465682d97e5ad0647d9464  libmlx4-1.0.6.tar.gz
+>
+> I also pushed the latest tree and tag out to kernel.org:
+>
+>      git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
+>
+> (the name of the tag is libmlx4-1.0.6).
+>
+> The main new features in this release are: generic infrastructure for
+> "verbs extensions", support for XRC, and support for flow steering.
+> This release requires libiverbs >=3D 1.1.8 to build.
+>
+> This will be my last release of libmlx4; I am turning maintenance of
+> the library over to Mellanox.
 
-I am getting a soft lockup on the NFS server on its reboot if at least
-one client mount is established. I am using OpenSUSE 12.3 with the
-nfs-rdma kernel from Anna Schumaker
-(git://git.linux-nfs.org/projects/anna/nfs-rdma.git).
+   Thanks Roland, I=92m taking the responsibility from Mellanox side on=
+ libmlx4, hope to have a good cooperation with you.
+   My GIT tree to be used: git://openfabrics.org/~yishaih/libmlx4.git
 
-The export on the server side is done with
-/data	*(fsid=0,crossmnt,rw,mp,no_root_squash,sync,no_subtree_check,insecure)
-
-Following command is used for mounting the NFSv4 share:
-mount -t nfs -o port=20049,rdma,vers=4.0,timeo=900 172.16.100.19:/ /mnt
-
-The HCA is a Mellanox MT4099 on the server and the client.
-
-The soft lockup can be reproduced by following steps:
-  o server: Start the nfs server
-  o client: Mount the share
-  o client: Do a "ls" in the mounted directory
-  o server: Stop the nfs server
-  o server: Unload the nfs and mlx4 modules or reboot the server (I used
-the openibd init script from the Mellanox driver without having the
-Mellanox stack installed)
-
-The server reports a soft lockup
-  BUG: soft lockup - CPU#0 stuck for 22s! [modprobe:6146]
-most times.
-
-Sometimes I get following kernel panic
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000003
-IP: [<ffffffff815a5c35>] _raw_spin_lock_bh+0x15/0x40
-PGD 82a820067 PUD 857832067 PMD 0
-Oops: 0002 [#1] SMP
-Modules linked in: nfsd nfs_acl auth_rpcgss oid_registry nfnetlink_log
-nfnetlink bluetooth rfkill nfsv4 svcrdma dm_mod cpuid nfs fscache lockd
-sunrpc af_packet 8021q garp stp llc rdma_ucm ib_ucm rdma_cm iw_cm
-ib_ipoib ib_cm ib_uverbs ib_umad mlx4_en mlx4_ib(-) ib_sa ib_mad ib_core
-ib_addr sr_mod cdrom usb_storage joydev mlx4_core usbhid
-x86_pkg_temp_thermal coretemp kvm_intel kvm ghash_clmulni_intel
-aesni_intel ablk_helper cryptd iTCO_wdt lrw igb gf128mul
-iTCO_vendor_support ehci_pci glue_helper pcspkr i2c_algo_bit isci
-ehci_hcd aes_x86_64 ptp libsas ioatdma lpc_ich microcode sb_edac sg
-pps_core usbcore ipmi_si tpm_tis edac_core scsi_transport_sas i2c_i801
-mfd_core dca usb_common tpm ipmi_msghandler wmi acpi_cpufreq button edd
-autofs4 xfs libcrc32c crc32c_intel processor thermal_sys scsi_dh_rdac
-scsi_dh_hp_sw scsi_dh_emc scsi_dh_alua scsi_dh [last unloaded: oid_registry]
-CPU: 0 PID: 6603 Comm: modprobe Not tainted 3.15.0-rc2-anna-nfs-rdma+ #3
-Hardware name: Supermicro B9DRG-E/B9DRG-E, BIOS 3.0 09/04/2013
-task: ffff88105b8c6050 ti: ffff88105d814000 task.ti: ffff88105d814000
-RIP: 0010:[<ffffffff815a5c35>]  [<ffffffff815a5c35>]
-_raw_spin_lock_bh+0x15/0x40
-RSP: 0018:ffff88105d815d18  EFLAGS: 00010286
-RAX: 0000000000010000 RBX: ffffffffffffffff RCX: 0000000000000000
-RDX: 000000000000000b RSI: 0000000000000000 RDI: 0000000000000003
-RBP: ffff88105d815d18 R08: ffff88087c611f38 R09: 0000000000000001
-R10: 0000000000000000 R11: 0000000000000000 R12: ffff88087c3c9800
-R13: ffff88107b82ab00 R14: 0000000000000003 R15: 0000000000000007
-FS:  00007fef64612700(0000) GS:ffff88087fc00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000003 CR3: 000000087c2c7000 CR4: 00000000000407f0
-Stack:
- ffff88105d815d58 ffffffffa05199f0 ffff88105d815d88 ffff88087c3c9800
- ffff88087c3c9400 ffff88107b82ab00 ffff88087c3c9660 ffff88087c3c95c8
- ffff88105d815d78 ffffffffa0421ce9 ffff88087c3c9400 ffff88107b82aac0
-Call Trace:
- [<ffffffffa05199f0>] svc_xprt_enqueue+0x50/0x220 [sunrpc]
- [<ffffffffa0421ce9>] rdma_cma_handler+0x69/0x180 [svcrdma]
- [<ffffffffa039d086>] cma_remove_one+0x1f6/0x220 [rdma_cm]
- [<ffffffffa01dca86>] ib_unregister_device+0x46/0x120 [ib_core]
- [<ffffffffa032ddc9>] mlx4_ib_remove+0x29/0x260 [mlx4_ib]
- [<ffffffffa02fb9d0>] mlx4_remove_device+0xa0/0xc0 [mlx4_core]
- [<ffffffffa02fba2b>] mlx4_unregister_interface+0x3b/0xa0 [mlx4_core]
- [<ffffffffa033f4cc>] mlx4_ib_cleanup+0x10/0x23 [mlx4_ib]
- [<ffffffff810bd6b2>] SyS_delete_module+0x152/0x220
- [<ffffffff811496e4>] ? vm_munmap+0x54/0x70
- [<ffffffff815adca6>] system_call_fastpath+0x1a/0x1f
-Code: 5d c3 0f b7 17 66 39 ca 74 f6 f3 90 0f b7 17 66 39 d1 75 f6 5d c3
-55 65 81 04 25 20 b9 00 00 00 02 00 00 48 89 e5 b8 00 00 01 00 <f0> 0f
-c1 07 89 c2 c1 ea 10 66 39 c2 75 04 5d c3 f3 90 0f b7 07
-RIP  [<ffffffff815a5c35>] _raw_spin_lock_bh+0x15/0x40
- RSP <ffff88105d815d18>
-CR2: 0000000000000003
----[ end trace 18e02ff413ac4b9b ]---
-Kernel panic - not syncing: Fatal exception in interrupt
-Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range:
-0xffffffff80000000-0xffffffff9fffffff)
----[ end Kernel panic - not syncing: Fatal exception in interrupt
-
-Kind regards,
-Klemens
+>
+> The git shortlog since libmlx4 1.0.5 is:
+>
+> Matan Barak (1):
+>        Add receive flow steering support
+>
+> Roland Dreier (5):
+>        resize_cq: Fix possible endless loop scanning CQ
+>        Remove compatibility with libibverbs < 1.1.7
+>        Use dh-autoreconf to fix build on ppc64el
+>        Enable subdir-objects for automake
+>        Roll libmlx4 1.0.6 release
+>
+> Sean Hefty (1):
+>        Add support for XRC QPs
+>
+> Yishai Hadas (1):
+>        Update to use libiverbs extension support / verbs_register_dri=
+ver()
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
