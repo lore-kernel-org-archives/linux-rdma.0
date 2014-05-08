@@ -1,311 +1,51 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.12 rc2 release is available
-Date: Thu, 08 May 2014 15:51:22 +0300
-Message-ID: <536B7DCA.40806@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: missing port number(s) in trap 128?
+Date: Thu, 08 May 2014 09:20:03 -0400
+Message-ID: <536B8483.1050502@dev.mellanox.co.il>
+References: <CAA8OkbuY4F9N1RkNQFgDCYveWkzDVzcRmqK4F=CBdSC+Hv5APg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040209040709000205040305"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAA8OkbuY4F9N1RkNQFgDCYveWkzDVzcRmqK4F=CBdSC+Hv5APg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jesus Camacho Villanueva <jecavil-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040209040709000205040305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On 5/8/2014 7:51 AM, Jesus Camacho Villanueva wrote:
+> Hello Everyone,
+> 
+> When OpenSM receives a trap 128 indicating a "Link state of at least
+> one port of switch at <LIDADDR> has changed", it seems there is not
+> any information about the port number(s) of the affected link(s).
+> 
+> Do you know if there is any chance to retrieve this information from
+> this trap or through other incoming MAD(s)?
+> 
+> Any ideas or suggestions would be greatly appreciated.
 
-OFED-3.12-rc2 is available at:
-https://www.openfabrics.org/downloads/OFED/ofed-3.12/OFED-3.12-rc2.tgz
+Per current IBTA spec, port number is not included in link state change
+trap 128. It would need to include a set of ports which changed state
+and not just single port.
 
-To get BUILD_ID run ofed_info
+Once SM receives trap 128 from some switch, SM is responsible for
+querying that switch and determining which ports changed state from
+"last" time it queried them. It can do this via querying PortInfo MAD
+for all the ports on that switch. PortInfo MAD contains the PortState.
+SM also resets the PortStateChange bit in SwitchInfo MAD for that switch.
 
-Please report any issues in bugzilla 
-http://bugs.openfabrics.org/bugzilla/ for
-OFED 3.12
+-- Hal
 
+> 
+> Kind regards,
+> Jesus Camacho
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-OFED-3.12-rc2 Main Changes from OFED 3.12-rc1
-------------------------------------------------------------------------------- 
-
-Updated packages:
-    - dapl-2.0.42
-    - ibutils-1.5.7-0.2.gbd7e502.tar.gz
-    - libcxgb4-1.3.3
-    - mstflint-3.6.0-1.8
-    - perftest-2.2-0.16.g8406133.tar.gz
-
-
-Regards,
-Vladimir
-
---------------040209040709000205040305
-Content-Type: text/plain; charset=UTF-8;
- name="OFED_release_notes.txt"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment;
- filename="OFED_release_notes.txt"
-
-	    Open Fabrics Enterprise Distribution (OFED)
-	          Version 3.12-rc2 Release Notes
-	               	   May 2014
-
-===============================================================================
-Table of Contents
-===============================================================================
-1. Overview, which includes:
-	- OFED Distribution Rev 3.12-rc2 Contents
-	- Supported Platforms and Operating Systems
-	- Supported HCA and RNIC Adapter Cards and Firmware Versions
-	- Tested Switch Platforms
-	- Third party Test Packages
-	- OFED sources
-2. Change log
-3. Known Issues
-
-===============================================================================
-1. Overview
-===============================================================================
-These are the release notes of OpenFabrics Enterprise Distribution (OFED)
-release 3.12-rc2. The OFED software package is composed of several software modules,
-and is intended for use on a computer cluster constructed as an InfiniBand
-Fabric, an iWARP Network or a RoCE Fabric.
-
-Note: If you plan to upgrade the OFED package on your cluster, please upgrade
-all of its nodes to this new version.
-
-
-1.1 OFED 3.12-rc2 Contents
------------------------
-The OFED package contains the following components:
- - OpenFabrics core and ULPs:
-	- IB HCA drivers (mthca, mlx4, mlx5, qib, ehca, ocrdma)
-	- iWARP RNIC driver (cxgb3, cxgb4, nes)
-	- RoCE drivers (mlx4, ocrdma)
-- ib core
-	- Upper Layer Protocols: IPoIB, SRP Initiator and target, iSER
-	  Initiator and target, RDS, uDAPL, qlgc_vnic and NFS-RDMA*.
- - OpenFabrics utilities:
-	- OpenSM (OSM): InfiniBand Subnet Manager
-	- Diagnostic tools
-	- Performance tests
- - Extra packages:
-	- infinipath-psm: Performance-Scaled Messaging API, an accelerated
-	  interface to Intel(R) HCAs
- - Sources of all software modules (under conditions mentioned in the modules'
-   LICENSE files)
- - Documentation
-
-
-1.2 Supported Platforms and Operating Systems
----------------------------------------------
-  o   CPU architectures:
-	- x86_64
-	- x86
-	- ppc64
-
-  o   Linux Operating Systems:
-	- RedHat EL6.4 		2.6.32-358.el6
-	- RedHat EL6.5 		2.6.32-431.el6
-	- SLES11 SP3		3.0.76-0.9.1
-	- kernel.org		3.12    *
-
-      * Minimal QA for these versions.
-
-1.3 HCAs and RNICs Supported
-----------------------------
-This release supports IB HCAs by IBM, Intel and Mellanox Technologies, iWARP RNICs by Chelsio Communications and Intel and RoCE adapters by IBM and Mellanox.
-
-InfiniBand Adapters
-  o   IBM HCAs:
-	- GX Dual-port SDR 4x IB HCA
-	- GX Dual-port SDR 12x IB HCA
-	- GX Dual-port DDR 4x IB HCA
-	- GX Dual-port DDR 12x IB HCA
-
-  o   Intel (formerly QLogic) HCAs:
-	- Intel(R) True Scale DDR PCIe x8 and x16 HCAs
-	- Intel(R) True Scale QDR PCIe x8 Gen2 HCAs
-
-  o   Mellanox Technologies HCAs (SDR, DDR and QDR Modes are Supported):
-	- ConnectX(R) and ConnectX EN (fw-25408 Rev 2.9.1000)
-	- ConnectX-2 (fw-ConnectX2 Rev 2.9.1000)
-  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):
-	- ConnectX-3 (fw-ConnectX3 Rev 2.30.8000)
-  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):
-	- Connect-IB™ (fw-ConnectIB.mlx Rev 10.10.2000 and above)
-
-	For official firmware versions please see:
-	http://www.mellanox.com/content/pages.php?pg=firmware_download
-
-iWARP Adapters
-  o   Chelsio RNICs:
-	- S310/S320 10GbE Storage Accelerators
-	- R310/R320 10GbE iWARP Adapters
-	- T4 Based Adapters with the exception of the T420-SO-CR
-
-  o   Intel RNICs:
-	- NE020 10Gb iWARP Adapter
-
-RoCE Adapters
- o   IBM
-	- IBM Flex System EN4132 2-port 10 GbE RoCE
-	- IBM EL27 PCIe LP 2-Port 10GbE RoCE SFP+ adapter
-	- IBM EC28 PCIe 2-Port 10GbE RoCE SFP+ adapter
-
-  o   Mellanox
-	- ConnectX-2 EN (fw-ConnectX2 Rev 2.9.1200)
-	- ConnectX-3 EN (fw-ConnectX3 Rev 2.11.0500)
-
-1.4 Switches Supported
-----------------------
-This release was tested with switches and gateways provided by the following
-companies:
-InfiniBand Switches
-  o   Flextronics
-	- F-X430044
-  o   Intel (formerly QLogic)
-	- 12200
-  o   Mellanox
-	- IS-5030
-	- SX6025
-	- SX6036
-
-iWARP Switches
-  o   Fujitsu
-	- XG2000C 10Gb Ethernet Switch
-
-RoCE Switches
-  o   Arista
-  o   BLADE Network Technologies (BNT)
-  o   Mellanox
-	- SX1036
-	- SX1024
-	- SX1016
-
-1.5 Third Party Packages
-------------------------
-The following third party packages have been tested with OFED 3.12-rc2:
-- Open MPI - 1.6.5
-- Intel MPI 4.1
-
-1.6 OFED Sources
-----------------
-All sources are located under git://git.openfabrics.org/
-
-Linux:
-------
-URL: git://git.openfabrics.org/compat-rdma/linux-3.12.git
-Branch: master
-
-- Linux kernel sub-tree that includes files relevant for the OFED project only.
-  Based on v3.12. Used to shorten git clone time.
-  Note: the regular Linux git tree can be used as well.
-
-compat:
--------
-URL: git://git.openfabrics.org/compat-rdma/compat.git
-Branch: ofed
-
-- Based on compat project (https://github.com/mcgrof/compat). The compat module
-  provides functionality introduced in newer kernels to older kernels through a
-  set of header files and exported symbols.
-  See https://github.com/mcgrof/compat/wiki for details.
-- Used to replace kernel_addons in the previous OFED kernel tree.
-
-compat-rdma:
-------------
-URL: git://git.openfabrics.org/compat-rdma/compat-rdma.git
-Branch: master
-
-User level Sources are downloaded from http://www.openfabrics.org/downloads/
-as written in the BUILD_ID
-
-The kernel sources are based on Linux 3.12 mainline kernel. Its patches
-are included in the OFED sources directory.
-For details see HOWTO.build_ofed.
-
-The list of maintainers is available under:
-http://www.openfabrics.org/downloads/MAINTAINERS
-
-===============================================================================
-2. Change log
-===============================================================================
-OFED-3.12-rc2 Main Changes from OFED 3.12-rc1
--------------------------------------------------------------------------------
-1. Updated packages:
-   - dapl-2.0.42
-   - ibutils-1.5.7-0.2.gbd7e502.tar.gz
-   - libcxgb4-1.3.3
-   - mstflint-3.6.0-1.8
-   - perftest-2.2-0.16.g8406133.tar.gz
-
-OFED-3.12-rc1 Main Changes from OFED 3.5-2
--------------------------------------------------------------------------------
-1. Add support for the OSes
-   - RedHat EL6.5
-2. New drivers available
-   - ocrdma
-   - libocrdma-1.0.2
-   - mlx5
-   - libmlx5-1.0.1
-3. Updated packages:
-   - dapl-2.0.40
-   - ibsim-0.6
-   - infiniband-diags-1.6.4
-   - infinipath-psm-3.2-2_ga8c3e3e_open
-   - libcxgb4-1.3.2
-   - libibmad-1.3.11
-   - libibumad-1.3.9
-   - libipathverbs-1.2.1
-   - libnes-1.1.4
-   - librdmacm-1.0.18
-   - mstflint-3.5.0
-   - opensm-3.3.17
-   - perftest-2.0-0.80.g54c73c6
-   - srptools-1.0.2
-
-===============================================================================
-3. Known Issues
-===============================================================================
-The following is a list of general limitations and known issues of the various
-components of the OFED 3.12-rc2 release.
-
-01. When upgrading from an earlier OFED version, the installation script does
-    not stop the earlier OFED version prior to uninstalling it.
-    Workaround: Stop the old OFED stack (/etc/init.d/openibd stop) before
-    upgrading to OFED 3.12 or reboot the server after OFED installation.
-02. Memory registration by the user is limited according to administrator
-    setting. See "Pinning (Locking) User Memory Pages" in OFED_tips.txt for
-    system configuration.
-03. Fork support from kernel 2.6.12 and above is available provided
-    that applications do not use threads. fork() is supported as long as the
-    parent process does not run before the child exits or calls exec().
-    The former can be achieved by calling wait(childpid), and the latter can be
-    achieved by application specific means.  The Posix system() call is
-    supported.
-04. The qib driver is supported only on 64-bit platforms.
-05. IPoIB: brctl utilities do not work on IPoIB interfaces. The reason for that
-    is that these utilities support devices of type Ethernet only.
-06. In case uninstall is failing, check the error log and remove
-    the remaining RPMs manually using 'rpm -e <rpms list>'.
-07. On SLES11.x, set allow_unsupported_modules parameter to 1 in file:
-    /etc/modprobe.d/unsupported-modules. Without this the modules will not
-    load.
-08. RDS is supported only on kernel.org 3.5 and not on any distro OS.
-09. There are known issues with iWARP using Chelsio adapters which will be
-    resolved in OFED 3.12 RC3 See Bugs 2482 and 2485
-10. There is an issue with NFSoRDMA when running on Power PC. This will be
-    resolved in OFED 3.12-1 - see Bug 2449
-11. Newer SLES or RHEL patch kernels that are updates to the original kernel that is included in the
-    original SLES or RHEL distibutions may not work with OFED-3.12-rc2. The list of kernels that are supported are listed in
-    section 1.2.
-
-Note: See the release notes of each component for additional issues.
-
-
---------------040209040709000205040305--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
