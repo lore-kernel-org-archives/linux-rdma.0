@@ -1,60 +1,121 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 9/9] IB/srp: Add fast registration support
-Date: Thu, 08 May 2014 19:18:30 +0300
-Message-ID: <536BAE56.1040206@dev.mellanox.co.il>
-References: <5368DA5B.80609@acm.org> <5368DC09.70608@acm.org> <536A1A3A.9090208@dev.mellanox.co.il> <536A4A68.4080605@acm.org> <536A6B2F.70807@dev.mellanox.co.il> <536B7ABE.8080502@acm.org> <536B9FB4.5040009@dev.mellanox.co.il> <536BAA13.3050905@acm.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
+Date: Thu, 8 May 2014 13:09:51 -0600
+Message-ID: <20140508190951.GB25849@obsidianresearch.com>
+References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com>
+ <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <536BAA13.3050905-HInyCGIudOg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1399531883-30599-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/8/2014 7:00 PM, Bart Van Assche wrote:
-> On 05/08/14 17:16, Sagi Grimberg wrote:
->> On 5/8/2014 3:38 PM, Bart Van Assche wrote:
->>> On 05/07/14 19:19, Sagi Grimberg wrote:
->>>> On 5/7/2014 5:59 PM, Bart Van Assche wrote:
->>>>> On 05/07/14 13:34, Sagi Grimberg wrote:
->>>>>>> +        pool = srp_create_fr_pool(dev->dev, dev->pd,
->>>>>>> +                      SRP_MDESC_PER_POOL, max_pages_per_mr);
->>>>>> 1024 FRMRs per connection?! we use 1024 FMRs for all connections
->>>>>> (per-device). I'd say that's a major over-allocation.
->>>>> It depends on how many discontiguous I/O requests are submitted
->>>>> concurrently. Anyway, how about limiting the number of memory
->>>>> regions to
->>>>> the queue size ?
->>>> Perhaps, but we will need to reserve some more for discontinuous IOs.
->>>> It is heuristic, for FS in most cases IO will align nicely, for some
->>>> crazy DB applications - I'm not sure.
->>> If srp_map_sg() runs out of memory descriptors it adds the remaining sg
->>> entries to the SRP indirect descriptor without using memory
->>> registration. In other words, I think a queue full of discontiguous I/O
->>> requests should be handled properly by srp_map_sg().
->> True, SRP can do without registration altogether by passing multiple
->> SGEs, we still strive
->> to register memory though.
->>
->> Would you consider making it configurable with default to queue_size?
->> This way the user which is (hopefully) aware of it's typical IO pattern
->> can choose a suitable value.
-> I don't think another configuration parameter is needed. The SRP
-> initiator already allows to configure the queue size. If an application
-> queues many I/O requests that cannot be registered via a single memory
-> descriptor and the SRP initiator runs out of memory descriptors
-> temporarily then srp_queuecommand() will return SCSI_MLQUEUE_HOST_BUSY.
-> If we change that behavior such that these commands are finished with
-> e.g. result code (DID_OK << 16) | (QUEUE_FULL << 1) then the SCSI
-> mid-layer will use that information to decrease the queue depth
-> dynamically via srp_change_queue_depth(). See e.g.
-> scsi_decide_disposition() in drivers/scsi/scsi_error.c.
+On Thu, May 08, 2014 at 09:51:23AM +0300, Or Gerlitz wrote:
 
-I see, I'm fine with that. let's set it to queue_size.
+> +struct ibv_port_attr_ex {
+> +	union {
+> +		struct {
+> +			enum ibv_port_state	state;
+> +			enum ibv_mtu		max_mtu;
+> +			enum ibv_mtu		active_mtu;
+> +			int			gid_tbl_len;
+> +			uint32_t		port_cap_flags;
+> +			uint32_t		max_msg_sz;
+> +			uint32_t		bad_pkey_cntr;
+> +			uint32_t		qkey_viol_cntr;
+> +			uint16_t		pkey_tbl_len;
+> +			uint16_t		lid;
+> +			uint16_t		sm_lid;
+> +			uint8_t			lmc;
+> +			uint8_t			max_vl_num;
+> +			uint8_t			sm_sl;
+> +			uint8_t			subnet_timeout;
+> +			uint8_t			init_type_reply;
+> +			uint8_t			active_width;
+> +			uint8_t			active_speed;
+> +			uint8_t			phys_state;
+> +			uint8_t			link_layer;
+> +			uint8_t			reserved;
+> +		};
+> +		struct ibv_port_attr		port_attr;
+> +	};
+> +	uint32_t		comp_mask;
+> +	uint32_t		mask1;
+> +};
 
-Sagi.
+I really don't like this deviation from the standard _ex
+pattern. 
+
+Anonymous struct/union is a C11 feature and GNU extension. I don't
+think is appropriate for a user library to rely on. We cannot assume
+the user is has a compiler in C11 mode.
+
+The cannonical layout should be:
+
+struct ibv_port_attr_ex {
+   uint64_t comp_mask;
+   struct ibv_port_attr	port_attr;
+   // New stuff goes here
+}
+
+It is fine to use comp_mask to indicate all the fields, no need for
+the weird mask1, lets not over complicate things for users.
+
+>  struct verbs_context {
+>  	/*  "grows up" - new fields go here */
+> +	int (*drv_query_port_ex)(struct ibv_context *context, uint8_t port_num,
+> +				 struct ibv_port_attr_ex *port_attr);
+> +	int (*lib_query_port_ex)(struct ibv_context *context, uint8_t port_num,
+> +				  struct ibv_port_attr_ex *port_attr);
+>  	struct ibv_ah * (*drv_ibv_create_ah_ex)(struct ibv_pd *pd,
+>  						struct ibv_ah_attr_ex *attr);
+>  	int (*drv_ibv_destroy_flow) (struct ibv_flow *flow);
+
+I'm not sure what Roland decided to merge, but I am surprised to see
+drv_ elements here. That was nix'd in the round of review of the first
+patch set. eg create_qp_ex/etc don't have them.
+
+The flow is such that the verbs code has a chance to capture and
+override the function pointer after the driver sets it, there is no
+purpose to the drv_ values.
+
+I wouldn't like to see more added, and I think you should make a patch
+to ensure they are not necessary before it propogates too far.
+
+> diff --git a/src/verbs.c b/src/verbs.c
+> index e7343a9..f8245b0 100644
+> +++ b/src/verbs.c
+> @@ -550,7 +550,7 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+>  	int err;
+>  	struct ibv_ah *ah = NULL;
+>  #ifndef NRESOLVE_NEIGH
+> -	struct ibv_port_attr port_attr;
+> +	struct ibv_port_attr_ex port_attr;
+>  	int dst_family;
+>  	int src_family;
+>  	int oif;
+> @@ -570,7 +570,10 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+>  		goto return_ah;
+>  	}
+>  
+> -	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
+> +	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
+> +	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER |
+> +			  IBV_QUERY_PORT_EX_CAP_FLAGS;
+> +	err = ibv_query_port_ex(pd->context, attr->port_num, &port_attr);
+>  
+>  	if (err) {
+>  		fprintf(stderr, PFX "ibv_create_ah failed to query port.\n");
+
+I wonder if this belongs in a seperate patch, I had to read it twice
+to realize this change was to take advantage of the reduced query
+performance optimization.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
