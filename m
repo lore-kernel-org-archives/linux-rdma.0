@@ -1,54 +1,27 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [ANNOUNCE] libmlx4 1.0.6 is released
-Date: Wed,  7 May 2014 17:06:22 -0700
-Message-ID: <1399507582-23912-1-git-send-email-roland@kernel.org>
+Subject: Re: [ANNOUNCE] libibverbs 1.1.8 is released
+Date: Wed, 7 May 2014 17:07:37 -0700
+Message-ID: <CAG4TOxOLoN1QRDAbgadcSz6dvT79fxqCBk717gLRba6kcr0z6w@mail.gmail.com>
+References: <1399317576-19155-1-git-send-email-roland@kernel.org> <5369F360.5070606@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5369F360.5070606-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-libmlx4 is a library that allows programs to use RDMA "verbs" for
-direct access to RDMA (currently InfiniBand and iWARP) hardware from
-userspace.
+On Wed, May 7, 2014 at 1:48 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Roland, due to a mistake I made in the rebased flow-steering patch I handed
+> you -- I was nominated as the author instead of Matan, our flow-steering
+> maintainer.. can you please git reword this commit in your libibverbs clone,
+> I don't think there will be any issue to use the already released 1.1.8
 
-The new stable release, 1.0.6, is available from
+Sorry, I already pushed out a signed tag for the release to my git
+tree, so I can't rewrite history.
 
-    http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.6.tar.gz
-
-with sha1sum
-
-    ee22cc20f537b5e794465682d97e5ad0647d9464  libmlx4-1.0.6.tar.gz
-
-I also pushed the latest tree and tag out to kernel.org:
-
-    git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
-
-(the name of the tag is libmlx4-1.0.6).
-
-The main new features in this release are: generic infrastructure for
-"verbs extensions", support for XRC, and support for flow steering.
-This release requires libiverbs >= 1.1.8 to build.
-
-This will be my last release of libmlx4; I am turning maintenance of
-the library over to Mellanox.
-
-The git shortlog since libmlx4 1.0.5 is:
-
-Matan Barak (1):
-      Add receive flow steering support
-
-Roland Dreier (5):
-      resize_cq: Fix possible endless loop scanning CQ
-      Remove compatibility with libibverbs < 1.1.7
-      Use dh-autoreconf to fix build on ppc64el
-      Enable subdir-objects for automake
-      Roll libmlx4 1.0.6 release
-
-Sean Hefty (1):
-      Add support for XRC QPs
-
-Yishai Hadas (1):
-      Update to use libiverbs extension support / verbs_register_driver()
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
