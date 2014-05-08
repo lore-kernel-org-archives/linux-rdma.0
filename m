@@ -1,119 +1,103 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
-Date: Thu, 8 May 2014 13:09:51 -0600
-Message-ID: <20140508190951.GB25849@obsidianresearch.com>
+Subject: Re: [PATCH libibverbs V3 2/3] Use neighbour lookup for RoCE UD QPs
+ Eth L2 resolution
+Date: Thu, 8 May 2014 13:29:07 -0600
+Message-ID: <20140508192907.GC25849@obsidianresearch.com>
 References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com>
- <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com>
+ <1399531883-30599-3-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1399531883-30599-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1399531883-30599-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 08, 2014 at 09:51:23AM +0300, Or Gerlitz wrote:
+On Thu, May 08, 2014 at 09:51:22AM +0300, Or Gerlitz wrote:
 
-> +struct ibv_port_attr_ex {
-> +	union {
-> +		struct {
-> +			enum ibv_port_state	state;
-> +			enum ibv_mtu		max_mtu;
-> +			enum ibv_mtu		active_mtu;
-> +			int			gid_tbl_len;
-> +			uint32_t		port_cap_flags;
-> +			uint32_t		max_msg_sz;
-> +			uint32_t		bad_pkey_cntr;
-> +			uint32_t		qkey_viol_cntr;
-> +			uint16_t		pkey_tbl_len;
-> +			uint16_t		lid;
-> +			uint16_t		sm_lid;
-> +			uint8_t			lmc;
-> +			uint8_t			max_vl_num;
-> +			uint8_t			sm_sl;
-> +			uint8_t			subnet_timeout;
-> +			uint8_t			init_type_reply;
-> +			uint8_t			active_width;
-> +			uint8_t			active_speed;
-> +			uint8_t			phys_state;
-> +			uint8_t			link_layer;
-> +			uint8_t			reserved;
-> +		};
-> +		struct ibv_port_attr		port_attr;
-> +	};
+> In order to implement RoCE IP based addressing for UD QPs, without
+> introducing uverbs changes, we need a way to resolve the L2 Ethernet
+> addresses from user-space.
+
+Please put anything that changes the public verbs ABI in a seperate
+patch.
+
+Burying the create_ah_ex stuff in this giant thing is not condusive to
+reviewing the ABI portion.
+
+The ABI is *important* do everything you can to bring as many eyes as
+possible to those changes!!
+
+> +struct ibv_ah_attr_ex {
+> +	struct ibv_global_route	grh;
+> +	uint16_t		dlid;
+> +	uint8_t			sl;
+> +	uint8_t			src_path_bits;
+> +	uint8_t			static_rate;
+> +	uint8_t			is_global;
+> +	uint8_t			port_num;
 > +	uint32_t		comp_mask;
-> +	uint32_t		mask1;
+> +	struct {
+> +		enum ll_address_type type;
+> +		uint32_t	len;
+> +		char		*address;
+> +	} ll_address;
+> +	uint16_t		vid;
 > +};
 
-I really don't like this deviation from the standard _ex
-pattern. 
+The above looks sorta reasonable, but:
 
-Anonymous struct/union is a C11 feature and GNU extension. I don't
-think is appropriate for a user library to rely on. We cannot assume
-the user is has a compiler in C11 mode.
+What is the 'char *address'? Should it be 'const void *' ?????
 
-The cannonical layout should be:
+Who owns that memory? Who allocates it, who frees it? Seems sketchy
+as heck.
 
-struct ibv_port_attr_ex {
-   uint64_t comp_mask;
-   struct ibv_port_attr	port_attr;
-   // New stuff goes here
-}
+What happens if a ibv_ah_attr_ex is returned in some kind of
+ibv_qp_attr_ex structure from a future query_qp?
 
-It is fine to use comp_mask to indicate all the fields, no need for
-the weird mask1, lets not over complicate things for users.
+Can you just put in a 'uint64_t address[8];' or sockaddr_storage, or
+something?
 
->  struct verbs_context {
->  	/*  "grows up" - new fields go here */
-> +	int (*drv_query_port_ex)(struct ibv_context *context, uint8_t port_num,
-> +				 struct ibv_port_attr_ex *port_attr);
-> +	int (*lib_query_port_ex)(struct ibv_context *context, uint8_t port_num,
-> +				  struct ibv_port_attr_ex *port_attr);
->  	struct ibv_ah * (*drv_ibv_create_ah_ex)(struct ibv_pd *pd,
->  						struct ibv_ah_attr_ex *attr);
->  	int (*drv_ibv_destroy_flow) (struct ibv_flow *flow);
+> +
+>  enum ibv_srq_attr_mask {
+>  	IBV_SRQ_MAX_WR	= 1 << 0,
+>  	IBV_SRQ_LIMIT	= 1 << 1
+> @@ -968,11 +998,14 @@ enum verbs_context_mask {
+>  	VERBS_CONTEXT_QP	= 1 << 2,
+>  	VERBS_CONTEXT_CREATE_FLOW = 1 << 3,
+>  	VERBS_CONTEXT_DESTROY_FLOW = 1 << 4,
+> -	VERBS_CONTEXT_RESERVED	= 1 << 5
+> +	VERBS_CONTEXT_CREATE_AH = 1 << 5,
+> +	VERBS_CONTEXT_RESERVED	= 1 << 6
+>  };
 
-I'm not sure what Roland decided to merge, but I am surprised to see
-drv_ elements here. That was nix'd in the round of review of the first
-patch set. eg create_qp_ex/etc don't have them.
+What is going on here??
 
-The flow is such that the verbs code has a chance to capture and
-override the function pointer after the driver sets it, there is no
-purpose to the drv_ values.
+verbs_context_mask is messed up already!?
 
-I wouldn't like to see more added, and I think you should make a patch
-to ensure they are not necessary before it propogates too far.
+It is NOT supposed to be a mask if the function is available - we
+can already test for NULL for that.
 
-> diff --git a/src/verbs.c b/src/verbs.c
-> index e7343a9..f8245b0 100644
-> +++ b/src/verbs.c
-> @@ -550,7 +550,7 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
->  	int err;
->  	struct ibv_ah *ah = NULL;
->  #ifndef NRESOLVE_NEIGH
-> -	struct ibv_port_attr port_attr;
-> +	struct ibv_port_attr_ex port_attr;
->  	int dst_family;
->  	int src_family;
->  	int oif;
-> @@ -570,7 +570,10 @@ struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
->  		goto return_ah;
->  	}
->  
-> -	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
-> +	port_attr.comp_mask = IBV_QUERY_PORT_EX_ATTR_MASK1;
-> +	port_attr.mask1 = IBV_QUERY_PORT_EX_LINK_LAYER |
-> +			  IBV_QUERY_PORT_EX_CAP_FLAGS;
-> +	err = ibv_query_port_ex(pd->context, attr->port_num, &port_attr);
->  
->  	if (err) {
->  		fprintf(stderr, PFX "ibv_create_ah failed to query port.\n");
+It is supposed to indicate if structures *allocated by the provider*
+are extended. 
 
-I wonder if this belongs in a seperate patch, I had to read it twice
-to realize this change was to take advantage of the reduced query
-performance optimization.
+For instance if VERBS_CONTEXT_QP is set, then everyone knows that the
+'struct ibv_qp' returned by *any* driver function (crate_qp, open_qp,
+create_qp_ex) is convertible to 'verbs_qp'.
+
+VERBS_CONTEXT_CREATE_FLOW/VERBS_CONTEXT_DESTROY_FLOW are screwed
+up. They shouldn't even exist, there is no unextended ibv_flow
+structure to worry about.
+
+Fix this patch to not add VERBS_CONTEXT_CREATE_AH, ibv_ah_attr_ex is
+not a provider allocated structure so it doesn't need an entry.
+
+Please send a patch to remove the screwed up two above and replace
+with RESERVED.
+
+And BE MORE CAREFUL. THIS SHOULD NOT HAVE HAPPENED!
 
 Jason
 --
