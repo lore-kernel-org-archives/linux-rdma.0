@@ -1,65 +1,110 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
-Date: Mon, 12 May 2014 00:35:23 -0600
-Message-ID: <20140512063523.GC27716@obsidianresearch.com>
-References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com>
- <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com>
- <20140508190951.GB25849@obsidianresearch.com>
- <CAL1RGDUiBtOaYKZVR3ghOZzG6J0p5EV5o4FTTW0E43mHz-BaVQ@mail.gmail.com>
- <20140509181043.GC18257@obsidianresearch.com>
- <536F6EAC.8020109@mellanox.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 2/3] IB/umad: Fix error handling
+Date: Mon, 12 May 2014 10:30:50 +0200
+Message-ID: <537086BA.3020807@acm.org>
+References: <53708666.6060209@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <536F6EAC.8020109-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <53708666.6060209-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 11, 2014 at 03:35:56PM +0300, Or Gerlitz wrote:
+Avoid leaking a kref count in ib_umad_open() if port->ib_dev == NULL
+or if nonseekable_open() fails. Avoid leaking a kref count, that
+sm_sem is kept down and also that the IB_PORT_SM capability mask is
+not cleared in ib_umad_sm_open() if nonseekable_open() fails.
 
-> Jason, I am clueless on what you are talking (please read below), I
-> think you are mixing things (see the DD comment below too)
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/core/user_mad.c | 37 +++++++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
-Way back at the start, in 2011, when Liran posted this - the first
-patch set of this concept did not reorganize the driver startup
-process so it needed to have two function pointers to allow libverbs a
-chance to hook things.
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index e61287c..5c67d80 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -780,24 +780,20 @@ static int ib_umad_open(struct inode *inode, struct file *filp)
+ {
+ 	struct ib_umad_port *port;
+ 	struct ib_umad_file *file;
+-	int ret;
++	int ret = -ENXIO;
+ 
+ 	port = container_of(inode->i_cdev, struct ib_umad_port, cdev);
+ 	kref_get(&port->umad_dev->ref);
+ 
+ 	mutex_lock(&port->file_mutex);
+ 
+-	if (!port->ib_dev) {
+-		ret = -ENXIO;
++	if (!port->ib_dev)
+ 		goto out;
+-	}
+ 
++	ret = -ENOMEM;
+ 	file = kzalloc(sizeof *file, GFP_KERNEL);
+-	if (!file) {
+-		kref_put(&port->umad_dev->ref, ib_umad_release_dev);
+-		ret = -ENOMEM;
++	if (!file)
+ 		goto out;
+-	}
+ 
+ 	mutex_init(&file->mutex);
+ 	spin_lock_init(&file->send_lock);
+@@ -814,6 +810,10 @@ static int ib_umad_open(struct inode *inode, struct file *filp)
+ 
+ out:
+ 	mutex_unlock(&port->file_mutex);
++
++	if (ret)
++		kref_put(&port->umad_dev->ref, ib_umad_release_dev);
++
+ 	return ret;
+ }
+ 
+@@ -892,18 +892,27 @@ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+ 	}
+ 
+ 	ret = ib_modify_port(port->ib_dev, port->port_num, 0, &props);
+-	if (ret) {
+-		up(&port->sm_sem);
+-		goto fail;
+-	}
++	if (ret)
++		goto up_sem;
+ 
+ 	filp->private_data = port;
+ 
+-	return nonseekable_open(inode, filp);
++	ret = nonseekable_open(inode, filp);
++	if (ret)
++		goto clr_sm_cap;
+ 
+ fail:
+-	kref_put(&port->umad_dev->ref, ib_umad_release_dev);
++	if (ret)
++		kref_put(&port->umad_dev->ref, ib_umad_release_dev);
+ 	return ret;
++
++clr_sm_cap:
++	swap(props.set_port_cap_mask, props.clr_port_cap_mask);
++	ib_modify_port(port->ib_dev, port->port_num, 0, &props);
++
++up_sem:
++	up(&port->sm_sem);
++	goto fail;
+ }
+ 
+ static int ib_umad_sm_close(struct inode *inode, struct file *filp)
+-- 
+1.8.4.5
 
-Instead we re-organized the startup process so that verbs allocates
-the context entirely and calls into the driver to set it up. This
-allows verbs to do whatever it wants to the function pointers,
-including copying the driver version to verbs-private-memory and
-overriding with it's own - should that be necessary.
-
-For this reason the drv_/ib_ scheme was entirely removed.
-
-The patches that Tzahi/Sean/etc posted to implement XRC did not use
-it, it hasn't been part of the concept for 3 years. Not sure where
-you+Matan got the idea from.
-
-> >Or, it would be helpful to me if you could go back to libibverbs
-> >commit cbf2a35162a [...] and post the corrected flow steering
-> >patches with the ABI/API change as a distinct patch. I think I
-> >caught everything, but lets also correct that process error and
-> >hopefully Sean/etc can comment too.
-
-> I'm not sure we need to roll back to  commit cbf2a35162a and start
-> from there, but if people feel this is the right thing to do, let it
-> be.
-
-I would like to see at the very least a clean patch, introducing only
-the API for flow steering, that follows the procedure I suggested.
-
-This is to show we are all on the same page. I'm not suggesting
-rolling back Roland's tree, just that you go back to that point and
-re-issue the patches as a learning exercise for us all.
-
-Follow up with a correction patch to Roland's tip.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
