@@ -1,34 +1,107 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 9/9] IB/srp: Add fast registration support
-Date: Mon, 12 May 2014 15:21:41 +0200
-Message-ID: <5370CAE5.2030105@acm.org>
-References: <5368DA5B.80609@acm.org> <5368DC09.70608@acm.org> <536A1A3A.9090208@dev.mellanox.co.il> <536A4A68.4080605@acm.org> <536A6B2F.70807@dev.mellanox.co.il>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] [resend] net: get rid of SET_ETHTOOL_OPS
+Date: Mon, 12 May 2014 09:49:28 -0500
+Message-ID: <20140512144928.GA31882@saruman.home>
+References: <20140511001231.GC7875@kaos.lebenslange-mailadresse.de>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <536A6B2F.70807-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============6554201972301373847=="
+Return-path: <e1000-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20140511001231.GC7875@kaos.lebenslange-mailadresse.de>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
+	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
+List-Post: <mailto:e1000-devel@lists.sourceforge.net>
+List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
+	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: e1000-devel-bounces@lists.sourceforge.net
+To: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, linux-acenic@sunsite.dk, nios2-dev@lists.rocketboards.org, linuxppc-dev@lists.ozlabs.org, e1000-devel@lists.sourceforge.net, devel@linuxdriverproject.org, linux-usb@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-wireless@vger.kernel.org, xen-devel@lists.xenproject.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, bridge@lists.linux-foundation.org, dev@openvswitch.org, trivial@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/07/14 19:19, Sagi Grimberg wrote:
-> P.S, can we consider also skip scsi_cmnd SEND completions?
-> Currently SRP asks for completion but never really arm the CQ (only for
-> the first time).
+--===============6554201972301373847==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Content-Disposition: inline
 
-Hello Sagi,
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Can you clarify this further ? Removing the IB_SEND_SIGNALED flag from
-send requests is not possible because that would result in the HCA only
-delivering work completions for failed work requests to the SRP
-initiator driver. The loop in srp_send_completion() also needs the work
-completions for send work requests that succeeded. In other words, it's
-not clear to me what you were referring to ?
+On Sun, May 11, 2014 at 12:12:32AM +0000, Wilfried Klaebe wrote:
+> net: get rid of SET_ETHTOOL_OPS
+>=20
+> Dave Miller mentioned he'd like to see SET_ETHTOOL_OPS gone.
+> This does that.
+>=20
+> Mostly done via coccinelle script:
+> @@
+> struct ethtool_ops *ops;
+> struct net_device *dev;
+> @@
+> -       SET_ETHTOOL_OPS(dev, ops);
+> +       dev->ethtool_ops =3D ops;
+>=20
+> Compile tested only, but I'd seriously wonder if this broke anything.
+>=20
+> Suggested-by: Dave Miller <davem@davemloft.net>
+> Signed-off-by: Wilfried Klaebe <w-lkml@lebenslange-mailadresse.de>
 
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+for drivers/usb/gadget/:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTcN94AAoJEIaOsuA1yqRE2R0P/RhVi/Qfz54HMVfE28wnFO0q
+QnlKuoHAVxYrJGy2DMEWK0M3Pur63qxiFZjkcZeoltPuas2EyP/SYGeb7RssNOSt
+jLvDOYvpOF6UVmmz+FMPXXDHjOwjlZI/GKLpAnpnBsUUjH1KAHiYQztgZaIr+tAC
+u09I9dYOPzEiZS0JVsS2H3OMzmjD0qEAIyJD/8JCSyTTod8TV/8M4oIupKyvamR4
+lI8L+9pNJlzc1q9lk8JdLg0uX5nFwkN3LElRESG865TMNTkMhsK+t1Xwj22LBJYL
+aB5o2Fdt1z0PPvpcRu8Yq6NvGFRXjufFXt+ERizVIo4ZYyGoE+8SvG134PDSkL3E
+GN6C+SmC/eoN4KZqh9sDEINNYSsnW7/qzwKOfjUt6vnBJQtMeOvFs6N11JBe5XGm
+OdS5NVjt8E9ojjN82eg8xYHM69GW8fUgsTDstLA67mOiKTLhTbZtSTT3Vxc91fJf
+FRN+zqJ1haKeNThtM0WP15V7YEcaNuO0ImGoX4OUgWOCCwvbrlTQesC+ndbj4fA+
+Eoa9CWBXt+7yR7iPHRbvn1aOexmXT+kBMN0z3CzHSuBDHdFAvNKZQapR9IsSEZbD
+nTGr4DCWBVQBTkzt9eKslLeRwS53guWFS9veXqbL9XZMAP6oCbeiVPzb9FnW+vb4
+w8H5mRK9If342xMOpRq0
+=//u0
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
+
+
+--===============6554201972301373847==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+------------------------------------------------------------------------------
+"Accelerate Dev Cycles with Automated Cross-Browser Testing - For FREE
+Instantly run your Selenium tests across 300+ browser/OS combos.
+Get unparalleled scalability from the best Selenium testing platform available
+Simple to use. Nothing to install. Get started now for free."
+http://p.sf.net/sfu/SauceLabs
+--===============6554201972301373847==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+E1000-devel mailing list
+E1000-devel@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/e1000-devel
+To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
+
+--===============6554201972301373847==--
