@@ -1,38 +1,66 @@
-From: Wilfried Klaebe <w-lkml-pFTr4yDReMQpLY+iQtz4oH4Z0sVMXfX4hC4ANOJQIlc@public.gmane.org>
-Subject: Re: [PATCH] [resend] net: get rid of SET_ETHTOOL_OPS
-Date: Sun, 11 May 2014 12:46:34 +0000
-Message-ID: <20140511124633.GD7875@kaos.lebenslange-mailadresse.de>
-References: <20140511001231.GC7875@kaos.lebenslange-mailadresse.de>
- <CANKiNjV7qrx-556DJk0qcOopnBs4NnKy51POEeZ7LpbdjX35OQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
+Date: Mon, 12 May 2014 00:35:23 -0600
+Message-ID: <20140512063523.GC27716@obsidianresearch.com>
+References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com>
+ <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com>
+ <20140508190951.GB25849@obsidianresearch.com>
+ <CAL1RGDUiBtOaYKZVR3ghOZzG6J0p5EV5o4FTTW0E43mHz-BaVQ@mail.gmail.com>
+ <20140509181043.GC18257@obsidianresearch.com>
+ <536F6EAC.8020109@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CANKiNjV7qrx-556DJk0qcOopnBs4NnKy51POEeZ7LpbdjX35OQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-To: Anish Khurana <anish.khurana130181-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acenic-OfajU3CKLf1/SzgSGea1oA@public.gmane.org, trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+In-Reply-To: <536F6EAC.8020109-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Am Sun, May 11, 2014 at 01:13:47PM +0530 schrieb Anish Khurana:
-> SET_ETHTOOL_OPS is equivalent to :
-> #define SET_ETHTOOL_OPS(netdev,ops) \
->     ( (netdev)->ethtool_ops = (ops) )
-> 
-> how it makes difference  removing this code and replacing with the
-> code mentioned ?
+On Sun, May 11, 2014 at 03:35:56PM +0300, Or Gerlitz wrote:
 
-It doesn't change anything in the resulting binaries. The whole point
-is to remove the macro, which is something Dave wants to happen.
+> Jason, I am clueless on what you are talking (please read below), I
+> think you are mixing things (see the DD comment below too)
 
-Kind regards,
-Wilfried
+Way back at the start, in 2011, when Liran posted this - the first
+patch set of this concept did not reorganize the driver startup
+process so it needed to have two function pointers to allow libverbs a
+chance to hook things.
+
+Instead we re-organized the startup process so that verbs allocates
+the context entirely and calls into the driver to set it up. This
+allows verbs to do whatever it wants to the function pointers,
+including copying the driver version to verbs-private-memory and
+overriding with it's own - should that be necessary.
+
+For this reason the drv_/ib_ scheme was entirely removed.
+
+The patches that Tzahi/Sean/etc posted to implement XRC did not use
+it, it hasn't been part of the concept for 3 years. Not sure where
+you+Matan got the idea from.
+
+> >Or, it would be helpful to me if you could go back to libibverbs
+> >commit cbf2a35162a [...] and post the corrected flow steering
+> >patches with the ABI/API change as a distinct patch. I think I
+> >caught everything, but lets also correct that process error and
+> >hopefully Sean/etc can comment too.
+
+> I'm not sure we need to roll back to  commit cbf2a35162a and start
+> from there, but if people feel this is the right thing to do, let it
+> be.
+
+I would like to see at the very least a clean patch, introducing only
+the API for flow steering, that follows the procedure I suggested.
+
+This is to show we are all on the same page. I'm not suggesting
+rolling back Roland's tree, just that you go back to that point and
+re-issue the patches as a learning exercise for us all.
+
+Follow up with a correction patch to Roland's tip.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
