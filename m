@@ -1,47 +1,39 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 2/3] IB/umad: Fix error handling
-Date: Mon, 12 May 2014 12:32:03 +0200
-Message-ID: <5370A323.5000504@acm.org>
-References: <53708666.6060209@acm.org> <537086BA.3020807@acm.org> <1399889890.3017.6.camel@localhost.localdomain>
+Subject: Re: [PATCH 1/3] IB/umad: Remove container_of() != NULL tests
+Date: Mon, 12 May 2014 12:36:15 +0200
+Message-ID: <5370A41F.8050001@acm.org>
+References: <53708666.6060209@acm.org> <5370869F.5040103@acm.org> <1399889097.3017.1.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399889890.3017.6.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <1399889097.3017.1.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/12/14 12:18, Yann Droneaud wrote:
+On 05/12/14 12:04, Yann Droneaud wrote:
 > Le lundi 12 mai 2014 =C3=A0 10:30 +0200, Bart Van Assche a =C3=A9crit=
  :
->>  	port =3D container_of(inode->i_cdev, struct ib_umad_port, cdev);
->>  	kref_get(&port->umad_dev->ref);
->> =20
->>  	mutex_lock(&port->file_mutex);
->> =20
->> -	if (!port->ib_dev) {
->> -		ret =3D -ENXIO;
->> +	if (!port->ib_dev)
->>  		goto out;
->> -	}
->> =20
->> +	ret =3D -ENOMEM;
-> especially here: I think it should be moved in the error handling pat=
-h:
+>> container_of() never returns NULL. Hence remove the code that tests
+>> whether container_of() returns NULL.
+>>
+>> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+>> Cc: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+>> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> The patch seems fine.
 >
->>  	file =3D kzalloc(sizeof *file, GFP_KERNEL);
->> -	if (!file) {
->> -		kref_put(&port->umad_dev->ref, ib_umad_release_dev);
->> -		ret =3D -ENOMEM;
-> keep it here.
+> But I don't think this one qualify for linux-stable.
 
-Does this mean that you are not aware that setting the return code
-before an if-test is a common coding style in the Linux kernel ? See
-e.g. kernel/futex.c or kernel/events/core.c for other examples.
+One chunk in patch 3/3 touches code that is also touched by this patch.
+This means that if only patches 2/3 and 3/3 would be sent to stable tha=
+t
+these wouldn't apply properly. Hence the "Cc: stable" tag in this patch=
+=2E
 
 Bart.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
