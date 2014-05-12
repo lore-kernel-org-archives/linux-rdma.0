@@ -1,41 +1,59 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/umad: Remove container_of() != NULL tests
-Date: Mon, 12 May 2014 12:36:15 +0200
-Message-ID: <5370A41F.8050001@acm.org>
-References: <53708666.6060209@acm.org> <5370869F.5040103@acm.org> <1399889097.3017.1.camel@localhost.localdomain>
+From: Kwesi Global Limited <agyemangkwesi2002-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
+Subject: Inquiry about your products,
+Date: Mon, 12 May 2014 13:01:41 +0100
+Message-ID: <CAEE0YnfzbS4k70cmM94jnaME=a07RmDZE6brTbN0kO0mfsCOmg@mail.gmail.com>
+Reply-To: agyemangkwesi2002-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1399889097.3017.1.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: agyemangkwesi2002-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/12/14 12:04, Yann Droneaud wrote:
-> Le lundi 12 mai 2014 =C3=A0 10:30 +0200, Bart Van Assche a =C3=A9crit=
- :
->> container_of() never returns NULL. Hence remove the code that tests
->> whether container_of() returns NULL.
->>
->> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
->> Cc: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
->> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> The patch seems fine.
->
-> But I don't think this one qualify for linux-stable.
+Dear Sir/Madam,
 
-One chunk in patch 3/3 touches code that is also touched by this patch.
-This means that if only patches 2/3 and 3/3 would be sent to stable tha=
-t
-these wouldn't apply properly. Hence the "Cc: stable" tag in this patch=
-=2E
 
-Bart.
+My name is Mr. Agyemang Kwesi. I am the Proprietor of Kwesi Global
+Limited. My office address is at NTHC Residential Area, Comm. 14,
+Tema, Ghana. I am doing import/export business since 1998 with my
+wife. We also represent some foreign companies in Ghana.
 
+
+We found posts about your company and products on the internet and we
+are pleased to inform you that we are interested in your products.
+Please send me your brochure, product catalog and pricing information.
+Also tell me your nearest sales office to Ghana.
+
+
+Kwesi Global Limited promotes itself as a turn-key solutions provider
+while providing our clients with the ability to the services they
+need. Business consulting is a broad term and many consulting firms
+fall short in their ability to  facilitate a wide range of services.
+
+Kwesi Global Limited is different in that our seasoned core business
+development team utilizes confident interactions with a circle of
+available resource to meet client real needs.
+
+
+We hope for a positive response from you.
+
+
+Sincerely yours
+
+Mr. Agyemang Kwesi
+Kwesi Global Limited
+NTHC Residential Area, Comm. 14, Tema
+Ghana.
+
+
+
+Tel: +233 50-2596 304
+Mobile: +233 545 485 124
+
+
+1. Company Registration number CA-411
+2. Company VAT number 524E002284
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
