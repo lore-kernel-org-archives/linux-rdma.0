@@ -1,107 +1,89 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] [resend] net: get rid of SET_ETHTOOL_OPS
-Date: Mon, 12 May 2014 09:49:28 -0500
-Message-ID: <20140512144928.GA31882@saruman.home>
-References: <20140511001231.GC7875@kaos.lebenslange-mailadresse.de>
-Reply-To: balbi@ti.com
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
+Date: Mon, 12 May 2014 10:43:23 -0600
+Message-ID: <20140512164323.GA20666@obsidianresearch.com>
+References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com>
+ <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com>
+ <20140508190951.GB25849@obsidianresearch.com>
+ <5370BCF2.7050107@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6554201972301373847=="
-Return-path: <e1000-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20140511001231.GC7875@kaos.lebenslange-mailadresse.de>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
-List-Post: <mailto:e1000-devel@lists.sourceforge.net>
-List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: e1000-devel-bounces@lists.sourceforge.net
-To: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, linux-acenic@sunsite.dk, nios2-dev@lists.rocketboards.org, linuxppc-dev@lists.ozlabs.org, e1000-devel@lists.sourceforge.net, devel@linuxdriverproject.org, linux-usb@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-wireless@vger.kernel.org, xen-devel@lists.xenproject.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, bridge@lists.linux-foundation.org, dev@openvswitch.org, trivial@kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5370BCF2.7050107-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---===============6554201972301373847==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
-Content-Disposition: inline
+On Mon, May 12, 2014 at 03:22:10PM +0300, Matan Barak wrote:
 
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> >Anonymous struct/union is a C11 feature and GNU extension. I don't
+> >think is appropriate for a user library to rely on. We cannot assume
+> >the user is has a compiler in C11 mode.
+> >
+> >The cannonical layout should be:
+> >
+> >struct ibv_port_attr_ex {
+> >    uint64_t comp_mask;
+> >    struct ibv_port_attr	port_attr;
+> >    // New stuff goes here
+> >}
+> >
+> 
+> It's not mandatory, but I think it could prevent future breakages
+> and inconsistencies. Anyway, anonymous unions are supported in icc
+> 9.2+, clang 3.1+ and of course gcc. However, I'll remove this in the
+> next version of this series.
 
-On Sun, May 11, 2014 at 12:12:32AM +0000, Wilfried Klaebe wrote:
-> net: get rid of SET_ETHTOOL_OPS
->=20
-> Dave Miller mentioned he'd like to see SET_ETHTOOL_OPS gone.
-> This does that.
->=20
-> Mostly done via coccinelle script:
-> @@
-> struct ethtool_ops *ops;
-> struct net_device *dev;
-> @@
-> -       SET_ETHTOOL_OPS(dev, ops);
-> +       dev->ethtool_ops =3D ops;
->=20
-> Compile tested only, but I'd seriously wonder if this broke anything.
->=20
-> Suggested-by: Dave Miller <davem@davemloft.net>
-> Signed-off-by: Wilfried Klaebe <w-lkml@lebenslange-mailadresse.de>
+Many compilers support C11, but if the user chooses to compile with,
+say, -std=c99 then the feature goes away. System level headers should
+never require the user to use a specific -std.
 
-for drivers/usb/gadget/:
+You can also inline the legacy port_attr into the struct, which might
+be the best option here.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+> >It is fine to use comp_mask to indicate all the fields, no need for
+> >the weird mask1, lets not over complicate things for users.
+> 
+> I don't think that's the right thing to do. According to my
+> understanding, the prefix of the extension verb is fully compatible
+> with the old structure.
 
---=20
-balbi
+This is not necessary in this case, it is convient that the old
+structure exist within the extended structure so that it is easy for
+the wrapper to call an old function without having to munge the
+function pointers, but that copy can be in any place.
 
---bp/iNruPH9dso1Pn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Afterwards, comp_mask has a bit for every new field. mask1 is a new
+> field that indicates which of the "old" values the user is
+> interested in. If we want to be strict with the extension verbs
+> definition, lets keep it all the way.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+comp_mask has bits for fields, that is all it does, the distinction
+between 'new' and 'old' is meaningless at this point. Just inline the
+bits in comp_mask.
 
-iQIcBAEBAgAGBQJTcN94AAoJEIaOsuA1yqRE2R0P/RhVi/Qfz54HMVfE28wnFO0q
-QnlKuoHAVxYrJGy2DMEWK0M3Pur63qxiFZjkcZeoltPuas2EyP/SYGeb7RssNOSt
-jLvDOYvpOF6UVmmz+FMPXXDHjOwjlZI/GKLpAnpnBsUUjH1KAHiYQztgZaIr+tAC
-u09I9dYOPzEiZS0JVsS2H3OMzmjD0qEAIyJD/8JCSyTTod8TV/8M4oIupKyvamR4
-lI8L+9pNJlzc1q9lk8JdLg0uX5nFwkN3LElRESG865TMNTkMhsK+t1Xwj22LBJYL
-aB5o2Fdt1z0PPvpcRu8Yq6NvGFRXjufFXt+ERizVIo4ZYyGoE+8SvG134PDSkL3E
-GN6C+SmC/eoN4KZqh9sDEINNYSsnW7/qzwKOfjUt6vnBJQtMeOvFs6N11JBe5XGm
-OdS5NVjt8E9ojjN82eg8xYHM69GW8fUgsTDstLA67mOiKTLhTbZtSTT3Vxc91fJf
-FRN+zqJ1haKeNThtM0WP15V7YEcaNuO0ImGoX4OUgWOCCwvbrlTQesC+ndbj4fA+
-Eoa9CWBXt+7yR7iPHRbvn1aOexmXT+kBMN0z3CzHSuBDHdFAvNKZQapR9IsSEZbD
-nTGr4DCWBVQBTkzt9eKslLeRwS53guWFS9veXqbL9XZMAP6oCbeiVPzb9FnW+vb4
-w8H5mRK9If342xMOpRq0
-=//u0
------END PGP SIGNATURE-----
+Generally, it would be smart to limit the number of comp_mask bits
+used so we don't run out in the future, so in general, a new extension
+can omit bits for fields that exist when the extension is introduced.
 
---bp/iNruPH9dso1Pn--
+However, in this case there is a functional purpose to having the
+fields have bits, so you should just go ahead and include them
+directly.
 
+Adding more masks is just going to be confusing to users. Remember,
+there is no static type checking, so the user has to know that
+IBV_QUERY_PORT_EX_LINK_LAYER is associated with mask1, while
+IBV_QUERY_PORT_EX_ATTR_MASK1 is somehow associated with comp_mask -
+and they sure do look similar, and it is counter-intuitive compared to
+other cases in the library.
 
---===============6554201972301373847==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+BTW, before I forget, the patch that introduces the API must also
+include a man page for it.
 
-------------------------------------------------------------------------------
-"Accelerate Dev Cycles with Automated Cross-Browser Testing - For FREE
-Instantly run your Selenium tests across 300+ browser/OS combos.
-Get unparalleled scalability from the best Selenium testing platform available
-Simple to use. Nothing to install. Get started now for free."
-http://p.sf.net/sfu/SauceLabs
---===============6554201972301373847==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-E1000-devel mailing list
-E1000-devel@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/e1000-devel
-To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
-
---===============6554201972301373847==--
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
