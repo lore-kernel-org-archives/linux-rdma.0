@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v2 1/9] IB/srp: Fix a sporadic crash triggered by cable pulling
-Date: Tue, 13 May 2014 16:39:13 +0200
-Message-ID: <53722E91.20902@acm.org>
+Subject: [PATCH v2 2/9] IB/srp: Fix kernel-doc warnings
+Date: Tue, 13 May 2014 16:40:07 +0200
+Message-ID: <53722EC7.2030903@acm.org>
 References: <53722E4F.7070709@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,39 +13,51 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that srp_finish_req() can encounter a pointer to a SCSI command
-in req->scmnd that is no longer associated with that request. If the
-function srp_finish_req() is invoked twice for a SCSI command that is
-not in flight then that would cause srp_unmap_data() to try to invoke
-ib_fmr_pool_unmap() with an invalid pointer as argument, resulting in
-a kernel oops.
+Avoid that the kernel-doc tool warns about missing argument descriptions
+for the ib_srp.[ch] source files.
 
-Reported by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reference: http://thread.gmane.org/gmane.linux.drivers.rdma/19068/focus=19069
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.13+ ("IB/srp: Use SRP transport layer error recovery")
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 66a908b..427336a 100644
+index 427336a..32955fa 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1594,6 +1594,8 @@ err_unmap:
- err_iu:
- 	srp_put_tx_iu(target, iu, SRP_IU_CMD);
+@@ -813,6 +813,10 @@ static struct scsi_cmnd *srp_claim_req(struct srp_target_port *target,
  
-+	req->scmnd = NULL; /* for srp_finish_req() */
-+
- 	spin_lock_irqsave(&target->lock, flags);
- 	list_add(&req->list, &target->free_reqs);
+ /**
+  * srp_free_req() - Unmap data and add request to the free request list.
++ * @target: SRP target port.
++ * @req:    Request to be freed.
++ * @scmnd:  SCSI command associated with @req.
++ * @req_lim_delta: Amount to be added to @target->req_lim.
+  */
+ static void srp_free_req(struct srp_target_port *target,
+ 			 struct srp_request *req, struct scsi_cmnd *scmnd,
+@@ -1455,6 +1459,7 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
  
+ /**
+  * srp_tl_err_work() - handle a transport layer error
++ * @work: Work structure embedded in an SRP target port.
+  *
+  * Note: This function may get invoked before the rport has been created,
+  * hence the target->rport test.
+@@ -2312,6 +2317,8 @@ static struct class srp_class = {
+ 
+ /**
+  * srp_conn_unique() - check whether the connection to a target is unique
++ * @host:   SRP host.
++ * @target: SRP target port.
+  */
+ static bool srp_conn_unique(struct srp_host *host,
+ 			    struct srp_target_port *target)
 -- 
 1.8.4.5
 
