@@ -1,23 +1,26 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
-Date: Mon, 12 May 2014 14:57:33 -0700
-Message-ID: <CAL1RGDXYwPHrS7dSWg0ojyiPG7TF1Y0800q801kWvMxoyn3c8g@mail.gmail.com>
-References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com>
- <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com> <20140508190951.GB25849@obsidianresearch.com>
- <5370BCF2.7050107@mellanox.com> <20140512164323.GA20666@obsidianresearch.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH v2 0/2] Fix a use-after-free in ib_umad
+Date: Tue, 13 May 2014 12:30:08 +0200
+Message-ID: <5371F430.5010109@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140512164323.GA20666-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Alex Chiang <achiang-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> BTW, before I forget, the patch that introduces the API must also
-> include a man page for it.
+Changes compared to version 1 of this patch series:
+* Folded the first patch into the second.
+* Implemented Yann's suggestion to drop the test of "ret" in the
+  non-error path of ib_umad_sm_open().
+* Simplified the implementation of ib_umad_open() and ib_umad_sm_open()
+  further.
 
-Jason, care to send a patch for the README or whatever with the rules? :)
+This patch series consists of the following two patches:
+0001-IB-umad-Fix-error-handling.patch
+0002-IB-umad-Fix-a-use-after-free.patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
