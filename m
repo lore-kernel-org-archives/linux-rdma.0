@@ -1,34 +1,40 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs V3 3/3] Add ibv_query_port_ex support
-Date: Tue, 13 May 2014 09:18:01 -0400 (EDT)
-Message-ID: <594.223259440874$1399987140@news.gmane.org>
-References: <1399531883-30599-1-git-send-email-ogerlitz@mellanox.com> <1399531883-30599-4-git-send-email-ogerlitz@mellanox.com> <20140508190951.GB25849@obsidianresearch.com> <5370BCF2.7050107@mellanox.com> <20140512164323.GA20666@obsidianresearch.com> <CAL1RGDXYwPHrS7dSWg0ojyiPG7TF1Y0800q801kWvMxoyn3c8g@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH v2 0/9] SRP initiator patches for kernel 3.16
+Date: Tue, 13 May 2014 16:38:07 +0200
+Message-ID: <53722E4F.7070709@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXYwPHrS7dSWg0ojyiPG7TF1Y0800q801kWvMxoyn3c8g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
------ Original Message -----
-> > BTW, before I forget, the patch that introduces the API must also
-> > include a man page for it.
-> 
-> Jason, care to send a patch for the README or whatever with the
-> rules? :)
+Changes compared to v1:
+- Modified the FMR code such that one FMR pool is allocated per
+  connection instead of one pool per HCA.
+- Dropped the patch "Make srp_alloc_req_data() reallocate request data".
+- Moved introduction of the register_always kernel module parameter
+  into a separate patch.
+- Removed the loop from around ib_create_fmr_pool() and
+  srp_create_fr_pool(). max_pages_per_mr is now computed from
+  max_mr_size and max_fast_reg_page_list_len.
+- Reduced fast registration pool size from 1024 to scsi_host->can_queue.
+- Added a patch that should fix a crash that had been reported by Sagi
+  but that I have not yet been able to reproduce myself.
 
-README.Extensions_API_and_Guidelines ?  I wouldn't bury it in the
-generic README, people won't know to look there when working
-specifically on an extension.
+This patch series consists of the following nine patches:
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
-
+0001-IB-srp-Fix-a-sporadic-crash-triggered-by-cable-pulli.patch
+0002-IB-srp-Fix-kernel-doc-warnings.patch
+0003-IB-srp-Introduce-an-additional-local-variable.patch
+0004-IB-srp-Introduce-srp_map_fmr.patch
+0005-IB-srp-Introduce-srp_finish_mapping.patch
+0006-IB-srp-Introduce-the-register_always-kernel-module-p.patch
+0007-IB-srp-One-FMR-pool-per-SRP-connection.patch
+0008-IB-srp-Rename-FMR-related-variables.patch
+0009-IB-srp-Add-fast-registration-support.patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
