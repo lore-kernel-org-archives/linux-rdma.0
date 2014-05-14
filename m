@@ -1,320 +1,137 @@
-From: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2 RFC 2/3] svcrdma: Recvfrom changes
-Date: Tue, 13 May 2014 17:44:41 -0400
-Message-ID: <3DAF95F3-22D5-4FC5-8C98-5A440E54DC2F@gmail.com>
-References: <20140506174621.18208.24242.stgit@build.ogc.int> <20140506174632.18208.28160.stgit@build.ogc.int> <F997E138-FB04-4149-811D-CE68608E8D6B@gmail.com> <00f901cf6eeb$2ff1f630$8fd5e290$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00f901cf6eeb$2ff1f630$8fd5e290$@opengridcomputing.com>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH v2 9/9] IB/srp: Add fast registration support
+Date: Wed, 14 May 2014 09:05:48 +0200
+Message-ID: <537315CC.1090001@acm.org>
+References: <53722E4F.7070709@acm.org> <53722FE2.4010808@acm.org> <53724CC9.6080509@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53724CC9.6080509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 05/13/14 18:48, Sagi Grimberg wrote:
+> On 5/13/2014 5:44 PM, Bart Van Assche wrote:
+>>   static int srp_create_target_ib(struct srp_target_port *target)
+>>   {
+>>       struct srp_device *dev = target->srp_host->srp_dev;
+>> @@ -318,6 +449,8 @@ static int srp_create_target_ib(struct
+>> srp_target_port *target)
+>>       struct ib_cq *recv_cq, *send_cq;
+>>       struct ib_qp *qp;
+>>       struct ib_fmr_pool *fmr_pool = NULL;
+>> +    struct srp_fr_pool *fr_pool = NULL;
+>> +    const int m = 1 + dev->use_fast_reg;
+>>       int ret;
+>>         init_attr = kzalloc(sizeof *init_attr, GFP_KERNEL);
+>> @@ -332,7 +465,7 @@ static int srp_create_target_ib(struct
+>> srp_target_port *target)
+>>       }
+>>         send_cq = ib_create_cq(dev->dev, srp_send_completion, NULL,
+>> target,
+>> -                   target->queue_size, target->comp_vector);
+>> +                   m * target->queue_size, target->comp_vector);
+> 
+> So it is correct to expand the send CQ and QP send queue, but why not x3?
+> For fast registration we do:
+> - FASTREG
+> - RDMA
+> - LOCAL_INV
+> 
+> I'm aware we are suppressing the completions but I think we need to
+> reserve room for FLUSH errors in case QP went to error state when the
+> send queue is packed.
 
-On May 13, 2014, at 4:37 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> w=
-rote:
+The first FLUSH error triggers a call of srp_tl_err_work(). The second
+and later FLUSH errors are ignored by srp_handle_qp_err(). Do you think
+multiplying target->queue_size with a factor 3 instead of 2 would make a
+difference in fast registration mode ?
 
->=20
->=20
->> -----Original Message-----
->> From: Chuck Lever [mailto:chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->> Sent: Tuesday, May 13, 2014 1:22 PM
->> To: Steve Wise
->> Cc: J. Bruce Fields; Linux NFS Mailing List; linux-rdma-u79uwXL29TasMV2rI37PzA@public.gmane.org=
-org; Tom Tucker
->> Subject: Re: [PATCH V2 RFC 2/3] svcrdma: Recvfrom changes
->>=20
->> Hi Steve-
->>=20
->> Some random review comments, see below.
->>=20
->=20
-> <snip>
->=20
->>> +static int rdma_read_chunks(struct svcxprt_rdma *xprt,
->>> +			    struct rpcrdma_msg *rmsgp,
->>> +			    struct svc_rqst *rqstp,
->>> +			    struct svc_rdma_op_ctxt *head)
->>> {
->>> -	struct ib_send_wr read_wr;
->>> -	struct ib_send_wr inv_wr;
->>> -	int err =3D 0;
->>> -	int ch_no;
->>> -	int ch_count;
->>> -	int byte_count;
->>> -	int sge_count;
->>> -	u64 sgl_offset;
->>> +	int page_no, ch_count, ret;
->>> 	struct rpcrdma_read_chunk *ch;
->>> -	struct svc_rdma_op_ctxt *ctxt =3D NULL;
->>> -	struct svc_rdma_req_map *rpl_map;
->>> -	struct svc_rdma_req_map *chl_map;
->>> +	u32 page_offset, byte_count;
->>> +	u64 rs_offset;
->>> +	rdma_reader_fn reader;
->>>=20
->>> 	/* If no read list is present, return 0 */
->>> 	ch =3D svc_rdma_get_read_chunk(rmsgp);
->>> @@ -408,122 +368,53 @@ static int rdma_read_xdr(struct svcxprt_rdma=
- *xprt,
->>> 	if (ch_count > RPCSVC_MAXPAGES)
->>> 		return -EINVAL;
->>=20
->> I'm not sure what this ^^^ ch_count check is doing, but maybe I have=
-n't had
->> enough caffeine this morning. Shouldn't this code be comparing the s=
-egment
->> count, not the chunk count, with MAXPAGES?
->=20
-> Isn't ch_count really the number of chunks in the RPC?
+>>   static void srp_unmap_data(struct scsi_cmnd *scmnd,
+>>                  struct srp_target_port *target,
+>>                  struct srp_request *req)
+>>   {
+>> -    struct ib_device *ibdev = target->srp_host->srp_dev->dev;
+>> -    struct ib_pool_fmr **pfmr;
+>> +    struct srp_device *dev = target->srp_host->srp_dev;
+>> +    struct ib_device *ibdev = dev->dev;
+>> +    int i;
+>>         if (!scsi_sglist(scmnd) ||
+>>           (scmnd->sc_data_direction != DMA_TO_DEVICE &&
+>>            scmnd->sc_data_direction != DMA_FROM_DEVICE))
+>>           return;
+>>   -    pfmr = req->fmr_list;
+>> -    while (req->nmdesc--)
+>> -        ib_fmr_pool_unmap(*pfmr++);
+>> +    if (dev->use_fast_reg) {
+>> +        struct srp_fr_desc **pfr;
+>> +
+>> +        for (i = req->nmdesc, pfr = req->fr_list; i > 0; i--, pfr++)
+>> +            srp_inv_rkey(target, (*pfr)->mr->rkey);
+>
+> No check on return code here? I assume we should react here if we
+> failed to post a work request right?
 
-Sort of. Block comment in front of svc_rdma_rcl_chunk_counts() reads:
+OK, I will add a check for the srp_inv_rkey() return code.
 
- 74  * Determine number of chunks and total bytes in chunk list. The ch=
-unk
- 75  * list has already been verified to fit within the RPCRDMA header.
+>>   +static int srp_map_finish_fr(struct srp_map_state *state,
+>> +                 struct srp_target_port *target)
+>> +{
+>> +    struct srp_device *dev = target->srp_host->srp_dev;
+>> +    struct ib_send_wr *bad_wr;
+>> +    struct ib_send_wr wr;
+>> +    struct srp_fr_desc *desc;
+>> +    u32 rkey;
+>> +
+>> +    desc = srp_fr_pool_get(target->fr_pool);
+>> +    if (!desc)
+>> +        return -ENOMEM;
+>> +
+>> +    rkey = ib_inc_rkey(desc->mr->rkey);
+>> +    ib_update_fast_reg_key(desc->mr, rkey);
+>> +
+>> +    memcpy(desc->frpl->page_list, state->pages,
+>> +           sizeof(state->pages[0]) * state->npages);
+> 
+> I would really like to avoid this memcpy. Any chance we can map directly
+> to frpl->page_list instead ?
 
-So, called from rdma_read_chunks(), ch_count is the number of chunks in
-the Read list.
+Avoiding this memcpy() would be relatively easy if all memory that is
+holding data for a SCSI command would always be registered. However,
+since if register_always == false the fast registration algorithm in
+this patch only allocates an rkey if needed (npages > 1) and since how
+many pages are present in a mapping descriptor is only known after
+state->pages[] has been filled in, eliminating that memcpy would be
+challenging.
 
-As you point out below, NFS/RDMA passes either a Read or a Write list,
-not both. So it amounts to the same thing as the total number of chunks
-in the RPC.
+>> -    state->next_fmr    = req->fmr_list;
+>> -
+>> -    use_fmr = target->fmr_pool ? SRP_MAP_ALLOW_FMR : SRP_MAP_NO_FMR;
+>> +    if (dev->use_fast_reg) {
+>> +        state->next_fmr = req->fmr_list;
+> 
+> is this correct?
+> shouldn't this be state->next_fr = req->fr_list (dev->use_fast_reg ==
+> true)?
+> or did I misunderstood?
+> 
+>> +        use_memory_registration = !!target->fr_pool;
+>> +    } else {
+>> +        state->next_fr = req->fr_list;
+> 
+> Same here?
 
-> I'm not sure what "segment count=94 you are talking about?
+req->fmr_list and req->fr_list point at the same memory location since
+both pointers are members of the same union. This also holds for
+state->next_fmr and state->next_fr. So swapping these two statements as
+proposed wouldn't change the generated code. But I agree that this would
+make the code easier to read.
 
-AFAICT a chunk is a list of segments. Thus one chunk can reference
-many pages, one per segment.
-
-If you print ch_count, it is 2 for NFS WRITEs from a Linux client,
-no matter how large the write payload is. Therefore I think the check
-as it is written is not particularly useful.
-
-The returned ch_count here is not used beyond that check, after the
-refactoring patch is applied. The returned byte_count includes all
-chunks in the passed-in chunk list, whereas I think it should count
-only the first chunk in the list.
-
->=20
->>=20
->>=20
->>>=20
->>> -	/* Allocate temporary reply and chunk maps */
->>> -	rpl_map =3D svc_rdma_get_req_map();
->>> -	chl_map =3D svc_rdma_get_req_map();
->>> -
->>> -	if (!xprt->sc_frmr_pg_list_len)
->>> -		sge_count =3D map_read_chunks(xprt, rqstp, hdr_ctxt, rmsgp,
->>> -					    rpl_map, chl_map, ch_count,
->>> -					    byte_count);
->>> -	else
->>> -		sge_count =3D fast_reg_read_chunks(xprt, rqstp, hdr_ctxt, rmsgp,
->>> -						 rpl_map, chl_map, ch_count,
->>> -						 byte_count);
->>> -	if (sge_count < 0) {
->>> -		err =3D -EIO;
->>> -		goto out;
->>> -	}
->>> -
->>> -	sgl_offset =3D 0;
->>> -	ch_no =3D 0;
->>> +	/* The request is completed when the RDMA_READs complete. The
->>> +	 * head context keeps all the pages that comprise the
->>> +	 * request.
->>> +	 */
->>> +	head->arg.head[0] =3D rqstp->rq_arg.head[0];
->>> +	head->arg.tail[0] =3D rqstp->rq_arg.tail[0];
->>> +	head->arg.pages =3D &head->pages[head->count];
->>> +	head->hdr_count =3D head->count;
->>> +	head->arg.page_base =3D 0;
->>> +	head->arg.page_len =3D 0;
->>> +	head->arg.len =3D rqstp->rq_arg.len;
->>> +	head->arg.buflen =3D rqstp->rq_arg.buflen + PAGE_SIZE;
->>>=20
->>> +	page_no =3D 0; page_offset =3D 0;
->>> 	for (ch =3D (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks=
-[0];
->>> -	     ch->rc_discrim !=3D 0; ch++, ch_no++) {
->>> -		u64 rs_offset;
->>> -next_sge:
->>> -		ctxt =3D svc_rdma_get_context(xprt);
->>> -		ctxt->direction =3D DMA_FROM_DEVICE;
->>> -		ctxt->frmr =3D hdr_ctxt->frmr;
->>> -		ctxt->read_hdr =3D NULL;
->>> -		clear_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
->>> -		clear_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags);
->>> +	     ch->rc_discrim !=3D 0; ch++) {
->>=20
->>=20
->> As I understand it, this loop is iterating over the items in the RPC
->> header's read chunk list.
->>=20
->> RFC 5667 section 4 says
->>=20
->> "The server MUST ignore any Read list for other NFS procedures, as w=
-ell
->> as additional Read list entries beyond the first in the list."
->>=20
->=20
-> I interpret this to say the server should ignore an RDMA Write list, =
-if present, when
-> processing an NFS WRITE (because the server emits RDMA Reads to the c=
-lient in this case).
-> Similarly, it should ignore an RDMA Read list when processing an NFS =
-READ (which generates
-> RDMA Writes from the server->client to fulfill the NFS READ).=20
-
-That=92s already stated explicitly in a later paragraph. So this text
-is getting at something else, IMO. Here=92s the full context:
-=20
-4.  NFS Versions 2 and 3 Mapping
-
-   A single RDMA Write list entry MAY be posted by the client to receiv=
-e
-   either the opaque file data from a READ request or the pathname from
-   a READLINK request.  The server MUST ignore a Write list for any
-   other NFS procedure, as well as any Write list entries beyond the
-   first in the list.
-
-   Similarly, a single RDMA Read list entry MAY be posted by the client
-   to supply the opaque file data for a WRITE request or the pathname
-   for a SYMLINK request.  The server MUST ignore any Read list for
-   other NFS procedures, as well as additional Read list entries beyond
-   the first in the list.
-
-   Because there are no NFS version 2 or 3 requests that transfer bulk
-   data in both directions, it is not necessary to post requests
-   containing both Write and Read lists.  Any unneeded Read or Write
-   lists are ignored by the server.
-
-If there is a Read list, it can contain one chunk for NFS WRITE and
-SYMLINK operations, otherwise it should contain zero chunks. Anything
-else MUST be ignored (ie, the server mustn=92t process the additional
-chunks, and mustn=92t throw an error).
-
-Processing the second chunk from the client during NFS WRITE operations
-is incorrect. The additional chunk should be ignored, and the first
-chunk should be padded on the server to make things work right in the
-upper layer (the server=92s NFS WRITE XDR decoder).
-
->=20
->> But rdma_read_chunks() still expects multiple chunks in the incoming=
- list.
->=20
-> An RDMA Read list can have multiple chunks, yes?
-
-It can. But RFC 5667 suggests that particularly for NFS requests, only
-a Read list of zero or one chunks is valid.
-
->=20
->> Should this code follow the RFC and process only the first chunk in
->> each RPC header, or did I misunderstand the RFC text?
->>=20
->> I'm not sure how the RPC layer should enforce the requirement to ign=
-ore
->> chunks for particular classes of NFS requests. But seems like valid
->> NFS/RDMA requests will have only zero or one item in each chunk list=
-=2E
->>=20
->>=20
->> The ramification of this change:
->>=20
->> The Linux client sends an extra chunk which is a zero pad to satisfy=
- XDR
->> alignment. This results in an extra RDMA READ on the wire for a payl=
-oad
->> that is never more than 3 bytes of zeros.
->>=20
->=20
-> This sounds like a logic bug in the server then.
-
-Perhaps it=92s simply that this code was designed before RFC 5667 was
-published. Certainly the client expects the server might work this way.
-
-> You see these IOs on the wire?
-
-I see extra iterations in the RDMA READ loop on the server, both before
-and after the refactoring patch.
-
-I haven=92t looked at the wire because ib_dump doesn=92t work with the =
-mthca
-provider.
-
->=20
->> Section 3.7 of RFC 5666 states:
->>=20
->> "If in turn, no data remains to be decoded from the inline portion, =
-then
->> the receiver MUST conclude that roundup is present, and therefore it
->> advances the XDR decode position to that indicated by the next chunk=
- (if
->> any).  In this way, roundup is passed without ever actually transfer=
-ring
->> additional XDR bytes."
->>=20
->> Later, it states:
->>=20
->> "Senders SHOULD therefore avoid encoding individual RDMA Read Chunks=
- for
->> roundup whenever possible."
->>=20
->> The Solaris NFS/RDMA server does not require this extra chunk, but L=
-inux
->> appears to need it. When I enable pad optimization on the Linux clie=
-nt,
->> it works fine with the Solaris server. But the first NFS WRITE with =
-an
->> odd length against the Linux server causes connection loss and the c=
-lient
->> workload hangs.
->>=20
->> At some point I'd like to permanently enable this optimization on th=
-e
->> Linux client. You can try this out with:
->>=20
->> sudo echo 1 > /proc/sys/sunrpc/rdma_pad_optimize
->>=20
->> The default contents of this file leave pad optimization disabled, f=
-or
->> compatibility with the current Linux NFS/RDMA server.
->>=20
->> So rdma_read_chunks() needs to handle the implicit XDR length round-=
-up.
->> That's probably not hard.
->>=20
->> What I'm asking is:
->>=20
->> Do you agree the server should be changed to comply with section 4 o=
-f 5667?
->>=20
->=20
-> I think it is complying and you are misinterpreting.  But I could be =
-misinterpreting it
-> too :)
->=20
-> But we should fix the pad thing.
-
-That may be enough to support a client that does not send the
-pad bytes in a separate chunk. However, I wonder how such a
-server would behave with the current client.
-
-True, this isn=92t a regression, per se. The server is already
-behaving incorrectly without the refactoring patch.
-
-However, Tom=92s refactoring rewrites all this logic anyway, and
-it wouldn=92t be much of a stretch to make the server comply with
-RFC 5667, at this point.
-
+Bart.
 --
-Chuck Lever
-chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
