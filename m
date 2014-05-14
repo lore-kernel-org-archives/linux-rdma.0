@@ -1,81 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs] Align Flow Steering API to the extension
- verbs scheme
-Date: Wed, 14 May 2014 10:08:04 -0600
-Message-ID: <20140514160804.GC6253@obsidianresearch.com>
-References: <1400075090-14296-1-git-send-email-ogerlitz@mellanox.com>
- <1400075090-14296-2-git-send-email-ogerlitz@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V2 RFC 2/3] svcrdma: Recvfrom changes
+Date: Wed, 14 May 2014 13:11:40 -0500
+Message-ID: <009601cf6f9f$f47b2cb0$dd718610$@opengridcomputing.com>
+References: <20140506174621.18208.24242.stgit@build.ogc.int> <20140506174632.18208.28160.stgit@build.ogc.int> <F997E138-FB04-4149-811D-CE68608E8D6B@gmail.com> <00f901cf6eeb$2ff1f630$8fd5e290$@opengridcomputing.com> <3DAF95F3-22D5-4FC5-8C98-5A440E54DC2F@gmail.com> <53737D15.6020902@opengridcomputing.com> <2AEECADA-4A40-4BF2-866E-7F178D016DDE@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1400075090-14296-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <2AEECADA-4A40-4BF2-866E-7F178D016DDE-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: 'Chuck Lever' <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, 'Linux NFS Mailing List' <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Tom Tucker' <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 14, 2014 at 04:44:50PM +0300, Or Gerlitz wrote:
-> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+> >
+> >> If you print ch_count, it is 2 for NFS WRITEs from a Linux client,
+> >> no matter how large the write payload is. Therefore I think the check
+> >> as it is written is not particularly useful.
+> >
+> > Why are there 2?
 > 
-> The receive flow steering API didn't conform with the extension
-> verbs:
-> 1. It introduced VERBS_CONTEXT_CREATE_FLOW and
->    VERBS_CONTEXT_DESTROY_FLOW, even though the structures
->    aren't allocated by the provider.
+> The first chunk lists the pages the server is to read, and the second
+> chunk has the zero pad for XDR alignment.
+> 
+> If pad optimization is enabled on the client, there is just 1 chunk in
+> the RPC's Read list.
+> 
 
-"even though the structures aren't allocated by the provider"
-is not the reason..
-
-1. VERBS_CONTEXT_CREATE_FLOW/VERBS_CONTEXT_DESTROY_FLOW mis
-   uses 'has_comp_mask' which is supposed to indicate if a legacy
-   structure is extended or not. It does not indicate the presence
-   of a function call
-
-BTW, I see now that libmlx4 was never updated to set these values
-(???)  so I think we can actually just drop them instead of adding
-RESERVED, since they were never written or read.
-
->  	struct verbs_context *vctx = verbs_get_ctx_op(qp->context,
-> -						      lib_ibv_create_flow);
-> -	if (!vctx || !vctx->lib_ibv_create_flow)
-> +						      create_flow);
-> +	if (!vctx)
->  		return NULL;
+So the code as it stands violates the RFC by sending 2 chunks?  And if I change the server
+to only consume 1, then everything unaligned will break?
 
 
-Right, that 2nd test for lib_ibv_create flow was redundant.
 
-Should errno be set here? I've forgotton what we settled on :|
-
-No matter what, errno will be set by the kernel and leak out of the
-provider call.
-
-It feels broken that there are multiple failure modes to the call and
-now way for the user to tell them apart.
-
-.. and the man page should talk about errno if it is actually part of
-the API.
-
->  /**
-> diff --git a/man/ibv_create_flow.3 b/man/ibv_create_flow.3
-> new file mode 100644
-> index 0000000..f7c767e
-> +++ b/man/ibv_create_flow.3
-> @@ -0,0 +1,86 @@
-> +.TH IBV_CREATE_FLOW 3 2013-08-21 libibverbs "Libibverbs
-> Programmer's Manual"
-
-Christoph: can you, as a user of this API, give the man page a quick
-read to check that it captures everything?
-
-Otherwise, this looks good to me.
-
-Reviewd-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-
-Thanks for taking care of this Or
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
