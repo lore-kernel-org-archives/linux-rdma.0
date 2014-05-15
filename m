@@ -1,118 +1,257 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: NFSoRDMA developers bi-weekly meeting summary (5/14)
-Date: Wed, 14 May 2014 11:57:09 -0700
-Message-ID: <5373BC85.3030804@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, Allen Andrews <Allen.Andrews-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "<yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, David Stevens <dls0904-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Cayton, Phil" <phil.cayton-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libibverbs V1] Align Flow Steering API to the extension verbs scheme
+Date: Thu, 15 May 2014 16:16:24 +0300
+Message-ID: <1400159784-24423-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Attendees:
-Allen Andrews (Emulex)
-Jeff Beck (NASA)
-Yan Burman (Mellanox)
-Wendy Cheng (Intel)
-Rupert Dance (Soft Forge)
-Chuck Lever (Oracle)
-Doug Ledford (RedHat)
-Shirley Ma (Oracle)
-Anna Schumaker (Net App)
-Steve Wise (OpenGridComputing, Chelsio)
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Moderator:
-Shirley Ma (Oracle)
+The receive flow steering API didn't conform with the extension
+verbs:
+1. It introduced VERBS_CONTEXT_CREATE_FLOW and
+   VERBS_CONTEXT_DESTROY_FLOW, even though there isn't a
+   non-extended structure it could be converted to.
+2. It introduces drv_ functions, which was dropped in one
+   of the design phases of the extension verbs.
 
-NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA 
-development and test effort from different resources to speed up 
-NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools 
-development. Hopefully the quality of NFSoRDMA upstream patches can be 
-improved by being tested by a quorum of HW vendors.
+This patch fixes the above. It drops VERBS_CONTEXT_CREATE_FLOW
+and VERBS_CONTEXT_DESTROY_FLOW and replaces the drv_function with
+a reserved stub.
 
-Today's meeting notes:
-1. Flesh out the process for testing and reviewing upstream patch sets:
+Also add man page for the two new verbs
 
-What kind of test cases to run?
-The upstream patch sets are required to test and pass functional test 
-suites. In long run, performance test suites will be required. The 
-performance test suites will be added later. Link to NFSoRDMA test wiki:
-http://wiki.linux-nfs.org/wiki/index.php/NfsRdmaClient/Home#Submitting_patches 
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
+Hi Roland -- this addresses all the comments by Jason who gave a
+ack/reviewed-by note for both the libibverbs and libmlx4 fixes.
 
-How would linux-nfs git tree help NFSoRDMA patch sets upstream to 
-mainline kernel?
-Steve Wise will create linux-nfs NFSoRDMA server git tree with the help 
-from Anna Schumaker. Chuck Lever's client branch git tree includes all 
-client patch sets to be tested. Anna Schumaker maintains all client 
-patches to be pulled into upstream which have passed the test suites 
-(Sign-off: Tested-by). Steve Wise will create a branch to include both 
-client and server patch sets in case you use the same node for both 
-client and server.
+So you can move ahead and conduct point releases for both libs.
 
-How these tests to be done?
-Each developer has his/her own hardware to test before submitting the 
-patch sets. IOL has a broad variety of hardware, Rupert Dance would 
-check how they can help in additional to OFED stack test. The test build 
-process will be defined later.
+ Makefile.am                |    6 ++-
+ include/infiniband/verbs.h |   29 +++++--------
+ man/ibv_create_flow.3      |   99 ++++++++++++++++++++++++++++++++++++++++++++
+ src/device.c               |    4 --
+ 4 files changed, 115 insertions(+), 23 deletions(-)
+ create mode 100644 man/ibv_create_flow.3
 
-2. Identify a long term resource for maintaining the linux NFSoRDMA server
+diff --git a/Makefile.am b/Makefile.am
+index a6767de..3a40f3e 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -58,7 +58,7 @@ man_MANS = man/ibv_asyncwatch.1 man/ibv_devices.1 man/ibv_devinfo.1	\
+     man/ibv_query_srq.3 man/ibv_rate_to_mult.3 man/ibv_reg_mr.3		\
+     man/ibv_req_notify_cq.3 man/ibv_resize_cq.3 man/ibv_rate_to_mbps.3  \
+     man/ibv_create_qp_ex.3 man/ibv_create_srq_ex.3 man/ibv_open_xrcd.3  \
+-    man/ibv_get_srq_num.3 man/ibv_open_qp.3
++    man/ibv_get_srq_num.3 man/ibv_open_qp.3 man/ibv_create_flow.3
+ 
+ DEBIAN = debian/changelog debian/compat debian/control debian/copyright \
+     debian/ibverbs-utils.install debian/libibverbs1.install \
+@@ -94,6 +94,7 @@ install-data-hook:
+ 	$(RM) ibv_port_state_str.3 && \
+ 	$(RM) mbps_to_ibv_rate.3 && \
+ 	$(RM) ibv_close_xrcd.3 && \
++	$(RM) ibv_destroy_flow.3 && \
+ 	$(LN_S) ibv_get_async_event.3 ibv_ack_async_event.3 && \
+ 	$(LN_S) ibv_get_cq_event.3 ibv_ack_cq_events.3 && \
+ 	$(LN_S) ibv_open_device.3 ibv_close_device.3 && \
+@@ -111,4 +112,5 @@ install-data-hook:
+ 	$(LN_S) ibv_event_type_str.3 ibv_node_type_str.3 && \
+ 	$(LN_S) ibv_event_type_str.3 ibv_port_state_str.3 && \
+ 	$(LN_S) ibv_rate_to_mbps.3 mbps_to_ibv_rate.3 && \
+-	$(LN_S) ibv_open_xrcd.3 ibv_close_xrcd.3
++	$(LN_S) ibv_open_xrcd.3 ibv_close_xrcd.3 && \
++	$(LN_S) ibv_create_flow.3 ibv_destroy_flow.3
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index cfa1156..9826b72 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -944,21 +944,16 @@ enum verbs_context_mask {
+ 	VERBS_CONTEXT_XRCD	= 1 << 0,
+ 	VERBS_CONTEXT_SRQ	= 1 << 1,
+ 	VERBS_CONTEXT_QP	= 1 << 2,
+-	VERBS_CONTEXT_CREATE_FLOW = 1 << 3,
+-	VERBS_CONTEXT_DESTROY_FLOW = 1 << 4,
+-	VERBS_CONTEXT_RESERVED	= 1 << 5
++	VERBS_CONTEXT_RESERVED	= 1 << 3
+ };
+ 
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
+-	int (*drv_ibv_destroy_flow) (struct ibv_flow *flow);
+-	int (*lib_ibv_destroy_flow) (struct ibv_flow *flow);
+-	struct ibv_flow * (*drv_ibv_create_flow) (struct ibv_qp *qp,
+-						  struct ibv_flow_attr
+-						  *flow_attr);
+-	struct ibv_flow * (*lib_ibv_create_flow) (struct ibv_qp *qp,
+-						  struct ibv_flow_attr
+-						  *flow_attr);
++	void (*_reserved_2)(void);
++	int (*destroy_flow)(struct ibv_flow *flow);
++	void (*_reserved_1)(void);
++	struct ibv_flow * (*create_flow)(struct ibv_qp *qp,
++					 struct ibv_flow_attr *flow_attr);
+ 	struct ibv_qp *(*open_qp)(struct ibv_context *context,
+ 			struct ibv_qp_open_attr *attr);
+ 	struct ibv_qp *(*create_qp_ex)(struct ibv_context *context,
+@@ -1111,20 +1106,20 @@ static inline struct ibv_flow *ibv_create_flow(struct ibv_qp *qp,
+ 					       struct ibv_flow_attr *flow)
+ {
+ 	struct verbs_context *vctx = verbs_get_ctx_op(qp->context,
+-						      lib_ibv_create_flow);
+-	if (!vctx || !vctx->lib_ibv_create_flow)
++						      create_flow);
++	if (!vctx)
+ 		return NULL;
+ 
+-	return vctx->lib_ibv_create_flow(qp, flow);
++	return vctx->create_flow(qp, flow);
+ }
+ 
+ static inline int ibv_destroy_flow(struct ibv_flow *flow_id)
+ {
+ 	struct verbs_context *vctx = verbs_get_ctx_op(flow_id->context,
+-						      lib_ibv_destroy_flow);
+-	if (!vctx || !vctx->lib_ibv_destroy_flow)
++						      destroy_flow);
++	if (!vctx)
+ 		return -ENOSYS;
+-	return vctx->lib_ibv_destroy_flow(flow_id);
++	return vctx->destroy_flow(flow_id);
+ }
+ 
+ /**
+diff --git a/man/ibv_create_flow.3 b/man/ibv_create_flow.3
+new file mode 100644
+index 0000000..f1003d0
+--- /dev/null
++++ b/man/ibv_create_flow.3
+@@ -0,0 +1,99 @@
++.TH IBV_CREATE_FLOW 3 2013-08-21 libibverbs "Libibverbs Programmer's Manual"
++.SH "NAME"
++ibv_create_flow, ibv_destroy_flow \- create or destroy flow steering rules
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/verbs.h>
++.sp
++.BI "struct ibv_flow *ibv_create_flow(struct ibv_qp " "*qp" ,
++.BI "                                 struct ibv_flow_attr " "*flow");
++.BI "int ibv_destroy_flow(struct ibv_flow " "*flow_id");
++.sp
++.fi
++.SH "DESCRIPTION"
++.SS ibv_create_flow()
++allows a user application QP
++.I qp
++to be attached into a specified flow
++.I flow
++which is defined in
++.I <infiniband/verbs.h>
++.PP
++.nf
++struct ibv_flow_attr {
++.in +8
++uint32_t comp_mask;						/* Future extendibility */
++enum ibv_flow_attr_type type;				/* Rule type - see below */
++uint16_t size;							/* Size of command */
++uint16_t priority;						/* Rule priority - See below */
++uint8_t num_of_specs;					/* Number of ibv_flow_spec_xxx */
++uint8_t port;							/* The uplink port number */
++uint32_t flags;						/* Extra flags for rule - see below */
++/* Following are the optional layers according to user request
++ * struct ibv_flow_spec_xxx
++ * struct ibv_flow_spec_yyy
++ */
++.in -8
++};
++.sp
++.nf
++enum ibv_flow_attr_type {
++.in +8
++IBV_FLOW_ATTR_NORMAL		= 0x0,		/* steering according to rule specifications */
++IBV_FLOW_ATTR_ALL_DEFAULT	= 0x1,		/* default unicast and multicast rule - receive all Eth traffic which isn't steered to any QP */
++IBV_FLOW_ATTR_MC_DEFAULT		= 0x2,		/* default multicast rule - receive all Eth multicast traffic which isn't steered to any QP */
++.in -8
++};
++.sp
++.nf
++enum ibv_flow_flags {
++.in +8
++IBV_FLOW_ATTR_FLAGS_ALLOW_LOOP_BACK = 1,	/* Apply the rules on packets that were sent from the attached QP through loopback. IB only.*/
++.in -8
++};
++.fi
++.PP
++Each header struct holds the relevant network layer parameters for matching.To enforce the match, the
++user sets a mask for each parameter. If the bit is set in the mask, the corresponding bit in the value should be matched.
++.br
++Note that most vendors support either full mask (all "1"s) or zero mask (all "0"s).
++.br
++.B Network paramters in the relevant network structs should be given in network order (big endian).
++
++.SS Flow domains and priority
++Flow steering defines the concept of domain and priority. Each domain represents a user agent that can attach a flow. The domains are prioritized. A higher priority domain will always supersede a lower priority domain when their flow specifications overlap. In addition to the domain, there is priority within each of the domains. Each domain has at most 2^12 priorities. A lower priority numeric value (higher priority) takes precedence over matching rules with higher numeric priority value (lower priority). It is important to note that the priority value of a flow spec is used not only to establish the precedence of conflicting flow matches but also as a way to abstract the order on which flow specs are tested for matches. Flows with higher priorities will be tested before flows with lower 
+ priorities.
++.br
++.B IB verbs have the higher priority domain.
++.PP
++.SS ibv_destroy_flow()
++destroys the flow
++.I flow_id\fR.
++.SH "RETURN VALUE"
++.B ibv_create_flow()
++returns a pointer to the flow, or NULL if the request fails. In case of an error, errno is updated.
++.PP
++.B ibv_destroy_flow()
++returns 0 on success, or the value of errno on failure (which indicates the failure reason).
++.SH "ERRORS"
++.SS EINVAL
++.B ibv_create_flow()
++flow specification, QP or priority are invalid
++.PP
++.B ibv_destroy_flow()
++flow_id is invalid
++.SS ENOMEM
++Couldn't create/destory flow, not enough memory
++.SS ENXIO
++Device managed flow steering isn't currently supported
++.SS EPERM
++No permissions to add the flow steering rule
++.SH "NOTES"
++These verbs are available only for devices supporting IBV_DEVICE_MANAGED_FLOW_STEERING and
++only for QPs of Transport Service Type
++.BR IBV_QPT_UD
++or
++.BR IBV_QPT_RAW_PACKET
++.PP
++.SH "AUTHORS"
++.TP
++Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>         Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/src/device.c b/src/device.c
+index 9642ead..beb7b3c 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -169,10 +169,6 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 		 * context_ex->lib_new_func1 = __verbs_new_func1;
+ 		 * context_ex->lib_new_func2 = __verbs_new_func2;
+ 		 */
+-		 context_ex->lib_ibv_create_flow =
+-			 context_ex->drv_ibv_create_flow;
+-		 context_ex->lib_ibv_destroy_flow =
+-			 context_ex->drv_ibv_destroy_flow;
+ 	}
+ 
+ 	context->device = device;
+-- 
+1.7.1
 
-Oracle has allocated resource to support NFSoRDMA client. Linux 
-community needs funds to support NFSoRDMA server. There are engineer 
-resources but not the money. Any third parties are interested in 
-supporting NFSoRDMA server?
-
-3. Follow ups from last meeting:
-
-NFSoRDMA debugging and diagnosis tools?
-Yan has started to look at NFSoRDMA dissector. Chelsio packets can be 
-monitored when turning on switch port mirroring.
-Chuck has created linux-nfs bugzilla for NFSoRDMA: server component is 
-"svcrdma", client component is "xprtrdma" . Here is the link for you to 
-check/submit bugs
-https://bugzilla.linux-nfs.org/
-
-4. NFSoRDMA visualization validation:
-Yan and Shirley are working on validating ConnectX SRIOV on both Xen and 
-KVM. They hit couple issues which need further debugging.
-
-Next meeting topics proposal:
-1. Follow up the work has been discussed from this meeting.
-
-2. Walk through some of the stories on pivotal, link is as below:
-https://www.pivotaltracker.com/s/projects/958376
-
-3. Invite some of the developers to discuss some of their requirements 
-and features.
-
-Meeting time: one hour discussion every other Wed (next meeting will be 
-on 5/14). A reminder will be sent out to both linux-nfs and linux-rdma 
-mailing list:
-
-5/28/2014
-@8:00am PST
-@9:00am MST
-@10:00am CST
-@11:00am EST
-@Bangalore @9:00pm
-@Israel @6:00pm
-
-Duration: 1 hour
-
-Call-in number:
-Israel: +972 37219638
-Bangalore: +91 8039890080 (180030109800)
-US: 8666824770,  408-7744073
-Conference Code: 2308833
-Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember)
-
-Thanks everyone for joining the call and providing valuable inputs/work 
-to the community to make NFSoRDMA better.
-
-Shirley
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
