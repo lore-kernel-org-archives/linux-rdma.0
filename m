@@ -1,268 +1,78 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH V3 01/17] xprtrdma: mind the device's max fast register
- page	list depth
-Date: Fri, 16 May 2014 09:29:03 -0500
-Message-ID: <537620AF.3010307@opengridcomputing.com>
-References: <20140430191433.5663.16217.stgit@manet.1015granger.net> <20140430192936.5663.66537.stgit@manet.1015granger.net> <EE7902D3F51F404C82415C4803930ACD3FDFBDA9@CMEXMB1.ad.emulex.com> <53761C63.4050908@opengridcomputing.com> <53761D28.3070704@opengridcomputing.com>
+Subject: [PATCH] iw_cxgb4: fix vlan support
+Date: Fri, 16 May 2014 12:42:46 -0500
+Message-ID: <20140516174245.26031.80645.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53761D28.3070704-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Looks like ocrdma does this.  See ocrdma_query_device().  It advertises=
-=20
-IB_DEVICE_MEM_MGT_EXTENSIONS but sets max_fast_reg_page_list_len to 0. =
-=20
-The Verbs spec sez if you advertise the mem extensions, then you need t=
-o=20
-support all of them.   Is this just a bug in the driver?  Or does it=20
-really not support FRMRs?
+RDMA connections over a vlan interface don't work due to
+import_ep() not using the correct egress device.
 
-Steve.
+- use the real device in import_ep()
 
+- use rdma_vlan_dev_real_dev() in get_real_dev().
 
-On 5/16/2014 9:14 AM, Steve Wise wrote:
-> By the way, Devesh:  Is the device advertising FRMR support, yet=20
-> setting the max page list len to zero?  That's a driver bug...
->
->
->
-> On 5/16/2014 9:10 AM, Steve Wise wrote:
->> I guess the client code doesn't verify that the device supports the=20
->> chosen memreg mode.  That's not good.   Lemme fix this and respin=20
->> this patch.
->>
->>
->> On 5/16/2014 2:08 AM, Devesh Sharma wrote:
->>> Chuck
->>>
->>> This patch is causing a CPU soft-lockup if underlying vendor report=
-s=20
->>> devattr.max_fast_reg_pagr_list_len =3D 0 and ia->ri_memreg_strategy=
- =3D=20
->>> FRMR (Default option).
->>> I think there is need to refer to device capability flags. If=20
->>> strategy =3D FRMR is forced and devattr.max_fast_reg_pagr_list_len=3D=
-0=20
->>> then flash an error and fail RPC with -EIO.
->>>
->>> See inline:
->>>
->>>> -----Original Message-----
->>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
->>>> Sent: Thursday, May 01, 2014 1:00 AM
->>>> To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
->>>> Subject: [PATCH V3 01/17] xprtrdma: mind the device's max fast=20
->>>> register
->>>> page list depth
->>>>
->>>> From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->>>>
->>>> Some rdma devices don't support a fast register page list depth of=
-=20
->>>> at least
->>>> RPCRDMA_MAX_DATA_SEGS.  So xprtrdma needs to chunk its fast regist=
-er
->>>> regions according to the minimum of the device max supported depth=
- or
->>>> RPCRDMA_MAX_DATA_SEGS.
->>>>
->>>> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->>>> Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>>
->>>>   net/sunrpc/xprtrdma/rpc_rdma.c  |    4 ---
->>>>   net/sunrpc/xprtrdma/verbs.c     |   47=20
->>>> +++++++++++++++++++++++++++++-
->>>> ---------
->>>>   net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
->>>>   3 files changed, 36 insertions(+), 16 deletions(-)
->>>>
->>>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c
->>>> b/net/sunrpc/xprtrdma/rpc_rdma.c index 96ead52..400aa1b 100644
->>>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
->>>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
->>>> @@ -248,10 +248,6 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst,=20
->>>> struct
->>>> xdr_buf *target,
->>>>       /* success. all failures return above */
->>>>       req->rl_nchunks =3D nchunks;
->>>>
->>>> -    BUG_ON(nchunks =3D=3D 0);
->>>> -    BUG_ON((r_xprt->rx_ia.ri_memreg_strategy =3D=3D RPCRDMA_FRMR)
->>>> -           && (nchunks > 3));
->>>> -
->>>>       /*
->>>>        * finish off header. If write, marshal discrim and nchunks.
->>>>        */
->>>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/ver=
-bs.c
->>>> index 9372656..55fb09a 100644
->>>> --- a/net/sunrpc/xprtrdma/verbs.c
->>>> +++ b/net/sunrpc/xprtrdma/verbs.c
->>>> @@ -539,6 +539,11 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, st=
-ruct
->>>> sockaddr *addr, int memreg)
->>>>                   __func__);
->>>>               memreg =3D RPCRDMA_REGISTER;
->>>>   #endif
->>>> +        } else {
->>>> +            /* Mind the ia limit on FRMR page list depth */
->>>> +            ia->ri_max_frmr_depth =3D min_t(unsigned int,
->>>> +                RPCRDMA_MAX_DATA_SEGS,
->>>> +                devattr.max_fast_reg_page_list_len);
->>>>           }
->>>>           break;
->>>>       }
->>>> @@ -659,24 +664,42 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, str=
-uct
->>>> rpcrdma_ia *ia,
->>>>       ep->rep_attr.srq =3D NULL;
->>>>       ep->rep_attr.cap.max_send_wr =3D cdata->max_requests;
->>>>       switch (ia->ri_memreg_strategy) {
->>>> -    case RPCRDMA_FRMR:
->>>> +    case RPCRDMA_FRMR: {
->>>> +        int depth =3D 7;
->>>> +
->>>>           /* Add room for frmr register and invalidate WRs.
->>>>            * 1. FRMR reg WR for head
->>>>            * 2. FRMR invalidate WR for head
->>>> -         * 3. FRMR reg WR for pagelist
->>>> -         * 4. FRMR invalidate WR for pagelist
->>>> +         * 3. N FRMR reg WRs for pagelist
->>>> +         * 4. N FRMR invalidate WRs for pagelist
->>>>            * 5. FRMR reg WR for tail
->>>>            * 6. FRMR invalidate WR for tail
->>>>            * 7. The RDMA_SEND WR
->>>>            */
->>>> -        ep->rep_attr.cap.max_send_wr *=3D 7;
->>>> +
->>>> +        /* Calculate N if the device max FRMR depth is smaller th=
-an
->>>> +         * RPCRDMA_MAX_DATA_SEGS.
->>>> +         */
->>>> +        if (ia->ri_max_frmr_depth < RPCRDMA_MAX_DATA_SEGS) {
->>>> +            int delta =3D RPCRDMA_MAX_DATA_SEGS -
->>>> +                    ia->ri_max_frmr_depth;
->>>> +
->>>> +            do {
->>>> +                depth +=3D 2; /* FRMR reg + invalidate */
->>>> +                delta -=3D ia->ri_max_frmr_depth;
->>> If ia->ri_max_frmr_depth is =3D 0. This loop becomes infinite loop.
->>>
->>>> +            } while (delta > 0);
->>>> +
->>>> +        }
->>>> +        ep->rep_attr.cap.max_send_wr *=3D depth;
->>>>           if (ep->rep_attr.cap.max_send_wr > devattr.max_qp_wr) {
->>>> -            cdata->max_requests =3D devattr.max_qp_wr / 7;
->>>> +            cdata->max_requests =3D devattr.max_qp_wr / depth;
->>>>               if (!cdata->max_requests)
->>>>                   return -EINVAL;
->>>> -            ep->rep_attr.cap.max_send_wr =3D cdata-
->>>>> max_requests * 7;
->>>> +            ep->rep_attr.cap.max_send_wr =3D cdata-
->>>>> max_requests *
->>>> +                               depth;
->>>>           }
->>>>           break;
->>>> +    }
->>>>       case RPCRDMA_MEMWINDOWS_ASYNC:
->>>>       case RPCRDMA_MEMWINDOWS:
->>>>           /* Add room for mw_binds+unbinds - overkill! */ @@ -
->>>> 1043,16 +1066,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *b=
-uf,
->>>> struct rpcrdma_ep *ep,
->>>>       case RPCRDMA_FRMR:
->>>>           for (i =3D buf->rb_max_requests * RPCRDMA_MAX_SEGS; i; i=
---
->>>> ) {
->>>>               r->r.frmr.fr_mr =3D ib_alloc_fast_reg_mr(ia->ri_pd,
->>>> -
->>>> RPCRDMA_MAX_SEGS);
->>>> +                        ia->ri_max_frmr_depth);
->>>>               if (IS_ERR(r->r.frmr.fr_mr)) {
->>>>                   rc =3D PTR_ERR(r->r.frmr.fr_mr);
->>>>                   dprintk("RPC:       %s: ib_alloc_fast_reg_mr"
->>>>                       " failed %i\n", __func__, rc);
->>>>                   goto out;
->>>>               }
->>>> -            r->r.frmr.fr_pgl =3D
->>>> -                ib_alloc_fast_reg_page_list(ia->ri_id-
->>>>> device,
->>>> -
->>>> RPCRDMA_MAX_SEGS);
->>>> +            r->r.frmr.fr_pgl =3D ib_alloc_fast_reg_page_list(
->>>> +                        ia->ri_id->device,
->>>> +                        ia->ri_max_frmr_depth);
->>>>               if (IS_ERR(r->r.frmr.fr_pgl)) {
->>>>                   rc =3D PTR_ERR(r->r.frmr.fr_pgl);
->>>>                   dprintk("RPC:       %s: "
->>>> @@ -1498,8 +1521,8 @@ rpcrdma_register_frmr_external(struct
->>>> rpcrdma_mr_seg *seg,
->>>>       seg1->mr_offset -=3D pageoff;    /* start of page */
->>>>       seg1->mr_len +=3D pageoff;
->>>>       len =3D -pageoff;
->>>> -    if (*nsegs > RPCRDMA_MAX_DATA_SEGS)
->>>> -        *nsegs =3D RPCRDMA_MAX_DATA_SEGS;
->>>> +    if (*nsegs > ia->ri_max_frmr_depth)
->>>> +        *nsegs =3D ia->ri_max_frmr_depth;
->>>>       for (page_no =3D i =3D 0; i < *nsegs;) {
->>>>           rpcrdma_map_one(ia, seg, writing);
->>>>           pa =3D seg->mr_dma;
->>>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h
->>>> b/net/sunrpc/xprtrdma/xprt_rdma.h index cc1445d..98340a3 100644
->>>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->>>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->>>> @@ -66,6 +66,7 @@ struct rpcrdma_ia {
->>>>       struct completion    ri_done;
->>>>       int            ri_async_rc;
->>>>       enum rpcrdma_memreg    ri_memreg_strategy;
->>>> +    unsigned int        ri_max_frmr_depth;
->>>>   };
->>>>
->>>>   /*
->>>>
->>>> --=20
->>>> To unsubscribe from this list: send the line "unsubscribe=20
->>>> linux-rdma" in the
->>>> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info=
- at
->>>> http://vger.kernel.org/majordomo-info.html
->>> N=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BD=EF=BF=BDy=EF=
-=BF=BD=EF=BF=BD=EF=BF=BDb=EF=BF=BDX=EF=BF=BD=EF=BF=BD=C7=A7v=EF=BF=BD^=EF=
-=BF=BD)=DE=BA{.n=EF=BF=BD+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD{=EF=BF=BD=
-=EF=BF=BD=EF=BF=BD"=EF=BF=BD=EF=BF=BD^n=EF=BF=BDr=EF=BF=BD=EF=BF=BD=EF=BF=
-=BDz=EF=BF=BD=1A=20
->>> =EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD&=EF=BF=BD=EF=
-=BF=BD=1E =EF=BF=BDG=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD=03(=EF=BF=BD=E9=
-=9A=8E=EF=BF=BD=DD=A2j"=EF=BF=BD=EF=BF=BD=1A=EF=BF=BD=1Bm=EF=BF=BD=EF=BF=
-=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=DE=96=EF=BF=BD=EF=BF=BD=EF=BF=BD=
-f=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BD~=EF=BF=BDmml=3D=
-=3D
->>
->> --=20
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+
+ drivers/infiniband/hw/cxgb4/cm.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 1f863a9..28114e6 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -47,6 +47,8 @@
+ #include <net/ip6_route.h>
+ #include <net/addrconf.h>
+ 
++#include <rdma/ib_addr.h>
++
+ #include "iw_cxgb4.h"
+ 
+ static char *states[] = {
+@@ -341,10 +343,7 @@ static struct sk_buff *get_skb(struct sk_buff *skb, int len, gfp_t gfp)
+ 
+ static struct net_device *get_real_dev(struct net_device *egress_dev)
+ {
+-	struct net_device *phys_dev = egress_dev;
+-	if (egress_dev->priv_flags & IFF_802_1Q_VLAN)
+-		phys_dev = vlan_dev_real_dev(egress_dev);
+-	return phys_dev;
++	return rdma_vlan_dev_real_dev(egress_dev) ? : egress_dev;
+ }
+ 
+ static int our_interface(struct c4iw_dev *dev, struct net_device *egress_dev)
+@@ -1746,16 +1745,16 @@ static int import_ep(struct c4iw_ep *ep, int iptype, __u8 *peer_ip,
+ 		if (!ep->l2t)
+ 			goto out;
+ 		ep->mtu = dst_mtu(dst);
+-		ep->tx_chan = cxgb4_port_chan(n->dev);
+-		ep->smac_idx = (cxgb4_port_viid(n->dev) & 0x7F) << 1;
++		ep->tx_chan = cxgb4_port_chan(pdev);
++		ep->smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
+ 		step = cdev->rdev.lldi.ntxq /
+ 			cdev->rdev.lldi.nchan;
+-		ep->txq_idx = cxgb4_port_idx(n->dev) * step;
+-		ep->ctrlq_idx = cxgb4_port_idx(n->dev);
++		ep->txq_idx = cxgb4_port_idx(pdev) * step;
++		ep->ctrlq_idx = cxgb4_port_idx(pdev);
+ 		step = cdev->rdev.lldi.nrxq /
+ 			cdev->rdev.lldi.nchan;
+ 		ep->rss_qid = cdev->rdev.lldi.rxq_ids[
+-			cxgb4_port_idx(n->dev) * step];
++			cxgb4_port_idx(pdev) * step];
+ 
+ 		if (clear_mpa_v1) {
+ 			ep->retry_with_mpa_v1 = 0;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
