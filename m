@@ -1,85 +1,35 @@
-From: Peter Senna Tschudin <peter.senna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] IB: Remove redundant error check
-Date: Sat, 17 May 2014 20:23:00 +0200
-Message-ID: <1400350980-30455-4-git-send-email-peter.senna@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Peter Senna Tschudin <peter.senna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: [PATCH] drivers: net: ethernet: mellanox: mlx4: let mlx4 depend
+ on SMP
+Date: Sat, 17 May 2014 22:55:34 +0300
+Message-ID: <CAJZOPZJN9YG2uAw0rSDkU0rQG=0FFDgSMnFDHpWS6hwZEqdwfA@mail.gmail.com>
+References: <5376F2F8.3010603@gmail.com>
+	<20140517.013655.349586284786993619.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20140517.013655.349586284786993619.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: gang.chen.5i5j@gmail.com, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, gxt@mprc.pku.edu.cn, Matan Barak <matanb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Eyal Perry <eyalpe@mellanox.com>, Amir Vadai <amirv@mellanox.com>, Shawn Bohrer <sbohrer@rgmadvisors.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove double checks, and move calls to pr_err and printk to the
-first check. The simplified version of the coccinelle semantic
-patch that fixes this issue is as follows:
+On Sat, May 17, 2014 at 8:36 AM, David Miller <davem@davemloft.net> wrote:
+>
+> From: Chen Gang <gang.chen.5i5j@gmail.com>
+> Date: Sat, 17 May 2014 13:26:16 +0800
+>
+> > 'struct irq_affinity_notify' and the related functions are only defined
+> > when SMP enabled, so at present, mlx4 has to only run under SMP.
+> >
+> > The related error (allmodconfig under unicore32):
+>
+> Making the entire driver depend upon SMP is not the answer,
 
-// <smpl>
-@@
-expression E; identifier pr; expression list es;
-@@
-for(...;...;...){
-...
--	if (E) break;
-+	if (E){
-+		pr(es);
-+		break;
-+	}
-...
-}
-- if(E) pr(es);
-// </smpl>
 
-Tested by compilation only.
+Indeed, we would do that just for the relevant portion,
 
-Signed-off-by: Peter Senna Tschudin <peter.senna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    6 +++---
- drivers/infiniband/ulp/srpt/ib_srpt.c    |    8 ++++----
- 2 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 3bbf201..f085a51 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1839,11 +1839,11 @@ int ocrdma_reg_mr(struct ocrdma_dev *dev,
- 
- 		status = ocrdma_mbx_reg_mr_cont(dev, hwmr, cur_pbl_cnt,
- 						pbl_offset, last);
--		if (status)
-+		if (status) {
-+			pr_err("%s() err. status=%d\n", __func__, status);
- 			break;
-+		}
- 	}
--	if (status)
--		pr_err("%s() err. status=%d\n", __func__, status);
- 
- 	return status;
- }
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index fe09f27..ab23b07 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2875,13 +2875,13 @@ static int srpt_perform_rdmas(struct srpt_rdma_ch *ch,
- 			wr.send_flags = IB_SEND_SIGNALED;
- 
- 		ret = ib_post_send(ch->qp, &wr, &bad_wr);
--		if (ret)
-+		if (ret) {
-+			printk(KERN_ERR "%s[%d]: ib_post_send() returned %d for %d/%d",
-+			       __func__, __LINE__, ret, i, n_rdma);
- 			break;
-+		}
- 	}
- 
--	if (ret)
--		printk(KERN_ERR "%s[%d]: ib_post_send() returned %d for %d/%d",
--				 __func__, __LINE__, ret, i, n_rdma);
- 	if (ret && i > 0) {
- 		wr.num_sge = 0;
- 		wr.wr_id = encode_wr_id(SRPT_RDMA_ABORT, ioctx->ioctx.index);
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> other Mellanox developers said that a proper fix is pending
+> so please be patient.
