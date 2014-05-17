@@ -1,42 +1,50 @@
-From: Christian Engelmayer <cengelma-RbZlAiThDcE@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Fix potentially uninitialized use of 'is_mcast' in create_iboe_ah()
-Date: Sat, 17 May 2014 14:09:27 +0200
-Message-ID: <1400328567-4430-1-git-send-email-cengelma@gmx.at>
+From: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+Subject: [PATCH] infiniband: hw: ehca: ehca_mrmw.c:  Fix for possible null pointer dereference
+Date: Sat, 17 May 2014 19:15:26 +0200
+Message-ID: <1400346926-25235-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Engelmayer <cengelma-RbZlAiThDcE@public.gmane.org>
+To: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Cc: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Before commit 297e0da (IB/mlx4: Handle Ethernet L2 parameters for IP based GID
-addressing) local variable 'is_mcast' in function create_iboe_ah() was
-guaranteed to be set after calling mlx4_ib_resolve_grh(). Since 297e0da
-'is_mcast' is set in case of rdma_is_multicast_addr(), but otherwise left
-uninitialized. Thus init 'is_mcast' to 0. Detected by Coverity - CID 1164324
+There is otherwise a risk of a possible null pointer dereference.
 
-Signed-off-by: Christian Engelmayer <cengelma-RbZlAiThDcE@public.gmane.org>
----
-Compile tested. Applies against branch for-next in tree
-git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git
----
- drivers/infiniband/hw/mlx4/ah.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Was largely found by using a static code analysis program called cppcheck.
 
-diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index 170dca6..2d8c339 100644
---- a/drivers/infiniband/hw/mlx4/ah.c
-+++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -73,7 +73,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+---
+ drivers/infiniband/hw/ehca/ehca_mrmw.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ehca/ehca_mrmw.c b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+index 3488e8c..1fe4344 100644
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c
++++ b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -316,9 +316,8 @@ struct ib_mr *ehca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
  {
- 	struct mlx4_ib_dev *ibdev = to_mdev(pd->device);
- 	struct mlx4_dev *dev = ibdev->dev;
--	int is_mcast;
-+	int is_mcast = 0;
- 	struct in6_addr in6;
- 	u16 vlan_tag;
+ 	struct ib_mr *ib_mr;
+ 	struct ehca_mr *e_mr;
+-	struct ehca_shca *shca =
+-		container_of(pd->device, struct ehca_shca, ib_device);
+-	struct ehca_pd *e_pd = container_of(pd, struct ehca_pd, ib_pd);
++	struct ehca_shca *shca;
++	struct ehca_pd *e_pd;
+ 	struct ehca_mr_pginfo pginfo;
+ 	int ret, page_shift;
+ 	u32 num_kpages;
+@@ -330,6 +329,9 @@ struct ib_mr *ehca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 		return ERR_PTR(-EFAULT);
+ 	}
  
++	shca = container_of(pd->device, struct ehca_shca, ib_device);
++	e_pd = container_of(pd, struct ehca_pd, ib_pd);
++
+ 	if (((mr_access_flags & IB_ACCESS_REMOTE_WRITE) &&
+ 	     !(mr_access_flags & IB_ACCESS_LOCAL_WRITE)) ||
+ 	    ((mr_access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
 -- 
-1.9.1
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
