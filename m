@@ -1,28 +1,51 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/3] mlx5 signature handover fixes for kernel 3.16
-Date: Sun, 18 May 2014 18:32:37 +0300
-Message-ID: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH 3/3] mlx5: Copy DIF fields only when input and output space values match
+Date: Sun, 18 May 2014 18:32:40 +0300
+Message-ID: <1400427160-11314-4-git-send-email-sagig@mellanox.com>
+References: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: roland@kernel.org
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, martin.petersen@oracle.com, oren@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset addresses 3 issues signature handover mlx5 implementation.
-Patch #1 addresses a bug in signature mkey length when describing an
-interleaved buffer (data and protection).
-Patch #2 is a micro-optimization for interleaved buffers.
-Patch #3 addresses a possible issue for future T10-PI implementations.
+Some DIF implementations (SCSI initiator/target) may want to
+use different input/output values for application tag and/or
+reference tag. So in case memory/wire domain values don't
+match HW must not copy them.
 
-Sagi Grimberg (3):
-  mlx5: Fix signature handover operation for interleaved buffers
-  mlx5: Simplify signature handover wqe for interleaved buffers
-  mlx5: Copy DIF fields only when input and output space values match
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
- drivers/infiniband/hw/mlx5/qp.c |   38 +++++++++++++++++++-------------------
- 1 files changed, 19 insertions(+), 19 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 242fb2d..d3fc805 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2066,6 +2066,7 @@ static int mlx5_set_bsf(struct ib_mr *sig_mr,
+ 	struct ib_sig_domain *wire = &sig_attrs->wire;
+ 	int ret, selector;
+ 
++	memset(bsf, 0, sizeof(*bsf));
+ 	switch (sig_attrs->mem.sig_type) {
+ 	case IB_SIG_TYPE_T10_DIF:
+ 		if (sig_attrs->wire.sig_type != IB_SIG_TYPE_T10_DIF)
+@@ -2078,9 +2079,11 @@ static int mlx5_set_bsf(struct ib_mr *sig_mr,
+ 			/* Same block structure */
+ 			basic->bsf_size_sbs = 1 << 4;
+ 			if (mem->sig.dif.bg_type == wire->sig.dif.bg_type)
+-				basic->wire.copy_byte_mask = 0xff;
+-			else
+-				basic->wire.copy_byte_mask = 0x3f;
++				basic->wire.copy_byte_mask |= 0xc0;
++			if (mem->sig.dif.app_tag == wire->sig.dif.app_tag)
++				basic->wire.copy_byte_mask |= 0x30;
++			if (mem->sig.dif.ref_tag == wire->sig.dif.ref_tag)
++				basic->wire.copy_byte_mask |= 0x0f;
+ 		} else
+ 			basic->wire.bs_selector = bs_selector(wire->sig.dif.pi_interval);
+ 
+-- 
+1.7.1
