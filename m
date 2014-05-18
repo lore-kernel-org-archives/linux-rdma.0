@@ -1,58 +1,32 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v3 0/9] SRP initiator patches for kernel 3.16
-Date: Sun, 18 May 2014 10:01:33 +0300
-Message-ID: <53785ACD.90101@dev.mellanox.co.il>
-References: <53761628.8030701@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 0/3] IB/core kobject cleanup
+Date: Sun, 18 May 2014 11:12:23 +0300
+Message-ID: <1400400746-9030-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53761628.8030701-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/16/2014 4:44 PM, Bart Van Assche wrote:
-> Changes compared to v2:
-> - Reconnect to the SRP target if a local invalidation work request
->    fails.
-> - Swapped the state->next_fmr / next_fr assignments to improve code
->    readability.
-> - Clarified a comment in patch 1/9.
-> - Fixed error handling in srp_create_target() (was broken in v2).
-> - Added a missing "PFX" in two shost_printk() statements in patch 9/9.
->
-> Changes compared to v1:
-> - Modified the FMR code such that one FMR pool is allocated per
->    connection instead of one pool per HCA.
-> - Dropped the patch "Make srp_alloc_req_data() reallocate request data".
-> - Moved introduction of the register_always kernel module parameter
->    into a separate patch.
-> - Removed the loop from around ib_create_fmr_pool() and
->    srp_create_fr_pool(). max_pages_per_mr is now computed from
->    max_mr_size and max_fast_reg_page_list_len.
-> - Reduced fast registration pool size from 1024 to scsi_host->can_queue.
-> - Added a patch that should fix a crash that had been reported by Sagi
->    but that I have not yet been able to reproduce myself.
->
-> This patch series consists of the following nine patches:
->
-> 0001-IB-srp-Fix-a-sporadic-crash-triggered-by-cable-pulli.patch
-> 0002-IB-srp-Fix-kernel-doc-warnings.patch
-> 0003-IB-srp-Introduce-an-additional-local-variable.patch
-> 0004-IB-srp-Introduce-srp_map_fmr.patch
-> 0005-IB-srp-Introduce-srp_finish_mapping.patch
-> 0006-IB-srp-Introduce-the-register_always-kernel-module-p.patch
-> 0007-IB-srp-One-FMR-pool-per-SRP-connection.patch
-> 0008-IB-srp-Rename-FMR-related-variables.patch
-> 0009-IB-srp-Add-fast-registration-support.patch
+Hi,
 
-The series looks good to me.
+These patches clean up the kobject destruction code in IB/core, and fix a
+memory leak.
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Best regards,
+Haggai
 
-Sagi.
+Haggai Eran (3):
+  IB/core: remove unneeded kobject_get/put calls
+  IB/core: fix port kobject deletion during error flow
+  IB/core: fix kobject leak on device register error flow
+
+ drivers/infiniband/core/sysfs.c | 85 ++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 40 deletions(-)
+
+-- 
+1.7.11.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
