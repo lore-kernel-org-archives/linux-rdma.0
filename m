@@ -1,8 +1,8 @@
 From: Chen Gang <gang.chen.5i5j@gmail.com>
 Subject: Re: [PATCH] drivers: net: ethernet: mellanox: mlx4: let mlx4 depend
  on SMP
-Date: Sun, 18 May 2014 18:08:16 +0800
-Message-ID: <53788690.3010804@gmail.com>
+Date: Sun, 18 May 2014 18:08:27 +0800
+Message-ID: <5378869B.2070102@gmail.com>
 References: <5376F2F8.3010603@gmail.com> <20140517.013655.349586284786993619.davem@davemloft.net> <CAJZOPZJN9YG2uAw0rSDkU0rQG=0FFDgSMnFDHpWS6hwZEqdwfA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
