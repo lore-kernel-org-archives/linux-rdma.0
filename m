@@ -1,46 +1,58 @@
-From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH] IB/mlx4: fix unitialised variable is_mcast
-Date: Sat, 17 May 2014 23:33:44 +0100
-Message-ID: <1400366024-18781-1-git-send-email-colin.king@canonical.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] SRP initiator patches for kernel 3.16
+Date: Sun, 18 May 2014 10:01:33 +0300
+Message-ID: <53785ACD.90101@dev.mellanox.co.il>
+References: <53761628.8030701@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53761628.8030701-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+On 5/16/2014 4:44 PM, Bart Van Assche wrote:
+> Changes compared to v2:
+> - Reconnect to the SRP target if a local invalidation work request
+>    fails.
+> - Swapped the state->next_fmr / next_fr assignments to improve code
+>    readability.
+> - Clarified a comment in patch 1/9.
+> - Fixed error handling in srp_create_target() (was broken in v2).
+> - Added a missing "PFX" in two shost_printk() statements in patch 9/9.
+>
+> Changes compared to v1:
+> - Modified the FMR code such that one FMR pool is allocated per
+>    connection instead of one pool per HCA.
+> - Dropped the patch "Make srp_alloc_req_data() reallocate request data".
+> - Moved introduction of the register_always kernel module parameter
+>    into a separate patch.
+> - Removed the loop from around ib_create_fmr_pool() and
+>    srp_create_fr_pool(). max_pages_per_mr is now computed from
+>    max_mr_size and max_fast_reg_page_list_len.
+> - Reduced fast registration pool size from 1024 to scsi_host->can_queue.
+> - Added a patch that should fix a crash that had been reported by Sagi
+>    but that I have not yet been able to reproduce myself.
+>
+> This patch series consists of the following nine patches:
+>
+> 0001-IB-srp-Fix-a-sporadic-crash-triggered-by-cable-pulli.patch
+> 0002-IB-srp-Fix-kernel-doc-warnings.patch
+> 0003-IB-srp-Introduce-an-additional-local-variable.patch
+> 0004-IB-srp-Introduce-srp_map_fmr.patch
+> 0005-IB-srp-Introduce-srp_finish_mapping.patch
+> 0006-IB-srp-Introduce-the-register_always-kernel-module-p.patch
+> 0007-IB-srp-One-FMR-pool-per-SRP-connection.patch
+> 0008-IB-srp-Rename-FMR-related-variables.patch
+> 0009-IB-srp-Add-fast-registration-support.patch
 
-Commit 297e0dad7 introduced a bug where is_mcast is now
-no longer initiialised on the non-multicast condition and so
-it can be any random value from the stack.  This issue was
-detected by cppcheck:
+The series looks good to me.
 
-[drivers/infiniband/hw/mlx4/ah.c:103]: (error) Uninitialized
-  variable: is_mcast
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Simple fix is to initialise is_mcast to zero.
-
-Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/ah.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index 170dca6..2d8c339 100644
---- a/drivers/infiniband/hw/mlx4/ah.c
-+++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -73,7 +73,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
- {
- 	struct mlx4_ib_dev *ibdev = to_mdev(pd->device);
- 	struct mlx4_dev *dev = ibdev->dev;
--	int is_mcast;
-+	int is_mcast = 0;
- 	struct in6_addr in6;
- 	u16 vlan_tag;
- 
--- 
-1.7.9.5
-
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
