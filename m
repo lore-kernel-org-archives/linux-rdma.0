@@ -1,44 +1,28 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 1/3] mlx5: Fix signature handover operation for interleaved buffers
-Date: Sun, 18 May 2014 18:32:38 +0300
-Message-ID: <1400427160-11314-2-git-send-email-sagig@mellanox.com>
-References: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: roland@kernel.org
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, martin.petersen@oracle.com, oren@mellanox.com
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/3] mlx5 signature handover fixes for kernel 3.16
+Date: Sun, 18 May 2014 18:32:37 +0300
+Message-ID: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the data and protection are interleaved in the memory
-domain, no need to expand the mkey total length.
+This patchset addresses 3 issues signature handover mlx5 implementation.
+Patch #1 addresses a bug in signature mkey length when describing an
+interleaved buffer (data and protection).
+Patch #2 is a micro-optimization for interleaved buffers.
+Patch #3 addresses a possible issue for future T10-PI implementations.
 
-At the moment no Linux user works (iSER initiator & target) in interleaved
-mode. This may change in the future as for SCSI pass-through devices there
-is no real point in target performing de-interleaving and re-interleaving
-of the protection data in the PT stage. Regardless, signature verbs support
-this mode.
+Sagi Grimberg (3):
+  mlx5: Fix signature handover operation for interleaved buffers
+  mlx5: Simplify signature handover wqe for interleaved buffers
+  mlx5: Copy DIF fields only when input and output space values match
 
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
----
- drivers/infiniband/hw/mlx5/qp.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c |   38 +++++++++++++++++++-------------------
+ 1 files changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index ae788d2..410d3a0 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2263,7 +2263,10 @@ static int set_sig_umr_wr(struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
- 
- 	/* length of the protected region, data + protection */
- 	region_len = wr->sg_list->length;
--	if (wr->wr.sig_handover.prot)
-+	if (wr->wr.sig_handover.prot &&
-+	    (wr->wr.sig_handover.prot->lkey != wr->sg_list->lkey  ||
-+	     wr->wr.sig_handover.prot->addr != wr->sg_list->addr  ||
-+	     wr->wr.sig_handover.prot->length != wr->sg_list->length))
- 		region_len += wr->wr.sig_handover.prot->length;
- 
- 	/**
--- 
-1.7.1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
