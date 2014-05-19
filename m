@@ -1,314 +1,146 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.12 rc3 release is available
-Date: Mon, 19 May 2014 19:34:34 +0300
-Message-ID: <537A329A.1060702@dev.mellanox.co.il>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] NFSD: Ignore client's source port on RDMA transports
+Date: Mon, 19 May 2014 13:40:22 -0400
+Message-ID: <20140519173258.2828.98254.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030300010009030308010508"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030300010009030308010508
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+An NFS/RDMA client's source port is meaningless for RDMA transports.
+The transport layer typically sets the source port value on the
+connection to a random ephemeral port.
 
-Hi,
-OFED-3.12-rc3 is available at:
-https://www.openfabrics.org/downloads/OFED/ofed-3.12/OFED-3.12-rc3.tgz
+Currently, NFS server administrators must specify the "insecure"
+export option to enable clients to access exports via RDMA.
 
-To get BUILD_ID run ofed_info
+But this means NFS clients can access such an export via IP using an
+ephemeral port, which may not be desirable.
 
-Please report any issues in bugzilla 
-http://bugs.openfabrics.org/bugzilla/ for
-OFED 3.12
+This patch eliminates the need to specify the "insecure" export
+option to allow NFS/RDMA clients access to an export.
 
-OFED-3.12-rc3 Main Changes from OFED 3.12-rc2
--------------------------------------------------------------------------------
-Updated packages:
-    - perftest-2.2-0.17.g5eba807
+BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=250
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
 
+Hi Bruce-
 
-
-Regards,
-Vladimir
-
---------------030300010009030308010508
-Content-Type: text/plain; charset=UTF-8;
- name="OFED_release_notes.txt"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment;
- filename="OFED_release_notes.txt"
-
-	    Open Fabrics Enterprise Distribution (OFED)
-	          Version 3.12-rc3 Release Notes
-	               	   May 2014
-
-===============================================================================
-Table of Contents
-===============================================================================
-1. Overview, which includes:
-	- OFED Distribution Rev 3.12-rc3 Contents
-	- Supported Platforms and Operating Systems
-	- Supported HCA and RNIC Adapter Cards and Firmware Versions
-	- Tested Switch Platforms
-	- Third party Test Packages
-	- OFED sources
-2. Change log
-3. Known Issues
-
-===============================================================================
-1. Overview
-===============================================================================
-These are the release notes of OpenFabrics Enterprise Distribution (OFED)
-release 3.12-rc2. The OFED software package is composed of several software modules,
-and is intended for use on a computer cluster constructed as an InfiniBand
-Fabric, an iWARP Network or a RoCE Fabric.
-
-Note: If you plan to upgrade the OFED package on your cluster, please upgrade
-all of its nodes to this new version.
+I've done some simple testing. "insecure" still behaves correctly
+for IP-based clients, and is now unnecessary for RDMA-based clients.
+Would you consider this for nfsd-next?
 
 
-1.1 OFED 3.12-rc3 Contents
------------------------
-The OFED package contains the following components:
- - OpenFabrics core and ULPs:
-	- IB HCA drivers (mthca, mlx4, mlx5, qib, ehca, ocrdma)
-	- iWARP RNIC driver (cxgb3, cxgb4, nes)
-	- RoCE drivers (mlx4, ocrdma)
-- ib core
-	- Upper Layer Protocols: IPoIB, SRP Initiator and target, iSER
-	  Initiator and target, RDS, uDAPL, qlgc_vnic and NFS-RDMA*.
- - OpenFabrics utilities:
-	- OpenSM (OSM): InfiniBand Subnet Manager
-	- Diagnostic tools
-	- Performance tests
- - Extra packages:
-	- infinipath-psm: Performance-Scaled Messaging API, an accelerated
-	  interface to Intel(R) HCAs
- - Sources of all software modules (under conditions mentioned in the modules'
-   LICENSE files)
- - Documentation
+ include/linux/sunrpc/svc_xprt.h          |    1 +
+ net/sunrpc/svc_xprt.c                    |    2 +-
+ net/sunrpc/svcsock.c                     |    9 +++++++++
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    7 +++++++
+ 4 files changed, 18 insertions(+), 1 deletions(-)
 
+diff --git a/include/linux/sunrpc/svc_xprt.h b/include/linux/sunrpc/svc_xprt.h
+index b05963f..0cec1b9 100644
+--- a/include/linux/sunrpc/svc_xprt.h
++++ b/include/linux/sunrpc/svc_xprt.h
+@@ -24,6 +24,7 @@ struct svc_xprt_ops {
+ 	void		(*xpo_release_rqst)(struct svc_rqst *);
+ 	void		(*xpo_detach)(struct svc_xprt *);
+ 	void		(*xpo_free)(struct svc_xprt *);
++	int		(*xpo_secure_port)(struct svc_rqst *);
+ };
+ 
+ struct svc_xprt_class {
+diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
+index 06c6ff0..614956f 100644
+--- a/net/sunrpc/svc_xprt.c
++++ b/net/sunrpc/svc_xprt.c
+@@ -793,7 +793,7 @@ int svc_recv(struct svc_rqst *rqstp, long timeout)
+ 
+ 	clear_bit(XPT_OLD, &xprt->xpt_flags);
+ 
+-	rqstp->rq_secure = svc_port_is_privileged(svc_addr(rqstp));
++	rqstp->rq_secure = xprt->xpt_ops->xpo_secure_port(rqstp);
+ 	rqstp->rq_chandle.defer = svc_defer;
+ 
+ 	if (serv->sv_stats)
+diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+index 43bcb46..0cb34f5 100644
+--- a/net/sunrpc/svcsock.c
++++ b/net/sunrpc/svcsock.c
+@@ -400,6 +400,12 @@ static void svc_sock_setbufsize(struct socket *sock, unsigned int snd,
+ 	release_sock(sock->sk);
+ #endif
+ }
++
++static int svc_sock_secure_port(struct svc_rqst *rqstp)
++{
++	return svc_port_is_privileged(svc_addr(rqstp));
++}
++
+ /*
+  * INET callback when data has been received on the socket.
+  */
+@@ -678,6 +684,7 @@ static struct svc_xprt_ops svc_udp_ops = {
+ 	.xpo_prep_reply_hdr = svc_udp_prep_reply_hdr,
+ 	.xpo_has_wspace = svc_udp_has_wspace,
+ 	.xpo_accept = svc_udp_accept,
++	.xpo_secure_port = svc_sock_secure_port,
+ };
+ 
+ static struct svc_xprt_class svc_udp_class = {
+@@ -1234,6 +1241,7 @@ static struct svc_xprt_ops svc_tcp_bc_ops = {
+ 	.xpo_detach = svc_bc_tcp_sock_detach,
+ 	.xpo_free = svc_bc_sock_free,
+ 	.xpo_prep_reply_hdr = svc_tcp_prep_reply_hdr,
++	.xpo_secure_port = svc_sock_secure_port,
+ };
+ 
+ static struct svc_xprt_class svc_tcp_bc_class = {
+@@ -1272,6 +1280,7 @@ static struct svc_xprt_ops svc_tcp_ops = {
+ 	.xpo_prep_reply_hdr = svc_tcp_prep_reply_hdr,
+ 	.xpo_has_wspace = svc_tcp_has_wspace,
+ 	.xpo_accept = svc_tcp_accept,
++	.xpo_secure_port = svc_sock_secure_port,
+ };
+ 
+ static struct svc_xprt_class svc_tcp_class = {
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 25688fa..02db8d9 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -65,6 +65,7 @@ static void dto_tasklet_func(unsigned long data);
+ static void svc_rdma_detach(struct svc_xprt *xprt);
+ static void svc_rdma_free(struct svc_xprt *xprt);
+ static int svc_rdma_has_wspace(struct svc_xprt *xprt);
++static int svc_rdma_secure_port(struct svc_rqst *);
+ static void rq_cq_reap(struct svcxprt_rdma *xprt);
+ static void sq_cq_reap(struct svcxprt_rdma *xprt);
+ 
+@@ -82,6 +83,7 @@ static struct svc_xprt_ops svc_rdma_ops = {
+ 	.xpo_prep_reply_hdr = svc_rdma_prep_reply_hdr,
+ 	.xpo_has_wspace = svc_rdma_has_wspace,
+ 	.xpo_accept = svc_rdma_accept,
++	.xpo_secure_port = svc_rdma_secure_port,
+ };
+ 
+ struct svc_xprt_class svc_rdma_class = {
+@@ -1207,6 +1209,11 @@ static int svc_rdma_has_wspace(struct svc_xprt *xprt)
+ 	return 1;
+ }
+ 
++static int svc_rdma_secure_port(struct svc_rqst *rqstp)
++{
++	return 1;
++}
++
+ /*
+  * Attempt to register the kvec representing the RPC memory with the
+  * device.
 
-1.2 Supported Platforms and Operating Systems
----------------------------------------------
-  o   CPU architectures:
-	- x86_64
-	- x86
-	- ppc64
-
-  o   Linux Operating Systems:
-	- RedHat EL6.4 		2.6.32-358.el6
-	- RedHat EL6.5 		2.6.32-431.el6
-	- SLES11 SP3		3.0.76-0.9.1
-	- kernel.org		3.12    *
-
-      * Minimal QA for these versions.
-
-1.3 HCAs and RNICs Supported
-----------------------------
-This release supports IB HCAs by IBM, Intel and Mellanox Technologies, iWARP RNICs by Chelsio Communications and Intel and RoCE adapters by IBM and Mellanox.
-
-InfiniBand Adapters
-  o   IBM HCAs:
-	- GX Dual-port SDR 4x IB HCA
-	- GX Dual-port SDR 12x IB HCA
-	- GX Dual-port DDR 4x IB HCA
-	- GX Dual-port DDR 12x IB HCA
-
-  o   Intel (formerly QLogic) HCAs:
-	- Intel(R) True Scale DDR PCIe x8 and x16 HCAs
-	- Intel(R) True Scale QDR PCIe x8 Gen2 HCAs
-
-  o   Mellanox Technologies HCAs (SDR, DDR and QDR Modes are Supported):
-	- ConnectX(R) and ConnectX EN (fw-25408 Rev 2.9.1000)
-	- ConnectX-2 (fw-ConnectX2 Rev 2.9.1000)
-  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):
-	- ConnectX-3 (fw-ConnectX3 Rev 2.30.8000)
-  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):
-	- Connect-IB™ (fw-ConnectIB.mlx Rev 10.10.2000 and above)
-
-	For official firmware versions please see:
-	http://www.mellanox.com/content/pages.php?pg=firmware_download
-
-iWARP Adapters
-  o   Chelsio RNICs:
-	- S310/S320 10GbE Storage Accelerators
-	- R310/R320 10GbE iWARP Adapters
-	- T4 Based Adapters with the exception of the T420-SO-CR
-
-  o   Intel RNICs:
-	- NE020 10Gb iWARP Adapter
-
-RoCE Adapters
- o   IBM
-	- IBM Flex System EN4132 2-port 10 GbE RoCE
-	- IBM EL27 PCIe LP 2-Port 10GbE RoCE SFP+ adapter
-	- IBM EC28 PCIe 2-Port 10GbE RoCE SFP+ adapter
-
-  o   Mellanox
-	- ConnectX-2 EN (fw-ConnectX2 Rev 2.9.1200)
-	- ConnectX-3 EN (fw-ConnectX3 Rev 2.11.0500)
-
-1.4 Switches Supported
-----------------------
-This release was tested with switches and gateways provided by the following
-companies:
-InfiniBand Switches
-  o   Flextronics
-	- F-X430044
-  o   Intel (formerly QLogic)
-	- 12200
-  o   Mellanox
-	- IS-5030
-	- SX6025
-	- SX6036
-
-iWARP Switches
-  o   Fujitsu
-	- XG2000C 10Gb Ethernet Switch
-
-RoCE Switches
-  o   Arista
-  o   BLADE Network Technologies (BNT)
-  o   Mellanox
-	- SX1036
-	- SX1024
-	- SX1016
-
-1.5 Third Party Packages
-------------------------
-The following third party packages have been tested with OFED 3.12-rc2:
-- OpenMPI-1.8.1
-- mvapich2-1.9
-- IntelMPI-4.1.1.036
-
-1.6 OFED Sources
-----------------
-All sources are located under git://git.openfabrics.org/
-
-Linux:
-------
-URL: git://git.openfabrics.org/compat-rdma/linux-3.12.git
-Branch: master
-
-- Linux kernel sub-tree that includes files relevant for the OFED project only.
-  Based on v3.12. Used to shorten git clone time.
-  Note: the regular Linux git tree can be used as well.
-
-compat:
--------
-URL: git://git.openfabrics.org/compat-rdma/compat.git
-Branch: ofed
-
-- Based on compat project (https://github.com/mcgrof/compat). The compat module
-  provides functionality introduced in newer kernels to older kernels through a
-  set of header files and exported symbols.
-  See https://github.com/mcgrof/compat/wiki for details.
-- Used to replace kernel_addons in the previous OFED kernel tree.
-
-compat-rdma:
-------------
-URL: git://git.openfabrics.org/compat-rdma/compat-rdma.git
-Branch: master
-
-User level Sources are downloaded from http://www.openfabrics.org/downloads/
-as written in the BUILD_ID
-
-The kernel sources are based on Linux 3.12 mainline kernel. Its patches
-are included in the OFED sources directory.
-For details see HOWTO.build_ofed.
-
-The list of maintainers is available under:
-http://www.openfabrics.org/downloads/MAINTAINERS
-
-===============================================================================
-2. Change log
-===============================================================================
-OFED-3.12-rc3 Main Changes from OFED 3.12-rc2
--------------------------------------------------------------------------------
-1. Updated packages:
-   - perftest-2.2-0.17.g5eba807
-
-OFED-3.12-rc2 Main Changes from OFED 3.12-rc1
--------------------------------------------------------------------------------
-1. Updated packages:
-   - dapl-2.0.42
-   - ibutils-1.5.7-0.2.gbd7e502.tar.gz
-   - libcxgb4-1.3.3
-   - mstflint-3.6.0-1.8
-   - perftest-2.2-0.16.g8406133.tar.gz
-
-OFED-3.12-rc1 Main Changes from OFED 3.5-2
--------------------------------------------------------------------------------
-1. Add support for the OSes
-   - RedHat EL6.5
-2. New drivers available
-   - ocrdma
-   - libocrdma-1.0.2
-   - mlx5
-   - libmlx5-1.0.1
-3. Updated packages:
-   - dapl-2.0.40
-   - ibsim-0.6
-   - infiniband-diags-1.6.4
-   - infinipath-psm-3.2-2_ga8c3e3e_open
-   - libcxgb4-1.3.2
-   - libibmad-1.3.11
-   - libibumad-1.3.9
-   - libipathverbs-1.2.1
-   - libnes-1.1.4
-   - librdmacm-1.0.18
-   - mstflint-3.5.0
-   - opensm-3.3.17
-   - perftest-2.0-0.80.g54c73c6
-   - srptools-1.0.2
-
-===============================================================================
-3. Known Issues
-===============================================================================
-The following is a list of general limitations and known issues of the various
-components of the OFED 3.12-rc2 release.
-
-01. When upgrading from an earlier OFED version, the installation script does
-    not stop the earlier OFED version prior to uninstalling it.
-    Workaround: Stop the old OFED stack (/etc/init.d/openibd stop) before
-    upgrading to OFED 3.12 or reboot the server after OFED installation.
-02. Memory registration by the user is limited according to administrator
-    setting. See "Pinning (Locking) User Memory Pages" in OFED_tips.txt for
-    system configuration.
-03. Fork support from kernel 2.6.12 and above is available provided
-    that applications do not use threads. fork() is supported as long as the
-    parent process does not run before the child exits or calls exec().
-    The former can be achieved by calling wait(childpid), and the latter can be
-    achieved by application specific means.  The Posix system() call is
-    supported.
-04. The qib driver is supported only on 64-bit platforms.
-05. IPoIB: brctl utilities do not work on IPoIB interfaces. The reason for that
-    is that these utilities support devices of type Ethernet only.
-06. In case uninstall is failing, check the error log and remove
-    the remaining RPMs manually using 'rpm -e <rpms list>'.
-07. On SLES11.x, set allow_unsupported_modules parameter to 1 in file:
-    /etc/modprobe.d/unsupported-modules. Without this the modules will not
-    load.
-08. RDS is supported only on kernel.org 3.5 and not on any distro OS.
-09. There are known issues with iWARP using Chelsio adapters which will be
-    resolved in OFED 3.12 RC3 See Bugs 2482 and 2485
-10. There is an issue with NFSoRDMA when running on Power PC. This will be
-    resolved in OFED 3.12-1 - see Bug 2449
-11. Newer SLES or RHEL patch kernels that are updates to the original kernel that is included in the
-    original SLES or RHEL distibutions may not work with OFED-3.12-rc2. The list of kernels that are supported are listed in
-    section 1.2.
-
-Note: See the release notes of each component for additional issues.
-
-
---------------030300010009030308010508--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
