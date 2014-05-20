@@ -1,22 +1,31 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [PATCH v1 for-next 0/3] IB: Use GFP_NOIO calls in IPoIB connected
- mode TX path
-Date: Mon, 19 May 2014 18:04:10 -0700
-Message-ID: <CAL1RGDUoEFF=fR-e-fc1v0yHp8sxaidBnO_2iiAFThgZNvCcfQ@mail.gmail.com>
-References: <1399810512-30774-1-git-send-email-ogerlitz@mellanox.com>
- <alpine.LNX.2.00.1405131338030.16459@pobox.suse.cz> <CAJZOPZJVxF6A-3s16feqoWCb5gOLTjyUmB3F+st1+1QWp+bJnQ@mail.gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
+Date: Mon, 19 May 2014 18:10:24 -0700
+Message-ID: <CAL1RGDWNr53rXY_o2X7R76aVHtAH_EnK6DZk19N5fGoW1pOAdQ@mail.gmail.com>
+References: <20140326220718.GA8784@TENIKOLO-MOBL1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZOPZJVxF6A-3s16feqoWCb5gOLTjyUmB3F+st1+1QWp+bJnQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Or Gerlitz <or.gerlitz@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>, Or Gerlitz <ogerlitz@mellanox.com>, Amir Vadai <amirv@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Mel Gorman <mgorman@suse.de>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140326220718.GA8784@TENIKOLO-MOBL1>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, May 17, 2014 at 1:52 PM, Or Gerlitz <or.gerlitz@gmail.com> wrote:
-> Roland, we're soon on -rc6 and there's no reason for this to miss
-> 3.16, could you please comment whether you want it to go through your
-> tree or net-next?
+On Wed, Mar 26, 2014 at 3:07 PM, Tatyana Nikolova
+<Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> 1) The IWPM functionality, common for both iWarp drivers (nes and cxgb4)
+>    is refactored from the drivers source files and is moved to new shared
+>    files in infiniband/core which are compiled as part of the iw_cm module.
 
-I will pick it up.
+
+So I'm looking to include this for 3.16.  One question: I assume
+unpatched iwarp drivers (eg cxgb3) continue to work as before?  In
+other words they don't get the new port mapper support but at least
+they don't regress?
+
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
