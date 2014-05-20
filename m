@@ -1,19 +1,23 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [PATCH 0/3] mlx5 signature handover fixes for kernel 3.16
-Date: Mon, 19 May 2014 18:03:24 -0700
-Message-ID: <CAL1RGDVV9WOtfSgyjO1=nLnhO2af83xGzVJMPdgNv727L=eHLA@mail.gmail.com>
-References: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] SRP initiator patches for kernel 3.16
+Date: Mon, 19 May 2014 17:59:34 -0700
+Message-ID: <CAL1RGDUXtwDjwUFs5D48UN-KMZSOPS0NJoxT913noNrze2jHQQ@mail.gmail.com>
+References: <53761628.8030701@acm.org> <53785ACD.90101@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1400427160-11314-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, "Martin K. Petersen" <martin.petersen@oracle.com>, Oren Duer <oren@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53785ACD.90101-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 18, 2014 at 8:32 AM, Sagi Grimberg <sagig@mellanox.com> wrote:
-> This patchset addresses 3 issues signature handover mlx5 implementation.
+> The series looks good to me.
+>
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-
-Thanks, applied all 3.
+thanks, queued all 9 patches up.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
