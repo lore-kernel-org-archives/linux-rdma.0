@@ -1,20 +1,50 @@
-From: Zuberi Muti <zmuti001-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: CAN YOU HANDLE THE INVESTMENT
-Date: Tue, 20 May 2014 17:26:34 +0000
-Message-ID: <CA+dLrn0WDP2CEL-ZSxxYJdw3RVd+Cvikt59FWM2wg9FCG-_qYg@mail.gmail.com>
-Reply-To: zmuti001-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
+Date: Tue, 20 May 2014 17:46:11 +0000
+Message-ID: <13AA599688F47243B14FCFCCC2C803BB0D8ECE61@FMSMSX104.amr.corp.intel.com>
+References: <20140326220718.GA8784@TENIKOLO-MOBL1>
+ <CAL1RGDWNr53rXY_o2X7R76aVHtAH_EnK6DZk19N5fGoW1pOAdQ@mail.gmail.com>
+ <001801cf7431$bc6ad050$354070f0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <001801cf7431$bc6ad050$354070f0$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- Please this is a personal message for you. I need some directives
-from you to invest some capital in your country.
- And see how we can partnership into the business. Just reply me to
-explain better.
-
- Mr.Zuberi Muti
+SGVsbG8gUm9sbGFuZCwNCg0KVGhhbmtzIGZvciByZXZpZXdpbmcgdGhlIHBvcnQgbWFwcGVyIHBh
+dGNoZXMuDQoNClN0ZXZlJ3MgcmVwbHkgaXMgY29ycmVjdC4gDQpVbnBhdGNoZWQgbmVzIHdpbGwg
+bm90IHJlZ3Jlc3MgYW5kIHdpbGwgY29udGludWUgd29ya2luZyBhcyBiZWZvcmUuIA0KDQpUYXR5
+YW5hDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBTdGV2ZSBXaXNlIFttYWls
+dG86c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcuY29tXSANClNlbnQ6IFR1ZXNkYXksIE1heSAyMCwg
+MjAxNCA4OjQ1IEFNDQpUbzogJ1JvbGFuZCBEcmVpZXInOyBOaWtvbG92YSwgVGF0eWFuYSBFDQpD
+YzogTGFjb21iZSwgSm9obiBTOyBIZWZ0eSwgU2VhbjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5v
+cmc7ICdEb3VnIExlZGZvcmQnDQpTdWJqZWN0OiBSRTogW1BBVENIIDAvM10gUkRNQS9jb3JlOiBp
+V0FSUCBQb3J0IE1hcHBlciBPdmVydmlldw0KDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyANCj4gW21haWx0
+bzpsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJvbGFuZCBE
+cmVpZXINCj4gU2VudDogTW9uZGF5LCBNYXkgMTksIDIwMTQgODoxMCBQTQ0KPiBUbzogVGF0eWFu
+YSBOaWtvbG92YQ0KPiBDYzogTGFjb21iZSwgSm9obiBTOyBTdGV2ZSBXaXNlOyBTZWFuIEhlZnR5
+OyANCj4gbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCAw
+LzNdIFJETUEvY29yZTogaVdBUlAgUG9ydCBNYXBwZXIgT3ZlcnZpZXcNCj4gDQo+IE9uIFdlZCwg
+TWFyIDI2LCAyMDE0IGF0IDM6MDcgUE0sIFRhdHlhbmEgTmlrb2xvdmEgDQo+IDxUYXR5YW5hLkUu
+Tmlrb2xvdmFAaW50ZWwuY29tPiB3cm90ZToNCj4gPiAxKSBUaGUgSVdQTSBmdW5jdGlvbmFsaXR5
+LCBjb21tb24gZm9yIGJvdGggaVdhcnAgZHJpdmVycyAobmVzIGFuZCBjeGdiNCkNCj4gPiAgICBp
+cyByZWZhY3RvcmVkIGZyb20gdGhlIGRyaXZlcnMgc291cmNlIGZpbGVzIGFuZCBpcyBtb3ZlZCB0
+byBuZXcgc2hhcmVkDQo+ID4gICAgZmlsZXMgaW4gaW5maW5pYmFuZC9jb3JlIHdoaWNoIGFyZSBj
+b21waWxlZCBhcyBwYXJ0IG9mIHRoZSBpd19jbSBtb2R1bGUuDQo+IA0KPiANCj4gU28gSSdtIGxv
+b2tpbmcgdG8gaW5jbHVkZSB0aGlzIGZvciAzLjE2LiAgT25lIHF1ZXN0aW9uOiBJIGFzc3VtZSAN
+Cj4gdW5wYXRjaGVkIGl3YXJwIGRyaXZlcnMgKGVnIGN4Z2IzKSBjb250aW51ZSB0byB3b3JrIGFz
+IGJlZm9yZT8gIEluIA0KPiBvdGhlciB3b3JkcyB0aGV5IGRvbid0IGdldCB0aGUgbmV3IHBvcnQg
+bWFwcGVyIHN1cHBvcnQgYnV0IGF0IGxlYXN0IA0KPiB0aGV5IGRvbid0IHJlZ3Jlc3M/DQo+IA0K
+DQpIZXkgUm9sYW5kLA0KDQpjeGdiMzwtPmN4Z2IzIHdvdWxkIGJlaGF2ZSBhcyBiZWZvcmU7IG5v
+IHJlZ3Jlc3Npb24uICBjeGdiMzwtPmN4Z2I0L25lcyB3b3VsZCBpbnRlcm9wZXJhdGUgb25seSBp
+ZiB0aGUgcG9ydCBtYXBwaW5nIHNlcnZpY2UgaXMgZGlzYWJsZWQgb24gdGhlIGN4Z2I0L25lcyBu
+b2Rlcy4gIA0KDQpTdGV2ZS4NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
