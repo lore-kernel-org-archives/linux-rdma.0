@@ -1,82 +1,89 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: help with IB_WC_MW_BIND_ERR
-Date: Tue, 20 May 2014 15:50:59 -0400
-Message-ID: <E9C5BF5E-BB15-4924-8537-96AB263AED9A@oracle.com>
-References: <B34C7243-DCF8-472B-B156-9B8791F0F475@oracle.com> <CABgxfbHu8Wga6tX7iPyNb0aZaVY7XizAY_jpJW6+Nk2H9Gva5w@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs V4 2/5] Extend create_ah in order to pass L2
+ parameters to the provider
+Date: Wed, 21 May 2014 13:55:49 -0600
+Message-ID: <20140521195549.GA26909@obsidianresearch.com>
+References: <1400405929-14313-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+ <1400405929-14313-3-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbHu8Wga6tX7iPyNb0aZaVY7XizAY_jpJW6+Nk2H9Gva5w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1400405929-14313-3-git-send-email-ogerlitz-lZu6o6FoHf8DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, May 18, 2014 at 12:38:46PM +0300, Or Gerlitz wrote:
+> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> In order to support IP based addressing, one needs to pass the L2
+> parameters to the provider drive. This is done through a new extendable
+                               ^^^^
+'driver'
 
-On May 20, 2014, at 3:39 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrot=
-e:
+Please provide a man page. In this case you probably want to provide a
+patch to the existing man/ibv_create_ah.3 to discuss the 2nd entry
+point and new fields.
 
-> On Tue, May 20, 2014 at 11:55 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org=
-> wrote:
->> Hi-
->>=20
->> What does it mean when a LOCAL_INV work request fails with a
->> IB_WC_MW_BIND_ERR completion?
->>=20
->=20
-> Mapping an IB error code has been a great pain (at least for me)
-> unless you have access to the HCA firmware. In this case, I think it
-> implies memory protection error (registration issues).... say in cxgb=
-4
-> driver, it is associated with invalidate shared MR or invalidate boun=
-d
-> memory window (with a QP):
->=20
->                case T4_ERR_INVALIDATE_SHARED_MR:
->                case T4_ERR_INVALIDATE_MR_WITH_MW_BOUND:
->                        wc->status =3D IB_WC_MW_BIND_ERR;
->                        break;
->=20
-> "drivers/infiniband/hw/cxgb4/cq.c" line 654 of 898 --72%-- col 11-25
->=20
-> You'll probably need to mention the HCA name so the firmware people,
-> if they are reading this, could pinpoint the exact cause.
+> +enum ibv_ah_attr_ex_attr_mask {
+> +	IBV_AH_ATTR_EX_LL = 1UL << 0,
+> +	IBV_AH_ATTR_EX_VID = 1UL << 1,
+> +};
 
-Thanks. ConnectX-2, mlx4 provider.
+OK
 
-The IB architecture spec lists five conditions that could result in an
-IB_WC_MW_BIND_ERR completion of LOCAL_INV:
+> +struct ibv_ah_attr_ex {
+> +	struct ibv_global_route	grh;
+> +	uint16_t		dlid;
+> +	uint8_t			sl;
+> +	uint8_t			src_path_bits;
+> +	uint8_t			static_rate;
+> +	uint8_t			is_global;
+> +	uint8_t			port_num;
+> +	uint32_t		comp_mask;
 
-1. Memory access was attempted on an L_Key or R_Key that is in the
-   Invalid State;
+OK
 
-2. Memory Region could not be Invalidated, because it is a Shared
-   Memory Region;
+> +	union {
+> +		struct sockaddr		sa;
+> +		struct sockaddr_storage _s;
+> +	} ll;
+> +	uint16_t		vid;
+> +};
 
-3. Memory Region can not be invalidated because it has bound Memory
-   Window; or
+Hard to know exactly what is going on here without a man page, but I
+thought one of the points was to provide an ethernet L2 MAC address?
+Shouldn't there be a mechanism for that?
 
-4. Memory Region could not be Invalidated, because it was created
-   through a Register Memory Region or Reregister Memory Region.
+I see this:
 
-5. Memory Window could not be Invalidated, because it was a Type 1
-   Memory Window.
++       attr_ex.ll.sa.sa_family = ARPHRD_ETHER;
 
-This is with FRMR and the MR is not shared (I think?). So I expect I=92=
-m
-dealing with condition 1. But I can=92t seem to make any more headway o=
-n
-confirming that, or how it got that way.
+Which makes no sense, sa_family should be an AF_* constant.
 
+So, I think this bit needs some kind of work. If you want to setup
+ethernet, then setup ethernet:
+
+uint64_t eth_dmac
+uint16_t eth_vid;
+
+and what about all the trendy new ethernet stuff, overlay networks,
+etc? Can that be expressed in there?
+
+> @@ -975,6 +998,8 @@ enum verbs_context_mask {
+>  
+>  struct verbs_context {
+>  	/*  "grows up" - new fields go here */
+> +	struct ibv_ah * (*create_ah_ex)(struct ibv_pd *pd,
+> +					struct ibv_ah_attr_ex *attr);
+
+Can you check if 'attr' should be const? I see the existing API isn't
+const, but I am suspecting that is a mistake?
+
+Jason
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
