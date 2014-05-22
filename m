@@ -1,66 +1,494 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 3/4] IB/iser: Add missing newlines to logging messages
-Date: Thu, 22 May 2014 11:00:20 +0300
-Message-ID: <1400745621-9978-4-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
-References: <1400745621-9978-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+Subject: Re: [PATCH for-next 1/4] IB/iser: Simplify connection management
+Date: Thu, 22 May 2014 11:09:44 +0300
+Message-ID: <537DB0C8.4070805@mellanox.com>
+References: <1400745621-9978-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx> <1400745621-9978-2-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400745621-9978-1-git-send-email-ogerlitz-lZu6o6FoHf8DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
+In-Reply-To: <1400745621-9978-2-git-send-email-ogerlitz-lZu6o6FoHf8DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 22/05/2014 11:00, Or Gerlitz wrote:
 
-Logging messages need terminating newlines to avoid
-possible message interleaving.  Add them.
+sorry for the spam,  I forgot to add Mike Christie, the iscsi 
+maintainer, so here you are CC-ed Mike,
+I preferred doing it with a single reply vs. a whole new post, Mike if 
+you need the actual patch
+for the sake of review/looking it's here 
+http://marc.info/?l=linux-rdma&m=140074563408534&q=raw
 
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index f217488..eb79739 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -508,28 +508,28 @@ iscsi_iser_set_param(struct iscsi_cls_conn *cls_conn,
- 	case ISCSI_PARAM_HDRDGST_EN:
- 		sscanf(buf, "%d", &value);
- 		if (value) {
--			iser_err("DataDigest wasn't negotiated to None");
-+			iser_err("DataDigest wasn't negotiated to None\n");
- 			return -EPROTO;
- 		}
- 		break;
- 	case ISCSI_PARAM_DATADGST_EN:
- 		sscanf(buf, "%d", &value);
- 		if (value) {
--			iser_err("DataDigest wasn't negotiated to None");
-+			iser_err("DataDigest wasn't negotiated to None\n");
- 			return -EPROTO;
- 		}
- 		break;
- 	case ISCSI_PARAM_IFMARKER_EN:
- 		sscanf(buf, "%d", &value);
- 		if (value) {
--			iser_err("IFMarker wasn't negotiated to No");
-+			iser_err("IFMarker wasn't negotiated to No\n");
- 			return -EPROTO;
- 		}
- 		break;
- 	case ISCSI_PARAM_OFMARKER_EN:
- 		sscanf(buf, "%d", &value);
- 		if (value) {
--			iser_err("OFMarker wasn't negotiated to No");
-+			iser_err("OFMarker wasn't negotiated to No\n");
- 			return -EPROTO;
- 		}
- 		break;
--- 
-1.7.1
+Or.
+> From: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> iSER relies on refcounting to manage iser connections
+> establishment and teardown.
+>
+> Following commit 39ff05d "IB/iser: Enhance disconnection logic
+> for multi-pathing", iser connection maintain 3 references:
+>
+> - iscsi_endpoint (at creation stage)
+> - cma_id (at connection request stage)
+> - iscsi_conn (at bind stage)
+>
+> We can avoid taking explicit refcounts by correctly serializing
+> iser teardown flows (graceful and non-graceful).
+>
+> Our approach is to trigger a scheduled work to handle ordered
+> teardown by gracefully waiting for 2 cleanup stages to complete:
+>
+> 1. Cleanup of live pending tasks indicated by iscsi_conn_stop completion
+> 2. Flush errors processing
+>
+> Each completed stage will notify a waiting worker thread when it is
+> done to allow teardwon continuation.
+>
+> Since iSCSI connection establishment may trigger endpoint disconnect without
+> a successful endpoint connect, we rely on the iscsi <-> iser binding (.conn_bind)
+> to learn about the teardown policy we should take wrt cleanup stages.
+>
+> Since all cleanup worker threads are scheduled (release_wq) in .ep_disconnect
+> it is safe to assume that when module_exit is called, all cleanup workers are
+> already scheduled. Thus proper module unload shall flush all scheduled works
+> before allowing safe exit, to guarantee no resources got left behind.
+>
+> Signed-off-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/iser/iscsi_iser.c |   97 +++++++++++++++++------------
+>   drivers/infiniband/ulp/iser/iscsi_iser.h |    8 ++-
+>   drivers/infiniband/ulp/iser/iser_verbs.c |   85 +++++++++++---------------
+>   3 files changed, 99 insertions(+), 91 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> index 25f195e..f217488 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+> @@ -99,6 +99,7 @@ MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
+>   module_param_named(pi_guard, iser_pi_guard, int, 0644);
+>   MODULE_PARM_DESC(pi_guard, "T10-PI guard_type, 0:CRC|1:IP_CSUM (default:CRC)");
+>   
+> +static struct workqueue_struct *release_wq;
+>   struct iser_global ig;
+>   
+>   void
+> @@ -337,24 +338,6 @@ iscsi_iser_conn_create(struct iscsi_cls_session *cls_session, uint32_t conn_idx)
+>   	return cls_conn;
+>   }
+>   
+> -static void
+> -iscsi_iser_conn_destroy(struct iscsi_cls_conn *cls_conn)
+> -{
+> -	struct iscsi_conn *conn = cls_conn->dd_data;
+> -	struct iser_conn *ib_conn = conn->dd_data;
+> -
+> -	iscsi_conn_teardown(cls_conn);
+> -	/*
+> -	 * Userspace will normally call the stop callback and
+> -	 * already have freed the ib_conn, but if it goofed up then
+> -	 * we free it here.
+> -	 */
+> -	if (ib_conn) {
+> -		ib_conn->iscsi_conn = NULL;
+> -		iser_conn_put(ib_conn, 1); /* deref iscsi/ib conn unbinding */
+> -	}
+> -}
+> -
+>   static int
+>   iscsi_iser_conn_bind(struct iscsi_cls_session *cls_session,
+>   		     struct iscsi_cls_conn *cls_conn, uint64_t transport_eph,
+> @@ -392,29 +375,39 @@ iscsi_iser_conn_bind(struct iscsi_cls_session *cls_session,
+>   	conn->dd_data = ib_conn;
+>   	ib_conn->iscsi_conn = conn;
+>   
+> -	iser_conn_get(ib_conn); /* ref iscsi/ib conn binding */
+>   	return 0;
+>   }
+>   
+> +static int
+> +iscsi_iser_conn_start(struct iscsi_cls_conn *cls_conn)
+> +{
+> +	struct iscsi_conn *iscsi_conn;
+> +	struct iser_conn *ib_conn;
+> +
+> +	iscsi_conn = cls_conn->dd_data;
+> +	ib_conn = iscsi_conn->dd_data;
+> +	reinit_completion(&ib_conn->stop_completion);
+> +
+> +	return iscsi_conn_start(cls_conn);
+> +}
+> +
+>   static void
+>   iscsi_iser_conn_stop(struct iscsi_cls_conn *cls_conn, int flag)
+>   {
+>   	struct iscsi_conn *conn = cls_conn->dd_data;
+>   	struct iser_conn *ib_conn = conn->dd_data;
+>   
+> +	iser_dbg("stopping iscsi_conn: %p, ib_conn: %p\n", conn, ib_conn);
+> +	iscsi_conn_stop(cls_conn, flag);
+> +
+>   	/*
+>   	 * Userspace may have goofed up and not bound the connection or
+>   	 * might have only partially setup the connection.
+>   	 */
+>   	if (ib_conn) {
+> -		iscsi_conn_stop(cls_conn, flag);
+> -		/*
+> -		 * There is no unbind event so the stop callback
+> -		 * must release the ref from the bind.
+> -		 */
+> -		iser_conn_put(ib_conn, 1); /* deref iscsi/ib conn unbinding */
+> +		conn->dd_data = NULL;
+> +		complete(&ib_conn->stop_completion);
+>   	}
+> -	conn->dd_data = NULL;
+>   }
+>   
+>   static void iscsi_iser_session_destroy(struct iscsi_cls_session *cls_session)
+> @@ -652,19 +645,20 @@ iscsi_iser_ep_disconnect(struct iscsi_endpoint *ep)
+>   	struct iser_conn *ib_conn;
+>   
+>   	ib_conn = ep->dd_data;
+> -	if (ib_conn->iscsi_conn)
+> -		/*
+> -		 * Must suspend xmit path if the ep is bound to the
+> -		 * iscsi_conn, so we know we are not accessing the ib_conn
+> -		 * when we free it.
+> -		 *
+> -		 * This may not be bound if the ep poll failed.
+> -		 */
+> -		iscsi_suspend_tx(ib_conn->iscsi_conn);
+> -
+> -
+> -	iser_info("ib conn %p state %d\n", ib_conn, ib_conn->state);
+> +	iser_info("ep %p ib conn %p state %d\n", ep, ib_conn, ib_conn->state);
+>   	iser_conn_terminate(ib_conn);
+> +
+> +	/*
+> +	 * if iser_conn and iscsi_conn are bound, we must wait iscsi_conn_stop
+> +	 * call and ISER_CONN_DOWN state before freeing the iser resources.
+> +	 * otherwise we are safe to free resources immediately.
+> +	 */
+> +	if (ib_conn->iscsi_conn) {
+> +		INIT_WORK(&ib_conn->release_work, iser_release_work);
+> +		queue_work(release_wq, &ib_conn->release_work);
+> +	} else {
+> +		iser_conn_release(ib_conn);
+> +	}
+>   }
+>   
+>   static umode_t iser_attr_is_visible(int param_type, int param)
+> @@ -748,13 +742,13 @@ static struct iscsi_transport iscsi_iser_transport = {
+>   	/* connection management */
+>   	.create_conn            = iscsi_iser_conn_create,
+>   	.bind_conn              = iscsi_iser_conn_bind,
+> -	.destroy_conn           = iscsi_iser_conn_destroy,
+> +	.destroy_conn           = iscsi_conn_teardown,
+>   	.attr_is_visible	= iser_attr_is_visible,
+>   	.set_param              = iscsi_iser_set_param,
+>   	.get_conn_param		= iscsi_conn_get_param,
+>   	.get_ep_param		= iscsi_iser_get_ep_param,
+>   	.get_session_param	= iscsi_session_get_param,
+> -	.start_conn             = iscsi_conn_start,
+> +	.start_conn             = iscsi_iser_conn_start,
+>   	.stop_conn              = iscsi_iser_conn_stop,
+>   	/* iscsi host params */
+>   	.get_host_param		= iscsi_host_get_param,
+> @@ -801,6 +795,12 @@ static int __init iser_init(void)
+>   	mutex_init(&ig.connlist_mutex);
+>   	INIT_LIST_HEAD(&ig.connlist);
+>   
+> +	release_wq = alloc_workqueue("release workqueue", 0, 0);
+> +	if (!release_wq) {
+> +		iser_err("failed to allocate release workqueue\n");
+> +		return -ENOMEM;
+> +	}
+> +
+>   	iscsi_iser_scsi_transport = iscsi_register_transport(
+>   							&iscsi_iser_transport);
+>   	if (!iscsi_iser_scsi_transport) {
+> @@ -819,7 +819,24 @@ register_transport_failure:
+>   
+>   static void __exit iser_exit(void)
+>   {
+> +	struct iser_conn *ib_conn, *n;
+> +	int connlist_empty;
+> +
+>   	iser_dbg("Removing iSER datamover...\n");
+> +	destroy_workqueue(release_wq);
+> +
+> +	mutex_lock(&ig.connlist_mutex);
+> +	connlist_empty = list_empty(&ig.connlist);
+> +	mutex_unlock(&ig.connlist_mutex);
+> +
+> +	if (!connlist_empty) {
+> +		iser_err("Error cleanup stage completed but we still have iser "
+> +			 "connections, destroying them anyway.\n");
+> +		list_for_each_entry_safe(ib_conn, n, &ig.connlist, conn_list) {
+> +			iser_conn_release(ib_conn);
+> +		}
+> +	}
+> +
+>   	iscsi_unregister_transport(&iscsi_iser_transport);
+>   	kmem_cache_destroy(ig.desc_cache);
+>   }
+> diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+> index 324129f..d309620 100644
+> --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
+> +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+> @@ -333,6 +333,8 @@ struct iser_conn {
+>   	int                          post_recv_buf_count; /* posted rx count  */
+>   	atomic_t                     post_send_buf_count; /* posted tx count   */
+>   	char 			     name[ISER_OBJECT_NAME_SIZE];
+> +	struct work_struct	     release_work;
+> +	struct completion	     stop_completion;
+>   	struct list_head	     conn_list;       /* entry in ig conn list */
+>   
+>   	char  			     *login_buf;
+> @@ -417,12 +419,12 @@ void iscsi_iser_recv(struct iscsi_conn *conn,
+>   
+>   void iser_conn_init(struct iser_conn *ib_conn);
+>   
+> -void iser_conn_get(struct iser_conn *ib_conn);
+> -
+> -int iser_conn_put(struct iser_conn *ib_conn, int destroy_cma_id_allowed);
+> +void iser_conn_release(struct iser_conn *ib_conn);
+>   
+>   void iser_conn_terminate(struct iser_conn *ib_conn);
+>   
+> +void iser_release_work(struct work_struct *work);
+> +
+>   void iser_rcv_completion(struct iser_rx_desc *desc,
+>   			 unsigned long    dto_xfer_len,
+>   			struct iser_conn *ib_conn);
+> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+> index 32849f2..4c698e5 100644
+> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
+> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+> @@ -581,14 +581,30 @@ static int iser_conn_state_comp_exch(struct iser_conn *ib_conn,
+>   	return ret;
+>   }
+>   
+> +void iser_release_work(struct work_struct *work)
+> +{
+> +	struct iser_conn *ib_conn;
+> +
+> +	ib_conn = container_of(work, struct iser_conn, release_work);
+> +
+> +	/* wait for .conn_stop callback */
+> +	wait_for_completion(&ib_conn->stop_completion);
+> +
+> +	/* wait for the qp`s post send and post receive buffers to empty */
+> +	wait_event_interruptible(ib_conn->wait,
+> +				 ib_conn->state == ISER_CONN_DOWN);
+> +
+> +	iser_conn_release(ib_conn);
+> +}
+> +
+>   /**
+>    * Frees all conn objects and deallocs conn descriptor
+>    */
+> -static void iser_conn_release(struct iser_conn *ib_conn, int can_destroy_id)
+> +void iser_conn_release(struct iser_conn *ib_conn)
+>   {
+>   	struct iser_device  *device = ib_conn->device;
+>   
+> -	BUG_ON(ib_conn->state != ISER_CONN_DOWN);
+> +	BUG_ON(ib_conn->state == ISER_CONN_UP);
+>   
+>   	mutex_lock(&ig.connlist_mutex);
+>   	list_del(&ib_conn->conn_list);
+> @@ -600,27 +616,13 @@ static void iser_conn_release(struct iser_conn *ib_conn, int can_destroy_id)
+>   	if (device != NULL)
+>   		iser_device_try_release(device);
+>   	/* if cma handler context, the caller actually destroy the id */
+> -	if (ib_conn->cma_id != NULL && can_destroy_id) {
+> +	if (ib_conn->cma_id != NULL) {
+>   		rdma_destroy_id(ib_conn->cma_id);
+>   		ib_conn->cma_id = NULL;
+>   	}
+>   	iscsi_destroy_endpoint(ib_conn->ep);
+>   }
+>   
+> -void iser_conn_get(struct iser_conn *ib_conn)
+> -{
+> -	atomic_inc(&ib_conn->refcount);
+> -}
+> -
+> -int iser_conn_put(struct iser_conn *ib_conn, int can_destroy_id)
+> -{
+> -	if (atomic_dec_and_test(&ib_conn->refcount)) {
+> -		iser_conn_release(ib_conn, can_destroy_id);
+> -		return 1;
+> -	}
+> -	return 0;
+> -}
+> -
+>   /**
+>    * triggers start of the disconnect procedures and wait for them to be done
+>    */
+> @@ -638,24 +640,19 @@ void iser_conn_terminate(struct iser_conn *ib_conn)
+>   	if (err)
+>   		iser_err("Failed to disconnect, conn: 0x%p err %d\n",
+>   			 ib_conn,err);
+> -
+> -	wait_event_interruptible(ib_conn->wait,
+> -				 ib_conn->state == ISER_CONN_DOWN);
+> -
+> -	iser_conn_put(ib_conn, 1); /* deref ib conn deallocate */
+>   }
+>   
+> -static int iser_connect_error(struct rdma_cm_id *cma_id)
+> +static void iser_connect_error(struct rdma_cm_id *cma_id)
+>   {
+>   	struct iser_conn *ib_conn;
+> +
+>   	ib_conn = (struct iser_conn *)cma_id->context;
+>   
+>   	ib_conn->state = ISER_CONN_DOWN;
+>   	wake_up_interruptible(&ib_conn->wait);
+> -	return iser_conn_put(ib_conn, 0); /* deref ib conn's cma id */
+>   }
+>   
+> -static int iser_addr_handler(struct rdma_cm_id *cma_id)
+> +static void iser_addr_handler(struct rdma_cm_id *cma_id)
+>   {
+>   	struct iser_device *device;
+>   	struct iser_conn   *ib_conn;
+> @@ -664,7 +661,8 @@ static int iser_addr_handler(struct rdma_cm_id *cma_id)
+>   	device = iser_device_find_by_ib_device(cma_id);
+>   	if (!device) {
+>   		iser_err("device lookup/creation failed\n");
+> -		return iser_connect_error(cma_id);
+> +		iser_connect_error(cma_id);
+> +		return;
+>   	}
+>   
+>   	ib_conn = (struct iser_conn *)cma_id->context;
+> @@ -686,13 +684,12 @@ static int iser_addr_handler(struct rdma_cm_id *cma_id)
+>   	ret = rdma_resolve_route(cma_id, 1000);
+>   	if (ret) {
+>   		iser_err("resolve route failed: %d\n", ret);
+> -		return iser_connect_error(cma_id);
+> +		iser_connect_error(cma_id);
+> +		return;
+>   	}
+> -
+> -	return 0;
+>   }
+>   
+> -static int iser_route_handler(struct rdma_cm_id *cma_id)
+> +static void iser_route_handler(struct rdma_cm_id *cma_id)
+>   {
+>   	struct rdma_conn_param conn_param;
+>   	int    ret;
+> @@ -720,9 +717,9 @@ static int iser_route_handler(struct rdma_cm_id *cma_id)
+>   		goto failure;
+>   	}
+>   
+> -	return 0;
+> +	return;
+>   failure:
+> -	return iser_connect_error(cma_id);
+> +	iser_connect_error(cma_id);
+>   }
+>   
+>   static void iser_connected_handler(struct rdma_cm_id *cma_id)
+> @@ -739,10 +736,9 @@ static void iser_connected_handler(struct rdma_cm_id *cma_id)
+>   	wake_up_interruptible(&ib_conn->wait);
+>   }
+>   
+> -static int iser_disconnected_handler(struct rdma_cm_id *cma_id)
+> +static void iser_disconnected_handler(struct rdma_cm_id *cma_id)
+>   {
+>   	struct iser_conn *ib_conn;
+> -	int ret;
+>   
+>   	ib_conn = (struct iser_conn *)cma_id->context;
+>   
+> @@ -762,24 +758,19 @@ static int iser_disconnected_handler(struct rdma_cm_id *cma_id)
+>   		ib_conn->state = ISER_CONN_DOWN;
+>   		wake_up_interruptible(&ib_conn->wait);
+>   	}
+> -
+> -	ret = iser_conn_put(ib_conn, 0); /* deref ib conn's cma id */
+> -	return ret;
+>   }
+>   
+>   static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+>   {
+> -	int ret = 0;
+> -
+>   	iser_info("event %d status %d conn %p id %p\n",
+>   		  event->event, event->status, cma_id->context, cma_id);
+>   
+>   	switch (event->event) {
+>   	case RDMA_CM_EVENT_ADDR_RESOLVED:
+> -		ret = iser_addr_handler(cma_id);
+> +		iser_addr_handler(cma_id);
+>   		break;
+>   	case RDMA_CM_EVENT_ROUTE_RESOLVED:
+> -		ret = iser_route_handler(cma_id);
+> +		iser_route_handler(cma_id);
+>   		break;
+>   	case RDMA_CM_EVENT_ESTABLISHED:
+>   		iser_connected_handler(cma_id);
+> @@ -789,18 +780,18 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
+>   	case RDMA_CM_EVENT_CONNECT_ERROR:
+>   	case RDMA_CM_EVENT_UNREACHABLE:
+>   	case RDMA_CM_EVENT_REJECTED:
+> -		ret = iser_connect_error(cma_id);
+> +		iser_connect_error(cma_id);
+>   		break;
+>   	case RDMA_CM_EVENT_DISCONNECTED:
+>   	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+>   	case RDMA_CM_EVENT_ADDR_CHANGE:
+> -		ret = iser_disconnected_handler(cma_id);
+> +		iser_disconnected_handler(cma_id);
+>   		break;
+>   	default:
+>   		iser_err("Unexpected RDMA CM event (%d)\n", event->event);
+>   		break;
+>   	}
+> -	return ret;
+> +	return 0;
+>   }
+>   
+>   void iser_conn_init(struct iser_conn *ib_conn)
+> @@ -809,7 +800,7 @@ void iser_conn_init(struct iser_conn *ib_conn)
+>   	init_waitqueue_head(&ib_conn->wait);
+>   	ib_conn->post_recv_buf_count = 0;
+>   	atomic_set(&ib_conn->post_send_buf_count, 0);
+> -	atomic_set(&ib_conn->refcount, 1); /* ref ib conn allocation */
+> +	init_completion(&ib_conn->stop_completion);
+>   	INIT_LIST_HEAD(&ib_conn->conn_list);
+>   	spin_lock_init(&ib_conn->lock);
+>   }
+> @@ -837,7 +828,6 @@ int iser_connect(struct iser_conn   *ib_conn,
+>   
+>   	ib_conn->state = ISER_CONN_PENDING;
+>   
+> -	iser_conn_get(ib_conn); /* ref ib conn's cma id */
+>   	ib_conn->cma_id = rdma_create_id(iser_cma_handler,
+>   					     (void *)ib_conn,
+>   					     RDMA_PS_TCP, IB_QPT_RC);
+> @@ -874,9 +864,8 @@ id_failure:
+>   	ib_conn->cma_id = NULL;
+>   addr_failure:
+>   	ib_conn->state = ISER_CONN_DOWN;
+> -	iser_conn_put(ib_conn, 1); /* deref ib conn's cma id */
+>   connect_failure:
+> -	iser_conn_put(ib_conn, 1); /* deref ib conn deallocate */
+> +	iser_conn_release(ib_conn);
+>   	return err;
+>   }
+>   
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
