@@ -1,55 +1,153 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/5] IB/mlx5: Add MR to radix tree in reg_mr_callback
-Date: Thu, 22 May 2014 14:50:09 +0300
-Message-ID: <1400759412-13205-3-git-send-email-haggaie@mellanox.com>
-References: <1400759412-13205-1-git-send-email-haggaie@mellanox.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] NFSD: Ignore client's source port on RDMA transports
+Date: Thu, 22 May 2014 15:55:17 -0400
+Message-ID: <20140522195517.GD25423@fieldses.org>
+References: <20140519173258.2828.98254.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400759412-13205-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140519173258.2828.98254.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-For memory regions that are allocated using reg_umr, the suffix of
-mlx5_core_create_mkey isn't being called. Instead the creation is completed in
-a callback function (reg_mr_callback). This means that these MRs aren't being
-added to the MR radix tree. The patch add them in the callback.
+On Mon, May 19, 2014 at 01:40:22PM -0400, Chuck Lever wrote:
+> An NFS/RDMA client's source port is meaningless for RDMA transports.
+> The transport layer typically sets the source port value on the
+> connection to a random ephemeral port.
+> 
+> Currently, NFS server administrators must specify the "insecure"
+> export option to enable clients to access exports via RDMA.
+> 
+> But this means NFS clients can access such an export via IP using an
+> ephemeral port, which may not be desirable.
+> 
+> This patch eliminates the need to specify the "insecure" export
+> option to allow NFS/RDMA clients access to an export.
+> 
+> BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=250
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> 
+> Hi Bruce-
+> 
+> I've done some simple testing. "insecure" still behaves correctly
+> for IP-based clients, and is now unnecessary for RDMA-based clients.
+> Would you consider this for nfsd-next?
 
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/mr.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Yes, looks god to me; applying for 3.16.
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index ad58985..9d932a2 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -73,6 +73,8 @@ static void reg_mr_callback(int status, void *context)
- 	struct mlx5_cache_ent *ent = &cache->ent[c];
- 	u8 key;
- 	unsigned long flags;
-+	struct mlx5_mr_table *table = &dev->mdev.priv.mr_table;
-+	int err;
- 
- 	spin_lock_irqsave(&ent->lock, flags);
- 	ent->pending--;
-@@ -107,6 +109,13 @@ static void reg_mr_callback(int status, void *context)
- 	ent->cur++;
- 	ent->size++;
- 	spin_unlock_irqrestore(&ent->lock, flags);
-+
-+	write_lock_irqsave(&table->lock, flags);
-+	err = radix_tree_insert(&table->tree, mlx5_base_mkey(mr->mmr.key),
-+				&mr->mmr);
-+	if (err)
-+		pr_err("Error inserting to mr tree. 0x%x\n", -err);
-+	write_unlock_irqrestore(&table->lock, flags);
- }
- 
- static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
--- 
-1.7.11.2
+--b.
 
+> 
+> 
+>  include/linux/sunrpc/svc_xprt.h          |    1 +
+>  net/sunrpc/svc_xprt.c                    |    2 +-
+>  net/sunrpc/svcsock.c                     |    9 +++++++++
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c |    7 +++++++
+>  4 files changed, 18 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/linux/sunrpc/svc_xprt.h b/include/linux/sunrpc/svc_xprt.h
+> index b05963f..0cec1b9 100644
+> --- a/include/linux/sunrpc/svc_xprt.h
+> +++ b/include/linux/sunrpc/svc_xprt.h
+> @@ -24,6 +24,7 @@ struct svc_xprt_ops {
+>  	void		(*xpo_release_rqst)(struct svc_rqst *);
+>  	void		(*xpo_detach)(struct svc_xprt *);
+>  	void		(*xpo_free)(struct svc_xprt *);
+> +	int		(*xpo_secure_port)(struct svc_rqst *);
+>  };
+>  
+>  struct svc_xprt_class {
+> diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
+> index 06c6ff0..614956f 100644
+> --- a/net/sunrpc/svc_xprt.c
+> +++ b/net/sunrpc/svc_xprt.c
+> @@ -793,7 +793,7 @@ int svc_recv(struct svc_rqst *rqstp, long timeout)
+>  
+>  	clear_bit(XPT_OLD, &xprt->xpt_flags);
+>  
+> -	rqstp->rq_secure = svc_port_is_privileged(svc_addr(rqstp));
+> +	rqstp->rq_secure = xprt->xpt_ops->xpo_secure_port(rqstp);
+>  	rqstp->rq_chandle.defer = svc_defer;
+>  
+>  	if (serv->sv_stats)
+> diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+> index 43bcb46..0cb34f5 100644
+> --- a/net/sunrpc/svcsock.c
+> +++ b/net/sunrpc/svcsock.c
+> @@ -400,6 +400,12 @@ static void svc_sock_setbufsize(struct socket *sock, unsigned int snd,
+>  	release_sock(sock->sk);
+>  #endif
+>  }
+> +
+> +static int svc_sock_secure_port(struct svc_rqst *rqstp)
+> +{
+> +	return svc_port_is_privileged(svc_addr(rqstp));
+> +}
+> +
+>  /*
+>   * INET callback when data has been received on the socket.
+>   */
+> @@ -678,6 +684,7 @@ static struct svc_xprt_ops svc_udp_ops = {
+>  	.xpo_prep_reply_hdr = svc_udp_prep_reply_hdr,
+>  	.xpo_has_wspace = svc_udp_has_wspace,
+>  	.xpo_accept = svc_udp_accept,
+> +	.xpo_secure_port = svc_sock_secure_port,
+>  };
+>  
+>  static struct svc_xprt_class svc_udp_class = {
+> @@ -1234,6 +1241,7 @@ static struct svc_xprt_ops svc_tcp_bc_ops = {
+>  	.xpo_detach = svc_bc_tcp_sock_detach,
+>  	.xpo_free = svc_bc_sock_free,
+>  	.xpo_prep_reply_hdr = svc_tcp_prep_reply_hdr,
+> +	.xpo_secure_port = svc_sock_secure_port,
+>  };
+>  
+>  static struct svc_xprt_class svc_tcp_bc_class = {
+> @@ -1272,6 +1280,7 @@ static struct svc_xprt_ops svc_tcp_ops = {
+>  	.xpo_prep_reply_hdr = svc_tcp_prep_reply_hdr,
+>  	.xpo_has_wspace = svc_tcp_has_wspace,
+>  	.xpo_accept = svc_tcp_accept,
+> +	.xpo_secure_port = svc_sock_secure_port,
+>  };
+>  
+>  static struct svc_xprt_class svc_tcp_class = {
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> index 25688fa..02db8d9 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -65,6 +65,7 @@ static void dto_tasklet_func(unsigned long data);
+>  static void svc_rdma_detach(struct svc_xprt *xprt);
+>  static void svc_rdma_free(struct svc_xprt *xprt);
+>  static int svc_rdma_has_wspace(struct svc_xprt *xprt);
+> +static int svc_rdma_secure_port(struct svc_rqst *);
+>  static void rq_cq_reap(struct svcxprt_rdma *xprt);
+>  static void sq_cq_reap(struct svcxprt_rdma *xprt);
+>  
+> @@ -82,6 +83,7 @@ static struct svc_xprt_ops svc_rdma_ops = {
+>  	.xpo_prep_reply_hdr = svc_rdma_prep_reply_hdr,
+>  	.xpo_has_wspace = svc_rdma_has_wspace,
+>  	.xpo_accept = svc_rdma_accept,
+> +	.xpo_secure_port = svc_rdma_secure_port,
+>  };
+>  
+>  struct svc_xprt_class svc_rdma_class = {
+> @@ -1207,6 +1209,11 @@ static int svc_rdma_has_wspace(struct svc_xprt *xprt)
+>  	return 1;
+>  }
+>  
+> +static int svc_rdma_secure_port(struct svc_rqst *rqstp)
+> +{
+> +	return 1;
+> +}
+> +
+>  /*
+>   * Attempt to register the kvec representing the RPC memory with the
+>   * device.
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
