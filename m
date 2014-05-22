@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 15/24] xprtrdma: Reduce the number of hardway buffer
-	allocations
-Date: Wed, 21 May 2014 20:56:25 -0400
-Message-ID: <20140522005625.27190.64480.stgit@manet.1015granger.net>
+Subject: [PATCH v4 16/24] xprtrdma: Ensure ia->ri_id->qp is not NULL when
+	reconnecting
+Date: Wed, 21 May 2014 20:56:33 -0400
+Message-ID: <20140522005633.27190.84563.stgit@manet.1015granger.net>
 References: <20140522004505.27190.58897.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,126 +13,92 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-While marshaling an RPC/RDMA request, the inline_{rsize,wsize}
-settings determine whether an inline request is used, or whether
-read or write chunks lists are built. The current default value of
-these settings is 1024. Any RPC request smaller than 1024 bytes is
-sent to the NFS server completely inline.
+Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> reports that after a
+disconnect, his HCA is failing to create a fresh QP, leaving
+ia_ri->ri_id->qp set to NULL. But xprtrdma still allows RPCs to
+wake up and post LOCAL_INV as they exit, causing an oops.
 
-rpcrdma_buffer_create() allocates and pre-registers a set of RPC
-buffers for each transport instance, also based on the inline rsize
-and wsize settings.
+rpcrdma_ep_connect() is allowing the wake-up by leaking the QP
+creation error code (-EPERM in this case) to the RPC client's
+generic layer. xprt_connect_status() does not recognize -EPERM, so
+it kills pending RPC tasks immediately rather than retrying the
+connect.
 
-RPC/RDMA requests and replies are built in these buffers. However,
-if an RPC/RDMA request is expected to be larger than 1024, a buffer
-has to be allocated and registered for that RPC, and deregistered
-and released when the RPC is complete. This is known has a
-"hardway allocation."
+Re-arrange the QP creation logic so that when it fails on reconnect,
+it leaves ->qp with the old QP rather than NULL.  If pending RPC
+tasks wake and exit, LOCAL_INV work requests will flush rather than
+oops.
 
-Since the introduction of NFSv4, the size of RPC requests has become
-larger, and hardway allocations are thus more frequent. Hardway
-allocations are significant overhead, and they waste the existing
-RPC buffers pre-allocated by rpcrdma_buffer_create().
-
-We'd like fewer hardway allocations.
-
-Increasing the size of the pre-registered buffers is the most direct
-way to do this. However, a blanket increase of the inline thresholds
-has interoperability consequences.
-
-On my 64-bit system, rpcrdma_buffer_create() requests roughly 7000
-bytes for each RPC request buffer, using kmalloc(). Due to internal
-fragmentation, this wastes nearly 1200 bytes because kmalloc()
-already returns an 8192-byte piece of memory for a 7000-byte
-allocation request, though the extra space remains unused.
-
-So let's round up the size of the pre-allocated buffers, and make
-use of the unused space in the kmalloc'd memory.
-
-This change reduces the amount of hardway allocated memory for an
-NFSv4 general connectathon run from 1322092 to 9472 bytes (99%).
+On initial connect, leaving ->qp == NULL is OK, since there are no
+pending RPCs that might use ->qp. But be sure not to try to destroy
+a NULL QP when rpcrdma_ep_connect() is retried.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/verbs.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   29 ++++++++++++++++++++---------
+ 1 files changed, 20 insertions(+), 9 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 1d08366..c80995a 100644
+index c80995a..54edf2a 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -50,6 +50,7 @@
- #include <linux/interrupt.h>
- #include <linux/pci.h>	/* for Tavor hack below */
- #include <linux/slab.h>
-+#include <asm/bitops.h>
- 
- #include "xprt_rdma.h"
- 
-@@ -1005,7 +1006,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 	struct rpcrdma_ia *ia, struct rpcrdma_create_data_internal *cdata)
- {
- 	char *p;
--	size_t len;
-+	size_t len, rlen, wlen;
- 	int i, rc;
- 	struct rpcrdma_mw *r;
- 
-@@ -1120,16 +1121,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 	 * Allocate/init the request/reply buffers. Doing this
- 	 * using kmalloc for now -- one for each buf.
- 	 */
-+	wlen = 1 << fls(cdata->inline_wsize + sizeof(struct rpcrdma_req));
-+	rlen = 1 << fls(cdata->inline_rsize + sizeof(struct rpcrdma_rep));
-+	dprintk("RPC:       %s: wlen = %zu, rlen = %zu\n",
-+		__func__, wlen, rlen);
-+
- 	for (i = 0; i < buf->rb_max_requests; i++) {
- 		struct rpcrdma_req *req;
- 		struct rpcrdma_rep *rep;
- 
--		len = cdata->inline_wsize + sizeof(struct rpcrdma_req);
--		/* RPC layer requests *double* size + 1K RPC_SLACK_SPACE! */
--		/* Typical ~2400b, so rounding up saves work later */
--		if (len < 4096)
--			len = 4096;
--		req = kmalloc(len, GFP_KERNEL);
-+		req = kmalloc(wlen, GFP_KERNEL);
- 		if (req == NULL) {
- 			dprintk("RPC:       %s: request buffer %d alloc"
- 				" failed\n", __func__, i);
-@@ -1141,16 +1142,16 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 		buf->rb_send_bufs[i]->rl_buffer = buf;
- 
- 		rc = rpcrdma_register_internal(ia, req->rl_base,
--				len - offsetof(struct rpcrdma_req, rl_base),
-+				wlen - offsetof(struct rpcrdma_req, rl_base),
- 				&buf->rb_send_bufs[i]->rl_handle,
- 				&buf->rb_send_bufs[i]->rl_iov);
- 		if (rc)
+@@ -867,6 +867,7 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	if (ep->rep_connected != 0) {
+ 		struct rpcrdma_xprt *xprt;
+ retry:
++		dprintk("RPC:       %s: reconnecting...\n", __func__);
+ 		rc = rpcrdma_ep_disconnect(ep, ia);
+ 		if (rc && rc != -ENOTCONN)
+ 			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+@@ -879,7 +880,7 @@ retry:
+ 		id = rpcrdma_create_id(xprt, ia,
+ 				(struct sockaddr *)&xprt->rx_data.addr);
+ 		if (IS_ERR(id)) {
+-			rc = PTR_ERR(id);
++			rc = -EHOSTUNREACH;
  			goto out;
+ 		}
+ 		/* TEMP TEMP TEMP - fail if new device:
+@@ -893,20 +894,30 @@ retry:
+ 			printk("RPC:       %s: can't reconnect on "
+ 				"different device!\n", __func__);
+ 			rdma_destroy_id(id);
+-			rc = -ENETDOWN;
++			rc = -ENETUNREACH;
+ 			goto out;
+ 		}
+ 		/* END TEMP */
++		rc = rdma_create_qp(id, ia->ri_pd, &ep->rep_attr);
++		if (rc) {
++			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
++				__func__, rc);
++			rdma_destroy_id(id);
++			rc = -ENETUNREACH;
++			goto out;
++		}
+ 		rdma_destroy_qp(ia->ri_id);
+ 		rdma_destroy_id(ia->ri_id);
+ 		ia->ri_id = id;
+-	}
+-
+-	rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
+-	if (rc) {
+-		dprintk("RPC:       %s: rdma_create_qp failed %i\n",
+-			__func__, rc);
+-		goto out;
++	} else {
++		dprintk("RPC:       %s: connecting...\n", __func__);
++		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
++		if (rc) {
++			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
++				__func__, rc);
++			/* do not update ep->rep_connected */
++			return -ENETUNREACH;
++		}
+ 	}
  
--		buf->rb_send_bufs[i]->rl_size = len-sizeof(struct rpcrdma_req);
-+		buf->rb_send_bufs[i]->rl_size = wlen -
-+						sizeof(struct rpcrdma_req);
- 
--		len = cdata->inline_rsize + sizeof(struct rpcrdma_rep);
--		rep = kmalloc(len, GFP_KERNEL);
-+		rep = kmalloc(rlen, GFP_KERNEL);
- 		if (rep == NULL) {
- 			dprintk("RPC:       %s: reply buffer %d alloc failed\n",
- 				__func__, i);
-@@ -1162,7 +1163,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
- 		buf->rb_recv_bufs[i]->rr_buffer = buf;
- 
- 		rc = rpcrdma_register_internal(ia, rep->rr_base,
--				len - offsetof(struct rpcrdma_rep, rr_base),
-+				rlen - offsetof(struct rpcrdma_rep, rr_base),
- 				&buf->rb_recv_bufs[i]->rr_handle,
- 				&buf->rb_recv_bufs[i]->rr_iov);
- 		if (rc)
+ /* XXX Tavor device performs badly with 2K MTU! */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
