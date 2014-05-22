@@ -1,96 +1,44 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/5] IB/mlx5: Fix error handling in reg_umr
-Date: Thu, 22 May 2014 14:50:08 +0300
-Message-ID: <1400759412-13205-2-git-send-email-haggaie@mellanox.com>
-References: <1400759412-13205-1-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH for-next 0/5] mlx5 fixes for 3.16
+Date: Thu, 22 May 2014 14:50:07 +0300
+Message-ID: <1400759412-13205-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400759412-13205-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If ib_post_send fails when posting the UMR work request in reg_umr, the code
-doesn't release the temporary pas buffer allocated, and doesn't dma_unmap it.
+Hi, 
 
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/mr.c | 31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+This patchset contains fixes and minor improvements to the mlx5 driver.
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 81392b2..ad58985 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -730,7 +730,7 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	struct mlx5_ib_mr *mr;
- 	struct ib_sge sg;
- 	int size = sizeof(u64) * npages;
--	int err;
-+	int err = 0;
- 	int i;
- 
- 	for (i = 0; i < 1; i++) {
-@@ -751,7 +751,7 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	mr->pas = kmalloc(size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
- 	if (!mr->pas) {
- 		err = -ENOMEM;
--		goto error;
-+		goto free_mr;
- 	}
- 
- 	mlx5_ib_populate_pas(dev, umem, page_shift,
-@@ -760,9 +760,8 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	mr->dma = dma_map_single(ddev, mr_align(mr->pas, MLX5_UMR_ALIGN), size,
- 				 DMA_TO_DEVICE);
- 	if (dma_mapping_error(ddev, mr->dma)) {
--		kfree(mr->pas);
- 		err = -ENOMEM;
--		goto error;
-+		goto free_pas;
- 	}
- 
- 	memset(&wr, 0, sizeof(wr));
-@@ -778,26 +777,28 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	err = ib_post_send(umrc->qp, &wr, &bad);
- 	if (err) {
- 		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
--		up(&umrc->sem);
--		goto error;
-+		goto unmap_dma;
- 	}
- 	wait_for_completion(&mr->done);
--	up(&umrc->sem);
-+	if (mr->status != IB_WC_SUCCESS) {
-+		mlx5_ib_warn(dev, "reg umr failed\n");
-+		err = -EFAULT;
-+	}
- 
-+unmap_dma:
-+	up(&umrc->sem);
- 	dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
-+
-+free_pas:
- 	kfree(mr->pas);
- 
--	if (mr->status != IB_WC_SUCCESS) {
--		mlx5_ib_warn(dev, "reg umr failed\n");
--		err = -EFAULT;
--		goto error;
-+free_mr:
-+	if (err) {
-+		free_cached_mr(dev, mr);
-+		return ERR_PTR(err);
- 	}
- 
- 	return mr;
--
--error:
--	free_cached_mr(dev, mr);
--	return ERR_PTR(err);
- }
- 
- static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+The first patch fixes a memory leak in an error flow in the reg_umr
+function. The second adds newly created memory regions to the MR radix
+tree when they are created through reg_umr. Patches 3-4 fill some
+fields that were left out in MRs and QPs. Patch 5 refactors the UMR
+context out of the mlx5_ib_mr struct.
+
+Best regards,
+Haggai
+
+Haggai Eran (4):
+  IB/mlx5: Fix error handling in reg_umr
+  IB/mlx5: Add MR to radix tree in reg_mr_callback
+  mlx5: Store MR attributes in mlx5_mr_core during creation and after
+    UMR
+  IB/mlx5: Set QP offsets and parameters for user QPs and not just for
+    kernel QPs
+
+Shachar Raindel (1):
+  IB/mlx5: Refactor UMR to have its own context struct
+
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         | 13 ++++-
+ drivers/infiniband/hw/mlx5/mr.c              | 76 ++++++++++++++++------------
+ drivers/infiniband/hw/mlx5/qp.c              |  4 ++
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c |  4 ++
+ include/linux/mlx5/driver.h                  |  1 -
+ 5 files changed, 64 insertions(+), 34 deletions(-)
+
 -- 
 1.7.11.2
 
