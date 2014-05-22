@@ -1,71 +1,80 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs V4 3/5] Use neighbour lookup for RoCE UD QPs
- Eth L2 resolution
-Date: Wed, 21 May 2014 14:31:07 -0600
-Message-ID: <20140521203107.GD26909@obsidianresearch.com>
-References: <1400405929-14313-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
- <1400405929-14313-4-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 00/24] NFS/RDMA client patches for next merge
+Date: Wed, 21 May 2014 20:54:15 -0400
+Message-ID: <20140522004505.27190.58897.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1400405929-14313-4-git-send-email-ogerlitz-lZu6o6FoHf8DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 18, 2014 at 12:38:47PM +0300, Or Gerlitz wrote:
->  struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
->  {
-> -	struct ibv_ah *ah = pd->context->ops.create_ah(pd, attr);
-> +	int err;
-> +	struct ibv_ah *ah = NULL;
-> +#ifndef NRESOLVE_NEIGH
-> +	struct ibv_port_attr port_attr;
-> +	int dst_family;
-> +	int src_family;
-> +	int oif;
-> +	struct get_neigh_handler neigh_handler;
-> +	union ibv_gid sgid;
-> +	struct ibv_ah_attr_ex attr_ex;
-> +	int ether_len;
-> +	struct verbs_context *vctx = verbs_get_ctx_op(pd->context,
-> +						      create_ah_ex);
-> +	struct peer_address src;
-> +	struct peer_address dst;
-> +
-> +	if (!vctx) {
-> +#endif
-> +		ah = pd->context->ops.create_ah(pd, attr);
-> +#ifndef NRESOLVE_NEIGH
-> +		goto return_ah;
-> +	}
-> +
-> +	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
+Updates since v3:
 
-It feels like a regression to force this overhead. Many HCAs have no
-possibility to support anything but IB, or Ethernet and don't need
-this.
+ - Rebased on v3.15-rc6
+ - Patch description updated in "xprtrdma: Remove Tavor ..."
+ - Comment changed in "xprtrdma: Remove BOUNCEBUFFERS ..."
+ - Shirley's ACL patch applied
+ - Six patches added to improve speed and robustness of NFS/RDMA
+   reconnect
 
-This whole arrangement seems strange. create_ah_ex should be a full
-fledged user callable function, not a buried driver entry point.
-It is also very unusual for verbs to have all this generic code in
-a driver wrapper.
+More work is needed to improve reconnect behavior. I have a patch
+(not included here) to re-marshal pending RPCs after a disconnect.
+It is a definite improvement, but some details still need to be
+addressed.
 
-I suspect the answer here is to have the driver call into helper
-functions from verbs to do this addressing
-work. 'get_ethernet_l2_from_ah' or something.
+Please review and test. Pull from the "nfs-rdma-client" branch of
+my git repo:
 
-If you do that then we don't even need create_ah_ex and query_port_ex
-- those function seem to only be required to support this wrapper
-technique.
+  git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-So please rethink how this flows.. Maybe wrapping is not the best
-choice??
+---
 
-Jason
+Allen Andrews (1):
+      nfs-rdma: Fix for FMR leaks
+
+Chuck Lever (21):
+      xprtrdma: Disconnect on registration failure
+      xprtrdma: Remove BUG_ON() call sites
+      xprtrdma: Avoid deadlock when credit window is reset
+      SUNRPC: Move congestion window constants to header file
+      xprtrdma: Reset connection timeout after successful reconnect
+      xprtrdma: Use macros for reconnection timeout constants
+      xprtrdma: Remove Tavor MTU setting
+      xprtrdma: Ensure ia->ri_id->qp is not NULL when reconnecting
+      xprtrdma: Reduce the number of hardway buffer allocations
+      xprtrdma: Limit work done by completion handler
+      xprtrmda: Reduce calls to ib_poll_cq() in completion handlers
+      xprtrmda: Reduce lock contention in completion handlers
+      xprtrdma: Split the completion queue
+      xprtrdma: Make rpcrdma_ep_destroy() return void
+      xprtrdma: Simplify rpcrdma_deregister_external() synopsis
+      xprtrdma: mount reports "Invalid mount option" if memreg mode not supported
+      xprtrdma: Fall back to MTHCAFMR when FRMR is not supported
+      xprtrdma: Remove REGISTER memory registration mode
+      xprtrdma: Remove MEMWINDOWS registration modes
+      xprtrdma: Remove BOUNCEBUFFERS memory registration mode
+      xprtrdma: RPC/RDMA must invoke xprt_wake_pending_tasks() in process context
+
+Shirley Ma (1):
+      xprtrdma: Allocate missing pagelist
+
+Steve Wise (1):
+      xprtrdma: mind the device's max fast register page list depth
+
+
+ include/linux/sunrpc/xprt.h     |    6 
+ net/sunrpc/xprt.c               |   28 -
+ net/sunrpc/xprtrdma/rpc_rdma.c  |  117 +++---
+ net/sunrpc/xprtrdma/transport.c |   90 ++---
+ net/sunrpc/xprtrdma/verbs.c     |  753 ++++++++++++++++-----------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   17 +
+ 6 files changed, 409 insertions(+), 602 deletions(-)
+
+-- 
+Chuck Lever
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
