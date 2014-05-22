@@ -1,158 +1,40 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 5/5] IB/mlx5: Refactor UMR to have its own context struct
-Date: Thu, 22 May 2014 14:50:12 +0300
-Message-ID: <1400759412-13205-6-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH for-next 4/5] IB/mlx5: Set QP offsets and parameters for user QPs and not just for kernel QPs
+Date: Thu, 22 May 2014 14:50:11 +0300
+Message-ID: <1400759412-13205-5-git-send-email-haggaie@mellanox.com>
 References: <1400759412-13205-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1400759412-13205-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+For user QPs, the creation process does not currently initialize the fields:
+* qp->rq.offset
+* qp->sq.offset
+* qp->sq.wqe_shift
 
-Instead of having the UMR context part of each memory region,
-allocate a struct on the stack. This allows queuing multiple UMRs that access
-the same memory region.
-
-Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 13 ++++++++++--
- drivers/infiniband/hw/mlx5/mr.c      | 40 ++++++++++++++++++------------------
- 2 files changed, 31 insertions(+), 22 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 5054158..f2ccf1a 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -264,8 +264,6 @@ struct mlx5_ib_mr {
- 	__be64			*pas;
- 	dma_addr_t		dma;
- 	int			npages;
--	struct completion	done;
--	enum ib_wc_status	status;
- 	struct mlx5_ib_dev     *dev;
- 	struct mlx5_create_mkey_mbox_out out;
- 	struct mlx5_core_sig_ctx    *sig;
-@@ -277,6 +275,17 @@ struct mlx5_ib_fast_reg_page_list {
- 	dma_addr_t			map;
- };
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index a89f704..d13ddf1 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -574,6 +574,10 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	uar_index = uuarn_to_uar_index(&context->uuari, uuarn);
+ 	mlx5_ib_dbg(dev, "uuarn 0x%x, uar_index 0x%x\n", uuarn, uar_index);
  
-+struct mlx5_ib_umr_context {
-+	enum ib_wc_status	status;
-+	struct completion	done;
-+};
++	qp->rq.offset = 0;
++	qp->sq.wqe_shift = ilog2(MLX5_SEND_WQE_BB);
++	qp->sq.offset = qp->rq.wqe_cnt << qp->rq.wqe_shift;
 +
-+static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
-+{
-+	context->status = -1;
-+	init_completion(&context->done);
-+}
-+
- struct umr_common {
- 	struct ib_pd	*pd;
- 	struct ib_cq	*cq;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index f472ab2..14ee4fd 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -708,7 +708,7 @@ static void prep_umr_unreg_wqe(struct mlx5_ib_dev *dev,
- 
- void mlx5_umr_cq_handler(struct ib_cq *cq, void *cq_context)
- {
--	struct mlx5_ib_mr *mr;
-+	struct mlx5_ib_umr_context *context;
- 	struct ib_wc wc;
- 	int err;
- 
-@@ -721,9 +721,9 @@ void mlx5_umr_cq_handler(struct ib_cq *cq, void *cq_context)
- 		if (err == 0)
- 			break;
- 
--		mr = (struct mlx5_ib_mr *)(unsigned long)wc.wr_id;
--		mr->status = wc.status;
--		complete(&mr->done);
-+		context = (struct mlx5_ib_umr_context *)wc.wr_id;
-+		context->status = wc.status;
-+		complete(&context->done);
- 	}
- 	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
- }
-@@ -735,6 +735,7 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
- 	struct device *ddev = dev->ib_dev.dma_device;
- 	struct umr_common *umrc = &dev->umrc;
-+	struct mlx5_ib_umr_context umr_context;
- 	struct ib_send_wr wr, *bad;
- 	struct mlx5_ib_mr *mr;
- 	struct ib_sge sg;
-@@ -774,24 +775,21 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	}
- 
- 	memset(&wr, 0, sizeof(wr));
--	wr.wr_id = (u64)(unsigned long)mr;
-+	wr.wr_id = (u64)(unsigned long)&umr_context;
- 	prep_umr_reg_wqe(pd, &wr, &sg, mr->dma, npages, mr->mmr.key, page_shift, virt_addr, len, access_flags);
- 
--	/* We serialize polls so one process does not kidnap another's
--	 * completion. This is not a problem since wr is completed in
--	 * around 1 usec
--	 */
-+	mlx5_ib_init_umr_context(&umr_context);
- 	down(&umrc->sem);
--	init_completion(&mr->done);
- 	err = ib_post_send(umrc->qp, &wr, &bad);
- 	if (err) {
- 		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
- 		goto unmap_dma;
--	}
--	wait_for_completion(&mr->done);
--	if (mr->status != IB_WC_SUCCESS) {
--		mlx5_ib_warn(dev, "reg umr failed\n");
--		err = -EFAULT;
-+	} else {
-+		wait_for_completion(&umr_context.done);
-+		if (umr_context.status != IB_WC_SUCCESS) {
-+			mlx5_ib_warn(dev, "reg umr failed\n");
-+			err = -EFAULT;
-+		}
- 	}
- 
- 	mr->mmr.iova = virt_addr;
-@@ -940,24 +938,26 @@ error:
- static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
- 	struct umr_common *umrc = &dev->umrc;
-+	struct mlx5_ib_umr_context umr_context;
- 	struct ib_send_wr wr, *bad;
- 	int err;
- 
- 	memset(&wr, 0, sizeof(wr));
--	wr.wr_id = (u64)(unsigned long)mr;
-+	wr.wr_id = (u64)(unsigned long)&umr_context;
- 	prep_umr_unreg_wqe(dev, &wr, mr->mmr.key);
- 
-+	mlx5_ib_init_umr_context(&umr_context);
- 	down(&umrc->sem);
--	init_completion(&mr->done);
- 	err = ib_post_send(umrc->qp, &wr, &bad);
- 	if (err) {
- 		up(&umrc->sem);
- 		mlx5_ib_dbg(dev, "err %d\n", err);
- 		goto error;
-+	} else {
-+		wait_for_completion(&umr_context.done);
-+		up(&umrc->sem);
- 	}
--	wait_for_completion(&mr->done);
--	up(&umrc->sem);
--	if (mr->status != IB_WC_SUCCESS) {
-+	if (umr_context.status != IB_WC_SUCCESS) {
- 		mlx5_ib_warn(dev, "unreg umr failed\n");
- 		err = -EFAULT;
- 		goto error;
+ 	err = set_user_buf_size(dev, qp, &ucmd);
+ 	if (err)
+ 		goto err_uuar;
 -- 
 1.7.11.2
 
