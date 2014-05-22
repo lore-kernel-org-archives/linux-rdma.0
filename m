@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 17/24] xprtrdma: Remove Tavor MTU setting
-Date: Wed, 21 May 2014 20:56:42 -0400
-Message-ID: <20140522005642.27190.68081.stgit@manet.1015granger.net>
+Subject: [PATCH v4 18/24] xprtrdma: Allocate missing pagelist
+Date: Wed, 21 May 2014 20:56:50 -0400
+Message-ID: <20140522005650.27190.241.stgit@manet.1015granger.net>
 References: <20140522004505.27190.58897.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,53 +12,38 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.  Remove HCA-specific clutter in xprtrdma, which is
-supposed to be device-independent.
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> observes:
-> Note that there is OpenSM option (enable_quirks) to return 1K MTU
-> in SA PathRecord responses for Tavor so that can be used for this.
-> The default setting for enable_quirks is FALSE so that would need
-> changing.
+GETACL relies on transport layer to alloc memory for reply buffer.
+However xprtrdma assumes that the reply buffer (pagelist) has been
+pre-allocated in upper layer. This problem was reported by IOL OFA lab
+test on PPC.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Edward Mossman <emossman-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/verbs.c |   14 --------------
- 1 files changed, 0 insertions(+), 14 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 54edf2a..515dfc1 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -48,7 +48,6 @@
-  */
- 
- #include <linux/interrupt.h>
--#include <linux/pci.h>	/* for Tavor hack below */
- #include <linux/slab.h>
- #include <asm/bitops.h>
- 
-@@ -920,19 +919,6 @@ retry:
- 		}
- 	}
- 
--/* XXX Tavor device performs badly with 2K MTU! */
--if (strnicmp(ia->ri_id->device->dma_device->bus->name, "pci", 3) == 0) {
--	struct pci_dev *pcid = to_pci_dev(ia->ri_id->device->dma_device);
--	if (pcid->device == PCI_DEVICE_ID_MELLANOX_TAVOR &&
--	    (pcid->vendor == PCI_VENDOR_ID_MELLANOX ||
--	     pcid->vendor == PCI_VENDOR_ID_TOPSPIN)) {
--		struct ib_qp_attr attr = {
--			.path_mtu = IB_MTU_1024
--		};
--		rc = ib_modify_qp(ia->ri_id->qp, &attr, IB_QP_PATH_MTU);
--	}
--}
--
- 	ep->rep_connected = 0;
- 
- 	rc = rdma_connect(ia->ri_id, &ep->rep_remote_cma);
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 436d229..dc4a826 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -99,6 +99,12 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+ 	page_base = xdrbuf->page_base & ~PAGE_MASK;
+ 	p = 0;
+ 	while (len && n < nsegs) {
++		if (!ppages[p]) {
++			/* alloc the pagelist for receiving buffer */
++			ppages[p] = alloc_page(GFP_ATOMIC);
++			if (!ppages[p])
++				return 0;
++		}
+ 		seg[n].mr_page = ppages[p];
+ 		seg[n].mr_offset = (void *)(unsigned long) page_base;
+ 		seg[n].mr_len = min_t(u32, PAGE_SIZE - page_base, len);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
