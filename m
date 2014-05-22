@@ -1,44 +1,38 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 0/4] iSER initiator updates for 3.16
-Date: Thu, 22 May 2014 11:00:17 +0300
-Message-ID: <1400745621-9978-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+Subject: [PATCH for-next 4/4] IB/iser: Bump version to 1.4
+Date: Thu, 22 May 2014 11:00:21 +0300
+Message-ID: <1400745621-9978-5-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
+References: <1400745621-9978-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1400745621-9978-1-git-send-email-ogerlitz-lZu6o6FoHf8DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patchset address several resiliency issues in the area of
-connection establishment and teardown (especially in error flows).
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Patch #1 introduces a re-design of iSER connection management done
-by Ariel and Sagi. It comes to solve few error-flow hangs/oops's 
-we've seen in regression testing under various failure schemes, and
-make things simpler.
-
-Patch #2 Addresses a racy state transition.
-
-Following that comes a patch that fixes some prints and a bump to the 
-driver version.
-
-Or.
-
-Ariel Nahum (2):
-  IB/iser: Simplify connection management
-  IB/iser: Fix a possible race in iser connection states transition
-
-Or Gerlitz (1):
-  IB/iser: Bump version to 1.4
-
-Roi Dayan (1):
-  IB/iser: Add missing newlines to logging messages
-
- drivers/infiniband/ulp/iser/iscsi_iser.c |  105 +++++++++++++++++------------
- drivers/infiniband/ulp/iser/iscsi_iser.h |   10 ++-
- drivers/infiniband/ulp/iser/iser_verbs.c |   89 +++++++++++--------------
- 3 files changed, 106 insertions(+), 98 deletions(-)
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index d309620..97cd385 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -69,7 +69,7 @@
+ 
+ #define DRV_NAME	"iser"
+ #define PFX		DRV_NAME ": "
+-#define DRV_VER		"1.3"
++#define DRV_VER		"1.4"
+ 
+ #define iser_dbg(fmt, arg...)				\
+ 	do {						\
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
