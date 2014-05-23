@@ -1,23 +1,17 @@
-From: Brian Shields <ayo-G/BjrXcqnxaxBppYLAEN5wC/G2K4zDHf@public.gmane.org>
-Subject: From Brian
-Date: Fri, 23 May 2014 02:36:05 -0500 (CDT)
-Message-ID: <1182663609.28123331.1400830565745.JavaMail.root@mypowersystem.com>
-Reply-To: Brian Shields <shieldsb55-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Linux msdos" <achizitii@elcen.ro>
+Subject: Get designer watches for less
+Date: Fri, 23 May 2014 20:40:27 +0200
+Message-ID: <EEEAFB73.08830623@elcen.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-msdos-owner@vger.kernel.org>
+Sender: linux-msdos-owner@vger.kernel.org
+To: linux-msdos@vger.kernel.org, linux-net@vger.kernel.org, linux-newbie-owner@vger.kernel.org, linux-newbie@vger.kernel.org, linux-next@vger.kernel.org, linux-nfs@vger.kernel.org, linux-numa@vger.kernel.org, linux-omap@vger.kernel.org, linux-parisc@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-ppp-owner@vger.kernel.org, linux-ppp@vger.kernel.org, linux-raid-owner@vger.kernel.org, linux-raid@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-serial@vger.kernel.org, linux-sh@vger.kernel.org, linux-smp-owner@vger.kernel.org, linux-smp@vger.kernel.org, linux-sound-owner@vger.kernel.org, linux-sound@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+I now know where to get my trusted branded goods 
+
+http://smilingsoulcoaching.com/llltdud.php
 
 
-I apologize for using this medium to reach out to you however, I am compelled by the urgency of my situation to contact you. I am a US Army Officer currently on mission in Libya. 
-I  would need your assistance to invest the sum of US$ 2.5M for me in your region. If you can offer me some guidelines and serve as my proxy investor in investing the funds, I will surely compensate you adequately. Kindly provide me with your direct phone number in your response to my private email so that we can discuss more in details. My private email is: shieldsb55-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Best regards
-Brian Shields.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
