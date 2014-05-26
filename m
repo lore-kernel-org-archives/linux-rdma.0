@@ -1,38 +1,49 @@
-From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH v1 for-next 0/3] IB: Use GFP_NOIO calls in IPoIB connected
- mode TX path
-Date: Mon, 26 May 2014 12:52:41 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1405261251520.12047@pobox.suse.cz>
-References: <1399810512-30774-1-git-send-email-ogerlitz@mellanox.com> <alpine.LNX.2.00.1405131338030.16459@pobox.suse.cz> <CAJZOPZJVxF6A-3s16feqoWCb5gOLTjyUmB3F+st1+1QWp+bJnQ@mail.gmail.com>
- <CAL1RGDUoEFF=fR-e-fc1v0yHp8sxaidBnO_2iiAFThgZNvCcfQ@mail.gmail.com>
+From: HUSAM AL SAYED <Husamalsayed-NQqDYL4TTn4@public.gmane.org>
+Subject: Your Urgent reply.
+Date: Mon, 26 May 2014 22:00:48 +0400
+Message-ID: <CAKFyHyqE-jAV0G8GqYW7H_3cUYv2iXVQm5a6-m1VNZWRhKVXAg__46197.7632636719$1401127305$gmane$org@mail.gmail.com>
+Reply-To: Husamalsayed-NQqDYL4TTn4@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUoEFF=fR-e-fc1v0yHp8sxaidBnO_2iiAFThgZNvCcfQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 19 May 2014, Roland Dreier wrote:
+Dear Friend,
 
-> > Roland, we're soon on -rc6 and there's no reason for this to miss
-> > 3.16, could you please comment whether you want it to go through your
-> > tree or net-next?
-> 
-> I will pick it up.
 
-Thanks Roland.
+Compliments of the day.This mail May be a surprise to you Because you
+did not give me the permission to do so and Neither do you know me but
+before I tell you about myself I want you to please forgive me for
+sending this mail without your permission I have been in search of
+someone with this last name so when I saw you online, I was pushed to
+contact you and see how best we can assist each other. I am Mr. Husam
+Al Sayed, a Bank Officer here in U.A.E. I believe it is the wish of
+God for me to come across you now. I am having an important business
+discussion I wish to share with you which I  believe will interest
+you, because it is in connection with your last name and you are going
+to benefit from it.
 
-Sorry for being a bit persistent, but another week has passed, -rc7 is out 
-and I still don't see it in your tree. Could you please clarify what is 
-the destiny of this patchset?
+One Late peter who was among the death victims in the May 27 2006
+Earthquake disaster in Java, Indonesia that killed over 5,000 people.
+He was in Indonesia on a business trip and that was how he met his
+end. My bank management is yet to know about his death, I knew about
+it because he was my friend and I am his account officer.he did not
+mention any Next of Kin/ Heir when the account was opened, and he was
+not married and no children. Last week my Bank Management requested
+that he should give instructions on what to do about his funds,I know
+this will happen and that is why I have been looking for a means to
+handle the situation,
 
-Thanks,
+If you are interested send me your private Email Address so that i can
+send you more details of the transaction,
+Thanks for your understanding
 
--- 
-Jiri Kosina
-SUSE Labs
+I am waiting for your reply.
+
+Best regards,
+
+Mr. Husam Al Sayed
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
