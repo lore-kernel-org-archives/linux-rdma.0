@@ -1,182 +1,426 @@
-From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [BUG]GPF in  skb_release_data+0xa8/0x100
-Date: Tue, 27 May 2014 12:09:55 +0200
-Message-ID: <53846473.2040004@gmail.com>
+From: "Rupert Dance" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.12 is available
+Date: Tue, 27 May 2014 15:13:21 +0300
+Message-ID: <005601cf79a5$0e713a60$2b53af20$@soft-forge.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0057_01CF79BE.33BF83D0"
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Language: en-us
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+This is a multipart message in MIME format.
 
-We hit GPF in skb_release_data+0xa8/0x100 below in our production:
+------=_NextPart_000_0057_01CF79BE.33BF83D0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-(gdb) list *skb_release_data+0xa8
-0xffffffff81528118 is in skb_release_data (net/core/skbuff.c:399).
-394			 */
-395			if (skb_shinfo(skb)->tx_flags & SKBTX_DEV_ZEROCOPY) {
-396				struct ubuf_info *uarg;
-397	
-398				uarg = skb_shinfo(skb)->destructor_arg;
-399				if (uarg->callback)
-400					uarg->callback(uarg);
-401			}
-402	
-403			if (skb_has_frag_list(skb))
-(gdb)
+OFED-3.12 is available
 
-IMHO, something corrupted destructor_arg probably. But I have no idea,
-what could the reason, anyone could share some input?
+The tarball is available at:
+https://www.openfabrics.org/downloads/OFED/ofed-3.12/OFED-3.12.tgz 
 
-Note: I also cc rdma mail list as it's ipoib/srp related.
+To get BUILD_ID run ofed_info
 
-Thanks,
+Please report any issues in Bugzilla http://bugs.openfabrics.org/bugzilla/
+for OFED 3.12
 
-Jack
+OFED-3.12 Main Changes from OFED 3.5-2
+----------------------------------------------------------------------------
+--- 
+1. Based on linux-3.12 kernel
 
-May 22 20:11:40 pserver204 kernel: [8594022.123439] AMD-Vi: Event logged
-[IO_PAGE_FAULT device=03:00.0 domain=0x0012 address=0x0000000020d87f40
-flags=0x0070]
-May 22 20:11:40 pserver204 kernel: [8594022.183821] scsi host9: Null
-scmnd for RSP w/tag 0000000000000004
-May 22 20:11:40 pserver204 kernel: [8594022.261820] general protection
-fault: 0000 [#1] SMP
-May 22 20:11:40 pserver204 kernel: [8594022.261939] CPU 0
-May 22 20:11:40 pserver204 kernel: [8594022.261949] Modules linked in:
-nf_conntrack_netlink nfnetlink xt_hashlimit fuse cls_u32 sch_sfq sch_htb
-ib_ipoib bridge stp llc nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_filter
-ip6_tables raid1 md_mod dm_round_robin sd_mod crc_t10dif ib_srp
-scsi_transport_srp scsi_tgt xt_ETHOIP6(O) x_tables vhost_net(O) macvtap
-macvlan tun(O) nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 rdma_ucm
-rdma_cm iw_cm ib_addr ib_cm ib_sa ib_uverbs ib_umad ib_qib mlx4_ib
-ib_mthca ib_mad ib_core sg dm_multipath scsi_dh kvm_amd kvm powernow_k8
-mperf crc32c_intel tpm_tis microcode tpm tpm_bios psmouse serio_raw
-evdev amd64_edac_mod usb_storage edac_core edac_mce_amd i2c_piix4 ahci
-libahci libata scsi_mod button processor thermal_sys mlx4_core [last
-unloaded: ib_ipoib]
-May 22 20:11:40 pserver204 kernel: [8594022.263491]
-May 22 20:11:40 pserver204 kernel: [8594022.263587] Pid: 0, comm:
-swapper/0 Tainted: G           O 3.4.71-3-pserver #1 Supermicro H8QG6/H8QG6
-May 22 20:11:40 pserver204 kernel: [8594022.265532] RIP:
-0010:[<ffffffff8153df98>]  [<ffffffff8153df98>] skb_release_data+0xa8/0x100
-May 22 20:11:40 pserver204 kernel: [8594022.265738] RSP:
-0018:ffff880807c03bc0  EFLAGS: 00010282
-May 22 20:11:40 pserver204 kernel: [8594022.265846] RAX:
-0000000000000000 RBX: ffff882f5c657800 RCX: ffff88025b056000
-May 22 20:11:40 pserver204 kernel: [8594022.266042] RDX:
-ffff88025b057ec0 RSI: 0000000000000064 RDI: cf39635277a7dad0
-May 22 20:11:40 pserver204 kernel: [8594022.266236] RBP:
-ffff882f5c657800 R08: ffff8801f08803c0 R09: ffff880807c03b64
-May 22 20:11:40 pserver204 kernel: [8594022.266430] R10:
-0000000000000004 R11: 0000000000000000 R12: ffffffff81aab2f0
-May 22 20:11:40 pserver204 kernel: [8594022.266625] R13:
-ffffffff81a76e80 R14: 0000000000000000 R15: ffff882f5c657828
-May 22 20:11:40 pserver204 kernel: [8594022.266826] FS:
-00007f725d992700(0000) GS:ffff880807c00000(0000) knlGS:0000000000000000
-May 22 20:11:40 pserver204 kernel: [8594022.267029] CS:  0010 DS: 0000
-ES: 0000 CR0: 000000008005003b
-May 22 20:11:40 pserver204 kernel: [8594022.267138] CR2:
-ffffffffff600400 CR3: 0000002803d4a000 CR4: 00000000000407f0
-May 22 20:11:40 pserver204 kernel: [8594022.267333] DR0:
-0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-May 22 20:11:40 pserver204 kernel: [8594022.267532] DR3:
-0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-May 22 20:11:40 pserver204 kernel: [8594022.267739] Process swapper/0
-(pid: 0, threadinfo ffffffff81a00000, task ffffffff81a13020)
-May 22 20:11:40 pserver204 kernel: [8594022.267946] Stack:
-May 22 20:11:40 pserver204 kernel: [8594022.268047]  0000000000000011
-ffff882f5c657800 0000000000000011 ffffffff8153e001
-May 22 20:11:40 pserver204 kernel: [8594022.268254]  ffff882f5c657800
-ffffffff815f33d2 ffffffff81aab2f0 ffff880c7cc20000
-May 22 20:11:40 pserver204 kernel: [8594022.268469]  0000000000000000
-ffffffff8157443f ffffffff815db3e0 ffff882f5c657800
-May 22 20:11:40 pserver204 kernel: [8594022.268679] Call Trace:
-May 22 20:11:40 pserver204 kernel: [8594022.268778]  <IRQ>
-May 22 20:11:40 pserver204 kernel: [8594022.269023]
-[<ffffffff8153e001>] ? __kfree_skb+0x11/0x90
-May 22 20:11:40 pserver204 kernel: [8594022.269136]
-[<ffffffff815f33d2>] ? __udp6_lib_rcv+0x5c2/0x6b0
-May 22 20:11:40 pserver204 kernel: [8594022.269249]
-[<ffffffff8157443f>] ? nf_hook_slow+0x6f/0x150
-May 22 20:11:40 pserver204 kernel: [8594022.269362]
-[<ffffffff815db3e0>] ? ipv6_rcv+0x450/0x450
-May 22 20:11:40 pserver204 kernel: [8594022.269476]
-[<ffffffff815db542>] ? ip6_input_finish+0x162/0x380
-May 22 20:11:40 pserver204 kernel: [8594022.269592]
-[<ffffffff8154a784>] ? __netif_receive_skb+0x214/0x5f0
-May 22 20:11:40 pserver204 kernel: [8594022.269710]
-[<ffffffff81009105>] ? read_tsc+0x5/0x20
-May 22 20:11:40 pserver204 kernel: [8594022.269821]
-[<ffffffff8154ad74>] ? netif_receive_skb+0x24/0x80
-May 22 20:11:40 pserver204 kernel: [8594022.269937]
-[<ffffffffa033c87b>] ? ipoib_cm_handle_rx_wc+0x1ab/0x6a0 [ib_ipoib]
-May 22 20:11:40 pserver204 kernel: [8594022.270148]
-[<ffffffffa01e1c5f>] ? mlx4_ib_free_srq_wqe+0x1f/0x60 [mlx4_ib]
-May 22 20:11:40 pserver204 kernel: [8594022.270353]
-[<ffffffffa01d875c>] ? mlx4_ib_poll_cq+0x9c/0x7d0 [mlx4_ib]
-May 22 20:11:40 pserver204 kernel: [8594022.270472]
-[<ffffffff8103f139>] ? raise_softirq_irqoff+0x9/0x50
-May 22 20:11:40 pserver204 kernel: [8594022.270590]
-[<ffffffffa0334e5d>] ? ipoib_poll+0xed/0x1b0 [ib_ipoib]
-May 22 20:11:40 pserver204 kernel: [8594022.270718]
-[<ffffffffa00041cb>] ? mlx4_assign_eq+0x33b/0xc00 [mlx4_core]
-May 22 20:11:40 pserver204 kernel: [8594022.270834]
-[<ffffffff8154b5c4>] ? net_rx_action+0xf4/0x240
-May 22 20:11:40 pserver204 kernel: [8594022.270954]
-[<ffffffffa0062265>] ? acpi_processor_suspend+0x3f1/0x4e2 [processor]
-May 22 20:11:40 pserver204 kernel: [8594022.271158]
-[<ffffffff8103ee01>] ? __do_softirq+0xb1/0x1e0
-May 22 20:11:40 pserver204 kernel: [8594022.271270]
-[<ffffffff810ac784>] ? handle_irq_event_percpu+0xb4/0x1e0
-May 22 20:11:40 pserver204 kernel: [8594022.270954]
-[<ffffffffa0062265>] ? acpi_processor_suspend+0x3f1/0x4e2 [processor]
-May 22 20:11:40 pserver204 kernel: [8594022.271158]
-[<ffffffff8103ee01>] ? __do_softirq+0xb1/0x1e0
-May 22 20:11:40 pserver204 kernel: [8594022.271270]
-[<ffffffff810ac784>] ? handle_irq_event_percpu+0xb4/0x1e0
-May 22 20:11:40 pserver204 kernel: [8594022.271383]
-[<ffffffff8168159c>] ? call_softirq+0x1c/0x30
-May 22 20:11:40 pserver204 kernel: [8594022.271495]
-[<ffffffff810041e5>] ? do_softirq+0x65/0xa0
-May 22 20:11:40 pserver204 kernel: [8594022.271608]
-[<ffffffff8103ec1d>] ? irq_exit+0xbd/0xe0
-May 22 20:11:40 pserver204 kernel: [8594022.271718]
-[<ffffffff8100396c>] ? do_IRQ+0x5c/0xd0
-May 22 20:11:40 pserver204 kernel: [8594022.271826]
-[<ffffffff81678b2a>] ? common_interrupt+0x6a/0x6a
-May 22 20:11:40 pserver204 kernel: [8594022.271936]  <EOI>
-May 22 20:11:40 pserver204 kernel: [8594022.272035]
-[<ffffffff810090b5>] ? sched_clock+0x5/0x10
-May 22 20:11:40 pserver204 kernel: [8594022.272148]
-[<ffffffffa0062265>] ? acpi_processor_suspend+0x3f1/0x4e2 [processor]
-May 22 20:11:40 pserver204 kernel: [8594022.272351]
-[<ffffffffa0062261>] ? acpi_processor_suspend+0x3ed/0x4e2 [processor]
-May 22 20:11:40 pserver204 kernel: [8594022.272555]
-[<ffffffff81512772>] ? cpuidle_idle_call+0xd2/0x1d0
-May 22 20:11:40 pserver204 kernel: [8594022.272672]
-[<ffffffff8100a5f4>] ? cpu_idle+0xc4/0x110
-May 22 20:11:40 pserver204 kernel: [8594022.272782]
-[<ffffffff81ac2d25>] ? start_kernel+0x3af/0x3ba
-May 22 20:11:40 pserver204 kernel: [8594022.272891]
-[<ffffffff81ac2798>] ? kernel_init+0x1c9/0x1c9
-May 22 20:11:40 pserver204 kernel: [8594022.273001]
-[<ffffffff81ac2430>] ? x86_64_start_kernel+0x104/0x113
-May 22 20:11:40 pserver204 kernel: [8594022.273118] Code: 00 00 00 48 8d
-14 11 0f b6 02 39 d8 7f d5 f6 42 01 08 75 3f 48 8b 7a 08 48 85 ff 74 25
-48 c7 42 08 00 00 00 00 66 0f 1f 44 00 00 <48> 8b 1f e8 b0 fb ff ff 48
-85 db 48 89 df 75 f0 48 8b 8d d8 00
-May 22 20:11:40 pserver204 kernel: [8594022.273980] RIP
-[<ffffffff8153df98>] skb_release_data+0xa8/0x100
-May 22 20:11:40 pserver204 kernel: [8594022.274098]  RSP <ffff880807c03bc0>
-May 22 20:11:40 pserver204 kernel: [8594022.274647] scsi host9: Null
-scmnd for RSP w/tag 000000000000001f
-May 22 20:11:40 pserver204 kernel: [8594022.274833] ---[ end trace
-b696840d228c19cf ]---
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2. Add support for the OSes
+   - RedHat EL6.5
+
+3. New drivers available
+   - ocrdma
+   - libocrdma-1.0.2
+   - mlx5
+   - libmlx5-1.0.1
+
+4. Updated packages:
+   - dapl-2.0.42
+   - ibsim-0.6
+   - ibutils-1.5.7-0.2
+   - infiniband-diags-1.6.4
+   - infinipath-psm-3.2-2
+   - libcxgb4-1.3.3
+   - libibmad-1.3.11
+   - libibumad-1.3.9
+   - libipathverbs-1.2.1
+   - libmlx4-1.0.5
+   - libnes-1.1.4
+   - librdmacm-1.0.18.1
+   - mstflint-3.6.0-1.8
+   - opensm-3.3.17
+   - perftest-2.2-0.17
+   - srptools-1.0.2
+
+Please see the attached OFED_release_notes and the updated release notes of
+each component for additional issues.
+
+Thank you,
+
+Rupert Dance
+
+------=_NextPart_000_0057_01CF79BE.33BF83D0
+Content-Type: text/plain;
+	name="OFED_release_notes.txt"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="OFED_release_notes.txt"
+
+	    Open Fabrics Enterprise Distribution (OFED)=0A=
+	          Version 3.12 Release Notes=0A=
+	               	   May 2014=0A=
+=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+Table of Contents=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+1. Overview, which includes:=0A=
+	- OFED Distribution Rev 3.12 Contents=0A=
+	- Supported Platforms and Operating Systems=0A=
+	- Supported HCA and RNIC Adapter Cards and Firmware Versions=0A=
+	- Tested Switch Platforms=0A=
+	- Third party Test Packages=0A=
+	- OFED sources=0A=
+2. Change log=0A=
+3. Known Issues=0A=
+=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+1. Overview=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+These are the release notes of OpenFabrics Enterprise Distribution (OFED)=0A=
+release 3.12. The OFED software package is composed of several software =
+modules,=0A=
+and is intended for use on a computer cluster constructed as an =
+InfiniBand=0A=
+Fabric, an iWARP Network or a RoCE Fabric.=0A=
+=0A=
+Note: If you plan to upgrade the OFED package on your cluster, please =
+upgrade=0A=
+all of its nodes to this new version.=0A=
+=0A=
+=0A=
+1.1 OFED 3.12 Contents=0A=
+-----------------------=0A=
+The OFED package contains the following components:=0A=
+ - OpenFabrics core and ULPs:=0A=
+	- IB HCA drivers (mthca, mlx4, mlx5, qib, ehca)=0A=
+	- iWARP RNIC driver (cxgb3, cxgb4, nes)=0A=
+	- RoCE drivers (mlx4, ocrdma)=0A=
+- ib core=0A=
+	- Upper Layer Protocols: IPoIB, SRP Initiator and target, RDS, =0A=
+	  uDAPL, qlgc_vnic and NFS-RDMA*.=0A=
+ - OpenFabrics utilities:=0A=
+	- OpenSM (OSM): InfiniBand Subnet Manager=0A=
+	- Diagnostic tools=0A=
+	- Performance tests=0A=
+ - Extra packages:=0A=
+	- infinipath-psm: Performance-Scaled Messaging API, an accelerated=0A=
+	  interface to Intel(R) HCAs=0A=
+ - Sources of all software modules (under conditions mentioned in the =
+modules'=0A=
+   LICENSE files)=0A=
+ - Documentation=0A=
+=0A=
+=0A=
+1.2 Supported Platforms and Operating Systems=0A=
+---------------------------------------------=0A=
+  o   CPU architectures:=0A=
+	- x86_64=0A=
+	- x86=0A=
+	- ppc64=0A=
+=0A=
+  o   Linux Operating Systems:=0A=
+	- RedHat EL6.4 		2.6.32-358.el6=0A=
+	- RedHat EL6.5 		2.6.32-431.el6=0A=
+	- SLES11 SP3		3.0.76-0.9.1=0A=
+	- kernel.org		3.12    *=0A=
+=0A=
+      * Minimal QA for these versions.=0A=
+=0A=
+1.3 HCAs and RNICs Supported=0A=
+----------------------------=0A=
+This release supports IB HCAs by IBM, Intel and Mellanox Technologies, =
+iWARP RNICs by Chelsio Communications and Intel and RoCE adapters by =
+Emulex, IBM and Mellanox.=0A=
+=0A=
+InfiniBand Adapters=0A=
+  o   IBM HCAs:=0A=
+	- GX Dual-port SDR 4x IB HCA=0A=
+	- GX Dual-port SDR 12x IB HCA=0A=
+	- GX Dual-port DDR 4x IB HCA=0A=
+	- GX Dual-port DDR 12x IB HCA=0A=
+=0A=
+  o   Intel (formerly QLogic) HCAs:=0A=
+	- Intel(R) True Scale DDR PCIe x8 and x16 HCAs=0A=
+	- Intel(R) True Scale QDR PCIe x8 Gen2 HCAs=0A=
+=0A=
+  o   Mellanox Technologies HCAs (SDR, DDR and QDR Modes are Supported):=0A=
+	- ConnectX(R) and ConnectX EN (Rev 2.9.1000)=0A=
+	- ConnectX=C2=AE-2 (Rev 2.9.1200 and above)=0A=
+=0A=
+  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):=0A=
+	- ConnectX=C2=AE-3 (Rev 2.31.5050 and above)=0A=
+	- ConnectX=C2=AE-3 Pro (Rev 2.31.5050 and above)=0A=
+=0A=
+  o   Mellanox Technologies HCAs (FDR and FDR10 Modes are Supported):=0A=
+	- Connect-IB=C2=AE (Rev 10.10.3000 and above)=0A=
+=0A=
+	For official firmware versions please see:=0A=
+	http://www.mellanox.com/content/pages.php?pg=3Dfirmware_download=0A=
+=0A=
+iWARP Adapters=0A=
+  o   Chelsio RNICs:=0A=
+	- S310/S320 10GbE Storage Accelerators=0A=
+	- R310/R320 10GbE iWARP Adapters=0A=
+	- T4: T420-CR, T440-CR, T422-CR, T404-BT, T440-LP-CR, T420-LL-CR, =
+T420-CX=0A=
+	- T5: T502-BT, T580-CR, T580-LP-CR, T520-LL-CR, T520-CR, T522-CR, =
+T540-CR=0A=
+=0A=
+  o   Intel RNICs:=0A=
+	- NE020 10Gb iWARP Adapter=0A=
+=0A=
+RoCE Adapters=0A=
+ o   Emulex - using ocrdma=0A=
+	- Emulex OCe14102 2-port 10 GbE RoCE=0A=
+	- Emulex OCe14401 1-port 40 GbE RoCE=0A=
+=0A=
+ o   IBM=0A=
+	- IBM Flex System EN4132 2-port 10 GbE RoCE=0A=
+	- IBM EL27 PCIe LP 2-Port 10GbE RoCE SFP+ adapter=0A=
+	- IBM EC28 PCIe 2-Port 10GbE RoCE SFP+ adapter=0A=
+=0A=
+  o   Mellanox=0A=
+	- ConnectX-2 EN (Rev 2.9.1200 and above)=0A=
+	- ConnectX-3 EN (Rev 2.31.5050 and above)=0A=
+=0A=
+1.4 Switches Supported=0A=
+----------------------=0A=
+This release was tested with switches and gateways provided by the =
+following=0A=
+companies:=0A=
+InfiniBand Switches=0A=
+  o   Flextronics=0A=
+	- F-X430044=0A=
+  o   Intel (formerly QLogic)=0A=
+	- 12200=0A=
+  o   Mellanox=0A=
+	- MLNX-OS=C2=AE MSX6036/SX6025 w/w MLNX-OS=C2=AE version 3.3.4304=0A=
+	- Grid Director=E2=84=A2 4036 w/w Grid Director=E2=84=A2 version =
+3.9.2-992=0A=
+	- FabricIT=E2=84=A2 EFM IS5035 w/w FabricIT EFM version 1.1.3000=0A=
+	- FabricIT=E2=84=A2 BXM MBX5020 w/w FabricIT BXM version 2.1.2000=0A=
+=0A=
+iWARP Switches=0A=
+  o   Fujitsu=0A=
+	- XG2000C 10Gb Ethernet Switch=0A=
+=0A=
+RoCE Switches=0A=
+  o   Arista=0A=
+  o   BLADE Network Technologies (BNT)=0A=
+  o   Mellanox=0A=
+	- SX1036=0A=
+	- SX1024=0A=
+	- SX1016=0A=
+=0A=
+1.5 Third Party Packages=0A=
+------------------------=0A=
+The following third party packages have been tested with OFED 3.12:=0A=
+- Open MPI - 1.8=0A=
+- Intel MPI 4.1.3=0A=
+- MVAPICH2 =0A=
+=0A=
+1.6 OFED Sources=0A=
+----------------=0A=
+All sources are located under git://git.openfabrics.org/=0A=
+=0A=
+Linux:=0A=
+------=0A=
+URL: git://git.openfabrics.org/compat-rdma/linux-3.12.git=0A=
+Branch: master=0A=
+=0A=
+- Linux kernel sub-tree that includes files relevant for the OFED =
+project only.=0A=
+  Based on v3.12. Used to shorten git clone time.=0A=
+  Note: the regular Linux git tree can be used as well.=0A=
+=0A=
+compat:=0A=
+-------=0A=
+URL: git://git.openfabrics.org/compat-rdma/compat.git=0A=
+Branch: ofed=0A=
+=0A=
+- Based on compat project (https://github.com/mcgrof/compat). The compat =
+module=0A=
+  provides functionality introduced in newer kernels to older kernels =
+through a=0A=
+  set of header files and exported symbols.=0A=
+  See https://github.com/mcgrof/compat/wiki for details.=0A=
+- Used to replace kernel_addons in the previous OFED kernel tree.=0A=
+=0A=
+compat-rdma:=0A=
+------------=0A=
+URL: git://git.openfabrics.org/compat-rdma/compat-rdma.git=0A=
+Branch: master=0A=
+=0A=
+User level Sources are downloaded from =
+http://www.openfabrics.org/downloads/=0A=
+as written in the BUILD_ID=0A=
+=0A=
+The kernel sources are based on Linux 3.12 mainline kernel. Its patches=0A=
+are included in the OFED sources directory.=0A=
+For details see HOWTO.build_ofed.=0A=
+=0A=
+The list of maintainers is available under:=0A=
+http://www.openfabrics.org/downloads/MAINTAINERS=0A=
+=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+2. Change log=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+OFED-3.12-rc3 Main Changes from OFED 3.12-rc2=0A=
+-------------------------------------------------------------------------=
+------=0A=
+1. Updated packages:=0A=
+   - perftest-2.2-0.17=0A=
+2. Bugs solved=0A=
+=0A=
+OFED-3.12-rc2 Main Changes from OFED 3.12-rc1=0A=
+-------------------------------------------------------------------------=
+------=0A=
+1. Updated packages:=0A=
+   - dapl-2.0.42=0A=
+   - ibutils-1.5.7-0.2.gbd7e502.tar.gz=0A=
+   - libcxgb4-1.3.3=0A=
+   - mstflint-3.6.0-1.8=0A=
+   - perftest-2.2-0.16.g8406133.tar.gz=0A=
+=0A=
+OFED-3.12-rc1 Main Changes from OFED 3.5-2=0A=
+-------------------------------------------------------------------------=
+------=0A=
+1. Add support for the OSes=0A=
+   - RedHat EL6.5=0A=
+2. New drivers available=0A=
+   - ocrdma=0A=
+   - libocrdma-1.0.2=0A=
+   - mlx5=0A=
+   - libmlx5-1.0.1=0A=
+3. Updated packages:=0A=
+   - dapl-2.0.40=0A=
+   - ibsim-0.6=0A=
+   - infiniband-diags-1.6.4=0A=
+   - infinipath-psm-3.2-2_ga8c3e3e_open=0A=
+   - libcxgb4-1.3.2=0A=
+   - libibmad-1.3.11=0A=
+   - libibumad-1.3.9=0A=
+   - libipathverbs-1.2.1=0A=
+   - libmlx4-1.0.5=0A=
+   - libnes-1.1.4=0A=
+   - librdmacm-1.0.18.1=0A=
+   - mstflint-3.5.0=0A=
+   - opensm-3.3.17=0A=
+   - perftest-2.0-0.80.g54c73c6=0A=
+   - srptools-1.0.2=0A=
+=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+3. Known Issues=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=0A=
+The following is a list of general limitations and known issues of the =
+various=0A=
+components of the OFED 3.12-rc2 release.=0A=
+=0A=
+01. When upgrading from an earlier OFED version, the installation script =
+does=0A=
+    not stop the earlier OFED version prior to uninstalling it.=0A=
+    Workaround: Stop the old OFED stack (/etc/init.d/openibd stop) before=0A=
+    upgrading to OFED 3.12 or reboot the server after OFED installation.=0A=
+02. Memory registration by the user is limited according to administrator=0A=
+    setting. See "Pinning (Locking) User Memory Pages" in OFED_tips.txt =
+for=0A=
+    system configuration.=0A=
+03. Fork support from kernel 2.6.12 and above is available provided=0A=
+    that applications do not use threads. fork() is supported as long as =
+the=0A=
+    parent process does not run before the child exits or calls exec().=0A=
+    The former can be achieved by calling wait(childpid), and the latter =
+can be=0A=
+    achieved by application specific means.  The Posix system() call is=0A=
+    supported.=0A=
+04. The qib driver is supported only on 64-bit platforms.=0A=
+05. IPoIB: brctl utilities do not work on IPoIB interfaces. The reason =
+for that=0A=
+    is that these utilities support devices of type Ethernet only.=0A=
+06. In case uninstall is failing, check the error log and remove=0A=
+    the remaining RPMs manually using 'rpm -e <rpms list>'.=0A=
+07. On SLES11.x, set allow_unsupported_modules parameter to 1 in file:=0A=
+    /etc/modprobe.d/unsupported-modules. Without this the modules will =
+not=0A=
+    load.=0A=
+08. RDS is supported only on kernel.org 3.5 and not on any distro OS.=0A=
+09. There is an issue with NFSoRDMA when running on Power PC. This will =
+be=0A=
+    resolved in OFED 3.12-1 - see Bug 2449=0A=
+10. There are known issues with iWARP using Chelsio adapters which will =
+be=0A=
+    resolved in OFED 3.12-1 See Bugs 2482, 2485 and 2487=0A=
+11. There are some issues with NFSoRDMA and there are some pending =
+patches on kernel.org. These will be=0A=
+    resolved in OFED 3.12-1 - see Bugs 2489 and 2490=0A=
+12. Newer SLES or RHEL patch kernels that are updates to the original =
+kernel that is included in the=0A=
+    original SLES or RHEL distibutions may not work with OFED-3.12. The =
+list of kernels that are supported are listed in=0A=
+    section 1.2.=0A=
+=0A=
+Note: See the release notes of each component for additional issues.=0A=
+=0A=
+
+------=_NextPart_000_0057_01CF79BE.33BF83D0
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/mailman/listinfo/ewg
+------=_NextPart_000_0057_01CF79BE.33BF83D0--
