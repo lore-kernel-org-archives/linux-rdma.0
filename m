@@ -1,462 +1,323 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 4/5] ib/mad: add new ioctl to user space to support new registration options
-Date: Mon, 26 May 2014 22:39:53 -0400
-Message-ID: <1401158393-1477-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v2] libibumad: add new registration ioctl
+Date: Mon, 26 May 2014 22:46:03 -0400
+Message-ID: <1401158763-1736-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Registrations options are specified through flags.  Definitions of flags will
-be in subsequent patches.
+This supports the new registration ioctl which the kernel is exporting.
+Specifically this adds flags to the registration operation.  The first such
+flag is to request user space RMPP.  Thus turning off kernel based RMPP
+coalescing.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Changes since V1:
-	1) convert oui to 32 bits and host byte order
-	2) pad struct to 64bits for easier 32/64bit compatibility
-	3) convert pr_notice to dev_notice
+Changes from V1:
+	1) update man page
+	2) convert oui to 32 bits and host byte order
+	3) Pad Kernel struct out to 64 bits for easier 32/64bit compatibility
+	4) update trace/debug messages
+	5) remove struct version from API (will use symbol versions if future
+	   versions are needed.)
+	6) If the kernel does not support the new ioctl and no flags are
+	   specified automatically use the old ioctl to perform the
+	   registration.  Otherwise indicate that no flags are supported as per
+	   the man page.
 ---
- Documentation/infiniband/user_mad.txt   |  13 ++--
- drivers/infiniband/core/agent.c         |   4 +-
- drivers/infiniband/core/cm.c            |   5 +-
- drivers/infiniband/core/mad.c           |   4 +-
- drivers/infiniband/core/sa_query.c      |   2 +-
- drivers/infiniband/core/user_mad.c      | 120 +++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx4/mad.c        |   2 +-
- drivers/infiniband/hw/mthca/mthca_mad.c |   2 +-
- drivers/infiniband/hw/qib/qib_mad.c     |   2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c   |   2 +-
- include/rdma/ib_mad.h                   |   7 +-
- include/uapi/rdma/ib_user_mad.h         |  39 +++++++++++
- 12 files changed, 186 insertions(+), 16 deletions(-)
+ Makefile.am               |   1 +
+ include/infiniband/umad.h |  18 ++++++++
+ man/umad_register2.3      |  76 ++++++++++++++++++++++++++++++++++
+ src/libibumad.map         |   1 +
+ src/umad.c                | 102 ++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 198 insertions(+)
+ create mode 100644 man/umad_register2.3
 
-diff --git a/Documentation/infiniband/user_mad.txt b/Documentation/infiniband/user_mad.txt
-index 8a36695..bf24958 100644
---- a/Documentation/infiniband/user_mad.txt
-+++ b/Documentation/infiniband/user_mad.txt
-@@ -26,6 +26,11 @@ Creating MAD agents
-   ioctl.  Also, all agents registered through a file descriptor will
-   be unregistered when the descriptor is closed.
- 
-+  2013 -- a new registration ioctl is now provided which allows additional
-+       fields to be provided during registration.
-+       Users of this registration call are implicitly setting the use of
-+       pkey_index (see below).
-+
- Receiving MADs
- 
-   MADs are received using read().  The receive side now supports
-@@ -104,10 +109,10 @@ P_Key Index Handling
-   The old ib_umad interface did not allow setting the P_Key index for
-   MADs that are sent and did not provide a way for obtaining the P_Key
-   index of received MADs.  A new layout for struct ib_user_mad_hdr
--  with a pkey_index member has been defined; however, to preserve
--  binary compatibility with older applications, this new layout will
--  not be used unless the IB_USER_MAD_ENABLE_PKEY ioctl is called
--  before a file descriptor is used for anything else.
-+  with a pkey_index member has been defined; however, to preserve binary
-+  compatibility with older applications, this new layout will not be used
-+  unless one of IB_USER_MAD_ENABLE_PKEY or IB_USER_MAD_REGISTER_AGENT2 ioctl's
-+  are called before a file descriptor is used for anything else.
- 
-   In September 2008, the IB_USER_MAD_ABI_VERSION will be incremented
-   to 6, the new layout of struct ib_user_mad_hdr will be used by
-diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
-index 8e32c5a..f6d2961 100644
---- a/drivers/infiniband/core/agent.c
-+++ b/drivers/infiniband/core/agent.c
-@@ -161,7 +161,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
- 		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
- 							    IB_QPT_SMI, NULL, 0,
- 							    &agent_send_handler,
--							    NULL, NULL);
-+							    NULL, NULL, 0);
- 		if (IS_ERR(port_priv->agent[0])) {
- 			ret = PTR_ERR(port_priv->agent[0]);
- 			goto error2;
-@@ -172,7 +172,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
- 	port_priv->agent[1] = ib_register_mad_agent(device, port_num,
- 						    IB_QPT_GSI, NULL, 0,
- 						    &agent_send_handler,
--						    NULL, NULL);
-+						    NULL, NULL, 0);
- 	if (IS_ERR(port_priv->agent[1])) {
- 		ret = PTR_ERR(port_priv->agent[1]);
- 		goto error3;
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index c323917..e28a494 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3753,7 +3753,7 @@ static void cm_add_one(struct ib_device *ib_device)
- 	struct cm_port *port;
- 	struct ib_mad_reg_req reg_req = {
- 		.mgmt_class = IB_MGMT_CLASS_CM,
--		.mgmt_class_version = IB_CM_CLASS_VERSION
-+		.mgmt_class_version = IB_CM_CLASS_VERSION,
- 	};
- 	struct ib_port_modify port_modify = {
- 		.set_port_cap_mask = IB_PORT_CM_SUP
-@@ -3801,7 +3801,8 @@ static void cm_add_one(struct ib_device *ib_device)
- 							0,
- 							cm_send_handler,
- 							cm_recv_handler,
--							port);
-+							port,
-+							0);
- 		if (IS_ERR(port->mad_agent))
- 			goto error2;
- 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 63f9457..547606b 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -198,7 +198,8 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 					   u8 rmpp_version,
- 					   ib_mad_send_handler send_handler,
- 					   ib_mad_recv_handler recv_handler,
--					   void *context)
-+					   void *context,
-+					   u32 registration_flags)
- {
- 	struct ib_mad_port_private *port_priv;
- 	struct ib_mad_agent *ret = ERR_PTR(-EINVAL);
-@@ -359,6 +360,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 	mad_agent_priv->agent.context = context;
- 	mad_agent_priv->agent.qp = port_priv->qp_info[qpn].qp;
- 	mad_agent_priv->agent.port_num = port_num;
-+	mad_agent_priv->agent.flags = registration_flags;
- 	spin_lock_init(&mad_agent_priv->lock);
- 	INIT_LIST_HEAD(&mad_agent_priv->send_list);
- 	INIT_LIST_HEAD(&mad_agent_priv->wait_list);
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index f820958..d079bc5 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -1184,7 +1184,7 @@ static void ib_sa_add_one(struct ib_device *device)
- 		sa_dev->port[i].agent =
- 			ib_register_mad_agent(device, i + s, IB_QPT_GSI,
- 					      NULL, 0, send_handler,
--					      recv_handler, sa_dev);
-+					      recv_handler, sa_dev, 0);
- 		if (IS_ERR(sa_dev->port[i].agent))
- 			goto err;
- 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index d56f076..d7c3f80 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -643,6 +643,7 @@ static int ib_umad_reg_agent(struct ib_umad_file *file, void __user *arg,
- 
- found:
- 	if (ureq.mgmt_class) {
-+		memset(&req, 0, sizeof(req));
- 		req.mgmt_class         = ureq.mgmt_class;
- 		req.mgmt_class_version = ureq.mgmt_class_version;
- 		memcpy(req.oui, ureq.oui, sizeof req.oui);
-@@ -663,7 +664,7 @@ found:
- 				      ureq.qpn ? IB_QPT_GSI : IB_QPT_SMI,
- 				      ureq.mgmt_class ? &req : NULL,
- 				      ureq.rmpp_version,
--				      send_handler, recv_handler, file);
-+				      send_handler, recv_handler, file, 0);
- 	if (IS_ERR(agent)) {
- 		ret = PTR_ERR(agent);
- 		agent = NULL;
-@@ -701,6 +702,119 @@ out:
- 	return ret;
- }
- 
-+static int ib_umad_reg_agent2(struct ib_umad_file *file, void __user *arg)
-+{
-+	struct ib_user_mad_reg_req2 ureq;
-+	struct ib_mad_reg_req req;
-+	struct ib_mad_agent *agent = NULL;
-+	int agent_id;
-+	int ret;
-+
-+	mutex_lock(&file->port->file_mutex);
-+	mutex_lock(&file->mutex);
-+
-+	if (!file->port->ib_dev) {
-+		dev_notice(file->port->dev,
-+			   "ib_umad_reg_agent2: invalid device\n");
-+		ret = -EPIPE;
-+		goto out;
-+	}
-+
-+	if (copy_from_user(&ureq, arg, sizeof(ureq))) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+
-+	if (ureq.qpn != 0 && ureq.qpn != 1) {
-+		dev_notice(file->port->dev,
-+			   "ib_umad_reg_agent2: invalid QPN %d specified\n",
-+			   ureq.qpn);
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (ureq.flags & ~IB_USER_MAD_REG_FLAGS_CAP) {
-+		dev_notice(file->port->dev,
-+			   "ib_umad_reg_agent2 failed: invalid registration flags specified 0x%x; supported 0x%x\n",
-+			   ureq.flags, IB_USER_MAD_REG_FLAGS_CAP);
-+		ret = -EINVAL;
-+
-+		if (put_user((u32)IB_USER_MAD_REG_FLAGS_CAP,
-+				(u32 __user *) (arg + offsetof(struct
-+				ib_user_mad_reg_req2, flags))))
-+			ret = -EFAULT;
-+
-+		goto out;
-+	}
-+
-+	for (agent_id = 0; agent_id < IB_UMAD_MAX_AGENTS; ++agent_id)
-+		if (!__get_agent(file, agent_id))
-+			goto found;
-+
-+	dev_notice(file->port->dev,
-+		   "ib_umad_reg_agent2: Max Agents (%u) reached\n",
-+		   IB_UMAD_MAX_AGENTS);
-+	ret = -ENOMEM;
-+	goto out;
-+
-+found:
-+	if (ureq.mgmt_class) {
-+		memset(&req, 0, sizeof(req));
-+		req.mgmt_class         = ureq.mgmt_class;
-+		req.mgmt_class_version = ureq.mgmt_class_version;
-+		if (ureq.oui & 0xff000000) {
-+			dev_notice(file->port->dev,
-+				   "ib_umad_reg_agent2 failed: oui invalid 0x%08x\n",
-+				   ureq.oui);
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+		req.oui[2] =  ureq.oui & 0x0000ff;
-+		req.oui[1] = (ureq.oui & 0x00ff00) >> 8;
-+		req.oui[0] = (ureq.oui & 0xff0000) >> 16;
-+		memcpy(req.method_mask, ureq.method_mask,
-+			sizeof(req.method_mask));
-+	}
-+
-+	agent = ib_register_mad_agent(file->port->ib_dev, file->port->port_num,
-+				      ureq.qpn ? IB_QPT_GSI : IB_QPT_SMI,
-+				      ureq.mgmt_class ? &req : NULL,
-+				      ureq.rmpp_version,
-+				      send_handler, recv_handler, file,
-+				      ureq.flags);
-+	if (IS_ERR(agent)) {
-+		ret = PTR_ERR(agent);
-+		agent = NULL;
-+		goto out;
-+	}
-+
-+	if (put_user(agent_id,
-+		     (u32 __user *)(arg +
-+				offsetof(struct ib_user_mad_reg_req2, id)))) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+
-+	if (!file->already_used) {
-+		file->already_used = 1;
-+		file->use_pkey_index = 1;
-+	}
-+
-+	file->agent[agent_id] = agent;
-+	ret = 0;
-+
-+out:
-+	mutex_unlock(&file->mutex);
-+
-+	if (ret && agent)
-+		ib_unregister_mad_agent(agent);
-+
-+	mutex_unlock(&file->port->file_mutex);
-+
-+	return ret;
-+}
-+
-+
- static int ib_umad_unreg_agent(struct ib_umad_file *file, u32 __user *arg)
- {
- 	struct ib_mad_agent *agent = NULL;
-@@ -756,6 +870,8 @@ static long ib_umad_ioctl(struct file *filp, unsigned int cmd,
- 		return ib_umad_unreg_agent(filp->private_data, (__u32 __user *) arg);
- 	case IB_USER_MAD_ENABLE_PKEY:
- 		return ib_umad_enable_pkey(filp->private_data);
-+	case IB_USER_MAD_REGISTER_AGENT2:
-+		return ib_umad_reg_agent2(filp->private_data, (void __user *) arg);
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-@@ -772,6 +888,8 @@ static long ib_umad_compat_ioctl(struct file *filp, unsigned int cmd,
- 		return ib_umad_unreg_agent(filp->private_data, compat_ptr(arg));
- 	case IB_USER_MAD_ENABLE_PKEY:
- 		return ib_umad_enable_pkey(filp->private_data);
-+	case IB_USER_MAD_REGISTER_AGENT2:
-+		return ib_umad_reg_agent2(filp->private_data, compat_ptr(arg));
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index fd36ec6..f0ef7c84 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -880,7 +880,7 @@ int mlx4_ib_mad_init(struct mlx4_ib_dev *dev)
- 				agent = ib_register_mad_agent(&dev->ib_dev, p + 1,
- 							      q ? IB_QPT_GSI : IB_QPT_SMI,
- 							      NULL, 0, send_handler,
--							      NULL, NULL);
-+							      NULL, NULL, 0);
- 				if (IS_ERR(agent)) {
- 					ret = PTR_ERR(agent);
- 					goto err;
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index b6f7f45..8881fa3 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -294,7 +294,7 @@ int mthca_create_agents(struct mthca_dev *dev)
- 			agent = ib_register_mad_agent(&dev->ib_dev, p + 1,
- 						      q ? IB_QPT_GSI : IB_QPT_SMI,
- 						      NULL, 0, send_handler,
--						      NULL, NULL);
-+						      NULL, NULL, 0);
- 			if (IS_ERR(agent)) {
- 				ret = PTR_ERR(agent);
- 				goto err;
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index edad991..e87a0f6 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -2476,7 +2476,7 @@ int qib_create_agents(struct qib_ibdev *dev)
- 		ibp = &dd->pport[p].ibport_data;
- 		agent = ib_register_mad_agent(&dev->ibdev, p + 1, IB_QPT_SMI,
- 					      NULL, 0, send_handler,
--					      NULL, NULL);
-+					      NULL, NULL, 0);
- 		if (IS_ERR(agent)) {
- 			ret = PTR_ERR(agent);
- 			goto err;
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index fe09f27..8a8311e 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -563,7 +563,7 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 							 &reg_req, 0,
- 							 srpt_mad_send_handler,
- 							 srpt_mad_recv_handler,
--							 sport);
-+							 sport, 0);
- 		if (IS_ERR(sport->mad_agent)) {
- 			ret = PTR_ERR(sport->mad_agent);
- 			sport->mad_agent = NULL;
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index 3d81b90..876f497 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -355,6 +355,7 @@ typedef void (*ib_mad_recv_handler)(struct ib_mad_agent *mad_agent,
-  * @hi_tid: Access layer assigned transaction ID for this client.
-  *   Unsolicited MADs sent by this client will have the upper 32-bits
-  *   of their TID set to this value.
-+ * @flags: registration flags
-  * @port_num: Port number on which QP is registered
-  * @rmpp_version: If set, indicates the RMPP version used by this agent.
-  */
-@@ -367,6 +368,7 @@ struct ib_mad_agent {
- 	ib_mad_snoop_handler	snoop_handler;
- 	void			*context;
- 	u32			hi_tid;
-+	u32			flags;
- 	u8			port_num;
- 	u8			rmpp_version;
- };
-@@ -426,6 +428,7 @@ struct ib_mad_recv_wc {
-  *   in the range from 0x30 to 0x4f. Otherwise not used.
-  * @method_mask: The caller will receive unsolicited MADs for any method
-  *   where @method_mask = 1.
-+ *
-  */
- struct ib_mad_reg_req {
- 	u8	mgmt_class;
-@@ -451,6 +454,7 @@ struct ib_mad_reg_req {
-  * @recv_handler: The completion callback routine invoked for a received
-  *   MAD.
-  * @context: User specified context associated with the registration.
-+ * @registration_flags: Registration flags to set for this agent
-  */
- struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 					   u8 port_num,
-@@ -459,7 +463,8 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 					   u8 rmpp_version,
- 					   ib_mad_send_handler send_handler,
- 					   ib_mad_recv_handler recv_handler,
--					   void *context);
-+					   void *context,
-+					   u32 registration_flags);
- 
- enum ib_mad_snoop_flags {
- 	/*IB_MAD_SNOOP_POSTED_SENDS	   = 1,*/
-diff --git a/include/uapi/rdma/ib_user_mad.h b/include/uapi/rdma/ib_user_mad.h
-index d6fce1c..c00b081 100644
---- a/include/uapi/rdma/ib_user_mad.h
-+++ b/include/uapi/rdma/ib_user_mad.h
-@@ -191,6 +191,42 @@ struct ib_user_mad_reg_req {
- 	__u8	rmpp_version;
- };
- 
-+/**
-+ * ib_user_mad_reg_req2 - MAD registration request
-+ *
-+ * @id                 - Set by the _kernel_; used by userspace to identify the
-+ *                       registered agent in future requests.
-+ * @qpn                - Queue pair number; must be 0 or 1.
-+ * @mgmt_class         - Indicates which management class of MADs should be
-+ *                       receive by the caller.  This field is only required if
-+ *                       the user wishes to receive unsolicited MADs, otherwise
-+ *                       it should be 0.
-+ * @mgmt_class_version - Indicates which version of MADs for the given
-+ *                       management class to receive.
-+ * @res                - Ignored.
-+ * @flags              - additional registration flags; Must be in the set of
-+ *                       flags defined in IB_USER_MAD_REG_FLAGS_CAP
-+ * @method_mask        - The caller wishes to receive unsolicited MADs for the
-+ *                       methods whose bit(s) is(are) set.
-+ * @oui                - Indicates IEEE OUI to use when mgmt_class is a vendor
-+ *                       class in the range from 0x30 to 0x4f. Otherwise not
-+ *                       used.
-+ * @rmpp_version       - If set, indicates the RMPP version to use.
-+ */
-+#define IB_USER_MAD_REG_FLAGS_CAP (0)
-+struct ib_user_mad_reg_req2 {
-+	__u32	id;
-+	__u32	qpn;
-+	__u8	mgmt_class;
-+	__u8	mgmt_class_version;
-+	__u16   res;
-+	__u32   flags;
-+	__u64   method_mask[2];
-+	__u32   oui;
-+	__u8	rmpp_version;
-+	__u8	reserved[3];
-+};
-+
- #define IB_IOCTL_MAGIC		0x1b
- 
- #define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
-@@ -200,4 +236,7 @@ struct ib_user_mad_reg_req {
- 
+diff --git a/Makefile.am b/Makefile.am
+index 24b5dd8..a15ac2d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -16,6 +16,7 @@ man_MANS = man/umad_debug.3 man/umad_get_ca.3 \
+ 	   man/umad_set_addr_net.3 man/umad_set_addr.3 man/umad_set_pkey.3 \
+ 	   man/umad_get_pkey.3 \
+ 	   man/umad_register.3 man/umad_register_oui.3 man/umad_unregister.3 \
++	   man/umad_register2.3 \
+ 	   man/umad_send.3 man/umad_recv.3 man/umad_poll.3 \
+ 	   man/umad_get_issm_path.3 \
+ 	   man/umad_attribute_str.3 \
+diff --git a/include/infiniband/umad.h b/include/infiniband/umad.h
+index 6af30c0..ca649e3 100644
+--- a/include/infiniband/umad.h
++++ b/include/infiniband/umad.h
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
++ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -90,6 +91,8 @@ typedef struct ib_user_mad {
+ 					      struct ib_user_mad_reg_req)
+ #define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, uint32_t)
  #define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
- 
 +#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
 +					      struct ib_user_mad_reg_req2)
+ 
+ #define UMAD_CA_NAME_LEN	20
+ #define UMAD_CA_MAX_PORTS	10	/* 0 - 9 */
+@@ -196,6 +199,21 @@ int umad_register_oui(int portid, int mgmt_class, uint8_t rmpp_version,
+ 		      uint8_t oui[3], long method_mask[16 / sizeof(long)]);
+ int umad_unregister(int portid, int agentid);
+ 
++enum {
++	UMAD_USER_RMPP = (1 << 0)
++} umad_reg_flags;
++struct umad_reg_attr {
++	uint8_t    mgmt_class;
++	uint8_t    mgmt_class_version;
++	uint32_t   flags;
++	uint64_t   method_mask[2];
++	uint32_t   oui;
++	uint8_t    rmpp_version;
++};
++int umad_register2(int port_fd, struct umad_reg_attr *attr,
++		   uint32_t *agent_id);
 +
- #endif /* IB_USER_MAD_H */
++
+ int umad_debug(int level);
+ void umad_addr_dump(ib_mad_addr_t * addr);
+ void umad_dump(void *umad);
+diff --git a/man/umad_register2.3 b/man/umad_register2.3
+new file mode 100644
+index 0000000..1940489
+--- /dev/null
++++ b/man/umad_register2.3
+@@ -0,0 +1,76 @@
++.\" -*- nroff -*-
++.\"
++.TH UMAD_REGISTER2 3  "March 25, 2014" "OpenIB" "OpenIB Programmer\'s Manual"
++.SH "NAME"
++umad_register2 \- register the specified management class and version for port
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/umad.h>
++.sp
++.BI "int umad_register2(int " "port_fd" ", struct umad_reg_attr *" "attr" ", uint32_t *" "agent_id");
++.fi
++.SH "DESCRIPTION"
++.B umad_register2()
++registers for a MAD agent using the provided registration attributes
++
++.I port_fd\fR
++the port on which to register the agent
++
++.I attr\fR
++The registration attributes as defined by the structure passed.  See below for details of this structure.  Future structures may be defined.
++
++.I agent_id\fR
++returned on success.  agent_id identifies the kernel MAD agent a MAD is received by or to be sent by.  agent_id is returned in the umad header "struct ib_user_mad" on recv and specified in umad_send when sending.
++
++
++.SH "REGISTRATION ATTRIBUTE STRUCTURE VERSION 0"
++.nf
++struct umad_reg_attr {
++.in +8
++uint16_t   struct_version;
++uint8_t    mgmt_class;
++uint8_t    mgmt_class_version;
++uint32_t   flags;
++uint64_t   method_mask[2];
++uint8_t    oui[3];    /* network order */
++uint8_t    rmpp_version;
++.in -8
++};
++
++.I struct_version\fR
++Version of the attribute structure being passed.  Set to '0'
++
++.I mgmt_class\fR
++Management class to register for.
++
++.I mgmt_class_version\fR
++Management class version to register for.
++
++.I flags\fR
++Registration flags.  If a flag specified is not supported by the kernel, the supported flags are returned in this field.
++
++.P
++Current flags are.
++.in +8
++UMAD_USER_RMPP -- flag to indicate the kernel should not process RMPP packets.  All RMPP packets will be treated like individual MAD's.  The user is responsible for implementing the RMPP protocol.
++.in -8
++
++.I method_mask\fR
++A bit mask which indicates which unsolicited methods this agent should receive.  Setting this array to 0 will result in the agent only receiving response MAD's for which a request was sent.
++
++.I oui\fR
++The oui to use for vendor classes 0x30 - 0x4f.  Otherwise ignored.
++
++.I rmpp_version\fR
++If the class supports RMPP and kernel RMPP is enabled (the default) indicate which rmpp_version to use.
++
++
++.SH "RETURN VALUE"
++.B umad_register2()
++returns 0 on success and +ERRNO on failure.
++
++.SH "SEE ALSO"
++.BR umad_unregister (3)
++.SH "AUTHOR"
++.TP
++Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+diff --git a/src/libibumad.map b/src/libibumad.map
+index eeb9d83..e42dc79 100644
+--- a/src/libibumad.map
++++ b/src/libibumad.map
+@@ -23,6 +23,7 @@ IBUMAD_1.0 {
+ 		umad_poll;
+ 		umad_get_fd;
+ 		umad_register;
++		umad_register2;
+ 		umad_register_oui;
+ 		umad_unregister;
+ 		umad_status;
+diff --git a/src/umad.c b/src/umad.c
+index 5dd7f09..f2dce07 100644
+--- a/src/umad.c
++++ b/src/umad.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
++ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -47,6 +48,7 @@
+ #include <netinet/in.h>
+ #include <dirent.h>
+ #include <ctype.h>
++#include <inttypes.h>
+ 
+ #include "umad.h"
+ 
+@@ -76,6 +78,19 @@ typedef struct ib_user_mad_reg_req {
+ 	uint8_t rmpp_version;
+ } ib_user_mad_reg_req_t;
+ 
++struct ib_user_mad_reg_req2 {
++	uint32_t id;
++	uint32_t qpn;
++	uint8_t  mgmt_class;
++	uint8_t  mgmt_class_version;
++	uint16_t res;
++	uint32_t flags;
++	uint64_t method_mask[2];
++	uint32_t oui;
++	uint8_t  rmpp_version;
++	uint8_t  reserved[3];
++};
++
+ extern int sys_read_string(const char *dir_name, const char *file_name, char *str, int len);
+ extern int sys_read_guid(const char *dir_name, const char *file_name, uint64_t * net_guid);
+ extern int sys_read_gid(const char *dir_name, const char *file_name, uint8_t * gid);
+@@ -973,6 +988,93 @@ int umad_register(int fd, int mgmt_class, int mgmt_version,
+ 	return -EPERM;
+ }
+ 
++int umad_register2(int port_fd, struct umad_reg_attr *attr, uint32_t *agent_id)
++{
++	struct ib_user_mad_reg_req2 req;
++	int rc;
++
++	if (!attr || !agent_id)
++		return EINVAL;
++
++	TRACE("fd %d mgmt_class %u mgmt_class_version %u flags 0x%08x "
++	      "method_mask 0x%016"PRIx64" %016"PRIx64
++	      "oui 0x%06x rmpp_version %u ",
++	      port_fd, attr->mgmt_class, attr->mgmt_class_version,
++	      attr->flags, attr->method_mask[0], attr->method_mask[1],
++	      attr->oui, attr->rmpp_version);
++
++	if (attr->mgmt_class >= 0x30 && attr->mgmt_class <= 0x4f
++	    && ((attr->oui & 0x00FFFFFF) == 0 || (attr->oui & 0xff000000) != 0)) {
++		DEBUG("mgmt class %d is in vendor range 2 but oui (0x%08x) is invalid",
++			attr->mgmt_class, attr->oui);
++		return EINVAL;
++	}
++
++	memset(&req, 0, sizeof (req));
++
++	req.mgmt_class = attr->mgmt_class;
++	req.mgmt_class_version = attr->mgmt_class_version;
++	req.qpn = (attr->mgmt_class == 0x1 || attr->mgmt_class == 0x81) ? 0 : 1;
++	req.flags = attr->flags;
++	memcpy(req.method_mask, attr->method_mask, sizeof req.method_mask);
++	req.oui = attr->oui;
++	req.rmpp_version = attr->rmpp_version;
++
++	VALGRIND_MAKE_MEM_DEFINED(&req, sizeof req);
++
++	if ((rc = ioctl(port_fd, IB_USER_MAD_REGISTER_AGENT2, (void *)&req))
++	     == 0) {
++		DEBUG
++		    ("fd %d registered to use agent %d qp %d class 0x%x oui 0x%06x",
++		     port_fd, req.id, req.qpn, req.mgmt_class, attr->oui);
++		*agent_id = req.id;
++		return 0;
++	}
++
++	if (errno == ENOTTY) {
++
++		TRACE("no kernel support for registration flags\n");
++		req.flags = 0;
++
++		if (attr->flags == 0) {
++			struct ib_user_mad_reg_req req_v1;
++
++			TRACE("attempting original register ioctl\n");
++
++			memset(&req_v1, 0, sizeof (req_v1));
++			req_v1.mgmt_class = req.mgmt_class;
++			req_v1.mgmt_class_version = req.mgmt_class_version;
++			req_v1.qpn = req.qpn;
++			req_v1.rmpp_version = req.rmpp_version;
++			req_v1.oui[0] = (req.oui & 0xff0000) >> 16;
++			req_v1.oui[1] = (req.oui & 0x00ff00) >> 8;
++			req_v1.oui[2] =  req.oui & 0x0000ff;
++			req_v1.method_mask[0] =  (req.method_mask[0] & 0x00000000ffffffffULL);
++			req_v1.method_mask[1] =  (req.method_mask[0] & 0xffffffff00000000ULL) >> 32;
++			req_v1.method_mask[2] =  (req.method_mask[1] & 0x00000000ffffffffULL);
++			req_v1.method_mask[3] =  (req.method_mask[1] & 0xffffffff00000000ULL) >> 32;
++
++			if ((rc = ioctl(port_fd, IB_USER_MAD_REGISTER_AGENT,
++					(void *)&req_v1)) == 0) {
++				DEBUG("fd %d registered to use agent %d qp %d class 0x%x oui 0x%06x",
++				      port_fd, req_v1.id, req_v1.qpn, req_v1.mgmt_class, attr->oui);
++				*agent_id = req_v1.id;
++				return 0;
++			}
++		}
++	}
++
++	rc = errno;
++	attr->flags = req.flags;
++
++	DEBUG("fd %d registering qp %d class 0x%x version %d "
++	      "oui 0x%06x failed flags returned 0x%x : %m",
++	      port_fd, req.qpn, req.mgmt_class, req.mgmt_class_version,
++	      attr->oui, req.flags);
++
++	return rc;
++}
++
+ int umad_unregister(int fd, int agentid)
+ {
+ 	TRACE("fd %d unregistering agent %d", fd, agentid);
 -- 
 1.8.2
 
