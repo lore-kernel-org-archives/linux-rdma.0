@@ -1,39 +1,91 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_helper.c: In osm_get_lsa_str, fix printing of
- wrong FDR10 data if link is down
-Date: Wed, 28 May 2014 09:06:07 -0400
-Message-ID: <5385DF3F.2010103@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_[sm sa]_mad_ctrl.c: Improve unsupported attribute
+ error messages
+Date: Wed, 28 May 2014 09:06:45 -0400
+Message-ID: <5385DF65.10207@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Tue, 27 May 2014 19:03:14 +0300
 
-Signed-off-by: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_helper.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ opensm/osm_sa_mad_ctrl.c |    5 +++--
+ opensm/osm_sm_mad_ctrl.c |   20 ++++++++++++--------
+ 2 files changed, 15 insertions(+), 10 deletions(-)
 
-diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
-index b078e33..db39542 100644
---- a/opensm/osm_helper.c
-+++ b/opensm/osm_helper.c
-@@ -3185,7 +3185,7 @@ static const char *lsea_str_fixed_width[] = {
- const char *osm_get_lsa_str(IN uint8_t lsa, IN uint8_t lsea, IN uint8_t state,
- 			    IN uint8_t fdr10)
- {
--	if (lsa > IB_LINK_SPEED_ACTIVE_10)
-+	if (lsa > IB_LINK_SPEED_ACTIVE_10 || state == IB_LINK_DOWN)
- 		return lsa_str_fixed_width[3];
- 	if (lsea == IB_LINK_SPEED_EXT_ACTIVE_NONE) {
- 		if (fdr10)
+diff --git a/opensm/osm_sa_mad_ctrl.c b/opensm/osm_sa_mad_ctrl.c
+index 72ebe6a..b838787 100644
+--- a/opensm/osm_sa_mad_ctrl.c
++++ b/opensm/osm_sa_mad_ctrl.c
+@@ -242,8 +242,9 @@ static void sa_mad_ctrl_process(IN osm_sa_mad_ctrl_t * p_ctrl,
+ 
+ 	default:
+ 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 1A01: "
+-			"Unsupported attribute 0x%X\n",
+-			cl_ntoh16(p_sa_mad->attr_id));
++			"Unsupported attribute 0x%X (%s)\n",
++			cl_ntoh16(p_sa_mad->attr_id),
++			ib_get_sa_attr_str(p_sa_mad->attr_id));
+ 		osm_dump_sa_mad_v2(p_ctrl->p_log, p_sa_mad, FILE_ID, OSM_LOG_ERROR);
+ 	}
+ 
+diff --git a/opensm/osm_sm_mad_ctrl.c b/opensm/osm_sm_mad_ctrl.c
+index d166587..85ad088 100644
+--- a/opensm/osm_sm_mad_ctrl.c
++++ b/opensm/osm_sm_mad_ctrl.c
+@@ -262,8 +262,9 @@ static void sm_mad_ctrl_process_get_resp(IN osm_sm_mad_ctrl_t * p_ctrl,
+ 	default:
+ 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
+ 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3103: "
+-			"Unsupported attribute 0x%X\n",
+-			cl_ntoh16(p_smp->attr_id));
++			"Unsupported attribute 0x%X (%s)\n",
++			cl_ntoh16(p_smp->attr_id),
++			ib_get_sm_attr_str(p_smp->attr_id));
+ 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
+ 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
+ 		goto Exit;
+@@ -392,8 +393,9 @@ static void sm_mad_ctrl_process_set(IN osm_sm_mad_ctrl_t * p_ctrl,
+ 	default:
+ 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
+ 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3107: "
+-			"Unsupported attribute 0x%X\n",
+-			cl_ntoh16(p_smp->attr_id));
++			"Unsupported attribute 0x%X (%s)\n",
++			cl_ntoh16(p_smp->attr_id),
++			ib_get_sm_attr_str(p_smp->attr_id));
+ 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
+ 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
+ 		goto Exit;
+@@ -471,8 +473,9 @@ static void sm_mad_ctrl_process_trap(IN osm_sm_mad_ctrl_t * p_ctrl,
+ 	default:
+ 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
+ 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3109: "
+-			"Unsupported attribute 0x%X\n",
+-			cl_ntoh16(p_smp->attr_id));
++			"Unsupported attribute 0x%X (%s)\n",
++			cl_ntoh16(p_smp->attr_id),
++			ib_get_sm_attr_str(p_smp->attr_id));
+ 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
+ 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
+ 		goto Exit;
+@@ -540,8 +543,9 @@ static void sm_mad_ctrl_process_trap_repress(IN osm_sm_mad_ctrl_t * p_ctrl,
+ 	default:
+ 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
+ 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3105: "
+-			"Unsupported attribute 0x%X\n",
+-			cl_ntoh16(p_smp->attr_id));
++			"Unsupported attribute 0x%X (%s)\n",
++			cl_ntoh16(p_smp->attr_id),
++			ib_get_sm_attr_str(p_smp->attr_id));
+ 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
+ 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
+ 		break;
 -- 
 1.7.8.2
 
