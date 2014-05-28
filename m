@@ -1,95 +1,37 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_[sm sa]_mad_ctrl.c: Improve unsupported attribute
- error messages
-Date: Wed, 28 May 2014 09:06:45 -0400
-Message-ID: <5385DF65.10207@dev.mellanox.co.il>
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: [PATCH v1 for-next 0/3] IB: Use GFP_NOIO calls in IPoIB connected
+ mode TX path
+Date: Wed, 28 May 2014 16:57:31 +0300
+Message-ID: <CAJZOPZ+OPc9VWqwyE_erZfQbQ0VV-0yr7NiCyJOH5LUM_xyx2g@mail.gmail.com>
+References: <1399810512-30774-1-git-send-email-ogerlitz@mellanox.com>
+	<alpine.LNX.2.00.1405131338030.16459@pobox.suse.cz>
+	<CAJZOPZJVxF6A-3s16feqoWCb5gOLTjyUmB3F+st1+1QWp+bJnQ@mail.gmail.com>
+	<CAL1RGDUoEFF=fR-e-fc1v0yHp8sxaidBnO_2iiAFThgZNvCcfQ@mail.gmail.com>
+	<alpine.LNX.2.00.1405261251520.12047@pobox.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1405261251520.12047@pobox.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, Amir Vadai <amirv@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Mel Gorman <mgorman@suse.de>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>, Jiri Kosina <jkosina@suse.cz>, Roland Dreier <roland@purestorage.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, May 26, 2014 at 1:52 PM, Jiri Kosina <jkosina@suse.cz> wrote:
+> On Mon, 19 May 2014, Roland Dreier wrote:
+>
+>> > Roland, we're soon on -rc6 and there's no reason for this to miss
+>>> 3.16, could you please comment whether you want it to go through your
+>>> tree or net-next?
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sa_mad_ctrl.c |    5 +++--
- opensm/osm_sm_mad_ctrl.c |   20 ++++++++++++--------
- 2 files changed, 15 insertions(+), 10 deletions(-)
+>> I will pick it up.
 
-diff --git a/opensm/osm_sa_mad_ctrl.c b/opensm/osm_sa_mad_ctrl.c
-index 72ebe6a..b838787 100644
---- a/opensm/osm_sa_mad_ctrl.c
-+++ b/opensm/osm_sa_mad_ctrl.c
-@@ -242,8 +242,9 @@ static void sa_mad_ctrl_process(IN osm_sa_mad_ctrl_t * p_ctrl,
- 
- 	default:
- 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 1A01: "
--			"Unsupported attribute 0x%X\n",
--			cl_ntoh16(p_sa_mad->attr_id));
-+			"Unsupported attribute 0x%X (%s)\n",
-+			cl_ntoh16(p_sa_mad->attr_id),
-+			ib_get_sa_attr_str(p_sa_mad->attr_id));
- 		osm_dump_sa_mad_v2(p_ctrl->p_log, p_sa_mad, FILE_ID, OSM_LOG_ERROR);
- 	}
- 
-diff --git a/opensm/osm_sm_mad_ctrl.c b/opensm/osm_sm_mad_ctrl.c
-index d166587..85ad088 100644
---- a/opensm/osm_sm_mad_ctrl.c
-+++ b/opensm/osm_sm_mad_ctrl.c
-@@ -262,8 +262,9 @@ static void sm_mad_ctrl_process_get_resp(IN osm_sm_mad_ctrl_t * p_ctrl,
- 	default:
- 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
- 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3103: "
--			"Unsupported attribute 0x%X\n",
--			cl_ntoh16(p_smp->attr_id));
-+			"Unsupported attribute 0x%X (%s)\n",
-+			cl_ntoh16(p_smp->attr_id),
-+			ib_get_sm_attr_str(p_smp->attr_id));
- 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
- 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
- 		goto Exit;
-@@ -392,8 +393,9 @@ static void sm_mad_ctrl_process_set(IN osm_sm_mad_ctrl_t * p_ctrl,
- 	default:
- 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
- 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3107: "
--			"Unsupported attribute 0x%X\n",
--			cl_ntoh16(p_smp->attr_id));
-+			"Unsupported attribute 0x%X (%s)\n",
-+			cl_ntoh16(p_smp->attr_id),
-+			ib_get_sm_attr_str(p_smp->attr_id));
- 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
- 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
- 		goto Exit;
-@@ -471,8 +473,9 @@ static void sm_mad_ctrl_process_trap(IN osm_sm_mad_ctrl_t * p_ctrl,
- 	default:
- 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
- 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3109: "
--			"Unsupported attribute 0x%X\n",
--			cl_ntoh16(p_smp->attr_id));
-+			"Unsupported attribute 0x%X (%s)\n",
-+			cl_ntoh16(p_smp->attr_id),
-+			ib_get_sm_attr_str(p_smp->attr_id));
- 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
- 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
- 		goto Exit;
-@@ -540,8 +543,9 @@ static void sm_mad_ctrl_process_trap_repress(IN osm_sm_mad_ctrl_t * p_ctrl,
- 	default:
- 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
- 		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3105: "
--			"Unsupported attribute 0x%X\n",
--			cl_ntoh16(p_smp->attr_id));
-+			"Unsupported attribute 0x%X (%s)\n",
-+			cl_ntoh16(p_smp->attr_id),
-+			ib_get_sm_attr_str(p_smp->attr_id));
- 		osm_dump_dr_smp_v2(p_ctrl->p_log, p_smp, FILE_ID, OSM_LOG_ERROR);
- 		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
- 		break;
--- 
-1.7.8.2
+> Thanks Roland.
+> Sorry for being a bit persistent, but another week has passed, -rc7 is out
+> and I still don't see it in your tree. Could you please clarify what is
+> the destiny of this patchset?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Roland, so M2 starts worrying, you have picked into your for-next
+branch yesterday the other pending series, but not this one, so?
+
+Or.
