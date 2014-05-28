@@ -1,226 +1,62 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v5 24/24] xprtrdma: Disconnect on registration failure
-Date: Wed, 28 May 2014 10:35:14 -0400
-Message-ID: <20140528143514.23214.18295.stgit@manet.1015granger.net>
-References: <20140528142521.23214.39655.stgit@manet.1015granger.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] PerfMgr: Eliminate no longer used sig_sweep variable
+Date: Wed, 28 May 2014 16:01:07 -0400
+Message-ID: <53864083.2060305@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140528142521.23214.39655.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If rpcrdma_register_external() fails during request marshaling, the
-current RPC request is killed. Instead, this RPC should be retried
-after reconnecting the transport instance.
 
-The most likely reason for registration failure with FRMR is a
-failed post_send, which would be due to a remote transport
-disconnect or memory exhaustion. These issues can be recovered
-by a retry.
+sig_sweep was mostly neutered back in 2007.
 
-Problems encountered in the marshaling logic itself will not be
-corrected by trying again, so these should still kill a request.
+Code in osm_perfmgr.c:osm_perfmgr_process is problematic
+if max_outstanding_queries is exceeded as nothing signals
+sig_sweep event anymore. Remove this as this code is no
+longer needed.
 
-Now that we've added a clean exit for marshaling errors, take the
-opportunity to defang some BUG_ON's.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-
- net/sunrpc/xprtrdma/rpc_rdma.c  |   48 +++++++++++++++++++++++++--------------
- net/sunrpc/xprtrdma/transport.c |   17 +++++++++-----
- 2 files changed, 42 insertions(+), 23 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 77b84cf..693966d 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -77,6 +77,8 @@ static const char transfertypes[][12] = {
-  * Prepare the passed-in xdr_buf into representation as RPC/RDMA chunk
-  * elements. Segments are then coalesced when registered, if possible
-  * within the selected memreg mode.
-+ *
-+ * Returns positive number of segments converted, or a negative errno.
-  */
+diff --git a/include/opensm/osm_perfmgr.h b/include/opensm/osm_perfmgr.h
+index 93e57a6..ab02c26 100644
+--- a/include/opensm/osm_perfmgr.h
++++ b/include/opensm/osm_perfmgr.h
+@@ -125,7 +125,6 @@ struct osm_opensm;
+ *  be manipulated only through the provided functions.
+ */
+ typedef struct osm_perfmgr {
+-	cl_event_t sig_sweep;
+ 	cl_timer_t sweep_timer;
+ 	struct osm_opensm *osm;
+ 	osm_subn_t *subn;
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index 2db9585..1c0ed46 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -1071,10 +1071,6 @@ void osm_perfmgr_process(osm_perfmgr_t * pm)
+ 	remove_marked_nodes(pm);
  
- static int
-@@ -103,12 +105,13 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
- 			/* alloc the pagelist for receiving buffer */
- 			ppages[p] = alloc_page(GFP_ATOMIC);
- 			if (!ppages[p])
--				return 0;
-+				return -ENOMEM;
- 		}
- 		seg[n].mr_page = ppages[p];
- 		seg[n].mr_offset = (void *)(unsigned long) page_base;
- 		seg[n].mr_len = min_t(u32, PAGE_SIZE - page_base, len);
--		BUG_ON(seg[n].mr_len > PAGE_SIZE);
-+		if (seg[n].mr_len > PAGE_SIZE)
-+			return -EIO;
- 		len -= seg[n].mr_len;
- 		++n;
- 		++p;
-@@ -117,7 +120,7 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
- 
- 	/* Message overflows the seg array */
- 	if (len && n == nsegs)
--		return 0;
-+		return -EIO;
- 
- 	if (xdrbuf->tail[0].iov_len) {
- 		/* the rpcrdma protocol allows us to omit any trailing
-@@ -126,7 +129,7 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
- 			return n;
- 		if (n == nsegs)
- 			/* Tail remains, but we're out of segments */
--			return 0;
-+			return -EIO;
- 		seg[n].mr_page = NULL;
- 		seg[n].mr_offset = xdrbuf->tail[0].iov_base;
- 		seg[n].mr_len = xdrbuf->tail[0].iov_len;
-@@ -167,15 +170,17 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
-  *  Reply chunk (a counted array):
-  *   N elements:
-  *    1 - N - HLOO - HLOO - ... - HLOO
-+ *
-+ * Returns positive RPC/RDMA header size, or negative errno.
-  */
- 
--static unsigned int
-+static ssize_t
- rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- 		struct rpcrdma_msg *headerp, enum rpcrdma_chunktype type)
- {
- 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(rqst->rq_xprt);
--	int nsegs, nchunks = 0;
-+	int n, nsegs, nchunks = 0;
- 	unsigned int pos;
- 	struct rpcrdma_mr_seg *seg = req->rl_segments;
- 	struct rpcrdma_read_chunk *cur_rchunk = NULL;
-@@ -201,11 +206,11 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- 		pos = target->head[0].iov_len;
- 
- 	nsegs = rpcrdma_convert_iovs(target, pos, type, seg, RPCRDMA_MAX_SEGS);
--	if (nsegs == 0)
--		return 0;
-+	if (nsegs < 0)
-+		return nsegs;
- 
- 	do {
--		int n = rpcrdma_register_external(seg, nsegs,
-+		n = rpcrdma_register_external(seg, nsegs,
- 						cur_wchunk != NULL, r_xprt);
- 		if (n <= 0)
- 			goto out;
-@@ -277,7 +282,7 @@ out:
- 	for (pos = 0; nchunks--;)
- 		pos += rpcrdma_deregister_external(
- 				&req->rl_segments[pos], r_xprt);
--	return 0;
-+	return n;
- }
- 
- /*
-@@ -359,6 +364,8 @@ rpcrdma_inline_pullup(struct rpc_rqst *rqst, int pad)
-  *  [1] -- the RPC header/data, marshaled by RPC and the NFS protocol.
-  *  [2] -- optional padding.
-  *  [3] -- if padded, header only in [1] and data here.
-+ *
-+ * Returns zero on success, otherwise a negative errno.
-  */
- 
- int
-@@ -368,7 +375,8 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
- 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
- 	char *base;
--	size_t hdrlen, rpclen, padlen;
-+	size_t rpclen, padlen;
-+	ssize_t hdrlen;
- 	enum rpcrdma_chunktype rtype, wtype;
- 	struct rpcrdma_msg *headerp;
- 
-@@ -439,7 +447,11 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	/* The following simplification is not true forever */
- 	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
- 		wtype = rpcrdma_noch;
--	BUG_ON(rtype != rpcrdma_noch && wtype != rpcrdma_noch);
-+	if (rtype != rpcrdma_noch && wtype != rpcrdma_noch) {
-+		dprintk("RPC:       %s: cannot marshal multiple chunk lists\n",
-+			__func__);
-+		return -EIO;
-+	}
- 
- 	hdrlen = 28; /*sizeof *headerp;*/
- 	padlen = 0;
-@@ -464,8 +476,11 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 			headerp->rm_body.rm_padded.rm_pempty[1] = xdr_zero;
- 			headerp->rm_body.rm_padded.rm_pempty[2] = xdr_zero;
- 			hdrlen += 2 * sizeof(u32); /* extra words in padhdr */
--			BUG_ON(wtype != rpcrdma_noch);
+ #ifdef ENABLE_OSM_PERF_MGR_PROFILE
+-	/* spin on outstanding queries */
+-	while (pm->outstanding_queries > 0)
+-		cl_event_wait_on(&pm->sig_sweep, 1000, TRUE);
 -
-+			if (wtype != rpcrdma_noch) {
-+				dprintk("RPC:       %s: invalid chunk list\n",
-+					__func__);
-+				return -EIO;
-+			}
- 		} else {
- 			headerp->rm_body.rm_nochunks.rm_empty[0] = xdr_zero;
- 			headerp->rm_body.rm_nochunks.rm_empty[1] = xdr_zero;
-@@ -500,9 +515,8 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 		hdrlen = rpcrdma_create_chunks(rqst,
- 					&rqst->rq_rcv_buf, headerp, wtype);
- 	}
--
--	if (hdrlen == 0)
--		return -1;
-+	if (hdrlen < 0)
-+		return hdrlen;
+ 	gettimeofday(&after, NULL);
+ 	diff_time(&before, &after, &after);
+ 	osm_log_v2(pm->log, OSM_LOG_INFO, FILE_ID,
+@@ -1876,8 +1872,6 @@ ib_api_status_t osm_perfmgr_init(osm_perfmgr_t * pm, osm_opensm_t * osm,
  
- 	dprintk("RPC:       %s: %s: hdrlen %zd rpclen %zd padlen %zd"
- 		" headerp 0x%p base 0x%p lkey 0x%x\n",
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 93fe775..66f91f0 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -595,13 +595,12 @@ xprt_rdma_send_request(struct rpc_task *task)
- 	struct rpc_xprt *xprt = rqst->rq_xprt;
- 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
-+	int rc;
+ 	memset(pm, 0, sizeof(*pm));
  
--	/* marshal the send itself */
--	if (req->rl_niovs == 0 && rpcrdma_marshal_req(rqst) != 0) {
--		r_xprt->rx_stats.failed_marshal_count++;
--		dprintk("RPC:       %s: rpcrdma_marshal_req failed\n",
--			__func__);
--		return -EIO;
-+	if (req->rl_niovs == 0) {
-+		rc = rpcrdma_marshal_req(rqst);
-+		if (rc < 0)
-+			goto failed_marshal;
- 	}
- 
- 	if (req->rl_reply == NULL) 		/* e.g. reconnection */
-@@ -625,6 +624,12 @@ xprt_rdma_send_request(struct rpc_task *task)
- 	rqst->rq_bytes_sent = 0;
- 	return 0;
- 
-+failed_marshal:
-+	r_xprt->rx_stats.failed_marshal_count++;
-+	dprintk("RPC:       %s: rpcrdma_marshal_req failed, status %i\n",
-+		__func__, rc);
-+	if (rc == -EIO)
-+		return -EIO;
- drop_connection:
- 	xprt_disconnect_done(xprt);
- 	return -ENOTCONN;	/* implies disconnect */
-
+-	cl_event_construct(&pm->sig_sweep);
+-	cl_event_init(&pm->sig_sweep, FALSE);
+ 	pm->subn = &osm->subn;
+ 	pm->sm = &osm->sm;
+ 	pm->log = &osm->log;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
