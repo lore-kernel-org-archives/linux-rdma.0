@@ -1,94 +1,116 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v5 21/24] SUNRPC: Move congestion window constants to header
-	file
-Date: Wed, 28 May 2014 10:34:49 -0400
-Message-ID: <20140528143449.23214.29020.stgit@manet.1015granger.net>
+Subject: [PATCH v5 22/24] xprtrdma: Avoid deadlock when credit window is reset
+Date: Wed, 28 May 2014 10:34:57 -0400
+Message-ID: <20140528143457.23214.69527.stgit@manet.1015granger.net>
 References: <20140528142521.23214.39655.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140528142521.23214.39655.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I would like to use one of the RPC client's congestion algorithm
-constants in transport-specific code.
+Update the cwnd while processing the server's reply.  Otherwise the
+next task on the xprt_sending queue is still subject to the old
+credit window. Currently, no task is awoken if the old congestion
+window is still exceeded, even if the new window is larger, and a
+deadlock results.
+
+This is an issue during a transport reconnect. Servers don't
+normally shrink the credit window, but the client does reset it to
+1 when reconnecting so the server can safely grow it again.
+
+As a minor optimization, remove the hack of grabbing the initial
+cwnd size (which happens to be RPC_CWNDSCALE) and using that value
+as the congestion scaling factor. The scaling value is invariant,
+and we are better off without the multiplication operation.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- include/linux/sunrpc/xprt.h |    6 ++++++
- net/sunrpc/xprt.c           |   28 +++++++++-------------------
- 2 files changed, 15 insertions(+), 19 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c  |    6 ++++++
+ net/sunrpc/xprtrdma/transport.c |   19 +------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    1 -
+ 3 files changed, 7 insertions(+), 19 deletions(-)
 
-diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
-index 3e5efb2..5903d2c 100644
---- a/include/linux/sunrpc/xprt.h
-+++ b/include/linux/sunrpc/xprt.h
-@@ -24,6 +24,12 @@
- #define RPC_MAX_SLOT_TABLE_LIMIT	(65536U)
- #define RPC_MAX_SLOT_TABLE	RPC_MAX_SLOT_TABLE_LIMIT
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index ac65b0c..77b84cf 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -716,6 +716,7 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+ 	__be32 *iptr;
+ 	int rdmalen, status;
++	unsigned long cwnd;
  
-+#define RPC_CWNDSHIFT		(8U)
-+#define RPC_CWNDSCALE		(1U << RPC_CWNDSHIFT)
-+#define RPC_INITCWND		RPC_CWNDSCALE
-+#define RPC_MAXCWND(xprt)	((xprt)->max_reqs << RPC_CWNDSHIFT)
-+#define RPCXPRT_CONGESTED(xprt) ((xprt)->cong >= (xprt)->cwnd)
+ 	/* Check status. If bad, signal disconnect and return rep to pool */
+ 	if (rep->rr_len == ~0U) {
+@@ -845,6 +846,11 @@ badheader:
+ 		break;
+ 	}
+ 
++	cwnd = xprt->cwnd;
++	xprt->cwnd = atomic_read(&r_xprt->rx_buf.rb_credits) << RPC_CWNDSHIFT;
++	if (xprt->cwnd > cwnd)
++		xprt_release_rqst_cong(rqst->rq_task);
 +
- /*
-  * This describes a timeout strategy
-  */
-diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
-index d173f79..2d1d5a6 100644
---- a/net/sunrpc/xprt.c
-+++ b/net/sunrpc/xprt.c
-@@ -71,24 +71,6 @@ static void	 xprt_destroy(struct rpc_xprt *xprt);
- static DEFINE_SPINLOCK(xprt_list_lock);
- static LIST_HEAD(xprt_list);
+ 	dprintk("RPC:       %s: xprt_complete_rqst(0x%p, 0x%p, %d)\n",
+ 			__func__, xprt, rqst, status);
+ 	xprt_complete_rqst(rqst->rq_task, status);
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 6b84d7d..187894b 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -448,23 +448,6 @@ xprt_rdma_connect(struct rpc_xprt *xprt, struct rpc_task *task)
+ 	}
+ }
  
--/*
-- * The transport code maintains an estimate on the maximum number of out-
-- * standing RPC requests, using a smoothed version of the congestion
-- * avoidance implemented in 44BSD. This is basically the Van Jacobson
-- * congestion algorithm: If a retransmit occurs, the congestion window is
-- * halved; otherwise, it is incremented by 1/cwnd when
-- *
-- *	-	a reply is received and
-- *	-	a full number of requests are outstanding and
-- *	-	the congestion window hasn't been updated recently.
-- */
--#define RPC_CWNDSHIFT		(8U)
--#define RPC_CWNDSCALE		(1U << RPC_CWNDSHIFT)
--#define RPC_INITCWND		RPC_CWNDSCALE
--#define RPC_MAXCWND(xprt)	((xprt)->max_reqs << RPC_CWNDSHIFT)
+-static int
+-xprt_rdma_reserve_xprt(struct rpc_xprt *xprt, struct rpc_task *task)
+-{
+-	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+-	int credits = atomic_read(&r_xprt->rx_buf.rb_credits);
 -
--#define RPCXPRT_CONGESTED(xprt) ((xprt)->cong >= (xprt)->cwnd)
+-	/* == RPC_CWNDSCALE @ init, but *after* setup */
+-	if (r_xprt->rx_buf.rb_cwndscale == 0UL) {
+-		r_xprt->rx_buf.rb_cwndscale = xprt->cwnd;
+-		dprintk("RPC:       %s: cwndscale %lu\n", __func__,
+-			r_xprt->rx_buf.rb_cwndscale);
+-		BUG_ON(r_xprt->rx_buf.rb_cwndscale <= 0);
+-	}
+-	xprt->cwnd = credits * r_xprt->rx_buf.rb_cwndscale;
+-	return xprt_reserve_xprt_cong(xprt, task);
+-}
 -
- /**
-  * xprt_register_transport - register a transport implementation
-  * @transport: transport to register
-@@ -446,7 +428,15 @@ EXPORT_SYMBOL_GPL(xprt_release_rqst_cong);
-  * @task: recently completed RPC request used to adjust window
-  * @result: result code of completed RPC request
-  *
-- * We use a time-smoothed congestion estimator to avoid heavy oscillation.
-+ * The transport code maintains an estimate on the maximum number of out-
-+ * standing RPC requests, using a smoothed version of the congestion
-+ * avoidance implemented in 44BSD. This is basically the Van Jacobson
-+ * congestion algorithm: If a retransmit occurs, the congestion window is
-+ * halved; otherwise, it is incremented by 1/cwnd when
-+ *
-+ *	-	a reply is received and
-+ *	-	a full number of requests are outstanding and
-+ *	-	the congestion window hasn't been updated recently.
+ /*
+  * The RDMA allocate/free functions need the task structure as a place
+  * to hide the struct rpcrdma_req, which is necessary for the actual send/recv
+@@ -686,7 +669,7 @@ static void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
   */
- void xprt_adjust_cwnd(struct rpc_xprt *xprt, struct rpc_task *task, int result)
- {
+ 
+ static struct rpc_xprt_ops xprt_rdma_procs = {
+-	.reserve_xprt		= xprt_rdma_reserve_xprt,
++	.reserve_xprt		= xprt_reserve_xprt_cong,
+ 	.release_xprt		= xprt_release_xprt_cong, /* sunrpc/xprt.c */
+ 	.alloc_slot		= xprt_alloc_slot,
+ 	.release_request	= xprt_release_rqst_cong,       /* ditto */
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 0c3b88e..89e7cd4 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -212,7 +212,6 @@ struct rpcrdma_req {
+ struct rpcrdma_buffer {
+ 	spinlock_t	rb_lock;	/* protects indexes */
+ 	atomic_t	rb_credits;	/* most recent server credits */
+-	unsigned long	rb_cwndscale;	/* cached framework rpc_cwndscale */
+ 	int		rb_max_requests;/* client max requests */
+ 	struct list_head rb_mws;	/* optional memory windows/fmrs/frmrs */
+ 	int		rb_send_index;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
