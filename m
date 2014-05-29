@@ -1,62 +1,66 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v5 00/24] Series short description
-Date: Thu, 29 May 2014 18:36:25 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE0117D@CMEXMB1.ad.emulex.com>
-References: <20140528142521.23214.39655.stgit@manet.1015granger.net>
- <005501cf7b5f$4e4359a0$eaca0ce0$@opengridcomputing.com>
- <EE7902D3F51F404C82415C4803930ACD3FE01148@CMEXMB1.ad.emulex.com>
- <007001cf7b6c$3375b430$9a611c90$@opengridcomputing.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: additional Intel branding changes
+Date: Thu, 29 May 2014 15:46:09 -0400
+Message-ID: <20140529194608.10870.66556.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <007001cf7b6c$3375b430$9a611c90$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T2theSwgSSB3aWxsIHJldGVzdCB5b3VyIHYzIHNvbWV3aGVyZSBhZnRlciA0dGggSnVuZSAyMDE0
-Lg0KDQotVGhhbmtzDQogRGV2ZXNoDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4g
-RnJvbTogU3RldmUgV2lzZSBbbWFpbHRvOnN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbV0NCj4g
-U2VudDogRnJpZGF5LCBNYXkgMzAsIDIwMTQgMTI6MDEgQU0NCj4gVG86IERldmVzaCBTaGFybWE7
-ICdDaHVjayBMZXZlcic7IGxpbnV4LW5mc0B2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiByZG1h
-QHZnZXIua2VybmVsLm9yZw0KPiBDYzogQW5uYS5TY2h1bWFrZXJAbmV0YXBwLmNvbQ0KPiBTdWJq
-ZWN0OiBSRTogW1BBVENIIHY1IDAwLzI0XSBTZXJpZXMgc2hvcnQgZGVzY3JpcHRpb24NCj4gDQo+
-IE5vdGUgSSBqdXN0IHRvZGF5IHB1Ymxpc2hlZCBhIG5ldyBzaW5nbGUgcGF0Y2ggZm9yIHRoZSBz
-ZXJ2ZXIgcmVmYWN0b3IgY2hhbmdlLg0KPiBUaGlzIGlzIFYzIG9mIHRoZSBwYXRjaC4gIEl0IGhh
-cyBhIGNyaXRpY2FsIGJ1ZyBmaXggZnJvbSB0aGUgVjIgdmVyc2lvbiB5b3UncmUNCj4gdXNpbmcu
-ICBQbGVhc2UgdXNlIHRoZSBWMyBwYXRjaCBnb2luZyBmb3J3YXJkLiAgVGhlIGJ1ZyBvbmx5IG1h
-bmlmZXN0ZWQNCj4gd2hlbiB1c2luZyBORlN2NCBhbmQgY2VydGFpbiB0ZXN0cyB0aG91Z2guLi4N
-Cj4gDQo+IFNlZTogaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC80MjY2NTUxLw0K
-PiANCj4gU3RldmUNCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9t
-OiBEZXZlc2ggU2hhcm1hIFttYWlsdG86RGV2ZXNoLlNoYXJtYUBFbXVsZXguQ29tXQ0KPiA+IFNl
-bnQ6IFRodXJzZGF5LCBNYXkgMjksIDIwMTQgMToyOCBQTQ0KPiA+IFRvOiBTdGV2ZSBXaXNlOyAn
-Q2h1Y2sgTGV2ZXInOyBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnOw0KPiA+IGxpbnV4LXJkbWFA
-dmdlci5rZXJuZWwub3JnDQo+ID4gQ2M6IEFubmEuU2NodW1ha2VyQG5ldGFwcC5jb20NCj4gPiBT
-dWJqZWN0OiBSRTogW1BBVENIIHY1IDAwLzI0XSBTZXJpZXMgc2hvcnQgZGVzY3JpcHRpb24NCj4g
-Pg0KPiA+IFdpdGggRW11bGV4IGRldmljZSB0aGlzIHNlcmllcyBpcyB0ZXN0ZWQgSSBydW4gaW96
-b25lIGFuZCBjdGhvbjA0LiBObw0KPiA+IHJlZ3Jlc3Npb25zLCBjYWJsZSBwdWxsIHRlc3QgaXMg
-cGVuZGluZy4NCj4gPiBJIGluY2x1ZGVkIFN0ZXZlJ3MgKHRoZSAzIHBhdGNoZXMgd2hpY2ggaGUg
-cG9zdGVkIHJlY2VudGx5KSBzZXJ2ZXIgc2lkZQ0KPiBjaGFuZ2VzIGFzIHdlbGwuDQo+ID4NCj4g
-PiAtUmVncmRzDQo+ID4gIERldmVzaA0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiA+ID4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0
-bzpsaW51eC1yZG1hLQ0KPiA+ID4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
-U3RldmUgV2lzZQ0KPiA+ID4gU2VudDogVGh1cnNkYXksIE1heSAyOSwgMjAxNCAxMDoyOSBQTQ0K
-PiA+ID4gVG86ICdDaHVjayBMZXZlcic7IGxpbnV4LW5mc0B2Z2VyLmtlcm5lbC5vcmc7DQo+ID4g
-PiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gQ2M6IEFubmEuU2NodW1ha2VyQG5l
-dGFwcC5jb20NCj4gPiA+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggdjUgMDAvMjRdIFNlcmllcyBzaG9y
-dCBkZXNjcmlwdGlvbg0KPiA+ID4NCj4gPiA+IEkgdGVzdGVkIHRoaXMgc2VyaWVzIG92ZXIgY3hn
-YjQgYW5kIG1seDQsIHJ1bm5pbmcgY3Rob24wNCwgZmlvDQo+ID4gPiByZWFkL3JhbmQtcncsIGFu
-ZCB4ZnN0ZXN0cywgYW5kIG92ZXIgbXRoY2EgY3Rob24wNC4gIE5vIHJlZ3Jlc3Npb25zLg0KPiA+
-ID4NCj4gPiA+IFRlc3RlZC1ieTogU3RldmUgV2lzZSA8c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcu
-Y29tPg0KPiA+ID4NCj4gPiA+IC0tDQo+ID4gPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
-dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUNCj4gPiA+IGxpbnV4LXJkbWEiIGluIHRoZSBi
-b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4gPiBNb3Jl
-IG1ham9yZG9tbyBpbmZvIGF0IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
-aHRtbA0KDQo=
+From: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+This patches changes user visible function names containing "qlogic"
+in module init and cleanup.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_init.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 5b7aeb2..8d3c78d 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1272,7 +1272,7 @@ static int qib_notify_dca(struct notifier_block *nb, unsigned long event,
+  * Do all the generic driver unit- and chip-independent memory
+  * allocation and initialization.
+  */
+-static int __init qlogic_ib_init(void)
++static int __init qib_ib_init(void)
+ {
+ 	int ret;
+ 
+@@ -1316,12 +1316,12 @@ bail:
+ 	return ret;
+ }
+ 
+-module_init(qlogic_ib_init);
++module_init(qib_ib_init);
+ 
+ /*
+  * Do the non-unit driver cleanup, memory free, etc. at unload.
+  */
+-static void __exit qlogic_ib_cleanup(void)
++static void __exit qib_ib_cleanup(void)
+ {
+ 	int ret;
+ 
+@@ -1346,7 +1346,7 @@ static void __exit qlogic_ib_cleanup(void)
+ 	qib_dev_cleanup();
+ }
+ 
+-module_exit(qlogic_ib_cleanup);
++module_exit(qib_ib_cleanup);
+ 
+ /* this can only be called after a successful initialization */
+ static void cleanup_device_data(struct qib_devdata *dd)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
