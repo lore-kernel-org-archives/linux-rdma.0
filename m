@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 3/6] IB/mlx4: SET_PORT called by mlx4_ib_modify_port should be wrapped
-Date: Thu, 29 May 2014 16:31:01 +0300
-Message-ID: <1401370264-4818-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 5/6] mlx4: Add infrastructure for selecting VFs to enable QP0 via MLX proxy QPs
+Date: Thu, 29 May 2014 16:31:03 +0300
+Message-ID: <1401370264-4818-6-git-send-email-ogerlitz@mellanox.com>
 References: <1401370264-4818-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1401370264-4818-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,98 +12,490 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-mlx4_ib_modify_port is invoked in IB for resetting the q-key violations
-counters, and for modifying the IB port capability flags.
+This commit adds the infrastructure for enabling selected VFs to
+operate SMI (QP0) MADs without restriction.
 
-For example, when opensm is started up on the Hypervisor,
-mlx4_ib_modify_port is called to set the port's IsSM flag.
+Additionally, for these enabled VFs, their QP0 proxy and tunnel QPs are
+MLX qps. As such, they operate over VL15.  Therefore, they are not
+affected by "credit" problems or changes in the VLArb table (which may
+shut down VL0).
 
-In multifunction mode, the SET_PORT command used in this flow should
-be wrapped (so that the PF port capability flags are also tracked,
-thus enabling the aggregate of all the VF/PF capability flags to be
-tracked properly).
+Non-enabled VFs may only create UD proxy QP0 qps (which are forced by the
+Hypervisor to send packets using the q-key it assigns and places in the
+qp-context). Thus, non-enabled VFs will not pose a security risk.
+The Hypervisor discards any privileged MADs it receives from these
+non-enabled VFs.
 
-The procedure mlx4_SET_PORT() in main.c is also renamed to mlx4_ib_SET_PORT()
-to differentiate it from procedure mlx4_SET_PORT() in file port.c.
-mlx4_ib_SET_PORT() is used exclusively by mlx4_ib_modify_port().
+By default, all VFs are NOT enabled, and must explicitly be enabled
+by the administrator.
 
-Finally, the CM invokes ib_modify_port() to set the IsCMSupported flag
-even when running over RoCE. Therefore, when RoCE is active,
-mlx4_ib_modify_port should return OK unconditionally (since the
-capability flags and qkey violations counter are not relevant).
+The sysfs interface which operates the VF enablement infrastructure
+is provided in the next commit.
 
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |   26 +++++++++++++++++---------
- 1 files changed, 17 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c                    |   52 +++++++++++++++-----
+ drivers/net/ethernet/mellanox/mlx4/cmd.c           |   13 +++++-
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |   44 +++++++++++-----
+ drivers/net/ethernet/mellanox/mlx4/fw.h            |    1 +
+ drivers/net/ethernet/mellanox/mlx4/main.c          |   16 +++++-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |    8 +++
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |   26 ++++++++--
+ include/linux/mlx4/device.h                        |    1 +
+ 8 files changed, 126 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 1b6dbe1..3c3806a 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -544,12 +544,11 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
- 	return 0;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 2e8c588..b256009 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -608,6 +608,16 @@ static int qp_has_rq(struct ib_qp_init_attr *attr)
+ 	return !attr->srq;
  }
  
--static int mlx4_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
--			 u32 cap_mask)
-+static int mlx4_ib_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
-+			    u32 cap_mask)
- {
- 	struct mlx4_cmd_mailbox *mailbox;
- 	int err;
--	u8 is_eth = dev->dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH;
- 
- 	mailbox = mlx4_alloc_cmd_mailbox(dev->dev);
- 	if (IS_ERR(mailbox))
-@@ -563,8 +562,8 @@ static int mlx4_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
- 		((__be32 *) mailbox->buf)[1] = cpu_to_be32(cap_mask);
- 	}
- 
--	err = mlx4_cmd(dev->dev, mailbox->dma, port, is_eth, MLX4_CMD_SET_PORT,
--		       MLX4_CMD_TIME_CLASS_B, MLX4_CMD_NATIVE);
-+	err = mlx4_cmd(dev->dev, mailbox->dma, port, 0, MLX4_CMD_SET_PORT,
-+		       MLX4_CMD_TIME_CLASS_B, MLX4_CMD_WRAPPED);
- 
- 	mlx4_free_cmd_mailbox(dev->dev, mailbox);
++static int qp0_enabled_vf(struct mlx4_dev *dev, int qpn)
++{
++	int i;
++	for (i = 0; i < dev->caps.num_ports; i++) {
++		if (qpn == dev->caps.qp0_proxy[i])
++			return !!dev->caps.qp0_qkey[i];
++	}
++	return 0;
++}
++
+ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			    struct ib_qp_init_attr *init_attr,
+ 			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp **caller_qp)
+@@ -625,10 +635,13 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 		     !(init_attr->create_flags & MLX4_IB_SRIOV_SQP))) {
+ 			if (init_attr->qp_type == IB_QPT_GSI)
+ 				qp_type = MLX4_IB_QPT_PROXY_GSI;
+-			else if (mlx4_is_master(dev->dev))
+-				qp_type = MLX4_IB_QPT_PROXY_SMI_OWNER;
+-			else
+-				qp_type = MLX4_IB_QPT_PROXY_SMI;
++			else {
++				if (mlx4_is_master(dev->dev) ||
++				    qp0_enabled_vf(dev->dev, sqpn))
++					qp_type = MLX4_IB_QPT_PROXY_SMI_OWNER;
++				else
++					qp_type = MLX4_IB_QPT_PROXY_SMI;
++			}
+ 		}
+ 		qpn = sqpn;
+ 		/* add extra sg entry for tunneling */
+@@ -643,7 +656,9 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			return -EINVAL;
+ 		if (tnl_init->proxy_qp_type == IB_QPT_GSI)
+ 			qp_type = MLX4_IB_QPT_TUN_GSI;
+-		else if (tnl_init->slave == mlx4_master_func_num(dev->dev))
++		else if (tnl_init->slave == mlx4_master_func_num(dev->dev) ||
++			 mlx4_vf_smi_enabled(dev->dev, tnl_init->slave,
++					     tnl_init->port))
+ 			qp_type = MLX4_IB_QPT_TUN_SMI_OWNER;
+ 		else
+ 			qp_type = MLX4_IB_QPT_TUN_SMI;
+@@ -1930,6 +1945,19 @@ out:
  	return err;
-@@ -573,11 +572,20 @@ static int mlx4_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
- static int mlx4_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
- 			       struct ib_port_modify *props)
- {
-+	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
-+	u8 is_eth = mdev->dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH;
- 	struct ib_port_attr attr;
- 	u32 cap_mask;
- 	int err;
+ }
  
--	mutex_lock(&to_mdev(ibdev)->cap_mask_mutex);
-+	/* return OK if this is RoCE. CM calls ib_modify_port() regardless
-+	 * of whether port link layer is ETH or IB. For ETH ports, qkey
-+	 * violations and port capabilities are not meaningful.
-+	 */
-+	if (is_eth)
++static int vf_get_qp0_qkey(struct mlx4_dev *dev, int qpn, u32 *qkey)
++{
++	int i;
++	for (i = 0; i < dev->caps.num_ports; i++) {
++		if (qpn == dev->caps.qp0_proxy[i] ||
++		    qpn == dev->caps.qp0_tunnel[i]) {
++			*qkey = dev->caps.qp0_qkey[i];
++			return 0;
++		}
++	}
++	return -EINVAL;
++}
++
+ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
+ 				  struct ib_send_wr *wr,
+ 				  void *wqe, unsigned *mlx_seg_len)
+@@ -1987,8 +2015,13 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
+ 			cpu_to_be32(mdev->dev->caps.qp0_tunnel[sqp->qp.port - 1]);
+ 
+ 	sqp->ud_header.bth.psn = cpu_to_be32((sqp->send_psn++) & ((1 << 24) - 1));
+-	if (mlx4_get_parav_qkey(mdev->dev, sqp->qp.mqp.qpn, &qkey))
+-		return -EINVAL;
++	if (mlx4_is_master(mdev->dev)) {
++		if (mlx4_get_parav_qkey(mdev->dev, sqp->qp.mqp.qpn, &qkey))
++			return -EINVAL;
++	} else {
++		if (vf_get_qp0_qkey(mdev->dev, sqp->qp.mqp.qpn, &qkey))
++			return -EINVAL;
++	}
+ 	sqp->ud_header.deth.qkey = cpu_to_be32(qkey);
+ 	sqp->ud_header.deth.source_qpn = cpu_to_be32(sqp->qp.mqp.qpn);
+ 
+@@ -2682,11 +2715,6 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			break;
+ 
+ 		case MLX4_IB_QPT_PROXY_SMI_OWNER:
+-			if (unlikely(!mlx4_is_master(to_mdev(ibqp->device)->dev))) {
+-				err = -ENOSYS;
+-				*bad_wr = wr;
+-				goto out;
+-			}
+ 			err = build_sriov_qp0_header(to_msqp(qp), wr, ctrl, &seglen);
+ 			if (unlikely(err)) {
+ 				*bad_wr = wr;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index b0e48d4..26c3eba 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -1666,6 +1666,8 @@ static int mlx4_master_activate_admin_state(struct mlx4_priv *priv, int slave)
+ 	for (port = min_port; port <= max_port; port++) {
+ 		if (!test_bit(port - 1, actv_ports.ports))
+ 			continue;
++		priv->mfunc.master.vf_oper[slave].smi_enabled[port] =
++			priv->mfunc.master.vf_admin[slave].enable_smi[port];
+ 		vp_oper = &priv->mfunc.master.vf_oper[slave].vport[port];
+ 		vp_admin = &priv->mfunc.master.vf_admin[slave].vport[port];
+ 		vp_oper->state = *vp_admin;
+@@ -1717,6 +1719,8 @@ static void mlx4_master_deactivate_admin_state(struct mlx4_priv *priv, int slave
+ 	for (port = min_port; port <= max_port; port++) {
+ 		if (!test_bit(port - 1, actv_ports.ports))
+ 			continue;
++		priv->mfunc.master.vf_oper[slave].smi_enabled[port] =
++			MLX4_VF_SMI_DISABLED;
+ 		vp_oper = &priv->mfunc.master.vf_oper[slave].vport[port];
+ 		if (NO_INDX != vp_oper->vlan_idx) {
+ 			__mlx4_unregister_vlan(&priv->dev,
+@@ -2553,6 +2557,13 @@ EXPORT_SYMBOL_GPL(mlx4_set_vf_link_state);
+ 
+ int mlx4_vf_smi_enabled(struct mlx4_dev *dev, int slave, int port)
+ {
+-	return 0;
++	struct mlx4_priv *priv = mlx4_priv(dev);
++
++	if (slave < 1 || slave >= dev->num_slaves ||
++	    port < 1 || port > MLX4_MAX_PORTS)
 +		return 0;
 +
-+	mutex_lock(&mdev->cap_mask_mutex);
++	return priv->mfunc.master.vf_oper[slave].smi_enabled[port] ==
++		MLX4_VF_SMI_ENABLED;
+ }
+ EXPORT_SYMBOL_GPL(mlx4_vf_smi_enabled);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index ef242e1..01e6dd6 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -178,8 +178,8 @@ int mlx4_QUERY_FUNC_CAP_wrapper(struct mlx4_dev *dev, int slave,
+ 				struct mlx4_cmd_info *cmd)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+-	u8	field;
+-	u32	size;
++	u8	field, port;
++	u32	size, proxy_qp, qkey;
+ 	int	err = 0;
  
- 	err = mlx4_ib_query_port(ibdev, port, &attr);
+ #define QUERY_FUNC_CAP_FLAGS_OFFSET		0x0
+@@ -209,6 +209,7 @@ int mlx4_QUERY_FUNC_CAP_wrapper(struct mlx4_dev *dev, int slave,
+ 
+ /* when opcode modifier = 1 */
+ #define QUERY_FUNC_CAP_PHYS_PORT_OFFSET		0x3
++#define QUERY_FUNC_CAP_PRIV_VF_QKEY_OFFSET	0x4
+ #define QUERY_FUNC_CAP_FLAGS0_OFFSET		0x8
+ #define QUERY_FUNC_CAP_FLAGS1_OFFSET		0xc
+ 
+@@ -221,6 +222,7 @@ int mlx4_QUERY_FUNC_CAP_wrapper(struct mlx4_dev *dev, int slave,
+ #define QUERY_FUNC_CAP_FLAGS1_FORCE_MAC		0x40
+ #define QUERY_FUNC_CAP_FLAGS1_FORCE_VLAN	0x80
+ #define QUERY_FUNC_CAP_FLAGS1_NIC_INFO			0x10
++#define QUERY_FUNC_CAP_VF_ENABLE_QP0		0x08
+ 
+ #define QUERY_FUNC_CAP_FLAGS0_FORCE_PHY_WQE_GID 0x80
+ 
+@@ -234,28 +236,35 @@ int mlx4_QUERY_FUNC_CAP_wrapper(struct mlx4_dev *dev, int slave,
+ 			return -EINVAL;
+ 
+ 		vhcr->in_modifier = converted_port;
+-		/* Set nic_info bit to mark new fields support */
+-		field  = QUERY_FUNC_CAP_FLAGS1_NIC_INFO;
+-		MLX4_PUT(outbox->buf, field, QUERY_FUNC_CAP_FLAGS1_OFFSET);
+-
+ 		/* phys-port = logical-port */
+ 		field = vhcr->in_modifier -
+ 			find_first_bit(actv_ports.ports, dev->caps.num_ports);
+ 		MLX4_PUT(outbox->buf, field, QUERY_FUNC_CAP_PHYS_PORT_OFFSET);
+ 
+-		field = vhcr->in_modifier;
++		port = vhcr->in_modifier;
++		proxy_qp = dev->phys_caps.base_proxy_sqpn + 8 * slave + port - 1;
++
++		/* Set nic_info bit to mark new fields support */
++		field  = QUERY_FUNC_CAP_FLAGS1_NIC_INFO;
++
++		if (mlx4_vf_smi_enabled(dev, slave, port) &&
++		    !mlx4_get_parav_qkey(dev, proxy_qp, &qkey)) {
++			field |= QUERY_FUNC_CAP_VF_ENABLE_QP0;
++			MLX4_PUT(outbox->buf, qkey,
++				 QUERY_FUNC_CAP_PRIV_VF_QKEY_OFFSET);
++		}
++		MLX4_PUT(outbox->buf, field, QUERY_FUNC_CAP_FLAGS1_OFFSET);
++
+ 		/* size is now the QP number */
+-		size = dev->phys_caps.base_tunnel_sqpn + 8 * slave + field - 1;
++		size = dev->phys_caps.base_tunnel_sqpn + 8 * slave + port - 1;
+ 		MLX4_PUT(outbox->buf, size, QUERY_FUNC_CAP_QP0_TUNNEL);
+ 
+ 		size += 2;
+ 		MLX4_PUT(outbox->buf, size, QUERY_FUNC_CAP_QP1_TUNNEL);
+ 
+-		size = dev->phys_caps.base_proxy_sqpn + 8 * slave + field - 1;
+-		MLX4_PUT(outbox->buf, size, QUERY_FUNC_CAP_QP0_PROXY);
+-
+-		size += 2;
+-		MLX4_PUT(outbox->buf, size, QUERY_FUNC_CAP_QP1_PROXY);
++		MLX4_PUT(outbox->buf, proxy_qp, QUERY_FUNC_CAP_QP0_PROXY);
++		proxy_qp += 2;
++		MLX4_PUT(outbox->buf, proxy_qp, QUERY_FUNC_CAP_QP1_PROXY);
+ 
+ 		MLX4_PUT(outbox->buf, dev->caps.phys_port_id[vhcr->in_modifier],
+ 			 QUERY_FUNC_CAP_PHYS_PORT_ID);
+@@ -326,7 +335,7 @@ int mlx4_QUERY_FUNC_CAP(struct mlx4_dev *dev, u32 gen_or_port,
+ 	struct mlx4_cmd_mailbox *mailbox;
+ 	u32			*outbox;
+ 	u8			field, op_modifier;
+-	u32			size;
++	u32			size, qkey;
+ 	int			err = 0, quotas = 0;
+ 
+ 	op_modifier = !!gen_or_port; /* 0 = general, 1 = logical port */
+@@ -442,6 +451,13 @@ int mlx4_QUERY_FUNC_CAP(struct mlx4_dev *dev, u32 gen_or_port,
+ 		goto out;
+ 	}
+ 
++	if (func_cap->flags1 & QUERY_FUNC_CAP_VF_ENABLE_QP0) {
++		MLX4_GET(qkey, outbox, QUERY_FUNC_CAP_PRIV_VF_QKEY_OFFSET);
++		func_cap->qp0_qkey = qkey;
++	} else {
++		func_cap->qp0_qkey = 0;
++	}
++
+ 	MLX4_GET(size, outbox, QUERY_FUNC_CAP_QP0_TUNNEL);
+ 	func_cap->qp0_tunnel_qpn = size & 0xFFFFFF;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.h b/drivers/net/ethernet/mellanox/mlx4/fw.h
+index 6811ee0..1fce03e 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.h
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.h
+@@ -134,6 +134,7 @@ struct mlx4_func_cap {
+ 	int	max_eq;
+ 	int	reserved_eq;
+ 	int	mcg_quota;
++	u32	qp0_qkey;
+ 	u32	qp0_tunnel_qpn;
+ 	u32	qp0_proxy_qpn;
+ 	u32	qp1_tunnel_qpn;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 12a7ee2..9083268 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -666,13 +666,15 @@ static int mlx4_slave_cap(struct mlx4_dev *dev)
+ 		return -ENODEV;
+ 	}
+ 
++	dev->caps.qp0_qkey = kcalloc(dev->caps.num_ports, sizeof(u32), GFP_KERNEL);
+ 	dev->caps.qp0_tunnel = kcalloc(dev->caps.num_ports, sizeof (u32), GFP_KERNEL);
+ 	dev->caps.qp0_proxy = kcalloc(dev->caps.num_ports, sizeof (u32), GFP_KERNEL);
+ 	dev->caps.qp1_tunnel = kcalloc(dev->caps.num_ports, sizeof (u32), GFP_KERNEL);
+ 	dev->caps.qp1_proxy = kcalloc(dev->caps.num_ports, sizeof (u32), GFP_KERNEL);
+ 
+ 	if (!dev->caps.qp0_tunnel || !dev->caps.qp0_proxy ||
+-	    !dev->caps.qp1_tunnel || !dev->caps.qp1_proxy) {
++	    !dev->caps.qp1_tunnel || !dev->caps.qp1_proxy ||
++	    !dev->caps.qp0_qkey) {
+ 		err = -ENOMEM;
+ 		goto err_mem;
+ 	}
+@@ -684,6 +686,7 @@ static int mlx4_slave_cap(struct mlx4_dev *dev)
+ 				 " port %d, aborting (%d).\n", i, err);
+ 			goto err_mem;
+ 		}
++		dev->caps.qp0_qkey[i - 1] = func_cap.qp0_qkey;
+ 		dev->caps.qp0_tunnel[i - 1] = func_cap.qp0_tunnel_qpn;
+ 		dev->caps.qp0_proxy[i - 1] = func_cap.qp0_proxy_qpn;
+ 		dev->caps.qp1_tunnel[i - 1] = func_cap.qp1_tunnel_qpn;
+@@ -729,12 +732,16 @@ static int mlx4_slave_cap(struct mlx4_dev *dev)
+ 	return 0;
+ 
+ err_mem:
++	kfree(dev->caps.qp0_qkey);
+ 	kfree(dev->caps.qp0_tunnel);
+ 	kfree(dev->caps.qp0_proxy);
+ 	kfree(dev->caps.qp1_tunnel);
+ 	kfree(dev->caps.qp1_proxy);
+-	dev->caps.qp0_tunnel = dev->caps.qp0_proxy =
+-		dev->caps.qp1_tunnel = dev->caps.qp1_proxy = NULL;
++	dev->caps.qp0_qkey = NULL;
++	dev->caps.qp0_tunnel = NULL;
++	dev->caps.qp0_proxy = NULL;
++	dev->caps.qp1_tunnel = NULL;
++	dev->caps.qp1_proxy = NULL;
+ 
+ 	return err;
+ }
+@@ -1697,6 +1704,7 @@ unmap_bf:
+ 	unmap_bf_area(dev);
+ 
+ 	if (mlx4_is_slave(dev)) {
++		kfree(dev->caps.qp0_qkey);
+ 		kfree(dev->caps.qp0_tunnel);
+ 		kfree(dev->caps.qp0_proxy);
+ 		kfree(dev->caps.qp1_tunnel);
+@@ -2573,6 +2581,7 @@ err_master_mfunc:
+ 		mlx4_multi_func_cleanup(dev);
+ 
+ 	if (mlx4_is_slave(dev)) {
++		kfree(dev->caps.qp0_qkey);
+ 		kfree(dev->caps.qp0_tunnel);
+ 		kfree(dev->caps.qp0_proxy);
+ 		kfree(dev->caps.qp1_tunnel);
+@@ -2702,6 +2711,7 @@ static void __mlx4_remove_one(struct pci_dev *pdev)
+ 	if (!mlx4_is_slave(dev))
+ 		mlx4_free_ownership(dev);
+ 
++	kfree(dev->caps.qp0_qkey);
+ 	kfree(dev->caps.qp0_tunnel);
+ 	kfree(dev->caps.qp0_proxy);
+ 	kfree(dev->caps.qp1_tunnel);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index f9c4651..0efd173 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -133,6 +133,11 @@ enum {
+ 	MLX4_COMM_CMD_FLR = 254
+ };
+ 
++enum {
++	MLX4_VF_SMI_DISABLED,
++	MLX4_VF_SMI_ENABLED
++};
++
+ /*The flag indicates that the slave should delay the RESET cmd*/
+ #define MLX4_DELAY_RESET_SLAVE 0xbbbbbbb
+ /*indicates how many retries will be done if we are in the middle of FLR*/
+@@ -488,6 +493,7 @@ struct mlx4_vport_state {
+ 
+ struct mlx4_vf_admin_state {
+ 	struct mlx4_vport_state vport[MLX4_MAX_PORTS + 1];
++	u8 enable_smi[MLX4_MAX_PORTS + 1];
+ };
+ 
+ struct mlx4_vport_oper_state {
+@@ -495,8 +501,10 @@ struct mlx4_vport_oper_state {
+ 	int mac_idx;
+ 	int vlan_idx;
+ };
++
+ struct mlx4_vf_oper_state {
+ 	struct mlx4_vport_oper_state vport[MLX4_MAX_PORTS + 1];
++	u8 smi_enabled[MLX4_MAX_PORTS + 1];
+ };
+ 
+ struct slave_list {
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 1c3fdd4..ad98162 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -2827,10 +2827,12 @@ static int get_containing_mtt(struct mlx4_dev *dev, int slave, int start,
+ }
+ 
+ static int verify_qp_parameters(struct mlx4_dev *dev,
++				struct mlx4_vhcr *vhcr,
+ 				struct mlx4_cmd_mailbox *inbox,
+ 				enum qp_transition transition, u8 slave)
+ {
+ 	u32			qp_type;
++	u32			qpn;
+ 	struct mlx4_qp_context	*qp_ctx;
+ 	enum mlx4_qp_optpar	optpar;
+ 	int port;
+@@ -2870,6 +2872,20 @@ static int verify_qp_parameters(struct mlx4_dev *dev,
+ 						return -EINVAL;
+ 				}
+ 			break;
++		case MLX4_QP_ST_MLX:
++			qpn = vhcr->in_modifier & 0x7fffff;
++			port = (qp_ctx->pri_path.sched_queue >> 6 & 1) + 1;
++			if (transition == QP_TRANS_INIT2RTR &&
++			    slave != mlx4_master_func_num(dev) &&
++			    mlx4_is_qp_reserved(dev, qpn) &&
++			    !mlx4_vf_smi_enabled(dev, slave, port)) {
++				/* only enabled VFs may create MLX proxy QPs */
++				mlx4_err(dev, "%s: unprivileged slave %d attempting to create an MLX proxy special QP on port %d\n",
++					 __func__, slave, port);
++				return -EPERM;
++			}
++			break;
++
+ 		default:
+ 			break;
+ 		}
+@@ -3454,7 +3470,7 @@ int mlx4_INIT2RTR_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	err = adjust_qp_sched_queue(dev, slave, qpc, inbox);
  	if (err)
-@@ -586,9 +594,9 @@ static int mlx4_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
- 	cap_mask = (attr.port_cap_flags | props->set_port_cap_mask) &
- 		~props->clr_port_cap_mask;
+ 		return err;
+-	err = verify_qp_parameters(dev, inbox, QP_TRANS_INIT2RTR, slave);
++	err = verify_qp_parameters(dev, vhcr, inbox, QP_TRANS_INIT2RTR, slave);
+ 	if (err)
+ 		return err;
  
--	err = mlx4_SET_PORT(to_mdev(ibdev), port,
--			    !!(mask & IB_PORT_RESET_QKEY_CNTR),
--			    cap_mask);
-+	err = mlx4_ib_SET_PORT(mdev, port,
-+			       !!(mask & IB_PORT_RESET_QKEY_CNTR),
-+			       cap_mask);
+@@ -3508,7 +3524,7 @@ int mlx4_RTR2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	err = adjust_qp_sched_queue(dev, slave, context, inbox);
+ 	if (err)
+ 		return err;
+-	err = verify_qp_parameters(dev, inbox, QP_TRANS_RTR2RTS, slave);
++	err = verify_qp_parameters(dev, vhcr, inbox, QP_TRANS_RTR2RTS, slave);
+ 	if (err)
+ 		return err;
  
- out:
- 	mutex_unlock(&to_mdev(ibdev)->cap_mask_mutex);
+@@ -3530,7 +3546,7 @@ int mlx4_RTS2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	err = adjust_qp_sched_queue(dev, slave, context, inbox);
+ 	if (err)
+ 		return err;
+-	err = verify_qp_parameters(dev, inbox, QP_TRANS_RTS2RTS, slave);
++	err = verify_qp_parameters(dev, vhcr, inbox, QP_TRANS_RTS2RTS, slave);
+ 	if (err)
+ 		return err;
+ 
+@@ -3567,7 +3583,7 @@ int mlx4_SQD2SQD_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	err = adjust_qp_sched_queue(dev, slave, context, inbox);
+ 	if (err)
+ 		return err;
+-	err = verify_qp_parameters(dev, inbox, QP_TRANS_SQD2SQD, slave);
++	err = verify_qp_parameters(dev, vhcr, inbox, QP_TRANS_SQD2SQD, slave);
+ 	if (err)
+ 		return err;
+ 
+@@ -3589,7 +3605,7 @@ int mlx4_SQD2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
+ 	err = adjust_qp_sched_queue(dev, slave, context, inbox);
+ 	if (err)
+ 		return err;
+-	err = verify_qp_parameters(dev, inbox, QP_TRANS_SQD2RTS, slave);
++	err = verify_qp_parameters(dev, vhcr, inbox, QP_TRANS_SQD2RTS, slave);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 83612fa..e2fc701 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -401,6 +401,7 @@ struct mlx4_caps {
+ 	int			max_rq_desc_sz;
+ 	int			max_qp_init_rdma;
+ 	int			max_qp_dest_rdma;
++	u32			*qp0_qkey;
+ 	u32			*qp0_proxy;
+ 	u32			*qp1_proxy;
+ 	u32			*qp0_tunnel;
 -- 
 1.7.1
 
