@@ -1,59 +1,109 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/6] mlx4_core: Fix memory leaks under SRIOV in case of error flow
-Date: Thu, 29 May 2014 16:30:59 +0300
-Message-ID: <1401370264-4818-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 3/6] IB/mlx4: SET_PORT called by mlx4_ib_modify_port should be wrapped
+Date: Thu, 29 May 2014 16:31:01 +0300
+Message-ID: <1401370264-4818-4-git-send-email-ogerlitz@mellanox.com>
 References: <1401370264-4818-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1401370264-4818-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Fix few memory leaks that happen if errors happen under SRIOV mode.
+mlx4_ib_modify_port is invoked in IB for resetting the q-key violations
+counters, and for modifying the IB port capability flags.
+
+For example, when opensm is started up on the Hypervisor,
+mlx4_ib_modify_port is called to set the port's IsSM flag.
+
+In multifunction mode, the SET_PORT command used in this flow should
+be wrapped (so that the PF port capability flags are also tracked,
+thus enabling the aggregate of all the VF/PF capability flags to be
+tracked properly).
+
+The procedure mlx4_SET_PORT() in main.c is also renamed to mlx4_ib_SET_PORT()
+to differentiate it from procedure mlx4_SET_PORT() in file port.c.
+mlx4_ib_SET_PORT() is used exclusively by mlx4_ib_modify_port().
+
+Finally, the CM invokes ib_modify_port() to set the IsCMSupported flag
+even when running over RoCE. Therefore, when RoCE is active,
+mlx4_ib_modify_port should return OK unconditionally (since the
+capability flags and qkey violations counter are not relevant).
 
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/main.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c |   26 +++++++++++++++++---------
+ 1 files changed, 17 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 7cf9dad..12a7ee2 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1696,6 +1696,13 @@ unmap_bf:
- 	unmap_internal_clock(dev);
- 	unmap_bf_area(dev);
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 1b6dbe1..3c3806a 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -544,12 +544,11 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 	return 0;
+ }
  
-+	if (mlx4_is_slave(dev)) {
-+		kfree(dev->caps.qp0_tunnel);
-+		kfree(dev->caps.qp0_proxy);
-+		kfree(dev->caps.qp1_tunnel);
-+		kfree(dev->caps.qp1_proxy);
-+	}
-+
- err_close:
- 	if (mlx4_is_slave(dev))
- 		mlx4_slave_exit(dev);
-@@ -2565,6 +2572,13 @@ err_master_mfunc:
- 	if (mlx4_is_master(dev))
- 		mlx4_multi_func_cleanup(dev);
+-static int mlx4_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
+-			 u32 cap_mask)
++static int mlx4_ib_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
++			    u32 cap_mask)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+ 	int err;
+-	u8 is_eth = dev->dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH;
  
-+	if (mlx4_is_slave(dev)) {
-+		kfree(dev->caps.qp0_tunnel);
-+		kfree(dev->caps.qp0_proxy);
-+		kfree(dev->caps.qp1_tunnel);
-+		kfree(dev->caps.qp1_proxy);
-+	}
+ 	mailbox = mlx4_alloc_cmd_mailbox(dev->dev);
+ 	if (IS_ERR(mailbox))
+@@ -563,8 +562,8 @@ static int mlx4_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
+ 		((__be32 *) mailbox->buf)[1] = cpu_to_be32(cap_mask);
+ 	}
+ 
+-	err = mlx4_cmd(dev->dev, mailbox->dma, port, is_eth, MLX4_CMD_SET_PORT,
+-		       MLX4_CMD_TIME_CLASS_B, MLX4_CMD_NATIVE);
++	err = mlx4_cmd(dev->dev, mailbox->dma, port, 0, MLX4_CMD_SET_PORT,
++		       MLX4_CMD_TIME_CLASS_B, MLX4_CMD_WRAPPED);
+ 
+ 	mlx4_free_cmd_mailbox(dev->dev, mailbox);
+ 	return err;
+@@ -573,11 +572,20 @@ static int mlx4_SET_PORT(struct mlx4_ib_dev *dev, u8 port, int reset_qkey_viols,
+ static int mlx4_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
+ 			       struct ib_port_modify *props)
+ {
++	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
++	u8 is_eth = mdev->dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH;
+ 	struct ib_port_attr attr;
+ 	u32 cap_mask;
+ 	int err;
+ 
+-	mutex_lock(&to_mdev(ibdev)->cap_mask_mutex);
++	/* return OK if this is RoCE. CM calls ib_modify_port() regardless
++	 * of whether port link layer is ETH or IB. For ETH ports, qkey
++	 * violations and port capabilities are not meaningful.
++	 */
++	if (is_eth)
++		return 0;
 +
- err_close:
- 	if (dev->flags & MLX4_FLAG_MSI_X)
- 		pci_disable_msix(pdev);
++	mutex_lock(&mdev->cap_mask_mutex);
+ 
+ 	err = mlx4_ib_query_port(ibdev, port, &attr);
+ 	if (err)
+@@ -586,9 +594,9 @@ static int mlx4_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
+ 	cap_mask = (attr.port_cap_flags | props->set_port_cap_mask) &
+ 		~props->clr_port_cap_mask;
+ 
+-	err = mlx4_SET_PORT(to_mdev(ibdev), port,
+-			    !!(mask & IB_PORT_RESET_QKEY_CNTR),
+-			    cap_mask);
++	err = mlx4_ib_SET_PORT(mdev, port,
++			       !!(mask & IB_PORT_RESET_QKEY_CNTR),
++			       cap_mask);
+ 
+ out:
+ 	mutex_unlock(&to_mdev(ibdev)->cap_mask_mutex);
 -- 
 1.7.1
 
