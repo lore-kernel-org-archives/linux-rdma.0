@@ -1,59 +1,62 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 Subject: RE: [PATCH v5 00/24] Series short description
-Date: Thu, 29 May 2014 13:31:26 -0500
-Message-ID: <007001cf7b6c$3375b430$9a611c90$@opengridcomputing.com>
-References: <20140528142521.23214.39655.stgit@manet.1015granger.net> <005501cf7b5f$4e4359a0$eaca0ce0$@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE01148@CMEXMB1.ad.emulex.com>
+Date: Thu, 29 May 2014 18:36:25 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE0117D@CMEXMB1.ad.emulex.com>
+References: <20140528142521.23214.39655.stgit@manet.1015granger.net>
+ <005501cf7b5f$4e4359a0$eaca0ce0$@opengridcomputing.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE01148@CMEXMB1.ad.emulex.com>
+ <007001cf7b6c$3375b430$9a611c90$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE01148-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Devesh Sharma' <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <007001cf7b6c$3375b430$9a611c90$@opengridcomputing.com>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Note I just today published a new single patch for the server refactor change.  This is V3 of the patch.  It has a critical bug fix from the V2 version you're using.  Please use the V3 patch going forward.  The bug only manifested when using NFSv4 and certain tests though...
-
-See: https://patchwork.kernel.org/patch/4266551/
-
-Steve 
-
-> -----Original Message-----
-> From: Devesh Sharma [mailto:Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org]
-> Sent: Thursday, May 29, 2014 1:28 PM
-> To: Steve Wise; 'Chuck Lever'; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-> Subject: RE: [PATCH v5 00/24] Series short description
-> 
-> With Emulex device this series is tested I run iozone and cthon04. No regressions, cable pull
-> test is pending.
-> I included Steve's (the 3 patches which he posted recently) server side changes as well.
-> 
-> -Regrds
->  Devesh
-> 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> > Sent: Thursday, May 29, 2014 10:29 PM
-> > To: 'Chuck Lever'; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-> > Subject: RE: [PATCH v5 00/24] Series short description
-> >
-> > I tested this series over cxgb4 and mlx4, running cthon04, fio read/rand-rw,
-> > and xfstests, and over mthca cthon04.  No regressions.
-> >
-> > Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> > body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> > http://vger.kernel.org/majordomo-info.html
-
+T2theSwgSSB3aWxsIHJldGVzdCB5b3VyIHYzIHNvbWV3aGVyZSBhZnRlciA0dGggSnVuZSAyMDE0
+Lg0KDQotVGhhbmtzDQogRGV2ZXNoDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4g
+RnJvbTogU3RldmUgV2lzZSBbbWFpbHRvOnN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbV0NCj4g
+U2VudDogRnJpZGF5LCBNYXkgMzAsIDIwMTQgMTI6MDEgQU0NCj4gVG86IERldmVzaCBTaGFybWE7
+ICdDaHVjayBMZXZlcic7IGxpbnV4LW5mc0B2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiByZG1h
+QHZnZXIua2VybmVsLm9yZw0KPiBDYzogQW5uYS5TY2h1bWFrZXJAbmV0YXBwLmNvbQ0KPiBTdWJq
+ZWN0OiBSRTogW1BBVENIIHY1IDAwLzI0XSBTZXJpZXMgc2hvcnQgZGVzY3JpcHRpb24NCj4gDQo+
+IE5vdGUgSSBqdXN0IHRvZGF5IHB1Ymxpc2hlZCBhIG5ldyBzaW5nbGUgcGF0Y2ggZm9yIHRoZSBz
+ZXJ2ZXIgcmVmYWN0b3IgY2hhbmdlLg0KPiBUaGlzIGlzIFYzIG9mIHRoZSBwYXRjaC4gIEl0IGhh
+cyBhIGNyaXRpY2FsIGJ1ZyBmaXggZnJvbSB0aGUgVjIgdmVyc2lvbiB5b3UncmUNCj4gdXNpbmcu
+ICBQbGVhc2UgdXNlIHRoZSBWMyBwYXRjaCBnb2luZyBmb3J3YXJkLiAgVGhlIGJ1ZyBvbmx5IG1h
+bmlmZXN0ZWQNCj4gd2hlbiB1c2luZyBORlN2NCBhbmQgY2VydGFpbiB0ZXN0cyB0aG91Z2guLi4N
+Cj4gDQo+IFNlZTogaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC80MjY2NTUxLw0K
+PiANCj4gU3RldmUNCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9t
+OiBEZXZlc2ggU2hhcm1hIFttYWlsdG86RGV2ZXNoLlNoYXJtYUBFbXVsZXguQ29tXQ0KPiA+IFNl
+bnQ6IFRodXJzZGF5LCBNYXkgMjksIDIwMTQgMToyOCBQTQ0KPiA+IFRvOiBTdGV2ZSBXaXNlOyAn
+Q2h1Y2sgTGV2ZXInOyBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnOw0KPiA+IGxpbnV4LXJkbWFA
+dmdlci5rZXJuZWwub3JnDQo+ID4gQ2M6IEFubmEuU2NodW1ha2VyQG5ldGFwcC5jb20NCj4gPiBT
+dWJqZWN0OiBSRTogW1BBVENIIHY1IDAwLzI0XSBTZXJpZXMgc2hvcnQgZGVzY3JpcHRpb24NCj4g
+Pg0KPiA+IFdpdGggRW11bGV4IGRldmljZSB0aGlzIHNlcmllcyBpcyB0ZXN0ZWQgSSBydW4gaW96
+b25lIGFuZCBjdGhvbjA0LiBObw0KPiA+IHJlZ3Jlc3Npb25zLCBjYWJsZSBwdWxsIHRlc3QgaXMg
+cGVuZGluZy4NCj4gPiBJIGluY2x1ZGVkIFN0ZXZlJ3MgKHRoZSAzIHBhdGNoZXMgd2hpY2ggaGUg
+cG9zdGVkIHJlY2VudGx5KSBzZXJ2ZXIgc2lkZQ0KPiBjaGFuZ2VzIGFzIHdlbGwuDQo+ID4NCj4g
+PiAtUmVncmRzDQo+ID4gIERldmVzaA0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPiA+ID4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0
+bzpsaW51eC1yZG1hLQ0KPiA+ID4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
+U3RldmUgV2lzZQ0KPiA+ID4gU2VudDogVGh1cnNkYXksIE1heSAyOSwgMjAxNCAxMDoyOSBQTQ0K
+PiA+ID4gVG86ICdDaHVjayBMZXZlcic7IGxpbnV4LW5mc0B2Z2VyLmtlcm5lbC5vcmc7DQo+ID4g
+PiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gQ2M6IEFubmEuU2NodW1ha2VyQG5l
+dGFwcC5jb20NCj4gPiA+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggdjUgMDAvMjRdIFNlcmllcyBzaG9y
+dCBkZXNjcmlwdGlvbg0KPiA+ID4NCj4gPiA+IEkgdGVzdGVkIHRoaXMgc2VyaWVzIG92ZXIgY3hn
+YjQgYW5kIG1seDQsIHJ1bm5pbmcgY3Rob24wNCwgZmlvDQo+ID4gPiByZWFkL3JhbmQtcncsIGFu
+ZCB4ZnN0ZXN0cywgYW5kIG92ZXIgbXRoY2EgY3Rob24wNC4gIE5vIHJlZ3Jlc3Npb25zLg0KPiA+
+ID4NCj4gPiA+IFRlc3RlZC1ieTogU3RldmUgV2lzZSA8c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcu
+Y29tPg0KPiA+ID4NCj4gPiA+IC0tDQo+ID4gPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
+dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUNCj4gPiA+IGxpbnV4LXJkbWEiIGluIHRoZSBi
+b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4gPiBNb3Jl
+IG1ham9yZG9tbyBpbmZvIGF0IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
+aHRtbA0KDQo=
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
