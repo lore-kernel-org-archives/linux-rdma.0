@@ -1,1401 +1,813 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V3] svcrdma: refactor marshalling logic
-Date: Thu, 29 May 2014 19:43:16 -0400
-Message-ID: <393FE695-6564-4611-8427-EDAABEED06F5@oracle.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V3] svcrdma: refactor marshalling logic
+Date: Fri, 30 May 2014 05:29:53 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE01265@CMEXMB1.ad.emulex.com>
 References: <20140529165532.16349.95248.stgit@build.ogc.int>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140529165532.16349.95248.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Test results:
-
-On May 29, 2014, at 12:55 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> =
-wrote:
-
-> This patch refactors the NFSRDMA server marshalling logic to
-> remove the intermediary map structures.  It also fixes an existing bu=
-g
-> where the NFSRDMA server was not minding the device fast register pag=
-e
-> list length limitations.
->=20
-> I've also made a git repo available with these patches on top of 3.15=
--rc7:
->=20
-> git://git.linux-nfs.org/projects/swise/linux.git svcrdma-refactor-v3
-
-Client:
-v3.15-rc7 with my 24 patches applied.
-ConnectX-2 adapter (mlx4)
-
-Server:
-stock Linux v3.15-rc7 with v3 refactoring patch applied
-InfiniHost III adapter (mthca)
-
-
-
-Connectathon tests: =93./server -a -N30=94 with NFSv3 and NFSv4 against
-Linux server. All passed. No hangs, stalls, or crashes.
-
-Client tested in FRMR, FMR, and PHYSICAL memory registration modes.
-
-Added =93rsize=3D32768=94 mount option for PHYSICAL.
-
-
-xfstests: =93sudo ./check -nfs=94 with NFSv3 and NFSv4 against Linux
-server. Test failure rate same as over TCP. No hangs, stalls, or
-crashes.
-
-Client ran in FRMR, FMR, and PHYSICAL memory registration modes.
-PHYSICAL registration added =93rsize=3D32768=94 mount option
-
-
-
-> Changes since V2:
->=20
-> - fixed logic bug in rdma_read_chunk_frmr() and rdma_read_chunk_lcl()
->=20
-> - in rdma_read_chunks(), set the reader function pointer only once si=
-nce
->  it doesn't change
->=20
-> - squashed the patch back into one patch since the previous split was=
-n't
->  bisectable
->=20
-> Changes since V1:
->=20
-> - fixed regression for devices that don't support FRMRs (see
->  rdma_read_chunk_lcl())
->=20
-> - split patch up for closer review.  However I request it be squashed
->  before merging as they is not bisectable, and I think these changes
->  should all be a single commit anyway.
->=20
-> Please review, and test if you can.  I'd like this to hit 3.16.
->=20
-> Signed-off-by: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
->=20
-> include/linux/sunrpc/svc_rdma.h          |    3=20
-> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  643 +++++++++++++--------=
----------
-> net/sunrpc/xprtrdma/svc_rdma_sendto.c    |  230 +----------
-> net/sunrpc/xprtrdma/svc_rdma_transport.c |   62 ++-
-> 4 files changed, 332 insertions(+), 606 deletions(-)
->=20
-> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/s=
-vc_rdma.h
-> index 0b8e3e6..5cf99a0 100644
-> --- a/include/linux/sunrpc/svc_rdma.h
-> +++ b/include/linux/sunrpc/svc_rdma.h
-> @@ -115,14 +115,13 @@ struct svc_rdma_fastreg_mr {
-> 	struct list_head frmr_list;
-> };
-> struct svc_rdma_req_map {
-> -	struct svc_rdma_fastreg_mr *frmr;
-> 	unsigned long count;
-> 	union {
-> 		struct kvec sge[RPCSVC_MAXPAGES];
-> 		struct svc_rdma_chunk_sge ch[RPCSVC_MAXPAGES];
-> +		unsigned long lkey[RPCSVC_MAXPAGES];
-> 	};
-> };
-> -#define RDMACTXT_F_FAST_UNREG	1
-> #define RDMACTXT_F_LAST_CTXT	2
->=20
-> #define	SVCRDMA_DEVCAP_FAST_REG		1	/* fast mr registration */
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xpr=
-trdma/svc_rdma_recvfrom.c
-> index 8d904e4..52d9f2c 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> @@ -1,4 +1,5 @@
-> /*
-> + * Copyright (c) 2014 Open Grid Computing, Inc. All rights reserved.
->  * Copyright (c) 2005-2006 Network Appliance, Inc. All rights reserve=
-d.
->  *
->  * This software is available to you under a choice of one of two
-> @@ -69,7 +70,8 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqs=
-tp,
->=20
-> 	/* Set up the XDR head */
-> 	rqstp->rq_arg.head[0].iov_base =3D page_address(page);
-> -	rqstp->rq_arg.head[0].iov_len =3D min(byte_count, ctxt->sge[0].leng=
-th);
-> +	rqstp->rq_arg.head[0].iov_len =3D
-> +		min_t(size_t, byte_count, ctxt->sge[0].length);
-> 	rqstp->rq_arg.len =3D byte_count;
-> 	rqstp->rq_arg.buflen =3D byte_count;
->=20
-> @@ -85,7 +87,7 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqs=
-tp,
-> 		page =3D ctxt->pages[sge_no];
-> 		put_page(rqstp->rq_pages[sge_no]);
-> 		rqstp->rq_pages[sge_no] =3D page;
-> -		bc -=3D min(bc, ctxt->sge[sge_no].length);
-> +		bc -=3D min_t(u32, bc, ctxt->sge[sge_no].length);
-> 		rqstp->rq_arg.buflen +=3D ctxt->sge[sge_no].length;
-> 		sge_no++;
-> 	}
-> @@ -113,291 +115,265 @@ static void rdma_build_arg_xdr(struct svc_rqs=
-t *rqstp,
-> 	rqstp->rq_arg.tail[0].iov_len =3D 0;
-> }
->=20
-> -/* Encode a read-chunk-list as an array of IB SGE
-> - *
-> - * Assumptions:
-> - * - chunk[0]->position points to pages[0] at an offset of 0
-> - * - pages[] is not physically or virtually contiguous and consists =
-of
-> - *   PAGE_SIZE elements.
-> - *
-> - * Output:
-> - * - sge array pointing into pages[] array.
-> - * - chunk_sge array specifying sge index and count for each
-> - *   chunk in the read list
-> - *
-> - */
-> -static int map_read_chunks(struct svcxprt_rdma *xprt,
-> -			   struct svc_rqst *rqstp,
-> -			   struct svc_rdma_op_ctxt *head,
-> -			   struct rpcrdma_msg *rmsgp,
-> -			   struct svc_rdma_req_map *rpl_map,
-> -			   struct svc_rdma_req_map *chl_map,
-> -			   int ch_count,
-> -			   int byte_count)
-> +static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_coun=
-t)
-> {
-> -	int sge_no;
-> -	int sge_bytes;
-> -	int page_off;
-> -	int page_no;
-> -	int ch_bytes;
-> -	int ch_no;
-> -	struct rpcrdma_read_chunk *ch;
-> +	if (rdma_node_get_transport(xprt->sc_cm_id->device->node_type) =3D=3D
-> +	     RDMA_TRANSPORT_IWARP)
-> +		return 1;
-> +	else
-> +		return min_t(int, sge_count, xprt->sc_max_sge);
-> +}
->=20
-> -	sge_no =3D 0;
-> -	page_no =3D 0;
-> -	page_off =3D 0;
-> -	ch =3D (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
-> -	ch_no =3D 0;
-> -	ch_bytes =3D ntohl(ch->rc_target.rs_length);
-> -	head->arg.head[0] =3D rqstp->rq_arg.head[0];
-> -	head->arg.tail[0] =3D rqstp->rq_arg.tail[0];
-> -	head->arg.pages =3D &head->pages[head->count];
-> -	head->hdr_count =3D head->count; /* save count of hdr pages */
-> -	head->arg.page_base =3D 0;
-> -	head->arg.page_len =3D ch_bytes;
-> -	head->arg.len =3D rqstp->rq_arg.len + ch_bytes;
-> -	head->arg.buflen =3D rqstp->rq_arg.buflen + ch_bytes;
-> -	head->count++;
-> -	chl_map->ch[0].start =3D 0;
-> -	while (byte_count) {
-> -		rpl_map->sge[sge_no].iov_base =3D
-> -			page_address(rqstp->rq_arg.pages[page_no]) + page_off;
-> -		sge_bytes =3D min_t(int, PAGE_SIZE-page_off, ch_bytes);
-> -		rpl_map->sge[sge_no].iov_len =3D sge_bytes;
-> -		/*
-> -		 * Don't bump head->count here because the same page
-> -		 * may be used by multiple SGE.
-> -		 */
-> -		head->arg.pages[page_no] =3D rqstp->rq_arg.pages[page_no];
-> -		rqstp->rq_respages =3D &rqstp->rq_arg.pages[page_no+1];
-> +typedef int (*rdma_reader_fn)(struct svcxprt_rdma *xprt,
-> +			      struct svc_rqst *rqstp,
-> +			      struct svc_rdma_op_ctxt *head,
-> +			      int *page_no,
-> +			      u32 *page_offset,
-> +			      u32 rs_handle,
-> +			      u32 rs_length,
-> +			      u64 rs_offset,
-> +			      int last);
-> +
-> +/* Issue an RDMA_READ using the local lkey to map the data sink */
-> +static int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
-> +			       struct svc_rqst *rqstp,
-> +			       struct svc_rdma_op_ctxt *head,
-> +			       int *page_no,
-> +			       u32 *page_offset,
-> +			       u32 rs_handle,
-> +			       u32 rs_length,
-> +			       u64 rs_offset,
-> +			       int last)
-> +{
-> +	struct ib_send_wr read_wr;
-> +	int pages_needed =3D PAGE_ALIGN(*page_offset + rs_length) >> PAGE_S=
-HIFT;
-> +	struct svc_rdma_op_ctxt *ctxt =3D svc_rdma_get_context(xprt);
-> +	int ret, read, pno;
-> +	u32 pg_off =3D *page_offset;
-> +	u32 pg_no =3D *page_no;
-> +
-> +	ctxt->direction =3D DMA_FROM_DEVICE;
-> +	ctxt->read_hdr =3D head;
-> +	pages_needed =3D
-> +		min_t(int, pages_needed, rdma_read_max_sge(xprt, pages_needed));
-> +	read =3D min_t(int, pages_needed << PAGE_SHIFT, rs_length);
-> +
-> +	for (pno =3D 0; pno < pages_needed; pno++) {
-> +		int len =3D min_t(int, rs_length, PAGE_SIZE - pg_off);
-> +
-> +		head->arg.pages[pg_no] =3D rqstp->rq_arg.pages[pg_no];
-> +		head->arg.page_len +=3D len;
-> +		head->arg.len +=3D len;
-> +		if (!pg_off)
-> +			head->count++;
-> +		rqstp->rq_respages =3D &rqstp->rq_arg.pages[pg_no+1];
-> 		rqstp->rq_next_page =3D rqstp->rq_respages + 1;
-> +		ctxt->sge[pno].addr =3D
-> +			ib_dma_map_page(xprt->sc_cm_id->device,
-> +					head->arg.pages[pg_no], pg_off,
-> +					PAGE_SIZE - pg_off,
-> +					DMA_FROM_DEVICE);
-> +		ret =3D ib_dma_mapping_error(xprt->sc_cm_id->device,
-> +					   ctxt->sge[pno].addr);
-> +		if (ret)
-> +			goto err;
-> +		atomic_inc(&xprt->sc_dma_used);
->=20
-> -		byte_count -=3D sge_bytes;
-> -		ch_bytes -=3D sge_bytes;
-> -		sge_no++;
-> -		/*
-> -		 * If all bytes for this chunk have been mapped to an
-> -		 * SGE, move to the next SGE
-> -		 */
-> -		if (ch_bytes =3D=3D 0) {
-> -			chl_map->ch[ch_no].count =3D
-> -				sge_no - chl_map->ch[ch_no].start;
-> -			ch_no++;
-> -			ch++;
-> -			chl_map->ch[ch_no].start =3D sge_no;
-> -			ch_bytes =3D ntohl(ch->rc_target.rs_length);
-> -			/* If bytes remaining account for next chunk */
-> -			if (byte_count) {
-> -				head->arg.page_len +=3D ch_bytes;
-> -				head->arg.len +=3D ch_bytes;
-> -				head->arg.buflen +=3D ch_bytes;
-> -			}
-> +		/* The lkey here is either a local dma lkey or a dma_mr lkey */
-> +		ctxt->sge[pno].lkey =3D xprt->sc_dma_lkey;
-> +		ctxt->sge[pno].length =3D len;
-> +		ctxt->count++;
-> +
-> +		/* adjust offset and wrap to next page if needed */
-> +		pg_off +=3D len;
-> +		if (pg_off =3D=3D PAGE_SIZE) {
-> +			pg_off =3D 0;
-> +			pg_no++;
-> 		}
-> -		/*
-> -		 * If this SGE consumed all of the page, move to the
-> -		 * next page
-> -		 */
-> -		if ((sge_bytes + page_off) =3D=3D PAGE_SIZE) {
-> -			page_no++;
-> -			page_off =3D 0;
-> -			/*
-> -			 * If there are still bytes left to map, bump
-> -			 * the page count
-> -			 */
-> -			if (byte_count)
-> -				head->count++;
-> -		} else
-> -			page_off +=3D sge_bytes;
-> +		rs_length -=3D len;
-> 	}
-> -	BUG_ON(byte_count !=3D 0);
-> -	return sge_no;
-> +
-> +	if (last && rs_length =3D=3D 0)
-> +		set_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
-> +	else
-> +		clear_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
-> +
-> +	memset(&read_wr, 0, sizeof(read_wr));
-> +	read_wr.wr_id =3D (unsigned long)ctxt;
-> +	read_wr.opcode =3D IB_WR_RDMA_READ;
-> +	ctxt->wr_op =3D read_wr.opcode;
-> +	read_wr.send_flags =3D IB_SEND_SIGNALED;
-> +	read_wr.wr.rdma.rkey =3D rs_handle;
-> +	read_wr.wr.rdma.remote_addr =3D rs_offset;
-> +	read_wr.sg_list =3D ctxt->sge;
-> +	read_wr.num_sge =3D pages_needed;
-> +
-> +	ret =3D svc_rdma_send(xprt, &read_wr);
-> +	if (ret) {
-> +		pr_err("svcrdma: Error %d posting RDMA_READ\n", ret);
-> +		set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-> +		goto err;
-> +	}
-> +
-> +	/* return current location in page array */
-> +	*page_no =3D pg_no;
-> +	*page_offset =3D pg_off;
-> +	ret =3D read;
-> +	atomic_inc(&rdma_stat_read);
-> +	return ret;
-> + err:
-> +	svc_rdma_unmap_dma(ctxt);
-> +	svc_rdma_put_context(ctxt, 0);
-> +	return ret;
-> }
->=20
-> -/* Map a read-chunk-list to an XDR and fast register the page-list.
-> - *
-> - * Assumptions:
-> - * - chunk[0]	position points to pages[0] at an offset of 0
-> - * - pages[]	will be made physically contiguous by creating a one-of=
-f memory
-> - *		region using the fastreg verb.
-> - * - byte_count is # of bytes in read-chunk-list
-> - * - ch_count	is # of chunks in read-chunk-list
-> - *
-> - * Output:
-> - * - sge array pointing into pages[] array.
-> - * - chunk_sge array specifying sge index and count for each
-> - *   chunk in the read list
-> - */
-> -static int fast_reg_read_chunks(struct svcxprt_rdma *xprt,
-> +/* Issue an RDMA_READ using an FRMR to map the data sink */
-> +static int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
-> 				struct svc_rqst *rqstp,
-> 				struct svc_rdma_op_ctxt *head,
-> -				struct rpcrdma_msg *rmsgp,
-> -				struct svc_rdma_req_map *rpl_map,
-> -				struct svc_rdma_req_map *chl_map,
-> -				int ch_count,
-> -				int byte_count)
-> +				int *page_no,
-> +				u32 *page_offset,
-> +				u32 rs_handle,
-> +				u32 rs_length,
-> +				u64 rs_offset,
-> +				int last)
-> {
-> -	int page_no;
-> -	int ch_no;
-> -	u32 offset;
-> -	struct rpcrdma_read_chunk *ch;
-> -	struct svc_rdma_fastreg_mr *frmr;
-> -	int ret =3D 0;
-> +	struct ib_send_wr read_wr;
-> +	struct ib_send_wr inv_wr;
-> +	struct ib_send_wr fastreg_wr;
-> +	u8 key;
-> +	int pages_needed =3D PAGE_ALIGN(*page_offset + rs_length) >> PAGE_S=
-HIFT;
-> +	struct svc_rdma_op_ctxt *ctxt =3D svc_rdma_get_context(xprt);
-> +	struct svc_rdma_fastreg_mr *frmr =3D svc_rdma_get_frmr(xprt);
-> +	int ret, read, pno;
-> +	u32 pg_off =3D *page_offset;
-> +	u32 pg_no =3D *page_no;
->=20
-> -	frmr =3D svc_rdma_get_frmr(xprt);
-> 	if (IS_ERR(frmr))
-> 		return -ENOMEM;
->=20
-> -	head->frmr =3D frmr;
-> -	head->arg.head[0] =3D rqstp->rq_arg.head[0];
-> -	head->arg.tail[0] =3D rqstp->rq_arg.tail[0];
-> -	head->arg.pages =3D &head->pages[head->count];
-> -	head->hdr_count =3D head->count; /* save count of hdr pages */
-> -	head->arg.page_base =3D 0;
-> -	head->arg.page_len =3D byte_count;
-> -	head->arg.len =3D rqstp->rq_arg.len + byte_count;
-> -	head->arg.buflen =3D rqstp->rq_arg.buflen + byte_count;
-> +	ctxt->direction =3D DMA_FROM_DEVICE;
-> +	ctxt->frmr =3D frmr;
-> +	pages_needed =3D min_t(int, pages_needed, xprt->sc_frmr_pg_list_len=
-);
-> +	read =3D min_t(int, pages_needed << PAGE_SHIFT, rs_length);
->=20
-> -	/* Fast register the page list */
-> -	frmr->kva =3D page_address(rqstp->rq_arg.pages[0]);
-> +	frmr->kva =3D page_address(rqstp->rq_arg.pages[pg_no]);
-> 	frmr->direction =3D DMA_FROM_DEVICE;
-> 	frmr->access_flags =3D (IB_ACCESS_LOCAL_WRITE|IB_ACCESS_REMOTE_WRITE=
-);
-> -	frmr->map_len =3D byte_count;
-> -	frmr->page_list_len =3D PAGE_ALIGN(byte_count) >> PAGE_SHIFT;
-> -	for (page_no =3D 0; page_no < frmr->page_list_len; page_no++) {
-> -		frmr->page_list->page_list[page_no] =3D
-> +	frmr->map_len =3D pages_needed << PAGE_SHIFT;
-> +	frmr->page_list_len =3D pages_needed;
-> +
-> +	for (pno =3D 0; pno < pages_needed; pno++) {
-> +		int len =3D min_t(int, rs_length, PAGE_SIZE - pg_off);
-> +
-> +		head->arg.pages[pg_no] =3D rqstp->rq_arg.pages[pg_no];
-> +		head->arg.page_len +=3D len;
-> +		head->arg.len +=3D len;
-> +		if (!pg_off)
-> +			head->count++;
-> +		rqstp->rq_respages =3D &rqstp->rq_arg.pages[pg_no+1];
-> +		rqstp->rq_next_page =3D rqstp->rq_respages + 1;
-> +		frmr->page_list->page_list[pno] =3D
-> 			ib_dma_map_page(xprt->sc_cm_id->device,
-> -					rqstp->rq_arg.pages[page_no], 0,
-> +					head->arg.pages[pg_no], 0,
-> 					PAGE_SIZE, DMA_FROM_DEVICE);
-> -		if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> -					 frmr->page_list->page_list[page_no]))
-> -			goto fatal_err;
-> +		ret =3D ib_dma_mapping_error(xprt->sc_cm_id->device,
-> +					   frmr->page_list->page_list[pno]);
-> +		if (ret)
-> +			goto err;
-> 		atomic_inc(&xprt->sc_dma_used);
-> -		head->arg.pages[page_no] =3D rqstp->rq_arg.pages[page_no];
-> -	}
-> -	head->count +=3D page_no;
-> -
-> -	/* rq_respages points one past arg pages */
-> -	rqstp->rq_respages =3D &rqstp->rq_arg.pages[page_no];
-> -	rqstp->rq_next_page =3D rqstp->rq_respages + 1;
->=20
-> -	/* Create the reply and chunk maps */
-> -	offset =3D 0;
-> -	ch =3D (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
-> -	for (ch_no =3D 0; ch_no < ch_count; ch_no++) {
-> -		int len =3D ntohl(ch->rc_target.rs_length);
-> -		rpl_map->sge[ch_no].iov_base =3D frmr->kva + offset;
-> -		rpl_map->sge[ch_no].iov_len =3D len;
-> -		chl_map->ch[ch_no].count =3D 1;
-> -		chl_map->ch[ch_no].start =3D ch_no;
-> -		offset +=3D len;
-> -		ch++;
-> +		/* adjust offset and wrap to next page if needed */
-> +		pg_off +=3D len;
-> +		if (pg_off =3D=3D PAGE_SIZE) {
-> +			pg_off =3D 0;
-> +			pg_no++;
-> +		}
-> +		rs_length -=3D len;
-> 	}
->=20
-> -	ret =3D svc_rdma_fastreg(xprt, frmr);
-> -	if (ret)
-> -		goto fatal_err;
-> -
-> -	return ch_no;
-> -
-> - fatal_err:
-> -	printk("svcrdma: error fast registering xdr for xprt %p", xprt);
-> -	svc_rdma_put_frmr(xprt, frmr);
-> -	return -EIO;
-> -}
-> -
-> -static int rdma_set_ctxt_sge(struct svcxprt_rdma *xprt,
-> -			     struct svc_rdma_op_ctxt *ctxt,
-> -			     struct svc_rdma_fastreg_mr *frmr,
-> -			     struct kvec *vec,
-> -			     u64 *sgl_offset,
-> -			     int count)
-> -{
-> -	int i;
-> -	unsigned long off;
-> +	if (last && rs_length =3D=3D 0)
-> +		set_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
-> +	else
-> +		clear_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
->=20
-> -	ctxt->count =3D count;
-> -	ctxt->direction =3D DMA_FROM_DEVICE;
-> -	for (i =3D 0; i < count; i++) {
-> -		ctxt->sge[i].length =3D 0; /* in case map fails */
-> -		if (!frmr) {
-> -			BUG_ON(!virt_to_page(vec[i].iov_base));
-> -			off =3D (unsigned long)vec[i].iov_base & ~PAGE_MASK;
-> -			ctxt->sge[i].addr =3D
-> -				ib_dma_map_page(xprt->sc_cm_id->device,
-> -						virt_to_page(vec[i].iov_base),
-> -						off,
-> -						vec[i].iov_len,
-> -						DMA_FROM_DEVICE);
-> -			if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> -						 ctxt->sge[i].addr))
-> -				return -EINVAL;
-> -			ctxt->sge[i].lkey =3D xprt->sc_dma_lkey;
-> -			atomic_inc(&xprt->sc_dma_used);
-> -		} else {
-> -			ctxt->sge[i].addr =3D (unsigned long)vec[i].iov_base;
-> -			ctxt->sge[i].lkey =3D frmr->mr->lkey;
-> -		}
-> -		ctxt->sge[i].length =3D vec[i].iov_len;
-> -		*sgl_offset =3D *sgl_offset + vec[i].iov_len;
-> +	/* Bump the key */
-> +	key =3D (u8)(frmr->mr->lkey & 0x000000FF);
-> +	ib_update_fast_reg_key(frmr->mr, ++key);
-> +
-> +	ctxt->sge[0].addr =3D (unsigned long)frmr->kva + *page_offset;
-> +	ctxt->sge[0].lkey =3D frmr->mr->lkey;
-> +	ctxt->sge[0].length =3D read;
-> +	ctxt->count =3D 1;
-> +	ctxt->read_hdr =3D head;
-> +
-> +	/* Prepare FASTREG WR */
-> +	memset(&fastreg_wr, 0, sizeof(fastreg_wr));
-> +	fastreg_wr.opcode =3D IB_WR_FAST_REG_MR;
-> +	fastreg_wr.send_flags =3D IB_SEND_SIGNALED;
-> +	fastreg_wr.wr.fast_reg.iova_start =3D (unsigned long)frmr->kva;
-> +	fastreg_wr.wr.fast_reg.page_list =3D frmr->page_list;
-> +	fastreg_wr.wr.fast_reg.page_list_len =3D frmr->page_list_len;
-> +	fastreg_wr.wr.fast_reg.page_shift =3D PAGE_SHIFT;
-> +	fastreg_wr.wr.fast_reg.length =3D frmr->map_len;
-> +	fastreg_wr.wr.fast_reg.access_flags =3D frmr->access_flags;
-> +	fastreg_wr.wr.fast_reg.rkey =3D frmr->mr->lkey;
-> +	fastreg_wr.next =3D &read_wr;
-> +
-> +	/* Prepare RDMA_READ */
-> +	memset(&read_wr, 0, sizeof(read_wr));
-> +	read_wr.send_flags =3D IB_SEND_SIGNALED;
-> +	read_wr.wr.rdma.rkey =3D rs_handle;
-> +	read_wr.wr.rdma.remote_addr =3D rs_offset;
-> +	read_wr.sg_list =3D ctxt->sge;
-> +	read_wr.num_sge =3D 1;
-> +	if (xprt->sc_dev_caps & SVCRDMA_DEVCAP_READ_W_INV) {
-> +		read_wr.opcode =3D IB_WR_RDMA_READ_WITH_INV;
-> +		read_wr.wr_id =3D (unsigned long)ctxt;
-> +		read_wr.ex.invalidate_rkey =3D ctxt->frmr->mr->lkey;
-> +	} else {
-> +		read_wr.opcode =3D IB_WR_RDMA_READ;
-> +		read_wr.next =3D &inv_wr;
-> +		/* Prepare invalidate */
-> +		memset(&inv_wr, 0, sizeof(inv_wr));
-> +		inv_wr.wr_id =3D (unsigned long)ctxt;
-> +		inv_wr.opcode =3D IB_WR_LOCAL_INV;
-> +		inv_wr.send_flags =3D IB_SEND_SIGNALED;
-> +		inv_wr.ex.invalidate_rkey =3D frmr->mr->lkey;
-> +	}
-> +	ctxt->wr_op =3D read_wr.opcode;
-> +
-> +	/* Post the chain */
-> +	ret =3D svc_rdma_send(xprt, &fastreg_wr);
-> +	if (ret) {
-> +		pr_err("svcrdma: Error %d posting RDMA_READ\n", ret);
-> +		set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-> +		goto err;
-> 	}
-> -	return 0;
-> -}
->=20
-> -static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_coun=
-t)
-> -{
-> -	if ((rdma_node_get_transport(xprt->sc_cm_id->device->node_type) =3D=
-=3D
-> -	     RDMA_TRANSPORT_IWARP) &&
-> -	    sge_count > 1)
-> -		return 1;
-> -	else
-> -		return min_t(int, sge_count, xprt->sc_max_sge);
-> +	/* return current location in page array */
-> +	*page_no =3D pg_no;
-> +	*page_offset =3D pg_off;
-> +	ret =3D read;
-> +	atomic_inc(&rdma_stat_read);
-> +	return ret;
-> + err:
-> +	svc_rdma_unmap_dma(ctxt);
-> +	svc_rdma_put_context(ctxt, 0);
-> +	svc_rdma_put_frmr(xprt, frmr);
-> +	return ret;
-> }
->=20
-> -/*
-> - * Use RDMA_READ to read data from the advertised client buffer into=
- the
-> - * XDR stream starting at rq_arg.head[0].iov_base.
-> - * Each chunk in the array
-> - * contains the following fields:
-> - * discrim      - '1', This isn't used for data placement
-> - * position     - The xdr stream offset (the same for every chunk)
-> - * handle       - RMR for client memory region
-> - * length       - data transfer length
-> - * offset       - 64 bit tagged offset in remote memory region
-> - *
-> - * On our side, we need to read into a pagelist. The first page imme=
-diately
-> - * follows the RPC header.
-> - *
-> - * This function returns:
-> - * 0 - No error and no read-list found.
-> - *
-> - * 1 - Successful read-list processing. The data is not yet in
-> - * the pagelist and therefore the RPC request must be deferred. The
-> - * I/O completion will enqueue the transport again and
-> - * svc_rdma_recvfrom will complete the request.
-> - *
-> - * <0 - Error processing/posting read-list.
-> - *
-> - * NOTE: The ctxt must not be touched after the last WR has been pos=
-ted
-> - * because the I/O completion processing may occur on another
-> - * processor and free / modify the context. Ne touche pas!
-> - */
-> -static int rdma_read_xdr(struct svcxprt_rdma *xprt,
-> -			 struct rpcrdma_msg *rmsgp,
-> -			 struct svc_rqst *rqstp,
-> -			 struct svc_rdma_op_ctxt *hdr_ctxt)
-> +static int rdma_read_chunks(struct svcxprt_rdma *xprt,
-> +			    struct rpcrdma_msg *rmsgp,
-> +			    struct svc_rqst *rqstp,
-> +			    struct svc_rdma_op_ctxt *head)
-> {
-> -	struct ib_send_wr read_wr;
-> -	struct ib_send_wr inv_wr;
-> -	int err =3D 0;
-> -	int ch_no;
-> -	int ch_count;
-> -	int byte_count;
-> -	int sge_count;
-> -	u64 sgl_offset;
-> +	int page_no, ch_count, ret;
-> 	struct rpcrdma_read_chunk *ch;
-> -	struct svc_rdma_op_ctxt *ctxt =3D NULL;
-> -	struct svc_rdma_req_map *rpl_map;
-> -	struct svc_rdma_req_map *chl_map;
-> +	u32 page_offset, byte_count;
-> +	u64 rs_offset;
-> +	rdma_reader_fn reader;
->=20
-> 	/* If no read list is present, return 0 */
-> 	ch =3D svc_rdma_get_read_chunk(rmsgp);
-> @@ -408,122 +384,55 @@ static int rdma_read_xdr(struct svcxprt_rdma *=
-xprt,
-> 	if (ch_count > RPCSVC_MAXPAGES)
-> 		return -EINVAL;
->=20
-> -	/* Allocate temporary reply and chunk maps */
-> -	rpl_map =3D svc_rdma_get_req_map();
-> -	chl_map =3D svc_rdma_get_req_map();
-> +	/* The request is completed when the RDMA_READs complete. The
-> +	 * head context keeps all the pages that comprise the
-> +	 * request.
-> +	 */
-> +	head->arg.head[0] =3D rqstp->rq_arg.head[0];
-> +	head->arg.tail[0] =3D rqstp->rq_arg.tail[0];
-> +	head->arg.pages =3D &head->pages[head->count];
-> +	head->hdr_count =3D head->count;
-> +	head->arg.page_base =3D 0;
-> +	head->arg.page_len =3D 0;
-> +	head->arg.len =3D rqstp->rq_arg.len;
-> +	head->arg.buflen =3D rqstp->rq_arg.buflen;
->=20
-> -	if (!xprt->sc_frmr_pg_list_len)
-> -		sge_count =3D map_read_chunks(xprt, rqstp, hdr_ctxt, rmsgp,
-> -					    rpl_map, chl_map, ch_count,
-> -					    byte_count);
-> +	/* Use FRMR if supported */
-> +	if (xprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)
-> +		reader =3D rdma_read_chunk_frmr;
-> 	else
-> -		sge_count =3D fast_reg_read_chunks(xprt, rqstp, hdr_ctxt, rmsgp,
-> -						 rpl_map, chl_map, ch_count,
-> -						 byte_count);
-> -	if (sge_count < 0) {
-> -		err =3D -EIO;
-> -		goto out;
-> -	}
-> -
-> -	sgl_offset =3D 0;
-> -	ch_no =3D 0;
-> +		reader =3D rdma_read_chunk_lcl;
->=20
-> +	page_no =3D 0; page_offset =3D 0;
-> 	for (ch =3D (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0=
-];
-> -	     ch->rc_discrim !=3D 0; ch++, ch_no++) {
-> -		u64 rs_offset;
-> -next_sge:
-> -		ctxt =3D svc_rdma_get_context(xprt);
-> -		ctxt->direction =3D DMA_FROM_DEVICE;
-> -		ctxt->frmr =3D hdr_ctxt->frmr;
-> -		ctxt->read_hdr =3D NULL;
-> -		clear_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
-> -		clear_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags);
-> +	     ch->rc_discrim !=3D 0; ch++) {
->=20
-> -		/* Prepare READ WR */
-> -		memset(&read_wr, 0, sizeof read_wr);
-> -		read_wr.wr_id =3D (unsigned long)ctxt;
-> -		read_wr.opcode =3D IB_WR_RDMA_READ;
-> -		ctxt->wr_op =3D read_wr.opcode;
-> -		read_wr.send_flags =3D IB_SEND_SIGNALED;
-> -		read_wr.wr.rdma.rkey =3D ntohl(ch->rc_target.rs_handle);
-> 		xdr_decode_hyper((__be32 *)&ch->rc_target.rs_offset,
-> 				 &rs_offset);
-> -		read_wr.wr.rdma.remote_addr =3D rs_offset + sgl_offset;
-> -		read_wr.sg_list =3D ctxt->sge;
-> -		read_wr.num_sge =3D
-> -			rdma_read_max_sge(xprt, chl_map->ch[ch_no].count);
-> -		err =3D rdma_set_ctxt_sge(xprt, ctxt, hdr_ctxt->frmr,
-> -					&rpl_map->sge[chl_map->ch[ch_no].start],
-> -					&sgl_offset,
-> -					read_wr.num_sge);
-> -		if (err) {
-> -			svc_rdma_unmap_dma(ctxt);
-> -			svc_rdma_put_context(ctxt, 0);
-> -			goto out;
-> -		}
-> -		if (((ch+1)->rc_discrim =3D=3D 0) &&
-> -		    (read_wr.num_sge =3D=3D chl_map->ch[ch_no].count)) {
-> -			/*
-> -			 * Mark the last RDMA_READ with a bit to
-> -			 * indicate all RPC data has been fetched from
-> -			 * the client and the RPC needs to be enqueued.
-> -			 */
-> -			set_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags);
-> -			if (hdr_ctxt->frmr) {
-> -				set_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags);
-> -				/*
-> -				 * Invalidate the local MR used to map the data
-> -				 * sink.
-> -				 */
-> -				if (xprt->sc_dev_caps &
-> -				    SVCRDMA_DEVCAP_READ_W_INV) {
-> -					read_wr.opcode =3D
-> -						IB_WR_RDMA_READ_WITH_INV;
-> -					ctxt->wr_op =3D read_wr.opcode;
-> -					read_wr.ex.invalidate_rkey =3D
-> -						ctxt->frmr->mr->lkey;
-> -				} else {
-> -					/* Prepare INVALIDATE WR */
-> -					memset(&inv_wr, 0, sizeof inv_wr);
-> -					inv_wr.opcode =3D IB_WR_LOCAL_INV;
-> -					inv_wr.send_flags =3D IB_SEND_SIGNALED;
-> -					inv_wr.ex.invalidate_rkey =3D
-> -						hdr_ctxt->frmr->mr->lkey;
-> -					read_wr.next =3D &inv_wr;
-> -				}
-> -			}
-> -			ctxt->read_hdr =3D hdr_ctxt;
-> -		}
-> -		/* Post the read */
-> -		err =3D svc_rdma_send(xprt, &read_wr);
-> -		if (err) {
-> -			printk(KERN_ERR "svcrdma: Error %d posting RDMA_READ\n",
-> -			       err);
-> -			set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-> -			svc_rdma_unmap_dma(ctxt);
-> -			svc_rdma_put_context(ctxt, 0);
-> -			goto out;
-> +		byte_count =3D ntohl(ch->rc_target.rs_length);
-> +
-> +		while (byte_count > 0) {
-> +			ret =3D reader(xprt, rqstp, head,
-> +				     &page_no, &page_offset,
-> +				     ntohl(ch->rc_target.rs_handle),
-> +				     byte_count, rs_offset,
-> +				     ((ch+1)->rc_discrim =3D=3D 0) /* last */
-> +				     );
-> +			if (ret < 0)
-> +				goto err;
-> +			byte_count -=3D ret;
-> +			rs_offset +=3D ret;
-> +			head->arg.buflen +=3D ret;
-> 		}
-> -		atomic_inc(&rdma_stat_read);
-> -
-> -		if (read_wr.num_sge < chl_map->ch[ch_no].count) {
-> -			chl_map->ch[ch_no].count -=3D read_wr.num_sge;
-> -			chl_map->ch[ch_no].start +=3D read_wr.num_sge;
-> -			goto next_sge;
-> -		}
-> -		sgl_offset =3D 0;
-> -		err =3D 1;
-> 	}
-> -
-> - out:
-> -	svc_rdma_put_req_map(rpl_map);
-> -	svc_rdma_put_req_map(chl_map);
-> -
-> +	ret =3D 1;
-> + err:
-> 	/* Detach arg pages. svc_recv will replenish them */
-> -	for (ch_no =3D 0; &rqstp->rq_pages[ch_no] < rqstp->rq_respages; ch_=
-no++)
-> -		rqstp->rq_pages[ch_no] =3D NULL;
-> +	for (page_no =3D 0;
-> +	     &rqstp->rq_pages[page_no] < rqstp->rq_respages; page_no++)
-> +		rqstp->rq_pages[page_no] =3D NULL;
->=20
-> -	return err;
-> +	return ret;
-> }
->=20
-> static int rdma_read_complete(struct svc_rqst *rqstp,
-> @@ -595,13 +504,9 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
-> 				  struct svc_rdma_op_ctxt,
-> 				  dto_q);
-> 		list_del_init(&ctxt->dto_q);
-> -	}
-> -	if (ctxt) {
-> 		spin_unlock_bh(&rdma_xprt->sc_rq_dto_lock);
-> 		return rdma_read_complete(rqstp, ctxt);
-> -	}
-> -
-> -	if (!list_empty(&rdma_xprt->sc_rq_dto_q)) {
-> +	} else if (!list_empty(&rdma_xprt->sc_rq_dto_q)) {
-> 		ctxt =3D list_entry(rdma_xprt->sc_rq_dto_q.next,
-> 				  struct svc_rdma_op_ctxt,
-> 				  dto_q);
-> @@ -621,7 +526,6 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
-> 		if (test_bit(XPT_CLOSE, &xprt->xpt_flags))
-> 			goto close_out;
->=20
-> -		BUG_ON(ret);
-> 		goto out;
-> 	}
-> 	dprintk("svcrdma: processing ctxt=3D%p on xprt=3D%p, rqstp=3D%p, sta=
-tus=3D%d\n",
-> @@ -644,12 +548,11 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
-> 	}
->=20
-> 	/* Read read-list data. */
-> -	ret =3D rdma_read_xdr(rdma_xprt, rmsgp, rqstp, ctxt);
-> +	ret =3D rdma_read_chunks(rdma_xprt, rmsgp, rqstp, ctxt);
-> 	if (ret > 0) {
-> 		/* read-list posted, defer until data received from client. */
-> 		goto defer;
-> -	}
-> -	if (ret < 0) {
-> +	} else if (ret < 0) {
-> 		/* Post of read-list failed, free context. */
-> 		svc_rdma_put_context(ctxt, 1);
-> 		return 0;
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtr=
-dma/svc_rdma_sendto.c
-> index 7e024a5..49fd21a 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> @@ -1,4 +1,5 @@
-> /*
-> + * Copyright (c) 2014 Open Grid Computing, Inc. All rights reserved.
->  * Copyright (c) 2005-2006 Network Appliance, Inc. All rights reserve=
-d.
->  *
->  * This software is available to you under a choice of one of two
-> @@ -49,152 +50,6 @@
->=20
-> #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
->=20
-> -/* Encode an XDR as an array of IB SGE
-> - *
-> - * Assumptions:
-> - * - head[0] is physically contiguous.
-> - * - tail[0] is physically contiguous.
-> - * - pages[] is not physically or virtually contiguous and consists =
-of
-> - *   PAGE_SIZE elements.
-> - *
-> - * Output:
-> - * SGE[0]              reserved for RCPRDMA header
-> - * SGE[1]              data from xdr->head[]
-> - * SGE[2..sge_count-2] data from xdr->pages[]
-> - * SGE[sge_count-1]    data from xdr->tail.
-> - *
-> - * The max SGE we need is the length of the XDR / pagesize + one for
-> - * head + one for tail + one for RPCRDMA header. Since RPCSVC_MAXPAG=
-ES
-> - * reserves a page for both the request and the reply header, and th=
-is
-> - * array is only concerned with the reply we are assured that we hav=
-e
-> - * on extra page for the RPCRMDA header.
-> - */
-> -static int fast_reg_xdr(struct svcxprt_rdma *xprt,
-> -			struct xdr_buf *xdr,
-> -			struct svc_rdma_req_map *vec)
-> -{
-> -	int sge_no;
-> -	u32 sge_bytes;
-> -	u32 page_bytes;
-> -	u32 page_off;
-> -	int page_no =3D 0;
-> -	u8 *frva;
-> -	struct svc_rdma_fastreg_mr *frmr;
-> -
-> -	frmr =3D svc_rdma_get_frmr(xprt);
-> -	if (IS_ERR(frmr))
-> -		return -ENOMEM;
-> -	vec->frmr =3D frmr;
-> -
-> -	/* Skip the RPCRDMA header */
-> -	sge_no =3D 1;
-> -
-> -	/* Map the head. */
-> -	frva =3D (void *)((unsigned long)(xdr->head[0].iov_base) & PAGE_MAS=
-K);
-> -	vec->sge[sge_no].iov_base =3D xdr->head[0].iov_base;
-> -	vec->sge[sge_no].iov_len =3D xdr->head[0].iov_len;
-> -	vec->count =3D 2;
-> -	sge_no++;
-> -
-> -	/* Map the XDR head */
-> -	frmr->kva =3D frva;
-> -	frmr->direction =3D DMA_TO_DEVICE;
-> -	frmr->access_flags =3D 0;
-> -	frmr->map_len =3D PAGE_SIZE;
-> -	frmr->page_list_len =3D 1;
-> -	page_off =3D (unsigned long)xdr->head[0].iov_base & ~PAGE_MASK;
-> -	frmr->page_list->page_list[page_no] =3D
-> -		ib_dma_map_page(xprt->sc_cm_id->device,
-> -				virt_to_page(xdr->head[0].iov_base),
-> -				page_off,
-> -				PAGE_SIZE - page_off,
-> -				DMA_TO_DEVICE);
-> -	if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> -				 frmr->page_list->page_list[page_no]))
-> -		goto fatal_err;
-> -	atomic_inc(&xprt->sc_dma_used);
-> -
-> -	/* Map the XDR page list */
-> -	page_off =3D xdr->page_base;
-> -	page_bytes =3D xdr->page_len + page_off;
-> -	if (!page_bytes)
-> -		goto encode_tail;
-> -
-> -	/* Map the pages */
-> -	vec->sge[sge_no].iov_base =3D frva + frmr->map_len + page_off;
-> -	vec->sge[sge_no].iov_len =3D page_bytes;
-> -	sge_no++;
-> -	while (page_bytes) {
-> -		struct page *page;
-> -
-> -		page =3D xdr->pages[page_no++];
-> -		sge_bytes =3D min_t(u32, page_bytes, (PAGE_SIZE - page_off));
-> -		page_bytes -=3D sge_bytes;
-> -
-> -		frmr->page_list->page_list[page_no] =3D
-> -			ib_dma_map_page(xprt->sc_cm_id->device,
-> -					page, page_off,
-> -					sge_bytes, DMA_TO_DEVICE);
-> -		if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> -					 frmr->page_list->page_list[page_no]))
-> -			goto fatal_err;
-> -
-> -		atomic_inc(&xprt->sc_dma_used);
-> -		page_off =3D 0; /* reset for next time through loop */
-> -		frmr->map_len +=3D PAGE_SIZE;
-> -		frmr->page_list_len++;
-> -	}
-> -	vec->count++;
-> -
-> - encode_tail:
-> -	/* Map tail */
-> -	if (0 =3D=3D xdr->tail[0].iov_len)
-> -		goto done;
-> -
-> -	vec->count++;
-> -	vec->sge[sge_no].iov_len =3D xdr->tail[0].iov_len;
-> -
-> -	if (((unsigned long)xdr->tail[0].iov_base & PAGE_MASK) =3D=3D
-> -	    ((unsigned long)xdr->head[0].iov_base & PAGE_MASK)) {
-> -		/*
-> -		 * If head and tail use the same page, we don't need
-> -		 * to map it again.
-> -		 */
-> -		vec->sge[sge_no].iov_base =3D xdr->tail[0].iov_base;
-> -	} else {
-> -		void *va;
-> -
-> -		/* Map another page for the tail */
-> -		page_off =3D (unsigned long)xdr->tail[0].iov_base & ~PAGE_MASK;
-> -		va =3D (void *)((unsigned long)xdr->tail[0].iov_base & PAGE_MASK);
-> -		vec->sge[sge_no].iov_base =3D frva + frmr->map_len + page_off;
-> -
-> -		frmr->page_list->page_list[page_no] =3D
-> -		    ib_dma_map_page(xprt->sc_cm_id->device, virt_to_page(va),
-> -				    page_off,
-> -				    PAGE_SIZE,
-> -				    DMA_TO_DEVICE);
-> -		if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> -					 frmr->page_list->page_list[page_no]))
-> -			goto fatal_err;
-> -		atomic_inc(&xprt->sc_dma_used);
-> -		frmr->map_len +=3D PAGE_SIZE;
-> -		frmr->page_list_len++;
-> -	}
-> -
-> - done:
-> -	if (svc_rdma_fastreg(xprt, frmr))
-> -		goto fatal_err;
-> -
-> -	return 0;
-> -
-> - fatal_err:
-> -	printk("svcrdma: Error fast registering memory for xprt %p\n", xprt=
-);
-> -	vec->frmr =3D NULL;
-> -	svc_rdma_put_frmr(xprt, frmr);
-> -	return -EIO;
-> -}
-> -
-> static int map_xdr(struct svcxprt_rdma *xprt,
-> 		   struct xdr_buf *xdr,
-> 		   struct svc_rdma_req_map *vec)
-> @@ -208,9 +63,6 @@ static int map_xdr(struct svcxprt_rdma *xprt,
-> 	BUG_ON(xdr->len !=3D
-> 	       (xdr->head[0].iov_len + xdr->page_len + xdr->tail[0].iov_len)=
-);
->=20
-> -	if (xprt->sc_frmr_pg_list_len)
-> -		return fast_reg_xdr(xprt, xdr, vec);
-> -
-> 	/* Skip the first sge, this is for the RPCRDMA header */
-> 	sge_no =3D 1;
->=20
-> @@ -282,8 +134,6 @@ static dma_addr_t dma_map_xdr(struct svcxprt_rdma=
- *xprt,
-> }
->=20
-> /* Assumptions:
-> - * - We are using FRMR
-> - *     - or -
->  * - The specified write_len can be represented in sc_max_sge * PAGE_=
-SIZE
->  */
-> static int send_write(struct svcxprt_rdma *xprt, struct svc_rqst *rqs=
-tp,
-> @@ -327,23 +177,16 @@ static int send_write(struct svcxprt_rdma *xprt=
-, struct svc_rqst *rqstp,
-> 		sge_bytes =3D min_t(size_t,
-> 			  bc, vec->sge[xdr_sge_no].iov_len-sge_off);
-> 		sge[sge_no].length =3D sge_bytes;
-> -		if (!vec->frmr) {
-> -			sge[sge_no].addr =3D
-> -				dma_map_xdr(xprt, &rqstp->rq_res, xdr_off,
-> -					    sge_bytes, DMA_TO_DEVICE);
-> -			xdr_off +=3D sge_bytes;
-> -			if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> -						 sge[sge_no].addr))
-> -				goto err;
-> -			atomic_inc(&xprt->sc_dma_used);
-> -			sge[sge_no].lkey =3D xprt->sc_dma_lkey;
-> -		} else {
-> -			sge[sge_no].addr =3D (unsigned long)
-> -				vec->sge[xdr_sge_no].iov_base + sge_off;
-> -			sge[sge_no].lkey =3D vec->frmr->mr->lkey;
-> -		}
-> +		sge[sge_no].addr =3D
-> +			dma_map_xdr(xprt, &rqstp->rq_res, xdr_off,
-> +				    sge_bytes, DMA_TO_DEVICE);
-> +		xdr_off +=3D sge_bytes;
-> +		if (ib_dma_mapping_error(xprt->sc_cm_id->device,
-> +					 sge[sge_no].addr))
-> +			goto err;
-> +		atomic_inc(&xprt->sc_dma_used);
-> +		sge[sge_no].lkey =3D xprt->sc_dma_lkey;
-> 		ctxt->count++;
-> -		ctxt->frmr =3D vec->frmr;
-> 		sge_off =3D 0;
-> 		sge_no++;
-> 		xdr_sge_no++;
-> @@ -369,7 +212,6 @@ static int send_write(struct svcxprt_rdma *xprt, =
-struct svc_rqst *rqstp,
-> 	return 0;
->  err:
-> 	svc_rdma_unmap_dma(ctxt);
-> -	svc_rdma_put_frmr(xprt, vec->frmr);
-> 	svc_rdma_put_context(ctxt, 0);
-> 	/* Fatal error, close transport */
-> 	return -EIO;
-> @@ -397,10 +239,7 @@ static int send_write_chunks(struct svcxprt_rdma=
- *xprt,
-> 	res_ary =3D (struct rpcrdma_write_array *)
-> 		&rdma_resp->rm_body.rm_chunks[1];
->=20
-> -	if (vec->frmr)
-> -		max_write =3D vec->frmr->map_len;
-> -	else
-> -		max_write =3D xprt->sc_max_sge * PAGE_SIZE;
-> +	max_write =3D xprt->sc_max_sge * PAGE_SIZE;
->=20
-> 	/* Write chunks start at the pagelist */
-> 	for (xdr_off =3D rqstp->rq_res.head[0].iov_len, chunk_no =3D 0;
-> @@ -472,10 +311,7 @@ static int send_reply_chunks(struct svcxprt_rdma=
- *xprt,
-> 	res_ary =3D (struct rpcrdma_write_array *)
-> 		&rdma_resp->rm_body.rm_chunks[2];
->=20
-> -	if (vec->frmr)
-> -		max_write =3D vec->frmr->map_len;
-> -	else
-> -		max_write =3D xprt->sc_max_sge * PAGE_SIZE;
-> +	max_write =3D xprt->sc_max_sge * PAGE_SIZE;
->=20
-> 	/* xdr offset starts at RPC message */
-> 	nchunks =3D ntohl(arg_ary->wc_nchunks);
-> @@ -545,7 +381,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
-> 		      int byte_count)
-> {
-> 	struct ib_send_wr send_wr;
-> -	struct ib_send_wr inv_wr;
-> 	int sge_no;
-> 	int sge_bytes;
-> 	int page_no;
-> @@ -559,7 +394,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
-> 		       "svcrdma: could not post a receive buffer, err=3D%d."
-> 		       "Closing transport %p.\n", ret, rdma);
-> 		set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
-> -		svc_rdma_put_frmr(rdma, vec->frmr);
-> 		svc_rdma_put_context(ctxt, 0);
-> 		return -ENOTCONN;
-> 	}
-> @@ -567,11 +401,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
-> 	/* Prepare the context */
-> 	ctxt->pages[0] =3D page;
-> 	ctxt->count =3D 1;
-> -	ctxt->frmr =3D vec->frmr;
-> -	if (vec->frmr)
-> -		set_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags);
-> -	else
-> -		clear_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags);
->=20
-> 	/* Prepare the SGE for the RPCRDMA Header */
-> 	ctxt->sge[0].lkey =3D rdma->sc_dma_lkey;
-> @@ -590,21 +419,15 @@ static int send_reply(struct svcxprt_rdma *rdma=
-,
-> 		int xdr_off =3D 0;
-> 		sge_bytes =3D min_t(size_t, vec->sge[sge_no].iov_len, byte_count);
-> 		byte_count -=3D sge_bytes;
-> -		if (!vec->frmr) {
-> -			ctxt->sge[sge_no].addr =3D
-> -				dma_map_xdr(rdma, &rqstp->rq_res, xdr_off,
-> -					    sge_bytes, DMA_TO_DEVICE);
-> -			xdr_off +=3D sge_bytes;
-> -			if (ib_dma_mapping_error(rdma->sc_cm_id->device,
-> -						 ctxt->sge[sge_no].addr))
-> -				goto err;
-> -			atomic_inc(&rdma->sc_dma_used);
-> -			ctxt->sge[sge_no].lkey =3D rdma->sc_dma_lkey;
-> -		} else {
-> -			ctxt->sge[sge_no].addr =3D (unsigned long)
-> -				vec->sge[sge_no].iov_base;
-> -			ctxt->sge[sge_no].lkey =3D vec->frmr->mr->lkey;
-> -		}
-> +		ctxt->sge[sge_no].addr =3D
-> +			dma_map_xdr(rdma, &rqstp->rq_res, xdr_off,
-> +				    sge_bytes, DMA_TO_DEVICE);
-> +		xdr_off +=3D sge_bytes;
-> +		if (ib_dma_mapping_error(rdma->sc_cm_id->device,
-> +					 ctxt->sge[sge_no].addr))
-> +			goto err;
-> +		atomic_inc(&rdma->sc_dma_used);
-> +		ctxt->sge[sge_no].lkey =3D rdma->sc_dma_lkey;
-> 		ctxt->sge[sge_no].length =3D sge_bytes;
-> 	}
-> 	BUG_ON(byte_count !=3D 0);
-> @@ -627,6 +450,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
-> 			ctxt->sge[page_no+1].length =3D 0;
-> 	}
-> 	rqstp->rq_next_page =3D rqstp->rq_respages + 1;
-> +
-> 	BUG_ON(sge_no > rdma->sc_max_sge);
-> 	memset(&send_wr, 0, sizeof send_wr);
-> 	ctxt->wr_op =3D IB_WR_SEND;
-> @@ -635,15 +459,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
-> 	send_wr.num_sge =3D sge_no;
-> 	send_wr.opcode =3D IB_WR_SEND;
-> 	send_wr.send_flags =3D  IB_SEND_SIGNALED;
-> -	if (vec->frmr) {
-> -		/* Prepare INVALIDATE WR */
-> -		memset(&inv_wr, 0, sizeof inv_wr);
-> -		inv_wr.opcode =3D IB_WR_LOCAL_INV;
-> -		inv_wr.send_flags =3D IB_SEND_SIGNALED;
-> -		inv_wr.ex.invalidate_rkey =3D
-> -			vec->frmr->mr->lkey;
-> -		send_wr.next =3D &inv_wr;
-> -	}
->=20
-> 	ret =3D svc_rdma_send(rdma, &send_wr);
-> 	if (ret)
-> @@ -653,7 +468,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
->=20
->  err:
-> 	svc_rdma_unmap_dma(ctxt);
-> -	svc_rdma_put_frmr(rdma, vec->frmr);
-> 	svc_rdma_put_context(ctxt, 1);
-> 	return -EIO;
-> }
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xp=
-rtrdma/svc_rdma_transport.c
-> index 25688fa..2c5b201 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> @@ -1,4 +1,5 @@
-> /*
-> + * Copyright (c) 2014 Open Grid Computing, Inc. All rights reserved.
->  * Copyright (c) 2005-2007 Network Appliance, Inc. All rights reserve=
-d.
->  *
->  * This software is available to you under a choice of one of two
-> @@ -160,7 +161,6 @@ struct svc_rdma_req_map *svc_rdma_get_req_map(voi=
-d)
-> 		schedule_timeout_uninterruptible(msecs_to_jiffies(500));
-> 	}
-> 	map->count =3D 0;
-> -	map->frmr =3D NULL;
-> 	return map;
-> }
->=20
-> @@ -336,22 +336,21 @@ static void process_context(struct svcxprt_rdma=
- *xprt,
->=20
-> 	switch (ctxt->wr_op) {
-> 	case IB_WR_SEND:
-> -		if (test_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags))
-> -			svc_rdma_put_frmr(xprt, ctxt->frmr);
-> +		BUG_ON(ctxt->frmr);
-> 		svc_rdma_put_context(ctxt, 1);
-> 		break;
->=20
-> 	case IB_WR_RDMA_WRITE:
-> +		BUG_ON(ctxt->frmr);
-> 		svc_rdma_put_context(ctxt, 0);
-> 		break;
->=20
-> 	case IB_WR_RDMA_READ:
-> 	case IB_WR_RDMA_READ_WITH_INV:
-> +		svc_rdma_put_frmr(xprt, ctxt->frmr);
-> 		if (test_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags)) {
-> 			struct svc_rdma_op_ctxt *read_hdr =3D ctxt->read_hdr;
-> 			BUG_ON(!read_hdr);
-> -			if (test_bit(RDMACTXT_F_FAST_UNREG, &ctxt->flags))
-> -				svc_rdma_put_frmr(xprt, ctxt->frmr);
-> 			spin_lock_bh(&xprt->sc_rq_dto_lock);
-> 			set_bit(XPT_DATA, &xprt->sc_xprt.xpt_flags);
-> 			list_add_tail(&read_hdr->dto_q,
-> @@ -363,6 +362,7 @@ static void process_context(struct svcxprt_rdma *=
-xprt,
-> 		break;
->=20
-> 	default:
-> +		BUG_ON(1);
-> 		printk(KERN_ERR "svcrdma: unexpected completion type, "
-> 		       "opcode=3D%d\n",
-> 		       ctxt->wr_op);
-> @@ -378,29 +378,42 @@ static void process_context(struct svcxprt_rdma=
- *xprt,
-> static void sq_cq_reap(struct svcxprt_rdma *xprt)
-> {
-> 	struct svc_rdma_op_ctxt *ctxt =3D NULL;
-> -	struct ib_wc wc;
-> +	struct ib_wc wc_a[6];
-> +	struct ib_wc *wc;
-> 	struct ib_cq *cq =3D xprt->sc_sq_cq;
-> 	int ret;
->=20
-> +	memset(wc_a, 0, sizeof(wc_a));
-> +
-> 	if (!test_and_clear_bit(RDMAXPRT_SQ_PENDING, &xprt->sc_flags))
-> 		return;
->=20
-> 	ib_req_notify_cq(xprt->sc_sq_cq, IB_CQ_NEXT_COMP);
-> 	atomic_inc(&rdma_stat_sq_poll);
-> -	while ((ret =3D ib_poll_cq(cq, 1, &wc)) > 0) {
-> -		if (wc.status !=3D IB_WC_SUCCESS)
-> -			/* Close the transport */
-> -			set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-> +	while ((ret =3D ib_poll_cq(cq, ARRAY_SIZE(wc_a), wc_a)) > 0) {
-> +		int i;
->=20
-> -		/* Decrement used SQ WR count */
-> -		atomic_dec(&xprt->sc_sq_count);
-> -		wake_up(&xprt->sc_send_wait);
-> +		for (i =3D 0; i < ret; i++) {
-> +			wc =3D &wc_a[i];
-> +			if (wc->status !=3D IB_WC_SUCCESS) {
-> +				dprintk("svcrdma: sq wc err status %d\n",
-> +					wc->status);
->=20
-> -		ctxt =3D (struct svc_rdma_op_ctxt *)(unsigned long)wc.wr_id;
-> -		if (ctxt)
-> -			process_context(xprt, ctxt);
-> +				/* Close the transport */
-> +				set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-> +			}
->=20
-> -		svc_xprt_put(&xprt->sc_xprt);
-> +			/* Decrement used SQ WR count */
-> +			atomic_dec(&xprt->sc_sq_count);
-> +			wake_up(&xprt->sc_send_wait);
-> +
-> +			ctxt =3D (struct svc_rdma_op_ctxt *)
-> +				(unsigned long)wc->wr_id;
-> +			if (ctxt)
-> +				process_context(xprt, ctxt);
-> +
-> +			svc_xprt_put(&xprt->sc_xprt);
-> +		}
-> 	}
->=20
-> 	if (ctxt)
-> @@ -993,7 +1006,11 @@ static struct svc_xprt *svc_rdma_accept(struct =
-svc_xprt *xprt)
-> 			need_dma_mr =3D 0;
-> 		break;
-> 	case RDMA_TRANSPORT_IB:
-> -		if (!(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
-> +		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
-> +			need_dma_mr =3D 1;
-> +			dma_mr_acc =3D IB_ACCESS_LOCAL_WRITE;
-> +		} else if (!(devattr.device_cap_flags &
-> +			     IB_DEVICE_LOCAL_DMA_LKEY)) {
-> 			need_dma_mr =3D 1;
-> 			dma_mr_acc =3D IB_ACCESS_LOCAL_WRITE;
-> 		} else
-> @@ -1190,14 +1207,7 @@ static int svc_rdma_has_wspace(struct svc_xprt=
- *xprt)
-> 		container_of(xprt, struct svcxprt_rdma, sc_xprt);
->=20
-> 	/*
-> -	 * If there are fewer SQ WR available than required to send a
-> -	 * simple response, return false.
-> -	 */
-> -	if ((rdma->sc_sq_depth - atomic_read(&rdma->sc_sq_count) < 3))
-> -		return 0;
-> -
-> -	/*
-> -	 * ...or there are already waiters on the SQ,
-> +	 * If there are already waiters on the SQ,
-> 	 * return false.
-> 	 */
-> 	if (waitqueue_active(&rdma->sc_send_wait))
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+SGkgU3RldmUNCg0KSSBhbSB0ZXN0aW5nIHRoaXMgcGF0Y2guIEkgaGF2ZSBmb3VuZCB0aGF0IHdo
+ZW4gc2VydmVyIHRyaWVzIHRvIGluaXRpYXRlIFJETUEtUkVBRCBvbiBvY3JkbWEgZGV2aWNlIHRo
+ZSBSRE1BLVJFQUQgcG9zdGluZyBmYWlscyBiZWNhdXNlIHRoZXJlIGlzIG5vIEZFTkNFIGJpdCBz
+ZXQgZm9yDQpOb24taXdhcnAgZGV2aWNlIHdoaWNoIGlzIHVzaW5nIGZybXIuIEJlY2F1c2Ugb2Yg
+dGhpcywgd2hlbmV2ZXIgc2VydmVyIHRyaWVzIHRvIGluaXRpYXRlIFJETUFfUkVBRCBvcGVyYXRp
+b24sIGl0IGZhaWxzIHdpdGggY29tcGxldGlvbiBlcnJvci4NClRoaXMgYnVnIHdhcyB0aGVyZSBp
+biB2MSBhbmQgdjIgYXMgd2VsbC4NCg0KQ2hlY2sgaW5saW5lIGZvciB0aGUgZXhhY3QgbG9jYXRp
+b24gb2YgdGhlIGNoYW5nZS4NCg0KUmVzdCBpcyBva2F5IGZyb20gbXkgc2lkZSwgaW96b25lIGlz
+IHBhc3Npbmcgd2l0aCB0aGlzIHBhdGNoLiBPZmYtY291cnNlIGFmdGVyIHB1dHRpbmcgYSBGRU5D
+RSBpbmRpY2F0b3IuDQoNCi1SZWdhcmRzDQogRGV2ZXNoDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNz
+YWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0
+bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBTdGV2
+ZSBXaXNlDQo+IFNlbnQ6IFRodXJzZGF5LCBNYXkgMjksIDIwMTQgMTA6MjYgUE0NCj4gVG86IGJm
+aWVsZHNAZmllbGRzZXMub3JnDQo+IENjOiBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnOyBsaW51
+eC1yZG1hQHZnZXIua2VybmVsLm9yZzsNCj4gdG9tQG9wZW5ncmlkY29tcHV0aW5nLmNvbQ0KPiBT
+dWJqZWN0OiBbUEFUQ0ggVjNdIHN2Y3JkbWE6IHJlZmFjdG9yIG1hcnNoYWxsaW5nIGxvZ2ljDQo+
+IA0KPiBUaGlzIHBhdGNoIHJlZmFjdG9ycyB0aGUgTkZTUkRNQSBzZXJ2ZXIgbWFyc2hhbGxpbmcg
+bG9naWMgdG8gcmVtb3ZlIHRoZQ0KPiBpbnRlcm1lZGlhcnkgbWFwIHN0cnVjdHVyZXMuICBJdCBh
+bHNvIGZpeGVzIGFuIGV4aXN0aW5nIGJ1ZyB3aGVyZSB0aGUNCj4gTkZTUkRNQSBzZXJ2ZXIgd2Fz
+IG5vdCBtaW5kaW5nIHRoZSBkZXZpY2UgZmFzdCByZWdpc3RlciBwYWdlIGxpc3QgbGVuZ3RoDQo+
+IGxpbWl0YXRpb25zLg0KPiANCj4gSSd2ZSBhbHNvIG1hZGUgYSBnaXQgcmVwbyBhdmFpbGFibGUg
+d2l0aCB0aGVzZSBwYXRjaGVzIG9uIHRvcCBvZiAzLjE1LXJjNzoNCj4gDQo+IGdpdDovL2dpdC5s
+aW51eC1uZnMub3JnL3Byb2plY3RzL3N3aXNlL2xpbnV4LmdpdCBzdmNyZG1hLXJlZmFjdG9yLXYz
+DQo+IA0KPiBDaGFuZ2VzIHNpbmNlIFYyOg0KPiANCj4gLSBmaXhlZCBsb2dpYyBidWcgaW4gcmRt
+YV9yZWFkX2NodW5rX2ZybXIoKSBhbmQgcmRtYV9yZWFkX2NodW5rX2xjbCgpDQo+IA0KPiAtIGlu
+IHJkbWFfcmVhZF9jaHVua3MoKSwgc2V0IHRoZSByZWFkZXIgZnVuY3Rpb24gcG9pbnRlciBvbmx5
+IG9uY2Ugc2luY2UNCj4gICBpdCBkb2Vzbid0IGNoYW5nZQ0KPiANCj4gLSBzcXVhc2hlZCB0aGUg
+cGF0Y2ggYmFjayBpbnRvIG9uZSBwYXRjaCBzaW5jZSB0aGUgcHJldmlvdXMgc3BsaXQgd2Fzbid0
+DQo+ICAgYmlzZWN0YWJsZQ0KPiANCj4gQ2hhbmdlcyBzaW5jZSBWMToNCj4gDQo+IC0gZml4ZWQg
+cmVncmVzc2lvbiBmb3IgZGV2aWNlcyB0aGF0IGRvbid0IHN1cHBvcnQgRlJNUnMgKHNlZQ0KPiAg
+IHJkbWFfcmVhZF9jaHVua19sY2woKSkNCj4gDQo+IC0gc3BsaXQgcGF0Y2ggdXAgZm9yIGNsb3Nl
+ciByZXZpZXcuICBIb3dldmVyIEkgcmVxdWVzdCBpdCBiZSBzcXVhc2hlZA0KPiAgIGJlZm9yZSBt
+ZXJnaW5nIGFzIHRoZXkgaXMgbm90IGJpc2VjdGFibGUsIGFuZCBJIHRoaW5rIHRoZXNlIGNoYW5n
+ZXMNCj4gICBzaG91bGQgYWxsIGJlIGEgc2luZ2xlIGNvbW1pdCBhbnl3YXkuDQo+IA0KPiBQbGVh
+c2UgcmV2aWV3LCBhbmQgdGVzdCBpZiB5b3UgY2FuLiAgSSdkIGxpa2UgdGhpcyB0byBoaXQgMy4x
+Ni4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFRvbSBUdWNrZXIgPHRvbUBvcGVuZ3JpZGNvbXB1dGlu
+Zy5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29tcHV0
+aW5nLmNvbT4NCj4gLS0tDQo+IA0KPiAgaW5jbHVkZS9saW51eC9zdW5ycGMvc3ZjX3JkbWEuaCAg
+ICAgICAgICB8ICAgIDMNCj4gIG5ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfcmVjdmZyb20u
+YyAgfCAgNjQzICsrKysrKysrKysrKystLS0tLS0tLS0tDQo+IC0tLS0tLS0NCj4gIG5ldC9zdW5y
+cGMveHBydHJkbWEvc3ZjX3JkbWFfc2VuZHRvLmMgICAgfCAgMjMwICstLS0tLS0tLS0tDQo+ICBu
+ZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3RyYW5zcG9ydC5jIHwgICA2MiArKy0NCj4gIDQg
+ZmlsZXMgY2hhbmdlZCwgMzMyIGluc2VydGlvbnMoKyksIDYwNiBkZWxldGlvbnMoLSkNCj4gDQo+
+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3N1bnJwYy9zdmNfcmRtYS5oDQo+IGIvaW5jbHVk
+ZS9saW51eC9zdW5ycGMvc3ZjX3JkbWEuaCBpbmRleCAwYjhlM2U2Li41Y2Y5OWEwIDEwMDY0NA0K
+PiAtLS0gYS9pbmNsdWRlL2xpbnV4L3N1bnJwYy9zdmNfcmRtYS5oDQo+ICsrKyBiL2luY2x1ZGUv
+bGludXgvc3VucnBjL3N2Y19yZG1hLmgNCj4gQEAgLTExNSwxNCArMTE1LDEzIEBAIHN0cnVjdCBz
+dmNfcmRtYV9mYXN0cmVnX21yIHsNCj4gIAlzdHJ1Y3QgbGlzdF9oZWFkIGZybXJfbGlzdDsNCj4g
+IH07DQo+ICBzdHJ1Y3Qgc3ZjX3JkbWFfcmVxX21hcCB7DQo+IC0Jc3RydWN0IHN2Y19yZG1hX2Zh
+c3RyZWdfbXIgKmZybXI7DQo+ICAJdW5zaWduZWQgbG9uZyBjb3VudDsNCj4gIAl1bmlvbiB7DQo+
+ICAJCXN0cnVjdCBrdmVjIHNnZVtSUENTVkNfTUFYUEFHRVNdOw0KPiAgCQlzdHJ1Y3Qgc3ZjX3Jk
+bWFfY2h1bmtfc2dlIGNoW1JQQ1NWQ19NQVhQQUdFU107DQo+ICsJCXVuc2lnbmVkIGxvbmcgbGtl
+eVtSUENTVkNfTUFYUEFHRVNdOw0KPiAgCX07DQo+ICB9Ow0KPiAtI2RlZmluZSBSRE1BQ1RYVF9G
+X0ZBU1RfVU5SRUcJMQ0KPiAgI2RlZmluZSBSRE1BQ1RYVF9GX0xBU1RfQ1RYVAkyDQo+IA0KPiAg
+I2RlZmluZQlTVkNSRE1BX0RFVkNBUF9GQVNUX1JFRwkJMQkvKg0KPiBmYXN0IG1yIHJlZ2lzdHJh
+dGlvbiAqLw0KPiBkaWZmIC0tZ2l0IGEvbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9yZWN2
+ZnJvbS5jDQo+IGIvbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9yZWN2ZnJvbS5jDQo+IGlu
+ZGV4IDhkOTA0ZTQuLjUyZDlmMmMgMTAwNjQ0DQo+IC0tLSBhL25ldC9zdW5ycGMveHBydHJkbWEv
+c3ZjX3JkbWFfcmVjdmZyb20uYw0KPiArKysgYi9uZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1h
+X3JlY3Zmcm9tLmMNCj4gQEAgLTEsNCArMSw1IEBADQo+ICAvKg0KPiArICogQ29weXJpZ2h0IChj
+KSAyMDE0IE9wZW4gR3JpZCBDb21wdXRpbmcsIEluYy4gQWxsIHJpZ2h0cyByZXNlcnZlZC4NCj4g
+ICAqIENvcHlyaWdodCAoYykgMjAwNS0yMDA2IE5ldHdvcmsgQXBwbGlhbmNlLCBJbmMuIEFsbCBy
+aWdodHMgcmVzZXJ2ZWQuDQo+ICAgKg0KPiAgICogVGhpcyBzb2Z0d2FyZSBpcyBhdmFpbGFibGUg
+dG8geW91IHVuZGVyIGEgY2hvaWNlIG9mIG9uZSBvZiB0d28gQEAgLTY5LDcNCj4gKzcwLDggQEAg
+c3RhdGljIHZvaWQgcmRtYV9idWlsZF9hcmdfeGRyKHN0cnVjdCBzdmNfcnFzdCAqcnFzdHAsDQo+
+IA0KPiAgCS8qIFNldCB1cCB0aGUgWERSIGhlYWQgKi8NCj4gIAlycXN0cC0+cnFfYXJnLmhlYWRb
+MF0uaW92X2Jhc2UgPSBwYWdlX2FkZHJlc3MocGFnZSk7DQo+IC0JcnFzdHAtPnJxX2FyZy5oZWFk
+WzBdLmlvdl9sZW4gPSBtaW4oYnl0ZV9jb3VudCwgY3R4dC0NCj4gPnNnZVswXS5sZW5ndGgpOw0K
+PiArCXJxc3RwLT5ycV9hcmcuaGVhZFswXS5pb3ZfbGVuID0NCj4gKwkJbWluX3Qoc2l6ZV90LCBi
+eXRlX2NvdW50LCBjdHh0LT5zZ2VbMF0ubGVuZ3RoKTsNCj4gIAlycXN0cC0+cnFfYXJnLmxlbiA9
+IGJ5dGVfY291bnQ7DQo+ICAJcnFzdHAtPnJxX2FyZy5idWZsZW4gPSBieXRlX2NvdW50Ow0KPiAN
+Cj4gQEAgLTg1LDcgKzg3LDcgQEAgc3RhdGljIHZvaWQgcmRtYV9idWlsZF9hcmdfeGRyKHN0cnVj
+dCBzdmNfcnFzdCAqcnFzdHAsDQo+ICAJCXBhZ2UgPSBjdHh0LT5wYWdlc1tzZ2Vfbm9dOw0KPiAg
+CQlwdXRfcGFnZShycXN0cC0+cnFfcGFnZXNbc2dlX25vXSk7DQo+ICAJCXJxc3RwLT5ycV9wYWdl
+c1tzZ2Vfbm9dID0gcGFnZTsNCj4gLQkJYmMgLT0gbWluKGJjLCBjdHh0LT5zZ2Vbc2dlX25vXS5s
+ZW5ndGgpOw0KPiArCQliYyAtPSBtaW5fdCh1MzIsIGJjLCBjdHh0LT5zZ2Vbc2dlX25vXS5sZW5n
+dGgpOw0KPiAgCQlycXN0cC0+cnFfYXJnLmJ1ZmxlbiArPSBjdHh0LT5zZ2Vbc2dlX25vXS5sZW5n
+dGg7DQo+ICAJCXNnZV9ubysrOw0KPiAgCX0NCj4gQEAgLTExMywyOTEgKzExNSwyNjUgQEAgc3Rh
+dGljIHZvaWQgcmRtYV9idWlsZF9hcmdfeGRyKHN0cnVjdCBzdmNfcnFzdA0KPiAqcnFzdHAsDQo+
+ICAJcnFzdHAtPnJxX2FyZy50YWlsWzBdLmlvdl9sZW4gPSAwOw0KPiAgfQ0KPiANCj4gLS8qIEVu
+Y29kZSBhIHJlYWQtY2h1bmstbGlzdCBhcyBhbiBhcnJheSBvZiBJQiBTR0UNCj4gLSAqDQo+IC0g
+KiBBc3N1bXB0aW9uczoNCj4gLSAqIC0gY2h1bmtbMF0tPnBvc2l0aW9uIHBvaW50cyB0byBwYWdl
+c1swXSBhdCBhbiBvZmZzZXQgb2YgMA0KPiAtICogLSBwYWdlc1tdIGlzIG5vdCBwaHlzaWNhbGx5
+IG9yIHZpcnR1YWxseSBjb250aWd1b3VzIGFuZCBjb25zaXN0cyBvZg0KPiAtICogICBQQUdFX1NJ
+WkUgZWxlbWVudHMuDQo+IC0gKg0KPiAtICogT3V0cHV0Og0KPiAtICogLSBzZ2UgYXJyYXkgcG9p
+bnRpbmcgaW50byBwYWdlc1tdIGFycmF5Lg0KPiAtICogLSBjaHVua19zZ2UgYXJyYXkgc3BlY2lm
+eWluZyBzZ2UgaW5kZXggYW5kIGNvdW50IGZvciBlYWNoDQo+IC0gKiAgIGNodW5rIGluIHRoZSBy
+ZWFkIGxpc3QNCj4gLSAqDQo+IC0gKi8NCj4gLXN0YXRpYyBpbnQgbWFwX3JlYWRfY2h1bmtzKHN0
+cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsDQo+IC0JCQkgICBzdHJ1Y3Qgc3ZjX3Jxc3QgKnJxc3Rw
+LA0KPiAtCQkJICAgc3RydWN0IHN2Y19yZG1hX29wX2N0eHQgKmhlYWQsDQo+IC0JCQkgICBzdHJ1
+Y3QgcnBjcmRtYV9tc2cgKnJtc2dwLA0KPiAtCQkJICAgc3RydWN0IHN2Y19yZG1hX3JlcV9tYXAg
+KnJwbF9tYXAsDQo+IC0JCQkgICBzdHJ1Y3Qgc3ZjX3JkbWFfcmVxX21hcCAqY2hsX21hcCwNCj4g
+LQkJCSAgIGludCBjaF9jb3VudCwNCj4gLQkJCSAgIGludCBieXRlX2NvdW50KQ0KPiArc3RhdGlj
+IGludCByZG1hX3JlYWRfbWF4X3NnZShzdHJ1Y3Qgc3ZjeHBydF9yZG1hICp4cHJ0LCBpbnQgc2dl
+X2NvdW50KQ0KPiAgew0KPiAtCWludCBzZ2Vfbm87DQo+IC0JaW50IHNnZV9ieXRlczsNCj4gLQlp
+bnQgcGFnZV9vZmY7DQo+IC0JaW50IHBhZ2Vfbm87DQo+IC0JaW50IGNoX2J5dGVzOw0KPiAtCWlu
+dCBjaF9ubzsNCj4gLQlzdHJ1Y3QgcnBjcmRtYV9yZWFkX2NodW5rICpjaDsNCj4gKwlpZiAocmRt
+YV9ub2RlX2dldF90cmFuc3BvcnQoeHBydC0+c2NfY21faWQtPmRldmljZS0+bm9kZV90eXBlKQ0K
+PiA9PQ0KPiArCSAgICAgUkRNQV9UUkFOU1BPUlRfSVdBUlApDQo+ICsJCXJldHVybiAxOw0KPiAr
+CWVsc2UNCj4gKwkJcmV0dXJuIG1pbl90KGludCwgc2dlX2NvdW50LCB4cHJ0LT5zY19tYXhfc2dl
+KTsgfQ0KPiANCj4gLQlzZ2Vfbm8gPSAwOw0KPiAtCXBhZ2Vfbm8gPSAwOw0KPiAtCXBhZ2Vfb2Zm
+ID0gMDsNCj4gLQljaCA9IChzdHJ1Y3QgcnBjcmRtYV9yZWFkX2NodW5rICopJnJtc2dwLQ0KPiA+
+cm1fYm9keS5ybV9jaHVua3NbMF07DQo+IC0JY2hfbm8gPSAwOw0KPiAtCWNoX2J5dGVzID0gbnRv
+aGwoY2gtPnJjX3RhcmdldC5yc19sZW5ndGgpOw0KPiAtCWhlYWQtPmFyZy5oZWFkWzBdID0gcnFz
+dHAtPnJxX2FyZy5oZWFkWzBdOw0KPiAtCWhlYWQtPmFyZy50YWlsWzBdID0gcnFzdHAtPnJxX2Fy
+Zy50YWlsWzBdOw0KPiAtCWhlYWQtPmFyZy5wYWdlcyA9ICZoZWFkLT5wYWdlc1toZWFkLT5jb3Vu
+dF07DQo+IC0JaGVhZC0+aGRyX2NvdW50ID0gaGVhZC0+Y291bnQ7IC8qIHNhdmUgY291bnQgb2Yg
+aGRyIHBhZ2VzICovDQo+IC0JaGVhZC0+YXJnLnBhZ2VfYmFzZSA9IDA7DQo+IC0JaGVhZC0+YXJn
+LnBhZ2VfbGVuID0gY2hfYnl0ZXM7DQo+IC0JaGVhZC0+YXJnLmxlbiA9IHJxc3RwLT5ycV9hcmcu
+bGVuICsgY2hfYnl0ZXM7DQo+IC0JaGVhZC0+YXJnLmJ1ZmxlbiA9IHJxc3RwLT5ycV9hcmcuYnVm
+bGVuICsgY2hfYnl0ZXM7DQo+IC0JaGVhZC0+Y291bnQrKzsNCj4gLQljaGxfbWFwLT5jaFswXS5z
+dGFydCA9IDA7DQo+IC0Jd2hpbGUgKGJ5dGVfY291bnQpIHsNCj4gLQkJcnBsX21hcC0+c2dlW3Nn
+ZV9ub10uaW92X2Jhc2UgPQ0KPiAtCQkJcGFnZV9hZGRyZXNzKHJxc3RwLT5ycV9hcmcucGFnZXNb
+cGFnZV9ub10pICsNCj4gcGFnZV9vZmY7DQo+IC0JCXNnZV9ieXRlcyA9IG1pbl90KGludCwgUEFH
+RV9TSVpFLXBhZ2Vfb2ZmLCBjaF9ieXRlcyk7DQo+IC0JCXJwbF9tYXAtPnNnZVtzZ2Vfbm9dLmlv
+dl9sZW4gPSBzZ2VfYnl0ZXM7DQo+IC0JCS8qDQo+IC0JCSAqIERvbid0IGJ1bXAgaGVhZC0+Y291
+bnQgaGVyZSBiZWNhdXNlIHRoZSBzYW1lIHBhZ2UNCj4gLQkJICogbWF5IGJlIHVzZWQgYnkgbXVs
+dGlwbGUgU0dFLg0KPiAtCQkgKi8NCj4gLQkJaGVhZC0+YXJnLnBhZ2VzW3BhZ2Vfbm9dID0gcnFz
+dHAtPnJxX2FyZy5wYWdlc1twYWdlX25vXTsNCj4gLQkJcnFzdHAtPnJxX3Jlc3BhZ2VzID0gJnJx
+c3RwLT5ycV9hcmcucGFnZXNbcGFnZV9ubysxXTsNCj4gK3R5cGVkZWYgaW50ICgqcmRtYV9yZWFk
+ZXJfZm4pKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsDQo+ICsJCQkgICAgICBzdHJ1Y3Qgc3Zj
+X3Jxc3QgKnJxc3RwLA0KPiArCQkJICAgICAgc3RydWN0IHN2Y19yZG1hX29wX2N0eHQgKmhlYWQs
+DQo+ICsJCQkgICAgICBpbnQgKnBhZ2Vfbm8sDQo+ICsJCQkgICAgICB1MzIgKnBhZ2Vfb2Zmc2V0
+LA0KPiArCQkJICAgICAgdTMyIHJzX2hhbmRsZSwNCj4gKwkJCSAgICAgIHUzMiByc19sZW5ndGgs
+DQo+ICsJCQkgICAgICB1NjQgcnNfb2Zmc2V0LA0KPiArCQkJICAgICAgaW50IGxhc3QpOw0KPiAr
+DQo+ICsvKiBJc3N1ZSBhbiBSRE1BX1JFQUQgdXNpbmcgdGhlIGxvY2FsIGxrZXkgdG8gbWFwIHRo
+ZSBkYXRhIHNpbmsgKi8NCj4gK3N0YXRpYyBpbnQgcmRtYV9yZWFkX2NodW5rX2xjbChzdHJ1Y3Qg
+c3ZjeHBydF9yZG1hICp4cHJ0LA0KPiArCQkJICAgICAgIHN0cnVjdCBzdmNfcnFzdCAqcnFzdHAs
+DQo+ICsJCQkgICAgICAgc3RydWN0IHN2Y19yZG1hX29wX2N0eHQgKmhlYWQsDQo+ICsJCQkgICAg
+ICAgaW50ICpwYWdlX25vLA0KPiArCQkJICAgICAgIHUzMiAqcGFnZV9vZmZzZXQsDQo+ICsJCQkg
+ICAgICAgdTMyIHJzX2hhbmRsZSwNCj4gKwkJCSAgICAgICB1MzIgcnNfbGVuZ3RoLA0KPiArCQkJ
+ICAgICAgIHU2NCByc19vZmZzZXQsDQo+ICsJCQkgICAgICAgaW50IGxhc3QpDQo+ICt7DQo+ICsJ
+c3RydWN0IGliX3NlbmRfd3IgcmVhZF93cjsNCj4gKwlpbnQgcGFnZXNfbmVlZGVkID0gUEFHRV9B
+TElHTigqcGFnZV9vZmZzZXQgKyByc19sZW5ndGgpID4+DQo+IFBBR0VfU0hJRlQ7DQo+ICsJc3Ry
+dWN0IHN2Y19yZG1hX29wX2N0eHQgKmN0eHQgPSBzdmNfcmRtYV9nZXRfY29udGV4dCh4cHJ0KTsN
+Cj4gKwlpbnQgcmV0LCByZWFkLCBwbm87DQo+ICsJdTMyIHBnX29mZiA9ICpwYWdlX29mZnNldDsN
+Cj4gKwl1MzIgcGdfbm8gPSAqcGFnZV9ubzsNCj4gKw0KPiArCWN0eHQtPmRpcmVjdGlvbiA9IERN
+QV9GUk9NX0RFVklDRTsNCj4gKwljdHh0LT5yZWFkX2hkciA9IGhlYWQ7DQo+ICsJcGFnZXNfbmVl
+ZGVkID0NCj4gKwkJbWluX3QoaW50LCBwYWdlc19uZWVkZWQsIHJkbWFfcmVhZF9tYXhfc2dlKHhw
+cnQsDQo+IHBhZ2VzX25lZWRlZCkpOw0KPiArCXJlYWQgPSBtaW5fdChpbnQsIHBhZ2VzX25lZWRl
+ZCA8PCBQQUdFX1NISUZULCByc19sZW5ndGgpOw0KPiArDQo+ICsJZm9yIChwbm8gPSAwOyBwbm8g
+PCBwYWdlc19uZWVkZWQ7IHBubysrKSB7DQo+ICsJCWludCBsZW4gPSBtaW5fdChpbnQsIHJzX2xl
+bmd0aCwgUEFHRV9TSVpFIC0gcGdfb2ZmKTsNCj4gKw0KPiArCQloZWFkLT5hcmcucGFnZXNbcGdf
+bm9dID0gcnFzdHAtPnJxX2FyZy5wYWdlc1twZ19ub107DQo+ICsJCWhlYWQtPmFyZy5wYWdlX2xl
+biArPSBsZW47DQo+ICsJCWhlYWQtPmFyZy5sZW4gKz0gbGVuOw0KPiArCQlpZiAoIXBnX29mZikN
+Cj4gKwkJCWhlYWQtPmNvdW50Kys7DQo+ICsJCXJxc3RwLT5ycV9yZXNwYWdlcyA9ICZycXN0cC0+
+cnFfYXJnLnBhZ2VzW3BnX25vKzFdOw0KPiAgCQlycXN0cC0+cnFfbmV4dF9wYWdlID0gcnFzdHAt
+PnJxX3Jlc3BhZ2VzICsgMTsNCj4gKwkJY3R4dC0+c2dlW3Bub10uYWRkciA9DQo+ICsJCQlpYl9k
+bWFfbWFwX3BhZ2UoeHBydC0+c2NfY21faWQtPmRldmljZSwNCj4gKwkJCQkJaGVhZC0+YXJnLnBh
+Z2VzW3BnX25vXSwgcGdfb2ZmLA0KPiArCQkJCQlQQUdFX1NJWkUgLSBwZ19vZmYsDQo+ICsJCQkJ
+CURNQV9GUk9NX0RFVklDRSk7DQo+ICsJCXJldCA9IGliX2RtYV9tYXBwaW5nX2Vycm9yKHhwcnQt
+PnNjX2NtX2lkLT5kZXZpY2UsDQo+ICsJCQkJCSAgIGN0eHQtPnNnZVtwbm9dLmFkZHIpOw0KPiAr
+CQlpZiAocmV0KQ0KPiArCQkJZ290byBlcnI7DQo+ICsJCWF0b21pY19pbmMoJnhwcnQtPnNjX2Rt
+YV91c2VkKTsNCj4gDQo+IC0JCWJ5dGVfY291bnQgLT0gc2dlX2J5dGVzOw0KPiAtCQljaF9ieXRl
+cyAtPSBzZ2VfYnl0ZXM7DQo+IC0JCXNnZV9ubysrOw0KPiAtCQkvKg0KPiAtCQkgKiBJZiBhbGwg
+Ynl0ZXMgZm9yIHRoaXMgY2h1bmsgaGF2ZSBiZWVuIG1hcHBlZCB0byBhbg0KPiAtCQkgKiBTR0Us
+IG1vdmUgdG8gdGhlIG5leHQgU0dFDQo+IC0JCSAqLw0KPiAtCQlpZiAoY2hfYnl0ZXMgPT0gMCkg
+ew0KPiAtCQkJY2hsX21hcC0+Y2hbY2hfbm9dLmNvdW50ID0NCj4gLQkJCQlzZ2Vfbm8gLSBjaGxf
+bWFwLT5jaFtjaF9ub10uc3RhcnQ7DQo+IC0JCQljaF9ubysrOw0KPiAtCQkJY2grKzsNCj4gLQkJ
+CWNobF9tYXAtPmNoW2NoX25vXS5zdGFydCA9IHNnZV9ubzsNCj4gLQkJCWNoX2J5dGVzID0gbnRv
+aGwoY2gtPnJjX3RhcmdldC5yc19sZW5ndGgpOw0KPiAtCQkJLyogSWYgYnl0ZXMgcmVtYWluaW5n
+IGFjY291bnQgZm9yIG5leHQgY2h1bmsgKi8NCj4gLQkJCWlmIChieXRlX2NvdW50KSB7DQo+IC0J
+CQkJaGVhZC0+YXJnLnBhZ2VfbGVuICs9IGNoX2J5dGVzOw0KPiAtCQkJCWhlYWQtPmFyZy5sZW4g
+Kz0gY2hfYnl0ZXM7DQo+IC0JCQkJaGVhZC0+YXJnLmJ1ZmxlbiArPSBjaF9ieXRlczsNCj4gLQkJ
+CX0NCj4gKwkJLyogVGhlIGxrZXkgaGVyZSBpcyBlaXRoZXIgYSBsb2NhbCBkbWEgbGtleSBvciBh
+IGRtYV9tciBsa2V5DQo+ICovDQo+ICsJCWN0eHQtPnNnZVtwbm9dLmxrZXkgPSB4cHJ0LT5zY19k
+bWFfbGtleTsNCj4gKwkJY3R4dC0+c2dlW3Bub10ubGVuZ3RoID0gbGVuOw0KPiArCQljdHh0LT5j
+b3VudCsrOw0KPiArDQo+ICsJCS8qIGFkanVzdCBvZmZzZXQgYW5kIHdyYXAgdG8gbmV4dCBwYWdl
+IGlmIG5lZWRlZCAqLw0KPiArCQlwZ19vZmYgKz0gbGVuOw0KPiArCQlpZiAocGdfb2ZmID09IFBB
+R0VfU0laRSkgew0KPiArCQkJcGdfb2ZmID0gMDsNCj4gKwkJCXBnX25vKys7DQo+ICAJCX0NCj4g
+LQkJLyoNCj4gLQkJICogSWYgdGhpcyBTR0UgY29uc3VtZWQgYWxsIG9mIHRoZSBwYWdlLCBtb3Zl
+IHRvIHRoZQ0KPiAtCQkgKiBuZXh0IHBhZ2UNCj4gLQkJICovDQo+IC0JCWlmICgoc2dlX2J5dGVz
+ICsgcGFnZV9vZmYpID09IFBBR0VfU0laRSkgew0KPiAtCQkJcGFnZV9ubysrOw0KPiAtCQkJcGFn
+ZV9vZmYgPSAwOw0KPiAtCQkJLyoNCj4gLQkJCSAqIElmIHRoZXJlIGFyZSBzdGlsbCBieXRlcyBs
+ZWZ0IHRvIG1hcCwgYnVtcA0KPiAtCQkJICogdGhlIHBhZ2UgY291bnQNCj4gLQkJCSAqLw0KPiAt
+CQkJaWYgKGJ5dGVfY291bnQpDQo+IC0JCQkJaGVhZC0+Y291bnQrKzsNCj4gLQkJfSBlbHNlDQo+
+IC0JCQlwYWdlX29mZiArPSBzZ2VfYnl0ZXM7DQo+ICsJCXJzX2xlbmd0aCAtPSBsZW47DQo+ICAJ
+fQ0KPiAtCUJVR19PTihieXRlX2NvdW50ICE9IDApOw0KPiAtCXJldHVybiBzZ2Vfbm87DQo+ICsN
+Cj4gKwlpZiAobGFzdCAmJiByc19sZW5ndGggPT0gMCkNCj4gKwkJc2V0X2JpdChSRE1BQ1RYVF9G
+X0xBU1RfQ1RYVCwgJmN0eHQtPmZsYWdzKTsNCj4gKwllbHNlDQo+ICsJCWNsZWFyX2JpdChSRE1B
+Q1RYVF9GX0xBU1RfQ1RYVCwgJmN0eHQtPmZsYWdzKTsNCj4gKw0KPiArCW1lbXNldCgmcmVhZF93
+ciwgMCwgc2l6ZW9mKHJlYWRfd3IpKTsNCj4gKwlyZWFkX3dyLndyX2lkID0gKHVuc2lnbmVkIGxv
+bmcpY3R4dDsNCj4gKwlyZWFkX3dyLm9wY29kZSA9IElCX1dSX1JETUFfUkVBRDsNCj4gKwljdHh0
+LT53cl9vcCA9IHJlYWRfd3Iub3Bjb2RlOw0KPiArCXJlYWRfd3Iuc2VuZF9mbGFncyA9IElCX1NF
+TkRfU0lHTkFMRUQ7DQo+ICsJcmVhZF93ci53ci5yZG1hLnJrZXkgPSByc19oYW5kbGU7DQo+ICsJ
+cmVhZF93ci53ci5yZG1hLnJlbW90ZV9hZGRyID0gcnNfb2Zmc2V0Ow0KPiArCXJlYWRfd3Iuc2df
+bGlzdCA9IGN0eHQtPnNnZTsNCj4gKwlyZWFkX3dyLm51bV9zZ2UgPSBwYWdlc19uZWVkZWQ7DQo+
+ICsNCj4gKwlyZXQgPSBzdmNfcmRtYV9zZW5kKHhwcnQsICZyZWFkX3dyKTsNCj4gKwlpZiAocmV0
+KSB7DQo+ICsJCXByX2Vycigic3ZjcmRtYTogRXJyb3IgJWQgcG9zdGluZyBSRE1BX1JFQURcbiIs
+IHJldCk7DQo+ICsJCXNldF9iaXQoWFBUX0NMT1NFLCAmeHBydC0+c2NfeHBydC54cHRfZmxhZ3Mp
+Ow0KPiArCQlnb3RvIGVycjsNCj4gKwl9DQo+ICsNCj4gKwkvKiByZXR1cm4gY3VycmVudCBsb2Nh
+dGlvbiBpbiBwYWdlIGFycmF5ICovDQo+ICsJKnBhZ2Vfbm8gPSBwZ19ubzsNCj4gKwkqcGFnZV9v
+ZmZzZXQgPSBwZ19vZmY7DQo+ICsJcmV0ID0gcmVhZDsNCj4gKwlhdG9taWNfaW5jKCZyZG1hX3N0
+YXRfcmVhZCk7DQo+ICsJcmV0dXJuIHJldDsNCj4gKyBlcnI6DQo+ICsJc3ZjX3JkbWFfdW5tYXBf
+ZG1hKGN0eHQpOw0KPiArCXN2Y19yZG1hX3B1dF9jb250ZXh0KGN0eHQsIDApOw0KPiArCXJldHVy
+biByZXQ7DQo+ICB9DQo+IA0KPiAtLyogTWFwIGEgcmVhZC1jaHVuay1saXN0IHRvIGFuIFhEUiBh
+bmQgZmFzdCByZWdpc3RlciB0aGUgcGFnZS1saXN0Lg0KPiAtICoNCj4gLSAqIEFzc3VtcHRpb25z
+Og0KPiAtICogLSBjaHVua1swXQlwb3NpdGlvbiBwb2ludHMgdG8gcGFnZXNbMF0gYXQgYW4gb2Zm
+c2V0IG9mIDANCj4gLSAqIC0gcGFnZXNbXQl3aWxsIGJlIG1hZGUgcGh5c2ljYWxseSBjb250aWd1
+b3VzIGJ5IGNyZWF0aW5nIGEgb25lLW9mZg0KPiBtZW1vcnkNCj4gLSAqCQlyZWdpb24gdXNpbmcg
+dGhlIGZhc3RyZWcgdmVyYi4NCj4gLSAqIC0gYnl0ZV9jb3VudCBpcyAjIG9mIGJ5dGVzIGluIHJl
+YWQtY2h1bmstbGlzdA0KPiAtICogLSBjaF9jb3VudAlpcyAjIG9mIGNodW5rcyBpbiByZWFkLWNo
+dW5rLWxpc3QNCj4gLSAqDQo+IC0gKiBPdXRwdXQ6DQo+IC0gKiAtIHNnZSBhcnJheSBwb2ludGlu
+ZyBpbnRvIHBhZ2VzW10gYXJyYXkuDQo+IC0gKiAtIGNodW5rX3NnZSBhcnJheSBzcGVjaWZ5aW5n
+IHNnZSBpbmRleCBhbmQgY291bnQgZm9yIGVhY2gNCj4gLSAqICAgY2h1bmsgaW4gdGhlIHJlYWQg
+bGlzdA0KPiAtICovDQo+IC1zdGF0aWMgaW50IGZhc3RfcmVnX3JlYWRfY2h1bmtzKHN0cnVjdCBz
+dmN4cHJ0X3JkbWEgKnhwcnQsDQo+ICsvKiBJc3N1ZSBhbiBSRE1BX1JFQUQgdXNpbmcgYW4gRlJN
+UiB0byBtYXAgdGhlIGRhdGEgc2luayAqLyBzdGF0aWMgaW50DQo+ICtyZG1hX3JlYWRfY2h1bmtf
+ZnJtcihzdHJ1Y3Qgc3ZjeHBydF9yZG1hICp4cHJ0LA0KPiAgCQkJCXN0cnVjdCBzdmNfcnFzdCAq
+cnFzdHAsDQo+ICAJCQkJc3RydWN0IHN2Y19yZG1hX29wX2N0eHQgKmhlYWQsDQo+IC0JCQkJc3Ry
+dWN0IHJwY3JkbWFfbXNnICpybXNncCwNCj4gLQkJCQlzdHJ1Y3Qgc3ZjX3JkbWFfcmVxX21hcCAq
+cnBsX21hcCwNCj4gLQkJCQlzdHJ1Y3Qgc3ZjX3JkbWFfcmVxX21hcCAqY2hsX21hcCwNCj4gLQkJ
+CQlpbnQgY2hfY291bnQsDQo+IC0JCQkJaW50IGJ5dGVfY291bnQpDQo+ICsJCQkJaW50ICpwYWdl
+X25vLA0KPiArCQkJCXUzMiAqcGFnZV9vZmZzZXQsDQo+ICsJCQkJdTMyIHJzX2hhbmRsZSwNCj4g
+KwkJCQl1MzIgcnNfbGVuZ3RoLA0KPiArCQkJCXU2NCByc19vZmZzZXQsDQo+ICsJCQkJaW50IGxh
+c3QpDQo+ICB7DQo+IC0JaW50IHBhZ2Vfbm87DQo+IC0JaW50IGNoX25vOw0KPiAtCXUzMiBvZmZz
+ZXQ7DQo+IC0Jc3RydWN0IHJwY3JkbWFfcmVhZF9jaHVuayAqY2g7DQo+IC0Jc3RydWN0IHN2Y19y
+ZG1hX2Zhc3RyZWdfbXIgKmZybXI7DQo+IC0JaW50IHJldCA9IDA7DQo+ICsJc3RydWN0IGliX3Nl
+bmRfd3IgcmVhZF93cjsNCj4gKwlzdHJ1Y3QgaWJfc2VuZF93ciBpbnZfd3I7DQo+ICsJc3RydWN0
+IGliX3NlbmRfd3IgZmFzdHJlZ193cjsNCj4gKwl1OCBrZXk7DQo+ICsJaW50IHBhZ2VzX25lZWRl
+ZCA9IFBBR0VfQUxJR04oKnBhZ2Vfb2Zmc2V0ICsgcnNfbGVuZ3RoKSA+Pg0KPiBQQUdFX1NISUZU
+Ow0KPiArCXN0cnVjdCBzdmNfcmRtYV9vcF9jdHh0ICpjdHh0ID0gc3ZjX3JkbWFfZ2V0X2NvbnRl
+eHQoeHBydCk7DQo+ICsJc3RydWN0IHN2Y19yZG1hX2Zhc3RyZWdfbXIgKmZybXIgPSBzdmNfcmRt
+YV9nZXRfZnJtcih4cHJ0KTsNCj4gKwlpbnQgcmV0LCByZWFkLCBwbm87DQo+ICsJdTMyIHBnX29m
+ZiA9ICpwYWdlX29mZnNldDsNCj4gKwl1MzIgcGdfbm8gPSAqcGFnZV9ubzsNCj4gDQo+IC0JZnJt
+ciA9IHN2Y19yZG1hX2dldF9mcm1yKHhwcnQpOw0KPiAgCWlmIChJU19FUlIoZnJtcikpDQo+ICAJ
+CXJldHVybiAtRU5PTUVNOw0KPiANCj4gLQloZWFkLT5mcm1yID0gZnJtcjsNCj4gLQloZWFkLT5h
+cmcuaGVhZFswXSA9IHJxc3RwLT5ycV9hcmcuaGVhZFswXTsNCj4gLQloZWFkLT5hcmcudGFpbFsw
+XSA9IHJxc3RwLT5ycV9hcmcudGFpbFswXTsNCj4gLQloZWFkLT5hcmcucGFnZXMgPSAmaGVhZC0+
+cGFnZXNbaGVhZC0+Y291bnRdOw0KPiAtCWhlYWQtPmhkcl9jb3VudCA9IGhlYWQtPmNvdW50OyAv
+KiBzYXZlIGNvdW50IG9mIGhkciBwYWdlcyAqLw0KPiAtCWhlYWQtPmFyZy5wYWdlX2Jhc2UgPSAw
+Ow0KPiAtCWhlYWQtPmFyZy5wYWdlX2xlbiA9IGJ5dGVfY291bnQ7DQo+IC0JaGVhZC0+YXJnLmxl
+biA9IHJxc3RwLT5ycV9hcmcubGVuICsgYnl0ZV9jb3VudDsNCj4gLQloZWFkLT5hcmcuYnVmbGVu
+ID0gcnFzdHAtPnJxX2FyZy5idWZsZW4gKyBieXRlX2NvdW50Ow0KPiArCWN0eHQtPmRpcmVjdGlv
+biA9IERNQV9GUk9NX0RFVklDRTsNCj4gKwljdHh0LT5mcm1yID0gZnJtcjsNCj4gKwlwYWdlc19u
+ZWVkZWQgPSBtaW5fdChpbnQsIHBhZ2VzX25lZWRlZCwgeHBydC0NCj4gPnNjX2ZybXJfcGdfbGlz
+dF9sZW4pOw0KPiArCXJlYWQgPSBtaW5fdChpbnQsIHBhZ2VzX25lZWRlZCA8PCBQQUdFX1NISUZU
+LCByc19sZW5ndGgpOw0KPiANCj4gLQkvKiBGYXN0IHJlZ2lzdGVyIHRoZSBwYWdlIGxpc3QgKi8N
+Cj4gLQlmcm1yLT5rdmEgPSBwYWdlX2FkZHJlc3MocnFzdHAtPnJxX2FyZy5wYWdlc1swXSk7DQo+
+ICsJZnJtci0+a3ZhID0gcGFnZV9hZGRyZXNzKHJxc3RwLT5ycV9hcmcucGFnZXNbcGdfbm9dKTsN
+Cj4gIAlmcm1yLT5kaXJlY3Rpb24gPSBETUFfRlJPTV9ERVZJQ0U7DQo+ICAJZnJtci0+YWNjZXNz
+X2ZsYWdzID0NCj4gKElCX0FDQ0VTU19MT0NBTF9XUklURXxJQl9BQ0NFU1NfUkVNT1RFX1dSSVRF
+KTsNCj4gLQlmcm1yLT5tYXBfbGVuID0gYnl0ZV9jb3VudDsNCj4gLQlmcm1yLT5wYWdlX2xpc3Rf
+bGVuID0gUEFHRV9BTElHTihieXRlX2NvdW50KSA+PiBQQUdFX1NISUZUOw0KPiAtCWZvciAocGFn
+ZV9ubyA9IDA7IHBhZ2Vfbm8gPCBmcm1yLT5wYWdlX2xpc3RfbGVuOyBwYWdlX25vKyspIHsNCj4g
+LQkJZnJtci0+cGFnZV9saXN0LT5wYWdlX2xpc3RbcGFnZV9ub10gPQ0KPiArCWZybXItPm1hcF9s
+ZW4gPSBwYWdlc19uZWVkZWQgPDwgUEFHRV9TSElGVDsNCj4gKwlmcm1yLT5wYWdlX2xpc3RfbGVu
+ID0gcGFnZXNfbmVlZGVkOw0KPiArDQo+ICsJZm9yIChwbm8gPSAwOyBwbm8gPCBwYWdlc19uZWVk
+ZWQ7IHBubysrKSB7DQo+ICsJCWludCBsZW4gPSBtaW5fdChpbnQsIHJzX2xlbmd0aCwgUEFHRV9T
+SVpFIC0gcGdfb2ZmKTsNCj4gKw0KPiArCQloZWFkLT5hcmcucGFnZXNbcGdfbm9dID0gcnFzdHAt
+PnJxX2FyZy5wYWdlc1twZ19ub107DQo+ICsJCWhlYWQtPmFyZy5wYWdlX2xlbiArPSBsZW47DQo+
+ICsJCWhlYWQtPmFyZy5sZW4gKz0gbGVuOw0KPiArCQlpZiAoIXBnX29mZikNCj4gKwkJCWhlYWQt
+PmNvdW50Kys7DQo+ICsJCXJxc3RwLT5ycV9yZXNwYWdlcyA9ICZycXN0cC0+cnFfYXJnLnBhZ2Vz
+W3BnX25vKzFdOw0KPiArCQlycXN0cC0+cnFfbmV4dF9wYWdlID0gcnFzdHAtPnJxX3Jlc3BhZ2Vz
+ICsgMTsNCj4gKwkJZnJtci0+cGFnZV9saXN0LT5wYWdlX2xpc3RbcG5vXSA9DQo+ICAJCQlpYl9k
+bWFfbWFwX3BhZ2UoeHBydC0+c2NfY21faWQtPmRldmljZSwNCj4gLQkJCQkJcnFzdHAtPnJxX2Fy
+Zy5wYWdlc1twYWdlX25vXSwgMCwNCj4gKwkJCQkJaGVhZC0+YXJnLnBhZ2VzW3BnX25vXSwgMCwN
+Cj4gIAkJCQkJUEFHRV9TSVpFLCBETUFfRlJPTV9ERVZJQ0UpOw0KPiAtCQlpZiAoaWJfZG1hX21h
+cHBpbmdfZXJyb3IoeHBydC0+c2NfY21faWQtPmRldmljZSwNCj4gLQkJCQkJIGZybXItPnBhZ2Vf
+bGlzdC0NCj4gPnBhZ2VfbGlzdFtwYWdlX25vXSkpDQo+IC0JCQlnb3RvIGZhdGFsX2VycjsNCj4g
+KwkJcmV0ID0gaWJfZG1hX21hcHBpbmdfZXJyb3IoeHBydC0+c2NfY21faWQtPmRldmljZSwNCj4g
+KwkJCQkJICAgZnJtci0+cGFnZV9saXN0LT5wYWdlX2xpc3RbcG5vXSk7DQo+ICsJCWlmIChyZXQp
+DQo+ICsJCQlnb3RvIGVycjsNCj4gIAkJYXRvbWljX2luYygmeHBydC0+c2NfZG1hX3VzZWQpOw0K
+PiAtCQloZWFkLT5hcmcucGFnZXNbcGFnZV9ub10gPSBycXN0cC0+cnFfYXJnLnBhZ2VzW3BhZ2Vf
+bm9dOw0KPiAtCX0NCj4gLQloZWFkLT5jb3VudCArPSBwYWdlX25vOw0KPiAtDQo+IC0JLyogcnFf
+cmVzcGFnZXMgcG9pbnRzIG9uZSBwYXN0IGFyZyBwYWdlcyAqLw0KPiAtCXJxc3RwLT5ycV9yZXNw
+YWdlcyA9ICZycXN0cC0+cnFfYXJnLnBhZ2VzW3BhZ2Vfbm9dOw0KPiAtCXJxc3RwLT5ycV9uZXh0
+X3BhZ2UgPSBycXN0cC0+cnFfcmVzcGFnZXMgKyAxOw0KPiANCj4gLQkvKiBDcmVhdGUgdGhlIHJl
+cGx5IGFuZCBjaHVuayBtYXBzICovDQo+IC0Jb2Zmc2V0ID0gMDsNCj4gLQljaCA9IChzdHJ1Y3Qg
+cnBjcmRtYV9yZWFkX2NodW5rICopJnJtc2dwLQ0KPiA+cm1fYm9keS5ybV9jaHVua3NbMF07DQo+
+IC0JZm9yIChjaF9ubyA9IDA7IGNoX25vIDwgY2hfY291bnQ7IGNoX25vKyspIHsNCj4gLQkJaW50
+IGxlbiA9IG50b2hsKGNoLT5yY190YXJnZXQucnNfbGVuZ3RoKTsNCj4gLQkJcnBsX21hcC0+c2dl
+W2NoX25vXS5pb3ZfYmFzZSA9IGZybXItPmt2YSArIG9mZnNldDsNCj4gLQkJcnBsX21hcC0+c2dl
+W2NoX25vXS5pb3ZfbGVuID0gbGVuOw0KPiAtCQljaGxfbWFwLT5jaFtjaF9ub10uY291bnQgPSAx
+Ow0KPiAtCQljaGxfbWFwLT5jaFtjaF9ub10uc3RhcnQgPSBjaF9ubzsNCj4gLQkJb2Zmc2V0ICs9
+IGxlbjsNCj4gLQkJY2grKzsNCj4gKwkJLyogYWRqdXN0IG9mZnNldCBhbmQgd3JhcCB0byBuZXh0
+IHBhZ2UgaWYgbmVlZGVkICovDQo+ICsJCXBnX29mZiArPSBsZW47DQo+ICsJCWlmIChwZ19vZmYg
+PT0gUEFHRV9TSVpFKSB7DQo+ICsJCQlwZ19vZmYgPSAwOw0KPiArCQkJcGdfbm8rKzsNCj4gKwkJ
+fQ0KPiArCQlyc19sZW5ndGggLT0gbGVuOw0KPiAgCX0NCj4gDQo+IC0JcmV0ID0gc3ZjX3JkbWFf
+ZmFzdHJlZyh4cHJ0LCBmcm1yKTsNCj4gLQlpZiAocmV0KQ0KPiAtCQlnb3RvIGZhdGFsX2VycjsN
+Cj4gLQ0KPiAtCXJldHVybiBjaF9ubzsNCj4gLQ0KPiAtIGZhdGFsX2VycjoNCj4gLQlwcmludGso
+InN2Y3JkbWE6IGVycm9yIGZhc3QgcmVnaXN0ZXJpbmcgeGRyIGZvciB4cHJ0ICVwIiwgeHBydCk7
+DQo+IC0Jc3ZjX3JkbWFfcHV0X2ZybXIoeHBydCwgZnJtcik7DQo+IC0JcmV0dXJuIC1FSU87DQo+
+IC19DQo+IC0NCj4gLXN0YXRpYyBpbnQgcmRtYV9zZXRfY3R4dF9zZ2Uoc3RydWN0IHN2Y3hwcnRf
+cmRtYSAqeHBydCwNCj4gLQkJCSAgICAgc3RydWN0IHN2Y19yZG1hX29wX2N0eHQgKmN0eHQsDQo+
+IC0JCQkgICAgIHN0cnVjdCBzdmNfcmRtYV9mYXN0cmVnX21yICpmcm1yLA0KPiAtCQkJICAgICBz
+dHJ1Y3Qga3ZlYyAqdmVjLA0KPiAtCQkJICAgICB1NjQgKnNnbF9vZmZzZXQsDQo+IC0JCQkgICAg
+IGludCBjb3VudCkNCj4gLXsNCj4gLQlpbnQgaTsNCj4gLQl1bnNpZ25lZCBsb25nIG9mZjsNCj4g
+KwlpZiAobGFzdCAmJiByc19sZW5ndGggPT0gMCkNCj4gKwkJc2V0X2JpdChSRE1BQ1RYVF9GX0xB
+U1RfQ1RYVCwgJmN0eHQtPmZsYWdzKTsNCj4gKwllbHNlDQo+ICsJCWNsZWFyX2JpdChSRE1BQ1RY
+VF9GX0xBU1RfQ1RYVCwgJmN0eHQtPmZsYWdzKTsNCj4gDQo+IC0JY3R4dC0+Y291bnQgPSBjb3Vu
+dDsNCj4gLQljdHh0LT5kaXJlY3Rpb24gPSBETUFfRlJPTV9ERVZJQ0U7DQo+IC0JZm9yIChpID0g
+MDsgaSA8IGNvdW50OyBpKyspIHsNCj4gLQkJY3R4dC0+c2dlW2ldLmxlbmd0aCA9IDA7IC8qIGlu
+IGNhc2UgbWFwIGZhaWxzICovDQo+IC0JCWlmICghZnJtcikgew0KPiAtCQkJQlVHX09OKCF2aXJ0
+X3RvX3BhZ2UodmVjW2ldLmlvdl9iYXNlKSk7DQo+IC0JCQlvZmYgPSAodW5zaWduZWQgbG9uZyl2
+ZWNbaV0uaW92X2Jhc2UgJg0KPiB+UEFHRV9NQVNLOw0KPiAtCQkJY3R4dC0+c2dlW2ldLmFkZHIg
+PQ0KPiAtCQkJCWliX2RtYV9tYXBfcGFnZSh4cHJ0LT5zY19jbV9pZC0+ZGV2aWNlLA0KPiAtDQo+
+IAl2aXJ0X3RvX3BhZ2UodmVjW2ldLmlvdl9iYXNlKSwNCj4gLQkJCQkJCW9mZiwNCj4gLQkJCQkJ
+CXZlY1tpXS5pb3ZfbGVuLA0KPiAtCQkJCQkJRE1BX0ZST01fREVWSUNFKTsNCj4gLQkJCWlmIChp
+Yl9kbWFfbWFwcGluZ19lcnJvcih4cHJ0LT5zY19jbV9pZC0+ZGV2aWNlLA0KPiAtCQkJCQkJIGN0
+eHQtPnNnZVtpXS5hZGRyKSkNCj4gLQkJCQlyZXR1cm4gLUVJTlZBTDsNCj4gLQkJCWN0eHQtPnNn
+ZVtpXS5sa2V5ID0geHBydC0+c2NfZG1hX2xrZXk7DQo+IC0JCQlhdG9taWNfaW5jKCZ4cHJ0LT5z
+Y19kbWFfdXNlZCk7DQo+IC0JCX0gZWxzZSB7DQo+IC0JCQljdHh0LT5zZ2VbaV0uYWRkciA9ICh1
+bnNpZ25lZCBsb25nKXZlY1tpXS5pb3ZfYmFzZTsNCj4gLQkJCWN0eHQtPnNnZVtpXS5sa2V5ID0g
+ZnJtci0+bXItPmxrZXk7DQo+IC0JCX0NCj4gLQkJY3R4dC0+c2dlW2ldLmxlbmd0aCA9IHZlY1tp
+XS5pb3ZfbGVuOw0KPiAtCQkqc2dsX29mZnNldCA9ICpzZ2xfb2Zmc2V0ICsgdmVjW2ldLmlvdl9s
+ZW47DQo+ICsJLyogQnVtcCB0aGUga2V5ICovDQo+ICsJa2V5ID0gKHU4KShmcm1yLT5tci0+bGtl
+eSAmIDB4MDAwMDAwRkYpOw0KPiArCWliX3VwZGF0ZV9mYXN0X3JlZ19rZXkoZnJtci0+bXIsICsr
+a2V5KTsNCj4gKw0KPiArCWN0eHQtPnNnZVswXS5hZGRyID0gKHVuc2lnbmVkIGxvbmcpZnJtci0+
+a3ZhICsgKnBhZ2Vfb2Zmc2V0Ow0KPiArCWN0eHQtPnNnZVswXS5sa2V5ID0gZnJtci0+bXItPmxr
+ZXk7DQo+ICsJY3R4dC0+c2dlWzBdLmxlbmd0aCA9IHJlYWQ7DQo+ICsJY3R4dC0+Y291bnQgPSAx
+Ow0KPiArCWN0eHQtPnJlYWRfaGRyID0gaGVhZDsNCj4gKw0KPiArCS8qIFByZXBhcmUgRkFTVFJF
+RyBXUiAqLw0KPiArCW1lbXNldCgmZmFzdHJlZ193ciwgMCwgc2l6ZW9mKGZhc3RyZWdfd3IpKTsN
+Cj4gKwlmYXN0cmVnX3dyLm9wY29kZSA9IElCX1dSX0ZBU1RfUkVHX01SOw0KPiArCWZhc3RyZWdf
+d3Iuc2VuZF9mbGFncyA9IElCX1NFTkRfU0lHTkFMRUQ7DQo+ICsJZmFzdHJlZ193ci53ci5mYXN0
+X3JlZy5pb3ZhX3N0YXJ0ID0gKHVuc2lnbmVkIGxvbmcpZnJtci0+a3ZhOw0KPiArCWZhc3RyZWdf
+d3Iud3IuZmFzdF9yZWcucGFnZV9saXN0ID0gZnJtci0+cGFnZV9saXN0Ow0KPiArCWZhc3RyZWdf
+d3Iud3IuZmFzdF9yZWcucGFnZV9saXN0X2xlbiA9IGZybXItPnBhZ2VfbGlzdF9sZW47DQo+ICsJ
+ZmFzdHJlZ193ci53ci5mYXN0X3JlZy5wYWdlX3NoaWZ0ID0gUEFHRV9TSElGVDsNCj4gKwlmYXN0
+cmVnX3dyLndyLmZhc3RfcmVnLmxlbmd0aCA9IGZybXItPm1hcF9sZW47DQo+ICsJZmFzdHJlZ193
+ci53ci5mYXN0X3JlZy5hY2Nlc3NfZmxhZ3MgPSBmcm1yLT5hY2Nlc3NfZmxhZ3M7DQo+ICsJZmFz
+dHJlZ193ci53ci5mYXN0X3JlZy5ya2V5ID0gZnJtci0+bXItPmxrZXk7DQo+ICsJZmFzdHJlZ193
+ci5uZXh0ID0gJnJlYWRfd3I7DQo+ICsNCj4gKwkvKiBQcmVwYXJlIFJETUFfUkVBRCAqLw0KPiAr
+CW1lbXNldCgmcmVhZF93ciwgMCwgc2l6ZW9mKHJlYWRfd3IpKTsNCj4gKwlyZWFkX3dyLnNlbmRf
+ZmxhZ3MgPSBJQl9TRU5EX1NJR05BTEVEOw0KPiArCXJlYWRfd3Iud3IucmRtYS5ya2V5ID0gcnNf
+aGFuZGxlOw0KPiArCXJlYWRfd3Iud3IucmRtYS5yZW1vdGVfYWRkciA9IHJzX29mZnNldDsNCj4g
+KwlyZWFkX3dyLnNnX2xpc3QgPSBjdHh0LT5zZ2U7DQo+ICsJcmVhZF93ci5udW1fc2dlID0gMTsN
+Cj4gKwlpZiAoeHBydC0+c2NfZGV2X2NhcHMgJiBTVkNSRE1BX0RFVkNBUF9SRUFEX1dfSU5WKSB7
+DQo+ICsJCXJlYWRfd3Iub3Bjb2RlID0gSUJfV1JfUkRNQV9SRUFEX1dJVEhfSU5WOw0KPiArCQly
+ZWFkX3dyLndyX2lkID0gKHVuc2lnbmVkIGxvbmcpY3R4dDsNCj4gKwkJcmVhZF93ci5leC5pbnZh
+bGlkYXRlX3JrZXkgPSBjdHh0LT5mcm1yLT5tci0+bGtleTsNCj4gKwl9IGVsc2Ugew0KPiArCQly
+ZWFkX3dyLm9wY29kZSA9IElCX1dSX1JETUFfUkVBRDsNCj4gKwkJcmVhZF93ci5uZXh0ID0gJmlu
+dl93cjsNCj4gKwkJLyogUHJlcGFyZSBpbnZhbGlkYXRlICovDQo+ICsJCW1lbXNldCgmaW52X3dy
+LCAwLCBzaXplb2YoaW52X3dyKSk7DQo+ICsJCWludl93ci53cl9pZCA9ICh1bnNpZ25lZCBsb25n
+KWN0eHQ7DQo+ICsJCWludl93ci5vcGNvZGUgPSBJQl9XUl9MT0NBTF9JTlY7DQo+ICsJCWludl93
+ci5zZW5kX2ZsYWdzID0gSUJfU0VORF9TSUdOQUxFRDsNCg0KQ2hhbmdlIHRoaXMgdG8gaW52X3dy
+LnNlbmRfZmxhZ3MgPSBJQl9TRU5EX1NJR05BTEVEIHwgSUJfU0VORF9GRU5DRTsNCg0KPiArCQlp
+bnZfd3IuZXguaW52YWxpZGF0ZV9ya2V5ID0gZnJtci0+bXItPmxrZXk7DQo+ICsJfQ0KPiArCWN0
+eHQtPndyX29wID0gcmVhZF93ci5vcGNvZGU7DQo+ICsNCj4gKwkvKiBQb3N0IHRoZSBjaGFpbiAq
+Lw0KPiArCXJldCA9IHN2Y19yZG1hX3NlbmQoeHBydCwgJmZhc3RyZWdfd3IpOw0KPiArCWlmIChy
+ZXQpIHsNCj4gKwkJcHJfZXJyKCJzdmNyZG1hOiBFcnJvciAlZCBwb3N0aW5nIFJETUFfUkVBRFxu
+IiwgcmV0KTsNCj4gKwkJc2V0X2JpdChYUFRfQ0xPU0UsICZ4cHJ0LT5zY194cHJ0LnhwdF9mbGFn
+cyk7DQo+ICsJCWdvdG8gZXJyOw0KPiAgCX0NCj4gLQlyZXR1cm4gMDsNCj4gLX0NCj4gDQo+IC1z
+dGF0aWMgaW50IHJkbWFfcmVhZF9tYXhfc2dlKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsIGlu
+dCBzZ2VfY291bnQpIC17DQo+IC0JaWYgKChyZG1hX25vZGVfZ2V0X3RyYW5zcG9ydCh4cHJ0LT5z
+Y19jbV9pZC0+ZGV2aWNlLQ0KPiA+bm9kZV90eXBlKSA9PQ0KPiAtCSAgICAgUkRNQV9UUkFOU1BP
+UlRfSVdBUlApICYmDQo+IC0JICAgIHNnZV9jb3VudCA+IDEpDQo+IC0JCXJldHVybiAxOw0KPiAt
+CWVsc2UNCj4gLQkJcmV0dXJuIG1pbl90KGludCwgc2dlX2NvdW50LCB4cHJ0LT5zY19tYXhfc2dl
+KTsNCj4gKwkvKiByZXR1cm4gY3VycmVudCBsb2NhdGlvbiBpbiBwYWdlIGFycmF5ICovDQo+ICsJ
+KnBhZ2Vfbm8gPSBwZ19ubzsNCj4gKwkqcGFnZV9vZmZzZXQgPSBwZ19vZmY7DQo+ICsJcmV0ID0g
+cmVhZDsNCj4gKwlhdG9taWNfaW5jKCZyZG1hX3N0YXRfcmVhZCk7DQo+ICsJcmV0dXJuIHJldDsN
+Cj4gKyBlcnI6DQo+ICsJc3ZjX3JkbWFfdW5tYXBfZG1hKGN0eHQpOw0KPiArCXN2Y19yZG1hX3B1
+dF9jb250ZXh0KGN0eHQsIDApOw0KPiArCXN2Y19yZG1hX3B1dF9mcm1yKHhwcnQsIGZybXIpOw0K
+PiArCXJldHVybiByZXQ7DQo+ICB9DQo+IA0KPiAtLyoNCj4gLSAqIFVzZSBSRE1BX1JFQUQgdG8g
+cmVhZCBkYXRhIGZyb20gdGhlIGFkdmVydGlzZWQgY2xpZW50IGJ1ZmZlciBpbnRvIHRoZQ0KPiAt
+ICogWERSIHN0cmVhbSBzdGFydGluZyBhdCBycV9hcmcuaGVhZFswXS5pb3ZfYmFzZS4NCj4gLSAq
+IEVhY2ggY2h1bmsgaW4gdGhlIGFycmF5DQo+IC0gKiBjb250YWlucyB0aGUgZm9sbG93aW5nIGZp
+ZWxkczoNCj4gLSAqIGRpc2NyaW0gICAgICAtICcxJywgVGhpcyBpc24ndCB1c2VkIGZvciBkYXRh
+IHBsYWNlbWVudA0KPiAtICogcG9zaXRpb24gICAgIC0gVGhlIHhkciBzdHJlYW0gb2Zmc2V0ICh0
+aGUgc2FtZSBmb3IgZXZlcnkgY2h1bmspDQo+IC0gKiBoYW5kbGUgICAgICAgLSBSTVIgZm9yIGNs
+aWVudCBtZW1vcnkgcmVnaW9uDQo+IC0gKiBsZW5ndGggICAgICAgLSBkYXRhIHRyYW5zZmVyIGxl
+bmd0aA0KPiAtICogb2Zmc2V0ICAgICAgIC0gNjQgYml0IHRhZ2dlZCBvZmZzZXQgaW4gcmVtb3Rl
+IG1lbW9yeSByZWdpb24NCj4gLSAqDQo+IC0gKiBPbiBvdXIgc2lkZSwgd2UgbmVlZCB0byByZWFk
+IGludG8gYSBwYWdlbGlzdC4gVGhlIGZpcnN0IHBhZ2UgaW1tZWRpYXRlbHkNCj4gLSAqIGZvbGxv
+d3MgdGhlIFJQQyBoZWFkZXIuDQo+IC0gKg0KPiAtICogVGhpcyBmdW5jdGlvbiByZXR1cm5zOg0K
+PiAtICogMCAtIE5vIGVycm9yIGFuZCBubyByZWFkLWxpc3QgZm91bmQuDQo+IC0gKg0KPiAtICog
+MSAtIFN1Y2Nlc3NmdWwgcmVhZC1saXN0IHByb2Nlc3NpbmcuIFRoZSBkYXRhIGlzIG5vdCB5ZXQg
+aW4NCj4gLSAqIHRoZSBwYWdlbGlzdCBhbmQgdGhlcmVmb3JlIHRoZSBSUEMgcmVxdWVzdCBtdXN0
+IGJlIGRlZmVycmVkLiBUaGUNCj4gLSAqIEkvTyBjb21wbGV0aW9uIHdpbGwgZW5xdWV1ZSB0aGUg
+dHJhbnNwb3J0IGFnYWluIGFuZA0KPiAtICogc3ZjX3JkbWFfcmVjdmZyb20gd2lsbCBjb21wbGV0
+ZSB0aGUgcmVxdWVzdC4NCj4gLSAqDQo+IC0gKiA8MCAtIEVycm9yIHByb2Nlc3NpbmcvcG9zdGlu
+ZyByZWFkLWxpc3QuDQo+IC0gKg0KPiAtICogTk9URTogVGhlIGN0eHQgbXVzdCBub3QgYmUgdG91
+Y2hlZCBhZnRlciB0aGUgbGFzdCBXUiBoYXMgYmVlbiBwb3N0ZWQNCj4gLSAqIGJlY2F1c2UgdGhl
+IEkvTyBjb21wbGV0aW9uIHByb2Nlc3NpbmcgbWF5IG9jY3VyIG9uIGFub3RoZXINCj4gLSAqIHBy
+b2Nlc3NvciBhbmQgZnJlZSAvIG1vZGlmeSB0aGUgY29udGV4dC4gTmUgdG91Y2hlIHBhcyENCj4g
+LSAqLw0KPiAtc3RhdGljIGludCByZG1hX3JlYWRfeGRyKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhw
+cnQsDQo+IC0JCQkgc3RydWN0IHJwY3JkbWFfbXNnICpybXNncCwNCj4gLQkJCSBzdHJ1Y3Qgc3Zj
+X3Jxc3QgKnJxc3RwLA0KPiAtCQkJIHN0cnVjdCBzdmNfcmRtYV9vcF9jdHh0ICpoZHJfY3R4dCkN
+Cj4gK3N0YXRpYyBpbnQgcmRtYV9yZWFkX2NodW5rcyhzdHJ1Y3Qgc3ZjeHBydF9yZG1hICp4cHJ0
+LA0KPiArCQkJICAgIHN0cnVjdCBycGNyZG1hX21zZyAqcm1zZ3AsDQo+ICsJCQkgICAgc3RydWN0
+IHN2Y19ycXN0ICpycXN0cCwNCj4gKwkJCSAgICBzdHJ1Y3Qgc3ZjX3JkbWFfb3BfY3R4dCAqaGVh
+ZCkNCj4gIHsNCj4gLQlzdHJ1Y3QgaWJfc2VuZF93ciByZWFkX3dyOw0KPiAtCXN0cnVjdCBpYl9z
+ZW5kX3dyIGludl93cjsNCj4gLQlpbnQgZXJyID0gMDsNCj4gLQlpbnQgY2hfbm87DQo+IC0JaW50
+IGNoX2NvdW50Ow0KPiAtCWludCBieXRlX2NvdW50Ow0KPiAtCWludCBzZ2VfY291bnQ7DQo+IC0J
+dTY0IHNnbF9vZmZzZXQ7DQo+ICsJaW50IHBhZ2Vfbm8sIGNoX2NvdW50LCByZXQ7DQo+ICAJc3Ry
+dWN0IHJwY3JkbWFfcmVhZF9jaHVuayAqY2g7DQo+IC0Jc3RydWN0IHN2Y19yZG1hX29wX2N0eHQg
+KmN0eHQgPSBOVUxMOw0KPiAtCXN0cnVjdCBzdmNfcmRtYV9yZXFfbWFwICpycGxfbWFwOw0KPiAt
+CXN0cnVjdCBzdmNfcmRtYV9yZXFfbWFwICpjaGxfbWFwOw0KPiArCXUzMiBwYWdlX29mZnNldCwg
+Ynl0ZV9jb3VudDsNCj4gKwl1NjQgcnNfb2Zmc2V0Ow0KPiArCXJkbWFfcmVhZGVyX2ZuIHJlYWRl
+cjsNCj4gDQo+ICAJLyogSWYgbm8gcmVhZCBsaXN0IGlzIHByZXNlbnQsIHJldHVybiAwICovDQo+
+ICAJY2ggPSBzdmNfcmRtYV9nZXRfcmVhZF9jaHVuayhybXNncCk7DQo+IEBAIC00MDgsMTIyICsz
+ODQsNTUgQEAgc3RhdGljIGludCByZG1hX3JlYWRfeGRyKHN0cnVjdCBzdmN4cHJ0X3JkbWENCj4g
+KnhwcnQsDQo+ICAJaWYgKGNoX2NvdW50ID4gUlBDU1ZDX01BWFBBR0VTKQ0KPiAgCQlyZXR1cm4g
+LUVJTlZBTDsNCj4gDQo+IC0JLyogQWxsb2NhdGUgdGVtcG9yYXJ5IHJlcGx5IGFuZCBjaHVuayBt
+YXBzICovDQo+IC0JcnBsX21hcCA9IHN2Y19yZG1hX2dldF9yZXFfbWFwKCk7DQo+IC0JY2hsX21h
+cCA9IHN2Y19yZG1hX2dldF9yZXFfbWFwKCk7DQo+ICsJLyogVGhlIHJlcXVlc3QgaXMgY29tcGxl
+dGVkIHdoZW4gdGhlIFJETUFfUkVBRHMgY29tcGxldGUuIFRoZQ0KPiArCSAqIGhlYWQgY29udGV4
+dCBrZWVwcyBhbGwgdGhlIHBhZ2VzIHRoYXQgY29tcHJpc2UgdGhlDQo+ICsJICogcmVxdWVzdC4N
+Cj4gKwkgKi8NCj4gKwloZWFkLT5hcmcuaGVhZFswXSA9IHJxc3RwLT5ycV9hcmcuaGVhZFswXTsN
+Cj4gKwloZWFkLT5hcmcudGFpbFswXSA9IHJxc3RwLT5ycV9hcmcudGFpbFswXTsNCj4gKwloZWFk
+LT5hcmcucGFnZXMgPSAmaGVhZC0+cGFnZXNbaGVhZC0+Y291bnRdOw0KPiArCWhlYWQtPmhkcl9j
+b3VudCA9IGhlYWQtPmNvdW50Ow0KPiArCWhlYWQtPmFyZy5wYWdlX2Jhc2UgPSAwOw0KPiArCWhl
+YWQtPmFyZy5wYWdlX2xlbiA9IDA7DQo+ICsJaGVhZC0+YXJnLmxlbiA9IHJxc3RwLT5ycV9hcmcu
+bGVuOw0KPiArCWhlYWQtPmFyZy5idWZsZW4gPSBycXN0cC0+cnFfYXJnLmJ1ZmxlbjsNCj4gDQo+
+IC0JaWYgKCF4cHJ0LT5zY19mcm1yX3BnX2xpc3RfbGVuKQ0KPiAtCQlzZ2VfY291bnQgPSBtYXBf
+cmVhZF9jaHVua3MoeHBydCwgcnFzdHAsIGhkcl9jdHh0LCBybXNncCwNCj4gLQkJCQkJICAgIHJw
+bF9tYXAsIGNobF9tYXAsIGNoX2NvdW50LA0KPiAtCQkJCQkgICAgYnl0ZV9jb3VudCk7DQo+ICsJ
+LyogVXNlIEZSTVIgaWYgc3VwcG9ydGVkICovDQo+ICsJaWYgKHhwcnQtPnNjX2Rldl9jYXBzICYg
+U1ZDUkRNQV9ERVZDQVBfRkFTVF9SRUcpDQo+ICsJCXJlYWRlciA9IHJkbWFfcmVhZF9jaHVua19m
+cm1yOw0KPiAgCWVsc2UNCj4gLQkJc2dlX2NvdW50ID0gZmFzdF9yZWdfcmVhZF9jaHVua3MoeHBy
+dCwgcnFzdHAsIGhkcl9jdHh0LA0KPiBybXNncCwNCj4gLQkJCQkJCSBycGxfbWFwLCBjaGxfbWFw
+LCBjaF9jb3VudCwNCj4gLQkJCQkJCSBieXRlX2NvdW50KTsNCj4gLQlpZiAoc2dlX2NvdW50IDwg
+MCkgew0KPiAtCQllcnIgPSAtRUlPOw0KPiAtCQlnb3RvIG91dDsNCj4gLQl9DQo+IC0NCj4gLQlz
+Z2xfb2Zmc2V0ID0gMDsNCj4gLQljaF9ubyA9IDA7DQo+ICsJCXJlYWRlciA9IHJkbWFfcmVhZF9j
+aHVua19sY2w7DQo+IA0KPiArCXBhZ2Vfbm8gPSAwOyBwYWdlX29mZnNldCA9IDA7DQo+ICAJZm9y
+IChjaCA9IChzdHJ1Y3QgcnBjcmRtYV9yZWFkX2NodW5rICopJnJtc2dwLQ0KPiA+cm1fYm9keS5y
+bV9jaHVua3NbMF07DQo+IC0JICAgICBjaC0+cmNfZGlzY3JpbSAhPSAwOyBjaCsrLCBjaF9ubysr
+KSB7DQo+IC0JCXU2NCByc19vZmZzZXQ7DQo+IC1uZXh0X3NnZToNCj4gLQkJY3R4dCA9IHN2Y19y
+ZG1hX2dldF9jb250ZXh0KHhwcnQpOw0KPiAtCQljdHh0LT5kaXJlY3Rpb24gPSBETUFfRlJPTV9E
+RVZJQ0U7DQo+IC0JCWN0eHQtPmZybXIgPSBoZHJfY3R4dC0+ZnJtcjsNCj4gLQkJY3R4dC0+cmVh
+ZF9oZHIgPSBOVUxMOw0KPiAtCQljbGVhcl9iaXQoUkRNQUNUWFRfRl9MQVNUX0NUWFQsICZjdHh0
+LT5mbGFncyk7DQo+IC0JCWNsZWFyX2JpdChSRE1BQ1RYVF9GX0ZBU1RfVU5SRUcsICZjdHh0LT5m
+bGFncyk7DQo+ICsJICAgICBjaC0+cmNfZGlzY3JpbSAhPSAwOyBjaCsrKSB7DQo+IA0KPiAtCQkv
+KiBQcmVwYXJlIFJFQUQgV1IgKi8NCj4gLQkJbWVtc2V0KCZyZWFkX3dyLCAwLCBzaXplb2YgcmVh
+ZF93cik7DQo+IC0JCXJlYWRfd3Iud3JfaWQgPSAodW5zaWduZWQgbG9uZyljdHh0Ow0KPiAtCQly
+ZWFkX3dyLm9wY29kZSA9IElCX1dSX1JETUFfUkVBRDsNCj4gLQkJY3R4dC0+d3Jfb3AgPSByZWFk
+X3dyLm9wY29kZTsNCj4gLQkJcmVhZF93ci5zZW5kX2ZsYWdzID0gSUJfU0VORF9TSUdOQUxFRDsN
+Cj4gLQkJcmVhZF93ci53ci5yZG1hLnJrZXkgPSBudG9obChjaC0+cmNfdGFyZ2V0LnJzX2hhbmRs
+ZSk7DQo+ICAJCXhkcl9kZWNvZGVfaHlwZXIoKF9fYmUzMiAqKSZjaC0+cmNfdGFyZ2V0LnJzX29m
+ZnNldCwNCj4gIAkJCQkgJnJzX29mZnNldCk7DQo+IC0JCXJlYWRfd3Iud3IucmRtYS5yZW1vdGVf
+YWRkciA9IHJzX29mZnNldCArIHNnbF9vZmZzZXQ7DQo+IC0JCXJlYWRfd3Iuc2dfbGlzdCA9IGN0
+eHQtPnNnZTsNCj4gLQkJcmVhZF93ci5udW1fc2dlID0NCj4gLQkJCXJkbWFfcmVhZF9tYXhfc2dl
+KHhwcnQsIGNobF9tYXAtDQo+ID5jaFtjaF9ub10uY291bnQpOw0KPiAtCQllcnIgPSByZG1hX3Nl
+dF9jdHh0X3NnZSh4cHJ0LCBjdHh0LCBoZHJfY3R4dC0+ZnJtciwNCj4gLQkJCQkJJnJwbF9tYXAt
+PnNnZVtjaGxfbWFwLQ0KPiA+Y2hbY2hfbm9dLnN0YXJ0XSwNCj4gLQkJCQkJJnNnbF9vZmZzZXQs
+DQo+IC0JCQkJCXJlYWRfd3IubnVtX3NnZSk7DQo+IC0JCWlmIChlcnIpIHsNCj4gLQkJCXN2Y19y
+ZG1hX3VubWFwX2RtYShjdHh0KTsNCj4gLQkJCXN2Y19yZG1hX3B1dF9jb250ZXh0KGN0eHQsIDAp
+Ow0KPiAtCQkJZ290byBvdXQ7DQo+IC0JCX0NCj4gLQkJaWYgKCgoY2grMSktPnJjX2Rpc2NyaW0g
+PT0gMCkgJiYNCj4gLQkJICAgIChyZWFkX3dyLm51bV9zZ2UgPT0gY2hsX21hcC0+Y2hbY2hfbm9d
+LmNvdW50KSkgew0KPiAtCQkJLyoNCj4gLQkJCSAqIE1hcmsgdGhlIGxhc3QgUkRNQV9SRUFEIHdp
+dGggYSBiaXQgdG8NCj4gLQkJCSAqIGluZGljYXRlIGFsbCBSUEMgZGF0YSBoYXMgYmVlbiBmZXRj
+aGVkIGZyb20NCj4gLQkJCSAqIHRoZSBjbGllbnQgYW5kIHRoZSBSUEMgbmVlZHMgdG8gYmUgZW5x
+dWV1ZWQuDQo+IC0JCQkgKi8NCj4gLQkJCXNldF9iaXQoUkRNQUNUWFRfRl9MQVNUX0NUWFQsICZj
+dHh0LT5mbGFncyk7DQo+IC0JCQlpZiAoaGRyX2N0eHQtPmZybXIpIHsNCj4gLQkJCQlzZXRfYml0
+KFJETUFDVFhUX0ZfRkFTVF9VTlJFRywgJmN0eHQtDQo+ID5mbGFncyk7DQo+IC0JCQkJLyoNCj4g
+LQkJCQkgKiBJbnZhbGlkYXRlIHRoZSBsb2NhbCBNUiB1c2VkIHRvIG1hcCB0aGUNCj4gZGF0YQ0K
+PiAtCQkJCSAqIHNpbmsuDQo+IC0JCQkJICovDQo+IC0JCQkJaWYgKHhwcnQtPnNjX2Rldl9jYXBz
+ICYNCj4gLQkJCQkgICAgU1ZDUkRNQV9ERVZDQVBfUkVBRF9XX0lOVikgew0KPiAtCQkJCQlyZWFk
+X3dyLm9wY29kZSA9DQo+IC0NCj4gCUlCX1dSX1JETUFfUkVBRF9XSVRIX0lOVjsNCj4gLQkJCQkJ
+Y3R4dC0+d3Jfb3AgPSByZWFkX3dyLm9wY29kZTsNCj4gLQkJCQkJcmVhZF93ci5leC5pbnZhbGlk
+YXRlX3JrZXkgPQ0KPiAtCQkJCQkJY3R4dC0+ZnJtci0+bXItPmxrZXk7DQo+IC0JCQkJfSBlbHNl
+IHsNCj4gLQkJCQkJLyogUHJlcGFyZSBJTlZBTElEQVRFIFdSICovDQo+IC0JCQkJCW1lbXNldCgm
+aW52X3dyLCAwLCBzaXplb2YgaW52X3dyKTsNCj4gLQkJCQkJaW52X3dyLm9wY29kZSA9IElCX1dS
+X0xPQ0FMX0lOVjsNCj4gLQkJCQkJaW52X3dyLnNlbmRfZmxhZ3MgPQ0KPiBJQl9TRU5EX1NJR05B
+TEVEOw0KPiAtCQkJCQlpbnZfd3IuZXguaW52YWxpZGF0ZV9ya2V5ID0NCj4gLQkJCQkJCWhkcl9j
+dHh0LT5mcm1yLT5tci0+bGtleTsNCj4gLQkJCQkJcmVhZF93ci5uZXh0ID0gJmludl93cjsNCj4g
+LQkJCQl9DQo+IC0JCQl9DQo+IC0JCQljdHh0LT5yZWFkX2hkciA9IGhkcl9jdHh0Ow0KPiAtCQl9
+DQo+IC0JCS8qIFBvc3QgdGhlIHJlYWQgKi8NCj4gLQkJZXJyID0gc3ZjX3JkbWFfc2VuZCh4cHJ0
+LCAmcmVhZF93cik7DQo+IC0JCWlmIChlcnIpIHsNCj4gLQkJCXByaW50ayhLRVJOX0VSUiAic3Zj
+cmRtYTogRXJyb3IgJWQgcG9zdGluZw0KPiBSRE1BX1JFQURcbiIsDQo+IC0JCQkgICAgICAgZXJy
+KTsNCj4gLQkJCXNldF9iaXQoWFBUX0NMT1NFLCAmeHBydC0+c2NfeHBydC54cHRfZmxhZ3MpOw0K
+PiAtCQkJc3ZjX3JkbWFfdW5tYXBfZG1hKGN0eHQpOw0KPiAtCQkJc3ZjX3JkbWFfcHV0X2NvbnRl
+eHQoY3R4dCwgMCk7DQo+IC0JCQlnb3RvIG91dDsNCj4gKwkJYnl0ZV9jb3VudCA9IG50b2hsKGNo
+LT5yY190YXJnZXQucnNfbGVuZ3RoKTsNCj4gKw0KPiArCQl3aGlsZSAoYnl0ZV9jb3VudCA+IDAp
+IHsNCj4gKwkJCXJldCA9IHJlYWRlcih4cHJ0LCBycXN0cCwgaGVhZCwNCj4gKwkJCQkgICAgICZw
+YWdlX25vLCAmcGFnZV9vZmZzZXQsDQo+ICsJCQkJICAgICBudG9obChjaC0+cmNfdGFyZ2V0LnJz
+X2hhbmRsZSksDQo+ICsJCQkJICAgICBieXRlX2NvdW50LCByc19vZmZzZXQsDQo+ICsJCQkJICAg
+ICAoKGNoKzEpLT5yY19kaXNjcmltID09IDApIC8qIGxhc3QgKi8NCj4gKwkJCQkgICAgICk7DQo+
+ICsJCQlpZiAocmV0IDwgMCkNCj4gKwkJCQlnb3RvIGVycjsNCj4gKwkJCWJ5dGVfY291bnQgLT0g
+cmV0Ow0KPiArCQkJcnNfb2Zmc2V0ICs9IHJldDsNCj4gKwkJCWhlYWQtPmFyZy5idWZsZW4gKz0g
+cmV0Ow0KPiAgCQl9DQo+IC0JCWF0b21pY19pbmMoJnJkbWFfc3RhdF9yZWFkKTsNCj4gLQ0KPiAt
+CQlpZiAocmVhZF93ci5udW1fc2dlIDwgY2hsX21hcC0+Y2hbY2hfbm9dLmNvdW50KSB7DQo+IC0J
+CQljaGxfbWFwLT5jaFtjaF9ub10uY291bnQgLT0gcmVhZF93ci5udW1fc2dlOw0KPiAtCQkJY2hs
+X21hcC0+Y2hbY2hfbm9dLnN0YXJ0ICs9IHJlYWRfd3IubnVtX3NnZTsNCj4gLQkJCWdvdG8gbmV4
+dF9zZ2U7DQo+IC0JCX0NCj4gLQkJc2dsX29mZnNldCA9IDA7DQo+IC0JCWVyciA9IDE7DQo+ICAJ
+fQ0KPiAtDQo+IC0gb3V0Og0KPiAtCXN2Y19yZG1hX3B1dF9yZXFfbWFwKHJwbF9tYXApOw0KPiAt
+CXN2Y19yZG1hX3B1dF9yZXFfbWFwKGNobF9tYXApOw0KPiAtDQo+ICsJcmV0ID0gMTsNCj4gKyBl
+cnI6DQo+ICAJLyogRGV0YWNoIGFyZyBwYWdlcy4gc3ZjX3JlY3Ygd2lsbCByZXBsZW5pc2ggdGhl
+bSAqLw0KPiAtCWZvciAoY2hfbm8gPSAwOyAmcnFzdHAtPnJxX3BhZ2VzW2NoX25vXSA8IHJxc3Rw
+LT5ycV9yZXNwYWdlczsNCj4gY2hfbm8rKykNCj4gLQkJcnFzdHAtPnJxX3BhZ2VzW2NoX25vXSA9
+IE5VTEw7DQo+ICsJZm9yIChwYWdlX25vID0gMDsNCj4gKwkgICAgICZycXN0cC0+cnFfcGFnZXNb
+cGFnZV9ub10gPCBycXN0cC0+cnFfcmVzcGFnZXM7IHBhZ2Vfbm8rKykNCj4gKwkJcnFzdHAtPnJx
+X3BhZ2VzW3BhZ2Vfbm9dID0gTlVMTDsNCj4gDQo+IC0JcmV0dXJuIGVycjsNCj4gKwlyZXR1cm4g
+cmV0Ow0KPiAgfQ0KPiANCj4gIHN0YXRpYyBpbnQgcmRtYV9yZWFkX2NvbXBsZXRlKHN0cnVjdCBz
+dmNfcnFzdCAqcnFzdHAsIEBAIC01OTUsMTMgKzUwNCw5DQo+IEBAIGludCBzdmNfcmRtYV9yZWN2
+ZnJvbShzdHJ1Y3Qgc3ZjX3Jxc3QgKnJxc3RwKQ0KPiAgCQkJCSAgc3RydWN0IHN2Y19yZG1hX29w
+X2N0eHQsDQo+ICAJCQkJICBkdG9fcSk7DQo+ICAJCWxpc3RfZGVsX2luaXQoJmN0eHQtPmR0b19x
+KTsNCj4gLQl9DQo+IC0JaWYgKGN0eHQpIHsNCj4gIAkJc3Bpbl91bmxvY2tfYmgoJnJkbWFfeHBy
+dC0+c2NfcnFfZHRvX2xvY2spOw0KPiAgCQlyZXR1cm4gcmRtYV9yZWFkX2NvbXBsZXRlKHJxc3Rw
+LCBjdHh0KTsNCj4gLQl9DQo+IC0NCj4gLQlpZiAoIWxpc3RfZW1wdHkoJnJkbWFfeHBydC0+c2Nf
+cnFfZHRvX3EpKSB7DQo+ICsJfSBlbHNlIGlmICghbGlzdF9lbXB0eSgmcmRtYV94cHJ0LT5zY19y
+cV9kdG9fcSkpIHsNCj4gIAkJY3R4dCA9IGxpc3RfZW50cnkocmRtYV94cHJ0LT5zY19ycV9kdG9f
+cS5uZXh0LA0KPiAgCQkJCSAgc3RydWN0IHN2Y19yZG1hX29wX2N0eHQsDQo+ICAJCQkJICBkdG9f
+cSk7DQo+IEBAIC02MjEsNyArNTI2LDYgQEAgaW50IHN2Y19yZG1hX3JlY3Zmcm9tKHN0cnVjdCBz
+dmNfcnFzdCAqcnFzdHApDQo+ICAJCWlmICh0ZXN0X2JpdChYUFRfQ0xPU0UsICZ4cHJ0LT54cHRf
+ZmxhZ3MpKQ0KPiAgCQkJZ290byBjbG9zZV9vdXQ7DQo+IA0KPiAtCQlCVUdfT04ocmV0KTsNCj4g
+IAkJZ290byBvdXQ7DQo+ICAJfQ0KPiAgCWRwcmludGsoInN2Y3JkbWE6IHByb2Nlc3NpbmcgY3R4
+dD0lcCBvbiB4cHJ0PSVwLCBycXN0cD0lcCwNCj4gc3RhdHVzPSVkXG4iLCBAQCAtNjQ0LDEyICs1
+NDgsMTEgQEAgaW50IHN2Y19yZG1hX3JlY3Zmcm9tKHN0cnVjdA0KPiBzdmNfcnFzdCAqcnFzdHAp
+DQo+ICAJfQ0KPiANCj4gIAkvKiBSZWFkIHJlYWQtbGlzdCBkYXRhLiAqLw0KPiAtCXJldCA9IHJk
+bWFfcmVhZF94ZHIocmRtYV94cHJ0LCBybXNncCwgcnFzdHAsIGN0eHQpOw0KPiArCXJldCA9IHJk
+bWFfcmVhZF9jaHVua3MocmRtYV94cHJ0LCBybXNncCwgcnFzdHAsIGN0eHQpOw0KPiAgCWlmIChy
+ZXQgPiAwKSB7DQo+ICAJCS8qIHJlYWQtbGlzdCBwb3N0ZWQsIGRlZmVyIHVudGlsIGRhdGEgcmVj
+ZWl2ZWQgZnJvbSBjbGllbnQuICovDQo+ICAJCWdvdG8gZGVmZXI7DQo+IC0JfQ0KPiAtCWlmIChy
+ZXQgPCAwKSB7DQo+ICsJfSBlbHNlIGlmIChyZXQgPCAwKSB7DQo+ICAJCS8qIFBvc3Qgb2YgcmVh
+ZC1saXN0IGZhaWxlZCwgZnJlZSBjb250ZXh0LiAqLw0KPiAgCQlzdmNfcmRtYV9wdXRfY29udGV4
+dChjdHh0LCAxKTsNCj4gIAkJcmV0dXJuIDA7DQo+IGRpZmYgLS1naXQgYS9uZXQvc3VucnBjL3hw
+cnRyZG1hL3N2Y19yZG1hX3NlbmR0by5jDQo+IGIvbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRt
+YV9zZW5kdG8uYw0KPiBpbmRleCA3ZTAyNGE1Li40OWZkMjFhIDEwMDY0NA0KPiAtLS0gYS9uZXQv
+c3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3NlbmR0by5jDQo+ICsrKyBiL25ldC9zdW5ycGMveHBy
+dHJkbWEvc3ZjX3JkbWFfc2VuZHRvLmMNCj4gQEAgLTEsNCArMSw1IEBADQo+ICAvKg0KPiArICog
+Q29weXJpZ2h0IChjKSAyMDE0IE9wZW4gR3JpZCBDb21wdXRpbmcsIEluYy4gQWxsIHJpZ2h0cyBy
+ZXNlcnZlZC4NCj4gICAqIENvcHlyaWdodCAoYykgMjAwNS0yMDA2IE5ldHdvcmsgQXBwbGlhbmNl
+LCBJbmMuIEFsbCByaWdodHMgcmVzZXJ2ZWQuDQo+ICAgKg0KPiAgICogVGhpcyBzb2Z0d2FyZSBp
+cyBhdmFpbGFibGUgdG8geW91IHVuZGVyIGEgY2hvaWNlIG9mIG9uZSBvZiB0d28gQEAgLTQ5LDE1
+Mg0KPiArNTAsNiBAQA0KPiANCj4gICNkZWZpbmUgUlBDREJHX0ZBQ0lMSVRZCVJQQ0RCR19TVkNY
+UFJUDQo+IA0KPiAtLyogRW5jb2RlIGFuIFhEUiBhcyBhbiBhcnJheSBvZiBJQiBTR0UNCj4gLSAq
+DQo+IC0gKiBBc3N1bXB0aW9uczoNCj4gLSAqIC0gaGVhZFswXSBpcyBwaHlzaWNhbGx5IGNvbnRp
+Z3VvdXMuDQo+IC0gKiAtIHRhaWxbMF0gaXMgcGh5c2ljYWxseSBjb250aWd1b3VzLg0KPiAtICog
+LSBwYWdlc1tdIGlzIG5vdCBwaHlzaWNhbGx5IG9yIHZpcnR1YWxseSBjb250aWd1b3VzIGFuZCBj
+b25zaXN0cyBvZg0KPiAtICogICBQQUdFX1NJWkUgZWxlbWVudHMuDQo+IC0gKg0KPiAtICogT3V0
+cHV0Og0KPiAtICogU0dFWzBdICAgICAgICAgICAgICByZXNlcnZlZCBmb3IgUkNQUkRNQSBoZWFk
+ZXINCj4gLSAqIFNHRVsxXSAgICAgICAgICAgICAgZGF0YSBmcm9tIHhkci0+aGVhZFtdDQo+IC0g
+KiBTR0VbMi4uc2dlX2NvdW50LTJdIGRhdGEgZnJvbSB4ZHItPnBhZ2VzW10NCj4gLSAqIFNHRVtz
+Z2VfY291bnQtMV0gICAgZGF0YSBmcm9tIHhkci0+dGFpbC4NCj4gLSAqDQo+IC0gKiBUaGUgbWF4
+IFNHRSB3ZSBuZWVkIGlzIHRoZSBsZW5ndGggb2YgdGhlIFhEUiAvIHBhZ2VzaXplICsgb25lIGZv
+cg0KPiAtICogaGVhZCArIG9uZSBmb3IgdGFpbCArIG9uZSBmb3IgUlBDUkRNQSBoZWFkZXIuIFNp
+bmNlDQo+IFJQQ1NWQ19NQVhQQUdFUw0KPiAtICogcmVzZXJ2ZXMgYSBwYWdlIGZvciBib3RoIHRo
+ZSByZXF1ZXN0IGFuZCB0aGUgcmVwbHkgaGVhZGVyLCBhbmQgdGhpcw0KPiAtICogYXJyYXkgaXMg
+b25seSBjb25jZXJuZWQgd2l0aCB0aGUgcmVwbHkgd2UgYXJlIGFzc3VyZWQgdGhhdCB3ZSBoYXZl
+DQo+IC0gKiBvbiBleHRyYSBwYWdlIGZvciB0aGUgUlBDUk1EQSBoZWFkZXIuDQo+IC0gKi8NCj4g
+LXN0YXRpYyBpbnQgZmFzdF9yZWdfeGRyKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsDQo+IC0J
+CQlzdHJ1Y3QgeGRyX2J1ZiAqeGRyLA0KPiAtCQkJc3RydWN0IHN2Y19yZG1hX3JlcV9tYXAgKnZl
+YykNCj4gLXsNCj4gLQlpbnQgc2dlX25vOw0KPiAtCXUzMiBzZ2VfYnl0ZXM7DQo+IC0JdTMyIHBh
+Z2VfYnl0ZXM7DQo+IC0JdTMyIHBhZ2Vfb2ZmOw0KPiAtCWludCBwYWdlX25vID0gMDsNCj4gLQl1
+OCAqZnJ2YTsNCj4gLQlzdHJ1Y3Qgc3ZjX3JkbWFfZmFzdHJlZ19tciAqZnJtcjsNCj4gLQ0KPiAt
+CWZybXIgPSBzdmNfcmRtYV9nZXRfZnJtcih4cHJ0KTsNCj4gLQlpZiAoSVNfRVJSKGZybXIpKQ0K
+PiAtCQlyZXR1cm4gLUVOT01FTTsNCj4gLQl2ZWMtPmZybXIgPSBmcm1yOw0KPiAtDQo+IC0JLyog
+U2tpcCB0aGUgUlBDUkRNQSBoZWFkZXIgKi8NCj4gLQlzZ2Vfbm8gPSAxOw0KPiAtDQo+IC0JLyog
+TWFwIHRoZSBoZWFkLiAqLw0KPiAtCWZydmEgPSAodm9pZCAqKSgodW5zaWduZWQgbG9uZykoeGRy
+LT5oZWFkWzBdLmlvdl9iYXNlKSAmDQo+IFBBR0VfTUFTSyk7DQo+IC0JdmVjLT5zZ2Vbc2dlX25v
+XS5pb3ZfYmFzZSA9IHhkci0+aGVhZFswXS5pb3ZfYmFzZTsNCj4gLQl2ZWMtPnNnZVtzZ2Vfbm9d
+Lmlvdl9sZW4gPSB4ZHItPmhlYWRbMF0uaW92X2xlbjsNCj4gLQl2ZWMtPmNvdW50ID0gMjsNCj4g
+LQlzZ2Vfbm8rKzsNCj4gLQ0KPiAtCS8qIE1hcCB0aGUgWERSIGhlYWQgKi8NCj4gLQlmcm1yLT5r
+dmEgPSBmcnZhOw0KPiAtCWZybXItPmRpcmVjdGlvbiA9IERNQV9UT19ERVZJQ0U7DQo+IC0JZnJt
+ci0+YWNjZXNzX2ZsYWdzID0gMDsNCj4gLQlmcm1yLT5tYXBfbGVuID0gUEFHRV9TSVpFOw0KPiAt
+CWZybXItPnBhZ2VfbGlzdF9sZW4gPSAxOw0KPiAtCXBhZ2Vfb2ZmID0gKHVuc2lnbmVkIGxvbmcp
+eGRyLT5oZWFkWzBdLmlvdl9iYXNlICYgflBBR0VfTUFTSzsNCj4gLQlmcm1yLT5wYWdlX2xpc3Qt
+PnBhZ2VfbGlzdFtwYWdlX25vXSA9DQo+IC0JCWliX2RtYV9tYXBfcGFnZSh4cHJ0LT5zY19jbV9p
+ZC0+ZGV2aWNlLA0KPiAtCQkJCXZpcnRfdG9fcGFnZSh4ZHItPmhlYWRbMF0uaW92X2Jhc2UpLA0K
+PiAtCQkJCXBhZ2Vfb2ZmLA0KPiAtCQkJCVBBR0VfU0laRSAtIHBhZ2Vfb2ZmLA0KPiAtCQkJCURN
+QV9UT19ERVZJQ0UpOw0KPiAtCWlmIChpYl9kbWFfbWFwcGluZ19lcnJvcih4cHJ0LT5zY19jbV9p
+ZC0+ZGV2aWNlLA0KPiAtCQkJCSBmcm1yLT5wYWdlX2xpc3QtPnBhZ2VfbGlzdFtwYWdlX25vXSkp
+DQo+IC0JCWdvdG8gZmF0YWxfZXJyOw0KPiAtCWF0b21pY19pbmMoJnhwcnQtPnNjX2RtYV91c2Vk
+KTsNCj4gLQ0KPiAtCS8qIE1hcCB0aGUgWERSIHBhZ2UgbGlzdCAqLw0KPiAtCXBhZ2Vfb2ZmID0g
+eGRyLT5wYWdlX2Jhc2U7DQo+IC0JcGFnZV9ieXRlcyA9IHhkci0+cGFnZV9sZW4gKyBwYWdlX29m
+ZjsNCj4gLQlpZiAoIXBhZ2VfYnl0ZXMpDQo+IC0JCWdvdG8gZW5jb2RlX3RhaWw7DQo+IC0NCj4g
+LQkvKiBNYXAgdGhlIHBhZ2VzICovDQo+IC0JdmVjLT5zZ2Vbc2dlX25vXS5pb3ZfYmFzZSA9IGZy
+dmEgKyBmcm1yLT5tYXBfbGVuICsgcGFnZV9vZmY7DQo+IC0JdmVjLT5zZ2Vbc2dlX25vXS5pb3Zf
+bGVuID0gcGFnZV9ieXRlczsNCj4gLQlzZ2Vfbm8rKzsNCj4gLQl3aGlsZSAocGFnZV9ieXRlcykg
+ew0KPiAtCQlzdHJ1Y3QgcGFnZSAqcGFnZTsNCj4gLQ0KPiAtCQlwYWdlID0geGRyLT5wYWdlc1tw
+YWdlX25vKytdOw0KPiAtCQlzZ2VfYnl0ZXMgPSBtaW5fdCh1MzIsIHBhZ2VfYnl0ZXMsIChQQUdF
+X1NJWkUgLQ0KPiBwYWdlX29mZikpOw0KPiAtCQlwYWdlX2J5dGVzIC09IHNnZV9ieXRlczsNCj4g
+LQ0KPiAtCQlmcm1yLT5wYWdlX2xpc3QtPnBhZ2VfbGlzdFtwYWdlX25vXSA9DQo+IC0JCQlpYl9k
+bWFfbWFwX3BhZ2UoeHBydC0+c2NfY21faWQtPmRldmljZSwNCj4gLQkJCQkJcGFnZSwgcGFnZV9v
+ZmYsDQo+IC0JCQkJCXNnZV9ieXRlcywgRE1BX1RPX0RFVklDRSk7DQo+IC0JCWlmIChpYl9kbWFf
+bWFwcGluZ19lcnJvcih4cHJ0LT5zY19jbV9pZC0+ZGV2aWNlLA0KPiAtCQkJCQkgZnJtci0+cGFn
+ZV9saXN0LQ0KPiA+cGFnZV9saXN0W3BhZ2Vfbm9dKSkNCj4gLQkJCWdvdG8gZmF0YWxfZXJyOw0K
+PiAtDQo+IC0JCWF0b21pY19pbmMoJnhwcnQtPnNjX2RtYV91c2VkKTsNCj4gLQkJcGFnZV9vZmYg
+PSAwOyAvKiByZXNldCBmb3IgbmV4dCB0aW1lIHRocm91Z2ggbG9vcCAqLw0KPiAtCQlmcm1yLT5t
+YXBfbGVuICs9IFBBR0VfU0laRTsNCj4gLQkJZnJtci0+cGFnZV9saXN0X2xlbisrOw0KPiAtCX0N
+Cj4gLQl2ZWMtPmNvdW50Kys7DQo+IC0NCj4gLSBlbmNvZGVfdGFpbDoNCj4gLQkvKiBNYXAgdGFp
+bCAqLw0KPiAtCWlmICgwID09IHhkci0+dGFpbFswXS5pb3ZfbGVuKQ0KPiAtCQlnb3RvIGRvbmU7
+DQo+IC0NCj4gLQl2ZWMtPmNvdW50Kys7DQo+IC0JdmVjLT5zZ2Vbc2dlX25vXS5pb3ZfbGVuID0g
+eGRyLT50YWlsWzBdLmlvdl9sZW47DQo+IC0NCj4gLQlpZiAoKCh1bnNpZ25lZCBsb25nKXhkci0+
+dGFpbFswXS5pb3ZfYmFzZSAmIFBBR0VfTUFTSykgPT0NCj4gLQkgICAgKCh1bnNpZ25lZCBsb25n
+KXhkci0+aGVhZFswXS5pb3ZfYmFzZSAmIFBBR0VfTUFTSykpIHsNCj4gLQkJLyoNCj4gLQkJICog
+SWYgaGVhZCBhbmQgdGFpbCB1c2UgdGhlIHNhbWUgcGFnZSwgd2UgZG9uJ3QgbmVlZA0KPiAtCQkg
+KiB0byBtYXAgaXQgYWdhaW4uDQo+IC0JCSAqLw0KPiAtCQl2ZWMtPnNnZVtzZ2Vfbm9dLmlvdl9i
+YXNlID0geGRyLT50YWlsWzBdLmlvdl9iYXNlOw0KPiAtCX0gZWxzZSB7DQo+IC0JCXZvaWQgKnZh
+Ow0KPiAtDQo+IC0JCS8qIE1hcCBhbm90aGVyIHBhZ2UgZm9yIHRoZSB0YWlsICovDQo+IC0JCXBh
+Z2Vfb2ZmID0gKHVuc2lnbmVkIGxvbmcpeGRyLT50YWlsWzBdLmlvdl9iYXNlICYNCj4gflBBR0Vf
+TUFTSzsNCj4gLQkJdmEgPSAodm9pZCAqKSgodW5zaWduZWQgbG9uZyl4ZHItPnRhaWxbMF0uaW92
+X2Jhc2UgJg0KPiBQQUdFX01BU0spOw0KPiAtCQl2ZWMtPnNnZVtzZ2Vfbm9dLmlvdl9iYXNlID0g
+ZnJ2YSArIGZybXItPm1hcF9sZW4gKw0KPiBwYWdlX29mZjsNCj4gLQ0KPiAtCQlmcm1yLT5wYWdl
+X2xpc3QtPnBhZ2VfbGlzdFtwYWdlX25vXSA9DQo+IC0JCSAgICBpYl9kbWFfbWFwX3BhZ2UoeHBy
+dC0+c2NfY21faWQtPmRldmljZSwNCj4gdmlydF90b19wYWdlKHZhKSwNCj4gLQkJCQkgICAgcGFn
+ZV9vZmYsDQo+IC0JCQkJICAgIFBBR0VfU0laRSwNCj4gLQkJCQkgICAgRE1BX1RPX0RFVklDRSk7
+DQo+IC0JCWlmIChpYl9kbWFfbWFwcGluZ19lcnJvcih4cHJ0LT5zY19jbV9pZC0+ZGV2aWNlLA0K
+PiAtCQkJCQkgZnJtci0+cGFnZV9saXN0LQ0KPiA+cGFnZV9saXN0W3BhZ2Vfbm9dKSkNCj4gLQkJ
+CWdvdG8gZmF0YWxfZXJyOw0KPiAtCQlhdG9taWNfaW5jKCZ4cHJ0LT5zY19kbWFfdXNlZCk7DQo+
+IC0JCWZybXItPm1hcF9sZW4gKz0gUEFHRV9TSVpFOw0KPiAtCQlmcm1yLT5wYWdlX2xpc3RfbGVu
+Kys7DQo+IC0JfQ0KPiAtDQo+IC0gZG9uZToNCj4gLQlpZiAoc3ZjX3JkbWFfZmFzdHJlZyh4cHJ0
+LCBmcm1yKSkNCj4gLQkJZ290byBmYXRhbF9lcnI7DQo+IC0NCj4gLQlyZXR1cm4gMDsNCj4gLQ0K
+PiAtIGZhdGFsX2VycjoNCj4gLQlwcmludGsoInN2Y3JkbWE6IEVycm9yIGZhc3QgcmVnaXN0ZXJp
+bmcgbWVtb3J5IGZvciB4cHJ0ICVwXG4iLCB4cHJ0KTsNCj4gLQl2ZWMtPmZybXIgPSBOVUxMOw0K
+PiAtCXN2Y19yZG1hX3B1dF9mcm1yKHhwcnQsIGZybXIpOw0KPiAtCXJldHVybiAtRUlPOw0KPiAt
+fQ0KPiAtDQo+ICBzdGF0aWMgaW50IG1hcF94ZHIoc3RydWN0IHN2Y3hwcnRfcmRtYSAqeHBydCwN
+Cj4gIAkJICAgc3RydWN0IHhkcl9idWYgKnhkciwNCj4gIAkJICAgc3RydWN0IHN2Y19yZG1hX3Jl
+cV9tYXAgKnZlYykNCj4gQEAgLTIwOCw5ICs2Myw2IEBAIHN0YXRpYyBpbnQgbWFwX3hkcihzdHJ1
+Y3Qgc3ZjeHBydF9yZG1hICp4cHJ0LA0KPiAgCUJVR19PTih4ZHItPmxlbiAhPQ0KPiAgCSAgICAg
+ICAoeGRyLT5oZWFkWzBdLmlvdl9sZW4gKyB4ZHItPnBhZ2VfbGVuICsgeGRyLT50YWlsWzBdLmlv
+dl9sZW4pKTsNCj4gDQo+IC0JaWYgKHhwcnQtPnNjX2ZybXJfcGdfbGlzdF9sZW4pDQo+IC0JCXJl
+dHVybiBmYXN0X3JlZ194ZHIoeHBydCwgeGRyLCB2ZWMpOw0KPiAtDQo+ICAJLyogU2tpcCB0aGUg
+Zmlyc3Qgc2dlLCB0aGlzIGlzIGZvciB0aGUgUlBDUkRNQSBoZWFkZXIgKi8NCj4gIAlzZ2Vfbm8g
+PSAxOw0KPiANCj4gQEAgLTI4Miw4ICsxMzQsNiBAQCBzdGF0aWMgZG1hX2FkZHJfdCBkbWFfbWFw
+X3hkcihzdHJ1Y3QNCj4gc3ZjeHBydF9yZG1hICp4cHJ0LCAgfQ0KPiANCj4gIC8qIEFzc3VtcHRp
+b25zOg0KPiAtICogLSBXZSBhcmUgdXNpbmcgRlJNUg0KPiAtICogICAgIC0gb3IgLQ0KPiAgICog
+LSBUaGUgc3BlY2lmaWVkIHdyaXRlX2xlbiBjYW4gYmUgcmVwcmVzZW50ZWQgaW4gc2NfbWF4X3Nn
+ZSAqIFBBR0VfU0laRQ0KPiAgICovDQo+ICBzdGF0aWMgaW50IHNlbmRfd3JpdGUoc3RydWN0IHN2
+Y3hwcnRfcmRtYSAqeHBydCwgc3RydWN0IHN2Y19ycXN0ICpycXN0cCwgQEAgLQ0KPiAzMjcsMjMg
+KzE3NywxNiBAQCBzdGF0aWMgaW50IHNlbmRfd3JpdGUoc3RydWN0IHN2Y3hwcnRfcmRtYSAqeHBy
+dCwgc3RydWN0DQo+IHN2Y19ycXN0ICpycXN0cCwNCj4gIAkJc2dlX2J5dGVzID0gbWluX3Qoc2l6
+ZV90LA0KPiAgCQkJICBiYywgdmVjLT5zZ2VbeGRyX3NnZV9ub10uaW92X2xlbi1zZ2Vfb2ZmKTsN
+Cj4gIAkJc2dlW3NnZV9ub10ubGVuZ3RoID0gc2dlX2J5dGVzOw0KPiAtCQlpZiAoIXZlYy0+ZnJt
+cikgew0KPiAtCQkJc2dlW3NnZV9ub10uYWRkciA9DQo+IC0JCQkJZG1hX21hcF94ZHIoeHBydCwg
+JnJxc3RwLT5ycV9yZXMsDQo+IHhkcl9vZmYsDQo+IC0JCQkJCSAgICBzZ2VfYnl0ZXMsIERNQV9U
+T19ERVZJQ0UpOw0KPiAtCQkJeGRyX29mZiArPSBzZ2VfYnl0ZXM7DQo+IC0JCQlpZiAoaWJfZG1h
+X21hcHBpbmdfZXJyb3IoeHBydC0+c2NfY21faWQtPmRldmljZSwNCj4gLQkJCQkJCSBzZ2Vbc2dl
+X25vXS5hZGRyKSkNCj4gLQkJCQlnb3RvIGVycjsNCj4gLQkJCWF0b21pY19pbmMoJnhwcnQtPnNj
+X2RtYV91c2VkKTsNCj4gLQkJCXNnZVtzZ2Vfbm9dLmxrZXkgPSB4cHJ0LT5zY19kbWFfbGtleTsN
+Cj4gLQkJfSBlbHNlIHsNCj4gLQkJCXNnZVtzZ2Vfbm9dLmFkZHIgPSAodW5zaWduZWQgbG9uZykN
+Cj4gLQkJCQl2ZWMtPnNnZVt4ZHJfc2dlX25vXS5pb3ZfYmFzZSArIHNnZV9vZmY7DQo+IC0JCQlz
+Z2Vbc2dlX25vXS5sa2V5ID0gdmVjLT5mcm1yLT5tci0+bGtleTsNCj4gLQkJfQ0KPiArCQlzZ2Vb
+c2dlX25vXS5hZGRyID0NCj4gKwkJCWRtYV9tYXBfeGRyKHhwcnQsICZycXN0cC0+cnFfcmVzLCB4
+ZHJfb2ZmLA0KPiArCQkJCSAgICBzZ2VfYnl0ZXMsIERNQV9UT19ERVZJQ0UpOw0KPiArCQl4ZHJf
+b2ZmICs9IHNnZV9ieXRlczsNCj4gKwkJaWYgKGliX2RtYV9tYXBwaW5nX2Vycm9yKHhwcnQtPnNj
+X2NtX2lkLT5kZXZpY2UsDQo+ICsJCQkJCSBzZ2Vbc2dlX25vXS5hZGRyKSkNCj4gKwkJCWdvdG8g
+ZXJyOw0KPiArCQlhdG9taWNfaW5jKCZ4cHJ0LT5zY19kbWFfdXNlZCk7DQo+ICsJCXNnZVtzZ2Vf
+bm9dLmxrZXkgPSB4cHJ0LT5zY19kbWFfbGtleTsNCj4gIAkJY3R4dC0+Y291bnQrKzsNCj4gLQkJ
+Y3R4dC0+ZnJtciA9IHZlYy0+ZnJtcjsNCj4gIAkJc2dlX29mZiA9IDA7DQo+ICAJCXNnZV9ubysr
+Ow0KPiAgCQl4ZHJfc2dlX25vKys7DQo+IEBAIC0zNjksNyArMjEyLDYgQEAgc3RhdGljIGludCBz
+ZW5kX3dyaXRlKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsIHN0cnVjdA0KPiBzdmNfcnFzdCAq
+cnFzdHAsDQo+ICAJcmV0dXJuIDA7DQo+ICAgZXJyOg0KPiAgCXN2Y19yZG1hX3VubWFwX2RtYShj
+dHh0KTsNCj4gLQlzdmNfcmRtYV9wdXRfZnJtcih4cHJ0LCB2ZWMtPmZybXIpOw0KPiAgCXN2Y19y
+ZG1hX3B1dF9jb250ZXh0KGN0eHQsIDApOw0KPiAgCS8qIEZhdGFsIGVycm9yLCBjbG9zZSB0cmFu
+c3BvcnQgKi8NCj4gIAlyZXR1cm4gLUVJTzsNCj4gQEAgLTM5NywxMCArMjM5LDcgQEAgc3RhdGlj
+IGludCBzZW5kX3dyaXRlX2NodW5rcyhzdHJ1Y3Qgc3ZjeHBydF9yZG1hDQo+ICp4cHJ0LA0KPiAg
+CXJlc19hcnkgPSAoc3RydWN0IHJwY3JkbWFfd3JpdGVfYXJyYXkgKikNCj4gIAkJJnJkbWFfcmVz
+cC0+cm1fYm9keS5ybV9jaHVua3NbMV07DQo+IA0KPiAtCWlmICh2ZWMtPmZybXIpDQo+IC0JCW1h
+eF93cml0ZSA9IHZlYy0+ZnJtci0+bWFwX2xlbjsNCj4gLQllbHNlDQo+IC0JCW1heF93cml0ZSA9
+IHhwcnQtPnNjX21heF9zZ2UgKiBQQUdFX1NJWkU7DQo+ICsJbWF4X3dyaXRlID0geHBydC0+c2Nf
+bWF4X3NnZSAqIFBBR0VfU0laRTsNCj4gDQo+ICAJLyogV3JpdGUgY2h1bmtzIHN0YXJ0IGF0IHRo
+ZSBwYWdlbGlzdCAqLw0KPiAgCWZvciAoeGRyX29mZiA9IHJxc3RwLT5ycV9yZXMuaGVhZFswXS5p
+b3ZfbGVuLCBjaHVua19ubyA9IDA7IEBAIC0NCj4gNDcyLDEwICszMTEsNyBAQCBzdGF0aWMgaW50
+IHNlbmRfcmVwbHlfY2h1bmtzKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsDQo+ICAJcmVzX2Fy
+eSA9IChzdHJ1Y3QgcnBjcmRtYV93cml0ZV9hcnJheSAqKQ0KPiAgCQkmcmRtYV9yZXNwLT5ybV9i
+b2R5LnJtX2NodW5rc1syXTsNCj4gDQo+IC0JaWYgKHZlYy0+ZnJtcikNCj4gLQkJbWF4X3dyaXRl
+ID0gdmVjLT5mcm1yLT5tYXBfbGVuOw0KPiAtCWVsc2UNCj4gLQkJbWF4X3dyaXRlID0geHBydC0+
+c2NfbWF4X3NnZSAqIFBBR0VfU0laRTsNCj4gKwltYXhfd3JpdGUgPSB4cHJ0LT5zY19tYXhfc2dl
+ICogUEFHRV9TSVpFOw0KPiANCj4gIAkvKiB4ZHIgb2Zmc2V0IHN0YXJ0cyBhdCBSUEMgbWVzc2Fn
+ZSAqLw0KPiAgCW5jaHVua3MgPSBudG9obChhcmdfYXJ5LT53Y19uY2h1bmtzKTsNCj4gQEAgLTU0
+NSw3ICszODEsNiBAQCBzdGF0aWMgaW50IHNlbmRfcmVwbHkoc3RydWN0IHN2Y3hwcnRfcmRtYSAq
+cmRtYSwNCj4gIAkJICAgICAgaW50IGJ5dGVfY291bnQpDQo+ICB7DQo+ICAJc3RydWN0IGliX3Nl
+bmRfd3Igc2VuZF93cjsNCj4gLQlzdHJ1Y3QgaWJfc2VuZF93ciBpbnZfd3I7DQo+ICAJaW50IHNn
+ZV9ubzsNCj4gIAlpbnQgc2dlX2J5dGVzOw0KPiAgCWludCBwYWdlX25vOw0KPiBAQCAtNTU5LDcg
+KzM5NCw2IEBAIHN0YXRpYyBpbnQgc2VuZF9yZXBseShzdHJ1Y3Qgc3ZjeHBydF9yZG1hICpyZG1h
+LA0KPiAgCQkgICAgICAgInN2Y3JkbWE6IGNvdWxkIG5vdCBwb3N0IGEgcmVjZWl2ZSBidWZmZXIs
+IGVycj0lZC4iDQo+ICAJCSAgICAgICAiQ2xvc2luZyB0cmFuc3BvcnQgJXAuXG4iLCByZXQsIHJk
+bWEpOw0KPiAgCQlzZXRfYml0KFhQVF9DTE9TRSwgJnJkbWEtPnNjX3hwcnQueHB0X2ZsYWdzKTsN
+Cj4gLQkJc3ZjX3JkbWFfcHV0X2ZybXIocmRtYSwgdmVjLT5mcm1yKTsNCj4gIAkJc3ZjX3JkbWFf
+cHV0X2NvbnRleHQoY3R4dCwgMCk7DQo+ICAJCXJldHVybiAtRU5PVENPTk47DQo+ICAJfQ0KPiBA
+QCAtNTY3LDExICs0MDEsNiBAQCBzdGF0aWMgaW50IHNlbmRfcmVwbHkoc3RydWN0IHN2Y3hwcnRf
+cmRtYSAqcmRtYSwNCj4gIAkvKiBQcmVwYXJlIHRoZSBjb250ZXh0ICovDQo+ICAJY3R4dC0+cGFn
+ZXNbMF0gPSBwYWdlOw0KPiAgCWN0eHQtPmNvdW50ID0gMTsNCj4gLQljdHh0LT5mcm1yID0gdmVj
+LT5mcm1yOw0KPiAtCWlmICh2ZWMtPmZybXIpDQo+IC0JCXNldF9iaXQoUkRNQUNUWFRfRl9GQVNU
+X1VOUkVHLCAmY3R4dC0+ZmxhZ3MpOw0KPiAtCWVsc2UNCj4gLQkJY2xlYXJfYml0KFJETUFDVFhU
+X0ZfRkFTVF9VTlJFRywgJmN0eHQtPmZsYWdzKTsNCj4gDQo+ICAJLyogUHJlcGFyZSB0aGUgU0dF
+IGZvciB0aGUgUlBDUkRNQSBIZWFkZXIgKi8NCj4gIAljdHh0LT5zZ2VbMF0ubGtleSA9IHJkbWEt
+PnNjX2RtYV9sa2V5OyBAQCAtNTkwLDIxICs0MTksMTUgQEANCj4gc3RhdGljIGludCBzZW5kX3Jl
+cGx5KHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnJkbWEsDQo+ICAJCWludCB4ZHJfb2ZmID0gMDsNCj4g
+IAkJc2dlX2J5dGVzID0gbWluX3Qoc2l6ZV90LCB2ZWMtPnNnZVtzZ2Vfbm9dLmlvdl9sZW4sDQo+
+IGJ5dGVfY291bnQpOw0KPiAgCQlieXRlX2NvdW50IC09IHNnZV9ieXRlczsNCj4gLQkJaWYgKCF2
+ZWMtPmZybXIpIHsNCj4gLQkJCWN0eHQtPnNnZVtzZ2Vfbm9dLmFkZHIgPQ0KPiAtCQkJCWRtYV9t
+YXBfeGRyKHJkbWEsICZycXN0cC0+cnFfcmVzLA0KPiB4ZHJfb2ZmLA0KPiAtCQkJCQkgICAgc2dl
+X2J5dGVzLCBETUFfVE9fREVWSUNFKTsNCj4gLQkJCXhkcl9vZmYgKz0gc2dlX2J5dGVzOw0KPiAt
+CQkJaWYgKGliX2RtYV9tYXBwaW5nX2Vycm9yKHJkbWEtPnNjX2NtX2lkLT5kZXZpY2UsDQo+IC0J
+CQkJCQkgY3R4dC0+c2dlW3NnZV9ub10uYWRkcikpDQo+IC0JCQkJZ290byBlcnI7DQo+IC0JCQlh
+dG9taWNfaW5jKCZyZG1hLT5zY19kbWFfdXNlZCk7DQo+IC0JCQljdHh0LT5zZ2Vbc2dlX25vXS5s
+a2V5ID0gcmRtYS0+c2NfZG1hX2xrZXk7DQo+IC0JCX0gZWxzZSB7DQo+IC0JCQljdHh0LT5zZ2Vb
+c2dlX25vXS5hZGRyID0gKHVuc2lnbmVkIGxvbmcpDQo+IC0JCQkJdmVjLT5zZ2Vbc2dlX25vXS5p
+b3ZfYmFzZTsNCj4gLQkJCWN0eHQtPnNnZVtzZ2Vfbm9dLmxrZXkgPSB2ZWMtPmZybXItPm1yLT5s
+a2V5Ow0KPiAtCQl9DQo+ICsJCWN0eHQtPnNnZVtzZ2Vfbm9dLmFkZHIgPQ0KPiArCQkJZG1hX21h
+cF94ZHIocmRtYSwgJnJxc3RwLT5ycV9yZXMsIHhkcl9vZmYsDQo+ICsJCQkJICAgIHNnZV9ieXRl
+cywgRE1BX1RPX0RFVklDRSk7DQo+ICsJCXhkcl9vZmYgKz0gc2dlX2J5dGVzOw0KPiArCQlpZiAo
+aWJfZG1hX21hcHBpbmdfZXJyb3IocmRtYS0+c2NfY21faWQtPmRldmljZSwNCj4gKwkJCQkJIGN0
+eHQtPnNnZVtzZ2Vfbm9dLmFkZHIpKQ0KPiArCQkJZ290byBlcnI7DQo+ICsJCWF0b21pY19pbmMo
+JnJkbWEtPnNjX2RtYV91c2VkKTsNCj4gKwkJY3R4dC0+c2dlW3NnZV9ub10ubGtleSA9IHJkbWEt
+PnNjX2RtYV9sa2V5Ow0KPiAgCQljdHh0LT5zZ2Vbc2dlX25vXS5sZW5ndGggPSBzZ2VfYnl0ZXM7
+DQo+ICAJfQ0KPiAgCUJVR19PTihieXRlX2NvdW50ICE9IDApOw0KPiBAQCAtNjI3LDYgKzQ1MCw3
+IEBAIHN0YXRpYyBpbnQgc2VuZF9yZXBseShzdHJ1Y3Qgc3ZjeHBydF9yZG1hICpyZG1hLA0KPiAg
+CQkJY3R4dC0+c2dlW3BhZ2Vfbm8rMV0ubGVuZ3RoID0gMDsNCj4gIAl9DQo+ICAJcnFzdHAtPnJx
+X25leHRfcGFnZSA9IHJxc3RwLT5ycV9yZXNwYWdlcyArIDE7DQo+ICsNCj4gIAlCVUdfT04oc2dl
+X25vID4gcmRtYS0+c2NfbWF4X3NnZSk7DQo+ICAJbWVtc2V0KCZzZW5kX3dyLCAwLCBzaXplb2Yg
+c2VuZF93cik7DQo+ICAJY3R4dC0+d3Jfb3AgPSBJQl9XUl9TRU5EOw0KPiBAQCAtNjM1LDE1ICs0
+NTksNiBAQCBzdGF0aWMgaW50IHNlbmRfcmVwbHkoc3RydWN0IHN2Y3hwcnRfcmRtYSAqcmRtYSwN
+Cj4gIAlzZW5kX3dyLm51bV9zZ2UgPSBzZ2Vfbm87DQo+ICAJc2VuZF93ci5vcGNvZGUgPSBJQl9X
+Ul9TRU5EOw0KPiAgCXNlbmRfd3Iuc2VuZF9mbGFncyA9ICBJQl9TRU5EX1NJR05BTEVEOw0KPiAt
+CWlmICh2ZWMtPmZybXIpIHsNCj4gLQkJLyogUHJlcGFyZSBJTlZBTElEQVRFIFdSICovDQo+IC0J
+CW1lbXNldCgmaW52X3dyLCAwLCBzaXplb2YgaW52X3dyKTsNCj4gLQkJaW52X3dyLm9wY29kZSA9
+IElCX1dSX0xPQ0FMX0lOVjsNCj4gLQkJaW52X3dyLnNlbmRfZmxhZ3MgPSBJQl9TRU5EX1NJR05B
+TEVEOw0KPiAtCQlpbnZfd3IuZXguaW52YWxpZGF0ZV9ya2V5ID0NCj4gLQkJCXZlYy0+ZnJtci0+
+bXItPmxrZXk7DQo+IC0JCXNlbmRfd3IubmV4dCA9ICZpbnZfd3I7DQo+IC0JfQ0KPiANCj4gIAly
+ZXQgPSBzdmNfcmRtYV9zZW5kKHJkbWEsICZzZW5kX3dyKTsNCj4gIAlpZiAocmV0KQ0KPiBAQCAt
+NjUzLDcgKzQ2OCw2IEBAIHN0YXRpYyBpbnQgc2VuZF9yZXBseShzdHJ1Y3Qgc3ZjeHBydF9yZG1h
+ICpyZG1hLA0KPiANCj4gICBlcnI6DQo+ICAJc3ZjX3JkbWFfdW5tYXBfZG1hKGN0eHQpOw0KPiAt
+CXN2Y19yZG1hX3B1dF9mcm1yKHJkbWEsIHZlYy0+ZnJtcik7DQo+ICAJc3ZjX3JkbWFfcHV0X2Nv
+bnRleHQoY3R4dCwgMSk7DQo+ICAJcmV0dXJuIC1FSU87DQo+ICB9DQo+IGRpZmYgLS1naXQgYS9u
+ZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3RyYW5zcG9ydC5jDQo+IGIvbmV0L3N1bnJwYy94
+cHJ0cmRtYS9zdmNfcmRtYV90cmFuc3BvcnQuYw0KPiBpbmRleCAyNTY4OGZhLi4yYzViMjAxIDEw
+MDY0NA0KPiAtLS0gYS9uZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3RyYW5zcG9ydC5jDQo+
+ICsrKyBiL25ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfdHJhbnNwb3J0LmMNCj4gQEAgLTEs
+NCArMSw1IEBADQo+ICAvKg0KPiArICogQ29weXJpZ2h0IChjKSAyMDE0IE9wZW4gR3JpZCBDb21w
+dXRpbmcsIEluYy4gQWxsIHJpZ2h0cyByZXNlcnZlZC4NCj4gICAqIENvcHlyaWdodCAoYykgMjAw
+NS0yMDA3IE5ldHdvcmsgQXBwbGlhbmNlLCBJbmMuIEFsbCByaWdodHMgcmVzZXJ2ZWQuDQo+ICAg
+Kg0KPiAgICogVGhpcyBzb2Z0d2FyZSBpcyBhdmFpbGFibGUgdG8geW91IHVuZGVyIGEgY2hvaWNl
+IG9mIG9uZSBvZiB0d28gQEAgLTE2MCw3DQo+ICsxNjEsNiBAQCBzdHJ1Y3Qgc3ZjX3JkbWFfcmVx
+X21hcCAqc3ZjX3JkbWFfZ2V0X3JlcV9tYXAodm9pZCkNCj4gIAkJc2NoZWR1bGVfdGltZW91dF91
+bmludGVycnVwdGlibGUobXNlY3NfdG9famlmZmllcyg1MDApKTsNCj4gIAl9DQo+ICAJbWFwLT5j
+b3VudCA9IDA7DQo+IC0JbWFwLT5mcm1yID0gTlVMTDsNCj4gIAlyZXR1cm4gbWFwOw0KPiAgfQ0K
+PiANCj4gQEAgLTMzNiwyMiArMzM2LDIxIEBAIHN0YXRpYyB2b2lkIHByb2Nlc3NfY29udGV4dChz
+dHJ1Y3Qgc3ZjeHBydF9yZG1hDQo+ICp4cHJ0LA0KPiANCj4gIAlzd2l0Y2ggKGN0eHQtPndyX29w
+KSB7DQo+ICAJY2FzZSBJQl9XUl9TRU5EOg0KPiAtCQlpZiAodGVzdF9iaXQoUkRNQUNUWFRfRl9G
+QVNUX1VOUkVHLCAmY3R4dC0+ZmxhZ3MpKQ0KPiAtCQkJc3ZjX3JkbWFfcHV0X2ZybXIoeHBydCwg
+Y3R4dC0+ZnJtcik7DQo+ICsJCUJVR19PTihjdHh0LT5mcm1yKTsNCj4gIAkJc3ZjX3JkbWFfcHV0
+X2NvbnRleHQoY3R4dCwgMSk7DQo+ICAJCWJyZWFrOw0KPiANCj4gIAljYXNlIElCX1dSX1JETUFf
+V1JJVEU6DQo+ICsJCUJVR19PTihjdHh0LT5mcm1yKTsNCj4gIAkJc3ZjX3JkbWFfcHV0X2NvbnRl
+eHQoY3R4dCwgMCk7DQo+ICAJCWJyZWFrOw0KPiANCj4gIAljYXNlIElCX1dSX1JETUFfUkVBRDoN
+Cj4gIAljYXNlIElCX1dSX1JETUFfUkVBRF9XSVRIX0lOVjoNCj4gKwkJc3ZjX3JkbWFfcHV0X2Zy
+bXIoeHBydCwgY3R4dC0+ZnJtcik7DQo+ICAJCWlmICh0ZXN0X2JpdChSRE1BQ1RYVF9GX0xBU1Rf
+Q1RYVCwgJmN0eHQtPmZsYWdzKSkgew0KPiAgCQkJc3RydWN0IHN2Y19yZG1hX29wX2N0eHQgKnJl
+YWRfaGRyID0gY3R4dC0NCj4gPnJlYWRfaGRyOw0KPiAgCQkJQlVHX09OKCFyZWFkX2hkcik7DQo+
+IC0JCQlpZiAodGVzdF9iaXQoUkRNQUNUWFRfRl9GQVNUX1VOUkVHLCAmY3R4dC0NCj4gPmZsYWdz
+KSkNCj4gLQkJCQlzdmNfcmRtYV9wdXRfZnJtcih4cHJ0LCBjdHh0LT5mcm1yKTsNCj4gIAkJCXNw
+aW5fbG9ja19iaCgmeHBydC0+c2NfcnFfZHRvX2xvY2spOw0KPiAgCQkJc2V0X2JpdChYUFRfREFU
+QSwgJnhwcnQtPnNjX3hwcnQueHB0X2ZsYWdzKTsNCj4gIAkJCWxpc3RfYWRkX3RhaWwoJnJlYWRf
+aGRyLT5kdG9fcSwNCj4gQEAgLTM2Myw2ICszNjIsNyBAQCBzdGF0aWMgdm9pZCBwcm9jZXNzX2Nv
+bnRleHQoc3RydWN0IHN2Y3hwcnRfcmRtYQ0KPiAqeHBydCwNCj4gIAkJYnJlYWs7DQo+IA0KPiAg
+CWRlZmF1bHQ6DQo+ICsJCUJVR19PTigxKTsNCj4gIAkJcHJpbnRrKEtFUk5fRVJSICJzdmNyZG1h
+OiB1bmV4cGVjdGVkIGNvbXBsZXRpb24gdHlwZSwgIg0KPiAgCQkgICAgICAgIm9wY29kZT0lZFxu
+IiwNCj4gIAkJICAgICAgIGN0eHQtPndyX29wKTsNCj4gQEAgLTM3OCwyOSArMzc4LDQyIEBAIHN0
+YXRpYyB2b2lkIHByb2Nlc3NfY29udGV4dChzdHJ1Y3Qgc3ZjeHBydF9yZG1hDQo+ICp4cHJ0LCAg
+c3RhdGljIHZvaWQgc3FfY3FfcmVhcChzdHJ1Y3Qgc3ZjeHBydF9yZG1hICp4cHJ0KSAgew0KPiAg
+CXN0cnVjdCBzdmNfcmRtYV9vcF9jdHh0ICpjdHh0ID0gTlVMTDsNCj4gLQlzdHJ1Y3QgaWJfd2Mg
+d2M7DQo+ICsJc3RydWN0IGliX3djIHdjX2FbNl07DQo+ICsJc3RydWN0IGliX3djICp3YzsNCj4g
+IAlzdHJ1Y3QgaWJfY3EgKmNxID0geHBydC0+c2Nfc3FfY3E7DQo+ICAJaW50IHJldDsNCj4gDQo+
+ICsJbWVtc2V0KHdjX2EsIDAsIHNpemVvZih3Y19hKSk7DQo+ICsNCj4gIAlpZiAoIXRlc3RfYW5k
+X2NsZWFyX2JpdChSRE1BWFBSVF9TUV9QRU5ESU5HLCAmeHBydC0+c2NfZmxhZ3MpKQ0KPiAgCQly
+ZXR1cm47DQo+IA0KPiAgCWliX3JlcV9ub3RpZnlfY3EoeHBydC0+c2Nfc3FfY3EsIElCX0NRX05F
+WFRfQ09NUCk7DQo+ICAJYXRvbWljX2luYygmcmRtYV9zdGF0X3NxX3BvbGwpOw0KPiAtCXdoaWxl
+ICgocmV0ID0gaWJfcG9sbF9jcShjcSwgMSwgJndjKSkgPiAwKSB7DQo+IC0JCWlmICh3Yy5zdGF0
+dXMgIT0gSUJfV0NfU1VDQ0VTUykNCj4gLQkJCS8qIENsb3NlIHRoZSB0cmFuc3BvcnQgKi8NCj4g
+LQkJCXNldF9iaXQoWFBUX0NMT1NFLCAmeHBydC0+c2NfeHBydC54cHRfZmxhZ3MpOw0KPiArCXdo
+aWxlICgocmV0ID0gaWJfcG9sbF9jcShjcSwgQVJSQVlfU0laRSh3Y19hKSwgd2NfYSkpID4gMCkg
+ew0KPiArCQlpbnQgaTsNCj4gDQo+IC0JCS8qIERlY3JlbWVudCB1c2VkIFNRIFdSIGNvdW50ICov
+DQo+IC0JCWF0b21pY19kZWMoJnhwcnQtPnNjX3NxX2NvdW50KTsNCj4gLQkJd2FrZV91cCgmeHBy
+dC0+c2Nfc2VuZF93YWl0KTsNCj4gKwkJZm9yIChpID0gMDsgaSA8IHJldDsgaSsrKSB7DQo+ICsJ
+CQl3YyA9ICZ3Y19hW2ldOw0KPiArCQkJaWYgKHdjLT5zdGF0dXMgIT0gSUJfV0NfU1VDQ0VTUykg
+ew0KPiArCQkJCWRwcmludGsoInN2Y3JkbWE6IHNxIHdjIGVyciBzdGF0dXMgJWRcbiIsDQo+ICsJ
+CQkJCXdjLT5zdGF0dXMpOw0KPiANCj4gLQkJY3R4dCA9IChzdHJ1Y3Qgc3ZjX3JkbWFfb3BfY3R4
+dCAqKSh1bnNpZ25lZCBsb25nKXdjLndyX2lkOw0KPiAtCQlpZiAoY3R4dCkNCj4gLQkJCXByb2Nl
+c3NfY29udGV4dCh4cHJ0LCBjdHh0KTsNCj4gKwkJCQkvKiBDbG9zZSB0aGUgdHJhbnNwb3J0ICov
+DQo+ICsJCQkJc2V0X2JpdChYUFRfQ0xPU0UsICZ4cHJ0LQ0KPiA+c2NfeHBydC54cHRfZmxhZ3Mp
+Ow0KPiArCQkJfQ0KPiANCj4gLQkJc3ZjX3hwcnRfcHV0KCZ4cHJ0LT5zY194cHJ0KTsNCj4gKwkJ
+CS8qIERlY3JlbWVudCB1c2VkIFNRIFdSIGNvdW50ICovDQo+ICsJCQlhdG9taWNfZGVjKCZ4cHJ0
+LT5zY19zcV9jb3VudCk7DQo+ICsJCQl3YWtlX3VwKCZ4cHJ0LT5zY19zZW5kX3dhaXQpOw0KPiAr
+DQo+ICsJCQljdHh0ID0gKHN0cnVjdCBzdmNfcmRtYV9vcF9jdHh0ICopDQo+ICsJCQkJKHVuc2ln
+bmVkIGxvbmcpd2MtPndyX2lkOw0KPiArCQkJaWYgKGN0eHQpDQo+ICsJCQkJcHJvY2Vzc19jb250
+ZXh0KHhwcnQsIGN0eHQpOw0KPiArDQo+ICsJCQlzdmNfeHBydF9wdXQoJnhwcnQtPnNjX3hwcnQp
+Ow0KPiArCQl9DQo+ICAJfQ0KPiANCj4gIAlpZiAoY3R4dCkNCj4gQEAgLTk5Myw3ICsxMDA2LDEx
+IEBAIHN0YXRpYyBzdHJ1Y3Qgc3ZjX3hwcnQgKnN2Y19yZG1hX2FjY2VwdChzdHJ1Y3QNCj4gc3Zj
+X3hwcnQgKnhwcnQpDQo+ICAJCQluZWVkX2RtYV9tciA9IDA7DQo+ICAJCWJyZWFrOw0KPiAgCWNh
+c2UgUkRNQV9UUkFOU1BPUlRfSUI6DQo+IC0JCWlmICghKGRldmF0dHIuZGV2aWNlX2NhcF9mbGFn
+cyAmDQo+IElCX0RFVklDRV9MT0NBTF9ETUFfTEtFWSkpIHsNCj4gKwkJaWYgKCEobmV3eHBydC0+
+c2NfZGV2X2NhcHMgJg0KPiBTVkNSRE1BX0RFVkNBUF9GQVNUX1JFRykpIHsNCj4gKwkJCW5lZWRf
+ZG1hX21yID0gMTsNCj4gKwkJCWRtYV9tcl9hY2MgPSBJQl9BQ0NFU1NfTE9DQUxfV1JJVEU7DQo+
+ICsJCX0gZWxzZSBpZiAoIShkZXZhdHRyLmRldmljZV9jYXBfZmxhZ3MgJg0KPiArCQkJICAgICBJ
+Ql9ERVZJQ0VfTE9DQUxfRE1BX0xLRVkpKSB7DQo+ICAJCQluZWVkX2RtYV9tciA9IDE7DQo+ICAJ
+CQlkbWFfbXJfYWNjID0gSUJfQUNDRVNTX0xPQ0FMX1dSSVRFOw0KPiAgCQl9IGVsc2UNCj4gQEAg
+LTExOTAsMTQgKzEyMDcsNyBAQCBzdGF0aWMgaW50IHN2Y19yZG1hX2hhc193c3BhY2Uoc3RydWN0
+IHN2Y194cHJ0DQo+ICp4cHJ0KQ0KPiAgCQljb250YWluZXJfb2YoeHBydCwgc3RydWN0IHN2Y3hw
+cnRfcmRtYSwgc2NfeHBydCk7DQo+IA0KPiAgCS8qDQo+IC0JICogSWYgdGhlcmUgYXJlIGZld2Vy
+IFNRIFdSIGF2YWlsYWJsZSB0aGFuIHJlcXVpcmVkIHRvIHNlbmQgYQ0KPiAtCSAqIHNpbXBsZSBy
+ZXNwb25zZSwgcmV0dXJuIGZhbHNlLg0KPiAtCSAqLw0KPiAtCWlmICgocmRtYS0+c2Nfc3FfZGVw
+dGggLSBhdG9taWNfcmVhZCgmcmRtYS0+c2Nfc3FfY291bnQpIDwgMykpDQo+IC0JCXJldHVybiAw
+Ow0KPiAtDQo+IC0JLyoNCj4gLQkgKiAuLi5vciB0aGVyZSBhcmUgYWxyZWFkeSB3YWl0ZXJzIG9u
+IHRoZSBTUSwNCj4gKwkgKiBJZiB0aGVyZSBhcmUgYWxyZWFkeSB3YWl0ZXJzIG9uIHRoZSBTUSwN
+Cj4gIAkgKiByZXR1cm4gZmFsc2UuDQo+ICAJICovDQo+ICAJaWYgKHdhaXRxdWV1ZV9hY3RpdmUo
+JnJkbWEtPnNjX3NlbmRfd2FpdCkpDQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRo
+aXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIgaW4gdGhlDQo+
+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpv
+cmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0
+bWwNCg==
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
