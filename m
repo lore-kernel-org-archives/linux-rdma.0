@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sa_path_record.c: Fix misleading error messages
- during sweep
-Date: Sun, 01 Jun 2014 08:41:36 -0400
-Message-ID: <538B1F80.7010905@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_vl15intf.c: Fix potential NULL dereference in
+ vl15_send_mad
+Date: Sun, 01 Jun 2014 08:41:42 -0400
+Message-ID: <538B1F86.60503@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,40 +14,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-PathQuery is received during heavy-sweep caused by just rebooted node.
-The PathQuery is received for the new node during discovery stage
-when no LID is still assigned to the node.
+In vl15_send_mad, there is a use in the function osm_vendor_send that could
+free the p_madw and after the use of that function we use another function
+the need p_madw.
 
-Fix: change from using OSM_LOG_ERROR to OSM_LOG_DEBUG for ERR 1F20 and 1F21
+Fix: save the parameters needed beforehand.
 
 Signed-off-by: Tomer Cohen <tomerco-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_sa_path_record.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ opensm/osm_vl15intf.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-index aaf2f2f..a915636 100644
---- a/opensm/osm_sa_path_record.c
-+++ b/opensm/osm_sa_path_record.c
-@@ -1113,7 +1113,7 @@ static void pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
- 					  &src_lid_min_ho, &src_lid_max_ho);
+diff --git a/opensm/osm_vl15intf.c b/opensm/osm_vl15intf.c
+index d00ecda..06a5001 100644
+--- a/opensm/osm_vl15intf.c
++++ b/opensm/osm_vl15intf.c
+@@ -61,6 +61,12 @@ static void vl15_send_mad(osm_vl15_t * p_vl, osm_madw_t * p_madw)
+ 	ib_api_status_t status;
+ 	boolean_t resp_expected = p_madw->resp_expected;
+ 	ib_smp_t * p_smp;
++	ib_net16_t attr_id;
++	uint8_t method;
++
++	p_smp = osm_madw_get_smp_ptr(p_madw);
++	method = p_smp->method;
++	attr_id = p_smp->attr_id;
  
- 	if (src_lid_min_ho == 0) {
--		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F20:"
-+		OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
- 			"Obtained source LID of 0. No such LID possible "
- 			"(%s port %d)\n",
- 			p_src_alias_guid->p_base_port->p_node->print_desc,
-@@ -1122,7 +1122,7 @@ static void pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
+ 	/*
+ 	   Non-response-expected mads are not throttled on the wire
+@@ -113,12 +119,10 @@ static void vl15_send_mad(osm_vl15_t * p_vl, osm_madw_t * p_madw)
  	}
  
- 	if (dest_lid_min_ho == 0) {
--		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F21:"
-+		OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
- 			"Obtained destination LID of 0. No such LID possible "
- 			"(%s port %d)\n",
- 			p_dest_alias_guid->p_base_port->p_node->print_desc,
+ 	/* need to cause heavy-sweep if resp_expected MAD sending failed */
+-	p_smp = osm_madw_get_smp_ptr(p_madw);
+ 	OSM_LOG(p_vl->p_log, OSM_LOG_ERROR, "ERR 3E04: "
+ 		"%s method failed for attribute 0x%X (%s)\n",
+-		p_smp->method == IB_MAD_METHOD_SET ? "SET" : "GET",
+-		cl_ntoh16(p_smp->attr_id),
+-		ib_get_sm_attr_str(p_smp->attr_id));
++		method == IB_MAD_METHOD_SET ? "SET" : "GET",
++		cl_ntoh16(attr_id), ib_get_sm_attr_str(attr_id));
+ 
+ 	p_vl->p_subn->subnet_initialization_error = TRUE;
+ 
 -- 
 1.7.8.2
 
