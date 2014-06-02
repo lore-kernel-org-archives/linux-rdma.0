@@ -1,57 +1,51 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the infiniband tree with the net-next
- tree
-Date: Mon, 2 Jun 2014 13:46:18 +1000
-Message-ID: <20140602134618.6cb5e747@canb.auug.org.au>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_sa_guidinfo_record.c: Fix crash when receiving
+ AGUID SET/DELETE with block_num equal to max_block
+Date: Mon, 02 Jun 2014 06:17:42 -0400
+Message-ID: <538C4F46.3070607@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/mRobN0mJrb0Au./P44JdCYQ"; protocol="application/pgp-signature"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, David Miller <davem@davemloft.net>, netdev@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/mRobN0mJrb0Au./P44JdCYQ
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi all,
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_sa_guidinfo_record.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Today's linux-next merge of the infiniband tree got a conflict in
-drivers/net/ethernet/mellanox/mlx4/cmd.c between commit 1a91de28831a
-("mellanox: Logging message cleanups") from the net-next tree and
-commit 97982f5a91e9 ("IB/mlx4: Preparation for VFs to issue/receive SMI
-(QP0) requests/responses") from the infiniband tree.
+diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
+index 1ad8cad..d96db54 100644
+--- a/opensm/osm_sa_guidinfo_record.c
++++ b/opensm/osm_sa_guidinfo_record.c
+@@ -396,7 +396,7 @@ static void del_guidinfo(IN osm_sa_t *sa, IN osm_madw_t *p_madw,
+ 	max_block = (p_port->p_physp->port_info.guid_cap + GUID_TABLE_MAX_ENTRIES - 1) /
+ 		     GUID_TABLE_MAX_ENTRIES;
+ 
+-	if (block_num > max_block) {
++	if (block_num >= max_block) {
+ 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5116: "
+ 			"block_num %d is higher than Max GUID Cap block %d "
+ 			"for port GUID 0x%" PRIx64 "\n",
+@@ -503,7 +503,7 @@ static void set_guidinfo(IN osm_sa_t *sa, IN osm_madw_t *p_madw,
+ 
+ 	max_block = (p_port->p_physp->port_info.guid_cap + GUID_TABLE_MAX_ENTRIES - 1) /
+ 		     GUID_TABLE_MAX_ENTRIES;
+-	if (block_num > max_block) {
++	if (block_num >= max_block) {
+ 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5118: "
+ 			"block_num %d is higher than Max GUID Cap block %d "
+ 			"for port GUID 0x%" PRIx64 "\n",
+-- 
+1.7.8.2
 
-I fixed it up (the latter seems to be a superset of the former, so I
-just used that) and can carry the fix as necessary (no action is
-required).
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Sig_/mRobN0mJrb0Au./P44JdCYQ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBCAAGBQJTi/OOAAoJEMDTa8Ir7ZwVfb4P/R5DOcfR+0KLeYvHxiNltReC
-+Ypw1fr48KcayqHuLBwnwncz8t9YmOopTAgoZuoTX7YSRnrskzDW7+5Gl4uV3iqB
-bBXBpq2uAJx4FwfMHqmAVwTZYLHLo7kyeXHmemZgdqMRpqEZZgJKCbK5KwaEG2fZ
-UbRJM57DGViFqEnncoR7RpBAHFP+prd7BXWKzUYe48Z7HjtiQTCG533XMnST+hXM
-5tjNVTrd0fWoJyHp4GdUy50ymryYwmfofsharwYEEbxs4XVoNETnyWXp8cDxZMoN
-2Fdk56Xu1RX+tBNIPT/jO9wf88GAhfGJDAkwm37Gk9bz+myy2qxFf/YuDJCa80HQ
-Dhe+GDLyDV/gtI1e3xvzp/3SJ9i3NXrkxq8Yy4pxAtmCMUwatxDMieIjQs1fbOhd
-iEQyHjpSQGHY8nLrkl2E/6ULqkqVoehpY2WCk4jIaayxeD8q8Zq8C27gmsIvwWNs
-l8EUh+925pVr+XlQqA5tDnw9QhTKDNW9aenIpQY97hqdlPdKqPmLaxMPpJeok+12
-5GzyCYFeM89/aNA9tlrMx29zH26hnRZ/h1G7QVEOGjrWAvp7wgSXIwnmjZMNFIWO
-1QcgwvU+xn5C3P3ihlTPCzlXJuizMsMlIQnGdmCNDwd5cQYX26sqU/sVZ64G9/zP
-leGrj7Zu21M9oSHQ7L9+
-=aVAm
------END PGP SIGNATURE-----
-
---Sig_/mRobN0mJrb0Au./P44JdCYQ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
