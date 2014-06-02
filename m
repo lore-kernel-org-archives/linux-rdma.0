@@ -1,34 +1,57 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 0/2] Include protection information in iscsi header
-Date: Sun,  1 Jun 2014 19:19:39 +0300
-Message-ID: <1401639581-20111-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: nab@linux-iscsi.org, michaelc@cs.wisc.edu
-Cc: linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, oren@mellanox.com
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the infiniband tree with the net-next
+ tree
+Date: Mon, 2 Jun 2014 13:46:18 +1000
+Message-ID: <20140602134618.6cb5e747@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/mRobN0mJrb0Au./P44JdCYQ"; protocol="application/pgp-signature"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, David Miller <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-At the SCSI transport level, there is no distinction between
-user data and protection information. Thus, iscsi header field
-"expected data transfer length" should include protection
-information.
+--Sig_/mRobN0mJrb0Au./P44JdCYQ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-This set modifies both the iscsi initiator (patch #1), and
-target (patch #2) to expect data length which includes
-protection information.
+Hi all,
 
-Although these patches involve 3 subsystems with different
-maintainers (scsi, iser, target) I would prefer seeing these
-patches included together.
+Today's linux-next merge of the infiniband tree got a conflict in
+drivers/net/ethernet/mellanox/mlx4/cmd.c between commit 1a91de28831a
+("mellanox: Logging message cleanups") from the net-next tree and
+commit 97982f5a91e9 ("IB/mlx4: Preparation for VFs to issue/receive SMI
+(QP0) requests/responses") from the infiniband tree.
 
-Sagi Grimberg (2):
-  libiscsi, iser: Adjust data_length to include protection information
-  TARGET/sbc,loopback: Adjust command data length in case pi exists on
-    the wire
+I fixed it up (the latter seems to be a superset of the former, so I
+just used that) and can carry the fix as necessary (no action is
+required).
 
- drivers/infiniband/ulp/iser/iser_initiator.c |   34 +++++++-----------------
- drivers/scsi/libiscsi.c                      |   35 +++++++++++++++++++++++++-
- drivers/target/loopback/tcm_loop.c           |   35 +++++++++++++++++++++++---
- drivers/target/target_core_sbc.c             |   15 +++++++++-
- include/scsi/libiscsi.h                      |   19 ++++++++++++++
- 5 files changed, 107 insertions(+), 31 deletions(-)
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Sig_/mRobN0mJrb0Au./P44JdCYQ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBCAAGBQJTi/OOAAoJEMDTa8Ir7ZwVfb4P/R5DOcfR+0KLeYvHxiNltReC
++Ypw1fr48KcayqHuLBwnwncz8t9YmOopTAgoZuoTX7YSRnrskzDW7+5Gl4uV3iqB
+bBXBpq2uAJx4FwfMHqmAVwTZYLHLo7kyeXHmemZgdqMRpqEZZgJKCbK5KwaEG2fZ
+UbRJM57DGViFqEnncoR7RpBAHFP+prd7BXWKzUYe48Z7HjtiQTCG533XMnST+hXM
+5tjNVTrd0fWoJyHp4GdUy50ymryYwmfofsharwYEEbxs4XVoNETnyWXp8cDxZMoN
+2Fdk56Xu1RX+tBNIPT/jO9wf88GAhfGJDAkwm37Gk9bz+myy2qxFf/YuDJCa80HQ
+Dhe+GDLyDV/gtI1e3xvzp/3SJ9i3NXrkxq8Yy4pxAtmCMUwatxDMieIjQs1fbOhd
+iEQyHjpSQGHY8nLrkl2E/6ULqkqVoehpY2WCk4jIaayxeD8q8Zq8C27gmsIvwWNs
+l8EUh+925pVr+XlQqA5tDnw9QhTKDNW9aenIpQY97hqdlPdKqPmLaxMPpJeok+12
+5GzyCYFeM89/aNA9tlrMx29zH26hnRZ/h1G7QVEOGjrWAvp7wgSXIwnmjZMNFIWO
+1QcgwvU+xn5C3P3ihlTPCzlXJuizMsMlIQnGdmCNDwd5cQYX26sqU/sVZ64G9/zP
+leGrj7Zu21M9oSHQ7L9+
+=aVAm
+-----END PGP SIGNATURE-----
+
+--Sig_/mRobN0mJrb0Au./P44JdCYQ--
