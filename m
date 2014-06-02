@@ -1,55 +1,52 @@
-From: "Martin K. Petersen" <martin.petersen@oracle.com>
-Subject: Re: [PATCH 2/2] TARGET/sbc,loopback: Adjust command data length in case pi exists on the wire
-Date: Mon, 02 Jun 2014 12:54:35 -0400
-Message-ID: <yq1fvjn9rqs.fsf@sermon.lab.mkp.net>
-References: <1401639581-20111-1-git-send-email-sagig@mellanox.com>
-	<1401639581-20111-3-git-send-email-sagig@mellanox.com>
+From: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH V3] svcrdma: refactor marshalling logic
+Date: Mon, 2 Jun 2014 12:57:16 -0400
+Message-ID: <20140602165716.GB20031@fieldses.org>
+References: <20140529165532.16349.95248.stgit@build.ogc.int>
+ <EE7902D3F51F404C82415C4803930ACD3FE01265@CMEXMB1.ad.emulex.com>
+ <000001cf7c07$72e613d0$58b23b70$@opengridcomputing.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE01355@CMEXMB1.ad.emulex.com>
+ <004101cf7e82$68b58ad0$3a20a070$@opengridcomputing.com>
+ <20140602165151.GA20031@fieldses.org>
+ <004901cf7e83$15107790$3f3166b0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1401639581-20111-3-git-send-email-sagig@mellanox.com> (Sagi
-	Grimberg's message of "Sun, 1 Jun 2014 19:19:41 +0300")
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>
-Cc: nab@linux-iscsi.org, michaelc@cs.wisc.edu, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, oren@mellanox.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <004901cf7e83$15107790$3f3166b0$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Devesh Sharma' <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->>>>> "Sagi" == Sagi Grimberg <sagig@mellanox.com> writes:
+On Mon, Jun 02, 2014 at 11:52:47AM -0500, Steve Wise wrote:
+> > > You're correct.  And this bug appears to be in the current upstream code as well.  If
+> an
+> > > IB_WR_LOCAL_INV wr is used, it must include IB_SEND_FENCE to fence it until the prior
+> > read
+> > > completes.
+> > >
+> > > Good catch!  I'll post V4 soon.
+> > 
+> > Any chance that can be handled as a separate patch rather than folded
+> > in?
+> > 
+> > (Disclaimer: I've been following the discussion only very
+> > superficially.)
+> > 
+> 
+> Sure.  I'll post the patch soon.
 
-Sagi,
+Thanks, and, again, I'm not terribly happy about the monster
+patch--anything you can split off it is great, even if that thing's
+small.  As long as all the intermediate stages still build and run.
 
-Sagi> In various areas of the code, it is assumed that
-Sagi> se_cmd-> data_length describes pure data. In case
-Sagi> that protection information exists over the wire (protect bits is
-Sagi> are on) the target core decrease the protection length from the
-Sagi> data length (instead of each transport peeking in the cdb).
+(And any bugs you've identified in upstream code are good candidates for
+separate patches, hopefully preceding the rewrite.  That also allows us
+to apply those fixes to stable kernels if appropriate.)
 
-I completely agree with the notion of including PI in the transport byte
-count.
-
-Why do you open code the transfer length adjustment below?
-
-+			/**
-+			 * Adjust data_length to include
-+			 * protection information
-+			 **/
-+			switch (sc->device->sector_size) {
-+			case 512:
-+				data_len += (data_len >> 9) * 8;
-+				break;
-+			case 1024:
-+				data_len += (data_len >> 10) * 8;
-+				break;
-+			case 2048:
-+				data_len += (data_len >> 11) * 8;
-+				break;
-+			case 4096:
-+				data_len += (data_len >> 12) * 8;
-+				break;
-+			default:
-+				data_len +=
-+				(data_len >> ilog2(sc->device->sector_size)) * 8;
-+			}
-
--- 
-Martin K. Petersen	Oracle Linux Engineering
+--b.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
