@@ -1,38 +1,55 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V3] svcrdma: refactor marshalling logic
-Date: Mon, 2 Jun 2014 11:52:47 -0500
-Message-ID: <004901cf7e83$15107790$3f3166b0$@opengridcomputing.com>
-References: <20140529165532.16349.95248.stgit@build.ogc.int> <EE7902D3F51F404C82415C4803930ACD3FE01265@CMEXMB1.ad.emulex.com> <000001cf7c07$72e613d0$58b23b70$@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE01355@CMEXMB1.ad.emulex.com> <004101cf7e82$68b58ad0$3a20a070$@opengridcomputing.com> <20140602165151.GA20031@fieldses.org>
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
+Subject: Re: [PATCH 2/2] TARGET/sbc,loopback: Adjust command data length in case pi exists on the wire
+Date: Mon, 02 Jun 2014 12:54:35 -0400
+Message-ID: <yq1fvjn9rqs.fsf@sermon.lab.mkp.net>
+References: <1401639581-20111-1-git-send-email-sagig@mellanox.com>
+	<1401639581-20111-3-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140602165151.GA20031-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: 'Devesh Sharma' <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+Content-Type: text/plain
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1401639581-20111-3-git-send-email-sagig@mellanox.com> (Sagi
+	Grimberg's message of "Sun, 1 Jun 2014 19:19:41 +0300")
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>
+Cc: nab@linux-iscsi.org, michaelc@cs.wisc.edu, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, oren@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-> > You're correct.  And this bug appears to be in the current upstream code as well.  If
-an
-> > IB_WR_LOCAL_INV wr is used, it must include IB_SEND_FENCE to fence it until the prior
-> read
-> > completes.
-> >
-> > Good catch!  I'll post V4 soon.
-> 
-> Any chance that can be handled as a separate patch rather than folded
-> in?
-> 
-> (Disclaimer: I've been following the discussion only very
-> superficially.)
-> 
+>>>>> "Sagi" == Sagi Grimberg <sagig@mellanox.com> writes:
 
-Sure.  I'll post the patch soon.
+Sagi,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi> In various areas of the code, it is assumed that
+Sagi> se_cmd-> data_length describes pure data. In case
+Sagi> that protection information exists over the wire (protect bits is
+Sagi> are on) the target core decrease the protection length from the
+Sagi> data length (instead of each transport peeking in the cdb).
+
+I completely agree with the notion of including PI in the transport byte
+count.
+
+Why do you open code the transfer length adjustment below?
+
++			/**
++			 * Adjust data_length to include
++			 * protection information
++			 **/
++			switch (sc->device->sector_size) {
++			case 512:
++				data_len += (data_len >> 9) * 8;
++				break;
++			case 1024:
++				data_len += (data_len >> 10) * 8;
++				break;
++			case 2048:
++				data_len += (data_len >> 11) * 8;
++				break;
++			case 4096:
++				data_len += (data_len >> 12) * 8;
++				break;
++			default:
++				data_len +=
++				(data_len >> ilog2(sc->device->sector_size)) * 8;
++			}
+
+-- 
+Martin K. Petersen	Oracle Linux Engineering
