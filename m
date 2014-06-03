@@ -1,30 +1,36 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: [PATCH 0/2] Include protection information in iscsi header
-Date: Tue, 3 Jun 2014 10:56:29 +0300
-Message-ID: <CAJZOPZKAwUASYVC26O-e=Qv7ziMHJ8FwTBqpfo4TSoqddcxiZg@mail.gmail.com>
-References: <1401639581-20111-1-git-send-email-sagig@mellanox.com>
-	<CAL1RGDVpPstaXELznXNyUnr_yU95T2ctm63j_Lg0z1P=PY1dYQ@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/3] IB/core kobject cleanup
+Date: Tue, 3 Jun 2014 11:29:44 +0300
+Message-ID: <CAJZOPZ+AFVumOfaNtPcpgRbLcGzhNbUEM=wBv0JzfQL6+vNurw@mail.gmail.com>
+References: <1400400746-9030-1-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CAL1RGDVpPstaXELznXNyUnr_yU95T2ctm63j_Lg0z1P=PY1dYQ@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Mike Christie <michaelc@cs.wisc.edu>, linux-scsi <linux-scsi@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Oren Duer <oren@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1400400746-9030-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 3, 2014 at 9:16 AM, Roland Dreier <roland@purestorage.com> wrote:
-> On Sun, Jun 1, 2014 at 9:19 AM, Sagi Grimberg <sagig@mellanox.com> wrote:
->> Although these patches involve 3 subsystems with different
->> maintainers (scsi, iser, target) I would prefer seeing these
->> patches included together.
->
-> Why?  Because they break wire compatibility?
->
-> I hate to say it but even if they're merged at the same time, you
-> can't guarantee that targets and initiators will be updated together.
+On Sun, May 18, 2014 at 11:12 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-Guys, this all deals with code merged in 3.15-rc1, and (thanks god and
-linus that -rc8 took place this cycle) 3.15 isn't out yet!! -- so we
-just need to act quickly and this (having the fix in 3.15 or if too
-late in 3.15.1) would be OK
+> Hi, These patches clean up the kobject destruction code in IB/core, and fix a
+> memory leak.
+
+Hi Roland, it seems you missed this small patch series which Haggai
+sent few weeks ago, can you please pick it for 3.16?
+
+Or.
+
+
+> Haggai Eran (3):
+>   IB/core: remove unneeded kobject_get/put calls
+>   IB/core: fix port kobject deletion during error flow
+>   IB/core: fix kobject leak on device register error flow
+>
+>  drivers/infiniband/core/sysfs.c | 85 ++++++++++++++++++++++-------------------
+>  1 file changed, 45 insertions(+), 40 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
