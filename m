@@ -1,76 +1,68 @@
-From: dana61348-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Subject: Re: Guaranteed Top 10 Google Placements mail-archive.com In 100 Days
-Date: Tue, 3 Jun 2014 23:22:40 -0700
-Message-ID: <538e0b6e.0382440a.45a6.67d8@mx.google.com>
-Reply-To: reveille48519-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 4/5] ib/mad: add new ioctl to user space to support
+ new registration options
+Date: Tue, 3 Jun 2014 18:28:27 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823739930E028@ORSMSX109.amr.corp.intel.com>
+References: <1401158393-1477-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1401158393-1477-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-=46ree SEO Evaluation!
+> Registrations options are specified through flags.  Definitions of flags
+> will
+> be in subsequent patches.
+> 
+> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Most business developers do not realize that every website has two kind=
- of audiences:
-a)      People who read the website, click, and take in the look and fe=
-el of the site
-b)      Search engines that crawl, index, and evaluate the site.
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Our free SEO evaluation pack looks at your website from a search engine=
-=92s perspective and will tell you what all we need to do to make it mo=
-re Google friendly. We will explain you in detail that how your website=
- is doing in terms of SEO and what are your strengths and weaknesses.
+with two minor comments below
 
+> 
+> Changes since V1:
+> 	1) convert oui to 32 bits and host byte order
+> 	2) pad struct to 64bits for easier 32/64bit compatibility
+> 	3) convert pr_notice to dev_notice
 
-Why Local SEO matters?
+This needs to come after the "---" in order to remove it from the patch description.
 
-Tell us one thing when was the last time you used the yellow pages? In =
-today=92s scenario when consumers let their fingers do the walking, it =
-means keying in Google search. So the visibility on web is very importa=
-nt for every business, not only this but being on first page is of utmo=
-st importance to drive traffic. Having a good website is not enough to =
-be found on web, you need to opt for an effective SEO strategy to achie=
-ve visibility on web.
+> ---
+>  Documentation/infiniband/user_mad.txt   |  13 ++--
+>  drivers/infiniband/core/agent.c         |   4 +-
+>  drivers/infiniband/core/cm.c            |   5 +-
+>  drivers/infiniband/core/mad.c           |   4 +-
+>  drivers/infiniband/core/sa_query.c      |   2 +-
+>  drivers/infiniband/core/user_mad.c      | 120
+> +++++++++++++++++++++++++++++++-
+>  drivers/infiniband/hw/mlx4/mad.c        |   2 +-
+>  drivers/infiniband/hw/mthca/mthca_mad.c |   2 +-
+>  drivers/infiniband/hw/qib/qib_mad.c     |   2 +-
+>  drivers/infiniband/ulp/srpt/ib_srpt.c   |   2 +-
+>  include/rdma/ib_mad.h                   |   7 +-
+>  include/uapi/rdma/ib_user_mad.h         |  39 +++++++++++
+>  12 files changed, 186 insertions(+), 16 deletions(-)
+> 
+> diff --git a/Documentation/infiniband/user_mad.txt
+> b/Documentation/infiniband/user_mad.txt
+> index 8a36695..bf24958 100644
+> --- a/Documentation/infiniband/user_mad.txt
+> +++ b/Documentation/infiniband/user_mad.txt
+> @@ -26,6 +26,11 @@ Creating MAD agents
+>    ioctl.  Also, all agents registered through a file descriptor will
+>    be unregistered when the descriptor is closed.
+> 
+> +  2013 -- a new registration ioctl is now provided which allows additional
 
-According to the statistics
+year typo
 
-To find local businesses 68% of the local consumers uses search engines
- Total number of local searches grew by 65% in last 2 years
-Local MAP listings get 10 times more clicks than organic listings
-only 10%-12% of businesses have claimed their Google Places local listi=
-ngs
-
-Here we offer a complete and proven Search Engine Placement strategy to=
- generate more traffic, more leads and  grow your business. Each day ma=
-ny people search for your product or your services online, but poor ran=
-kings on search engines is keeping them away from dealing with you.
-
-We offer Local SEO (Search engine optimization) packages that fit in ev=
-ery pocket. Our main goal is to understand your needs and requirements =
-and make you reach the consumers who are looking for the product or ser=
-vices that you offer.  Presently we are offering Local SEO to more than=
- 500 websites and all rank page 1 for their related keywords.
-Please send us your website for free evaluation. Looking ahead working =
-with you.
-
-
-Regards
-Miss Lara kaur
-SEO Manager : T.O.B
-7 B Green Avenue, Amritsar Punjab
-
------------------------------------------------------------------------=
------------------------------------------
-
-
-Our email above is not intended to waste your time or fill your inbox w=
-ith spam. If you would not like to hear from us, email us back with NOT=
- INTERESTED. We will never email you again.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
