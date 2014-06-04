@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 11/15] RDMA/ocrdma: Return proper value for
-Date: Wed, 4 Jun 2014 14:22:42 +0530
-Message-ID: <ba8eeeee-38cb-443d-8b4e-5048b4fa79a9@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH for-next 13/15] RDMA/ocrdma: Increase the size of STAG array
+Date: Wed, 4 Jun 2014 14:22:44 +0530
+Message-ID: <d990a2b0-df37-4eba-bbbd-dfec5290433d@CMEXHTCAS1.ad.emulex.com>
 References: <1401871966-20408-1-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-2-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-3-git-send-email-selvin.xavier@emulex.com>
@@ -13,66 +13,75 @@ References: <1401871966-20408-1-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-9-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-10-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-11-git-send-email-selvin.xavier@emulex.com>
+ <1401871966-20408-12-git-send-email-selvin.xavier@emulex.com>
+ <1401871966-20408-13-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401871966-20408-11-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1401871966-20408-13-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>
-
-Signed-off-by: Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 3 ++-
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h      | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c | 6 ++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h  | 2 +-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 5b6e9d9..105659d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1088,7 +1088,8 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT;
- 	attr->max_mw = rsp->max_mw;
- 	attr->max_mr = rsp->max_mr;
--	attr->max_mr_size = ~0ull;
-+	attr->max_mr_size = ((u64)rsp->max_mr_size_hi << 32) |
-+			      rsp->max_mr_size_lo;
- 	attr->max_fmr = 0;
- 	attr->max_pages_per_frmr = rsp->max_pages_per_frmr;
- 	attr->max_num_mr_pbl = rsp->max_num_mr_pbl;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index fc27378..5716513 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -236,7 +236,7 @@ struct ocrdma_dev {
+ 	struct list_head entry;
+ 	struct rcu_head rcu;
+ 	int id;
+-	u64 stag_arr[OCRDMA_MAX_STAG];
++	u64 *stag_arr;
+ 	u8 sl; /* service level */
+ 	bool pfc_state;
+ 	atomic_t update_sl;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 3cb20c6..0d90c7f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -324,6 +324,11 @@ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
+ 		if (!dev->qp_tbl)
+ 			goto alloc_err;
+ 	}
++
++	dev->stag_arr = kzalloc(sizeof(u64) * OCRDMA_MAX_STAG, GFP_KERNEL);
++	if (dev->stag_arr == NULL)
++		goto alloc_err;
++
+ 	spin_lock_init(&dev->av_tbl.lock);
+ 	spin_lock_init(&dev->flush_q_lock);
+ 	return 0;
+@@ -334,6 +339,7 @@ alloc_err:
+ 
+ static void ocrdma_free_resources(struct ocrdma_dev *dev)
+ {
++	kfree(dev->stag_arr);
+ 	kfree(dev->qp_tbl);
+ 	kfree(dev->cq_tbl);
+ 	kfree(dev->sgid_tbl);
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 14a84b2..3cb88f0 100644
+index a20d348..3d08e66 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -530,8 +530,8 @@ struct ocrdma_mbx_query_config {
- 	u32 max_ird_ord_per_qp;
- 	u32 max_shared_ird_ord;
- 	u32 max_mr;
--	u32 max_mr_size_lo;
- 	u32 max_mr_size_hi;
-+	u32 max_mr_size_lo;
- 	u32 max_num_mr_pbl;
- 	u32 max_mw;
- 	u32 max_fmr;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 8cd16a1..90152de 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -69,7 +69,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
- 	memcpy(&attr->fw_ver, &dev->attr.fw_ver[0],
- 	       min(sizeof(dev->attr.fw_ver), sizeof(attr->fw_ver)));
- 	ocrdma_get_guid(dev, (u8 *)&attr->sys_image_guid);
--	attr->max_mr_size = ~0ull;
-+	attr->max_mr_size = dev->attr.max_mr_size;
- 	attr->page_size_cap = 0xffff000;
- 	attr->vendor_id = dev->nic_info.pdev->vendor;
- 	attr->vendor_part_id = dev->nic_info.pdev->device;
+@@ -107,7 +107,7 @@ enum {
+ 
+ #define OCRDMA_MAX_QP    2048
+ #define OCRDMA_MAX_CQ    2048
+-#define OCRDMA_MAX_STAG  8192
++#define OCRDMA_MAX_STAG 16384
+ 
+ enum {
+ 	OCRDMA_DB_RQ_OFFSET		= 0xE0,
 -- 
 1.7.12.4
 
