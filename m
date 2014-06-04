@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 10/15] RDMA/ocrdma: Do proper cleanup evenif FW is
-Date: Wed, 4 Jun 2014 14:22:41 +0530
-Message-ID: <a1df2ff2-10b1-4a54-8682-e8dbd5271028@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH for-next 11/15] RDMA/ocrdma: Return proper value for
+Date: Wed, 4 Jun 2014 14:22:42 +0530
+Message-ID: <ba8eeeee-38cb-443d-8b4e-5048b4fa79a9@CMEXHTCAS1.ad.emulex.com>
 References: <1401871966-20408-1-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-2-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-3-git-send-email-selvin.xavier@emulex.com>
@@ -12,10 +12,11 @@ References: <1401871966-20408-1-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-8-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-9-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-10-git-send-email-selvin.xavier@emulex.com>
+ <1401871966-20408-11-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401871966-20408-10-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1401871966-20408-11-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
@@ -26,80 +27,52 @@ From: Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |  1 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  8 +++++++-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 12 +++++++++++-
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 3 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 5cd65c2..fc27378 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -137,6 +137,7 @@ struct mqe_ctx {
- 	u16 cqe_status;
- 	u16 ext_status;
- 	bool cmd_done;
-+	bool fw_error_state;
- };
- 
- struct ocrdma_hw_mr {
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 55308b6..5b6e9d9 100644
+index 5b6e9d9..105659d 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -966,8 +966,12 @@ static int ocrdma_wait_mqe_cmpl(struct ocrdma_dev *dev)
- 				    msecs_to_jiffies(30000));
- 	if (status)
- 		return 0;
--	else
-+	else {
-+		dev->mqe_ctx.fw_error_state = true;
-+		pr_err("%s(%d) mailbox timeout: fw not responding\n",
-+		       __func__, dev->id);
- 		return -1;
-+	}
- }
- 
- /* issue a mailbox command on the MQ */
-@@ -979,6 +983,8 @@ static int ocrdma_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe)
- 	struct ocrdma_mbx_rsp *rsp = NULL;
- 
- 	mutex_lock(&dev->mqe_ctx.lock);
-+	if (dev->mqe_ctx.fw_error_state)
-+		goto mbx_err;
- 	ocrdma_post_mqe(dev, mqe);
- 	status = ocrdma_wait_mqe_cmpl(dev);
- 	if (status)
+@@ -1088,7 +1088,8 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
+ 	    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT;
+ 	attr->max_mw = rsp->max_mw;
+ 	attr->max_mr = rsp->max_mr;
+-	attr->max_mr_size = ~0ull;
++	attr->max_mr_size = ((u64)rsp->max_mr_size_hi << 32) |
++			      rsp->max_mr_size_lo;
+ 	attr->max_fmr = 0;
+ 	attr->max_pages_per_frmr = rsp->max_pages_per_frmr;
+ 	attr->max_num_mr_pbl = rsp->max_num_mr_pbl;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index 14a84b2..3cb88f0 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -530,8 +530,8 @@ struct ocrdma_mbx_query_config {
+ 	u32 max_ird_ord_per_qp;
+ 	u32 max_shared_ird_ord;
+ 	u32 max_mr;
+-	u32 max_mr_size_lo;
+ 	u32 max_mr_size_hi;
++	u32 max_mr_size_lo;
+ 	u32 max_num_mr_pbl;
+ 	u32 max_mw;
+ 	u32 max_fmr;
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 7f54d24..8cd16a1 100644
+index 8cd16a1..90152de 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -329,7 +329,10 @@ static int ocrdma_dealloc_ucontext_pd(struct ocrdma_ucontext *uctx)
- 	struct ocrdma_pd *pd = uctx->cntxt_pd;
- 	struct ocrdma_dev *dev = get_ocrdma_dev(pd->ibpd.device);
- 
--	BUG_ON(uctx->pd_in_use);
-+	if (uctx->pd_in_use) {
-+		pr_err("%s(%d) Freeing in use pdid=0x%x.\n",
-+		       __func__, dev->id, pd->id);
-+	}
- 	uctx->cntxt_pd = NULL;
- 	status = _ocrdma_dealloc_pd(dev, pd);
- 	return status;
-@@ -844,6 +847,13 @@ int ocrdma_dereg_mr(struct ib_mr *ib_mr)
- 	if (mr->umem)
- 		ib_umem_release(mr->umem);
- 	kfree(mr);
-+
-+	/* Don't stop cleanup, in case FW is unresponsive */
-+	if (dev->mqe_ctx.fw_error_state) {
-+		status = 0;
-+		pr_err("%s(%d) fw not responding.\n",
-+		       __func__, dev->id);
-+	}
- 	return status;
- }
- 
+@@ -69,7 +69,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
+ 	memcpy(&attr->fw_ver, &dev->attr.fw_ver[0],
+ 	       min(sizeof(dev->attr.fw_ver), sizeof(attr->fw_ver)));
+ 	ocrdma_get_guid(dev, (u8 *)&attr->sys_image_guid);
+-	attr->max_mr_size = ~0ull;
++	attr->max_mr_size = dev->attr.max_mr_size;
+ 	attr->page_size_cap = 0xffff000;
+ 	attr->vendor_id = dev->nic_info.pdev->vendor;
+ 	attr->vendor_part_id = dev->nic_info.pdev->device;
 -- 
 1.7.12.4
 
