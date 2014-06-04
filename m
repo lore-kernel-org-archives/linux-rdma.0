@@ -1,57 +1,60 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 06/15] RDMA/ocrdma: Remove hardcoding of the max DPP
-Date: Wed, 4 Jun 2014 14:22:37 +0530
-Message-ID: <6a9a7408-3f3c-4344-99a9-9c1961ee9d2e@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH for-next 08/15] RDMA/ocrdma: Avoid reporting wrong
+Date: Wed, 4 Jun 2014 14:22:39 +0530
+Message-ID: <1d1601b3-935a-4742-a396-6501ea55eb62@CMEXHTCAS1.ad.emulex.com>
 References: <1401871966-20408-1-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-2-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-3-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-4-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-5-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-6-git-send-email-selvin.xavier@emulex.com>
+ <1401871966-20408-7-git-send-email-selvin.xavier@emulex.com>
+ <1401871966-20408-8-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401871966-20408-6-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1401871966-20408-8-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Adding a check for SQ and RQ empty condition
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 1 -
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 3 ++-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 4defae8..14a84b2 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -1236,7 +1236,6 @@ struct ocrdma_destroy_srq {
- 
- enum {
- 	OCRDMA_ALLOC_PD_ENABLE_DPP	= BIT(16),
--	OCRDMA_PD_MAX_DPP_ENABLED_QP	= 8,
- 	OCRDMA_DPP_PAGE_SIZE		= 4096
- };
- 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index edf6211..0d7d808 100644
+index 0d7d808..2b68235 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -268,7 +268,8 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
- 		pd->dpp_enabled =
- 			ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R;
- 		pd->num_dpp_qp =
--			pd->dpp_enabled ? OCRDMA_PD_MAX_DPP_ENABLED_QP : 0;
-+			pd->dpp_enabled ? (dev->nic_info.db_page_size /
-+					   dev->attr.wqe_size) : 0;
- 	}
- 
- retry:
+@@ -2489,6 +2489,11 @@ static bool ocrdma_poll_err_scqe(struct ocrdma_qp *qp,
+ 			*stop = true;
+ 			expand = false;
+ 		}
++	} else if (is_hw_sq_empty(qp)) {
++		/* Do nothing */
++		expand = false;
++		*polled = false;
++		*stop = false;
+ 	} else {
+ 		*polled = true;
+ 		expand = ocrdma_update_err_scqe(ibwc, cqe, qp, status);
+@@ -2594,6 +2599,11 @@ static bool ocrdma_poll_err_rcqe(struct ocrdma_qp *qp, struct ocrdma_cqe *cqe,
+ 			*stop = true;
+ 			expand = false;
+ 		}
++	} else if (is_hw_rq_empty(qp)) {
++		/* Do nothing */
++		expand = false;
++		*polled = false;
++		*stop = false;
+ 	} else {
+ 		*polled = true;
+ 		expand = ocrdma_update_err_rcqe(ibwc, cqe, qp, status);
 -- 
 1.7.12.4
 
