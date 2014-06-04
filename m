@@ -1,18 +1,17 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 07/15] RDMA/ocrdma: Delete AH table if
-Date: Wed, 4 Jun 2014 14:22:38 +0530
-Message-ID: <5432837d-a432-4576-b47b-87ae3acefad6@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH for-next 06/15] RDMA/ocrdma: Remove hardcoding of the max DPP
+Date: Wed, 4 Jun 2014 14:22:37 +0530
+Message-ID: <6a9a7408-3f3c-4344-99a9-9c1961ee9d2e@CMEXHTCAS1.ad.emulex.com>
 References: <1401871966-20408-1-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-2-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-3-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-4-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-5-git-send-email-selvin.xavier@emulex.com>
  <1401871966-20408-6-git-send-email-selvin.xavier@emulex.com>
- <1401871966-20408-7-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401871966-20408-7-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1401871966-20408-6-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
@@ -23,39 +22,36 @@ From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 1 -
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 3 ++-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index e6463cb..55308b6 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1505,6 +1505,7 @@ static void ocrdma_mbx_delete_ah_tbl(struct ocrdma_dev *dev)
- 	ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
- 	dma_free_coherent(&pdev->dev, dev->av_tbl.size, dev->av_tbl.va,
- 			  dev->av_tbl.pa);
-+	dev->av_tbl.va = NULL;
- 	dma_free_coherent(&pdev->dev, PAGE_SIZE, dev->av_tbl.pbl.va,
- 			  dev->av_tbl.pbl.pa);
- 	kfree(cmd);
-@@ -2882,13 +2883,15 @@ int ocrdma_init_hw(struct ocrdma_dev *dev)
- 		goto conf_err;
- 	status = ocrdma_mbx_get_phy_info(dev);
- 	if (status)
--		goto conf_err;
-+		goto info_attrb_err;
- 	status = ocrdma_mbx_get_ctrl_attribs(dev);
- 	if (status)
--		goto conf_err;
-+		goto info_attrb_err;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index 4defae8..14a84b2 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -1236,7 +1236,6 @@ struct ocrdma_destroy_srq {
  
- 	return 0;
+ enum {
+ 	OCRDMA_ALLOC_PD_ENABLE_DPP	= BIT(16),
+-	OCRDMA_PD_MAX_DPP_ENABLED_QP	= 8,
+ 	OCRDMA_DPP_PAGE_SIZE		= 4096
+ };
  
-+info_attrb_err:
-+	ocrdma_mbx_delete_ah_tbl(dev);
- conf_err:
- 	ocrdma_destroy_mq(dev);
- mq_err:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index edf6211..0d7d808 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -268,7 +268,8 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
+ 		pd->dpp_enabled =
+ 			ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R;
+ 		pd->num_dpp_qp =
+-			pd->dpp_enabled ? OCRDMA_PD_MAX_DPP_ENABLED_QP : 0;
++			pd->dpp_enabled ? (dev->nic_info.db_page_size /
++					   dev->attr.wqe_size) : 0;
+ 	}
+ 
+ retry:
 -- 
 1.7.12.4
 
