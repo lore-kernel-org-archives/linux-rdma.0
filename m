@@ -1,215 +1,76 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFSoRDMA developers bi-weekly meeting minutes (5/28)
-Date: Tue, 3 Jun 2014 13:41:03 -0400
-Message-ID: <82DB6036-C40B-4A66-AAF3-1C74BA1C700F@oracle.com>
-References: <5387615E.20206@oracle.com> <53876938.7000704@oracle.com> <538E07F0.7030909@netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: dana61348-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
+Subject: Re: Guaranteed Top 10 Google Placements mail-archive.com In 100 Days
+Date: Tue, 3 Jun 2014 23:22:40 -0700
+Message-ID: <538e0b6e.0382440a.45a6.67d8@mx.google.com>
+Reply-To: reveille48519-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <538E07F0.7030909-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "<yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+=46ree SEO Evaluation!
 
-On Jun 3, 2014, at 1:37 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+Most business developers do not realize that every website has two kind=
+ of audiences:
+a)      People who read the website, click, and take in the look and fe=
+el of the site
+b)      Search engines that crawl, index, and evaluate the site.
 
-> On 05/29/2014 01:07 PM, Shirley Ma wrote:
->> Attendees:
->> 
->> Jeff Beck (NASA)
->> Yan Burman (Mellanox)
->> Wendy Cheng (Intel)
->> Susan Coulter (LANL)
->> Rupert Dance (Soft Forge)
->> Chuck Lever (Oracle)
->> Doug Ledford (RedHat)
->> Shirley Ma (Oracle)
->> Devesh Sharma (Emulex)
->> Anna Schumaker (Net App)
->> Steve Wise (OpenGridComputing, Chelsio)
->> 
->> Moderator:
->> Shirley Ma (Oracle)
->> 
->> NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA development and test effort from different resources to speed up NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools development. Hopefully the quality of NFSoRDMA upstream patches can be improved by being tested by a quorum of HW vendors.
->> 
->> Today's meeting notes:
->> 1. OFED release update from Rupert Dance through email:
->> 
->> a. OFED 3.12 was released yesterday without any patch from Chuck's git tree, one of the reason these patches haven't upstream yet. There were a number of new bugs filed on NFSRDMA (2489 and 2490).
->> http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2489
->> http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2490
->> 
->> b. Jeff Becker has pulled all of the patches from Chuck's git tree and made backports in his local branch of OFED 3.12. He has begun testing and is seeing good results so far.
->> 
->> c. OFED next release will be OFED 3.12-1 and it will be including all these updates along with support for RHEL 7.0 and Intel's OFED MIC.
->> 
->> 2. NFSoRDMA support with soft RoCE and Soft iWARP
->> 
->> There were some discussions regarding whether removing RPCRDMA_REGISTER support (one of Chuck's patchset) would impact any other components in the stack. So far soft RoCE hasn't been upstreamed yet.There was a broad consensus not to support out-of-tree providers unless an issue also affects in-tree providers. NFSoRDMA will follow kernel development policy, all work should be based upon upstream kernel. However Chuck Level will check Soft RoCE plan, Steve Wise will check soft iWARP plan to make sure nothing will be broken in both kernel and OFED release. 
->> 
->> 3. Update on testing NFSoRDMA client patches:
->> 
->> Devesh Sharma, Doug Ledford, Chuck Lever, Steve Wise all have tested Chuck git tree (up to last weeks patchsets) on different platforms with various vendor's HCAs. The test showed the stack pretty reliable for both NFSv3 and NFSv4. However NFSv4.1 hit server crash. (NFSv4.1 hasn't support yet).
->> 
->> Steve Wise's test covers iWARP Chelsio
->> Devesh Sharma's test covers Emulex
->> Chuck Lever/Shirley Ma's test covers Mellanox
->> Doug Ledford's test covers various platforms and combination of HCAs (Interoperability test).
->> Jeff Beck's test covers OFED release (backport)
->> Rupert Dance's (IOL) team test covers various platforms and combination of HCAs as well.
->> 
->> The test coverage should be good enough for NFSoRDMA client patchsets to be merged to upstream by Anna and Trond.
->> 
->> Devesh is looking for performance benchmark tools. IOzone is recommended. Anna is going to send more performance tools.
->> 
->> A place to save test results as scratch sheets has been discussed so it will be easy to track the test history for any regressions. Anna will help to figure it out.
->> 
->> A couple of new bugs have been filed to track existing issues. Devesh had hit a bug in dbench test, which Steve Wise already worked on it.
->> 
->> https://bugzilla.linux-nfs.org/show_bug.cgi?id=255
->> 
->> Klemens Senn has reported a soft lockup in unloading kernel module. Shirley has tried to reproduce this problem with Linux server, Solaris client, it didn't hit any issue. So it's a problem between Linux client and server.
->> 
->> https://bugzilla.linux-nfs.org/show_bug.cgi?id=252
->> 
->> 
->> 4. Steve shared his findings on some bug he has bee working on -- refactoring patchset.
->> 
->> 5. Followups update from last week
->> a. Linux server maintenance is still in unresolved status.
->> 
->> b. NFSoRDMA debugging and diagnosis tools?
->> Yan has made some progress on NFSoRDMA wireshark dissector. Selecting connection is not as simple as TCP, Yan has tried to use QP number/RDMA establish status to build the connection. Chuck suggested to try RPC XID field.
->> 
->> c. NFSoRDMA virtualization validation:
->> Shirley has set up KVM guest with Mellanox Connect2 SRIOV. A panic occurred right away during mount, the panic is different with XEN domU guest.
->> 
->> Next meeting topics proposal:
->> 1. Follow up the work has been discussed from this meeting.
->> 
->> 2. Walk through some of the stories on pivotal, link is as below:
->> https://www.pivotaltracker.com/s/projects/958376
->> 
->> 3. Invite some of the developers to discuss some of their requirements and features.
->> 
->> Meeting time: one hour discussion every other Wed (next meeting will be
->> on 6/11). A reminder will be sent out to both linux-nfs and linux-rdma
->> mailing list:
->> 
->> 6/11/2014
->> @8:00am PST
->> @9:00am MST
->> @10:00am CST
->> @11:00am EST
->> @Bangalore @9:00pm
->> @Israel @6:00pm
->> 
->> Duration: 1 hour
->> 
->> Call-in number:
->> Israel: +972 37219638
->> Bangalore: +91 8039890080 (180030109800)
->> US: 8666824770,  408-7744073
->> Conference Code: 2308833
->> Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember)
->> 
->> Thanks everyone for joining the call and providing valuable inputs/work to the community to make NFSoRDMA better.
->> 
->> Shirley
->> 
->> 
->> 
->> Attendees:
->> 
->> Jeff Beck (NASA)
->> Yan Burman (Mellanox)
->> Wendy Cheng (Intel)
->> Susan Coulter (LANL)
->> Rupert Dance (Soft Forge)
->> Chuck Lever (Oracle)
->> Doug Ledford (RedHat)
->> Shirley Ma (Oracle)
->> Devesh Sharma (Emulex)
->> Anna Schumaker (Net App)
->> Steve Wise (OpenGridComputing, Chelsio)
->> 
->> Moderator:
->> Shirley Ma (Oracle)
->> 
->> NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA development and test effort from different resources to speed up NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools development. Hopefully the quality of NFSoRDMA upstream patches can be improved by being tested by a quorum of HW vendors.
->> 
->> Today's meeting notes:
->> 1. OFED release update from Rupert Dance through email:
->> 
->> a. OFED 3.12 was released yesterday without any patch from Chuck's git tree, one of the reason these patches haven't upstream yet. There were a number of new bugs filed on NFSRDMA (2489 and 2490).
->> http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2489
->> http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2490
->> 
->> b. Jeff Becker has pulled all of the patches from Chuck's git tree and made backports in his local branch of OFED 3.12. He has begun testing and is seeing good results so far.
->> 
->> c. OFED next release will be OFED 3.12-1 and it will be including all these updates along with support for RHEL 7.0 and Intel's OFED MIC.
->> 
->> 2. NFSoRDMA support with soft RoCE and Soft iWARP
->> 
->> There were some discussions regarding whether removing RPCRDMA_REGISTER support (one of Chuck's patchset) would impact any other components in the stack. So far soft RoCE hasn't been upstreamed yet.There was a broad consensus not to support out-of-tree providers unless an issue also affects in-tree providers. NFSoRDMA will follow kernel development policy, all work should be based upon upstream kernel. However Chuck Level will check Soft RoCE plan, Steve Wise will check soft iWARP plan to make sure nothing will be broken in both kernel and OFED release. 
->> 
->> 3. Update on testing NFSoRDMA client patches:
->> 
->> Devesh Sharma, Doug Ledford, Chuck Lever, Steve Wise all have tested Chuck git tree (up to last weeks patchsets) on different platforms with various vendor's HCAs. The test showed the stack pretty reliable for both NFSv3 and NFSv4. However NFSv4.1 hit server crash. (NFSv4.1 hasn't support yet).
->> 
->> Steve Wise's test covers iWARP Chelsio
->> Devesh Sharma's test covers Emulex
->> Chuck Lever/Shirley Ma's test covers Mellanox
->> Doug Ledford's test covers various platforms and combination of HCAs (Interoperability test).
->> Jeff Beck's test covers OFED release (backport)
->> Rupert Dance's (IOL) team test covers various platforms and combination of HCAs as well.
->> 
->> The test coverage should be good enough for NFSoRDMA client patchsets to be merged to upstream by Anna and Trond.
->> 
->> Devesh is looking for performance benchmark tools. IOzone is recommended. Anna is going to send more performance tools.
->> 
->> A place to save test results as scratch sheets has been discussed so it will be easy to track the test history for any regressions. Anna will help to figure it out.
->> 
->> A couple of new bugs have been filed to track existing issues. Devesh had hit a bug in dbench test, which Steve Wise already worked on it.
->> 
->> https://bugzilla.linux-nfs.org/show_bug.cgi?id=255
->> 
->> Klemens Senn has reported a soft lockup in unloading kernel module. Shirley has tried to reproduce this problem with Linux server, Solaris client, it didn't hit any issue. So it's a problem between Linux client and server.
->> 
->> https://bugzilla.linux-nfs.org/show_bug.cgi?id=252
->> 
->> 
->> 4. Steve shared his findings on some bug he has bee working on -- refactoring patchset.
->> 
->> 5. Followups update from last week
->> a. Linux server maintenance is still in unresolved status.
->> 
->> b. NFSoRDMA debugging and diagnosis tools?
->> Yan has made some progress on NFSoRDMA wireshark dissector. Selecting connection is not as simple as TCP, Yan has tried to use QP number/RDMA establish status to build the connection. Chuck suggested to try RPC XID field.
->> 
->> c. NFSoRDMA virtualization validation:
->> Shirley has set up KVM guest with Mellanox Connect2 SRIOV. A panic occurred right away during mount, the panic is different with XEN domU guest.
->> 
->> Next meeting topics proposal:
->> 1. Follow up the work has been discussed from this meeting.
-> 
-> I mentioned nfsometer for performance testing during the last meeting.  Anybody interested can check out a copy here: git://git.linux-nfs.org/projects/dros/nfsometer.git
+Our free SEO evaluation pack looks at your website from a search engine=
+=92s perspective and will tell you what all we need to do to make it mo=
+re Google friendly. We will explain you in detail that how your website=
+ is doing in terms of SEO and what are your strengths and weaknesses.
 
-I added this to the NFS/RDMA wiki home page:
 
- http://wiki.linux-nfs.org/wiki/index.php/NfsRdmaClient/Home
+Why Local SEO matters?
 
+Tell us one thing when was the last time you used the yellow pages? In =
+today=92s scenario when consumers let their fingers do the walking, it =
+means keying in Google search. So the visibility on web is very importa=
+nt for every business, not only this but being on first page is of utmo=
+st importance to drive traffic. Having a good website is not enough to =
+be found on web, you need to opt for an effective SEO strategy to achie=
+ve visibility on web.
+
+According to the statistics
+
+To find local businesses 68% of the local consumers uses search engines
+ Total number of local searches grew by 65% in last 2 years
+Local MAP listings get 10 times more clicks than organic listings
+only 10%-12% of businesses have claimed their Google Places local listi=
+ngs
+
+Here we offer a complete and proven Search Engine Placement strategy to=
+ generate more traffic, more leads and  grow your business. Each day ma=
+ny people search for your product or your services online, but poor ran=
+kings on search engines is keeping them away from dealing with you.
+
+We offer Local SEO (Search engine optimization) packages that fit in ev=
+ery pocket. Our main goal is to understand your needs and requirements =
+and make you reach the consumers who are looking for the product or ser=
+vices that you offer.  Presently we are offering Local SEO to more than=
+ 500 websites and all rank page 1 for their related keywords.
+Please send us your website for free evaluation. Looking ahead working =
+with you.
+
+
+Regards
+Miss Lara kaur
+SEO Manager : T.O.B
+7 B Green Avenue, Amritsar Punjab
+
+-----------------------------------------------------------------------=
+-----------------------------------------
+
+
+Our email above is not intended to waste your time or fill your inbox w=
+ith spam. If you would not like to hear from us, email us back with NOT=
+ INTERESTED. We will never email you again.
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
