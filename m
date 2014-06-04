@@ -1,28 +1,30 @@
-From: "Miss Comfort Grefert Randolf." <esther3jomkoma-/E1597aS9LR3+QwDJ9on6Q@public.gmane.org>
-Subject: =?utf-8?B?IEdvb2QgRGF5LCAgIEkgYW0gTWlzcyBDb21mb3J0IEdyZWZlcnQgUmFuZG9s?=
- =?utf-8?B?Zi4xOCB5ZWFycyBvbGQgYW5kIHRoZSBvbmx5IGRhdWdodGVyIG9mIG15IGxh?=
- =?utf-8?B?dGUgcGFyZW50LCBJIGdvdCB5b3VyIGNvbnRhY3QgZnJvbSBhIHdlYiBidXNp?=
- =?utf-8?B?bmVzcyBkaXJlY3Rvcnkgb24gaW52ZXN0bWVudC4gSSBoYXZlIGZ1bmRzIHRv?=
- =?utf-8?B?IHRoZSB0dW5lIG9mIOKCrDkuNU0gRVVST1Mgd2hpY2ggaXMga2VwdCBpbiBh?=
- =?utf-8?B?IGJhbmsuIEkgaGF2ZSBubyBidXNpbmVzcyBleHBlcmllbmNlLCBJIGFtIGxv?=
- =?utf-8?B?b2tpbmcgZm9yIGFuIGV4cGVyaWVuY2VkIGJ1c2luZXNzIHBhcnRuZXIgd2hv?=
- =?utf-8?B?IGNhbiBoYW5kbGUgYWxsIGFzcGVjdHMgb2YgdGhlIGludmVzdG1lbnQgb2Yg?=
- =?utf-8?B?dGhpcyBmdW5kIGFsc28gaGVscCBtZSBnZXQgYWRtaXNzaW9uIGluIHlvdXIg?=
- =?utf-8?B?Y291bnRyeSB3aGVyZSBpIHdpbGwgTGlrZSB0byBjb250aW51ZSBteSBlZHVj?=
- =?utf-8?B?YXRpb24uIFRvIGFzc3VyYWUgeW91IGl0IGlzIGxlZ2l0aW1hdGUgaSB3aWxs?=
- =?utf-8?B?IHNlbmQgeW91IG1vcmUgaW5mb3JtYXRpb25zIGlmIHlvdSBpbmRpY2F0ZSB5?=
- =?u
-Date: Thu, 5 Jun 2014 01:04:37 +0900 (JST)
-Message-ID: <968957.11959.qm@web101518.mail.kks.yahoo.co.jp>
-Reply-To: "Miss Comfort Grefert Randolf." <cgg_404st-ur4TIblo6goN+BqQ9rBEUg@public.gmane.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH for-next 00/15] Bug fixes for ocrdma driver
+Date: Wed, 04 Jun 2014 11:37:58 -0500
+Message-ID: <538F4B66.6080906@opengridcomputing.com>
+References: <fc0ae2c3-2661-48ba-957a-66cbb0cfc33e@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <fc0ae2c3-2661-48ba-957a-66cbb0cfc33e-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+
+On 6/4/2014 3:52 AM, Selvin Xavier wrote:
+> This patch series contains bug fixes for ocrdma driver.
+
+Seems like the subject lines in each patch are getting truncated?
+
+Like this:
+
+Subject: [PATCH for-next 01/15] RDMA/ocrdma: Avoid posting DPP requests for
+
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
