@@ -1,56 +1,118 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 03/15] RDMA/ocrdma: Adding hca_type and fixing fw_version string in device atrributes
-Date: Wed, 4 Jun 2014 23:49:03 +0530
-Message-ID: <1b4b12fc-bdae-4b98-a1a7-58e5f7773956@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH for-next 04/15] be2net: issue shutdown event to ocrdma driver
+Date: Wed, 4 Jun 2014 23:49:04 +0530
+Message-ID: <06289f82-0699-44b4-9ef6-a718a8908714@CMEXHTCAS1.ad.emulex.com>
 References: <1401905955-28117-1-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-2-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-3-git-send-email-selvin.xavier@emulex.com>
+ <1401905955-28117-4-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401905955-28117-3-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1401905955-28117-4-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+
+In the shutdown path, when be2net calls pci_disable_msix(),
+it complains (BUG_ON) that irqs requested by ocrdma driver are
+still in use. This patch fixes this problem by issuing shutdown
+event to ocrdma from be2net shutdown path. As part of shutdown event
+processing, ocrdma driver will free-up all the resources and free irqs.
+Once this completes be2net completes pci_disable_msix successfully.
+
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/emulex/benet/be.h      |    1 +
+ drivers/net/ethernet/emulex/benet/be_main.c |    1 +
+ drivers/net/ethernet/emulex/benet/be_roce.c |   18 ++++++++++++++++--
+ drivers/net/ethernet/emulex/benet/be_roce.h |    3 ++-
+ 4 files changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 9368d52..227a542 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -353,15 +353,25 @@ static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
- {
- 	struct ocrdma_dev *dev = dev_get_drvdata(device);
+diff --git a/drivers/net/ethernet/emulex/benet/be.h b/drivers/net/ethernet/emulex/benet/be.h
+index 97db5a7..5f610bd 100644
+--- a/drivers/net/ethernet/emulex/benet/be.h
++++ b/drivers/net/ethernet/emulex/benet/be.h
+@@ -881,5 +881,6 @@ void be_roce_dev_remove(struct be_adapter *);
+  */
+ void be_roce_dev_open(struct be_adapter *);
+ void be_roce_dev_close(struct be_adapter *);
++void be_roce_dev_shutdown(struct be_adapter *);
  
--	return scnprintf(buf, PAGE_SIZE, "%s", &dev->attr.fw_ver[0]);
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", &dev->attr.fw_ver[0]);
-+}
-+
-+static ssize_t show_hca_type(struct device *device,
-+			     struct device_attribute *attr, char *buf)
-+{
-+	struct ocrdma_dev *dev = dev_get_drvdata(device);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", &dev->model_number[0]);
+ #endif				/* BE_H */
+diff --git a/drivers/net/ethernet/emulex/benet/be_main.c b/drivers/net/ethernet/emulex/benet/be_main.c
+index a186454..cce9628 100644
+--- a/drivers/net/ethernet/emulex/benet/be_main.c
++++ b/drivers/net/ethernet/emulex/benet/be_main.c
+@@ -4859,6 +4859,7 @@ static void be_shutdown(struct pci_dev *pdev)
+ 	if (!adapter)
+ 		return;
+ 
++	be_roce_dev_shutdown(adapter);
+ 	cancel_delayed_work_sync(&adapter->work);
+ 	cancel_delayed_work_sync(&adapter->func_recovery_work);
+ 
+diff --git a/drivers/net/ethernet/emulex/benet/be_roce.c b/drivers/net/ethernet/emulex/benet/be_roce.c
+index 5bf1660..ef4672d 100644
+--- a/drivers/net/ethernet/emulex/benet/be_roce.c
++++ b/drivers/net/ethernet/emulex/benet/be_roce.c
+@@ -120,7 +120,8 @@ static void _be_roce_dev_open(struct be_adapter *adapter)
+ {
+ 	if (ocrdma_drv && adapter->ocrdma_dev &&
+ 	    ocrdma_drv->state_change_handler)
+-		ocrdma_drv->state_change_handler(adapter->ocrdma_dev, 0);
++		ocrdma_drv->state_change_handler(adapter->ocrdma_dev,
++						 BE_DEV_UP);
  }
  
- static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
- static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
-+static DEVICE_ATTR(hca_type, S_IRUGO, show_hca_type, NULL);
+ void be_roce_dev_open(struct be_adapter *adapter)
+@@ -136,7 +137,8 @@ static void _be_roce_dev_close(struct be_adapter *adapter)
+ {
+ 	if (ocrdma_drv && adapter->ocrdma_dev &&
+ 	    ocrdma_drv->state_change_handler)
+-		ocrdma_drv->state_change_handler(adapter->ocrdma_dev, 1);
++		ocrdma_drv->state_change_handler(adapter->ocrdma_dev,
++						 BE_DEV_DOWN);
+ }
  
- static struct device_attribute *ocrdma_attributes[] = {
- 	&dev_attr_hw_rev,
--	&dev_attr_fw_ver
-+	&dev_attr_fw_ver,
-+	&dev_attr_hca_type
+ void be_roce_dev_close(struct be_adapter *adapter)
+@@ -148,6 +150,18 @@ void be_roce_dev_close(struct be_adapter *adapter)
+ 	}
+ }
+ 
++void be_roce_dev_shutdown(struct be_adapter *adapter)
++{
++	if (be_roce_supported(adapter)) {
++		mutex_lock(&be_adapter_list_lock);
++		if (ocrdma_drv && adapter->ocrdma_dev &&
++		    ocrdma_drv->state_change_handler)
++			ocrdma_drv->state_change_handler(adapter->ocrdma_dev,
++							 BE_DEV_SHUTDOWN);
++		mutex_unlock(&be_adapter_list_lock);
++	}
++}
++
+ int be_roce_register_driver(struct ocrdma_driver *drv)
+ {
+ 	struct be_adapter *dev;
+diff --git a/drivers/net/ethernet/emulex/benet/be_roce.h b/drivers/net/ethernet/emulex/benet/be_roce.h
+index a3d9e96..e6f7eb1 100644
+--- a/drivers/net/ethernet/emulex/benet/be_roce.h
++++ b/drivers/net/ethernet/emulex/benet/be_roce.h
+@@ -62,7 +62,8 @@ struct ocrdma_driver {
+ 
+ enum {
+ 	BE_DEV_UP	= 0,
+-	BE_DEV_DOWN	= 1
++	BE_DEV_DOWN	= 1,
++	BE_DEV_SHUTDOWN = 2
  };
  
- static void ocrdma_remove_sysfiles(struct ocrdma_dev *dev)
+ /* APIs for RoCE driver to register callback handlers,
 -- 
 1.6.0.2
 
