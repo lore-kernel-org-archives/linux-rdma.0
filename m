@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 12/15] RDMA/ocrdma : Add missing adapter mailbox opcodes
-Date: Wed, 4 Jun 2014 23:49:12 +0530
-Message-ID: <c3cc68e8-176c-4339-9813-7f59a38246d8@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH for-next 13/15] RDMA/ocrdma: Increase the size of STAG array in dev structure to 16K
+Date: Wed, 4 Jun 2014 23:49:13 +0530
+Message-ID: <21544437-9eea-4a25-a60f-24249c8d8aca@CMEXHTCAS1.ad.emulex.com>
 References: <1401905955-28117-1-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-2-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-3-git-send-email-selvin.xavier@emulex.com>
@@ -14,97 +14,74 @@ References: <1401905955-28117-1-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-10-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-11-git-send-email-selvin.xavier@emulex.com>
  <1401905955-28117-12-git-send-email-selvin.xavier@emulex.com>
+ <1401905955-28117-13-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401905955-28117-12-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1401905955-28117-13-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixing the Statistics command opcode. Also specifying the
-opcode of each command  for better readablilty.
-
-Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h |   62 +++++++++++++++-------------
- 1 files changed, 33 insertions(+), 29 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h      |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |    6 ++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h  |    2 +-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index fc27378..5716513 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -236,7 +236,7 @@ struct ocrdma_dev {
+ 	struct list_head entry;
+ 	struct rcu_head rcu;
+ 	int id;
+-	u64 stag_arr[OCRDMA_MAX_STAG];
++	u64 *stag_arr;
+ 	u8 sl; /* service level */
+ 	bool pfc_state;
+ 	atomic_t update_sl;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 3cb20c6..0d90c7f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -324,6 +324,11 @@ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
+ 		if (!dev->qp_tbl)
+ 			goto alloc_err;
+ 	}
++
++	dev->stag_arr = kzalloc(sizeof(u64) * OCRDMA_MAX_STAG, GFP_KERNEL);
++	if (dev->stag_arr == NULL)
++		goto alloc_err;
++
+ 	spin_lock_init(&dev->av_tbl.lock);
+ 	spin_lock_init(&dev->flush_q_lock);
+ 	return 0;
+@@ -334,6 +339,7 @@ alloc_err:
+ 
+ static void ocrdma_free_resources(struct ocrdma_dev *dev)
+ {
++	kfree(dev->stag_arr);
+ 	kfree(dev->qp_tbl);
+ 	kfree(dev->cq_tbl);
+ 	kfree(dev->sgid_tbl);
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 3cb88f0..a20d348 100644
+index a20d348..3d08e66 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -44,35 +44,39 @@ enum {
- #define OCRDMA_SUBSYS_ROCE 10
- enum {
- 	OCRDMA_CMD_QUERY_CONFIG = 1,
--	OCRDMA_CMD_ALLOC_PD,
--	OCRDMA_CMD_DEALLOC_PD,
--
--	OCRDMA_CMD_CREATE_AH_TBL,
--	OCRDMA_CMD_DELETE_AH_TBL,
--
--	OCRDMA_CMD_CREATE_QP,
--	OCRDMA_CMD_QUERY_QP,
--	OCRDMA_CMD_MODIFY_QP,
--	OCRDMA_CMD_DELETE_QP,
--
--	OCRDMA_CMD_RSVD1,
--	OCRDMA_CMD_ALLOC_LKEY,
--	OCRDMA_CMD_DEALLOC_LKEY,
--	OCRDMA_CMD_REGISTER_NSMR,
--	OCRDMA_CMD_REREGISTER_NSMR,
--	OCRDMA_CMD_REGISTER_NSMR_CONT,
--	OCRDMA_CMD_QUERY_NSMR,
--	OCRDMA_CMD_ALLOC_MW,
--	OCRDMA_CMD_QUERY_MW,
--
--	OCRDMA_CMD_CREATE_SRQ,
--	OCRDMA_CMD_QUERY_SRQ,
--	OCRDMA_CMD_MODIFY_SRQ,
--	OCRDMA_CMD_DELETE_SRQ,
--
--	OCRDMA_CMD_ATTACH_MCAST,
--	OCRDMA_CMD_DETACH_MCAST,
--	OCRDMA_CMD_GET_RDMA_STATS,
-+	OCRDMA_CMD_ALLOC_PD = 2,
-+	OCRDMA_CMD_DEALLOC_PD = 3,
-+
-+	OCRDMA_CMD_CREATE_AH_TBL = 4,
-+	OCRDMA_CMD_DELETE_AH_TBL = 5,
-+
-+	OCRDMA_CMD_CREATE_QP = 6,
-+	OCRDMA_CMD_QUERY_QP = 7,
-+	OCRDMA_CMD_MODIFY_QP = 8 ,
-+	OCRDMA_CMD_DELETE_QP = 9,
-+
-+	OCRDMA_CMD_RSVD1 = 10,
-+	OCRDMA_CMD_ALLOC_LKEY = 11,
-+	OCRDMA_CMD_DEALLOC_LKEY = 12,
-+	OCRDMA_CMD_REGISTER_NSMR = 13,
-+	OCRDMA_CMD_REREGISTER_NSMR = 14,
-+	OCRDMA_CMD_REGISTER_NSMR_CONT = 15,
-+	OCRDMA_CMD_QUERY_NSMR = 16,
-+	OCRDMA_CMD_ALLOC_MW = 17,
-+	OCRDMA_CMD_QUERY_MW = 18,
-+
-+	OCRDMA_CMD_CREATE_SRQ = 19,
-+	OCRDMA_CMD_QUERY_SRQ = 20,
-+	OCRDMA_CMD_MODIFY_SRQ = 21,
-+	OCRDMA_CMD_DELETE_SRQ = 22,
-+
-+	OCRDMA_CMD_ATTACH_MCAST = 23,
-+	OCRDMA_CMD_DETACH_MCAST = 24,
-+
-+	OCRDMA_CMD_CREATE_RBQ = 25,
-+	OCRDMA_CMD_DESTROY_RBQ = 26,
-+
-+	OCRDMA_CMD_GET_RDMA_STATS = 27,
+@@ -107,7 +107,7 @@ enum {
  
- 	OCRDMA_CMD_MAX
- };
+ #define OCRDMA_MAX_QP    2048
+ #define OCRDMA_MAX_CQ    2048
+-#define OCRDMA_MAX_STAG  8192
++#define OCRDMA_MAX_STAG 16384
+ 
+ enum {
+ 	OCRDMA_DB_RQ_OFFSET		= 0xE0,
 -- 
 1.6.0.2
 
