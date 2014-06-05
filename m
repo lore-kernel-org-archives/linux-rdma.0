@@ -1,67 +1,48 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_trap_rcv.c: Lock released without locking in some
- cases of trap processing
-Date: Thu, 05 Jun 2014 10:50:08 -0400
-Message-ID: <539083A0.5040104@dev.mellanox.co.il>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH V2] svcrdma: Fence LOCAL_INV work requests
+Date: Thu, 05 Jun 2014 09:54:31 -0500
+Message-ID: <20140605145429.14347.22150.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This applies on top of:
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+	commit e5a070216356dbcb03607cb264cc3104e17339b3
+	Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+	Date:   Wed May 28 15:12:01 2014 -0500
+
+	    svcrdma: refactor marshalling logic
+
+Fencing forces the invalidate to only happen after all prior send
+work requests have been completed.
+
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- opensm/osm_trap_rcv.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
-index ce26efa..2aef40e 100644
---- a/opensm/osm_trap_rcv.c
-+++ b/opensm/osm_trap_rcv.c
-@@ -390,7 +390,7 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
- 		   Otherwise we start a sweep on the trap 144 caused by
- 		   cleaning up SM Cap bit...
- 		 */
--		goto Exit;
-+		goto Exit2;
- 
- 	/* update the is_gsi flag according to the mgmt_class field */
- 	if (p_madw->p_mad->mgmt_class == IB_MCLASS_SUBN_LID ||
-@@ -406,7 +406,7 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
- 	if (p_smp->method != IB_MAD_METHOD_TRAP) {
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3801: "
- 			"Unsupported method 0x%X\n", p_smp->method);
--		goto Exit;
-+		goto Exit2;
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 52d9f2c..8f92a61 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -338,7 +338,7 @@ static int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+ 		memset(&inv_wr, 0, sizeof(inv_wr));
+ 		inv_wr.wr_id = (unsigned long)ctxt;
+ 		inv_wr.opcode = IB_WR_LOCAL_INV;
+-		inv_wr.send_flags = IB_SEND_SIGNALED;
++		inv_wr.send_flags = IB_SEND_SIGNALED | IB_SEND_FENCE;
+ 		inv_wr.ex.invalidate_rkey = frmr->mr->lkey;
  	}
- 
- 	/*
-@@ -432,7 +432,7 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
- 			if (sm->p_subn->sm_base_lid == 0) {
- 				OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 					"Received SLID=0 Trap with local LID=0. Ignoring MAD\n");
--				goto Exit;
-+				goto Exit2;
- 			}
- 			OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 				"Received SLID=0 Trap. Using local LID:%u instead\n",
-@@ -665,6 +665,7 @@ check_report:
- 
- Exit:
- 	CL_PLOCK_RELEASE(sm->p_lock);
-+Exit2:
- 	OSM_LOG_EXIT(sm->p_log);
- }
- 
--- 
-1.7.8.2
+ 	ctxt->wr_op = read_wr.opcode;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
