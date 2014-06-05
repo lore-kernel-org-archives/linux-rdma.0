@@ -1,45 +1,91 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V2] svcrdma: Fence LOCAL_INV work requests
-Date: Thu, 5 Jun 2014 11:21:47 -0500
-Message-ID: <007301cf80da$3f5b07f0$be1117d0$@opengridcomputing.com>
-References: <20140605145429.14347.22150.stgit@build.ogc.int> <20140605161353.GH8362@fieldses.org>
+From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/1] IPoOB: Improve parent interface p_key handling.
+Date: Thu, 05 Jun 2014 12:29:33 -0400
+Message-ID: <20140605162933.7504.94163.stgit@phlsvlogin03.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140605161353.GH8362-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+With reference to commit c2904141696ee19551f1553944446f23cdd5d95e.
+It was noticed that parent interface keeps sending broadcast group
+join requests if p_key index 0 is invalid. That creates unnecessary
+noise on a fabric:
 
+ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
+ status -22
 
-> -----Original Message-----
-> From: J. Bruce Fields [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
-> Sent: Thursday, June 05, 2014 11:14 AM
-> To: Steve Wise
-> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
-> Subject: Re: [PATCH V2] svcrdma: Fence LOCAL_INV work requests
-> 
-> On Thu, Jun 05, 2014 at 09:54:31AM -0500, Steve Wise wrote:
-> > This applies on top of:
-> >
-> > 	commit e5a070216356dbcb03607cb264cc3104e17339b3
-> > 	Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > 	Date:   Wed May 28 15:12:01 2014 -0500
-> >
-> > 	    svcrdma: refactor marshalling logic
-> 
-> Sorry, I lost track--was there another revision of that patch coming
-> too?
-> 
+Proposed patch re-init resources, then brings interface
+up only if p_key idx 0 is valid either on bootup or on PKEY_CHANGE event.
+Otherwise it keeps interface quiet.
 
-No. 
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   25 ++++++++++++++++---------
+ 1 files changed, 16 insertions(+), 9 deletions(-)
 
-
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 6a7003d..3201fe5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -669,6 +669,12 @@ int ipoib_ib_dev_open(struct net_device *dev)
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	int ret;
+ 
++	if (!(priv->pkey & 0x7fff)) {
++		ipoib_warn(priv, "Invalid P_Key\n");
++		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
++		return -1;
++	}
++
+ 	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
+ 		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
+ 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+@@ -714,7 +720,8 @@ static void ipoib_pkey_dev_check_presence(struct net_device *dev)
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	u16 pkey_index = 0;
+ 
+-	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
++	if (!(priv->pkey & 0x7fff) ||
++		ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
+ 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+ 	else
+ 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+@@ -987,12 +994,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 	up_read(&priv->vlan_rwsem);
+ 
+ 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
+-		/* for non-child devices must check/update the pkey value here */
+-		if (level == IPOIB_FLUSH_HEAVY &&
+-		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
+-			update_parent_pkey(priv);
+-		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
+-		return;
++		if (level < IPOIB_FLUSH_HEAVY) {
++			ipoib_dbg(priv,	"Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
++			return;
++		}
+ 	}
+ 
+ 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
+@@ -1038,8 +1043,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 		ipoib_ib_dev_down(dev, 0);
+ 
+ 	if (level == IPOIB_FLUSH_HEAVY) {
+-		ipoib_ib_dev_stop(dev, 0);
+-		ipoib_ib_dev_open(dev);
++		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
++			ipoib_ib_dev_stop(dev, 0);
++		if (ipoib_ib_dev_open(dev) != 0)
++			return;
+ 	}
+ 
+ 	/*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
