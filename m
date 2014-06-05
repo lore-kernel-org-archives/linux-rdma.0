@@ -1,34 +1,51 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 9/10] IB/qib: use safer test on the result of
- find_first_zero_bit
-Date: Wed, 4 Jun 2014 20:03:58 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC21BE939B@fmsmsx120.amr.corp.intel.com>
-References: <1401872880-23685-1-git-send-email-Julia.Lawall@lip6.fr>
- <1401872880-23685-10-git-send-email-Julia.Lawall@lip6.fr>
- <32E1700B9017364D9B60AED9960492BC21BE92E6@fmsmsx120.amr.corp.intel.com>
- <alpine.DEB.2.02.1406042118420.1977@localhost6.localdomain6>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] svcrdma: Fence LOCAL_INV work requests
+Date: Thu, 5 Jun 2014 05:29:57 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE03AA3@CMEXMB1.ad.emulex.com>
+References: <20140602171433.31076.5634.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.02.1406042118420.1977-bi+AKbBUZKagILUCTcTcHdKyNwTtLsGr@public.gmane.org>
+In-Reply-To: <20140602171433.31076.5634.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-Cc: infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> No, it's not necessary.  It turns out that the result cannot be greater than the
-> requested maximum value.
-> 
-> Julia
-
-Ok. 
-
-No stable then.
-
-Mike
+UmVwb3J0ZWQgYnkgOiBEZXZlc2ggU2hhcm1hDQpBY2snZWQgYnk6IERldmVzaCBTaGFybWENCg0K
+LVJlZ2FyZHMNCiBEZXZlc2gNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9t
+OiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+
+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFN0ZXZlIFdpc2UNCj4gU2VudDog
+TW9uZGF5LCBKdW5lIDAyLCAyMDE0IDEwOjQ1IFBNDQo+IFRvOiBiZmllbGRzQGZpZWxkc2VzLm9y
+Zw0KPiBDYzogbGludXgtbmZzQHZnZXIua2VybmVsLm9yZzsgbGludXgtcmRtYUB2Z2VyLmtlcm5l
+bC5vcmc7DQo+IHRvbUBvcGVuZ3JpZGNvbXB1dGluZy5jb20NCj4gU3ViamVjdDogW1BBVENIXSBz
+dmNyZG1hOiBGZW5jZSBMT0NBTF9JTlYgd29yayByZXF1ZXN0cw0KPiANCj4gVGhpcyBhcHBsaWVz
+IG9uIHRvcCBvZjoNCj4gDQo+IAljb21taXQgZTVhMDcwMjE2MzU2ZGJjYjAzNjA3Y2IyNjRjYzMx
+MDRlMTczMzliMw0KPiAJQXV0aG9yOiBTdGV2ZSBXaXNlIDxzd2lzZUBvcGVuZ3JpZGNvbXB1dGlu
+Zy5jb20+DQo+IAlEYXRlOiAgIFdlZCBNYXkgMjggMTU6MTI6MDEgMjAxNCAtMDUwMA0KPiANCj4g
+CSAgICBzdmNyZG1hOiByZWZhY3RvciBtYXJzaGFsbGluZyBsb2dpYw0KPiANCj4gRmVuY2luZyBm
+b3JjZXMgdGhlIGludmFsaWRhdGUgdG8gb25seSBoYXBwZW4gYWZ0ZXIgYWxsIHN1YnNlcXVlbnQg
+c2VuZCB3b3JrDQo+IHJlcXVlc3RzIGhhdmUgYmVlbiBjb21wbGV0ZWQuDQo+IA0KPiBTaWduZWQt
+b2ZmLWJ5OiBTdGV2ZSBXaXNlIDxzd2lzZUBvcGVuZ3JpZGNvbXB1dGluZy5jb20+DQo+IC0tLQ0K
+PiANCj4gIG5ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfcmVjdmZyb20uYyB8ICAgIDIgKy0N
+Cj4gIDEgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQ0KPiAN
+Cj4gZGlmZiAtLWdpdCBhL25ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfcmVjdmZyb20uYw0K
+PiBiL25ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfcmVjdmZyb20uYw0KPiBpbmRleCA1MmQ5
+ZjJjLi44ZjkyYTYxIDEwMDY0NA0KPiAtLS0gYS9uZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1h
+X3JlY3Zmcm9tLmMNCj4gKysrIGIvbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9yZWN2ZnJv
+bS5jDQo+IEBAIC0zMzgsNyArMzM4LDcgQEAgc3RhdGljIGludCByZG1hX3JlYWRfY2h1bmtfZnJt
+cihzdHJ1Y3Qgc3ZjeHBydF9yZG1hDQo+ICp4cHJ0LA0KPiAgCQltZW1zZXQoJmludl93ciwgMCwg
+c2l6ZW9mKGludl93cikpOw0KPiAgCQlpbnZfd3Iud3JfaWQgPSAodW5zaWduZWQgbG9uZyljdHh0
+Ow0KPiAgCQlpbnZfd3Iub3Bjb2RlID0gSUJfV1JfTE9DQUxfSU5WOw0KPiAtCQlpbnZfd3Iuc2Vu
+ZF9mbGFncyA9IElCX1NFTkRfU0lHTkFMRUQ7DQo+ICsJCWludl93ci5zZW5kX2ZsYWdzID0gSUJf
+U0VORF9TSUdOQUxFRCB8IElCX1NFTkRfRkVOQ0U7DQo+ICAJCWludl93ci5leC5pbnZhbGlkYXRl
+X3JrZXkgPSBmcm1yLT5tci0+bGtleTsNCj4gIAl9DQo+ICAJY3R4dC0+d3Jfb3AgPSByZWFkX3dy
+Lm9wY29kZTsNCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5k
+IHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUNCj4gYm9keSBvZiBhIG1l
+c3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
+DQo+IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
