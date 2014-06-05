@@ -1,93 +1,58 @@
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/1] IPoOB: Improve parent interface p_key handling.
-Date: Thu, 05 Jun 2014 12:29:33 -0400
-Message-ID: <20140605162933.7504.94163.stgit@phlsvlogin03.ph.intel.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 2/2] TARGET/sbc,loopback: Adjust command data length in
+ case pi exists on the wire
+Date: Thu, 05 Jun 2014 20:22:15 +0300
+Message-ID: <5390A747.5020506@dev.mellanox.co.il>
+References: <1401639581-20111-1-git-send-email-sagig@mellanox.com>	<1401639581-20111-3-git-send-email-sagig@mellanox.com> <yq1fvjn9rqs.fsf@sermon.lab.mkp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <yq1fvjn9rqs.fsf@sermon.lab.mkp.net>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagig@mellanox.com>
+Cc: nab@linux-iscsi.org, michaelc@cs.wisc.edu, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, oren@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-With reference to commit c2904141696ee19551f1553944446f23cdd5d95e.
-It was noticed that parent interface keeps sending broadcast group
-join requests if p_key index 0 is invalid. That creates unnecessary
-noise on a fabric:
+On 6/2/2014 7:54 PM, Martin K. Petersen wrote:
+>>>>>> "Sagi" == Sagi Grimberg <sagig@mellanox.com> writes:
+> Sagi,
+>
+> Sagi> In various areas of the code, it is assumed that
+> Sagi> se_cmd-> data_length describes pure data. In case
+> Sagi> that protection information exists over the wire (protect bits is
+> Sagi> are on) the target core decrease the protection length from the
+> Sagi> data length (instead of each transport peeking in the cdb).
+>
+> I completely agree with the notion of including PI in the transport byte
+> count.
+>
+> Why do you open code the transfer length adjustment below?
 
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
- status -22
+Can't say I have a good reason for that.
+I'll move this logic to scsi_cmnd.h.
 
-Proposed patch re-init resources, then brings interface
-up only if p_key idx 0 is valid either on bootup or on PKEY_CHANGE event.
-Otherwise it keeps interface quiet.
+>
+> +			/**
+> +			 * Adjust data_length to include
+> +			 * protection information
+> +			 **/
+> +			switch (sc->device->sector_size) {
+> +			case 512:
+> +				data_len += (data_len >> 9) * 8;
+> +				break;
+> +			case 1024:
+> +				data_len += (data_len >> 10) * 8;
+> +				break;
+> +			case 2048:
+> +				data_len += (data_len >> 11) * 8;
+> +				break;
+> +			case 4096:
+> +				data_len += (data_len >> 12) * 8;
+> +				break;
+> +			default:
+> +				data_len +=
+> +				(data_len >> ilog2(sc->device->sector_size)) * 8;
+> +			}
+>
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   25 ++++++++++++++++---------
- 1 files changed, 16 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 6a7003d..3201fe5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -669,6 +669,12 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 
-+	if (!(priv->pkey & 0x7fff)) {
-+		ipoib_warn(priv, "Invalid P_Key\n");
-+		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+		return -1;
-+	}
-+
- 	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
- 		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -714,7 +720,8 @@ static void ipoib_pkey_dev_check_presence(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	u16 pkey_index = 0;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
-+	if (!(priv->pkey & 0x7fff) ||
-+		ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	else
- 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -987,12 +994,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 	up_read(&priv->vlan_rwsem);
- 
- 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
--		/* for non-child devices must check/update the pkey value here */
--		if (level == IPOIB_FLUSH_HEAVY &&
--		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
--			update_parent_pkey(priv);
--		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
--		return;
-+		if (level < IPOIB_FLUSH_HEAVY) {
-+			ipoib_dbg(priv,	"Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
-+			return;
-+		}
- 	}
- 
- 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
-@@ -1038,8 +1043,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		ipoib_ib_dev_down(dev, 0);
- 
- 	if (level == IPOIB_FLUSH_HEAVY) {
--		ipoib_ib_dev_stop(dev, 0);
--		ipoib_ib_dev_open(dev);
-+		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
-+			ipoib_ib_dev_stop(dev, 0);
-+		if (ipoib_ib_dev_open(dev) != 0)
-+			return;
- 	}
- 
- 	/*
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
