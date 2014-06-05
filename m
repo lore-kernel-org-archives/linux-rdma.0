@@ -1,48 +1,40 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V2] svcrdma: Fence LOCAL_INV work requests
-Date: Thu, 05 Jun 2014 09:54:31 -0500
-Message-ID: <20140605145429.14347.22150.stgit@build.ogc.int>
+Subject: Re: [PATCH] svcrdma: Fence LOCAL_INV work requests
+Date: Thu, 05 Jun 2014 10:00:59 -0500
+Message-ID: <5390862B.3050007@opengridcomputing.com>
+References: <20140602171433.31076.5634.stgit@build.ogc.int> <53901ADB.9020405@acm.org> <002901cf80c5$d0b577e0$722067a0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <002901cf80c5$d0b577e0$722067a0$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This applies on top of:
+On 6/5/2014 8:55 AM, Steve Wise wrote
+>> -----Original Message-----
+>> From: Bart Van Assche [mailto:bvanassche-HInyCGIudOg@public.gmane.org]
+>> Sent: Thursday, June 05, 2014 2:23 AM
+>> To: Steve Wise; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+>> Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+>> Subject: Re: [PATCH] svcrdma: Fence LOCAL_INV work requests
+>>
+>> On 06/02/14 19:14, Steve Wise wrote:
+>>> Fencing forces the invalidate to only happen after all subsequent send
+>>> work requests have been completed.
+>> Shouldn't that read "prior" instead of "subsequent" ?
+>>
+> Yes.
+>   
 
-	commit e5a070216356dbcb03607cb264cc3104e17339b3
-	Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-	Date:   Wed May 28 15:12:01 2014 -0500
+I posted V2 of the patch to fix the comment.
 
-	    svcrdma: refactor marshalling logic
+Thanks,
 
-Fencing forces the invalidate to only happen after all prior send
-work requests have been completed.
-
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 52d9f2c..8f92a61 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -338,7 +338,7 @@ static int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
- 		memset(&inv_wr, 0, sizeof(inv_wr));
- 		inv_wr.wr_id = (unsigned long)ctxt;
- 		inv_wr.opcode = IB_WR_LOCAL_INV;
--		inv_wr.send_flags = IB_SEND_SIGNALED;
-+		inv_wr.send_flags = IB_SEND_SIGNALED | IB_SEND_FENCE;
- 		inv_wr.ex.invalidate_rkey = frmr->mr->lkey;
- 	}
- 	ctxt->wr_op = read_wr.opcode;
-
+Steve.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
