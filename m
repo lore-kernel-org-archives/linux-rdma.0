@@ -1,95 +1,52 @@
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/1] IPoIB: Improve parent interface p_key handling.
-Date: Thu, 05 Jun 2014 14:40:10 -0400
-Message-ID: <20140605184010.19629.7048.stgit@phlsvlogin03.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH net-next 0/4] Adds support for CIQ and other misc. fixes for rdma/cxgb4
+Date: Fri,  6 Jun 2014 21:40:41 +0530
+Message-ID: <1402071045-14854-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Resending as there was a typo in Subject line.
+Hi All,
 
-----------------------
+This patch series adds support to allocate and use IQs specifically for
+indirect interrupts, adds fixes to align ISS for iWARP connections & fixes
+related to tcp snd/rvd window for Chelsio T4/T5 adapters on iw_cxgb4.
+Also changes Interrupt Holdoff Packet Count threshold of response queues for
+cxgb4 driver.
 
-With reference to commit c2904141696ee19551f1553944446f23cdd5d95e.
-It was noticed that parent interface keeps sending broadcast group
-join requests if p_key index 0 is invalid. That creates unnecessary
-noise on a fabric:
+The patches series is created against 'net-next' tree.
+And includes patches on cxgb4 and iw_cxgb4 driver.
 
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
- status -22
+Since this patch-series contains cxgb4 and iw_cxgb4 patches, we would like to
+request this patch series to get merged via David Miller's 'net-next' tree.
 
-Proposed patch re-init resources, then brings interface
-up only if p_key idx 0 is valid either on bootup or on PKEY_CHANGE event.
-Otherwise it keeps interface quiet.
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   25 ++++++++++++++++---------
- 1 files changed, 16 insertions(+), 9 deletions(-)
+Thanks 
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 6a7003d..3201fe5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -669,6 +669,12 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 
-+	if (!(priv->pkey & 0x7fff)) {
-+		ipoib_warn(priv, "Invalid P_Key\n");
-+		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+		return -1;
-+	}
-+
- 	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
- 		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -714,7 +720,8 @@ static void ipoib_pkey_dev_check_presence(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	u16 pkey_index = 0;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
-+	if (!(priv->pkey & 0x7fff) ||
-+		ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	else
- 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -987,12 +994,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 	up_read(&priv->vlan_rwsem);
- 
- 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
--		/* for non-child devices must check/update the pkey value here */
--		if (level == IPOIB_FLUSH_HEAVY &&
--		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
--			update_parent_pkey(priv);
--		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
--		return;
-+		if (level < IPOIB_FLUSH_HEAVY) {
-+			ipoib_dbg(priv,	"Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
-+			return;
-+		}
- 	}
- 
- 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
-@@ -1038,8 +1043,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		ipoib_ib_dev_down(dev, 0);
- 
- 	if (level == IPOIB_FLUSH_HEAVY) {
--		ipoib_ib_dev_stop(dev, 0);
--		ipoib_ib_dev_open(dev);
-+		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
-+			ipoib_ib_dev_stop(dev, 0);
-+		if (ipoib_ib_dev_open(dev) != 0)
-+			return;
- 	}
- 
- 	/*
+Hariprasad Shenai (4):
+  iw_cxgb4: Allocate and use IQs specifically for indirect interrupts
+  iw_cxgb4: Choose appropriate hw mtu index and ISS for iWARP
+    connections
+  iw_cxgb4: don't truncate the recv window size
+  cxgb4: Change default Interrupt Holdoff Packet Count Threshold
+
+ drivers/infiniband/hw/cxgb4/cm.c                |  127 +++++++++++--
+ drivers/infiniband/hw/cxgb4/cq.c                |    7 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |    2 +
+ drivers/infiniband/hw/cxgb4/provider.c          |    2 +-
+ drivers/infiniband/hw/cxgb4/t4.h                |    1 +
+ drivers/infiniband/hw/cxgb4/t4fw_ri_api.h       |    1 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |   14 ++-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  236 +++++++++++++++++++----
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |    7 +
+ drivers/net/ethernet/chelsio/cxgb4/sge.c        |    5 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.h      |    1 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |   10 +
+ 12 files changed, 356 insertions(+), 57 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
