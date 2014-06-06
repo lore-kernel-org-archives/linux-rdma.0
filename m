@@ -1,178 +1,190 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH net-next 4/4] cxgb4: Change default Interrupt Holdoff Packet Count Threshold
-Date: Fri,  6 Jun 2014 21:40:45 +0530
-Message-ID: <1402071045-14854-5-git-send-email-hariprasad@chelsio.com>
-References: <1402071045-14854-1-git-send-email-hariprasad@chelsio.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1402071045-14854-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: [RESEND PATCH] IB/umad: Fix a use-after-free
+Date: Fri,  6 Jun 2014 18:25:04 +0200
+Message-ID: <1402071904-25003-1-git-send-email-ydroneaud@opteya.com>
+References: <5375F094.30809@acm.org> <5375F108.20608@acm.org> <1400243330.13334.4.camel@localhost.localdomain>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1400243330.13334.4.camel@localhost.localdomain>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, Roland Dreier <roland@kernel.org>
+Cc: Yann Droneaud <ydroneaud@opteya.com>, Alex Chiang <achiang@canonical.com>, linux-rdma <linux-rdma@vger.kernel.org>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Based on original work by Casey Leedom <leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+From: Bart Van Assche <bvanassche@acm.org>
 
-Signed-off-by: Casey Leedom <leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Avoid that closing /dev/infiniband/umad<n> or /dev/infiniband/issm<n>
+triggers a use-after-free. __fput() in fs/file_table.c invokes
+f_op->release() before it invokes cdev_put(). Make sure that the
+ib_umad_device structure is freed by the cdev_put() call instead of
+f_op->release(). This avoids that changing the port mode from IB into
+Ethernet and back to IB followed by restarting opensmd triggers the
+following kernel oops:
+
+general protection fault: 0000 [#1] PREEMPT SMP
+RIP: 0010:[<ffffffff810cc65c>]  [<ffffffff810cc65c>] module_put+0x2c/0x170
+Call Trace:
+ [<ffffffff81190f20>] cdev_put+0x20/0x30
+ [<ffffffff8118e2ce>] __fput+0x1ae/0x1f0
+ [<ffffffff8118e35e>] ____fput+0xe/0x10
+ [<ffffffff810723bc>] task_work_run+0xac/0xe0
+ [<ffffffff81002a9f>] do_notify_resume+0x9f/0xc0
+ [<ffffffff814b8398>] int_signal+0x12/0x17
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=75051
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Yann Droneaud <ydroneaud@opteya.com>
+Cc: Alex Chiang <achiang@canonical.com>
+Cc: <stable@vger.kernel.org> # 3.x: 8ec0a0e6b58: IB/umad: Fix error handling
 ---
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |   69 +++++++++++++----------
- drivers/net/ethernet/chelsio/cxgb4/sge.c        |    1 -
- 2 files changed, 40 insertions(+), 30 deletions(-)
+Hi Bart and Roland,
 
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-index 5fa5f2a..2f8d6b9 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -2503,8 +2503,7 @@ static unsigned int qtimer_val(const struct adapter *adap,
+It seems this one was not rolled in your latest katamari[1].
+Since the original patch didn't apply on top of commit
+8ec0a0e6b58 ('IB/umad: Fix error handling'), I've applied it
+manually and resend it for review and inclusion.
+
+I hope having correctly set the Cc: stable@vger.kernel.org
+tag to state the dependency on earlier patch.
+
+[1] this term is actually used by Xorg to team to describe
+    the process of gathering each little tiny piece needed
+    for a release :) By the way, it's also a video game.
+
+Regards.
+
+ drivers/infiniband/core/user_mad.c | 30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 9bdf576cd4ab..1acb99100556 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -98,7 +98,7 @@ struct ib_umad_port {
+ 
+ struct ib_umad_device {
+ 	int                  start_port, end_port;
+-	struct kref          ref;
++	struct kobject       kobj;
+ 	struct ib_umad_port  port[0];
+ };
+ 
+@@ -134,14 +134,18 @@ static DECLARE_BITMAP(dev_map, IB_UMAD_MAX_PORTS);
+ static void ib_umad_add_one(struct ib_device *device);
+ static void ib_umad_remove_one(struct ib_device *device);
+ 
+-static void ib_umad_release_dev(struct kref *ref)
++static void ib_umad_release_dev(struct kobject *kobj)
+ {
+ 	struct ib_umad_device *dev =
+-		container_of(ref, struct ib_umad_device, ref);
++		container_of(kobj, struct ib_umad_device, kobj);
+ 
+ 	kfree(dev);
  }
  
- /**
-- *	set_rxq_intr_params - set a queue's interrupt holdoff parameters
-- *	@adap: the adapter
-+ *	set_rspq_intr_params - set a queue's interrupt holdoff parameters
-  *	@q: the Rx queue
-  *	@us: the hold-off time in us, or 0 to disable timer
-  *	@cnt: the hold-off packet count, or 0 to disable counter
-@@ -2512,9 +2511,11 @@ static unsigned int qtimer_val(const struct adapter *adap,
-  *	Sets an Rx queue's interrupt hold-off time and packet count.  At least
-  *	one of the two needs to be enabled for the queue to generate interrupts.
-  */
--static int set_rxq_intr_params(struct adapter *adap, struct sge_rspq *q,
--			       unsigned int us, unsigned int cnt)
-+static int set_rspq_intr_params(struct sge_rspq *q,
-+				unsigned int us, unsigned int cnt)
- {
-+	struct adapter *adap = q->adap;
++static struct kobj_type ib_umad_dev_ktype = {
++	.release = ib_umad_release_dev,
++};
 +
- 	if ((us | cnt) == 0)
- 		cnt = 1;
+ static int hdr_size(struct ib_umad_file *file)
+ {
+ 	return file->use_pkey_index ? sizeof (struct ib_user_mad_hdr) :
+@@ -812,7 +816,7 @@ static int ib_umad_open(struct inode *inode, struct file *filp)
+ 		goto out;
+ 	}
  
-@@ -2541,24 +2542,34 @@ static int set_rxq_intr_params(struct adapter *adap, struct sge_rspq *q,
+-	kref_get(&port->umad_dev->ref);
++	kobject_get(&port->umad_dev->kobj);
+ 
+ out:
+ 	mutex_unlock(&port->file_mutex);
+@@ -851,7 +855,7 @@ static int ib_umad_close(struct inode *inode, struct file *filp)
+ 	mutex_unlock(&file->port->file_mutex);
+ 
+ 	kfree(file);
+-	kref_put(&dev->ref, ib_umad_release_dev);
++	kobject_put(&dev->kobj);
+ 
  	return 0;
  }
+@@ -902,7 +906,7 @@ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+ 	if (ret)
+ 		goto err_clr_sm_cap;
  
--static int set_coalesce(struct net_device *dev, struct ethtool_coalesce *c)
-+/**
-+ * set_rx_intr_params - set a net devices's RX interrupt holdoff paramete!
-+ * @dev: the network device
-+ * @us: the hold-off time in us, or 0 to disable timer
-+ * @cnt: the hold-off packet count, or 0 to disable counter
-+ *
-+ * Set the RX interrupt hold-off parameters for a network device.
-+ */
-+static int set_rx_intr_params(struct net_device *dev,
-+			      unsigned int us, unsigned int cnt)
+-	kref_get(&port->umad_dev->ref);
++	kobject_get(&port->umad_dev->kobj);
+ 
+ 	return 0;
+ 
+@@ -932,7 +936,7 @@ static int ib_umad_sm_close(struct inode *inode, struct file *filp)
+ 
+ 	up(&port->sm_sem);
+ 
+-	kref_put(&port->umad_dev->ref, ib_umad_release_dev);
++	kobject_put(&port->umad_dev->kobj);
+ 
+ 	return ret;
+ }
+@@ -1000,6 +1004,7 @@ static int find_overflow_devnum(void)
+ }
+ 
+ static int ib_umad_init_port(struct ib_device *device, int port_num,
++			     struct ib_umad_device *umad_dev,
+ 			     struct ib_umad_port *port)
  {
--	const struct port_info *pi = netdev_priv(dev);
-+	int i, err;
-+	struct port_info *pi = netdev_priv(dev);
- 	struct adapter *adap = pi->adapter;
--	struct sge_rspq *q;
--	int i;
--	int r = 0;
--
--	for (i = pi->first_qset; i < pi->first_qset + pi->nqsets; i++) {
--		q = &adap->sge.ethrxq[i].rspq;
--		r = set_rxq_intr_params(adap, q, c->rx_coalesce_usecs,
--			c->rx_max_coalesced_frames);
--		if (r) {
--			dev_err(&dev->dev, "failed to set coalesce %d\n", r);
--			break;
--		}
-+	struct sge_eth_rxq *q = &adap->sge.ethrxq[pi->first_qset];
-+
-+	for (i = 0; i < pi->nqsets; i++, q++) {
-+		err = set_rspq_intr_params(&q->rspq, us, cnt);
-+		if (err)
-+			return err;
+ 	int devnum;
+@@ -1032,6 +1037,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 
+ 	cdev_init(&port->cdev, &umad_fops);
+ 	port->cdev.owner = THIS_MODULE;
++	port->cdev.kobj.parent = &umad_dev->kobj;
+ 	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
+ 	if (cdev_add(&port->cdev, base, 1))
+ 		goto err_cdev;
+@@ -1050,6 +1056,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	base += IB_UMAD_MAX_PORTS;
+ 	cdev_init(&port->sm_cdev, &umad_sm_fops);
+ 	port->sm_cdev.owner = THIS_MODULE;
++	port->sm_cdev.kobj.parent = &umad_dev->kobj;
+ 	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
+ 	if (cdev_add(&port->sm_cdev, base, 1))
+ 		goto err_sm_cdev;
+@@ -1143,7 +1150,7 @@ static void ib_umad_add_one(struct ib_device *device)
+ 	if (!umad_dev)
+ 		return;
+ 
+-	kref_init(&umad_dev->ref);
++	kobject_init(&umad_dev->kobj, &ib_umad_dev_ktype);
+ 
+ 	umad_dev->start_port = s;
+ 	umad_dev->end_port   = e;
+@@ -1151,7 +1158,8 @@ static void ib_umad_add_one(struct ib_device *device)
+ 	for (i = s; i <= e; ++i) {
+ 		umad_dev->port[i - s].umad_dev = umad_dev;
+ 
+-		if (ib_umad_init_port(device, i, &umad_dev->port[i - s]))
++		if (ib_umad_init_port(device, i, umad_dev,
++				      &umad_dev->port[i - s]))
+ 			goto err;
  	}
--	return r;
-+	return 0;
-+}
-+
-+static int set_coalesce(struct net_device *dev, struct ethtool_coalesce *c)
-+{
-+	return set_rx_intr_params(dev, c->rx_coalesce_usecs,
-+				  c->rx_max_coalesced_frames);
+ 
+@@ -1163,7 +1171,7 @@ err:
+ 	while (--i >= s)
+ 		ib_umad_kill_port(&umad_dev->port[i - s]);
+ 
+-	kref_put(&umad_dev->ref, ib_umad_release_dev);
++	kobject_put(&umad_dev->kobj);
  }
  
- static int get_coalesce(struct net_device *dev, struct ethtool_coalesce *c)
-@@ -5812,12 +5823,12 @@ static inline bool is_x_10g_port(const struct link_config *lc)
- 	       (lc->supported & FW_PORT_CAP_SPEED_40G) != 0;
+ static void ib_umad_remove_one(struct ib_device *device)
+@@ -1177,7 +1185,7 @@ static void ib_umad_remove_one(struct ib_device *device)
+ 	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i)
+ 		ib_umad_kill_port(&umad_dev->port[i]);
+ 
+-	kref_put(&umad_dev->ref, ib_umad_release_dev);
++	kobject_put(&umad_dev->kobj);
  }
  
--static inline void init_rspq(struct sge_rspq *q, u8 timer_idx, u8 pkt_cnt_idx,
-+static inline void init_rspq(struct adapter *adap, struct sge_rspq *q,
-+			     unsigned int us, unsigned int cnt,
- 			     unsigned int size, unsigned int iqe_size)
- {
--	q->intr_params = QINTR_TIMER_IDX(timer_idx) |
--			 (pkt_cnt_idx < SGE_NCOUNTERS ? QINTR_CNT_EN : 0);
--	q->pktcnt_idx = pkt_cnt_idx < SGE_NCOUNTERS ? pkt_cnt_idx : 0;
-+	q->adap = adap;
-+	set_rspq_intr_params(q, us, cnt);
- 	q->iqe_len = iqe_size;
- 	q->size = size;
- }
-@@ -5876,7 +5887,7 @@ static void cfg_queues(struct adapter *adap)
- 	for (i = 0; i < ARRAY_SIZE(s->ethrxq); i++) {
- 		struct sge_eth_rxq *r = &s->ethrxq[i];
- 
--		init_rspq(&r->rspq, 0, 0, 1024, 64);
-+		init_rspq(adap, &r->rspq, 5, 10, 1024, 64);
- 		r->fl.size = 72;
- 	}
- 
-@@ -5892,7 +5903,7 @@ static void cfg_queues(struct adapter *adap)
- 	for (i = 0; i < ARRAY_SIZE(s->ofldrxq); i++) {
- 		struct sge_ofld_rxq *r = &s->ofldrxq[i];
- 
--		init_rspq(&r->rspq, 0, 0, 1024, 64);
-+		init_rspq(adap, &r->rspq, 5, 1, 1024, 64);
- 		r->rspq.uld = CXGB4_ULD_ISCSI;
- 		r->fl.size = 72;
- 	}
-@@ -5900,7 +5911,7 @@ static void cfg_queues(struct adapter *adap)
- 	for (i = 0; i < ARRAY_SIZE(s->rdmarxq); i++) {
- 		struct sge_ofld_rxq *r = &s->rdmarxq[i];
- 
--		init_rspq(&r->rspq, 0, 0, 511, 64);
-+		init_rspq(adap, &r->rspq, 5, 1, 511, 64);
- 		r->rspq.uld = CXGB4_ULD_RDMA;
- 		r->fl.size = 72;
- 	}
-@@ -5914,12 +5925,12 @@ static void cfg_queues(struct adapter *adap)
- 	for (i = 0; i < ARRAY_SIZE(s->rdmaciq); i++) {
- 		struct sge_ofld_rxq *r = &s->rdmaciq[i];
- 
--		init_rspq(&r->rspq, 0, 0, ciq_size, 64);
-+		init_rspq(adap, &r->rspq, 5, 1, ciq_size, 64);
- 		r->rspq.uld = CXGB4_ULD_RDMA;
- 	}
- 
--	init_rspq(&s->fw_evtq, 6, 0, 512, 64);
--	init_rspq(&s->intrq, 6, 0, 2 * MAX_INGQ, 64);
-+	init_rspq(adap, &s->fw_evtq, 0, 1, 1024, 64);
-+	init_rspq(adap, &s->intrq, 0, 1, 2 * MAX_INGQ, 64);
- }
- 
- /*
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/sge.c b/drivers/net/ethernet/chelsio/cxgb4/sge.c
-index bd82939..58bd213 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/sge.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/sge.c
-@@ -2215,7 +2215,6 @@ int t4_sge_alloc_rxq(struct adapter *adap, struct sge_rspq *iq, bool fwevtq,
- 	iq->cntxt_id = ntohs(c.iqid);
- 	iq->abs_id = ntohs(c.physiqid);
- 	iq->size--;                           /* subtract status entry */
--	iq->adap = adap;
- 	iq->netdev = dev;
- 	iq->handler = hnd;
- 
+ static char *umad_devnode(struct device *dev, umode_t *mode)
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.3
