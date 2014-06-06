@@ -1,25 +1,56 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RESEND PATCH] IB/umad: Fix a use-after-free
-Date: Fri, 6 Jun 2014 11:39:47 -0700
-Message-ID: <CAL1RGDUd=4h2ZGhD+KFESSCOwZd7J+i=RXgurHJPyGBb1KwHVg@mail.gmail.com>
-References: <5375F094.30809@acm.org> <5375F108.20608@acm.org>
- <1400243330.13334.4.camel@localhost.localdomain> <1402071904-25003-1-git-send-email-ydroneaud@opteya.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] rdma-cma/iw_cm: export tos field to iwarp providers
+Date: Fri, 06 Jun 2014 13:57:48 -0500
+Message-ID: <20140606185747.19185.67487.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1402071904-25003-1-git-send-email-ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Alex Chiang <achiang-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 6, 2014 at 9:25 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
-> It seems this one was not rolled in your latest katamari[1].
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
+ drivers/infiniband/core/cma.c |    2 ++
+ include/rdma/iw_cm.h          |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-Thanks, picked it up this time around.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d570030..beda319 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1593,6 +1593,7 @@ static int cma_iw_listen(struct rdma_id_private *id_priv, int backlog)
+ 	if (IS_ERR(id))
+ 		return PTR_ERR(id);
+ 
++	id->tos = id_priv->tos;
+ 	id_priv->cm_id.iw = id;
+ 
+ 	memcpy(&id_priv->cm_id.iw->local_addr, cma_src_addr(id_priv),
+@@ -2840,6 +2841,7 @@ static int cma_connect_iw(struct rdma_id_private *id_priv,
+ 	if (IS_ERR(cm_id))
+ 		return PTR_ERR(cm_id);
+ 
++	cm_id->tos = id_priv->tos;
+ 	id_priv->cm_id.iw = cm_id;
+ 
+ 	memcpy(&cm_id->local_addr, cma_src_addr(id_priv),
+diff --git a/include/rdma/iw_cm.h b/include/rdma/iw_cm.h
+index 1017e0b..036bd27 100644
+--- a/include/rdma/iw_cm.h
++++ b/include/rdma/iw_cm.h
+@@ -91,6 +91,7 @@ struct iw_cm_id {
+ 	/* Used by provider to add and remove refs on IW cm_id */
+ 	void (*add_ref)(struct iw_cm_id *);
+ 	void (*rem_ref)(struct iw_cm_id *);
++	u8  tos;
+ };
+ 
+ struct iw_cm_conn_param {
 
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
