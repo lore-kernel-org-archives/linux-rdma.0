@@ -1,49 +1,56 @@
-From: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
-Subject: [PATCH] infiniband: hw: ipath: ipath_diag.c:  Cleaning up code that is not handled properly.
-Date: Sat,  7 Jun 2014 01:08:56 +0200
-Message-ID: <1402096136-9919-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] RDMA/core: Add support for iWARP Port Mapper user
+ space service (Version 2)
+Date: Sat, 7 Jun 2014 22:40:20 +0300
+Message-ID: <CAJZOPZ+woOAzGfnRnMs7X71+3z4sBhaf37SZnPyBTGzNaNoveg@mail.gmail.com>
+References: <20140326220735.GA14840@TENIKOLO-MOBL1>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140326220735.GA14840@TENIKOLO-MOBL1>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-None of the code is adapted to handle a struct ipath_diag_pkt.
+Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> The patch adds support for iWarp Port Mapper user space service
 
-This was partly found using a static code analysis program called cppcheck.
+Reading the change-log below, I noted that pretty much nothing in it
+explains what
+is the role of this port mapper, with that presentation you sent not
+being part of the upstream kernel, I think you need to add some
+documentation. Care to resend this patch with modified change-log so
+Roland can rebase his for-next branch or just send what you want to
+add and Roland can re-word this commit.
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
----
- drivers/infiniband/hw/ipath/ipath_diag.c |    6 ------
- 1 file changed, 6 deletions(-)
+Or.
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_diag.c b/drivers/infiniband/hw/ipath/ipath_diag.c
-index e2f9a51..39ba797 100644
---- a/drivers/infiniband/hw/ipath/ipath_diag.c
-+++ b/drivers/infiniband/hw/ipath/ipath_diag.c
-@@ -327,7 +327,6 @@ static ssize_t ipath_diagpkt_write(struct file *fp,
- {
- 	u32 __iomem *piobuf;
- 	u32 plen, pbufn, maxlen_reserve;
--	struct ipath_diag_pkt odp;
- 	struct ipath_diag_xpkt dp;
- 	u32 *tmpbuf = NULL;
- 	struct ipath_devdata *dd;
-@@ -341,11 +340,6 @@ static ssize_t ipath_diagpkt_write(struct file *fp,
- 			ret = -EFAULT;
- 			goto bail;
- 		}
--	} else if (count == sizeof(odp)) {
--		if (copy_from_user(&odp, data, sizeof(odp))) {
--			ret = -EFAULT;
--			goto bail;
--		}
- 	} else {
- 		ret = -EINVAL;
- 		goto bail;
--- 
-1.7.10.4
-
+>
+> 1) Netlink interface functions are added: ibnl_unicast() and ibnl_mulitcast()
+>    for sending netlink messages to user space
+>
+> 2) The signature of the existing ibnl_put_msg() is changed to more generic
+>
+> 3) Two netlink clients are added: RDMA_NL_NES, RDMA_NL_C4IW corresponding
+>    to the two iWarp drivers - nes and cxgb4 which use the IWPM service
+>
+> 4) Enums are added to enumerate the attributes in the netlink messages, which
+>    are exchanged between the user space IWPM service and the iWARP drivers
+>
+> 5) New files iw_portmap.h, iwpm_util.c iwpm_msg.c and iwpm_util.h are created
+>    which contain the IWPM core functionality (service requests and callbacks)
+>
+>    iwpm_util.c, iwpm_msg.c and iwpm_util.h are added to infiniband/core
+>    and the source files are compiled as part of iw_cm module.
+>    iw_portmap.h which contains the port mapper driver API is added to
+>    include/rdma. The iWarp drivers nes and cxgb4 are the two port mapper
+>    clients which use the provided IWPM core functionality to communicate
+>    with the user space port mapper service.
+>
+> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off by: Peter Waskiewicz <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
