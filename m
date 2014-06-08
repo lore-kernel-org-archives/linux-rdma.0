@@ -1,56 +1,79 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] RDMA/core: Add support for iWARP Port Mapper user
- space service (Version 2)
-Date: Sat, 7 Jun 2014 22:40:20 +0300
-Message-ID: <CAJZOPZ+woOAzGfnRnMs7X71+3z4sBhaf37SZnPyBTGzNaNoveg@mail.gmail.com>
-References: <20140326220735.GA14840@TENIKOLO-MOBL1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] mlx5: Fix possible race between mr tree insert/delete
+Date: Sun,  8 Jun 2014 10:00:59 +0300
+Message-ID: <1402210859-2715-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140326220735.GA14840@TENIKOLO-MOBL1>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> The patch adds support for iWarp Port Mapper user space service
+In mlx5_core_destroy_mkey we must first remove the mr from
+the radix tree and then destroy it, Otherwise we might
+hit a race in case the key was reallocated and we attempted
+to insert it to the radix tree.
 
-Reading the change-log below, I noted that pretty much nothing in it
-explains what
-is the role of this port mapper, with that presentation you sent not
-being part of the upstream kernel, I think you need to add some
-documentation. Care to resend this patch with modified change-log so
-Roland can rebase his for-next branch or just send what you want to
-add and Roland can re-word this commit.
+Also handle radix tree insert/delete failures.
 
-Or.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Eli Cohen <elic-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
->
-> 1) Netlink interface functions are added: ibnl_unicast() and ibnl_mulitcast()
->    for sending netlink messages to user space
->
-> 2) The signature of the existing ibnl_put_msg() is changed to more generic
->
-> 3) Two netlink clients are added: RDMA_NL_NES, RDMA_NL_C4IW corresponding
->    to the two iWarp drivers - nes and cxgb4 which use the IWPM service
->
-> 4) Enums are added to enumerate the attributes in the netlink messages, which
->    are exchanged between the user space IWPM service and the iWARP drivers
->
-> 5) New files iw_portmap.h, iwpm_util.c iwpm_msg.c and iwpm_util.h are created
->    which contain the IWPM core functionality (service requests and callbacks)
->
->    iwpm_util.c, iwpm_msg.c and iwpm_util.h are added to infiniband/core
->    and the source files are compiled as part of iw_cm module.
->    iw_portmap.h which contains the port mapper driver API is added to
->    include/rdma. The iWarp drivers nes and cxgb4 are the two port mapper
->    clients which use the provided IWPM core functionality to communicate
->    with the user space port mapper service.
->
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off by: Peter Waskiewicz <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
+index 4cc9276..dd26b03 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
+@@ -90,6 +90,11 @@ int mlx5_core_create_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
+ 	write_lock_irq(&table->lock);
+ 	err = radix_tree_insert(&table->tree, mlx5_base_mkey(mr->key), mr);
+ 	write_unlock_irq(&table->lock);
++	if (err) {
++		mlx5_core_warn(dev, "failed radix tree insert of mr 0x%x, %d\n",
++			       mlx5_base_mkey(mr->key), err);
++		mlx5_core_destroy_mkey(dev, mr);
++	}
+ 
+ 	return err;
+ }
+@@ -100,12 +105,22 @@ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr)
+ 	struct mlx5_mr_table *table = &dev->priv.mr_table;
+ 	struct mlx5_destroy_mkey_mbox_in in;
+ 	struct mlx5_destroy_mkey_mbox_out out;
++	struct mlx5_core_mr *deleted_mr;
+ 	unsigned long flags;
+ 	int err;
+ 
+ 	memset(&in, 0, sizeof(in));
+ 	memset(&out, 0, sizeof(out));
+ 
++	write_lock_irqsave(&table->lock, flags);
++	deleted_mr = radix_tree_delete(&table->tree, mlx5_base_mkey(mr->key));
++	write_unlock_irqrestore(&table->lock, flags);
++	if (!deleted_mr) {
++		mlx5_core_warn(dev, "failed radix tree delete of mr 0x%x\n",
++			       mlx5_base_mkey(mr->key));
++		return -ENOENT;
++	}
++
+ 	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_MKEY);
+ 	in.mkey = cpu_to_be32(mlx5_mkey_to_idx(mr->key));
+ 	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
+@@ -115,10 +130,6 @@ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr)
+ 	if (out.hdr.status)
+ 		return mlx5_cmd_status_to_err(&out.hdr);
+ 
+-	write_lock_irqsave(&table->lock, flags);
+-	radix_tree_delete(&table->tree, mlx5_base_mkey(mr->key));
+-	write_unlock_irqrestore(&table->lock, flags);
+-
+ 	return err;
+ }
+ EXPORT_SYMBOL(mlx5_core_destroy_mkey);
+-- 
+1.8.4.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
