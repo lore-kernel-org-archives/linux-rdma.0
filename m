@@ -1,36 +1,72 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 00/24] Series short description
-Date: Mon, 9 Jun 2014 09:11:45 -0400
-Message-ID: <5395B291.9050501@netapp.com>
-References: <20140528142521.23214.39655.stgit@manet.1015granger.net>	<005501cf7b5f$4e4359a0$eaca0ce0$@opengridcomputing.com> <CAJZOPZ+SBT=yX3v4kvzg4TsZU2=L-05r3=ht-4y86Ox44M3mpQ@mail.gmail.com>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] infiniband: hw: ipath: ipath_diag.c:  Cleaning up code
+ that is not handled properly.
+Date: Mon, 9 Jun 2014 13:57:38 +0000
+Message-ID: <D2F193D21ECD8C45917AD3D5B26513301E43F7@CRSMSX101.amr.corp.intel.com>
+References: <1402096136-9919-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+SBT=yX3v4kvzg4TsZU2=L-05r3=ht-4y86Ox44M3mpQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1402096136-9919-1-git-send-email-rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/09/2014 05:55 AM, Or Gerlitz wrote:
-> On Thu, May 29, 2014 at 7:59 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->> I tested this series over cxgb4 and mlx4, running cthon04, fio read/rand-rw, and xfstests, and over mthca cthon04.  No regressions.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Rickard Strandqvist
+> Sent: Friday, June 6, 2014 7:09 PM
+> To: infinipath; Roland Dreier
+> Cc: Rickard Strandqvist; Hefty, Sean; Hal Rosenstock; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH] infiniband: hw: ipath: ipath_diag.c: Cleaning up code that is
+> not handled properly.
 > 
-> Steve, Chuck, all
+> None of the code is adapted to handle a struct ipath_diag_pkt.
 > 
-> Where this series stands? I don't see it in Roland's tree for-next
-> branch... is this planned to go upstream through another maintainer
-> tree? if not, I think we're good to go, so Roland, are you picking it
-> up?
+> This was partly found using a static code analysis program called cppcheck.
 > 
-> Or.
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/ipath/ipath_diag.c |    6 ------
+>  1 file changed, 6 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/ipath/ipath_diag.c
+> b/drivers/infiniband/hw/ipath/ipath_diag.c
+> index e2f9a51..39ba797 100644
+> --- a/drivers/infiniband/hw/ipath/ipath_diag.c
+> +++ b/drivers/infiniband/hw/ipath/ipath_diag.c
+> @@ -327,7 +327,6 @@ static ssize_t ipath_diagpkt_write(struct file *fp,  {
+>  	u32 __iomem *piobuf;
+>  	u32 plen, pbufn, maxlen_reserve;
+> -	struct ipath_diag_pkt odp;
+>  	struct ipath_diag_xpkt dp;
+>  	u32 *tmpbuf = NULL;
+>  	struct ipath_devdata *dd;
+> @@ -341,11 +340,6 @@ static ssize_t ipath_diagpkt_write(struct file *fp,
+>  			ret = -EFAULT;
+>  			goto bail;
+>  		}
+> -	} else if (count == sizeof(odp)) {
+> -		if (copy_from_user(&odp, data, sizeof(odp))) {
+> -			ret = -EFAULT;
+> -			goto bail;
+> -		}
+>  	} else {
+>  		ret = -EINVAL;
+>  		goto bail;
+> --
+> 1.7.10.4
 
-This is going through the NFS tree (Trond should already have it).
+Hi Rickard, 
 
-Anna
-> 
+Please see commit 7e6d3e5c70f13874fb06e6b67696ed90ce79bd48 in Roland's for-next branch. I added the missed support for using odp already.
 
+Thanks
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
