@@ -1,56 +1,43 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] libvendor/osm_vendor_ibumad.c: Check the next CA card
- if the error is returned for the current one
-Date: Mon, 09 Jun 2014 12:16:55 -0400
-Message-ID: <5395DDF7.6040006@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
+Date: Mon, 9 Jun 2014 10:51:05 -0600
+Message-ID: <20140609165105.GB1816@obsidianresearch.com>
+References: <20140326220718.GA8784@TENIKOLO-MOBL1>
+ <CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Jun 08, 2014 at 10:34:30PM +0300, Or Gerlitz wrote:
+> What it does is the following:
+> 
+> 1. kernel rdma driver tells a user space daemon they want to reserve
+> (claim) the combination of IP address X and TCP port Y for the sake of
+> RDMA connections
+> 
+> 2. user space daemon opens a socket and binds to X:Y
+> 
+> Specifically, down the road, more use cases, not only the current
+> iWARP case may pop up.
 
-osm_vendor_open_port should check matching of the input GUID
-on all CA cards. When umad_get_ca_portguids returns an error
-on the current CA card,next card should be examined.
-This change resolves an issue with Win opensm.
-Win lower layers are not following libibumad Linux convention/assumption
-and are sometimes returning an error
-when umad_get_ca_portguids is called from osm_vendor_open_port.
+This really seems horrible, using user space to circumvent the kernel
+stack because kernel maintainers don't want this kind of integration
+is not going to make people very happy.
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libvendor/osm_vendor_ibumad.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+IIRC the patch set that tried to do this directly in the kernel was
+NAK'd, adding a userspace round trip doesn't really change anything.
 
-diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
-index 69020f2..838923b 100644
---- a/libvendor/osm_vendor_ibumad.c
-+++ b/libvendor/osm_vendor_ibumad.c
-@@ -727,10 +727,14 @@ osm_vendor_open_port(IN osm_vendor_t * const p_vend,
- 	for (ca = 0; ca < p_vend->ca_count; ca++) {
- 		if ((r = umad_get_ca_portguids(p_vend->ca_names[ca], portguids,
- 					       OSM_UMAD_MAX_PORTS_PER_CA + 1)) < 0) {
-+#ifdef __WIN__
-+			OSM_LOG(p_vend->p_log, OSM_LOG_VERBOSE,
-+#else
- 			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5421: "
-+#endif
- 				"Unable to get CA %s port guids (%s)\n",
- 				p_vend->ca_names[ca], strerror(r));
--			goto Exit;
-+			continue;
- 		}
- 		for (i = 0; i < r; i++)
- 			if (port_guid == portguids[i]) {
--- 
-1.7.8.2
+The message from netdev has, IMHO, always been pretty clear - offload
+can live in it's own little side world but cannot appear to the user
+to be integrated to the main stack (because it isn't).
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
