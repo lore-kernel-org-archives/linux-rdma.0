@@ -1,29 +1,27 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next] mlx4_core: Add support for secure-host and SMP firewall
-Date: Sun, 8 Jun 2014 22:48:22 +0300
-Message-ID: <CAJZOPZLhQyd287DvxsL8syvqN+rjJgtAc6G0+5ovR8uZ1VOREA@mail.gmail.com>
-References: <1401612830-24884-1-git-send-email-ogerlitz@mellanox.com>
+From: Devesh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sharma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: [PATCH for-next 0/2] Bug fixes for nfs-rdma support
+Date: Mon, 9 Jun 2014 10:52:36 +0530
+Message-ID: <530c3deb-5384-41ae-83f7-affbdd1fef9a@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1401612830-24884-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 1, 2014 at 11:53 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->
-> Secure-host is the general term for the capability of a device
-> to protect itself and the subnet from malicious host software.
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Hi Roland,
+This series fixes the improper frmr-page-list-len size reported
+by query_device and a bug in CQ arming logic.
 
-So, is this OK for 3.16? note this touches mlx4 only. if you have any
-questions on the patch, please let us know and Jack will address.
+Devesh Sharma (2):
+  RDMA/ocrdma: Report actual value of max_fast_reg_page_list_len
+  RDMA/ocrdma: do not skip setting deffered_arm
 
-Or.
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
