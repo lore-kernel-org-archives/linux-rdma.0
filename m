@@ -1,61 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
-Date: Mon, 9 Jun 2014 12:42:07 -0600
-Message-ID: <20140609184207.GA534@obsidianresearch.com>
-References: <20140326220718.GA8784@TENIKOLO-MOBL1>
- <CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg@mail.gmail.com>
- <20140609165105.GB1816@obsidianresearch.com>
- <004501cf840e$6cf0c240$46d246c0$@opengridcomputing.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 00/15] Bug fixes for ocrdma driver
+Date: Mon, 9 Jun 2014 22:44:40 +0300
+Message-ID: <CAJZOPZLqmq1XMoyjv0OMTv8iX0Otvo=bm-rrwa3EfupUYgyGKQ@mail.gmail.com>
+References: <fc0ae2c3-2661-48ba-957a-66cbb0cfc33e@CMEXHTCAS1.ad.emulex.com>
+	<538F4B66.6080906@opengridcomputing.com>
+	<CAG4TOxMbXJeq848LuzJvsz23th4Wh7NZ6qT9o+pdv4fOdu=o=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <004501cf840e$6cf0c240$46d246c0$@opengridcomputing.com>
+In-Reply-To: <CAG4TOxMbXJeq848LuzJvsz23th4Wh7NZ6qT9o+pdv4fOdu=o=Q@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Or Gerlitz' <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "'Lacombe, John S'" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 09, 2014 at 01:12:50PM -0500, Steve Wise wrote:
+On Wed, Jun 4, 2014 at 8:06 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Wed, Jun 4, 2014 at 9:37 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+>> Seems like the subject lines in each patch are getting truncated?
+> Yes, truncated in patchwork too -- for example:
+> https://patchwork.kernel.org/patch/4292461/
+>
+> Please fix and resend.
 
-> > > 1. kernel rdma driver tells a user space daemon they want to reserve
-> > > (claim) the combination of IP address X and TCP port Y for the sake of
-> > > RDMA connections
-> > >
-> > > 2. user space daemon opens a socket and binds to X:Y
-> > >
-> > > Specifically, down the road, more use cases, not only the current
-> > > iWARP case may pop up.
-> > 
-> > This really seems horrible, using user space to circumvent the kernel
-> > stack because kernel maintainers don't want this kind of integration
-> > is not going to make people very happy.
-> > 
-> > IIRC the patch set that tried to do this directly in the kernel was
-> > NAK'd, adding a userspace round trip doesn't really change anything.
+Roland, from quick looking on this series of fifteen patches, only 1/3
+of them (4/5/12/14) have non-empty change-log. I would expect kernel
+work which goes upstream through linux-rdma to use a bit of higher
+standards, agree?
 
-> The patch set you refer to tried to _unify_ the port space and was
-> rejected.  The only other alternative is to pick ephemeral ports and
-> maintain a mapping for RDMA services.
+Selvin, can you sit down and come up with change-logs to your driver updates?
 
-I thought both approaches were tried in kernel and NAK'd by netdev?
-This looks very similar to the 2010 patchset, except the dummy socket
-allocation is living in userspace in this version.
-
-Again, from here, this looks like another patch to do an end-run
-around netdev's NAK by hiding the offending stuff in userspace. That
-is no good either...
-
-> > The message from netdev has, IMHO, always been pretty clear - offload
-> > can live in it's own little side world but cannot appear to the user
-> > to be integrated to the main stack (because it isn't).
-> 
-> That is what this design does...
-
-Not really, it is still sharing an IP used by the main stack,
-otherwise you wouldn't have this problem in the first place.
-
-Jason
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
