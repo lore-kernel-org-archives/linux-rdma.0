@@ -1,7 +1,7 @@
 From: Devesh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sharma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: [PATCH for-next 1/2] RDMA/ocrdma: Report actual value of max_fast_reg_page_list_len
-Date: Mon, 9 Jun 2014 10:52:37 +0530
-Message-ID: <1188adea-1d05-4374-939b-7e8098b2de77@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH for-next 2/2] RDMA/ocrdma: do not skip setting deffered_arm
+Date: Mon, 9 Jun 2014 10:52:38 +0530
+Message-ID: <d3731292-b034-440e-b869-f0a50a2920ed@CMEXHTCAS2.ad.emulex.com>
 References: <1402291358-24901-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,29 +14,38 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-ocrdma_query_device does not report correct value of max_fast_reg_page_list_len.
-This patch applies changes to fix this bug.
+ib_request_notify_cq() when called for the first time
+ocrdma tries to skip setting deffered_arm flag. This
+may lead CQ to an un-armed state thus, never generating
+CQ event and leaving consumer in hung state.
+
+This patch removes the part of code that skkips setting
+deffered_arm flag.
 
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 90152de..55aad54 100644
+index 55aad54..0ac7193 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -101,7 +101,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
- 	attr->max_srq_sge = dev->attr.max_srq_sge;
- 	attr->max_srq_wr = dev->attr.max_rqe;
- 	attr->local_ca_ack_delay = dev->attr.local_ca_ack_delay;
--	attr->max_fast_reg_page_list_len = 0;
-+	attr->max_fast_reg_page_list_len = dev->attr.max_pages_per_frmr;
- 	attr->max_pkeys = 1;
- 	return 0;
- }
+@@ -2846,11 +2846,9 @@ int ocrdma_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags cq_flags)
+ 	if (cq->first_arm) {
+ 		ocrdma_ring_cq_db(dev, cq_id, arm_needed, sol_needed, 0);
+ 		cq->first_arm = false;
+-		goto skip_defer;
+ 	}
+-	cq->deferred_arm = true;
+ 
+-skip_defer:
++	cq->deferred_arm = true;
+ 	cq->deferred_sol = sol_needed;
+ 	spin_unlock_irqrestore(&cq->cq_lock, flags);
+ 
 -- 
 1.7.1
 
