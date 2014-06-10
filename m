@@ -1,59 +1,44 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 for-next 00/16] Bug fixes for ocrdma driver
-Date: Tue, 10 Jun 2014 19:32:11 +0530
-Message-ID: <48668505-7613-4782-9fb8-14e3702f6051@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH v1 for-next 01/16] RDMA/ocrdma: Avoid posting DPP requests for RDMA READ
+Date: Tue, 10 Jun 2014 19:32:12 +0530
+Message-ID: <c02e5c22-33fd-4e90-bfba-428723240b32@CMEXHTCAS1.ad.emulex.com>
+References: <1402408947-2074-1-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1402408947-2074-1-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series contains few bug fixes for ocrdma driver
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Changes in v1:
- Proper change logs are added as per Or's suggestion
- Updating the ocrdma driver version string
+Rollback the patch which allows dpp posting of RDMA READ since this path is
+not yet stable in FW
 
-Please apply to for-next tree
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Devesh Sharma (5):
-  RDMA/ocrdma: Avoid posting DPP requests for RDMA READ
-  be2net: issue shutdown event to ocrdma driver
-  RDMA/ocrdma: Handle shutdown event from be2net driver
-  RDMA/ocrdma: Remove hardcoding of the max DPP QPs supported
-  RDMA/ocrdma: Delete AH table if ocrdma_init_hw fails after AH table
-    creation
-
-Mitesh Ahuja (3):
-  RDMA/ocrdma: Allow only SEND opcode in case of UD QPs
-  RDMA/ocrdma: Do proper cleanup evenif FW is in error state
-  RDMA/ocrdma: Return proper value for max_mr_size
-
-Selvin Xavier (8):
-  RDMA/ocrdma: Query and initalize the PFC SL
-  RDMA/ocrdma: Adding hca_type and fixing fw_version string in device
-    atrributes
-  RDMA/ocrdma: Avoid reporting wrong completions in case of error CQEs
-  RDMA/ocrdma : Add missing adapter mailbox opcodes
-  RDMA/ocrdma: Increase the size of STAG array in dev structure to 16K
-  RDMA/ocrdma: Initialize the GID table while registering the device
-  RDMA/ocrdma: Fixing a sparse warning
-  RDMA/ocrdma: Update the ocrdma module version string
-
- drivers/infiniband/hw/ocrdma/ocrdma.h       |   26 ++++-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    2 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  197 ++++++++++++++++++++++++++-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |    2 +
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   83 +++++++++++-
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  148 ++++++++++++++++-----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   34 ++++-
- drivers/net/ethernet/emulex/benet/be.h      |    1 +
- drivers/net/ethernet/emulex/benet/be_main.c |    1 +
- drivers/net/ethernet/emulex/benet/be_roce.c |   18 ++-
- drivers/net/ethernet/emulex/benet/be_roce.h |    3 +-
- 11 files changed, 466 insertions(+), 49 deletions(-)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 3bbf201..bce4adf 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -2206,7 +2206,8 @@ int ocrdma_mbx_create_qp(struct ocrdma_qp *qp, struct ib_qp_init_attr *attrs,
+ 				OCRDMA_CREATE_QP_REQ_RQ_CQID_MASK;
+ 	qp->rq_cq = cq;
+ 
+-	if (pd->dpp_enabled && pd->num_dpp_qp) {
++	if (pd->dpp_enabled && attrs->cap.max_inline_data && pd->num_dpp_qp &&
++	    (attrs->cap.max_inline_data <= dev->attr.max_inline_data)) {
+ 		ocrdma_set_create_qp_dpp_cmd(cmd, pd, qp, enable_dpp_cq,
+ 					     dpp_cq_id);
+ 	}
+-- 
+1.6.0.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
