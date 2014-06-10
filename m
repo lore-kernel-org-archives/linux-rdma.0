@@ -1,26 +1,40 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next] mlx4_core: Add support for secure-host and SMP firewall
-Date: Tue, 10 Jun 2014 11:14:27 -0700
-Message-ID: <CAG4TOxMcB3T+TjaM1m_-2juo0CQuvHTvYVFVri=RHO5bebTcDQ@mail.gmail.com>
-References: <1401612830-24884-1-git-send-email-ogerlitz@mellanox.com>
- <CAJZOPZLhQyd287DvxsL8syvqN+rjJgtAc6G0+5ovR8uZ1VOREA@mail.gmail.com>
- <CAL1RGDUXaMvWQjEVKSjCp=iC7gFeJOUqqQzYQVYRh3dv62m81Q@mail.gmail.com> <CAJZOPZKU=5j+goebeT6Ebc=nOPf6Dx_oXJCGG1qzbn0rdJE_nA@mail.gmail.com>
+From: Mike Christie <michaelc@cs.wisc.edu>
+Subject: Re: [PATCH v1 2/3] libiscsi, iser: Adjust data_length to include
+ protection information
+Date: Tue, 10 Jun 2014 13:19:35 -0500
+Message-ID: <53974C37.60206@cs.wisc.edu>
+References: <1402223228-23768-1-git-send-email-sagig@mellanox.com> <1402223228-23768-3-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZKU=5j+goebeT6Ebc=nOPf6Dx_oXJCGG1qzbn0rdJE_nA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1402223228-23768-3-git-send-email-sagig@mellanox.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>
+Cc: martin.petersen@oracle.com, nab@linux-iscsi.org, roland@kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> By "this" you mean the reminder...? I sent the patch June 1st wheres
-> the window opened on the 8th, but thanks anyway.
+On 06/08/2014 05:27 AM, Sagi Grimberg wrote:
+> In case protection information exists over the wire
+> iscsi header data_length is required to include it.
+> Use protection information aware scsi helpers to set
+> the correct transfer length.
+> 
+> In order to avoid breakage, remove iser transfer length
+> checks for each task as they are not always true and
+> somewhat redundant anyway.
+> 
+> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+> ---
+>  drivers/infiniband/ulp/iser/iser_initiator.c |   34 +++++++------------------
+>  drivers/scsi/libiscsi.c                      |   18 +++++++-------
 
-The merge window opened June 1: https://lwn.net/Articles/600984/
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looks ok to me now. Thanks.
+
+Reviewed-by: Mike Christie <michaelc@cs.wisc.edu>
+
+Not sure, if I am supposed to do a acked-by for the libiscsi.c change,
+but if so
+
+Acked-by: Mike Christie <michaelc@cs.wisc.edu>
