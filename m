@@ -1,29 +1,90 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next] mlx4_core: Add support for secure-host and SMP firewall
-Date: Tue, 10 Jun 2014 21:25:21 +0300
-Message-ID: <CAJZOPZLpO_7Y1tEr5NVKh-NNhiJUTKv-1eitz5_4=EeiAzJnCA@mail.gmail.com>
-References: <1401612830-24884-1-git-send-email-ogerlitz@mellanox.com>
-	<CAJZOPZLhQyd287DvxsL8syvqN+rjJgtAc6G0+5ovR8uZ1VOREA@mail.gmail.com>
-	<CAL1RGDUXaMvWQjEVKSjCp=iC7gFeJOUqqQzYQVYRh3dv62m81Q@mail.gmail.com>
-	<CAJZOPZKU=5j+goebeT6Ebc=nOPf6Dx_oXJCGG1qzbn0rdJE_nA@mail.gmail.com>
-	<CAG4TOxMcB3T+TjaM1m_-2juo0CQuvHTvYVFVri=RHO5bebTcDQ@mail.gmail.com>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
+Date: Tue, 10 Jun 2014 15:02:56 -0400
+Message-ID: <yq1fvjcvb8f.fsf@sermon.lab.mkp.net>
+References: <1402223228-23768-1-git-send-email-sagig@mellanox.com>
+	<1402223228-23768-2-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxMcB3T+TjaM1m_-2juo0CQuvHTvYVFVri=RHO5bebTcDQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1402223228-23768-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> (Sagi
+	Grimberg's message of "Sun, 8 Jun 2014 13:27:06 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 10, 2014 at 9:14 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> By "this" you mean the reminder...? I sent the patch June 1st wheres
->> the window opened on the 8th, but thanks anyway.
->
-> The merge window opened June 1: https://lwn.net/Articles/600984/
+>>>>> "Sagi" == Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> writes:
 
-Oh, I see your point now --  I missed reading the rc8 annoucement,
-just got to know it's there without looking for the actual details..
++static inline unsigned scsi_prot_length(unsigned data_length,
++					unsigned sector_size)
++{
++	switch (sector_size) {
++	case 512:
++		return (data_length >> 9) * 8;
++	case 1024:
++		return (data_length >> 10) * 8;
++	case 2048:
++		return (data_length >> 11) * 8;
++	case 4096:
++		return (data_length >> 12) * 8;
++	default:
++		return (data_length >> ilog2(sector_size)) * 8;
++	}
++}
++
++static inline unsigned scsi_transfer_length(struct scsi_cmnd *cmd)
++{
++	unsigned data_length;
++
++	if (cmd->sc_data_direction == DMA_FROM_DEVICE) {
++		data_length = scsi_in(cmd)->length;
++		if (scsi_get_prot_op(cmd) ==  SCSI_PROT_NORMAL ||
++		    scsi_get_prot_op(cmd) ==  SCSI_PROT_READ_INSERT)
++			return data_length;
++	} else {
++		data_length = scsi_out(cmd)->length;
++		if (scsi_get_prot_op(cmd) ==  SCSI_PROT_NORMAL ||
++		    scsi_get_prot_op(cmd) ==  SCSI_PROT_WRITE_STRIP)
++			return data_length;
++	}
++
++	/* Protection information exists on the wire */
++	return data_length + scsi_prot_length(data_length,
++					      cmd->device->sector_size);
++}
+
+Let's do this for 3.16:
+
+static inline unsigned int scsi_transfer_length(struct scsi_cmnd *scmd)
+{
+        unsigned int xfer_len = blk_rq_bytes(scmd->request);
+        unsigned int prot_op = scsi_get_prot_op(scmd);
+
+        switch (prot_op) {
+        case SCSI_PROT_NORMAL:
+        case SCSI_PROT_WRITE_STRIP:
+        case SCSI_PROT_READ_INSERT:
+             return xfer_len;
+        }
+
+        return xfer_len + (xfer_len >> ilog2(sector_size)) * 8;
+}
+
+And then in 3.17 we'll have:
+
+static inline unsigned int scsi_transfer_length(struct scsi_cmnd *scmd)
+{
+        unsigned int xfer_len = blk_rq_bytes(scmd->request);
+ 
+        if (scsi_prot_flagged(SCSI_PROT_TRANSFER_PI))
+           xfer_len += (xfer_len >> ilog2(scsi_prot_interval(scmd))) * 8;
+
+        return xfer_len;
+}
+
+-- 
+Martin K. Petersen	Oracle Linux Engineering
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
