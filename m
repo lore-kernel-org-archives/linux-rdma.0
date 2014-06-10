@@ -1,50 +1,35 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 00/15] Bug fixes for ocrdma driver
-Date: Tue, 10 Jun 2014 09:06:31 +0300
-Message-ID: <5396A067.4070501@mellanox.com>
-References: <fc0ae2c3-2661-48ba-957a-66cbb0cfc33e@CMEXHTCAS1.ad.emulex.com>	<538F4B66.6080906@opengridcomputing.com>	<CAG4TOxMbXJeq848LuzJvsz23th4Wh7NZ6qT9o+pdv4fOdu=o=Q@mail.gmail.com> <CAJZOPZLqmq1XMoyjv0OMTv8iX0Otvo=bm-rrwa3EfupUYgyGKQ@mail.gmail.com> <36AE2E863FF33A4F9FBBE296E34DBC8F3C2B9703@CMEXMB1.ad.emulex.com>
+Subject: Re: FW: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
+Date: Tue, 10 Jun 2014 09:10:13 +0300
+Message-ID: <5396A145.90504@mellanox.com>
+References: <20140326220718.GA8784@TENIKOLO-MOBL1>	<CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg@mail.gmail.com>	<20140609165105.GB1816@obsidianresearch.com>	<004501cf840e$6cf0c240$46d246c0$@opengridcomputing.com>	<20140609184207.GA534@obsidianresearch.com>	<2ABFA3E36CBB794685BFBA191CC1964952C605CB@FMSMSX105.amr.corp.intel.com> <CAEmgqz2HtEJ1ho0rS4xR7ud6YgFfeAvR8uD8MgPjVhw=E9PFEg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <36AE2E863FF33A4F9FBBE296E34DBC8F3C2B9703-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <CAEmgqz2HtEJ1ho0rS4xR7ud6YgFfeAvR8uD8MgPjVhw=E9PFEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/06/2014 04:37, Selvin Xavier wrote:
->
->> -----Original Message-----
->> From: Or Gerlitz [mailto:or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->> Sent: Tuesday, June 10, 2014 1:15 AM
->> To: Roland Dreier; Selvin Xavier
->> Cc: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel
->> Subject: Re: [PATCH for-next 00/15] Bug fixes for ocrdma driver
->>
->> On Wed, Jun 4, 2014 at 8:06 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>> On Wed, Jun 4, 2014 at 9:37 AM, Steve Wise
->> <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>>> Seems like the subject lines in each patch are getting truncated?
->>> Yes, truncated in patchwork too -- for example:
->>> https://patchwork.kernel.org/patch/4292461/
->>>
->>> Please fix and resend.
->> Roland, from quick looking on this series of fifteen patches, only 1/3 of them
->> (4/5/12/14) have non-empty change-log. I would expect kernel work which
->> goes upstream through linux-rdma to use a bit of higher standards, agree?
->>
->> Selvin, can you sit down and come up with change-logs to your driver
->> updates?
->>
->> Or.
-> Or,
->
-> Sure, I will post v1 patch set with proper change-logs.
+On 10/06/2014 03:08, PJ Waskiewicz wrote:
+> This was something I presented and discussed at NetConf 2011 
 
-cool, thanks for the quick response
+Peter, the email address from your signature on the patches isn't 
+functional anymore, is it OK
+if the patches will be re-worded with this (or any other address you 
+want to) one such that we don't
+introduce (3.16) patches which has wrong email from day one? Roland, can 
+you make that?
 
-Or.
+> with David and other netdev core folks: 
+> http://vger.kernel.org/netconf2011.html. The main issue David had with 
+> the original approach was the socket was being consumed by something 
+> else inside the kernel. It circumvented the TCP socket 
+> allocation/reservation code, which was frowned upon. The compromise we 
+> came up with is the approach in this patchset. As long as the socket 
+> is claimed via userspace, David had no problem with the approach. 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
