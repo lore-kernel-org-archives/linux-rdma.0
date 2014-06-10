@@ -1,128 +1,60 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 1/1] IPoIB: Improve parent interface p_key handling.
-Date: Tue, 10 Jun 2014 13:39:28 +0000
-Message-ID: <F3529576D8E232409F431C309E293993B706EF@CRSMSX102.amr.corp.intel.com>
-References: <20140609215507.24166.94407.stgit@phlsvlogin03.ph.intel.com>
- <53969C57.3090907@dev.mellanox.co.il>
+From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 for-next 00/16] Bug fixes for ocrdma driver
+Date: Tue, 10 Jun 2014 19:32:11 +0530
+Message-ID: <48668505-7613-4782-9fb8-14e3702f6051@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53969C57.3090907-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRXJleiwNClBsZWFzZSBzZWUgYmVsb3cuDQpUaGFua3MsDQpBbGV4Lg0KDQo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEVyZXogU2hpdHJpdCBbbWFpbHRvOmVyZXpzaEBk
-ZXYubWVsbGFub3guY28uaWxdDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMTAsIDIwMTQgMTo0OSBB
-TQ0KPiBUbzogRXN0cmluLCBBbGV4DQo+IENjOiBSb2xhbmQgRHJlaWVyOyBsaW51eC1yZG1hQHZn
-ZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyIDEvMV0gSVBvSUI6IEltcHJv
-dmUgcGFyZW50IGludGVyZmFjZSBwX2tleSBoYW5kbGluZy4NCj4gDQo+IEhpIEFsZXgsDQo+IG9u
-ZSBjb21tZW50IChtb3JlIHNwZWNpZmljIGFib3V0IGEgY29tbWVudCBpIHdyb3RlIGJlZm9yZSkN
-Cj4gDQo+IGFsbCB0aGUgcmVzdCBsb29rcyBnb29kIHRvIG1lLg0KPiANCj4gVGhhbmtzLCBFcmV6
-DQo+IA0KPiA2LzEwLzIwMTQgMTI6NTUgQU0sIEFsZXggRXN0cmluOg0KPiA+IFdpdGggcmVmZXJl
-bmNlIHRvIGNvbW1pdCBjMjkwNDE0MTY5NmVlMTk1NTFmMTU1Mzk0NDQ0NmYyM2NkZDVkOTVlLg0K
-PiA+IEl0IHdhcyBub3RpY2VkIHRoYXQgcGFyZW50IGludGVyZmFjZSBrZWVwcyBzZW5kaW5nIGJy
-b2FkY2FzdCBncm91cA0KPiA+IGpvaW4gcmVxdWVzdHMgaWYgcF9rZXkgaW5kZXggMCBpcyBpbnZh
-bGlkLiBUaGF0IGNyZWF0ZXMgdW5uZWNlc3NhcnkNCj4gPiBub2lzZSBvbiBhIGZhYnJpYzoNCj4g
-Pg0KPiA+IGliMDogbXVsdGljYXN0IGpvaW4gZmFpbGVkIGZvciBmZjEyOjQwMWI6ODAwMDowMDAw
-OjAwMDA6MDAwMDpmZmZmOmZmZmYsDQo+ID4gc3RhdHVzIC0yMg0KPiA+DQo+ID4gUHJvcG9zZWQg
-cGF0Y2ggcmUtaW5pdCByZXNvdXJjZXMsIHRoZW4gYnJpbmdzIGludGVyZmFjZQ0KPiA+IHVwIG9u
-bHkgaWYgcF9rZXkgaWR4IDAgaXMgdmFsaWQgZWl0aGVyIG9uIGJvb3R1cCBvciBvbiBQS0VZX0NI
-QU5HRSBldmVudC4NCj4gPiBPcmlnaW5hbCBjb2RlIGNvdWxkIHJ1biBtdWx0aWNhc3QgdGFzayBy
-ZWdhcmRsZXNzIG9mIHBfa2V5IHZhbHVlLA0KPiA+IHdoaWNoIHdlIHdhbnQgdG8gYXZvaWQuDQo+
-ID4NCj4gPiBNb2RpZmllZCBldmVudCBoYW5kbGVyIHdpbGwgdXRpbGl6ZSBmb2xsb3dpbmcgc3Ry
-YXRlZ3k6DQo+ID4gaWYgaW50ZXJmYWNlIGlzIG5vdCBpbml0aWFsaXplZCBhbmQgZXZlbnQgaXMg
-bm90IFBLRVlfQ0hBTkdFIHJlbGF0ZWQgLSByZXR1cm4uDQo+ID4gY2FsbCB1cGRhdGVfcGFyZW50
-X3BrZXkoKSAtPiBpZiBwa2V5IGhhc24ndCBjaGFuZ2VkIC0gcmV0dXJuLg0KPiA+IGlmIGludGVy
-ZmFjZSBpcyBpbml0aWFsaXplZA0KPiA+ICAgICAgICAgIGZsdXNoIGl0IC0+IGNhbGwgaXBvaWJf
-aWJfZGV2X3N0b3AoKSAtIGRlLWluaXRpYWxpemVkLg0KPiA+IFRoZW4gc3RhcnQgbXVsdGljYXN0
-IHRhc2sgb25seSBpZiBpcG9pYl9pYl9kZXZfb3BlbigpIGhhcyBzdWNjZWVkZWQsIHJlaW5pdGlh
-bGl6ZWQsDQo+ID4gaS5lLiBwX2tleSBpcyB2YWxpZC4NCj4gPg0KPiA+IENoYW5nZXMgZnJvbSB2
-MToNCj4gPiBwX2tleSBjaGVjayBmb3IgJ0ludmFsaWQnIHZhbHVlIHdhcyBtb3ZlZCB0bw0KPiA+
-IGlwb2liX3BrZXlfZGV2X2NoZWNrX3ByZXNlbmNlKCkgdGhhdCBpcyB1c2VkIG5vdyBpbiBpcG9p
-Yl9pYl9kZXZfb3BlbigpDQo+ID4gZm9yIHBfa2V5IHZhbGlkYXRpb24uDQo+ID4gV2hpdGVzcGFj
-ZSBhbmQgZm9ybWF0IGFkanVzdGVkLg0KPiA+DQo+ID4gUmV2aWV3ZWQtYnk6IElyYSBXZWlueSA8
-aXJhLndlaW55QGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBBbGV4IEVzdHJpbiA8YWxl
-eC5lc3RyaW5AaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICAgZHJpdmVycy9pbmZpbmliYW5kL3Vs
-cC9pcG9pYi9pcG9pYl9pYi5jIHwgICAzMSArKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0t
-DQo+ID4gICAxIGZpbGVzIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygt
-KQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBv
-aWJfaWIuYw0KPiBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfaWIuYw0KPiA+
-IGluZGV4IDZhNzAwM2QuLjYyN2Y3NGYgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmli
-YW5kL3VscC9pcG9pYi9pcG9pYl9pYi5jDQo+ID4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL3Vs
-cC9pcG9pYi9pcG9pYl9pYi5jDQo+ID4gQEAgLTUyLDYgKzUyLDcgQEAgTU9EVUxFX1BBUk1fREVT
-QyhkYXRhX2RlYnVnX2xldmVsLA0KPiA+ICAgI2VuZGlmDQo+ID4NCj4gPiAgIHN0YXRpYyBERUZJ
-TkVfTVVURVgocGtleV9tdXRleCk7DQo+ID4gK3N0YXRpYyB2b2lkIGlwb2liX3BrZXlfZGV2X2No
-ZWNrX3ByZXNlbmNlKHN0cnVjdCBuZXRfZGV2aWNlICpkZXYpOw0KPiA+DQo+ID4gICBzdHJ1Y3Qg
-aXBvaWJfYWggKmlwb2liX2NyZWF0ZV9haChzdHJ1Y3QgbmV0X2RldmljZSAqZGV2LA0KPiA+ICAg
-CQkJCSBzdHJ1Y3QgaWJfcGQgKnBkLCBzdHJ1Y3QgaWJfYWhfYXR0ciAqYXR0cikNCj4gPiBAQCAt
-NjY5LDEyICs2NzAsMTMgQEAgaW50IGlwb2liX2liX2Rldl9vcGVuKHN0cnVjdCBuZXRfZGV2aWNl
-ICpkZXYpDQo+ID4gICAJc3RydWN0IGlwb2liX2Rldl9wcml2ICpwcml2ID0gbmV0ZGV2X3ByaXYo
-ZGV2KTsNCj4gPiAgIAlpbnQgcmV0Ow0KPiA+DQo+ID4gLQlpZiAoaWJfZmluZF9wa2V5KHByaXYt
-PmNhLCBwcml2LT5wb3J0LCBwcml2LT5wa2V5LCAmcHJpdi0+cGtleV9pbmRleCkpIHsNCj4gPiAt
-CQlpcG9pYl93YXJuKHByaXYsICJQX0tleSAweCUwNHggbm90IGZvdW5kXG4iLCBwcml2LT5wa2V5
-KTsNCj4gPiAtCQljbGVhcl9iaXQoSVBPSUJfUEtFWV9BU1NJR05FRCwgJnByaXYtPmZsYWdzKTsN
-Cj4gPiArCWlwb2liX3BrZXlfZGV2X2NoZWNrX3ByZXNlbmNlKGRldik7DQo+ID4gKw0KPiA+ICsJ
-aWYgKCF0ZXN0X2JpdChJUE9JQl9QS0VZX0FTU0lHTkVELCAmcHJpdi0+ZmxhZ3MpKSB7DQo+ID4g
-KwkJaXBvaWJfd2Fybihwcml2LCAiUF9LZXkgMHglMDR4IGlzICVzXG4iLCBwcml2LT5wa2V5LA0K
-PiA+ICsJCQkhKHByaXYtPnBrZXkgJiAweDdmZmYpID8gIkludmFsaWQiIDogIm5vdCBmb3VuZCIp
-Ow0KPiA+ICAgCQlyZXR1cm4gLTE7DQo+ID4gICAJfQ0KPiA+IC0Jc2V0X2JpdChJUE9JQl9QS0VZ
-X0FTU0lHTkVELCAmcHJpdi0+ZmxhZ3MpOw0KPiA+DQo+ID4gICAJcmV0ID0gaXBvaWJfaW5pdF9x
-cChkZXYpOw0KPiA+ICAgCWlmIChyZXQpIHsNCj4gPiBAQCAtNzEyLDkgKzcxNCwxMCBAQCBkZXZf
-c3RvcDoNCj4gPiAgIHN0YXRpYyB2b2lkIGlwb2liX3BrZXlfZGV2X2NoZWNrX3ByZXNlbmNlKHN0
-cnVjdCBuZXRfZGV2aWNlICpkZXYpDQo+ID4gICB7DQo+ID4gICAJc3RydWN0IGlwb2liX2Rldl9w
-cml2ICpwcml2ID0gbmV0ZGV2X3ByaXYoZGV2KTsNCj4gPiAtCXUxNiBwa2V5X2luZGV4ID0gMDsN
-Cj4gPg0KPiA+IC0JaWYgKGliX2ZpbmRfcGtleShwcml2LT5jYSwgcHJpdi0+cG9ydCwgcHJpdi0+
-cGtleSwgJnBrZXlfaW5kZXgpKQ0KPiA+ICsJaWYgKCEocHJpdi0+cGtleSAmIDB4N2ZmZikgfHwN
-Cj4gPiArCQlpYl9maW5kX3BrZXkocHJpdi0+Y2EsIHByaXYtPnBvcnQsIHByaXYtPnBrZXksDQo+
-ID4gKwkJCQkmcHJpdi0+cGtleV9pbmRleCkpDQo+ID4gICAJCWNsZWFyX2JpdChJUE9JQl9QS0VZ
-X0FTU0lHTkVELCAmcHJpdi0+ZmxhZ3MpOw0KPiA+ICAgCWVsc2UNCj4gPiAgIAkJc2V0X2JpdChJ
-UE9JQl9QS0VZX0FTU0lHTkVELCAmcHJpdi0+ZmxhZ3MpOw0KPiA+IEBAIC05ODcsMTIgKzk5MCwx
-MCBAQCBzdGF0aWMgdm9pZCBfX2lwb2liX2liX2Rldl9mbHVzaChzdHJ1Y3QgaXBvaWJfZGV2X3By
-aXYgKnByaXYsDQo+ID4gICAJdXBfcmVhZCgmcHJpdi0+dmxhbl9yd3NlbSk7DQo+ID4NCj4gPiAg
-IAlpZiAoIXRlc3RfYml0KElQT0lCX0ZMQUdfSU5JVElBTElaRUQsICZwcml2LT5mbGFncykpIHsN
-Cj4gPiAtCQkvKiBmb3Igbm9uLWNoaWxkIGRldmljZXMgbXVzdCBjaGVjay91cGRhdGUgdGhlIHBr
-ZXkgdmFsdWUgaGVyZSAqLw0KPiA+IC0JCWlmIChsZXZlbCA9PSBJUE9JQl9GTFVTSF9IRUFWWSAm
-Jg0KPiA+IC0JCSAgICAhdGVzdF9iaXQoSVBPSUJfRkxBR19TVUJJTlRFUkZBQ0UsICZwcml2LT5m
-bGFncykpDQo+ID4gLQkJCXVwZGF0ZV9wYXJlbnRfcGtleShwcml2KTsNCj4gPiAtCQlpcG9pYl9k
-YmcocHJpdiwgIk5vdCBmbHVzaGluZyAtIElQT0lCX0ZMQUdfSU5JVElBTElaRUQgbm90IHNldC5c
-biIpOw0KPiA+IC0JCXJldHVybjsNCj4gPiArCQlpZiAobGV2ZWwgPCBJUE9JQl9GTFVTSF9IRUFW
-WSkgew0KPiA+ICsJCQlpcG9pYl9kYmcocHJpdiwgIk5vdCBmbHVzaGluZyAtIElQT0lCX0ZMQUdf
-SU5JVElBTElaRUQgbm90DQo+IHNldC5cbiIpOw0KPiA+ICsJCQlyZXR1cm47DQo+ID4gKwkJfQ0K
-PiA+ICAgCX0NCj4gPg0KPiBJIHRoaW5rIHRoYXQgSWYgeW91IHRha2UgdGhlc2UgbGluZXMgYW5k
-IHRoZSBJUE9CX0ZMQUdfQURNSU5fVVAgaXMgbm90DQo+IHNldCwgeW91IHdpbGwgbWlzcyB0aGF0
-IGV2ZW50IGFuZCB3aWxsIG5vdCByZWFkIHRoZSBwa2V5IGluIGluZGV4IDAuDQo+IFRoZSBhc3N1
-bXB0aW9uIGlzIHRoYXQgRkxBR19JTklUSUFMSVpFRCAiY29tZXMgYWZ0ZXIiIEFETUlOX1VQIHNv
-LCB5b3UNCj4gY2FuIGZpbmQgYSBjYXNlIHdoZXJlIGJvdGggb2YgdGhlbSBhcmUgbm90IHNldCwg
-dGhlIG1haW4gaWRlYSBpcyBubw0KPiBtYXRoZXIgd2hhdCBpcyB0aGUgcHJpdiBzdGF0ZSB0aGUg
-ZHJpdmVyIHNob3VsZCBoYW5kbGUgdGhlIFBLRVlfQ0hBTkdFDQo+IGV2ZW50Lg0KDQpUaGUgb25s
-eSBvbmUgc2NlbmFyaW8gSSBjb3VsZCB0aGluayBvZiB3aGVuIGV2ZW50IGhhbmRsZXIgaXMgcmVn
-aXN0ZXJlZCwgDQpidXQgQURNSU5fVVAgaXMgbm90IHNldCB5ZXQsIGlzIHdoZW4gdGhlIGRyaXZl
-ciBvbiBpdHMgd2F5IHVwLCBiZWZvcmUgaXBvaWJfb3BlbigpLiANClBsZWFzZSBub3RlLCBieSB0
-aGF0IHBvaW50IGRyaXZlciBhbHJlYWR5IGhhcyBkb25lIGl0cyBwa2V5IGlkeCAwIHF1ZXJ5Lg0K
-VGhlbiwgaWYgcGtleSBpcyBpbnZhbGlkLCAgaXBvaWJfb3BlbigpIGNvbXBsZXRpb24gIHdpbGwg
-YmUgZGVsYXllZCB1bnRpbCBwa2V5IGlzIGdvb2QNCiAoIHBsZWFzZSBzZWUgaXBvaWJfcGtleV9k
-ZXZfZGVsYXlfb3BlbiAoKSkuDQpJZiBBRE1JTl9VUCBpcyBzdGlsbCBub3Qgc2V0IGFmdGVyIGlw
-b2liX29wZW4oKSAsIHRoZW4gdGhlIGRyaXZlci9pbnRlcmZhY2UgaXMgaG9zZWQNCmFuZCBpbiAg
-bXVjaCBiaWdnZXIgdHJvdWJsZSAod2hpY2ggaXMgdmVyeSB1bmxpa2VseSkuDQpXb3VsZCB5b3Ug
-cGxlYXNlICBkZXNjcmliZSAgcG90ZW50aWFsIGNhc2Uvc2NlbmFyaW8geW91IGFyZSBhd2FyZSBv
-Zj8NCg0KPiA+ICAgCWlmICghdGVzdF9iaXQoSVBPSUJfRkxBR19BRE1JTl9VUCwgJnByaXYtPmZs
-YWdzKSkgew0KPiA+IEBAIC0xMDM4LDggKzEwMzksMTAgQEAgc3RhdGljIHZvaWQgX19pcG9pYl9p
-Yl9kZXZfZmx1c2goc3RydWN0IGlwb2liX2Rldl9wcml2ICpwcml2LA0KPiA+ICAgCQlpcG9pYl9p
-Yl9kZXZfZG93bihkZXYsIDApOw0KPiA+DQo+ID4gICAJaWYgKGxldmVsID09IElQT0lCX0ZMVVNI
-X0hFQVZZKSB7DQo+ID4gLQkJaXBvaWJfaWJfZGV2X3N0b3AoZGV2LCAwKTsNCj4gPiAtCQlpcG9p
-Yl9pYl9kZXZfb3BlbihkZXYpOw0KPiA+ICsJCWlmICh0ZXN0X2JpdChJUE9JQl9GTEFHX0lOSVRJ
-QUxJWkVELCAmcHJpdi0+ZmxhZ3MpKQ0KPiA+ICsJCQlpcG9pYl9pYl9kZXZfc3RvcChkZXYsIDAp
-Ow0KPiA+ICsJCWlmIChpcG9pYl9pYl9kZXZfb3BlbihkZXYpICE9IDApDQo+ID4gKwkJCXJldHVy
-bjsNCj4gPiAgIAl9DQo+ID4NCj4gPiAgIAkvKg0KPiA+DQo+ID4gLS0NCj4gPiBUbyB1bnN1YnNj
-cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRt
-YSIgaW4NCj4gPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVs
-Lm9yZw0KPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
-bWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+DQoNCg==
+This patch series contains few bug fixes for ocrdma driver
+
+Changes in v1:
+ Proper change logs are added as per Or's suggestion
+ Updating the ocrdma driver version string
+
+Please apply to for-next tree
+
+Devesh Sharma (5):
+  RDMA/ocrdma: Avoid posting DPP requests for RDMA READ
+  be2net: issue shutdown event to ocrdma driver
+  RDMA/ocrdma: Handle shutdown event from be2net driver
+  RDMA/ocrdma: Remove hardcoding of the max DPP QPs supported
+  RDMA/ocrdma: Delete AH table if ocrdma_init_hw fails after AH table
+    creation
+
+Mitesh Ahuja (3):
+  RDMA/ocrdma: Allow only SEND opcode in case of UD QPs
+  RDMA/ocrdma: Do proper cleanup evenif FW is in error state
+  RDMA/ocrdma: Return proper value for max_mr_size
+
+Selvin Xavier (8):
+  RDMA/ocrdma: Query and initalize the PFC SL
+  RDMA/ocrdma: Adding hca_type and fixing fw_version string in device
+    atrributes
+  RDMA/ocrdma: Avoid reporting wrong completions in case of error CQEs
+  RDMA/ocrdma : Add missing adapter mailbox opcodes
+  RDMA/ocrdma: Increase the size of STAG array in dev structure to 16K
+  RDMA/ocrdma: Initialize the GID table while registering the device
+  RDMA/ocrdma: Fixing a sparse warning
+  RDMA/ocrdma: Update the ocrdma module version string
+
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |   26 ++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    2 +
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  197 ++++++++++++++++++++++++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |    2 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   83 +++++++++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  148 ++++++++++++++++-----
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   34 ++++-
+ drivers/net/ethernet/emulex/benet/be.h      |    1 +
+ drivers/net/ethernet/emulex/benet/be_main.c |    1 +
+ drivers/net/ethernet/emulex/benet/be_roce.c |   18 ++-
+ drivers/net/ethernet/emulex/benet/be_roce.h |    3 +-
+ 11 files changed, 466 insertions(+), 49 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
