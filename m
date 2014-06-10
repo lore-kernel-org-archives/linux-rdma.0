@@ -1,168 +1,255 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 1/1] IPoIB: Improve parent interface p_key handling.
-Date: Tue, 10 Jun 2014 17:07:27 +0000
-Message-ID: <F3529576D8E232409F431C309E293993B70846@CRSMSX102.amr.corp.intel.com>
-References: <20140609215507.24166.94407.stgit@phlsvlogin03.ph.intel.com>
- <53969C57.3090907@dev.mellanox.co.il>
- <F3529576D8E232409F431C309E293993B706EF@CRSMSX102.amr.corp.intel.com>
- <53971C8D.2080103@dev.mellanox.co.il>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Tue, 10 Jun 2014 10:14:10 -0700
+Message-ID: <1402420450-11409-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53971C8D.2080103-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRXJleiwNCg0KVGhhbmsgeW91LCBJJ3ZlIGdvdCB5b3VyIHBvaW50IG5vdy4NClllcywgSSBh
-Z3JlZSwgaXQgaXMgYSBwb3RlbnRpYWwgbWlzcy4NClNvIHRvIGNvdmVyIHRoaXMgIGNhc2UgcGtl
-eSBpZHggMCBxdWVyeSBzaG91bGQgYmUgY2FsbGVkIHdpdGhpbiAhdGVzdF9iaXQoSVBPSUJfRkxB
-R19BRE1JTl9VUCAuLi4NCndoaWxlICF0ZXN0X2JpdChJUE9JQl9GTEFHX0lOSVRJQUxJWkVELi4u
-IHN0aWxsIHNob3VsZCBmYWxsIHRocm91Z2ggZm9yIHBrZXkgY2hhbmdlIGV2ZW50Lg0KDQpJJ2xs
-IHVwZGF0ZSB0aGUgcGF0Y2guDQoNClRoYW5rcywNCkFsZXguDQoNCj4gLS0tLS1PcmlnaW5hbCBN
-ZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21h
-aWx0bzpsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24NCj4gQmVoYWxmIE9mIEVy
-ZXogU2hpdHJpdA0KPiBTZW50OiBUdWVzZGF5LCBKdW5lIDEwLCAyMDE0IDEwOjU2IEFNDQo+IFRv
-OiBFc3RyaW4sIEFsZXgNCj4gQ2M6IFJvbGFuZCBEcmVpZXI7IGxpbnV4LXJkbWFAdmdlci5rZXJu
-ZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjIgMS8xXSBJUG9JQjogSW1wcm92ZSBwYXJl
-bnQgaW50ZXJmYWNlIHBfa2V5IGhhbmRsaW5nLg0KPiANCj4gSGkgQWxleCwNCj4gDQo+IFBlcmhh
-cHMgaSBhbSBtaXNzaW5nIHNvbWV0aGluZywgYnV0IGluIG15IHVuZGVyc3RhbmRpbmcgdGhlIGZh
-Y3RzIGFyIGFzDQo+IHRoZSBmb2xsb3dpbmc6DQo+IA0KPiAtIGliX3JlZ2lzdGVyX2V2ZW50X2hh
-bmRsZXIgaXMgY2FsbGVkIGluIGFkZF9wb3J0IGF0IHRoZSBsb2FkIHRpbWUgb2YNCj4gdGhlIGRy
-aXZlciwgd2hlbiB0aGUgaWIgcG9ydHMgcmVjb2duaXplZCwgaW4gdGhhdCBmdW5jdGlvbiB0aGUg
-ZHJpdmVyDQo+IHF1ZXJpZXMgZm9yIHBrZXkgaW5kZXggMC4NCj4gDQo+IC0gaXBvaWJfcGtleV9k
-ZXZfZGVsYXlfb3BlbiBvbmx5IHNlZWtzIGZvciB0aGUgdmFsdWUgdGhhdCBhbHJlYWR5IHNob3Vs
-ZA0KPiBiZSBpbiBwcml2LT5wa2V5LCBzb21lb25lIG5lZWRzIHRvIGZpbGwgaXQgd2l0aCB0aGUg
-cmlnaHQgdmFsdWUuDQo+IA0KPiBzbywgdGhlIGNhc2UgYXMgaSBzZWUgaXQgaXM6DQo+IA0KPiBh
-ZGRfb25lKCkgLS0+Pm5vIHZhbGlkIHBrZXkgaW4gaW5kZXggMA0KPiAuLi4uLi4uDQo+IC4uLi4u
-Li4NCj4gaXBvaWJfc3RvcCgpIC8vIHZpYSAiaWZjb25maWcgaWIwIGRvd24iIG9yIGFsaWtlDQo+
-IC4uLi4uDQo+IGV2ZW50OiBQS0VZX0NIQU5HRSAtPj4gaGVyZSB0aGUgQURNSU5fVVAgaXMgY2xl
-YXIgc28gdGhlcmUgd2lsbCBiZSBubw0KPiBxdWVyeSBmb3IgcGtleS1pbmRleC0wDQo+IC4uLi4u
-DQo+IGlwb2liX29wZW4oKQ0KPiANCj4gYW5kIG5vdyB0aGUgZHJpdmVyIGxlZnQgd2l0aCBubyB2
-YWxpZCB2YWx1ZSB0aWxsIHRoZSBuZXh0IFBLRVlfQ0hBTkdFIGV2ZW50Lg0KPiANCj4gVGhhbmtz
-LCBFcmV6DQo+IA0KPiAgIDYvMTAvMjAxNCA0OjM5IFBNLCBFc3RyaW4sIEFsZXg6DQo+ID4gSGkg
-RXJleiwNCj4gPiBQbGVhc2Ugc2VlIGJlbG93Lg0KPiA+IFRoYW5rcywNCj4gPiBBbGV4Lg0KPiA+
-DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IEVyZXogU2hpdHJp
-dCBbbWFpbHRvOmVyZXpzaEBkZXYubWVsbGFub3guY28uaWxdDQo+ID4+IFNlbnQ6IFR1ZXNkYXks
-IEp1bmUgMTAsIDIwMTQgMTo0OSBBTQ0KPiA+PiBUbzogRXN0cmluLCBBbGV4DQo+ID4+IENjOiBS
-b2xhbmQgRHJlaWVyOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBS
-ZTogW1BBVENIIHYyIDEvMV0gSVBvSUI6IEltcHJvdmUgcGFyZW50IGludGVyZmFjZSBwX2tleSBo
-YW5kbGluZy4NCj4gPj4NCj4gPj4gSGkgQWxleCwNCj4gPj4gb25lIGNvbW1lbnQgKG1vcmUgc3Bl
-Y2lmaWMgYWJvdXQgYSBjb21tZW50IGkgd3JvdGUgYmVmb3JlKQ0KPiA+Pg0KPiA+PiBhbGwgdGhl
-IHJlc3QgbG9va3MgZ29vZCB0byBtZS4NCj4gPj4NCj4gPj4gVGhhbmtzLCBFcmV6DQo+ID4+DQo+
-ID4+IDYvMTAvMjAxNCAxMjo1NSBBTSwgQWxleCBFc3RyaW46DQo+ID4+PiBXaXRoIHJlZmVyZW5j
-ZSB0byBjb21taXQgYzI5MDQxNDE2OTZlZTE5NTUxZjE1NTM5NDQ0NDZmMjNjZGQ1ZDk1ZS4NCj4g
-Pj4+IEl0IHdhcyBub3RpY2VkIHRoYXQgcGFyZW50IGludGVyZmFjZSBrZWVwcyBzZW5kaW5nIGJy
-b2FkY2FzdCBncm91cA0KPiA+Pj4gam9pbiByZXF1ZXN0cyBpZiBwX2tleSBpbmRleCAwIGlzIGlu
-dmFsaWQuIFRoYXQgY3JlYXRlcyB1bm5lY2Vzc2FyeQ0KPiA+Pj4gbm9pc2Ugb24gYSBmYWJyaWM6
-DQo+ID4+Pg0KPiA+Pj4gaWIwOiBtdWx0aWNhc3Qgam9pbiBmYWlsZWQgZm9yIGZmMTI6NDAxYjo4
-MDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6ZmZmZiwNCj4gPj4+IHN0YXR1cyAtMjINCj4gPj4+DQo+
-ID4+PiBQcm9wb3NlZCBwYXRjaCByZS1pbml0IHJlc291cmNlcywgdGhlbiBicmluZ3MgaW50ZXJm
-YWNlDQo+ID4+PiB1cCBvbmx5IGlmIHBfa2V5IGlkeCAwIGlzIHZhbGlkIGVpdGhlciBvbiBib290
-dXAgb3Igb24gUEtFWV9DSEFOR0UgZXZlbnQuDQo+ID4+PiBPcmlnaW5hbCBjb2RlIGNvdWxkIHJ1
-biBtdWx0aWNhc3QgdGFzayByZWdhcmRsZXNzIG9mIHBfa2V5IHZhbHVlLA0KPiA+Pj4gd2hpY2gg
-d2Ugd2FudCB0byBhdm9pZC4NCj4gPj4+DQo+ID4+PiBNb2RpZmllZCBldmVudCBoYW5kbGVyIHdp
-bGwgdXRpbGl6ZSBmb2xsb3dpbmcgc3RyYXRlZ3k6DQo+ID4+PiBpZiBpbnRlcmZhY2UgaXMgbm90
-IGluaXRpYWxpemVkIGFuZCBldmVudCBpcyBub3QgUEtFWV9DSEFOR0UgcmVsYXRlZCAtIHJldHVy
-bi4NCj4gPj4+IGNhbGwgdXBkYXRlX3BhcmVudF9wa2V5KCkgLT4gaWYgcGtleSBoYXNuJ3QgY2hh
-bmdlZCAtIHJldHVybi4NCj4gPj4+IGlmIGludGVyZmFjZSBpcyBpbml0aWFsaXplZA0KPiA+Pj4g
-ICAgICAgICAgIGZsdXNoIGl0IC0+IGNhbGwgaXBvaWJfaWJfZGV2X3N0b3AoKSAtIGRlLWluaXRp
-YWxpemVkLg0KPiA+Pj4gVGhlbiBzdGFydCBtdWx0aWNhc3QgdGFzayBvbmx5IGlmIGlwb2liX2li
-X2Rldl9vcGVuKCkgaGFzIHN1Y2NlZWRlZCwgcmVpbml0aWFsaXplZCwNCj4gPj4+IGkuZS4gcF9r
-ZXkgaXMgdmFsaWQuDQo+ID4+Pg0KPiA+Pj4gQ2hhbmdlcyBmcm9tIHYxOg0KPiA+Pj4gcF9rZXkg
-Y2hlY2sgZm9yICdJbnZhbGlkJyB2YWx1ZSB3YXMgbW92ZWQgdG8NCj4gPj4+IGlwb2liX3BrZXlf
-ZGV2X2NoZWNrX3ByZXNlbmNlKCkgdGhhdCBpcyB1c2VkIG5vdyBpbiBpcG9pYl9pYl9kZXZfb3Bl
-bigpDQo+ID4+PiBmb3IgcF9rZXkgdmFsaWRhdGlvbi4NCj4gPj4+IFdoaXRlc3BhY2UgYW5kIGZv
-cm1hdCBhZGp1c3RlZC4NCj4gPj4+DQo+ID4+PiBSZXZpZXdlZC1ieTogSXJhIFdlaW55IDxpcmEu
-d2VpbnlAaW50ZWwuY29tPg0KPiA+Pj4gU2lnbmVkLW9mZi1ieTogQWxleCBFc3RyaW4gPGFsZXgu
-ZXN0cmluQGludGVsLmNvbT4NCj4gPj4+IC0tLQ0KPiA+Pj4gICAgZHJpdmVycy9pbmZpbmliYW5k
-L3VscC9pcG9pYi9pcG9pYl9pYi5jIHwgICAzMSArKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0t
-LS0tDQo+ID4+PiAgICAxIGZpbGVzIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKyksIDE0IGRlbGV0
-aW9ucygtKQ0KPiA+Pj4NCj4gPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvdWxw
-L2lwb2liL2lwb2liX2liLmMNCj4gPj4gYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lw
-b2liX2liLmMNCj4gPj4+IGluZGV4IDZhNzAwM2QuLjYyN2Y3NGYgMTAwNjQ0DQo+ID4+PiAtLS0g
-YS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX2liLmMNCj4gPj4+ICsrKyBiL2Ry
-aXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfaWIuYw0KPiA+Pj4gQEAgLTUyLDYgKzUy
-LDcgQEAgTU9EVUxFX1BBUk1fREVTQyhkYXRhX2RlYnVnX2xldmVsLA0KPiA+Pj4gICAgI2VuZGlm
-DQo+ID4+Pg0KPiA+Pj4gICAgc3RhdGljIERFRklORV9NVVRFWChwa2V5X211dGV4KTsNCj4gPj4+
-ICtzdGF0aWMgdm9pZCBpcG9pYl9wa2V5X2Rldl9jaGVja19wcmVzZW5jZShzdHJ1Y3QgbmV0X2Rl
-dmljZSAqZGV2KTsNCj4gPj4+DQo+ID4+PiAgICBzdHJ1Y3QgaXBvaWJfYWggKmlwb2liX2NyZWF0
-ZV9haChzdHJ1Y3QgbmV0X2RldmljZSAqZGV2LA0KPiA+Pj4gICAgCQkJCSBzdHJ1Y3QgaWJfcGQg
-KnBkLCBzdHJ1Y3QgaWJfYWhfYXR0ciAqYXR0cikNCj4gPj4+IEBAIC02NjksMTIgKzY3MCwxMyBA
-QCBpbnQgaXBvaWJfaWJfZGV2X29wZW4oc3RydWN0IG5ldF9kZXZpY2UgKmRldikNCj4gPj4+ICAg
-IAlzdHJ1Y3QgaXBvaWJfZGV2X3ByaXYgKnByaXYgPSBuZXRkZXZfcHJpdihkZXYpOw0KPiA+Pj4g
-ICAgCWludCByZXQ7DQo+ID4+Pg0KPiA+Pj4gLQlpZiAoaWJfZmluZF9wa2V5KHByaXYtPmNhLCBw
-cml2LT5wb3J0LCBwcml2LT5wa2V5LCAmcHJpdi0+cGtleV9pbmRleCkpIHsNCj4gPj4+IC0JCWlw
-b2liX3dhcm4ocHJpdiwgIlBfS2V5IDB4JTA0eCBub3QgZm91bmRcbiIsIHByaXYtPnBrZXkpOw0K
-PiA+Pj4gLQkJY2xlYXJfYml0KElQT0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncyk7DQo+
-ID4+PiArCWlwb2liX3BrZXlfZGV2X2NoZWNrX3ByZXNlbmNlKGRldik7DQo+ID4+PiArDQo+ID4+
-PiArCWlmICghdGVzdF9iaXQoSVBPSUJfUEtFWV9BU1NJR05FRCwgJnByaXYtPmZsYWdzKSkgew0K
-PiA+Pj4gKwkJaXBvaWJfd2Fybihwcml2LCAiUF9LZXkgMHglMDR4IGlzICVzXG4iLCBwcml2LT5w
-a2V5LA0KPiA+Pj4gKwkJCSEocHJpdi0+cGtleSAmIDB4N2ZmZikgPyAiSW52YWxpZCIgOiAibm90
-IGZvdW5kIik7DQo+ID4+PiAgICAJCXJldHVybiAtMTsNCj4gPj4+ICAgIAl9DQo+ID4+PiAtCXNl
-dF9iaXQoSVBPSUJfUEtFWV9BU1NJR05FRCwgJnByaXYtPmZsYWdzKTsNCj4gPj4+DQo+ID4+PiAg
-ICAJcmV0ID0gaXBvaWJfaW5pdF9xcChkZXYpOw0KPiA+Pj4gICAgCWlmIChyZXQpIHsNCj4gPj4+
-IEBAIC03MTIsOSArNzE0LDEwIEBAIGRldl9zdG9wOg0KPiA+Pj4gICAgc3RhdGljIHZvaWQgaXBv
-aWJfcGtleV9kZXZfY2hlY2tfcHJlc2VuY2Uoc3RydWN0IG5ldF9kZXZpY2UgKmRldikNCj4gPj4+
-ICAgIHsNCj4gPj4+ICAgIAlzdHJ1Y3QgaXBvaWJfZGV2X3ByaXYgKnByaXYgPSBuZXRkZXZfcHJp
-dihkZXYpOw0KPiA+Pj4gLQl1MTYgcGtleV9pbmRleCA9IDA7DQo+ID4+Pg0KPiA+Pj4gLQlpZiAo
-aWJfZmluZF9wa2V5KHByaXYtPmNhLCBwcml2LT5wb3J0LCBwcml2LT5wa2V5LCAmcGtleV9pbmRl
-eCkpDQo+ID4+PiArCWlmICghKHByaXYtPnBrZXkgJiAweDdmZmYpIHx8DQo+ID4+PiArCQlpYl9m
-aW5kX3BrZXkocHJpdi0+Y2EsIHByaXYtPnBvcnQsIHByaXYtPnBrZXksDQo+ID4+PiArCQkJCSZw
-cml2LT5wa2V5X2luZGV4KSkNCj4gPj4+ICAgIAkJY2xlYXJfYml0KElQT0lCX1BLRVlfQVNTSUdO
-RUQsICZwcml2LT5mbGFncyk7DQo+ID4+PiAgICAJZWxzZQ0KPiA+Pj4gICAgCQlzZXRfYml0KElQ
-T0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncyk7DQo+ID4+PiBAQCAtOTg3LDEyICs5OTAs
-MTAgQEAgc3RhdGljIHZvaWQgX19pcG9pYl9pYl9kZXZfZmx1c2goc3RydWN0IGlwb2liX2Rldl9w
-cml2DQo+ICpwcml2LA0KPiA+Pj4gICAgCXVwX3JlYWQoJnByaXYtPnZsYW5fcndzZW0pOw0KPiA+
-Pj4NCj4gPj4+ICAgIAlpZiAoIXRlc3RfYml0KElQT0lCX0ZMQUdfSU5JVElBTElaRUQsICZwcml2
-LT5mbGFncykpIHsNCj4gPj4+IC0JCS8qIGZvciBub24tY2hpbGQgZGV2aWNlcyBtdXN0IGNoZWNr
-L3VwZGF0ZSB0aGUgcGtleSB2YWx1ZSBoZXJlICovDQo+ID4+PiAtCQlpZiAobGV2ZWwgPT0gSVBP
-SUJfRkxVU0hfSEVBVlkgJiYNCj4gPj4+IC0JCSAgICAhdGVzdF9iaXQoSVBPSUJfRkxBR19TVUJJ
-TlRFUkZBQ0UsICZwcml2LT5mbGFncykpDQo+ID4+PiAtCQkJdXBkYXRlX3BhcmVudF9wa2V5KHBy
-aXYpOw0KPiA+Pj4gLQkJaXBvaWJfZGJnKHByaXYsICJOb3QgZmx1c2hpbmcgLSBJUE9JQl9GTEFH
-X0lOSVRJQUxJWkVEIG5vdCBzZXQuXG4iKTsNCj4gPj4+IC0JCXJldHVybjsNCj4gPj4+ICsJCWlm
-IChsZXZlbCA8IElQT0lCX0ZMVVNIX0hFQVZZKSB7DQo+ID4+PiArCQkJaXBvaWJfZGJnKHByaXYs
-ICJOb3QgZmx1c2hpbmcgLSBJUE9JQl9GTEFHX0lOSVRJQUxJWkVEIG5vdA0KPiA+PiBzZXQuXG4i
-KTsNCj4gPj4+ICsJCQlyZXR1cm47DQo+ID4+PiArCQl9DQo+ID4+PiAgICAJfQ0KPiA+Pj4NCj4g
-Pj4gSSB0aGluayB0aGF0IElmIHlvdSB0YWtlIHRoZXNlIGxpbmVzIGFuZCB0aGUgSVBPQl9GTEFH
-X0FETUlOX1VQIGlzIG5vdA0KPiA+PiBzZXQsIHlvdSB3aWxsIG1pc3MgdGhhdCBldmVudCBhbmQg
-d2lsbCBub3QgcmVhZCB0aGUgcGtleSBpbiBpbmRleCAwLg0KPiA+PiBUaGUgYXNzdW1wdGlvbiBp
-cyB0aGF0IEZMQUdfSU5JVElBTElaRUQgImNvbWVzIGFmdGVyIiBBRE1JTl9VUCBzbywgeW91DQo+
-ID4+IGNhbiBmaW5kIGEgY2FzZSB3aGVyZSBib3RoIG9mIHRoZW0gYXJlIG5vdCBzZXQsIHRoZSBt
-YWluIGlkZWEgaXMgbm8NCj4gPj4gbWF0aGVyIHdoYXQgaXMgdGhlIHByaXYgc3RhdGUgdGhlIGRy
-aXZlciBzaG91bGQgaGFuZGxlIHRoZSBQS0VZX0NIQU5HRQ0KPiA+PiBldmVudC4NCj4gPiBUaGUg
-b25seSBvbmUgc2NlbmFyaW8gSSBjb3VsZCB0aGluayBvZiB3aGVuIGV2ZW50IGhhbmRsZXIgaXMg
-cmVnaXN0ZXJlZCwNCj4gPiBidXQgQURNSU5fVVAgaXMgbm90IHNldCB5ZXQsIGlzIHdoZW4gdGhl
-IGRyaXZlciBvbiBpdHMgd2F5IHVwLCBiZWZvcmUgaXBvaWJfb3BlbigpLg0KPiA+IFBsZWFzZSBu
-b3RlLCBieSB0aGF0IHBvaW50IGRyaXZlciBhbHJlYWR5IGhhcyBkb25lIGl0cyBwa2V5IGlkeCAw
-IHF1ZXJ5Lg0KPiA+IFRoZW4sIGlmIHBrZXkgaXMgaW52YWxpZCwgIGlwb2liX29wZW4oKSBjb21w
-bGV0aW9uICB3aWxsIGJlIGRlbGF5ZWQgdW50aWwgcGtleSBpcyBnb29kDQo+ID4gICAoIHBsZWFz
-ZSBzZWUgaXBvaWJfcGtleV9kZXZfZGVsYXlfb3BlbiAoKSkuDQo+ID4gSWYgQURNSU5fVVAgaXMg
-c3RpbGwgbm90IHNldCBhZnRlciBpcG9pYl9vcGVuKCkgLCB0aGVuIHRoZSBkcml2ZXIvaW50ZXJm
-YWNlIGlzIGhvc2VkDQo+ID4gYW5kIGluICBtdWNoIGJpZ2dlciB0cm91YmxlICh3aGljaCBpcyB2
-ZXJ5IHVubGlrZWx5KS4NCj4gPiBXb3VsZCB5b3UgcGxlYXNlICBkZXNjcmliZSAgcG90ZW50aWFs
-IGNhc2Uvc2NlbmFyaW8geW91IGFyZSBhd2FyZSBvZj8NCj4gPg0KPiA+Pj4gICAgCWlmICghdGVz
-dF9iaXQoSVBPSUJfRkxBR19BRE1JTl9VUCwgJnByaXYtPmZsYWdzKSkgew0KPiA+Pj4gQEAgLTEw
-MzgsOCArMTAzOSwxMCBAQCBzdGF0aWMgdm9pZCBfX2lwb2liX2liX2Rldl9mbHVzaChzdHJ1Y3Qg
-aXBvaWJfZGV2X3ByaXYNCj4gKnByaXYsDQo+ID4+PiAgICAJCWlwb2liX2liX2Rldl9kb3duKGRl
-diwgMCk7DQo+ID4+Pg0KPiA+Pj4gICAgCWlmIChsZXZlbCA9PSBJUE9JQl9GTFVTSF9IRUFWWSkg
-ew0KPiA+Pj4gLQkJaXBvaWJfaWJfZGV2X3N0b3AoZGV2LCAwKTsNCj4gPj4+IC0JCWlwb2liX2li
-X2Rldl9vcGVuKGRldik7DQo+ID4+PiArCQlpZiAodGVzdF9iaXQoSVBPSUJfRkxBR19JTklUSUFM
-SVpFRCwgJnByaXYtPmZsYWdzKSkNCj4gPj4+ICsJCQlpcG9pYl9pYl9kZXZfc3RvcChkZXYsIDAp
-Ow0KPiA+Pj4gKwkJaWYgKGlwb2liX2liX2Rldl9vcGVuKGRldikgIT0gMCkNCj4gPj4+ICsJCQly
-ZXR1cm47DQo+ID4+PiAgICAJfQ0KPiA+Pj4NCj4gPj4+ICAgIAkvKg0KPiA+Pj4NCj4gPj4+IC0t
-DQo+ID4+PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5z
-dWJzY3JpYmUgbGludXgtcmRtYSIgaW4NCj4gPj4+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBt
-YWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4+PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBo
-dHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPj4+DQo+IA0KPiAt
-LQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJz
-Y3JpYmUgbGludXgtcmRtYSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
-b0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
-a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Hi Linus,
+
+Please pull from
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git=
+ tags/rdma-for-linus
+
+----------------------------------------------------------------
+
+Main batch of InfiniBand/RDMA changes for 3.16:
+
+ - Add iWARP port mapper to avoid conflicts between RDMA and normal
+   stack TCP connections.
+
+ - Fixes for i386 / x86-64 structure padding differences (ABI
+   compatibility for 32-on-64) from Yann Droneaud.
+
+ - A pile of SRP initiator fixes from Bart Van Assche.
+
+ - Fixes for a writeback / memory allocation deadlock with NFS over
+   IPoIB connected mode from Jiri Kosina.
+
+ - The usual fixes and cleanups to mlx4, mlx5, cxgb4 and other
+   low-level drivers.
+
+----------------------------------------------------------------
+Ariel Nahum (2):
+      IB/iser: Simplify connection management
+      IB/iser: Fix a possible race in iser connection states transition
+
+Bart Van Assche (11):
+      IB/srp: Fix a sporadic crash triggered by cable pulling
+      IB/srp: Fix kernel-doc warnings
+      IB/srp: Introduce an additional local variable
+      IB/srp: Introduce srp_map_fmr()
+      IB/srp: Introduce srp_finish_mapping()
+      IB/srp: Introduce the 'register_always' kernel module parameter
+      IB/srp: One FMR pool per SRP connection
+      IB/srp: Rename FMR-related variables
+      IB/srp: Add fast registration support
+      IB/umad: Fix error handling
+      IB/umad: Fix use-after-free on close
+
+Christoph Jaeger (1):
+      RDMA/cxgb4: Fix memory leaks in c4iw_alloc() error paths
+
+Colin Ian King (1):
+      IB/mlx4: fix unitialised variable is_mcast
+
+Dan Carpenter (2):
+      RDMA/cxgb3: Fix information leak in send_abort()
+      RDMA/cxgb3: Remove a couple unneeded conditions
+
+Dennis Dalessandro (1):
+      IB/ipath: Translate legacy diagpkt into newer extended diagpkt
+
+Dotan Barak (1):
+      mlx4_core: Fix memory leaks in SR-IOV error paths
+
+Duan Jiong (1):
+      RDMA/ocrdma: Convert to use simple_open()
+
+Haggai Eran (7):
+      IB/mlx5: Fix error handling in reg_umr
+      IB/mlx5: Add MR to radix tree in reg_mr_callback
+      mlx5_core: Store MR attributes in mlx5_mr_core during creation an=
+d after UMR
+      IB/mlx5: Set QP offsets and parameters for user QPs and not just =
+for kernel QPs
+      IB/core: Remove unneeded kobject_get/put calls
+      IB/core: Fix port kobject deletion during error flow
+      IB/core: Fix kobject leak on device register error flow
+
+Jack Morgenstein (5):
+      mlx4_core: Fix incorrect FLAGS1 bitmap test in mlx4_QUERY_FUNC_CA=
+P
+      IB/mlx4: SET_PORT called by mlx4_ib_modify_port should be wrapped
+      IB/mlx4: Preparation for VFs to issue/receive SMI (QP0) requests/=
+responses
+      mlx4: Add infrastructure for selecting VFs to enable QP0 via MLX =
+proxy QPs
+      IB/mlx4: Add interface for selecting VFs to enable QP0 via MLX pr=
+oxy QPs
+
+Jiri Kosina (2):
+      IB/mlx4: Implement IB_QP_CREATE_USE_GFP_NOIO
+      IB/mlx4: Fix gfp passing in create_qp_common()
+
+Joe Perches (1):
+      IB/srp: Avoid problems if a header uses pr_fmt
+
+Manuel Sch=C3=B6lling (1):
+      IB/ipath: Use time_before()/_after()
+
+Mike Marciniszyn (1):
+      IB/qib: Fix port in pkey change event
+
+Or Gerlitz (3):
+      IB/iser: Bump version to 1.4
+      IB: Return error for unsupported QP creation flags
+      IB: Add a QP creation flag to use GFP_NOIO allocations
+
+Roi Dayan (1):
+      IB/iser: Add missing newlines to logging messages
+
+Roland Dreier (6):
+      IB/mlx5: Fix warning about cast of wr_id back to pointer on 32 bi=
+ts
+      mlx4_core: Move handling of MLX4_QP_ST_MLX to proper switch state=
+ment
+      IB/mad: Fix sparse warning about gfp_t use
+      IB/core: Fix sparse warnings about redeclared functions
+      mlx4_core: Fix GFP flags parameters to be gfp_t
+      Merge branches 'core', 'cxgb3', 'cxgb4', 'iser', 'iwpm', 'misc', =
+'mlx4', 'mlx5', 'noio', 'ocrdma', 'qib', 'srp' and 'usnic' into for-nex=
+t
+
+Sagi Grimberg (3):
+      mlx5_core: Fix signature handover operation for interleaved buffe=
+rs
+      mlx5_core: Simplify signature handover wqe for interleaved buffer=
+s
+      mlx5_core: Copy DIF fields only when input and output space value=
+s match
+
+Shachar Raindel (1):
+      IB/mlx5: Refactor UMR to have its own context struct
+
+Steve Wise (2):
+      RDMA/cxgb4: Fix vlan support
+      RDMA/cxgb4: Add support for iWARP Port Mapper user space service
+
+Tatyana Nikolova (2):
+      RDMA/core: Add support for iWARP Port Mapper user space service
+      RDMA/nes: Add support for iWARP Port Mapper user space service
+
+Upinder Malhi (1):
+      IB/usnic: Fix source file missing copyright and license
+
+Vinit Agnihotri (1):
+      IB/qib: Additional Intel branding changes
+
+Yann Droneaud (5):
+      IB/mlx5: add missing padding at end of struct mlx5_ib_create_cq
+      IB/mlx5: add missing padding at end of struct mlx5_ib_create_srq
+      RDMA/cxgb4: Add missing padding at end of struct c4iw_create_cq_r=
+esp
+      IB: Allow build of hw/ and ulp/ subdirectories independently
+      RDMA/cxgb4: add missing padding at end of struct c4iw_alloc_ucont=
+ext_resp
+
+ drivers/infiniband/Makefile                        |  19 +-
+ drivers/infiniband/core/Makefile                   |   2 +-
+ drivers/infiniband/core/cma.c                      |   3 +-
+ drivers/infiniband/core/iwpm_msg.c                 | 685 +++++++++++++=
+++++++++
+ drivers/infiniband/core/iwpm_util.c                | 607 +++++++++++++=
++++++
+ drivers/infiniband/core/iwpm_util.h                | 238 +++++++
+ drivers/infiniband/core/netlink.c                  |  18 +-
+ drivers/infiniband/core/sa_query.c                 |   2 +-
+ drivers/infiniband/core/sysfs.c                    |  85 +--
+ drivers/infiniband/core/user_mad.c                 |  75 ++-
+ drivers/infiniband/core/verbs.c                    |   8 +-
+ drivers/infiniband/hw/Makefile                     |  12 +
+ drivers/infiniband/hw/cxgb3/cxio_hal.c             |   6 +-
+ drivers/infiniband/hw/cxgb3/iwch_cm.c              |   1 +
+ drivers/infiniband/hw/cxgb4/cm.c                   | 197 ++++--
+ drivers/infiniband/hw/cxgb4/cq.c                   |   4 +-
+ drivers/infiniband/hw/cxgb4/device.c               |  83 ++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h             |  44 ++
+ drivers/infiniband/hw/cxgb4/provider.c             |   5 +-
+ drivers/infiniband/hw/cxgb4/user.h                 |   2 +
+ drivers/infiniband/hw/ipath/ipath_diag.c           |   4 +
+ drivers/infiniband/hw/ipath/ipath_intr.c           |   4 +-
+ drivers/infiniband/hw/ipath/ipath_sdma.c           |   4 +-
+ drivers/infiniband/hw/mlx4/ah.c                    |   2 +-
+ drivers/infiniband/hw/mlx4/cq.c                    |   6 +-
+ drivers/infiniband/hw/mlx4/mad.c                   |  40 +-
+ drivers/infiniband/hw/mlx4/main.c                  |  26 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |   1 +
+ drivers/infiniband/hw/mlx4/qp.c                    | 102 +--
+ drivers/infiniband/hw/mlx4/srq.c                   |   7 +-
+ drivers/infiniband/hw/mlx4/sysfs.c                 | 105 +++-
+ drivers/infiniband/hw/mlx5/cq.c                    |  13 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  13 +-
+ drivers/infiniband/hw/mlx5/mr.c                    |  76 ++-
+ drivers/infiniband/hw/mlx5/qp.c                    |  42 +-
+ drivers/infiniband/hw/mlx5/srq.c                   |  14 +-
+ drivers/infiniband/hw/mlx5/user.h                  |   2 +
+ drivers/infiniband/hw/nes/nes.c                    |  25 +-
+ drivers/infiniband/hw/nes/nes.h                    |   3 +
+ drivers/infiniband/hw/nes/nes_cm.c                 | 320 ++++++++--
+ drivers/infiniband/hw/nes/nes_cm.h                 |  12 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c        |   9 +-
+ drivers/infiniband/hw/qib/qib_init.c               |   8 +-
+ drivers/infiniband/hw/qib/qib_mad.c                |   2 +-
+ drivers/infiniband/hw/qib/qib_qp.c                 |   3 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |   3 +
+ .../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  18 +
+ drivers/infiniband/ulp/Makefile                    |   5 +
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c            |  18 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.c           | 105 ++--
+ drivers/infiniband/ulp/iser/iscsi_iser.h           |  10 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c           |  89 ++-
+ drivers/infiniband/ulp/srp/ib_srp.c                | 672 +++++++++++++=
+++-----
+ drivers/infiniband/ulp/srp/ib_srp.h                |  94 ++-
+ drivers/net/ethernet/mellanox/mlx4/alloc.c         |  27 +-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c           |  92 ++-
+ drivers/net/ethernet/mellanox/mlx4/cq.c            |   4 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c         |   6 +-
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c         |   2 +-
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |  46 +-
+ drivers/net/ethernet/mellanox/mlx4/fw.h            |   1 +
+ drivers/net/ethernet/mellanox/mlx4/icm.c           |   7 +-
+ drivers/net/ethernet/mellanox/mlx4/icm.h           |   3 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c          |  30 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |  12 +-
+ drivers/net/ethernet/mellanox/mlx4/mr.c            |  17 +-
+ drivers/net/ethernet/mellanox/mlx4/qp.c            |  20 +-
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  30 +-
+ drivers/net/ethernet/mellanox/mlx4/srq.c           |   4 +-
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c       |   4 +
+ include/linux/mlx4/device.h                        |  15 +-
+ include/linux/mlx5/driver.h                        |   1 -
+ include/rdma/ib_verbs.h                            |  11 +-
+ include/rdma/iw_portmap.h                          | 199 ++++++
+ include/rdma/rdma_netlink.h                        |  23 +-
+ include/uapi/rdma/rdma_netlink.h                   |  96 ++-
+ 76 files changed, 3870 insertions(+), 733 deletions(-)
+ create mode 100644 drivers/infiniband/core/iwpm_msg.c
+ create mode 100644 drivers/infiniband/core/iwpm_util.c
+ create mode 100644 drivers/infiniband/core/iwpm_util.h
+ create mode 100644 drivers/infiniband/hw/Makefile
+ create mode 100644 drivers/infiniband/ulp/Makefile
+ create mode 100644 include/rdma/iw_portmap.h
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
