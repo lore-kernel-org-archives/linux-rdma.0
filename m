@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 for-next 11/16] RDMA/ocrdma: Return proper value for max_mr_size
-Date: Tue, 10 Jun 2014 19:32:22 +0530
-Message-ID: <0e2fa1ad-9970-45b7-b755-14fa675341ab@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH v1 for-next 12/16] RDMA/ocrdma : Add missing adapter mailbox opcodes
+Date: Tue, 10 Jun 2014 19:32:23 +0530
+Message-ID: <32b3ba28-2c4d-48a3-9a94-6d7fa974a745@CMEXHTCAS1.ad.emulex.com>
 References: <1402408947-2074-1-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-2-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-3-git-send-email-selvin.xavier@emulex.com>
@@ -13,69 +13,98 @@ References: <1402408947-2074-1-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-9-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-10-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-11-git-send-email-selvin.xavier@emulex.com>
+ <1402408947-2074-12-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1402408947-2074-11-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1402408947-2074-12-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>
+Fixing the Statistics command opcode. Also specifying the
+opcode of each command for better readablilty.
 
-Update the max_mr_size with proper value. Corrected the response structure
-of query config mailbox command.
-
-Signed-off-by: Mitesh Ahuja <mitesh.ahuja-HfQkIhtri/DQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    3 ++-
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h |   62 +++++++++++++++-------------
+ 1 files changed, 33 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 5b6e9d9..105659d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1088,7 +1088,8 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT;
- 	attr->max_mw = rsp->max_mw;
- 	attr->max_mr = rsp->max_mr;
--	attr->max_mr_size = ~0ull;
-+	attr->max_mr_size = ((u64)rsp->max_mr_size_hi << 32) |
-+			      rsp->max_mr_size_lo;
- 	attr->max_fmr = 0;
- 	attr->max_pages_per_frmr = rsp->max_pages_per_frmr;
- 	attr->max_num_mr_pbl = rsp->max_num_mr_pbl;
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 14a84b2..3cb88f0 100644
+index 3cb88f0..a20d348 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -530,8 +530,8 @@ struct ocrdma_mbx_query_config {
- 	u32 max_ird_ord_per_qp;
- 	u32 max_shared_ird_ord;
- 	u32 max_mr;
--	u32 max_mr_size_lo;
- 	u32 max_mr_size_hi;
-+	u32 max_mr_size_lo;
- 	u32 max_num_mr_pbl;
- 	u32 max_mw;
- 	u32 max_fmr;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 8cd16a1..90152de 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -69,7 +69,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
- 	memcpy(&attr->fw_ver, &dev->attr.fw_ver[0],
- 	       min(sizeof(dev->attr.fw_ver), sizeof(attr->fw_ver)));
- 	ocrdma_get_guid(dev, (u8 *)&attr->sys_image_guid);
--	attr->max_mr_size = ~0ull;
-+	attr->max_mr_size = dev->attr.max_mr_size;
- 	attr->page_size_cap = 0xffff000;
- 	attr->vendor_id = dev->nic_info.pdev->vendor;
- 	attr->vendor_part_id = dev->nic_info.pdev->device;
+@@ -44,35 +44,39 @@ enum {
+ #define OCRDMA_SUBSYS_ROCE 10
+ enum {
+ 	OCRDMA_CMD_QUERY_CONFIG = 1,
+-	OCRDMA_CMD_ALLOC_PD,
+-	OCRDMA_CMD_DEALLOC_PD,
+-
+-	OCRDMA_CMD_CREATE_AH_TBL,
+-	OCRDMA_CMD_DELETE_AH_TBL,
+-
+-	OCRDMA_CMD_CREATE_QP,
+-	OCRDMA_CMD_QUERY_QP,
+-	OCRDMA_CMD_MODIFY_QP,
+-	OCRDMA_CMD_DELETE_QP,
+-
+-	OCRDMA_CMD_RSVD1,
+-	OCRDMA_CMD_ALLOC_LKEY,
+-	OCRDMA_CMD_DEALLOC_LKEY,
+-	OCRDMA_CMD_REGISTER_NSMR,
+-	OCRDMA_CMD_REREGISTER_NSMR,
+-	OCRDMA_CMD_REGISTER_NSMR_CONT,
+-	OCRDMA_CMD_QUERY_NSMR,
+-	OCRDMA_CMD_ALLOC_MW,
+-	OCRDMA_CMD_QUERY_MW,
+-
+-	OCRDMA_CMD_CREATE_SRQ,
+-	OCRDMA_CMD_QUERY_SRQ,
+-	OCRDMA_CMD_MODIFY_SRQ,
+-	OCRDMA_CMD_DELETE_SRQ,
+-
+-	OCRDMA_CMD_ATTACH_MCAST,
+-	OCRDMA_CMD_DETACH_MCAST,
+-	OCRDMA_CMD_GET_RDMA_STATS,
++	OCRDMA_CMD_ALLOC_PD = 2,
++	OCRDMA_CMD_DEALLOC_PD = 3,
++
++	OCRDMA_CMD_CREATE_AH_TBL = 4,
++	OCRDMA_CMD_DELETE_AH_TBL = 5,
++
++	OCRDMA_CMD_CREATE_QP = 6,
++	OCRDMA_CMD_QUERY_QP = 7,
++	OCRDMA_CMD_MODIFY_QP = 8 ,
++	OCRDMA_CMD_DELETE_QP = 9,
++
++	OCRDMA_CMD_RSVD1 = 10,
++	OCRDMA_CMD_ALLOC_LKEY = 11,
++	OCRDMA_CMD_DEALLOC_LKEY = 12,
++	OCRDMA_CMD_REGISTER_NSMR = 13,
++	OCRDMA_CMD_REREGISTER_NSMR = 14,
++	OCRDMA_CMD_REGISTER_NSMR_CONT = 15,
++	OCRDMA_CMD_QUERY_NSMR = 16,
++	OCRDMA_CMD_ALLOC_MW = 17,
++	OCRDMA_CMD_QUERY_MW = 18,
++
++	OCRDMA_CMD_CREATE_SRQ = 19,
++	OCRDMA_CMD_QUERY_SRQ = 20,
++	OCRDMA_CMD_MODIFY_SRQ = 21,
++	OCRDMA_CMD_DELETE_SRQ = 22,
++
++	OCRDMA_CMD_ATTACH_MCAST = 23,
++	OCRDMA_CMD_DETACH_MCAST = 24,
++
++	OCRDMA_CMD_CREATE_RBQ = 25,
++	OCRDMA_CMD_DESTROY_RBQ = 26,
++
++	OCRDMA_CMD_GET_RDMA_STATS = 27,
+ 
+ 	OCRDMA_CMD_MAX
+ };
 -- 
 1.6.0.2
 
