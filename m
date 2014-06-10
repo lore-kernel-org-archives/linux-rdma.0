@@ -1,123 +1,86 @@
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/1] IPoIB: Improve parent interface p_key handling.
-Date: Mon, 09 Jun 2014 17:55:07 -0400
-Message-ID: <20140609215507.24166.94407.stgit@phlsvlogin03.ph.intel.com>
+From: PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>
+Subject: Re: FW: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
+Date: Mon, 9 Jun 2014 17:08:09 -0700
+Message-ID: <CAEmgqz2HtEJ1ho0rS4xR7ud6YgFfeAvR8uD8MgPjVhw=E9PFEg@mail.gmail.com>
+References: <20140326220718.GA8784@TENIKOLO-MOBL1>
+	<CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg@mail.gmail.com>
+	<20140609165105.GB1816@obsidianresearch.com>
+	<004501cf840e$6cf0c240$46d246c0$@opengridcomputing.com>
+	<20140609184207.GA534@obsidianresearch.com>
+	<2ABFA3E36CBB794685BFBA191CC1964952C605CB@FMSMSX105.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2ABFA3E36CBB794685BFBA191CC1964952C605CB-AtyAts71sc9qS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
+Cc: "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-With reference to commit c2904141696ee19551f1553944446f23cdd5d95e.
-It was noticed that parent interface keeps sending broadcast group
-join requests if p_key index 0 is invalid. That creates unnecessary
-noise on a fabric:
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> Sent: Monday, June 09, 2014 1:42 PM
+> To: Steve Wise
+> Cc: 'Or Gerlitz'; Nikolova, Tatyana E; 'Roland Dreier'; Lacombe, John S; Hefty, Sean; 'linux-rdma'
+> Subject: Re: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
+>
+> On Mon, Jun 09, 2014 at 01:12:50PM -0500, Steve Wise wrote:
+>
+> > > > 1. kernel rdma driver tells a user space daemon they want to
+> > > > reserve
+> > > > (claim) the combination of IP address X and TCP port Y for the
+> > > > sake of RDMA connections
+> > > >
+> > > > 2. user space daemon opens a socket and binds to X:Y
+> > > >
+> > > > Specifically, down the road, more use cases, not only the current
+> > > > iWARP case may pop up.
+> > >
+> > > This really seems horrible, using user space to circumvent the
+> > > kernel stack because kernel maintainers don't want this kind of
+> > > integration is not going to make people very happy.
+> > >
+> > > IIRC the patch set that tried to do this directly in the kernel was
+> > > NAK'd, adding a userspace round trip doesn't really change anything.
+>
+> > The patch set you refer to tried to _unify_ the port space and was
+> > rejected.  The only other alternative is to pick ephemeral ports and
+> > maintain a mapping for RDMA services.
+>
+> I thought both approaches were tried in kernel and NAK'd by netdev?
+> This looks very similar to the 2010 patchset, except the dummy socket allocation is living in userspace in this version.
 
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
-status -22
+This was something I presented and discussed at NetConf 2011 with
+David and other netdev core folks:
+http://vger.kernel.org/netconf2011.html.  The main issue David had
+with the original approach was the socket was being consumed by
+something else inside the kernel.  It circumvented the TCP socket
+allocation/reservation code, which was frowned upon.
 
-Proposed patch re-init resources, then brings interface
-up only if p_key idx 0 is valid either on bootup or on PKEY_CHANGE event.
-Original code could run multicast task regardless of p_key value,
-which we want to avoid.
+The compromise we came up with is the approach in this patchset.  As
+long as the socket is claimed via userspace, David had no problem with
+the approach.
 
-Modified event handler will utilize following strategy:
-if interface is not initialized and event is not PKEY_CHANGE related - return.
-call update_parent_pkey() -> if pkey hasn't changed - return.
-if interface is initialized
-        flush it -> call ipoib_ib_dev_stop() - de-initialized.
-Then start multicast task only if ipoib_ib_dev_open() has succeeded, reinitialized,
-i.e. p_key is valid.
+> Again, from here, this looks like another patch to do an end-run around netdev's NAK by hiding the offending stuff in userspace. That is no good either...
 
-Changes from v1:
-p_key check for 'Invalid' value was moved to
-ipoib_pkey_dev_check_presence() that is used now in ipoib_ib_dev_open()
-for p_key validation.
-Whitespace and format adjusted.
+See above.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   31 +++++++++++++++++--------------
- 1 files changed, 17 insertions(+), 14 deletions(-)
+> > > The message from netdev has, IMHO, always been pretty clear -
+> > > offload can live in it's own little side world but cannot appear to
+> > > the user to be integrated to the main stack (because it isn't).
+> >
+> > That is what this design does...
+>
+> Not really, it is still sharing an IP used by the main stack, otherwise you wouldn't have this problem in the first place.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 6a7003d..627f74f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -52,6 +52,7 @@ MODULE_PARM_DESC(data_debug_level,
- #endif
- 
- static DEFINE_MUTEX(pkey_mutex);
-+static void ipoib_pkey_dev_check_presence(struct net_device *dev);
- 
- struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
- 				 struct ib_pd *pd, struct ib_ah_attr *attr)
-@@ -669,12 +670,13 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
--		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
--		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+	ipoib_pkey_dev_check_presence(dev);
-+
-+	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
-+		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
-+			!(priv->pkey & 0x7fff) ? "Invalid" : "not found");
- 		return -1;
- 	}
--	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 
- 	ret = ipoib_init_qp(dev);
- 	if (ret) {
-@@ -712,9 +714,10 @@ dev_stop:
- static void ipoib_pkey_dev_check_presence(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	u16 pkey_index = 0;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
-+	if (!(priv->pkey & 0x7fff) ||
-+		ib_find_pkey(priv->ca, priv->port, priv->pkey,
-+				&priv->pkey_index))
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	else
- 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -987,12 +990,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 	up_read(&priv->vlan_rwsem);
- 
- 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
--		/* for non-child devices must check/update the pkey value here */
--		if (level == IPOIB_FLUSH_HEAVY &&
--		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
--			update_parent_pkey(priv);
--		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
--		return;
-+		if (level < IPOIB_FLUSH_HEAVY) {
-+			ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
-+			return;
-+		}
- 	}
- 
- 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
-@@ -1038,8 +1039,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		ipoib_ib_dev_down(dev, 0);
- 
- 	if (level == IPOIB_FLUSH_HEAVY) {
--		ipoib_ib_dev_stop(dev, 0);
--		ipoib_ib_dev_open(dev);
-+		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
-+			ipoib_ib_dev_stop(dev, 0);
-+		if (ipoib_ib_dev_open(dev) != 0)
-+			return;
- 	}
- 
- 	/*
+The reason we didn't back down from having separate IP's is because
+there are customers using iWARP that want the traffic converged, using
+a single IP.  This approach is the best way we came up with as a
+group, it just took a bit of time to get headcount onto it and
+developed/tested.
 
+Cheers,
+-PJ
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
