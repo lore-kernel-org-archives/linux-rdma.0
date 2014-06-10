@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 for-next 15/16] RDMA/ocrdma: Fixing a sparse warning
-Date: Tue, 10 Jun 2014 19:32:26 +0530
-Message-ID: <d42bdd58-065a-4cc8-a729-9ade5098c61b@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH v1 for-next 16/16] RDMA/ocrdma: Update the ocrdma module version string
+Date: Tue, 10 Jun 2014 19:32:27 +0530
+Message-ID: <f301d39a-4ecf-4ca8-8c72-dee30c1257b4@CMEXHTCAS1.ad.emulex.com>
 References: <1402408947-2074-1-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-2-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-3-git-send-email-selvin.xavier@emulex.com>
@@ -17,44 +17,36 @@ References: <1402408947-2074-1-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-13-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-14-git-send-email-selvin.xavier@emulex.com>
  <1402408947-2074-15-git-send-email-selvin.xavier@emulex.com>
+ <1402408947-2074-16-git-send-email-selvin.xavier@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1402408947-2074-15-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1402408947-2074-16-git-send-email-selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixing the warning about the usage of plain integer as NULL pointer
+Updating the ocrdma driver version string
 
 Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 105659d..a4d27c7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -661,7 +661,7 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
- {
- 	struct ocrdma_qp *qp = NULL;
- 	struct ocrdma_cq *cq = NULL;
--	struct ib_event ib_evt = { 0 };
-+	struct ib_event ib_evt;
- 	int cq_event = 0;
- 	int qp_event = 1;
- 	int srq_event = 0;
-@@ -674,6 +674,8 @@ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
- 	if (cqe->cqvalid_cqid & OCRDMA_AE_MCQE_CQVALID)
- 		cq = dev->cq_tbl[cqe->cqvalid_cqid & OCRDMA_AE_MCQE_CQID_MASK];
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index 5716513..b43456a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -40,7 +40,7 @@
+ #include <be_roce.h>
+ #include "ocrdma_sli.h"
  
-+	memset(&ib_evt, 0, sizeof(ib_evt));
-+
- 	ib_evt.device = &dev->ibdev;
+-#define OCRDMA_ROCE_DRV_VERSION "10.2.145.0u"
++#define OCRDMA_ROCE_DRV_VERSION "10.2.287.0u"
  
- 	switch (type) {
+ #define OCRDMA_ROCE_DRV_DESC "Emulex OneConnect RoCE Driver"
+ #define OCRDMA_NODE_DESC "Emulex OneConnect RoCE HCA"
 -- 
 1.6.0.2
 
