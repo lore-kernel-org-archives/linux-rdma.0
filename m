@@ -1,86 +1,42 @@
-From: PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>
-Subject: Re: FW: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
-Date: Mon, 9 Jun 2014 17:08:09 -0700
-Message-ID: <CAEmgqz2HtEJ1ho0rS4xR7ud6YgFfeAvR8uD8MgPjVhw=E9PFEg@mail.gmail.com>
-References: <20140326220718.GA8784@TENIKOLO-MOBL1>
-	<CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg@mail.gmail.com>
-	<20140609165105.GB1816@obsidianresearch.com>
-	<004501cf840e$6cf0c240$46d246c0$@opengridcomputing.com>
-	<20140609184207.GA534@obsidianresearch.com>
-	<2ABFA3E36CBB794685BFBA191CC1964952C605CB@FMSMSX105.amr.corp.intel.com>
+From: Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 00/15] Bug fixes for ocrdma driver
+Date: Tue, 10 Jun 2014 01:37:40 +0000
+Message-ID: <36AE2E863FF33A4F9FBBE296E34DBC8F3C2B9703@CMEXMB1.ad.emulex.com>
+References: <fc0ae2c3-2661-48ba-957a-66cbb0cfc33e@CMEXHTCAS1.ad.emulex.com>
+	<538F4B66.6080906@opengridcomputing.com>
+	<CAG4TOxMbXJeq848LuzJvsz23th4Wh7NZ6qT9o+pdv4fOdu=o=Q@mail.gmail.com>
+ <CAJZOPZLqmq1XMoyjv0OMTv8iX0Otvo=bm-rrwa3EfupUYgyGKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2ABFA3E36CBB794685BFBA191CC1964952C605CB-AtyAts71sc9qS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAJZOPZLqmq1XMoyjv0OMTv8iX0Otvo=bm-rrwa3EfupUYgyGKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-Cc: "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Monday, June 09, 2014 1:42 PM
-> To: Steve Wise
-> Cc: 'Or Gerlitz'; Nikolova, Tatyana E; 'Roland Dreier'; Lacombe, John S; Hefty, Sean; 'linux-rdma'
-> Subject: Re: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
->
-> On Mon, Jun 09, 2014 at 01:12:50PM -0500, Steve Wise wrote:
->
-> > > > 1. kernel rdma driver tells a user space daemon they want to
-> > > > reserve
-> > > > (claim) the combination of IP address X and TCP port Y for the
-> > > > sake of RDMA connections
-> > > >
-> > > > 2. user space daemon opens a socket and binds to X:Y
-> > > >
-> > > > Specifically, down the road, more use cases, not only the current
-> > > > iWARP case may pop up.
-> > >
-> > > This really seems horrible, using user space to circumvent the
-> > > kernel stack because kernel maintainers don't want this kind of
-> > > integration is not going to make people very happy.
-> > >
-> > > IIRC the patch set that tried to do this directly in the kernel was
-> > > NAK'd, adding a userspace round trip doesn't really change anything.
->
-> > The patch set you refer to tried to _unify_ the port space and was
-> > rejected.  The only other alternative is to pick ephemeral ports and
-> > maintain a mapping for RDMA services.
->
-> I thought both approaches were tried in kernel and NAK'd by netdev?
-> This looks very similar to the 2010 patchset, except the dummy socket allocation is living in userspace in this version.
-
-This was something I presented and discussed at NetConf 2011 with
-David and other netdev core folks:
-http://vger.kernel.org/netconf2011.html.  The main issue David had
-with the original approach was the socket was being consumed by
-something else inside the kernel.  It circumvented the TCP socket
-allocation/reservation code, which was frowned upon.
-
-The compromise we came up with is the approach in this patchset.  As
-long as the socket is claimed via userspace, David had no problem with
-the approach.
-
-> Again, from here, this looks like another patch to do an end-run around netdev's NAK by hiding the offending stuff in userspace. That is no good either...
-
-See above.
-
-> > > The message from netdev has, IMHO, always been pretty clear -
-> > > offload can live in it's own little side world but cannot appear to
-> > > the user to be integrated to the main stack (because it isn't).
-> >
-> > That is what this design does...
->
-> Not really, it is still sharing an IP used by the main stack, otherwise you wouldn't have this problem in the first place.
-
-The reason we didn't back down from having separate IP's is because
-there are customers using iWARP that want the traffic converged, using
-a single IP.  This approach is the best way we came up with as a
-group, it just took a bit of time to get headcount onto it and
-developed/tested.
-
-Cheers,
--PJ
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogT3IgR2VybGl0eiBbbWFp
+bHRvOm9yLmdlcmxpdHpAZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKdW5lIDEwLCAyMDE0
+IDE6MTUgQU0NCj4gVG86IFJvbGFuZCBEcmVpZXI7IFNlbHZpbiBYYXZpZXINCj4gQ2M6IFN0ZXZl
+IFdpc2U7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWwNCj4gU3ViamVj
+dDogUmU6IFtQQVRDSCBmb3ItbmV4dCAwMC8xNV0gQnVnIGZpeGVzIGZvciBvY3JkbWEgZHJpdmVy
+DQo+IA0KPiBPbiBXZWQsIEp1biA0LCAyMDE0IGF0IDg6MDYgUE0sIFJvbGFuZCBEcmVpZXIgPHJv
+bGFuZEBrZXJuZWwub3JnPiB3cm90ZToNCj4gPiBPbiBXZWQsIEp1biA0LCAyMDE0IGF0IDk6Mzcg
+QU0sIFN0ZXZlIFdpc2UNCj4gPHN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbT4gd3JvdGU6DQo+
+ID4+IFNlZW1zIGxpa2UgdGhlIHN1YmplY3QgbGluZXMgaW4gZWFjaCBwYXRjaCBhcmUgZ2V0dGlu
+ZyB0cnVuY2F0ZWQ/DQo+ID4gWWVzLCB0cnVuY2F0ZWQgaW4gcGF0Y2h3b3JrIHRvbyAtLSBmb3Ig
+ZXhhbXBsZToNCj4gPiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzQyOTI0NjEv
+DQo+ID4NCj4gPiBQbGVhc2UgZml4IGFuZCByZXNlbmQuDQo+IA0KPiBSb2xhbmQsIGZyb20gcXVp
+Y2sgbG9va2luZyBvbiB0aGlzIHNlcmllcyBvZiBmaWZ0ZWVuIHBhdGNoZXMsIG9ubHkgMS8zIG9m
+IHRoZW0NCj4gKDQvNS8xMi8xNCkgaGF2ZSBub24tZW1wdHkgY2hhbmdlLWxvZy4gSSB3b3VsZCBl
+eHBlY3Qga2VybmVsIHdvcmsgd2hpY2gNCj4gZ29lcyB1cHN0cmVhbSB0aHJvdWdoIGxpbnV4LXJk
+bWEgdG8gdXNlIGEgYml0IG9mIGhpZ2hlciBzdGFuZGFyZHMsIGFncmVlPw0KPiANCj4gU2Vsdmlu
+LCBjYW4geW91IHNpdCBkb3duIGFuZCBjb21lIHVwIHdpdGggY2hhbmdlLWxvZ3MgdG8geW91ciBk
+cml2ZXINCj4gdXBkYXRlcz8NCj4gDQo+IE9yLg0KDQpPciwNCg0KU3VyZSwgSSB3aWxsIHBvc3Qg
+djEgcGF0Y2ggc2V0IHdpdGggcHJvcGVyIGNoYW5nZS1sb2dzLg0KDQpUaGFua3MsDQpTZWx2aW4g
+WGF2aWVyDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
