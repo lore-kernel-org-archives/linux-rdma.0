@@ -1,35 +1,138 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: FW: [PATCH 0/3] RDMA/core: iWARP Port Mapper Overview
-Date: Tue, 10 Jun 2014 09:10:13 +0300
-Message-ID: <5396A145.90504@mellanox.com>
-References: <20140326220718.GA8784@TENIKOLO-MOBL1>	<CAJZOPZ+E0sX6-_tT2DrbLvRvrHWvEcO5KtMGwZqhuoQeTqrrMg@mail.gmail.com>	<20140609165105.GB1816@obsidianresearch.com>	<004501cf840e$6cf0c240$46d246c0$@opengridcomputing.com>	<20140609184207.GA534@obsidianresearch.com>	<2ABFA3E36CBB794685BFBA191CC1964952C605CB@FMSMSX105.amr.corp.intel.com> <CAEmgqz2HtEJ1ho0rS4xR7ud6YgFfeAvR8uD8MgPjVhw=E9PFEg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/1] IPoIB: Improve parent interface p_key handling.
+Date: Tue, 10 Jun 2014 09:16:44 +0300
+Message-ID: <5396A2CC.3070000@mellanox.com>
+References: <20140609215507.24166.94407.stgit@phlsvlogin03.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAEmgqz2HtEJ1ho0rS4xR7ud6YgFfeAvR8uD8MgPjVhw=E9PFEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20140609215507.24166.94407.stgit-u2TXY/5TJkdZ7WVY1cDZ9q2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/06/2014 03:08, PJ Waskiewicz wrote:
-> This was something I presented and discussed at NetConf 2011 
+On 10/06/2014 00:55, Alex Estrin wrote:
+> With reference to commit c2904141696ee19551f1553944446f23cdd5d95e.
+> It was noticed that parent interface keeps sending broadcast group
+> join requests if p_key index 0 is invalid. That creates unnecessary
+> noise on a fabric:
+>
+> ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
+> status -22
+>
+> Proposed patch re-init resources, then brings interface
+> up only if p_key idx 0 is valid either on bootup or on PKEY_CHANGE event.
+> Original code could run multicast task regardless of p_key value,
+> which we want to avoid.
+>
+> Modified event handler will utilize following strategy:
+> if interface is not initialized and event is not PKEY_CHANGE related - return.
+> call update_parent_pkey() -> if pkey hasn't changed - return.
+> if interface is initialized
+>          flush it -> call ipoib_ib_dev_stop() - de-initialized.
+> Then start multicast task only if ipoib_ib_dev_open() has succeeded, reinitialized,
+> i.e. p_key is valid.
+>
+> Changes from v1:
+> p_key check for 'Invalid' value was moved to
+> ipoib_pkey_dev_check_presence() that is used now in ipoib_ib_dev_open()
+> for p_key validation.
+> Whitespace and format adjusted.
 
-Peter, the email address from your signature on the patches isn't 
-functional anymore, is it OK
-if the patches will be re-worded with this (or any other address you 
-want to) one such that we don't
-introduce (3.16) patches which has wrong email from day one? Roland, can 
-you make that?
+move the last section of changes from prev version/s to be below the --- 
+line that following so it doesn't get into the actual change-log
 
-> with David and other netdev core folks: 
-> http://vger.kernel.org/netconf2011.html. The main issue David had with 
-> the original approach was the socket was being consumed by something 
-> else inside the kernel. It circumvented the TCP socket 
-> allocation/reservation code, which was frowned upon. The compromise we 
-> came up with is the approach in this patchset. As long as the socket 
-> is claimed via userspace, David had no problem with the approach. 
+
+add here
+
+Fixes: c29041416 ('IPoIB: Fix pkey change flow for virtualization 
+environments ')
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/ipoib/ipoib_ib.c |   31 +++++++++++++++++--------------
+>   1 files changed, 17 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> index 6a7003d..627f74f 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> @@ -52,6 +52,7 @@ MODULE_PARM_DESC(data_debug_level,
+>   #endif
+>   
+>   static DEFINE_MUTEX(pkey_mutex);
+> +static void ipoib_pkey_dev_check_presence(struct net_device *dev);
+>   
+>   struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
+>   				 struct ib_pd *pd, struct ib_ah_attr *attr)
+> @@ -669,12 +670,13 @@ int ipoib_ib_dev_open(struct net_device *dev)
+>   	struct ipoib_dev_priv *priv = netdev_priv(dev);
+>   	int ret;
+>   
+> -	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
+> -		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
+> -		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+> +	ipoib_pkey_dev_check_presence(dev);
+> +
+> +	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
+> +		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
+> +			!(priv->pkey & 0x7fff) ? "Invalid" : "not found");
+>   		return -1;
+>   	}
+> -	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+>   
+>   	ret = ipoib_init_qp(dev);
+>   	if (ret) {
+> @@ -712,9 +714,10 @@ dev_stop:
+>   static void ipoib_pkey_dev_check_presence(struct net_device *dev)
+>   {
+>   	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> -	u16 pkey_index = 0;
+>   
+> -	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
+> +	if (!(priv->pkey & 0x7fff) ||
+> +		ib_find_pkey(priv->ca, priv->port, priv->pkey,
+> +				&priv->pkey_index))
+>   		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+>   	else
+>   		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+> @@ -987,12 +990,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+>   	up_read(&priv->vlan_rwsem);
+>   
+>   	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
+> -		/* for non-child devices must check/update the pkey value here */
+> -		if (level == IPOIB_FLUSH_HEAVY &&
+> -		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
+> -			update_parent_pkey(priv);
+> -		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
+> -		return;
+> +		if (level < IPOIB_FLUSH_HEAVY) {
+> +			ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
+> +			return;
+> +		}
+>   	}
+>   
+>   	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
+> @@ -1038,8 +1039,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+>   		ipoib_ib_dev_down(dev, 0);
+>   
+>   	if (level == IPOIB_FLUSH_HEAVY) {
+> -		ipoib_ib_dev_stop(dev, 0);
+> -		ipoib_ib_dev_open(dev);
+> +		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
+> +			ipoib_ib_dev_stop(dev, 0);
+> +		if (ipoib_ib_dev_open(dev) != 0)
+> +			return;
+>   	}
+>   
+>   	/*
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
