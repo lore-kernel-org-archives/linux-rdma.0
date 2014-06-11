@@ -1,37 +1,32 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs V4 2/5] Extend create_ah in order to pass L2
- parameters to the provider
-Date: Wed, 11 Jun 2014 09:05:41 -0600
-Message-ID: <20140611150541.GA21346@obsidianresearch.com>
-References: <1400405929-14313-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
- <1400405929-14313-3-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
- <20140521195549.GA26909@obsidianresearch.com>
- <537DBAC3.9090008@mellanox.com>
- <53983580.1080002@mellanox.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC] ibacm provider infrastructure
+Date: Wed, 11 Jun 2014 17:59:57 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399310295@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <53983580.1080002-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 11, 2014 at 01:54:56PM +0300, Or Gerlitz wrote:
+A couple of months ago, I posted the start of a patch series to re-architect ibacm around supporting multiple providers.
 
-> Can you please address  Matan's comments? we'd like this thread to
-> converge...
+http://www.spinics.net/lists/linux-rdma/msg19363.html
 
-I am waiting for your analysis as I mentioned in my last message to
-this thread:
+This more easily allows ibacm to support other mechanisms for resolving address and path record data, with support for ibssa (Scalable SA) as one obvious candidate.
 
-https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg19925.html
+A complete set of patches that completes the re-architecture is now available in the ibacm 'prov' branch.
 
-That is rather a larger question, and the answer may well be we don't
-need two new extended verbs to do what you want...
+http://git.openfabrics.org/?p=~shefty/ibacm.git;a=shortlog;h=refs/heads/prov
 
-Jason
+In total, there are 40-50 patches, with most of the work actually done by Kaike Wan.  Because of the size and limited audience interested in this work, I don't plan on posting these to the mail list.  But anyone interested in reviewing the patches should feel free to comment on them.  Likely the most interesting result of the work is the provider interface to ibacm, which is defined in include/infiniband/acm_prov.h:
+
+http://git.openfabrics.org/?p=~shefty/ibacm.git;a=blob;f=include/infiniband/acm_prov.h;h=dcfdf5fce7373a7d57bcbe3fe54d6fe5d81935e2;hb=refs/heads/prov
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
