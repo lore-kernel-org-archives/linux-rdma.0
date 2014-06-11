@@ -1,33 +1,48 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] ibacm provider infrastructure
-Date: Wed, 11 Jun 2014 17:59:57 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399310295@ORSMSX109.amr.corp.intel.com>
+From: Bob Biloxi <iambobbiloxi@gmail.com>
+Subject: DMA window vs actual allocatable DMA memory
+Date: Wed, 11 Jun 2014 23:53:08 +0530
+Message-ID: <CANwwZzVqQ9Dur79ZP_1Fs9UWF0+h44tGW6QA4UZYdXaqV51z3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A couple of months ago, I posted the start of a patch series to re-architect ibacm around supporting multiple providers.
+Hi All,
 
-http://www.spinics.net/lists/linux-rdma/msg19363.html
+I am having trouble understanding DMA window and actual amount of
+addressable DMA memory.
 
-This more easily allows ibacm to support other mechanisms for resolving address and path record data, with support for ibssa (Scalable SA) as one obvious candidate.
+I hope someone explains me. Let me put my understanding and doubts here:
 
-A complete set of patches that completes the re-architecture is now available in the ibacm 'prov' branch.
+Let's say I am writing code for an ethernet device driver in the
+virtualisation(hypervisor) environment.
 
-http://git.openfabrics.org/?p=~shefty/ibacm.git;a=shortlog;h=refs/heads/prov
+Now, if the ethernet adapter requires certain amount of DMA memory, I
+need to allocate heap memory and dma map it and provide to the
+adapter.
 
-In total, there are 40-50 patches, with most of the work actually done by Kaike Wan.  Because of the size and limited audience interested in this work, I don't plan on posting these to the mail list.  But anyone interested in reviewing the patches should feel free to comment on them.  Likely the most interesting result of the work is the provider interface to ibacm, which is defined in include/infiniband/acm_prov.h:
+>From the hardware perspective, we have a 64GB DMA window.
 
-http://git.openfabrics.org/?p=~shefty/ibacm.git;a=blob;f=include/infiniband/acm_prov.h;h=dcfdf5fce7373a7d57bcbe3fe54d6fe5d81935e2;hb=refs/heads/prov
+I am having trouble understanding this value. Does it mean i can
+allocate 64GB of RAM(Heap memory) and dma map it?
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As i understand there might be a table that translates bus address to
+physical(RAM) addresses. Each entry of such table points to a 4KB
+page. If the size of each entry is 8 bytes and there are 16M such
+entries( 16M * 4K = 64GB DMA window), the size of the table comes to
+around 128M
+
+Now do I have 64GB DMA memory or 128M DMA memory?
+
+I want to know what is the max amount of memory that I can
+allocate(heap), dma map and provide it to the adapter.
+
+I will be really thankful in all the help that I can get!!
+
+Thanks so much
+
+
+Best Regards,
+Marc
