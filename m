@@ -1,142 +1,112 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the net-next tree with Linus' tree
-Date: Thu, 12 Jun 2014 12:01:46 +1000
-Message-ID: <20140612120146.74f55b1d@canb.auug.org.au>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH v1 3/3] TARGET/sbc,loopback: Adjust command data length
+ in case pi exists on the wire
+Date: Wed, 11 Jun 2014 21:01:41 -0700
+Message-ID: <1402545701.32257.22.camel@haakon3.risingtidesystems.com>
+References: <1402223228-23768-1-git-send-email-sagig@mellanox.com>
+	 <1402223228-23768-4-git-send-email-sagig@mellanox.com>
+	 <1402387450.5774.56.camel@haakon3.risingtidesystems.com>
+	 <504EB66DAC8D234EB8E8560985C2D7AD46D1D00E@avmb2.qlogic.org>
+	 <53980434.1000306@dev.mellanox.co.il>
+	 <1402522215.17740.29.camel@haakon3.risingtidesystems.com>
+	 <504EB66DAC8D234EB8E8560985C2D7AD46D1D8C7@avmb2.qlogic.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/uDDBZh3NHhtG.3fg7OWwddM"; protocol="application/pgp-signature"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, Hariprasad Shenai <hariprasad@chelsio.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <504EB66DAC8D234EB8E8560985C2D7AD46D1D8C7-vcA9p2Eq0686wu3ARrlbmA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Quinn Tran <quinn.tran-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/uDDBZh3NHhtG.3fg7OWwddM
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Wed, 2014-06-11 at 22:32 +0000, Quinn Tran wrote:
+> 
+> On 6/11/14 2:30 PM, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> 
+> >On Wed, 2014-06-11 at 10:24 +0300, Sagi Grimberg wrote:
+> >> On 6/11/2014 12:17 AM, Quinn Tran wrote:
+> >>
+> >> <SNIP>
+> >>
+> >> > QT> Instead of using existing value within cmd->data_length, can we
+> >> > calculated data_length based on secstors & blocksize.
+> >> >
+> >> > cmd->data_length = sectors * dev->dev_attrib.block_size;
+> >>
+> >> We can do that I suppose...
+> >> Although it seems weird that the core discards the transport
+> >>byte-count...
+> >> Just wandering if we should recalc on the DIF case only or always.
+> >>
+> >
+> >Yeah, same concern here wrt to discarding the transport length.
+> >
+> >This effectively makes the residual handling further down in
+> >sbc_parse_cdb() -> target_cmd_size_check() always match size ==
+> >cmd->data_length, because the latter as been recalculated by the former.
+> >
+> >Honestly, I don't know if this is a problem for normal READ + WRITE with
+> >prot=1 as I've never seen size != cmd->data_length for I/O related
+> >commands, but it does seem potentially dangerous.
+> >
+> >> >
+> >> >  From the QLogic perfective, the cmd->data_length is pull directly
+> >>from the
+> >> > wire (i.e. FCP header) when cmd is received.  In essence, it's
+> >>whatever
+> >> > the Initiator is set it to.  We does not have any indicator to spot
+> >>DIF vs
+> >> > none-DIF cmd when 1st received, unless the code do a peek.
+> >>
+> >> Same for all transports I assume...
+> >>
+> >
+> >So just to confirm Quinn, the Qlogic the initiator includes the PI bytes
+> >into the FCP header data_length for the target-side *_PASS and
+> >DOUT_STRIP / DIN_INSERT, that is currently passed into
+> >qla_tgt_ops->handle_cmd(), right..?
+> 
+> QT>
+> Initiator:
+> DOUT_STRIP/DIN_Insert:  FCP_DL = data length only (no dif length)
+> Dif PASS: FCP_DL = data length + Dif length.
+> 
+> Target:
+> DOUT_strip/DIN_Insert:  qla_tgt_ops->handle_cmd(data length only)
+> 
+> sbc_check_prot()
+> If (protect)
+>    cmd->data_length -= cmd->prot_length;  << truncation
+> 
+> 
 
-Hi all,
+<nod>
 
-Today's linux-next merge of the net-next tree got a conflict in
-drivers/infiniband/hw/cxgb4/cm.c between commits 11b8e22d4d09
-("RDMA/cxgb4: Fix vlan support") and 9eccfe109b27 ("RDMA/cxgb4: Add
-support for iWARP Port Mapper user space service") from Linus' tree and
-commits 92e7ae71726c ("iw_cxgb4: Choose appropriate hw mtu index and
-ISS for iWARP connections") and b408ff282dda ("iw_cxgb4: don't truncate
-the recv window size") from the net-next tree.
+> ---
+> DIF_PASS: qla_tgt_ops->handle_cmd(data length + Dif length)
+> 
+> 
 
-I fixed it up (see below) and can carry the fix as necessary (no action
-is required).
+Ok, so Sagi's patches for legacy fabric <-> PI backend and
+PI fabric <-> PI backend cases look OK, but not for the
+PI fabric <-> legacy backend case as noted above..
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Given DOUT_STRIP + DIN_INSERT have not been enabled in sbc_check_prot()
+just yet, I'll go ahead and merge his v2 series to address the two
+existing cases in -rc1 + v3.15.y stable code.
 
-diff --cc drivers/infiniband/hw/cxgb4/cm.c
-index 96d7131ab974,965eaafd5851..000000000000
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@@ -533,38 -532,17 +537,49 @@@ static int send_abort(struct c4iw_ep *e
-  	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
-  }
- =20
- +/*
- + * c4iw_form_pm_msg - Form a port mapper message with mapping info
- + */
- +static void c4iw_form_pm_msg(struct c4iw_ep *ep,
- +				struct iwpm_sa_data *pm_msg)
- +{
- +	memcpy(&pm_msg->loc_addr, &ep->com.local_addr,
- +		sizeof(ep->com.local_addr));
- +	memcpy(&pm_msg->rem_addr, &ep->com.remote_addr,
- +		sizeof(ep->com.remote_addr));
- +}
- +
- +/*
- + * c4iw_form_reg_msg - Form a port mapper message with dev info
- + */
- +static void c4iw_form_reg_msg(struct c4iw_dev *dev,
- +				struct iwpm_dev_data *pm_msg)
- +{
- +	memcpy(pm_msg->dev_name, dev->ibdev.name, IWPM_DEVNAME_SIZE);
- +	memcpy(pm_msg->if_name, dev->rdev.lldi.ports[0]->name,
- +				IWPM_IFNAME_SIZE);
- +}
- +
- +static void c4iw_record_pm_msg(struct c4iw_ep *ep,
- +			struct iwpm_sa_data *pm_msg)
- +{
- +	memcpy(&ep->com.mapped_local_addr, &pm_msg->mapped_loc_addr,
- +		sizeof(ep->com.mapped_local_addr));
- +	memcpy(&ep->com.mapped_remote_addr, &pm_msg->mapped_rem_addr,
- +		sizeof(ep->com.mapped_remote_addr));
- +}
- +
-+ static void best_mtu(const unsigned short *mtus, unsigned short mtu,
-+ 		     unsigned int *idx, int use_ts)
-+ {
-+ 	unsigned short hdr_size =3D sizeof(struct iphdr) +
-+ 				  sizeof(struct tcphdr) +
-+ 				  (use_ts ? 12 : 0);
-+ 	unsigned short data_size =3D mtu - hdr_size;
-+=20
-+ 	cxgb4_best_aligned_mtu(mtus, hdr_size, data_size, 8, idx);
-+ }
-+=20
-  static int send_connect(struct c4iw_ep *ep)
-  {
-  	struct cpl_act_open_req *req;
-@@@ -583,14 -561,11 +598,15 @@@
-  	int sizev6 =3D is_t4(ep->com.dev->rdev.lldi.adapter_type) ?
-  				sizeof(struct cpl_act_open_req6) :
-  				sizeof(struct cpl_t5_act_open_req6);
- -	struct sockaddr_in *la =3D (struct sockaddr_in *)&ep->com.local_addr;
- -	struct sockaddr_in *ra =3D (struct sockaddr_in *)&ep->com.remote_addr;
- -	struct sockaddr_in6 *la6 =3D (struct sockaddr_in6 *)&ep->com.local_addr;
- -	struct sockaddr_in6 *ra6 =3D (struct sockaddr_in6 *)&ep->com.remote_addr;
- +	struct sockaddr_in *la =3D (struct sockaddr_in *)
- +				 &ep->com.mapped_local_addr;
- +	struct sockaddr_in *ra =3D (struct sockaddr_in *)
- +				 &ep->com.mapped_remote_addr;
- +	struct sockaddr_in6 *la6 =3D (struct sockaddr_in6 *)
- +				   &ep->com.mapped_local_addr;
- +	struct sockaddr_in6 *ra6 =3D (struct sockaddr_in6 *)
- +				   &ep->com.mapped_remote_addr;
-+ 	int win;
- =20
-  	wrlen =3D (ep->com.remote_addr.ss_family =3D=3D AF_INET) ?
-  			roundup(sizev4, 16) :
-@@@ -1796,7 -1821,8 +1862,8 @@@ static int import_ep(struct c4iw_ep *ep
-  		step =3D cdev->rdev.lldi.nrxq /
-  			cdev->rdev.lldi.nchan;
-  		ep->rss_qid =3D cdev->rdev.lldi.rxq_ids[
- -			cxgb4_port_idx(n->dev) * step];
- +			cxgb4_port_idx(pdev) * step];
-+ 		set_tcp_window(ep, (struct port_info *)netdev_priv(pdev));
- =20
-  		if (clear_mpa_v1) {
-  			ep->retry_with_mpa_v1 =3D 0;
+>From there, enabling PI fabric <-> legacy backend support in >= rc2 with
+target-core will be easy, as it's just a matter of updating
+sbc_set_prot_op_checks() to assign prot_ops, avoid sbc_check_prot()
+cmd->data_length recalculation, and making sure PROTECTION control
+feature bits are still exposed for legacy -> unprotected backends.
 
---Sig_/uDDBZh3NHhtG.3fg7OWwddM
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+Thanks!
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+--nab
 
-iQIcBAEBCAAGBQJTmQoPAAoJEMDTa8Ir7ZwVb9MP/inAPHgZ3+Zb6t/5TPc6qPfK
-LjS3tLXTQcJK1wkjahO+tPhb8UuiZNnhgQS7VoGDUlbtgMXUA2xTP9+B/q8hk4Of
-ZH5zI3SsfQ08X8iiS+XbqeVQMgciBoREUJRno2O4ZryA5GqDZXbdjBloy0utSHM6
-EtvcquP4u+U8CkxuyfanNGVtdaJpVCKgOLDRrbs+El5ZuP6s4nOnn4zDI5+CbZFv
-a3Q6zXelsm6LFY1Esad0uqw+6XJ6jvTnhHKUaFeHBdwUPtSv0JtqFmklegImk87i
-6jkL8xYbHlB/y5rKXv3EcxWBU4iINj7gPZvI6nUKyfShzr38VqEqLg2ek944W73N
-ixG4DlLF2QyPuzwXxArxSH9v3Gg+jMN3qHbw38X6t+kBc2TmbnTpFYvJz15v98R7
-Dl3ijfWDDZFVjxMvbRRDMhWxveOayYyqW7TbCQ1FF9HVHR01iJE4HhHZu+RnGYpp
-c8DbQtU+K+tq4AIFhNTDs06BC7xjicDw/C052A8ypgFiiOd8YTpaplmjPazSxgNl
-/nEboJEsym6fibzMlF+uXPFFtPC9Jt/A0k3fLdAC/mLRElv477IaKt7X2A8iVmEE
-fmbA3FEzDuwAYZbu/XOnXf18ne2vzchIYuWBOvV7/+3ZyzV9VEEJ6Bs9LI6ATkNF
-6CqMWfdHbtr3HrK7EZFq
-=m3Ok
------END PGP SIGNATURE-----
-
---Sig_/uDDBZh3NHhtG.3fg7OWwddM--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
