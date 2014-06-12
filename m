@@ -1,112 +1,77 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH v1 3/3] TARGET/sbc,loopback: Adjust command data length
- in case pi exists on the wire
-Date: Wed, 11 Jun 2014 21:01:41 -0700
-Message-ID: <1402545701.32257.22.camel@haakon3.risingtidesystems.com>
-References: <1402223228-23768-1-git-send-email-sagig@mellanox.com>
-	 <1402223228-23768-4-git-send-email-sagig@mellanox.com>
-	 <1402387450.5774.56.camel@haakon3.risingtidesystems.com>
-	 <504EB66DAC8D234EB8E8560985C2D7AD46D1D00E@avmb2.qlogic.org>
-	 <53980434.1000306@dev.mellanox.co.il>
-	 <1402522215.17740.29.camel@haakon3.risingtidesystems.com>
-	 <504EB66DAC8D234EB8E8560985C2D7AD46D1D8C7@avmb2.qlogic.org>
+From: Bob Biloxi <iambobbiloxi@gmail.com>
+Subject: Re: DMA window vs actual allocatable DMA memory
+Date: Thu, 12 Jun 2014 10:44:55 +0530
+Message-ID: <CANwwZzV2MDfHWcW43XCnRS2qoqS1sgYQA=C9n-Lr9PZikXLqFg@mail.gmail.com>
+References: <CANwwZzVqQ9Dur79ZP_1Fs9UWF0+h44tGW6QA4UZYdXaqV51z3A@mail.gmail.com>
+	<CAErSpo6s1=aQ2=GxMHXTZgE+hFUp+Kzz9r32RXkDcY_TW_5+UQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <504EB66DAC8D234EB8E8560985C2D7AD46D1D8C7-vcA9p2Eq0686wu3ARrlbmA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Quinn Tran <quinn.tran-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6s1=aQ2=GxMHXTZgE+hFUp+Kzz9r32RXkDcY_TW_5+UQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2014-06-11 at 22:32 +0000, Quinn Tran wrote:
-> 
-> On 6/11/14 2:30 PM, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> 
-> >On Wed, 2014-06-11 at 10:24 +0300, Sagi Grimberg wrote:
-> >> On 6/11/2014 12:17 AM, Quinn Tran wrote:
-> >>
-> >> <SNIP>
-> >>
-> >> > QT> Instead of using existing value within cmd->data_length, can we
-> >> > calculated data_length based on secstors & blocksize.
-> >> >
-> >> > cmd->data_length = sectors * dev->dev_attrib.block_size;
-> >>
-> >> We can do that I suppose...
-> >> Although it seems weird that the core discards the transport
-> >>byte-count...
-> >> Just wandering if we should recalc on the DIF case only or always.
-> >>
-> >
-> >Yeah, same concern here wrt to discarding the transport length.
-> >
-> >This effectively makes the residual handling further down in
-> >sbc_parse_cdb() -> target_cmd_size_check() always match size ==
-> >cmd->data_length, because the latter as been recalculated by the former.
-> >
-> >Honestly, I don't know if this is a problem for normal READ + WRITE with
-> >prot=1 as I've never seen size != cmd->data_length for I/O related
-> >commands, but it does seem potentially dangerous.
-> >
-> >> >
-> >> >  From the QLogic perfective, the cmd->data_length is pull directly
-> >>from the
-> >> > wire (i.e. FCP header) when cmd is received.  In essence, it's
-> >>whatever
-> >> > the Initiator is set it to.  We does not have any indicator to spot
-> >>DIF vs
-> >> > none-DIF cmd when 1st received, unless the code do a peek.
-> >>
-> >> Same for all transports I assume...
-> >>
-> >
-> >So just to confirm Quinn, the Qlogic the initiator includes the PI bytes
-> >into the FCP header data_length for the target-side *_PASS and
-> >DOUT_STRIP / DIN_INSERT, that is currently passed into
-> >qla_tgt_ops->handle_cmd(), right..?
-> 
-> QT>
-> Initiator:
-> DOUT_STRIP/DIN_Insert:  FCP_DL = data length only (no dif length)
-> Dif PASS: FCP_DL = data length + Dif length.
-> 
-> Target:
-> DOUT_strip/DIN_Insert:  qla_tgt_ops->handle_cmd(data length only)
-> 
-> sbc_check_prot()
-> If (protect)
->    cmd->data_length -= cmd->prot_length;  << truncation
-> 
-> 
+Thanks so much Bjorn for the reply. This is very helpful. Now my
+understanding is more clear.
+I was curious whether there is any limit from the operating
+system(hypervisor) as to how much DMA memory can drivers map.
+I'll try to investigate.
 
-<nod>
-
-> ---
-> DIF_PASS: qla_tgt_ops->handle_cmd(data length + Dif length)
-> 
-> 
-
-Ok, so Sagi's patches for legacy fabric <-> PI backend and
-PI fabric <-> PI backend cases look OK, but not for the
-PI fabric <-> legacy backend case as noted above..
-
-Given DOUT_STRIP + DIN_INSERT have not been enabled in sbc_check_prot()
-just yet, I'll go ahead and merge his v2 series to address the two
-existing cases in -rc1 + v3.15.y stable code.
-
->From there, enabling PI fabric <-> legacy backend support in >= rc2 with
-target-core will be easy, as it's just a matter of updating
-sbc_set_prot_op_checks() to assign prot_ops, avoid sbc_check_prot()
-cmd->data_length recalculation, and making sure PROTECTION control
-feature bits are still exposed for legacy -> unprotected backends.
-
-Thanks!
-
---nab
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Jun 12, 2014 at 5:42 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Wed, Jun 11, 2014 at 12:23 PM, Bob Biloxi <iambobbiloxi@gmail.com> wrote:
+>> Hi All,
+>>
+>> I am having trouble understanding DMA window and actual amount of
+>> addressable DMA memory.
+>>
+>> I hope someone explains me. Let me put my understanding and doubts here:
+>>
+>> Let's say I am writing code for an ethernet device driver in the
+>> virtualisation(hypervisor) environment.
+>>
+>> Now, if the ethernet adapter requires certain amount of DMA memory, I
+>> need to allocate heap memory and dma map it and provide to the
+>> adapter.
+>>
+>> From the hardware perspective, we have a 64GB DMA window.
+>>
+>> I am having trouble understanding this value. Does it mean i can
+>> allocate 64GB of RAM(Heap memory) and dma map it?
+>>
+>> As i understand there might be a table that translates bus address to
+>> physical(RAM) addresses. Each entry of such table points to a 4KB
+>> page. If the size of each entry is 8 bytes and there are 16M such
+>> entries( 16M * 4K = 64GB DMA window), the size of the table comes to
+>> around 128M
+>>
+>> Now do I have 64GB DMA memory or 128M DMA memory?
+>
+> Documentation/DMA-API-HOWTO.txt might help answer your questions.
+>
+> The bus address to RAM address translation is done by a IOMMU
+> hardware.  The tables you mention are I/O page tables used by the
+> IOMMU.  The 128M occupied by the tables is kernel bookkeeping overhead
+> and has nothing to do with the adapter itself.
+>
+> The 64GB DMA window might be a hardware feature of the device, i.e.,
+> maybe it can only generate 36-bit DMA addresses.  That doesn't mean
+> you have to allocate memory for the whole window; I would guess
+> drivers would only allocate and map what they need.  I don't know how
+> they figure out how much to map.
+>
+>> I want to know what is the max amount of memory that I can
+>> allocate(heap), dma map and provide it to the adapter.
+>>
+>> I will be really thankful in all the help that I can get!!
+>>
+>> Thanks so much
+>>
+>>
+>> Best Regards,
+>> Marc
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
