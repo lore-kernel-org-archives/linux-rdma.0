@@ -1,44 +1,63 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs V4 3/5] Use neighbour lookup for RoCE UD QPs
- Eth L2 resolution
-Date: Thu, 12 Jun 2014 11:40:12 -0600
-Message-ID: <20140612174012.GA5244@obsidianresearch.com>
-References: <1400405929-14313-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
- <1400405929-14313-4-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
- <20140521203107.GD26909@obsidianresearch.com>
- <5399A093.9070104@mellanox.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Comparison of RDMA read and write performance
+Date: Thu, 12 Jun 2014 15:22:28 -0400
+Message-ID: <CADPSxAjHctp6qG9n6E7pwiXEVYM6fiaqFnbEwfMFD6mAwue+jQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5399A093.9070104-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 12, 2014 at 03:44:03PM +0300, Matan Barak wrote:
+Hi.
 
-> We could use a libibverbs API call in order to resolve the IP based
-> GID into a MAC, but I think it could cause multiple vendors to have
-> some code duplication.
+While working with RDMA, I have consistently observed that RDMA write
+performance is significantly larger than RDMA read performance.
 
-If that is the only objection, I would prefer to see this techique. A
-little provider code duplication is a lessor evil than introducing and
-vetting new verbs APIs.
+My experimental setup is the following. I use several "client"
+machines to issue RDMA operations to one "server" machine, and I
+record the total operations/second across the client machines. My goal
+is to calculate the RDMA rate supported by the server machine's RDMA
+adapter. I use small-sized transfers (around 64 bytes) and reliable
+transport (RC).
 
-I think the patch will be very small and there will be very little to
-talk about from an API perspective.
+Here are the approximate numbers (million operations per second) that
+I get for two cards.
 
-> We hope that in the future, more products will use RoCE with IP
-> based GIDs. All those providers will have to supply similar code
-> that checks if the link layer is Ethernet and IP based GID is used,
-> they'll have to use the libibverbs utility function.
+ConnectX-3, 353A with PCIe 2.0 x8: 20 Mops READ, 26 Mops WRITE
+ConnectX-3, 313A (RoCE) with PCIe 2.0 x8: 20 Mops READ, 26 Mops WRITE
+ConnectX-3, 354A with PCIe 3.0 x8: 23 Mops READ, 35 Mops WRITE
 
-AFAIK all the other RoCEE implementations don't do InfiniBand link
-layer, so their providers don't even need the test.
+The WRITE message rate for the PCIe 3.0 system matches with the
+advertized 35 million/second message rate for ConnectX-3 cards, but
+the READ throughput is significantly smaller.
 
-Jason
+I have some adhoc explanations for this observation:
+
+1. http://pdf.aminer.org/000/344/730/pvfs_over_infiniband_design_and_performance_evaluation.pdf:
+this is a decade old paper, but its Figure 5 shows that writes
+outperform reads.
+
+2. PCIe write operations (posted) are cheaper than PCIe read
+operations (non-posted), so this might help RDMA writes.
+
+3. The number of oustanding RDMA reads on any queue pair is small (at
+most 16 for CX-3). This reduces RDMA read performance.
+
+However, none of these is completely convincing. I wonder if someone
+else in the community has observed this or has a better explanation.
+
+Although I have tried improving my RDMA-read code in many ways, and my
+numbers match the ones in FaRM (
+https://www.usenix.org/system/files/conference/nsdi14/nsdi14-paper-dragojevic.pdf),
+I am also interested if someone has observed higher RDMA read
+performance with these cards.
+
+The advertized performance of Connect-IB is 137 million RDMA writes
+per second. Is there an advertized number for RDMA reads per second?
+
+Thanks and regards,
+Anuj Kalia
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
