@@ -1,77 +1,89 @@
-From: Bob Biloxi <iambobbiloxi@gmail.com>
-Subject: Re: DMA window vs actual allocatable DMA memory
-Date: Thu, 12 Jun 2014 10:44:55 +0530
-Message-ID: <CANwwZzV2MDfHWcW43XCnRS2qoqS1sgYQA=C9n-Lr9PZikXLqFg@mail.gmail.com>
-References: <CANwwZzVqQ9Dur79ZP_1Fs9UWF0+h44tGW6QA4UZYdXaqV51z3A@mail.gmail.com>
-	<CAErSpo6s1=aQ2=GxMHXTZgE+hFUp+Kzz9r32RXkDcY_TW_5+UQ@mail.gmail.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH libibverbs V4 3/5] Use neighbour lookup for RoCE UD QPs
+ Eth L2 resolution
+Date: Thu, 12 Jun 2014 15:44:03 +0300
+Message-ID: <5399A093.9070104@mellanox.com>
+References: <1400405929-14313-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx> <1400405929-14313-4-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx> <20140521203107.GD26909@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6s1=aQ2=GxMHXTZgE+hFUp+Kzz9r32RXkDcY_TW_5+UQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140521203107.GD26909-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks so much Bjorn for the reply. This is very helpful. Now my
-understanding is more clear.
-I was curious whether there is any limit from the operating
-system(hypervisor) as to how much DMA memory can drivers map.
-I'll try to investigate.
+On 21/5/2014 11:31 PM, Jason Gunthorpe wrote:
+> On Sun, May 18, 2014 at 12:38:47PM +0300, Or Gerlitz wrote:
+>>   struct ibv_ah *__ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+>>   {
+>> -	struct ibv_ah *ah = pd->context->ops.create_ah(pd, attr);
+>> +	int err;
+>> +	struct ibv_ah *ah = NULL;
+>> +#ifndef NRESOLVE_NEIGH
+>> +	struct ibv_port_attr port_attr;
+>> +	int dst_family;
+>> +	int src_family;
+>> +	int oif;
+>> +	struct get_neigh_handler neigh_handler;
+>> +	union ibv_gid sgid;
+>> +	struct ibv_ah_attr_ex attr_ex;
+>> +	int ether_len;
+>> +	struct verbs_context *vctx = verbs_get_ctx_op(pd->context,
+>> +						      create_ah_ex);
+>> +	struct peer_address src;
+>> +	struct peer_address dst;
+>> +
+>> +	if (!vctx) {
+>> +#endif
+>> +		ah = pd->context->ops.create_ah(pd, attr);
+>> +#ifndef NRESOLVE_NEIGH
+>> +		goto return_ah;
+>> +	}
+>> +
+>> +	err = ibv_query_port(pd->context, attr->port_num, &port_attr);
+>
+> It feels like a regression to force this overhead. Many HCAs have no
+> possibility to support anything but IB, or Ethernet and don't need
+> this.
+>
+> This whole arrangement seems strange. create_ah_ex should be a full
+> fledged user callable function, not a buried driver entry point.
+> It is also very unusual for verbs to have all this generic code in
+> a driver wrapper.
+>
+> I suspect the answer here is to have the driver call into helper
+> functions from verbs to do this addressing
+> work. 'get_ethernet_l2_from_ah' or something.
+>
+> If you do that then we don't even need create_ah_ex and query_port_ex
+> - those function seem to only be required to support this wrapper
+> technique.
+>
+> So please rethink how this flows.. Maybe wrapping is not the best
+> choice??
+>
+> Jason
+>
 
-On Thu, Jun 12, 2014 at 5:42 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Wed, Jun 11, 2014 at 12:23 PM, Bob Biloxi <iambobbiloxi@gmail.com> wrote:
->> Hi All,
->>
->> I am having trouble understanding DMA window and actual amount of
->> addressable DMA memory.
->>
->> I hope someone explains me. Let me put my understanding and doubts here:
->>
->> Let's say I am writing code for an ethernet device driver in the
->> virtualisation(hypervisor) environment.
->>
->> Now, if the ethernet adapter requires certain amount of DMA memory, I
->> need to allocate heap memory and dma map it and provide to the
->> adapter.
->>
->> From the hardware perspective, we have a 64GB DMA window.
->>
->> I am having trouble understanding this value. Does it mean i can
->> allocate 64GB of RAM(Heap memory) and dma map it?
->>
->> As i understand there might be a table that translates bus address to
->> physical(RAM) addresses. Each entry of such table points to a 4KB
->> page. If the size of each entry is 8 bytes and there are 16M such
->> entries( 16M * 4K = 64GB DMA window), the size of the table comes to
->> around 128M
->>
->> Now do I have 64GB DMA memory or 128M DMA memory?
->
-> Documentation/DMA-API-HOWTO.txt might help answer your questions.
->
-> The bus address to RAM address translation is done by a IOMMU
-> hardware.  The tables you mention are I/O page tables used by the
-> IOMMU.  The 128M occupied by the tables is kernel bookkeeping overhead
-> and has nothing to do with the adapter itself.
->
-> The 64GB DMA window might be a hardware feature of the device, i.e.,
-> maybe it can only generate 36-bit DMA addresses.  That doesn't mean
-> you have to allocate memory for the whole window; I would guess
-> drivers would only allocate and map what they need.  I don't know how
-> they figure out how much to map.
->
->> I want to know what is the max amount of memory that I can
->> allocate(heap), dma map and provide it to the adapter.
->>
->> I will be really thankful in all the help that I can get!!
->>
->> Thanks so much
->>
->>
->> Best Regards,
->> Marc
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We could use a libibverbs API call in order to resolve the IP based GID 
+into a MAC, but I think it could cause multiple vendors to have some 
+code duplication. We hope that in the future, more products will use 
+RoCE with IP based GIDs. All those providers will have to supply similar 
+code that checks if the link layer is Ethernet and IP based GID is used, 
+they'll have to use the libibverbs utility function.
+
+A possible future create_ah_ex *libibverbs* could be a full fledged verb 
+that uses the new provider's create_ah_ex. Currently, it's hidden inside 
+the good old create_ah call, but we shouldn't limit ourselves to keep it 
+that way.
+
+Anyway, I have no objection to use a utility function instead of this 
+method, but I do think that the current code has some advantages.
+
+Matan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
