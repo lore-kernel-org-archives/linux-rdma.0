@@ -1,69 +1,142 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: DMA window vs actual allocatable DMA memory
-Date: Wed, 11 Jun 2014 18:12:58 -0600
-Message-ID: <CAErSpo6s1=aQ2=GxMHXTZgE+hFUp+Kzz9r32RXkDcY_TW_5+UQ@mail.gmail.com>
-References: <CANwwZzVqQ9Dur79ZP_1Fs9UWF0+h44tGW6QA4UZYdXaqV51z3A@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the net-next tree with Linus' tree
+Date: Thu, 12 Jun 2014 12:01:46 +1000
+Message-ID: <20140612120146.74f55b1d@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CANwwZzVqQ9Dur79ZP_1Fs9UWF0+h44tGW6QA4UZYdXaqV51z3A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bob Biloxi <iambobbiloxi@gmail.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/uDDBZh3NHhtG.3fg7OWwddM"; protocol="application/pgp-signature"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, Hariprasad Shenai <hariprasad@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 11, 2014 at 12:23 PM, Bob Biloxi <iambobbiloxi@gmail.com> wrote:
-> Hi All,
->
-> I am having trouble understanding DMA window and actual amount of
-> addressable DMA memory.
->
-> I hope someone explains me. Let me put my understanding and doubts here:
->
-> Let's say I am writing code for an ethernet device driver in the
-> virtualisation(hypervisor) environment.
->
-> Now, if the ethernet adapter requires certain amount of DMA memory, I
-> need to allocate heap memory and dma map it and provide to the
-> adapter.
->
-> From the hardware perspective, we have a 64GB DMA window.
->
-> I am having trouble understanding this value. Does it mean i can
-> allocate 64GB of RAM(Heap memory) and dma map it?
->
-> As i understand there might be a table that translates bus address to
-> physical(RAM) addresses. Each entry of such table points to a 4KB
-> page. If the size of each entry is 8 bytes and there are 16M such
-> entries( 16M * 4K = 64GB DMA window), the size of the table comes to
-> around 128M
->
-> Now do I have 64GB DMA memory or 128M DMA memory?
+--Sig_/uDDBZh3NHhtG.3fg7OWwddM
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Documentation/DMA-API-HOWTO.txt might help answer your questions.
+Hi all,
 
-The bus address to RAM address translation is done by a IOMMU
-hardware.  The tables you mention are I/O page tables used by the
-IOMMU.  The 128M occupied by the tables is kernel bookkeeping overhead
-and has nothing to do with the adapter itself.
+Today's linux-next merge of the net-next tree got a conflict in
+drivers/infiniband/hw/cxgb4/cm.c between commits 11b8e22d4d09
+("RDMA/cxgb4: Fix vlan support") and 9eccfe109b27 ("RDMA/cxgb4: Add
+support for iWARP Port Mapper user space service") from Linus' tree and
+commits 92e7ae71726c ("iw_cxgb4: Choose appropriate hw mtu index and
+ISS for iWARP connections") and b408ff282dda ("iw_cxgb4: don't truncate
+the recv window size") from the net-next tree.
 
-The 64GB DMA window might be a hardware feature of the device, i.e.,
-maybe it can only generate 36-bit DMA addresses.  That doesn't mean
-you have to allocate memory for the whole window; I would guess
-drivers would only allocate and map what they need.  I don't know how
-they figure out how much to map.
+I fixed it up (see below) and can carry the fix as necessary (no action
+is required).
 
-> I want to know what is the max amount of memory that I can
-> allocate(heap), dma map and provide it to the adapter.
->
-> I will be really thankful in all the help that I can get!!
->
-> Thanks so much
->
->
-> Best Regards,
-> Marc
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc drivers/infiniband/hw/cxgb4/cm.c
+index 96d7131ab974,965eaafd5851..000000000000
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@@ -533,38 -532,17 +537,49 @@@ static int send_abort(struct c4iw_ep *e
+  	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+  }
+ =20
+ +/*
+ + * c4iw_form_pm_msg - Form a port mapper message with mapping info
+ + */
+ +static void c4iw_form_pm_msg(struct c4iw_ep *ep,
+ +				struct iwpm_sa_data *pm_msg)
+ +{
+ +	memcpy(&pm_msg->loc_addr, &ep->com.local_addr,
+ +		sizeof(ep->com.local_addr));
+ +	memcpy(&pm_msg->rem_addr, &ep->com.remote_addr,
+ +		sizeof(ep->com.remote_addr));
+ +}
+ +
+ +/*
+ + * c4iw_form_reg_msg - Form a port mapper message with dev info
+ + */
+ +static void c4iw_form_reg_msg(struct c4iw_dev *dev,
+ +				struct iwpm_dev_data *pm_msg)
+ +{
+ +	memcpy(pm_msg->dev_name, dev->ibdev.name, IWPM_DEVNAME_SIZE);
+ +	memcpy(pm_msg->if_name, dev->rdev.lldi.ports[0]->name,
+ +				IWPM_IFNAME_SIZE);
+ +}
+ +
+ +static void c4iw_record_pm_msg(struct c4iw_ep *ep,
+ +			struct iwpm_sa_data *pm_msg)
+ +{
+ +	memcpy(&ep->com.mapped_local_addr, &pm_msg->mapped_loc_addr,
+ +		sizeof(ep->com.mapped_local_addr));
+ +	memcpy(&ep->com.mapped_remote_addr, &pm_msg->mapped_rem_addr,
+ +		sizeof(ep->com.mapped_remote_addr));
+ +}
+ +
++ static void best_mtu(const unsigned short *mtus, unsigned short mtu,
++ 		     unsigned int *idx, int use_ts)
++ {
++ 	unsigned short hdr_size =3D sizeof(struct iphdr) +
++ 				  sizeof(struct tcphdr) +
++ 				  (use_ts ? 12 : 0);
++ 	unsigned short data_size =3D mtu - hdr_size;
++=20
++ 	cxgb4_best_aligned_mtu(mtus, hdr_size, data_size, 8, idx);
++ }
++=20
+  static int send_connect(struct c4iw_ep *ep)
+  {
+  	struct cpl_act_open_req *req;
+@@@ -583,14 -561,11 +598,15 @@@
+  	int sizev6 =3D is_t4(ep->com.dev->rdev.lldi.adapter_type) ?
+  				sizeof(struct cpl_act_open_req6) :
+  				sizeof(struct cpl_t5_act_open_req6);
+ -	struct sockaddr_in *la =3D (struct sockaddr_in *)&ep->com.local_addr;
+ -	struct sockaddr_in *ra =3D (struct sockaddr_in *)&ep->com.remote_addr;
+ -	struct sockaddr_in6 *la6 =3D (struct sockaddr_in6 *)&ep->com.local_addr;
+ -	struct sockaddr_in6 *ra6 =3D (struct sockaddr_in6 *)&ep->com.remote_addr;
+ +	struct sockaddr_in *la =3D (struct sockaddr_in *)
+ +				 &ep->com.mapped_local_addr;
+ +	struct sockaddr_in *ra =3D (struct sockaddr_in *)
+ +				 &ep->com.mapped_remote_addr;
+ +	struct sockaddr_in6 *la6 =3D (struct sockaddr_in6 *)
+ +				   &ep->com.mapped_local_addr;
+ +	struct sockaddr_in6 *ra6 =3D (struct sockaddr_in6 *)
+ +				   &ep->com.mapped_remote_addr;
++ 	int win;
+ =20
+  	wrlen =3D (ep->com.remote_addr.ss_family =3D=3D AF_INET) ?
+  			roundup(sizev4, 16) :
+@@@ -1796,7 -1821,8 +1862,8 @@@ static int import_ep(struct c4iw_ep *ep
+  		step =3D cdev->rdev.lldi.nrxq /
+  			cdev->rdev.lldi.nchan;
+  		ep->rss_qid =3D cdev->rdev.lldi.rxq_ids[
+ -			cxgb4_port_idx(n->dev) * step];
+ +			cxgb4_port_idx(pdev) * step];
++ 		set_tcp_window(ep, (struct port_info *)netdev_priv(pdev));
+ =20
+  		if (clear_mpa_v1) {
+  			ep->retry_with_mpa_v1 =3D 0;
+
+--Sig_/uDDBZh3NHhtG.3fg7OWwddM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJTmQoPAAoJEMDTa8Ir7ZwVb9MP/inAPHgZ3+Zb6t/5TPc6qPfK
+LjS3tLXTQcJK1wkjahO+tPhb8UuiZNnhgQS7VoGDUlbtgMXUA2xTP9+B/q8hk4Of
+ZH5zI3SsfQ08X8iiS+XbqeVQMgciBoREUJRno2O4ZryA5GqDZXbdjBloy0utSHM6
+EtvcquP4u+U8CkxuyfanNGVtdaJpVCKgOLDRrbs+El5ZuP6s4nOnn4zDI5+CbZFv
+a3Q6zXelsm6LFY1Esad0uqw+6XJ6jvTnhHKUaFeHBdwUPtSv0JtqFmklegImk87i
+6jkL8xYbHlB/y5rKXv3EcxWBU4iINj7gPZvI6nUKyfShzr38VqEqLg2ek944W73N
+ixG4DlLF2QyPuzwXxArxSH9v3Gg+jMN3qHbw38X6t+kBc2TmbnTpFYvJz15v98R7
+Dl3ijfWDDZFVjxMvbRRDMhWxveOayYyqW7TbCQ1FF9HVHR01iJE4HhHZu+RnGYpp
+c8DbQtU+K+tq4AIFhNTDs06BC7xjicDw/C052A8ypgFiiOd8YTpaplmjPazSxgNl
+/nEboJEsym6fibzMlF+uXPFFtPC9Jt/A0k3fLdAC/mLRElv477IaKt7X2A8iVmEE
+fmbA3FEzDuwAYZbu/XOnXf18ne2vzchIYuWBOvV7/+3ZyzV9VEEJ6Bs9LI6ATkNF
+6CqMWfdHbtr3HrK7EZFq
+=m3Ok
+-----END PGP SIGNATURE-----
+
+--Sig_/uDDBZh3NHhtG.3fg7OWwddM--
