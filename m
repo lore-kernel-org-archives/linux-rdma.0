@@ -1,88 +1,194 @@
 From: Joe Perches <joe@perches.com>
-Subject: [PATCH -next 00/26] treewide: Use dma_zalloc_coherent
-Date: Sun, 15 Jun 2014 13:37:29 -0700
-Message-ID: <cover.1402863904.git.joe@perches.com>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
+Subject: [PATCH -next 08/26] infiniband: Use dma_zalloc_coherent
+Date: Sun, 15 Jun 2014 13:37:37 -0700
+Message-ID: <fc94266778d11e0faa0011efed23b1915a4eaa2a.1402863905.git.joe@perches.com>
+References: <cover.1402863904.git.joe@perches.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1402863904.git.joe@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, linux-ide@vger.kernel.org, linux-nvme@lists.infradead.org, linux-crypto@vger.kernel.org, dmaengine@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-mmc@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, ath10k@lists.infradead.org, linux-wireless@vger.kernel.org, wcn36xx@lists.infradead.org, users@rt2x00.serialmonkey.com, linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Steve Wise <swise@chelsio.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Use the zeroing function instead of dma_alloc_coherent & memset(,0,)
 
-Joe Perches (26):
-  powerpc: Use dma_zalloc_coherent
-  sh: Use dma_zalloc_coherent
-  ata: Use dma_zalloc_coherent
-  block: Use dma_zalloc_coherent
-  crypto: Use dma_zalloc_coherent
-  dma: Use dma_zalloc_coherent
-  gpu: Use dma_zalloc_coherent
-  infiniband: Use dma_zalloc_coherent
-  mmc: Use dma_zalloc_coherent
-  broadcom: Use dma_zalloc_coherent
-  hisilicon: Use dma_zalloc_coherent
-  intel: Use dma_zalloc_coherent
-  ath: Use dma_zalloc_coherent
-  rt2x00: Use dma_zalloc_coherent
-  bfa: Use dma_zalloc_coherent
-  bnx2fc: Use dma_zalloc_coherent
-  bnx2i: Use dma_zalloc_coherent
-  dpt_i2o: Use dma_zalloc_coherent
-  lpfc: Use dma_zalloc_coherent
-  megaraid: Use dma_zalloc_coherent
-  mvsas: Use dma_zalloc_coherent
-  qla2xxx: Use dma_zalloc_coherent
-  qla4xxx: Use dma_zalloc_coherent
-  usb: Use dma_zalloc_coherent
-  fbdev: Use dma_zalloc_coherent
-  sound: Use dma_zalloc_coherent
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/infiniband/hw/cxgb3/cxio_hal.c      |  7 +++----
+ drivers/infiniband/hw/mthca/mthca_memfree.c |  5 ++---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 20 ++++++++------------
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  6 ++----
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  8 +++-----
+ 5 files changed, 18 insertions(+), 28 deletions(-)
 
- arch/powerpc/platforms/pasemi/dma_lib.c       |  8 ++--
- arch/powerpc/sysdev/fsl_rmu.c                 |  9 ++--
- arch/sh/mm/consistent.c                       |  4 +-
- drivers/ata/sata_fsl.c                        |  5 +--
- drivers/block/nvme-core.c                     |  5 +--
- drivers/crypto/amcc/crypto4xx_core.c          |  8 ++--
- drivers/crypto/ixp4xx_crypto.c                |  8 ++--
- drivers/dma/imx-sdma.c                        |  5 +--
- drivers/dma/mxs-dma.c                         |  8 ++--
- drivers/gpu/drm/drm_pci.c                     |  6 +--
- drivers/infiniband/hw/cxgb3/cxio_hal.c        |  7 ++--
- drivers/infiniband/hw/mthca/mthca_memfree.c   |  5 +--
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c      | 20 ++++-----
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c   |  6 +--
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   |  8 ++--
- drivers/mmc/host/msm_sdcc.c                   |  8 ++--
- drivers/net/ethernet/broadcom/bcm63xx_enet.c  |  6 +--
- drivers/net/ethernet/hisilicon/hix5hd2_gmac.c |  5 +--
- drivers/net/ethernet/intel/ixgb/ixgb_main.c   |  6 +--
- drivers/net/wireless/ath/ath10k/pci.c         |  8 +---
- drivers/net/wireless/ath/ath10k/wmi.c         |  8 +---
- drivers/net/wireless/ath/wcn36xx/dxe.c        |  6 +--
- drivers/net/wireless/rt2x00/rt2x00mmio.c      |  8 ++--
- drivers/scsi/bfa/bfad_bsg.c                   |  6 +--
- drivers/scsi/bnx2fc/bnx2fc_hwi.c              | 59 ++++++++++++---------------
- drivers/scsi/bnx2fc/bnx2fc_tgt.c              | 51 ++++++++++-------------
- drivers/scsi/bnx2i/bnx2i_hwi.c                | 14 +++----
- drivers/scsi/dpt_i2o.c                        | 19 ++++-----
- drivers/scsi/lpfc/lpfc_bsg.c                  |  5 +--
- drivers/scsi/lpfc/lpfc_init.c                 | 22 ++++------
- drivers/scsi/lpfc/lpfc_mbox.c                 |  6 +--
- drivers/scsi/lpfc/lpfc_sli.c                  | 14 +++----
- drivers/scsi/megaraid/megaraid_sas_fusion.c   |  9 ++--
- drivers/scsi/mvsas/mv_init.c                  | 26 +++++-------
- drivers/scsi/qla2xxx/qla_init.c               | 10 ++---
- drivers/scsi/qla4xxx/ql4_init.c               |  5 +--
- drivers/scsi/qla4xxx/ql4_mbx.c                | 21 ++++------
- drivers/scsi/qla4xxx/ql4_nx.c                 |  5 +--
- drivers/scsi/qla4xxx/ql4_os.c                 | 12 +++---
- drivers/usb/dwc2/hcd_ddma.c                   | 20 ++++-----
- drivers/usb/host/uhci-hcd.c                   |  7 ++--
- drivers/video/fbdev/da8xx-fb.c                |  9 ++--
- sound/aoa/soundbus/i2sbus/core.c              | 12 ++----
- sound/sparc/dbri.c                            |  6 +--
- 44 files changed, 197 insertions(+), 308 deletions(-)
-
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+index de1c61b4..3173154 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+@@ -293,13 +293,12 @@ int cxio_create_qp(struct cxio_rdev *rdev_p, u32 kernel_domain,
+ 	if (!wq->sq)
+ 		goto err3;
+ 
+-	wq->queue = dma_alloc_coherent(&(rdev_p->rnic_info.pdev->dev),
+-					     depth * sizeof(union t3_wr),
+-					     &(wq->dma_addr), GFP_KERNEL);
++	wq->queue = dma_zalloc_coherent(&(rdev_p->rnic_info.pdev->dev),
++					depth * sizeof(union t3_wr),
++					&wq->dma_addr, GFP_KERNEL);
+ 	if (!wq->queue)
+ 		goto err4;
+ 
+-	memset(wq->queue, 0, depth * sizeof(union t3_wr));
+ 	dma_unmap_addr_set(wq, mapping, wq->dma_addr);
+ 	wq->doorbell = (void __iomem *)rdev_p->rnic_info.kdb_addr;
+ 	if (!kernel_domain)
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index 7d2e42d..1959dc5 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -624,13 +624,12 @@ int mthca_alloc_db(struct mthca_dev *dev, enum mthca_db_type type,
+ 	page = dev->db_tab->page + end;
+ 
+ alloc:
+-	page->db_rec = dma_alloc_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
+-					  &page->mapping, GFP_KERNEL);
++	page->db_rec = dma_zalloc_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
++					   &page->mapping, GFP_KERNEL);
+ 	if (!page->db_rec) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+-	memset(page->db_rec, 0, MTHCA_ICM_PAGE_SIZE);
+ 
+ 	ret = mthca_MAP_ICM_page(dev, page->mapping,
+ 				 mthca_uarc_virt(dev, &dev->driver_uar, i));
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 3bbf201..f747d64 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -365,11 +365,11 @@ static int ocrdma_alloc_q(struct ocrdma_dev *dev,
+ 	q->len = len;
+ 	q->entry_size = entry_size;
+ 	q->size = len * entry_size;
+-	q->va = dma_alloc_coherent(&dev->nic_info.pdev->dev, q->size,
+-				   &q->dma, GFP_KERNEL);
++	q->va = dma_zalloc_coherent(&dev->nic_info.pdev->dev, q->size,
++				    &q->dma, GFP_KERNEL);
+ 	if (!q->va)
+ 		return -ENOMEM;
+-	memset(q->va, 0, q->size);
++
+ 	return 0;
+ }
+ 
+@@ -1581,12 +1581,11 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, struct ocrdma_cq *cq,
+ 		return -ENOMEM;
+ 	ocrdma_init_mch(&cmd->cmd.req, OCRDMA_CMD_CREATE_CQ,
+ 			OCRDMA_SUBSYS_COMMON, sizeof(*cmd));
+-	cq->va = dma_alloc_coherent(&pdev->dev, cq->len, &cq->pa, GFP_KERNEL);
++	cq->va = dma_zalloc_coherent(&pdev->dev, cq->len, &cq->pa, GFP_KERNEL);
+ 	if (!cq->va) {
+ 		status = -ENOMEM;
+ 		goto mem_err;
+ 	}
+-	memset(cq->va, 0, cq->len);
+ 	page_size = cq->len / hw_pages;
+ 	cmd->cmd.pgsz_pgcnt = (page_size / OCRDMA_MIN_Q_PAGE_SIZE) <<
+ 					OCRDMA_CREATE_CQ_PAGE_SIZE_SHIFT;
+@@ -1973,10 +1972,9 @@ static int ocrdma_set_create_qp_sq_cmd(struct ocrdma_create_qp_req *cmd,
+ 	qp->sq.max_cnt = max_wqe_allocated;
+ 	len = (hw_pages * hw_page_size);
+ 
+-	qp->sq.va = dma_alloc_coherent(&pdev->dev, len, &pa, GFP_KERNEL);
++	qp->sq.va = dma_zalloc_coherent(&pdev->dev, len, &pa, GFP_KERNEL);
+ 	if (!qp->sq.va)
+ 		return -EINVAL;
+-	memset(qp->sq.va, 0, len);
+ 	qp->sq.len = len;
+ 	qp->sq.pa = pa;
+ 	qp->sq.entry_size = dev->attr.wqe_size;
+@@ -2023,10 +2021,9 @@ static int ocrdma_set_create_qp_rq_cmd(struct ocrdma_create_qp_req *cmd,
+ 	qp->rq.max_cnt = max_rqe_allocated;
+ 	len = (hw_pages * hw_page_size);
+ 
+-	qp->rq.va = dma_alloc_coherent(&pdev->dev, len, &pa, GFP_KERNEL);
++	qp->rq.va = dma_zalloc_coherent(&pdev->dev, len, &pa, GFP_KERNEL);
+ 	if (!qp->rq.va)
+ 		return -ENOMEM;
+-	memset(qp->rq.va, 0, len);
+ 	qp->rq.pa = pa;
+ 	qp->rq.len = len;
+ 	qp->rq.entry_size = dev->attr.rqe_size;
+@@ -2079,11 +2076,10 @@ static int ocrdma_set_create_qp_ird_cmd(struct ocrdma_create_qp_req *cmd,
+ 	if (dev->attr.ird == 0)
+ 		return 0;
+ 
+-	qp->ird_q_va = dma_alloc_coherent(&pdev->dev, ird_q_len,
+-					&pa, GFP_KERNEL);
++	qp->ird_q_va = dma_zalloc_coherent(&pdev->dev, ird_q_len, &pa,
++					   GFP_KERNEL);
+ 	if (!qp->ird_q_va)
+ 		return -ENOMEM;
+-	memset(qp->ird_q_va, 0, ird_q_len);
+ 	ocrdma_build_q_pages(&cmd->ird_addr[0], dev->attr.num_ird_pages,
+ 			     pa, ird_page_size);
+ 	for (; i < ird_q_len / dev->attr.rqe_size; i++) {
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+index 41a9aec..d5692d1 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+@@ -56,15 +56,13 @@ static bool ocrdma_alloc_stats_mem(struct ocrdma_dev *dev)
+ 	mem->size = max_t(u32, sizeof(struct ocrdma_rdma_stats_req),
+ 			sizeof(struct ocrdma_rdma_stats_resp));
+ 
+-	mem->va   = dma_alloc_coherent(&dev->nic_info.pdev->dev, mem->size,
+-					 &mem->pa, GFP_KERNEL);
++	mem->va = dma_zalloc_coherent(&dev->nic_info.pdev->dev, mem->size,
++				      &mem->pa, GFP_KERNEL);
+ 	if (!mem->va) {
+ 		pr_err("%s: stats mbox allocation failed\n", __func__);
+ 		return false;
+ 	}
+ 
+-	memset(mem->va, 0, mem->size);
+-
+ 	/* Alloc debugfs mem */
+ 	mem->debugfs_mem = kzalloc(OCRDMA_MAX_DBGFS_MEM, GFP_KERNEL);
+ 	if (!mem->debugfs_mem) {
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index edf6211..461712b 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -373,13 +373,12 @@ struct ib_ucontext *ocrdma_alloc_ucontext(struct ib_device *ibdev,
+ 	INIT_LIST_HEAD(&ctx->mm_head);
+ 	mutex_init(&ctx->mm_list_lock);
+ 
+-	ctx->ah_tbl.va = dma_alloc_coherent(&pdev->dev, map_len,
+-					    &ctx->ah_tbl.pa, GFP_KERNEL);
++	ctx->ah_tbl.va = dma_zalloc_coherent(&pdev->dev, map_len,
++					     &ctx->ah_tbl.pa, GFP_KERNEL);
+ 	if (!ctx->ah_tbl.va) {
+ 		kfree(ctx);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-	memset(ctx->ah_tbl.va, 0, map_len);
+ 	ctx->ah_tbl.len = map_len;
+ 
+ 	memset(&resp, 0, sizeof(resp));
+@@ -708,13 +707,12 @@ static int ocrdma_build_pbl_tbl(struct ocrdma_dev *dev, struct ocrdma_hw_mr *mr)
+ 		return -ENOMEM;
+ 
+ 	for (i = 0; i < mr->num_pbls; i++) {
+-		va = dma_alloc_coherent(&pdev->dev, dma_len, &pa, GFP_KERNEL);
++		va = dma_zalloc_coherent(&pdev->dev, dma_len, &pa, GFP_KERNEL);
+ 		if (!va) {
+ 			ocrdma_free_mr_pbl_tbl(dev, mr);
+ 			status = -ENOMEM;
+ 			break;
+ 		}
+-		memset(va, 0, dma_len);
+ 		mr->pbl_table[i].va = va;
+ 		mr->pbl_table[i].pa = pa;
+ 	}
 -- 
 1.8.1.2.459.gbcd45b4.dirty
