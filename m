@@ -1,61 +1,32 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH] infinibad: fix memory leak in function send_flowc
-Date: Mon, 16 Jun 2014 13:46:29 -0500
-Message-ID: <539F3B85.2020009@opengridcomputing.com>
-References: <1402943456-7532-1-git-send-email-xerofoify@gmail.com> <539F38B3.2020405@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <539F38B3.2020405@opengridcomputing.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicholas Krause <xerofoify@gmail.com>, "swise@chelsio.com >> Steve Wise" <swise@chelsio.com>
-Cc: roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCHv2] iw_cxgb4: in send_flowc(), handle a skb return from get_skb()
+Date: Mon, 16 Jun 2014 14:47:41 -0400
+Message-ID: <1402944461-7940-1-git-send-email-xerofoify@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/16/2014 1:34 PM, Steve Wise wrote:
-> On 6/16/2014 1:30 PM, Nicholas Krause wrote:
->> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
->> ---
->>   drivers/infiniband/hw/cxgb4/cm.c | 5 ++++-
->>   1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/hw/cxgb4/cm.c 
->> b/drivers/infiniband/hw/cxgb4/cm.c
->> index 5e153f6..c518411 100644
->> --- a/drivers/infiniband/hw/cxgb4/cm.c
->> +++ b/drivers/infiniband/hw/cxgb4/cm.c
->> @@ -455,7 +455,10 @@ static void send_flowc(struct c4iw_ep *ep, 
->> struct sk_buff *skb)
->>       unsigned int flowclen = 80;
->>       struct fw_flowc_wr *flowc;
->>       int i;
->>
->> +    if (!skb) {
->> +        kfree_skb();
->> +        pr_warn(MOD "%s failed to allocate skb.\n", __func__);
->> +    }
->>       skb = get_skb(skb, flowclen, GFP_KERNEL);
->
-> Oops, shouldn't the if statement be after the call to get_skb()? :) 
-> (you're having a bad day ;))
->
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 5e153f6..e0c43a3 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -457,6 +457,10 @@ static void send_flowc(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	int i;
+ 
+ 	skb = get_skb(skb, flowclen, GFP_KERNEL);
++	if (!skb) {
++		kfree_skb();
++	pr_warn(MOD "%s failed to allocate skb.\n", __func__);
++	}
+ 	flowc = (struct fw_flowc_wr *)__skb_put(skb, flowclen);
+ 
+ 	flowc->op_to_nparams = cpu_to_be32(FW_WR_OP(FW_FLOWC_WR) |
+-- 
+1.9.1
 
-And you don't free anything.  If get_skb() returns NULL, then log the 
-warning and return.
-
-
->>       flowc = (struct fw_flowc_wr *)__skb_put(skb, flowclen);
->
-> One more nit:  The comment is no longer correct.  It should be 
-> something like:
->
-> iw_cxgb4: in send_flowc(), handle a null skb return from get_skb()
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
