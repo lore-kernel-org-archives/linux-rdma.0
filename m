@@ -1,11 +1,11 @@
-From: Nicholas Krause <xerofoify@gmail.com>
+From: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: [PATCHv2] iw_cxgb4: in send_flowc(), handle a skb return from get_skb()
-Date: Mon, 16 Jun 2014 14:51:27 -0400
-Message-ID: <1402944687-8010-1-git-send-email-xerofoify@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: swise@chelsio.com
-Cc: roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 16 Jun 2014 14:53:42 -0400
+Message-ID: <1402944822-8063-1-git-send-email-xerofoify@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
@@ -17,7 +17,7 @@ index 5e153f6..e0c43a3 100644
  
  	skb = get_skb(skb, flowclen, GFP_KERNEL);
 +	if (!skb) {
-+		pr_warn(MOD "%s failed to allocate skb.\n", __func__);
++	pr_warn(MOD "%s failed to allocate skb.\n", __func__);
 +		return;
 +	}
  	flowc = (struct fw_flowc_wr *)__skb_put(skb, flowclen);
@@ -25,3 +25,8 @@ index 5e153f6..e0c43a3 100644
  	flowc->op_to_nparams = cpu_to_be32(FW_WR_OP(FW_FLOWC_WR) |
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
