@@ -1,112 +1,54 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 1/1] IPoIB: Improve parent interface p_key handling.
-Date: Tue, 17 Jun 2014 13:11:51 +0000
-Message-ID: <F3529576D8E232409F431C309E293993B83901@CRSMSX102.amr.corp.intel.com>
-References: <20140611191947.31937.75434.stgit@phlsvlogin03.ph.intel.com>
- <20140611192132.31937.30869.stgit@phlsvlogin03.ph.intel.com>
- <539FD9EA.8030301@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH] infiniband: Fixes memory leak in send_flowc
+Date: Tue, 17 Jun 2014 08:53:01 -0500
+Message-ID: <002201cf8a33$740fc730$5c2f5590$@opengridcomputing.com>
+References: <1402940957-6381-1-git-send-email-xerofoify@gmail.com> <539F34E8.3000501@opengridcomputing.com> <alpine.DEB.2.02.1406161638360.21018@chino.kir.corp.google.com> <CAPDOMVg8hT95Wcmy4VHdfsumEvc=w3dz8V8xP1QScsLK3buSxw@mail.gmail.com> <alpine.DEB.2.02.1406161707230.21018@chino.kir.corp.google.com> <CAPDOMVjjwywH36guWC2q-Y26m-DEoHHJtk5Vasvk2kfsDpCuiA@mail.gmail.com> <alpine.DEB.2.02.1406161735490.21018@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <539FD9EA.8030301-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <alpine.DEB.2.02.1406161735490.21018-X6Q0R45D7oAcqpCFd4KODRPsWskHk0ljAL8bYrjMMd8@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'David Rientjes' <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, 'Nick Krause' <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgT3IsDQpQbGVhc2Ugc2VlIGJlbG93Lg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+IEZyb206IE9yIEdlcmxpdHogW21haWx0bzpvZ2VybGl0ekBtZWxsYW5veC5jb21dDQo+IFNl
-bnQ6IFR1ZXNkYXksIEp1bmUgMTcsIDIwMTQgMjowMiBBTQ0KPiBUbzogRXN0cmluLCBBbGV4OyBS
-b2xhbmQgRHJlaWVyDQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgRXJleiBTaGl0
-cml0DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS8xXSBJUG9JQjogSW1wcm92ZSBwYXJlbnQg
-aW50ZXJmYWNlIHBfa2V5IGhhbmRsaW5nLg0KPiANCj4gT24gMTEvMDYvMjAxNCAyMjoyMiwgQWxl
-eCBFc3RyaW4gd3JvdGU6DQo+ID4gV2l0aCByZWZlcmVuY2UgdG8gY29tbWl0IGMyOTA0MTQxNjk2
-ZWUxOTU1MWYxNTUzOTQ0NDQ2ZjIzY2RkNWQ5NWUNCj4gPiAoSVBvSUI6IEZpeCBwa2V5IGNoYW5n
-ZSBmbG93IGZvciB2aXJ0dWFsaXphdGlvbiBlbnZpcm9ubWVudHMpDQo+ID4gSXQgd2FzIG5vdGlj
-ZWQgdGhhdCBwYXJlbnQgaW50ZXJmYWNlIGtlZXBzIHNlbmRpbmcgYnJvYWRjYXN0IGdyb3VwDQo+
-ID4gam9pbiByZXF1ZXN0cyBpZiBwX2tleSBpbmRleCAwIGlzIGludmFsaWQuIFRoYXQgY3JlYXRl
-cyB1bm5lY2Vzc2FyeQ0KPiA+IG5vaXNlIG9uIGEgZmFicmljOg0KPiA+DQo+ID4gaWIwOiBtdWx0
-aWNhc3Qgam9pbiBmYWlsZWQgZm9yIGZmMTI6NDAxYjo4MDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6
-ZmZmZiwNCj4gPiBzdGF0dXMgLTIyDQo+ID4NCj4gPiBQcm9wb3NlZCBwYXRjaCByZS1pbml0IHJl
-c291cmNlcywgdGhlbiBicmluZ3MgaW50ZXJmYWNlDQo+ID4gdXAgb25seSBpZiBwX2tleSBpZHgg
-MCBpcyB2YWxpZCBlaXRoZXIgb24gYm9vdHVwIG9yIG9uIFBLRVlfQ0hBTkdFIGV2ZW50Lg0KPiA+
-IE9yaWdpbmFsIGNvZGUgY291bGQgcnVuIG11bHRpY2FzdCB0YXNrIHJlZ2FyZGxlc3Mgb2YgcF9r
-ZXkgdmFsdWUsDQo+ID4gd2hpY2ggd2Ugd2FudCB0byBhdm9pZC4NCj4gPg0KPiA+IFJldmlld2Vk
-LWJ5OiBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTog
-QWxleCBFc3RyaW4gPGFsZXguZXN0cmluQGludGVsLmNvbT4NCj4gDQo+IEhpIEFsZXgsIEkgcmUt
-d3JvdGUgdGhlIGNoYW5nZS1sb2cgdG8gbWFrZSBpdCBjbGVhcmVyIGFuZCBhbHNvIGZvbGxvdyBz
-b21lDQo+IHByYWN0aWNlcyB3ZSB1c2UgaW4gdGhlIGtlcm5lbCAobWVudGlvbmVkIHRoZW0gdG8g
-eW91IG92ZXIgcHJldiBwb3N0cywNCj4gYnV0IG1heWJlDQo+IGl0IHdhc24ndCBjbGVhciBlbm91
-Z2guLi4pIGFsc28gc2VlIHNvbWUgY29tbWVudHMgZnVydGhlciBkb3duIHRoZSBwYXRjaCAtLQ0K
-PiANCj4gSVBvSUI6IEF2b2lkIG11bHRpY2FzdCBqb2luIGF0dGVtcHRzIHdoZW4gaGF2aW5nIGlu
-dmFsaWQgcF9rZXkNCj4gDQo+IEN1cnJlbnRseSwgdGhlIHBhcmVudCBpbnRlcmZhY2Uga2VlcHMg
-c2VuZGluZyBicm9hZGNhc3QgZ3JvdXAgam9pbg0KPiByZXF1ZXN0cyBldmVuIGlmIHBfa2V5IGlu
-ZGV4IDAgaXMgaW52YWxpZCwgd2hpY2ggZm9yIGl0c2VsZiBpcw0KPiBwb3NzaWJsZS9jb21tb24g
-aW4gdmlydHVhbGl6ZWQgZW52aXJvbm1lbnRzd2hlcmUgYSBWRiBoYXMgYmVlbiBwcm9iZWQgdG8N
-Cj4gVk0gYnV0IHRoZSBhY3R1YWwgcF9rZXkgY29uZmlndXJhdGlvbiBoYXMgbm90IHlldCBiZWVu
-IGFzc2lnbmVkIGJ5IHRoZQ0KPiBtYW5hZ2VtZW50IHNvZnR3YXJlLiBUaGlzIGNyZWF0ZXMgdW5u
-ZWNlc3Nhcnkgbm9pc2Ugb24gdGhlIGZhYnJpYyBhbmQgaW4NCj4gdGhlIGtlcm5lbCBsb2dzOg0K
-PiANCj4gaWIwOiBtdWx0aWNhc3Qgam9pbiBmYWlsZWQgZm9yIGZmMTI6NDAxYjo4MDAwOjAwMDA6
-MDAwMDowMDAwOmZmZmY6ZmZmZiwNCj4gc3RhdHVzIC0yMg0KPiANCj4gVGhlIG9yaWdpbmFsIGNv
-ZGUgcnVuIHRoZSBtdWx0aWNhc3QgdGFzayByZWdhcmRsZXNzIG9mIHRoZSBhY3R1YWwNCj4gcF9r
-ZXkgdmFsdWUsIHdoaWNoIGNhbiBiZSBhdm9pZGVkLiBUaGUgZml4IGlzIHRvIHJlLWluaXQgcmVz
-b3VyY2VzICBhbmQNCj4gYnJpbmcgaW50ZXJmYWNlIHVwIG9ubHkgaWYgcF9rZXkgaW5kZXggMCBp
-cyB2YWxpZCBlaXRoZXIgd2hlbiBzdGFydGluZw0KPiB1cCBvciBvbiBQS0VZX0NIQU5HRSBldmVu
-dC4NCj4gDQo+IEZpeGVzOiBjMjkwNDE0MTY5ICgnSVBvSUI6IEZpeCBwa2V5IGNoYW5nZSBmbG93
-IGZvciB2aXJ0dWFsaXphdGlvbiBlbnZpcm9ubWVudHMnKQ0KDQpUaGFua3MsIEknbGwgdXBkYXRl
-IHRoZSBjaGFuZ2UtbG9nLg0KIA0KPiA+IC0tLQ0KPiA+ICAgZHJpdmVycy9pbmZpbmliYW5kL3Vs
-cC9pcG9pYi9pcG9pYl9pYi5jIHwgICAzNSArKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0t
-DQo+ID4gICAxIGZpbGVzIGNoYW5nZWQsIDIxIGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygt
-KQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBv
-aWJfaWIuYw0KPiBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfaWIuYw0KPiA+
-IGluZGV4IDZhNzAwM2QuLmEyYWY5OTYgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmli
-YW5kL3VscC9pcG9pYi9pcG9pYl9pYi5jDQo+ID4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL3Vs
-cC9pcG9pYi9pcG9pYl9pYi5jDQo+ID4gQEAgLTUyLDYgKzUyLDcgQEAgTU9EVUxFX1BBUk1fREVT
-QyhkYXRhX2RlYnVnX2xldmVsLA0KPiA+ICAgI2VuZGlmDQo+ID4NCj4gPiAgIHN0YXRpYyBERUZJ
-TkVfTVVURVgocGtleV9tdXRleCk7DQo+ID4gK3N0YXRpYyB2b2lkIGlwb2liX3BrZXlfZGV2X2No
-ZWNrX3ByZXNlbmNlKHN0cnVjdCBuZXRfZGV2aWNlICpkZXYpOw0KPiA+DQo+ID4gICBzdHJ1Y3Qg
-aXBvaWJfYWggKmlwb2liX2NyZWF0ZV9haChzdHJ1Y3QgbmV0X2RldmljZSAqZGV2LA0KPiA+ICAg
-CQkJCSBzdHJ1Y3QgaWJfcGQgKnBkLCBzdHJ1Y3QgaWJfYWhfYXR0ciAqYXR0cikNCj4gPiBAQCAt
-NjY5LDEyICs2NzAsMTMgQEAgaW50IGlwb2liX2liX2Rldl9vcGVuKHN0cnVjdCBuZXRfZGV2aWNl
-ICpkZXYpDQo+ID4gICAJc3RydWN0IGlwb2liX2Rldl9wcml2ICpwcml2ID0gbmV0ZGV2X3ByaXYo
-ZGV2KTsNCj4gPiAgIAlpbnQgcmV0Ow0KPiA+DQo+ID4gLQlpZiAoaWJfZmluZF9wa2V5KHByaXYt
-PmNhLCBwcml2LT5wb3J0LCBwcml2LT5wa2V5LCAmcHJpdi0+cGtleV9pbmRleCkpIHsNCj4gPiAt
-CQlpcG9pYl93YXJuKHByaXYsICJQX0tleSAweCUwNHggbm90IGZvdW5kXG4iLCBwcml2LT5wa2V5
-KTsNCj4gPiAtCQljbGVhcl9iaXQoSVBPSUJfUEtFWV9BU1NJR05FRCwgJnByaXYtPmZsYWdzKTsN
-Cj4gPiArCWlwb2liX3BrZXlfZGV2X2NoZWNrX3ByZXNlbmNlKGRldik7DQo+ID4gKw0KPiA+ICsJ
-aWYgKCF0ZXN0X2JpdChJUE9JQl9QS0VZX0FTU0lHTkVELCAmcHJpdi0+ZmxhZ3MpKSB7DQo+ID4g
-KwkJaXBvaWJfd2Fybihwcml2LCAiUF9LZXkgMHglMDR4IGlzICVzXG4iLCBwcml2LT5wa2V5LA0K
-PiA+ICsJCQkhKHByaXYtPnBrZXkgJiAweDdmZmYpID8gIkludmFsaWQiIDogIm5vdCBmb3VuZCIp
-Ow0KPiBDSEVDSzogQWxpZ25tZW50IHNob3VsZCBtYXRjaCBvcGVuIHBhcmVudGhlc2lzDQo+ICM0
-NDogRklMRTogZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9pYi5jOjY3NzoNCj4g
-KyAgICAgICAgICAgICAgIGlwb2liX3dhcm4ocHJpdiwgIlBfS2V5IDB4JTA0eCBpcyAlc1xuIiwg
-cHJpdi0+cGtleSwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgIShwcml2LT5wa2V5ICYgMHg3
-ZmZmKSA/ICJJbnZhbGlkIiA6ICJub3QgZm91bmQiKTsNCj4gDQo+IHBsZWFzZSBydW4gY2hlY2tw
-YXRjaCAtLXN0cmljdCBvbiB5b3VyIHBhdGNoIHRvIGZpeCB0aGlzIG9uZSBhbmQgaXQncw0KPiBz
-dWNoICh0aGVyZSBhcmUgbW9yZSkgYmFzaWNhbGx5IHRoZSBndWlkZWxpbmUgKGJhc2VkIG9uIGEg
-cXVvdGUgb2ZEYXZlDQo+IE1pbGxlciAuLi4pIGlzOg0KPiANCj4gd2hlbiB5b3UgaGF2ZSBhIG11
-bHRpLWxpbmUgZnVuY3Rpb24gY2FsbCBvciBpZiAoKSBjb25kaXRpb25hbCx0aGUgZmlyc3QNCj4g
-bm9uLXdoaXRlc3BhY2UgY2hhcmFjdGVyIG9uIHRoZSBzZWNvbmQgYW5kIHN1YnNlcXVlbnQgbGlu
-ZXMgc2hvdWxkIGxpbmUNCj4gdXAgd2l0aCB0aGUgZmlyc3QgY29sdW1uIGFmdGVyIHRoZSBvcGVu
-bmluZyBwYXJlbnRoZXNpcyBvbiB0aGUgZmlyc3QgbGluZS4NCj4gDQpUaGFua3MgZm9yIHRoZSB0
-aXAgd2l0aCAnLS1zdHJpY3QnIG9wdGlvbi4NCg0KPiBAQCAtMTAzOCw4ICsxMDQzLDEwIEBAIHN0
-YXRpYyB2b2lkIF9faXBvaWJfaWJfZGV2X2ZsdXNoKHN0cnVjdCBpcG9pYl9kZXZfcHJpdg0KPiAq
-cHJpdiwNCj4gICAJCWlwb2liX2liX2Rldl9kb3duKGRldiwgMCk7DQo+IA0KPiAgIAlpZiAobGV2
-ZWwgPT0gSVBPSUJfRkxVU0hfSEVBVlkpIHsNCj4gLQkJaXBvaWJfaWJfZGV2X3N0b3AoZGV2LCAw
-KTsNCj4gLQkJaXBvaWJfaWJfZGV2X29wZW4oZGV2KTsNCj4gKwkJaWYgKHRlc3RfYml0KElQT0lC
-X0ZMQUdfSU5JVElBTElaRUQsICZwcml2LT5mbGFncykpDQo+ICsJCQlpcG9pYl9pYl9kZXZfc3Rv
-cChkZXYsIDApOw0KPiArCQlpZiAoaXBvaWJfaWJfZGV2X29wZW4oZGV2KSAhPSAwKQ0KPiArCQkJ
-cmV0dXJuOw0KPiAgIAl9DQo+IA0KPiANCj4gaXMgdGVzdGluZyB0aGUgcmV0dXJuIGNvZGUgb2Yg
-aXBvaWJfaWJfZGV2X29wZW4oKSByZWFsbHkgcGFydCBvZiB0aGUNCj4gZnVuY3Rpb25hbC9maXgg
-Y2hhbmdlIGludHJvZHVjZWQgYnkgdGhpcyBwYXRjaCBvciBhIGRpZmZlcmVudCBmaXg/IGlmDQo+
-IHRoZSBsYXR0ZXIsIHB1dCB0byBkaWZmZXJlbnQvZnV0dXJlIHBhdGNoDQoNClJldHVybiBjb2Rl
-IHRlc3Qgd2FzIGludHJvZHVjZWQgYXMgYSBwYXJ0IG9mIHRoZSBwYXRjaC4gSXQgYWxsb3dzIGVh
-cmx5IHJldHVybiBmcm9tIHRoZSBldmVudCBoYW5kbGVyDQooIHRoZXJlZm9yZSBieXBhc3MgbXVs
-dGljYXN0IHRhc2sgcmVzdGFydCkgIGlmIHVwZGF0ZWQgcF9rZXkgaXMgaW52YWxpZC4NClBvdGVu
-dGlhbCBzY2VuYXJpbyBmb3IgdGhpcyBjYXNlICAtIHRyYW5zaXRpb24gZnJvbSB2YWxpZCB0byBp
-bnZhbGlkIHBfa2V5IHZhbHVlIGF0IHJ1bnRpbWUuDQoNClRoYW5rcywNCkFsZXguDQo=
+
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
+> Behalf Of David Rientjes
+> Sent: Monday, June 16, 2014 7:37 PM
+> To: Nick Krause
+> Cc: Steve Wise; swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+> hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH] infiniband: Fixes memory leak in send_flowc
+> 
+> On Mon, 16 Jun 2014, Nick Krause wrote:
+> 
+> > That's true David,
+> > I will resend this parch without the use of the pr_warn.
+> 
+> There's no patch to resend if you don't use pr_warn().  kfree_skb(skb) is
+> unnecessary if !skb, look at the first thing it checks:
+> 
+> void kfree_skb(struct sk_buff *skb)
+> {
+>         if (unlikely(!skb))
+>                 return;
+> 	...
+> }
+> 
+> Thus, I don't see the memory leak you're referring to.
+
+send_flowc() still needs to handle a NULL return from get_skb().  That is what the bug
+report is addressing...
+
+Steve.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
