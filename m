@@ -1,98 +1,88 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 78171] New: Missing NULL check of the return value of
- alloc_skb() in function st_int_recv()
-Date: Tue, 17 Jun 2014 12:16:57 +0000
-Message-ID: <bug-78171-11804@https.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] xprtrdma: Fix DMA-API-DEBUG warning by checking dma_map result
+Date: Tue, 17 Jun 2014 15:39:07 +0300
+Message-ID: <1403008747-23923-1-git-send-email-yanb@mellanox.com>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=78171
+Fix the following warning when DMA-API debug is enabled by checking ib_dma_map_single result:
+[ 1455.345548] ------------[ cut here ]------------
+[ 1455.346863] WARNING: CPU: 3 PID: 3929 at /home/yanb/kernel/net-next/lib/dma-debug.c:1140 check_unmap+0x4e5/0x990()
+[ 1455.349350] mlx4_core 0000:00:07.0: DMA-API: device driver failed to check map error[device address=0x000000007c9f2090] [size=2656 bytes] [mapped as single]
+[ 1455.349350] Modules linked in: xprtrdma netconsole configfs nfsv3 nfs_acl ib_ipoib rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm autofs4 auth_rpcgss oid_registry nfsv4 nfs fscache lockd sunrpc dm_mirror dm_region_hash dm_log microcode pcspkr mlx4_ib ib_sa ib_mad ib_core ib_addr mlx4_en ipv6 ptp pps_core vxlan mlx4_core virtio_balloon cirrus ttm drm_kms_helper drm sysimgblt sysfillrect syscopyarea i2c_piix4 i2c_core button ext3 jbd virtio_blk virtio_net virtio_pci virtio_ring virtio uhci_hcd ata_generic ata_piix libata
+[ 1455.349350] CPU: 3 PID: 3929 Comm: mount.nfs Not tainted 3.15.0-rc1-dbg+ #13
+[ 1455.349350] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
+[ 1455.349350]  0000000000000474 ffff880069dcf628 ffffffff8151c341 ffffffff817b69d8
+[ 1455.349350]  ffff880069dcf678 ffff880069dcf668 ffffffff8105b5fc 0000000069dcf658
+[ 1455.349350]  ffff880069dcf778 ffff88007b0c9f00 ffffffff8255ec40 0000000000000a60
+[ 1455.349350] Call Trace:
+[ 1455.349350]  [<ffffffff8151c341>] dump_stack+0x52/0x81
+[ 1455.349350]  [<ffffffff8105b5fc>] warn_slowpath_common+0x8c/0xc0
+[ 1455.349350]  [<ffffffff8105b6e6>] warn_slowpath_fmt+0x46/0x50
+[ 1455.349350]  [<ffffffff812e6305>] check_unmap+0x4e5/0x990
+[ 1455.349350]  [<ffffffff81521fb0>] ? _raw_spin_unlock_irq+0x30/0x60
+[ 1455.349350]  [<ffffffff812e6a0a>] debug_dma_unmap_page+0x5a/0x60
+[ 1455.349350]  [<ffffffffa0389583>] rpcrdma_deregister_internal+0xb3/0xd0 [xprtrdma]
+[ 1455.349350]  [<ffffffffa038a639>] rpcrdma_buffer_destroy+0x69/0x170 [xprtrdma]
+[ 1455.349350]  [<ffffffffa03872ff>] xprt_rdma_destroy+0x3f/0xb0 [xprtrdma]
+[ 1455.349350]  [<ffffffffa04a95ff>] xprt_destroy+0x6f/0x80 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a9625>] xprt_put+0x15/0x20 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a899a>] rpc_free_client+0x8a/0xe0 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a8a58>] rpc_release_client+0x68/0xa0 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a9060>] rpc_shutdown_client+0xb0/0xc0 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a8f5d>] ? rpc_ping+0x5d/0x70 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a91ab>] rpc_create_xprt+0xbb/0xd0 [sunrpc]
+[ 1455.349350]  [<ffffffffa04a9273>] rpc_create+0xb3/0x160 [sunrpc]
+[ 1455.349350]  [<ffffffff81129749>] ? __probe_kernel_read+0x69/0xb0
+[ 1455.349350]  [<ffffffffa053851c>] nfs_create_rpc_client+0xdc/0x100 [nfs]
+[ 1455.349350]  [<ffffffffa0538cfa>] nfs_init_client+0x3a/0x90 [nfs]
+[ 1455.349350]  [<ffffffffa05391c8>] nfs_get_client+0x478/0x5b0 [nfs]
+[ 1455.349350]  [<ffffffffa0538e50>] ? nfs_get_client+0x100/0x5b0 [nfs]
+[ 1455.349350]  [<ffffffff81172c6d>] ? kmem_cache_alloc_trace+0x24d/0x260
+[ 1455.349350]  [<ffffffffa05393f3>] nfs_create_server+0xf3/0x4c0 [nfs]
+[ 1455.349350]  [<ffffffffa0545ff0>] ? nfs_request_mount+0xf0/0x1a0 [nfs]
+[ 1455.349350]  [<ffffffffa031c0c3>] nfs3_create_server+0x13/0x30 [nfsv3]
+[ 1455.349350]  [<ffffffffa0546293>] nfs_try_mount+0x1f3/0x230 [nfs]
+[ 1455.349350]  [<ffffffff8108ea21>] ? get_parent_ip+0x11/0x50
+[ 1455.349350]  [<ffffffff812d6343>] ? __this_cpu_preempt_check+0x13/0x20
+[ 1455.349350]  [<ffffffff810d632b>] ? try_module_get+0x6b/0x190
+[ 1455.349350]  [<ffffffffa05449f7>] nfs_fs_mount+0x187/0x9d0 [nfs]
+[ 1455.349350]  [<ffffffffa0545940>] ? nfs_clone_super+0x140/0x140 [nfs]
+[ 1455.349350]  [<ffffffffa0543b20>] ? nfs_auth_info_match+0x40/0x40 [nfs]
+[ 1455.349350]  [<ffffffff8117e360>] mount_fs+0x20/0xe0
+[ 1455.349350]  [<ffffffff811a1c16>] vfs_kern_mount+0x76/0x160
+[ 1455.349350]  [<ffffffff811a29a8>] do_mount+0x428/0xae0
+[ 1455.349350]  [<ffffffff811a30f0>] SyS_mount+0x90/0xe0
+[ 1455.349350]  [<ffffffff8152af52>] system_call_fastpath+0x16/0x1b
+[ 1455.349350] ---[ end trace f1f31572972e211d ]---
 
-            Bug ID: 78171
-           Summary: Missing NULL check of the return value of alloc_skb()
-                    in function st_int_recv()
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 2.6.39
-          Hardware: All
-                OS: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-          Reporter: rucsoftsec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-        Regression: No
+Signed-off-by: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/verbs.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-In function st_int_recv() at drivers/misc/ti-st/st_core.c:230, the call to
-alloc_skb() at line 338 may return a NULL pointer when there is no enough
-memory, but its return value is never checked against NULL before it is
-dereferenced in function skb_reserve()(called at line 341), and thus an invalid
-memory access error may be triggered.
-The related code snippets in function st_int_recv() are as followings.
-st_int_recv @ drivers/misc/ti-st/st_core.c:230
-230 void st_int_recv(void *disc_data,
-231         const unsigned char *data, long count)
-232 {
-233         char *ptr;
-234         struct st_proto_s *proto;
-235         unsigned short payload_len = 0;
-236         int len = 0, type = 0;
-    ...
-336                 default:
-337                         type = *ptr;
-338                         st_gdata->rx_skb = alloc_skb(
-339                                        
-st_gdata->list[type]->max_frame_size,
-340                                         GFP_ATOMIC);
-341                         skb_reserve(st_gdata->rx_skb,
-342                                         st_gdata->list[type]->reserve);
-    ...
-356         return;
-357 }
-
-Generally, the return value of alloc_skb() shall be checked against NULL before
-it is used, like the following code snippets in function rx_submit().
-rx_submit @ drivers/usb/gadget/u_ether.c:207
-207 rx_submit(struct eth_dev *dev, struct usb_request *req, gfp_t gfp_flags)
-208 {
-209         struct sk_buff  *skb;
-210         int             retval = -ENOMEM;
-211         size_t          size = 0;
-    ...
-242 
-243         if (dev->port_usb->is_fixed)
-244                 size = max_t(size_t, size, dev->port_usb->fixed_out_len);
-245 
-246         skb = alloc_skb(size + NET_IP_ALIGN, gfp_flags);
-247         if (skb == NULL) {
-248                 DBG(dev, "no rx skb\n");
-249                 goto enomem;
-250         }
-251 
-252         /* Some platforms perform better when IP packets are aligned,
-253          * but on at least one, checksumming fails otherwise.  Note:
-254          * RNDIS headers involve variable numbers of LE32 values.
-255          */
-256         skb_reserve(skb, NET_IP_ALIGN);
-257 
-    ...
-275         return retval;
-276 }
-Thak you!
-
-RUC_Soft_Sec, supported by China.X.Orion
-
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 13dbd1c..076c244 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1388,6 +1388,10 @@ rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
+ 	 */
+ 	iov->addr = ib_dma_map_single(ia->ri_id->device,
+ 			va, len, DMA_BIDIRECTIONAL);
++	if (ib_dma_mapping_error(ia->ri_id->device, iov->addr)) {
++		return -ENOMEM;
++	}
++
+ 	iov->length = len;
+ 
+ 	if (ia->ri_have_dma_lkey) {
 -- 
-You are receiving this mail because:
-You are watching the assignee of the bug.
+1.7.10.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
