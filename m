@@ -1,111 +1,84 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] xprtrdma: Fix DMA-API-DEBUG warning by checking dma_map result
-Date: Wed, 18 Jun 2014 17:28:09 -0400
-Message-ID: <933342C7-B554-4B85-8533-A953BF3A4ABC@oracle.com>
-References: <1403008747-23923-1-git-send-email-yanb@mellanox.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1403008747-23923-1-git-send-email-yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: rmmod mlx4_core panic 3.16-rc1
+Date: Wed, 18 Jun 2014 20:33:07 -0700
+Message-ID: <53A259F3.3040203@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Or,
 
-On Jun 17, 2014, at 8:39 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+Two questions here:
+1. Whether IB VFs is supported in ConnectX-2 (mlx4 driver)?
 
-> Fix the following warning when DMA-API debug is enabled by checking ib_dma_map_single result:
-> [ 1455.345548] ------------[ cut here ]------------
-> [ 1455.346863] WARNING: CPU: 3 PID: 3929 at /home/yanb/kernel/net-next/lib/dma-debug.c:1140 check_unmap+0x4e5/0x990()
-> [ 1455.349350] mlx4_core 0000:00:07.0: DMA-API: device driver failed to check map error[device address=0x000000007c9f2090] [size=2656 bytes] [mapped as single]
-> [ 1455.349350] Modules linked in: xprtrdma netconsole configfs nfsv3 nfs_acl ib_ipoib rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm autofs4 auth_rpcgss oid_registry nfsv4 nfs fscache lockd sunrpc dm_mirror dm_region_hash dm_log microcode pcspkr mlx4_ib ib_sa ib_mad ib_core ib_addr mlx4_en ipv6 ptp pps_core vxlan mlx4_core virtio_balloon cirrus ttm drm_kms_helper drm sysimgblt sysfillrect syscopyarea i2c_piix4 i2c_core button ext3 jbd virtio_blk virtio_net virtio_pci virtio_ring virtio uhci_hcd ata_generic ata_piix libata
-> [ 1455.349350] CPU: 3 PID: 3929 Comm: mount.nfs Not tainted 3.15.0-rc1-dbg+ #13
-> [ 1455.349350] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
-> [ 1455.349350]  0000000000000474 ffff880069dcf628 ffffffff8151c341 ffffffff817b69d8
-> [ 1455.349350]  ffff880069dcf678 ffff880069dcf668 ffffffff8105b5fc 0000000069dcf658
-> [ 1455.349350]  ffff880069dcf778 ffff88007b0c9f00 ffffffff8255ec40 0000000000000a60
-> [ 1455.349350] Call Trace:
-> [ 1455.349350]  [<ffffffff8151c341>] dump_stack+0x52/0x81
-> [ 1455.349350]  [<ffffffff8105b5fc>] warn_slowpath_common+0x8c/0xc0
-> [ 1455.349350]  [<ffffffff8105b6e6>] warn_slowpath_fmt+0x46/0x50
-> [ 1455.349350]  [<ffffffff812e6305>] check_unmap+0x4e5/0x990
-> [ 1455.349350]  [<ffffffff81521fb0>] ? _raw_spin_unlock_irq+0x30/0x60
-> [ 1455.349350]  [<ffffffff812e6a0a>] debug_dma_unmap_page+0x5a/0x60
-> [ 1455.349350]  [<ffffffffa0389583>] rpcrdma_deregister_internal+0xb3/0xd0 [xprtrdma]
-> [ 1455.349350]  [<ffffffffa038a639>] rpcrdma_buffer_destroy+0x69/0x170 [xprtrdma]
-> [ 1455.349350]  [<ffffffffa03872ff>] xprt_rdma_destroy+0x3f/0xb0 [xprtrdma]
-> [ 1455.349350]  [<ffffffffa04a95ff>] xprt_destroy+0x6f/0x80 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a9625>] xprt_put+0x15/0x20 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a899a>] rpc_free_client+0x8a/0xe0 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a8a58>] rpc_release_client+0x68/0xa0 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a9060>] rpc_shutdown_client+0xb0/0xc0 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a8f5d>] ? rpc_ping+0x5d/0x70 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a91ab>] rpc_create_xprt+0xbb/0xd0 [sunrpc]
-> [ 1455.349350]  [<ffffffffa04a9273>] rpc_create+0xb3/0x160 [sunrpc]
-> [ 1455.349350]  [<ffffffff81129749>] ? __probe_kernel_read+0x69/0xb0
-> [ 1455.349350]  [<ffffffffa053851c>] nfs_create_rpc_client+0xdc/0x100 [nfs]
-> [ 1455.349350]  [<ffffffffa0538cfa>] nfs_init_client+0x3a/0x90 [nfs]
-> [ 1455.349350]  [<ffffffffa05391c8>] nfs_get_client+0x478/0x5b0 [nfs]
-> [ 1455.349350]  [<ffffffffa0538e50>] ? nfs_get_client+0x100/0x5b0 [nfs]
-> [ 1455.349350]  [<ffffffff81172c6d>] ? kmem_cache_alloc_trace+0x24d/0x260
-> [ 1455.349350]  [<ffffffffa05393f3>] nfs_create_server+0xf3/0x4c0 [nfs]
-> [ 1455.349350]  [<ffffffffa0545ff0>] ? nfs_request_mount+0xf0/0x1a0 [nfs]
-> [ 1455.349350]  [<ffffffffa031c0c3>] nfs3_create_server+0x13/0x30 [nfsv3]
-> [ 1455.349350]  [<ffffffffa0546293>] nfs_try_mount+0x1f3/0x230 [nfs]
-> [ 1455.349350]  [<ffffffff8108ea21>] ? get_parent_ip+0x11/0x50
-> [ 1455.349350]  [<ffffffff812d6343>] ? __this_cpu_preempt_check+0x13/0x20
-> [ 1455.349350]  [<ffffffff810d632b>] ? try_module_get+0x6b/0x190
-> [ 1455.349350]  [<ffffffffa05449f7>] nfs_fs_mount+0x187/0x9d0 [nfs]
-> [ 1455.349350]  [<ffffffffa0545940>] ? nfs_clone_super+0x140/0x140 [nfs]
-> [ 1455.349350]  [<ffffffffa0543b20>] ? nfs_auth_info_match+0x40/0x40 [nfs]
-> [ 1455.349350]  [<ffffffff8117e360>] mount_fs+0x20/0xe0
-> [ 1455.349350]  [<ffffffff811a1c16>] vfs_kern_mount+0x76/0x160
-> [ 1455.349350]  [<ffffffff811a29a8>] do_mount+0x428/0xae0
-> [ 1455.349350]  [<ffffffff811a30f0>] SyS_mount+0x90/0xe0
-> [ 1455.349350]  [<ffffffff8152af52>] system_call_fastpath+0x16/0x1b
-> [ 1455.349350] ---[ end trace f1f31572972e211d ]---
-> 
-> Signed-off-by: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+I tried to num_vfs={port1,port2,port1+2} when loading mlx4_core module, it failed with
+mlx4_core 0000:40:00.0: Invalid syntax of num_vfs/probe_vfs with IB port - single port VFs syntax is only supported when all ports are configured as ethernet
 
-Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+2. After mlx4_core module is being loaded with with num_vfs={} parameters, when removing mlx4_core, it consistently hits below panic. Whether this problem is being tracked?
+
+Thanks
+Shirley
 
 
-> ---
-> net/sunrpc/xprtrdma/verbs.c |    4 ++++
-> 1 file changed, 4 insertions(+)
-> 
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 13dbd1c..076c244 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -1388,6 +1388,10 @@ rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
-> 	 */
-> 	iov->addr = ib_dma_map_single(ia->ri_id->device,
-> 			va, len, DMA_BIDIRECTIONAL);
-> +	if (ib_dma_mapping_error(ia->ri_id->device, iov->addr)) {
-> +		return -ENOMEM;
-> +	}
-> +
-> 	iov->length = len;
-> 
-> 	if (ia->ri_have_dma_lkey) {
-> -- 
-> 1.7.10.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+<mlx4_ib> mlx4_ib_add: mlx4_ib: Mellanox ConnectX InfiniBand driver v2.2-1 (Feb 2014)
+mlx4_core: Mellanox ConnectX core driver v2.2-1 (Feb, 2014)
+mlx4_core: Initializing 0000:40:00.0
+mlx4_core 0000:40:00.0: Enabling SR-IOV with 2 VFs
+pci 0000:40:00.1: [15b3:1002] type 00 class 0x0c0600
+mlx4_core: Initializing 0000:40:00.1
+mlx4_core 0000:40:00.1: enabling device (0000 -> 0002)
+mlx4_core 0000:40:00.1: Skipping virtual function:1
+pci 0000:40:00.2: [15b3:1002] type 00 class 0x0c0600
+mlx4_core: Initializing 0000:40:00.2
+mlx4_core 0000:40:00.2: enabling device (0000 -> 0002)
+mlx4_core 0000:40:00.2: Skipping virtual function:2
+mlx4_core 0000:40:00.0: Running in master mode
+mlx4_core 0000:40:00.0: PCIe BW is different than device's capability
+mlx4_core 0000:40:00.0: PCIe link speed is 5.0GT/s, device supports 8.0GT/s
+mlx4_core 0000:40:00.0: PCIe link width is x8, device supports x8
+mlx4_core 0000:40:00.0: Invalid syntax of num_vfs/probe_vfs with IB port - single port VFs syntax is only supported when all ports are configured as ethernet
+BUG: unable to handle kernel NULL pointer dereference at 000000000000038c
+IP: [<ffffffffa0350450>] __mlx4_remove_one+0x20/0x380 [mlx4_core]
+PGD 45d3ba067 PUD 45ace8067 PMD 0 
+Oops: 0000 [#1] SMP DEBUG_PAGEALLOC
+Modules linked in: mlx4_core(-) ebtable_nat ebtables ipt_MASQUERADE iptable_nat nf_nat_ipv4 nf_nat xt_CHECKSUM iptable_mangle bridge stp llc autofs4 cpufreq_ondemand ipt_REJECT nf_conntrack_ipv4 nf_defrag_ipv4 iptable_filter ip_tables ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 xt_state nf_conntrack ip6table_filter ip6_tables dm_mirror dm_region_hash dm_log dm_mod vhost_net macvtap macvlan vhost tun kvm_intel kvm iTCO_wdt iTCO_vendor_support microcode ipmi_si ipmi_msghandler acpi_cpufreq pcspkr i2c_i801 i2c_core lpc_ich mfd_core shpchp sg ioatdma ib_sa ib_mad ib_core ib_addr ipv6 vxlan ixgbe dca ptp pps_core hwmon mdio ext3 jbd mbcache sd_mod crc_t10dif crct10dif_common usb_storage ahci libahci mpt2sas scsi_transport_sas raid_class [last unloaded: mlx4_core]
+CPU: 13 PID: 7212 Comm: rmmod Not tainted 3.16.0-rc1+ #1
+Hardware name: Oracle Corporation SUN FIRE X4170 M3     /ASSY,MOTHERBOARD,1U   , BIOS 17050100 08/29/2013
+task: ffff880461540110 ti: ffff880465000000 task.ti: ffff880465000000
+RIP: 0010:[<ffffffffa0350450>]  [<ffffffffa0350450>] __mlx4_remove_one+0x20/0x380 [mlx4_core]
+RSP: 0018:ffff880465003d88  EFLAGS: 00010296
+RAX: 0000000000000001 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000026 RSI: 0000000000000292 RDI: ffff880468b8f000
+RBP: ffff880465003db8 R08: 0000000000000000 R09: 0000000000000000
+R10: 09f911029d74e35b R11: 09f911029d74e35b R12: 0000000000000000
+R13: ffff880468b8f000 R14: ffffffffa036de40 R15: 0000000000000001
+FS:  00007ff287fc2700(0000) GS:ffff88046fce0000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000000038c CR3: 000000045cfae000 CR4: 00000000000407e0
+Stack:
+ ffff880465003da8 ffff880468b8f000 0000000000000000 ffff880468b8f000
+ ffffffffa036de40 0000000000000001 ffff880465003dd8 ffffffffa0350805
+ ffff880468b8f098 ffffffffa036dd60 ffff880465003e08 ffffffff812ebaa6
+Call Trace:
+ [<ffffffffa0350805>] mlx4_remove_one+0x25/0x50 [mlx4_core]
+ [<ffffffff812ebaa6>] pci_device_remove+0x46/0xc0
+ [<ffffffff813ce08f>] __device_release_driver+0x7f/0xf0
+ [<ffffffff813ce1c8>] driver_detach+0xc8/0xd0
+ [<ffffffff813cced9>] bus_remove_driver+0x59/0xd0
+ [<ffffffff813cef80>] driver_unregister+0x30/0x70
+ [<ffffffff812ebc13>] pci_unregister_driver+0x23/0x80
+ [<ffffffffa03650e4>] mlx4_cleanup+0x10/0x1e [mlx4_core]
+ [<ffffffff810ceff9>] SyS_delete_module+0x189/0x210
+ [<ffffffff815d2f12>] system_call_fastpath+0x16/0x1b
+Code: 66 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 41 57 41 56 41 55 41 54 53 48 83 ec 08 66 66 66 66 90 48 8b 9f 58 01 00 00 49 89 fd <44> 8b b3 8c 03 00 00 45 85 f6 0f 85 41 02 00 00 f6 43 08 04 44 
+RIP  [<ffffffffa0350450>] __mlx4_remove_one+0x20/0x380 [mlx4_core]
+ RSP <ffff880465003d88>
+CR2: 000000000000038c
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
