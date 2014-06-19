@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 librdmacm] rsocket: Add support for RDMA_ROUTE option in
- rgetsockopt
-Date: Thu, 19 Jun 2014 11:54:11 -0400
-Message-ID: <53A307A3.9060901@dev.mellanox.co.il>
+Subject: [PATCH librdmacm] [TRIVIAL] cma: In ucma_convert_path, fix selector
+ values
+Date: Thu, 19 Jun 2014 13:08:02 -0400
+Message-ID: <53A318F2.2030601@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,96 +13,30 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-Create as many ibv_path_data structs from the RDMA route
-ibv_sa_path_rec struct for the rsocket based on how
-many fit into the supplied buffer.
+Intent is for the selectors to be equal to (exactly) rather than less than.
+Selector for exactly is value of 2 rather than 1.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Changes since v1:
-Change if to while so loop as originally intended
-Handle case where rgetsockopt called immediately after rsetsockopt
-
-diff --git a/src/rsocket.c b/src/rsocket.c
-index 0e5635f..2ec38b6 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -3500,11 +3500,38 @@ int rsetsockopt(int socket, int level, int optname,
- 	return ret;
- }
+diff --git a/src/cma.c b/src/cma.c
+index bedc95f..a2543f2 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -701,11 +701,11 @@ static void ucma_convert_path(struct ibv_path_data *path_data,
+ 	sa_path->numb_path = 1;
+ 	sa_path->pkey = path_data->path.pkey;
+ 	sa_path->sl = ntohs(path_data->path.qosclass_sl) & 0xF;
+-	sa_path->mtu_selector = 1;
++	sa_path->mtu_selector = 2;	/* exactly */
+ 	sa_path->mtu = path_data->path.mtu & 0x1F;
+-	sa_path->rate_selector = 1;
++	sa_path->rate_selector = 2;
+ 	sa_path->rate = path_data->path.rate & 0x1F;
+-	sa_path->packet_life_time_selector = 1;
++	sa_path->packet_life_time_selector = 2;
+ 	sa_path->packet_life_time = path_data->path.packetlifetime & 0x1F;
  
-+static void rs_convert_sa_path(struct ibv_sa_path_rec *sa_path,
-+			       struct ibv_path_data *path_data)
-+{
-+	uint32_t fl_hop;
-+
-+	memset(path_data, 0, sizeof(*path_data));
-+	path_data->path.dgid = sa_path->dgid;
-+	path_data->path.sgid = sa_path->sgid;
-+	path_data->path.dlid = sa_path->dlid;
-+	path_data->path.slid = sa_path->slid;
-+	fl_hop = ntohl(sa_path->flow_label) << 8;
-+	path_data->path.flowlabel_hoplimit = htonl(fl_hop) | sa_path->hop_limit;
-+	path_data->path.tclass = sa_path->traffic_class;
-+	path_data->path.reversible_numpath = sa_path->reversible << 7 | 1;
-+	path_data->path.pkey = sa_path->pkey;
-+	path_data->path.qosclass_sl = sa_path->sl;
-+	path_data->path.mtu = sa_path->mtu | 2 << 6;	/* exactly */
-+	path_data->path.rate = sa_path->rate | 2 << 6;
-+	path_data->path.packetlifetime = sa_path->packet_life_time | 2 << 6;
-+	path_data->flags= sa_path->preference;
-+}
-+
- int rgetsockopt(int socket, int level, int optname,
- 		void *optval, socklen_t *optlen)
- {
- 	struct rsocket *rs;
-+	void *opt;
-+	struct ibv_sa_path_rec *path_rec;
-+	struct ibv_path_data path_data;
-+	socklen_t len;
- 	int ret = 0;
-+	int num_paths;
- 
- 	rs = idm_lookup(&idm, socket);
- 	if (!rs)
-@@ -3597,6 +3624,36 @@ int rgetsockopt(int socket, int level, int optname,
- 			*((int *) optval) = rs->target_iomap_size;
- 			*optlen = sizeof(int);
- 			break;
-+		case RDMA_ROUTE:
-+			if (rs->optval) {
-+				if (*optlen < rs->optlen) {
-+					ret = EINVAL;
-+				} else {
-+					memcpy(rs->optval, optval, rs->optlen);
-+					*optlen = rs->optlen;
-+				}
-+			} else {
-+				if (*optlen < sizeof(path_data)) {
-+					ret = EINVAL;
-+				} else {
-+					len = 0;
-+					opt = optval;
-+					path_rec = rs->cm_id->route.path_rec;
-+					num_paths = 0;
-+					while (len + sizeof(path_data) <= *optlen &&
-+					       num_paths < rs->cm_id->route.num_paths) {
-+						rs_convert_sa_path(path_rec, &path_data);
-+						memcpy(opt, &path_data, sizeof(path_data));
-+						len += sizeof(path_data);
-+						opt += sizeof(path_data);
-+						path_rec++;
-+						num_paths++;
-+					}
-+					*optlen = len;
-+					ret = 0;
-+				}
-+			}
-+			break;
- 		default:
- 			ret = ENOTSUP;
- 			break;
+ 	sa_path->preference = (uint8_t) path_data->flags;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
