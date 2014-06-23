@@ -1,98 +1,82 @@
-From: Don Dutile <ddutile@redhat.com>
-Subject: Re: PCI/AER: AER in SRIOV environment
-Date: Mon, 23 Jun 2014 16:12:34 -0400
-Message-ID: <53A88A32.4010406@redhat.com>
-References: <53A839C6.5050102@dev.mellanox.co.il> <CAErSpo7xVvqYea8v624T8EyVf6skQccraAe_WYpzcf2tkWFLhg@mail.gmail.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v2 2/3] libiscsi, iser: Adjust data_length to include
+ protection information
+Date: Mon, 23 Jun 2014 13:59:48 -0700
+Message-ID: <20140623205948.GA15165@infradead.org>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com>
+ <1402477799-24610-3-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7xVvqYea8v624T8EyVf6skQccraAe_WYpzcf2tkWFLhg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Yishai Hadas <yishaih@dev.mellanox.co.il>
-Cc: "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil@hp.com>, Myron Stowe <myron.stowe@redhat.com>, "linux-rdma (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "yishaih@mellanox.com" <yishaih@mellanox.com>, liranl@mellanox.com, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1402477799-24610-3-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>
+Cc: michaelc@cs.wisc.edu, martin.petersen@oracle.com, nab@linux-iscsi.org, roland@kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/23/2014 03:09 PM, Bjorn Helgaas wrote:
-> [+cc linux-pci, Don]
->
-Adding Alex Williamson in case he can add more to this conversation...
+This patch causes a regression when using the iscsi initiator over
+TCP for me. When mounting a newly created ext4 filesystem I get the
+following BUG: 
 
-> On Mon, Jun 23, 2014 at 8:29 AM, Yishai Hadas
-> <yishaih@dev.mellanox.co.il> wrote:
->> Hi Vijay,
->> Trying to add AER support for Mellanox NIC in SRIOV environment, while
->> evaluating/testing encountered a problem which led me to your
->> patch accepted as part of kernel 3.8, commit ID
->> "918b4053184c0ca22236e70e299c5343eea35304".
->>
->> Have some concerns/questions on:
->> When working in SRIOV environment VFs may be un-attached, having no driver
->> assigned to, or may be attached to Virtual machine to work in some
->> pass-through mode.
->> Once working in KVM setup there is pci-stub driver which is loaded in the
->> HYP/PF for a given attached VF.
-huh? 'loaded in the hyp/pf? .... um, loaded in the host, and a VF is
-detached from its host driver -- a VF can be used in the host w/o any virtualization,
-i.e., that's how guest VM is driving the VF: as if it was used by a guest (host) OS directly --
-and attached to pci-stub driver, when assigned to a KVM guest in pre-VFIO days/ways.
-If VFIO used, then VF is attached to vfio-pci driver.
+[   31.611803] BUG: unable to handle kernel NULL pointer dereference at 000000000000000c
+[   31.613563] IP: [<ffffffff8197b38d>] iscsi_tcp_segment_done+0x2bd/0x380
+[   31.613563] PGD 7a3e4067 PUD 7a45f067 PMD 0 
+[   31.613563] Oops: 0000 [#1] SMP 
+[   31.613563] Modules linked in:
+[   31.613563] CPU: 3 PID: 3739 Comm: kworker/u8:5 Not tainted 3.16.0-rc2 #187
+[   31.613563] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2007
+[   31.613563] Workqueue: iscsi_q_2 iscsi_xmitworker
+[   31.613563] task: ffff88007b33cf10 ti: ffff88007ad94000 task.ti: ffff88007ad94000
+[   31.613563] RIP: 0010:[<ffffffff8197b38d>]  [<ffffffff8197b38d>] iscsi_tcp_segment_done+0x2bd/0x380
+[   31.613563] RSP: 0018:ffff88007ad97b38  EFLAGS: 00010246
+[   31.613563] RAX: 0000000000000000 RBX: ffff88007cd67910 RCX: 0000000000000200
+[   31.613563] RDX: 0000000000002000 RSI: 0000000000000000 RDI: ffff88007cd67910
+[   31.613563] RBP: ffff88007ad97b98 R08: 0000000000000200 R09: 0000000000000000
+[   31.613563] R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000000
+[   31.613563] R13: ffff88007cd67780 R14: 0000000000000000 R15: 0000000000000000
+[   31.613563] FS:  0000000000000000(0000) GS:ffff88007fd80000(0000) knlGS:0000000000000000
+[   31.613563] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[   31.613563] CR2: 000000000000000c CR3: 000000007afd9000 CR4: 00000000000006e0
+[   31.613563] Stack:
+[   31.613563]  ffff88007ad97b98 ffffffff81c68fd6 ffffffff81c68f20 ffff88007c8e37c8
+[   31.613563]  000000007b33d728 ffff88007dc805b0 ffff88007ad97c58 0000000000000200
+[   31.613563]  ffff88007cd67780 ffff880000c00040 ffff88007ad97c00 ffff88007cd67910
+[   31.613563] Call Trace:
+[   31.613563]  [<ffffffff81c68fd6>] ? inet_sendpage+0xb6/0x130
+[   31.613563]  [<ffffffff81c68f20>] ? inet_dgram_connect+0x80/0x80
+[   31.613563]  [<ffffffff8197bd95>] iscsi_sw_tcp_pdu_xmit+0xe5/0x2e0
+[   31.613563]  [<ffffffff8197badf>] ? iscsi_sw_tcp_pdu_init+0x1bf/0x390
+[   31.613563]  [<ffffffff81979b82>] iscsi_tcp_task_xmit+0xa2/0x2b0
+[   31.613563]  [<ffffffff81974815>] ? iscsi_xmit_task+0x45/0xd0
+[   31.613563]  [<ffffffff810fbb8d>] ? trace_hardirqs_on+0xd/0x10
+[   31.613563]  [<ffffffff810b54a0>] ? __local_bh_enable_ip+0x70/0xd0
+[   31.613563]  [<ffffffff81974829>] iscsi_xmit_task+0x59/0xd0
+[   31.613563]  [<ffffffff81978468>] iscsi_xmitworker+0x288/0x330
+[   31.613563]  [<ffffffff810cc847>] process_one_work+0x1c7/0x490
+[   31.613563]  [<ffffffff810cc7dd>] ? process_one_work+0x15d/0x490
+[   31.613563]  [<ffffffff810cd539>] worker_thread+0x119/0x4f0
+[   31.613563]  [<ffffffff810fbb8d>] ? trace_hardirqs_on+0xd/0x10
+[   31.613563]  [<ffffffff810cd420>] ? init_pwq+0x190/0x190
+[   31.613563]  [<ffffffff810d3c3f>] kthread+0xdf/0x100
+[   31.613563]  [<ffffffff810d3b60>] ? __init_kthread_worker+0x70/0x70
+[   31.613563]  [<ffffffff81d904bc>] ret_from_fork+0x7c/0xb0
+[   31.613563]  [<ffffffff810d3b60>] ? __init_kthread_worker+0x70/0x70
+[   31.613563] Code: 89 03 31 c0 e9 cc fe ff ff 0f 1f 44 00 00 48 8b 7b
+30 e8 17 74 de ff 8b 53 10 c7 43 40 00 00 00 00 48 89 43 30 44 89 f6 48
+89 df <8b> 40 0c 48 c7 03 00 00 00 00 2b 53 14 39 c2 0f 47 d0 89 53 08 
 
->>
->> I'm using the aer-inject kernel module and its corresponding aer-inject tool
->> to simulate an error in the HYP.
->> In both cases your commit will cause the AER recovery to fail as there is no
->> driver assigned to PF's VFs that supports AER, comparing the code before
->> your change.
->>
-Without VFIO, I believe that's correct. There was no AER-to-VF support pre-VFIO days.
-I believe with the recent VFIO support,
-and modifications to KVM, an AER that is associated with an assigned VF will
-force the crash/halt of the KVM guest -- can't depend on a guest VF driver clearing
-the AER in the hyp/host -- guest isn't privileged enough to clear the error.
-So, crashing the guest is the simple option at the moment, to contain the error.
-Alex: do I have that (vfio aer default) correct, or is that still site-under-construction?
 
->> How such cases should work ?  my expectation was that the PF will get the
->> error detected message then will recognize whether
->> issue is its own or one of its VFs
-The AER packet will have the tag of the VF in if it was the source of the error;
-so the PF will never see it; although one could argue it should be 'promoted'
-to the PF if PF/VF needs to clear some state it has wrt the VF (the SRIOV spec is
-lacking of info in this space); _but_, VFIO resets the VF (sets FLR bit) when the
-device is deassigned and before re-attachment to the host, so that should clear out
-any state btwn PF & VF ('should' ... famous last words...).
-
->
-> I'm really not an AER expert, so help me understand this question of
-> recognizing whether an error is associated with a PF or a VF.
->
-> In terms of hardware, it looks like the device that detects an error
-> logs some information and sends an Error Message upstream.  The Root
-> Complex receives the message, captures the source ID from the Error
-> Message, and may generate an interrupt.  I expect this source ID can
-> be either a PF or a VF; there's no requirement that a VF error must be
-> reported as though it's from the PF, is there?
->
->> and work accordingly, in current code
->> looks like recovery failed as part of "voting" once there is no AER handler
->> assigned to the VFs.
->
-> The commit you mentioned has to do with PCI_ERS_RESULT_NO_AER_DRIVER.
-> We use pci_walk_bus() to figure out whether all the devices in a
-> subtree have a driver.  What subtree is involved here?  I would expect
-> the VFs to be siblings of the PF, not children of it, so I'm not sure
-> where things went wrong.
-Well, VFs could be on virtual busses (ARI turned on), so not necessarily a
-sibling to PF ... and then we have the problem in PCI code of not being able
-to traverse these virtual busses (in some cases; not sure if pci_walk_bus(),
-which is going down the tree vs up the tree, has any problems here w/VFs on
-virtual busses).
-
->
-> Can you collect "lspci -vvv" output and maybe add some debug so we can
-> see exactly where the error is detected and what devices we're looking
-> at to conclude that one of them doesn't have a driver?
->
-> Bjorn
->
+(gdb) l *(iscsi_tcp_segment_done+0x2bd)
+0xffffffff8197b38d is in iscsi_tcp_segment_done
+(../drivers/scsi/libiscsi_tcp.c:102).
+97	iscsi_tcp_segment_init_sg(struct iscsi_segment *segment,
+98				  struct scatterlist *sg, unsigned int offset)
+99	{
+100		segment->sg = sg;
+101		segment->sg_offset = offset;
+102		segment->size = min(sg->length - offset,
+103				    segment->total_size - segment->total_copied);
+104		segment->data = NULL;
+105	}
+106	
