@@ -1,91 +1,117 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 02/13] xprtrdma: Protect ->qp during FRMR deregistration
-Date: Mon, 23 Jun 2014 18:39:17 -0400
-Message-ID: <20140623223917.1634.39429.stgit@manet.1015granger.net>
+Subject: [PATCH v1 03/13] xprtrdma: Limit data payload size for ALLPHYSICAL
+Date: Mon, 23 Jun 2014 18:39:25 -0400
+Message-ID: <20140623223925.1634.48882.stgit@manet.1015granger.net>
 References: <20140623223201.1634.83888.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140623223201.1634.83888.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ensure the QP remains valid while posting LOCAL_INV during a
-transport reconnect. Otherwise, ia->ri_id->qp is NULL, which
-triggers a panic.
+When the client uses physical memory registration, each page in the
+payload gets its own array entry in the RPC/RDMA header's chunk list.
 
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=259
-Fixes: ec62f40d3505a643497d105c297093bb90afd44e
+Therefore, don't advertise a maximum payload size that would require
+more array entries than can fit in the RPC buffer where RPC/RDMA
+headers are built.
+
+BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=248
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c     |   14 +++++++++++---
+ net/sunrpc/xprtrdma/transport.c |    4 +++-
+ net/sunrpc/xprtrdma/verbs.c     |   41 +++++++++++++++++++++++++++++++++++++++
  net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ 3 files changed, 45 insertions(+), 1 deletion(-)
 
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 66f91f0..4185102 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -296,7 +296,6 @@ xprt_setup_rdma(struct xprt_create *args)
+ 
+ 	xprt->resvport = 0;		/* privileged port not needed */
+ 	xprt->tsh_size = 0;		/* RPC-RDMA handles framing */
+-	xprt->max_payload = RPCRDMA_MAX_DATA_SEGS * PAGE_SIZE;
+ 	xprt->ops = &xprt_rdma_procs;
+ 
+ 	/*
+@@ -382,6 +381,9 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	new_ep->rep_xprt = xprt;
+ 
+ 	xprt_rdma_format_addresses(xprt);
++	xprt->max_payload = rpcrdma_max_payload(new_xprt);
++	dprintk("RPC:       %s: transport data payload maximum: %zu bytes\n",
++		__func__, xprt->max_payload);
+ 
+ 	if (!try_module_get(THIS_MODULE))
+ 		goto out4;
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 78bd7c6..f70b8ad 100644
+index f70b8ad..3c7f904 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -613,6 +613,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
- 	/* Else will do memory reg/dereg for each chunk */
- 	ia->ri_memreg_strategy = memreg;
- 
-+	rwlock_init(&ia->ri_qplock);
- 	return 0;
- out2:
- 	rdma_destroy_id(ia->ri_id);
-@@ -859,7 +860,7 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- int
- rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- {
--	struct rdma_cm_id *id;
-+	struct rdma_cm_id *id, *old;
- 	int rc = 0;
- 	int retry_count = 0;
- 
-@@ -905,9 +906,14 @@ retry:
- 			rc = -ENETUNREACH;
- 			goto out;
- 		}
--		rdma_destroy_qp(ia->ri_id);
--		rdma_destroy_id(ia->ri_id);
+@@ -1819,3 +1819,44 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+ 			rc);
+ 	return rc;
+ }
 +
-+		write_lock(&ia->ri_qplock);
-+		old = ia->ri_id;
- 		ia->ri_id = id;
-+		write_unlock(&ia->ri_qplock);
++/* Physical mapping means one Read/Write list entry per-page.
++ * All list entries must fit within an inline buffer
++ *
++ * NB: The server must return a Write list for NFS READ,
++ *     which has the same constraint. Factor in the inline
++ *     rsize as well.
++ */
++static size_t
++rpcrdma_physical_max_payload(struct rpcrdma_xprt *r_xprt)
++{
++	struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
++	unsigned int inline_size, pages;
 +
-+		rdma_destroy_qp(old);
-+		rdma_destroy_id(old);
- 	} else {
- 		dprintk("RPC:       %s: connecting...\n", __func__);
- 		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
-@@ -1597,7 +1603,9 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
- 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
-+	read_lock(&ia->ri_qplock);
- 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
-+	read_unlock(&ia->ri_qplock);
- 	if (rc)
- 		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
- 			" status %i\n", __func__, rc);
++	inline_size = min_t(unsigned int,
++			cdata->inline_wsize, cdata->inline_rsize) -
++				RPCRDMA_HDRLEN_MIN;
++	pages = inline_size / sizeof(struct rpcrdma_segment);
++	return pages << PAGE_SHIFT;
++}
++
++static size_t
++rpcrdma_mr_max_payload(struct rpcrdma_xprt *r_xprt)
++{
++	return RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT;
++}
++
++size_t
++rpcrdma_max_payload(struct rpcrdma_xprt *r_xprt)
++{
++	size_t result;
++
++	switch (r_xprt->rx_ia.ri_memreg_strategy) {
++	case RPCRDMA_ALLPHYSICAL:
++		result = rpcrdma_physical_max_payload(r_xprt);
++		break;
++	default:
++		result = rpcrdma_mr_max_payload(r_xprt);
++	}
++	return result;
++}
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 89e7cd4..97ca516 100644
+index 97ca516..f3d86b2 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -59,6 +59,7 @@
-  * Interface Adapter -- one per transport instance
+@@ -348,6 +348,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
+  * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
   */
- struct rpcrdma_ia {
-+	rwlock_t		ri_qplock;
- 	struct rdma_cm_id 	*ri_id;
- 	struct ib_pd		*ri_pd;
- 	struct ib_mr		*ri_bind_mem;
+ int rpcrdma_marshal_req(struct rpc_rqst *);
++size_t rpcrdma_max_payload(struct rpcrdma_xprt *);
+ 
+ /* Temporary NFS request map cache. Created in svc_rdma.c  */
+ extern struct kmem_cache *svc_rdma_map_cachep;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
