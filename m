@@ -1,39 +1,31 @@
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
-Date: Mon, 23 Jun 2014 10:25:12 -0700
-Message-ID: <20140623172512.GA1390@garbanzo.do-not-panic.com>
-References: <cover.1403530604.git.joe@perches.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: how to re-use a QP for a new connection
+Date: Mon, 23 Jun 2014 17:25:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823739931EE90@ORSMSX109.amr.corp.intel.com>
+References: <36E48CE3-3FB6-4985-9CA5-4D6B800EE3DC@oracle.com>
+ <1828884A29C6694DAF28B7E6B8A82373993132A8@ORSMSX109.amr.corp.intel.com>
+ <5F77D836-4EE1-458D-B256-3C0EF4B1F2C2@oracle.com>
+ <1828884A29C6694DAF28B7E6B8A8237399313467@ORSMSX109.amr.corp.intel.com>
+ <8E9844F1-AFDC-4F28-B646-596BCBC3FAA8@oracle.com>
+ <1828884A29C6694DAF28B7E6B8A823739931EDD5@ORSMSX109.amr.corp.intel.com>
+ <1F02274F-B3FC-40EE-A46D-FB178EA3781B@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1403530604.git.joe@perches.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: driverdev-devel-bounces@linuxdriverproject.org
-To: Joe Perches <joe@perches.com>
-Cc: devel@driverdev.osuosl.org, linux-arch@vger.kernel.org, linux-scsi@vger.kernel.org, iss_storagedev@hp.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-atm-general@lists.sourceforge.net, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, linux-eata@i-connect.net
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1F02274F-B3FC-40EE-A46D-FB178EA3781B-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
-> Adding the helper reduces object code size as well as overall
-> source size line count.
-> 
-> It's also consistent with all the various zalloc mechanisms
-> in the kernel.
-> 
-> Done with a simple cocci script and some typing.
+> For the record, with both mlx4 and cxgb4, we see FRMRs left valid
+> after a FAST_REG_MR is flushed during a connection loss. More study
+> needed, obviously.
 
-Awesome, any chance you can paste in the SmPL? Also any chance
-we can get this added to a make coccicheck so that maintainers
-moving forward can use that to ensure that no new code is
-added that uses the old school API?
-
-  Luis
+Is the bug that this type of WR completes in error, but actually exposed the memory region?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
