@@ -1,74 +1,69 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: why flipping responder_resources/initiator_depth?
-Date: Mon, 23 Jun 2014 12:34:55 -0600
-Message-ID: <20140623183455.GA3879@obsidianresearch.com>
-References: <53A688FB.6070600@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823739931CCAD@ORSMSX109.amr.corp.intel.com>
- <CAJZOPZKqYiGpxi8bjDu5TBu0G6EX_DjRLvEVhNDTy9L79h6MbQ@mail.gmail.com>
- <20140623164938.GA23697@obsidianresearch.com>
- <CAJZOPZJHM1v62kr1_8X2cZXxftNqtC+ngMKNz64eFNFrxyXbAg@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A823739931FEF9@ORSMSX109.amr.corp.intel.com>
+From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: PCI/AER: AER in SRIOV environment
+Date: Mon, 23 Jun 2014 13:09:15 -0600
+Message-ID: <CAErSpo7xVvqYea8v624T8EyVf6skQccraAe_WYpzcf2tkWFLhg@mail.gmail.com>
+References: <53A839C6.5050102@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823739931FEF9-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <53A839C6.5050102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil-VXdhtT5mjnY@public.gmane.org>, Myron Stowe <myron.stowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 23, 2014 at 06:00:57PM +0000, Hefty, Sean wrote:
-> > > The swapping and general missing handling of RR negotiating in the
-> > > whole kernel CM API (not just RDMA CM, but IB CM too) is a
-> > > longstanding bug, and I have written user space code that fixes it up
-> > > in the past :(
-> > 
-> > Jason, the swapping takes place in the IB CM indeed, I just used the
-> > wording from the librdmacm man pages to described the desired
-> > behaviour as I see it. Did you ever repored to the swapping on this
-> > list in the past? when?
-> 
-> The behavior matches the documentation.  And the problem is...?
+[+cc linux-pci, Don]
 
-The problem is this whole thing is a giant gotcha if you don't
-intimitely understand exactly what the spec requires, and naively
-assume the kernel does something sane, or even provides you the values
-the spec says you need in fields that are named the same as the spec.
+On Mon, Jun 23, 2014 at 8:29 AM, Yishai Hadas
+<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> Hi Vijay,
+> Trying to add AER support for Mellanox NIC in SRIOV environment, while
+> evaluating/testing encountered a problem which led me to your
+> patch accepted as part of kernel 3.8, commit ID
+> "918b4053184c0ca22236e70e299c5343eea35304".
+>
+> Have some concerns/questions on:
+> When working in SRIOV environment VFs may be un-attached, having no driver
+> assigned to, or may be attached to Virtual machine to work in some
+> pass-through mode.
+> Once working in KVM setup there is pci-stub driver which is loaded in the
+> HYP/PF for a given attached VF.
+>
+> I'm using the aer-inject kernel module and its corresponding aer-inject tool
+> to simulate an error in the HYP.
+> In both cases your commit will cause the AER recovery to fail as there is no
+> driver assigned to PF's VFs that supports AER, comparing the code before
+> your change.
+>
+> How such cases should work ?  my expectation was that the PF will get the
+> error detected message then will recognize whether
+> issue is its own or one of its VFs
 
-If you use the IB CM in userspace you need to hook IB_CM_REQ_RECEIVED
-and do something like this:
+I'm really not an AER expert, so help me understand this question of
+recognizing whether an error is associated with a PF or a VF.
 
-    /* Note, req.responder_resources and req.initiator_depth are swapped
-       in the kernel. FIXME: this works around the kernel not implementing
-       the negotation procedure by doing it here */
-    rep.responder_resources = min((int)req.responder_resources,
-                                       devAttr.max_qp_rd_atom);
-    rep.initiator_depth = min((int)req.initiator_depth,
-                                   devAttr.max_qp_init_rd_atom);
+In terms of hardware, it looks like the device that detects an error
+logs some information and sends an Error Message upstream.  The Root
+Complex receives the message, captures the source ID from the Error
+Message, and may generate an interrupt.  I expect this source ID can
+be either a PF or a VF; there's no requirement that a VF error must be
+reported as though it's from the PF, is there?
 
-So
- 1) The kernel swapped the values before passing them to userspace,
-    (and other kernel consumers). So this becomes very confusing if
-    you are not aware that req.responders_resources is not actually
-    what the IBA spec describes as REQ responderResources.
- 2) The kernel doesn't do anything to help implement the IBA sepc
-    required negotiation, it doesn't limit to HCA values, for instance
-    after getting a REQ.
- 3) There is no aide to help a simple app developer do this right, and
-    almost everyone I've ever looked at just passes 2 in for both
-    values and hopes for the best.
- 4) Other elements of the negotiation procedure I outlined above seem
-    to be missing, like the sanity check of the REP, and the
-    generation of REJ if the values are not acceptable. 
+> and work accordingly, in current code
+> looks like recovery failed as part of "voting" once there is no AER handler
+> assigned to the VFs.
 
-I haven't looked at how this all plays through with RDMA CM. But
-looking quickly, I don't see an obvious similar min in cma_connect_ib.
+The commit you mentioned has to do with PCI_ERS_RESULT_NO_AER_DRIVER.
+We use pci_walk_bus() to figure out whether all the devices in a
+subtree have a driver.  What subtree is involved here?  I would expect
+the VFs to be siblings of the PF, not children of it, so I'm not sure
+where things went wrong.
 
-To my mind, the biggest issue is the common code does not seem to make
-it easy for apps to correctly implement the IBA negotiation protocol.
+Can you collect "lspci -vvv" output and maybe add some debug so we can
+see exactly where the error is detected and what devices we're looking
+at to conclude that one of them doesn't have a driver?
 
-Jason
+Bjorn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
