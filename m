@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 07/13] xprtrdma: Encode Work Request opcode in wc->wr_id
-Date: Mon, 23 Jun 2014 18:39:58 -0400
-Message-ID: <20140623223958.1634.60529.stgit@manet.1015granger.net>
+Subject: [PATCH v1 08/13] xprtrdma: Back off rkey when FAST_REG_MR fails
+Date: Mon, 23 Jun 2014 18:40:07 -0400
+Message-ID: <20140623224007.1634.55636.stgit@manet.1015granger.net>
 References: <20140623223201.1634.83888.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,85 +12,108 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The wc->opcode field is unreliable when a completion fails.
-Up until now, the completion handler has ignored unsuccessful
-completions, so that didn't matter to xprtrdma.
+If posting a FAST_REG_MR Work Reqeust fails, or the FAST_REG WR
+flushes, revert the rkey update to avoid subsequent
+IB_WC_MW_BIND_ERR completions.
 
-In a subsequent patch, however, the send CQ handler will need
-to know which Work Request opcode is completing, even if for
-error completions.
-
-xprtrdma posts three Work Request opcodes via the send queue:
-SEND, FAST_REG_MR, and LOCAL_INV:
-
-For SEND, wc->wr_id is zero. Those completions are ignored.
-
-The other two plant a pointer to an rpcrdma_mw in wc->wr_id. Make
-the low-order bit indicate which of FAST_REG_MR or LOCAL_INV is
-being done.
-
+Suggested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c     |   19 +++++++++++--------
- net/sunrpc/xprtrdma/xprt_rdma.h |    2 ++
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   39 +++++++++++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index e8ed81c..cef67fd 100644
+index cef67fd..3efc007 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -145,20 +145,22 @@ rpcrdma_cq_async_error_upcall(struct ib_event *event, void *context)
- static void
- rpcrdma_sendcq_process_wc(struct ib_wc *wc)
- {
--	struct rpcrdma_mw *frmr = (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
-+	unsigned long wrid = wc->wr_id;
-+	struct rpcrdma_mw *mw;
-+	int fastreg;
+@@ -61,6 +61,8 @@
+ # define RPCDBG_FACILITY	RPCDBG_TRANS
+ #endif
  
--	dprintk("RPC:       %s: frmr %p status %X opcode %d\n",
--		__func__, frmr, wc->status, wc->opcode);
-+	dprintk("RPC:       %s: wr_id %lx status %X opcode %d\n",
-+		__func__, wrid, wc->status, wc->opcode);
- 
--	if (wc->wr_id == 0ULL)
-+	if (wrid == 0)
- 		return;
- 	if (wc->status != IB_WC_SUCCESS)
- 		return;
- 
--	if (wc->opcode == IB_WC_FAST_REG_MR)
--		frmr->r.frmr.fr_state = FRMR_IS_VALID;
--	else if (wc->opcode == IB_WC_LOCAL_INV)
--		frmr->r.frmr.fr_state = FRMR_IS_INVALID;
-+	fastreg = test_and_clear_bit(RPCRDMA_BIT_FASTREG, &wrid);
-+	mw = (struct rpcrdma_mw *)wrid;
++static void rpcrdma_decrement_frmr_rkey(struct rpcrdma_mw *);
 +
-+	mw->r.frmr.fr_state = fastreg ? FRMR_IS_VALID : FRMR_IS_INVALID;
+ /*
+  * internal functions
+  */
+@@ -154,13 +156,17 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+ 
+ 	if (wrid == 0)
+ 		return;
+-	if (wc->status != IB_WC_SUCCESS)
+-		return;
+ 
+ 	fastreg = test_and_clear_bit(RPCRDMA_BIT_FASTREG, &wrid);
+ 	mw = (struct rpcrdma_mw *)wrid;
+ 
+-	mw->r.frmr.fr_state = fastreg ? FRMR_IS_VALID : FRMR_IS_INVALID;
++	if (wc->status == IB_WC_SUCCESS) {
++		mw->r.frmr.fr_state = fastreg ?
++				FRMR_IS_VALID : FRMR_IS_INVALID;
++	} else {
++		if (fastreg)
++			rpcrdma_decrement_frmr_rkey(mw);
++	}
  }
  
  static int
-@@ -1538,6 +1540,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	/* Prepare FRMR WR */
- 	memset(&frmr_wr, 0, sizeof frmr_wr);
- 	frmr_wr.wr_id = (unsigned long)(void *)seg1->mr_chunk.rl_mw;
-+	frmr_wr.wr_id |= (u64)1 << RPCRDMA_BIT_FASTREG;
- 	frmr_wr.opcode = IB_WR_FAST_REG_MR;
- 	frmr_wr.send_flags = IB_SEND_SIGNALED;
- 	frmr_wr.wr.fast_reg.iova_start = seg1->mr_dma;
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 28c8570..6b5d243 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -177,6 +177,8 @@ struct rpcrdma_mw {
- 	struct list_head	mw_list;
- };
+@@ -1480,6 +1486,24 @@ rpcrdma_unmap_one(struct rpcrdma_ia *ia, struct rpcrdma_mr_seg *seg)
+ 				seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
+ }
  
-+#define RPCRDMA_BIT_FASTREG		(0)
++static void
++rpcrdma_increment_frmr_rkey(struct rpcrdma_mw *mw)
++{
++	struct ib_mr *frmr = mw->r.frmr.fr_mr;
++	u8 key = frmr->rkey & 0x000000FF;
 +
- /*
-  * struct rpcrdma_req -- structure central to the request/reply sequence.
-  *
++	ib_update_fast_reg_key(frmr, ++key);
++}
++
++static void
++rpcrdma_decrement_frmr_rkey(struct rpcrdma_mw *mw)
++{
++	struct ib_mr *frmr = mw->r.frmr.fr_mr;
++	u8 key = frmr->rkey & 0x000000FF;
++
++	ib_update_fast_reg_key(frmr, --key);
++}
++
+ static int
+ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 			int *nsegs, int writing, struct rpcrdma_ia *ia,
+@@ -1487,8 +1511,6 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ {
+ 	struct rpcrdma_mr_seg *seg1 = seg;
+ 	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
+-
+-	u8 key;
+ 	int len, pageoff;
+ 	int i, rc;
+ 	int seg_len;
+@@ -1552,14 +1574,10 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 		rc = -EIO;
+ 		goto out_err;
+ 	}
+-
+-	/* Bump the key */
+-	key = (u8)(seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey & 0x000000FF);
+-	ib_update_fast_reg_key(seg1->mr_chunk.rl_mw->r.frmr.fr_mr, ++key);
+-
+ 	frmr_wr.wr.fast_reg.access_flags = (writing ?
+ 				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+ 				IB_ACCESS_REMOTE_READ);
++	rpcrdma_increment_frmr_rkey(seg1->mr_chunk.rl_mw);
+ 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 
+@@ -1568,6 +1586,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	if (rc) {
+ 		dprintk("RPC:       %s: failed ib_post_send for register,"
+ 			" status %i\n", __func__, rc);
++		rpcrdma_decrement_frmr_rkey(seg1->mr_chunk.rl_mw);
+ 		goto out_err;
+ 	} else {
+ 		seg1->mr_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
