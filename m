@@ -1,21 +1,42 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 05/22] infiniband: Use pci_zalloc_consistent
-Date: Mon, 23 Jun 2014 08:57:34 -0500
-Message-ID: <53A8324E.5030200@opengridcomputing.com>
-References: <cover.1403530604.git.joe@perches.com> <ed5fb1adbe665a8e4a4e18bc316bab261bc55556.1403530604.git.joe@perches.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: PCI/AER: AER in SRIOV environment
+Date: Mon, 23 Jun 2014 17:29:26 +0300
+Message-ID: <53A839C6.5050102@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ed5fb1adbe665a8e4a4e18bc316bab261bc55556.1403530604.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: vijaymohan.pandarathil-VXdhtT5mjnY@public.gmane.org
+Cc: bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, myron.stowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-For the amso1100 change...
+Hi Vijay,
+Trying to add AER support for Mellanox NIC in SRIOV environment, while 
+evaluating/testing encountered a problem which led me to your
+patch accepted as part of kernel 3.8, commit ID 
+"918b4053184c0ca22236e70e299c5343eea35304".
 
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Have some concerns/questions on:
+When working in SRIOV environment VFs may be un-attached, having no 
+driver assigned to, or may be attached to Virtual machine to work in 
+some pass-through mode.
+Once working in KVM setup there is pci-stub driver which is loaded in 
+the HYP/PF for a given attached VF.
+
+I'm using the aer-inject kernel module and its corresponding aer-inject 
+tool to simulate an error in the HYP.
+In both cases your commit will cause the AER recovery to fail as there 
+is no driver assigned to PF's VFs that supports AER, comparing the code 
+before your change.
+
+How such cases should work ?  my expectation was that the PF will get 
+the error detected message then will recognize whether
+issue is its own or one of its VFs and work accordingly, in current code 
+looks like recovery failed as part of "voting" once there is no AER 
+handler assigned to the VFs.
+
+Yishai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
