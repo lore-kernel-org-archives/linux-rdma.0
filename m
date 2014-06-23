@@ -1,62 +1,72 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: how to re-use a QP for a new connection
-Date: Mon, 23 Jun 2014 16:12:16 -0500
-Message-ID: <53A89830.1060808@opengridcomputing.com>
-References: <36E48CE3-3FB6-4985-9CA5-4D6B800EE3DC@oracle.com> <1828884A29C6694DAF28B7E6B8A82373993132A8@ORSMSX109.amr.corp.intel.com> <5F77D836-4EE1-458D-B256-3C0EF4B1F2C2@oracle.com> <1828884A29C6694DAF28B7E6B8A8237399313467@ORSMSX109.amr.corp.intel.com> <8E9844F1-AFDC-4F28-B646-596BCBC3FAA8@oracle.com> <1828884A29C6694DAF28B7E6B8A823739931EDD5@ORSMSX109.amr.corp.intel.com> <1F02274F-B3FC-40EE-A46D-FB178EA3781B@oracle.com> <1828884A29C6694DAF28B7E6B8A823739931EE90@ORSMSX109.amr.corp.intel.com> <98556348-B33A-4C2C-9D4E-AEA57FB472CE@oracle.com>
+From: Mike Christie <michaelc@cs.wisc.edu>
+Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
+Date: Mon, 23 Jun 2014 16:24:31 -0500
+Message-ID: <53A89B0F.4040300@cs.wisc.edu>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com> <1402477799-24610-2-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <98556348-B33A-4C2C-9D4E-AEA57FB472CE-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1402477799-24610-2-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>
+Cc: martin.petersen@oracle.com, nab@linux-iscsi.org, roland@kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/23/2014 12:31 PM, Chuck Lever wrote:
-> On Jun 23, 2014, at 1:25 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote=
-:
->
->>> For the record, with both mlx4 and cxgb4, we see FRMRs left valid
->>> after a FAST_REG_MR is flushed during a connection loss. More study
->>> needed, obviously.
->> Is the bug that this type of WR completes in error, but actually exp=
-osed the memory region?
-> We haven=92t checked if the MR is exposed; hadn=92t thought of that!
+On 06/11/2014 04:09 AM, Sagi Grimberg wrote:
+> In case protection information exists on the wire
+> scsi transports should include it in the transfer
+> byte count (even if protection information does not
+> exist in the host memory space). This helper will
+> compute the total transfer length from the scsi
+> command data length and protection attributes.
+> 
+> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+> Signed-off-by: Martin K. Petersen <martin.petersen@oracle.com>
+> ---
+>  include/scsi/scsi_cmnd.h |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/scsi/scsi_cmnd.h b/include/scsi/scsi_cmnd.h
+> index dd7c998..a100c6e 100644
+> --- a/include/scsi/scsi_cmnd.h
+> +++ b/include/scsi/scsi_cmnd.h
+> @@ -7,6 +7,7 @@
+>  #include <linux/types.h>
+>  #include <linux/timer.h>
+>  #include <linux/scatterlist.h>
+> +#include <scsi/scsi_device.h>
+>  
+>  struct Scsi_Host;
+>  struct scsi_device;
+> @@ -306,4 +307,20 @@ static inline void set_driver_byte(struct scsi_cmnd *cmd, char status)
+>  	cmd->result = (cmd->result & 0x00ffffff) | (status << 24);
+>  }
+>  
+> +static inline unsigned scsi_transfer_length(struct scsi_cmnd *scmd)
+> +{
+> +	unsigned int xfer_len = blk_rq_bytes(scmd->request);
 
-I don't think this is a bug.  It is a race where HW is in the process o=
-f=20
-fast-registering the memory at the time the QP is moved out of RTS=20
-causing all pending work requests to get FLUSHED.  I looked at both the=
-=20
-IBTA IB and IETF iWARP Verbs specs, and neither state explicitly what=20
-=46LUSHED status means.  They both say "at the the time the QP was move=
-d=20
-to ERROR the work request was not complete".  That's doesn't indicate=20
-that the work request was canceled or didn't actually complete.  At=20
-least that's how I read it.  Irregardless, the chelsio hardware behaves=
-=20
-this way.  And apparently the mlx hardware does too.
+Can you do bidi and dif/dix? If so, then instead of using blk_rq_bytes
+directly should it use the scsi_out/scsi_in macros and access the length
+through the scsi_data_buffer?
 
-Anyway, for cxgb4 at least, the FRMR can be left in the valid state. =20
-The correct procedure, in the case of a fast-reg wr completing as=20
-=46LUSHED is to dereg the MR if you want to ensure the region is invali=
-dated.
+This does not fix Christoph's bug in the other mail. Just noticed it
+while looking at the code.
 
-> What we do know is that a subsequent LOCAL_INVALIDATE using the rkey =
-that
-> should work (if FAST_REG_MR had indeed never been done) fails in some=
- cases.
-> With mlx4, the LINV completes with IB_WC_MW_BIND_ERR. Steve can provi=
-de
-> more detail about the exact failure mode with cxgb4.
 
-cxgb4 completes with IB_WC_LOC_ACCESS_ERR.
-
-Steve.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	unsigned int prot_op = scsi_get_prot_op(scmd);
+> +	unsigned int sector_size = scmd->device->sector_size;
+> +
+> +	switch (prot_op) {
+> +	case SCSI_PROT_NORMAL:
+> +	case SCSI_PROT_WRITE_STRIP:
+> +	case SCSI_PROT_READ_INSERT:
+> +		return xfer_len;
+> +	}
+> +
+> +	return xfer_len + (xfer_len >> ilog2(sector_size)) * 8;
+> +}
+> +
+>  #endif /* _SCSI_SCSI_CMND_H */
+> 
