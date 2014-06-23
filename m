@@ -1,70 +1,81 @@
-From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: PCI/AER: AER in SRIOV environment
-Date: Mon, 23 Jun 2014 13:09:15 -0600
-Message-ID: <CAErSpo7xVvqYea8v624T8EyVf6skQccraAe_WYpzcf2tkWFLhg@mail.gmail.com>
-References: <53A839C6.5050102@dev.mellanox.co.il>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
+Date: Mon, 23 Jun 2014 12:13:29 -0700
+Message-ID: <1403550809.15811.13.camel@joe-AO725>
+References: <cover.1403530604.git.joe@perches.com>
+ <20140623172512.GA1390@garbanzo.do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53A839C6.5050102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil-VXdhtT5mjnY@public.gmane.org>, Myron Stowe <myron.stowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20140623172512.GA1390@garbanzo.do-not-panic.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: devel@driverdev.osuosl.org, linux-arch@vger.kernel.org, linux-scsi@vger.kernel.org, iss_storagedev@hp.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-atm-general@lists.sourceforge.net, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, linux-eata@i-connect.net
 List-Id: linux-rdma@vger.kernel.org
 
-[+cc linux-pci, Don]
+On Mon, 2014-06-23 at 10:25 -0700, Luis R. Rodriguez wrote:
+> On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
+> > Adding the helper reduces object code size as well as overall
+> > source size line count.
+> > 
+> > It's also consistent with all the various zalloc mechanisms
+> > in the kernel.
+> > 
+> > Done with a simple cocci script and some typing.
+> 
+> Awesome, any chance you can paste in the SmPL? Also any chance
+> we can get this added to a make coccicheck so that maintainers
+> moving forward can use that to ensure that no new code is
+> added that uses the old school API?
 
-On Mon, Jun 23, 2014 at 8:29 AM, Yishai Hadas
-<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> Hi Vijay,
-> Trying to add AER support for Mellanox NIC in SRIOV environment, while
-> evaluating/testing encountered a problem which led me to your
-> patch accepted as part of kernel 3.8, commit ID
-> "918b4053184c0ca22236e70e299c5343eea35304".
->
-> Have some concerns/questions on:
-> When working in SRIOV environment VFs may be un-attached, having no driver
-> assigned to, or may be attached to Virtual machine to work in some
-> pass-through mode.
-> Once working in KVM setup there is pci-stub driver which is loaded in the
-> HYP/PF for a given attached VF.
->
-> I'm using the aer-inject kernel module and its corresponding aer-inject tool
-> to simulate an error in the HYP.
-> In both cases your commit will cause the AER recovery to fail as there is no
-> driver assigned to PF's VFs that supports AER, comparing the code before
-> your change.
->
-> How such cases should work ?  my expectation was that the PF will get the
-> error detected message then will recognize whether
-> issue is its own or one of its VFs
+Not many of these are recent.
 
-I'm really not an AER expert, so help me understand this question of
-recognizing whether an error is associated with a PF or a VF.
+Arnd Bergmann reasonably suggested that the pci_alloc_consistent
+api be converted the the more widely used dma_alloc_coherent.
 
-In terms of hardware, it looks like the device that detects an error
-logs some information and sends an Error Message upstream.  The Root
-Complex receives the message, captures the source ID from the Error
-Message, and may generate an interrupt.  I expect this source ID can
-be either a PF or a VF; there's no requirement that a VF error must be
-reported as though it's from the PF, is there?
+https://lkml.org/lkml/2014/6/23/513
 
-> and work accordingly, in current code
-> looks like recovery failed as part of "voting" once there is no AER handler
-> assigned to the VFs.
+> Shouldn't these drivers just use the normal dma-mapping API now?
 
-The commit you mentioned has to do with PCI_ERS_RESULT_NO_AER_DRIVER.
-We use pci_walk_bus() to figure out whether all the devices in a
-subtree have a driver.  What subtree is involved here?  I would expect
-the VFs to be siblings of the PF, not children of it, so I'm not sure
-where things went wrong.
+and I replied:
 
-Can you collect "lspci -vvv" output and maybe add some debug so we can
-see exactly where the error is detected and what devices we're looking
-at to conclude that one of them doesn't have a driver?
+https://lkml.org/lkml/2014/6/23/525
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Maybe.  I wouldn't mind.
+> They do seem to have a trivial bit of unnecessary overhead for 
+> hwdev == NULL ? NULL : &hwdev->dev
+
+Anyway, here's the little script.
+I'm not sure it's worthwhile to add it though.
+
+$ cat ./scripts/coccinelle/api/alloc/pci_zalloc_consistent.cocci
+///
+/// Use pci_zalloc_consistent rather than
+///     pci_alloc_consistent followed by memset with 0
+///
+/// This considers some simple cases that are common and easy to validate
+/// Note in particular that there are no ...s in the rule, so all of the
+/// matched code has to be contiguous
+///
+/// Blatantly cribbed from: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
+
+@@
+type T, T2;
+expression x;
+expression E1,E2,E3;
+statement S;
+@@
+
+- x = (T)pci_alloc_consistent(E1,E2,E3);
++ x = pci_zalloc_consistent(E1,E2,E3);
+  if ((x==NULL) || ...) S
+- memset((T2)x,0,E2);
