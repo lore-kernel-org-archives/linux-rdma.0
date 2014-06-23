@@ -1,58 +1,35 @@
-From: Rodrigo <rodrigo.eng-ib6/yItWtweNbuNIgksMxg@public.gmane.org>
-Subject: =?utf-8?Q?Sparkasse_Online-Banking_=C2=A9?=
-Date: Mon, 23 Jun 2014 09:49:40 -0300 (BRT)
-Message-ID: <2033517134.47129.1403527780750.JavaMail.zimbra__47519.0388541252$1403528458$gmane$org@itajai.sc.gov.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/2] Fixes skb leak and connection clean up on ARP error
+Date: Mon, 23 Jun 2014 19:12:34 +0530
+Message-ID: <1403530956-16135-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sehr geehrter Kunde,
-=20
-Bitte beachten Sie, dass Ihre E-Banking-Zugang abl=D0=B4uft bald. dies
-Weiter zum Service k=D1=86nnen zu verwenden, auf den Button unten klick=
-en Sie
-bitte
-Ihr Zugang manuell mit unseren Sicherheitsupdate auf Link-
-Update: Sparkasse Online-Banking Update: folgen Sie dem Link unten
-=20
-klicken Sie auf ::::
-http://sk-p-146b3032f607d93.yolasite.com/
-=20
-Nach Vervollst=D0=B4ndigung dieses Schrittes werden Sie von einem Mitar=
-beiter
-unseres Kundendienstes zum Status Ihres Kontos kontaktiert.
-Beim e-Banking haben Sie per Mausklick alles im Griff!
-Mit dem komfortablen Online-Banking Ihrer Sparkasse haben Sie schnellen=
- und
-problemlosen Zugang zu Ihrem Girokonto und erledigen =D0=ACberweisungen=
- und
-Dauerauftr=D0=B4ge bequem per Mausklick. Das e-Banking bietet aber noch
-viele weitere Vorteile.
-=20
-DIE VORTEILE DES ONLINE-BANKINGS AUF EINEN BLICK:
-=20
-- Kontozugang rund um die Uhr
-=20
-- Schneller Zugriff aufs Girokonto
-- E-Banking bequem vom PC aus
-- Flexibel in jedem Winkel der Welt
-=20
-- =D0=ACbersichtliche Kontof=D1=8Chrung
-- Hohe Sicherheitsstandards
-- E-Banking ist kombinierbar mit Telefon-Banking
-=20
-Um diese Dienste weiterhin problemlos nutzen zu k=D1=86nnen, f=D1=8Chre=
-n Sie bitte
-das Update so schnell wie m=D1=86glich durch.
-=20
-Respektvoll,
-=20
-Sparkasse Online-Banking.
+Hi,
+
+This patch series fixes skb leak and connection clean up on ARP error for
+iw_cxgb4 driver. 
+
+This patch series is created on top of linux-next tree. We would like to
+request this patch series to get merged via Roland's infiniband tree master
+branch.
+
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
+
+Thanks
+
+Hariprasad Shenai (2):
+  iw_cxgb4: Fix skb_leak in reject_cr
+  iw_cxgb4: clean up connection on arp error
+
+ drivers/infiniband/hw/cxgb4/cm.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
