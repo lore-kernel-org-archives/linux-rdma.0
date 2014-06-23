@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 11/13] xprtrdma: Clean up rpcrdma_ep_disconnect()
-Date: Mon, 23 Jun 2014 18:40:31 -0400
-Message-ID: <20140623224031.1634.30045.stgit@manet.1015granger.net>
+Subject: [PATCH v1 12/13] xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION
+ macro
+Date: Mon, 23 Jun 2014 18:40:39 -0400
+Message-ID: <20140623224039.1634.25323.stgit@manet.1015granger.net>
 References: <20140623223201.1634.83888.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,87 +13,98 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The return code is used only for dprintk's that are already
-redundant.
+Clean up.
+
+RPCRDMA_PERSISTENT_REGISTRATION was a compile-time switch between
+RPCRDMA_REGISTER mode and RPCRDMA_ALLPHYSICAL mode.  Since
+RPCRDMA_REGISTER has been removed, there's no need for the extra
+conditional compilation.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/transport.c |    2 +-
- net/sunrpc/xprtrdma/verbs.c     |   13 +++----------
- net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
- 3 files changed, 5 insertions(+), 12 deletions(-)
+ include/linux/sunrpc/xprtrdma.h |    2 --
+ net/sunrpc/xprtrdma/verbs.c     |   13 -------------
+ 2 files changed, 15 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index f6d280b..2faac49 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -414,7 +414,7 @@ xprt_rdma_close(struct rpc_xprt *xprt)
- 	if (r_xprt->rx_ep.rep_connected > 0)
- 		xprt->reestablish_timeout = 0;
- 	xprt_disconnect_done(xprt);
--	(void) rpcrdma_ep_disconnect(&r_xprt->rx_ep, &r_xprt->rx_ia);
-+	rpcrdma_ep_disconnect(&r_xprt->rx_ep, &r_xprt->rx_ia);
- }
+diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
+index c2f04e1..64a0a0a 100644
+--- a/include/linux/sunrpc/xprtrdma.h
++++ b/include/linux/sunrpc/xprtrdma.h
+@@ -62,8 +62,6 @@
+ #define RPCRDMA_INLINE_PAD_THRESH  (512)/* payload threshold to pad (bytes) */
  
- static void
+ /* memory registration strategies */
+-#define RPCRDMA_PERSISTENT_REGISTRATION (1)
+-
+ enum rpcrdma_memreg {
+ 	RPCRDMA_BOUNCEBUFFERS = 0,
+ 	RPCRDMA_REGISTER,
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 52f57f7..b6c52c7 100644
+index b6c52c7..ec98e48 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -838,10 +838,7 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 	cancel_delayed_work_sync(&ep->rep_connect_worker);
- 
- 	if (ia->ri_id->qp) {
--		rc = rpcrdma_ep_disconnect(ep, ia);
--		if (rc)
--			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
--				" returned %i\n", __func__, rc);
-+		rpcrdma_ep_disconnect(ep, ia);
- 		rdma_destroy_qp(ia->ri_id);
- 		ia->ri_id->qp = NULL;
+@@ -569,12 +569,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ 		if (!ia->ri_id->device->alloc_fmr) {
+ 			dprintk("RPC:       %s: MTHCAFMR registration "
+ 				"not supported by HCA\n", __func__);
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+ 			memreg = RPCRDMA_ALLPHYSICAL;
+-#else
+-			rc = -ENOMEM;
+-			goto out2;
+-#endif
+ 		}
  	}
-@@ -879,10 +876,7 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 		struct rpcrdma_xprt *xprt;
- retry:
- 		dprintk("RPC:       %s: reconnecting...\n", __func__);
--		rc = rpcrdma_ep_disconnect(ep, ia);
--		if (rc && rc != -ENOTCONN)
--			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
--				" status %i\n", __func__, rc);
-+		rpcrdma_ep_disconnect(ep, ia);
  
- 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
- 		id = rpcrdma_create_id(xprt, ia,
-@@ -988,7 +982,7 @@ out:
-  * This call is not reentrant, and must not be made in parallel
-  * on the same endpoint.
-  */
--int
-+void
- rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- {
- 	int rc;
-@@ -1004,7 +998,6 @@ rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- 		dprintk("RPC:       %s: rdma_disconnect %i\n", __func__, rc);
- 		ep->rep_connected = rc;
- 	}
--	return rc;
- }
+@@ -589,20 +584,16 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ 	switch (memreg) {
+ 	case RPCRDMA_FRMR:
+ 		break;
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+ 	case RPCRDMA_ALLPHYSICAL:
+ 		mem_priv = IB_ACCESS_LOCAL_WRITE |
+ 				IB_ACCESS_REMOTE_WRITE |
+ 				IB_ACCESS_REMOTE_READ;
+ 		goto register_setup;
+-#endif
+ 	case RPCRDMA_MTHCAFMR:
+ 		if (ia->ri_have_dma_lkey)
+ 			break;
+ 		mem_priv = IB_ACCESS_LOCAL_WRITE;
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+ 	register_setup:
+-#endif
+ 		ia->ri_bind_mem = ib_get_dma_mr(ia->ri_pd, mem_priv);
+ 		if (IS_ERR(ia->ri_bind_mem)) {
+ 			printk(KERN_ALERT "%s: ib_get_dma_mr for "
+@@ -1770,7 +1761,6 @@ rpcrdma_register_external(struct rpcrdma_mr_seg *seg,
  
- /*
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 7a140fe..4f7de2a 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -343,7 +343,7 @@ int rpcrdma_ep_create(struct rpcrdma_ep *, struct rpcrdma_ia *,
- 				struct rpcrdma_create_data_internal *);
- void rpcrdma_ep_destroy(struct rpcrdma_ep *, struct rpcrdma_ia *);
- int rpcrdma_ep_connect(struct rpcrdma_ep *, struct rpcrdma_ia *);
--int rpcrdma_ep_disconnect(struct rpcrdma_ep *, struct rpcrdma_ia *);
-+void rpcrdma_ep_disconnect(struct rpcrdma_ep *, struct rpcrdma_ia *);
+ 	switch (ia->ri_memreg_strategy) {
  
- int rpcrdma_ep_post(struct rpcrdma_ia *, struct rpcrdma_ep *,
- 				struct rpcrdma_req *);
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+ 	case RPCRDMA_ALLPHYSICAL:
+ 		rpcrdma_map_one(ia, seg, writing);
+ 		seg->mr_rkey = ia->ri_bind_mem->rkey;
+@@ -1778,7 +1768,6 @@ rpcrdma_register_external(struct rpcrdma_mr_seg *seg,
+ 		seg->mr_nsegs = 1;
+ 		nsegs = 1;
+ 		break;
+-#endif
+ 
+ 	/* Registration using frmr registration */
+ 	case RPCRDMA_FRMR:
+@@ -1808,11 +1797,9 @@ rpcrdma_deregister_external(struct rpcrdma_mr_seg *seg,
+ 
+ 	switch (ia->ri_memreg_strategy) {
+ 
+-#if RPCRDMA_PERSISTENT_REGISTRATION
+ 	case RPCRDMA_ALLPHYSICAL:
+ 		rpcrdma_unmap_one(ia, seg);
+ 		break;
+-#endif
+ 
+ 	case RPCRDMA_FRMR:
+ 		rc = rpcrdma_deregister_frmr_external(seg, ia, r_xprt);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
