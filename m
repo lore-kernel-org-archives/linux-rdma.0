@@ -1,72 +1,110 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: why flipping responder_resources/initiator_depth?
-Date: Mon, 23 Jun 2014 10:49:38 -0600
-Message-ID: <20140623164938.GA23697@obsidianresearch.com>
-References: <53A688FB.6070600@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823739931CCAD@ORSMSX109.amr.corp.intel.com>
- <CAJZOPZKqYiGpxi8bjDu5TBu0G6EX_DjRLvEVhNDTy9L79h6MbQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: how to re-use a QP for a new connection
+Date: Mon, 23 Jun 2014 13:22:38 -0400
+Message-ID: <1F02274F-B3FC-40EE-A46D-FB178EA3781B@oracle.com>
+References: <36E48CE3-3FB6-4985-9CA5-4D6B800EE3DC@oracle.com> <1828884A29C6694DAF28B7E6B8A82373993132A8@ORSMSX109.amr.corp.intel.com> <5F77D836-4EE1-458D-B256-3C0EF4B1F2C2@oracle.com> <1828884A29C6694DAF28B7E6B8A8237399313467@ORSMSX109.amr.corp.intel.com> <8E9844F1-AFDC-4F28-B646-596BCBC3FAA8@oracle.com> <1828884A29C6694DAF28B7E6B8A823739931EDD5@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZOPZKqYiGpxi8bjDu5TBu0G6EX_DjRLvEVhNDTy9L79h6MbQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823739931EDD5-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 23, 2014 at 08:55:07AM +0300, Or Gerlitz wrote:
-> 1. the client to put into the responder_resources they provide to
-> rdma_connect the the maximum number of outstanding RDMA read that they
-> will be able accept from the server side
-> 
-> 2. the server to apply a minimum function between the
-> responder_resources which were advertized by the client (and they get
-> in the connection request event params) to how many inflight
-> rdma-reads  their HCA supports
 
->From a wire perspective the spec is pretty clear what the CM responder
-resources and initiator depth are supposed to be, and the behavior of
-#2 is mandated in the spec.
+On Jun 23, 2014, at 12:22 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
->From a API perspective it makes sense that the only input to the
-the API would be 'the initiator depth the caller will use', which is
-basically the only thing the caller actually controls. 0 if the client
-never uses RDMA READ or ATOMICs, 1 if it is strictly interlocked, and
-higher as necessary.
+>> Steve Wise is helping me with a particular issue where QP re-use mig=
+ht
+>> be helpful.
+>>=20
+>> When an RPC/RDMA transport connection is dropped (for example, the N=
+=46S
+>> server crashes), xprtrdma destroys the transport's QP and creates a
+>> new one for the next connection.
+>=20
+> If the remote side crashes, the local QP can transition into the erro=
+r state, which would flush all posted receives.  I believe that a WR th=
+at has completed in error only has the wr_id field valid.
+>=20
+> Note that calling rdma_disconnect() will also transition the QP into =
+the error state.
 
-I'm not sure there is a use case to limit QP responder resources at
-the caller? Maybe to specify '0' if the caller knows it will never
-setup a remote readable MR?
+So on remote disconnect there are two steps:
 
-So both sides pass in their desired initiator depth. Both sides limit
-that to HCA init depth capabilities. The REQ side plugs that value
-into REQ.initiatorDepth and the HCA capability into
-REQ.responderResources.
+1. The QP is transitioned to the error state
 
-The REQ responder takes min(REQ.responderResources,local
-intiatorDepth) and returns that in REP.initiatorDepth. It takes
-min(REQ.initiatorDepth, HW respres capability) and plugs that into the
-local QP and returns it in REp.responderResources
+2. Later, when xprtrdma attempts to reconnect, it=92s transport connect
+   worker destroys the old QP
 
-The REQ initiator takes that reply and does
-min(REP.responderResources,HW initdepth capability,API depth) and
-plugs that into the QP and does checks that REP.initDepth <
-REQ.responderResources and errors if false, and plugs REP.initDepth
-into the local QP's responder resources.
+I think you and Devesh are suggesting that when the QP is transitioned
+to error state in step 1, the provider immediately flushes the send and
+completion queues appropriately, leaving no possibility of a completed
+WR with a dropped completion.
 
-The swapping and general missing handling of RR negotiating in the
-whole kernel CM API (not just RDMA CM, but IB CM too) is a
-longstanding bug, and I have written user space code that fixes it up
-in the past :(
+>=20
+>> We're not quite sure what IB_WC_WR_FLUSH_ERR means in that instance.=
+ Our
+>> theory is there is a gap when the old QP is destroyed:
+>>=20
+>> 1. If the HW reports a successful WR completion but the QP no longer
+>>   exists, the provider substitutes an IB_WC_WR_FLUSH_ERR completion
+>>=20
+>> 2. If the WR is dropped before the HW even saw it, the provider inse=
+rts
+>>   an IB_WC_WR_FLUSH_ERR completion
+>>=20
+>> So if xprtrdma is trying to submit a FAST_REG_MR WR and the completi=
+on
+>> gets flushed, xprtrdma has no way to know whether the rkey was bumpe=
+d in
+>> the adapter. Thus it has no certainty which rkey to use to invalidat=
+e
+>> that FRMR.
+>=20
+> I'm not familiar with the behavior of fast reg mr.
 
-It works OK if both sides hard code 2 or 4, or whatever is 99% of use
-cases, it is broken if you are doing what Or is talking about, and
-optimizing RR usage because on half of a connection doesn't use RRs at
-all.
+=46or the record, with both mlx4 and cxgb4, we see FRMRs left valid
+after a FAST_REG_MR is flushed during a connection loss. More study
+needed, obviously.
 
-Jason
+>> I was idly wondering whether re-using the QP during connection loss
+>> would provide a guarantee that xprtrdma would never see case 1 above=
+=2E
+>> Then IB_WC_WR_FLUSH_ERR on a FAST_REG_MR WR would be a more certain
+>> indication that the HW still has the old rkey.
+>>=20
+>> I suppose that xprtrdma can "hang onto" the QP without re-using it b=
+y
+>> simply not destroying it until all WRs scheduled on the old QP are
+>> completed. Is reference counting the QP the usual design pattern to =
+deal
+>> with this case?
+>=20
+> I _thought_ that destroying the QP would cleanup any completion entri=
+es in the CQ, but I'm not sure of this.  Referencing counting should wo=
+rk though.=20
+
+As a workaround, I can comment out the rdma_destroy_qp() call in xprtrd=
+ma's
+connect worker to see if there=92s any change in behavior when the old =
+QP
+stays around.
+
+Given that the queues are flushed on RTS->Error, probably won=92t see a=
+ny
+difference at all.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
