@@ -1,61 +1,85 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: how to re-use a QP for a new connection
-Date: Mon, 23 Jun 2014 16:22:04 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823739931EDD5@ORSMSX109.amr.corp.intel.com>
-References: <36E48CE3-3FB6-4985-9CA5-4D6B800EE3DC@oracle.com>
- <1828884A29C6694DAF28B7E6B8A82373993132A8@ORSMSX109.amr.corp.intel.com>
- <5F77D836-4EE1-458D-B256-3C0EF4B1F2C2@oracle.com>
- <1828884A29C6694DAF28B7E6B8A8237399313467@ORSMSX109.amr.corp.intel.com>
- <8E9844F1-AFDC-4F28-B646-596BCBC3FAA8@oracle.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v1 for-next 00/16] Bug fixes for ocrdma driver
+Date: Mon, 23 Jun 2014 16:23:47 +0000
+Message-ID: <0ba40047-f7b9-41be-82c2-489d34a3eee3@CMEXHTCAS1.ad.emulex.com>
+References: <48668505-7613-4782-9fb8-14e3702f6051@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8E9844F1-AFDC-4F28-B646-596BCBC3FAA8-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <48668505-7613-4782-9fb8-14e3702f6051-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Steve Wise is helping me with a particular issue where QP re-use might
-> be helpful.
-> 
-> When an RPC/RDMA transport connection is dropped (for example, the NFS
-> server crashes), xprtrdma destroys the transport's QP and creates a
-> new one for the next connection.
+Roland,
 
-If the remote side crashes, the local QP can transition into the error state, which would flush all posted receives.  I believe that a WR that has completed in error only has the wr_id field valid.
+Please consider this series to be merged to the next pull request to Linus. This contains some critical bug fixes for ocrdma, and we don't want to miss
+this pull cycle.
 
-Note that calling rdma_disconnect() will also transition the QP into the error state.
- 
-> We're not quite sure what IB_WC_WR_FLUSH_ERR means in that instance. Our
-> theory is there is a gap when the old QP is destroyed:
+-Best Regards
+ Devesh
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Selvin Xavier
+> Sent: Tuesday, June 10, 2014 7:32 PM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Selvin Xavier
+> Subject: [PATCH v1 for-next 00/16] Bug fixes for ocrdma driver
 > 
-> 1. If the HW reports a successful WR completion but the QP no longer
->    exists, the provider substitutes an IB_WC_WR_FLUSH_ERR completion
+> This patch series contains few bug fixes for ocrdma driver
 > 
-> 2. If the WR is dropped before the HW even saw it, the provider inserts
->    an IB_WC_WR_FLUSH_ERR completion
+> Changes in v1:
+>  Proper change logs are added as per Or's suggestion  Updating the ocrdma
+> driver version string
 > 
-> So if xprtrdma is trying to submit a FAST_REG_MR WR and the completion
-> gets flushed, xprtrdma has no way to know whether the rkey was bumped in
-> the adapter. Thus it has no certainty which rkey to use to invalidate
-> that FRMR.
-
-I'm not familiar with the behavior of fast reg mr.
- 
-> I was idly wondering whether re-using the QP during connection loss
-> would provide a guarantee that xprtrdma would never see case 1 above.
-> Then IB_WC_WR_FLUSH_ERR on a FAST_REG_MR WR would be a more certain
-> indication that the HW still has the old rkey.
+> Please apply to for-next tree
 > 
-> I suppose that xprtrdma can "hang onto" the QP without re-using it by
-> simply not destroying it until all WRs scheduled on the old QP are
-> completed. Is reference counting the QP the usual design pattern to deal
-> with this case?
-
-I _thought_ that destroying the QP would cleanup any completion entries in the CQ, but I'm not sure of this.  Referencing counting should work though. 
+> Devesh Sharma (5):
+>   RDMA/ocrdma: Avoid posting DPP requests for RDMA READ
+>   be2net: issue shutdown event to ocrdma driver
+>   RDMA/ocrdma: Handle shutdown event from be2net driver
+>   RDMA/ocrdma: Remove hardcoding of the max DPP QPs supported
+>   RDMA/ocrdma: Delete AH table if ocrdma_init_hw fails after AH table
+>     creation
+> 
+> Mitesh Ahuja (3):
+>   RDMA/ocrdma: Allow only SEND opcode in case of UD QPs
+>   RDMA/ocrdma: Do proper cleanup evenif FW is in error state
+>   RDMA/ocrdma: Return proper value for max_mr_size
+> 
+> Selvin Xavier (8):
+>   RDMA/ocrdma: Query and initalize the PFC SL
+>   RDMA/ocrdma: Adding hca_type and fixing fw_version string in device
+>     atrributes
+>   RDMA/ocrdma: Avoid reporting wrong completions in case of error CQEs
+>   RDMA/ocrdma : Add missing adapter mailbox opcodes
+>   RDMA/ocrdma: Increase the size of STAG array in dev structure to 16K
+>   RDMA/ocrdma: Initialize the GID table while registering the device
+>   RDMA/ocrdma: Fixing a sparse warning
+>   RDMA/ocrdma: Update the ocrdma module version string
+> 
+>  drivers/infiniband/hw/ocrdma/ocrdma.h       |   26 ++++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    2 +
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  197
+> ++++++++++++++++++++++++++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |    2 +
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   83 +++++++++++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  148 ++++++++++++++++----
+> -
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   34 ++++-
+>  drivers/net/ethernet/emulex/benet/be.h      |    1 +
+>  drivers/net/ethernet/emulex/benet/be_main.c |    1 +
+>  drivers/net/ethernet/emulex/benet/be_roce.c |   18 ++-
+>  drivers/net/ethernet/emulex/benet/be_roce.h |    3 +-
+>  11 files changed, 466 insertions(+), 49 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
