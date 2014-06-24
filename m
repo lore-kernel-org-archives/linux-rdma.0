@@ -1,41 +1,55 @@
-From: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
-Date: Tue, 24 Jun 2014 12:05:53 -0500
-Message-ID: <53A9AFF1.4010404@cs.wisc.edu>
-References: <1402477799-24610-1-git-send-email-sagig@mellanox.com> <1402477799-24610-2-git-send-email-sagig@mellanox.com> <53A920B2.9060503@cs.wisc.edu> <yq1mwd2h3ju.fsf@sermon.lab.mkp.net> <28678EBD-1AE9-48F9-B9E2-E6A61B042BB1@cs.wisc.edu> <yq1fviugtgq.fsf@sermon.lab.mkp.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 00/13] NFS/RDMA patches for 3.17
+Date: Tue, 24 Jun 2014 13:07:50 -0400
+Message-ID: <A922572E-627F-4283-9CC9-2D4D47AF619F@oracle.com>
+References: <20140623223201.1634.83888.stgit@manet.1015granger.net> <CAJZOPZ+ix6tPDHXbVrSnVzofHSbzqOoyTBvzkEo-GJpOYOaPFA@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <yq1fviugtgq.fsf-+q57XtR/GgMb6DWv4sQWN6xOck334EZe@public.gmane.org>
+In-Reply-To: <CAJZOPZ+ix6tPDHXbVrSnVzofHSbzqOoyTBvzkEo-GJpOYOaPFA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/24/2014 11:31 AM, Martin K. Petersen wrote:
->>>>>> "Mike" == Michael Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org> writes:
-> 
-> Mike> Do we need to check for the data direction. Something like
-> 
-> Mike> if (scmd->sc_data_direction == DMA_TO_DEVICE)
-> Mike> 	xfer_len = scsi_out(scmnd)->length;
-> Mike> else
-> Mike> 	xfer_len = scsi_in(scmnd)->length;
-> 
-> I guess that depends on the context the wrapper is called in. I think
-> iscsi is the only place where there's a distinction thanks to bidi.
-> 
 
-We were using it generically, so we did not check if bidi or t10 pi. We
-were calling it just expecting it to do the right thing for us.
+On Jun 24, 2014, at 10:35 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-> Looks like there are several places where that's done. In that case I
-> wonder if we should have explicit scsi_in_transfer_length() and
-> scsi_out_transfer_length() wrappers?
+> On Tue, Jun 24, 2014 at 1:39 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>=
+ wrote:
+>>=20
+>> The main purpose of this series is to address more connection drop
+>> recovery issues by fixing FRMR re-use to make it less likely the
+>> client will drop the connection due to a memory operation error.
+>>=20
+>> Some other clean-ups and fixes are present as well.
+>=20
+>=20
+> From quick looking, patches 1,2 and 5 of series and maybe more have
+> very good match for 3.16-rc (fix kernel crashes etc), I don't think
+> they need to wait for 3.17
 
-Yeah, maybe.
+My take:
+
+1/13 fixes a panic that should never be hit (that used to be a BUG,
+which never fired in operation).
+
+2/13 might be a candidate for 3.16-rc. It=92s up to Trond.
+
+5/13 doesn=92t fix a regression, it always worked that way.
+
+I=92ve updated the =93Fixes:=94 tag in these, will appear in v2 of the =
+series.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
