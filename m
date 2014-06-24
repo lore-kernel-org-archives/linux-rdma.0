@@ -1,42 +1,63 @@
-From: Christoph Paasch <christoph.paasch-MkR3pAKDJcQFHpyHPIa6Kw@public.gmane.org>
-Subject: [PATCH] cxgb4: Remove duplicate tcp-options clearing
-Date: Tue, 24 Jun 2014 13:34:02 +0200
-Message-ID: <1403609642-27757-1-git-send-email-christoph.paasch@uclouvain.be>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
+Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
+Date: Tue, 24 Jun 2014 08:53:25 -0400
+Message-ID: <yq1mwd2h3ju.fsf@sermon.lab.mkp.net>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com>
+	<1402477799-24610-2-git-send-email-sagig@mellanox.com>
+	<53A920B2.9060503@cs.wisc.edu>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <53A920B2.9060503@cs.wisc.edu> (Mike Christie's message of "Tue,
+	24 Jun 2014 01:54:42 -0500")
+Sender: target-devel-owner@vger.kernel.org
+To: Mike Christie <michaelc@cs.wisc.edu>
+Cc: Sagi Grimberg <sagig@mellanox.com>, martin.petersen@oracle.com, nab@linux-iscsi.org, roland@kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-tmp_opt is memset to 0. Thus, no need for another call to
-tcp_clear_options which simply sets some fields explicitly to 0 again.
+>>>>> "Mike" == Mike Christie <michaelc@cs.wisc.edu> writes:
 
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Christoph Paasch <christoph.paasch-MkR3pAKDJcQFHpyHPIa6Kw@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 1 -
- 1 file changed, 1 deletion(-)
+Mike> The problem is WRITE_SAME requests are setup so that
+Mike> req->__data_len is the value of the entire request when the setup
+Mike> is completed but during the setup process it's value changes
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 96d7131ab974..2106a6dc62b3 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -3326,7 +3326,6 @@ static void build_cpl_pass_accept_req(struct sk_buff *skb, int stid , u8 tos)
- 	 * to generate cpl_pass_accept_req.
- 	 */
- 	memset(&tmp_opt, 0, sizeof(tmp_opt));
--	tcp_clear_options(&tmp_opt);
- 	tcp_parse_options(skb, &tmp_opt, 0, NULL);
+Oh, I see. So things break because iSCSI uses scsi_transfer_length()
+where the scatterlist length was used in the past.
+
+How about this?
+
+
+SCSI: Use SCSI data buffer length to extract transfer size
+    
+Commit 8846bab180fa introduced a helper that can be used to query the
+wire transfer size for a SCSI command taking protection information into
+account.
+    
+However, some commands do not have a 1:1 mapping between the block range
+they work on and the payload size (discard, write same). After the
+scatterlist has been set up these requests use __data_len to store the
+number of bytes to report completion on. This means that callers of
+scsi_transfer_length() would get the wrong byte count for these types of
+requests.
+
+To overcome this we make scsi_transfer_length() use the scatterlist
+length in the scsi_data_buffer as basis for the wire transfer
+calculation instead of __data_len.
+
+Reported-by: Christoph Hellwig <hch@infradead.org>
+Debugged-by: Mike Christie <michaelc@cs.wisc.edu>
+Signed-off-by: Martin K. Petersen <martin.petersen@oracle.com>
+
+diff --git a/include/scsi/scsi_cmnd.h b/include/scsi/scsi_cmnd.h
+index 42ed789ebafc..e0ae71098144 100644
+--- a/include/scsi/scsi_cmnd.h
++++ b/include/scsi/scsi_cmnd.h
+@@ -318,7 +318,7 @@ static inline void set_driver_byte(struct scsi_cmnd *cmd, char status)
  
- 	req = (struct cpl_pass_accept_req *)__skb_push(skb, sizeof(*req));
--- 
-1.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ static inline unsigned scsi_transfer_length(struct scsi_cmnd *scmd)
+ {
+-	unsigned int xfer_len = blk_rq_bytes(scmd->request);
++	unsigned int xfer_len = scsi_out(scmd)->length;
+ 	unsigned int prot_op = scsi_get_prot_op(scmd);
+ 	unsigned int sector_size = scmd->device->sector_size;
+ 
