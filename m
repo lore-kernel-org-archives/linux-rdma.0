@@ -1,33 +1,42 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
-Date: Tue, 24 Jun 2014 13:32:49 +0200
-Message-ID: <1403609569.10831.0.camel@jlt4.sipsolutions.net>
-References: <cover.1403530604.git.joe@perches.com>
-	 <20140623172512.GA1390@garbanzo.do-not-panic.com>
-	 <1403550809.15811.13.camel@joe-AO725>
-	 <CAGRGNgVD2f0S-v8YZ-qABEhDJAwk5pp71FU9uLR8aSZ+DhABjg@mail.gmail.com>
-	 (sfid-20140624_012812_032630_4B31BBC9)
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <CAGRGNgVD2f0S-v8YZ-qABEhDJAwk5pp71FU9uLR8aSZ+DhABjg@mail.gmail.com> (sfid-20140624_012812_032630_4B31BBC9)
-Sender: linux-arch-owner@vger.kernel.org
-To: Julian Calaby <julian.calaby@gmail.com>
-Cc: Joe Perches <joe@perches.com>, "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, linux-arch@vger.kernel.org, linux-scsi <linux-scsi@vger.kernel.org>, iss_storagedev@hp.com, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, linux-atm-general@lists.sourceforge.net, linux-wireless <linux-wireless@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, linux-eata@i-connect.net, linux-media@vger.kernel.org
+From: Christoph Paasch <christoph.paasch-MkR3pAKDJcQFHpyHPIa6Kw@public.gmane.org>
+Subject: [PATCH] cxgb4: Remove duplicate tcp-options clearing
+Date: Tue, 24 Jun 2014 13:34:02 +0200
+Message-ID: <1403609642-27757-1-git-send-email-christoph.paasch@uclouvain.be>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2014-06-24 at 09:27 +1000, Julian Calaby wrote:
+tmp_opt is memset to 0. Thus, no need for another call to
+tcp_clear_options which simply sets some fields explicitly to 0 again.
 
-> > - x = (T)pci_alloc_consistent(E1,E2,E3);
-> > + x = pci_zalloc_consistent(E1,E2,E3);
-> >   if ((x==NULL) || ...) S
-> > - memset((T2)x,0,E2);
-> 
-> I don't know much about SmPL, but wouldn't having that if statement
-> there reduce your matches?
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Christoph Paasch <christoph.paasch-MkR3pAKDJcQFHpyHPIa6Kw@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Code that matched without the if statement would be buggy, since it
-wouldn't be checking the pci_zalloc_consistent return value properly.l
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 96d7131ab974..2106a6dc62b3 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -3326,7 +3326,6 @@ static void build_cpl_pass_accept_req(struct sk_buff *skb, int stid , u8 tos)
+ 	 * to generate cpl_pass_accept_req.
+ 	 */
+ 	memset(&tmp_opt, 0, sizeof(tmp_opt));
+-	tcp_clear_options(&tmp_opt);
+ 	tcp_parse_options(skb, &tmp_opt, 0, NULL);
+ 
+ 	req = (struct cpl_pass_accept_req *)__skb_push(skb, sizeof(*req));
+-- 
+1.9.3
 
-johannes
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
