@@ -1,43 +1,102 @@
-From: Bob Biloxi <iambobbiloxi@gmail.com>
-Subject: Re: mlx4 - query regarding PF VF functionality division
-Date: Tue, 24 Jun 2014 19:12:51 +0530
-Message-ID: <CANwwZzXc2UyYxGX2X+O38jTVki70HrP71FBWbc4dTyt9nEN0nA@mail.gmail.com>
-References: <CANwwZzWsjQwZB5Cc4Hyv2HQOLhAx6ycjf32UQG55zVX=Kmbi6Q@mail.gmail.com>
-	<CAJZOPZ+FUneDDKMh0O2aZLYeDTcH8cHA7ati5wzi7Ycgc5wFXQ@mail.gmail.com>
+From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] xprtrdma: Fix DMA-API-DEBUG warning by checking dma_map
+ result
+Date: Tue, 24 Jun 2014 09:47:57 -0400
+Message-ID: <53A9818D.40800@gmail.com>
+References: <1403183190-21607-1-git-send-email-yanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAJZOPZ+FUneDDKMh0O2aZLYeDTcH8cHA7ati5wzi7Ycgc5wFXQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Or Gerlitz <or.gerlitz@gmail.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1403183190-21607-1-git-send-email-yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Not really, but let's take EIM approach, what's your goal/mission?
-Let's say I am going through code to understand only the PF related
-functionality without bothering about VF, what are the things I need
-to keep in mind.
-I mean do i need to :
-
-a. Go through all the files in mlx4
-b. If the code is not specifically under mlx4_is_master, I still need
-to understand it because it is also part of PF driver
-c. I can ignore the logic which executes if mlx4_is_master is false,
-because that would be the VF code
-
-Thanks for the help!!
-
-
-
-
-On Mon, Jun 23, 2014 at 5:30 PM, Or Gerlitz <or.gerlitz@gmail.com> wrote:
-> On Mon, Jun 23, 2014 at 12:33 PM, Bob Biloxi <iambobbiloxi@gmail.com> wrote:
-> [...]
->> Is there any way we can clearly separate the files that are used by PF
->> vs the files that are used by VF in the (drivers/net/ethernet/mlx4
->> sub-directory)?
-> [...]
+On 06/19/2014 09:06 AM, Yan Burman wrote:
+> Fix the following warning when DMA-API debug is enabled by checking ib_dma_map_single result:
+> [ 1455.345548] ------------[ cut here ]------------
+> [ 1455.346863] WARNING: CPU: 3 PID: 3929 at /home/yanb/kernel/net-next/lib/dma-debug.c:1140 check_unmap+0x4e5/0x990()
+> [ 1455.349350] mlx4_core 0000:00:07.0: DMA-API: device driver failed to check map error[device address=0x000000007c9f2090] [size=2656 bytes] [mapped as single]
+> [ 1455.349350] Modules linked in: xprtrdma netconsole configfs nfsv3 nfs_acl ib_ipoib rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm autofs4 auth_rpcgss oid_registry nfsv4 nfs fscache lockd sunrpc dm_mirror dm_region_hash dm_log microcode pcspkr mlx4_ib ib_sa ib_mad ib_core ib_addr mlx4_en ipv6 ptp pps_core vxlan mlx4_core virtio_balloon cirrus ttm drm_kms_helper drm sysimgblt sysfillrect syscopyarea i2c_piix4 i2c_core button ext3 jbd virtio_blk virtio_net virtio_pci virtio_ring virtio uhci_hcd ata_generic ata_piix libata
+> [ 1455.349350] CPU: 3 PID: 3929 Comm: mount.nfs Not tainted 3.15.0-rc1-dbg+ #13
+> [ 1455.349350] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
+> [ 1455.349350]  0000000000000474 ffff880069dcf628 ffffffff8151c341 ffffffff817b69d8
+> [ 1455.349350]  ffff880069dcf678 ffff880069dcf668 ffffffff8105b5fc 0000000069dcf658
+> [ 1455.349350]  ffff880069dcf778 ffff88007b0c9f00 ffffffff8255ec40 0000000000000a60
+> [ 1455.349350] Call Trace:
+> [ 1455.349350]  [<ffffffff8151c341>] dump_stack+0x52/0x81
+> [ 1455.349350]  [<ffffffff8105b5fc>] warn_slowpath_common+0x8c/0xc0
+> [ 1455.349350]  [<ffffffff8105b6e6>] warn_slowpath_fmt+0x46/0x50
+> [ 1455.349350]  [<ffffffff812e6305>] check_unmap+0x4e5/0x990
+> [ 1455.349350]  [<ffffffff81521fb0>] ? _raw_spin_unlock_irq+0x30/0x60
+> [ 1455.349350]  [<ffffffff812e6a0a>] debug_dma_unmap_page+0x5a/0x60
+> [ 1455.349350]  [<ffffffffa0389583>] rpcrdma_deregister_internal+0xb3/0xd0 [xprtrdma]
+> [ 1455.349350]  [<ffffffffa038a639>] rpcrdma_buffer_destroy+0x69/0x170 [xprtrdma]
+> [ 1455.349350]  [<ffffffffa03872ff>] xprt_rdma_destroy+0x3f/0xb0 [xprtrdma]
+> [ 1455.349350]  [<ffffffffa04a95ff>] xprt_destroy+0x6f/0x80 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a9625>] xprt_put+0x15/0x20 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a899a>] rpc_free_client+0x8a/0xe0 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a8a58>] rpc_release_client+0x68/0xa0 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a9060>] rpc_shutdown_client+0xb0/0xc0 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a8f5d>] ? rpc_ping+0x5d/0x70 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a91ab>] rpc_create_xprt+0xbb/0xd0 [sunrpc]
+> [ 1455.349350]  [<ffffffffa04a9273>] rpc_create+0xb3/0x160 [sunrpc]
+> [ 1455.349350]  [<ffffffff81129749>] ? __probe_kernel_read+0x69/0xb0
+> [ 1455.349350]  [<ffffffffa053851c>] nfs_create_rpc_client+0xdc/0x100 [nfs]
+> [ 1455.349350]  [<ffffffffa0538cfa>] nfs_init_client+0x3a/0x90 [nfs]
+> [ 1455.349350]  [<ffffffffa05391c8>] nfs_get_client+0x478/0x5b0 [nfs]
+> [ 1455.349350]  [<ffffffffa0538e50>] ? nfs_get_client+0x100/0x5b0 [nfs]
+> [ 1455.349350]  [<ffffffff81172c6d>] ? kmem_cache_alloc_trace+0x24d/0x260
+> [ 1455.349350]  [<ffffffffa05393f3>] nfs_create_server+0xf3/0x4c0 [nfs]
+> [ 1455.349350]  [<ffffffffa0545ff0>] ? nfs_request_mount+0xf0/0x1a0 [nfs]
+> [ 1455.349350]  [<ffffffffa031c0c3>] nfs3_create_server+0x13/0x30 [nfsv3]
+> [ 1455.349350]  [<ffffffffa0546293>] nfs_try_mount+0x1f3/0x230 [nfs]
+> [ 1455.349350]  [<ffffffff8108ea21>] ? get_parent_ip+0x11/0x50
+> [ 1455.349350]  [<ffffffff812d6343>] ? __this_cpu_preempt_check+0x13/0x20
+> [ 1455.349350]  [<ffffffff810d632b>] ? try_module_get+0x6b/0x190
+> [ 1455.349350]  [<ffffffffa05449f7>] nfs_fs_mount+0x187/0x9d0 [nfs]
+> [ 1455.349350]  [<ffffffffa0545940>] ? nfs_clone_super+0x140/0x140 [nfs]
+> [ 1455.349350]  [<ffffffffa0543b20>] ? nfs_auth_info_match+0x40/0x40 [nfs]
+> [ 1455.349350]  [<ffffffff8117e360>] mount_fs+0x20/0xe0
+> [ 1455.349350]  [<ffffffff811a1c16>] vfs_kern_mount+0x76/0x160
+> [ 1455.349350]  [<ffffffff811a29a8>] do_mount+0x428/0xae0
+> [ 1455.349350]  [<ffffffff811a30f0>] SyS_mount+0x90/0xe0
+> [ 1455.349350]  [<ffffffff8152af52>] system_call_fastpath+0x16/0x1b
+> [ 1455.349350] ---[ end trace f1f31572972e211d ]---
 >
-> Not really, but let's take EIM approach, what's your goal/mission?
+> Signed-off-by: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks Yan!  I've applied this to a bugfixes branch that I'll push out later today.
+
+Chuck - Should I add your "Reviewed By" from v1 to this version of the patch?
+
+Anna
+
+> ---
 >
-> Or.
+> Changes from V1:
+> Removed curly braces
+>
+>  net/sunrpc/xprtrdma/verbs.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 13dbd1c..176dafc 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1388,6 +1388,9 @@ rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
+>  	 */
+>  	iov->addr = ib_dma_map_single(ia->ri_id->device,
+>  			va, len, DMA_BIDIRECTIONAL);
+> +	if (ib_dma_mapping_error(ia->ri_id->device, iov->addr))
+> +		return -ENOMEM;
+> +
+>  	iov->length = len;
+>  
+>  	if (ia->ri_have_dma_lkey) {
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
