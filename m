@@ -1,87 +1,30 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
-Date: Tue, 24 Jun 2014 09:27:25 +1000
-Message-ID: <CAGRGNgVD2f0S-v8YZ-qABEhDJAwk5pp71FU9uLR8aSZ+DhABjg@mail.gmail.com>
-References: <cover.1403530604.git.joe@perches.com> <20140623172512.GA1390@garbanzo.do-not-panic.com>
- <1403550809.15811.13.camel@joe-AO725>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
+Date: Mon, 23 Jun 2014 21:58:02 -0400
+Message-ID: <yq1r42fgjbp.fsf@sermon.lab.mkp.net>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com>
+	<1402477799-24610-2-git-send-email-sagig@mellanox.com>
+	<53A89B0F.4040300@cs.wisc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <1403550809.15811.13.camel@joe-AO725>
-Sender: linux-arch-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, linux-arch@vger.kernel.org, linux-scsi <linux-scsi@vger.kernel.org>, iss_storagedev@hp.com, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, linux-atm-general@lists.sourceforge.net, linux-wireless <linux-wireless@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, linux-eata@i-connect.net, linux-media@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53A89B0F.4040300-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org> (Mike Christie's message of "Mon,
+	23 Jun 2014 16:24:31 -0500")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Joe,
+>>>>> "Mike" == Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org> writes:
+>> + unsigned int xfer_len = blk_rq_bytes(scmd->request);
 
-On Tue, Jun 24, 2014 at 5:13 AM, Joe Perches <joe@perches.com> wrote:
-> On Mon, 2014-06-23 at 10:25 -0700, Luis R. Rodriguez wrote:
->> On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
->> > Adding the helper reduces object code size as well as overall
->> > source size line count.
->> >
->> > It's also consistent with all the various zalloc mechanisms
->> > in the kernel.
->> >
->> > Done with a simple cocci script and some typing.
->>
->> Awesome, any chance you can paste in the SmPL? Also any chance
->> we can get this added to a make coccicheck so that maintainers
->> moving forward can use that to ensure that no new code is
->> added that uses the old school API?
->
-> Not many of these are recent.
->
-> Arnd Bergmann reasonably suggested that the pci_alloc_consistent
-> api be converted the the more widely used dma_alloc_coherent.
->
-> https://lkml.org/lkml/2014/6/23/513
->
->> Shouldn't these drivers just use the normal dma-mapping API now?
->
-> and I replied:
->
-> https://lkml.org/lkml/2014/6/23/525
->
->> Maybe.  I wouldn't mind.
->> They do seem to have a trivial bit of unnecessary overhead for
->> hwdev == NULL ? NULL : &hwdev->dev
->
-> Anyway, here's the little script.
-> I'm not sure it's worthwhile to add it though.
->
-> $ cat ./scripts/coccinelle/api/alloc/pci_zalloc_consistent.cocci
-> ///
-> /// Use pci_zalloc_consistent rather than
-> ///     pci_alloc_consistent followed by memset with 0
-> ///
-> /// This considers some simple cases that are common and easy to validate
-> /// Note in particular that there are no ...s in the rule, so all of the
-> /// matched code has to be contiguous
-> ///
-> /// Blatantly cribbed from: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
->
-> @@
-> type T, T2;
-> expression x;
-> expression E1,E2,E3;
-> statement S;
-> @@
->
-> - x = (T)pci_alloc_consistent(E1,E2,E3);
-> + x = pci_zalloc_consistent(E1,E2,E3);
->   if ((x==NULL) || ...) S
-> - memset((T2)x,0,E2);
+Mike> Can you do bidi and dif/dix? 
 
-I don't know much about SmPL, but wouldn't having that if statement
-there reduce your matches?
-
-Thanks,
+Nope.
 
 -- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+Martin K. Petersen	Oracle Linux Engineering
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
