@@ -1,221 +1,161 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: PCI/AER: AER in SRIOV environment
-Date: Tue, 24 Jun 2014 19:22:17 +0300
-Message-ID: <53A9A5B9.20003@dev.mellanox.co.il>
-References: <53A839C6.5050102@dev.mellanox.co.il> <CAErSpo7xVvqYea8v624T8EyVf6skQccraAe_WYpzcf2tkWFLhg@mail.gmail.com> <53A88A32.4010406@redhat.com> <53A8ADD5.7030207@dev.mellanox.co.il> <53A9918D.9020607@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53A9918D.9020607-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil-VXdhtT5mjnY@public.gmane.org>, Myron Stowe <myron.stowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 08/13] xprtrdma: Back off rkey when FAST_REG_MR fails
+Date: Tue, 24 Jun 2014 12:26:32 -0400
+Message-ID: <51111098-A9FF-4F43-8D1A-0B57BD1B952C@oracle.com>
+References: <20140623223201.1634.83888.stgit@manet.1015granger.net> <20140623224007.1634.55636.stgit@manet.1015granger.net> <53A99DA6.90808@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53A99DA6.90808-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/24/2014 5:56 PM, Don Dutile wrote:
-> On 06/23/2014 06:44 PM, Yishai Hadas wrote:
->> On 6/23/2014 11:12 PM, Don Dutile wrote:
->>> On 06/23/2014 03:09 PM, Bjorn Helgaas wrote:
->>>> [+cc linux-pci, Don]
->>>>
->>> Adding Alex Williamson in case he can add more to this conversation...
->>>
->>>> On Mon, Jun 23, 2014 at 8:29 AM, Yishai Hadas
->>>> <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>>> Hi Vijay,
->>>>> Trying to add AER support for Mellanox NIC in SRIOV environment, 
->>>>> while
->>>>> evaluating/testing encountered a problem which led me to your
->>>>> patch accepted as part of kernel 3.8, commit ID
->>>>> "918b4053184c0ca22236e70e299c5343eea35304".
->>>>>
->>>>> Have some concerns/questions on:
->>>>> When working in SRIOV environment VFs may be un-attached, having 
->>>>> no driver
->>>>> assigned to, or may be attached to Virtual machine to work in some
->>>>> pass-through mode.
->>>>> Once working in KVM setup there is pci-stub driver which is loaded 
->>>>> in the
->>>>> HYP/PF for a given attached VF.
->>> huh? 'loaded in the hyp/pf? .... um, loaded in the host, and a VF is
->>> detached from its host driver -- a VF can be used in the host w/o 
->>> any virtualization,
->>> i.e., that's how guest VM is driving the VF: as if it was used by a 
->>> guest (host) OS directly --
->>> and attached to pci-stub driver, when assigned to a KVM guest in 
->>> pre-VFIO days/ways.
->>> If VFIO used, then VF is attached to vfio-pci driver.
->>>
->>>>>
->>>>> I'm using the aer-inject kernel module and its corresponding 
->>>>> aer-inject tool
->>>>> to simulate an error in the HYP.
->>>>> In both cases your commit will cause the AER recovery to fail as 
->>>>> there is no
->>>>> driver assigned to PF's VFs that supports AER, comparing the code 
->>>>> before
->>>>> your change.
->>>>>
->>> Without VFIO, I believe that's correct. There was no AER-to-VF 
->>> support pre-VFIO days.
->>> I believe with the recent VFIO support,
->>> and modifications to KVM, an AER that is associated with an assigned 
->>> VF will
->>> force the crash/halt of the KVM guest -- can't depend on a guest VF 
->>> driver clearing
->>> the AER in the hyp/host -- guest isn't privileged enough to clear 
->>> the error.
->>> So, crashing the guest is the simple option at the moment, to 
->>> contain the error.
->>> Alex: do I have that (vfio aer default) correct, or is that still 
->>> site-under-construction?
->>      How about the case that the VF is not attached to a KVM guest 
->> and has no driver loaded on host ? in such a case from code review 
->> and some testing the recovery will
->>      fail as there is no AER aware driver here. What is the expected 
->> solution here ?
-> Well, how can a VF be attributed to an AER if it's not assigned to a 
-> guest, and it doesn't have a driver loaded for it in the host? i.e., 
-> if it's not configured, it's sitting idle, so how can it generate an AER?
-     The expectation is really that it will not participate and won't 
-vote, however in current code looks like it gets a default vote of 
-PCI_ERS_RESULT_NO_AER_DRIVER and recovery failed, that's exactly my concern.
-     In case pci_walk_bus() go over both PF & VF which have same BUS 
-number this may happen, agree ?
-> if you are injecting an AER attributed to a device that isn't 
-> configured, then you are contriving a non-valid system 
-> condition/state, and I'm not surprised that the AER handler fails.  
-> Maybe it needs an update/patch for the aer-inject case.
->
-     The failure happens once I inject the error to its PF which is 
-configured.
->>      Any special qemu /stuff is needed to activate the VFIO support ? 
->> would like to give it a try for a case that VF is attached.
-> I see Alex answered this question.  VFIO rocks! ... Alex did a great 
-> job with it.
-> Definitely cleaned up and more cleanly architected a solution that 
-> will lend itself to incremental for
-> complete reconstruction/duplication for other arches, busses, iommus, 
-> etc. to follow.
-     Alex - have on my setup QEMU which comes as part of RH 6.5, it uses 
-the pci-stub driver, looking for a clear way to replace with a newer one 
-which supports VFIO.
-     Should I just download from GIT and run configure, make & make 
-install or there are other required steps to fully replace ? any pointer 
-to the required steps may help.
->
->>>
->>>>> How such cases should work ?  my expectation was that the PF will 
->>>>> get the
->>>>> error detected message then will recognize whether
->>>>> issue is its own or one of its VFs
->>> The AER packet will have the tag of the VF in if it was the source 
->>> of the error;
->>> so the PF will never see it; although one could argue it should be 
->>> 'promoted'
->>> to the PF if PF/VF needs to clear some state it has wrt the VF (the 
->>> SRIOV spec is
->>> lacking of info in this space); _but_, VFIO resets the VF (sets FLR 
->>> bit) when the
->>> device is deassigned and before re-attachment to the host, so that 
->>> should clear out
->>> any state btwn PF & VF ('should' ... famous last words...).
->>      In my test I have used the aer-inject tool simulating an error 
->> to the BUS that both PF/VF are residing on, putting the function 
->> number to be the PF one, looks like both should be called by the aer 
->> driver as part
->>      of the pci_walk_bus(). As mentioned I got a call only on the PF 
->> and recovery failed as of the VF doesn't include an AER aware driver, 
->> once removed the VF recovery succeeded.
->>      I believe that packet should include some info about the source 
->> of the error isn't it ?
-> yup.
->>      In addition, looking at IXGBE upstream source code at 
->> ixgbe_error_detected()  looks like there is some code running on the 
->> PF that checks whether the source was a VF.
-> Ping the INTEL gang listed in MAINTAINDERS for ixgbe to see what was 
-> tested, intention of this code wrt AER.
-> Alex Duyck & Greg Rose are the two I've worked with the most on design 
-> issues in the driver, but others @INTEL may be more active in it now.
-     Thanks, may be helpful.
->
->>
->>      By the way: when tried to simulate a VF error using its FN got 
->> below error:
->>      "Error: Failed to write, Inappropriate ioctl for device", any 
->> idea about that error ?
-> details? how did you simulate the error? -- send cmdline used, or code 
-> snippet to inject error, etc.
-> that (quickly) looks like a sysfs error reply when an operation is not 
-> supported to a file/device under it.
-     Working with the downloaded aer-inject-0.1 tool,  command line was 
-./aer-inject test/aer1
-     content of aer1 file is as below:
-     AER
-     BUS 33 DEV 0 FN 0                  (33 is the decimal value of 21 
-hex value of PF & VF bus number)
-     UNCOR_STATUS POISON_TLP
-     HEADER_LOG 0 1 2 3
->
->>>
->>>>
->>>> I'm really not an AER expert, so help me understand this question of
->>>> recognizing whether an error is associated with a PF or a VF.
->>>>
->>>> In terms of hardware, it looks like the device that detects an error
->>>> logs some information and sends an Error Message upstream. The Root
->>>> Complex receives the message, captures the source ID from the Error
->>>> Message, and may generate an interrupt.  I expect this source ID can
->>>> be either a PF or a VF; there's no requirement that a VF error must be
->>>> reported as though it's from the PF, is there?
->>>>
->>>>> and work accordingly, in current code
->>>>> looks like recovery failed as part of "voting" once there is no 
->>>>> AER handler
->>>>> assigned to the VFs.
->>>>
->>>> The commit you mentioned has to do with PCI_ERS_RESULT_NO_AER_DRIVER.
->>>> We use pci_walk_bus() to figure out whether all the devices in a
->>>> subtree have a driver.  What subtree is involved here?  I would expect
->>>> the VFs to be siblings of the PF, not children of it, so I'm not sure
->>>> where things went wrong.
->>> Well, VFs could be on virtual busses (ARI turned on), so not 
->>> necessarily a
->>> sibling to PF ... and then we have the problem in PCI code of not 
->>> being able
->>> to traverse these virtual busses (in some cases; not sure if 
->>> pci_walk_bus(),
->>> which is going down the tree vs up the tree, has any problems here 
->>> w/VFs on
->>> virtual busses).
->>>
->>>>
->>>> Can you collect "lspci -vvv" output and maybe add some debug so we can
->>>> see exactly where the error is detected and what devices we're looking
->>>> at to conclude that one of them doesn't have a driver?
->>      lspci -vvv for both PF & VF is attached, we can see that VF 
->> (21:00.1) has no driver loaded comparing the PF (Kernel driver in 
->> use: mlx4_core).
-> um, well, the VF doesn't contain an AER cap strucuture, so expecting 
-> AER support for a pci device (VF or PF) w/o an AER cap is 
-> 'wishful'.... so, the VF can't generate an AER b/c it doesn't have the 
-> appropriate cap regs for the AER handler to use to report the error & 
-> recover from it.
-     In case VF doesn't have AER caps we may expect that once there is 
-an error let its PF that has the AER caps to know about and let it 
-handle it on behalf of the VF, doesn't it make sense ?
-     Do you think that without AER caps for the VF it can work properly 
-under VFIO driver ?
->
->>>>
->>>> Bjorn
->>>>
->>>
->>
->
+
+On Jun 24, 2014, at 11:47 AM, Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>=
+ wrote:
+
+> On 06/23/2014 06:40 PM, Chuck Lever wrote:
+>> If posting a FAST_REG_MR Work Reqeust fails, or the FAST_REG WR
+>> flushes, revert the rkey update to avoid subsequent
+>> IB_WC_MW_BIND_ERR completions.
+>>=20
+>> Suggested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> net/sunrpc/xprtrdma/verbs.c |   39 +++++++++++++++++++++++++++++----=
+------
+>> 1 file changed, 29 insertions(+), 10 deletions(-)
+>>=20
+>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs=
+=2Ec
+>> index cef67fd..3efc007 100644
+>> --- a/net/sunrpc/xprtrdma/verbs.c
+>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>> @@ -61,6 +61,8 @@
+>> # define RPCDBG_FACILITY	RPCDBG_TRANS
+>> #endif
+>>=20
+>> +static void rpcrdma_decrement_frmr_rkey(struct rpcrdma_mw *);
+>> +
+>> /*
+>>  * internal functions
+>>  */
+>> @@ -154,13 +156,17 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+>>=20
+>> 	if (wrid =3D=3D 0)
+>> 		return;
+>> -	if (wc->status !=3D IB_WC_SUCCESS)
+>> -		return;
+>>=20
+>> 	fastreg =3D test_and_clear_bit(RPCRDMA_BIT_FASTREG, &wrid);
+>> 	mw =3D (struct rpcrdma_mw *)wrid;
+>>=20
+>> -	mw->r.frmr.fr_state =3D fastreg ? FRMR_IS_VALID : FRMR_IS_INVALID;
+>> +	if (wc->status =3D=3D IB_WC_SUCCESS) {
+>> +		mw->r.frmr.fr_state =3D fastreg ?
+>> +				FRMR_IS_VALID : FRMR_IS_INVALID;
+>> +	} else {
+>> +		if (fastreg)
+>> +			rpcrdma_decrement_frmr_rkey(mw);
+>=20
+> Isn't this the same as "else if (fastreg)=94?
+
+Yep, those are logically equivalent. I left them separate, and
+left the extra braces, so it would be cleaner to add more logic in
+both arms of =93if (wc->status =3D=3D IB_WC_SUCCESS)=94 in subsequent
+patches.
+
+Using =93switch (wc->status)=94 might be more future-proof.
+
+
+> Anna
+>=20
+>> +	}
+>> }
+>>=20
+>> static int
+>> @@ -1480,6 +1486,24 @@ rpcrdma_unmap_one(struct rpcrdma_ia *ia, stru=
+ct rpcrdma_mr_seg *seg)
+>> 				seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
+>> }
+>>=20
+>> +static void
+>> +rpcrdma_increment_frmr_rkey(struct rpcrdma_mw *mw)
+>> +{
+>> +	struct ib_mr *frmr =3D mw->r.frmr.fr_mr;
+>> +	u8 key =3D frmr->rkey & 0x000000FF;
+>> +
+>> +	ib_update_fast_reg_key(frmr, ++key);
+>> +}
+>> +
+>> +static void
+>> +rpcrdma_decrement_frmr_rkey(struct rpcrdma_mw *mw)
+>> +{
+>> +	struct ib_mr *frmr =3D mw->r.frmr.fr_mr;
+>> +	u8 key =3D frmr->rkey & 0x000000FF;
+>> +
+>> +	ib_update_fast_reg_key(frmr, --key);
+>> +}
+>> +
+>> static int
+>> rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>> 			int *nsegs, int writing, struct rpcrdma_ia *ia,
+>> @@ -1487,8 +1511,6 @@ rpcrdma_register_frmr_external(struct rpcrdma_=
+mr_seg *seg,
+>> {
+>> 	struct rpcrdma_mr_seg *seg1 =3D seg;
+>> 	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
+>> -
+>> -	u8 key;
+>> 	int len, pageoff;
+>> 	int i, rc;
+>> 	int seg_len;
+>> @@ -1552,14 +1574,10 @@ rpcrdma_register_frmr_external(struct rpcrdm=
+a_mr_seg *seg,
+>> 		rc =3D -EIO;
+>> 		goto out_err;
+>> 	}
+>> -
+>> -	/* Bump the key */
+>> -	key =3D (u8)(seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey & 0x000000FF=
+);
+>> -	ib_update_fast_reg_key(seg1->mr_chunk.rl_mw->r.frmr.fr_mr, ++key);
+>> -
+>> 	frmr_wr.wr.fast_reg.access_flags =3D (writing ?
+>> 				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+>> 				IB_ACCESS_REMOTE_READ);
+>> +	rpcrdma_increment_frmr_rkey(seg1->mr_chunk.rl_mw);
+>> 	frmr_wr.wr.fast_reg.rkey =3D seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rk=
+ey;
+>> 	DECR_CQCOUNT(&r_xprt->rx_ep);
+>>=20
+>> @@ -1568,6 +1586,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_=
+mr_seg *seg,
+>> 	if (rc) {
+>> 		dprintk("RPC:       %s: failed ib_post_send for register,"
+>> 			" status %i\n", __func__, rc);
+>> +		rpcrdma_decrement_frmr_rkey(seg1->mr_chunk.rl_mw);
+>> 		goto out_err;
+>> 	} else {
+>> 		seg1->mr_rkey =3D seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+>>=20
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-nfs"=
+ in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
