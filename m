@@ -1,42 +1,57 @@
-From: Michael Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
-Date: Wed, 25 Jun 2014 10:59:19 -0500
-Message-ID: <8223888D-6AF4-41B8-BFD7-63F23A293134@cs.wisc.edu>
-References: <53A920B2.9060503@cs.wisc.edu> <yq1mwd2h3ju.fsf@sermon.lab.mkp.net> <28678EBD-1AE9-48F9-B9E2-E6A61B042BB1@cs.wisc.edu> <53A9A702.8050503@dev.mellanox.co.il> <20140624163040.GA11499@infradead.org> <53A9AEB8.4040104@cs.wisc.edu> <53A9B0A0.6000103@cs.wisc.edu> <53AA42E6.3090101@cs.wisc.edu> <53AA8CF7.8050102@dev.mellanox.co.il> <53AAA547.40300@dev.mellanox.co.il> <20140625113536.GA30312@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140625113536.GA30312-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: NFSRDMA test branch
+Date: Wed, 25 Jun 2014 11:05:12 -0500
+Message-ID: <004a01cf908f$3e8a7c60$bb9f7520$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-us
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Veeresh U. Kokatnur" <veereshuk-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Indranil Choudhury' <indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hey,
 
-On Jun 25, 2014, at 6:35 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+Going forward, I am maintaining a git tree to be used by the various interested parties to
+test the current NFSRDMA related client and server patches that are heading upstream.
+The idea is to keep the current patches in a single repo that test groups can pull from.
+The repo is currently backed against 3.16-rc2 and contains these patches so far:
 
-> On Wed, Jun 25, 2014 at 01:32:39PM +0300, Sagi Grimberg wrote:
->> So I tested a bidirectional command using:
->> $ sg_raw --infile=/root/filex --send=1024 --request=1024
->> --outfile=/root/filex "/dev/bsg/7:0:0:0" 53 00 00 00 00 00 00 00 02 00
->> 
->> And I see:
->> kernel: session1: iscsi_prep_scsi_cmd_pdu iscsi prep [bidirectional cid 0 sc
->> ffff880468ca1e00 cdb 0x53 itt 0x16 len 1024 bidi_len 1024 cmdsn 223 win 64]
->> 
->> This confirms what I wrote above, so AFAICT no additional fix is required
->> for libiscsi wrt bidi commands support.
-> 
-> Good to know.  I'd really prefer just going with the fix from Martin
-> that I have already queued up for 3.16, and then we can have the fully
-> fledged out "new" scsi_transfer_length() for 3.17.
-> 
+Chuck Lever (13):
+      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
+      xprtrdma: Protect ->qp during FRMR deregistration
+      xprtrdma: Limit data payload size for ALLPHYSICAL
+      xprtrdma: Update rkeys after transport reconnect
+      xprtrdma: Don't drain CQs on transport disconnect
+      xprtrdma: Unclutter struct rpcrdma_mr_seg
+      xprtrdma: Encode Work Request opcode in wc->wr_id
+      xprtrdma: Back off rkey when FAST_REG_MR fails
+      xprtrdma: Refactor rpcrdma_buffer_put()
+      xprtrdma: Release FRMR segment buffers during LOCAL_INV completion
+      xprtrdma: Clean up rpcrdma_ep_disconnect()
+      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
+      xprtrdma: Handle additional connection events
 
-I am fine with this too.
+Steve Wise (1):
+      iw_cxgb4: call iwpm_init() only once
 
-I was way off track. I was more concerned with not wanting to use multiple functions/macros to get the transfer len. That should definitely be done when there is more time.
+If you have critical patches that you would like included, please point me at them.  I
+request that the patches be only fixes that allow forward testing progress, critical
+regression fixes, or fixes that are heading upstream and are NFSRDMA related.  As patches
+under review change, I'll update my git tree and send up notifications when it changes.
+
+The branch is named for-test and the repo is at: 
+
+git://git.linux-nfs.org/projects/swise/linux.git
+
+Thanks,
+
+Steve.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
