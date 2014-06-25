@@ -1,36 +1,61 @@
-From: "John W. Linville" <linville@tuxdriver.com>
-Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
-Date: Wed, 25 Jun 2014 15:41:12 -0400
-Message-ID: <20140625194112.GJ3445@tuxdriver.com>
-References: <cover.1403530604.git.joe@perches.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: mlx4 - query regarding PF VF functionality division
+Date: Wed, 25 Jun 2014 23:43:20 +0300
+Message-ID: <CAJZOPZK0naRu_rv-MMPp9y9Eg_baEJXSGzdERQLWvi3Bh9qD+g@mail.gmail.com>
+References: <CANwwZzWsjQwZB5Cc4Hyv2HQOLhAx6ycjf32UQG55zVX=Kmbi6Q@mail.gmail.com>
+	<CAJZOPZ+FUneDDKMh0O2aZLYeDTcH8cHA7ati5wzi7Ycgc5wFXQ@mail.gmail.com>
+	<CANwwZzXc2UyYxGX2X+O38jTVki70HrP71FBWbc4dTyt9nEN0nA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1403530604.git.joe@perches.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: linux-kernel@vger.kernel.org, linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org, iss_storagedev@hp.com, linux-crypto@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org, linux-eata@i-connect.net, devel@driverdev.osuosl.org, linux-arch@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANwwZzXc2UyYxGX2X+O38jTVki70HrP71FBWbc4dTyt9nEN0nA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
-> Adding the helper reduces object code size as well as overall
-> source size line count.
-> 
-> It's also consistent with all the various zalloc mechanisms
-> in the kernel.
-> 
-> Done with a simple cocci script and some typing.
-> 
-> Joe Perches (22):
+On Tue, Jun 24, 2014 at 4:42 PM, Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> > Not really, but let's take EIM approach, what's your goal/mission?
+> Let's say I am going through code to understand only the PF related
+> functionality without bothering about VF, what are the things I need
+> to keep in mind.
 
->   ipw2100: Use pci_zalloc_consistent
->   mwl8k: Use pci_zalloc_consistent
->   rtl818x: Use pci_zalloc_consistent
->   rtlwifi: Use pci_zalloc_consistent
 
-Sure, fine by me.
 
--- 
-John W. Linville		Someday the world will need a hero, and you
-linville@tuxdriver.com			might be all we have.  Be ready.
+I see, by the nature of the mlx4 SRIOV architecture under which
+there's no dedicated/separated PF vs VF driver, this is indeed a
+non-trivial task, need to think how to make it easier for you
+
+Or.
+
+
+>
+> I mean do i need to :
+>
+> a. Go through all the files in mlx4
+> b. If the code is not specifically under mlx4_is_master, I still need
+> to understand it because it is also part of PF driver
+> c. I can ignore the logic which executes if mlx4_is_master is false,
+> because that would be the VF code
+>
+> Thanks for the help!!
+>
+>
+>
+>
+> On Mon, Jun 23, 2014 at 5:30 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > On Mon, Jun 23, 2014 at 12:33 PM, Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > [...]
+> >> Is there any way we can clearly separate the files that are used by PF
+> >> vs the files that are used by VF in the (drivers/net/ethernet/mlx4
+> >> sub-directory)?
+> > [...]
+> >
+> > Not really, but let's take EIM approach, what's your goal/mission?
+> >
+> > Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
