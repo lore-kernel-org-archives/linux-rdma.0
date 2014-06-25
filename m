@@ -1,179 +1,41 @@
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v5 1/1] IPoIB: Avoid multicast join attempts when having
- invalid p_key
-Date: Wed, 25 Jun 2014 11:30:20 -0400
-Message-ID: <20140625153020.18938.22186.stgit@phlsvslse11.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Michael Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
+Date: Wed, 25 Jun 2014 10:59:19 -0500
+Message-ID: <8223888D-6AF4-41B8-BFD7-63F23A293134@cs.wisc.edu>
+References: <53A920B2.9060503@cs.wisc.edu> <yq1mwd2h3ju.fsf@sermon.lab.mkp.net> <28678EBD-1AE9-48F9-B9E2-E6A61B042BB1@cs.wisc.edu> <53A9A702.8050503@dev.mellanox.co.il> <20140624163040.GA11499@infradead.org> <53A9AEB8.4040104@cs.wisc.edu> <53A9B0A0.6000103@cs.wisc.edu> <53AA42E6.3090101@cs.wisc.edu> <53AA8CF7.8050102@dev.mellanox.co.il> <53AAA547.40300@dev.mellanox.co.il> <20140625113536.GA30312@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140625113536.GA30312-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, the parent interface keeps sending broadcast group join
-requests even if p_key index 0 is invalid, which for itself is
-possible/common in virtualized environment where a VF has been probed to
-VM but the actual p_key configuration has not yet been assigned by the
-management software. This creates unnecessary noise on the fabric and in
-the kernel logs:
 
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
-status -22
+On Jun 25, 2014, at 6:35 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
 
-The original code run the multicast task regardless of the actual
-p_key value, which can be avoided. The fix is to re-init resources  and
-bring interface up only if p_key index 0 is valid either when starting
-up or on PKEY_CHANGE event.
+> On Wed, Jun 25, 2014 at 01:32:39PM +0300, Sagi Grimberg wrote:
+>> So I tested a bidirectional command using:
+>> $ sg_raw --infile=/root/filex --send=1024 --request=1024
+>> --outfile=/root/filex "/dev/bsg/7:0:0:0" 53 00 00 00 00 00 00 00 02 00
+>> 
+>> And I see:
+>> kernel: session1: iscsi_prep_scsi_cmd_pdu iscsi prep [bidirectional cid 0 sc
+>> ffff880468ca1e00 cdb 0x53 itt 0x16 len 1024 bidi_len 1024 cmdsn 223 win 64]
+>> 
+>> This confirms what I wrote above, so AFAICT no additional fix is required
+>> for libiscsi wrt bidi commands support.
+> 
+> Good to know.  I'd really prefer just going with the fix from Martin
+> that I have already queued up for 3.16, and then we can have the fully
+> fledged out "new" scsi_transfer_length() for 3.17.
+> 
 
-Fixes: c290414169 ('IPoIB: Fix pkey change flow for virtualization environments')
+I am fine with this too.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-Changes from v4:
-- streamline child interface pkey event handling,
-- shutdown of pkey polling thread depends on PKEY_STOP flag state only.
-Original poib_ib_dev_down() could leave polling thread active
-if PKEY_ASSIGNED flag was set. That could create a racing condition on followed
-re-initialization of QP resources.
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   59 +++++++++++++++----------------
- 1 files changed, 29 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 6a7003d..ac941e1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -52,6 +52,7 @@ MODULE_PARM_DESC(data_debug_level,
- #endif
- 
- static DEFINE_MUTEX(pkey_mutex);
-+static void ipoib_pkey_dev_check_presence(struct net_device *dev);
- 
- struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
- 				 struct ib_pd *pd, struct ib_ah_attr *attr)
-@@ -669,12 +670,13 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
--		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
--		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+	ipoib_pkey_dev_check_presence(dev);
-+
-+	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
-+		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
-+			   !(priv->pkey & 0x7fff) ? "Invalid" : "not found");
- 		return -1;
- 	}
--	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 
- 	ret = ipoib_init_qp(dev);
- 	if (ret) {
-@@ -712,9 +714,10 @@ dev_stop:
- static void ipoib_pkey_dev_check_presence(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	u16 pkey_index = 0;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
-+	if (!(priv->pkey & 0x7fff) ||
-+	    ib_find_pkey(priv->ca, priv->port, priv->pkey,
-+			 &priv->pkey_index))
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	else
- 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -746,12 +749,10 @@ int ipoib_ib_dev_down(struct net_device *dev, int flush)
- 	netif_carrier_off(dev);
- 
- 	/* Shutdown the P_Key thread if still active */
--	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
--		mutex_lock(&pkey_mutex);
--		set_bit(IPOIB_PKEY_STOP, &priv->flags);
-+	mutex_lock(&pkey_mutex);
-+	if (!test_and_set_bit(IPOIB_PKEY_STOP, &priv->flags))
- 		cancel_delayed_work_sync(&priv->pkey_poll_task);
--		mutex_unlock(&pkey_mutex);
--	}
-+	mutex_unlock(&pkey_mutex);
- 
- 	ipoib_mcast_stop_thread(dev, flush);
- 	ipoib_mcast_dev_flush(dev);
-@@ -972,7 +973,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- {
- 	struct ipoib_dev_priv *cpriv;
- 	struct net_device *dev = priv->dev;
--	u16 new_index;
-+	u16 old_index;
- 	int result;
- 
- 	down_read(&priv->vlan_rwsem);
-@@ -986,16 +987,17 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 
- 	up_read(&priv->vlan_rwsem);
- 
--	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
--		/* for non-child devices must check/update the pkey value here */
--		if (level == IPOIB_FLUSH_HEAVY &&
--		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
--			update_parent_pkey(priv);
-+	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags) &&
-+	    level != IPOIB_FLUSH_HEAVY) {
- 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
- 		return;
- 	}
- 
- 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
-+		/* interface is down. update pkey and leave. */
-+		if (level == IPOIB_FLUSH_HEAVY &&
-+		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-+			update_parent_pkey(priv);
- 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_ADMIN_UP not set.\n");
- 		return;
- 	}
-@@ -1005,20 +1007,15 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		 * (parent) devices should always takes what present in pkey index 0
- 		 */
- 		if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
--			if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &new_index)) {
--				clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
--				ipoib_ib_dev_down(dev, 0);
--				ipoib_ib_dev_stop(dev, 0);
--				if (ipoib_pkey_dev_delay_open(dev))
--					return;
--			}
--			/* restart QP only if P_Key index is changed */
--			if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
--			    new_index == priv->pkey_index) {
-+			old_index = priv->pkey_index;
-+			ipoib_pkey_dev_check_presence(dev);
-+
-+			if (test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
-+			    old_index == priv->pkey_index) {
-+				/* restart QP only if P_Key index is changed */
- 				ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
- 				return;
- 			}
--			priv->pkey_index = new_index;
- 		} else {
- 			result = update_parent_pkey(priv);
- 			/* restart QP only if P_Key value changed */
-@@ -1038,8 +1035,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		ipoib_ib_dev_down(dev, 0);
- 
- 	if (level == IPOIB_FLUSH_HEAVY) {
--		ipoib_ib_dev_stop(dev, 0);
--		ipoib_ib_dev_open(dev);
-+		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
-+			ipoib_ib_dev_stop(dev, 0);
-+		if (ipoib_ib_dev_open(dev) != 0)
-+			return;
- 	}
- 
- 	/*
-
+I was way off track. I was more concerned with not wanting to use multiple functions/macros to get the transfer len. That should definitely be done when there is more time.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
