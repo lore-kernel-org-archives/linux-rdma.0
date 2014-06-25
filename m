@@ -1,53 +1,38 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
 Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
-Date: Wed, 25 Jun 2014 13:32:39 +0300
-Message-ID: <53AAA547.40300@dev.mellanox.co.il>
-References: <1402477799-24610-1-git-send-email-sagig@mellanox.com> <1402477799-24610-2-git-send-email-sagig@mellanox.com> <53A920B2.9060503@cs.wisc.edu> <yq1mwd2h3ju.fsf@sermon.lab.mkp.net> <28678EBD-1AE9-48F9-B9E2-E6A61B042BB1@cs.wisc.edu> <53A9A702.8050503@dev.mellanox.co.il> <20140624163040.GA11499@infradead.org> <53A9AEB8.4040104@cs.wisc.edu> <53A9B0A0.6000103@cs.wisc.edu> <53AA42E6.3090101@cs.wisc.edu> <53AA8CF7.8050102@dev.mellanox.co.il>
+Date: Wed, 25 Jun 2014 07:29:01 -0400
+Message-ID: <yq1ha39fcsi.fsf@sermon.lab.mkp.net>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com>
+	<1402477799-24610-2-git-send-email-sagig@mellanox.com>
+	<53A920B2.9060503@cs.wisc.edu> <yq1mwd2h3ju.fsf@sermon.lab.mkp.net>
+	<28678EBD-1AE9-48F9-B9E2-E6A61B042BB1@cs.wisc.edu>
+	<53A9A702.8050503@dev.mellanox.co.il>
+	<20140624163040.GA11499@infradead.org> <53A9AEB8.4040104@cs.wisc.edu>
+	<53A9B0A0.6000103@cs.wisc.edu> <53AA42E6.3090101@cs.wisc.edu>
+	<20140625091418.GA5360@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <53AA8CF7.8050102@dev.mellanox.co.il>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Mike Christie <michaelc@cs.wisc.edu>, Christoph Hellwig <hch@infradead.org>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagig@mellanox.com>, nab@linux-iscsi.org, roland@kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20140625091418.GA5360@infradead.org> (Christoph Hellwig's
+	message of "Wed, 25 Jun 2014 02:14:18 -0700")
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Mike Christie <michaelc@cs.wisc.edu>, Sagi Grimberg <sagig@dev.mellanox.co.il>, "Martin K. Petersen" <martin.petersen@oracle.com>, Sagi Grimberg <sagig@mellanox.com>, nab@linux-iscsi.org, roland@kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/25/2014 11:48 AM, Sagi Grimberg wrote:
+>>>>> "Christoph" == Christoph Hellwig <hch@infradead.org> writes:
 
-<SNIP>
->
->> I made the patch below which should fix both bidi
->> support in iscsi and also WRITE_SAME (and similar commands) support.
->
-> I'm a bit confused, for all commands (bidi or not) the iscsi header 
-> data_length
-> should describe the scsi_data_buffer length, bidi information will lie 
-> in AHS header.
-> (in case bidi will ever co-exist with PI, we might need another helper 
-> that will look
-> in req->special + PI, something like scsi_bidi_transfer_length)
->
-> So why not keep scsi_transfer_length to work on sdb length (take 
-> scsi_bufflen(scmnd) or
-> scsi_out(scmnd)->length as MKP suggested) and that's it - don't touch 
-> libiscsi.
->
-> Let me test that.
->
+Christoph> So here we use blk_rq_bytes still, which is incorrect for
+Christoph> WRITE SAME.
 
-So I tested a bidirectional command using:
-$ sg_raw --infile=/root/filex --send=1024 --request=1024 
---outfile=/root/filex "/dev/bsg/7:0:0:0" 53 00 00 00 00 00 00 00 02 00
+Yeah, scsi_transfer_length() needs to go away completely if we go with
+the in and out variants.
 
-And I see:
-kernel: session1: iscsi_prep_scsi_cmd_pdu iscsi prep [bidirectional cid 
-0 sc ffff880468ca1e00 cdb 0x53 itt 0x16 len 1024 bidi_len 1024 cmdsn 223 
-win 64]
+Christoph> I think the easiest fix is to just pass a scsi_data_buffer to
+Christoph> scsi_transfer_length(), and let the caller use
+Christoph> scsi_in/scsi_out to find the right one.
 
-This confirms what I wrote above, so AFAICT no additional fix is 
-required for libiscsi wrt bidi commands support.
+I'm perfectly OK with that approach.
 
-Mike?
-
-Sagi.
+-- 
+Martin K. Petersen	Oracle Linux Engineering
