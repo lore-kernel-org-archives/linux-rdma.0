@@ -1,56 +1,63 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: NFSRDMA test branch
-Date: Wed, 25 Jun 2014 11:05:12 -0500
-Message-ID: <004a01cf908f$3e8a7c60$bb9f7520$@opengridcomputing.com>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 10/13] xprtrdma: Release FRMR segment buffers during
+ LOCAL_INV completion
+Date: Wed, 25 Jun 2014 09:14:38 -0700
+Message-ID: <53AAF56E.7010800@oracle.com>
+References: <20140623223201.1634.83888.stgit@manet.1015granger.net> <20140623224023.1634.67233.stgit@manet.1015granger.net> <53AA5B72.3010200@oracle.com> <89930B1D-AE3B-48AD-922C-6FCA754D2B01@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <89930B1D-AE3B-48AD-922C-6FCA754D2B01-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Veeresh U. Kokatnur" <veereshuk-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Indranil Choudhury' <indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey,
 
-Going forward, I am maintaining a git tree to be used by the various interested parties to
-test the current NFSRDMA related client and server patches that are heading upstream.
-The idea is to keep the current patches in a single repo that test groups can pull from.
-The repo is currently backed against 3.16-rc2 and contains these patches so far:
+On 06/25/2014 07:32 AM, Chuck Lever wrote:
+> Hi Shirley-
+>=20
+> On Jun 25, 2014, at 1:17 AM, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote=
+:
+>=20
+>> Would it be possible to delay rpcrdma_buffer_put() until LOCAL_INV r=
+equest send completion? remove rpcrdma_buffer_put() from xprt_rdma_free=
+(), add a call back after LOCAL_INV completed?
+>=20
+> That=92s exactly what this patch does. The relevant part of
+> rpcrdma_buffer_put() is:
+>=20
+>   list_add(&mw->mw_list, &buf->rb_mws);
+>=20
+> This is now wrapped with a reference count so that
+> rpcrdma_buffer_put() and the LOCAL_INV completion can run in any
+> order. The FRMR is added back to the list only after both of those
+> two have finished.
 
-Chuck Lever (13):
-      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
-      xprtrdma: Protect ->qp during FRMR deregistration
-      xprtrdma: Limit data payload size for ALLPHYSICAL
-      xprtrdma: Update rkeys after transport reconnect
-      xprtrdma: Don't drain CQs on transport disconnect
-      xprtrdma: Unclutter struct rpcrdma_mr_seg
-      xprtrdma: Encode Work Request opcode in wc->wr_id
-      xprtrdma: Back off rkey when FAST_REG_MR fails
-      xprtrdma: Refactor rpcrdma_buffer_put()
-      xprtrdma: Release FRMR segment buffers during LOCAL_INV completion
-      xprtrdma: Clean up rpcrdma_ep_disconnect()
-      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
-      xprtrdma: Handle additional connection events
+What I was thinking is to run rpcrdma_buffer_put after LOCAL_INV comple=
+tion without reference count.
+=20
+> Nothing in xprt_rdma_free() is allowed to sleep, so we can=92t wait f=
+or
+> LOCAL_INV completion in there.
+>=20
+> The only alternative I can think of is having rpcrdma_buffer_get() ch=
+eck
+> fr_state as it removes FRMRs from the rb_mws list. Only if the FRMR i=
+s
+> marked FRMR_IS_INVALID, rpcrdma_buffer_get() will add it to the
+> rpcrdma_req.
 
-Steve Wise (1):
-      iw_cxgb4: call iwpm_init() only once
+I thought about it too, an atomic operation would be better than a lock=
+=2E
 
-If you have critical patches that you would like included, please point me at them.  I
-request that the patches be only fixes that allow forward testing progress, critical
-regression fixes, or fixes that are heading upstream and are NFSRDMA related.  As patches
-under review change, I'll update my git tree and send up notifications when it changes.
-
-The branch is named for-test and the repo is at: 
-
-git://git.linux-nfs.org/projects/swise/linux.git
-
-Thanks,
-
-Steve.
-
+> --
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+>=20
+>=20
+>=20
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
