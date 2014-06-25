@@ -1,64 +1,36 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 10/13] xprtrdma: Release FRMR segment buffers during
- LOCAL_INV completion
-Date: Wed, 25 Jun 2014 09:14:38 -0700
-Message-ID: <53AAF56E.7010800@oracle.com>
-References: <20140623223201.1634.83888.stgit@manet.1015granger.net> <20140623224023.1634.67233.stgit@manet.1015granger.net> <53AA5B72.3010200@oracle.com> <89930B1D-AE3B-48AD-922C-6FCA754D2B01@oracle.com>
+From: "John W. Linville" <linville@tuxdriver.com>
+Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
+Date: Wed, 25 Jun 2014 15:41:12 -0400
+Message-ID: <20140625194112.GJ3445@tuxdriver.com>
+References: <cover.1403530604.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <89930B1D-AE3B-48AD-922C-6FCA754D2B01-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1403530604.git.joe@perches.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org, iss_storagedev@hp.com, linux-crypto@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org, linux-eata@i-connect.net, devel@driverdev.osuosl.org, linux-arch@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
+> Adding the helper reduces object code size as well as overall
+> source size line count.
+> 
+> It's also consistent with all the various zalloc mechanisms
+> in the kernel.
+> 
+> Done with a simple cocci script and some typing.
+> 
+> Joe Perches (22):
 
-On 06/25/2014 07:32 AM, Chuck Lever wrote:
-> Hi Shirley-
->=20
-> On Jun 25, 2014, at 1:17 AM, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote=
-:
->=20
->> Would it be possible to delay rpcrdma_buffer_put() until LOCAL_INV r=
-equest send completion? remove rpcrdma_buffer_put() from xprt_rdma_free=
-(), add a call back after LOCAL_INV completed?
->=20
-> That=92s exactly what this patch does. The relevant part of
-> rpcrdma_buffer_put() is:
->=20
->   list_add(&mw->mw_list, &buf->rb_mws);
->=20
-> This is now wrapped with a reference count so that
-> rpcrdma_buffer_put() and the LOCAL_INV completion can run in any
-> order. The FRMR is added back to the list only after both of those
-> two have finished.
+>   ipw2100: Use pci_zalloc_consistent
+>   mwl8k: Use pci_zalloc_consistent
+>   rtl818x: Use pci_zalloc_consistent
+>   rtlwifi: Use pci_zalloc_consistent
 
-What I was thinking is to run rpcrdma_buffer_put after LOCAL_INV comple=
-tion without reference count.
-=20
-> Nothing in xprt_rdma_free() is allowed to sleep, so we can=92t wait f=
-or
-> LOCAL_INV completion in there.
->=20
-> The only alternative I can think of is having rpcrdma_buffer_get() ch=
-eck
-> fr_state as it removes FRMRs from the rb_mws list. Only if the FRMR i=
-s
-> marked FRMR_IS_INVALID, rpcrdma_buffer_get() will add it to the
-> rpcrdma_req.
+Sure, fine by me.
 
-I thought about it too, an atomic operation would be better than a lock=
-=2E
-
-> --
-> Chuck Lever
-> chuck[dot]lever[at]oracle[dot]com
->=20
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+John W. Linville		Someday the world will need a hero, and you
+linville@tuxdriver.com			might be all we have.  Be ready.
