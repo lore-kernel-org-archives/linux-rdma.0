@@ -1,30 +1,25 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 0/2] Fixes skb leak and connection clean up on ARP error
-Date: Thu, 26 Jun 2014 09:50:46 -0500
-Message-ID: <004d01cf914e$037c5430$0a74fc90$@opengridcomputing.com>
-References: <1403530956-16135-1-git-send-email-hariprasad@chelsio.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
+Date: Thu, 26 Jun 2014 16:53:54 +0200
+Message-ID: <53AC3402.2080302@acm.org>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com> <1402477799-24610-2-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1403530956-16135-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1402477799-24610-2-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@mellanox.com>, michaelc@cs.wisc.edu, martin.petersen@oracle.com, nab@linux-iscsi.org, roland@kernel.org
+Cc: linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Roland,
+On 06/11/14 11:09, Sagi Grimberg wrote:
+> +	return xfer_len + (xfer_len >> ilog2(sector_size)) * 8;
 
-These two are also good bug fixes for 3.16-rc3.
+Sorry that I just noticed this now, but why is a shift-right and ilog2()
+used in the above expression instead of just dividing the transfer
+length by the sector size ?
 
 Thanks,
 
-Steve.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
