@@ -1,58 +1,120 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] scsi_cmnd: Introduce scsi_transfer_length helper
-Date: Thu, 26 Jun 2014 21:17:34 +0000
-Message-ID: <F7E1F0AA-0764-4C1D-A8FD-8DEE7770AB44@ornl.gov>
-References: <1402477799-24610-1-git-send-email-sagig@mellanox.com>
- <1402477799-24610-2-git-send-email-sagig@mellanox.com>
- <53AC3402.2080302@acm.org> <1403794551.3572.6.camel@dabdike>
- <86EE1A5C-8943-4C87-9A79-899DE85971CA@ornl.gov>
- <fbbc6688-5a52-4437-93b1-71e8ff84c36c@email.android.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] Skip state_mgr_check_tbl_consistency when no LID changed
+ by lid or link managers
+Date: Fri, 27 Jun 2014 07:16:50 -0400
+Message-ID: <53AD52A2.9030507@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fbbc6688-5a52-4437-93b1-71e8ff84c36c-2ueSQiBKiTY7tOexoI0I+QC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Content-ID: <52FAC9C7F3CB8A4DAB2A2BDA53601002@local>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "<michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "<martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "<linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jun 26, 2014, at 12:38 PM, James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org> wrote:
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> On June 26, 2014 11:41:48 AM EDT, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org> wrote:
->> On Jun 26, 2014, at 10:55 AM, James Bottomley
->> <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org> wrote:
->> 
->>> On Thu, 2014-06-26 at 16:53 +0200, Bart Van Assche wrote:
->>>> On 06/11/14 11:09, Sagi Grimberg wrote:
->>>>> +	return xfer_len + (xfer_len >> ilog2(sector_size)) * 8;
->>>> 
->>>> Sorry that I just noticed this now, but why is a shift-right and
->> ilog2()
->>>> used in the above expression instead of just dividing the transfer
->>>> length by the sector size ?
->>> 
->>> It's a performance thing.  Division is really slow on most CPUs.
->>> However, we know the divisor is a power of two so we re-express the
->>> division as a shift, which the processor can do really fast.
->>> 
->>> James
->> 
->> I have done this in the past as well, but have you benchmarked it?
->> Compilers typically do the right thing in this case (i.e replace
->> division with shift).
-> 
-> The compiler can only do that for values which are reducible to constants at compile time. This is a runtime value, the compiler has no way of deducing that it will be a power of 2
-> 
-> James
+If no LID was changed/allocated during by the lid manager and no
+PortInfo(Set) was sent, there is no need to run the 
+state_mgr_check_tbl_consistency routine.
 
-You're right, I should have said runtime.
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/opensm/osm_lid_mgr.h |   12 ++++++++----
+ opensm/osm_lid_mgr.c         |    1 +
+ opensm/osm_link_mgr.c        |    1 +
+ opensm/osm_state_mgr.c       |    7 +++++++
+ 4 files changed, 17 insertions(+), 4 deletions(-)
 
-However, gcc on Intel seems to choose the right algorithm at runtime. On a trivial app with -O0, I see the same performance for shift and division if the divisor is a power of two. Is see ~38% penalty if the divisor is not a power of 2. With -O3, shift is faster than division by about ~17% when the divisor is a power of two.
+diff --git a/include/opensm/osm_lid_mgr.h b/include/opensm/osm_lid_mgr.h
+index 40f0d30..f95a2a1 100644
+--- a/include/opensm/osm_lid_mgr.h
++++ b/include/opensm/osm_lid_mgr.h
+@@ -98,6 +98,7 @@ typedef struct osm_lid_mgr {
+ 	cl_plock_t *p_lock;
+ 	osm_db_domain_t *p_g2l;
+ 	cl_qlist_t free_ranges;
++	boolean_t dirty;
+ 	uint8_t used_lids[IB_LID_UCAST_END_HO + 1];
+ } osm_lid_mgr_t;
+ /*
+@@ -120,16 +121,19 @@ typedef struct osm_lid_mgr {
+ *	p_g2l
+ *		Pointer to the database domain storing guid to lid mapping.
+ *
+-*	used_lids
+-*		An array of used lids. keeps track of
+-*		existing and non existing mapping of guid->lid
+-*
+ *	free_ranges
+ *		A list of available free lid ranges. The list is initialized
+ *		by the code that initializes the lid assignment and is consumed
+ *		by the procedure that finds a free range. It holds elements of
+ *		type osm_lid_mgr_range_t
+ *
++*	dirty
++*		 Indicates that lid table was updated
++*
++*	used_lids
++*		 An array of used lids. keeps track of
++*		 existing and non existing mapping of guid->lid
++*
+ * SEE ALSO
+ *	LID Manager object
+ *********/
+diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
+index fc6bd37..703f30d 100644
+--- a/opensm/osm_lid_mgr.c
++++ b/opensm/osm_lid_mgr.c
+@@ -892,6 +892,7 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 		 */
+ 		osm_physp_set_base_lid(p_physp, 0);
+ 		send_set = TRUE;
++		p_mgr->dirty = TRUE;
+ 	}
+ 
+ 	/* we are updating the ports with our local sm_base_lid */
+diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
+index 0d00984..f09783a 100644
+--- a/opensm/osm_link_mgr.c
++++ b/opensm/osm_link_mgr.c
+@@ -129,6 +129,7 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 			p_port = osm_get_port_by_guid(sm->p_subn,
+ 						      osm_physp_get_port_guid(p_physp));
+ 			p_pi->base_lid = p_port->lid;
++			sm->lid_mgr.dirty = TRUE;
+ 			send_set = TRUE;
+ 		}
+ 
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 3c76f62..1b55ce4 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1400,6 +1400,11 @@ static void state_mgr_check_tbl_consistency(IN osm_sm_t * sm)
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
++	if (sm->lid_mgr.dirty == FALSE)
++		goto Exit;
++
++	sm->lid_mgr.dirty = FALSE;
++
+ 	cl_ptr_vector_construct(&ref_port_lid_tbl);
+ 	cl_ptr_vector_init(&ref_port_lid_tbl,
+ 			   cl_ptr_vector_get_size(&sm->p_subn->port_lid_tbl),
+@@ -1491,6 +1496,8 @@ static void state_mgr_check_tbl_consistency(IN osm_sm_t * sm)
+ 	}
+ 
+ 	cl_ptr_vector_destroy(&ref_port_lid_tbl);
++
++Exit:
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
+ 
+-- 
+1.7.8.2
 
-Scott--
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
