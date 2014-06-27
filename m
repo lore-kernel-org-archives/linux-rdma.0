@@ -1,8 +1,8 @@
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/3] opensm/osm_perfmgr.c: Add log message when perfmgr
-	sweep is skipped
-Date: Fri, 27 Jun 2014 10:55:33 -0700
-Message-ID: <1403891733.30332.420.camel@auk59.llnl.gov>
+Subject: [PATCH 1/3] opensm/osm_perfmgr.c: Remove unnecessary perfmgr log
+	message
+Date: Fri, 27 Jun 2014 10:55:19 -0700
+Message-ID: <1403891719.30332.419.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -11,25 +11,40 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The "PM state %d was NOT Suspended???" log message is unnecessary.
+It is not an error, and in fact is quite normal, for the sweep_state
+to be not suspended.
+
+Multiple threads can enter perfmgr_send_mad() and sit on the
+conditional wait.  The first one to be signaled will obtain the
+perfmgr lock and set the sweep_state to ACTIVE.  Every other thread
+sitting on the conditional wait that is signaled afterwards has a
+very high chance of seeing the sweep_state in ACTIVE instead of SUSPENDED.
+
 Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_perfmgr.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ opensm/osm_perfmgr.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
 diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 2b7ea6a..bfa63dc 100644
+index 1c0ed46..2b7ea6a 100644
 --- a/opensm/osm_perfmgr.c
 +++ b/opensm/osm_perfmgr.c
-@@ -1017,6 +1017,9 @@ void osm_perfmgr_process(osm_perfmgr_t * pm)
- 	if (pm->sweep_state == PERFMGR_SWEEP_ACTIVE ||
- 	    pm->sweep_state == PERFMGR_SWEEP_SUSPENDED) {
- 		cl_spinlock_release(&pm->lock);
-+		OSM_LOG(pm->log, OSM_LOG_INFO,
-+			"PM sweep state %d, skipping sweep\n",
-+			pm->sweep_state);
- 		return;
- 	}
+@@ -448,13 +448,8 @@ wait:
+ 				goto wait;
  
+ 			cl_spinlock_acquire(&perfmgr->lock);
+-			if (perfmgr->sweep_state == PERFMGR_SWEEP_SUSPENDED) {
++			if (perfmgr->sweep_state == PERFMGR_SWEEP_SUSPENDED)
+ 				perfmgr->sweep_state = PERFMGR_SWEEP_ACTIVE;
+-			} else {
+-				OSM_LOG(perfmgr->log, OSM_LOG_ERROR, "ERR 54FF: "
+-					"PM state %d was NOT Suspended???\n",
+-					perfmgr->sweep_state);
+-			}
+ 			cl_spinlock_release(&perfmgr->lock);
+ 		}
+ 	}
 -- 
 1.7.1
 
