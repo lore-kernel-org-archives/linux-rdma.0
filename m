@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [for-next 4/4] RDMA/libocrdma: update version string
-Date: Tue, 1 Jul 2014 11:24:05 +0530
-Message-ID: <62250735-397f-4028-87f1-7f139cbc1e7a@CMEXHTCAS1.ad.emulex.com>
+Subject: [for-next 3/4] RDMA/libocrdma: stop polling when SQ/RQ is empty
+Date: Tue, 1 Jul 2014 11:24:04 +0530
+Message-ID: <25d7e82e-650e-4e10-8048-b310ffcfeaa6@CMEXHTCAS1.ad.emulex.com>
 References: <1404194045-26900-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,34 +9,50 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1404194045-26900-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The version string is updated to 1.0.3
+From: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+
+The cq polling logic was hitting an infinite loop while generating
+flush completions for a torn down QP. This patch adds a check in
+flush completion logic to detect SQ/RQ empty condition and stop
+polling loop.
 
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- configure.in |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ src/ocrdma_verbs.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index 15aabb1..acc77f6 100644
---- a/configure.in
-+++ b/configure.in
-@@ -1,11 +1,11 @@
- dnl Process this file with autoconf to produce a configure script.
- 
- AC_PREREQ(2.57)
--AC_INIT(libocrdma, 1.0.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
-+AC_INIT(libocrdma, 1.0.3, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_SRCDIR([src/ocrdma_main.h])
- AC_CONFIG_AUX_DIR(config)
- AM_CONFIG_HEADER(config.h)
--AM_INIT_AUTOMAKE(libocrdma, 1.0.2)
-+AM_INIT_AUTOMAKE(libocrdma, 1.0.3)
- AM_PROG_LIBTOOL
- 
- AC_ARG_ENABLE(libcheck, [ --disable-libcheck    do not test for the presence of ib libraries],
+diff --git a/src/ocrdma_verbs.c b/src/ocrdma_verbs.c
+index a5b7252..edff8b6 100644
+--- a/src/ocrdma_verbs.c
++++ b/src/ocrdma_verbs.c
+@@ -1739,6 +1739,11 @@ static int ocrdma_poll_err_scqe(struct ocrdma_qp *qp,
+ 			*stop = 1;
+ 			expand = 0;
+ 		}
++	} else if (is_hw_sq_empty(qp)) {
++		/* Do nothing */
++		expand = 0;
++		*polled = 0;
++		*stop = 0;
+ 	} else {
+ 		*polled = 1;
+ 		expand = ocrdma_update_err_scqe(ibwc, cqe, qp, status);
+@@ -1848,6 +1853,11 @@ static int ocrdma_poll_err_rcqe(struct ocrdma_qp *qp, struct ocrdma_cqe *cqe,
+ 			*stop = 1;
+ 			expand = 0;
+ 		}
++	} else if (is_hw_rq_empty(qp)) {
++		/* Do nothing */
++		expand = 0;
++		*polled = 0;
++		*stop = 0;
+ 	} else {
+ 		*polled = 1;
+ 		expand = ocrdma_update_err_rcqe(ibwc, cqe, qp, status);
 -- 
 1.7.1
 
