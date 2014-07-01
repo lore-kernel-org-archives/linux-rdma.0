@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [for-next 1/4] RDMA/libocrdma: dont skip setting deffer_arm
-Date: Tue, 1 Jul 2014 11:24:02 +0530
-Message-ID: <164cabce-25f0-4b23-add4-4d5a88368b7d@CMEXHTCAS1.ad.emulex.com>
+Subject: [for-next 4/4] RDMA/libocrdma: update version string
+Date: Tue, 1 Jul 2014 11:24:05 +0530
+Message-ID: <62250735-397f-4028-87f1-7f139cbc1e7a@CMEXHTCAS1.ad.emulex.com>
 References: <1404194045-26900-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,32 +12,31 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ibv_request_notify_cq() when called for the first time ocrdma tries to skip
-setting deffered_arm flag. This may lead CQ to an un-armed state thus, never
-generating CQ event and leaving consumer in hung state.
+The version string is updated to 1.0.3
 
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- src/ocrdma_verbs.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ configure.in |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/ocrdma_verbs.c b/src/ocrdma_verbs.c
-index 8e0c344..0f138cf 100644
---- a/src/ocrdma_verbs.c
-+++ b/src/ocrdma_verbs.c
-@@ -2054,12 +2054,9 @@ int ocrdma_arm_cq(struct ibv_cq *ibcq, int solicited)
- 	if (cq->first_arm) {
- 		ocrdma_ring_cq_db(cq, 1, solicited, 0);
- 		cq->first_arm = 0;
--		goto skip_defer;
- 	}
+diff --git a/configure.in b/configure.in
+index 15aabb1..acc77f6 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1,11 +1,11 @@
+ dnl Process this file with autoconf to produce a configure script.
  
- 	cq->deferred_arm = 1;
--
--skip_defer:
- 	cq->deferred_sol = solicited;
+ AC_PREREQ(2.57)
+-AC_INIT(libocrdma, 1.0.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(libocrdma, 1.0.3, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/ocrdma_main.h])
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+-AM_INIT_AUTOMAKE(libocrdma, 1.0.2)
++AM_INIT_AUTOMAKE(libocrdma, 1.0.3)
+ AM_PROG_LIBTOOL
  
- 	pthread_spin_unlock(&cq->cq_lock);
+ AC_ARG_ENABLE(libcheck, [ --disable-libcheck    do not test for the presence of ib libraries],
 -- 
 1.7.1
 
