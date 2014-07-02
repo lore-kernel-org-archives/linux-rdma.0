@@ -1,113 +1,78 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] rsocket: Fix crash resulting from keepalive timeout
-Date: Wed,  2 Jul 2014 15:46:22 -0700
-Message-ID: <1404341182-12533-1-git-send-email-sean.hefty@intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: mlx4 lockdep splat
+Date: Wed, 2 Jul 2014 18:51:17 -0400
+Message-ID: <52074264-21F8-4CCF-A5D1-38C07E1FF201@oracle.com>
+References: <B2CFBE8B-333B-4EA3-8853-9C91FFCE92D8@oracle.com> <20140702101954.0af46c74@jpm-OptiPlex-GX620> <E900818E-32D4-4667-85EB-34BC2BA88B9F@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E900818E-32D4-4667-85EB-34BC2BA88B9F-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The following crash was reported by Hal Rosenstock,
-<hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, with keepalive enabled.  The crash
-occurs in the keepalive thread attempting to send a
-keepalive message.
+On Jul 2, 2014, at 10:45 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-report:
-Program received signal SIGSEGV, Segmentation fault.
-[Switching to Thread 0x7fffecf08700 (LWP 6013)]
-rs_post_write (rs=<value optimized out>, sgl=0x0, nsge=0, wr_data=3758096385,
-    flags=0, addr=0, rkey=0) at src/rsocket.c:1660
-1660            return rdma_seterrno(ibv_post_send(rs->cm_id->qp, &wr, &bad));
-Missing separate debuginfos, use: debuginfo-install glibc-2.12-1.107.el6.x86_64
-(gdb)
-(gdb) p/x rs
-$1 = value has been optimized out
+> Hi Jack-
+> 
+> 
+> On Jul 2, 2014, at 3:19 AM, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+>> On Tue, 1 Jul 2014 18:17:27 -0400
+>> Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>> 
+>>> Hi-
+>>> 
+>>> This happens during boot, and means that lockdep and lock_stat are
+>>> completely disabled during any testing I do.
+>>> 
+>>> Does this splat have a known fix, or should I file an upstream
+>>> bugzilla?
+>>> 
+>>> 
+>>> Jul  1 15:50:22 manet kernel: =================================
+>>> Jul  1 15:50:22 manet kernel: [ INFO: inconsistent lock state ]
+>>> Jul  1 15:50:22 manet kernel: 3.16.0-rc2-00024-g2e78883 #17 Tainted:
+>>> G            E Jul  1 15:50:22 manet kernel:
+>>> --------------------------------- Jul  1 15:50:22 manet kernel:
+>>> inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage. Jul  1 15:50:22
+>>> manet kernel: swapper/0/0 [HC0[0]:SC1[1]:HE1:SE0] takes: Jul  1
+>>> 15:50:22 manet kernel: (&(&iboe->lock)->rlock){+.?...}, at:
+>>> [<ffffffffa065f68b>] mlx4_ib_addr_event+0xdb/0x1a0 [mlx4_ib] Jul  1
+>>> 15:50:22 manet kernel: {SOFTIRQ-ON-W} state was registered at: Jul  1
+>>> 15:50:22 manet kernel:  [<ffffffff810b3110>]
+>>> mark_irqflags+0x110/0x170 Jul  1 15:50:22 manet kernel:
+>>> [<ffffffff810b4806>] __lock_acquire+0x2c6/0x5b0 Jul  1 15:50:22 manet
+>>> kernel:  [<ffffffff810b4bd9>] lock_acquire+0xe9/0x120 Jul  1 15:50:22
+>>> manet kernel:  [<ffffffff815f7f6e>] _raw_spin_lock+0x3e/0x80 Jul  1
+>>> 15:50:22 manet kernel:  [<ffffffffa0661084>]
+>>> mlx4_ib_scan_netdevs+0x34/0x260 [mlx4_ib] Jul  1 15:50:22 manet
+>>> kernel:  [<ffffffffa06612db>] mlx4_ib_netdev_event+0x2b/0x40
+>>> [mlx4_ib] Jul  1 15:50:22 manet kernel:  [<ffffffff81522219>]
+>>> register_netdevice_notifier+0x99/0x1e0 Jul  1 15:50:22 manet kernel:
+>>> [<ffffffffa06626e3>] mlx4_ib_add+0x743/0xbc0 [mlx4_ib]
+>> 
+>> Hi Chuck,
+>> 
+>> There is a known fix which I need to submit.
+>> The fix is to use lock/unlock_bh instead of spin_lock/unlock.
+>> 
+>> The netdev event notifier callback (mlx4_ib_addr_event), which also
+>> uses the lock, is called from a soft-interrupt context, so turning off
+>> hard interrupts is not needed here.  _bh spinlocks are sufficient.
+> 
+> If you have a patch handy, I'm happy to test. Thanks!
 
-So I added in the following to debug:
-1660    if (rs == NULL)
-1661    abort();
-1662    if (rs->cm_id == NULL)
-1663    abort();
-1664    if (rs->cm_id->qp == NULL)
-1665    abort();
-1666            return rdma_seterrno(ibv_post_send(rs->cm_id->qp, &wr, &bad));
-1667    }
+I built my own according to your description. The fix seems good.
 
-And saw in gdb:
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
 
-Program received signal SIGABRT, Aborted.
-[Switching to Thread 0x7fffecf08700 (LWP 8096)]
-0x00000030d50328a5 in raise () from /lib64/libc.so.6
-Missing separate debuginfos, use: debuginfo-install glibc-2.12-1.107.el6.x86_64
-(gdb)
-(gdb) bt
-#0  0x00000030d50328a5 in raise () from /lib64/libc.so.6
-#1  0x00000030d5034085 in abort () from /lib64/libc.so.6
-#2  0x00007ffff057fe23 in rs_post_write (rs=<value optimized out>, sgl=0x1fa0,
-    nsge=6, wr_data=4294967295, flags=0, addr=0, rkey=0) at src/rsocket.c:1665
-#3  0x00007ffff058193d in tcp_svc_send_keepalive (arg=0x7ffff0789f20)
-    at src/rsocket.c:4245
-#4  tcp_svc_run (arg=0x7ffff0789f20) at src/rsocket.c:4279
-#5  0x00000030d5807851 in start_thread () from /lib64/libpthread.so.0
-#6  0x00000030d50e890d in clone () from /lib64/libc.so.6
-(gdb) fr 2
-#2  0x00007ffff057fe23 in rs_post_write (rs=<value optimized out>, sgl=0x1fa0,
-    nsge=6, wr_data=4294967295, flags=0, addr=0, rkey=0) at src/rsocket.c:1665
-1665    abort();
 
-So qp is NULL somehow...
-:end report
-
-There is an issue if an rsocket is closed without going through
-the rshutdown.
-
-int rshutdown(int socket, int how)
-{
-	...
-	if (rs->opts & RS_OPT_SVC_ACTIVE)
-		rs_notify_svc(&tcp_svc, rs, RS_SVC_REM_KEEPALIVE);
-
-We remove the rsocket from the keepalive thread in rshutdown.
-
-int rclose(int socket)
-{
-	...
-		if (rs->state & rs_connected)
-			rshutdown(socket, SHUT_RDWR);
-	...
-	rs_free(rs);
-
-rclose will call shutdown only if we're connected.  However, if the
-keepalive failed, the socket will be in an error state.  So,
-no call to rshutdown, which will leave the freed rsocket on
-the keepalive thread's list.
-
-The fix is to to have rclose remove an rsocket from being processed
-by a service thread if it is still active.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/rsocket.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/src/rsocket.c b/src/rsocket.c
-index 3048e5e..f81fb1b 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -3265,6 +3265,8 @@ int rclose(int socket)
- 	if (rs->type == SOCK_STREAM) {
- 		if (rs->state & rs_connected)
- 			rshutdown(socket, SHUT_RDWR);
-+		else if (rs->opts & RS_OPT_SVC_ACTIVE)
-+			rs_notify_svc(&tcp_svc, rs, RS_SVC_REM_KEEPALIVE);
- 	} else {
- 		ds_shutdown(rs);
- 	}
--- 
-1.7.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
