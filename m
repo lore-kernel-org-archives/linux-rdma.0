@@ -1,67 +1,31 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [for-next 1/3] RDMA/ocrdma: obtain sl from deivce structure
-Date: Wed, 2 Jul 2014 11:36:04 +0530
-Message-ID: <8b035dac-092d-430c-a577-61bc9ec00996@CMEXHTCAS1.ad.emulex.com>
-References: <1404281166-4937-1-git-send-email-devesh.sharma@emulex.com>
+Subject: [for-next 0/3] RDMA/ocrdma: fixes for endian ness and SL
+Date: Wed, 2 Jul 2014 11:36:03 +0530
+Message-ID: <7984d348-c9aa-4f4a-b7e6-97c291ba577f@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1404281166-4937-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, driver obtains service level value from ah_attr->sl
-field. However, this filed is set to zero all the times from
-rdma-cm. This patch allows create_ah to obtain service level from dev->sl
+This series mainly contains fixes for endian ness issues and obtaining
+service level from device structure. This also has a fix for reporting
+correct hw_ver.
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    4 +++-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    4 +---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Devesh Sharma (2):
+  RDMA/ocrdma: obtain sl from deivce structure
+  RDMA/ocrdma: update sli data structure for endian ness
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index a023234..40f8536 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -35,6 +35,8 @@
- #include "ocrdma_ah.h"
- #include "ocrdma_hw.h"
- 
-+#define OCRDMA_VID_PCP_SHIFT	0xD
-+
- static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 				struct ib_ah_attr *attr, int pdid)
- {
-@@ -55,7 +57,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 	if (vlan_tag && (vlan_tag < 0x1000)) {
- 		eth.eth_type = cpu_to_be16(0x8100);
- 		eth.roce_eth_type = cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
--		vlan_tag |= (attr->sl & 7) << 13;
-+		vlan_tag |= (dev->sl & 0x07) << OCRDMA_VID_PCP_SHIFT;
- 		eth.vlan_tag = cpu_to_be16(vlan_tag);
- 		eth_sz = sizeof(struct ocrdma_eth_vlan);
- 		vlan_enabled = true;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index a4d27c7..df68782 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2314,10 +2314,8 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 		cmd->params.vlan_dmac_b4_to_b5 |=
- 		    vlan_id << OCRDMA_QP_PARAMS_VLAN_SHIFT;
- 		cmd->flags |= OCRDMA_QP_PARA_VLAN_EN_VALID;
--		/* override the sl with default priority if 0 */
- 		cmd->params.rnt_rc_sl_fl |=
--			(ah_attr->sl ? ah_attr->sl :
--				qp->dev->sl) << OCRDMA_QP_PARAMS_SL_SHIFT;
-+			(qp->dev->sl & 0x07) << OCRDMA_QP_PARAMS_SL_SHIFT;
- 	}
- 	return 0;
- }
--- 
-1.7.1
+Mitesh Ahuja (1):
+  RDMA/ocrdma: report asic-id in query device
+
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    4 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   36 ++++---
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  147 ++++++++++++++++++++-------
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
+ 4 files changed, 134 insertions(+), 55 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
