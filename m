@@ -1,76 +1,78 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: mlx4 lockdep splat
-Date: Wed, 2 Jul 2014 10:45:12 -0400
-Message-ID: <E900818E-32D4-4667-85EB-34BC2BA88B9F@oracle.com>
-References: <B2CFBE8B-333B-4EA3-8853-9C91FFCE92D8@oracle.com> <20140702101954.0af46c74@jpm-OptiPlex-GX620>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140702101954.0af46c74@jpm-OptiPlex-GX620>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: NFSoRDMA developers bi-weekly meeting minutes (6/25)
+Date: Wed, 02 Jul 2014 09:11:22 -0700
+Message-ID: <53B42F2A.9060205@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jack-
+Sorry for being late, I just found this email wasn't out. Please add what's missing.
 
+Attendees:
 
-On Jul 2, 2014, at 3:19 AM, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+Rupert Dance (Soft Forge)
+Chuck Lever (Oracle)
+Doug Ledford (RedHat)
+Shirley Ma (Oracle)
+Anna Schumaker (Net App)
+Steve Wise (OpenGridComputing, Chelsio)
+Steve Dickson (RedHat)
 
-> On Tue, 1 Jul 2014 18:17:27 -0400
-> Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> 
->> Hi-
->> 
->> This happens during boot, and means that lockdep and lock_stat are
->> completely disabled during any testing I do.
->> 
->> Does this splat have a known fix, or should I file an upstream
->> bugzilla?
->> 
->> 
->> Jul  1 15:50:22 manet kernel: =================================
->> Jul  1 15:50:22 manet kernel: [ INFO: inconsistent lock state ]
->> Jul  1 15:50:22 manet kernel: 3.16.0-rc2-00024-g2e78883 #17 Tainted:
->> G            E Jul  1 15:50:22 manet kernel:
->> --------------------------------- Jul  1 15:50:22 manet kernel:
->> inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage. Jul  1 15:50:22
->> manet kernel: swapper/0/0 [HC0[0]:SC1[1]:HE1:SE0] takes: Jul  1
->> 15:50:22 manet kernel: (&(&iboe->lock)->rlock){+.?...}, at:
->> [<ffffffffa065f68b>] mlx4_ib_addr_event+0xdb/0x1a0 [mlx4_ib] Jul  1
->> 15:50:22 manet kernel: {SOFTIRQ-ON-W} state was registered at: Jul  1
->> 15:50:22 manet kernel:  [<ffffffff810b3110>]
->> mark_irqflags+0x110/0x170 Jul  1 15:50:22 manet kernel:
->> [<ffffffff810b4806>] __lock_acquire+0x2c6/0x5b0 Jul  1 15:50:22 manet
->> kernel:  [<ffffffff810b4bd9>] lock_acquire+0xe9/0x120 Jul  1 15:50:22
->> manet kernel:  [<ffffffff815f7f6e>] _raw_spin_lock+0x3e/0x80 Jul  1
->> 15:50:22 manet kernel:  [<ffffffffa0661084>]
->> mlx4_ib_scan_netdevs+0x34/0x260 [mlx4_ib] Jul  1 15:50:22 manet
->> kernel:  [<ffffffffa06612db>] mlx4_ib_netdev_event+0x2b/0x40
->> [mlx4_ib] Jul  1 15:50:22 manet kernel:  [<ffffffff81522219>]
->> register_netdevice_notifier+0x99/0x1e0 Jul  1 15:50:22 manet kernel:
->> [<ffffffffa06626e3>] mlx4_ib_add+0x743/0xbc0 [mlx4_ib]
-> 
-> Hi Chuck,
-> 
-> There is a known fix which I need to submit.
-> The fix is to use lock/unlock_bh instead of spin_lock/unlock.
-> 
-> The netdev event notifier callback (mlx4_ib_addr_event), which also
-> uses the lock, is called from a soft-interrupt context, so turning off
-> hard interrupts is not needed here.  _bh spinlocks are sufficient.
+Jeff is busy on OFED stack work, others are on vacation
 
-If you have a patch handy, I'm happy to test. Thanks!
+Moderator:
+Shirley Ma (Oracle)
 
--- 
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA development and test effort from different resources to speed up NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools development. Hopefully the quality of NFSoRDMA upstream patches can be improved by being tested by a quorum of HW vendors.
 
+Today's meeting notes:
+1. Follow ups from last week:
+Steve has created a test git tree for client and server patches that are heading upstream so interested parties can test out. Here is the link to the git tree for testing:
 
+The branch is named for-test and the repo is at: 
+git://git.linux-nfs.org/projects/swise/linux.git
 
+2. Rupert gave an update for NFSoRDMA patches to be included in the coming OFED-3.12-1 release which is targeted in July. Jeff has ported all patches from upstream tree, UNL is testing these patches to see any regression.
 
+3. Chuck created destructive test patch to inject IB verbs errors randomly in NFSoRDMA. This can easily trigger NFSoRDMA bugs. This approach can simulate cable plug/unplug, rpcrdma connect/reconnect stale resource issue... This patch will benefit developers for testing and debugging. Steven mentioned Chelsio has similar test method in userspace.
+
+4. Discussed about Chuck's most recent xprtrdma patchset to upstream, decided to the reference count to memory window buffer list patch is not needed.
+
+5. Shirley discussed NFSoRDMA performance anaylysis tools to measure CPU, bandwidth, latency, lock, interrupts rate, memory foot print. Suggestion is to use current lock_stat, perf to report/monitor cpu, lock statistics, use nfsstat to report NFS statistics first; Shirley suggested to add more statistics in RDMA operations for performance analysis. Shirley will write some documentation on performance analysis tool.
+
+6. NFSoRDMA virtualization doesn't work. Shirley found that VF FRMR reported port error after a successful post_send on connextX-2. It didn't seem an NFSoRDMA issue. Questions are whether VF FRMR is fully tested. Later Yan confirmed VF FRMR doesn't work for NFSoRDMA on connectX-3 either.
+
+7. Mike reported that NFSoRDMA doesn't show same performance as SMB for fio test. Shirley is able to reproduce it, Steve will ask Chelsio engineer to test it as well.
+
+Meeting time: one hour discussion every other Wed (next meeting will be
+on 7/6). A reminder will be sent out to both linux-nfs and linux-rdma
+mailing list:
+
+6/25/2014
+@8:00am PST (summer time)
+@9:00am MST (summer time)
+@10:00am CST (summer time)
+@11:00am EST (summer time)
+@Bangalore @8:00pm
+@Israel @6:00pm
+
+Duration: 1 hour
+
+Call-in number:
+Israel: +972 37219638
+France 	Colombes +33 1 5760 2222 	+33 176728936
+Bangalore: +91 8039890080 (180030109800)
+US: 8666824770,  408-7744073
+
+Conference Code: 2308833
+Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember)
+
+Thanks everyone for joining the call and providing valuable inputs/work to the community to make NFSoRDMA better.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
