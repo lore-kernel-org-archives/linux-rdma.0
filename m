@@ -1,42 +1,57 @@
-From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/1] ibacm: define prov_lib_path as a char array
-Date: Wed,  2 Jul 2014 14:30:50 -0400
-Message-ID: <1404325850-918-1-git-send-email-kaike.wan@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transport
+ disconnect
+Date: Wed, 2 Jul 2014 19:06:00 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE0C540@CMEXMB1.ad.emulex.com>
+References: <20140623223201.1634.83888.stgit@manet.1015granger.net>
+ <20140623223942.1634.89063.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140623223942.1634.89063.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-This patch fixes a segfault error when the option file defines the provider
-lib path. The variable prov_lib_path should be a buffer (char array) instead
-of a char pointer. This allows a string to be copied into it during option
-parsing.
-
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/acm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/src/acm.c b/src/acm.c
-index 8f147ef..fae9d0b 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -193,7 +193,7 @@ static int log_level = 0;
- static char lock_file[128] = "/var/run/ibacm.pid";
- static short server_port = 6125;
- static int support_ips_in_addr_cfg = 0;
--static char *prov_lib_path = IBACM_LIB_PATH;
-+static char prov_lib_path[256] = IBACM_LIB_PATH;
- 
- void acm_write(int level, const char *format, ...)
- {
--- 
-1.7.1
-
+VGhpcyBjaGFuZ2UgaXMgdmVyeSBtdWNoIHByb25lIHRvIGdlbmVyYXRlIHBvbGxfY3EgZXJyb3Jz
+IGJlY2F1c2Ugb2YgdW4tY2xlYW5lZCBjb21wbGV0aW9ucyB3aGljaCBzdGlsbA0KcG9pbnQgdG8g
+dGhlIG5vbi1leGlzdGVudCBRUHMuIE9uIHRoZSBuZXcgY29ubmVjdGlvbiB3aGVuIHRoZXNlIGNv
+bXBsZXRpb25zIGFyZSBwb2xsZWQsIHRoZSBwb2xsX2NxIHdpbGwNCmZhaWwgYmVjYXVzZSBvbGQg
+UVAgcG9pbnRlciBpcyBhbHJlYWR5IE5VTEwuIA0KRGlkIGFueW9uZSBoaXQgdGhpcyBzaXR1YXRp
+b24gZHVyaW5nIHRoZWlyIHRlc3Rpbmc/DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0N
+Cj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1y
+ZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBDaHVjayBMZXZlcg0K
+PiBTZW50OiBUdWVzZGF5LCBKdW5lIDI0LCAyMDE0IDQ6MTAgQU0NCj4gVG86IGxpbnV4LXJkbWFA
+dmdlci5rZXJuZWwub3JnOyBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFtQ
+QVRDSCB2MSAwNS8xM10geHBydHJkbWE6IERvbid0IGRyYWluIENRcyBvbiB0cmFuc3BvcnQgZGlz
+Y29ubmVjdA0KPiANCj4gQ1FzIGFyZSBub3QgZGVzdHJveWVkIHVudGlsIHVubW91bnQuIEJ5IGRy
+YWluaW5nIENRcyBvbiB0cmFuc3BvcnQNCj4gZGlzY29ubmVjdCwgc3VjY2Vzc2Z1bCBjb21wbGV0
+aW9ucyB0aGF0IGNhbiBjaGFuZ2UgdGhlIHIuZnJtci5zdGF0ZSBmaWVsZCBjYW4NCj4gYmUgbWlz
+c2VkLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9yYWNs
+ZS5jb20+DQo+IC0tLQ0KPiAgbmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5jIHwgICAgNSAtLS0t
+LQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDUgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEv
+bmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5jIGIvbmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5j
+DQo+IGluZGV4IDNjN2Y5MDQuLjQ1MWUxMDAgMTAwNjQ0DQo+IC0tLSBhL25ldC9zdW5ycGMveHBy
+dHJkbWEvdmVyYnMuYw0KPiArKysgYi9uZXQvc3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMNCj4gQEAg
+LTg3Myw5ICs4NzMsNiBAQCByZXRyeToNCj4gIAkJCWRwcmludGsoIlJQQzogICAgICAgJXM6IHJw
+Y3JkbWFfZXBfZGlzY29ubmVjdCINCj4gIAkJCQkiIHN0YXR1cyAlaVxuIiwgX19mdW5jX18sIHJj
+KTsNCj4gDQo+IC0JCXJwY3JkbWFfY2xlYW5fY3EoZXAtPnJlcF9hdHRyLnJlY3ZfY3EpOw0KPiAt
+CQlycGNyZG1hX2NsZWFuX2NxKGVwLT5yZXBfYXR0ci5zZW5kX2NxKTsNCj4gLQ0KPiAgCQl4cHJ0
+ID0gY29udGFpbmVyX29mKGlhLCBzdHJ1Y3QgcnBjcmRtYV94cHJ0LCByeF9pYSk7DQo+ICAJCWlk
+ID0gcnBjcmRtYV9jcmVhdGVfaWQoeHBydCwgaWEsDQo+ICAJCQkJKHN0cnVjdCBzb2NrYWRkciAq
+KSZ4cHJ0LT5yeF9kYXRhLmFkZHIpOw0KPiBAQCAtOTg1LDggKzk4Miw2IEBAIHJwY3JkbWFfZXBf
+ZGlzY29ubmVjdChzdHJ1Y3QgcnBjcmRtYV9lcCAqZXAsDQo+IHN0cnVjdCBycGNyZG1hX2lhICpp
+YSkgIHsNCj4gIAlpbnQgcmM7DQo+IA0KPiAtCXJwY3JkbWFfY2xlYW5fY3EoZXAtPnJlcF9hdHRy
+LnJlY3ZfY3EpOw0KPiAtCXJwY3JkbWFfY2xlYW5fY3EoZXAtPnJlcF9hdHRyLnNlbmRfY3EpOw0K
+PiAgCXJjID0gcmRtYV9kaXNjb25uZWN0KGlhLT5yaV9pZCk7DQo+ICAJaWYgKCFyYykgew0KPiAg
+CQkvKiByZXR1cm5zIHdpdGhvdXQgd2FpdCBpZiBub3QgY29ubmVjdGVkICovDQo+IA0KPiAtLQ0K
+PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3Jp
+YmUgbGludXgtcmRtYSIgaW4gdGhlDQo+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2
+Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJu
+ZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
