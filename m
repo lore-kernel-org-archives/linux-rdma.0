@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 3/8] build: Add build support for XRC
-Date: Tue,  1 Jul 2014 23:11:14 -0700
-Message-ID: <1404281479-6755-4-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 5/8] rdmacm: Add support for allocating XRC SRQs
+Date: Tue,  1 Jul 2014 23:11:16 -0700
+Message-ID: <1404281479-6755-6-git-send-email-sean.hefty@intel.com>
 References: <1404281479-6755-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1404281479-6755-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,43 +12,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Modify autotools to check for and require a libibverbs
-version that includes XRC and extension support.
-
-Remove any code used to support older versions of
-libibverbs.
+Add extended SRQ creation call, to support allocating
+XRC SRQs.  Use the rdma_cm_id qp type field to
+determine which type of SRQ should be allocated.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- configure.ac |    8 ++------
- src/cma.h    |   42 +-----------------------------------------
- 2 files changed, 3 insertions(+), 47 deletions(-)
+ include/rdma/rdma_verbs.h |    3 +-
+ src/cma.c                 |   85 +++++++++++++++++++++++++++++++-------------
+ src/librdmacm.map         |    1 +
+ 3 files changed, 63 insertions(+), 26 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 7581df4..0b8d6ec 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -40,14 +40,10 @@ dnl Checks for libraries
- AC_CHECK_LIB(pthread, pthread_mutex_init, [],
-     AC_MSG_ERROR([pthread_mutex_init() not found.  librdmacm requires libpthread.]))
- if test "$disable_libcheck" != "yes"; then
--AC_CHECK_LIB(ibverbs, ibv_get_device_list, [],
--    AC_MSG_ERROR([ibv_get_device_list() not found.  librdmacm requires libibverbs.]))
-+AC_CHECK_LIB(ibverbs, ibv_cmd_open_xrcd, [],
-+    AC_MSG_ERROR([ibv_cmd_open_xrcd() not found.  librdmacm requires libibverbs 1.1.8 or later.]))
- fi
+diff --git a/include/rdma/rdma_verbs.h b/include/rdma/rdma_verbs.h
+index 198c6a5..10049c3 100644
+--- a/include/rdma/rdma_verbs.h
++++ b/include/rdma/rdma_verbs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2010-2011 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2010-2014 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -56,6 +56,7 @@ static inline int rdma_seterrno(int ret)
+  */
+ int rdma_create_srq(struct rdma_cm_id *id, struct ibv_pd *pd,
+ 		    struct ibv_srq_init_attr *attr);
++int rdma_create_srq_ex(struct rdma_cm_id *id, struct ibv_srq_init_attr_ex *attr);
  
--AC_CHECK_MEMBER(struct ibv_path_record.service_id, [],
--    AC_DEFINE(DEFINE_PATH_RECORD, 1, [adding path record definition]),
--    [#include <infiniband/sa.h>])
--
- dnl Check for gcc atomic intrinsics
- AC_MSG_CHECKING(compiler support for atomics)
- AC_LINK_IFELSE([AC_LANG_PROGRAM([[int i = 0;]],
-diff --git a/src/cma.h b/src/cma.h
-index a7bab0f..98eba8d 100644
---- a/src/cma.h
-+++ b/src/cma.h
+ void rdma_destroy_srq(struct rdma_cm_id *id);
+ 
+diff --git a/src/cma.c b/src/cma.c
+index 52d81ff..8c9ea95 100644
+--- a/src/cma.c
++++ b/src/cma.c
 @@ -1,5 +1,5 @@
  /*
 - * Copyright (c) 2005-2012 Intel Corporation.  All rights reserved.
@@ -56,53 +53,153 @@ index a7bab0f..98eba8d 100644
   *
   * This software is available to you under a choice of one of two
   * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -167,46 +167,6 @@ void ucma_ib_init();
- void ucma_ib_cleanup();
- void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints);
+@@ -1210,17 +1210,26 @@ static int ucma_init_ud_qp(struct cma_id_private *id_priv, struct ibv_qp *qp)
  
--/* Define path record definition if using older version of libibverbs */
--#ifdef DEFINE_PATH_RECORD
--#define IBV_PATH_RECORD_REVERSIBLE 0x80
+ static void ucma_destroy_cqs(struct rdma_cm_id *id)
+ {
+-	if (id->recv_cq)
++	if (id->qp_type == IBV_QPT_XRC_RECV && id->srq)
++		return;
++
++	if (id->recv_cq) {
+ 		ibv_destroy_cq(id->recv_cq);
++		if (id->send_cq && (id->send_cq != id->recv_cq)) {
++			ibv_destroy_cq(id->send_cq);
++			id->send_cq = NULL;
++		}
++		id->recv_cq = NULL;
++	}
+ 
+-	if (id->recv_cq_channel)
++	if (id->recv_cq_channel) {
+ 		ibv_destroy_comp_channel(id->recv_cq_channel);
 -
--struct ibv_path_record
--{
--	uint64_t        service_id;
--	union ibv_gid   dgid;
--	union ibv_gid   sgid;
--	uint16_t        dlid;
--	uint16_t        slid;
--	uint32_t        flowlabel_hoplimit; /* resv-31:28 flow label-27:8 hop limit-7:0*/
--	uint8_t         tclass;
--	uint8_t         reversible_numpath; /* reversible-7:7 num path-6:0 */
--	uint16_t        pkey;
--	uint16_t        qosclass_sl;        /* qos class-15:4 sl-3:0 */
--	uint8_t         mtu;                /* mtu selector-7:6 mtu-5:0 */
--	uint8_t         rate;               /* rate selector-7:6 rate-5:0 */
--	uint8_t         packetlifetime;     /* lifetime selector-7:6 lifetime-5:0 */
--	uint8_t         preference;
--	uint8_t         reserved[6];
--};
+-	if (id->send_cq && (id->send_cq != id->recv_cq))
+-		ibv_destroy_cq(id->send_cq);
 -
--#define IBV_PATH_FLAG_GMP             (1<<0)
--#define IBV_PATH_FLAG_PRIMARY         (1<<1)
--#define IBV_PATH_FLAG_ALTERNATE       (1<<2)
--#define IBV_PATH_FLAG_OUTBOUND        (1<<3)
--#define IBV_PATH_FLAG_INBOUND         (1<<4)
--#define IBV_PATH_FLAG_INBOUND_REVERSE (1<<5)
--#define IBV_PATH_FLAG_BIDIRECTIONAL   (IBV_PATH_FLAG_OUTBOUND |     \
--                                       IBV_PATH_FLAG_INBOUND_REVERSE)
+-	if (id->send_cq_channel && (id->send_cq_channel != id->recv_cq_channel))
+-		ibv_destroy_comp_channel(id->send_cq_channel);
++		if (id->send_cq_channel && (id->send_cq_channel != id->recv_cq_channel)) {
++			ibv_destroy_comp_channel(id->send_cq_channel);
++			id->send_cq_channel = NULL;
++		}
++		id->recv_cq_channel = NULL;
++	}
+ }
+ 
+ static int ucma_create_cqs(struct rdma_cm_id *id, uint32_t send_size, uint32_t recv_size)
+@@ -1253,36 +1262,44 @@ err:
+ 	return ERR(ENOMEM);
+ }
+ 
+-int rdma_create_srq(struct rdma_cm_id *id, struct ibv_pd *pd,
+-		    struct ibv_srq_init_attr *attr)
++int rdma_create_srq_ex(struct rdma_cm_id *id, struct ibv_srq_init_attr_ex *attr)
+ {
++	struct cma_id_private *id_priv;
+ 	struct ibv_srq *srq;
+ 	int ret;
+ 
+-	if (!pd)
+-		pd = id->pd;
++	id_priv = container_of(id, struct cma_id_private, id);
++	if (!(attr->comp_mask & IBV_SRQ_INIT_ATTR_TYPE))
++		return ERR(EINVAL);
++
++	if (!(attr->comp_mask & IBV_SRQ_INIT_ATTR_PD) || !attr->pd) {
++		attr->pd = id->pd;
++		attr->comp_mask |= IBV_SRQ_INIT_ATTR_PD;
++	}
+ 
+-#ifdef IBV_XRC_OPS
+ 	if (attr->srq_type == IBV_SRQT_XRC) {
+-		if (!attr->ext.xrc.cq) {
++		if (!(attr->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) || !attr->xrcd) {
++			attr->xrcd = ucma_get_xrcd(id_priv->cma_dev);
++			if (!attr->xrcd)
++				return -1;
++		}
++		if (!(attr->comp_mask & IBV_SRQ_INIT_ATTR_CQ) || !attr->cq) {
+ 			ret = ucma_create_cqs(id, 0, attr->attr.max_wr);
+ 			if (ret)
+ 				return ret;
 -
--struct ibv_path_data
--{
--	uint32_t               flags;
--	uint32_t               reserved;
--	struct ibv_path_record path;
--};
+-			attr->ext.xrc.cq = id->recv_cq;
++			attr->cq = id->recv_cq;
+ 		}
++		attr->comp_mask |= IBV_SRQ_INIT_ATTR_XRCD | IBV_SRQ_INIT_ATTR_CQ;
+ 	}
+ 
+-	srq = ibv_create_xsrq(pd, attr);
+-#else
+-	srq = ibv_create_srq(pd, attr);
 -#endif
--
- struct ib_connect_hdr {
- 	uint8_t  cma_version;
- 	uint8_t  ip_version; /* IP version: 7:4 */
++	srq = ibv_create_srq_ex(id->verbs, attr);
+ 	if (!srq) {
+ 		ret = -1;
+ 		goto err;
+ 	}
+ 
+-	id->pd = pd;
++	if (!id->pd)
++		id->pd = attr->pd;
+ 	id->srq = srq;
+ 	return 0;
+ err:
+@@ -1290,12 +1307,30 @@ err:
+ 	return ret;
+ }
+ 
++int rdma_create_srq(struct rdma_cm_id *id, struct ibv_pd *pd,
++		    struct ibv_srq_init_attr *attr)
++{
++	struct ibv_srq_init_attr_ex attr_ex;
++	int ret;
++
++	memcpy(&attr_ex, attr, sizeof *attr);
++	attr_ex.comp_mask = IBV_SRQ_INIT_ATTR_TYPE | IBV_SRQ_INIT_ATTR_PD;
++	if (id->qp_type == IBV_QPT_XRC_RECV) {
++		attr_ex.srq_type = IBV_SRQT_XRC;
++	} else {
++		attr_ex.srq_type = IBV_SRQT_BASIC;
++	}
++	attr_ex.pd = pd;
++	ret = rdma_create_srq_ex(id, &attr_ex);
++	memcpy(attr, &attr_ex, sizeof *attr);
++	return ret;
++}
++
+ void rdma_destroy_srq(struct rdma_cm_id *id)
+ {
+ 	ibv_destroy_srq(id->srq);
+-	if (!id->qp)
+-		ucma_destroy_cqs(id);
+ 	id->srq = NULL;
++	ucma_destroy_cqs(id);
+ }
+ 
+ int rdma_create_qp(struct rdma_cm_id *id, struct ibv_pd *pd,
+@@ -1351,8 +1386,8 @@ err1:
+ void rdma_destroy_qp(struct rdma_cm_id *id)
+ {
+ 	ibv_destroy_qp(id->qp);
+-	ucma_destroy_cqs(id);
+ 	id->qp = NULL;
++	ucma_destroy_cqs(id);
+ }
+ 
+ static int ucma_valid_param(struct cma_id_private *id_priv,
+diff --git a/src/librdmacm.map b/src/librdmacm.map
+index d5ef736..bf0b3e0 100644
+--- a/src/librdmacm.map
++++ b/src/librdmacm.map
+@@ -66,5 +66,6 @@ RDMACM_1.0 {
+ 		riomap;
+ 		riounmap;
+ 		riowrite;
++		rdma_create_srq_ex;
+ 	local: *;
+ };
 -- 
 1.7.3
 
