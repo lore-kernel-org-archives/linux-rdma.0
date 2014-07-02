@@ -1,159 +1,75 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v5 1/1] IPoIB: Avoid multicast join attempts when having
- invalid p_key
-Date: Wed, 2 Jul 2014 13:14:17 +0000
-Message-ID: <F3529576D8E232409F431C309E293993B89442@CRSMSX102.amr.corp.intel.com>
-References: <20140625153020.18938.22186.stgit@phlsvslse11.ph.intel.com>
- <53B3B239.8000007@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: mlx4 lockdep splat
+Date: Wed, 2 Jul 2014 10:45:12 -0400
+Message-ID: <E900818E-32D4-4667-85EB-34BC2BA88B9F@oracle.com>
+References: <B2CFBE8B-333B-4EA3-8853-9C91FFCE92D8@oracle.com> <20140702101954.0af46c74@jpm-OptiPlex-GX620>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53B3B239.8000007-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20140702101954.0af46c74@jpm-OptiPlex-GX620>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRXJleiwNCg0KWWVwLCBJIGhhdmVuJ3QgY2xlYW51cCBwa2V5X2luZGV4IGJlZm9yZSBwX2tl
-eSBsb29rdXAgYW5kIGNvbXBhcmUsDQpzbyBjaGlsZCB3b24ndCBmbHVzaC9nZXQgYmFjayB1cCBv
-biBwX2tleSByZWFwcGVhcmFuY2UgZXZlbnQgDQppZiBpbmRleCBzdGF5cyB0aGUgc2FtZS4NCg0K
-VGhhbmtzLA0KQWxleC4NCg0KPiBTdGlsbCB0aGVyZSBpcyBhbiBpc3N1ZSBoZXJlLCBwbGVhc2Ug
-dHJ5IHRoZSBmb2xsb3dpbmc6DQo+IA0KPiAxLiBwa2V5IHRhYmxlIGNvbnRhaW5zIHRoZSBwa2V5
-IDgwMDENCj4gMi4gZWNobyAweDgwMDEgPiAvc3lzL2NsYXNzL25ldC9pYjAvY3JlYXRlX2NoaWxk
-IDsgaWZjb25maWcgaWIwLjgwMDENCj4gMS4xLjEuMSB1cCAtIHRpbGwgbm93IGFsbCBnb29kLg0K
-PiAzLiBjaGFuZ2UgdGhlIHNtIHBhcnRpb3Rpb24gZmlsZSwgdGFrZSBvdXQgdGhlIHBrZXkgdmFs
-dWUgODAwMQ0KPiA0LiBmb3JjZSB0aGUgc20gdG8gc2VuZCB0aGUgbmV3IGV2ZW50IChQS0VZX0NI
-QU5HRV9FVkVOVCkgdmlhIHBraWxsIC1IVVANCj4gb3BlbnNtDQo+IDUuIG5vdyByZXR1cm4gYmFj
-ayB0aGUgcGtleSA4MDAxIHRvIHRoZSBwYXJ0aW90aW9uIGZpbGUNCj4gNi4gYWdhaW4sIGZvcmNl
-IHRoZSBzbSB0byBzZW5kIHRoZSBuZXcgZXZlbnQgKFBLRVlfQ0hBTkdFX0VWRU5UKSB2aWENCj4g
-cGtpbGwgLUhVUCBvcGVuc20NCj4gDQo+IFRoZSBuZXcgaW50ZXJmYWNlIGliMC44MDAxIHJlbWFp
-bnMgImRvd24iIGFuZCBpdHMgY2FycmllciBpcyAwLg0KPiBwbGVhc2UgY2hlY2sgdGhhdCwNCj4g
-DQo+IFRoYW5rcywgRXJleg0KPiANCj4gPiBDdXJyZW50bHksIHRoZSBwYXJlbnQgaW50ZXJmYWNl
-IGtlZXBzIHNlbmRpbmcgYnJvYWRjYXN0IGdyb3VwIGpvaW4NCj4gPiByZXF1ZXN0cyBldmVuIGlm
-IHBfa2V5IGluZGV4IDAgaXMgaW52YWxpZCwgd2hpY2ggZm9yIGl0c2VsZiBpcw0KPiA+IHBvc3Np
-YmxlL2NvbW1vbiBpbiB2aXJ0dWFsaXplZCBlbnZpcm9ubWVudCB3aGVyZSBhIFZGIGhhcyBiZWVu
-IHByb2JlZCB0bw0KPiA+IFZNIGJ1dCB0aGUgYWN0dWFsIHBfa2V5IGNvbmZpZ3VyYXRpb24gaGFz
-IG5vdCB5ZXQgYmVlbiBhc3NpZ25lZCBieSB0aGUNCj4gPiBtYW5hZ2VtZW50IHNvZnR3YXJlLiBU
-aGlzIGNyZWF0ZXMgdW5uZWNlc3Nhcnkgbm9pc2Ugb24gdGhlIGZhYnJpYyBhbmQgaW4NCj4gPiB0
-aGUga2VybmVsIGxvZ3M6DQo+ID4NCj4gPiBpYjA6IG11bHRpY2FzdCBqb2luIGZhaWxlZCBmb3Ig
-ZmYxMjo0MDFiOjgwMDA6MDAwMDowMDAwOjAwMDA6ZmZmZjpmZmZmLA0KPiA+IHN0YXR1cyAtMjIN
-Cj4gPg0KPiA+IFRoZSBvcmlnaW5hbCBjb2RlIHJ1biB0aGUgbXVsdGljYXN0IHRhc2sgcmVnYXJk
-bGVzcyBvZiB0aGUgYWN0dWFsDQo+ID4gcF9rZXkgdmFsdWUsIHdoaWNoIGNhbiBiZSBhdm9pZGVk
-LiBUaGUgZml4IGlzIHRvIHJlLWluaXQgcmVzb3VyY2VzICBhbmQNCj4gPiBicmluZyBpbnRlcmZh
-Y2UgdXAgb25seSBpZiBwX2tleSBpbmRleCAwIGlzIHZhbGlkIGVpdGhlciB3aGVuIHN0YXJ0aW5n
-DQo+ID4gdXAgb3Igb24gUEtFWV9DSEFOR0UgZXZlbnQuDQo+ID4NCj4gPiBGaXhlczogYzI5MDQx
-NDE2OSAoJ0lQb0lCOiBGaXggcGtleSBjaGFuZ2UgZmxvdyBmb3IgdmlydHVhbGl6YXRpb24gZW52
-aXJvbm1lbnRzJykNCj4gPg0KPiA+IFJldmlld2VkLWJ5OiBJcmEgV2VpbnkgPGlyYS53ZWlueUBp
-bnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogQWxleCBFc3RyaW4gPGFsZXguZXN0cmluQGlu
-dGVsLmNvbT4NCj4gPiAtLS0NCj4gPiBDaGFuZ2VzIGZyb20gdjQ6DQo+ID4gLSBzdHJlYW1saW5l
-IGNoaWxkIGludGVyZmFjZSBwa2V5IGV2ZW50IGhhbmRsaW5nLA0KPiA+IC0gc2h1dGRvd24gb2Yg
-cGtleSBwb2xsaW5nIHRocmVhZCBkZXBlbmRzIG9uIFBLRVlfU1RPUCBmbGFnIHN0YXRlIG9ubHku
-DQo+ID4gT3JpZ2luYWwgcG9pYl9pYl9kZXZfZG93bigpIGNvdWxkIGxlYXZlIHBvbGxpbmcgdGhy
-ZWFkIGFjdGl2ZQ0KPiA+IGlmIFBLRVlfQVNTSUdORUQgZmxhZyB3YXMgc2V0LiBUaGF0IGNvdWxk
-IGNyZWF0ZSBhIHJhY2luZyBjb25kaXRpb24gb24gZm9sbG93ZWQNCj4gPiByZS1pbml0aWFsaXph
-dGlvbiBvZiBRUCByZXNvdXJjZXMuDQo+ID4gLS0tDQo+ID4gICBkcml2ZXJzL2luZmluaWJhbmQv
-dWxwL2lwb2liL2lwb2liX2liLmMgfCAgIDU5ICsrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0t
-LS0NCj4gPiAgIDEgZmlsZXMgY2hhbmdlZCwgMjkgaW5zZXJ0aW9ucygrKSwgMzAgZGVsZXRpb25z
-KC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9p
-cG9pYl9pYi5jDQo+IGIvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9pYi5jDQo+
-ID4gaW5kZXggNmE3MDAzZC4uYWM5NDFlMSAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2luZmlu
-aWJhbmQvdWxwL2lwb2liL2lwb2liX2liLmMNCj4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQv
-dWxwL2lwb2liL2lwb2liX2liLmMNCj4gPiBAQCAtNTIsNiArNTIsNyBAQCBNT0RVTEVfUEFSTV9E
-RVNDKGRhdGFfZGVidWdfbGV2ZWwsDQo+ID4gICAjZW5kaWYNCj4gPg0KPiA+ICAgc3RhdGljIERF
-RklORV9NVVRFWChwa2V5X211dGV4KTsNCj4gPiArc3RhdGljIHZvaWQgaXBvaWJfcGtleV9kZXZf
-Y2hlY2tfcHJlc2VuY2Uoc3RydWN0IG5ldF9kZXZpY2UgKmRldik7DQo+ID4NCj4gPiAgIHN0cnVj
-dCBpcG9pYl9haCAqaXBvaWJfY3JlYXRlX2FoKHN0cnVjdCBuZXRfZGV2aWNlICpkZXYsDQo+ID4g
-ICAJCQkJIHN0cnVjdCBpYl9wZCAqcGQsIHN0cnVjdCBpYl9haF9hdHRyICphdHRyKQ0KPiA+IEBA
-IC02NjksMTIgKzY3MCwxMyBAQCBpbnQgaXBvaWJfaWJfZGV2X29wZW4oc3RydWN0IG5ldF9kZXZp
-Y2UgKmRldikNCj4gPiAgIAlzdHJ1Y3QgaXBvaWJfZGV2X3ByaXYgKnByaXYgPSBuZXRkZXZfcHJp
-dihkZXYpOw0KPiA+ICAgCWludCByZXQ7DQo+ID4NCj4gPiAtCWlmIChpYl9maW5kX3BrZXkocHJp
-di0+Y2EsIHByaXYtPnBvcnQsIHByaXYtPnBrZXksICZwcml2LT5wa2V5X2luZGV4KSkgew0KPiA+
-IC0JCWlwb2liX3dhcm4ocHJpdiwgIlBfS2V5IDB4JTA0eCBub3QgZm91bmRcbiIsIHByaXYtPnBr
-ZXkpOw0KPiA+IC0JCWNsZWFyX2JpdChJUE9JQl9QS0VZX0FTU0lHTkVELCAmcHJpdi0+ZmxhZ3Mp
-Ow0KPiA+ICsJaXBvaWJfcGtleV9kZXZfY2hlY2tfcHJlc2VuY2UoZGV2KTsNCj4gPiArDQo+ID4g
-KwlpZiAoIXRlc3RfYml0KElQT0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncykpIHsNCj4g
-PiArCQlpcG9pYl93YXJuKHByaXYsICJQX0tleSAweCUwNHggaXMgJXNcbiIsIHByaXYtPnBrZXks
-DQo+ID4gKwkJCSAgICEocHJpdi0+cGtleSAmIDB4N2ZmZikgPyAiSW52YWxpZCIgOiAibm90IGZv
-dW5kIik7DQo+ID4gICAJCXJldHVybiAtMTsNCj4gPiAgIAl9DQo+ID4gLQlzZXRfYml0KElQT0lC
-X1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncyk7DQo+ID4NCj4gPiAgIAlyZXQgPSBpcG9pYl9p
-bml0X3FwKGRldik7DQo+ID4gICAJaWYgKHJldCkgew0KPiA+IEBAIC03MTIsOSArNzE0LDEwIEBA
-IGRldl9zdG9wOg0KPiA+ICAgc3RhdGljIHZvaWQgaXBvaWJfcGtleV9kZXZfY2hlY2tfcHJlc2Vu
-Y2Uoc3RydWN0IG5ldF9kZXZpY2UgKmRldikNCj4gPiAgIHsNCj4gPiAgIAlzdHJ1Y3QgaXBvaWJf
-ZGV2X3ByaXYgKnByaXYgPSBuZXRkZXZfcHJpdihkZXYpOw0KPiA+IC0JdTE2IHBrZXlfaW5kZXgg
-PSAwOw0KPiA+DQo+ID4gLQlpZiAoaWJfZmluZF9wa2V5KHByaXYtPmNhLCBwcml2LT5wb3J0LCBw
-cml2LT5wa2V5LCAmcGtleV9pbmRleCkpDQo+ID4gKwlpZiAoIShwcml2LT5wa2V5ICYgMHg3ZmZm
-KSB8fA0KPiA+ICsJICAgIGliX2ZpbmRfcGtleShwcml2LT5jYSwgcHJpdi0+cG9ydCwgcHJpdi0+
-cGtleSwNCj4gPiArCQkJICZwcml2LT5wa2V5X2luZGV4KSkNCj4gPiAgIAkJY2xlYXJfYml0KElQ
-T0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncyk7DQo+ID4gICAJZWxzZQ0KPiA+ICAgCQlz
-ZXRfYml0KElQT0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncyk7DQo+ID4gQEAgLTc0Niwx
-MiArNzQ5LDEwIEBAIGludCBpcG9pYl9pYl9kZXZfZG93bihzdHJ1Y3QgbmV0X2RldmljZSAqZGV2
-LCBpbnQgZmx1c2gpDQo+ID4gICAJbmV0aWZfY2Fycmllcl9vZmYoZGV2KTsNCj4gPg0KPiA+ICAg
-CS8qIFNodXRkb3duIHRoZSBQX0tleSB0aHJlYWQgaWYgc3RpbGwgYWN0aXZlICovDQo+ID4gLQlp
-ZiAoIXRlc3RfYml0KElQT0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncykpIHsNCj4gPiAt
-CQltdXRleF9sb2NrKCZwa2V5X211dGV4KTsNCj4gPiAtCQlzZXRfYml0KElQT0lCX1BLRVlfU1RP
-UCwgJnByaXYtPmZsYWdzKTsNCj4gPiArCW11dGV4X2xvY2soJnBrZXlfbXV0ZXgpOw0KPiA+ICsJ
-aWYgKCF0ZXN0X2FuZF9zZXRfYml0KElQT0lCX1BLRVlfU1RPUCwgJnByaXYtPmZsYWdzKSkNCj4g
-PiAgIAkJY2FuY2VsX2RlbGF5ZWRfd29ya19zeW5jKCZwcml2LT5wa2V5X3BvbGxfdGFzayk7DQo+
-ID4gLQkJbXV0ZXhfdW5sb2NrKCZwa2V5X211dGV4KTsNCj4gPiAtCX0NCj4gPiArCW11dGV4X3Vu
-bG9jaygmcGtleV9tdXRleCk7DQo+ID4NCj4gPiAgIAlpcG9pYl9tY2FzdF9zdG9wX3RocmVhZChk
-ZXYsIGZsdXNoKTsNCj4gPiAgIAlpcG9pYl9tY2FzdF9kZXZfZmx1c2goZGV2KTsNCj4gPiBAQCAt
-OTcyLDcgKzk3Myw3IEBAIHN0YXRpYyB2b2lkIF9faXBvaWJfaWJfZGV2X2ZsdXNoKHN0cnVjdCBp
-cG9pYl9kZXZfcHJpdiAqcHJpdiwNCj4gPiAgIHsNCj4gPiAgIAlzdHJ1Y3QgaXBvaWJfZGV2X3By
-aXYgKmNwcml2Ow0KPiA+ICAgCXN0cnVjdCBuZXRfZGV2aWNlICpkZXYgPSBwcml2LT5kZXY7DQo+
-ID4gLQl1MTYgbmV3X2luZGV4Ow0KPiA+ICsJdTE2IG9sZF9pbmRleDsNCj4gPiAgIAlpbnQgcmVz
-dWx0Ow0KPiA+DQo+ID4gICAJZG93bl9yZWFkKCZwcml2LT52bGFuX3J3c2VtKTsNCj4gPiBAQCAt
-OTg2LDE2ICs5ODcsMTcgQEAgc3RhdGljIHZvaWQgX19pcG9pYl9pYl9kZXZfZmx1c2goc3RydWN0
-IGlwb2liX2Rldl9wcml2DQo+ICpwcml2LA0KPiA+DQo+ID4gICAJdXBfcmVhZCgmcHJpdi0+dmxh
-bl9yd3NlbSk7DQo+ID4NCj4gPiAtCWlmICghdGVzdF9iaXQoSVBPSUJfRkxBR19JTklUSUFMSVpF
-RCwgJnByaXYtPmZsYWdzKSkgew0KPiA+IC0JCS8qIGZvciBub24tY2hpbGQgZGV2aWNlcyBtdXN0
-IGNoZWNrL3VwZGF0ZSB0aGUgcGtleSB2YWx1ZSBoZXJlICovDQo+ID4gLQkJaWYgKGxldmVsID09
-IElQT0lCX0ZMVVNIX0hFQVZZICYmDQo+ID4gLQkJICAgICF0ZXN0X2JpdChJUE9JQl9GTEFHX1NV
-QklOVEVSRkFDRSwgJnByaXYtPmZsYWdzKSkNCj4gPiAtCQkJdXBkYXRlX3BhcmVudF9wa2V5KHBy
-aXYpOw0KPiA+ICsJaWYgKCF0ZXN0X2JpdChJUE9JQl9GTEFHX0lOSVRJQUxJWkVELCAmcHJpdi0+
-ZmxhZ3MpICYmDQo+ID4gKwkgICAgbGV2ZWwgIT0gSVBPSUJfRkxVU0hfSEVBVlkpIHsNCj4gPiAg
-IAkJaXBvaWJfZGJnKHByaXYsICJOb3QgZmx1c2hpbmcgLSBJUE9JQl9GTEFHX0lOSVRJQUxJWkVE
-IG5vdCBzZXQuXG4iKTsNCj4gPiAgIAkJcmV0dXJuOw0KPiA+ICAgCX0NCj4gPg0KPiA+ICAgCWlm
-ICghdGVzdF9iaXQoSVBPSUJfRkxBR19BRE1JTl9VUCwgJnByaXYtPmZsYWdzKSkgew0KPiA+ICsJ
-CS8qIGludGVyZmFjZSBpcyBkb3duLiB1cGRhdGUgcGtleSBhbmQgbGVhdmUuICovDQo+ID4gKwkJ
-aWYgKGxldmVsID09IElQT0lCX0ZMVVNIX0hFQVZZICYmDQo+ID4gKwkJICAgICF0ZXN0X2JpdChJ
-UE9JQl9GTEFHX1NVQklOVEVSRkFDRSwgJnByaXYtPmZsYWdzKSkNCj4gPiArCQkJdXBkYXRlX3Bh
-cmVudF9wa2V5KHByaXYpOw0KPiA+ICAgCQlpcG9pYl9kYmcocHJpdiwgIk5vdCBmbHVzaGluZyAt
-IElQT0lCX0ZMQUdfQURNSU5fVVAgbm90IHNldC5cbiIpOw0KPiA+ICAgCQlyZXR1cm47DQo+ID4g
-ICAJfQ0KPiA+IEBAIC0xMDA1LDIwICsxMDA3LDE1IEBAIHN0YXRpYyB2b2lkIF9faXBvaWJfaWJf
-ZGV2X2ZsdXNoKHN0cnVjdCBpcG9pYl9kZXZfcHJpdg0KPiAqcHJpdiwNCj4gPiAgIAkJICogKHBh
-cmVudCkgZGV2aWNlcyBzaG91bGQgYWx3YXlzIHRha2VzIHdoYXQgcHJlc2VudCBpbiBwa2V5IGlu
-ZGV4IDANCj4gPiAgIAkJICovDQo+ID4gICAJCWlmICh0ZXN0X2JpdChJUE9JQl9GTEFHX1NVQklO
-VEVSRkFDRSwgJnByaXYtPmZsYWdzKSkgew0KPiA+IC0JCQlpZiAoaWJfZmluZF9wa2V5KHByaXYt
-PmNhLCBwcml2LT5wb3J0LCBwcml2LT5wa2V5LCAmbmV3X2luZGV4KSkNCj4gew0KPiA+IC0JCQkJ
-Y2xlYXJfYml0KElQT0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncyk7DQo+ID4gLQkJCQlp
-cG9pYl9pYl9kZXZfZG93bihkZXYsIDApOw0KPiA+IC0JCQkJaXBvaWJfaWJfZGV2X3N0b3AoZGV2
-LCAwKTsNCj4gPiAtCQkJCWlmIChpcG9pYl9wa2V5X2Rldl9kZWxheV9vcGVuKGRldikpDQo+ID4g
-LQkJCQkJcmV0dXJuOw0KPiA+IC0JCQl9DQo+ID4gLQkJCS8qIHJlc3RhcnQgUVAgb25seSBpZiBQ
-X0tleSBpbmRleCBpcyBjaGFuZ2VkICovDQo+ID4gLQkJCWlmICh0ZXN0X2FuZF9zZXRfYml0KElQ
-T0lCX1BLRVlfQVNTSUdORUQsICZwcml2LT5mbGFncykgJiYNCj4gPiAtCQkJICAgIG5ld19pbmRl
-eCA9PSBwcml2LT5wa2V5X2luZGV4KSB7DQo+ID4gKwkJCW9sZF9pbmRleCA9IHByaXYtPnBrZXlf
-aW5kZXg7DQo+ID4gKwkJCWlwb2liX3BrZXlfZGV2X2NoZWNrX3ByZXNlbmNlKGRldik7DQo+ID4g
-Kw0KPiA+ICsJCQlpZiAodGVzdF9iaXQoSVBPSUJfUEtFWV9BU1NJR05FRCwgJnByaXYtPmZsYWdz
-KSAmJg0KPiA+ICsJCQkgICAgb2xkX2luZGV4ID09IHByaXYtPnBrZXlfaW5kZXgpIHsNCj4gPiAr
-CQkJCS8qIHJlc3RhcnQgUVAgb25seSBpZiBQX0tleSBpbmRleCBpcyBjaGFuZ2VkICovDQo+ID4g
-ICAJCQkJaXBvaWJfZGJnKHByaXYsICJOb3QgZmx1c2hpbmcgLSBQX0tleSBpbmRleCBub3QNCj4g
-Y2hhbmdlZC5cbiIpOw0KPiA+ICAgCQkJCXJldHVybjsNCj4gPiAgIAkJCX0NCj4gPiAtCQkJcHJp
-di0+cGtleV9pbmRleCA9IG5ld19pbmRleDsNCj4gPiAgIAkJfSBlbHNlIHsNCj4gPiAgIAkJCXJl
-c3VsdCA9IHVwZGF0ZV9wYXJlbnRfcGtleShwcml2KTsNCj4gPiAgIAkJCS8qIHJlc3RhcnQgUVAg
-b25seSBpZiBQX0tleSB2YWx1ZSBjaGFuZ2VkICovDQo+ID4gQEAgLTEwMzgsOCArMTAzNSwxMCBA
-QCBzdGF0aWMgdm9pZCBfX2lwb2liX2liX2Rldl9mbHVzaChzdHJ1Y3QgaXBvaWJfZGV2X3ByaXYN
-Cj4gKnByaXYsDQo+ID4gICAJCWlwb2liX2liX2Rldl9kb3duKGRldiwgMCk7DQo+ID4NCj4gPiAg
-IAlpZiAobGV2ZWwgPT0gSVBPSUJfRkxVU0hfSEVBVlkpIHsNCj4gPiAtCQlpcG9pYl9pYl9kZXZf
-c3RvcChkZXYsIDApOw0KPiA+IC0JCWlwb2liX2liX2Rldl9vcGVuKGRldik7DQo+ID4gKwkJaWYg
-KHRlc3RfYml0KElQT0lCX0ZMQUdfSU5JVElBTElaRUQsICZwcml2LT5mbGFncykpDQo+ID4gKwkJ
-CWlwb2liX2liX2Rldl9zdG9wKGRldiwgMCk7DQo+ID4gKwkJaWYgKGlwb2liX2liX2Rldl9vcGVu
-KGRldikgIT0gMCkNCj4gPiArCQkJcmV0dXJuOw0KPiA+ICAgCX0NCj4gPg0KPiA+ICAgCS8qDQo+
-ID4NCj4gPiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
-aW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiA+IHRoZSBib2R5IG9mIGEgbWVzc2Fn
-ZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4gTW9yZSBtYWpvcmRvbW8gaW5mbyBh
-dCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+ID4NCg0K
+Hi Jack-
+
+
+On Jul 2, 2014, at 3:19 AM, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+
+> On Tue, 1 Jul 2014 18:17:27 -0400
+> Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> Hi-
+>> 
+>> This happens during boot, and means that lockdep and lock_stat are
+>> completely disabled during any testing I do.
+>> 
+>> Does this splat have a known fix, or should I file an upstream
+>> bugzilla?
+>> 
+>> 
+>> Jul  1 15:50:22 manet kernel: =================================
+>> Jul  1 15:50:22 manet kernel: [ INFO: inconsistent lock state ]
+>> Jul  1 15:50:22 manet kernel: 3.16.0-rc2-00024-g2e78883 #17 Tainted:
+>> G            E Jul  1 15:50:22 manet kernel:
+>> --------------------------------- Jul  1 15:50:22 manet kernel:
+>> inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage. Jul  1 15:50:22
+>> manet kernel: swapper/0/0 [HC0[0]:SC1[1]:HE1:SE0] takes: Jul  1
+>> 15:50:22 manet kernel: (&(&iboe->lock)->rlock){+.?...}, at:
+>> [<ffffffffa065f68b>] mlx4_ib_addr_event+0xdb/0x1a0 [mlx4_ib] Jul  1
+>> 15:50:22 manet kernel: {SOFTIRQ-ON-W} state was registered at: Jul  1
+>> 15:50:22 manet kernel:  [<ffffffff810b3110>]
+>> mark_irqflags+0x110/0x170 Jul  1 15:50:22 manet kernel:
+>> [<ffffffff810b4806>] __lock_acquire+0x2c6/0x5b0 Jul  1 15:50:22 manet
+>> kernel:  [<ffffffff810b4bd9>] lock_acquire+0xe9/0x120 Jul  1 15:50:22
+>> manet kernel:  [<ffffffff815f7f6e>] _raw_spin_lock+0x3e/0x80 Jul  1
+>> 15:50:22 manet kernel:  [<ffffffffa0661084>]
+>> mlx4_ib_scan_netdevs+0x34/0x260 [mlx4_ib] Jul  1 15:50:22 manet
+>> kernel:  [<ffffffffa06612db>] mlx4_ib_netdev_event+0x2b/0x40
+>> [mlx4_ib] Jul  1 15:50:22 manet kernel:  [<ffffffff81522219>]
+>> register_netdevice_notifier+0x99/0x1e0 Jul  1 15:50:22 manet kernel:
+>> [<ffffffffa06626e3>] mlx4_ib_add+0x743/0xbc0 [mlx4_ib]
+> 
+> Hi Chuck,
+> 
+> There is a known fix which I need to submit.
+> The fix is to use lock/unlock_bh instead of spin_lock/unlock.
+> 
+> The netdev event notifier callback (mlx4_ib_addr_event), which also
+> uses the lock, is called from a soft-interrupt context, so turning off
+> hard interrupts is not needed here.  _bh spinlocks are sufficient.
+
+If you have a patch handy, I'm happy to test. Thanks!
+
+-- 
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
