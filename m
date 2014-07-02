@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [for-next 2/3] RDMA/ocrdma: update sli data structure for endianness
-Date: Wed, 2 Jul 2014 11:36:05 +0530
-Message-ID: <ee77caee-0239-4bd5-a3c4-3559aae4cf59@CMEXHTCAS1.ad.emulex.com>
+Subject: [for-next 1/3] RDMA/ocrdma: obtain sl from deivce structure
+Date: Wed, 2 Jul 2014 11:36:04 +0530
+Message-ID: <8b035dac-092d-430c-a577-61bc9ec00996@CMEXHTCAS1.ad.emulex.com>
 References: <1404281166-4937-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,314 +12,54 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-updated the sli specific mailbox command request/response
-data sturcures to fix endianness issues.
+Currently, driver obtains service level value from ah_attr->sl
+field. However, this filed is set to zero all the times from
+rdma-cm. This patch allows create_ah to obtain service level from dev->sl
 
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c  |   32 ++++--
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h |  147 +++++++++++++++++++++--------
- 2 files changed, 129 insertions(+), 50 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    4 +++-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c |    4 +---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index a023234..40f8536 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -35,6 +35,8 @@
+ #include "ocrdma_ah.h"
+ #include "ocrdma_hw.h"
+ 
++#define OCRDMA_VID_PCP_SHIFT	0xD
++
+ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 				struct ib_ah_attr *attr, int pdid)
+ {
+@@ -55,7 +57,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 	if (vlan_tag && (vlan_tag < 0x1000)) {
+ 		eth.eth_type = cpu_to_be16(0x8100);
+ 		eth.roce_eth_type = cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
+-		vlan_tag |= (attr->sl & 7) << 13;
++		vlan_tag |= (dev->sl & 0x07) << OCRDMA_VID_PCP_SHIFT;
+ 		eth.vlan_tag = cpu_to_be16(vlan_tag);
+ 		eth_sz = sizeof(struct ocrdma_eth_vlan);
+ 		vlan_enabled = true;
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index df68782..dd35ae5 100644
+index a4d27c7..df68782 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -525,7 +525,7 @@ static int ocrdma_mbx_mq_cq_create(struct ocrdma_dev *dev,
- 
- 	cmd->ev_cnt_flags = OCRDMA_CREATE_CQ_DEF_FLAGS;
- 	cmd->eqn = eq->id;
--	cmd->cqe_count = cq->size / sizeof(struct ocrdma_mcqe);
-+	cmd->pdid_cqecnt = cq->size / sizeof(struct ocrdma_mcqe);
- 
- 	ocrdma_build_q_pages(&cmd->pa[0], cq->size / OCRDMA_MIN_Q_PAGE_SIZE,
- 			     cq->dma, PAGE_SIZE_4K);
-@@ -1265,7 +1265,9 @@ static int ocrdma_mbx_get_ctrl_attribs(struct ocrdma_dev *dev)
- 		ctrl_attr_rsp = (struct ocrdma_get_ctrl_attribs_rsp *)dma.va;
- 		hba_attribs = &ctrl_attr_rsp->ctrl_attribs.hba_attribs;
- 
--		dev->hba_port_num = hba_attribs->phy_port;
-+		dev->hba_port_num = (hba_attribs->ptpnum_maxdoms_hbast_cv &
-+					OCRDMA_HBA_ATTRB_PTNUM_MASK)
-+					>> OCRDMA_HBA_ATTRB_PTNUM_SHIFT;
- 		strncpy(dev->model_number,
- 			hba_attribs->controller_model_number, 31);
+@@ -2314,10 +2314,8 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ 		cmd->params.vlan_dmac_b4_to_b5 |=
+ 		    vlan_id << OCRDMA_QP_PARAMS_VLAN_SHIFT;
+ 		cmd->flags |= OCRDMA_QP_PARA_VLAN_EN_VALID;
+-		/* override the sl with default priority if 0 */
+ 		cmd->params.rnt_rc_sl_fl |=
+-			(ah_attr->sl ? ah_attr->sl :
+-				qp->dev->sl) << OCRDMA_QP_PARAMS_SL_SHIFT;
++			(qp->dev->sl & 0x07) << OCRDMA_QP_PARAMS_SL_SHIFT;
  	}
-@@ -1315,7 +1317,8 @@ int ocrdma_mbx_get_link_speed(struct ocrdma_dev *dev, u8 *lnk_speed)
- 		goto mbx_err;
- 
- 	rsp = (struct ocrdma_get_link_speed_rsp *)cmd;
--	*lnk_speed = rsp->phys_port_speed;
-+	*lnk_speed = (rsp->pflt_pps_ld_pnum & OCRDMA_PHY_PS_MASK)
-+			>> OCRDMA_PHY_PS_SHIFT;
- 
- mbx_err:
- 	kfree(cmd);
-@@ -1341,11 +1344,16 @@ static int ocrdma_mbx_get_phy_info(struct ocrdma_dev *dev)
- 		goto mbx_err;
- 
- 	rsp = (struct ocrdma_get_phy_info_rsp *)cmd;
--	dev->phy.phy_type = le16_to_cpu(rsp->phy_type);
-+	dev->phy.phy_type =
-+			(rsp->ityp_ptyp & OCRDMA_PHY_TYPE_MASK);
-+	dev->phy.interface_type =
-+			(rsp->ityp_ptyp & OCRDMA_IF_TYPE_MASK)
-+				>> OCRDMA_IF_TYPE_SHIFT;
- 	dev->phy.auto_speeds_supported  =
--			le16_to_cpu(rsp->auto_speeds_supported);
-+			(rsp->fspeed_aspeed & OCRDMA_ASPEED_SUPP_MASK);
- 	dev->phy.fixed_speeds_supported =
--			le16_to_cpu(rsp->fixed_speeds_supported);
-+			(rsp->fspeed_aspeed & OCRDMA_FSPEED_SUPP_MASK)
-+				>> OCRDMA_FSPEED_SUPP_SHIFT;
- mbx_err:
- 	kfree(cmd);
- 	return status;
-@@ -1470,8 +1478,8 @@ static int ocrdma_mbx_create_ah_tbl(struct ocrdma_dev *dev)
- 
- 	pbes = (struct ocrdma_pbe *)dev->av_tbl.pbl.va;
- 	for (i = 0; i < dev->av_tbl.size / OCRDMA_MIN_Q_PAGE_SIZE; i++) {
--		pbes[i].pa_lo = (u32) (pa & 0xffffffff);
--		pbes[i].pa_hi = (u32) upper_32_bits(pa);
-+		pbes[i].pa_lo = (u32)cpu_to_le32(pa & 0xffffffff);
-+		pbes[i].pa_hi = (u32)cpu_to_le32(upper_32_bits(pa));
- 		pa += PAGE_SIZE;
- 	}
- 	cmd->tbl_addr[0].lo = (u32)(dev->av_tbl.pbl.pa & 0xFFFFFFFF);
-@@ -1638,14 +1646,16 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, struct ocrdma_cq *cq,
- 			cmd->cmd.pgsz_pgcnt |= OCRDMA_CREATE_CQ_DPP <<
- 				OCRDMA_CREATE_CQ_TYPE_SHIFT;
- 		cq->phase_change = false;
--		cmd->cmd.cqe_count = (cq->len / cqe_size);
-+		cmd->cmd.pdid_cqecnt = (cq->len / cqe_size);
- 	} else {
--		cmd->cmd.cqe_count = (cq->len / cqe_size) - 1;
-+		cmd->cmd.pdid_cqecnt = (cq->len / cqe_size) - 1;
- 		cmd->cmd.ev_cnt_flags |= OCRDMA_CREATE_CQ_FLAGS_AUTO_VALID;
- 		cq->phase_change = true;
- 	}
- 
--	cmd->cmd.pd_id = pd_id; /* valid only for v3 */
-+	/* pd_id valid only for v3 */
-+	cmd->cmd.pdid_cqecnt |= (pd_id <<
-+		OCRDMA_CREATE_CQ_CMD_PDID_SHIFT);
- 	ocrdma_build_q_pages(&cmd->cmd.pa[0], hw_pages, cq->pa, page_size);
- 	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
- 	if (status)
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 3d08e66..904989e 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -589,17 +589,26 @@ enum {
- 	OCRDMA_FN_MODE_RDMA	= 0x4
- };
- 
-+enum {
-+	OCRDMA_IF_TYPE_MASK		= 0xFFFF0000,
-+	OCRDMA_IF_TYPE_SHIFT		= 0x10,
-+	OCRDMA_PHY_TYPE_MASK		= 0x0000FFFF,
-+	OCRDMA_FUTURE_DETAILS_MASK	= 0xFFFF0000,
-+	OCRDMA_FUTURE_DETAILS_SHIFT	= 0x10,
-+	OCRDMA_EX_PHY_DETAILS_MASK	= 0x0000FFFF,
-+	OCRDMA_FSPEED_SUPP_MASK		= 0xFFFF0000,
-+	OCRDMA_FSPEED_SUPP_SHIFT	= 0x10,
-+	OCRDMA_ASPEED_SUPP_MASK		= 0x0000FFFF
-+};
-+
- struct ocrdma_get_phy_info_rsp {
- 	struct ocrdma_mqe_hdr hdr;
- 	struct ocrdma_mbx_rsp rsp;
- 
--	u16 phy_type;
--	u16 interface_type;
-+	u32 ityp_ptyp;
- 	u32 misc_params;
--	u16 ext_phy_details;
--	u16 rsvd;
--	u16 auto_speeds_supported;
--	u16 fixed_speeds_supported;
-+	u32 ftrdtl_exphydtl;
-+	u32 fspeed_aspeed;
- 	u32 future_use[2];
- };
- 
-@@ -612,19 +621,34 @@ enum {
- 	OCRDMA_PHY_SPEED_40GBPS = 0x20
- };
- 
-+enum {
-+	OCRDMA_PORT_NUM_MASK	= 0x3F,
-+	OCRDMA_PT_MASK		= 0xC0,
-+	OCRDMA_PT_SHIFT		= 0x6,
-+	OCRDMA_LINK_DUP_MASK	= 0x0000FF00,
-+	OCRDMA_LINK_DUP_SHIFT	= 0x8,
-+	OCRDMA_PHY_PS_MASK	= 0x00FF0000,
-+	OCRDMA_PHY_PS_SHIFT	= 0x10,
-+	OCRDMA_PHY_PFLT_MASK	= 0xFF000000,
-+	OCRDMA_PHY_PFLT_SHIFT	= 0x18,
-+	OCRDMA_QOS_LNKSP_MASK	= 0xFFFF0000,
-+	OCRDMA_QOS_LNKSP_SHIFT	= 0x10,
-+	OCRDMA_LLST_MASK	= 0xFF,
-+	OCRDMA_PLFC_MASK	= 0x00000400,
-+	OCRDMA_PLFC_SHIFT	= 0x8,
-+	OCRDMA_PLRFC_MASK	= 0x00000200,
-+	OCRDMA_PLRFC_SHIFT	= 0x8,
-+	OCRDMA_PLTFC_MASK	= 0x00000100,
-+	OCRDMA_PLTFC_SHIFT	= 0x8
-+};
- 
- struct ocrdma_get_link_speed_rsp {
- 	struct ocrdma_mqe_hdr hdr;
- 	struct ocrdma_mbx_rsp rsp;
- 
--	u8 pt_port_num;
--	u8 link_duplex;
--	u8 phys_port_speed;
--	u8 phys_port_fault;
--	u16 rsvd1;
--	u16 qos_lnk_speed;
--	u8 logical_lnk_status;
--	u8 rsvd2[3];
-+	u32 pflt_pps_ld_pnum;
-+	u32 qos_lsp;
-+	u32 res_lls;
- };
- 
- enum {
-@@ -675,8 +699,7 @@ struct ocrdma_create_cq_cmd {
- 	u32 pgsz_pgcnt;
- 	u32 ev_cnt_flags;
- 	u32 eqn;
--	u16 cqe_count;
--	u16 pd_id;
-+	u32 pdid_cqecnt;
- 	u32 rsvd6;
- 	struct ocrdma_pa pa[OCRDMA_CREATE_CQ_MAX_PAGES];
- };
-@@ -687,6 +710,10 @@ struct ocrdma_create_cq {
- };
- 
- enum {
-+	OCRDMA_CREATE_CQ_CMD_PDID_SHIFT	= 0x10
-+};
-+
-+enum {
- 	OCRDMA_CREATE_CQ_RSP_CQ_ID_MASK	= 0xFFFF
- };
- 
-@@ -1904,12 +1931,62 @@ struct ocrdma_rdma_stats_resp {
- 	struct ocrdma_rx_dbg_stats	rx_dbg_stats;
- } __packed;
- 
-+enum {
-+	OCRDMA_HBA_ATTRB_EPROM_VER_LO_MASK	= 0xFF,
-+	OCRDMA_HBA_ATTRB_EPROM_VER_HI_MASK	= 0xFF00,
-+	OCRDMA_HBA_ATTRB_EPROM_VER_HI_SHIFT	= 0x08,
-+	OCRDMA_HBA_ATTRB_CDBLEN_MASK		= 0xFFFF,
-+	OCRDMA_HBA_ATTRB_ASIC_REV_MASK		= 0xFF0000,
-+	OCRDMA_HBA_ATTRB_ASIC_REV_SHIFT		= 0x10,
-+	OCRDMA_HBA_ATTRB_GUID0_MASK		= 0xFF000000,
-+	OCRDMA_HBA_ATTRB_GUID0_SHIFT		= 0x18,
-+	OCRDMA_HBA_ATTRB_GUID13_MASK		= 0xFF,
-+	OCRDMA_HBA_ATTRB_GUID14_MASK		= 0xFF00,
-+	OCRDMA_HBA_ATTRB_GUID14_SHIFT		= 0x08,
-+	OCRDMA_HBA_ATTRB_GUID15_MASK		= 0xFF0000,
-+	OCRDMA_HBA_ATTRB_GUID15_SHIFT		= 0x10,
-+	OCRDMA_HBA_ATTRB_PCNT_MASK		= 0xFF000000,
-+	OCRDMA_HBA_ATTRB_PCNT_SHIFT		= 0x18,
-+	OCRDMA_HBA_ATTRB_LDTOUT_MASK		= 0xFFFF,
-+	OCRDMA_HBA_ATTRB_ISCSI_VER_MASK		= 0xFF0000,
-+	OCRDMA_HBA_ATTRB_ISCSI_VER_SHIFT	= 0x10,
-+	OCRDMA_HBA_ATTRB_MFUNC_DEV_MASK		= 0xFF000000,
-+	OCRDMA_HBA_ATTRB_MFUNC_DEV_SHIFT	= 0x18,
-+	OCRDMA_HBA_ATTRB_CV_MASK		= 0xFF,
-+	OCRDMA_HBA_ATTRB_HBA_ST_MASK		= 0xFF00,
-+	OCRDMA_HBA_ATTRB_HBA_ST_SHIFT		= 0x08,
-+	OCRDMA_HBA_ATTRB_MAX_DOMS_MASK		= 0xFF0000,
-+	OCRDMA_HBA_ATTRB_MAX_DOMS_SHIFT		= 0x10,
-+	OCRDMA_HBA_ATTRB_PTNUM_MASK		= 0x3F000000,
-+	OCRDMA_HBA_ATTRB_PTNUM_SHIFT		= 0x18,
-+	OCRDMA_HBA_ATTRB_PT_MASK		= 0xC0000000,
-+	OCRDMA_HBA_ATTRB_PT_SHIFT		= 0x1E,
-+	OCRDMA_HBA_ATTRB_ISCSI_FET_MASK		= 0xFF,
-+	OCRDMA_HBA_ATTRB_ASIC_GEN_MASK		= 0xFF00,
-+	OCRDMA_HBA_ATTRB_ASIC_GEN_SHIFT		= 0x08,
-+	OCRDMA_HBA_ATTRB_PCI_VID_MASK		= 0xFFFF,
-+	OCRDMA_HBA_ATTRB_PCI_DID_MASK		= 0xFFFF0000,
-+	OCRDMA_HBA_ATTRB_PCI_DID_SHIFT		= 0x10,
-+	OCRDMA_HBA_ATTRB_PCI_SVID_MASK		= 0xFFFF,
-+	OCRDMA_HBA_ATTRB_PCI_SSID_MASK		= 0xFFFF0000,
-+	OCRDMA_HBA_ATTRB_PCI_SSID_SHIFT		= 0x10,
-+	OCRDMA_HBA_ATTRB_PCI_BUSNUM_MASK	= 0xFF,
-+	OCRDMA_HBA_ATTRB_PCI_DEVNUM_MASK	= 0xFF00,
-+	OCRDMA_HBA_ATTRB_PCI_DEVNUM_SHIFT	= 0x08,
-+	OCRDMA_HBA_ATTRB_PCI_FUNCNUM_MASK	= 0xFF0000,
-+	OCRDMA_HBA_ATTRB_PCI_FUNCNUM_SHIFT	= 0x10,
-+	OCRDMA_HBA_ATTRB_IF_TYPE_MASK		= 0xFF000000,
-+	OCRDMA_HBA_ATTRB_IF_TYPE_SHIFT		= 0x18,
-+	OCRDMA_HBA_ATTRB_NETFIL_MASK		=0xFF
-+};
- 
- struct mgmt_hba_attribs {
- 	u8 flashrom_version_string[32];
- 	u8 manufacturer_name[32];
- 	u32 supported_modes;
--	u32 rsvd0[3];
-+	u32 rsvd_eprom_verhi_verlo;
-+	u32 mbx_ds_ver;
-+	u32 epfw_ds_ver;
- 	u8 ncsi_ver_string[12];
- 	u32 default_extended_timeout;
- 	u8 controller_model_number[32];
-@@ -1922,34 +1999,26 @@ struct mgmt_hba_attribs {
- 	u8 driver_version_string[32];
- 	u8 fw_on_flash_version_string[32];
- 	u32 functionalities_supported;
--	u16 max_cdblength;
--	u8 asic_revision;
--	u8 generational_guid[16];
--	u8 hba_port_count;
--	u16 default_link_down_timeout;
--	u8 iscsi_ver_min_max;
--	u8 multifunction_device;
--	u8 cache_valid;
--	u8 hba_status;
--	u8 max_domains_supported;
--	u8 phy_port;
-+	u32 guid0_asicrev_cdblen;
-+	u8 generational_guid[12];
-+	u32 portcnt_guid15;
-+	u32 mfuncdev_iscsi_ldtout;
-+	u32 ptpnum_maxdoms_hbast_cv;
- 	u32 firmware_post_status;
- 	u32 hba_mtu[8];
--	u32 rsvd1[4];
-+	u32 res_asicgen_iscsi_feaures;
-+	u32 rsvd1[3];
- };
- 
- struct mgmt_controller_attrib {
- 	struct mgmt_hba_attribs hba_attribs;
--	u16 pci_vendor_id;
--	u16 pci_device_id;
--	u16 pci_sub_vendor_id;
--	u16 pci_sub_system_id;
--	u8 pci_bus_number;
--	u8 pci_device_number;
--	u8 pci_function_number;
--	u8 interface_type;
--	u64 unique_identifier;
--	u32 rsvd0[5];
-+	u32 pci_did_vid;
-+	u32 pci_ssid_svid;
-+	u32 ityp_fnum_devnum_bnum;
-+	u32 uid_hi;
-+	u32 uid_lo;
-+	u32 res_nnetfil;
-+	u32 rsvd0[4];
- };
- 
- struct ocrdma_get_ctrl_attribs_rsp {
+ 	return 0;
+ }
 -- 
 1.7.1
 
