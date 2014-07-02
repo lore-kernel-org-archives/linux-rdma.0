@@ -1,179 +1,134 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transport disconnect
-Date: Wed, 2 Jul 2014 14:56:54 -0500
-Message-ID: <006401cf962f$c5ec49e0$51c4dda0$@opengridcomputing.com>
-References: <20140623223201.1634.83888.stgit@manet.1015granger.net> <20140623223942.1634.89063.stgit@manet.1015granger.net> <EE7902D3F51F404C82415C4803930ACD3FE0C540@CMEXMB1.ad.emulex.com> <53B45D7B.4020705@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE0C57A@CMEXMB1.ad.emulex.com> <006001cf962e$e20df020$a629d060$@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE0C5AE@CMEXMB1.ad.emulex.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transport
+ disconnect
+Date: Wed, 2 Jul 2014 19:57:49 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE0C5D8@CMEXMB1.ad.emulex.com>
+References: <20140623223201.1634.83888.stgit@manet.1015granger.net>
+ <20140623223942.1634.89063.stgit@manet.1015granger.net>
+ <EE7902D3F51F404C82415C4803930ACD3FE0C540@CMEXMB1.ad.emulex.com>
+ <53B45D7B.4020705@opengridcomputing.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE0C57A@CMEXMB1.ad.emulex.com>
+ <006001cf962e$e20df020$a629d060$@opengridcomputing.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE0C5AE@CMEXMB1.ad.emulex.com>
+ <006401cf962f$c5ec49e0$51c4dda0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE0C5AE-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <006401cf962f$c5ec49e0$51c4dda0$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Devesh Sharma' <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Devesh Sharma [mailto:Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org]
-> Sent: Wednesday, July 02, 2014 2:54 PM
-> To: Steve Wise; 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs@=
-vger.kernel.org
-> Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transport =
-disconnect
->=20
->=20
->=20
-> > -----Original Message-----
-> > From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
-> > Sent: Thursday, July 03, 2014 1:21 AM
-> > To: Devesh Sharma; 'Chuck Lever'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux=
--
-> > nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transpor=
-t
-> > disconnect
-> >
-> >
-> >
-> > > -----Original Message-----
-> > > From: Devesh Sharma [mailto:Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org]
-> > > Sent: Wednesday, July 02, 2014 2:43 PM
-> > > To: Steve Wise; Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > > linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transp=
-ort
-> > > disconnect
-> > >
-> > > > -----Original Message-----
-> > > > From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
-> > > > Sent: Thursday, July 03, 2014 12:59 AM
-> > > > To: Devesh Sharma; Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; lin=
-ux-
-> > > > nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > Subject: Re: [PATCH v1 05/13] xprtrdma: Don't drain CQs on tran=
-sport
-> > > > disconnect
-> > > >
-> > > > On 7/2/2014 2:06 PM, Devesh Sharma wrote:
-> > > > > This change is very much prone to generate poll_cq errors bec=
-ause
-> > > > > of un-cleaned completions which still point to the non-existe=
-nt
-> > > > > QPs. On the new connection when these completions are polled,=
- the
-> > > > > poll_cq will fail
-> > > > because old QP pointer is already NULL.
-> > > > > Did anyone hit this situation during their testing?
-> > > >
-> > > > Hey Devesh,
-> > > >
-> > > > iw_cxgb4 will silently toss CQEs if the QP is not active.
-> > >
-> > > Ya, just now checked that in mlx and cxgb4 driver code. On the ot=
-her
-> > > hand ocrdma is asserting a BUG-ON for such CQEs causing system pa=
-nic.
-> > > Out of curiosity I am asking, how this change is useful here, is =
-it
-> > > reducing the re-connection time...Anyhow rpcrdma_clean_cq was
-> > > discarding the completions (flush/successful both)
-> > >
-> >
-> > Well, I don't think there is anything restricting an application fr=
-om destroying
-> > the QP with pending CQEs on its CQs.   So it definitely shouldn't c=
-ause a
-> > BUG_ON() I think.   I'll have to read up in the Verbs specs if dest=
-roying a QP
-> > kills all the pending CQEs...
->=20
-> Oh confusion...let me clarify: in ocrdma BUG ON is hit in poll_cq() a=
-fter re-connection happens
-> and cq is polled again.
-> Now the first completion in CQ still points to old QP-ID for which oc=
-rdma does not have valid
-> QP pointer.
->
-
-Right.  Which means it=E2=80=99s a stale CQE.  I don't think that shoul=
-d cause a BUG_ON.=20
-
-=20
-> >
-> >
-> > > >
-> > > >
-> > > > >> -----Original Message-----
-> > > > >> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > > > >> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
-> > > > >> Sent: Tuesday, June 24, 2014 4:10 AM
-> > > > >> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > >> Subject: [PATCH v1 05/13] xprtrdma: Don't drain CQs on trans=
-port
-> > > > >> disconnect
-> > > > >>
-> > > > >> CQs are not destroyed until unmount. By draining CQs on tran=
-sport
-> > > > >> disconnect, successful completions that can change the
-> > > > >> r.frmr.state field can be missed.
-> > >
-> > > Still those are missed isn=E2=80=99t it....Since those successful=
- completions
-> > > will still be dropped after re- connection. Am I missing somethin=
-g to
-> > > understanding the motivation...
-> > >
-> > > > >>
-> > > > >> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > > >> ---
-> > > > >>   net/sunrpc/xprtrdma/verbs.c |    5 -----
-> > > > >>   1 file changed, 5 deletions(-)
-> > > > >>
-> > > > >> diff --git a/net/sunrpc/xprtrdma/verbs.c
-> > > > >> b/net/sunrpc/xprtrdma/verbs.c index 3c7f904..451e100 100644
-> > > > >> --- a/net/sunrpc/xprtrdma/verbs.c
-> > > > >> +++ b/net/sunrpc/xprtrdma/verbs.c
-> > > > >> @@ -873,9 +873,6 @@ retry:
-> > > > >>   			dprintk("RPC:       %s:
-> > rpcrdma_ep_disconnect"
-> > > > >>   				" status %i\n", __func__, rc);
-> > > > >>
-> > > > >> -		rpcrdma_clean_cq(ep->rep_attr.recv_cq);
-> > > > >> -		rpcrdma_clean_cq(ep->rep_attr.send_cq);
-> > > > >> -
-> > > > >>   		xprt =3D container_of(ia, struct rpcrdma_xprt, rx_ia);
-> > > > >>   		id =3D rpcrdma_create_id(xprt, ia,
-> > > > >>   				(struct sockaddr *)&xprt-
-> > >rx_data.addr);
-> > > > @@ -985,8 +982,6 @@
-> > > > >> rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, struct rpcrdma_=
-ia
-> > > > >> *ia) {
-> > > > >>   	int rc;
-> > > > >>
-> > > > >> -	rpcrdma_clean_cq(ep->rep_attr.recv_cq);
-> > > > >> -	rpcrdma_clean_cq(ep->rep_attr.send_cq);
-> > > > >>   	rc =3D rdma_disconnect(ia->ri_id);
-> > > > >>   	if (!rc) {
-> > > > >>   		/* returns without wait if not connected */
-> > > > >>
-> > > > >> --
-> > > > >> To unsubscribe from this list: send the line "unsubscribe li=
-nux-rdma"
-> > > > >> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
-> > > > majordomo
-> > > > >> info at http://vger.kernel.org/majordomo-info.html
-> > > > > N     r  y   b X  =C7=A7v ^ )=DE=BA{.n +    {   "  ^n r   z =1A=
-  h    &  =1E G   h =03
-> > > > > ( =E9=9A=8E =DD=A2j"  =1A =1Bm     z =DE=96   f   h   ~ mml=3D=
-=3D
-> >
-
-
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU3RldmUgV2lzZSBbbWFp
+bHRvOnN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbV0NCj4gU2VudDogVGh1cnNkYXksIEp1bHkg
+MDMsIDIwMTQgMToyNyBBTQ0KPiBUbzogRGV2ZXNoIFNoYXJtYTsgJ0NodWNrIExldmVyJzsgbGlu
+dXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBuZnNAdmdlci5rZXJuZWwub3JnDQo+
+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggdjEgMDUvMTNdIHhwcnRyZG1hOiBEb24ndCBkcmFpbiBDUXMg
+b24gdHJhbnNwb3J0DQo+IGRpc2Nvbm5lY3QNCj4gDQo+IA0KPiANCj4gPiAtLS0tLU9yaWdpbmFs
+IE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IERldmVzaCBTaGFybWEgW21haWx0bzpEZXZlc2guU2hh
+cm1hQEVtdWxleC5Db21dDQo+ID4gU2VudDogV2VkbmVzZGF5LCBKdWx5IDAyLCAyMDE0IDI6NTQg
+UE0NCj4gPiBUbzogU3RldmUgV2lzZTsgJ0NodWNrIExldmVyJzsgbGludXgtcmRtYUB2Z2VyLmtl
+cm5lbC5vcmc7DQo+ID4gbGludXgtbmZzQHZnZXIua2VybmVsLm9yZw0KPiA+IFN1YmplY3Q6IFJF
+OiBbUEFUQ0ggdjEgMDUvMTNdIHhwcnRyZG1hOiBEb24ndCBkcmFpbiBDUXMgb24gdHJhbnNwb3J0
+DQo+ID4gZGlzY29ubmVjdA0KPiA+DQo+ID4NCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNz
+YWdlLS0tLS0NCj4gPiA+IEZyb206IFN0ZXZlIFdpc2UgW21haWx0bzpzd2lzZUBvcGVuZ3JpZGNv
+bXB1dGluZy5jb21dDQo+ID4gPiBTZW50OiBUaHVyc2RheSwgSnVseSAwMywgMjAxNCAxOjIxIEFN
+DQo+ID4gPiBUbzogRGV2ZXNoIFNoYXJtYTsgJ0NodWNrIExldmVyJzsgbGludXgtcmRtYUB2Z2Vy
+Lmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiA+ID4gbmZzQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gU3Vi
+amVjdDogUkU6IFtQQVRDSCB2MSAwNS8xM10geHBydHJkbWE6IERvbid0IGRyYWluIENRcyBvbiB0
+cmFuc3BvcnQNCj4gPiA+IGRpc2Nvbm5lY3QNCj4gPiA+DQo+ID4gPg0KPiA+ID4NCj4gPiA+ID4g
+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gRnJvbTogRGV2ZXNoIFNoYXJtYSBb
+bWFpbHRvOkRldmVzaC5TaGFybWFARW11bGV4LkNvbV0NCj4gPiA+ID4gU2VudDogV2VkbmVzZGF5
+LCBKdWx5IDAyLCAyMDE0IDI6NDMgUE0NCj4gPiA+ID4gVG86IFN0ZXZlIFdpc2U7IENodWNrIExl
+dmVyOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsNCj4gPiA+ID4gbGludXgtbmZzQHZnZXIu
+a2VybmVsLm9yZw0KPiA+ID4gPiBTdWJqZWN0OiBSRTogW1BBVENIIHYxIDA1LzEzXSB4cHJ0cmRt
+YTogRG9uJ3QgZHJhaW4gQ1FzIG9uDQo+ID4gPiA+IHRyYW5zcG9ydCBkaXNjb25uZWN0DQo+ID4g
+PiA+DQo+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gPiBGcm9t
+OiBTdGV2ZSBXaXNlIFttYWlsdG86c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcuY29tXQ0KPiA+ID4g
+PiA+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDAzLCAyMDE0IDEyOjU5IEFNDQo+ID4gPiA+ID4gVG86
+IERldmVzaCBTaGFybWE7IENodWNrIExldmVyOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsN
+Cj4gPiA+ID4gPiBsaW51eC0gbmZzQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gPiA+IFN1YmplY3Q6
+IFJlOiBbUEFUQ0ggdjEgMDUvMTNdIHhwcnRyZG1hOiBEb24ndCBkcmFpbiBDUXMgb24NCj4gPiA+
+ID4gPiB0cmFuc3BvcnQgZGlzY29ubmVjdA0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gT24gNy8yLzIw
+MTQgMjowNiBQTSwgRGV2ZXNoIFNoYXJtYSB3cm90ZToNCj4gPiA+ID4gPiA+IFRoaXMgY2hhbmdl
+IGlzIHZlcnkgbXVjaCBwcm9uZSB0byBnZW5lcmF0ZSBwb2xsX2NxIGVycm9ycw0KPiA+ID4gPiA+
+ID4gYmVjYXVzZSBvZiB1bi1jbGVhbmVkIGNvbXBsZXRpb25zIHdoaWNoIHN0aWxsIHBvaW50IHRv
+IHRoZQ0KPiA+ID4gPiA+ID4gbm9uLWV4aXN0ZW50IFFQcy4gT24gdGhlIG5ldyBjb25uZWN0aW9u
+IHdoZW4gdGhlc2UgY29tcGxldGlvbnMNCj4gPiA+ID4gPiA+IGFyZSBwb2xsZWQsIHRoZSBwb2xs
+X2NxIHdpbGwgZmFpbA0KPiA+ID4gPiA+IGJlY2F1c2Ugb2xkIFFQIHBvaW50ZXIgaXMgYWxyZWFk
+eSBOVUxMLg0KPiA+ID4gPiA+ID4gRGlkIGFueW9uZSBoaXQgdGhpcyBzaXR1YXRpb24gZHVyaW5n
+IHRoZWlyIHRlc3Rpbmc/DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBIZXkgRGV2ZXNoLA0KPiA+ID4g
+PiA+DQo+ID4gPiA+ID4gaXdfY3hnYjQgd2lsbCBzaWxlbnRseSB0b3NzIENRRXMgaWYgdGhlIFFQ
+IGlzIG5vdCBhY3RpdmUuDQo+ID4gPiA+DQo+ID4gPiA+IFlhLCBqdXN0IG5vdyBjaGVja2VkIHRo
+YXQgaW4gbWx4IGFuZCBjeGdiNCBkcml2ZXIgY29kZS4gT24gdGhlDQo+ID4gPiA+IG90aGVyIGhh
+bmQgb2NyZG1hIGlzIGFzc2VydGluZyBhIEJVRy1PTiBmb3Igc3VjaCBDUUVzIGNhdXNpbmcgc3lz
+dGVtDQo+IHBhbmljLg0KPiA+ID4gPiBPdXQgb2YgY3VyaW9zaXR5IEkgYW0gYXNraW5nLCBob3cg
+dGhpcyBjaGFuZ2UgaXMgdXNlZnVsIGhlcmUsIGlzDQo+ID4gPiA+IGl0IHJlZHVjaW5nIHRoZSBy
+ZS1jb25uZWN0aW9uIHRpbWUuLi5Bbnlob3cgcnBjcmRtYV9jbGVhbl9jcSB3YXMNCj4gPiA+ID4g
+ZGlzY2FyZGluZyB0aGUgY29tcGxldGlvbnMgKGZsdXNoL3N1Y2Nlc3NmdWwgYm90aCkNCj4gPiA+
+ID4NCj4gPiA+DQo+ID4gPiBXZWxsLCBJIGRvbid0IHRoaW5rIHRoZXJlIGlzIGFueXRoaW5nIHJl
+c3RyaWN0aW5nIGFuIGFwcGxpY2F0aW9uIGZyb20NCj4gZGVzdHJveWluZw0KPiA+ID4gdGhlIFFQ
+IHdpdGggcGVuZGluZyBDUUVzIG9uIGl0cyBDUXMuICAgU28gaXQgZGVmaW5pdGVseSBzaG91bGRu
+J3QgY2F1c2UgYQ0KPiA+ID4gQlVHX09OKCkgSSB0aGluay4gICBJJ2xsIGhhdmUgdG8gcmVhZCB1
+cCBpbiB0aGUgVmVyYnMgc3BlY3MgaWYgZGVzdHJveWluZyBhDQo+IFFQDQo+ID4gPiBraWxscyBh
+bGwgdGhlIHBlbmRpbmcgQ1FFcy4uLg0KPiA+DQo+ID4gT2ggY29uZnVzaW9uLi4ubGV0IG1lIGNs
+YXJpZnk6IGluIG9jcmRtYSBCVUcgT04gaXMgaGl0IGluIHBvbGxfY3EoKQ0KPiA+IGFmdGVyIHJl
+LWNvbm5lY3Rpb24gaGFwcGVucyBhbmQgY3EgaXMgcG9sbGVkIGFnYWluLg0KPiA+IE5vdyB0aGUg
+Zmlyc3QgY29tcGxldGlvbiBpbiBDUSBzdGlsbCBwb2ludHMgdG8gb2xkIFFQLUlEIGZvciB3aGlj
+aA0KPiA+IG9jcmRtYSBkb2VzIG5vdCBoYXZlIHZhbGlkIFFQIHBvaW50ZXIuDQo+ID4NCj4gDQo+
+IFJpZ2h0LiAgV2hpY2ggbWVhbnMgaXTigJlzIGEgc3RhbGUgQ1FFLiAgSSBkb24ndCB0aGluayB0
+aGF0IHNob3VsZCBjYXVzZSBhDQo+IEJVR19PTi4NCg0KWWVzIHRoaXMgc3VyZWx5IG5lZWRzIGEg
+Zml4IGluIG9jcmRtYS4NCg0KPiANCj4gDQo+ID4gPg0KPiA+ID4NCj4gPiA+ID4gPg0KPiA+ID4g
+PiA+DQo+ID4gPiA+ID4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gPiA+
+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
+bWEtDQo+ID4gPiA+ID4gPj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgQ2h1
+Y2sgTGV2ZXINCj4gPiA+ID4gPiA+PiBTZW50OiBUdWVzZGF5LCBKdW5lIDI0LCAyMDE0IDQ6MTAg
+QU0NCj4gPiA+ID4gPiA+PiBUbzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LW5m
+c0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiA+ID4gPiA+PiBTdWJqZWN0OiBbUEFUQ0ggdjEgMDUvMTNd
+IHhwcnRyZG1hOiBEb24ndCBkcmFpbiBDUXMgb24NCj4gPiA+ID4gPiA+PiB0cmFuc3BvcnQgZGlz
+Y29ubmVjdA0KPiA+ID4gPiA+ID4+DQo+ID4gPiA+ID4gPj4gQ1FzIGFyZSBub3QgZGVzdHJveWVk
+IHVudGlsIHVubW91bnQuIEJ5IGRyYWluaW5nIENRcyBvbg0KPiA+ID4gPiA+ID4+IHRyYW5zcG9y
+dCBkaXNjb25uZWN0LCBzdWNjZXNzZnVsIGNvbXBsZXRpb25zIHRoYXQgY2FuIGNoYW5nZQ0KPiA+
+ID4gPiA+ID4+IHRoZSByLmZybXIuc3RhdGUgZmllbGQgY2FuIGJlIG1pc3NlZC4NCj4gPiA+ID4N
+Cj4gPiA+ID4gU3RpbGwgdGhvc2UgYXJlIG1pc3NlZCBpc27igJl0IGl0Li4uLlNpbmNlIHRob3Nl
+IHN1Y2Nlc3NmdWwNCj4gPiA+ID4gY29tcGxldGlvbnMgd2lsbCBzdGlsbCBiZSBkcm9wcGVkIGFm
+dGVyIHJlLSBjb25uZWN0aW9uLiBBbSBJDQo+ID4gPiA+IG1pc3Npbmcgc29tZXRoaW5nIHRvIHVu
+ZGVyc3RhbmRpbmcgdGhlIG1vdGl2YXRpb24uLi4NCj4gPiA+ID4NCj4gPiA+ID4gPiA+Pg0KPiA+
+ID4gPiA+ID4+IFNpZ25lZC1vZmYtYnk6IENodWNrIExldmVyIDxjaHVjay5sZXZlckBvcmFjbGUu
+Y29tPg0KPiA+ID4gPiA+ID4+IC0tLQ0KPiA+ID4gPiA+ID4+ICAgbmV0L3N1bnJwYy94cHJ0cmRt
+YS92ZXJicy5jIHwgICAgNSAtLS0tLQ0KPiA+ID4gPiA+ID4+ICAgMSBmaWxlIGNoYW5nZWQsIDUg
+ZGVsZXRpb25zKC0pDQo+ID4gPiA+ID4gPj4NCj4gPiA+ID4gPiA+PiBkaWZmIC0tZ2l0IGEvbmV0
+L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5jDQo+ID4gPiA+ID4gPj4gYi9uZXQvc3VucnBjL3hwcnRy
+ZG1hL3ZlcmJzLmMgaW5kZXggM2M3ZjkwNC4uNDUxZTEwMCAxMDA2NDQNCj4gPiA+ID4gPiA+PiAt
+LS0gYS9uZXQvc3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMNCj4gPiA+ID4gPiA+PiArKysgYi9uZXQv
+c3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMNCj4gPiA+ID4gPiA+PiBAQCAtODczLDkgKzg3Myw2IEBA
+IHJldHJ5Og0KPiA+ID4gPiA+ID4+ICAgCQkJZHByaW50aygiUlBDOiAgICAgICAlczoNCj4gPiA+
+IHJwY3JkbWFfZXBfZGlzY29ubmVjdCINCj4gPiA+ID4gPiA+PiAgIAkJCQkiIHN0YXR1cyAlaVxu
+IiwgX19mdW5jX18sIHJjKTsNCj4gPiA+ID4gPiA+Pg0KPiA+ID4gPiA+ID4+IC0JCXJwY3JkbWFf
+Y2xlYW5fY3EoZXAtPnJlcF9hdHRyLnJlY3ZfY3EpOw0KPiA+ID4gPiA+ID4+IC0JCXJwY3JkbWFf
+Y2xlYW5fY3EoZXAtPnJlcF9hdHRyLnNlbmRfY3EpOw0KPiA+ID4gPiA+ID4+IC0NCj4gPiA+ID4g
+PiA+PiAgIAkJeHBydCA9IGNvbnRhaW5lcl9vZihpYSwgc3RydWN0IHJwY3JkbWFfeHBydCwgcnhf
+aWEpOw0KPiA+ID4gPiA+ID4+ICAgCQlpZCA9IHJwY3JkbWFfY3JlYXRlX2lkKHhwcnQsIGlhLA0K
+PiA+ID4gPiA+ID4+ICAgCQkJCShzdHJ1Y3Qgc29ja2FkZHIgKikmeHBydC0NCj4gPiA+ID5yeF9k
+YXRhLmFkZHIpOw0KPiA+ID4gPiA+IEBAIC05ODUsOCArOTgyLDYgQEANCj4gPiA+ID4gPiA+PiBy
+cGNyZG1hX2VwX2Rpc2Nvbm5lY3Qoc3RydWN0IHJwY3JkbWFfZXAgKmVwLCBzdHJ1Y3QNCj4gPiA+
+ID4gPiA+PiBycGNyZG1hX2lhDQo+ID4gPiA+ID4gPj4gKmlhKSB7DQo+ID4gPiA+ID4gPj4gICAJ
+aW50IHJjOw0KPiA+ID4gPiA+ID4+DQo+ID4gPiA+ID4gPj4gLQlycGNyZG1hX2NsZWFuX2NxKGVw
+LT5yZXBfYXR0ci5yZWN2X2NxKTsNCj4gPiA+ID4gPiA+PiAtCXJwY3JkbWFfY2xlYW5fY3EoZXAt
+PnJlcF9hdHRyLnNlbmRfY3EpOw0KPiA+ID4gPiA+ID4+ICAgCXJjID0gcmRtYV9kaXNjb25uZWN0
+KGlhLT5yaV9pZCk7DQo+ID4gPiA+ID4gPj4gICAJaWYgKCFyYykgew0KPiA+ID4gPiA+ID4+ICAg
+CQkvKiByZXR1cm5zIHdpdGhvdXQgd2FpdCBpZiBub3QgY29ubmVjdGVkICovDQo+ID4gPiA+ID4g
+Pj4NCj4gPiA+ID4gPiA+PiAtLQ0KPiA+ID4gPiA+ID4+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhp
+cyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC0NCj4gcmRtYSINCj4gPiA+
+ID4gPiA+PiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVs
+Lm9yZyBNb3JlDQo+ID4gPiA+ID4gbWFqb3Jkb21vDQo+ID4gPiA+ID4gPj4gaW5mbyBhdCBodHRw
+Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPiA+ID4gPiA+IE4gICAg
+IHIgIHkgICBiIFggIMendiBeICneunsubiArICAgIHsgICAiICBebiByICAgeiAaICBoICAgICYg
+IB4gRyAgIGggAw0KPiA+ID4gPiA+ID4gKCDpmo4g3aJqIiAgGiAbbSAgICAgeiDeliAgIGYgICBo
+ICAgfiBtbWw9PQ0KPiA+ID4NCj4gDQoNCg==
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
