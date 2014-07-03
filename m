@@ -1,127 +1,196 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v1 05/13] xprtrdma: Don't drain CQs on transport
- disconnect
-Date: Thu, 3 Jul 2014 05:33:58 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE0C669@CMEXMB1.ad.emulex.com>
-References: <20140623223201.1634.83888.stgit@manet.1015granger.net>
- <20140623223942.1634.89063.stgit@manet.1015granger.net>
- <EE7902D3F51F404C82415C4803930ACD3FE0C540@CMEXMB1.ad.emulex.com>
- <53B45D7B.4020705@opengridcomputing.com>
- <C9B761DF-7960-4346-949E-17A9BDD357DB@oracle.com>
- <005a01cf962e$43d44300$cb7cc900$@opengridcomputing.com>
- <EE7902D3F51F404C82415C4803930ACD3FE0C594@CMEXMB1.ad.emulex.com>
- <8D65ABF9-DC2B-4906-BBDE-60F03FCEF990@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 for-next 03/16] IB/core: Replace ib_umem's offset field with a full address
+Date: Thu,  3 Jul 2014 11:44:16 +0300
+Message-ID: <1404377069-20585-4-git-send-email-haggaie@mellanox.com>
+References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8D65ABF9-DC2B-4906-BBDE-60F03FCEF990-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1404377069-20585-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQ2h1Y2sgTGV2ZXIgW21h
-aWx0bzpjaHVjay5sZXZlckBvcmFjbGUuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgSnVseSAwMywg
-MjAxNCAxOjMwIEFNDQo+IFRvOiBEZXZlc2ggU2hhcm1hDQo+IENjOiBTdGV2ZSBXaXNlOyBsaW51
-eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgTGludXggTkZTIE1haWxpbmcgTGlzdA0KPiBTdWJqZWN0
-OiBSZTogW1BBVENIIHYxIDA1LzEzXSB4cHJ0cmRtYTogRG9uJ3QgZHJhaW4gQ1FzIG9uIHRyYW5z
-cG9ydA0KPiBkaXNjb25uZWN0DQo+IA0KPiANCj4gT24gSnVsIDIsIDIwMTQsIGF0IDM6NDggUE0s
-IERldmVzaCBTaGFybWEgPERldmVzaC5TaGFybWFARW11bGV4LkNvbT4NCj4gd3JvdGU6DQo+IA0K
-PiA+DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogU3Rl
-dmUgV2lzZSBbbWFpbHRvOnN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbV0NCj4gPj4gU2VudDog
-VGh1cnNkYXksIEp1bHkgMDMsIDIwMTQgMToxNiBBTQ0KPiA+PiBUbzogJ0NodWNrIExldmVyJzsg
-RGV2ZXNoIFNoYXJtYQ0KPiA+PiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7ICdMaW51
-eCBORlMgTWFpbGluZyBMaXN0Jw0KPiA+PiBTdWJqZWN0OiBSRTogW1BBVENIIHYxIDA1LzEzXSB4
-cHJ0cmRtYTogRG9uJ3QgZHJhaW4gQ1FzIG9uIHRyYW5zcG9ydA0KPiA+PiBkaXNjb25uZWN0DQo+
-ID4+DQo+ID4+DQo+ID4+DQo+ID4+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+Pj4g
-RnJvbTogQ2h1Y2sgTGV2ZXIgW21haWx0bzpjaHVjay5sZXZlckBvcmFjbGUuY29tXQ0KPiA+Pj4g
-U2VudDogV2VkbmVzZGF5LCBKdWx5IDAyLCAyMDE0IDI6NDAgUE0NCj4gPj4+IFRvOiBTdGV2ZSBX
-aXNlOyBEZXZlc2ggU2hhcm1hDQo+ID4+PiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7
-IExpbnV4IE5GUyBNYWlsaW5nIExpc3QNCj4gPj4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjEgMDUv
-MTNdIHhwcnRyZG1hOiBEb24ndCBkcmFpbiBDUXMgb24gdHJhbnNwb3J0DQo+ID4+PiBkaXNjb25u
-ZWN0DQo+ID4+Pg0KPiA+Pj4NCj4gPj4+IE9uIEp1bCAyLCAyMDE0LCBhdCAzOjI4IFBNLCBTdGV2
-ZSBXaXNlDQo+IDxzd2lzZUBvcGVuZ3JpZGNvbXB1dGluZy5jb20+DQo+ID4+IHdyb3RlOg0KPiA+
-Pj4NCj4gPj4+PiBPbiA3LzIvMjAxNCAyOjA2IFBNLCBEZXZlc2ggU2hhcm1hIHdyb3RlOg0KPiA+
-Pj4+PiBUaGlzIGNoYW5nZSBpcyB2ZXJ5IG11Y2ggcHJvbmUgdG8gZ2VuZXJhdGUgcG9sbF9jcSBl
-cnJvcnMgYmVjYXVzZQ0KPiA+Pj4+PiBvZiB1bi1jbGVhbmVkDQo+ID4+PiBjb21wbGV0aW9ucyB3
-aGljaCBzdGlsbA0KPiA+Pj4+PiBwb2ludCB0byB0aGUgbm9uLWV4aXN0ZW50IFFQcy4gT24gdGhl
-IG5ldyBjb25uZWN0aW9uIHdoZW4gdGhlc2UNCj4gPj4+Pj4gY29tcGxldGlvbnMgYXJlIHBvbGxl
-ZCwNCj4gPj4+IHRoZSBwb2xsX2NxIHdpbGwNCj4gPj4+Pj4gZmFpbCBiZWNhdXNlIG9sZCBRUCBw
-b2ludGVyIGlzIGFscmVhZHkgTlVMTC4NCj4gPj4+Pj4gRGlkIGFueW9uZSBoaXQgdGhpcyBzaXR1
-YXRpb24gZHVyaW5nIHRoZWlyIHRlc3Rpbmc/DQo+ID4+Pg0KPiA+Pj4gSSB0ZXN0ZWQgdGhpcyBh
-Z2dyZXNzaXZlbHkgd2l0aCBhIGZhdWx0IGluamVjdG9yIHRoYXQgdHJpZ2dlcnMNCj4gPj4+IHJl
-Z3VsYXIgY29ubmVjdGlvbiBkaXNydXB0aW9uLg0KPiA+Pj4NCj4gPj4+PiBIZXkgRGV2ZXNoLA0K
-PiA+Pj4+DQo+ID4+Pj4gaXdfY3hnYjQgd2lsbCBzaWxlbnRseSB0b3NzIENRRXMgaWYgdGhlIFFQ
-IGlzIG5vdCBhY3RpdmUuDQo+ID4+Pg0KPiA+Pj4geHBydHJkbWEgcmVsaWVzIG9uIGdldHRpbmcg
-YSBjb21wbGV0aW9uIChlaXRoZXIgc3VjY2Vzc2Z1bCBvciBpbg0KPiA+Pj4gZXJyb3IpIGZvciBl
-dmVyeSBXUiBpdCBoYXMgcG9zdGVkLiBUaGUgZ29hbCBvZiB0aGlzIHBhdGNoIGlzIHRvDQo+ID4+
-PiBhdm9pZCB0aHJvd2luZyBhd2F5IHF1ZXVlZCBjb21wbGV0aW9ucyBhZnRlciBhIHRyYW5zcG9y
-dCBkaXNjb25uZWN0DQo+ID4+PiBzbyB3ZSBkb24ndCBsb3NlIHRyYWNrIG9mIEZSTVIgcmtleSB1
-cGRhdGVzIChGQVNUX1JFR19NUiBhbmQNCj4gPj4+IExPQ0FMX0lOVg0KPiA+Pj4gY29tcGxldGlv
-bnMpIGFuZCB3ZSBjYW4gY2FwdHVyZSBhbGwgUlBDIHJlcGxpZXMgcG9zdGVkIGJlZm9yZSB0aGUN
-Cj4gPj4gY29ubmVjdGlvbiB3YXMgbG9zdC4NCj4gPj4+DQo+ID4+PiBTb3VuZHMgbGlrZSB3ZSBh
-bHNvIG5lZWQgdG8ga2VlcCB0aGUgUVAgYXJvdW5kLCBldmVuIGluIGVycm9yIHN0YXRlLA0KPiA+
-Pj4gdW50aWwgYWxsIGtub3duIFdScyBvbiB0aGF0IFFQIGhhdmUgY29tcGxldGVkPw0KPiA+Pj4N
-Cj4gPg0KPiA+IFdoeSBub3QgcG9sbCBhbmQgcHJvY2VzcyBldmVyeSBjb21wbGV0aW9uIGR1cmlu
-Zw0KPiBycGNyZG1hX2NxX2NsZWFudXAoKeKApi4NCj4gDQo+IFllcywgSSBoYXZlIGEgcGF0Y2gg
-aW4gdGhlIG5leHQgdmVyc2lvbiBvZiB0aGlzIHNlcmllcyB0aGF0IGRvZXMgdGhhdC4NCj4gSXQg
-anVzdCBjYWxscyBycGNyZG1hX3NlbmRjcV91cGNhbGwoKSBmcm9tIHRoZSBjb25uZWN0IHdvcmtl
-ci4gSSB3aWxsIHNxdWFzaA0KPiB0aGF0IGNoYW5nZSBpbnRvIHRoaXMgcGF0Y2guDQoNCkNvb2wu
-DQoNCj4gDQo+IE1heWJlIGl0IG5lZWRzIHRvIGludm9rZSBycGNyZG1hX3JlY3ZjcV91cGNhbGwo
-KSB0aGVyZSBhcyB3ZWxsLg0KDQpZZXMsIHRoYXQgd291bGQgYmUgbmVlZGVkLg0KDQo+IA0KPiAN
-Cj4gPg0KPiA+Pg0KPiA+PiBQZXJoYXBzLg0KPiA+Pg0KPiA+Pj4NCj4gPj4+Pg0KPiA+Pj4+DQo+
-ID4+Pj4+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+Pj4+Pj4gRnJvbTogbGludXgt
-cmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiA+Pj4+Pj4g
-b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgQ2h1Y2sgTGV2ZXINCj4gPj4+Pj4+
-IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMjQsIDIwMTQgNDoxMCBBTQ0KPiA+Pj4+Pj4gVG86IGxpbnV4
-LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnDQo+ID4+Pj4+
-PiBTdWJqZWN0OiBbUEFUQ0ggdjEgMDUvMTNdIHhwcnRyZG1hOiBEb24ndCBkcmFpbiBDUXMgb24g
-dHJhbnNwb3J0DQo+ID4+Pj4+PiBkaXNjb25uZWN0DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4gQ1FzIGFy
-ZSBub3QgZGVzdHJveWVkIHVudGlsIHVubW91bnQuIEJ5IGRyYWluaW5nIENRcyBvbiB0cmFuc3Bv
-cnQNCj4gPj4+Pj4+IGRpc2Nvbm5lY3QsIHN1Y2Nlc3NmdWwgY29tcGxldGlvbnMgdGhhdCBjYW4g
-Y2hhbmdlIHRoZQ0KPiA+Pj4+Pj4gci5mcm1yLnN0YXRlIGZpZWxkIGNhbiBiZSBtaXNzZWQuDQo+
-ID4+Pj4+Pg0KPiA+Pj4+Pj4gU2lnbmVkLW9mZi1ieTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVy
-QG9yYWNsZS5jb20+DQo+ID4+Pj4+PiAtLS0NCj4gPj4+Pj4+IG5ldC9zdW5ycGMveHBydHJkbWEv
-dmVyYnMuYyB8ICAgIDUgLS0tLS0NCj4gPj4+Pj4+IDEgZmlsZSBjaGFuZ2VkLCA1IGRlbGV0aW9u
-cygtKQ0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IGRpZmYgLS1naXQgYS9uZXQvc3VucnBjL3hwcnRyZG1h
-L3ZlcmJzLmMNCj4gPj4+Pj4+IGIvbmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5jIGluZGV4IDNj
-N2Y5MDQuLjQ1MWUxMDAgMTAwNjQ0DQo+ID4+Pj4+PiAtLS0gYS9uZXQvc3VucnBjL3hwcnRyZG1h
-L3ZlcmJzLmMNCj4gPj4+Pj4+ICsrKyBiL25ldC9zdW5ycGMveHBydHJkbWEvdmVyYnMuYw0KPiA+
-Pj4+Pj4gQEAgLTg3Myw5ICs4NzMsNiBAQCByZXRyeToNCj4gPj4+Pj4+IAkJCWRwcmludGsoIlJQ
-QzogICAgICAgJXM6DQo+IHJwY3JkbWFfZXBfZGlzY29ubmVjdCINCj4gPj4+Pj4+IAkJCQkiIHN0
-YXR1cyAlaVxuIiwgX19mdW5jX18sIHJjKTsNCj4gPj4+Pj4+DQo+ID4+Pj4+PiAtCQlycGNyZG1h
-X2NsZWFuX2NxKGVwLT5yZXBfYXR0ci5yZWN2X2NxKTsNCj4gPj4+Pj4+IC0JCXJwY3JkbWFfY2xl
-YW5fY3EoZXAtPnJlcF9hdHRyLnNlbmRfY3EpOw0KPiA+Pj4+Pj4gLQ0KPiA+Pj4+Pj4gCQl4cHJ0
-ID0gY29udGFpbmVyX29mKGlhLCBzdHJ1Y3QgcnBjcmRtYV94cHJ0LCByeF9pYSk7DQo+ID4+Pj4+
-PiAJCWlkID0gcnBjcmRtYV9jcmVhdGVfaWQoeHBydCwgaWEsDQo+ID4+Pj4+PiAJCQkJKHN0cnVj
-dCBzb2NrYWRkciAqKSZ4cHJ0LQ0KPiA+cnhfZGF0YS5hZGRyKTsNCj4gPj4gQEAgLTk4NSw4ICs5
-ODIsNiBAQA0KPiA+Pj4+Pj4gcnBjcmRtYV9lcF9kaXNjb25uZWN0KHN0cnVjdCBycGNyZG1hX2Vw
-ICplcCwgc3RydWN0IHJwY3JkbWFfaWENCj4gPj4+Pj4+ICppYSkgIHsNCj4gPj4+Pj4+IAlpbnQg
-cmM7DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4gLQlycGNyZG1hX2NsZWFuX2NxKGVwLT5yZXBfYXR0ci5y
-ZWN2X2NxKTsNCj4gPj4+Pj4+IC0JcnBjcmRtYV9jbGVhbl9jcShlcC0+cmVwX2F0dHIuc2VuZF9j
-cSk7DQo+ID4+Pj4+PiAJcmMgPSByZG1hX2Rpc2Nvbm5lY3QoaWEtPnJpX2lkKTsNCj4gPj4+Pj4+
-IAlpZiAoIXJjKSB7DQo+ID4+Pj4+PiAJCS8qIHJldHVybnMgd2l0aG91dCB3YWl0IGlmIG5vdCBj
-b25uZWN0ZWQgKi8NCj4gPj4+Pj4+DQo+ID4+Pj4+PiAtLQ0KPiA+Pj4+Pj4gVG8gdW5zdWJzY3Jp
-YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlDQo+ID4+Pj4+PiBs
-aW51eC1yZG1hIiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8NCj4gbWFqb3Jkb21vQHZnZXIu
-a2VybmVsLm9yZw0KPiA+Pj4+Pj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCBodHRwOi8vdmdlci5r
-ZXJuZWwub3JnL21ham9yZG9tby0NCj4gaW5mby5odG1sDQo+ID4+Pj4+IE4gICAgIHIgIHkgICBi
-IFggIMendiBeICneunsubiArICAgIHsgICAiICBebiByICAgeiAaICBoICAgICYgIB4gRw0KPiA+
-Pj4+PiBoIAMoIOmajg0KPiA+Pj4g3aJqIiAgGiAbbSAgICAgeiDeliAgIGYgICBoICAgfiBtbWw9
-PQ0KPiA+Pj4+DQo+ID4+Pj4gLS0NCj4gPj4+PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
-dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbmZzIg0KPiA+Pj4+IGluIHRoZSBi
-b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUNCj4gPj4g
-bWFqb3Jkb21vDQo+ID4+Pj4gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
-bW8taW5mby5odG1sDQo+ID4+Pg0KPiA+Pj4gLS0NCj4gPj4+IENodWNrIExldmVyDQo+ID4+PiBj
-aHVja1tkb3RdbGV2ZXJbYXRdb3JhY2xlW2RvdF1jb20NCj4gPj4+DQo+ID4+Pg0KPiA+Pg0KPiA+
-IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVu
-c3Vic2NyaWJlIGxpbnV4LXJkbWEiDQo+ID4gaW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1h
-am9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZQ0KPiBtYWpvcmRvbW8NCj4gPiBpbmZvIGF0ICBo
-dHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPg0KPiANCj4gLS0N
-Cj4gQ2h1Y2sgTGV2ZXINCj4gY2h1Y2tbZG90XWxldmVyW2F0XW9yYWNsZVtkb3RdY29tDQo+IA0K
-PiANCg0K
+In order to allow umems that do not pin memory we need the umem to keep track
+of its region's address.
+
+This makes the offset field redundant, and so this patch removes it.
+
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/umem.c               |  6 +++---
+ drivers/infiniband/hw/amso1100/c2_provider.c |  2 +-
+ drivers/infiniband/hw/ehca/ehca_mrmw.c       |  2 +-
+ drivers/infiniband/hw/ipath/ipath_mr.c       |  2 +-
+ drivers/infiniband/hw/nes/nes_verbs.c        |  4 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  2 +-
+ drivers/infiniband/hw/qib/qib_mr.c           |  2 +-
+ include/rdma/ib_umem.h                       | 25 ++++++++++++++++++++++++-
+ 8 files changed, 34 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 1fba9d3..ab14b33 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -103,7 +103,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 
+ 	umem->context   = context;
+ 	umem->length    = size;
+-	umem->offset    = addr & ~PAGE_MASK;
++	umem->address   = addr;
+ 	umem->page_size = PAGE_SIZE;
+ 	/*
+ 	 * We ask for writable memory if any of the following
+@@ -133,7 +133,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	if (!vma_list)
+ 		umem->hugetlb = 0;
+ 
+-	npages = PAGE_ALIGN(size + umem->offset) >> PAGE_SHIFT;
++	npages = ib_umem_num_pages(umem);
+ 
+ 	down_write(&current->mm->mmap_sem);
+ 
+@@ -242,7 +242,7 @@ void ib_umem_release(struct ib_umem *umem)
+ 		return;
+ 	}
+ 
+-	diff = PAGE_ALIGN(umem->length + umem->offset) >> PAGE_SHIFT;
++	diff = ib_umem_num_pages(umem);
+ 
+ 	/*
+ 	 * We may be called with the mm's mmap_sem already held.  This
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+index 8af33cf..056c405 100644
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c
++++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -476,7 +476,7 @@ static struct ib_mr *c2_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 					 c2mr->umem->page_size,
+ 					 i,
+ 					 length,
+-					 c2mr->umem->offset,
++					 ib_umem_offset(c2mr->umem),
+ 					 &kva,
+ 					 c2_convert_access(acc),
+ 					 c2mr);
+diff --git a/drivers/infiniband/hw/ehca/ehca_mrmw.c b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+index 3488e8c..f914b30 100644
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c
++++ b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -399,7 +399,7 @@ reg_user_mr_fallback:
+ 	pginfo.num_kpages = num_kpages;
+ 	pginfo.num_hwpages = num_hwpages;
+ 	pginfo.u.usr.region = e_mr->umem;
+-	pginfo.next_hwpage = e_mr->umem->offset / hwpage_size;
++	pginfo.next_hwpage = ib_umem_offset(e_mr->umem) / hwpage_size;
+ 	pginfo.u.usr.next_sg = pginfo.u.usr.region->sg_head.sgl;
+ 	ret = ehca_reg_mr(shca, e_mr, (u64 *)virt, length, mr_access_flags,
+ 			  e_pd, &pginfo, &e_mr->ib.ib_mr.lkey,
+diff --git a/drivers/infiniband/hw/ipath/ipath_mr.c b/drivers/infiniband/hw/ipath/ipath_mr.c
+index 5e61e9b..c7278f6 100644
+--- a/drivers/infiniband/hw/ipath/ipath_mr.c
++++ b/drivers/infiniband/hw/ipath/ipath_mr.c
+@@ -214,7 +214,7 @@ struct ib_mr *ipath_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mr->mr.user_base = start;
+ 	mr->mr.iova = virt_addr;
+ 	mr->mr.length = length;
+-	mr->mr.offset = umem->offset;
++	mr->mr.offset = ib_umem_offset(umem);
+ 	mr->mr.access_flags = mr_access_flags;
+ 	mr->mr.max_segs = n;
+ 	mr->umem = umem;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 218dd35..0f547f4 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2344,7 +2344,7 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			(unsigned long int)start, (unsigned long int)virt, (u32)length,
+ 			region->offset, region->page_size);
+ 
+-	skip_pages = ((u32)region->offset) >> 12;
++	skip_pages = ((u32)ib_umem_offset(region)) >> 12;
+ 
+ 	if (ib_copy_from_udata(&req, udata, sizeof(req))) {
+ 		ib_umem_release(region);
+@@ -2409,7 +2409,7 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				region_length -= skip_pages << 12;
+ 				for (page_index = skip_pages; page_index < chunk_pages; page_index++) {
+ 					skip_pages = 0;
+-					if ((page_count != 0) && (page_count<<12)-(region->offset&(4096-1)) >= region->length)
++					if ((page_count != 0) && (page_count << 12) - (ib_umem_offset(region) & (4096 - 1)) >= region->length)
+ 						goto enough_pages;
+ 					if ((page_count&0x01FF) == 0) {
+ 						if (page_count >= 1024 * 512) {
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index edf6211..f01b11b 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -801,7 +801,7 @@ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 		goto umem_err;
+ 
+ 	mr->hwmr.pbe_size = mr->umem->page_size;
+-	mr->hwmr.fbo = mr->umem->offset;
++	mr->hwmr.fbo = ib_umem_offset(mr->umem);
+ 	mr->hwmr.va = usr_addr;
+ 	mr->hwmr.len = len;
+ 	mr->hwmr.remote_wr = (acc & IB_ACCESS_REMOTE_WRITE) ? 1 : 0;
+diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
+index 9bbb553..a77fb4f 100644
+--- a/drivers/infiniband/hw/qib/qib_mr.c
++++ b/drivers/infiniband/hw/qib/qib_mr.c
+@@ -258,7 +258,7 @@ struct ib_mr *qib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mr->mr.user_base = start;
+ 	mr->mr.iova = virt_addr;
+ 	mr->mr.length = length;
+-	mr->mr.offset = umem->offset;
++	mr->mr.offset = ib_umem_offset(umem);
+ 	mr->mr.access_flags = mr_access_flags;
+ 	mr->umem = umem;
+ 
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 1ea0b65..0e120f4 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -42,7 +42,7 @@ struct ib_ucontext;
+ struct ib_umem {
+ 	struct ib_ucontext     *context;
+ 	size_t			length;
+-	int			offset;
++	unsigned long		address;
+ 	int			page_size;
+ 	int                     writable;
+ 	int                     hugetlb;
+@@ -54,6 +54,29 @@ struct ib_umem {
+ 	int             npages;
+ };
+ 
++/* Returns the offset of the umem start relative to the first page. */
++static inline int ib_umem_offset(struct ib_umem *umem)
++{
++	return umem->address & ~PAGE_MASK;
++}
++
++/* Returns the first page of an ODP umem. */
++static inline unsigned long ib_umem_start(struct ib_umem *umem)
++{
++	return umem->address & PAGE_MASK;
++}
++
++/* Returns the address of the page after the last one of an ODP umem. */
++static inline unsigned long ib_umem_end(struct ib_umem *umem)
++{
++	return PAGE_ALIGN(umem->address + umem->length);
++}
++
++static inline size_t ib_umem_num_pages(struct ib_umem *umem)
++{
++	return (ib_umem_end(umem) - ib_umem_start(umem)) >> PAGE_SHIFT;
++}
++
+ #ifdef CONFIG_INFINIBAND_USER_MEM
+ 
+ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+-- 
+1.7.11.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
