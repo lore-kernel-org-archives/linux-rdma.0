@@ -1,7 +1,7 @@
 From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 Subject: Re: [PATCH 5/5] IB/srp: Optimize completion queue polling
-Date: Thu, 03 Jul 2014 10:05:03 -0700
-Message-ID: <1404407103.32754.3.camel@haswell.thedillows.org>
+Date: Thu, 03 Jul 2014 09:53:07 -0700
+Message-ID: <1404406387.31749.2.camel@haswell.thedillows.org>
 References: <53B55E55.5040907@acm.org> <53B55F1F.6000704@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -12,8 +12,6 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-[Apologies if you get this twice, mailer crashed during the first send]
 
 On Thu, 2014-07-03 at 15:48 +0200, Bart Van Assche wrote:
 > Reduce completion queue lock contention by polling for multiple
@@ -29,7 +27,6 @@ performance anomalies with this -- and an block-iopoll conversion -- and
 IIRC, neither was a win. It's possible that the issues were specific to
 the drivers and that newer hardware is better, but it'd be good to see
 the numbers.
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
