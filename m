@@ -1,79 +1,37 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: mlx4 lockdep splat
-Date: Wed, 2 Jul 2014 18:51:17 -0400
-Message-ID: <52074264-21F8-4CCF-A5D1-38C07E1FF201@oracle.com>
-References: <B2CFBE8B-333B-4EA3-8853-9C91FFCE92D8@oracle.com> <20140702101954.0af46c74@jpm-OptiPlex-GX620> <E900818E-32D4-4667-85EB-34BC2BA88B9F@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] rsocket: Fix crash resulting from keepalive timeout
+Date: Wed, 02 Jul 2014 23:04:22 -0400
+Message-ID: <53B4C836.2030507@dev.mellanox.co.il>
+References: <1404341182-12533-1-git-send-email-sean.hefty@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E900818E-32D4-4667-85EB-34BC2BA88B9F-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1404341182-12533-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 7/2/2014 6:46 PM, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
 
-On Jul 2, 2014, at 10:45 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+<snip...>
 
-> Hi Jack-
+> rclose will call shutdown only if we're connected.  However, if the
+> keepalive failed, the socket will be in an error state.  So,
+> no call to rshutdown, which will leave the freed rsocket on
+> the keepalive thread's list.
 > 
+> The fix is to to have rclose remove an rsocket from being processed
+> by a service thread if it is still active.
 > 
-> On Jul 2, 2014, at 3:19 AM, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
->> On Tue, 1 Jul 2014 18:17:27 -0400
->> Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> 
->>> Hi-
->>> 
->>> This happens during boot, and means that lockdep and lock_stat are
->>> completely disabled during any testing I do.
->>> 
->>> Does this splat have a known fix, or should I file an upstream
->>> bugzilla?
->>> 
->>> 
->>> Jul  1 15:50:22 manet kernel: =================================
->>> Jul  1 15:50:22 manet kernel: [ INFO: inconsistent lock state ]
->>> Jul  1 15:50:22 manet kernel: 3.16.0-rc2-00024-g2e78883 #17 Tainted:
->>> G            E Jul  1 15:50:22 manet kernel:
->>> --------------------------------- Jul  1 15:50:22 manet kernel:
->>> inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage. Jul  1 15:50:22
->>> manet kernel: swapper/0/0 [HC0[0]:SC1[1]:HE1:SE0] takes: Jul  1
->>> 15:50:22 manet kernel: (&(&iboe->lock)->rlock){+.?...}, at:
->>> [<ffffffffa065f68b>] mlx4_ib_addr_event+0xdb/0x1a0 [mlx4_ib] Jul  1
->>> 15:50:22 manet kernel: {SOFTIRQ-ON-W} state was registered at: Jul  1
->>> 15:50:22 manet kernel:  [<ffffffff810b3110>]
->>> mark_irqflags+0x110/0x170 Jul  1 15:50:22 manet kernel:
->>> [<ffffffff810b4806>] __lock_acquire+0x2c6/0x5b0 Jul  1 15:50:22 manet
->>> kernel:  [<ffffffff810b4bd9>] lock_acquire+0xe9/0x120 Jul  1 15:50:22
->>> manet kernel:  [<ffffffff815f7f6e>] _raw_spin_lock+0x3e/0x80 Jul  1
->>> 15:50:22 manet kernel:  [<ffffffffa0661084>]
->>> mlx4_ib_scan_netdevs+0x34/0x260 [mlx4_ib] Jul  1 15:50:22 manet
->>> kernel:  [<ffffffffa06612db>] mlx4_ib_netdev_event+0x2b/0x40
->>> [mlx4_ib] Jul  1 15:50:22 manet kernel:  [<ffffffff81522219>]
->>> register_netdevice_notifier+0x99/0x1e0 Jul  1 15:50:22 manet kernel:
->>> [<ffffffffa06626e3>] mlx4_ib_add+0x743/0xbc0 [mlx4_ib]
->> 
->> Hi Chuck,
->> 
->> There is a known fix which I need to submit.
->> The fix is to use lock/unlock_bh instead of spin_lock/unlock.
->> 
->> The netdev event notifier callback (mlx4_ib_addr_event), which also
->> uses the lock, is called from a soft-interrupt context, so turning off
->> hard interrupts is not needed here.  _bh spinlocks are sufficient.
-> 
-> If you have a patch handy, I'm happy to test. Thanks!
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I built my own according to your description. The fix seems good.
+Tested-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+Thanks!
 
-
-
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
