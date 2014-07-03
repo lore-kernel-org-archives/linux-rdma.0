@@ -1,570 +1,127 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 for-next 06/16] IB/core: Implement support for MMU notifiers regarding on demand paging regions
-Date: Thu,  3 Jul 2014 11:44:19 +0300
-Message-ID: <1404377069-20585-7-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v1 for-next 05/16] IB/core: Add support for on demand paging regions
+Date: Thu,  3 Jul 2014 11:44:18 +0300
+Message-ID: <1404377069-20585-6-git-send-email-haggaie@mellanox.com>
 References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1404377069-20585-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Dagan <yuvalda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-* Add an interval tree implementation for ODP umems. Create an interval tree
-  for each ucontext (including a count of the number of ODP MRs in this
-  context, mutex, etc.), and register ODP umems in the interval tree.
-* Add MMU notifiers handling functions, using the interval tree to notify only
-  the relevant umems and underlying MRs.
-* Register to receive MMU notifier events from the MM subsystem upon ODP MR
-  registration (and unregister accordingly).
-* Add a completion object to synchronize the destruction of ODP umems.
-* Add mechanism to abort page faults when there's a concurrent invalidation.
-
-The way we synchronize between concurrent invalidations and page faults is by
-keeping a counter of currently running invalidations, and a sequence number
-that is incremented whenever an invalidation is caught. The page fault code
-checks the counter and also verifies that the sequence number hasn't
-progressed before it updates the umem's page tables. This is similar to what
-the kvm module does.
-
-There's currently a rare race in the code when registering a umem in the
-middle of an ongoing notifier. The proper fix is to either serialize the
-insertion to our umem tree with mm_lock_all or use a ucontext wide running
-notifiers count for retries decision. Either is ugly and can lead to some sort
-of starvation. The current workaround is ugly as well - now the user can end
-up with mapped addresses that are not in the user's address space (although it
-is highly unlikely).
+* Extend the umem struct to keep the ODP related data.
+* Allocate and initialize the ODP related information in the umem
+  (page_list, dma_list) and freeing as needed in the end of the run.
+* Store a reference to the process PID struct in the ucontext. Used to
+  safely obtain the task_struct and the mm during fault handling, without
+  preventing the task destruction if needed.
+* Add 2 helper functions: ib_umem_odp_map_dma_pages and
+  ib_umem_odp_unmap_dma_pages. These functions get the DMA addresses of
+  specific pages of the umem (and, currently, pin them).
+* Support for page faults only - IB core will keep the reference on the pages
+  used and call put_page when freeing an ODP umem area. Invalidations support
+  will be added in a later patch.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yuval Dagan <yuvalda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/Kconfig            |   1 +
- drivers/infiniband/core/Makefile      |   2 +-
- drivers/infiniband/core/umem.c        |   2 +-
- drivers/infiniband/core/umem_odp.c    | 337 +++++++++++++++++++++++++++++++++-
- drivers/infiniband/core/umem_rbtree.c |  94 ++++++++++
- drivers/infiniband/core/uverbs_cmd.c  |  16 ++
- include/rdma/ib_umem_odp.h            |  56 ++++++
- include/rdma/ib_verbs.h               |  16 ++
- 8 files changed, 512 insertions(+), 12 deletions(-)
- create mode 100644 drivers/infiniband/core/umem_rbtree.c
+ drivers/infiniband/core/Makefile      |   1 +
+ drivers/infiniband/core/umem.c        |  24 +++
+ drivers/infiniband/core/umem_odp.c    | 303 ++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c  |   5 +
+ drivers/infiniband/core/uverbs_main.c |   2 +
+ include/rdma/ib_umem.h                |   2 +
+ include/rdma/ib_umem_odp.h            | 100 +++++++++++
+ include/rdma/ib_verbs.h               |   3 +
+ 8 files changed, 440 insertions(+)
+ create mode 100644 drivers/infiniband/core/umem_odp.c
+ create mode 100644 include/rdma/ib_umem_odp.h
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 089a2c2..b899531 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -41,6 +41,7 @@ config INFINIBAND_USER_MEM
- config INFINIBAND_ON_DEMAND_PAGING
- 	bool "InfiniBand on-demand paging support"
- 	depends on INFINIBAND_USER_MEM
-+	select MMU_NOTIFIER
- 	default y
- 	---help---
- 	  On demand paging support for the InfiniBand subsystem.
 diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index c58f791..acf7367 100644
+index ffd0af6..c58f791 100644
 --- a/drivers/infiniband/core/Makefile
 +++ b/drivers/infiniband/core/Makefile
-@@ -11,7 +11,7 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
+@@ -11,6 +11,7 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
  ib_core-y :=			packer.o ud_header.o verbs.o sysfs.o \
  				device.o fmr_pool.o cache.o netlink.o
  ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
--ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-+ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
++ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
  
  ib_mad-y :=			mad.o smi.o agent.o mad_rmpp.o
  
 diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index e9798e0..014977f 100644
+index 138442a..e9798e0 100644
 --- a/drivers/infiniband/core/umem.c
 +++ b/drivers/infiniband/core/umem.c
-@@ -72,7 +72,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+@@ -39,6 +39,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/dma-attrs.h>
+ #include <linux/slab.h>
++#include <rdma/ib_umem_odp.h>
+ 
+ #include "uverbs.h"
+ 
+@@ -69,6 +70,10 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ 
+ /**
   * ib_umem_get - Pin and DMA map userspace memory.
-  *
-  * If access flags indicate ODP memory, avoid pinning. Instead, stores
-- * the mm for future page fault handling.
-+ * the mm for future page fault handling in conjuction with MMU notifiers.
-  *
++ *
++ * If access flags indicate ODP memory, avoid pinning. Instead, stores
++ * the mm for future page fault handling.
++ *
   * @context: userspace context to pin memory for
   * @addr: userspace virtual address to start at
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 0c90ce50..c048269 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -41,26 +41,204 @@
- #include <rdma/ib_umem.h>
- #include <rdma/ib_umem_odp.h>
+  * @size: length of region to pin
+@@ -116,6 +121,17 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 		(IB_ACCESS_LOCAL_WRITE   | IB_ACCESS_REMOTE_WRITE |
+ 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
  
-+void ib_umem_notifier_start_account(struct ib_umem *item)
-+{
-+	int notifiers_count;
-+	mutex_lock(&item->odp_data->umem_mutex);
-+	/*
-+	 * Avoid performing another locked operation, as we are
-+	 * already protected by the wrapping mutex.
-+	 */
-+	notifiers_count = atomic_read(&item->odp_data->notifiers_count) + 1;
-+	if (notifiers_count == 1)
-+		reinit_completion(&item->odp_data->notifier_completion);
-+	atomic_set(&item->odp_data->notifiers_count,
-+		   notifiers_count);
-+	mutex_unlock(&item->odp_data->umem_mutex);
-+}
-+EXPORT_SYMBOL(ib_umem_notifier_start_account);
-+
-+void ib_umem_notifier_end_account(struct ib_umem *item)
-+{
-+	int notifiers_count, notifiers_seq;
-+	mutex_lock(&item->odp_data->umem_mutex);
-+	/*
-+	 * This sequence increase will notify the QP page fault that
-+	 * the page that is going to be mapped in the spte could have
-+	 * been freed.
-+	 */
-+	notifiers_seq = atomic_read(&item->odp_data->notifiers_seq) + 1;
-+	atomic_set(&item->odp_data->notifiers_seq,
-+		   notifiers_seq);
-+	/*
-+	 * The above sequence increase must be visible before the
-+	 * below count decrease, which is ensured by the smp_wmb below
-+	 * in conjunction with the smp_rmb in mmu_notifier_retry().
-+	 */
-+	smp_wmb();
-+
-+	notifiers_count = atomic_read(&item->odp_data->notifiers_count);
-+	/*
-+	 * This is a workaround for the unlikely case where we register a umem
-+	 * in the middle of an ongoing notifier.
-+	 */
-+	if (notifiers_count > 0)
-+		notifiers_count -= 1;
-+	else
-+		pr_warn("Got notifier end call without a previous start call");
-+	atomic_set(&item->odp_data->notifiers_count,
-+		   notifiers_count);
-+	if (notifiers_count == 0)
-+		complete_all(&item->odp_data->notifier_completion);
-+	mutex_unlock(&item->odp_data->umem_mutex);
-+}
-+
-+
-+static int ib_umem_notifier_release_trampoline(struct ib_umem *item, u64 start,
-+					       u64 end, void *cookie) {
-+	/*
-+	 * Increase the number of notifiers running, to
-+	 * prevent any further fault handling on this MR.
-+	 */
-+	ib_umem_notifier_start_account(item);
-+	item->odp_data->dying = 1;
-+	/* Make sure that the fact the umem is dying is out before we release
-+	 * all pending page faults. */
-+	smp_wmb();
-+	complete_all(&item->odp_data->notifier_completion);
-+	item->context->invalidate_range(item, ib_umem_start(item),
-+					ib_umem_end(item));
-+	return 0;
-+}
-+
-+static void ib_umem_notifier_release(struct mmu_notifier *mn,
-+				     struct mm_struct *mm)
-+{
-+	struct ib_ucontext *context = container_of(mn, struct ib_ucontext, mn);
-+
-+	if (!context->invalidate_range)
-+		return;
-+
-+	down_read(&context->umem_mutex);
-+
-+	rbt_ib_umem_for_each_in_range(&context->umem_tree, 0,
-+				      ULLONG_MAX,
-+				      ib_umem_notifier_release_trampoline,
-+				      NULL);
-+
-+	up_read(&context->umem_mutex);
-+}
-+
-+static int invalidate_page_trampoline(struct ib_umem *item, u64 start,
-+				      u64 end, void *cookie)
-+{
-+	ib_umem_notifier_start_account(item);
-+	item->context->invalidate_range(item, start, start + PAGE_SIZE);
-+	ib_umem_notifier_end_account(item);
-+	return 0;
-+}
-+
-+static void ib_umem_notifier_invalidate_page(struct mmu_notifier *mn,
-+					     struct mm_struct *mm,
-+					     unsigned long address)
-+{
-+	struct ib_ucontext *context = container_of(mn, struct ib_ucontext, mn);
-+
-+	if (!context->invalidate_range)
-+		return;
-+
-+	down_read(&context->umem_mutex);
-+	rbt_ib_umem_for_each_in_range(&context->umem_tree, address,
-+				      address + PAGE_SIZE,
-+				      invalidate_page_trampoline, NULL);
-+	up_read(&context->umem_mutex);
-+}
-+
-+static int invalidate_range_start_trampoline(struct ib_umem *item, u64 start,
-+					     u64 end, void *cookie)
-+{
-+	ib_umem_notifier_start_account(item);
-+	item->context->invalidate_range(item, start, end);
-+	return 0;
-+}
-+
-+static void ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
-+						    struct mm_struct *mm,
-+						    unsigned long start,
-+						    unsigned long end)
-+{
-+	struct ib_ucontext *context = container_of(mn, struct ib_ucontext, mn);
-+
-+	if (!context->invalidate_range)
-+		return;
-+
-+	down_read(&context->umem_mutex);
-+	rbt_ib_umem_for_each_in_range(&context->umem_tree, start,
-+				      end,
-+				      invalidate_range_start_trampoline, NULL);
-+	up_read(&context->umem_mutex);
-+}
-+
-+static int invalidate_range_end_trampoline(struct ib_umem *item, u64 start,
-+					   u64 end, void *cookie)
-+{
-+	ib_umem_notifier_end_account(item);
-+	return 0;
-+}
-+
-+static void ib_umem_notifier_invalidate_range_end(struct mmu_notifier *mn,
-+						  struct mm_struct *mm,
-+						  unsigned long start,
-+						  unsigned long end)
-+{
-+	struct ib_ucontext *context = container_of(mn, struct ib_ucontext, mn);
-+
-+	if (!context->invalidate_range)
-+		return;
-+
-+	down_read(&context->umem_mutex);
-+	rbt_ib_umem_for_each_in_range(&context->umem_tree, start,
-+				      end,
-+				      invalidate_range_end_trampoline, NULL);
-+	up_read(&context->umem_mutex);
-+}
-+
-+static struct mmu_notifier_ops ib_umem_notifiers = {
-+	.release                    = ib_umem_notifier_release,
-+	.invalidate_page            = ib_umem_notifier_invalidate_page,
-+	.invalidate_range_start     = ib_umem_notifier_invalidate_range_start,
-+	.invalidate_range_end       = ib_umem_notifier_invalidate_range_end,
-+};
-+
- int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
- {
- 	int ret_val;
- 	struct pid *our_pid;
-+	struct mm_struct *mm = get_task_mm(current);
-+	BUG_ON(!mm);
- 
- 	/* Prevent creating ODP MRs in child processes */
- 	rcu_read_lock();
- 	our_pid = get_task_pid(current->group_leader, PIDTYPE_PID);
- 	rcu_read_unlock();
- 	put_pid(our_pid);
--	if (context->tgid != our_pid)
--		return -EINVAL;
-+	if (context->tgid != our_pid) {
-+		ret_val = -EINVAL;
-+		goto out_mm;
-+	}
- 
- 	umem->hugetlb = 0;
- 	umem->odp_data = kzalloc(sizeof(*umem->odp_data), GFP_KERNEL);
--	if (!umem->odp_data)
--		return -ENOMEM;
-+	if (!umem->odp_data) {
-+		ret_val = -ENOMEM;
-+		goto out_mm;
-+	}
-+	umem->odp_data->umem = umem;
- 
- 	mutex_init(&umem->odp_data->umem_mutex);
- 
-+	init_completion(&umem->odp_data->notifier_completion);
-+
- 	umem->odp_data->page_list = vzalloc(ib_umem_num_pages(umem) *
- 					    sizeof(*umem->odp_data->page_list));
- 	if (!umem->odp_data->page_list) {
-@@ -75,17 +253,66 @@ int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
- 		goto out_page_list;
- 	}
- 
-+	/*
-+	 * When using MMU notifiers, we will get a
-+	 * notification before the "current" task (and MM) is
-+	 * destroyed. We use the umem_mutex lock to synchronize.
-+	 */
-+	down_write(&context->umem_mutex);
-+	context->odp_mrs_count++;
-+	if (likely(ib_umem_start(umem) != ib_umem_end(umem)))
-+		rbt_ib_umem_insert(&umem->odp_data->interval_tree,
-+				   &context->umem_tree);
-+	downgrade_write(&context->umem_mutex);
-+
-+	if (context->odp_mrs_count == 1) {
-+		/*
-+		 * Note that at this point, no MMU notifier is running
-+		 * for this context!
-+		 */
-+		INIT_HLIST_NODE(&context->mn.hlist);
-+		context->mn.ops = &ib_umem_notifiers;
-+		/*
-+		 * Lock-dep detects a false positive for mmap_sem vs.
-+		 * umem_mutex, due to not grasping downgrade_write correctly.
-+		 */
-+		lockdep_off();
-+		ret_val = mmu_notifier_register(&context->mn, mm);
-+		lockdep_on();
-+		if (ret_val) {
-+			pr_err("Failed to register mmu_notifier %d\n", ret_val);
-+			ret_val = -EBUSY;
-+			goto out_mutex;
++	if (access & IB_ACCESS_ON_DEMAND) {
++		ret = ib_umem_odp_get(context, umem);
++		if (ret) {
++			kfree(umem);
++			return ERR_PTR(ret);
 +		}
++		return umem;
 +	}
 +
-+	up_read(&context->umem_mutex);
++	umem->odp_data = NULL;
 +
-+	/*
-+	 * Note that doing an mmput can cause a notifier for the relevant mm.
-+	 * If the notifier is called while we hold the umem_mutex, this will
-+	 * cause a deadlock. Therefore, we release the reference only after we
-+	 * released the mutex.
-+	 */
-+	mmput(mm);
- 	return 0;
+ 	/* We assume the memory is from hugetlb until proved otherwise */
+ 	umem->hugetlb   = 1;
  
-+out_mutex:
-+	up_read(&context->umem_mutex);
-+	vfree(umem->odp_data->dma_list);
- out_page_list:
- 	vfree(umem->odp_data->page_list);
- out_odp_data:
- 	kfree(umem->odp_data);
-+out_mm:
-+	mmput(mm);
- 	return ret_val;
- }
+@@ -234,6 +250,11 @@ void ib_umem_release(struct ib_umem *umem)
+ 	struct mm_struct *mm;
+ 	unsigned long diff;
  
- void ib_umem_odp_release(struct ib_umem *umem)
- {
-+	struct ib_ucontext *context = umem->context;
-+
- 	/*
- 	 * Ensure that no more pages are mapped in the umem.
- 	 *
-@@ -95,6 +322,49 @@ void ib_umem_odp_release(struct ib_umem *umem)
- 	ib_umem_odp_unmap_dma_pages(umem, ib_umem_start(umem),
- 				    ib_umem_end(umem));
- 
-+	down_write(&context->umem_mutex);
-+	if (likely(ib_umem_start(umem) != ib_umem_end(umem)))
-+		rbt_ib_umem_remove(&umem->odp_data->interval_tree,
-+				   &context->umem_tree);
-+	context->odp_mrs_count--;
-+
-+	/*
-+	 * Downgrade the lock to a read lock. This ensures that the notifiers
-+	 * (who lock the mutex for reading) will be able to finish, and we
-+	 * will be able to enventually obtain the mmu notifiers SRCU. Note
-+	 * that since we are doing it atomically, no other user could register
-+	 * and unregister while we do the check.
-+	 */
-+	downgrade_write(&context->umem_mutex);
-+	if (!context->odp_mrs_count) {
-+		struct task_struct *owning_process = NULL;
-+		struct mm_struct *owning_mm        = NULL;
-+		owning_process = get_pid_task(context->tgid,
-+					      PIDTYPE_PID);
-+		if (owning_process == NULL)
-+			/*
-+			 * The process is already dead, notifier were removed
-+			 * already.
-+			 */
-+			goto out;
-+
-+		owning_mm = get_task_mm(owning_process);
-+		if (owning_mm == NULL)
-+			/*
-+			 * The process' mm is already dead, notifier were
-+			 * removed already.
-+			 */
-+			goto out_put_task;
-+		mmu_notifier_unregister(&context->mn, owning_mm);
-+
-+		mmput(owning_mm);
-+
-+out_put_task:
-+		put_task_struct(owning_process);
-+	}
-+out:
-+	up_read(&context->umem_mutex);
-+
- 	vfree(umem->odp_data->dma_list);
- 	vfree(umem->odp_data->page_list);
- 	kfree(umem);
-@@ -111,7 +381,8 @@ void ib_umem_odp_release(struct ib_umem *umem)
-  *               the sequence number is taken from
-  *               umem->odp_data->notifiers_seq.
-  *
-- * The function returns -EFAULT if the DMA mapping operation fails.
-+ * The function returns -EFAULT if the DMA mapping operation fails. It returns
-+ * -EAGAIN if a concurrent invalidation prevents us from updating the page. It
-  *
-  * The page is released via put_page even if the operation failed. For
-  * on-demand pinning, the page is released whenever it isn't stored in the
-@@ -120,6 +391,7 @@ void ib_umem_odp_release(struct ib_umem *umem)
- static int ib_umem_odp_map_dma_single_page(
- 		struct ib_umem *umem,
- 		int page_index,
-+		u64 base_virt_addr,
- 		struct page *page,
- 		u64 access_mask,
- 		unsigned long current_seq)
-@@ -127,8 +399,18 @@ static int ib_umem_odp_map_dma_single_page(
- 	struct ib_device *dev = umem->context->device;
- 	dma_addr_t dma_addr;
- 	int stored_page = 0;
-+	int remove_existing_mapping = 0;
- 	int ret = 0;
- 	mutex_lock(&umem->odp_data->umem_mutex);
-+	/*
-+	 * Note: we avoid writing if seq is different from the initial seq, to
-+	 * handle case of a racing notifier. This check also allows us to bail
-+	 * early if we have a notifier running in parallel with us.
-+	 */
-+	if (ib_umem_mmu_notifier_retry(umem, current_seq)) {
-+		ret = -EAGAIN;
-+		goto out;
-+	}
- 	if (!(umem->odp_data->dma_list[page_index])) {
- 		dma_addr = ib_dma_map_page(dev,
- 					   page,
-@@ -146,14 +428,27 @@ static int ib_umem_odp_map_dma_single_page(
- 	} else {
- 		pr_err("error: got different pages in IB device and from get_user_pages. IB device page: %p, gup page: %p\n",
- 		       umem->odp_data->page_list[page_index], page);
-+		/* Better remove the mapping now, to prevent any further
-+		 * damage. */
-+		remove_existing_mapping = 1;
- 	}
- 
- out:
- 	mutex_unlock(&umem->odp_data->umem_mutex);
- 
--	if (!stored_page)
-+	/* On Demand Paging - avoid pinning the page */
-+	if (umem->context->invalidate_range || !stored_page)
- 		put_page(page);
- 
-+	if (remove_existing_mapping && umem->context->invalidate_range) {
-+		invalidate_page_trampoline(
-+			umem,
-+			base_virt_addr + (page_index * PAGE_SIZE),
-+			base_virt_addr + ((page_index+1)*PAGE_SIZE),
-+			NULL);
-+		ret = -EAGAIN;
++	if (umem->odp_data) {
++		ib_umem_odp_release(umem);
++		return;
 +	}
 +
- 	return ret;
- }
+ 	__ib_umem_release(umem->context->device, umem, 1);
  
-@@ -166,6 +461,8 @@ out:
-  *
-  * Returns the number of pages mapped in success, negative error code
-  * for failure.
-+ * An -EAGAIN error code is returned when a concurrent mmu notifier prevents
-+ * the function from completing its task.
-  *
-  * @umem: the umem to map and pin
-  * @user_virt: the address from which we need to map.
-@@ -187,6 +484,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
- 	struct page       **local_page_list = NULL;
- 	u64 off;
- 	int j, k, ret = 0, start_idx, npages = 0;
-+	u64 base_virt_addr;
+ 	mm = get_task_mm(current);
+@@ -278,6 +299,9 @@ int ib_umem_page_count(struct ib_umem *umem)
+ 	int n;
+ 	struct scatterlist *sg;
  
- 	if (access_mask == 0)
- 		return -EINVAL;
-@@ -201,6 +499,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
++	if (umem->odp_data)
++		return ib_umem_num_pages(umem);
++
+ 	shift = ilog2(umem->page_size);
  
- 	off = user_virt & (~PAGE_MASK);
- 	user_virt = user_virt & PAGE_MASK;
-+	base_virt_addr = user_virt;
- 	bcnt += off; /* Charge for the first page offset as well. */
- 
- 	start_idx = (user_virt - ib_umem_start(umem)) >> PAGE_SHIFT;
-@@ -242,8 +541,8 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
- 		user_virt += npages << PAGE_SHIFT;
- 		for (j = 0; j < npages; ++j) {
- 			ret = ib_umem_odp_map_dma_single_page(
--				umem, k, local_page_list[j], access_mask,
--				current_seq);
-+				umem, k, base_virt_addr, local_page_list[j],
-+				access_mask, current_seq);
- 			if (ret < 0)
- 				break;
- 			k++;
-@@ -280,6 +579,11 @@ void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 virt,
- 	struct ib_device *dev = umem->context->device;
- 	virt  = max_t(u64, virt,  ib_umem_start(umem));
- 	bound = min_t(u64, bound, ib_umem_end(umem));
-+	/* Note that during the run of this function, the
-+	 * notifiers_count of the MR is > 0, preventing any racing
-+	 * faults from completion. We might be racing with other
-+	 * invalidations, so we must make sure we free each page only
-+	 * once. */
- 	for (addr = virt; addr < bound; addr += (u64)umem->page_size) {
- 		idx = (addr - ib_umem_start(umem)) / PAGE_SIZE;
- 		mutex_lock(&umem->odp_data->umem_mutex);
-@@ -294,8 +598,21 @@ void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 virt,
- 			ib_dma_unmap_page(dev, dma_addr, PAGE_SIZE,
- 					  DMA_BIDIRECTIONAL);
- 			if (umem->writable)
--				set_page_dirty_lock(head_page);
--			put_page(page);
-+				/*
-+				 * set_page_dirty prefers being called with
-+				 * the page lock. However, MMU notifiers are
-+				 * called sometimes with and sometimes without
-+				 * the lock. We rely on the umem_mutex instead
-+				 * to prevent other mmu notifiers from
-+				 * continuing and allowing the page mapping to
-+				 * be removed.
-+				 */
-+				set_page_dirty(head_page);
-+			/* on demand pinning support */
-+			if (!umem->context->invalidate_range)
-+				put_page(page);
-+			umem->odp_data->page_list[idx] = NULL;
-+			umem->odp_data->dma_list[idx] = 0;
- 		}
- 		mutex_unlock(&umem->odp_data->umem_mutex);
- 	}
-diff --git a/drivers/infiniband/core/umem_rbtree.c b/drivers/infiniband/core/umem_rbtree.c
+ 	n = 0;
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
 new file mode 100644
-index 0000000..727d788
+index 0000000..0c90ce50
 --- /dev/null
-+++ b/drivers/infiniband/core/umem_rbtree.c
-@@ -0,0 +1,94 @@
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -0,0 +1,303 @@
 +/*
 + * Copyright (c) 2014 Mellanox Technologies. All rights reserved.
 + *
@@ -597,221 +154,457 @@ index 0000000..727d788
 + * SOFTWARE.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/interval_tree_generic.h>
++#include <linux/types.h>
 +#include <linux/sched.h>
-+#include <linux/gfp.h>
++#include <linux/pid.h>
++#include <linux/slab.h>
++#include <linux/export.h>
++#include <linux/vmalloc.h>
++
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_umem.h>
 +#include <rdma/ib_umem_odp.h>
 +
-+/*
-+ * The ib_umem list keeps track of memory regions for which the HW
-+ * device request to receive notification when the related memory
-+ * mapping is changed.
-+ *
-+ * ib_umem_lock protects the list.
-+ */
-+
-+static inline u64 node_start(struct umem_odp_node *n)
++int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
 +{
-+	struct ib_umem_odp *umem_odp =
-+			container_of(n, struct ib_umem_odp, interval_tree);
++	int ret_val;
++	struct pid *our_pid;
 +
-+	return ib_umem_start(umem_odp->umem);
-+}
++	/* Prevent creating ODP MRs in child processes */
++	rcu_read_lock();
++	our_pid = get_task_pid(current->group_leader, PIDTYPE_PID);
++	rcu_read_unlock();
++	put_pid(our_pid);
++	if (context->tgid != our_pid)
++		return -EINVAL;
 +
-+/* Note that the representation of the intervals in the interval tree
-+ * considers the ending point as contained in the interval, while the
-+ * function ib_umem_end returns the first address which is not contained
-+ * in the umem.
-+ */
-+static inline u64 node_last(struct umem_odp_node *n)
-+{
-+	struct ib_umem_odp *umem_odp =
-+			container_of(n, struct ib_umem_odp, interval_tree);
++	umem->hugetlb = 0;
++	umem->odp_data = kzalloc(sizeof(*umem->odp_data), GFP_KERNEL);
++	if (!umem->odp_data)
++		return -ENOMEM;
 +
-+	return ib_umem_end(umem_odp->umem) - 1;
-+}
++	mutex_init(&umem->odp_data->umem_mutex);
 +
-+INTERVAL_TREE_DEFINE(struct umem_odp_node, rb, u64, __subtree_last,
-+		     node_start, node_last, , rbt_ib_umem)
-+
-+/* @last is not a part of the interval. See comment for function
-+ * node_last.
-+ */
-+int rbt_ib_umem_for_each_in_range(struct rb_root *root,
-+				  u64 start, u64 last,
-+				  umem_call_back cb,
-+				  void *cookie)
-+{
-+	int ret_val = 0;
-+	struct umem_odp_node *node;
-+	struct ib_umem_odp *umem;
-+
-+	if (unlikely(start == last))
-+		return ret_val;
-+
-+	for (node = rbt_ib_umem_iter_first(root, start, last - 1); node;
-+			node = rbt_ib_umem_iter_next(node, start, last - 1)) {
-+		umem = container_of(node, struct ib_umem_odp, interval_tree);
-+		ret_val = cb(umem->umem, start, last, cookie) || ret_val;
++	umem->odp_data->page_list = vzalloc(ib_umem_num_pages(umem) *
++					    sizeof(*umem->odp_data->page_list));
++	if (!umem->odp_data->page_list) {
++		ret_val = -ENOMEM;
++		goto out_odp_data;
 +	}
 +
++	umem->odp_data->dma_list = vzalloc(ib_umem_num_pages(umem) *
++					  sizeof(*umem->odp_data->dma_list));
++	if (!umem->odp_data->dma_list) {
++		ret_val = -ENOMEM;
++		goto out_page_list;
++	}
++
++	return 0;
++
++out_page_list:
++	vfree(umem->odp_data->page_list);
++out_odp_data:
++	kfree(umem->odp_data);
 +	return ret_val;
 +}
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index fe709ca..a81d0c7 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -289,6 +289,9 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	struct ib_uverbs_get_context_resp resp;
- 	struct ib_udata                   udata;
- 	struct ib_device                 *ibdev = file->device->ib_dev;
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	struct ib_device_attr		  dev_attr;
-+#endif
- 	struct ib_ucontext		 *ucontext;
- 	struct file			 *filp;
- 	int ret;
-@@ -331,6 +334,19 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	rcu_read_unlock();
- 	ucontext->closing = 0;
- 
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	ucontext->umem_tree = RB_ROOT;
-+	init_rwsem(&ucontext->umem_mutex);
-+	ucontext->odp_mrs_count = 0;
 +
-+	ret = ib_query_device(ibdev, &dev_attr);
-+	if (ret)
-+		goto err_free;
-+	if (!(dev_attr.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING))
-+		ucontext->invalidate_range = NULL;
-+
-+#endif
-+
- 	resp.num_comp_vectors = file->device->num_comp_vectors;
- 
- 	ret = get_unused_fd_flags(O_CLOEXEC);
-diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-index 375ce28..9b93206 100644
---- a/include/rdma/ib_umem_odp.h
-+++ b/include/rdma/ib_umem_odp.h
-@@ -34,6 +34,12 @@
- #define IB_UMEM_ODP_H
- 
- #include <rdma/ib_umem.h>
-+#include <linux/interval_tree.h>
-+
-+struct umem_odp_node {
-+	u64 __subtree_last;
-+	struct rb_node rb;
-+};
- 
- struct ib_umem_odp {
- 	/*
-@@ -58,6 +64,14 @@ struct ib_umem_odp {
- 
- 	atomic_t		notifiers_seq;
- 	atomic_t		notifiers_count;
-+
-+	struct ib_umem		*umem;
-+
-+	/* Tree tracking */
-+	struct umem_odp_node	interval_tree;
-+
-+	struct completion	notifier_completion;
-+	int			dying;
- };
- 
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-@@ -85,6 +99,48 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 start_offset, u64 bcnt,
- void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 start_offset,
- 				 u64 bound);
- 
-+void rbt_ib_umem_insert(struct umem_odp_node *node, struct rb_root *root);
-+void rbt_ib_umem_remove(struct umem_odp_node *node, struct rb_root *root);
-+typedef int (*umem_call_back)(struct ib_umem *item, u64 start, u64 end,
-+			      void *cookie);
-+/*
-+ * Call the callback on each ib_umem in the range. Returns the logical or of
-+ * the return values of the functions called.
-+ */
-+int rbt_ib_umem_for_each_in_range(struct rb_root *root, u64 start, u64 end,
-+				  umem_call_back cb, void *cookie);
-+
-+struct umem_odp_node *rbt_ib_umem_iter_first(struct rb_root *root,
-+					     u64 start, u64 last);
-+struct umem_odp_node *rbt_ib_umem_iter_next(struct umem_odp_node *node,
-+					    u64 start, u64 last);
-+
-+static inline int ib_umem_mmu_notifier_retry(struct ib_umem *item,
-+					     unsigned long mmu_seq)
++void ib_umem_odp_release(struct ib_umem *umem)
 +{
 +	/*
-+	 * This code is strongly based on the KVM code from
-+	 * mmu_notifier_retry. Should be called with
-+	 * item->odp_data->umem_mutex locked.
++	 * Ensure that no more pages are mapped in the umem.
++	 *
++	 * It is the driver's responsibility to ensure, before calling us,
++	 * that the hardware will not attempt to access the MR any more.
 +	 */
-+	if (unlikely(atomic_read(&item->odp_data->notifiers_count)))
-+		return 1;
-+	/*
-+	 * Ensure the read of mmu_notifier_count happens before the read
-+	 * of mmu_notifier_seq.  This interacts with the smp_wmb() in
-+	 * mmu_notifier_invalidate_range_end to make sure that the caller
-+	 * either sees the old (non-zero) value of mmu_notifier_count or
-+	 * the new (incremented) value of mmu_notifier_seq.
-+	 */
-+	smp_rmb();
-+	if (atomic_read(&item->odp_data->notifiers_seq) != mmu_seq)
-+		return 1;
-+	return 0;
++	ib_umem_odp_unmap_dma_pages(umem, ib_umem_start(umem),
++				    ib_umem_end(umem));
++
++	vfree(umem->odp_data->dma_list);
++	vfree(umem->odp_data->page_list);
++	kfree(umem);
 +}
 +
-+void ib_umem_notifier_start_account(struct ib_umem *item);
-+void ib_umem_notifier_end_account(struct ib_umem *item);
++/*
++ * Map for DMA and insert a single page into the on-demand paging page tables.
++ *
++ * @umem: the umem to insert the page to.
++ * @page_index: index in the umem to add the page to.
++ * @page: the page struct to map and add.
++ * @access_mask: access permissions needed for this page.
++ * @current_seq: sequence number for synchronization with invalidations.
++ *               the sequence number is taken from
++ *               umem->odp_data->notifiers_seq.
++ *
++ * The function returns -EFAULT if the DMA mapping operation fails.
++ *
++ * The page is released via put_page even if the operation failed. For
++ * on-demand pinning, the page is released whenever it isn't stored in the
++ * umem.
++ */
++static int ib_umem_odp_map_dma_single_page(
++		struct ib_umem *umem,
++		int page_index,
++		struct page *page,
++		u64 access_mask,
++		unsigned long current_seq)
++{
++	struct ib_device *dev = umem->context->device;
++	dma_addr_t dma_addr;
++	int stored_page = 0;
++	int ret = 0;
++	mutex_lock(&umem->odp_data->umem_mutex);
++	if (!(umem->odp_data->dma_list[page_index])) {
++		dma_addr = ib_dma_map_page(dev,
++					   page,
++					   0, PAGE_SIZE,
++					   DMA_BIDIRECTIONAL);
++		if (ib_dma_mapping_error(dev, dma_addr)) {
++			ret = -EFAULT;
++			goto out;
++		}
++		umem->odp_data->dma_list[page_index] = dma_addr | access_mask;
++		umem->odp_data->page_list[page_index] = page;
++		stored_page = 1;
++	} else if (umem->odp_data->page_list[page_index] == page) {
++		umem->odp_data->dma_list[page_index] |= access_mask;
++	} else {
++		pr_err("error: got different pages in IB device and from get_user_pages. IB device page: %p, gup page: %p\n",
++		       umem->odp_data->page_list[page_index], page);
++	}
 +
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
++out:
++	mutex_unlock(&umem->odp_data->umem_mutex);
++
++	if (!stored_page)
++		put_page(page);
++
++	return ret;
++}
++
++/**
++ * ib_umem_odp_map_dma_pages - Pin and DMA map userspace memory in an ODP MR.
++ *
++ * Pins the range of pages passed in the argument, and maps them to
++ * DMA addresses. The DMA addresses of the mapped pages is updated in
++ * umem->odp_data->dma_list.
++ *
++ * Returns the number of pages mapped in success, negative error code
++ * for failure.
++ *
++ * @umem: the umem to map and pin
++ * @user_virt: the address from which we need to map.
++ * @bcnt: the minimal number of bytes to pin and map. The mapping might be
++ *        bigger due to alignment, and may also be smaller in case of an error
++ *        pinning or mapping a page. The actual pages mapped is returned in
++ *        the return value.
++ * @access_mask: bit mask of the requested access permissions for the given
++ *               range.
++ * @current_seq: the MMU notifiers sequance value for synchronization with
++ *               invalidations. the sequance number is read from
++ *               umem->odp_data->notifiers_seq before calling this function
++ */
++int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
++			      u64 access_mask, unsigned long current_seq)
++{
++	struct task_struct *owning_process  = NULL;
++	struct mm_struct   *owning_mm       = NULL;
++	struct page       **local_page_list = NULL;
++	u64 off;
++	int j, k, ret = 0, start_idx, npages = 0;
++
++	if (access_mask == 0)
++		return -EINVAL;
++
++	if (user_virt < umem->address ||
++	    user_virt + bcnt > umem->address + umem->length)
++		return -EFAULT;
++
++	local_page_list = (struct page **)__get_free_page(GFP_KERNEL);
++	if (!local_page_list)
++		return -ENOMEM;
++
++	off = user_virt & (~PAGE_MASK);
++	user_virt = user_virt & PAGE_MASK;
++	bcnt += off; /* Charge for the first page offset as well. */
++
++	start_idx = (user_virt - ib_umem_start(umem)) >> PAGE_SHIFT;
++	k = start_idx;
++
++	owning_process = get_pid_task(umem->context->tgid, PIDTYPE_PID);
++	if (owning_process == NULL) {
++		ret = -EINVAL;
++		goto out_no_task;
++	}
++
++	owning_mm = get_task_mm(owning_process);
++	if (owning_mm == NULL) {
++		ret = -EINVAL;
++		goto out_put_task;
++	}
++
++	while (bcnt > 0) {
++		down_read(&owning_mm->mmap_sem);
++		/*
++		 * Note: this might result in redundent page getting. We can
++		 * avoid this by checking dma_list to be 0 before calling
++		 * get_user_pages. However, this make the code much more
++		 * complex (and doesn't gain us much performance in most use
++		 * cases).
++		 */
++		npages = get_user_pages(owning_process, owning_mm, user_virt,
++					min_t(size_t, max_t(size_t, 1,
++							    bcnt >> PAGE_SHIFT),
++					PAGE_SIZE / sizeof(struct page *)),
++					access_mask & ODP_WRITE_ALLOWED_BIT, 0,
++					local_page_list, NULL);
++		up_read(&owning_mm->mmap_sem);
++
++		if (npages < 0)
++			break;
++
++		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
++		user_virt += npages << PAGE_SHIFT;
++		for (j = 0; j < npages; ++j) {
++			ret = ib_umem_odp_map_dma_single_page(
++				umem, k, local_page_list[j], access_mask,
++				current_seq);
++			if (ret < 0)
++				break;
++			k++;
++		}
++
++		if (ret < 0) {
++			/* Release left over pages when handling errors. */
++			for (++j; j < npages; ++j)
++				put_page(local_page_list[j]);
++		}
++	}
++
++	if (ret >= 0) {
++		if (npages < 0 && k == start_idx)
++			ret = npages;
++		else
++			ret = k - start_idx;
++	}
++
++	mmput(owning_mm);
++out_put_task:
++	put_task_struct(owning_process);
++out_no_task:
++	free_page((unsigned long) local_page_list);
++	return ret;
++}
++EXPORT_SYMBOL(ib_umem_odp_map_dma_pages);
++
++void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 virt,
++				 u64 bound)
++{
++	int idx;
++	u64 addr;
++	struct ib_device *dev = umem->context->device;
++	virt  = max_t(u64, virt,  ib_umem_start(umem));
++	bound = min_t(u64, bound, ib_umem_end(umem));
++	for (addr = virt; addr < bound; addr += (u64)umem->page_size) {
++		idx = (addr - ib_umem_start(umem)) / PAGE_SIZE;
++		mutex_lock(&umem->odp_data->umem_mutex);
++		if (umem->odp_data->page_list[idx]) {
++			struct page *page = umem->odp_data->page_list[idx];
++			struct page *head_page = compound_head(page);
++			dma_addr_t dma_addr = umem->odp_data->dma_list[idx] &
++					      ODP_DMA_ADDR_MASK;
++
++			WARN_ON(!dma_addr);
++
++			ib_dma_unmap_page(dev, dma_addr, PAGE_SIZE,
++					  DMA_BIDIRECTIONAL);
++			if (umem->writable)
++				set_page_dirty_lock(head_page);
++			put_page(page);
++		}
++		mutex_unlock(&umem->odp_data->umem_mutex);
++	}
++}
++EXPORT_SYMBOL(ib_umem_odp_unmap_dma_pages);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index af0c51b..fe709ca 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -36,6 +36,7 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
++#include <linux/sched.h>
  
- static inline int ib_umem_odp_get(struct ib_ucontext *context,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6d7f75e..54df9a8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -51,6 +51,7 @@
- #include <uapi/linux/if_ether.h>
- 
- #include <linux/atomic.h>
-+#include <linux/mmu_notifier.h>
  #include <asm/uaccess.h>
  
- extern struct workqueue_struct *ib_wq;
-@@ -1142,6 +1143,8 @@ struct ib_fmr_attr {
- 	u8	page_shift;
- };
+@@ -325,6 +326,9 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
+ 	INIT_LIST_HEAD(&ucontext->ah_list);
+ 	INIT_LIST_HEAD(&ucontext->xrcd_list);
+ 	INIT_LIST_HEAD(&ucontext->rule_list);
++	rcu_read_lock();
++	ucontext->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
++	rcu_read_unlock();
+ 	ucontext->closing = 0;
  
-+struct ib_umem;
+ 	resp.num_comp_vectors = file->device->num_comp_vectors;
+@@ -371,6 +375,7 @@ err_fd:
+ 	put_unused_fd(resp.async_fd);
+ 
+ err_free:
++	put_pid(ucontext->tgid);
+ 	ibdev->dealloc_ucontext(ucontext);
+ 
+ err:
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index b7d3c3a..485087ce 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -296,6 +296,8 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		kfree(uobj);
+ 	}
+ 
++	put_pid(context->tgid);
 +
- struct ib_ucontext {
- 	struct ib_device       *device;
- 	struct list_head	pd_list;
-@@ -1157,6 +1160,19 @@ struct ib_ucontext {
+ 	return context->device->dealloc_ucontext(context);
+ }
  
- 	/* For ODP support: */
- 	struct pid             *tgid;
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	struct rb_root      umem_tree;
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 6af91b3..55fc858 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -38,6 +38,7 @@
+ #include <linux/workqueue.h>
+ 
+ struct ib_ucontext;
++struct ib_umem_odp;
+ 
+ struct ib_umem {
+ 	struct ib_ucontext     *context;
+@@ -49,6 +50,7 @@ struct ib_umem {
+ 	struct work_struct	work;
+ 	struct mm_struct       *mm;
+ 	unsigned long		diff;
++	struct ib_umem_odp     *odp_data;
+ 	struct sg_table sg_head;
+ 	int             nmap;
+ 	int             npages;
+diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+new file mode 100644
+index 0000000..375ce28
+--- /dev/null
++++ b/include/rdma/ib_umem_odp.h
+@@ -0,0 +1,100 @@
++/*
++ * Copyright (c) 2014 Mellanox Technologies. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef IB_UMEM_ODP_H
++#define IB_UMEM_ODP_H
++
++#include <rdma/ib_umem.h>
++
++struct ib_umem_odp {
 +	/*
-+	 * Protects .umem_rbroot and tree, as well as odp_mrs_count and
-+	 * mmu notifiers registration.
++	 * An array of the pages included in the on-demand paging umem.
++	 * Indices of pages that are currently not mapped into the device will
++	 * contain NULL.
 +	 */
-+	struct rw_semaphore	umem_mutex;
-+	void (*invalidate_range)(struct ib_umem *umem,
-+				 unsigned long start, unsigned long end);
++	struct page		**page_list;
++	/*
++	 * An array of the same size as page_list, with DMA addresses mapped
++	 * for pages the pages in page_list. The lower two bits designate
++	 * access permissions. See ODP_READ_ALLOWED_BIT and
++	 * ODP_WRITE_ALLOWED_BIT.
++	 */
++	dma_addr_t		*dma_list;
++	/*
++	 * The umem_mutex protects the page_list and dma_list fields of an ODP
++	 * umem, allowing only a single thread to map/unmap pages.
++	 */
++	struct mutex		umem_mutex;
++	void			*private; /* for the HW driver to use. */
 +
-+	struct mmu_notifier	mn;
-+	int                     odp_mrs_count;
-+#endif
++	atomic_t		notifiers_seq;
++	atomic_t		notifiers_count;
++};
++
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++
++int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem);
++
++void ib_umem_odp_release(struct ib_umem *umem);
++
++/*
++ * The lower 2 bits of the DMA address signal the R/W permissions for
++ * the entry. To upgrade the permissions, provide the appropriate
++ * bitmask to the map_dma_pages function.
++ *
++ * Be aware that upgrading a mapped address might result in change of
++ * the DMA address for the page.
++ */
++#define ODP_READ_ALLOWED_BIT  (1<<0ULL)
++#define ODP_WRITE_ALLOWED_BIT (1<<1ULL)
++
++#define ODP_DMA_ADDR_MASK (~(ODP_READ_ALLOWED_BIT | ODP_WRITE_ALLOWED_BIT))
++
++int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 start_offset, u64 bcnt,
++			      u64 access_mask, unsigned long current_seq);
++
++void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 start_offset,
++				 u64 bound);
++
++#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
++
++static inline int ib_umem_odp_get(struct ib_ucontext *context,
++				  struct ib_umem *umem)
++{
++	return -EINVAL;
++}
++
++static inline void ib_umem_odp_release(struct ib_umem *umem) {}
++
++#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
++
++#endif /* IB_UMEM_ODP_H */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 7c5e9e0..6d7f75e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1154,6 +1154,9 @@ struct ib_ucontext {
+ 	struct list_head	xrcd_list;
+ 	struct list_head	rule_list;
+ 	int			closing;
++
++	/* For ODP support: */
++	struct pid             *tgid;
  };
  
  struct ib_uobject {
