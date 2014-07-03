@@ -1,54 +1,191 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 0/5] SRP initiator patches for kernel 3.17
-Date: Thu, 03 Jul 2014 16:19:04 +0200
-Message-ID: <53B56658.1080609@acm.org>
-References: <53B55E55.5040907@acm.org> <53B565EB.50301@acm.org>
+From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v6 1/1] IPoIB: Avoid multicast join attempts when having
+ invalid p_key
+Date: Thu, 03 Jul 2014 10:29:44 -0400
+Message-ID: <20140703142944.22920.12822.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53B565EB.50301-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-(CC'ing linux-scsi)
+Currently, the parent interface keeps sending broadcast group join
+requests even if p_key index 0 is invalid, which for itself is
+possible/common in virtualized environment where a VF has been probed to
+VM but the actual p_key configuration has not yet been assigned by the
+management software. This creates unnecessary noise on the fabric and in
+the kernel logs:
 
-On 07/03/14 15:45, Bart Van Assche wrote:> If scsi_remove_host() is called while an rport is in the blocked
-> state then scsi_remove_host() will only finish if the rport is
-> unblocked from inside a timer function. Make sure that an rport
-> only enters the blocked state if a timer will be started that
-> will unblock it. This avoids that unloading the ib_srp kernel
-> module after having disconnected the initiator from the target
-> system results in a deadlock if both the fast_io_fail_tmo and
-> dev_loss_tmo parameters have been set to "off".
-> 
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> Cc: James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
-> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> ---
->  drivers/scsi/scsi_transport_srp.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
-> index 13e8983..a0c5bfd 100644
-> --- a/drivers/scsi/scsi_transport_srp.c
-> +++ b/drivers/scsi/scsi_transport_srp.c
-> @@ -473,7 +473,8 @@ static void __srp_start_tl_fail_timers(struct srp_rport *rport)
->  	if (delay > 0)
->  		queue_delayed_work(system_long_wq, &rport->reconnect_work,
->  				   1UL * delay * HZ);
-> -	if (srp_rport_set_state(rport, SRP_RPORT_BLOCKED) == 0) {
-> +	if ((fast_io_fail_tmo >= 0 || dev_loss_tmo >= 0) &&
-> +	    srp_rport_set_state(rport, SRP_RPORT_BLOCKED) == 0) {
->  		pr_debug("%s new state: %d\n", dev_name(&shost->shost_gendev),
->  			 rport->state);
->  		scsi_target_block(&shost->shost_gendev);
-> 
+ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff,
+status -22
+
+The original code run the multicast task regardless of the actual
+p_key value, which can be avoided. The fix is to re-init resources  and
+bring interface up only if p_key index 0 is valid either when starting
+up or on PKEY_CHANGE event.
+
+Fixes: c290414169 ('IPoIB: Fix pkey change flow for virtualization environments')
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+Changes from v5:
+-reinit child interface pkey_index before pkey lookup & compare.
+Changes from v4:
+- streamline child interface pkey event handling,
+- shutdown of pkey polling thread depends on PKEY_STOP flag state only.
+Original ipoib_ib_dev_down() could leave polling thread active
+if PKEY_ASSIGNED flag was set. That could create a racing condition on followed
+re-initialization of QP resources.
+Changes from v3:
+Updated chagelog and fixed alignemnt
+as suggested by Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Changes from v2:
+Handle pkey change event for a case when interface is down
+(pointed out by Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>).
+Changes from v1:
+p_key check for 'Invalid' value was moved to
+ipoib_pkey_dev_check_presence() that is used now in ipoib_ib_dev_open()
+for p_key validation.
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   60 ++++++++++++++++---------------
+ 1 files changed, 30 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 6a7003d..b297352 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -52,6 +52,7 @@ MODULE_PARM_DESC(data_debug_level,
+ #endif
+ 
+ static DEFINE_MUTEX(pkey_mutex);
++static void ipoib_pkey_dev_check_presence(struct net_device *dev);
+ 
+ struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
+ 				 struct ib_pd *pd, struct ib_ah_attr *attr)
+@@ -669,12 +670,13 @@ int ipoib_ib_dev_open(struct net_device *dev)
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	int ret;
+ 
+-	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
+-		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
+-		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
++	ipoib_pkey_dev_check_presence(dev);
++
++	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
++		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
++			   !(priv->pkey & 0x7fff) ? "Invalid" : "not found");
+ 		return -1;
+ 	}
+-	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+ 
+ 	ret = ipoib_init_qp(dev);
+ 	if (ret) {
+@@ -712,9 +714,10 @@ dev_stop:
+ static void ipoib_pkey_dev_check_presence(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-	u16 pkey_index = 0;
+ 
+-	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
++	if (!(priv->pkey & 0x7fff) ||
++	    ib_find_pkey(priv->ca, priv->port, priv->pkey,
++			 &priv->pkey_index))
+ 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+ 	else
+ 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+@@ -746,12 +749,10 @@ int ipoib_ib_dev_down(struct net_device *dev, int flush)
+ 	netif_carrier_off(dev);
+ 
+ 	/* Shutdown the P_Key thread if still active */
+-	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
+-		mutex_lock(&pkey_mutex);
+-		set_bit(IPOIB_PKEY_STOP, &priv->flags);
++	mutex_lock(&pkey_mutex);
++	if (!test_and_set_bit(IPOIB_PKEY_STOP, &priv->flags))
+ 		cancel_delayed_work_sync(&priv->pkey_poll_task);
+-		mutex_unlock(&pkey_mutex);
+-	}
++	mutex_unlock(&pkey_mutex);
+ 
+ 	ipoib_mcast_stop_thread(dev, flush);
+ 	ipoib_mcast_dev_flush(dev);
+@@ -972,7 +973,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ {
+ 	struct ipoib_dev_priv *cpriv;
+ 	struct net_device *dev = priv->dev;
+-	u16 new_index;
++	u16 old_index;
+ 	int result;
+ 
+ 	down_read(&priv->vlan_rwsem);
+@@ -986,16 +987,17 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 
+ 	up_read(&priv->vlan_rwsem);
+ 
+-	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
+-		/* for non-child devices must check/update the pkey value here */
+-		if (level == IPOIB_FLUSH_HEAVY &&
+-		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
+-			update_parent_pkey(priv);
++	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags) &&
++	    level != IPOIB_FLUSH_HEAVY) {
+ 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
+ 		return;
+ 	}
+ 
+ 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
++		/* interface is down. update pkey and leave. */
++		if (level == IPOIB_FLUSH_HEAVY &&
++		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
++			update_parent_pkey(priv);
+ 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_ADMIN_UP not set.\n");
+ 		return;
+ 	}
+@@ -1005,20 +1007,16 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 		 * (parent) devices should always takes what present in pkey index 0
+ 		 */
+ 		if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
+-			if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &new_index)) {
+-				clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+-				ipoib_ib_dev_down(dev, 0);
+-				ipoib_ib_dev_stop(dev, 0);
+-				if (ipoib_pkey_dev_delay_open(dev))
+-					return;
+-			}
+-			/* restart QP only if P_Key index is changed */
+-			if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
+-			    new_index == priv->pkey_index) {
++			old_index = priv->pkey_index;
++			priv->pkey_index = 0;
++			ipoib_pkey_dev_check_presence(dev);
++
++			if (test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
++			    old_index == priv->pkey_index) {
++				/* restart QP only if P_Key index is changed */
+ 				ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
+ 				return;
+ 			}
+-			priv->pkey_index = new_index;
+ 		} else {
+ 			result = update_parent_pkey(priv);
+ 			/* restart QP only if P_Key value changed */
+@@ -1038,8 +1036,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 		ipoib_ib_dev_down(dev, 0);
+ 
+ 	if (level == IPOIB_FLUSH_HEAVY) {
+-		ipoib_ib_dev_stop(dev, 0);
+-		ipoib_ib_dev_open(dev);
++		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
++			ipoib_ib_dev_stop(dev, 0);
++		if (ipoib_ib_dev_open(dev) != 0)
++			return;
+ 	}
+ 
+ 	/*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
