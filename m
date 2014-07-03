@@ -1,43 +1,30 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 0/5] SRP initiator patches for kernel 3.17
-Date: Thu, 03 Jul 2014 18:06:10 +0300
-Message-ID: <53B57162.2090802@dev.mellanox.co.il>
-References: <53B55E55.5040907@acm.org> <53B565EB.50301@acm.org>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/5] IB/srp: Optimize completion queue polling
+Date: Thu, 3 Jul 2014 19:46:55 +0300
+Message-ID: <CAJZOPZ+RPe8B_KhKZ-8-S6g871-EKQSnExZgsZ2Z+bo-9L=P9w@mail.gmail.com>
+References: <53B55E55.5040907@acm.org>
+	<53B55F1F.6000704@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <53B565EB.50301@acm.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>, Roland Dreier <roland@kernel.org>
-Cc: James Bottomley <jbottomley@parallels.com>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, David Dillow <dave@thedillows.org>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53B55F1F.6000704-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/3/2014 5:17 PM, Bart Van Assche wrote:
->> This patch series consists of the following five patches, of which three
->> are bug fixes and two are performance optimizations:
->>
->> 0001-scsi_transport_srp-Fix-fast_io_fail_tmo-dev_loss_tmo.patch
->> 0002-IB-srp-Fix-deadlock-between-host-removal-and-multipa.patch
->> 0003-IB-srp-Fix-residual-handling.patch
->> 0004-IB-srp-Use-P_Key-cache-for-P_Key-lookups.patch
->> 0005-IB-srp-Optimize-completion-queue-polling.patch
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> .
->>
+On Thu, Jul 3, 2014 at 4:48 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+[...]
+>
+> Limit the number of poll cycles per completion notification to preserve fairness
 
-Hey Bart,
+[...]
 
-The series looks good,
+Any reason not to make use of the block layer NAPI like API for that
+(blk-iopoll http://lwn.net/Articles/346187/) ?
 
-You can add to the series:
-Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
-
-Specifically to patches #1, #4, #5 you can add:
-Tested-by: Sagi Grimberg <sagig@mellanox.com>
-
-Sagi.
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
