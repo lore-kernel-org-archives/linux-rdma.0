@@ -1,30 +1,41 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: mlx4 lockdep splat
-Date: Thu, 3 Jul 2014 14:42:56 +0300
-Message-ID: <20140703144256.38ff1d9f@jpm-OptiPlex-GX620>
-References: <B2CFBE8B-333B-4EA3-8853-9C91FFCE92D8@oracle.com>
-	<20140702101954.0af46c74@jpm-OptiPlex-GX620>
-	<E900818E-32D4-4667-85EB-34BC2BA88B9F@oracle.com>
-	<52074264-21F8-4CCF-A5D1-38C07E1FF201@oracle.com>
+From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: NFSoRDMA developers bi-weekly meeting minutes (6/25)
+Date: Thu, 3 Jul 2014 12:14:38 +0000
+Message-ID: <d3d3fd3f6f1c44159f0e6b9d19a622eb@DB4PR05MB461.eurprd05.prod.outlook.com>
+References: <53B42F2A.9060205@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52074264-21F8-4CCF-A5D1-38C07E1FF201-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <53B42F2A.9060205-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2 Jul 2014 18:51:17 -0400
-Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+Hi Shirley,
 
-> I built my own according to your description. The fix seems good.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Shirley Ma
+> Sent: Wednesday, July 02, 2014 19:11
+> To: linux-rdma; Linux NFS Mailing List; Rupert Dance; Chuck Lever; Doug
+> Ledford; Anna Schumaker; Steve Wise; Steve Dickson
+> Subject: NFSoRDMA developers bi-weekly meeting minutes (6/25)
+> 
+> 
+> 6. NFSoRDMA virtualization doesn't work. Shirley found that VF FRMR
+> reported port error after a successful post_send on connextX-2. It didn't seem
+> an NFSoRDMA issue. Questions are whether VF FRMR is fully tested. Later Yan
+> confirmed VF FRMR doesn't work for NFSoRDMA on connectX-3 either.
 > 
 
-Thanks, Chuck!
+Apparently there has been a misunderstanding. I did not confirm that VF FRMR does not work.
+Actually I use FRMR on VF all the time (not with NFSoRDMA apparently). You can check if FRMR works for you by running krping.
 
--Jack
+Regards,
+Yan
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
