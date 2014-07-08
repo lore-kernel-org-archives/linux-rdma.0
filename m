@@ -1,39 +1,59 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.17 0/3] IPoIB fixes
-Date: Tue,  8 Jul 2014 12:45:09 +0300
-Message-ID: <1404812712-26187-1-git-send-email-ogerlitz@mellanox.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/ipath: sysfs and ipathfs support for core driver
+Date: Tue, 8 Jul 2014 13:57:54 +0300
+Message-ID: <20140708105754.GD19737@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: bos-Hl0AACgZOF5l57MIdRCFDg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Hello Bryan O'Sullivan,
 
-This short series is a batch of ipoib fixes from Erez to 3.17. 
+This is a semi-automatic email about new static checker warnings.
 
-Basically we remove the 10y old pkey polling thread/code which isn't 
-needed anymore (added small ipath patch to support the event..) and
-fix a deal-lock which happens on error flow.
+The patch 3e9b4a5eb4ae: "IB/ipath: sysfs and ipathfs support for core 
+driver" from Mar 29, 2006, leads to the following Smatch complaint:
 
-Alex, it will allow you to rebase and simplify your 
-https://patchwork.kernel.org/patch/4474321/ patch
+drivers/infiniband/hw/ipath/ipath_fs.c:285 remove_file()
+	 error: we previously assumed 'tmp->d_inode' could be null (see line 281)
 
-Or.
+drivers/infiniband/hw/ipath/ipath_fs.c
+   280		spin_lock(&tmp->d_lock);
+   281		if (!(d_unhashed(tmp) && tmp->d_inode)) {
+                                         ^^^^^^^^^^^^
+We allow that ->d_inode to be NULL.
 
-Erez Shitrit (2):
-  IB/ipoib: Use pkey change event instead of pkey polling mechanism
-  IB/ipoib: Avoid flushing the workqueue from worker context
+   282			dget_dlock(tmp);
+   283			__d_drop(tmp);
+   284			spin_unlock(&tmp->d_lock);
+   285			simple_unlink(parent->d_inode, tmp);
+                                                       ^^^
+But we dereference it inside the call to simple_unlink().  This code is
+probably cut-and-pasted from configfs because I reported a bug in that
+code as well yesterday but haven't heard back.
 
-Or Gerlitz (1):
-  IB/ipath: Add PKEY change event support
+   286		} else
+   287			spin_unlock(&tmp->d_lock);
 
- drivers/infiniband/hw/ipath/ipath_mad.c   |   14 ++++--
- drivers/infiniband/ulp/ipoib/ipoib.h      |    8 +--
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   |   81 ++++++----------------------
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    8 ++-
- 4 files changed, 36 insertions(+), 75 deletions(-)
+drivers/infiniband/hw/qib/qib_fs.c
+   458          spin_lock(&tmp->d_lock);
+   459          if (!(d_unhashed(tmp) && tmp->d_inode)) {
+                                         ^^^^^^^^^^^^
+   460                  __d_drop(tmp);
+   461                  spin_unlock(&tmp->d_lock);
+   462                  simple_unlink(parent->d_inode, tmp);
+                                                       ^^^
+And another one here in qib_fs.c.
 
+   463          } else {
+   464                  spin_unlock(&tmp->d_lock);
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
