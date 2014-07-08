@@ -1,58 +1,50 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 5/5] IB/srp: Optimize completion queue polling
-Date: Tue, 08 Jul 2014 17:45:38 +0300
-Message-ID: <53BC0412.3070706@dev.mellanox.co.il>
-References: <53B55E55.5040907@acm.org> <53B55F1F.6000704@acm.org>	 <1404407103.32754.3.camel@haswell.thedillows.org>	 <53B6868A.3070705@acm.org> <1404501176.16296.18.camel@haswell.thedillows.org> <53BBF6E3.3040403@acm.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: initialize the device status page
+Date: Tue, 08 Jul 2014 10:20:35 -0500
+Message-ID: <20140708152034.17969.83997.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53BBF6E3.3040403-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/8/2014 4:49 PM, Bart Van Assche wrote:
+The status page is mapped to user processes and allows sharing the device
+state between the kernel and user processes.  This state isn't getting
+initialized and thus intermittently causes problems.  Namely, the user
+process can mistakenly think the user doorbell writes are disabled which
+causes SQ work requests to never get fetched by HW.
 
-<SNIP>
-> Hello Dave,
->
-> Thanks for digging up this information and also for sharing it. This is
-> interesting. What I noticed is that the in the SRP target driver
-> attached to the previous e-mail ("srptest.c") one command at a time is
-> processed. However, in the SRP target driver I ran my own tests with
-> (based on SCST) multiple SCSI commands are processed simultaneously by a
-> single thread. A finite state machine is associated with each SCSI
-> command and events like IB work completions trigger transitions of that
-> state machine. So that might be a possible explanation why my
-> measurement results were different.
->
-> However, before I repost (a variant of) this patch I will try to find a
-> way to combine the advantages of interrupt-based processing (low
-> latency) and the blk-iopoll approach (minimal time spent in interrupt
-> context).
+This bug was introduced by this commit in 3.15:
 
-Hey Bart, Dave & Or (CC'ing Jens)
+	commit 05eb23893c2cf9502a9cec0c32e7f1d1ed2895c8
+	Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+	Date:   Fri Mar 14 21:52:08 2014 +0530
 
-Or and myself did some experiments with blk-iopoll for iSER some time ago.
-We noticed that we got better overall performance using this type of 
-"internal" budget logic (vs. blk-iopoll approach)
-while stats clearly show more interrupts occurring. The reason for that 
-is still unknown to us given that iSER completion
-context is softirq to begin with (tasklet).
+	    cxgb4/iw_cxgb4: Doorbell Drop Avoidance Bug Fixes
 
-We didn't submit the "internal" budget solution since we believe that 
-the correct way to go is using blk-iopoll.
-So IMHO the correct way to continue here is with the blk-iopoll approach 
-trying to resolve the unexplained performance
-gaps we got in the past.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v3.15
+---
 
-I do agree with Or that SRP should benefit using blk-iopoll as well, the 
-canonical Latency lost here seems pretty minor
-against the gain in decreasing the amount of interrupts.
+ drivers/infiniband/hw/cxgb4/device.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Sagi.
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index cbcb72d..7db82b2 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -696,6 +696,7 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 		pr_err(MOD "error allocating status page\n");
+ 		goto err4;
+ 	}
++	rdev->status_page->db_off = 0;
+ 	return 0;
+ err4:
+ 	c4iw_rqtpool_destroy(rdev);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
