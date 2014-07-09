@@ -1,15 +1,15 @@
 From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-3.17 2/3] IB/ipoib: Use pkey change event instead of
- pkey polling mechanism
-Date: Wed, 9 Jul 2014 15:32:09 +0000
-Message-ID: <F3529576D8E232409F431C309E293993B89ED3@CRSMSX102.amr.corp.intel.com>
+Subject: RE: [PATCH for-3.17 3/3] IB/ipoib: Avoid flushing the workqueue
+ from worker context
+Date: Wed, 9 Jul 2014 15:33:06 +0000
+Message-ID: <F3529576D8E232409F431C309E293993B89EE0@CRSMSX102.amr.corp.intel.com>
 References: <1404812712-26187-1-git-send-email-ogerlitz@mellanox.com>
- <1404812712-26187-3-git-send-email-ogerlitz@mellanox.com>
+ <1404812712-26187-4-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1404812712-26187-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1404812712-26187-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -17,220 +17,120 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+
 > -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
-> Behalf Of Or Gerlitz
+> From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
 > Sent: Tuesday, July 08, 2014 5:45 AM
 > To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; Estrin, Alex; Or Gerlitz
-> Subject: [PATCH for-3.17 2/3] IB/ipoib: Use pkey change event instead of pkey
-> polling mechanism
+> Subject: [PATCH for-3.17 3/3] IB/ipoib: Avoid flushing the workqueue from worker
+> context
 > 
 > From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> The current code use a dedicated polling logic to determine when the pkey
-> assigned to the ipoib device is present in HCA port table and act accordingly.
+> The error flow of ipoib_ib_dev_open() invokes ipoib_ib_dev_stop() with
+> work-queue flushing enabled which would turn into deadlock if the open
+> procedure itself was called by a worker thread.
 > 
-> Move to use the code which acts upon getting PKEY_CHANGE event to handle this
-> task and remove the pkey polling logic/thread as they add extra complexity
-> which isn't needed.
+> Fix that by adding a flush enabled flag to ipoib_ib_dev_open() and set
+> it accordingly from the locations where such a call is made.
+> 
+> The call trace was the following:
+> 
+>  [<ffffffff81095bc4>] ? flush_workqueue+0x54/0x80
+>  [<ffffffffa056c657>] ? ipoib_ib_dev_stop+0x447/0x650 [ib_ipoib]
+>  [<ffffffffa056cc34>] ? ipoib_ib_dev_open+0x284/0x430 [ib_ipoib]
+>  [<ffffffffa05674a8>] ? ipoib_open+0x78/0x1d0 [ib_ipoib]
+>  [<ffffffffa05697b8>] ? ipoib_pkey_open+0x38/0x40 [ib_ipoib]
+>  [<ffffffffa056cf3c>] ? __ipoib_ib_dev_flush+0x15c/0x2c0 [ib_ipoib]
+>  [<ffffffffa056ce56>] ? __ipoib_ib_dev_flush+0x76/0x2c0 [ib_ipoib]
+>  [<ffffffffa056d0a0>] ? ipoib_ib_dev_flush_heavy+0x0/0x20 [ib_ipoib]
+>  [<ffffffffa056d0ba>] ? ipoib_ib_dev_flush_heavy+0x1a/0x20 [ib_ipoib]
+>  [<ffffffff81094d20>] ? worker_thread+0x170/0x2a0
+>  [<ffffffff8109b2a0>] ? autoremove_wake_function+0x0/0x40
 > 
 > Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib.h      |    6 +--
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c   |   73 ++++++-----------------------
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |    6 ++-
->  3 files changed, 20 insertions(+), 65 deletions(-)
+>  drivers/infiniband/ulp/ipoib/ipoib.h      |    2 +-
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c   |    8 ++++----
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
+>  3 files changed, 6 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h
 > b/drivers/infiniband/ulp/ipoib/ipoib.h
-> index c639f90..683d23a 100644
+> index 683d23a..3edce61 100644
 > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
 > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> @@ -86,7 +86,6 @@ enum {
->  	IPOIB_FLAG_INITIALIZED	  = 1,
->  	IPOIB_FLAG_ADMIN_UP	  = 2,
->  	IPOIB_PKEY_ASSIGNED	  = 3,
-> -	IPOIB_PKEY_STOP		  = 4,
->  	IPOIB_FLAG_SUBINTERFACE	  = 5,
->  	IPOIB_MCAST_RUN		  = 6,
->  	IPOIB_STOP_REAPER	  = 7,
-> @@ -312,7 +311,6 @@ struct ipoib_dev_priv {
->  	struct list_head multicast_list;
->  	struct rb_root multicast_tree;
+> @@ -471,7 +471,7 @@ void ipoib_ib_dev_flush_heavy(struct work_struct *work);
+>  void ipoib_pkey_event(struct work_struct *work);
+>  void ipoib_ib_dev_cleanup(struct net_device *dev);
 > 
-> -	struct delayed_work pkey_poll_task;
->  	struct delayed_work mcast_task;
->  	struct work_struct carrier_on_task;
->  	struct work_struct flush_light;
-> @@ -477,6 +475,7 @@ int ipoib_ib_dev_open(struct net_device *dev);
+> -int ipoib_ib_dev_open(struct net_device *dev);
+> +int ipoib_ib_dev_open(struct net_device *dev, int flush);
 >  int ipoib_ib_dev_up(struct net_device *dev);
 >  int ipoib_ib_dev_down(struct net_device *dev, int flush);
 >  int ipoib_ib_dev_stop(struct net_device *dev, int flush);
-> +void ipoib_pkey_dev_check_presence(struct net_device *dev);
-> 
->  int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
->  void ipoib_dev_cleanup(struct net_device *dev);
-> @@ -532,8 +531,7 @@ int  ipoib_set_mode(struct net_device *dev, const char *buf);
-> 
->  void ipoib_setup(struct net_device *dev);
-> 
-> -void ipoib_pkey_poll(struct work_struct *work);
-> -int ipoib_pkey_dev_delay_open(struct net_device *dev);
-> +void ipoib_pkey_open(struct ipoib_dev_priv *priv);
->  void ipoib_drain_cq(struct net_device *dev);
-> 
->  void ipoib_set_ethtool_ops(struct net_device *dev);
 > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
 > b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> index 6a7003d..be8f971 100644
+> index be8f971..9dcb2c9 100644
 > --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
 > +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> @@ -709,7 +709,7 @@ dev_stop:
+> @@ -664,7 +664,7 @@ static void ipoib_ib_tx_timer_func(unsigned long ctx)
+>  	drain_tx_cq((struct net_device *)ctx);
+>  }
+> 
+> -int ipoib_ib_dev_open(struct net_device *dev)
+> +int ipoib_ib_dev_open(struct net_device *dev, int flush)
+>  {
+>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
+>  	int ret;
+> @@ -705,7 +705,7 @@ int ipoib_ib_dev_open(struct net_device *dev)
+>  dev_stop:
+>  	if (!test_and_set_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
+>  		napi_enable(&priv->napi);
+> -	ipoib_ib_dev_stop(dev, 1);
+> +	ipoib_ib_dev_stop(dev, flush);
 >  	return -1;
 >  }
 > 
-> -static void ipoib_pkey_dev_check_presence(struct net_device *dev)
-> +void ipoib_pkey_dev_check_presence(struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
->  	u16 pkey_index = 0;
-> @@ -745,14 +745,6 @@ int ipoib_ib_dev_down(struct net_device *dev, int flush)
->  	clear_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
->  	netif_carrier_off(dev);
+> @@ -916,7 +916,7 @@ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device
+> *ca, int port)
+>  		    (unsigned long) dev);
 > 
-> -	/* Shutdown the P_Key thread if still active */
-> -	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
-> -		mutex_lock(&pkey_mutex);
-> -		set_bit(IPOIB_PKEY_STOP, &priv->flags);
-> -		cancel_delayed_work_sync(&priv->pkey_poll_task);
-> -		mutex_unlock(&pkey_mutex);
-> -	}
-> -
->  	ipoib_mcast_stop_thread(dev, flush);
->  	ipoib_mcast_dev_flush(dev);
+>  	if (dev->flags & IFF_UP) {
+> -		if (ipoib_ib_dev_open(dev)) {
+> +		if (ipoib_ib_dev_open(dev, 1)) {
+>  			ipoib_transport_dev_cleanup(dev);
+>  			return -ENODEV;
+>  		}
+> @@ -1033,7 +1033,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
 > 
-> @@ -988,9 +980,12 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
-> 
->  	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
->  		/* for non-child devices must check/update the pkey value here */
-> -		if (level == IPOIB_FLUSH_HEAVY &&
-> -		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-> -			update_parent_pkey(priv);
-> +		if (level == IPOIB_FLUSH_HEAVY) {
-> +			if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-> +				ipoib_pkey_open(priv);
-> +			else
-> +				update_parent_pkey(priv);
-> +		}
->  		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
->  		return;
+>  	if (level == IPOIB_FLUSH_HEAVY) {
+>  		ipoib_ib_dev_stop(dev, 0);
+> -		ipoib_ib_dev_open(dev);
+> +		ipoib_ib_dev_open(dev, 0);
 >  	}
-> @@ -1009,8 +1004,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
->  				clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
->  				ipoib_ib_dev_down(dev, 0);
->  				ipoib_ib_dev_stop(dev, 0);
-> -				if (ipoib_pkey_dev_delay_open(dev))
-> -					return;
-> +				return;
->  			}
->  			/* restart QP only if P_Key index is changed */
->  			if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
-> @@ -1094,54 +1088,15 @@ void ipoib_ib_dev_cleanup(struct net_device *dev)
->  	ipoib_transport_dev_cleanup(dev);
->  }
 > 
-> -/*
-> - * Delayed P_Key Assigment Interim Support
-> - *
-> - * The following is initial implementation of delayed P_Key assigment
-> - * mechanism. It is using the same approach implemented for the multicast
-> - * group join. The single goal of this implementation is to quickly address
-> - * Bug #2507. This implementation will probably be removed when the P_Key
-> - * change async notification is available.
-> - */
-> -
-> -void ipoib_pkey_poll(struct work_struct *work)
-> +void ipoib_pkey_open(struct ipoib_dev_priv *priv)
->  {
-> -	struct ipoib_dev_priv *priv =
-> -		container_of(work, struct ipoib_dev_priv, pkey_poll_task.work);
-> -	struct net_device *dev = priv->dev;
-> 
-> -	ipoib_pkey_dev_check_presence(dev);
-> +	if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
-> +		return;
-> +
-> +	ipoib_pkey_dev_check_presence(priv->dev);
-> 
->  	if (test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
-> -		ipoib_open(dev);
-> -	else {
-> -		mutex_lock(&pkey_mutex);
-> -		if (!test_bit(IPOIB_PKEY_STOP, &priv->flags))
-> -			queue_delayed_work(ipoib_workqueue,
-> -					   &priv->pkey_poll_task,
-> -					   HZ);
-> -		mutex_unlock(&pkey_mutex);
-> -	}
-> +		ipoib_open(priv->dev);
->  }
-> 
-> -int ipoib_pkey_dev_delay_open(struct net_device *dev)
-> -{
-> -	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> -
-> -	/* Look for the interface pkey value in the IB Port P_Key table and */
-> -	/* set the interface pkey assigment flag                            */
-> -	ipoib_pkey_dev_check_presence(dev);
-> -
-> -	/* P_Key value not assigned yet - start polling */
-> -	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
-> -		mutex_lock(&pkey_mutex);
-> -		clear_bit(IPOIB_PKEY_STOP, &priv->flags);
-> -		queue_delayed_work(ipoib_workqueue,
-> -				   &priv->pkey_poll_task,
-> -				   HZ);
-> -		mutex_unlock(&pkey_mutex);
-> -		return 1;
-> -	}
-> -
-> -	return 0;
-> -}
+>  	/*
 > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 > b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 5786a78..35acbd4 100644
+> index 35acbd4..1bf994a 100644
 > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -108,7 +108,10 @@ int ipoib_open(struct net_device *dev)
-> 
->  	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
-> 
-> -	if (ipoib_pkey_dev_delay_open(dev))
-> +
-> +	ipoib_pkey_dev_check_presence(dev);
-> +
-> +	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
+> @@ -114,7 +114,7 @@ int ipoib_open(struct net_device *dev)
+>  	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
 >  		return 0;
 > 
->  	if (ipoib_ib_dev_open(dev))
-> @@ -1379,7 +1382,6 @@ void ipoib_setup(struct net_device *dev)
->  	INIT_LIST_HEAD(&priv->dead_ahs);
->  	INIT_LIST_HEAD(&priv->multicast_list);
+> -	if (ipoib_ib_dev_open(dev))
+> +	if (ipoib_ib_dev_open(dev, 1))
+>  		goto err_disable;
 > 
-> -	INIT_DELAYED_WORK(&priv->pkey_poll_task, ipoib_pkey_poll);
->  	INIT_DELAYED_WORK(&priv->mcast_task,   ipoib_mcast_join_task);
->  	INIT_WORK(&priv->carrier_on_task, ipoib_mcast_carrier_on_task);
->  	INIT_WORK(&priv->flush_light,   ipoib_ib_dev_flush_light);
+>  	if (ipoib_ib_dev_up(dev))
 > --
 > 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
