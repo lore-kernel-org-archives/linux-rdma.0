@@ -1,64 +1,103 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: NFSRDMA test branch update
-Date: Wed, 9 Jul 2014 14:52:00 -0500
-Message-ID: <00be01cf9baf$3f68f960$be3aec20$@opengridcomputing.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 08/21] xprtrdma: Back off rkey when FAST_REG_MR fails
+Date: Wed, 9 Jul 2014 16:07:39 -0400
+Message-ID: <53BDA10B.6030506@netapp.com>
+References: <20140709163326.3496.37893.stgit@manet.1015granger.net> <20140709165739.3496.39485.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Shirley Ma' <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "'Veeresh U. Kokatnur'" <veereshuk-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Indranil Choudhury' <indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140709165739.3496.39485.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey all,
+On 07/09/2014 12:57 PM, Chuck Lever wrote:
+> If posting a FAST_REG_MR Work Reqeust fails, revert the rkey update
+> to avoid subsequent IB_WC_MW_BIND_ERR completions.
+>
+> Suggested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/verbs.c |   27 ++++++++++++++++++++-------
+>  1 file changed, 20 insertions(+), 7 deletions(-)
+>
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index ce847d2..14d24ec 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1487,6 +1487,24 @@ rpcrdma_unmap_one(struct rpcrdma_ia *ia, struct rpcrdma_mr_seg *seg)
+>  				seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
+>  }
+>  
+> +static void
+> +rpcrdma_increment_frmr_rkey(struct rpcrdma_mw *mw)
+> +{
+> +	struct ib_mr *mr = mw->r.frmr.fr_mr;
+> +	u8 key = mr->rkey & 0x000000FF;
 
-I've updated the for-test branch of git://git.linux-nfs.org/projects/swise/linux.git.  It
-is based on tag v3.16-rc4 and has these additional patches:
+It's not super obvious to be how this key is being calculated.  Can you change 0x000000FF into a named constant to help?
 
-Chuck Lever (21):
-      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
-      xprtrdma: Protect ia->ri_id when unmapping/invalidating MRs
-      xprtrdma: Limit data payload size for ALLPHYSICAL
-      xprtrdma: Update rkeys after transport reconnect
-      xprtrdma: On disconnect, don't ignore pending CQEs
-      xprtrdma: Don't invalidate FRMRs if registration fails
-      xprtrdma: Unclutter struct rpcrdma_mr_seg
-      xprtrdma: Back off rkey when FAST_REG_MR fails
-      xprtrdma: Chain together all MWs in same buffer pool
-      xprtrdma: Properly handle exhaustion of the rb_mws list
-      xprtrdma: Reset FRMRs when FAST_REG_MR is flushed by a disconnect
-      xprtrdma: Reset FRMRs after a flushed LOCAL_INV Work Request
-      xprtrdma: Don't post a LOCAL_INV in rpcrdma_register_frmr_external()
-      xprtrdma: Disable completions for FAST_REG_MR Work Requests
-      xprtrdma: Disable completions for LOCAL_INV Work Requests
-      xprtrdma: Rename frmr_wr
-      xprtrdma: Allocate each struct rpcrdma_mw separately
-      xprtrdma: Schedule reply tasklet once per upcall
-      xprtrdma: Make rpcrdma_ep_disconnect() return void
-      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
-      xprtrdma: Handle additional connection events
+It might also be useful to have an frmr_get_rkey() function rather than doing this calculation in two different places.
 
-Hariprasad S (2):
-      iw_cxgb4: Fix skb_leak in reject_cr
-      iw_cxgb4: clean up connection on arp error
+Anna
 
-Jan Beulich (1):
-      x86-64: fix vDSO build
-
-Steve Wise (3):
-      iw_cxgb4: call iwpm_init() only once
-      iw_cxgb4: initialize the device status page
-      svcrdma: send_write() must not overflow the device's max sge
-
-
-Cheers,
-
-Steve.
+> +
+> +	ib_update_fast_reg_key(mr, ++key);
+> +}
+> +
+> +static void
+> +rpcrdma_decrement_frmr_rkey(struct rpcrdma_mw *mw)
+> +{
+> +	struct ib_mr *mr = mw->r.frmr.fr_mr;
+> +	u8 key = mr->rkey & 0x000000FF;
+> +
+> +	ib_update_fast_reg_key(mr, --key);
+> +}
+> +
+>  static int
+>  rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  			int *nsegs, int writing, struct rpcrdma_ia *ia,
+> @@ -1496,8 +1514,6 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	struct rpcrdma_mw *mw = seg1->mr_chunk.rl_mw;
+>  	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+>  	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
+> -
+> -	u8 key;
+>  	int len, pageoff;
+>  	int i, rc;
+>  	int seg_len;
+> @@ -1557,14 +1573,10 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  		rc = -EIO;
+>  		goto out_err;
+>  	}
+> -
+> -	/* Bump the key */
+> -	key = (u8)(frmr->fr_mr->rkey & 0x000000FF);
+> -	ib_update_fast_reg_key(frmr->fr_mr, ++key);
+> -
+>  	frmr_wr.wr.fast_reg.access_flags = (writing ?
+>  				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+>  				IB_ACCESS_REMOTE_READ);
+> +	rpcrdma_increment_frmr_rkey(mw);
+>  	frmr_wr.wr.fast_reg.rkey = frmr->fr_mr->rkey;
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+>  
+> @@ -1573,6 +1585,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	if (rc) {
+>  		dprintk("RPC:       %s: failed ib_post_send for register,"
+>  			" status %i\n", __func__, rc);
+> +		rpcrdma_decrement_frmr_rkey(seg1->mr_chunk.rl_mw);
+>  		goto out_err;
+>  	} else {
+>  		seg1->mr_rkey = frmr->fr_mr->rkey;
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
