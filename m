@@ -1,82 +1,32 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 21/21] xprtrdma: Handle additional connection events
-Date: Wed, 09 Jul 2014 12:59:31 -0400
-Message-ID: <20140709165931.3496.8638.stgit@manet.1015granger.net>
-References: <20140709163326.3496.37893.stgit@manet.1015granger.net>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: No NFSoRDMA bi-weekly meeting from now to Aug.
+Date: Wed, 9 Jul 2014 14:23:08 -0400
+Message-ID: <53BD888C.3080603@netapp.com>
+References: <53BC2123.4070206@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140709163326.3496.37893.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53BC2123.4070206-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "<Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "<yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 38ca83a5 added RDMA_CM_EVENT_TIMEWAIT_EXIT. But that status
-is relevant only for consumers that re-use their QPs on new
-connections. xprtrdma creates a fresh QP on reconnection, so that
-event should be explicitly ignored.
+I'll still be taking patches, so feel free to send me things now rather than waiting for the merge window to open!
 
-Squelch the alarming "unexpected CM event" message.
+Anna
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index bc0909a..9de5965 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -326,8 +326,16 @@ static const char * const conn[] = {
- 	"rejected",
- 	"established",
- 	"disconnected",
--	"device removal"
-+	"device removal",
-+	"multicast join",
-+	"multicast error",
-+	"address change",
-+	"timewait exit",
- };
-+
-+#define CONNECTION_MSG(status)						\
-+	((status) < ARRAY_SIZE(conn) ?					\
-+		conn[(status)] : "unrecognized connection error")
- #endif
- 
- static int
-@@ -385,23 +393,18 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 		connstate = -ENODEV;
- connected:
--		dprintk("RPC:       %s: %s: %pI4:%u (ep 0x%p event 0x%x)\n",
--			__func__,
--			(event->event <= 11) ? conn[event->event] :
--						"unknown connection error",
--			&addr->sin_addr.s_addr,
--			ntohs(addr->sin_port),
--			ep, event->event);
- 		atomic_set(&rpcx_to_rdmax(ep->rep_xprt)->rx_buf.rb_credits, 1);
- 		dprintk("RPC:       %s: %sconnected\n",
- 					__func__, connstate > 0 ? "" : "dis");
- 		ep->rep_connected = connstate;
- 		ep->rep_func(ep);
- 		wake_up_all(&ep->rep_connect_wait);
--		break;
-+		/*FALLTHROUGH*/
- 	default:
--		dprintk("RPC:       %s: unexpected CM event %d\n",
--			__func__, event->event);
-+		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
-+			__func__, &addr->sin_addr.s_addr,
-+			ntohs(addr->sin_port), ep,
-+			CONNECTION_MSG(event->event));
- 		break;
- 	}
- 
+On 07/08/2014 12:49 PM, Shirley Ma wrote:
+> Most of us will be on vacation in the summer so there will be no bi-weekly meetings from now to Aug. We will resume the meeting in Sept.
+> 
+> Let me know if you would like to have some discussion occasionally. I will be around.
+> 
+> Enjoy your summer!
+> 
+> Shirley
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
