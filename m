@@ -1,56 +1,52 @@
-From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] IB/srp: Fix residual handling
-Date: Wed, 09 Jul 2014 21:07:57 -0700
-Message-ID: <1404965277.17131.4.camel@haswell.thedillows.org>
-References: <53BD49E3.3090903@acm.org> <53BD4A5F.6070708@acm.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: mlx4: using dma_sync_single_for_cpu/dma_sync_single_for_cpu for
+ writing MTT instead of WRITE_MTT hcr command
+Date: Thu, 10 Jul 2014 10:55:17 +0300
+Message-ID: <20140710105517.544ff8c1@jpm-OptiPlex-GX620>
+References: <CANwwZzXShD8DvJb8vEeJrcwKeW4T0cx-zFdo1Mt1JftxCXtboA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53BD4A5F.6070708-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <CANwwZzXShD8DvJb8vEeJrcwKeW4T0cx-zFdo1Mt1JftxCXtboA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2014-07-09 at 15:57 +0200, Bart Van Assche wrote:
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1644,10 +1644,14 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
->  				     SCSI_SENSE_BUFFERSIZE));
->  		}
- 
-Above this block, there is a line 
-	if (rsp->flags & SRP_RSP_FLAG_SNSVALID) {
+On Wed, 9 Jul 2014 18:40:46 +0530
+Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-My thought was that you could wrap the code starting at that block and
-ending after the additional scsi_set_resid() calls you added with an
-outer test like so:
+> Hi,
+> 
+> I was going through the mr.c file as part of understanding WRITE_MTT
+> command in the mlx4 code.
+> 
+> I could see that instead of issuing the WRITE_MTT HCR command, in case
+> of SRIOV, we're directly accessing the ICM space for the MTT Table,
+> taking the ownership and updating it. We're doing this using
+> dma_sync_single_for_cpu and dma_sync_single_for_cpu.
+> 
+> I was curious as to why this approach was chosen instead of using the
+> HCR command.
+> 
+> Can anyone please explain the reason/motivation behind this approach?
+>
+Performance. Direct write to memory is much faster than via HCR
 
-	if (unlikely(rsp->flags & ~SRP_RSP_FLAG_RSPVALID)) {
-		if (rsp->flags & SRP_RSP_FLAG_SNSVALID) {
-			...
+-Jack
 
-instead of adding unlikely() to each test of flags. Once inside the
-block -- which should be rare -- we're on the slow path anyway.
-
-Your call.
-
-> -		if (rsp->flags & (SRP_RSP_FLAG_DOOVER | SRP_RSP_FLAG_DOUNDER))
-> -			scsi_set_resid(scmnd, be32_to_cpu(rsp->data_out_res_cnt));
-> -		else if (rsp->flags & (SRP_RSP_FLAG_DIOVER | SRP_RSP_FLAG_DIUNDER))
-> +		if (unlikely(rsp->flags & SRP_RSP_FLAG_DIUNDER))
->  			scsi_set_resid(scmnd, be32_to_cpu(rsp->data_in_res_cnt));
-> +		else if (unlikely(rsp->flags & SRP_RSP_FLAG_DIOVER))
-> +			scsi_set_resid(scmnd, -be32_to_cpu(rsp->data_in_res_cnt));
-> +		else if (unlikely(rsp->flags & SRP_RSP_FLAG_DOUNDER))
-> +			scsi_set_resid(scmnd, be32_to_cpu(rsp->data_out_res_cnt));
-> +		else if (unlikely(rsp->flags & SRP_RSP_FLAG_DOOVER))
-> +			scsi_set_resid(scmnd, -be32_to_cpu(rsp->data_out_res_cnt));
->  
->  		srp_free_req(target, req, scmnd,
->  			     be32_to_cpu(rsp->req_lim_delta));
-
+> 
+> 
+> Thanks so much,
+> 
+> 
+> Best Regards,
+> Marc
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
