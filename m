@@ -1,40 +1,64 @@
-From: Tom Gundersen <teg@jklm.no>
-Subject: [PATCH v7 25/33] net: infiniband - steal ifname label
-Date: Thu, 10 Jul 2014 10:17:30 +0200
-Message-ID: <1404980258-30853-26-git-send-email-teg@jklm.no>
-References: <1404980258-30853-1-git-send-email-teg@jklm.no>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404980258-30853-1-git-send-email-teg@jklm.no>
-Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>, David Herrmann <dh.herrmann@gmail.com>, Kay Sievers <kay@vrfy.org>, Tom Gundersen <teg@jklm.no>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+From: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: mlx4: using dma_sync_single_for_cpu/dma_sync_single_for_cpu for
+ writing MTT instead of WRITE_MTT hcr command
+Date: Thu, 10 Jul 2014 20:19:56 +0530
+Message-ID: <CANwwZzV+q-QYEMNW62uW0PFHpTOhPmq4iKo1XuC7iqqWKsyWBA@mail.gmail.com>
+References: <CANwwZzXShD8DvJb8vEeJrcwKeW4T0cx-zFdo1Mt1JftxCXtboA@mail.gmail.com>
+	<20140710105517.544ff8c1@jpm-OptiPlex-GX620>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140710105517.544ff8c1@jpm-OptiPlex-GX620>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the same assign type, as the name we are basing our new name on.
+Hi Jack,
 
-Signed-off-by: Tom Gundersen <teg@jklm.no>
-Cc: Tom Tucker <tom@opengridcomputing.com>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org
----
- drivers/infiniband/hw/amso1100/c2_provider.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks so much for the response.. This is really helpful!
 
-diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-index 2d5cbf4..fc44460 100644
---- a/drivers/infiniband/hw/amso1100/c2_provider.c
-+++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -734,7 +734,7 @@ static struct net_device *c2_pseudo_netdev_init(struct c2_dev *c2dev)
- 	/* change ethxxx to iwxxx */
- 	strcpy(name, "iw");
- 	strcat(name, &c2dev->netdev->name[3]);
--	netdev = alloc_netdev(0, name, NET_NAME_UNKNOWN, setup);
-+	netdev = alloc_netdev(0, name, c2dev->netdev->name_assign_type, setup);
- 	if (!netdev) {
- 		printk(KERN_ERR PFX "%s -  etherdev alloc failed",
- 			__func__);
--- 
-1.9.3
+
+Best Regards,
+Marc
+
+On Thu, Jul 10, 2014 at 1:25 PM, Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Wed, 9 Jul 2014 18:40:46 +0530
+> Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+>> Hi,
+>>
+>> I was going through the mr.c file as part of understanding WRITE_MTT
+>> command in the mlx4 code.
+>>
+>> I could see that instead of issuing the WRITE_MTT HCR command, in case
+>> of SRIOV, we're directly accessing the ICM space for the MTT Table,
+>> taking the ownership and updating it. We're doing this using
+>> dma_sync_single_for_cpu and dma_sync_single_for_cpu.
+>>
+>> I was curious as to why this approach was chosen instead of using the
+>> HCR command.
+>>
+>> Can anyone please explain the reason/motivation behind this approach?
+>>
+> Performance. Direct write to memory is much faster than via HCR
+>
+> -Jack
+>
+>>
+>>
+>> Thanks so much,
+>>
+>>
+>> Best Regards,
+>> Marc
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
