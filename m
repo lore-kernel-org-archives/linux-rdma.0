@@ -1,63 +1,99 @@
-From: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: mlx4: using dma_sync_single_for_cpu/dma_sync_single_for_cpu for
- writing MTT instead of WRITE_MTT hcr command
-Date: Thu, 10 Jul 2014 20:19:56 +0530
-Message-ID: <CANwwZzV+q-QYEMNW62uW0PFHpTOhPmq4iKo1XuC7iqqWKsyWBA@mail.gmail.com>
-References: <CANwwZzXShD8DvJb8vEeJrcwKeW4T0cx-zFdo1Mt1JftxCXtboA@mail.gmail.com>
-	<20140710105517.544ff8c1@jpm-OptiPlex-GX620>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 15/21] xprtrdma: Disable completions for LOCAL_INV
+ Work Requests
+Date: Thu, 10 Jul 2014 08:48:24 -0700
+Message-ID: <53BEB5C8.4070709@oracle.com>
+References: <20140709163326.3496.37893.stgit@manet.1015granger.net> <20140709165838.3496.17169.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140710105517.544ff8c1@jpm-OptiPlex-GX620>
+In-Reply-To: <20140709165838.3496.17169.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jack,
+That would significantly reduce the interrupts rate. I will run some performance test.
 
-Thanks so much for the response.. This is really helpful!
+Would these unsignaled SENDs be possible to stall? 
 
+Shirley
 
-Best Regards,
-Marc
-
-On Thu, Jul 10, 2014 at 1:25 PM, Jack Morgenstein
-<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On Wed, 9 Jul 2014 18:40:46 +0530
-> Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
->> Hi,
->>
->> I was going through the mr.c file as part of understanding WRITE_MTT
->> command in the mlx4 code.
->>
->> I could see that instead of issuing the WRITE_MTT HCR command, in case
->> of SRIOV, we're directly accessing the ICM space for the MTT Table,
->> taking the ownership and updating it. We're doing this using
->> dma_sync_single_for_cpu and dma_sync_single_for_cpu.
->>
->> I was curious as to why this approach was chosen instead of using the
->> HCR command.
->>
->> Can anyone please explain the reason/motivation behind this approach?
->>
-> Performance. Direct write to memory is much faster than via HCR
->
-> -Jack
->
->>
->>
->> Thanks so much,
->>
->>
->> Best Regards,
->> Marc
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
->> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On 07/09/2014 09:58 AM, Chuck Lever wrote:
+> Instead of relying on a completion to change the state of an FRMR
+> to FRMR_IS_INVALID, set it in advance. If an error occurs, a completion
+> will fire anyway and mark the FRMR FRMR_IS_STALE.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/verbs.c |   17 ++++++++---------
+>  1 file changed, 8 insertions(+), 9 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index e83eda6..8eef343 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -154,12 +154,8 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+>  
+>  	if (wc->wr_id == 0ULL)
+>  		return;
+> -	if (wc->status != IB_WC_SUCCESS) {
+> +	if (wc->status != IB_WC_SUCCESS)
+>  		frmr->r.frmr.fr_state = FRMR_IS_STALE;
+> -		return;
+> -	}
+> -
+> -	frmr->r.frmr.fr_state = FRMR_IS_INVALID;
+>  }
+>  
+>  static int
+> @@ -1369,12 +1365,11 @@ rpcrdma_retry_local_inv(struct rpcrdma_mw *r, struct rpcrdma_ia *ia)
+>  	dprintk("RPC:       %s: FRMR %p is stale\n", __func__, r);
+>  
+>  	/* When this FRMR is re-inserted into rb_mws, it is no longer stale */
+> -	r->r.frmr.fr_state = FRMR_IS_VALID;
+> +	r->r.frmr.fr_state = FRMR_IS_INVALID;
+>  
+>  	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
+>  	invalidate_wr.wr_id = (unsigned long)(void *)r;
+>  	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+> -	invalidate_wr.send_flags = IB_SEND_SIGNALED;
+>  	invalidate_wr.ex.invalidate_rkey = r->r.frmr.fr_mr->rkey;
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+>  
+> @@ -1787,10 +1782,11 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	struct ib_send_wr invalidate_wr, *bad_wr;
+>  	int rc;
+>  
+> +	seg1->mr_chunk.rl_mw->r.frmr.fr_state = FRMR_IS_INVALID;
+> +
+>  	memset(&invalidate_wr, 0, sizeof invalidate_wr);
+>  	invalidate_wr.wr_id = (unsigned long)(void *)seg1->mr_chunk.rl_mw;
+>  	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+> -	invalidate_wr.send_flags = IB_SEND_SIGNALED;
+>  	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+>  
+> @@ -1799,9 +1795,12 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
+>  		rpcrdma_unmap_one(ia, seg++);
+>  	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+>  	read_unlock(&ia->ri_qplock);
+> -	if (rc)
+> +	if (rc) {
+> +		/* Force rpcrdma_buffer_get() to retry */
+> +		seg1->mr_chunk.rl_mw->r.frmr.fr_state = FRMR_IS_STALE;
+>  		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
+>  			" status %i\n", __func__, rc);
+> +	}
+>  	return rc;
+>  }
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
