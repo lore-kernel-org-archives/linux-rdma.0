@@ -1,63 +1,48 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V1 12/30] mm, IB/qib: Use cpu_to_mem()/numa_mem_id() to support memoryless node
-Date: Fri, 11 Jul 2014 15:37:29 +0800
-Message-ID: <1405064267-11678-13-git-send-email-jiang.liu@linux.intel.com>
-References: <1405064267-11678-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1405064267-11678-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Mike Galbraith <umgwanakikbuti@gmail.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, linux-hotplug@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_subnet.c: Change default for perfmgr_query_cpi
+ option
+Date: Fri, 11 Jul 2014 10:03:21 -0400
+Message-ID: <53BFEEA9.8020107@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Susan Coulter (skc-YOWKrPYUwWM@public.gmane.org)" <skc-YOWKrPYUwWM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When CONFIG_HAVE_MEMORYLESS_NODES is enabled, cpu_to_node()/numa_node_id()
-may return a node without memory, and later cause system failure/panic
-when calling kmalloc_node() and friends with returned node id.
-So use cpu_to_mem()/numa_mem_id() instead to get the nearest node with
-memory for the/current cpu.
 
-If CONFIG_HAVE_MEMORYLESS_NODES is disabled, cpu_to_mem()/numa_mem_id()
-is the same as cpu_to_node()/numa_node_id().
+New default for PerfMgr query CPI is TRUE rather than FALSE.
+More admins need to use this and this was too often being missed 
+during configuration so make admins turn this off rather than on
+(once enabling perfmgr itself).
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_file_ops.c |    4 ++--
- drivers/infiniband/hw/qib/qib_init.c     |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index b15e34eeef68..55540295e0e3 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -1312,8 +1312,8 @@ static int setup_ctxt(struct qib_pportdata *ppd, int ctxt,
- 	assign_ctxt_affinity(fp, dd);
- 
- 	numa_id = qib_numa_aware ? ((fd->rec_cpu_num != -1) ?
--		cpu_to_node(fd->rec_cpu_num) :
--		numa_node_id()) : dd->assigned_node_id;
-+		cpu_to_mem(fd->rec_cpu_num) : numa_mem_id()) :
-+		dd->assigned_node_id;
- 
- 	rcd = qib_create_ctxtdata(ppd, ctxt, numa_id);
- 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 8d3c78ddc906..85ff56ad1075 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -133,7 +133,7 @@ int qib_create_ctxts(struct qib_devdata *dd)
- 	int local_node_id = pcibus_to_node(dd->pcidev->bus);
- 
- 	if (local_node_id < 0)
--		local_node_id = numa_node_id();
-+		local_node_id = numa_mem_id();
- 	dd->assigned_node_id = local_node_id;
- 
- 	/*
--- 
-1.7.10.4
-
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 1065408..26fe78c 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -1564,7 +1564,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->event_db_dump_file = NULL; /* use default */
+ 	p_opt->perfmgr_rm_nodes = TRUE;
+ 	p_opt->perfmgr_log_errors = TRUE;
+-	p_opt->perfmgr_query_cpi = FALSE;
++	p_opt->perfmgr_query_cpi = TRUE;
+ 	p_opt->perfmgr_xmit_wait_log = FALSE;
+ 	p_opt->perfmgr_xmit_wait_threshold = OSM_PERFMGR_DEFAULT_XMIT_WAIT_THRESHOLD;
+ #endif				/* ENABLE_OSM_PERF_MGR */
+@@ -2645,7 +2645,7 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		"perfmgr_log_errors %s\n\n"
+ 		"# Query PerfMgt Get(ClassPortInfo) for extended capabilities\n"
+ 		"# Extended capabilities include 64 bit extended counters\n"
+-		"# and transmit wait support (default FALSE)\n"
++		"# and transmit wait support (default TRUE)\n"
+ 		"perfmgr_query_cpi %s\n\n"
+ 		"# Log xmit_wait errors (default FALSE)\n"
+ 		"perfmgr_xmit_wait_log %s\n\n"
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
