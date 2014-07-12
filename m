@@ -1,39 +1,59 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 2/2] svcrdma: Remove extra writeargs sanity check for
- NFSv2/3
-Date: Fri, 11 Jul 2014 14:49:30 -0400
-Message-ID: <20140711184929.GC9775@fieldses.org>
-References: <20140710174225.3734.44692.stgit@klimt.1015granger.net>
- <20140710174435.3734.69638.stgit@klimt.1015granger.net>
- <20140710181944.GB26561@fieldses.org>
- <3BA364F8-E5ED-45A1-8662-E5F91AA7AF0A@oracle.com>
- <20140710184948.GC26561@fieldses.org>
- <B89AB7AC-32E1-4944-9287-73958A569A8E@oracle.com>
- <20140710194349.GD26561@fieldses.org>
- <F8AD3320-C653-4713-965F-FE52FF0D49CA@oracle.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH opensm] osm_subnet.c: Change default for
+ perfmgr_query_cpi option
+Date: Sat, 12 Jul 2014 14:54:43 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04BF03E8@CRSMSX101.amr.corp.intel.com>
+References: <53BFEEA9.8020107@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F8AD3320-C653-4713-965F-FE52FF0D49CA-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53BFEEA9.8020107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Susan Coulter (skc-YOWKrPYUwWM@public.gmane.org)" <skc-YOWKrPYUwWM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 10, 2014 at 04:43:54PM -0400, Chuck Lever wrote:
-> I think the sanity check you pointed out is strictly satisfied by
-> testing against the unaligned number of bytes. Is there a strong
-> reason to do the extra math for that check during each WRITE?
+> 
+> 
+> New default for PerfMgr query CPI is TRUE rather than FALSE.
+> More admins need to use this and this was too often being missed during
+> configuration so make admins turn this off rather than on (once enabling
+> perfmgr itself).
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I can't think of any good reason why the check should be against the
-rounded-up length.
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-So my worry was just a more general "uh-oh, a non-multiple-of-4-length
-is pretty weird, future me may not remember that's a possibility."
-
---b.
+> ---
+> diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c index
+> 1065408..26fe78c 100644
+> --- a/opensm/osm_subnet.c
+> +++ b/opensm/osm_subnet.c
+> @@ -1564,7 +1564,7 @@ void osm_subn_set_default_opt(IN
+> osm_subn_opt_t * p_opt)
+>  	p_opt->event_db_dump_file = NULL; /* use default */
+>  	p_opt->perfmgr_rm_nodes = TRUE;
+>  	p_opt->perfmgr_log_errors = TRUE;
+> -	p_opt->perfmgr_query_cpi = FALSE;
+> +	p_opt->perfmgr_query_cpi = TRUE;
+>  	p_opt->perfmgr_xmit_wait_log = FALSE;
+>  	p_opt->perfmgr_xmit_wait_threshold =
+> OSM_PERFMGR_DEFAULT_XMIT_WAIT_THRESHOLD;
+>  #endif				/* ENABLE_OSM_PERF_MGR */
+> @@ -2645,7 +2645,7 @@ int osm_subn_output_conf(FILE *out, IN
+> osm_subn_opt_t * p_opts)
+>  		"perfmgr_log_errors %s\n\n"
+>  		"# Query PerfMgt Get(ClassPortInfo) for extended
+> capabilities\n"
+>  		"# Extended capabilities include 64 bit extended counters\n"
+> -		"# and transmit wait support (default FALSE)\n"
+> +		"# and transmit wait support (default TRUE)\n"
+>  		"perfmgr_query_cpi %s\n\n"
+>  		"# Log xmit_wait errors (default FALSE)\n"
+>  		"perfmgr_xmit_wait_log %s\n\n"
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
