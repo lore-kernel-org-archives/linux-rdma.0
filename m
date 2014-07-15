@@ -1,96 +1,96 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 08/21] xprtrdma: Back off rkey when FAST_REG_MR fails
-Date: Tue, 15 Jul 2014 10:21:21 -0400
-Message-ID: <20140715142121.8908.39182.stgit@manet.1015granger.net>
+Subject: [PATCH v3 09/21] xprtrdma: Chain together all MWs in same buffer
+ pool
+Date: Tue, 15 Jul 2014 10:21:30 -0400
+Message-ID: <20140715142130.8908.83907.stgit@manet.1015granger.net>
 References: <20140715142020.8908.80969.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140715142020.8908.80969.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If posting a FAST_REG_MR Work Reqeust fails, revert the rkey update
-to avoid subsequent IB_WC_MW_BIND_ERR completions.
+During connection loss recovery, need to visit every MW in a
+buffer pool. Any MW that is in use by an RPC will not be on the
+rb_mws list.
 
-Suggested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- include/rdma/ib_verbs.h     |   11 +++++++++++
- net/sunrpc/xprtrdma/verbs.c |   12 +++++-------
- 2 files changed, 16 insertions(+), 7 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c     |    4 ++++
+ net/sunrpc/xprtrdma/xprt_rdma.h |    4 +++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 7ccef34..c5c7ec6 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2479,6 +2479,17 @@ static inline u32 ib_inc_rkey(u32 rkey)
- }
- 
- /**
-+ * ib_dec_rkey - decrements the key portion of the given rkey. Can be used
-+ * when recovering from a local immediate error.
-+ * @rkey - the rkey to decrement.
-+ */
-+static inline u32 ib_dec_rkey(u32 rkey)
-+{
-+	const u32 mask = 0x000000ff;
-+	return ((rkey - 1) & mask) | (rkey & ~mask);
-+}
-+
-+/**
-  * ib_alloc_mw - Allocates a memory window.
-  * @pd: The protection domain associated with the memory window.
-  * @type: The type of the memory window (1 or 2).
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 8bb7945..394b13f 100644
+index 394b13f..abac484 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1497,13 +1497,12 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	struct rpcrdma_frmr *frmr = &mw->r.frmr;
- 	struct ib_mr *mr = frmr->fr_mr;
- 	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
--
--	u8 key;
- 	int len, pageoff;
- 	int i, rc;
- 	int seg_len;
- 	u64 pa;
- 	int page_no;
-+	u32 rkey;
+@@ -1074,6 +1074,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
+ 	p += cdata->padding;
  
- 	pageoff = offset_in_page(seg1->mr_offset);
- 	seg1->mr_offset -= pageoff;	/* start of page */
-@@ -1558,14 +1557,11 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 		rc = -EIO;
- 		goto out_err;
- 	}
--
--	/* Bump the key */
--	key = (u8)(mr->rkey & 0x000000FF);
--	ib_update_fast_reg_key(mr, ++key);
--
- 	frmr_wr.wr.fast_reg.access_flags = (writing ?
- 				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
- 				IB_ACCESS_REMOTE_READ);
-+	rkey = ib_inc_rkey(mr->rkey);
-+	ib_update_fast_reg_key(mr, rkey);
- 	frmr_wr.wr.fast_reg.rkey = mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
+ 	INIT_LIST_HEAD(&buf->rb_mws);
++	INIT_LIST_HEAD(&buf->rb_all);
+ 	r = (struct rpcrdma_mw *)p;
+ 	switch (ia->ri_memreg_strategy) {
+ 	case RPCRDMA_FRMR:
+@@ -1098,6 +1099,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
+ 				ib_dereg_mr(r->r.frmr.fr_mr);
+ 				goto out;
+ 			}
++			list_add(&r->mw_all, &buf->rb_all);
+ 			list_add(&r->mw_list, &buf->rb_mws);
+ 			++r;
+ 		}
+@@ -1116,6 +1118,7 @@ rpcrdma_buffer_create(struct rpcrdma_buffer *buf, struct rpcrdma_ep *ep,
+ 					" failed %i\n", __func__, rc);
+ 				goto out;
+ 			}
++			list_add(&r->mw_all, &buf->rb_all);
+ 			list_add(&r->mw_list, &buf->rb_mws);
+ 			++r;
+ 		}
+@@ -1225,6 +1228,7 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+ 	while (!list_empty(&buf->rb_mws)) {
+ 		r = list_entry(buf->rb_mws.next,
+ 			struct rpcrdma_mw, mw_list);
++		list_del(&r->mw_all);
+ 		list_del(&r->mw_list);
+ 		switch (ia->ri_memreg_strategy) {
+ 		case RPCRDMA_FRMR:
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 84c3455..c1d8652 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -151,7 +151,7 @@ struct rpcrdma_rep {
+  * An external memory region is any buffer or page that is registered
+  * on the fly (ie, not pre-registered).
+  *
+- * Each rpcrdma_buffer has a list of these anchored in rb_mws. During
++ * Each rpcrdma_buffer has a list of free MWs anchored in rb_mws. During
+  * call_allocate, rpcrdma_buffer_get() assigns one to each segment in
+  * an rpcrdma_req. Then rpcrdma_register_external() grabs these to keep
+  * track of registration metadata while each RPC is pending.
+@@ -175,6 +175,7 @@ struct rpcrdma_mw {
+ 		struct rpcrdma_frmr	frmr;
+ 	} r;
+ 	struct list_head	mw_list;
++	struct list_head	mw_all;
+ };
  
-@@ -1574,6 +1570,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	if (rc) {
- 		dprintk("RPC:       %s: failed ib_post_send for register,"
- 			" status %i\n", __func__, rc);
-+		rkey = ib_dec_rkey(mr->rkey);
-+		ib_update_fast_reg_key(mr, rkey);
- 		goto out_err;
- 	} else {
- 		seg1->mr_rkey = mr->rkey;
+ /*
+@@ -246,6 +247,7 @@ struct rpcrdma_buffer {
+ 	atomic_t	rb_credits;	/* most recent server credits */
+ 	int		rb_max_requests;/* client max requests */
+ 	struct list_head rb_mws;	/* optional memory windows/fmrs/frmrs */
++	struct list_head rb_all;
+ 	int		rb_send_index;
+ 	struct rpcrdma_req	**rb_send_bufs;
+ 	int		rb_recv_index;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
