@@ -1,83 +1,64 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 21/21] xprtrdma: Handle additional connection events
-Date: Tue, 15 Jul 2014 10:23:12 -0400
-Message-ID: <20140715142311.8908.23658.stgit@manet.1015granger.net>
-References: <20140715142020.8908.80969.stgit@manet.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Subject: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
+Date: Tue, 15 Jul 2014 10:24:16 -0400
+Message-ID: <59034BAD-306F-462F-A274-3EB06C0CBE47@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140715142020.8908.80969.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 38ca83a5 added RDMA_CM_EVENT_TIMEWAIT_EXIT. But that status
-is relevant only for consumers that re-use their QPs on new
-connections. xprtrdma creates a fresh QP on reconnection, so that
-event should be explicitly ignored.
+The main purpose of this series is to address connection drop
+recovery issues by fixing FRMR re-use to make it less likely the
+client will deadlock due to a memory management operation error.
 
-Squelch the alarming "unexpected CM event" message.
+Some clean-ups and other fixes are present as well.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+See topic branch nfs-rdma-for-3.17 in
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 721a6fd..6ead5df 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -326,8 +326,16 @@ static const char * const conn[] = {
- 	"rejected",
- 	"established",
- 	"disconnected",
--	"device removal"
-+	"device removal",
-+	"multicast join",
-+	"multicast error",
-+	"address change",
-+	"timewait exit",
- };
-+
-+#define CONNECTION_MSG(status)						\
-+	((status) < ARRAY_SIZE(conn) ?					\
-+		conn[(status)] : "unrecognized connection error")
- #endif
- 
- static int
-@@ -385,23 +393,18 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 		connstate = -ENODEV;
- connected:
--		dprintk("RPC:       %s: %s: %pI4:%u (ep 0x%p event 0x%x)\n",
--			__func__,
--			(event->event <= 11) ? conn[event->event] :
--						"unknown connection error",
--			&addr->sin_addr.s_addr,
--			ntohs(addr->sin_port),
--			ep, event->event);
- 		atomic_set(&rpcx_to_rdmax(ep->rep_xprt)->rx_buf.rb_credits, 1);
- 		dprintk("RPC:       %s: %sconnected\n",
- 					__func__, connstate > 0 ? "" : "dis");
- 		ep->rep_connected = connstate;
- 		ep->rep_func(ep);
- 		wake_up_all(&ep->rep_connect_wait);
--		break;
-+		/*FALLTHROUGH*/
- 	default:
--		dprintk("RPC:       %s: unexpected CM event %d\n",
--			__func__, event->event);
-+		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
-+			__func__, &addr->sin_addr.s_addr,
-+			ntohs(addr->sin_port), ep,
-+			CONNECTION_MSG(event->event));
- 		break;
- 	}
- 
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+I tested with NFSv3 and NFSv4 on all three supported memory
+registration modes. Used cthon04, iozone, and dbench with both
+Solaris and Linux NFS/RDMA servers. Used xfstests with Linux.
+
+v3:
+Only two substantive changes:
+
+- Patch 08/21 now uses generic IB helpers for managing FRMR
+  rkeys
+
+- Add Tested-by: from Steve Wise
+
+
+v2:
+Many patches from v1 have been written or replaced.
+
+The MW ref counting approach in v1 is abandoned. Instead, I've
+eliminated signaling FAST_REG_MR and LOCAL_INV, and added
+appropriate recovery mechanisms after a transport reconnect that
+should prevent rkey dis-synchrony entirely.
+
+A couple of optimizations have been added, including:
+
+- Allocating each MW separately rather than carving each out of a
+  large piece of contiguous memory
+
+- Now that the receive CQ upcall handler dequeues a bundle of CQEs
+  at once, fire off the reply handler tasklet just once per upcall
+  to reduce context switches and how often hard IRQs are disabled
+
+Jury is still out on the latter.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
