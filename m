@@ -1,82 +1,105 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: linux-next: manual merge of the infiniband tree with the net-next
- tree
-Date: Wed, 16 Jul 2014 13:53:20 +1000
-Message-ID: <20140716135320.4011c6c8@canb.auug.org.au>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] svcrdma: send_write() must not overflow the device's
+ max sge
+Date: Wed, 16 Jul 2014 06:16:02 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE10C3A@CMEXMB1.ad.emulex.com>
+References: <20140709184914.22217.59770.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/vgw9m8+VmK4jRFpS8g.bNdB"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140709184914.22217.59770.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tom-/Yg/VP3ZvrM@public.gmane.org" <tom-/Yg/VP3ZvrM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/vgw9m8+VmK4jRFpS8g.bNdB
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi all,
-
-Today's linux-next merge of the infiniband tree got a conflict in
-drivers/infiniband/hw/cxgb4/device.c between commit 7730b4c7e32c
-("cxgb4/iw_cxgb4: work request logging feature") from the net-next tree
-and commit 6b54d54dea82 ("RDMA/cxgb4: Initialize the device status
-page") from the infiniband tree.
-
-I fixed it up (see below) and can carry the fix as necessary (no action
-is required).
-
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-
-diff --cc drivers/infiniband/hw/cxgb4/device.c
-index df1f1b52c7ec,7db82b24302b..000000000000
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@@ -843,16 -696,7 +843,17 @@@ static int c4iw_rdev_open(struct c4iw_r
-  		pr_err(MOD "error allocating status page\n");
-  		goto err4;
-  	}
- +	if (c4iw_wr_log) {
- +		rdev->wr_log =3D kzalloc((1 << c4iw_wr_log_size_order) *
- +				       sizeof(*rdev->wr_log), GFP_KERNEL);
- +		if (rdev->wr_log) {
- +			rdev->wr_log_size =3D 1 << c4iw_wr_log_size_order;
- +			atomic_set(&rdev->wr_log_idx, 0);
- +		} else {
- +			pr_err(MOD "error allocating wr_log. Logging disabled\n");
- +		}
- +	}
-+ 	rdev->status_page->db_off =3D 0;
-  	return 0;
-  err4:
-  	c4iw_rqtpool_destroy(rdev);
-
---Sig_/vgw9m8+VmK4jRFpS8g.bNdB
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJTxfc0AAoJEMDTa8Ir7ZwVFzMP/izJ3B4E7kKLRfXjJn+3HGjF
-wnWQpY+8zzHXeiT1Y/8AZSC5c1Dxy2FAPE9WrLHOX+2l43tz3py/pGG8zbyIaXqb
-uIr6SSkoAJ0zoWYma891tIrVVzABvwgYBhPbKgt/kxLFh9IlexIrSbS/+OuYmRs5
-5kOyBJa7Wn2IwjH2WqcxFiquZtvohIWtD5Yu43VBBbQnPmfn3ywDK/VZuTtAIv3r
-TPXzb4BrWOcxJxN8hMHKyKB1/qBNp5Fl2EzB6fWKKY9lfogCpYUuVzH3PINei1yW
-Wd295ZaqfrlEiCPjqIJ3BTdpfecft4lcdPJBcOPcYK24BTCdIexT91jiGBlo75lb
-sL3Qnyj3MbYf51fM2RAj0GX+beE2l6XhxgKb3RyqIvHkcGHE+EHeX9NFmBUfdr3z
-1vvXe5eCgRB5Gk4qjgUDeTkULd97niAABmESUAHRLbwpnsM2fxFCyQvnIDGGJYJo
-5p5xRnWCU55VjdR8aZQyXLNZFS7WlzRiQfO5AotqJGdQzjn5WZbfFMNmtOYgR2tY
-NJCeQaBfEga2IoQM9cWNjzVs2uY6utpGzVn6JQRMXVHyr0k5fQmMhZgW2h09lXVz
-SepUmmAQNW3FpMoR5p4QN0a1i3X60JCig0KcEv3jE186XdAdEhzKPAzE/ay4hem+
-WYgpBOi+UG7qkp9K6yZW
-=HbYj
------END PGP SIGNATURE-----
-
---Sig_/vgw9m8+VmK4jRFpS8g.bNdB--
+UmVwb3J0ZWQtQnk6IERldmVzaCBTaGFybWEgPGRldmVzaC5zaGFybWEgYXQgRW11bGV4LmNvbT4N
+CkFja2VkLUJ5OiBEZXZlc2ggU2hhcm1hIDxEZXZlc2guc2hhcm1hIGF0IEVtdWxleC5jb20+DQoN
+Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2
+Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5v
+cmddIE9uIEJlaGFsZiBPZiBTdGV2ZSBXaXNlDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDEwLCAy
+MDE0IDEyOjE5IEFNDQo+IFRvOiBiZmllbGRzQGZpZWxkc2VzLm9yZw0KPiBDYzogbGludXgtcmRt
+YUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LW5mc0B2Z2VyLmtlcm5lbC5vcmc7IHRvbUBvZ2MudXMN
+Cj4gU3ViamVjdDogW1BBVENIXSBzdmNyZG1hOiBzZW5kX3dyaXRlKCkgbXVzdCBub3Qgb3ZlcmZs
+b3cgdGhlIGRldmljZSdzIG1heA0KPiBzZ2UNCj4gDQo+IEZ1bmN0aW9uIHNlbmRfd3JpdGUoKSBt
+dXN0IHN0b3AgY3JlYXRpbmcgc2dlcyB3aGVuIGl0IHJlYWNoZXMgdGhlIGRldmljZQ0KPiBtYXgg
+YW5kIHJldHVybiB0aGUgYW1vdW50IHNlbnQgaW4gdGhlIFJETUEgV3JpdGUgdG8gdGhlIGNhbGxl
+ci4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29tcHV0
+aW5nLmNvbT4NCj4gLS0tDQo+IA0KPiAgbmV0L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9zZW5k
+dG8uYyB8ICAgMzkgKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tDQo+IC0tLS0tLQ0KPiAgMSBm
+aWxlcyBjaGFuZ2VkLCAxNSBpbnNlcnRpb25zKCspLCAyNCBkZWxldGlvbnMoLSkNCj4gDQo+IGRp
+ZmYgLS1naXQgYS9uZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3NlbmR0by5jDQo+IGIvbmV0
+L3N1bnJwYy94cHJ0cmRtYS9zdmNfcmRtYV9zZW5kdG8uYw0KPiBpbmRleCA0OWZkMjFhLi45ZjFi
+NTA2IDEwMDY0NA0KPiAtLS0gYS9uZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3NlbmR0by5j
+DQo+ICsrKyBiL25ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfc2VuZHRvLmMNCj4gQEAgLTE5
+Miw2ICsxOTIsOCBAQCBzdGF0aWMgaW50IHNlbmRfd3JpdGUoc3RydWN0IHN2Y3hwcnRfcmRtYSAq
+eHBydCwgc3RydWN0DQo+IHN2Y19ycXN0ICpycXN0cCwNCj4gIAkJeGRyX3NnZV9ubysrOw0KPiAg
+CQlCVUdfT04oeGRyX3NnZV9ubyA+IHZlYy0+Y291bnQpOw0KPiAgCQliYyAtPSBzZ2VfYnl0ZXM7
+DQo+ICsJCWlmIChzZ2Vfbm8gPT0geHBydC0+c2NfbWF4X3NnZSkNCj4gKwkJCWJyZWFrOw0KPiAg
+CX0NCj4gDQo+ICAJLyogUHJlcGFyZSBXUklURSBXUiAqLw0KPiBAQCAtMjA5LDcgKzIxMSw3IEBA
+IHN0YXRpYyBpbnQgc2VuZF93cml0ZShzdHJ1Y3Qgc3ZjeHBydF9yZG1hICp4cHJ0LCBzdHJ1Y3QN
+Cj4gc3ZjX3Jxc3QgKnJxc3RwLA0KPiAgCWF0b21pY19pbmMoJnJkbWFfc3RhdF93cml0ZSk7DQo+
+ICAJaWYgKHN2Y19yZG1hX3NlbmQoeHBydCwgJndyaXRlX3dyKSkNCj4gIAkJZ290byBlcnI7DQo+
+IC0JcmV0dXJuIDA7DQo+ICsJcmV0dXJuIHdyaXRlX2xlbiAtIGJjOw0KPiAgIGVycjoNCj4gIAlz
+dmNfcmRtYV91bm1hcF9kbWEoY3R4dCk7DQo+ICAJc3ZjX3JkbWFfcHV0X2NvbnRleHQoY3R4dCwg
+MCk7DQo+IEBAIC0yMjUsNyArMjI3LDYgQEAgc3RhdGljIGludCBzZW5kX3dyaXRlX2NodW5rcyhz
+dHJ1Y3Qgc3ZjeHBydF9yZG1hDQo+ICp4cHJ0LCAgew0KPiAgCXUzMiB4ZmVyX2xlbiA9IHJxc3Rw
+LT5ycV9yZXMucGFnZV9sZW4gKyBycXN0cC0NCj4gPnJxX3Jlcy50YWlsWzBdLmlvdl9sZW47DQo+
+ICAJaW50IHdyaXRlX2xlbjsNCj4gLQlpbnQgbWF4X3dyaXRlOw0KPiAgCXUzMiB4ZHJfb2ZmOw0K
+PiAgCWludCBjaHVua19vZmY7DQo+ICAJaW50IGNodW5rX25vOw0KPiBAQCAtMjM5LDggKzI0MCw2
+IEBAIHN0YXRpYyBpbnQgc2VuZF93cml0ZV9jaHVua3Moc3RydWN0IHN2Y3hwcnRfcmRtYQ0KPiAq
+eHBydCwNCj4gIAlyZXNfYXJ5ID0gKHN0cnVjdCBycGNyZG1hX3dyaXRlX2FycmF5ICopDQo+ICAJ
+CSZyZG1hX3Jlc3AtPnJtX2JvZHkucm1fY2h1bmtzWzFdOw0KPiANCj4gLQltYXhfd3JpdGUgPSB4
+cHJ0LT5zY19tYXhfc2dlICogUEFHRV9TSVpFOw0KPiAtDQo+ICAJLyogV3JpdGUgY2h1bmtzIHN0
+YXJ0IGF0IHRoZSBwYWdlbGlzdCAqLw0KPiAgCWZvciAoeGRyX29mZiA9IHJxc3RwLT5ycV9yZXMu
+aGVhZFswXS5pb3ZfbGVuLCBjaHVua19ubyA9IDA7DQo+ICAJICAgICB4ZmVyX2xlbiAmJiBjaHVu
+a19ubyA8IGFyZ19hcnktPndjX25jaHVua3M7IEBAIC0yNjAsMjMNCj4gKzI1OSwyMSBAQCBzdGF0
+aWMgaW50IHNlbmRfd3JpdGVfY2h1bmtzKHN0cnVjdCBzdmN4cHJ0X3JkbWEgKnhwcnQsDQo+ICAJ
+CQkJCQl3cml0ZV9sZW4pOw0KPiAgCQljaHVua19vZmYgPSAwOw0KPiAgCQl3aGlsZSAod3JpdGVf
+bGVuKSB7DQo+IC0JCQlpbnQgdGhpc193cml0ZTsNCj4gLQkJCXRoaXNfd3JpdGUgPSBtaW4od3Jp
+dGVfbGVuLCBtYXhfd3JpdGUpOw0KPiAgCQkJcmV0ID0gc2VuZF93cml0ZSh4cHJ0LCBycXN0cCwN
+Cj4gIAkJCQkJIG50b2hsKGFyZ19jaC0+cnNfaGFuZGxlKSwNCj4gIAkJCQkJIHJzX29mZnNldCAr
+IGNodW5rX29mZiwNCj4gIAkJCQkJIHhkcl9vZmYsDQo+IC0JCQkJCSB0aGlzX3dyaXRlLA0KPiAr
+CQkJCQkgd3JpdGVfbGVuLA0KPiAgCQkJCQkgdmVjKTsNCj4gLQkJCWlmIChyZXQpIHsNCj4gKwkJ
+CWlmIChyZXQgPD0gMCkgew0KPiAgCQkJCWRwcmludGsoInN2Y3JkbWE6IFJETUFfV1JJVEUgZmFp
+bGVkLA0KPiByZXQ9JWRcbiIsDQo+ICAJCQkJCXJldCk7DQo+ICAJCQkJcmV0dXJuIC1FSU87DQo+
+ICAJCQl9DQo+IC0JCQljaHVua19vZmYgKz0gdGhpc193cml0ZTsNCj4gLQkJCXhkcl9vZmYgKz0g
+dGhpc193cml0ZTsNCj4gLQkJCXhmZXJfbGVuIC09IHRoaXNfd3JpdGU7DQo+IC0JCQl3cml0ZV9s
+ZW4gLT0gdGhpc193cml0ZTsNCj4gKwkJCWNodW5rX29mZiArPSByZXQ7DQo+ICsJCQl4ZHJfb2Zm
+ICs9IHJldDsNCj4gKwkJCXhmZXJfbGVuIC09IHJldDsNCj4gKwkJCXdyaXRlX2xlbiAtPSByZXQ7
+DQo+ICAJCX0NCj4gIAl9DQo+ICAJLyogVXBkYXRlIHRoZSByZXEgd2l0aCB0aGUgbnVtYmVyIG9m
+IGNodW5rcyBhY3R1YWxseSB1c2VkICovIEBAIC0NCj4gMjkzLDcgKzI5MCw2IEBAIHN0YXRpYyBp
+bnQgc2VuZF9yZXBseV9jaHVua3Moc3RydWN0IHN2Y3hwcnRfcmRtYSAqeHBydCwgIHsNCj4gIAl1
+MzIgeGZlcl9sZW4gPSBycXN0cC0+cnFfcmVzLmxlbjsNCj4gIAlpbnQgd3JpdGVfbGVuOw0KPiAt
+CWludCBtYXhfd3JpdGU7DQo+ICAJdTMyIHhkcl9vZmY7DQo+ICAJaW50IGNodW5rX25vOw0KPiAg
+CWludCBjaHVua19vZmY7DQo+IEBAIC0zMTEsOCArMzA3LDYgQEAgc3RhdGljIGludCBzZW5kX3Jl
+cGx5X2NodW5rcyhzdHJ1Y3Qgc3ZjeHBydF9yZG1hDQo+ICp4cHJ0LA0KPiAgCXJlc19hcnkgPSAo
+c3RydWN0IHJwY3JkbWFfd3JpdGVfYXJyYXkgKikNCj4gIAkJJnJkbWFfcmVzcC0+cm1fYm9keS5y
+bV9jaHVua3NbMl07DQo+IA0KPiAtCW1heF93cml0ZSA9IHhwcnQtPnNjX21heF9zZ2UgKiBQQUdF
+X1NJWkU7DQo+IC0NCj4gIAkvKiB4ZHIgb2Zmc2V0IHN0YXJ0cyBhdCBSUEMgbWVzc2FnZSAqLw0K
+PiAgCW5jaHVua3MgPSBudG9obChhcmdfYXJ5LT53Y19uY2h1bmtzKTsNCj4gIAlmb3IgKHhkcl9v
+ZmYgPSAwLCBjaHVua19ubyA9IDA7DQo+IEBAIC0zMzAsMjQgKzMyNCwyMSBAQCBzdGF0aWMgaW50
+IHNlbmRfcmVwbHlfY2h1bmtzKHN0cnVjdCBzdmN4cHJ0X3JkbWENCj4gKnhwcnQsDQo+ICAJCQkJ
+CQl3cml0ZV9sZW4pOw0KPiAgCQljaHVua19vZmYgPSAwOw0KPiAgCQl3aGlsZSAod3JpdGVfbGVu
+KSB7DQo+IC0JCQlpbnQgdGhpc193cml0ZTsNCj4gLQ0KPiAtCQkJdGhpc193cml0ZSA9IG1pbih3
+cml0ZV9sZW4sIG1heF93cml0ZSk7DQo+ICAJCQlyZXQgPSBzZW5kX3dyaXRlKHhwcnQsIHJxc3Rw
+LA0KPiAgCQkJCQkgbnRvaGwoY2gtPnJzX2hhbmRsZSksDQo+ICAJCQkJCSByc19vZmZzZXQgKyBj
+aHVua19vZmYsDQo+ICAJCQkJCSB4ZHJfb2ZmLA0KPiAtCQkJCQkgdGhpc193cml0ZSwNCj4gKwkJ
+CQkJIHdyaXRlX2xlbiwNCj4gIAkJCQkJIHZlYyk7DQo+IC0JCQlpZiAocmV0KSB7DQo+ICsJCQlp
+ZiAocmV0IDw9IDApIHsNCj4gIAkJCQlkcHJpbnRrKCJzdmNyZG1hOiBSRE1BX1dSSVRFIGZhaWxl
+ZCwNCj4gcmV0PSVkXG4iLA0KPiAgCQkJCQlyZXQpOw0KPiAgCQkJCXJldHVybiAtRUlPOw0KPiAg
+CQkJfQ0KPiAtCQkJY2h1bmtfb2ZmICs9IHRoaXNfd3JpdGU7DQo+IC0JCQl4ZHJfb2ZmICs9IHRo
+aXNfd3JpdGU7DQo+IC0JCQl4ZmVyX2xlbiAtPSB0aGlzX3dyaXRlOw0KPiAtCQkJd3JpdGVfbGVu
+IC09IHRoaXNfd3JpdGU7DQo+ICsJCQljaHVua19vZmYgKz0gcmV0Ow0KPiArCQkJeGRyX29mZiAr
+PSByZXQ7DQo+ICsJCQl4ZmVyX2xlbiAtPSByZXQ7DQo+ICsJCQl3cml0ZV9sZW4gLT0gcmV0Ow0K
+PiAgCQl9DQo+ICAJfQ0KPiAgCS8qIFVwZGF0ZSB0aGUgcmVxIHdpdGggdGhlIG51bWJlciBvZiBj
+aHVua3MgYWN0dWFsbHkgdXNlZCAqLw0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0
+aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZQ0K
+PiBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFq
+b3Jkb21vIGluZm8gYXQNCj4gaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5o
+dG1sDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
