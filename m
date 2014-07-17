@@ -1,41 +1,118 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: [PATCH] uapi/rdma_user_cm.h: include socket.h
-Date: Thu, 17 Jul 2014 09:57:07 -0400
-Message-ID: <2d5b6d400d1845a52798d4a7655c8fc3ef68e580.1405605235.git.dledford@redhat.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, roland@kernel.org, stable@vger.kernel.org
-Cc: Doug Ledford <dledford@redhat.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
+Date: Thu, 17 Jul 2014 14:12:31 +0000
+Message-ID: <3cf9f937-4c1c-4a39-9fb8-aca5eea15880@CMEXHTCAS2.ad.emulex.com>
+References: <59034BAD-306F-462F-A274-3EB06C0CBE47@oracle.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE10DE1@CMEXMB1.ad.emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE10DE1-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit ee7aed4528f (RDMA/ucma: Support querying for AF_IB addresses)
-added struct sockaddr_storage to rdma_user_cm.h without also adding an
-include for linux/socket.h to make sure it is defined.  As systemtap
-needs the header files to build standalone and not rely on the code
-files to pre-include other headers, add linux/socket.h to the list of
-includes in this file.
+Hi Chuck,
 
-This patch resolves Red Hat bugzilla #1072645.
+Tested the cable pull also. V3 is passing the cable pull test also. I have tried following tests:
 
-The above referenced commit was added during the 3.11 release cycle, so
-this fix is suitable for any stable kernels from that point on.
+Run iozone on nfs-rdma mount.
+Bring down the link from switch (to simulate cable pull).
+Wait for 10 secs.
+Bring back the link.
+This test passes, iozone resumes traffic.
 
-Signed-off-by: Doug Ledford <dledford@redhat.com>
----
- include/uapi/rdma/rdma_user_cm.h | 1 +
- 1 file changed, 1 insertion(+)
+Run iozone on nfs-rdma mount.
+Bring down the link from switch (to simulate cable pull).
+Wait for 70 secs.
+Bring back the link.
+This test passes, iozone resumes traffic.
 
-diff --git a/include/uapi/rdma/rdma_user_cm.h b/include/uapi/rdma/rdma_user_cm.h
-index 99b80abf360..3066718eb12 100644
---- a/include/uapi/rdma/rdma_user_cm.h
-+++ b/include/uapi/rdma/rdma_user_cm.h
-@@ -34,6 +34,7 @@
- #define RDMA_USER_CM_H
- 
- #include <linux/types.h>
-+#include <linux/socket.h>
- #include <linux/in6.h>
- #include <rdma/ib_user_verbs.h>
- #include <rdma/ib_user_sa.h>
--- 
-1.9.3
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
+> Sent: Thursday, July 17, 2014 10:37 AM
+> To: Chuck Lever; linux-rdma; Linux NFS Mailing List
+> Subject: RE: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
+> 
+> Hi Chuck,
+> 
+> 
+> Tested v3 with  ocrdma (linux-3.16-rc5 inbox`ed ocrdma). Both Cthon and
+> iozone passes with and regressions. I will perform cable pull test as well and
+> get back to you.
+> 
+> -Regards
+>  Devesh
+> 
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
+> > Sent: Tuesday, July 15, 2014 7:54 PM
+> > To: linux-rdma; Linux NFS Mailing List
+> > Subject: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
+> >
+> > The main purpose of this series is to address connection drop recovery
+> > issues by fixing FRMR re-use to make it less likely the client will
+> > deadlock due to a memory management operation error.
+> >
+> > Some clean-ups and other fixes are present as well.
+> >
+> > See topic branch nfs-rdma-for-3.17 in
+> >
+> > git://git.linux-nfs.org/projects/cel/cel-2.6.git
+> >
+> > I tested with NFSv3 and NFSv4 on all three supported memory
+> > registration modes. Used cthon04, iozone, and dbench with both Solaris
+> > and Linux NFS/RDMA servers. Used xfstests with Linux.
+> >
+> > v3:
+> > Only two substantive changes:
+> >
+> > - Patch 08/21 now uses generic IB helpers for managing FRMR
+> >   rkeys
+> >
+> > - Add Tested-by: from Steve Wise
+> >
+> >
+> > v2:
+> > Many patches from v1 have been written or replaced.
+> >
+> > The MW ref counting approach in v1 is abandoned. Instead, I've
+> > eliminated signaling FAST_REG_MR and LOCAL_INV, and added
+> appropriate
+> > recovery mechanisms after a transport reconnect that should prevent
+> > rkey dis- synchrony entirely.
+> >
+> > A couple of optimizations have been added, including:
+> >
+> > - Allocating each MW separately rather than carving each out of a
+> >   large piece of contiguous memory
+> >
+> > - Now that the receive CQ upcall handler dequeues a bundle of CQEs
+> >   at once, fire off the reply handler tasklet just once per upcall
+> >   to reduce context switches and how often hard IRQs are disabled
+> >
+> > Jury is still out on the latter.
+> >
+> > --
+> > Chuck Lever
+> > chuck[dot]lever[at]oracle[dot]com
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+> majordomo
+> > info at http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
