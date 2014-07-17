@@ -1,89 +1,120 @@
 From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider module
-Date: Thu, 17 Jul 2014 15:31:18 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE11238@CMEXMB1.ad.emulex.com>
+Subject: RE: [for-next 2/2] xprtrdma: fix deallocation sequence of pd
+Date: Thu, 17 Jul 2014 15:35:55 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE11250@CMEXMB1.ad.emulex.com>
 References: <1405605697-11583-1-git-send-email-devesh.sharma@emulex.com>
- <3e39e90f-7095-4eb9-a844-516672a355ad@CMEXHTCAS2.ad.emulex.com>
- <53C7E546.3080008@opengridcomputing.com>
- <78A77C48-AC73-4C01-B139-A00B4F674C70@oracle.com>
+ <3fdcf67f-2e90-4c61-92da-a8f7743cf54a@CMEXHTCAS2.ad.emulex.com>
+ <53C7E64D.90501@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <78A77C48-AC73-4C01-B139-A00B4F674C70-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <53C7E64D.90501-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- Replying again, due to mail formatting issue:
-
 > -----Original Message-----
-> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
+> From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
 > Sent: Thursday, July 17, 2014 8:36 PM
-> To: Steve Wise
-> Cc: Devesh Sharma; Roland Dreier; Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider
-> module
+> To: Devesh Sharma; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+> Subject: Re: [for-next 2/2] xprtrdma: fix deallocation sequence of pd
 > 
+> On 7/17/2014 9:01 AM, Devesh Sharma wrote:
+> > xprtrdma tries to destroy pd after destruction of cm_id. However, pd
+> > should be deallocated before destruction of cm_id.
 > 
-> On Jul 17, 2014, at 11:01 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> wrote:
+> Why?
 > 
-> >
-> >
-> > On 7/17/2014 9:01 AM, Devesh Sharma wrote:
-> >> If verndor driver is attempted for removal while xprtrdma still has
-> >> an active mount, the removal of driver may never complete and can
-> >> cause unseen races or in worst case system crash.
-> >>
-> >> To solve this, xprtrdma module should get reference of struct
-> >> ib_device structure for every mount. Reference is taken after local
-> >> device address resolution is completed successfuly.
-> >>
-> >> reference to the struct ib_device pointer is put just before cm_id
-> destruction.
-> >>
-> >> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> >
-> > This seems like an issue with the rdma-cm or rdma core, not xprtrdma.
-> 
-> Good point. I was wondering if svcrdma might have a similar issue.
-> 
-> Infrequently I see a hang during shutdown that appears to be related to the
-> ordering of removal of one of the RDMA modules, but I've never had time to
-> chase it.
-> 
-> See also: https://bugzilla.linux-nfs.org/show_bug.cgi?id=252
-> 
-> 
-> > I see that user rdma applications cause a ref on the provider module here
-> in ib_uverbs_open():
-> >
-> >        if (!try_module_get(dev->ib_dev->owner)) {
-> >                ret = -ENODEV;
-> >                goto err;
-> >
-> >
-> > Maybe kernel applications that allocate device resources should cause a ref
-> on the provider's module.
+> I think you really mean that the pd dealloc needs to be done before the
+> module deref that you added in the first patch.  But let us see what Roland
+> says about how device removal is supposed to be handled when kernel
+> applications are using the device...
 
-Yes, To me it looks like the right place to get reference of provider driver is rdma_resolve_addr()-->acuire_ib_dev(). However this patch provides a workaround.
+Partially Yes, PD de-allocation should not be done after taking out the module reference. In the allocation
+Sequence PD is allocated after cm_id allocation hence should be de-allocated before cm-id destroy.
 
-Let's wait for Roland/Sean's input.
-
+> 
+> 
+> 
+> > Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >   net/sunrpc/xprtrdma/verbs.c |   22 +++++++++++++---------
+> >   1 files changed, 13 insertions(+), 9 deletions(-)
 > >
-> > Sean/Roland,  is there some history here as to how rdma provider module
-> removal should be handled?
+> > diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> > index b00e55e..096e94b 100644
+> > --- a/net/sunrpc/xprtrdma/verbs.c
+> > +++ b/net/sunrpc/xprtrdma/verbs.c
+> > @@ -544,7 +544,7 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct
+> sockaddr *addr, int memreg)
+> >   	if (rc) {
+> >   		dprintk("RPC:       %s: ib_query_device failed %d\n",
+> >   			__func__, rc);
+> > -		goto out2;
+> > +		goto out3;
+> >   	}
 > >
-> > Steve.
-> 
-> --
-> Chuck Lever
-> chuck[dot]lever[at]oracle[dot]com
-> 
-> 
+> >   	if (devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY) { @@
+> > -602,14 +602,14 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct
+> sockaddr *addr, int memreg)
+> >   				"phys register failed with %lX\n",
+> >   				__func__, PTR_ERR(ia->ri_bind_mem));
+> >   			rc = -ENOMEM;
+> > -			goto out2;
+> > +			goto out3;
+> >   		}
+> >   		break;
+> >   	default:
+> >   		printk(KERN_ERR "RPC: Unsupported memory "
+> >   				"registration mode: %d\n", memreg);
+> >   		rc = -ENOMEM;
+> > -		goto out2;
+> > +		goto out3;
+> >   	}
+> >   	dprintk("RPC:       %s: memory registration strategy is %d\n",
+> >   		__func__, memreg);
+> > @@ -619,6 +619,9 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct
+> > sockaddr *addr, int memreg)
+> >
+> >   	rwlock_init(&ia->ri_qplock);
+> >   	return 0;
+> > +out3:
+> > +	ib_dealloc_pd(ia->ri_pd);
+> > +	ia->ri_pd = NULL;
+> >   out2:
+> >   	module_put(ia->ri_id->device->owner);
+> >   	rdma_destroy_id(ia->ri_id);
+> > @@ -643,19 +646,20 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+> >   		dprintk("RPC:       %s: ib_dereg_mr returned %i\n",
+> >   			__func__, rc);
+> >   	}
+> > +
+> >   	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+> >   		if (ia->ri_id->qp)
+> >   			rdma_destroy_qp(ia->ri_id);
+> > +
+> > +		if (ia->ri_pd != NULL && !IS_ERR(ia->ri_pd)) {
+> > +			rc = ib_dealloc_pd(ia->ri_pd);
+> > +			dprintk("RPC:       %s: ib_dealloc_pd returned %i\n",
+> > +				__func__, rc);
+> > +		}
+> >   		module_put(ia->ri_id->device->owner);
+> >   		rdma_destroy_id(ia->ri_id);
+> >   		ia->ri_id = NULL;
+> >   	}
+> > -
+> > -	if (ia->ri_pd != NULL && !IS_ERR(ia->ri_pd)) {
+> > -		rc = ib_dealloc_pd(ia->ri_pd);
+> > -		dprintk("RPC:       %s: ib_dealloc_pd returned %i\n",
+> > -			__func__, rc);
+> > -	}
+> >   }
+> >
+> >   /*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
