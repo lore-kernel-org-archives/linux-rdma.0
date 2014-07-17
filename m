@@ -1,86 +1,28 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
-Date: Thu, 17 Jul 2014 05:06:34 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE10DE1@CMEXMB1.ad.emulex.com>
-References: <59034BAD-306F-462F-A274-3EB06C0CBE47@oracle.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 3/4] libcxgbi: Add ipv6 api to driver
+Date: Wed, 16 Jul 2014 23:23:55 -0700 (PDT)
+Message-ID: <20140716.232355.1673092200124116952.davem@davemloft.net>
+References: <1405479353-2289-1-git-send-email-anish@chelsio.com>
+	<1405479353-2289-4-git-send-email-anish@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <59034BAD-306F-462F-A274-3EB06C0CBE47-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1405479353-2289-4-git-send-email-anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org, jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, kxie-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, manojmalviya-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Chuck,
+From: Anish Bhatt <anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Tue, 15 Jul 2014 19:55:52 -0700
 
+> +#define pr_info_ipaddr(fmt_trail,					\
+> +			addr1, addr2, args_trail...)			\
 
-Tested v3 with  ocrdma (linux-3.16-rc5 inbox`ed ocrdma). Both Cthon and iozone passes with and regressions. I will perform cable pull test as well and get back to you.
-
--Regards
- Devesh
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
-> Sent: Tuesday, July 15, 2014 7:54 PM
-> To: linux-rdma; Linux NFS Mailing List
-> Subject: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
-> 
-> The main purpose of this series is to address connection drop recovery issues
-> by fixing FRMR re-use to make it less likely the client will deadlock due to a
-> memory management operation error.
-> 
-> Some clean-ups and other fixes are present as well.
-> 
-> See topic branch nfs-rdma-for-3.17 in
-> 
-> git://git.linux-nfs.org/projects/cel/cel-2.6.git
-> 
-> I tested with NFSv3 and NFSv4 on all three supported memory registration
-> modes. Used cthon04, iozone, and dbench with both Solaris and Linux
-> NFS/RDMA servers. Used xfstests with Linux.
-> 
-> v3:
-> Only two substantive changes:
-> 
-> - Patch 08/21 now uses generic IB helpers for managing FRMR
->   rkeys
-> 
-> - Add Tested-by: from Steve Wise
-> 
-> 
-> v2:
-> Many patches from v1 have been written or replaced.
-> 
-> The MW ref counting approach in v1 is abandoned. Instead, I've eliminated
-> signaling FAST_REG_MR and LOCAL_INV, and added appropriate recovery
-> mechanisms after a transport reconnect that should prevent rkey dis-
-> synchrony entirely.
-> 
-> A couple of optimizations have been added, including:
-> 
-> - Allocating each MW separately rather than carving each out of a
->   large piece of contiguous memory
-> 
-> - Now that the receive CQ upcall handler dequeues a bundle of CQEs
->   at once, fire off the reply handler tasklet just once per upcall
->   to reduce context switches and how often hard IRQs are disabled
-> 
-> Jury is still out on the latter.
-> 
-> --
-> Chuck Lever
-> chuck[dot]lever[at]oracle[dot]com
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Barf... use "%pIS" instead, which takes a pointer to a sockaddr of family
+AF_INET or AF_INET6.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
