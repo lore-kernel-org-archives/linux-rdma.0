@@ -1,87 +1,85 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
-Date: Wed, 16 Jul 2014 11:22:15 -0700
-Message-ID: <53C6C2D7.2040500@oracle.com>
-References: <59034BAD-306F-462F-A274-3EB06C0CBE47@oracle.com> <53C69EC3.1010208@oracle.com> <EB581A8B-097E-4C0F-97B3-D04B2B791A69@oracle.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
+Date: Thu, 17 Jul 2014 05:06:34 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE10DE1@CMEXMB1.ad.emulex.com>
+References: <59034BAD-306F-462F-A274-3EB06C0CBE47@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EB581A8B-097E-4C0F-97B3-D04B2B791A69-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <59034BAD-306F-462F-A274-3EB06C0CBE47-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Chuck,
 
 
-On 07/16/2014 10:57 AM, Chuck Lever wrote:
+Tested v3 with  ocrdma (linux-3.16-rc5 inbox`ed ocrdma). Both Cthon and iozone passes with and regressions. I will perform cable pull test as well and get back to you.
+
+-Regards
+ Devesh
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
+> Sent: Tuesday, July 15, 2014 7:54 PM
+> To: linux-rdma; Linux NFS Mailing List
+> Subject: [PATCH v3 00/21] NFS/RDMA client patches for 3.17
 > 
->> On Jul 16, 2014, at 11:48 AM, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> These two patches have been significantly reduced interrupt rate by around 4 times.
->>
->>     xprtrdma: Disable completions for FAST_REG_MR Work Requests
->>     xprtrdma: Disable completions for LOCAL_INV Work Requests 
+> The main purpose of this series is to address connection drop recovery issues
+> by fixing FRMR re-use to make it less likely the client will deadlock due to a
+> memory management operation error.
 > 
-> Thanks Shirley!  This is result applies only to FRMR, correct? Also, i'd imagine the savings would be even greater for adapters that have short page list depth?
-
-Yes, only tested FRMR with mlx4. I can hack the code to test short page page list depth to check the savings. When looking the difference between irq and softirq, it is much closer now.
-
+> Some clean-ups and other fixes are present as well.
 > 
->>
->> Same NFS read/write workload, here are interrupts rate irq/per sec report based upon /proc/interrupts:
->>
->> w/o patches:
->> -----------
->> PCI-MSI-edge mlx4-ib (204):  105176
->> PCI-MSI-edge mlx4-ib (204):  123650
->> PCI-MSI-edge mlx4-ib (204):  123690
->> PCI-MSI-edge mlx4-ib (204):  116554
->> PCI-MSI-edge mlx4-ib (204):  122864
->>
->> And perf stat irq report: 
->> Performance counter stats for 'system wide':
->>
->>         2,131,870      irq:irq_handler_entry                                        [100.00%]
->>         2,131,870      irq:irq_handler_exit                                         [100.00%]
->>           635,587      irq:softirq_entry                                            [100.00%]
->>           635,597      irq:softirq_exit                                             [100.00%]
->>           636,155      irq:softirq_raise
->>
->>      25.422821792 seconds time elapsed
->>
->> w/i patches:
->> -----------
->> PCI-MSI-edge mlx4-ib (204):  31131
->> PCI-MSI-edge mlx4-ib (204):  32958
->> PCI-MSI-edge mlx4-ib (204):  31068
->> PCI-MSI-edge mlx4-ib (204):  30236
->> PCI-MSI-edge mlx4-ib (204):  33041
->>
->> And perf stat irq report:
->>
->> Performance counter stats for 'system wide':
->>
->>           653,548      irq:irq_handler_entry                                        [100.00%]
->>           653,548      irq:irq_handler_exit                                         [100.00%]
->>           568,138      irq:softirq_entry                                            [100.00%]
->>           568,148      irq:softirq_exit                                             [100.00%]
->>           568,690      irq:softirq_raise                                           
->>
->>      21.675597062 seconds time elapsed
->>
->> Shirley
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> See topic branch nfs-rdma-for-3.17 in
+> 
+> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+> 
+> I tested with NFSv3 and NFSv4 on all three supported memory registration
+> modes. Used cthon04, iozone, and dbench with both Solaris and Linux
+> NFS/RDMA servers. Used xfstests with Linux.
+> 
+> v3:
+> Only two substantive changes:
+> 
+> - Patch 08/21 now uses generic IB helpers for managing FRMR
+>   rkeys
+> 
+> - Add Tested-by: from Steve Wise
+> 
+> 
+> v2:
+> Many patches from v1 have been written or replaced.
+> 
+> The MW ref counting approach in v1 is abandoned. Instead, I've eliminated
+> signaling FAST_REG_MR and LOCAL_INV, and added appropriate recovery
+> mechanisms after a transport reconnect that should prevent rkey dis-
+> synchrony entirely.
+> 
+> A couple of optimizations have been added, including:
+> 
+> - Allocating each MW separately rather than carving each out of a
+>   large piece of contiguous memory
+> 
+> - Now that the receive CQ upcall handler dequeues a bundle of CQEs
+>   at once, fire off the reply handler tasklet just once per upcall
+>   to reduce context switches and how often hard IRQs are disabled
+> 
+> Jury is still out on the latter.
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
 > 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
