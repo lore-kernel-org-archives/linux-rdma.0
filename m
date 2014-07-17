@@ -1,34 +1,53 @@
 From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next v2 0/4] cxgb4i: Add ipv6 support
-Date: Thu, 17 Jul 2014 16:06:28 -0700 (PDT)
-Message-ID: <20140717.160628.701122343847367968.davem@davemloft.net>
-References: <1405581498-28092-1-git-send-email-anish@chelsio.com>
+Subject: Re: [PATCH] iw_cxgb4: fix for 64-bit integer division
+Date: Thu, 17 Jul 2014 16:52:30 -0700 (PDT)
+Message-ID: <20140717.165230.570641364936685475.davem@davemloft.net>
+References: <1405616463-23156-1-git-send-email-hariprasad@chelsio.com>
+	<53C8199A.5040704@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1405581498-28092-1-git-send-email-anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <53C8199A.5040704-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org, jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, kxie-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org
+Cc: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Anish Bhatt <anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Date: Thu, 17 Jul 2014 00:18:14 -0700
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Date: Thu, 17 Jul 2014 22:44:42 +0400
 
->    The following patchset add ipv6 support for the cxgb4i(iscsi) driver.
+> Hello.
 > 
-> Patch 1 moves a define from the iw_cxgb4 to cxgb4 to prevent code duplication,
->  as it is used by cxgb4i and iw_cxgb4 both.
-> Patch 2 exports symbols needed by cxgb4i for ipv6 support from cxgb4.
-> Patch 3 & 4 deal with actual ipv6 code in libcxgbi/cxgb4i.
+> On 07/17/2014 09:01 PM, Hariprasad Shenai wrote:
 > 
-> Submitting to net-next as changes were needed in cxgb4/iw_cxgb4, and submitting
-> to scsi separately would break compilation, cc-ing scsi & rdma.
+>> Fixed error introduced in commit id 7730b4c (" cxgb4/iw_cxgb4: work
+>> request
+>> logging feature") while compiling on 32 bit architecture reported by
+>> kbuild.
 > 
-> v2 : Cleanup macro that prints ip addresses by using %pIS in patch 3
+>> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>>   drivers/infiniband/hw/cxgb4/device.c |    3 ++-
+>>   1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+>> diff --git a/drivers/infiniband/hw/cxgb4/device.c
+>> b/drivers/infiniband/hw/cxgb4/device.c
+>> index df1f1b5..bb0de61 100644
+>> --- a/drivers/infiniband/hw/cxgb4/device.c
+>> +++ b/drivers/infiniband/hw/cxgb4/device.c
+> [...]
+>> @@ -150,7 +151,7 @@ static int wr_log_show(struct seq_file *seq, void
+>> *v)
+>>   	int prev_ts_set = 0;
+>>   	int idx, end;
+>>
+>> -#define ts2ns(ts) ((ts) * dev->rdev.lldi.cclk_ps / 1000)
+>> +#define ts2ns(ts) div64_ul((ts) * dev->rdev.lldi.cclk_ps , 1000)
+> 
+>    Don't need space before comma.
 
-Series applied, thanks.
+I killed the space when applying this patch, thanks everyone.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
