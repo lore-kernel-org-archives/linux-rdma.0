@@ -1,54 +1,43 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider module
-Date: Fri, 18 Jul 2014 08:47:37 -0700
-Message-ID: <53C94199.4050601@oracle.com>
-References: <1405605697-11583-1-git-send-email-devesh.sharma@emulex.com> <3e39e90f-7095-4eb9-a844-516672a355ad@CMEXHTCAS2.ad.emulex.com> <53C7E546.3080008@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823739933FCA3@ORSMSX109.amr.corp.intel.com> <53C81CB7.2030000@oracle.com> <006d01cfa1f2$65d020d0$31706270$@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823739933FDEA@ORSMSX109.amr.corp.intel.com>  <008301cfa1fa$f231f550$d695dff0$@opengridcomputing.com> <DF7CE85B-288D-4CC2-AD51-B326D5F1EE1A@oracle.com> <008c01cfa201$f1eecda0$d5cc68e0$@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE1482F@CMEXMB1.ad.emulex.com> <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: [PATCH 0/25] Replace DEFINE_PCI_DEVICE_TABLE macro use
+Date: Fri, 18 Jul 2014 09:28:54 -0700
+Message-ID: <1405700934.605.31.camel@jarvis.lan>
+References: <1405697232-11785-1-git-send-email-benoit.taine@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Devesh Sharma' <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Roland Dreier' <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1405697232-11785-1-git-send-email-benoit.taine@lip6.fr>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Benoit Taine <benoit.taine@lip6.fr>
+Cc: linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, linux-pci@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, ath5k-devel@venema.h4ckr.net, linux-acenic@sunsite.dk, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, ath10k@lists.infradead.org, linux-hippi@sunsite.dk, industrypack-devel@lists.sourceforge.net, linux-mmc@vger.kernel.org, MPT-FusionLinux.pdl@avagotech.com, virtualization@lists.linux-foundation.org, ath9k-devel@venema.h4ckr.net, wil6210@qca.qualcomm.com, linux-pcmcia@lists.infradead.org, linux-can@vger.kernel.org, xen-devel@lists.xenproject.org, platform-driver-x86@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, users@rt2x00.serialmonkey.com, e1000-devel@lists.sourceforge.net, linux-crypto@vger.kernel.org, devel@linuxdriverproject.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 2014-07-18 at 17:26 +0200, Benoit Taine wrote:
+> We should prefer `const struct pci_device_id` over
+> `DEFINE_PCI_DEVICE_TABLE` to meet kernel coding style guidelines.
+> This issue was reported by checkpatch.
 
-On 07/18/2014 06:27 AM, Steve Wise wrote:
->>>> We can't really deal with a CM_DEVICE_REMOVE event while there are
->>>> active NFS mounts.
->>>>
->>>> System shutdown ordering should guarantee (one would hope) that NFS
->>>> mount points are unmounted before the RDMA/IB core infrastructure is
->>>> torn down. Ordering shouldn't matter as long all NFS activity has
->>>> ceased before the CM tries to remove the device.
->>>>
->>>> So if something is hanging up the CM, there's something xprtrdma is
->>>> not cleaning up properly.
->>>>
->>>
->>>
->>> Devesh, how are you reproducing this?  Are you just rmmod'ing the ocrdma
->>> module while there are active mounts?
->>
->> Yes, I am issuing rmmod while there is an active mount. In my case rmmod ocrdma remains
->> blocked forever.
-Where is it blocked?
+What kernel coding style?  checkpatch isn't the arbiter of style, if
+that's the only problem.
 
->> Off-the-course of this discussion: Is there a reasoning behind not using
->> ib_register_client()/ib_unregister_client() framework?
-> 
-> I think the idea is that you don't need to use it if you are transport-independent and use
-> the rdmacm...
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The DEFINE_PCI macro was a well reasoned addition when it was added in
+2008.  The problem was most people were getting the definition wrong.
+When we converted away from CONFIG_HOTPLUG, having this DEFINE_ meant
+that only one place needed changing instead of hundreds for PCI tables.
+
+The reason people were getting the PCI table wrong was mostly the init
+section specifiers which are now gone, but it has enough underlying
+utility (mostly constification) that I don't think we'd want to churn
+the kernel hugely to make a change to struct pci_table and then have to
+start detecting and fixing misuses.
+
+James
