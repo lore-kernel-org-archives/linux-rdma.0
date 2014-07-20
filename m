@@ -1,88 +1,54 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Question on merge windows and MAD submitted MAD patches.
-Date: Fri, 18 Jul 2014 23:26:06 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E04C1B545@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/4] IB/uverbs: check request parameters
+Date: Sun, 20 Jul 2014 21:51:08 +0200
+Message-ID: <cover.1405884453.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Roland,
-> 
-> I see the merge window closed on Sunday and Linus has released 3.16-rc1.
-> Does that mean now is the time you will start accepting things destined for 3.17
-> while 3.16 "bakes"?
-> 
-> If that is the case would you like me to rebase the latest version of following
-> patches onto your most recent "for-next" branch and resubmit?  Or would you
-> prefer I _not_ do so?  I would like to see if we can get this series into 3.17 if
-> possible.
+Hi,
 
-Roland,
+Please find a patchset against uverbs to improve the checks done
+on uverbs request parameters. This patchset in an extract of a
+previous patchset sent some times ago[1].
 
-I did not get a response to this email so I'm not sure if I should resubmit my patches or not.
+I've tried to make the commit messages more explanatory so that
+the patches will gain more attention.
 
-I have rejected the older versions of the patches on patchwork and marked you the Delegate for the following current versions of this series.
+I've provided some explanation of the issues partialy addressed
+by this patchset in a previous message[2].
 
-[PATCH v2 1/5] ib/umad: update module to [pr|dev]_* style print messages
-[PATCH v2 2/5] ib/mad: update module to [pr|dev]_* style print messages
-[PATCH v2 3/5] ib/mad: Add dev_notice messages for various umad/mad
-[PATCH v3 4/5] ib/mad: add new ioctl to user space to support new 
-[PATCH 5/5] ib/mad: Add user space RMPP support
+I intend to send more patches to address the issues, probably
+in 3 more patchset: ucm, ucma and udata.
 
-I hope this helps.
+[1] "[PATCH 00/22] infiniband: improve userspace input check"
 
-I'm also more than happy to resend the patches which I have rebased on top of your for-next branch but there are no differences and the old patches cherry-pick cleanly.  So I'm holding off on submitting to avoid clutter on the mailing list and patchwork.
+http://marc.info/?i=cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
-Thanks,
-Ira
+[2] "Re: [PATCHv4 for-3.13 00/10] create_flow/destroy_flow fixes for v3.13"
 
-> 
-> Thanks,
-> Ira
-> 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-> > Sent: Monday, May 05, 2014 6:45 PM
-> > To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: [PATCH RESEND 0/5] ib/mad: Add ability for user space
-> > applications to control RMPP directly
-> >
-> > My apologies if anyone receives duplicates of these emails.
-> > Apparently the series did not make it to linux-rdma the first time.
-> >
-> > The first 3 patches update the umad and mad modules to use pr_* style
-> > print messages in preparation for adding pr_notice messages to the
-> > existing and new registration functions.
-> >
-> > The final 2 patches add a new registration mechanism which allows for
-> > flags to be specified at ib_mad registration time.  The first such
-> > flag is to allow user control of RMPP transactions.
-> >
-> > Existing registration and RMPP transactions are unaffected by this change.
-> >
-> > [PATCH 1/5] ib/umad: update module to pr_* style print messages
-> > [PATCH 2/5] ib/mad: update module to pr_* style print messages
-> > [PATCH 3/5] ib/mad: Add pr_notice messages for various umad/mad
-> > [PATCH 4/5] ib/mad: add new ioctl to user space to support new 
-> > [PATCH 5/5] ib/mad: Add user space RMPP support
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> > info at http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
-> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+http://marc.info/?i=1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org
+
+Yann Droneaud (4):
+  IB/uverbs: check userspace input buffer size
+  IB/uverbs: check userspace output buffer size
+  IB/uverbs: check userspace output buffer size in ib_uverbs_poll_cq()
+  IB/uverbs: subtract command header from input size
+
+ drivers/infiniband/core/uverbs_cmd.c         | 132 +++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c        |  18 +++-
+ drivers/infiniband/hw/mlx5/cq.c              |   6 +-
+ drivers/infiniband/hw/mlx5/main.c            |   2 +-
+ drivers/infiniband/hw/mlx5/srq.c             |   6 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |   2 +-
+ 6 files changed, 151 insertions(+), 15 deletions(-)
+
+-- 
+1.9.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
