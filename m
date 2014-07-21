@@ -1,44 +1,69 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/25] Replace DEFINE_PCI_DEVICE_TABLE macro use
-Date: Sun, 20 Jul 2014 21:18:13 -0700 (PDT)
-Message-ID: <20140720.211813.942862864883062133.davem@davemloft.net>
-References: <1405697232-11785-1-git-send-email-benoit.taine@lip6.fr>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider module
+Date: Mon, 21 Jul 2014 05:23:49 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE1B757@CMEXMB1.ad.emulex.com>
+References: <1405605697-11583-1-git-send-email-devesh.sharma@emulex.com>
+ <3e39e90f-7095-4eb9-a844-516672a355ad@CMEXHTCAS2.ad.emulex.com>
+ <53C7E546.3080008@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A823739933FCA3@ORSMSX109.amr.corp.intel.com>
+ <53C81CB7.2030000@oracle.com>
+ <006d01cfa1f2$65d020d0$31706270$@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A823739933FDEA@ORSMSX109.amr.corp.intel.com>
+  <008301cfa1fa$f231f550$d695dff0$@opengridcomputing.com>
+ <DF7CE85B-288D-4CC2-AD51-B326D5F1EE1A@oracle.com>
+ <008c01cfa201$f1eecda0$d5cc68e0$@opengridcomputing.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE1482F@CMEXMB1.ad.emulex.com>
+ <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1405697232-11785-1-git-send-email-benoit.taine@lip6.fr>
-Sender: linux-crypto-owner@vger.kernel.org
-To: benoit.taine@lip6.fr
-Cc: linux-pci@vger.kernel.org, ath5k-devel@venema.h4ckr.net, ath9k-devel@venema.h4ckr.net, linux-hippi@sunsite.dk, dri-devel@lists.freedesktop.org, linux-acenic@sunsite.dk, wil6210@qca.qualcomm.com, platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, linux-mips@linux-mips.org, users@rt2x00.serialmonkey.com, linux-rdma@vger.kernel.org, virtualization@lists.linux-foundation.org, industrypack-devel@lists.sourceforge.net, linux-can@vger.kernel.org, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, ath10k@lists.infradead.org, linux-crypto@vger.kernel.org, MPT-FusionLinux.pdl@avagotech.com, devel@linuxdriverproject.org, xen-devel@lists.xenproject.org, linux-pcmcia@lists.infradead.org, e1000-devel@lists.sourceforge.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Shirley Ma' <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Roland Dreier' <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Benoit Taine <benoit.taine@lip6.fr>
-Date: Fri, 18 Jul 2014 17:26:47 +0200
+> -----Original Message-----
+> From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
+> Sent: Friday, July 18, 2014 6:58 PM
+> To: Devesh Sharma; 'Chuck Lever'
+> Cc: 'Hefty, Sean'; 'Shirley Ma'; 'Roland Dreier'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider
+> module
+> 
+> > > > We can't really deal with a CM_DEVICE_REMOVE event while there are
+> > > > active NFS mounts.
+> > > >
+> > > > System shutdown ordering should guarantee (one would hope) that
+> > > > NFS mount points are unmounted before the RDMA/IB core
+> > > > infrastructure is torn down. Ordering shouldn't matter as long all
+> > > > NFS activity has ceased before the CM tries to remove the device.
+> > > >
+> > > > So if something is hanging up the CM, there's something xprtrdma
+> > > > is not cleaning up properly.
+> > > >
+> > >
+> > >
+> > > Devesh, how are you reproducing this?  Are you just rmmod'ing the
+> > > ocrdma module while there are active mounts?
+> >
+> > Yes, I am issuing rmmod while there is an active mount. In my case
+> > rmmod ocrdma remains blocked forever.
+> > Off-the-course of this discussion: Is there a reasoning behind not
+> > using
+> > ib_register_client()/ib_unregister_client() framework?
+> 
+> I think the idea is that you don't need to use it if you are transport-
+> independent and use the rdmacm...
 
-> We should prefer `const struct pci_device_id` over
-> `DEFINE_PCI_DEVICE_TABLE` to meet kernel coding style guidelines.
-> This issue was reported by checkpatch.
-> 
-> A simplified version of the semantic patch that makes this change is as
-> follows (http://coccinelle.lip6.fr/):
-> 
-> // <smpl>
-> 
-> @@
-> identifier i;
-> declarer name DEFINE_PCI_DEVICE_TABLE;
-> initializer z;
-> @@
-> 
-> - DEFINE_PCI_DEVICE_TABLE(i)
-> + const struct pci_device_id i[]
-> = z;
-> 
-> // </smpl>
-> 
-> I have 103 patches ready, and will only send a few for you to judge if
-> it is useful enough, and to prevent from spamming too much.
+Okay, Makes sense..
 
-I'm fine with this wrt. the networking changes, but I don't think this should
-be merged via my tree.
+> 
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
