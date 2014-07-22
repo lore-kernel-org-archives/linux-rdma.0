@@ -1,100 +1,73 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 00/21] NFS/RDMA client patches for 3.17
-Date: Tue, 22 Jul 2014 10:50:57 -0400
-Message-ID: <20140722144459.6010.99389.stgit@manet.1015granger.net>
+Subject: [PATCH v4 01/21] xprtrdma: Fix panic in
+ rpcrdma_register_frmr_external()
+Date: Tue, 22 Jul 2014 10:51:07 -0400
+Message-ID: <20140722145107.6010.51774.stgit@manet.1015granger.net>
+References: <20140722144459.6010.99389.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140722144459.6010.99389.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The main purpose of this series is to address connection drop
-recovery issues by fixing FRMR re-use to make it less likely the
-client will deadlock due to a memory management operation error.
-Some clean-ups and other fixes are present as well.
+seg1->mr_nsegs is not yet initialized when it is used to unmap
+segments during an error exit. Use the same unmapping logic for
+all error exits.
 
-Anna, v4 of this series should be ready for merging.
+"if (frmr_wr.wr.fast_reg.length < len) {" used to be a BUG_ON check.
+The broken code will never be executed under normal operation.
 
-See topic branch nfs-rdma-for-3.17 in
-
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-I tested with NFSv3 and NFSv4 on all three supported memory
-registration modes. Used cthon04, iozone, and dbench with both
-Solaris and Linux NFS/RDMA servers. Used xfstests with Linux.
-
-v4:
-
-- Rebased on v3.16-rc6
-
-- Add Tested-by: from Shirley Ma and Devesh Sharma
-
-
-v3:
-Only two substantive changes:
-
-- Patch 08/21 now uses generic IB helpers for managing FRMR
- rkeys
-
-- Add Tested-by: from Steve Wise
-
-
-v2:
-Many patches from v1 have been written or replaced.
-
-The MW ref counting approach in v1 is abandoned. Instead, I've
-eliminated signaling FAST_REG_MR and LOCAL_INV, and added
-appropriate recovery mechanisms after a transport reconnect that
-should prevent rkey dis-synchrony entirely.
-
-A couple of optimizations have been added, including:
-
-- Allocating each MW separately rather than carving each out of a
- large piece of contiguous memory
-
-- Now that the receive CQ upcall handler dequeues a bundle of CQEs
- at once, fire off the reply handler tasklet just once per upcall
- to reduce context switches and how often hard IRQs are disabled
-
+Fixes: c977dea (xprtrdma: Remove BUG_ON() call sites)
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/verbs.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-Chuck Lever (21):
-      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
-      xprtrdma: Protect ia->ri_id when unmapping/invalidating MRs
-      xprtrdma: Limit data payload size for ALLPHYSICAL
-      xprtrdma: Update rkeys after transport reconnect
-      xprtrdma: On disconnect, don't ignore pending CQEs
-      xprtrdma: Don't invalidate FRMRs if registration fails
-      xprtrdma: Unclutter struct rpcrdma_mr_seg
-      xprtrdma: Back off rkey when FAST_REG_MR fails
-      xprtrdma: Chain together all MWs in same buffer pool
-      xprtrdma: Properly handle exhaustion of the rb_mws list
-      xprtrdma: Reset FRMRs when FAST_REG_MR is flushed by a disconnect
-      xprtrdma: Reset FRMRs after a flushed LOCAL_INV Work Request
-      xprtrdma: Don't post a LOCAL_INV in rpcrdma_register_frmr_external()
-      xprtrdma: Disable completions for FAST_REG_MR Work Requests
-      xprtrdma: Disable completions for LOCAL_INV Work Requests
-      xprtrdma: Rename frmr_wr
-      xprtrdma: Allocate each struct rpcrdma_mw separately
-      xprtrdma: Schedule reply tasklet once per upcall
-      xprtrdma: Make rpcrdma_ep_disconnect() return void
-      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
-      xprtrdma: Handle additional connection events
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 13dbd1c..78bd7c6 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1545,9 +1545,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	frmr_wr.wr.fast_reg.page_shift = PAGE_SHIFT;
+ 	frmr_wr.wr.fast_reg.length = page_no << PAGE_SHIFT;
+ 	if (frmr_wr.wr.fast_reg.length < len) {
+-		while (seg1->mr_nsegs--)
+-			rpcrdma_unmap_one(ia, seg++);
+-		return -EIO;
++		rc = -EIO;
++		goto out_err;
+ 	}
+ 
+ 	/* Bump the key */
+@@ -1565,8 +1564,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	if (rc) {
+ 		dprintk("RPC:       %s: failed ib_post_send for register,"
+ 			" status %i\n", __func__, rc);
+-		while (i--)
+-			rpcrdma_unmap_one(ia, --seg);
++		goto out_err;
+ 	} else {
+ 		seg1->mr_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
+ 		seg1->mr_base = seg1->mr_dma + pageoff;
+@@ -1574,6 +1572,10 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 		seg1->mr_len = len;
+ 	}
+ 	*nsegs = i;
++	return 0;
++out_err:
++	while (i--)
++		rpcrdma_unmap_one(ia, --seg);
+ 	return rc;
+ }
+ 
 
-
- include/linux/sunrpc/xprtrdma.h |    2 
- include/rdma/ib_verbs.h         |   11 +
- net/sunrpc/xprtrdma/rpc_rdma.c  |   83 ++--
- net/sunrpc/xprtrdma/transport.c |   17 +
- net/sunrpc/xprtrdma/verbs.c     |  744 ++++++++++++++++++++++++++-------------
- net/sunrpc/xprtrdma/xprt_rdma.h |   61 +++
- 6 files changed, 615 insertions(+), 303 deletions(-)
-
---
-Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
