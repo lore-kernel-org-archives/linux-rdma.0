@@ -1,164 +1,50 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 12/21] xprtrdma: Reset FRMRs after a flushed LOCAL_INV
- Work Request
-Date: Tue, 22 Jul 2014 10:52:43 -0400
-Message-ID: <20140722145243.6010.3263.stgit@manet.1015granger.net>
-References: <20140722144459.6010.99389.stgit@manet.1015granger.net>
+From: Benoit Taine <benoit.taine@lip6.fr>
+Subject: Re: [PATCH 0/25] Replace DEFINE_PCI_DEVICE_TABLE macro use
+Date: Tue, 22 Jul 2014 19:12:43 +0200
+Message-ID: <20140722171242.GA742@lip6.fr>
+References: <1405697232-11785-1-git-send-email-benoit.taine@lip6.fr>
+ <20140718162213.GC31114@tuxdriver.com>
+ <20140718164340.GA24960@kroah.com>
+ <1405702472.30262.1.camel@dabdike.int.hansenpartnership.com>
+ <20140718181759.GB2193@kroah.com>
+ <1405709421.30262.8.camel@dabdike.int.hansenpartnership.com>
+ <CAErSpo7svKg0HiL=g8wWAHWUN3vs0UgCvVhvd84DM6nVDmT=FQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140722144459.6010.99389.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <CAErSpo7svKg0HiL=g8wWAHWUN3vs0UgCvVhvd84DM6nVDmT=FQ@mail.gmail.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: driverdev-devel-bounces@linuxdriverproject.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, linux-fbdev@vger.kernel.org, DRI mailing list <dri-devel@lists.freedesktop.org>, virtualization@lists.linux-foundation.org, James Bottomley <James.Bottomley@hansenpartnership.com>, ath5k-devel@venema.h4ckr.net, linux-acenic@sunsite.dk, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, users@rt2x00.serialmonkey.com, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jingoo Han <jg1.han@samsung.com>, ath10k@lists.infradead.org, linux-hippi@sunsite.dk, industrypack-devel@lists.sourceforge.net, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-wireless <linux-wireless@vger.kernel.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, MPT-FusionLinux.pdl@avagotech.com, ath9k-devel@venema.h4ckr.net, wil6210@qca.qualcomm.com, linux-pcmcia@lists.infradead.org, John W. Lin
 List-Id: linux-rdma@vger.kernel.org
 
-When a LOCAL_INV Work Request is flushed, it leaves an FRMR in the
-VALID state. This FRMR can be returned by rpcrdma_buffer_get(), and
-must be knocked down in rpcrdma_register_frmr_external() before it
-can be re-used.
-
-Instead, capture these in rpcrdma_buffer_get(), and reset them.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |   94 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 92 insertions(+), 2 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 39b31c8..24168e8 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1358,8 +1358,91 @@ rpcrdma_buffer_put_sendbuf(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
- 	}
- }
- 
-+/* rpcrdma_unmap_one() was already done by rpcrdma_deregister_frmr_external().
-+ * Redo only the ib_post_send().
-+ */
-+static void
-+rpcrdma_retry_local_inv(struct rpcrdma_mw *r, struct rpcrdma_ia *ia)
-+{
-+	struct rpcrdma_xprt *r_xprt =
-+				container_of(ia, struct rpcrdma_xprt, rx_ia);
-+	struct ib_send_wr invalidate_wr, *bad_wr;
-+	int rc;
-+
-+	dprintk("RPC:       %s: FRMR %p is stale\n", __func__, r);
-+
-+	/* When this FRMR is re-inserted into rb_mws, it is no longer stale */
-+	r->r.frmr.fr_state = FRMR_IS_VALID;
-+
-+	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
-+	invalidate_wr.wr_id = (unsigned long)(void *)r;
-+	invalidate_wr.opcode = IB_WR_LOCAL_INV;
-+	invalidate_wr.send_flags = IB_SEND_SIGNALED;
-+	invalidate_wr.ex.invalidate_rkey = r->r.frmr.fr_mr->rkey;
-+	DECR_CQCOUNT(&r_xprt->rx_ep);
-+
-+	dprintk("RPC:       %s: frmr %p invalidating rkey %08x\n",
-+		__func__, r, r->r.frmr.fr_mr->rkey);
-+
-+	read_lock(&ia->ri_qplock);
-+	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
-+	read_unlock(&ia->ri_qplock);
-+	if (rc) {
-+		/* Force rpcrdma_buffer_get() to retry */
-+		r->r.frmr.fr_state = FRMR_IS_STALE;
-+		dprintk("RPC:       %s: ib_post_send failed, %i\n",
-+			__func__, rc);
-+	}
-+}
-+
-+static void
-+rpcrdma_retry_flushed_linv(struct list_head *stale,
-+			   struct rpcrdma_buffer *buf)
-+{
-+	struct rpcrdma_ia *ia = rdmab_to_ia(buf);
-+	struct list_head *pos;
-+	struct rpcrdma_mw *r;
-+	unsigned long flags;
-+
-+	list_for_each(pos, stale) {
-+		r = list_entry(pos, struct rpcrdma_mw, mw_list);
-+		rpcrdma_retry_local_inv(r, ia);
-+	}
-+
-+	spin_lock_irqsave(&buf->rb_lock, flags);
-+	list_splice_tail(stale, &buf->rb_mws);
-+	spin_unlock_irqrestore(&buf->rb_lock, flags);
-+}
-+
- static struct rpcrdma_req *
--rpcrdma_buffer_get_mrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
-+rpcrdma_buffer_get_frmrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf,
-+			 struct list_head *stale)
-+{
-+	struct rpcrdma_mw *r;
-+	int i;
-+
-+	i = RPCRDMA_MAX_SEGS - 1;
-+	while (!list_empty(&buf->rb_mws)) {
-+		r = list_entry(buf->rb_mws.next,
-+			       struct rpcrdma_mw, mw_list);
-+		list_del(&r->mw_list);
-+		if (r->r.frmr.fr_state == FRMR_IS_STALE) {
-+			list_add(&r->mw_list, stale);
-+			continue;
-+		}
-+		req->rl_segments[i].mr_chunk.rl_mw = r;
-+		if (unlikely(i-- == 0))
-+			return req;	/* Success */
-+	}
-+
-+	/* Not enough entries on rb_mws for this req */
-+	rpcrdma_buffer_put_sendbuf(req, buf);
-+	rpcrdma_buffer_put_mrs(req, buf);
-+	return NULL;
-+}
-+
-+static struct rpcrdma_req *
-+rpcrdma_buffer_get_fmrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
- {
- 	struct rpcrdma_mw *r;
- 	int i;
-@@ -1393,6 +1476,7 @@ struct rpcrdma_req *
- rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
- {
- 	struct rpcrdma_ia *ia = rdmab_to_ia(buffers);
-+	struct list_head stale;
- 	struct rpcrdma_req *req;
- 	unsigned long flags;
- 
-@@ -1414,15 +1498,21 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
- 		buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
- 	}
- 	buffers->rb_send_bufs[buffers->rb_send_index++] = NULL;
-+
-+	INIT_LIST_HEAD(&stale);
- 	switch (ia->ri_memreg_strategy) {
- 	case RPCRDMA_FRMR:
-+		req = rpcrdma_buffer_get_frmrs(req, buffers, &stale);
-+		break;
- 	case RPCRDMA_MTHCAFMR:
--		req = rpcrdma_buffer_get_mrs(req, buffers);
-+		req = rpcrdma_buffer_get_fmrs(req, buffers);
- 		break;
- 	default:
- 		break;
- 	}
- 	spin_unlock_irqrestore(&buffers->rb_lock, flags);
-+	if (!list_empty(&stale))
-+		rpcrdma_retry_flushed_linv(&stale, buffers);
- 	return req;
- }
- 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMjEvMDcvMjAxNCAxNzoxNiwgQmpvcm4gSGVsZ2FhcyB3cm90ZToKPiBbK2NjIEppbmdvb10K
+PiAKPiBPbiBGcmksIEp1bCAxOCwgMjAxNCBhdCAxMjo1MCBQTSwgSmFtZXMgQm90dG9tbGV5Cj4g
+PiBBbnl3YXksIGl0J3MgUENJIGNvZGUgLi4uIGxldCB0aGUgUENJIG1haW50YWluZXIgZGVjaWRl
+LiAgSG93ZXZlciwgaWYgaGUKPiA+IGRvZXMgd2FudCB0aGlzIGRvIGl0IGFzIG9uZSBiaWcgYmFu
+ZyBwYXRjaCB2aWEgZWl0aGVyIHRoZSBQQ0kgb3IgVHJpdmlhbAo+ID4gdHJlZSAobGF0dGVyIGJl
+Y2F1c2UgSmnFmcOtIGhhcyBleHBlcmllbmNlIGRvaW5nIHRoaXMsIGJ1dCB0aGUgZm9ybWVyCj4g
+PiBtaWdodCBiZSB1c2VmdWwgc28gdGhlIGRlY2lkZXIgZmVlbHMgdGhlIHBhaW4gLi4uKQo+IAo+
+IEkgZG9uJ3QgZmVlbCBzdHJvbmdseSBlaXRoZXIgd2F5LCBzbyBJIGd1ZXNzIEknbSBPSyB3aXRo
+IHRoaXMsIGFuZCBpbgo+IHRoZSBzcGlyaXQgb2YgZmVlbGluZyB0aGUgcGFpbiwgSSdtIHdpbGxp
+bmcgdG8gaGFuZGxlIGl0LiAgSmluZ29vCj4gcHJvcG9zZWQgc2ltaWxhciBwYXRjaGVzLCBzbyBp
+dCBtaWdodCBiZSBuaWNlIHRvIGdpdmUgaGltIHNvbWUgY3JlZGl0Lgo+IAo+IEJlbm9pdCwgaG93
+IGFib3V0IGlmIHlvdSB3YWl0IHVudGlsIGFib3V0IGhhbGYtd2F5IHRocm91Z2ggdGhlIG1lcmdl
+Cj4gd2luZG93IGFmdGVyIHYzLjE2IHJlbGVhc2VzLCBnZW5lcmF0ZSBhbiB1cC10by1kYXRlIHNp
+bmdsZSBwYXRjaCwgYW5kCj4gcG9zdCB0aGF0PyAgVGhlbiB3ZSBjYW4gdHJ5IHRvIGdldCBpdCBp
+biBiZWZvcmUgdjMuMTctcmMxIHRvIG1pbmltaXplCj4gbWVyZ2UgaGFzc2xlcy4KClN1cmUsIEkg
+d2lsbCBkbyB0aGlzLgoKLS0gCkJlbm/DrnQgVGFpbmUKTWFzdGVyIGN5Y2xlIGludGVybgpSZWdh
+bCBUZWFtLiBMSVA2Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmRldmVsIG1haWxpbmcgbGlzdApkZXZlbEBsaW51eGRyaXZlcnByb2plY3Qub3JnCmh0dHA6
+Ly9kcml2ZXJkZXYubGludXhkcml2ZXJwcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaXZl
+cmRldi1kZXZlbAo=
