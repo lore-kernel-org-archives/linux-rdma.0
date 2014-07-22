@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 10/21] xprtrdma: Properly handle exhaustion of the rb_mws
- list
-Date: Tue, 22 Jul 2014 10:52:25 -0400
-Message-ID: <20140722145225.6010.88602.stgit@manet.1015granger.net>
+Subject: [PATCH v4 11/21] xprtrdma: Reset FRMRs when FAST_REG_MR is flushed
+ by a disconnect
+Date: Tue, 22 Jul 2014 10:52:34 -0400
+Message-ID: <20140722145234.6010.25561.stgit@manet.1015granger.net>
 References: <20140722144459.6010.99389.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,160 +14,153 @@ To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the rb_mws list is exhausted, clean up and return NULL so that
-call_allocate() will delay and try again.
+FAST_REG_MR Work Requests update a Memory Region's rkey. Rkey's are
+used to block unwanted access to the memory controlled by an MR. The
+rkey is passed to the receiver (the NFS server, in our case), and is
+also used by xprtrdma to invalidate the MR when the RPC is complete.
+
+When a FAST_REG_MR Work Request is flushed after a transport
+disconnect, xprtrdma cannot tell whether the WR actually hit the
+adapter or not. So it is indeterminant at that point whether the
+existing rkey is still valid.
+
+After the transport connection is re-established, the next
+FAST_REG_MR or LOCAL_INV Work Request against that MR can sometimes
+fail because the rkey value does not match what xprtrdma expects.
+
+The only reliable way to recover in this case is to deregister and
+register the MR before it is used again. These operations can be
+done only in a process context, so handle it in the transport
+connect worker.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |  103 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 71 insertions(+), 32 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c     |   67 ++++++++++++++++++++++++++++++++++++++-
+ net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
+ 2 files changed, 66 insertions(+), 2 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index abac484..cdea6ff 100644
+index cdea6ff..39b31c8 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1256,6 +1256,67 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+@@ -61,6 +61,8 @@
+ # define RPCDBG_FACILITY	RPCDBG_TRANS
+ #endif
+ 
++static void rpcrdma_reset_frmrs(struct rpcrdma_ia *);
++
+ /*
+  * internal functions
+  */
+@@ -152,8 +154,10 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+ 
+ 	if (wc->wr_id == 0ULL)
+ 		return;
+-	if (wc->status != IB_WC_SUCCESS)
++	if (wc->status != IB_WC_SUCCESS) {
++		frmr->r.frmr.fr_state = FRMR_IS_STALE;
+ 		return;
++	}
+ 
+ 	if (wc->opcode == IB_WC_FAST_REG_MR)
+ 		frmr->r.frmr.fr_state = FRMR_IS_VALID;
+@@ -881,6 +885,9 @@ retry:
+ 				" status %i\n", __func__, rc);
+ 		rpcrdma_flush_cqs(ep);
+ 
++		if (ia->ri_memreg_strategy == RPCRDMA_FRMR)
++			rpcrdma_reset_frmrs(ia);
++
+ 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
+ 		id = rpcrdma_create_id(xprt, ia,
+ 				(struct sockaddr *)&xprt->rx_data.addr);
+@@ -1256,6 +1263,62 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
  	kfree(buf->rb_pool);
  }
  
-+/* "*mw" can be NULL when rpcrdma_buffer_get_mrs() fails, leaving
-+ * some req segments uninitialized.
++/* After a disconnect, a flushed FAST_REG_MR can leave an FRMR in
++ * an unusable state. Find FRMRs in this state and dereg / reg
++ * each.  FRMRs that are VALID and attached to an rpcrdma_req are
++ * also torn down.
++ *
++ * This gives all in-use FRMRs a fresh rkey and leaves them INVALID.
++ *
++ * This is invoked only in the transport connect worker in order
++ * to serialize with rpcrdma_register_frmr_external().
 + */
 +static void
-+rpcrdma_buffer_put_mr(struct rpcrdma_mw **mw, struct rpcrdma_buffer *buf)
++rpcrdma_reset_frmrs(struct rpcrdma_ia *ia)
 +{
-+	if (*mw) {
-+		list_add_tail(&(*mw)->mw_list, &buf->rb_mws);
-+		*mw = NULL;
-+	}
-+}
-+
-+/* Cycle mw's back in reverse order, and "spin" them.
-+ * This delays and scrambles reuse as much as possible.
-+ */
-+static void
-+rpcrdma_buffer_put_mrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
-+{
-+	struct rpcrdma_mr_seg *seg = req->rl_segments;
-+	struct rpcrdma_mr_seg *seg1 = seg;
-+	int i;
-+
-+	for (i = 1, seg++; i < RPCRDMA_MAX_SEGS; seg++, i++)
-+		rpcrdma_buffer_put_mr(&seg->mr_chunk.rl_mw, buf);
-+	rpcrdma_buffer_put_mr(&seg1->mr_chunk.rl_mw, buf);
-+}
-+
-+static void
-+rpcrdma_buffer_put_sendbuf(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
-+{
-+	buf->rb_send_bufs[--buf->rb_send_index] = req;
-+	req->rl_niovs = 0;
-+	if (req->rl_reply) {
-+		buf->rb_recv_bufs[--buf->rb_recv_index] = req->rl_reply;
-+		req->rl_reply->rr_func = NULL;
-+		req->rl_reply = NULL;
-+	}
-+}
-+
-+static struct rpcrdma_req *
-+rpcrdma_buffer_get_mrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
-+{
++	struct rpcrdma_xprt *r_xprt =
++				container_of(ia, struct rpcrdma_xprt, rx_ia);
++	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
++	struct list_head *pos;
 +	struct rpcrdma_mw *r;
-+	int i;
++	int rc;
 +
-+	i = RPCRDMA_MAX_SEGS - 1;
-+	while (!list_empty(&buf->rb_mws)) {
-+		r = list_entry(buf->rb_mws.next,
-+			       struct rpcrdma_mw, mw_list);
-+		list_del(&r->mw_list);
-+		req->rl_segments[i].mr_chunk.rl_mw = r;
-+		if (unlikely(i-- == 0))
-+			return req;	/* Success */
++	list_for_each(pos, &buf->rb_all) {
++		r = list_entry(pos, struct rpcrdma_mw, mw_all);
++
++		if (r->r.frmr.fr_state == FRMR_IS_INVALID)
++			continue;
++
++		rc = ib_dereg_mr(r->r.frmr.fr_mr);
++		if (rc)
++			dprintk("RPC:       %s: ib_dereg_mr failed %i\n",
++				__func__, rc);
++		ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
++
++		r->r.frmr.fr_mr = ib_alloc_fast_reg_mr(ia->ri_pd,
++					ia->ri_max_frmr_depth);
++		if (IS_ERR(r->r.frmr.fr_mr)) {
++			rc = PTR_ERR(r->r.frmr.fr_mr);
++			dprintk("RPC:       %s: ib_alloc_fast_reg_mr"
++				" failed %i\n", __func__, rc);
++			continue;
++		}
++		r->r.frmr.fr_pgl = ib_alloc_fast_reg_page_list(
++					ia->ri_id->device,
++					ia->ri_max_frmr_depth);
++		if (IS_ERR(r->r.frmr.fr_pgl)) {
++			rc = PTR_ERR(r->r.frmr.fr_pgl);
++			dprintk("RPC:       %s: "
++				"ib_alloc_fast_reg_page_list "
++				"failed %i\n", __func__, rc);
++
++			ib_dereg_mr(r->r.frmr.fr_mr);
++			continue;
++		}
++		r->r.frmr.fr_state = FRMR_IS_INVALID;
 +	}
-+
-+	/* Not enough entries on rb_mws for this req */
-+	rpcrdma_buffer_put_sendbuf(req, buf);
-+	rpcrdma_buffer_put_mrs(req, buf);
-+	return NULL;
 +}
 +
- /*
-  * Get a set of request/reply buffers.
-  *
-@@ -1268,10 +1329,9 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
- struct rpcrdma_req *
- rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
- {
-+	struct rpcrdma_ia *ia = rdmab_to_ia(buffers);
- 	struct rpcrdma_req *req;
- 	unsigned long flags;
--	int i;
--	struct rpcrdma_mw *r;
+ /* "*mw" can be NULL when rpcrdma_buffer_get_mrs() fails, leaving
+  * some req segments uninitialized.
+  */
+@@ -1571,7 +1634,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	dprintk("RPC:       %s: Using frmr %p to map %d segments\n",
+ 		__func__, mw, i);
  
- 	spin_lock_irqsave(&buffers->rb_lock, flags);
- 	if (buffers->rb_send_index == buffers->rb_max_requests) {
-@@ -1291,14 +1351,13 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
- 		buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
- 	}
- 	buffers->rb_send_bufs[buffers->rb_send_index++] = NULL;
--	if (!list_empty(&buffers->rb_mws)) {
--		i = RPCRDMA_MAX_SEGS - 1;
--		do {
--			r = list_entry(buffers->rb_mws.next,
--					struct rpcrdma_mw, mw_list);
--			list_del(&r->mw_list);
--			req->rl_segments[i].mr_chunk.rl_mw = r;
--		} while (--i >= 0);
-+	switch (ia->ri_memreg_strategy) {
-+	case RPCRDMA_FRMR:
-+	case RPCRDMA_MTHCAFMR:
-+		req = rpcrdma_buffer_get_mrs(req, buffers);
-+		break;
-+	default:
-+		break;
- 	}
- 	spin_unlock_irqrestore(&buffers->rb_lock, flags);
- 	return req;
-@@ -1313,34 +1372,14 @@ rpcrdma_buffer_put(struct rpcrdma_req *req)
- {
- 	struct rpcrdma_buffer *buffers = req->rl_buffer;
- 	struct rpcrdma_ia *ia = rdmab_to_ia(buffers);
--	int i;
- 	unsigned long flags;
+-	if (unlikely(frmr->fr_state == FRMR_IS_VALID)) {
++	if (unlikely(frmr->fr_state != FRMR_IS_INVALID)) {
+ 		dprintk("RPC:       %s: frmr %x left valid, posting invalidate.\n",
+ 			__func__, mr->rkey);
+ 		/* Invalidate before using. */
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index c1d8652..1ee6db3 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -161,6 +161,7 @@ struct rpcrdma_rep {
+ enum rpcrdma_frmr_state {
+ 	FRMR_IS_INVALID,	/* ready to be used */
+ 	FRMR_IS_VALID,		/* in use */
++	FRMR_IS_STALE,		/* failed completion */
+ };
  
- 	spin_lock_irqsave(&buffers->rb_lock, flags);
--	buffers->rb_send_bufs[--buffers->rb_send_index] = req;
--	req->rl_niovs = 0;
--	if (req->rl_reply) {
--		buffers->rb_recv_bufs[--buffers->rb_recv_index] = req->rl_reply;
--		req->rl_reply->rr_func = NULL;
--		req->rl_reply = NULL;
--	}
-+	rpcrdma_buffer_put_sendbuf(req, buffers);
- 	switch (ia->ri_memreg_strategy) {
- 	case RPCRDMA_FRMR:
- 	case RPCRDMA_MTHCAFMR:
--		/*
--		 * Cycle mw's back in reverse order, and "spin" them.
--		 * This delays and scrambles reuse as much as possible.
--		 */
--		i = 1;
--		do {
--			struct rpcrdma_mw **mw;
--			mw = &req->rl_segments[i].mr_chunk.rl_mw;
--			list_add_tail(&(*mw)->mw_list, &buffers->rb_mws);
--			*mw = NULL;
--		} while (++i < RPCRDMA_MAX_SEGS);
--		list_add_tail(&req->rl_segments[0].mr_chunk.rl_mw->mw_list,
--					&buffers->rb_mws);
--		req->rl_segments[0].mr_chunk.rl_mw = NULL;
-+		rpcrdma_buffer_put_mrs(req, buffers);
- 		break;
- 	default:
- 		break;
+ struct rpcrdma_frmr {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
