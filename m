@@ -1,256 +1,107 @@
 From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 04/21] xprtrdma: Update rkeys after transport reconnect
-Date: Tue, 22 Jul 2014 14:40:56 -0400
-Message-ID: <53CEB038.5090901@netapp.com>
-References: <20140722144459.6010.99389.stgit@manet.1015granger.net> <20140722145133.6010.52757.stgit@manet.1015granger.net>
+Subject: Re: [PATCH v4 08/21] xprtrdma: Back off rkey when FAST_REG_MR fails
+Date: Tue, 22 Jul 2014 16:03:01 -0400
+Message-ID: <53CEC375.3010408@netapp.com>
+References: <20140722144459.6010.99389.stgit@manet.1015granger.net> <20140722145208.6010.76678.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140722145133.6010.52757.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140722145208.6010.76678.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/22/2014 10:51 AM, Chuck Lever wrote:
-> Various reports of:
+On 07/22/2014 10:52 AM, Chuck Lever wrote:
+> If posting a FAST_REG_MR Work Reqeust fails, revert the rkey update
+> to avoid subsequent IB_WC_MW_BIND_ERR completions.
 > 
->   rpcrdma_qp_async_error_upcall: QP error 3 on device mlx4_0
-> 		ep ffff8800bfd3e848
-> 
-> Ensure that rkeys in already-marshalled RPC/RDMA headers are
-> refreshed after the QP has been replaced by a reconnect.
-> 
-> BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=249
-> Suggested-by: Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+> Suggested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 > Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 > ---
->  net/sunrpc/xprtrdma/rpc_rdma.c  |   75 ++++++++++++++++++++-------------------
->  net/sunrpc/xprtrdma/transport.c |   11 +++---
->  net/sunrpc/xprtrdma/xprt_rdma.h |   10 +++++
->  3 files changed, 54 insertions(+), 42 deletions(-)
+>  include/rdma/ib_verbs.h     |   11 +++++++++++
+>  net/sunrpc/xprtrdma/verbs.c |   12 +++++-------
+>  2 files changed, 16 insertions(+), 7 deletions(-)
 > 
-> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-> index 693966d..54422f7 100644
-> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> @@ -53,14 +53,6 @@
->  # define RPCDBG_FACILITY	RPCDBG_TRANS
->  #endif
->  
-> -enum rpcrdma_chunktype {
-> -	rpcrdma_noch = 0,
-> -	rpcrdma_readch,
-> -	rpcrdma_areadch,
-> -	rpcrdma_writech,
-> -	rpcrdma_replych
-> -};
-> -
->  #ifdef RPC_DEBUG
->  static const char transfertypes[][12] = {
->  	"pure inline",	/* no chunks */
-> @@ -286,6 +278,28 @@ out:
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 7ccef34..c5c7ec6 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -2479,6 +2479,17 @@ static inline u32 ib_inc_rkey(u32 rkey)
 >  }
 >  
->  /*
-> + * Marshal chunks. This routine returns the header length
-> + * consumed by marshaling.
-> + *
-> + * Returns positive RPC/RDMA header size, or negative errno.
+>  /**
+> + * ib_dec_rkey - decrements the key portion of the given rkey. Can be used
+> + * when recovering from a local immediate error.
+> + * @rkey - the rkey to decrement.
 > + */
-> +
-> +ssize_t
-> +rpcrdma_marshal_chunks(struct rpc_rqst *rqst, ssize_t result)
+> +static inline u32 ib_dec_rkey(u32 rkey)
 > +{
-> +	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
-> +	struct rpcrdma_msg *headerp = (struct rpcrdma_msg *)req->rl_base;
-> +
-> +	if (req->rl_rtype != rpcrdma_noch)
-> +		result = rpcrdma_create_chunks(rqst, &rqst->rq_snd_buf,
-> +					       headerp, req->rl_rtype);
-> +	else if (req->rl_wtype != rpcrdma_noch)
-> +		result = rpcrdma_create_chunks(rqst, &rqst->rq_rcv_buf,
-> +					       headerp, req->rl_wtype);
-> +	return result;
-> +}
-> +
-> +/*
->   * Copy write data inline.
->   * This function is used for "small" requests. Data which is passed
->   * to RPC via iovecs (or page list) is copied directly into the
-> @@ -377,7 +391,6 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  	char *base;
->  	size_t rpclen, padlen;
->  	ssize_t hdrlen;
-> -	enum rpcrdma_chunktype rtype, wtype;
->  	struct rpcrdma_msg *headerp;
->  
->  	/*
-> @@ -415,13 +428,13 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  	 * into pages; otherwise use reply chunks.
->  	 */
->  	if (rqst->rq_rcv_buf.buflen <= RPCRDMA_INLINE_READ_THRESHOLD(rqst))
-> -		wtype = rpcrdma_noch;
-> +		req->rl_wtype = rpcrdma_noch;
->  	else if (rqst->rq_rcv_buf.page_len == 0)
-> -		wtype = rpcrdma_replych;
-> +		req->rl_wtype = rpcrdma_replych;
->  	else if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
-> -		wtype = rpcrdma_writech;
-> +		req->rl_wtype = rpcrdma_writech;
->  	else
-> -		wtype = rpcrdma_replych;
-> +		req->rl_wtype = rpcrdma_replych;
->  
->  	/*
->  	 * Chunks needed for arguments?
-> @@ -438,16 +451,16 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  	 * TBD check NFSv4 setacl
->  	 */
->  	if (rqst->rq_snd_buf.len <= RPCRDMA_INLINE_WRITE_THRESHOLD(rqst))
-> -		rtype = rpcrdma_noch;
-> +		req->rl_rtype = rpcrdma_noch;
->  	else if (rqst->rq_snd_buf.page_len == 0)
-> -		rtype = rpcrdma_areadch;
-> +		req->rl_rtype = rpcrdma_areadch;
->  	else
-> -		rtype = rpcrdma_readch;
-> +		req->rl_rtype = rpcrdma_readch;
->  
->  	/* The following simplification is not true forever */
-> -	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
-> -		wtype = rpcrdma_noch;
-> -	if (rtype != rpcrdma_noch && wtype != rpcrdma_noch) {
-> +	if (req->rl_rtype != rpcrdma_noch && req->rl_wtype == rpcrdma_replych)
-> +		req->rl_wtype = rpcrdma_noch;
-> +	if (req->rl_rtype != rpcrdma_noch && req->rl_wtype != rpcrdma_noch) {
->  		dprintk("RPC:       %s: cannot marshal multiple chunk lists\n",
->  			__func__);
+> +	const u32 mask = 0x000000ff;
+> +	return ((rkey - 1) & mask) | (rkey & ~mask);
 
-Is this still a simplification, and is it still "not true forever"?
+ib_inc_rkey() uses the same mask, and ib_update_fast_reg_key() uses !mask.  I think this should be a #define constant, rather than hardcoded in four places.
 
 Anna
 
->  		return -EIO;
-> @@ -461,7 +474,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  	 * When padding is in use and applies to the transfer, insert
->  	 * it and change the message type.
->  	 */
-> -	if (rtype == rpcrdma_noch) {
-> +	if (req->rl_rtype == rpcrdma_noch) {
->  
->  		padlen = rpcrdma_inline_pullup(rqst,
->  						RPCRDMA_INLINE_PAD_VALUE(rqst));
-> @@ -476,7 +489,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  			headerp->rm_body.rm_padded.rm_pempty[1] = xdr_zero;
->  			headerp->rm_body.rm_padded.rm_pempty[2] = xdr_zero;
->  			hdrlen += 2 * sizeof(u32); /* extra words in padhdr */
-> -			if (wtype != rpcrdma_noch) {
-> +			if (req->rl_wtype != rpcrdma_noch) {
->  				dprintk("RPC:       %s: invalid chunk list\n",
->  					__func__);
->  				return -EIO;
-> @@ -497,30 +510,18 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->  			 * on receive. Therefore, we request a reply chunk
->  			 * for non-writes wherever feasible and efficient.
->  			 */
-> -			if (wtype == rpcrdma_noch)
-> -				wtype = rpcrdma_replych;
-> +			if (req->rl_wtype == rpcrdma_noch)
-> +				req->rl_wtype = rpcrdma_replych;
->  		}
->  	}
->  
-> -	/*
-> -	 * Marshal chunks. This routine will return the header length
-> -	 * consumed by marshaling.
-> -	 */
-> -	if (rtype != rpcrdma_noch) {
-> -		hdrlen = rpcrdma_create_chunks(rqst,
-> -					&rqst->rq_snd_buf, headerp, rtype);
-> -		wtype = rtype;	/* simplify dprintk */
-> -
-> -	} else if (wtype != rpcrdma_noch) {
-> -		hdrlen = rpcrdma_create_chunks(rqst,
-> -					&rqst->rq_rcv_buf, headerp, wtype);
-> -	}
-> +	hdrlen = rpcrdma_marshal_chunks(rqst, hdrlen);
->  	if (hdrlen < 0)
->  		return hdrlen;
->  
->  	dprintk("RPC:       %s: %s: hdrlen %zd rpclen %zd padlen %zd"
->  		" headerp 0x%p base 0x%p lkey 0x%x\n",
-> -		__func__, transfertypes[wtype], hdrlen, rpclen, padlen,
-> +		__func__, transfertypes[req->rl_wtype], hdrlen, rpclen, padlen,
->  		headerp, base, req->rl_iov.lkey);
->  
->  	/*
-> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-> index 4185102..f6d280b 100644
-> --- a/net/sunrpc/xprtrdma/transport.c
-> +++ b/net/sunrpc/xprtrdma/transport.c
-> @@ -597,13 +597,14 @@ xprt_rdma_send_request(struct rpc_task *task)
->  	struct rpc_xprt *xprt = rqst->rq_xprt;
->  	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
->  	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
-> -	int rc;
-> +	int rc = 0;
->  
-> -	if (req->rl_niovs == 0) {
-> +	if (req->rl_niovs == 0)
->  		rc = rpcrdma_marshal_req(rqst);
-> -		if (rc < 0)
-> -			goto failed_marshal;
-> -	}
-> +	else if (r_xprt->rx_ia.ri_memreg_strategy == RPCRDMA_FRMR)
-> +		rc = rpcrdma_marshal_chunks(rqst, 0);
-> +	if (rc < 0)
-> +		goto failed_marshal;
->  
->  	if (req->rl_reply == NULL) 		/* e.g. reconnection */
->  		rpcrdma_recv_buffer_get(req);
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index f3d86b2..c270e59 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -99,6 +99,14 @@ struct rpcrdma_ep {
->  #define INIT_CQCOUNT(ep) atomic_set(&(ep)->rep_cqcount, (ep)->rep_cqinit)
->  #define DECR_CQCOUNT(ep) atomic_sub_return(1, &(ep)->rep_cqcount)
->  
-> +enum rpcrdma_chunktype {
-> +	rpcrdma_noch = 0,
-> +	rpcrdma_readch,
-> +	rpcrdma_areadch,
-> +	rpcrdma_writech,
-> +	rpcrdma_replych
-> +};
+
+> +}
 > +
->  /*
->   * struct rpcrdma_rep -- this structure encapsulates state required to recv
->   * and complete a reply, asychronously. It needs several pieces of
-> @@ -192,6 +200,7 @@ struct rpcrdma_req {
->  	unsigned int	rl_niovs;	/* 0, 2 or 4 */
->  	unsigned int	rl_nchunks;	/* non-zero if chunks */
->  	unsigned int	rl_connect_cookie;	/* retry detection */
-> +	enum rpcrdma_chunktype	rl_rtype, rl_wtype;
->  	struct rpcrdma_buffer *rl_buffer; /* home base for this structure */
->  	struct rpcrdma_rep	*rl_reply;/* holder for reply buffer */
->  	struct rpcrdma_mr_seg rl_segments[RPCRDMA_MAX_SEGS];/* chunk segments */
-> @@ -347,6 +356,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
->  /*
->   * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
->   */
-> +ssize_t rpcrdma_marshal_chunks(struct rpc_rqst *, ssize_t);
->  int rpcrdma_marshal_req(struct rpc_rqst *);
->  size_t rpcrdma_max_payload(struct rpcrdma_xprt *);
+> +/**
+>   * ib_alloc_mw - Allocates a memory window.
+>   * @pd: The protection domain associated with the memory window.
+>   * @type: The type of the memory window (1 or 2).
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 8bb7945..394b13f 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1497,13 +1497,12 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+>  	struct ib_mr *mr = frmr->fr_mr;
+>  	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
+> -
+> -	u8 key;
+>  	int len, pageoff;
+>  	int i, rc;
+>  	int seg_len;
+>  	u64 pa;
+>  	int page_no;
+> +	u32 rkey;
 >  
+>  	pageoff = offset_in_page(seg1->mr_offset);
+>  	seg1->mr_offset -= pageoff;	/* start of page */
+> @@ -1558,14 +1557,11 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  		rc = -EIO;
+>  		goto out_err;
+>  	}
+> -
+> -	/* Bump the key */
+> -	key = (u8)(mr->rkey & 0x000000FF);
+> -	ib_update_fast_reg_key(mr, ++key);
+> -
+>  	frmr_wr.wr.fast_reg.access_flags = (writing ?
+>  				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+>  				IB_ACCESS_REMOTE_READ);
+> +	rkey = ib_inc_rkey(mr->rkey);
+> +	ib_update_fast_reg_key(mr, rkey);
+>  	frmr_wr.wr.fast_reg.rkey = mr->rkey;
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+>  
+> @@ -1574,6 +1570,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	if (rc) {
+>  		dprintk("RPC:       %s: failed ib_post_send for register,"
+>  			" status %i\n", __func__, rc);
+> +		rkey = ib_dec_rkey(mr->rkey);
+> +		ib_update_fast_reg_key(mr, rkey);
+>  		goto out_err;
+>  	} else {
+>  		seg1->mr_rkey = mr->rkey;
 > 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
