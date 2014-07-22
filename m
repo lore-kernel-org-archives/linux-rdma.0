@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 21/21] xprtrdma: Handle additional connection events
-Date: Tue, 22 Jul 2014 10:54:01 -0400
-Message-ID: <20140722145401.6010.63941.stgit@manet.1015granger.net>
+Subject: [PATCH v4 12/21] xprtrdma: Reset FRMRs after a flushed LOCAL_INV
+ Work Request
+Date: Tue, 22 Jul 2014 10:52:43 -0400
+Message-ID: <20140722145243.6010.3263.stgit@manet.1015granger.net>
 References: <20140722144459.6010.99389.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,71 +14,148 @@ To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 38ca83a5 added RDMA_CM_EVENT_TIMEWAIT_EXIT. But that status
-is relevant only for consumers that re-use their QPs on new
-connections. xprtrdma creates a fresh QP on reconnection, so that
-event should be explicitly ignored.
+When a LOCAL_INV Work Request is flushed, it leaves an FRMR in the
+VALID state. This FRMR can be returned by rpcrdma_buffer_get(), and
+must be knocked down in rpcrdma_register_frmr_external() before it
+can be re-used.
 
-Squelch the alarming "unexpected CM event" message.
+Instead, capture these in rpcrdma_buffer_get(), and reset them.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   94 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 92 insertions(+), 2 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 721a6fd..6ead5df 100644
+index 39b31c8..24168e8 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -326,8 +326,16 @@ static const char * const conn[] = {
- 	"rejected",
- 	"established",
- 	"disconnected",
--	"device removal"
-+	"device removal",
-+	"multicast join",
-+	"multicast error",
-+	"address change",
-+	"timewait exit",
- };
-+
-+#define CONNECTION_MSG(status)						\
-+	((status) < ARRAY_SIZE(conn) ?					\
-+		conn[(status)] : "unrecognized connection error")
- #endif
+@@ -1358,8 +1358,91 @@ rpcrdma_buffer_put_sendbuf(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
+ 	}
+ }
  
- static int
-@@ -385,23 +393,18 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 		connstate = -ENODEV;
- connected:
--		dprintk("RPC:       %s: %s: %pI4:%u (ep 0x%p event 0x%x)\n",
--			__func__,
--			(event->event <= 11) ? conn[event->event] :
--						"unknown connection error",
--			&addr->sin_addr.s_addr,
--			ntohs(addr->sin_port),
--			ep, event->event);
- 		atomic_set(&rpcx_to_rdmax(ep->rep_xprt)->rx_buf.rb_credits, 1);
- 		dprintk("RPC:       %s: %sconnected\n",
- 					__func__, connstate > 0 ? "" : "dis");
- 		ep->rep_connected = connstate;
- 		ep->rep_func(ep);
- 		wake_up_all(&ep->rep_connect_wait);
--		break;
-+		/*FALLTHROUGH*/
++/* rpcrdma_unmap_one() was already done by rpcrdma_deregister_frmr_external().
++ * Redo only the ib_post_send().
++ */
++static void
++rpcrdma_retry_local_inv(struct rpcrdma_mw *r, struct rpcrdma_ia *ia)
++{
++	struct rpcrdma_xprt *r_xprt =
++				container_of(ia, struct rpcrdma_xprt, rx_ia);
++	struct ib_send_wr invalidate_wr, *bad_wr;
++	int rc;
++
++	dprintk("RPC:       %s: FRMR %p is stale\n", __func__, r);
++
++	/* When this FRMR is re-inserted into rb_mws, it is no longer stale */
++	r->r.frmr.fr_state = FRMR_IS_VALID;
++
++	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
++	invalidate_wr.wr_id = (unsigned long)(void *)r;
++	invalidate_wr.opcode = IB_WR_LOCAL_INV;
++	invalidate_wr.send_flags = IB_SEND_SIGNALED;
++	invalidate_wr.ex.invalidate_rkey = r->r.frmr.fr_mr->rkey;
++	DECR_CQCOUNT(&r_xprt->rx_ep);
++
++	dprintk("RPC:       %s: frmr %p invalidating rkey %08x\n",
++		__func__, r, r->r.frmr.fr_mr->rkey);
++
++	read_lock(&ia->ri_qplock);
++	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
++	read_unlock(&ia->ri_qplock);
++	if (rc) {
++		/* Force rpcrdma_buffer_get() to retry */
++		r->r.frmr.fr_state = FRMR_IS_STALE;
++		dprintk("RPC:       %s: ib_post_send failed, %i\n",
++			__func__, rc);
++	}
++}
++
++static void
++rpcrdma_retry_flushed_linv(struct list_head *stale,
++			   struct rpcrdma_buffer *buf)
++{
++	struct rpcrdma_ia *ia = rdmab_to_ia(buf);
++	struct list_head *pos;
++	struct rpcrdma_mw *r;
++	unsigned long flags;
++
++	list_for_each(pos, stale) {
++		r = list_entry(pos, struct rpcrdma_mw, mw_list);
++		rpcrdma_retry_local_inv(r, ia);
++	}
++
++	spin_lock_irqsave(&buf->rb_lock, flags);
++	list_splice_tail(stale, &buf->rb_mws);
++	spin_unlock_irqrestore(&buf->rb_lock, flags);
++}
++
+ static struct rpcrdma_req *
+-rpcrdma_buffer_get_mrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
++rpcrdma_buffer_get_frmrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf,
++			 struct list_head *stale)
++{
++	struct rpcrdma_mw *r;
++	int i;
++
++	i = RPCRDMA_MAX_SEGS - 1;
++	while (!list_empty(&buf->rb_mws)) {
++		r = list_entry(buf->rb_mws.next,
++			       struct rpcrdma_mw, mw_list);
++		list_del(&r->mw_list);
++		if (r->r.frmr.fr_state == FRMR_IS_STALE) {
++			list_add(&r->mw_list, stale);
++			continue;
++		}
++		req->rl_segments[i].mr_chunk.rl_mw = r;
++		if (unlikely(i-- == 0))
++			return req;	/* Success */
++	}
++
++	/* Not enough entries on rb_mws for this req */
++	rpcrdma_buffer_put_sendbuf(req, buf);
++	rpcrdma_buffer_put_mrs(req, buf);
++	return NULL;
++}
++
++static struct rpcrdma_req *
++rpcrdma_buffer_get_fmrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
+ {
+ 	struct rpcrdma_mw *r;
+ 	int i;
+@@ -1393,6 +1476,7 @@ struct rpcrdma_req *
+ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+ {
+ 	struct rpcrdma_ia *ia = rdmab_to_ia(buffers);
++	struct list_head stale;
+ 	struct rpcrdma_req *req;
+ 	unsigned long flags;
+ 
+@@ -1414,15 +1498,21 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+ 		buffers->rb_recv_bufs[buffers->rb_recv_index++] = NULL;
+ 	}
+ 	buffers->rb_send_bufs[buffers->rb_send_index++] = NULL;
++
++	INIT_LIST_HEAD(&stale);
+ 	switch (ia->ri_memreg_strategy) {
+ 	case RPCRDMA_FRMR:
++		req = rpcrdma_buffer_get_frmrs(req, buffers, &stale);
++		break;
+ 	case RPCRDMA_MTHCAFMR:
+-		req = rpcrdma_buffer_get_mrs(req, buffers);
++		req = rpcrdma_buffer_get_fmrs(req, buffers);
+ 		break;
  	default:
--		dprintk("RPC:       %s: unexpected CM event %d\n",
--			__func__, event->event);
-+		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
-+			__func__, &addr->sin_addr.s_addr,
-+			ntohs(addr->sin_port), ep,
-+			CONNECTION_MSG(event->event));
  		break;
  	}
+ 	spin_unlock_irqrestore(&buffers->rb_lock, flags);
++	if (!list_empty(&stale))
++		rpcrdma_retry_flushed_linv(&stale, buffers);
+ 	return req;
+ }
  
 
 --
