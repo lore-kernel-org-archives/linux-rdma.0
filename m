@@ -1,70 +1,84 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 14/21] xprtrdma: Disable completions for FAST_REG_MR Work
- Requests
-Date: Tue, 22 Jul 2014 10:53:01 -0400
-Message-ID: <20140722145301.6010.49629.stgit@manet.1015granger.net>
+Subject: [PATCH v4 16/21] xprtrdma: Rename frmr_wr
+Date: Tue, 22 Jul 2014 10:53:18 -0400
+Message-ID: <20140722145318.6010.34299.stgit@manet.1015granger.net>
 References: <20140722144459.6010.99389.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140722144459.6010.99389.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of relying on a completion to change the state of an FRMR
-to FRMR_IS_VALID, set it in advance. If an error occurs, a completion
-will fire anyway and mark the FRMR FRMR_IS_STALE.
+Clean up: Name frmr_wr after the opcode of the Work Request,
+consistent with the send and local invalidation paths.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 8429869..b36a5dd 100644
+index fa5199d..1294338 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -159,10 +159,7 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
- 		return;
+@@ -1684,7 +1684,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 	struct rpcrdma_mw *mw = seg1->mr_chunk.rl_mw;
+ 	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+ 	struct ib_mr *mr = frmr->fr_mr;
+-	struct ib_send_wr frmr_wr, *bad_wr;
++	struct ib_send_wr fastreg_wr, *bad_wr;
+ 	int len, pageoff;
+ 	int i, rc;
+ 	int seg_len;
+@@ -1718,27 +1718,27 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+ 
+ 	frmr->fr_state = FRMR_IS_VALID;
+ 
+-	memset(&frmr_wr, 0, sizeof frmr_wr);
+-	frmr_wr.wr_id = (unsigned long)(void *)mw;
+-	frmr_wr.opcode = IB_WR_FAST_REG_MR;
+-	frmr_wr.wr.fast_reg.iova_start = seg1->mr_dma;
+-	frmr_wr.wr.fast_reg.page_list = frmr->fr_pgl;
+-	frmr_wr.wr.fast_reg.page_list_len = page_no;
+-	frmr_wr.wr.fast_reg.page_shift = PAGE_SHIFT;
+-	frmr_wr.wr.fast_reg.length = page_no << PAGE_SHIFT;
+-	if (frmr_wr.wr.fast_reg.length < len) {
++	memset(&fastreg_wr, 0, sizeof(fastreg_wr));
++	fastreg_wr.wr_id = (unsigned long)(void *)mw;
++	fastreg_wr.opcode = IB_WR_FAST_REG_MR;
++	fastreg_wr.wr.fast_reg.iova_start = seg1->mr_dma;
++	fastreg_wr.wr.fast_reg.page_list = frmr->fr_pgl;
++	fastreg_wr.wr.fast_reg.page_list_len = page_no;
++	fastreg_wr.wr.fast_reg.page_shift = PAGE_SHIFT;
++	fastreg_wr.wr.fast_reg.length = page_no << PAGE_SHIFT;
++	if (fastreg_wr.wr.fast_reg.length < len) {
+ 		rc = -EIO;
+ 		goto out_err;
  	}
+-	frmr_wr.wr.fast_reg.access_flags = (writing ?
++	fastreg_wr.wr.fast_reg.access_flags = (writing ?
+ 				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+ 				IB_ACCESS_REMOTE_READ);
+ 	rkey = ib_inc_rkey(mr->rkey);
+ 	ib_update_fast_reg_key(mr, rkey);
+-	frmr_wr.wr.fast_reg.rkey = mr->rkey;
++	fastreg_wr.wr.fast_reg.rkey = frmr->fr_mr->rkey;
+ 	DECR_CQCOUNT(&r_xprt->rx_ep);
  
--	if (wc->opcode == IB_WC_FAST_REG_MR)
--		frmr->r.frmr.fr_state = FRMR_IS_VALID;
--	else if (wc->opcode == IB_WC_LOCAL_INV)
--		frmr->r.frmr.fr_state = FRMR_IS_INVALID;
-+	frmr->r.frmr.fr_state = FRMR_IS_INVALID;
- }
- 
- static int
-@@ -1724,10 +1721,11 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	dprintk("RPC:       %s: Using frmr %p to map %d segments\n",
- 		__func__, mw, i);
- 
-+	frmr->fr_state = FRMR_IS_VALID;
-+
- 	memset(&frmr_wr, 0, sizeof frmr_wr);
- 	frmr_wr.wr_id = (unsigned long)(void *)mw;
- 	frmr_wr.opcode = IB_WR_FAST_REG_MR;
--	frmr_wr.send_flags = IB_SEND_SIGNALED;
- 	frmr_wr.wr.fast_reg.iova_start = seg1->mr_dma;
- 	frmr_wr.wr.fast_reg.page_list = frmr->fr_pgl;
- 	frmr_wr.wr.fast_reg.page_list_len = page_no;
-@@ -1761,6 +1759,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	*nsegs = i;
- 	return 0;
- out_err:
-+	frmr->fr_state = FRMR_IS_INVALID;
- 	while (i--)
- 		rpcrdma_unmap_one(ia, --seg);
- 	return rc;
+-	rc = ib_post_send(ia->ri_id->qp, &frmr_wr, &bad_wr);
++	rc = ib_post_send(ia->ri_id->qp, &fastreg_wr, &bad_wr);
+ 	if (rc) {
+ 		dprintk("RPC:       %s: failed ib_post_send for register,"
+ 			" status %i\n", __func__, rc);
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
