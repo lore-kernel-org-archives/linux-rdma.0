@@ -1,65 +1,128 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH libibverbs V4 0/5] Add support for UD QPs under RoCE IP
- addressing
-Date: Thu, 24 Jul 2014 11:34:07 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE2059B@CMEXMB1.ad.emulex.com>
-References: <1400405929-14313-1-git-send-email-ogerlitz@r-vnc04.mtr.labs.mlnx>
- <537AFD31.3000401@mellanox.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 00/21] NFS/RDMA client patches for 3.17
+Date: Thu, 24 Jul 2014 09:19:12 -0400
+Message-ID: <53D107D0.1050407@Netapp.com>
+References: <20140722144459.6010.99389.stgit@manet.1015granger.net> <53D004A0.7030803@Netapp.com> <37564E5B-5955-436B-88D2-888ADC3D7A00@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <537AFD31.3000401-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <37564E5B-5955-436B-88D2-888ADC3D7A00-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or,
-
-Is V5 on the cards in the near future?
-
--Regards
- Devesh
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
-> Sent: Tuesday, May 20, 2014 12:29 PM
-> To: Jason Gunthorpe
-> Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Subject: Re: [PATCH libibverbs V4 0/5] Add support for UD QPs under RoCE IP
-> addressing
+On 07/23/2014 05:23 PM, Chuck Lever wrote:
 > 
-> On 18/05/2014 12:38, Or Gerlitz wrote:
-> [...]
-> > changes from V3 -- addressed feedback from Jason:
-> >    - replaced the char* that used to hold the MAC address provided to
-> >      the provider library (e.g libmlx4) with sockaddr_storage and use ARPHRD
-> >      for the af_family (similar to the practice used in the kernel)
-> >
-> >    - Dropped mask1 from ibv_query_port_ex and put all fields in
-> comp_mask
-> >    - Added a man page for ibv_query_port_ex
-> >    - Made the code c99 friendly by dropping the anonymous union and
-> struct
-> >    - Splitted the patches to patch that adds the interface and patch that uses
-> it
-> >    - Removed the usage of drv_ and lib_ schemas
-> >    - Removed the VERBS_CONTEXT_XXXXXXX
 > 
-> Hi Jason,  so Matan has addressed you comments from V3, could you please
-> take a look and ack? we find tiny little bug in patch #1 but want to get your
-> feedback before re-spinning  V5.
+>> On Jul 23, 2014, at 2:53 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+>>
+>> I've applied these changes and pushed them out in my nfs-rdma branch.  I'm planning to send a pull request to Trond on Friday so these changes can spend some time in linux-next before the next merge window opens.
 > 
-> Or.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+> Thank you! Did you resolve your question about who will merge the ib_dec_rkey patch, or do you want me to pursue that?
+
+I don't have an answer yet (fingers crossed that it's not a problem!).  I think adding ib_dec_rkey() would need to go through Roland Dreier if it doesn't go through me.
+
+Anna
+
+> 
+>>
+>> Anna
+>>
+>>> On 07/22/2014 10:50 AM, Chuck Lever wrote:
+>>> The main purpose of this series is to address connection drop
+>>> recovery issues by fixing FRMR re-use to make it less likely the
+>>> client will deadlock due to a memory management operation error.
+>>> Some clean-ups and other fixes are present as well.
+>>>
+>>> Anna, v4 of this series should be ready for merging.
+>>>
+>>> See topic branch nfs-rdma-for-3.17 in
+>>>
+>>> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+>>>
+>>> I tested with NFSv3 and NFSv4 on all three supported memory
+>>> registration modes. Used cthon04, iozone, and dbench with both
+>>> Solaris and Linux NFS/RDMA servers. Used xfstests with Linux.
+>>>
+>>> v4:
+>>>
+>>> - Rebased on v3.16-rc6
+>>>
+>>> - Add Tested-by: from Shirley Ma and Devesh Sharma
+>>>
+>>>
+>>> v3:
+>>> Only two substantive changes:
+>>>
+>>> - Patch 08/21 now uses generic IB helpers for managing FRMR
+>>> rkeys
+>>>
+>>> - Add Tested-by: from Steve Wise
+>>>
+>>>
+>>> v2:
+>>> Many patches from v1 have been written or replaced.
+>>>
+>>> The MW ref counting approach in v1 is abandoned. Instead, I've
+>>> eliminated signaling FAST_REG_MR and LOCAL_INV, and added
+>>> appropriate recovery mechanisms after a transport reconnect that
+>>> should prevent rkey dis-synchrony entirely.
+>>>
+>>> A couple of optimizations have been added, including:
+>>>
+>>> - Allocating each MW separately rather than carving each out of a
+>>> large piece of contiguous memory
+>>>
+>>> - Now that the receive CQ upcall handler dequeues a bundle of CQEs
+>>> at once, fire off the reply handler tasklet just once per upcall
+>>> to reduce context switches and how often hard IRQs are disabled
+>>>
+>>> ---
+>>>
+>>> Chuck Lever (21):
+>>>      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
+>>>      xprtrdma: Protect ia->ri_id when unmapping/invalidating MRs
+>>>      xprtrdma: Limit data payload size for ALLPHYSICAL
+>>>      xprtrdma: Update rkeys after transport reconnect
+>>>      xprtrdma: On disconnect, don't ignore pending CQEs
+>>>      xprtrdma: Don't invalidate FRMRs if registration fails
+>>>      xprtrdma: Unclutter struct rpcrdma_mr_seg
+>>>      xprtrdma: Back off rkey when FAST_REG_MR fails
+>>>      xprtrdma: Chain together all MWs in same buffer pool
+>>>      xprtrdma: Properly handle exhaustion of the rb_mws list
+>>>      xprtrdma: Reset FRMRs when FAST_REG_MR is flushed by a disconnect
+>>>      xprtrdma: Reset FRMRs after a flushed LOCAL_INV Work Request
+>>>      xprtrdma: Don't post a LOCAL_INV in rpcrdma_register_frmr_external()
+>>>      xprtrdma: Disable completions for FAST_REG_MR Work Requests
+>>>      xprtrdma: Disable completions for LOCAL_INV Work Requests
+>>>      xprtrdma: Rename frmr_wr
+>>>      xprtrdma: Allocate each struct rpcrdma_mw separately
+>>>      xprtrdma: Schedule reply tasklet once per upcall
+>>>      xprtrdma: Make rpcrdma_ep_disconnect() return void
+>>>      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
+>>>      xprtrdma: Handle additional connection events
+>>>
+>>>
+>>> include/linux/sunrpc/xprtrdma.h |    2 
+>>> include/rdma/ib_verbs.h         |   11 +
+>>> net/sunrpc/xprtrdma/rpc_rdma.c  |   83 ++--
+>>> net/sunrpc/xprtrdma/transport.c |   17 +
+>>> net/sunrpc/xprtrdma/verbs.c     |  744 ++++++++++++++++++++++++++-------------
+>>> net/sunrpc/xprtrdma/xprt_rdma.h |   61 +++
+>>> 6 files changed, 615 insertions(+), 303 deletions(-)
+>>>
+>>> --
+>>> Chuck Lever
+>>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
