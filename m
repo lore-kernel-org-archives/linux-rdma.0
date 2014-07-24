@@ -1,128 +1,109 @@
 From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 00/21] NFS/RDMA client patches for 3.17
-Date: Thu, 24 Jul 2014 09:19:12 -0400
-Message-ID: <53D107D0.1050407@Netapp.com>
-References: <20140722144459.6010.99389.stgit@manet.1015granger.net> <53D004A0.7030803@Netapp.com> <37564E5B-5955-436B-88D2-888ADC3D7A00@oracle.com>
+Subject: Re: [PATCH v4 08/21] xprtrdma: Back off rkey when FAST_REG_MR fails
+Date: Thu, 24 Jul 2014 09:24:57 -0400
+Message-ID: <53D10929.6010307@Netapp.com>
+References: <20140722144459.6010.99389.stgit@manet.1015granger.net> <20140722145208.6010.76678.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <37564E5B-5955-436B-88D2-888ADC3D7A00-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140722145208.6010.76678.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/23/2014 05:23 PM, Chuck Lever wrote:
-> 
-> 
->> On Jul 23, 2014, at 2:53 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> I've applied these changes and pushed them out in my nfs-rdma branch.  I'm planning to send a pull request to Trond on Friday so these changes can spend some time in linux-next before the next merge window opens.
-> 
-> Thank you! Did you resolve your question about who will merge the ib_dec_rkey patch, or do you want me to pursue that?
+Hi Roland,
 
-I don't have an answer yet (fingers crossed that it's not a problem!).  I think adding ib_dec_rkey() would need to go through Roland Dreier if it doesn't go through me.
+I'm collecting changes for NFS over RDMA, and I wasn't sure if the change to include/rdma/ib_verbs.h in this patch (adding ib_dec_rkey()) was something that could be merged through the NFS tree.  What do you think?
+
+Thanks!
 
 Anna
 
+On 07/22/2014 10:52 AM, Chuck Lever wrote:
+> If posting a FAST_REG_MR Work Reqeust fails, revert the rkey update
+> to avoid subsequent IB_WC_MW_BIND_ERR completions.
 > 
->>
->> Anna
->>
->>> On 07/22/2014 10:50 AM, Chuck Lever wrote:
->>> The main purpose of this series is to address connection drop
->>> recovery issues by fixing FRMR re-use to make it less likely the
->>> client will deadlock due to a memory management operation error.
->>> Some clean-ups and other fixes are present as well.
->>>
->>> Anna, v4 of this series should be ready for merging.
->>>
->>> See topic branch nfs-rdma-for-3.17 in
->>>
->>> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->>>
->>> I tested with NFSv3 and NFSv4 on all three supported memory
->>> registration modes. Used cthon04, iozone, and dbench with both
->>> Solaris and Linux NFS/RDMA servers. Used xfstests with Linux.
->>>
->>> v4:
->>>
->>> - Rebased on v3.16-rc6
->>>
->>> - Add Tested-by: from Shirley Ma and Devesh Sharma
->>>
->>>
->>> v3:
->>> Only two substantive changes:
->>>
->>> - Patch 08/21 now uses generic IB helpers for managing FRMR
->>> rkeys
->>>
->>> - Add Tested-by: from Steve Wise
->>>
->>>
->>> v2:
->>> Many patches from v1 have been written or replaced.
->>>
->>> The MW ref counting approach in v1 is abandoned. Instead, I've
->>> eliminated signaling FAST_REG_MR and LOCAL_INV, and added
->>> appropriate recovery mechanisms after a transport reconnect that
->>> should prevent rkey dis-synchrony entirely.
->>>
->>> A couple of optimizations have been added, including:
->>>
->>> - Allocating each MW separately rather than carving each out of a
->>> large piece of contiguous memory
->>>
->>> - Now that the receive CQ upcall handler dequeues a bundle of CQEs
->>> at once, fire off the reply handler tasklet just once per upcall
->>> to reduce context switches and how often hard IRQs are disabled
->>>
->>> ---
->>>
->>> Chuck Lever (21):
->>>      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
->>>      xprtrdma: Protect ia->ri_id when unmapping/invalidating MRs
->>>      xprtrdma: Limit data payload size for ALLPHYSICAL
->>>      xprtrdma: Update rkeys after transport reconnect
->>>      xprtrdma: On disconnect, don't ignore pending CQEs
->>>      xprtrdma: Don't invalidate FRMRs if registration fails
->>>      xprtrdma: Unclutter struct rpcrdma_mr_seg
->>>      xprtrdma: Back off rkey when FAST_REG_MR fails
->>>      xprtrdma: Chain together all MWs in same buffer pool
->>>      xprtrdma: Properly handle exhaustion of the rb_mws list
->>>      xprtrdma: Reset FRMRs when FAST_REG_MR is flushed by a disconnect
->>>      xprtrdma: Reset FRMRs after a flushed LOCAL_INV Work Request
->>>      xprtrdma: Don't post a LOCAL_INV in rpcrdma_register_frmr_external()
->>>      xprtrdma: Disable completions for FAST_REG_MR Work Requests
->>>      xprtrdma: Disable completions for LOCAL_INV Work Requests
->>>      xprtrdma: Rename frmr_wr
->>>      xprtrdma: Allocate each struct rpcrdma_mw separately
->>>      xprtrdma: Schedule reply tasklet once per upcall
->>>      xprtrdma: Make rpcrdma_ep_disconnect() return void
->>>      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
->>>      xprtrdma: Handle additional connection events
->>>
->>>
->>> include/linux/sunrpc/xprtrdma.h |    2 
->>> include/rdma/ib_verbs.h         |   11 +
->>> net/sunrpc/xprtrdma/rpc_rdma.c  |   83 ++--
->>> net/sunrpc/xprtrdma/transport.c |   17 +
->>> net/sunrpc/xprtrdma/verbs.c     |  744 ++++++++++++++++++++++++++-------------
->>> net/sunrpc/xprtrdma/xprt_rdma.h |   61 +++
->>> 6 files changed, 615 insertions(+), 303 deletions(-)
->>>
->>> --
->>> Chuck Lever
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Suggested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/rdma/ib_verbs.h     |   11 +++++++++++
+>  net/sunrpc/xprtrdma/verbs.c |   12 +++++-------
+>  2 files changed, 16 insertions(+), 7 deletions(-)
+> 
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 7ccef34..c5c7ec6 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -2479,6 +2479,17 @@ static inline u32 ib_inc_rkey(u32 rkey)
+>  }
+>  
+>  /**
+> + * ib_dec_rkey - decrements the key portion of the given rkey. Can be used
+> + * when recovering from a local immediate error.
+> + * @rkey - the rkey to decrement.
+> + */
+> +static inline u32 ib_dec_rkey(u32 rkey)
+> +{
+> +	const u32 mask = 0x000000ff;
+> +	return ((rkey - 1) & mask) | (rkey & ~mask);
+> +}
+> +
+> +/**
+>   * ib_alloc_mw - Allocates a memory window.
+>   * @pd: The protection domain associated with the memory window.
+>   * @type: The type of the memory window (1 or 2).
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 8bb7945..394b13f 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -1497,13 +1497,12 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	struct rpcrdma_frmr *frmr = &mw->r.frmr;
+>  	struct ib_mr *mr = frmr->fr_mr;
+>  	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
+> -
+> -	u8 key;
+>  	int len, pageoff;
+>  	int i, rc;
+>  	int seg_len;
+>  	u64 pa;
+>  	int page_no;
+> +	u32 rkey;
+>  
+>  	pageoff = offset_in_page(seg1->mr_offset);
+>  	seg1->mr_offset -= pageoff;	/* start of page */
+> @@ -1558,14 +1557,11 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  		rc = -EIO;
+>  		goto out_err;
+>  	}
+> -
+> -	/* Bump the key */
+> -	key = (u8)(mr->rkey & 0x000000FF);
+> -	ib_update_fast_reg_key(mr, ++key);
+> -
+>  	frmr_wr.wr.fast_reg.access_flags = (writing ?
+>  				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+>  				IB_ACCESS_REMOTE_READ);
+> +	rkey = ib_inc_rkey(mr->rkey);
+> +	ib_update_fast_reg_key(mr, rkey);
+>  	frmr_wr.wr.fast_reg.rkey = mr->rkey;
+>  	DECR_CQCOUNT(&r_xprt->rx_ep);
+>  
+> @@ -1574,6 +1570,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
+>  	if (rc) {
+>  		dprintk("RPC:       %s: failed ib_post_send for register,"
+>  			" status %i\n", __func__, rc);
+> +		rkey = ib_dec_rkey(mr->rkey);
+> +		ib_update_fast_reg_key(mr, rkey);
+>  		goto out_err;
+>  	} else {
+>  		seg1->mr_rkey = mr->rkey;
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
