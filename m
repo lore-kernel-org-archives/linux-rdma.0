@@ -1,117 +1,46 @@
-From: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Setting IB path manually using rdma_set_option
-Date: Mon, 28 Jul 2014 14:49:05 -0700
-Message-ID: <CABqF1pYd4dXf898p=uSCuokws4Ar7Fx1WgRXHOL=4xZREJGMCA@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Setting IB path manually using rdma_set_option
+Date: Mon, 28 Jul 2014 22:06:55 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823739936687E@ORSMSX110.amr.corp.intel.com>
 References: <CABqF1pb9HRr8exHX10iPLwtYQuTHE8ZaCEVk=trBw6nekJi9cg@mail.gmail.com>
 	<1828884A29C6694DAF28B7E6B8A823739936571C@ORSMSX110.amr.corp.intel.com>
+ <CABqF1pYd4dXf898p=uSCuokws4Ar7Fx1WgRXHOL=4xZREJGMCA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823739936571C-8oqHQFITsIHTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CABqF1pYd4dXf898p=uSCuokws4Ar7Fx1WgRXHOL=4xZREJGMCA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
-thank you for replying so quickly!
-
-There was one other thing that was throwing me off...
-
-ibv_sa_path_rec contains the sgid/dgid as the first 2 fields
-But ib_path_record (which is what is stored in struct ibv_path_data
-after the 2 32 bit fields) contains
-a service id as the 1st field, followed by the gid/lid etc....
-
-So they dont seem the same exact structures...
-Is the user supposed to convert ibv_sa_path_rec, to the corresponding
-ib_path_record field by adjusting
-the relevant fields....? Or since both are 64 bytes long, we just copy
-over the ibv_sa_path_rec directly into ib_path_record field..?
-
-Similar is the case with "ibv_sa_path_rec" Vs "ib_sa_path_rec", the
-structure definitions seem slightly off... for e.g
-ib_sa_path_rec contains a service ID as the 1st field, but
-ibv_sa_path_rec doesnt..
-
--Lokesh
-
-
-
-On Mon, Jul 28, 2014 at 1:47 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> I am trying to use the rdma_set_option to manually set the IB route
->> for the rdma cm ID. As far as I can see there are a couple of
->> discrepancies between
->> the actual code as per the librdmacm git, and what the header file
->> suggests..
->>
->> For example, according to the header file:
->> /* Option details */
->> 643 enum {
->> 644         RDMA_OPTION_ID_TOS       = 0,   /* uint8_t: RFC 2474 */
->> 645         RDMA_OPTION_ID_REUSEADDR = 1,   /* int: ~SO_REUSEADDR */
->> 646         RDMA_OPTION_ID_AFONLY    = 2,   /* int: ~IPV6_V6ONLY */
->> 647         RDMA_OPTION_IB_PATH      = 1    /* struct ibv_path_data[] */
->> 648 };
->>
->> We should be using an array of ibv_path_data[] to pass in the path
->> records..
->>
->> But according to driver code (drivers/infiniband/core/ucma.c)
->
-> The user space libraries and kernel drivers use different data structures definitions.
->
->>
->> static int ucma_set_ib_path(struct ucma_context *ctx,
->> 817                             struct ib_path_rec_data *path_data,
->> size_t optlen)
->> 818 {
->> 819         struct ib_sa_path_rec sa_path;
->> 820         struct rdma_cm_event event;
->> 821         int ret;
->> 822
->> 823         if (optlen % sizeof(*path_data))
->> 824                 return -EINVAL;
->> 825
->> 826         for (; optlen; optlen -= sizeof(*path_data), path_data++) {
->> 827                 if (path_data->flags == (IB_PATH_GMP | IB_PATH_PRIMARY
->> |
->> 828                                          IB_PATH_BIDIRECTIONAL))
->> 829                         break;
->> 830         }
->>                 /*......*/
->>                 rdma_set_ib_paths(..... &sa_path_rec, 1);
->>                 ........
->>         }
->>
->> Here we see that the expected argument is of type "struct ib_path_rec_data"
->> These 2 structures are similar... but their sizes are still very
->> different.... (ib_path_rec_data vs ibv_path_data).
->
-> ibv_path_data and ib_path_rec_data are the same.  Both define 2 32-bit fields in front of an IB defined path record -- struct ibv_path_record -- which is 64 bytes.
->
->> Also ibv_path_data, internally embeds the path record in the form of
->> "ibv_path_record", I dont see "ibv_path_record" being used anywhere in
->> the driver code to extract the path record.
->
-> The ucma unpacks the path record to ib_sa_path_rec.
->
->> Can you throw some light on how this is supposed to be used..? Are we
->> expected to pack/unpack the path record in the form of ibv_sa_path_rec
->> type to ibv_path_record structure.. or ib_path_rec_data..? What are
->> the meaning of each of the IB_PATH_* flags...
->
-> If you're calling from user space, you need to use struct ibv_path_data (defined in libibverbs include/infiniband/sa.h.  The options are RDMA_OPTION_IB - RDMA_OPTION_IB_PATH.  The route should be set after rdma_resolve_addr.
-
-
-
--- 
-Lokesh Agarwal
-Member of Technical Staff
-Oracle Corporation
-400 Oracle Pkwy, #1347
-Redwood City
-94065
+PiBpYnZfc2FfcGF0aF9yZWMgY29udGFpbnMgdGhlIHNnaWQvZGdpZCBhcyB0aGUgZmlyc3QgMiBm
+aWVsZHMNCj4gQnV0IGliX3BhdGhfcmVjb3JkICh3aGljaCBpcyB3aGF0IGlzIHN0b3JlZCBpbiBz
+dHJ1Y3QgaWJ2X3BhdGhfZGF0YQ0KPiBhZnRlciB0aGUgMiAzMiBiaXQgZmllbGRzKSBjb250YWlu
+cw0KPiBhIHNlcnZpY2UgaWQgYXMgdGhlIDFzdCBmaWVsZCwgZm9sbG93ZWQgYnkgdGhlIGdpZC9s
+aWQgZXRjLi4uLg0KDQpzdHJ1Y3QgaWJ2X3NhX3BhdGhfcmVjIHdhcyBkZWZpbmVkIHRvIG1ha2Ug
+aXQgc2ltcGxlciBmb3IgYW4gYXBwbGljYXRpb24sIGFuZCBpdCBlbGltaW5hdGVkIGJpdCBmaWVs
+ZHMgZnJvbSB0aGUgdW5kZXJseWluZyBQYXRoUmVjb3JkIHN0cnVjdHVyZSBhcyBkZWZpbmVkIGJ5
+IHRoZSBzcGVjLiAgQXQgdGhlIHRpbWUgc3RydWN0IGlidl9zYV9wYXRoX3JlYyB3YXMgZGVmaW5l
+ZCB0aGUgZmlyc3QgdHdvIGZpZWxkcyBvZiB0aGUgUGF0aFJlY29yZCB3ZXJlIHJlc2VydmVkLCB3
+aGljaCBzaG93cyB1cCBpbiB0aGUgY29tbWVudHMuICBUaGUgcmVzZXJ2ZWQgZmllbGRzIHdlcmUg
+bGF0ZXIgZGVmaW5lZCBmb3IgdXNlIGFzIHRoZSBTZXJ2aWNlSWQuICBzdHJ1Y3QgaWJ2X3BhdGhf
+cmVjb3JkIHRvb2sgdGhhdCBkZWZpbml0aW9uIGludG8gZWZmZWN0Lg0KIA0KPiBTbyB0aGV5IGRv
+bnQgc2VlbSB0aGUgc2FtZSBleGFjdCBzdHJ1Y3R1cmVzLi4uDQo+IElzIHRoZSB1c2VyIHN1cHBv
+c2VkIHRvIGNvbnZlcnQgaWJ2X3NhX3BhdGhfcmVjLCB0byB0aGUgY29ycmVzcG9uZGluZw0KPiBp
+Yl9wYXRoX3JlY29yZCBmaWVsZCBieSBhZGp1c3RpbmcNCj4gdGhlIHJlbGV2YW50IGZpZWxkcy4u
+Li4/IE9yIHNpbmNlIGJvdGggYXJlIDY0IGJ5dGVzIGxvbmcsIHdlIGp1c3QgY29weQ0KPiBvdmVy
+IHRoZSBpYnZfc2FfcGF0aF9yZWMgZGlyZWN0bHkgaW50byBpYl9wYXRoX3JlY29yZCBmaWVsZC4u
+Pw0KDQppYnZfc2FfcGF0aF9yZWMgYW5kIGlidl9wYXRoX3JlY29yZCBhcmUgc2ltaWxhciwgYnV0
+IG5vdCB0aGUgc2FtZS4gIGliX3BhdGhfcmVjX2RhdGEgYW5kIGlidl9wYXRoX2RhdGEgYXJlIHNp
+bWlsYXIuICAoUGxlYXNlIGJlIHNwZWNpZmljIHdpdGggdGhlIHByZWZpeGVzICdpYl8nIHZlcnN1
+cyAnaWJ2XycgLS0gdGhlIGZpcnN0IGlzIHVzZWQgd2l0aCBrZXJuZWwsIHRoZSBzZWNvbmQgd2l0
+aCB1c2VyIHNwYWNlLikgIGlidl9wYXRoX3JlY29yZCBkb2VzIG5vdCBjb3JyZXNwb25kIHRvIGEg
+a2VybmVsIHN0cnVjdHVyZS4gIEl0IG1hdGNoZXMgdXAgd2l0aCAic3RhdGljIGNvbnN0IHN0cnVj
+dCBpYl9maWVsZCBwYXRoX3JlY190YWJsZSIgIGluIHNhX3F1ZXJ5LmMsIHdoaWNoIGRlZmluZXMg
+dGhlIHdpcmUgZm9ybWF0IGZvciBQYXRoUmVjb3JkLg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
