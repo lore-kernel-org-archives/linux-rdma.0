@@ -1,98 +1,68 @@
-From: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Setting IB path manually using rdma_set_option
-Date: Mon, 28 Jul 2014 12:59:32 -0700
-Message-ID: <CABqF1pb9HRr8exHX10iPLwtYQuTHE8ZaCEVk=trBw6nekJi9cg@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Setting IB path manually using rdma_set_option
+Date: Mon, 28 Jul 2014 20:47:49 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823739936571C@ORSMSX110.amr.corp.intel.com>
+References: <CABqF1pb9HRr8exHX10iPLwtYQuTHE8ZaCEVk=trBw6nekJi9cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABqF1pb9HRr8exHX10iPLwtYQuTHE8ZaCEVk=trBw6nekJi9cg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
-I am trying to use the rdma_set_option to manually set the IB route
-for the rdma cm ID. As far as I can see there are a couple of
-discrepancies between
-the actual code as per the librdmacm git, and what the header file suggests..
-
-For example, according to the header file:
-/* Option details */
-643 enum {
-644         RDMA_OPTION_ID_TOS       = 0,   /* uint8_t: RFC 2474 */
-645         RDMA_OPTION_ID_REUSEADDR = 1,   /* int: ~SO_REUSEADDR */
-646         RDMA_OPTION_ID_AFONLY    = 2,   /* int: ~IPV6_V6ONLY */
-647         RDMA_OPTION_IB_PATH      = 1    /* struct ibv_path_data[] */
-648 };
-
-We should be using an array of ibv_path_data[] to pass in the path records..
-
-But according to driver code (drivers/infiniband/core/ucma.c)
-
-static int ucma_set_ib_path(struct ucma_context *ctx,
-817                             struct ib_path_rec_data *path_data,
-size_t optlen)
-818 {
-819         struct ib_sa_path_rec sa_path;
-820         struct rdma_cm_event event;
-821         int ret;
-822
-823         if (optlen % sizeof(*path_data))
-824                 return -EINVAL;
-825
-826         for (; optlen; optlen -= sizeof(*path_data), path_data++) {
-827                 if (path_data->flags == (IB_PATH_GMP | IB_PATH_PRIMARY |
-828                                          IB_PATH_BIDIRECTIONAL))
-829                         break;
-830         }
-                /*......*/
-                rdma_set_ib_paths(..... &sa_path_rec, 1);
-                ........
-        }
-
-Here we see that the expected argument is of type "struct ib_path_rec_data"
-These 2 structures are similar... but their sizes are still very
-different.... (ib_path_rec_data vs ibv_path_data).
-
-Also ibv_path_data, internally embeds the path record in the form of
-"ibv_path_record", I dont see "ibv_path_record" being used anywhere in
-the driver code to extract the path record.
-
-Also, struct rdma_route is supposed to contain a pointer to type
-struct ibv_sa_path_rec,
-but according to (drivers/infiniband/core/cma.c), we pass in the path
-record as pointer to struct ib_sa_path_rec....(rdma_set_ib_paths)  and
-we directly copy out this incompatible pointer into the
-cmid->route->path_rec field.....
-
-rdma_set_ib_paths(struct rdma_cm_id *id,
-                                     struct ib_sa_path_rec *path_rec,
-                                    int num_paths))
-{
-                /*....*/
-                  id->route.path_rec = kmalloc(sizeof *path_rec *
-num_paths, GFP_KERNEL);
-1681         if (!id->route.path_rec) {
-1682                 ret = -ENOMEM;
-1683                 goto err;
-1684         }
-1685
-1686         memcpy(id->route.path_rec, path_rec, sizeof *path_rec * num_paths);
-1687         id->route.num_paths = num_paths;
-}
-So I dont understand why this other structure is being
-used(ib_sa_path_rec vs ibv_sa_path_rec)...? And how is all this code
-even working correctly...?
-
-Can you throw some light on how this is supposed to be used..? Are we
-expected to pack/unpack the path record in the form of ibv_sa_path_rec
-type to ibv_path_record structure.. or ib_path_rec_data..? What are
-the meaning of each of the IB_PATH_* flags...
-
-I have tried both ways, and keep getting EINVAL (I set the
-IB_PATH_PRIMARY flag) and am unsure how to debug this...
-
-Any help is appreciated...
+PiBJIGFtIHRyeWluZyB0byB1c2UgdGhlIHJkbWFfc2V0X29wdGlvbiB0byBtYW51YWxseSBzZXQg
+dGhlIElCIHJvdXRlDQo+IGZvciB0aGUgcmRtYSBjbSBJRC4gQXMgZmFyIGFzIEkgY2FuIHNlZSB0
+aGVyZSBhcmUgYSBjb3VwbGUgb2YNCj4gZGlzY3JlcGFuY2llcyBiZXR3ZWVuDQo+IHRoZSBhY3R1
+YWwgY29kZSBhcyBwZXIgdGhlIGxpYnJkbWFjbSBnaXQsIGFuZCB3aGF0IHRoZSBoZWFkZXIgZmls
+ZQ0KPiBzdWdnZXN0cy4uDQo+IA0KPiBGb3IgZXhhbXBsZSwgYWNjb3JkaW5nIHRvIHRoZSBoZWFk
+ZXIgZmlsZToNCj4gLyogT3B0aW9uIGRldGFpbHMgKi8NCj4gNjQzIGVudW0gew0KPiA2NDQgICAg
+ICAgICBSRE1BX09QVElPTl9JRF9UT1MgICAgICAgPSAwLCAgIC8qIHVpbnQ4X3Q6IFJGQyAyNDc0
+ICovDQo+IDY0NSAgICAgICAgIFJETUFfT1BUSU9OX0lEX1JFVVNFQUREUiA9IDEsICAgLyogaW50
+OiB+U09fUkVVU0VBRERSICovDQo+IDY0NiAgICAgICAgIFJETUFfT1BUSU9OX0lEX0FGT05MWSAg
+ICA9IDIsICAgLyogaW50OiB+SVBWNl9WNk9OTFkgKi8NCj4gNjQ3ICAgICAgICAgUkRNQV9PUFRJ
+T05fSUJfUEFUSCAgICAgID0gMSAgICAvKiBzdHJ1Y3QgaWJ2X3BhdGhfZGF0YVtdICovDQo+IDY0
+OCB9Ow0KPiANCj4gV2Ugc2hvdWxkIGJlIHVzaW5nIGFuIGFycmF5IG9mIGlidl9wYXRoX2RhdGFb
+XSB0byBwYXNzIGluIHRoZSBwYXRoDQo+IHJlY29yZHMuLg0KPiANCj4gQnV0IGFjY29yZGluZyB0
+byBkcml2ZXIgY29kZSAoZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdWNtYS5jKQ0KDQpUaGUgdXNl
+ciBzcGFjZSBsaWJyYXJpZXMgYW5kIGtlcm5lbCBkcml2ZXJzIHVzZSBkaWZmZXJlbnQgZGF0YSBz
+dHJ1Y3R1cmVzIGRlZmluaXRpb25zLg0KDQo+IA0KPiBzdGF0aWMgaW50IHVjbWFfc2V0X2liX3Bh
+dGgoc3RydWN0IHVjbWFfY29udGV4dCAqY3R4LA0KPiA4MTcgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIHN0cnVjdCBpYl9wYXRoX3JlY19kYXRhICpwYXRoX2RhdGEsDQo+IHNpemVfdCBvcHRs
+ZW4pDQo+IDgxOCB7DQo+IDgxOSAgICAgICAgIHN0cnVjdCBpYl9zYV9wYXRoX3JlYyBzYV9wYXRo
+Ow0KPiA4MjAgICAgICAgICBzdHJ1Y3QgcmRtYV9jbV9ldmVudCBldmVudDsNCj4gODIxICAgICAg
+ICAgaW50IHJldDsNCj4gODIyDQo+IDgyMyAgICAgICAgIGlmIChvcHRsZW4gJSBzaXplb2YoKnBh
+dGhfZGF0YSkpDQo+IDgyNCAgICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQo+IDgyNQ0K
+PiA4MjYgICAgICAgICBmb3IgKDsgb3B0bGVuOyBvcHRsZW4gLT0gc2l6ZW9mKCpwYXRoX2RhdGEp
+LCBwYXRoX2RhdGErKykgew0KPiA4MjcgICAgICAgICAgICAgICAgIGlmIChwYXRoX2RhdGEtPmZs
+YWdzID09IChJQl9QQVRIX0dNUCB8IElCX1BBVEhfUFJJTUFSWQ0KPiB8DQo+IDgyOCAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIElCX1BBVEhfQklESVJFQ1RJT05BTCkp
+DQo+IDgyOSAgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsNCj4gODMwICAgICAgICAgfQ0K
+PiAgICAgICAgICAgICAgICAgLyouLi4uLi4qLw0KPiAgICAgICAgICAgICAgICAgcmRtYV9zZXRf
+aWJfcGF0aHMoLi4uLi4gJnNhX3BhdGhfcmVjLCAxKTsNCj4gICAgICAgICAgICAgICAgIC4uLi4u
+Li4uDQo+ICAgICAgICAgfQ0KPiANCj4gSGVyZSB3ZSBzZWUgdGhhdCB0aGUgZXhwZWN0ZWQgYXJn
+dW1lbnQgaXMgb2YgdHlwZSAic3RydWN0IGliX3BhdGhfcmVjX2RhdGEiDQo+IFRoZXNlIDIgc3Ry
+dWN0dXJlcyBhcmUgc2ltaWxhci4uLiBidXQgdGhlaXIgc2l6ZXMgYXJlIHN0aWxsIHZlcnkNCj4g
+ZGlmZmVyZW50Li4uLiAoaWJfcGF0aF9yZWNfZGF0YSB2cyBpYnZfcGF0aF9kYXRhKS4NCg0KaWJ2
+X3BhdGhfZGF0YSBhbmQgaWJfcGF0aF9yZWNfZGF0YSBhcmUgdGhlIHNhbWUuICBCb3RoIGRlZmlu
+ZSAyIDMyLWJpdCBmaWVsZHMgaW4gZnJvbnQgb2YgYW4gSUIgZGVmaW5lZCBwYXRoIHJlY29yZCAt
+LSBzdHJ1Y3QgaWJ2X3BhdGhfcmVjb3JkIC0tIHdoaWNoIGlzIDY0IGJ5dGVzLg0KDQo+IEFsc28g
+aWJ2X3BhdGhfZGF0YSwgaW50ZXJuYWxseSBlbWJlZHMgdGhlIHBhdGggcmVjb3JkIGluIHRoZSBm
+b3JtIG9mDQo+ICJpYnZfcGF0aF9yZWNvcmQiLCBJIGRvbnQgc2VlICJpYnZfcGF0aF9yZWNvcmQi
+IGJlaW5nIHVzZWQgYW55d2hlcmUgaW4NCj4gdGhlIGRyaXZlciBjb2RlIHRvIGV4dHJhY3QgdGhl
+IHBhdGggcmVjb3JkLg0KDQpUaGUgdWNtYSB1bnBhY2tzIHRoZSBwYXRoIHJlY29yZCB0byBpYl9z
+YV9wYXRoX3JlYy4NCg0KPiBDYW4geW91IHRocm93IHNvbWUgbGlnaHQgb24gaG93IHRoaXMgaXMg
+c3VwcG9zZWQgdG8gYmUgdXNlZC4uPyBBcmUgd2UNCj4gZXhwZWN0ZWQgdG8gcGFjay91bnBhY2sg
+dGhlIHBhdGggcmVjb3JkIGluIHRoZSBmb3JtIG9mIGlidl9zYV9wYXRoX3JlYw0KPiB0eXBlIHRv
+IGlidl9wYXRoX3JlY29yZCBzdHJ1Y3R1cmUuLiBvciBpYl9wYXRoX3JlY19kYXRhLi4/IFdoYXQg
+YXJlDQo+IHRoZSBtZWFuaW5nIG9mIGVhY2ggb2YgdGhlIElCX1BBVEhfKiBmbGFncy4uLg0KDQpJ
+ZiB5b3UncmUgY2FsbGluZyBmcm9tIHVzZXIgc3BhY2UsIHlvdSBuZWVkIHRvIHVzZSBzdHJ1Y3Qg
+aWJ2X3BhdGhfZGF0YSAoZGVmaW5lZCBpbiBsaWJpYnZlcmJzIGluY2x1ZGUvaW5maW5pYmFuZC9z
+YS5oLiAgVGhlIG9wdGlvbnMgYXJlIFJETUFfT1BUSU9OX0lCIC0gUkRNQV9PUFRJT05fSUJfUEFU
+SC4gIFRoZSByb3V0ZSBzaG91bGQgYmUgc2V0IGFmdGVyIHJkbWFfcmVzb2x2ZV9hZGRyLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
