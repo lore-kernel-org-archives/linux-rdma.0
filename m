@@ -1,30 +1,112 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Question on merge windows.
-Date: Tue, 29 Jul 2014 20:59:16 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399370D2C@ORSMSX109.amr.corp.intel.com>
-References: <2807E5FD2F6FDA4886F6618EAC48510E04BB67C1@CRSMSX101.amr.corp.intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v5 00/21] NFS/RDMA client patches for 3.17
+Date: Tue, 29 Jul 2014 17:23:07 -0400
+Message-ID: <20140729211534.2812.3128.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E04BB67C1-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> If that is the case would you like me to rebase the latest version of
-> following patches onto your most recent "for-next" branch and resubmit?  Or
-> would you prefer I _not_ do so?  I would like to see if we can get this
-> series into 3.17 if possible.
+The main purpose of this series is to address connection drop
+recovery issues by fixing FRMR re-use to make it less likely the
+client will deadlock due to a memory management operation error.
+Some clean-ups and other fixes are present as well.
 
-I'm guess the answer is no, but are there any changes to the patches if you rebase to 3.16-rc7?
+See topic branch nfs-rdma-for-3.17-plan-b in
 
-I don't see a list of patches staged for 3.17 in Roland's upstream tree yet, but he either may not have gotten to it  yet, or just hasn't pushed them.
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-- Sean
+Topic branch nfs-rdma-for-3.17 still contains v4 of this series.
+You can choose whichever series is convenient for you and Roland.
+
+I tested with NFSv3 and NFSv4 on all three supported memory
+registration modes. Used cthon04, iozone, vdbench, and dbench with
+both Solaris and Linux NFS/RDMA servers. Used xfstests with Linux.
+
+
+v5:
+
+- Rebased on v3.16-rc7
+
+- Replaced patch 08/21 with an equivalent one-liner that does not
+  alter include/rdma/ib_verbs.h. A couple of subsequent patches were
+  updated to apply on the new 08/21. This allows the whole series to
+  be submitted through the NFS tree.
+
+
+v4:
+
+- Rebased on v3.16-rc6
+
+- Add Tested-by: from Shirley Ma and Devesh Sharma
+
+
+v3:
+Only two substantive changes:
+
+- Patch 08/21 now uses generic IB helpers for managing FRMR
+  rkeys
+
+- Add Tested-by: from Steve Wise
+
+
+v2:
+Many patches from v1 have been written or replaced.
+
+The MW ref counting approach in v1 is abandoned. Instead, I've
+eliminated signaling FAST_REG_MR and LOCAL_INV, and added
+appropriate recovery mechanisms after a transport reconnect that
+should prevent rkey dis-synchrony entirely.
+
+A couple of optimizations have been added, including:
+
+- Allocating each MW separately rather than carving each out of a
+  large piece of contiguous memory
+
+- Now that the receive CQ upcall handler dequeues a bundle of CQEs
+  at once, fire off the reply handler tasklet just once per upcall
+  to reduce context switches and how often hard IRQs are disabled
+
+---
+
+Chuck Lever (21):
+      xprtrdma: Fix panic in rpcrdma_register_frmr_external()
+      xprtrdma: Protect ia->ri_id when unmapping/invalidating MRs
+      xprtrdma: Limit data payload size for ALLPHYSICAL
+      xprtrdma: Update rkeys after transport reconnect
+      xprtrdma: On disconnect, don't ignore pending CQEs
+      xprtrdma: Don't invalidate FRMRs if registration fails
+      xprtrdma: Unclutter struct rpcrdma_mr_seg
+      xprtrdma: Back off rkey when FAST_REG_MR fails
+      xprtrdma: Chain together all MWs in same buffer pool
+      xprtrdma: Properly handle exhaustion of the rb_mws list
+      xprtrdma: Reset FRMRs when FAST_REG_MR is flushed by a disconnect
+      xprtrdma: Reset FRMRs after a flushed LOCAL_INV Work Request
+      xprtrdma: Don't post a LOCAL_INV in rpcrdma_register_frmr_external()
+      xprtrdma: Disable completions for FAST_REG_MR Work Requests
+      xprtrdma: Disable completions for LOCAL_INV Work Requests
+      xprtrdma: Rename frmr_wr
+      xprtrdma: Allocate each struct rpcrdma_mw separately
+      xprtrdma: Schedule reply tasklet once per upcall
+      xprtrdma: Make rpcrdma_ep_disconnect() return void
+      xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
+      xprtrdma: Handle additional connection events
+
+
+ include/linux/sunrpc/xprtrdma.h |    2 
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   83 ++--
+ net/sunrpc/xprtrdma/transport.c |   17 +
+ net/sunrpc/xprtrdma/verbs.c     |  736 ++++++++++++++++++++++++++-------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   61 +++
+ 5 files changed, 601 insertions(+), 298 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
