@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v5 18/21] xprtrdma: Schedule reply tasklet once per upcall
-Date: Tue, 29 Jul 2014 17:25:46 -0400
-Message-ID: <20140729212546.2812.82737.stgit@manet.1015granger.net>
+Subject: [PATCH v5 19/21] xprtrdma: Make rpcrdma_ep_disconnect() return void
+Date: Tue, 29 Jul 2014 17:25:55 -0400
+Message-ID: <20140729212555.2812.63290.stgit@manet.1015granger.net>
 References: <20140729211534.2812.3128.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,91 +13,91 @@ To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Minor optimization: grab rpcrdma_tk_lock_g and disable hard IRQs
-just once after clearing the receive completion queue.
+Clean up: The return code is used only for dprintk's that are
+already redundant.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |    2 +-
+ net/sunrpc/xprtrdma/verbs.c     |   14 ++++----------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
+ 3 files changed, 6 insertions(+), 12 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index a27edde..6980149 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -105,17 +105,6 @@ rpcrdma_run_tasklet(unsigned long data)
- 
- static DECLARE_TASKLET(rpcrdma_tasklet_g, rpcrdma_run_tasklet, 0UL);
- 
--static inline void
--rpcrdma_schedule_tasklet(struct rpcrdma_rep *rep)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&rpcrdma_tk_lock_g, flags);
--	list_add_tail(&rep->rr_list, &rpcrdma_tasklets_g);
--	spin_unlock_irqrestore(&rpcrdma_tk_lock_g, flags);
--	tasklet_schedule(&rpcrdma_tasklet_g);
--}
--
- static void
- rpcrdma_qp_async_error_upcall(struct ib_event *event, void *context)
- {
-@@ -214,7 +203,7 @@ rpcrdma_sendcq_upcall(struct ib_cq *cq, void *cq_context)
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index f6d280b..2faac49 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -414,7 +414,7 @@ xprt_rdma_close(struct rpc_xprt *xprt)
+ 	if (r_xprt->rx_ep.rep_connected > 0)
+ 		xprt->reestablish_timeout = 0;
+ 	xprt_disconnect_done(xprt);
+-	(void) rpcrdma_ep_disconnect(&r_xprt->rx_ep, &r_xprt->rx_ia);
++	rpcrdma_ep_disconnect(&r_xprt->rx_ep, &r_xprt->rx_ia);
  }
  
  static void
--rpcrdma_recvcq_process_wc(struct ib_wc *wc)
-+rpcrdma_recvcq_process_wc(struct ib_wc *wc, struct list_head *sched_list)
- {
- 	struct rpcrdma_rep *rep =
- 			(struct rpcrdma_rep *)(unsigned long)wc->wr_id;
-@@ -245,28 +234,38 @@ rpcrdma_recvcq_process_wc(struct ib_wc *wc)
- 	}
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 6980149..a1b70fc 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -830,10 +830,7 @@ rpcrdma_ep_destroy(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 	cancel_delayed_work_sync(&ep->rep_connect_worker);
  
- out_schedule:
--	rpcrdma_schedule_tasklet(rep);
-+	list_add_tail(&rep->rr_list, sched_list);
+ 	if (ia->ri_id->qp) {
+-		rc = rpcrdma_ep_disconnect(ep, ia);
+-		if (rc)
+-			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+-				" returned %i\n", __func__, rc);
++		rpcrdma_ep_disconnect(ep, ia);
+ 		rdma_destroy_qp(ia->ri_id);
+ 		ia->ri_id->qp = NULL;
+ 	}
+@@ -871,10 +868,8 @@ rpcrdma_ep_connect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 		struct rpcrdma_xprt *xprt;
+ retry:
+ 		dprintk("RPC:       %s: reconnecting...\n", __func__);
+-		rc = rpcrdma_ep_disconnect(ep, ia);
+-		if (rc && rc != -ENOTCONN)
+-			dprintk("RPC:       %s: rpcrdma_ep_disconnect"
+-				" status %i\n", __func__, rc);
++
++		rpcrdma_ep_disconnect(ep, ia);
+ 		rpcrdma_flush_cqs(ep);
+ 
+ 		if (ia->ri_memreg_strategy == RPCRDMA_FRMR)
+@@ -984,7 +979,7 @@ out:
+  * This call is not reentrant, and must not be made in parallel
+  * on the same endpoint.
+  */
+-int
++void
+ rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ {
+ 	int rc;
+@@ -1001,7 +996,6 @@ rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
+ 		dprintk("RPC:       %s: rdma_disconnect %i\n", __func__, rc);
+ 		ep->rep_connected = rc;
+ 	}
+-	return rc;
  }
  
  static int
- rpcrdma_recvcq_poll(struct ib_cq *cq, struct rpcrdma_ep *ep)
- {
-+	struct list_head sched_list;
- 	struct ib_wc *wcs;
- 	int budget, count, rc;
-+	unsigned long flags;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 1ee6db3..c419498 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -341,7 +341,7 @@ int rpcrdma_ep_create(struct rpcrdma_ep *, struct rpcrdma_ia *,
+ 				struct rpcrdma_create_data_internal *);
+ void rpcrdma_ep_destroy(struct rpcrdma_ep *, struct rpcrdma_ia *);
+ int rpcrdma_ep_connect(struct rpcrdma_ep *, struct rpcrdma_ia *);
+-int rpcrdma_ep_disconnect(struct rpcrdma_ep *, struct rpcrdma_ia *);
++void rpcrdma_ep_disconnect(struct rpcrdma_ep *, struct rpcrdma_ia *);
  
-+	INIT_LIST_HEAD(&sched_list);
- 	budget = RPCRDMA_WC_BUDGET / RPCRDMA_POLLSIZE;
- 	do {
- 		wcs = ep->rep_recv_wcs;
- 
- 		rc = ib_poll_cq(cq, RPCRDMA_POLLSIZE, wcs);
- 		if (rc <= 0)
--			return rc;
-+			goto out_schedule;
- 
- 		count = rc;
- 		while (count-- > 0)
--			rpcrdma_recvcq_process_wc(wcs++);
-+			rpcrdma_recvcq_process_wc(wcs++, &sched_list);
- 	} while (rc == RPCRDMA_POLLSIZE && --budget);
--	return 0;
-+	rc = 0;
-+
-+out_schedule:
-+	spin_lock_irqsave(&rpcrdma_tk_lock_g, flags);
-+	list_splice_tail(&sched_list, &rpcrdma_tasklets_g);
-+	spin_unlock_irqrestore(&rpcrdma_tk_lock_g, flags);
-+	tasklet_schedule(&rpcrdma_tasklet_g);
-+	return rc;
- }
- 
- /*
+ int rpcrdma_ep_post(struct rpcrdma_ia *, struct rpcrdma_ep *,
+ 				struct rpcrdma_req *);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
