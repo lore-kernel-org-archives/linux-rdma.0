@@ -1,51 +1,121 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: only call CQ completion handlers if they exist
-Date: Tue, 29 Jul 2014 16:23:30 -0500
-Message-ID: <20140729212329.2419.84300.stgit@build.ogc.int>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v5 03/21] xprtrdma: Limit data payload size for ALLPHYSICAL
+Date: Tue, 29 Jul 2014 17:23:34 -0400
+Message-ID: <20140729212334.2812.54739.stgit@manet.1015granger.net>
+References: <20140729211534.2812.3128.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140729211534.2812.3128.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The iser ULP creates a CQ without a SQ completion handler, which is valid.
-This will cause iw_cxgb4 to crash the system if the QP is flushed.
-The fix is to simply not call the handler if the handler ptr is NULL.
+When the client uses physical memory registration, each page in the
+payload gets its own array entry in the RPC/RDMA header's chunk list.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Therefore, don't advertise a maximum payload size that would require
+more array entries than can fit in the RPC buffer where RPC/RDMA
+headers are built.
+
+BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=248
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Tested-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/transport.c |    4 +++-
+ net/sunrpc/xprtrdma/verbs.c     |   41 +++++++++++++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
+ 3 files changed, 45 insertions(+), 1 deletion(-)
 
- drivers/infiniband/hw/cxgb4/qp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 086f62f..bdbe6b4 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1087,7 +1087,7 @@ static void __flush_qp(struct c4iw_qp *qhp, struct c4iw_cq *rchp,
- 	flushed = c4iw_flush_rq(&qhp->wq, &rchp->cq, count);
- 	spin_unlock(&qhp->lock);
- 	spin_unlock_irqrestore(&rchp->lock, flag);
--	if (flushed) {
-+	if (flushed && rchp->ibcq.comp_handler) {
- 		spin_lock_irqsave(&rchp->comp_handler_lock, flag);
- 		(*rchp->ibcq.comp_handler)(&rchp->ibcq, rchp->ibcq.cq_context);
- 		spin_unlock_irqrestore(&rchp->comp_handler_lock, flag);
-@@ -1101,7 +1101,7 @@ static void __flush_qp(struct c4iw_qp *qhp, struct c4iw_cq *rchp,
- 	flushed = c4iw_flush_sq(qhp);
- 	spin_unlock(&qhp->lock);
- 	spin_unlock_irqrestore(&schp->lock, flag);
--	if (flushed) {
-+	if (flushed && schp->ibcq.comp_handler) {
- 		spin_lock_irqsave(&schp->comp_handler_lock, flag);
- 		(*schp->ibcq.comp_handler)(&schp->ibcq, schp->ibcq.cq_context);
- 		spin_unlock_irqrestore(&schp->comp_handler_lock, flag);
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 66f91f0..4185102 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -296,7 +296,6 @@ xprt_setup_rdma(struct xprt_create *args)
+ 
+ 	xprt->resvport = 0;		/* privileged port not needed */
+ 	xprt->tsh_size = 0;		/* RPC-RDMA handles framing */
+-	xprt->max_payload = RPCRDMA_MAX_DATA_SEGS * PAGE_SIZE;
+ 	xprt->ops = &xprt_rdma_procs;
+ 
+ 	/*
+@@ -382,6 +381,9 @@ xprt_setup_rdma(struct xprt_create *args)
+ 	new_ep->rep_xprt = xprt;
+ 
+ 	xprt_rdma_format_addresses(xprt);
++	xprt->max_payload = rpcrdma_max_payload(new_xprt);
++	dprintk("RPC:       %s: transport data payload maximum: %zu bytes\n",
++		__func__, xprt->max_payload);
+ 
+ 	if (!try_module_get(THIS_MODULE))
+ 		goto out4;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index cab742d..0d5187d 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1822,3 +1822,44 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+ 			rc);
+ 	return rc;
+ }
++
++/* Physical mapping means one Read/Write list entry per-page.
++ * All list entries must fit within an inline buffer
++ *
++ * NB: The server must return a Write list for NFS READ,
++ *     which has the same constraint. Factor in the inline
++ *     rsize as well.
++ */
++static size_t
++rpcrdma_physical_max_payload(struct rpcrdma_xprt *r_xprt)
++{
++	struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
++	unsigned int inline_size, pages;
++
++	inline_size = min_t(unsigned int,
++			    cdata->inline_wsize, cdata->inline_rsize);
++	inline_size -= RPCRDMA_HDRLEN_MIN;
++	pages = inline_size / sizeof(struct rpcrdma_segment);
++	return pages << PAGE_SHIFT;
++}
++
++static size_t
++rpcrdma_mr_max_payload(struct rpcrdma_xprt *r_xprt)
++{
++	return RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT;
++}
++
++size_t
++rpcrdma_max_payload(struct rpcrdma_xprt *r_xprt)
++{
++	size_t result;
++
++	switch (r_xprt->rx_ia.ri_memreg_strategy) {
++	case RPCRDMA_ALLPHYSICAL:
++		result = rpcrdma_physical_max_payload(r_xprt);
++		break;
++	default:
++		result = rpcrdma_mr_max_payload(r_xprt);
++	}
++	return result;
++}
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 97ca516..f3d86b2 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -348,6 +348,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
+  * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
+  */
+ int rpcrdma_marshal_req(struct rpc_rqst *);
++size_t rpcrdma_max_payload(struct rpcrdma_xprt *);
+ 
+ /* Temporary NFS request map cache. Created in svc_rdma.c  */
+ extern struct kmem_cache *svc_rdma_map_cachep;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
