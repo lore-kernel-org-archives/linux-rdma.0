@@ -1,46 +1,23 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Setting IB path manually using rdma_set_option
-Date: Mon, 28 Jul 2014 22:06:55 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823739936687E@ORSMSX110.amr.corp.intel.com>
-References: <CABqF1pb9HRr8exHX10iPLwtYQuTHE8ZaCEVk=trBw6nekJi9cg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A823739936571C@ORSMSX110.amr.corp.intel.com>
- <CABqF1pYd4dXf898p=uSCuokws4Ar7Fx1WgRXHOL=4xZREJGMCA@mail.gmail.com>
+From: Jinghao Printing - CHINA <unwieldyfgh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: color box, display box, corrugated box, color card, blister card,
+ color sleeve, hang tag, label
+Date: Tue, 29 Jul 2014 10:28:14 +0800
+Message-ID: <CAHkksEdS5kqcTUiD_OrRB6NK11qo1d72jJSgoXTdwd7NjFWW6w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABqF1pYd4dXf898p=uSCuokws4Ar7Fx1WgRXHOL=4xZREJGMCA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBpYnZfc2FfcGF0aF9yZWMgY29udGFpbnMgdGhlIHNnaWQvZGdpZCBhcyB0aGUgZmlyc3QgMiBm
-aWVsZHMNCj4gQnV0IGliX3BhdGhfcmVjb3JkICh3aGljaCBpcyB3aGF0IGlzIHN0b3JlZCBpbiBz
-dHJ1Y3QgaWJ2X3BhdGhfZGF0YQ0KPiBhZnRlciB0aGUgMiAzMiBiaXQgZmllbGRzKSBjb250YWlu
-cw0KPiBhIHNlcnZpY2UgaWQgYXMgdGhlIDFzdCBmaWVsZCwgZm9sbG93ZWQgYnkgdGhlIGdpZC9s
-aWQgZXRjLi4uLg0KDQpzdHJ1Y3QgaWJ2X3NhX3BhdGhfcmVjIHdhcyBkZWZpbmVkIHRvIG1ha2Ug
-aXQgc2ltcGxlciBmb3IgYW4gYXBwbGljYXRpb24sIGFuZCBpdCBlbGltaW5hdGVkIGJpdCBmaWVs
-ZHMgZnJvbSB0aGUgdW5kZXJseWluZyBQYXRoUmVjb3JkIHN0cnVjdHVyZSBhcyBkZWZpbmVkIGJ5
-IHRoZSBzcGVjLiAgQXQgdGhlIHRpbWUgc3RydWN0IGlidl9zYV9wYXRoX3JlYyB3YXMgZGVmaW5l
-ZCB0aGUgZmlyc3QgdHdvIGZpZWxkcyBvZiB0aGUgUGF0aFJlY29yZCB3ZXJlIHJlc2VydmVkLCB3
-aGljaCBzaG93cyB1cCBpbiB0aGUgY29tbWVudHMuICBUaGUgcmVzZXJ2ZWQgZmllbGRzIHdlcmUg
-bGF0ZXIgZGVmaW5lZCBmb3IgdXNlIGFzIHRoZSBTZXJ2aWNlSWQuICBzdHJ1Y3QgaWJ2X3BhdGhf
-cmVjb3JkIHRvb2sgdGhhdCBkZWZpbml0aW9uIGludG8gZWZmZWN0Lg0KIA0KPiBTbyB0aGV5IGRv
-bnQgc2VlbSB0aGUgc2FtZSBleGFjdCBzdHJ1Y3R1cmVzLi4uDQo+IElzIHRoZSB1c2VyIHN1cHBv
-c2VkIHRvIGNvbnZlcnQgaWJ2X3NhX3BhdGhfcmVjLCB0byB0aGUgY29ycmVzcG9uZGluZw0KPiBp
-Yl9wYXRoX3JlY29yZCBmaWVsZCBieSBhZGp1c3RpbmcNCj4gdGhlIHJlbGV2YW50IGZpZWxkcy4u
-Li4/IE9yIHNpbmNlIGJvdGggYXJlIDY0IGJ5dGVzIGxvbmcsIHdlIGp1c3QgY29weQ0KPiBvdmVy
-IHRoZSBpYnZfc2FfcGF0aF9yZWMgZGlyZWN0bHkgaW50byBpYl9wYXRoX3JlY29yZCBmaWVsZC4u
-Pw0KDQppYnZfc2FfcGF0aF9yZWMgYW5kIGlidl9wYXRoX3JlY29yZCBhcmUgc2ltaWxhciwgYnV0
-IG5vdCB0aGUgc2FtZS4gIGliX3BhdGhfcmVjX2RhdGEgYW5kIGlidl9wYXRoX2RhdGEgYXJlIHNp
-bWlsYXIuICAoUGxlYXNlIGJlIHNwZWNpZmljIHdpdGggdGhlIHByZWZpeGVzICdpYl8nIHZlcnN1
-cyAnaWJ2XycgLS0gdGhlIGZpcnN0IGlzIHVzZWQgd2l0aCBrZXJuZWwsIHRoZSBzZWNvbmQgd2l0
-aCB1c2VyIHNwYWNlLikgIGlidl9wYXRoX3JlY29yZCBkb2VzIG5vdCBjb3JyZXNwb25kIHRvIGEg
-a2VybmVsIHN0cnVjdHVyZS4gIEl0IG1hdGNoZXMgdXAgd2l0aCAic3RhdGljIGNvbnN0IHN0cnVj
-dCBpYl9maWVsZCBwYXRoX3JlY190YWJsZSIgIGluIHNhX3F1ZXJ5LmMsIHdoaWNoIGRlZmluZXMg
-dGhlIHdpcmUgZm9ybWF0IGZvciBQYXRoUmVjb3JkLg0KDQo=
+Hi, this is David Wu from Shanghai, China.
+We are a printing company, we can print color box, corrugated box,
+label, hang tag etc.
+Please let me know if you need these.
+
+I will send you the website then.
+
+Best regards,
+David Wu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
