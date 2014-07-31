@@ -1,107 +1,175 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider module
-Date: Thu, 31 Jul 2014 05:14:41 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE23695@CMEXMB1.ad.emulex.com>
-References: <1405605697-11583-1-git-send-email-devesh.sharma@emulex.com>
- <3e39e90f-7095-4eb9-a844-516672a355ad@CMEXHTCAS2.ad.emulex.com>
- <53C7E546.3080008@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A823739933FCA3@ORSMSX109.amr.corp.intel.com>
- <53C81CB7.2030000@oracle.com>
- <006d01cfa1f2$65d020d0$31706270$@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A823739933FDEA@ORSMSX109.amr.corp.intel.com>
- <008301cfa1fa$f231f550$d695dff0$@opengridcomputing.com>
- <DF7CE85B-288D-4CC2-AD51-B326D5F1EE1A@oracle.com>
- <008c01cfa201$f1eecda0$d5cc68e0$@opengridcomputing.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1482F@CMEXMB1.ad.emulex.com>
- <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com>
- <53C94199.4050601@oracle.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1C7B7@CMEXMB1.ad.emulex.com>
- <a6345162-863d-447c-b7c2-059ced190a13@CMEXHTCAS1.ad.emulex.com>
- <27ACE237-161A-4CA5-AA5C-6349CC4118E3@oracle.com>
- <005701cfa4f4$f7a64c00$e6f2e400$@opengridcomputing.com>
- <D88D1952-83A1-4FF9-B028-AAE7A859! ! A 5B1@oracle.com>
- <005e01cfa4f7$9dd4cc80$d97e6580$@opengridcomputing.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1D9CF@CMEXMB1.ad.emulex.com>
- <0CDA5340-DDD6-42F8-8359-0069BBC9E24C@oracle.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1DB1D@CMEXMB1.ad.emulex.com>
- <A40CDF7D-7ED2-4D67-957F-8F977D567774@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 3/3] IB/mlx4_ib: Add support for user MR re-registration
+Date: Thu, 31 Jul 2014 11:01:30 +0300
+Message-ID: <1406793690-3816-4-git-send-email-ogerlitz@mellanox.com>
+References: <1406793690-3816-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A40CDF7D-7ED2-4D67-957F-8F977D567774-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1406793690-3816-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
-> Sent: Thursday, July 31, 2014 12:09 AM
-> To: Devesh Sharma
-> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider
-> module
-> 
-> 
-> On Jul 22, 2014, at 1:06 AM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-> wrote:
-> 
-> >> -----Original Message-----
-> >> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> >> Sent: Monday, July 21, 2014 11:01 PM
-> >> To: Devesh Sharma
-> >> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
-> >> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider
-> >> module
-> >>
-> >>
-> >> On Jul 21, 2014, at 1:07 PM, Devesh Sharma
-> <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-> >> wrote:
-> >>
-> >>>>>>> Until that support is in place, obviously I would prefer that
-> >>>>>>> the removal of the underlying driver be prevented while there
-> >>>>>>> are NFS mounts in place. I think that's what NFS users have come to
-> expect.
-> >>>>>>>
-> >>>>>>> In other words, don't allow device removal until we have support
-> >>>>>>> for device insertion :-)
-> >>>
-> >>> This needs a fresh series of patches?
-> >>
-> >> "do not allow removal" would likely take an approach similar to what
-> >> you originally posted, unless someone has an idea how to use a
-> >> CM_EVENT to make this work, or there is an objection from the kernel
-> RDMA folks.
-> >
-> > Okay, I will re-work the patch if need be.
-> 
-> Devesh, if there isn't one already, could you file an upstream bug at
-> 
->   http://bugzilla.linux-nfs.org
-> 
-> that documents the shutdown hang and perhaps summarizes this thread?
-> Thanks!
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-A bug has been filed
-https://bugzilla.linux-nfs.org/show_bug.cgi?id=266
+This enables the user to change the protection domain, access
+flags and translation (address and length) of the MR.
 
-> 
-> --
-> Chuck Lever
-> chuck[dot]lever[at]oracle[dot]com
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Use basic mlx4_core helper functions to get, update and set
+MPT and MTT objects according to the required modifications.
+
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/main.c    |    2 +
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |    4 ++
+ drivers/infiniband/hw/mlx4/mr.c      |   88 +++++++++++++++++++++++++++++++++-
+ 3 files changed, 93 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 0f7027e..828a37b 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2007,6 +2007,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		(1ull << IB_USER_VERBS_CMD_ALLOC_PD)		|
+ 		(1ull << IB_USER_VERBS_CMD_DEALLOC_PD)		|
+ 		(1ull << IB_USER_VERBS_CMD_REG_MR)		|
++		(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
+ 		(1ull << IB_USER_VERBS_CMD_DEREG_MR)		|
+ 		(1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL)	|
+ 		(1ull << IB_USER_VERBS_CMD_CREATE_CQ)		|
+@@ -2059,6 +2060,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.req_notify_cq	= mlx4_ib_arm_cq;
+ 	ibdev->ib_dev.get_dma_mr	= mlx4_ib_get_dma_mr;
+ 	ibdev->ib_dev.reg_user_mr	= mlx4_ib_reg_user_mr;
++	ibdev->ib_dev.rereg_user_mr	= mlx4_ib_rereg_user_mr;
+ 	ibdev->ib_dev.dereg_mr		= mlx4_ib_dereg_mr;
+ 	ibdev->ib_dev.alloc_fast_reg_mr = mlx4_ib_alloc_fast_reg_mr;
+ 	ibdev->ib_dev.alloc_fast_reg_page_list = mlx4_ib_alloc_fast_reg_page_list;
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 369da3c..e8cad39 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -788,5 +788,9 @@ int mlx4_ib_steer_qp_alloc(struct mlx4_ib_dev *dev, int count, int *qpn);
+ void mlx4_ib_steer_qp_free(struct mlx4_ib_dev *dev, u32 qpn, int count);
+ int mlx4_ib_steer_qp_reg(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+ 			 int is_attach);
++int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
++			  u64 start, u64 length, u64 virt_addr,
++			  int mr_access_flags, struct ib_pd *pd,
++			  struct ib_udata *udata);
+ 
+ #endif /* MLX4_IB_H */
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index cb2a872..9b0e80e 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -144,8 +144,10 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	if (!mr)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	/* Force registering the memory as writable. */
++	/* Used for memory re-registeration. HCA protects the access */
+ 	mr->umem = ib_umem_get(pd->uobject->context, start, length,
+-			       access_flags, 0);
++			       access_flags | IB_ACCESS_LOCAL_WRITE, 0);
+ 	if (IS_ERR(mr->umem)) {
+ 		err = PTR_ERR(mr->umem);
+ 		goto err_free;
+@@ -183,6 +185,90 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
++			  u64 start, u64 length, u64 virt_addr,
++			  int mr_access_flags, struct ib_pd *pd,
++			  struct ib_udata *udata)
++{
++	struct mlx4_ib_dev *dev = to_mdev(mr->device);
++	struct mlx4_ib_mr *mmr = to_mmr(mr);
++	struct mlx4_mpt_entry *mpt_entry;
++	struct mlx4_mpt_entry **pmpt_entry = &mpt_entry;
++	int err;
++
++	/* Since we synchronize this call and mlx4_ib_dereg_mr via uverbs,
++	 * we assume that the calls can't run concurrently. Otherwise, a
++	 * race exists.
++	 */
++	err =  mlx4_mr_hw_get_mpt(dev->dev, &mmr->mmr, &pmpt_entry);
++
++	if (err)
++		return err;
++
++	if (flags & IB_MR_REREG_PD) {
++		err = mlx4_mr_hw_change_pd(dev->dev, *pmpt_entry,
++					   to_mpd(pd)->pdn);
++
++		if (err)
++			goto release_mpt_entry;
++	}
++
++	if (flags & IB_MR_REREG_ACCESS) {
++		err = mlx4_mr_hw_change_access(dev->dev, *pmpt_entry,
++					       convert_access(mr_access_flags));
++
++		if (err)
++			goto release_mpt_entry;
++	}
++
++	if (flags & IB_MR_REREG_TRANS) {
++		int shift;
++		int err;
++		int n;
++
++		mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
++		ib_umem_release(mmr->umem);
++		mmr->umem = ib_umem_get(mr->uobject->context, start, length,
++					mr_access_flags |
++					IB_ACCESS_LOCAL_WRITE,
++					0);
++		if (IS_ERR(mmr->umem)) {
++			err = PTR_ERR(mmr->umem);
++			mmr->umem = NULL;
++			goto release_mpt_entry;
++		}
++		n = ib_umem_page_count(mmr->umem);
++		shift = ilog2(mmr->umem->page_size);
++
++		mmr->mmr.iova       = virt_addr;
++		mmr->mmr.size       = length;
++		err = mlx4_mr_rereg_mem_write(dev->dev, &mmr->mmr,
++					      virt_addr, length, n, shift,
++					      *pmpt_entry);
++		if (err) {
++			ib_umem_release(mmr->umem);
++			goto release_mpt_entry;
++		}
++
++		err = mlx4_ib_umem_write_mtt(dev, &mmr->mmr.mtt, mmr->umem);
++		if (err) {
++			mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
++			ib_umem_release(mmr->umem);
++			goto release_mpt_entry;
++		}
++	}
++
++	/* If we couldn't transfer the MR to the HCA, just remember to
++	 * return a failure. But dereg_mr will free the resources.
++	 */
++	err = mlx4_mr_hw_write_mpt(dev->dev, &mmr->mmr, pmpt_entry);
++
++release_mpt_entry:
++	mlx4_mr_hw_put_mpt(dev->dev, pmpt_entry);
++
++	return err;
++}
++
+ int mlx4_ib_dereg_mr(struct ib_mr *ibmr)
+ {
+ 	struct mlx4_ib_mr *mr = to_mmr(ibmr);
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
