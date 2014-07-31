@@ -1,61 +1,119 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] svcrdma: remove rdma_create_qp() failure recovery logic
-Date: Thu, 31 Jul 2014 15:26:07 -0500
-Message-ID: <20140731202606.12144.2363.stgit@build.ogc.int>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v5 00/21] NFS/RDMA client patches for 3.17
+Date: Thu, 31 Jul 2014 16:44:28 -0400
+Message-ID: <53DAAAAC.80900@Netapp.com>
+References: <20140729211534.2812.3128.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140729211534.2812.3128.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In svc_rdma_accept(), if rdma_create_qp() fails, there is useless
-logic to try and call rdma_create_qp() again with reduced sge depths.
-The assumption, I guess, was that perhaps the initial sge depths
-chosen were too big.  However they initial depths are selected based
-on the rdma device attribute max_sge returned from ib_query_device().
-If rdma_create_qp() fails, it would not be because the max_send_sge and
-max_recv_sge values passed in exceed the device's max.  So just remove
-this code.
+I've applied v5 and updated my tree.  Thanks, Chuck!
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+Anna
 
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   19 ++-----------------
- 1 files changed, 2 insertions(+), 17 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index e7323fb..282a43b 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -942,23 +942,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 
- 	ret = rdma_create_qp(newxprt->sc_cm_id, newxprt->sc_pd, &qp_attr);
- 	if (ret) {
--		/*
--		 * XXX: This is a hack. We need a xx_request_qp interface
--		 * that will adjust the qp_attr's with a best-effort
--		 * number
--		 */
--		qp_attr.cap.max_send_sge -= 2;
--		qp_attr.cap.max_recv_sge -= 2;
--		ret = rdma_create_qp(newxprt->sc_cm_id, newxprt->sc_pd,
--				     &qp_attr);
--		if (ret) {
--			dprintk("svcrdma: failed to create QP, ret=%d\n", ret);
--			goto errout;
--		}
--		newxprt->sc_max_sge = qp_attr.cap.max_send_sge;
--		newxprt->sc_max_sge = qp_attr.cap.max_recv_sge;
--		newxprt->sc_sq_depth = qp_attr.cap.max_send_wr;
--		newxprt->sc_max_requests = qp_attr.cap.max_recv_wr;
-+		dprintk("svcrdma: failed to create QP, ret=%d\n", ret);
-+		goto errout;
- 	}
- 	newxprt->sc_qp = newxprt->sc_cm_id->qp;
- 
+On 07/29/2014 05:23 PM, Chuck Lever wrote:
+> The main purpose of this series is to address connection drop
+> recovery issues by fixing FRMR re-use to make it less likely the
+> client will deadlock due to a memory management operation error.
+> Some clean-ups and other fixes are present as well.
+> 
+> See topic branch nfs-rdma-for-3.17-plan-b in
+> 
+> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+> 
+> Topic branch nfs-rdma-for-3.17 still contains v4 of this series.
+> You can choose whichever series is convenient for you and Roland.
+> 
+> I tested with NFSv3 and NFSv4 on all three supported memory
+> registration modes. Used cthon04, iozone, vdbench, and dbench with
+> both Solaris and Linux NFS/RDMA servers. Used xfstests with Linux.
+> 
+> 
+> v5:
+> 
+> - Rebased on v3.16-rc7
+> 
+> - Replaced patch 08/21 with an equivalent one-liner that does not
+>   alter include/rdma/ib_verbs.h. A couple of subsequent patches were
+>   updated to apply on the new 08/21. This allows the whole series to
+>   be submitted through the NFS tree.
+> 
+> 
+> v4:
+> 
+> - Rebased on v3.16-rc6
+> 
+> - Add Tested-by: from Shirley Ma and Devesh Sharma
+> 
+> 
+> v3:
+> Only two substantive changes:
+> 
+> - Patch 08/21 now uses generic IB helpers for managing FRMR
+>   rkeys
+> 
+> - Add Tested-by: from Steve Wise
+> 
+> 
+> v2:
+> Many patches from v1 have been written or replaced.
+> 
+> The MW ref counting approach in v1 is abandoned. Instead, I've
+> eliminated signaling FAST_REG_MR and LOCAL_INV, and added
+> appropriate recovery mechanisms after a transport reconnect that
+> should prevent rkey dis-synchrony entirely.
+> 
+> A couple of optimizations have been added, including:
+> 
+> - Allocating each MW separately rather than carving each out of a
+>   large piece of contiguous memory
+> 
+> - Now that the receive CQ upcall handler dequeues a bundle of CQEs
+>   at once, fire off the reply handler tasklet just once per upcall
+>   to reduce context switches and how often hard IRQs are disabled
+> 
+> ---
+> 
+> Chuck Lever (21):
+>       xprtrdma: Fix panic in rpcrdma_register_frmr_external()
+>       xprtrdma: Protect ia->ri_id when unmapping/invalidating MRs
+>       xprtrdma: Limit data payload size for ALLPHYSICAL
+>       xprtrdma: Update rkeys after transport reconnect
+>       xprtrdma: On disconnect, don't ignore pending CQEs
+>       xprtrdma: Don't invalidate FRMRs if registration fails
+>       xprtrdma: Unclutter struct rpcrdma_mr_seg
+>       xprtrdma: Back off rkey when FAST_REG_MR fails
+>       xprtrdma: Chain together all MWs in same buffer pool
+>       xprtrdma: Properly handle exhaustion of the rb_mws list
+>       xprtrdma: Reset FRMRs when FAST_REG_MR is flushed by a disconnect
+>       xprtrdma: Reset FRMRs after a flushed LOCAL_INV Work Request
+>       xprtrdma: Don't post a LOCAL_INV in rpcrdma_register_frmr_external()
+>       xprtrdma: Disable completions for FAST_REG_MR Work Requests
+>       xprtrdma: Disable completions for LOCAL_INV Work Requests
+>       xprtrdma: Rename frmr_wr
+>       xprtrdma: Allocate each struct rpcrdma_mw separately
+>       xprtrdma: Schedule reply tasklet once per upcall
+>       xprtrdma: Make rpcrdma_ep_disconnect() return void
+>       xprtrdma: Remove RPCRDMA_PERSISTENT_REGISTRATION macro
+>       xprtrdma: Handle additional connection events
+> 
+> 
+>  include/linux/sunrpc/xprtrdma.h |    2 
+>  net/sunrpc/xprtrdma/rpc_rdma.c  |   83 ++--
+>  net/sunrpc/xprtrdma/transport.c |   17 +
+>  net/sunrpc/xprtrdma/verbs.c     |  736 ++++++++++++++++++++++++++-------------
+>  net/sunrpc/xprtrdma/xprt_rdma.h |   61 +++
+>  5 files changed, 601 insertions(+), 298 deletions(-)
+> 
+> --
+> Chuck Lever
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
