@@ -1,39 +1,44 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [ANNOUNCE] libcxgb4-1.3.5 is released
-Date: Mon, 4 Aug 2014 10:00:23 -0500
-Message-ID: <002901cfaff4$d1536be0$73fa43a0$@opengridcomputing.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/srp: Fix deadlock between host removal and multipathd
+Date: Tue, 5 Aug 2014 02:31:40 +0300
+Message-ID: <20140804233140.GA9106@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
+To: bvanassche-HInyCGIudOg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A new release of libcxgb4, 1.3.5, is available at
+Hello Bart Van Assche,
 
-https://www.openfabrics.org/downloads/cxgb4/libcxgb4-1.3.5.tar.gz
+The patch bcc059103591: "IB/srp: Fix deadlock between host removal
+and multipathd" from Jul 9, 2014, leads to the following static
+checker warning:
 
-with md5sum
+	drivers/infiniband/ulp/srp/ib_srp.c:3323 srp_init_module()
+	warn: 'srp_remove_wq' isn't an ERR_PTR
 
-d186d374318511c2a0c572f1433ac2c2
+drivers/infiniband/ulp/srp/ib_srp.c
+  3321  
+  3322          srp_remove_wq = create_workqueue("srp_remove");
 
-I pushed this to 
+Returns NULL on failure and not an ERR_PTR.
 
-git://www.openfabrics.org/~swise/libcxgb4
+  3323          if (IS_ERR(srp_remove_wq)) {
+  3324                  ret = PTR_ERR(srp_remove_wq);
+  3325                  goto out;
+  3326          }
+  3327  
+  3328          ret = -ENOMEM;
+  3329          ib_srp_transport_template =
+  3330                  srp_attach_transport(&ib_srp_transport_functions);
+  3331          if (!ib_srp_transport_template)
+  3332                  goto destroy_wq;
 
-The tag is named v1.3.5
-
-Summary of v1.3.5:
-
-Steve Wise (2):
-      libcxb4: use wc_wmb() instead of wmb().
-      Spin release 1.3.5.
-
-
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
