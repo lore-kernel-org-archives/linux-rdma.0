@@ -1,44 +1,67 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/srp: Fix deadlock between host removal and multipathd
-Date: Tue, 5 Aug 2014 02:31:40 +0300
-Message-ID: <20140804233140.GA9106@mwanda>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] svcrdma: remove rdma_create_qp() failure recovery logic
+Date: Tue, 5 Aug 2014 15:10:18 -0400
+Message-ID: <20140805191018.GU23341@fieldses.org>
+References: <20140731202606.12144.2363.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20140731202606.12144.2363.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bvanassche-HInyCGIudOg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Bart Van Assche,
+Thanks, applying for 3.17.--b.
 
-The patch bcc059103591: "IB/srp: Fix deadlock between host removal
-and multipathd" from Jul 9, 2014, leads to the following static
-checker warning:
-
-	drivers/infiniband/ulp/srp/ib_srp.c:3323 srp_init_module()
-	warn: 'srp_remove_wq' isn't an ERR_PTR
-
-drivers/infiniband/ulp/srp/ib_srp.c
-  3321  
-  3322          srp_remove_wq = create_workqueue("srp_remove");
-
-Returns NULL on failure and not an ERR_PTR.
-
-  3323          if (IS_ERR(srp_remove_wq)) {
-  3324                  ret = PTR_ERR(srp_remove_wq);
-  3325                  goto out;
-  3326          }
-  3327  
-  3328          ret = -ENOMEM;
-  3329          ib_srp_transport_template =
-  3330                  srp_attach_transport(&ib_srp_transport_functions);
-  3331          if (!ib_srp_transport_template)
-  3332                  goto destroy_wq;
-
-regards,
-dan carpenter
+On Thu, Jul 31, 2014 at 03:26:07PM -0500, Steve Wise wrote:
+> In svc_rdma_accept(), if rdma_create_qp() fails, there is useless
+> logic to try and call rdma_create_qp() again with reduced sge depths.
+> The assumption, I guess, was that perhaps the initial sge depths
+> chosen were too big.  However they initial depths are selected based
+> on the rdma device attribute max_sge returned from ib_query_device().
+> If rdma_create_qp() fails, it would not be because the max_send_sge and
+> max_recv_sge values passed in exceed the device's max.  So just remove
+> this code.
+> 
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+> 
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c |   19 ++-----------------
+>  1 files changed, 2 insertions(+), 17 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> index e7323fb..282a43b 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -942,23 +942,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+>  
+>  	ret = rdma_create_qp(newxprt->sc_cm_id, newxprt->sc_pd, &qp_attr);
+>  	if (ret) {
+> -		/*
+> -		 * XXX: This is a hack. We need a xx_request_qp interface
+> -		 * that will adjust the qp_attr's with a best-effort
+> -		 * number
+> -		 */
+> -		qp_attr.cap.max_send_sge -= 2;
+> -		qp_attr.cap.max_recv_sge -= 2;
+> -		ret = rdma_create_qp(newxprt->sc_cm_id, newxprt->sc_pd,
+> -				     &qp_attr);
+> -		if (ret) {
+> -			dprintk("svcrdma: failed to create QP, ret=%d\n", ret);
+> -			goto errout;
+> -		}
+> -		newxprt->sc_max_sge = qp_attr.cap.max_send_sge;
+> -		newxprt->sc_max_sge = qp_attr.cap.max_recv_sge;
+> -		newxprt->sc_sq_depth = qp_attr.cap.max_send_wr;
+> -		newxprt->sc_max_requests = qp_attr.cap.max_recv_wr;
+> +		dprintk("svcrdma: failed to create QP, ret=%d\n", ret);
+> +		goto errout;
+>  	}
+>  	newxprt->sc_qp = newxprt->sc_cm_id->qp;
+>  
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
