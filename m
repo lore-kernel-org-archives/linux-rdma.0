@@ -1,339 +1,185 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 2/3] mlx4_core: Add helper functions to support
- MR re-registration
-Date: Wed, 06 Aug 2014 13:42:42 +0300
-Message-ID: <53E206A2.6040800@dev.mellanox.co.il>
-References: <1406793690-3816-1-git-send-email-ogerlitz@mellanox.com> <1406793690-3816-3-git-send-email-ogerlitz@mellanox.com>
+Subject: Re: [PATCH for-next 3/3] IB/mlx4_ib: Add support for user MR re-registration
+Date: Wed, 06 Aug 2014 13:46:38 +0300
+Message-ID: <53E2078E.1000508@dev.mellanox.co.il>
+References: <1406793690-3816-1-git-send-email-ogerlitz@mellanox.com> <1406793690-3816-4-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1406793690-3816-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1406793690-3816-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 7/31/2014 11:01 AM, Or Gerlitz wrote:
 > From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Add few helper functions to support a mechanism of getting an
-> MPT, modifying it and updating the HCA with the modified object.
+> This enables the user to change the protection domain, access
+> flags and translation (address and length) of the MR.
 >
-> The code takes 2 paths, one for directly changing the MPT (and sometimes
-> its related MTTs) and another one which queries the MPT and updates the
-> HCA via fw command SW2HW_MPT. The first path is used in native mode; the
-> second path is slower and is used only in SRIOV.
+> Use basic mlx4_core helper functions to get, update and set
+> MPT and MTT objects according to the required modifications.
 >
-
-Hey Matan,
-
-Couple of comments below...
-
-> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->   drivers/net/ethernet/mellanox/mlx4/mlx4.h          |    2 +
->   drivers/net/ethernet/mellanox/mlx4/mr.c            |  160 ++++++++++++++++++++
->   .../net/ethernet/mellanox/mlx4/resource_tracker.c  |   26 +++-
->   include/linux/mlx4/device.h                        |   16 ++
->   4 files changed, 202 insertions(+), 2 deletions(-)
+>   drivers/infiniband/hw/mlx4/main.c    |    2 +
+>   drivers/infiniband/hw/mlx4/mlx4_ib.h |    4 ++
+>   drivers/infiniband/hw/mlx4/mr.c      |   88 +++++++++++++++++++++++++++++++++-
+>   3 files changed, 93 insertions(+), 1 deletions(-)
 >
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-> index 1d8af73..b40d587 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-> @@ -279,6 +279,8 @@ struct mlx4_icm_table {
->   #define MLX4_MPT_FLAG_PHYSICAL	    (1 <<  9)
->   #define MLX4_MPT_FLAG_REGION	    (1 <<  8)
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+> index 0f7027e..828a37b 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -2007,6 +2007,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+>   		(1ull << IB_USER_VERBS_CMD_ALLOC_PD)		|
+>   		(1ull << IB_USER_VERBS_CMD_DEALLOC_PD)		|
+>   		(1ull << IB_USER_VERBS_CMD_REG_MR)		|
+> +		(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
+>   		(1ull << IB_USER_VERBS_CMD_DEREG_MR)		|
+>   		(1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL)	|
+>   		(1ull << IB_USER_VERBS_CMD_CREATE_CQ)		|
+> @@ -2059,6 +2060,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+>   	ibdev->ib_dev.req_notify_cq	= mlx4_ib_arm_cq;
+>   	ibdev->ib_dev.get_dma_mr	= mlx4_ib_get_dma_mr;
+>   	ibdev->ib_dev.reg_user_mr	= mlx4_ib_reg_user_mr;
+> +	ibdev->ib_dev.rereg_user_mr	= mlx4_ib_rereg_user_mr;
+>   	ibdev->ib_dev.dereg_mr		= mlx4_ib_dereg_mr;
+>   	ibdev->ib_dev.alloc_fast_reg_mr = mlx4_ib_alloc_fast_reg_mr;
+>   	ibdev->ib_dev.alloc_fast_reg_page_list = mlx4_ib_alloc_fast_reg_page_list;
+> diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> index 369da3c..e8cad39 100644
+> --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> @@ -788,5 +788,9 @@ int mlx4_ib_steer_qp_alloc(struct mlx4_ib_dev *dev, int count, int *qpn);
+>   void mlx4_ib_steer_qp_free(struct mlx4_ib_dev *dev, u32 qpn, int count);
+>   int mlx4_ib_steer_qp_reg(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+>   			 int is_attach);
+> +int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
+> +			  u64 start, u64 length, u64 virt_addr,
+> +			  int mr_access_flags, struct ib_pd *pd,
+> +			  struct ib_udata *udata);
 >
-> +#define MLX4_MPT_PD_MASK	    (0x1FFFFUL)
-> +#define MLX4_MPT_PD_VF_MASK	    (0xFE0000UL)
->   #define MLX4_MPT_PD_FLAG_FAST_REG   (1 << 27)
->   #define MLX4_MPT_PD_FLAG_RAE	    (1 << 28)
->   #define MLX4_MPT_PD_FLAG_EN_INV	    (3 << 24)
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
-> index 2839abb..7d717ec 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/mr.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
-> @@ -298,6 +298,131 @@ static int mlx4_HW2SW_MPT(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox
->   			    MLX4_CMD_TIME_CLASS_B, MLX4_CMD_WRAPPED);
+>   #endif /* MLX4_IB_H */
+> diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+> index cb2a872..9b0e80e 100644
+> --- a/drivers/infiniband/hw/mlx4/mr.c
+> +++ b/drivers/infiniband/hw/mlx4/mr.c
+> @@ -144,8 +144,10 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+>   	if (!mr)
+>   		return ERR_PTR(-ENOMEM);
+>
+> +	/* Force registering the memory as writable. */
+> +	/* Used for memory re-registeration. HCA protects the access */
+>   	mr->umem = ib_umem_get(pd->uobject->context, start, length,
+> -			       access_flags, 0);
+> +			       access_flags | IB_ACCESS_LOCAL_WRITE, 0);
+>   	if (IS_ERR(mr->umem)) {
+>   		err = PTR_ERR(mr->umem);
+>   		goto err_free;
+> @@ -183,6 +185,90 @@ err_free:
+>   	return ERR_PTR(err);
 >   }
 >
-> +int mlx4_mr_hw_get_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
-> +		       struct mlx4_mpt_entry ***mpt_entry)
+> +int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
+> +			  u64 start, u64 length, u64 virt_addr,
+> +			  int mr_access_flags, struct ib_pd *pd,
+> +			  struct ib_udata *udata)
 > +{
-> +	int err;
-> +	int key = key_to_hw_index(mmr->key) & (dev->caps.num_mpts - 1);
-> +	struct mlx4_cmd_mailbox *mailbox = NULL;
-> +
-> +	/* Make sure that at this point we have single-threaded access only */
-
-This is not a specific comment for the below, but a general comment for 
-the routine (otherwise I would expect the condition below to be 
-atomic_read). Maybe it's better to document it as a requirement of the 
-routine above (in kernel-doc style)?
-
-> +
-> +	if (mmr->enabled != MLX4_MPT_EN_HW)
-> +		return -EINVAL;
-> +
-> +	err = mlx4_HW2SW_MPT(dev, NULL, key);
-
-Nit: I'd lose this extra line between err=/if(err) statements.
-I see you did in some sections of this patch...
-
-> +
-> +	if (err) {
-> +		mlx4_warn(dev, "HW2SW_MPT failed (%d).", err);
-> +		mlx4_warn(dev, "Most likely the MR has MWs bound to it.\n");
-> +		return err;
-> +	}
-> +
-> +	mmr->enabled = MLX4_MPT_EN_SW;
-> +
-> +	if (!mlx4_is_mfunc(dev)) {
-> +		**mpt_entry = mlx4_table_find(
-> +				&mlx4_priv(dev)->mr_table.dmpt_table,
-> +				key, NULL);
-> +	} else {
-> +		mailbox = mlx4_alloc_cmd_mailbox(dev);
-> +		if (IS_ERR_OR_NULL(mailbox))
-> +			return PTR_ERR(mailbox);
-> +
-> +		err = mlx4_cmd_box(dev, 0, mailbox->dma, key,
-> +				   0, MLX4_CMD_QUERY_MPT,
-> +				   MLX4_CMD_TIME_CLASS_B,
-> +				   MLX4_CMD_WRAPPED);
-> +
-> +		if (err)
-> +			goto free_mailbox;
-> +
-> +		*mpt_entry = (struct mlx4_mpt_entry **)&mailbox->buf;
-> +	}
-> +
-> +	if (!(*mpt_entry) || !(**mpt_entry)) {
-> +		err = -ENOMEM;
-> +		goto free_mailbox;
-> +	}
-> +
-> +	return 0;
-> +
-> +free_mailbox:
-> +	mlx4_free_cmd_mailbox(dev, mailbox);
-> +	return err;
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_hw_get_mpt);
-> +
-> +int mlx4_mr_hw_write_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
-> +			 struct mlx4_mpt_entry **mpt_entry)
-> +{
+> +	struct mlx4_ib_dev *dev = to_mdev(mr->device);
+> +	struct mlx4_ib_mr *mmr = to_mmr(mr);
+> +	struct mlx4_mpt_entry *mpt_entry;
+> +	struct mlx4_mpt_entry **pmpt_entry = &mpt_entry;
 > +	int err;
 > +
-> +	if (!mlx4_is_mfunc(dev)) {
-> +		/* Make sure any changes to this entry are flushed */
-> +		wmb();
+> +	/* Since we synchronize this call and mlx4_ib_dereg_mr via uverbs,
+> +	 * we assume that the calls can't run concurrently. Otherwise, a
+> +	 * race exists.
+> +	 */
+> +	err =  mlx4_mr_hw_get_mpt(dev->dev, &mmr->mmr, &pmpt_entry);
 > +
-> +		*(u8 *)(*mpt_entry) = MLX4_MPT_STATUS_HW;
-> +
-> +		/* Make sure the new status is written */
-> +		wmb();
-> +
-> +		err = mlx4_SYNC_TPT(dev);
-> +	} else {
-> +		int key = key_to_hw_index(mmr->key) & (dev->caps.num_mpts - 1);
-> +
-> +		struct mlx4_cmd_mailbox *mailbox =
-> +			container_of((void *)mpt_entry, struct mlx4_cmd_mailbox,
-> +				     buf);
-> +
-> +		err = mlx4_SW2HW_MPT(dev, mailbox, key);
-> +	}
-> +
-> +	mmr->pd = be32_to_cpu((*mpt_entry)->pd_flags) & MLX4_MPT_PD_MASK;
-
-Here you update the PD even if you failed while ib_core changes them 
-only if it succeeded, that would causes inconsistency. I think it will 
-be better to write this update only after write/put_mpt succeeded 
-(meaning it might be better to move it to the caller - mlx4_ib).
-
-> +	if (!err)
-> +		mmr->enabled = MLX4_MPT_EN_HW;
-> +	return err;
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_hw_write_mpt);
-> +
-> +void mlx4_mr_hw_put_mpt(struct mlx4_dev *dev,
-> +			struct mlx4_mpt_entry **mpt_entry)
-> +{
-> +	if (mlx4_is_mfunc(dev)) {
-> +		struct mlx4_cmd_mailbox *mailbox =
-> +			container_of((void *)mpt_entry, struct mlx4_cmd_mailbox,
-> +				     buf);
-> +		mlx4_free_cmd_mailbox(dev, mailbox);
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_hw_put_mpt);
-> +
-> +int mlx4_mr_hw_change_pd(struct mlx4_dev *dev, struct mlx4_mpt_entry *mpt_entry,
-> +			 u32 pdn)
-> +{
-> +	u32 pd_flags = be32_to_cpu(mpt_entry->pd_flags);
-> +	/* The wrapper function will put the slave's id here */
-> +	if (mlx4_is_mfunc(dev))
-> +		pd_flags &= ~MLX4_MPT_PD_VF_MASK;
-> +	mpt_entry->pd_flags = cpu_to_be32((pd_flags &  ~MLX4_MPT_PD_MASK) |
-
-Here you protect against bad pd_flags (corrupted mpt_entry was given?) 
-with & ~MLX4_MPT_PD_MASK, but you might hide the mpt_corruption by 
-masking it... isn't it better to fail (internal error) in this case?
-
-> +					  (pdn & MLX4_MPT_PD_MASK)
-> +					  | MLX4_MPT_PD_FLAG_EN_INV);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_hw_change_pd);
-> +
-> +int mlx4_mr_hw_change_access(struct mlx4_dev *dev,
-> +			     struct mlx4_mpt_entry *mpt_entry,
-> +			     u32 access)
-> +{
-> +	u32 flags = (be32_to_cpu(mpt_entry->flags) & ~MLX4_PERM_MASK) |
-> +		    (access & MLX4_PERM_MASK);
-> +
-> +	mpt_entry->flags = cpu_to_be32(flags);
-
-Note that you don't update the mmr access flags no where. after you
-succeed query_mr will probably return the old permissions.
-
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_hw_change_access);
-> +
->   static int mlx4_mr_alloc_reserved(struct mlx4_dev *dev, u32 mridx, u32 pd,
->   			   u64 iova, u64 size, u32 access, int npages,
->   			   int page_shift, struct mlx4_mr *mr)
-> @@ -463,6 +588,41 @@ int mlx4_mr_free(struct mlx4_dev *dev, struct mlx4_mr *mr)
->   }
->   EXPORT_SYMBOL_GPL(mlx4_mr_free);
->
-> +void mlx4_mr_rereg_mem_cleanup(struct mlx4_dev *dev, struct mlx4_mr *mr)
-> +{
-> +	mlx4_mtt_cleanup(dev, &mr->mtt);
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_rereg_mem_cleanup);
-> +
-> +int mlx4_mr_rereg_mem_write(struct mlx4_dev *dev, struct mlx4_mr *mr,
-> +			    u64 iova, u64 size, int npages,
-> +			    int page_shift, struct mlx4_mpt_entry *mpt_entry)
-> +{
-> +	int err;
-> +
-> +	mpt_entry->start       = cpu_to_be64(mr->iova);
-> +	mpt_entry->length      = cpu_to_be64(mr->size);
-
-You pass u64 iova, u64 size, but you don't use them...
-probably better to use them (and update the mmr after the change - at 
-mlx4_ib)
-
-> +	mpt_entry->entity_size = cpu_to_be32(mr->mtt.page_shift);
-> +
-> +	err = mlx4_mtt_init(dev, npages, page_shift, &mr->mtt);
 > +	if (err)
 > +		return err;
 > +
-> +	if (mr->mtt.order < 0) {
-> +		mpt_entry->flags |= cpu_to_be32(MLX4_MPT_FLAG_PHYSICAL);
-> +		mpt_entry->mtt_addr = 0;
-> +	} else {
-> +		mpt_entry->mtt_addr = cpu_to_be64(mlx4_mtt_addr(dev,
-> +						  &mr->mtt));
-> +		if (mr->mtt.page_shift == 0)
-> +			mpt_entry->mtt_sz    = cpu_to_be32(1 << mr->mtt.order);
+> +	if (flags & IB_MR_REREG_PD) {
+> +		err = mlx4_mr_hw_change_pd(dev->dev, *pmpt_entry,
+> +					   to_mpd(pd)->pdn);
+> +
+> +		if (err)
+> +			goto release_mpt_entry;
 > +	}
-> +	mr->enabled = MLX4_MPT_EN_SW;
 > +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(mlx4_mr_rereg_mem_write);
+> +	if (flags & IB_MR_REREG_ACCESS) {
+> +		err = mlx4_mr_hw_change_access(dev->dev, *pmpt_entry,
+> +					       convert_access(mr_access_flags));
 > +
->   int mlx4_mr_enable(struct mlx4_dev *dev, struct mlx4_mr *mr)
->   {
->   	struct mlx4_cmd_mailbox *mailbox;
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> index 0efc136..1089367 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-> @@ -2613,12 +2613,34 @@ int mlx4_QUERY_MPT_wrapper(struct mlx4_dev *dev, int slave,
->   	if (err)
->   		return err;
->
-> -	if (mpt->com.from_state != RES_MPT_HW) {
-> +	if (mpt->com.from_state == RES_MPT_MAPPED) {
-> +		/* In order to allow rereg in SRIOV, we need to alter the MPT entry. To do
-> +		 * that, the VF must read the MPT. But since the MPT entry memory is not
-> +		 * in the VF's virtual memory space, it must use QUERY_MPT to obtain the
-> +		 * entry contents. To guarantee that the MPT cannot be changed, the driver
-> +		 * must perform HW2SW_MPT before this query and return the MPT entry to HW
-> +		 * ownership fofollowing the change. The change here allows the VF to
-> +		 * perform QUERY_MPT also when the entry is in SW ownership.
-> +		 */
-> +		struct mlx4_mpt_entry *mpt_entry = mlx4_table_find(
-> +					&mlx4_priv(dev)->mr_table.dmpt_table,
-> +					mpt->key, NULL);
+> +		if (err)
+> +			goto release_mpt_entry;
+> +	}
 > +
-> +		if (NULL == mpt_entry || NULL == outbox->buf) {
-> +			err = -EINVAL;
-> +			goto out;
+> +	if (flags & IB_MR_REREG_TRANS) {
+> +		int shift;
+> +		int err;
+> +		int n;
+> +
+> +		mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
+> +		ib_umem_release(mmr->umem);
+> +		mmr->umem = ib_umem_get(mr->uobject->context, start, length,
+> +					mr_access_flags |
+> +					IB_ACCESS_LOCAL_WRITE,
+> +					0);
+> +		if (IS_ERR(mmr->umem)) {
+> +			err = PTR_ERR(mmr->umem);
+
+This NULL assignment is for the future dereg_mr not getting this 
+ERR_PTR. I think its worth a little comment since it took my time to 
+figure it out...
+
+> +			mmr->umem = NULL;
+> +			goto release_mpt_entry;
+> +		}
+> +		n = ib_umem_page_count(mmr->umem);
+> +		shift = ilog2(mmr->umem->page_size);
+> +
+> +		mmr->mmr.iova       = virt_addr;
+> +		mmr->mmr.size       = length;
+
+See my previous review, these updates are better after 
+mlx4_mr_rereg_mem_write
+
+> +		err = mlx4_mr_rereg_mem_write(dev->dev, &mmr->mmr,
+> +					      virt_addr, length, n, shift,
+> +					      *pmpt_entry);
+> +		if (err) {
+> +			ib_umem_release(mmr->umem);
+> +			goto release_mpt_entry;
 > +		}
 > +
-> +		memcpy(outbox->buf, mpt_entry, sizeof(*mpt_entry));
+> +		err = mlx4_ib_umem_write_mtt(dev, &mmr->mmr.mtt, mmr->umem);
+> +		if (err) {
+> +			mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
+> +			ib_umem_release(mmr->umem);
+> +			goto release_mpt_entry;
+> +		}
+> +	}
 > +
-> +		err = 0;
-> +	} else if (mpt->com.from_state == RES_MPT_HW) {
-> +		err = mlx4_DMA_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-> +	} else {
->   		err = -EBUSY;
->   		goto out;
->   	}
->
-> -	err = mlx4_DMA_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
->
->   out:
->   	put_res(dev, slave, id, RES_MPT);
-> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-> index b12f4bb..a64c397 100644
-> --- a/include/linux/mlx4/device.h
-> +++ b/include/linux/mlx4/device.h
-> @@ -262,6 +262,7 @@ enum {
->   	MLX4_PERM_REMOTE_WRITE	= 1 << 13,
->   	MLX4_PERM_ATOMIC	= 1 << 14,
->   	MLX4_PERM_BIND_MW	= 1 << 15,
-> +	MLX4_PERM_MASK		= 0xFC00
->   };
->
->   enum {
-> @@ -1243,4 +1244,19 @@ int mlx4_vf_smi_enabled(struct mlx4_dev *dev, int slave, int port);
->   int mlx4_vf_get_enable_smi_admin(struct mlx4_dev *dev, int slave, int port);
->   int mlx4_vf_set_enable_smi_admin(struct mlx4_dev *dev, int slave, int port,
->   				 int enable);
-> +int mlx4_mr_hw_get_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
-> +		       struct mlx4_mpt_entry ***mpt_entry);
-> +int mlx4_mr_hw_write_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
-> +			 struct mlx4_mpt_entry **mpt_entry);
-> +int mlx4_mr_hw_change_pd(struct mlx4_dev *dev, struct mlx4_mpt_entry *mpt_entry,
-> +			 u32 pdn);
-> +int mlx4_mr_hw_change_access(struct mlx4_dev *dev,
-> +			     struct mlx4_mpt_entry *mpt_entry,
-> +			     u32 access);
-> +void mlx4_mr_hw_put_mpt(struct mlx4_dev *dev,
-> +			struct mlx4_mpt_entry **mpt_entry);
-> +void mlx4_mr_rereg_mem_cleanup(struct mlx4_dev *dev, struct mlx4_mr *mr);
-> +int mlx4_mr_rereg_mem_write(struct mlx4_dev *dev, struct mlx4_mr *mr,
-> +			    u64 iova, u64 size, int npages,
-> +			    int page_shift, struct mlx4_mpt_entry *mpt_entry);
->   #endif /* MLX4_DEVICE_H */
+> +	/* If we couldn't transfer the MR to the HCA, just remember to
+> +	 * return a failure. But dereg_mr will free the resources.
+> +	 */
+> +	err = mlx4_mr_hw_write_mpt(dev->dev, &mmr->mmr, pmpt_entry);
+> +
+> +release_mpt_entry:
+> +	mlx4_mr_hw_put_mpt(dev->dev, pmpt_entry);
+> +
+> +	return err;
+> +}
+> +
+>   int mlx4_ib_dereg_mr(struct ib_mr *ibmr)
+>   {
+>   	struct mlx4_ib_mr *mr = to_mmr(ibmr);
 >
 
 --
