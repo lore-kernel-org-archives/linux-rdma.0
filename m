@@ -1,95 +1,47 @@
-From: Boaz Harrosh <openosd@gmail.com>
-Subject: Re: [PATCH v2 2/3] libiscsi, iser: Adjust data_length to include
- protection information
-Date: Wed, 06 Aug 2014 16:25:58 +0300
-Message-ID: <53E22CE6.9070202@gmail.com>
-References: <1402477799-24610-1-git-send-email-sagig@mellanox.com> <1402477799-24610-3-git-send-email-sagig@mellanox.com> <53D4CFAB.3040804@gmail.com> <53E22300.3090907@dev.mellanox.co.il>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] libiscsi, iser: Adjust data_length to include protection information
+Date: Wed, 06 Aug 2014 11:54:32 -0400
+Message-ID: <yq11tstd35z.fsf@sermon.lab.mkp.net>
+References: <1402477799-24610-1-git-send-email-sagig@mellanox.com>
+	<1402477799-24610-3-git-send-email-sagig@mellanox.com>
+	<53D4CFAB.3040804@gmail.com> <53E22300.3090907@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <53E22300.3090907@dev.mellanox.co.il>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Sagi Grimberg <sagig@mellanox.com>, michaelc@cs.wisc.edu, martin.petersen@oracle.com, nab@linux-iscsi.org, roland@kernel.org
-Cc: linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53E22300.3090907-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> (Sagi Grimberg's message of
+	"Wed, 06 Aug 2014 15:43:44 +0300")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Boaz Harrosh <openosd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/06/2014 03:43 PM, Sagi Grimberg wrote:
-> Hi Boaz,
-> 
-<>
->>
->> I hate that you introduced this new transfer_length variable. It does
->> not exist. In BIDI supporting driver there is out_len and in_len just
->> as original code.
-> 
-> Effectively, out_len and in_len are the same except for the bidi case.
-> Moreover, the hdr->data_length is exactly the command scsi data buffer
-> length, the bidi length is taken from scsi_in when we build the AHS for
-> bidi (rlen_ahdr->read_length).
-> 
-> So to me it is correct and makes sense. But I'm don't feel so strong
-> about it...
-> 
-> Mike what's your take on this?
-> 
+>>>>> "Sagi" == Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> writes:
 
-I have a patch to clean all that, will send tomorrow. 
+>> BTW: When reading DIFF devices, don't you have extra bits to read as
+>> well?  How does the DIFF read works? Please get me up to speed. I'm
+>> not familiar with this protocol?  (I'd imagine that if say an app
+>> reads X bytes with DIFF info, it wants to receive its DIFF checksome
+>> for every sector in X, where is this info on the iscsi wire?)
+>> 
 
-What I mean is that this is on the out-path only the in path is different.
-See the code this variable is only used in the if (== DMA_TO_DEVICE) case and
-should be local to that scope. This is my clean up
+Sagi> The application wants to read X bytes from a DIF formatted device,
+Sagi> the initiator will prepare buffers for data and for DIF data (in
+Sagi> some implementations it can be the same buffer but not in Linux),
+Sagi> and request reading X+DIF_size bytes (where each block is followed
+Sagi> by it's corresponding integrity field) and place the data blocks
+Sagi> in the data buffer and the integrity fields in the DIF data buffer
+Sagi> (usually this is offloaded).
 
-<>
->> this particular driver puts them together in the same payload. There can be
->> other DIFF supporting drivers that put the DIFF payload on another stream / another
->> SG list, like the sata one, right?
-> 
-> I think that DIF specification says that on the wire the data and
-> protection are interleaved i.e. Block1, DIF1, Block2, DIF2...
-> 
+READ CAPACITY returns a block size of 512 even though the blocks on disk
+are 520. That's the beauty of it.
 
-No it does not. This is a per transport, and actually per device host
-driver. Yes in iSCSI_tcp they are inline in HW cards they might come as
-two different SGs (Like the Linux model). Even with iscsi-offload they might
-want to be two SG-lists.
+At the command level all transfers are expressed in number of blocks,
+not bytes. The application will see an N x 512 byte buffer but on the
+wire between initiator and target we'll transfer N x 520 bytes.
 
-> So I do think that the transfer length should always include
-> data_length + protection_length.
-> 
-
-This is at the iscsi level. But the scsi_transfer_length() is on the scsi
-level which keeps them separate. So I think the proper API should be
-	scsi_proto_length()
-
-And for LLDs that want them together they can do scsi_bufflen() + scsi_proto_length()
-and for other drivers they can do it separately. Don't infect iscsi level assumptions
-on the generic layer API.
-
-Again my patch fixes this.
-
->> And this
->>
->> This print is correct as it covers all cases. If you want to print the adjusted
->> length then OK, you'd need to store this I guess, but store it as a different
->> variable like proto_length and print it as an additional variable.
-> 
-> But it is the transfer length that is sent in iSCSI header. Why do you
-> want to print it as additional info? 
-
-I want to see what was the length the app/FS sent, then as added
-info how much was added for DIFF, your way there is lost information.
-
-> for transactions that include DIF
-> the length is the data + protection.
-> 
-> It is still one-to-one isn't it?
-> 
-
-No! the original submitted length is lost from the print
-
-> Sagi.
-> 
-
-Shalom
-Boaz
+-- 
+Martin K. Petersen	Oracle Linux Engineering
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
