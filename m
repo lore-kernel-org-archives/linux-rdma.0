@@ -1,36 +1,112 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ib_mad: fix microblaze build issue (PFX macro mistake)
-Date: Mon, 11 Aug 2014 14:34:11 -0700
-Message-ID: <CAG4TOxNVh6=hJD8PjF5sM013Dd1Ha08CC37fRQvdO-n0Vy31rw@mail.gmail.com>
-References: <1407775544-24746-1-git-send-email-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1407775544-24746-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Shawn Bohrer <shawn.bohrer@gmail.com>
+Subject: [PATCH] ib_umem_release should decrement mm->pinned_vm from ib_umem_get
+Date: Tue, 12 Aug 2014 11:27:35 -0500
+Message-ID: <1407860855-6564-1-git-send-email-shawn.bohrer@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, tomk@rgmadvisors.com, Shawn Bohrer <sbohrer@rgmadvisors.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 3c6b228..cc00e4e 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -34,7 +34,7 @@
->   *
->   */
->
-> -#define pr_fmt(fmt) PFX fmt
-> +#define pr_fmt(fmt) "ib_mad: " fmt
->
->  #include <linux/dma-mapping.h>
->  #include <linux/slab.h>
-> --
-> 1.8.2
->
+From: Shawn Bohrer <sbohrer@rgmadvisors.com>
 
-Thanks, I had already rolled in a slightly different fix...
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In debugging an application that receives -ENOMEM from ib_reg_mr() I
+found that ib_umem_get() can fail because the pinned_vm count has
+wrapped causing it to always be larger than the lock limit even with
+RLIMIT_MEMLOCK set to RLIM_INFINITY.
+
+The wrapping of pinned_vm occurs because the process that calls
+ib_reg_mr() will have its mm->pinned_vm count incremented.  Later a
+different process with a different mm_struct than the one that allocated
+the ib_umem struct ends up releasing it which results in decrementing
+the new processes mm->pinned_vm count past zero and wrapping.
+
+I'm not entirely sure what circumstances cause a different process to
+release the ib_umem than the one that allocated it but the kernel stack
+trace of the freeing process from my situation looks like the following:
+
+Call Trace:
+ [<ffffffff814d64b1>] dump_stack+0x19/0x1b
+ [<ffffffffa0b522a5>] ib_umem_release+0x1f5/0x200 [ib_core]
+ [<ffffffffa0b90681>] mlx4_ib_destroy_qp+0x241/0x440 [mlx4_ib]
+ [<ffffffffa0b4d93c>] ib_destroy_qp+0x12c/0x170 [ib_core]
+ [<ffffffffa0cc7129>] ib_uverbs_close+0x259/0x4e0 [ib_uverbs]
+ [<ffffffff81141cba>] __fput+0xba/0x240
+ [<ffffffff81141e4e>] ____fput+0xe/0x10
+ [<ffffffff81060894>] task_work_run+0xc4/0xe0
+ [<ffffffff810029e5>] do_notify_resume+0x95/0xa0
+ [<ffffffff814e3dd0>] int_signal+0x12/0x17
+
+The following patch fixes the issue by storing the mm_struct of the
+process that calls ib_umem_get() so that ib_umem_release and/or
+ib_umem_account() can properly decrement the pinned_vm count of the
+correct mm_struct.
+
+Signed-off-by: Shawn Bohrer <sbohrer@rgmadvisors.com>
+---
+ drivers/infiniband/core/umem.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index a3a2e9c..32699024 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -105,6 +105,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	umem->length    = size;
+ 	umem->offset    = addr & ~PAGE_MASK;
+ 	umem->page_size = PAGE_SIZE;
++	umem->mm        = get_task_mm(current);
+ 	/*
+ 	 * We ask for writable memory if any access flags other than
+ 	 * "remote read" are set.  "Local write" and "remote write"
+@@ -198,6 +199,7 @@ out:
+ 	if (ret < 0) {
+ 		if (need_release)
+ 			__ib_umem_release(context->device, umem, 0);
++		mmput(umem->mm);
+ 		kfree(umem);
+ 	} else
+ 		current->mm->pinned_vm = locked;
+@@ -229,13 +231,11 @@ static void ib_umem_account(struct work_struct *work)
+ void ib_umem_release(struct ib_umem *umem)
+ {
+ 	struct ib_ucontext *context = umem->context;
+-	struct mm_struct *mm;
+ 	unsigned long diff;
+ 
+ 	__ib_umem_release(umem->context->device, umem, 1);
+ 
+-	mm = get_task_mm(current);
+-	if (!mm) {
++	if (!umem->mm) {
+ 		kfree(umem);
+ 		return;
+ 	}
+@@ -251,20 +251,19 @@ void ib_umem_release(struct ib_umem *umem)
+ 	 * we defer the vm_locked accounting to the system workqueue.
+ 	 */
+ 	if (context->closing) {
+-		if (!down_write_trylock(&mm->mmap_sem)) {
++		if (!down_write_trylock(&umem->mm->mmap_sem)) {
+ 			INIT_WORK(&umem->work, ib_umem_account);
+-			umem->mm   = mm;
+ 			umem->diff = diff;
+ 
+ 			queue_work(ib_wq, &umem->work);
+ 			return;
+ 		}
+ 	} else
+-		down_write(&mm->mmap_sem);
++		down_write(&umem->mm->mmap_sem);
+ 
+-	current->mm->pinned_vm -= diff;
+-	up_write(&mm->mmap_sem);
+-	mmput(mm);
++	umem->mm->pinned_vm -= diff;
++	up_write(&umem->mm->mmap_sem);
++	mmput(umem->mm);
+ 	kfree(umem);
+ }
+ EXPORT_SYMBOL(ib_umem_release);
+-- 
+1.7.7.6
