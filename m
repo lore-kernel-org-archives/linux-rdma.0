@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 7/8] ib/srpt: Handle GID change events
-Date: Tue, 12 Aug 2014 19:20:10 -0400
-Message-ID: <03a8632df272c1f9c5c26777263a1bf707a264b2.1407885084.git.dledford@redhat.com>
+Subject: [PATCH 5/8] IB/mlx5: use ARRAY_SIZE instead of sizeof/sizeof[0]
+Date: Tue, 12 Aug 2014 19:20:08 -0400
+Message-ID: <9a39c360c37847338ea9e7c92d204933958719a2.1407885084.git.dledford@redhat.com>
 References: <cover.1407885084.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -9,29 +9,36 @@ In-Reply-To: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.
 References: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-GID change events need a refresh just like LID change events and several
-others.  Handle this the same as the others.
+From: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
 
+use macro definition
+
+Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Acked-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/mlx5/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 238dfe2d8fb..1d00666cd0d 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -198,6 +198,7 @@ static void srpt_event_handler(struct ib_event_handler *handler,
- 	case IB_EVENT_PKEY_CHANGE:
- 	case IB_EVENT_SM_CHANGE:
- 	case IB_EVENT_CLIENT_REREGISTER:
-+	case IB_EVENT_GID_CHANGE:
- 		/* Refresh port data asynchronously. */
- 		if (event->element.port_num <= sdev->device->phys_port_cnt) {
- 			sport = &sdev->port[event->element.port_num - 1];
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index bbbcf389272..416cb724422 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2501,7 +2501,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 	spin_lock_irqsave(&qp->sq.lock, flags);
+ 
+ 	for (nreq = 0; wr; nreq++, wr = wr->next) {
+-		if (unlikely(wr->opcode >= sizeof(mlx5_ib_opcode) / sizeof(mlx5_ib_opcode[0]))) {
++		if (unlikely(wr->opcode >= ARRAY_SIZE(mlx5_ib_opcode))) {
+ 			mlx5_ib_warn(dev, "\n");
+ 			err = -EINVAL;
+ 			*bad_wr = wr;
 -- 
 1.9.3
 
