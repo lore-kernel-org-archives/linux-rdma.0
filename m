@@ -1,112 +1,59 @@
-From: Shawn Bohrer <shawn.bohrer@gmail.com>
-Subject: [PATCH] ib_umem_release should decrement mm->pinned_vm from ib_umem_get
-Date: Tue, 12 Aug 2014 11:27:35 -0500
-Message-ID: <1407860855-6564-1-git-send-email-shawn.bohrer@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, tomk@rgmadvisors.com, Shawn Bohrer <sbohrer@rgmadvisors.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/8] Misc fixes for 3.17 rdma stack
+Date: Tue, 12 Aug 2014 19:20:03 -0400
+Message-ID: <cover.1407885084.git.dledford@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shawn Bohrer <sbohrer@rgmadvisors.com>
+This is a collection of miscellaneous fixes that people have posted
+previously for inclusion in the 3.17 kernel.  The one from Bart was
+(apparently) skipped when you picked up the rest of the set.  I'm
+requesting that you reconsider skipping this patch as the pkey cache
+is a perfectly valid optimization to use and saves considerable time
+on pkey lookups (my measurements were up to 5ms per lookup that goes
+to the card instead of hitting the cache, so that's a 5ms of totally
+unneeded latency).
 
-In debugging an application that receives -ENOMEM from ib_reg_mr() I
-found that ib_umem_get() can fail because the pinned_vm count has
-wrapped causing it to always be larger than the lock limit even with
-RLIMIT_MEMLOCK set to RLIM_INFINITY.
+I have three in here, one that I've posted before and two that are new.
 
-The wrapping of pinned_vm occurs because the process that calls
-ib_reg_mr() will have its mm->pinned_vm count incremented.  Later a
-different process with a different mm_struct than the one that allocated
-the ib_umem struct ends up releasing it which results in decrementing
-the new processes mm->pinned_vm count past zero and wrapping.
+The remainder are very much trivial patches, but they weren't in your
+tree so I included them here.  These have all been built into my test
+kernel for my next patch set, so they've at least been compile tested
+by me, and they've also been reviewed and I've added my sign off.
 
-I'm not entirely sure what circumstances cause a different process to
-release the ib_umem than the one that allocated it but the kernel stack
-trace of the freeing process from my situation looks like the following:
+Bart Van Assche (1):
+  IB/srp: Use P_Key cache for P_Key lookups
 
-Call Trace:
- [<ffffffff814d64b1>] dump_stack+0x19/0x1b
- [<ffffffffa0b522a5>] ib_umem_release+0x1f5/0x200 [ib_core]
- [<ffffffffa0b90681>] mlx4_ib_destroy_qp+0x241/0x440 [mlx4_ib]
- [<ffffffffa0b4d93c>] ib_destroy_qp+0x12c/0x170 [ib_core]
- [<ffffffffa0cc7129>] ib_uverbs_close+0x259/0x4e0 [ib_uverbs]
- [<ffffffff81141cba>] __fput+0xba/0x240
- [<ffffffff81141e4e>] ____fput+0xe/0x10
- [<ffffffff81060894>] task_work_run+0xc4/0xe0
- [<ffffffff810029e5>] do_notify_resume+0x95/0xa0
- [<ffffffff814e3dd0>] int_signal+0x12/0x17
+Dan Carpenter (1):
+  RDMA/amso1100: integer overflow in c2_alloc_cq_buf()
 
-The following patch fixes the issue by storing the mm_struct of the
-process that calls ib_umem_get() so that ib_umem_release and/or
-ib_umem_account() can properly decrement the pinned_vm count of the
-correct mm_struct.
+Doug Ledford (3):
+  ib/srpt: Enhance printk output
+  ib/srpt: Handle GID change events
+  uapi/rdma_user_cm.h: include socket.h
 
-Signed-off-by: Shawn Bohrer <sbohrer@rgmadvisors.com>
----
- drivers/infiniband/core/umem.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+Fabian Frederick (3):
+  drivers/infiniband/ulp/ipoib/ipoib_fs.c: remove unnecessary null test
+    before debugfs_remove
+  IB/mlx4: use ARRAY_SIZE instead of sizeof/sizeof[0]
+  IB/mlx5: use ARRAY_SIZE instead of sizeof/sizeof[0]
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index a3a2e9c..32699024 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -105,6 +105,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	umem->length    = size;
- 	umem->offset    = addr & ~PAGE_MASK;
- 	umem->page_size = PAGE_SIZE;
-+	umem->mm        = get_task_mm(current);
- 	/*
- 	 * We ask for writable memory if any access flags other than
- 	 * "remote read" are set.  "Local write" and "remote write"
-@@ -198,6 +199,7 @@ out:
- 	if (ret < 0) {
- 		if (need_release)
- 			__ib_umem_release(context->device, umem, 0);
-+		mmput(umem->mm);
- 		kfree(umem);
- 	} else
- 		current->mm->pinned_vm = locked;
-@@ -229,13 +231,11 @@ static void ib_umem_account(struct work_struct *work)
- void ib_umem_release(struct ib_umem *umem)
- {
- 	struct ib_ucontext *context = umem->context;
--	struct mm_struct *mm;
- 	unsigned long diff;
- 
- 	__ib_umem_release(umem->context->device, umem, 1);
- 
--	mm = get_task_mm(current);
--	if (!mm) {
-+	if (!umem->mm) {
- 		kfree(umem);
- 		return;
- 	}
-@@ -251,20 +251,19 @@ void ib_umem_release(struct ib_umem *umem)
- 	 * we defer the vm_locked accounting to the system workqueue.
- 	 */
- 	if (context->closing) {
--		if (!down_write_trylock(&mm->mmap_sem)) {
-+		if (!down_write_trylock(&umem->mm->mmap_sem)) {
- 			INIT_WORK(&umem->work, ib_umem_account);
--			umem->mm   = mm;
- 			umem->diff = diff;
- 
- 			queue_work(ib_wq, &umem->work);
- 			return;
- 		}
- 	} else
--		down_write(&mm->mmap_sem);
-+		down_write(&umem->mm->mmap_sem);
- 
--	current->mm->pinned_vm -= diff;
--	up_write(&mm->mmap_sem);
--	mmput(mm);
-+	umem->mm->pinned_vm -= diff;
-+	up_write(&umem->mm->mmap_sem);
-+	mmput(umem->mm);
- 	kfree(umem);
- }
- EXPORT_SYMBOL(ib_umem_release);
+ drivers/infiniband/hw/amso1100/c2_cq.c  |   7 +-
+ drivers/infiniband/hw/mlx4/main.c       |   6 +-
+ drivers/infiniband/hw/mlx5/qp.c         |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_fs.c |   6 +-
+ drivers/infiniband/ulp/srp/ib_srp.c     |   9 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c   | 202 ++++++++++++++++----------------
+ include/uapi/rdma/rdma_user_cm.h        |   1 +
+ 7 files changed, 118 insertions(+), 115 deletions(-)
+
 -- 
-1.7.7.6
+1.9.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
