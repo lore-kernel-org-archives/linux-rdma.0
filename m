@@ -1,55 +1,52 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 0/8] Misc fixes for 3.17 rdma stack
-Date: Tue, 12 Aug 2014 19:20:03 -0400
-Message-ID: <cover.1407885084.git.dledford@redhat.com>
+Subject: [PATCH 1/8] RDMA/amso1100: integer overflow in c2_alloc_cq_buf()
+Date: Tue, 12 Aug 2014 19:20:04 -0400
+Message-ID: <1848ee41c745f136ddd258dd0e21c1bc05e98f44.1407885084.git.dledford@redhat.com>
+References: <cover.1407885084.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a collection of miscellaneous fixes that people have posted
-previously for inclusion in the 3.17 kernel.  The one from Bart was
-(apparently) skipped when you picked up the rest of the set.  I'm
-requesting that you reconsider skipping this patch as the pkey cache
-is a perfectly valid optimization to use and saves considerable time
-on pkey lookups (my measurements were up to 5ms per lookup that goes
-to the card instead of hitting the cache, so that's a 5ms of totally
-unneeded latency).
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-I have three in here, one that I've posted before and two that are new.
+This is a static checker fix.  The static checker says that q_size comes
+from the user and can be any 32 bit value.  The call tree is:
+  --> ib_uverbs_create_cq()
+      --> c2_create_cq()
+          --> c2_init_cq()
 
-The remainder are very much trivial patches, but they weren't in your
-tree so I included them here.  These have all been built into my test
-kernel for my next patch set, so they've at least been compile tested
-by me, and they've also been reviewed and I've added my sign off.
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/amso1100/c2_cq.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Bart Van Assche (1):
-  IB/srp: Use P_Key cache for P_Key lookups
-
-Dan Carpenter (1):
-  RDMA/amso1100: integer overflow in c2_alloc_cq_buf()
-
-Doug Ledford (3):
-  ib/srpt: Enhance printk output
-  ib/srpt: Handle GID change events
-  uapi/rdma_user_cm.h: include socket.h
-
-Fabian Frederick (3):
-  drivers/infiniband/ulp/ipoib/ipoib_fs.c: remove unnecessary null test
-    before debugfs_remove
-  IB/mlx4: use ARRAY_SIZE instead of sizeof/sizeof[0]
-  IB/mlx5: use ARRAY_SIZE instead of sizeof/sizeof[0]
-
- drivers/infiniband/hw/amso1100/c2_cq.c  |   7 +-
- drivers/infiniband/hw/mlx4/main.c       |   6 +-
- drivers/infiniband/hw/mlx5/qp.c         |   2 +-
- drivers/infiniband/ulp/ipoib/ipoib_fs.c |   6 +-
- drivers/infiniband/ulp/srp/ib_srp.c     |   9 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c   | 202 ++++++++++++++++----------------
- include/uapi/rdma/rdma_user_cm.h        |   1 +
- 7 files changed, 118 insertions(+), 115 deletions(-)
-
+diff --git a/drivers/infiniband/hw/amso1100/c2_cq.c b/drivers/infiniband/hw/amso1100/c2_cq.c
+index 49e0e8533f7..1b63185b4ad 100644
+--- a/drivers/infiniband/hw/amso1100/c2_cq.c
++++ b/drivers/infiniband/hw/amso1100/c2_cq.c
+@@ -260,11 +260,14 @@ static void c2_free_cq_buf(struct c2_dev *c2dev, struct c2_mq *mq)
+ 			  mq->msg_pool.host, dma_unmap_addr(mq, mapping));
+ }
+ 
+-static int c2_alloc_cq_buf(struct c2_dev *c2dev, struct c2_mq *mq, int q_size,
+-			   int msg_size)
++static int c2_alloc_cq_buf(struct c2_dev *c2dev, struct c2_mq *mq,
++			   size_t q_size, size_t msg_size)
+ {
+ 	u8 *pool_start;
+ 
++	if (q_size > SIZE_MAX / msg_size)
++		return -EINVAL;
++
+ 	pool_start = dma_alloc_coherent(&c2dev->pcidev->dev, q_size * msg_size,
+ 					&mq->host_dma, GFP_KERNEL);
+ 	if (!pool_start)
 -- 
 1.9.3
 
