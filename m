@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/8] IB/srp: Use P_Key cache for P_Key lookups
-Date: Tue, 12 Aug 2014 19:20:05 -0400
-Message-ID: <6555e716eda21a03577e5e1e0bfb6bbadbb592d3.1407885084.git.dledford@redhat.com>
+Subject: [PATCH 4/8] IB/mlx4: use ARRAY_SIZE instead of sizeof/sizeof[0]
+Date: Tue, 12 Aug 2014 19:20:07 -0400
+Message-ID: <e43725ba24645298d55960c6c63208f4c52317c6.1407885084.git.dledford@redhat.com>
 References: <cover.1407885084.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -9,49 +9,46 @@ In-Reply-To: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.
 References: <cover.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+From: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
 
-This change slightly reduces the time needed to log in.
+use macro definition
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Fabian Frederick <fabf-AgBVmzD5pcezQB+pC5nmwQ@public.gmane.org>
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 7f5ee7fc02a..bcec45a2c95 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -40,6 +40,7 @@
- #include <linux/parser.h>
- #include <linux/random.h>
- #include <linux/jiffies.h>
-+#include <rdma/ib_cache.h>
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 828a37b2481..e1e558a3d69 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -910,8 +910,7 @@ static int __mlx4_ib_default_rules_match(struct ib_qp *qp,
+ 	const struct default_rules *pdefault_rules = default_table;
+ 	u8 link_layer = rdma_port_get_link_layer(qp->device, flow_attr->port);
  
- #include <linux/atomic.h>
+-	for (i = 0; i < sizeof(default_table)/sizeof(default_table[0]); i++,
+-	     pdefault_rules++) {
++	for (i = 0; i < ARRAY_SIZE(default_table); i++, pdefault_rules++) {
+ 		__u32 field_types[IB_FLOW_SPEC_SUPPORT_LAYERS];
+ 		memset(&field_types, 0, sizeof(field_types));
  
-@@ -260,10 +261,10 @@ static int srp_init_qp(struct srp_target_port *target,
- 	if (!attr)
- 		return -ENOMEM;
+@@ -965,8 +964,7 @@ static int __mlx4_ib_create_default_rules(
+ 	int size = 0;
+ 	int i;
  
--	ret = ib_find_pkey(target->srp_host->srp_dev->dev,
--			   target->srp_host->port,
--			   be16_to_cpu(target->path.pkey),
--			   &attr->pkey_index);
-+	ret = ib_find_cached_pkey(target->srp_host->srp_dev->dev,
-+				  target->srp_host->port,
-+				  be16_to_cpu(target->path.pkey),
-+				  &attr->pkey_index);
- 	if (ret)
- 		goto out;
- 
+-	for (i = 0; i < sizeof(pdefault_rules->rules_create_list)/
+-			sizeof(pdefault_rules->rules_create_list[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(pdefault_rules->rules_create_list); i++) {
+ 		int ret;
+ 		union ib_flow_spec ib_spec;
+ 		switch (pdefault_rules->rules_create_list[i]) {
 -- 
 1.9.3
 
