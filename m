@@ -1,50 +1,57 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/7] Signature feature update
-Date: Wed, 13 Aug 2014 19:54:28 +0300
-Message-ID: <1407948875-733-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
-Cc: martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH 1/7] IB/mlx5: Use enumerations for PI copy mask
+Date: Wed, 13 Aug 2014 19:54:29 +0300
+Message-ID: <1407948875-733-2-git-send-email-sagig@mellanox.com>
+References: <1407948875-733-1-git-send-email-sagig@mellanox.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1407948875-733-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: roland@kernel.org, nab@linux-iscsi.org
+Cc: martin.petersen@oracle.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, oren@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-Lately MKP posted some block data integrity updates over Linux-scsi (see https://lwn.net/Articles/606820/).
-These changes follow DIX draft 1.1 (see see https://oss.oracle.com/~mkp/docs/dix-1.1.pdf).
-The draft updates the execution parameters passed from SCSI midlayer
-to the LLDs with respect to data integrity feature.
+In case input and output space parameters match, we can
+use a copy mask from input and output space. Use enums
+for those.
 
-This set updates signature feature accordingly.
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c |    6 +++---
+ include/linux/mlx5/qp.h         |    3 +++
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-Once Martin's patches will land mainline I'll also modify iSER
-to take relevant parameters from the scsi command structure.
-
-This set consists of:
-- Patches #1, #2, #3 are minor fixes
-- Patch #4 is a preparation patch
-- Patches #5, #6 are code centralization
-- Patch #7 is an API update (modifies ib_core, mlx5, iser, isert)
-
-Roland, there are some patches in iser-target code, but I'm pretty
-sure that they can go from your tree. Right Nic?
-
-Sagi Grimberg (7):
-  IB/mlx5: Use enumerations for PI copy mask
-  IB/iser: Remove redundant assignment
-  IB/iser: Set IP_CSUM as default guard type
-  IB/mlx5: Use extended internal signature layout
-  IB/iser: Centralize ib_sig_domain settings
-  Target/iser: Centralize ib_sig_domain setting
-  IB/mlx5, iser, isert: Add Signature API additions
-
- drivers/infiniband/hw/mlx5/qp.c           |  134 ++++++++++++-----------------
- drivers/infiniband/ulp/iser/iscsi_iser.c  |    4 +-
- drivers/infiniband/ulp/iser/iser_memory.c |   79 ++++++++---------
- drivers/infiniband/ulp/isert/ib_isert.c   |   65 ++++++---------
- include/linux/mlx5/qp.h                   |   35 ++++++--
- include/rdma/ib_verbs.h                   |   32 +++----
- 6 files changed, 164 insertions(+), 185 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index e847ecf..af3b7fa 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2095,11 +2095,11 @@ static int mlx5_set_bsf(struct ib_mr *sig_mr,
+ 			/* Same block structure */
+ 			basic->bsf_size_sbs = 1 << 4;
+ 			if (mem->sig.dif.bg_type == wire->sig.dif.bg_type)
+-				basic->wire.copy_byte_mask |= 0xc0;
++				basic->wire.copy_byte_mask |= MLX5_CPY_GRD_MASK;
+ 			if (mem->sig.dif.app_tag == wire->sig.dif.app_tag)
+-				basic->wire.copy_byte_mask |= 0x30;
++				basic->wire.copy_byte_mask |= MLX5_CPY_APP_MASK;
+ 			if (mem->sig.dif.ref_tag == wire->sig.dif.ref_tag)
+-				basic->wire.copy_byte_mask |= 0x0f;
++				basic->wire.copy_byte_mask |= MLX5_CPY_REF_MASK;
+ 		} else
+ 			basic->wire.bs_selector = bs_selector(wire->sig.dif.pi_interval);
+ 
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index 9709b30..4aa5634 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -40,6 +40,9 @@
+ #define MLX5_SIG_WQE_SIZE	(MLX5_SEND_WQE_BB * 5)
+ #define MLX5_DIF_SIZE		8
+ #define MLX5_STRIDE_BLOCK_OP	0x400
++#define MLX5_CPY_GRD_MASK	0xc0
++#define MLX5_CPY_APP_MASK	0x30
++#define MLX5_CPY_REF_MASK	0x0f
+ 
+ enum mlx5_qp_optpar {
+ 	MLX5_QP_OPTPAR_ALT_ADDR_PATH		= 1 << 0,
+-- 
+1.7.1
