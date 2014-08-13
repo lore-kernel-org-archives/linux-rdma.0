@@ -1,39 +1,57 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/8] IB/srp: Use P_Key cache for P_Key lookups
-Date: Tue, 12 Aug 2014 21:56:32 -0700
-Message-ID: <CAG4TOxM5xUh3gLx5wEixuhro7131JxfZHviPm1EgZArJy7+Y4w@mail.gmail.com>
-References: <cover.1407885084.git.dledford@redhat.com> <6555e716eda21a03577e5e1e0bfb6bbadbb592d3.1407885084.git.dledford@redhat.com>
+From: Himangi Saraogi <himangi774-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: Drop unnecessary continue
+Date: Wed, 13 Aug 2014 14:50:47 +0530
+Message-ID: <20140813092047.GA3150@himangi-Dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6555e716eda21a03577e5e1e0bfb6bbadbb592d3.1407885084.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 12, 2014 at 4:20 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> -       ret = ib_find_pkey(target->srp_host->srp_dev->dev,
-> -                          target->srp_host->port,
-> -                          be16_to_cpu(target->path.pkey),
-> -                          &attr->pkey_index);
-> +       ret = ib_find_cached_pkey(target->srp_host->srp_dev->dev,
-> +                                 target->srp_host->port,
-> +                                 be16_to_cpu(target->path.pkey),
-> +                                 &attr->pkey_index);
+Continue is not needed at the bottom of a loop.
 
-I consider the "cached" operations to be a deprecated interface, and
-I'd rather remove uses than add new ones.  I have a vague dream of
-fixing everything up so the normal interfaces (ib_find_pkey() etc)
-don't sleep and are usable everywhere, although that dream will
-probably never come true.
+The Coccinelle semantic patch implementing this change is:
 
-But is there any practical benefit to this change?  I don't think
-saving a few milliseconds at log in time counts -- I would think it's
-lost in the noise of how long it takes to actually log in, scan for
-LUNs, etc.
+@@
+@@
 
- - R.
+for (...;...;...) {
+  ...
+  if (...) {
+    ...
+-   continue;
+  }
+}
+
+Signed-off-by: Himangi Saraogi <himangi774-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Acked-by: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_init.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 8d3c78d..3bee93a4 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -705,11 +705,9 @@ int qib_init(struct qib_devdata *dd, int reinit)
+ 		lastfail = qib_create_rcvhdrq(dd, rcd);
+ 		if (!lastfail)
+ 			lastfail = qib_setup_eagerbufs(rcd);
+-		if (lastfail) {
++		if (lastfail)
+ 			qib_dev_err(dd,
+ 				"failed to allocate kernel ctxt's rcvhdrq and/or egr bufs\n");
+-			continue;
+-		}
+ 	}
+ 
+ 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
