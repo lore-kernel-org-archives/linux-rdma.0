@@ -1,217 +1,96 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 4/7] IB/mlx5: Use extended internal signature layout
-Date: Wed, 13 Aug 2014 19:54:32 +0300
-Message-ID: <1407948875-733-5-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 5/7] IB/iser: Centralize ib_sig_domain settings
+Date: Wed, 13 Aug 2014 19:54:33 +0300
+Message-ID: <1407948875-733-6-git-send-email-sagig@mellanox.com>
 References: <1407948875-733-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1407948875-733-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: roland@kernel.org, nab@linux-iscsi.org
-Cc: martin.petersen@oracle.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, oren@mellanox.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1407948875-733-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
+Cc: martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Rather than using the basic BSF layout which utilizes a pre-configured
-signature settings (sufficient for current DIF implementation), we use
-the extended BSF layout to expose advanced signature settings. These
-settings will also be exposed to the user later.
+Later there will be more parameters to set, so
+we want to do it in a centralized place.
 
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+This patch does not change any functionality.
+
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c |   80 ++++++++++++++++++---------------------
- include/linux/mlx5/qp.h         |   32 ++++++++++++----
- 2 files changed, 61 insertions(+), 51 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c |   36 ++++++++++++++--------------
+ 1 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index af3b7fa..8377816 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2020,53 +2020,47 @@ static u8 bs_selector(int block_size)
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index bf0d1cc..5842d50 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -457,44 +457,44 @@ scsi2ib_prot_type(unsigned char prot_type)
  	}
  }
  
--static int format_selector(struct ib_sig_attrs *attr,
--			   struct ib_sig_domain *domain,
--			   int *selector)
-+static int mlx5_fill_inl_bsf(struct ib_sig_domain *domain,
-+			     struct mlx5_bsf_inl *inl)
++static inline void
++iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
++		    struct ib_sig_domain *domain)
++{
++	unsigned char scsi_ptype = scsi_get_prot_type(sc);
++
++	domain->sig.dif.type = scsi2ib_prot_type(scsi_ptype);
++	domain->sig.dif.pi_interval = sc->device->sector_size;
++	domain->sig.dif.ref_tag = scsi_get_lba(sc) & 0xffffffff;
++};
+ 
+ static int
+ iser_set_sig_attrs(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs)
  {
+-	unsigned char scsi_ptype = scsi_get_prot_type(sc);
 -
--#define FORMAT_DIF_NONE		0
--#define FORMAT_DIF_CRC_INC	8
--#define FORMAT_DIF_CRC_NO_INC	12
--#define FORMAT_DIF_CSUM_INC	13
--#define FORMAT_DIF_CSUM_NO_INC	14
-+	/* Valid inline section and allow BSF refresh */
-+	inl->vld_refresh = cpu_to_be16(MLX5_BSF_INL_VALID |
-+				       MLX5_BSF_REFRESH_DIF);
-+	inl->dif_apptag = cpu_to_be16(domain->sig.dif.app_tag);
-+	inl->dif_reftag = cpu_to_be32(domain->sig.dif.ref_tag);
+ 	sig_attrs->mem.sig_type = IB_SIG_TYPE_T10_DIF;
+ 	sig_attrs->wire.sig_type = IB_SIG_TYPE_T10_DIF;
+-	sig_attrs->mem.sig.dif.pi_interval = sc->device->sector_size;
+-	sig_attrs->wire.sig.dif.pi_interval = sc->device->sector_size;
  
- 	switch (domain->sig.dif.type) {
- 	case IB_T10DIF_NONE:
- 		/* No DIF */
--		*selector = FORMAT_DIF_NONE;
+ 	switch (scsi_get_prot_op(sc)) {
+ 	case SCSI_PROT_WRITE_INSERT:
+ 	case SCSI_PROT_READ_STRIP:
+ 		sig_attrs->mem.sig.dif.type = IB_T10DIF_NONE;
+-		sig_attrs->wire.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
++		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->wire);
+ 		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
+-		sig_attrs->wire.sig.dif.ref_tag = scsi_get_lba(sc) &
+-						  0xffffffff;
  		break;
- 	case IB_T10DIF_TYPE1: /* Fall through */
- 	case IB_T10DIF_TYPE2:
--		switch (domain->sig.dif.bg_type) {
--		case IB_T10DIF_CRC:
--			*selector = FORMAT_DIF_CRC_INC;
--			break;
--		case IB_T10DIF_CSUM:
--			*selector = FORMAT_DIF_CSUM_INC;
--			break;
--		default:
--			return 1;
--		}
-+		inl->sig_type = domain->sig.dif.bg_type == IB_T10DIF_CRC ?
-+				MLX5_DIF_CRC : MLX5_DIF_IPCS;
-+		/*
-+		 * increment reftag and don't check if
-+		 * apptag=0xffff and reftag=0xffffffff
-+		 */
-+		inl->dif_inc_ref_guard_check = MLX5_BSF_INC_REFTAG |
-+					       MLX5_BSF_APPREF_ESCAPE;
-+		inl->dif_app_bitmask_check = 0xffff;
-+		/* repeating block */
-+		inl->rp_inv_seed = MLX5_BSF_REPEAT_BLOCK;
+ 	case SCSI_PROT_READ_INSERT:
+ 	case SCSI_PROT_WRITE_STRIP:
+-		sig_attrs->mem.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
+-		sig_attrs->mem.sig.dif.bg_type = IB_T10DIF_CRC;
+-		sig_attrs->mem.sig.dif.ref_tag = scsi_get_lba(sc) &
+-						 0xffffffff;
+ 		sig_attrs->wire.sig.dif.type = IB_T10DIF_NONE;
++		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
++		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
++						 IB_T10DIF_CRC;
  		break;
- 	case IB_T10DIF_TYPE3:
--		switch (domain->sig.dif.bg_type) {
--		case IB_T10DIF_CRC:
--			*selector = domain->sig.dif.type3_inc_reftag ?
--					   FORMAT_DIF_CRC_INC :
--					   FORMAT_DIF_CRC_NO_INC;
--			break;
--		case IB_T10DIF_CSUM:
--			*selector = domain->sig.dif.type3_inc_reftag ?
--					   FORMAT_DIF_CSUM_INC :
--					   FORMAT_DIF_CSUM_NO_INC;
--			break;
--		default:
--			return 1;
--		}
-+		inl->sig_type = domain->sig.dif.bg_type == IB_T10DIF_CRC ?
-+				MLX5_DIF_CRC : MLX5_DIF_IPCS;
-+		/*
-+		 * Don't inc reftag and don't check if
-+		 * apptag=0xffff and reftag=0xffffffff
-+		 */
-+		inl->dif_inc_ref_guard_check = MLX5_BSF_APPREF_ESCAPE;
-+		inl->dif_app_bitmask_check = 0xffff;
-+		/* Repeating block */
-+		inl->rp_inv_seed = MLX5_BSF_REPEAT_BLOCK;
+ 	case SCSI_PROT_READ_PASS:
+ 	case SCSI_PROT_WRITE_PASS:
+-		sig_attrs->mem.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
+-		sig_attrs->mem.sig.dif.bg_type = IB_T10DIF_CRC;
+-		sig_attrs->mem.sig.dif.ref_tag = scsi_get_lba(sc) &
+-						 0xffffffff;
+-		sig_attrs->wire.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
++		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->wire);
+ 		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
+-		sig_attrs->wire.sig.dif.ref_tag = scsi_get_lba(sc) &
+-						  0xffffffff;
++		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
++		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
++						 IB_T10DIF_CRC;
  		break;
  	default:
--		return 1;
-+		return -EINVAL;
- 	}
- 
- 	return 0;
-@@ -2080,7 +2074,7 @@ static int mlx5_set_bsf(struct ib_mr *sig_mr,
- 	struct mlx5_bsf_basic *basic = &bsf->basic;
- 	struct ib_sig_domain *mem = &sig_attrs->mem;
- 	struct ib_sig_domain *wire = &sig_attrs->wire;
--	int ret, selector;
-+	int ret;
- 
- 	memset(bsf, 0, sizeof(*bsf));
- 	switch (sig_attrs->mem.sig_type) {
-@@ -2088,12 +2082,14 @@ static int mlx5_set_bsf(struct ib_mr *sig_mr,
- 		if (sig_attrs->wire.sig_type != IB_SIG_TYPE_T10_DIF)
- 			return -EINVAL;
- 
-+		/* Basic + Extended + Inline */
-+		basic->bsf_size_sbs = 1 << 7;
- 		/* Input domain check byte mask */
- 		basic->check_byte_mask = sig_attrs->check_mask;
- 		if (mem->sig.dif.pi_interval == wire->sig.dif.pi_interval &&
- 		    mem->sig.dif.type == wire->sig.dif.type) {
- 			/* Same block structure */
--			basic->bsf_size_sbs = 1 << 4;
-+			basic->bsf_size_sbs |= 1 << 4;
- 			if (mem->sig.dif.bg_type == wire->sig.dif.bg_type)
- 				basic->wire.copy_byte_mask |= MLX5_CPY_GRD_MASK;
- 			if (mem->sig.dif.app_tag == wire->sig.dif.app_tag)
-@@ -2105,18 +2101,16 @@ static int mlx5_set_bsf(struct ib_mr *sig_mr,
- 
- 		basic->mem.bs_selector = bs_selector(mem->sig.dif.pi_interval);
- 		basic->raw_data_size = cpu_to_be32(data_size);
-+		basic->m_bfs_psv = cpu_to_be32(msig->psv_memory.psv_idx);
-+		basic->w_bfs_psv = cpu_to_be32(msig->psv_wire.psv_idx);
- 
--		ret = format_selector(sig_attrs, mem, &selector);
-+		ret = mlx5_fill_inl_bsf(wire, &bsf->w_inl);
- 		if (ret)
- 			return -EINVAL;
--		basic->m_bfs_psv = cpu_to_be32(selector << 24 |
--					       msig->psv_memory.psv_idx);
- 
--		ret = format_selector(sig_attrs, wire, &selector);
-+		ret = mlx5_fill_inl_bsf(mem, &bsf->m_inl);
- 		if (ret)
- 			return -EINVAL;
--		basic->w_bfs_psv = cpu_to_be32(selector << 24 |
--					       msig->psv_wire.psv_idx);
- 		break;
- 
- 	default:
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index 4aa5634..69f5378 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -43,6 +43,12 @@
- #define MLX5_CPY_GRD_MASK	0xc0
- #define MLX5_CPY_APP_MASK	0x30
- #define MLX5_CPY_REF_MASK	0x0f
-+#define MLX5_BSF_INC_REFTAG	(1 << 6)
-+#define MLX5_BSF_INL_VALID	(1 << 15)
-+#define MLX5_BSF_REFRESH_DIF	(1 << 14)
-+#define MLX5_BSF_REPEAT_BLOCK	(1 << 7)
-+#define MLX5_BSF_APPTAG_ESCAPE	0x1
-+#define MLX5_BSF_APPREF_ESCAPE	0x2
- 
- enum mlx5_qp_optpar {
- 	MLX5_QP_OPTPAR_ALT_ADDR_PATH		= 1 << 0,
-@@ -290,6 +296,22 @@ struct mlx5_wqe_inline_seg {
- 	__be32	byte_count;
- };
- 
-+enum mlx5_sig_type {
-+	MLX5_DIF_CRC = 0x1,
-+	MLX5_DIF_IPCS = 0x2,
-+};
-+
-+struct mlx5_bsf_inl {
-+	__be16		vld_refresh;
-+	__be16		dif_apptag;
-+	__be32		dif_reftag;
-+	u8		sig_type;
-+	u8		rp_inv_seed;
-+	u8		rsvd[3];
-+	u8		dif_inc_ref_guard_check;
-+	__be16		dif_app_bitmask_check;
-+};
-+
- struct mlx5_bsf {
- 	struct mlx5_bsf_basic {
- 		u8		bsf_size_sbs;
-@@ -313,14 +335,8 @@ struct mlx5_bsf {
- 		__be32		w_tfs_psv;
- 		__be32		m_tfs_psv;
- 	} ext;
--	struct mlx5_bsf_inl {
--		__be32		w_inl_vld;
--		__be32		w_rsvd;
--		__be64		w_block_format;
--		__be32		m_inl_vld;
--		__be32		m_rsvd;
--		__be64		m_block_format;
--	} inl;
-+	struct mlx5_bsf_inl	w_inl;
-+	struct mlx5_bsf_inl	m_inl;
- };
- 
- struct mlx5_klm {
+ 		iser_err("Unsupported PI operation %d\n",
 -- 
 1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
