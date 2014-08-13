@@ -1,116 +1,138 @@
-From: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
-Subject: [PATCH v1 1/1] mlx4: disable TSO for Connect-X rev a0 cards
-Date: Wed, 13 Aug 2014 14:07:30 +0000
-Message-ID: <8dde8773-7e00-41ae-a38e-33ed38e2ccb4@EXCHANGE.collogia.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/8] IB/srp: Use P_Key cache for P_Key lookups
+Date: Wed, 13 Aug 2014 10:15:24 -0400
+Message-ID: <1407939324.21533.26.camel@firewall.xsintricity.com>
+References: <cover.1407885084.git.dledford@redhat.com>
+	 <6555e716eda21a03577e5e1e0bfb6bbadbb592d3.1407885084.git.dledford@redhat.com>
+	 <CAG4TOxM5xUh3gLx5wEixuhro7131JxfZHviPm1EgZArJy7+Y4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPartTM-000-c5c89ad9-b8aa-4426-bcaf-1bc2b91fdca3"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-P398PUH5eUOxHNjvNgYd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG4TOxM5xUh3gLx5wEixuhro7131JxfZHviPm1EgZArJy7+Y4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-This is a multi-part message in MIME format.
+--=-P398PUH5eUOxHNjvNgYd
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-------=_NextPartTM-000-c5c89ad9-b8aa-4426-bcaf-1bc2b91fdca3
-Content-Type: text/plain
+On Tue, 2014-08-12 at 21:56 -0700, Roland Dreier wrote:
+> On Tue, Aug 12, 2014 at 4:20 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote=
+:
+> > -       ret =3D ib_find_pkey(target->srp_host->srp_dev->dev,
+> > -                          target->srp_host->port,
+> > -                          be16_to_cpu(target->path.pkey),
+> > -                          &attr->pkey_index);
+> > +       ret =3D ib_find_cached_pkey(target->srp_host->srp_dev->dev,
+> > +                                 target->srp_host->port,
+> > +                                 be16_to_cpu(target->path.pkey),
+> > +                                 &attr->pkey_index);
+>=20
+> I consider the "cached" operations to be a deprecated interface,
 
-commit 269a731254c4b8daa22ce09108e239dce7e6bb71
-Author: Markus Stockhausen <markus.stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
-Date:   Sun Aug 10 17:25:55 2014 +0000
+I disagree.
 
-    mlx4: disable TSO for Connect-X rev a0 cards
+>  and
+> I'd rather remove uses than add new ones.
 
-    According to http://marc.info/?t=138347640900004&r=1&w=2 Connect-X
-    cards with revision a0 do not correctly assemble TSO packets. So
-    simply disable that feature.
+This isn't practical.  For the ib_get_* cache operations, you could
+theoretically do away with the cache and not suffer too bad.  But this
+is one of the ib_find_* operations.  These functions can not be done
+away with.
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 0f7027e..c6fd057 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -59,6 +59,7 @@
- 
- #define MLX4_IB_FLOW_MAX_PRIO 0xFFF
- #define MLX4_IB_FLOW_QPN_MASK 0xFFFFFF
-+#define MLX4_IB_CARD_REV_A0   0xA0
- 
- MODULE_AUTHOR("Roland Dreier");
- MODULE_DESCRIPTION("Mellanox ConnectX HCA InfiniBand driver");
-@@ -158,7 +159,9 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_UD_AV_PORT_ENFORCE;
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_IPOIB_CSUM)
- 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
--	if (dev->dev->caps.max_gso_sz && dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_BLH)
-+	if (dev->dev->caps.max_gso_sz &&
-+	    (dev->dev->rev_id != MLX4_IB_CARD_REV_A0) &&
-+	    (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_BLH))
- 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
- 	if (dev->dev->caps.bmme_flags & MLX4_BMME_FLAG_RESERVED_LKEY)
- 		props->device_cap_flags |= IB_DEVICE_LOCAL_DMA_LKEY;
+>   I have a vague dream of
+> fixing everything up so the normal interfaces (ib_find_pkey() etc)
+> don't sleep and are usable everywhere,
 
-------=_NextPartTM-000-c5c89ad9-b8aa-4426-bcaf-1bc2b91fdca3
-Content-Type: text/plain;
-	name="InterScan_Disclaimer.txt"
+Sleeping isn't the problem.  And that's probably part of why you are
+still dreaming about this instead of accepting reality.  The problem is
+the latency required to query the firmware on a card.  Some IB adapters
+might keep their tables in kernel memory and can access them fast, but
+some cards use firmware and the tables are there and when you query the
+driver you are actually doing a query to the card via a firmware and a
+mailbox and you have to wait for a return.  *That's* the problem.  And
+specifically as it relates to the ib_find_* functions as this function
+is, when the P_Key you're searching for isn't one of the first found,
+the difference between the cache and direct to the card is very
+significant.
+
+>  although that dream will
+> probably never come true.
+
+No offense Roland, but not if I have anything to say about it ;-)  Not
+because I don't want you to have your dreams of course, but this
+particular dream is more nightmare for the rest of us than the unicorns
+and rainbows raining skittles on the world that you envision it being.
+
+> But is there any practical benefit to this change?=20
+
+Absolutely yes!
+
+>  I don't think
+> saving a few milliseconds at log in time counts
+
+You can't think that way Roland....it breaks real world usage in very
+unexpected ways.  Ways that took me, 3 support engineers from two
+companies, and top level admins at a joint customer's sight over a month
+to finally figure out.  So, let me be clear, this particular dream of
+yours has wasted well over 4 man months of support/engineering time.
+Email me off list if you want more details of how this nightmare dream
+of yours did it.
+
+>  -- I would think it's
+> lost in the noise of how long it takes to actually log in, scan for
+> LUNs, etc.
+
+No, it's really not.  The simple case of finding the right element in
+the first lookup or two is OK.  But this is the ib_find_* function, and
+if it doesn't find the right element at first, it searches all available
+elements until it does.  There are 128 slots (like there are for GID
+indexes), so it's a few ms times 128 in the worst case scenario.  That's
+not noise.  It's so far from noise that it kills real world
+applications.  Things start timing out and resetting when you have more
+than just a few items search the table for an element that isn't there.
+It really can't be thought of in the terms you are thinking of it, which
+is the common/best case scenario.  You *have* to consider worst case
+scenario, and in that scenario, the cache functions are absolutely
+essential to scalability.  Especially the ib_find_* variants.  And since
+they are essential, they *must* be maintained and kept working properly,
+and so there is no reason not to use them when they can be used.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-P398PUH5eUOxHNjvNgYd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_Disclaimer.txt"
 
-****************************************************************************
-Diese E-Mail enthält vertrauliche und/oder rechtlich geschützte
-Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail
-irrtümlich erhalten haben, informieren Sie bitte sofort den Absender und
-vernichten Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte
-Weitergabe dieser Mail ist nicht gestattet.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Über das Internet versandte E-Mails können unter fremden Namen erstellt oder
-manipuliert werden. Deshalb ist diese als E-Mail verschickte Nachricht keine
-rechtsverbindliche Willenserklärung.
+iQIcBAABAgAGBQJT63L8AAoJELgmozMOVy/dKicP/19j4Qsmu54XNM6AQ5KWk6Ki
+zqxQFp7FTBSlmHwmc9L9dkqVj1kQ74rDmBw77HMi6HrUHbGWuwq5wSrFtO03uhR+
+nhBcU38W5djRr/JyioQBva3ejMD4+KXEtXktE1EmB8B0mqHD2hy2pW3Q35509jqv
+iRoZ50xbnw9Ul4SREg8QSazxsCkBciKVjaN6EUCKNh2IvBwXqlBqiS99Bw1jBipM
+McI05d2v7466dUpeO2Z/GdVjkIlkHpboi7DdbjMMYGg0qmZ1jC9BUEnnW7kksbzK
+8TxkuyTdwIP1QvUF18K7B2LZGh+3MEpzO+MJPtqwCsXaNXTwgnYG80axToK29YB+
+AuZRU6ssv009GEU4eh4SWjXAw/q6thX09UbSAIAUcUWhfpBMVUg8InEIqlKk+Kel
+38R3/fym1FXpk4N1q4VVrOqtgrP9w5PWVAjur/ybqzZKMG/JBgoWLIcBBQ9mkPrb
+zshX3RMSi3mK71gCpQrqftM8UYvtxNV58BmEqc05g9zPQeufF7AuEmw7Cu0+23Y/
+fOjsh68V691UUnaGsbGGWBndr+Sne1XG/WsaZknD0BeQhe+SbCzKZlU0XU+GvzRV
+VMDmhAy//7Mn3O6YGxdiRNP66vhSbgd02jgCNfVXwTRpSM2DFWZuhS0EYPDjhp1k
+G2LPqr+xW/C9h6giPn9t
+=/dnD
+-----END PGP SIGNATURE-----
 
-Collogia
-Unternehmensberatung AG
-Ubierring 11
-D-50678 Köln
+--=-P398PUH5eUOxHNjvNgYd--
 
-Vorstand:
-Kadir Akin
-Dr. Michael Höhnerbach
-
-Vorsitzender des Aufsichtsrates:
-Hans Kristian Langva
-
-Registergericht: Amtsgericht Köln
-Registernummer: HRB 52 497
-
-This e-mail may contain confidential and/or privileged information. If you
-are not the intended recipient (or have received this e-mail in error)
-please notify the sender immediately and destroy this e-mail. Any
-unauthorized copying, disclosure or distribution of the material in this
-e-mail is strictly forbidden.
-
-e-mails sent over the internet may have been written under a wrong name or
-been manipulated. That is why this message sent as an e-mail is not a
-legally binding declaration of intention.
-
-Collogia
-Unternehmensberatung AG
-Ubierring 11
-D-50678 Köln
-
-executive board:
-Kadir Akin
-Dr. Michael Höhnerbach
-
-President of the supervisory board:
-Hans Kristian Langva
-
-Registry office: district court Cologne
-Register number: HRB 52 497
-
-****************************************************************************
-
-------=_NextPartTM-000-c5c89ad9-b8aa-4426-bcaf-1bc2b91fdca3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
