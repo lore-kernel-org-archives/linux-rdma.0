@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 5/7] IB/iser: Centralize ib_sig_domain settings
-Date: Wed, 13 Aug 2014 19:54:33 +0300
-Message-ID: <1407948875-733-6-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 6/7] Target/iser: Centralize ib_sig_domain setting
+Date: Wed, 13 Aug 2014 19:54:34 +0300
+Message-ID: <1407948875-733-7-git-send-email-sagig@mellanox.com>
 References: <1407948875-733-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1407948875-733-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -17,76 +17,71 @@ This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c |   36 ++++++++++++++--------------
- 1 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c |   33 +++++++++++++++----------------
+ 1 files changed, 16 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index bf0d1cc..5842d50 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -457,44 +457,44 @@ scsi2ib_prot_type(unsigned char prot_type)
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index da8ff12..7309275 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2626,41 +2626,40 @@ se2ib_prot_type(enum target_prot_type prot_type)
  	}
  }
  
 +static inline void
-+iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
-+		    struct ib_sig_domain *domain)
++isert_set_dif_domain(struct se_cmd *se_cmd, struct ib_sig_attrs *sig_attrs,
++		     struct ib_sig_domain *domain)
 +{
-+	unsigned char scsi_ptype = scsi_get_prot_type(sc);
++	enum ib_t10_dif_type ib_prot_type = se2ib_prot_type(se_cmd->prot_type);
 +
-+	domain->sig.dif.type = scsi2ib_prot_type(scsi_ptype);
-+	domain->sig.dif.pi_interval = sc->device->sector_size;
-+	domain->sig.dif.ref_tag = scsi_get_lba(sc) & 0xffffffff;
++	domain->sig.dif.type = ib_prot_type;
++	domain->sig.dif.bg_type = IB_T10DIF_CRC;
++	domain->sig.dif.pi_interval = se_cmd->se_dev->dev_attrib.block_size;
++	domain->sig.dif.ref_tag = se_cmd->reftag_seed;
 +};
- 
++
  static int
- iser_set_sig_attrs(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs)
+ isert_set_sig_attrs(struct se_cmd *se_cmd, struct ib_sig_attrs *sig_attrs)
  {
--	unsigned char scsi_ptype = scsi_get_prot_type(sc);
--
+-	enum ib_t10_dif_type ib_prot_type = se2ib_prot_type(se_cmd->prot_type);
+ 
  	sig_attrs->mem.sig_type = IB_SIG_TYPE_T10_DIF;
  	sig_attrs->wire.sig_type = IB_SIG_TYPE_T10_DIF;
--	sig_attrs->mem.sig.dif.pi_interval = sc->device->sector_size;
--	sig_attrs->wire.sig.dif.pi_interval = sc->device->sector_size;
+-	sig_attrs->mem.sig.dif.pi_interval =
+-				se_cmd->se_dev->dev_attrib.block_size;
+-	sig_attrs->wire.sig.dif.pi_interval =
+-				se_cmd->se_dev->dev_attrib.block_size;
  
- 	switch (scsi_get_prot_op(sc)) {
- 	case SCSI_PROT_WRITE_INSERT:
- 	case SCSI_PROT_READ_STRIP:
+ 	switch (se_cmd->prot_op) {
+ 	case TARGET_PROT_DIN_INSERT:
+ 	case TARGET_PROT_DOUT_STRIP:
  		sig_attrs->mem.sig.dif.type = IB_T10DIF_NONE;
--		sig_attrs->wire.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
-+		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->wire);
- 		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
--		sig_attrs->wire.sig.dif.ref_tag = scsi_get_lba(sc) &
--						  0xffffffff;
+-		sig_attrs->wire.sig.dif.type = ib_prot_type;
+-		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
+-		sig_attrs->wire.sig.dif.ref_tag = se_cmd->reftag_seed;
++		isert_set_dif_domain(se_cmd, sig_attrs, &sig_attrs->wire);
  		break;
- 	case SCSI_PROT_READ_INSERT:
- 	case SCSI_PROT_WRITE_STRIP:
--		sig_attrs->mem.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
+ 	case TARGET_PROT_DOUT_INSERT:
+ 	case TARGET_PROT_DIN_STRIP:
+-		sig_attrs->mem.sig.dif.type = ib_prot_type;
 -		sig_attrs->mem.sig.dif.bg_type = IB_T10DIF_CRC;
--		sig_attrs->mem.sig.dif.ref_tag = scsi_get_lba(sc) &
--						 0xffffffff;
+-		sig_attrs->mem.sig.dif.ref_tag = se_cmd->reftag_seed;
  		sig_attrs->wire.sig.dif.type = IB_T10DIF_NONE;
-+		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
-+		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
-+						 IB_T10DIF_CRC;
++		isert_set_dif_domain(se_cmd, sig_attrs, &sig_attrs->mem);
  		break;
- 	case SCSI_PROT_READ_PASS:
- 	case SCSI_PROT_WRITE_PASS:
--		sig_attrs->mem.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
+ 	case TARGET_PROT_DIN_PASS:
+ 	case TARGET_PROT_DOUT_PASS:
+-		sig_attrs->mem.sig.dif.type = ib_prot_type;
 -		sig_attrs->mem.sig.dif.bg_type = IB_T10DIF_CRC;
--		sig_attrs->mem.sig.dif.ref_tag = scsi_get_lba(sc) &
--						 0xffffffff;
--		sig_attrs->wire.sig.dif.type = scsi2ib_prot_type(scsi_ptype);
-+		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->wire);
- 		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
--		sig_attrs->wire.sig.dif.ref_tag = scsi_get_lba(sc) &
--						  0xffffffff;
-+		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
-+		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
-+						 IB_T10DIF_CRC;
+-		sig_attrs->mem.sig.dif.ref_tag = se_cmd->reftag_seed;
+-		sig_attrs->wire.sig.dif.type = ib_prot_type;
+-		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
+-		sig_attrs->wire.sig.dif.ref_tag = se_cmd->reftag_seed;
++		isert_set_dif_domain(se_cmd, sig_attrs, &sig_attrs->wire);
++		isert_set_dif_domain(se_cmd, sig_attrs, &sig_attrs->mem);
  		break;
  	default:
- 		iser_err("Unsupported PI operation %d\n",
+ 		pr_err("Unsupported PI operation %d\n", se_cmd->prot_op);
 -- 
 1.7.1
 
