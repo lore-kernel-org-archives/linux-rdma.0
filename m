@@ -1,8 +1,7 @@
 From: Andreea-Cristina Bernat <bernat.ada-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] qib_keys: Replace rcu_assign_pointer() with
- RCU_INIT_POINTER()
-Date: Mon, 18 Aug 2014 15:32:34 +0300
-Message-ID: <20140818123214.GA8174@ada>
+Subject: [PATCH] qib_qp: Replace rcu_assign_pointer() with RCU_INIT_POINTER()
+Date: Mon, 18 Aug 2014 15:42:47 +0300
+Message-ID: <20140818124246.GA18423@ada>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -28,26 +27,35 @@ The following Coccinelle semantic patch was used:
 
 Signed-off-by: Andreea-Cristina Bernat <bernat.ada-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/qib/qib_qp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index 3b9afcc..ad843c7 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -122,10 +122,10 @@ void qib_free_lkey(struct qib_mregion *mr)
- 	if (!mr->lkey_published)
- 		goto out;
- 	if (lkey == 0)
--		rcu_assign_pointer(dev->dma_mr, NULL);
-+		RCU_INIT_POINTER(dev->dma_mr, NULL);
- 	else {
- 		r = lkey >> (32 - ib_qib_lkey_table_size);
--		rcu_assign_pointer(rkt->table[r], NULL);
-+		RCU_INIT_POINTER(rkt->table[r], NULL);
- 	}
- 	qib_put_mr(mr);
- 	mr->lkey_published = 0;
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 7fcc150..17daf42 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -255,10 +255,10 @@ static void remove_qp(struct qib_ibdev *dev, struct qib_qp *qp)
+ 
+ 	if (rcu_dereference_protected(ibp->qp0,
+ 			lockdep_is_held(&dev->qpt_lock)) == qp) {
+-		rcu_assign_pointer(ibp->qp0, NULL);
++		RCU_INIT_POINTER(ibp->qp0, NULL);
+ 	} else if (rcu_dereference_protected(ibp->qp1,
+ 			lockdep_is_held(&dev->qpt_lock)) == qp) {
+-		rcu_assign_pointer(ibp->qp1, NULL);
++		RCU_INIT_POINTER(ibp->qp1, NULL);
+ 	} else {
+ 		struct qib_qp *q;
+ 		struct qib_qp __rcu **qpp;
+@@ -315,7 +315,7 @@ unsigned qib_free_all_qps(struct qib_devdata *dd)
+ 	for (n = 0; n < dev->qp_table_size; n++) {
+ 		qp = rcu_dereference_protected(dev->qp_table[n],
+ 			lockdep_is_held(&dev->qpt_lock));
+-		rcu_assign_pointer(dev->qp_table[n], NULL);
++		RCU_INIT_POINTER(dev->qp_table[n], NULL);
+ 
+ 		for (; qp; qp = rcu_dereference_protected(qp->next,
+ 					lockdep_is_held(&dev->qpt_lock)))
 -- 
 1.9.1
 
