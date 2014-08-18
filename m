@@ -1,123 +1,52 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider module
-Date: Mon, 18 Aug 2014 09:13:04 -0400
-Message-ID: <E8A74DF9-0F30-463B-AF65-EF8EA5864429@oracle.com>
-References: <1405605697-11583-1-git-send-email-devesh.sharma@emulex.com> <3e39e90f-7095-4eb9-a844-516672a355ad@CMEXHTCAS2.ad.emulex.com> <53C7E546.3080008@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823739933FCA3@ORSMSX109.amr.corp.intel.com> <53C81CB7.2030000@oracle.com> <006d01cfa1f2$65d020d0$31706270$@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823739933FDEA@ORSMSX109.amr.corp.intel.com> <008301cfa1fa$f231f550$d695dff0$@opengridcomputing.com> <DF7CE85B-288D-4CC2-AD51-B326D5F1EE1A@oracle.com> <008c01cfa201$f1eecda0$d5cc68e0$@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE1482F@CMEXMB1.ad.emulex.com> <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com> <53C94199.4050601@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FE1C7B7@CMEXMB1.ad.emulex.com> <a6345162-863d
- -447c-b7c2-059ced190a13@CMEXHTCAS1.ad.emulex.com> <27ACE237-161A-4CA5-AA5C-6349CC4118E3@oracle.com> <005701cfa4f4$f7a64c00$e6f2e400$@opengridcomputing.com> <D88D1952-83A1-4FF9-B028-AAE7A859!
- ! ! A 5B1@oracle.com> <005e01cfa4f7$9dd4cc80$d97e6580$@opengridcomputing.com> <EE7902D3F51F404C82415C4803930ACD3FE1D9CF@CMEXMB1.ad.emulex.com> <0CDA5340-DDD6-42F8-8359-0069BBC9E24C@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FE1DB1D@CMEXMB1.ad.emulex.com> <A40CDF7D-7ED2-4D67-957F-8F977D567774@oracle.com> <EE7902D3F51F404C82415C4803930ACD3FE23695@CMEXMB1.ad.emulex.com> <6a71f6a5-f335-42c6-b8b7-8b4bac5aae83@CMEXHTCAS1.ad.emulex.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6a71f6a5-f335-42c6-b8b7-8b4bac5aae83-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: Re: [PATCH] infiniband: hw: cxgb3: cxio_hal.c:  Cleaning up missing
+ null-terminate after strncpy call
+Date: Mon, 18 Aug 2014 15:30:08 +0200
+Message-ID: <1408368608.3030.4.camel@localhost.localdomain>
+References: <1408315225-16807-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1408315225-16807-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: Steve Wise <swise@chelsio.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Yann Droneaud <ydroneaud@opteya.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
+Le lundi 18 ao=C3=BBt 2014 =C3=A0 00:40 +0200, Rickard Strandqvist a =C3=
+=A9crit :
+> Added a guaranteed null-terminate after call to strncpy.
+>=20
 
-> On Aug 18, 2014, at 5:52 AM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Hi Chuk,
-> 
-> Can this patch be lined up for merger. Looks like there are no oppositions to this change
+Good catch. Do you have an automated way to catch such mistake ?
 
-Sorry, I was expecting a fresh rewritten patch. I haven't done a deep review of the original.
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigit=
+al.se>
+> ---
+>  drivers/infiniband/hw/cxgb3/cxio_hal.c |    1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infinib=
+and/hw/cxgb3/cxio_hal.c
+> index de1c61b4..5fc04e4 100644
+> --- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
+> +++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+> @@ -933,6 +933,7 @@ int cxio_rdev_open(struct cxio_rdev *rdev_p)
+>  		netdev_p =3D rdev_p->t3cdev_p->lldev;
+>  		strncpy(rdev_p->dev_name, rdev_p->t3cdev_p->name,
+>  			T3_MAX_DEV_NAME_LEN);
+> +		rdev_p->dev_name[T3_MAX_DEV_NAME_LEN - 1] =3D '\0';
 
-Anything you want to merge should be independently tested, of course. For example Steve should include it in his testing branch.
+Why not replacing this by
 
+		strlcpy(rdev_p->dev_name, rdev_p->t3cdev_p->name,
+			T3_MAX_DEV_NAME_LEN);
 
-> 
-> -Regards
-> Devesh
-> 
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
->> Sent: Thursday, July 31, 2014 10:45 AM
->> To: Chuck Lever
->> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
->> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider
->> module
->> 
->>> -----Original Message-----
->>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
->>> Sent: Thursday, July 31, 2014 12:09 AM
->>> To: Devesh Sharma
->>> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
->>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider
->>> module
->>> 
->>> 
->>> On Jul 22, 2014, at 1:06 AM, Devesh Sharma
->> <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
->>> wrote:
->>> 
->>>>> -----Original Message-----
->>>>> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
->>>>> Sent: Monday, July 21, 2014 11:01 PM
->>>>> To: Devesh Sharma
->>>>> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
->>>>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma
->>>>> provider module
->>>>> 
->>>>> 
->>>>> On Jul 21, 2014, at 1:07 PM, Devesh Sharma
->>> <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
->>>>> wrote:
->>>>> 
->>>>>>>>>> Until that support is in place, obviously I would prefer that
->>>>>>>>>> the removal of the underlying driver be prevented while there
->>>>>>>>>> are NFS mounts in place. I think that's what NFS users have
->>>>>>>>>> come to
->>> expect.
->>>>>>>>>> 
->>>>>>>>>> In other words, don't allow device removal until we have
->>>>>>>>>> support for device insertion :-)
->>>>>> 
->>>>>> This needs a fresh series of patches?
->>>>> 
->>>>> "do not allow removal" would likely take an approach similar to
->>>>> what you originally posted, unless someone has an idea how to use a
->>>>> CM_EVENT to make this work, or there is an objection from the
->>>>> kernel
->>> RDMA folks.
->>>> 
->>>> Okay, I will re-work the patch if need be.
->>> 
->>> Devesh, if there isn't one already, could you file an upstream bug at
->>> 
->>>  http://bugzilla.linux-nfs.org
->>> 
->>> that documents the shutdown hang and perhaps summarizes this thread?
->>> Thanks!
->> 
->> A bug has been filed
->> https://bugzilla.linux-nfs.org/show_bug.cgi?id=266
->> 
->>> 
->>> --
->>> Chuck Lever
->>> chuck[dot]lever[at]oracle[dot]com
->>> 
->>> 
->>> 
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
->>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
->> majordomo
->>> info at http://vger.kernel.org/majordomo-info.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
->> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
->> http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
