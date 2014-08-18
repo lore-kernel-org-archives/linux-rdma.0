@@ -1,133 +1,91 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider module
-Date: Mon, 18 Aug 2014 09:52:19 +0000
-Message-ID: <6a71f6a5-f335-42c6-b8b7-8b4bac5aae83@CMEXHTCAS1.ad.emulex.com>
-References: <1405605697-11583-1-git-send-email-devesh.sharma@emulex.com>
- <3e39e90f-7095-4eb9-a844-516672a355ad@CMEXHTCAS2.ad.emulex.com>
- <53C7E546.3080008@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A823739933FCA3@ORSMSX109.amr.corp.intel.com>
- <53C81CB7.2030000@oracle.com>
- <006d01cfa1f2$65d020d0$31706270$@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A823739933FDEA@ORSMSX109.amr.corp.intel.com>
- <008301cfa1fa$f231f550$d695dff0$@opengridcomputing.com>
- <DF7CE85B-288D-4CC2-AD51-B326D5F1EE1A@oracle.com>
- <008c01cfa201$f1eecda0$d5cc68e0$@opengridcomputing.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1482F@CMEXMB1.ad.emulex.com>
- <002401cfa28c$11feb4e0$35fc1ea0$@opengridcomputing.com>
- <53C94199.4050601@oracle.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1C7B7@CMEXMB1.ad.emulex.com>
- <a6345162-863d-447c-b7c2-059ced190a13@CMEXHTCAS1.ad.emulex.com>
- <27ACE237-161A-4CA5-AA5C-6349CC4118E3@oracle.com>
- <005701cfa4f4$f7a64c00$e6f2e400$@opengridcomputing.com>
- <D88D1952-83A1-4FF9-B028-AAE7A859! ! A 5B1@oracle.com>
- <005e01cfa4f7$9dd4cc80$d97e6580$@opengridcomputing.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1D9CF@CMEXMB1.ad.emulex.com>
- <0CDA5340-DDD6-42F8-8359-0069BBC9E24C@oracle.com>
- <EE7902D3F51F404C82415C4803930ACD3FE1DB1D@CMEXMB1.ad.emulex.com>
- <A40CDF7D-7ED2-4D67-957F-8F977D567774@oracle.com>
- <EE7902D3F51F404C82415C4803930ACD3FE23695@CMEXMB1.ad.emulex.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: 3.17-rc1 oops during network interface configuration
+Date: Mon, 18 Aug 2014 14:18:32 +0200
+Message-ID: <53F1EF18.7010909@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE23695-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Chuk,
+Hello,
 
-Can this patch be lined up for merger. Looks like there are no oppositions to this change
+Has anyone else already tried to boot kernel 3.17-rc1 on an IB system ? The
+following call trace is triggered during boot on a system on which kernel
+3.16 runs fine:
 
--Regards
- Devesh
+BUG: unable to handle kernel paging request at ffff88090000007e
+IP: __dev_queue_xmit+0x519
+Call Trace:
+? __dev_queue_xmit+0x49
+dev_queue_xmit+0x10
+neigh_connected_output
+? ip_finish_output
+ip_finish_output
+? ip_finish_output
+? netif_rx_ni
+ip_mc_output
+ip_local_out_sk
+ip_send_skb
+udp_send_skb
+udp_sendmsg
+? ip_reply_glue_bits
+? __lock_is_held
+inet_sendmsg
+? inet_sendmsg
+sock_sendmsg
+? might_fault
+? might_fault
+? move_addr_to_kernel.part.38
+SYSC_sendto
+? sysret_check
+? trace_hardirqs_on_caller
+? trace_hardirqs_on_thunk
+SyS_sendto
+system_call_fastpath
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
-> Sent: Thursday, July 31, 2014 10:45 AM
-> To: Chuck Lever
-> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: [for-next 1/2] xprtrdma: take reference of rdma provider
-> module
-> 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
-> > Sent: Thursday, July 31, 2014 12:09 AM
-> > To: Devesh Sharma
-> > Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
-> > rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma provider
-> > module
-> >
-> >
-> > On Jul 22, 2014, at 1:06 AM, Devesh Sharma
-> <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-> > wrote:
-> >
-> > >> -----Original Message-----
-> > >> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> > >> Sent: Monday, July 21, 2014 11:01 PM
-> > >> To: Devesh Sharma
-> > >> Cc: Steve Wise; Shirley Ma; Hefty, Sean; Roland Dreier; linux-
-> > >> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > >> Subject: Re: [for-next 1/2] xprtrdma: take reference of rdma
-> > >> provider module
-> > >>
-> > >>
-> > >> On Jul 21, 2014, at 1:07 PM, Devesh Sharma
-> > <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-> > >> wrote:
-> > >>
-> > >>>>>>> Until that support is in place, obviously I would prefer that
-> > >>>>>>> the removal of the underlying driver be prevented while there
-> > >>>>>>> are NFS mounts in place. I think that's what NFS users have
-> > >>>>>>> come to
-> > expect.
-> > >>>>>>>
-> > >>>>>>> In other words, don't allow device removal until we have
-> > >>>>>>> support for device insertion :-)
-> > >>>
-> > >>> This needs a fresh series of patches?
-> > >>
-> > >> "do not allow removal" would likely take an approach similar to
-> > >> what you originally posted, unless someone has an idea how to use a
-> > >> CM_EVENT to make this work, or there is an objection from the
-> > >> kernel
-> > RDMA folks.
-> > >
-> > > Okay, I will re-work the patch if need be.
-> >
-> > Devesh, if there isn't one already, could you file an upstream bug at
-> >
-> >   http://bugzilla.linux-nfs.org
-> >
-> > that documents the shutdown hang and perhaps summarizes this thread?
-> > Thanks!
-> 
-> A bug has been filed
-> https://bugzilla.linux-nfs.org/show_bug.cgi?id=266
-> 
-> >
-> > --
-> > Chuck Lever
-> > chuck[dot]lever[at]oracle[dot]com
-> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
-> majordomo
-> > info at http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Kernel panic - not syncing: Fatal exception in interrupt
+Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffff9fffffff)
+drm_kms_helper: panic occurred, switching back to text console
+
+A screenshot of this kernel oops can be found here:
+https://drive.google.com/file/d/0B1YQOreL3_FxVDB5UTNwekF6LVU/
+
+gdb translates the crash address into the following (not sure this makes sense
+since offset 0x519 is past the end of __dev_queue_xmit()):
+
+(gdb) list *(__dev_queue_xmit+0x519) 
+0xffffffff8136bc89 is in netdev_adjacent_rename_links (net/core/dev.c:5167).
+5162    void netdev_adjacent_rename_links(struct net_device *dev, char *oldname)
+5163    {
+5164            struct netdev_adjacent *iter;
+5165
+5166            list_for_each_entry(iter, &dev->adj_list.upper, list) {
+5167                    netdev_adjacent_sysfs_del(iter->dev, oldname,
+5168                                              &iter->dev->adj_list.lower);
+5169                    netdev_adjacent_sysfs_add(iter->dev, dev,
+5170                                              &iter->dev->adj_list.lower);
+5171            }
+
+And the address __dev_queue_xmit+0x49 is translated by gdb into:
+
+(gdb) list *(__dev_queue_xmit+0x49)
+0xffffffff8136b7b9 is in __dev_queue_xmit (./arch/x86/include/asm/preempt.h:75).
+70       * The various preempt_count add/sub methods
+71       */
+72
+73      static __always_inline void __preempt_count_add(int val)
+74      {
+75              raw_cpu_add_4(__preempt_count, val);
+76      }
+77
+78      static __always_inline void __preempt_count_sub(int val)
+79      {
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
