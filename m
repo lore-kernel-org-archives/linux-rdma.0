@@ -1,91 +1,56 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: 3.17-rc1 oops during network interface configuration
-Date: Mon, 18 Aug 2014 14:18:32 +0200
-Message-ID: <53F1EF18.7010909@acm.org>
+From: Andreea-Cristina Bernat <bernat.ada-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] qib_keys: Replace rcu_assign_pointer() with
+ RCU_INIT_POINTER()
+Date: Mon, 18 Aug 2014 15:32:34 +0300
+Message-ID: <20140818123214.GA8174@ada>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+The uses of "rcu_assign_pointer()" are NULLing out the pointers.
+According to RCU_INIT_POINTER()'s block comment:
+"1.   This use of RCU_INIT_POINTER() is NULLing out the pointer"
+it is better to use it instead of rcu_assign_pointer() because it has a
+smaller overhead.
 
-Has anyone else already tried to boot kernel 3.17-rc1 on an IB system ? The
-following call trace is triggered during boot on a system on which kernel
-3.16 runs fine:
+The following Coccinelle semantic patch was used:
+@@
+@@
 
-BUG: unable to handle kernel paging request at ffff88090000007e
-IP: __dev_queue_xmit+0x519
-Call Trace:
-? __dev_queue_xmit+0x49
-dev_queue_xmit+0x10
-neigh_connected_output
-? ip_finish_output
-ip_finish_output
-? ip_finish_output
-? netif_rx_ni
-ip_mc_output
-ip_local_out_sk
-ip_send_skb
-udp_send_skb
-udp_sendmsg
-? ip_reply_glue_bits
-? __lock_is_held
-inet_sendmsg
-? inet_sendmsg
-sock_sendmsg
-? might_fault
-? might_fault
-? move_addr_to_kernel.part.38
-SYSC_sendto
-? sysret_check
-? trace_hardirqs_on_caller
-? trace_hardirqs_on_thunk
-SyS_sendto
-system_call_fastpath
+- rcu_assign_pointer
++ RCU_INIT_POINTER
+  (..., NULL)
 
-Kernel panic - not syncing: Fatal exception in interrupt
-Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffff9fffffff)
-drm_kms_helper: panic occurred, switching back to text console
+Signed-off-by: Andreea-Cristina Bernat <bernat.ada-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_keys.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-A screenshot of this kernel oops can be found here:
-https://drive.google.com/file/d/0B1YQOreL3_FxVDB5UTNwekF6LVU/
+diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
+index 3b9afcc..ad843c7 100644
+--- a/drivers/infiniband/hw/qib/qib_keys.c
++++ b/drivers/infiniband/hw/qib/qib_keys.c
+@@ -122,10 +122,10 @@ void qib_free_lkey(struct qib_mregion *mr)
+ 	if (!mr->lkey_published)
+ 		goto out;
+ 	if (lkey == 0)
+-		rcu_assign_pointer(dev->dma_mr, NULL);
++		RCU_INIT_POINTER(dev->dma_mr, NULL);
+ 	else {
+ 		r = lkey >> (32 - ib_qib_lkey_table_size);
+-		rcu_assign_pointer(rkt->table[r], NULL);
++		RCU_INIT_POINTER(rkt->table[r], NULL);
+ 	}
+ 	qib_put_mr(mr);
+ 	mr->lkey_published = 0;
+-- 
+1.9.1
 
-gdb translates the crash address into the following (not sure this makes sense
-since offset 0x519 is past the end of __dev_queue_xmit()):
-
-(gdb) list *(__dev_queue_xmit+0x519) 
-0xffffffff8136bc89 is in netdev_adjacent_rename_links (net/core/dev.c:5167).
-5162    void netdev_adjacent_rename_links(struct net_device *dev, char *oldname)
-5163    {
-5164            struct netdev_adjacent *iter;
-5165
-5166            list_for_each_entry(iter, &dev->adj_list.upper, list) {
-5167                    netdev_adjacent_sysfs_del(iter->dev, oldname,
-5168                                              &iter->dev->adj_list.lower);
-5169                    netdev_adjacent_sysfs_add(iter->dev, dev,
-5170                                              &iter->dev->adj_list.lower);
-5171            }
-
-And the address __dev_queue_xmit+0x49 is translated by gdb into:
-
-(gdb) list *(__dev_queue_xmit+0x49)
-0xffffffff8136b7b9 is in __dev_queue_xmit (./arch/x86/include/asm/preempt.h:75).
-70       * The various preempt_count add/sub methods
-71       */
-72
-73      static __always_inline void __preempt_count_add(int val)
-74      {
-75              raw_cpu_add_4(__preempt_count, val);
-76      }
-77
-78      static __always_inline void __preempt_count_sub(int val)
-79      {
-
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
