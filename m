@@ -1,31 +1,75 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] infiniband: hw: cxgb3: cxio_hal.c:  Cleaning up missing null-terminate after strncpy call
-Date: Mon, 18 Aug 2014 00:40:24 +0200
-Message-ID: <1408315225-16807-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@chelsio.com>, Roland Dreier <roland@kernel.org>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 0/2] Bug fixes for nfs-rdma support
+Date: Mon, 18 Aug 2014 05:44:11 +0000
+Message-ID: <b59bbfe9-2223-40ff-bea5-49f06f6f9eae@CMEXHTCAS2.ad.emulex.com>
+References: <530c3deb-5384-41ae-83f7-affbdd1fef9a@CMEXHTCAS2.ad.emulex.com>
+ <EE7902D3F51F404C82415C4803930ACD3FE0A1DF@CMEXMB1.ad.emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE0A1DF-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org)" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Added a guaranteed null-terminate after call to strncpy.
+Hi Roland,
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/infiniband/hw/cxgb3/cxio_hal.c |    1 +
- 1 file changed, 1 insertion(+)
+Please line-up following series as well for 3.17 merger. These are must-go fixes for us to have NFS-RDMA support.
 
-diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-index de1c61b4..5fc04e4 100644
---- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
-+++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-@@ -933,6 +933,7 @@ int cxio_rdev_open(struct cxio_rdev *rdev_p)
- 		netdev_p = rdev_p->t3cdev_p->lldev;
- 		strncpy(rdev_p->dev_name, rdev_p->t3cdev_p->name,
- 			T3_MAX_DEV_NAME_LEN);
-+		rdev_p->dev_name[T3_MAX_DEV_NAME_LEN - 1] = '\0';
- 	} else {
- 		PDBG("%s t3cdev_p or dev_name must be set\n", __func__);
- 		return -EINVAL;
--- 
-1.7.10.4
+This series is available at following location as well:
+
+git://flatbed.openfabrics.org/~maheshv/infiniband.git
+
+use for-roland branch.
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
+> Sent: Monday, June 23, 2014 9:50 PM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org)
+> Subject: RE: [PATCH for-next 0/2] Bug fixes for nfs-rdma support
+> 
+> Roland,
+> 
+> Please pull this series to 3.16 to make sure ocrdma works fine with
+> upstreame NFS-RDMA.
+> -Regards
+>  Devesh
+> 
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Sent: Monday, June 09, 2014 10:53 AM
+> > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: Devesh Sharma
+> > Subject: [PATCH for-next 0/2] Bug fixes for nfs-rdma support
+> >
+> > From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> >
+> > This series fixes the improper frmr-page-list-len size reported by
+> > query_device and a bug in CQ arming logic.
+> >
+> > Devesh Sharma (2):
+> >   RDMA/ocrdma: Report actual value of max_fast_reg_page_list_len
+> >   RDMA/ocrdma: do not skip setting deffered_arm
+> >
+> >  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    6 ++----
+> >  1 files changed, 2 insertions(+), 4 deletions(-)
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+> majordomo
+> > info at http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
