@@ -1,52 +1,105 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: mlx5 + SRP: max_qp_sz mismatch
-Date: Tue, 19 Aug 2014 17:50:08 +0300
-Message-ID: <53F36420.3060607@dev.mellanox.co.il>
-References: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Re: 3.17-rc1 oops during network interface configuration
+Date: Tue, 19 Aug 2014 10:56:15 -0400
+Message-ID: <BA3DEE00-C035-41B9-8ECD-614F04483395@oracle.com>
+References: <53F1EF18.7010909@acm.org>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <53F1EF18.7010909@acm.org>
+Sender: netdev-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: netdev@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/19/2014 2:20 AM, Mark Lehrer wrote:
-> I have a client machine that is trying to establish an SRP connection,
-> and it is failing due to an ENOMEM memory allocation error.  I traced
-> it down to the max_qp_sz field -- the mlx5 limits this to 16384 but
-> the request wants 32768.
->
-> I spent some time trying to figure out how this limit is set, but it
-> isn't quite obvious.  Is there a driver parameter I can set, or a hard
-> coded limit somewhere?
->
-> I'm using Ubuntu 14.04 and targetcli on the target side, Windows
-> 2008r2 and WinOFED on the client side.
->
 
-Hi Mark,
+On Aug 18, 2014, at 8:18 AM, Bart Van Assche <bvanassche@acm.org> wrote:
 
-I think the issue here is that the SRP target asks for srp_sq_size 
-(default 4096) to allocate room for send WRs, but it also asks for
-SRPT_DEF_SG_PER_WQE(16) to allocate room for max_send_sge which
-generally makes the work queue entries bigger as they come inline. That
-probably exceeds the mlx5 max send queue size supported...
+> Hello,
+> 
+> Has anyone else already tried to boot kernel 3.17-rc1 on an IB system ?
 
-It is strange that mlx5 driver is not able to fit same send queue
-lengths as mlx4... Probably work queue entries are slightly bigger (I
-can check that - and I will).
+After updating to 3.17-rc1 this morning, I hit the same issue.
 
-I just wander how can the ULP requesting the space reservations in the
-send queue know that, and if it should know that at all...
+> The
+> following call trace is triggered during boot on a system on which kernel
+> 3.16 runs fine:
+> 
+> BUG: unable to handle kernel paging request at ffff88090000007e
+> IP: __dev_queue_xmit+0x519
+> Call Trace:
+> ? __dev_queue_xmit+0x49
+> dev_queue_xmit+0x10
+> neigh_connected_output
+> ? ip_finish_output
+> ip_finish_output
+> ? ip_finish_output
+> ? netif_rx_ni
+> ip_mc_output
+> ip_local_out_sk
+> ip_send_skb
+> udp_send_skb
+> udp_sendmsg
+> ? ip_reply_glue_bits
+> ? __lock_is_held
+> inet_sendmsg
+> ? inet_sendmsg
+> sock_sendmsg
+> ? might_fault
+> ? might_fault
+> ? move_addr_to_kernel.part.38
+> SYSC_sendto
+> ? sysret_check
+> ? trace_hardirqs_on_caller
+> ? trace_hardirqs_on_thunk
+> SyS_sendto
+> system_call_fastpath
+> 
+> Kernel panic - not syncing: Fatal exception in interrupt
+> Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffff9fffffff)
+> drm_kms_helper: panic occurred, switching back to text console
+> 
+> A screenshot of this kernel oops can be found here:
+> https://drive.google.com/file/d/0B1YQOreL3_FxVDB5UTNwekF6LVU/
+> 
+> gdb translates the crash address into the following (not sure this makes sense
+> since offset 0x519 is past the end of __dev_queue_xmit()):
+> 
+> (gdb) list *(__dev_queue_xmit+0x519) 
+> 0xffffffff8136bc89 is in netdev_adjacent_rename_links (net/core/dev.c:5167).
+> 5162    void netdev_adjacent_rename_links(struct net_device *dev, char *oldname)
+> 5163    {
+> 5164            struct netdev_adjacent *iter;
+> 5165
+> 5166            list_for_each_entry(iter, &dev->adj_list.upper, list) {
+> 5167                    netdev_adjacent_sysfs_del(iter->dev, oldname,
+> 5168                                              &iter->dev->adj_list.lower);
+> 5169                    netdev_adjacent_sysfs_add(iter->dev, dev,
+> 5170                                              &iter->dev->adj_list.lower);
+> 5171            }
+> 
+> And the address __dev_queue_xmit+0x49 is translated by gdb into:
+> 
+> (gdb) list *(__dev_queue_xmit+0x49)
+> 0xffffffff8136b7b9 is in __dev_queue_xmit (./arch/x86/include/asm/preempt.h:75).
+> 70       * The various preempt_count add/sub methods
+> 71       */
+> 72
+> 73      static __always_inline void __preempt_count_add(int val)
+> 74      {
+> 75              raw_cpu_add_4(__preempt_count, val);
+> 76      }
+> 77
+> 78      static __always_inline void __preempt_count_sub(int val)
+> 79      {
+> 
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
- From what I see srp_sq_size is controlled via configfs. Can you set
-it to 2048 just for the sake of confirmation this is indeed the issue?
-
-Thanks,
-Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
