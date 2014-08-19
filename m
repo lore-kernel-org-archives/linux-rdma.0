@@ -1,66 +1,81 @@
-From: Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: mlx5 + SRP: max_qp_sz mismatch
-Date: Tue, 19 Aug 2014 11:01:48 -0600
-Message-ID: <CADvaNzVkKuvHw58meQD962VSm4Y-QZoHC3ndsYSBW8rw7S68cw@mail.gmail.com>
-References: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q@mail.gmail.com>
-	<53F36420.3060607@dev.mellanox.co.il>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/8] IPoIB: fix MCAST_FLAG_BUSY usage
+Date: Tue, 19 Aug 2014 11:08:26 -0700
+Message-ID: <CABgxfbH-Dt3CpxJKwCAZeHTUyupaA9y_WXVXuxgiPMet26PTQw@mail.gmail.com>
+References: <cover.1407885724.git.dledford@redhat.com>
+	<a410e80dc5ca7cfa64229bbbf50c1337317e3bd8.1407885724.git.dledford@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53F36420.3060607-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <a410e80dc5ca7cfa64229bbbf50c1337317e3bd8.1407885724.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From what I see srp_sq_size is controlled via
-> configfs. Can you set it to 2048 just for the sake of
-> confirmation this is indeed the issue?
+On Tue, Aug 12, 2014 at 4:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Commit a9c8ba5884 (IPoIB: Fix usage of uninitialized multicast objects)
+> added a new flag MCAST_JOIN_STARTED, but was not very strict in how it
+> was used.  We didn't always initialize the completion struct before we
+> set the flag, and we didn't always call complete on the completion
+> struct from all paths that complete it.  This made it less than totally
+> effective, and certainly made its use confusing.  And in the flush
+> function we would use the presence of this flag to signal that we should
+> wait on the completion struct, but we never cleared this flag, ever.
+> This is further muddied by the fact that we overload the MCAST_FLAG_BUSY
+> flag to mean two different things: we have a join in flight, and we have
+> succeeded in getting an ib_sa_join_multicast.
+>
 
-Yes!  This setting allowed the two machines to establish an SRP session.
+[snip]
 
-I'll try some I/O tests to see how well it works.
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index 7e9cd39b5ef..f5e8da530d9 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -271,16 +271,27 @@ ipoib_mcast_sendonly_join_complete(int status,
+>         struct ipoib_mcast *mcast = multicast->context;
+>         struct net_device *dev = mcast->dev;
+>
+> +       /*
+> +        * We have to take the mutex to force mcast_sendonly_join to
+> +        * return from ib_sa_multicast_join and set mcast->mc to a
+> +        * valid value.  Otherwise we were racing with ourselves in
+> +        * that we might fail here, but get a valid return from
+> +        * ib_sa_multicast_join after we had cleared mcast->mc here,
+> +        * resulting in mis-matched joins and leaves and a deadlock
+> +        */
+> +       mutex_lock(&mcast_mutex);
+> +
+>         /* We trap for port events ourselves. */
+>         if (status == -ENETRESET)
+> -               return 0;
+> +               goto out;
+>
 
-Thanks,
-Mark
+[snip]
 
 
-On Tue, Aug 19, 2014 at 8:50 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 8/19/2014 2:20 AM, Mark Lehrer wrote:
->>
->> I have a client machine that is trying to establish an SRP connection,
->> and it is failing due to an ENOMEM memory allocation error.  I traced
->> it down to the max_qp_sz field -- the mlx5 limits this to 16384 but
->> the request wants 32768.
->>
->> I spent some time trying to figure out how this limit is set, but it
->> isn't quite obvious.  Is there a driver parameter I can set, or a hard
->> coded limit somewhere?
->>
->> I'm using Ubuntu 14.04 and targetcli on the target side, Windows
->> 2008r2 and WinOFED on the client side.
->>
+> +out:
+> +       clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+> +       if (status)
+> +               mcast->mc = NULL;
+> +       complete(&mcast->done);
+> +       if (status == -ENETRESET)
+> +               status = 0;
+> +       mutex_unlock(&mcast_mutex);
+>         return status;
+>  }
 >
-> Hi Mark,
->
-> I think the issue here is that the SRP target asks for srp_sq_size (default
-> 4096) to allocate room for send WRs, but it also asks for
-> SRPT_DEF_SG_PER_WQE(16) to allocate room for max_send_sge which
-> generally makes the work queue entries bigger as they come inline. That
-> probably exceeds the mlx5 max send queue size supported...
->
-> It is strange that mlx5 driver is not able to fit same send queue
-> lengths as mlx4... Probably work queue entries are slightly bigger (I
-> can check that - and I will).
->
-> I just wander how can the ULP requesting the space reservations in the
-> send queue know that, and if it should know that at all...
->
-> From what I see srp_sq_size is controlled via configfs. Can you set
-> it to 2048 just for the sake of confirmation this is indeed the issue?
->
-> Thanks,
-> Sagi.
+
+I have not gone thru the whole patch yet. However, here is something quick ...
+
+Would this "return 0 if (status == -ENETRESET)" be wrong in the
+original code ?  Say ..... when it returns to process_group_error(),
+without proper error return code, it'll skip ib_sa_free_multicast().
+Should we worry about it ?
+
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
