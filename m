@@ -1,79 +1,40 @@
-From: Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: mlx5 + SRP: max_qp_sz mismatch
-Date: Wed, 20 Aug 2014 09:51:20 -0600
-Message-ID: <CADvaNzWAZiNiwBAVYVA5it7K3A4CAozkeHn8SowYNT7iE6YykA@mail.gmail.com>
-References: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q@mail.gmail.com>
-	<53F36420.3060607@dev.mellanox.co.il>
-	<CADvaNzVkKuvHw58meQD962VSm4Y-QZoHC3ndsYSBW8rw7S68cw@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs V5 0/2] Use neighbour lookup for RoCE UD QPs
+ Eth L2 resolution
+Date: Wed, 20 Aug 2014 10:26:32 -0600
+Message-ID: <20140820162632.GB12605@obsidianresearch.com>
+References: <1408517381-17523-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADvaNzVkKuvHw58meQD962VSm4Y-QZoHC3ndsYSBW8rw7S68cw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1408517381-17523-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From what I see srp_sq_size is controlled via
-> configfs. Can you set it to 2048 just for the sake of
-> confirmation this is indeed the issue?
+On Wed, Aug 20, 2014 at 09:49:39AM +0300, Matan Barak wrote:
+> Hi Roland,
+> 
+> This series adds support for Ethernet L2 address resolution for RoCE UD QPs,
+> whose L2 address-handles, unlike RC/UC/XRC/etc QPs are set from user space
+> without going through uverbs and the kernel IB core. The code is also
+> compatible both with old kernels that don't run IP based addressing.
 
-Now that we have confirmed that this works, what is the proper way to
-fix the problem?  Is the core issue with mlx5 or srp?
+I think this looks much better now, avoiding churning the public API
+has made this much less risky..
 
-Thanks,
-Mark
+I'm not sure Roland's feeling on the subject, but I would like to see
+your code be more consistent with the rest of verbs:
+ - No 'reversed equal' ie verbs doesn't do: 'NULL == foo'
+ - Pointless '^' equality 'optimization'
+ - Wouldn't hurt to fix the various checkpatch warnings (for the most
+   part verbs is in the style of Linux)
+ - System libraries should not be randomly printing things in error
+   cases. Use errno properly.
 
-
-On Tue, Aug 19, 2014 at 11:01 AM, Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> From what I see srp_sq_size is controlled via
->> configfs. Can you set it to 2048 just for the sake of
->> confirmation this is indeed the issue?
->
-> Yes!  This setting allowed the two machines to establish an SRP session.
->
-> I'll try some I/O tests to see how well it works.
->
-> Thanks,
-> Mark
->
->
-> On Tue, Aug 19, 2014 at 8:50 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> On 8/19/2014 2:20 AM, Mark Lehrer wrote:
->>>
->>> I have a client machine that is trying to establish an SRP connection,
->>> and it is failing due to an ENOMEM memory allocation error.  I traced
->>> it down to the max_qp_sz field -- the mlx5 limits this to 16384 but
->>> the request wants 32768.
->>>
->>> I spent some time trying to figure out how this limit is set, but it
->>> isn't quite obvious.  Is there a driver parameter I can set, or a hard
->>> coded limit somewhere?
->>>
->>> I'm using Ubuntu 14.04 and targetcli on the target side, Windows
->>> 2008r2 and WinOFED on the client side.
->>>
->>
->> Hi Mark,
->>
->> I think the issue here is that the SRP target asks for srp_sq_size (default
->> 4096) to allocate room for send WRs, but it also asks for
->> SRPT_DEF_SG_PER_WQE(16) to allocate room for max_send_sge which
->> generally makes the work queue entries bigger as they come inline. That
->> probably exceeds the mlx5 max send queue size supported...
->>
->> It is strange that mlx5 driver is not able to fit same send queue
->> lengths as mlx4... Probably work queue entries are slightly bigger (I
->> can check that - and I will).
->>
->> I just wander how can the ULP requesting the space reservations in the
->> send queue know that, and if it should know that at all...
->>
->> From what I see srp_sq_size is controlled via configfs. Can you set
->> it to 2048 just for the sake of confirmation this is indeed the issue?
->>
->> Thanks,
->> Sagi.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
