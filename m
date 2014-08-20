@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 V4 1/2] Add ibv_query_port caching support
-Date: Wed, 20 Aug 2014 09:52:08 +0300
-Message-ID: <1408517529-20631-2-git-send-email-matanb@mellanox.com>
+Subject: [PATCH libmlx4 V4 2/2] Add RoCE IP based addressing support for UD QPs
+Date: Wed, 20 Aug 2014 09:52:09 +0300
+Message-ID: <1408517529-20631-3-git-send-email-matanb@mellanox.com>
 References: <1408517529-20631-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1408517529-20631-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,114 +10,57 @@ To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Guntho
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Return fields according to the port cache rather than calling the kernel.
+In order to implement IP based addressing for UD QPs, we need a way to
+resolve the addresses internally.
+When the provider detects an Ethernet link layer with IP based gids,
+it calls a helper function in libibverbs in order to resolve the
+Ethernet L2 params.
 
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx4.c  |    2 ++
- src/mlx4.h  |    7 +++++++
- src/verbs.c |   40 ++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 47 insertions(+), 2 deletions(-)
+ src/verbs.c |   26 ++++++++++++++++++++++----
+ 1 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 1ee0338..ee57a84 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -157,6 +157,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 
- 	context->qp_table_shift = ffs(context->num_qps) - 1 - MLX4_QP_TABLE_BITS;
- 	context->qp_table_mask	= (1 << context->qp_table_shift) - 1;
-+	for (i = 0; i < MLX4_PORTS_NUM; ++i)
-+		context->port_query_cache[i].valid = 0;
- 
- 	pthread_mutex_init(&context->qp_table_mutex, NULL);
- 	for (i = 0; i < MLX4_QP_TABLE_SIZE; ++i)
-diff --git a/src/mlx4.h b/src/mlx4.h
-index d71450f..05ec70c 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -40,6 +40,8 @@
- #include <infiniband/arch.h>
- #include <infiniband/verbs.h>
- 
-+#define MLX4_PORTS_NUM 2
-+
- #ifdef HAVE_VALGRIND_MEMCHECK_H
- 
- #  include <valgrind/memcheck.h>
-@@ -189,6 +191,11 @@ struct mlx4_context {
- 	pthread_mutex_t			db_list_mutex;
- 	int				cqe_size;
- 	struct mlx4_xsrq_table		xsrq_table;
-+	struct {
-+		uint8_t                 valid;
-+		uint8_t                 link_layer;
-+		enum ibv_port_cap_flags caps;
-+	} port_query_cache[MLX4_PORTS_NUM];
- };
- 
- struct mlx4_buf {
 diff --git a/src/verbs.c b/src/verbs.c
-index 623d576..5c069ea 100644
+index 5c069ea..831e934 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -70,8 +70,44 @@ int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 		     struct ibv_port_attr *attr)
- {
- 	struct ibv_query_port cmd;
-+	int err;
-+
-+	err = ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
-+	if (!err && port <= MLX4_PORTS_NUM && port > 0) {
-+		struct mlx4_context *mctx = to_mctx(context);
-+		if (!mctx->port_query_cache[port - 1].valid) {
-+			mctx->port_query_cache[port - 1].link_layer =
-+				attr->link_layer;
-+			mctx->port_query_cache[port - 1].caps =
-+				attr->port_cap_flags;
-+			mctx->port_query_cache[port - 1].valid = 1;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+/* Only the fields in the port cache will be valid */
-+static int query_port_cache(struct ibv_context *context, uint8_t port_num,
-+			    struct ibv_port_attr *port_attr)
-+{
-+	struct mlx4_context *mctx = to_mctx(context);
-+	if (port_num <= 0 || port_num > MLX4_PORTS_NUM)
-+		return -EINVAL;
-+	if (mctx->port_query_cache[port_num - 1].valid) {
-+		port_attr->link_layer =
-+			mctx->
-+			port_query_cache[port_num - 1].
-+			link_layer;
-+		port_attr->port_cap_flags =
-+			mctx->
-+			port_query_cache[port_num - 1].
-+			caps;
-+		return 0;
-+	}
-+	return mlx4_query_port(context, port_num,
-+			       (struct ibv_port_attr *)port_attr);
+@@ -856,11 +856,29 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 		memcpy(ah->av.dgid, attr->grh.dgid.raw, 16);
+ 	}
  
--	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof cmd);
+-	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
+-		if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
+-			free(ah);
+-			return NULL;
++	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET) {
++		if (port_attr.port_cap_flags & IBV_PORT_IP_BASED_GIDS) {
++			uint16_t vid;
++
++			if (ibv_resolve_eth_l2_from_gid(pd->context, attr,
++							ah->mac, &vid)) {
++				free(ah);
++				return NULL;
++			}
++
++			if (vid <= 0xfff) {
++				ah->av.port_pd |= htonl(1 << 29);
++				ah->vlan = vid |
++					((attr->sl & 7) << 13);
++			}
++
++		} else {
++			if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
++				free(ah);
++				return NULL;
++			}
+ 		}
++	}
+ 
+ 	return &ah->ibv_ah;
  }
- 
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context)
-@@ -788,7 +824,7 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 	struct mlx4_ah *ah;
- 	struct ibv_port_attr port_attr;
- 
--	if (ibv_query_port(pd->context, attr->port_num, &port_attr))
-+	if (query_port_cache(pd->context, attr->port_num, &port_attr))
- 		return NULL;
- 
- 	ah = malloc(sizeof *ah);
 -- 
 1.7.1
 
