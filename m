@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.17 6/7] IB/mlx4: Avoid executing gid task when device is being removed
-Date: Thu, 21 Aug 2014 14:28:42 +0300
-Message-ID: <1408620523-10616-7-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-3.17 3/7] IB/mlx4: Reorder steps in RoCE GID table initialization
+Date: Thu, 21 Aug 2014 14:28:39 +0300
+Message-ID: <1408620523-10616-4-git-send-email-ogerlitz@mellanox.com>
 References: <1408620523-10616-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1408620523-10616-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,51 +12,75 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When device is being removed (e.g during VPI port link type change from ETH
-to IB), tasks for gid table changes should not be executed.
-
-Flush the current queue of tasks and block further tasks from entering the queue.
+There's no need to reset the gid table twice and we need to do it only
+for Ethernet ports. Also, no need to actively scan ndetdevs since it's being
+done immediatly after we register netdev notifiers.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c |   29 +++++++++++++++++------------
+ 1 files changed, 17 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 5179504..ea30f9e 100644
+index 61910f4..d95b5fe 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1387,6 +1387,9 @@ static void update_gids_task(struct work_struct *work)
- 	int err;
- 	struct mlx4_dev	*dev = gw->dev->dev;
+@@ -1727,24 +1727,33 @@ static int mlx4_ib_init_gid_table(struct mlx4_ib_dev *ibdev)
+ 	struct	net_device *dev;
+ 	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
+ 	int i;
++	int err = 0;
  
-+	if (!gw->dev->ib_active)
-+		return;
-+
- 	mailbox = mlx4_alloc_cmd_mailbox(dev);
- 	if (IS_ERR(mailbox)) {
- 		pr_warn("update gid table failed %ld\n", PTR_ERR(mailbox));
-@@ -1417,6 +1420,9 @@ static void reset_gids_task(struct work_struct *work)
- 	int err;
- 	struct mlx4_dev	*dev = gw->dev->dev;
+-	for (i = 1; i <= ibdev->num_ports; ++i)
+-		if (reset_gid_table(ibdev, i))
+-			return -1;
++	for (i = 1; i <= ibdev->num_ports; ++i) {
++		if (rdma_port_get_link_layer(&ibdev->ib_dev, i) ==
++		    IB_LINK_LAYER_ETHERNET) {
++			err = reset_gid_table(ibdev, i);
++			if (err)
++				goto out;
++		}
++	}
  
-+	if (!gw->dev->ib_active)
-+		return;
-+
- 	mailbox = mlx4_alloc_cmd_mailbox(dev);
- 	if (IS_ERR(mailbox)) {
- 		pr_warn("reset gid table failed\n");
-@@ -2366,6 +2372,9 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
- 	struct mlx4_ib_dev *ibdev = ibdev_ptr;
- 	int p;
+ 	read_lock(&dev_base_lock);
+ 	spin_lock(&iboe->lock);
  
-+	ibdev->ib_active = false;
-+	flush_workqueue(wq);
-+
- 	mlx4_ib_close_sriov(ibdev);
- 	mlx4_ib_mad_cleanup(ibdev);
- 	ib_unregister_device(&ibdev->ib_dev);
+ 	for_each_netdev(&init_net, dev) {
+ 		u8 port = mlx4_ib_get_dev_port(dev, ibdev);
+-		if (port)
++		/* port will be non-zero only for ETH ports */
++		if (port) {
++			mlx4_ib_set_default_gid(ibdev, dev, port);
+ 			mlx4_ib_get_dev_addr(dev, ibdev, port);
++		}
+ 	}
+ 
+ 	spin_unlock(&iboe->lock);
+ 	read_unlock(&dev_base_lock);
+-
+-	return 0;
++out:
++	return err;
+ }
+ 
+ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
+@@ -2199,12 +2208,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			}
+ 		}
+ #endif
+-		for (i = 1 ; i <= ibdev->num_ports ; ++i)
+-			reset_gid_table(ibdev, i);
+-		rtnl_lock();
+-		mlx4_ib_scan_netdevs(ibdev, NULL, 0);
+-		rtnl_unlock();
+-		mlx4_ib_init_gid_table(ibdev);
++		if (mlx4_ib_init_gid_table(ibdev))
++			goto err_notif;
+ 	}
+ 
+ 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
 -- 
 1.7.1
 
