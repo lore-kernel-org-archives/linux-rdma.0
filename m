@@ -1,65 +1,26 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.17 4/7] IB/mlx4: Get upper dev addresses as RoCE GIDs when port comes up
-Date: Thu, 21 Aug 2014 14:28:40 +0300
-Message-ID: <1408620523-10616-5-git-send-email-ogerlitz@mellanox.com>
-References: <1408620523-10616-1-git-send-email-ogerlitz@mellanox.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] RDMA/ocrdma: ocrdma bug fixes
+Date: Fri, 22 Aug 2014 16:57:18 +0530
+Message-ID: <2a431e3d-4d09-49ff-a847-d9ef08ff2932@CMEXHTCAS1.ad.emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1408620523-10616-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This series has bug fixes for 3.17
 
-When RoCE port becomes active and netdev of the port has upper
-device (e.g bond/team), gids derived from the upper dev should
-appear in the port's RoCE gid table.
+Devesh Sharma (1):
+  RDMA/ocrdma: add default gid at index 0
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c |   25 +++++++++++++++++--------
- 1 files changed, 17 insertions(+), 8 deletions(-)
+Selvin Xavier (1):
+  RDMA/ocrdma: get vlan tag from ib_qp_attrs
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index d95b5fe..dc0dac0 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1799,14 +1799,23 @@ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 			port_state = (netif_running(curr_netdev) && netif_carrier_ok(curr_netdev)) ?
- 						IB_PORT_ACTIVE : IB_PORT_DOWN;
- 			mlx4_ib_set_default_gid(ibdev, curr_netdev, port);
--			/* if using bonding/team and a slave port is down, we
--			 * don't the bond IP based gids in the table since
--			 * flows that select port by gid may get the down port.
--			 */
--			if (curr_master && (port_state == IB_PORT_DOWN)) {
--				reset_gid_table(ibdev, port);
--				mlx4_ib_set_default_gid(ibdev,
--							curr_netdev, port);
-+			if (curr_master) {
-+				/* if using bonding/team and a slave port is down, we
-+				 * don't want the bond IP based gids in the table since
-+				 * flows that select port by gid may get the down port.
-+				*/
-+				if (port_state == IB_PORT_DOWN) {
-+					reset_gid_table(ibdev, port);
-+					mlx4_ib_set_default_gid(ibdev,
-+								curr_netdev,
-+								port);
-+				} else {
-+					/* gids from the upper dev (bond/team)
-+					 * should appear in port's gid table
-+					*/
-+					mlx4_ib_get_dev_addr(curr_master,
-+							     ibdev, port);
-+				}
- 			}
- 			/* if bonding is used it is possible that we add it to
- 			 * masters only after IP address is assigned to the
--- 
-1.7.1
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c   |    9 +++++----
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |   10 ++++++++++
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
