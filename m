@@ -1,109 +1,194 @@
-From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Subject: Re: Are the PathRecord reserved components really reserved?
-Date: Mon, 25 Aug 2014 22:27:28 +0200
-Message-ID: <53FB9C30.2000904@simula.no>
-References: <53FAF771.407@simula.no> <2807E5FD2F6FDA4886F6618EAC48510E0CAD282C@CRSMSX101.amr.corp.intel.com>
+From: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ib_umem_release should decrement mm->pinned_vm from
+ ib_umem_get
+Date: Mon, 25 Aug 2014 16:07:00 -0500
+Message-ID: <20140825210700.GA5759@sbohrermbp13-local.rgmadvisors.com>
+References: <1407860855-6564-1-git-send-email-shawn.bohrer@gmail.com>
+ <20140820232212.GA5487@sbohrermbp13-local.rgmadvisors.com>
+ <6B2A6E60C06CCC42AE31809BF572352B010E235B4A@MTLDAG02.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="LdDwsJjKuobBqnqOe8Kl0PAuDGjIurq3M"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CAD282C-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <6B2A6E60C06CCC42AE31809BF572352B010E235B4A-LSMZvP3E4uyuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org" <tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LdDwsJjKuobBqnqOe8Kl0PAuDGjIurq3M
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Thu, Aug 21, 2014 at 11:20:34AM +0000, Shachar Raindel wrote:
+> Hi,
+> 
+> I'm afraid this patch, in its current form, will not work.
+> See below for additional comments.
 
-Thanks Ira,
+Thanks for the input Shachar.  I've tried to answer your questions
+below.
+ 
+> > > In debugging an application that receives -ENOMEM from ib_reg_mr() I
+> > > found that ib_umem_get() can fail because the pinned_vm count has
+> > > wrapped causing it to always be larger than the lock limit even with
+> > > RLIMIT_MEMLOCK set to RLIM_INFINITY.
+> > >
+> > > The wrapping of pinned_vm occurs because the process that calls
+> > > ib_reg_mr() will have its mm->pinned_vm count incremented.  Later a
+> > > different process with a different mm_struct than the one that allocated
+> > > the ib_umem struct ends up releasing it which results in decrementing
+> > > the new processes mm->pinned_vm count past zero and wrapping.
+> > >
+> > > I'm not entirely sure what circumstances cause a different process to
+> > > release the ib_umem than the one that allocated it but the kernel stack
+> > > trace of the freeing process from my situation looks like the following:
+> > >
+> > > Call Trace:
+> > >  [<ffffffff814d64b1>] dump_stack+0x19/0x1b
+> > >  [<ffffffffa0b522a5>] ib_umem_release+0x1f5/0x200 [ib_core]
+> > >  [<ffffffffa0b90681>] mlx4_ib_destroy_qp+0x241/0x440 [mlx4_ib]
+> > >  [<ffffffffa0b4d93c>] ib_destroy_qp+0x12c/0x170 [ib_core]
+> > >  [<ffffffffa0cc7129>] ib_uverbs_close+0x259/0x4e0 [ib_uverbs]
+> > >  [<ffffffff81141cba>] __fput+0xba/0x240
+> > >  [<ffffffff81141e4e>] ____fput+0xe/0x10
+> > >  [<ffffffff81060894>] task_work_run+0xc4/0xe0
+> > >  [<ffffffff810029e5>] do_notify_resume+0x95/0xa0
+> > >  [<ffffffff814e3dd0>] int_signal+0x12/0x17
+> > >
+> 
+> Can you provide the details of this issue - kernel version,
+> reproduction steps, etc.?  It seems like the kernel code flow which
+> triggers this is delaying the FD release done at
+> http://lxr.free-electrons.com/source/fs/file_table.c#L279 .  The
+> code there seems to have changed (starting at kernel 3.6) to avoid
+> releasing a file in interrupt context or from a kernel thread.  How
+> are we ending up with releasing the uverbs device file from an
+> interrupt context or a kernel thread?
 
-I found the corresponding document.
+We are seeing this on 3.10.* kernels.  Unfortunately I'm not quite
+sure what the reproducing steps are, because we can't reliably
+reproduce it.  Or rather we have been able to reliably reproduce the
+issue in certain production situations, but can't seem to reproduce it
+outside of production so it seems we are missing something.
 
-Vangelis
+What I do know is that the issue often occurs when we try to replace a
+set of processes with a new set of processes.  Both process sets will
+be using RC and UD QPs.  When I finally discovered what the issue was,
+I clearly saw an ib_umem struct allocated in one of the processes that
+was going away get released in the context of one of the newly started
+processes.
 
-On 08/25/2014 04:49 PM, Weiny, Ira wrote:
->>
->> Hello,
->>
->> I am looking into the OFED code for the component mask bits of the
->> PathRecord requests and I need some further explanation.
->>
->> The IB specification in section "15.2.5.16 PathRecord, table 207 PathR=
-ecord"
->> defines the first two components as "Reserved". Each one of them is 32=
- bits
->> long and the description of the first one is "Reserved"
->> while the description of the second reserved component is "Offset for
->> alignment".
->=20
->=20
-> The IBTA has published errata to the 1.2.1 specification which includes=
- the use of many reserved fields.
->=20
-> I believe these errata are public on their web site.
->=20
-> Ira
->=20
->>
->> However, in the file "include/rdma/ib_sa.h" where the component mask b=
-its for
->> the Path Records are defined, the 1st and 2nd component are combined
->> together under the name IB_SA_PATH_REC_SERVICE_ID.
->>
->>
->> #define IB_SA_PATH_REC_SERVICE_ID   (IB_SA_COMP_MASK( 0) |\
->>                                      IB_SA_COMP_MASK( 1))
->>
->>
->> The same definition exists in the OpenSM code in file "include/iba/ib_=
-types.h"
->>
->>
->> /* Path Record Component Masks */
->> #define  IB_PR_COMPMASK_SERVICEID_MSB
->> (CL_HTON64(((uint64_t)1)<<0))
->> #define  IB_PR_COMPMASK_SERVICEID_LSB     (CL_HTON64(((uint64_t)1)<<1)=
-)
->> .....
->> .....
->> #define  IB_PR_COMPMASK_SERVICEID (IB_PR_COMPMASK_SERVICEID_MSB |
->> \
->>                                    IB_PR_COMPMASK_SERVICEID_LSB)
->>
->>
->> Why are these fields named as "SERVICE_ID"? I would expect something l=
-ike
->> IB_SA_PATH_REC_RESERVED_1 and IB_SA_PATH_REC_RESERVED_2 according
->> to the specs. Are they really reserved or used, and if they are used, =
-when does
->> this happen?
->>
->> Vangelis
->=20
+> > > The following patch fixes the issue by storing the mm_struct of the
+> 
+> You are doing more than just storing the mm_struct - you are taking
+> a reference to the process' mm.  This can lead to a massive resource
+> leakage. The reason is bit complex: The destruction flow for IB
+> uverbs is based upon releasing the file handle for it. Once the file
+> handle is released, all MRs, QPs, CQs, PDs, etc. that the process
+> allocated are released.  For the kernel to release the file handle,
+> the kernel reference count to it needs to reach zero.  Most IB
+> implementations expose some hardware registers to the application by
+> allowing it to mmap the uverbs device file.  This mmap takes a
+> reference to uverbs device file handle that the application opened.
+> This reference is dropped when the process mm is released during the
+> process destruction.  Your code takes a reference to the mm that
+> will only be released when the parent MR/QP is released.
+> 
+> Now, we have a deadlock - the mm is waiting for the MR to be
+> destroyed, the MR is waiting for the file handle to be destroyed,
+> and the file handle is waiting for the mm to be destroyed.
+> 
+> The proper solution is to keep a reference to the task_pid (using
+> get_task_pid), and use this pid to get the task_struct and from it
+> the mm_struct during the destruction flow.
+ 
+I'll put together a patch using get_task_pid() and see if I can
+test/reproduce the issue.  This may take a couple of days since we
+have to test this in production at the moment.
+ 
+> > > process that calls ib_umem_get() so that ib_umem_release and/or
+> > > ib_umem_account() can properly decrement the pinned_vm count of the
+> > > correct mm_struct.
+> > >
+> > > Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/core/umem.c |   17 ++++++++---------
+> > >  1 files changed, 8 insertions(+), 9 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/core/umem.c
+> > b/drivers/infiniband/core/umem.c
+> > > index a3a2e9c..32699024 100644
+> > > --- a/drivers/infiniband/core/umem.c
+> > > +++ b/drivers/infiniband/core/umem.c
+> > > @@ -105,6 +105,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext
+> > *context, unsigned long addr,
+> > >  	umem->length    = size;
+> > >  	umem->offset    = addr & ~PAGE_MASK;
+> > >  	umem->page_size = PAGE_SIZE;
+> > > +	umem->mm        = get_task_mm(current);
+> 
+> This takes a reference to the current task mm. This will break the freeing up flows.
+> 
+> > >  	/*
+> > >  	 * We ask for writable memory if any access flags other than
+> > >  	 * "remote read" are set.  "Local write" and "remote write"
+> > > @@ -198,6 +199,7 @@ out:
+> > >  	if (ret < 0) {
+> > >  		if (need_release)
+> > >  			__ib_umem_release(context->device, umem, 0);
+> > > +		mmput(umem->mm);
+> > >  		kfree(umem);
+> > >  	} else
+> > >  		current->mm->pinned_vm = locked;
+> > > @@ -229,13 +231,11 @@ static void ib_umem_account(struct work_struct
+> > *work)
+> > >  void ib_umem_release(struct ib_umem *umem)
+> > >  {
+> > >  	struct ib_ucontext *context = umem->context;
+> > > -	struct mm_struct *mm;
+> > >  	unsigned long diff;
+> > >
+> > >  	__ib_umem_release(umem->context->device, umem, 1);
+> > >
+> > > -	mm = get_task_mm(current);
+> > > -	if (!mm) {
+> > > +	if (!umem->mm) {
+> 
+> How can this happen in your flow?
 
+I assume you are asking how could umem->mm be NULL in the context of
+this patch?  It is possible for get_task_mm() to return NULL if
+PF_KTHREAD is set.  However, I have no idea if that will ever be true
+in ib_umem_get().  If it could ever happen this patch is still broken
+because I probably shouldn't call mmput(umem->mm) with a NULL mm in
+the error case of ib_umem_get().  The current->mm->pinned_vm count
+would also be messed up in that case.
 
+Thanks for pointing this out.
 
---LdDwsJjKuobBqnqOe8Kl0PAuDGjIurq3M
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> 
+> > >  		kfree(umem); return; } @@ -251,20 +251,19 @@ void
+> > >  		ib_umem_release(struct ib_umem *umem) * we defer the
+> > >  		vm_locked accounting to the system workqueue.  */ if
+> > >  		(context->closing) { -		if
+> > >  		(!down_write_trylock(&mm->mmap_sem)) { +		if
+> > >  		(!down_write_trylock(&umem->mm->mmap_sem)) {
+> > >  		INIT_WORK(&umem->work, ib_umem_account); -			umem->mm   =
+> > >  		mm; umem->diff = diff;
+> > >
+> > >  			queue_work(ib_wq, &umem->work); return; } } else -
+> > >  			down_write(&mm->mmap_sem); +
+> > >  			down_write(&umem->mm->mmap_sem);
+> > >
+> > > -	current->mm->pinned_vm -= diff; -	up_write(&mm->mmap_sem); -
+> > > mmput(mm); +	umem->mm->pinned_vm -= diff; +
+> > > up_write(&umem->mm->mmap_sem); +	mmput(umem->mm); kfree(umem);
+> > > } EXPORT_SYMBOL(ib_umem_release);
+> > 
+> > It doesn't look like this has been applied yet.  Does anyone have
+> > any feedback?
+> 
+> See above for comments. 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQEcBAEBAgAGBQJT+5w2AAoJEEuGx9KTo03qWREIAKklm/bmgtkIT2BbFSfiwE2I
-ML3vl2g6JlaFbSMvQFReb8DzcJlRbfWkYQCoQxUVwpUzApDndW5V4l36au99WTTT
-IWjvPQA7173fBfd68C6HoPsjO1q1XCmq382Iq6u1HzOWjfRD+yG85KTyAA4hJqca
-Pt0QlXpVBDj4zVedCPF55HZcwIMH9GaCkBdt5cljXhOpqq36qnjz40LyDJMuI0mb
-RmMRkjzC45r9cLfo6EikeAdU997s53Z/hISU27gz4f6Zjhizfl44h/uCCl0oVs5e
-NvxZkY4rugl7PbVUgBhRJRYRJEmO+wYvnGH05O8hV24OpSULFmxLpniqKsE0T6w=
-=9T+n
------END PGP SIGNATURE-----
-
---LdDwsJjKuobBqnqOe8Kl0PAuDGjIurq3M--
+--
+Shawn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
