@@ -1,41 +1,45 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD QPs Eth L2 resolution
-Date: Mon, 25 Aug 2014 15:33:57 -0400 (EDT)
-Message-ID: <5C3BB7B1-07E6-431F-98E5-13543AAA897D@redhat.com>
-References: <1408517381-17523-1-git-send-email-matanb@mellanox.com> <1408517381-17523-3-git-send-email-matanb@mellanox.com> <20140820170142.GC12605@obsidianresearch.com> <53F9EDCD.9060105@mellanox.com> <20140825183325.GC1298@obsidianresearch.com>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/8] IPoIB: fix MCAST_FLAG_BUSY usage
+Date: Mon, 25 Aug 2014 12:51:13 -0700
+Message-ID: <CABgxfbHOD75vLdZ0TtWZbk8ne3kHd_eWObxPHmoJ-D8DjE0bkw@mail.gmail.com>
+References: <cover.1407885724.git.dledford@redhat.com>
+	<a410e80dc5ca7cfa64229bbbf50c1337317e3bd8.1407885724.git.dledford@redhat.com>
+	<CABgxfbH-Dt3CpxJKwCAZeHTUyupaA9y_WXVXuxgiPMet26PTQw@mail.gmail.com>
+	<902D5BF2-159A-4B31-A87F-7491F3C8057F@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140825183325.GC1298-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <902D5BF2-159A-4B31-A87F-7491F3C8057F-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Aug 25, 2014, at 1:33 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> 
->>>> +    timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
->>>> +    if (-1 == timer_fd) {
->>>> +        print_err("Couldn't create timer\n");
->>>> +        return timer_fd;
->>>> +    }
->>> 
->>> The use of timerfd will impact the minimum OS version, have you
->>> checked this is OK? Does RHEL5 still work?
-> 
->> It was added in linux v2.6.25. I think that an API that's more than
->> 6.5 years old is valid.
-> 
-> RHEL5 is using 2.6.18 as their base kernel. You should at least
-> consult with the OFED people to determine if this is a problem for
-> them.
+On Tue, Aug 19, 2014 at 1:28 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
-Please don't.  This code should not be changed for something as ancient as rhel5.
+> So that's why in this patch we
+>
+> 1) take a mutex to force ib_sa_join_multicast to return and us to set mcast->mc to the proper return value before we process the join completion callback
+> 2) always clear mcast->mc if there is any error since we can't call ib_sa_multicast_leave
+> 3) always complete the mcast in case we are waiting on it
+> 4) only if our status is ENETRESET set our return to 0 so the ib core code knows we acknowledged the event
+>
 
-Sent from my iPad
+We don't have IPOIB_MCAST_JOIN_STARTED (and the "done" completion
+struct) in our code base (MPSS) yet ...I'm *not* n-acking this patch
+but I find it hard to understand the ramifications. It has nothing to
+do with this patch - actually the patch itself looks pretty ok (by
+eyes).
 
+The original IPOIB mcast flow, particularly its abnormal error path,
+confuses me. Is it really possible for ib_sa_join_multicast() to
+return *after* its callback (ipoib_mcast_sendonly_join_complete and
+ipoib_mcast_join_complete) ? The mcast->done completion struct looks
+dangerous as well.
+
+I'll let other capable people to do the final call(s).
+
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
