@@ -1,80 +1,48 @@
-From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Subject: Are the PathRecord reserved components really reserved?
-Date: Mon, 25 Aug 2014 10:44:33 +0200
-Message-ID: <53FAF771.407@simula.no>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Are the PathRecord reserved components really reserved?
+Date: Mon, 25 Aug 2014 14:49:54 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CAD282C@CRSMSX101.amr.corp.intel.com>
+References: <53FAF771.407@simula.no>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="fetWv5k24ndq0JARhPKosgimPmLwsmXMA"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53FAF771.407-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fetWv5k24ndq0JARhPKosgimPmLwsmXMA
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-I am looking into the OFED code for the component mask bits of the
-PathRecord requests and I need some further explanation.
-
-The IB specification in section "15.2.5.16 PathRecord, table 207
-PathRecord" defines the first two components as "Reserved". Each one of
-them is 32 bits long and the description of the first one is "Reserved"
-while the description of the second reserved component is "Offset for
-alignment".
-
-However, in the file "include/rdma/ib_sa.h" where the component mask
-bits for the Path Records are defined, the 1st and 2nd component are
-combined together under the name IB_SA_PATH_REC_SERVICE_ID.
-
-
-#define IB_SA_PATH_REC_SERVICE_ID   (IB_SA_COMP_MASK( 0) |\
-                                     IB_SA_COMP_MASK( 1))
-
-
-The same definition exists in the OpenSM code in file
-"include/iba/ib_types.h"
-
-
-/* Path Record Component Masks */
-#define  IB_PR_COMPMASK_SERVICEID_MSB     (CL_HTON64(((uint64_t)1)<<0))
-#define  IB_PR_COMPMASK_SERVICEID_LSB     (CL_HTON64(((uint64_t)1)<<1))
-=2E....
-=2E....
-#define  IB_PR_COMPMASK_SERVICEID (IB_PR_COMPMASK_SERVICEID_MSB | \
-                                   IB_PR_COMPMASK_SERVICEID_LSB)
-
-
-Why are these fields named as "SERVICE_ID"? I would expect something
-like IB_SA_PATH_REC_RESERVED_1 and IB_SA_PATH_REC_RESERVED_2 according
-to the specs. Are they really reserved or used, and if they are used,
-when does this happen?
-
-Vangelis
-
-
---fetWv5k24ndq0JARhPKosgimPmLwsmXMA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQEcBAEBAgAGBQJT+vd3AAoJEEuGx9KTo03qMncIAKb9LjusI32UMGKMAnwOwau7
-IAMFKXeNNQPJ8k2rNfoSDfbsLnAx7ebF28qtaHonH2T7NE/w+IZ8z3v1UYJMP4Cg
-fIvDgz2AB0S80/HD7+LJcJ/e8Qrs/hQjyBnTk0g7OIdIG7a42ArLhfFFZMYFC/FT
-215iu2K9L1BueDGPap7iY6I4AjFCGkPHeyvkgKa4zRMf7V5VaXDJzRUMWsx3HC4W
-yYTFMQmC4ODes0r6gCOJ1nWe6xoCFeltu0B6+0GYCBR2WQO3Lj3LXXQMRfxLbzJT
-Asgqwqqz6LEUqKlBHvmMb8W9TLdDr149YXtbrece4fHxewYEs5R8d6dT0+gY4HI=
-=FVeu
------END PGP SIGNATURE-----
-
---fetWv5k24ndq0JARhPKosgimPmLwsmXMA--
+PiANCj4gSGVsbG8sDQo+IA0KPiBJIGFtIGxvb2tpbmcgaW50byB0aGUgT0ZFRCBjb2RlIGZvciB0
+aGUgY29tcG9uZW50IG1hc2sgYml0cyBvZiB0aGUNCj4gUGF0aFJlY29yZCByZXF1ZXN0cyBhbmQg
+SSBuZWVkIHNvbWUgZnVydGhlciBleHBsYW5hdGlvbi4NCj4gDQo+IFRoZSBJQiBzcGVjaWZpY2F0
+aW9uIGluIHNlY3Rpb24gIjE1LjIuNS4xNiBQYXRoUmVjb3JkLCB0YWJsZSAyMDcgUGF0aFJlY29y
+ZCINCj4gZGVmaW5lcyB0aGUgZmlyc3QgdHdvIGNvbXBvbmVudHMgYXMgIlJlc2VydmVkIi4gRWFj
+aCBvbmUgb2YgdGhlbSBpcyAzMiBiaXRzDQo+IGxvbmcgYW5kIHRoZSBkZXNjcmlwdGlvbiBvZiB0
+aGUgZmlyc3Qgb25lIGlzICJSZXNlcnZlZCINCj4gd2hpbGUgdGhlIGRlc2NyaXB0aW9uIG9mIHRo
+ZSBzZWNvbmQgcmVzZXJ2ZWQgY29tcG9uZW50IGlzICJPZmZzZXQgZm9yDQo+IGFsaWdubWVudCIu
+DQoNCg0KVGhlIElCVEEgaGFzIHB1Ymxpc2hlZCBlcnJhdGEgdG8gdGhlIDEuMi4xIHNwZWNpZmlj
+YXRpb24gd2hpY2ggaW5jbHVkZXMgdGhlIHVzZSBvZiBtYW55IHJlc2VydmVkIGZpZWxkcy4NCg0K
+SSBiZWxpZXZlIHRoZXNlIGVycmF0YSBhcmUgcHVibGljIG9uIHRoZWlyIHdlYiBzaXRlLg0KDQpJ
+cmENCg0KPiANCj4gSG93ZXZlciwgaW4gdGhlIGZpbGUgImluY2x1ZGUvcmRtYS9pYl9zYS5oIiB3
+aGVyZSB0aGUgY29tcG9uZW50IG1hc2sgYml0cyBmb3INCj4gdGhlIFBhdGggUmVjb3JkcyBhcmUg
+ZGVmaW5lZCwgdGhlIDFzdCBhbmQgMm5kIGNvbXBvbmVudCBhcmUgY29tYmluZWQNCj4gdG9nZXRo
+ZXIgdW5kZXIgdGhlIG5hbWUgSUJfU0FfUEFUSF9SRUNfU0VSVklDRV9JRC4NCj4gDQo+IA0KPiAj
+ZGVmaW5lIElCX1NBX1BBVEhfUkVDX1NFUlZJQ0VfSUQgICAoSUJfU0FfQ09NUF9NQVNLKCAwKSB8
+XA0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSUJfU0FfQ09NUF9NQVNL
+KCAxKSkNCj4gDQo+IA0KPiBUaGUgc2FtZSBkZWZpbml0aW9uIGV4aXN0cyBpbiB0aGUgT3BlblNN
+IGNvZGUgaW4gZmlsZSAiaW5jbHVkZS9pYmEvaWJfdHlwZXMuaCINCj4gDQo+IA0KPiAvKiBQYXRo
+IFJlY29yZCBDb21wb25lbnQgTWFza3MgKi8NCj4gI2RlZmluZSAgSUJfUFJfQ09NUE1BU0tfU0VS
+VklDRUlEX01TQg0KPiAoQ0xfSFRPTjY0KCgodWludDY0X3QpMSk8PDApKQ0KPiAjZGVmaW5lICBJ
+Ql9QUl9DT01QTUFTS19TRVJWSUNFSURfTFNCICAgICAoQ0xfSFRPTjY0KCgodWludDY0X3QpMSk8
+PDEpKQ0KPiAuLi4uLg0KPiAuLi4uLg0KPiAjZGVmaW5lICBJQl9QUl9DT01QTUFTS19TRVJWSUNF
+SUQgKElCX1BSX0NPTVBNQVNLX1NFUlZJQ0VJRF9NU0IgfA0KPiBcDQo+ICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgSUJfUFJfQ09NUE1BU0tfU0VSVklDRUlEX0xTQikNCj4gDQo+
+IA0KPiBXaHkgYXJlIHRoZXNlIGZpZWxkcyBuYW1lZCBhcyAiU0VSVklDRV9JRCI/IEkgd291bGQg
+ZXhwZWN0IHNvbWV0aGluZyBsaWtlDQo+IElCX1NBX1BBVEhfUkVDX1JFU0VSVkVEXzEgYW5kIElC
+X1NBX1BBVEhfUkVDX1JFU0VSVkVEXzIgYWNjb3JkaW5nDQo+IHRvIHRoZSBzcGVjcy4gQXJlIHRo
+ZXkgcmVhbGx5IHJlc2VydmVkIG9yIHVzZWQsIGFuZCBpZiB0aGV5IGFyZSB1c2VkLCB3aGVuIGRv
+ZXMNCj4gdGhpcyBoYXBwZW4/DQo+IA0KPiBWYW5nZWxpcw0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
