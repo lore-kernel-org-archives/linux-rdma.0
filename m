@@ -1,277 +1,356 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD QPs
- Eth L2 resolution
-Date: Sun, 24 Aug 2014 16:51:09 +0300
-Message-ID: <53F9EDCD.9060105@mellanox.com>
-References: <1408517381-17523-1-git-send-email-matanb@mellanox.com> <1408517381-17523-3-git-send-email-matanb@mellanox.com> <20140820170142.GC12605@obsidianresearch.com>
+From: Jan Chaloupka <jchaloup-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [REVIEW] perftest: new man page
+Date: Mon, 25 Aug 2014 08:08:14 +0200
+Message-ID: <53FAD2CE.9020008@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------050908080504070308030306"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140820170142.GC12605-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/8/2014 8:01 PM, Jason Gunthorpe wrote:
-> On Wed, Aug 20, 2014 at 09:49:41AM +0300, Matan Barak wrote:
->
->> +#define MAX(a, b) ((a) > (b) ? (a) : (b))
->> +#define MIN(a, b) ((a) < (b) ? (a) : (b))
->> +#define print_hdr PFX "resolver: "
->> +#define print_err(...) fprintf(stderr, print_hdr __VA_ARGS__)
->
-> System libraries should really not be printing things on error
-> paths...
+This is a multi-part message in MIME format.
+--------------050908080504070308030306
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Ok, I'll only set the errno value.
+Hello,
 
->
->> +static int set_link_port(union sktaddr *s, int port, int oif)
->> +{
->> +	switch (s->s.sa_family) {
->> +	case AF_INET:
->> +		s->s4.sin_port = port;
->> +		break;
->> +	case AF_INET6:
->> +		s->s6.sin6_port = port;
->> +		s->s6.sin6_scope_id = oif;
->
-> Does flowlabel get initialized someplace?
->
+I am package maintainer responsible for man pages on Fedora and RHEL.
+Yesterday, I run into
 
-Do you refer to flowinfo?
-If so, it isn't initialized, but should be.
-0 should be good enough, so I'll memset the whole struct.
+https://bugzilla.redhat.com/show_bug.cgi?id=948476
 
->> +static int cmp_address(const struct sockaddr *s1,
->> +		       const struct sockaddr *s2) {
->
-> 'cmp' functions that only test equality should return bool for
-> clarity. Otherwise people will assume the usual -1,0,1 return style,
-> which this does not implement.
->
-
-Ok, will be fixed.
-
->> +	if (s1->sa_family != s2->sa_family)
->> +		return s1->sa_family ^ s2->sa_family;
->
-> Ditch the ^ for compare, pointless.
->
-
-Ok
-
->> +static struct nl_addr *get_neigh_mac(struct get_neigh_handler *neigh_handler)
->> +{
->> +	struct rtnl_neigh *neigh;
->> +	struct nl_addr *ll_addr = NULL;
->> +
->> +	/* future optimization - if link local address - parse address and
->> +	 * return mac */
->
-> What does this comment refer to? MACs should never be parsed out of
-> IPv6 addresses.
->
-
-GID0 should always be valid, even if no IPv4 and IPv6 are configured.
-IPv6 link-local and multicast addresses should be parsed from the IPv6 
-address.
-
->> +	sock_fd = socket(addr_dst->sktaddr.s.sa_family,
->> +			 SOCK_DGRAM | SOCK_CLOEXEC, 0);
->> +	if (sock_fd == -1)
->> +		return errno ? -errno : -1;
->
-> If socket fails then errno is always set, not sure the safety test is
-> necessary, if it is, then -1 is not the right result, it should be
-> -EINVAL or something.
->
->> +	err = bind(sock_fd, &addr_src.sktaddr.s, addr_src.len);
->> +	if (err) {
->> +		int bind_err = -errno;
->> +		print_err("Couldn't bind socket\n");
->> +		close(sock_fd);
->> +		return bind_err ?: err;
->
-> bind does not return an errno code, so it should never be the return
-> result.
->
-
-Ok
-
->> +	timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
->> +	if (-1 == timer_fd) {
->> +		print_err("Couldn't create timer\n");
->> +		return timer_fd;
->> +	}
->
-> The use of timerfd will impact the minimum OS version, have you
-> checked this is OK? Does RHEL5 still work?
->
-
-It was added in linux v2.6.25. I think that an API that's more than 6.5 
-years old is valid.
+stating that binaries of perftest are missing. However, in README, there
+is a lot of information (I believe all information needed) for writing
+man page for these all binaries. Created man page is attached in the
+bugzilla above.
 
 
->> +	while (1) {
->> +		FD_ZERO(&fdset);
->> +		FD_SET(fd, &fdset);
->> +		FD_SET(timer_fd, &fdset);
->> +
->> +		/* wait for an incoming message on the netlink socket */
->> +		ret = select(nfds, &fdset, NULL, NULL, NULL);
->
-> poll is a better choice here, it would also be fairly simple to remove
-> timerfd by using the timeout arg.
->
+Could you, please, review the man page? It is almost 1:1 copy of
+informations from README. If the man page is not meant to exists, I will
+state this information into bz. As from COPYING file, content of tarball
+is under GPL2 (or BSD) license. I put GPL2+ licence at the top of man
+page source code. If the licence is wrong, please, let me know. If you
+want your name in Copyright, there is not problem.
 
-The purpose is to have a timeout on the whole process and not per loop.
+If you agree with the page, is there a mailing-list or mail, where bugs
+can be sent? I would like to add contact to AUTHORS section. If there
+are more authors of perftest, I will add them here too.
 
->> +					if (sendto(sock_fd, buff, sizeof(buff),
->> +						   0, &addr_dst.sktaddr.s,
->> +						   addr_dst.len) < 0)
->> +						print_err("Failed to send "
->> +							  "packet while waiting"
->> +							  " for
->> events\n");
->
-> If the earlier sendto needs to be protected by a loop looking at
-> EADDRNOTAVAIL then so does this one.
->
-
-If the sendto failed, we would just retry it in the next loop.
-
-> I'm also not sure all this looping and complexity is needed... Why
-> override the kernel timers for ND?
->
-> I would think you'd check the ND table, if there is no good entry then
-> do the send, and then watch the ND table for a FAILED/REACHABLE
-> result. The kernel timers will always transition through INCOMPLETE to
-> one of those terminal states.
->
-> No need for more timers and retry and things, the kernel already retried.
->
-
-Watching just for the ND event is problematic.
-If the user sent a packet just after we looked at the ND and before we 
-waited for an event, we would probably just fail without finding any 
-neighbor. Regarding the retries, because we use UD and switches could
-sometimes take a few seconds to learn the network, I chose to do a few 
-reties before giving up.
+Regards
+Jan Chaloupka
 
 
->> +static int get_mcast_mac_ipv6(struct nl_addr *dst, struct nl_addr **ll_addr)
->> +{
->> +	char mac_addr[6] = {0x33, 0x33};
->> +	memcpy(mac_addr + 2, (char *)nl_addr_get_binary_addr(dst) + 12, 4);
->
-> (char *) should be (uint8_t *), you are not working with a string
-> here. Similarly for nearly all char casts. Proper use of const
-> throughout would be nice too..
->
->> +const struct encoded_l3_addr {
->
-> Missing static
->
+--------------050908080504070308030306
+Content-Type: application/x-troff-man;
+ name="ib_atomic_bw.1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ib_atomic_bw.1"
 
-Ok
+.\" Copyright (c) 2014, Jan Chaloupka <jchaloup-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.TH "IB_ATOMIC_BW" 1 2014 "Open Fabrics Enterprise Distribution"
+.\" IB_ATOMIC_BW
+.SH NAME
+ib_atomic_bw, ib_atomic_lat, ib_read_bw, ib_read_lat, ib_send_bw,
+ib_send_lat, ib_write_bw, ib_write_lat
+\- Collection of tests written over uverbs intended for use as a
+performance micro-benchmark
+.SH SYNOPSIS
+.sp
+.B ib_atomic_bw [<host>] [options]
+.sp
+.B ib_atomic_lat [<host>] [options]
+.sp
+.B ib_read_bw [<host>] [options] 
+.sp
+.B ib_read_lat [<host>] [options]
+.sp
+.B ib_write_bw [<host>] [options]
+.sp
+.B ib_write_lat [<host>] [options]
+.SH DESCRIPTION
+This is a collection of tests written over uverbs intended for use as a
+performance micro-benchmark. As an example, the tests can be used for
+HW or SW tuning and/or functional testing.
 
->> +int nl_addr_cmp_prefix_msb(void *addr1, int len1, void *addr2, int len2)
->> +{
->
-> Missing static
->
+The collection conatains a set of BW and latency benchmark such as :
+.sp
+* Read   - ib_read_bw and ib_read_lat.
+.sp
+* Write  - ib_write_bw and ib_wriet_lat.
+.sp
+* Send   - ib_send_bw and ib_send_lat.
+.sp
+* Atomic - ib_atomic_bw and ib_atomic_lat
+.sp
+* Raw Etherent (when working with MOFED2) - raw_ethernet_bw, raw_ethernet_lat
 
-Right
+The benchmark used the CPU cycle counter to get time stamps without context
+switch.  Some CPU architectures (e.g., Intel's 80486 or older PPC) do NOT
+have such capability.
 
->> +	struct rtnl_nexthop *nh = rtnl_route_nexthop_n(route, 0);
->> +	if (!nh)
->> +		print_err("Out of memory\n");
->> +	gateway = rtnl_route_nh_get_gateway(nh);
->
-> And then crash?
->
+The latency benchmarks measures round-trip time but reports half of that as
+one-way latency.
+This means that it may not be sufficiently accurate for asymmetrical
+configurations.
 
-Corret, I'll add a return when an error is detected.
+On Bw benchmarks, we calculate the BW on send side only, as he calculates
+the Bw after collecting completion from the receive side.
+In case we use the bidirectional flag , BW is calculated on both sides.
+in ib_send_bw, server side also calculate the received throughput.
 
->> +err_link:
->> +	rtnl_link_put(link);
->> +err:
->> +	if (neigh_handler->src) {
->> +#ifdef HAVE_LIBNL1
->> +		nl_addr_put(neigh_handler->src);
->
-> Should this be nl_addr_destroy ?
->
+Min/Median/Max result is reported in latency tests.
+The median (vs average) is less sensitive to extreme scores.
+Typically, the "Max" value is the first value measured.
 
-Only if it was allocated by this function - should be fixed.
+Larger samples help marginally only. The default (1000) is pretty good.
+Note that an array of cycles_t (typically unsigned long) is allocated
+once to collect samples and again to store the difference between them.
+Really big sample sizes (e.g., 1 million) might expose other problems
+with the program. In this case you can use -N flag (No Peak) to instruct
+the test sample only 2 times (begining and end).
 
-> Can you do a better job with these ifdefs? I think you can get away
-> with a nl1_compat.h which has simple wrapper things like this:
->
-> static inline void emulate_nl_addr_put(x) {return nl_addr_destroy(x);}
-> #define nl_addr_put(x) emulate_nl_addr_put(x)
->
+All throughput tests now have duration feature as well (-D <seconds to run>)
+to instruct the test to run for <seconds to run>.
+Another feature added is --run_infinitely, which instruct the test to run
+all te time and print throughput every 5 seconds.
 
-Ok
+The "-H" option (latency) will dump the histogram for additional statistical
+analysis.
+See xgraph, ygraph, r-base (http://www.r-project.org/), pspp, or other
+statistical math programs.
 
-> And purge the ifdefery from the main source.
->> +
->> +	last_status = __sync_fetch_and_or(
->> +			&neigh_handler->neigh_status,
->> +			GET_NEIGH_STATUS_IN_PROCESS);
->
-> Is there a thread running around in here someplace?
->
-> Callina raw gcc intrinsic like this should really be avoided,
-> especially since this isn't a performance path. Use pthreads.
->
 
-The current implementation is synchronous.
-For the usage of the neigh.c entry function, those guards could be deleted.
+Architectures tested: i686, x86_64, ia64
+.SH OPTIONS
+The SAME OPTIONS must be passed to both server and client.
 
->> +static inline int ipv6_addr_v4mapped(const struct in6_addr *a)
->> +{
->> +	return ((a->s6_addr32[0] | a->s6_addr32[1]) |
->> +		(a->s6_addr32[2] ^ htonl(0x0000ffff))) == 0UL ||
->> +		/* IPv4 encoded multicast addresses */
->> +	       (a->s6_addr32[0]  == htonl(0xff0e0000) &&
->> +		((a->s6_addr32[1] |
->> +		  (a->s6_addr32[2] ^ htonl(0x0000ffff))) == 0UL));
->> +}
->
-> Don't duplicate IN6_IS_ADDR_V4MAPPED
->
+If
+.I <host>
+is not presented, command starts a server and waits for connection.
+If it is, command connects to server at
+.I <host>.
+.sp
+.B Common Options:
+.RS 4
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display this help message screen.
+.TP
+\fB\-p\fR, \fB\-\-port\fR=\fI<port>\fR
+Listen on/connect to port <port> (default: 18515) when exchaning data.
+.TP
+\fB\-R\fR, \fB\-\-rdma_cm\fR
+Connect QPs with rdma_cm and run test on those QPs.
+.TP
+\fB\-z\fR, \fB\-\-com_rdma_cm\fR
+Communicate with rdma_cm module to exchange data \- use regular QPs.
+.TP
+\fB\-m\fR, \fB\-\-mtu\fR=\fI<mtu>\fR
+ QP Mtu size (default: active_mtu from ibv_devinfo).
+.TP
+\fB\-c\fR, \fB\-\-connection\fR=\fI<RC/UC/UD>\fR
+Connection type RC/UC/UD (default RC)
+.TP
+\fB\-d\fR, \fB\-\-ib\-dev\fR=\fI<dev>\fR
+Use IB device <dev> (default: first device found).
+.TP
+\fB\-i\fR, \fB\-\-ib\-port\fR=\fI<port>\fR
+Use port <port> of IB device (default: 1).
+.TP
+\fB\-s\fR, \fB\-\-size\fR=\fI<size>\fR
+Size of message to exchange (default: 1).
+.TP
+\fB\-a\fR, \fB\-\-all\fR
+Run sizes from 2 till 2^23.
+.TP
+\fB\-n\fR, \fB\-\-iters\fR=\fI<iters>\fR
+Number of exchanges (at least 100, default: 1000).
+.TP
+\fB\-x\fR, \fB\-\-gid\-index\fR=\fI<index>\fR
+Test uses GID with GID index taken from command
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Display version number.
+.TP
+\fB\-e\fR, \fB\-\-events\fR
+Sleep on CQ events (default poll).
+.TP
+\fB\-F\fR, \fB\-\-CPU\-freq\fR
+Do not fail even if cpufreq_ondemand module.
+.TP
+\fB\-I\fR, \fB\-\-inline_size\fR=\fI<size>\fR
+Max size of message to be sent in inline mode.
+.TP
+\fB\-u\fR, \fB\-\-qp\-timeout\fR=\fI<timeout>\fR
+QP timeout, timeout value is 4 usec*2 ^timeout (default: 14).
+.TP
+\fB\-S\fR, \fB\-\-sl\fR=\fI<sl>\fR
+SL \- Service Level (default 0)
+.TP
+\fB\-r\fR, \fB\-\-rx\-depth\fR=\fI<dep>\fR
+Make rx queue bigger than tx (default 600).
+.RE
+.sp
+.B Latenct tests options:
+.RS 4
+.TP
+\fB\-C\fR, \fB\-\-report\-cycles\fR
+Report times in cpu cycle units.
+.TP
+\fB\-H\fR, \fB\-\-report\-histogram\fR
+Print out all results (Default: summary only).
+.TP
+\fB\-U\fR, \fB\-\-report\-unsorted\fR
+Print out unsorted results (default sorted).
+.RE
+.sp
+.B BW tests options:
+.RS 4
+.TP
+\fB\-b\fR, \fB\-\-bidirectional\fR
+Measure bidirectional bandwidth (default uni).
+.TP
+\fB\-N\fR, \fB\-\-no\fR
+peak\-bw              Cancel peak\-bw calculation (default with peak\-bw)
+.TP
+\fB\-Q\fR, \fB\-\-cq\-mod\fR
+Generate Cqe only after <cq\-mod> completion
+.TP
+\fB\-t\fR, \fB\-\-tx\-depth=<dep>\fR
+Size of tx queue (default: 128).
+.TP
+\fB\-O\fR, \fB\-\-dualport\fR
+Run test in dual\-port mode (2 QPs). both ports must be active (default OFF).
+.TP
+\fB\-D\fR, \fB\-\-duration=<sec>\fR
+Run test for <sec> period of seconds.
+.TP
+\fB\-f\fR, \fB\-\-margin=<sec>\fR
+When in Duration, measure results within margins (default: 2)
+.TP
+\fB\-l\fR, \fB\-\-post_list=<list_size>\fR
+Post list of WQEs of <list size> size (instead of single post).
+.TP
+\fB\-q\fR, \fB\-\-qp=<num_of_qps>\fR
+Num of QPs running in the process (default: 1).
+.TP
+\fB\-\-run_infinitely \fR
+Run test forever\fR, \fBprint results every 5 seconds.
+.RE
+.sp
+.B SEND tests options:
+.RS 4
+.TP
+\fB\-r\fR, \fB\-\-rx\-depth=<dep>\fR
+Size of RX queue (default: 512 in BW test).
+.TP
+\fB\-g\fR, \fB\-\-mcg=<num_of_qps>\fR
+Send messages to multicast group with <num_of_qps> qps attached to it.
+.TP
+\fB\-M\fR, \fB\-\-MGID=<multicast_gid>\fR
+In multicast, uses <multicast_gid> as the group MGID.
+.RE
+.sp
+.B Raw Ethernet BW test options:
+.RS 4
+.TP
+\fB\-A\fR, \fB\-\-atomic_type=<type>\fR
+type of atomic operation from {CMP_AND_SWAP,FETCH_AND_ADD}.
+.TP
+\fB\-o\fR, \fB\-\-outs=<num>\fR
+Number of outstanding read/atomic requests \- also on READ tests.
+.TP
+\fB\-B\fR, \fB\-\-source_mac\fR
+source MAC address by this format XX:XX:XX:XX:XX:XX (default take the MAC address form GID).
+.TP
+\fB\-E\fR, \fB\-\-dest_mac\fR
+destination MAC address by this format XX:XX:XX:XX:XX:XX **MUST** be entered.
+.TP
+\fB\-J\fR, \fB\-\-server_ip\fR
+server ip address by this format X.X.X.X (using to send packets with IP header).
+.TP
+\fB\-j\fR, \fB\-\-client_ip\fR
+client ip address by this format X.X.X.X (using to send packets with IP header).
+.TP
+\fB\-K\fR, \fB\-\-server_port\fR
+server udp port number (using to send packets with UPD header).
+.TP
+\fB\-k\fR, \fB\-\-client_port\fR
+client udp port number (using to send packets with UDP header).
+.TP
+\fB\-Z\fR, \fB\-\-server\fR
+choose server side for the current machine (\-\-server/\-\-client must be selected ).
+.TP
+\fB\-P\fR, \fB\-\-client\fR
+choose client side for the current machine (\-\-server/\-\-client must be selected).
+.RE
+.SH ENVIRONMENT
+.B Prerequisites:
+.RS
+kernel 2.6
+.RE
+.RS
+(kernel module) matches libibverbs
+.RE
+.RS
+(kernel module) matches librdmacm
+.RE
+.RS
+(kernel module) matches libibumad
+.RE
+.RS
+(kernel module) matches libmath (lm).
+.RE
+.SH NOTES
+You need to be running a Subnet Manager on the switch or on one of the nodes in your fabric, in case you are in IB fabric.
+.SH BUGS
+1. Multicast feauture in ib_send_lat and in ib_send_bw still have many problems!
+Will increase the support and bug fixes in this Q, but now the tests may stuck
+and could produce undefine behaviours.
+.sp
+2. Bidirectional feature in ib_send_bw test, when running in UD or UC mode.
+The algorithm we use for the bidirectional measurement is designed for RC connection type.
+When running in UC or UD connection types, there is a small probablity the test will be stuck.
+.sp
+3. RDMA_CM feature in read tests still doesn't work.
+.sp
+4. Dual-port support currently works only with ib_write_bw.
+.sp
+5. Compabilty issues may occur between different versions of perftest.
+Please make sure you work with the same version on both sides to ensure
+consistency of the test.
+.SH AUTHORS
+Links does not work!!!!!!, some mailing list or upstream link for perftest would be great!!!
+Please post results/observations to the openib-general mailing list.
+See "Contact Us" at http://openib.org/mailman/listinfo/openib-general and
+http://www.openib.org.
 
-I wasn't aware the macro exists, I'll use it.
-
->> +	if (err) {
->> +		fprintf(stderr, PFX "ibv_create_ah failed to query
->> sgid.\n");
->
-> Again, system libraries should not be printing on error, use errno
-> properly.
->
-
-I'll remove all prints.
-
->> +#else
->> +	return -ENOIMPL;
->
-> Is that a typo of ENOSYS?
->
-> Be sure you have tested compiling with each and every variation of the
-> #ifdefs added.
->
-> Jason
->
-
-Thanks for the comments and the thorough code review Jason.
-I'll send a fixed version.
-
-Matan
+--------------050908080504070308030306--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
