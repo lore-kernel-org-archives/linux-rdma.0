@@ -1,53 +1,43 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.12-1 rc1 release is available
-Date: Wed, 27 Aug 2014 14:31:23 +0300
-Message-ID: <53FDC18B.6050809@dev.mellanox.co.il>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: mlx5 + SRP: max_qp_sz mismatch
+Date: Wed, 27 Aug 2014 11:28:17 +0000
+Message-ID: <CFE9BFE80FFE4D4892AA5D31387E310F014FC414E5@MTLDAG02.mtl.com>
+References: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q@mail.gmail.com>
+	<53F36420.3060607@dev.mellanox.co.il>
+	<CADvaNzVkKuvHw58meQD962VSm4Y-QZoHC3ndsYSBW8rw7S68cw@mail.gmail.com>
+ <CADvaNzWAZiNiwBAVYVA5it7K3A4CAozkeHn8SowYNT7iE6YykA@mail.gmail.com>
+ <53FCB18F.5030608@dev.mellanox.co.il> <53FDBED2.2060707@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53FDBED2.2060707-HInyCGIudOg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-3.12-1-rc1 is available at:
-https://openfabrics.org/downloads/OFED/ofed-3.12-1/OFED-3.12-1-rc1.tgz
-
-To get BUILD_ID run ofed_info
-
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/  for OFED 3.12-1
-
-Release notes: https://openfabrics.org/downloads/OFED/release_notes/OFED_3.12-1_rc1_release_notes
-
-
-OFED-3.12-1-rc1 Main Changes from OFED 3.12 GA
--------------------------------------------------------------------------------
-1. Add support for the OSes
-    - RedHat EL7.0
-    - SLES 12 RC2
-2. Updated packages:
-    - dapl-2.1.1
-    - ibacm-1.0.9
-    - libcxgb4-1.3.5
-    - libibverbs-1.1.8
-    - libmlx4-1.0.6
-    - libocrdma-1.0.3
-    - librdmacm-1.0.19.1
-    - mstflint-3.7.0-1.17
-    - opensm-3.3.18
-    - perftest-2.3-0.12
-3. Bug fixes
-
-Known issues
-------------
-- infinipath-psm installation fails on RHEL7.0 and SLES12
-
-Regards,
-Vladimir
-
+T24gMDgvMjYvMTQgMTg6MTAsIFNhZ2kgR3JpbWJlcmcgd3JvdGU6DQo+IA0KPiBTaW5jZSBJIGRv
+bid0IGtub3cgaG93IHRydWUgc2VuZCBxdWV1ZSBzaXplIGNhbiBiZSBjb21wdXRlZCBmcm9tIHRo
+ZSANCj4gZGV2aWNlIGNhcGFiaWxpdGllcyBhdCB0aGUgbW9tZW50IC1JIGNhbiBzdWdnZXN0IGEg
+Zml4IHRvIHNycHQgdG8gDQo+IHJldHJ5IHdpdGggc3JwX3NxX3NpemUvMiAoYW5zIHNvIG9uIHVu
+dGlsIGl0IHN1Y2NlZWRzLi4uKQ0KPiANClRoZSBkZXZpY2UgY2FwYWJpbGl0aWVzIHByb3ZpZGUg
+dGhlIG1heGltdW0gbnVtYmVyIG9mIHNlbmQgd29yaw0KcmVxdWVzdHMgdGhhdCB0aGUgZGV2aWNl
+IHN1cHBvcnRzIGJ1dCB0aGUgYWN0dWFsIG51bWJlciBvZiB3b3JrDQpyZXF1ZXN0cyB0aGF0IGNh
+biBiZSBzdXBwb3J0ZWQgaW4gYSBzcGVjaWZpYyBjYXNlIGRlcGVuZHMgb24gb3RoZXINCmNoYXJh
+Y3RlcmlzdGljcyBvZiB0aGUgd29yayByZXF1ZXN0cy4gRm9yIGV4YW1wbGUsIGluIHRoZSBjYXNl
+IG9mDQpDb25uZWN0LUlCLCB0aGUgYWN0dWFsIG51bWJlciBkZXBlbmRzIG9uIHRoZSBudW1iZXIg
+b2Ygcy9nIGVudHJpZXMsDQp0aGUgdHJhbnNwb3J0IHR5cGUsIGV0Yy4gVGhpcyBpcyBpbiBjb21w
+bGlhbmNlIHdpdGggdGhlIElCIHNwZWM6DQoNCjExLjIuMS4yIFFVRVJZIEhDQQ0KRGVzY3JpcHRp
+b246DQpSZXR1cm5zIHRoZSBhdHRyaWJ1dGVzIGZvciB0aGUgc3BlY2lmaWVkIEhDQS4NClRoZSBt
+YXhpbXVtIHZhbHVlcyBkZWZpbmVkIGluIHRoaXMgc2VjdGlvbiBhcmUgZ3VhcmFudGVlZA0Kbm90
+LXRvLWV4Y2VlZCB2YWx1ZXMuIEl0IGlzIHBvc3NpYmxlIGZvciBhbiBpbXBsZW1lbnRhdGlvbiB0
+byBhbGxvY2F0ZQ0Kc29tZSBIQ0EgcmVzb3VyY2VzIGZyb20gdGhlIHNhbWUgc3BhY2UuIEluIHRo
+YXQgY2FzZSwgdGhlIG1heGltdW0NCnZhbHVlcyByZXR1cm5lZCBhcmUgbm90IGd1YXJhbnRlZWQg
+Zm9yIGFsbCBvZiB0aG9zZSByZXNvdXJjZXMNCnNpbXVsdGFuZW91c2x5Lg0KDQpTbywgYSB3ZWxs
+IHdyaXR0ZW4gYXBwbGljYXRpb24gc2hvdWxkIHRyeSBzbWFsbGVyIHZhbHVlcyBpZiBpdCBmYWls
+cw0Kd2l0aCBFTk9NRU0uDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
