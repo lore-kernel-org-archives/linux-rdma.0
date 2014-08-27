@@ -1,99 +1,37 @@
-From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 4/5] dapl: add support for the s390x platform
-Date: Wed, 27 Aug 2014 12:24:39 +0200
-Message-ID: <1409135080-44991-5-git-send-email-aishchuk@linux.vnet.ibm.com>
-References: <1409135080-44991-1-git-send-email-aishchuk@linux.vnet.ibm.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: mlx5 + SRP: max_qp_sz mismatch
+Date: Wed, 27 Aug 2014 13:19:46 +0200
+Message-ID: <53FDBED2.2060707@acm.org>
+References: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q@mail.gmail.com>	<53F36420.3060607@dev.mellanox.co.il>	<CADvaNzVkKuvHw58meQD962VSm4Y-QZoHC3ndsYSBW8rw7S68cw@mail.gmail.com> <CADvaNzWAZiNiwBAVYVA5it7K3A4CAozkeHn8SowYNT7iE6YykA@mail.gmail.com> <53FCB18F.5030608@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1409135080-44991-1-git-send-email-aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <53FCB18F.5030608-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, martin.schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, frank.blaschka-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the dapl_os_atopmic_inc, dapl_os_atomic_dec, and
-dapl_os_atomic_assign function implementatios to the dapl userspace package
-to provide the DAPL API support on the s390x platform by adding Assembler
-language implemenation of those platform specific functions.
+On 08/26/14 18:10, Sagi Grimberg wrote:
+> On 8/20/2014 6:51 PM, Mark Lehrer wrote:
+>>>  From what I see srp_sq_size is controlled via
+>>> configfs. Can you set it to 2048 just for the sake of
+>>> confirmation this is indeed the issue?
+>>
+>> Now that we have confirmed that this works, what is the proper way to
+>> fix the problem?  Is the core issue with mlx5 or srp?
+> 
+> Since I don't know how true send queue size can be computed from the
+> device capabilities at the moment -I can suggest a fix to srpt to retry
+> with srp_sq_size/2 (ans so on until it succeeds...)
+> 
+> CC'ing Bart and Eli.
 
-Signed-off-by: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
----
- dapl/udapl/linux/dapl_osd.h |   37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
+Sounds fine to me. I wish a more elegant approach would be possible but
+I have not yet found an approach that is more elegant.
 
---- a/dapl/udapl/linux/dapl_osd.h
-+++ b/dapl/udapl/linux/dapl_osd.h
-@@ -49,7 +49,9 @@
- #error UNDEFINED OS TYPE
- #endif /* __linux__ */
- 
--#if !defined (__i386__) && !defined (__ia64__) && !defined(__x86_64__) && !defined(__PPC__) && !defined(__PPC64__)
-+#if !defined(__i386__) && !defined(__ia64__) \
-+&& !defined(__x86_64__) && !defined(__PPC__) && !defined(__PPC64__) \
-+&& !defined(__s390x__)
- #error UNDEFINED ARCH
- #endif
- 
-@@ -156,6 +158,22 @@ int dapl_os_get_env_val (
- 
- 
- /* atomic functions */
-+#ifdef __s390x__
-+#define DAPL_CS_ADD(ptr, op_val) ({		\
-+	int old_val, new_val;				\
-+	__asm__ __volatile__(				\
-+		"	l	%0,%2\n"		\
-+		"0:	lr	%1,%0\n"		\
-+		"	ar	%1,%3\n"		\
-+		"	cs	%0,%1,%2\n"		\
-+		"	jl	0b"			\
-+		: "=&d" (old_val), "=&d" (new_val),	\
-+		  "=Q" (*ptr)				\
-+		: "d" (op_val), "Q" (*ptr)		\
-+		: "cc", "memory");			\
-+	new_val;					\
-+})
-+#endif
- 
- /* dapl_os_atomic_inc
-  *
-@@ -179,6 +197,11 @@ dapl_os_atomic_inc (
- #else
- 	IA64_FETCHADD(old_value,v,1,4);
- #endif
-+#elif defined(__s390x__)
-+	DAT_COUNT	tmp;
-+	DAT_COUNT	delta = 1;
-+
-+	tmp = DAPL_CS_ADD(v, delta);
- #elif defined(__PPC__) || defined(__PPC64__)
- 	int tmp;
- 
-@@ -218,6 +241,11 @@ dapl_os_atomic_dec (
- #else
- 	IA64_FETCHADD(old_value,v,-1,4);
- #endif
-+#elif defined(__s390x__)
-+	DAT_COUNT	tmp;
-+	DAT_COUNT	delta = -1;
-+
-+	tmp = DAPL_CS_ADD(v, delta);
- #elif defined (__PPC__) || defined(__PPC64__)
- 	int tmp;
- 
-@@ -273,6 +301,13 @@ dapl_os_atomic_assign (
- #else
-     current_value = ia64_cmpxchg(acq,v,match_value,new_value,4);
- #endif /* __ia64__ */
-+#elif defined(__s390x__)
-+	__asm__ __volatile__(
-+		"	cs	%0,%2,%1\n"
-+		: "+d" (match_value), "=Q" (*v)
-+		: "d" (new_value), "Q" (*v)
-+		: "cc", "memory");
-+	current_value = match_value;
- #elif defined(__PPC__) || defined(__PPC64__)
-         __asm__ __volatile__ (
- "       lwsync\n\
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
