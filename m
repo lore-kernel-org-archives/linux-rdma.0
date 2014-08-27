@@ -1,7 +1,7 @@
 From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 3/5] libmlx4: add support for s390x platform
-Date: Wed, 27 Aug 2014 12:24:38 +0200
-Message-ID: <1409135080-44991-4-git-send-email-aishchuk@linux.vnet.ibm.com>
+Subject: [PATCH 5/5] perftest: support for the s390x platform
+Date: Wed, 27 Aug 2014 12:24:40 +0200
+Message-ID: <1409135080-44991-6-git-send-email-aishchuk@linux.vnet.ibm.com>
 References: <1409135080-44991-1-git-send-email-aishchuk@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1409135080-44991-1-git-send-email-aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
@@ -10,256 +10,72 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, martin.schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, frank.blaschka-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since s390x platform requires execution of privileged CPU instructions
-to work with PCI I/O memory, the PCI I/O memory cannot be directly accessed
-from the userspace programs via the mapped memory areas. The current
-implementation of the Inifiniband verbs uses mapped memory areas to
-write data to device UAR and Blueflame page to initiate the I/O
-operations, these verbs cannot be used on the s390x platfrom without
-modification.
-This patch contains the changes to the libmlx4 userspace Mellanox device
-driver library required to provide support for the DAPL API on the s390x
-platform. The original code that directly used mapped memory areas to access
-the PCI I/O  memory of the Mellanox networking device is replaced with the
-new system call invocation for writing the data to mapped memory areas.
+This patch adds the required platform specific code to allow execution of
+the perftest package applications on the s390x platform.
 
 Signed-off-by: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 ---
- src/doorbell.h |    8 +--
- src/mlx4.h     |    2 
- src/mmio.h     |  151 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/qp.c       |   17 ------
- 4 files changed, 160 insertions(+), 18 deletions(-)
+ README          |    2 ++
+ src/get_clock.c |    6 ++++++
+ src/get_clock.h |    8 ++++++++
+ 3 files changed, 16 insertions(+)
 
---- a/src/doorbell.h
-+++ b/src/doorbell.h
-@@ -33,6 +33,8 @@
- #ifndef DOORBELL_H
- #define DOORBELL_H
+--- a/README
++++ b/README
+@@ -234,3 +234,5 @@ Special feature detailed explanation in
+     Please use the same perftest version on both sides to ensure consistency of benchmark results.
  
-+#include "mmio.h"
+  6. This version (5.0) won't work with previous versions of perftest.
 +
- #if SIZEOF_LONG == 8
- 
- #if __BYTE_ORDER == __LITTLE_ENDIAN
-@@ -45,7 +47,7 @@
- 
- static inline void mlx4_write64(uint32_t val[2], struct mlx4_context *ctx, int offset)
- {
--	*(volatile uint64_t *) (ctx->uar + offset) = MLX4_PAIR_TO_64(val);
-+	mmio_writeq((unsigned long)(ctx->uar + offset), MLX4_PAIR_TO_64(val));
++ 7. In the s390x platform virtualized environment the results shown by package test applications can be incorrect.
+--- a/src/get_clock.c
++++ b/src/get_clock.c
+@@ -132,6 +132,7 @@ static double sample_get_cpu_mhz(void)
+ 	return b;
  }
  
- #else
-@@ -53,8 +55,8 @@ static inline void mlx4_write64(uint32_t
- static inline void mlx4_write64(uint32_t val[2], struct mlx4_context *ctx, int offset)
++#ifndef __s390x__
+ static double proc_get_cpu_mhz(int no_cpu_freq_fail)
  {
- 	pthread_spin_lock(&ctx->uar_lock);
--	*(volatile uint32_t *) (ctx->uar + offset)     = val[0];
--	*(volatile uint32_t *) (ctx->uar + offset + 4) = val[1];
-+	mmio_writel((unsigned long)(ctx->uar + offset), val[0]);
-+	mmio_writel((unsigned long)(ctx->uar + offset + 4), val[1]);
- 	pthread_spin_unlock(&ctx->uar_lock);
+ 	FILE* f;
+@@ -181,9 +182,13 @@ static double proc_get_cpu_mhz(int no_cp
+ 	return mhz;
  }
  
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -73,6 +73,8 @@
- #define wc_wmb() asm volatile("sfence" ::: "memory")
- #elif defined(__ia64__)
- #define wc_wmb() asm volatile("fwb" ::: "memory")
-+#elif defined(__s390x__)
-+#define wc_wmb { asm volatile("" : : : "memory") }
- #else
- #define wc_wmb() wmb()
- #endif
---- /dev/null
-+++ b/src/mmio.h
-@@ -0,0 +1,151 @@
-+/*
-+ * Copyright (c) 2014 IBM Corporation
-+ */
-+#ifndef MMIO_H
-+#define MMIO_H
-+
-+#include <unistd.h>
-+#include <asm/unistd.h>
-+#include <sys/syscall.h>
++#endif
+ 
+ double get_cpu_mhz(int no_cpu_freq_fail)
+ {
 +#ifdef __s390x__
-+
-+#define s390_pci_mmio_write_call(addr, value) \
-+	syscall(__NR_s390_pci_mmio_write, addr, &value, sizeof(value))
-+
-+
-+static inline long s390_pci_mmio_writeb(const unsigned long mmio_addr,
-+					const uint8_t val)
-+{
-+	return s390_pci_mmio_write_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_writew(const unsigned long mmio_addr,
-+					const uint16_t val)
-+{
-+	return s390_pci_mmio_write_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_writel(const unsigned long mmio_addr,
-+					const uint32_t val)
-+{
-+	return s390_pci_mmio_write_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_writeq(const unsigned long mmio_addr,
-+					const uint64_t val)
-+{
-+	return s390_pci_mmio_write_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_write(const unsigned long mmio_addr,
-+				       const void *val,
-+				       const size_t length)
-+{
-+	return syscall(__NR_s390_pci_mmio_write, mmio_addr, val, length);
-+}
-+
-+#define s390_pci_mmio_read_call(addr, value)	\
-+	syscall(__NR_s390_pci_mmio_read, addr, value, sizeof(*value))
-+
-+static inline long s390_pci_mmio_readb(const unsigned long mmio_addr,
-+				       uint8_t *val)
-+{
-+	return s390_pci_mmio_read_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_readw(const unsigned long mmio_addr,
-+				       uint16_t *val)
-+{
-+	return s390_pci_mmio_read_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_readl(const unsigned long mmio_addr,
-+				       uint32_t *val)
-+{
-+	return s390_pci_mmio_read_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_readq(const unsigned long mmio_addr,
-+				       uint64_t *val)
-+{
-+	return s390_pci_mmio_read_call(mmio_addr, val);
-+}
-+
-+static inline long s390_pci_mmio_read(const unsigned long mmio_addr,
-+				      void *val,
-+				      const size_t length)
-+{
-+	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, length);
-+}
-+
-+#define mmio_writeb(addr, value) \
-+		s390_pci_mmio_writeb(addr, value)
-+#define mmio_writew(addr, value) \
-+		s390_pci_mmio_writew(addr, value)
-+#define mmio_writel(addr, value) \
-+		s390_pci_mmio_writel(addr, value)
-+#define mmio_writeq(addr, value) \
-+		s390_pci_mmio_writeq(addr, value)
-+#define mmio_write(addr, value, length) \
-+		s390_pci_mmio_write(addr, value, length)
-+
-+#define mmio_readb(addr, value) \
-+		s390_pci_mmio_readb(addr, value)
-+#define mmio_readw(addr, value) \
-+		s390_pci_mmio_readw(addr, value)
-+#define mmio_readl(addr, value) \
-+		s390_pci_mmio_readl(addr, value)
-+#define mmio_readq(addr, value) \
-+		s390_pci_mmio_readq(addr, value)
-+#define mmio_read(addr, value, length) \
-+		s390_pci_mmio_read(addr, value, length)
-+
-+static inline void mlx4_bf_copy(unsigned long *dst,
-+				unsigned long *src,
-+				unsigned bytecnt)
-+{
-+	mmio_write((unsigned long) dst, src, bytecnt);
-+}
-+
++	return sample_get_cpu_mhz();
 +#else
-+
-+#define mmio_writeb(addr, value) \
-+	(*((uint8_t *)addr) = value)
-+#define mmio_writeb(addr, value) \
-+	(*((uint16_t *)addr) = value)
-+#define mmio_writew(addr, value) \
-+	(*((uint32_t *)addr) = value)
-+#define mmio_writeq(addr, value) \
-+	(*((uint64_t *)addr) = value)
-+#define mmio_write(addr, value, length) \
-+	memcpy(addr, value, length)
-+
-+#define mmio_readb(addr, value) \
-+	(value = *((uint8_t *)addr))
-+#define mmio_readw(addr, value) \
-+	(value = *((uint16_t *)addr))
-+#define mmio_readl(addr, value) \
-+	(value = *((uint32_t *)addr))
-+#define mmio_readq(addr, value) \
-+	(value = *((uint64_t *)addr))
-+#define mmio_read(addr, value, length) \
-+	memcpy(value, addr, length)
-+
-+/*
-+ * Avoid using memcpy() to copy to BlueFlame page, since memcpy()
-+ * implementations may use move-string-buffer assembler instructions,
-+ * which do not guarantee order of copying.
-+ */
-+static inline void mlx4_bf_copy(unsigned long *dst,
-+				unsigned long *src,
-+				unsigned bytecnt)
-+{
-+	while (bytecnt > 0) {
-+		*dst++ = *src++;
-+		*dst++ = *src++;
-+		bytecnt -= 2 * sizeof(long);
-+	}
-+}
-+#endif
-+
-+#endif
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -173,20 +173,6 @@ static void set_data_seg(struct mlx4_wqe
- 	dseg->byte_count = htonl(sg->length);
- }
- 
--/*
-- * Avoid using memcpy() to copy to BlueFlame page, since memcpy()
-- * implementations may use move-string-buffer assembler instructions,
-- * which do not guarantee order of copying.
-- */
--static void mlx4_bf_copy(unsigned long *dst, unsigned long *src, unsigned bytecnt)
--{
--	while (bytecnt > 0) {
--		*dst++ = *src++;
--		*dst++ = *src++;
--		bytecnt -= 2 * sizeof (long);
--	}
--}
--
- int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			  struct ibv_send_wr **bad_wr)
- {
-@@ -431,7 +417,8 @@ out:
- 		 */
- 		wmb();
- 
--		*(uint32_t *) (ctx->uar + MLX4_SEND_DOORBELL) = qp->doorbell_qpn;
-+		mmio_writel((unsigned long)(ctx->uar + MLX4_SEND_DOORBELL),
-+			    qp->doorbell_qpn);
+ 	double sample, proc, delta;
+ 	sample = sample_get_cpu_mhz();
+ 	proc = proc_get_cpu_mhz(no_cpu_freq_fail);
+@@ -199,4 +204,5 @@ double get_cpu_mhz(int no_cpu_freq_fail)
+ 			return sample;
  	}
+ 	return proc;
++#endif
+ }
+--- a/src/get_clock.h
++++ b/src/get_clock.h
+@@ -70,7 +70,15 @@ static inline cycles_t get_cycles()
+ 	asm volatile ("mov %0=ar.itc" : "=r" (ret));
+ 	return ret;
+ }
++#elif defined(__s390x__)
++typedef unsigned long long cycles_t;
++static inline cycles_t get_cycles(void)
++{
++	cycles_t	clk;
  
- 	if (nreq)
++	asm volatile("stck %0" : "=Q" (clk) : : "cc");
++	return clk >> 2;
++}
+ #else
+ #warning get_cycles not implemented for this architecture: attempt asm/timex.h
+ #include <asm/timex.h>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
