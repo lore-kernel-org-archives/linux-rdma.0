@@ -1,7 +1,7 @@
 From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] s390/kernel: add system calls for access PCI memory
-Date: Wed, 27 Aug 2014 12:24:36 +0200
-Message-ID: <1409135080-44991-2-git-send-email-aishchuk@linux.vnet.ibm.com>
+Subject: [PATCH 3/5] libmlx4: add support for s390x platform
+Date: Wed, 27 Aug 2014 12:24:38 +0200
+Message-ID: <1409135080-44991-4-git-send-email-aishchuk@linux.vnet.ibm.com>
 References: <1409135080-44991-1-git-send-email-aishchuk@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1409135080-44991-1-git-send-email-aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
@@ -10,275 +10,256 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, martin.schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, frank.blaschka-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add the new __NR_s390_pci_mmio_write and __NR_s390_pci_mmio_read
-system calls to allow user space applications to access device PCI I/O
-memory pages on s390x platform.
+Since s390x platform requires execution of privileged CPU instructions
+to work with PCI I/O memory, the PCI I/O memory cannot be directly accessed
+from the userspace programs via the mapped memory areas. The current
+implementation of the Inifiniband verbs uses mapped memory areas to
+write data to device UAR and Blueflame page to initiate the I/O
+operations, these verbs cannot be used on the s390x platfrom without
+modification.
+This patch contains the changes to the libmlx4 userspace Mellanox device
+driver library required to provide support for the DAPL API on the s390x
+platform. The original code that directly used mapped memory areas to access
+the PCI I/O  memory of the Mellanox networking device is replaced with the
+new system call invocation for writing the data to mapped memory areas.
 
 Signed-off-by: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 ---
- arch/s390/include/uapi/asm/unistd.h |   4 +-
- arch/s390/kernel/Makefile           |   1 +
- arch/s390/kernel/entry.h            |   4 +
- arch/s390/kernel/pci_mmio.c         | 197 ++++++++++++++++++++++++++++++++++++
- arch/s390/kernel/syscalls.S         |   2 +
- 5 files changed, 207 insertions(+), 1 deletion(-)
- create mode 100644 arch/s390/kernel/pci_mmio.c
+ src/doorbell.h |    8 +--
+ src/mlx4.h     |    2 
+ src/mmio.h     |  151 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/qp.c       |   17 ------
+ 4 files changed, 160 insertions(+), 18 deletions(-)
 
-diff --git a/arch/s390/include/uapi/asm/unistd.h b/arch/s390/include/uapi/asm/unistd.h
-index 3802d2d..ab49d1d 100644
---- a/arch/s390/include/uapi/asm/unistd.h
-+++ b/arch/s390/include/uapi/asm/unistd.h
-@@ -283,7 +283,9 @@
- #define __NR_sched_setattr	345
- #define __NR_sched_getattr	346
- #define __NR_renameat2		347
--#define NR_syscalls 348
-+#define __NR_s390_pci_mmio_write	348
-+#define __NR_s390_pci_mmio_read		349
-+#define NR_syscalls 350
+--- a/src/doorbell.h
++++ b/src/doorbell.h
+@@ -33,6 +33,8 @@
+ #ifndef DOORBELL_H
+ #define DOORBELL_H
  
- /* 
-  * There are some system calls that are not present on 64 bit, some
-diff --git a/arch/s390/kernel/Makefile b/arch/s390/kernel/Makefile
-index 8c2518f..44e8fbb 100644
---- a/arch/s390/kernel/Makefile
-+++ b/arch/s390/kernel/Makefile
-@@ -62,6 +62,7 @@ ifdef CONFIG_64BIT
- obj-$(CONFIG_PERF_EVENTS)	+= perf_event.o perf_cpum_cf.o perf_cpum_sf.o \
- 						perf_cpum_cf_events.o
- obj-y				+= runtime_instr.o cache.o
-+obj-y				+= pci_mmio.o
- endif
++#include "mmio.h"
++
+ #if SIZEOF_LONG == 8
  
- # vdso
-diff --git a/arch/s390/kernel/entry.h b/arch/s390/kernel/entry.h
-index 6ac7819..a36b6f9 100644
---- a/arch/s390/kernel/entry.h
-+++ b/arch/s390/kernel/entry.h
-@@ -70,4 +70,8 @@ struct old_sigaction;
- long sys_s390_personality(unsigned int personality);
- long sys_s390_runtime_instr(int command, int signum);
+ #if __BYTE_ORDER == __LITTLE_ENDIAN
+@@ -45,7 +47,7 @@
  
-+long sys_s390_pci_mmio_write(const unsigned long mmio_addr,
-+			     const void *user_buffer, const size_t length);
-+long sys_s390_pci_mmio_read(const unsigned long mmio_addr,
-+			    void *user_buffer, const size_t length);
- #endif /* _ENTRY_H */
-diff --git a/arch/s390/kernel/pci_mmio.c b/arch/s390/kernel/pci_mmio.c
-new file mode 100644
-index 0000000..4539d23
+ static inline void mlx4_write64(uint32_t val[2], struct mlx4_context *ctx, int offset)
+ {
+-	*(volatile uint64_t *) (ctx->uar + offset) = MLX4_PAIR_TO_64(val);
++	mmio_writeq((unsigned long)(ctx->uar + offset), MLX4_PAIR_TO_64(val));
+ }
+ 
+ #else
+@@ -53,8 +55,8 @@ static inline void mlx4_write64(uint32_t
+ static inline void mlx4_write64(uint32_t val[2], struct mlx4_context *ctx, int offset)
+ {
+ 	pthread_spin_lock(&ctx->uar_lock);
+-	*(volatile uint32_t *) (ctx->uar + offset)     = val[0];
+-	*(volatile uint32_t *) (ctx->uar + offset + 4) = val[1];
++	mmio_writel((unsigned long)(ctx->uar + offset), val[0]);
++	mmio_writel((unsigned long)(ctx->uar + offset + 4), val[1]);
+ 	pthread_spin_unlock(&ctx->uar_lock);
+ }
+ 
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -73,6 +73,8 @@
+ #define wc_wmb() asm volatile("sfence" ::: "memory")
+ #elif defined(__ia64__)
+ #define wc_wmb() asm volatile("fwb" ::: "memory")
++#elif defined(__s390x__)
++#define wc_wmb { asm volatile("" : : : "memory") }
+ #else
+ #define wc_wmb() wmb()
+ #endif
 --- /dev/null
-+++ b/arch/s390/kernel/pci_mmio.c
-@@ -0,0 +1,197 @@
++++ b/src/mmio.h
+@@ -0,0 +1,151 @@
 +/*
-+ * Copyright IBM Corp. 2014
++ * Copyright (c) 2014 IBM Corporation
 + */
-+#include <linux/kernel.h>
-+#include <linux/syscalls.h>
-+#include <linux/init.h>
-+#include <linux/mm.h>
-+#include <linux/errno.h>
-+#include <linux/pci.h>
++#ifndef MMIO_H
++#define MMIO_H
 +
-+union value_buffer {
-+	u8 buf8;
-+	u16 buf16;
-+	u32 buf32;
-+	u64 buf64;
-+	u8 buf_large[64];
-+};
++#include <unistd.h>
++#include <asm/unistd.h>
++#include <sys/syscall.h>
++#ifdef __s390x__
 +
-+static long get_pfn(const unsigned long user_addr,
-+		    const unsigned long access,
-+		    unsigned long *pfn)
++#define s390_pci_mmio_write_call(addr, value) \
++	syscall(__NR_s390_pci_mmio_write, addr, &value, sizeof(value))
++
++
++static inline long s390_pci_mmio_writeb(const unsigned long mmio_addr,
++					const uint8_t val)
 +{
-+	struct vm_area_struct *vma = NULL;
-+
-+	if (!pfn)
-+		return -EINVAL;
-+
-+	vma = find_vma(current->mm, user_addr);
-+	if (!vma)
-+		return -EINVAL;
-+	if (!(vma->vm_flags & access))
-+		return -EACCES;
-+
-+	return follow_pfn(vma, user_addr, pfn);
++	return s390_pci_mmio_write_call(mmio_addr, val);
 +}
 +
-+static inline int verify_page_addr(const unsigned long page_addr)
++static inline long s390_pci_mmio_writew(const unsigned long mmio_addr,
++					const uint16_t val)
 +{
-+	return !(page_addr < ZPCI_IOMAP_ADDR_BASE ||
-+	    page_addr > (ZPCI_IOMAP_ADDR_BASE | ZPCI_IOMAP_ADDR_IDX_MASK));
++	return s390_pci_mmio_write_call(mmio_addr, val);
 +}
 +
-+static long choose_buffer(const size_t length,
-+			  union value_buffer *value,
-+			  void **buf)
++static inline long s390_pci_mmio_writel(const unsigned long mmio_addr,
++					const uint32_t val)
 +{
-+	long ret = 0UL;
++	return s390_pci_mmio_write_call(mmio_addr, val);
++}
 +
-+	if (length > sizeof(value->buf_large)) {
-+		*buf = kmalloc(length, GFP_KERNEL);
-+		if (!*buf)
-+			return -ENOMEM;
-+		ret = 1;
-+	} else {
-+		*buf = value->buf_large;
++static inline long s390_pci_mmio_writeq(const unsigned long mmio_addr,
++					const uint64_t val)
++{
++	return s390_pci_mmio_write_call(mmio_addr, val);
++}
++
++static inline long s390_pci_mmio_write(const unsigned long mmio_addr,
++				       const void *val,
++				       const size_t length)
++{
++	return syscall(__NR_s390_pci_mmio_write, mmio_addr, val, length);
++}
++
++#define s390_pci_mmio_read_call(addr, value)	\
++	syscall(__NR_s390_pci_mmio_read, addr, value, sizeof(*value))
++
++static inline long s390_pci_mmio_readb(const unsigned long mmio_addr,
++				       uint8_t *val)
++{
++	return s390_pci_mmio_read_call(mmio_addr, val);
++}
++
++static inline long s390_pci_mmio_readw(const unsigned long mmio_addr,
++				       uint16_t *val)
++{
++	return s390_pci_mmio_read_call(mmio_addr, val);
++}
++
++static inline long s390_pci_mmio_readl(const unsigned long mmio_addr,
++				       uint32_t *val)
++{
++	return s390_pci_mmio_read_call(mmio_addr, val);
++}
++
++static inline long s390_pci_mmio_readq(const unsigned long mmio_addr,
++				       uint64_t *val)
++{
++	return s390_pci_mmio_read_call(mmio_addr, val);
++}
++
++static inline long s390_pci_mmio_read(const unsigned long mmio_addr,
++				      void *val,
++				      const size_t length)
++{
++	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, length);
++}
++
++#define mmio_writeb(addr, value) \
++		s390_pci_mmio_writeb(addr, value)
++#define mmio_writew(addr, value) \
++		s390_pci_mmio_writew(addr, value)
++#define mmio_writel(addr, value) \
++		s390_pci_mmio_writel(addr, value)
++#define mmio_writeq(addr, value) \
++		s390_pci_mmio_writeq(addr, value)
++#define mmio_write(addr, value, length) \
++		s390_pci_mmio_write(addr, value, length)
++
++#define mmio_readb(addr, value) \
++		s390_pci_mmio_readb(addr, value)
++#define mmio_readw(addr, value) \
++		s390_pci_mmio_readw(addr, value)
++#define mmio_readl(addr, value) \
++		s390_pci_mmio_readl(addr, value)
++#define mmio_readq(addr, value) \
++		s390_pci_mmio_readq(addr, value)
++#define mmio_read(addr, value, length) \
++		s390_pci_mmio_read(addr, value, length)
++
++static inline void mlx4_bf_copy(unsigned long *dst,
++				unsigned long *src,
++				unsigned bytecnt)
++{
++	mmio_write((unsigned long) dst, src, bytecnt);
++}
++
++#else
++
++#define mmio_writeb(addr, value) \
++	(*((uint8_t *)addr) = value)
++#define mmio_writeb(addr, value) \
++	(*((uint16_t *)addr) = value)
++#define mmio_writew(addr, value) \
++	(*((uint32_t *)addr) = value)
++#define mmio_writeq(addr, value) \
++	(*((uint64_t *)addr) = value)
++#define mmio_write(addr, value, length) \
++	memcpy(addr, value, length)
++
++#define mmio_readb(addr, value) \
++	(value = *((uint8_t *)addr))
++#define mmio_readw(addr, value) \
++	(value = *((uint16_t *)addr))
++#define mmio_readl(addr, value) \
++	(value = *((uint32_t *)addr))
++#define mmio_readq(addr, value) \
++	(value = *((uint64_t *)addr))
++#define mmio_read(addr, value, length) \
++	memcpy(value, addr, length)
++
++/*
++ * Avoid using memcpy() to copy to BlueFlame page, since memcpy()
++ * implementations may use move-string-buffer assembler instructions,
++ * which do not guarantee order of copying.
++ */
++static inline void mlx4_bf_copy(unsigned long *dst,
++				unsigned long *src,
++				unsigned bytecnt)
++{
++	while (bytecnt > 0) {
++		*dst++ = *src++;
++		*dst++ = *src++;
++		bytecnt -= 2 * sizeof(long);
 +	}
-+	return ret;
 +}
++#endif
 +
-+SYSCALL_DEFINE3(s390_pci_mmio_write,
-+		const unsigned long, mmio_addr,
-+		const void __user *, user_buffer,
-+		const size_t, length)
-+{
-+	long ret = 0L;
-+	void *buf = NULL;
-+	long buf_allocated = 0;
-+	void __iomem *io_addr = NULL;
-+	unsigned long pfn = 0UL;
-+	unsigned long offset = 0UL;
-+	unsigned long page_addr = 0UL;
-+	union value_buffer value;
-+
-+	if (!length)
-+		return -EINVAL;
-+	if (!zpci_is_enabled())
-+		return -ENODEV;
-+
-+	ret = get_pfn(mmio_addr, VM_WRITE, &pfn);
-+	if (ret)
-+		return ret;
-+
-+	page_addr = pfn << PAGE_SHIFT;
-+	if (!verify_page_addr(page_addr))
-+		return -EFAULT;
-+
-+	offset = mmio_addr & ~PAGE_MASK;
-+	if (offset + length > PAGE_SIZE)
-+		return -EINVAL;
-+	io_addr = (void *)(page_addr | offset);
-+
-+	buf_allocated = choose_buffer(length, &value, &buf);
-+	if (buf_allocated < 0L)
-+		return -ENOMEM;
-+
-+	switch (length) {
-+	case 1:
-+		ret = get_user(value.buf8, ((u8 *)user_buffer));
-+		break;
-+	case 2:
-+		ret = get_user(value.buf16, ((u16 *)user_buffer));
-+		break;
-+	case 4:
-+		ret = get_user(value.buf32, ((u32 *)user_buffer));
-+		break;
-+	case 8:
-+		ret = get_user(value.buf64, ((u64 *)user_buffer));
-+		break;
-+	default:
-+		ret = copy_from_user(buf, user_buffer, length);
-+	}
-+	if (ret)
-+		goto out;
-+
-+	switch (length) {
-+	case 1:
-+		__raw_writeb(value.buf8, io_addr);
-+		break;
-+	case 2:
-+		__raw_writew(value.buf16, io_addr);
-+		break;
-+	case 4:
-+		__raw_writel(value.buf32, io_addr);
-+		break;
-+	case 8:
-+		__raw_writeq(value.buf64, io_addr);
-+		break;
-+	default:
-+		memcpy_toio(io_addr, buf, length);
-+	}
-+out:
-+	if (buf_allocated > 0L)
-+		kfree(buf);
-+	return ret;
-+}
-+
-+SYSCALL_DEFINE3(s390_pci_mmio_read,
-+		const unsigned long, mmio_addr,
-+		void __user *, user_buffer,
-+		const size_t, length)
-+{
-+	long ret = 0L;
-+	void *buf = NULL;
-+	long buf_allocated = 0L;
-+	void __iomem *io_addr = NULL;
-+	unsigned long pfn = 0UL;
-+	unsigned long offset = 0UL;
-+	unsigned long page_addr = 0UL;
-+	union value_buffer value;
-+
-+	if (!length)
-+		return -EINVAL;
-+	if (!zpci_is_enabled())
-+		return -ENODEV;
-+
-+	ret = get_pfn(mmio_addr, VM_READ, &pfn);
-+	if (ret)
-+		return ret;
-+
-+	page_addr = pfn << PAGE_SHIFT;
-+	if (!verify_page_addr(page_addr))
-+		return -EFAULT;
-+
-+	offset = mmio_addr & ~PAGE_MASK;
-+	if (offset + length > PAGE_SIZE)
-+		return -EINVAL;
-+	io_addr = (void *)(page_addr | offset);
-+
-+	buf_allocated = choose_buffer(length, &value, &buf);
-+	if (buf_allocated < 0L)
-+		return -ENOMEM;
-+
-+	switch (length) {
-+	case 1:
-+		value.buf8 = __raw_readb(io_addr);
-+		ret = put_user(value.buf8, ((u8 *)user_buffer));
-+		break;
-+	case 2:
-+		value.buf16 = __raw_readw(io_addr);
-+		ret = put_user(value.buf16, ((u16 *)user_buffer));
-+		break;
-+	case 4:
-+		value.buf32 = __raw_readl(io_addr);
-+		ret = put_user(value.buf32, ((u32 *)user_buffer));
-+		break;
-+	case 8:
-+		value.buf64 = __raw_readq(io_addr);
-+		ret = put_user(value.buf64, ((u64 *)user_buffer));
-+		break;
-+	default:
-+		memcpy_fromio(buf, io_addr, length);
-+		ret = copy_to_user(user_buffer, buf, length);
-+	}
-+	if (buf_allocated > 0L)
-+		kfree(buf);
-+	return ret;
-+}
-diff --git a/arch/s390/kernel/syscalls.S b/arch/s390/kernel/syscalls.S
-index fe5cdf2..1faa942 100644
---- a/arch/s390/kernel/syscalls.S
-+++ b/arch/s390/kernel/syscalls.S
-@@ -356,3 +356,5 @@ SYSCALL(sys_finit_module,sys_finit_module,compat_sys_finit_module)
- SYSCALL(sys_sched_setattr,sys_sched_setattr,compat_sys_sched_setattr) /* 345 */
- SYSCALL(sys_sched_getattr,sys_sched_getattr,compat_sys_sched_getattr)
- SYSCALL(sys_renameat2,sys_renameat2,compat_sys_renameat2)
-+SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_write,sys_ni_syscall)
-+SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_read,sys_ni_syscall)
--- 
-1.8.5.5
++#endif
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -173,20 +173,6 @@ static void set_data_seg(struct mlx4_wqe
+ 	dseg->byte_count = htonl(sg->length);
+ }
+ 
+-/*
+- * Avoid using memcpy() to copy to BlueFlame page, since memcpy()
+- * implementations may use move-string-buffer assembler instructions,
+- * which do not guarantee order of copying.
+- */
+-static void mlx4_bf_copy(unsigned long *dst, unsigned long *src, unsigned bytecnt)
+-{
+-	while (bytecnt > 0) {
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		bytecnt -= 2 * sizeof (long);
+-	}
+-}
+-
+ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			  struct ibv_send_wr **bad_wr)
+ {
+@@ -431,7 +417,8 @@ out:
+ 		 */
+ 		wmb();
+ 
+-		*(uint32_t *) (ctx->uar + MLX4_SEND_DOORBELL) = qp->doorbell_qpn;
++		mmio_writel((unsigned long)(ctx->uar + MLX4_SEND_DOORBELL),
++			    qp->doorbell_qpn);
+ 	}
+ 
+ 	if (nreq)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
