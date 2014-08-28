@@ -1,100 +1,56 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD QPs
- Eth L2 resolution
-Date: Thu, 28 Aug 2014 09:48:45 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD3FE48403@CMEXMB1.ad.emulex.com>
-References: <1408517381-17523-1-git-send-email-matanb@mellanox.com>
- <1408517381-17523-3-git-send-email-matanb@mellanox.com>
- <20140820170142.GC12605@obsidianresearch.com>
- <53F9EDCD.9060105@mellanox.com> <20140825183325.GC1298@obsidianresearch.com>
- <5C3BB7B1-07E6-431F-98E5-13543AAA897D@redhat.com>
- <53FC7B1D.6050501@mellanox.com> <20140826160853.GA31127@obsidianresearch.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH] ib_umem_release should decrement mm->pinned_vm from ib_umem_get
+Date: Thu, 28 Aug 2014 14:48:19 +0300
+Message-ID: <53FF1703.3010204@mellanox.com>
+References: <1407860855-6564-1-git-send-email-shawn.bohrer@gmail.com> <20140820232212.GA5487@sbohrermbp13-local.rgmadvisors.com> <6B2A6E60C06CCC42AE31809BF572352B010E235B4A@MTLDAG02.mtl.com> <20140825210700.GA5759@sbohrermbp13-local.rgmadvisors.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140826160853.GA31127-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140825210700.GA5759@sbohrermbp13-local.rgmadvisors.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shawn Bohrer <shawn.bohrer@gmail.com>, Shachar Raindel <raindel@mellanox.com>
+Cc: Roland Dreier <roland@kernel.org>, Christoph Lameter <cl@linux.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tomk@rgmadvisors.com" <tomk@rgmadvisors.com>, Shawn Bohrer <sbohrer@rgmadvisors.com>, Yishai Hadas <yishaih@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Matan,
+On 26/08/2014 00:07, Shawn Bohrer wrote:
+>>>> The following patch fixes the issue by storing the mm_struct of the
+>> > 
+>> > You are doing more than just storing the mm_struct - you are taking
+>> > a reference to the process' mm.  This can lead to a massive resource
+>> > leakage. The reason is bit complex: The destruction flow for IB
+>> > uverbs is based upon releasing the file handle for it. Once the file
+>> > handle is released, all MRs, QPs, CQs, PDs, etc. that the process
+>> > allocated are released.  For the kernel to release the file handle,
+>> > the kernel reference count to it needs to reach zero.  Most IB
+>> > implementations expose some hardware registers to the application by
+>> > allowing it to mmap the uverbs device file.  This mmap takes a
+>> > reference to uverbs device file handle that the application opened.
+>> > This reference is dropped when the process mm is released during the
+>> > process destruction.  Your code takes a reference to the mm that
+>> > will only be released when the parent MR/QP is released.
+>> > 
+>> > Now, we have a deadlock - the mm is waiting for the MR to be
+>> > destroyed, the MR is waiting for the file handle to be destroyed,
+>> > and the file handle is waiting for the mm to be destroyed.
+>> > 
+>> > The proper solution is to keep a reference to the task_pid (using
+>> > get_task_pid), and use this pid to get the task_struct and from it
+>> > the mm_struct during the destruction flow.
+>  
+> I'll put together a patch using get_task_pid() and see if I can
+> test/reproduce the issue.  This may take a couple of days since we
+> have to test this in production at the moment.
+>  
 
-I have been watching this thread for quite some time. I have a
-Basic question, do you think ib_uverbs_create_ah() in uverbs_cmd.c
-Should resolve to l2 address? Presently it is not calling rdma_addr_find_dmac_by_grh(), am I missing something here?
+Hi,
 
--Regards
- Devesh
+I just wanted to point out that while working on the on demand paging patches
+we also needed to keep a reference to the task pid (to make sure we always 
+handle page faults on behalf of the correct mm struct). You can find the 
+relevant code in the patch titled "IB/core: Add support for on demand paging 
+regions" [1].
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Tuesday, August 26, 2014 9:39 PM
-> To: Or Gerlitz
-> Cc: Doug Ledford; Matan Barak; Roland Dreier; Yishai Hadas; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD
-> QPs Eth L2 resolution
-> 
-> On Tue, Aug 26, 2014 at 03:18:37PM +0300, Or Gerlitz wrote:
-> > On 25/08/2014 22:33, Doug Ledford wrote:
-> > >>On Aug 25, 2014, at 1:33 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > >>
-> > >>>>>+    timer_fd = timerfd_create(CLOCK_MONOTONIC,
-> TFD_NONBLOCK | TFD_CLOEXEC);
-> > >>>>>+    if (-1 == timer_fd) {
-> > >>>>>+        print_err("Couldn't create timer\n");
-> > >>>>>+        return timer_fd;
-> > >>>>>+    }
-> > >>>>
-> > >>>>The use of timerfd will impact the minimum OS version, have you
-> > >>>>checked this is OK? Does RHEL5 still work?
-> > >>
-> > >>>It was added in linux v2.6.25. I think that an API that's more than
-> > >>>6.5 years old is valid.
-> > >>
-> > >>RHEL5 is using 2.6.18 as their base kernel. You should at least
-> > >>consult with the OFED people to determine if this is a problem for
-> > >>them.
-> > >
-> > >Please don't.  This code should not be changed for something as ancient
-> as rhel5.
-> >
-> > Indeed. Telling people to avoid using constructs/mechanisms ~6-7 years
-> > after they were introduced isn't something we want nor need to do.
-> 
-> I looked myself and it looks like OFED has dropped support for these old
-> distros so there isn't any problem.
-> 
-> However, I still think this use of timerfd is fairly gratuitous, and looking closer,
-> causes little bugs:
-> 
-> +		if (timerfd_settime(timer_fd, 0, &timer_time, NULL)) {
-> +		   			      print_err("Couldn't set timer\n");
-> +			return -1;
->                      ^^^^^^^^^^^^^^
-> leaks timer_fd
-> 
-> 
-> Alos, I noticed:
-> 
-> +     	/* wait for an incoming message on the netlink socket */
-> +	   ret = select(nfds, &fdset, NULL, NULL, NULL);
-> +
-> +		if (ret) {
-> 
-> Fails to detect error return from select.
-> 
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Haggai
+
+[1] https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg20552.html
