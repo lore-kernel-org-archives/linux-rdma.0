@@ -1,86 +1,39 @@
-From: Bob Biloxi <iambobbiloxi@gmail.com>
-Subject: Re: mlx4 query in sriov mode
-Date: Fri, 29 Aug 2014 14:37:01 +0530
-Message-ID: <CANwwZzVbx5TdFwK=8-FOHzT4FVyk6ZX+2P2kNmW0MkSDzyOSug@mail.gmail.com>
-References: <CANwwZzXowyGmg-cfCHQqeJ_iqjT+Ec+JPy+OWzNGeyN=hRqmPg@mail.gmail.com>
-	<20140829042121.GA31486@richard>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: make c4iw_wr_log_size_order static
+Date: Fri, 29 Aug 2014 11:19:29 -0500
+Message-ID: <20140829161929.23930.85782.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20140829042121.GA31486@richard>
-Sender: linux-pci-owner@vger.kernel.org
-To: Wei Yang <weiyang@linux.vnet.ibm.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+This fixes an sparse warning.
 
-> Where you fund the communication between PF and VF is by writing its BAR?
-http://lxr.free-electrons.com/source/drivers/net/ethernet/mellanox/mlx4/cmd.c#L1964
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
+ drivers/infiniband/hw/cxgb4/device.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Best Regards,
-Bob
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index f25df52..72f1f05 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -60,7 +60,7 @@ int c4iw_wr_log = 0;
+ module_param(c4iw_wr_log, int, 0444);
+ MODULE_PARM_DESC(c4iw_wr_log, "Enables logging of work request timing data.");
+ 
+-int c4iw_wr_log_size_order = 12;
++static int c4iw_wr_log_size_order = 12;
+ module_param(c4iw_wr_log_size_order, int, 0444);
+ MODULE_PARM_DESC(c4iw_wr_log_size_order,
+ 		 "Number of entries (log2) in the work request timing log.");
 
-On Fri, Aug 29, 2014 at 9:51 AM, Wei Yang <weiyang@linux.vnet.ibm.com> wrote:
-> On Thu, Aug 28, 2014 at 10:58:50PM +0530, Bob Biloxi wrote:
->>Hi All,
->>
->>
->>I really appreciate this wonderful community which has immensely
->>helped me broaden my knowledge and understanding.
->>
->>
->>I was going through the mlx4 sriov code, trying to understand the
->>communication between the VF driver and the PF driver.
->>
->>I was having a few queries..hoping to get a better understanding.
->>
->>
->>As I understand, the commands are communicated between VF and PF
->>through a mechanism called communication channel. VF writes to
->>specific address in its BAR space, PF gets an event and then proceeds
->>ahead to read the command from its BAR space and then complete the
->>execution of it..
->>
->>
->>Now, my query is, lets say the VF driver is not yet present and only
->>the PF driver is there...
->>
->>In this case, can we simulate a VF command write and get notified
->>through an event?
->>
->
-> Hi,
->
-> I am not that familiar with mlx4 driver. As you mentioned in previous, VF
-> communicate with PF by writing some word in BAR and PF gets it. If this is
-> true, I believe it would works.
->
->>For eg. we write to some offset in the PF BAR space itself upon
->>completion of which, an event is generated because of the write? kind
->>of like loopback mechanism.
->>
->>
->>I searched through the code but couldn't find anywhere.
->>
->>Can anyone please help me understand if this is possible? And if there
->>is any location in the code where i can find this?
->
-> Where you fund the communication between PF and VF is by writing its BAR?
->
->>
->>Thanks a lot in advance!!
->>
->>
->>Best Regards,
->>Bob
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> Richard Yang
-> Help you, Help me
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
