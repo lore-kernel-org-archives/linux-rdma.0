@@ -1,72 +1,76 @@
-From: Shawn Bohrer <shawn.bohrer@gmail.com>
-Subject: Re: [PATCH] ib_umem_release should decrement mm->pinned_vm from
- ib_umem_get
-Date: Thu, 28 Aug 2014 16:51:35 -0500
-Message-ID: <20140828215135.GA11602@sbohrermbp13-local.rgmadvisors.com>
-References: <1407860855-6564-1-git-send-email-shawn.bohrer@gmail.com>
- <20140820232212.GA5487@sbohrermbp13-local.rgmadvisors.com>
- <6B2A6E60C06CCC42AE31809BF572352B010E235B4A@MTLDAG02.mtl.com>
- <20140825210700.GA5759@sbohrermbp13-local.rgmadvisors.com>
- <53FF1703.3010204@mellanox.com>
+From: Wei Yang <weiyang@linux.vnet.ibm.com>
+Subject: Re: mlx4 query in sriov mode
+Date: Fri, 29 Aug 2014 12:21:21 +0800
+Message-ID: <20140829042121.GA31486@richard>
+References: <CANwwZzXowyGmg-cfCHQqeJ_iqjT+Ec+JPy+OWzNGeyN=hRqmPg@mail.gmail.com>
+Reply-To: Wei Yang <weiyang@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53FF1703.3010204@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Shachar Raindel <raindel@mellanox.com>, Roland Dreier <roland@kernel.org>, Christoph Lameter <cl@linux.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tomk@rgmadvisors.com" <tomk@rgmadvisors.com>, Shawn Bohrer <sbohrer@rgmadvisors.com>, Yishai Hadas <yishaih@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+In-Reply-To: <CANwwZzXowyGmg-cfCHQqeJ_iqjT+Ec+JPy+OWzNGeyN=hRqmPg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bob Biloxi <iambobbiloxi@gmail.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 28, 2014 at 02:48:19PM +0300, Haggai Eran wrote:
-> On 26/08/2014 00:07, Shawn Bohrer wrote:
-> >>>> The following patch fixes the issue by storing the mm_struct of the
-> >> > 
-> >> > You are doing more than just storing the mm_struct - you are taking
-> >> > a reference to the process' mm.  This can lead to a massive resource
-> >> > leakage. The reason is bit complex: The destruction flow for IB
-> >> > uverbs is based upon releasing the file handle for it. Once the file
-> >> > handle is released, all MRs, QPs, CQs, PDs, etc. that the process
-> >> > allocated are released.  For the kernel to release the file handle,
-> >> > the kernel reference count to it needs to reach zero.  Most IB
-> >> > implementations expose some hardware registers to the application by
-> >> > allowing it to mmap the uverbs device file.  This mmap takes a
-> >> > reference to uverbs device file handle that the application opened.
-> >> > This reference is dropped when the process mm is released during the
-> >> > process destruction.  Your code takes a reference to the mm that
-> >> > will only be released when the parent MR/QP is released.
-> >> > 
-> >> > Now, we have a deadlock - the mm is waiting for the MR to be
-> >> > destroyed, the MR is waiting for the file handle to be destroyed,
-> >> > and the file handle is waiting for the mm to be destroyed.
-> >> > 
-> >> > The proper solution is to keep a reference to the task_pid (using
-> >> > get_task_pid), and use this pid to get the task_struct and from it
-> >> > the mm_struct during the destruction flow.
-> >  
-> > I'll put together a patch using get_task_pid() and see if I can
-> > test/reproduce the issue.  This may take a couple of days since we
-> > have to test this in production at the moment.
-> >  
-> 
-> Hi,
-> 
-> I just wanted to point out that while working on the on demand paging patches
-> we also needed to keep a reference to the task pid (to make sure we always 
-> handle page faults on behalf of the correct mm struct). You can find the 
-> relevant code in the patch titled "IB/core: Add support for on demand paging 
-> regions" [1].
-> 
-> Haggai
-> 
-> [1] https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg20552.html
+On Thu, Aug 28, 2014 at 10:58:50PM +0530, Bob Biloxi wrote:
+>Hi All,
+>
+>
+>I really appreciate this wonderful community which has immensely
+>helped me broaden my knowledge and understanding.
+>
+>
+>I was going through the mlx4 sriov code, trying to understand the
+>communication between the VF driver and the PF driver.
+>
+>I was having a few queries..hoping to get a better understanding.
+>
+>
+>As I understand, the commands are communicated between VF and PF
+>through a mechanism called communication channel. VF writes to
+>specific address in its BAR space, PF gets an event and then proceeds
+>ahead to read the command from its BAR space and then complete the
+>execution of it..
+>
+>
+>Now, my query is, lets say the VF driver is not yet present and only
+>the PF driver is there...
+>
+>In this case, can we simulate a VF command write and get notified
+>through an event?
+>
 
-Haggai,
+Hi,
 
-I looked over the on demand paging patch and I'm not sure if you are
-suggesting that it already fixes my issue, or that I should use it as
-a reference for my code.  In any case I just sent a v2 of a patch that
-appears to fix my issue.
+I am not that familiar with mlx4 driver. As you mentioned in previous, VF
+communicate with PF by writing some word in BAR and PF gets it. If this is
+true, I believe it would works.
 
---
-Shawn
+>For eg. we write to some offset in the PF BAR space itself upon
+>completion of which, an event is generated because of the write? kind
+>of like loopback mechanism.
+>
+>
+>I searched through the code but couldn't find anywhere.
+>
+>Can anyone please help me understand if this is possible? And if there
+>is any location in the code where i can find this?
+
+Where you fund the communication between PF and VF is by writing its BAR?
+
+>
+>Thanks a lot in advance!!
+>
+>
+>Best Regards,
+>Bob
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Richard Yang
+Help you, Help me
