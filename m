@@ -1,147 +1,170 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD QPs
- Eth L2 resolution
-Date: Sun, 31 Aug 2014 11:08:51 +0300
-Message-ID: <5402D813.4020204@mellanox.com>
-References: <1408517381-17523-1-git-send-email-matanb@mellanox.com> <1408517381-17523-3-git-send-email-matanb@mellanox.com> <20140820170142.GC12605@obsidianresearch.com> <53F9EDCD.9060105@mellanox.com> <20140825183325.GC1298@obsidianresearch.com> <5C3BB7B1-07E6-431F-98E5-13543AAA897D@redhat.com> <53FC7B1D.6050501@mellanox.com> <20140826160853.GA31127@obsidianresearch.com> <EE7902D3F51F404C82415C4803930ACD3FE48403@CMEXMB1.ad.emulex.com> <53FF56DF.1050207@mellanox.com> <EE7902D3F51F404C82415C4803930ACD3FE48637@CMEXMB1.ad.emulex.com>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH v2] ib_umem_release should decrement mm->pinned_vm from
+ ib_umem_get
+Date: Sun, 31 Aug 2014 11:25:09 +0000
+Message-ID: <6B2A6E60C06CCC42AE31809BF572352B010E240634@MTLDAG02.mtl.com>
+References: <1409261991-11533-1-git-send-email-shawn.bohrer@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE48637-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <1409261991-11533-1-git-send-email-shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org" <tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 28/8/2014 8:48 PM, Devesh Sharma wrote:
-> Hi Matan,
->
-> Thanks for quick response, my further comments are inline below:
->
->> -----Original Message-----
->> From: Matan Barak [mailto:matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
->> Sent: Thursday, August 28, 2014 9:51 PM
->> To: Devesh Sharma; Jason Gunthorpe; Or Gerlitz
->> Cc: Doug Ledford; Roland Dreier; Yishai Hadas; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD
->> QPs Eth L2 resolution
->>
->> On 28/8/2014 12:48 PM, Devesh Sharma wrote:
->>> Hi Matan,
->>>
->>> I have been watching this thread for quite some time. I have a Basic
->>> question, do you think ib_uverbs_create_ah() in uverbs_cmd.c Should
->>> resolve to l2 address? Presently it is not calling
->> rdma_addr_find_dmac_by_grh(), am I missing something here?
->>>
->>> -Regards
->>>    Devesh
->>>
->>
->> Hi Devesh,
->>
->> Some vendors don't call ib_uverbs_create_ah and do all this creation in
->> userspace only. It's true that it might be a lot easier to do that resolution in
->> kernel, but it could create dependency of new versions of libibverbs and the
-> Which dependency you are specifying here, I see the scheme posted in this series adds dependency on libibverbs.
-> Do you anticipate modification even when uverbs interface is used?
+Hi,
 
-If we had resolved the address handle in kernel space, we would have 
-created a dependency between the user libraries to and new version odf 
-the uverbs module. The scheme posted here only adds a dependency between 
-the provider's library to libibverbs.
-Resolving in kernel space would still require creating a dependency on a 
-new provider library - as currently some providers don't even call the 
-kernel when a new address handle is created.
+Generally speaking, code now looks better.
 
->> provider library tn new kernels only.
->> I would like to avoid creating such a dependency.
->
-> Okay, got it, any suggestions for those who use uverbs interface.
-> I think another patch is needed for such vendors?
->
+However, I think you have a resource leak in your code. See below.
 
-There are 2 options here - if all the required information (including 
-the MAC address) is contained in the address handle user-space 
-structure, you could just use the proposed method. However, if you 
-register some kind of an address handle with the hardware and then only 
-use it via user-space, we'll need another patch for uverbs.
+Thanks,
+--Shachar
 
->>
->> Matan
->>
->>>> -----Original Message-----
->>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
->>>> Sent: Tuesday, August 26, 2014 9:39 PM
->>>> To: Or Gerlitz
->>>> Cc: Doug Ledford; Matan Barak; Roland Dreier; Yishai Hadas; linux-
->>>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE
->>>> UD QPs Eth L2 resolution
->>>>
->>>> On Tue, Aug 26, 2014 at 03:18:37PM +0300, Or Gerlitz wrote:
->>>>> On 25/08/2014 22:33, Doug Ledford wrote:
->>>>>>> On Aug 25, 2014, at 1:33 PM, Jason Gunthorpe
->>>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->>>>>>>
->>>>>>>>>> +    timer_fd = timerfd_create(CLOCK_MONOTONIC,
->>>> TFD_NONBLOCK | TFD_CLOEXEC);
->>>>>>>>>> +    if (-1 == timer_fd) {
->>>>>>>>>> +        print_err("Couldn't create timer\n");
->>>>>>>>>> +        return timer_fd;
->>>>>>>>>> +    }
->>>>>>>>>
->>>>>>>>> The use of timerfd will impact the minimum OS version, have you
->>>>>>>>> checked this is OK? Does RHEL5 still work?
->>>>>>>
->>>>>>>> It was added in linux v2.6.25. I think that an API that's more
->>>>>>>> than
->>>>>>>> 6.5 years old is valid.
->>>>>>>
->>>>>>> RHEL5 is using 2.6.18 as their base kernel. You should at least
->>>>>>> consult with the OFED people to determine if this is a problem for
->>>>>>> them.
->>>>>>
->>>>>> Please don't.  This code should not be changed for something as
->>>>>> ancient
->>>> as rhel5.
->>>>>
->>>>> Indeed. Telling people to avoid using constructs/mechanisms ~6-7
->>>>> years after they were introduced isn't something we want nor need to
->> do.
->>>>
->>>> I looked myself and it looks like OFED has dropped support for these
->>>> old distros so there isn't any problem.
->>>>
->>>> However, I still think this use of timerfd is fairly gratuitous, and
->>>> looking closer, causes little bugs:
->>>>
->>>> +		if (timerfd_settime(timer_fd, 0, &timer_time, NULL)) {
->>>> +		   			      print_err("Couldn't set timer\n");
->>>> +			return -1;
->>>>                        ^^^^^^^^^^^^^^
->>>> leaks timer_fd
->>>>
->>>>
->>>> Alos, I noticed:
->>>>
->>>> +     	/* wait for an incoming message on the netlink socket */
->>>> +	   ret = select(nfds, &fdset, NULL, NULL, NULL);
->>>> +
->>>> +		if (ret) {
->>>>
->>>> Fails to detect error return from select.
->>>>
->>>> Jason
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
->>>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
->> majordomo
->>>> info at http://vger.kernel.org/majordomo-info.html
->
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Shawn Bohrer
+> Sent: Friday, August 29, 2014 12:41 AM
+> To: Roland Dreier
+> Cc: Christoph Lameter; Sean Hefty; Hal Rosenstock; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org; Yishai Hadas; Or Gerlitz; Haggai Eran; Shawn Bohrer
+> Subject: [PATCH v2] ib_umem_release should decrement mm->pinned_vm
+> from ib_umem_get
+> 
+> From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+> 
+> In debugging an application that receives -ENOMEM from ib_reg_mr() I
+> found that ib_umem_get() can fail because the pinned_vm count has
+> wrapped causing it to always be larger than the lock limit even with
+> RLIMIT_MEMLOCK set to RLIM_INFINITY.
+> 
+> The wrapping of pinned_vm occurs because the process that calls
+> ib_reg_mr() will have its mm->pinned_vm count incremented.  Later a
+> different process with a different mm_struct than the one that allocated
+> the ib_umem struct ends up releasing it which results in decrementing
+> the new processes mm->pinned_vm count past zero and wrapping.
+> 
+> I'm not entirely sure what circumstances cause a different process to
+> release the ib_umem than the one that allocated it but the kernel stack
+> trace of the freeing process from my situation looks like the following:
+> 
+> Call Trace:
+>  [<ffffffff814d64b1>] dump_stack+0x19/0x1b
+>  [<ffffffffa0b522a5>] ib_umem_release+0x1f5/0x200 [ib_core]
+>  [<ffffffffa0b90681>] mlx4_ib_destroy_qp+0x241/0x440 [mlx4_ib]
+>  [<ffffffffa0b4d93c>] ib_destroy_qp+0x12c/0x170 [ib_core]
+>  [<ffffffffa0cc7129>] ib_uverbs_close+0x259/0x4e0 [ib_uverbs]
+>  [<ffffffff81141cba>] __fput+0xba/0x240
+>  [<ffffffff81141e4e>] ____fput+0xe/0x10
+>  [<ffffffff81060894>] task_work_run+0xc4/0xe0
+>  [<ffffffff810029e5>] do_notify_resume+0x95/0xa0
+>  [<ffffffff814e3dd0>] int_signal+0x12/0x17
+> 
+> The following patch fixes the issue by storing the pid struct of the
+> process that calls ib_umem_get() so that ib_umem_release and/or
+> ib_umem_account() can properly decrement the pinned_vm count of the
+> correct mm_struct.
+> 
+> Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+> ---
+> 
+> v2 changes:
+> * Updated to use get_task_pid to avoid keeping a reference to the mm
+> 
+> I've run this patch on our test pool for general testing for a few days
+> and today verified that it solves the reported issue above on our
+> production machines.
+> 
+> 
+>  drivers/infiniband/core/umem.c |   18 ++++++++++++------
+>  include/rdma/ib_umem.h         |    1 +
+>  2 files changed, 13 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/umem.c
+> b/drivers/infiniband/core/umem.c
+> index a3a2e9c..01750d6 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -105,6 +105,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext
+> *context, unsigned long addr,
+>  	umem->length    = size;
+>  	umem->offset    = addr & ~PAGE_MASK;
+>  	umem->page_size = PAGE_SIZE;
+> +	umem->pid       = get_task_pid(current, PIDTYPE_PID);
+>  	/*
+>  	 * We ask for writable memory if any access flags other than
+>  	 * "remote read" are set.  "Local write" and "remote write"
+> @@ -198,6 +199,7 @@ out:
+>  	if (ret < 0) {
+>  		if (need_release)
+>  			__ib_umem_release(context->device, umem, 0);
+> +		put_pid(umem->pid);
+>  		kfree(umem);
+>  	} else
+>  		current->mm->pinned_vm = locked;
+> @@ -230,15 +232,18 @@ void ib_umem_release(struct ib_umem *umem)
+>  {
+>  	struct ib_ucontext *context = umem->context;
+>  	struct mm_struct *mm;
+> +	struct task_struct *task;
+>  	unsigned long diff;
+> 
+>  	__ib_umem_release(umem->context->device, umem, 1);
+> 
+> -	mm = get_task_mm(current);
+> -	if (!mm) {
+> -		kfree(umem);
+> -		return;
+> -	}
+> +	task = get_pid_task(umem->pid, PIDTYPE_PID);
+> +	put_pid(umem->pid);
+> +	if (!task)
+> +		goto out;
+> +	mm = get_task_mm(task);
+> +	if (!mm)
+> +		goto out;
+> 
 
+I think you are leaking task structs here. You need a put_task (task) once you got an mm (or failed to get one)
+
+>  	diff = PAGE_ALIGN(umem->length + umem->offset) >>
+> PAGE_SHIFT;
+> 
+> @@ -262,9 +267,10 @@ void ib_umem_release(struct ib_umem *umem)
+>  	} else
+>  		down_write(&mm->mmap_sem);
+> 
+> -	current->mm->pinned_vm -= diff;
+> +	mm->pinned_vm -= diff;
+>  	up_write(&mm->mmap_sem);
+>  	mmput(mm);
+> +out:
+>  	kfree(umem);
+>  }
+>  EXPORT_SYMBOL(ib_umem_release);
+> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+> index 1ea0b65..a2bf41e 100644
+> --- a/include/rdma/ib_umem.h
+> +++ b/include/rdma/ib_umem.h
+> @@ -47,6 +47,7 @@ struct ib_umem {
+>  	int                     writable;
+>  	int                     hugetlb;
+>  	struct work_struct	work;
+> +	struct pid             *pid;
+>  	struct mm_struct       *mm;
+>  	unsigned long		diff;
+>  	struct sg_table sg_head;
+> --
+> 1.7.7.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
