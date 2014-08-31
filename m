@@ -1,59 +1,147 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/8] IPoIB: fix mcast_dev_flush/mcast_restart_task race
-Date: Sat, 30 Aug 2014 08:39:20 -0700
-Message-ID: <CABgxfbGJOdmAn1sokEtisDdnA=r_4mfP=PfqZVsP0cd_oL50dA@mail.gmail.com>
-References: <cover.1407885724.git.dledford@redhat.com>
-	<e1dbcfc25d8930b281aad12699ebf8fa82485b0e.1407885724.git.dledford@redhat.com>
-	<CABgxfbHDuUrdHuLJT2oD07Cy3Ys4_rj-bJ6eR=9+uv0CuPH7_Q@mail.gmail.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD QPs
+ Eth L2 resolution
+Date: Sun, 31 Aug 2014 11:08:51 +0300
+Message-ID: <5402D813.4020204@mellanox.com>
+References: <1408517381-17523-1-git-send-email-matanb@mellanox.com> <1408517381-17523-3-git-send-email-matanb@mellanox.com> <20140820170142.GC12605@obsidianresearch.com> <53F9EDCD.9060105@mellanox.com> <20140825183325.GC1298@obsidianresearch.com> <5C3BB7B1-07E6-431F-98E5-13543AAA897D@redhat.com> <53FC7B1D.6050501@mellanox.com> <20140826160853.GA31127@obsidianresearch.com> <EE7902D3F51F404C82415C4803930ACD3FE48403@CMEXMB1.ad.emulex.com> <53FF56DF.1050207@mellanox.com> <EE7902D3F51F404C82415C4803930ACD3FE48637@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbHDuUrdHuLJT2oD07Cy3Ys4_rj-bJ6eR=9+uv0CuPH7_Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD3FE48637-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 29, 2014 at 2:53 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, Aug 12, 2014 at 4:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> Our mcast_dev_flush routine and our mcast_restart_task can race against
->> each other.  In particular, they both hold the priv->lock while
->> manipulating the rbtree and while removing mcast entries from the
->> multicast_list and while adding entries to the remove_list, but they
->> also both drop their locks prior to doing the actual removes.  The
->> mcast_dev_flush routine is run entirely under the rtnl lock and so has
->> at least some locking.  The actual race condition is like this:
->>
->> Thread 1                                Thread 2
->> ifconfig ib0 up
->>   start multicast join for broadcast
->>   multicast join completes for broadcast
->>   start to add more multicast joins
->>     call mcast_restart_task to add new entries
->>                                         ifconfig ib0 down
->>                                           mcast_dev_flush
->>                                             mcast_leave(mcast A)
->>     mcast_leave(mcast A)
->>
->> As mcast_leave calls ib_sa_multicast_leave, and as member in
->> core/multicast.c is ref counted, we run into an unbalanced refcount
->> issue.  To avoid stomping on each others removes, take the rtnl lock
->> specifically when we are deleting the entries from the remove list.
+On 28/8/2014 8:48 PM, Devesh Sharma wrote:
+> Hi Matan,
 >
-> Isn't "test_and_clear_bit()" atomic so it is unlikely that
-> ib_sa_free_multicast() can run multiple times  ?
+> Thanks for quick response, my further comments are inline below:
+>
+>> -----Original Message-----
+>> From: Matan Barak [mailto:matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+>> Sent: Thursday, August 28, 2014 9:51 PM
+>> To: Devesh Sharma; Jason Gunthorpe; Or Gerlitz
+>> Cc: Doug Ledford; Roland Dreier; Yishai Hadas; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE UD
+>> QPs Eth L2 resolution
+>>
+>> On 28/8/2014 12:48 PM, Devesh Sharma wrote:
+>>> Hi Matan,
+>>>
+>>> I have been watching this thread for quite some time. I have a Basic
+>>> question, do you think ib_uverbs_create_ah() in uverbs_cmd.c Should
+>>> resolve to l2 address? Presently it is not calling
+>> rdma_addr_find_dmac_by_grh(), am I missing something here?
+>>>
+>>> -Regards
+>>>    Devesh
+>>>
+>>
+>> Hi Devesh,
+>>
+>> Some vendors don't call ib_uverbs_create_ah and do all this creation in
+>> userspace only. It's true that it might be a lot easier to do that resolution in
+>> kernel, but it could create dependency of new versions of libibverbs and the
+> Which dependency you are specifying here, I see the scheme posted in this series adds dependency on libibverbs.
+> Do you anticipate modification even when uverbs interface is used?
 
-Oops .. how about if the structure itself gets freed ? My bad !
+If we had resolved the address handle in kernel space, we would have 
+created a dependency between the user libraries to and new version odf 
+the uverbs module. The scheme posted here only adds a dependency between 
+the provider's library to libibverbs.
+Resolving in kernel space would still require creating a dependency on a 
+new provider library - as currently some providers don't even call the 
+kernel when a new address handle is created.
 
-However, isn't that the remove_list a local list on the caller's stack
-? .. and  the original list entry moving (to remove_list) is protected
-by the spin lock (priv->lock), it is unlikely that the
-ib_sa_free_multicast() can operate on the same entry ?
+>> provider library tn new kernels only.
+>> I would like to avoid creating such a dependency.
+>
+> Okay, got it, any suggestions for those who use uverbs interface.
+> I think another patch is needed for such vendors?
+>
 
-The patch itself is harmless though .. but adding the rntl_lock is
-really not ideal.
+There are 2 options here - if all the required information (including 
+the MAC address) is contained in the address handle user-space 
+structure, you could just use the proposed method. However, if you 
+register some kind of an address handle with the hardware and then only 
+use it via user-space, we'll need another patch for uverbs.
 
--- Wendy
+>>
+>> Matan
+>>
+>>>> -----Original Message-----
+>>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+>>>> Sent: Tuesday, August 26, 2014 9:39 PM
+>>>> To: Or Gerlitz
+>>>> Cc: Doug Ledford; Matan Barak; Roland Dreier; Yishai Hadas; linux-
+>>>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>> Subject: Re: [PATCH libibverbs V5 2/2] Use neighbour lookup for RoCE
+>>>> UD QPs Eth L2 resolution
+>>>>
+>>>> On Tue, Aug 26, 2014 at 03:18:37PM +0300, Or Gerlitz wrote:
+>>>>> On 25/08/2014 22:33, Doug Ledford wrote:
+>>>>>>> On Aug 25, 2014, at 1:33 PM, Jason Gunthorpe
+>>>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>>>>>>>
+>>>>>>>>>> +    timer_fd = timerfd_create(CLOCK_MONOTONIC,
+>>>> TFD_NONBLOCK | TFD_CLOEXEC);
+>>>>>>>>>> +    if (-1 == timer_fd) {
+>>>>>>>>>> +        print_err("Couldn't create timer\n");
+>>>>>>>>>> +        return timer_fd;
+>>>>>>>>>> +    }
+>>>>>>>>>
+>>>>>>>>> The use of timerfd will impact the minimum OS version, have you
+>>>>>>>>> checked this is OK? Does RHEL5 still work?
+>>>>>>>
+>>>>>>>> It was added in linux v2.6.25. I think that an API that's more
+>>>>>>>> than
+>>>>>>>> 6.5 years old is valid.
+>>>>>>>
+>>>>>>> RHEL5 is using 2.6.18 as their base kernel. You should at least
+>>>>>>> consult with the OFED people to determine if this is a problem for
+>>>>>>> them.
+>>>>>>
+>>>>>> Please don't.  This code should not be changed for something as
+>>>>>> ancient
+>>>> as rhel5.
+>>>>>
+>>>>> Indeed. Telling people to avoid using constructs/mechanisms ~6-7
+>>>>> years after they were introduced isn't something we want nor need to
+>> do.
+>>>>
+>>>> I looked myself and it looks like OFED has dropped support for these
+>>>> old distros so there isn't any problem.
+>>>>
+>>>> However, I still think this use of timerfd is fairly gratuitous, and
+>>>> looking closer, causes little bugs:
+>>>>
+>>>> +		if (timerfd_settime(timer_fd, 0, &timer_time, NULL)) {
+>>>> +		   			      print_err("Couldn't set timer\n");
+>>>> +			return -1;
+>>>>                        ^^^^^^^^^^^^^^
+>>>> leaks timer_fd
+>>>>
+>>>>
+>>>> Alos, I noticed:
+>>>>
+>>>> +     	/* wait for an incoming message on the netlink socket */
+>>>> +	   ret = select(nfds, &fdset, NULL, NULL, NULL);
+>>>> +
+>>>> +		if (ret) {
+>>>>
+>>>> Fails to detect error return from select.
+>>>>
+>>>> Jason
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>>>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+>> majordomo
+>>>> info at http://vger.kernel.org/majordomo-info.html
+>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
