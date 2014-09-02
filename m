@@ -1,56 +1,72 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-3.17 0/7] RoCE IP addressing fixes
-Date: Tue, 2 Sep 2014 16:04:20 +0300
-Message-ID: <5405C054.8040800@mellanox.com>
-References: <1408620523-10616-1-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH REPOST for-3.17 2/3] IB/iser: Allow bind only when connection state is UP
+Date: Tue,  2 Sep 2014 17:08:42 +0300
+Message-ID: <1409666923-4542-3-git-send-email-ogerlitz@mellanox.com>
+References: <1409666923-4542-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1408620523-10616-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1409666923-4542-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/21/2014 2:28 PM, Or Gerlitz wrote:
-> Hi Roland,
->
-> This series contains RoCE related fixes to the mlx4 IB driver
-> (and one uverbs patch), which deal with the IP addressing logic.
->
-> Once applied into 3.17, we will further push them to -stable.
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Roland,
+We need to fail the bind operation also if the iser connection state != UP
+(started teardown) and this should be done under the state lock.
 
-This series addresses real bugs whose fixes should go upstream and from 
-there into inbox drivers, can you please act to send post-rc1 update 
-which contains these patches and whatever else is in the queue for 3.17-rc?
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.c |   19 ++++++++++++++-----
+ 1 files changed, 14 insertions(+), 5 deletions(-)
 
-Note that for patch 7/7 there's V1, I sent it to you today.
-
-Or.
-
->
-> Or.
->
-> Jack Morgenstein (1):
->    IB/mlx4: Fix lockdep splat for the iboe lock
->
-> Matan Barak (1):
->    IB/core: When marsheling uverbs path, clear unused fields
->
-> Moni Shoua (5):
->    IB/mlx4: Avoid null pointer dereference in mlx4_ib_scan_netdevs()
->    IB/mlx4: Don't duplicate the default RoCE GID
->    IB/mlx4: Reorder steps in RoCE GID table initialization
->    IB/mlx4: Get upper dev addresses as RoCE GIDs when port comes up
->    IB/mlx4: Avoid executing gid task when device is being removed
->
->   drivers/infiniband/core/uverbs_marshall.c |    4 +
->   drivers/infiniband/hw/mlx4/main.c         |  124 ++++++++++++++++++-----------
->   2 files changed, 81 insertions(+), 47 deletions(-)
->
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 61ee91d..93ce62f 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -344,7 +344,6 @@ iscsi_iser_conn_bind(struct iscsi_cls_session *cls_session,
+ 		     int is_leading)
+ {
+ 	struct iscsi_conn *conn = cls_conn->dd_data;
+-	struct iscsi_session *session;
+ 	struct iser_conn *ib_conn;
+ 	struct iscsi_endpoint *ep;
+ 	int error;
+@@ -363,9 +362,17 @@ iscsi_iser_conn_bind(struct iscsi_cls_session *cls_session,
+ 	}
+ 	ib_conn = ep->dd_data;
+ 
+-	session = conn->session;
+-	if (iser_alloc_rx_descriptors(ib_conn, session))
+-		return -ENOMEM;
++	mutex_lock(&ib_conn->state_mutex);
++	if (ib_conn->state != ISER_CONN_UP) {
++		error = -EINVAL;
++		iser_err("iser_conn %p state is %d, teardown started\n",
++			 ib_conn, ib_conn->state);
++		goto out;
++	}
++
++	error = iser_alloc_rx_descriptors(ib_conn, conn->session);
++	if (error)
++		goto out;
+ 
+ 	/* binds the iSER connection retrieved from the previously
+ 	 * connected ep_handle to the iSCSI layer connection. exchanges
+@@ -375,7 +382,9 @@ iscsi_iser_conn_bind(struct iscsi_cls_session *cls_session,
+ 	conn->dd_data = ib_conn;
+ 	ib_conn->iscsi_conn = conn;
+ 
+-	return 0;
++out:
++	mutex_unlock(&ib_conn->state_mutex);
++	return error;
+ }
+ 
+ static int
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
