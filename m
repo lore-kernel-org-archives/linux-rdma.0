@@ -1,107 +1,48 @@
-From: Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: mlx5 + SRP: max_qp_sz mismatch
-Date: Tue, 2 Sep 2014 11:36:50 -0600
-Message-ID: <CADvaNzVRg1gEJ8+YuZBt2q_dM1+_oZscG7NA-Rof3sgvhfGqFg@mail.gmail.com>
-References: <CADvaNzWGThMx1gMYfheFVwHzk10+8KWmAPkYZ1_FxArhdmri8Q@mail.gmail.com>
-	<53F36420.3060607@dev.mellanox.co.il>
-	<CADvaNzVkKuvHw58meQD962VSm4Y-QZoHC3ndsYSBW8rw7S68cw@mail.gmail.com>
-	<CADvaNzWAZiNiwBAVYVA5it7K3A4CAozkeHn8SowYNT7iE6YykA@mail.gmail.com>
-	<53FCB18F.5030608@dev.mellanox.co.il>
-	<53FDBED2.2060707@acm.org>
-	<CFE9BFE80FFE4D4892AA5D31387E310F014FC414E5@MTLDAG02.mtl.com>
-	<53FF51BE.1080103@acm.org>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.1.2-1 release
+Date: Tue, 2 Sep 2014 22:16:11 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F972E6F741@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53FF51BE.1080103-HInyCGIudOg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rupert Dance (rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org)" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Just got back from a few days in Denver, I'll give it a try ASAP.
+New release for uDAPL (2.1.2) is available at http://www.openfabrics.org/downloads/dapl
 
-We also have a ton of ConnectX-3's and a few ConnectX-2's.  I'll give
-it a quick try on those too just for fun.  And if anyone ever needs to
-test something against one of these (and the test isn't prohibitively
-difficult to set up)  I would be happy to give it a try.
+Vlad, please pull into OFED 3.12-1 RC2
 
-Thanks,
-Mark
+md5sum: dd757dec11cb23702aea8474e76a0037 dapl-2.1.2.tar.gz
 
+For v2.1 package install RPM packages as follow:
 
-On Thu, Aug 28, 2014 at 9:58 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> On 08/27/14 13:28, Eli Cohen wrote:
->> On 08/26/14 18:10, Sagi Grimberg wrote:
->>>
->>> Since I don't know how true send queue size can be computed from the
->>> device capabilities at the moment -I can suggest a fix to srpt to
->>> retry with srp_sq_size/2 (ans so on until it succeeds...)
->>>
->> The device capabilities provide the maximum number of send work
->> requests that the device supports but the actual number of work
->> requests that can be supported in a specific case depends on other
->> characteristics of the work requests. For example, in the case of
->> Connect-IB, the actual number depends on the number of s/g entries,
->> the transport type, etc. This is in compliance with the IB spec:
->>
->> 11.2.1.2 QUERY HCA
->> Description:
->> Returns the attributes for the specified HCA.
->> The maximum values defined in this section are guaranteed
->> not-to-exceed values. It is possible for an implementation to allocate
->> some HCA resources from the same space. In that case, the maximum
->> values returned are not guaranteed for all of those resources
->> simultaneously.
->>
->> So, a well written application should try smaller values if it fails
->> with ENOMEM.
->
-> Hello Mark,
->
-> It would help if you could test the patch below. Sorry but I don't
-> have access to a ConnectIB setup myself.
->
-> Thanks,
->
-> Bart.
->
-> Reported-by: Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index fe09f27..3ffaf4e 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -2091,6 +2091,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
->         if (!qp_init)
->                 goto out;
->
-> +retry:
->         ch->cq = ib_create_cq(sdev->device, srpt_completion, NULL, ch,
->                               ch->rq_size + srp_sq_size, 0);
->         if (IS_ERR(ch->cq)) {
-> @@ -2114,6 +2115,13 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
->         ch->qp = ib_create_qp(sdev->pd, qp_init);
->         if (IS_ERR(ch->qp)) {
->                 ret = PTR_ERR(ch->qp);
-> +               if (ret == -ENOMEM) {
-> +                       srp_sq_size /= 2;
-> +                       if (srp_sq_size >= MIN_SRPT_SQ_SIZE) {
-> +                               ib_destroy_cq(ch->cq);
-> +                               goto retry;
-> +                       }
-> +               }
->                 printk(KERN_ERR "failed to create_qp ret= %d\n", ret);
->                 goto err_destroy_cq;
->         }
-> --
-> 1.8.4.5
->
->
+ dapl-2.1.2-1
+ dapl-utils-2.1.2-1
+ dapl-devel-2.1.2-1
+ dapl-debuginfo-2.1.2-1
+
+Summary of changes:
+
+Release 2.1.2 
+mpxyd: add global routing support for proxy connections
+mcm: only call mix_get_attr if running on MIC
+openib: modify check for link_layer to handle unspecified
+dapl: add support for the s390x platform
+dtest server exchange connection info with client
+mpxyd: 2 MICs in same numa_node will overlap CPU affinity, don't reset base
+mcm: implement proxy mix_prov_attr function, add fields CPU model and family
+mpxyd: tx thread may not be signaled on small segment writes
+
+Release commit:  http://git.openfabrics.org/?p=~ardavis/dapl.git;a=commit;h=25568900892f9e72413e235ebc4ba77176343c84
+
+Regards,
+
+Arlin
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
