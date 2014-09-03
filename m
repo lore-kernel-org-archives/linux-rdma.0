@@ -1,41 +1,73 @@
-From: Husam Al Sayed <oscar55-azLpJcbXd5U@public.gmane.org>
-Subject: FROM: Husam Al Sayed.
-Date: Wed, 3 Sep 2014 20:47:15 +0200 (CEST)
-Message-ID: <1598732183.347216.1409770035361.JavaMail.root@mbox05>
-Reply-To: "alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org" <alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 4/8] IPoIB: fix mcast_dev_flush/mcast_restart_task race
+Date: Wed, 3 Sep 2014 12:45:44 -0700
+Message-ID: <CABgxfbFGtBMTycvsH3xUCDD0xx03Tcz3PMO6EqP=8Q4u3rk6sQ@mail.gmail.com>
+References: <cover.1407885724.git.dledford@redhat.com>
+	<e1dbcfc25d8930b281aad12699ebf8fa82485b0e.1407885724.git.dledford@redhat.com>
+	<CABgxfbHDuUrdHuLJT2oD07Cy3Ys4_rj-bJ6eR=9+uv0CuPH7_Q@mail.gmail.com>
+	<CABgxfbGJOdmAn1sokEtisDdnA=r_4mfP=PfqZVsP0cd_oL50dA@mail.gmail.com>
+	<1409767614.26762.7.camel@firewall.xsintricity.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1409767614.26762.7.camel-v+aXH1h/sVwpzh8Nc7Vzg+562jBIR2Zt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tgih.jun-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, jh80.chung-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, shijie8-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, zwanem-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, liqin.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lennox.wu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dillowda-1Heg1YXhbW8@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgilbert-qazKcTl6WRFWk0Htik3J/w@public.gmane.org, JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, Kai.Makisara-9Aww8k/80nUxHbG02/KK1g@public.gmane.org, vyasevich-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, saschasommer-KuiJ5kEpwI6ELgA04lAiVw@public.gmane.org, sdricohcs-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-FROM: Husam Al Sayed.
+On Wed, Sep 3, 2014 at 11:06 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Sat, 2014-08-30 at 08:39 -0700, Wendy Cheng wrote:
+>> On Fri, Aug 29, 2014 at 2:53 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> > On Tue, Aug 12, 2014 at 4:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> >> Our mcast_dev_flush routine and our mcast_restart_task can race against
+>> >> each other.  In particular, they both hold the priv->lock while
+>> >> manipulating the rbtree and while removing mcast entries from the
+>> >> multicast_list and while adding entries to the remove_list, but they
+>> >> also both drop their locks prior to doing the actual removes.  The
+>> >> mcast_dev_flush routine is run entirely under the rtnl lock and so has
+>> >> at least some locking.  The actual race condition is like this:
+>> >>
+>> >> Thread 1                                Thread 2
+>> >> ifconfig ib0 up
+>> >>   start multicast join for broadcast
+>> >>   multicast join completes for broadcast
+>> >>   start to add more multicast joins
+>> >>     call mcast_restart_task to add new entries
+>> >>                                         ifconfig ib0 down
+>> >>                                           mcast_dev_flush
+>> >>                                             mcast_leave(mcast A)
+>> >>     mcast_leave(mcast A)
+>> >>
+>> >> As mcast_leave calls ib_sa_multicast_leave, and as member in
+>> >> core/multicast.c is ref counted, we run into an unbalanced refcount
+>> >> issue.  To avoid stomping on each others removes, take the rtnl lock
+>> >> specifically when we are deleting the entries from the remove list.
+>> >
 
-EMAIL:alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
- 
-Hello,
- 
-I decided to write you this proposal in good faith, believing that you will
-not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
- 
-One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do 
- about his funds, if to renew the contract.
- 
-I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let 
- me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
- 
- 
- 
-Have a nice day and God bless. Anticipating your communication.
- 
-Regards,
-FROM: Husam Al Sayed.
-EMAIL: alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
-_____________________________________________________________________
+[snip] ..
 
-Denne vyberame najlepsie hry - http://www.hrymat.sk
+>> However, isn't that the remove_list a local list on the caller's stack
+>> ? .. and  the original list entry moving (to remove_list) is protected
+>> by the spin lock (priv->lock), it is unlikely that the
+>> ib_sa_free_multicast() can operate on the same entry ?
+>
+> Yes, you're right.  I had it in my mind that the remove_list was part of
+> the ipoib private dev, not local on the stack.  So you are right that we
+> could probably get away with removing the rtnl lock there (although it
+> would need to be in a later patch than the one you are reviewing
+> here...here there would still be a race between the restart task and the
+> downing of the interface because they all still share the same work
+> queue, but once we switch to the per device work queues in patch #6,
+> this can happen in parallel safely with the flush task I think).
+>
+
+Yep, that local "remove_list" is easy to miss.
+
+BTW, you might want to modify the text description of this patch to
+make your point clear.
+
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
