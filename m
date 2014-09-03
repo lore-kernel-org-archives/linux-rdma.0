@@ -1,73 +1,265 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/8] IPoIB: fix mcast_dev_flush/mcast_restart_task race
-Date: Wed, 3 Sep 2014 12:45:44 -0700
-Message-ID: <CABgxfbFGtBMTycvsH3xUCDD0xx03Tcz3PMO6EqP=8Q4u3rk6sQ@mail.gmail.com>
-References: <cover.1407885724.git.dledford@redhat.com>
-	<e1dbcfc25d8930b281aad12699ebf8fa82485b0e.1407885724.git.dledford@redhat.com>
-	<CABgxfbHDuUrdHuLJT2oD07Cy3Ys4_rj-bJ6eR=9+uv0CuPH7_Q@mail.gmail.com>
-	<CABgxfbGJOdmAn1sokEtisDdnA=r_4mfP=PfqZVsP0cd_oL50dA@mail.gmail.com>
-	<1409767614.26762.7.camel@firewall.xsintricity.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 for-next 00/16] On demand paging
+Date: Wed, 3 Sep 2014 23:21:03 +0300
+Message-ID: <CAJ3xEMj8BJLJvetNoqGOFhqeJHupEd=kbnFeO_Na=1ZYbvBk9g@mail.gmail.com>
+References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com>
+	<5405D2D8.1040700@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1409767614.26762.7.camel-v+aXH1h/sVwpzh8Nc7Vzg+562jBIR2Zt@public.gmane.org>
+In-Reply-To: <5405D2D8.1040700-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 3, 2014 at 11:06 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Sat, 2014-08-30 at 08:39 -0700, Wendy Cheng wrote:
->> On Fri, Aug 29, 2014 at 2:53 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> > On Tue, Aug 12, 2014 at 4:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> >> Our mcast_dev_flush routine and our mcast_restart_task can race against
->> >> each other.  In particular, they both hold the priv->lock while
->> >> manipulating the rbtree and while removing mcast entries from the
->> >> multicast_list and while adding entries to the remove_list, but they
->> >> also both drop their locks prior to doing the actual removes.  The
->> >> mcast_dev_flush routine is run entirely under the rtnl lock and so has
->> >> at least some locking.  The actual race condition is like this:
->> >>
->> >> Thread 1                                Thread 2
->> >> ifconfig ib0 up
->> >>   start multicast join for broadcast
->> >>   multicast join completes for broadcast
->> >>   start to add more multicast joins
->> >>     call mcast_restart_task to add new entries
->> >>                                         ifconfig ib0 down
->> >>                                           mcast_dev_flush
->> >>                                             mcast_leave(mcast A)
->> >>     mcast_leave(mcast A)
->> >>
->> >> As mcast_leave calls ib_sa_multicast_leave, and as member in
->> >> core/multicast.c is ref counted, we run into an unbalanced refcount
->> >> issue.  To avoid stomping on each others removes, take the rtnl lock
->> >> specifically when we are deleting the entries from the remove list.
->> >
-
-[snip] ..
-
->> However, isn't that the remove_list a local list on the caller's stack
->> ? .. and  the original list entry moving (to remove_list) is protected
->> by the spin lock (priv->lock), it is unlikely that the
->> ib_sa_free_multicast() can operate on the same entry ?
+On Tue, Sep 2, 2014, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 7/3/2014 11:44 AM, Haggai Eran wrote:
+>>
+>> Hi Roland,
+>>
+>> I understand that you were reluctant to review these patches as long as
+>> there was an ongoing debate on whether or not the i_mmap_mutex should be
+>> changed into a spinlock.
+>>
+>> It seems that the debate concluded with the decision to change it into a
+>> rwsem [1], as apparently this provides the optimal performance with the new
+>> optimistic spinning patch [2].
+>>
+>> I believe this means that there will be no problem adding paging support
+>> to the RDMA stack that depends on sleepable MMU notifiers.
 >
-> Yes, you're right.  I had it in my mind that the remove_list was part of
-> the ipoib private dev, not local on the stack.  So you are right that we
-> could probably get away with removing the rtnl lock there (although it
-> would need to be in a later patch than the one you are reviewing
-> here...here there would still be a race between the restart task and the
-> downing of the interface because they all still share the same work
-> queue, but once we switch to the per device work queues in patch #6,
-> this can happen in parallel safely with the flush task I think).
 >
+> Hi Roland,
+>
+> The ODP patch set was initially posted whole six months ago (March 2nd,
+> 2014). We did it prior to LSF so you can discuss that with Sagi while he's
+> there. Well no comment from your side so far. It's really (really) hard to
+> do proper kernel development when the sub-system maintainer doesn't provide
+> you almost no concrete feedback over half a year.
+>
+> Can you please go ahead and tell us your position re this features/patches?
 
-Yep, that local "remove_list" is easy to miss.
+Hi Roland,
 
-BTW, you might want to modify the text description of this patch to
-make your point clear.
+Bump. Can you comment here? these patches were worked out here for
+long time by a dedicated group and implement a strategic feature for
+the RDMA industry.
+I don't see why the RDMA kernel maintainer can leave the development
+team in the air without any comment on their work for half a year.
 
--- Wendy
+Or.
+
+
+>> Changes from V0: http://marc.info/?l=linux-rdma&m=139375790322547&w=2
+>>
+>> - Rebased against latest upstream / for-next branch.
+>> - Removed dependency on patches that were accepted upstream.
+>> - Removed pre-patches that were accepted upstream [3].
+>> - Add extended uverb call for querying device (patch 1) and use kernel
+>> device
+>>    attributes to report ODP capabilities through the new uverb entry
+>> instead of
+>>    having a special verb.
+>> - Allow upgrading page access permissions during page faults.
+>> - Minor fixes to issues that came up during regression testing of the
+>> patches.
+>>
+>> The following set of patches implements on-demand paging (ODP) support
+>> in the RDMA stack and in the mlx5_ib Infiniband driver.
+>>
+>> What is on-demand paging?
+>>
+>> Applications register memory with an RDMA adapter using system calls,
+>> and subsequently post IO operations that refer to the corresponding
+>> virtual addresses directly to HW. Until now, this was achieved by
+>> pinning the memory during the registration calls. The goal of on demand
+>> paging is to avoid pinning the pages of registered memory regions (MRs).
+>> This will allow users the same flexibility they get when swapping any
+>> other part of their processes address spaces. Instead of requiring the
+>> entire MR to fit in physical memory, we can allow the MR to be larger,
+>> and only fit the current working set in physical memory.
+>>
+>> This can make programming with RDMA much simpler. Today, developers that
+>> are working with more data than their RAM can hold need either to
+>> deregister and reregister memory regions throughout their process's
+>> life, or keep a single memory region and copy the data to it. On demand
+>> paging will allow these developers to register a single MR at the
+>> beginning of their process's life, and let the operating system manage
+>> which pages needs to be fetched at a given time. In the future, we might
+>> be able to provide a single memory access key for each process that
+>> would provide the entire process's address as one large memory region,
+>> and the developers wouldn't need to register memory regions at all.
+>>
+>> How does page faults generally work?
+>>
+>> With pinned memory regions, the driver would map the virtual addresses
+>> to bus addresses, and pass these addresses to the HCA to associate them
+>> with the new MR. With ODP, the driver is now allowed to mark some of the
+>> pages in the MR as not-present. When the HCA attempts to perform memory
+>> access for a communication operation, it notices the page is not
+>> present, and raises a page fault event to the driver. In addition, the
+>> HCA performs whatever operation is required by the transport protocol to
+>> suspend communication until the page fault is resolved.
+>>
+>> Upon receiving the page fault interrupt, the driver first needs to know
+>> on which virtual address the page fault occurred, and on what memory
+>> key. When handling send/receive operations, this information is inside
+>> the work queue. The driver reads the needed work queue elements, and
+>> parses them to gather the address and memory key. For other RDMA
+>> operations, the event generated by the HCA only contains the virtual
+>> address and rkey, as there are no work queue elements involved.
+>>
+>> Having the rkey, the driver can find the relevant memory region in its
+>> data structures, and calculate the actual pages needed to complete the
+>> operation. It then uses get_user_pages to retrieve the needed pages back
+>> to the memory, obtains dma mapping, and passes the addresses to the HCA.
+>> Finally, the driver notifies the HCA it can continue operation on the
+>> queue pair that encountered the page fault. The pages that
+>> get_user_pages returned are unpinned immediately by releasing their
+>> reference.
+>>
+>> How are invalidations handled?
+>>
+>> The patches add infrastructure to subscribe the RDMA stack as an mmu
+>> notifier client [4]. Each process that uses ODP register a notifier
+>> client.
+>> When receiving page invalidation notifications, they are passed to the
+>> mlx5_ib driver, which updates the HCA with new, not-present mappings.
+>> Only after flushing the HCA's page table caches the notifier returns,
+>> allowing the kernel to release the pages.
+>>
+>> What operations are supported?
+>>
+>> Currently only send, receive and RDMA write operations are supported on
+>> the
+>> RC protocol, and also send operations on the UD protocol. We hope to
+>> implement support for other transports and operations in the future.
+>>
+>> The structure of the patchset
+>>
+>> Patches 1-6:
+>> The first set of patches adds page fault support to the IB core layer,
+>> allowing MRs to be registered without their pages to be pinned. Patch 1
+>> adds an extended verb to query device attributes, and patch 2
+>> adds capability bits, configuration options, and a method for querying
+>> whether the paging capabilities from user-space. The next two patches
+>> (3-4)
+>> make some necessary changes to the ib_umem type. Patches 5 and 6 add
+>> paging support and invalidation support respectively.
+>>
+>> Patches 7-12:
+>> This set of patches add small size new functionality to the mlx5 driver
+>> and
+>> builds toward paging support. Patch 7 make changes to UMR mechanism
+>> (an internal mechanism used by mlx5 to update device page mappings).
+>> Patch 8 adds infrastructure support for page fault handling to the
+>> mlx5_core module. Patch 9 queries the device for paging capabilities, and
+>> patch 11 adds a function to do partial device page table updates. Finally,
+>> patch 12 adds a helper function to read information from user-space work
+>> queues in the driver's context.
+>>
+>> Patches 13-16:
+>> The final part of this patch set finally adds paging support to the mlx5
+>> driver. Patch 13 adds in mlx5_ib the infrastructure to handle page faults
+>> coming from mlx5_core. Patch 14 adds the code to handle UD send page
+>> faults
+>> and RC send and receive page faults. Patch 15 adds support for page faults
+>> caused by RDMA write operations, and patch 16 adds invalidation support to
+>> the mlx5 driver, allowing pages to be unmapped dynamically.
+>>
+>> [1] [PATCH 0/5] mm: i_mmap_mutex to rwsem
+>>      https://lkml.org/lkml/2013/6/24/683
+>>
+>> [2] Re: Performance regression from switching lock to rw-sem for anon-vma
+>> tree
+>>      https://lkml.org/lkml/2013/6/17/452
+>>
+>> [3] pre-patches that were accepted upstream:
+>>    a74d241 IB/mlx5: Refactor UMR to have its own context struct
+>>    48fea83 IB/mlx5: Set QP offsets and parameters for user QPs and not
+>> just for kernel QPs
+>>    b475598 mlx5_core: Store MR attributes in mlx5_mr_core during creation
+>> and after UMR
+>>    8605933 IB/mlx5: Add MR to radix tree in reg_mr_callback
+>>
+>> [4] Integrating KVM with the Linux Memory Management (presentation),
+>>      Andrea Archangeli
+>>
+>> http://www.linux-kvm.org/wiki/images/3/33/KvmForum2008%24kdf2008_15.pdf
+>>
+>>
+>> Haggai Eran (11):
+>>    IB/core: Add an extended user verb to query device attributes
+>>    IB/core: Replace ib_umem's offset field with a full address
+>>    IB/core: Add umem function to read data from user-space
+>>    IB/mlx5: Enhance UMR support to allow partial page table update
+>>    net/mlx5_core: Add support for page faults events and low level
+>>      handling
+>>    IB/mlx5: Implement the ODP capability query verb
+>>    IB/mlx5: Changes in memory region creation to support on-demand
+>>      paging
+>>    IB/mlx5: Add mlx5_ib_update_mtt to update page tables after creation
+>>    IB/mlx5: Add function to read WQE from user-space
+>>    IB/mlx5: Page faults handling infrastructure
+>>    IB/mlx5: Handle page faults
+>>
+>> Sagi Grimberg (1):
+>>    IB/core: Add flags for on demand paging support
+>>
+>> Shachar Raindel (4):
+>>    IB/core: Add support for on demand paging regions
+>>    IB/core: Implement support for MMU notifiers regarding on demand
+>>      paging regions
+>>    IB/mlx5: Add support for RDMA write responder page faults
+>>    IB/mlx5: Implement on demand paging by adding support for MMU
+>>      notifiers
+>>
+>>   drivers/infiniband/Kconfig                     |  11 +
+>>   drivers/infiniband/core/Makefile               |   1 +
+>>   drivers/infiniband/core/umem.c                 |  63 +-
+>>   drivers/infiniband/core/umem_odp.c             | 620
+>> ++++++++++++++++++++
+>>   drivers/infiniband/core/umem_rbtree.c          |  94 +++
+>>   drivers/infiniband/core/uverbs.h               |   1 +
+>>   drivers/infiniband/core/uverbs_cmd.c           | 170 ++++--
+>>   drivers/infiniband/core/uverbs_main.c          |   5 +-
+>>   drivers/infiniband/hw/amso1100/c2_provider.c   |   2 +-
+>>   drivers/infiniband/hw/ehca/ehca_mrmw.c         |   2 +-
+>>   drivers/infiniband/hw/ipath/ipath_mr.c         |   2 +-
+>>   drivers/infiniband/hw/mlx5/Makefile            |   1 +
+>>   drivers/infiniband/hw/mlx5/main.c              |  39 +-
+>>   drivers/infiniband/hw/mlx5/mem.c               |  67 ++-
+>>   drivers/infiniband/hw/mlx5/mlx5_ib.h           | 114 +++-
+>>   drivers/infiniband/hw/mlx5/mr.c                | 303 ++++++++--
+>>   drivers/infiniband/hw/mlx5/odp.c               | 770
+>> +++++++++++++++++++++++++
+>>   drivers/infiniband/hw/mlx5/qp.c                | 198 +++++--
+>>   drivers/infiniband/hw/nes/nes_verbs.c          |   4 +-
+>>   drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   2 +-
+>>   drivers/infiniband/hw/qib/qib_mr.c             |   2 +-
+>>   drivers/net/ethernet/mellanox/mlx5/core/eq.c   |  11 +-
+>>   drivers/net/ethernet/mellanox/mlx5/core/fw.c   |  35 +-
+>>   drivers/net/ethernet/mellanox/mlx5/core/main.c |   8 +-
+>>   drivers/net/ethernet/mellanox/mlx5/core/qp.c   | 134 ++++-
+>>   include/linux/mlx5/device.h                    |  73 ++-
+>>   include/linux/mlx5/driver.h                    |  20 +-
+>>   include/linux/mlx5/qp.h                        |  63 ++
+>>   include/rdma/ib_umem.h                         |  29 +-
+>>   include/rdma/ib_umem_odp.h                     | 156 +++++
+>>   include/rdma/ib_verbs.h                        |  47 +-
+>>   include/uapi/rdma/ib_user_verbs.h              |  25 +
+>>   32 files changed, 2907 insertions(+), 165 deletions(-)
+>>   create mode 100644 drivers/infiniband/core/umem_odp.c
+>>   create mode 100644 drivers/infiniband/core/umem_rbtree.c
+>>   create mode 100644 drivers/infiniband/hw/mlx5/odp.c
+>>   create mode 100644 include/rdma/ib_umem_odp.h
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
