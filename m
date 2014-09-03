@@ -1,49 +1,77 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.1.2-1 release
-Date: Tue, 2 Sep 2014 22:16:11 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F972E6F741@ORSMSX101.amr.corp.intel.com>
+From: Bob Biloxi <iambobbiloxi@gmail.com>
+Subject: Re: mlx4 query in sriov mode
+Date: Wed, 3 Sep 2014 11:45:03 +0530
+Message-ID: <CANwwZzW5L7-L-PW4b+a4VSwqHTYfBL2kpB20mRjvVcjJiiOqUQ@mail.gmail.com>
+References: <CANwwZzXowyGmg-cfCHQqeJ_iqjT+Ec+JPy+OWzNGeyN=hRqmPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rupert Dance (rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org)" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CANwwZzXowyGmg-cfCHQqeJ_iqjT+Ec+JPy+OWzNGeyN=hRqmPg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New release for uDAPL (2.1.2) is available at http://www.openfabrics.org/downloads/dapl
+Hi,
 
-Vlad, please pull into OFED 3.12-1 RC2
+Can anyone from Mellanox please help me understand this better? really
+hoping for any pointers that will be helpful...
 
-md5sum: dd757dec11cb23702aea8474e76a0037 dapl-2.1.2.tar.gz
+Specifically:
 
-For v2.1 package install RPM packages as follow:
+> Now, my query is, lets say the VF driver is not yet present and only
+> the PF driver is there...
+>
+> In this case, can we simulate a VF command write and get notified
+> through an event?
+>
+> For eg. we write to some offset in the PF BAR space itself upon
+> completion of which, an event is generated because of the write? kind
+> of like loopback mechanism.
+>
 
- dapl-2.1.2-1
- dapl-utils-2.1.2-1
- dapl-devel-2.1.2-1
- dapl-debuginfo-2.1.2-1
 
-Summary of changes:
+Thanks so much,
+Bob
 
-Release 2.1.2 
-mpxyd: add global routing support for proxy connections
-mcm: only call mix_get_attr if running on MIC
-openib: modify check for link_layer to handle unspecified
-dapl: add support for the s390x platform
-dtest server exchange connection info with client
-mpxyd: 2 MICs in same numa_node will overlap CPU affinity, don't reset base
-mcm: implement proxy mix_prov_attr function, add fields CPU model and family
-mpxyd: tx thread may not be signaled on small segment writes
-
-Release commit:  http://git.openfabrics.org/?p=~ardavis/dapl.git;a=commit;h=25568900892f9e72413e235ebc4ba77176343c84
-
-Regards,
-
-Arlin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Aug 28, 2014 at 10:58 PM, Bob Biloxi <iambobbiloxi@gmail.com> wrote:
+> Hi All,
+>
+>
+> I really appreciate this wonderful community which has immensely
+> helped me broaden my knowledge and understanding.
+>
+>
+> I was going through the mlx4 sriov code, trying to understand the
+> communication between the VF driver and the PF driver.
+>
+> I was having a few queries..hoping to get a better understanding.
+>
+>
+> As I understand, the commands are communicated between VF and PF
+> through a mechanism called communication channel. VF writes to
+> specific address in its BAR space, PF gets an event and then proceeds
+> ahead to read the command from its BAR space and then complete the
+> execution of it..
+>
+>
+> Now, my query is, lets say the VF driver is not yet present and only
+> the PF driver is there...
+>
+> In this case, can we simulate a VF command write and get notified
+> through an event?
+>
+> For eg. we write to some offset in the PF BAR space itself upon
+> completion of which, an event is generated because of the write? kind
+> of like loopback mechanism.
+>
+>
+> I searched through the code but couldn't find anywhere.
+>
+> Can anyone please help me understand if this is possible? And if there
+> is any location in the code where i can find this?
+>
+> Thanks a lot in advance!!
+>
+>
+> Best Regards,
+> Bob
