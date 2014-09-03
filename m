@@ -1,106 +1,62 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 0/8] IPoIB: Fix multiple race conditions
-Date: Wed, 3 Sep 2014 16:52:20 +0300
-Message-ID: <54071D14.9040404@mellanox.com>
+Date: Wed, 3 Sep 2014 09:26:04 -0700
+Message-ID: <CABgxfbEz2vS2oxOfZuazJXS_PL6tN9T=evMmM=A61QguBL1-Bw@mail.gmail.com>
 References: <cover.1407885724.git.dledford@redhat.com>
+	<CABgxfbEGfiNGUKT4NJi1GoDRouFznxpgogDt5yr47TLfwDB7hA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1407885724.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CABgxfbEGfiNGUKT4NJi1GoDRouFznxpgogDt5yr47TLfwDB7hA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Cheng, Wendy" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/13/2014 2:38 AM, Doug Ledford wrote:
-> Locking of multicast joins/leaves in the IPoIB layer have been problematic
-> for a while.  There have been recent changes to try and make things better,
-> including these changes:
+On Fri, Aug 15, 2014 at 3:08 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Tue, Aug 12, 2014 at 4:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+[snip]
+>>
+>> Doug Ledford (8):
+>>   IPoIB: Consolidate rtnl_lock tasks in workqueue
+>>   IPoIB: Make the carrier_on_task race aware
+>>   IPoIB: fix MCAST_FLAG_BUSY usage
+>>   IPoIB: fix mcast_dev_flush/mcast_restart_task race
+>>   IPoIB: change init sequence ordering
+>>   IPoIB: Use dedicated workqueues per interface
+>>   IPoIB: Make ipoib_mcast_stop_thread flush the workqueue
+>>   IPoIB: No longer use flush as a parameter
+>>
 >
-> bea1e22 IPoIB: Fix use-after-free of multicast object
-> a9c8ba5 IPoIB: Fix usage of uninitialized multicast objects
+> IPOIB is recently added as a technology preview for Intel Xeon Phi
+> (currently a PCIe card) that runs embedded Linux (named MPSS) with
+> Infiniband software stacks supported via emulation drivers. One early
+> feedback from users with large cluster nodes is IPOIB's power
+> consumption. The root cause of the reported issue is more to do with
+> how MPSS handles its DMA buffers (vs. how Linux IB stacks work) - so
+> submitting the fix to upstream is not planned at this moment (unless
+> folks are interested in the changes).
 >
-> Unfortunately, the following test still fails (miserably) on a plain
-> upstream kernel:
->
-> pass=0
-> ifdown ib0
-> while true; do
->      ifconfig ib0 up
->      ifconfig ib0 down
->      echo "Pass $pass"
->      let pass++
-> done
->
-> This usually fails within 10 to 20 passes, although I did have a lucky
-> run make it to 300 or so.  If you happen to have a P_Key child interface,
-> it fails even quicker.
-
-Hi Doug,
-
-Thanks for looking on that. I wasn't aware we're doing so badly... I 
-checked here and the plan is that Erez Shitrit from Mellanox will also 
-be providing feedback on the series.
-
-Anyway, just to make sure we're on the same page, people agree that 
-picking such series is too heavy for post merge window, right? so we are 
-talking on 3.18, agree?
-
-Or.
-
->
-> In tracking down the rtnl deadlock in the multicast code, I ended up
-> re-designing the flag usage and clean up just the race conditions in
-> the various tasks.  Even that wasn't enough to resolve the issue entirely
-> though, as if you ran the test above on multiple interfaces simultaneously,
-> it could still deadlock.  So in the end I re-did the workqueue usage too
-> so that we now use a workqueue per device (and that includes P_Key devices
-> have dedicated workqueues) as well as one global workqueue that does
-> nothing but flush tasks.  This turns out to be a much more elegant way
-> of handling the workqueues and in fact enabled me to remove all of the
-> klunky passing around of flush parameters to tell various functions not
-> to flush the workqueue if it would deadlock the workqueue we are running
-> from.
->
-> Here is my test setup:
->
-> 2 InfiniBand physical fabrics: ib0 and ib1
-> 2 P_Keys on each fabric: default and 0x8002 on ib0 and 0x8003 on ib1
-> 4 total IPoIB devices that I have named mlx4_ib0, mlx4_ib0.8002,
->    mlx4_ib1, and mlx4_ib1.8003
->
-> In order to test my final patch set, I logged into my test machine on
-> four different virtual terminals, I used ifdown on all of the above
-> interfaces to get things in a consistent state, and then I ran the above
-> loop, one per terminal per interface simultaneously.
->
-> It's worth noting here that when you ifconfig a base interface up, it
-> automatically brings up the child interface too, so the ifconfig mlx4_ib0
-> up is in fact racing with both ups and downs of mlx4_ib0.8002.  The same
-> is true for the mlx4_ib1 interface and its child.  With my patch set in
-> place, these loops are currently running without a problem and have passed
-> 15,000 up/down cycles per interface.
->
-> Doug Ledford (8):
->    IPoIB: Consolidate rtnl_lock tasks in workqueue
->    IPoIB: Make the carrier_on_task race aware
->    IPoIB: fix MCAST_FLAG_BUSY usage
->    IPoIB: fix mcast_dev_flush/mcast_restart_task race
->    IPoIB: change init sequence ordering
->    IPoIB: Use dedicated workqueues per interface
->    IPoIB: Make ipoib_mcast_stop_thread flush the workqueue
->    IPoIB: No longer use flush as a parameter
->
->   drivers/infiniband/ulp/ipoib/ipoib.h           |  19 +-
->   drivers/infiniband/ulp/ipoib/ipoib_cm.c        |  18 +-
->   drivers/infiniband/ulp/ipoib/ipoib_ib.c        |  27 ++-
->   drivers/infiniband/ulp/ipoib/ipoib_main.c      |  49 +++--
->   drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 239 ++++++++++++++++---------
->   drivers/infiniband/ulp/ipoib/ipoib_verbs.c     |  22 ++-
->   6 files changed, 240 insertions(+), 134 deletions(-)
+> However, since this patch set happens to be in the heart of the
+> reported power issue, we would like to take a closer look to avoid
+> MPSS code base deviating too much from future upstream kernel(s).
+> Question, comment, and/or ack will follow sometime next week.
 >
 
+I've reviewed the patch set - the first half of the patches look good.
+Patch #5,#6,#7,#8 are fine if we go for one WQ per device - will let
+others do the final call.
+
+On our system (OFED 1.5.4 based), similar deadlocks were also observed
+while the power management issues were worked on. Restricted by other
+issues that were specific to our platform, I took the advantage of
+single IPOIB workqueue by queuing the if-up(s) and/or if-down(s) to
+the work queue if one already in progress. It serialized the logic by
+default. However, I would not mind one WQ per device approach and will
+re-make the changes when this patch set is picked up by mainline
+kernel.
+
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
