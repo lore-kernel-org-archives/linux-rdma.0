@@ -1,62 +1,132 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/8] IPoIB: Fix multiple race conditions
-Date: Wed, 3 Sep 2014 09:26:04 -0700
-Message-ID: <CABgxfbEz2vS2oxOfZuazJXS_PL6tN9T=evMmM=A61QguBL1-Bw@mail.gmail.com>
-References: <cover.1407885724.git.dledford@redhat.com>
-	<CABgxfbEGfiNGUKT4NJi1GoDRouFznxpgogDt5yr47TLfwDB7hA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3] ib_umem_release should decrement mm->pinned_vm from ib_umem_get
+Date: Wed,  3 Sep 2014 12:13:57 -0500
+Message-ID: <1409764437-29699-1-git-send-email-shawn.bohrer@gmail.com>
+References: <6B2A6E60C06CCC42AE31809BF572352B010E240634@MTLDAG02.mtl.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbEGfiNGUKT4NJi1GoDRouFznxpgogDt5yr47TLfwDB7hA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <6B2A6E60C06CCC42AE31809BF572352B010E240634-LSMZvP3E4uyuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Cheng, Wendy" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 15, 2014 at 3:08 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, Aug 12, 2014 at 4:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-[snip]
->>
->> Doug Ledford (8):
->>   IPoIB: Consolidate rtnl_lock tasks in workqueue
->>   IPoIB: Make the carrier_on_task race aware
->>   IPoIB: fix MCAST_FLAG_BUSY usage
->>   IPoIB: fix mcast_dev_flush/mcast_restart_task race
->>   IPoIB: change init sequence ordering
->>   IPoIB: Use dedicated workqueues per interface
->>   IPoIB: Make ipoib_mcast_stop_thread flush the workqueue
->>   IPoIB: No longer use flush as a parameter
->>
->
-> IPOIB is recently added as a technology preview for Intel Xeon Phi
-> (currently a PCIe card) that runs embedded Linux (named MPSS) with
-> Infiniband software stacks supported via emulation drivers. One early
-> feedback from users with large cluster nodes is IPOIB's power
-> consumption. The root cause of the reported issue is more to do with
-> how MPSS handles its DMA buffers (vs. how Linux IB stacks work) - so
-> submitting the fix to upstream is not planned at this moment (unless
-> folks are interested in the changes).
->
-> However, since this patch set happens to be in the heart of the
-> reported power issue, we would like to take a closer look to avoid
-> MPSS code base deviating too much from future upstream kernel(s).
-> Question, comment, and/or ack will follow sometime next week.
->
+From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
 
-I've reviewed the patch set - the first half of the patches look good.
-Patch #5,#6,#7,#8 are fine if we go for one WQ per device - will let
-others do the final call.
+In debugging an application that receives -ENOMEM from ib_reg_mr() I
+found that ib_umem_get() can fail because the pinned_vm count has
+wrapped causing it to always be larger than the lock limit even with
+RLIMIT_MEMLOCK set to RLIM_INFINITY.
 
-On our system (OFED 1.5.4 based), similar deadlocks were also observed
-while the power management issues were worked on. Restricted by other
-issues that were specific to our platform, I took the advantage of
-single IPOIB workqueue by queuing the if-up(s) and/or if-down(s) to
-the work queue if one already in progress. It serialized the logic by
-default. However, I would not mind one WQ per device approach and will
-re-make the changes when this patch set is picked up by mainline
-kernel.
+The wrapping of pinned_vm occurs because the process that calls
+ib_reg_mr() will have its mm->pinned_vm count incremented.  Later a
+different process with a different mm_struct than the one that allocated
+the ib_umem struct ends up releasing it which results in decrementing
+the new processes mm->pinned_vm count past zero and wrapping.
 
--- Wendy
+I'm not entirely sure what circumstances cause a different process to
+release the ib_umem than the one that allocated it but the kernel stack
+trace of the freeing process from my situation looks like the following:
+
+Call Trace:
+ [<ffffffff814d64b1>] dump_stack+0x19/0x1b
+ [<ffffffffa0b522a5>] ib_umem_release+0x1f5/0x200 [ib_core]
+ [<ffffffffa0b90681>] mlx4_ib_destroy_qp+0x241/0x440 [mlx4_ib]
+ [<ffffffffa0b4d93c>] ib_destroy_qp+0x12c/0x170 [ib_core]
+ [<ffffffffa0cc7129>] ib_uverbs_close+0x259/0x4e0 [ib_uverbs]
+ [<ffffffff81141cba>] __fput+0xba/0x240
+ [<ffffffff81141e4e>] ____fput+0xe/0x10
+ [<ffffffff81060894>] task_work_run+0xc4/0xe0
+ [<ffffffff810029e5>] do_notify_resume+0x95/0xa0
+ [<ffffffff814e3dd0>] int_signal+0x12/0x17
+
+The following patch fixes the issue by storing the pid struct of the
+process that calls ib_umem_get() so that ib_umem_release and/or
+ib_umem_account() can properly decrement the pinned_vm count of the
+correct mm_struct.
+
+Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+---
+v3 changes:
+* Fix resource leak with put_task_struct()
+v2 changes:
+* Updated to use get_task_pid to avoid keeping a reference to the mm
+
+ drivers/infiniband/core/umem.c |   19 +++++++++++++------
+ include/rdma/ib_umem.h         |    1 +
+ 2 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index a3a2e9c..df0c4f6 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -105,6 +105,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	umem->length    = size;
+ 	umem->offset    = addr & ~PAGE_MASK;
+ 	umem->page_size = PAGE_SIZE;
++	umem->pid       = get_task_pid(current, PIDTYPE_PID);
+ 	/*
+ 	 * We ask for writable memory if any access flags other than
+ 	 * "remote read" are set.  "Local write" and "remote write"
+@@ -198,6 +199,7 @@ out:
+ 	if (ret < 0) {
+ 		if (need_release)
+ 			__ib_umem_release(context->device, umem, 0);
++		put_pid(umem->pid);
+ 		kfree(umem);
+ 	} else
+ 		current->mm->pinned_vm = locked;
+@@ -230,15 +232,19 @@ void ib_umem_release(struct ib_umem *umem)
+ {
+ 	struct ib_ucontext *context = umem->context;
+ 	struct mm_struct *mm;
++	struct task_struct *task;
+ 	unsigned long diff;
+ 
+ 	__ib_umem_release(umem->context->device, umem, 1);
+ 
+-	mm = get_task_mm(current);
+-	if (!mm) {
+-		kfree(umem);
+-		return;
+-	}
++	task = get_pid_task(umem->pid, PIDTYPE_PID);
++	put_pid(umem->pid);
++	if (!task)
++		goto out;
++	mm = get_task_mm(task);
++	put_task_struct(task);
++	if (!mm)
++		goto out;
+ 
+ 	diff = PAGE_ALIGN(umem->length + umem->offset) >> PAGE_SHIFT;
+ 
+@@ -262,9 +268,10 @@ void ib_umem_release(struct ib_umem *umem)
+ 	} else
+ 		down_write(&mm->mmap_sem);
+ 
+-	current->mm->pinned_vm -= diff;
++	mm->pinned_vm -= diff;
+ 	up_write(&mm->mmap_sem);
+ 	mmput(mm);
++out:
+ 	kfree(umem);
+ }
+ EXPORT_SYMBOL(ib_umem_release);
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 1ea0b65..a2bf41e 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -47,6 +47,7 @@ struct ib_umem {
+ 	int                     writable;
+ 	int                     hugetlb;
+ 	struct work_struct	work;
++	struct pid             *pid;
+ 	struct mm_struct       *mm;
+ 	unsigned long		diff;
+ 	struct sg_table sg_head;
+-- 
+1.7.7.6
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
