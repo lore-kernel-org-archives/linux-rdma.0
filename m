@@ -1,66 +1,41 @@
-From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] rsockets: Support calling listen multiple times on same
- rsocket
-Date: Fri, 05 Sep 2014 19:44:28 +0530
-Message-ID: <49c81161bb7eff0af392e495728f3b08@imap.linux.ibm.com>
-References: <1409855909-28819-1-git-send-email-sean.hefty@intel.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH REPOST 2/2] RDMA/ocrdma: use right macro in query ah
+Date: Fri, 5 Sep 2014 19:22:13 +0530
+Message-ID: <e3688539-4164-49fd-82a1-548c64824bbb@CMEXHTCAS2.ad.emulex.com>
+References: <1409925133-14794-1-git-send-email-devesh.sharma@emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1409855909-28819-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1409925133-14794-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2014-09-05 00:08, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Standard sockets allows an application to call listen() multiple
-> times on the same socket without error.  This allows a multi-threaded
-> app to call listen from all threads.
-> 
-> rsockets will fail the second listen call.  Modify the behavior to
-> match standard sockets.
-> 
-> Problem reported by: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  src/rsocket.c |   11 ++++++++---
->  1 files changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/src/rsocket.c b/src/rsocket.c
-> index 00d9a18..4833810 100644
-> --- a/src/rsocket.c
-> +++ b/src/rsocket.c
-> @@ -1174,9 +1174,14 @@ int rlisten(int socket, int backlog)
->  	rs = idm_lookup(&idm, socket);
->  	if (!rs)
->  		return ERR(EBADF);
-> -	ret = rdma_listen(rs->cm_id, backlog);
-> -	if (!ret)
-> -		rs->state = rs_listening;
-> +
-> +	if (rs->state != rs_listening) {
-> +		ret = rdma_listen(rs->cm_id, backlog);
-> +		if (!ret)
-> +			rs->state = rs_listening;
-> +	} else {
-> +		ret = 0;
-> +	}
->  	return ret;
->  }
+query-ah does not uses correct macro and checks the wrong bit
+for the validity of address handle in vector table.
+This patch is a fix for it.
 
-Hi Sean,
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-This patch is working fine.
-
-Thank You.
-
-- Sreedhar
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index 8d21e33..ab29346 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -164,7 +164,7 @@ int ocrdma_query_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
+ 	struct ocrdma_av *av = ah->av;
+ 	struct ocrdma_grh *grh;
+ 	attr->ah_flags |= IB_AH_GRH;
+-	if (ah->av->valid & Bit(1)) {
++	if (ah->av->valid & OCRDMA_AV_VALID) {
+ 		grh = (struct ocrdma_grh *)((u8 *)ah->av +
+ 				sizeof(struct ocrdma_eth_vlan));
+ 		attr->sl = be16_to_cpu(av->eth_hdr.vlan_tag) >> 13;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
