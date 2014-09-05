@@ -1,41 +1,25 @@
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH REPOST 2/2] RDMA/ocrdma: use right macro in query ah
-Date: Fri, 5 Sep 2014 19:22:13 +0530
-Message-ID: <e3688539-4164-49fd-82a1-548c64824bbb@CMEXHTCAS2.ad.emulex.com>
-References: <1409925133-14794-1-git-send-email-devesh.sharma@emulex.com>
+Subject: [PATCH REPOST 0/2] bug fixes ocrdma AH
+Date: Fri, 5 Sep 2014 19:22:11 +0530
+Message-ID: <917d53ee-b46b-4ed0-8783-f409e185d315@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1409925133-14794-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-query-ah does not uses correct macro and checks the wrong bit
-for the validity of address handle in vector table.
-This patch is a fix for it.
+This series one major and one minor fixes.
+the first one fixes the broken UD path from user space
+seconde one fixes query-ah.
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Devesh Sharma (2):
+  RDMA/ocrdma: resolve L2 address when creating user AH
+  RDMA/ocrdma: use right macro in query ah
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index 8d21e33..ab29346 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -164,7 +164,7 @@ int ocrdma_query_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
- 	struct ocrdma_av *av = ah->av;
- 	struct ocrdma_grh *grh;
- 	attr->ah_flags |= IB_AH_GRH;
--	if (ah->av->valid & Bit(1)) {
-+	if (ah->av->valid & OCRDMA_AV_VALID) {
- 		grh = (struct ocrdma_grh *)((u8 *)ah->av +
- 				sizeof(struct ocrdma_eth_vlan));
- 		attr->sl = be16_to_cpu(av->eth_hdr.vlan_tag) >> 13;
--- 
-1.7.1
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c |   43 +++++++++++++++++++++--------
+ 1 files changed, 31 insertions(+), 12 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
