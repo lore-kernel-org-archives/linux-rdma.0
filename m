@@ -1,8 +1,7 @@
 From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v2 3/4] rsockets: distribute completion queue vectors among
- multiple cores
-Date: Fri, 05 Sep 2014 18:48:43 +0530
-Message-ID: <f028f54b9900ee34fcd1abd1d90d10e6@imap.linux.ibm.com>
+Subject: [PATCH v2 4/4] rsockets: acknowledge completion queue events in batch
+Date: Fri, 05 Sep 2014 18:53:11 +0530
+Message-ID: <c144abfe27bd0bf36ff1e3c9c912d7c3@imap.linux.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII;
  format=flowed
@@ -15,102 +14,88 @@ List-Id: linux-rdma@vger.kernel.org
 
  From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 
-     Distribute interrupt vectors among multiple cores while processing
-     completion events.  By default the existing mechanism always
-     defaults to core 0 for comp vector processing during the creation
-     of a completion queue.  If the workload is very high, then this
-     results in bottleneck at core 0 because the same core is used for
-     both event and task processing.
+     Expose '/unackcqe_default' variable so completion event
+     acknowledgment can be done in batch instead of singles
+     to minimize locking overheads.
 
-     A '/comp_vector' option is exposed, the value of which is a range
-     or comma separated list of cores for distributing interrupt
-     vectors.  If not set, the existing mechanism prevails where in
-     comp vector processing is directed to core 0.
+     The default value of this variable is 1 so the existing
+     functionality is preserved.  Having a higher value delays
+     acknowledging until the specified limit is reached for
+     retrieved completion events.
 
      Signed-off-by: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
      ---
 
 diff --git a/src/rsocket.c b/src/rsocket.c
-index b70d56a..ffea0ca 100644
+index ffea0ca..3c39da7 100644
 --- a/src/rsocket.c
 +++ b/src/rsocket.c
-@@ -116,6 +116,8 @@ static uint32_t def_mem = (1 << 17);
-  static uint32_t def_wmem = (1 << 17);
-  static uint32_t polling_time = 10;
+@@ -118,6 +118,7 @@ static uint32_t polling_time = 10;
   static uint16_t restart_onintr = 0;
-+static uint16_t next_comp_vector = 0;
-+static uint64_t comp_vector_mask = 0;
+  static uint16_t next_comp_vector = 0;
+  static uint64_t comp_vector_mask = 0;
++static uint32_t def_unackcqe = 1;
 
   /*
    * Immediate data format is determined by the upper bits
-@@ -548,6 +550,37 @@ void rs_configure(void)
-  		(void) fscanf(f, "%hu", &restart_onintr);
-  		fclose(f);
+@@ -384,6 +385,7 @@ struct rsocket {
+  	dlist_entry	  iomap_list;
+  	dlist_entry	  iomap_queue;
+  	int		  iomap_pending;
++	int	      unackcqe;
+  };
+
+  #define DS_UDP_TAG 0x55555555
+@@ -581,6 +583,14 @@ void rs_configure(void)
+  			}
+  		}
   	}
 +
-+	if ((f = fopen(RS_CONF_DIR "/comp_vector", "r"))) {
-+		char vbuf[256];
-+		char *vptr;
-+		vptr = fgets(vbuf, sizeof(vbuf), f);
++	if ((f = fopen(RS_CONF_DIR "/unackcqe_default", "r"))) {
++		(void) fscanf(f, "%u", &def_unackcqe);
 +		fclose(f);
-+		if (vptr) {
-+			char *tok, *save, *tmp, *str, *tok2;
-+			int lvect, uvect, vect;
-+
-+			for (str = vptr; ; str = NULL) {
-+				tok = strtok_r(str, ",", &save);
-+				if (tok == NULL) {
-+					break;
-+				}
-+				if (!(tmp = strpbrk(tok, "-"))) {
-+					lvect = uvect = atoi(tok);
-+				} else {
-+					tok2 = tmp + 1;
-+					*tmp = '\0';
-+					lvect = atoi(tok);
-+					uvect = atoi(tok2);
-+				}
-+				lvect = (lvect < 0) ? 0 : ((lvect > 63) ? 63 : lvect);
-+				uvect = (uvect < 0) ? 0 : ((uvect > 63) ? 63 : uvect);
-+				for (vect = lvect; vect <= uvect; vect++) {
-+					comp_vector_mask |= ((uint64_t)1 << vect);
-+				}
-+			}
++		if (def_unackcqe < 1) {
++			def_unackcqe = 1;
 +		}
 +	}
   	init = 1;
   out:
   	pthread_mutex_unlock(&mut);
-@@ -762,12 +795,27 @@ static int ds_init_bufs(struct ds_qp *qp)
-   */
-  static int rs_create_cq(struct rsocket *rs, struct rdma_cm_id *cm_id)
-  {
-+	int vector = 0;
-+
-  	cm_id->recv_cq_channel = ibv_create_comp_channel(cm_id->verbs);
-  	if (!cm_id->recv_cq_channel)
-  		return -1;
+@@ -638,6 +648,7 @@ static struct rsocket *rs_alloc(struct rsocket 
+*inherited_rs, int type)
+  			rs->target_iomap_size = def_iomap_size;
+  		}
+  	}
++	rs->unackcqe = 0;
+  	fastlock_init(&rs->slock);
+  	fastlock_init(&rs->rlock);
+  	fastlock_init(&rs->cq_lock);
+@@ -1044,8 +1055,11 @@ static void rs_free(struct rsocket *rs)
 
-+	if (comp_vector_mask) {
-+		int found = 0;
-+		while (found == 0) {
-+			if (comp_vector_mask & ((uint64_t) 1 << next_comp_vector)) {
-+				found = 1;
-+				vector = next_comp_vector;
-+			}
-+			if (++next_comp_vector == 64) {
-+				next_comp_vector = 0;
-+			}
+  	if (rs->cm_id) {
+  		rs_free_iomappings(rs);
+-		if (rs->cm_id->qp)
++		if (rs->cm_id->qp) {
++			if (rs->unackcqe > 0)
++				ibv_ack_cq_events(rs->cm_id->recv_cq, rs->unackcqe);
+  			rdma_destroy_qp(rs->cm_id);
 +		}
-+	}
-+
-  	cm_id->recv_cq = ibv_create_cq(cm_id->verbs, rs->sq_size + 
-rs->rq_size,
--				       cm_id, cm_id->recv_cq_channel, 0);
-+				       cm_id, cm_id->recv_cq_channel, vector);
-  	if (!cm_id->recv_cq)
-  		goto err1;
+  		rdma_destroy_id(rs->cm_id);
+  	}
 
+@@ -2026,7 +2040,11 @@ static int rs_get_cq_event(struct rsocket *rs)
+  resume_get_cq_event:
+  	ret = ibv_get_cq_event(rs->cm_id->recv_cq_channel, &cq, &context);
+  	if (!ret) {
+-		ibv_ack_cq_events(rs->cm_id->recv_cq, 1);
++		rs->unackcqe += 1;
++		if (rs->unackcqe == def_unackcqe) {
++			ibv_ack_cq_events(rs->cm_id->recv_cq, rs->unackcqe);
++			rs->unackcqe = 0;
++		}
+  		rs->cq_armed = 0;
+  	} else if (restart_onintr == 1 && errno == EINTR) {
+  		errno = 0;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
