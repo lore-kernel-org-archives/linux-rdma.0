@@ -1,76 +1,68 @@
 From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v3 4/4] rsockets: acknowledge completion queue events in batch
-Date: Mon, 08 Sep 2014 18:21:38 +0530
-Message-ID: <c34f0dcd116683c05c7c1836c381a09f@imap.linux.ibm.com>
+Subject: Re: [PATCH v2 3/4] rsockets: distribute completion queue vectors
+ among multiple cores
+Date: Mon, 08 Sep 2014 19:57:23 +0530
+Message-ID: <a8ac21f3c9d7c802ab089bc0d432e40b@imap.linux.ibm.com>
+References: <f028f54b9900ee34fcd1abd1d90d10e6@imap.linux.ibm.com>
+ <5409DB0D.6080103@acm.org>
+ <850a2835b5917f6da62af3d1ea0288fd@imap.linux.ibm.com>
+ <540D50E9.5050709@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII;
  format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <540D50E9.5050709-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, sithirug-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Author: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Change note from v2 to v3: eliminated setting through option as 
-suggested by Sean
-Date:   Mon Sep 8 15:38:54 2014 +0530
+Hi Bart,
 
-     Perform completion event acknowledgments in batches instead
-     of individually to minimze locking overheads.  Size of the
-     completion queue decides the size of a batch.
+Thanks for your insights.  Your suggestion of having a separate
+vector per process is really useful when multiple processes are
+simultaneously running in the same environment.  At the implementation
+level this requires an extended configuration file format. Can't
+we possibly think of this as a next iteration?
 
-     Signed-off-by: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-     ---
+Thank You.
 
-diff --git a/src/rsocket.c b/src/rsocket.c
-index ffea0ca..d201e0a 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -384,6 +384,7 @@ struct rsocket {
-  	dlist_entry	  iomap_list;
-  	dlist_entry	  iomap_queue;
-  	int		  iomap_pending;
-+	int	      unack_cqe;
-  };
+- Sreedhar
 
-  #define DS_UDP_TAG 0x55555555
-@@ -638,6 +639,7 @@ static struct rsocket *rs_alloc(struct rsocket 
-*inherited_rs, int type)
-  			rs->target_iomap_size = def_iomap_size;
-  		}
-  	}
-+	rs->unack_cqe = 0;
-  	fastlock_init(&rs->slock);
-  	fastlock_init(&rs->rlock);
-  	fastlock_init(&rs->cq_lock);
-@@ -1044,8 +1046,11 @@ static void rs_free(struct rsocket *rs)
-
-  	if (rs->cm_id) {
-  		rs_free_iomappings(rs);
--		if (rs->cm_id->qp)
-+		if (rs->cm_id->qp) {
-+			if (rs->unack_cqe > 0)
-+				ibv_ack_cq_events(rs->cm_id->recv_cq, rs->unack_cqe);
-  			rdma_destroy_qp(rs->cm_id);
-+		}
-  		rdma_destroy_id(rs->cm_id);
-  	}
-
-@@ -2026,7 +2031,11 @@ static int rs_get_cq_event(struct rsocket *rs)
-  resume_get_cq_event:
-  	ret = ibv_get_cq_event(rs->cm_id->recv_cq_channel, &cq, &context);
-  	if (!ret) {
--		ibv_ack_cq_events(rs->cm_id->recv_cq, 1);
-+		rs->unack_cqe += 1;
-+		if (rs->unack_cqe == rs->sq_size + rs->rq_size) {
-+			ibv_ack_cq_events(rs->cm_id->recv_cq, rs->unack_cqe);
-+			rs->unack_cqe = 0;
-+		}
-  		rs->cq_armed = 0;
-  	} else if (restart_onintr == 1 && errno == EINTR) {
-  		errno = 0;
+On 2014-09-08 12:17, Bart Van Assche wrote:
+> On 09/06/14 05:06, Sreedhar Kodali wrote:
+>> The provided patch only covers equal distribution of completion 
+>> vectors
+>> among the specified cores.  But, it is not generic enough to cover
+>> the scenario you have suggested.  If it were to be the case, then
+>> we need to
+>> 
+>> a) alter the configuration file format to recognize cpu sockets
+>> b) or introduce separate configuration files for each cpu socket
+>> c) alter the distribution logic to recognize socket based grouping
+>> 
+>> This definitely increases the complexity of the code.  Not sure
+>> whether this is necessary to cover most of the general use cases.
+>> If so, then we can target it.
+> 
+> Hello Sreedhar,
+> 
+> Sorry if I wasn't clear enough. What I meant is that I think that it
+> would be useful to be able to configure a different completion vector
+> mask per process instead of one global completion vector mask for all
+> processes that use the rsockets library. Being able to configure one
+> completion vector mask per process would make it possible to avoid
+> that one busy process negatively impacts the performance of another
+> process that uses RDMA.
+> 
+> Bart.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
