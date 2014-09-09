@@ -1,93 +1,63 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/8] IPoIB: Make the carrier_on_task race aware
-Date: Tue, 09 Sep 2014 03:17:48 -0400
-Message-ID: <540EA99C.6060602@redhat.com>
-References: <cover.1407885724.git.dledford@redhat.com> <d05cdce70f1312f35f8be2d14bafd2a06809b137.1407885724.git.dledford@redhat.com> <5408576C.7040609@dev.mellanox.co.il>
+From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] rsockets: distribute completion queue vectors
+ among multiple cores
+Date: Tue, 09 Sep 2014 17:58:26 +0530
+Message-ID: <edc2b05703209d2a7626a31abb170ceb@imap.linux.ibm.com>
+References: <f028f54b9900ee34fcd1abd1d90d10e6@imap.linux.ibm.com>
+ <5409DB0D.6080103@acm.org>
+ <850a2835b5917f6da62af3d1ea0288fd@imap.linux.ibm.com>
+ <540D50E9.5050709@acm.org>
+ <a8ac21f3c9d7c802ab089bc0d432e40b@imap.linux.ibm.com>
+ <540DF3CC.1060304@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5408576C.7040609-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <540DF3CC.1060304-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/04/2014 08:13 AM, Erez Shitrit wrote:
->> We blindly assume that we can just take the rtnl lock and that will
->> prevent races with downing this interface.  Unfortunately, that's not
->> the case.  In ipoib_mcast_stop_thread() we will call flush_workqueue()
->> in an attempt to clear out all remaining instances of ipoib_join_task.
->> But, since this task is put on the same workqueue as the join task, the
->> flush_workqueue waits on this thread too.  But this thread is deadlocked
->> on the rtnl lock.  The better thing here is to use trylock and loop on
->> that until we either get the lock or we see that FLAG_ADMIN_UP has
->> been cleared, in which case we don't need to do anything anyway and we
->> just return.
->>
->> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> ---
->>   drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21
->> +++++++++++++++------
->>   1 file changed, 15 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> index a0a42859f12..7e9cd39b5ef 100644
->> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> @@ -353,18 +353,27 @@ void ipoib_mcast_carrier_on_task(struct
->> work_struct *work)
->>                              carrier_on_task);
->>       struct ib_port_attr attr;
->> -    /*
->> -     * Take rtnl_lock to avoid racing with ipoib_stop() and
->> -     * turning the carrier back on while a device is being
->> -     * removed.
->> -     */
->>       if (ib_query_port(priv->ca, priv->port, &attr) ||
->>           attr.state != IB_PORT_ACTIVE) {
->>           ipoib_dbg(priv, "Keeping carrier off until IB port is
->> active\n");
->>           return;
->>       }
->> -    rtnl_lock();
->> +    /*
->> +     * Take rtnl_lock to avoid racing with ipoib_stop() and
->> +     * turning the carrier back on while a device is being
->> +     * removed.  However, ipoib_stop() will attempt to flush
->> +     * the workqueue while holding the rtnl lock, so loop
->> +     * on trylock until either we get the lock or we see
->> +     * FLAG_ADMIN_UP go away as that signals that we are bailing
->> +     * and can safely ignore the carrier on work
->> +     */
->> +    while (!rtnl_trylock()) {
->> +        if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
->> +            return;
->
-> I think that this check shouldn't be connected to the rtnl_lock, if
-> IPOIB_FLAG_ADMIN_UP is clear no need to take the carrier on, just wait
-> to the next loop when ipoib_open will be called.
+On 2014-09-08 23:52, Bart Van Assche wrote:
+> On 09/08/14 16:27, Sreedhar Kodali wrote:
+>> Thanks for your insights.  Your suggestion of having a separate
+>> vector per process is really useful when multiple processes are
+>> simultaneously running in the same environment.  At the implementation
+>> level this requires an extended configuration file format. Can't
+>> we possibly think of this as a next iteration?
+> 
+> This patch introduces a new configuration file
+> (/etc/rdma/rsocket/comp_vector). User expect that such configuration
+> files remain supported after a software upgrade. In other words,
+> introduction of a new configuration file deserves careful
+> consideration. Do we really need this new configuration file ? Why not
+> e.g. to change the default behavior of the rsockets library into
+> spreading the interrupt processing workload over all completion
+> vectors supported by the HCA ? Furthermore, the number of completion
+> vectors that is supported by an HCA not only depends on the HCA
+> firmware but also on the number of completion vectors a HCA could
+> allocate during driver initialization. The number of MSI-X vectors
+> available on an x86-64 system is limited (224). Dual-socket x86-64
+> motherboards with up to 11 PCIe slots are available commercially. If
+> all PCIe-slots are populated it's almost sure that one of the PCIe
+> cards won't be assigned as many MSI-X vectors as it could use.
+> 
+> Sorry but I'm not convinced that using the same completion vector mask
+> for all HCA's and all processes is a good idea. Or is there perhaps
+> something I have overlooked ?
+> 
+> Bart.
 
-Actually, I was optimizing for the common case.  The common case is that 
-someone is *not* running a while true; do ifup/ifdown; done torture 
-test.  In that situation, you will get the rtnl lock, which you have to 
-have before doing to two config items below, and so you can totally skip 
-the check for FLAG_ADMIN_UP because A) the code that drops this flag 
-gets the rtnl lock first and B) that same code flushes this workqueue 
-while holding the lock, so if we ever get the lock, we already know the 
-state of the ADMIN_UP flag.  This is all moot though in the sense that 
-once the devices are switched to per device work queues, the need to do 
-this loop goes away and we can simplify the code.  This was only needed 
-because our flush task and carrier on task shared a work queue and we 
-could deadlock without this little loop.
+Hi Bart,
 
->> +        else
->> +            msleep(20);
->> +    }
->>       if (!ipoib_cm_admin_enabled(priv->dev))
->>           dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
->>       netif_carrier_on(priv->dev);
->
+I agree with your suggestions - working on the revised patch 
+accordingly.
+
+Thank You.
+
+- Sreedhar
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
