@@ -1,47 +1,57 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] rsockets: distribute completion queue vectors
- among multiple cores
-Date: Mon, 08 Sep 2014 20:22:04 +0200
-Message-ID: <540DF3CC.1060304@acm.org>
-References: <f028f54b9900ee34fcd1abd1d90d10e6@imap.linux.ibm.com> <5409DB0D.6080103@acm.org> <850a2835b5917f6da62af3d1ea0288fd@imap.linux.ibm.com> <540D50E9.5050709@acm.org> <a8ac21f3c9d7c802ab089bc0d432e40b@imap.linux.ibm.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 6/8] IPoIB: Use dedicated workqueues per interface
+Date: Tue, 09 Sep 2014 03:09:38 -0400
+Message-ID: <540EA7B2.2050805@redhat.com>
+References: <cover.1407885724.git.dledford@redhat.com> <f7af9c251d722675a549e4a673f46c0f31dfa266.1407885724.git.dledford@redhat.com> <54080B6B.8050707@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a8ac21f3c9d7c802ab089bc0d432e40b-FJGp5E75HVmZamtmwQBW5tBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <54080B6B.8050707-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/08/14 16:27, Sreedhar Kodali wrote:
-> Thanks for your insights.  Your suggestion of having a separate
-> vector per process is really useful when multiple processes are
-> simultaneously running in the same environment.  At the implementation
-> level this requires an extended configuration file format. Can't
-> we possibly think of this as a next iteration?
+On 09/04/2014 02:49 AM, Erez Shitrit wrote:
+> Hi Doug,
+>
+> The idea that "big" ipoib workqueue is only for the IB_EVENT_XXX looks
+> good to me.
+>
+> one comment here: I don't see where the driver flushes it at all.
+> IMHO, when the driver goes down you should cancel all pending tasks over
+> that global wq prior the call for the destroy_workqueue.
 
-This patch introduces a new configuration file 
-(/etc/rdma/rsocket/comp_vector). User expect that such configuration 
-files remain supported after a software upgrade. In other words, 
-introduction of a new configuration file deserves careful consideration. 
-Do we really need this new configuration file ? Why not e.g. to change 
-the default behavior of the rsockets library into spreading the 
-interrupt processing workload over all completion vectors supported by 
-the HCA ? Furthermore, the number of completion vectors that is 
-supported by an HCA not only depends on the HCA firmware but also on the 
-number of completion vectors a HCA could allocate during driver 
-initialization. The number of MSI-X vectors available on an x86-64 
-system is limited (224). Dual-socket x86-64 motherboards with up to 11 
-PCIe slots are available commercially. If all PCIe-slots are populated 
-it's almost sure that one of the PCIe cards won't be assigned as many 
-MSI-X vectors as it could use.
+I understand your thought, but I disagree with your conclusion.  If we 
+ever get to the portion of the driver down sequence where we are 
+removing the big flush work queue and there are still items on that work 
+queue, then we have already failed and we are going to crash because 
+there are outstanding flushes for a deleted device.  The real issue here 
+is that we need to make sure it's not possible to delete a device that 
+has outstanding flushes, and not possible to flush a device in the 
+process of being deleted (Wendy, don't get mad at me, but the rtnl lock 
+jumps out as appropriate for this purpose).
 
-Sorry but I'm not convinced that using the same completion vector mask 
-for all HCA's and all processes is a good idea. Or is there perhaps 
-something I have overlooked ?
+> The current logic calls the destroy_workqueue after the remove_one, i
+> think you should cancel the pending works after the
+> ib_unregister_event_handler call in the ipoib_remove_one function,
 
-Bart.
+The ib_remove_one is device specific while the big flush work queue is 
+not.  As such, that can cancel work for devices other than the device 
+being removed with no clear means of getting it back.
+
+> otherwise if there are pending tasks in that queue they will schedule
+> after the dev/priv are gone.
+
+I agree that there is a problem here.  I think what needs to happen is 
+that now that we have a work queue per device, and all flushes come in 
+to us via a work queue that does not belong to the device, it is now 
+possible to handle flushes synchronously.  This would allow us to lock 
+around the flush itself and prevent removal until after the flush is 
+complete without getting into the hairy rat hole that is trying to flush 
+the flush workqueue that might result in either flushing or canceling 
+the very device we are working on.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
