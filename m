@@ -1,56 +1,219 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Chuck Lever <chuck.lever@oracle.com>
 Subject: Re: 3.17-rc1 oops during network interface configuration
-Date: Tue, 9 Sep 2014 12:41:06 -0400
-Message-ID: <1714F0C6-06A0-4915-883E-9FEBC4880DFB@oracle.com>
-References: <53F1EF18.7010909@acm.org> <BA3DEE00-C035-41B9-8ECD-614F04483395@oracle.com> <007401cfcc4a$7b32b280$71981780$@opengridcomputing.com>
+Date: Tue, 9 Sep 2014 15:30:51 -0400
+Message-ID: <F580F466-28A5-4BDD-A338-D5C065A760C1@oracle.com>
+References: <53F1EF18.7010909@acm.org> <53F47917.8080003@mellanox.com>
 Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <007401cfcc4a$7b32b280$71981780$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53F47917.8080003@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: netdev@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Bart Van Assche <bvanassche@acm.org>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Tal Alon <talal@mellanox.com>, Yevgeny Petrilin <yevgenyp@mellanox.com>, _govind@gmx.com
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Sep 9, 2014, at 12:24 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> w=
-rote:
+On Aug 20, 2014, at 6:31 AM, Or Gerlitz <ogerlitz@mellanox.com> wrote:
 
+> On 18/08/2014 15:18, Bart Van Assche wrote:
+>> Has anyone else already tried to boot kernel 3.17-rc1 on an IB syste=
+m ? The
+>> following call trace is triggered during boot on a system on which k=
+ernel
+>> 3.16 runs fine:
 >=20
+> Yep, I see it on my systems too.
 >=20
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger=
-=2Ekernel.org] On Behalf Of Chuck Lever
->> Sent: Tuesday, August 19, 2014 9:56 AM
->> To: Bart Van Assche
->> Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma
->> Subject: Re: 3.17-rc1 oops during network interface configuration
->>=20
->>=20
->> On Aug 18, 2014, at 8:18 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wr=
-ote:
->>=20
->>> Hello,
->>>=20
->>> Has anyone else already tried to boot kernel 3.17-rc1 on an IB syst=
-em ?
->>=20
->> After updating to 3.17-rc1 this morning, I hit the same issue.
->>=20
+> I narrowed this down a bit to happen only when the port link type (th=
+ese nodes have ConnectX) is IB and IPoIB gets to load.
 >=20
-> I still see this with 3.17-rc4.  Perhaps somebody should fix it. :)
+> I reverted (below) all the IPoIB changes since 3.16 (except for the t=
+rivial commit c835a67) and the crash still exists.
+>=20
+> I guess this needs to go through systematic bisection.
 
-I=92m working on it right now.
+This crash happens when booting v3.17-rcN on any of my IB-enabled
+systems. I have both ConnectX-2 and mthca systems, all are affected.
+
+I bisected this to:
+
+commit e0f31d8498676fda36289603a054d0d490aa2679
+Author:     Govindarajulu Varadarajan <_govind@gmx.com>
+AuthorDate: Mon Jun 23 16:07:58 2014 +0530
+Commit:     David S. Miller <davem@davemloft.net>
+CommitDate: Mon Jun 23 14:32:19 2014 -0700
+
+    flow_keys: Record IP layer protocol in skb_flow_dissect()
+
+    skb_flow_dissect() dissects only transport header type in ip_proto.=
+ It dose not
+    give any information about IPv4 or IPv6.
+    This patch adds new member, n_proto, to struct flow_keys. Which rec=
+ords the
+    IP layer type. i.e IPv4 or IPv6.
+    This can be used in netdev->ndo_rx_flow_steer driver function to di=
+ssect flow.
+    Adding new member to flow_keys increases the struct size by around =
+4 bytes.
+    This causes BUILD_BUG_ON(sizeof(qcb->data) < sz); to fail in
+    qdisc_cb_private_validate()
+    So increase data size by 4
+
+    Signed-off-by: Govindarajulu Varadarajan <_govind@gmx.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+
+This commit includes a hunk that increases the size of struct qdisc_skb=
+_cb
+by at least 4 bytes:
+
+> diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
+> index 624f985..a3cfb8e 100644
+> --- a/include/net/sch_generic.h
+> +++ b/include/net/sch_generic.h
+> @@ -231,7 +231,7 @@ struct qdisc_skb_cb {
+>         unsigned int            pkt_len;
+>         u16                     slave_dev_queue_mapping;
+>         u16                     _pad;
+> -       unsigned char           data[20];
+> +       unsigned char           data[24];
+>  };
+> =20
+>  static inline void qdisc_cb_private_validate(const struct sk_buff *s=
+kb, int sz)
+
+
+
+IPoIB defines the following structure in drivers/infiniband/ulp/ipoib/i=
+poib.h:
+
+> struct ipoib_cb {
+>         struct qdisc_skb_cb     qdisc_cb;
+>         u8                      hwaddr[INFINIBAND_ALEN];
+> };
+
+IPoIB keeps this in the sk_buff:cb field, which is exactly 48 bytes.
+After commit e0f31d84, the size of struct ipoib_cb on x86_64 becomes
+52 bytes.
+
+Thus IPoIB overruns sk_buff:cb, and trashes the sk_buff::_skb_refdst
+field, which contains a pointer. By the time we get into
+__dev_queue_xmit() and try to use the result of skb_dst(), that pointer
+is garbage, and we oops.
+
+Obviously, cb[] could be increased to 56 bytes to accommodate struct
+ipoib_cb. I tried this, and it is effective in preventing the oops on
+one of my systems.
+
+But I suspect there is an historical reason I=92m not aware of that it
+has remained 48 bytes for years.
+
+
+> Or.
+>=20
+>> net.git]# git log --oneline --no-merges v3.16.. drivers/infiniband/u=
+lp/ipoib/
+>> 8a118a4 Revert "IB/ipoib: Use P_Key change event instead of P_Key po=
+lling mechanism"
+>> 90e6f39 Revert "IB/ipoib: Avoid flushing the workqueue from worker c=
+ontext"
+>> 030ade7 Revert "IB/ipoib: Avoid multicast join attempts with invalid=
+ P_key"
+>> 97ba2ff Revert "IPoIB: Remove unnecessary test for NULL before debug=
+fs_remove()"
+>> e42fa20 IPoIB: Remove unnecessary test for NULL before debugfs_remov=
+e()
+>> dd57c93 IB/ipoib: Avoid multicast join attempts with invalid P_key
+>> 4eae374 IB/ipoib: Avoid flushing the workqueue from worker context
+>> db84f88 IB/ipoib: Use P_Key change event instead of P_Key polling me=
+chanism
+>> c835a67 net: set name_assign_type in alloc_netdev()
+>=20
+>=20
+>> BUG: unable to handle kernel paging request at ffff88090000007e
+>> IP: __dev_queue_xmit+0x519
+>> Call Trace:
+>> ? __dev_queue_xmit+0x49
+>> dev_queue_xmit+0x10
+>> neigh_connected_output
+>> ? ip_finish_output
+>> ip_finish_output
+>> ? ip_finish_output
+>> ? netif_rx_ni
+>> ip_mc_output
+>> ip_local_out_sk
+>> ip_send_skb
+>> udp_send_skb
+>> udp_sendmsg
+>> ? ip_reply_glue_bits
+>> ? __lock_is_held
+>> inet_sendmsg
+>> ? inet_sendmsg
+>> sock_sendmsg
+>> ? might_fault
+>> ? might_fault
+>> ? move_addr_to_kernel.part.38
+>> SYSC_sendto
+>> ? sysret_check
+>> ? trace_hardirqs_on_caller
+>> ? trace_hardirqs_on_thunk
+>> SyS_sendto
+>> system_call_fastpath
+>>=20
+>> Kernel panic - not syncing: Fatal exception in interrupt
+>> Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range: 0xffff=
+ffff80000000-0xffffffff9fffffff)
+>> drm_kms_helper: panic occurred, switching back to text console
+>>=20
+>> A screenshot of this kernel oops can be found here:
+>> https://drive.google.com/file/d/0B1YQOreL3_FxVDB5UTNwekF6LVU/
+>>=20
+>> gdb translates the crash address into the following (not sure this m=
+akes sense
+>> since offset 0x519 is past the end of __dev_queue_xmit()):
+>>=20
+>> (gdb) list *(__dev_queue_xmit+0x519)
+>> 0xffffffff8136bc89 is in netdev_adjacent_rename_links (net/core/dev.=
+c:5167).
+>> 5162    void netdev_adjacent_rename_links(struct net_device *dev, ch=
+ar *oldname)
+>> 5163    {
+>> 5164            struct netdev_adjacent *iter;
+>> 5165
+>> 5166            list_for_each_entry(iter, &dev->adj_list.upper, list=
+) {
+>> 5167                    netdev_adjacent_sysfs_del(iter->dev, oldname=
+,
+>> 5168                                              &iter->dev->adj_li=
+st.lower);
+>> 5169                    netdev_adjacent_sysfs_add(iter->dev, dev,
+>> 5170                                              &iter->dev->adj_li=
+st.lower);
+>> 5171            }
+>>=20
+>> And the address __dev_queue_xmit+0x49 is translated by gdb into:
+>>=20
+>> (gdb) list *(__dev_queue_xmit+0x49)
+>> 0xffffffff8136b7b9 is in __dev_queue_xmit (./arch/x86/include/asm/pr=
+eempt.h:75).
+>> 70       * The various preempt_count add/sub methods
+>> 71       */
+>> 72
+>> 73      static __always_inline void __preempt_count_add(int val)
+>> 74      {
+>> 75              raw_cpu_add_4(__preempt_count, val);
+>> 76      }
+>> 77
+>> 78      static __always_inline void __preempt_count_sub(int val)
+>> 79      {
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 Chuck Lever
 chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
