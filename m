@@ -1,59 +1,68 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_state_mgr.c: Avoid ucast cache invalidation due
- to errors during initialization
-Date: Wed, 10 Sep 2014 12:44:03 -0400
-Message-ID: <54107FD3.5030801@dev.mellanox.co.il>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 6/8] IPoIB: Use dedicated workqueues per interface
+Date: Wed, 10 Sep 2014 20:27:19 +0300
+Message-ID: <541089F7.8040703@dev.mellanox.co.il>
+References: <cover.1407885724.git.dledford@redhat.com> <f7af9c251d722675a549e4a673f46c0f31dfa266.1407885724.git.dledford@redhat.com> <54080B6B.8050707@dev.mellanox.co.il> <540EA7B2.2050805@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <540EA7B2.2050805-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_state_mgr.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+> On 09/04/2014 02:49 AM, Erez Shitrit wrote:
+>> Hi Doug,
+>>
+>> The idea that "big" ipoib workqueue is only for the IB_EVENT_XXX looks
+>> good to me.
+>>
+>> one comment here: I don't see where the driver flushes it at all.
+>> IMHO, when the driver goes down you should cancel all pending tasks over
+>> that global wq prior the call for the destroy_workqueue.
+>
+> I understand your thought, but I disagree with your conclusion. If we 
+> ever get to the portion of the driver down sequence where we are 
+> removing the big flush work queue and there are still items on that 
+> work queue, then we have already failed and we are going to crash 
+> because there are outstanding flushes for a deleted device.
+it is not a rare case, sm events (pkey, hand-over, etc.) while driver 
+restart on devices in the cluster, and you are there.
+removing one device of few on the same host, it is a rare condition, 
+anyway i agree that cancel_work is not the solution.
+> The real issue here is that we need to make sure it's not possible to 
+> delete a device that has outstanding flushes, and not possible to 
+> flush a device in the process of being deleted (Wendy, don't get mad 
+> at me, but the rtnl lock jumps out as appropriate for this purpose).
+we can remove the device and drain the workqueue while checking on each 
+event that this event doesn't belong to deleted device (we have the list 
+of all existing priv objects in the system via ib_get_client_data) after 
+that we can be sure that no more works are for that deleted device.
+>
+>> The current logic calls the destroy_workqueue after the remove_one, i
+>> think you should cancel the pending works after the
+>> ib_unregister_event_handler call in the ipoib_remove_one function,
+>
+> The ib_remove_one is device specific while the big flush work queue is 
+> not.  As such, that can cancel work for devices other than the device 
+> being removed with no clear means of getting it back.
+>
+>> otherwise if there are pending tasks in that queue they will schedule
+>> after the dev/priv are gone.
+>
+> I agree that there is a problem here.  I think what needs to happen is 
+> that now that we have a work queue per device, and all flushes come in 
+> to us via a work queue that does not belong to the device, it is now 
+> possible to handle flushes synchronously.  This would allow us to lock 
+> around the flush itself and prevent removal until after the flush is 
+> complete without getting into the hairy rat hole that is trying to 
+> flush the flush workqueue that might result in either flushing or 
+> canceling the very device we are working on.
+>
+>
 
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index 106159d..42d13bb 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -1228,12 +1228,11 @@ static void do_sweep(osm_sm_t * sm)
- 	}
- 
- 	/*
--	 * Unicast cache should be invalidated if there were errors
--	 * during initialization or if subnet re-route is requested.
-+	 * Unicast cache should be invalidated when subnet re-route is
-+	 * requested, and when OpenSM comes out of standby state.
- 	 */
- 	if (sm->p_subn->opt.use_ucast_cache &&
--	    (sm->p_subn->subnet_initialization_error ||
--	     sm->p_subn->force_reroute || sm->p_subn->coming_out_of_standby))
-+	    (sm->p_subn->force_reroute || sm->p_subn->coming_out_of_standby))
- 		osm_ucast_cache_invalidate(&sm->ucast_mgr);
- 
- 	/*
-@@ -1458,9 +1457,12 @@ repeat_discovery:
- 	 */
- 
- 	if (!sm->ucast_mgr.cache_valid ||
--	    osm_ucast_cache_process(&sm->ucast_mgr))
--		if (osm_ucast_mgr_process(&sm->ucast_mgr))
-+	    osm_ucast_cache_process(&sm->ucast_mgr)) {
-+		if (osm_ucast_mgr_process(&sm->ucast_mgr)) {
-+			osm_ucast_cache_invalidate(&sm->ucast_mgr);
- 			return;
-+		}
-+	}
- 
- 	osm_qos_setup(sm->p_subn->p_osm);
- 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
