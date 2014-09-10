@@ -1,36 +1,60 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: 3.17-rc1 oops during network interface configuration
-Date: Wed, 10 Sep 2014 07:24:32 -0700
-Message-ID: <1410359072.7106.27.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <53F1EF18.7010909@acm.org> <53F47917.8080003@mellanox.com>
-	 <F580F466-28A5-4BDD-A338-D5C065A760C1@oracle.com>
-	 <541000F1.5000805@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_state_mgr.c: Avoid ucast cache invalidation due
+ to errors during initialization
+Date: Wed, 10 Sep 2014 12:44:03 -0400
+Message-ID: <54107FD3.5030801@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <541000F1.5000805@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>, Govindarajulu Varadarajan <_govind@gmx.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Bart Van Assche <bvanassche@acm.org>, Saeed Mahameed <saeedm@mellanox.com>, Tal Alon <talal@mellanox.com>, Yevgeny Petrilin <yevgenyp@mellanox.com>, Roland Dreier <roland@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2014-09-10 at 10:42 +0300, Or Gerlitz wrote:
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> Hi Chuck, thanks for bisecting this out. Indeed, as of this kernel 3.2 
-> commit 936d7de "IPoIB: Stop lying about hard_header_len and use skb->cb 
-> to stash LL addresses" we are using the skb->cb field to enable proper 
-> work under GRO and avoid another historical quirk we had there... so I 
-> think we can definetly consider commit e0f31d849 to introduce a severe 
-> regression... Govindarajulu, Dave - what's your thinking here? any quick 
-> idea on how to fix?
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_state_mgr.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-I mentioned the IB stuff when patch was posted, and David replied :
-
-"I think this is fine, IPOIB's control block will need still just 44
-bytes after these changes, so there will still be 4 bytes to spare."
-
-http://patchwork.ozlabs.org/patch/357584/
-
-My suggestion was to reduce sch_choke usage and not store the whole
-flow_keys.
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 106159d..42d13bb 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1228,12 +1228,11 @@ static void do_sweep(osm_sm_t * sm)
+ 	}
+ 
+ 	/*
+-	 * Unicast cache should be invalidated if there were errors
+-	 * during initialization or if subnet re-route is requested.
++	 * Unicast cache should be invalidated when subnet re-route is
++	 * requested, and when OpenSM comes out of standby state.
+ 	 */
+ 	if (sm->p_subn->opt.use_ucast_cache &&
+-	    (sm->p_subn->subnet_initialization_error ||
+-	     sm->p_subn->force_reroute || sm->p_subn->coming_out_of_standby))
++	    (sm->p_subn->force_reroute || sm->p_subn->coming_out_of_standby))
+ 		osm_ucast_cache_invalidate(&sm->ucast_mgr);
+ 
+ 	/*
+@@ -1458,9 +1457,12 @@ repeat_discovery:
+ 	 */
+ 
+ 	if (!sm->ucast_mgr.cache_valid ||
+-	    osm_ucast_cache_process(&sm->ucast_mgr))
+-		if (osm_ucast_mgr_process(&sm->ucast_mgr))
++	    osm_ucast_cache_process(&sm->ucast_mgr)) {
++		if (osm_ucast_mgr_process(&sm->ucast_mgr)) {
++			osm_ucast_cache_invalidate(&sm->ucast_mgr);
+ 			return;
++		}
++	}
+ 
+ 	osm_qos_setup(sm->p_subn->p_osm);
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
