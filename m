@@ -1,39 +1,36 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 for-next 00/16] On demand paging
-Date: Wed, 10 Sep 2014 12:28:08 +0300
-Message-ID: <541019A8.3070005@dev.mellanox.co.il>
-References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com> <5405D2D8.1040700@mellanox.com> <CAJ3xEMj8BJLJvetNoqGOFhqeJHupEd=kbnFeO_Na=1ZYbvBk9g@mail.gmail.com> <CAOha14xthZHSpS_T+XRgZcPqwaZvtMw0iGTzKjTyjdBuLhJ4Eg@mail.gmail.com> <CAG4TOxO54LJgSjFFDge4X9OpaBNrM1z=iGSV0GEY+0iFFSs9sw@mail.gmail.com> <540F0CD8.9070002@mellanox.com> <54101123.2080208@mellanox.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: 3.17-rc1 oops during network interface configuration
+Date: Wed, 10 Sep 2014 07:24:32 -0700
+Message-ID: <1410359072.7106.27.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <53F1EF18.7010909@acm.org> <53F47917.8080003@mellanox.com>
+	 <F580F466-28A5-4BDD-A338-D5C065A760C1@oracle.com>
+	 <541000F1.5000805@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54101123.2080208-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Latchesar Ionkov <lionkov-YOWKrPYUwWM@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <541000F1.5000805@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>, Govindarajulu Varadarajan <_govind@gmx.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Bart Van Assche <bvanassche@acm.org>, Saeed Mahameed <saeedm@mellanox.com>, Tal Alon <talal@mellanox.com>, Yevgeny Petrilin <yevgenyp@mellanox.com>, Roland Dreier <roland@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/10/2014 11:51 AM, Haggai Eran wrote:
-<SNIP>
->
-> The main benefits of ODP is the simplified programming model, simplif=
-ied
-> management, and avoiding worst-case memory commitment.
-> For example, we were able to run multiple concurrent instances of iSE=
-R
-> targets, allowing over-commitment that otherwise wouldn=E2=80=99t be =
-possible.
+On Wed, 2014-09-10 at 10:42 +0300, Or Gerlitz wrote:
 
-Just wanted to add that we're talking about TGT which is a user-space=20
-target, thus it's RDMA memory regions were allowed to be pageable (i.e.=
-=20
-not pinned).
+> Hi Chuck, thanks for bisecting this out. Indeed, as of this kernel 3.2 
+> commit 936d7de "IPoIB: Stop lying about hard_header_len and use skb->cb 
+> to stash LL addresses" we are using the skb->cb field to enable proper 
+> work under GRO and avoid another historical quirk we had there... so I 
+> think we can definetly consider commit e0f31d849 to introduce a severe 
+> regression... Govindarajulu, Dave - what's your thinking here? any quick 
+> idea on how to fix?
 
-Cheers,
-Sagi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I mentioned the IB stuff when patch was posted, and David replied :
+
+"I think this is fine, IPOIB's control block will need still just 44
+bytes after these changes, so there will still be 4 bytes to spare."
+
+http://patchwork.ozlabs.org/patch/357584/
+
+My suggestion was to reduce sch_choke usage and not store the whole
+flow_keys.
