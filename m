@@ -1,81 +1,40 @@
-From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] rsockets: distribute completion queue vectors
- among multiple cores
-Date: Thu, 11 Sep 2014 18:04:43 +0530
-Message-ID: <ef556922e7b766360a38df904dff1c70@imap.linux.ibm.com>
-References: <f028f54b9900ee34fcd1abd1d90d10e6@imap.linux.ibm.com>
- <5409DB0D.6080103@acm.org>
- <850a2835b5917f6da62af3d1ea0288fd@imap.linux.ibm.com>
- <540D50E9.5050709@acm.org>
- <a8ac21f3c9d7c802ab089bc0d432e40b@imap.linux.ibm.com>
- <540DF3CC.1060304@acm.org>
- <edc2b05703209d2a7626a31abb170ceb@imap.linux.ibm.com>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: NFSoRDMA developers bi-weekly meeting (every other Thursday)
+Date: Thu, 11 Sep 2014 07:14:46 -0700
+Message-ID: <5411AE56.1070404@oracle.com>
+References: <8fd50e62-a5e7-4e45-8dd1-a5c87b83f2fc@default>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <edc2b05703209d2a7626a31abb170ceb-FJGp5E75HVmZamtmwQBW5tBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <8fd50e62-a5e7-4e45-8dd1-a5c87b83f2fc@default>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2014-09-09 17:58, Sreedhar Kodali wrote:
-> On 2014-09-08 23:52, Bart Van Assche wrote:
->> On 09/08/14 16:27, Sreedhar Kodali wrote:
->>> Thanks for your insights.  Your suggestion of having a separate
->>> vector per process is really useful when multiple processes are
->>> simultaneously running in the same environment.  At the 
->>> implementation
->>> level this requires an extended configuration file format. Can't
->>> we possibly think of this as a next iteration?
->> 
->> This patch introduces a new configuration file
->> (/etc/rdma/rsocket/comp_vector). User expect that such configuration
->> files remain supported after a software upgrade. In other words,
->> introduction of a new configuration file deserves careful
->> consideration. Do we really need this new configuration file ? Why not
->> e.g. to change the default behavior of the rsockets library into
->> spreading the interrupt processing workload over all completion
->> vectors supported by the HCA ? Furthermore, the number of completion
->> vectors that is supported by an HCA not only depends on the HCA
->> firmware but also on the number of completion vectors a HCA could
->> allocate during driver initialization. The number of MSI-X vectors
->> available on an x86-64 system is limited (224). Dual-socket x86-64
->> motherboards with up to 11 PCIe slots are available commercially. If
->> all PCIe-slots are populated it's almost sure that one of the PCIe
->> cards won't be assigned as many MSI-X vectors as it could use.
->> 
->> Sorry but I'm not convinced that using the same completion vector mask
->> for all HCA's and all processes is a good idea. Or is there perhaps
->> something I have overlooked ?
->> 
->> Bart.
-> 
-> Hi Bart,
-> 
-> I agree with your suggestions - working on the revised patch 
-> accordingly.
-> 
-> Thank You.
-> 
-> - Sreedhar
-> 
+NFSoRDMA bi-weekly meetings have rescheduled from every other Wed to Thurs starting from today.
 
-Hi Bart,
+Agenda today:
 
-I have sent the revised patch v4 that groups and assigns comp vectors 
-per process as you suggested.  Please go through it.
+- merge plans for 3.18 and 3.19
+- linux-stable tree is not stable: :) what can we do better? (3.17-rc was unbootable with IPoIB for over a month)
+- performance issues arising
+- update from everyone
 
-Thank You.
+Thanks
+Shirley
 
-- Sreedhar
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Meeting Reminder NFSoRDMA developers bi-weekly meeting 
+Date: Thu, Sep 11, 2014
+Time: 6:30 AM PST - 7:30 AM PST
+Location: Audio Conference
+Organizer: Shirley Ma
+Attendees: Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org; Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Chuck Lever; Shirley Ma; ... 
+Description: @7:30am PST @8:30am MST @9:30am CST @10:30am EST @Bangalore @8:00pm @Israel @5:30pm Duration: 1 hour Call-in number: Israel: +972 37219638 Bangalore: +91 8039890080 (180030109800)
+France Colombes +33 1 5760 2222 +33 176728936
+US: 8666824770, 408-7744073
+Conference Code: 2308833 Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember) 
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
