@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 4/5] IB/mlx4: Do not allow APM under RoCE
-Date: Thu, 11 Sep 2014 14:11:19 +0300
-Message-ID: <1410433880-12439-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 5/5] IB/mlx4: Fix VF mac handling in RoCE
+Date: Thu, 11 Sep 2014 14:11:20 +0300
+Message-ID: <1410433880-12439-6-git-send-email-ogerlitz@mellanox.com>
 References: <1410433880-12439-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1410433880-12439-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,85 +12,126 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Automatic Path Migration is not supported under RoCE. Therefore,
-return a "not-supported" error if the caller attempts to set
-an alternate path in a QP context.
+We had several problems here. First, a race condition on QP1 mac
+handling between mlx4_ib_update_qps and mlx4_ib_modify_qp, which
+is fixed by taking the qp mutex in mlx4_ib_update_qps.
 
-In addition, if there are no IB ports configured, do not report
-APM capability in the device flags returned by mlx4_ib_query_device.
+Also, qp->pri.smac_port was not updated in mlx4_ib_update_qps.
+
+Last, in __mlx4_ib_modify_qp we did not properly handle the case
+where the mac is zero, but port is non-zero.
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |   16 +++++++++++++++-
- drivers/infiniband/hw/mlx4/qp.c   |    6 ++++++
- 2 files changed, 21 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c |   15 ++++++++++-----
+ drivers/infiniband/hw/mlx4/qp.c   |   16 ++++++++++------
+ 2 files changed, 20 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 681a936..d4dd930 100644
+index d4dd930..d464bb1 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -119,6 +119,17 @@ static int check_flow_steering_support(struct mlx4_dev *dev)
- 	return dmfs;
+@@ -1664,9 +1664,11 @@ static void mlx4_ib_update_qps(struct mlx4_ib_dev *ibdev,
+ 	qp = ibdev->qp1_proxy[port - 1];
+ 	if (qp) {
+ 		int new_smac_index;
+-		u64 old_smac = qp->pri.smac;
++		u64 old_smac;
+ 		struct mlx4_update_qp_params update_params;
+ 
++		mutex_lock(&qp->mutex);
++		old_smac = qp->pri.smac;
+ 		if (new_smac == old_smac)
+ 			goto unlock;
+ 
+@@ -1681,17 +1683,20 @@ static void mlx4_ib_update_qps(struct mlx4_ib_dev *ibdev,
+ 			release_mac = new_smac;
+ 			goto unlock;
+ 		}
+-
++		/* if old port was zero, no mac was yet registered for this QP */
++		if (qp->pri.smac_port)
++			release_mac = old_smac;
+ 		qp->pri.smac = new_smac;
++		qp->pri.smac_port = port;
+ 		qp->pri.smac_index = new_smac_index;
+-
+-		release_mac = old_smac;
+ 	}
+ 
+ unlock:
+-	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
+ 	if (release_mac != MLX4_IB_INVALID_MAC)
+ 		mlx4_unregister_mac(ibdev->dev, port, release_mac);
++	if (qp)
++		mutex_unlock(&qp->mutex);
++	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
  }
  
-+static int num_ib_ports(struct mlx4_dev *dev)
-+{
-+	int ib_ports = 0;
-+	int i;
-+
-+	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_IB)
-+		ib_ports++;
-+
-+	return ib_ports;
-+}
-+
- static int mlx4_ib_query_device(struct ib_device *ibdev,
- 				struct ib_device_attr *props)
- {
-@@ -126,6 +137,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
-+	int have_ib_ports;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -142,6 +154,8 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 
- 	memset(props, 0, sizeof *props);
- 
-+	have_ib_ports = num_ib_ports(dev->dev);
-+
- 	props->fw_ver = dev->dev->caps.fw_ver;
- 	props->device_cap_flags    = IB_DEVICE_CHANGE_PHY_PORT |
- 		IB_DEVICE_PORT_ACTIVE_EVENT		|
-@@ -152,7 +166,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_BAD_PKEY_CNTR;
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_BAD_QKEY_CNTR)
- 		props->device_cap_flags |= IB_DEVICE_BAD_QKEY_CNTR;
--	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_APM)
-+	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_APM && have_ib_ports)
- 		props->device_cap_flags |= IB_DEVICE_AUTO_PATH_MIG;
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_UD_AV_PORT)
- 		props->device_cap_flags |= IB_DEVICE_UD_AV_PORT_ENFORCE;
+ static void mlx4_ib_get_dev_addr(struct net_device *dev,
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 25e0208..393423c 100644
+index 393423c..577b477 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1424,6 +1424,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	int steer_qp = 0;
- 	int err = -EINVAL;
+@@ -964,9 +964,10 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
+ 				   MLX4_QP_STATE_RST, NULL, 0, 0, &qp->mqp))
+ 			pr_warn("modify QP %06x to RESET failed.\n",
+ 			       qp->mqp.qpn);
+-		if (qp->pri.smac) {
++		if (qp->pri.smac || (!qp->pri.smac && qp->pri.smac_port)) {
+ 			mlx4_unregister_mac(dev->dev, qp->pri.smac_port, qp->pri.smac);
+ 			qp->pri.smac = 0;
++			qp->pri.smac_port = 0;
+ 		}
+ 		if (qp->alt.smac) {
+ 			mlx4_unregister_mac(dev->dev, qp->alt.smac_port, qp->alt.smac);
+@@ -1325,7 +1326,8 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 		 * If one was already assigned, but the new mac differs,
+ 		 * unregister the old one and register the new one.
+ 		*/
+-		if (!smac_info->smac || smac_info->smac != smac) {
++		if ((!smac_info->smac && !smac_info->smac_port) ||
++		    smac_info->smac != smac) {
+ 			/* register candidate now, unreg if needed, after success */
+ 			smac_index = mlx4_register_mac(dev->dev, port, smac);
+ 			if (smac_index >= 0) {
+@@ -1396,7 +1398,7 @@ static int handle_eth_ud_smac_index(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *
+ 	u64_mac = atomic64_read(&dev->iboe.mac[qp->port - 1]);
  
-+	/* APM is not supported under RoCE */
-+	if (attr_mask & IB_QP_ALT_PATH &&
-+	    rdma_port_get_link_layer(&dev->ib_dev, qp->port) ==
-+	    IB_LINK_LAYER_ETHERNET)
-+		return -ENOTSUPP;
-+
- 	context = kzalloc(sizeof *context, GFP_KERNEL);
- 	if (!context)
- 		return -ENOMEM;
+ 	context->pri_path.sched_queue = MLX4_IB_DEFAULT_SCHED_QUEUE | ((qp->port - 1) << 6);
+-	if (!qp->pri.smac) {
++	if (!qp->pri.smac && !qp->pri.smac_port) {
+ 		smac_index = mlx4_register_mac(dev->dev, qp->port, u64_mac);
+ 		if (smac_index >= 0) {
+ 			qp->pri.candidate_smac_index = smac_index;
+@@ -1778,9 +1780,10 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 			if (qp->flags & MLX4_IB_QP_NETIF)
+ 				mlx4_ib_steer_qp_reg(dev, qp, 0);
+ 		}
+-		if (qp->pri.smac) {
++		if (qp->pri.smac || (!qp->pri.smac && qp->pri.smac_port)) {
+ 			mlx4_unregister_mac(dev->dev, qp->pri.smac_port, qp->pri.smac);
+ 			qp->pri.smac = 0;
++			qp->pri.smac_port = 0;
+ 		}
+ 		if (qp->alt.smac) {
+ 			mlx4_unregister_mac(dev->dev, qp->alt.smac_port, qp->alt.smac);
+@@ -1804,11 +1807,12 @@ out:
+ 	if (err && steer_qp)
+ 		mlx4_ib_steer_qp_reg(dev, qp, 0);
+ 	kfree(context);
+-	if (qp->pri.candidate_smac) {
++	if (qp->pri.candidate_smac ||
++	    (!qp->pri.candidate_smac && qp->pri.candidate_smac_port)) {
+ 		if (err) {
+ 			mlx4_unregister_mac(dev->dev, qp->pri.candidate_smac_port, qp->pri.candidate_smac);
+ 		} else {
+-			if (qp->pri.smac)
++			if (qp->pri.smac || (!qp->pri.smac && qp->pri.smac_port))
+ 				mlx4_unregister_mac(dev->dev, qp->pri.smac_port, qp->pri.smac);
+ 			qp->pri.smac = qp->pri.candidate_smac;
+ 			qp->pri.smac_index = qp->pri.candidate_smac_index;
 -- 
 1.7.1
 
