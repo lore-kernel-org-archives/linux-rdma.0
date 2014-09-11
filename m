@@ -1,170 +1,80 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH FIXES for-3.17] mlx4: Correct the error flows in rereg_mr
-Date: Thu, 11 Sep 2014 13:18:37 +0300
-Message-ID: <1410430717-6489-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 1/5] mlx4: Fix mlx4 reg/unreg mac to work properly with 0-mac addresses
+Date: Thu, 11 Sep 2014 14:11:16 +0300
+Message-ID: <1410433880-12439-2-git-send-email-ogerlitz@mellanox.com>
+References: <1410433880-12439-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1410433880-12439-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-This patch addresses feedback from Sagi Grimberg on the rereg_mr 
-implementation of mlx4, the following is fixed:
+There is a chance that the VF mlx4 RoCE driver (mlx4_ib) may see a 0-mac
+as the current default MAC address when a RoCE interface first comes up.
 
-1. Set the correct pd_flags 
+In this case, the RoCE driver registers the 0-mac to get its MAC index --
+used in the INIT2RTR transition when it creates its proxy Q1 qp's.
 
-2. Make sure we change the iova and size MR fields only after 
-successful write and allocation of the MTTs.
+If we do not allow QP1 to be created, the RoCE driver will not come up.
+If we do not register the 0-mac, but simply use a random mac-index,
+QP1 will attempt to send packets with an someone's else source MAC which
+will get the system into more troubled.
 
-3. make the error checking more robus
+Since a 0-mac was previously used to indicate a free slot, this leads to
+errors, both when the 0-mac is registered and when it is unregistered.
 
-Fixes: e630664 ('mlx4_core: Add helper functions to support MR re-registration')
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The required fix is to check in addition that the slot containing the
+0-mac has a reference count of zero.
+
+Additionally, when comparing MAC addresses, need to mask out the 2 MSBs
+of the u64 mac on both sides of the comparison.
+
+Note that when the EN driver (mlx4_en) comes up, it set itself a proper
+mac --> the RoCE driver gets to be notified on that and further handing
+is done with the update qp command, as was added by commit 9433c18
+"IB/mlx4: Invoke UPDATE_QP for proxy QP1 on MAC changes".
+
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mr.c         |    7 ++++-
- drivers/net/ethernet/mellanox/mlx4/mr.c |   33 ++++++++++++++++++++----------
- 2 files changed, 27 insertions(+), 13 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/port.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 9b0e80e..8f9325c 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -234,14 +234,13 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
- 					0);
- 		if (IS_ERR(mmr->umem)) {
- 			err = PTR_ERR(mmr->umem);
-+			/* Prevent mlx4_ib_dereg_mr from free'ing invalid pointer */
- 			mmr->umem = NULL;
- 			goto release_mpt_entry;
- 		}
- 		n = ib_umem_page_count(mmr->umem);
- 		shift = ilog2(mmr->umem->page_size);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index 7ab9717..ddf5f21 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -103,7 +103,8 @@ static int find_index(struct mlx4_dev *dev,
+ 	int i;
  
--		mmr->mmr.iova       = virt_addr;
--		mmr->mmr.size       = length;
- 		err = mlx4_mr_rereg_mem_write(dev->dev, &mmr->mmr,
- 					      virt_addr, length, n, shift,
- 					      *pmpt_entry);
-@@ -249,6 +248,8 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
- 			ib_umem_release(mmr->umem);
- 			goto release_mpt_entry;
- 		}
-+		mmr->mmr.iova       = virt_addr;
-+		mmr->mmr.size       = length;
- 
- 		err = mlx4_ib_umem_write_mtt(dev, &mmr->mmr.mtt, mmr->umem);
- 		if (err) {
-@@ -262,6 +263,8 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
- 	 * return a failure. But dereg_mr will free the resources.
- 	 */
- 	err = mlx4_mr_hw_write_mpt(dev->dev, &mmr->mmr, pmpt_entry);
-+	if (!err && flags & IB_MR_REREG_ACCESS)
-+		mmr->mmr.access = mr_access_flags;
- 
- release_mpt_entry:
- 	mlx4_mr_hw_put_mpt(dev->dev, pmpt_entry);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
-index 7d717ec..193a6ad 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
-@@ -298,6 +298,7 @@ static int mlx4_HW2SW_MPT(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox
- 			    MLX4_CMD_TIME_CLASS_B, MLX4_CMD_WRAPPED);
- }
- 
-+/* Must protect against concurrent access */
- int mlx4_mr_hw_get_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
- 		       struct mlx4_mpt_entry ***mpt_entry)
- {
-@@ -305,13 +306,10 @@ int mlx4_mr_hw_get_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
- 	int key = key_to_hw_index(mmr->key) & (dev->caps.num_mpts - 1);
- 	struct mlx4_cmd_mailbox *mailbox = NULL;
- 
--	/* Make sure that at this point we have single-threaded access only */
--
- 	if (mmr->enabled != MLX4_MPT_EN_HW)
- 		return -EINVAL;
- 
- 	err = mlx4_HW2SW_MPT(dev, NULL, key);
--
- 	if (err) {
- 		mlx4_warn(dev, "HW2SW_MPT failed (%d).", err);
- 		mlx4_warn(dev, "Most likely the MR has MWs bound to it.\n");
-@@ -333,7 +331,6 @@ int mlx4_mr_hw_get_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
- 				   0, MLX4_CMD_QUERY_MPT,
- 				   MLX4_CMD_TIME_CLASS_B,
- 				   MLX4_CMD_WRAPPED);
--
- 		if (err)
- 			goto free_mailbox;
- 
-@@ -378,9 +375,10 @@ int mlx4_mr_hw_write_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
- 		err = mlx4_SW2HW_MPT(dev, mailbox, key);
+ 	for (i = 0; i < MLX4_MAX_MAC_NUM; i++) {
+-		if ((mac & MLX4_MAC_MASK) ==
++		if (table->refs[i] &&
++		    (MLX4_MAC_MASK & mac) ==
+ 		    (MLX4_MAC_MASK & be64_to_cpu(table->entries[i])))
+ 			return i;
  	}
+@@ -165,12 +166,14 @@ int __mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac)
  
--	mmr->pd = be32_to_cpu((*mpt_entry)->pd_flags) & MLX4_MPT_PD_MASK;
--	if (!err)
-+	if (!err) {
-+		mmr->pd = be32_to_cpu((*mpt_entry)->pd_flags) & MLX4_MPT_PD_MASK;
- 		mmr->enabled = MLX4_MPT_EN_HW;
-+	}
- 	return err;
- }
- EXPORT_SYMBOL_GPL(mlx4_mr_hw_write_mpt);
-@@ -400,11 +398,12 @@ EXPORT_SYMBOL_GPL(mlx4_mr_hw_put_mpt);
- int mlx4_mr_hw_change_pd(struct mlx4_dev *dev, struct mlx4_mpt_entry *mpt_entry,
- 			 u32 pdn)
- {
--	u32 pd_flags = be32_to_cpu(mpt_entry->pd_flags);
-+	u32 pd_flags = be32_to_cpu(mpt_entry->pd_flags) & ~MLX4_MPT_PD_MASK;
- 	/* The wrapper function will put the slave's id here */
- 	if (mlx4_is_mfunc(dev))
- 		pd_flags &= ~MLX4_MPT_PD_VF_MASK;
--	mpt_entry->pd_flags = cpu_to_be32((pd_flags &  ~MLX4_MPT_PD_MASK) |
-+
-+	mpt_entry->pd_flags = cpu_to_be32(pd_flags |
- 					  (pdn & MLX4_MPT_PD_MASK)
- 					  | MLX4_MPT_PD_FLAG_EN_INV);
- 	return 0;
-@@ -600,14 +599,18 @@ int mlx4_mr_rereg_mem_write(struct mlx4_dev *dev, struct mlx4_mr *mr,
- {
- 	int err;
+ 	mutex_lock(&table->mutex);
+ 	for (i = 0; i < MLX4_MAX_MAC_NUM; i++) {
+-		if (free < 0 && !table->entries[i]) {
+-			free = i;
++		if (!table->refs[i]) {
++			if (free < 0)
++				free = i;
+ 			continue;
+ 		}
  
--	mpt_entry->start       = cpu_to_be64(mr->iova);
--	mpt_entry->length      = cpu_to_be64(mr->size);
--	mpt_entry->entity_size = cpu_to_be32(mr->mtt.page_shift);
-+	mpt_entry->start       = cpu_to_be64(iova);
-+	mpt_entry->length      = cpu_to_be64(size);
-+	mpt_entry->entity_size = cpu_to_be32(page_shift);
- 
- 	err = mlx4_mtt_init(dev, npages, page_shift, &mr->mtt);
- 	if (err)
- 		return err;
- 
-+	mpt_entry->pd_flags &= cpu_to_be32(MLX4_MPT_PD_MASK |
-+					   MLX4_MPT_PD_FLAG_EN_INV);
-+	mpt_entry->flags    &= cpu_to_be32(MLX4_MPT_FLAG_FREE |
-+					   MLX4_MPT_FLAG_SW_OWNS);
- 	if (mr->mtt.order < 0) {
- 		mpt_entry->flags |= cpu_to_be32(MLX4_MPT_FLAG_PHYSICAL);
- 		mpt_entry->mtt_addr = 0;
-@@ -617,6 +620,14 @@ int mlx4_mr_rereg_mem_write(struct mlx4_dev *dev, struct mlx4_mr *mr,
- 		if (mr->mtt.page_shift == 0)
- 			mpt_entry->mtt_sz    = cpu_to_be32(1 << mr->mtt.order);
- 	}
-+	if (mr->mtt.order >= 0 && mr->mtt.page_shift == 0) {
-+		/* fast register MR in free state */
-+		mpt_entry->flags    |= cpu_to_be32(MLX4_MPT_FLAG_FREE);
-+		mpt_entry->pd_flags |= cpu_to_be32(MLX4_MPT_PD_FLAG_FAST_REG |
-+						   MLX4_MPT_PD_FLAG_RAE);
-+	} else {
-+		mpt_entry->flags    |= cpu_to_be32(MLX4_MPT_FLAG_SW_OWNS);
-+	}
- 	mr->enabled = MLX4_MPT_EN_SW;
- 
- 	return 0;
+-		if (mac == (MLX4_MAC_MASK & be64_to_cpu(table->entries[i]))) {
++		if ((MLX4_MAC_MASK & mac) ==
++		     (MLX4_MAC_MASK & be64_to_cpu(table->entries[i]))) {
+ 			/* MAC already registered, increment ref count */
+ 			err = i;
+ 			++table->refs[i];
 -- 
 1.7.1
 
