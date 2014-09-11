@@ -1,414 +1,276 @@
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v1 for-next 06/16] IB/core: Implement support for MMU
- notifiers regarding on demand paging regions
-Date: Thu, 11 Sep 2014 12:19:01 +0000
-Message-ID: <6B2A6E60C06CCC42AE31809BF572352B010E2456AE@MTLDAG02.mtl.com>
-References: <20140904202458.GB2685@gmail.com>
- <6B2A6E60C06CCC42AE31809BF572352B010E2442C7@MTLDAG02.mtl.com>
- <20140909153627.GA3545@gmail.com>
- <6B2A6E60C06CCC42AE31809BF572352B010E244E86@MTLDAG02.mtl.com>
- <20140910201432.GA3801@gmail.com>
+From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH v4 3/4] rsockets: distribute completion queue vectors in a
+ process specific way
+Date: Thu, 11 Sep 2014 17:57:00 +0530
+Message-ID: <f3fd02ac24599a689a31cec5a3815758@imap.linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140910201432.GA3801-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, sithirug-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+ From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Date:   Thu Sep 11 16:53:16 2014 +0530
+
+     Distribute completion vectors while creating completion queues.
+     The existing mechanism always uses 0 for the completion vector.
+     Mapping of a completion vector to a particular CPU core is
+     decided by the smp_affinity factor that is set at the system
+     level for the corresponding irq number. While driving a large
+     workload this may result in bottleneck at the mapped core
+     because the same core could be used for both event and task
+     processing.
+
+     A '/comp_vector' option is exposed, which can contain as many
+     line entries as the number of processes for which completion
+     vectors should be set in a custom way.  Format of each entry
+     is as follows:
+
+         <process_name> <space> <comp_vector_list>
+
+     where comp_vector_list is a range or comma separated list of
+     completion vectors.
+
+     Against each process, the specified completion vectors are
+     equally distributed among the created completion queues with
+     each new connection picking up the next indexed completion
+     vector in the list with index wrapping back to the beginning
+     if the end of list is reached.
+
+     If this option is not set, the existing mechanism prevails
+     where in completion vectors are set to 0 for all the
+     connections.
+
+     @
+     @Sample /comp_vector configuration file
+     @
+     @procA 3-5,7,11
+     @procB 0,6-8
+
+     Signed-off-by: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+     ---
+
+diff --git a/src/rsocket.c b/src/rsocket.c
+index b70d56a..f99d66b 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -95,6 +95,13 @@ struct rs_svc {
+  	void *contexts;
+  };
+
++struct rs_cv_entry {
++	char *name;
++	int16_t *vec;
++	int16_t nvec;
++	int16_t idx;
++};
++
+  static struct pollfd *udp_svc_fds;
+  static void *udp_svc_run(void *arg);
+  static struct rs_svc udp_svc = {
+@@ -116,6 +123,9 @@ static uint32_t def_mem = (1 << 17);
+  static uint32_t def_wmem = (1 << 17);
+  static uint32_t polling_time = 10;
+  static uint16_t restart_onintr = 0;
++static struct rs_cv_entry *cvent;
++static int16_t ncvent;
++static int16_t comp_vector_avail;
+
+  /*
+   * Immediate data format is determined by the upper bits
+@@ -484,6 +494,148 @@ static int rs_scale_to_value(int value, int bits)
+  	       value : (value & ~(1 << (bits - 1))) << bits;
+  }
+
++/* retrieve next completion vector in the specified list
++ * for the current process
++ */
++static int rs_get_comp_vector(void)
++{
++	int i;
++
++	for (i = 0; i < ncvent; i++) {
++		if (strncmp(cvent[i].name, program_invocation_short_name,
++				strlen(cvent[i].name)) == 0) {
++			break;
++		}
++	}
++	if (i < ncvent) {
++		int16_t nvec;
++
++		nvec = cvent[i].nvec;
++		if (nvec > 0) {
++			int16_t idx, vec;
++
++			idx = cvent[i].idx;
++			vec = cvent[i].vec[idx];
++			idx += 1;
++			idx %= nvec;
++			cvent[i].idx = idx;
++			return (int) vec;
++		}
++	}
++	return 0;
++}
++
++/* free the completion vector entries */
++static void rs_free_cvent(void)
++{
++	int i;
++
++	if (cvent) {
++		for (i = 0; i < ncvent; i++) {
++			if (cvent[i].name) {
++				free(cvent[i].name);
++			}
++			if (cvent[i].vec) {
++				free(cvent[i].vec);
++			}
++		}
++		free(cvent);
++	}
++}
++
++/* scan completion vector configuration file
++ * and store entries in global record
++ */
++static int rs_scan_comp_vector(void)
++{
++	FILE *fp;
++	char line[256];
++	char *lp, *str1, *saveptr1, *tok1;
++	int ret = 0, i;
++
++	fp = fopen(RS_CONF_DIR "/comp_vector", "r");
++	if (fp == NULL) {
++		return -1;
++	}
++
++	while ((lp = fgets(line, sizeof(line), fp)) != NULL) {
++		/* alloc new comp vector entry  to hold retrieved fields */
++		cvent = (struct rs_cv_entry *) realloc(cvent, (ncvent + 1) * 
+sizeof(struct rs_cv_entry));
++		if (!cvent) {
++			ret = -1;
++			goto scan_cv_done;
++		}
++		memset(cvent + ncvent, '\0', sizeof(struct rs_cv_entry));
++
++		/* line ==> tokens */
++		for (i = 1, str1 = lp; ; i++, str1 = NULL) {
++			tok1 = strtok_r(str1, " \t", &saveptr1);
++			if (tok1 == NULL) {
++				break;
++			}
++
++			/* 1st field - process name */
++			if (i == 1) {
++				cvent[ncvent].name = (char *) malloc(strlen(tok1) + 1);
++				if (!cvent[ncvent].name) {
++					ret = -1;
++					goto scan_cv_done;
++				}
++				memcpy(cvent[ncvent].name, tok1, strlen(tok1) + 1);
++				continue;
++			}
++
++			/* 2nd field - comp vector */
++			if (i == 2) {
++				char *str2, *saveptr2, *tok2, *tok3, *tmp;
++				int16_t n, lvec, uvec, vec, nvec;
++
++				for (str2 = tok1; ; str2 = NULL) {
++					tok2 = strtok_r(str2, ",", &saveptr2);
++					if (tok2 == NULL) {
++						break;
++					}
++					if (!(tmp = strpbrk(tok2, "-"))) {
++						lvec = uvec = (int16_t) atoi(tok2);
++					} else {
++						tok3 = tmp + 1;
++						*tmp = '\0';
++						lvec = (int16_t) atoi(tok2);
++						uvec = (int16_t) atoi(tok3);
++					}
++					if (lvec < 0) {
++						lvec = 0;
++					}
++					if (uvec < 0) {
++						uvec = 0;
++					}
++					if (uvec < lvec) {
++						uvec = lvec;
++					}
++					nvec = cvent[ncvent].nvec;
++					/* alloc storage for new vectors */
++					cvent[ncvent].vec = (int16_t *) realloc(cvent[ncvent].vec,
++											(nvec + (uvec - lvec) + 1) * sizeof(int16_t));
++					if (!cvent[ncvent].vec) {
++						ret = -1;
++						goto scan_cv_done;
++					}
++					/* update vector store */
++					for (n = 0, vec = lvec; vec <= uvec; n++, vec++) {
++						cvent[ncvent].vec[nvec + n] = vec;
++					}
++					cvent[ncvent].nvec += (uvec - lvec) + 1;
++				}
++				break;
++			}
++		}
++		ncvent += 1;
++	}
++scan_cv_done:
++	fclose(fp);
++	return ret;
++}
++
+  void rs_configure(void)
+  {
+  	FILE *f;
+@@ -548,6 +700,15 @@ void rs_configure(void)
+  		(void) fscanf(f, "%hu", &restart_onintr);
+  		fclose(f);
+  	}
++
++	if (rs_scan_comp_vector() == 0) {
++		comp_vector_avail = 1;
++	}
++
++	if (cvent) {
++		atexit(rs_free_cvent);
++	}
++
+  	init = 1;
+  out:
+  	pthread_mutex_unlock(&mut);
+@@ -762,12 +923,18 @@ static int ds_init_bufs(struct ds_qp *qp)
+   */
+  static int rs_create_cq(struct rsocket *rs, struct rdma_cm_id *cm_id)
+  {
++	int vector = 0;
++
+  	cm_id->recv_cq_channel = ibv_create_comp_channel(cm_id->verbs);
+  	if (!cm_id->recv_cq_channel)
+  		return -1;
+
++	if (comp_vector_avail) {
++		vector = rs_get_comp_vector();
++	}
++
+  	cm_id->recv_cq = ibv_create_cq(cm_id->verbs, rs->sq_size + 
+rs->rq_size,
+-				       cm_id, cm_id->recv_cq_channel, 0);
++				       cm_id, cm_id->recv_cq_channel, vector);
+  	if (!cm_id->recv_cq)
+  		goto err1;
 
 
-> -----Original Message-----
-> From: Jerome Glisse [mailto:j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Wednesday, September 10, 2014 11:15 PM
-> To: Shachar Raindel
-> Cc: Haggai Eran; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sagi Grimberg
-> Subject: Re: [PATCH v1 for-next 06/16] IB/core: Implement support for
-> MMU notifiers regarding on demand paging regions
->=20
-> On Wed, Sep 10, 2014 at 09:00:36AM +0000, Shachar Raindel wrote:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Jerome Glisse [mailto:j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> > > Sent: Tuesday, September 09, 2014 6:37 PM
-> > > To: Shachar Raindel
-> > > Cc: 1404377069-20585-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; Hagga=
-i
-> Eran;
-> > > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jerome Glisse; Sagi Grimberg
-> > > Subject: Re: [PATCH v1 for-next 06/16] IB/core: Implement support
-> for
-> > > MMU notifiers regarding on demand paging regions
-> > >
-> > > On Sun, Sep 07, 2014 at 02:35:59PM +0000, Shachar Raindel wrote:
-> > > > Hi,
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Jerome Glisse [mailto:j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> > > > > Sent: Thursday, September 04, 2014 11:25 PM
-> > > > > To: Haggai Eran; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > > Cc: Shachar Raindel; Sagi Grimberg
-> > > > > Subject: Re: [PATCH v1 for-next 06/16] IB/core: Implement
-> support
-> > > for
-> > > > > MMU notifiers regarding on demand paging regions
-> > > > >
-
-<SNIP>
-
-> > > >
-> > > > Sadly, taking mmap_sem in read-only mode does not prevent all
-> possible
-> > > invalidations from happening.
-> > > > For example, a call to madvise requesting MADVISE_DONTNEED will
-> lock
-> > > the mmap_sem for reading only, allowing a notifier to run in
-> parallel to
-> > > the MR registration As a result, the following sequence of events
-> could
-> > > happen:
-> > > >
-> > > > Thread 1:                       |   Thread 2
-> > > > --------------------------------+-------------------------
-> > > > madvise                         |
-> > > > down_read(mmap_sem)             |
-> > > > notifier_start                  |
-> > > >                                 |   down_read(mmap_sem)
-> > > >                                 |   register_mr
-> > > > notifier_end                    |
-> > > > reduce_mr_notifiers_count       |
-> > > >
-> > > > The end result of this sequence is an mr with running notifiers
-> count
-> > > of -1, which is bad.
-> > > > The current workaround is to avoid decreasing the notifiers cou=
-nt
-> if
-> > > it is zero, which can cause other issues.
-> > > > The proper fix would be to prevent notifiers from running in
-> parallel
-> > > to registration. For this, taking mmap_sem in write mode might be
-> > > sufficient, but we are not sure about this.
-> > > > We will be happy to hear additional input on this subject, to m=
-ake
-> > > sure we got it covered properly.
-> > >
-> > > So in HMM i solve this by having a struct allocated in the start
-> range
-> > > callback
-> > > and the end range callback just ignore things when it can not fin=
-d
-> the
-> > > matching
-> > > struct.
-> >
-> > This kind of mechanism sounds like it has a bigger risk for
-> deadlocking
-> > the system, causing an OOM kill without a real need or significantl=
-y
-> > slowing down the system.
-> > If you are doing non-atomic memory allocations, you can deadlock th=
-e
-> > system by requesting memory in the swapper flow.
-> > Even if you are doing atomic memory allocations, you need to handle
-> the
-> > case of failing allocation, the solution to which is unclear to me.
-> > If you are using a pre-allocated pool, what are you doing when you =
-run
-> > out of available entries in the pool? If you are blocking until som=
-e
-> > entries free up, what guarantees you that this will not cause a
-> deadlock?
->=20
-> So i am using a fixed pool and when it runs out it block in start
-> callback
-> until one is freed.=20
-
-This sounds scary. You now create a possible locking dependency between
-two code flows which could have run in parallel. This can cause circula=
-r
-locking bugs, from code which functioned properly until now. For exampl=
-e,
-assume code with a single lock, and the following code paths:
-
-Code 1:
-notify_start()
-lock()
-unlock()
-notify_end()
-
-Code 2:
-lock()
-notify_start()
-=2E.. (no locking)
-notify_end()
-unlock()
-
-
-
-This code can now create the following deadlock:
-
-Thread 1:        | Thread 2:
------------------+-----------------------------------
-notify_start()   |
-                 | lock()
-lock() - blocking|
-                 | notify_start() - blocking for slot
-
-
-
-
-> But as i said i have a patch to use the stack that
-> will
-> solve this and avoid a pool.
-
-How are you allocating from the stack an entry which you need to keep a=
-live
-until another function is called? You can't allocate the entry on the
-notify_start stack, so you must do this in all of the call points to th=
-e
-mmu_notifiers. Given the notifiers listener subscription pattern, this =
-seems
-like something which is not practical.
-
-=20
->=20
-> >
-> > >
-> > > That being said when registering the mmu_notifier you need 2 thin=
-gs,
-> > > first you
-> > > need a pin on the mm (either mm is current ie current->mm or you
-> took a
-> > > reference
-> > > on it). Second you need to that the mmap smemaphore in write mode=
- so
-> > > that
-> > > no concurrent mmap/munmap/madvise can happen. By doing that you
-> protect
-> > > yourself
-> > > from concurrent range_start/range_end that can happen and that do=
-es
-> > > matter.
-> > > The only concurrent range_start/end that can happen is through fi=
-le
-> > > invalidation
-> > > which is fine because subsequent page fault will go through the f=
-ile
-> > > layer and
-> > > bring back page or return error (if file was truncated for
-> instance).
-> >
-> > Sadly, this is not sufficient for our use case. We are registering
-> > a single MMU notifier handler, and broadcast the notifications to
-> > all relevant listeners, which are stored in an interval tree.
-> >
-> > Each listener represents a section of the address space that has be=
-en
-> > exposed to the network. Such implementation allows us to limit the
-> impact
-> > of invalidations, and only block racing page faults to the affected
-> areas.
-> >
-> > Each of the listeners maintain a counter of the number of
-> invalidate_range
-> > notifications that are currently affecting it. The counter is
-> increased
-> > for each invalidate_range_start callback received, and decrease for
-> each
-> > invalidate_range_end callback received. If we add a listener to the
-> > interval tree after the invalidate_range_start callback happened, b=
-ut
-> > before the invalidate_range_end callback happened, it will decrease
-> the
-> > counter, reaching negative numbers and breaking the logic.
-> >
-> > The mmu_notifiers registration code avoid such issues by taking all
-> > relevant locks on the MM. This effectively blocks all possible
-> notifiers
-> > from happening when registering a new notifier. Sadly, this functio=
-n
-> is
-> > not exported for modules to use it.
-> >
-> > Our options at the moment are:
-> > - Use a tracking mechanism similar to what HMM uses, alongside the
-> >   challenges involved in allocating memory from notifiers
-> >
-> > - Use a per-process counter for invalidations, causing a possible
-> >   performance degradation. This can possibly be used as a fallback =
-to
-> the
-> >   first option (i.e. have a pool of X notifier identifiers, once it=
- is
-> >   full, increase/decrease a per-MM counter)
-> >
-> > - Export the mm_take_all_locks function for modules. This will allo=
-w
-> us
-> >   to lock the MM when adding a new listener.
->=20
-> I was not clear enough, you need to take the mmap_sem in write mode
-> accross
-> mmu_notifier_register(). This is only to partialy solve your issue th=
-at
-> if
-> a mmu_notifier is already register for the mm you are trying to
-> registering
-> against then there is a chance for you to be inside an active
-> range_start/
-> range_end section which would lead to invalid counter inside your
-> tracking
-> structure. But, sadly, taking mmap_sem in write mode is not enough as
-> file
-> invalidation might still happen concurrently so you will need to make
-> sure
-> you invalidation counters does not go negative but from page fault po=
-int
-> of
-> view you will be fine because the page fault will synchronize through
-> the
-> pagecache. So scenario (A and B are to anonymous overlapping address
-> range) :
->=20
->   APP_TOTO_RDMA_THREAD           |  APP_TOTO_SOME_OTHER_THREAD
->                                  |  mmu_notifier_invalidate_range_sta=
-rt(A)
->   odp_register()                 |
->     down_read(mmap_sem)          |
->     mmu_notifier_register()      |
->     up_read(mmap_sem)            |
->   odp_add_new_region(B)          |
->   odp_page_fault(B)              |
->     down_read(mmap_sem)          |
->     ...                          |
->     up_read(mmap_sem)            |
->                                  |  mmu_notifier_invalidate_range_end=
-(A)
->=20
-> The odp_page_fault(B) might see invalid cpu page table but you have n=
-o
-> idea
-> about it because you registered after the range_start(). But if you t=
-ake
-> the
-> mmap_sem in write mode then the only case where you might still have
-> this
-> scenario is if A and B are range of a file backed vma and that the fi=
-le
-> is
-> undergoing some change (most likely truncation). But the file case is
-> fine
-> because the odp_page_fault() will go through the pagecache which is
-> properly
-> synchronize against the current range invalidation.
-
-Specifically, if you call mmu_notifier_register you are OK and the abov=
-e
-scenario will not happen. You are supposed to hold mmap_sem for writing=
-,
-and mmu_notifier_register is calling mm_take_all_locks, which guarantee=
-s
-no racing notifier during the registration step.
-
-However, we want to dynamically add sub-notifiers in our code. Each wil=
-l
-get notified only about invalidations touching a specific sub-sections =
-of
-the address space. To avoid providing unneeded notifications, we use an
-interval tree that filters only the needed notifications.
-When adding entries to the interval tree, we cannot lock the mm to prev=
-ent
-any racing invalidations. As such, we might end up in a case where a ne=
-wly
-registered memory region will get a "notify_end" call without the relev=
-ant
-"notify_start". Even if we prevent the value from dropping below zero, =
-it
-means we can cause data corruption. For example, if we have another
-notifier running after the MR registers, which is due to munmap, but we=
- get
-first the notify_end of the previous notifier for which we didn't see t=
-he
-notify_start.
-
-The solution we are coming up with now is using a global counter of run=
-ning
-invalidations for new regions allocated. When the global counter is at =
-zero,
-we can safely switch to the region local invalidations counter.
-
-
->=20
->=20
-> Now for the the general case outside of mmu_notifier_register() HMM a=
-lso
-> track
-> active invalidation range to avoid page faulting into those range as =
-we
-> can not
-> trust the cpu page table for as long as the range invalidation is on
-> going.
->=20
-> > >
-> > > So as long as you hold the mmap_sem in write mode you should not
-> worry
-> > > about
-> > > concurrent range_start/range_end (well they might happen but only
-> for
-> > > file
-> > > backed vma).
-> > >
-> >
-> > Sadly, the mmap_sem is not enough to protect us :(.
->=20
-> This is enough like i explain above, but i am only talking about the =
-mmu
-> notifier registration. For the general case once you register you onl=
-y
-> need to take the mmap_sem in read mode during page fault.
->=20
-
-I think we are not broadcasting on the same wavelength here. The issue =
-I'm
-worried about is of adding a sub-area to our tracking system. It is bui=
-lt
-quite differently from how HMM is built, we are defining areas to track
-a-priori, and later on account how many notifiers are blocking page-fau=
-lts
-for each area. You are keeping track of the active notifiers, and check
-each page fault against your notifier list. This difference makes for
-different locking needs.
-
-> > > Given that you face the same issue as i have with the
-> > > range_start/range_end i
-> > > will stich up a patch to make it easier to track those.
-> > >
-> >
-> > That would be nice, especially if we could easily integrate it into
-> our
-> > code and reduce the code size.
->=20
-> Yes it's a "small modification" to the mmu_notifier api, i have been
-> side
-> tracked on other thing. But i will have it soon.
->=20
-
-Being side tracked is a well-known professional risk in our line of wor=
-k ;)
-
-
-> >
-> > > Cheers,
-> > > J=E9r=F4me
-> > >
-> > >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
