@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 5/6] IB/mlx5: Remove duplicate code from mlx5_set_path
-Date: Sun, 14 Sep 2014 16:47:54 +0300
-Message-ID: <1410702475-28826-6-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 4/6] IB/mlx5: Fix possible array overflow
+Date: Sun, 14 Sep 2014 16:47:53 +0300
+Message-ID: <1410702475-28826-5-git-send-email-eli@mellanox.com>
 References: <1410702475-28826-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1410702475-28826-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,52 +10,37 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+A
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some of the fields where set twice. Re-organize to avoid that.
+The check to verify that userspace does not provide an invalid index to the
+micro UAR was placed too late. Fix this by moving the check before using the
+index.
 
+Reported by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 8c574b63d77b..34b92fc345b7 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1302,6 +1302,11 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, const struct ib_ah_attr *ah,
- 	path->rlid	= cpu_to_be16(ah->dlid);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index ecd3aebc46fe..a24431746377 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -650,13 +650,13 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 			return -EINVAL;
  
- 	if (ah->ah_flags & IB_AH_GRH) {
-+		if (ah->grh.sgid_index >= dev->mdev->caps.port[port - 1].gid_table_len) {
-+			pr_err(KERN_ERR "sgid_index (%u) too large. max is %d\n",
-+			       ah->grh.sgid_index, dev->mdev->caps.port[port - 1].gid_table_len);
+ 		idx = get_index(vma->vm_pgoff);
++		if (idx >= uuari->num_uars)
 +			return -EINVAL;
-+		}
- 		path->grh_mlid |= 1 << 7;
- 		path->mgid_index = ah->grh.sgid_index;
- 		path->hop_limit  = ah->grh.hop_limit;
-@@ -1317,22 +1322,6 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, const struct ib_ah_attr *ah,
- 	path->static_rate = err;
- 	path->port = port;
++
+ 		pfn = uar_index2pfn(dev, uuari->uars[idx].index);
+ 		mlx5_ib_dbg(dev, "uar idx 0x%lx, pfn 0x%llx\n", idx,
+ 			    (unsigned long long)pfn);
  
--	if (ah->ah_flags & IB_AH_GRH) {
--		if (ah->grh.sgid_index >= dev->mdev->caps.port[port - 1].gid_table_len) {
--			pr_err(KERN_ERR "sgid_index (%u) too large. max is %d\n",
--			       ah->grh.sgid_index, dev->mdev->caps.port[port - 1].gid_table_len);
+-		if (idx >= uuari->num_uars)
 -			return -EINVAL;
--		}
 -
--		path->grh_mlid |= 1 << 7;
--		path->mgid_index = ah->grh.sgid_index;
--		path->hop_limit  = ah->grh.hop_limit;
--		path->tclass_flowlabel =
--			cpu_to_be32((ah->grh.traffic_class << 20) |
--				    (ah->grh.flow_label));
--		memcpy(path->rgid, ah->grh.dgid.raw, 16);
--	}
--
- 	if (attr_mask & IB_QP_TIMEOUT)
- 		path->ackto_lt = attr->timeout << 3;
- 
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+ 		if (io_remap_pfn_range(vma, vma->vm_start, pfn,
+ 				       PAGE_SIZE, vma->vm_page_prot))
 -- 
 2.1.0
 
