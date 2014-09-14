@@ -1,45 +1,53 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 2/6] IB/mlx5: Improve debug prints in mlx5_ib_reg_user_mr
-Date: Sun, 14 Sep 2014 16:47:51 +0300
-Message-ID: <1410702475-28826-3-git-send-email-eli@mellanox.com>
-References: <1410702475-28826-1-git-send-email-eli@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: ib_ipoib: CSUM support in connected mode
+Date: Sun, 14 Sep 2014 21:46:22 +0300
+Message-ID: <20140914184621.GA4283@yuval-lab>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1410702475-28826-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Print access flags and error code from ib_umem_get.
+Hi,
+Lately i was working on fixing an issue with IPoIB driver and i'd like to share the 
+details with you.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/mr.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
+This MTU plus overhead puts the memory allocation for IP based packets at 32 4k pages
+(order 5), which have to be contiguous. When the system memory under pressure, it was
+observed that allocating 128k contiguous physical memory is difficult and causes serious
+errors (such as system becomes unusable).
+This enhancement resolve the issue by removing the physically contiguous memory requirement
+using Scatter/Gather feature that exists in Linux stack. In order to use Scatter/Gather
+feature in Linux IPoIB-CM driver, Linux IPoIB-CM must support IP checksum offload feature
+(requirements as per the current Linux N/W implementation). But IB HCA hardware does not
+support this feature and hence IPoIB cannot support the same.
+IPoIB Connected Mode driver uses RC (Reliable Connection) which guarantees the corruption
+free delivery of the packet. InfiniBand uses 32b CRC which provides stronger data integrity
+protection compare to 16b IP Checksum. So, there is no added value that IP Checksum provides
+in the IB world. The proposal is to tell to network stack that IPoIB-CM supports IP
+Checksum offload. This enables Linux IPoIB-CM driver to use Scatter/Gather feature. Network
+sends the IP packet without adding the IP Checksum to the header. On the receive side, IPoIB
+driver again tells the network stack that IP Checksum is good for the incoming packets and
+network stack avoids the IP Checksum calculations.
+During connection establishment the driver determine if the other end supports IB CRC
+as checksum. This is done so driver will be able to calculate checksum before transmitting
+the packet in case the other end does not support this feature.
+A support for fragmented skb is added to transmit path.
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 80b3c63eab5d..8ee7cb46e059 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -881,12 +881,12 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	int order;
- 	int err;
- 
--	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx\n",
--		    start, virt_addr, length);
-+	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx, access_flags 0x%x\n",
-+		    start, virt_addr, length, access_flags);
- 	umem = ib_umem_get(pd->uobject->context, start, length, access_flags,
- 			   0);
- 	if (IS_ERR(umem)) {
--		mlx5_ib_dbg(dev, "umem get failed\n");
-+		mlx5_ib_dbg(dev, "umem get failed (%ld)\n", PTR_ERR(umem));
- 		return (void *)umem;
- 	}
- 
--- 
-2.1.0
+Please note that a "very welcome side-effect" of this feature is a high of degree performance 
+improvement as a result of the removal of csum calculation.
+I will be happy to share results with you if needed.
 
+At present i have patch ready which was tested with an old kernel and i'm working to port 
+it to latest.
+
+Please review and comment.
+
+Yuval
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
