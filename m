@@ -1,54 +1,64 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v1 for-next 00/16] On demand paging
-Date: Sat, 13 Sep 2014 00:16:20 +0300
-Message-ID: <CAJ3xEMhSZcrN0_nurc=-sUT+KM3vFgAD6XJjjA-eK0-Jyeut0Q@mail.gmail.com>
-References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com>
-	<5405D2D8.1040700@mellanox.com>
-	<CAJ3xEMj8BJLJvetNoqGOFhqeJHupEd=kbnFeO_Na=1ZYbvBk9g@mail.gmail.com>
-	<CAOha14xthZHSpS_T+XRgZcPqwaZvtMw0iGTzKjTyjdBuLhJ4Eg@mail.gmail.com>
-	<CAG4TOxO54LJgSjFFDge4X9OpaBNrM1z=iGSV0GEY+0iFFSs9sw@mail.gmail.com>
-	<540F0CD8.9070002@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 2/2] IB/mlx4: Enable blocking multicast loopback for user-space consumers
+Date: Sun, 14 Sep 2014 16:20:02 +0300
+Message-ID: <1410700802-27848-3-git-send-email-ogerlitz@mellanox.com>
+References: <1410700802-27848-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <540F0CD8.9070002-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1410700802-27848-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Latchesar Ionkov <lionkov-YOWKrPYUwWM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 9, 2014, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 04/09/2014, Roland Dreier wrote:
+Allow user-space UD QPs to require blocking multicast loopback.
 
->> Have you done any review or testing of these changes?  If so can you
->> share the results?
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/qp.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-> We have tested this feature thoroughly inside Mellanox. We ran random
-> tests that performed MR registrations, memory mappings and unmappings,
-> calls to madvise with MADV_DONTNEED for invalidations, sending and
-> receiving of data, and RDMA operations. The test validated the integrity
-> of the data, and we verified the integrity of kernel memory by running
-> the tests under a debugging kernel.
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 577b477..5e4785f 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -706,6 +706,9 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 	if (err)
+ 		goto err;
+ 
++	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK)
++			qp->flags |= MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
++
+ 	if (pd->uobject) {
+ 		struct mlx4_ib_create_qp ucmd;
+ 
+@@ -745,9 +748,6 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 	} else {
+ 		qp->sq_no_prefetch = 0;
+ 
+-		if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK)
+-			qp->flags |= MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
+-
+ 		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO)
+ 			qp->flags |= MLX4_IB_QP_LSO;
+ 
+@@ -1077,9 +1077,12 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ 			return ERR_PTR(-EINVAL);
+ 	}
+ 
++	if (udata &&
++	    init_attr->create_flags & ~(MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK))
++		return ERR_PTR(-EINVAL);
++
+ 	if (init_attr->create_flags &&
+-	    (udata ||
+-	     ((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP | MLX4_IB_QP_CREATE_USE_GFP_NOIO)) &&
++	    (((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP | MLX4_IB_QP_CREATE_USE_GFP_NOIO)) &&
+ 	      init_attr->qp_type != IB_QPT_UD) ||
+ 	     ((init_attr->create_flags & MLX4_IB_SRIOV_SQP) &&
+ 	      init_attr->qp_type > IB_QPT_GSI)))
+-- 
+1.7.1
 
-Hi Roland,
-
-Per your request we provided the information on tests conducted with
-the patches.
-
-Note that the patches can't really disrupt existing applications that
-don't set the new IB_ACCESS_ON_DEMAND MR flag when they register
-memory. Also
-the whole set of changes to the umem area is dependent on building with
-CONFIG_INFINIBAND_ON_DEMAND_PAGING -- all in all, everything is in
-place for protecting against potential regression that this series
-could introduce.
-
-As you didn't provide any feedback for > six months, and we have all
-the above in place (report on stability tests, performance data and
-mechanics to avoid regressions) I think it would be fair to get this
-picked for the coming merge window, thoughts?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
