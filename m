@@ -1,53 +1,33 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: ib_ipoib: CSUM support in connected mode
-Date: Sun, 14 Sep 2014 21:46:22 +0300
-Message-ID: <20140914184621.GA4283@yuval-lab>
+From: Priyanka Das <daspriyankas454-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Hello Dear,
+Date: Sun, 14 Sep 2014 21:44:05 +0000
+Message-ID: <2ebb60f90711bb4fcd357aa636b8ee3b@vogtextile.com>
+Reply-To: <priyankadas454-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-Lately i was working on fixing an issue with IPoIB driver and i'd like to share the 
-details with you.
+Hello Dear,
 
-By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
-This MTU plus overhead puts the memory allocation for IP based packets at 32 4k pages
-(order 5), which have to be contiguous. When the system memory under pressure, it was
-observed that allocating 128k contiguous physical memory is difficult and causes serious
-errors (such as system becomes unusable).
-This enhancement resolve the issue by removing the physically contiguous memory requirement
-using Scatter/Gather feature that exists in Linux stack. In order to use Scatter/Gather
-feature in Linux IPoIB-CM driver, Linux IPoIB-CM must support IP checksum offload feature
-(requirements as per the current Linux N/W implementation). But IB HCA hardware does not
-support this feature and hence IPoIB cannot support the same.
-IPoIB Connected Mode driver uses RC (Reliable Connection) which guarantees the corruption
-free delivery of the packet. InfiniBand uses 32b CRC which provides stronger data integrity
-protection compare to 16b IP Checksum. So, there is no added value that IP Checksum provides
-in the IB world. The proposal is to tell to network stack that IPoIB-CM supports IP
-Checksum offload. This enables Linux IPoIB-CM driver to use Scatter/Gather feature. Network
-sends the IP packet without adding the IP Checksum to the header. On the receive side, IPoIB
-driver again tells the network stack that IP Checksum is good for the incoming packets and
-network stack avoids the IP Checksum calculations.
-During connection establishment the driver determine if the other end supports IB CRC
-as checksum. This is done so driver will be able to calculate checksum before transmitting
-the packet in case the other end does not support this feature.
-A support for fragmented skb is added to transmit path.
+How are you today? hope everything is okay with you, my name is 
+Priyanka Das, it is my great pleasure to contact you through this 
+medium, requesting for a relationship and i know that you will grant my 
+request in good faith and understanding while we see what happened in 
+future.
 
-Please note that a "very welcome side-effect" of this feature is a high of degree performance 
-improvement as a result of the removal of csum calculation.
-I will be happy to share results with you if needed.
+I will be very happy if you will reply me back in other to send my 
+picture and details about myself, you should remember that distance, 
+color, language or race cannot be barriers.
 
-At present i have patch ready which was tested with an old kernel and i'm working to port 
-it to latest.
+I will be waiting to hear from you
 
-Please review and comment.
+Your new friend.
 
-Yuval
+Ms Priyanka.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
