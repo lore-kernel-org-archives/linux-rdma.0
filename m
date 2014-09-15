@@ -1,60 +1,42 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 3/6] IB/core: Avoid leakage from kernel to user
- space
-Date: Mon, 15 Sep 2014 15:45:00 +0200
-Message-ID: <1410788700.7830.3.camel@localhost.localdomain>
-References: <1410702475-28826-1-git-send-email-eli@mellanox.com>
-	 <1410702475-28826-4-git-send-email-eli@mellanox.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: ib_ipoib: CSUM support in connected mode
+Date: Mon, 15 Sep 2014 17:47:19 +0300
+Message-ID: <CAJ3xEMhEzdyzcAufQU--VbM7aoAzsw7wV2i_i=kjcS9PbdC0Tw@mail.gmail.com>
+References: <20140914184621.GA4283@yuval-lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1410702475-28826-4-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20140914184621.GA4283@yuval-lab>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Sun, Sep 14, 2014 at 9:46 PM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
+> This MTU plus overhead puts the memory allocation for IP based packets at 32 4k pages
+> (order 5),
 
-Le dimanche 14 septembre 2014 =C3=A0 16:47 +0300, Eli Cohen a =C3=A9cri=
-t :
-> Clear the reserved field of struct ib_uverbs_async_event_desc which i=
-s=20
-> copied to user space.
->=20
-
-This one could be applied right now on v3.17 and others.
-
-> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-
-Regards.
-
-> ---
->  drivers/infiniband/core/uverbs_main.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniba=
-nd/core/uverbs_main.c
-> index c73b22a257fe..b21af1eaf503 100644
-> --- a/drivers/infiniband/core/uverbs_main.c
-> +++ b/drivers/infiniband/core/uverbs_main.c
-> @@ -477,6 +477,7 @@ static void ib_uverbs_async_handler(struct ib_uve=
-rbs_file *file,
-> =20
->  	entry->desc.async.element    =3D element;
->  	entry->desc.async.event_type =3D event;
-> +	entry->desc.async.reserved   =3D 0;
->  	entry->counter               =3D counter;
-> =20
->  	list_add_tail(&entry->list, &file->async_file->event_list);
+So if we make sure that the advertized netdevice MTU is 64K minus that
+over head we're back to order four
+allocation and problem is solved?   note that RFC 4755 makes sure that
+the MTU is negotiated in both directions,
+so it can have any value, specifically 64K - that epsilon which will
+hopefully make you happy
 
 
+> [...] The proposal is to tell to network stack that IPoIB-CM supports IP
+> Checksum offload. This enables Linux IPoIB-CM driver to use Scatter/Gather feature. Network
+> sends the IP packet without adding the IP Checksum to the header.
+
+AFAIK, on the TX side, Linux will always compute the IP checksum, but
+with this suggestion,
+not the TCP checksum which is assumed to be computed by the card... so
+we will have a TCP
+packet on the wire without checksum. And if this packet goes through
+gateway it will be dropped at
+some point, agree?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
