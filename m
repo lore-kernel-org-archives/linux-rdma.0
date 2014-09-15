@@ -1,73 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: ib_ipoib: CSUM support in connected mode
-Date: Mon, 15 Sep 2014 11:45:13 -0600
-Message-ID: <20140915174513.GA3074@obsidianresearch.com>
+Date: Mon, 15 Sep 2014 21:55:58 +0300
+Message-ID: <20140915185557.GA17422@yuval-lab>
 References: <20140914184621.GA4283@yuval-lab>
  <CAJ3xEMhEzdyzcAufQU--VbM7aoAzsw7wV2i_i=kjcS9PbdC0Tw@mail.gmail.com>
- <20140915165820.GB12397@obsidianresearch.com>
- <CAJ3xEMir_FgqS7j+fuhugocawdZXHG9hAK-jpArZ_5vkzVjZeg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMir_FgqS7j+fuhugocawdZXHG9hAK-jpArZ_5vkzVjZeg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMhEzdyzcAufQU--VbM7aoAzsw7wV2i_i=kjcS9PbdC0Tw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 15, 2014 at 08:20:25PM +0300, Or Gerlitz wrote:
-> On Mon, Sep 15, 2014 at 7:58 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > To do this, you need to transfer the offload state across the wire, so
-> > on receive you inject the packet with the proper tag that the csum is
-> > not computed but ready for offload. A node receiving a packet like
-> > this would have to compute the csum before sending it onwards, so no,
-> > if done properly it will not break gateways.
-> >
-> > All the core infrastructure is there, all the virtualization drivers
-> > work like this - the guest side does not compute the csum, and the
-> > hyperviser side receives the packet with that flag, and the csum
-> > ultimately is offloaded to the physical NIC. Look at the xen net
-> > driver for an example.
+On Mon, Sep 15, 2014 at 05:47:19PM +0300, Or Gerlitz wrote:
+> On Sun, Sep 14, 2014 at 9:46 PM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
+> > This MTU plus overhead puts the memory allocation for IP based packets at 32 4k pages
+> > (order 5),
 > 
-> But is done on the xmitting hypervisor, isn't it? if this is the case,
-> I don't see
-> the similarity to the IPoIB CM case.
-
-I'm not sure what you mean?
-
-You raised the concern about gateways, which is identical to the
-hypervisor case:
-
-G-LINUX --(NO CSUM)--> ring buffer --> H-LINUX --(NO CSUM)--> NIC->WIRE
-
-A-LINUX --(NO CSUM)-->     RC QP   --> B-LINUX --(NO CSUM)--> NIC->WIRE
-
-The key is that csum state is placed in the ring buffer/RC QP with
-every packet. Basically, you serialize the entire offload state the
-IPoIB send receives from the kernel net stack, dump that onto the
-wire, and restore that exact same semantic state on the receive side.
-
-The NIC sees the same packet, with the same offload meta data, as
-though it were directly connected to the sending Linux kernel.
-
-The *typical* IPoIB CM case is similar to a guest talking to another
-guest:
-
-G1 --(NO CSUM)--> ring buffer --> H-LINUX --(NO CSUM)--> ring buffer --(NO CSUM)--> G2
-
-Here the packet is never csum'd - the 2nd guest simply accepts the
-packet with an uncsum'd tag. If you flatten the above it looks
-identical to the typical IPoIB case.
-
-Hypervisors are now also doing the same trick with GSO, they send
-large packets without a high MTU, because they can take then GSO
-master packet state from the sending guest and shuttle the whole thing
-without segmentation to the receiving guest (or NIC). IPoIB should do
-the same.
-
-Jason
+> So if we make sure that the advertized netdevice MTU is 64K minus that
+> over head we're back to order four
+> allocation and problem is solved?   note that RFC 4755 makes sure that
+> the MTU is negotiated in both directions,
+> so it can have any value, specifically 64K - that epsilon which will
+> hopefully make you happy
+Interesting point.
+But please note that in any case, when not using scatter/gather we force the 
+allocation of large contiguous physical memory.
+> 
+> 
+> > [...] The proposal is to tell to network stack that IPoIB-CM supports IP
+> > Checksum offload. This enables Linux IPoIB-CM driver to use Scatter/Gather feature. Network
+> > sends the IP packet without adding the IP Checksum to the header.
+> 
+> AFAIK, on the TX side, Linux will always compute the IP checksum, but
+> with this suggestion,
+> not the TCP checksum which is assumed to be computed by the card... so
+> we will have a TCP
+> packet on the wire without checksum. And if this packet goes through
+> gateway it will be dropped at
+> some point, agree?
+Agree.
+This is why driver must expose interface to system administrator to 
+disable/enable this feature according to his network topology.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
