@@ -1,157 +1,188 @@
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v3] ib_umem_release should decrement mm->pinned_vm from
- ib_umem_get
-Date: Mon, 15 Sep 2014 16:03:30 +0000
-Message-ID: <6B2A6E60C06CCC42AE31809BF572352B010E2565EC@MTLDAG02.mtl.com>
-References: <6B2A6E60C06CCC42AE31809BF572352B010E240634@MTLDAG02.mtl.com>
- <1409764437-29699-1-git-send-email-shawn.bohrer@gmail.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] IB/uverbs: Add QP creation flags, allow
+ blocking UD multicast loopback
+Date: Mon, 15 Sep 2014 18:52:52 +0200
+Message-ID: <1410799972.7830.25.camel@localhost.localdomain>
+References: <1410700802-27848-1-git-send-email-ogerlitz@mellanox.com>
+	 <1410700802-27848-2-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1409764437-29699-1-git-send-email-shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1410700802-27848-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org" <tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
+Le dimanche 14 septembre 2014 =C3=A0 16:20 +0300, Or Gerlitz a =C3=A9cr=
+it :
+> Currently, there's no way for user-space applications to specify
+> the IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK QP creation flags defined
+> by commit 47ee1b9 "IB/core: Add support for multicast loopback blocki=
+ng".
+>=20
 
-> -----Original Message-----
-> From: Shawn Bohrer [mailto:shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Wednesday, September 03, 2014 8:15 PM
-> To: Roland Dreier
-> Cc: Sean Hefty; hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tomk-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org; Yishai Hadas; Or
-> Gerlitz; Haggai Eran; Shachar Raindel; Christoph Lameter; Shawn Bohrer
-> Subject: [PATCH v3] ib_umem_release should decrement mm->pinned_vm from
-> ib_umem_get
-> 
-> From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
-> 
-> In debugging an application that receives -ENOMEM from ib_reg_mr() I
-> found that ib_umem_get() can fail because the pinned_vm count has
-> wrapped causing it to always be larger than the lock limit even with
-> RLIMIT_MEMLOCK set to RLIM_INFINITY.
-> 
-> The wrapping of pinned_vm occurs because the process that calls
-> ib_reg_mr() will have its mm->pinned_vm count incremented.  Later a
-> different process with a different mm_struct than the one that allocated
-> the ib_umem struct ends up releasing it which results in decrementing
-> the new processes mm->pinned_vm count past zero and wrapping.
-> 
-> I'm not entirely sure what circumstances cause a different process to
-> release the ib_umem than the one that allocated it but the kernel stack
-> trace of the freeing process from my situation looks like the following:
-> 
-> Call Trace:
->  [<ffffffff814d64b1>] dump_stack+0x19/0x1b
->  [<ffffffffa0b522a5>] ib_umem_release+0x1f5/0x200 [ib_core]
->  [<ffffffffa0b90681>] mlx4_ib_destroy_qp+0x241/0x440 [mlx4_ib]
->  [<ffffffffa0b4d93c>] ib_destroy_qp+0x12c/0x170 [ib_core]
->  [<ffffffffa0cc7129>] ib_uverbs_close+0x259/0x4e0 [ib_uverbs]
->  [<ffffffff81141cba>] __fput+0xba/0x240
->  [<ffffffff81141e4e>] ____fput+0xe/0x10
->  [<ffffffff81060894>] task_work_run+0xc4/0xe0
->  [<ffffffff810029e5>] do_notify_resume+0x95/0xa0
->  [<ffffffff814e3dd0>] int_signal+0x12/0x17
-> 
-> The following patch fixes the issue by storing the pid struct of the
-> process that calls ib_umem_get() so that ib_umem_release and/or
-> ib_umem_account() can properly decrement the pinned_vm count of the
-> correct mm_struct.
-> 
-> Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+Commit identifier is too short, 12 digits is the norm.
 
-
-Reviewed-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
+> As a result, applications who send and recieve over the same QP to
+> the same multicast group get all their packets bouncded back to them,
+> which is terribly bad performance wise.
+>=20
+> To fix this long standing issue, add the ability to provide QP
+> creation flags through uverbs.
+>=20
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
-> v3 changes:
-> * Fix resource leak with put_task_struct()
-> v2 changes:
-> * Updated to use get_task_pid to avoid keeping a reference to the mm
-> 
->  drivers/infiniband/core/umem.c |   19 +++++++++++++------
->  include/rdma/ib_umem.h         |    1 +
->  2 files changed, 14 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/umem.c
-> b/drivers/infiniband/core/umem.c
-> index a3a2e9c..df0c4f6 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -105,6 +105,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext
-> *context, unsigned long addr,
->  	umem->length    = size;
->  	umem->offset    = addr & ~PAGE_MASK;
->  	umem->page_size = PAGE_SIZE;
-> +	umem->pid       = get_task_pid(current, PIDTYPE_PID);
->  	/*
->  	 * We ask for writable memory if any access flags other than
->  	 * "remote read" are set.  "Local write" and "remote write"
-> @@ -198,6 +199,7 @@ out:
->  	if (ret < 0) {
->  		if (need_release)
->  			__ib_umem_release(context->device, umem, 0);
-> +		put_pid(umem->pid);
->  		kfree(umem);
->  	} else
->  		current->mm->pinned_vm = locked;
-> @@ -230,15 +232,19 @@ void ib_umem_release(struct ib_umem *umem)
->  {
->  	struct ib_ucontext *context = umem->context;
->  	struct mm_struct *mm;
-> +	struct task_struct *task;
->  	unsigned long diff;
-> 
->  	__ib_umem_release(umem->context->device, umem, 1);
-> 
-> -	mm = get_task_mm(current);
-> -	if (!mm) {
-> -		kfree(umem);
-> -		return;
-> -	}
-> +	task = get_pid_task(umem->pid, PIDTYPE_PID);
-> +	put_pid(umem->pid);
-> +	if (!task)
-> +		goto out;
-> +	mm = get_task_mm(task);
-> +	put_task_struct(task);
-> +	if (!mm)
-> +		goto out;
-> 
->  	diff = PAGE_ALIGN(umem->length + umem->offset) >> PAGE_SHIFT;
-> 
-> @@ -262,9 +268,10 @@ void ib_umem_release(struct ib_umem *umem)
->  	} else
->  		down_write(&mm->mmap_sem);
-> 
-> -	current->mm->pinned_vm -= diff;
-> +	mm->pinned_vm -= diff;
->  	up_write(&mm->mmap_sem);
->  	mmput(mm);
-> +out:
->  	kfree(umem);
+>  drivers/infiniband/core/uverbs_cmd.c |   35 ++++++++++++++++++++++++=
+++++++++-
+>  include/uapi/rdma/ib_user_verbs.h    |    2 +-
+>  2 files changed, 34 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniban=
+d/core/uverbs_cmd.c
+> index 0600c50..1ad489c 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -1579,6 +1579,31 @@ ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_=
+file *file,
+>  	return in_len;
 >  }
->  EXPORT_SYMBOL(ib_umem_release);
-> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-> index 1ea0b65..a2bf41e 100644
-> --- a/include/rdma/ib_umem.h
-> +++ b/include/rdma/ib_umem.h
-> @@ -47,6 +47,7 @@ struct ib_umem {
->  	int                     writable;
->  	int                     hugetlb;
->  	struct work_struct	work;
-> +	struct pid             *pid;
->  	struct mm_struct       *mm;
->  	unsigned long		diff;
->  	struct sg_table sg_head;
-> --
-> 1.7.7.6
+> =20
+> +enum ib_uverbs_qp_create_flags {
+> +	IB_UVERBS_QP_CREATE_LSO	    =3D 0,
+> +	IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK =3D 1,
+> +	IB_UVERBS_SUPPORTED_FLAGS
+> +};
+
+IB_UVERBS_QP_CREATE_LSO and IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBAC=
+K
+should moved in include/uapi/rdma/ib_user_verbs.h.
+
+If this is going to be flags, these values might be OR-ed together ?
+Then the userspace values should be defined like the kernel ones
+(see commit 47ee1b9f2e7b):
+
++enum ib_uverbs_qp_create_flags {
++	IB_UVERBS_QP_CREATE_LSO	    =3D                  1 << 0,
++	IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK =3D 1 << 1,
++}
+
+IB_UVERBS_SUPPORTED_FLAGS must be kept in this module, but defined
+as:
+
+#define IB_UVERBS_QP_CREATE_FLAGS_ALL (IB_UVERBS_QP_CREATE_LSO | \
+				       IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK)
+
+> +
+> +static int ib_uverbs_create_qp_trans(u8 u_flags)
+> +{
+> +	int i;
+> +	int res;
+> +	static const enum ib_qp_create_flags ib_uverbs_qp_create_flags[IB_U=
+VERBS_SUPPORTED_FLAGS] =3D {
+> +		[IB_UVERBS_QP_CREATE_LSO] =3D IB_QP_CREATE_IPOIB_UD_LSO,
+> +		[IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK] =3D IB_QP_CREATE_BL=
+OCK_MULTICAST_LOOPBACK,
+> +	};
+> +
+> +	if (u_flags & ~((1 << IB_UVERBS_SUPPORTED_FLAGS) - 1))
+> +		return -1;
+> +
+
+	if (u_flags & ~(u8)(IB_UVERBS_QP_CREATE_FLAGS_ALL))
+	   return -1;
+
+> +	for (i =3D 0; i < IB_UVERBS_SUPPORTED_FLAGS; i++)
+> +		if (u_flags & (1 << i))
+> +			res |=3D ib_uverbs_qp_create_flags[i];
+> +
+> +	return res;
+> +}
+> +
+
+This function can be replaced by compile time assert:
+
+BUILD_BUG_ON(IB_UVERBS_QP_CREATE_LSO !=3D IB_QP_CREATE_IPOIB_UD_LSO);
+BUILD_BUG_ON(IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK !=3D
+IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK);
+
+This way the values can be used without conversion.
+
+>  ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+>  			    const char __user *buf, int in_len,
+>  			    int out_len)
+> @@ -1595,7 +1620,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_fi=
+le *file,
+>  	struct ib_srq                  *srq =3D NULL;
+>  	struct ib_qp                   *qp;
+>  	struct ib_qp_init_attr          attr;
+> -	int ret;
+> +	int flags, ret;
+> =20
+>  	if (out_len < sizeof resp)
+>  		return -ENOSPC;
+> @@ -1664,7 +1689,13 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_f=
+ile *file,
+>  	attr.xrcd	   =3D xrcd;
+>  	attr.sq_sig_type   =3D cmd.sq_sig_all ? IB_SIGNAL_ALL_WR : IB_SIGNA=
+L_REQ_WR;
+>  	attr.qp_type       =3D cmd.qp_type;
+> -	attr.create_flags  =3D 0;
+> +
+> +	flags  =3D ib_uverbs_create_qp_trans(cmd.create_flags);
+> +	if (flags < 0) {
+> +		ret =3D -EINVAL;
+> +		goto err_put;
+> +	}
+> +	attr.create_flags  =3D flags;
+> =20
+>  	attr.cap.max_send_wr     =3D cmd.max_send_wr;
+>  	attr.cap.max_recv_wr     =3D cmd.max_recv_wr;
+> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib=
+_user_verbs.h
+> index 26daf55..fac6975 100644
+> --- a/include/uapi/rdma/ib_user_verbs.h
+> +++ b/include/uapi/rdma/ib_user_verbs.h
+> @@ -470,7 +470,7 @@ struct ib_uverbs_create_qp {
+>  	__u8  sq_sig_all;
+>  	__u8  qp_type;
+>  	__u8  is_srq;
+> -	__u8  reserved;
+> +	__u8  create_flags;
+>  	__u64 driver_data[0];
+>  };
+> =20
+
+I'm not really happy with the way "reserved" field is used by this
+patch: as the field wasn't check for being set to 0, any value could be
+given by userspace (imagine the structure lay on stack). Using it now
+could be dangerous. It must be double checked.
+
+http://blog.ffwll.ch/2013/11/botching-up-ioctls.html
+
+"Check all unused fields and flags and all the padding for whether it's
+0, and reject the ioctl if that's not the case. Otherwise your nice pla=
+n
+for future extensions is going right down the gutters since someone wil=
+l
+submit an ioctl struct with random stack garbage in the yet unused
+parts. Which then bakes in the ABI that those fields can never be used
+for anything else but garbage."
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
