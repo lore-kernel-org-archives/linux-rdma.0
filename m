@@ -1,46 +1,60 @@
-From: "eagle.rtlinux" <eagle.rtlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] Infiniband coding mistake fixed.
-Date: Mon, 15 Sep 2014 21:22:20 +0800
-Message-ID: <5416E80C.7010705@gmail.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 3/6] IB/core: Avoid leakage from kernel to user
+ space
+Date: Mon, 15 Sep 2014 15:45:00 +0200
+Message-ID: <1410788700.7830.3.camel@localhost.localdomain>
+References: <1410702475-28826-1-git-send-email-eli@mellanox.com>
+	 <1410702475-28826-4-git-send-email-eli@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1410702475-28826-4-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eagle.rtlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hello,
+Hi,
 
-The last parameter of get_user_pages should be a array of pointers to 
-vmas corresponding to each page. Through this coding mistake can not 
-cause some problem now, it is a potential time bomb.
+Le dimanche 14 septembre 2014 =C3=A0 16:47 +0300, Eli Cohen a =C3=A9cri=
+t :
+> Clear the reserved field of struct ib_uverbs_async_event_desc which i=
+s=20
+> copied to user space.
+>=20
 
-Signed-off-by: Yang Honggang <eagle.rtlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-  drivers/infiniband/hw/qib/qib_user_pages.c |    2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
+This one could be applied right now on v3.17 and others.
 
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c 
-b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 2bc1d2b..e93d459 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -69,7 +69,7 @@ static int __qib_get_user_pages(unsigned long 
-start_page, size_t num_pages,
-          ret = get_user_pages(current, current->mm,
-                       start_page + got * PAGE_SIZE,
-                       num_pages - got, 1, 1,
--                     p + got, vma);
-+                     p + got, vma + got);
-          if (ret < 0)
-              goto bail_release;
-      }
--- 
-1.7.10.4
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+
+Regards.
+
+> ---
+>  drivers/infiniband/core/uverbs_main.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniba=
+nd/core/uverbs_main.c
+> index c73b22a257fe..b21af1eaf503 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -477,6 +477,7 @@ static void ib_uverbs_async_handler(struct ib_uve=
+rbs_file *file,
+> =20
+>  	entry->desc.async.element    =3D element;
+>  	entry->desc.async.event_type =3D event;
+> +	entry->desc.async.reserved   =3D 0;
+>  	entry->counter               =3D counter;
+> =20
+>  	list_add_tail(&entry->list, &file->async_file->event_list);
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
