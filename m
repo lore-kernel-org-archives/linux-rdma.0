@@ -1,44 +1,48 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: ib_ipoib: CSUM support in connected mode
-Date: Tue, 16 Sep 2014 09:47:43 +0300
-Message-ID: <5417DD0F.9090201@mellanox.com>
-References: <20140914184621.GA4283@yuval-lab> <CAJ3xEMhEzdyzcAufQU--VbM7aoAzsw7wV2i_i=kjcS9PbdC0Tw@mail.gmail.com> <20140915185557.GA17422@yuval-lab>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.12-1 rc2 release is available
+Date: Tue, 16 Sep 2014 15:52:20 +0300
+Message-ID: <54183284.4080607@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140915185557.GA17422@yuval-lab>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
+OFED-3.12-1-rc2 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.12-1/OFED-3.12-1-rc2.tgz
 
-On 9/15/2014 9:55 PM, Yuval Shaia wrote:
-> On Mon, Sep 15, 2014 at 05:47:19PM +0300, Or Gerlitz wrote:
->> >On Sun, Sep 14, 2014 at 9:46 PM, Yuval Shaia<yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>  wrote:
->>> >>By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
->>> >>This MTU plus overhead puts the memory allocation for IP based packets at 32 4k pages (order 5),
->>
->> >So if we make sure that the advertized netdevice MTU is 64K minus that
->> >over head we're back to order four
->> >allocation and problem is solved?   note that RFC 4755 makes sure that
->> >the MTU is negotiated in both directions,
->> >so it can have any value, specifically 64K - that epsilon which will
->> >hopefully make you happy
-> Interesting point. But please note that in any case, when not using scatter/gather we force the allocation of large contiguous physical memory.
+To get BUILD_ID run ofed_info
 
-On the post you wrote "[...] resolve the issue by removing the physically contiguous memory requirement using Scatter/Gather feature that exists in Linux".
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.12-1
 
-I assume you refer to NETIF_F_SG, right? so your claim is that Linux will not effectively use the driver ability to serve SG skbs unless the driver also advertizes (say) NETIF_F_IP_CSUM?!
-
-I thought it's the other way around -- that is supporting checksum offloading is useless unless SG is supported. Can you provide pointer into the network stack code/documentation that supports your claim?
-  
-Or.
-
-  
+Release notes: 
+https://openfabrics.org/downloads/OFED/release_notes/OFED_3.12-1_rc2_release_notes 
 
 
+
+OFED-3.12-1-rc2 Main Changes from OFED 3.12-1-rc1
+-------------------------------------------------------------------------------
+Updated packages:
+     - dapl-2.1.2
+     - mstflint-3.7.0-1.18.gcdb9f80
+     - compat-rdma:
+         xeon-phi: updates to ofed-mic script
+         xeon-phi: correct configure file for correct -with-ibp-debug flag
+         xeon-phi: remove bogus comment in compat-rdma.spec
+         xeon-phi: updates to ibp_server
+         xeon-phi: updated technology preview for ibscif
+         RDMA/ocrdma: Add a fix for mmaping kernel mem to user
+         cxgb4: GRO busted in sles/rhel backports.
+         cxgb4: Fix vlan support in sles and rhel backport.
+         add missing docs directory
+
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
