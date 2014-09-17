@@ -1,55 +1,43 @@
-From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: RE: [PATCH v2 3/4] rsockets: distribute completion queue vectors
- among multiple cores
-Date: Wed, 17 Sep 2014 11:24:02 +0530
-Message-ID: <8ef183ac3ab0735f47108b33702f9e46@imap.linux.ibm.com>
-References: <f028f54b9900ee34fcd1abd1d90d10e6@imap.linux.ibm.com>
- <5409DB0D.6080103@acm.org>
- <850a2835b5917f6da62af3d1ea0288fd@imap.linux.ibm.com>
- <540D50E9.5050709@acm.org>
- <a8ac21f3c9d7c802ab089bc0d432e40b@imap.linux.ibm.com>
- <540DF3CC.1060304@acm.org>
- <edc2b05703209d2a7626a31abb170ceb@imap.linux.ibm.com>
- <ef556922e7b766360a38df904dff1c70@imap.linux.ibm.com>
- <5416ABFB.7040701@acm.org>
- <d5804c38cb47bcc79eb3962cf8ca6989@imap.linux.ibm.com>
- <1828884A29C6694DAF28B7E6B8A8237399DD3DA8@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 for-next 00/16] On demand paging
+Date: Wed, 17 Sep 2014 18:18:46 +0300
+Message-ID: <5419A656.2050004@mellanox.com>
+References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com>	<5405D2D8.1040700@mellanox.com>	<CAJ3xEMj8BJLJvetNoqGOFhqeJHupEd=kbnFeO_Na=1ZYbvBk9g@mail.gmail.com>	<CAOha14xthZHSpS_T+XRgZcPqwaZvtMw0iGTzKjTyjdBuLhJ4Eg@mail.gmail.com>	<CAG4TOxO54LJgSjFFDge4X9OpaBNrM1z=iGSV0GEY+0iFFSs9sw@mail.gmail.com>	<540F0CD8.9070002@mellanox.com> <CAJ3xEMhSZcrN0_nurc=-sUT+KM3vFgAD6XJjjA-eK0-Jyeut0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399DD3DA8-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAJ3xEMhSZcrN0_nurc=-sUT+KM3vFgAD6XJjjA-eK0-Jyeut0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Latchesar Ionkov <lionkov-YOWKrPYUwWM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2014-09-16 10:27, Hefty, Sean wrote:
->> Thanks for your detailed thoughts and insights into comp vector
->> assignment.  As you rightly pointed out, let's hear from wider
->> community as well before we attempt another iteration on the path.
->> I have included below some details about the latest patch to
->> understand where we are currently.
-> 
-> Are there any similar mechanisms defined elsewhere that we can use as 
-> guidance?
-> 
-> I don't recall, does completion vector 0 refer to a specific vector or
-> does it mean use a default assignment?
-> 
-> - Sean
+On 9/13/2014 12:16 AM, Or Gerlitz wrote:
+> Per your request we provided the information on tests conducted with
+> the patches.
+>
+> Note that the patches can't really disrupt existing applications that
+> don't set the new IB_ACCESS_ON_DEMAND MR flag when they register
+> memory. Also the whole set of changes to the umem area is dependent on building with
+> CONFIG_INFINIBAND_ON_DEMAND_PAGING -- all in all, everything is in
+> place for protecting against potential regression that this series
+> could introduce.
+>
+> As you didn't provide any feedback for > six months, and we have all
+> the above in place (report on stability tests, performance data and
+> mechanics to avoid regressions) I think it would be fair to get this
+> picked for the coming merge window, thoughts?
 
-Hi Sean,
+Roland,
 
-Not sure about similar mechanisms but some references to irq balancing
-available on the net.  I think, comp vector 0 is a specific vector that
-is used by default.
+Can you please comment here, not only that you didn't provide any 
+feedback on the patches, you
+are even not willing to respond if the the data we gave addresses your 
+questions on testing and performance. Are you planning to pick this to 
+the next merge window?
 
-Thank You.
-
-- Sreedhar
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
