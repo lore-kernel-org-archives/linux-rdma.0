@@ -1,43 +1,23 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 for-next 00/16] On demand paging
-Date: Wed, 17 Sep 2014 18:18:46 +0300
-Message-ID: <5419A656.2050004@mellanox.com>
-References: <1404377069-20585-1-git-send-email-haggaie@mellanox.com>	<5405D2D8.1040700@mellanox.com>	<CAJ3xEMj8BJLJvetNoqGOFhqeJHupEd=kbnFeO_Na=1ZYbvBk9g@mail.gmail.com>	<CAOha14xthZHSpS_T+XRgZcPqwaZvtMw0iGTzKjTyjdBuLhJ4Eg@mail.gmail.com>	<CAG4TOxO54LJgSjFFDge4X9OpaBNrM1z=iGSV0GEY+0iFFSs9sw@mail.gmail.com>	<540F0CD8.9070002@mellanox.com> <CAJ3xEMhSZcrN0_nurc=-sUT+KM3vFgAD6XJjjA-eK0-Jyeut0Q@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 1/4] rsockets: fine grained interception mechanism
+ for rsocket preloading
+Date: Wed, 17 Sep 2014 16:13:06 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DD4352@ORSMSX109.amr.corp.intel.com>
+References: <bcb66f862cc014a6305816cb8dd45deb@imap.linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhSZcrN0_nurc=-sUT+KM3vFgAD6XJjjA-eK0-Jyeut0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <bcb66f862cc014a6305816cb8dd45deb-FJGp5E75HVmZamtmwQBW5tBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Latchesar Ionkov <lionkov-YOWKrPYUwWM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/13/2014 12:16 AM, Or Gerlitz wrote:
-> Per your request we provided the information on tests conducted with
-> the patches.
->
-> Note that the patches can't really disrupt existing applications that
-> don't set the new IB_ACCESS_ON_DEMAND MR flag when they register
-> memory. Also the whole set of changes to the umem area is dependent on building with
-> CONFIG_INFINIBAND_ON_DEMAND_PAGING -- all in all, everything is in
-> place for protecting against potential regression that this series
-> could introduce.
->
-> As you didn't provide any feedback for > six months, and we have all
-> the above in place (report on stability tests, performance data and
-> mechanics to avoid regressions) I think it would be fair to get this
-> picked for the coming merge window, thoughts?
+This patch does not apply.  Can you please resend this patch without extra line breaks inserted into the patch?  Also, please trim any long lines down to about 80 characters where possible.  I'm fine going over 80 characters if it improves readability.
 
-Roland,
-
-Can you please comment here, not only that you didn't provide any 
-feedback on the patches, you
-are even not willing to respond if the the data we gave addresses your 
-questions on testing and performance. Are you planning to pick this to 
-the next merge window?
-
-Or.
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
