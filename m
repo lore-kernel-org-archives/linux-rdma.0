@@ -1,135 +1,82 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] IB/uverbs: Add QP creation flags, allow
- blocking UD multicast loopback
-Date: Thu, 18 Sep 2014 16:03:16 +0300
-Message-ID: <541AD814.3040809@mellanox.com>
-References: <1410700802-27848-1-git-send-email-ogerlitz@mellanox.com>	 <1410700802-27848-2-git-send-email-ogerlitz@mellanox.com>	 <1410799972.7830.25.camel@localhost.localdomain>	 <CAJ3xEMidZpzXaD=ttc5qAWZfX4DPRZxwK9YK6pPPjyDLjFMM7g@mail.gmail.com> <1411025151.7830.48.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libibverbs V6 0/2] Use neighbour lookup for RoCE UD QPs Eth L2 resolution
+Date: Thu, 18 Sep 2014 17:53:09 +0300
+Message-ID: <1411051991-17456-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1411025151.7830.48.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Roland,
 
-On 9/18/2014 10:25 AM, Yann Droneaud wrote:
-> Le lundi 15 septembre 2014 =C3=A0 20:36 +0300, Or Gerlitz a =C3=A9cri=
-t :
->> On Mon, Sep 15, 2014 at 7:52 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org=
-> wrote:
->>>> --- a/include/uapi/rdma/ib_user_verbs.h
->>>> +++ b/include/uapi/rdma/ib_user_verbs.h
->>>> @@ -470,7 +470,7 @@ struct ib_uverbs_create_qp {
->>>>        __u8  sq_sig_all;
->>>>        __u8  qp_type;
->>>>        __u8  is_srq;
->>>> -     __u8  reserved;
->>>> +     __u8  create_flags;
->>>>        __u64 driver_data[0];
->>>>   };
->>>>
->>> I'm not really happy with the way "reserved" field is used by this
->>> patch: as the field wasn't check for being set to 0, any value coul=
-d be
->>> given by userspace (imagine the structure lay on stack). Using it n=
-ow
->>> could be dangerous. It must be double checked.
->> We are only allowing user space applications to program certain
->> aspects in the behavior of their own QPs, no risk to the system/kern=
-el state.
->>
-> I've checked the implementation on the most common userspace code
-> accessing the uverbs API, libibverbs, and found the "reserved" field =
-is
-> explicitely cleared in:
->
-> ibv_cmd_create_qp_ex():
->
-> c7e3e61052dd7 (Sean Hefty       2013-08-01 18:04:16 +0300  651)      =
-   cmd->reserved        =3D 0;
->
-> ibv_cmd_create_qp():
->
-> 0e0604213ed79 (Roland Dreier    2006-10-04 23:57:10 +0000  726)      =
-   cmd->reserved        =3D 0;
->
-> Latter commit is part of libibverbs-1.1-rc1, so before libibverbs-1.1=
-,
-> reserved field was not cleared.
->
-> For example, mlx4_create_qp() allocate the ibv_create_qp structure on
-> stack and doesn't clear reserved field:
->
-> ^d049a1279b82 (Roland Dreier    2007-04-09 00:49:42 -0700 358)  struc=
-t mlx4_create_qp     cmd;
->
+This series adds support for Ethernet L2 address resolution for RoCE UD QPs,
+whose L2 address-handles, unlike RC/UC/XRC/etc QPs are set from user space
+without going through uverbs and the kernel IB core. The code is also
+compatible both with old kernels that don't run IP based addressing.
 
-As  you noted, in libibverbs this field is cleared since 2006 for all=20
-use cases of this uverbs command . The libmlx4 code pointer you provide=
-d=20
-is calling into libibverbs code (ibv_cmd_create_qp) which does the zero=
-ing.
+Matan and Or.
+
+changes from V5 -- addressed feedback from Jason
+  - Fixed leakage of timer file descriptor
+  - Separated libnl1 to a separate header file
+  - Don't print errors, use errno instead
+  - Fix a crash when next hop is NULL
+  - Handle errors from select
+
+changes from V4 -- addressed feedback from Jason
+  - Instead of an extended create_ah_ex provider call, use a utlity
+    function in libibverbs.
+  - Remove the extended query port that was mainly used for caching.
+
+changes from V3 -- addressed feedback from Jason:
+  - replaced the char* that used to hold the MAC address provided to
+    the provider library (e.g libmlx4) with sockaddr_storage and use ARPHRD
+    for the af_family (similar to the practice used in the kernel)
+
+  - Dropped mask1 from ibv_query_port_ex and put all fields in comp_mask
+  - Added a man page for ibv_query_port_ex
+  - Made the code c99 friendly by dropping the anonymous union and struct
+  - Splitted the patches to patch that adds the interface and patch that uses it
+  - Removed the usage of drv_ and lib_ schemas
+  - Removed the VERBS_CONTEXT_XXXXXXX
+
+changes from V2:
+  - when using libnl3, link libibverbs itself with libnl3 and not the utilities
+  - fix memory leak which took place when nl_addr_cmp_prefix_msb returns non zero.
+  - rebased against libibverbs-1.1.8
+
+changes from V1, addressed feedback from Yann Droneaud:
+  - ported the code to libnl3 with automatic fallback option to libnl1
+  - better error handling (more checks to erroneous flows)
+  - fixed typos and removed blank lines
+  - set close-on-exec open flag for the relevant fds
+  - remove wrong comment from the change-log of patch #1
+
+changes from V0:
+ - don't change struct ibv_port_attr flags field from uint32_t
+   to enum (size could change)
+ - ibv_ah_attr_ex is extendable and contains ibv_ah_attr
 
 
-> So existing userspace program using libibverbs < 1.1 is likely to bre=
-ak with newer kernel if reserved field is going to be used.
+Matan Barak (2):
+  Add ibv_port_cap_flags
+  Use neighbour lookup for RoCE UD QPs Eth L2 resolution
 
-as I wrote earlier, not break.
-
->> We've done it very successfully in the past with adding the link_lay=
-er field
->> to struct ib_uverbs_query_port_resp as part of the RoCE story instea=
-d of a
->> reserved field.
->>
-> ib_uverbs_query_port_resp is the opposite side: the kernel is adding =
-stuff
-> where older userspace code don't expect to found anything, so this ex=
-tra
-> information is skipped by such pre-existing program.
-
-yep, the example wasn't 1:1 to this case, understood.
-
-> Using an unused field in the request has more chance to break than us=
-ing
-> an extra field in the response.
->
-> Again:
->
-> "Check all unused fields and flags and all the padding for whether it=
-'s 0,
->   and reject the ioctl if that's not the case. Otherwise your nice pl=
-an for
->   future extensions is going right down the gutters since someone wil=
-l
->   submit an ioctl struct with random stack garbage in the yet unused =
-parts.
->   Which then bakes in the ABI that those fields can never be used for
->   anything else but garbage."
->
-> As the "reserved" field was never check for being 0 in kernel side,
-> ensuring it could be used in the future for other purpose, we're in
-> a situation where "reserved" field is garbage when using older
-> libibverbs or other userspace software that can address uverbs
-> by-passing libibverbs.
->
-> That's likely to break existing userspace application.
-
-Again, applications that for some reason don't zero out this field, wil=
-l=20
-get their QP to potentially support some features which they will not u=
-se.
-
-Or.
-
-
+ Makefile.am                |   24 +-
+ configure.ac               |   31 ++
+ include/infiniband/verbs.h |   31 ++
+ src/libibverbs.map         |    2 +
+ src/neigh.c                |  853 ++++++++++++++++++++++++++++++++++++++++++++
+ src/neigh.h                |   47 +++
+ src/nl1_compat.h           |   73 ++++
+ src/verbs.c                |  127 +++++++
+ 8 files changed, 1178 insertions(+), 10 deletions(-)
+ create mode 100644 src/neigh.c
+ create mode 100644 src/neigh.h
+ create mode 100644 src/nl1_compat.h
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
