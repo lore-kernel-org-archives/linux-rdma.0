@@ -1,80 +1,67 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs V6 0/2] Use neighbour lookup for RoCE UD QPs Eth L2 resolution
-Date: Thu, 18 Sep 2014 17:53:09 +0300
-Message-ID: <1411051991-17456-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH libibverbs V6 1/2] Add ibv_port_cap_flags
+Date: Thu, 18 Sep 2014 17:53:10 +0300
+Message-ID: <1411051991-17456-2-git-send-email-matanb@mellanox.com>
+References: <1411051991-17456-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1411051991-17456-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Add an enum that describes ibv_port_cap_flags that complies
+with the respective kernel enum.
 
-This series adds support for Ethernet L2 address resolution for RoCE UD QPs,
-whose L2 address-handles, unlike RC/UC/XRC/etc QPs are set from user space
-without going through uverbs and the kernel IB core. The code is also
-compatible both with old kernels that don't run IP based addressing.
+This value could be fetched when using ibv_query_port in
+port_cap_flags.
 
-Matan and Or.
+Change-Id: I499565f17d378f525796ee187ef0fac91fd48c21
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/infiniband/verbs.h |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-changes from V5 -- addressed feedback from Jason
-  - Fixed leakage of timer file descriptor
-  - Separated libnl1 to a separate header file
-  - Don't print errors, use errno instead
-  - Fix a crash when next hop is NULL
-  - Handle errors from select
-
-changes from V4 -- addressed feedback from Jason
-  - Instead of an extended create_ah_ex provider call, use a utlity
-    function in libibverbs.
-  - Remove the extended query port that was mainly used for caching.
-
-changes from V3 -- addressed feedback from Jason:
-  - replaced the char* that used to hold the MAC address provided to
-    the provider library (e.g libmlx4) with sockaddr_storage and use ARPHRD
-    for the af_family (similar to the practice used in the kernel)
-
-  - Dropped mask1 from ibv_query_port_ex and put all fields in comp_mask
-  - Added a man page for ibv_query_port_ex
-  - Made the code c99 friendly by dropping the anonymous union and struct
-  - Splitted the patches to patch that adds the interface and patch that uses it
-  - Removed the usage of drv_ and lib_ schemas
-  - Removed the VERBS_CONTEXT_XXXXXXX
-
-changes from V2:
-  - when using libnl3, link libibverbs itself with libnl3 and not the utilities
-  - fix memory leak which took place when nl_addr_cmp_prefix_msb returns non zero.
-  - rebased against libibverbs-1.1.8
-
-changes from V1, addressed feedback from Yann Droneaud:
-  - ported the code to libnl3 with automatic fallback option to libnl1
-  - better error handling (more checks to erroneous flows)
-  - fixed typos and removed blank lines
-  - set close-on-exec open flag for the relevant fds
-  - remove wrong comment from the change-log of patch #1
-
-changes from V0:
- - don't change struct ibv_port_attr flags field from uint32_t
-   to enum (size could change)
- - ibv_ah_attr_ex is extendable and contains ibv_ah_attr
-
-
-Matan Barak (2):
-  Add ibv_port_cap_flags
-  Use neighbour lookup for RoCE UD QPs Eth L2 resolution
-
- Makefile.am                |   24 +-
- configure.ac               |   31 ++
- include/infiniband/verbs.h |   31 ++
- src/libibverbs.map         |    2 +
- src/neigh.c                |  853 ++++++++++++++++++++++++++++++++++++++++++++
- src/neigh.h                |   47 +++
- src/nl1_compat.h           |   73 ++++
- src/verbs.c                |  127 +++++++
- 8 files changed, 1178 insertions(+), 10 deletions(-)
- create mode 100644 src/neigh.c
- create mode 100644 src/neigh.h
- create mode 100644 src/nl1_compat.h
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 9826b72..4eb68f1 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -191,6 +191,32 @@ enum {
+ 	IBV_LINK_LAYER_ETHERNET,
+ };
+ 
++enum ibv_port_cap_flags {
++	IBV_PORT_SM				= 1 <<  1,
++	IBV_PORT_NOTICE_SUP			= 1 <<  2,
++	IBV_PORT_TRAP_SUP			= 1 <<  3,
++	IBV_PORT_OPT_IPD_SUP			= 1 <<  4,
++	IBV_PORT_AUTO_MIGR_SUP			= 1 <<  5,
++	IBV_PORT_SL_MAP_SUP			= 1 <<  6,
++	IBV_PORT_MKEY_NVRAM			= 1 <<  7,
++	IBV_PORT_PKEY_NVRAM			= 1 <<  8,
++	IBV_PORT_LED_INFO_SUP			= 1 <<  9,
++	IBV_PORT_SYS_IMAGE_GUID_SUP		= 1 << 11,
++	IBV_PORT_PKEY_SW_EXT_PORT_TRAP_SUP	= 1 << 12,
++	IBV_PORT_EXTENDED_SPEEDS_SUP		= 1 << 14,
++	IBV_PORT_CM_SUP				= 1 << 16,
++	IBV_PORT_SNMP_TUNNEL_SUP		= 1 << 17,
++	IBV_PORT_REINIT_SUP			= 1 << 18,
++	IBV_PORT_DEVICE_MGMT_SUP		= 1 << 19,
++	IBV_PORT_VENDOR_CLASS_SUP		= 1 << 20,
++	IBV_PORT_DR_NOTICE_SUP			= 1 << 21,
++	IBV_PORT_CAP_MASK_NOTICE_SUP		= 1 << 22,
++	IBV_PORT_BOOT_MGMT_SUP			= 1 << 23,
++	IBV_PORT_LINK_LATENCY_SUP		= 1 << 24,
++	IBV_PORT_CLIENT_REG_SUP			= 1 << 25,
++	IBV_PORT_IP_BASED_GIDS			= 1 << 26
++};
++
+ struct ibv_port_attr {
+ 	enum ibv_port_state	state;
+ 	enum ibv_mtu		max_mtu;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
