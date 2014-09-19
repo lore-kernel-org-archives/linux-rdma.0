@@ -1,28 +1,53 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] qib: qib_qp: Replace rcu_assign_pointer() with
- RCU_INIT_POINTER()
-Date: Fri, 19 Sep 2014 12:53:48 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC21C4AFA4@fmsmsx120.amr.corp.intel.com>
-References: <20140826143322.GA2498@ada>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH RFC 0/8] IB/srp: Add multichannel support
+Date: Fri, 19 Sep 2014 14:55:27 +0200
+Message-ID: <541C27BF.6070609@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140826143322.GA2498@ada>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andreea-Cristina Bernat <bernat.ada-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@kernel.dk>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH] qib: qib_qp: Replace rcu_assign_pointer() with
-> RCU_INIT_POINTER()
->
+Hello,
 
-Why not consolidate this with http://marc.info/?l=linux-rdma&m=140836578119485&w=2 so there is just one patch?
+Although the SRP protocol supports multichannel operation, although 
+since considerable time RDMA HCA's are available that support multiple 
+completion vectors and although multichannel operation yields better 
+performance than using a single channel, the Linux SRP initiator does 
+not yet support multichannel operation. While adding multichannel 
+support in the SRP initiator I encountered a few challenges of which I 
+think these need wider discussion. The topics I would like invite wider 
+discussion about are as follows:
+- How to avoid unneeded inter-socket cache traffic. Should the blk-mq
+   layer e.g. assign CPU cores to hardware queues such that all CPU cores
+   associated with a single hardware queue reside on the same CPU socket?
+   (see also patch 1/8)
+- How to pass the hardware context selected by the block layer to the
+   SCSI LLD queuecommand() callback function ? (see also patches 2/8 and
+   3/8).
+- Which approach should a SCSI LLD follow for selection of an MSI-X
+   completion vector to ensure that the interrupt handler is invoked on
+   the same CPU socket as the blk-mq hardware context data structures ?
+   As one can see patch 8/8 relies on the assumption that completion
+   vectors have been spread evenly over CPU sockets. If a HCA e.g.
+   supports eight completion vectors then that means that in a system
+   with two CPU sockets vectors 0-3 are associated with a CPU core on
+   the first CPU socket and vectors 4-7 with a CPU core on the second CPU
+   socket.
 
-Mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patches in this series are:
+0001-blk-mq-Use-all-available-hardware-queues.patch
+0002-scsi-mq-Add-support-for-multiple-hardware-queues.patch
+0003-scsi-mq-Pass-hctx-to-low-level-SCSI-drivers.patch
+0004-IB-srp-Move-ib_destroy_cm_id-call-into-srp_free_ch_i.patch
+0005-IB-srp-Remove-stale-connection-retry-mechanism.patch
+0006-IB-srp-Avoid-that-I-O-hangs-due-to-a-cable-pull-duri.patch
+0007-IB-srp-Separate-target-and-channel-variables.patch
+0008-IB-srp-Add-multichannel-support.patch
+
+Note: a predecessor of this patch series has been used to measure the 
+performance of Christoph's scsi-mq patches that have been merged in 
+kernel version v3.17-rc1.
