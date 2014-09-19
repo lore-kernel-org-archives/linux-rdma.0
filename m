@@ -1,51 +1,38 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: RFC: FMR support in SRP
-Date: Fri, 19 Sep 2014 17:14:35 +0200
-Message-ID: <541C485B.60302@acm.org>
-References: <CAMGffEkN4OmJVi6UV7PtRYq5q3XZfJVTEaJFqvypx0W8Aq8cRA@mail.gmail.com> <541C380B.1000803@acm.org> <CAMGffEmjzsYsOTnaPWPr4D7TDCbwcoxM8Lr2kDNWCnBOpP5k-A@mail.gmail.com>
+Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
+Date: Fri, 19 Sep 2014 17:21:16 +0200
+Message-ID: <541C49EC.6030404@acm.org>
+References: <541C27BF.6070609@acm.org>	<541C28E0.7010705@acm.org> <CACVXFVPzz37J-613NZCfPStUBxf0rLOtz71LJ07PpCxYg5nn+g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMGffEmjzsYsOTnaPWPr4D7TDCbwcoxM8Lr2kDNWCnBOpP5k-A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CACVXFVPzz37J-613NZCfPStUBxf0rLOtz71LJ07PpCxYg5nn+g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/19/14 17:08, Jinpu Wang wrote:
-> Thank you very much for quick reply. I tried you test program with:
+On 09/19/14 16:28, Ming Lei wrote:
+> On Fri, Sep 19, 2014 at 9:00 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>> @@ -2643,7 +2754,8 @@ static struct scsi_host_template srp_template = {
+>>          .proc_name                      = DRV_NAME,
+>>          .slave_configure                = srp_slave_configure,
+>>          .info                           = srp_target_info,
+>> -       .queuecommand                   = srp_queuecommand,
+>> +       .queuecommand                   = srp_sq_queuecommand,
+>> +       .mq_queuecommand                = srp_mq_queuecommand,
 >
-> ./discontiguous-io -l 4096 -o 1024 -s -w /dev/sdb
->
-> The program just wait there, and strace show it hang at read:
->
-> munmap(0x7fb074c10000, 24430)           = 0
-> brk(0)                                  = 0x1896000
-> brk(0x18b8000)                          = 0x18b8000
-> open("/dev/sdb", O_RDONLY)              = 3
-> ioctl(3, BLKSSZGET, 0x6066e0)           = 0
-> fstat(0, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 0), ...}) = 0
-> mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
-> 0) = 0x7fb074c16000
-> read(0,
->
-> ib_srp load with cmd_sg_entries=255, target side use ib_srpt from svn
-> 1 month ago.
->
-> Kernel is 3.14.13
->
-> lsscsi
-> [0:0:0:0]    disk    ATA      ST3750528AS      CC38  /dev/sda
-> [1:0:0:0]    disk    SCST_BIO vol0              310  /dev/sdb
-> [1:0:0:1]    disk    SCST_BIO vol1              310  /dev/sdc
+> Another choice is to obtain hctx from request directly, then mq can
+> reuse the .queuecommand interface too.
 
-Hello Jack,
+Hello Ming,
 
-Did you know that file descriptor 0 corresponds to stdin ? With 
-command-line option -w the test program reads data from stdin and sends 
-that data to a SCSI device. I think the test program is waiting for you 
-to provide input data :-)
+Is the hctx information already available in the request data structure 
+? I have found a mq_ctx member but no hctx member. Did I perhaps 
+overlook something ?
+
+Thanks,
 
 Bart.
 
