@@ -1,53 +1,73 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: RFC: FMR support in SRP
-Date: Fri, 19 Sep 2014 17:35:45 +0200
-Message-ID: <CAMGffE=AobYJe_r=0He-U=bH6WLSsKi_Bx-S0YeH_68gE96o7A@mail.gmail.com>
-References: <CAMGffEkN4OmJVi6UV7PtRYq5q3XZfJVTEaJFqvypx0W8Aq8cRA@mail.gmail.com>
- <541C380B.1000803@acm.org> <CAMGffEmjzsYsOTnaPWPr4D7TDCbwcoxM8Lr2kDNWCnBOpP5k-A@mail.gmail.com>
- <541C485B.60302@acm.org>
+From: Jens Axboe <axboe@kernel.dk>
+Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
+Date: Fri, 19 Sep 2014 09:38:25 -0600
+Message-ID: <541C4DF1.4090604@kernel.dk>
+References: <541C27BF.6070609@acm.org>	<541C28E0.7010705@acm.org>	<CACVXFVPzz37J-613NZCfPStUBxf0rLOtz71LJ07PpCxYg5nn+g@mail.gmail.com>	<541C49EC.6030404@acm.org> <CACVXFVPH_qPFUTT+796BZmWxeeG4tJ-Pyp8hqGqqSwt3YYkEqA@mail.gmail.com> <541C4D2F.9060907@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <541C485B.60302-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <541C4D2F.9060907@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, Ming Lei <ming.lei@canonical.com>
+Cc: "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Robert Elliott <Elliott@hp.com>
 List-Id: linux-rdma@vger.kernel.org
 
->
->
-> Hello Jack,
->
-> Did you know that file descriptor 0 corresponds to stdin ? With comma=
-nd-line
-> option -w the test program reads data from stdin and sends that data =
-to a
-> SCSI device. I think the test program is waiting for you to provide i=
-nput
-> data :-)
->
-> Bart.
->
-Thanks Bart,
+On 09/19/2014 09:35 AM, Bart Van Assche wrote:
+> On 09/19/14 17:27, Ming Lei wrote:
+>> On Fri, Sep 19, 2014 at 11:21 PM, Bart Van Assche <bvanassche@acm.org> wrote:
+>>> On 09/19/14 16:28, Ming Lei wrote:
+>>>>
+>>>> On Fri, Sep 19, 2014 at 9:00 PM, Bart Van Assche <bvanassche@acm.org>
+>>>> wrote:
+>>>>>
+>>>>> @@ -2643,7 +2754,8 @@ static struct scsi_host_template srp_template = {
+>>>>>           .proc_name                      = DRV_NAME,
+>>>>>           .slave_configure                = srp_slave_configure,
+>>>>>           .info                           = srp_target_info,
+>>>>> -       .queuecommand                   = srp_queuecommand,
+>>>>> +       .queuecommand                   = srp_sq_queuecommand,
+>>>>> +       .mq_queuecommand                = srp_mq_queuecommand,
+>>>>
+>>>>
+>>>> Another choice is to obtain hctx from request directly, then mq can
+>>>> reuse the .queuecommand interface too.
+>>>
+>>>
+>>> Hello Ming,
+>>>
+>>> Is the hctx information already available in the request data structure ? I
+>>> have found a mq_ctx member but no hctx member. Did I perhaps overlook
+>>> something ?
+>>
+>> You are right, but the mq_ctx can be mapped to hctx like below way:
+>>
+>> ctx = rq->mq_ctx;
+>> hctx = q->mq_ops->map_queue(q, ctx->cpu);
+> 
+> Hello Ming,
+> 
+> Had you already noticed that the blk_mq_ctx data structure is a private
+> data structure (declared in block/blk-mq.h) and hence not available to
+> SCSI LLDs ? However, what might be possible is to cache the hctx pointer
+> in the request structure, e.g. like in the (completely untested) patch
+> below.
 
-Now I know it:)
+ctx was meant to be private, unfortunately it's leaked a bit into other
+parts of block/. But it's still private within that, at least.
 
-This command works, generated 128 descriptors.
-=2E/discontiguous-io -l 512  -s /dev/sdb
+Lets not add more stuff to struct request, it's already way too large.
+We could add an exported
 
+struct blk_mq_hw_ctx *blk_mq_request_to_hctx(struct request *rq)
+{
+	struct request_queue *q = rq->q;
 
+	return q->mq_ops->map_queue(q, rq->mq_ctx->cpu);
+}
 
-Thanks a lot.
+for this.
 
+-- 
+Jens Axboe
 
---=20
-Mit freundlichen Gr=C3=BC=C3=9Fen,
-Best Regards,
-
-Jack Wang
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
