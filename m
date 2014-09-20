@@ -1,56 +1,76 @@
-From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: RFC: FMR support in SRP
-Date: Sat, 20 Sep 2014 10:41:21 +0200
-Message-ID: <CAD+HZHWztW1pvXMuRawwL8_vS1FPmPsYbfdYQXpZAFU4aJHJ1w@mail.gmail.com>
-References: <CAMGffEkN4OmJVi6UV7PtRYq5q3XZfJVTEaJFqvypx0W8Aq8cRA@mail.gmail.com>
-	<541C380B.1000803@acm.org>
-	<CAMGffEmjzsYsOTnaPWPr4D7TDCbwcoxM8Lr2kDNWCnBOpP5k-A@mail.gmail.com>
-	<541C485B.60302@acm.org>
-	<CAMGffE=AobYJe_r=0He-U=bH6WLSsKi_Bx-S0YeH_68gE96o7A@mail.gmail.com>
-	<CAMGffE=BG6JS7C3ZZ_pwUV3AyHDtG8i49RR2PmXZo+ZT18M5XA@mail.gmail.com>
-	<541D1DBA.7010004@acm.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/8] IB/srp: Remove stale connection retry mechanism
+Date: Sat, 20 Sep 2014 20:45:04 +0300
+Message-ID: <CAJ3xEMhPKiut4MwZH9F7-T0+u7B6XPuh-FTZpA=Xe4ViAj5UUQ@mail.gmail.com>
+References: <541C27BF.6070609@acm.org>
+	<541C287D.1050900@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <541D1DBA.7010004-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <541C287D.1050900-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2014-09-20 8:24 GMT+02:00 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
+On Fri, Sep 19, 2014 at 3:58 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> Attempting to connect three times may be insufficient after an
+> initiator system that was using multiple RDMA channels tries to
+> relogin. Additionally, this login retry mechanism is a workaround
+> for particular behavior of the IB/CM.
+
+Can you be more specific re the particular behavior of the IB CM?
+added Sean, the CM maintainer.
+
+> Since the srp_daemon retries
+> a failed login attempt anyway, remove the stale connection retry
+> mechanism.
 >
-> On 09/19/14 18:04, Jinpu Wang wrote:
->>
->> Another question, in srp_map_finish_fmr, the desc va is set to 0,
->> could you point me how SRP protect multiple rdma operation write to
->> same addr?  or different fmr-rkey will protect this?
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/srp/ib_srp.c | 16 +++-------------
+>  1 file changed, 3 insertions(+), 13 deletions(-)
 >
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index d3c712f..9608e7a 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -904,7 +904,6 @@ static void srp_rport_delete(struct srp_rport *rport)
 >
-> Hello Jack,
+>  static int srp_connect_target(struct srp_target_port *target)
+>  {
+> -       int retries = 3;
+>         int ret;
 >
-> As you can see in srpt_map_sg_to_ib_sge() in the SRP target driver the virtual address (db->va) and rkey (db->key) are always used in combination - the virtual address is never used alone. Please note that this not only holds for FMR but also for FR. More information can be found in paragraph "10.6.2 MEMORY REGISTRATION" in the InfiniBand Architecture Specification.
+>         WARN_ON_ONCE(target->connected);
+> @@ -945,19 +944,10 @@ static int srp_connect_target(struct srp_target_port *target)
+>                         break;
 >
-> Bart.
+>                 case SRP_STALE_CONN:
+> -                       /* Our current CM id was stale, and is now in timewait.
+> -                        * Try to reconnect with a new one.
+> -                        */
+> -                       if (!retries-- || srp_new_cm_id(target)) {
+> -                               shost_printk(KERN_ERR, target->scsi_host, PFX
+> -                                            "giving up on stale connection\n");
+> -                               target->status = -ECONNRESET;
+> -                               return target->status;
+> -                       }
+> -
+>                         shost_printk(KERN_ERR, target->scsi_host, PFX
+> -                                    "retrying stale connection\n");
+> -                       break;
+> +                                    "giving up on stale connection\n");
+> +                       target->status = -ECONNRESET;
+> +                       return target->status;
 >
-
-Hello Bart,
-
-Thanks for your informative reply, I will go through InfiniBand
-Architecture Spec to understand memory registration better.
-
-Have a nice weekend!
-
-Jack
-
-
-
-
->
+>                 default:
+>                         return target->status;
+> --
+> 1.8.4.5
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
