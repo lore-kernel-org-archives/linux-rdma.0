@@ -1,19 +1,21 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH] svcrdma: Advertise the correct max payload
-Date: Mon, 22 Sep 2014 14:12:56 -0500
-Message-ID: <542074B8.8080503@opengridcomputing.com>
+Date: Mon, 22 Sep 2014 12:16:12 -0700
+Message-ID: <0E95FC1E-753A-484C-B961-329720A657D8@oracle.com>
 References: <20140922183653.19376.14276.stgit@build.ogc.int> <20140922183922.GB26763@fieldses.org> <54206D7F.6070603@opengridcomputing.com> <20140922185550.GC26763@fieldses.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20140922185550.GC26763-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/22/2014 1:55 PM, J. Bruce Fields wrote:
+
+On Sep 22, 2014, at 11:55 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+
 > On Mon, Sep 22, 2014 at 01:42:07PM -0500, Steve Wise wrote:
 >> On 9/22/2014 1:39 PM, J. Bruce Fields wrote:
 >>> On Mon, Sep 22, 2014 at 01:36:53PM -0500, Steve Wise wrote:
@@ -23,46 +25,52 @@ On 9/22/2014 1:55 PM, J. Bruce Fields wrote:
 >>>> correctly limits the payload size to the correct value (64*4096 = 256KB).
 >>>> But if the Linux client is PPC64 with a 64KB page size, then the client
 >>>> will indeed use a payload size that will overflow the server.
->>>>
+>>>> 
 >>>> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 >>>> ---
->>>>
->>>>   net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
->>>>   net/sunrpc/xprtrdma/xprt_rdma.h          |    2 ++
->>>>   2 files changed, 3 insertions(+), 1 deletions(-)
->>>>
+>>>> 
+>>>> net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
+>>>> net/sunrpc/xprtrdma/xprt_rdma.h          |    2 ++
+>>>> 2 files changed, 3 insertions(+), 1 deletions(-)
+>>>> 
 >>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
 >>>> index 374feb4..4e61880 100644
 >>>> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
 >>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
 >>>> @@ -91,7 +91,7 @@ struct svc_xprt_class svc_rdma_class = {
->>>>   	.xcl_name = "rdma",
->>>>   	.xcl_owner = THIS_MODULE,
->>>>   	.xcl_ops = &svc_rdma_ops,
+>>>> 	.xcl_name = "rdma",
+>>>> 	.xcl_owner = THIS_MODULE,
+>>>> 	.xcl_ops = &svc_rdma_ops,
 >>>> -	.xcl_max_payload = RPCSVC_MAXPAYLOAD_TCP,
 >>>> +	.xcl_max_payload = RPCSVC_MAXPAYLOAD_RDMA,
->>>>   	.xcl_ident = XPRT_TRANSPORT_RDMA,
->>>>   };
+>>>> 	.xcl_ident = XPRT_TRANSPORT_RDMA,
+>>>> };
 >>>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
 >>>> index c419498..467a77c 100644
 >>>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 >>>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
 >>>> @@ -392,4 +392,6 @@ extern struct kmem_cache *svc_rdma_ctxt_cachep;
->>>>   /* Workqueue created in svc_rdma.c */
->>>>   extern struct workqueue_struct *svc_rdma_wq;
+>>>> /* Workqueue created in svc_rdma.c */
+>>>> extern struct workqueue_struct *svc_rdma_wq;
 >>>> +#define RPCSVC_MAXPAYLOAD_RDMA	(RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
 >>> Do you want to define this as the minimum of this and
 >>> RPCSVC_MAXPAYLOAD_TCP, in case RPCRDMA_MAX_DATA_SEGS gets increased some
 >>> day?
+>> 
 >> Why would it need to be limited by MAXPAYLOAD_TCP?
+> 
 > Because you're also limited by the size of the rq_pages array, which is
 > determined by RPCSVC_MAXPAGES, calculated from RPCSVC_MAXPAYLOAD.
->
+> 
 > (Actually you probably want RPCSVC_MAXPAYLOAD, not MAXPAYLOAD_TCP.)
->
->
 
-I see.  I agree.
+Agree with this last bit.
+
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
