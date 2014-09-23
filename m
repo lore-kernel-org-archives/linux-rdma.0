@@ -1,57 +1,55 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V2] svcrdma: Advertise the correct max payload
-Date: Mon, 22 Sep 2014 15:05:47 -0500
-Message-ID: <20140922200547.19909.68196.stgit@build.ogc.int>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/core: Fix race condition in ib_uverbs_open_qp
+Date: Tue, 23 Sep 2014 12:38:26 +0300
+Message-ID: <1411465106-3117-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Svcrdma currently advertises 1MB, which is too large.  The correct value
-is the minimum of RPCSVC_MAXPAYLOAD and the max scatter-gather allowed
-in an NFSRDMA IO chunk * the host page size. This bug is usually benign
-because the Linux X64 NFSRDMA client correctly limits the payload size to
-the correct value (64*4096 = 256KB).  But if the Linux client is PPC64
-with a 64KB page size, then the client will indeed use a payload size
-that will overflow the server.
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In ib_uverbs_open_qp, the sharable xrc target qp is created as a "pseudo" qp
+and added to a list of qp's sharing the same physical QP. This is done before
+the "pseudo" qp is assigned a uobject.
+
+There is a race condition here if an async event arrives at the physical qp.
+If the event is handled after the pseudo qp is added to the list, but before
+it is assigned a uobject, the kernel crashes in ib_uverbs_qp_event_handler,
+due to trying to dereference a NULL uobject pointer.
+
+Note that simply checking for non-NULL is not enough, due to error flows
+in ib_uverbs_open_qp. If the failure is after assigning the uobject, but
+before the qp has fully been created, we still have a problem.
+
+Thus, in ib_uverbs_qp_event_handler, we test that the uobject is present,
+and also that it is live.
+
+Reported-by: Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ drivers/infiniband/core/uverbs_main.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
- net/sunrpc/xprtrdma/xprt_rdma.h          |    4 ++++
- 2 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 374feb4..4e61880 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -91,7 +91,7 @@ struct svc_xprt_class svc_rdma_class = {
- 	.xcl_name = "rdma",
- 	.xcl_owner = THIS_MODULE,
- 	.xcl_ops = &svc_rdma_ops,
--	.xcl_max_payload = RPCSVC_MAXPAYLOAD_TCP,
-+	.xcl_max_payload = RPCSVC_MAXPAYLOAD_RDMA,
- 	.xcl_ident = XPRT_TRANSPORT_RDMA,
- };
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index c73b22a..bb6fea1 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -502,6 +502,10 @@ void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr)
+ {
+ 	struct ib_uevent_object *uobj;
  
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index c419498..a9cf5c3 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -392,4 +392,8 @@ extern struct kmem_cache *svc_rdma_ctxt_cachep;
- /* Workqueue created in svc_rdma.c */
- extern struct workqueue_struct *svc_rdma_wq;
- 
-+#define RPCSVC_MAXPAYLOAD_RDMA \
-+	(RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT) ? \
-+	 RPCSVC_MAXPAYLOAD : (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT))
++	/* for XRC target qp's, check that qp is live */
++	if (!event->element.qp->uobject || !event->element.qp->uobject->live)
++		return;
 +
- #endif				/* _LINUX_SUNRPC_XPRT_RDMA_H */
+ 	uobj = container_of(event->element.qp->uobject,
+ 			    struct ib_uevent_object, uobject);
+ 
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
