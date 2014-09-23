@@ -1,56 +1,50 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/core: Fix race condition in ib_uverbs_open_qp
-Date: Tue, 23 Sep 2014 12:38:26 +0300
-Message-ID: <1411465106-3117-1-git-send-email-ogerlitz@mellanox.com>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 0/2] RDMA/ocrdma: ocrdma bug fixes
+Date: Tue, 23 Sep 2014 09:59:22 +0000
+Message-ID: <7959e835-4e40-495d-94be-f01efad98567@CMEXHTCAS2.ad.emulex.com>
+References: <2a431e3d-4d09-49ff-a847-d9ef08ff2932@CMEXHTCAS1.ad.emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2a431e3d-4d09-49ff-a847-d9ef08ff2932-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org)" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Hi Roland,
 
-In ib_uverbs_open_qp, the sharable xrc target qp is created as a "pseudo" qp
-and added to a list of qp's sharing the same physical QP. This is done before
-the "pseudo" qp is assigned a uobject.
+Please include this series as well in your ongoing merge activity.
 
-There is a race condition here if an async event arrives at the physical qp.
-If the event is handled after the pseudo qp is added to the list, but before
-it is assigned a uobject, the kernel crashes in ib_uverbs_qp_event_handler,
-due to trying to dereference a NULL uobject pointer.
+-Regards
+ Devesh
 
-Note that simply checking for non-NULL is not enough, due to error flows
-in ib_uverbs_open_qp. If the failure is after assigning the uobject, but
-before the qp has fully been created, we still have a problem.
-
-Thus, in ib_uverbs_qp_event_handler, we test that the uobject is present,
-and also that it is live.
-
-Reported-by: Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_main.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index c73b22a..bb6fea1 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -502,6 +502,10 @@ void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr)
- {
- 	struct ib_uevent_object *uobj;
- 
-+	/* for XRC target qp's, check that qp is live */
-+	if (!event->element.qp->uobject || !event->element.qp->uobject->live)
-+		return;
-+
- 	uobj = container_of(event->element.qp->uobject,
- 			    struct ib_uevent_object, uobject);
- 
--- 
-1.7.8.2
-
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
+> Sent: Friday, August 22, 2014 4:57 PM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Devesh Sharma
+> Subject: [PATCH 0/2] RDMA/ocrdma: ocrdma bug fixes
+> 
+> This series has bug fixes for 3.17
+> 
+> Devesh Sharma (1):
+>   RDMA/ocrdma: add default gid at index 0
+> 
+> Selvin Xavier (1):
+>   RDMA/ocrdma: get vlan tag from ib_qp_attrs
+> 
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c   |    9 +++++----
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c |   10 ++++++++++
+>  2 files changed, 15 insertions(+), 4 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
