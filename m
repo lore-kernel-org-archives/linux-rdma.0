@@ -1,90 +1,49 @@
-From: "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH V2] svcrdma: Advertise the correct max payload
-Date: Tue, 23 Sep 2014 15:55:18 -0400
-Message-ID: <20140923195518.GN29932@fieldses.org>
-References: <20140922200547.19909.68196.stgit@build.ogc.int>
- <465554E1-802A-4D37-8032-4E99B96B8BFB@oracle.com>
- <00a701cfd766$855044e0$8ff0cea0$@opengridcomputing.com>
- <20140923194825.GL29932@fieldses.org>
- <00af01cfd768$0b2d1bf0$218753d0$@opengridcomputing.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH 7/8] IB/srp: Separate target and channel variables
+Date: Tue, 23 Sep 2014 14:00:49 -0600
+Message-ID: <5421D171.10206@acm.org>
+References: <541C27BF.6070609@acm.org> <541C28C8.7000007@acm.org> <54219ACA.5000904@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <00af01cfd768$0b2d1bf0$218753d0$@opengridcomputing.com>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <54219ACA.5000904@dev.mellanox.co.il>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@kernel.dk>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 23, 2014 at 02:53:28PM -0500, Steve Wise wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: 'J. Bruce Fields' [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
-> > Sent: Tuesday, September 23, 2014 2:48 PM
-> > To: Steve Wise
-> > Cc: 'Chuck Lever'; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH V2] svcrdma: Advertise the correct max payload
-> > 
-> > On Tue, Sep 23, 2014 at 02:42:34PM -0500, Steve Wise wrote:
-> > >
-> > > > > diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> > > > > index c419498..a9cf5c3 100644
-> > > > > --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> > > > > +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> > > > > @@ -392,4 +392,8 @@ extern struct kmem_cache *svc_rdma_ctxt_cachep;
-> > > > > /* Workqueue created in svc_rdma.c */
-> > > > > extern struct workqueue_struct *svc_rdma_wq;
-> > > > >
-> > > > > +#define RPCSVC_MAXPAYLOAD_RDMA \
-> > > > > +	(RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT) ? \
-> > > > > +	 RPCSVC_MAXPAYLOAD : (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT))
-> > > > > +
-> > > >
-> > > > Couldn't you use:
-> > > >
-> > > > #if RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
-> > > > #define RPCSVC_MAXPAYLOAD_RDMA RPC_MAXPAYLOAD
-> > > > #else
-> > > > #define RPCSVC_MAXPAYLOAD_RDMA (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
-> > > > #endif
-> > > >
-> > > > That seems more idiomatic.
-> > >
-> > > Sure.  That makes it easier to read in my opinion too.
-> > >
-> > > I'll send out V3 with this change.
-> > 
-> > While we're bikeshedding, why not use min()?
-> > 
-> > --b.
-> 
-> I tried that initially.  But min() and min_t() don't work because of the way we use the #define.  With it defined thusly:
+On 23/09/2014 10:07, Sagi Grimberg wrote:
+> On 9/19/2014 3:59 PM, Bart Van Assche wrote:
+>> @@ -3047,24 +3098,28 @@ static ssize_t srp_create_target(struct 
+>> device *dev,
+>>       INIT_WORK(&target->tl_err_work, srp_tl_err_work);
+>>       INIT_WORK(&target->remove_work, srp_remove_work);
+>>       spin_lock_init(&target->lock);
+>
+> Hey Bart,
+>
+> You keep this target-lock around. I don't see in this patch any usage
+> of it left. Can you document what each of target->lock and ch->lock
+> protects?
+>
+> So I would imagine that target-lock manages the target-wide variables
+> such as state (what else?) while ch->lock protect channel specific free
+> requests pool which can be moved to blk-mq preallocs and avoid
+> maintaining it (not sure how req_lim would be maintained though and if
+> it is still needed?).
 
-OK, OK.  Whatever works.--b.
+Hello Sagi,
 
-> 
-> #define RPCSVC_MAXPAYLOAD_RDMA min(RPC_MAXPAYLOAD, RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
-> 
-> I see this error:
-> 
->   CC [M]  net/sunrpc/xprtrdma/svc_rdma_transport.o
-> net/sunrpc/xprtrdma/svc_rdma_transport.c:94: error: braced-group within expression allowed only inside a function
-> make[3]: *** [net/sunrpc/xprtrdma/svc_rdma_transport.o] Error 1
-> make[2]: *** [net/sunrpc/xprtrdma] Error 2
-> make[1]: *** [net/sunrpc] Error 2
-> make: *** [net] Error 2
-> 
-> min() looks like this:
-> 
-> #define min(x, y) ({                            \
->         typeof(x) _min1 = (x);                  \
->         typeof(y) _min2 = (y);                  \
->         (void) (&_min1 == &_min2);              \
->         _min1 < _min2 ? _min1 : _min2; })
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The use of these locks is very traditional - each lock is used to 
+protect those members of the data structure it is a member of and that 
+need to be protected against concurrent access.
+
+Even with this patch applied "target->lock" is still used, e.g. to 
+protect target port state modifications.
+
+I will convert the free request pool in the next version of this patch 
+series. The code for managing req_lim can probably be converted into 
+something based on the blk-mq reserved tag infrastructure.
+
+Bart.
