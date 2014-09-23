@@ -1,74 +1,81 @@
-From: Bob Biloxi <iambobbiloxi@gmail.com>
-Subject: Re: Can a PF driver access the VF config space, BAR(MMIO) etc?
-Date: Thu, 25 Sep 2014 12:20:40 +0530
-Message-ID: <CANwwZzVrB+OndT4HSwe7eje0dMJqBCZaCCemh4EdPB=3SDtRkw@mail.gmail.com>
-References: <CANwwZzUvLHVGshgqrf_w4Pz8wP1H95YAXWLpWFTLD1hWKE_voA@mail.gmail.com>
-	<CA+sq2CdKkuOpqwPZdAVT90Xkf_K97ArcUUJjv2f9v4WTDmwXxA@mail.gmail.com>
+From: =?utf-8?B?5bCP5ZSQ?= <support-xvoAAq9+p4L/PtFMR13I2A@public.gmane.org>
+Subject: =?utf-8?B?55So6L+Z5Liq5bmz5Y+w5Y+R55+t5L+h77yM6L+Z5bCx5a+55LqGICAgICAgIA==?=
+	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
+	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
+	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
+	=?utf-8?B?ICB3d2k=?=
+Date: Tue, 23 Sep 2014 22:32:52 +0800
+Message-ID: <20140923223306364342@motech.cn>
+Reply-To: <dingxj8-Dw/NWeUnuQfQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CA+sq2CdKkuOpqwPZdAVT90Xkf_K97ArcUUJjv2f9v4WTDmwXxA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sunil Kovvuri <sunil.kovvuri@gmail.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-mint-zh-cn-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-request-4ESfhGDvgol+CIkdHa1UOg@public.gmane.org, linux-the-gathering-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+DQogIOWbveWGheacgOWlveeUqOeahOefreS/oeW5s+WPsO+8jOmAiei/meS4qui/meWwseWvueS6
+huOAguato+inhOWGheWuuemDveWPr+S7peWPke+8jOWIsOi+vumrmO+8jOS4jeWxj+iUveOAguWS
+qOivouivt+WKoFFRMTkzOTg5NzI177yM5Y+v5Lul5rWL6K+V5ZOm44CCDQoNCg0KDQoNCg0KIA0K
+DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
+Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
+DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
+Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCuWYtOaMoOS6huaMoOWktO+8jOmB
+k++8muKAnOatu+eMquWViu+8jOS4jeefpemBk+aYr+WSi+atu+eahO+8n+imgeaYr+eXheeMqu+8
+jOWPr+S4jeaVouWNlu+8jOimgeWHuuS6i+eahOOAguKAnSAgICDlpI/lsI/mtJvlv4PpgZPvvIzo
+v5nkurromb3nhLblj6rmmK/kuIDku4vlsaDlpKvvvIzlgJLkuI3lpLHllYblrrbnmoTlk4Hlvrfj
+gIIgICAg5aSP5pOO5aSp5Zyo5LuW6ICz6L655L2O5aOw6K+05LqG5LiA5Y+l5LiN6Zyy5rC05Zyw
+6YGT77ya4oCc5oiR6L+Y55yf5rKh5pyJ5LuA5LmI5omT566X77yB4oCdICAgIOKAnOS9oOWSjOad
+qOaZr+WIneS7gOS5iOWFs+ezu++8n+KAnSAgICDlpbnnu4jkuo7pnLLlh7rkuoblpbnmib7lpI/l
+sI/mtJvosIjor53nmoTnm67nmoTjgIIgICAg4oCc5ZOm4oCm4oCm5LuW5ZWK77yM5b2T5pe25LuW
+6Lez5Z+O5aKZ77yM5L2g55+l6YGT5ZCn77yM5Zyo5oiR5aaI55qE5Yy76Zmi5pWR5rK755qE77yM
+5oiR5Liq5Y2O5aSP55qE57uP5rWO5aSE5LqO5L2O5r2u5pyf77yM5Zug5Li6MTk4OOW5tOeahOKA
+nOeJqeS7t+mXr+WFs+KAneaUuemdqe+8jOWunuihjOS6huWPjOi9qOWItu+8jOS7peaJk+egtOiu
+oeWIkue7j+a1jueahOS7t+agvOS9k+WItu+8jOmcgOaxgueahOmXuOWPo+S4gOaXpuaUvuW8gO+8
+jOWmguWQjOa0quawtOS4gOiIrOazm+a7pe+8jOeJqeS7t+mjnua2qO+8jOWcqOS4gOW5tOaXtumX
+tOWGhe+8jOaXpeeUqOa2iOi0ueWTgeWIqeebiueahOaXtuWAme+8jOS7luS4gOiIrOS4jeS8mui9
+u+S4vuWmhOWKqOOAgiAgICDogIzkuJTvvIzov5nkupvml6XlrZDku5bku6zkuIDnm7TlnKjmkJzl
+r7vlhbPkuo7lpI/lsI/mtJvnmoTkv6Hmga/jgIIgICAg5LuW5Lus6L+F6YCf4oCc5pG45riF4oCd
+5LqG5aSP5bCP5rSb55qE6ICB5bqV77yM5b6X55+l5aSP5bCP5rSb5q2k5YmN5oiQ57up5LiA55u0
+5b6I5beu77yM5Zyo5ZCR6Ziz5Lit5a2m5Lmf5piv5LiA5Liq5LiN5pe25YCZ55qE6ICD6K+V6L+c
+5rKh5pyJ546w5Zyo6L+Z5qC35aaC5Li05aSn5pWM44CCICAgIOaTjeWcuuS4iu+8jOevrueQg+Wc
+uuOAgeS5kuS5k+eQg+WPsOaXgei+uemDveaYr+ato+WcqOaJk+eQg+eahOWtpueUn++8jOWFtuS7
+lueahOWtpueUn+WImeWIhuW4g+WcqOWtpuagoeWQhOWkhO+8jOacieeahOWcqOS5puaKpeS6reaX
+gei+uee/u+eci+edgOaWh+WtpuadguW/l++8jOacieeahOWcqOWwj+agkeael+mHjOaCoOeEtuWc
+sOagt+OAgiAgICDml7blgJnlt7Lnu4/kuI3ml6nkuobvvIzlpI/mr43ml6nlt7Lnu4/mlLbmi77l
+pb3kuobkuIDkuKrmiL/pl7TvvIznjovlpKflipvmjo/lh7rniZnlhbfvvIzlnKjigJzljovmnYbl
+hL/kupXigJ3ml4HovrnliLfniZnjgIIgICAg6YKj5pe25YCZ5p2R6YeM6YO95rKh5pyJ6Ieq5p2l
+5rC077yM6L+Z56eN4oCc5Y6L5p2G5YS/5LqV4oCd5Zyo5Lit5Y6f5Zyw5Yy66aKH5Li65bi46KeB
+77yM54S25ZCO5bCx5Y675LyRCQ0K5oiR5Lus5pyN6KOF5Y6C5LiL6K6i5Y2V5LqG77yM6L+Z5qyh
+77yM5oiR5Lus5LiN6ZyA6KaB6L+b6KGM5Lu75L2V5oqV5YWl77yM5aSn5a625Y+q6KaB5p2l5LiK
+54+t77yM5bCx5oyJ54Wn6K6h5Lu25bel6LWE55qE5Yqe5rOV5Y+R5bel6LWE44CC4oCdICAgIOWk
+p+WutuiEuOS4iuWvueinhuS4gOecvO+8jOiEuOS4iumDveaYr+WWnOaCpuS5i+aDheOAgiAgICDl
+m6DkuLoxOTkw5bm055qE5Yid5pil77yM5pW06YGT6ICB5a2Q5piv5LiA5pa56K+45L6v6L+Y5bmy
+5raJ5YaF5pS/77yM5LiN5piv5om+5LiN55eb5b+r5LmI77yfICAgIOiAkOedgOaAp+WtkOmBk++8
+muKAnOaciei/meS5iOWbnuS6i++8n+WSi+S6hu+8n+KAnSAgICDltJTlsYDnrJHpgZPvvJrigJzm
+sqHlkovvvIzmsqHlkovvvIznjrDlnKjmoYjlrZDov5vooYznmoTmgI7kuYjmoLfkuobvvJ/igJ0g
+ICAg5L2V5Lqs55Sf6KOF552A5L+h5Y+35LiN5aW955qE5qC35a2Q77yM57GN5ouJ5Yiw5Lic6KGX
+5Y+j77yM6L+Z6YeM5pyJ5Yeg5Liq5aSn55m+6LSn5ZWG5bqX77yM5Lq65p2l5Lq65b6A77yM6Z2e
+5bi454Ot6Ze577yM5Yeg5Liq5a2p5a2Q5oqK4oCc54q25YWD56yU6K6w562+5ZCN5ZSu5Lmm4oCd
+55qE5qiq5bmF5ouJ5LqG6LW35p2l44CC5L2g5Lus6L+Y5oSj552A5bmy5Zib77yM5oqK6L+Z5biu
+5bGB6IKh5aSn55qE546L5YWr6JuL55qE6KOk5a2Q6YO96ISx5LqG77yB55yL55yL5Yiw5bqV5aSa
+5aSn77yB5pyJ5rKh5pyJ5oiR5Lus6ICB5aSP5bqE5aSn77yB4oCdICAgIOingeW+t+mrmOacm+mH
+jeeahOWkj+i/keWRqOS5n+ayoeacieWPjeWvue+8jOS4gOe+pOWwkeW5tOWmguWQjOWwj+iAgeiZ
+juWXt+WXt+edgOaJkeS6hui/h+WOu++8jOWktOWHoOS4qui/mOacieWHoOi3s++8jOW/g+mBk++8
+jOi/meWtqeWtkOecn+Wkp+iDhu+8jOWwj+Wwj+W5tOe6quWwsei/meS5iOWlveiJsuKApuKApiAg
+ICDkuI3ov4flv4PlpLTkuZ/mtozotbfkuIDnp43pmr7ku6XoqIDor7TnmoTllpzmgqbkuYvmg4Xv
+vIzkuIDkuKrni5flsYHkuI3mh4LnmoTlranlrZDpg73og73mhJ/lj5fliLDoh6rlt7HnmoTnvo7o
+sozvvIzor4HmmI7oh6rlt7Hov5jmmK/mnInprYXlipvnmoTjgIIgICAg5aW55oqK6ISa5pS+5Yiw
+5qGM5Zyo5LiW55WM6ZO26KGM5LiO5Zu96ZmF6LSn5biB5Z+66YeR57uE57uH5bel5L2c77yM5LuW
+5Zyo5biC5Zy655uR566h44CB6LWE5pys5biC5Zy644CB6K+B5Yi45oqV6LWE566h55CG44CB5YWs
+5Y+45rK755CG44CB5YWs5Y+46LSi5Yqh5LiO57uE57uH5oiY55Wl44CB6IKh56Wo5a6a5Lu3562J
+56CU56m26aKG5Z+f5oiQ5bCx5paQ54S244CCICAgIOS7luWcqOWNjuWkj+eahOefpeWQjeW6puW5
+tuS4jemrmO+8jOWboOS4uuS7luaLvwkNCg==
 
-Thanks so much for the quick reply! This is really helpful.
-I will try to do the same and would get back if i face any difficulties.
 
-
-Thanks again!
-
-Best Regards,
-Bob
-
-On Wed, Sep 24, 2014 at 11:12 PM, Sunil Kovvuri <sunil.kovvuri@gmail.com> wrote:
-> If you anyway want to simulate VF functionality in PF driver itself,
-> i am not sure why do you need to access VF's config space from PF.
->
-> FYI, VF's BAR(MMIO) are not used, MMIO regions are carved using
-> VF BARs in PF's SRIOV config space.
->
-> VFx BAR0 = PF SRIOV BAR0 + BAR_SIZE * x (VF_NUMBER);
->
-> For accessing VF's MMIO regions you can try mapping
-> PF's pci_dev->resource[PCI_IOV_RESOURCES] and using above formula
-> to get exact MMIO base for corresponding VF.
->
-> Regards,
-> Sunil.
->
-> On Wed, Sep 24, 2014 at 10:10 PM, Bob Biloxi <iambobbiloxi@gmail.com> wrote:
->> Hi,
->>
->> I am new to writing pci sriov drivers. So i could use your help and
->> expertise here....
->>
->> As I understand once sriov is enabled, the PF driver can access the
->> PF(Physical Function) configuration space, BAR(MMIO) etc and the VF
->> driver can access the VF(Virtual Function) configuration space,
->> BAR(MMIO)...
->>
->> Is it possible for a PF driver to access the VF config space, BAR(MMIO)?
->> If yes, can you please point me as to what needs to be done in order
->> to do it(existing driver sources will be really helpful).
->>
->> Now as to why this requirement is if the PF driver is ready and the VF
->> driver is still under development, and I want to simulate the VF
->> functionality from PF itself.
->>
->> It would be of immense help to me if anyone can help me understand my
->> aforementioned query.
->>
->>
->> Thanks a lot!!!
->>
->>
->> Best Regards,
->> Bob
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
