@@ -1,50 +1,33 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] RDMA/ocrdma: ocrdma bug fixes
-Date: Tue, 23 Sep 2014 09:59:22 +0000
-Message-ID: <7959e835-4e40-495d-94be-f01efad98567@CMEXHTCAS2.ad.emulex.com>
-References: <2a431e3d-4d09-49ff-a847-d9ef08ff2932@CMEXHTCAS1.ad.emulex.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/core: Fix race condition in ib_uverbs_open_qp
+Date: Tue, 23 Sep 2014 15:55:14 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DE1811@ORSMSX109.amr.corp.intel.com>
+References: <1411465106-3117-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2a431e3d-4d09-49ff-a847-d9ef08ff2932-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+In-Reply-To: <1411465106-3117-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org)" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -502,6 +502,10 @@ void ib_uverbs_qp_event_handler(struct ib_event
+> *event, void *context_ptr)
+>  {
+>  	struct ib_uevent_object *uobj;
+> 
+> +	/* for XRC target qp's, check that qp is live */
+> +	if (!event->element.qp->uobject || !event->element.qp->uobject->live)
+> +		return;
 
-Please include this series as well in your ongoing merge activity.
+Isn't checking 'live' sufficient?
 
--Regards
- Devesh
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
-> Sent: Friday, August 22, 2014 4:57 PM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Devesh Sharma
-> Subject: [PATCH 0/2] RDMA/ocrdma: ocrdma bug fixes
-> 
-> This series has bug fixes for 3.17
-> 
-> Devesh Sharma (1):
->   RDMA/ocrdma: add default gid at index 0
-> 
-> Selvin Xavier (1):
->   RDMA/ocrdma: get vlan tag from ib_qp_attrs
-> 
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c   |    9 +++++----
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c |   10 ++++++++++
->  2 files changed, 15 insertions(+), 4 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
