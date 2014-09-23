@@ -1,49 +1,104 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 7/8] IB/srp: Separate target and channel variables
-Date: Tue, 23 Sep 2014 14:00:49 -0600
-Message-ID: <5421D171.10206@acm.org>
-References: <541C27BF.6070609@acm.org> <541C28C8.7000007@acm.org> <54219ACA.5000904@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <54219ACA.5000904@dev.mellanox.co.il>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@kernel.dk>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Tue, 23 Sep 2014 14:58:21 -0700
+Message-ID: <1411509501-23138-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 23/09/2014 10:07, Sagi Grimberg wrote:
-> On 9/19/2014 3:59 PM, Bart Van Assche wrote:
->> @@ -3047,24 +3098,28 @@ static ssize_t srp_create_target(struct 
->> device *dev,
->>       INIT_WORK(&target->tl_err_work, srp_tl_err_work);
->>       INIT_WORK(&target->remove_work, srp_remove_work);
->>       spin_lock_init(&target->lock);
->
-> Hey Bart,
->
-> You keep this target-lock around. I don't see in this patch any usage
-> of it left. Can you document what each of target->lock and ch->lock
-> protects?
->
-> So I would imagine that target-lock manages the target-wide variables
-> such as state (what else?) while ch->lock protect channel specific free
-> requests pool which can be moved to blk-mq preallocs and avoid
-> maintaining it (not sure how req_lim would be maintained though and if
-> it is still needed?).
+Hi Linus,
 
-Hello Sagi,
+Please pull from
 
-The use of these locks is very traditional - each lock is used to 
-protect those members of the data structure it is a member of and that 
-need to be protected against concurrent access.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
-Even with this patch applied "target->lock" is still used, e.g. to 
-protect target port state modifications.
+This is later and bigger than I would like, and the blame is all on
+me: I got very busy with other stuff for a few weeks during the 3.17
+cycle, and didn't prepare this tree as soon as I should have.  However
+I don't think there's anything risky here, and no one really cares if
+we break InfiniBand in 3.17 anyway...
 
-I will convert the free request pool in the next version of this patch 
-series. The code for managing req_lim can probably be converted into 
-something based on the blk-mq reserved tag infrastructure.
+----------------------------------------------------------------
+Last late set of InfiniBand/RDMA fixes for 3.17:
 
-Bart.
+ - Fixes for the new memory region re-registration support
+ - iSER initiator error path fixes
+ - Grab bag of small fixes for the qib and ocrdma hardware drivers
+ - Larger set of fixes for mlx4, especially in RoCE mode
+
+----------------------------------------------------------------
+Alex Estrin (1):
+      IPoIB: Remove unnecessary port query
+
+Devesh Sharma (2):
+      RDMA/ocrdma: Report correct value of max_fast_reg_page_list_len
+      RDMA/ocrdma: Do not skip setting deferred_arm
+
+Jack Morgenstein (6):
+      IB/mlx4: Fix lockdep splat for the iboe lock
+      mlx4: Fix mlx4 reg/unreg mac to work properly with 0-mac addresses
+      IB/mlx4: Avoid accessing netdevice when building RoCE qp1 header
+      IB/mlx4: Don't update QP1 in native mode
+      IB/mlx4: Do not allow APM under RoCE
+      IB/mlx4: Fix VF mac handling in RoCE
+
+Markus Stockhausen (1):
+      IB/mlx4: Disable TSO for Connect-X rev. A0 HCAs
+
+Matan Barak (2):
+      mlx4: Correct error flows in rereg_mr
+      IB/core: When marshaling uverbs path, clear unused fields
+
+Mike Marciniszyn (3):
+      IB/ipath: Change get_user_pages() usage to always NULL vmas
+      IB/qib: Change get_user_pages() usage to always NULL vmas
+      IB/qib: Correct reference counting in debugfs qp_stats
+
+Moni Shoua (5):
+      IB/mlx4: Avoid null pointer dereference in mlx4_ib_scan_netdevs()
+      IB/mlx4: Don't duplicate the default RoCE GID
+      IB/mlx4: Reorder steps in RoCE GID table initialization
+      IB/mlx4: Get upper dev addresses as RoCE GIDs when port comes up
+      IB/mlx4: Avoid executing gid task when device is being removed
+
+Or Gerlitz (1):
+      IB/iser: Bump version to 1.4.1
+
+Roi Dayan (1):
+      IB/iser: Fix RX/TX CQ resource leak on error flow
+
+Roland Dreier (1):
+      Merge branches 'core', 'ipoib', 'iser', 'mlx4', 'ocrdma' and 'qib' into for-next
+
+Sagi Grimberg (1):
+      IB/iser: Allow bind only when connection state is UP
+
+Shawn Bohrer (1):
+      IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get
+
+devesh.sharma@emulex.com (2):
+      RDMA/ocrdma: Resolve L2 address when creating user AH
+      RDMA/ocrdma: Use right macro in query AH
+
+ drivers/infiniband/core/umem.c                 |  19 ++-
+ drivers/infiniband/core/uverbs_marshall.c      |   4 +
+ drivers/infiniband/hw/ipath/ipath_user_pages.c |   6 +-
+ drivers/infiniband/hw/mlx4/main.c              | 169 +++++++++++++++++--------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h           |   1 +
+ drivers/infiniband/hw/mlx4/mr.c                |   7 +-
+ drivers/infiniband/hw/mlx4/qp.c                |  60 +++++----
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c       |  43 +++++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   6 +-
+ drivers/infiniband/hw/qib/qib_debugfs.c        |   3 +-
+ drivers/infiniband/hw/qib/qib_qp.c             |   8 --
+ drivers/infiniband/hw/qib/qib_user_pages.c     |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  10 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.c       |  19 ++-
+ drivers/infiniband/ulp/iser/iscsi_iser.h       |   2 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c       |  24 ++--
+ drivers/net/ethernet/mellanox/mlx4/mr.c        |  33 +++--
+ drivers/net/ethernet/mellanox/mlx4/port.c      |  11 +-
+ include/rdma/ib_umem.h                         |   1 +
+ 19 files changed, 277 insertions(+), 155 deletions(-)
