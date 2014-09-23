@@ -1,67 +1,91 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V3] svcrdma: advertise the correct max payload
-Date: Tue, 23 Sep 2014 17:11:22 -0500
-Message-ID: <20140923221122.24227.91718.stgit@build.ogc.int>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 1/3] RDMA/cxgb4: Take IPv6 into account for best_mtu and set_emss
+Date: Wed, 24 Sep 2014 03:53:41 +0530
+Message-ID: <1411511023-14101-2-git-send-email-hariprasad@chelsio.com>
+References: <1411511023-14101-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1411511023-14101-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, pramod-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Svcrdma currently advertises 1MB, which is too large.  The correct value
-is the minimum of RPCSVC_MAXPAYLOAD and the max scatter-gather allowed
-in an NFSRDMA IO chunk * the host page size. This bug is usually benign
-because the Linux X64 NFSRDMA client correctly limits the payload size to
-the correct value (64*4096 = 256KB).  But if the Linux client is PPC64
-with a 64KB page size, then the client will indeed use a payload size
-that will overflow the server.
+best_mtu and set_emss was not considering ipv6 header for ipv6 case
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
+ drivers/infiniband/hw/cxgb4/cm.c |   24 ++++++++++++++++--------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
 
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
- net/sunrpc/xprtrdma/xprt_rdma.h          |    7 +++++++
- 2 files changed, 8 insertions(+), 1 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 374feb4..4e61880 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -91,7 +91,7 @@ struct svc_xprt_class svc_rdma_class = {
- 	.xcl_name = "rdma",
- 	.xcl_owner = THIS_MODULE,
- 	.xcl_ops = &svc_rdma_ops,
--	.xcl_max_payload = RPCSVC_MAXPAYLOAD_TCP,
-+	.xcl_max_payload = RPCSVC_MAXPAYLOAD_RDMA,
- 	.xcl_ident = XPRT_TRANSPORT_RDMA,
- };
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index c2fb71c..2ca9ec8 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -236,10 +236,12 @@ static void release_tid(struct c4iw_rdev *rdev, u32 hwtid, struct sk_buff *skb)
+ static void set_emss(struct c4iw_ep *ep, u16 opt)
+ {
+ 	ep->emss = ep->com.dev->rdev.lldi.mtus[GET_TCPOPT_MSS(opt)] -
+-		   sizeof(struct iphdr) - sizeof(struct tcphdr);
++		   ((AF_INET == ep->com.remote_addr.ss_family) ?
++		    sizeof(struct iphdr) : sizeof(struct ipv6hdr)) -
++		   sizeof(struct tcphdr);
+ 	ep->mss = ep->emss;
+ 	if (GET_TCPOPT_TSTAMP(opt))
+-		ep->emss -= 12;
++		ep->emss -= round_up(TCPOLEN_TIMESTAMP, 4);
+ 	if (ep->emss < 128)
+ 		ep->emss = 128;
+ 	if (ep->emss & 7)
+@@ -581,11 +583,14 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
+ }
  
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index c419498..ac7fc9a 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -51,6 +51,7 @@
- #include <linux/sunrpc/clnt.h> 		/* rpc_xprt */
- #include <linux/sunrpc/rpc_rdma.h> 	/* RPC/RDMA protocol */
- #include <linux/sunrpc/xprtrdma.h> 	/* xprt parameters */
-+#include <linux/sunrpc/svc.h>		/* RPCSVC_MAXPAYLOAD */
+ static void best_mtu(const unsigned short *mtus, unsigned short mtu,
+-		     unsigned int *idx, int use_ts)
++		     unsigned int *idx, int use_ts, int ipv6)
+ {
+-	unsigned short hdr_size = sizeof(struct iphdr) +
++	unsigned short hdr_size = (ipv6 ?
++				   sizeof(struct ipv6hdr) :
++				   sizeof(struct iphdr)) +
+ 				  sizeof(struct tcphdr) +
+-				  (use_ts ? 12 : 0);
++				  (use_ts ?
++				   round_up(TCPOLEN_TIMESTAMP, 4) : 0);
+ 	unsigned short data_size = mtu - hdr_size;
  
- #define RDMA_RESOLVE_TIMEOUT	(5000)	/* 5 seconds */
- #define RDMA_CONNECT_RETRY_MAX	(2)	/* retries if no listener backlog */
-@@ -392,4 +393,10 @@ extern struct kmem_cache *svc_rdma_ctxt_cachep;
- /* Workqueue created in svc_rdma.c */
- extern struct workqueue_struct *svc_rdma_wq;
+ 	cxgb4_best_aligned_mtu(mtus, hdr_size, data_size, 8, idx);
+@@ -634,7 +639,8 @@ static int send_connect(struct c4iw_ep *ep)
+ 	set_wr_txq(skb, CPL_PRIORITY_SETUP, ep->ctrlq_idx);
  
-+#if RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
-+#define RPCSVC_MAXPAYLOAD_RDMA RPCSVC_MAXPAYLOAD
-+#else
-+#define RPCSVC_MAXPAYLOAD_RDMA (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
-+#endif
-+
- #endif				/* _LINUX_SUNRPC_XPRT_RDMA_H */
+ 	best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx,
+-		 enable_tcp_timestamps);
++		 enable_tcp_timestamps,
++		 (AF_INET == ep->com.remote_addr.ss_family) ? 0 : 1);
+ 	wscale = compute_wscale(rcv_win);
+ 
+ 	/*
+@@ -1763,7 +1769,8 @@ static void send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
+ 	req->tcb.tx_max = (__force __be32) jiffies;
+ 	req->tcb.rcv_adv = htons(1);
+ 	best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx,
+-		 enable_tcp_timestamps);
++		 enable_tcp_timestamps,
++		 (AF_INET == ep->com.remote_addr.ss_family) ? 0 : 1);
+ 	wscale = compute_wscale(rcv_win);
+ 
+ 	/*
+@@ -2162,7 +2169,8 @@ static void accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+ 						    ep->hwtid));
+ 
+ 	best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx,
+-		 enable_tcp_timestamps && req->tcpopt.tstamp);
++		 enable_tcp_timestamps && req->tcpopt.tstamp,
++		 (AF_INET == ep->com.remote_addr.ss_family) ? 0 : 1);
+ 	wscale = compute_wscale(rcv_win);
+ 
+ 	/*
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
