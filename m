@@ -1,104 +1,69 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Tue, 23 Sep 2014 14:58:21 -0700
-Message-ID: <1411509501-23138-1-git-send-email-roland@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH V3] svcrdma: advertise the correct max payload
+Date: Tue, 23 Sep 2014 17:11:22 -0500
+Message-ID: <20140923221122.24227.91718.stgit@build.ogc.int>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: fields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Svcrdma currently advertises 1MB, which is too large.  The correct value
+is the minimum of RPCSVC_MAXPAYLOAD and the max scatter-gather allowed
+in an NFSRDMA IO chunk * the host page size. This bug is usually benign
+because the Linux X64 NFSRDMA client correctly limits the payload size to
+the correct value (64*4096 = 256KB).  But if the Linux client is PPC64
+with a 64KB page size, then the client will indeed use a payload size
+that will overflow the server.
 
-Please pull from
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
+ net/sunrpc/xprtrdma/xprt_rdma.h          |    7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletions(-)
 
-This is later and bigger than I would like, and the blame is all on
-me: I got very busy with other stuff for a few weeks during the 3.17
-cycle, and didn't prepare this tree as soon as I should have.  However
-I don't think there's anything risky here, and no one really cares if
-we break InfiniBand in 3.17 anyway...
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 374feb4..4e61880 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -91,7 +91,7 @@ struct svc_xprt_class svc_rdma_class = {
+ 	.xcl_name = "rdma",
+ 	.xcl_owner = THIS_MODULE,
+ 	.xcl_ops = &svc_rdma_ops,
+-	.xcl_max_payload = RPCSVC_MAXPAYLOAD_TCP,
++	.xcl_max_payload = RPCSVC_MAXPAYLOAD_RDMA,
+ 	.xcl_ident = XPRT_TRANSPORT_RDMA,
+ };
+ 
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index c419498..ac7fc9a 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -51,6 +51,7 @@
+ #include <linux/sunrpc/clnt.h> 		/* rpc_xprt */
+ #include <linux/sunrpc/rpc_rdma.h> 	/* RPC/RDMA protocol */
+ #include <linux/sunrpc/xprtrdma.h> 	/* xprt parameters */
++#include <linux/sunrpc/svc.h>		/* RPCSVC_MAXPAYLOAD */
+ 
+ #define RDMA_RESOLVE_TIMEOUT	(5000)	/* 5 seconds */
+ #define RDMA_CONNECT_RETRY_MAX	(2)	/* retries if no listener backlog */
+@@ -392,4 +393,10 @@ extern struct kmem_cache *svc_rdma_ctxt_cachep;
+ /* Workqueue created in svc_rdma.c */
+ extern struct workqueue_struct *svc_rdma_wq;
+ 
++#if RPCSVC_MAXPAYLOAD < (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
++#define RPCSVC_MAXPAYLOAD_RDMA RPCSVC_MAXPAYLOAD
++#else
++#define RPCSVC_MAXPAYLOAD_RDMA (RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT)
++#endif
++
+ #endif				/* _LINUX_SUNRPC_XPRT_RDMA_H */
 
-----------------------------------------------------------------
-Last late set of InfiniBand/RDMA fixes for 3.17:
-
- - Fixes for the new memory region re-registration support
- - iSER initiator error path fixes
- - Grab bag of small fixes for the qib and ocrdma hardware drivers
- - Larger set of fixes for mlx4, especially in RoCE mode
-
-----------------------------------------------------------------
-Alex Estrin (1):
-      IPoIB: Remove unnecessary port query
-
-Devesh Sharma (2):
-      RDMA/ocrdma: Report correct value of max_fast_reg_page_list_len
-      RDMA/ocrdma: Do not skip setting deferred_arm
-
-Jack Morgenstein (6):
-      IB/mlx4: Fix lockdep splat for the iboe lock
-      mlx4: Fix mlx4 reg/unreg mac to work properly with 0-mac addresses
-      IB/mlx4: Avoid accessing netdevice when building RoCE qp1 header
-      IB/mlx4: Don't update QP1 in native mode
-      IB/mlx4: Do not allow APM under RoCE
-      IB/mlx4: Fix VF mac handling in RoCE
-
-Markus Stockhausen (1):
-      IB/mlx4: Disable TSO for Connect-X rev. A0 HCAs
-
-Matan Barak (2):
-      mlx4: Correct error flows in rereg_mr
-      IB/core: When marshaling uverbs path, clear unused fields
-
-Mike Marciniszyn (3):
-      IB/ipath: Change get_user_pages() usage to always NULL vmas
-      IB/qib: Change get_user_pages() usage to always NULL vmas
-      IB/qib: Correct reference counting in debugfs qp_stats
-
-Moni Shoua (5):
-      IB/mlx4: Avoid null pointer dereference in mlx4_ib_scan_netdevs()
-      IB/mlx4: Don't duplicate the default RoCE GID
-      IB/mlx4: Reorder steps in RoCE GID table initialization
-      IB/mlx4: Get upper dev addresses as RoCE GIDs when port comes up
-      IB/mlx4: Avoid executing gid task when device is being removed
-
-Or Gerlitz (1):
-      IB/iser: Bump version to 1.4.1
-
-Roi Dayan (1):
-      IB/iser: Fix RX/TX CQ resource leak on error flow
-
-Roland Dreier (1):
-      Merge branches 'core', 'ipoib', 'iser', 'mlx4', 'ocrdma' and 'qib' into for-next
-
-Sagi Grimberg (1):
-      IB/iser: Allow bind only when connection state is UP
-
-Shawn Bohrer (1):
-      IB: ib_umem_release() should decrement mm->pinned_vm from ib_umem_get
-
-devesh.sharma@emulex.com (2):
-      RDMA/ocrdma: Resolve L2 address when creating user AH
-      RDMA/ocrdma: Use right macro in query AH
-
- drivers/infiniband/core/umem.c                 |  19 ++-
- drivers/infiniband/core/uverbs_marshall.c      |   4 +
- drivers/infiniband/hw/ipath/ipath_user_pages.c |   6 +-
- drivers/infiniband/hw/mlx4/main.c              | 169 +++++++++++++++++--------
- drivers/infiniband/hw/mlx4/mlx4_ib.h           |   1 +
- drivers/infiniband/hw/mlx4/mr.c                |   7 +-
- drivers/infiniband/hw/mlx4/qp.c                |  60 +++++----
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c       |  43 +++++--
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   6 +-
- drivers/infiniband/hw/qib/qib_debugfs.c        |   3 +-
- drivers/infiniband/hw/qib/qib_qp.c             |   8 --
- drivers/infiniband/hw/qib/qib_user_pages.c     |   6 +-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  10 +-
- drivers/infiniband/ulp/iser/iscsi_iser.c       |  19 ++-
- drivers/infiniband/ulp/iser/iscsi_iser.h       |   2 +-
- drivers/infiniband/ulp/iser/iser_verbs.c       |  24 ++--
- drivers/net/ethernet/mellanox/mlx4/mr.c        |  33 +++--
- drivers/net/ethernet/mellanox/mlx4/port.c      |  11 +-
- include/rdma/ib_umem.h                         |   1 +
- 19 files changed, 277 insertions(+), 155 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
