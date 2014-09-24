@@ -1,28 +1,36 @@
-From: Mohammed Rafi K C <muhammedrafi13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: RDMA connection establishment flow.
-Date: Wed, 24 Sep 2014 15:28:48 +0530
-Message-ID: <1411552728.6278.3.camel@rafi>
-Reply-To: muhammedrafi13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V3] svcrdma: advertise the correct max payload
+Date: Wed, 24 Sep 2014 14:55:56 +0300
+Message-ID: <5422B14C.3040502@dev.mellanox.co.il>
+References: <20140923221122.24227.91718.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140923221122.24227.91718.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, fields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+On 9/24/2014 1:11 AM, Steve Wise wrote:
+> Svcrdma currently advertises 1MB, which is too large.  The correct value
+> is the minimum of RPCSVC_MAXPAYLOAD and the max scatter-gather allowed
+> in an NFSRDMA IO chunk * the host page size. This bug is usually benign
+> because the Linux X64 NFSRDMA client correctly limits the payload size to
+> the correct value (64*4096 = 256KB).  But if the Linux client is PPC64
+> with a 64KB page size, then the client will indeed use a payload size
+> that will overflow the server.
+>
 
-I was trying to write an application in rdma . I understood that when a connection is established between remote endpoints, RDMA_CM_EVENT_ESTABLISHED event is generated in both server and client.
+Maybe I'm a bit late with this, but can you explain why SG table is
+limited to 64 (fastreg MR and page_list probably bound it). Where is it
+coming from? Naturally it needs to be bound by some figure, but why 64?
 
-My question is Who will get RDMA_CM_EVENT_ESTABLISHED notification first, Server or client ? Is there any order to keep it strictly .
+Sorry if I'm nit-picking on this pretty straight-forward bug fix...
 
-Can we set the connection is established if any of the side to get the events or should we need wait to get the RDMA_CM_EVENT_ESTABLISHED event in both side.
-
-Thanks & Regards
-Rafi KC
-
+Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
