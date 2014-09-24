@@ -1,36 +1,63 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V3] svcrdma: advertise the correct max payload
-Date: Wed, 24 Sep 2014 14:55:56 +0300
-Message-ID: <5422B14C.3040502@dev.mellanox.co.il>
-References: <20140923221122.24227.91718.stgit@build.ogc.int>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
+Date: Wed, 24 Sep 2014 15:22:35 +0300
+Message-ID: <5422B78B.4000501@dev.mellanox.co.il>
+References: <541C27BF.6070609@acm.org> <541C28E0.7010705@acm.org> <5421A093.1070203@dev.mellanox.co.il> <5421C3DF.5000102@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140923221122.24227.91718.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, fields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <5421C3DF.5000102@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@kernel.dk>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/24/2014 1:11 AM, Steve Wise wrote:
-> Svcrdma currently advertises 1MB, which is too large.  The correct value
-> is the minimum of RPCSVC_MAXPAYLOAD and the max scatter-gather allowed
-> in an NFSRDMA IO chunk * the host page size. This bug is usually benign
-> because the Linux X64 NFSRDMA client correctly limits the payload size to
-> the correct value (64*4096 = 256KB).  But if the Linux client is PPC64
-> with a 64KB page size, then the client will indeed use a payload size
-> that will overflow the server.
+On 9/23/2014 10:02 PM, Bart Van Assche wrote:
+> On 23/09/2014 10:32, Sagi Grimberg wrote:
+>> On 9/19/2014 4:00 PM, Bart Van Assche wrote:
+>>> Improve performance by using multiple RDMA/RC channels per SCSI host
+>>> for communicating with an SRP target.
+>>>
+>>
+>> Hey Bart,
+>>
+>> Since you don't seem to negotiate/declare multichannel with the target,
+>> did you test this code with some target implementations other than SCST
+>> that happen to be out there?
+>>
+>> Overall, I think this patch would be easier to review if you also
+>> provide a list of logical changes (which obviously are introduced in
+>> this patch). Patch 7/8 can use some more information of target-channel
+>> relations as well.
 >
+> Hello Sagi,
+>
+> That's a good question. So far this patch series has only been tested
+> against the SCST SRP target driver. However, as you probably noticed, if
+> setting up a second or later RDMA channel fails SRP login is not failed
+> but communication proceeds with the number of channels that have been
+> established. This mechanism should retain backwards compatibility with
+> SRP target systems that do not support multichannel communication.
+> However, if the new code for SRP login turns out to be triggering bugs
+> in existing SRP target implementations we can still add a blacklist for
+> these implementations.
 
-Maybe I'm a bit late with this, but can you explain why SG table is
-limited to 64 (fastreg MR and page_list probably bound it). Where is it
-coming from? Naturally it needs to be bound by some figure, but why 64?
+I'm more concerned that a target will accept multichannel and then
+starts flipping since that wasn't tested in I don't know when, probably
+never...
 
-Sorry if I'm nit-picking on this pretty straight-forward bug fix...
+Since SRP_LOGIN_REQ/RESP has some free bits why not declare it and
+activate it when both sides *says* they support it? I'd be much calmer
+knowing we're on the safe side on this...
+
+>
+> I will provide a more detailed list of logical changes in the second
+> version of this patch series.
+
+Thanks,
+
+Plus, I would like to run it on my performance setups. can you point me
+to the SCST repo? is multichannel supported in scst trunk?
 
 Sagi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
