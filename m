@@ -1,52 +1,24 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
-Date: Wed, 24 Sep 2014 16:43:35 +0300
-Message-ID: <5422CA87.8040100@dev.mellanox.co.il>
-References: <541C27BF.6070609@acm.org> <541C28E0.7010705@acm.org> <5421A093.1070203@dev.mellanox.co.il> <5421C3DF.5000102@acm.org> <5422B78B.4000501@dev.mellanox.co.il> <5422C395.7090902@acm.org> <5422C970.4050306@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RDMA connection establishment flow.
+Date: Wed, 24 Sep 2014 15:32:55 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DE3037@ORSMSX109.amr.corp.intel.com>
+References: <1411552728.6278.3.camel@rafi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5422C970.4050306-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1411552728.6278.3.camel@rafi>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+To: "muhammedrafi13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <muhammedrafi13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/24/2014 4:38 PM, Sagi Grimberg wrote:
-> On 9/24/2014 4:13 PM, Bart Van Assche wrote:
->> On 24/09/2014 6:22, Sagi Grimberg wrote:
->>> Since SRP_LOGIN_REQ/RESP has some free bits why not declare it and
->>> activate it when both sides *says* they support it? I'd be much calmer
->>> knowing we're on the safe side on this...
->>
->> Hello Sagi,
->>
->> Since more than ten years the SRP protocol is an official ANSI standard.
->> Since multichannel support has been defined in that standard my
->> preference is to follow what has been documented in that standard with
->> regard to multichannel operation.
->
-> Just re-visited the r16a, srp_login request req_flags include MULTI
-> CHANNEL ACTION (Table 10) and srp login response rsp_flags include
-> MULTI-CHANNEL RESULT (Table 12).
->
-> Did you notice those? Didn't see any reference in the patch...
->
->   Using one of the free bits in the SRP
->> login request and response would involve a protocol modification. Hence
->> the proposal to add a blacklist for non-conforming target
->> implementations.
->>
->
-> So I'm not so sure we need to update SRP login sequence...
->
-
-Wait, yes you did reference those...
-
-OK, I'm on board now...
-
-Sagi.
+PiBNeSBxdWVzdGlvbiBpcyBXaG8gd2lsbCBnZXQgUkRNQV9DTV9FVkVOVF9FU1RBQkxJU0hFRCBu
+b3RpZmljYXRpb24gZmlyc3QsDQo+IFNlcnZlciBvciBjbGllbnQgPyBJcyB0aGVyZSBhbnkgb3Jk
+ZXIgdG8ga2VlcCBpdCBzdHJpY3RseSAuDQoNClRoZXJlIGlzIG5vIGd1YXJhbnRlZSB3aGljaCBz
+aWRlIHdpbGwgcmVjZWl2ZSB0aGUgZXZlbnQgZmlyc3QuDQoNClRoZSBvbmx5IHJlc3RyaWN0aW9u
+IGlzIHRoYXQgdGhlIHNpZGUgd2hpY2ggaW5pdGlhdGVzIHRoZSBmaXJzdCBkYXRhIHRyYW5zZmVy
+IG11c3Qgd2FpdCB1bnRpbCBpdCBzZWVzIHRoZSBldmVudCBiZWZvcmUgc2VuZGluZy4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
