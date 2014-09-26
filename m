@@ -1,71 +1,34 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: memset attr variable to prevent garbage data
-Date: Fri, 26 Sep 2014 14:12:25 +0200
-Message-ID: <1411733545.7778.24.camel@localhost.localdomain>
-References: <45be0302-ea5d-4f35-892a-47617edd27ec@CMEXHTCAS1.ad.emulex.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/8] scsi-mq: Add support for multiple hardware queues
+Date: Fri, 26 Sep 2014 08:02:02 -0600
+Message-ID: <542571DA.9020701@acm.org>
+References: <541C27BF.6070609@acm.org>	<541C281E.9090206@acm.org>	<CAF9gx6JfP2bGyMauB6LzepZP_vKEvrd-sPZc5CRuOrtgQ_UCSw@mail.gmail.com> <CACVXFVMiYsW=dszQ6mE-o_L8fEDdkO59vJ5qeHKch5c33K_QXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <45be0302-ea5d-4f35-892a-47617edd27ec-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+In-Reply-To: <CACVXFVMiYsW=dszQ6mE-o_L8fEDdkO59vJ5qeHKch5c33K_QXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 26/09/2014 5:08, Ming Lei wrote:
+>
+> I suggest to apply this patch and related scsi-mq multi hw-queue
+> enablement patches first, so that any scsi drivers capable of
+> multi hw-queue can go without waiting for passing hctx
+> patches which may take a bit long since lots of drivers are involved,
+> as Jens said, the mapping from req to hctx is quite cheap.
 
-Le vendredi 26 septembre 2014 =C3=A0 15:49 +0530, Devesh Sharma a =C3=A9=
-crit :
-> During create-ah from user land, uverbs is sending
-> garbage data in attr.dmac and attr.vlan_id. This
-> patch prevents the same.
->=20
-> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/core/uverbs_cmd.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniban=
-d/core/uverbs_cmd.c
-> index 0600c50..0b1ce71 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -2508,6 +2508,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_fi=
-le *file,
->  		goto err;
->  	}
-> =20
-> +	memset(&attr, 0, sizeof(attr));
+Hello Ming,
 
-It's a bit overkill.
+This week I have been traveling. I hope to find more time next week or 
+the week after next week to rework this patch series and to address the 
+feedback I have received from you, Jens, Christoph and Sagi.
 
->  	attr.dlid 	       =3D cmd.attr.dlid;
->  	attr.sl 	       =3D cmd.attr.sl;
->  	attr.src_path_bits     =3D cmd.attr.src_path_bits;
-
-Just do
-
-         memset(attr.dmac, 0, sizeof(attr.dmac));
-         attr.vlan_id =3D 0;
-
-In the spirit of
-<http://marc.info/?i=3D1409661154-13718-1-git-send-email-ogerlitz@mella=
-nox.com>,
-please add the following to the commit message:
-
-=46ixes: dd5f03beb4f7 ('IB/core: Ethernet L2 attributes in verbs/cm
-structures')
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
