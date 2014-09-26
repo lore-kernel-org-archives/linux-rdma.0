@@ -1,81 +1,61 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1] IB/core: memset attr variable to prevent garbage data
-Date: Fri, 26 Sep 2014 17:24:04 +0200
-Message-ID: <1411745044.7778.30.camel@localhost.localdomain>
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V1] IB/core: memset attr variable to prevent garbage data
+Date: Fri, 26 Sep 2014 15:30:13 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD40C3BF18@CMEXMB1.ad.emulex.com>
 References: <1303ef19-9e66-4ad0-9788-995faadb05ab@CMEXHTCAS1.ad.emulex.com>
+ <1411745044.7778.30.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1303ef19-9e66-4ad0-9788-995faadb05ab-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+In-Reply-To: <1411745044.7778.30.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-
-Le vendredi 26 septembre 2014 =C3=A0 19:30 +0530, Devesh Sharma a =C3=A9=
-crit :
-> During create-ah from user land, uverbs is sending
-> garbage data in attr.dmac and attr.vlan_id. This
-> patch prevents the same.
->=20
-
-Is the last sentence complete ?
-
-> Fixes: dd5f03beb4f7 ('IB/core: Ethernet L2 attributes in verbs/cm
-> structures')
->=20
-> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-
-Thanks for the updated patch.
-
-Please put the "Cc:" in the commit message:
-
-=46ixes: dd5f03beb4f7 ('IB/core: Ethernet L2 attributes in verbs/cm str=
-uctures')
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-
-This way, the list of people involved in handling the issue would be
-recorded in the git history.
-Additionnaly, git send-email gathers the Cc: in the commit message and
-automatically send the email to the people listed.
-
-> ---
->  drivers/infiniband/core/uverbs_cmd.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniban=
-d/core/uverbs_cmd.c
-> index 0600c50..5ba2a86 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -2518,6 +2518,8 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_fi=
-le *file,
->  	attr.grh.sgid_index    =3D cmd.attr.grh.sgid_index;
->  	attr.grh.hop_limit     =3D cmd.attr.grh.hop_limit;
->  	attr.grh.traffic_class =3D cmd.attr.grh.traffic_class;
-> +	attr.vlan_id           =3D 0;
-> +	memset(&attr.dmac, 0, sizeof(attr.dmac));
-
-OK.
-
->  	memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
-> =20
->  	ah =3D ib_create_ah(pd, &attr);
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+SGkgWWFubiwNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBZYW5uIERy
+b25lYXVkIFttYWlsdG86eWRyb25lYXVkQG9wdGV5YS5jb21dDQo+IFNlbnQ6IEZyaWRheSwgU2Vw
+dGVtYmVyIDI2LCAyMDE0IDg6NTQgUE0NCj4gVG86IERldmVzaCBTaGFybWENCj4gQ2M6IGxpbnV4
+LXJkbWFAdmdlci5rZXJuZWwub3JnOyBtYXRhbmJAbWVsbGFub3guY29tOw0KPiBvZ2VybGl0ekBt
+ZWxsYW5veC5jb20NCj4gU3ViamVjdDogUmU6IFtQQVRDSCBWMV0gSUIvY29yZTogbWVtc2V0IGF0
+dHIgdmFyaWFibGUgdG8gcHJldmVudCBnYXJiYWdlDQo+IGRhdGENCj4gDQo+IEhpLA0KPiANCj4g
+TGUgdmVuZHJlZGkgMjYgc2VwdGVtYnJlIDIwMTQgw6AgMTk6MzAgKzA1MzAsIERldmVzaCBTaGFy
+bWEgYSDDqWNyaXQgOg0KPiA+IER1cmluZyBjcmVhdGUtYWggZnJvbSB1c2VyIGxhbmQsIHV2ZXJi
+cyBpcyBzZW5kaW5nIGdhcmJhZ2UgZGF0YSBpbg0KPiA+IGF0dHIuZG1hYyBhbmQgYXR0ci52bGFu
+X2lkLiBUaGlzIHBhdGNoIHByZXZlbnRzIHRoZSBzYW1lLg0KPiA+DQo+IA0KPiBJcyB0aGUgbGFz
+dCBzZW50ZW5jZSBjb21wbGV0ZSA/DQoNCldpbGwgcmUtcGhyYXNlIGl0Lg0KDQo+IA0KPiA+IEZp
+eGVzOiBkZDVmMDNiZWI0ZjcgKCdJQi9jb3JlOiBFdGhlcm5ldCBMMiBhdHRyaWJ1dGVzIGluIHZl
+cmJzL2NtDQo+ID4gc3RydWN0dXJlcycpDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBEZXZlc2gg
+U2hhcm1hIDxkZXZlc2guc2hhcm1hQGVtdWxleC5jb20+DQo+IA0KPiBUaGFua3MgZm9yIHRoZSB1
+cGRhdGVkIHBhdGNoLg0KPiANCj4gUGxlYXNlIHB1dCB0aGUgIkNjOiIgaW4gdGhlIGNvbW1pdCBt
+ZXNzYWdlOg0KPiANCj4gRml4ZXM6IGRkNWYwM2JlYjRmNyAoJ0lCL2NvcmU6IEV0aGVybmV0IEwy
+IGF0dHJpYnV0ZXMgaW4gdmVyYnMvY20gc3RydWN0dXJlcycpDQo+IENjOiBNYXRhbiBCYXJhayA8
+bWF0YW5iQG1lbGxhbm94LmNvbT4NCj4gQ2M6IE9yIEdlcmxpdHogPG9nZXJsaXR6QG1lbGxhbm94
+LmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogRGV2ZXNoIFNoYXJtYSA8ZGV2ZXNoLnNoYXJtYUBlbXVs
+ZXguY29tPg0KPiANCj4gVGhpcyB3YXksIHRoZSBsaXN0IG9mIHBlb3BsZSBpbnZvbHZlZCBpbiBo
+YW5kbGluZyB0aGUgaXNzdWUgd291bGQgYmUNCj4gcmVjb3JkZWQgaW4gdGhlIGdpdCBoaXN0b3J5
+Lg0KPiBBZGRpdGlvbm5hbHksIGdpdCBzZW5kLWVtYWlsIGdhdGhlcnMgdGhlIENjOiBpbiB0aGUg
+Y29tbWl0IG1lc3NhZ2UgYW5kDQo+IGF1dG9tYXRpY2FsbHkgc2VuZCB0aGUgZW1haWwgdG8gdGhl
+IHBlb3BsZSBsaXN0ZWQuDQoNClN1cmUsIEkgd2lsbCByb2xsb3V0IHYyLiANCkkgbWlzdW5kZXJz
+dG9vZCBpdC4NCg0KPiANCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZl
+cmJzX2NtZC5jIHwgICAgMiArKw0KPiA+ICAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygr
+KSwgMCBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJh
+bmQvY29yZS91dmVyYnNfY21kLmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNf
+Y21kLmMNCj4gPiBpbmRleCAwNjAwYzUwLi41YmEyYTg2IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZl
+cnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19jbWQuYw0KPiA+ICsrKyBiL2RyaXZlcnMvaW5maW5p
+YmFuZC9jb3JlL3V2ZXJic19jbWQuYw0KPiA+IEBAIC0yNTE4LDYgKzI1MTgsOCBAQCBzc2l6ZV90
+IGliX3V2ZXJic19jcmVhdGVfYWgoc3RydWN0DQo+IGliX3V2ZXJic19maWxlICpmaWxlLA0KPiA+
+ICAJYXR0ci5ncmguc2dpZF9pbmRleCAgICA9IGNtZC5hdHRyLmdyaC5zZ2lkX2luZGV4Ow0KPiA+
+ICAJYXR0ci5ncmguaG9wX2xpbWl0ICAgICA9IGNtZC5hdHRyLmdyaC5ob3BfbGltaXQ7DQo+ID4g
+IAlhdHRyLmdyaC50cmFmZmljX2NsYXNzID0gY21kLmF0dHIuZ3JoLnRyYWZmaWNfY2xhc3M7DQo+
+ID4gKwlhdHRyLnZsYW5faWQgICAgICAgICAgID0gMDsNCj4gPiArCW1lbXNldCgmYXR0ci5kbWFj
+LCAwLCBzaXplb2YoYXR0ci5kbWFjKSk7DQo+IA0KPiBPSy4NCj4gDQo+ID4gIAltZW1jcHkoYXR0
+ci5ncmguZGdpZC5yYXcsIGNtZC5hdHRyLmdyaC5kZ2lkLCAxNik7DQo+ID4NCj4gPiAgCWFoID0g
+aWJfY3JlYXRlX2FoKHBkLCAmYXR0cik7DQo+IA0KPiBSZWdhcmRzLg0KPiANCj4gLS0NCj4gWWFu
+biBEcm9uZWF1ZA0KPiBPUFRFWUENCj4gDQoNCg==
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
