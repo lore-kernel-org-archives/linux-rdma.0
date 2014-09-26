@@ -1,33 +1,43 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 2/8] scsi-mq: Add support for multiple hardware queues
-Date: Fri, 26 Sep 2014 08:02:02 -0600
-Message-ID: <542571DA.9020701@acm.org>
-References: <541C27BF.6070609@acm.org>	<541C281E.9090206@acm.org>	<CAF9gx6JfP2bGyMauB6LzepZP_vKEvrd-sPZc5CRuOrtgQ_UCSw@mail.gmail.com> <CACVXFVMiYsW=dszQ6mE-o_L8fEDdkO59vJ5qeHKch5c33K_QXw@mail.gmail.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V1] IB/core: memset attr variable to prevent garbage data
+Date: Fri, 26 Sep 2014 19:30:40 +0530
+Message-ID: <1303ef19-9e66-4ad0-9788-995faadb05ab@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACVXFVMiYsW=dszQ6mE-o_L8fEDdkO59vJ5qeHKch5c33K_QXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 26/09/2014 5:08, Ming Lei wrote:
->
-> I suggest to apply this patch and related scsi-mq multi hw-queue
-> enablement patches first, so that any scsi drivers capable of
-> multi hw-queue can go without waiting for passing hctx
-> patches which may take a bit long since lots of drivers are involved,
-> as Jens said, the mapping from req to hctx is quite cheap.
+During create-ah from user land, uverbs is sending
+garbage data in attr.dmac and attr.vlan_id. This
+patch prevents the same.
 
-Hello Ming,
+Fixes: dd5f03beb4f7 ('IB/core: Ethernet L2 attributes in verbs/cm
+structures')
 
-This week I have been traveling. I hope to find more time next week or 
-the week after next week to rework this patch series and to address the 
-feedback I have received from you, Jens, Christoph and Sagi.
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Bart.
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 0600c50..5ba2a86 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2518,6 +2518,8 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	attr.grh.sgid_index    = cmd.attr.grh.sgid_index;
+ 	attr.grh.hop_limit     = cmd.attr.grh.hop_limit;
+ 	attr.grh.traffic_class = cmd.attr.grh.traffic_class;
++	attr.vlan_id           = 0;
++	memset(&attr.dmac, 0, sizeof(attr.dmac));
+ 	memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
+ 
+ 	ah = ib_create_ah(pd, &attr);
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
