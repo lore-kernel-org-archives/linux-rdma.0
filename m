@@ -1,37 +1,59 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: IB subsystem merges for 3.18
-Date: Sun, 28 Sep 2014 21:48:19 +0300
-Message-ID: <CAJ3xEMhQOPtUiHJ7Z_=kK38vQzjTQ=6ftuQVi-AGW_SKdD8koQ@mail.gmail.com>
+From: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Unable to compile RDMA-aware examples in C
+Date: Mon, 29 Sep 2014 02:08:59 +0000 (UTC)
+Message-ID: <loom.20140929T040000-389@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Hello everyone,
 
-3.17-rc7 is soon out, so I guess (hope) you want to start picking code
-for 3.18 -- since you haven't done that so far.
-
-Two low hanging fruit pieces would be the below patch sets [1] [2]
-posted couple of weeks ago.
-
-As for the ODP patches, I am unsuccessfully trying to get any feedback
-from you on this work which waits > seven months (and counting) for
-you to make a meaningful public comment how you see this, and it
-simply doesn't work. Can you please wear your upstream subsystem
-maintainer hat and speak up (== say something)?
-
-Or.
+I'm trying to run some basic rdma examples (provided here:
+github.com/tarickb/the-geek-in-the-corner/tree/master/01_basic-client-server
+but I keep getting these errors:
 
 
-A series with Signature related updates (seven patches) from Sagi
-[1] http://marc.info/?l=linux-rdma&m=140794889014032&w=2
+$ gcc -Wall -g   -lrdmacm -libverbs -lpthread  server.c   -o server
+/tmp/cceNIRgz.o: In function `main':
+/rdma_cma/server.c:58: undefined reference to `rdma_create_event_channel'
+/rdma_cma/server.c:59: undefined reference to `rdma_create_id'
+/rdma_cma/server.c:60: undefined reference to `rdma_bind_addr'
+/rdma_cma/server.c:61: undefined reference to `rdma_listen'
+/rdma_cma/server.c:63: undefined reference to `rdma_get_src_port'
+/rdma_cma/server.c:71: undefined reference to `rdma_ack_cm_event'
+/rdma_cma/server.c:67: undefined reference to `rdma_get_cm_event'
+/rdma_cma/server.c:77: undefined reference to `rdma_destroy_id'
+/rdma_cma/server.c:78: undefined reference to `rdma_destroy_event_channel'
+/tmp/cceNIRgz.o: In function `build_context':
+/rdma_cma/server.c:102: undefined reference to `ibv_alloc_pd'
+/rdma_cma/server.c:103: undefined reference to `ibv_create_comp_channel'
+/rdma_cma/server.c:104: undefined reference to `ibv_create_cq'
+/rdma_cma/server.c:107: undefined reference to `pthread_create'
+/tmp/cceNIRgz.o: In function `poll_cq':
+/rdma_cma/server.c:130: undefined reference to `ibv_get_cq_event'
+/rdma_cma/server.c:131: undefined reference to `ibv_ack_cq_events'
+/tmp/cceNIRgz.o: In function `register_memory':
+/rdma_cma/server.c:163: undefined reference to `ibv_reg_mr'
+/rdma_cma/server.c:169: undefined reference to `ibv_reg_mr'
+/tmp/cceNIRgz.o: In function `on_connect_request':
+/rdma_cma/server.c:202: undefined reference to `rdma_create_qp'
+/rdma_cma/server.c:211: undefined reference to `rdma_accept'
+/tmp/cceNIRgz.o: In function `on_disconnect':
+/rdma_cma/server.c:248: undefined reference to `rdma_destroy_qp'
+/rdma_cma/server.c:250: undefined reference to `ibv_dereg_mr'
+/rdma_cma/server.c:251: undefined reference to `ibv_dereg_mr'
+/rdma_cma/server.c:258: undefined reference to `rdma_destroy_id'
+collect2: error: ld returned 1 exit status
 
-[2] A series with mlx5 small updates (six patches) from Eli
-http://marc.info/?l=linux-rdma&m=141070248911791&w=2
+
+
+I'm guessing some missing libraries are responsible here.
+Any help would be greatly appreciated.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
