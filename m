@@ -1,27 +1,29 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next 9/9] Samples: Peer memory client example
-Date: Wed, 1 Oct 2014 17:16:12 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DE5096@ORSMSX109.amr.corp.intel.com>
-References: <1412176717-11979-1-git-send-email-yishaih@mellanox.com>
- <1412176717-11979-10-git-send-email-yishaih@mellanox.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
+Date: Wed, 1 Oct 2014 14:14:23 -0700
+Message-ID: <20141001211423.GD24820@infradead.org>
+References: <541C27BF.6070609@acm.org>
+ <541C28E0.7010705@acm.org>
+ <CACVXFVPzz37J-613NZCfPStUBxf0rLOtz71LJ07PpCxYg5nn+g@mail.gmail.com>
+ <541C49EC.6030404@acm.org>
+ <CACVXFVPH_qPFUTT+796BZmWxeeG4tJ-Pyp8hqGqqSwt3YYkEqA@mail.gmail.com>
+ <541C4D2F.9060907@acm.org>
+ <541C4DF1.4090604@kernel.dk>
+ <542C270B.5020002@acm.org>
+ <542C31C4.1020702@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1412176717-11979-10-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <542C31C4.1020702@kernel.dk>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>
+Cc: Bart Van Assche <bvanassche@acm.org>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Robert Elliott <Elliott@hp.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Adds an example of a peer memory client which implements the peer memory
-> API as defined under include/rdma/peer_mem.h.
-> It uses the HOST memory functionality to implement the APIs and
-> can be a good reference for peer memory client writers.
+On Wed, Oct 01, 2014 at 10:54:28AM -0600, Jens Axboe wrote:
+> Lets get rid of the blk_mq_tag struct and just have it be an u32 or
+> something. We could potentially typedef it, but I'd prefer to just have it
+> be an unsigned 32-bit int.
 
-Is there a real user of these changes?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Agreed.
