@@ -1,74 +1,48 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 00/21] iSER initiator updates for 3.18
-Date: Wed,  1 Oct 2014 14:01:56 +0300
-Message-ID: <1412161337-25285-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 03/21] IB/iser: Remove unused variables and dead code
+Date: Wed,  1 Oct 2014 14:01:59 +0300
+Message-ID: <1412161337-25285-4-git-send-email-ogerlitz@mellanox.com>
+References: <1412161337-25285-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1412161337-25285-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This series from Sagi, Ariel and Roi consists of:
+Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.h |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-- Last batch of iser control plane stability fixes (patches 1-10)
-     Mainly in the area of combinations of multi-connections concurrent
-     establishment and/or teardown and/or device removal and/or iscsid killed.
-
-- Various performance enhancements (patches 11-16) done through the 
-  engine warming towards the MQ work
-     Remove atomic manipulation in the hot path
-     Optimize cq polling
-     Use single CQ for TX and RX and suppress most of the send completions.
-
-- Sone nit fixes and kernel-doc fixes (patches 17-21)
-
-It should be applied on "Signature feature update" Sagi posted (now formally
-an upstream maintainer..) a short while ago for 3.18 (and you agreed to take).
-
-In 3.18 we happily mark iSER's 20'th upstream anniversary (2.6.18..3.18),
-and we're really excited for the challenge of going over 2M IOPS (current 
-IO rate for single initiator) to whatever many million IOPS we can do with MQ.
-
-Or and the team.
-
-Ariel Nahum (3):
-  IB/iser: Unbind at conn_stop stage
-  IB/iser: Use iser_warn instead of BUG_ON in iser_conn_release
-  IB/iser: change iscsi_conn_stop log level to info
-
-Or Gerlitz (1):
-  IB/iser: Bump version, add maintainer
-
-Roi Dayan (1):
-  IB/iser: Remove unused variables and dead code
-
-Sagi Grimberg (16):
-  IB/iser: Rename ib_conn -> iser_conn
-  IB/iser: Re-introduce ib_conn
-  IB/iser: Extend iser_free_ib_conn_res
-  IB/iser: Fix DEVICE REMOVAL handling in the absence of iscsi daemon
-  IB/iser: Don't bound release_work completions timeouts
-  IB/iser: Protect tasks cleanup in case IB device was already released
-  IB/iser: Signal iSCSI layer that transport is broken in error completions
-  IB/iser: Centralize iser completion contexts
-  IB/iser: Use internal polling budget to avoid possible live-lock
-  IB/iser: Use single CQ for RX and TX
-  IB/iser: Use beacon to indicate all completions were consumed
-  IB/iser: Optimize completion polling
-  IB/iser: Suppress scsi command send completions
-  IB/iser: Nit - add space after __func__ in iser logging
-  IB/iser: Add/Fix kernel doc style descriptions in iscsi_iser.h
-  IB/iser: Fix/add kernel-doc style description in iscsi_iser.c
-
- MAINTAINERS                                  |    1 +
- drivers/infiniband/ulp/iser/iscsi_iser.c     |  309 +++++++++---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |  408 +++++++++++-----
- drivers/infiniband/ulp/iser/iser_initiator.c |  198 ++++----
- drivers/infiniband/ulp/iser/iser_memory.c    |   20 +-
- drivers/infiniband/ulp/iser/iser_verbs.c     |  667 ++++++++++++++------------
- 6 files changed, 1016 insertions(+), 587 deletions(-)
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 4ad73c9..ec238b3 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -365,7 +365,6 @@ struct iser_conn {
+ 	struct iscsi_conn	     *iscsi_conn;
+ 	struct iscsi_endpoint	     *ep;
+ 	enum iser_conn_state	     state;	    /* rdma connection state   */
+-	atomic_t		     refcount;
+ 	unsigned		     qp_max_recv_dtos; /* num of rx buffers */
+ 	unsigned		     qp_max_recv_dtos_mask; /* above minus 1 */
+ 	unsigned		     min_posted_rx; /* qp_max_recv_dtos >> 2 */
+@@ -424,9 +423,6 @@ extern int iser_debug_level;
+ extern bool iser_pi_enable;
+ extern int iser_pi_guard;
+ 
+-/* allocate connection resources needed for rdma functionality */
+-int iser_conn_set_full_featured_mode(struct iscsi_conn *conn);
+-
+ int iser_send_control(struct iscsi_conn *conn,
+ 		      struct iscsi_task *task);
+ 
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
