@@ -1,122 +1,71 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 04/21] IB/iser: Extend iser_free_ib_conn_res
-Date: Wed,  1 Oct 2014 14:02:00 +0300
-Message-ID: <1412161337-25285-5-git-send-email-ogerlitz@mellanox.com>
-References: <1412161337-25285-1-git-send-email-ogerlitz@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: ib_ipoib: CSUM support in connected mode
+Date: Wed, 1 Oct 2014 14:55:31 +0300
+Message-ID: <20141001115531.GA10035@yuval-lab>
+References: <20140914184621.GA4283@yuval-lab>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1412161337-25285-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140914184621.GA4283@yuval-lab>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Sep 14, 2014 at 09:46:22PM +0300, Yuval Shaia wrote:
+> Hi,
+> Lately i was working on fixing an issue with IPoIB driver and i'd like to share the 
+> details with you.
+> 
+> By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
+> This MTU plus overhead puts the memory allocation for IP based packets at 32 4k pages
+> (order 5), which have to be contiguous. When the system memory under pressure, it was
+> observed that allocating 128k contiguous physical memory is difficult and causes serious
+> errors (such as system becomes unusable).
+> This enhancement resolve the issue by removing the physically contiguous memory requirement
+> using Scatter/Gather feature that exists in Linux stack. In order to use Scatter/Gather
+> feature in Linux IPoIB-CM driver, Linux IPoIB-CM must support IP checksum offload feature
+> (requirements as per the current Linux N/W implementation). But IB HCA hardware does not
+> support this feature and hence IPoIB cannot support the same.
+> IPoIB Connected Mode driver uses RC (Reliable Connection) which guarantees the corruption
+> free delivery of the packet. InfiniBand uses 32b CRC which provides stronger data integrity
+> protection compare to 16b IP Checksum. So, there is no added value that IP Checksum provides
+> in the IB world. The proposal is to tell to network stack that IPoIB-CM supports IP
+> Checksum offload. This enables Linux IPoIB-CM driver to use Scatter/Gather feature. Network
+> sends the IP packet without adding the IP Checksum to the header. On the receive side, IPoIB
+> driver again tells the network stack that IP Checksum is good for the incoming packets and
+> network stack avoids the IP Checksum calculations.
+> During connection establishment the driver determine if the other end supports IB CRC
+> as checksum. This is done so driver will be able to calculate checksum before transmitting
+> the packet in case the other end does not support this feature.
+> A support for fragmented skb is added to transmit path.
+> 
+> Please note that a "very welcome side-effect" of this feature is a high of degree performance 
+> improvement as a result of the removal of csum calculation.
+> I will be happy to share results with you if needed.
+I ran a simple performance tests using iperf with the latest stable kernel.
+Do not consider the results as *best results* it is just to sense the performance improvement.
+For the test i used two servers, a "Sender" runs iperf client and "Receiver" runs iperf server.
+>From the results we can see that benefits is with the "Receiver" side where we saved the time needed for checksum calculation.
+On transmit checksum calculation is done while copying buffer from user-space so not much benefit.
 
-Put all connection IB related resources release in this
-routine. One exception is the cm_id which cannot be destroyed
-as the routine is protected by the state mutex. Also move
-its position to avoid forward declaration. While at nit fix qp
-NULL assignment.
+Sender		Receiver	Results 
+---------------------------------------
+Legacy		Legacy		12 Gbps
+Legacy		Patched		20 Gbps
+Patched		Legacy		12 Gbps
+Patched		Patched		20 Gbps
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_verbs.c |   58 +++++++++++++++--------------
- 1 files changed, 30 insertions(+), 28 deletions(-)
+Legacy is a server which runs kernel without the patch.
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index e69aba8..e429974 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -496,27 +496,6 @@ out_err:
- }
- 
- /**
-- * releases the QP object
-- */
--static void iser_free_ib_conn_res(struct iser_conn *iser_conn)
--{
--	struct ib_conn *ib_conn = &iser_conn->ib_conn;
--
--	iser_info("freeing conn %p cma_id %p qp %p\n",
--		  ib_conn, ib_conn->cma_id,
--		  ib_conn->qp);
--
--	/* qp is created only once both addr & route are resolved */
--
--	if (ib_conn->qp != NULL) {
--		ib_conn->device->cq_active_qps[ib_conn->cq_index]--;
--		rdma_destroy_qp(ib_conn->cma_id);
--	}
--
--	ib_conn->qp	  = NULL;
--}
--
--/**
-  * based on the resolved device node GUID see if there already allocated
-  * device for this device. If there's no such, create one.
-  */
-@@ -608,12 +587,41 @@ void iser_release_work(struct work_struct *work)
- }
- 
- /**
-+ * iser_free_ib_conn_res - release IB related resources
-+ * @iser_conn: iser connection struct
-+ *
-+ * This routine is called with the iser state mutex held
-+ * so the cm_id removal is out of here. It is Safe to
-+ * be invoked multiple times.
-+ */
-+static void iser_free_ib_conn_res(struct iser_conn *iser_conn)
-+{
-+	struct ib_conn *ib_conn = &iser_conn->ib_conn;
-+	struct iser_device *device = ib_conn->device;
-+
-+	iser_info("freeing conn %p cma_id %p qp %p\n",
-+		  iser_conn, ib_conn->cma_id, ib_conn->qp);
-+
-+	iser_free_rx_descriptors(iser_conn);
-+
-+	if (ib_conn->qp != NULL) {
-+		ib_conn->device->cq_active_qps[ib_conn->cq_index]--;
-+		rdma_destroy_qp(ib_conn->cma_id);
-+		ib_conn->qp = NULL;
-+	}
-+
-+	if (device != NULL) {
-+		iser_device_try_release(device);
-+		ib_conn->device = NULL;
-+	}
-+}
-+
-+/**
-  * Frees all conn objects and deallocs conn descriptor
-  */
- void iser_conn_release(struct iser_conn *iser_conn)
- {
- 	struct ib_conn *ib_conn = &iser_conn->ib_conn;
--	struct iser_device  *device = ib_conn->device;
- 
- 	mutex_lock(&ig.connlist_mutex);
- 	list_del(&iser_conn->conn_list);
-@@ -621,13 +629,7 @@ void iser_conn_release(struct iser_conn *iser_conn)
- 
- 	mutex_lock(&iser_conn->state_mutex);
- 	BUG_ON(iser_conn->state != ISER_CONN_DOWN);
--
--	iser_free_rx_descriptors(iser_conn);
- 	iser_free_ib_conn_res(iser_conn);
--	ib_conn->device = NULL;
--	/* on EVENT_ADDR_ERROR there's no device yet for this conn */
--	if (device != NULL)
--		iser_device_try_release(device);
- 	mutex_unlock(&iser_conn->state_mutex);
- 
- 	if (ib_conn->cma_id != NULL) {
--- 
-1.7.1
-
+I think we can't ignore 70% improvement in performances.
+> 
+> At present i have patch ready which was tested with an old kernel and i'm working to port 
+> it to latest.
+> 
+> Please review and comment.
+> 
+> Yuval
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
