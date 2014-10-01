@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 03/21] IB/iser: Remove unused variables and dead code
-Date: Wed,  1 Oct 2014 14:01:59 +0300
-Message-ID: <1412161337-25285-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 06/21] IB/iser: Don't bound release_work completions timeouts
+Date: Wed,  1 Oct 2014 14:02:02 +0300
+Message-ID: <1412161337-25285-7-git-send-email-ogerlitz@mellanox.com>
 References: <1412161337-25285-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1412161337-25285-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,37 +10,62 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+We no longer rely on iscsi connection teardown sequence,
+so no need to give a grace period and continue cleanup if
+it expired. Have iser_conn_release wait for full completion
+before freeing iser_conn.
+
+ib_completion:
+	Guaranteed to come when:
+	    - Got DISCONNECTED/ADDR_CHANGE event or
+	    - iSCSI called ep_disconnect/conn_stop
+	Guaranteed to finish when:
+	    - Got TIMEWAIT_EXIT/DEVICE_REMOVAL event
+	    - All Flush errors are consumed
+	    - IB related resources are destroyed
+
+stop_completion:
+	Guaranteed to come when:
+	    - iSCSI calls conn_stop
+	Guaranteed to finish when:
+	    - All inflight tasks were cleaned up
+
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/iser/iser_verbs.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 4ad73c9..ec238b3 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -365,7 +365,6 @@ struct iser_conn {
- 	struct iscsi_conn	     *iscsi_conn;
- 	struct iscsi_endpoint	     *ep;
- 	enum iser_conn_state	     state;	    /* rdma connection state   */
--	atomic_t		     refcount;
- 	unsigned		     qp_max_recv_dtos; /* num of rx buffers */
- 	unsigned		     qp_max_recv_dtos_mask; /* above minus 1 */
- 	unsigned		     min_posted_rx; /* qp_max_recv_dtos >> 2 */
-@@ -424,9 +423,6 @@ extern int iser_debug_level;
- extern bool iser_pi_enable;
- extern int iser_pi_guard;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 6170d06..6ce20fd 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -566,18 +566,13 @@ static int iser_conn_state_comp_exch(struct iser_conn *iser_conn,
+ void iser_release_work(struct work_struct *work)
+ {
+ 	struct iser_conn *iser_conn;
+-	int rc;
  
--/* allocate connection resources needed for rdma functionality */
--int iser_conn_set_full_featured_mode(struct iscsi_conn *conn);
+ 	iser_conn = container_of(work, struct iser_conn, release_work);
+ 
+-	/* wait for .conn_stop callback */
+-	rc = wait_for_completion_timeout(&iser_conn->stop_completion, 30 * HZ);
+-	WARN_ON(rc == 0);
 -
- int iser_send_control(struct iscsi_conn *conn,
- 		      struct iscsi_task *task);
+-	rc = wait_for_completion_timeout(&iser_conn->ib_completion, 30 * HZ);
+-	if (rc == 0)
+-		iser_warn("conn %p, IB cleanup didn't complete in 30 "
+-			  "seconds, continue with release\n", iser_conn);
++	/* Wait for conn_stop to complete */
++	wait_for_completion(&iser_conn->stop_completion);
++	/* Wait for IB resouces cleanup to complete */
++	wait_for_completion(&iser_conn->ib_completion);
  
+ 	mutex_lock(&iser_conn->state_mutex);
+ 	iser_conn->state = ISER_CONN_DOWN;
 -- 
 1.7.1
 
