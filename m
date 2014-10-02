@@ -1,40 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 9/9] Samples: Peer memory client example
-Date: Wed, 1 Oct 2014 21:14:41 -0600
-Message-ID: <20141002031441.GA10386@obsidianresearch.com>
-References: <1412176717-11979-1-git-send-email-yishaih@mellanox.com>
- <1412176717-11979-10-git-send-email-yishaih@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A8237399DE5096@ORSMSX109.amr.corp.intel.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix race condition in ib_uverbs_open_qp
+Date: Thu, 2 Oct 2014 13:21:28 +0300
+Message-ID: <20141002132128.095f9ed7@jpm-OptiPlex-GX620>
+References: <1411465106-3117-1-git-send-email-ogerlitz@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A8237399DE1811@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399DE5096-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399DE1811-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 01, 2014 at 05:16:12PM +0000, Hefty, Sean wrote:
-> > Adds an example of a peer memory client which implements the peer memory
-> > API as defined under include/rdma/peer_mem.h.
-> > It uses the HOST memory functionality to implement the APIs and
-> > can be a good reference for peer memory client writers.
+On Tue, 23 Sep 2014 15:55:14 +0000
+"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+
+> > --- a/drivers/infiniband/core/uverbs_main.c
+> > +++ b/drivers/infiniband/core/uverbs_main.c
+> > @@ -502,6 +502,10 @@ void ib_uverbs_qp_event_handler(struct ib_event
+> > *event, void *context_ptr)
+> >  {
+> >  	struct ib_uevent_object *uobj;
+> > 
+> > +	/* for XRC target qp's, check that qp is live */
+> > +	if (!event->element.qp->uobject
+> > || !event->element.qp->uobject->live)
+> > +		return;
 > 
-> Is there a real user of these changes?
+> Isn't checking 'live' sufficient?
 
-Agreed..
+Unfortunately, not -- uobject might be NULL, in which case we will get
+a kernel Oops.
 
-Can you also discuss what is going on at the PCI-E level? How are the
-peer-to-peer transactions addressed? Is this elaborate scheme just a
-way to 'window' GPU memory or is the NIC sending special PCI-E packets
-at the GPU?
+However, checking that uobject is NULL alone is not sufficient -- it
+might not yet be live.
 
-I'm really confused why this is all necessary, we can already map
-PCI-E memory into user space, and there were much simpler patches
-floating around to make that work several years ago..
+-Jack
 
-Jason
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
