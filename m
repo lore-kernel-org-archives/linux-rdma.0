@@ -1,45 +1,38 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix race condition in ib_uverbs_open_qp
-Date: Thu, 2 Oct 2014 13:21:28 +0300
-Message-ID: <20141002132128.095f9ed7@jpm-OptiPlex-GX620>
-References: <1411465106-3117-1-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237399DE1811@ORSMSX109.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 5/8] IB/srp: Remove stale connection retry mechanism
+Date: Thu, 02 Oct 2014 12:34:36 +0200
+Message-ID: <542D2A3C.2080009@acm.org>
+References: <541C27BF.6070609@acm.org>	<541C287D.1050900@acm.org> <CAJ3xEMhPKiut4MwZH9F7-T0+u7B6XPuh-FTZpA=Xe4ViAj5UUQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399DE1811-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAJ3xEMhPKiut4MwZH9F7-T0+u7B6XPuh-FTZpA=Xe4ViAj5UUQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 23 Sep 2014 15:55:14 +0000
-"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On 09/20/14 19:45, Or Gerlitz wrote:
+> On Fri, Sep 19, 2014 at 3:58 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>> Attempting to connect three times may be insufficient after an
+>> initiator system that was using multiple RDMA channels tries to
+>> relogin. Additionally, this login retry mechanism is a workaround
+>> for particular behavior of the IB/CM.
+>
+> Can you be more specific re the particular behavior of the IB CM?
+> added Sean, the CM maintainer.
 
-> > --- a/drivers/infiniband/core/uverbs_main.c
-> > +++ b/drivers/infiniband/core/uverbs_main.c
-> > @@ -502,6 +502,10 @@ void ib_uverbs_qp_event_handler(struct ib_event
-> > *event, void *context_ptr)
-> >  {
-> >  	struct ib_uevent_object *uobj;
-> > 
-> > +	/* for XRC target qp's, check that qp is live */
-> > +	if (!event->element.qp->uobject
-> > || !event->element.qp->uobject->live)
-> > +		return;
-> 
-> Isn't checking 'live' sufficient?
+Let's focus on the software behavior instead of the people who are 
+involved. What I have observed several times is that after a power cycle 
+of the initiator system the first few login attempts are rejected. I was 
+assuming that this was due to the IB/CM implementation but now that I 
+have had another look at the logs I see that there is not enough 
+information in the system logs to draw this conclusion. I will add 
+additional logging statements in the initiator and target kernel code 
+such that I can determine the root cause of this behavior.
 
-Unfortunately, not -- uobject might be NULL, in which case we will get
-a kernel Oops.
-
-However, checking that uobject is NULL alone is not sufficient -- it
-might not yet be live.
-
--Jack
-
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
