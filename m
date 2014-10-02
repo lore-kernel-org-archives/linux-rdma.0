@@ -1,256 +1,241 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 1/9] IB/core: Introduce peer client interface
-Date: Thu, 02 Oct 2014 17:37:33 +0300
-Message-ID: <542D632D.407@dev.mellanox.co.il>
-References: <1412176717-11979-1-git-send-email-yishaih@mellanox.com> <1412176717-11979-2-git-send-email-yishaih@mellanox.com> <542C2D23.30508@acm.org>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH for-next 4/9] IB/core: Infrastructure to manage peer core
+ context
+Date: Thu, 2 Oct 2014 15:02:41 +0000
+Message-ID: <bf3c553efb1848d19867dbeaff284edb@AMSPR05MB422.eurprd05.prod.outlook.com>
+References: <1412176717-11979-1-git-send-email-yishaih@mellanox.com>
+	 <1412176717-11979-5-git-send-email-yishaih@mellanox.com>
+ <1412202261.28184.0.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <542C2D23.30508-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1412202261.28184.0.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/1/2014 7:34 PM, Bart Van Assche wrote:
-> On 10/01/14 17:18, Yishai Hadas wrote:
->> +static int num_registered_peers;
->
-> Is the only purpose of this variable to check whether or not 
-> peer_memory_list is empty ? In that case please drop this variable and 
-> use list_empty() instead.
-     Agree.
->
->> +static int ib_invalidate_peer_memory(void *reg_handle, void 
->> *core_context)
->> +
->> +{
->> +    return -ENOSYS;
->> +}
-> Please follow the Linux kernel coding style which means no empty line 
-> above the function body.
-     OK
->
->> +#define PEER_MEM_MANDATORY_FUNC(x) {\
->> +    offsetof(struct peer_memory_client, x), #x }
->
-> Shouldn't the opening brace have been placed on the same line as the 
-> offsetof() macro to improve readability ?
->
-     OK
->> +    if (invalidate_callback) {
->> +        *invalidate_callback = ib_invalidate_peer_memory;
->> +        ib_peer_client->invalidation_required = 1;
->> +    }
->> +    mutex_lock(&peer_memory_mutex);
->> +    list_add_tail(&ib_peer_client->core_peer_list, &peer_memory_list);
->> +    num_registered_peers++;
->> +    mutex_unlock(&peer_memory_mutex);
->> +    return ib_peer_client;
->
-> Please insert an empty line before mutex_lock() and after mutex_unlock().
->
-     OK
->> +void ib_unregister_peer_memory_client(void *reg_handle)
->> +{
->> +    struct ib_peer_memory_client *ib_peer_client =
->> +        (struct ib_peer_memory_client *)reg_handle;
->
-> No cast is needed when assigning a void pointer to a non-void pointer.
->
-     Agree.
->> +struct peer_memory_client {
->> +    char    name[IB_PEER_MEMORY_NAME_MAX];
->> +    char    version[IB_PEER_MEMORY_VER_MAX];
->> +    /* The peer-direct controller (IB CORE) uses this callback to 
->> detect if a virtual address is under
->> +     * the responsibility of a specific peer direct client. If the 
->> answer is positive further calls
->> +     * for memory management will be directed to the callback of 
->> this peer driver.
->> +     * Any peer internal error should resulted in a zero answer, in 
->> case address range
->> +     * really belongs to the peer, no owner will be found and 
->> application will get an error
->> +     * from IB CORE as expected.
->> +     * Parameters:
->> +        addr                  [IN]  - virtual address to be checked 
->> whether belongs to.
->> +        size                  [IN]  - size of memory area starting 
->> at addr.
->> +        peer_mem_private_data [IN]  - The contents of ib_ucontext-> 
->> peer_mem_private_data.
->> +                          This parameter allows usage of the 
->> peer-direct
->> +                          API in implementations where it is impossible
->> +                          to detect if the memory belongs to the device
->> +                          based upon the virtual address alone. In such
->> +                          cases, the peer device can create a special
->> +                          ib_ucontext, which will be associated with 
->> the
->> +                          relevant peer memory.
->> +        peer_mem_name         [IN]  - The contents of ib_ucontext-> 
->> peer_mem_name.
->> +                          Used to identify the peer memory client that
->> +                          initialized the ib_ucontext.
->> +                          This parameter is normally used along with
->> +                          peer_mem_private_data.
->> +        client_context        [OUT] - peer opaque data which holds a 
->> peer context for
->> +                          the acquired address range, will be provided
->> +                          back to the peer memory in subsequent
->> +                          calls for that given memory.
->> +
->> +    * Return value:
->> +    *    1 - virtual address belongs to the peer device, otherwise 0
->> +    */
->> +    int (*acquire)(unsigned long addr, size_t size, void 
->> *peer_mem_private_data,
->> +               char *peer_mem_name, void **client_context);
->> +    /* The peer memory client is expected to pin the physical pages 
->> of the given address range
->> +     * and to fill sg_table with the information of the
->> +     * physical pages associated with the given address range. This 
->> function is
->> +     * equivalent to the kernel API of get_user_pages(), but targets 
->> peer memory.
->> +     * Parameters:
->> +        addr           [IN] - start virtual address of that given 
->> allocation.
->> +        size           [IN] - size of memory area starting at addr.
->> +        write          [IN] - indicates whether the pages will be 
->> written to by the caller.
->> +                      Same meaning as of kernel API get_user_pages, 
->> can be
->> +                      ignored if not relevant.
->> +        force          [IN] - indicates whether to force write 
->> access even if user
->> +                      mapping is readonly. Same meaning as of kernel 
->> API
->> +                      get_user_pages, can be ignored if not relevant.
->> +        sg_head        [IN/OUT] - pointer to head of struct sg_table.
->> +                      The peer client should allocate a table big
->> +                      enough to store all of the required entries. This
->> +                      function should fill the table with physical 
->> addresses
->> +                      and sizes of the memory segments composing this
->> +                      memory mapping.
->> +                      The table allocation can be done using 
->> sg_alloc_table.
->> +                      Filling in the physical memory addresses and 
->> size can
->> +                      be done using sg_set_page.
->> +        client_context [IN] - peer context for the given allocation, 
->> as received from
->> +                      the acquire call.
->> +        core_context   [IN] - opaque IB core context. If the peer 
->> client wishes to
->> +                      invalidate any of the pages pinned through 
->> this API,
->> +                      it must provide this context as an argument to 
->> the
->> +                      invalidate callback.
->> +
->> +    * Return value:
->> +    *    0 success, otherwise errno error code.
->> +    */
->> +    int (*get_pages)(unsigned long addr,
->> +             size_t size, int write, int force,
->> +             struct sg_table *sg_head,
->> +             void *client_context, void *core_context);
->> +    /* The peer-direct controller (IB CORE) calls this function to 
->> request from the
->> +     * peer driver to fill the sg_table with dma address mapping for 
->> the peer memory exposed.
->> +     * The parameters provided have the parameters for calling 
->> dma_map_sg.
->> +     * Parameters:
->> +        sg_head        [IN/OUT] - pointer to head of struct 
->> sg_table. The peer memory
->> +                      should fill the dma_address & dma_length for
->> +                      each scatter gather entry in the table.
->> +        client_context [IN] - peer context for the allocation mapped.
->> +        dma_device     [IN] - the RDMA capable device which requires 
->> access to the
->> +                      peer memory.
->> +        dmasync        [IN] - flush in-flight DMA when the memory 
->> region is written.
->> +                      Same meaning as with host memory mapping, can 
->> be ignored if not relevant.
->> +        nmap           [OUT] - number of mapped/set entries.
->> +
->> +    * Return value:
->> +    *        0 success, otherwise errno error code.
->> +    */
->> +    int (*dma_map)(struct sg_table *sg_head, void *client_context,
->> +               struct device *dma_device, int dmasync, int *nmap);
->> +    /* This callback is the opposite of the dma map API, it should 
->> take relevant actions
->> +     * to unmap the memory.
->> +    * Parameters:
->> +        sg_head        [IN/OUT] - pointer to head of struct 
->> sg_table. The peer memory
->> +                      should fill the dma_address & dma_length for
->> +                      each scatter gather entry in the table.
->> +        client_context [IN] - peer context for the allocation mapped.
->> +        dma_device     [IN] - the RDMA capable device which requires 
->> access to the
->> +                      peer memory.
->> +        dmasync        [IN] - flush in-flight DMA when the memory 
->> region is written.
->> +                      Same meaning as with host memory mapping, can 
->> be ignored if not relevant.
->> +        nmap           [OUT] - number of mapped/set entries.
->> +
->> +    * Return value:
->> +    *    0 success, otherwise errno error code.
->> +    */
->> +    int (*dma_unmap)(struct sg_table *sg_head, void *client_context,
->> +             struct device  *dma_device);
->> +    /* This callback is the opposite of the get_pages API, it should 
->> remove the pinning
->> +     * from the pages, it's the peer-direct equivalent of the kernel 
->> API put_page.
->> +     * Parameters:
->> +        sg_head        [IN] - pointer to head of struct sg_table.
->> +        client_context [IN] - peer context for that given allocation.
->> +    */
->> +    void (*put_pages)(struct sg_table *sg_head, void *client_context);
->> +    /* This callback returns page size for the given allocation
->> +     * Parameters:
->> +        sg_head        [IN] - pointer to head of struct sg_table.
->> +        client_context [IN] - peer context for that given allocation.
->> +    * Return value:
->> +    *    Page size in bytes
->> +    */
->> +    unsigned long (*get_page_size)(void *client_context);
->> +    /* This callback is the opposite of the acquire call, let peer 
->> release all resources associated
->> +     * with the acquired context. The call will be performed only 
->> for contexts that have been
->> +     * successfully acquired (i.e. acquire returned a non-zero value).
->> +     * Parameters:
->> +     *    client_context [IN] - peer context for the given allocation.
->> +    */
->> +    void (*release)(void *client_context);
->> +
->> +};
->
-> All these comments inside a struct make a struct definition hard to 
-> read. Please use kernel-doc style instead. See also 
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/kernel-doc-nano-HOWTO.txt.
->
-     Thanks, will fix in next series to match the kernel-doc style.
-> Thanks,
->
-> Bart.
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+PiBMZSBtZXJjcmVkaSAwMSBvY3RvYnJlIDIwMTQgw6AgMTg6MTggKzAzMDAsIFlpc2hhaSBIYWRh
+cyBhIMOpY3JpdCA6DQo+ID4gQWRkcyBhbiBpbmZyYXN0cnVjdHVyZSB0byBtYW5hZ2UgY29yZSBj
+b250ZXh0IGZvciBhIGdpdmVuIHVtZW0sDQo+ID4gaXQncyBuZWVkZWQgZm9yIHRoZSBpbnZhbGlk
+YXRpb24gZmxvdy4NCj4gPg0KPiA+IENvcmUgY29udGV4dCBpcyBzdXBwbGllZCB0byBwZWVyIGNs
+aWVudHMgYXMgc29tZSBvcGFxdWUgZGF0YSBmb3IgYQ0KPiBnaXZlbg0KPiA+IG1lbW9yeSBwYWdl
+cyByZXByZXNlbnRlZCBieSBhIHVtZW0uDQo+ID4NCj4gPiBJZiB0aGUgcGVlciBjbGllbnQgbmVl
+ZHMgdG8gaW52YWxpZGF0ZSBtZW1vcnkgaXQgcHJvdmlkZWQgdGhyb3VnaCB0aGUNCj4gcGVlciBt
+ZW1vcnkgY2FsbGJhY2tzLA0KPiA+IGl0IHNob3VsZCBjYWxsIHRoZSBpbnZhbGlkYXRpb24gY2Fs
+bGJhY2ssIHN1cHBseWluZyB0aGUgcmVsZXZhbnQgY29yZQ0KPiBjb250ZXh0Lg0KPiA+IElCIGNv
+cmUgd2lsbCB1c2UgdGhpcyBjb250ZXh0IHRvIGludmFsaWRhdGUgdGhlIHJlbGV2YW50IG1lbW9y
+eS4NCj4gPg0KPiA+IFRvIHByZXZlbnQgY2FzZXMgd2hlbiB0aGVyZSBhcmUgaW5mbGlnaHQgaW52
+YWxpZGF0aW9uIGNhbGxzIGluDQo+IHBhcmFsbGVsDQo+ID4gdG8gcmVsZWFzaW5nIHRoaXMgbWVt
+b3J5IChlLmcuIGJ5IGRlcmVnX21yKSB3ZSBtdXN0IGVuc3VyZSB0aGF0DQo+IGNvbnRleHQNCj4g
+PiBpcyB2YWxpZCBiZWZvcmUgYWNjZXNzaW5nIGl0LCB0aGF0J3Mgd2h5IGNvdWxkbid0IHVzZSB0
+aGUgY29yZSBjb250ZXh0DQo+ID4gcG9pbnRlciBkaXJlY3RseS4gRm9yIHRoYXQgcmVhc29uIHdl
+IGFkZGVkIGEgbG9va3VwIHRhYmxlIHRvIG1hcA0KPiBiZXR3ZWVuDQo+ID4gYSB0aWNrZXQgaWQg
+dG8gYSBjb3JlIGNvbnRleHQuDQo+IA0KPiBZb3UgY291bGQgaGF2ZSB1c2UgdGhlIGNvbnRleHQg
+cG9pbnRlciBhcyB0aGUga2V5LCBpbnN0ZWFkIG9mIGNyZWF0aW5nDQo+IHRoZSAidGlja2V0IiBh
+YnN0cmFjdGlvbi4gVGhlIGNvbnRleHQgcG9pbnRlciBjYW4gYmUgbG9va2VkIHVwIGluIGEgZGF0
+YQ0KPiBzdHJ1Y3R1cmUgd2hpY2ggdHJhY2sgdGhlIGN1cnJlbnQgY29udGV4dHMuDQo+IA0KPiBC
+dXQgSSdtIG5vdCBzdXJlIHRvIHVuZGVyc3RhbmQgdGhlIHB1cnBvc2Ugb2YgdGhlIGluZGlyZWN0
+aW9uOg0KPiBpZiBkZXJlZ19tcigpIGNhbiByZWxlYXNlIHRoZSBjb250ZXh0IGluIHBhcmFsbGVs
+LA0KPiBpcyB0aGUgY29udGV4dCBwb2ludGVyIHN0b3JlZCBpbiB0aGUgInRpY2tldCIgZ29pbmcg
+dG8gcG9pbnQgdG8NCj4gc29tZXRoaW5nIG5vIG1vcmUgdmFsaWQgPw0KPiANCj4gPiAgUGVlciBj
+bGllbnQgd2lsbCBnZXQvc3VwcGx5IHRoZSB0aWNrZXQNCj4gPiBpZCwgY29yZSB3aWxsIGNoZWNr
+IHdoZXRoZXIgZXhpc3RzIGJlZm9yZSBhY2Nlc3NpbmcgaXRzIGNvcnJlc3BvbmRpbmcNCj4gPiBj
+b250ZXh0Lg0KPiA+DQo+IA0KPiBDb3VsZCB5b3UgZXhwbGFpbiB0aGUgZXhwZWN0ZWQgbGlmZXRp
+bWUgb2YgdGhlIHRpY2tldCBpZCBhbmQgd2hldGhlciBpdA0KPiB3aWxsIGJlIGV4Y2hhbmdlZCB3
+aXRoICJyZW1vdGUiIHBhcnRpZXMgKHJlbW90ZSBub2RlLCBoYXJkd2FyZSwNCj4gdXNlcnNwYWNl
+LCBldGMuKQ0KPiANCg0KVGhlIHRpY2tldCBpZCBpcyBwcm92aWRlZCB0byB0aGUgcGVlciBtZW1v
+cnkgY2xpZW50LCBhcyBwYXJ0IG9mIHRoZQ0KZ2V0X3BhZ2VzIEFQSS4gVGhlIG9ubHkgInJlbW90
+ZSIgcGFydHkgdXNpbmcgaXQgaXMgdGhlIHBlZXIgbWVtb3J5DQpjbGllbnQuIEl0IGlzIHVzZWQg
+Zm9yIGludmFsaWRhdGlvbiBmbG93LCB0byBzcGVjaWZ5IHdoYXQgbWVtb3J5DQpyZWdpc3RyYXRp
+b24gc2hvdWxkIGJlIGludmFsaWRhdGVkLiBUaGlzIGZsb3cgbWlnaHQgYmUgY2FsbGVkDQphc3lu
+Y2hyb25vdXNseSwgaW4gcGFyYWxsZWwgdG8gYW4gb25nb2luZyBkZXJlZ19tciBvcGVyYXRpb24u
+IEFzIHN1Y2gsDQp0aGUgaW52YWxpZGF0aW9uIGZsb3cgbWlnaHQgYmUgY2FsbGVkIGFmdGVyIHRo
+ZSBtZW1vcnkgcmVnaXN0cmF0aW9uDQpoYXMgYmVlbiBjb21wbGV0ZWx5IHJlbGVhc2VkLiBSZWx5
+aW5nIG9uIGEgcG9pbnRlci1iYXNlZCwgb3IgSURSLWJhc2VkDQp0aWNrZXQgdmFsdWUgY2FuIHJl
+c3VsdCBpbiBzcHVyaW91cyBpbnZhbGlkYXRpb24gb2YgdW5yZWxhdGVkIG1lbW9yeQ0KcmVnaW9u
+cy4gSW50ZXJuYWxseSwgd2UgY2FyZWZ1bGx5IGxvY2sgdGhlIGRhdGEgc3RydWN0dXJlcyBhbmQN
+CnN5bmNocm9uaXplIGFzIG5lZWRlZCB3aGVuIGV4dHJhY3RpbmcgdGhlIGNvbnRleHQgZnJvbSB0
+aGUNCnRpY2tldC4gVGhpcyBlbnN1cmVzIGEgcHJvcGVyLCBzeW5jaHJvbml6ZWQgcmVsZWFzZSBv
+ZiB0aGUgbWVtb3J5DQptYXBwaW5nLiBUaGUgdGlja2V0IG1lY2hhbmlzbSBhbGxvd3MgdXMgdG8g
+c2FmZWx5IGlnbm9yZSBpbmZsaWdodA0KaW52YWxpZGF0aW9uIGNhbGxzIHRoYXQgd2VyZSBhcnJp
+dmVkIHRvbyBsYXRlLg0KDQpXZSB3aWxsIGNoYW5nZSB0aGUgdGlja2V0IHR5cGUgaW4gdGhlIEFQ
+SSB0byBiZSA2NC1iaXQgdmFsdWUuIFRoaXMNCndpbGwgYWxsb3cgdXMgdG8gYXZvaWQgaGFuZGxp
+bmcgd3JhcCBhcm91bmQgaXNzdWVzLCBhcyBkb2luZyAyKio2NA0KcmVnaXN0cmF0aW9ucyB3aWxs
+IHRha2UgaHVnZSBhbW91bnQgb2YgdGltZSAtIGFzc3VtaW5nIDEgbWljcm9zZWNvbmQNCnJlZ2lz
+dHJhdGlvbiB0aW1lLCB5b3UgZ2V0Og0KDQpZb3UgaGF2ZTogMSBtaWNyb3NlY29uZHMgKiAoMioq
+NjQpDQpZb3Ugd2FudDogeWVhcnMNCgkqIDU4NDU1NC41Mw0KDQpUaGlzIHdpbGwgYWxsb3cgdXMg
+dG8gY2xlYW51cCBhbGwgb2YgdGhlIG92ZXJmbG93L3dyYXBhcm91bmQgcmVsYXRlZA0KY29kZS4N
+Cg0KPiA+IFNpZ25lZC1vZmYtYnk6IFlpc2hhaSBIYWRhcyA8eWlzaGFpaEBtZWxsYW5veC5jb20+
+DQo+ID4gU2lnbmVkLW9mZi1ieTogU2hhY2hhciBSYWluZGVsIDxyYWluZGVsQG1lbGxhbm94LmNv
+bT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvcGVlcl9tZW0uYyB8ICAx
+MzINCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gIGluY2x1ZGUv
+cmRtYS9pYl9wZWVyX21lbS5oICAgICAgICAgfCAgIDE5ICsrKysrDQo+ID4gIGluY2x1ZGUvcmRt
+YS9pYl91bWVtLmggICAgICAgICAgICAgfCAgICA2ICsrDQo+ID4gIDMgZmlsZXMgY2hhbmdlZCwg
+MTU3IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvcGVlcl9tZW0uYw0KPiBiL2RyaXZlcnMvaW5maW5pYmFu
+ZC9jb3JlL3BlZXJfbWVtLmMNCj4gPiBpbmRleCAzOTM2ZTEzLi5hZDEwNjcyIDEwMDY0NA0KPiA+
+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3BlZXJfbWVtLmMNCj4gPiArKysgYi9kcml2
+ZXJzL2luZmluaWJhbmQvY29yZS9wZWVyX21lbS5jDQo+ID4gQEAgLTQ0LDYgKzQ0LDEzNiBAQCBz
+dGF0aWMgaW50IGliX2ludmFsaWRhdGVfcGVlcl9tZW1vcnkodm9pZA0KPiAqcmVnX2hhbmRsZSwg
+dm9pZCAqY29yZV9jb250ZXh0KQ0KPiA+ICAJcmV0dXJuIC1FTk9TWVM7DQo+ID4gIH0NCj4gPg0K
+PiA+ICtzdGF0aWMgaW50IHBlZXJfdGlja2V0X2V4aXN0cyhzdHJ1Y3QgaWJfcGVlcl9tZW1vcnlf
+Y2xpZW50DQo+ICppYl9wZWVyX2NsaWVudCwNCj4gPiArCQkJICAgICAgdW5zaWduZWQgbG9uZyB0
+aWNrZXQpDQo+ID4gK3sNCj4gPiArCXN0cnVjdCBjb3JlX3RpY2tldCAqY29yZV90aWNrZXQ7DQo+
+ID4gKw0KPiA+ICsJbGlzdF9mb3JfZWFjaF9lbnRyeShjb3JlX3RpY2tldCwgJmliX3BlZXJfY2xp
+ZW50LT5jb3JlX3RpY2tldF9saXN0LA0KPiA+ICsJCQkgICAgdGlja2V0X2xpc3QpIHsNCj4gPiAr
+CQlpZiAoY29yZV90aWNrZXQtPmtleSA9PSB0aWNrZXQpDQo+ID4gKwkJCXJldHVybiAxOw0KPiA+
+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMg
+aW50IHBlZXJfZ2V0X2ZyZWVfdGlja2V0KHN0cnVjdCBpYl9wZWVyX21lbW9yeV9jbGllbnQNCj4g
+KmliX3BlZXJfY2xpZW50LA0KPiA+ICsJCQkJdW5zaWduZWQgbG9uZyAqbmV3X3RpY2tldCkNCj4g
+PiArew0KPiA+ICsJdW5zaWduZWQgbG9uZyBjYW5kaWRhdGVfdGlja2V0ID0gaWJfcGVlcl9jbGll
+bnQtPmxhc3RfdGlja2V0ICsgMTsNCj4gDQo+IE92ZXJmbG93ID8NCj4gDQoNCldpbGwgY29udmVy
+dCB0byA2NC1iaXQsIHRvIHByZXZlbnQgb3ZlcmZsb3cuDQoNCj4gPiArCXN0YXRpYyBpbnQgbWF4
+X3JldHJpZXMgPSAxMDAwOw0KPiANCj4gSXQncyBubyBzdGF0aWMsIGFuZCB3aHkgMTAwMCA/DQo+
+IA0KDQpXaWxsIGJlIHJlbW92ZWQgaW4gbmV4dCBwYXRjaCBzZXQsIGFzIG92ZXJmbG93IGhhbmRs
+aW5nIGlzIG5vdCBuZWVkZWQNCmZvciA2NC1iaXQgdmFsdWVzDQoNCj4gPiArCWludCBpOw0KPiA+
+ICsNCj4gPiArCWZvciAoaSA9IDA7IGkgPCBtYXhfcmV0cmllczsgaSsrKSB7DQo+ID4gKwkJaWYg
+KHBlZXJfdGlja2V0X2V4aXN0cyhpYl9wZWVyX2NsaWVudCwgY2FuZGlkYXRlX3RpY2tldCkpIHsN
+Cj4gPiArCQkJY2FuZGlkYXRlX3RpY2tldCsrOw0KPiANCj4gT3ZlcmZsb3cgPw0KPiANCg0KV2ls
+bCBiZSByZW1vdmVkIGluIG5leHQgcGF0Y2ggc2V0LCBhcyBvdmVyZmxvdyBoYW5kbGluZyBpcyBu
+b3QgbmVlZGVkDQpmb3IgNjQtYml0IHZhbHVlcw0KDQo+ID4gKwkJCWNvbnRpbnVlOw0KPiA+ICsJ
+CX0NCj4gPiArCQkqbmV3X3RpY2tldCA9IGNhbmRpZGF0ZV90aWNrZXQ7DQo+ID4gKwkJcmV0dXJu
+IDA7DQo+ID4gKwl9DQo+ID4gKw0KPiANCj4gQ291bnRpbmcgdGhlIG51bWJlciBvZiBhbGxvY2F0
+ZWQgdGlja2V0IG51bWJlciBjb3VsZCBwcmV2ZW50IGxvb3BpbmcgaW4NCj4gdGhlIGNhc2UgZXZl
+cnkgbnVtYmVycyBhcmUgdXNlZCAodW5saWtlbHkpLg0KPiANCg0KVGhlIGVudGlyZSBsb29wIHdp
+bGwgYmUgcmVtb3ZlZCBpbiBuZXh0IHBhdGNoIHNldCwgYXMgb3ZlcmZsb3cNCmhhbmRsaW5nIGlz
+IG5vdCBuZWVkZWQgZm9yIDY0LWJpdCB2YWx1ZXMNCg0KDQo+ID4gKwlyZXR1cm4gLUVJTlZBTDsN
+Cj4gPiArfQ0KPiA+ICsNCj4gDQo+ID4gK3N0YXRpYyBpbnQgaWJfcGVlcl9pbnNlcnRfY29udGV4
+dChzdHJ1Y3QgaWJfcGVlcl9tZW1vcnlfY2xpZW50DQo+ICppYl9wZWVyX2NsaWVudCwNCj4gPiAr
+CQkJCSAgdm9pZCAqY29udGV4dCwNCj4gPiArCQkJCSAgdW5zaWduZWQgbG9uZyAqY29udGV4dF90
+aWNrZXQpDQo+ID4gK3sNCj4gPiArCXN0cnVjdCBjb3JlX3RpY2tldCAqY29yZV90aWNrZXQgPSBr
+emFsbG9jKHNpemVvZigqY29yZV90aWNrZXQpLA0KPiBHRlBfS0VSTkVMKTsNCj4gPiArCWludCBy
+ZXQ7DQo+ID4gKw0KPiA+ICsJaWYgKCFjb3JlX3RpY2tldCkNCj4gPiArCQlyZXR1cm4gLUVOT01F
+TTsNCj4gPiArDQo+ID4gKwltdXRleF9sb2NrKCZpYl9wZWVyX2NsaWVudC0+bG9jayk7DQo+ID4g
+KwlpZiAoaWJfcGVlcl9jbGllbnQtPmxhc3RfdGlja2V0IDwgaWJfcGVlcl9jbGllbnQtPmxhc3Rf
+dGlja2V0ICsgMQ0KPiAmJg0KPiA+ICsJICAgICFpYl9wZWVyX2NsaWVudC0+dGlja2V0X3dyYXBw
+ZWQpIHsNCj4gPiArCQljb3JlX3RpY2tldC0+a2V5ID0gaWJfcGVlcl9jbGllbnQtPmxhc3RfdGlj
+a2V0Kys7DQo+ID4gKwl9IGVsc2Ugew0KPiA+ICsJCS8qIHNwZWNpYWwvcmFyZSBjYXNlIHdoZW4g
+d3JhcCBhcm91bmQgb2NjdXJyZWQsIG5vdCBleHBlY3RlZA0KPiBvbiA2NCBiaXQgbWFjaGluZXMg
+Ki8NCj4gDQo+IFNvbWUgc3RpbGwgaGF2ZSAzMmJpdHMgc3lzdGVtIC4uLg0KPiANCg0KQWxsIGxp
+bnV4IHN5c3RlbXMgc3VwcG9ydCBleHBsaWNpdCA2NC1iaXQgdmFsdWVzLiBXZSB3aWxsIGNoYW5n
+ZSB0aGUNCnRpY2tldCB0eXBlIHRvIGJlIGFuIGV4cGxpY2l0IDY0LWJpdCB2YWx1ZSAodTY0KS4g
+VGhpcyB3YXksIHdlIHdpbGwNCmhhbmRsZSBhbHNvIDMyLWJpdCBtYWNoaW5lcy4NCg0KPiA+ICsJ
+CXVuc2lnbmVkIGxvbmcgbmV3X3RpY2tldDsNCj4gPiArDQo+ID4gKwkJaWJfcGVlcl9jbGllbnQt
+PnRpY2tldF93cmFwcGVkID0gMTsNCj4gDQo+IFRoZSB3aG9sZSBtZWNoYW5pc20gdG8gaGFuZGxl
+IHdyYXBwaW5nIHNlZW1zIGZyYWdpbGUsIGF0IGJlc3QuDQo+IFdyYXBwaW5nIGNvdWxkIGhhcHBl
+biBtdWx0aXBsZSB0aW1lcyBieSB0aGUgd2F5Lg0KPiANCg0KV2lsbCBiZSByZW1vdmVkIGluIG5l
+eHQgcGF0Y2ggc2V0LCBhcyBvdmVyZmxvdyBoYW5kbGluZyBpcyBub3QgbmVlZGVkDQpmb3IgNjQt
+Yml0IHZhbHVlcw0KDQo+IEFkZGl0aW9uYWxseSwgaXQgd291bGQgbWFrZSBtb3JlIHNlbnNlIHRv
+IGhhdmUgdGlja2V0IG51bWJlciBoYW5kbGluZyBpbg0KPiBwZWVyX2dldF9mcmVlX3RpY2tldCgp
+Lg0KPiANCg0KcGVlcl9nZXRfZnJlZV90aWNrZXQgd2lsbCBiZSByZW1vdmVkIGluIG5leHQgcGF0
+Y2ggc2V0LCBhcyBvdmVyZmxvdw0KaGFuZGxpbmcgaXMgbm90IG5lZWRlZCBmb3IgNjQtYml0IHZh
+bHVlcy4gR2V0dGluZyBhIGZyZWUgdGlja2V0IHdpbGwNCmJlY29tZSBhIHNpbXBsZSAiKysiIG9w
+ZXJhdGlvbi4NCg0KPiA+ICsJCXJldCA9IHBlZXJfZ2V0X2ZyZWVfdGlja2V0KGliX3BlZXJfY2xp
+ZW50LCAmbmV3X3RpY2tldCk7DQo+ID4gKwkJaWYgKHJldCkgew0KPiA+ICsJCQltdXRleF91bmxv
+Y2soJmliX3BlZXJfY2xpZW50LT5sb2NrKTsNCj4gPiArCQkJa2ZyZWUoY29yZV90aWNrZXQpOw0K
+PiA+ICsJCQlyZXR1cm4gcmV0Ow0KPiA+ICsJCX0NCj4gPiArCQlpYl9wZWVyX2NsaWVudC0+bGFz
+dF90aWNrZXQgPSBuZXdfdGlja2V0Ow0KPiA+ICsJCWNvcmVfdGlja2V0LT5rZXkgPSBpYl9wZWVy
+X2NsaWVudC0+bGFzdF90aWNrZXQ7DQo+ID4gKwl9DQo+ID4gKwljb3JlX3RpY2tldC0+Y29udGV4
+dCA9IGNvbnRleHQ7DQo+ID4gKwlsaXN0X2FkZF90YWlsKCZjb3JlX3RpY2tldC0+dGlja2V0X2xp
+c3QsDQo+ID4gKwkJICAgICAgJmliX3BlZXJfY2xpZW50LT5jb3JlX3RpY2tldF9saXN0KTsNCj4g
+PiArCSpjb250ZXh0X3RpY2tldCA9IGNvcmVfdGlja2V0LT5rZXk7DQo+ID4gKwltdXRleF91bmxv
+Y2soJmliX3BlZXJfY2xpZW50LT5sb2NrKTsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9DQo+ID4g
+Kw0KPiANCj4gUGVyaGFwcyBpZHIgY291bGQgYmUgdXNlZCB0byB0cmFjayB0aGUgInRpY2tldCIg
+bnVtYmVyID8NCj4gDQoNClNhZGx5LCB3ZSBjYW4ndCB1c2UgaWRyLCBhcyBpZHIgaXMgcmVjeWNs
+aW5nIHRpY2tldCBudW1iZXJzLiBUaGUgd2hvbGUNCmdvYWwgb2YgdGhlIG1lY2hhbmlzbSBoZXJl
+IGlzIHRvIGFsbG93IHVzIHRvIGlnbm9yZSBvYnNvbGV0ZSB0aWNrZXRzLA0KcmVmZXJlbmNpbmcg
+bWVtb3J5IHJlZ2lvbnMgdGhhdCBoYXZlIGJlZW4gYWxyZWFkeSBkZXN0cm95ZWQuIEENCm1lY2hh
+bmlzbSB0aGF0IGlzIHJlY3ljbGluZyB0aWNrZXQgbnVtYmVycyBtaWdodCByZXN1bHQgaW4gc3B1
+cmlvdXMNCmludmFsaWRhdGlvbnMuDQoNCj4gPiArLyogQ2FsbGVyIHNob3VsZCBiZSBob2xkaW5n
+IHRoZSBwZWVyIGNsaWVudCBsb2NrLCBzcGVjaWZpY2FsbHksIHRoZQ0KPiBjYWxsZXIgc2hvdWxk
+IGhvbGQgaWJfcGVlcl9jbGllbnQtPmxvY2sgKi8NCj4gPiArc3RhdGljIGludCBpYl9wZWVyX3Jl
+bW92ZV9jb250ZXh0KHN0cnVjdCBpYl9wZWVyX21lbW9yeV9jbGllbnQNCj4gKmliX3BlZXJfY2xp
+ZW50LA0KPiA+ICsJCQkJICB1bnNpZ25lZCBsb25nIGtleSkNCj4gPiArew0KPiA+ICsJc3RydWN0
+IGNvcmVfdGlja2V0ICpjb3JlX3RpY2tldDsNCj4gPiArDQo+ID4gKwlsaXN0X2Zvcl9lYWNoX2Vu
+dHJ5KGNvcmVfdGlja2V0LCAmaWJfcGVlcl9jbGllbnQtPmNvcmVfdGlja2V0X2xpc3QsDQo+ID4g
+KwkJCSAgICB0aWNrZXRfbGlzdCkgew0KPiA+ICsJCWlmIChjb3JlX3RpY2tldC0+a2V5ID09IGtl
+eSkgew0KPiA+ICsJCQlsaXN0X2RlbCgmY29yZV90aWNrZXQtPnRpY2tldF9saXN0KTsNCj4gPiAr
+CQkJa2ZyZWUoY29yZV90aWNrZXQpOw0KPiA+ICsJCQlyZXR1cm4gMDsNCj4gPiArCQl9DQo+ID4g
+Kwl9DQo+ID4gKw0KPiA+ICsJcmV0dXJuIDE7DQo+ID4gK30NCj4gPiArDQo+ID4gKy8qKg0KPiA+
+ICsqKiBpYl9wZWVyX2NyZWF0ZV9pbnZhbGlkYXRpb25fY3R4IC0gY3JlYXRlcyBpbnZhbGlkYXRp
+b24gY29udGV4dCBmb3INCj4gYSBnaXZlbiB1bWVtDQo+ID4gKyoqIEBpYl9wZWVyX21lbTogcGVl
+ciBjbGllbnQgdG8gYmUgdXNlZA0KPiA+ICsqKiBAdW1lbTogdW1lbSBzdHJ1Y3QgYmVsb25ncyB0
+byB0aGF0IGNvbnRleHQNCj4gPiArKiogQGludmFsaWRhdGlvbl9jdHg6IG91dHB1dCBjb250ZXh0
+DQo+ID4gKyoqLw0KPiA+ICtpbnQgaWJfcGVlcl9jcmVhdGVfaW52YWxpZGF0aW9uX2N0eChzdHJ1
+Y3QgaWJfcGVlcl9tZW1vcnlfY2xpZW50DQo+ICppYl9wZWVyX21lbSwgc3RydWN0IGliX3VtZW0g
+KnVtZW0sDQo+ID4gKwkJCQkgICAgc3RydWN0IGludmFsaWRhdGlvbl9jdHggKippbnZhbGlkYXRp
+b25fY3R4KQ0KPiA+ICt7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+ICsJc3RydWN0IGludmFsaWRhdGlv
+bl9jdHggKmN0eDsNCj4gPiArDQo+ID4gKwljdHggPSBremFsbG9jKHNpemVvZigqY3R4KSwgR0ZQ
+X0tFUk5FTCk7DQo+ID4gKwlpZiAoIWN0eCkNCj4gPiArCQlyZXR1cm4gLUVOT01FTTsNCj4gPiAr
+DQo+ID4gKwlyZXQgPSBpYl9wZWVyX2luc2VydF9jb250ZXh0KGliX3BlZXJfbWVtLCBjdHgsDQo+
+ID4gKwkJCQkgICAgICZjdHgtPmNvbnRleHRfdGlja2V0KTsNCj4gPiArCWlmIChyZXQpIHsNCj4g
+PiArCQlrZnJlZShjdHgpOw0KPiA+ICsJCXJldHVybiByZXQ7DQo+ID4gKwl9DQo+ID4gKw0KPiA+
+ICsJY3R4LT51bWVtID0gdW1lbTsNCj4gPiArCXVtZW0tPmludmFsaWRhdGlvbl9jdHggPSBjdHg7
+DQo+ID4gKwkqaW52YWxpZGF0aW9uX2N0eCA9IGN0eDsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9
+DQo+ID4gKw0KPiA+ICsvKioNCj4gPiArICogKiogaWJfcGVlcl9kZXN0cm95X2ludmFsaWRhdGlv
+bl9jdHggLSBkZXN0cm95IGEgZ2l2ZW4gaW52YWxpZGF0aW9uDQo+IGNvbnRleHQNCj4gPiArICog
+KiogQGliX3BlZXJfbWVtOiBwZWVyIGNsaWVudCB0byBiZSB1c2VkDQo+ID4gKyAqICoqIEBpbnZh
+bGlkYXRpb25fY3R4OiBjb250ZXh0IHRvIGJlIGludmFsaWRhdGVkDQo+ID4gKyAqICoqLw0KPiA+
+ICt2b2lkIGliX3BlZXJfZGVzdHJveV9pbnZhbGlkYXRpb25fY3R4KHN0cnVjdCBpYl9wZWVyX21l
+bW9yeV9jbGllbnQNCj4gKmliX3BlZXJfbWVtLA0KPiA+ICsJCQkJICAgICAgc3RydWN0IGludmFs
+aWRhdGlvbl9jdHggKmludmFsaWRhdGlvbl9jdHgpDQo+ID4gK3sNCj4gPiArCW11dGV4X2xvY2so
+JmliX3BlZXJfbWVtLT5sb2NrKTsNCj4gPiArCWliX3BlZXJfcmVtb3ZlX2NvbnRleHQoaWJfcGVl
+cl9tZW0sIGludmFsaWRhdGlvbl9jdHgtDQo+ID5jb250ZXh0X3RpY2tldCk7DQo+ID4gKwltdXRl
+eF91bmxvY2soJmliX3BlZXJfbWVtLT5sb2NrKTsNCj4gPiArDQo+ID4gKwlrZnJlZShpbnZhbGlk
+YXRpb25fY3R4KTsNCj4gPiArfQ0KPiA+ICBzdGF0aWMgaW50IGliX21lbW9yeV9wZWVyX2NoZWNr
+X21hbmRhdG9yeShjb25zdCBzdHJ1Y3QNCj4gcGVlcl9tZW1vcnlfY2xpZW50DQo+ID4gIAkJCQkJ
+CSAgICAgKnBlZXJfY2xpZW50KQ0KPiA+ICB7DQo+ID4gQEAgLTk0LDYgKzIyNCw4IEBAIHZvaWQg
+KmliX3JlZ2lzdGVyX3BlZXJfbWVtb3J5X2NsaWVudChjb25zdCBzdHJ1Y3QNCj4gcGVlcl9tZW1v
+cnlfY2xpZW50ICpwZWVyX2NsaWVuDQo+ID4gIAlpZiAoIWliX3BlZXJfY2xpZW50KQ0KPiA+ICAJ
+CXJldHVybiBOVUxMOw0KPiA+DQo+ID4gKwlJTklUX0xJU1RfSEVBRCgmaWJfcGVlcl9jbGllbnQt
+PmNvcmVfdGlja2V0X2xpc3QpOw0KPiA+ICsJbXV0ZXhfaW5pdCgmaWJfcGVlcl9jbGllbnQtPmxv
+Y2spOw0KPiA+ICAJaW5pdF9jb21wbGV0aW9uKCZpYl9wZWVyX2NsaWVudC0+dW5sb2FkX2NvbXAp
+Ow0KPiA+ICAJa3JlZl9pbml0KCZpYl9wZWVyX2NsaWVudC0+cmVmKTsNCj4gPiAgCWliX3BlZXJf
+Y2xpZW50LT5wZWVyX21lbSA9IHBlZXJfY2xpZW50Ow0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRl
+L3JkbWEvaWJfcGVlcl9tZW0uaCBiL2luY2x1ZGUvcmRtYS9pYl9wZWVyX21lbS5oDQo+ID4gaW5k
+ZXggOTgwNTZjNS4uZDNmYmI1MCAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL3JkbWEvaWJfcGVl
+cl9tZW0uaA0KPiA+ICsrKyBiL2luY2x1ZGUvcmRtYS9pYl9wZWVyX21lbS5oDQo+ID4gQEAgLTQs
+NiArNCw4IEBADQo+ID4gICNpbmNsdWRlIDxyZG1hL3BlZXJfbWVtLmg+DQo+ID4NCj4gPiAgc3Ry
+dWN0IGliX3Vjb250ZXh0Ow0KPiA+ICtzdHJ1Y3QgaWJfdW1lbTsNCj4gPiArc3RydWN0IGludmFs
+aWRhdGlvbl9jdHg7DQo+ID4NCj4gPiAgc3RydWN0IGliX3BlZXJfbWVtb3J5X2NsaWVudCB7DQo+
+ID4gIAljb25zdCBzdHJ1Y3QgcGVlcl9tZW1vcnlfY2xpZW50ICpwZWVyX21lbTsNCj4gPiBAQCAt
+MTEsMTYgKzEzLDMzIEBAIHN0cnVjdCBpYl9wZWVyX21lbW9yeV9jbGllbnQgew0KPiA+ICAJaW50
+IGludmFsaWRhdGlvbl9yZXF1aXJlZDsNCj4gPiAgCXN0cnVjdCBrcmVmIHJlZjsNCj4gPiAgCXN0
+cnVjdCBjb21wbGV0aW9uIHVubG9hZF9jb21wOw0KPiA+ICsJLyogbG9jayBpcyB1c2VkIHZpYSB0
+aGUgaW52YWxpZGF0aW9uIGZsb3cgKi8NCj4gPiArCXN0cnVjdCBtdXRleCBsb2NrOw0KPiA+ICsJ
+c3RydWN0IGxpc3RfaGVhZCAgIGNvcmVfdGlja2V0X2xpc3Q7DQo+ID4gKwl1bnNpZ25lZCBsb25n
+ICAgICAgIGxhc3RfdGlja2V0Ow0KPiA+ICsJaW50IHRpY2tldF93cmFwcGVkOw0KPiA+ICB9Ow0K
+PiA+DQo+ID4gIGVudW0gaWJfcGVlcl9tZW1fZmxhZ3Mgew0KPiA+ICAJSUJfUEVFUl9NRU1fQUxM
+T1cJPSAxLA0KPiA+ICB9Ow0KPiA+DQo+ID4gK3N0cnVjdCBjb3JlX3RpY2tldCB7DQo+ID4gKwl1
+bnNpZ25lZCBsb25nIGtleTsNCj4gPiArCXZvaWQgKmNvbnRleHQ7DQo+ID4gKwlzdHJ1Y3QgbGlz
+dF9oZWFkICAgdGlja2V0X2xpc3Q7DQo+ID4gK307DQo+ID4gKw0KPiA+ICBzdHJ1Y3QgaWJfcGVl
+cl9tZW1vcnlfY2xpZW50ICppYl9nZXRfcGVlcl9jbGllbnQoc3RydWN0IGliX3Vjb250ZXh0DQo+
+ICpjb250ZXh0LCB1bnNpZ25lZCBsb25nIGFkZHIsDQo+ID4gIAkJCQkJCSBzaXplX3Qgc2l6ZSwg
+dm9pZA0KPiAqKnBlZXJfY2xpZW50X2NvbnRleHQpOw0KPiA+DQo+ID4gIHZvaWQgaWJfcHV0X3Bl
+ZXJfY2xpZW50KHN0cnVjdCBpYl9wZWVyX21lbW9yeV9jbGllbnQgKmliX3BlZXJfY2xpZW50LA0K
+PiA+ICAJCQl2b2lkICpwZWVyX2NsaWVudF9jb250ZXh0KTsNCj4gPg0KPiA+ICtpbnQgaWJfcGVl
+cl9jcmVhdGVfaW52YWxpZGF0aW9uX2N0eChzdHJ1Y3QgaWJfcGVlcl9tZW1vcnlfY2xpZW50DQo+
+ICppYl9wZWVyX21lbSwgc3RydWN0IGliX3VtZW0gKnVtZW0sDQo+ID4gKwkJCQkgICAgc3RydWN0
+IGludmFsaWRhdGlvbl9jdHggKippbnZhbGlkYXRpb25fY3R4KTsNCj4gPiArDQo+ID4gK3ZvaWQg
+aWJfcGVlcl9kZXN0cm95X2ludmFsaWRhdGlvbl9jdHgoc3RydWN0IGliX3BlZXJfbWVtb3J5X2Ns
+aWVudA0KPiAqaWJfcGVlcl9tZW0sDQo+ID4gKwkJCQkgICAgICBzdHJ1Y3QgaW52YWxpZGF0aW9u
+X2N0eCAqaW52YWxpZGF0aW9uX2N0eCk7DQo+ID4gKw0KPiA+ICAjZW5kaWYNCj4gPiBkaWZmIC0t
+Z2l0IGEvaW5jbHVkZS9yZG1hL2liX3VtZW0uaCBiL2luY2x1ZGUvcmRtYS9pYl91bWVtLmgNCj4g
+PiBpbmRleCBhMjJkZGUwLi40YjhhMDQyIDEwMDY0NA0KPiA+IC0tLSBhL2luY2x1ZGUvcmRtYS9p
+Yl91bWVtLmgNCj4gPiArKysgYi9pbmNsdWRlL3JkbWEvaWJfdW1lbS5oDQo+ID4gQEAgLTQwLDYg
+KzQwLDExIEBADQo+ID4NCj4gPiAgc3RydWN0IGliX3Vjb250ZXh0Ow0KPiA+DQo+ID4gK3N0cnVj
+dCBpbnZhbGlkYXRpb25fY3R4IHsNCj4gPiArCXN0cnVjdCBpYl91bWVtICp1bWVtOw0KPiA+ICsJ
+dW5zaWduZWQgbG9uZyBjb250ZXh0X3RpY2tldDsNCj4gPiArfTsNCj4gPiArDQo+ID4gIHN0cnVj
+dCBpYl91bWVtIHsNCj4gPiAgCXN0cnVjdCBpYl91Y29udGV4dCAgICAgKmNvbnRleHQ7DQo+ID4g
+IAlzaXplX3QJCQlsZW5ndGg7DQo+ID4gQEAgLTU2LDYgKzYxLDcgQEAgc3RydWN0IGliX3VtZW0g
+ew0KPiA+ICAJaW50ICAgICAgICAgICAgIG5wYWdlczsNCj4gPiAgCS8qIHBlZXIgbWVtb3J5IHRo
+YXQgbWFuYWdlcyB0aGlzIHVtZW0gKi8NCj4gPiAgCXN0cnVjdCBpYl9wZWVyX21lbW9yeV9jbGll
+bnQgKmliX3BlZXJfbWVtOw0KPiA+ICsJc3RydWN0IGludmFsaWRhdGlvbl9jdHggKmludmFsaWRh
+dGlvbl9jdHg7DQo+ID4gIAkvKiBwZWVyIG1lbW9yeSBwcml2YXRlIGNvbnRleHQgKi8NCj4gPiAg
+CXZvaWQgKnBlZXJfbWVtX2NsaWVudF9jb250ZXh0Ow0KPiA+ICB9Ow0KPiANCj4gDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
