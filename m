@@ -1,160 +1,149 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 5/8] IB/srp: Remove stale connection retry mechanism
-Date: Fri, 03 Oct 2014 10:51:17 +0200
-Message-ID: <542E6385.5060009@acm.org>
-References: <541C27BF.6070609@acm.org>	<541C287D.1050900@acm.org> <CAJ3xEMhPKiut4MwZH9F7-T0+u7B6XPuh-FTZpA=Xe4ViAj5UUQ@mail.gmail.com> <542D2A3C.2080009@acm.org>
+Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
+Date: Fri, 03 Oct 2014 15:01:04 +0200
+Message-ID: <542E9E10.8040207@acm.org>
+References: <541C27BF.6070609@acm.org>	<541C28E0.7010705@acm.org>	<CACVXFVPzz37J-613NZCfPStUBxf0rLOtz71LJ07PpCxYg5nn+g@mail.gmail.com>	<541C49EC.6030404@acm.org> <CACVXFVPH_qPFUTT+796BZmWxeeG4tJ-Pyp8hqGqqSwt3YYkEqA@mail.gmail.com> <541C4D2F.9060907@acm.org> <541C4DF1.4090604@kernel.dk> <542C270B.5020002@acm.org> <542C31C4.1020702@kernel.dk> <542D8143.3050305@acm.org> <542D8368.8080604@kernel.dk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010204020203070708040708"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <542D2A3C.2080009-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <542D8368.8080604-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010204020203070708040708
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-On 10/02/14 12:34, Bart Van Assche wrote:
-> On 09/20/14 19:45, Or Gerlitz wrote:
->> On Fri, Sep 19, 2014 at 3:58 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> 
->> wrote:
->>> Attempting to connect three times may be insufficient after an
->>> initiator system that was using multiple RDMA channels tries to
->>> relogin. Additionally, this login retry mechanism is a workaround
->>> for particular behavior of the IB/CM.
->>
->> Can you be more specific re the particular behavior of the IB CM?
->> added Sean, the CM maintainer.
+On 10/02/14 18:55, Jens Axboe wrote:
+> Sure, that's fine as well, but the function needs a more descriptive
+> name. I try to think of it like I have never looked at the code and need
+> to write a driver, it's a lot easier if the functions are named
+> appropriately. Seeing blk_mq_rq_tag() and even with reading the function
+> comment, I'm really none the wiser and would assume I need to use this
+> function to get the tag.
 > 
-> Let's focus on the software behavior instead of the people who are 
-> involved. What I have observed several times is that after a power cycle 
-> of the initiator system the first few login attempts are rejected. I was 
-> assuming that this was due to the IB/CM implementation but now that I 
-> have had another look at the logs I see that there is not enough 
-> information in the system logs to draw this conclusion. I will add 
-> additional logging statements in the initiator and target kernel code 
-> such that I can determine the root cause of this behavior.
+> So we can do the single function, but lets call it
+> blk_mq_unique_rq_tag(). That's special enough that people will know this
+> is something that doesn't just return the request tag. Then add an extra
+> sentence to the comment you already have on when this is needed.
+> 
+> And lets roll those bitshift values and masks into a define or enum so
+> it's collected in one place.
 
-(replying to my own e-mail / removed linux-scsi from CC-list)
+How about the patch below ? In that patch all comments should have been
+addressed that Christoph and you have formulated so far.
 
-So far I have been able to reproduce this behavior once after pushing 
-the reset button of the initiator system while it was in the connected 
-state. After the initiator system had finished rebooting I started 
-ibdump on both IB ports of the target system (attached to this e-mail). 
-What surprised me is that I found all the messages I expected in the 
-ibdump output (e.g. IB MAD device management query) but no CM messages. Both 
-sides were running FW 2.32.5100. The following messages were logged at 
-the initiator side while ibdump was running at the target side:
-
-Oct 02 17:43:42 msi kernel: scsi host14: ib_srp: REJ received
-Oct 02 17:43:42 msi kernel: scsi host14:   REJ reason: stale connection
-Oct 02 17:43:42 msi kernel: scsi host14: ib_srp: giving up on stale connection
-Oct 02 17:43:42 msi kernel: scsi host14: ib_srp: Connection 0/12 failed
-Oct 02 17:43:42 msi kernel: scsi host15: ib_srp: REJ received
-Oct 02 17:43:42 msi kernel: scsi host15:   REJ reason: stale connection
-Oct 02 17:43:42 msi kernel: scsi host15: ib_srp: giving up on stale connection
-Oct 02 17:43:42 msi kernel: scsi host15: ib_srp: Connection 0/12 failed
-
-After a few more login attempts SRP login succeeded.
+Thanks,
 
 Bart.
 
---------------010204020203070708040708
-Content-Type: application/vnd.tcpdump.pcap;
- name="p1.pcap"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="p1.pcap"
+[PATCH] blk-mq: Add blk_mq_unique_tag()
+
+The queuecommand() callback functions in SCSI low-level drivers
+need to know which hardware context has been selected by the
+block layer. Since this information is not available in the
+request structure, and since passing the hctx pointer directly to
+the queuecommand callback function would require modification of
+all SCSI LLDs, add a function to the block layer that allows to
+query the hardware context index.
+
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+---
+ block/blk-mq-tag.c     | 27 +++++++++++++++++++++++++++
+ block/blk-mq.c         |  2 ++
+ include/linux/blk-mq.h | 23 +++++++++++++++++++++++
+ 3 files changed, 52 insertions(+)
+
+diff --git a/block/blk-mq-tag.c b/block/blk-mq-tag.c
+index c1b9242..b5088f0 100644
+--- a/block/blk-mq-tag.c
++++ b/block/blk-mq-tag.c
+@@ -595,6 +595,33 @@ int blk_mq_tag_update_depth(struct blk_mq_tags *tags, unsigned int tdepth)
+ 	return 0;
+ }
+ 
++/**
++ * blk_mq_unique_tag() - return a tag that is unique queue-wide
++ * @rq: request for which to compute a unique tag
++ *
++ * The tag field in struct request is unique per hardware queue but not over
++ * all hardware queues. Hence this function that returns a tag with the
++ * hardware context index in the upper bits and the per hardware queue tag in
++ * the lower bits.
++ *
++ * Note: When called for a request that queued on a non-multiqueue request
++ * queue, the hardware context index is set to zero.
++ */
++u32 blk_mq_unique_tag(struct request *rq)
++{
++	struct request_queue *q = rq->q;
++	struct blk_mq_hw_ctx *hctx;
++	int hwq = 0;
++
++	if (q->mq_ops) {
++		hctx = q->mq_ops->map_queue(q, rq->mq_ctx->cpu);
++		hwq = hctx->queue_num;
++	}
++
++	return blk_mq_build_unique_tag(hwq, rq->tag);
++}
++EXPORT_SYMBOL(blk_mq_unique_tag);
++
+ ssize_t blk_mq_tag_sysfs_show(struct blk_mq_tags *tags, char *page)
+ {
+ 	char *orig_page = page;
+diff --git a/block/blk-mq.c b/block/blk-mq.c
+index df8e1e0..8098aac 100644
+--- a/block/blk-mq.c
++++ b/block/blk-mq.c
+@@ -2018,6 +2018,8 @@ static int blk_mq_alloc_rq_maps(struct blk_mq_tag_set *set)
+  */
+ int blk_mq_alloc_tag_set(struct blk_mq_tag_set *set)
+ {
++	BUILD_BUG_ON(BLK_MQ_MAX_DEPTH > 1 << BLK_MQ_UNIQUE_TAG_TAG_BITS);
++
+ 	if (!set->nr_hw_queues)
+ 		return -EINVAL;
+ 	if (!set->queue_depth)
+diff --git a/include/linux/blk-mq.h b/include/linux/blk-mq.h
+index eac4f31..b53d0c2 100644
+--- a/include/linux/blk-mq.h
++++ b/include/linux/blk-mq.h
+@@ -167,6 +167,29 @@ struct request *blk_mq_alloc_request(struct request_queue *q, int rw,
+ 		gfp_t gfp, bool reserved);
+ struct request *blk_mq_tag_to_rq(struct blk_mq_tags *tags, unsigned int tag);
+ 
++enum {
++	BLK_MQ_UNIQUE_TAG_TAG_BITS = 16,
++	BLK_MQ_UNIQUE_TAG_TAG_MASK = (1 << BLK_MQ_UNIQUE_TAG_TAG_BITS) - 1,
++};
++
++u32 blk_mq_unique_tag(struct request *rq);
++
++static inline u32 blk_mq_build_unique_tag(int hwq, int tag)
++{
++	return (hwq << BLK_MQ_UNIQUE_TAG_TAG_BITS) |
++		(tag & BLK_MQ_UNIQUE_TAG_TAG_MASK);
++}
++
++static inline u16 blk_mq_unique_tag_to_hwq(u32 unique_tag)
++{
++	return unique_tag >> BLK_MQ_UNIQUE_TAG_TAG_BITS;
++}
++
++static inline u16 blk_mq_unique_tag_to_tag(u32 unique_tag)
++{
++	return unique_tag & BLK_MQ_UNIQUE_TAG_TAG_MASK;
++}
++
+ struct blk_mq_hw_ctx *blk_mq_map_queue(struct request_queue *, const int ctx_index);
+ struct blk_mq_hw_ctx *blk_mq_alloc_single_hw_queue(struct blk_mq_tag_set *, unsigned int, int);
+ 
+-- 
+1.8.4.5
 
 
---------------010204020203070708040708
-Content-Type: application/vnd.tcpdump.pcap;
- name="p2.pcap"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="p2.pcap"
+ 
 
-1MOyoQIABAAAAAAAAAAAAP//AADFAAAArnItVMIrCAAyAQAAMgEAAM4jFomuci1UFQQBMgAA
-ASIAAgADAEgABGQA//8AAAABAAAAFYABAAAAAAABAQMCAQAAAAAAAAAXAAAAAQABAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAE1eKZyUUK5yLVQcLAgAMgEAADIBAADECRyJrnItVBUEATIAAAEi
-AAIABABIAANkAP//AAAAAQAAA7yAAQAAAAAAAQEDAoEAAAAAAAAAFwAAAAEAAQAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQImAgAAfRAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAABgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAACvxB5jr/iuci1ULCwIADIBAAAyAQAANBYdia5yLVQVBAEyAAABIgAC
-AAMASAAEZAD//wAAAAEAAAAWgAEAAAAAAAEBAwISAAAAAAAAABcAAAACABIAAIAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAUP2gQYgWrnItVF4sCAAyAQAAMgEAABJdIImuci1UFQQBMgAAASIAAgAE
-AEgAA2QA//8AAAABAAADvYABAAAAAAABAQMCkgAAAAAAAAAXAAAAAgASAACAAAAAAQEHAAAA
-AAEAAABcAAAAAAAAAAAACQAAAAAAAAAAAIAAAwIAAAAAAAAAAAD+gAAAAAAAAAADAAMCWUhq
-AAAAAAIDAwJ0UgBHUEAECAgFH0AAAAAAAACAEBCIAAAAAAAAAAARAQAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAChryc2ZtK5yLVRmLAgAMgEAADIBAABK4yCJrnItVBUEATIAAAEiAAIAAwBI
-AARkAP//AAAAAQAAABeAAQAAAAAAAQEDAhIAAAAAAAAAFwAAAAIAEgAAgAAAAAECAQAAAAAB
-AAAAAQAAAAAAAAAAAAkAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAANoVkLUYSuci1UaywIADIBAAAyAQAALTchia5yLVQVBAEyAAABIgACAAMASAAE
-ZAD//wAAAAEAAAAYgAEAAAAAAAEBAwIBAAAAAAAAABcAAAADABEAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAQADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAwLG+1dMnrnItVI0sCAAyAQAAMgEAAJtxI4muci1UFQQBMgAAASIAAgAEAEgAA2QA
-//8AAAABAAADvoABAAAAAAABAQMCgQAAAAAAAAAXAAAAAwARAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAADgAAAAAAAAAAAAEAAwAAAQEBAgACyQMAo0JzAALJAwCjQnAAAskDAKNCcgCA
-EAMAAAAAAgACyWFzdXMgSENBLTEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAGIyBRgYV65yLVRRLQgAMgEAADIBAAD3STCJrnItVBUEATIAAAEiAAIAAwBIAARkAP//
-AAAAAQAAABmAAQAAAAAAAQEDAgEAAAAAAAAAFwAAAAQANQAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAACAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAADAAQAAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAhPNIjximuci1Uxy0IADIBAAAyAQAAsQU4ia5yLVQVBAEyAAABIgACAAQASAADZAD//wAA
-AAEAAAO/gAEAAAAAAAEBAwKBAAAAAAAAABcAAAAEADUAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAIAAAAAAAAAAAgMAAAAAAAAAAA/oAAAAAAAAAAAskDAKNCcv6AAAAAAAAAAALJAwD6
-t/IAAwAEAAAAAACA//8AAIWMkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-1oc4Q1JWrnItVJRqCAAyAQAAMgEAAAwZNI2uci1UFQQBMgAAASIAAgADAEgABGQA//8AAAAB
-AAAAGoABAAAAAAABAQYBAQAAAAAAAAAXAAAABQAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPVm
-7h75Kq5yLVSbaggAMgEAADIBAAB9jjSNrnItVBUEATIAAAEiAAIABABIAANkAP//AAAAAQAA
-A8CAAQAAAAAAAQEGAYEAAAAAAAAAFwAAAAUAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABZXzuA
-81Wuci1Uw2oIADIBAAAyAQAAlS03ja5yLVQVBAEyAAABIgACAAMASAAEZAD//wAAAAEAAAAb
-gAEAAAAAAAEBBgEBAAAAAAAAABcAAAAGABEAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9xix+pe1
-rnItVMlqCAAyAQAAMgEAAD+SN42uci1UFQQBMgAAASIAAgAEAEgAA2QA//8AAAABAAADwYAB
-AAAAAAABAQYBgQAAAAAAAAAXAAAABgARAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAACyQMAo0JwAAACyQAAEAMAAAAAAAACyQAAAAABAGCeAQgAAQAA
-AAAP/wAEAAAgUAABAAArAAEAAAAAAAAAAABGVVNJT05JTyBTUlAgdGFyZ2V0AA==
---------------010204020203070708040708--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
