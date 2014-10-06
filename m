@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 7/9] IB/mlx4: Invalidation support for MR over peer memory
-Date: Mon,  6 Oct 2014 16:26:57 +0300
-Message-ID: <1412602019-30659-8-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 for-next 8/9] IB/mlx5: Invalidation support for MR over peer memory
+Date: Mon,  6 Oct 2014 16:26:58 +0300
+Message-ID: <1412602019-30659-9-git-send-email-yishaih@mellanox.com>
 References: <1412602019-30659-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1412602019-30659-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -26,196 +26,205 @@ It includes:
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    |    3 +-
- drivers/infiniband/hw/mlx4/mlx4_ib.h |    5 ++
- drivers/infiniband/hw/mlx4/mr.c      |   81 +++++++++++++++++++++++++++++++---
- 3 files changed, 81 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |    3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   10 ++++
+ drivers/infiniband/hw/mlx5/mr.c      |   84 ++++++++++++++++++++++++++++++++--
+ 3 files changed, 91 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index c7586a1..2f349a2 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -162,7 +162,8 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index d8907b2..4185531 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -182,7 +182,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->device_cap_flags    = IB_DEVICE_CHANGE_PHY_PORT |
  		IB_DEVICE_PORT_ACTIVE_EVENT		|
  		IB_DEVICE_SYS_IMAGE_GUID		|
- 		IB_DEVICE_RC_RNR_NAK_GEN		|
--		IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
-+		IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	|
+-		IB_DEVICE_RC_RNR_NAK_GEN;
++		IB_DEVICE_RC_RNR_NAK_GEN		|
 +		IB_DEVICE_PEER_MEMORY;
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_BAD_PKEY_CNTR)
+ 	flags = dev->mdev->caps.flags;
+ 	if (flags & MLX5_DEV_CAP_FLAG_BAD_PKEY_CNTR)
  		props->device_cap_flags |= IB_DEVICE_BAD_PKEY_CNTR;
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_BAD_QKEY_CNTR)
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 6eb743f..4b3dc70 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -116,6 +116,11 @@ struct mlx4_ib_mr {
- 	struct ib_mr		ibmr;
- 	struct mlx4_mr		mmr;
- 	struct ib_umem	       *umem;
-+	atomic_t      invalidated;
-+	struct completion invalidation_comp;
-+	/* lock protects the live indication */
-+	struct mutex lock;
-+	int    live;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 386780f..bae7338 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -85,6 +85,8 @@ enum mlx5_ib_mad_ifc_flags {
+ 	MLX5_MAD_IFC_NET_VIEW		= 4,
  };
  
- struct mlx4_ib_mw {
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index ad4cdfd..ddc9530 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -59,7 +59,7 @@ struct ib_mr *mlx4_ib_get_dma_mr(struct ib_pd *pd, int acc)
- 	struct mlx4_ib_mr *mr;
++struct mlx5_ib_peer_id;
++
+ struct mlx5_ib_ucontext {
+ 	struct ib_ucontext	ibucontext;
+ 	struct list_head	db_page_list;
+@@ -267,6 +269,14 @@ struct mlx5_ib_mr {
+ 	struct mlx5_ib_dev     *dev;
+ 	struct mlx5_create_mkey_mbox_out out;
+ 	struct mlx5_core_sig_ctx    *sig;
++	struct mlx5_ib_peer_id *peer_id;
++	atomic_t      invalidated;
++	struct completion invalidation_comp;
++};
++
++struct mlx5_ib_peer_id {
++	struct completion comp;
++	struct mlx5_ib_mr *mr;
+ };
+ 
+ struct mlx5_ib_fast_reg_page_list {
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 55c6649..390b149 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -38,6 +38,9 @@
+ #include <linux/delay.h>
+ #include <rdma/ib_umem.h>
+ #include "mlx5_ib.h"
++static void mlx5_invalidate_umem(void *invalidation_cookie,
++				 struct ib_umem *umem,
++				 unsigned long addr, size_t size);
+ 
+ enum {
+ 	MAX_PENDING_REG_MR = 8,
+@@ -880,16 +883,32 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	int ncont;
+ 	int order;
  	int err;
++	struct ib_peer_memory_client *ib_peer_mem;
++	struct mlx5_ib_peer_id *mlx5_ib_peer_id = NULL;
  
--	mr = kmalloc(sizeof *mr, GFP_KERNEL);
-+	mr = kzalloc(sizeof *mr, GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
+ 	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx\n",
+ 		    start, virt_addr, length);
+ 	umem = ib_umem_get(pd->uobject->context, start, length, access_flags,
+-			   0, IB_PEER_MEM_ALLOW);
++			   0, IB_PEER_MEM_ALLOW | IB_PEER_MEM_INVAL_SUPP);
+ 	if (IS_ERR(umem)) {
+ 		mlx5_ib_dbg(dev, "umem get failed\n");
+ 		return (void *)umem;
+ 	}
  
-@@ -130,6 +130,31 @@ out:
++	ib_peer_mem = umem->ib_peer_mem;
++	if (ib_peer_mem) {
++		mlx5_ib_peer_id = kzalloc(sizeof(*mlx5_ib_peer_id), GFP_KERNEL);
++		if (!mlx5_ib_peer_id) {
++			err = -ENOMEM;
++			goto error;
++		}
++		init_completion(&mlx5_ib_peer_id->comp);
++		err = ib_umem_activate_invalidation_notifier(umem, mlx5_invalidate_umem,
++							     mlx5_ib_peer_id);
++		if (err)
++			goto error;
++	}
++
+ 	mlx5_ib_cont_pages(umem, start, &npages, &page_shift, &ncont, &order);
+ 	if (!npages) {
+ 		mlx5_ib_warn(dev, "avoid zero region\n");
+@@ -927,11 +946,21 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	spin_unlock(&dev->mr_lock);
+ 	mr->ibmr.lkey = mr->mmr.key;
+ 	mr->ibmr.rkey = mr->mmr.key;
++	atomic_set(&mr->invalidated, 0);
++	if (ib_peer_mem) {
++		init_completion(&mr->invalidation_comp);
++		mlx5_ib_peer_id->mr = mr;
++		mr->peer_id = mlx5_ib_peer_id;
++		complete(&mlx5_ib_peer_id->comp);
++	}
+ 
+ 	return &mr->ibmr;
+ 
+ error:
++	if (mlx5_ib_peer_id)
++		complete(&mlx5_ib_peer_id->comp);
+ 	ib_umem_release(umem);
++	kfree(mlx5_ib_peer_id);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -968,7 +997,7 @@ error:
  	return err;
  }
  
-+static void mlx4_invalidate_umem(void *invalidation_cookie,
+-int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
++static int mlx5_ib_invalidate_mr(struct ib_mr *ibmr)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
+ 	struct mlx5_ib_mr *mr = to_mmr(ibmr);
+@@ -990,7 +1019,6 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
+ 			mlx5_ib_warn(dev, "failed unregister\n");
+ 			return err;
+ 		}
+-		free_cached_mr(dev, mr);
+ 	}
+ 
+ 	if (umem) {
+@@ -1000,9 +1028,32 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
+ 		spin_unlock(&dev->mr_lock);
+ 	}
+ 
+-	if (!umred)
+-		kfree(mr);
++	return 0;
++}
++
++int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
++	struct mlx5_ib_mr *mr = to_mmr(ibmr);
++	int ret = 0;
++	int umred = mr->umred;
+ 
++	if (atomic_inc_return(&mr->invalidated) > 1) {
++		/* In case there is inflight invalidation call pending for its termination */
++		wait_for_completion(&mr->invalidation_comp);
++	} else {
++		ret = mlx5_ib_invalidate_mr(ibmr);
++		if (ret)
++			return ret;
++	}
++	kfree(mr->peer_id);
++	mr->peer_id = NULL;
++	if (umred) {
++		atomic_set(&mr->invalidated, 0);
++		free_cached_mr(dev, mr);
++	} else {
++		kfree(mr);
++	}
+ 	return 0;
+ }
+ 
+@@ -1122,6 +1173,29 @@ int mlx5_ib_destroy_mr(struct ib_mr *ibmr)
+ 	return err;
+ }
+ 
++static void mlx5_invalidate_umem(void *invalidation_cookie,
 +				 struct ib_umem *umem,
 +				 unsigned long addr, size_t size)
 +{
-+	struct mlx4_ib_mr *mr = (struct mlx4_ib_mr *)invalidation_cookie;
++	struct mlx5_ib_mr *mr;
++	struct mlx5_ib_peer_id *peer_id = (struct mlx5_ib_peer_id *)invalidation_cookie;
 +
-+	mutex_lock(&mr->lock);
++	wait_for_completion(&peer_id->comp);
++	if (peer_id->mr == NULL)
++		return;
++
++	mr = peer_id->mr;
 +	/* This function is called under client peer lock so its resources are race protected */
 +	if (atomic_inc_return(&mr->invalidated) > 1) {
 +		umem->invalidation_ctx->inflight_invalidation = 1;
-+		mutex_unlock(&mr->lock);
-+		return;
-+	}
-+	if (!mr->live) {
-+		mutex_unlock(&mr->lock);
 +		return;
 +	}
 +
-+	mutex_unlock(&mr->lock);
 +	umem->invalidation_ctx->peer_callback = 1;
-+	mlx4_mr_free(to_mdev(mr->ibmr.device)->dev, &mr->mmr);
-+	ib_umem_release(umem);
++	mlx5_ib_invalidate_mr(&mr->ibmr);
 +	complete(&mr->invalidation_comp);
 +}
 +
- struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 				  u64 virt_addr, int access_flags,
- 				  struct ib_udata *udata)
-@@ -139,28 +164,54 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	int shift;
- 	int err;
- 	int n;
-+	struct ib_peer_memory_client *ib_peer_mem;
- 
--	mr = kmalloc(sizeof *mr, GFP_KERNEL);
-+	mr = kzalloc(sizeof *mr, GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
- 
-+	mutex_init(&mr->lock);
- 	/* Force registering the memory as writable. */
- 	/* Used for memory re-registeration. HCA protects the access */
- 	mr->umem = ib_umem_get(pd->uobject->context, start, length,
- 			       access_flags | IB_ACCESS_LOCAL_WRITE, 0,
--			       IB_PEER_MEM_ALLOW);
-+			       IB_PEER_MEM_ALLOW | IB_PEER_MEM_INVAL_SUPP);
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
- 		goto err_free;
- 	}
- 
-+	ib_peer_mem = mr->umem->ib_peer_mem;
-+	if (ib_peer_mem) {
-+		err = ib_umem_activate_invalidation_notifier(mr->umem, mlx4_invalidate_umem, mr);
-+		if (err)
-+			goto err_umem;
-+	}
-+
-+	mutex_lock(&mr->lock);
-+	if (atomic_read(&mr->invalidated))
-+		goto err_locked_umem;
-+
-+	if (ib_peer_mem) {
-+		if (access_flags & IB_ACCESS_MW_BIND) {
-+			/* Prevent binding MW on peer clients, mlx4_invalidate_umem is a void
-+			 * function and must succeed, however, mlx4_mr_free might fail when MW
-+			 * are used.
-+			*/
-+			err = -ENOSYS;
-+			pr_err("MW is not supported with peer memory client");
-+			goto err_locked_umem;
-+		}
-+		init_completion(&mr->invalidation_comp);
-+	}
-+
- 	n = ib_umem_page_count(mr->umem);
- 	shift = ilog2(mr->umem->page_size);
- 
- 	err = mlx4_mr_alloc(dev->dev, to_mpd(pd)->pdn, virt_addr, length,
- 			    convert_access(access_flags), n, shift, &mr->mmr);
- 	if (err)
--		goto err_umem;
-+		goto err_locked_umem;
- 
- 	err = mlx4_ib_umem_write_mtt(dev, &mr->mmr.mtt, mr->umem);
- 	if (err)
-@@ -171,12 +222,16 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 		goto err_mr;
- 
- 	mr->ibmr.rkey = mr->ibmr.lkey = mr->mmr.key;
--
-+	mr->live = 1;
-+	mutex_unlock(&mr->lock);
- 	return &mr->ibmr;
- 
- err_mr:
- 	(void) mlx4_mr_free(to_mdev(pd->device)->dev, &mr->mmr);
- 
-+err_locked_umem:
-+	mutex_unlock(&mr->lock);
-+
- err_umem:
- 	ib_umem_release(mr->umem);
- 
-@@ -284,11 +339,23 @@ int mlx4_ib_dereg_mr(struct ib_mr *ibmr)
- 	struct mlx4_ib_mr *mr = to_mmr(ibmr);
- 	int ret;
- 
-+	if (atomic_inc_return(&mr->invalidated) > 1) {
-+		wait_for_completion(&mr->invalidation_comp);
-+		goto end;
-+	}
-+
- 	ret = mlx4_mr_free(to_mdev(ibmr->device)->dev, &mr->mmr);
--	if (ret)
-+	if (ret) {
-+		/* Error is not expected here, except when memory windows
-+		 * are bound to MR which is not supported with
-+		 * peer memory clients.
-+		*/
-+		atomic_set(&mr->invalidated, 0);
- 		return ret;
-+	}
- 	if (mr->umem)
- 		ib_umem_release(mr->umem);
-+end:
- 	kfree(mr);
- 
- 	return 0;
-@@ -365,7 +432,7 @@ struct ib_mr *mlx4_ib_alloc_fast_reg_mr(struct ib_pd *pd,
- 	struct mlx4_ib_mr *mr;
- 	int err;
- 
--	mr = kmalloc(sizeof *mr, GFP_KERNEL);
-+	mr = kzalloc(sizeof *mr, GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
- 
+ struct ib_mr *mlx5_ib_alloc_fast_reg_mr(struct ib_pd *pd,
+ 					int max_page_list_len)
+ {
 -- 
 1.7.1
 
