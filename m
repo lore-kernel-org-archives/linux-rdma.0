@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 4/9] IB/core: Infrastructure to manage peer core context
-Date: Mon,  6 Oct 2014 16:26:54 +0300
-Message-ID: <1412602019-30659-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 for-next 6/9] IB/core: Sysfs support for peer memory
+Date: Mon,  6 Oct 2014 16:26:56 +0300
+Message-ID: <1412602019-30659-7-git-send-email-yishaih@mellanox.com>
 References: <1412602019-30659-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1412602019-30659-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,221 +10,396 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Adds an infrastructure to manage core context for a given umem,
-it's needed for the invalidation flow.
+Supplies the required functionality to expose information and
+statistics over sysfs for a given peer memory client.
 
-Core context is supplied to peer clients as some opaque data for a given
-memory pages represented by a umem.
+This mechanism enables userspace application to check
+which peers are available (based on name & version) and based on that
+decides whether it can run successfully.
 
-If the peer client needs to invalidate memory it provided through the peer memory callbacks,
-it should call the invalidation callback, supplying the relevant core context.
-IB core will use this context to invalidate the relevant memory.
-
-To prevent cases when there are inflight invalidation calls in parallel
-to releasing this memory (e.g. by dereg_mr) we must ensure that context
-is valid before accessing it, that's why couldn't use the core context
-pointer directly. For that reason we added a lookup table to map between
-a ticket id to a core context. Peer client will get/supply the ticket
-id, core will check whether exists before accessing its corresponding
-context.
-
-The ticket id is provided to the peer memory client, as part of the
-get_pages API. The only "remote" party using it is the peer memory
-client. It is used for invalidation flow, to specify what memory
-registration should be invalidated. This flow might be called
-asynchronously, in parallel to an ongoing dereg_mr operation. As such,
-the invalidation flow might be called after the memory registration
-has been completely released. Relying on a pointer-based, or IDR-based
-ticket value can result in spurious invalidation of unrelated memory
-regions. Internally, we carefully lock the data structures and
-synchronize as needed when extracting the context from the
-ticket. This ensures a proper, synchronized release of the memory
-mapping. The ticket mechanism allows us to safely ignore inflight
-invalidation calls that were arrived too late.
+Root sysfs directory is /sys/kernel/mm/<peer_name>, under that directory
+will reside some files that represent the statistics for that peer.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/peer_mem.c |   84 ++++++++++++++++++++++++++++++++++++
- include/rdma/ib_peer_mem.h         |   18 ++++++++
- include/rdma/ib_umem.h             |    6 +++
- 3 files changed, 108 insertions(+), 0 deletions(-)
+ Documentation/infiniband/peer_memory.txt |   64 +++++++++
+ drivers/infiniband/core/peer_mem.c       |  211 +++++++++++++++++++++++++++++-
+ drivers/infiniband/core/umem.c           |    6 +
+ include/rdma/ib_peer_mem.h               |   13 ++
+ 4 files changed, 293 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/infiniband/peer_memory.txt
 
+diff --git a/Documentation/infiniband/peer_memory.txt b/Documentation/infiniband/peer_memory.txt
+new file mode 100644
+index 0000000..c09cde2
+--- /dev/null
++++ b/Documentation/infiniband/peer_memory.txt
+@@ -0,0 +1,64 @@
++Peer-Direct technology allows RDMA operations to directly target
++memory in external hardware devices, such as GPU cards, SSD based
++storage, dedicated ASIC accelerators, etc.
++
++This technology allows RDMA-based (over InfiniBand/RoCE) application
++to avoid unneeded data copying when sharing data between peer hardware
++devices.
++
++This file contains documentation for the sysfs interface provided by
++the feature. For documentation of the kernel level interface that peer
++memory clients should implement, please refer to the API documentation
++in include/rdma/peer_mem.h
++
++From the user application perspective, it is free to perform memory
++registration using pointers and handles provided by peer memory
++clients (i.e. OpenCL, Cuda, FPGA-specific handles, etc.). The kernel
++will transparently select the appropriate peer memory client to
++perform the memory registration, as needed.
++
++
++The peer-memory subsystem allows the user to monitor the current usage
++of the technology through a basic sysfs interface. For each peer
++memory client (i.e. GPU type, FPGA, etc.), the following files are
++created:
++
++* /sys/kernel/mm/memory_peers/<peer_name>/version - the version string
++  of the peer memory client
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_alloc_mrs - the number
++  of memory regions allocated using this peers memory. Note that this
++  counter is not decreased during de-registration of memory regions,
++  it is monotonically increasing. To get the number of memory regions
++  currently allocated on this peer, subtract the value of
++  num_dealloc_mrs from this counter.
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_dealloc_mrs - the number
++  of memory regions de-allocated, and were originally using peer
++  memory.
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_reg_pages - the amount
++  of peer_name's memory pages that have been mapped through peer
++  direct. Note that this is a monotonically increasing counter. To get
++  the number of pages currently mapped, subtract the value of
++  num_dereg_pages from this counter. Also, pay attention to the fact
++  that this counter is using device pages, which might differ in size
++  from the host memory page size.
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_dereg_pages - the amount
++  of peer memory pages that have been unmapped through peer direct for
++  peer_name.
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_reg_bytes - the number
++  of bytes that have been mapped through peer direct from
++  peer_name. Note that this is a monotonically increasing counter. To
++  get the number of bytes currently mapped, subtract the value of
++  num_dereg_bytes from this counter.
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_dereg_bytes - the number
++  of bytes that have been unmapped through peer direct from peer_name.
++
++* /sys/kernel/mm/memory_peers/<peer_name>/num_free_callbacks - the
++  number of times the peer used the "invalidate" callback to free a
++  memory region before the application de-registered the memory
++  region.
 diff --git a/drivers/infiniband/core/peer_mem.c b/drivers/infiniband/core/peer_mem.c
-index cc6e9e1..2f34552 100644
+index d4cf31c..e5e4c0c 100644
 --- a/drivers/infiniband/core/peer_mem.c
 +++ b/drivers/infiniband/core/peer_mem.c
-@@ -42,6 +42,87 @@ static int ib_invalidate_peer_memory(void *reg_handle, u64 core_context)
- 	return -ENOSYS;
- }
+@@ -36,6 +36,207 @@
  
-+static int ib_peer_insert_context(struct ib_peer_memory_client *ib_peer_client,
-+				  void *context,
-+				  u64 *context_ticket)
+ static DEFINE_MUTEX(peer_memory_mutex);
+ static LIST_HEAD(peer_memory_list);
++static struct kobject *peers_kobj;
++
++static void complete_peer(struct kref *kref);
++static struct ib_peer_memory_client *get_peer_by_kobj(void *kobj);
++static ssize_t version_show(struct kobject *kobj,
++			    struct kobj_attribute *attr, char *buf)
 +{
-+	struct core_ticket *core_ticket = kzalloc(sizeof(*core_ticket), GFP_KERNEL);
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
 +
-+	if (!core_ticket)
-+		return -ENOMEM;
-+
-+	mutex_lock(&ib_peer_client->lock);
-+	core_ticket->key = ib_peer_client->last_ticket++;
-+	core_ticket->context = context;
-+	list_add_tail(&core_ticket->ticket_list,
-+		      &ib_peer_client->core_ticket_list);
-+	*context_ticket = core_ticket->key;
-+	mutex_unlock(&ib_peer_client->lock);
-+
++	if (ib_peer_client) {
++		sprintf(buf, "%s\n", ib_peer_client->peer_mem->version);
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
 +	return 0;
 +}
 +
-+/* Caller should be holding the peer client lock, specifically, the caller should hold ib_peer_client->lock */
-+static int ib_peer_remove_context(struct ib_peer_memory_client *ib_peer_client,
-+				  u64 key)
++static ssize_t num_alloc_mrs_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
 +{
-+	struct core_ticket *core_ticket;
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
 +
-+	list_for_each_entry(core_ticket, &ib_peer_client->core_ticket_list,
-+			    ticket_list) {
-+		if (core_ticket->key == key) {
-+			list_del(&core_ticket->ticket_list);
-+			kfree(core_ticket);
-+			return 0;
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_alloc_mrs));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_dealloc_mrs_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_dealloc_mrs));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_reg_pages_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_reg_pages));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_dereg_pages_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_dereg_pages));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_reg_bytes_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_reg_bytes));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_dereg_bytes_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_dereg_bytes));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_free_callbacks_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%lu\n", ib_peer_client->stats.num_free_callbacks);
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static struct kobj_attribute version_attr = __ATTR_RO(version);
++static struct kobj_attribute num_alloc_mrs = __ATTR_RO(num_alloc_mrs);
++static struct kobj_attribute num_dealloc_mrs = __ATTR_RO(num_dealloc_mrs);
++static struct kobj_attribute num_reg_pages = __ATTR_RO(num_reg_pages);
++static struct kobj_attribute num_dereg_pages = __ATTR_RO(num_dereg_pages);
++static struct kobj_attribute num_reg_bytes = __ATTR_RO(num_reg_bytes);
++static struct kobj_attribute num_dereg_bytes = __ATTR_RO(num_dereg_bytes);
++static struct kobj_attribute num_free_callbacks = __ATTR_RO(num_free_callbacks);
++
++static struct attribute *peer_mem_attrs[] = {
++			&version_attr.attr,
++			&num_alloc_mrs.attr,
++			&num_dealloc_mrs.attr,
++			&num_reg_pages.attr,
++			&num_dereg_pages.attr,
++			&num_reg_bytes.attr,
++			&num_dereg_bytes.attr,
++			&num_free_callbacks.attr,
++			NULL,
++};
++
++static void destroy_peer_sysfs(struct ib_peer_memory_client *ib_peer_client)
++{
++	kobject_put(ib_peer_client->kobj);
++	if (list_empty(&peer_memory_list))
++		kobject_put(peers_kobj);
++}
++
++static int create_peer_sysfs(struct ib_peer_memory_client *ib_peer_client)
++{
++	int ret;
++
++	if (list_empty(&peer_memory_list)) {
++		/* creating under /sys/kernel/mm */
++		peers_kobj = kobject_create_and_add("memory_peers", mm_kobj);
++		if (!peers_kobj)
++			return -ENOMEM;
++	}
++
++	ib_peer_client->peer_mem_attr_group.attrs = peer_mem_attrs;
++	/* Dir alreday was created explicitly to get its kernel object for further usage */
++	ib_peer_client->peer_mem_attr_group.name =  NULL;
++	ib_peer_client->kobj = kobject_create_and_add(ib_peer_client->peer_mem->name,
++		peers_kobj);
++
++	if (!ib_peer_client->kobj) {
++		ret = -EINVAL;
++		goto free;
++	}
++
++	/* Create the files associated with this kobject */
++	ret = sysfs_create_group(ib_peer_client->kobj,
++				 &ib_peer_client->peer_mem_attr_group);
++	if (ret)
++		goto peer_free;
++
++	return 0;
++
++peer_free:
++	kobject_put(ib_peer_client->kobj);
++
++free:
++	if (list_empty(&peer_memory_list))
++		kobject_put(peers_kobj);
++
++	return ret;
++}
++
++static struct ib_peer_memory_client *get_peer_by_kobj(void *kobj)
++{
++	struct ib_peer_memory_client *ib_peer_client;
++
++	mutex_lock(&peer_memory_mutex);
++	list_for_each_entry(ib_peer_client, &peer_memory_list, core_peer_list) {
++		if (ib_peer_client->kobj == kobj) {
++			kref_get(&ib_peer_client->ref);
++			goto found;
 +		}
 +	}
 +
-+	return 1;
++	ib_peer_client = NULL;
++found:
++	mutex_unlock(&peer_memory_mutex);
++	return ib_peer_client;
 +}
-+
-+/**
-+** ib_peer_create_invalidation_ctx - creates invalidation context for a given umem
-+** @ib_peer_mem: peer client to be used
-+** @umem: umem struct belongs to that context
-+** @invalidation_ctx: output context
-+**/
-+int ib_peer_create_invalidation_ctx(struct ib_peer_memory_client *ib_peer_mem, struct ib_umem *umem,
-+				    struct invalidation_ctx **invalidation_ctx)
-+{
-+	int ret;
-+	struct invalidation_ctx *ctx;
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	ret = ib_peer_insert_context(ib_peer_mem, ctx,
-+				     &ctx->context_ticket);
-+	if (ret) {
-+		kfree(ctx);
-+		return ret;
-+	}
-+
-+	ctx->umem = umem;
-+	umem->invalidation_ctx = ctx;
-+	*invalidation_ctx = ctx;
-+	return 0;
-+}
-+
-+/**
-+ * ** ib_peer_destroy_invalidation_ctx - destroy a given invalidation context
-+ * ** @ib_peer_mem: peer client to be used
-+ * ** @invalidation_ctx: context to be invalidated
-+ * **/
-+void ib_peer_destroy_invalidation_ctx(struct ib_peer_memory_client *ib_peer_mem,
-+				      struct invalidation_ctx *invalidation_ctx)
-+{
-+	mutex_lock(&ib_peer_mem->lock);
-+	ib_peer_remove_context(ib_peer_mem, invalidation_ctx->context_ticket);
-+	mutex_unlock(&ib_peer_mem->lock);
-+
-+	kfree(invalidation_ctx);
-+}
- static int ib_memory_peer_check_mandatory(const struct peer_memory_client
- 						     *peer_client)
- {
-@@ -90,9 +171,12 @@ void *ib_register_peer_memory_client(const struct peer_memory_client *peer_clien
- 	if (!ib_peer_client)
- 		return NULL;
  
-+	INIT_LIST_HEAD(&ib_peer_client->core_ticket_list);
-+	mutex_init(&ib_peer_client->lock);
- 	init_completion(&ib_peer_client->unload_comp);
- 	kref_init(&ib_peer_client->ref);
- 	ib_peer_client->peer_mem = peer_client;
-+	ib_peer_client->last_ticket = 1;
- 	/* Once peer supplied a non NULL callback it's an indication that invalidation support is
- 	 * required for any memory owning.
- 	 */
+ /* Caller should be holding the peer client lock, ib_peer_client->lock */
+ static struct core_ticket *ib_peer_search_context(struct ib_peer_memory_client *ib_peer_client,
+@@ -60,6 +261,7 @@ static int ib_invalidate_peer_memory(void *reg_handle, u64 core_context)
+ 	int need_unlock = 1;
+ 
+ 	mutex_lock(&ib_peer_client->lock);
++	ib_peer_client->stats.num_free_callbacks += 1;
+ 	core_ticket = ib_peer_search_context(ib_peer_client, core_context);
+ 	if (!core_ticket)
+ 		goto out;
+@@ -251,9 +453,15 @@ void *ib_register_peer_memory_client(const struct peer_memory_client *peer_clien
+ 	}
+ 
+ 	mutex_lock(&peer_memory_mutex);
++	if (create_peer_sysfs(ib_peer_client)) {
++		kfree(ib_peer_client);
++		ib_peer_client = NULL;
++		goto end;
++	}
+ 	list_add_tail(&ib_peer_client->core_peer_list, &peer_memory_list);
+-	mutex_unlock(&peer_memory_mutex);
++end:
+ 
++	mutex_unlock(&peer_memory_mutex);
+ 	return ib_peer_client;
+ }
+ EXPORT_SYMBOL(ib_register_peer_memory_client);
+@@ -264,6 +472,7 @@ void ib_unregister_peer_memory_client(void *reg_handle)
+ 
+ 	mutex_lock(&peer_memory_mutex);
+ 	list_del(&ib_peer_client->core_peer_list);
++	destroy_peer_sysfs(ib_peer_client);
+ 	mutex_unlock(&peer_memory_mutex);
+ 
+ 	kref_put(&ib_peer_client->ref, complete_peer);
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 6655d12..1fa5447 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -86,6 +86,9 @@ static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
+ 	if (ret)
+ 		goto put_pages;
+ 
++	atomic64_add(umem->nmap, &ib_peer_mem->stats.num_reg_pages);
++	atomic64_add(umem->nmap * umem->page_size, &ib_peer_mem->stats.num_reg_bytes);
++	atomic64_inc(&ib_peer_mem->stats.num_alloc_mrs);
+ 	return umem;
+ 
+ put_pages:
+@@ -114,6 +117,9 @@ static void peer_umem_release(struct ib_umem *umem)
+ 			    umem->context->device->dma_device);
+ 	peer_mem->put_pages(&umem->sg_head,
+ 			    umem->peer_mem_client_context);
++	atomic64_add(umem->nmap, &ib_peer_mem->stats.num_dereg_pages);
++	atomic64_add(umem->nmap * umem->page_size, &ib_peer_mem->stats.num_dereg_bytes);
++	atomic64_inc(&ib_peer_mem->stats.num_dealloc_mrs);
+ 	ib_put_peer_client(ib_peer_mem, umem->peer_mem_client_context);
+ 	kfree(umem);
+ }
 diff --git a/include/rdma/ib_peer_mem.h b/include/rdma/ib_peer_mem.h
-index 98056c5..8b28bfe 100644
+index 58e0f99..1b865c8 100644
 --- a/include/rdma/ib_peer_mem.h
 +++ b/include/rdma/ib_peer_mem.h
-@@ -4,6 +4,8 @@
+@@ -3,6 +3,16 @@
+ 
  #include <rdma/peer_mem.h>
  
++struct ib_peer_memory_statistics {
++	atomic64_t num_alloc_mrs;
++	atomic64_t num_dealloc_mrs;
++	atomic64_t num_reg_pages;
++	atomic64_t num_dereg_pages;
++	atomic64_t num_reg_bytes;
++	atomic64_t num_dereg_bytes;
++	unsigned long num_free_callbacks;
++};
++
  struct ib_ucontext;
-+struct ib_umem;
-+struct invalidation_ctx;
- 
- struct ib_peer_memory_client {
- 	const struct peer_memory_client *peer_mem;
-@@ -11,16 +13,32 @@ struct ib_peer_memory_client {
- 	int invalidation_required;
- 	struct kref ref;
- 	struct completion unload_comp;
-+	/* lock is used via the invalidation flow */
-+	struct mutex lock;
-+	struct list_head   core_ticket_list;
-+	u64	last_ticket;
+ struct ib_umem;
+ struct invalidation_ctx;
+@@ -17,6 +27,9 @@ struct ib_peer_memory_client {
+ 	struct mutex lock;
+ 	struct list_head   core_ticket_list;
+ 	u64	last_ticket;
++	struct kobject *kobj;
++	struct attribute_group peer_mem_attr_group;
++	struct ib_peer_memory_statistics stats;
  };
  
  enum ib_peer_mem_flags {
- 	IB_PEER_MEM_ALLOW	= 1,
- };
- 
-+struct core_ticket {
-+	unsigned long key;
-+	void *context;
-+	struct list_head   ticket_list;
-+};
-+
- struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context, unsigned long addr,
- 						 size_t size, void **peer_client_context);
- 
- void ib_put_peer_client(struct ib_peer_memory_client *ib_peer_client,
- 			void *peer_client_context);
- 
-+int ib_peer_create_invalidation_ctx(struct ib_peer_memory_client *ib_peer_mem, struct ib_umem *umem,
-+				    struct invalidation_ctx **invalidation_ctx);
-+
-+void ib_peer_destroy_invalidation_ctx(struct ib_peer_memory_client *ib_peer_mem,
-+				      struct invalidation_ctx *invalidation_ctx);
-+
- #endif
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index a22dde0..3352b14 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -40,6 +40,11 @@
- 
- struct ib_ucontext;
- 
-+struct invalidation_ctx {
-+	struct ib_umem *umem;
-+	u64 context_ticket;
-+};
-+
- struct ib_umem {
- 	struct ib_ucontext     *context;
- 	size_t			length;
-@@ -56,6 +61,7 @@ struct ib_umem {
- 	int             npages;
- 	/* peer memory that manages this umem */
- 	struct ib_peer_memory_client *ib_peer_mem;
-+	struct invalidation_ctx *invalidation_ctx;
- 	/* peer memory private context */
- 	void *peer_mem_client_context;
- };
 -- 
 1.7.1
 
