@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 3/9] IB/core: Umem tunneling peer memory APIs
-Date: Mon,  6 Oct 2014 16:26:53 +0300
-Message-ID: <1412602019-30659-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 for-next 9/9] Samples: Peer memory client example
+Date: Mon,  6 Oct 2014 16:26:59 +0300
+Message-ID: <1412602019-30659-10-git-send-email-yishaih@mellanox.com>
 References: <1412602019-30659-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1412602019-30659-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,487 +10,332 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Builds umem over peer memory client functionality.
-It tries getting a peer client for a given address range, in case found
-further memory calls are tunneled to that peer client.
-ib_umem_get was extended to have an indication whether this umem can
-be part of a peer client. As a result, usage of
-ib_umem_get was updated accordingly.
+Adds an example of a peer memory client which implements the peer memory
+API as defined under include/rdma/peer_mem.h.
+It uses the HOST memory functionality to implement the APIs and
+can be a good reference for peer memory client writers.
+
+Usage:
+- It's built as a kernel module.
+- The sample peer memory client takes ownership of a virtual memory area
+  defined using module parameters.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/umem.c               |   77 +++++++++++++++++++++++++-
- drivers/infiniband/hw/amso1100/c2_provider.c |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
- drivers/infiniband/hw/cxgb4/mem.c            |    2 +-
- drivers/infiniband/hw/ehca/ehca_mrmw.c       |    2 +-
- drivers/infiniband/hw/ipath/ipath_mr.c       |    2 +-
- drivers/infiniband/hw/mlx4/cq.c              |    2 +-
- drivers/infiniband/hw/mlx4/doorbell.c        |    2 +-
- drivers/infiniband/hw/mlx4/mr.c              |   11 +++-
- drivers/infiniband/hw/mlx4/qp.c              |    2 +-
- drivers/infiniband/hw/mlx4/srq.c             |    2 +-
- drivers/infiniband/hw/mlx5/cq.c              |    5 +-
- drivers/infiniband/hw/mlx5/doorbell.c        |    2 +-
- drivers/infiniband/hw/mlx5/mr.c              |    2 +-
- drivers/infiniband/hw/mlx5/qp.c              |    2 +-
- drivers/infiniband/hw/mlx5/srq.c             |    2 +-
- drivers/infiniband/hw/mthca/mthca_provider.c |    2 +-
- drivers/infiniband/hw/nes/nes_verbs.c        |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    2 +-
- drivers/infiniband/hw/qib/qib_mr.c           |    2 +-
- include/rdma/ib_peer_mem.h                   |    4 +
- include/rdma/ib_umem.h                       |   13 +++-
- 22 files changed, 119 insertions(+), 25 deletions(-)
+ samples/Kconfig                        |   10 ++
+ samples/Makefile                       |    3 +-
+ samples/peer_memory/Makefile           |    1 +
+ samples/peer_memory/example_peer_mem.c |  260 ++++++++++++++++++++++++++++++++
+ 4 files changed, 273 insertions(+), 1 deletions(-)
+ create mode 100644 samples/peer_memory/Makefile
+ create mode 100644 samples/peer_memory/example_peer_mem.c
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index df0c4f6..f3e445c 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -42,6 +42,66 @@
+diff --git a/samples/Kconfig b/samples/Kconfig
+index 6181c2c..b75b771 100644
+--- a/samples/Kconfig
++++ b/samples/Kconfig
+@@ -21,6 +21,16 @@ config SAMPLE_KOBJECT
  
- #include "uverbs.h"
+ 	  If in doubt, say "N" here.
  
-+static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
-+				     struct ib_umem *umem, unsigned long addr,
-+				     int dmasync)
-+{
-+	int ret;
-+	const struct peer_memory_client *peer_mem = ib_peer_mem->peer_mem;
++config SAMPLE_PEER_MEMORY_CLIENT
++	tristate "Build peer memory sample client -- loadable modules only"
++	depends on INFINIBAND_USER_MEM && m
++	help
++	  This config option will allow you to build a peer memory
++	  example module that can be a very good reference for
++	  peer memory client plugin writers.
 +
-+	umem->ib_peer_mem = ib_peer_mem;
-+	/*
-+	 * We always request write permissions to the pages, to force breaking of any CoW
-+	 * during the registration of the MR. For read-only MRs we use the "force" flag to
-+	 * indicate that CoW breaking is required but the registration should not fail if
-+	 * referencing read-only areas.
-+	 */
-+	ret = peer_mem->get_pages(addr, umem->length,
-+				  1, !umem->writable,
-+				  &umem->sg_head,
-+				  umem->peer_mem_client_context,
-+				  0);
-+	if (ret)
-+		goto out;
++	  If in doubt, say "N" here.
 +
-+	umem->page_size = peer_mem->get_page_size
-+					(umem->peer_mem_client_context);
-+	if (umem->page_size <= 0)
-+		goto put_pages;
+ config SAMPLE_KPROBES
+ 	tristate "Build kprobes examples -- loadable modules only"
+ 	depends on KPROBES && m
+diff --git a/samples/Makefile b/samples/Makefile
+index 1a60c62..b42117a 100644
+--- a/samples/Makefile
++++ b/samples/Makefile
+@@ -1,4 +1,5 @@
+ # Makefile for Linux samples code
+ 
+ obj-$(CONFIG_SAMPLES)	+= kobject/ kprobes/ trace_events/ \
+-			   hw_breakpoint/ kfifo/ kdb/ hidraw/ rpmsg/ seccomp/
++			   hw_breakpoint/ kfifo/ kdb/ hidraw/ rpmsg/ seccomp/ \
++			   peer_memory/
+diff --git a/samples/peer_memory/Makefile b/samples/peer_memory/Makefile
+new file mode 100644
+index 0000000..f498125
+--- /dev/null
++++ b/samples/peer_memory/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_SAMPLE_PEER_MEMORY_CLIENT) += example_peer_mem.o
+diff --git a/samples/peer_memory/example_peer_mem.c b/samples/peer_memory/example_peer_mem.c
+new file mode 100644
+index 0000000..b76013c
+--- /dev/null
++++ b/samples/peer_memory/example_peer_mem.c
+@@ -0,0 +1,260 @@
++/*
++ * Copyright (c) 2014, Mellanox Technologies. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++#include <linux/mm.h>
++#include <linux/dma-mapping.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/errno.h>
++#include <linux/export.h>
++#include <linux/sched.h>
++#include <rdma/peer_mem.h>
 +
-+	umem->offset = addr & ((unsigned long)umem->page_size - 1);
-+	ret = peer_mem->dma_map(&umem->sg_head,
-+				umem->peer_mem_client_context,
-+				umem->context->device->dma_device,
-+				dmasync,
-+				&umem->nmap);
-+	if (ret)
-+		goto put_pages;
++#define DRV_NAME	"example_peer_mem"
++#define DRV_VERSION	"1.0"
++#define DRV_RELDATE	__DATE__
 +
-+	return umem;
++MODULE_AUTHOR("Yishai Hadas");
++MODULE_DESCRIPTION("Example peer memory");
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_VERSION(DRV_VERSION);
++static unsigned long example_mem_start_range;
++static unsigned long example_mem_end_range;
 +
-+put_pages:
-+	peer_mem->put_pages(umem->peer_mem_client_context,
-+					&umem->sg_head);
-+out:
-+	ib_put_peer_client(ib_peer_mem, umem->peer_mem_client_context);
-+	kfree(umem);
-+	return ERR_PTR(ret);
-+}
++module_param(example_mem_start_range, ulong, 0444);
++MODULE_PARM_DESC(example_mem_start_range, "peer example start memory range");
++module_param(example_mem_end_range, ulong, 0444);
++MODULE_PARM_DESC(example_mem_end_range, "peer example end memory range");
 +
-+static void peer_umem_release(struct ib_umem *umem)
-+{
-+	const struct peer_memory_client *peer_mem =
-+				umem->ib_peer_mem->peer_mem;
++static void *reg_handle;
 +
-+	peer_mem->dma_unmap(&umem->sg_head,
-+			    umem->peer_mem_client_context,
-+			    umem->context->device->dma_device);
-+	peer_mem->put_pages(&umem->sg_head,
-+			    umem->peer_mem_client_context);
-+	ib_put_peer_client(umem->ib_peer_mem, umem->peer_mem_client_context);
-+	kfree(umem);
-+}
- 
- static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
- {
-@@ -74,9 +134,11 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
-  * @size: length of region to pin
-  * @access: IB_ACCESS_xxx flags for memory being pinned
-  * @dmasync: flush in-flight DMA when the memory region is written
-+ * @peer_mem_flags: IB_PEER_MEM_xxx flags for memory being used
-  */
- struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
--			    size_t size, int access, int dmasync)
-+			       size_t size, int access, int dmasync,
-+			       unsigned long peer_mem_flags)
- {
- 	struct ib_umem *umem;
- 	struct page **page_list;
-@@ -114,6 +176,15 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	 * "MW bind" can change permissions by binding a window.
- 	 */
- 	umem->writable  = !!(access & ~IB_ACCESS_REMOTE_READ);
-+	if (peer_mem_flags & IB_PEER_MEM_ALLOW) {
-+		struct ib_peer_memory_client *peer_mem_client;
-+
-+		peer_mem_client =  ib_get_peer_client(context, addr, size,
-+						      &umem->peer_mem_client_context);
-+		if (peer_mem_client)
-+			return peer_umem_get(peer_mem_client, umem, addr,
-+					dmasync);
-+	}
- 
- 	/* We assume the memory is from hugetlb until proved otherwise */
- 	umem->hugetlb   = 1;
-@@ -234,6 +305,10 @@ void ib_umem_release(struct ib_umem *umem)
- 	struct mm_struct *mm;
- 	struct task_struct *task;
- 	unsigned long diff;
-+	if (umem->ib_peer_mem) {
-+		peer_umem_release(umem);
-+		return;
-+	}
- 
- 	__ib_umem_release(umem->context->device, umem, 1);
- 
-diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-index 2d5cbf4..e88d222 100644
---- a/drivers/infiniband/hw/amso1100/c2_provider.c
-+++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -444,7 +444,7 @@ static struct ib_mr *c2_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 		return ERR_PTR(-ENOMEM);
- 	c2mr->pd = c2pd;
- 
--	c2mr->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	c2mr->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0, 0);
- 	if (IS_ERR(c2mr->umem)) {
- 		err = PTR_ERR(c2mr->umem);
- 		kfree(c2mr);
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 811b24a..aa9c142 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -635,7 +635,7 @@ static struct ib_mr *iwch_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 
- 	mhp->rhp = rhp;
- 
--	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0, 0);
- 	if (IS_ERR(mhp->umem)) {
- 		err = PTR_ERR(mhp->umem);
- 		kfree(mhp);
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index ec7a298..506ddd2 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -705,7 +705,7 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 
- 	mhp->rhp = rhp;
- 
--	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0, 0);
- 	if (IS_ERR(mhp->umem)) {
- 		err = PTR_ERR(mhp->umem);
- 		kfree(mhp);
-diff --git a/drivers/infiniband/hw/ehca/ehca_mrmw.c b/drivers/infiniband/hw/ehca/ehca_mrmw.c
-index 3488e8c..d5bbbc0 100644
---- a/drivers/infiniband/hw/ehca/ehca_mrmw.c
-+++ b/drivers/infiniband/hw/ehca/ehca_mrmw.c
-@@ -359,7 +359,7 @@ struct ib_mr *ehca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	}
- 
- 	e_mr->umem = ib_umem_get(pd->uobject->context, start, length,
--				 mr_access_flags, 0);
-+				 mr_access_flags, 0, 0);
- 	if (IS_ERR(e_mr->umem)) {
- 		ib_mr = (void *)e_mr->umem;
- 		goto reg_user_mr_exit1;
-diff --git a/drivers/infiniband/hw/ipath/ipath_mr.c b/drivers/infiniband/hw/ipath/ipath_mr.c
-index 5e61e9b..d6641be 100644
---- a/drivers/infiniband/hw/ipath/ipath_mr.c
-+++ b/drivers/infiniband/hw/ipath/ipath_mr.c
-@@ -198,7 +198,7 @@ struct ib_mr *ipath_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	}
- 
- 	umem = ib_umem_get(pd->uobject->context, start, length,
--			   mr_access_flags, 0);
-+			   mr_access_flags, 0, 0);
- 	if (IS_ERR(umem))
- 		return (void *) umem;
- 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 1066eec..23aaf77 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -142,7 +142,7 @@ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *cont
- 	int cqe_size = dev->dev->caps.cqe_size;
- 
- 	*umem = ib_umem_get(context, buf_addr, cqe * cqe_size,
--			    IB_ACCESS_LOCAL_WRITE, 1);
-+			    IB_ACCESS_LOCAL_WRITE, 1, IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(*umem))
- 		return PTR_ERR(*umem);
- 
-diff --git a/drivers/infiniband/hw/mlx4/doorbell.c b/drivers/infiniband/hw/mlx4/doorbell.c
-index c517409..71e7b66 100644
---- a/drivers/infiniband/hw/mlx4/doorbell.c
-+++ b/drivers/infiniband/hw/mlx4/doorbell.c
-@@ -62,7 +62,7 @@ int mlx4_ib_db_map_user(struct mlx4_ib_ucontext *context, unsigned long virt,
- 	page->user_virt = (virt & PAGE_MASK);
- 	page->refcnt    = 0;
- 	page->umem      = ib_umem_get(&context->ibucontext, virt & PAGE_MASK,
--				      PAGE_SIZE, 0, 0);
-+				      PAGE_SIZE, 0, 0, IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(page->umem)) {
- 		err = PTR_ERR(page->umem);
- 		kfree(page);
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 8f9325c..ad4cdfd 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -147,7 +147,8 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	/* Force registering the memory as writable. */
- 	/* Used for memory re-registeration. HCA protects the access */
- 	mr->umem = ib_umem_get(pd->uobject->context, start, length,
--			       access_flags | IB_ACCESS_LOCAL_WRITE, 0);
-+			       access_flags | IB_ACCESS_LOCAL_WRITE, 0,
-+			       IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
- 		goto err_free;
-@@ -226,12 +227,18 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
- 		int err;
- 		int n;
- 
-+		/* Peer memory isn't supported */
-+		if (mmr->umem->ib_peer_mem) {
-+			err = -ENOTSUPP;
-+			goto release_mpt_entry;
-+		}
-+
- 		mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
- 		ib_umem_release(mmr->umem);
- 		mmr->umem = ib_umem_get(mr->uobject->context, start, length,
- 					mr_access_flags |
- 					IB_ACCESS_LOCAL_WRITE,
--					0);
-+					0, 0);
- 		if (IS_ERR(mmr->umem)) {
- 			err = PTR_ERR(mmr->umem);
- 			/* Prevent mlx4_ib_dereg_mr from free'ing invalid pointer */
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 577b477..15d6430 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -721,7 +721,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 			goto err;
- 
- 		qp->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--				       qp->buf_size, 0, 0);
-+				       qp->buf_size, 0, 0, IB_PEER_MEM_ALLOW);
- 		if (IS_ERR(qp->umem)) {
- 			err = PTR_ERR(qp->umem);
- 			goto err;
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index 62d9285..e05c772 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -114,7 +114,7 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 		}
- 
- 		srq->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--					buf_size, 0, 0);
-+					buf_size, 0, 0, IB_PEER_MEM_ALLOW);
- 		if (IS_ERR(srq->umem)) {
- 			err = PTR_ERR(srq->umem);
- 			goto err_srq;
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index e405627..a968a54 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -628,7 +628,8 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 
- 	cq->buf.umem = ib_umem_get(context, ucmd.buf_addr,
- 				   entries * ucmd.cqe_size,
--				   IB_ACCESS_LOCAL_WRITE, 1);
-+				   IB_ACCESS_LOCAL_WRITE, 1,
-+				   IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(cq->buf.umem)) {
- 		err = PTR_ERR(cq->buf.umem);
- 		return err;
-@@ -958,7 +959,7 @@ static int resize_user(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
- 		return -EINVAL;
- 
- 	umem = ib_umem_get(context, ucmd.buf_addr, entries * ucmd.cqe_size,
--			   IB_ACCESS_LOCAL_WRITE, 1);
-+			   IB_ACCESS_LOCAL_WRITE, 1, IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(umem)) {
- 		err = PTR_ERR(umem);
- 		return err;
-diff --git a/drivers/infiniband/hw/mlx5/doorbell.c b/drivers/infiniband/hw/mlx5/doorbell.c
-index ece028f..5d7f427 100644
---- a/drivers/infiniband/hw/mlx5/doorbell.c
-+++ b/drivers/infiniband/hw/mlx5/doorbell.c
-@@ -64,7 +64,7 @@ int mlx5_ib_db_map_user(struct mlx5_ib_ucontext *context, unsigned long virt,
- 	page->user_virt = (virt & PAGE_MASK);
- 	page->refcnt    = 0;
- 	page->umem      = ib_umem_get(&context->ibucontext, virt & PAGE_MASK,
--				      PAGE_SIZE, 0, 0);
-+				      PAGE_SIZE, 0, 0, IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(page->umem)) {
- 		err = PTR_ERR(page->umem);
- 		kfree(page);
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 80b3c63..55c6649 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -884,7 +884,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx\n",
- 		    start, virt_addr, length);
- 	umem = ib_umem_get(pd->uobject->context, start, length, access_flags,
--			   0);
-+			   0, IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(umem)) {
- 		mlx5_ib_dbg(dev, "umem get failed\n");
- 		return (void *)umem;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 8c574b6..d6856c6 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -584,7 +584,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 
- 	if (ucmd.buf_addr && qp->buf_size) {
- 		qp->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--				       qp->buf_size, 0, 0);
-+				       qp->buf_size, 0, 0, IB_PEER_MEM_ALLOW);
- 		if (IS_ERR(qp->umem)) {
- 			mlx5_ib_dbg(dev, "umem_get failed\n");
- 			err = PTR_ERR(qp->umem);
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 70bd131..4bca523 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -103,7 +103,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	srq->wq_sig = !!(ucmd.flags & MLX5_SRQ_FLAG_SIGNATURE);
- 
- 	srq->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr, buf_size,
--				0, 0);
-+				0, 0, IB_PEER_MEM_ALLOW);
- 	if (IS_ERR(srq->umem)) {
- 		mlx5_ib_dbg(dev, "failed umem get, size %d\n", buf_size);
- 		err = PTR_ERR(srq->umem);
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 415f8e1..599ee1f 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1002,7 +1002,7 @@ static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 		return ERR_PTR(-ENOMEM);
- 
- 	mr->umem = ib_umem_get(pd->uobject->context, start, length, acc,
--			       ucmd.mr_attrs & MTHCA_MR_DMASYNC);
-+			       ucmd.mr_attrs & MTHCA_MR_DMASYNC, 0);
- 
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index fef067c..5b70588 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2333,7 +2333,7 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	u8 stag_key;
- 	int first_page = 1;
- 
--	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
-+	region = ib_umem_get(pd->uobject->context, start, length, acc, 0, 0);
- 	if (IS_ERR(region)) {
- 		return (struct ib_mr *)region;
- 	}
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 8f5f257..a90c88b 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -794,7 +794,7 @@ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
- 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(status);
--	mr->umem = ib_umem_get(ibpd->uobject->context, start, len, acc, 0);
-+	mr->umem = ib_umem_get(ibpd->uobject->context, start, len, acc, 0, 0);
- 	if (IS_ERR(mr->umem)) {
- 		status = -EFAULT;
- 		goto umem_err;
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 9bbb553..aadce11 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -242,7 +242,7 @@ struct ib_mr *qib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	}
- 
- 	umem = ib_umem_get(pd->uobject->context, start, length,
--			   mr_access_flags, 0);
-+			   mr_access_flags, 0, 0);
- 	if (IS_ERR(umem))
- 		return (void *) umem;
- 
-diff --git a/include/rdma/ib_peer_mem.h b/include/rdma/ib_peer_mem.h
-index 3353ae7..98056c5 100644
---- a/include/rdma/ib_peer_mem.h
-+++ b/include/rdma/ib_peer_mem.h
-@@ -13,6 +13,10 @@ struct ib_peer_memory_client {
- 	struct completion unload_comp;
- };
- 
-+enum ib_peer_mem_flags {
-+	IB_PEER_MEM_ALLOW	= 1,
++struct example_mem_context {
++	u64 core_context;
++	u64 page_virt_start;
++	u64 page_virt_end;
++	size_t mapped_size;
++	unsigned long npages;
++	int	      nmap;
++	unsigned long page_size;
++	int	      writable;
++	int dirty;
 +};
 +
- struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context, unsigned long addr,
- 						 size_t size, void **peer_client_context);
- 
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index a2bf41e..a22dde0 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -36,6 +36,7 @@
- #include <linux/list.h>
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
-+#include <rdma/ib_peer_mem.h>
- 
- struct ib_ucontext;
- 
-@@ -53,12 +54,17 @@ struct ib_umem {
- 	struct sg_table sg_head;
- 	int             nmap;
- 	int             npages;
-+	/* peer memory that manages this umem */
-+	struct ib_peer_memory_client *ib_peer_mem;
-+	/* peer memory private context */
-+	void *peer_mem_client_context;
- };
- 
- #ifdef CONFIG_INFINIBAND_USER_MEM
- 
- struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
--			    size_t size, int access, int dmasync);
-+			       size_t size, int access, int dmasync,
-+			       unsigned long peer_mem_flags);
- void ib_umem_release(struct ib_umem *umem);
- int ib_umem_page_count(struct ib_umem *umem);
- 
-@@ -67,8 +73,9 @@ int ib_umem_page_count(struct ib_umem *umem);
- #include <linux/err.h>
- 
- static inline struct ib_umem *ib_umem_get(struct ib_ucontext *context,
--					  unsigned long addr, size_t size,
--					  int access, int dmasync) {
-+					     unsigned long addr, size_t size,
-+					     int access, int dmasync,
-+					     unsigned long peer_mem_flags) {
- 	return ERR_PTR(-EINVAL);
- }
- static inline void ib_umem_release(struct ib_umem *umem) { }
++static void example_mem_put_pages(struct sg_table *sg_head, void *context);
++
++/* acquire return code: 1 mine, 0 - not mine */
++static int example_mem_acquire(unsigned long addr, size_t size, void *peer_mem_private_data,
++			       char *peer_mem_name, void **client_context)
++{
++	struct example_mem_context *example_mem_context;
++
++	if (!(addr >= example_mem_start_range) ||
++	    !(addr + size < example_mem_end_range))
++		/* peer is not the owner */
++		return 0;
++
++	example_mem_context = kzalloc(sizeof(*example_mem_context), GFP_KERNEL);
++	if (!example_mem_context)
++		/* Error case handled as not mine */
++		return 0;
++
++	example_mem_context->page_virt_start = addr & PAGE_MASK;
++	example_mem_context->page_virt_end   = (addr + size + PAGE_SIZE - 1) & PAGE_MASK;
++	example_mem_context->mapped_size  = example_mem_context->page_virt_end - example_mem_context->page_virt_start;
++
++	/* 1 means mine */
++	*client_context = example_mem_context;
++	__module_get(THIS_MODULE);
++	return 1;
++}
++
++static int example_mem_get_pages(unsigned long addr, size_t size, int write, int force,
++				 struct sg_table *sg_head, void *client_context, u64 core_context)
++{
++	int ret;
++	unsigned long npages;
++	unsigned long cur_base;
++	struct page **page_list;
++	struct scatterlist *sg, *sg_list_start;
++	int i;
++	struct example_mem_context *example_mem_context;
++
++	example_mem_context = (struct example_mem_context *)client_context;
++	example_mem_context->core_context = core_context;
++	example_mem_context->page_size = PAGE_SIZE;
++	example_mem_context->writable = write;
++	npages = example_mem_context->mapped_size >> PAGE_SHIFT;
++
++	if (npages == 0)
++		return -EINVAL;
++
++	ret = sg_alloc_table(sg_head, npages, GFP_KERNEL);
++	if (ret)
++		return ret;
++
++	page_list = (struct page **)__get_free_page(GFP_KERNEL);
++	if (!page_list) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	sg_list_start = sg_head->sgl;
++	cur_base = addr & PAGE_MASK;
++
++	while (npages) {
++		ret = get_user_pages(current, current->mm, cur_base,
++				     min_t(unsigned long, npages, PAGE_SIZE / sizeof(struct page *)),
++				     write, force, page_list, NULL);
++
++		if (ret < 0)
++			goto out;
++
++		example_mem_context->npages += ret;
++		cur_base += ret * PAGE_SIZE;
++		npages   -= ret;
++
++		for_each_sg(sg_list_start, sg, ret, i)
++				sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
++
++		/* preparing for next loop */
++		sg_list_start = sg;
++	}
++
++out:
++	if (page_list)
++		free_page((unsigned long)page_list);
++
++	if (ret < 0) {
++		example_mem_put_pages(sg_head, client_context);
++		return ret;
++	}
++	/* mark that pages were exposed from the peer memory */
++	example_mem_context->dirty = 1;
++	return 0;
++}
++
++static int example_mem_dma_map(struct sg_table *sg_head, void *context,
++			       struct device *dma_device, int dmasync,
++			       int *nmap)
++{
++	DEFINE_DMA_ATTRS(attrs);
++	struct example_mem_context *example_mem_context =
++		(struct example_mem_context *)context;
++
++	if (dmasync)
++		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
++	 example_mem_context->nmap = dma_map_sg_attrs(dma_device, sg_head->sgl,
++						      example_mem_context->npages,
++						      DMA_BIDIRECTIONAL, &attrs);
++	if (example_mem_context->nmap <= 0)
++		return -ENOMEM;
++
++	*nmap = example_mem_context->nmap;
++	return 0;
++}
++
++static int example_mem_dma_unmap(struct sg_table *sg_head, void *context,
++				 struct device  *dma_device)
++{
++	struct example_mem_context *example_mem_context =
++		(struct example_mem_context *)context;
++
++	dma_unmap_sg(dma_device, sg_head->sgl,
++		     example_mem_context->nmap,
++		     DMA_BIDIRECTIONAL);
++	return 0;
++}
++
++static void example_mem_put_pages(struct sg_table *sg_head, void *context)
++{
++	struct scatterlist *sg;
++	struct page *page;
++	int i;
++
++	struct example_mem_context *example_mem_context =
++		(struct example_mem_context *)context;
++
++	for_each_sg(sg_head->sgl, sg, example_mem_context->npages, i) {
++		page = sg_page(sg);
++		if (example_mem_context->writable && example_mem_context->dirty)
++			set_page_dirty_lock(page);
++		put_page(page);
++	}
++
++	sg_free_table(sg_head);
++}
++
++static void example_mem_release(void *context)
++{
++	struct example_mem_context *example_mem_context =
++		(struct example_mem_context *)context;
++
++	kfree(example_mem_context);
++	module_put(THIS_MODULE);
++}
++
++static unsigned long example_mem_get_page_size(void *context)
++{
++	struct example_mem_context *example_mem_context =
++				(struct example_mem_context *)context;
++
++	return example_mem_context->page_size;
++}
++
++static const struct peer_memory_client example_mem_client = {
++	.name			= DRV_NAME,
++	.version		= DRV_VERSION,
++	.acquire		= example_mem_acquire,
++	.get_pages	= example_mem_get_pages,
++	.dma_map	= example_mem_dma_map,
++	.dma_unmap	= example_mem_dma_unmap,
++	.put_pages	= example_mem_put_pages,
++	.get_page_size	= example_mem_get_page_size,
++	.release		= example_mem_release,
++};
++
++static int __init example_mem_client_init(void)
++{
++	reg_handle = ib_register_peer_memory_client(&example_mem_client, NULL);
++	if (!reg_handle)
++		return -EINVAL;
++
++	return 0;
++}
++
++static void __exit example_mem_client_cleanup(void)
++{
++	ib_unregister_peer_memory_client(reg_handle);
++}
++
++module_init(example_mem_client_init);
++module_exit(example_mem_client_cleanup);
 -- 
 1.7.1
 
