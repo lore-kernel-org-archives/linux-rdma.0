@@ -1,72 +1,55 @@
-From: Jens Axboe <axboe@kernel.dk>
-Subject: Re: [PATCH v2 01/12] blk-mq: Use all available hardware queues
-Date: Tue, 07 Oct 2014 08:37:03 -0600
-Message-ID: <5433FA8F.3050100@kernel.dk>
-References: <5433E43D.3010107@acm.org> <5433E473.4020102@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <5433E473.4020102@acm.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>, Christoph Hellwig <hch@infradead.org>
-Cc: Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH RFC 0/2] Indirect Fast Memory registration support
+Date: Tue,  7 Oct 2014 17:47:59 +0300
+Message-ID: <1412693281-6161-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/07/2014 07:02 AM, Bart Van Assche wrote:
-> Suppose that a system has two CPU sockets, three cores per socket,
-> that it does not support hyperthreading and that four hardware
-> queues are provided by a block driver. With the current algorithm
-> this will lead to the following assignment of CPU cores to hardware
-> queues:
-> 
->   HWQ 0: 0 1
->   HWQ 1: 2 3
->   HWQ 2: 4 5
->   HWQ 3: (none)
-> 
-> This patch changes the queue assignment into:
-> 
->   HWQ 0: 0 1
->   HWQ 1: 2
->   HWQ 2: 3 4
->   HWQ 3: 5
-> 
-> In other words, this patch has the following three effects:
-> - All four hardware queues are used instead of only three.
-> - CPU cores are spread more evenly over hardware queues. For the
->   above example the range of the number of CPU cores associated
->   with a single HWQ is reduced from [0..2] to [1..2].
-> - If the number of HWQ's is a multiple of the number of CPU sockets
->   it is now guaranteed that all CPU cores associated with a single
->   HWQ reside on the same CPU socket.
-> 
-> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-> Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
-> Cc: Jens Axboe <axboe@fb.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Ming Lei <ming.lei@canonical.com>
-> ---
->  block/blk-mq-cpumap.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/block/blk-mq-cpumap.c b/block/blk-mq-cpumap.c
-> index 1065d7c..8e56455 100644
-> --- a/block/blk-mq-cpumap.c
-> +++ b/block/blk-mq-cpumap.c
-> @@ -17,7 +17,7 @@
->  static int cpu_to_queue_index(unsigned int nr_cpus, unsigned int nr_queues,
->  			      const int cpu)
->  {
-> -	return cpu / ((nr_cpus + nr_queues - 1) / nr_queues);
-> +	return cpu * nr_queues / nr_cpus;
->  }
->  
->  static int get_first_sibling(unsigned int cpu)
+This patch set introduces support for registering a scattered
+memory area in an indirect manner.
 
-Lets do this separate, as explained last time, it needs to be evaluated
-on its own and doesn't really belong in this series of patches.
+Current supported fast registration support has a known limitation
+where the memory must be page aligned, meaning memory scatters must
+be in chunks of page size except the first which may be in some offset
+from the start of a page and the last which may end before the page
+boundary.
 
--- 
-Jens Axboe
+This can make life hard for ULPs which may serve a scattered list without
+the above limitations. Two immediate examples are iSER and SRP that have
+some extra logic or work-arounds to handle an arbitrary scatter list of
+buffers (which is supported in the entire stack above them).
 
+The proposed API attempts to follow the well-known fast registration scheme
+while allowing the ULP to pass an sg vector rather than a page list (u64 vector).
+I expect ULPs to make use of the global DMA key to populate the lkey of the
+sg vector. for example for a scatter list sg of 3 elements the indirect ib_sge
+vector will look like:
+ib_sge[0]: {dma_key, sg[0]->dma_addr, sg[0]->length}
+ib_sge[1]: {dma_key, sg[1]->dma_addr, sg[1]->length}
+ib_sge[2]: {dma_key, sg[2]->dma_addr, sg[2]->length}
+
+Following this patch set I'll send out a usage for this feature in iSER.
+In the meantime, I have a working example of krping utility practicing indirect
+registration feature at: git://flatbed.openfabrics.org/~sgrimberg/krping.git
+(branch: indir_registration)
+
+Sagi Grimberg (2):
+  IB/core: Introduce Fast Indirect Memory Registration verbs API
+  IB/mlx5: Implement Fast Indirect Memory Registration Feature
+
+ drivers/infiniband/core/verbs.c      |   29 +++++++++
+ drivers/infiniband/hw/mlx5/cq.c      |    2 +
+ drivers/infiniband/hw/mlx5/main.c    |    4 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   20 +++++++
+ drivers/infiniband/hw/mlx5/mr.c      |   70 ++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/qp.c      |  104 ++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h              |   55 +++++++++++++++++-
+ 7 files changed, 280 insertions(+), 4 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
