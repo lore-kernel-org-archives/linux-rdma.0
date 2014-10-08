@@ -1,43 +1,34 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration verbs API
-Date: Wed, 8 Oct 2014 08:54:42 -0500
-Message-ID: <000b01cfe2ff$69195740$3b4c05c0$@opengridcomputing.com>
-References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com> <54342D0C.6050103@opengridcomputing.com> <5434D037.4040208@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] ib_ipoib: CSUM support in connected mode
+Date: Wed, 8 Oct 2014 11:14:57 -0600
+Message-ID: <20141008171457.GE4153@obsidianresearch.com>
+References: <1412423147-8402-1-git-send-email-yuval.shaia@oracle.com>
+ <20141005223500.GB31716@obsidianresearch.com>
+ <20141008104028.GA4109@yuval-lab>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5434D037.4040208-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20141008104028.GA4109@yuval-lab>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> >> @@ -1056,6 +1067,14 @@ struct ib_send_wr {
-> >>               int            access_flags;
-> >>               struct ib_sge           *prot;
-> >>           } sig_handover;
-> >> +        struct {
-> >> +            u64                iova_start;
-> >> +            struct ib_indir_reg_list       *indir_list;
-> >> +            unsigned int            indir_list_len;
-> >> +            u64                length;
-> >> +            unsigned int            access_flags;
-> >> +            u32                mkey;
-> >> +        } indir_reg;
-> >
-> > What is mkey?  Shouldn't this be an rkey?
-> 
-> mkey means memory key. I can change it to rkey if that
-> is clearer.
+On Wed, Oct 08, 2014 at 01:40:29PM +0300, Yuval Shaia wrote:
+> > Which is exactly what we want.
 
-Is it valid to use an lkey here?  Or is an rkey required?  If an rkey is required, then I'd say it is clearer to name it rkey (and
-that aligns with the fastreg struct).
+> Will do, thanks.
+> This is in case this code runs on bridge, right?
 
-Steve.
+It covers many cases, including linux briding and routing functions,
+as well as packet dumping.
 
+I don't know if any special actions are needed to support
+CHECKSUM_PARTIAL, you should probably check the other drivers that use
+it.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
