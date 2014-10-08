@@ -1,32 +1,25 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v2 01/12] blk-mq: Use all available hardware queues
-Date: Wed, 08 Oct 2014 15:21:56 +0200
-Message-ID: <54353A74.7040406@acm.org>
-References: <5433E43D.3010107@acm.org> <5433E473.4020102@acm.org> <5433FA8F.3050100@kernel.dk>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 0/3] Add missing neigh_release, fix ntuple calculation
+ for IPv6
+Date: Wed, 08 Oct 2014 08:52:58 -0500
+Message-ID: <543541BA.3070602@opengridcomputing.com>
+References: <1411511023-14101-1-git-send-email-hariprasad@chelsio.com> <008201cfd8e5$742361e0$5c6a25a0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5433FA8F.3050100-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <008201cfd8e5$742361e0$5c6a25a0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, pramod-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/07/14 16:37, Jens Axboe wrote:
-> Lets do this separate, as explained last time, it needs to be evaluated
-> on its own and doesn't really belong in this series of patches.
+Hey Roland, please make sure these make the 3.18 merge , if they are 
+acceptable to you.
 
-Hello Jens,
+Thanks,
 
-A few minutes ago I have resent this patch to you with the LKML in CC. I 
-hope that Christoph agrees with leaving out this patch from this series 
-without me having to resend this series. BTW, Sagi promised me off-list 
-to review the other patches in this series.
-
-Bart.
-
-
+Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
