@@ -1,179 +1,47 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
- verbs API
-Date: Wed, 08 Oct 2014 08:48:39 +0300
-Message-ID: <5434D037.4040208@dev.mellanox.co.il>
-References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com> <54342D0C.6050103@opengridcomputing.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
+Date: Wed, 08 Oct 2014 08:58:10 +0300
+Message-ID: <5434D272.8090007@dev.mellanox.co.il>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54342D0C.6050103-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Jay Kallickal <jayamohank@gmail.com>, linux-scsi@vger.kernel.org, michaelc@cs.wisc.edu, linux-rdma@vger.kernel.org
+Cc: Minh Tran <minhduc.tran@emulex.com>, Jayamohan Kallickal <jayamohan.kallickal@emulex.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/7/2014 9:12 PM, Steve Wise wrote:
-> On 10/7/2014 9:48 AM, Sagi Grimberg wrote:
->> In order to support that we provide the user with an interface
->> to pass a scattered list of buffers to the IB core layer called
->> ib_indir_reg_list and provide the a new send work request opcode
->> called IB_WR_REG_INDIR_MR. We extend wr union with a new type of
->> memory registration called indir_reg where the user can place the
->> relevant information to perform such a memory registration.
->>
->> The verbs user is expected to perform these steps:
->> 0. Make sure that the device supports Indirect memory registration via
->>     ib_device_cap_flag IB_DEVICE_INDIR_REGISTRATION and make sure
->>     that ib_device_attr max_indir_reg_mr_list_len suffice for the
->>     expected scatterlist length
->>
->> 1. Allocate a memory region with IB_MR_INDIRECT_REG creation flag
->>     This is done via ib_create_mr() with mr_init_attr.flags =
->> IB_MR_INDIRECT_REG
->>
->> 2. Allocate an ib_indir_reg_list structure to hold the scattered buffers
->>     pointers. This is done via new ib_alloc_indir_reg_list() verb
->>
->> 3. Populate the scattered buffers in ib_indir_reg_list.sg_list
->>
->> 4. Post a work request with a new opcode IB_WR_REG_INDIR_MR and
->>     provide the populated ib_indir_reg_list
->>
->> 5. Perform data transfer
->>
->> 6. Get completion of kind IB_WC_REG_INDIR_MR (if requested)
->>
->> 7. Free indirect MR and ib_indir_reg_list via
->>     ib_destroy_mr() and ib_free_indir_reg_list()
->>
->> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/infiniband/core/verbs.c |   29 ++++++++++++++++++++
->>   include/rdma/ib_verbs.h         |   55
->> +++++++++++++++++++++++++++++++++++++-
->>   2 files changed, 82 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/verbs.c
->> b/drivers/infiniband/core/verbs.c
->> index c2b89cc..0364551 100644
->> --- a/drivers/infiniband/core/verbs.c
->> +++ b/drivers/infiniband/core/verbs.c
->> @@ -1445,3 +1445,32 @@ int ib_check_mr_status(struct ib_mr *mr, u32
->> check_mask,
->>           mr->device->check_mr_status(mr, check_mask, mr_status) :
->> -ENOSYS;
->>   }
->>   EXPORT_SYMBOL(ib_check_mr_status);
->> +
->> +struct ib_indir_reg_list *
->> +ib_alloc_indir_reg_list(struct ib_device *device,
->> +            unsigned int max_indir_list_len)
->> +{
->> +    struct ib_indir_reg_list *indir_list;
->> +
->> +    if (!device->alloc_indir_reg_list)
->> +        return ERR_PTR(-ENOSYS);
->> +
->> +    indir_list = device->alloc_indir_reg_list(device,
->> +                          max_indir_list_len);
->> +    if (!IS_ERR(indir_list)) {
->> +        indir_list->device = device;
->> +        indir_list->max_indir_list_len = max_indir_list_len;
->> +    }
->> +
->> +    return indir_list;
->> +}
->> +EXPORT_SYMBOL(ib_alloc_indir_reg_list);
->> +
->> +void
->> +ib_free_indir_reg_list(struct ib_device *device,
->> +               struct ib_indir_reg_list *indir_list)
->> +{
->> +    if (device->free_indir_reg_list)
->> +        device->free_indir_reg_list(device, indir_list);
->> +}
->> +EXPORT_SYMBOL(ib_free_indir_reg_list);
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 470a011..f5fe53c 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -123,7 +123,8 @@ enum ib_device_cap_flags {
->>       IB_DEVICE_MEM_WINDOW_TYPE_2A    = (1<<23),
->>       IB_DEVICE_MEM_WINDOW_TYPE_2B    = (1<<24),
->>       IB_DEVICE_MANAGED_FLOW_STEERING = (1<<29),
->> -    IB_DEVICE_SIGNATURE_HANDOVER    = (1<<30)
->> +    IB_DEVICE_SIGNATURE_HANDOVER    = (1<<30),
->> +    IB_DEVICE_INDIR_REGISTRATION    = (1<<31)
->>   };
->>   enum ib_signature_prot_cap {
->> @@ -182,6 +183,7 @@ struct ib_device_attr {
->>       int            max_srq_wr;
->>       int            max_srq_sge;
->>       unsigned int        max_fast_reg_page_list_len;
->> +    unsigned int        max_indir_reg_mr_list_len;
->>       u16            max_pkeys;
->>       u8            local_ca_ack_delay;
->>       int            sig_prot_cap;
->> @@ -476,7 +478,8 @@ __attribute_const__ int ib_rate_to_mult(enum
->> ib_rate rate);
->>   __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate);
->>   enum ib_mr_create_flags {
->> -    IB_MR_SIGNATURE_EN = 1,
->> +    IB_MR_SIGNATURE_EN = 1 << 0,
->> +    IB_MR_INDIRECT_REG = 1 << 1
->>   };
->>   /**
->> @@ -651,6 +654,7 @@ enum ib_wc_opcode {
->>       IB_WC_FAST_REG_MR,
->>       IB_WC_MASKED_COMP_SWAP,
->>       IB_WC_MASKED_FETCH_ADD,
->> +    IB_WC_REG_INDIR_MR,
->>   /*
->>    * Set value of IB_WC_RECV so consumers can test if a completion is a
->>    * receive by testing (opcode & IB_WC_RECV).
->> @@ -945,6 +949,7 @@ enum ib_wr_opcode {
->>       IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
->>       IB_WR_BIND_MW,
->>       IB_WR_REG_SIG_MR,
->> +    IB_WR_REG_INDIR_MR,
->>       /* reserve values for low level drivers' internal use.
->>        * These values will not be used at all in the ib core layer.
->>        */
->> @@ -984,6 +989,12 @@ struct ib_fast_reg_page_list {
->>       unsigned int        max_page_list_len;
->>   };
->> +struct ib_indir_reg_list {
->> +    struct ib_device       *device;
->> +    struct ib_sge          *sg_list;
->> +    unsigned int        max_indir_list_len;
->> +};
->> +
->>   /**
->>    * struct ib_mw_bind_info - Parameters for a memory window bind
->> operation.
->>    * @mr: A memory region to bind the memory window to.
->> @@ -1056,6 +1067,14 @@ struct ib_send_wr {
->>               int            access_flags;
->>               struct ib_sge           *prot;
->>           } sig_handover;
->> +        struct {
->> +            u64                iova_start;
->> +            struct ib_indir_reg_list       *indir_list;
->> +            unsigned int            indir_list_len;
->> +            u64                length;
->> +            unsigned int            access_flags;
->> +            u32                mkey;
->> +        } indir_reg;
+On 10/8/2014 3:41 AM, Jay Kallickal wrote:
+> From: Jayamohan Kallickal <jayamohank@gmail.com>
 >
-> What is mkey?  Shouldn't this be an rkey?
+> 	This patch allows the underlying hardware to choose
+> values other than  hard coded max values for cqe and send_wr
+> while preventing them from exceeding max supported values.
 
-mkey means memory key. I can change it to rkey if that
-is clearer.
+Hi Minh and Jayamohan,
 
+So I agree that we would want to take device capabilities into account
+here, but we need to be able to adjust scsi_cmds_max (can_queue) in case
+the max wqe supported is lower than scsi_cmds_max * num_posts_per_cmd.
+
+So generally I agree with this approach, but we need to take care of
+stuff later when the session is created.
+
+One more thing, this is not rebased on the latest iser patches please
+send v1 on top of: http://marc.info/?l=linux-rdma&m=141216135013146&w=2
+
+P.S.
+What device did you test with (that supports less than iSER needs)?
+
+Thanks!
 Sagi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>
+> Signed-off-by: Minh Tran <minhduc.tran@emulex.com>
+> Signed-off-by: Jayamohan Kallickal <jayamohan.kallickal@emulex.com>
+> ---
+>   drivers/infiniband/ulp/iser/iser_verbs.c | 18 ++++++++++++++----
+>   1 file changed, 14 insertions(+), 4 deletions(-)
+>
