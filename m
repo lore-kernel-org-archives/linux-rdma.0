@@ -1,66 +1,292 @@
 From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 0/3] DAPL support on s390x platform
-Date: Fri, 10 Oct 2014 11:34:14 +0200
-Message-ID: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com>
+Subject: [PATCH 1/3] s390/kernel: add system calls for access PCI memory
+Date: Fri, 10 Oct 2014 11:34:15 +0200
+Message-ID: <1412933657-52641-2-git-send-email-aishchuk@linux.vnet.ibm.com>
+References: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1412933657-52641-1-git-send-email-aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The s390 kernel maintainer is going to include the new system calls for
-PCI I/O memory access into the s390 Linux kernel. To make the final
-decision we would like to receive feedback from the libmlx4 and libibverbs
-user space library maintainers with direct answer to the question: will
-those system calls be used in the libmlx4 user space library to provide
-support for the s390x platform?
-This patch series contains the changes to kernel and users pace libraries
-required to provide support for the DAPL API on s390x platform.
-The current implementation of Infiniband verbs uses mapped memory areas to
-directly access the device UAR and Blueflame pages, which are located in
-the PCI I/O memory, from user space. On the s390x platform the PCI I/O
-memory can be accessed only using special privileged CPU instructions that
-cannot be used directly in user space programs. This restricts the usage of
-mapped memory areas to access the PCI I/O memory on s390x platform.
-This version of changes introduces two new kernel system calls which allow
-to execute the privileged CPU instructions in kernel space on request from
-user space programs. One system call allows the user space programs to
-write data to a PCI I/O memory page and the second one can be used to read
-data from PCI I/O memory to user space program buffer using mapped memory
-area addresses as arguments.
-This approach of the DAPL API support on s390x platform has the following
-advantages:
-	* the current Infiniband and mlx4 support kernel modules remain
-	  unchanged;
-	* the changes are separated into the special kernel platform
-	  specific directory;
-	* no conditional compilation directives are used in the kernel
-	  source code;
-	* no changes required to the kernel virtual memory management;
-	* only minor changes are required in the user space DAPL API
-	  components.
-There are 1 patch for the Linux kernel and 2 patches for the DAPL API user
-space components. The kernel patch is not changed since the previous post
-and is included into this patch series just for reference. The patches for
-the perftest and dapl packages are not included into this series because
-those changes have been already applied to corresponding packages by the
-maintainers.
-	[PATCH 1/3] s390/kernel: add system calls for access PCI memory
-This patch contains the new system call implementation required for the PCI
-I/O memory access from user space programs on s390x platform.
-	[PATCH 2/3] libibverbs: add support for the s390x plaform
-This patch contains the changes to the libibverbs user space library to
-provide support of the s390x platform.
-	[PATCH 3/3] libmlx4: add support for the s390x platform
-This patch contains the changes to the libmlx4 user space library intended
-to provide the PCI I/O memory access on the s390x platform. The direct
-access to mapped memory areas is replaced by appropriate system call
-invocation.
+Add the new __NR_s390_pci_mmio_write and __NR_s390_pci_mmio_read
+system calls to allow user space applications to access device PCI I/O
+memory pages on s390x platform.
 
-Alexey Ishchuk (3):
-  s390/kernel: add system calls for access PCI memory
-  libibverbs: add s390x platform support
-  libmlx4: add s390x platform support
+Signed-off-by: Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
+---
+ arch/s390/include/uapi/asm/unistd.h |   4 +-
+ arch/s390/kernel/Makefile           |   1 +
+ arch/s390/kernel/entry.h            |   4 +
+ arch/s390/kernel/pci_mmio.c         | 207 ++++++++++++++++++++++++++++++++++++
+ arch/s390/kernel/syscalls.S         |   2 +
+ 5 files changed, 217 insertions(+), 1 deletion(-)
+ create mode 100644 arch/s390/kernel/pci_mmio.c
+
+diff --git a/arch/s390/include/uapi/asm/unistd.h b/arch/s390/include/uapi/asm/unistd.h
+index 3802d2d..ab49d1d 100644
+--- a/arch/s390/include/uapi/asm/unistd.h
++++ b/arch/s390/include/uapi/asm/unistd.h
+@@ -283,7 +283,9 @@
+ #define __NR_sched_setattr	345
+ #define __NR_sched_getattr	346
+ #define __NR_renameat2		347
+-#define NR_syscalls 348
++#define __NR_s390_pci_mmio_write	348
++#define __NR_s390_pci_mmio_read		349
++#define NR_syscalls 350
+ 
+ /* 
+  * There are some system calls that are not present on 64 bit, some
+diff --git a/arch/s390/kernel/Makefile b/arch/s390/kernel/Makefile
+index 33225e8..3e71b7e 100644
+--- a/arch/s390/kernel/Makefile
++++ b/arch/s390/kernel/Makefile
+@@ -60,6 +60,7 @@ ifdef CONFIG_64BIT
+ obj-$(CONFIG_PERF_EVENTS)	+= perf_event.o perf_cpum_cf.o perf_cpum_sf.o \
+ 						perf_cpum_cf_events.o
+ obj-y				+= runtime_instr.o cache.o
++obj-y				+= pci_mmio.o
+ endif
+ 
+ # vdso
+diff --git a/arch/s390/kernel/entry.h b/arch/s390/kernel/entry.h
+index 6ac7819..a36b6f9 100644
+--- a/arch/s390/kernel/entry.h
++++ b/arch/s390/kernel/entry.h
+@@ -70,4 +70,8 @@ struct old_sigaction;
+ long sys_s390_personality(unsigned int personality);
+ long sys_s390_runtime_instr(int command, int signum);
+ 
++long sys_s390_pci_mmio_write(const unsigned long mmio_addr,
++			     const void *user_buffer, const size_t length);
++long sys_s390_pci_mmio_read(const unsigned long mmio_addr,
++			    void *user_buffer, const size_t length);
+ #endif /* _ENTRY_H */
+diff --git a/arch/s390/kernel/pci_mmio.c b/arch/s390/kernel/pci_mmio.c
+new file mode 100644
+index 0000000..f318207
+--- /dev/null
++++ b/arch/s390/kernel/pci_mmio.c
+@@ -0,0 +1,207 @@
++/*
++ * Access to PCI I/O memory from user space programs.
++ *
++ * Copyright IBM Corp. 2014
++ * Author(s): Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
++ */
++#include <linux/kernel.h>
++#include <linux/syscalls.h>
++#include <linux/init.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <linux/pci.h>
++
++union value_buffer {
++	u8 buf8;
++	u16 buf16;
++	u32 buf32;
++	u64 buf64;
++	u8 buf_large[64];
++};
++
++static long get_pfn(const unsigned long user_addr,
++		    const unsigned long access,
++		    unsigned long *pfn)
++{
++	struct vm_area_struct *vma = NULL;
++	long ret = 0L;
++
++	if (!pfn)
++		return -EINVAL;
++
++	down_read(&current->mm->mmap_sem);
++	vma = find_vma(current->mm, user_addr);
++	if (vma) {
++		if (!(vma->vm_flags & access))
++			ret = -EACCES;
++		else
++			ret = follow_pfn(vma, user_addr, pfn);
++	} else {
++		ret = -EINVAL;
++	}
++	up_read(&current->mm->mmap_sem);
++
++	return ret;
++}
++
++static inline int verify_page_addr(const unsigned long page_addr)
++{
++	return !(page_addr < ZPCI_IOMAP_ADDR_BASE ||
++	    page_addr > (ZPCI_IOMAP_ADDR_BASE | ZPCI_IOMAP_ADDR_IDX_MASK));
++}
++
++static long choose_buffer(const size_t length,
++			  union value_buffer *value,
++			  void **buf)
++{
++	long ret = 0L;
++
++	if (length > sizeof(value->buf_large)) {
++		*buf = kmalloc(length, GFP_KERNEL);
++		if (!*buf)
++			return -ENOMEM;
++		ret = 1;
++	} else {
++		*buf = value->buf_large;
++	}
++	return ret;
++}
++
++SYSCALL_DEFINE3(s390_pci_mmio_write,
++		const unsigned long, mmio_addr,
++		const void __user *, user_buffer,
++		const size_t, length)
++{
++	long ret = 0L;
++	void *buf = NULL;
++	long buf_allocated = 0;
++	void __iomem *io_addr = NULL;
++	unsigned long pfn = 0UL;
++	unsigned long offset = 0UL;
++	unsigned long page_addr = 0UL;
++	union value_buffer value;
++
++	if (!length)
++		return -EINVAL;
++	if (!zpci_is_enabled())
++		return -ENODEV;
++
++	ret = get_pfn(mmio_addr, VM_WRITE, &pfn);
++	if (ret)
++		return ret;
++
++	page_addr = pfn << PAGE_SHIFT;
++	if (!verify_page_addr(page_addr))
++		return -EFAULT;
++
++	offset = mmio_addr & ~PAGE_MASK;
++	if (offset + length > PAGE_SIZE)
++		return -EINVAL;
++	io_addr = (void *)(page_addr | offset);
++
++	buf_allocated = choose_buffer(length, &value, &buf);
++	if (buf_allocated < 0L)
++		return -ENOMEM;
++
++	switch (length) {
++	case 1:
++		ret = get_user(value.buf8, ((u8 *)user_buffer));
++		break;
++	case 2:
++		ret = get_user(value.buf16, ((u16 *)user_buffer));
++		break;
++	case 4:
++		ret = get_user(value.buf32, ((u32 *)user_buffer));
++		break;
++	case 8:
++		ret = get_user(value.buf64, ((u64 *)user_buffer));
++		break;
++	default:
++		ret = copy_from_user(buf, user_buffer, length);
++	}
++	if (ret)
++		goto out;
++
++	switch (length) {
++	case 1:
++		__raw_writeb(value.buf8, io_addr);
++		break;
++	case 2:
++		__raw_writew(value.buf16, io_addr);
++		break;
++	case 4:
++		__raw_writel(value.buf32, io_addr);
++		break;
++	case 8:
++		__raw_writeq(value.buf64, io_addr);
++		break;
++	default:
++		memcpy_toio(io_addr, buf, length);
++	}
++out:
++	if (buf_allocated > 0L)
++		kfree(buf);
++	return ret;
++}
++
++SYSCALL_DEFINE3(s390_pci_mmio_read,
++		const unsigned long, mmio_addr,
++		void __user *, user_buffer,
++		const size_t, length)
++{
++	long ret = 0L;
++	void *buf = NULL;
++	long buf_allocated = 0L;
++	void __iomem *io_addr = NULL;
++	unsigned long pfn = 0UL;
++	unsigned long offset = 0UL;
++	unsigned long page_addr = 0UL;
++	union value_buffer value;
++
++	if (!length)
++		return -EINVAL;
++	if (!zpci_is_enabled())
++		return -ENODEV;
++
++	ret = get_pfn(mmio_addr, VM_READ, &pfn);
++	if (ret)
++		return ret;
++
++	page_addr = pfn << PAGE_SHIFT;
++	if (!verify_page_addr(page_addr))
++		return -EFAULT;
++
++	offset = mmio_addr & ~PAGE_MASK;
++	if (offset + length > PAGE_SIZE)
++		return -EINVAL;
++	io_addr = (void *)(page_addr | offset);
++
++	buf_allocated = choose_buffer(length, &value, &buf);
++	if (buf_allocated < 0L)
++		return -ENOMEM;
++
++	switch (length) {
++	case 1:
++		value.buf8 = __raw_readb(io_addr);
++		ret = put_user(value.buf8, ((u8 *)user_buffer));
++		break;
++	case 2:
++		value.buf16 = __raw_readw(io_addr);
++		ret = put_user(value.buf16, ((u16 *)user_buffer));
++		break;
++	case 4:
++		value.buf32 = __raw_readl(io_addr);
++		ret = put_user(value.buf32, ((u32 *)user_buffer));
++		break;
++	case 8:
++		value.buf64 = __raw_readq(io_addr);
++		ret = put_user(value.buf64, ((u64 *)user_buffer));
++		break;
++	default:
++		memcpy_fromio(buf, io_addr, length);
++		ret = copy_to_user(user_buffer, buf, length);
++	}
++	if (buf_allocated > 0L)
++		kfree(buf);
++	return ret;
++}
+diff --git a/arch/s390/kernel/syscalls.S b/arch/s390/kernel/syscalls.S
+index fe5cdf2..1faa942 100644
+--- a/arch/s390/kernel/syscalls.S
++++ b/arch/s390/kernel/syscalls.S
+@@ -356,3 +356,5 @@ SYSCALL(sys_finit_module,sys_finit_module,compat_sys_finit_module)
+ SYSCALL(sys_sched_setattr,sys_sched_setattr,compat_sys_sched_setattr) /* 345 */
+ SYSCALL(sys_sched_getattr,sys_sched_getattr,compat_sys_sched_getattr)
+ SYSCALL(sys_renameat2,sys_renameat2,compat_sys_renameat2)
++SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_write,sys_ni_syscall)
++SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_read,sys_ni_syscall)
 -- 
 1.8.5.5
 
