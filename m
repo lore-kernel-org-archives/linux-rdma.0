@@ -1,254 +1,62 @@
-From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 3/3] libmlx4: add support for the s390x platform
-Date: Fri, 10 Oct 2014 11:34:17 +0200
-Message-ID: <1412933657-52641-4-git-send-email-aishchuk@linux.vnet.ibm.com>
-References: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] rsocket: Return ECONNRESET when socket in recv is
+ disconnected
+Date: Fri, 10 Oct 2014 11:45:47 -0600
+Message-ID: <20141010174547.GA10189@obsidianresearch.com>
+References: <1412806773-23776-1-git-send-email-sean.hefty@intel.com>
+ <56553bcab94dc48bde61d36ae9eb5eaa@imap.linux.ibm.com>
+ <1828884A29C6694DAF28B7E6B8A8237399DE7AE7@ORSMSX109.amr.corp.intel.com>
+ <ec59646f09a80e3e61ce428b8dd87ce0@imap.linux.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1412933657-52641-1-git-send-email-aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ec59646f09a80e3e61ce428b8dd87ce0-FJGp5E75HVmZamtmwQBW5tBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since, s390x platform requires execution of privileged CPU instructions
-to work with PCI I/O memory, the PCI I/O memory cannot be directly accessed
-from the userspace programs via the mapped memory areas. The current
-implementation of the Inifiniband verbs uses mapped memory areas to
-write data to device UAR and Blueflame page to initiate the I/O
-operations, these verbs currently cannot be used on the s390x platfrom
-without modification.
-This patch contains the changes to the libmlx4 userspace Mellanox device
-driver library required to provide support for the DAPL API on the s390x
-platform. The original code that directly used mapped memory areas to access
-the PCI I/O  memory of the Mellanox networking device is replaced with the
-new system call invocation for writing the data to mapped memory areas.
+On Fri, Oct 10, 2014 at 10:37:34AM +0530, Sreedhar Kodali wrote:
+> So the current behavior of returning 0 is wrong as there was no
+> orderly shutdown performed on the other end before a close() is
+> issued
 
-Signed-off-by: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
----
- Makefile.am    |    2 
- Makefile.in    |    2 
- src/doorbell.h |    8 ++-
- src/mlx4.h     |    2 
- src/mmio.h     |  115 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/qp.c       |   17 --------
- 6 files changed, 126 insertions(+), 20 deletions(-)
+'Orderly shutdown' is any call of close() when there is no data in the
+recv queue, or shutdown(SHUT_WR).
 
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -12,7 +12,7 @@ src_libmlx4_la_LDFLAGS = -avoid-version
- mlx4confdir = $(sysconfdir)/libibverbs.d
- mlx4conf_DATA = mlx4.driver
- 
--EXTRA_DIST = src/doorbell.h src/mlx4.h src/mlx4-abi.h src/wqe.h \
-+EXTRA_DIST = src/doorbell.h src/mlx4.h src/mlx4-abi.h src/wqe.h src/mmio.h \
-     src/mlx4.map libmlx4.spec.in mlx4.driver
- 
- dist-hook: libmlx4.spec
---- a/Makefile.in
-+++ b/Makefile.in
-@@ -353,7 +353,7 @@ src_libmlx4_la_LDFLAGS = -avoid-version
- 
- mlx4confdir = $(sysconfdir)/libibverbs.d
- mlx4conf_DATA = mlx4.driver
--EXTRA_DIST = src/doorbell.h src/mlx4.h src/mlx4-abi.h src/wqe.h \
-+EXTRA_DIST = src/doorbell.h src/mlx4.h src/mlx4-abi.h src/wqe.h src/mmio.h \
-     src/mlx4.map libmlx4.spec.in mlx4.driver
- 
- all: config.h
---- a/src/doorbell.h
-+++ b/src/doorbell.h
-@@ -33,6 +33,8 @@
- #ifndef DOORBELL_H
- #define DOORBELL_H
- 
-+#include "mmio.h"
-+
- #if SIZEOF_LONG == 8
- 
- #if __BYTE_ORDER == __LITTLE_ENDIAN
-@@ -45,7 +47,7 @@
- 
- static inline void mlx4_write64(uint32_t val[2], struct mlx4_context *ctx, int offset)
- {
--	*(volatile uint64_t *) (ctx->uar + offset) = MLX4_PAIR_TO_64(val);
-+	mmio_writeq((unsigned long)(ctx->uar + offset), MLX4_PAIR_TO_64(val));
- }
- 
- #else
-@@ -53,8 +55,8 @@ static inline void mlx4_write64(uint32_t
- static inline void mlx4_write64(uint32_t val[2], struct mlx4_context *ctx, int offset)
- {
- 	pthread_spin_lock(&ctx->uar_lock);
--	*(volatile uint32_t *) (ctx->uar + offset)     = val[0];
--	*(volatile uint32_t *) (ctx->uar + offset + 4) = val[1];
-+	mmio_writel((unsigned long)(ctx->uar + offset), val[0]);
-+	mmio_writel((unsigned long)(ctx->uar + offset + 4), val[1]);
- 	pthread_spin_unlock(&ctx->uar_lock);
- }
- 
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -74,6 +74,8 @@
- #define wc_wmb() asm volatile("sfence" ::: "memory")
- #elif defined(__ia64__)
- #define wc_wmb() asm volatile("fwb" ::: "memory")
-+#elif defined(__s390x__)
-+#define wc_wmb { asm volatile("" : : : "memory") }
- #else
- #define wc_wmb() wmb()
- #endif
---- /dev/null
-+++ b/src/mmio.h
-@@ -0,0 +1,115 @@
-+#ifndef MMIO_H
-+#define MMIO_H
-+
-+#include <unistd.h>
-+#include <asm/unistd.h>
-+#include <sys/syscall.h>
-+#ifdef __s390x__
-+
-+static inline long mmio_writeb(const unsigned long mmio_addr,
-+			       const uint8_t val)
-+{
-+	return syscall(__NR_s390_pci_mmio_write, mmio_addr, &val, sizeof(val));
-+}
-+
-+static inline long mmio_writew(const unsigned long mmio_addr,
-+			       const uint16_t val)
-+{
-+	return syscall(__NR_s390_pci_mmio_write, mmio_addr, &val, sizeof(val));
-+}
-+
-+static inline long mmio_writel(const unsigned long mmio_addr,
-+			       const uint32_t val)
-+{
-+	return syscall(__NR_s390_pci_mmio_write, mmio_addr, &val, sizeof(val));
-+}
-+
-+static inline long mmio_writeq(const unsigned long mmio_addr,
-+			       const uint64_t val)
-+{
-+	return syscall(__NR_s390_pci_mmio_write, mmio_addr, &val, sizeof(val));
-+}
-+
-+static inline long mmio_write(const unsigned long mmio_addr,
-+			      const void *val,
-+			      const size_t length)
-+{
-+	return syscall(__NR_s390_pci_mmio_write, mmio_addr, val, length);
-+}
-+
-+static inline long mmio_readb(const unsigned long mmio_addr, uint8_t *val)
-+{
-+	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, sizeof(*val));
-+}
-+
-+static inline long mmio_readw(const unsigned long mmio_addr, uint16_t *val)
-+{
-+	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, sizeof(*val));
-+}
-+
-+static inline long mmio_readl(const unsigned long mmio_addr, uint32_t *val)
-+{
-+	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, sizeof(*val));
-+}
-+
-+static inline long mmio_readq(const unsigned long mmio_addr, uint64_t *val)
-+{
-+	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, sizeof(*val));
-+}
-+
-+static inline long mmio_read(const unsigned long mmio_addr,
-+			     void *val,
-+			     const size_t length)
-+{
-+	return syscall(__NR_s390_pci_mmio_read, mmio_addr, val, length);
-+}
-+
-+static inline void mlx4_bf_copy(unsigned long *dst,
-+				unsigned long *src,
-+				unsigned bytecnt)
-+{
-+	mmio_write((unsigned long)dst, src, bytecnt);
-+}
-+
-+#else
-+
-+#define mmio_writeb(addr, value) \
-+	(*((volatile uint8_t *)addr) = value)
-+#define mmio_writew(addr, value) \
-+	(*((volatile uint16_t *)addr) = value)
-+#define mmio_writel(addr, value) \
-+	(*((volatile uint32_t *)addr) = value)
-+#define mmio_writeq(addr, value) \
-+	(*((volatile uint64_t *)addr) = value)
-+#define mmio_write(addr, value, length) \
-+	memcpy(addr, value, length)
-+
-+#define mmio_readb(addr, value) \
-+	(value = *((volatile uint8_t *)addr))
-+#define mmio_readw(addr, value) \
-+	(value = *((volatile uint16_t *)addr))
-+#define mmio_readl(addr, value) \
-+	(value = *((volatile uint32_t *)addr))
-+#define mmio_readq(addr, value) \
-+	(value = *((volatile uint64_t *)addr))
-+#define mmio_read(addr, value, length) \
-+	memcpy(value, addr, length)
-+
-+/*
-+ * Avoid using memcpy() to copy to BlueFlame page, since memcpy()
-+ * implementations may use move-string-buffer assembler instructions,
-+ * which do not guarantee order of copying.
-+ */
-+static inline void mlx4_bf_copy(unsigned long *dst,
-+				unsigned long *src,
-+				unsigned bytecnt)
-+{
-+	while (bytecnt > 0) {
-+		*dst++ = *src++;
-+		*dst++ = *src++;
-+		bytecnt -= 2 * sizeof(long);
-+	}
-+}
-+#endif
-+
-+#endif
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -173,20 +173,6 @@ static void set_data_seg(struct mlx4_wqe
- 	dseg->byte_count = htonl(sg->length);
- }
- 
--/*
-- * Avoid using memcpy() to copy to BlueFlame page, since memcpy()
-- * implementations may use move-string-buffer assembler instructions,
-- * which do not guarantee order of copying.
-- */
--static void mlx4_bf_copy(unsigned long *dst, unsigned long *src, unsigned bytecnt)
--{
--	while (bytecnt > 0) {
--		*dst++ = *src++;
--		*dst++ = *src++;
--		bytecnt -= 2 * sizeof (long);
--	}
--}
--
- int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			  struct ibv_send_wr **bad_wr)
- {
-@@ -434,7 +420,8 @@ out:
- 		 */
- 		wmb();
- 
--		*(uint32_t *) (ctx->uar + MLX4_SEND_DOORBELL) = qp->doorbell_qpn;
-+		mmio_writel((unsigned long)(ctx->uar + MLX4_SEND_DOORBELL),
-+			    qp->doorbell_qpn);
- 	}
- 
- 	if (nreq)
+> http://stackoverflow.com/questions/5879560/how-can-i-cause-an-econnreset-in-recv-from-a-client
 
+This accepted answer is not correct, close on its own does not
+generate ECONNRESET.
+
+This is trivally shown with strace and a bit of python:
+
+server:
+ import socket
+ s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+ s.bind(("127.0.0.1",9090))
+ s.listen(1)
+ conn, addr = s.accept()
+ conn.recv(1024)
+
+client:
+
+import socket
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.connect(("127.0.0.1",9090))
+s.close()
+
+Result:
+
+[..]
+accept(3, {sa_family=AF_INET, sin_port=htons(41284), sin_addr=inet_addr("127.0.0.1")}, [16]) = 4
+recvfrom(4, "", 1024, 0, NULL, NULL)    = 0
+
+ECONNRESET signals a special condition that it seems rsockets cannot
+detect, as it doesn't have the one sided close semantics of TCP.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
