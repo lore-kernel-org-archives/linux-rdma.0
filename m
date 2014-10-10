@@ -1,44 +1,69 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] rsocket: Return ECONNRESET when socket in recv is
- disconnected
-Date: Fri, 10 Oct 2014 05:34:35 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DE9543@ORSMSX109.amr.corp.intel.com>
-References: <1412806773-23776-1-git-send-email-sean.hefty@intel.com>
- <56553bcab94dc48bde61d36ae9eb5eaa@imap.linux.ibm.com>
- <1828884A29C6694DAF28B7E6B8A8237399DE7AE7@ORSMSX109.amr.corp.intel.com>
- <ec59646f09a80e3e61ce428b8dd87ce0@imap.linux.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH 0/3] DAPL support on s390x platform
+Date: Fri, 10 Oct 2014 11:34:14 +0200
+Message-ID: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ec59646f09a80e3e61ce428b8dd87ce0-FJGp5E75HVmZamtmwQBW5tBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Upon successful completion, recv() shall return the length of the
-> message in bytes. If no messages are available to be received and the
-> peer has performed an orderly shutdown, recv() shall return 0.
-> Otherwise, -1 shall be returned and errno set to indicate the error.
-> 
-> Errors
-> 
-> The recv() function shall fail if:
-> 
-> ECONNRESET
->      A connection was forcibly closed by a peer.
-> ==========
-> 
-> So the current behavior of returning 0 is wrong as there was no orderly
-> shutdown performed on the other end before a close() is issued [
-> http://stackoverflow.com/questions/5879560/how-can-i-cause-an-econnreset-
-> in-recv-from-a-client
+The s390 kernel maintainer is going to include the new system calls for
+PCI I/O memory access into the s390 Linux kernel. To make the final
+decision we would like to receive feedback from the libmlx4 and libibverbs
+user space library maintainers with direct answer to the question: will
+those system calls be used in the libmlx4 user space library to provide
+support for the s390x platform?
+This patch series contains the changes to kernel and users pace libraries
+required to provide support for the DAPL API on s390x platform.
+The current implementation of Infiniband verbs uses mapped memory areas to
+directly access the device UAR and Blueflame pages, which are located in
+the PCI I/O memory, from user space. On the s390x platform the PCI I/O
+memory can be accessed only using special privileged CPU instructions that
+cannot be used directly in user space programs. This restricts the usage of
+mapped memory areas to access the PCI I/O memory on s390x platform.
+This version of changes introduces two new kernel system calls which allow
+to execute the privileged CPU instructions in kernel space on request from
+user space programs. One system call allows the user space programs to
+write data to a PCI I/O memory page and the second one can be used to read
+data from PCI I/O memory to user space program buffer using mapped memory
+area addresses as arguments.
+This approach of the DAPL API support on s390x platform has the following
+advantages:
+	* the current Infiniband and mlx4 support kernel modules remain
+	  unchanged;
+	* the changes are separated into the special kernel platform
+	  specific directory;
+	* no conditional compilation directives are used in the kernel
+	  source code;
+	* no changes required to the kernel virtual memory management;
+	* only minor changes are required in the user space DAPL API
+	  components.
+There are 1 patch for the Linux kernel and 2 patches for the DAPL API user
+space components. The kernel patch is not changed since the previous post
+and is included into this patch series just for reference. The patches for
+the perftest and dapl packages are not included into this series because
+those changes have been already applied to corresponding packages by the
+maintainers.
+	[PATCH 1/3] s390/kernel: add system calls for access PCI memory
+This patch contains the new system call implementation required for the PCI
+I/O memory access from user space programs on s390x platform.
+	[PATCH 2/3] libibverbs: add support for the s390x plaform
+This patch contains the changes to the libibverbs user space library to
+provide support of the s390x platform.
+	[PATCH 3/3] libmlx4: add support for the s390x platform
+This patch contains the changes to the libmlx4 user space library intended
+to provide the PCI I/O memory access on the s390x platform. The direct
+access to mapped memory areas is replaced by appropriate system call
+invocation.
 
-The patch is incorrect then.  It always returns ECONNRESET.  Rsockets does not distinguish between the app calling shutdown versus close.  Because everything is in user space, the disconnect message itself comes from the app.  The rclose call invokes rshutdown, otherwise the remote side will may never know that the peer is gone (which can happen if the app exits without calling rclose).
+Alexey Ishchuk (3):
+  s390/kernel: add system calls for access PCI memory
+  libibverbs: add s390x platform support
+  libmlx4: add s390x platform support
+-- 
+1.8.5.5
 
-I'm inclined to just leave the current behavior as is.  I don't see why a real app would care if close performed an orderly shutdown or not, as this errors on the side of acting better than expected.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
