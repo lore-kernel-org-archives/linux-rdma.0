@@ -1,25 +1,23 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ewg] [ANNOUNCE] Updated PSM library is available
-Date: Fri, 10 Oct 2014 21:23:51 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC21C614E5@fmsmsx120.amr.corp.intel.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v2 02/12] blk-mq: Add blk_mq_unique_tag()
+Date: Sat, 11 Oct 2014 04:08:41 -0700
+Message-ID: <20141011110841.GA9593@infradead.org>
+References: <5433E43D.3010107@acm.org>
+ <5433E493.9030304@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mascarenhas, Edward" <edward.mascarenhas-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Tang, CQ" <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5433E493.9030304@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-An updated PSM library is available at:
+> +static inline u32 blk_mq_build_unique_tag(int hwq, int tag)
+> +{
+> +	return (hwq << BLK_MQ_UNIQUE_TAG_BITS) | (tag & BLK_MQ_UNIQUE_TAG_MASK);
+> +}
 
-https://www.openfabrics.org/downloads/infinipath-psm/infinipath-psm-3.3-2_g6f42cdb_open.tar.gz.
+Is there any value in having this as a separate helper?
 
-The update fixes a build issue with RHEL7 (http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2475) and adds the knx PSM code.
-
-Mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
