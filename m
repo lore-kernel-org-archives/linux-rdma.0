@@ -1,327 +1,297 @@
 From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH 1/3] s390/kernel: add system calls for access PCI memory
-Date: Sun, 12 Oct 2014 11:52:55 +0000
-Message-ID: <f061a36c713c42c9b71530183a6e8644@AMSPR05MB422.eurprd05.prod.outlook.com>
-References: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com>
- <1412933657-52641-2-git-send-email-aishchuk@linux.vnet.ibm.com>
+Subject: RE: [PATCH V1 for-next 1/9] IB/core: Introduce peer client interface
+Date: Sun, 12 Oct 2014 12:03:06 +0000
+Message-ID: <c8f2826c385e413eaa5f442cdcb64eaa@AMSPR05MB422.eurprd05.prod.outlook.com>
+References: <1412602019-30659-1-git-send-email-yishaih@mellanox.com>
+ <1412602019-30659-2-git-send-email-yishaih@mellanox.com>
+ <54350284.10107@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+	boundary="_002_c8f2826c385e413eaa5f442cdcb64eaaAMSPR05MB422eurprd05pro_"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1412933657-52641-2-git-send-email-aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <54350284.10107-HInyCGIudOg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+--_002_c8f2826c385e413eaa5f442cdcb64eaaAMSPR05MB422eurprd05pro_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Bart,
+
 > -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Alexey Ishchuk
-> Sent: Friday, October 10, 2014 12:34 PM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org; schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org;
-> gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org; utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Yishai
-> Hadas; Alexey Ishchuk; Alexey Ishchuk
-> Subject: [PATCH 1/3] s390/kernel: add system calls for access PCI memory
-> 
-> Add the new __NR_s390_pci_mmio_write and __NR_s390_pci_mmio_read
-> system calls to allow user space applications to access device PCI I/O
-> memory pages on s390x platform.
-> 
-> Signed-off-by: Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
-> ---
->  arch/s390/include/uapi/asm/unistd.h |   4 +-
->  arch/s390/kernel/Makefile           |   1 +
->  arch/s390/kernel/entry.h            |   4 +
->  arch/s390/kernel/pci_mmio.c         | 207
-> ++++++++++++++++++++++++++++++++++++
->  arch/s390/kernel/syscalls.S         |   2 +
->  5 files changed, 217 insertions(+), 1 deletion(-)
->  create mode 100644 arch/s390/kernel/pci_mmio.c
-> 
-> diff --git a/arch/s390/include/uapi/asm/unistd.h
-> b/arch/s390/include/uapi/asm/unistd.h
-> index 3802d2d..ab49d1d 100644
-> --- a/arch/s390/include/uapi/asm/unistd.h
-> +++ b/arch/s390/include/uapi/asm/unistd.h
-> @@ -283,7 +283,9 @@
->  #define __NR_sched_setattr	345
->  #define __NR_sched_getattr	346
->  #define __NR_renameat2		347
-> -#define NR_syscalls 348
-> +#define __NR_s390_pci_mmio_write	348
-> +#define __NR_s390_pci_mmio_read		349
-> +#define NR_syscalls 350
-> 
->  /*
->   * There are some system calls that are not present on 64 bit, some
-> diff --git a/arch/s390/kernel/Makefile b/arch/s390/kernel/Makefile
-> index 33225e8..3e71b7e 100644
-> --- a/arch/s390/kernel/Makefile
-> +++ b/arch/s390/kernel/Makefile
-> @@ -60,6 +60,7 @@ ifdef CONFIG_64BIT
->  obj-$(CONFIG_PERF_EVENTS)	+= perf_event.o perf_cpum_cf.o perf_cpum_sf.o
-> \
->  						perf_cpum_cf_events.o
->  obj-y				+= runtime_instr.o cache.o
-> +obj-y				+= pci_mmio.o
->  endif
-> 
->  # vdso
-> diff --git a/arch/s390/kernel/entry.h b/arch/s390/kernel/entry.h
-> index 6ac7819..a36b6f9 100644
-> --- a/arch/s390/kernel/entry.h
-> +++ b/arch/s390/kernel/entry.h
-> @@ -70,4 +70,8 @@ struct old_sigaction;
->  long sys_s390_personality(unsigned int personality);
->  long sys_s390_runtime_instr(int command, int signum);
-> 
-> +long sys_s390_pci_mmio_write(const unsigned long mmio_addr,
-> +			     const void *user_buffer, const size_t length);
-> +long sys_s390_pci_mmio_read(const unsigned long mmio_addr,
-> +			    void *user_buffer, const size_t length);
->  #endif /* _ENTRY_H */
-> diff --git a/arch/s390/kernel/pci_mmio.c b/arch/s390/kernel/pci_mmio.c
-> new file mode 100644
-> index 0000000..f318207
-> --- /dev/null
-> +++ b/arch/s390/kernel/pci_mmio.c
-> @@ -0,0 +1,207 @@
-> +/*
-> + * Access to PCI I/O memory from user space programs.
-> + *
-> + * Copyright IBM Corp. 2014
-> + * Author(s): Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/syscalls.h>
-> +#include <linux/init.h>
-> +#include <linux/mm.h>
-> +#include <linux/errno.h>
-> +#include <linux/pci.h>
-> +
-> +union value_buffer {
-> +	u8 buf8;
-> +	u16 buf16;
-> +	u32 buf32;
-> +	u64 buf64;
-> +	u8 buf_large[64];
-> +};
-> +
-> +static long get_pfn(const unsigned long user_addr,
-> +		    const unsigned long access,
-> +		    unsigned long *pfn)
-> +{
-> +	struct vm_area_struct *vma = NULL;
-> +	long ret = 0L;
-> +
-> +	if (!pfn)
-> +		return -EINVAL;
-> +
-> +	down_read(&current->mm->mmap_sem);
-> +	vma = find_vma(current->mm, user_addr);
-> +	if (vma) {
-> +		if (!(vma->vm_flags & access))
-> +			ret = -EACCES;
-> +		else
-> +			ret = follow_pfn(vma, user_addr, pfn);
-> +	} else {
-> +		ret = -EINVAL;
-> +	}
-> +	up_read(&current->mm->mmap_sem);
-> +
-> +	return ret;
-> +}
-> +
-> +static inline int verify_page_addr(const unsigned long page_addr)
-> +{
-> +	return !(page_addr < ZPCI_IOMAP_ADDR_BASE ||
-> +	    page_addr > (ZPCI_IOMAP_ADDR_BASE | ZPCI_IOMAP_ADDR_IDX_MASK));
-> +}
-> +
-> +static long choose_buffer(const size_t length,
-> +			  union value_buffer *value,
-> +			  void **buf)
-> +{
-> +	long ret = 0L;
-> +
-> +	if (length > sizeof(value->buf_large)) {
-> +		*buf = kmalloc(length, GFP_KERNEL);
-> +		if (!*buf)
-> +			return -ENOMEM;
-> +		ret = 1;
-> +	} else {
-> +		*buf = value->buf_large;
-> +	}
-> +	return ret;
-> +}
-> +
-> +SYSCALL_DEFINE3(s390_pci_mmio_write,
-> +		const unsigned long, mmio_addr,
-> +		const void __user *, user_buffer,
-> +		const size_t, length)
-> +{
-> +	long ret = 0L;
-> +	void *buf = NULL;
-> +	long buf_allocated = 0;
-> +	void __iomem *io_addr = NULL;
-> +	unsigned long pfn = 0UL;
-> +	unsigned long offset = 0UL;
-> +	unsigned long page_addr = 0UL;
-> +	union value_buffer value;
-> +
-> +	if (!length)
-> +		return -EINVAL;
-> +	if (!zpci_is_enabled())
-> +		return -ENODEV;
-> +
-> +	ret = get_pfn(mmio_addr, VM_WRITE, &pfn);
-> +	if (ret)
-> +		return ret;
-> +
-> +	page_addr = pfn << PAGE_SHIFT;
-> +	if (!verify_page_addr(page_addr))
-> +		return -EFAULT;
-> +
-> +	offset = mmio_addr & ~PAGE_MASK;
-> +	if (offset + length > PAGE_SIZE)
-> +		return -EINVAL;
-> +	io_addr = (void *)(page_addr | offset);
-> +
-> +	buf_allocated = choose_buffer(length, &value, &buf);
-> +	if (buf_allocated < 0L)
-> +		return -ENOMEM;
-> +
-> +	switch (length) {
-> +	case 1:
-> +		ret = get_user(value.buf8, ((u8 *)user_buffer));
+> From: Bart Van Assche [mailto:bvanassche-HInyCGIudOg@public.gmane.org]
+> Sent: Wednesday, October 08, 2014 12:23 PM
+> To: Yishai Hadas; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Shachar Raindel
+> Subject: Re: [PATCH V1 for-next 1/9] IB/core: Introduce peer client
+> interface
+>=20
+> On 10/06/14 15:26, Yishai Hadas wrote:
+> > +/**
+> > + *  struct peer_memory_client - registration information for peer
+> client.
+> > + *  @name:	peer client name
+> > + *  @version:	peer client version
+> > + *  @acquire:	callback function to be used by IB core to detect
+> whether a
 
-This cast (and similar casts across the code) kills the __user annotation of the user buffer pointer.
-First - fix this to help various static verification tools such as sparse work on your code.
-Second - are you sure this switch-case block achieves any performance gain compared to always using copy_from_user?
-If so, why not just push it into the S390 copy from user code?
+<SNIP - long comment>
 
-> +		break;
-> +	case 2:
-> +		ret = get_user(value.buf16, ((u16 *)user_buffer));
-> +		break;
-> +	case 4:
-> +		ret = get_user(value.buf32, ((u32 *)user_buffer));
-> +		break;
-> +	case 8:
-> +		ret = get_user(value.buf64, ((u64 *)user_buffer));
-> +		break;
-> +	default:
-> +		ret = copy_from_user(buf, user_buffer, length);
-> +	}
-> +	if (ret)
-> +		goto out;
-> +
-> +	switch (length) {
-> +	case 1:
-> +		__raw_writeb(value.buf8, io_addr);
-> +		break;
-> +	case 2:
-> +		__raw_writew(value.buf16, io_addr);
-> +		break;
-> +	case 4:
-> +		__raw_writel(value.buf32, io_addr);
-> +		break;
-> +	case 8:
-> +		__raw_writeq(value.buf64, io_addr);
-> +		break;
-> +	default:
-> +		memcpy_toio(io_addr, buf, length);
-> +	}
-> +out:
-> +	if (buf_allocated > 0L)
-> +		kfree(buf);
-> +	return ret;
-> +}
-> +
-> +SYSCALL_DEFINE3(s390_pci_mmio_read,
-> +		const unsigned long, mmio_addr,
-> +		void __user *, user_buffer,
-> +		const size_t, length)
-> +{
-> +	long ret = 0L;
-> +	void *buf = NULL;
-> +	long buf_allocated = 0L;
-> +	void __iomem *io_addr = NULL;
-> +	unsigned long pfn = 0UL;
-> +	unsigned long offset = 0UL;
-> +	unsigned long page_addr = 0UL;
-> +	union value_buffer value;
-> +
-> +	if (!length)
-> +		return -EINVAL;
-> +	if (!zpci_is_enabled())
-> +		return -ENODEV;
-> +
-> +	ret = get_pfn(mmio_addr, VM_READ, &pfn);
-> +	if (ret)
-> +		return ret;
-> +
-> +	page_addr = pfn << PAGE_SHIFT;
-> +	if (!verify_page_addr(page_addr))
-> +		return -EFAULT;
-> +
-> +	offset = mmio_addr & ~PAGE_MASK;
-> +	if (offset + length > PAGE_SIZE)
-> +		return -EINVAL;
-> +	io_addr = (void *)(page_addr | offset);
-> +
-> +	buf_allocated = choose_buffer(length, &value, &buf);
-> +	if (buf_allocated < 0L)
-> +		return -ENOMEM;
-> +
-> +	switch (length) {
-> +	case 1:
-> +		value.buf8 = __raw_readb(io_addr);
-> +		ret = put_user(value.buf8, ((u8 *)user_buffer));
+> > + *
+> > + **/
+>=20
+> The kernel-doc output for the above comment block is incomplete. Please
+> fix this, and please also fix the warnings reported by the kernel-doc
 
-Add __user annotations in this code block as well.
+We are not sure what is the best way to document an operations struct
+using nanodocs.
+Looking at mmu_notifiers, they are documented inline, using a
+comment style that nanodoc can't parse
+(http://lxr.free-electrons.com/source/include/linux/mmu_notifier.h#L27 )
+Looking at the file_operations struct, there is no documentation
+whatsoever
+(http://lxr.free-electrons.com/source/include/linux/fs.h#L1482 )
+Looking at ib_device
+(http://lxr.free-electrons.com/source/include/rdma/ib_verbs.h#L1436 ),
+again there is no documentation.
 
-> +		break;
-> +	case 2:
-> +		value.buf16 = __raw_readw(io_addr);
-> +		ret = put_user(value.buf16, ((u16 *)user_buffer));
-> +		break;
-> +	case 4:
-> +		value.buf32 = __raw_readl(io_addr);
-> +		ret = put_user(value.buf32, ((u32 *)user_buffer));
-> +		break;
-> +	case 8:
-> +		value.buf64 = __raw_readq(io_addr);
-> +		ret = put_user(value.buf64, ((u64 *)user_buffer));
-> +		break;
-> +	default:
-> +		memcpy_fromio(buf, io_addr, length);
-> +		ret = copy_to_user(user_buffer, buf, length);
-> +	}
-> +	if (buf_allocated > 0L)
-> +		kfree(buf);
-> +	return ret;
-> +}
-> diff --git a/arch/s390/kernel/syscalls.S b/arch/s390/kernel/syscalls.S
-> index fe5cdf2..1faa942 100644
-> --- a/arch/s390/kernel/syscalls.S
-> +++ b/arch/s390/kernel/syscalls.S
-> @@ -356,3 +356,5 @@
-> SYSCALL(sys_finit_module,sys_finit_module,compat_sys_finit_module)
->  SYSCALL(sys_sched_setattr,sys_sched_setattr,compat_sys_sched_setattr)
-> /* 345 */
->  SYSCALL(sys_sched_getattr,sys_sched_getattr,compat_sys_sched_getattr)
->  SYSCALL(sys_renameat2,sys_renameat2,compat_sys_renameat2)
-> +SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_write,sys_ni_syscall)
-> +SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_read,sys_ni_syscall)
+> tool. The attached HTML file has been generated as follows:
+>=20
+> scripts/kernel-doc -html include/rdma/peer_mem.h >peer_mem.html
+> Error(include/rdma/peer_mem.h:136): duplicate section name 'Return'
+> Error(include/rdma/peer_mem.h:146): duplicate section name 'Return'
+> Error(include/rdma/peer_mem.h:156): duplicate section name 'Return'
+> Error(include/rdma/peer_mem.h:161): duplicate section name 'Return'
+> Warning(include/rdma/peer_mem.h:178): Excess struct/union/enum/typedef
+> member 'addr' description in 'peer_memory_client'
+> Warning(include/rdma/peer_mem.h:178): Excess struct/union/enum/typedef
+> member 'size' description in 'peer_memory_client'
+>=20
 
-Generally speaking, looks OK once the __user annotation is added.
+I attach our current nanodoc parsable comment. No errors are now
+generated when running kernel-doc on the attached file.
+Is this what you are aiming at? Can you give an example for the proper
+way to format such comments?
 
-I suspect you might need ack/review from the S390 maintainer as well for this to be pushed, as the syscall is generic to the entire S390 subsystem.
 
+Thanks,
 --Shachar
+
+--_002_c8f2826c385e413eaa5f442cdcb64eaaAMSPR05MB422eurprd05pro_
+Content-Type: text/plain; name="peer_mem.h"
+Content-Description: peer_mem.h
+Content-Disposition: attachment; filename="peer_mem.h"; size=11435;
+	creation-date="Sun, 12 Oct 2014 11:58:53 GMT";
+	modification-date="Sun, 12 Oct 2014 11:36:34 GMT"
+Content-Transfer-Encoding: base64
+
+LyoKICogQ29weXJpZ2h0IChjKSAyMDE0LCAgTWVsbGFub3ggVGVjaG5vbG9naWVzLiBBbGwgcmln
+aHRzIHJlc2VydmVkLgogKgogKiBUaGlzIHNvZnR3YXJlIGlzIGF2YWlsYWJsZSB0byB5b3UgdW5k
+ZXIgYSBjaG9pY2Ugb2Ygb25lIG9mIHR3bwogKiBsaWNlbnNlcy4gIFlvdSBtYXkgY2hvb3NlIHRv
+IGJlIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VCiAqIEdlbmVyYWwgUHVibGlj
+IExpY2Vuc2UgKEdQTCkgVmVyc2lvbiAyLCBhdmFpbGFibGUgZnJvbSB0aGUgZmlsZQogKiBDT1BZ
+SU5HIGluIHRoZSBtYWluIGRpcmVjdG9yeSBvZiB0aGlzIHNvdXJjZSB0cmVlLCBvciB0aGUKICog
+T3BlbklCLm9yZyBCU0QgbGljZW5zZSBiZWxvdzoKICoKICogICAgIFJlZGlzdHJpYnV0aW9uIGFu
+ZCB1c2UgaW4gc291cmNlIGFuZCBiaW5hcnkgZm9ybXMsIHdpdGggb3IKICogICAgIHdpdGhvdXQg
+bW9kaWZpY2F0aW9uLCBhcmUgcGVybWl0dGVkIHByb3ZpZGVkIHRoYXQgdGhlIGZvbGxvd2luZwog
+KiAgICAgY29uZGl0aW9ucyBhcmUgbWV0OgogKgogKiAgICAgIC0gUmVkaXN0cmlidXRpb25zIG9m
+IHNvdXJjZSBjb2RlIG11c3QgcmV0YWluIHRoZSBhYm92ZQogKiAgICAgICAgY29weXJpZ2h0IG5v
+dGljZSwgdGhpcyBsaXN0IG9mIGNvbmRpdGlvbnMgYW5kIHRoZSBmb2xsb3dpbmcKICogICAgICAg
+IGRpc2NsYWltZXIuCiAqCiAqICAgICAgLSBSZWRpc3RyaWJ1dGlvbnMgaW4gYmluYXJ5IGZvcm0g
+bXVzdCByZXByb2R1Y2UgdGhlIGFib3ZlCiAqICAgICAgICBjb3B5cmlnaHQgbm90aWNlLCB0aGlz
+IGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhlIGZvbGxvd2luZwogKiAgICAgICAgZGlzY2xhaW1l
+ciBpbiB0aGUgZG9jdW1lbnRhdGlvbiBhbmQvb3Igb3RoZXIgbWF0ZXJpYWxzCiAqICAgICAgICBw
+cm92aWRlZCB3aXRoIHRoZSBkaXN0cmlidXRpb24uCiAqCiAqIFRIRSBTT0ZUV0FSRSBJUyBQUk9W
+SURFRCAiQVMgSVMiLCBXSVRIT1VUIFdBUlJBTlRZIE9GIEFOWSBLSU5ELAogKiBFWFBSRVNTIE9S
+IElNUExJRUQsIElOQ0xVRElORyBCVVQgTk9UIExJTUlURUQgVE8gVEhFIFdBUlJBTlRJRVMgT0YK
+ICogTUVSQ0hBTlRBQklMSVRZLCBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRSBBTkQK
+ICogTk9OSU5GUklOR0VNRU5ULiBJTiBOTyBFVkVOVCBTSEFMTCBUSEUgQVVUSE9SUyBPUiBDT1BZ
+UklHSFQgSE9MREVSUwogKiBCRSBMSUFCTEUgRk9SIEFOWSBDTEFJTSwgREFNQUdFUyBPUiBPVEhF
+UiBMSUFCSUxJVFksIFdIRVRIRVIgSU4gQU4KICogQUNUSU9OIE9GIENPTlRSQUNULCBUT1JUIE9S
+IE9USEVSV0lTRSwgQVJJU0lORyBGUk9NLCBPVVQgT0YgT1IgSU4KICogQ09OTkVDVElPTiBXSVRI
+IFRIRSBTT0ZUV0FSRSBPUiBUSEUgVVNFIE9SIE9USEVSIERFQUxJTkdTIElOIFRIRQogKiBTT0ZU
+V0FSRS4KICovCgojaWYgIWRlZmluZWQoUEVFUl9NRU1fSCkKI2RlZmluZSBQRUVSX01FTV9ICgoj
+aW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CiNpbmNsdWRlIDxsaW51eC9pbml0Lmg+CiNpbmNsdWRl
+IDxsaW51eC9zbGFiLmg+CiNpbmNsdWRlIDxsaW51eC9lcnJuby5oPgojaW5jbHVkZSA8bGludXgv
+ZXhwb3J0Lmg+CiNpbmNsdWRlIDxsaW51eC9zY2F0dGVybGlzdC5oPgoKI2RlZmluZSBJQl9QRUVS
+X01FTU9SWV9OQU1FX01BWCA2NAojZGVmaW5lIElCX1BFRVJfTUVNT1JZX1ZFUl9NQVggMTYKCi8q
+KgogKiAgc3RydWN0IHBlZXJfbWVtb3J5X2NsaWVudCAtIHJlZ2lzdHJhdGlvbiBpbmZvcm1hdGlv
+biBmb3IgcGVlciBjbGllbnQuCiAqICBAbmFtZToJcGVlciBjbGllbnQgbmFtZQogKiAgQHZlcnNp
+b246CXBlZXIgY2xpZW50IHZlcnNpb24KICogIEBhY3F1aXJlOgljYWxsYmFjayBmdW5jdGlvbiB0
+byBiZSB1c2VkIGJ5IElCIGNvcmUgdG8gZGV0ZWN0IHdoZXRoZXIgYQogKgkJdmlydHVhbCBhZGRy
+ZXNzIGluIHVuZGVyIHRoZSByZXNwb25zaWJpbGl0eSBvZiBhIHNwZWNpZmljIHBlZXIgY2xpZW50
+LgogKiAgQGdldF9wYWdlczogY2FsbGJhY2sgZnVuY3Rpb24gdG8gYmUgdXNlZCBieSBJQiBjb3Jl
+IGFza2luZyB0aGUgcGVlciBjbGllbnQgdG8gcGluCiAqCQl0aGUgcGh5c2ljYWwgcGFnZXMgb2Yg
+dGhlIGdpdmVuIGFkZHJlc3MgcmFuZ2UgYW5kIHJldHVybnMgdGhhdCBpbmZvcm1hdGlvbi4KICoJ
+CUl0IGVxdWl2YWxlbnRzIHRvIHRoZSBrZXJuZWwgQVBJIG9mIGdldF91c2VyX3BhZ2VzKCksIGJ1
+dCB0YXJnZXRzIHBlZXIgbWVtb3J5LgogKiAgQGRtYV9tYXA6CWNhbGxiYWNrIGZ1bmN0aW9uIHRv
+IGJlIHVzZWQgYnkgSUIgY29yZSBhc2tpbmcgdGhlIHBlZXIgY2xpZW50IHRvIGZpbGwKICoJCXRo
+ZSBkbWEgYWRkcmVzcyBtYXBwaW5nIGZvciBhIGdpdmVuIGFkZHJlc3MgcmFuZ2UuCiAqICBAZG1h
+X3VubWFwOgljYWxsYmFjayBmdW5jdGlvbiB0byBiZSB1c2VkIGJ5IElCIGNvcmUgYXNraW5nIHRo
+ZSBwZWVyIGNsaWVudCB0byB0YWtlCiAqCQlyZWxldmFudCBhY3Rpb25zIHRvIHVubWFwIHRoZSBt
+ZW1vcnkuCiAqICBAcHV0X3BhZ2VzOgljYWxsYmFjayBmdW5jdGlvbiB0byBiZSB1c2VkIGJ5IElC
+IGNvcmUgYXNraW5nIHRoZSBwZWVyIGNsaWVudCB0byByZW1vdmUgdGhlCiAqCQlwaW5uaW5nIGZy
+b20gdGhlIGdpdmVuIG1lbW9yeS4KICoJCUl0J3MgdGhlIHBlZXItZGlyZWN0IGVxdWl2YWxlbnQg
+b2YgdGhlIGtlcm5lbCBBUEkgcHV0X3BhZ2UuCiAqICBAZ2V0X3BhZ2Vfc2l6ZTogY2FsbGJhY2sg
+ZnVuY3Rpb24gdG8gYmUgdXNlZCBieSBJQiBjb3JlIHRvIHF1ZXJ5IHRoZSBwZWVyIGNsaWVudCBm
+b3IKICoJCSAgICB0aGUgcGFnZSBzaXplIGZvciB0aGUgZ2l2ZW4gYWxsb2NhdGlvbi4KICogIEBy
+ZWxlYXNlOgljYWxsYmFjayBmdW5jdGlvbiB0byBiZSB1c2VkIGJ5IElCIGNvcmUgYXNraW5nIHBl
+ZXIgY2xpZW50IHRvIHJlbGVhc2UgYWxsCiAqCQlyZXNvdXJjZXMgYXNzb2NpYXRlZCB3aXRoIHBy
+ZXZpb3VzIGFjcXVpcmUgY2FsbC4gVGhlIGNhbGwgd2lsbCBiZSBwZXJmb3JtZWQKICoJCW9ubHkg
+Zm9yIGNvbnRleHRzIHRoYXQgaGF2ZSBiZWVuIHN1Y2Nlc3NmdWxseSBhY3F1aXJlZCAoaS5lLiBh
+Y3F1aXJlIHJldHVybmVkIGEgbm9uLXplcm8gdmFsdWUpLgogKiAgICAgICAgICAgICAgQWRkaXRp
+b25hbGx5LCBJQiBjb3JlIGd1YXJlbnRlZXMgdGhhdCB0aGVyZSB3aWxsIGJlIG5vIHBhZ2VzIHBp
+bm5lZCB0aHJvdWdoIHRoaXMgY29udGV4dCB3aGVuIHRoZSBjYWxsYmFjayBpcyBjYWxsZWQuCiAq
+CiAqICBUaGUgc3Vic2VjdGlvbnMgaW4gdGhpcyBkZXNjcmlwdGlvbiBjb250YWluIGRldGFpbGVk
+IGRlc2NyaXB0aW9uCiAqICBvZiB0aGUgY2FsbGJhY2sgYXJndW1lbnRzIGFuZCBleHBlY3RlZCBy
+ZXR1cm4gdmFsdWVzIGZvciB0aGUKICogIGNhbGxiYWNrcyBkZWZpbmVkIGluIHRoaXMgc3RydWN0
+LgogKgogKglhY3F1aXJlOgogKgogKiAgICAgICAgICAgICAgQ2FsbGJhY2sgZnVuY3Rpb24gdG8g
+YmUgdXNlZCBieSBJQiBjb3JlIHRvIGRldGVjdAogKgkJd2hldGhlciBhIHZpcnR1YWwgYWRkcmVz
+cyBpbiB1bmRlciB0aGUgcmVzcG9uc2liaWxpdHkKICoJCW9mIGEgc3BlY2lmaWMgcGVlciBjbGll
+bnQuCiAqCiAqCQlhZGRyCVtJTl0gLSB2aXJ0dWFsIGFkZHJlc3MgdG8gYmUgY2hlY2tlZCB3aGV0
+aGVyIGJlbG9uZ3MgdG8gcGVlci4KICoKICoJCXNpemUJW0lOXSAtIHNpemUgb2YgbWVtb3J5IGFy
+ZWEgc3RhcnRpbmcgYXQgYWRkci4KICoKICoJCXBlZXJfbWVtX3ByaXZhdGVfZGF0YSBbSU5dIC0g
+VGhlIGNvbnRlbnRzIG9mIGliX3Vjb250ZXh0LT4gcGVlcl9tZW1fcHJpdmF0ZV9kYXRhLgogKgkJ
+CQkJICAgICAgVGhpcyBwYXJhbWV0ZXIgYWxsb3dzIHVzYWdlIG9mIHRoZSBwZWVyLWRpcmVjdAog
+KiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQVBJIGluIGltcGxl
+bWVudGF0aW9ucyB3aGVyZSBpdCBpcyBpbXBvc3NpYmxlCiAqICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICB0byBkZXRlY3QgaWYgdGhlIG1lbW9yeSBiZWxvbmdzIHRv
+IHRoZSBkZXZpY2UKICogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IGJhc2VkIHVwb24gdGhlIHZpcnR1YWwgYWRkcmVzcyBhbG9uZS4gSW4gc3VjaAogKiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2FzZXMsIHRoZSBwZWVyIGRldmlj
+ZSBjYW4gY3JlYXRlIGEgc3BlY2lhbAogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgaWJfdWNvbnRleHQsIHdoaWNoIHdpbGwgYmUgYXNzb2NpYXRlZCB3aXRoIHRo
+ZQogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmVsZXZhbnQg
+cGVlciBtZW1vcnkuCiAqCiAqCQlwZWVyX21lbV9uYW1lICAgICAgICAgW0lOXSAtIFRoZSBjb250
+ZW50cyBvZiBpYl91Y29udGV4dC0+IHBlZXJfbWVtX25hbWUuCiAqCQkJCQkgICAgICBVc2VkIHRv
+IGlkZW50aWZ5IHRoZSBwZWVyIG1lbW9yeSBjbGllbnQgdGhhdAogKiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgaW5pdGlhbGl6ZWQgdGhlIGliX3Vjb250ZXh0Lgog
+KiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVGhpcyBwYXJhbWV0
+ZXIgaXMgbm9ybWFsbHkgdXNlZCBhbG9uZyB3aXRoCiAqICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBwZWVyX21lbV9wcml2YXRlX2RhdGEuCiAqCQljbGllbnRfY29u
+dGV4dCAgICAgICAgW09VVF0gLSBwZWVyIG9wYXF1ZSBkYXRhIHdoaWNoIGhvbGRzIGEgcGVlciBj
+b250ZXh0IGZvcgogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IHRoZSBhY3F1aXJlZCBhZGRyZXNzIHJhbmdlLCB3aWxsIGJlIHByb3ZpZGVkCiAqICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYmFjayB0byB0aGUgcGVlciBtZW1v
+cnkgaW4gc3Vic2VxdWVudAogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIGNhbGxzIGZvciB0aGF0IGdpdmVuIG1lbW9yeS4KICoKICoJCUlmIHBlZXIgdGFrZXMg
+cmVzcG9uc2liaWxpdHkgb24gdGhlIGdpdmVuIGFkZHJlc3MgcmFuZ2UgZnVydGhlciBjYWxscyBm
+b3IgbWVtb3J5IG1hbmFnZW1lbnQKICoJCXdpbGwgYmUgZGlyZWN0ZWQgdG8gdGhlIGNhbGxiYWNr
+cyBvZiB0aGlzIHBlZXIgY2xpZW50LgogKgogKgkJUmV0dXJuIC0gMSBpbiBjYXNlIHBlZXIgY2xp
+ZW50IHRha2VzIHJlc3BvbnNpYmlsaXR5IG9uIHRoYXQgcmFuZ2Ugb3RoZXJ3aXNlIDAuCiAqCQkJ
+QW55IHBlZXIgaW50ZXJuYWwgZXJyb3Igc2hvdWxkIHJlc3VsdGVkIGluIGEgemVybyBhbnN3ZXIs
+IGluIGNhc2UgYWRkcmVzcyByYW5nZQogKgkJCXJlYWxseSBiZWxvbmdzIHRvIHRoZSBwZWVyLCBu
+byBvd25lciB3aWxsIGJlIGZvdW5kIGFuZCBhcHBsaWNhdGlvbiB3aWxsIGdldCBhbiBlcnJvcgog
+KgkJCWZyb20gSUIgQ29yZSBhcyBleHBlY3RlZC4KICoKICoJZ2V0X3BhZ2VzOgogKgogKiAgICAg
+ICAgICAgICAgQ2FsbGJhY2sgZnVuY3Rpb24gdG8gYmUgdXNlZCBieSBJQiBjb3JlIGFza2luZyB0
+aGUKICoJCXBlZXIgY2xpZW50IHRvIHBpbiB0aGUgcGh5c2ljYWwgcGFnZXMgb2YgdGhlIGdpdmVu
+CiAqCQlhZGRyZXNzIHJhbmdlIGFuZCByZXR1cm5zIHRoYXQgaW5mb3JtYXRpb24uICBJdAogKgkJ
+ZXF1aXZhbGVudHMgdG8gdGhlIGtlcm5lbCBBUEkgb2YgZ2V0X3VzZXJfcGFnZXMoKSwgYnV0CiAq
+CQl0YXJnZXRzIHBlZXIgbWVtb3J5LgogKgogKgkJYWRkciAgICAgICAgICAgW0lOXSAtIHN0YXJ0
+IHZpcnR1YWwgYWRkcmVzcyBvZiB0aGF0IGdpdmVuIGFsbG9jYXRpb24uCiAqCiAqCQlzaXplICAg
+ICAgICAgICBbSU5dIC0gc2l6ZSBvZiBtZW1vcnkgYXJlYSBzdGFydGluZyBhdCBhZGRyLgogKgog
+KgkJd3JpdGUgICAgICAgICAgW0lOXSAtIGluZGljYXRlcyB3aGV0aGVyIHRoZSBwYWdlcyB3aWxs
+IGJlIHdyaXR0ZW4gdG8gYnkgdGhlIGNhbGxlci4KICogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBTYW1lIG1lYW5pbmcgYXMgb2Yga2VybmVsIEFQSSBnZXRfdXNlcl9wYWdlcywg
+Y2FuIGJlCiAqICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWdub3JlZCBpZiBu
+b3QgcmVsZXZhbnQuCiAqCiAqCQlmb3JjZSAgICAgICAgICBbSU5dIC0gaW5kaWNhdGVzIHdoZXRo
+ZXIgdG8gZm9yY2Ugd3JpdGUgYWNjZXNzIGV2ZW4gaWYgdXNlcgogKiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIG1hcHBpbmcgaXMgcmVhZCBvbmx5LiBTYW1lIG1lYW5pbmcgYXMg
+b2Yga2VybmVsIEFQSQogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGdldF91
+c2VyX3BhZ2VzLCBjYW4gYmUgaWdub3JlZCBpZiBub3QgcmVsZXZhbnQuCiAqCiAqCQlzZ19oZWFk
+ICAgICAgICBbSU4vT1VUXSAtIHBvaW50ZXIgdG8gaGVhZCBvZiBzdHJ1Y3Qgc2dfdGFibGUuCiAq
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRoZSBwZWVyIGNsaWVudCBz
+aG91bGQgYWxsb2NhdGUgYSB0YWJsZSBiaWcKICogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgZW5vdWdoIHRvIHN0b3JlIGFsbCBvZiB0aGUgcmVxdWlyZWQgZW50cmllcy4g
+VGhpcwogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmdW5jdGlvbiBz
+aG91bGQgZmlsbCB0aGUgdGFibGUgd2l0aCBwaHlzaWNhbCBhZGRyZXNzZXMKICogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW5kIHNpemVzIG9mIHRoZSBtZW1vcnkgc2Vn
+bWVudHMgY29tcG9zaW5nIHRoaXMKICogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgbWVtb3J5IG1hcHBpbmcuCiAqICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIFRoZSB0YWJsZSBhbGxvY2F0aW9uIGNhbiBiZSBkb25lIHVzaW5nIHNnX2FsbG9jX3Rh
+YmxlLgogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGaWxsaW5nIGlu
+IHRoZSBwaHlzaWNhbCBtZW1vcnkgYWRkcmVzc2VzIGFuZCBzaXplIGNhbgogKiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBiZSBkb25lIHVzaW5nIHNnX3NldF9wYWdlLgog
+KgogKgkJY2xpZW50X2NvbnRleHQgW0lOXSAtIHBlZXIgY29udGV4dCBmb3IgdGhlIGdpdmVuIGFs
+bG9jYXRpb24sIGFzIHJlY2VpdmVkIGZyb20KICogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgdGhlIGFjcXVpcmUgY2FsbC4KICoKICoJCWNvcmVfY29udGV4dCAgIFtJTl0gLSBJ
+QiBjb3JlIGNvbnRleHQuIElmIHRoZSBwZWVyIGNsaWVudCB3aXNoZXMgdG8KICogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgaW52YWxpZGF0ZSBhbnkgb2YgdGhlIHBhZ2VzIHBp
+bm5lZCB0aHJvdWdoIHRoaXMgQVBJLAogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBpdCBtdXN0IHByb3ZpZGUgdGhpcyBjb250ZXh0IGFzIGFuIGFyZ3VtZW50IHRvIHRoZQog
+KiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpbnZhbGlkYXRlIGNhbGxiYWNr
+LgogKgogKgkJUmV0dXJuIC0gMCBzdWNjZXNzLCBvdGhlcndpc2UgZXJybm8gZXJyb3IgY29kZS4K
+ICoKICoJZG1hX21hcDoKICoKICogICAgICAgICAgICAgIENhbGxiYWNrIGZ1bmN0aW9uIHRvIGJl
+IHVzZWQgYnkgSUIgY29yZSBhc2tpbmcgdGhlIHBlZXIgY2xpZW50IHRvIGZpbGwKICoJCXRoZSBk
+bWEgYWRkcmVzcyBtYXBwaW5nIGZvciBhIGdpdmVuIGFkZHJlc3MgcmFuZ2UuCiAqCiAqCQlzZ19o
+ZWFkICAgICAgICBbSU4vT1VUXSAtIHBvaW50ZXIgdG8gaGVhZCBvZiBzdHJ1Y3Qgc2dfdGFibGUu
+IFRoZSBwZWVyIG1lbW9yeQogKiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICBzaG91bGQgZmlsbCB0aGUgZG1hX2FkZHJlc3MgJiBkbWFfbGVuZ3RoIGZvcgogKiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBlYWNoIHNjYXR0ZXIgZ2F0aGVyIGVudHJ5
+IGluIHRoZSB0YWJsZS4KICoKICoJCWNsaWVudF9jb250ZXh0IFtJTl0gLSBwZWVyIGNvbnRleHQg
+Zm9yIHRoZSBhbGxvY2F0aW9uIG1hcHBlZC4KICoKICoJCWRtYV9kZXZpY2UgICAgIFtJTl0gLSB0
+aGUgUkRNQSBjYXBhYmxlIGRldmljZSB3aGljaCByZXF1aXJlcyBhY2Nlc3MgdG8gdGhlCiAqCQkJ
+CSAgICAgIHBlZXIgbWVtb3J5LgogKgogKgkJZG1hc3luYyAgICAgICAgW0lOXSAtIGZsdXNoIGlu
+LWZsaWdodCBETUEgd2hlbiB0aGUgbWVtb3J5IHJlZ2lvbiBpcyB3cml0dGVuLgogKgkJCQkgICAg
+ICBTYW1lIG1lYW5pbmcgYXMgd2l0aCBob3N0IG1lbW9yeSBtYXBwaW5nLCBjYW4gYmUgaWdub3Jl
+ZCBpZiBub3QgcmVsZXZhbnQuCiAqCiAqCQlubWFwICAgICAgICAgICBbT1VUXSAtIG51bWJlciBv
+ZiBtYXBwZWQvc2V0IGVudHJpZXMuCiAqCiAqCQlSZXR1cm4gLSAwIHN1Y2Nlc3MsIG90aGVyd2lz
+ZSBlcnJubyBlcnJvciBjb2RlLgogKgogKglkbWFfdW5tYXA6CiAqCiAqICAgICAgICAgICAgICBD
+YWxsYmFjayBmdW5jdGlvbiB0byBiZSB1c2VkIGJ5IElCIGNvcmUgYXNraW5nIHRoZSBwZWVyIGNs
+aWVudCB0byB0YWtlCiAqCQlyZWxldmFudCBhY3Rpb25zIHRvIHVubWFwIHRoZSBtZW1vcnkuCiAq
+CiAqCQlzZ19oZWFkICAgICAgICBbSU5dIC0gcG9pbnRlciB0byBoZWFkIG9mIHN0cnVjdCBzZ190
+YWJsZS4gVGhlIHBlZXIgbWVtb3J5CiAqCQkJCSAgICAgICBzaG91bGQgZmlsbCB0aGUgZG1hX2Fk
+ZHJlc3MgJiBkbWFfbGVuZ3RoIGZvcgogKgkJCQkgICAgICAgZWFjaCBzY2F0dGVyIGdhdGhlciBl
+bnRyeSBpbiB0aGUgdGFibGUuCiAqCiAqCQljbGllbnRfY29udGV4dCBbSU5dIC0gcGVlciBjb250
+ZXh0IGZvciB0aGUgYWxsb2NhdGlvbiBtYXBwZWQuCiAqCiAqCQlkbWFfZGV2aWNlICAgICBbSU5d
+IC0gdGhlIFJETUEgY2FwYWJsZSBkZXZpY2Ugd2hpY2ggcmVxdWlyZXMgYWNjZXNzIHRvIHRoZQog
+KgkJCQkgICAgICAgcGVlciBtZW1vcnkuCiAqCiAqCQlSZXR1cm4gLSAgMCBzdWNjZXNzLCBvdGhl
+cndpc2UgZXJybm8gZXJyb3IgY29kZS4KICoKICoJcHV0X3BhZ2VzOgogKgogKiAgICAgICAgICAg
+ICAgQ2FsbGJhY2sgZnVuY3Rpb24gdG8gYmUgdXNlZCBieSBJQiBjb3JlIGFza2luZyB0aGUgcGVl
+ciBjbGllbnQgdG8gcmVtb3ZlIHRoZQogKgkJcGlubmluZyBmcm9tIHRoZSBnaXZlbiBtZW1vcnku
+CiAqCQlJdCdzIHRoZSBwZWVyLWRpcmVjdCBlcXVpdmFsZW50IG9mIHRoZSBrZXJuZWwgQVBJIHB1
+dF9wYWdlLgogKgogKgkJc2dfaGVhZCAgICAgICAgW0lOXSAtIHBvaW50ZXIgdG8gaGVhZCBvZiBz
+dHJ1Y3Qgc2dfdGFibGUuCiAqCiAqCQljbGllbnRfY29udGV4dCBbSU5dIC0gcGVlciBjb250ZXh0
+IGZvciB0aGF0IGdpdmVuIGFsbG9jYXRpb24uCiAqCiAqCWdldF9wYWdlX3NpemU6CiAqCiAqICAg
+ICAgICAgICAgICBDYWxsYmFjayBmdW5jdGlvbiB0byBiZSB1c2VkIGJ5IElCIGNvcmUgdG8gcXVl
+cnkgdGhlCiAqCQlwZWVyIGNsaWVudCBmb3IgdGhlIHBhZ2Ugc2l6ZSBmb3IgdGhlIGdpdmVuCiAq
+CQlhbGxvY2F0aW9uLgogKgogKgkJc2dfaGVhZCAgICAgICAgW0lOXSAtIHBvaW50ZXIgdG8gaGVh
+ZCBvZiBzdHJ1Y3Qgc2dfdGFibGUuCiAqCiAqCQljbGllbnRfY29udGV4dCBbSU5dIC0gcGVlciBj
+b250ZXh0IGZvciB0aGF0IGdpdmVuIGFsbG9jYXRpb24uCiAqCiAqCQlSZXR1cm4gLSAgUGFnZSBz
+aXplIGluIGJ5dGVzCiAqCiAqCXJlbGVhc2U6CiAqCiAqICAgICAgICAgICAgICBDYWxsYmFjayBm
+dW5jdGlvbiB0byBiZSB1c2VkIGJ5IElCIGNvcmUgYXNraW5nIHBlZXIKICoJCWNsaWVudCB0byBy
+ZWxlYXNlIGFsbCByZXNvdXJjZXMgYXNzb2NpYXRlZCB3aXRoCiAqCQlwcmV2aW91cyBhY3F1aXJl
+IGNhbGwuIFRoZSBjYWxsIHdpbGwgYmUgcGVyZm9ybWVkIG9ubHkKICoJCWZvciBjb250ZXh0cyB0
+aGF0IGhhdmUgYmVlbiBzdWNjZXNzZnVsbHkgYWNxdWlyZWQKICoJCShpLmUuIGFjcXVpcmUgcmV0
+dXJuZWQgYSBub24temVybyB2YWx1ZSkuCiAqCQlBZGRpdGlvbmFsbHksIElCIGNvcmUgZ3VhcmVu
+dGVlcyB0aGF0IHRoZXJlIHdpbGwgYmUgbm8KICoJCXBhZ2VzIHBpbm5lZCB0aHJvdWdoIHRoaXMg
+Y29udGV4dCB3aGVuIHRoZSBjYWxsYmFjayBpcwogKgkJY2FsbGVkLgogKgogKgkJY2xpZW50X2Nv
+bnRleHQgW0lOXSAtIHBlZXIgY29udGV4dCBmb3IgdGhlIGdpdmVuIGFsbG9jYXRpb24uCiAqCiAq
+Ki8Kc3RydWN0IHBlZXJfbWVtb3J5X2NsaWVudCB7CgljaGFyCW5hbWVbSUJfUEVFUl9NRU1PUllf
+TkFNRV9NQVhdOwoJY2hhcgl2ZXJzaW9uW0lCX1BFRVJfTUVNT1JZX1ZFUl9NQVhdOwoJaW50ICgq
+YWNxdWlyZSkodW5zaWduZWQgbG9uZyBhZGRyLCBzaXplX3Qgc2l6ZSwgdm9pZCAqcGVlcl9tZW1f
+cHJpdmF0ZV9kYXRhLAoJCSAgICAgICBjaGFyICpwZWVyX21lbV9uYW1lLCB2b2lkICoqY2xpZW50
+X2NvbnRleHQpOwoJaW50ICgqZ2V0X3BhZ2VzKSh1bnNpZ25lZCBsb25nIGFkZHIsCgkJCSBzaXpl
+X3Qgc2l6ZSwgaW50IHdyaXRlLCBpbnQgZm9yY2UsCgkJCSBzdHJ1Y3Qgc2dfdGFibGUgKnNnX2hl
+YWQsCgkJCSB2b2lkICpjbGllbnRfY29udGV4dCwgdTY0IGNvcmVfY29udGV4dCk7CglpbnQgKCpk
+bWFfbWFwKShzdHJ1Y3Qgc2dfdGFibGUgKnNnX2hlYWQsIHZvaWQgKmNsaWVudF9jb250ZXh0LAoJ
+CSAgICAgICBzdHJ1Y3QgZGV2aWNlICpkbWFfZGV2aWNlLCBpbnQgZG1hc3luYywgaW50ICpubWFw
+KTsKCWludCAoKmRtYV91bm1hcCkoc3RydWN0IHNnX3RhYmxlICpzZ19oZWFkLCB2b2lkICpjbGll
+bnRfY29udGV4dCwKCQkJIHN0cnVjdCBkZXZpY2UgICpkbWFfZGV2aWNlKTsKCXZvaWQgKCpwdXRf
+cGFnZXMpKHN0cnVjdCBzZ190YWJsZSAqc2dfaGVhZCwgdm9pZCAqY2xpZW50X2NvbnRleHQpOwoJ
+dW5zaWduZWQgbG9uZyAoKmdldF9wYWdlX3NpemUpKHZvaWQgKmNsaWVudF9jb250ZXh0KTsKCXZv
+aWQgKCpyZWxlYXNlKSh2b2lkICpjbGllbnRfY29udGV4dCk7Cn07Cgp0eXBlZGVmIGludCAoKmlu
+dmFsaWRhdGVfcGVlcl9tZW1vcnkpKHZvaWQgKnJlZ19oYW5kbGUsIHU2NCBjb3JlX2NvbnRleHQp
+OwoKdm9pZCAqaWJfcmVnaXN0ZXJfcGVlcl9tZW1vcnlfY2xpZW50KGNvbnN0IHN0cnVjdCBwZWVy
+X21lbW9yeV9jbGllbnQgKnBlZXJfY2xpZW50LAoJCQkJICAgICBpbnZhbGlkYXRlX3BlZXJfbWVt
+b3J5ICppbnZhbGlkYXRlX2NhbGxiYWNrKTsKdm9pZCBpYl91bnJlZ2lzdGVyX3BlZXJfbWVtb3J5
+X2NsaWVudCh2b2lkICpyZWdfaGFuZGxlKTsKCiNlbmRpZgo=
+
+--_002_c8f2826c385e413eaa5f442cdcb64eaaAMSPR05MB422eurprd05pro_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
