@@ -1,45 +1,70 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
- verbs API
-Date: Mon, 13 Oct 2014 11:10:54 +0300
-Message-ID: <543B890E.9040509@mellanox.com>
-References: <CAJ3xEMjdnNNbhRC0T_=hmRedwJFvSR9r-JccLZ2m0zaece5OQQ@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC 2/2] IB/mlx5: Implement Fast Indirect Memory Registration
+ Feature
+Date: Mon, 13 Oct 2014 11:32:09 +0300
+Message-ID: <543B8E09.6090606@dev.mellanox.co.il>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-3-git-send-email-sagig@mellanox.com> <543AD8DE.5060404@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjdnNNbhRC0T_=hmRedwJFvSR9r-JccLZ2m0zaece5OQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <543AD8DE.5060404-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/9/2014 11:13 PM, Or Gerlitz wrote:
-> On Tue, Oct 7, 2014, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> [...]
->>   enum ib_signature_prot_cap {
->> @@ -182,6 +183,7 @@ struct ib_device_attr {
->>          int                     max_srq_wr;
->>          int                     max_srq_sge;
->>          unsigned int            max_fast_reg_page_list_len;
->> +       unsigned int            max_indir_reg_mr_list_len;
+On 10/12/2014 10:39 PM, Or Gerlitz wrote:
 >
-> The indirection registration list is basically made of  struct ib_sge
-> objects which are posted on a send-like work-request, any reason  to
-> have a dedicated dev cap attribute for that and not use the already
-> existing one (max_sge)?
+> On 10/7/2014 4:48 PM, Sagi Grimberg wrote:
+>>
+>> * Nit change in mr_align() static routine to handle void*
+>> instead of __be64.
 >
+> nit comment... any reason not to put in different and unrelated to this
+> series patch?
 
-Hi Or,
+I can, But there is no use for this out of this patch context.
 
-max_send_sge capability is how many ib_sge's the device can handle in a
-single send work request which takes into consideration element such as
-wqe control segment size and sq reservations. This is different from how
-many ib_sge's the device can register to a single indirect memory key
-which is free of such limitations.
+>
+> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> --- a/drivers/infiniband/hw/mlx5/qp.c
+> +++ b/drivers/infiniband/hw/mlx5/qp.c
+>
+>
+>> +static void set_indir_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
+>> +                  struct ib_send_wr *wr)
+>> +{
+>> +    u64 mask;
+>> +    u32 list_len = wr->wr.indir_reg.indir_list_len;
+>> +
+>> +    memset(umr, 0, sizeof(*umr));
+>> +
+>> +    umr->klm_octowords = get_klm_octo(list_len * 2);
+>> +    mask = MLX5_MKEY_MASK_LEN        |
+>> +        MLX5_MKEY_MASK_PAGE_SIZE    |
+>> +        MLX5_MKEY_MASK_START_ADDR    |
+>> +        MLX5_MKEY_MASK_EN_RINVAL    |
+>> +        MLX5_MKEY_MASK_KEY        |
+>> +        MLX5_MKEY_MASK_LR        |
+>> +        MLX5_MKEY_MASK_LW        |
+>> +        MLX5_MKEY_MASK_RR        |
+>> +        MLX5_MKEY_MASK_RW        |
+>> +        MLX5_MKEY_MASK_A        |
+>> +        MLX5_MKEY_MASK_FREE;
+>> +
+>> +    umr->mkey_mask = cpu_to_be64(mask);
+>> +}
+>
+> here you basically replicate the majority of the code from
+> set_reg_umr_segment - share the common part...
 
-So given these are different capabilities I prefer to expose them in
-different attributes.
+I've thought about it, but I know Eli prefers not to centralize the
+umr control segment (and mkey context) setting routines at this point.
+I am not against doing it at all, but let's let Eli comment here.
+
+Eli?
 
 Sagi.
 --
