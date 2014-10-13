@@ -1,38 +1,33 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 8/8] IB/srp: Add multichannel support
-Date: Mon, 13 Oct 2014 10:52:18 +0200
-Message-ID: <543B92C2.1090606@acm.org>
-References: <541C27BF.6070609@acm.org> <541C28E0.7010705@acm.org> <5421A093.1070203@dev.mellanox.co.il> <5433E1B5.1030103@acm.org> <543B8AB0.1090704@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH v2 02/12] blk-mq: Add blk_mq_unique_tag()
+Date: Mon, 13 Oct 2014 11:21:54 +0200
+Message-ID: <543B99B2.1010307@acm.org>
+References: <5433E43D.3010107@acm.org> <5433E493.9030304@acm.org> <20141011110841.GA9593@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <543B8AB0.1090704-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20141011110841.GA9593@infradead.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/13/14 10:17, Sagi Grimberg wrote:
-> On 10/7/2014 3:51 PM, Bart Van Assche wrote:
->> On 09/23/14 18:32, Sagi Grimberg wrote:
->>> Since you don't seem to negotiate/declare multichannel with the target,
->>> did you test this code with some target implementations other than SCST
->>> that happen to be out there?
->>
->> (replying to an e-mail of two weeks ago)
->>
->> I have just verified that the multichannel code in this patch series
->> works fine in combination with the upstream SRP target driver.
+On 10/11/14 13:08, Christoph Hellwig wrote:
+>> +static inline u32 blk_mq_build_unique_tag(int hwq, int tag)
+>> +{
+>> +	return (hwq << BLK_MQ_UNIQUE_TAG_BITS) | (tag & BLK_MQ_UNIQUE_TAG_MASK);
+>> +}
 >
-> Working as in single channel mode? or multichannel mode?
+> Is there any value in having this as a separate helper?
 
-Hello Sagi,
+Hello Christoph,
 
-In my e-mail I was referring to multichannel mode.
+With the approach for block layer tag management proposed in this patch 
+series SCSI LLDs no longer need to call this function. This means that 
+the blk_mq_build_unique_tag() function can be eliminated by inlining it 
+into blk_mq_unique_tag(). Would you like me to rework this patch 
+accordingly ?
 
 Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
