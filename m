@@ -1,45 +1,64 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
- verbs API
-Date: Mon, 13 Oct 2014 11:11:12 +0300
-Message-ID: <543B8920.9000000@dev.mellanox.co.il>
-References: <CAJ3xEMjdnNNbhRC0T_=hmRedwJFvSR9r-JccLZ2m0zaece5OQQ@mail.gmail.com>
+Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
+Date: Mon, 13 Oct 2014 11:15:53 +0300
+Message-ID: <543B8A39.5040102@dev.mellanox.co.il>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>	<5434D272.8090007@dev.mellanox.co.il> <CAEc=gqbKrqK_PdN8XOfkaNZgscMeODL=i6oFU+SwQrMxT2gixg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjdnNNbhRC0T_=hmRedwJFvSR9r-JccLZ2m0zaece5OQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAEc=gqbKrqK_PdN8XOfkaNZgscMeODL=i6oFU+SwQrMxT2gixg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "Jayamohan.K" <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Jayamohan Kallickal <jayamohan.kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/9/2014 11:13 PM, Or Gerlitz wrote:
-> On Tue, Oct 7, 2014, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> [...]
->>   enum ib_signature_prot_cap {
->> @@ -182,6 +183,7 @@ struct ib_device_attr {
->>          int                     max_srq_wr;
->>          int                     max_srq_sge;
->>          unsigned int            max_fast_reg_page_list_len;
->> +       unsigned int            max_indir_reg_mr_list_len;
+On 10/9/2014 8:14 AM, Jayamohan.K wrote:
+<SNIP>
+>     Hi Minh and Jayamohan,
 >
-> The indirection registration list is basically made of  struct ib_sge
-> objects which are posted on a send-like work-request, any reason  to
-> have a dedicated dev cap attribute for that and not use the already
-> existing one (max_sge)?
+>     So I agree that we would want to take device capabilities into account
+>     here, but we need to be able to adjust scsi_cmds_max (can_queue) in case
+>     the max wqe supported is lower than scsi_cmds_max * num_posts_per_cmd.
+>
+>
+>
+> I feel we should be fine as long as we support the max_cmds of 128
+> supported by open-iscsi layer.
 >
 
-Hi Or,
+The cmds_max can be modified by the user, so we should be fine in this
+case as well.
 
-max_send_sge capability is how many ib_sge's the device can handle in a
-single send work request which takes into consideration element such as
-wqe control segment size and sq reservations. This is different from how
-many ib_sge's the device can register to a single indirect memory key
-which is free of such limitations.
+> I see the iser layer uses a value of 512 though it only serves as a
+> limit check.
 
-So given these are different capabilities I prefer to expose them in
-different attributes.
+So if iser supports less than 512 (due to device capability) the
+boundary check should be modified as well.
+
+>
+>
+>     So generally I agree with this approach, but we need to take care of
+>     stuff later when the session is created.
+>
+>     One more thing, this is not rebased on the latest iser patches please
+>     send v1 on top of:
+>     http://marc.info/?l=linux-__rdma&m=141216135013146&w=2
+>     <http://marc.info/?l=linux-rdma&m=141216135013146&w=2>
+>
+>
+> Yes, I will recreate the patch and send on top of this
+
+Great!
+
+>
+>
+>
+>     P.S.
+>     What device did you test with (that supports less than iSER needs)?
+>
+
+This question still holds.
 
 Sagi.
 --
