@@ -1,78 +1,53 @@
-From: Sreedhar Kodali <srkodali-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] rsocket: Return ECONNRESET when socket in recv is
- disconnected
-Date: Mon, 13 Oct 2014 09:25:14 +0530
-Message-ID: <506101f7dcde44a2ea922140637b60c4@imap.linux.ibm.com>
-References: <1412806773-23776-1-git-send-email-sean.hefty@intel.com>
- <56553bcab94dc48bde61d36ae9eb5eaa@imap.linux.ibm.com>
- <1828884A29C6694DAF28B7E6B8A8237399DE7AE7@ORSMSX109.amr.corp.intel.com>
- <ec59646f09a80e3e61ce428b8dd87ce0@imap.linux.ibm.com>
- <20141010174547.GA10189@obsidianresearch.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
+ verbs API
+Date: Mon, 13 Oct 2014 10:57:43 +0300
+Message-ID: <543B85F7.1060000@dev.mellanox.co.il>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com> <54342D0C.6050103@opengridcomputing.com> <5434D037.4040208@dev.mellanox.co.il> <000b01cfe2ff$69195740$3b4c05c0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141010174547.GA10189-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <000b01cfe2ff$69195740$3b4c05c0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
+On 10/8/2014 4:54 PM, Steve Wise wrote:
+>>>> @@ -1056,6 +1067,14 @@ struct ib_send_wr {
+>>>>                int            access_flags;
+>>>>                struct ib_sge           *prot;
+>>>>            } sig_handover;
+>>>> +        struct {
+>>>> +            u64                iova_start;
+>>>> +            struct ib_indir_reg_list       *indir_list;
+>>>> +            unsigned int            indir_list_len;
+>>>> +            u64                length;
+>>>> +            unsigned int            access_flags;
+>>>> +            u32                mkey;
+>>>> +        } indir_reg;
+>>>
+>>> What is mkey?  Shouldn't this be an rkey?
+>>
+>> mkey means memory key. I can change it to rkey if that
+>> is clearer.
+>
+> Is it valid to use an lkey here?  Or is an rkey required?  If an rkey is required, then I'd say it is clearer to name it rkey (and
+> that aligns with the fastreg struct).
+>
 
-Thanks for your explanation - I got it.  On the other mail thread
-I have just requested Sean to mark this as R-Sockets limitation or
-behavioral difference so users wouldn't confuse when they try
-to compare with TCP.
+It is valid. The memory key depends on the use case.
+In case a client want to send an rkey to a peer, it will register using
+rkey. In case a server wants to transfer data from it's local buffer
+it will register using lkey.
 
-Thank You.
+So I didn't impose a specific key here - this is why I chose mkey.
 
-- Sreedhar
+I can modify it to rkey to mimic the well known fastreg, but its not
+a must.
 
-On 2014-10-10 23:15, Jason Gunthorpe wrote:
-> On Fri, Oct 10, 2014 at 10:37:34AM +0530, Sreedhar Kodali wrote:
->> So the current behavior of returning 0 is wrong as there was no
->> orderly shutdown performed on the other end before a close() is
->> issued
-> 
-> 'Orderly shutdown' is any call of close() when there is no data in the
-> recv queue, or shutdown(SHUT_WR).
-> 
->> http://stackoverflow.com/questions/5879560/how-can-i-cause-an-econnreset-in-recv-from-a-client
-> 
-> This accepted answer is not correct, close on its own does not
-> generate ECONNRESET.
-> 
-> This is trivally shown with strace and a bit of python:
-> 
-> server:
->  import socket
->  s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
->  s.bind(("127.0.0.1",9090))
->  s.listen(1)
->  conn, addr = s.accept()
->  conn.recv(1024)
-> 
-> client:
-> 
-> import socket
-> s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-> s.connect(("127.0.0.1",9090))
-> s.close()
-> 
-> Result:
-> 
-> [..]
-> accept(3, {sa_family=AF_INET, sin_port=htons(41284),
-> sin_addr=inet_addr("127.0.0.1")}, [16]) = 4
-> recvfrom(4, "", 1024, 0, NULL, NULL)    = 0
-> 
-> ECONNRESET signals a special condition that it seems rsockets cannot
-> detect, as it doesn't have the one sided close semantics of TCP.
-> 
-> Jason
-
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
