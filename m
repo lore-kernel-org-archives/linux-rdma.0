@@ -1,139 +1,135 @@
 From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] RDMA/nes: Report the actual address of the remote
+Subject: [PATCH 3/3] RDMA/cxgb4: Report the actual address of the remote
  connecting peer
-Date: Mon, 13 Oct 2014 15:42:41 -0500
-Message-ID: <20141013204241.GA10700@TENIKOLO-MOBL2>
+Date: Mon, 13 Oct 2014 15:43:22 -0500
+Message-ID: <20141013204322.GA13060@TENIKOLO-MOBL2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Get the actual (non-mapped) ip/tcp address of the remote connecting peer
-from the port mapper and report the address info to the user space application
-at the time of connection establishment
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+When iWARP port mapping is being done, the passive side of a connection
+only knows the mapped address/port of the peer.  So now query the IWPM
+to get the actual address/port of the peer.
+
+Also setup the passive side endpoint to correctly display the actual
+and mapped addresses for the new connection.
+
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes.c    |    1 +
- drivers/infiniband/hw/nes/nes_cm.c |   65 ++++++++++++++++++++++++++---------
- 2 files changed, 49 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
-index 3b2a6dc..9f9d5c5 100644
---- a/drivers/infiniband/hw/nes/nes.c
-+++ b/drivers/infiniband/hw/nes/nes.c
-@@ -116,6 +116,7 @@ static struct ibnl_client_cbs nes_nl_cb_table[] = {
- 	[RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
- 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
- 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
-+	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
- 	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
- 	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
- 	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb}
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 6f09a72..785c2fa 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -596,27 +596,52 @@ static void nes_form_reg_msg(struct nes_vnic *nesvnic,
- 	memcpy(pm_msg->if_name, nesvnic->netdev->name, IWPM_IFNAME_SIZE);
+ drivers/infiniband/hw/cxgb4/cm.c     |   54 +++++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/cxgb4/device.c |    1 +
+ 2 files changed, 51 insertions(+), 4 deletions(-)
+
+
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index c2fb71c..f6c7b32 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -580,6 +580,22 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
+ 		sizeof(ep->com.mapped_remote_addr));
  }
  
-+static void record_sockaddr_info(struct sockaddr_storage *addr_info,
-+					nes_addr_t *ip_addr, u16 *port_num)
++static int get_remote_addr(struct c4iw_ep *ep)
 +{
-+	struct sockaddr_in *in_addr = (struct sockaddr_in *)addr_info;
-+
-+	if (in_addr->sin_family == AF_INET) {
-+		*ip_addr = ntohl(in_addr->sin_addr.s_addr);
-+		*port_num = ntohs(in_addr->sin_port);
-+	}
-+}
-+
- /*
-  * nes_record_pm_msg - Save the received mapping info
-  */
- static void nes_record_pm_msg(struct nes_cm_info *cm_info,
- 			struct iwpm_sa_data *pm_msg)
- {
--	struct sockaddr_in *mapped_loc_addr =
--			(struct sockaddr_in *)&pm_msg->mapped_loc_addr;
--	struct sockaddr_in *mapped_rem_addr =
--			(struct sockaddr_in *)&pm_msg->mapped_rem_addr;
--
--	if (mapped_loc_addr->sin_family == AF_INET) {
--		cm_info->mapped_loc_addr =
--			ntohl(mapped_loc_addr->sin_addr.s_addr);
--		cm_info->mapped_loc_port = ntohs(mapped_loc_addr->sin_port);
--	}
--	if (mapped_rem_addr->sin_family == AF_INET) {
--		cm_info->mapped_rem_addr =
--			ntohl(mapped_rem_addr->sin_addr.s_addr);
--		cm_info->mapped_rem_port = ntohs(mapped_rem_addr->sin_port);
--	}
-+	record_sockaddr_info(&pm_msg->mapped_loc_addr,
-+		&cm_info->mapped_loc_addr, &cm_info->mapped_loc_port);
-+
-+	record_sockaddr_info(&pm_msg->mapped_rem_addr,
-+		&cm_info->mapped_rem_addr, &cm_info->mapped_rem_port);
-+}
-+
-+/*
-+ * nes_get_reminfo - Get the address info of the remote connecting peer
-+ */
-+static int nes_get_remote_addr(struct nes_cm_node *cm_node)
-+{
-+	struct sockaddr_storage mapped_loc_addr, mapped_rem_addr;
-+	struct sockaddr_storage remote_addr;
 +	int ret;
 +
-+	nes_create_sockaddr(htonl(cm_node->mapped_loc_addr),
-+			htons(cm_node->mapped_loc_port), &mapped_loc_addr);
-+	nes_create_sockaddr(htonl(cm_node->mapped_rem_addr),
-+			htons(cm_node->mapped_rem_port), &mapped_rem_addr);
++	print_addr(&ep->com, __func__, "get_remote_addr");
 +
-+	ret = iwpm_get_remote_info(&mapped_loc_addr, &mapped_rem_addr,
-+				&remote_addr, RDMA_NL_NES);
++	ret = iwpm_get_remote_info(&ep->com.mapped_local_addr,
++				   &ep->com.mapped_remote_addr,
++				   &ep->com.remote_addr, RDMA_NL_C4IW);
 +	if (ret)
-+		nes_debug(NES_DBG_CM, "Unable to find remote peer address info\n");
-+	else
-+		record_sockaddr_info(&remote_addr, &cm_node->rem_addr,
-+				&cm_node->rem_port);
++		pr_info(MOD "Unable to find remote peer addr info - err %d\n",
++			ret);
++
 +	return ret;
- }
- 
- /**
-@@ -1566,9 +1591,14 @@ static struct nes_cm_node *make_cm_node(struct nes_cm_core *cm_core,
- 		return NULL;
- 
- 	/* set our node specific transport info */
--	cm_node->loc_addr = cm_info->loc_addr;
-+	if (listener) {
-+		cm_node->loc_addr = listener->loc_addr;
-+		cm_node->loc_port = listener->loc_port;
-+	} else {
-+		cm_node->loc_addr = cm_info->loc_addr;
-+		cm_node->loc_port = cm_info->loc_port;
-+	}
- 	cm_node->rem_addr = cm_info->rem_addr;
--	cm_node->loc_port = cm_info->loc_port;
- 	cm_node->rem_port = cm_info->rem_port;
- 
- 	cm_node->mapped_loc_addr = cm_info->mapped_loc_addr;
-@@ -2151,6 +2181,7 @@ static int handle_ack_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
- 		cm_node->state = NES_CM_STATE_ESTABLISHED;
- 		if (datasize) {
- 			cm_node->tcp_cntxt.rcv_nxt = inc_sequence + datasize;
-+			nes_get_remote_addr(cm_node);
- 			handle_rcv_mpa(cm_node, skb);
- 		} else { /* rcvd ACK only */
- 			dev_kfree_skb_any(skb);
--- 
-1.7.1
-
++}
++
+ static void best_mtu(const unsigned short *mtus, unsigned short mtu,
+ 		     unsigned int *idx, int use_ts)
+ {
+@@ -2343,27 +2359,57 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	state_set(&child_ep->com, CONNECTING);
+ 	child_ep->com.dev = dev;
+ 	child_ep->com.cm_id = NULL;
++
++	/*
++	 * The mapped_local and mapped_remote addresses get setup with
++	 * the actual 4-tuple.  The local address will be based on the
++	 * actual local address of the connection, but on the port number
++	 * of the parent listening endpoint.  The remote address is
++	 * setup based on a query to the IWPM since we don't know what it
++	 * originally was before mapping.  If no mapping was done, then
++	 * mapped_remote == remote, and mapped_local == local.
++	 */
+ 	if (iptype == 4) {
+ 		struct sockaddr_in *sin = (struct sockaddr_in *)
+-			&child_ep->com.local_addr;
++			&child_ep->com.mapped_local_addr;
++
+ 		sin->sin_family = PF_INET;
+ 		sin->sin_port = local_port;
+ 		sin->sin_addr.s_addr = *(__be32 *)local_ip;
+-		sin = (struct sockaddr_in *)&child_ep->com.remote_addr;
++
++		sin = (struct sockaddr_in *)&child_ep->com.local_addr;
++		sin->sin_family = PF_INET;
++		sin->sin_port = ((struct sockaddr_in *)
++				 &parent_ep->com.local_addr)->sin_port;
++		sin->sin_addr.s_addr = *(__be32 *)local_ip;
++
++		sin = (struct sockaddr_in *)&child_ep->com.mapped_remote_addr;
+ 		sin->sin_family = PF_INET;
+ 		sin->sin_port = peer_port;
+ 		sin->sin_addr.s_addr = *(__be32 *)peer_ip;
+ 	} else {
+ 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)
+-			&child_ep->com.local_addr;
++			&child_ep->com.mapped_local_addr;
++
+ 		sin6->sin6_family = PF_INET6;
+ 		sin6->sin6_port = local_port;
+ 		memcpy(sin6->sin6_addr.s6_addr, local_ip, 16);
+-		sin6 = (struct sockaddr_in6 *)&child_ep->com.remote_addr;
++
++		sin6 = (struct sockaddr_in6 *)&child_ep->com.local_addr;
++		sin6->sin6_family = PF_INET6;
++		sin6->sin6_port = ((struct sockaddr_in6 *)
++				   &parent_ep->com.local_addr)->sin6_port;
++		memcpy(sin6->sin6_addr.s6_addr, local_ip, 16);
++
++		sin6 = (struct sockaddr_in6 *)&child_ep->com.mapped_remote_addr;
+ 		sin6->sin6_family = PF_INET6;
+ 		sin6->sin6_port = peer_port;
+ 		memcpy(sin6->sin6_addr.s6_addr, peer_ip, 16);
+ 	}
++	memcpy(&child_ep->com.remote_addr, &child_ep->com.mapped_remote_addr,
++	       sizeof(child_ep->com.remote_addr));
++	get_remote_addr(child_ep);
++
+ 	c4iw_get_ep(&parent_ep->com);
+ 	child_ep->parent_ep = parent_ep;
+ 	child_ep->tos = GET_POPEN_TOS(ntohl(req->tos_stid));
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 72f1f05..4c0f238 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -93,6 +93,7 @@ static struct ibnl_client_cbs c4iw_nl_cb_table[] = {
+ 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
+ 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
+ 	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
++	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
+ 	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
+ 	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb}
+ };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
