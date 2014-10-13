@@ -1,51 +1,63 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
- verbs API
-Date: Mon, 13 Oct 2014 10:57:43 +0300
-Message-ID: <543B85F7.1060000@dev.mellanox.co.il>
-References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com> <54342D0C.6050103@opengridcomputing.com> <5434D037.4040208@dev.mellanox.co.il> <000b01cfe2ff$69195740$3b4c05c0$@opengridcomputing.com>
+Subject: Re: [PATCH RFC 0/2] Indirect Fast Memory registration support
+Date: Mon, 13 Oct 2014 11:01:14 +0300
+Message-ID: <543B86CA.9070809@dev.mellanox.co.il>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <EE7902D3F51F404C82415C4803930ACD40C4114B@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <000b01cfe2ff$69195740$3b4c05c0$@opengridcomputing.com>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD40C4114B-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "bvanassche-HInyCGIudOg@public.gmane.org" <bvanassche-HInyCGIudOg@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/8/2014 4:54 PM, Steve Wise wrote:
->>>> @@ -1056,6 +1067,14 @@ struct ib_send_wr {
->>>>                int            access_flags;
->>>>                struct ib_sge           *prot;
->>>>            } sig_handover;
->>>> +        struct {
->>>> +            u64                iova_start;
->>>> +            struct ib_indir_reg_list       *indir_list;
->>>> +            unsigned int            indir_list_len;
->>>> +            u64                length;
->>>> +            unsigned int            access_flags;
->>>> +            u32                mkey;
->>>> +        } indir_reg;
->>>
->>> What is mkey?  Shouldn't this be an rkey?
+On 10/8/2014 2:06 PM, Devesh Sharma wrote:
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
+>> Sent: Tuesday, October 07, 2014 8:18 PM
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Cc: bvanassche-HInyCGIudOg@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org;
+>> ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+>> Subject: [PATCH RFC 0/2] Indirect Fast Memory registration support
 >>
->> mkey means memory key. I can change it to rkey if that
->> is clearer.
+>> This patch set introduces support for registering a scattered memory area in
+>> an indirect manner.
+>>
+>> Current supported fast registration support has a known limitation where the
+>> memory must be page aligned, meaning memory scatters must be in chunks
+>> of page size except the first which may be in some offset from the start of a
+>> page and the last which may end before the page boundary.
+>>
+>> This can make life hard for ULPs which may serve a scattered list without the
+>> above limitations. Two immediate examples are iSER and SRP that have some
+>> extra logic or work-arounds to handle an arbitrary scatter list of buffers
+>> (which is supported in the entire stack above them).
+>>
+>> The proposed API attempts to follow the well-known fast registration
+>> scheme while allowing the ULP to pass an sg vector rather than a page list
+>> (u64 vector).
+>> I expect ULPs to make use of the global DMA key to populate the lkey of the
+>> sg vector. for example for a scatter list sg of 3 elements the indirect ib_sge
+>> vector will look like:
+>> ib_sge[0]: {dma_key, sg[0]->dma_addr, sg[0]->length}
 >
-> Is it valid to use an lkey here?  Or is an rkey required?  If an rkey is required, then I'd say it is clearer to name it rkey (and
-> that aligns with the fastreg struct).
+> Here each sge can be of max 4G like regular SGEs?
+
+Correct. This is a normal ib_sge.
+
+> And can lkey in each SGE be different?
+
+Yes of course. Generally each lkey can be a different pre-registered
+memory. I specifically used this example to show how a ULP would utilize
+the global DMA lkey to register an arbitrary scatterlist.
+
 >
-
-It is valid. The memory key depends on the use case.
-In case a client want to send an rkey to a peer, it will register using
-rkey. In case a server wants to transfer data from it's local buffer
-it will register using lkey.
-
-So I didn't impose a specific key here - this is why I chose mkey.
-
-I can modify it to rkey to mimic the well known fastreg, but its not
-a must.
+>> ib_sge[1]: {dma_key, sg[1]->dma_addr, sg[1]->length}
+>> ib_sge[2]: {dma_key, sg[2]->dma_addr, sg[2]->length}
+>>
 
 Sagi.
 --
