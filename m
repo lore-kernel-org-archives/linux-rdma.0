@@ -1,54 +1,61 @@
-From: Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and
- send_wr
-Date: Tue, 14 Oct 2014 05:19:13 +0000
-Message-ID: <12daeb47-f7a3-4774-b4c0-e96600b479e1@CMEXHTCAS1.ad.emulex.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
+ verbs API
+Date: Tue, 14 Oct 2014 07:40:59 +0200
+Message-ID: <543CB76B.7020208@acm.org>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1412693281-6161-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> (sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/07/14 16:48, Sagi Grimberg wrote:
+> In order to support that we provide the user with an interface
+> to pass a scattered list of buffers to the IB core layer called
+> ib_indir_reg_list and provide the a new send work request opcode
+> called IB_WR_REG_INDIR_MR. We extend wr union with a new type of
+> memory registration called indir_reg where the user can place the
+> relevant information to perform such a memory registration.
+>
+> The verbs user is expected to perform these steps:
+> 0. Make sure that the device supports Indirect memory registration via
+>     ib_device_cap_flag IB_DEVICE_INDIR_REGISTRATION and make sure
+>     that ib_device_attr max_indir_reg_mr_list_len suffice for the
+>     expected scatterlist length
+>
+> 1. Allocate a memory region with IB_MR_INDIRECT_REG creation flag
+>     This is done via ib_create_mr() with mr_init_attr.flags = IB_MR_INDIRECT_REG
+>
+> 2. Allocate an ib_indir_reg_list structure to hold the scattered buffers
+>     pointers. This is done via new ib_alloc_indir_reg_list() verb
+>
+> 3. Populate the scattered buffers in ib_indir_reg_list.sg_list
+>
+> 4. Post a work request with a new opcode IB_WR_REG_INDIR_MR and
+>     provide the populated ib_indir_reg_list
+>
+> 5. Perform data transfer
+>
+> 6. Get completion of kind IB_WC_REG_INDIR_MR (if requested)
+>
+> 7. Free indirect MR and ib_indir_reg_list via
+>     ib_destroy_mr() and ib_free_indir_reg_list()
 
->On Tue, Oct 7, 2014 at 10:58 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>On 10/8/2014 3:41 AM, Jay Kallickal wrote:
->>From: Jayamohan Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Hello Sagi,
 
->>      This patch allows the underlying hardware to choose
->>values other than  hard coded max values for cqe and send_wr
->>while preventing them from exceeding max supported values.
+Is there documentation available somewhere about the order in which an 
+HCA must execute an indirect memory registration request relative to 
+other work requests, similar to the "Work Request Operation Ordering" 
+table in the InfiniBand specification ? I think such documentation is 
+needed to ensure consistent behavior across HCA models.
 
->Hi Minh and Jayamohan,
+Bart.
 
->So I agree that we would want to take device capabilities into account
->here, but we need to be able to adjust scsi_cmds_max (can_queue) in case
->the max wqe supported is lower than scsi_cmds_max * num_posts_per_cmd.
-
-
-I feel we should be fine as long as we support the max_cmds of 128 supported by open-iscsi layer.
-
-I see the iser layer uses a value of 512 though it only serves as a limit check. 
-
-
->So generally I agree with this approach, but we need to take care of
->stuff later when the session is created.
-
->One more thing, this is not rebased on the latest iser patches please
->send v1 on top of: http://marc.info/?l=linux-rdma&m=141216135013146&w=2
-
-Yes, I will recreate the patch and send on top of this
-
-
-Resending:
- Looks like my response got dropped by the filters.
-
-Am travelling . Minh is working on the patches and would respond 
--Jay
---
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
