@@ -1,54 +1,52 @@
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v1 for-next 06/16] IB/core: Implement support for MMU
- notifiers regarding on demand paging regions
-Date: Tue, 14 Oct 2014 15:54:34 +0000
-Message-ID: <f3b8f2fd04d149e3bcda98cb8dd59fab@AMSPR05MB422.eurprd05.prod.outlook.com>
-References: <20140904202458.GB2685@gmail.com>
- <CAL1RGDWiabD0uAv-h8Cn13nt32h5p7sUG7CWBabvdb+TGDG5Ug@mail.gmail.com>
- <CAL1RGDV4LmNYTypHO+_t1vtvGh-NpOtoNur=CS+fqvscwsja4Q@mail.gmail.com>
+From: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and
+ send_wr
+Date: Tue, 14 Oct 2014 21:53:35 +0000
+Message-ID: <44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>
+ <543CD5D6.1020506@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDV4LmNYTypHO+_t1vtvGh-NpOtoNur=CS+fqvscwsja4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <543CD5D6.1020506-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgUm9sYW5kLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4
-LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gb3duZXJA
-dmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUm9sYW5kIERyZWllcg0KPiBTZW50OiBUdWVz
-ZGF5LCBPY3RvYmVyIDE0LCAyMDE0IDExOjMwIEFNDQo+IENjOiBIYWdnYWkgRXJhbjsgbGludXgt
-cmRtYUB2Z2VyLmtlcm5lbC5vcmc7IFNoYWNoYXIgUmFpbmRlbDsgU2FnaQ0KPiBHcmltYmVyZw0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIHYxIGZvci1uZXh0IDA2LzE2XSBJQi9jb3JlOiBJbXBsZW1l
-bnQgc3VwcG9ydCBmb3INCj4gTU1VIG5vdGlmaWVycyByZWdhcmRpbmcgb24gZGVtYW5kIHBhZ2lu
-ZyByZWdpb25zDQo+IA0KPiA+ICsgICAgIG5vdGlmaWVyc19zZXEgPSBhdG9taWNfcmVhZCgmaXRl
-bS0+b2RwX2RhdGEtPm5vdGlmaWVyc19zZXEpICsgMTsNCj4gPiArICAgICBhdG9taWNfc2V0KCZp
-dGVtLT5vZHBfZGF0YS0+bm90aWZpZXJzX3NlcSwNCj4gPiArICAgICAgICAgICAgICAgIG5vdGlm
-aWVyc19zZXEpOw0KPiANCj4gSXMgdGhpcyBjb2RlIHJlYWxseSBhcyBzaWxseSBhcyBpdCBsb29r
-cywgb3IgaXMgdGhlcmUgc29tZSBkZWVwIHJlYXNvbg0KPiBmb3IgYXZvaWRpbmcgYXRvbWljX2lu
-YygpIHRoYXQgSSdtIG1pc3Npbmc/ICBEbyB5b3UgbmVlZCBhdG9taWNfaW5jKCksDQo+IHNpbmNl
-IGFzIGZhciBhcyBJIGNhbiB0ZWxsIGFsbCBtb2RpZmljYXRpb24gb2Ygbm90aWZpZXJzX3NlcSBh
-bmQNCj4gbm90aWZpZXJzX2NvdW50IGhhcHBlbnMgd2hpbGUgaG9sZGluZyB0aGUgdW1lbV9tdXRl
-eD8NCj4gDQo+IEluIGdlbmVyYWwgSSBmaW5kIGl0IHZlcnkgc3VzcGljaW91cyB0aGF0IHlvdSBo
-YXZlIHRoZXNlIHR3byBhdG9taWNfdA0KPiBtZW1iZXJzLCBub3RpZmllcnNfc2VxIGFuZCBub3Rp
-ZmllcnNfY291bnQsIGJ1dCB5b3UgbmV2ZXIgdXNlIGFueXRoaW5nDQo+IGV4Y2VwdCBhdG9taWNf
-cmVhZCgpIGFuZCBhdG9taWNfc2V0KCkgdG8gYWNjZXNzIHRoZW0uICBXaHkgYXJlIHRoZXkNCj4g
-YXRvbWljX3QgYXQgYWxsPw0KPiANCg0KVGhlIHNlcXVlbmNlIGNvdW50ZXIgaXMgcmVhZCB3aGls
-ZSBub3QgaG9sZGluZyB0aGUgbG9jay4gVG8gYXZvaWQNCmNhc2VzIHdoZXJlIHRoZSB2YWx1ZSBp
-cyBub3QgY29tcGxldGVseSB1cGRhdGVkIGR1ZSB0byBhbiBpbmNyZWFzZSBvcg0KZGVjcmVhc2Ug
-b3BlcmF0aW9uLCByZXN1bHRpbmcgaW4gYSBjb21wbGV0ZWx5IGlycmVsZXZhbnQgdmFsdWUgKGNh
-bg0KaGFwcGVuIGluIHNvbWUgd2VpcmQgQ1BVIGFyY2hpdGVjdHVyZXMpLiBXZSBwcmVmZXJyZWQg
-dG8gdXNlIGFuDQpleHBsaWNpdCBhdG9taWNfdCB0eXBlLCB3aGljaCBndWFyYW50ZWUgYXRvbWlj
-IHVwZGF0ZXMgZm9yIHN1Y2ggY2FzZXMuDQoNCldlIGF2b2lkZWQgYXRvbWljX2luYyBhcyBpdCBy
-ZXN1bHRzIGluIGEgbG9ja2VkIG9wZXJhdGlvbiBpbiBpbnRlbA0KcGxhdGZvcm0sIHdoaWNoIGlz
-IG5vdCBuZWVkZWQgaWYgdGhlIG9wZXJhdGlvbiBpcyBkb25lIHVuZGVyIGENCmxvY2suIFdlIHRo
-ZXJlZm9yZSBkbyBhbiBleHBsaWNpdCByZWFkLW1vZGlmeS13cml0ZSwgYXZvaWRpbmcgYW55DQps
-b2NrZWQgb3BlcmF0aW9ucy4NCg0KV2Ugd2lsbCByZWV4YW1pbmUgdGhlIGNvZGUgdG8gZGV0ZXJt
-aW5lIGlmIHdlIGNhbiBzYWZlbHkgc3dpdGNoIHRvDQpub3JtYWwgdmFyaWFibGVzLg0KDQpUaGFu
-a3MsDQotLVNoYWNoYXINCg==
+Hi Or Gerlitz,
+I am new to IB/iser so don't know much about the history of all these max settings being #define instead of taking the real numbers from querying the HW.  Yes, our HW driver is the ocrdma which distributes number of cqe per CQ up to 32 CQ.  There is a missing adjustable knob in iser to fine tune accordingly the underlining HW.  To give you some ideas how these values are being define now, here are the numbers and the added comments:
+
+ISER_MAX_RX_CQ_LEN             4096               /* This number should be calculated during create_session */
+ISER_QP_MAX_RECV_DTOS    512                 /* Why can't we use ISCSI_DEF_XMIT_CMDS_MAX here ? */ 
+ISER_MAX_TX_CQ_LEN             36944           /* the mlx4 hw supports up to 3 CQ, but the ocrdma hw supports up to  32CQ with lower number of cqe per CQ */
+ISER_QP_MAX_REQ_DTOS       4618
+ISCSI_ISER_MAX_CONN            8                  /* I am not sure what this 8 connections per CQ is.  Open-iscsi will supports 1 connection per session so this can implies either one of these two things:
+                                                                                        1- mlx4 is limited to 8 sessions per CQ
+                                                                                        2- mlx4 is doing something proprietary on the hw to have multiple QP per session */
+ISER_MAX_CQ                               4                  /* Should this number be much higher or bases on the number of cpu cores on the system to distribute CQ processing per core? */
+
+We are open for suggestions.
+
+-Minh
+
+-----Original Message-----
+From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org] 
+Sent: Tuesday, October 14, 2014 12:51 AM
+To: Jay Kallickal; Minh Duc Tran
+Cc: michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jayamohan Kallickal
+Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
+
+
+On 10/8/2014 2:41 AM, Jay Kallickal wrote:
+> This patch allows the underlying hardware to choose values other than  
+> hard coded max values for cqe and send_wr while preventing them from 
+> exceeding max supported values.
+
+These values are not "just" hard coded. If your HW driver (ocrdma?) can't support them, the way to fix that is different e.g use smaller number of commands per session. I don't see the point to rebase the patch before make a small design discussion here.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
