@@ -1,135 +1,54 @@
-From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] RDMA/cxgb4: Report the actual address of the remote
- connecting peer
-Date: Mon, 13 Oct 2014 15:43:22 -0500
-Message-ID: <20141013204322.GA13060@TENIKOLO-MOBL2>
+From: Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and
+ send_wr
+Date: Tue, 14 Oct 2014 05:19:13 +0000
+Message-ID: <12daeb47-f7a3-4774-b4c0-e96600b479e1@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> (sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-When iWARP port mapping is being done, the passive side of a connection
-only knows the mapped address/port of the peer.  So now query the IWPM
-to get the actual address/port of the peer.
+>On Tue, Oct 7, 2014 at 10:58 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>>On 10/8/2014 3:41 AM, Jay Kallickal wrote:
+>>From: Jayamohan Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Also setup the passive side endpoint to correctly display the actual
-and mapped addresses for the new connection.
+>>      This patch allows the underlying hardware to choose
+>>values other than  hard coded max values for cqe and send_wr
+>>while preventing them from exceeding max supported values.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+>Hi Minh and Jayamohan,
 
- drivers/infiniband/hw/cxgb4/cm.c     |   54 +++++++++++++++++++++++++++++++---
- drivers/infiniband/hw/cxgb4/device.c |    1 +
- 2 files changed, 51 insertions(+), 4 deletions(-)
+>So I agree that we would want to take device capabilities into account
+>here, but we need to be able to adjust scsi_cmds_max (can_queue) in case
+>the max wqe supported is lower than scsi_cmds_max * num_posts_per_cmd.
 
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index c2fb71c..f6c7b32 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -580,6 +580,22 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
- 		sizeof(ep->com.mapped_remote_addr));
- }
- 
-+static int get_remote_addr(struct c4iw_ep *ep)
-+{
-+	int ret;
-+
-+	print_addr(&ep->com, __func__, "get_remote_addr");
-+
-+	ret = iwpm_get_remote_info(&ep->com.mapped_local_addr,
-+				   &ep->com.mapped_remote_addr,
-+				   &ep->com.remote_addr, RDMA_NL_C4IW);
-+	if (ret)
-+		pr_info(MOD "Unable to find remote peer addr info - err %d\n",
-+			ret);
-+
-+	return ret;
-+}
-+
- static void best_mtu(const unsigned short *mtus, unsigned short mtu,
- 		     unsigned int *idx, int use_ts)
- {
-@@ -2343,27 +2359,57 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	state_set(&child_ep->com, CONNECTING);
- 	child_ep->com.dev = dev;
- 	child_ep->com.cm_id = NULL;
-+
-+	/*
-+	 * The mapped_local and mapped_remote addresses get setup with
-+	 * the actual 4-tuple.  The local address will be based on the
-+	 * actual local address of the connection, but on the port number
-+	 * of the parent listening endpoint.  The remote address is
-+	 * setup based on a query to the IWPM since we don't know what it
-+	 * originally was before mapping.  If no mapping was done, then
-+	 * mapped_remote == remote, and mapped_local == local.
-+	 */
- 	if (iptype == 4) {
- 		struct sockaddr_in *sin = (struct sockaddr_in *)
--			&child_ep->com.local_addr;
-+			&child_ep->com.mapped_local_addr;
-+
- 		sin->sin_family = PF_INET;
- 		sin->sin_port = local_port;
- 		sin->sin_addr.s_addr = *(__be32 *)local_ip;
--		sin = (struct sockaddr_in *)&child_ep->com.remote_addr;
-+
-+		sin = (struct sockaddr_in *)&child_ep->com.local_addr;
-+		sin->sin_family = PF_INET;
-+		sin->sin_port = ((struct sockaddr_in *)
-+				 &parent_ep->com.local_addr)->sin_port;
-+		sin->sin_addr.s_addr = *(__be32 *)local_ip;
-+
-+		sin = (struct sockaddr_in *)&child_ep->com.mapped_remote_addr;
- 		sin->sin_family = PF_INET;
- 		sin->sin_port = peer_port;
- 		sin->sin_addr.s_addr = *(__be32 *)peer_ip;
- 	} else {
- 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)
--			&child_ep->com.local_addr;
-+			&child_ep->com.mapped_local_addr;
-+
- 		sin6->sin6_family = PF_INET6;
- 		sin6->sin6_port = local_port;
- 		memcpy(sin6->sin6_addr.s6_addr, local_ip, 16);
--		sin6 = (struct sockaddr_in6 *)&child_ep->com.remote_addr;
-+
-+		sin6 = (struct sockaddr_in6 *)&child_ep->com.local_addr;
-+		sin6->sin6_family = PF_INET6;
-+		sin6->sin6_port = ((struct sockaddr_in6 *)
-+				   &parent_ep->com.local_addr)->sin6_port;
-+		memcpy(sin6->sin6_addr.s6_addr, local_ip, 16);
-+
-+		sin6 = (struct sockaddr_in6 *)&child_ep->com.mapped_remote_addr;
- 		sin6->sin6_family = PF_INET6;
- 		sin6->sin6_port = peer_port;
- 		memcpy(sin6->sin6_addr.s6_addr, peer_ip, 16);
- 	}
-+	memcpy(&child_ep->com.remote_addr, &child_ep->com.mapped_remote_addr,
-+	       sizeof(child_ep->com.remote_addr));
-+	get_remote_addr(child_ep);
-+
- 	c4iw_get_ep(&parent_ep->com);
- 	child_ep->parent_ep = parent_ep;
- 	child_ep->tos = GET_POPEN_TOS(ntohl(req->tos_stid));
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 72f1f05..4c0f238 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -93,6 +93,7 @@ static struct ibnl_client_cbs c4iw_nl_cb_table[] = {
- 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
- 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
- 	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
-+	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
- 	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
- 	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb}
- };
+I feel we should be fine as long as we support the max_cmds of 128 supported by open-iscsi layer.
+
+I see the iser layer uses a value of 512 though it only serves as a limit check. 
+
+
+>So generally I agree with this approach, but we need to take care of
+>stuff later when the session is created.
+
+>One more thing, this is not rebased on the latest iser patches please
+>send v1 on top of: http://marc.info/?l=linux-rdma&m=141216135013146&w=2
+
+Yes, I will recreate the patch and send on top of this
+
+
+Resending:
+ Looks like my response got dropped by the filters.
+
+Am travelling . Minh is working on the patches and would respond 
+-Jay
+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
