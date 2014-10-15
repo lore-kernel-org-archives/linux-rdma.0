@@ -1,53 +1,76 @@
-From: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and
- send_wr
-Date: Tue, 14 Oct 2014 21:53:35 +0000
-Message-ID: <44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>
-References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>
- <543CD5D6.1020506@mellanox.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the infiniband tree with Linus' tree
+Date: Wed, 15 Oct 2014 11:46:53 +1100
+Message-ID: <20141015114653.1a55081c@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <543CD5D6.1020506-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/0n3JkOwKLiY6iSmA=.YGLan"; protocol="application/pgp-signature"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Eli Cohen <eli@mellanox.com>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or Gerlitz,
-I am new to IB/iser so don't know much about the history of all these max settings being #define instead of taking the real numbers from querying the HW.  Yes, our HW driver is the ocrdma which distributes number of cqe per CQ up to 32 CQ.  There is a missing adjustable knob in iser to fine tune accordingly the underlining HW.  To give you some ideas how these values are being define now, here are the numbers and the added comments:
+--Sig_/0n3JkOwKLiY6iSmA=.YGLan
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-ISER_MAX_RX_CQ_LEN             4096               /* This number should be calculated during create_session */
-ISER_QP_MAX_RECV_DTOS    512                 /* Why can't we use ISCSI_DEF_XMIT_CMDS_MAX here ? */ 
-ISER_MAX_TX_CQ_LEN             36944           /* the mlx4 hw supports up to 3 CQ, but the ocrdma hw supports up to  32CQ with lower number of cqe per CQ */
-ISER_QP_MAX_REQ_DTOS       4618
-ISCSI_ISER_MAX_CONN            8                  /* I am not sure what this 8 connections per CQ is.  Open-iscsi will supports 1 connection per session so this can implies either one of these two things:
-                                                                                        1- mlx4 is limited to 8 sessions per CQ
-                                                                                        2- mlx4 is doing something proprietary on the hw to have multiple QP per session */
-ISER_MAX_CQ                               4                  /* Should this number be much higher or bases on the number of cpu cores on the system to distribute CQ processing per core? */
+Hi all,
 
-We are open for suggestions.
+Today's linux-next merge of the infiniband tree got a conflict in
+drivers/infiniband/hw/mlx5/qp.c between commit c7a08ac7ee68
+("net/mlx5_core: Update device capabilities handling") from Linus' tree
+and commit f83b42636a91 ("IB/mlx5: Remove duplicate code from
+mlx5_set_path") from the infiniband tree.
 
--Minh
+I fixed it up (see below) and can carry the fix as necessary (no action
+is required).
 
------Original Message-----
-From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org] 
-Sent: Tuesday, October 14, 2014 12:51 AM
-To: Jay Kallickal; Minh Duc Tran
-Cc: michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jayamohan Kallickal
-Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
+diff --cc drivers/infiniband/hw/mlx5/qp.c
+index dbfe498870c1,f1b49e024664..000000000000
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@@ -1317,6 -1302,11 +1317,11 @@@ static int mlx5_set_path(struct mlx5_ib
+  	path->rlid	=3D cpu_to_be16(ah->dlid);
+ =20
+  	if (ah->ah_flags & IB_AH_GRH) {
+ -		if (ah->grh.sgid_index >=3D dev->mdev->caps.port[port - 1].gid_table_le=
+n) {
+++		if (ah->grh.sgid_index >=3D gen->port[port - 1].gid_table_len) {
++ 			pr_err(KERN_ERR "sgid_index (%u) too large. max is %d\n",
+ -			       ah->grh.sgid_index, dev->mdev->caps.port[port - 1].gid_table_le=
+n);
+++			       ah->grh.sgid_index, gen->port[port - 1].gid_table_len);
++ 			return -EINVAL;
++ 		}
+  		path->grh_mlid |=3D 1 << 7;
+  		path->mgid_index =3D ah->grh.sgid_index;
+  		path->hop_limit  =3D ah->grh.hop_limit;
 
-On 10/8/2014 2:41 AM, Jay Kallickal wrote:
-> This patch allows the underlying hardware to choose values other than  
-> hard coded max values for cqe and send_wr while preventing them from 
-> exceeding max supported values.
+--Sig_/0n3JkOwKLiY6iSmA=.YGLan
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-These values are not "just" hard coded. If your HW driver (ocrdma?) can't support them, the way to fix that is different e.g use smaller number of commands per session. I don't see the point to rebase the patch before make a small design discussion here.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBCAAGBQJUPcQHAAoJEMDTa8Ir7ZwVc8YP/jVsDhMHsVrPby4qJyYYuTwB
+SYLu9Uq9FY2FshbcWhBJ6Afb8E3SzYqzapcdI9VWj9sPrM6yAVr4o7vdYYB0kXGJ
+jMn8jLFm40VoyNw2yLbsrwG9W1W/6CHfuZ0Rr/AXHEEbd4NTZwzmeLSf5mCe2w7K
+2h6IYDV7TchIz4ZARLmX1TH2E6CMS2mgBhDVcqIIhPi6X16aENRzkaQs6YhAugFt
+2ohXx2K2pRFMPEBgfCpTeK0TebvMKQMgICp4Izxfb0358Um7+LbIsjLie+MpTNkN
+WGGDeBXNCOfe3LUAwb0yHhHC+n30GwspheGU7klE4OhyuwlHk/686Q+clxQ4AvN6
+CvZe85xtH7oZK0xsyckUY1dcLlhePdGe5n7M2KpZRlJxpeU3s6cEdIqupwJxxBW3
+Nd17laCP2UnspnP60hcK3L8Vk50yNsaK12nU8/ecZyfxmwu4CDa5Trg1zaH+5jgb
+CnSRThjex81oX3rEB2thc5lDFT8QOiOSxCzzzQupMi6RCxlOAjpanFT2iK/Jjnnd
+4TJPbxCpNCDmSzt4K/6chbGgGe7eXoIGzzAmTote/Ty6cO9UQsaH3D3yQdsir1G3
+RXx3CTKyiyZqloGZHj21hOFCbBvw7ZjmDLb8Cox00JGvUAY4aUDRg94f2eoAqvhM
+Yv1oEX0LJX1WLG2/lDDm
+=nECD
+-----END PGP SIGNATURE-----
+
+--Sig_/0n3JkOwKLiY6iSmA=.YGLan--
