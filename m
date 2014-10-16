@@ -1,40 +1,121 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 2/2] cxgb4/rdma: configure 0B MRs to match HW implementation
-Date: Thu, 16 Oct 2014 09:17:33 -0500
-Message-ID: <001e01cfe94b$ed6aeb60$c840c220$@opengridcomputing.com>
-References: <1413452189-5427-1-git-send-email-pramod@chelsio.com> <1413452189-5427-3-git-send-email-pramod@chelsio.com> <543F9C7D.8010401@mellanox.com>
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/1] RDMA/core: Fixes for port mapper client registration
+Date: Thu, 16 Oct 2014 11:19:54 -0500
+Message-ID: <20141016161954.GA23268@TENIKOLO-MOBL2>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <543F9C7D.8010401-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Pramod Kumar' <pramod-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+IWPM_REG_CLIENT and IWPM_PREV_REG_CLIENT are added:
 
+IWPM_REG_CLIENT is a client, registered with the user
+space port mapper daemon, available at the time of the
+client register pid request.
+IWPM_PREV_REG_CLIENT is a client, which has been IWPM_REG_CLIENT
+before the user space port mapper daemon is stopped.
+After restarting the port mapper, IWPM_PREV_REG_CLIENTs provide
+their mapping info to the port mapper daemon and
+they are allowed to send remove mapping requests aftewards.
 
-> -----Original Message-----
-> From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Thursday, October 16, 2014 5:23 AM
-> To: Pramod Kumar
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-> Subject: Re: [PATCH 2/2] cxgb4/rdma: configure 0B MRs to match HW implementation
-> 
-> 
-> On 10/16/2014 12:36 PM, Pramod Kumar wrote:
-> > 0B MRs need some tweaks to work correctly with HW.
-> 
->   What's the use case?
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/iwpm_msg.c  |   13 +++++++------
+ drivers/infiniband/core/iwpm_util.c |    1 +
+ drivers/infiniband/core/iwpm_util.h |    3 +++
+ 3 files changed, 11 insertions(+), 6 deletions(-)
 
-The dapltest tool does this if you run the transaction test and do 0B IO. A customer discovered the issue.
-
-Steve.
-
-
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index ab08170..2aca295 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -67,7 +67,9 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
+ 		err_str = "Invalid port mapper client";
+ 		goto pid_query_error;
+ 	}
+-	if (iwpm_registered_client(nl_client))
++	if (iwpm_registered_client(nl_client) == IWPM_REG_CLIENT)
++		return 0;
++	if (iwpm_user_pid == IWPM_PID_UNAVAILABLE)
+ 		return 0;
+ 	skb = iwpm_create_nlmsg(RDMA_NL_IWPM_REG_PID, &nlh, nl_client);
+ 	if (!skb) {
+@@ -106,7 +108,6 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
+ 	ret = ibnl_multicast(skb, nlh, RDMA_NL_GROUP_IWPM, GFP_KERNEL);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+-		iwpm_set_registered(nl_client, 1);
+ 		iwpm_user_pid = IWPM_PID_UNAVAILABLE;
+ 		err_str = "Unable to send a nlmsg";
+ 		goto pid_query_error;
+@@ -144,7 +145,7 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		err_str = "Invalid port mapper client";
+ 		goto add_mapping_error;
+ 	}
+-	if (!iwpm_registered_client(nl_client)) {
++	if (iwpm_registered_client(nl_client) != IWPM_REG_CLIENT) {
+ 		err_str = "Unregistered port mapper client";
+ 		goto add_mapping_error;
+ 	}
+@@ -214,7 +215,7 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		err_str = "Invalid port mapper client";
+ 		goto query_mapping_error;
+ 	}
+-	if (!iwpm_registered_client(nl_client)) {
++	if (iwpm_registered_client(nl_client) != IWPM_REG_CLIENT) {
+ 		err_str = "Unregistered port mapper client";
+ 		goto query_mapping_error;
+ 	}
+@@ -388,7 +389,7 @@ int iwpm_register_pid_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	pr_debug("%s: iWarp Port Mapper (pid = %d) is available!\n",
+ 			__func__, iwpm_user_pid);
+ 	if (iwpm_valid_client(nl_client))
+-		iwpm_set_registered(nl_client, 1);
++		iwpm_set_registered(nl_client, IWPM_REG_CLIENT);
+ register_pid_response_exit:
+ 	nlmsg_request->request_done = 1;
+ 	/* always for found nlmsg_request */
+@@ -669,7 +670,7 @@ int iwpm_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 				__func__, nl_client);
+ 		return ret;
+ 	}
+-	iwpm_set_registered(nl_client, 0);
++	iwpm_set_registered(nl_client, IWPM_PREV_REG_CLIENT);
+ 	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
+ 	if (!iwpm_mapinfo_available())
+ 		return 0;
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index a626795..7a20a1b 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -106,6 +106,7 @@ int iwpm_exit(u8 nl_client)
+ 	}
+ 	mutex_unlock(&iwpm_admin_lock);
+ 	iwpm_set_valid(nl_client, 0);
++	iwpm_set_registered(nl_client, 0);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_exit);
+diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
+index ee2d9ff..b1dfd1a 100644
+--- a/drivers/infiniband/core/iwpm_util.h
++++ b/drivers/infiniband/core/iwpm_util.h
+@@ -58,6 +58,9 @@
+ #define IWPM_PID_UNDEFINED     -1
+ #define IWPM_PID_UNAVAILABLE   -2
+ 
++#define IWPM_REG_CLIENT         1
++#define IWPM_PREV_REG_CLIENT    2
++
+ struct iwpm_nlmsg_request {
+ 	struct list_head    inprocess_list;
+ 	__u32               nlmsg_seq;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
