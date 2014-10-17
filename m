@@ -1,32 +1,33 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 1/1] RDMA/core: Fixes for port mapper client registration
-Date: Thu, 16 Oct 2014 18:18:47 -0500
-Message-ID: <54405257.3060709@opengridcomputing.com>
-References: <20141016161954.GA23268@TENIKOLO-MOBL2> <005101cfe979$edec8890$c9c599b0$@opengridcomputing.com> <13AA599688F47243B14FCFCCC2C803BB0D97D2CF@fmsmsx104.amr.corp.intel.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
+Date: Fri, 17 Oct 2014 03:58:58 -0700
+Message-ID: <20141017105858.GA7819@infradead.org>
+References: <5433E43D.3010107@acm.org>
+ <5433E557.3010505@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <13AA599688F47243B14FCFCCC2C803BB0D97D2CF-96pTJSsuoYQ64kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5433E557.3010505-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/16/2014 5:19 PM, Nikolova, Tatyana E wrote:
-> Hello Steve,
->
->>> Doesn't this feature require provider support?  It seems like this patch really doesn't do anything yet.
-> It is a fix for the client registration logic. When the user space port mapper is restarted, the IWPM_PREV_REG_CLIENTs send their mapping information to the port mapper, afterwards they are allowed to send remove mapping requests and they should be.
->
-> If you look at the remove mapping request logic, you see that only registered clients are allowed to make a remove mapping request.
-> In other words, without this fix there are just registered and non-registered clients. IWPM_PREV_REG_CLIENTs are handled like non-registered clients, so their remove mapping requests aren't allowed to go the port mapper, when the rdma application closes the connections in use.
->
-> No provider support is necessary.
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index cc0bf83b..224ef25 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -853,7 +853,6 @@ static int srp_alloc_req_data(struct srp_rdma_ch *ch)
+>  			goto out;
+>  
+>  		req->indirect_dma_addr = dma_addr;
+> -		req->index = i;
+>  		list_add_tail(&req->list, &ch->free_reqs);
+>  	}
 
-Thanks for clarifying.
-
-Steve.
+Seems like a nice optimization for the future would be to preallocate
+the srp requests with the block ones and the scsi command.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
