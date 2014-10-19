@@ -1,66 +1,57 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
-Date: Sun, 19 Oct 2014 18:42:02 +0300
-Message-ID: <5443DBCA.4000002@dev.mellanox.co.il>
-References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com> <543CD5D6.1020506@mellanox.com> <44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>
+Date: Sun, 19 Oct 2014 18:50:29 +0300
+Message-ID: <5443DDC5.6020805@dev.mellanox.co.il>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>	<543CD5D6.1020506@mellanox.com>	<44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>	<CAJ3xEMjXWuZomt98YJiLfUw=rwZ5A+MUbsxEZnGMj8hP7gu0Og@mail.gmail.com>	<b7d2d454-8db1-467d-8088-bd52fac9b612@CMEXHTCAS2.ad.emulex.com> <CAJ3xEMgQ_spota-K5XiMQm1Gwk19a7=xFvGJ_JM+DfvpOQ_Nzw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <44d2d670-4785-4a76-8c05-f59791c999cf-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+In-Reply-To: <CAJ3xEMgQ_spota-K5XiMQm1Gwk19a7=xFvGJ_JM+DfvpOQ_Nzw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Minh Duc Tran <MinhDuc.Tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/15/2014 12:53 AM, Minh Duc Tran wrote:
-> Hi Or Gerlitz,
-> I am new to IB/iser so don't know much about the history of all these max settings being #define instead of taking the real numbers from querying the HW.  Yes, our HW driver is the ocrdma which distributes number of cqe per CQ up to 32 CQ.  There is a missing adjustable knob in iser to fine tune accordingly the underlining HW.  To give you some ideas how these values are being define now, here are the numbers and the added comments:
+On 10/16/2014 8:31 AM, Or Gerlitz wrote:
+> On Thu, Oct 16, 2014 at 1:41 AM, Minh Duc Tran <MinhDuc.Tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+>> With the HW and fw profile we are running with the ocrdma currently, it's 8k per CQ.  This number could change if we run on different  hw or fw profile.
 >
+> OK. So CQEs per CQ wise, there's nothing in the ocrdma (sw/fw/fw)
+> which is extremely different. The more major difference is the
+> relatively small numbers
+> of CQs per device you can support on your driver.
+>
+> Sorry for being a bit short and not explaining everything, I'm on LPC
+> 2014 so a bit busy... but AFAI-See-This,
+> here's the list of TODO items here:
+>
+> 1. change the the number of CQs to be min(num_cpus, 1/2 of what the
+> device can support)
+> 2. add the # of SCSI commands per session and y/s immediate data is
+> supported for this session to ep_connect_with_params
+>
+> Sagi, agree?
+>
+> #1 is pretty easy and we actually have it ready for 3.19
 
-Hey Minh,
-
-> ISER_MAX_RX_CQ_LEN             4096               /* This number should be calculated during create_session */
-
-So in iSER CQs are shared a across the device - so this number
-should satisfy maximum number of connections per CQ (which is currently 8).
-
-> ISER_QP_MAX_RECV_DTOS    512                 /* Why can't we use ISCSI_DEF_XMIT_CMDS_MAX here ? */
-
-iSER creates the connection QP when before the session is created - so
-it doesn't know what the user will set at cmds_max (which is potentially
-larger than ISCSI_DEF_XMIT_CMDS_MAX). So we allow 512 at the moment and
-adjust the session cmds_max accordingly. I agree that this is a work
-around for the moment as we don't know at QP creation time what is the
-user setting of cmds_max.
-
-> ISER_MAX_TX_CQ_LEN             36944           /* the mlx4 hw supports up to 3 CQ, but the ocrdma hw supports up to  32CQ with lower number of cqe per CQ */
-
-What led you to conclude that: "the mlx4 hw supports up to 3 CQ"?
-TX CQ length should be
-
-> ISER_QP_MAX_REQ_DTOS       4618
-> ISCSI_ISER_MAX_CONN            8                  /* I am not sure what this 8 connections per CQ is.  Open-iscsi will supports 1 connection per session so this can implies either one of these two things:
->                                                                                          1- mlx4 is limited to 8 sessions per CQ
->                                                                                          2- mlx4 is doing something proprietary on the hw to have multiple QP per session */
-
-As I said, CQs are per device and shared across iscsi connections. So
-each CQ will support up to 8 connections per CQ. I agree we should
-allocate more CQs in case of more connections are opened - but we never
-got any CQ to overrun (even in high stress) so this still on my todo
-list...
-
-> ISER_MAX_CQ                               4                  /* Should this number be much higher or bases on the number of cpu cores on the system to distribute CQ processing per core? */
-
-I completely agree, This is a legacy MAX ceiling. I have a patch for
-that pending at Or's table. I am all for getting it to 3.18/3.19
+Maybe even 3.18?
 
 >
-> We are open for suggestions.
+> #2 should be easy too, Max, please add it to your TODO for the ep
+> connect changes
+>
 
-OK,
+I don't think we need it in ep_connect.
+We can create CQs/QPs with min(desired, device_support) and just keep
+the sizes and adjust session cmds_max at session creation time, and max
+QPs per CQ.
 
-I'll respond to Or's reply on the TODOs.
+What I am concerned about is that we don't enforce max QPs per
+CQ. we have never seen this overrun - but no reason why it wouldn't
+happen. I have it on my todo list, but we need to take care of it soon.
+This issue would be somewhat relaxed if we got rid of the artificial
+ISER_MAX_CQ.
 
 Sagi.
 --
