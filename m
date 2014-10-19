@@ -1,72 +1,93 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration
- verbs API
-Date: Sun, 19 Oct 2014 22:01:18 +0300
-Message-ID: <54440A7E.200@dev.mellanox.co.il>
-References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com> <543CB76B.7020208@acm.org>
+Subject: Re: [PATCH RFC 2/2] IB/mlx5: Implement Fast Indirect Memory Registration
+ Feature
+Date: Sun, 19 Oct 2014 22:34:04 +0300
+Message-ID: <5444122C.6070804@dev.mellanox.co.il>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-3-git-send-email-sagig@mellanox.com> <543CB79B.6050400@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <543CB76B.7020208-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <543CB79B.6050400-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/14/2014 8:40 AM, Bart Van Assche wrote:
+On 10/14/2014 8:41 AM, Bart Van Assche wrote:
 > On 10/07/14 16:48, Sagi Grimberg wrote:
->> In order to support that we provide the user with an interface
->> to pass a scattered list of buffers to the IB core layer called
->> ib_indir_reg_list and provide the a new send work request opcode
->> called IB_WR_REG_INDIR_MR. We extend wr union with a new type of
->> memory registration called indir_reg where the user can place the
->> relevant information to perform such a memory registration.
+>> -static __be64 *mr_align(__be64 *ptr, int align)
+>> +static void *mr_align(void *ptr, int align)
+>>   {
+>>       unsigned long mask = align - 1;
 >>
->> The verbs user is expected to perform these steps:
->> 0. Make sure that the device supports Indirect memory registration via
->>     ib_device_cap_flag IB_DEVICE_INDIR_REGISTRATION and make sure
->>     that ib_device_attr max_indir_reg_mr_list_len suffice for the
->>     expected scatterlist length
->>
->> 1. Allocate a memory region with IB_MR_INDIRECT_REG creation flag
->>     This is done via ib_create_mr() with mr_init_attr.flags =
->> IB_MR_INDIRECT_REG
->>
->> 2. Allocate an ib_indir_reg_list structure to hold the scattered buffers
->>     pointers. This is done via new ib_alloc_indir_reg_list() verb
->>
->> 3. Populate the scattered buffers in ib_indir_reg_list.sg_list
->>
->> 4. Post a work request with a new opcode IB_WR_REG_INDIR_MR and
->>     provide the populated ib_indir_reg_list
->>
->> 5. Perform data transfer
->>
->> 6. Get completion of kind IB_WC_REG_INDIR_MR (if requested)
->>
->> 7. Free indirect MR and ib_indir_reg_list via
->>     ib_destroy_mr() and ib_free_indir_reg_list()
+>> -    return (__be64 *)(((unsigned long)ptr + mask) & ~mask);
+>> +    return (void *)(((unsigned long)ptr + mask) & ~mask);
+>>   }
 >
-> Hello Sagi,
+> Maybe I'm missing something, but why doesn't this function use the
+> ALIGN() macro defined in <linux/kernel.h> ? Are you aware that a type
+> with name uintptr_t has been defined in <linux/types.h> that is intended
+> for casting a pointer to an int ?
+
+Heh, you are right obviously.
+
+I'll fix that to use ALIGN(ptr, mask)
+
 >
-> Is there documentation available somewhere about the order in which an
-> HCA must execute an indirect memory registration request relative to
-> other work requests, similar to the "Work Request Operation Ordering"
-> table in the InfiniBand specification ? I think such documentation is
-> needed to ensure consistent behavior across HCA models.
+>  > +struct ib_indir_reg_list *
+>  > +mlx5_ib_alloc_indir_reg_list(struct ib_device *device,
+>  > +                 unsigned int max_indir_list_len)
 >
+> There are three k[zc]alloc() calls in this function. Can these be
+> combined into one without increasing the chance too much that this will
+> increase the order of the allocation ?
 
-So basically Indirect registration request generalizes fast registration
-work request, so it naturally it complies to the same operation ordering
-specification as fast memory registration operations.
+Well, I have 3 allocations:
+1. mlx5_indir_reg_list container
+2. sg_list: buffer of sg elements for the user to pass
+3. mapped_ilist: buffer for HW representation of sg elements.
 
-Does it make sense to add some form of
-"Documentation/infiniband/registration_ordering_rules.txt"? This should
-probably include bind_mw, fastreg, indirect_reg, local_inv..
+mapped_ilist buffer has some constraints on it (see below) so I can't
+combine it with the other two. I assume I can rearrange the structure to
+combine the fist 2 allocations together, but it can trigger a higher
+order allocation (unless I use vzalloc, but I'm not sure what is the
+benefit here...).
 
-I'd like to hear more opinions here before I add it...
-Roland, Sean, Steve, Chuck, Or?
+>
+>  > +    dsize = sizeof(*mirl->klms) * max_indir_list_len;
+>  > +    mirl->mapped_ilist = kzalloc(dsize + MLX5_UMR_ALIGN - 1,
+>  > +                      GFP_KERNEL);
+>
+> The value of the constant MLX5_UMR_ALIGN is 2048. Does that mean this
+> code will always allocate 2 KB more than needed ? Is this really the
+> minimum alignment required for this data structure ? How likely is it
+> that this code will trigger a higher order allocation ?
+
+Well, here I need a variable size physically contiguous allocation with
+a start address aligned to 2K (HW requirement). So yes, with this code
+given the user allocate more than PAGE_SIZE-2K ib_sges, a higher order
+allocation will be triggered.
+
+I allocate 2K more to ensure I can align to 2K, then I set mirl->klms to
+point at the aligned address. Any idea on how can I do this without
+allocating 2K more?
+
+>
+>  > +    if (unlikely((*seg == qp->sq.qend)))
+>
+> A minor comment: one pair of parentheses can be left out from the above
+> code.
+
+Thanks, will fix.
+
+>
+>  > +                    mlx5_ib_warn(dev, "\n");
+>
+> Will the warning generated by this code allow a user to find out which
+> code triggered that warning ?
+
+Not at all - and it should be fixed. will do.
 
 Sagi.
 --
