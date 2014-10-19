@@ -1,50 +1,37 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: mlx5_core: Fix PowerPC support
-Date: Sun, 19 Oct 2014 11:09:28 +0300
-Message-ID: <20141019080928.GF31103@mtldesk30>
-References: <20141016110852.GA16271@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH trivial] IB/srp: Allow newline separator for connection string
+Date: Sun, 19 Oct 2014 18:19:02 +0300
+Message-ID: <1413731942-3317-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141016110852.GA16271@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 16, 2014 at 02:08:52PM +0300, Dan Carpenter wrote:
-> Hello Eli Cohen,
-> 
-> The patch 05bdb2ab6b09: "mlx5_core: Fix PowerPC support" from Jan 14,
-> 2014, leads to the following static checker warning:
-> 
-> 	drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:225 free_4k()
-> 	warn: right shifting to zero
-> 
-> drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
->    214  static void free_4k(struct mlx5_core_dev *dev, u64 addr)
->    215  {
->    216          struct fw_page *fwp;
->    217          int n;
->    218  
->    219          fwp = find_fw_page(dev, addr & PAGE_MASK);
->    220          if (!fwp) {
->    221                  mlx5_core_warn(dev, "page not found\n");
->    222                  return;
->    223          }
->    224  
->    225          n = (addr & ~PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
-> 
-> Maybe n = addr >> MLX5_ADAPTER_PAGE_SHIFT; was intended?  (Totally
-> random guess).
-> 
+In case last argument of the connection string is
+processed as a string (destination gid for example).
 
-No, I need to find the index of the 4K fragment within the system page
-(64K in the case of PPC) so I need to mask out the higher bits. I
-assume you are seeing this when building on x86. When the system page
-size is 4K then n will always equal zero but in the case of larger
-page sizes (e.g. ppc), n could have non-zero values.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 62d2a18..5f590cf 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2760,7 +2760,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 		return -ENOMEM;
+ 
+ 	sep_opt = options;
+-	while ((p = strsep(&sep_opt, ",")) != NULL) {
++	while ((p = strsep(&sep_opt, ",\n")) != NULL) {
+ 		if (!*p)
+ 			continue;
+ 
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
