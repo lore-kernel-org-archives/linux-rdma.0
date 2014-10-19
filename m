@@ -1,36 +1,50 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 01/12] blk-mq: Use all available hardware queues
-Date: Fri, 17 Oct 2014 17:11:40 +0300
-Message-ID: <04EB7E61-5273-433D-9730-EA4EB963D2BD@dev.mellanox.co.il>
-References: <5433E43D.3010107@acm.org> <5433E473.4020102@acm.org> <5433FA8F.3050100@kernel.dk> <54353A74.7040406@acm.org> <20141011111114.GB9593@infradead.org> <543B9F47.2090204@acm.org> <20141017132053.GF16538@infradead.org>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: mlx5_core: Fix PowerPC support
+Date: Sun, 19 Oct 2014 11:09:28 +0300
+Message-ID: <20141019080928.GF31103@mtldesk30>
+References: <20141016110852.GA16271@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141017132053.GF16538-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141016110852.GA16271@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
->> On Mon, Oct 13, 2014 at 11:45:43AM +0200, Bart Van Assche wrote:
->> Since patch 1/12 already has been sent separately to Jens patches
->> 2/12..12/12 remain. The SRP initiator changes in this series depend on the
->> blk-mq and scsi-mq features added in patches 2/12..4/12. I think we should
->> avoid splitting these patches over multiple kernel trees to avoid having to
->> deal with dependencies between kernel trees.
+On Thu, Oct 16, 2014 at 02:08:52PM +0300, Dan Carpenter wrote:
+> Hello Eli Cohen,
 > 
-> I'd like to pull it in and Roland already did indicate that he's fine
-> with it.
+> The patch 05bdb2ab6b09: "mlx5_core: Fix PowerPC support" from Jan 14,
+> 2014, leads to the following static checker warning:
 > 
-> Sagi, can I get a review from you for the remaining SRP patches?
+> 	drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:225 free_4k()
+> 	warn: right shifting to zero
+> 
+> drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+>    214  static void free_4k(struct mlx5_core_dev *dev, u64 addr)
+>    215  {
+>    216          struct fw_page *fwp;
+>    217          int n;
+>    218  
+>    219          fwp = find_fw_page(dev, addr & PAGE_MASK);
+>    220          if (!fwp) {
+>    221                  mlx5_core_warn(dev, "page not found\n");
+>    222                  return;
+>    223          }
+>    224  
+>    225          n = (addr & ~PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
+> 
+> Maybe n = addr >> MLX5_ADAPTER_PAGE_SHIFT; was intended?  (Totally
+> random guess).
+> 
 
-As I promised Bart, it's on my todo list. Unfortunately this week I was violently pulled to another project...
-It's a holiday here in Israel, so I'm planning to review the set by mid next week.
-
-Sagi.
+No, I need to find the index of the 4K fragment within the system page
+(64K in the case of PPC) so I need to mask out the higher bits. I
+assume you are seeing this when building on x86. When the system page
+size is 4K then n will always equal zero but in the case of larger
+page sizes (e.g. ppc), n could have non-zero values.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
