@@ -1,71 +1,93 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
-Date: Mon, 20 Oct 2014 14:56:48 +0200
-Message-ID: <54450690.709@acm.org>
-References: <5433E43D.3010107@acm.org> <5433E585.607@acm.org> <5443F69F.40606@dev.mellanox.co.il>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration verbs API
+Date: Mon, 20 Oct 2014 09:54:01 -0500
+Message-ID: <003101cfec75$af7d7fc0$0e787f40$@opengridcomputing.com>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-2-git-send-email-sagig@mellanox.com> <543CB76B.7020208@acm.org> <54440A7E.200@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <5443F69F.40606@dev.mellanox.co.il>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54440A7E.200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/19/14 19:36, Sagi Grimberg wrote:
-> On 10/7/2014 4:07 PM, Bart Van Assche wrote:
->>           * comp_vector, a number in the range 0..n-1 specifying the
->> -          MSI-X completion vector. Some HCA's allocate multiple (n)
->> -          MSI-X vectors per HCA port. If the IRQ affinity masks of
->> -          these interrupts have been configured such that each MSI-X
->> -          interrupt is handled by a different CPU then the comp_vector
->> -          parameter can be used to spread the SRP completion workload
->> -          over multiple CPU's.
->> +          MSI-X completion vector of the first RDMA channel. Some
->> +          HCA's allocate multiple (n) MSI-X vectors per HCA port. If
->> +          the IRQ affinity masks of these interrupts have been
->> +          configured such that each MSI-X interrupt is handled by a
->> +          different CPU then the comp_vector parameter can be used to
->> +          spread the SRP completion workload over multiple CPU's.
->
-> This is fairly not trivial for the user...
->
-> Aren't we requesting a bit too much awareness here?
-> Can't we just "make it work"? The user hands out ch_count - why can't
-> you do some least-used logic here?
->
-> Maybe we can even go with per-cpu QPs and discard comp_vector argument?
-> this would probably bring the best performance, wouldn't it?
-> (fallback to least-used logic in case HW support less vectors)
 
-Hello Sagi,
 
-The only reason the comp_vector parameter is still supported is because 
-of backwards compatibility. What I expect is that users will set the 
-ch_count parameter but not the comp_vector parameter.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
+> Sent: Sunday, October 19, 2014 2:01 PM
+> To: Bart Van Assche; Sagi Grimberg; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; Chuck Lever; Steve
+> Wise
+> Subject: Re: [PATCH RFC 1/2] IB/core: Introduce Fast Indirect Memory Registration verbs API
+> 
+> On 10/14/2014 8:40 AM, Bart Van Assche wrote:
+> > On 10/07/14 16:48, Sagi Grimberg wrote:
+> >> In order to support that we provide the user with an interface
+> >> to pass a scattered list of buffers to the IB core layer called
+> >> ib_indir_reg_list and provide the a new send work request opcode
+> >> called IB_WR_REG_INDIR_MR. We extend wr union with a new type of
+> >> memory registration called indir_reg where the user can place the
+> >> relevant information to perform such a memory registration.
+> >>
+> >> The verbs user is expected to perform these steps:
+> >> 0. Make sure that the device supports Indirect memory registration via
+> >>     ib_device_cap_flag IB_DEVICE_INDIR_REGISTRATION and make sure
+> >>     that ib_device_attr max_indir_reg_mr_list_len suffice for the
+> >>     expected scatterlist length
+> >>
+> >> 1. Allocate a memory region with IB_MR_INDIRECT_REG creation flag
+> >>     This is done via ib_create_mr() with mr_init_attr.flags =
+> >> IB_MR_INDIRECT_REG
+> >>
+> >> 2. Allocate an ib_indir_reg_list structure to hold the scattered buffers
+> >>     pointers. This is done via new ib_alloc_indir_reg_list() verb
+> >>
+> >> 3. Populate the scattered buffers in ib_indir_reg_list.sg_list
+> >>
+> >> 4. Post a work request with a new opcode IB_WR_REG_INDIR_MR and
+> >>     provide the populated ib_indir_reg_list
+> >>
+> >> 5. Perform data transfer
+> >>
+> >> 6. Get completion of kind IB_WC_REG_INDIR_MR (if requested)
+> >>
+> >> 7. Free indirect MR and ib_indir_reg_list via
+> >>     ib_destroy_mr() and ib_free_indir_reg_list()
+> >
+> > Hello Sagi,
+> >
+> > Is there documentation available somewhere about the order in which an
+> > HCA must execute an indirect memory registration request relative to
+> > other work requests, similar to the "Work Request Operation Ordering"
+> > table in the InfiniBand specification ? I think such documentation is
+> > needed to ensure consistent behavior across HCA models.
+> >
+> 
+> So basically Indirect registration request generalizes fast registration
+> work request, so it naturally it complies to the same operation ordering
+> specification as fast memory registration operations.
+> 
+> Does it make sense to add some form of
+> "Documentation/infiniband/registration_ordering_rules.txt"? This should
+> probably include bind_mw, fastreg, indirect_reg, local_inv..
+> 
+> I'd like to hear more opinions here before I add it...
+> Roland, Sean, Steve, Chuck, Or?
+> 
+> Sagi.
 
-Using one QP per CPU thread does not necessarily result in the best 
-performance. In the tests I ran performance was about 4% better when 
-using one QP for each pair of CPU threads (with hyperthreading enabled).
+I wouldn't replicate the IB and IW specs in Documentation/infiniband/.   Perhaps just something referencing the specs and then
+saying the indirect registration adheres exactly to the fast registration rules?
 
->> +static unsigned ch_count;
->> +module_param(ch_count, uint, 0444);
->> +MODULE_PARM_DESC(ch_count,
->> +         "Number of RDMA channels to use for communication with an
->> SRP target. Using more than one channel improves performance if the
->> HCA supports multiple completion vectors. The default value is the
->> minimum of four times the number of online CPU sockets and the number
->> of completion vectors supported by the HCA.");
->
-> Why? how did you get to this magic equation?
+Steve
 
-On the systems I have access to measurements have shown that this choice 
-for the ch_count parameter results in a significant performance 
-improvement without consuming too many system resources. The performance 
-difference when using more than four channels was small. This means that 
-the exact value of this parameter is not that important. What matters to 
-me is that users can benefit from improved performance even if the 
-ch_count kernel module parameter has been left to its default value.
 
-Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
