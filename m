@@ -1,41 +1,24 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: Wake up waiters after flushing the qp
-Date: Mon, 20 Oct 2014 10:37:55 -0500
-Message-ID: <20141020153755.31500.44966.stgit@build.ogc.int>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: mlx5_core: Fix PowerPC support
+Date: Mon, 20 Oct 2014 18:45:58 +0300
+Message-ID: <20141020154558.GY26918@mwanda>
+References: <20141016110852.GA16271@mwanda>
+ <20141019080928.GF31103@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141019080928.GF31103@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When transitioning into ERROR state, the QP was getting flushed after
-waking up any waiters.  This can cause applications to miss flushed work
-requests which can stall an NFS mount.
+Ah.  Thanks for the explanation.  This was on x86.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+regards,
+dan carpenter
 
- drivers/infiniband/hw/cxgb4/qp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 41cd688..fad4851 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1538,9 +1538,9 @@ err:
- 	set_state(qhp, C4IW_QP_STATE_ERROR);
- 	free = 1;
- 	abort = 1;
--	wake_up(&qhp->wait);
- 	BUG_ON(!ep);
- 	flush_qp(qhp);
-+	wake_up(&qhp->wait);
- out:
- 	mutex_unlock(&qhp->mutex);
- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
