@@ -1,55 +1,40 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH trivial] IB/srp: Allow newline separator for connection
- string
-Date: Mon, 20 Oct 2014 17:08:17 +0200
-Message-ID: <54452561.1050508@acm.org>
-References: <1413731942-3317-1-git-send-email-sagig@mellanox.com>
+From: Chris Moore <Chris.Moore-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: Can someone help me understand the reason for this code in
+ ib_isert.c?
+Date: Mon, 20 Oct 2014 15:29:59 +0000
+Message-ID: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413731942-3317-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/19/14 17:19, Sagi Grimberg wrote:
-> In case last argument of the connection string is
-> processed as a string (destination gid for example).
->
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 62d2a18..5f590cf 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -2760,7 +2760,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
->   		return -ENOMEM;
->
->   	sep_opt = options;
-> -	while ((p = strsep(&sep_opt, ",")) != NULL) {
-> +	while ((p = strsep(&sep_opt, ",\n")) != NULL) {
->   		if (!*p)
->   			continue;
+The following code is in isert_conn_setup_qp() in ib_isert.c:
 
-Hello Sagi,
+         /*
+           * FIXME: Use devattr.max_sge - 2 for max_send_sge as
+           * work-around for RDMA_READ..
+           */
+         attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
 
-It has already happened that users were confused by a write into the 
-"add_target" sysfs attribute that failed because of a newline not being 
-accepted as a separator. This patch will avoid such confusion so I think 
-it's an improvement. Hence,
+It's not clear from the comment what this is a work-around for, and I wasn't able
+to figure it out from looking at logs.
 
-Acked-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+In trying to get isert working with ocrdma I ran into a problem where the code
+thought there was only 1 send SGE available when in fact the device has 3.
+Then I found the above work-around, which explained the problem.
 
-Roland, can you queue this patch for kernel 3.19 ?
+Removing this (setting attr.cap.max_send_sge to device->dev_attr.max_sge)
+fixes the problem with isert and ocrdma, but I don't know what other side effects
+that might have.
 
 Thanks,
 
-Bart.
+Chris
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
