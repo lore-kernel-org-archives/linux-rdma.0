@@ -1,39 +1,41 @@
-From: Chris Moore <Chris.Moore-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: Can someone help me understand the reason for this code in
- ib_isert.c?
-Date: Mon, 20 Oct 2014 15:29:59 +0000
-Message-ID: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: Wake up waiters after flushing the qp
+Date: Mon, 20 Oct 2014 10:37:55 -0500
+Message-ID: <20141020153755.31500.44966.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The following code is in isert_conn_setup_qp() in ib_isert.c:
+When transitioning into ERROR state, the QP was getting flushed after
+waking up any waiters.  This can cause applications to miss flushed work
+requests which can stall an NFS mount.
 
-         /*
-           * FIXME: Use devattr.max_sge - 2 for max_send_sge as
-           * work-around for RDMA_READ..
-           */
-         attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-It's not clear from the comment what this is a work-around for, and I wasn't able
-to figure it out from looking at logs.
+ drivers/infiniband/hw/cxgb4/qp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-In trying to get isert working with ocrdma I ran into a problem where the code
-thought there was only 1 send SGE available when in fact the device has 3.
-Then I found the above work-around, which explained the problem.
-
-Removing this (setting attr.cap.max_send_sge to device->dev_attr.max_sge)
-fixes the problem with isert and ocrdma, but I don't know what other side effects
-that might have.
-
-Thanks,
-
-Chris
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 41cd688..fad4851 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1538,9 +1538,9 @@ err:
+ 	set_state(qhp, C4IW_QP_STATE_ERROR);
+ 	free = 1;
+ 	abort = 1;
+-	wake_up(&qhp->wait);
+ 	BUG_ON(!ep);
+ 	flush_qp(qhp);
++	wake_up(&qhp->wait);
+ out:
+ 	mutex_unlock(&qhp->mutex);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
