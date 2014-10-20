@@ -1,48 +1,37 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Can someone help me understand the reason for this code in ib_isert.c?
-Date: Tue, 21 Oct 2014 00:13:22 +0300
-Message-ID: <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com>
-References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] Minor patches previous missed
+Date: Mon, 20 Oct 2014 19:24:51 -0400
+Message-ID: <cover.1413847199.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <462EF229174FDB4D92ACE4656EA5610051E2EEF9-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Moore <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 20, 2014 at 6:29 PM, Chris Moore <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> The following code is in isert_conn_setup_qp() in ib_isert.c:
->
->          /*
->            * FIXME: Use devattr.max_sge - 2 for max_send_sge as
->            * work-around for RDMA_READ..
->            */
->          attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
->
-> It's not clear from the comment what this is a work-around for, and I wasn't able
-> to figure it out from looking at logs.
+The first is a resend of the find_cached_pkey usage.  Since I never
+a valid technical argument for not using the cache function in our last
+interaction, and as most people agree that having two distinct code paths
+that do the same thing for no good reason doubles maintenance and
+debugging burdens, I'll keep submitting it until there is an alternative
+or it is accepted.
 
-I believe this refers to some IBTA spec corner case which comes into
-play with the max_sges advertized by mlx4, Eli, can you shed some
-light (IBTA pointer) on that? is this the case (i.e dev_attr.max_sge
-isn't always achievable) with mlx5 too?
+The second is a rework of the patch I did before for the ib_srpt printks
+to match what you requested (usage of pr_* functions instead of fixing 
+up printks).
 
-> In trying to get isert working with ocrdma I ran into a problem where the code
-> thought there was only 1 send SGE available when in fact the device has 3.
-> Then I found the above work-around, which explained the problem.
+Bart Van Assche (1):
+  IB/srp: Use P_Key cache for P_Key lookups
 
-Nic, any reason for attr.cap.max_send_sge = 1 not to work OK?
+Doug Ledford (1):
+  ib_srpt: convert printk's to pr_* functions
 
+ drivers/infiniband/ulp/srp/ib_srp.c   |   9 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 188 ++++++++++++++++------------------
+ 2 files changed, 96 insertions(+), 101 deletions(-)
 
+-- 
+2.1.0
 
-> Removing this (setting attr.cap.max_send_sge to device->dev_attr.max_sge)
-> fixes the problem with isert and ocrdma, but I don't know what other side effects
-> that might have.
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
