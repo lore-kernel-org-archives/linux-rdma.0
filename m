@@ -1,43 +1,53 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
-Date: Mon, 20 Oct 2014 19:14:19 +0300
-Message-ID: <544534DB.4070908@dev.mellanox.co.il>
-References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>	<543CD5D6.1020506@mellanox.com>	<44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>	<5443DBCA.4000002@dev.mellanox.co.il>	<ecfd3441-253c-47bf-b2cb-030b2a00f689@CMEXHTCAS1.ad.emulex.com> <CAJ3xEMjbYL9M12UagW52ELdLkHZFnWbKDk0CXZfo_Sf82tjugA@mail.gmail.com>
+From: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and
+ send_wr
+Date: Mon, 20 Oct 2014 18:11:41 +0000
+Message-ID: <eaf7c875-e7e1-43eb-b27a-fbd068aa32f1@CMEXHTCAS1.ad.emulex.com>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>
+	<543CD5D6.1020506@mellanox.com>
+	<44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>
+	<5443DBCA.4000002@dev.mellanox.co.il>
+	<ecfd3441-253c-47bf-b2cb-030b2a00f689@CMEXHTCAS1.ad.emulex.com>
+ <CAJ3xEMjbYL9M12UagW52ELdLkHZFnWbKDk0CXZfo_Sf82tjugA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <CAJ3xEMjbYL9M12UagW52ELdLkHZFnWbKDk0CXZfo_Sf82tjugA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Minh Duc Tran <MinhDuc.Tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/20/2014 11:01 AM, Or Gerlitz wrote:
-> On Mon, Oct 20, 2014 at 8:36 AM, Minh Duc Tran
-> <MinhDuc.Tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> > ---
-> a/drivers/infiniband/ulp/iser/iser_verbs.c
->> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
->> @@ -114,6 +114,9 @@ static int iser_create_device_ib_res(struct iser_device *device)
->>          if (IS_ERR(device->pd))
->>                  goto pd_err;
->>
->> +       max_cqe = (dev_attr->max_cqe < ISER_MAX_CQ_LEN) ?
->> +                  dev_attr->max_cqe : ISER_MAX_CQ_LEN;
->> +
->
-> If I was the ocrdma maintainer I would say load and clear: NO, please.
->
-> Your current offering supports 32 CQs per device, and this means that
-> on 32 core node you will be able to run only iSER, no other ULP.
-
-This is max CQ entries, are you referring to max_cq? or am I missing
-something?
-
-I tend to agree that if the device supports smaller CQs we should not
-just fail everything, but adjust accordingly.
-
-Sagi.
+Pj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pc2VyL2lzZXJfdmVyYnMuYw0KPj4gQEAg
+LTExNCw2ICsxMTQsOSBAQCBzdGF0aWMgaW50IGlzZXJfY3JlYXRlX2RldmljZV9pYl9yZXMoc3Ry
+dWN0IGlzZXJfZGV2aWNlICpkZXZpY2UpDQo+PiAgICAgICAgIGlmIChJU19FUlIoZGV2aWNlLT5w
+ZCkpDQo+PiAgICAgICAgICAgICAgICAgZ290byBwZF9lcnI7DQo+Pg0KPj4gKyAgICAgICBtYXhf
+Y3FlID0gKGRldl9hdHRyLT5tYXhfY3FlIDwgSVNFUl9NQVhfQ1FfTEVOKSA/DQo+PiArICAgICAg
+ICAgICAgICAgICAgZGV2X2F0dHItPm1heF9jcWUgOiBJU0VSX01BWF9DUV9MRU47DQo+PiArDQoN
+Cj5JZiBJIHdhcyB0aGUgb2NyZG1hIG1haW50YWluZXIgSSB3b3VsZCBzYXkgbG9hZCBhbmQgY2xl
+YXI6IE5PLCBwbGVhc2UuDQo+WW91ciBjdXJyZW50IG9mZmVyaW5nIHN1cHBvcnRzIDMyIENRcyBw
+ZXIgZGV2aWNlLCBhbmQgdGhpcyBtZWFucyB0aGF0IG9uIDMyIGNvcmUgbm9kZSB5b3Ugd2lsbCBi
+ZSBhYmxlIHRvIHJ1biBvbmx5IGlTRVIsIG5vIG90aGVyIFVMUC4NCj5HZW5lcmFsbHksIHRoaXMg
+YXBwcm9hY2ggaXMgd3JvbmcsIGNhdXNpbmcgYmFkIHVzZXIgZXhwZXJpZW5jZSBhbmQgd2Ugd2ls
+bCBub3QgZG8gdGhhdC4NCg0KSGkgT3IsDQoNCkFsbCAzMiBDUXMgd2lsbCBuZXZlciBnZXQgdXNl
+ZC4gIEhlcmUgYXJlIHRoZSByZWFzb25zOg0KMSkgY3VycmVudCAjZGVmaW5lIElTRVJfTUFYX0NR
+IDQNCjIpICBZb3VyIHByb3Bvc2VkIFRPRE8gIiMxLiBjaGFuZ2UgdGhlIG51bWJlciBvZiBDUXMg
+dG8gYmUgbWluKG51bV9jcHVzLCAxLzIgb2Ygd2hhdCB0aGUgZGV2aWNlIGNhbiBzdXBwb3J0KSIN
+CiAgICAgIFRoaXMgd291bGQgbGltaXRzIHRoZSBtYXggQ1FzIGRldmljZSBzdXBwb3J0cyB0byAx
+LzIgYW55d2F5Lg0KDQpJZiB5b3UgZG9uJ3QgYWdyZWUsIEkgbGlrZSB0byBnZXQgeW91ciBzdWdn
+ZXN0aW9ucyBvZiB3aGF0IEkgc2hvdWxkIGRvIGluIHRoaXMgY2FzZSBmb3IgQ1FzIHRoYXQgaGF2
+ZSA4ayBvZiBlbnRyaWVzIGVhY2guDQoNClRoYW5rcy4NCi1NaW5oDQoNCj4+ICAgICAgICAgZm9y
+IChpID0gMDsgaSA8IGRldmljZS0+Y29tcHNfdXNlZDsgaSsrKSB7DQo+PiAgICAgICAgICAgICAg
+ICAgc3RydWN0IGlzZXJfY29tcCAqY29tcCA9ICZkZXZpY2UtPmNvbXBzW2ldOw0KPj4NCj4+IEBA
+IC0xMjIsNyArMTI1LDcgQEAgc3RhdGljIGludCBpc2VyX2NyZWF0ZV9kZXZpY2VfaWJfcmVzKHN0
+cnVjdCBpc2VyX2RldmljZSAqZGV2aWNlKQ0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIGlzZXJfY3FfY2FsbGJhY2ssDQo+PiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgaXNlcl9jcV9ldmVudF9jYWxsYmFjaywNCj4+ICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAodm9pZCAqKWNvbXAsDQo+PiAtICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSVNFUl9NQVhfQ1FfTEVOLCBpKTsNCj4+ICsg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtYXhfY3FlLCBpKTsNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
