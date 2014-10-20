@@ -1,61 +1,71 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/2] IB/srp: Use P_Key cache for P_Key lookups
-Date: Mon, 20 Oct 2014 19:24:52 -0400
-Message-ID: <8fb79ad1e4677ecb673d52c03a7177b1fd4ab3a9.1413847199.git.dledford@redhat.com>
-References: <cover.1413847199.git.dledford@redhat.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1413847199.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1413847199.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-References: <cover.1413847199.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Mon, 20 Oct 2014 19:28:36 -0400
+Message-ID: <1413847716.6046.1.camel@redhat.com>
+References: <1413499938-2378-1-git-send-email-roland@kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-pz5klfjjbivPCJeG1xlw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1413499938-2378-1-git-send-email-roland@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
-This change slightly reduces the time needed to log in.
+--=-pz5klfjjbivPCJeG1xlw
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+On Thu, 2014-10-16 at 15:52 -0700, Roland Dreier wrote:
+> Hi Linus,
+>=20
+> Please pull from
+>=20
+>     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git t=
+ags/rdma-for-linus
+>=20
+> ----------------------------------------------------------------
+> Main set of InfiniBand/RDMA updates for 3.18 merge window:
+>=20
+>  - Large set of iSER initiator improvements
+>  - Hardware driver fixes for cxgb4, mlx5 and ocrdma
+>  - Small fixes to core midlayer
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 62d2a18e1b4..339b84e881e 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -40,6 +40,7 @@
- #include <linux/parser.h>
- #include <linux/random.h>
- #include <linux/jiffies.h>
-+#include <rdma/ib_cache.h>
- 
- #include <linux/atomic.h>
- 
-@@ -260,10 +261,10 @@ static int srp_init_qp(struct srp_target_port *target,
- 	if (!attr)
- 		return -ENOMEM;
- 
--	ret = ib_find_pkey(target->srp_host->srp_dev->dev,
--			   target->srp_host->port,
--			   be16_to_cpu(target->path.pkey),
--			   &attr->pkey_index);
-+	ret = ib_find_cached_pkey(target->srp_host->srp_dev->dev,
-+				  target->srp_host->port,
-+				  be16_to_cpu(target->path.pkey),
-+				  &attr->pkey_index);
- 	if (ret)
- 		goto out;
- 
--- 
-2.1.0
+The IPoIB multicast locking fixes I submitted for 3.17 that you put off
+until 3.18 are missing from this list.  The set can be found here in
+case you've lost them:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+https://patchwork.kernel.org/bundle/dledford/IPoIB%20Locking%20Fixes/
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-pz5klfjjbivPCJeG1xlw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJURZq/AAoJELgmozMOVy/dISEP/jLXutqB1nnWfYX0572X2DYA
+Zfb4VBEbqb03gc47s26vMOeO8GF/UAAyWdM/oZ3yEBq8MoS0JMAUHoWd+7RCfThF
+NbdQFkBhdzE83PDc9ZIMyvLngCiRsQ1LmtP/7bxwLsMhmxVes5NRECFQTmXOMZwe
+PJ7okFE9jOnLaYFNTBOXOEaRli+ThE0aYzcC9c/UCAWC0sHnDJssvgAg5ZKfDuTP
+uYKWD3N+vU4pQZ30NiE742pOjBqgUjnEypSovdLG+9F4WJxPvNc9S15BpdV+sE/z
+xbggA8tpFv66FEBmm1O26oZzz6Be8JD3lQ4QjrL829e50x4ui/F1jHOzMM/0gqcS
+Zeh3ahxr/a972EMP7B9GCV1L+VkSyj9zDGuR/RNJ8ml0rVMc+R3szno9CWW1letI
+R0IACEJfFwl7acJOVJ38sPqO694RK+btBNinjGCH8OnH7wNxloVpv6X9dW/n2B4R
+2UdO3/peQ7EqlvejurDTALBgN+ycJ+AQ/QK76h2Ha7J+ou0wt9wveTvvOkyA0OmP
+byaZnCtsCufRywKBhJzXMttkVjdL4y69Db2rENjR41pBNxSLZp640KfU1CgeYAUP
+w/SU8e5/IOOi79nkg1WluXerJl0AO5Vi5dEy2i0QZd6m04v+BrB+112dnrdVU/42
+oNInYDgjBAyASmYreRNH
+=gkV1
+-----END PGP SIGNATURE-----
+
+--=-pz5klfjjbivPCJeG1xlw--
