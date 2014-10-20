@@ -1,95 +1,149 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 2/2] IB/mlx5: Implement Fast Indirect Memory Registration
- Feature
-Date: Sun, 19 Oct 2014 22:34:04 +0300
-Message-ID: <5444122C.6070804@dev.mellanox.co.il>
-References: <1412693281-6161-1-git-send-email-sagig@mellanox.com> <1412693281-6161-3-git-send-email-sagig@mellanox.com> <543CB79B.6050400@acm.org>
+From: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and
+ send_wr
+Date: Mon, 20 Oct 2014 05:36:50 +0000
+Message-ID: <ecfd3441-253c-47bf-b2cb-030b2a00f689@CMEXHTCAS1.ad.emulex.com>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com>
+ <543CD5D6.1020506@mellanox.com>
+ <44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com>
+ <5443DBCA.4000002@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <543CB79B.6050400-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <5443DBCA.4000002-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/14/2014 8:41 AM, Bart Van Assche wrote:
-> On 10/07/14 16:48, Sagi Grimberg wrote:
->> -static __be64 *mr_align(__be64 *ptr, int align)
->> +static void *mr_align(void *ptr, int align)
->>   {
->>       unsigned long mask = align - 1;
+Hi Sagi,
+
+I've created a new patch over the 21 iser patches you have mentioned early in this thread.  It is pasted at the end of this email.
+If I understand correctly, this patch will be applied along with Or's TODO list.
+
+
+>> ISER_MAX_RX_CQ_LEN             4096               /* This number should be calculated during create_session */
+
+>So in iSER CQs are shared a across the device - so this number should satisfy maximum number of connections per CQ (which is currently 8).
+
+Again, there should be no rules enforcing a CQ to support 8 connections.  The underlining hw should be able to supports more or less as it is configured to do.  Specific to the ocrdma hw, it has lower number of CQE per CQ but it has 32 CQ
+
+>> ISER_QP_MAX_RECV_DTOS    512                 /* Why can't we use ISCSI_DEF_XMIT_CMDS_MAX here ? */
+
+>iSER creates the connection QP when before the session is created - so it doesn't know what the user will set at cmds_max (which is potentially larger than ISCSI_DEF_XMIT_CMDS_MAX). So we allow 512 at the moment and adjust the session cmds_max accordingly. I agree that this is a >work around for the moment as we don't know at QP creation time what is the user setting of cmds_max.
+
+Like any other drivers, we should limit this number to the range hw supports.  If user setting is within hw range then number will be adjusted accordingly.  If user setting is not within hw range, set it to default values.
+What about something like this:
+#define ISER_GET_MAX_XMIT_CMDS(send_wr) (send_wr - ISER_MAX_TX_MISC_PDUS - \
+					ISER_MAX_RX_MISC_PDUS)	/	\
+					 (1 + ISER_INFLIGHT_DATAOUTS)
+cmds_max_supported = ISER_GET_MAX_XMIT_CMDS(dev_attr->max_qp_wr)
+
+
+>> ISER_MAX_TX_CQ_LEN             36944           /* the mlx4 hw supports up to 3 CQ, but the ocrdma hw supports up to  32CQ with lower number of cqe per CQ */
+
+>What led you to conclude that: "the mlx4 hw supports up to 3 CQ"?
+>TX CQ length should be
+
+I was debugging some iser target problems sometimes back.  I could be wrong with 3CQ but it's not far from the hard limit of 4CQ set by current ib/iser code
+
+>> ISER_QP_MAX_REQ_DTOS       4618
+> >ISCSI_ISER_MAX_CONN            8                  /* I am not sure what this 8 connections per CQ is.  Open-iscsi will supports 1 connection per session so this can implies either one of these two things:
+>>                                                                                          1- mlx4 is limited to 8 sessions per CQ
+>>                                                                                          
+>> 2- mlx4 is doing something proprietary on the hw to have multiple QP 
+>> per session */
+
+>As I said, CQs are per device and shared across iscsi connections. So each CQ will support up to 8 connections per CQ. I agree we should allocate more CQs in case of more connections are opened - but we never got any CQ to overrun (even in high stress) so this still on my todo list...
+
+>> ISER_MAX_CQ                               4                  /* Should this number be much higher or bases on the number of cpu cores on the system to distribute CQ processing per core? */
+
+>I completely agree, This is a legacy MAX ceiling. I have a patch for that pending at Or's table. I am all for getting it to 3.18/3.19
+
 >>
->> -    return (__be64 *)(((unsigned long)ptr + mask) & ~mask);
->> +    return (void *)(((unsigned long)ptr + mask) & ~mask);
->>   }
->
-> Maybe I'm missing something, but why doesn't this function use the
-> ALIGN() macro defined in <linux/kernel.h> ? Are you aware that a type
-> with name uintptr_t has been defined in <linux/types.h> that is intended
-> for casting a pointer to an int ?
+>> We are open for suggestions.
 
-Heh, you are right obviously.
+>OK,
 
-I'll fix that to use ALIGN(ptr, mask)
+>I'll respond to Or's reply on the TODOs.
 
->
->  > +struct ib_indir_reg_list *
->  > +mlx5_ib_alloc_indir_reg_list(struct ib_device *device,
->  > +                 unsigned int max_indir_list_len)
->
-> There are three k[zc]alloc() calls in this function. Can these be
-> combined into one without increasing the chance too much that this will
-> increase the order of the allocation ?
+>Sagi.
 
-Well, I have 3 allocations:
-1. mlx5_indir_reg_list container
-2. sg_list: buffer of sg elements for the user to pass
-3. mapped_ilist: buffer for HW representation of sg elements.
 
-mapped_ilist buffer has some constraints on it (see below) so I can't
-combine it with the other two. I assume I can rearrange the structure to
-combine the fist 2 allocations together, but it can trigger a higher
-order allocation (unless I use vzalloc, but I'm not sure what is the
-benefit here...).
+================
+From: Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
->
->  > +    dsize = sizeof(*mirl->klms) * max_indir_list_len;
->  > +    mirl->mapped_ilist = kzalloc(dsize + MLX5_UMR_ALIGN - 1,
->  > +                      GFP_KERNEL);
->
-> The value of the constant MLX5_UMR_ALIGN is 2048. Does that mean this
-> code will always allocate 2 KB more than needed ? Is this really the
-> minimum alignment required for this data structure ? How likely is it
-> that this code will trigger a higher order allocation ?
+        This patch allows the underlying hardware to choose
+values other than  hard coded max values for cqe and send_wr
+while preventing them from exceeding max supported values.
 
-Well, here I need a variable size physically contiguous allocation with
-a start address aligned to 2K (HW requirement). So yes, with this code
-given the user allocate more than PAGE_SIZE-2K ib_sges, a higher order
-allocation will be triggered.
+Signed-off-by: Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jayamohan Kallickal <jayamohan.kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iser_verbs.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-I allocate 2K more to ensure I can align to 2K, then I set mirl->klms to
-point at the aligned address. Any idea on how can I do this without
-allocating 2K more?
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 67225bb..73955c1 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -76,7 +76,7 @@ static void iser_event_handler(struct ib_event_handler *handler,
+ static int iser_create_device_ib_res(struct iser_device *device)
+ {
+        struct ib_device_attr *dev_attr = &device->dev_attr;
+-       int ret, i;
++       int ret, i, max_cqe;
 
->
->  > +    if (unlikely((*seg == qp->sq.qend)))
->
-> A minor comment: one pair of parentheses can be left out from the above
-> code.
+        ret = ib_query_device(device->ib_device, dev_attr);
+        if (ret) {
+@@ -114,6 +114,9 @@ static int iser_create_device_ib_res(struct iser_device *device)
+        if (IS_ERR(device->pd))
+                goto pd_err;
 
-Thanks, will fix.
++       max_cqe = (dev_attr->max_cqe < ISER_MAX_CQ_LEN) ?
++                  dev_attr->max_cqe : ISER_MAX_CQ_LEN;
++
+        for (i = 0; i < device->comps_used; i++) {
+                struct iser_comp *comp = &device->comps[i];
 
->
->  > +                    mlx5_ib_warn(dev, "\n");
->
-> Will the warning generated by this code allow a user to find out which
-> code triggered that warning ?
+@@ -122,7 +125,7 @@ static int iser_create_device_ib_res(struct iser_device *device)
+                                        iser_cq_callback,
+                                        iser_cq_event_callback,
+                                        (void *)comp,
+-                                       ISER_MAX_CQ_LEN, i);
++                                       max_cqe, i);
+                if (IS_ERR(comp->cq)) {
+                        comp->cq = NULL;
+                        goto cq_err;
+@@ -426,6 +429,7 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ {
+        struct iser_device      *device;
++       struct ib_device_attr *dev_attr;
+        struct ib_qp_init_attr  init_attr;
+        int                     ret = -ENOMEM;
+        int index, min_index = 0;
+@@ -433,6 +437,7 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+        BUG_ON(ib_conn->device == NULL);
 
-Not at all - and it should be fixed. will do.
+        device = ib_conn->device;
++       dev_attr = &device->dev_attr;
 
-Sagi.
+        memset(&init_attr, 0, sizeof init_attr);
+
+@@ -461,7 +466,9 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+                init_attr.cap.max_send_wr = ISER_QP_SIG_MAX_REQ_DTOS + 1;
+                init_attr.create_flags |= IB_QP_CREATE_SIGNATURE_EN;
+        } else {
+-               init_attr.cap.max_send_wr  = ISER_QP_MAX_REQ_DTOS + 1;
++               init_attr.cap.max_send_wr  =
++                       (dev_attr->max_qp_wr < ISER_QP_MAX_REQ_DTOS) ?
++                        dev_attr->max_qp_wr : ISER_QP_MAX_REQ_DTOS;
+        }
+
+        ret = rdma_create_qp(ib_conn->cma_id, device->pd, &init_attr);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
