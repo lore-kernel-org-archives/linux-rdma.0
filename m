@@ -1,39 +1,59 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] send client reregistration in case of SM LID change
-Date: Tue, 21 Oct 2014 08:07:26 -0400
-Message-ID: <54464C7E.6000702@dev.mellanox.co.il>
-References: <1413879962-15383-1-git-send-email-vladimirk@mellanox.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC 2/2] IB/mlx5: Implement Fast Indirect Memory
+ Registration Feature
+Date: Tue, 21 Oct 2014 16:12:20 +0300
+Message-ID: <20141021123531.GA23683@mtldesk30>
+References: <1412693281-6161-1-git-send-email-sagig@mellanox.com>
+ <1412693281-6161-3-git-send-email-sagig@mellanox.com>
+ <543AD8DE.5060404@mellanox.com>
+ <543B8E09.6090606@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413879962-15383-1-git-send-email-vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <543B8E09.6090606-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/21/2014 4:26 AM, Vladimir Koushnir wrote:
-> if for some reason SM LID recorded in PortInfo of the node is different
-> from our SM LID, it is safer to send client reregister notification to this node
-> to trigger reregistration of the node in Master SM.
+On Mon, Oct 13, 2014 at 11:32:09AM +0300, Sagi Grimberg wrote:
+> >
+> >>+static void set_indir_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
+> >>+                  struct ib_send_wr *wr)
+> >>+{
+> >>+    u64 mask;
+> >>+    u32 list_len = wr->wr.indir_reg.indir_list_len;
+> >>+
+> >>+    memset(umr, 0, sizeof(*umr));
+> >>+
+> >>+    umr->klm_octowords = get_klm_octo(list_len * 2);
+> >>+    mask = MLX5_MKEY_MASK_LEN        |
+> >>+        MLX5_MKEY_MASK_PAGE_SIZE    |
+> >>+        MLX5_MKEY_MASK_START_ADDR    |
+> >>+        MLX5_MKEY_MASK_EN_RINVAL    |
+> >>+        MLX5_MKEY_MASK_KEY        |
+> >>+        MLX5_MKEY_MASK_LR        |
+> >>+        MLX5_MKEY_MASK_LW        |
+> >>+        MLX5_MKEY_MASK_RR        |
+> >>+        MLX5_MKEY_MASK_RW        |
+> >>+        MLX5_MKEY_MASK_A        |
+> >>+        MLX5_MKEY_MASK_FREE;
+> >>+
+> >>+    umr->mkey_mask = cpu_to_be64(mask);
+> >>+}
+> >
+> >here you basically replicate the majority of the code from
+> >set_reg_umr_segment - share the common part...
 > 
-> This scenario may occur when Standby SM loses connectivity to the Master SM and becomes
-> Master SM for some time period. If the connectivity is re-established but Handover sent by
-> Standby SM is lost. the only indication about SM handovers in the fabric is SM LID mis-configuration
-> in some nodes.
+> I've thought about it, but I know Eli prefers not to centralize the
+> umr control segment (and mkey context) setting routines at this point.
+> I am not against doing it at all, but let's let Eli comment here.
 > 
-> It is important to note that this is a workaround.
-> Some applications/ULPs only look at client reregistration and not at SM LID change.
-> Most IB device drivers are not currently issuing SM LID change local event.
-> 
-> The fix forces opensm to set client reregister bit in PortInfo(Set) in the scenario above.
-> 
-> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks. Applied.
-
--- Hal
+We have some versions of this mask building but they are not
+identical. Note that we build the mask at compile time so it does not
+affect code size and it will make future changes easier.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
