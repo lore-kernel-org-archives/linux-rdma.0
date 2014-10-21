@@ -1,71 +1,93 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [GIT PULL] please pull infiniband.git
-Date: Mon, 20 Oct 2014 19:28:36 -0400
-Message-ID: <1413847716.6046.1.camel@redhat.com>
-References: <1413499938-2378-1-git-send-email-roland@kernel.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-pz5klfjjbivPCJeG1xlw"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1413499938-2378-1-git-send-email-roland@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] send client reregistration in case of SM LID change
+Date: Tue, 21 Oct 2014 10:26:02 +0200
+Message-ID: <1413879962-15383-1-git-send-email-vladimirk@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+if for some reason SM LID recorded in PortInfo of the node is different
+from our SM LID, it is safer to send client reregister notification to this node
+to trigger reregistration of the node in Master SM.
 
---=-pz5klfjjbivPCJeG1xlw
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This scenario may occur when Standby SM loses connectivity to the Master SM and becomes
+Master SM for some time period. If the connectivity is re-established but Handover sent by
+Standby SM is lost. the only indication about SM handovers in the fabric is SM LID mis-configuration
+in some nodes.
 
-On Thu, 2014-10-16 at 15:52 -0700, Roland Dreier wrote:
-> Hi Linus,
->=20
-> Please pull from
->=20
->     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git t=
-ags/rdma-for-linus
->=20
-> ----------------------------------------------------------------
-> Main set of InfiniBand/RDMA updates for 3.18 merge window:
->=20
->  - Large set of iSER initiator improvements
->  - Hardware driver fixes for cxgb4, mlx5 and ocrdma
->  - Small fixes to core midlayer
+It is important to note that this is a workaround.
+Some applications/ULPs only look at client reregistration and not at SM LID change.
+Most IB device drivers are not currently issuing SM LID change local event.
 
-The IPoIB multicast locking fixes I submitted for 3.17 that you put off
-until 3.18 are missing from this list.  The set can be found here in
-case you've lost them:
+The fix forces opensm to set client reregister bit in PortInfo(Set) in the scenario above.
 
-https://patchwork.kernel.org/bundle/dledford/IPoIB%20Locking%20Fixes/
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_lid_mgr.c |   28 +++++++++++++++++++---------
+ 1 files changed, 19 insertions(+), 9 deletions(-)
 
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
+diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
+index f52c770..9f4858d 100644
+--- a/opensm/osm_lid_mgr.c
++++ b/opensm/osm_lid_mgr.c
+@@ -806,6 +806,7 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 	uint8_t op_vls;
+ 	uint8_t port_num;
+ 	boolean_t send_set = FALSE;
++	boolean_t send_client_rereg = FALSE;
+ 	boolean_t update_mkey = FALSE;
+ 	int ret = 0;
+ 
+@@ -892,11 +893,17 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 		p_mgr->dirty = TRUE;
+ 	}
+ 
+-	/* we are updating the ports with our local sm_base_lid */
++	/*
++	   We are updating the ports with our local sm_base_lid
++	   if for some reason currently received SM LID is different from our SM LID,
++	   need to send client reregister to this port
++	*/
+ 	p_pi->master_sm_base_lid = p_mgr->p_subn->sm_base_lid;
+ 	if (memcmp(&p_pi->master_sm_base_lid, &p_old_pi->master_sm_base_lid,
+-		   sizeof(p_pi->master_sm_base_lid)))
++		   sizeof(p_pi->master_sm_base_lid))) {
++		send_client_rereg = TRUE;
+ 		send_set = TRUE;
++	}
+ 
+ 	p_pi->m_key_lease_period = p_mgr->p_subn->opt.m_key_lease_period;
+ 	if (memcmp(&p_pi->m_key_lease_period, &p_old_pi->m_key_lease_period,
+@@ -1029,13 +1036,16 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 	context.pi_context.active_transition = FALSE;
+ 
+ 	/*
+-	   We need to set the cli_rereg bit when we are in first_time_master_sweep
+-	   for ports supporting the ClientReregistration Vol1 (v1.2) p811 14.4.11
+-	   Also, if this port was just now discovered, then we should also set
+-	   the cli_rereg bit. We know that the port was just discovered if its
+-	   is_new field is set.
+-	 */
+-	if ((p_mgr->p_subn->first_time_master_sweep == TRUE || p_port->is_new)
++	  For ports supporting the ClientReregistration Vol1 (v1.2) p811 14.4.11:
++	  need to set the cli_rereg bit when current SM LID at the Host
++	  is different from our SM LID,
++	  also if we are in first_time_master_sweep,
++	  also if this port was just now discovered, then we should also set
++	  the cli_rereg bit (we know that the port was just discovered
++	  if its is_new field is set).
++	*/
++	if  ((send_client_rereg ||
++	    p_mgr->p_subn->first_time_master_sweep == TRUE || p_port->is_new)
+ 	    && !p_mgr->p_subn->opt.no_clients_rereg
+ 	    && (p_old_pi->capability_mask & IB_PORT_CAP_HAS_CLIENT_REREG)) {
+ 		OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
+-- 
+1.7.1
 
-
-
---=-pz5klfjjbivPCJeG1xlw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJURZq/AAoJELgmozMOVy/dISEP/jLXutqB1nnWfYX0572X2DYA
-Zfb4VBEbqb03gc47s26vMOeO8GF/UAAyWdM/oZ3yEBq8MoS0JMAUHoWd+7RCfThF
-NbdQFkBhdzE83PDc9ZIMyvLngCiRsQ1LmtP/7bxwLsMhmxVes5NRECFQTmXOMZwe
-PJ7okFE9jOnLaYFNTBOXOEaRli+ThE0aYzcC9c/UCAWC0sHnDJssvgAg5ZKfDuTP
-uYKWD3N+vU4pQZ30NiE742pOjBqgUjnEypSovdLG+9F4WJxPvNc9S15BpdV+sE/z
-xbggA8tpFv66FEBmm1O26oZzz6Be8JD3lQ4QjrL829e50x4ui/F1jHOzMM/0gqcS
-Zeh3ahxr/a972EMP7B9GCV1L+VkSyj9zDGuR/RNJ8ml0rVMc+R3szno9CWW1letI
-R0IACEJfFwl7acJOVJ38sPqO694RK+btBNinjGCH8OnH7wNxloVpv6X9dW/n2B4R
-2UdO3/peQ7EqlvejurDTALBgN+ycJ+AQ/QK76h2Ha7J+ou0wt9wveTvvOkyA0OmP
-byaZnCtsCufRywKBhJzXMttkVjdL4y69Db2rENjR41pBNxSLZp640KfU1CgeYAUP
-w/SU8e5/IOOi79nkg1WluXerJl0AO5Vi5dEy2i0QZd6m04v+BrB+112dnrdVU/42
-oNInYDgjBAyASmYreRNH
-=gkV1
------END PGP SIGNATURE-----
-
---=-pz5klfjjbivPCJeG1xlw--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
