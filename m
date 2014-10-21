@@ -1,55 +1,39 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH trivial] IB/srp: Allow newline separator for connection
- string
-Date: Tue, 21 Oct 2014 14:01:13 +0300
-Message-ID: <54463CF9.6070706@dev.mellanox.co.il>
-References: <1413731942-3317-1-git-send-email-sagig@mellanox.com> <54452561.1050508@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] send client reregistration in case of SM LID change
+Date: Tue, 21 Oct 2014 08:07:26 -0400
+Message-ID: <54464C7E.6000702@dev.mellanox.co.il>
+References: <1413879962-15383-1-git-send-email-vladimirk@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54452561.1050508-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1413879962-15383-1-git-send-email-vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/20/2014 6:08 PM, Bart Van Assche wrote:
-> On 10/19/14 17:19, Sagi Grimberg wrote:
->> In case last argument of the connection string is
->> processed as a string (destination gid for example).
->>
->> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
->> b/drivers/infiniband/ulp/srp/ib_srp.c
->> index 62d2a18..5f590cf 100644
->> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->> @@ -2760,7 +2760,7 @@ static int srp_parse_options(const char *buf,
->> struct srp_target_port *target)
->>           return -ENOMEM;
->>
->>       sep_opt = options;
->> -    while ((p = strsep(&sep_opt, ",")) != NULL) {
->> +    while ((p = strsep(&sep_opt, ",\n")) != NULL) {
->>           if (!*p)
->>               continue;
->
-> Hello Sagi,
->
-> It has already happened that users were confused by a write into the
-> "add_target" sysfs attribute that failed because of a newline not being
-> accepted as a separator. This patch will avoid such confusion so I think
-> it's an improvement. Hence,
->
+On 10/21/2014 4:26 AM, Vladimir Koushnir wrote:
+> if for some reason SM LID recorded in PortInfo of the node is different
+> from our SM LID, it is safer to send client reregister notification to this node
+> to trigger reregistration of the node in Master SM.
+> 
+> This scenario may occur when Standby SM loses connectivity to the Master SM and becomes
+> Master SM for some time period. If the connectivity is re-established but Handover sent by
+> Standby SM is lost. the only indication about SM handovers in the fabric is SM LID mis-configuration
+> in some nodes.
+> 
+> It is important to note that this is a workaround.
+> Some applications/ULPs only look at client reregistration and not at SM LID change.
+> Most IB device drivers are not currently issuing SM LID change local event.
+> 
+> The fix forces opensm to set client reregister bit in PortInfo(Set) in the scenario above.
+> 
+> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I would consider it a minor bug fix (and CC it to stable).
+Thanks. Applied.
 
-Sagi.
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
