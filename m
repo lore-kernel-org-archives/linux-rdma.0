@@ -1,109 +1,103 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] iba/ib_types.h: Add support for new MAD SM:PortInfoExtended
- and for modifying PM:PortExtendedSpeedsCounters
-Date: Wed, 22 Oct 2014 08:41:09 -0400
-Message-ID: <5447A5E5.4080502@dev.mellanox.co.il>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: Can someone help me understand the reason for this code in
+ ib_isert.c?
+Date: Wed, 22 Oct 2014 14:50:01 -0700
+Message-ID: <1414014601.20457.12.camel@haakon3.risingtidesystems.com>
+References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
+	 <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com>
+	 <1413954397.30983.33.camel@haakon3.risingtidesystems.com>
+	 <544772AA.7060003@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <544772AA.7060003@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Or Gerlitz <gerlitz.or@gmail.com>, Chris Moore <Chris.Moore@emulex.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 2014-10-22 at 12:02 +0300, Or Gerlitz wrote:
+> On 10/22/2014 8:06 AM, Nicholas A. Bellinger wrote:
+> > On Tue, 2014-10-21 at 00:13 +0300, Or Gerlitz wrote:
+> >> On Mon, Oct 20, 2014 at 6:29 PM, Chris Moore <Chris.Moore@emulex.com> wrote:
+> >>> The following code is in isert_conn_setup_qp() in ib_isert.c:
+> >>>
+> >>>           /*
+> >>>             * FIXME: Use devattr.max_sge - 2 for max_send_sge as
+> >>>             * work-around for RDMA_READ..
+> >>>             */
+> >>>           attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
+> >>>
+> >>> It's not clear from the comment what this is a work-around for, and I wasn't able
+> >>> to figure it out from looking at logs.
+> >> I believe this refers to some IBTA spec corner case which comes into
+> >> play with the max_sges advertized by mlx4, Eli, can you shed some
+> >> light (IBTA pointer) on that? is this the case (i.e dev_attr.max_sge
+> >> isn't always achievable) with mlx5 too?
+> >>
+> > It's for ConnectX-2 reporting max_sge=31 during development, while the
+> > largest max_send_sge for stable large block RDMA reads was (is..?) 29
+> > SGEs.
+> >
+> >>> In trying to get isert working with ocrdma I ran into a problem where the code
+> >>> thought there was only 1 send SGE available when in fact the device has 3.
+> >>> Then I found the above work-around, which explained the problem.
+> >> Nic, any reason for attr.cap.max_send_sge = 1 not to work OK?
+> >>
+> > IIRC, pre fastreg code supported max_send_sge=1 by limiting the transfer
+> > size per RDMA read, and would issue subsequent RDMA read + offset from
+> > completion up to the total se_cmd->data_length.
+> >
+> > Not sure how this works with fastreg today.  Sagi..?
+> >
+> 
+> While on fastreg mode, for RDMA reads  we use only one SGE, talking to 
+> Sagi he explained me that the problem with creating the QP with 
+> max_send_sge = 1 has to do with other flows where two or even three SGEs 
+> are needed, e.g when the iscsi/iser header (doesn't exist in RDMA ops) 
+> is taken from one spot of the memory and the data (sense) taken from 
+> another one?
+> 
+> Nic, we need to see what is the minimum needed by the code (two?) and 
+> tweak that line to make sure it gets there as long as the device 
+> supports it, SB, makes sense?
+> 
+>
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
+> b/drivers/infiniband/ulp/isert/ib_isert.c
+> index 0bea577..24abbb3 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> @@ -115,9 +115,10 @@ isert_conn_setup_qp(struct isert_conn *isert_conn, 
+> struct rdma_cm_id *cma_id,
+>          attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS;
+>          /*
+>           * FIXME: Use devattr.max_sge - 2 for max_send_sge as
+> -        * work-around for RDMA_READ..
+> +        * work-around for RDMA_READ.. still need to make sure to
+> +        * have at least two SGEs for SCSI responses.
+>           */
+> -       attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
+> +       attr.cap.max_send_sge = max(2, device->dev_attr.max_sge - 2);
+>          isert_conn->max_sge = attr.cap.max_send_sge;
+> 
+>          attr.cap.max_recv_sge = 1;
+> 
+> 
 
-This commit is to support IBA spec changes for SM:PortInfoExtended and
-PM:PortExtendedSpeedsCounters).
+After a quick audit, the minimum max_send_sge=2 patch looks correct for
+the hardcoded tx_desc->num_sge cases in isert_put_login_tx(),
+isert_put_response(), isert_put_reject() and isert_put_text_rsp().
 
-This change includes:
-1. Adding new capability mask parse options for SM:PortInfo:CapabilityMask2.
-2. Adding new capability mask parse options for
-SM:PortInfoExtended:CapabilityMask.
-3. Adding new capability mask parse options for
-PM:ClassPortInfo:CapabilityMask.
-4. Adding structs for SM:PortInfoExtended and for
-SA:PortInfoExtendedRecord.
+For the RDMA read path with non fast-reg, isert_build_rdma_wr() is still
+correctly limiting the SGEs per operation based upon the negotiated
+isert_conn->max_sge set above in isert_conn_setup_qp().
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/iba/ib_types.h |   43 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 43 insertions(+), 0 deletions(-)
+Chris, please confirm on ocrdma with Or's patch, and I'll include his
+patch into target-pending/queue for now, and move into master once you
+give a proper Tested-By.
 
-diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
-index 59bd424..93c706e 100644
---- a/include/iba/ib_types.h
-+++ b/include/iba/ib_types.h
-@@ -3528,6 +3528,9 @@ typedef struct _ib_class_port_info {
- #define IB_PM_EXT_WIDTH_NOIETF_SUP		(CL_HTON16(((uint16_t)1)<<10))
- #define IB_PM_SAMPLES_ONLY_SUP			(CL_HTON16(((uint16_t)1)<<11))
- #define IB_PM_PC_XMIT_WAIT_SUP			(CL_HTON16(((uint16_t)1)<<12))
-+#define IS_PM_INH_LMTD_PKEY_MC_CONSTR_ERR	(CL_HTON16(((uint16_t)1)<<13))
-+#define IS_PM_RSFEC_COUNTERS_SUP		(CL_HTON16(((uint16_t)1)<<14))
-+#define IB_PM_IS_QP1_DROP_SUP			(CL_HTON16(((uint16_t)1)<<15))
- 
- /****f* IBA Base: Types/ib_class_set_resp_time_val
- * NAME
-@@ -4660,6 +4663,37 @@ typedef struct _ib_port_info {
- #define IB_PORT_CAP_HAS_MCAST_FDB_TOP (CL_HTON32(0x40000000))
- #define IB_PORT_CAP_HAS_HIER_INFO (CL_HTON32(0x80000000))
- 
-+#define IB_PORT_CAP2_IS_SET_NODE_DESC_SUPPORTED (CL_HTON16(0x0001))
-+#define IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED (CL_HTON16(0x0002))
-+
-+/****s* IBA Base: Types/ib_port_info_ext_t
-+* NAME
-+*	ib_port_info_ext_t
-+*
-+* DESCRIPTION
-+*	IBA defined PortInfoExtended. (14.2.5.19)
-+*
-+* SYNOPSIS
-+*/
-+#include <complib/cl_packon.h>
-+typedef struct _ib_port_info_ext {
-+	ib_net32_t cap_mask;
-+	ib_net16_t fec_mode_active;
-+	ib_net16_t fdr_fec_mode_sup;
-+	ib_net16_t fdr_fec_mode_enable;
-+	ib_net16_t edr_fec_mode_sup;
-+	ib_net16_t edr_fec_mode_enable;
-+	uint8_t reserved[50];
-+} PACK_SUFFIX ib_port_info_ext_t;
-+#include <complib/cl_packoff.h>
-+/************/
-+
-+#define IB_PORT_EXT_NO_FEC_MODE_ACTIVE		    0
-+#define IB_PORT_EXT_FIRE_CODE_FEC_MODE_ACTIVE	    (CL_HTON16(0x0001))
-+#define IB_PORT_EXT_RS_FEC_MODE_ACTIVE		    (CL_HTON16(0x0002))
-+#define IB_PORT_EXT_LOW_LATENCY_RS_FEC_MODE_ACTIVE  (CL_HTON16(0x0003))
-+
-+#define IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED (CL_HTON32(0x00000001))
- /****f* IBA Base: Types/ib_port_info_get_port_state
- * NAME
- *	ib_port_info_get_port_state
-@@ -6358,6 +6392,15 @@ typedef struct _ib_portinfo_record {
- #include <complib/cl_packoff.h>
- 
- #include <complib/cl_packon.h>
-+typedef struct _ib_portinfoext_record {
-+	ib_net16_t lid;
-+	uint8_t port_num;
-+	uint8_t options;
-+	ib_port_info_ext_t port_info_ext;
-+} PACK_SUFFIX ib_portinfoext_record_t;
-+#include <complib/cl_packoff.h>
-+
-+#include <complib/cl_packon.h>
- typedef struct _ib_link_record {
- 	ib_net16_t from_lid;
- 	uint8_t from_port_num;
--- 
-1.7.8.2
+Thanks!
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--nab
