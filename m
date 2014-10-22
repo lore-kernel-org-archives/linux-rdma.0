@@ -1,85 +1,106 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Can someone help me understand the reason for this code in ib_isert.c?
-Date: Wed, 22 Oct 2014 12:02:34 +0300
-Message-ID: <544772AA.7060003@mellanox.com>
-References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>	 <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com> <1413954397.30983.33.camel@haakon3.risingtidesystems.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/iser: Remove hard coded values for cqe and send_wr
+Date: Wed, 22 Oct 2014 14:08:54 +0300
+Message-ID: <54479046.80602@dev.mellanox.co.il>
+References: <1412728888-13100-1-git-send-email-jkallickal@emulex.com> <543CD5D6.1020506@mellanox.com> <44d2d670-4785-4a76-8c05-f59791c999cf@CMEXHTCAS1.ad.emulex.com> <5443DBCA.4000002@dev.mellanox.co.il> <ecfd3441-253c-47bf-b2cb-030b2a00f689@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413954397.30983.33.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <ecfd3441-253c-47bf-b2cb-030b2a00f689-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Chris Moore <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/22/2014 8:06 AM, Nicholas A. Bellinger wrote:
-> On Tue, 2014-10-21 at 00:13 +0300, Or Gerlitz wrote:
->> On Mon, Oct 20, 2014 at 6:29 PM, Chris Moore <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
->>> The following code is in isert_conn_setup_qp() in ib_isert.c:
->>>
->>>           /*
->>>             * FIXME: Use devattr.max_sge - 2 for max_send_sge as
->>>             * work-around for RDMA_READ..
->>>             */
->>>           attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
->>>
->>> It's not clear from the comment what this is a work-around for, and I wasn't able
->>> to figure it out from looking at logs.
->> I believe this refers to some IBTA spec corner case which comes into
->> play with the max_sges advertized by mlx4, Eli, can you shed some
->> light (IBTA pointer) on that? is this the case (i.e dev_attr.max_sge
->> isn't always achievable) with mlx5 too?
->>
-> It's for ConnectX-2 reporting max_sge=31 during development, while the
-> largest max_send_sge for stable large block RDMA reads was (is..?) 29
-> SGEs.
+On 10/20/2014 8:36 AM, Minh Duc Tran wrote:
+<SNIP>
+> ================
+> From: Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 >
->>> In trying to get isert working with ocrdma I ran into a problem where the code
->>> thought there was only 1 send SGE available when in fact the device has 3.
->>> Then I found the above work-around, which explained the problem.
->> Nic, any reason for attr.cap.max_send_sge = 1 not to work OK?
->>
-> IIRC, pre fastreg code supported max_send_sge=1 by limiting the transfer
-> size per RDMA read, and would issue subsequent RDMA read + offset from
-> completion up to the total se_cmd->data_length.
+>          This patch allows the underlying hardware to choose
+> values other than  hard coded max values for cqe and send_wr
+> while preventing them from exceeding max supported values.
+
+Hi Minh,
+
+In order to take it, I would like to address a couple of bits
+below. (sorry for the late response. I'm juggling across projects...)
+
 >
-> Not sure how this works with fastreg today.  Sagi..?
+> Signed-off-by: Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Jayamohan Kallickal <jayamohan.kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/iser/iser_verbs.c | 13 ++++++++++---
+>   1 file changed, 10 insertions(+), 3 deletions(-)
 >
+> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+> index 67225bb..73955c1 100644
+> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
+> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+> @@ -76,7 +76,7 @@ static void iser_event_handler(struct ib_event_handler *handler,
+>   static int iser_create_device_ib_res(struct iser_device *device)
+>   {
+>          struct ib_device_attr *dev_attr = &device->dev_attr;
+> -       int ret, i;
+> +       int ret, i, max_cqe;
+>
+>          ret = ib_query_device(device->ib_device, dev_attr);
+>          if (ret) {
+> @@ -114,6 +114,9 @@ static int iser_create_device_ib_res(struct iser_device *device)
+>          if (IS_ERR(device->pd))
+>                  goto pd_err;
+>
+> +       max_cqe = (dev_attr->max_cqe < ISER_MAX_CQ_LEN) ?
+> +                  dev_attr->max_cqe : ISER_MAX_CQ_LEN;
+> +
 
-While on fastreg mode, for RDMA reads  we use only one SGE, talking to 
-Sagi he explained me that the problem with creating the QP with 
-max_send_sge = 1 has to do with other flows where two or even three SGEs 
-are needed, e.g when the iscsi/iser header (doesn't exist in RDMA ops) 
-is taken from one spot of the memory and the data (sense) taken from 
-another one?
+Why not do:
+min_t(int, dev_attr->max_cqe, ISER_MAX_CQ_LEN)?
 
-Nic, we need to see what is the minimum needed by the code (two?) and 
-tweak that line to make sure it gets there as long as the device 
-supports it, SB, makes sense?
+Please move it up before the CQs print, and add this information to the
+print.
 
+>          for (i = 0; i < device->comps_used; i++) {
+>                  struct iser_comp *comp = &device->comps[i];
+>
+> @@ -122,7 +125,7 @@ static int iser_create_device_ib_res(struct iser_device *device)
+>                                          iser_cq_callback,
+>                                          iser_cq_event_callback,
+>                                          (void *)comp,
+> -                                       ISER_MAX_CQ_LEN, i);
+> +                                       max_cqe, i);
+>                  if (IS_ERR(comp->cq)) {
+>                          comp->cq = NULL;
+>                          goto cq_err;
+> @@ -426,6 +429,7 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+>   static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+>   {
+>          struct iser_device      *device;
+> +       struct ib_device_attr *dev_attr;
+>          struct ib_qp_init_attr  init_attr;
+>          int                     ret = -ENOMEM;
+>          int index, min_index = 0;
+> @@ -433,6 +437,7 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+>          BUG_ON(ib_conn->device == NULL);
+>
+>          device = ib_conn->device;
+> +       dev_attr = &device->dev_attr;
+>
+>          memset(&init_attr, 0, sizeof init_attr);
+>
+> @@ -461,7 +466,9 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+>                  init_attr.cap.max_send_wr = ISER_QP_SIG_MAX_REQ_DTOS + 1;
+>                  init_attr.create_flags |= IB_QP_CREATE_SIGNATURE_EN;
+>          } else {
+> -               init_attr.cap.max_send_wr  = ISER_QP_MAX_REQ_DTOS + 1;
+> +               init_attr.cap.max_send_wr  =
+> +                       (dev_attr->max_qp_wr < ISER_QP_MAX_REQ_DTOS) ?
+> +                        dev_attr->max_qp_wr : ISER_QP_MAX_REQ_DTOS;
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
-b/drivers/infiniband/ulp/isert/ib_isert.c
-index 0bea577..24abbb3 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -115,9 +115,10 @@ isert_conn_setup_qp(struct isert_conn *isert_conn, 
-struct rdma_cm_id *cma_id,
-         attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS;
-         /*
-          * FIXME: Use devattr.max_sge - 2 for max_send_sge as
--        * work-around for RDMA_READ..
-+        * work-around for RDMA_READ.. still need to make sure to
-+        * have at least two SGEs for SCSI responses.
-          */
--       attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
-+       attr.cap.max_send_sge = max(2, device->dev_attr.max_sge - 2);
-         isert_conn->max_sge = attr.cap.max_send_sge;
+Again, why not do min_t?
 
-         attr.cap.max_recv_sge = 1;
-
-
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
