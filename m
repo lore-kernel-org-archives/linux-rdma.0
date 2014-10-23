@@ -1,7 +1,8 @@
 From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] libibmad: Add new fields for SM:PortInfoExtended and for
-Date: Thu, 23 Oct 2014 07:42:34 +0200
-Message-ID: <20141023054234.GA31556@r-ufm96.mtr.labs.mlnx>
+Subject: [PATCHv2] libibmad: Add new fields for SM:PortInfoExtended and for
+ PM:PortExtendedSpeedsCounters
+Date: Thu, 23 Oct 2014 08:25:33 +0200
+Message-ID: <20141023062532.GA31987@r-ufm96.mtr.labs.mlnx>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -18,6 +19,9 @@ RSFEC mode is active.
 
 Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+Changes since v1:
+    Add full subject
+
  include/infiniband/mad.h |   41 +++++++++++++++++++++++++++++++++++++++--
  libibmad.ver             |    2 +-
  src/dump.c               |   13 +++++++++++++
