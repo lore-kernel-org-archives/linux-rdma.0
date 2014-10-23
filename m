@@ -1,37 +1,27 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 0/9] Peer-Direct support
-Date: Thu, 23 Oct 2014 10:29:02 -0700
-Message-ID: <CAG4TOxNDNNKYF0VLf45XvaNPqOr=V=iq5qFCeUG87eDDa7Kbeg@mail.gmail.com>
-References: <1414065777-21173-1-git-send-email-yishaih@mellanox.com>
+From: Webb Scales <webb.scales@hp.com>
+Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
+Date: Thu, 23 Oct 2014 13:43:54 -0400
+Message-ID: <54493E5A.7050803@hp.com>
+References: <5433E43D.3010107@acm.org> <5433E557.3010505@acm.org> <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net> <5448AB4F.40507@acm.org>
+Reply-To: webbnh@hp.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1414065777-21173-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <5448AB4F.40507@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, "Elliott, Robert (Server Storage)" <Elliott@hp.com>, Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "Don Brace (PMC)" <Don.Brace@pmcs.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 23, 2014 at 5:02 AM, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> The API defined for Peer-Direct is described in this cover letter.
-> The required implementation for a hardware device to expose memory
-> buffers over Peer-Direct is also detailed in this letter.
+On 10/23/14 3:16 AM, Bart Van Assche wrote:
+> All my tests with use_blk_mq=n were run with a WARN_ON_ONCE(req->tag < 
+> 0) statement present in srp_queuecommand(). I haven't seen any kernel 
+> warning being triggered during the tests I ran.
+Bart, what's the data type of "req->tag", here?  (E.g., if it 
+"unsigned", it will never be less than zero, right?)
 
-I don't see how I can justify merging this (for now at least), given
-that there are no actual users of all this (fairly complex) new code,
-besides a sample that doesn't actually do anything useful.  Is there
-any actual consumer that might go upstream someday that we can at
-least review now?
 
-> This makes the usage of peer-direct almost completely transparent to
-> the individual hardware drivers. The only changes required in the low
-> level IB hardware drivers is supporting an interface for immediate
-> invalidation of registered memory regions.
+             Thanks,
 
-Why do we need immediate invalidation of memory regions?
-
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+                 Webb
