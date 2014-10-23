@@ -1,34 +1,36 @@
-From: Evgenii Smirnov <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: ib_post_send execution time
-Date: Thu, 23 Oct 2014 19:21:24 +0200
-Message-ID: <CAEv+Kc1mioxX+pUky3a9Wfd8HzzOTAqyjw0tgdf4Qu2956hOaw@mail.gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 0/9] Peer-Direct support
+Date: Thu, 23 Oct 2014 10:29:02 -0700
+Message-ID: <CAG4TOxNDNNKYF0VLf45XvaNPqOr=V=iq5qFCeUG87eDDa7Kbeg@mail.gmail.com>
+References: <1414065777-21173-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1414065777-21173-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Thu, Oct 23, 2014 at 5:02 AM, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> The API defined for Peer-Direct is described in this cover letter.
+> The required implementation for a hardware device to expose memory
+> buffers over Peer-Direct is also detailed in this letter.
 
-I am trying to achieve high packet per second throughput with 2-byte
-messages over Infiniband from kernel using IB_SEND verb. The most I
-can get so far is 3.5 Mpps. However, ib_send_bw utility from perftest
-package is able to send 2-byte packets with rate of 9 Mpps.
-After some profiling I found that execution of ib_post_send function
-in kernel takes about 213 ns in average, for the user-space function
-ibv_post_send takes only about 57 ns.
-As I understand, these functions do almost same operations. The work
-request fields and queue pair parameters are also the same. Why do
-they have such big difference in execution times?
+I don't see how I can justify merging this (for now at least), given
+that there are no actual users of all this (fairly complex) new code,
+besides a sample that doesn't actually do anything useful.  Is there
+any actual consumer that might go upstream someday that we can at
+least review now?
 
-I'm using:
-Debian Jessie
-kernel 3.16-2-amd64
-libibverbs1 (1.1.8-1)
-libmlx4-1 (1.0.6-1)
-perftest (2.3+0.12.gcb5b746-1)
-ConnectX-3 VPI adapter MT_1090110018 fw_ver: 2.32.5100
+> This makes the usage of peer-direct almost completely transparent to
+> the individual hardware drivers. The only changes required in the low
+> level IB hardware drivers is supporting an interface for immediate
+> invalidation of registered memory regions.
+
+Why do we need immediate invalidation of memory regions?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
