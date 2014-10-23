@@ -1,212 +1,68 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCHv2] libibmad: Add new fields for SM:PortInfoExtended and for
- PM:PortExtendedSpeedsCounters
-Date: Thu, 23 Oct 2014 08:25:33 +0200
-Message-ID: <20141023062532.GA31987@r-ufm96.mtr.labs.mlnx>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
+Date: Thu, 23 Oct 2014 09:16:31 +0200
+Message-ID: <5448AB4F.40507@acm.org>
+References: <5433E43D.3010107@acm.org> <5433E557.3010505@acm.org> <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B4029593212E0-wwDBVnaDRpYSZAcGdq5asR6epYMZPwEe5NbjCUgZEJk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Elliott, Robert (Server Storage)" <Elliott-VXdhtT5mjnY@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Scales, Webb" <webb.scales-VXdhtT5mjnY@public.gmane.org>, "Don Brace (PMC)" <Don.Brace-PwyqCcigF0Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This change includes:
-1. Adding new AttributeID and fields for MAD SM:PortInfoExtended.
-2. Adding new fields to support PM:PortExtendedSpeedsCounters when
-RSFEC mode is active.
+On 10/23/14 00:03, Elliott, Robert (Server Storage) wrote:
+>> -----Original Message-----
+>> From: Bart Van Assche [mailto:bvanassche-HInyCGIudOg@public.gmane.org]
+>> Sent: Tuesday, 07 October, 2014 8:07 AM
+> ...
+>> @@ -1927,7 +1931,7 @@ static int srp_queuecommand(struct Scsi_Host
+>> *shost, struct scsi_cmnd *scmnd)
+>>
+>>   	cmd->opcode = SRP_CMD;
+>>   	cmd->lun    = cpu_to_be64((u64) scmnd->device->lun << 48);
+>> -	cmd->tag    = req->index;
+>> +	cmd->tag    = tag;
+>>   	memcpy(cmd->cdb, scmnd->cmnd, scmnd->cmd_len);
+>>
+>>   	req->scmnd    = scmnd;
+> ...
+>>
+>> +static int srp_slave_alloc(struct scsi_device *sdev)
+>> +{
+>> +	sdev->tagged_supported = 1;
+>> +
+>> +	scsi_activate_tcq(sdev, sdev->queue_depth);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>
+> Have you tested this with scsi_mod.use_blk_mq=n?
+>
+> Trying similar changes in hpsa, we still receive some INQUIRY commands
+> submitted through queuecommand with tag -1.  They are for devices for
+> which slave_alloc has not yet been run, implying this work needs to
+> be done even earlier.  Maybe the midlayer is missing a slave_alloc
+> call somewhere?
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-    Add full subject
+Hello Rob,
 
- include/infiniband/mad.h |   41 +++++++++++++++++++++++++++++++++++++++--
- libibmad.ver             |    2 +-
- src/dump.c               |   13 +++++++++++++
- src/fields.c             |   36 +++++++++++++++++++++++++++++++++++-
- src/libibmad.map         |    2 ++
- 5 files changed, 90 insertions(+), 4 deletions(-)
+All my tests with use_blk_mq=n were run with a WARN_ON_ONCE(req->tag < 
+0) statement present in srp_queuecommand(). I haven't seen any kernel 
+warning being triggered during the tests I ran.
 
-diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-index cefcc54..119da8e 100644
---- a/include/infiniband/mad.h
-+++ b/include/infiniband/mad.h
-@@ -145,7 +145,7 @@ enum SMI_ATTR_ID {
- 	IB_ATTR_LINKSPEEDWIDTHPAIRSTBL = 0x1c,
- 	IB_ATTR_VENDORMADSTBL = 0x1d,
- 	IB_ATTR_SMINFO = 0x20,
--
-+	IB_ATTR_PORT_INFO_EXT = 0x33,
- 	IB_ATTR_LAST,
- 
- 	IB_ATTR_MLNX_EXT_PORT_INFO = 0xff90,
-@@ -1253,6 +1253,42 @@ enum MAD_FIELDS {
- 	IB_PSR_COUNTER14_F,
- 	IB_PSR_LAST_F,
- 
-+	/*
-+	 * PortInfoExtended fields
-+	 */
-+	IB_PORT_EXT_FIRST_F,
-+	IB_PORT_EXT_CAPMASK_F = IB_PORT_EXT_FIRST_F,
-+	IB_PORT_EXT_FEC_MODE_ACTIVE_F,
-+	IB_PORT_EXT_FDR_FEC_MODE_SUPPORTED_F,
-+	IB_PORT_EXT_FDR_FEC_MODE_ENABLED_F,
-+	IB_PORT_EXT_EDR_FEC_MODE_SUPPORTED_F,
-+	IB_PORT_EXT_EDR_FEC_MODE_ENABLED_F,
-+	IB_PORT_EXT_LAST_F,
-+
-+	/*
-+	 * PortExtendedSpeedsCounters RSFEC active fields
-+	 */
-+	IB_PESC_RSFEC_PORT_SELECT_F,
-+	IB_PESC_RSFEC_COUNTER_SELECT_F,
-+	IB_PESC_RSFEC_SYNC_HDR_ERR_CTR_F,
-+	IB_PESC_RSFEC_UNK_BLOCK_CTR_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE0_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE1_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE2_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE3_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE4_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE5_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE6_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE7_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE8_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE9_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE10_F,
-+	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE11_F,
-+	IB_PESC_PORT_FEC_CORR_BLOCK_CTR_F,
-+	IB_PESC_PORT_FEC_UNCORR_BLOCK_CTR_F,
-+	IB_PESC_PORT_FEC_CORR_SYMBOL_CTR_F,
-+	IB_PESC_RSFEC_LAST_F,
-+
- 	IB_FIELD_LAST_		/* must be last */
- };
- 
-@@ -1615,7 +1651,8 @@ MAD_EXPORT ib_mad_dump_fn
-     mad_dump_cc_switchportcongestionsettingelement, mad_dump_cc_cacongestionsetting,
-     mad_dump_cc_cacongestionentry, mad_dump_cc_congestioncontroltable,
-     mad_dump_cc_congestioncontroltableentry, mad_dump_cc_timestamp,
--    mad_dump_classportinfo, mad_dump_portsamples_result;
-+    mad_dump_classportinfo, mad_dump_portsamples_result,
-+    mad_dump_portinfo_ext, mad_dump_port_ext_speeds_counters_rsfec_active;
- 
- MAD_EXPORT void mad_dump_fields(char *buf, int bufsz, void *val, int valsz,
- 				int start, int end);
-diff --git a/libibmad.ver b/libibmad.ver
-index 11698ff..4578eaf 100644
---- a/libibmad.ver
-+++ b/libibmad.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=9:0:4
-+LIBVERSION=10:0:5
-diff --git a/src/dump.c b/src/dump.c
-index efe4bc4..64577c0 100644
---- a/src/dump.c
-+++ b/src/dump.c
-@@ -857,6 +857,13 @@ void mad_dump_portsamples_result(char *buf, int bufsz, void *val, int valsz)
- 	_dump_fields(buf, bufsz, val, IB_PSR_TAG_F, IB_PSR_LAST_F);
- }
- 
-+void mad_dump_port_ext_speeds_counters_rsfec_active(char *buf, int bufsz,
-+						    void *val, int valsz)
-+{
-+	_dump_fields(buf, bufsz, val, IB_PESC_RSFEC_PORT_SELECT_F,
-+		     IB_PESC_RSFEC_LAST_F);
-+}
-+
- void mad_dump_port_ext_speeds_counters(char *buf, int bufsz, void *val, int valsz)
- {
- 	_dump_fields(buf, bufsz, val, IB_PESC_PORT_SELECT_F, IB_PESC_LAST_F);
-@@ -1115,6 +1122,12 @@ void mad_dump_classportinfo(char *buf, int bufsz, void *val, int valsz)
- 	_dump_fields(buf, bufsz, val, IB_CPI_BASEVER_F, IB_CPI_TRAP_QKEY_F + 1);
- }
- 
-+void mad_dump_portinfo_ext(char *buf, int bufsz, void *val, int valsz)
-+{
-+	_dump_fields(buf, bufsz, val, IB_PORT_EXT_CAPMASK_F,
-+		     IB_PORT_EXT_LAST_F);
-+}
-+
- void xdump(FILE * file, char *msg, void *p, int size)
- {
- #define HEX(x)  ((x) < 10 ? '0' + (x) : 'a' + ((x) -10))
-diff --git a/src/fields.c b/src/fields.c
-index 33a6364..a848ebf 100644
---- a/src/fields.c
-+++ b/src/fields.c
-@@ -949,8 +949,42 @@ static const ib_field_t ib_mad_f[] = {
- 	{480, 32, "Counter14", mad_dump_uint},
- 	{0, 0},			/* IB_PSR_LAST_F */
- 
--	{0, 0}			/* IB_FIELD_LAST_ */
-+	/*
-+	 * PortInfoExtended fields
-+	 */
-+	{0, 32, "CapMask", mad_dump_hex},
-+	{BITSOFFS(32, 16), "FECModeActive", mad_dump_uint},
-+	{BITSOFFS(48, 16), "FDRFECModeSupported", mad_dump_uint},
-+	{BITSOFFS(64, 16), "FDRFECModeEnabled", mad_dump_uint},
-+	{BITSOFFS(80, 16), "EDRFECModeSupported", mad_dump_uint},
-+	{BITSOFFS(96, 16), "EDRFECModeEnabled", mad_dump_uint},
-+	{0, 0},			/* IB_PORT_EXT_LAST_F */
- 
-+	/*
-+	 * PortExtendedSpeedsCounters RSFEC Active fields
-+	 */
-+	{BITSOFFS(8, 8), "PortSelect", mad_dump_uint},
-+	{64, 64, "CounterSelect", mad_dump_hex},
-+	{BITSOFFS(128, 16), "SyncHeaderErrorCounter", mad_dump_uint},
-+	{BITSOFFS(144, 16), "UnknownBlockCounter", mad_dump_uint},
-+	{352, 32, "FECCorrectableSymbolCtrLane0", mad_dump_uint},
-+	{384, 32, "FECCorrectableSymbolCtrLane1", mad_dump_uint},
-+	{416, 32, "FECCorrectableSymbolCtrLane2", mad_dump_uint},
-+	{448, 32, "FECCorrectableSymbolCtrLane3", mad_dump_uint},
-+	{480, 32, "FECCorrectableSymbolCtrLane4", mad_dump_uint},
-+	{512, 32, "FECCorrectableSymbolCtrLane5", mad_dump_uint},
-+	{544, 32, "FECCorrectableSymbolCtrLane6", mad_dump_uint},
-+	{576, 32, "FECCorrectableSymbolCtrLane7", mad_dump_uint},
-+	{608, 32, "FECCorrectableSymbolCtrLane8", mad_dump_uint},
-+	{640, 32, "FECCorrectableSymbolCtrLane9", mad_dump_uint},
-+	{672, 32, "FECCorrectableSymbolCtrLane10", mad_dump_uint},
-+	{704, 32, "FECCorrectableSymbolCtrLane11", mad_dump_uint},
-+	{1120, 32, "PortFECCorrectableBlockCtr", mad_dump_uint},
-+	{1152, 32, "PortFECUncorrectableBlockCtr", mad_dump_uint},
-+	{1184, 32, "PortFECCorrectedSymbolCtr", mad_dump_uint},
-+	{0, 0},			/* IB_PESC_RSFEC_LAST_F */
-+
-+	{0, 0}			/* IB_FIELD_LAST_ */
- };
- 
- static void _set_field64(void *buf, int base_offs, const ib_field_t * f,
-diff --git a/src/libibmad.map b/src/libibmad.map
-index 3f3aeef..3240a7b 100644
---- a/src/libibmad.map
-+++ b/src/libibmad.map
-@@ -19,6 +19,7 @@ IBMAD_1.3 {
- 		mad_dump_linkwidthen;
- 		mad_dump_linkwidthsup;
- 		mad_dump_mlnx_ext_port_info;
-+		mad_dump_portinfo_ext;
- 		mad_dump_mtu;
- 		mad_dump_node_type;
- 		mad_dump_nodedesc;
-@@ -145,6 +146,7 @@ IBMAD_1.3 {
- 		mad_field_name;
- 		bm_call_via;
- 		mad_dump_port_ext_speeds_counters;
-+		mad_dump_port_ext_speeds_counters_rsfec_active;
- 		cc_query_status_via;
- 		cc_config_status_via;
- 		smp_mkey_get;
--- 
-1.7.1
+I also had a look at scsi_alloc_sdev() in drivers/scsi/scsi_scan.c. The 
+number of statements between queue allocation and the slave_alloc() call 
+is limited. The only scenario I can think of which could cause 
+queuecommand() to be invoked before slave_alloc() is a LUN scan 
+initiated from user space via sysfs due to 
+scsi_sysfs_device_initialize() being invoked before slave_alloc(). Does 
+that make sense to you ?
 
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
