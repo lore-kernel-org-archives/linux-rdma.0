@@ -1,27 +1,35 @@
-From: Webb Scales <webb.scales@hp.com>
-Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
-Date: Thu, 23 Oct 2014 13:43:54 -0400
-Message-ID: <54493E5A.7050803@hp.com>
-References: <5433E43D.3010107@acm.org> <5433E557.3010505@acm.org> <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net> <5448AB4F.40507@acm.org>
-Reply-To: webbnh@hp.com
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [Users] Linux kernel: Crash of IB peer in RC mode is not detected
+Date: Thu, 23 Oct 2014 11:43:56 -0700
+Message-ID: <CAL1RGDXtVYqVuc7S6tYwcQ=ftHnAnYTnNeWLigvKOekyjYF5-A@mail.gmail.com>
+References: <20141023131522.GD316@fholler.de> <CAD+HZHU1ALaCzVA8X8xhgh1-s=+hVryJYHa9d-biA93vJyX1uQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <5448AB4F.40507@acm.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>, "Elliott, Robert (Server Storage)" <Elliott@hp.com>, Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "Don Brace (PMC)" <Don.Brace@pmcs.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAD+HZHU1ALaCzVA8X8xhgh1-s=+hVryJYHa9d-biA93vJyX1uQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/23/14 3:16 AM, Bart Van Assche wrote:
-> All my tests with use_blk_mq=n were run with a WARN_ON_ONCE(req->tag < 
-> 0) statement present in srp_queuecommand(). I haven't seen any kernel 
-> warning being triggered during the tests I ran.
-Bart, what's the data type of "req->tag", here?  (E.g., if it 
-"unsigned", it will never be less than zero, right?)
+On Thu, Oct 23, 2014 at 6:50 AM, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> I expected that RDMA-Write operations will fail if the other crashes.
+>> Also I hoped that an event is generated when a host is crashed. The subnet
+>> manager should notice it and notify every other device in the network.
+>>
+>> Are we missing something in our modules?
+>> Is there a way to determine that a RC peer crashed without implementing a
+>> ping-pong mechanism?
 
+If the remote system crashes then any memory regions, QPs, etc. are
+still valid with the remote HCA, and RDMA read/write operations will
+continue to succeed.  (Unless the system reboots and reinitializes the
+adapter or something like that).
 
-             Thanks,
-
-                 Webb
+There isn't a way to detect a remote crash unless that remote crash
+disconnects your QP or otherwise affects the HCA on the crashed
+system.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
