@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 for-next 1/9] IB/core: Introduce peer client interface
-Date: Thu, 23 Oct 2014 15:02:49 +0300
-Message-ID: <1414065777-21173-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 for-next 6/9] IB/core: Sysfs support for peer memory
+Date: Thu, 23 Oct 2014 15:02:54 +0300
+Message-ID: <1414065777-21173-7-git-send-email-yishaih@mellanox.com>
 References: <1414065777-21173-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1414065777-21173-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,453 +10,443 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduces an API between IB core to peer memory clients,(e.g. GPU cards)
-to provide access for the HCA to read/write GPU memory.
+Supplies the required functionality to expose information and
+statistics over sysfs for a given peer memory client.
 
-As a result it allows RDMA-based application to use GPU computing power,
-and RDMA interconnect at the same time w/o copying the data between the P2P devices.
+This mechanism enables userspace application to check
+which peers are available (based on name & version) and based on that
+decides whether it can run successfully.
 
-Each peer memory client should register with IB core. In the registration request,
-it should supply callbacks to its memory basic functionality such as get/put pages,
-get_page_size, dma map/unmap.
-
-The client can optionally require the ability to invalidate memory it provided,
-by requesting an invalidation callback details.
-
-Upon successful registration, IB core will provide the client with a unique
-registration handle and an invalidate callback function in case required by
-the peer.
-
-The handle should be used when unregistering the client, the callback function
-can be used by the client in later patches, for a request from the client to
-immediately release pinned pages.
-
-Each peer must be able to recognize whether it's the owner of
-a specific virtual address range. In case the answer is YES, further calls for memory
-functionality will be tunneled to that peer.
-
-The recognition is done via the 'acquire' call. The call arguments provide the
-address and size of the memory requested. In case peer-direct context information
-is available from the user verbs context, it is provided as well.
-Upon recognition, the acquire call returns a peer direct client specific context.
-The context will be provided by the peer direct controller to the peer direct client
-callbacks when referring the specific address range.
+Root sysfs directory is /sys/kernel/infiniband/<peer_name>, under that directory
+will reside some files that represent the statistics for that peer.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile   |    3 +-
- drivers/infiniband/core/peer_mem.c |  112 ++++++++++++++++
- include/rdma/ib_peer_mem.h         |   12 ++
- include/rdma/peer_mem.h            |  247 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 373 insertions(+), 1 deletions(-)
- create mode 100644 drivers/infiniband/core/peer_mem.c
- create mode 100644 include/rdma/ib_peer_mem.h
- create mode 100644 include/rdma/peer_mem.h
+ Documentation/infiniband/peer_memory.txt |   64 +++++++++
+ drivers/infiniband/core/core_priv.h      |    2 +
+ drivers/infiniband/core/peer_mem.c       |  212 +++++++++++++++++++++++++++++-
+ drivers/infiniband/core/sysfs.c          |    6 +
+ drivers/infiniband/core/umem.c           |    6 +
+ include/rdma/ib_peer_mem.h               |   13 ++
+ 6 files changed, 302 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/infiniband/peer_memory.txt
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index ffd0af6..e541ff0 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -9,7 +9,8 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
- 					$(user_access-y)
- 
- ib_core-y :=			packer.o ud_header.o verbs.o sysfs.o \
--				device.o fmr_pool.o cache.o netlink.o
-+				device.o fmr_pool.o cache.o netlink.o \
-+				peer_mem.o
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
- 
- ib_mad-y :=			mad.o smi.o agent.o mad_rmpp.o
-diff --git a/drivers/infiniband/core/peer_mem.c b/drivers/infiniband/core/peer_mem.c
+diff --git a/Documentation/infiniband/peer_memory.txt b/Documentation/infiniband/peer_memory.txt
 new file mode 100644
-index 0000000..c00af39
+index 0000000..be5e416
 --- /dev/null
++++ b/Documentation/infiniband/peer_memory.txt
+@@ -0,0 +1,64 @@
++Peer-Direct technology allows RDMA operations to directly target
++memory in external hardware devices, such as GPU cards, SSD based
++storage, dedicated ASIC accelerators, etc.
++
++This technology allows RDMA-based (over InfiniBand/RoCE) application
++to avoid unneeded data copying when sharing data between peer hardware
++devices.
++
++This file contains documentation for the sysfs interface provided by
++the feature. For documentation of the kernel level interface that peer
++memory clients should implement, please refer to the API documentation
++in include/rdma/peer_mem.h
++
++From the user application perspective, it is free to perform memory
++registration using pointers and handles provided by peer memory
++clients (i.e. OpenCL, Cuda, FPGA-specific handles, etc.). The kernel
++will transparently select the appropriate peer memory client to
++perform the memory registration, as needed.
++
++
++The peer-memory subsystem allows the user to monitor the current usage
++of the technology through a basic sysfs interface. For each peer
++memory client (i.e. GPU type, FPGA, etc.), the following files are
++created:
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/version - the version string
++  of the peer memory client
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_alloc_mrs - the number
++  of memory regions allocated using this peers memory. Note that this
++  counter is not decreased during de-registration of memory regions,
++  it is monotonically increasing. To get the number of memory regions
++  currently allocated on this peer, subtract the value of
++  num_dealloc_mrs from this counter.
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_dealloc_mrs - the number
++  of memory regions de-allocated, and were originally using peer
++  memory.
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_reg_pages - the amount
++  of peer_name's memory pages that have been mapped through peer
++  direct. Note that this is a monotonically increasing counter. To get
++  the number of pages currently mapped, subtract the value of
++  num_dereg_pages from this counter. Also, pay attention to the fact
++  that this counter is using device pages, which might differ in size
++  from the host memory page size.
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_dereg_pages - the amount
++  of peer memory pages that have been unmapped through peer direct for
++  peer_name.
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_reg_bytes - the number
++  of bytes that have been mapped through peer direct from
++  peer_name. Note that this is a monotonically increasing counter. To
++  get the number of bytes currently mapped, subtract the value of
++  num_dereg_bytes from this counter.
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_dereg_bytes - the number
++  of bytes that have been unmapped through peer direct from peer_name.
++
++* /sys/kernel/infiniband/memory_peers/<peer_name>/num_free_callbacks - the
++  number of times the peer used the "invalidate" callback to free a
++  memory region before the application de-registered the memory
++  region.
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 87d1936..b404699 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -38,6 +38,8 @@
+ 
+ #include <rdma/ib_verbs.h>
+ 
++extern struct kobject *infiniband_kobj;
++
+ int  ib_device_register_sysfs(struct ib_device *device,
+ 			      int (*port_callback)(struct ib_device *,
+ 						   u8, struct kobject *));
+diff --git a/drivers/infiniband/core/peer_mem.c b/drivers/infiniband/core/peer_mem.c
+index d4cf31c..bf987aa 100644
+--- a/drivers/infiniband/core/peer_mem.c
 +++ b/drivers/infiniband/core/peer_mem.c
-@@ -0,0 +1,112 @@
-+/*
-+ * Copyright (c) 2014,  Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+@@ -33,9 +33,211 @@
+ #include <rdma/ib_peer_mem.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_umem.h>
++#include "core_priv.h"
+ 
+ static DEFINE_MUTEX(peer_memory_mutex);
+ static LIST_HEAD(peer_memory_list);
++static struct kobject *peers_kobj;
 +
-+#include <rdma/ib_peer_mem.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_umem.h>
-+
-+static DEFINE_MUTEX(peer_memory_mutex);
-+static LIST_HEAD(peer_memory_list);
-+
-+static int ib_invalidate_peer_memory(void *reg_handle, u64 core_context)
++static void complete_peer(struct kref *kref);
++static struct ib_peer_memory_client *get_peer_by_kobj(void *kobj);
++static ssize_t version_show(struct kobject *kobj,
++			    struct kobj_attribute *attr, char *buf)
 +{
-+	return -ENOSYS;
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%s\n", ib_peer_client->peer_mem->version);
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
 +}
 +
-+static int ib_memory_peer_check_mandatory(const struct peer_memory_client
-+						     *peer_client)
++static ssize_t num_alloc_mrs_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
 +{
-+#define PEER_MEM_MANDATORY_FUNC(x) { offsetof(struct peer_memory_client, x), #x }
-+		static const struct {
-+			size_t offset;
-+			char  *name;
-+		} mandatory_table[] = {
-+			PEER_MEM_MANDATORY_FUNC(acquire),
-+			PEER_MEM_MANDATORY_FUNC(get_pages),
-+			PEER_MEM_MANDATORY_FUNC(put_pages),
-+			PEER_MEM_MANDATORY_FUNC(get_page_size),
-+			PEER_MEM_MANDATORY_FUNC(dma_map),
-+			PEER_MEM_MANDATORY_FUNC(dma_unmap)
-+		};
-+		int i;
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
 +
-+		for (i = 0; i < ARRAY_SIZE(mandatory_table); ++i) {
-+			if (!*(void **)((void *)peer_client + mandatory_table[i].offset)) {
-+				pr_err("Peer memory %s is missing mandatory function %s\n",
-+				       peer_client->name, mandatory_table[i].name);
-+				return -EINVAL;
-+			}
-+		}
-+
-+		return 0;
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_alloc_mrs));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
 +}
 +
-+void *ib_register_peer_memory_client(const struct peer_memory_client *peer_client,
-+				     invalidate_peer_memory *invalidate_callback)
++static ssize_t num_dealloc_mrs_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_dealloc_mrs));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_reg_pages_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_reg_pages));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_dereg_pages_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_dereg_pages));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_reg_bytes_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_reg_bytes));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_dereg_bytes_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%llu\n", (u64)atomic64_read(&ib_peer_client->stats.num_dereg_bytes));
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static ssize_t num_free_callbacks_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *buf)
++{
++	struct ib_peer_memory_client *ib_peer_client = get_peer_by_kobj(kobj);
++
++	if (ib_peer_client) {
++		sprintf(buf, "%lu\n", ib_peer_client->stats.num_free_callbacks);
++		kref_put(&ib_peer_client->ref, complete_peer);
++		return strlen(buf);
++	}
++	/* not found - nothing is return */
++	return 0;
++}
++
++static struct kobj_attribute version_attr = __ATTR_RO(version);
++static struct kobj_attribute num_alloc_mrs = __ATTR_RO(num_alloc_mrs);
++static struct kobj_attribute num_dealloc_mrs = __ATTR_RO(num_dealloc_mrs);
++static struct kobj_attribute num_reg_pages = __ATTR_RO(num_reg_pages);
++static struct kobj_attribute num_dereg_pages = __ATTR_RO(num_dereg_pages);
++static struct kobj_attribute num_reg_bytes = __ATTR_RO(num_reg_bytes);
++static struct kobj_attribute num_dereg_bytes = __ATTR_RO(num_dereg_bytes);
++static struct kobj_attribute num_free_callbacks = __ATTR_RO(num_free_callbacks);
++
++static struct attribute *peer_mem_attrs[] = {
++			&version_attr.attr,
++			&num_alloc_mrs.attr,
++			&num_dealloc_mrs.attr,
++			&num_reg_pages.attr,
++			&num_dereg_pages.attr,
++			&num_reg_bytes.attr,
++			&num_dereg_bytes.attr,
++			&num_free_callbacks.attr,
++			NULL,
++};
++
++static void destroy_peer_sysfs(struct ib_peer_memory_client *ib_peer_client)
++{
++	kobject_put(ib_peer_client->kobj);
++	if (list_empty(&peer_memory_list))
++		kobject_put(peers_kobj);
++}
++
++static int create_peer_sysfs(struct ib_peer_memory_client *ib_peer_client)
++{
++	int ret;
++
++	if (list_empty(&peer_memory_list)) {
++		/* creating under /sys/kernel/infiniband */
++		peers_kobj = kobject_create_and_add("memory_peers", infiniband_kobj);
++		if (!peers_kobj)
++			return -ENOMEM;
++	}
++
++	ib_peer_client->peer_mem_attr_group.attrs = peer_mem_attrs;
++	/* Dir alreday was created explicitly to get its kernel object for further usage */
++	ib_peer_client->peer_mem_attr_group.name =  NULL;
++	ib_peer_client->kobj = kobject_create_and_add(ib_peer_client->peer_mem->name,
++		peers_kobj);
++
++	if (!ib_peer_client->kobj) {
++		ret = -EINVAL;
++		goto free;
++	}
++
++	/* Create the files associated with this kobject */
++	ret = sysfs_create_group(ib_peer_client->kobj,
++				 &ib_peer_client->peer_mem_attr_group);
++	if (ret)
++		goto peer_free;
++
++	return 0;
++
++peer_free:
++	kobject_put(ib_peer_client->kobj);
++
++free:
++	if (list_empty(&peer_memory_list))
++		kobject_put(peers_kobj);
++
++	return ret;
++}
++
++static struct ib_peer_memory_client *get_peer_by_kobj(void *kobj)
 +{
 +	struct ib_peer_memory_client *ib_peer_client;
 +
-+	if (ib_memory_peer_check_mandatory(peer_client))
-+		return NULL;
-+
-+	ib_peer_client = kzalloc(sizeof(*ib_peer_client), GFP_KERNEL);
-+	if (!ib_peer_client)
-+		return NULL;
-+
-+	ib_peer_client->peer_mem = peer_client;
-+	/* Once peer supplied a non NULL callback it's an indication that invalidation support is
-+	 * required for any memory owning.
-+	 */
-+	if (invalidate_callback) {
-+		*invalidate_callback = ib_invalidate_peer_memory;
-+		ib_peer_client->invalidation_required = 1;
++	mutex_lock(&peer_memory_mutex);
++	list_for_each_entry(ib_peer_client, &peer_memory_list, core_peer_list) {
++		if (ib_peer_client->kobj == kobj) {
++			kref_get(&ib_peer_client->ref);
++			goto found;
++		}
 +	}
 +
-+	mutex_lock(&peer_memory_mutex);
-+	list_add_tail(&ib_peer_client->core_peer_list, &peer_memory_list);
++	ib_peer_client = NULL;
++found:
 +	mutex_unlock(&peer_memory_mutex);
-+
 +	return ib_peer_client;
 +}
-+EXPORT_SYMBOL(ib_register_peer_memory_client);
-+
-+void ib_unregister_peer_memory_client(void *reg_handle)
-+{
-+	struct ib_peer_memory_client *ib_peer_client = reg_handle;
-+
-+	mutex_lock(&peer_memory_mutex);
-+	list_del(&ib_peer_client->core_peer_list);
+ 
+ /* Caller should be holding the peer client lock, ib_peer_client->lock */
+ static struct core_ticket *ib_peer_search_context(struct ib_peer_memory_client *ib_peer_client,
+@@ -60,6 +262,7 @@ static int ib_invalidate_peer_memory(void *reg_handle, u64 core_context)
+ 	int need_unlock = 1;
+ 
+ 	mutex_lock(&ib_peer_client->lock);
++	ib_peer_client->stats.num_free_callbacks += 1;
+ 	core_ticket = ib_peer_search_context(ib_peer_client, core_context);
+ 	if (!core_ticket)
+ 		goto out;
+@@ -251,9 +454,15 @@ void *ib_register_peer_memory_client(const struct peer_memory_client *peer_clien
+ 	}
+ 
+ 	mutex_lock(&peer_memory_mutex);
++	if (create_peer_sysfs(ib_peer_client)) {
++		kfree(ib_peer_client);
++		ib_peer_client = NULL;
++		goto end;
++	}
+ 	list_add_tail(&ib_peer_client->core_peer_list, &peer_memory_list);
+-	mutex_unlock(&peer_memory_mutex);
++end:
+ 
 +	mutex_unlock(&peer_memory_mutex);
+ 	return ib_peer_client;
+ }
+ EXPORT_SYMBOL(ib_register_peer_memory_client);
+@@ -264,6 +473,7 @@ void ib_unregister_peer_memory_client(void *reg_handle)
+ 
+ 	mutex_lock(&peer_memory_mutex);
+ 	list_del(&ib_peer_client->core_peer_list);
++	destroy_peer_sysfs(ib_peer_client);
+ 	mutex_unlock(&peer_memory_mutex);
+ 
+ 	kref_put(&ib_peer_client->ref, complete_peer);
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index cbd0383..eae6fb0 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -40,6 +40,8 @@
+ 
+ #include <rdma/ib_mad.h>
+ 
++struct kobject *infiniband_kobj;
 +
-+	kfree(ib_peer_client);
-+}
-+EXPORT_SYMBOL(ib_unregister_peer_memory_client);
+ struct ib_port {
+ 	struct kobject         kobj;
+ 	struct ib_device      *ibdev;
+@@ -913,10 +915,14 @@ void ib_device_unregister_sysfs(struct ib_device *device)
+ 
+ int ib_sysfs_setup(void)
+ {
++	infiniband_kobj = kobject_create_and_add("infiniband", kernel_kobj);
++	if (!infiniband_kobj)
++		return -ENOMEM;
+ 	return class_register(&ib_class);
+ }
+ 
+ void ib_sysfs_cleanup(void)
+ {
++	kobject_put(infiniband_kobj);
+ 	class_unregister(&ib_class);
+ }
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 6655d12..1fa5447 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -86,6 +86,9 @@ static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
+ 	if (ret)
+ 		goto put_pages;
+ 
++	atomic64_add(umem->nmap, &ib_peer_mem->stats.num_reg_pages);
++	atomic64_add(umem->nmap * umem->page_size, &ib_peer_mem->stats.num_reg_bytes);
++	atomic64_inc(&ib_peer_mem->stats.num_alloc_mrs);
+ 	return umem;
+ 
+ put_pages:
+@@ -114,6 +117,9 @@ static void peer_umem_release(struct ib_umem *umem)
+ 			    umem->context->device->dma_device);
+ 	peer_mem->put_pages(&umem->sg_head,
+ 			    umem->peer_mem_client_context);
++	atomic64_add(umem->nmap, &ib_peer_mem->stats.num_dereg_pages);
++	atomic64_add(umem->nmap * umem->page_size, &ib_peer_mem->stats.num_dereg_bytes);
++	atomic64_inc(&ib_peer_mem->stats.num_dealloc_mrs);
+ 	ib_put_peer_client(ib_peer_mem, umem->peer_mem_client_context);
+ 	kfree(umem);
+ }
 diff --git a/include/rdma/ib_peer_mem.h b/include/rdma/ib_peer_mem.h
-new file mode 100644
-index 0000000..fac37b7
---- /dev/null
+index 58e0f99..1b865c8 100644
+--- a/include/rdma/ib_peer_mem.h
 +++ b/include/rdma/ib_peer_mem.h
-@@ -0,0 +1,12 @@
-+#if !defined(IB_PEER_MEM_H)
-+#define IB_PEER_MEM_H
-+
-+#include <rdma/peer_mem.h>
-+
-+struct ib_peer_memory_client {
-+	const struct peer_memory_client *peer_mem;
-+	struct list_head	core_peer_list;
-+	int invalidation_required;
+@@ -3,6 +3,16 @@
+ 
+ #include <rdma/peer_mem.h>
+ 
++struct ib_peer_memory_statistics {
++	atomic64_t num_alloc_mrs;
++	atomic64_t num_dealloc_mrs;
++	atomic64_t num_reg_pages;
++	atomic64_t num_dereg_pages;
++	atomic64_t num_reg_bytes;
++	atomic64_t num_dereg_bytes;
++	unsigned long num_free_callbacks;
 +};
 +
-+#endif
-diff --git a/include/rdma/peer_mem.h b/include/rdma/peer_mem.h
-new file mode 100644
-index 0000000..8368f7f
---- /dev/null
-+++ b/include/rdma/peer_mem.h
-@@ -0,0 +1,247 @@
-+/*
-+ * Copyright (c) 2014,  Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#if !defined(PEER_MEM_H)
-+#define PEER_MEM_H
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/errno.h>
-+#include <linux/export.h>
-+#include <linux/scatterlist.h>
-+
-+#define IB_PEER_MEMORY_NAME_MAX 64
-+#define IB_PEER_MEMORY_VER_MAX 16
-+
-+/**
-+ *  struct peer_memory_client - registration information for peer client.
-+ *  @name:	peer client name
-+ *  @version:	peer client version
-+ *  @acquire:	callback function to be used by IB core to detect whether a
-+ *		virtual address in under the responsibility of a specific peer client.
-+ *  @get_pages: callback function to be used by IB core asking the peer client to pin
-+ *		the physical pages of the given address range and returns that information.
-+ *		It equivalents to the kernel API of get_user_pages(), but targets peer memory.
-+ *  @dma_map:	callback function to be used by IB core asking the peer client to fill
-+ *		the dma address mapping for a given address range.
-+ *  @dma_unmap:	callback function to be used by IB core asking the peer client to take
-+ *		relevant actions to unmap the memory.
-+ *  @put_pages:	callback function to be used by IB core asking the peer client to remove the
-+ *		pinning from the given memory.
-+ *		It's the peer-direct equivalent of the kernel API put_page.
-+ *  @get_page_size: callback function to be used by IB core to query the peer client for
-+ *		    the page size for the given allocation.
-+ *  @release:	callback function to be used by IB core asking peer client to release all
-+ *		resources associated with previous acquire call. The call will be performed
-+ *		only for contexts that have been successfully acquired (i.e. acquire returned a non-zero value).
-+ *              Additionally, IB core guarentees that there will be no pages pinned through this context when the callback is called.
-+ *
-+ *  The subsections in this description contain detailed description
-+ *  of the callback arguments and expected return values for the
-+ *  callbacks defined in this struct.
-+ *
-+ *	acquire:
-+ *
-+ *              Callback function to be used by IB core to detect
-+ *		whether a virtual address in under the responsibility
-+ *		of a specific peer client.
-+ *
-+ *		addr	[IN] - virtual address to be checked whether belongs to peer.
-+ *
-+ *		size	[IN] - size of memory area starting at addr.
-+ *
-+ *		peer_mem_private_data [IN] - The contents of ib_ucontext-> peer_mem_private_data.
-+ *					      This parameter allows usage of the peer-direct
-+ *                                            API in implementations where it is impossible
-+ *                                            to detect if the memory belongs to the device
-+ *                                            based upon the virtual address alone. In such
-+ *                                            cases, the peer device can create a special
-+ *                                            ib_ucontext, which will be associated with the
-+ *                                            relevant peer memory.
-+ *
-+ *		peer_mem_name         [IN] - The contents of ib_ucontext-> peer_mem_name.
-+ *					      Used to identify the peer memory client that
-+ *                                            initialized the ib_ucontext.
-+ *                                            This parameter is normally used along with
-+ *                                            peer_mem_private_data.
-+ *		client_context        [OUT] - peer opaque data which holds a peer context for
-+ *                                             the acquired address range, will be provided
-+ *                                             back to the peer memory in subsequent
-+ *                                             calls for that given memory.
-+ *
-+ *		If peer takes responsibility on the given address range further calls for memory management
-+ *		will be directed to the callbacks of this peer client.
-+ *
-+ *		Return - 1 in case peer client takes responsibility on that range otherwise 0.
-+ *			Any peer internal error should resulted in a zero answer, in case address range
-+ *			really belongs to the peer, no owner will be found and application will get an error
-+ *			from IB Core as expected.
-+ *
-+ *	get_pages:
-+ *
-+ *              Callback function to be used by IB core asking the
-+ *		peer client to pin the physical pages of the given
-+ *		address range and returns that information.  It
-+ *		equivalents to the kernel API of get_user_pages(), but
-+ *		targets peer memory.
-+ *
-+ *		addr           [IN] - start virtual address of that given allocation.
-+ *
-+ *		size           [IN] - size of memory area starting at addr.
-+ *
-+ *		write          [IN] - indicates whether the pages will be written to by the caller.
-+ *                                    Same meaning as of kernel API get_user_pages, can be
-+ *                                    ignored if not relevant.
-+ *
-+ *		force          [IN] - indicates whether to force write access even if user
-+ *                                    mapping is read only. Same meaning as of kernel API
-+ *                                    get_user_pages, can be ignored if not relevant.
-+ *
-+ *		sg_head        [IN/OUT] - pointer to head of struct sg_table.
-+ *                                        The peer client should allocate a table big
-+ *                                        enough to store all of the required entries. This
-+ *                                        function should fill the table with physical addresses
-+ *                                        and sizes of the memory segments composing this
-+ *                                        memory mapping.
-+ *                                        The table allocation can be done using sg_alloc_table.
-+ *                                        Filling in the physical memory addresses and size can
-+ *                                        be done using sg_set_page.
-+ *
-+ *		client_context [IN] - peer context for the given allocation, as received from
-+ *                                     the acquire call.
-+ *
-+ *		core_context   [IN] - IB core context. If the peer client wishes to
-+ *                                     invalidate any of the pages pinned through this API,
-+ *                                     it must provide this context as an argument to the
-+ *                                     invalidate callback.
-+ *
-+ *		Return - 0 success, otherwise errno error code.
-+ *
-+ *	dma_map:
-+ *
-+ *              Callback function to be used by IB core asking the peer client to fill
-+ *		the dma address mapping for a given address range.
-+ *
-+ *		sg_head        [IN/OUT] - pointer to head of struct sg_table. The peer memory
-+ *                                        should fill the dma_address & dma_length for
-+ *                                        each scatter gather entry in the table.
-+ *
-+ *		client_context [IN] - peer context for the allocation mapped.
-+ *
-+ *		dma_device     [IN] - the RDMA capable device which requires access to the
-+ *				      peer memory.
-+ *
-+ *		dmasync        [IN] - flush in-flight DMA when the memory region is written.
-+ *				      Same meaning as with host memory mapping, can be ignored if not relevant.
-+ *
-+ *		nmap           [OUT] - number of mapped/set entries.
-+ *
-+ *		Return - 0 success, otherwise errno error code.
-+ *
-+ *	dma_unmap:
-+ *
-+ *              Callback function to be used by IB core asking the peer client to take
-+ *		relevant actions to unmap the memory.
-+ *
-+ *		sg_head        [IN] - pointer to head of struct sg_table. The peer memory
-+ *				       should fill the dma_address & dma_length for
-+ *				       each scatter gather entry in the table.
-+ *
-+ *		client_context [IN] - peer context for the allocation mapped.
-+ *
-+ *		dma_device     [IN] - the RDMA capable device which requires access to the
-+ *				       peer memory.
-+ *
-+ *		Return -  0 success, otherwise errno error code.
-+ *
-+ *	put_pages:
-+ *
-+ *              Callback function to be used by IB core asking the peer client to remove the
-+ *		pinning from the given memory.
-+ *		It's the peer-direct equivalent of the kernel API put_page.
-+ *
-+ *		sg_head        [IN] - pointer to head of struct sg_table.
-+ *
-+ *		client_context [IN] - peer context for that given allocation.
-+ *
-+ *	get_page_size:
-+ *
-+ *              Callback function to be used by IB core to query the
-+ *		peer client for the page size for the given
-+ *		allocation.
-+ *
-+ *		sg_head        [IN] - pointer to head of struct sg_table.
-+ *
-+ *		client_context [IN] - peer context for that given allocation.
-+ *
-+ *		Return -  Page size in bytes
-+ *
-+ *	release:
-+ *
-+ *              Callback function to be used by IB core asking peer
-+ *		client to release all resources associated with
-+ *		previous acquire call. The call will be performed only
-+ *		for contexts that have been successfully acquired
-+ *		(i.e. acquire returned a non-zero value).
-+ *		Additionally, IB core guarentees that there will be no
-+ *		pages pinned through this context when the callback is
-+ *		called.
-+ *
-+ *		client_context [IN] - peer context for the given allocation.
-+ *
-+ **/
-+struct peer_memory_client {
-+	char	name[IB_PEER_MEMORY_NAME_MAX];
-+	char	version[IB_PEER_MEMORY_VER_MAX];
-+	int (*acquire)(unsigned long addr, size_t size, void *peer_mem_private_data,
-+		       char *peer_mem_name, void **client_context);
-+	int (*get_pages)(unsigned long addr,
-+			 size_t size, int write, int force,
-+			 struct sg_table *sg_head,
-+			 void *client_context, u64 core_context);
-+	int (*dma_map)(struct sg_table *sg_head, void *client_context,
-+		       struct device *dma_device, int dmasync, int *nmap);
-+	int (*dma_unmap)(struct sg_table *sg_head, void *client_context,
-+			 struct device  *dma_device);
-+	void (*put_pages)(struct sg_table *sg_head, void *client_context);
-+	unsigned long (*get_page_size)(void *client_context);
-+	void (*release)(void *client_context);
-+};
-+
-+typedef int (*invalidate_peer_memory)(void *reg_handle, u64 core_context);
-+
-+void *ib_register_peer_memory_client(const struct peer_memory_client *peer_client,
-+				     invalidate_peer_memory *invalidate_callback);
-+void ib_unregister_peer_memory_client(void *reg_handle);
-+
-+#endif
+ struct ib_ucontext;
+ struct ib_umem;
+ struct invalidation_ctx;
+@@ -17,6 +27,9 @@ struct ib_peer_memory_client {
+ 	struct mutex lock;
+ 	struct list_head   core_ticket_list;
+ 	u64	last_ticket;
++	struct kobject *kobj;
++	struct attribute_group peer_mem_attr_group;
++	struct ib_peer_memory_statistics stats;
+ };
+ 
+ enum ib_peer_mem_flags {
 -- 
 1.7.1
 
