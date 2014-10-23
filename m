@@ -1,29 +1,229 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
-Date: Thu, 23 Oct 2014 01:47:44 -0700
-Message-ID: <20141023084744.GA24965@infradead.org>
-References: <5433E43D.3010107@acm.org>
- <5433E557.3010505@acm.org>
- <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
-Sender: linux-scsi-owner@vger.kernel.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Cc: Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "Scales, Webb" <webb.scales@hp.com>, "Don Brace (PMC)" <Don.Brace@pmcs.com>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 for-next 0/9] Peer-Direct support
+Date: Thu, 23 Oct 2014 15:02:48 +0300
+Message-ID: <1414065777-21173-1-git-send-email-yishaih@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 22, 2014 at 10:03:24PM +0000, Elliott, Robert (Server Storage) wrote:
-> Have you tested this with scsi_mod.use_blk_mq=n?
-> 
-> Trying similar changes in hpsa, we still receive some INQUIRY commands 
-> submitted through queuecommand with tag -1.  They are for devices for
-> which slave_alloc has not yet been run, implying this work needs to 
-> be done even earlier.  Maybe the midlayer is missing a slave_alloc
-> call somewhere?
+The following set of patches implements Peer-Direct support over RDMA
+stack.
+    
+Peer-Direct technology allows RDMA operations to directly target
+memory in external hardware devices, such as GPU cards, SSD based
+storage, dedicated ASIC accelerators, etc.
+    
+This technology allows RDMA-based (over InfiniBand/RoCE) application
+to avoid unneeded data copying when sharing data between peer hardware
+devices.
+    
+To implement this technology, we defined an API to securely expose the
+memory of a hardware device (peer memory) to an RDMA hardware device.
+    
+The API defined for Peer-Direct is described in this cover letter.
+The required implementation for a hardware device to expose memory
+buffers over Peer-Direct is also detailed in this letter.
+    
+Finally, the cover letter includes a description of the flow and the
+API that IB core and low level IB hardware drivers implement to
+support the technology
 
-Did that version of hpsa really enable tagging in slave_alloc
-or just in slave_configure?  The latter would cause INQUIRY to be
-sent untagged.
+Flow:
+-----------------
+Each peer memory client should register itself into the IB core (ib_core)
+module, and provide a set of callbacks to manage its memory basic
+functionality.
+
+The required functionality includes getting pages descriptors based
+upon user space virtual address, dma mapping these pages, getting the
+memory page size, removing the DMA mapping of the pages and releasing
+page descriptors.
+Those callbacks are quite similar to the kernel API used to pin normal
+host memory and exposed it to the hardware.
+Description of the API is included later in this cover
+letter.
+
+The peer direct controller, implemented as part of the IB core
+services, provides registry and brokering services between peer memory
+providers and low level IB hardware drivers.
+This makes the usage of peer-direct almost completely transparent to
+the individual hardware drivers. The only changes required in the low
+level IB hardware drivers is supporting an interface for immediate
+invalidation of registered memory regions.
+
+The IB hardware driver should use ib_umem_get with an extra signaling
+that the requested memory may reside on a peer memory. When a given
+user space virtual memory address found to belong to a peer memory
+client, an ib_umem is built using the callbacks provided by the peer
+memory client. In case the IB hardware driver supports invalidation
+on that ib_umem it must be signaled as part of ib_umem_get, otherwise
+if the peer memory requires invalidation support the registration will
+be rejected.
+
+After getting the ib_umem, if it is residing on a peer memory that requires
+invalidation support, the low level IB hardware driver must register the
+invalidation callback for this ib_umem.
+If this callback is called, the driver should ensure that no access to
+the memory mapped by the umem will happen once the callback returns.
+
+Information and statistics regarding the registered peer memory
+clients are exported to the user space at:
+/sys/kernel/infiniband/memory_peers/<peer_name>/.
+===============================================================================
+Peer memory API
+===============================================================================
+Peer client structure:
+-------------------------------------------------------------------------------
+struct peer_memory_client {
+       char   name[IB_PEER_MEMORY_NAME_MAX];
+       char   version[IB_PEER_MEMORY_VER_MAX];
+       int (*acquire) (unsigned long addr, size_t size, void *peer_mem_private_data,
+                                  char *peer_mem_name, void **client_context);
+       int (*get_pages) (unsigned long addr,
+                       size_t size, int write, int force,
+                       struct sg_table *sg_head,
+                       void *client_context, void *core_context);
+       int (*dma_map) (struct sg_table *sg_head, void *client_context,
+                     struct device *dma_device, int dmasync, int *nmap);
+       int (*dma_unmap) (struct sg_table *sg_head, void *client_context,
+                        struct device  *dma_device);
+       void (*put_pages) (struct sg_table *sg_head, void *client_context);
+       unsigned long (*get_page_size) (void *client_context);
+       void (*release) (void *client_context);
+
+};
+
+A detailed description of above callbacks is defined as part of the first patch
+in peer_mem.h header file. 
+-----------------------------------------------------------------------------------
+void *ib_register_peer_memory_client(struct peer_memory_client *peer_client,
+                                    invalidate_peer_memory *invalidate_callback);
+
+Description:
+Each peer memory should use this function to register as an available
+peer memory client during its initialization. The callbacks provided
+as part of the peer_client may be used later on by the IB core when
+registering and unregistering its memory.
+----------------------------------------------------------------------------------
+
+void ib_unregister_peer_memory_client(void *reg_handle);
+
+Description:
+On unload, the peer memory client must unregister itself, to prevent
+any additional callbacks to the unloaded module.
+
+----------------------------------------------------------------------------------
+typedef int (*invalidate_peer_memory)(void *reg_handle,
+                                    void *core_context);
+
+Description:
+A callback function to be called by the peer driver when an allocation
+should be invalidated. When the invalidation callback returns, the user
+of the allocation is guaranteed not to access it.
+
+-------------------------------------------------------------------------------
+
+The structure of the patchset
+
+First, the patches apply against the for-next branch in the
+roland/infiniband.git tree, based upon commit ID
+3bdad2d13fa62bcb59ca2506e74ce467ea436586 having subject: "Merge
+branches 'core', 'ipoib', 'iser', 'mlx4', 'ocrdma' and 'qib' into
+for-next"
+
+Patches 1-3:
+This set of patches introduces the API, adds the required support to
+the IB core layer, allowing Peers to be registered and be part of the
+flow. The first patch introduces the API, the next two patches add the
+infrastructure to manage peer client and use its registration
+callbacks.
+
+Patch 4-5:
+Those patches allow peers to notify IB core that a specific
+registration should be invalidated.
+
+Patch 6:
+This patch exposes some information and statistics for a given peer
+memory by using the sysfs mechanism.
+
+Patches 7-8:
+Those patches add the required functionality needed by mlx4 & mlx5 to
+work with peer clients that require invalidation support.  Currently
+that support was added for only MRs.
+
+Patch 9:
+This patch is an example peer memory client which uses the HOST
+memory, it can serve as very good reference for peer client writers.
+
+Changes from V0:
+- fixed coding style issues.
+- changed core ticket from (void *) to u64. Removed all wraparound handling.
+- documented the sysfs interface and added missing counters. 
+
+Changes from V1:
+- reformat the documentation to look nicely for nanodoc.
+- changed the sysfs interface to be under infiniband subsystem instead of mm one.
+
+Yishai Hadas (9):
+  IB/core: Introduce peer client interface
+  IB/core: Get/put peer memory client
+  IB/core: Umem tunneling peer memory APIs
+  IB/core: Infrastructure to manage peer core context
+  IB/core: Invalidation support for peer memory
+  IB/core: Sysfs support for peer memory
+  IB/mlx4: Invalidation support for MR over peer memory
+  IB/mlx5: Invalidation support for MR over peer memory
+  Samples: Peer memory client example
+
+ Documentation/infiniband/peer_memory.txt     |   64 ++++
+ drivers/infiniband/core/Makefile             |    3 +-
+ drivers/infiniband/core/core_priv.h          |    2 +
+ drivers/infiniband/core/peer_mem.c           |  526 ++++++++++++++++++++++++++
+ drivers/infiniband/core/sysfs.c              |    6 +
+ drivers/infiniband/core/umem.c               |  119 ++++++-
+ drivers/infiniband/core/uverbs_cmd.c         |    2 +
+ drivers/infiniband/hw/amso1100/c2_provider.c |    2 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
+ drivers/infiniband/hw/cxgb4/mem.c            |    2 +-
+ drivers/infiniband/hw/ehca/ehca_mrmw.c       |    2 +-
+ drivers/infiniband/hw/ipath/ipath_mr.c       |    2 +-
+ drivers/infiniband/hw/mlx4/cq.c              |    2 +-
+ drivers/infiniband/hw/mlx4/doorbell.c        |    2 +-
+ drivers/infiniband/hw/mlx4/main.c            |    3 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |    5 +
+ drivers/infiniband/hw/mlx4/mr.c              |   90 ++++-
+ drivers/infiniband/hw/mlx4/qp.c              |    2 +-
+ drivers/infiniband/hw/mlx4/srq.c             |    2 +-
+ drivers/infiniband/hw/mlx5/cq.c              |    5 +-
+ drivers/infiniband/hw/mlx5/doorbell.c        |    2 +-
+ drivers/infiniband/hw/mlx5/main.c            |    3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |   10 +
+ drivers/infiniband/hw/mlx5/mr.c              |   84 ++++-
+ drivers/infiniband/hw/mlx5/qp.c              |    2 +-
+ drivers/infiniband/hw/mlx5/srq.c             |    2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |    2 +-
+ drivers/infiniband/hw/nes/nes_verbs.c        |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    2 +-
+ drivers/infiniband/hw/qib/qib_mr.c           |    2 +-
+ include/rdma/ib_peer_mem.h                   |   59 +++
+ include/rdma/ib_umem.h                       |   36 ++-
+ include/rdma/ib_verbs.h                      |    5 +-
+ include/rdma/peer_mem.h                      |  247 ++++++++++++
+ samples/Kconfig                              |   10 +
+ samples/Makefile                             |    3 +-
+ samples/peer_memory/Makefile                 |    1 +
+ samples/peer_memory/example_peer_mem.c       |  260 +++++++++++++
+ 38 files changed, 1535 insertions(+), 40 deletions(-)
+ create mode 100644 Documentation/infiniband/peer_memory.txt
+ create mode 100644 drivers/infiniband/core/peer_mem.c
+ create mode 100644 include/rdma/ib_peer_mem.h
+ create mode 100644 include/rdma/peer_mem.h
+ create mode 100644 samples/peer_memory/Makefile
+ create mode 100644 samples/peer_memory/example_peer_mem.c
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
