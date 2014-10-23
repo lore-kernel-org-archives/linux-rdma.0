@@ -1,53 +1,29 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Can someone help me understand the reason for this code in
- ib_isert.c?
-Date: Thu, 23 Oct 2014 10:43:47 +0300
-Message-ID: <20141023074347.GA25406@mtldesk30>
-References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
- <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
+Date: Thu, 23 Oct 2014 01:47:44 -0700
+Message-ID: <20141023084744.GA24965@infradead.org>
+References: <5433E43D.3010107@acm.org>
+ <5433E557.3010505@acm.org>
+ <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Chris Moore <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "Scales, Webb" <webb.scales@hp.com>, "Don Brace (PMC)" <Don.Brace@pmcs.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 21, 2014 at 12:13:22AM +0300, Or Gerlitz wrote:
-> On Mon, Oct 20, 2014 at 6:29 PM, Chris Moore <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> > The following code is in isert_conn_setup_qp() in ib_isert.c:
-> >
-> >          /*
-> >            * FIXME: Use devattr.max_sge - 2 for max_send_sge as
-> >            * work-around for RDMA_READ..
-> >            */
-> >          attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
-> >
-> > It's not clear from the comment what this is a work-around for, and I wasn't able
-> > to figure it out from looking at logs.
+On Wed, Oct 22, 2014 at 10:03:24PM +0000, Elliott, Robert (Server Storage) wrote:
+> Have you tested this with scsi_mod.use_blk_mq=n?
 > 
-> I believe this refers to some IBTA spec corner case which comes into
-> play with the max_sges advertized by mlx4, Eli, can you shed some
-> light (IBTA pointer) on that? is this the case (i.e dev_attr.max_sge
-> isn't always achievable) with mlx5 too?
-> 
+> Trying similar changes in hpsa, we still receive some INQUIRY commands 
+> submitted through queuecommand with tag -1.  They are for devices for
+> which slave_alloc has not yet been run, implying this work needs to 
+> be done even earlier.  Maybe the midlayer is missing a slave_alloc
+> call somewhere?
 
-I don't think it has to do anything with some corner case. If you look
-at the spec you will find that is not guarnteed that whenever you
-create a QP with device->dev_attr.max_sge it will succeed. The
-consumer should try smaller values if it cannot create a QP with max
-sge. This is from IB spec 1.2.1.
-
-11.2.1.2 QUERY HCA
-Description:
-Returns the attributes for the specified HCA.  The maximum values
-defined in this section are guaranteed not-to-exceed values. It is
-possible for an implementation to allocate some HCA resources from the
-same space. In that case, the maximum values returned are not
-guaranteed for all of those resources simultaneously.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Did that version of hpsa really enable tagging in slave_alloc
+or just in slave_configure?  The latter would cause INQUIRY to be
+sent untagged.
