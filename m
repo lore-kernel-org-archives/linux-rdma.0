@@ -1,42 +1,59 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: ib_post_send execution time
-Date: Fri, 24 Oct 2014 03:39:33 +0300
-Message-ID: <20141024003933.GA30941@mtldesk30>
-References: <CAEv+Kc1mioxX+pUky3a9Wfd8HzzOTAqyjw0tgdf4Qu2956hOaw@mail.gmail.com>
- <CAL1RGDVS2h4wJrxsYwjMH6cOz2jXCuUiY-OjZPjQrSu1btkHmw@mail.gmail.com>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [PATCH v2 10/12] IB/srp: Use block layer tags
+Date: Fri, 24 Oct 2014 04:43:15 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B402959324A17@G4W3296.americas.hpqcorp.net>
+References: <5433E43D.3010107@acm.org> <5433E557.3010505@acm.org>
+ <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
+ <20141023084744.GA24965@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDVS2h4wJrxsYwjMH6cOz2jXCuUiY-OjZPjQrSu1btkHmw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Evgenii Smirnov <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20141023084744.GA24965@infradead.org>
+Content-Language: en-US
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, "Scales, Webb" <webb.scales@hp.com>, "Don Brace (PMC)" <Don.Brace@pmcs.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 23, 2014 at 11:45:05AM -0700, Roland Dreier wrote:
-> On Thu, Oct 23, 2014 at 10:21 AM, Evgenii Smirnov
-> <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
-> > I am trying to achieve high packet per second throughput with 2-byte
-> > messages over Infiniband from kernel using IB_SEND verb. The most I
-> > can get so far is 3.5 Mpps. However, ib_send_bw utility from perftest
-> > package is able to send 2-byte packets with rate of 9 Mpps.
-> > After some profiling I found that execution of ib_post_send function
-> > in kernel takes about 213 ns in average, for the user-space function
-> > ibv_post_send takes only about 57 ns.
-> > As I understand, these functions do almost same operations. The work
-> > request fields and queue pair parameters are also the same. Why do
-> > they have such big difference in execution times?
-> 
-> 
-> Interesting.  I guess it would be useful to look at perf top / and or
-> get a perf report with "perf report -a -g" when running your high PPS
-> workload, and see where the time is wasted.
-> 
 
-I assume ib_send_bw uses inline with blueflame so it may be part of
-the explanation to the differences you see.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> -----Original Message-----
+> From: Christoph Hellwig [mailto:hch@infradead.org]
+> Sent: Thursday, October 23, 2014 3:48 AM
+> To: Elliott, Robert (Server Storage)
+> Cc: Bart Van Assche; Jens Axboe; Sagi Grimberg; Sebastian Parschauer;
+> Ming Lei; linux-scsi@vger.kernel.org; linux-rdma; Scales, Webb; Don
+> Brace (PMC)
+> Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
+> 
+> On Wed, Oct 22, 2014 at 10:03:24PM +0000, Elliott, Robert (Server
+> Storage) wrote:
+> > Have you tested this with scsi_mod.use_blk_mq=n?
+> >
+> > Trying similar changes in hpsa, we still receive some INQUIRY commands
+> > submitted through queuecommand with tag -1.  They are for devices for
+> > which slave_alloc has not yet been run, implying this work needs to
+> > be done even earlier.  Maybe the midlayer is missing a slave_alloc
+> > call somewhere?
+> 
+> Did that version of hpsa really enable tagging in slave_alloc
+> or just in slave_configure?  The latter would cause INQUIRY to be
+> sent untagged.
+
+Yes, it is slave_alloc, not slave_configure.  
+
+However, it was looking at scmd->tag, which is always 0xff (at 
+least in those early discovery commands).  scmd->request->tag 
+looks like it is the field that has the correct values.
+
+Also, I noticed that scmd->tag is just an 8 bit field, so
+it could never represent a large number of tags.
+
+Just to confirm: After calling scsi_init_shared_tag_map()
+in non-mq mode, will scmd->request->tag be based on 
+controller-wide tag allocation (never using the same
+value at the same time for the request queues of multiple
+devices in that controller)?
+
+
