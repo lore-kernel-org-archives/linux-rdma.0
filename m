@@ -1,46 +1,75 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ib_post_send execution time
-Date: Fri, 24 Oct 2014 14:30:35 +0300
-Message-ID: <CAJ3xEMhN1HvddjMECnobZixd+v=0JasRzCXxY_aQXznU2Zx1sQ@mail.gmail.com>
-References: <CAEv+Kc1mioxX+pUky3a9Wfd8HzzOTAqyjw0tgdf4Qu2956hOaw@mail.gmail.com>
-	<CAL1RGDVS2h4wJrxsYwjMH6cOz2jXCuUiY-OjZPjQrSu1btkHmw@mail.gmail.com>
-	<20141024003933.GA30941@mtldesk30>
+From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Users] Linux kernel: Crash of IB peer in RC mode is not detected
+Date: Fri, 24 Oct 2014 17:04:14 +0200
+Message-ID: <CAD+HZHUBPAwKZ0S3P4PeX1oqF6PViKqXO4xQUeijVHxr9-hDrA@mail.gmail.com>
+References: <20141023131522.GD316@fholler.de>
+	<CAD+HZHU1ALaCzVA8X8xhgh1-s=+hVryJYHa9d-biA93vJyX1uQ@mail.gmail.com>
+	<CAL1RGDXtVYqVuc7S6tYwcQ=ftHnAnYTnNeWLigvKOekyjYF5-A@mail.gmail.com>
+	<CAD+HZHXiDCOEe24KK-dsc_vgo4EEwWVJ43ZGXtyiADKZv06O=w@mail.gmail.com>
+	<E4BDC8BC-319F-46B7-9D75-9EEF87E2325D@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141024003933.GA30941@mtldesk30>
+In-Reply-To: <E4BDC8BC-319F-46B7-9D75-9EEF87E2325D-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Evgenii Smirnov <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 24, 2014 at 3:39 AM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On Thu, Oct 23, 2014 at 11:45:05AM -0700, Roland Dreier wrote:
->> On Thu, Oct 23, 2014 at 10:21 AM, Evgenii Smirnov
->> <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
->> > I am trying to achieve high packet per second throughput with 2-byte
->> > messages over Infiniband from kernel using IB_SEND verb. The most I
->> > can get so far is 3.5 Mpps. However, ib_send_bw utility from perftest
->> > package is able to send 2-byte packets with rate of 9 Mpps.
->> > After some profiling I found that execution of ib_post_send function
->> > in kernel takes about 213 ns in average, for the user-space function
->> > ibv_post_send takes only about 57 ns.
->> > As I understand, these functions do almost same operations. The work
->> > request fields and queue pair parameters are also the same. Why do
->> > they have such big difference in execution times?
->>
->>
->> Interesting.  I guess it would be useful to look at perf top / and or
->> get a perf report with "perf report -a -g" when running your high PPS
->> workload, and see where the time is wasted.
->>
+2014-10-24 13:23 GMT+02:00 Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
 >
-> I assume ib_send_bw uses inline with blueflame so it may be part of
-> the explanation to the differences you see.
+> Thanks Roland to clarify our confusion.
+>
+> So looks ping-pong mechanism is the way to go.
+>
+>
+> Not sure if it will work for your solution, but you can also register to SM
+> traps.
 
-I think it should be the other way around... when we use inline we
-consume more CPU cycles and here we see notable different (213ns --
-kernel 57ns user) in favor of libmlx4
+Hi Sagi,
+
+Could you elaborate a bit more, how to register to SM traps in kernel module?
+>
+> Regards,
+> Jack
+>
+> 2014-10-23 20:43 GMT+02:00 Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>:
+>
+> On Thu, Oct 23, 2014 at 6:50 AM, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> I expected that RDMA-Write operations will fail if the other crashes.
+>
+> Also I hoped that an event is generated when a host is crashed. The subnet
+>
+> manager should notice it and notify every other device in the network.
+>
+>
+> Are we missing something in our modules?
+>
+> Is there a way to determine that a RC peer crashed without implementing a
+>
+> ping-pong mechanism?
+>
+>
+> If the remote system crashes then any memory regions, QPs, etc. are
+>
+> still valid with the remote HCA, and RDMA read/write operations will
+>
+> continue to succeed.  (Unless the system reboots and reinitializes the
+>
+> adapter or something like that).
+>
+>
+> There isn't a way to detect a remote crash unless that remote crash
+>
+> disconnects your QP or otherwise affects the HCA on the crashed
+>
+> system.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
