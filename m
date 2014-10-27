@@ -1,37 +1,70 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/iser: re-adjust number of max_cqe and send_wr
- to hw supported number.
-Date: Mon, 27 Oct 2014 11:35:48 +0200
-Message-ID: <544E11F4.9030709@dev.mellanox.co.il>
-References: <2cee0ee5-dd62-451a-a6a9-a237b59e8dd1@CMEXHTCAS1.ad.emulex.com> <544CDD66.3030303@dev.mellanox.co.il> <f3c8d326-54a7-4c61-b940-6e2ba4c80a25@CMEXHTCAS1.ad.emulex.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 0/9] Peer-Direct support
+Date: Mon, 27 Oct 2014 14:25:30 +0200
+Message-ID: <544E39BA.60809@dev.mellanox.co.il>
+References: <1414065777-21173-1-git-send-email-yishaih@mellanox.com> <CAG4TOxNDNNKYF0VLf45XvaNPqOr=V=iq5qFCeUG87eDDa7Kbeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f3c8d326-54a7-4c61-b940-6e2ba4c80a25-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
+In-Reply-To: <CAG4TOxNDNNKYF0VLf45XvaNPqOr=V=iq5qFCeUG87eDDa7Kbeg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Minh Duc Tran <MinhDuc.Tran-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jay Kallickal <jayamohank-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org" <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jayamohan Kallickal <Jayamohan.Kallickal-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/27/2014 7:01 AM, Minh Duc Tran wrote
-> I like to follow up with all IB/iser changes and developments for 3.19.  Please keep me updated with these changes if they are not going to be in the RDMA mailing list.
-
-We keep it all on the mailing list. Stay tuned... ;)
-
+On 10/23/2014 8:29 PM, Roland Dreier wrote:
+> On Thu, Oct 23, 2014 at 5:02 AM, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> The API defined for Peer-Direct is described in this cover letter.
+>> The required implementation for a hardware device to expose memory
+>> buffers over Peer-Direct is also detailed in this letter.
 >
->> Can you try the patch attached with my bits modified?
+> I don't see how I can justify merging this (for now at least), given
+> that there are no actual users of all this (fairly complex) new code,
+> besides a sample that doesn't actually do anything useful.  Is there
+> any actual consumer that might go upstream someday that we can at
+> least review now?
 >
->> Thanks,
->> Sagi
+
+Intel people pointed that CCL Direct for Intel Xeon Phi uses this API. 
+See http://www.spinics.net/lists/linux-rdma/msg21605.html . We are 
+checking with Intel whether the relevant stuff can be shared for some 
+early review.
+
+Additional use case for this Infrastructure can be the ability to do 
+remote RDMA by exposing the UAR pages of the Mellanox HCAs and other 
+NICs as peer direct memory.  For this functionality to work, the only 
+missing component in the kernel side is allowing registration of UAR 
+pages. Relatively simple extension of mlx4_ib/mlx5_ib to be a peer 
+direct client can add this missing component, in a nice, well integrated 
+way. This will allow application to perform remote posting of work 
+requests. This can be useful, for example in a gateway application. The 
+application exposes QPs to remote machine inside the cluster. The remote 
+machines can post work requests directly into the gateway machine using 
+RDMA. This way, the gateway machine does not need any software 
+involvement in the data path, improving the gateway machine scalability.
+
+
+>> This makes the usage of peer-direct almost completely transparent to
+>> the individual hardware drivers. The only changes required in the low
+>> level IB hardware drivers is supporting an interface for immediate
+>> invalidation of registered memory regions.
 >
-> Your modification to the patch looks good and ran as expected.
+> Why do we need immediate invalidation of memory regions?
+>
 
-OK, so we will include it in our fixes for 3.18-rc2.
+We have listed the need for immediate invalidation in previous e-mails, 
+specifically at:
+https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg21375.html
 
-Thanks Minh!
+To summarize, some of the hardware devices must block all accesses to 
+the memory registered immediately in some use cases. This is needed to 
+maintain correctness and forward progress, for example if the hardware 
+must switch tasks to progress. To support these hardware devices, we 
+implemented a callback to support invalidation. This allows the peer 
+memory client to be sure that the memory will not be accessed by the 
+hardware, and simplify their software design.
 
-Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
