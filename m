@@ -1,60 +1,64 @@
-From: "Coffman, Jerrie L" <jerrie.l.coffman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 0/9] Peer-Direct support
-Date: Tue, 28 Oct 2014 18:29:25 +0000
-Message-ID: <A9EAB01D3BD8F64D8C9802C8BDC0C7F29ACE888B@ORSMSX110.amr.corp.intel.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
+Date: Tue, 28 Oct 2014 20:32:26 +0200
+Message-ID: <544FE13A.60807@dev.mellanox.co.il>
+References: <5433E43D.3010107@acm.org> <5433E585.607@acm.org> <5443F69F.40606@dev.mellanox.co.il> <54450690.709@acm.org> <544622FE.5040906@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <544622FE.5040906-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Mon, Oct 27, 2014 at 2:25 PM, Yishai Hadas <yishaih@xxxxxxxxxxxx> =
-wrote:
+On 10/21/2014 12:10 PM, Sagi Grimberg wrote:
+> On 10/20/2014 3:56 PM, Bart Van Assche wrote:
+>> On 10/19/14 19:36, Sagi Grimberg wrote:
+>>> On 10/7/2014 4:07 PM, Bart Van Assche wrote:
+>>>>           * comp_vector, a number in the range 0..n-1 specifying the
+>>>> -          MSI-X completion vector. Some HCA's allocate multiple (n)
+>>>> -          MSI-X vectors per HCA port. If the IRQ affinity masks of
+>>>> -          these interrupts have been configured such that each MSI-X
+>>>> -          interrupt is handled by a different CPU then the comp_vector
+>>>> -          parameter can be used to spread the SRP completion workload
+>>>> -          over multiple CPU's.
+>>>> +          MSI-X completion vector of the first RDMA channel. Some
+>>>> +          HCA's allocate multiple (n) MSI-X vectors per HCA port. If
+>>>> +          the IRQ affinity masks of these interrupts have been
+>>>> +          configured such that each MSI-X interrupt is handled by a
+>>>> +          different CPU then the comp_vector parameter can be used to
+>>>> +          spread the SRP completion workload over multiple CPU's.
+>>>
+>>> This is fairly not trivial for the user...
+>>>
+>>> Aren't we requesting a bit too much awareness here?
+>>> Can't we just "make it work"? The user hands out ch_count - why can't
+>>> you do some least-used logic here?
+>>>
+>>> Maybe we can even go with per-cpu QPs and discard comp_vector argument?
+>>> this would probably bring the best performance, wouldn't it?
+>>> (fallback to least-used logic in case HW support less vectors)
+>>
+>> Hello Sagi,
+>>
+>> The only reason the comp_vector parameter is still supported is because
+>> of backwards compatibility. What I expect is that users will set the
+>> ch_count parameter but not the comp_vector parameter.
 >
-> Intel people pointed that CCL Direct for Intel Xeon Phi uses this API=
-=2E=A0See=A0http://www.spinics.net/lists/linux-rdma/msg21605.html=A0.
-> We are=A0checking with Intel >whether the relevant stuff can be share=
-d for some=A0early review.
 
-Intel Xeon Phi CCL direct is included as a technology preview in OFED-3=
-=2E12-1.   The source contains another usage example for peer direct.  =
-However, it is conditionally compiled in only for the Mellanox OFED rel=
-ease, not the OpenFabrics release since the OpenFabrics does not have t=
-he peer direct api (we define and use context-based ib_umem mapping rou=
-tines instead).
+Hey Bart,
 
-Because CCL direct is a technology preview, it must be explicitly enabl=
-ed with patches applied to the OFED-3.12-1 release.  Typically this is =
-done during installation, but it can be done manually to obtain the sou=
-rce for review.  Steps are as follows:
+Another wander I have with this. Say you have 8 cores on a single numa
+node. First connection will attach to vectors 0-3 (ch_count=4) and so
+are all the connections. Don't we want to spread that a little?
 
-Download and extract the latest OFED-3.12-1 release (rc3 in this case) =
-from OpenFabrics.org
-cd OFED-3.12-1-rc3/SRPMS/
-rpm2cpio compat-rdma-3.12-1.1.g9594cac.src.rpm | cpio -vid
-tar xzf compat-rdma-3.12.tgz
-cd compat-rdma-3.12
-ofed_scripts/ofed_patch.sh --with-patchdir=3Dtech-preview/xeon-phi/
+If we are not going per-cpu, why aren't we trying to spread vectors
+around to try and reduce the interference?
 
-The code of interest is located in the IB proxy server located in drive=
-rs/infiniband/ibp/drv directory.  Most of the peer direct code is withi=
-n the MOFED ifdefs, however there are some changes due to other differe=
-nces in Mellanox OFED.
-
-Possible upstreaming plans for CCL direct are still being discussed.  S=
-ince the CCL direct code depends on a low level MIC driver called SCIF,=
- we would have to wait until the group at Intel that owns that driver g=
-ets it upstream before attempting to upstream CCL direct.  Currently th=
-e timing of such upstreaming is still TBD.
-
--jerrie
-
-
+Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
