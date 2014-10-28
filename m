@@ -1,87 +1,106 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes for-3.18 5/6] IB/iser: Fix possible SQ overflow
-Date: Tue, 28 Oct 2014 11:49:12 +0200
-Message-ID: <1414489753-29199-6-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH fixes for-3.18 6/6] IB/iser: Fix sparse warnings
+Date: Tue, 28 Oct 2014 11:49:13 +0200
+Message-ID: <1414489753-29199-7-git-send-email-ogerlitz@mellanox.com>
 References: <1414489753-29199-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1414489753-29199-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Fix a regression was introduced in commit 6df5a128f0fd.
+Use uintptr_t to handle wr_id casting, which was found by
+Kbuild test robot and smatch. Also remove an internal definition
+of variable which potentially shadows an external one (and make
+sparse happy).
 
-The sig_count was wrongly set to be static variable, thus it is
-possible that we won't reach to (sig_count % ISER_SIGNAL_BATCH) == 0
-condition (due to races) and the send queue will be overflowed.
-
-Instead keep sig_count per connection. We don't need it to be atomic
-as we are safe under the iscsi session frwd_lock taken by libiscsi on
-the queuecommand path.
-
-Fixes: 6df5a128f0fd ('IB/iser: Suppress scsi command send completions')
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |    2 ++
- drivers/infiniband/ulp/iser/iser_initiator.c |    6 +++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c |    1 -
+ drivers/infiniband/ulp/iser/iser_verbs.c  |   15 ++++++++-------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 6295d1e..ddaecf8 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -437,6 +437,7 @@ struct fast_reg_descriptor {
-  * @cma_id:              rdma_cm connection maneger handle
-  * @qp:                  Connection Queue-pair
-  * @post_recv_buf_count: post receive counter
-+ * @sig_count:           send work request signal count
-  * @rx_wr:               receive work request for batch posts
-  * @device:              reference to iser device
-  * @comp:                iser completion context
-@@ -457,6 +458,7 @@ struct ib_conn {
- 	struct rdma_cm_id           *cma_id;
- 	struct ib_qp	            *qp;
- 	int                          post_recv_buf_count;
-+	u8                           sig_count;
- 	struct ib_recv_wr	     rx_wr[ISER_MIN_POSTED_RX];
- 	struct iser_device          *device;
- 	struct iser_comp	    *comp;
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 5a489ea..3821633 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -369,7 +369,7 @@ static int iser_post_rx_bufs(struct iscsi_conn *conn, struct iscsi_hdr *req)
- 	return 0;
- }
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 6c5ce35..5796c95 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -73,7 +73,6 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
  
--static inline bool iser_signal_comp(int sig_count)
-+static inline bool iser_signal_comp(u8 sig_count)
+ 	if (cmd_dir == ISER_DIR_OUT) {
+ 		/* copy the unaligned sg the buffer which is used for RDMA */
+-		int i;
+ 		char *p, *from;
+ 
+ 		sgl = (struct scatterlist *)data->buf;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 5577aac..3770498 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -1073,7 +1073,7 @@ int iser_post_recvl(struct iser_conn *iser_conn)
+ 	sge.length = ISER_RX_LOGIN_SIZE;
+ 	sge.lkey   = ib_conn->device->mr->lkey;
+ 
+-	rx_wr.wr_id   = (unsigned long)iser_conn->login_resp_buf;
++	rx_wr.wr_id   = (uintptr_t)iser_conn->login_resp_buf;
+ 	rx_wr.sg_list = &sge;
+ 	rx_wr.num_sge = 1;
+ 	rx_wr.next    = NULL;
+@@ -1097,7 +1097,7 @@ int iser_post_recvm(struct iser_conn *iser_conn, int count)
+ 
+ 	for (rx_wr = ib_conn->rx_wr, i = 0; i < count; i++, rx_wr++) {
+ 		rx_desc		= &iser_conn->rx_descs[my_rx_head];
+-		rx_wr->wr_id	= (unsigned long)rx_desc;
++		rx_wr->wr_id	= (uintptr_t)rx_desc;
+ 		rx_wr->sg_list	= &rx_desc->rx_sg;
+ 		rx_wr->num_sge	= 1;
+ 		rx_wr->next	= rx_wr + 1;
+@@ -1134,7 +1134,7 @@ int iser_post_send(struct ib_conn *ib_conn, struct iser_tx_desc *tx_desc,
+ 				      DMA_TO_DEVICE);
+ 
+ 	send_wr.next	   = NULL;
+-	send_wr.wr_id	   = (unsigned long)tx_desc;
++	send_wr.wr_id	   = (uintptr_t)tx_desc;
+ 	send_wr.sg_list	   = tx_desc->tx_sg;
+ 	send_wr.num_sge	   = tx_desc->num_sge;
+ 	send_wr.opcode	   = IB_WR_SEND;
+@@ -1184,6 +1184,7 @@ static void
+ iser_handle_comp_error(struct ib_conn *ib_conn,
+ 		       struct ib_wc *wc)
  {
- 	return ((sig_count % ISER_SIGNAL_CMD_COUNT) == 0);
- }
-@@ -388,7 +388,7 @@ int iser_send_command(struct iscsi_conn *conn,
- 	struct iscsi_scsi_req *hdr = (struct iscsi_scsi_req *)task->hdr;
- 	struct scsi_cmnd *sc  =  task->sc;
- 	struct iser_tx_desc *tx_desc = &iser_task->desc;
--	static unsigned sig_count;
-+	u8 sig_count = ++iser_conn->ib_conn.sig_count;
++	void *wr_id = (void *)(uintptr_t)wc->wr_id;
+ 	struct iser_conn *iser_conn = container_of(ib_conn, struct iser_conn,
+ 						   ib_conn);
  
- 	edtl = ntohl(hdr->data_length);
+@@ -1192,8 +1193,8 @@ iser_handle_comp_error(struct ib_conn *ib_conn,
+ 			iscsi_conn_failure(iser_conn->iscsi_conn,
+ 					   ISCSI_ERR_CONN_FAILED);
  
-@@ -435,7 +435,7 @@ int iser_send_command(struct iscsi_conn *conn,
- 	iser_task->status = ISER_TASK_STATUS_STARTED;
+-	if (is_iser_tx_desc(iser_conn, (void *)wc->wr_id)) {
+-		struct iser_tx_desc *desc = (struct iser_tx_desc *)wc->wr_id;
++	if (is_iser_tx_desc(iser_conn, wr_id)) {
++		struct iser_tx_desc *desc = wr_id;
  
- 	err = iser_post_send(&iser_conn->ib_conn, tx_desc,
--			     iser_signal_comp(++sig_count));
-+			     iser_signal_comp(sig_count));
- 	if (!err)
- 		return 0;
- 
+ 		if (desc->type == ISCSI_TX_DATAOUT)
+ 			kmem_cache_free(ig.desc_cache, desc);
+@@ -1219,12 +1220,12 @@ static void iser_handle_wc(struct ib_wc *wc)
+ 	ib_conn = wc->qp->qp_context;
+ 	if (wc->status == IB_WC_SUCCESS) {
+ 		if (wc->opcode == IB_WC_RECV) {
+-			rx_desc = (struct iser_rx_desc *)wc->wr_id;
++			rx_desc = (struct iser_rx_desc *)(uintptr_t)wc->wr_id;
+ 			iser_rcv_completion(rx_desc, wc->byte_len,
+ 					    ib_conn);
+ 		} else
+ 		if (wc->opcode == IB_WC_SEND) {
+-			tx_desc = (struct iser_tx_desc *)wc->wr_id;
++			tx_desc = (struct iser_tx_desc *)(uintptr_t)wc->wr_id;
+ 			iser_snd_completion(tx_desc, ib_conn);
+ 		} else {
+ 			iser_err("Unknown wc opcode %d\n", wc->opcode);
 -- 
 1.7.1
 
