@@ -1,46 +1,42 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes for-3.18 4/6] IB/iser: Decrement CQ's active QPs accounting when QP creation fails
-Date: Tue, 28 Oct 2014 11:49:11 +0200
-Message-ID: <1414489753-29199-5-git-send-email-ogerlitz@mellanox.com>
-References: <1414489753-29199-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH fixes for-3.18 0/6] iSER initiator 3.18-rc fixes
+Date: Tue, 28 Oct 2014 11:49:07 +0200
+Message-ID: <1414489753-29199-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1414489753-29199-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Roland, 
 
-When creating a connection QP we choose the least used CQ and inc
-the number of active QPs on that. If we fail to create the QP,
-we need to decrement the active QPs counter.
+This is a small batch of iser rc fixes for 3.18. 
 
-Reported-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_verbs.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+The patch from Emulex folks allows to run iser over their HW and ocrdma 
+drivers, which is nice addition to the support matrix for iser.
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 190a152..5577aac 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -490,7 +490,11 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
- 	return ret;
- 
- out_err:
-+	mutex_lock(&ig.connlist_mutex);
-+	ib_conn->comp->active_qps--;
-+	mutex_unlock(&ig.connlist_mutex);
- 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
-+
- 	return ret;
- }
- 
--- 
-1.7.1
+Sagi and Or.
+
+Ariel Nahum (1):
+  IB/iser: Collapse cleanup and disconnect handlers
+
+Max Gurtovoy (1):
+  IB/iser: Fix possible SQ overflow
+
+Minh Tran (1):
+  IB/iser: Re-adjust CQ and QP send ring sizes to HW limits
+
+Sagi Grimberg (3):
+  IB/iser: Fix catas error flow hang
+  IB/iser: Decrement CQ's active QPs accounting when QP creation fails
+  IB/iser: Fix sparse warnings
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   10 +++-
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |    9 ++++
+ drivers/infiniband/ulp/iser/iser_initiator.c |    6 +-
+ drivers/infiniband/ulp/iser/iser_memory.c    |    1 -
+ drivers/infiniband/ulp/iser/iser_verbs.c     |   67 ++++++++++++++++++--------
+ 5 files changed, 65 insertions(+), 28 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
