@@ -1,152 +1,99 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: ib_isert RDMA_CM_EVENT_DEVICE_REMOVAL events
-Date: Tue, 28 Oct 2014 18:34:58 +0200
-Message-ID: <544FC5B2.70104@dev.mellanox.co.il>
-References: <1414130562.15076.27.camel@haakon3.risingtidesystems.com>
+From: Evgenii Smirnov <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: ib_post_send execution time
+Date: Tue, 28 Oct 2014 17:49:38 +0100
+Message-ID: <CAEv+Kc3Z8wSphNYuvgSOcJc1BkWtiNfscr-NE9qYU5a+Had5QQ@mail.gmail.com>
+References: <CAEv+Kc1mioxX+pUky3a9Wfd8HzzOTAqyjw0tgdf4Qu2956hOaw@mail.gmail.com>
+ <CAL1RGDVS2h4wJrxsYwjMH6cOz2jXCuUiY-OjZPjQrSu1btkHmw@mail.gmail.com>
+ <20141024003933.GA30941@mtldesk30> <CAJ3xEMhN1HvddjMECnobZixd+v=0JasRzCXxY_aQXznU2Zx1sQ@mail.gmail.com>
+ <544A75B5.1080304@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1414130562.15076.27.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <544A75B5.1080304-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/24/2014 9:02 AM, Nicholas A. Bellinger wrote:
-<SNIP>
-> AFAICT, it looks like the assumption in isert_disconnected_handler() to
-> dereference rdma_cm_id->context as isert_conn (in all cases) is wrong,
-> and the above RDMA_CM_EVENT_DEVICE_REMOVAL has iscsi_np stored in
-> ->context from the original rdma_create_id() at isert_setup_np() time.
+I forgot to mention that in both cases flag IB_SEND_INLINE (or
+IBV_SEND_INLINE) is cleared.
+Below are the results from perf top. They are quite equal to the
+results of perf record. The functions that consumes almost 50% of
+cycles is my function. Essentially, all it does is calling
+ib_post_send with already predefined structs ib_send_wr and ib_sge.
+Still have no idea why mlx4_ib_post_send consumes such big amount of
+cycles.
+
+
+  48.93%  /proc/kcore  0x7fffa078774c      k [k] test_send
+  35.20%  /proc/kcore  0x7fffa0317a99      k [k] mlx4_ib_post_send
+   6.39%  /proc/kcore  0x7fff8150cd3f      k [k] _raw_spin_lock_irqsave
+   3.85%  /proc/kcore  0x7fffa0313e0f      k [k] stamp_send_wqe
+   2.03%  /proc/kcore  0x7fff8150c9de      k [k] _raw_spin_unlock_irqrestore
+   1.80%  /proc/kcore  0x7fffa05fc7a9      k [k] client_send
+   1.13%  /proc/kcore  0x7fff81086a75      k [k] kthread_should_stop
+   0.18%  /proc/kcore  0x7fffa03080d8      k [k] mlx4_ib_poll_cq
+   0.17%  /proc/kcore  0x7fffa0787b80      k [k] process_wc
+   0.14%  /proc/kcore  0x7fffa0307403      k [k] get_sw_cqe
+   0.02%  /proc/kcore  0x7fff8150dcd0      k [k] irq_entries_start
+   0.02%  /proc/kcore  0x7fffa017bf37      k [k] eq_set_ci.isra.14
+   0.02%  /proc/kcore  0x7fffa017c4d6      k [k] mlx4_eq_int
+   0.01%  /proc/kcore  0x7fff8150cd7e      k [k] _raw_spin_lock
+   0.01%  /proc/kcore  0x7fffa017b106      k [k] mlx4_cq_completion
+   0.01%  /proc/kcore  0x7fff8150e1f0      k [k] apic_timer_interrupt
+   0.01%  /proc/kcore  0x7fffa0308a5d      k [k] mlx4_ib_arm_cq
+   0.01%  /proc/kcore  0x7fff81051a86      k [k] native_read_msr_safe
+   0.01%  /proc/kcore  0x7fffa017d07b      k [k] mlx4_msi_x_interrupt
+   0.01%  /proc/kcore  0x7fff81051aa6      k [k] native_write_msr_safe
+   0.01%  /proc/kcore  0x7fff8138c83e      k [k] add_interrupt_randomness
+   0.00%  /proc/kcore  0x7fff8101c312      k [k] native_read_tsc
+   0.00%  /proc/kcore  0x7fff810bc6d0      k [k] handle_edge_irq
+   0.00%  /proc/kcore  0x7fff8150de92      k [k] common_interrupt
+   0.00%  /proc/kcore  0x7fff8106ba3c      k [k] raise_softirq
+   0.00%  /proc/kcore  0x7fff812accd0      k [k] __radix_tree_lookup
+   0.00%  /proc/kcore  0x7fff81072ebc      k [k] run_timer_softirq
+   0.00%  /proc/kcore  0x7fff81094721      k [k] idle_cpu
+
+On Fri, Oct 24, 2014 at 5:52 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> On 10/24/2014 6:30 AM, Or Gerlitz wrote:
+>>
+>> On Fri, Oct 24, 2014 at 3:39 AM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>>>
+>>> On Thu, Oct 23, 2014 at 11:45:05AM -0700, Roland Dreier wrote:
+>>>>
+>>>> On Thu, Oct 23, 2014 at 10:21 AM, Evgenii Smirnov
+>>>> <evgenii.smirnov-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
+>>>>>
+>>>>> I am trying to achieve high packet per second throughput with 2-byte
+>>>>> messages over Infiniband from kernel using IB_SEND verb. The most I
+>>>>> can get so far is 3.5 Mpps. However, ib_send_bw utility from perftest
+>>>>> package is able to send 2-byte packets with rate of 9 Mpps.
+>>>>> After some profiling I found that execution of ib_post_send function
+>>>>> in kernel takes about 213 ns in average, for the user-space function
+>>>>> ibv_post_send takes only about 57 ns.
+>>>>> As I understand, these functions do almost same operations. The work
+>>>>> request fields and queue pair parameters are also the same. Why do
+>>>>> they have such big difference in execution times?
+>>>>
+>>>>
+>>>> Interesting.  I guess it would be useful to look at perf top / and or
+>>>> get a perf report with "perf report -a -g" when running your high PPS
+>>>> workload, and see where the time is wasted.
+>>>>
+>>> I assume ib_send_bw uses inline with blueflame so it may be part of
+>>> the explanation to the differences you see.
+>>
+>> I think it should be the other way around... when we use inline we
+>> consume more CPU cycles and here we see notable different (213ns --
+>> kernel 57ns user) in favor of libmlx4
+>>
 >
-> So, is there a way to tell the difference how rdma_cm_id->context should
-> be dereferenced when DEVICE_REMOVAL occurs..?  Does DEVICE_REMOVAL occur
-> on just the listener rdma_cm_id, or on all accepted children as well..?
+> Inline may consume more cpu cycles but should reduce latency because the IO
+> is completed with only 1 DMA transaction, the WR fetch, which includes the
+> data.  Non-inline requires 2 DMA transactions, the WR fetch and the data
+> fetch.
 >
-> Anything else to consider wrt to other CMA events being kicked off into
-> isert_disconnected_handler()..?
 >
-
-Hey Nic,
-
-Terribly sorry for the late response, I'm juggling between 5 different
-projects...
-
-This is indeed a bug, and I indeed noticed it.
-
-This will happen if the network portal cm id listens on a specific
-address (e.g. not any - 0.0.0.0), in this case the cm id will acquire
-the relevant device (see rdma_bind_addr) - hence will sense
-DEVICE_REMOVAL events. And yes, all the accepted children will of course
-get the event as well.
-
-Notice that cma_remove_one sequence (that fires DEVICE_REMOVAL event to
-all the relevant cma ids) requires the cmd is owner to finish cleanup
-before the end of the callback because in the end of it, it will allow
-the device to remove. So I do plan to get disconnected_handler to the
-callback instead of the deferred work.
-
-I think this should make the bug you hit go away:
-iser-target: Handle DEVICE_REMOVAL event on network portal listener 
-correctly
-
-In this case the cm_id->context is the isert_np, and the cm_id->qp
-is NULL, so use that to distinct the cases.
-
-Since we don't expect any other events on this cm_id we can
-just return -1 for explicit termination of the cm_id by the
-cma layer.
-
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-  drivers/infiniband/ulp/isert/ib_isert.c |   29 
-+++++++++++++++++++----------
-  1 files changed, 19 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
-b/drivers/infiniband/ulp/isert/ib_isert.c
-index 5552f93..d620d5e 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -803,14 +803,25 @@ wake_up:
-         complete(&isert_conn->conn_wait);
-  }
-
--static void
-+static int
-  isert_disconnected_handler(struct rdma_cm_id *cma_id, bool disconnect)
-  {
--       struct isert_conn *isert_conn = (struct isert_conn 
-*)cma_id->context;
-+       struct isert_conn *isert_conn;
-+
-+       if (!cma_id->qp) {
-+               struct isert_np *isert_np = cma_id->context;
-+
-+               isert_np->np_cm_id = NULL;
-+               return -1;
-+       }
-+
-+       isert_conn = (struct isert_conn *)cma_id->context;
-
-         isert_conn->disconnect = disconnect;
-         INIT_WORK(&isert_conn->conn_logout_work, isert_disconnect_work);
-         schedule_work(&isert_conn->conn_logout_work);
-+
-+       return 0;
-  }
-
-  static int
-@@ -825,6 +836,9 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct 
-rdma_cm_event *event)
-         switch (event->event) {
-         case RDMA_CM_EVENT_CONNECT_REQUEST:
-                 ret = isert_connect_request(cma_id, event);
-+               if (ret)
-+                       pr_err("isert_cma_handler failed RDMA_CM_EVENT: 
-0x%08x %d\n",
-+                              event->event, ret);
-                 break;
-         case RDMA_CM_EVENT_ESTABLISHED:
-                 isert_connected_handler(cma_id);
-@@ -834,7 +848,7 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct 
-rdma_cm_event *event)
-         case RDMA_CM_EVENT_DEVICE_REMOVAL: /* FALLTHRU */
-                 disconnect = true;
-         case RDMA_CM_EVENT_TIMEWAIT_EXIT:  /* FALLTHRU */
--               isert_disconnected_handler(cma_id, disconnect);
-+               ret = isert_disconnected_handler(cma_id, disconnect);
-                 break;
-         case RDMA_CM_EVENT_CONNECT_ERROR:
-         default:
-@@ -842,12 +856,6 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct 
-rdma_cm_event *event)
-                 break;
-         }
-
--       if (ret != 0) {
--               pr_err("isert_cma_handler failed RDMA_CM_EVENT: 0x%08x 
-%d\n",
--                      event->event, ret);
--               dump_stack();
--       }
--
-         return ret;
-  }
-
-@@ -3203,7 +3211,8 @@ isert_free_np(struct iscsi_np *np)
-  {
-         struct isert_np *isert_np = (struct isert_np *)np->np_context;
-
--       rdma_destroy_id(isert_np->np_cm_id);
-+       if (isert_np->np_cm_id)
-+               rdma_destroy_id(isert_np->np_cm_id);
-
-         np->np_context = NULL;
-         kfree(isert_np);
---
-1.7.1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
