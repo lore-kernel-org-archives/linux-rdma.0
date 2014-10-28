@@ -1,64 +1,71 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
-Date: Tue, 28 Oct 2014 20:32:26 +0200
-Message-ID: <544FE13A.60807@dev.mellanox.co.il>
-References: <5433E43D.3010107@acm.org> <5433E585.607@acm.org> <5443F69F.40606@dev.mellanox.co.il> <54450690.709@acm.org> <544622FE.5040906@dev.mellanox.co.il>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: ib_isert RDMA_CM_EVENT_DEVICE_REMOVAL events
+Date: Tue, 28 Oct 2014 14:05:17 -0700
+Message-ID: <1414530317.26713.1.camel@haakon3.risingtidesystems.com>
+References: <1414130562.15076.27.camel@haakon3.risingtidesystems.com>
+	 <544FC5B2.70104@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <544622FE.5040906-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <544FC5B2.70104@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/21/2014 12:10 PM, Sagi Grimberg wrote:
-> On 10/20/2014 3:56 PM, Bart Van Assche wrote:
->> On 10/19/14 19:36, Sagi Grimberg wrote:
->>> On 10/7/2014 4:07 PM, Bart Van Assche wrote:
->>>>           * comp_vector, a number in the range 0..n-1 specifying the
->>>> -          MSI-X completion vector. Some HCA's allocate multiple (n)
->>>> -          MSI-X vectors per HCA port. If the IRQ affinity masks of
->>>> -          these interrupts have been configured such that each MSI-X
->>>> -          interrupt is handled by a different CPU then the comp_vector
->>>> -          parameter can be used to spread the SRP completion workload
->>>> -          over multiple CPU's.
->>>> +          MSI-X completion vector of the first RDMA channel. Some
->>>> +          HCA's allocate multiple (n) MSI-X vectors per HCA port. If
->>>> +          the IRQ affinity masks of these interrupts have been
->>>> +          configured such that each MSI-X interrupt is handled by a
->>>> +          different CPU then the comp_vector parameter can be used to
->>>> +          spread the SRP completion workload over multiple CPU's.
->>>
->>> This is fairly not trivial for the user...
->>>
->>> Aren't we requesting a bit too much awareness here?
->>> Can't we just "make it work"? The user hands out ch_count - why can't
->>> you do some least-used logic here?
->>>
->>> Maybe we can even go with per-cpu QPs and discard comp_vector argument?
->>> this would probably bring the best performance, wouldn't it?
->>> (fallback to least-used logic in case HW support less vectors)
->>
->> Hello Sagi,
->>
->> The only reason the comp_vector parameter is still supported is because
->> of backwards compatibility. What I expect is that users will set the
->> ch_count parameter but not the comp_vector parameter.
->
+On Tue, 2014-10-28 at 18:34 +0200, Sagi Grimberg wrote:
+> On 10/24/2014 9:02 AM, Nicholas A. Bellinger wrote:
+> <SNIP>
+> > AFAICT, it looks like the assumption in isert_disconnected_handler() to
+> > dereference rdma_cm_id->context as isert_conn (in all cases) is wrong,
+> > and the above RDMA_CM_EVENT_DEVICE_REMOVAL has iscsi_np stored in
+> > ->context from the original rdma_create_id() at isert_setup_np() time.
+> >
+> > So, is there a way to tell the difference how rdma_cm_id->context should
+> > be dereferenced when DEVICE_REMOVAL occurs..?  Does DEVICE_REMOVAL occur
+> > on just the listener rdma_cm_id, or on all accepted children as well..?
+> >
+> > Anything else to consider wrt to other CMA events being kicked off into
+> > isert_disconnected_handler()..?
+> >
+> 
+> Hey Nic,
+> 
+> Terribly sorry for the late response, I'm juggling between 5 different
+> projects...
+> 
+> This is indeed a bug, and I indeed noticed it.
+> 
+> This will happen if the network portal cm id listens on a specific
+> address (e.g. not any - 0.0.0.0), in this case the cm id will acquire
+> the relevant device (see rdma_bind_addr) - hence will sense
+> DEVICE_REMOVAL events. And yes, all the accepted children will of course
+> get the event as well.
+> 
+> Notice that cma_remove_one sequence (that fires DEVICE_REMOVAL event to
+> all the relevant cma ids) requires the cmd is owner to finish cleanup
+> before the end of the callback because in the end of it, it will allow
+> the device to remove. So I do plan to get disconnected_handler to the
+> callback instead of the deferred work.
+> 
+> I think this should make the bug you hit go away:
+> iser-target: Handle DEVICE_REMOVAL event on network portal listener 
+> correctly
+> 
+> In this case the cm_id->context is the isert_np, and the cm_id->qp
+> is NULL, so use that to distinct the cases.
+> 
+> Since we don't expect any other events on this cm_id we can
+> just return -1 for explicit termination of the cm_id by the
+> cma layer.
+> 
+> Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 
-Hey Bart,
+Just verified that this resolves the specific OOPesen.
 
-Another wander I have with this. Say you have 8 cores on a single numa
-node. First connection will attach to vectors 0-3 (ch_count=4) and so
-are all the connections. Don't we want to spread that a little?
+Queued up in target-pending/master, with a CC' to v3.10.y.
 
-If we are not going per-cpu, why aren't we trying to spread vectors
-around to try and reduce the interference?
+Thanks Sagi!
 
-Sagi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--nab
