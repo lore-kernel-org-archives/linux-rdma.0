@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes for-3.18 3/6] IB/iser: Collapse cleanup and disconnect handlers
-Date: Tue, 28 Oct 2014 11:49:10 +0200
-Message-ID: <1414489753-29199-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH fixes for-3.18 2/6] IB/iser: Fix catas error flow hang
+Date: Tue, 28 Oct 2014 11:49:09 +0200
+Message-ID: <1414489753-29199-3-git-send-email-ogerlitz@mellanox.com>
 References: <1414489753-29199-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1414489753-29199-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,67 +10,38 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-No real need to wait for TIMEWAIT_EXIT before we destroy
-the RDMA resources (also TIMEAWAIT_EXIT is not guarenteed
-to always arrive). As for the cma_id, only destroy it
-if the state is not DOWN where in this case, conn_release
-is already running and we don't want to compete.
+In case of the HCA going into catasrophic error flow, the
+beacon post_send is likely to fail, so surely there will
+be no completion for it.
 
-Signed-off-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In this case, use a best effort approach and don't wait for
+beacon completion if we failed to post send it.
+
+Reported-by: Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/infiniband/ulp/iser/iser_verbs.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 7f78af5..190a152 100644
+index 2ccbc64..7f78af5 100644
 --- a/drivers/infiniband/ulp/iser/iser_verbs.c
 +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -625,9 +625,11 @@ void iser_conn_release(struct iser_conn *iser_conn)
- 	mutex_unlock(&ig.connlist_mutex);
+@@ -677,8 +677,10 @@ int iser_conn_terminate(struct iser_conn *iser_conn)
  
- 	mutex_lock(&iser_conn->state_mutex);
--	if (iser_conn->state != ISER_CONN_DOWN)
-+	if (iser_conn->state != ISER_CONN_DOWN) {
- 		iser_warn("iser conn %p state %d, expected state down.\n",
- 			  iser_conn, iser_conn->state);
-+		iser_conn->state = ISER_CONN_DOWN;
-+	}
- 	/*
- 	 * In case we never got to bind stage, we still need to
- 	 * release IB resources (which is safe to call more than once).
-@@ -863,20 +865,21 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
- 		break;
- 	case RDMA_CM_EVENT_DISCONNECTED:
- 	case RDMA_CM_EVENT_ADDR_CHANGE:
--		iser_disconnected_handler(cma_id);
-+	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
-+		iser_cleanup_handler(cma_id, false);
- 		break;
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 		/*
- 		 * we *must* destroy the device as we cannot rely
- 		 * on iscsid to be around to initiate error handling.
--		 * also implicitly destroy the cma_id.
-+		 * also if we are not in state DOWN implicitly destroy
-+		 * the cma_id.
- 		 */
- 		iser_cleanup_handler(cma_id, true);
--		iser_conn->ib_conn.cma_id = NULL;
--		ret = 1;
--		break;
--	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
--		iser_cleanup_handler(cma_id, false);
-+		if (iser_conn->state != ISER_CONN_DOWN) {
-+			iser_conn->ib_conn.cma_id = NULL;
-+			ret = 1;
+ 		/* post an indication that all flush errors were consumed */
+ 		err = ib_post_send(ib_conn->qp, &ib_conn->beacon, &bad_wr);
+-		if (err)
++		if (err) {
+ 			iser_err("conn %p failed to post beacon", ib_conn);
++			return 1;
 +		}
- 		break;
- 	default:
- 		iser_err("Unexpected RDMA CM event (%d)\n", event->event);
+ 
+ 		wait_for_completion(&ib_conn->flush_comp);
+ 	}
 -- 
 1.7.1
 
