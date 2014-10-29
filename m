@@ -1,86 +1,95 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/addr: Improve address resolution callback scheduling
-Date: Wed, 29 Oct 2014 16:32:04 +0200
-Message-ID: <1414593124-9060-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Olga Shern <olgas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Chris Moore <Chris.Moore@Emulex.Com>
+Subject: RE: Can someone help me understand the reason for this code in
+ ib_isert.c?
+Date: Wed, 29 Oct 2014 18:05:15 +0000
+Message-ID: <462EF229174FDB4D92ACE4656EA5610051E396BE@CMEXMB1.ad.emulex.com>
+References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
+	 <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com>
+	 <1413954397.30983.33.camel@haakon3.risingtidesystems.com>
+	 <544772AA.7060003@mellanox.com>
+ <1414014601.20457.12.camel@haakon3.risingtidesystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1414014601.20457.12.camel@haakon3.risingtidesystems.com>
+Content-Language: en-US
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Or Gerlitz <gerlitz.or@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-As of the callback model, the address resolution logic always does
-context switch to a work-queue to deliver the address resolution event.
-
-When the IP address is already cached in the system arp table,
-we're going through the following call chain:
-
-rdma_resolve_ip --> addr_resolve (cache hit) -->
-
-which ends up with doing:
-
-queue_req --> set_timeout (now) --> mod_delayed_work(,, delay=1)
-
-We actually do realize that the timeout should be zero, but the
-code forces it to a minimum of one jiffie.
-
-Using one jiffie as the minimum delay value results in a less optimized
-scheduling of executing this work item by the workqueue, which on the
-below testbed costs about 3-4ms out of 12ms total time.
-
-To fix that, we let the minimum delay to be zero. Note that the
-connect step times change too, as there are address resolution
-calls from that flow.
-
-The results were taken from running both client and server on the
-same node, over mlx4 RoCE port.
-
-before -->
-step              total ms     max ms     min us  us / conn
-create id    :        0.01       0.01       6.00       6.00
-resolve addr :        4.02       4.01    4013.00    4016.00
-resolve route:        0.18       0.18     182.00     183.00
-create qp    :        1.15       1.15    1150.00    1150.00
-connect      :        6.73       6.73    6730.00    6731.00
-disconnect   :        0.55       0.55     549.00     550.00
-destroy      :        0.01       0.01       9.00       9.00
-
-after -->
-step              total ms     max ms     min us  us / conn
-create id    :        0.01       0.01       6.00       6.00
-resolve addr :        0.05       0.05      49.00      52.00
-resolve route:        0.21       0.21     207.00     208.00
-create qp    :        1.10       1.10    1104.00    1104.00
-connect      :        1.22       1.22    1220.00    1221.00
-disconnect   :        0.71       0.71     713.00     713.00
-destroy      :        0.01       0.01       9.00       9.00
-
-Signed-off-by: Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/addr.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 8172d37..f80da50 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -176,8 +176,8 @@ static void set_timeout(unsigned long time)
- 	unsigned long delay;
- 
- 	delay = time - jiffies;
--	if ((long)delay <= 0)
--		delay = 1;
-+	if ((long)delay < 0)
-+		delay = 0;
- 
- 	mod_delayed_work(addr_wq, &work, delay);
- }
--- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBPbiBXZWQsIDIwMTQtMTAtMjIgYXQgMTI6MDIgKzAzMDAsIE9yIEdlcmxpdHogd3JvdGU6DQo+
+ID4gT24gMTAvMjIvMjAxNCA4OjA2IEFNLCBOaWNob2xhcyBBLiBCZWxsaW5nZXIgd3JvdGU6DQo+
+ID4gPiBPbiBUdWUsIDIwMTQtMTAtMjEgYXQgMDA6MTMgKzAzMDAsIE9yIEdlcmxpdHogd3JvdGU6
+DQo+ID4gPj4gT24gTW9uLCBPY3QgMjAsIDIwMTQgYXQgNjoyOSBQTSwgQ2hyaXMgTW9vcmUNCj4g
+PENocmlzLk1vb3JlQGVtdWxleC5jb20+IHdyb3RlOg0KPiA+ID4+PiBUaGUgZm9sbG93aW5nIGNv
+ZGUgaXMgaW4gaXNlcnRfY29ubl9zZXR1cF9xcCgpIGluIGliX2lzZXJ0LmM6DQo+ID4gPj4+DQo+
+ID4gPj4+ICAgICAgICAgICAvKg0KPiA+ID4+PiAgICAgICAgICAgICAqIEZJWE1FOiBVc2UgZGV2
+YXR0ci5tYXhfc2dlIC0gMiBmb3IgbWF4X3NlbmRfc2dlIGFzDQo+ID4gPj4+ICAgICAgICAgICAg
+ICogd29yay1hcm91bmQgZm9yIFJETUFfUkVBRC4uDQo+ID4gPj4+ICAgICAgICAgICAgICovDQo+
+ID4gPj4+ICAgICAgICAgICBhdHRyLmNhcC5tYXhfc2VuZF9zZ2UgPSBkZXZpY2UtPmRldl9hdHRy
+Lm1heF9zZ2UgLSAyOw0KPiA+ID4+Pg0KPiA+ID4+PiBJdCdzIG5vdCBjbGVhciBmcm9tIHRoZSBj
+b21tZW50IHdoYXQgdGhpcyBpcyBhIHdvcmstYXJvdW5kIGZvciwNCj4gPiA+Pj4gYW5kIEkgd2Fz
+bid0IGFibGUgdG8gZmlndXJlIGl0IG91dCBmcm9tIGxvb2tpbmcgYXQgbG9ncy4NCj4gPiA+PiBJ
+IGJlbGlldmUgdGhpcyByZWZlcnMgdG8gc29tZSBJQlRBIHNwZWMgY29ybmVyIGNhc2Ugd2hpY2gg
+Y29tZXMNCj4gPiA+PiBpbnRvIHBsYXkgd2l0aCB0aGUgbWF4X3NnZXMgYWR2ZXJ0aXplZCBieSBt
+bHg0LCBFbGksIGNhbiB5b3Ugc2hlZA0KPiA+ID4+IHNvbWUgbGlnaHQgKElCVEEgcG9pbnRlcikg
+b24gdGhhdD8gaXMgdGhpcyB0aGUgY2FzZSAoaS5lDQo+ID4gPj4gZGV2X2F0dHIubWF4X3NnZSBp
+c24ndCBhbHdheXMgYWNoaWV2YWJsZSkgd2l0aCBtbHg1IHRvbz8NCj4gPiA+Pg0KPiA+ID4gSXQn
+cyBmb3IgQ29ubmVjdFgtMiByZXBvcnRpbmcgbWF4X3NnZT0zMSBkdXJpbmcgZGV2ZWxvcG1lbnQs
+IHdoaWxlDQo+ID4gPiB0aGUgbGFyZ2VzdCBtYXhfc2VuZF9zZ2UgZm9yIHN0YWJsZSBsYXJnZSBi
+bG9jayBSRE1BIHJlYWRzIHdhcw0KPiA+ID4gKGlzLi4/KSAyOSBTR0VzLg0KPiA+ID4NCj4gPiA+
+Pj4gSW4gdHJ5aW5nIHRvIGdldCBpc2VydCB3b3JraW5nIHdpdGggb2NyZG1hIEkgcmFuIGludG8g
+YSBwcm9ibGVtDQo+ID4gPj4+IHdoZXJlIHRoZSBjb2RlIHRob3VnaHQgdGhlcmUgd2FzIG9ubHkg
+MSBzZW5kIFNHRSBhdmFpbGFibGUgd2hlbiBpbg0KPiBmYWN0IHRoZSBkZXZpY2UgaGFzIDMuDQo+
+ID4gPj4+IFRoZW4gSSBmb3VuZCB0aGUgYWJvdmUgd29yay1hcm91bmQsIHdoaWNoIGV4cGxhaW5l
+ZCB0aGUgcHJvYmxlbS4NCj4gPiA+PiBOaWMsIGFueSByZWFzb24gZm9yIGF0dHIuY2FwLm1heF9z
+ZW5kX3NnZSA9IDEgbm90IHRvIHdvcmsgT0s/DQo+ID4gPj4NCj4gPiA+IElJUkMsIHByZSBmYXN0
+cmVnIGNvZGUgc3VwcG9ydGVkIG1heF9zZW5kX3NnZT0xIGJ5IGxpbWl0aW5nIHRoZQ0KPiA+ID4g
+dHJhbnNmZXIgc2l6ZSBwZXIgUkRNQSByZWFkLCBhbmQgd291bGQgaXNzdWUgc3Vic2VxdWVudCBS
+RE1BIHJlYWQgKw0KPiA+ID4gb2Zmc2V0IGZyb20gY29tcGxldGlvbiB1cCB0byB0aGUgdG90YWwg
+c2VfY21kLT5kYXRhX2xlbmd0aC4NCj4gPiA+DQo+ID4gPiBOb3Qgc3VyZSBob3cgdGhpcyB3b3Jr
+cyB3aXRoIGZhc3RyZWcgdG9kYXkuICBTYWdpLi4/DQo+ID4gPg0KPiA+DQo+ID4gV2hpbGUgb24g
+ZmFzdHJlZyBtb2RlLCBmb3IgUkRNQSByZWFkcyAgd2UgdXNlIG9ubHkgb25lIFNHRSwgdGFsa2lu
+ZyB0bw0KPiA+IFNhZ2kgaGUgZXhwbGFpbmVkIG1lIHRoYXQgdGhlIHByb2JsZW0gd2l0aCBjcmVh
+dGluZyB0aGUgUVAgd2l0aA0KPiA+IG1heF9zZW5kX3NnZSA9IDEgaGFzIHRvIGRvIHdpdGggb3Ro
+ZXIgZmxvd3Mgd2hlcmUgdHdvIG9yIGV2ZW4gdGhyZWUNCj4gPiBTR0VzIGFyZSBuZWVkZWQsIGUu
+ZyB3aGVuIHRoZSBpc2NzaS9pc2VyIGhlYWRlciAoZG9lc24ndCBleGlzdCBpbiBSRE1BDQo+ID4g
+b3BzKSBpcyB0YWtlbiBmcm9tIG9uZSBzcG90IG9mIHRoZSBtZW1vcnkgYW5kIHRoZSBkYXRhIChz
+ZW5zZSkgdGFrZW4NCj4gPiBmcm9tIGFub3RoZXIgb25lPw0KPiA+DQo+ID4gTmljLCB3ZSBuZWVk
+IHRvIHNlZSB3aGF0IGlzIHRoZSBtaW5pbXVtIG5lZWRlZCBieSB0aGUgY29kZSAodHdvPykgYW5k
+DQo+ID4gdHdlYWsgdGhhdCBsaW5lIHRvIG1ha2Ugc3VyZSBpdCBnZXRzIHRoZXJlIGFzIGxvbmcg
+YXMgdGhlIGRldmljZQ0KPiA+IHN1cHBvcnRzIGl0LCBTQiwgbWFrZXMgc2Vuc2U/DQo+ID4NCj4g
+Pg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lzZXJ0L2liX2lzZXJ0
+LmMNCj4gPiBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXNlcnQvaWJfaXNlcnQuYw0KPiA+IGlu
+ZGV4IDBiZWE1NzcuLjI0YWJiYjMgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5k
+L3VscC9pc2VydC9pYl9pc2VydC5jDQo+ID4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL3VscC9p
+c2VydC9pYl9pc2VydC5jDQo+ID4gQEAgLTExNSw5ICsxMTUsMTAgQEAgaXNlcnRfY29ubl9zZXR1
+cF9xcChzdHJ1Y3QgaXNlcnRfY29ubg0KPiA+ICppc2VydF9jb25uLCBzdHJ1Y3QgcmRtYV9jbV9p
+ZCAqY21hX2lkLA0KPiA+ICAgICAgICAgIGF0dHIuY2FwLm1heF9yZWN2X3dyID0gSVNFUlRfUVBf
+TUFYX1JFQ1ZfRFRPUzsNCj4gPiAgICAgICAgICAvKg0KPiA+ICAgICAgICAgICAqIEZJWE1FOiBV
+c2UgZGV2YXR0ci5tYXhfc2dlIC0gMiBmb3IgbWF4X3NlbmRfc2dlIGFzDQo+ID4gLSAgICAgICAg
+KiB3b3JrLWFyb3VuZCBmb3IgUkRNQV9SRUFELi4NCj4gPiArICAgICAgICAqIHdvcmstYXJvdW5k
+IGZvciBSRE1BX1JFQUQuLiBzdGlsbCBuZWVkIHRvIG1ha2Ugc3VyZSB0bw0KPiA+ICsgICAgICAg
+ICogaGF2ZSBhdCBsZWFzdCB0d28gU0dFcyBmb3IgU0NTSSByZXNwb25zZXMuDQo+ID4gICAgICAg
+ICAgICovDQo+ID4gLSAgICAgICBhdHRyLmNhcC5tYXhfc2VuZF9zZ2UgPSBkZXZpY2UtPmRldl9h
+dHRyLm1heF9zZ2UgLSAyOw0KPiA+ICsgICAgICAgYXR0ci5jYXAubWF4X3NlbmRfc2dlID0gbWF4
+KDIsIGRldmljZS0+ZGV2X2F0dHIubWF4X3NnZSAtIDIpOw0KPiA+ICAgICAgICAgIGlzZXJ0X2Nv
+bm4tPm1heF9zZ2UgPSBhdHRyLmNhcC5tYXhfc2VuZF9zZ2U7DQo+ID4NCj4gPiAgICAgICAgICBh
+dHRyLmNhcC5tYXhfcmVjdl9zZ2UgPSAxOw0KPiA+DQo+ID4NCj4gDQo+IEFmdGVyIGEgcXVpY2sg
+YXVkaXQsIHRoZSBtaW5pbXVtIG1heF9zZW5kX3NnZT0yIHBhdGNoIGxvb2tzIGNvcnJlY3QgZm9y
+DQo+IHRoZSBoYXJkY29kZWQgdHhfZGVzYy0+bnVtX3NnZSBjYXNlcyBpbiBpc2VydF9wdXRfbG9n
+aW5fdHgoKSwNCj4gaXNlcnRfcHV0X3Jlc3BvbnNlKCksIGlzZXJ0X3B1dF9yZWplY3QoKSBhbmQg
+aXNlcnRfcHV0X3RleHRfcnNwKCkuDQo+IA0KPiBGb3IgdGhlIFJETUEgcmVhZCBwYXRoIHdpdGgg
+bm9uIGZhc3QtcmVnLCBpc2VydF9idWlsZF9yZG1hX3dyKCkgaXMgc3RpbGwNCj4gY29ycmVjdGx5
+IGxpbWl0aW5nIHRoZSBTR0VzIHBlciBvcGVyYXRpb24gYmFzZWQgdXBvbiB0aGUgbmVnb3RpYXRl
+ZA0KPiBpc2VydF9jb25uLT5tYXhfc2dlIHNldCBhYm92ZSBpbiBpc2VydF9jb25uX3NldHVwX3Fw
+KCkuDQo+IA0KPiBDaHJpcywgcGxlYXNlIGNvbmZpcm0gb24gb2NyZG1hIHdpdGggT3IncyBwYXRj
+aCwgYW5kIEknbGwgaW5jbHVkZSBoaXMgcGF0Y2ggaW50bw0KPiB0YXJnZXQtcGVuZGluZy9xdWV1
+ZSBmb3Igbm93LCBhbmQgbW92ZSBpbnRvIG1hc3RlciBvbmNlIHlvdSBnaXZlIGENCj4gcHJvcGVy
+IFRlc3RlZC1CeS4NCj4gDQo+IFRoYW5rcyENCj4gDQo+IC0tbmFiDQoNClNvcnJ5IGZvciB0aGUg
+bG9uZyBkZWxheSwgSSB3YXMgZGVhbGluZyB3aXRoIHNvbWUgaGFyZHdhcmUgaXNzdWVzLg0KDQpJ
+J3ZlIHRlc3RlZCB0aGUgcHJvcG9zZWQgcGF0Y2ggYW5kIGl0IGZpeGVzIHRoZSBvY3JkbWEgaXNz
+dWUuDQoNClRlc3RlZC1ieTogQ2hyaXMgTW9vcmUgPGNocmlzLm1vb3JlQGVtdWxleC5jb20+DQoN
+ClRoYW5rcywNCg0KQ2hyaXMNCg0K
