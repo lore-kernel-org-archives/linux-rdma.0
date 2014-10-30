@@ -1,126 +1,58 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Can someone help me understand the reason for this code in ib_isert.c?
-Date: Thu, 30 Oct 2014 10:24:33 +0200
-Message-ID: <5451F5C1.6000207@dev.mellanox.co.il>
-References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>	 <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com>	 <1413954397.30983.33.camel@haakon3.risingtidesystems.com>	 <544772AA.7060003@mellanox.com> <1414014601.20457.12.camel@haakon3.risingtidesystems.com> <462EF229174FDB4D92ACE4656EA5610051E396BE@CMEXMB1.ad.emulex.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH v3 0/11] IB/srp: Add multichannel support
+Date: Thu, 30 Oct 2014 14:44:14 +0100
+Message-ID: <545240AE.6060009@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <462EF229174FDB4D92ACE4656EA5610051E396BE-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Moore <Chris.Moore-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/29/2014 8:05 PM, Chris Moore wrote:
->> On Wed, 2014-10-22 at 12:02 +0300, Or Gerlitz wrote:
->>> On 10/22/2014 8:06 AM, Nicholas A. Bellinger wrote:
->>>> On Tue, 2014-10-21 at 00:13 +0300, Or Gerlitz wrote:
->>>>> On Mon, Oct 20, 2014 at 6:29 PM, Chris Moore
->> <Chris.Moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
->>>>>> The following code is in isert_conn_setup_qp() in ib_isert.c:
->>>>>>
->>>>>>            /*
->>>>>>              * FIXME: Use devattr.max_sge - 2 for max_send_sge as
->>>>>>              * work-around for RDMA_READ..
->>>>>>              */
->>>>>>            attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
->>>>>>
->>>>>> It's not clear from the comment what this is a work-around for,
->>>>>> and I wasn't able to figure it out from looking at logs.
->>>>> I believe this refers to some IBTA spec corner case which comes
->>>>> into play with the max_sges advertized by mlx4, Eli, can you shed
->>>>> some light (IBTA pointer) on that? is this the case (i.e
->>>>> dev_attr.max_sge isn't always achievable) with mlx5 too?
->>>>>
->>>> It's for ConnectX-2 reporting max_sge=31 during development, while
->>>> the largest max_send_sge for stable large block RDMA reads was
->>>> (is..?) 29 SGEs.
->>>>
->>>>>> In trying to get isert working with ocrdma I ran into a problem
->>>>>> where the code thought there was only 1 send SGE available when in
->> fact the device has 3.
->>>>>> Then I found the above work-around, which explained the problem.
->>>>> Nic, any reason for attr.cap.max_send_sge = 1 not to work OK?
->>>>>
->>>> IIRC, pre fastreg code supported max_send_sge=1 by limiting the
->>>> transfer size per RDMA read, and would issue subsequent RDMA read +
->>>> offset from completion up to the total se_cmd->data_length.
->>>>
->>>> Not sure how this works with fastreg today.  Sagi..?
->>>>
->>>
->>> While on fastreg mode, for RDMA reads  we use only one SGE, talking to
->>> Sagi he explained me that the problem with creating the QP with
->>> max_send_sge = 1 has to do with other flows where two or even three
->>> SGEs are needed, e.g when the iscsi/iser header (doesn't exist in RDMA
->>> ops) is taken from one spot of the memory and the data (sense) taken
->>> from another one?
->>>
->>> Nic, we need to see what is the minimum needed by the code (two?) and
->>> tweak that line to make sure it gets there as long as the device
->>> supports it, SB, makes sense?
->>>
->>>
->>> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c
->>> b/drivers/infiniband/ulp/isert/ib_isert.c
->>> index 0bea577..24abbb3 100644
->>> --- a/drivers/infiniband/ulp/isert/ib_isert.c
->>> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
->>> @@ -115,9 +115,10 @@ isert_conn_setup_qp(struct isert_conn
->>> *isert_conn, struct rdma_cm_id *cma_id,
->>>           attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS;
->>>           /*
->>>            * FIXME: Use devattr.max_sge - 2 for max_send_sge as
->>> -        * work-around for RDMA_READ..
->>> +        * work-around for RDMA_READ.. still need to make sure to
->>> +        * have at least two SGEs for SCSI responses.
->>>            */
->>> -       attr.cap.max_send_sge = device->dev_attr.max_sge - 2;
->>> +       attr.cap.max_send_sge = max(2, device->dev_attr.max_sge - 2);
+Although the SRP protocol supports multichannel operation, although 
+since considerable time RDMA HCA's are available that support multiple 
+completion vectors and although multichannel operation yields better 
+performance than using a single channel, the Linux SRP initiator does 
+not yet support multichannel operation. Hence this patch series that 
+adds multichannel support to the SRP initiator driver.
 
-I think we need to fail if (dev_attr.max_sge - 2 <= 0)
+Changes between v2 and v3:
+* Eliminated the new function blk_mq_build_unique_tag() from patch 1.
+* Elaborated the nr_hw_queues documentation in patch 2 as requested by
+   Martin.
+* Merged patches v2/10 and v2/11 into a single patch (v3/9).
+* Removed a debug statement from the patch that adds multichannel
+   support, and added another new debug statement
+   (WARN_ON_ONCE(scmnd->request->tag < 0) in srp_queuecommand()).
+* Added a new patch (v3/11) that fixes a recently reported race
+   condition. Although that patch is unrelated to adding multichannel
+   support, that patch has been added to this series to avoid merge
+   conflicts by submitting patches for the same driver to different
+   maintainers.
 
->>>           isert_conn->max_sge = attr.cap.max_send_sge;
->>>
->>>           attr.cap.max_recv_sge = 1;
->>>
->>>
->>
->> After a quick audit, the minimum max_send_sge=2 patch looks correct for
->> the hardcoded tx_desc->num_sge cases in isert_put_login_tx(),
->> isert_put_response(), isert_put_reject() and isert_put_text_rsp().
->>
->> For the RDMA read path with non fast-reg, isert_build_rdma_wr() is still
->> correctly limiting the SGEs per operation based upon the negotiated
->> isert_conn->max_sge set above in isert_conn_setup_qp().
->>
->> Chris, please confirm on ocrdma with Or's patch, and I'll include his patch into
->> target-pending/queue for now, and move into master once you give a
->> proper Tested-By.
->>
->> Thanks!
->>
->> --nab
->
-> Sorry for the long delay, I was dealing with some hardware issues.
->
-> I've tested the proposed patch and it fixes the ocrdma issue.
+Changes between v1 and v2:
+* Added a function to the block layer that allows SCSI LLDs to query
+   the blk-mq hardware context index chosen by the block layer. Removed
+   the mq_queuecommand callback again.
+* Added support for multiple hardware queues in the TCQ functions in
+   the SCSI core.
+* Split a few patches and elaborated the patch descriptions to make it
+   easier to review this patch series.
+* Added two new patches: one patch that makes the SRP initiator always
+   use block layer tags and another patch that realizes a micro-
+   optimization, namely elimination of the free requests list.
 
-This is a good patch for a work-around. But we should fix
-this one from the root.
-
-Sagi.
-
->
-> Tested-by: Chris Moore <chris.moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
->
-> Thanks,
->
-> Chris
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patches in this series are:
+0001-blk-mq-Add-blk_mq_unique_tag.patch
+0002-scsi-mq-Add-support-for-multiple-hardware-queues.patch
+0003-scsi_tcq.h-Add-support-for-multiple-hardware-queues.patch
+0004-IB-srp-Move-ib_destroy_cm_id-call-into-srp_free_ch_i.patch
+0005-IB-srp-Remove-stale-connection-retry-mechanism.patch
+0006-IB-srp-Avoid-that-I-O-hangs-due-to-a-cable-pull-duri.patch
+0007-IB-srp-Introduce-two-new-srp_target_port-member-vari.patch
+0008-IB-srp-Separate-target-and-channel-variables.patch
+0009-IB-srp-Use-block-layer-tags.patch
+0010-IB-srp-Add-multichannel-support.patch
+0011-IB-srp-Fix-a-race-condition-triggered-by-destroying-.patch
