@@ -1,115 +1,45 @@
-From: Chris Moore <Chris.Moore@Emulex.Com>
-Subject: RE: Can someone help me understand the reason for this code in
- ib_isert.c?
-Date: Thu, 30 Oct 2014 15:06:47 +0000
-Message-ID: <462EF229174FDB4D92ACE4656EA5610051E3A3BD@CMEXMB1.ad.emulex.com>
-References: <462EF229174FDB4D92ACE4656EA5610051E2EEF9@CMEXMB1.ad.emulex.com>
-	 <CAJ3xEMjmmt1guJO8rF6ChnTq-ZQbt9dpb_hwsNQCR65C79waRQ@mail.gmail.com>
-	 <1413954397.30983.33.camel@haakon3.risingtidesystems.com>
-	 <544772AA.7060003@mellanox.com>
- <1414014601.20457.12.camel@haakon3.risingtidesystems.com>
- <462EF229174FDB4D92ACE4656EA5610051E396BE@CMEXMB1.ad.emulex.com>
- <5451F5C1.6000207@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH v3 11/11] IB/srp: Fix a race condition triggered by destroying
+ a queue pair
+Date: Thu, 30 Oct 2014 17:10:10 +0200
+Message-ID: <545254D2.3080707@dev.mellanox.co.il>
+References: <545240AE.6060009@acm.org> <5452420B.2070206@acm.org> <54524A7B.3060708@dev.mellanox.co.il> <545250FA.1090908@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <5451F5C1.6000207@dev.mellanox.co.il>
-Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Or Gerlitz <gerlitz.or@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagig@mellanox.com>, target-devel <target-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <545250FA.1090908@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBPbiAxMC8yOS8yMDE0IDg6MDUgUE0sIENocmlzIE1vb3JlIHdyb3RlOg0KPiA+PiBPbiBXZWQs
-IDIwMTQtMTAtMjIgYXQgMTI6MDIgKzAzMDAsIE9yIEdlcmxpdHogd3JvdGU6DQo+ID4+PiBPbiAx
-MC8yMi8yMDE0IDg6MDYgQU0sIE5pY2hvbGFzIEEuIEJlbGxpbmdlciB3cm90ZToNCj4gPj4+PiBP
-biBUdWUsIDIwMTQtMTAtMjEgYXQgMDA6MTMgKzAzMDAsIE9yIEdlcmxpdHogd3JvdGU6DQo+ID4+
-Pj4+IE9uIE1vbiwgT2N0IDIwLCAyMDE0IGF0IDY6MjkgUE0sIENocmlzIE1vb3JlDQo+ID4+IDxD
-aHJpcy5Nb29yZUBlbXVsZXguY29tPiB3cm90ZToNCj4gPj4+Pj4+IFRoZSBmb2xsb3dpbmcgY29k
-ZSBpcyBpbiBpc2VydF9jb25uX3NldHVwX3FwKCkgaW4gaWJfaXNlcnQuYzoNCj4gPj4+Pj4+DQo+
-ID4+Pj4+PiAgICAgICAgICAgIC8qDQo+ID4+Pj4+PiAgICAgICAgICAgICAgKiBGSVhNRTogVXNl
-IGRldmF0dHIubWF4X3NnZSAtIDIgZm9yIG1heF9zZW5kX3NnZSBhcw0KPiA+Pj4+Pj4gICAgICAg
-ICAgICAgICogd29yay1hcm91bmQgZm9yIFJETUFfUkVBRC4uDQo+ID4+Pj4+PiAgICAgICAgICAg
-ICAgKi8NCj4gPj4+Pj4+ICAgICAgICAgICAgYXR0ci5jYXAubWF4X3NlbmRfc2dlID0gZGV2aWNl
-LT5kZXZfYXR0ci5tYXhfc2dlIC0gMjsNCj4gPj4+Pj4+DQo+ID4+Pj4+PiBJdCdzIG5vdCBjbGVh
-ciBmcm9tIHRoZSBjb21tZW50IHdoYXQgdGhpcyBpcyBhIHdvcmstYXJvdW5kIGZvciwNCj4gPj4+
-Pj4+IGFuZCBJIHdhc24ndCBhYmxlIHRvIGZpZ3VyZSBpdCBvdXQgZnJvbSBsb29raW5nIGF0IGxv
-Z3MuDQo+ID4+Pj4+IEkgYmVsaWV2ZSB0aGlzIHJlZmVycyB0byBzb21lIElCVEEgc3BlYyBjb3Ju
-ZXIgY2FzZSB3aGljaCBjb21lcw0KPiA+Pj4+PiBpbnRvIHBsYXkgd2l0aCB0aGUgbWF4X3NnZXMg
-YWR2ZXJ0aXplZCBieSBtbHg0LCBFbGksIGNhbiB5b3Ugc2hlZA0KPiA+Pj4+PiBzb21lIGxpZ2h0
-IChJQlRBIHBvaW50ZXIpIG9uIHRoYXQ/IGlzIHRoaXMgdGhlIGNhc2UgKGkuZQ0KPiA+Pj4+PiBk
-ZXZfYXR0ci5tYXhfc2dlIGlzbid0IGFsd2F5cyBhY2hpZXZhYmxlKSB3aXRoIG1seDUgdG9vPw0K
-PiA+Pj4+Pg0KPiA+Pj4+IEl0J3MgZm9yIENvbm5lY3RYLTIgcmVwb3J0aW5nIG1heF9zZ2U9MzEg
-ZHVyaW5nIGRldmVsb3BtZW50LCB3aGlsZQ0KPiA+Pj4+IHRoZSBsYXJnZXN0IG1heF9zZW5kX3Nn
-ZSBmb3Igc3RhYmxlIGxhcmdlIGJsb2NrIFJETUEgcmVhZHMgd2FzDQo+ID4+Pj4gKGlzLi4/KSAy
-OSBTR0VzLg0KPiA+Pj4+DQo+ID4+Pj4+PiBJbiB0cnlpbmcgdG8gZ2V0IGlzZXJ0IHdvcmtpbmcg
-d2l0aCBvY3JkbWEgSSByYW4gaW50byBhIHByb2JsZW0NCj4gPj4+Pj4+IHdoZXJlIHRoZSBjb2Rl
-IHRob3VnaHQgdGhlcmUgd2FzIG9ubHkgMSBzZW5kIFNHRSBhdmFpbGFibGUgd2hlbg0KPiA+Pj4+
-Pj4gaW4NCj4gPj4gZmFjdCB0aGUgZGV2aWNlIGhhcyAzLg0KPiA+Pj4+Pj4gVGhlbiBJIGZvdW5k
-IHRoZSBhYm92ZSB3b3JrLWFyb3VuZCwgd2hpY2ggZXhwbGFpbmVkIHRoZSBwcm9ibGVtLg0KPiA+
-Pj4+PiBOaWMsIGFueSByZWFzb24gZm9yIGF0dHIuY2FwLm1heF9zZW5kX3NnZSA9IDEgbm90IHRv
-IHdvcmsgT0s/DQo+ID4+Pj4+DQo+ID4+Pj4gSUlSQywgcHJlIGZhc3RyZWcgY29kZSBzdXBwb3J0
-ZWQgbWF4X3NlbmRfc2dlPTEgYnkgbGltaXRpbmcgdGhlDQo+ID4+Pj4gdHJhbnNmZXIgc2l6ZSBw
-ZXIgUkRNQSByZWFkLCBhbmQgd291bGQgaXNzdWUgc3Vic2VxdWVudCBSRE1BIHJlYWQNCj4gKw0K
-PiA+Pj4+IG9mZnNldCBmcm9tIGNvbXBsZXRpb24gdXAgdG8gdGhlIHRvdGFsIHNlX2NtZC0+ZGF0
-YV9sZW5ndGguDQo+ID4+Pj4NCj4gPj4+PiBOb3Qgc3VyZSBob3cgdGhpcyB3b3JrcyB3aXRoIGZh
-c3RyZWcgdG9kYXkuICBTYWdpLi4/DQo+ID4+Pj4NCj4gPj4+DQo+ID4+PiBXaGlsZSBvbiBmYXN0
-cmVnIG1vZGUsIGZvciBSRE1BIHJlYWRzICB3ZSB1c2Ugb25seSBvbmUgU0dFLCB0YWxraW5nDQo+
-ID4+PiB0byBTYWdpIGhlIGV4cGxhaW5lZCBtZSB0aGF0IHRoZSBwcm9ibGVtIHdpdGggY3JlYXRp
-bmcgdGhlIFFQIHdpdGgNCj4gPj4+IG1heF9zZW5kX3NnZSA9IDEgaGFzIHRvIGRvIHdpdGggb3Ro
-ZXIgZmxvd3Mgd2hlcmUgdHdvIG9yIGV2ZW4gdGhyZWUNCj4gPj4+IFNHRXMgYXJlIG5lZWRlZCwg
-ZS5nIHdoZW4gdGhlIGlzY3NpL2lzZXIgaGVhZGVyIChkb2Vzbid0IGV4aXN0IGluDQo+ID4+PiBS
-RE1BDQo+ID4+PiBvcHMpIGlzIHRha2VuIGZyb20gb25lIHNwb3Qgb2YgdGhlIG1lbW9yeSBhbmQg
-dGhlIGRhdGEgKHNlbnNlKSB0YWtlbg0KPiA+Pj4gZnJvbSBhbm90aGVyIG9uZT8NCj4gPj4+DQo+
-ID4+PiBOaWMsIHdlIG5lZWQgdG8gc2VlIHdoYXQgaXMgdGhlIG1pbmltdW0gbmVlZGVkIGJ5IHRo
-ZSBjb2RlICh0d28/KQ0KPiA+Pj4gYW5kIHR3ZWFrIHRoYXQgbGluZSB0byBtYWtlIHN1cmUgaXQg
-Z2V0cyB0aGVyZSBhcyBsb25nIGFzIHRoZSBkZXZpY2UNCj4gPj4+IHN1cHBvcnRzIGl0LCBTQiwg
-bWFrZXMgc2Vuc2U/DQo+ID4+Pg0KPiA+Pj4NCj4gPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2lu
-ZmluaWJhbmQvdWxwL2lzZXJ0L2liX2lzZXJ0LmMNCj4gPj4+IGIvZHJpdmVycy9pbmZpbmliYW5k
-L3VscC9pc2VydC9pYl9pc2VydC5jDQo+ID4+PiBpbmRleCAwYmVhNTc3Li4yNGFiYmIzIDEwMDY0
-NA0KPiA+Pj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pc2VydC9pYl9pc2VydC5jDQo+
-ID4+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lzZXJ0L2liX2lzZXJ0LmMNCj4gPj4+
-IEBAIC0xMTUsOSArMTE1LDEwIEBAIGlzZXJ0X2Nvbm5fc2V0dXBfcXAoc3RydWN0IGlzZXJ0X2Nv
-bm4NCj4gPj4+ICppc2VydF9jb25uLCBzdHJ1Y3QgcmRtYV9jbV9pZCAqY21hX2lkLA0KPiA+Pj4g
-ICAgICAgICAgIGF0dHIuY2FwLm1heF9yZWN2X3dyID0gSVNFUlRfUVBfTUFYX1JFQ1ZfRFRPUzsN
-Cj4gPj4+ICAgICAgICAgICAvKg0KPiA+Pj4gICAgICAgICAgICAqIEZJWE1FOiBVc2UgZGV2YXR0
-ci5tYXhfc2dlIC0gMiBmb3IgbWF4X3NlbmRfc2dlIGFzDQo+ID4+PiAtICAgICAgICAqIHdvcmst
-YXJvdW5kIGZvciBSRE1BX1JFQUQuLg0KPiA+Pj4gKyAgICAgICAgKiB3b3JrLWFyb3VuZCBmb3Ig
-UkRNQV9SRUFELi4gc3RpbGwgbmVlZCB0byBtYWtlIHN1cmUgdG8NCj4gPj4+ICsgICAgICAgICog
-aGF2ZSBhdCBsZWFzdCB0d28gU0dFcyBmb3IgU0NTSSByZXNwb25zZXMuDQo+ID4+PiAgICAgICAg
-ICAgICovDQo+ID4+PiAtICAgICAgIGF0dHIuY2FwLm1heF9zZW5kX3NnZSA9IGRldmljZS0+ZGV2
-X2F0dHIubWF4X3NnZSAtIDI7DQo+ID4+PiArICAgICAgIGF0dHIuY2FwLm1heF9zZW5kX3NnZSA9
-IG1heCgyLCBkZXZpY2UtPmRldl9hdHRyLm1heF9zZ2UgLQ0KPiA+Pj4gKyAyKTsNCj4gDQo+IEkg
-dGhpbmsgd2UgbmVlZCB0byBmYWlsIGlmIChkZXZfYXR0ci5tYXhfc2dlIC0gMiA8PSAwKQ0KPiAN
-Cg0KV2UgbWF5IG5lZWQgdG8gZmFpbCBpZiAoZGV2X2F0dHIubWF4X3NnZSAtIDIgPD0gMSkuICAg
-SSB0aGluayBMT0dJTiBSRVNQT05TRSByZXF1aXJlcw0KMiBTR0VzLg0KDQo+ID4+PiAgICAgICAg
-ICAgaXNlcnRfY29ubi0+bWF4X3NnZSA9IGF0dHIuY2FwLm1heF9zZW5kX3NnZTsNCj4gPj4+DQo+
-ID4+PiAgICAgICAgICAgYXR0ci5jYXAubWF4X3JlY3Zfc2dlID0gMTsNCj4gPj4+DQo+ID4+Pg0K
-PiA+Pg0KPiA+PiBBZnRlciBhIHF1aWNrIGF1ZGl0LCB0aGUgbWluaW11bSBtYXhfc2VuZF9zZ2U9
-MiBwYXRjaCBsb29rcyBjb3JyZWN0DQo+ID4+IGZvciB0aGUgaGFyZGNvZGVkIHR4X2Rlc2MtPm51
-bV9zZ2UgY2FzZXMgaW4gaXNlcnRfcHV0X2xvZ2luX3R4KCksDQo+ID4+IGlzZXJ0X3B1dF9yZXNw
-b25zZSgpLCBpc2VydF9wdXRfcmVqZWN0KCkgYW5kIGlzZXJ0X3B1dF90ZXh0X3JzcCgpLg0KPiA+
-Pg0KPiA+PiBGb3IgdGhlIFJETUEgcmVhZCBwYXRoIHdpdGggbm9uIGZhc3QtcmVnLCBpc2VydF9i
-dWlsZF9yZG1hX3dyKCkgaXMNCj4gPj4gc3RpbGwgY29ycmVjdGx5IGxpbWl0aW5nIHRoZSBTR0Vz
-IHBlciBvcGVyYXRpb24gYmFzZWQgdXBvbiB0aGUNCj4gPj4gbmVnb3RpYXRlZCBpc2VydF9jb25u
-LT5tYXhfc2dlIHNldCBhYm92ZSBpbiBpc2VydF9jb25uX3NldHVwX3FwKCkuDQo+ID4+DQo+ID4+
-IENocmlzLCBwbGVhc2UgY29uZmlybSBvbiBvY3JkbWEgd2l0aCBPcidzIHBhdGNoLCBhbmQgSSds
-bCBpbmNsdWRlIGhpcw0KPiA+PiBwYXRjaCBpbnRvIHRhcmdldC1wZW5kaW5nL3F1ZXVlIGZvciBu
-b3csIGFuZCBtb3ZlIGludG8gbWFzdGVyIG9uY2UNCj4gPj4geW91IGdpdmUgYSBwcm9wZXIgVGVz
-dGVkLUJ5Lg0KPiA+Pg0KPiA+PiBUaGFua3MhDQo+ID4+DQo+ID4+IC0tbmFiDQo+ID4NCj4gPiBT
-b3JyeSBmb3IgdGhlIGxvbmcgZGVsYXksIEkgd2FzIGRlYWxpbmcgd2l0aCBzb21lIGhhcmR3YXJl
-IGlzc3Vlcy4NCj4gPg0KPiA+IEkndmUgdGVzdGVkIHRoZSBwcm9wb3NlZCBwYXRjaCBhbmQgaXQg
-Zml4ZXMgdGhlIG9jcmRtYSBpc3N1ZS4NCj4gDQo+IFRoaXMgaXMgYSBnb29kIHBhdGNoIGZvciBh
-IHdvcmstYXJvdW5kLiBCdXQgd2Ugc2hvdWxkIGZpeCB0aGlzIG9uZSBmcm9tIHRoZQ0KPiByb290
-Lg0KPiANCj4gU2FnaS4NCj4gDQoNCkkgYWdyZWUsIGl0J3MgYSB3b3JrLWFyb3VuZCwgYnV0IEkg
-dGhpbmsgaXQncyBiZXR0ZXIgdGhhbiB0aGUgd29yay1hcm91bmQgdGhhdA0KaXQncyByZXBsYWNp
-bmcuICAgSWYgd2UgYWRkIHRoZSBjaGVjayB0byBmYWlsIGlmIHdlIGRvbid0IGhhdmUgZW5vdWdo
-IFNHRXMgDQpjb3VsZCB3ZSBnbyB3aXRoIHRoYXQgZm9yIG5vdz8NCg0KSW4gdGhlIGxvbmcgdGVy
-bSBtYXliZSB3ZSBjYW4gY29uc2lkZXIgcmUtd3JpdGluZyB0aGUgTE9HSU4gUkVTUE9OU0UgY29k
-ZSB0bw0Kb25seSB1c2UgYSBzaW5nbGUgU0dFIChBc3N1bWluZyBJJ20gY29ycmVjdCBhYm91dCB0
-aGUgTE9HSU4gUkVTUE9OU0UgdGFraW5nIDIgU0dFcykNCg0KQW5vdGhlciB0aGluZyB0byBjb25z
-aWRlciBpcyByYXRoZXIgdGhhbiBzdWJ0cmFjdGluZyAyIGZyb20gdGhlIHJlcG9ydGVkDQpudW1i
-ZXIgb2YgU0dFcyBtYXliZSB3ZSBqdXN0IG5lZWQgdG8gcHV0IGEgbWF4IG9uIGl0Lg0KDQpDaHJp
-cw0KPiA+DQo+ID4gVGVzdGVkLWJ5OiBDaHJpcyBNb29yZSA8Y2hyaXMubW9vcmVAZW11bGV4LmNv
-bT4NCj4gPg0KPiA+IFRoYW5rcywNCj4gPg0KPiA+IENocmlzDQoNCg==
+On 10/30/2014 4:53 PM, Bart Van Assche wrote:
+> On 10/30/14 15:26, Sagi Grimberg wrote:
+>> On 10/30/2014 3:50 PM, Bart Van Assche wrote:
+>>> +    /* Destroying a QP and reusing ch->done is only safe if not
+>>> connected */
+>>> +    WARN_ON_ONCE(target->connected);
+>>
+>> I thought we agreed that cannot happen. I guess I don't mind keeping
+>> it... BTW, were you able to reproduce this race as well?
+>
+> Hello Sagi,
+>
+> Agreed that it is possible to conclude from the ib_srp source code that
+> the above "WARN_ON_ONCE(target->connected)" statement will never be
+> triggered. The reason I added that statement is to have an explicit
+> check of that condition. Such statements can be helpful in case anyone
+> would like to modify the SRP initiator driver.
+>
+
+Yea, OK.
+
+> I have not yet been able to reproduce the crash addressed by this patch.
+> But the code added via this patch has been triggered in my tests. Since
+> this code is e.g. called from srp_free_ch_ib(), unloading the ib_srp
+> kernel module after login succeeded is sufficient to trigger this code.
+
+Yes of course, was just curious to know if you got this crash as well...
+
+Sagi.
