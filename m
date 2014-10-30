@@ -1,44 +1,34 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [GIT PULL] please pull infiniband.git
-Date: Wed, 29 Oct 2014 18:18:50 +0000
-Message-ID: <F3529576D8E232409F431C309E293993091741D0@CRSMSX102.amr.corp.intel.com>
-References: <1413499938-2378-1-git-send-email-roland@kernel.org>
- <1413847716.6046.1.camel@redhat.com>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 03/12] scsi-mq: Add support for multiple hardware queues
+Date: Wed, 29 Oct 2014 20:53:04 -0400
+Message-ID: <yq1sii6l6of.fsf@sermon.lab.mkp.net>
+References: <5433E43D.3010107@acm.org> <5433E4AB.8030306@acm.org>
+	<yq1k33losu7.fsf@sermon.lab.mkp.net> <5450DC05.1010907@acm.org>
+	<5450DD49.6090108@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413847716.6046.1.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5450DD49.6090108-HInyCGIudOg@public.gmane.org> (Bart Van Assche's message of "Wed, 29
+	Oct 2014 13:27:53 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi@vger.kernel.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBP
-bg0KPiBCZWhhbGYgT2YgRG91ZyBMZWRmb3JkDQo+IFNlbnQ6IE1vbmRheSwgT2N0b2JlciAyMCwg
-MjAxNCA3OjI5IFBNDQo+IFRvOiBSb2xhbmQgRHJlaWVyDQo+IENjOiBMaW51cyBUb3J2YWxkczsg
-bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcN
-Cj4gU3ViamVjdDogUmU6IFtHSVQgUFVMTF0gcGxlYXNlIHB1bGwgaW5maW5pYmFuZC5naXQNCj4g
-DQo+IE9uIFRodSwgMjAxNC0xMC0xNiBhdCAxNTo1MiAtMDcwMCwgUm9sYW5kIERyZWllciB3cm90
-ZToNCj4gPiBIaSBMaW51cywNCj4gPg0KPiA+IFBsZWFzZSBwdWxsIGZyb20NCj4gPg0KPiA+ICAg
-ICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvcm9sYW5kL2lu
-ZmluaWJhbmQuZ2l0DQo+IHRhZ3MvcmRtYS1mb3ItbGludXMNCj4gPg0KPiA+IC0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4g
-PiBNYWluIHNldCBvZiBJbmZpbmlCYW5kL1JETUEgdXBkYXRlcyBmb3IgMy4xOCBtZXJnZSB3aW5k
-b3c6DQo+ID4NCj4gPiAgLSBMYXJnZSBzZXQgb2YgaVNFUiBpbml0aWF0b3IgaW1wcm92ZW1lbnRz
-DQo+ID4gIC0gSGFyZHdhcmUgZHJpdmVyIGZpeGVzIGZvciBjeGdiNCwgbWx4NSBhbmQgb2NyZG1h
-DQo+ID4gIC0gU21hbGwgZml4ZXMgdG8gY29yZSBtaWRsYXllcg0KPiANCj4gVGhlIElQb0lCIG11
-bHRpY2FzdCBsb2NraW5nIGZpeGVzIEkgc3VibWl0dGVkIGZvciAzLjE3IHRoYXQgeW91IHB1dCBv
-ZmYNCj4gdW50aWwgMy4xOCBhcmUgbWlzc2luZyBmcm9tIHRoaXMgbGlzdC4gIFRoZSBzZXQgY2Fu
-IGJlIGZvdW5kIGhlcmUgaW4NCj4gY2FzZSB5b3UndmUgbG9zdCB0aGVtOg0KPiANCj4gaHR0cHM6
-Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9idW5kbGUvZGxlZGZvcmQvSVBvSUIlMjBMb2NraW5nJTIw
-Rml4ZXMvDQo+IA0KPiAtLQ0KPiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+
-ICAgICAgICAgICAgICAgR1BHIEtleUlEOiAwRTU3MkZERA0KDQpIaSBSb2xhbmQsDQoNCkl0IHdv
-dWxkIGJlIGdyZWF0IHRvIGhhdmUgdGhlc2UgZml4ZXMgaW4gMy4xOCBpZiB0aGVyZSBhcmUgbm8g
-dGVjaG5pY2FsIHJlYXNvbnMgbm90IHRvLg0KDQpUaGFua3MsDQoNCkFsZXggRXN0cmluLg0KYWxl
-eC5lc3RyaW5AaW50ZWwuY29tDQoNCg==
+>>>>> "Bart" == Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> writes:
+
+Bart> Let me correct this: setting nr_hw_queues in the host template is
+Bart> not yet supported. If anyone would consider this useful, such
+Bart> functionality would be easy to add.
+
+It seemed like an obvious thing a device driver would want to describe
+in its host template. That's why I asked.
+
+We can add it if somebody wants it but it's a bit of a chicken and egg
+problem. Anyway. Minor issue.
+
+-- 
+Martin K. Petersen	Oracle Linux Engineering
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
