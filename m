@@ -1,46 +1,64 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
-Date: Thu, 30 Oct 2014 19:33:18 +0200
-Message-ID: <5452765E.1040604@dev.mellanox.co.il>
-References: <5433E43D.3010107@acm.org> <5433E585.607@acm.org> <5443F69F.40606@dev.mellanox.co.il> <54450690.709@acm.org> <544622FE.5040906@dev.mellanox.co.il> <544FE13A.60807@dev.mellanox.co.il> <5450C6FC.90908@acm.org> <545248F8.8020102@dev.mellanox.co.il> <54524D08.4040203@acm.org> <545253E3.7000009@dev.mellanox.co.il> <545256E5.9010501@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 0/6] Make Node Description default to "<hostname> <device>"
+Date: Thu, 30 Oct 2014 19:50:15 -0400
+Message-ID: <1414713021-12175-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <545256E5.9010501-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/30/2014 5:19 PM, Bart Van Assche wrote:
-> On 10/30/14 16:06, Sagi Grimberg wrote:
->> I'm not aware of any implicit interrupt coalescing effect...
->
-> In case it was not clear what I was referring to: if multiple completion
-> queue handling routines run on the same CPU then the average number of
-> work completions processed by each completion handling routine increases
-> due to the increased time between generation of an interrupt and the
-> start of the completion handler routine. As you know this helps overall
-> system throughput.
->
+The following series defines a new mad core function to support Node
+Description processing which supports format specifiers.  The first 2 format
+specifiers are "%h" and "%d" for hostname and device respectively.
 
-Now I realize that we can hit serious problems here since we never
-solved the issue of srp polling routine that might poll forever within
-an interrupt (or at least until a hard lockup). Its interesting that
-you weren't able to hit that with a high workload. Did you try running
-this code on a virtual function (I witnessed this issue in iser on a VM).
+It also changes the default Node Description of all the devices which support
+Node Description in software to use "%h %d" by default which translates into
+<hostname> <device>.
 
-Moreover, the fairness issue is even more likely to be encountered in 
-multichannel. Did you try to hit that? I really think this patchset
-*needs* to deal with the 2 issues I mentioned as the probability of
-hitting them increases with a faster IO stack.
+Note that the sysfs node_desc file for devices now reflects the format specifier
+and not the actual remapped Node Description.  This allows userspace to detect
+the current format used and change it as needed.
 
-I remember this was discussed lately with consideration for using
-blk-iopoll or not. But I think that for now the initial approach of
-bailing out of the once we hit a budget is fine for now.
+Devices which store the Node Description in FW have a translated version
+written to FW while maintaining the format specifier string in memory.
 
-Sagi.
+This work is a continuation of the following thread and the work done by Mike
+Heinz:
+
+http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg07329.html
+
+A follow on patch to the infiniband-diags package adds support for a "RDMA Node
+Description Daemon" (rdma-ndd) which uses the new poll support of the procfs
+hostname file to monitor for changes to the hostname and updates the Node
+Descriptions appropriately.  Both the kernel changes and the user space daemon
+are necessary to ensure that the Node Description in the SMA and SA reflect
+the hostname/device in all cases if the device supports traps and the SM
+either responds to those traps or polls for the Node Description periodically.
+This is true for the following reasons.
+
+	1) No matter when the drivers are loaded they will return
+	   "<hostname> <device>" to the SM when initially queried.
+	2) If the hostname is not set when the driver is loaded (as is
+	   likely at boot) subsequent sets of hostname (from any source
+	   including dhclient) will trigger the daemon to update all node
+	   descriptions.  The use of dhclient hooks is not sufficient to handle
+	   user invoked hostname changes.
+	3) If the daemon is started after the hostname has changed it starts by
+	   writing the hostname to the Node Descriptions sysfs files which will
+	   trigger the devices to send a trap to the SM.
+
+Thus the drivers, any automated set of the hostname (such as DHCP), and the
+rdma-ndd daemon can be started in any order and the SMA will reflect the
+hostname properly.
+
+
+[PATCH 1/6] ib/mad: Add function to support format specifiers for node description
+[PATCH 2/6] ib/ipath: change default node description processing
+[PATCH 3/6] ib/mlx4: change default node description processing
+[PATCH 4/6] ib/mthca: change default node description processing
+[PATCH 5/6] ib/qib: change default node description processing
+[PATCH 6/6] ib/mlx5: change default node description processing
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
