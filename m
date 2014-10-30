@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 2/6] ib/ipath: change default node description processing
-Date: Thu, 30 Oct 2014 19:50:17 -0400
-Message-ID: <1414713021-12175-3-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 3/6] ib/mlx4: change default node description processing
+Date: Thu, 30 Oct 2014 19:50:18 -0400
+Message-ID: <1414713021-12175-4-git-send-email-ira.weiny@intel.com>
 References: <1414713021-12175-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1414713021-12175-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -13,7 +13,8 @@ List-Id: linux-rdma@vger.kernel.org
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Change the default node description string to IB_DEFAULT_ND_FORMAT
-Use ib_build_node_desc to dynamically map this string when queried
+Use ib_build_node_desc to dynamically map this string when queried and to set
+the Node Description in FW
 
 Reviewed-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Michael Heinz <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -21,39 +22,66 @@ Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gm
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 ---
- drivers/infiniband/hw/ipath/ipath_mad.c   | 3 ++-
- drivers/infiniband/hw/ipath/ipath_verbs.c | 4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c  |  3 ++-
+ drivers/infiniband/hw/mlx4/main.c | 14 ++++++--------
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_mad.c b/drivers/infiniband/hw/ipath/ipath_mad.c
-index e890e5b..1ec0afd 100644
---- a/drivers/infiniband/hw/ipath/ipath_mad.c
-+++ b/drivers/infiniband/hw/ipath/ipath_mad.c
-@@ -61,7 +61,8 @@ static int recv_subn_get_nodedescription(struct ib_smp *smp,
- 	if (smp->attr_mod)
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 
--	memcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
-+	ib_build_node_desc(smp->data, ibdev->node_desc, IB_DEVICE_DESC_MAX,
-+			   ibdev);
- 
- 	return reply(smp);
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 82a7dd8..0d736d6 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -343,7 +343,8 @@ static void node_desc_override(struct ib_device *dev,
+ 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
+ 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
+ 		spin_lock_irqsave(&to_mdev(dev)->sm_lock, flags);
+-		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
++		ib_build_node_desc(((struct ib_smp *)mad)->data, dev->node_desc,
++				   IB_DEVICE_DESC_MAX, dev);
+ 		spin_unlock_irqrestore(&to_mdev(dev)->sm_lock, flags);
+ 	}
  }
-diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-index 44ea939..bec61d6 100644
---- a/drivers/infiniband/hw/ipath/ipath_verbs.c
-+++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -2180,8 +2180,8 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
- 	dev->mmap = ipath_mmap;
- 	dev->dma_ops = &ipath_dma_mapping_ops;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index bda5994..6327ee5 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -553,7 +553,7 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 	if (IS_ERR(mailbox))
+ 		return 0;
  
--	snprintf(dev->node_desc, sizeof(dev->node_desc),
--		 IPATH_IDSTR " %s", init_utsname()->nodename);
-+	snprintf(dev->node_desc, sizeof(dev->node_desc)-1, "%s",
+-	memcpy(mailbox->buf, props->node_desc, 64);
++	ib_build_node_desc(mailbox->buf, props->node_desc, 64, ibdev);
+ 	mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
+ 		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
+ 
+@@ -1332,23 +1332,21 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ 	struct ib_smp *out_mad = NULL;
+ 	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
++	struct ib_device_modify props;
+ 
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+ 		goto out;
+ 
++	snprintf(props.node_desc, sizeof(props.node_desc)-1, "%s",
 +		 IB_DEFAULT_ND_FORMAT);
++	mlx4_ib_modify_device(&dev->ib_dev, IB_DEVICE_MODIFY_NODE_DESC, &props);
++
+ 	init_query_mad(in_mad);
+-	in_mad->attr_id = IB_SMP_ATTR_NODE_DESC;
+ 	if (mlx4_is_master(dev->dev))
+ 		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
  
- 	ret = ib_register_device(dev, NULL);
- 	if (ret)
+-	err = mlx4_MAD_IFC(dev, mad_ifc_flags, 1, NULL, NULL, in_mad, out_mad);
+-	if (err)
+-		goto out;
+-
+-	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
+-
+ 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
+ 
+ 	err = mlx4_MAD_IFC(dev, mad_ifc_flags, 1, NULL, NULL, in_mad, out_mad);
 -- 
 1.8.2
 
