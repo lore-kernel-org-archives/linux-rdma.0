@@ -1,64 +1,159 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 0/6] Make Node Description default to "<hostname> <device>"
-Date: Thu, 30 Oct 2014 19:50:15 -0400
-Message-ID: <1414713021-12175-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 1/6] ib/mad: Add function to support format specifiers for node description
+Date: Thu, 30 Oct 2014 19:50:16 -0400
+Message-ID: <1414713021-12175-2-git-send-email-ira.weiny@intel.com>
+References: <1414713021-12175-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1414713021-12175-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following series defines a new mad core function to support Node
-Description processing which supports format specifiers.  The first 2 format
-specifiers are "%h" and "%d" for hostname and device respectively.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-It also changes the default Node Description of all the devices which support
-Node Description in software to use "%h %d" by default which translates into
-<hostname> <device>.
+ib_build_node_desc - prints src node description into dest while mapping format
+specifiers
 
-Note that the sysfs node_desc file for devices now reflects the format specifier
-and not the actual remapped Node Description.  This allows userspace to detect
-the current format used and change it as needed.
+Specifiers supported:
+%h system hostname
+%d device name
 
-Devices which store the Node Description in FW have a translated version
-written to FW while maintaining the format specifier string in memory.
+Define a default Node Description format to be "%h %d"
 
-This work is a continuation of the following thread and the work done by Mike
-Heinz:
+Original work done by Mike Heinz.
 
-http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg07329.html
+The function signature is generic to support some devices which are not
+processing an ib_smp object when calling this function.
 
-A follow on patch to the infiniband-diags package adds support for a "RDMA Node
-Description Daemon" (rdma-ndd) which uses the new poll support of the procfs
-hostname file to monitor for changes to the hostname and updates the Node
-Descriptions appropriately.  Both the kernel changes and the user space daemon
-are necessary to ensure that the Node Description in the SMA and SA reflect
-the hostname/device in all cases if the device supports traps and the SM
-either responds to those traps or polls for the Node Description periodically.
-This is true for the following reasons.
+Reviewed-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Michael Heinz <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-	1) No matter when the drivers are loaded they will return
-	   "<hostname> <device>" to the SM when initially queried.
-	2) If the hostname is not set when the driver is loaded (as is
-	   likely at boot) subsequent sets of hostname (from any source
-	   including dhclient) will trigger the daemon to update all node
-	   descriptions.  The use of dhclient hooks is not sufficient to handle
-	   user invoked hostname changes.
-	3) If the daemon is started after the hostname has changed it starts by
-	   writing the hostname to the Node Descriptions sysfs files which will
-	   trigger the devices to send a trap to the SM.
+---
+ drivers/infiniband/core/mad.c | 38 ++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_mad.h         | 17 +++++++++++++++++
+ include/rdma/ib_verbs.h       |  6 ++++--
+ 3 files changed, 59 insertions(+), 2 deletions(-)
 
-Thus the drivers, any automated set of the hostname (such as DHCP), and the
-rdma-ndd daemon can be started in any order and the SMA will reflect the
-hostname properly.
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 74c30f4..a7ed0ada 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -39,7 +39,9 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/utsname.h>
+ #include <rdma/ib_cache.h>
++#include <rdma/ib_smi.h>
+ 
+ #include "mad_priv.h"
+ #include "mad_rmpp.h"
+@@ -996,6 +998,42 @@ int ib_get_mad_data_offset(u8 mgmt_class)
+ }
+ EXPORT_SYMBOL(ib_get_mad_data_offset);
+ 
++void ib_build_node_desc(char *dest, char *src, int dest_len,
++			struct ib_device *dev)
++{
++	char *end = dest + dest_len-1;
++	char *field;
++
++	while (*src && (dest < end)) {
++		if (*src != '%') {
++			*dest++ = *src++;
++		} else {
++			src++;
++			switch (*src) {
++			case 'h':
++				field = init_utsname()->nodename;
++				src++;
++				while (*field && (*field != '.') && (dest < end))
++					*dest++ = *field++;
++			break;
++			case 'd':
++				field = dev->name;
++				src++;
++				while (*field && (dest < end))
++					*dest++ = *field++;
++				break;
++			default:
++				src++;
++			}
++		}
++	}
++	if (dest < end)
++		*dest = 0;
++	else
++		*end = 0;
++}
++EXPORT_SYMBOL(ib_build_node_desc);
++
+ int ib_is_mad_class_rmpp(u8 mgmt_class)
+ {
+ 	if ((mgmt_class == IB_MGMT_CLASS_SUBN_ADM) ||
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index 9bb99e9..975642e 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -677,4 +677,21 @@ void ib_free_send_mad(struct ib_mad_send_buf *send_buf);
+  */
+ int ib_mad_kernel_rmpp_agent(struct ib_mad_agent *agent);
+ 
++#define IB_DEFAULT_ND_FORMAT "%h %d"
++/**
++ * ib_build_node_desc - prints src node description into dest while mapping
++ * format specifiers
++ *
++ * Specifiers supported:
++ * %h system hostname
++ * %d device name
++ *
++ * @dest: destination buffer
++ * @src: source buffer
++ * @dest_len: destination buffer length
++ * @dev: ib_device
++ */
++void ib_build_node_desc(char *dest, char *src, int dest_len,
++			struct ib_device *dev);
++
+ #endif /* IB_MAD_H */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 470a011..f3ec6de 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -55,6 +55,8 @@
+ 
+ extern struct workqueue_struct *ib_wq;
+ 
++#define IB_DEVICE_DESC_MAX 64
++
+ union ib_gid {
+ 	u8	raw[16];
+ 	struct {
+@@ -351,7 +353,7 @@ enum ib_device_modify_flags {
+ 
+ struct ib_device_modify {
+ 	u64	sys_image_guid;
+-	char	node_desc[64];
++	char	node_desc[IB_DEVICE_DESC_MAX];
+ };
+ 
+ enum ib_port_modify_flags {
+@@ -1625,7 +1627,7 @@ struct ib_device {
+ 	u64			     uverbs_cmd_mask;
+ 	u64			     uverbs_ex_cmd_mask;
+ 
+-	char			     node_desc[64];
++	char			     node_desc[IB_DEVICE_DESC_MAX];
+ 	__be64			     node_guid;
+ 	u32			     local_dma_lkey;
+ 	u8                           node_type;
+-- 
+1.8.2
 
-
-[PATCH 1/6] ib/mad: Add function to support format specifiers for node description
-[PATCH 2/6] ib/ipath: change default node description processing
-[PATCH 3/6] ib/mlx4: change default node description processing
-[PATCH 4/6] ib/mthca: change default node description processing
-[PATCH 5/6] ib/qib: change default node description processing
-[PATCH 6/6] ib/mlx5: change default node description processing
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
