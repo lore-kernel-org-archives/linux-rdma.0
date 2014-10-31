@@ -1,54 +1,53 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] infiniband-diags: add rdma-ndd daemon
-Date: Fri, 31 Oct 2014 09:43:14 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CB7948B@CRSMSX101.amr.corp.intel.com>
-References: <1414713270-12710-1-git-send-email-ira.weiny@intel.com>
- <1414713270-12710-2-git-send-email-ira.weiny@intel.com>
- <54533318.8010700@acm.org>
- <2807E5FD2F6FDA4886F6618EAC48510E0CB79457@CRSMSX101.amr.corp.intel.com>
- <54535741.3030409@acm.org>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/libocrdma: fix library stack curruption
+Date: Fri, 31 Oct 2014 19:16:12 +0530
+Message-ID: <774e14a2-8394-4cde-aeaa-369f270e75ef@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54535741.3030409-HInyCGIudOg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> > How about the following?
-> >
-> > @@ -155,8 +156,8 @@ int read_and_set_hostname(int fd)
-> >   {
-> >          int rc;
-> >          char buf[128];
-> > -       if (read(fd, buf, 65) >= 0) {
-> > -               buf[65] = '\0';
-> > +       memset(buf, 0, sizeof(buf));
-> > +       if (read(fd, buf, 64) >= 0) {
-> >                  newline_to_null(buf);
-> >                  strip_domain(buf);
-> >                  syslog(LOG_INFO, "new hostname detected: %s", buf);
-> 
-> This change looks fine to me. A possible alternative is to use dup() +
-> fdopen() + fgets() + fclose(). fgets() namely automatically appends a
-> terminating '\0'.
+The library abi structures are not matching with the
+upstream driver abi code. The mismatch is causing
+stack curruption on some platforms while running
+user application.
 
-Agreed.  But I'd like to avoid creating additional fd's.
+This patch has a fix for stack curruption.
 
-Thanks for the review,
-Ira
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ src/ocrdma_abi.h |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-> 
-> Bart.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
-> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+diff --git a/src/ocrdma_abi.h b/src/ocrdma_abi.h
+index 88498a9..ad7abd4 100644
+--- a/src/ocrdma_abi.h
++++ b/src/ocrdma_abi.h
+@@ -74,7 +74,7 @@ struct ocrdma_alloc_ucontext_resp {
+ 	uint32_t ah_tbl_len;
+ 	uint32_t rqe_size;
+ 	uint8_t fw_ver[32];
+-	uint32_t rsvd1;
++	uint64_t rsvd1;
+ 	uint64_t rsvd2;
+ };
+ 
+@@ -153,8 +153,7 @@ struct ocrdma_create_qp_uresp {
+ 	uint32_t db_sq_offset;
+ 	uint32_t db_rq_offset;
+ 	uint32_t db_shift;
+-	uint64_t rsvd2;
+-	uint64_t rsvd3;
++	uint64_t rsvd[11]; /* 8*8 + 4*4 + 8 */
+ };
+ 
+ struct ocrdma_create_srq_cmd {
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
