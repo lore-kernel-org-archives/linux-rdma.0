@@ -1,54 +1,45 @@
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/libocrdma: fix library stack curruption
-Date: Fri, 31 Oct 2014 19:16:12 +0530
-Message-ID: <774e14a2-8394-4cde-aeaa-369f270e75ef@CMEXHTCAS1.ad.emulex.com>
+From: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
+Date: Fri, 31 Oct 2014 18:34:01 +0100
+Message-ID: <5453C809.9060004@suse.de>
+References: <5433E43D.3010107@acm.org> <5433E557.3010505@acm.org> <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net> <20141023084744.GA24965@infradead.org> <94D0CD8314A33A4D9D801C0FE68B402959324A17@G4W3296.americas.hpqcorp.net> <20141024064514.GA15654@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141024064514.GA15654-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Elliott, Robert (Server Storage)" <Elliott-VXdhtT5mjnY@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Scales, Webb" <webb.scales-VXdhtT5mjnY@public.gmane.org>, "Don Brace (PMC)" <Don.Brace-PwyqCcigF0Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The library abi structures are not matching with the
-upstream driver abi code. The mismatch is causing
-stack curruption on some platforms while running
-user application.
+On 10/24/2014 08:45 AM, Christoph Hellwig wrote:
+> On Fri, Oct 24, 2014 at 04:43:15AM +0000, Elliott, Robert (Server Sto=
+rage) wrote:
+>> However, it was looking at scmd->tag, which is always 0xff (at=20
+>> least in those early discovery commands).  scmd->request->tag=20
+>> looks like it is the field that has the correct values.
+>>
+>> Also, I noticed that scmd->tag is just an 8 bit field, so
+>> it could never represent a large number of tags.
+>=20
+> Yes, we need to get rid of scmd->tag.  Hannes had a patchset to get
+> started on it, and I hope either he or someone else will have time to
+> get back to it ASAP.
+>=20
+I'm planning on doing so; just waiting for the NCR5380 cleanup
+to get in.
 
-This patch has a fix for stack curruption.
+Cheers,
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- src/ocrdma_abi.h |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/src/ocrdma_abi.h b/src/ocrdma_abi.h
-index 88498a9..ad7abd4 100644
---- a/src/ocrdma_abi.h
-+++ b/src/ocrdma_abi.h
-@@ -74,7 +74,7 @@ struct ocrdma_alloc_ucontext_resp {
- 	uint32_t ah_tbl_len;
- 	uint32_t rqe_size;
- 	uint8_t fw_ver[32];
--	uint32_t rsvd1;
-+	uint64_t rsvd1;
- 	uint64_t rsvd2;
- };
- 
-@@ -153,8 +153,7 @@ struct ocrdma_create_qp_uresp {
- 	uint32_t db_sq_offset;
- 	uint32_t db_rq_offset;
- 	uint32_t db_shift;
--	uint64_t rsvd2;
--	uint64_t rsvd3;
-+	uint64_t rsvd[11]; /* 8*8 + 4*4 + 8 */
- };
- 
- struct ocrdma_create_srq_cmd {
--- 
-1.7.1
-
+Hannes
+--=20
+Dr. Hannes Reinecke		      zSeries & Storage
+hare-l3A5Bk7waGM@public.gmane.org			      +49 911 74053 688
+SUSE LINUX Products GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: J. Hawn, J. Guild, F. Imend=F6rffer, HRB 16746 (AG N=FCrnberg)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
