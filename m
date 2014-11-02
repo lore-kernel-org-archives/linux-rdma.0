@@ -1,64 +1,40 @@
-From: Chris Moore <Chris.Moore-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/isert: Adjust CQ size to HW limits
-Date: Fri, 31 Oct 2014 19:50:43 +0000
-Message-ID: <462EF229174FDB4D92ACE4656EA5610051E3C4E6@CMEXMB1.ad.emulex.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH FIXES for-3.18] IB/mlx4: Fix an incorrectly shadowed variable in mlx4_ib_rereg_user_mr
+Date: Sun,  2 Nov 2014 10:23:19 +0200
+Message-ID: <1414916599-4242-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-This is the isert version of the patch that Minh Tran submitted for iser.
-isert has the same issue of trying to create a CQ with more CQEs than are supported by
-the hardware.
+This error was detected by sparse static checker:
+drivers/infiniband/hw/mlx4/mr.c:226:21: warning: symbol 'err' shadows an earlier one
+drivers/infiniband/hw/mlx4/mr.c:197:13: originally declared here
 
-Signed-off-by: Chris Moore <chris.moore-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ drivers/infiniband/hw/mlx4/mr.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 3effa93..f837a23 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -225,12 +225,16 @@ isert_create_device_ib_res(struct isert_device *device)
- 	struct isert_cq_desc *cq_desc;
- 	struct ib_device_attr *dev_attr;
- 	int ret = 0, i, j;
-+	int max_rx_cqe, max_tx_cqe;
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index 8f9325c..c36ccbd 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -223,7 +223,6 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
  
- 	dev_attr = &device->dev_attr;
- 	ret = isert_query_device(ib_dev, dev_attr);
- 	if (ret)
- 		return ret;
+ 	if (flags & IB_MR_REREG_TRANS) {
+ 		int shift;
+-		int err;
+ 		int n;
  
-+	max_rx_cqe = min(ISER_MAX_RX_CQ_LEN, dev_attr->max_cqe);
-+	max_tx_cqe = min(ISER_MAX_TX_CQ_LEN, dev_attr->max_cqe);
-+
- 	/* asign function handlers */
- 	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
- 	    dev_attr->device_cap_flags & IB_DEVICE_SIGNATURE_HANDOVER) {
-@@ -272,7 +276,7 @@ isert_create_device_ib_res(struct isert_device *device)
- 						isert_cq_rx_callback,
- 						isert_cq_event_callback,
- 						(void *)&cq_desc[i],
--						ISER_MAX_RX_CQ_LEN, i);
-+						max_rx_cqe, i);
- 		if (IS_ERR(device->dev_rx_cq[i])) {
- 			ret = PTR_ERR(device->dev_rx_cq[i]);
- 			device->dev_rx_cq[i] = NULL;
-@@ -284,7 +288,7 @@ isert_create_device_ib_res(struct isert_device *device)
- 						isert_cq_tx_callback,
- 						isert_cq_event_callback,
- 						(void *)&cq_desc[i],
--						ISER_MAX_TX_CQ_LEN, i);
-+						max_tx_cqe, i);
- 		if (IS_ERR(device->dev_tx_cq[i])) {
- 			ret = PTR_ERR(device->dev_tx_cq[i]);
- 			device->dev_tx_cq[i] = NULL;
+ 		mlx4_mr_rereg_mem_cleanup(dev->dev, &mmr->mmr);
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
