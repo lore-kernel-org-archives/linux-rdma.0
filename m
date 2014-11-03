@@ -1,53 +1,67 @@
-From: Chris Moore <Chris.Moore-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] IB/isert: Adjust CQ size to HW limits
-Date: Mon, 3 Nov 2014 16:22:42 +0000
-Message-ID: <462EF229174FDB4D92ACE4656EA5610051E3F6C4@CMEXMB1.ad.emulex.com>
-References: <462EF229174FDB4D92ACE4656EA5610051E3C4E6@CMEXMB1.ad.emulex.com>
- <54562583.9080700@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] Better way to handle polling other MASTER SM
+Date: Mon, 03 Nov 2014 11:28:35 -0500
+Message-ID: <5457AD33.4080209@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54562583.9080700-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+In the case where another MASTER SM disappears, call
+OSM_SM_SIGNAL_POLLING_TIMEOUT to reconfigure the fabric from scratch.
 
-> -----Original Message-----
-> From: Sagi Grimberg [mailto:sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
-> Sent: Sunday, November 02, 2014 4:37 AM
-> To: Chris Moore; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Nicholas A. Bellinger
-> Subject: Re: [PATCH] IB/isert: Adjust CQ size to HW limits
-> 
-> On 10/31/2014 9:50 PM, Chris Moore wrote:
-> >
-> > This is the isert version of the patch that Minh Tran submitted for iser.
-> > isert has the same issue of trying to create a CQ with more CQEs than
-> > are supported by the hardware.
-> >
-> 
-> ib_isert is maintained in target-devel. Can you resend it there?
-> 
-> Thanks!
-> 
-> Sagi.
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_drop_mgr.c  |    3 ---
+ opensm/osm_state_mgr.c |    7 +++++++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-Yep, no problem, I'll do that.
+diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
+index ab06bf8..8441f89 100644
+--- a/opensm/osm_drop_mgr.c
++++ b/opensm/osm_drop_mgr.c
+@@ -257,9 +257,6 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
+ 		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+ 			"Cleaned SM for port guid 0x%016" PRIx64 "\n",
+ 			cl_ntoh64(port_guid));
+-		/* clean up the polling_sm_guid */
+-		if (sm->polling_sm_guid == p_sm->smi.guid)
+-			sm->polling_sm_guid = 0;
+ 		free(p_sm);
+ 	}
+ 
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 9798b41..1dc6e19 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1404,10 +1404,17 @@ repeat_discovery:
+ 				 * need to wait for that SM to relinquish control
+ 				 * of its portion of the subnet. C14-60.2.1.
+ 				 * Also - need to start polling on that SM. */
++				CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
+ 				sm->polling_sm_guid = p_remote_sm->smi.guid;
++				CL_PLOCK_RELEASE(sm->p_lock);
+ 				osm_sm_state_mgr_process(sm,
+ 							 OSM_SM_SIGNAL_WAIT_FOR_HANDOVER);
+ 				return;
++			} else if (sm->polling_sm_guid) {
++				/* Stop polling SM if it's not found */
++				osm_sm_state_mgr_process(sm,
++							 OSM_SM_SIGNAL_POLLING_TIMEOUT);
++				return;
+ 			}
+ 		}
+ 	}
+-- 
+1.7.8.2
 
-There was another issue in ib_isert.c that Nic  proposed a fix for in an email back on 10/22.
-This was the issue with attr.cap.max_send_sge being set to (device->dev_attr.max_sge - 2)
-instead of just device->dev_attr.max_sge.
-
-Should I post that issue to target-devel as well?
-
-Thanks,
-
-Chris
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
