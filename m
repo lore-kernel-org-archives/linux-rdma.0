@@ -1,41 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs] Add MR re-registeration
-Date: Sun, 2 Nov 2014 19:50:49 -0700
-Message-ID: <20141103025049.GA31929@obsidianresearch.com>
-References: <1414920605-18943-1-git-send-email-ogerlitz@mellanox.com>
+From: Eli Cohen <eli@dev.mellanox.co.il>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Mon, 3 Nov 2014 09:15:39 +0200
+Message-ID: <20141103071539.GD742@mtldesk30>
+References: <1413499938-2378-1-git-send-email-roland@kernel.org>
+ <CAPM=9tx+Zau+2EhVouEAM0XKxKhgOpEHSUgWhBuWDC8vA7wvig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1414920605-18943-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAPM=9tx+Zau+2EhVouEAM0XKxKhgOpEHSUgWhBuWDC8vA7wvig@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Airlie <airlied@gmail.com>
+Cc: Roland Dreier <roland@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 02, 2014 at 11:30:05AM +0200, Or Gerlitz wrote:
-
-> @@ -886,7 +887,7 @@ struct ibv_context_ops {
->  	int			(*dealloc_pd)(struct ibv_pd *pd);
->  	struct ibv_mr *		(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
->  					  int access);
-> -	struct ibv_mr *		(*rereg_mr)(struct ibv_mr *mr,
-> +	int			(*rereg_mr)(struct ibv_mr *mr,
->  					    int flags,
->  					    struct ibv_pd *pd, void *addr,
->  					    size_t length,
-
-What is going on here?
-
-Signatures in the ops structure should not be changed without quite a
-bit more explanation. I'd like to see this in a dedicated patch with a
-proper discussion about why it is safe...
-
-(I admit, I'm confused how this patch is adding rereg_mr when it
- already sort of seems to exist)
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Nov 03, 2014 at 06:06:45AM +1000, Dave Airlie wrote:
+> On 17 October 2014 08:52, Roland Dreier <roland@kernel.org> wrote:
+> > Hi Linus,
+> >
+> > Please pull from
+> >
+> >     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband=
+=2Egit tags/rdma-for-linus
+> >
+> > ----------------------------------------------------------------
+> > Main set of InfiniBand/RDMA updates for 3.18 merge window:
+> >
+> >  - Large set of iSER initiator improvements
+> >  - Hardware driver fixes for cxgb4, mlx5 and ocrdma
+> >  - Small fixes to core midlayer
+> >
+>=20
+> building on 32-bit x86.
+>=20
+>  CC [M]  drivers/infiniband/ulp/iser/iser_verbs.o
+> /home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser=
+_verbs.c:
+> In function =E2=80=98iser_handle_comp_error=E2=80=99:
+> /home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser=
+_verbs.c:1171:33:
+> warning: cast to pointer from integer of different size
+> [-Wint-to-pointer-cast]
+>   if (is_iser_tx_desc(iser_conn, (void *)wc->wr_id)) {
+>                                  ^
+> /home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser=
+_verbs.c:1172:31:
+> warning: cast to pointer from integer of different size
+> [-Wint-to-pointer-cast]
+>    struct iser_tx_desc *desc =3D (struct iser_tx_desc *)wc->wr_id;
+>                                ^
+> /home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser=
+_verbs.c:
+> In function =E2=80=98iser_handle_wc=E2=80=99:
+> /home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser=
+_verbs.c:1198:14:
+> warning: cast to pointer from integer of different size
+> [-Wint-to-pointer-cast]
+>     rx_desc =3D (struct iser_rx_desc *)wc->wr_id;
+>               ^
+> /home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser=
+_verbs.c:1203:14:
+> warning: cast to pointer from integer of different size
+> [-Wint-to-pointer-cast]
+>     tx_desc =3D (struct iser_tx_desc *)wc->wr_id;
+>               ^
+>=20
+> Not sure anyone would ever want to run this code on 32-bit boxes, but
+> I'm a bit worried if wr_id is a 64-bit value, and we encode it into a
+> 32-bit pointer, you'd always lose the top 32-bits.
+>=20
+On 32 bit systems your pointer is 32 bits as well so assigning to u64
+and casting back to a pointer you don't loose anything. Maybe casting
+from u64 to a pointer should go through casting to uintptr_t to avoid
+warnings.
