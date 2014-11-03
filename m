@@ -1,43 +1,30 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: WRITE/SEND to multiple destinations
-Date: Mon, 3 Nov 2014 15:50:55 -0500
-Message-ID: <CADPSxAhwDX6=B4hB_21otZeSqvtgNvFXT5CfFatfRdO-dTDAeQ@mail.gmail.com>
-References: <loom.20141103T000730-108@post.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor:
+ Cleanup macros
+Date: Mon, 03 Nov 2014 15:51:22 -0500 (EST)
+Message-ID: <20141103.155122.1976522983563377609.davem@davemloft.net>
+References: <1415017014-12701-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <loom.20141103T000730-108-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1415017014-12701-1-git-send-email-hariprasad@chelsio.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: hariprasad@chelsio.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, anish@chelsio.com, praveenm@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-You can do SEND/RECV over Unreliable Datagram multicast which could be
-beneficial in your situation (i.e., better than 1-1 connections). You
-can't use multicast for READs or WRITEs.
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Date: Mon,  3 Nov 2014 17:46:51 +0530
 
---Anuj
+> This series moves the debugfs code to a new file debugfs.c, Cleans up macros so
+> that they match the hardware generated one.
 
-On Sun, Nov 2, 2014 at 9:32 PM, floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hello everyone,
->
-> As a newbie to the world of InfiniBand programming,
-> I would appreciate your helps on my somewhat general and basic question.
->
-> Assume that I have a server, and N clients (N > 1).
-> I would like my server to set all clients' memory buffers to some value V.
-> How would I go about this problem?
-> So far, I've managed to establish 1-1  connections using READ/WRITE/SEND/RECEIVE.
-> So I guess the core of my question is:
-> how 1-to-N  connections are established in InfiniBand, and
-> if, in this regard, there is any difference between
-> RDMA verbs (READ/WRITE) vs. SEND/RECEIVE?
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How does "hardware generate the macros"?
+
+I don't understand what this means at all.
+
+Whatever your better explanation is, you'll have include it in a respun
+version of this patch series.
+
+Thanks.
