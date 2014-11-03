@@ -1,75 +1,65 @@
-From: Dave Airlie <airlied-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [GIT PULL] please pull infiniband.git
-Date: Mon, 3 Nov 2014 06:06:45 +1000
-Message-ID: <CAPM=9tx+Zau+2EhVouEAM0XKxKhgOpEHSUgWhBuWDC8vA7wvig@mail.gmail.com>
-References: <1413499938-2378-1-git-send-email-roland@kernel.org>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [PATCH v2 12/12] IB/srp: Add multichannel support
+Date: Mon, 3 Nov 2014 01:46:33 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B402959354E19@G9W0745.americas.hpqcorp.net>
+References: <5433E43D.3010107@acm.org> <5433E585.607@acm.org>
+ <5443F69F.40606@dev.mellanox.co.il> <54450690.709@acm.org>
+ <544622FE.5040906@dev.mellanox.co.il> <544FE13A.60807@dev.mellanox.co.il>
+ <5450C6FC.90908@acm.org> <545248F8.8020102@dev.mellanox.co.il>
+ <54524D08.4040203@acm.org> <545253E3.7000009@dev.mellanox.co.il>
+ <545256E5.9010501@acm.org> <5452765E.1040604@dev.mellanox.co.il>
+ <5453541D.7040206@acm.org> <54562B9C.3040004@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413499938-2378-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <54562B9C.3040004@dev.mellanox.co.il>
+Content-Language: en-US
+Sender: linux-scsi-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 17 October 2014 08:52, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hi Linus,
->
-> Please pull from
->
->     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.g=
-it tags/rdma-for-linus
->
-> ----------------------------------------------------------------
-> Main set of InfiniBand/RDMA updates for 3.18 merge window:
->
->  - Large set of iSER initiator improvements
->  - Hardware driver fixes for cxgb4, mlx5 and ocrdma
->  - Small fixes to core midlayer
->
 
-building on 32-bit x86.
 
- CC [M]  drivers/infiniband/ulp/iser/iser_verbs.o
-/home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser_v=
-erbs.c:
-In function =E2=80=98iser_handle_comp_error=E2=80=99:
-/home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser_v=
-erbs.c:1171:33:
-warning: cast to pointer from integer of different size
-[-Wint-to-pointer-cast]
-  if (is_iser_tx_desc(iser_conn, (void *)wc->wr_id)) {
-                                 ^
-/home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser_v=
-erbs.c:1172:31:
-warning: cast to pointer from integer of different size
-[-Wint-to-pointer-cast]
-   struct iser_tx_desc *desc =3D (struct iser_tx_desc *)wc->wr_id;
-                               ^
-/home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser_v=
-erbs.c:
-In function =E2=80=98iser_handle_wc=E2=80=99:
-/home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser_v=
-erbs.c:1198:14:
-warning: cast to pointer from integer of different size
-[-Wint-to-pointer-cast]
-    rx_desc =3D (struct iser_rx_desc *)wc->wr_id;
-              ^
-/home/airlied/devel/kernel/linux-2.6/drivers/infiniband/ulp/iser/iser_v=
-erbs.c:1203:14:
-warning: cast to pointer from integer of different size
-[-Wint-to-pointer-cast]
-    tx_desc =3D (struct iser_tx_desc *)wc->wr_id;
-              ^
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig@dev.mellanox.co.il]
+> Sent: Sunday, November 02, 2014 7:03 AM
+> To: Bart Van Assche; Christoph Hellwig
+> Cc: Jens Axboe; Sagi Grimberg; Sebastian Parschauer; Elliott, Robert
+> (Server Storage); Ming Lei; linux-scsi@vger.kernel.org; linux-rdma
+> Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
+> 
+...
+> IMHO, this is not iSER specific issue, it is easily indicated from the
+> code that a specific workload SRP will poll recv completion queue
+> forever in an interrupt context.
+> 
+> I encountered this issue on a virtual guest in a high workload (80+
+> sessions with heavy traffic on all) because qemu smp_affinity setting
+> was broken (might still be, didn't check that for a while). This caused
+> all completion vectors to fire interrupts to core 0 causing a high
+> events contention on a single event queue (causing lockup situations
+> and starvation of other CQs). Using more completion queues will enhance
+> this situation.
+> 
+> I think running multichannel code when all MSIX vectors affinity are
+> directed to a single CPU can invoke what I'm talking about.
 
-Not sure anyone would ever want to run this code on 32-bit boxes, but
-I'm a bit worried if wr_id is a 64-bit value, and we encode it into a
-32-bit pointer, you'd always lose the top 32-bits.
+That's not an SRP specific problem either.  If you ask just one CPU to
+service interrupts and block layer completions for submissions from lots
+of other CPUs, it's bound to become overloaded.
 
-Dave.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Setting rq_affinity=2 helps quite a bit for the block layer completion
+work.  This patch proposed making that the default for blk-mq:
+	https://lkml.org/lkml/2014/9/9/931
+
+For SRP interrupt processing, irqbalance recently changed its default 
+to ignore the affinity_hint; you now need to pass an option to honor
+the hint, or provide a policy script to do so for selected irqs.  For
+multi-million IOPS workloads, irqbalance takes far too long to reroute
+them based on activity; you're likely to overload a CPU with 100% 
+hardirq processing, creating self-detected stalls for the submitting
+processes on that CPU and other problems.  Sending interrupts back 
+to the submitting CPU provides self-throttling.
+
