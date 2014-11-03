@@ -1,44 +1,61 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 10/12] IB/srp: Use block layer tags
-Date: Mon, 3 Nov 2014 00:25:21 -0800
-Message-ID: <20141103082521.GA22628@infradead.org>
-References: <5433E43D.3010107@acm.org>
- <5433E557.3010505@acm.org>
- <94D0CD8314A33A4D9D801C0FE68B4029593212E0@G4W3296.americas.hpqcorp.net>
- <20141023084744.GA24965@infradead.org>
- <94D0CD8314A33A4D9D801C0FE68B402959324A17@G4W3296.americas.hpqcorp.net>
- <20141024064514.GA15654@infradead.org>
- <0b1b37c7fe497160a80a1f5515d01534@mail.gmail.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH libibverbs] Add MR re-registeration
+Date: Mon, 3 Nov 2014 10:28:25 +0200
+Message-ID: <54573CA9.8060202@mellanox.com>
+References: <1414920605-18943-1-git-send-email-ogerlitz@mellanox.com> <20141103025049.GA31929@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <0b1b37c7fe497160a80a1f5515d01534@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Kashyap Desai <kashyap.desai@avagotech.com>
-Cc: Christoph Hellwig <hch@infradead.org>, "Elliott, Robert (Server Storage)" <Elliott@hp.com>, Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Ming Lei <ming.lei@canonical.com>, linux-scsi@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>, "Scales, Webb" <webb.scales@hp.com>, "Don Brace (PMC)" <Don.Brace@pmcs.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141103025049.GA31929-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 03, 2014 at 01:22:18PM +0530, Kashyap Desai wrote:
-> I also used below setting in slave_alloc(), so that first Inquiry command
-> received by driver also has valid Tag in (Non-MQ mode).
-> 	sdev->tagged_supported = 1
-> Without above setting Inquiry command comes with 0xFF. If I see below code
-> in scsi_scan.c, it looks like tagged_supported value should be popped by
-> after actual value reported from Inquiry command.
-> 
->         if ((sdev->scsi_level >= SCSI_2) && (inq_result[7] & 2) &&
->             !(*bflags & BLIST_NOTQ))
->                 sdev->tagged_supported = 1;
-> 
-> Does it means what driver set in slave_alloc is OK to get Inquiry commands
-> with valid Tag  ?
-> What will happen if Target really does not support Tagged command queue
-> and driver overwrite it in slave_alloc ?
+On 3/11/2014 4:50 AM, Jason Gunthorpe wrote:
+> On Sun, Nov 02, 2014 at 11:30:05AM +0200, Or Gerlitz wrote:
+>
+>> @@ -886,7 +887,7 @@ struct ibv_context_ops {
+>>   	int			(*dealloc_pd)(struct ibv_pd *pd);
+>>   	struct ibv_mr *		(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
+>>   					  int access);
+>> -	struct ibv_mr *		(*rereg_mr)(struct ibv_mr *mr,
+>> +	int			(*rereg_mr)(struct ibv_mr *mr,
+>>   					    int flags,
+>>   					    struct ibv_pd *pd, void *addr,
+>>   					    size_t length,
+>
+> What is going on here?
+>
+> Signatures in the ops structure should not be changed without quite a
+> bit more explanation. I'd like to see this in a dedicated patch with a
+> proper discussion about why it is safe...
+>
+> (I admit, I'm confused how this patch is adding rereg_mr when it
+>   already sort of seems to exist)
+>
+> Jason
+>
 
-I think the right thing here is to better differenciate between
-assigning a software tag, and a SCSI tagged command.  That is, we should
-assign a request->tag value for every command if we enable host wide
-tags, independent of issuing an actual tagged command.
+Lets present the facts first - Neither ibv_rereg_mr nor the kernel ABI 
+and command structure exist before this patch. The only thing that did 
+exist was an API between libibverbs and the provider library.
 
-I'll send a series of patches for this ASAP.
+As there was no way for a userspace program to ask for memory 
+re-registration, AFAIK this op wasn't used by any provider.
+
+Furthermore, re-registering a MR shouldn't change the user's MR handle!
+Hence, there's no need to return information that the user already 
+knows. Does ibv_modify_qp return struct ibv_qp? Both verbs should act 
+similarly.
+
+I don't mind re-spin this change into another patch, but since I don't 
+consider the current state of libibverbs as having memory 
+re-registration support, I don't think it's necessary.
+
+Matan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
