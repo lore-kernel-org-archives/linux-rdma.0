@@ -1,49 +1,49 @@
-From: diane67622-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
-Date: Mon, 3 Nov 2014 23:53:19 +0530
-Message-ID: <5457c818.8a9a420a.6766.73a7@mx.google.com>
-Reply-To: seo.expert388-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs] Add MR re-registeration
+Date: Mon, 3 Nov 2014 12:20:49 -0700
+Message-ID: <20141103192049.GC24412@obsidianresearch.com>
+References: <1414920605-18943-1-git-send-email-ogerlitz@mellanox.com>
+ <20141103025049.GA31929@obsidianresearch.com>
+ <54573CA9.8060202@mellanox.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <54573CA9.8060202-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Sir
+On Mon, Nov 03, 2014 at 10:28:25AM +0200, Matan Barak wrote:
+> On 3/11/2014 4:50 AM, Jason Gunthorpe wrote:
+> >On Sun, Nov 02, 2014 at 11:30:05AM +0200, Or Gerlitz wrote:
+> >
+> >>@@ -886,7 +887,7 @@ struct ibv_context_ops {
+> >>  	int			(*dealloc_pd)(struct ibv_pd *pd);
+> >>  	struct ibv_mr *		(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
+> >>  					  int access);
+> >>-	struct ibv_mr *		(*rereg_mr)(struct ibv_mr *mr,
+> >>+	int			(*rereg_mr)(struct ibv_mr *mr,
+> >>  					    int flags,
+> >>  					    struct ibv_pd *pd, void *addr,
+> >>  					    size_t length,
+> >
+> >What is going on here?
+> >
+> >Signatures in the ops structure should not be changed without quite a
+> >bit more explanation. I'd like to see this in a dedicated patch with a
+> >proper discussion about why it is safe...
 
-Did your website get hit by Google Penguin update on October 17th 2014?=
- What basically is Google Penguin Update? It is actually a code name fo=
-r Google algorithm which aims at decreasing your websites search engine=
- rankings that violate Google=92s guidelines by using black hat SEO tec=
-hniques to rank your webpage by giving number of spammy links to the pa=
-ge.
-=20
-We are one of those few SEO companies that can help you avoid penalties=
- from Google Updates like Penguin and Panda. Our clients have survived =
-all the previous and present updates with ease. They have never been hi=
-t because we use 100% white hat SEO techniques to rank Webpages.  Simpl=
-e thing that we do to keep websites away from any Penguin or Panda pena=
-lties is follow Google guidelines and we give Google users the best ans=
-wers to their queries.
+> I don't mind re-spin this change into another patch, but since I
+> don't consider the current state of libibverbs as having memory
+> re-registration support, I don't think it's necessary.
 
-If you are looking to increase the quality of your websites and to get =
-more targeted traffic or save your websites from these Google penalties=
- email us back with your interest.=20
+Even so, this changes ABI senstive structures so it needs to be in a
+dedicated patch and you must include this rational for why it is safe.
 
-We will be glad to serve you and help you grow your business.
-
-Regards
-
-Vince G
-
-SEO Manager ( TOB )
-B7 Green Avenue, Amritsar 143001 Punjab
-____________________________
-NO CLICK in the subject to STOP EMAILS
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
