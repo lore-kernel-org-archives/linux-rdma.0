@@ -1,96 +1,62 @@
-From: Adam Mazur <adam.mazur-yCD69WgB1YhWk0Htik3J/w@public.gmane.org>
-Subject: Re: CRASH 3.18-rc2, 3.17.1, isert_connect_request
-Date: Mon, 03 Nov 2014 12:50:24 +0100
-Message-ID: <54576C00.7010406@tiktalik.com>
-References: <545758C8.4050300@tiktalik.com> <54576696.4000203@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54576696.4000203-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Subject: [PATCH net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor: Cleanup macros
+Date: Mon,  3 Nov 2014 17:46:51 +0530
+Message-ID: <1415017014-12701-1-git-send-email-hariprasad@chelsio.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
+Cc: davem@davemloft.net, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, anish@chelsio.com, praveenm@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com, Hariprasad Shenai <hariprasad@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-W dniu 03.11.2014 o 12:27, Sagi Grimberg pisze:
-> On 11/3/2014 12:28 PM, Adam Mazur wrote:
->> Can someone help us with these crashes? We are not able to recreate =
-it
->> on demand, but it takes 30 minutes to a few hours to appear the cras=
-h.
->> We've seen it on kernel 3.17.1 and 3.18-rc2.
->>
->
-> Hay Adam,
->
-> CC'ing target-devel mailing list (where iser target is maintained).
->
-> So I stepped on this issue as well, and I actually have a fix for it
-> in the pipe. I'm planning to test it with a few other fixes for a lit=
-tle
-> while longer before I submit the code.
->
-> In general, This crash occurs due to a race between tpg shutdown (or
-> np disable) and RDMA_CM connect requests happening in parallel. iser
-> target tries to reference a tpg attribute while the np->tpg_np is
-> actually NULL.
->
-> How many targets/initiators/portals did you use? HCA?
+Hi,
 
-Hi Sagi,
+This series moves the debugfs code to a new file debugfs.c, Cleans up macros so
+that they match the hardware generated one.
 
-There are about 300 targets (lvm volumes), 4 initiators, two portals.
+Will post few more series so that we can cover all the macros so that they all
+follow the same conventions and looks clean.
 
-HCA by lspci:
-05:00.0 InfiniBand: Mellanox Technologies MT25204 [InfiniHost III Lx=20
-HCA] (rev 20)
-         Subsystem: Mellanox Technologies MT25204 [InfiniHost III Lx HC=
-A]
-         Flags: bus master, fast devsel, latency 0, IRQ 46
-         Memory at df500000 (64-bit, non-prefetchable) [size=3D1M]
-         Memory at de800000 (64-bit, prefetchable) [size=3D8M]
-         Capabilities: [40] Power Management version 2
-         Capabilities: [48] Vital Product Data
-         Capabilities: [90] MSI: Enable- Count=3D1/32 Maskable- 64bit+
-         Capabilities: [84] MSI-X: Enable+ Count=3D32 Masked-
-         Capabilities: [60] Express Endpoint, MSI 00
-         Kernel driver in use: ib_mthca
+The patches series is created against 'net-next' tree.
+And includes patches on cxgb4, cxgb4vf, iw_cxgb4, csiostor and cxgb4i driver.
 
-
-root@portal-1:~# mstflint -d 05:00.0 q
-Image type:      Failsafe
-=46W Version:      1.2.0
-I.S. Version:    1
-Device ID:       25204
-Chip Revision:   A0
-Description:     Node             Port1            Sys image
-GUIDs:           0005ad00000c75c8 0005ad00000c75c9 0005ad00000c75cb
-Board ID:        =EE=8F=AD (MT_0260000002)
-VSD:             =EE=8F=AD
-PSID:            MT_0260000002
-
-
-root@portal-2:~# mstflint -d 05:00.0 q
-Image type:      Failsafe
-I.S. Version:    1
-Chip Revision:   A0
-Description:     Node             Port1            Sys image
-GUIDs:           0005ad00000c7010 0005ad00000c7011 0005ad00000c7013
-Board ID:        =EE=8F=AD (MT_0260000002)
-VSD:             =EE=8F=AD
-PSID:            MT_0260000002
-
-
-> Would it be possible to send you some patches to test as well?
-
-Absolutely, we can immediately test any patch on any kernel version.
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
 
 Thanks
-Adam
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Hariprasad Shenai (3):
+  cxgb4: Add cxgb4_debugfs.c, move all debugfs code to new file
+  cxgb4: Cleanup macros to match the HW generated one
+  cxgb4: Cleanup macros to match the HW generated one, part 2
+
+ drivers/infiniband/hw/cxgb4/cm.c                   |   56 +++---
+ drivers/infiniband/hw/cxgb4/cq.c                   |    8 +-
+ drivers/infiniband/hw/cxgb4/mem.c                  |   14 +-
+ drivers/infiniband/hw/cxgb4/qp.c                   |   26 ++--
+ drivers/net/ethernet/chelsio/cxgb4/Makefile        |    1 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h         |    3 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_dcb.h     |    6 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c |  158 ++++++++++++++++++
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.h |   52 ++++++
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    |  173 +++++---------------
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h     |   15 +-
+ drivers/net/ethernet/chelsio/cxgb4/sge.c           |   32 ++--
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c         |  127 +++++++-------
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h       |   72 +++++++--
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h      |  142 ++++++++++++----
+ drivers/net/ethernet/chelsio/cxgb4vf/sge.c         |   32 ++--
+ drivers/net/ethernet/chelsio/cxgb4vf/t4vf_common.h |    2 +-
+ drivers/net/ethernet/chelsio/cxgb4vf/t4vf_hw.c     |  150 +++++++++---------
+ drivers/scsi/csiostor/csio_attr.c                  |    8 +-
+ drivers/scsi/csiostor/csio_hw.c                    |   14 +-
+ drivers/scsi/csiostor/csio_hw_t4.c                 |   15 +-
+ drivers/scsi/csiostor/csio_hw_t5.c                 |   21 ++-
+ drivers/scsi/csiostor/csio_init.c                  |    6 +-
+ drivers/scsi/csiostor/csio_lnode.c                 |   18 +-
+ drivers/scsi/csiostor/csio_mb.c                    |  172 ++++++++++----------
+ drivers/scsi/csiostor/csio_scsi.c                  |   24 ++--
+ drivers/scsi/csiostor/csio_wr.h                    |    2 +-
+ drivers/scsi/cxgbi/cxgb4i/cxgb4i.c                 |   35 ++--
+ 28 files changed, 816 insertions(+), 568 deletions(-)
+ create mode 100644 drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
+ create mode 100644 drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.h
