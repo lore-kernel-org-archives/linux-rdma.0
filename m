@@ -1,132 +1,99 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: CRASH 3.18-rc2, 3.17.1, isert_connect_request
-Date: Tue, 04 Nov 2014 18:44:57 +0200
-Message-ID: <54590289.9020404@dev.mellanox.co.il>
-References: <545758C8.4050300@tiktalik.com> <54576696.4000203@dev.mellanox.co.il> <54576C00.7010406@tiktalik.com> <54589351.1080007@tiktalik.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_mcast_mgr.c: Add MLID to error 0A06 log message
+Date: Tue, 04 Nov 2014 12:46:55 -0500
+Message-ID: <5459110F.70009@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54589351.1080007-yCD69WgB1YhWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adam Mazur <adam.mazur-yCD69WgB1YhWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/4/2014 10:50 AM, Adam Mazur wrote:
-> W dniu 03.11.2014 o 12:50, Adam Mazur pisze:
->> W dniu 03.11.2014 o 12:27, Sagi Grimberg pisze:
->>> On 11/3/2014 12:28 PM, Adam Mazur wrote:
->>>> Can someone help us with these crashes? We are not able to recreat=
-e it
->>>> on demand, but it takes 30 minutes to a few hours to appear the cr=
-ash.
->>>> We've seen it on kernel 3.17.1 and 3.18-rc2.
->>>>
->>>
->>> Hay Adam,
->>>
->>> CC'ing target-devel mailing list (where iser target is maintained).
->>>
->>> So I stepped on this issue as well, and I actually have a fix for i=
-t
->>> in the pipe. I'm planning to test it with a few other fixes for a l=
-ittle
->>> while longer before I submit the code.
->>>
->>> In general, This crash occurs due to a race between tpg shutdown (o=
-r
->>> np disable) and RDMA_CM connect requests happening in parallel. ise=
-r
->>> target tries to reference a tpg attribute while the np->tpg_np is
->>> actually NULL.
->>>
->>> How many targets/initiators/portals did you use? HCA?
->>
->> Hi Sagi,
->>
->> There are about 300 targets (lvm volumes), 4 initiators, two portals=
-=2E
->>
->> HCA by lspci:
->> 05:00.0 InfiniBand: Mellanox Technologies MT25204 [InfiniHost III Lx
->> HCA] (rev 20)
->>          Subsystem: Mellanox Technologies MT25204 [InfiniHost III Lx=
- HCA]
->>          Flags: bus master, fast devsel, latency 0, IRQ 46
->>          Memory at df500000 (64-bit, non-prefetchable) [size=3D1M]
->>          Memory at de800000 (64-bit, prefetchable) [size=3D8M]
->>          Capabilities: [40] Power Management version 2
->>          Capabilities: [48] Vital Product Data
->>          Capabilities: [90] MSI: Enable- Count=3D1/32 Maskable- 64bi=
-t+
->>          Capabilities: [84] MSI-X: Enable+ Count=3D32 Masked-
->>          Capabilities: [60] Express Endpoint, MSI 00
->>          Kernel driver in use: ib_mthca
->>
->>
->> root@portal-1:~# mstflint -d 05:00.0 q
->> Image type:      Failsafe
->> FW Version:      1.2.0
->> I.S. Version:    1
->> Device ID:       25204
->> Chip Revision:   A0
->> Description:     Node             Port1            Sys image
->> GUIDs:           0005ad00000c75c8 0005ad00000c75c9 0005ad00000c75cb
->> Board ID:        =EE=8F=AD (MT_0260000002)
->> VSD:             =EE=8F=AD
->> PSID:            MT_0260000002
->>
->>
->> root@portal-2:~# mstflint -d 05:00.0 q
->> Image type:      Failsafe
->> I.S. Version:    1
->> Chip Revision:   A0
->> Description:     Node             Port1            Sys image
->> GUIDs:           0005ad00000c7010 0005ad00000c7011 0005ad00000c7013
->> Board ID:        =EE=8F=AD (MT_0260000002)
->> VSD:             =EE=8F=AD
->> PSID:            MT_0260000002
->>
->>
->>> Would it be possible to send you some patches to test as well?
->>
->> Absolutely, we can immediately test any patch on any kernel version.
->>
->> Thanks
->> Adam
->
->
-> The race is supposedly caused by login ddos of initiators that are no=
-t
-> PI aware - our initiators were running kernels from 3.2 to 3.17.
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This bug has nothing to do with the initiators or their awareness to PI=
-=2E
-The race itself is related to PI though.
+Add MLID to error 0A06 log message in the function mcast_mgr_purge_list
 
-> When
-> we've upgraded all to kernels > 3.15 new targets seem to be stable.
-> However it shows that the race is lurking somewhere as You have point=
-ed
-> out.
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_mcast_mgr.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Yea, the race is still there.
+diff --git a/opensm/osm_mcast_mgr.c b/opensm/osm_mcast_mgr.c
+index fe73695..8ed2d8f 100644
+--- a/opensm/osm_mcast_mgr.c
++++ b/opensm/osm_mcast_mgr.c
+@@ -462,7 +462,7 @@ static void mcast_mgr_subdivide(osm_sm_t * sm, uint16_t mlid_ho,
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
+ 
+-static void mcast_mgr_purge_list(osm_sm_t * sm, cl_qlist_t * list)
++static void mcast_mgr_purge_list(osm_sm_t * sm, uint16_t mlid, cl_qlist_t * list)
+ {
+ 	if (OSM_LOG_IS_ACTIVE_V2(sm->p_log, OSM_LOG_ERROR)) {
+ 		osm_mcast_work_obj_t *wobj;
+@@ -471,8 +471,8 @@ static void mcast_mgr_purge_list(osm_sm_t * sm, cl_qlist_t * list)
+ 		     i = cl_qlist_next(i)) {
+ 			wobj = cl_item_obj(i, wobj, list_item);
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A06: "
+-				"Unable to route for port 0x%" PRIx64 "\n",
+-				cl_ntoh64(osm_port_get_guid(wobj->p_port)));
++				"Unable to route MLID 0x%X for port 0x%" PRIx64 "\n",
++				mlid, cl_ntoh64(osm_port_get_guid(wobj->p_port)));
+ 		}
+ 	}
+ 	osm_mcast_drop_port_list(list);
+@@ -523,7 +523,7 @@ static osm_mtree_node_t *mcast_mgr_branch(osm_sm_t * sm, uint16_t mlid_ho,
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A21: "
+ 			"Maximal hops number is reached for MLID 0x%x."
+ 			" Break processing\n", mlid_ho);
+-		mcast_mgr_purge_list(sm, p_list);
++		mcast_mgr_purge_list(sm, mlid_ho, p_list);
+ 		goto Exit;
+ 	}
+ 
+@@ -543,7 +543,7 @@ static osm_mtree_node_t *mcast_mgr_branch(osm_sm_t * sm, uint16_t mlid_ho,
+ 		/*
+ 		   Deallocate all the work objects on this branch of the tree.
+ 		 */
+-		mcast_mgr_purge_list(sm, p_list);
++		mcast_mgr_purge_list(sm, mlid_ho, p_list);
+ 		goto Exit;
+ 	}
+ 
+@@ -559,7 +559,7 @@ static osm_mtree_node_t *mcast_mgr_branch(osm_sm_t * sm, uint16_t mlid_ho,
+ 		/*
+ 		   Deallocate all the work objects on this branch of the tree.
+ 		 */
+-		mcast_mgr_purge_list(sm, p_list);
++		mcast_mgr_purge_list(sm, mlid_ho, p_list);
+ 		goto Exit;
+ 	}
+ 
+@@ -576,7 +576,7 @@ static osm_mtree_node_t *mcast_mgr_branch(osm_sm_t * sm, uint16_t mlid_ho,
+ 	if (list_array == NULL) {
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A16: "
+ 			"Unable to allocate list array\n");
+-		mcast_mgr_purge_list(sm, p_list);
++		mcast_mgr_purge_list(sm, mlid_ho, p_list);
+ 		osm_mtree_destroy(p_mtn);
+ 		p_mtn = NULL;
+ 		goto Exit;
+@@ -670,7 +670,7 @@ static osm_mtree_node_t *mcast_mgr_branch(osm_sm_t * sm, uint16_t mlid_ho,
+ 				mlid_ho, cl_ntoh64(node_guid), i);
+ 
+ 			/* Free memory */
+-			mcast_mgr_purge_list(sm, p_port_list);
++			mcast_mgr_purge_list(sm, mlid_ho, p_port_list);
+ 
+ 			/* Invalidate ucast cache */
+ 			if (sm->ucast_mgr.p_subn->opt.use_ucast_cache &&
+-- 
+1.7.8.2
 
-I have some patches under testing and need cleaning up before they go o=
-n
-the mailing list...
-
-> Thank You for the feedback received. Later we will try to prepare a
-> testcase that might expose the crash.
-
-I think full target stack unload while lots of initiators are
-connected should invoke this race...
-
-Sagi.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
