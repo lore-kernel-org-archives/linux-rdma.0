@@ -1,73 +1,106 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/addr: Improve address resolution callback scheduling
-Date: Tue, 4 Nov 2014 06:28:57 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DFE135@ORSMSX109.amr.corp.intel.com>
-References: <1414593124-9060-1-git-send-email-ogerlitz@mellanox.com>
+From: Adam Mazur <adam.mazur@tiktalik.com>
+Subject: Re: CRASH 3.18-rc2, 3.17.1, isert_connect_request
+Date: Tue, 04 Nov 2014 09:50:25 +0100
+Message-ID: <54589351.1080007@tiktalik.com>
+References: <545758C8.4050300@tiktalik.com> <54576696.4000203@dev.mellanox.co.il> <54576C00.7010406@tiktalik.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1414593124-9060-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Olga Shern <olgas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <54576C00.7010406@tiktalik.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Oren Duer <oren@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> As of the callback model, the address resolution logic always does
-> context switch to a work-queue to deliver the address resolution event.
-> 
-> When the IP address is already cached in the system arp table,
-> we're going through the following call chain:
-> 
-> rdma_resolve_ip --> addr_resolve (cache hit) -->
-> 
-> which ends up with doing:
-> 
-> queue_req --> set_timeout (now) --> mod_delayed_work(,, delay=1)
-> 
-> We actually do realize that the timeout should be zero, but the
-> code forces it to a minimum of one jiffie.
-> 
-> Using one jiffie as the minimum delay value results in a less optimized
-> scheduling of executing this work item by the workqueue, which on the
-> below testbed costs about 3-4ms out of 12ms total time.
-> 
-> To fix that, we let the minimum delay to be zero. Note that the
-> connect step times change too, as there are address resolution
-> calls from that flow.
-> 
-> The results were taken from running both client and server on the
-> same node, over mlx4 RoCE port.
-> 
-> before -->
-> step              total ms     max ms     min us  us / conn
-> create id    :        0.01       0.01       6.00       6.00
-> resolve addr :        4.02       4.01    4013.00    4016.00
-> resolve route:        0.18       0.18     182.00     183.00
-> create qp    :        1.15       1.15    1150.00    1150.00
-> connect      :        6.73       6.73    6730.00    6731.00
-> disconnect   :        0.55       0.55     549.00     550.00
-> destroy      :        0.01       0.01       9.00       9.00
-> 
-> after -->
-> step              total ms     max ms     min us  us / conn
-> create id    :        0.01       0.01       6.00       6.00
-> resolve addr :        0.05       0.05      49.00      52.00
-> resolve route:        0.21       0.21     207.00     208.00
-> create qp    :        1.10       1.10    1104.00    1104.00
-> connect      :        1.22       1.22    1220.00    1221.00
-> disconnect   :        0.71       0.71     713.00     713.00
-> destroy      :        0.01       0.01       9.00       9.00
-> 
-> Signed-off-by: Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+W dniu 03.11.2014 o 12:50, Adam Mazur pisze:
+> W dniu 03.11.2014 o 12:27, Sagi Grimberg pisze:
+>> On 11/3/2014 12:28 PM, Adam Mazur wrote:
+>>> Can someone help us with these crashes? We are not able to recreate=
+ it
+>>> on demand, but it takes 30 minutes to a few hours to appear the cra=
+sh.
+>>> We've seen it on kernel 3.17.1 and 3.18-rc2.
+>>>
+>>
+>> Hay Adam,
+>>
+>> CC'ing target-devel mailing list (where iser target is maintained).
+>>
+>> So I stepped on this issue as well, and I actually have a fix for it
+>> in the pipe. I'm planning to test it with a few other fixes for a li=
+ttle
+>> while longer before I submit the code.
+>>
+>> In general, This crash occurs due to a race between tpg shutdown (or
+>> np disable) and RDMA_CM connect requests happening in parallel. iser
+>> target tries to reference a tpg attribute while the np->tpg_np is
+>> actually NULL.
+>>
+>> How many targets/initiators/portals did you use? HCA?
+>
+> Hi Sagi,
+>
+> There are about 300 targets (lvm volumes), 4 initiators, two portals.
+>
+> HCA by lspci:
+> 05:00.0 InfiniBand: Mellanox Technologies MT25204 [InfiniHost III Lx
+> HCA] (rev 20)
+>          Subsystem: Mellanox Technologies MT25204 [InfiniHost III Lx =
+HCA]
+>          Flags: bus master, fast devsel, latency 0, IRQ 46
+>          Memory at df500000 (64-bit, non-prefetchable) [size=3D1M]
+>          Memory at de800000 (64-bit, prefetchable) [size=3D8M]
+>          Capabilities: [40] Power Management version 2
+>          Capabilities: [48] Vital Product Data
+>          Capabilities: [90] MSI: Enable- Count=3D1/32 Maskable- 64bit=
++
+>          Capabilities: [84] MSI-X: Enable+ Count=3D32 Masked-
+>          Capabilities: [60] Express Endpoint, MSI 00
+>          Kernel driver in use: ib_mthca
+>
+>
+> root@portal-1:~# mstflint -d 05:00.0 q
+> Image type:      Failsafe
+> FW Version:      1.2.0
+> I.S. Version:    1
+> Device ID:       25204
+> Chip Revision:   A0
+> Description:     Node             Port1            Sys image
+> GUIDs:           0005ad00000c75c8 0005ad00000c75c9 0005ad00000c75cb
+> Board ID:        =EE=8F=AD (MT_0260000002)
+> VSD:             =EE=8F=AD
+> PSID:            MT_0260000002
+>
+>
+> root@portal-2:~# mstflint -d 05:00.0 q
+> Image type:      Failsafe
+> I.S. Version:    1
+> Chip Revision:   A0
+> Description:     Node             Port1            Sys image
+> GUIDs:           0005ad00000c7010 0005ad00000c7011 0005ad00000c7013
+> Board ID:        =EE=8F=AD (MT_0260000002)
+> VSD:             =EE=8F=AD
+> PSID:            MT_0260000002
+>
+>
+>> Would it be possible to send you some patches to test as well?
+>
+> Absolutely, we can immediately test any patch on any kernel version.
+>
+> Thanks
+> Adam
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The race is supposedly caused by login ddos of initiators that are not=20
+PI aware - our initiators were running kernels from 3.2 to 3.17. When=20
+we've upgraded all to kernels > 3.15 new targets seem to be stable.=20
+However it shows that the race is lurking somewhere as You have pointed=
+=20
+out. Thank You for the feedback received. Later we will try to prepare =
+a=20
+testcase that might expose the crash.
+
+Best,
+Adam
