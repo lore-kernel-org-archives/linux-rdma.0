@@ -1,106 +1,154 @@
-From: Adam Mazur <adam.mazur@tiktalik.com>
-Subject: Re: CRASH 3.18-rc2, 3.17.1, isert_connect_request
-Date: Tue, 04 Nov 2014 09:50:25 +0100
-Message-ID: <54589351.1080007@tiktalik.com>
-References: <545758C8.4050300@tiktalik.com> <54576696.4000203@dev.mellanox.co.il> <54576C00.7010406@tiktalik.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <54576C00.7010406@tiktalik.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Oren Duer <oren@mellanox.com>
+From: Zheng Li <zheng.x.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] net/mlx4_core: Convert rcu locking to rwlock in CQ.
+Date: Tue,  4 Nov 2014 17:23:44 +0800
+Message-ID: <1415093024-13041-1-git-send-email-zheng.x.li@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, guru.anbalagane-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, zheng.x.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-W dniu 03.11.2014 o 12:50, Adam Mazur pisze:
-> W dniu 03.11.2014 o 12:27, Sagi Grimberg pisze:
->> On 11/3/2014 12:28 PM, Adam Mazur wrote:
->>> Can someone help us with these crashes? We are not able to recreate=
- it
->>> on demand, but it takes 30 minutes to a few hours to appear the cra=
-sh.
->>> We've seen it on kernel 3.17.1 and 3.18-rc2.
->>>
->>
->> Hay Adam,
->>
->> CC'ing target-devel mailing list (where iser target is maintained).
->>
->> So I stepped on this issue as well, and I actually have a fix for it
->> in the pipe. I'm planning to test it with a few other fixes for a li=
-ttle
->> while longer before I submit the code.
->>
->> In general, This crash occurs due to a race between tpg shutdown (or
->> np disable) and RDMA_CM connect requests happening in parallel. iser
->> target tries to reference a tpg attribute while the np->tpg_np is
->> actually NULL.
->>
->> How many targets/initiators/portals did you use? HCA?
->
-> Hi Sagi,
->
-> There are about 300 targets (lvm volumes), 4 initiators, two portals.
->
-> HCA by lspci:
-> 05:00.0 InfiniBand: Mellanox Technologies MT25204 [InfiniHost III Lx
-> HCA] (rev 20)
->          Subsystem: Mellanox Technologies MT25204 [InfiniHost III Lx =
-HCA]
->          Flags: bus master, fast devsel, latency 0, IRQ 46
->          Memory at df500000 (64-bit, non-prefetchable) [size=3D1M]
->          Memory at de800000 (64-bit, prefetchable) [size=3D8M]
->          Capabilities: [40] Power Management version 2
->          Capabilities: [48] Vital Product Data
->          Capabilities: [90] MSI: Enable- Count=3D1/32 Maskable- 64bit=
+The mlx4_ib_cq_comp dispatching was racy and this is fixed by using
+rcu locking. However, that introduced regression in ib port failure
+tests, so changing to rwlock.
+rcu_XXX api are used to synchronize threads and use preempt_disable/enable
+to make sure that no thread cross other thread but is not safe for interrupts
+routines. In this case we are in inteerupt context: mlx4_msi_x_interrupt ->
+mlx4_eq_int -> mlx4_cq_completion, so can't use rcu_XXX to protect this code.
+
+The stack is below:
+crash> bt
+PID: 32068  TASK: ffff880ed14405c0  CPU: 20  COMMAND: "kworker/u:1"
+ #0 [ffff880ec7c01a00] __schedule at ffffffff81506664
+ #1 [ffff880ec7c01b18] schedule at ffffffff81506d45
+ #2 [ffff880ec7c01b28] schedule_timeout at ffffffff8150719c
+ #3 [ffff880ec7c01bd8] wait_for_common at ffffffff81506bcd
+ #4 [ffff880ec7c01c68] wait_for_completion at ffffffff81506cfd
+ #5 [ffff880ec7c01c78] synchronize_sched at ffffffff810dda48
+ #6 [ffff880ec7c01cc8] mlx4_cq_free at ffffffffa027e67e [mlx4_core]
+ #7 [ffff880ec7c01cf8] mlx4_ib_destroy_cq at ffffffffa03238a3 [mlx4_ib]
+ #8 [ffff880ec7c01d18] ib_destroy_cq at ffffffffa0301c9e [ib_core]
+ #9 [ffff880ec7c01d28] rds_ib_conn_shutdown at ffffffffa041cf5d [rds_rdma]
+ #10 [ffff880ec7c01dd8] rds_conn_shutdown at ffffffffa02b7f18 [rds]
+ #11 [ffff880ec7c01e38] rds_shutdown_worker at ffffffffa02bd14a [rds]
+ #12 [ffff880ec7c01e58] process_one_work at ffffffff8108c3b9
+ #13 [ffff880ec7c01ea8] worker_thread at ffffffff8108ccfa
+ #14 [ffff880ec7c01ee8] kthread at ffffffff810912d7
+ #15 [ffff880ec7c01f48] kernel_thread_helper at ffffffff815123c4
+
+Signed-off-by: Zheng Li <zheng.x.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Guru <guru.anbalagane-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: John Sobecki <john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/cq.c   |   26 +++++++++++++++-----------
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    2 +-
+ 2 files changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cq.c b/drivers/net/ethernet/mellanox/mlx4/cq.c
+index 56022d6..8b3b849 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cq.c
+@@ -54,15 +54,19 @@
+ 
+ void mlx4_cq_completion(struct mlx4_dev *dev, u32 cqn)
+ {
++	struct mlx4_cq_table *cq_table = &mlx4_priv(dev)->cq_table;
+ 	struct mlx4_cq *cq;
+ 
+-	cq = radix_tree_lookup(&mlx4_priv(dev)->cq_table.tree,
+-			       cqn & (dev->caps.num_cqs - 1));
++	read_lock(&cq_table->lock);
 +
->          Capabilities: [84] MSI-X: Enable+ Count=3D32 Masked-
->          Capabilities: [60] Express Endpoint, MSI 00
->          Kernel driver in use: ib_mthca
->
->
-> root@portal-1:~# mstflint -d 05:00.0 q
-> Image type:      Failsafe
-> FW Version:      1.2.0
-> I.S. Version:    1
-> Device ID:       25204
-> Chip Revision:   A0
-> Description:     Node             Port1            Sys image
-> GUIDs:           0005ad00000c75c8 0005ad00000c75c9 0005ad00000c75cb
-> Board ID:        =EE=8F=AD (MT_0260000002)
-> VSD:             =EE=8F=AD
-> PSID:            MT_0260000002
->
->
-> root@portal-2:~# mstflint -d 05:00.0 q
-> Image type:      Failsafe
-> I.S. Version:    1
-> Chip Revision:   A0
-> Description:     Node             Port1            Sys image
-> GUIDs:           0005ad00000c7010 0005ad00000c7011 0005ad00000c7013
-> Board ID:        =EE=8F=AD (MT_0260000002)
-> VSD:             =EE=8F=AD
-> PSID:            MT_0260000002
->
->
->> Would it be possible to send you some patches to test as well?
->
-> Absolutely, we can immediately test any patch on any kernel version.
->
-> Thanks
-> Adam
++	cq = radix_tree_lookup(&cq_table->tree, cqn & (dev->caps.num_cqs - 1));
+ 	if (!cq) {
+ 		mlx4_dbg(dev, "Completion event for bogus CQ %08x\n", cqn);
+ 		return;
+ 	}
+ 
++	read_unlock(&cq_table->lock);
++
+ 	++cq->arm_sn;
+ 
+ 	cq->comp(cq);
+@@ -73,13 +77,13 @@ void mlx4_cq_event(struct mlx4_dev *dev, u32 cqn, int event_type)
+ 	struct mlx4_cq_table *cq_table = &mlx4_priv(dev)->cq_table;
+ 	struct mlx4_cq *cq;
+ 
+-	spin_lock(&cq_table->lock);
++	read_lock(&cq_table->lock);
+ 
+ 	cq = radix_tree_lookup(&cq_table->tree, cqn & (dev->caps.num_cqs - 1));
+ 	if (cq)
+ 		atomic_inc(&cq->refcount);
+ 
+-	spin_unlock(&cq_table->lock);
++	read_unlock(&cq_table->lock);
+ 
+ 	if (!cq) {
+ 		mlx4_warn(dev, "Async event for bogus CQ %08x\n", cqn);
+@@ -256,9 +260,9 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
+ 	if (err)
+ 		return err;
+ 
+-	spin_lock_irq(&cq_table->lock);
++	write_lock_irq(&cq_table->lock);
+ 	err = radix_tree_insert(&cq_table->tree, cq->cqn, cq);
+-	spin_unlock_irq(&cq_table->lock);
++	write_unlock_irq(&cq_table->lock);
+ 	if (err)
+ 		goto err_icm;
+ 
+@@ -297,9 +301,9 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
+ 	return 0;
+ 
+ err_radix:
+-	spin_lock_irq(&cq_table->lock);
++	write_lock_irq(&cq_table->lock);
+ 	radix_tree_delete(&cq_table->tree, cq->cqn);
+-	spin_unlock_irq(&cq_table->lock);
++	write_unlock_irq(&cq_table->lock);
+ 
+ err_icm:
+ 	mlx4_cq_free_icm(dev, cq->cqn);
+@@ -320,9 +324,9 @@ void mlx4_cq_free(struct mlx4_dev *dev, struct mlx4_cq *cq)
+ 
+ 	synchronize_irq(priv->eq_table.eq[cq->vector].irq);
+ 
+-	spin_lock_irq(&cq_table->lock);
++	write_lock_irq(&cq_table->lock);
+ 	radix_tree_delete(&cq_table->tree, cq->cqn);
+-	spin_unlock_irq(&cq_table->lock);
++	write_unlock_irq(&cq_table->lock);
+ 
+ 	if (atomic_dec_and_test(&cq->refcount))
+ 		complete(&cq->free);
+@@ -337,7 +341,7 @@ int mlx4_init_cq_table(struct mlx4_dev *dev)
+ 	struct mlx4_cq_table *cq_table = &mlx4_priv(dev)->cq_table;
+ 	int err;
+ 
+-	spin_lock_init(&cq_table->lock);
++	rwlock_init(&cq_table->lock);
+ 	INIT_RADIX_TREE(&cq_table->tree, GFP_ATOMIC);
+ 	if (mlx4_is_slave(dev))
+ 		return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index de10dbb..42e2348 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -642,7 +642,7 @@ struct mlx4_mr_table {
+ 
+ struct mlx4_cq_table {
+ 	struct mlx4_bitmap	bitmap;
+-	spinlock_t		lock;
++	rwlock_t		lock;
+ 	struct radix_tree_root	tree;
+ 	struct mlx4_icm_table	table;
+ 	struct mlx4_icm_table	cmpt_table;
+-- 
+1.7.6.5
 
-
-The race is supposedly caused by login ddos of initiators that are not=20
-PI aware - our initiators were running kernels from 3.2 to 3.17. When=20
-we've upgraded all to kernels > 3.15 new targets seem to be stable.=20
-However it shows that the race is lurking somewhere as You have pointed=
-=20
-out. Thank You for the feedback received. Later we will try to prepare =
-a=20
-testcase that might expose the crash.
-
-Best,
-Adam
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
