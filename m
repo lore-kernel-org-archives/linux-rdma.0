@@ -1,64 +1,71 @@
 From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: WRITE/SEND to multiple destinations
-Date: Mon, 3 Nov 2014 22:05:20 -0500
-Message-ID: <CADPSxAiqRG7TATOXia89uZQSypL3b_EjTpU=YB6cLaR2ZeYuwQ@mail.gmail.com>
+Date: Mon, 3 Nov 2014 22:10:09 -0500
+Message-ID: <CADPSxAi_Xp9oQEWMprkKwsVkbKjo4nmUyFFwrCs6zLB9wrpafw@mail.gmail.com>
 References: <loom.20141103T000730-108@post.gmane.org>
 	<CADPSxAhwDX6=B4hB_21otZeSqvtgNvFXT5CfFatfRdO-dTDAeQ@mail.gmail.com>
 	<CAJRcJr0LSLzSVJqwqLwiZh05NBVJMz59q3wx4-BCLUpYy7m6Qg@mail.gmail.com>
+	<CADPSxAiqRG7TATOXia89uZQSypL3b_EjTpU=YB6cLaR2ZeYuwQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJRcJr0LSLzSVJqwqLwiZh05NBVJMz59q3wx4-BCLUpYy7m6Qg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CADPSxAiqRG7TATOXia89uZQSypL3b_EjTpU=YB6cLaR2ZeYuwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Just Floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For the RC transport, the answer is yes. You definitely need one queue
-pair per client at the server, although it could be possible for the
-QPs at the server to share an event channel.
-
-But UD transport is also pretty "reliable" as packet loss in any
-InfiniBand transport is extremely rare. A rather high ballpark is one
-in a billion.
+Stupid me. I totally forgot about the XRC transport:
+http://mvapich.cse.ohio-state.edu/static/media/publications/abstract/koop-cluster08.pdf.
 
 --Anuj
 
-On Mon, Nov 3, 2014 at 5:59 PM, Just Floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Thank you for your help. So the question is, for reliable connections, do I
-> need separate event channel/queue-pairs for each connection?
+On Mon, Nov 3, 2014 at 10:05 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> For the RC transport, the answer is yes. You definitely need one queue
+> pair per client at the server, although it could be possible for the
+> QPs at the server to share an event channel.
 >
-> On Mon, Nov 3, 2014 at 3:50 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->> You can do SEND/RECV over Unreliable Datagram multicast which could be
->> beneficial in your situation (i.e., better than 1-1 connections). You
->> can't use multicast for READs or WRITEs.
->>
->> --Anuj
->>
->> On Sun, Nov 2, 2014 at 9:32 PM, floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> > Hello everyone,
->> >
->> > As a newbie to the world of InfiniBand programming,
->> > I would appreciate your helps on my somewhat general and basic question.
->> >
->> > Assume that I have a server, and N clients (N > 1).
->> > I would like my server to set all clients' memory buffers to some value
->> > V.
->> > How would I go about this problem?
->> > So far, I've managed to establish 1-1  connections using
->> > READ/WRITE/SEND/RECEIVE.
->> > So I guess the core of my question is:
->> > how 1-to-N  connections are established in InfiniBand, and
->> > if, in this regard, there is any difference between
->> > RDMA verbs (READ/WRITE) vs. SEND/RECEIVE?
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But UD transport is also pretty "reliable" as packet loss in any
+> InfiniBand transport is extremely rare. A rather high ballpark is one
+> in a billion.
 >
+> --Anuj
 >
+> On Mon, Nov 3, 2014 at 5:59 PM, Just Floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Thank you for your help. So the question is, for reliable connections, do I
+>> need separate event channel/queue-pairs for each connection?
+>>
+>> On Mon, Nov 3, 2014 at 3:50 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>>
+>>> You can do SEND/RECV over Unreliable Datagram multicast which could be
+>>> beneficial in your situation (i.e., better than 1-1 connections). You
+>>> can't use multicast for READs or WRITEs.
+>>>
+>>> --Anuj
+>>>
+>>> On Sun, Nov 2, 2014 at 9:32 PM, floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>> > Hello everyone,
+>>> >
+>>> > As a newbie to the world of InfiniBand programming,
+>>> > I would appreciate your helps on my somewhat general and basic question.
+>>> >
+>>> > Assume that I have a server, and N clients (N > 1).
+>>> > I would like my server to set all clients' memory buffers to some value
+>>> > V.
+>>> > How would I go about this problem?
+>>> > So far, I've managed to establish 1-1  connections using
+>>> > READ/WRITE/SEND/RECEIVE.
+>>> > So I guess the core of my question is:
+>>> > how 1-to-N  connections are established in InfiniBand, and
+>>> > if, in this regard, there is any difference between
+>>> > RDMA verbs (READ/WRITE) vs. SEND/RECEIVE?
+>>> >
+>>> > --
+>>> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
