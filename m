@@ -1,71 +1,72 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: WRITE/SEND to multiple destinations
-Date: Mon, 3 Nov 2014 22:10:09 -0500
-Message-ID: <CADPSxAi_Xp9oQEWMprkKwsVkbKjo4nmUyFFwrCs6zLB9wrpafw@mail.gmail.com>
-References: <loom.20141103T000730-108@post.gmane.org>
-	<CADPSxAhwDX6=B4hB_21otZeSqvtgNvFXT5CfFatfRdO-dTDAeQ@mail.gmail.com>
-	<CAJRcJr0LSLzSVJqwqLwiZh05NBVJMz59q3wx4-BCLUpYy7m6Qg@mail.gmail.com>
-	<CADPSxAiqRG7TATOXia89uZQSypL3b_EjTpU=YB6cLaR2ZeYuwQ@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/addr: Improve address resolution callback scheduling
+Date: Tue, 4 Nov 2014 06:28:57 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399DFE135@ORSMSX109.amr.corp.intel.com>
+References: <1414593124-9060-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAiqRG7TATOXia89uZQSypL3b_EjTpU=YB6cLaR2ZeYuwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1414593124-9060-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Just Floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Olga Shern <olgas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Stupid me. I totally forgot about the XRC transport:
-http://mvapich.cse.ohio-state.edu/static/media/publications/abstract/koop-cluster08.pdf.
+> From: Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> As of the callback model, the address resolution logic always does
+> context switch to a work-queue to deliver the address resolution event.
+> 
+> When the IP address is already cached in the system arp table,
+> we're going through the following call chain:
+> 
+> rdma_resolve_ip --> addr_resolve (cache hit) -->
+> 
+> which ends up with doing:
+> 
+> queue_req --> set_timeout (now) --> mod_delayed_work(,, delay=1)
+> 
+> We actually do realize that the timeout should be zero, but the
+> code forces it to a minimum of one jiffie.
+> 
+> Using one jiffie as the minimum delay value results in a less optimized
+> scheduling of executing this work item by the workqueue, which on the
+> below testbed costs about 3-4ms out of 12ms total time.
+> 
+> To fix that, we let the minimum delay to be zero. Note that the
+> connect step times change too, as there are address resolution
+> calls from that flow.
+> 
+> The results were taken from running both client and server on the
+> same node, over mlx4 RoCE port.
+> 
+> before -->
+> step              total ms     max ms     min us  us / conn
+> create id    :        0.01       0.01       6.00       6.00
+> resolve addr :        4.02       4.01    4013.00    4016.00
+> resolve route:        0.18       0.18     182.00     183.00
+> create qp    :        1.15       1.15    1150.00    1150.00
+> connect      :        6.73       6.73    6730.00    6731.00
+> disconnect   :        0.55       0.55     549.00     550.00
+> destroy      :        0.01       0.01       9.00       9.00
+> 
+> after -->
+> step              total ms     max ms     min us  us / conn
+> create id    :        0.01       0.01       6.00       6.00
+> resolve addr :        0.05       0.05      49.00      52.00
+> resolve route:        0.21       0.21     207.00     208.00
+> create qp    :        1.10       1.10    1104.00    1104.00
+> connect      :        1.22       1.22    1220.00    1221.00
+> disconnect   :        0.71       0.71     713.00     713.00
+> destroy      :        0.01       0.01       9.00       9.00
+> 
+> Signed-off-by: Or Kehati <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---Anuj
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On Mon, Nov 3, 2014 at 10:05 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> For the RC transport, the answer is yes. You definitely need one queue
-> pair per client at the server, although it could be possible for the
-> QPs at the server to share an event channel.
->
-> But UD transport is also pretty "reliable" as packet loss in any
-> InfiniBand transport is extremely rare. A rather high ballpark is one
-> in a billion.
->
-> --Anuj
->
-> On Mon, Nov 3, 2014 at 5:59 PM, Just Floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Thank you for your help. So the question is, for reliable connections, do I
->> need separate event channel/queue-pairs for each connection?
->>
->> On Mon, Nov 3, 2014 at 3:50 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>>
->>> You can do SEND/RECV over Unreliable Datagram multicast which could be
->>> beneficial in your situation (i.e., better than 1-1 connections). You
->>> can't use multicast for READs or WRITEs.
->>>
->>> --Anuj
->>>
->>> On Sun, Nov 2, 2014 at 9:32 PM, floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>> > Hello everyone,
->>> >
->>> > As a newbie to the world of InfiniBand programming,
->>> > I would appreciate your helps on my somewhat general and basic question.
->>> >
->>> > Assume that I have a server, and N clients (N > 1).
->>> > I would like my server to set all clients' memory buffers to some value
->>> > V.
->>> > How would I go about this problem?
->>> > So far, I've managed to establish 1-1  connections using
->>> > READ/WRITE/SEND/RECEIVE.
->>> > So I guess the core of my question is:
->>> > how 1-to-N  connections are established in InfiniBand, and
->>> > if, in this regard, there is any difference between
->>> > RDMA verbs (READ/WRITE) vs. SEND/RECEIVE?
->>> >
->>> > --
->>> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
