@@ -1,53 +1,40 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCHv2 net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor:
- Cleanup macros
-Date: Wed, 05 Nov 2014 14:54:43 -0500 (EST)
-Message-ID: <20141105.145443.897956918105740779.davem@davemloft.net>
-References: <1415069457-22277-1-git-send-email-hariprasad@chelsio.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] saquery.c: Fix handling of cpi and ClassPortInfo
+ options
+Date: Wed, 05 Nov 2014 15:21:55 -0500
+Message-ID: <545A86E3.4050000@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415069457-22277-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, praveenm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Date: Tue,  4 Nov 2014 08:20:54 +0530
 
-> It's not really the "hardware" which generates these hardware constant symbolic
-> macros/register defines of course, it's scripts developed by the hardware team.
-> Various patches have ended up changing the style of the symbolic macros/register
-> defines and some of them used the macros/register defines that matches the
-> output of the script from the hardware team.
+Need to check if query_type is CLASS_PORT_INFO
+in order to handle saquery [cpi | ClassPortInfo].
+Otherwise, it just dumps ClassPortInfo attribute
+as all 0s.
 
-We've told you that we don't care what format your internal whatever uses
-for these macros.
+Note that saquery -c works fine because it
+set command to SAQUERY_CMD_CLASS_PORT_INFO.
 
-We have standards, tastes, and desires and reasons for naming macros
-in a certain way in upstream kernel code.
-
-I consider it flat out unacceptable to use macros with one letter
-prefixes like "S_".  You simply should not do this.
-
-Why?
-
-Because you are polluting the global name space, that's why.
-
-You should only define macros with very-likely-to-be-unique prefixes
-otherwise you and some arch/* header file are going to define the same
-thing.
-
-This is not just theory, it has happened in the past.
-
-I'm not applying this series, fixup your macros properly.  And to
-repeat, complaints about how your internal tools generate things
-will fall on deaf ears.
-
-Thanks.
-
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/saquery.c b/src/saquery.c
+index 0f39064..1af3401 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -1869,6 +1869,7 @@ int main(int argc, char **argv)
+ 		params.dlid = get_lid(h, dst_lid);
+ 
+ 	if (command == SAQUERY_CMD_CLASS_PORT_INFO ||
++	    query_type == CLASS_PORT_INFO ||
+ 	    query_type == IB_SA_ATTR_SWITCHINFORECORD)
+ 		sa_cpi_required = 1;
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
