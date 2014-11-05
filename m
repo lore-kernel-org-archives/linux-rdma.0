@@ -1,65 +1,42 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
-Date: Wed, 05 Nov 2014 13:22:01 +0200
-Message-ID: <545A0859.8030301@dev.mellanox.co.il>
-References: <5433E43D.3010107@acm.org> <5433E585.607@acm.org> <5443F69F.40606@dev.mellanox.co.il> <54450690.709@acm.org> <544622FE.5040906@dev.mellanox.co.il> <544FE13A.60807@dev.mellanox.co.il> <5450C6FC.90908@acm.org> <545248F8.8020102@dev.mellanox.co.il> <54524D08.4040203@acm.org> <545253E3.7000009@dev.mellanox.co.il> <545256E5.9010501@acm.org> <5452765E.1040604@dev.mellanox.co.il> <5453541D.7040206@acm.org> <54562B9C.3040004@dev.mellanox.co.il> <94D0CD8314A33A4D9D801C0FE68B402959354E19@G9W0745.americas.hpqcorp.net> <5458BC8B.40202@acm.org> <5458C344.2040109@dev.mellanox.co.il> <94D0CD8314A33A4D9D801C0FE68B40295937104F@G4W3202.americas.hpqcorp.net>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH v3 01/11] blk-mq: Add blk_mq_unique_tag()
+Date: Wed, 05 Nov 2014 13:37:14 +0100
+Message-ID: <545A19FA.40706@acm.org>
+References: <545240AE.6060009@acm.org> <545240E7.5030206@acm.org> <20141104141432.GA446@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295937104F-2m9nI20wMFwSZAcGdq5asR6epYMZPwEe5NbjCUgZEJk@public.gmane.org>
+In-Reply-To: <20141104141432.GA446-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Elliott, Robert (Server Storage)" <Elliott-VXdhtT5mjnY@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/5/2014 6:57 AM, Elliott, Robert (Server Storage) wrote:
->
->
->> -----Original Message-----
->> From: Sagi Grimberg [mailto:sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
->> Sent: Tuesday, November 04, 2014 6:15 AM
->> To: Bart Van Assche; Elliott, Robert (Server Storage); Christoph Hellwig
->> Cc: Jens Axboe; Sagi Grimberg; Sebastian Parschauer; Ming Lei; linux-
->> scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma
->> Subject: Re: [PATCH v2 12/12] IB/srp: Add multichannel support
->>
-> ...
->> I think that Rob and I are not talking about the same issue. In
->> case only a single core is servicing interrupts it is indeed expected
->> that it will spend 100% in hard-irq, that's acceptable since it is
->> pounded with completions all the time.
->>
->> However, I'm referring to a condition where SRP will spend infinite
->> time servicing a single interrupt (while loop on ib_poll_cq that never
->> drains) which will lead to a hard lockup.
->>
->> This *can* happen, and I do believe that with an optimized IO path
->> it is even more likely to.
->
-> If the IB completions/interrupts are only for IOs submitted on this
-> CPU, then the CQ will eventually drain, because this CPU is not
-> submitting anything new while stuck in the loop.
+On 11/04/14 15:14, Christoph Hellwig wrote:
+> I've applied patches 1-3 to the core-for-3.19 branch.  Various srp
+> patches, including the first one fail to apply for me.  Can you
+> regenerate them against the drivers-for-3.19 branch?  Thanks!
 
-They're not (or not necessarily). I'm talking about the case where the
-IO completions are submitted from another CPU. This creates a cycle
-where the submitter is generating completions on CPU X and the completer
-is evacuating room for more submissions on CPU Y. This process can
-never end while the completer is in hard-irq context.
+Hello Christoph,
 
->
-> This can become bursty, though - submit a lot of IOs, then be busy
-> completing all of them and not submitting more, resulting in the
-> queue depth bouncing from 0 to high to 0 to high.  I've seen
-> that with both hpsa and mpt3sas drivers.  The fio options
-> iodepth_batch, iodepth_batch_complete, and iodepth_low
-> can amplify and reduce that effect (using libaio).
->
+That's strange. I have compared the patches that are already in your 
+tree with the patches I had posted myself with a diff tool. These 
+patches look identical to what I had posted except for one CC tag that 
+has been left out. If I try to apply the three patches that have not yet 
+been included in your tree (9/11..11/11) on top the drivers-for-3.19 
+branch then these patches apply fine. Anyway, I have rebased my tree on 
+top of your drivers-for-3.19 branch, added a few other patches 
+(including one block layer patch that has not yet been posted) and 
+retested the SRP initiator driver against the traditional SCSI core and 
+also against the scsi-mq core. The result can be found here: 
+https://github.com/bvanassche/linux/commits/srp-multiple-hwq-v4. Can you 
+please retry to apply patches 9/11..11/11 apply on top of the 
+drivers-for-3.19 branch ?
 
-blk-iopoll (or some other form of budgeting completions) should take
-care of that.
+Thanks,
 
-Sagi.
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
