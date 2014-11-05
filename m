@@ -1,50 +1,50 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 libibverbs 1/2] Change rereg_mr API between libibverbs and the provider's library
-Date: Wed,  5 Nov 2014 10:23:02 +0200
-Message-ID: <1415175783-4612-2-git-send-email-matanb@mellanox.com>
-References: <1415175783-4612-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH v2 libibverbs 0/2] Add memory re-registration support
+Date: Wed,  5 Nov 2014 10:23:01 +0200
+Message-ID: <1415175783-4612-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415175783-4612-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, MR re-registration isn't implemented in libibverbs.
-The only part which does exist is an API call between libibverbs
-and the provider's library. Since there's no way for a user application
-to invoke this API call, it's safe to assume it's unused.
+Hi Roland,
 
-Similarly to other verbs (for example, ibv_modify_qp), a modification
-to the MR shouldn't change the user's handle. The current existing API is:
-struct ibv_mr *         (*rereg_mr)(struct ibv_mr *mr,
-                                    int flags,
-                                    struct ibv_pd *pd, void *addr,
-                                    size_t length,
-                                    int access);
+These two patches add memory region re-registration support.
+Memory re-registration is a feature that enables one to change
+the attributes of a memory region, including PD, translation
+(address and length) and access flags.
 
-As a result, this API call returns the exact same pointer it gets.
-Instead, we propose retuning a status int, which is far more useful
-than the current return value.
+The first patch changes the API between libibverbs and the provider's
+library. This change is safe as there's no ibv_rereg_mr verb exposed to
+the user and thus no reason for a vendor to implement or use this function.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/infiniband/verbs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The second patch adds the actual memory region re-registration support.
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index cfa1156..7276c40 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -881,7 +881,7 @@ struct ibv_context_ops {
- 	int			(*dealloc_pd)(struct ibv_pd *pd);
- 	struct ibv_mr *		(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
- 					  int access);
--	struct ibv_mr *		(*rereg_mr)(struct ibv_mr *mr,
-+	int			(*rereg_mr)(struct ibv_mr *mr,
- 					    int flags,
- 					    struct ibv_pd *pd, void *addr,
- 					    size_t length,
+Matan
+
+Changes from V1:
+  - Added man page
+
+Changes from V0:
+  - Split to 2 patches:
+      libibverbs <--> provider's library API change
+      Add MR re-registration support
+
+Matan Barak (2):
+  Change rereg_mr API between libibverbs and the provider's library
+  Add MR re-registeration
+
+ include/infiniband/driver.h   |  5 +++
+ include/infiniband/kern-abi.h | 20 ++++++++++++
+ include/infiniband/verbs.h    | 11 +++++--
+ man/ibv_rereg_mr.3            | 72 +++++++++++++++++++++++++++++++++++++++++++
+ src/cmd.c                     | 29 +++++++++++++++++
+ src/libibverbs.map            |  1 +
+ src/verbs.c                   | 55 +++++++++++++++++++++++++++++++++
+ 7 files changed, 191 insertions(+), 2 deletions(-)
+ create mode 100644 man/ibv_rereg_mr.3
+
 -- 
 1.9.1
 
