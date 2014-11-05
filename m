@@ -1,38 +1,53 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v3 01/11] blk-mq: Add blk_mq_unique_tag()
-Date: Wed, 5 Nov 2014 10:54:00 -0800
-Message-ID: <20141105185400.GA17425@infradead.org>
-References: <545240AE.6060009@acm.org>
- <545240E7.5030206@acm.org>
- <20141104141432.GA446@infradead.org>
- <545A19FA.40706@acm.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCHv2 net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor:
+ Cleanup macros
+Date: Wed, 05 Nov 2014 14:54:43 -0500 (EST)
+Message-ID: <20141105.145443.897956918105740779.davem@davemloft.net>
+References: <1415069457-22277-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <545A19FA.40706-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1415069457-22277-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, praveenm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 05, 2014 at 01:37:14PM +0100, Bart Van Assche wrote:
-> That's strange. I have compared the patches that are already in your tree
-> with the patches I had posted myself with a diff tool. These patches look
-> identical to what I had posted except for one CC tag that has been left out.
-> If I try to apply the three patches that have not yet been included in your
-> tree (9/11..11/11) on top the drivers-for-3.19 branch then these patches
-> apply fine. Anyway, I have rebased my tree on top of your drivers-for-3.19
-> branch, added a few other patches (including one block layer patch that has
-> not yet been posted) and retested the SRP initiator driver against the
-> traditional SCSI core and also against the scsi-mq core. The result can be
-> found here: https://github.com/bvanassche/linux/commits/srp-multiple-hwq-v4.
-> Can you please retry to apply patches 9/11..11/11 apply on top of the
-> drivers-for-3.19 branch ?
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Tue,  4 Nov 2014 08:20:54 +0530
 
-I've pulled in the three remaining patches from the series from that
-tree.  If you want me to pull in the remaining trivial srp patch as well
-please give me a Reviewed-by: and I'll also pull it in.
+> It's not really the "hardware" which generates these hardware constant symbolic
+> macros/register defines of course, it's scripts developed by the hardware team.
+> Various patches have ended up changing the style of the symbolic macros/register
+> defines and some of them used the macros/register defines that matches the
+> output of the script from the hardware team.
+
+We've told you that we don't care what format your internal whatever uses
+for these macros.
+
+We have standards, tastes, and desires and reasons for naming macros
+in a certain way in upstream kernel code.
+
+I consider it flat out unacceptable to use macros with one letter
+prefixes like "S_".  You simply should not do this.
+
+Why?
+
+Because you are polluting the global name space, that's why.
+
+You should only define macros with very-likely-to-be-unique prefixes
+otherwise you and some arch/* header file are going to define the same
+thing.
+
+This is not just theory, it has happened in the past.
+
+I'm not applying this series, fixup your macros properly.  And to
+repeat, complaints about how your internal tools generate things
+will fall on deaf ears.
+
+Thanks.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
