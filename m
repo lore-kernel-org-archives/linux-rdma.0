@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 3/5] mlx5_core: Add DC support at mlx5 core layer
-Date: Thu,  6 Nov 2014 17:52:37 +0200
-Message-ID: <1415289159-4376-4-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 4/5] mlx5_ib: Add support for DC
+Date: Thu,  6 Nov 2014 17:52:38 +0200
+Message-ID: <1415289159-4376-5-git-send-email-eli@mellanox.com>
 References: <1415289159-4376-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1415289159-4376-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,853 +10,524 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, richardg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Update debugfs, implement DC commands and handle events.
-
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/debugfs.c | 110 +++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/eq.c      |  15 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c    |   6 +
- drivers/net/ethernet/mellanox/mlx5/core/qp.c      | 185 ++++++++++++++++++++++
- include/linux/mlx5/device.h                       |  12 ++
- include/linux/mlx5/driver.h                       |  24 ++-
- include/linux/mlx5/mlx5_ifc.h                     | 179 +++++++++++++++++++++
- include/linux/mlx5/qp.h                           |  39 ++++-
- 8 files changed, 566 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  19 +++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  24 +++
+ drivers/infiniband/hw/mlx5/qp.c      | 289 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/user.h    |  41 +++++
+ 4 files changed, 370 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-index 10e1f1a18255..3e115dee235a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-@@ -35,6 +35,7 @@
- #include <linux/mlx5/qp.h>
- #include <linux/mlx5/cq.h>
- #include <linux/mlx5/driver.h>
-+#include <linux/mlx5/mlx5_ifc.h>
- #include "mlx5_core.h"
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 3c6fa99c4256..c805385d878d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -283,6 +283,11 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->max_total_mcast_qp_attach = props->max_mcast_qp_attach *
+ 					   props->max_mcast_grp;
+ 	props->max_map_per_fmr = INT_MAX; /* no limit in ConnectIB */
++	if (gen->flags & MLX5_DEV_CAP_FLAG_DCT) {
++		props->device_cap_flags |= IB_DEVICE_DC_TRANSPORT;
++		props->dc_rd_req = 1 << gen->log_max_ra_req_dc;
++		props->dc_rd_res = 1 << gen->log_max_ra_res_dc;
++	}
  
- enum {
-@@ -62,6 +63,22 @@ static char *qp_fields[] = {
+ out:
+ 	kfree(in_mad);
+@@ -1405,6 +1410,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.alloc_fast_reg_page_list = mlx5_ib_alloc_fast_reg_page_list;
+ 	dev->ib_dev.free_fast_reg_page_list  = mlx5_ib_free_fast_reg_page_list;
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
++	dev->ib_dev.uverbs_ex_cmd_mask	|=
++		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_QP);
+ 
+ 	if (mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_XRC) {
+ 		dev->ib_dev.alloc_xrcd = mlx5_ib_alloc_xrcd;
+@@ -1417,6 +1424,18 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.uverbs_ex_cmd_mask  |=
+ 		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE);
+ 
++	if (mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_DCT) {
++		dev->ib_dev.create_dct = mlx5_ib_create_dct;
++		dev->ib_dev.destroy_dct = mlx5_ib_destroy_dct;
++		dev->ib_dev.query_dct = mlx5_ib_query_dct;
++		dev->ib_dev.arm_dct = mlx5_ib_arm_dct;
++		dev->ib_dev.uverbs_ex_cmd_mask |=
++			(1ull << IB_USER_VERBS_EX_CMD_CREATE_DCT)	|
++			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_DCT)	|
++			(1ull << IB_USER_VERBS_EX_CMD_QUERY_DCT)	|
++			(1ull << IB_USER_VERBS_EX_CMD_ARM_DCT);
++	}
++
+ 	err = init_node_data(dev);
+ 	if (err)
+ 		goto err_eqs;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 386780f0d1e1..5a78f2c60867 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -194,6 +194,11 @@ struct mlx5_ib_qp {
+ 	bool			signature_en;
  };
  
- enum {
-+	DCT_PID,
-+	DCT_STATE,
-+	DCT_MTU,
-+	DCT_KEY_VIOL,
-+	DCT_CQN,
++struct mlx5_ib_dct {
++	struct ib_dct		ibdct;
++	struct mlx5_core_dct	mdct;
 +};
 +
-+static char *dct_fields[] = {
-+	[DCT_PID]	= "pid",
-+	[DCT_STATE]	= "state",
-+	[DCT_MTU]	= "mtu",
-+	[DCT_KEY_VIOL]	= "key_violations",
-+	[DCT_CQN]	= "cqn",
-+};
-+
-+enum {
- 	EQ_NUM_EQES,
- 	EQ_INTR,
- 	EQ_LOG_PG_SZ,
-@@ -122,6 +139,26 @@ void mlx5_qp_debugfs_cleanup(struct mlx5_core_dev *dev)
- 	debugfs_remove_recursive(dev->priv.qp_debugfs);
+ struct mlx5_ib_cq_buf {
+ 	struct mlx5_buf		buf;
+ 	struct ib_umem		*umem;
+@@ -444,6 +449,16 @@ static inline struct mlx5_ib_fast_reg_page_list *to_mfrpl(struct ib_fast_reg_pag
+ 	return container_of(ibfrpl, struct mlx5_ib_fast_reg_page_list, ibfrpl);
  }
  
-+int mlx5_dct_debugfs_init(struct mlx5_core_dev *dev)
++static inline struct mlx5_ib_dct *to_mibdct(struct mlx5_core_dct *mdct)
 +{
-+	if (!mlx5_debugfs_root)
-+		return 0;
-+
-+	dev->priv.dct_debugfs = debugfs_create_dir("DCTs",  dev->priv.dbg_root);
-+	if (!dev->priv.dct_debugfs)
-+		return -ENOMEM;
-+
-+	return 0;
++	return container_of(mdct, struct mlx5_ib_dct, mdct);
 +}
 +
-+void mlx5_dct_debugfs_cleanup(struct mlx5_core_dev *dev)
++static inline struct mlx5_ib_dct *to_mdct(struct ib_dct *ibdct)
 +{
-+	if (!mlx5_debugfs_root)
-+		return;
-+
-+	debugfs_remove_recursive(dev->priv.dct_debugfs);
++	return container_of(ibdct, struct mlx5_ib_dct, ibdct);
 +}
 +
- int mlx5_eq_debugfs_init(struct mlx5_core_dev *dev)
+ struct mlx5_ib_ah {
+ 	struct ib_ah		ibah;
+ 	struct mlx5_av		av;
+@@ -482,6 +497,8 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 				struct ib_udata *udata);
+ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		      int attr_mask, struct ib_udata *udata);
++int mlx5_ib_modify_qp_ex(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++			 int attr_mask, struct ib_udata *udata);
+ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr_mask,
+ 		     struct ib_qp_init_attr *qp_init_attr);
+ int mlx5_ib_destroy_qp(struct ib_qp *qp);
+@@ -524,6 +541,13 @@ struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
+ 					  struct ib_ucontext *context,
+ 					  struct ib_udata *udata);
+ int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd);
++struct ib_dct *mlx5_ib_create_dct(struct ib_pd *pd,
++				  struct ib_dct_init_attr *attr,
++				  struct ib_udata *uhw);
++int mlx5_ib_destroy_dct(struct ib_dct *dct, struct ib_udata *uhw);
++int mlx5_ib_query_dct(struct ib_dct *dct, struct ib_dct_attr *attr,
++		      struct ib_udata *uhw);
++int mlx5_ib_arm_dct(struct ib_dct *dct, struct ib_udata *uhw);
+ int mlx5_vector2eqn(struct mlx5_ib_dev *dev, int vector, int *eqn, int *irqn);
+ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset);
+ int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 47ca93ce214f..cc514de33444 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -32,6 +32,7 @@
+ 
+ #include <linux/module.h>
+ #include <rdma/ib_umem.h>
++#include <linux/mlx5/mlx5_ifc.h>
+ #include "mlx5_ib.h"
+ #include "user.h"
+ 
+@@ -155,6 +156,34 @@ static void mlx5_ib_qp_event(struct mlx5_core_qp *qp, int type)
+ 	}
+ }
+ 
++static void mlx5_ib_dct_event(struct mlx5_core_dct *dct, enum mlx5_event type)
++{
++	struct ib_dct *ibdct = &to_mibdct(dct)->ibdct;
++	struct ib_event event;
++
++	if (ibdct->event_handler) {
++		event.device     = ibdct->device;
++		event.element.dct = ibdct;
++		switch (type) {
++		case MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR:
++			event.event = IB_EVENT_DCT_REQ_ERR;
++			break;
++		case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
++			event.event = IB_EVENT_DCT_ACCESS_ERR;
++			break;
++		case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
++			event.event = IB_EVENT_DCT_KEY_VIOLATION;
++			break;
++		default:
++			pr_warn("mlx5_ib: Unexpected event type %d on DCT %06x\n",
++				type, dct->dctn);
++			return;
++		}
++
++		ibdct->event_handler(&event, ibdct->dct_context);
++	}
++}
++
+ static int set_rq_size(struct mlx5_ib_dev *dev, struct ib_qp_cap *cap,
+ 		       int has_rq, struct mlx5_ib_qp *qp, struct mlx5_ib_create_qp *ucmd)
  {
- 	if (!mlx5_debugfs_root)
-@@ -355,6 +392,51 @@ out:
- 	return param;
- }
+@@ -516,6 +545,7 @@ static int to_mlx5_st(enum ib_qp_type type)
+ {
+ 	switch (type) {
+ 	case IB_QPT_RC:			return MLX5_QP_ST_RC;
++	case IB_QPT_DC_INI:		return MLX5_QP_ST_DC;
+ 	case IB_QPT_UC:			return MLX5_QP_ST_UC;
+ 	case IB_QPT_UD:			return MLX5_QP_ST_UD;
+ 	case MLX5_IB_QPT_REG_UMR:	return MLX5_QP_ST_REG_UMR;
+@@ -785,8 +815,10 @@ static void destroy_qp_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
  
-+static u64 dct_read_field(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct,
-+			  int index, int *is_str)
+ static __be32 get_rx_type(struct mlx5_ib_qp *qp, struct ib_qp_init_attr *attr)
+ {
+-	if (attr->srq || (attr->qp_type == IB_QPT_XRC_TGT) ||
+-	    (attr->qp_type == IB_QPT_XRC_INI))
++	enum ib_qp_type qt = attr->qp_type;
++
++	if (attr->srq || (qt == IB_QPT_XRC_TGT) || (qt == IB_QPT_XRC_INI) ||
++	    (qt == IB_QPT_DC_INI))
+ 		return cpu_to_be32(MLX5_SRQ_RQ);
+ 	else if (!qp->has_rq)
+ 		return cpu_to_be32(MLX5_ZERO_LEN_RQ);
+@@ -1065,6 +1097,7 @@ static void get_cqs(struct mlx5_ib_qp *qp,
+ 		break;
+ 	case MLX5_IB_QPT_REG_UMR:
+ 	case IB_QPT_XRC_INI:
++	case IB_QPT_DC_INI:
+ 		*send_cq = to_mcq(qp->ibqp.send_cq);
+ 		*recv_cq = NULL;
+ 		break;
+@@ -1150,6 +1183,8 @@ static const char *ib_qp_type_str(enum ib_qp_type type)
+ 		return "IB_QPT_XRC_TGT";
+ 	case IB_QPT_RAW_PACKET:
+ 		return "IB_QPT_RAW_PACKET";
++	case IB_QPT_DC_INI:
++		return "IB_QPT_DC_INI";
+ 	case MLX5_IB_QPT_REG_UMR:
+ 		return "MLX5_IB_QPT_REG_UMR";
+ 	case IB_QPT_MAX:
+@@ -1197,6 +1232,7 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 
+ 		/* fall through */
+ 	case IB_QPT_RC:
++	case IB_QPT_DC_INI:
+ 	case IB_QPT_UC:
+ 	case IB_QPT_UD:
+ 	case IB_QPT_SMI:
+@@ -1581,6 +1617,9 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	if (attr_mask & IB_QP_DEST_QPN)
+ 		context->log_pg_sz_remote_qpn = cpu_to_be32(attr->dest_qp_num);
+ 
++	if (attr_mask & IB_QP_DC_KEY)
++		context->dc_access_key = cpu_to_be64(attr->dct_key);
++
+ 	if (attr_mask & IB_QP_PKEY_INDEX)
+ 		context->pri_path.pkey_index = attr->pkey_index;
+ 
+@@ -2972,7 +3011,9 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
+ 	qp_attr->qp_access_flags     =
+ 		to_ib_qp_access_flags(be32_to_cpu(context->params2));
+ 
+-	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC) {
++	if (qp->ibqp.qp_type == IB_QPT_RC ||
++	    qp->ibqp.qp_type == IB_QPT_UC ||
++	    qp->ibqp.qp_type == IB_QPT_DC_INI) {
+ 		to_ib_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
+ 		to_ib_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
+ 		qp_attr->alt_pkey_index = context->alt_path.pkey_index & 0x7f;
+@@ -3071,3 +3112,245 @@ int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ 
+ 	return 0;
+ }
++
++static void set_dct_access(void *dctx, struct mlx5_ib_dev *dev, u32 ib_flags)
 +{
-+	void *out;
-+	void *dctc;
-+	int out_sz = MLX5_ST_SZ_BYTES(query_dct_out);
-+	u64 param = 0;
++	if (ib_flags & IB_ACCESS_REMOTE_READ)
++		MLX5_SET(dctc, dctx, rre, 1);
++
++	if (ib_flags & IB_ACCESS_REMOTE_WRITE)
++		MLX5_SET(dctc, dctx, rwe, 1);
++
++	if (ib_flags & IB_ACCESS_REMOTE_ATOMIC) {
++		MLX5_SET(dctc, dctx, rre, 1);
++		MLX5_SET(dctc, dctx, rwe, 1);
++		MLX5_SET(dctc, dctx, rae, 1);
++	}
++}
++
++struct ib_dct *mlx5_ib_create_dct(struct ib_pd *pd,
++				  struct ib_dct_init_attr *attr,
++				  struct ib_udata *uhw)
++{
++	void *in;
++	int in_sz = MLX5_ST_SZ_BYTES(create_dct_in);
++	void *dctx;
++	struct mlx5_ib_dev *dev;
++	struct mlx5_ib_dct *dct;
++	struct mlx5_ib_create_dct ucmd;
++	struct mlx5_ib_create_dct_resp resp;
++	int cqe_sz;
++	u32 cqn;
 +	int err;
++
++	if (uhw) {
++		err = ib_copy_from_udata(&ucmd, uhw, sizeof(ucmd));
++		if (err) {
++			mlx5_ib_dbg(dev, "copy failed\n");
++			return ERR_PTR(err);
++		}
++
++		if (ucmd.reserved0 || ucmd.reserved1)
++			return ERR_PTR(-EINVAL);
++	}
++	dev = to_mdev(pd->device);
++	dct = kzalloc(sizeof(*dct), GFP_KERNEL);
++	if (!dct)
++		return ERR_PTR(-ENOMEM);
++
++	in = kzalloc(in_sz, GFP_KERNEL);
++	if (!in) {
++		err = -ENOMEM;
++		goto err_alloc;
++	}
++
++	dctx = MLX5_ADDR_OF(create_dct_in, in, dct_context_entry);
++
++	cqn = to_mcq(attr->cq)->mcq.cqn;
++	MLX5_SET(dctc, dctx, cqn, cqn);
++	set_dct_access(dctx, dev, attr->access_flags);
++
++	if (attr->inline_size) {
++		cqe_sz = mlx5_ib_get_cqe_size(dev, attr->cq);
++		if (cqe_sz == 128) {
++			MLX5_SET(dctc, dctx, cs_res, MLX5_DCT_CS_RES_64);
++			attr->inline_size = 64;
++		} else {
++			attr->inline_size = 0;
++		}
++	}
++	MLX5_SET(dctc, dctx, min_rnr_nak, attr->min_rnr_timer);
++	MLX5_SET(dctc, dctx, srqn, to_msrq(attr->srq)->msrq.srqn);
++	MLX5_SET(dctc, dctx, pd, to_mpd(pd)->pdn);
++	MLX5_SET(dctc, dctx, tclass, attr->tclass);
++	MLX5_SET(dctc, dctx, flow_label, attr->flow_label);
++	MLX5_SET64(dctc, dctx, dc_access_key, attr->dc_key);
++	MLX5_SET(dctc, dctx, mtu, attr->mtu);
++	MLX5_SET(dctc, dctx, port, attr->port);
++	MLX5_SET(dctc, dctx, pkey_index, attr->pkey_index);
++	MLX5_SET(dctc, dctx, my_addr_index, attr->gid_index);
++	MLX5_SET(dctc, dctx, hop_limit, attr->hop_limit);
++
++	err = mlx5_core_create_dct(dev->mdev, &dct->mdct, in);
++	if (err)
++		goto err_alloc;
++
++	dct->ibdct.dct_num = dct->mdct.dctn;
++	dct->mdct.event = mlx5_ib_dct_event;
++	kfree(in);
++
++	if (uhw) {
++		memset(&resp, 0, sizeof(resp));
++		err = ib_copy_to_udata(uhw, &resp, sizeof(resp));
++		if (err) {
++			mlx5_ib_dbg(dev, "copy failed\n");
++			return ERR_PTR(err);
++		}
++	}
++
++	return &dct->ibdct;
++
++err_alloc:
++	kfree(in);
++	kfree(dct);
++	return ERR_PTR(err);
++}
++
++int mlx5_ib_destroy_dct(struct ib_dct *dct, struct ib_udata *uhw)
++{
++	struct mlx5_ib_dev *dev = to_mdev(dct->device);
++	struct mlx5_ib_dct *mdct = to_mdct(dct);
++	struct mlx5_ib_destroy_dct ucmd;
++	struct mlx5_ib_destroy_dct_resp resp;
++	int err;
++
++	if (uhw) {
++		err = ib_copy_from_udata(&ucmd, uhw, sizeof(ucmd));
++		if (err) {
++			mlx5_ib_dbg(dev, "copy failed\n");
++			return err;
++		}
++
++		if (ucmd.reserved0 || ucmd.reserved1)
++			return -EINVAL;
++	}
++	err = mlx5_core_destroy_dct(dev->mdev, &mdct->mdct);
++	if (!err)
++		kfree(mdct);
++
++	if (uhw) {
++		memset(&resp, 0, sizeof(resp));
++		err = ib_copy_to_udata(uhw, &resp, sizeof(resp));
++		if (err)
++			mlx5_ib_dbg(dev, "copy failed\n");
++	}
++
++	return err;
++}
++
++static void dct_to_ib_access(void *out, u32 *access_flags)
++{
++	u32 flags = 0;
++	void *dctc = MLX5_ADDR_OF(query_dct_out, out, dct_context_entry);
++
++	if (MLX5_GET(dctc, dctc, rre))
++		flags |= IB_ACCESS_REMOTE_READ;
++	if (MLX5_GET(dctc, dctc, rwe))
++		flags |= IB_ACCESS_REMOTE_WRITE;
++	if (MLX5_GET(dctc, dctc, atomic_mode) == MLX5_ATOMIC_MODE_CX)
++		flags |= IB_ACCESS_REMOTE_ATOMIC;
++
++	*access_flags = flags;
++}
++
++int mlx5_ib_query_dct(struct ib_dct *dct, struct ib_dct_attr *attr,
++		      struct ib_udata *uhw)
++{
++	struct mlx5_ib_dev *dev = to_mdev(dct->device);
++	struct mlx5_ib_dct *mdct = to_mdct(dct);
++	int out_sz = MLX5_ST_SZ_BYTES(query_dct_out);
++	struct mlx5_ib_query_dct ucmd;
++	struct mlx5_ib_query_dct_resp resp;
++	void *dctc;
++	void *out;
++	int err;
++
++	if (uhw) {
++		err = ib_copy_from_udata(&ucmd, uhw, sizeof(ucmd));
++		if (err) {
++			mlx5_ib_dbg(dev, "copy failed\n");
++			return err;
++		}
++
++		if (ucmd.reserved0 || ucmd.reserved1)
++			return -EINVAL;
++	}
 +
 +	out = kzalloc(out_sz, GFP_KERNEL);
 +	if (!out)
-+		return param;
++		return -ENOMEM;
 +
-+	err = mlx5_core_dct_query(dev, dct, out);
-+	if (err) {
-+		mlx5_core_warn(dev, "failed to query dct\n");
++	err = mlx5_core_dct_query(dev->mdev, &mdct->mdct, out);
++	if (err)
 +		goto out;
-+	}
 +
 +	dctc = MLX5_ADDR_OF(query_dct_out, out, dct_context_entry);
-+	*is_str = 0;
-+	switch (index) {
-+	case DCT_PID:
-+		param = dct->pid;
-+		break;
-+	case DCT_STATE:
-+		param = (u64)mlx5_dct_state_str(MLX5_GET(dctc, dctc, state));
-+		*is_str = 1;
-+		break;
-+	case DCT_MTU:
-+		param = ib_mtu_enum_to_int(MLX5_GET(dctc, dctc, mtu));
-+		break;
-+	case DCT_KEY_VIOL:
-+		param = MLX5_GET(dctc, dctc, dc_access_key_violation_count);
-+		break;
-+	case DCT_CQN:
-+		param = MLX5_GET(dctc, dctc, cqn);
-+		break;
++
++	attr->dc_key = MLX5_GET64(dctc, dctc, dc_access_key);
++	attr->port = MLX5_GET(dctc, dctc, port);
++	dct_to_ib_access(out, &attr->access_flags);
++	attr->min_rnr_timer = MLX5_GET(dctc, dctc, min_rnr_nak);
++	attr->tclass = MLX5_GET(dctc, dctc, tclass);
++	attr->flow_label = MLX5_GET(dctc, dctc, flow_label);
++	attr->mtu = MLX5_GET(dctc, dctc, mtu);
++	attr->pkey_index = MLX5_GET(dctc, dctc, pkey_index);
++	attr->gid_index = MLX5_GET(dctc, dctc, my_addr_index);
++	attr->hop_limit = MLX5_GET(dctc, dctc, hop_limit);
++	attr->key_violations = MLX5_GET(dctc, dctc, dc_access_key_violation_count);
++	attr->state = MLX5_GET(dctc, dctc, state);
++
++	if (uhw) {
++		memset(&resp, 0, sizeof(resp));
++		err = ib_copy_to_udata(uhw, &resp, sizeof(resp));
++		if (err)
++			mlx5_ib_dbg(dev, "copy failed\n");
 +	}
 +
 +out:
 +	kfree(out);
-+	return param;
-+}
-+
- static u64 eq_read_field(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
- 			 int index)
- {
-@@ -457,6 +539,10 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 		field = cq_read_field(d->dev, d->object, desc->i);
- 		break;
- 
-+	case MLX5_DBG_RSC_DCT:
-+		field = dct_read_field(d->dev, d->object, desc->i, &is_str);
-+		break;
-+
- 	default:
- 		mlx5_core_warn(d->dev, "invalid resource type %d\n", d->type);
- 		return -EINVAL;
-@@ -558,6 +644,30 @@ void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp)
- 		rem_res_tree(qp->dbg);
- }
- 
-+int mlx5_debug_dct_add(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct)
-+{
-+	int err;
-+
-+	if (!mlx5_debugfs_root)
-+		return 0;
-+
-+	err = add_res_tree(dev, MLX5_DBG_RSC_DCT, dev->priv.dct_debugfs,
-+			   &dct->dbg, dct->dctn, dct_fields,
-+			   ARRAY_SIZE(dct_fields), dct);
-+	if (err)
-+		dct->dbg = NULL;
-+
 +	return err;
 +}
 +
-+void mlx5_debug_dct_remove(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct)
++int mlx5_ib_arm_dct(struct ib_dct *dct, struct ib_udata *uhw)
 +{
-+	if (!mlx5_debugfs_root)
-+		return;
-+
-+	if (dct->dbg)
-+		rem_res_tree(dct->dbg);
-+}
- 
- int mlx5_debug_eq_add(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index ad2c96a02a53..941077ea7a7a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -68,7 +68,9 @@ enum {
- 			       (1ull << MLX5_EVENT_TYPE_PORT_CHANGE)	    | \
- 			       (1ull << MLX5_EVENT_TYPE_SRQ_CATAS_ERROR)    | \
- 			       (1ull << MLX5_EVENT_TYPE_SRQ_LAST_WQE)	    | \
--			       (1ull << MLX5_EVENT_TYPE_SRQ_RQ_LIMIT))
-+			       (1ull << MLX5_EVENT_TYPE_SRQ_RQ_LIMIT)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_DCT_DRAINED)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_DCT_KEY_VIOLATION))
- 
- struct map_eq_in {
- 	u64	mask;
-@@ -157,6 +159,11 @@ static const char *eqe_type_str(u8 type)
- 		return "MLX5_EVENT_TYPE_CMD";
- 	case MLX5_EVENT_TYPE_PAGE_REQUEST:
- 		return "MLX5_EVENT_TYPE_PAGE_REQUEST";
-+	case MLX5_EVENT_TYPE_DCT_DRAINED:
-+		return "MLX5_EVENT_TYPE_DCT_DRAINED";
-+	case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
-+		return "MLX5_EVENT_TYPE_DCT_KEY_VIOLATION";
-+
- 	default:
- 		return "Unrecognized event";
- 	}
-@@ -216,6 +223,12 @@ static int mlx5_eq_int(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
- 			mlx5_cq_completion(dev, cqn);
- 			break;
- 
-+		case MLX5_EVENT_TYPE_DCT_DRAINED:
-+		case MLX5_EVENT_TYPE_DCT_KEY_VIOLATION:
-+			rsn = be32_to_cpu(eqe->data.dct.dctn) & 0xffffff;
-+			mlx5_rsc_event(dev, rsn, eqe->type);
-+			break;
-+
- 		case MLX5_EVENT_TYPE_PATH_MIG:
- 		case MLX5_EVENT_TYPE_COMM_EST:
- 		case MLX5_EVENT_TYPE_SQ_DRAINED:
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index ecc6341e728a..44864d584660 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -434,6 +434,9 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	/* disable checksum */
- 	cur_caps->gen.flags &= ~MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
- 
-+	if (max_caps->gen.flags & MLX5_DEV_CAP_FLAG_DCT)
-+		cur_caps->gen.flags |= MLX5_DEV_CAP_FLAG_DCT;
-+
- 	copy_rw_fields(MLX5_ADDR_OF(set_hca_cap_in, set_ctx, hca_capability_struct),
- 		       cur_caps);
- 	err = set_caps(dev, set_ctx, set_sz);
-@@ -640,6 +643,7 @@ static int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
- 	mlx5_init_qp_table(dev);
- 	mlx5_init_srq_table(dev);
- 	mlx5_init_mr_table(dev);
-+	mlx5_init_dct_table(dev);
- 
- 	return 0;
- 
-@@ -692,6 +696,8 @@ static void mlx5_dev_cleanup(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_priv *priv = &dev->priv;
- 
-+	mlx5_cleanup_dct_table(dev);
-+	mlx5_cleanup_mr_table(dev);
- 	mlx5_cleanup_srq_table(dev);
- 	mlx5_cleanup_qp_table(dev);
- 	mlx5_cleanup_cq_table(dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-index 5261a2b0da43..65e0df5880f8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-@@ -36,6 +36,7 @@
- #include <linux/mlx5/cmd.h>
- #include <linux/mlx5/qp.h>
- #include <linux/mlx5/driver.h>
-+#include <linux/mlx5/mlx5_ifc.h>
- 
- #include "mlx5_core.h"
- 
-@@ -70,6 +71,7 @@ void mlx5_core_put_rsc(struct mlx5_core_rsc_common *common)
- void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
- {
- 	struct mlx5_core_rsc_common *common = mlx5_get_rsc(dev, rsn);
-+	struct mlx5_core_dct *dct;
- 	struct mlx5_core_qp *qp;
- 
- 	if (!common)
-@@ -81,6 +83,14 @@ void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
- 		qp->event(qp, event_type);
- 		break;
- 
-+	case MLX5_RES_DCT:
-+		dct = (struct mlx5_core_dct *)common;
-+		if (event_type == MLX5_EVENT_TYPE_DCT_DRAINED)
-+			complete(&dct->drained);
-+		else
-+			dct->event(dct, event_type);
-+		break;
-+
- 	default:
- 		mlx5_core_warn(dev, "invalid resource type for 0x%x\n", rsn);
- 	}
-@@ -259,6 +269,16 @@ void mlx5_cleanup_qp_table(struct mlx5_core_dev *dev)
- 	mlx5_qp_debugfs_cleanup(dev);
- }
- 
-+void mlx5_init_dct_table(struct mlx5_core_dev *dev)
-+{
-+	mlx5_dct_debugfs_init(dev);
-+}
-+
-+void mlx5_cleanup_dct_table(struct mlx5_core_dev *dev)
-+{
-+	mlx5_dct_debugfs_cleanup(dev);
-+}
-+
- int mlx5_core_qp_query(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
- 		       struct mlx5_query_qp_mbox_out *out, int outlen)
- {
-@@ -322,3 +342,168 @@ int mlx5_core_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn)
- 	return err;
- }
- EXPORT_SYMBOL_GPL(mlx5_core_xrcd_dealloc);
-+
-+int mlx5_core_create_dct(struct mlx5_core_dev *dev,
-+			 struct mlx5_core_dct *dct,
-+			 void *in)
-+{
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	const int in_sz = MLX5_ST_SZ_BYTES(create_dct_in);
-+	u8 out[MLX5_ST_SZ_BYTES(create_dct_out)];
-+	u8 din[MLX5_ST_SZ_BYTES(destroy_dct_in)];
-+	u8 dout[MLX5_ST_SZ_BYTES(destroy_dct_out)];
++	struct mlx5_ib_dev *dev = to_mdev(dct->device);
++	struct mlx5_ib_dct *mdct = to_mdct(dct);
++	struct mlx5_ib_arm_dct ucmd;
++	struct mlx5_ib_arm_dct_resp resp;
 +	int err;
 +
-+	init_completion(&dct->drained);
-+	memset(&out, 0, sizeof(out));
-+	MLX5_SET(create_dct_in, in, opcode, MLX5_CMD_OP_CREATE_DCT);
++	if (uhw) {
++		err = ib_copy_from_udata(&ucmd, uhw, sizeof(ucmd));
++		if (err) {
++			mlx5_ib_dbg(dev, "copy failed\n");
++			return err;
++		}
 +
-+	err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
-+	if (err) {
-+		mlx5_core_warn(dev, "create DCT failed, ret %d", err);
-+		return err;
++		if (ucmd.reserved0 || ucmd.reserved1)
++			return -EINVAL;
 +	}
 +
-+	if (mlx5_get_out_cmd_status(out))
-+		return mlx5_cmd_status_to_err_v2(out);
-+
-+	dct->dctn = MLX5_GET(create_dct_out, out, dct_number);
-+
-+	dct->common.res = MLX5_RES_DCT;
-+	spin_lock_irq(&table->lock);
-+	err = radix_tree_insert(&table->tree, dct->dctn, dct);
-+	spin_unlock_irq(&table->lock);
-+	if (err) {
-+		mlx5_core_warn(dev, "err %d", err);
-+		goto err_cmd;
-+	}
-+
-+	err = mlx5_debug_dct_add(dev, dct);
++	err = mlx5_core_arm_dct(dev->mdev, &mdct->mdct);
 +	if (err)
-+		mlx5_core_dbg(dev, "failed adding DCT 0x%x to debug file system\n",
-+			      dct->dctn);
++		goto out;
 +
-+	dct->pid = current->pid;
-+	atomic_set(&dct->common.refcount, 1);
-+	init_completion(&dct->common.free);
++	if (uhw) {
++		memset(&resp, 0, sizeof(resp));
++		err = ib_copy_to_udata(uhw, &resp, sizeof(resp));
++		if (err)
++			mlx5_ib_dbg(dev, "copy failed\n");
++	}
 +
-+	return 0;
-+
-+err_cmd:
-+	memset(din, 0, sizeof(din));
-+	memset(dout, 0, sizeof(dout));
-+	MLX5_SET(destroy_dct_in, din, opcode, MLX5_CMD_OP_DESTROY_DCT);
-+	MLX5_SET(destroy_dct_in, din, dct_number, dct->dctn);
-+	if (mlx5_cmd_exec(dev, din, sizeof(din), out, sizeof(dout)))
-+		mlx5_core_warn(dev, "destroy DCT failed\n");
-+
++out:
 +	return err;
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_create_dct);
-+
-+static int mlx5_core_drain_dct(struct mlx5_core_dev *dev,
-+			       struct mlx5_core_dct *dct)
-+{
-+	u8 out[MLX5_ST_SZ_BYTES(drain_dct_out)];
-+	u8 in[MLX5_ST_SZ_BYTES(drain_dct_in)];
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	MLX5_SET(drain_dct_in, in, opcode, MLX5_CMD_OP_DRAIN_DCT);
-+	MLX5_SET(drain_dct_in, in, dct_number, dct->dctn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (mlx5_get_out_cmd_status(out))
-+		return mlx5_cmd_status_to_err_v2(out);
-+
-+	return 0;
-+}
-+
-+int mlx5_core_destroy_dct(struct mlx5_core_dev *dev,
-+			  struct mlx5_core_dct *dct)
-+{
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	u8 out[MLX5_ST_SZ_BYTES(destroy_dct_out)];
-+	u8 in[MLX5_ST_SZ_BYTES(destroy_dct_in)];
-+	unsigned long flags;
-+	int err;
-+
-+	err = mlx5_core_drain_dct(dev, dct);
-+	if (err) {
-+		mlx5_core_warn(dev, "failed drain DCT 0x%x\n", dct->dctn);
-+		return err;
-+	}
-+
-+	wait_for_completion(&dct->drained);
-+
-+	mlx5_debug_dct_remove(dev, dct);
-+
-+	spin_lock_irqsave(&table->lock, flags);
-+	if (radix_tree_delete(&table->tree, dct->dctn) != dct)
-+		mlx5_core_warn(dev, "dct delete differs\n");
-+	spin_unlock_irqrestore(&table->lock, flags);
-+
-+	mlx5_core_put_rsc(&dct->common);
-+	wait_for_completion(&dct->common.free);
-+
-+	memset(in, 0, sizeof(in));
-+	memset(out, 0, sizeof(out));
-+	MLX5_SET(destroy_dct_in, in, opcode, MLX5_CMD_OP_DESTROY_DCT);
-+	MLX5_SET(destroy_dct_in, in, dct_number, dct->dctn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (mlx5_get_out_cmd_status(out))
-+		return mlx5_cmd_status_to_err_v2(out);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_destroy_dct);
-+
-+int mlx5_core_dct_query(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct,
-+			void *out)
-+{
-+	u8 in[MLX5_ST_SZ_BYTES(query_dct_in)];
-+	int out_sz = MLX5_ST_SZ_BYTES(query_dct_out);
-+	int err;
-+
-+	memset(in, 0, sizeof(in));
-+	memset(out, 0, out_sz);
-+	MLX5_SET(query_dct_in, in, opcode, MLX5_CMD_OP_QUERY_DCT);
-+	MLX5_SET(query_dct_in, in, dct_number, dct->dctn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, out_sz);
-+	if (err)
-+		return err;
-+
-+	if (mlx5_get_out_cmd_status(out))
-+		return mlx5_cmd_status_to_err_v2(out);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_dct_query);
-+
-+int mlx5_core_arm_dct(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct)
-+{
-+	u8 out[MLX5_ST_SZ_BYTES(arm_dct_out)];
-+	u8 in[MLX5_ST_SZ_BYTES(arm_dct_in)];
-+	int err;
-+
-+	memset(in, 0, sizeof(in));
-+	memset(out, 0, sizeof(out));
-+
-+	MLX5_SET(arm_dct_in, in, opcode, MLX5_CMD_OP_ARM_DCT_FOR_KEY_VIOLATION);
-+	MLX5_SET(arm_dct_in, in, dct_number, dct->dctn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (mlx5_get_out_cmd_status(out))
-+		return mlx5_cmd_status_to_err_v2(out);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_arm_dct);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 6e9661105dfa..40db09d6c828 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -206,6 +206,8 @@ enum mlx5_event {
- 
- 	MLX5_EVENT_TYPE_CMD		   = 0x0a,
- 	MLX5_EVENT_TYPE_PAGE_REQUEST	   = 0xb,
-+	MLX5_EVENT_TYPE_DCT_DRAINED	   = 0x1c,
-+	MLX5_EVENT_TYPE_DCT_KEY_VIOLATION  = 0x1d,
+diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
+index d0ba264ac1ed..1aecd0ac9844 100644
+--- a/drivers/infiniband/hw/mlx5/user.h
++++ b/drivers/infiniband/hw/mlx5/user.h
+@@ -130,4 +130,45 @@ struct mlx5_ib_create_qp {
+ struct mlx5_ib_create_qp_resp {
+ 	__u32	uuar_index;
  };
- 
- enum {
-@@ -241,6 +243,10 @@ enum {
- };
- 
- enum {
-+	MLX5_DCT_CS_RES_64	= 2,
++
++struct mlx5_ib_arm_dct {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
-+enum {
- 	MLX5_OPCODE_NOP			= 0x00,
- 	MLX5_OPCODE_SEND_INVAL		= 0x01,
- 	MLX5_OPCODE_RDMA_WRITE		= 0x08,
-@@ -449,6 +455,11 @@ struct mlx5_eqe_page_req {
- 	__be32		rsvd1[5];
- };
- 
-+struct mlx5_eqe_dct {
-+	__be32	reserved[6];
-+	__be32	dctn;
++struct mlx5_ib_arm_dct_resp {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
- union ev_data {
- 	__be32				raw[7];
- 	struct mlx5_eqe_cmd		cmd;
-@@ -460,6 +471,7 @@ union ev_data {
- 	struct mlx5_eqe_congestion	cong;
- 	struct mlx5_eqe_stall_vl	stall_vl;
- 	struct mlx5_eqe_page_req	req_pages;
-+	struct mlx5_eqe_dct		dct;
- } __packed;
- 
- struct mlx5_eqe {
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index bdca5d94e6fc..47177f6c6f95 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -116,7 +116,6 @@ enum {
- 	MLX5_REG_PUDE		 = 0x5009,
- 	MLX5_REG_PMPE		 = 0x5010,
- 	MLX5_REG_PELC		 = 0x500e,
--	MLX5_REG_PMLP		 = 0, /* TBD */
- 	MLX5_REG_NODE_DESC	 = 0x6001,
- 	MLX5_REG_HOST_ENDIANNESS = 0x7004,
- };
-@@ -125,6 +124,7 @@ enum dbg_rsc_type {
- 	MLX5_DBG_RSC_QP,
- 	MLX5_DBG_RSC_EQ,
- 	MLX5_DBG_RSC_CQ,
-+	MLX5_DBG_RSC_DCT,
- };
- 
- struct mlx5_field_desc {
-@@ -393,6 +393,7 @@ struct mlx5_core_mr {
- 
- enum mlx5_res_type {
- 	MLX5_RES_QP,
-+	MLX5_RES_DCT,
- };
- 
- struct mlx5_core_rsc_common {
-@@ -401,6 +402,16 @@ struct mlx5_core_rsc_common {
- 	struct completion	free;
- };
- 
-+struct mlx5_core_dct {
-+	struct mlx5_core_rsc_common	common; /* must be first */
-+	int			dctn;
-+	struct completion	drained;
-+	struct mlx5_rsc_debug	*dbg;
-+	int			pid;
-+
-+	void (*event)(struct mlx5_core_dct *, enum mlx5_event);
++struct mlx5_ib_create_dct {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
- struct mlx5_core_srq {
- 	u32		srqn;
- 	int		max;
-@@ -498,6 +509,10 @@ struct mlx5_priv {
- 	struct dentry	       *cmdif_debugfs;
- 	/* end: qp staff */
- 
-+	/* start: dct stuff */
-+	struct dentry	       *dct_debugfs;
-+	/* end: dct stuff */
-+
- 	/* start: cq staff */
- 	struct mlx5_cq_table	cq_table;
- 	/* end: cq staff */
-@@ -764,6 +779,8 @@ int mlx5_core_create_psv(struct mlx5_core_dev *dev, u32 pdn,
- 			 int npsvs, u32 *sig_index);
- int mlx5_core_destroy_psv(struct mlx5_core_dev *dev, int psv_num);
- void mlx5_core_put_rsc(struct mlx5_core_rsc_common *common);
-+int mlx5_dct_debugfs_init(struct mlx5_core_dev *dev);
-+void mlx5_dct_debugfs_cleanup(struct mlx5_core_dev *dev);
- 
- static inline u32 mlx5_mkey_to_idx(u32 mkey)
- {
-@@ -832,4 +849,9 @@ static inline const char *caps_opmod_str(u16 opmod)
- 	}
- }
- 
-+static inline int mlx5_get_out_cmd_status(void *ptr)
-+{
-+	return *(u8 *)ptr;
-+}
-+
- #endif /* MLX5_DRIVER_H */
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index a3e6148066ce..5b0feb248220 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -366,4 +366,183 @@ struct mlx5_ifc_atomic_cap_bits {
- 	u8         reserved_6[0x720];
- };
- 
-+struct mlx5_ifc_create_dct_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_0[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_1[0x8];
-+	u8         dct_number[0x18];
-+
-+	u8         reserved_2[0x20];
++struct mlx5_ib_create_dct_resp {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
-+struct mlx5_ifc_dctc_bits {
-+	u8         reserved_0[0x4];
-+	u8         state[0x4];
-+	u8         reserved_1[0x18];
-+
-+	u8         reserved_2[0x8];
-+	u8         sw_context[0x18];
-+
-+	u8         reserved_3[0x8];
-+	u8         cqn[0x18];
-+
-+	u8         counter_set_id[0x8];
-+	u8         atomic_mode[0x4];
-+	u8         rre[0x1];
-+	u8         rwe[0x1];
-+	u8         rae[0x1];
-+	u8         atomic_like_write_en[0x1];
-+	u8         latency_sensitive[0x1];
-+	u8         rlky[0x1];
-+	u8         free_ar[0x1];
-+	u8         reserved_4[0xd];
-+
-+	u8         reserved_5[0x8];
-+	u8         cs_res[0x8];
-+	u8         reserved_6[0x3];
-+	u8         min_rnr_nak[0x5];
-+	u8         reserved_7[0x8];
-+
-+	u8         reserved_8[0x8];
-+	u8         srqn[0x18];
-+
-+	u8         reserved_9[0x8];
-+	u8         pd[0x18];
-+
-+	u8         tclass[0x8];
-+	u8         reserved_10[0x4];
-+	u8         flow_label[0x14];
-+
-+	u8         dc_access_key[0x40];
-+
-+	u8         reserved_11[0x5];
-+	u8         mtu[0x3];
-+	u8         port[0x8];
-+	u8         pkey_index[0x10];
-+
-+	u8         reserved_12[0x8];
-+	u8         my_addr_index[0x8];
-+	u8         reserved_13[0x8];
-+	u8         hop_limit[0x8];
-+
-+	u8         dc_access_key_violation_count[0x20];
-+
-+	u8         reserved_14[0x14];
-+	u8         dei_cfi[0x1];
-+	u8         eth_prio[0x3];
-+	u8         ecn[0x2];
-+	u8         dscp[0x6];
-+
-+	u8         reserved_15[0x40];
++struct mlx5_ib_destroy_dct {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
-+struct mlx5_ifc_create_dct_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_0[0x10];
-+
-+	u8         reserved_1[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_2[0x40];
-+
-+	struct mlx5_ifc_dctc_bits dct_context_entry;
-+
-+	u8         reserved_3[0x180];
++struct mlx5_ib_destroy_dct_resp {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
-+struct mlx5_ifc_drain_dct_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_0[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_1[0x40];
++struct mlx5_ib_query_dct {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
-+struct mlx5_ifc_drain_dct_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_0[0x10];
-+
-+	u8         reserved_1[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_2[0x8];
-+	u8         dct_number[0x18];
-+
-+	u8         reserved_3[0x20];
++struct mlx5_ib_query_dct_resp {
++	__u64	reserved0;
++	__u64	reserved1;
 +};
 +
-+struct mlx5_ifc_destroy_dct_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_0[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_1[0x40];
-+};
-+
-+struct mlx5_ifc_destroy_dct_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_0[0x10];
-+
-+	u8         reserved_1[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_2[0x8];
-+	u8         dct_number[0x18];
-+
-+	u8         reserved_3[0x20];
-+};
-+
-+struct mlx5_ifc_query_dct_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_0[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_1[0x40];
-+
-+	struct mlx5_ifc_dctc_bits dct_context_entry;
-+
-+	u8         reserved_2[0x180];
-+};
-+
-+struct mlx5_ifc_query_dct_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_0[0x10];
-+
-+	u8         reserved_1[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_2[0x8];
-+	u8         dct_number[0x18];
-+
-+	u8         reserved_3[0x20];
-+};
-+
-+struct mlx5_ifc_arm_dct_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_0[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_1[0x40];
-+};
-+
-+struct mlx5_ifc_arm_dct_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_0[0x10];
-+
-+	u8         reserved_1[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_2[0x8];
-+	u8         dct_number[0x18];
-+
-+	u8         reserved_3[0x20];
-+};
-+
- #endif /* MLX5_IFC_H */
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index 3fa075daeb1d..094160d59d99 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -91,8 +91,7 @@ enum {
- 	MLX5_QP_ST_UD				= 0x2,
- 	MLX5_QP_ST_XRC				= 0x3,
- 	MLX5_QP_ST_MLX				= 0x4,
--	MLX5_QP_ST_DCI				= 0x5,
--	MLX5_QP_ST_DCT				= 0x6,
-+	MLX5_QP_ST_DC				= 0x5,
- 	MLX5_QP_ST_QP0				= 0x7,
- 	MLX5_QP_ST_QP1				= 0x8,
- 	MLX5_QP_ST_RAW_ETHERTYPE		= 0x9,
-@@ -130,6 +129,12 @@ enum {
- };
- 
- enum {
-+	MLX5_DCT_BIT_RRE	= 1 << 19,
-+	MLX5_DCT_BIT_RWE	= 1 << 18,
-+	MLX5_DCT_BIT_RAE	= 1 << 17,
-+};
-+
-+enum {
- 	MLX5_WQE_CTRL_CQ_UPDATE		= 2 << 2,
- 	MLX5_WQE_CTRL_SOLICITED		= 1 << 1,
- };
-@@ -160,6 +165,12 @@ enum {
- };
- 
- enum {
-+	MLX5_DCT_STATE_ACTIVE	= 0,
-+	MLX5_DCT_STATE_DRAINING	= 1,
-+	MLX5_DCT_STATE_DRAINED	= 2
-+};
-+
-+enum {
- 	MLX5_RCV_DBR	= 0,
- 	MLX5_SND_DBR	= 1,
- };
-@@ -547,8 +558,20 @@ int mlx5_core_xrcd_alloc(struct mlx5_core_dev *dev, u32 *xrcdn);
- int mlx5_core_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn);
- void mlx5_init_qp_table(struct mlx5_core_dev *dev);
- void mlx5_cleanup_qp_table(struct mlx5_core_dev *dev);
-+void mlx5_init_dct_table(struct mlx5_core_dev *dev);
-+void mlx5_cleanup_dct_table(struct mlx5_core_dev *dev);
- int mlx5_debug_qp_add(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
- void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
-+int mlx5_core_create_dct(struct mlx5_core_dev *dev,
-+			 struct mlx5_core_dct *dct,
-+			 void *in);
-+int mlx5_core_destroy_dct(struct mlx5_core_dev *dev,
-+			  struct mlx5_core_dct *dct);
-+int mlx5_core_dct_query(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct,
-+			void *out);
-+int mlx5_core_arm_dct(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct);
-+int mlx5_debug_dct_add(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct);
-+void mlx5_debug_dct_remove(struct mlx5_core_dev *dev, struct mlx5_core_dct *dct);
- 
- static inline const char *mlx5_qp_type_str(int type)
- {
-@@ -595,4 +618,16 @@ static inline const char *mlx5_qp_state_str(int state)
- 	}
- }
- 
-+static inline const char *mlx5_dct_state_str(int state)
-+{
-+	switch (state) {
-+	case MLX5_DCT_STATE_ACTIVE:
-+		return "ACTIVE";
-+	case MLX5_DCT_STATE_DRAINING:
-+		return "DRAINING";
-+	case MLX5_DCT_STATE_DRAINED:
-+		return "DRAINED";
-+	default: return "Invalid DCT state";
-+	}
-+}
- #endif /* MLX5_QP_H */
+ #endif /* MLX5_IB_USER_H */
 -- 
 2.1.2
 
