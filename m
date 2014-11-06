@@ -1,72 +1,79 @@
-From: Hariprasad S <hariprasad@chelsio.com>
-Subject: Re: [PATCHv2 net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor:
- Cleanup macros
-Date: Thu, 6 Nov 2014 21:45:10 +0530
-Message-ID: <20141106161444.GA8954@hariprasad-pc>
-References: <1415069457-22277-1-git-send-email-hariprasad@chelsio.com>
- <20141105.145443.897956918105740779.davem@davemloft.net>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: NFSoRDMA bi-weekly meeting minutes (11/6)
+Date: Thu, 06 Nov 2014 09:55:20 -0800
+Message-ID: <545BB608.2040401@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141105.145443.897956918105740779.davem@davemloft.net>
-Sender: linux-scsi-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, praveenm@chelsio.com, anish@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Charles EDWARD Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 05, 2014 at 14:54:43 -0500, David Miller wrote:
-> From: Hariprasad Shenai <hariprasad@chelsio.com>
-> Date: Tue,  4 Nov 2014 08:20:54 +0530
->=20
-> > It's not really the "hardware" which generates these hardware const=
-ant symbolic
-> > macros/register defines of course, it's scripts developed by the ha=
-rdware team.
-> > Various patches have ended up changing the style of the symbolic ma=
-cros/register
-> > defines and some of them used the macros/register defines that matc=
-hes the
-> > output of the script from the hardware team.
->=20
-> We've told you that we don't care what format your internal whatever =
-uses
-> for these macros.
->=20
-> We have standards, tastes, and desires and reasons for naming macros
-> in a certain way in upstream kernel code.
->=20
-> I consider it flat out unacceptable to use macros with one letter
-> prefixes like "S_".  You simply should not do this.
->=20
+Attendees:
 
-Okay. We=E2=80=99ll clean up all of the macros to match the files' orig=
-inal style. We
-do need to change the sense of the *_MASK macros since they don=E2=80=99=
-t match how we=20
-use them as field tokens.  Also the *_SHIFT, *_MASK and *_GET names are
-sucking up space and making lines wrap unnecessarily, creating readabil=
-ity
-problems.  Can we change these to *_S, *_M and *_G?  E.g.:
+Jeff Becker (NASA)
+Wendy Cheng (Intel)
+Rupert Dance (Soft Forge)
+Steve Dickson (Red Hat)
+Chuck Lever (Oracle)
+Doug Ledford (RedHat)
+Shirley Ma (Oracle)
+Sachin Prabhu (RedHat)
+Devesh Sharma (Emulex)
+Anna Schumaker (Net App)
+Steve Wise (OpenGridComputing, Chelsio)
 
--#define  INGPADBOUNDARY_MASK    0x00000070U
--#define  INGPADBOUNDARY_SHIFT   4
--#define  INGPADBOUNDARY(x)      ((x) << INGPADBOUNDARY_SHIFT)
--#define  INGPADBOUNDARY_GET(x)  (((x) & INGPADBOUNDARY_MASK) \
--                                 >> INGPADBOUNDARY_SHIFT)
-+#define  INGPADBOUNDARY_M       0x00000007U
-+#define  INGPADBOUNDARY_S       4
-+#define  INGPADBOUNDARY(x)      ((x) << INGPADBOUNDARY_S)
-+#define  INGPADBOUNDARY_G(x)    (((x) >> INGPADBOUNDARY_S) \
-+                                 & INGPADBOUNDARY_M)
+Yan Burman(Mellanox) missed the call because of the daylight time change. :(
 
+Moderator:
+Shirley Ma (Oracle)
 
-=20
-Thanks,
-Hari
+NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA development and test effort from different resources to speed up NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools development. Hopefully the quality of NFSoRDMA upstream patches can be improved by being tested with a quorum of HW vendors.
+
+Today's meeting notes:
+1. OFA OFA Interop event (Rupert)
+The Interop event went pretty well. The test covered IB, RoCE and iWARP with different vendors HW and upsteam/OFED stack. NFSoRDMA IB was included in this test event, however NFSoRDMA RoCE wasn't able to test since the modules were not in the stack yet. The detail report will come in a few weeks.
+
+2. Upstream bugs: (Chuck, Anna, Shirley)
+3.17 kernel has a bug in tearing down connection, this bug was hit consistently when enabling multiple EQs in xprtrdma when Shirley run fio multithread random read/write workload. Chuck has a nice patch to this bug, Shirley has validated this fix by stressing the fio overnight. Anna will check to see the possibility to push to the stable tree since it blocks multi-threads NFSoRDMA workload. Here is the link to the bug report:
+https://bugzilla.linux-nfs.org/show_bug.cgi?id=276
+
+3. Performance test and analyze tools: (Sachin, Chuck, Wendy, Shirley, SteveW)
+Discussed about several tools on analyzing NFSoRDMA performance for both latency and bandwidth:
+-- systemTap: Sachine starts to look at how to use systemTap, it requires sometimes to study the tool and create the probe scripts to NFS, RPC, xprtrdma layer.
+-- Ftrace: enabling trace modules and functions to report the execution flow latency.
+-- perf: report execution flows APIs latency and cpu usage
+-- /proc/self/mountstats: report total execution time, RTT and wait time for each RPC. The execution time latency contributes from wake up and wait, which depends on how busy the system is. RPC RTT itself latency is reasonable.
+
+The NFSoRDMA performance relies on both implementation and protocol. We don't know the weight of performance gap from either implementation or protocol yet. RPC seems slow, pNFS might have better performance for supporting multiple queue pairs. Chuck will increase RPC credit limit to see how much performance gain from there. Our performance goal is to look at the implementation issues, then protocols.
+
+Feel free to reply here for anything missing or incorrect. See you on Nov.20th.
+
+10/23/2014
+@7:30am PT
+@8:30am MT
+@9:30am CT
+@10:30am ET
+@Bangalore @9:00pm
+@Israel @6:30pm
+
+Duration: 1 hour
+
+Call-in number:
+Israel: +972 37219638
+Bangalore: +91 8039890080 (180030109800)
+France  Colombes +33 1 5760 2222    +33 176728936
+US: 8666824770,  408-7744073
+
+Conference Code: 2308833
+Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember)
+
+Thanks everyone for joining the call and providing valuable inputs/work to the community to make NFSoRDMA better.
+
+Cheers,
+Shirley
 --
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
