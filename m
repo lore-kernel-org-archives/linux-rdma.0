@@ -1,25 +1,72 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 1/5] IB/core: Add DC transport support
-Date: Thu, 6 Nov 2014 18:39:17 +0200
-Message-ID: <545BA435.2010209@mellanox.com>
-References: <1415289159-4376-1-git-send-email-eli@mellanox.com> <1415289159-4376-2-git-send-email-eli@mellanox.com>
+From: Hariprasad S <hariprasad@chelsio.com>
+Subject: Re: [PATCHv2 net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor:
+ Cleanup macros
+Date: Thu, 6 Nov 2014 21:45:10 +0530
+Message-ID: <20141106161444.GA8954@hariprasad-pc>
+References: <1415069457-22277-1-git-send-email-hariprasad@chelsio.com>
+ <20141105.145443.897956918105740779.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415289159-4376-2-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, richardg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141105.145443.897956918105740779.davem@davemloft.net>
+Sender: linux-scsi-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, praveenm@chelsio.com, anish@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/6/2014 5:52 PM, Eli Cohen wrote:
-> ib_modify_qp_ex - is an extension to ib_modify_qp which allows to pass the 64
-> bit DC key.
+On Wed, Nov 05, 2014 at 14:54:43 -0500, David Miller wrote:
+> From: Hariprasad Shenai <hariprasad@chelsio.com>
+> Date: Tue,  4 Nov 2014 08:20:54 +0530
+>=20
+> > It's not really the "hardware" which generates these hardware const=
+ant symbolic
+> > macros/register defines of course, it's scripts developed by the ha=
+rdware team.
+> > Various patches have ended up changing the style of the symbolic ma=
+cros/register
+> > defines and some of them used the macros/register defines that matc=
+hes the
+> > output of the script from the hardware team.
+>=20
+> We've told you that we don't care what format your internal whatever =
+uses
+> for these macros.
+>=20
+> We have standards, tastes, and desires and reasons for naming macros
+> in a certain way in upstream kernel code.
+>=20
+> I consider it flat out unacceptable to use macros with one letter
+> prefixes like "S_".  You simply should not do this.
+>=20
 
-we don't add new such kernel verb, probably just left over in the 
-change-log from earlier internal version, right?
+Okay. We=E2=80=99ll clean up all of the macros to match the files' orig=
+inal style. We
+do need to change the sense of the *_MASK macros since they don=E2=80=99=
+t match how we=20
+use them as field tokens.  Also the *_SHIFT, *_MASK and *_GET names are
+sucking up space and making lines wrap unnecessarily, creating readabil=
+ity
+problems.  Can we change these to *_S, *_M and *_G?  E.g.:
+
+-#define  INGPADBOUNDARY_MASK    0x00000070U
+-#define  INGPADBOUNDARY_SHIFT   4
+-#define  INGPADBOUNDARY(x)      ((x) << INGPADBOUNDARY_SHIFT)
+-#define  INGPADBOUNDARY_GET(x)  (((x) & INGPADBOUNDARY_MASK) \
+-                                 >> INGPADBOUNDARY_SHIFT)
++#define  INGPADBOUNDARY_M       0x00000007U
++#define  INGPADBOUNDARY_S       4
++#define  INGPADBOUNDARY(x)      ((x) << INGPADBOUNDARY_S)
++#define  INGPADBOUNDARY_G(x)    (((x) >> INGPADBOUNDARY_S) \
++                                 & INGPADBOUNDARY_M)
+
+
+=20
+Thanks,
+Hari
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
