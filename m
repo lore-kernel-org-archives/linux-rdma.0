@@ -1,41 +1,145 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH v3 01/11] blk-mq: Add blk_mq_unique_tag()
-Date: Thu, 06 Nov 2014 15:22:11 +0100
-Message-ID: <545B8413.9060902@acm.org>
-References: <545240AE.6060009@acm.org> <545240E7.5030206@acm.org> <20141104141432.GA446@infradead.org> <545A19FA.40706@acm.org> <20141105185400.GA17425@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20141105185400.GA17425@infradead.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Robert Elliott <Elliott@hp.com>, Ming Lei <ming.lei@canonical.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v1 for-next 3/5] IB/core: Extend atomic operations
+Date: Thu,  6 Nov 2014 16:21:50 +0200
+Message-ID: <1415283712-13931-4-git-send-email-eli@mellanox.com>
+References: <1415283712-13931-1-git-send-email-eli@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1415283712-13931-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/05/14 19:54, Christoph Hellwig wrote:
-> On Wed, Nov 05, 2014 at 01:37:14PM +0100, Bart Van Assche wrote:
->> That's strange. I have compared the patches that are already in your tree
->> with the patches I had posted myself with a diff tool. These patches look
->> identical to what I had posted except for one CC tag that has been left out.
->> If I try to apply the three patches that have not yet been included in your
->> tree (9/11..11/11) on top the drivers-for-3.19 branch then these patches
->> apply fine. Anyway, I have rebased my tree on top of your drivers-for-3.19
->> branch, added a few other patches (including one block layer patch that has
->> not yet been posted) and retested the SRP initiator driver against the
->> traditional SCSI core and also against the scsi-mq core. The result can be
->> found here: https://github.com/bvanassche/linux/commits/srp-multiple-hwq-v4.
->> Can you please retry to apply patches 9/11..11/11 apply on top of the
->> drivers-for-3.19 branch ?
->
-> I've pulled in the three remaining patches from the series from that
-> tree.  If you want me to pull in the remaining trivial srp patch as well
-> please give me a Reviewed-by: and I'll also pull it in.
+Further enhance the extended atomic operations support as was introduced
+in commit 5e80ba8ff0bd "IB/core: Add support for masked atomic operations".
 
-Thanks !
+1. Allow arbitrary argument sizes. The original extended atomics commit defined
+64 bits arguments. This patch allows arbitrary arguments which are power of 2
+bytes in size.
 
-Regarding the remaining SRP patch: Roland has already been asked to pull 
-that patch (see also 
-http://thread.gmane.org/gmane.linux.drivers.rdma/22018).
+2. Add the option to define response for atomic operations in network order.
+enum ib_atomic_cap is extended to have big endian variants.
 
-Bart.
+The device attributes struct defines three new fields:
+
+log_atomic_arg_sizes - is a bit mask which encodes which argument sizes are
+supported. A set bit at location n (zero based) means an argument of size 2 ^ n
+is supported.
+
+max_fa_bit_boundary - Max fetch and add bit boundary. Multi field fetch and add
+operations use a bit mask that defines bit locations where carry bit is not
+passed to the next higher order bit. So, if this field has the value 64, it
+means that the max value subject to fetch and add is 64 bits which means no
+carry from bit 63 to 64 or from bit 127 to 128 etc.
+
+log_max_atomic_inline - atomic arguments can be inline in the WQE or be
+referenced through a memory key. This value defines the max inline argument
+size possible.
+
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Changes from v0:
+Don not enforce comp_mask to the know masks defined by
+~IB_UVERBS_EX_QUERY_DEV_MAX_MASK.
+
+ drivers/infiniband/core/uverbs_cmd.c | 14 ++++++++++++++
+ include/rdma/ib_verbs.h              |  7 ++++++-
+ include/uapi/rdma/ib_user_verbs.h    | 14 ++++++++++++++
+ 3 files changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 74ad0d0de92b..0bc215fa2a85 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -445,6 +445,8 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
+ 
+ 	memset(&resp, 0, sizeof resp);
+ 	copy_query_dev_fields(file, &resp, &attr);
++	if (resp.atomic_cap > IB_ATOMIC_GLOB)
++		resp.atomic_cap = IB_ATOMIC_NONE;
+ 
+ 	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+ 			 &resp, sizeof resp))
+@@ -3286,6 +3288,18 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	copy_query_dev_fields(file, &resp.base, &attr);
+ 	resp.comp_mask = 0;
+ 
++	if (cmd.comp_mask & IB_UVERBS_EX_QUERY_DEV_MASKED_ATOMIC) {
++		resp.atomics.masked_atomic_cap = attr.masked_atomic_cap;
++		resp.atomics.log_atomic_arg_sizes = attr.log_atomic_arg_sizes;
++		resp.atomics.max_fa_bit_boundary = attr.max_fa_bit_boundary;
++		resp.atomics.log_max_atomic_inline = attr.log_max_atomic_inline;
++		resp.comp_mask |= IB_UVERBS_EX_QUERY_DEV_MASKED_ATOMIC;
++	} else {
++		resp.atomics.masked_atomic_cap = IB_ATOMIC_NONE;
++		resp.atomics.log_atomic_arg_sizes = 0;
++		resp.atomics.max_fa_bit_boundary = 0;
++		resp.atomics.log_max_atomic_inline = 0;
++	}
+ 	err = ib_copy_to_udata(ucore, &resp, sizeof(resp));
+ 	if (err)
+ 		return err;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 97a999f9e4d8..2b65e31ca298 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -140,7 +140,9 @@ enum ib_signature_guard_cap {
+ enum ib_atomic_cap {
+ 	IB_ATOMIC_NONE,
+ 	IB_ATOMIC_HCA,
+-	IB_ATOMIC_GLOB
++	IB_ATOMIC_GLOB,
++	IB_ATOMIC_HCA_REPLY_BE,
++	IB_ATOMIC_GLOB_REPLY_BE,
+ };
+ 
+ struct ib_device_attr {
+@@ -186,6 +188,9 @@ struct ib_device_attr {
+ 	u8			local_ca_ack_delay;
+ 	int			sig_prot_cap;
+ 	int			sig_guard_cap;
++	u32			log_atomic_arg_sizes; /* bit-mask of supported sizes */
++	u32			max_fa_bit_boundary;
++	u32			log_max_atomic_inline;
+ };
+ 
+ enum ib_mtu {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index ed8c3d9da42c..ec98fe636f2b 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -202,13 +202,27 @@ struct ib_uverbs_query_device_resp {
+ 	__u8  reserved[4];
+ };
+ 
++enum {
++	IB_UVERBS_EX_QUERY_DEV_MASKED_ATOMIC	= 1 << 0,
++	IB_UVERBS_EX_QUERY_DEV_LAST		= 1 << 1,
++	IB_UVERBS_EX_QUERY_DEV_MAX_MASK		= IB_UVERBS_EX_QUERY_DEV_LAST - 1,
++};
++
+ struct ib_uverbs_ex_query_device {
+ 	__u32 comp_mask;
+ };
+ 
++struct ib_uverbs_ex_atomic_caps {
++	__u32 masked_atomic_cap;
++	__u32 log_atomic_arg_sizes; /* bit-mask of supported sizes */
++	__u32 max_fa_bit_boundary;
++	__u32 log_max_atomic_inline;
++};
++
+ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_query_device_resp base;
+ 	__u32 comp_mask;
++	struct ib_uverbs_ex_atomic_caps atomics;
+ };
+ 
+ struct ib_uverbs_query_port {
+-- 
+2.1.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
