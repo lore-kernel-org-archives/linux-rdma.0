@@ -1,173 +1,42 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 1/6] ib/mad: Add function to support format specifiers
- for node description
-Date: Fri, 07 Nov 2014 07:17:09 -0500
-Message-ID: <545CB845.6070104@dev.mellanox.co.il>
-References: <1415311595-29720-1-git-send-email-ira.weiny@intel.com>
+Subject: Re: [PATCH v2] infiniband-diags: add rdma-ndd daemon
+Date: Fri, 07 Nov 2014 07:17:19 -0500
+Message-ID: <545CB84F.1070808@dev.mellanox.co.il>
+References: <1414780065-15267-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415311595-29720-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1414780065-15267-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/6/2014 5:06 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+On 10/31/2014 2:27 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
 > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> ib_build_node_desc - prints src node description into dest while mapping format
-> specifiers
+> rdma-ndd is a system daemon which watches the procfs hostname file for updates.
 > 
-> Specifiers supported:
-> %h system hostname
-> %d device name
-> 
-> Define a default Node Description format to be "%h %d"
+> Upon detecting an update it will update the Node Descriptions of the RDMA
+> devices in the system.
 
-There are a lot of Node Description schemes in use in the field
-currently. New format needs to be made as unlikely as possible to
-interfere with those. So perhaps H:%h D:%d ?
+What is the effect of this on RoCE and IWARP adapters ? While they
+populate node_desc in sysfs, I don't think they support
+IB_DEVICE_MODIFY_NODE_DESC for ib_modify_device.
 
-Also, in order to support such installations, whether or not to use this
-format should be configurable.
+Shouldn't such devices be "skipped" in terms of setting NodeDescription ?
 
 -- Hal
 
-> Original work done by Mike Heinz.
+> This deamon is intended to work with kernels which support polling of the
+> procfs hostname file.  If your kernel does not support this feature the daemon
+> will set the Node Descriptions to the hostname at start up and then sleep
+> forever.
 > 
-> The function signature is generic to support some devices which are not
-> processing an ib_smp object when calling this function.
-> 
-> Reviewed-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Michael Heinz <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> ---
-> 
-> Changes from V1
-> 	remove unnecessary ib_smi include
-> 
->  drivers/infiniband/core/mad.c | 37 +++++++++++++++++++++++++++++++++++++
->  include/rdma/ib_mad.h         | 17 +++++++++++++++++
->  include/rdma/ib_verbs.h       |  6 ++++--
->  3 files changed, 58 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 74c30f4..93cf8a0 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -39,6 +39,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/slab.h>
->  #include <linux/module.h>
-> +#include <linux/utsname.h>
->  #include <rdma/ib_cache.h>
->  
->  #include "mad_priv.h"
-> @@ -996,6 +997,42 @@ int ib_get_mad_data_offset(u8 mgmt_class)
->  }
->  EXPORT_SYMBOL(ib_get_mad_data_offset);
->  
-> +void ib_build_node_desc(char *dest, char *src, int dest_len,
-> +			struct ib_device *dev)
-> +{
-> +	char *end = dest + dest_len-1;
-> +	char *field;
-> +
-> +	while (*src && (dest < end)) {
-> +		if (*src != '%') {
-> +			*dest++ = *src++;
-> +		} else {
-> +			src++;
-> +			switch (*src) {
-> +			case 'h':
-> +				field = init_utsname()->nodename;
-> +				src++;
-> +				while (*field && (*field != '.') && (dest < end))
-> +					*dest++ = *field++;
-> +			break;
-> +			case 'd':
-> +				field = dev->name;
-> +				src++;
-> +				while (*field && (dest < end))
-> +					*dest++ = *field++;
-> +				break;
-> +			default:
-> +				src++;
-> +			}
-> +		}
-> +	}
-> +	if (dest < end)
-> +		*dest = 0;
-> +	else
-> +		*end = 0;
-> +}
-> +EXPORT_SYMBOL(ib_build_node_desc);
-> +
->  int ib_is_mad_class_rmpp(u8 mgmt_class)
->  {
->  	if ((mgmt_class == IB_MGMT_CLASS_SUBN_ADM) ||
-> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-> index 9bb99e9..975642e 100644
-> --- a/include/rdma/ib_mad.h
-> +++ b/include/rdma/ib_mad.h
-> @@ -677,4 +677,21 @@ void ib_free_send_mad(struct ib_mad_send_buf *send_buf);
->   */
->  int ib_mad_kernel_rmpp_agent(struct ib_mad_agent *agent);
->  
-> +#define IB_DEFAULT_ND_FORMAT "%h %d"
-> +/**
-> + * ib_build_node_desc - prints src node description into dest while mapping
-> + * format specifiers
-> + *
-> + * Specifiers supported:
-> + * %h system hostname
-> + * %d device name
-> + *
-> + * @dest: destination buffer
-> + * @src: source buffer
-> + * @dest_len: destination buffer length
-> + * @dev: ib_device
-> + */
-> +void ib_build_node_desc(char *dest, char *src, int dest_len,
-> +			struct ib_device *dev);
-> +
->  #endif /* IB_MAD_H */
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 470a011..f3ec6de 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -55,6 +55,8 @@
->  
->  extern struct workqueue_struct *ib_wq;
->  
-> +#define IB_DEVICE_DESC_MAX 64
-> +
->  union ib_gid {
->  	u8	raw[16];
->  	struct {
-> @@ -351,7 +353,7 @@ enum ib_device_modify_flags {
->  
->  struct ib_device_modify {
->  	u64	sys_image_guid;
-> -	char	node_desc[64];
-> +	char	node_desc[IB_DEVICE_DESC_MAX];
->  };
->  
->  enum ib_port_modify_flags {
-> @@ -1625,7 +1627,7 @@ struct ib_device {
->  	u64			     uverbs_cmd_mask;
->  	u64			     uverbs_ex_cmd_mask;
->  
-> -	char			     node_desc[64];
-> +	char			     node_desc[IB_DEVICE_DESC_MAX];
->  	__be64			     node_guid;
->  	u32			     local_dma_lkey;
->  	u8                           node_type;
 
+<snip...>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
