@@ -1,82 +1,172 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] iw_cxgb4: limit MRs to < 8GB for T4/T5 devices
-Date: Fri,  7 Nov 2014 10:20:32 +0530
-Message-ID: <1415335832-11413-3-git-send-email-hariprasad@chelsio.com>
-References: <1415335832-11413-1-git-send-email-hariprasad@chelsio.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] ib/mad: Add function to support format specifiers
+ for node description
+Date: Fri, 07 Nov 2014 07:17:09 -0500
+Message-ID: <545CB845.6070104@dev.mellanox.co.il>
+References: <1415311595-29720-1-git-send-email-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415335832-11413-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1415311595-29720-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T4/T5 hardware can't handle MRs >= 8GB due to a hardware bug.  So limit
-registrations to < 8GB for thse devices.
+On 11/6/2014 5:06 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> ib_build_node_desc - prints src node description into dest while mapping format
+> specifiers
+> 
+> Specifiers supported:
+> %h system hostname
+> %d device name
+> 
+> Define a default Node Description format to be "%h %d"
 
-Based on original work by Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+There are a lot of Node Description schemes in use in the field
+currently. New format needs to be made as unlikely as possible to
+interfere with those. So perhaps H:%h D:%d ?
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/mem.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+Also, in order to support such installations, whether or not to use this
+format should be configurable.
 
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index ec7a298..d5dd3f2 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -50,6 +50,13 @@ static int inline_threshold = C4IW_INLINE_THRESHOLD;
- module_param(inline_threshold, int, 0644);
- MODULE_PARM_DESC(inline_threshold, "inline vs dsgl threshold (default=128)");
- 
-+static int mr_exceeds_hw_limits(struct c4iw_dev *dev, u64 length)
-+{
-+	return (is_t4(dev->rdev.lldi.adapter_type) ||
-+		is_t5(dev->rdev.lldi.adapter_type)) &&
-+		length >= 8*1024*1024*1024ULL;
-+}
-+
- static int _c4iw_write_mem_dma_aligned(struct c4iw_rdev *rdev, u32 addr,
- 				       u32 len, dma_addr_t data, int wait)
- {
-@@ -536,6 +543,11 @@ int c4iw_reregister_phys_mem(struct ib_mr *mr, int mr_rereg_mask,
- 			return ret;
- 	}
- 
-+	if (mr_exceeds_hw_limits(rhp, total_size)) {
-+		kfree(page_list);
-+		return -EINVAL;
-+	}
-+
- 	ret = reregister_mem(rhp, php, &mh, shift, npages);
- 	kfree(page_list);
- 	if (ret)
-@@ -596,6 +608,12 @@ struct ib_mr *c4iw_register_phys_mem(struct ib_pd *pd,
- 	if (ret)
- 		goto err;
- 
-+	if (mr_exceeds_hw_limits(rhp, total_size)) {
-+		kfree(page_list);
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
- 	ret = alloc_pbl(mhp, npages);
- 	if (ret) {
- 		kfree(page_list);
-@@ -699,6 +717,10 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 
- 	php = to_c4iw_pd(pd);
- 	rhp = php->rhp;
-+
-+	if (mr_exceeds_hw_limits(rhp, length))
-+		return ERR_PTR(-EINVAL);
-+
- 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
- 	if (!mhp)
- 		return ERR_PTR(-ENOMEM);
--- 
-1.7.1
+-- Hal
+
+> Original work done by Mike Heinz.
+> 
+> The function signature is generic to support some devices which are not
+> processing an ib_smp object when calling this function.
+> 
+> Reviewed-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Michael Heinz <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> ---
+> 
+> Changes from V1
+> 	remove unnecessary ib_smi include
+> 
+>  drivers/infiniband/core/mad.c | 37 +++++++++++++++++++++++++++++++++++++
+>  include/rdma/ib_mad.h         | 17 +++++++++++++++++
+>  include/rdma/ib_verbs.h       |  6 ++++--
+>  3 files changed, 58 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 74c30f4..93cf8a0 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -39,6 +39,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+> +#include <linux/utsname.h>
+>  #include <rdma/ib_cache.h>
+>  
+>  #include "mad_priv.h"
+> @@ -996,6 +997,42 @@ int ib_get_mad_data_offset(u8 mgmt_class)
+>  }
+>  EXPORT_SYMBOL(ib_get_mad_data_offset);
+>  
+> +void ib_build_node_desc(char *dest, char *src, int dest_len,
+> +			struct ib_device *dev)
+> +{
+> +	char *end = dest + dest_len-1;
+> +	char *field;
+> +
+> +	while (*src && (dest < end)) {
+> +		if (*src != '%') {
+> +			*dest++ = *src++;
+> +		} else {
+> +			src++;
+> +			switch (*src) {
+> +			case 'h':
+> +				field = init_utsname()->nodename;
+> +				src++;
+> +				while (*field && (*field != '.') && (dest < end))
+> +					*dest++ = *field++;
+> +			break;
+> +			case 'd':
+> +				field = dev->name;
+> +				src++;
+> +				while (*field && (dest < end))
+> +					*dest++ = *field++;
+> +				break;
+> +			default:
+> +				src++;
+> +			}
+> +		}
+> +	}
+> +	if (dest < end)
+> +		*dest = 0;
+> +	else
+> +		*end = 0;
+> +}
+> +EXPORT_SYMBOL(ib_build_node_desc);
+> +
+>  int ib_is_mad_class_rmpp(u8 mgmt_class)
+>  {
+>  	if ((mgmt_class == IB_MGMT_CLASS_SUBN_ADM) ||
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index 9bb99e9..975642e 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -677,4 +677,21 @@ void ib_free_send_mad(struct ib_mad_send_buf *send_buf);
+>   */
+>  int ib_mad_kernel_rmpp_agent(struct ib_mad_agent *agent);
+>  
+> +#define IB_DEFAULT_ND_FORMAT "%h %d"
+> +/**
+> + * ib_build_node_desc - prints src node description into dest while mapping
+> + * format specifiers
+> + *
+> + * Specifiers supported:
+> + * %h system hostname
+> + * %d device name
+> + *
+> + * @dest: destination buffer
+> + * @src: source buffer
+> + * @dest_len: destination buffer length
+> + * @dev: ib_device
+> + */
+> +void ib_build_node_desc(char *dest, char *src, int dest_len,
+> +			struct ib_device *dev);
+> +
+>  #endif /* IB_MAD_H */
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 470a011..f3ec6de 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -55,6 +55,8 @@
+>  
+>  extern struct workqueue_struct *ib_wq;
+>  
+> +#define IB_DEVICE_DESC_MAX 64
+> +
+>  union ib_gid {
+>  	u8	raw[16];
+>  	struct {
+> @@ -351,7 +353,7 @@ enum ib_device_modify_flags {
+>  
+>  struct ib_device_modify {
+>  	u64	sys_image_guid;
+> -	char	node_desc[64];
+> +	char	node_desc[IB_DEVICE_DESC_MAX];
+>  };
+>  
+>  enum ib_port_modify_flags {
+> @@ -1625,7 +1627,7 @@ struct ib_device {
+>  	u64			     uverbs_cmd_mask;
+>  	u64			     uverbs_ex_cmd_mask;
+>  
+> -	char			     node_desc[64];
+> +	char			     node_desc[IB_DEVICE_DESC_MAX];
+>  	__be64			     node_guid;
+>  	u32			     local_dma_lkey;
+>  	u8                           node_type;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
