@@ -1,176 +1,55 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCHv2] libibmad: Add new fields for SM:PortInfoExtended and
- for PM:PortExtendedSpeedsCounters
-Date: Sat, 8 Nov 2014 14:29:01 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA7D00@CRSMSX101.amr.corp.intel.com>
-References: <20141023062532.GA31987@r-ufm96.mtr.labs.mlnx>
+Subject: RE: [PATCH infiniband-diags] saquery.c: Fix handling of cpi and
+ ClassPortInfo options
+Date: Sat, 8 Nov 2014 14:51:47 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA7D87@CRSMSX101.amr.corp.intel.com>
+References: <545A86E3.4050000@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141023062532.GA31987-d8864ACYL78DyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
+In-Reply-To: <545A86E3.4050000-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> +
-> +	/*
-> +	 * PortExtendedSpeedsCounters RSFEC active fields
-> +	 */
-
-Use  IB_PESC_RSFEC_FIRST_F and then set IB_PESC_RSFEC_PORT_SELECT_F to that.
-
-> +	IB_PESC_RSFEC_PORT_SELECT_F,
-> +	IB_PESC_RSFEC_COUNTER_SELECT_F,
-> +	IB_PESC_RSFEC_SYNC_HDR_ERR_CTR_F,
-> +	IB_PESC_RSFEC_UNK_BLOCK_CTR_F,
-
-What about ErrorDetectionCounterLaneX?
-
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE0_F,
-
-
-I'm not quite sure of the name here because this can be either Symbol or Block counter...
-
-What if we just drop the "SYMBOL" and leave it as:
-
-IB_PESC_RSFEC_FEC_CORR_CTR_LANE(X)_F
-
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE1_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE2_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE3_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE4_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE5_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE6_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE7_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE8_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE9_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE10_F,
-> +	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE11_F,
-
-What about FECUncorrectable*CounterLaneX?
-
-Again it seems this counter is likely to have multiple meanings so use
-
-IB_PESC_RSFEC_FEC_UNCORR_CTR_LANE(X)_F
-
-> +	IB_PESC_PORT_FEC_CORR_BLOCK_CTR_F,
-> +	IB_PESC_PORT_FEC_UNCORR_BLOCK_CTR_F,
-> +	IB_PESC_PORT_FEC_CORR_SYMBOL_CTR_F,
-> +	IB_PESC_RSFEC_LAST_F,
-> +
->  	IB_FIELD_LAST_		/* must be last */
->  };
+> -----Original Message-----
+> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Wednesday, November 05, 2014 12:22 PM
+> To: Weiny, Ira
+> Cc: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org); Doug Ledford; Dan Ben-Yosef
+> Subject: [PATCH infiniband-diags] saquery.c: Fix handling of cpi and
+> ClassPortInfo options
 > 
-> diff --git a/src/dump.c b/src/dump.c
-> index efe4bc4..64577c0 100644
-> --- a/src/dump.c
-> +++ b/src/dump.c
-> @@ -857,6 +857,13 @@ void mad_dump_portsamples_result(char *buf, int
-> bufsz, void *val, int valsz)
->  	_dump_fields(buf, bufsz, val, IB_PSR_TAG_F, IB_PSR_LAST_F);  }
 > 
-> +void mad_dump_port_ext_speeds_counters_rsfec_active(char *buf, int bufsz,
-> +						    void *val, int valsz)
-> +{
-> +	_dump_fields(buf, bufsz, val, IB_PESC_RSFEC_PORT_SELECT_F,
-
-Based on the above change use the "FIRST" field here.
-
-> +		     IB_PESC_RSFEC_LAST_F);
-> +}
-> +
->  void mad_dump_port_ext_speeds_counters(char *buf, int bufsz, void *val, int
-> valsz)  {
->  	_dump_fields(buf, bufsz, val, IB_PESC_PORT_SELECT_F,
-> IB_PESC_LAST_F); @@ -1115,6 +1122,12 @@ void
-> mad_dump_classportinfo(char *buf, int bufsz, void *val, int valsz)
->  	_dump_fields(buf, bufsz, val, IB_CPI_BASEVER_F, IB_CPI_TRAP_QKEY_F
-> + 1);  }
+> Need to check if query_type is CLASS_PORT_INFO in order to handle saquery
+> [cpi | ClassPortInfo].
+> Otherwise, it just dumps ClassPortInfo attribute as all 0s.
 > 
-> +void mad_dump_portinfo_ext(char *buf, int bufsz, void *val, int valsz)
-> +{
-> +	_dump_fields(buf, bufsz, val, IB_PORT_EXT_CAPMASK_F,
-
-Use IB_PORT_EXT_FIRST_F here.
-
-> +		     IB_PORT_EXT_LAST_F);
-> +}
-> +
->  void xdump(FILE * file, char *msg, void *p, int size)  {  #define HEX(x)  ((x) < 10
-> ? '0' + (x) : 'a' + ((x) -10)) diff --git a/src/fields.c b/src/fields.c index
-> 33a6364..a848ebf 100644
-> --- a/src/fields.c
-> +++ b/src/fields.c
-> @@ -949,8 +949,42 @@ static const ib_field_t ib_mad_f[] = {
->  	{480, 32, "Counter14", mad_dump_uint},
->  	{0, 0},			/* IB_PSR_LAST_F */
+> Note that saquery -c works fine because it set command to
+> SAQUERY_CMD_CLASS_PORT_INFO.
 > 
-> -	{0, 0}			/* IB_FIELD_LAST_ */
-> +	/*
-> +	 * PortInfoExtended fields
-> +	 */
-> +	{0, 32, "CapMask", mad_dump_hex},
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I'm not quite sure why the spec was written this way but technically CapMask is only 1 bit???
-
-Therefore I'm not sure we can define this field as above.  Can we get some assurances from the management WG that the 31 bit reserved field following the CapMask are only going to extend the CapMask?
+Thanks applied,
+Ira
 
 
-> +	{BITSOFFS(32, 16), "FECModeActive", mad_dump_uint},
-> +	{BITSOFFS(48, 16), "FDRFECModeSupported", mad_dump_uint},
 
-As this is a bit field it is probably better to be printed as hex.
-
-> +	{BITSOFFS(64, 16), "FDRFECModeEnabled", mad_dump_uint},
-
-Print as hex.
-
-> +	{BITSOFFS(80, 16), "EDRFECModeSupported", mad_dump_uint},
-
-Print as hex.
-
-> +	{BITSOFFS(96, 16), "EDRFECModeEnabled", mad_dump_uint},
-
-Print as hex.
-
-> +	{0, 0},			/* IB_PORT_EXT_LAST_F */
+> ---
+> diff --git a/src/saquery.c b/src/saquery.c index 0f39064..1af3401 100644
+> --- a/src/saquery.c
+> +++ b/src/saquery.c
+> @@ -1869,6 +1869,7 @@ int main(int argc, char **argv)
+>  		params.dlid = get_lid(h, dst_lid);
 > 
-> +	/*
-> +	 * PortExtendedSpeedsCounters RSFEC Active fields
-> +	 */
-> +	{BITSOFFS(8, 8), "PortSelect", mad_dump_uint},
-> +	{64, 64, "CounterSelect", mad_dump_hex},
-> +	{BITSOFFS(128, 16), "SyncHeaderErrorCounter", mad_dump_uint},
-> +	{BITSOFFS(144, 16), "UnknownBlockCounter", mad_dump_uint},
-
-Add missing fields.
-
-> +	{352, 32, "FECCorrectableSymbolCtrLane0", mad_dump_uint},
-
-Same comment as above regarding the name here.  It is unfortunate that the lib could not change the name based on RS-FEC.  That will be up to other software to decode in a more user friendly way.  For these "raw" dumps we should use the more generic name:
-
-FECCorrectableCtrLaneX
-
-> +	{384, 32, "FECCorrectableSymbolCtrLane1", mad_dump_uint},
-> +	{416, 32, "FECCorrectableSymbolCtrLane2", mad_dump_uint},
-> +	{448, 32, "FECCorrectableSymbolCtrLane3", mad_dump_uint},
-> +	{480, 32, "FECCorrectableSymbolCtrLane4", mad_dump_uint},
-> +	{512, 32, "FECCorrectableSymbolCtrLane5", mad_dump_uint},
-> +	{544, 32, "FECCorrectableSymbolCtrLane6", mad_dump_uint},
-> +	{576, 32, "FECCorrectableSymbolCtrLane7", mad_dump_uint},
-> +	{608, 32, "FECCorrectableSymbolCtrLane8", mad_dump_uint},
-> +	{640, 32, "FECCorrectableSymbolCtrLane9", mad_dump_uint},
-> +	{672, 32, "FECCorrectableSymbolCtrLane10", mad_dump_uint},
-> +	{704, 32, "FECCorrectableSymbolCtrLane11", mad_dump_uint},
-
-Add missing fields.  Use "FECUncorrectableCtrLaneX".
-
-
--- Ira
-
+>  	if (command == SAQUERY_CMD_CLASS_PORT_INFO ||
+> +	    query_type == CLASS_PORT_INFO ||
+>  	    query_type == IB_SA_ATTR_SWITCHINFORECORD)
+>  		sa_cpi_required = 1;
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
