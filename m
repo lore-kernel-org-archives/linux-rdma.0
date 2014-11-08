@@ -1,29 +1,48 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 1/6] ib/mad: Add function to support format specifiers
- for node description
-Date: Fri, 07 Nov 2014 17:44:44 -0500
-Message-ID: <545D4B5C.20907@dev.mellanox.co.il>
-References: <1415311595-29720-1-git-send-email-ira.weiny@intel.com> <545CB845.6070104@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A8237399DFFD90@ORSMSX109.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: add rdma-ndd daemon
+Date: Fri, 7 Nov 2014 17:40:29 -0700
+Message-ID: <20141108004029.GB12120@obsidianresearch.com>
+References: <1414713270-12710-1-git-send-email-ira.weiny@intel.com>
+ <1414713270-12710-2-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399DFFD90-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1414713270-12710-2-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/7/2014 3:53 PM, Hefty, Sean wrote:
->>> Define a default Node Description format to be "%h %d"
->>
->> There are a lot of Node Description schemes in use in the field
->> currently. New format needs to be made as unlikely as possible to
->> interfere with those. So perhaps H:%h D:%d ?
+On Thu, Oct 30, 2014 at 07:54:30PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Is there something for this in the upstream kernel code already? 
+> rdma-ndd is a system daemon which watches the procfs hostname file for updates.
+> 
+> Upon detecting an update it will update the Node Descriptions of the RDMA
+> devices in the system.
+> 
+> This deamon is intended to work with kernels which support polling of the
+> procfs hostname file.  If your kernel does not support this feature the daemon
+> will set the Node Descriptions to the hostname at start up and then sleep
+> forever.
 
-No; not AFAIK.
+It seems so strange to have kernel processing of %h/etc and then to
+turn around and use a user space daemon to connect one bit of the
+kernel to another....
+
+Sadly, I think the proper way to address this is the same way netdev
+addresses it - do not activate the interface on module load, wait for
+an explicit enablement so userspace can configure before it tries to
+link up.
+
+(Not to say that is even possible considering RDMA's history, but still..)
+
+TBH, I'd rather see just this daemon and drop the kernel side... If
+the daemon is started before the modules are loaded then it might be
+able to set the description while the port is still down.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
