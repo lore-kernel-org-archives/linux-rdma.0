@@ -1,40 +1,30 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv2] libibmad: Add new fields for SM:PortInfoExtended and
- for PM:PortExtendedSpeedsCounters
-Date: Sun, 09 Nov 2014 01:33:02 -0500
-Message-ID: <545F0A9E.6080904@dev.mellanox.co.il>
-References: <20141023062532.GA31987@r-ufm96.mtr.labs.mlnx> <2807E5FD2F6FDA4886F6618EAC48510E0CBA7D00@CRSMSX101.amr.corp.intel.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 1/5] IB/core: Add DC transport support
+Date: Sun, 9 Nov 2014 10:02:42 +0200
+Message-ID: <20141109080242.GA2698@mtldesk30>
+References: <1415289159-4376-1-git-send-email-eli@mellanox.com>
+ <1415289159-4376-2-git-send-email-eli@mellanox.com>
+ <545BA435.2010209@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CBA7D00-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <545BA435.2010209-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, richardg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/8/2014 9:29 AM, Weiny, Ira wrote:
->> --- a/src/fields.c
->> > +++ b/src/fields.c
->> > @@ -949,8 +949,42 @@ static const ib_field_t ib_mad_f[] = {
->> >  	{480, 32, "Counter14", mad_dump_uint},
->> >  	{0, 0},			/* IB_PSR_LAST_F */
->> > 
->> > -	{0, 0}			/* IB_FIELD_LAST_ */
->> > +	/*
->> > +	 * PortInfoExtended fields
->> > +	 */
->> > +	{0, 32, "CapMask", mad_dump_hex},
-> I'm not quite sure why the spec was written this way but technically CapMask is only 1 bit???
+On Thu, Nov 06, 2014 at 06:39:17PM +0200, Or Gerlitz wrote:
+> On 11/6/2014 5:52 PM, Eli Cohen wrote:
+> >ib_modify_qp_ex - is an extension to ib_modify_qp which allows to pass the 64
+> >bit DC key.
+> 
+> we don't add new such kernel verb, probably just left over in the
+> change-log from earlier internal version, right?
 
-PortInfoExtended:CapMask is 32 bit field. Current 1.3 draft is
-misformatted. The two rows are supposed to be combined into 1 and things
-are misaligned. IsFECModeSupported is 1 bit (first bit out of those 32
-bits).
-
-> Therefore I'm not sure we can define this field as above.  Can we get some assurances from the management WG 
-> that the 31 bit reserved field following the CapMask are only going to extend the CapMask?
+Right, but it is available for userspace through
+ib_uverbs_ex_modify_qp.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
