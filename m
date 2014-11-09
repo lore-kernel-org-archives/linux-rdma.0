@@ -1,74 +1,54 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/10] xprtrdma: Cap req_cqinit
-Date: Sun, 9 Nov 2014 16:43:44 -0500
-Message-ID: <9C2B7BB4-B378-4225-BBD1-2B0F58D70342@oracle.com>
-References: <20141109010328.8806.5861.stgit@manet.1015granger.net> <20141109011420.8806.1849.stgit@manet.1015granger.net> <545F3E46.9040703@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCHv2] libibmad: Add new fields for SM:PortInfoExtended and
+ for PM:PortExtendedSpeedsCounters
+Date: Sun, 9 Nov 2014 22:48:47 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA8F2F@CRSMSX101.amr.corp.intel.com>
+References: <20141023062532.GA31987@r-ufm96.mtr.labs.mlnx>
+ <2807E5FD2F6FDA4886F6618EAC48510E0CBA7D00@CRSMSX101.amr.corp.intel.com>
+ <545F0A9E.6080904@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <545F3E46.9040703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <545F0A9E.6080904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> On 11/8/2014 9:29 AM, Weiny, Ira wrote:
+> >> --- a/src/fields.c
+> >> > +++ b/src/fields.c
+> >> > @@ -949,8 +949,42 @@ static const ib_field_t ib_mad_f[] = {
+> >> >  	{480, 32, "Counter14", mad_dump_uint},
+> >> >  	{0, 0},			/* IB_PSR_LAST_F */
+> >> >
+> >> > -	{0, 0}			/* IB_FIELD_LAST_ */
+> >> > +	/*
+> >> > +	 * PortInfoExtended fields
+> >> > +	 */
+> >> > +	{0, 32, "CapMask", mad_dump_hex},
+> > I'm not quite sure why the spec was written this way but technically CapMask
+> is only 1 bit???
+> 
+> PortInfoExtended:CapMask is 32 bit field. Current 1.3 draft is misformatted.
 
-On Nov 9, 2014, at 5:13 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wr=
-ote:
+Thanks...  That makes more sense.  Sorry I only just got access to the new 1.3 draft.
 
-> On 11/9/2014 3:14 AM, Chuck Lever wrote:
->> Recent work made FRMR registration and invalidation completions
->> unsignaled. This greatly reduces the adapter interrupt rate.
->>=20
->> Every so often, however, a posted send Work Request is allowed to
->> signal. Otherwise, the provider's Work Queue will wrap and the
->> workload will hang.
->>=20
->> The number of Work Requests that are allowed to remain unsignaled is
->> determined by the value of req_cqinit. Currently, this is set to the
->> size of the send Work Queue divided by two, minus 1.
->>=20
->> For FRMR, the send Work Queue is the maximum number of concurrent
->> RPCs (currently 32) times the maximum number of Work Requests an
->> RPC might use (currently 7, though some adapters may need more).
->>=20
->> For mlx4, this is 224 entries. This leaves completion signaling
->> disabled for 111 send Work Requests.
->>=20
->> Some providers hold back dispatching Work Requests until a CQE is
->> generated.  If completions are disabled, then no CQEs are generated
->> for quite some time, and that can stall the Work Queue.
->>=20
->> I've seen this occur running xfstests generic/113 over NFSv4, where
->> eventually, posting a FAST_REG_MR Work Request fails with -ENOMEM
->> because the Work Queue has overflowed. The connection is dropped
->> and re-established.
->=20
-> Hey Chuck,
->=20
-> As you know, I've seen this issue too...
-> Looking into this is definitely on my todo list.
->=20
-> Does this happen if you run a simple dd (single request-response infl=
-ight)?
+-- Ira
 
-Hi Sagi-
-
-I typically run dbench, iozone, and xfstests when preparing patches for
-upstream. The generic/113 test I mention in the patch description is th=
-e
-only test where I saw this issue. I expect single-thread won=92t drive
-enough Work Queue activity to push the provider into WQ overflow.
-
+> The two rows are supposed to be combined into 1 and things are misaligned.
+> IsFECModeSupported is 1 bit (first bit out of those 32 bits).
+> 
+> > Therefore I'm not sure we can define this field as above.  Can we get
+> > some assurances from the management WG that the 31 bit reserved field
+> following the CapMask are only going to extend the CapMask?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
