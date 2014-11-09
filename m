@@ -1,43 +1,55 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] infiniband-diags: add rdma-ndd daemon
-Date: Sun, 9 Nov 2014 23:15:33 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA8F59@CRSMSX101.amr.corp.intel.com>
-References: <1414780065-15267-1-git-send-email-ira.weiny@intel.com>
- <545CB84F.1070808@dev.mellanox.co.il>
+Subject: RE: [PATCH v2 1/6] ib/mad: Add function to support format
+ specifiers for node description
+Date: Sun, 9 Nov 2014 23:33:31 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA8F82@CRSMSX101.amr.corp.intel.com>
+References: <1415311595-29720-1-git-send-email-ira.weiny@intel.com>
+ <545CB845.6070104@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <545CB84F.1070808-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <545CB845.6070104-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >
-> > rdma-ndd is a system daemon which watches the procfs hostname file for
-> updates.
-> >
-> > Upon detecting an update it will update the Node Descriptions of the
-> > RDMA devices in the system.
 > 
-> What is the effect of this on RoCE and IWARP adapters ? While they populate
-> node_desc in sysfs, I don't think they support IB_DEVICE_MODIFY_NODE_DESC
-> for ib_modify_device.
+> On 11/6/2014 5:06 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > ib_build_node_desc - prints src node description into dest while
+> > mapping format specifiers
+> >
+> > Specifiers supported:
+> > %h system hostname
+> > %d device name
+> >
+> > Define a default Node Description format to be "%h %d"
+> 
+> There are a lot of Node Description schemes in use in the field currently. New
+> format needs to be made as unlikely as possible to interfere with those. So
+> perhaps H:%h D:%d ?
 
-No they don't support it.
+What I am proposing was generally agreed upon to be a reasonable default in this thread:
+
+http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg07295.html
+
+Furthermore RHEL 6.4 has started to use this naming scheme in their rdma start up script as was proposed and agreed upon by Doug Ledford in this thread:
+
+https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11282.html
 
 > 
-> Shouldn't such devices be "skipped" in terms of setting NodeDescription ?
+> Also, in order to support such installations, whether or not to use this format
+> should be configurable.
 
-AFAIK all of the current user space software which write to the node_desc sysfs simply ignore any errors.  Those devices which do not support ib_modify_device return EIO from sysfs.  This is the same mechanism I used and should be safe.
+It is configurable.  You can overwrite the node_desc field anyway you want just as before and no current user space software needs to change if a user has customizations there.
 
-If we want to go down this path[*] I think the core sysfs code should be changed such that the node_desc is either A) not available on those devices or B) not writable if ib_modify_device is not supported.
+What is nice about this addition is that _if_ the user does _not_ have customizations the defaults are, IMHO, much more usable "by default".
 
 -- Ira
-
-[*] Changing this sysfs behavior was not the intent of this patch series and I think should be dealt with separately.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
