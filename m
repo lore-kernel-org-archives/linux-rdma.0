@@ -1,148 +1,74 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part4 v1 16/17] x86, htirq: Kill struct ht_irq_msg by reusing struct msi_msg
-Date: Sun,  9 Nov 2014 23:10:38 +0800
-Message-ID: <1415545839-28263-17-git-send-email-jiang.liu@linux.intel.com>
-References: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 02/10] xprtrdma: Cap req_cqinit
+Date: Sun, 9 Nov 2014 16:43:44 -0500
+Message-ID: <9C2B7BB4-B378-4225-BBD1-2B0F58D70342@oracle.com>
+References: <20141109010328.8806.5861.stgit@manet.1015granger.net> <20141109011420.8806.1849.stgit@manet.1015granger.net> <545F3E46.9040703@dev.mellanox.co.il>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <545F3E46.9040703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reuse struct msi_msg for HT interrupts, so we could use common MSI code
-to manage HT interrupts later.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/apic/htirq.c                |    6 +++---
- drivers/infiniband/hw/ipath/ipath_iba6110.c |    2 +-
- drivers/pci/htirq.c                         |    8 ++++----
- include/linux/htirq.h                       |   14 +++++---------
- 4 files changed, 13 insertions(+), 17 deletions(-)
+On Nov 9, 2014, at 5:13 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wr=
+ote:
 
-diff --git a/arch/x86/kernel/apic/htirq.c b/arch/x86/kernel/apic/htirq.c
-index 1448df3f9e9f..b6503510f1af 100644
---- a/arch/x86/kernel/apic/htirq.c
-+++ b/arch/x86/kernel/apic/htirq.c
-@@ -34,7 +34,7 @@ ht_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
- 
- 	ret = parent->chip->irq_set_affinity(parent, mask, force);
- 	if (ret >= 0) {
--		struct ht_irq_msg msg;
-+		struct msi_msg msg;
- 		struct irq_cfg *cfg = irqd_cfg(data);
- 
- 		fetch_ht_irq_msg(data->irq, &msg);
-@@ -115,7 +115,7 @@ static void htirq_domain_free(struct irq_domain *domain, unsigned int virq,
- static void htirq_domain_activate(struct irq_domain *domain,
- 				  struct irq_data *irq_data)
- {
--	struct ht_irq_msg msg;
-+	struct msi_msg msg;
- 	struct irq_cfg *cfg = irqd_cfg(irq_data);
- 
- 	msg.address_hi = HT_IRQ_HIGH_DEST_ID(cfg->dest_apicid);
-@@ -137,7 +137,7 @@ static void htirq_domain_activate(struct irq_domain *domain,
- static void htirq_domain_deactivate(struct irq_domain *domain,
- 				    struct irq_data *irq_data)
- {
--	struct ht_irq_msg msg;
-+	struct msi_msg msg;
- 
- 	memset(&msg, 0, sizeof(msg));
- 	write_ht_irq_msg(irq_data->irq, &msg);
-diff --git a/drivers/infiniband/hw/ipath/ipath_iba6110.c b/drivers/infiniband/hw/ipath/ipath_iba6110.c
-index 7cc305488a3d..b49ce8942b57 100644
---- a/drivers/infiniband/hw/ipath/ipath_iba6110.c
-+++ b/drivers/infiniband/hw/ipath/ipath_iba6110.c
-@@ -986,7 +986,7 @@ static int ipath_ht_intconfig(struct ipath_devdata *dd)
- }
- 
- static void ipath_ht_irq_update(struct pci_dev *dev, int irq,
--				struct ht_irq_msg *msg)
-+				struct msi_msg *msg)
- {
- 	struct ipath_devdata *dd = pci_get_drvdata(dev);
- 	u64 prev_intconfig = dd->ipath_intconfig;
-diff --git a/drivers/pci/htirq.c b/drivers/pci/htirq.c
-index 7eb4109a3df4..3bbbc5cdcb9b 100644
---- a/drivers/pci/htirq.c
-+++ b/drivers/pci/htirq.c
-@@ -23,7 +23,7 @@
-  */
- static DEFINE_SPINLOCK(ht_irq_lock);
- 
--void write_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg)
-+void write_ht_irq_msg(unsigned int irq, struct msi_msg *msg)
- {
- 	struct ht_irq_cfg *cfg = irq_get_handler_data(irq);
- 	unsigned long flags;
-@@ -43,7 +43,7 @@ void write_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg)
- 	cfg->msg = *msg;
- }
- 
--void fetch_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg)
-+void fetch_ht_irq_msg(unsigned int irq, struct msi_msg *msg)
- {
- 	struct ht_irq_cfg *cfg = irq_get_handler_data(irq);
- 
-@@ -53,7 +53,7 @@ void fetch_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg)
- void mask_ht_irq(struct irq_data *data)
- {
- 	struct ht_irq_cfg *cfg = irq_data_get_irq_handler_data(data);
--	struct ht_irq_msg msg = cfg->msg;
-+	struct msi_msg msg = cfg->msg;
- 
- 	msg.address_lo |= 1;
- 	write_ht_irq_msg(data->irq, &msg);
-@@ -62,7 +62,7 @@ void mask_ht_irq(struct irq_data *data)
- void unmask_ht_irq(struct irq_data *data)
- {
- 	struct ht_irq_cfg *cfg = irq_data_get_irq_handler_data(data);
--	struct ht_irq_msg msg = cfg->msg;
-+	struct msi_msg msg = cfg->msg;
- 
- 	msg.address_lo &= ~1;
- 	write_ht_irq_msg(data->irq, &msg);
-diff --git a/include/linux/htirq.h b/include/linux/htirq.h
-index d4a527e58434..98e432f7f9b1 100644
---- a/include/linux/htirq.h
-+++ b/include/linux/htirq.h
-@@ -1,16 +1,12 @@
- #ifndef LINUX_HTIRQ_H
- #define LINUX_HTIRQ_H
-+#include <linux/msi.h>
- 
- struct pci_dev;
- struct irq_data;
- 
--struct ht_irq_msg {
--	u32	address_lo;	/* low 32 bits of the ht irq message */
--	u32	address_hi;	/* high 32 bits of the it irq message */
--};
--
- typedef void (ht_irq_update_t)(struct pci_dev *dev, int irq,
--			       struct ht_irq_msg *msg);
-+			       struct msi_msg *msg);
- 
- struct ht_irq_cfg {
- 	struct pci_dev *dev;
-@@ -18,12 +14,12 @@ struct ht_irq_cfg {
- 	ht_irq_update_t *update;
- 	unsigned pos;
- 	unsigned idx;
--	struct ht_irq_msg msg;
-+	struct msi_msg msg;
- };
- 
- /* Helper functions.. */
--void fetch_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg);
--void write_ht_irq_msg(unsigned int irq, struct ht_irq_msg *msg);
-+void fetch_ht_irq_msg(unsigned int irq, struct msi_msg *msg);
-+void write_ht_irq_msg(unsigned int irq, struct msi_msg *msg);
- void mask_ht_irq(struct irq_data *data);
- void unmask_ht_irq(struct irq_data *data);
- 
--- 
-1.7.10.4
+> On 11/9/2014 3:14 AM, Chuck Lever wrote:
+>> Recent work made FRMR registration and invalidation completions
+>> unsignaled. This greatly reduces the adapter interrupt rate.
+>>=20
+>> Every so often, however, a posted send Work Request is allowed to
+>> signal. Otherwise, the provider's Work Queue will wrap and the
+>> workload will hang.
+>>=20
+>> The number of Work Requests that are allowed to remain unsignaled is
+>> determined by the value of req_cqinit. Currently, this is set to the
+>> size of the send Work Queue divided by two, minus 1.
+>>=20
+>> For FRMR, the send Work Queue is the maximum number of concurrent
+>> RPCs (currently 32) times the maximum number of Work Requests an
+>> RPC might use (currently 7, though some adapters may need more).
+>>=20
+>> For mlx4, this is 224 entries. This leaves completion signaling
+>> disabled for 111 send Work Requests.
+>>=20
+>> Some providers hold back dispatching Work Requests until a CQE is
+>> generated.  If completions are disabled, then no CQEs are generated
+>> for quite some time, and that can stall the Work Queue.
+>>=20
+>> I've seen this occur running xfstests generic/113 over NFSv4, where
+>> eventually, posting a FAST_REG_MR Work Request fails with -ENOMEM
+>> because the Work Queue has overflowed. The connection is dropped
+>> and re-established.
+>=20
+> Hey Chuck,
+>=20
+> As you know, I've seen this issue too...
+> Looking into this is definitely on my todo list.
+>=20
+> Does this happen if you run a simple dd (single request-response infl=
+ight)?
+
+Hi Sagi-
+
+I typically run dbench, iozone, and xfstests when preparing patches for
+upstream. The generic/113 test I mention in the patch description is th=
+e
+only test where I saw this issue. I expect single-thread won=92t drive
+enough Work Queue activity to push the provider into WQ overflow.
+
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
