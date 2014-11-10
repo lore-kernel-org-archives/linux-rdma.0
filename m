@@ -1,53 +1,44 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 1/6] ib/mad: Add function to support format
- specifiers for node description
-Date: Sun, 9 Nov 2014 23:33:31 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA8F82@CRSMSX101.amr.corp.intel.com>
-References: <1415311595-29720-1-git-send-email-ira.weiny@intel.com>
- <545CB845.6070104@dev.mellanox.co.il>
+Subject: RE: [PATCH] infiniband-diags: add rdma-ndd daemon
+Date: Mon, 10 Nov 2014 00:28:27 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBA8FCD@CRSMSX101.amr.corp.intel.com>
+References: <1414713270-12710-1-git-send-email-ira.weiny@intel.com>
+ <1414713270-12710-2-git-send-email-ira.weiny@intel.com>
+ <20141108004029.GB12120@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <545CB845.6070104-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20141108004029.GB12120-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 > 
-> On 11/6/2014 5:06 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > ib_build_node_desc - prints src node description into dest while
-> > mapping format specifiers
-> >
-> > Specifiers supported:
-> > %h system hostname
-> > %d device name
-> >
-> > Define a default Node Description format to be "%h %d"
+> Sadly, I think the proper way to address this is the same way netdev addresses
+> it - do not activate the interface on module load, wait for an explicit
+> enablement so userspace can configure before it tries to link up.
 > 
-> There are a lot of Node Description schemes in use in the field currently. New
-> format needs to be made as unlikely as possible to interfere with those. So
-> perhaps H:%h D:%d ?
+> (Not to say that is even possible considering RDMA's history, but still..)
 
-What I am proposing was generally agreed upon to be a reasonable default in this thread:
-
-http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg07295.html
-
-Furthermore RHEL 6.4 has started to use this naming scheme in their rdma start up script as was proposed and agreed upon by Doug Ledford in this thread:
-
-https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11282.html
+I don't think this is really possible.  When would you consider the "interface" to be "up"?  Even before the port goes active the SM and other diags can query this value.  This is why I propose that the default of the drivers, without user space involvement, should change.  The user space daemon is only trying to react to other user space activity.
 
 > 
-> Also, in order to support such installations, whether or not to use this format
-> should be configurable.
+> TBH, I'd rather see just this daemon and drop the kernel side... If the daemon is
+> started before the modules are loaded then it might be able to set the
+> description while the port is still down.
 
-It is configurable.  You can overwrite the node_desc field anyway you want just as before and no current user space software needs to change if a user has customizations there.
+The problem is this sequence.
 
-What is nice about this addition is that _if_ the user does _not_ have customizations the defaults are, IMHO, much more usable "by default".
+1) rdma-ndd daemon started (hostname == localhost, no rdma devices set)
+2) dhcp started (or other hostname change, rdma-ndd triggered but no rdma devices set; not loaded yet)
+3) rdma devices loaded, default node_desc
+
+What I have proposed will work no matter what order things are started/loaded.  Furthermore, it avoids races between the start up scripts and the SM because the current hostname is always mapped at the time the query is being answered.  With parallel start up systems like systemd you could have the hostname set by DHCP while some of your rdma devices are loaded and others are not.  Those which were loaded before the hostname change will get set by rdma-ndd and trigger a trap.  The others will simply pick up the correct hostname in the initial SM query.
+
+Finally, I contemplated the alternative of having the rdma-ndd daemon detect new rdma devices.  I don't like this solution because it results in additional unnecessary MAD traffic for those devices.  (ie. initial ND query, followed by a trap/trap repress, and the final "correct" ND query.)  With my proposed solution any devices loaded after the hostname change (or in the case of a static hostname) will be properly queried with one ND query.
 
 -- Ira
 
