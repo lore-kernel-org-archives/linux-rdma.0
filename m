@@ -1,37 +1,46 @@
-From: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Subject: Re: [PATCH v2 09/10] NFS: SETCLIENTID XDR buffer sizes are incorrect
-Date: Mon, 10 Nov 2014 11:21:34 -0500
-Message-ID: <CAHQdGtTOzEtFe6QkjdR80D+hnP1YoR42BdUEz_2Z_hqHJxf+jA@mail.gmail.com>
-References: <20141109010328.8806.5861.stgit@manet.1015granger.net>
-	<20141109011518.8806.36904.stgit@manet.1015granger.net>
-	<5460D84A.3050704@Netapp.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCHv3 net-next 0/3] RDMA/cxgb4,cxgb4vf,cxgb4i,csiostor:
+ Cleanup macros
+Date: Mon, 10 Nov 2014 12:57:42 -0500 (EST)
+Message-ID: <20141110.125742.1453978794920057126.davem@davemloft.net>
+References: <1415333125-10635-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5460D84A.3050704-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1415333125-10635-1-git-send-email-hariprasad@chelsio.com>
+Sender: netdev-owner@vger.kernel.org
+To: hariprasad@chelsio.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, anish@chelsio.com, praveenm@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 10, 2014 at 10:22 AM, Anna Schumaker
-<Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
-> Hi Chuck,
->
-> It looks like this patch and the next one are general client changes, so they might have to be submitted to Trond directly rather than going through my tree.  Trond, what do you think?
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Date: Fri,  7 Nov 2014 09:35:22 +0530
 
-Ditto for the iostat locking change (PATCH 08/10). None of those are
-RDMA related.
+> This series moves the debugfs code to a new file debugfs.c and cleans up
+> macros/register defines.
+> 
+> Various patches have ended up changing the style of the symbolic macros/register
+> defines and some of them used the macros/register defines that matches the
+> output of the script from the hardware team.
+> 
+> As a result, the current kernel.org files are a mix of different macro styles.
+> Since this macro/register defines is used by five different drivers, a
+> few patch series have ended up adding duplicate macro/register define entries
+> with different styles. This makes these register define/macro files a complete
+> mess and we want to make them clean and consistent.
+> 
+> Will post few more series so that we can cover all the macros so that they all
+> follow the same style to be consistent.
+> 
+> The patches series is created against 'net-next' tree.
+> And includes patches on cxgb4, cxgb4vf, iw_cxgb4, csiostor and cxgb4i driver.
+> 
+> We have included all the maintainers of respective drivers. Kindly review the
+> change and let us know in case of any review comments.
+ ...
+> V3: Use suffix instead of prefix for macros/register defines
+> V2: Changes the description and cover-letter content to answer David Miller's
+> question
 
-Should I just cherrypick them from this series?
-
--- 
-Trond Myklebust
-
-Linux NFS client maintainer, PrimaryData
-
-trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Series applied, thanks.
