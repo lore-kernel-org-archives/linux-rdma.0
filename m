@@ -1,7 +1,7 @@
 From: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: FMR Support in multi-function environment
-Date: Mon, 10 Nov 2014 19:58:46 +0530
-Message-ID: <CANwwZzU+QzHqjo2wc-_E36E7PQMJhuuBsVW_Ux+JVfM_a+Ydqw@mail.gmail.com>
+Subject: mlx4: RoCE support in SRIOV environment
+Date: Mon, 10 Nov 2014 20:05:54 +0530
+Message-ID: <CANwwZzW1Oe9ff30Wk6xANak9T2Pjoo0fYhWAOzv1GWq7DP+Ung@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,20 +11,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
-Is FMR (Fast Memory Regions) supported in a multi-function mode?
-
-If yes, I couldn't find the source code for the same in the mlx4
-codebase. Can anyone please point me to the right location...
-
-What I was trying to understand is this:
-
-Suppose a VF driver wants to register large amount of memory using
-FMR, will it be able to do so using the mlx4 code.
-
-Or FMR is supported only in dedicated mode?
+I was going through the mlx4 code and previous mailing lists when I
+came across the following thread:
 
 
-Thanks
+http://marc.info/?l=linux-rdma&m=134398354428293&w=2
+
+
+In that thread, it is mentioned as follows:
+
+Some Limitations
+----------------
+1. FMRs are not currently supported on slaves. This will be corrected in a
+   future submission.
+2. RoCE is not currently supported on slaves. This will be corrected in a
+   future submission.
+
+
+As the thread dats back to 2012, I wanted to confirm if FMR & RoCE are
+still not supported in SRIOV environment(master & slave)?
+
+
+Thanks so much in advance!!
 
 Best Regards,
 Bob
