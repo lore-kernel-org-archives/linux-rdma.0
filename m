@@ -1,84 +1,95 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Subject: Re: [PATCH v2 06/10] xprtrdma: Enable pad optimization
-Date: Mon, 10 Nov 2014 08:54:27 -0600
-Message-ID: <89410A6C-693C-4FB2-A0AB-5698803F3AFC@oracle.com>
-References: <20141109010328.8806.5861.stgit@manet.1015granger.net> <20141109011453.8806.31817.stgit@manet.1015granger.net> <5460CD53.1080301@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Date: Mon, 10 Nov 2014 10:05:29 -0500
+Message-ID: <20141110150529.GB32702@fieldses.org>
+References: <20141109010328.8806.5861.stgit@manet.1015granger.net>
+ <20141109011453.8806.31817.stgit@manet.1015granger.net>
+ <5460CD53.1080301@Netapp.com>
+ <89410A6C-693C-4FB2-A0AB-5698803F3AFC@oracle.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5460CD53.1080301-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <89410A6C-693C-4FB2-A0AB-5698803F3AFC-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Nov 10, 2014 at 08:54:27AM -0600, Chuck Lever wrote:
+> 
+> On Nov 10, 2014, at 8:36 AM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> > Hey Chuck,
+> > 
+> > 
+> > On 11/08/2014 08:14 PM, Chuck Lever wrote:
+> >> The Linux NFS/RDMA server used to reject NFSv3 WRITE requests when
+> >> pad optimization was enabled. That bug was fixed by commit
+> >> e560e3b510d2 ("svcrdma: Add zero padding if the client doesn't send
+> >> it").
+> > 
+> > Do we need to worry about backwards compatibility with servers that don't have this patch?
+> 
+> My impression is that we have a window where the server is assumed not
+> to work and thus is not enabled in distributions, and that therefore
+> changes like this are allowed. I could be wrong. Bruce, any guidance
+> on this?
+> 
+> In any event, if things break, they break immediately, and the fix is
+> simply to set this feature flag via /proc.
 
-On Nov 10, 2014, at 8:36 AM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+I don't think there's any hard-and-fast rule here, but my impression is
+that nfs/rdma still isn't widely used, even less so with linux knfsd, so
+on balance it's probably not worth much to humor older servers.
 
-> Hey Chuck,
+--b.
+
 > 
 > 
-> On 11/08/2014 08:14 PM, Chuck Lever wrote:
->> The Linux NFS/RDMA server used to reject NFSv3 WRITE requests when
->> pad optimization was enabled. That bug was fixed by commit
->> e560e3b510d2 ("svcrdma: Add zero padding if the client doesn't send
->> it").
 > 
-> Do we need to worry about backwards compatibility with servers that don't have this patch?
-
-My impression is that we have a window where the server is assumed not
-to work and thus is not enabled in distributions, and that therefore
-changes like this are allowed. I could be wrong. Bruce, any guidance
-on this?
-
-In any event, if things break, they break immediately, and the fix is
-simply to set this feature flag via /proc.
-
-
-
-
-> Anna
 > 
->> 
->> We can now enable pad optimization on the client, which helps
->> performance and is supported now by both Linux and Solaris servers.
->> 
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/transport.c |    2 +-
->> 1 file changed, 1 insertion(+), 1 deletion(-)
->> 
->> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
->> index cfe9a81..8ed2576 100644
->> --- a/net/sunrpc/xprtrdma/transport.c
->> +++ b/net/sunrpc/xprtrdma/transport.c
->> @@ -73,7 +73,7 @@ static unsigned int xprt_rdma_max_inline_read = RPCRDMA_DEF_INLINE;
->> static unsigned int xprt_rdma_max_inline_write = RPCRDMA_DEF_INLINE;
->> static unsigned int xprt_rdma_inline_write_padding;
->> static unsigned int xprt_rdma_memreg_strategy = RPCRDMA_FRMR;
->> -                int xprt_rdma_pad_optimize = 0;
->> +		int xprt_rdma_pad_optimize = 1;
->> 
->> #ifdef RPC_DEBUG
->> 
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Anna
+> > 
+> >> 
+> >> We can now enable pad optimization on the client, which helps
+> >> performance and is supported now by both Linux and Solaris servers.
+> >> 
+> >> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >> ---
+> >> net/sunrpc/xprtrdma/transport.c |    2 +-
+> >> 1 file changed, 1 insertion(+), 1 deletion(-)
+> >> 
+> >> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> >> index cfe9a81..8ed2576 100644
+> >> --- a/net/sunrpc/xprtrdma/transport.c
+> >> +++ b/net/sunrpc/xprtrdma/transport.c
+> >> @@ -73,7 +73,7 @@ static unsigned int xprt_rdma_max_inline_read = RPCRDMA_DEF_INLINE;
+> >> static unsigned int xprt_rdma_max_inline_write = RPCRDMA_DEF_INLINE;
+> >> static unsigned int xprt_rdma_inline_write_padding;
+> >> static unsigned int xprt_rdma_memreg_strategy = RPCRDMA_FRMR;
+> >> -                int xprt_rdma_pad_optimize = 0;
+> >> +		int xprt_rdma_pad_optimize = 1;
+> >> 
+> >> #ifdef RPC_DEBUG
+> >> 
+> >> 
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+> 
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
