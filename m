@@ -1,106 +1,74 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] infiniband-diags: add rdma-ndd daemon
-Date: Mon, 10 Nov 2014 18:32:18 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBB39E8@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: add rdma-ndd daemon
+Date: Mon, 10 Nov 2014 12:05:43 -0700
+Message-ID: <20141110190543.GD5296@obsidianresearch.com>
 References: <1414713270-12710-1-git-send-email-ira.weiny@intel.com>
  <1414713270-12710-2-git-send-email-ira.weiny@intel.com>
  <20141108004029.GB12120@obsidianresearch.com>
  <2807E5FD2F6FDA4886F6618EAC48510E0CBA8FCD@CRSMSX101.amr.corp.intel.com>
  <20141110051155.GD31256@obsidianresearch.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E0CBB39E8@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141110051155.GD31256-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CBB39E8-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Nov 10, 2014 at 06:32:18PM +0000, Weiny, Ira wrote:
+
+> > I don't know if this is practical, but it is the only race free way to properly
+> > address all of this.
 > 
-> On Mon, Nov 10, 2014 at 12:28:27AM +0000, Weiny, Ira wrote:
-> > >
-> > > Sadly, I think the proper way to address this is the same way netdev
-> > > addresses it - do not activate the interface on module load, wait
-> > > for an explicit enablement so userspace can configure before it tries to link
-> up.
-> > >
-> > > (Not to say that is even possible considering RDMA's history, but
-> > > still..)
-> >
-> > I don't think this is really possible.  When would you consider the
-> > "interface" to be "up"?  Even before the port goes active the SM and
-> > other diags can query this value.  This is why I propose that the
-> > default of the drivers, without user space involvement, should change.
-> > The user space daemon is only trying to react to other user space
-> > activity.
+> I don't think it is practical at all.
 > 
-> Same as net dev, after the module load the physical layer is disabled. Nothing
-> can see the NodeDescription because the link is kept down.
-> 
-> The everything gets configured, then the physical layer is allowed to come up.
-> 
-> I don't know if this is practical, but it is the only race free way to properly
-> address all of this.
+> Assuming that we can hold the link from transitioning to Init how
 
-I don't think it is practical at all.
+PortInfo writes can do that
 
-Assuming that we can hold the link from transitioning to Init how does any userspace software know if the current hostname is "valid"?  If, at the time of module load, the hostname is "localhost" you end up with the same "problem" as the proposed kernel patches.
+> does any userspace software know if the current hostname is "valid"?
+> If, at the time of module load, the hostname is "localhost" you end
+> up with the same "problem" as the proposed kernel patches.
 
-In fact the proposed kernel patches actually aid in the setting of alternate policies in that a %h provides some dynamic lookup.  (See below)
+Deciding when to turn on the IB interface in the boot sequence is a
+policy issue for userspace. Some setups will require this to be done
+in the initrd (ie boot over IB), others will want to do this after
+management networking comes up (and the host name is set).
 
-> 
-> > > TBH, I'd rather see just this daemon and drop the kernel side... If
-> > > the daemon is started before the modules are loaded then it might be
-> > > able to set the description while the port is still down.
-> >
-> > The problem is this sequence.
-> >
-> > 1) rdma-ndd daemon started (hostname == localhost, no rdma devices
-> > set)
-> > 2) dhcp started (or other hostname change, rdma-ndd triggered but no
-> > rdma devices set; not loaded yet)
-> > 3) rdma devices loaded, default node_desc
-> 
-> 4) daemon detects new rdma device instantly and programs the admin
->    desired node name in the 100ms before the physical link reaches
->    up. Since the link is down when the change occurs no traps are scheduled.
->    Or in the 10% case where the race is lost you get a trap. Oh well.
+Once rdma-ndd starts running the hostname will track just the same as
+if there was kernel %h support, and having your init sequence the IB
+interface up after you have the hostname ensures it isn't local host.
 
-I'm not against adding this to rdma-ndd but I would like it to be optional.  With the kernel patches rdma-ndd itself is optional.
+This sequencing creates the opportunity for the admin to actually set
+the host name to something that is not the kernel default.
 
-> 
-> > What I have proposed will work no matter what order things are
-> > started/loaded.
-> 
-> Well, not really - it works in the sense that the kernel default node name works
-> properly, but it doesn't allow the admin to set a custom name without hitting
-> all these same issues (well, except perhaps by module parameter..).
+> I'm not against adding this to rdma-ndd but I would like it to be
+> optional.  With the kernel patches rdma-ndd itself is optional.
 
-I think changing the default is a worthwhile change.  In addition, alternate admin policies are aided by the general use of the %h specifier.
+Not really, without rdma-ndd the node description is able to change on
+its own and no traps are generated. That seems pretty broken. So you
+need to run rdma-ndd to have IBA compliance.
 
-	1) SM's which periodically scan the Node Description always get up to date hostname info.
-	2) Up to date hostname info is provided even if a user space daemons fails.
-		Note: OpenSM has an update node description feature for this condition.
-	3) Low level diag tools always get up to date hostname info
+> I think changing the default is a worthwhile change.  In addition,
+> alternate admin policies are aided by the general use of the %h
+> specifier.
 
-Do you believe that "<hostname> <device>" is an unreasonable default?
+I think you need to resolve this split responsibility somehow.
 
-Roland, Hal, do you have any input?
+The kernel needs to work correctly without the daemon. To me that
+either means it never changes the node desc on its own (what we have
+today), or it always generates a trap when it changes.
 
-> 
-> > Finally, I contemplated the alternative of having the rdma-ndd daemon
-> > detect new rdma devices.
-> 
-> Well, without that all it does is link two parts of the kernel together through
-> user space with no way toset policy in userspace (policy in this case is the node
-> description string). Seems very strange.
+> Do you believe that "<hostname> <device>" is an unreasonable default?
 
-Yes the daemon is somewhat strange and I envision it being updated for other policies in the future which may include some of the functionality you suggest.  But it seemed appropriate to add it now as it enhances the SM knowing about hostname changes.
+No, but what if I want it to say "OSD <hostname> <device>" on some
+systems - then what? How do I set that and avoid generating traps at
+boot?
 
--- Ira
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
