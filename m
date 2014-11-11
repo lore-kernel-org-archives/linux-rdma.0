@@ -1,238 +1,273 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 00/17] On demand paging
-Date: Tue, 11 Nov 2014 18:36:06 +0200
-Message-ID: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v2 12/17] IB/mlx5: Changes in memory region creation to support on-demand paging
+Date: Tue, 11 Nov 2014 18:36:18 +0200
+Message-ID: <1415723783-2138-13-git-send-email-haggaie@mellanox.com>
+References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1415723783-2138-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+This patch wraps together several changes needed for on-demand paging support
+in the mlx5_ib_populate_pas function, and when registering memory regions.
 
-Following your comments, we have modified the patch set to eliminate the
-possibility of a negative notifiers counter, and removed the atomic accesses
-where possible.  The new set have been rebased against upstream, and also
-contains some minor fixes detailed below.
+* Instead of accepting a UMR bit telling the function to enable all access
+  flags, the function now accepts the access flags themselves.
+* For on-demand paging memory regions, fill the memory tables from the
+  correct list, and enable/disable the access flags per-page according to
+  whether the page is present.
+* A new bit is set to enable writing of access flags when using the firmware
+  create_mkey command.
+* Disable contig pages when on-demand paging is enabled.
 
-We have isolated 5 patches that we think can be taken as a preliminary patches
-for the rest of the series. These are the first 5 patches:
-	IB/mlx5: Remove per-MR pas and dma pointers
-	IB/mlx5: Enhance UMR support to allow partial page table update
-	IB/core: Replace ib_umem's offset field with a full address
-	IB/core: Add umem function to read data from user-space
-	IB/mlx5: Add function to read WQE from user-space
+In addition the patch changes the UMR code to use PTR_ALIGN instead of our own
+macro.
 
-Regards,
-Haggai
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/mem.c     | 58 ++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++++-
+ drivers/infiniband/hw/mlx5/mr.c      | 33 +++++++++++---------
+ include/linux/mlx5/device.h          |  3 ++
+ 4 files changed, 88 insertions(+), 18 deletions(-)
 
-Changes from V1: http://www.spinics.net/lists/linux-rdma/msg20734.html
-- Rebased against latest upstream (3.18-rc2).
-- Added patch 1: remove the mr dma and pas fields which are no longer needed.
-- Replace extended query device patch 1 with Eli Cohen's recent submission from
-  the extended atomic series [1].
-- Patch 3: respect umem's page size when calculating offset and start address.
-- Patch 8: fix error handling in ib_umem_odp_map_dma_pages
-- Patch 9:
-  - Add a global mmu notifier counter (per ucontext) to prevent the race that existed in v1.
-  - Make accesses to the per-umem notifier counters non-atomic (use ACCESS_ONCE).
-  - Rename ucontext->umem_mutex as ucontext->umem_rwsem to reflect it being a semaphore.
-- Patch 15: fix error handling in pagefault_single_data_segment
-- Patch 17: timeout when waiting for an active mmu notifier to complete
-- Add RC RDMA read support to the patch-set.
-- Minor fixes.
-
-Changes from V0: http://marc.info/?l=linux-rdma&m=139375790322547&w=2
-
-- Rebased against latest upstream / for-next branch.
-- Removed dependency on patches that were accepted upstream.
-- Removed pre-patches that were accepted upstream [2].
-- Add extended uverb call for querying device (patch 1) and use kernel device
-  attributes to report ODP capabilities through the new uverb entry instead of
-  having a special verb.
-- Allow upgrading page access permissions during page faults.
-- Minor fixes to issues that came up during regression testing of the patches.
-
-The following set of patches implements on-demand paging (ODP) support
-in the RDMA stack and in the mlx5_ib Infiniband driver.
-
-What is on-demand paging?
-
-Applications register memory with an RDMA adapter using system calls,
-and subsequently post IO operations that refer to the corresponding
-virtual addresses directly to HW. Until now, this was achieved by
-pinning the memory during the registration calls. The goal of on demand
-paging is to avoid pinning the pages of registered memory regions (MRs).
-This will allow users the same flexibility they get when swapping any
-other part of their processes address spaces. Instead of requiring the
-entire MR to fit in physical memory, we can allow the MR to be larger,
-and only fit the current working set in physical memory.
-
-This can make programming with RDMA much simpler. Today, developers that
-are working with more data than their RAM can hold need either to
-deregister and reregister memory regions throughout their process's
-life, or keep a single memory region and copy the data to it. On demand
-paging will allow these developers to register a single MR at the
-beginning of their process's life, and let the operating system manage
-which pages needs to be fetched at a given time. In the future, we might
-be able to provide a single memory access key for each process that
-would provide the entire process's address as one large memory region,
-and the developers wouldn't need to register memory regions at all.
-
-How does page faults generally work?
-
-With pinned memory regions, the driver would map the virtual addresses
-to bus addresses, and pass these addresses to the HCA to associate them
-with the new MR. With ODP, the driver is now allowed to mark some of the
-pages in the MR as not-present. When the HCA attempts to perform memory
-access for a communication operation, it notices the page is not
-present, and raises a page fault event to the driver. In addition, the
-HCA performs whatever operation is required by the transport protocol to
-suspend communication until the page fault is resolved.
-
-Upon receiving the page fault interrupt, the driver first needs to know
-on which virtual address the page fault occurred, and on what memory
-key. When handling send/receive operations, this information is inside
-the work queue. The driver reads the needed work queue elements, and
-parses them to gather the address and memory key. For other RDMA
-operations, the event generated by the HCA only contains the virtual
-address and rkey, as there are no work queue elements involved.
-
-Having the rkey, the driver can find the relevant memory region in its
-data structures, and calculate the actual pages needed to complete the
-operation. It then uses get_user_pages to retrieve the needed pages back
-to the memory, obtains dma mapping, and passes the addresses to the HCA.
-Finally, the driver notifies the HCA it can continue operation on the
-queue pair that encountered the page fault. The pages that
-get_user_pages returned are unpinned immediately by releasing their
-reference.
-
-How are invalidations handled?
-
-The patches add infrastructure to subscribe the RDMA stack as an mmu
-notifier client [3]. Each process that uses ODP register a notifier client.
-When receiving page invalidation notifications, they are passed to the
-mlx5_ib driver, which updates the HCA with new, not-present mappings.
-Only after flushing the HCA's page table caches the notifier returns,
-allowing the kernel to release the pages.
-
-What operations are supported?
-
-Currently only send, receive and RDMA read/write operations are supported on
-the RC protocol, and also send operations on the UD protocol. We hope to
-implement support for other transports and operations in the future.
-
-The structure of the patchset
-
-Patches 1-5:
-These are preliminary patches for IB core and the mlx5 driver that are needed
-for the adding paging support. Patch 1 removes unnecessary fields from the
-mlx5_ib_mr structs. Patch 2 makes changes to the UMR mechanism (an internal
-mechanism used by mlx5 to update device page mappings). The next patch makes
-some necessary changes to the ib_umem type. Patches 4-5 add the ability to
-read data from a umem, and read a WQE in mlx5_ib, respectively.
-
-Patches 6-9:
-The first set of patches adds page fault support to the IB core layer, allowing
-MRs to be registered without their pages to be pinned. Patch 6 adds an extended
-verb to query device attributes, and patch 7 adds capability bits and
-configuration options. Patches 8 and 9 add paging support and invalidation
-support respectively.
-
-Patches 10-13:
-This set of patches add small size new functionality to the mlx5 driver and
-builds toward paging support.  Patch 10 adds infrastructure support for page
-fault handling to the mlx5_core module. Patch 11 queries the device for paging
-capabilities, and patch 13 adds a function to do partial device page table
-updates. 
-
-Patches 14-17:
-The final part of this patch set finally adds paging support to the mlx5
-driver. Patch 14 adds in mlx5_ib the infrastructure to handle page faults
-coming from mlx5_core. Patch 15 adds the code to handle UD send page faults
-and RC send and receive page faults. Patch 16 adds support for page faults
-caused by RDMA write operations, and patch 17 adds invalidation support to
-the mlx5 driver, allowing pages to be unmapped dynamically.
-
-[1] [PATCH v1 for-next 2/5] IB/core: Add support for extended query device caps
-    http://www.spinics.net/lists/linux-rdma/msg21958.html
-
-[2] pre-patches that were accepted upstream:
-  a74d241 IB/mlx5: Refactor UMR to have its own context struct
-  48fea83 IB/mlx5: Set QP offsets and parameters for user QPs and not just for kernel QPs
-  b475598 mlx5_core: Store MR attributes in mlx5_mr_core during creation and after UMR
-  8605933 IB/mlx5: Add MR to radix tree in reg_mr_callback
-
-[3] Integrating KVM with the Linux Memory Management (presentation),
-    Andrea Archangeli
-    http://www.linux-kvm.org/wiki/images/3/33/KvmForum2008%24kdf2008_15.pdf
-
-Eli Cohen (1):
-  IB/core: Add support for extended query device caps
-
-Haggai Eran (14):
-  IB/mlx5: Remove per-MR pas and dma pointers
-  IB/mlx5: Enhance UMR support to allow partial page table update
-  IB/core: Replace ib_umem's offset field with a full address
-  IB/core: Add umem function to read data from user-space
-  IB/mlx5: Add function to read WQE from user-space
-  IB/core: Implement support for MMU notifiers regarding on demand
-    paging regions
-  net/mlx5_core: Add support for page faults events and low level
-    handling
-  IB/mlx5: Implement the ODP capability query verb
-  IB/mlx5: Changes in memory region creation to support on-demand
-    paging
-  IB/mlx5: Add mlx5_ib_update_mtt to update page tables after creation
-  IB/mlx5: Page faults handling infrastructure
-  IB/mlx5: Handle page faults
-  IB/mlx5: Add support for RDMA read/write responder page faults
-  IB/mlx5: Implement on demand paging by adding support for MMU
-    notifiers
-
-Sagi Grimberg (1):
-  IB/core: Add flags for on demand paging support
-
-Shachar Raindel (1):
-  IB/core: Add support for on demand paging regions
-
- drivers/infiniband/Kconfig                   |  11 +
- drivers/infiniband/core/Makefile             |   1 +
- drivers/infiniband/core/umem.c               |  64 ++-
- drivers/infiniband/core/umem_odp.c           | 668 ++++++++++++++++++++++
- drivers/infiniband/core/umem_rbtree.c        |  94 ++++
- drivers/infiniband/core/uverbs.h             |   1 +
- drivers/infiniband/core/uverbs_cmd.c         | 168 ++++--
- drivers/infiniband/core/uverbs_main.c        |   5 +-
- drivers/infiniband/hw/amso1100/c2_provider.c |   2 +-
- drivers/infiniband/hw/ehca/ehca_mrmw.c       |   2 +-
- drivers/infiniband/hw/ipath/ipath_mr.c       |   2 +-
- drivers/infiniband/hw/mlx5/Makefile          |   1 +
- drivers/infiniband/hw/mlx5/main.c            |  45 +-
- drivers/infiniband/hw/mlx5/mem.c             |  69 ++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h         | 116 +++-
- drivers/infiniband/hw/mlx5/mr.c              | 323 +++++++++--
- drivers/infiniband/hw/mlx5/odp.c             | 798 +++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/qp.c              | 199 +++++--
- drivers/infiniband/hw/nes/nes_verbs.c        |   4 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   2 +-
- drivers/infiniband/hw/qib/qib_mr.c           |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c |  13 +-
- drivers/net/ethernet/mellanox/mlx5/core/fw.c |  39 ++
- drivers/net/ethernet/mellanox/mlx5/core/qp.c | 119 ++++
- include/linux/mlx5/device.h                  |  71 ++-
- include/linux/mlx5/driver.h                  |  14 +-
- include/linux/mlx5/qp.h                      |  65 +++
- include/rdma/ib_umem.h                       |  29 +-
- include/rdma/ib_umem_odp.h                   | 160 ++++++
- include/rdma/ib_verbs.h                      |  54 +-
- include/uapi/rdma/ib_user_verbs.h            |  28 +-
- 31 files changed, 3008 insertions(+), 161 deletions(-)
- create mode 100644 drivers/infiniband/core/umem_odp.c
- create mode 100644 drivers/infiniband/core/umem_rbtree.c
- create mode 100644 drivers/infiniband/hw/mlx5/odp.c
- create mode 100644 include/rdma/ib_umem_odp.h
-
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index dae07eae9507..5f7b30147180 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -32,6 +32,7 @@
+ 
+ #include <linux/module.h>
+ #include <rdma/ib_umem.h>
++#include <rdma/ib_umem_odp.h>
+ #include "mlx5_ib.h"
+ 
+ /* @umem: umem object to scan
+@@ -57,6 +58,17 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
+ 	int entry;
+ 	unsigned long page_shift = ilog2(umem->page_size);
+ 
++	/* With ODP we must always match OS page size. */
++	if (umem->odp_data) {
++		*count = ib_umem_page_count(umem);
++		*shift = PAGE_SHIFT;
++		*ncont = *count;
++		if (order)
++			*order = ilog2(roundup_pow_of_two(*count));
++
++		return;
++	}
++
+ 	addr = addr >> page_shift;
+ 	tmp = (unsigned long)addr;
+ 	m = find_first_bit(&tmp, sizeof(tmp));
+@@ -108,8 +120,32 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
+ 	*count = i;
+ }
+ 
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
++{
++	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
++
++	if (umem_dma & ODP_READ_ALLOWED_BIT)
++		mtt_entry |= MLX5_IB_MTT_READ;
++	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
++		mtt_entry |= MLX5_IB_MTT_WRITE;
++
++	return mtt_entry;
++}
++#endif
++
++/*
++ * Populate the given array with bus addresses from the umem.
++ *
++ * dev - mlx5_ib device
++ * umem - umem to use to fill the pages
++ * page_shift - determines the page size used in the resulting array
++ * pas - bus addresses array to fill
++ * access_flags - access flags to set on all present pages.
++		  use enum mlx5_ib_mtt_access_flags for this.
++ */
+ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+-			  int page_shift, __be64 *pas, int umr)
++			  int page_shift, __be64 *pas, int access_flags)
+ {
+ 	unsigned long umem_page_shift = ilog2(umem->page_size);
+ 	int shift = page_shift - umem_page_shift;
+@@ -120,6 +156,23 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 	int len;
+ 	struct scatterlist *sg;
+ 	int entry;
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++	const bool odp = umem->odp_data != NULL;
++
++	if (odp) {
++		int num_pages = ib_umem_num_pages(umem);
++
++		WARN_ON(shift != 0);
++		WARN_ON(access_flags != (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE));
++
++		for (i = 0; i < num_pages; ++i) {
++			dma_addr_t pa = umem->odp_data->dma_list[i];
++
++			pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
++		}
++		return;
++	}
++#endif
+ 
+ 	i = 0;
+ 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+@@ -128,8 +181,7 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 		for (k = 0; k < len; k++) {
+ 			if (!(i & mask)) {
+ 				cur = base + (k << umem_page_shift);
+-				if (umr)
+-					cur |= 3;
++				cur |= access_flags;
+ 
+ 				pas[i >> shift] = cpu_to_be64(cur);
+ 				mlx5_ib_dbg(dev, "pas[%d] 0x%llx\n",
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index cc50fce8cca7..83c1690e9dd0 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -268,6 +268,13 @@ struct mlx5_ib_xrcd {
+ 	u32			xrcdn;
+ };
+ 
++enum mlx5_ib_mtt_access_flags {
++	MLX5_IB_MTT_READ  = (1 << 0),
++	MLX5_IB_MTT_WRITE = (1 << 1),
++};
++
++#define MLX5_IB_MTT_PRESENT (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE)
++
+ struct mlx5_ib_mr {
+ 	struct ib_mr		ibmr;
+ 	struct mlx5_core_mr	mmr;
+@@ -552,7 +559,7 @@ void mlx5_ib_cleanup_fmr(struct mlx5_ib_dev *dev);
+ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
+ 			int *ncont, int *order);
+ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+-			  int page_shift, __be64 *pas, int umr);
++			  int page_shift, __be64 *pas, int access_flags);
+ void mlx5_ib_copy_pas(u64 *old, u64 *new, int step, int num);
+ int mlx5_ib_get_cqe_size(struct mlx5_ib_dev *dev, struct ib_cq *ibcq);
+ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev);
+@@ -588,4 +595,7 @@ static inline u8 convert_access(int acc)
+ 	       MLX5_PERM_LOCAL_READ;
+ }
+ 
++#define MLX5_MAX_UMR_SHIFT 16
++#define MLX5_MAX_UMR_PAGES (1 << MLX5_MAX_UMR_SHIFT)
++
+ #endif /* MLX5_IB_H */
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index d69db8d7d227..fcd531e0758b 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -48,13 +48,6 @@ enum {
+ 	MLX5_UMR_ALIGN	= 2048
+ };
+ 
+-static __be64 *mr_align(__be64 *ptr, int align)
+-{
+-	unsigned long mask = align - 1;
+-
+-	return (__be64 *)(((unsigned long)ptr + mask) & ~mask);
+-}
+-
+ static int order2idx(struct mlx5_ib_dev *dev, int order)
+ {
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+@@ -666,7 +659,7 @@ static int get_octo_len(u64 addr, u64 len, int page_size)
+ 
+ static int use_umr(int order)
+ {
+-	return order <= 17;
++	return order <= MLX5_MAX_UMR_SHIFT;
+ }
+ 
+ static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
+@@ -744,8 +737,9 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	struct ib_send_wr wr, *bad;
+ 	struct mlx5_ib_mr *mr;
+ 	struct ib_sge sg;
+-	int size = sizeof(u64) * npages;
++	int size;
+ 	__be64 *mr_pas;
++	__be64 *pas;
+ 	dma_addr_t dma;
+ 	int err = 0;
+ 	int i;
+@@ -765,17 +759,22 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	if (!mr)
+ 		return ERR_PTR(-EAGAIN);
+ 
++	/* UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes.
++	 * To avoid copying garbage after the pas array, we allocate
++	 * a little more. */
++	size = ALIGN(sizeof(u64) * npages, MLX5_UMR_MTT_ALIGNMENT);
+ 	mr_pas = kmalloc(size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
+ 	if (!mr_pas) {
+ 		err = -ENOMEM;
+ 		goto free_mr;
+ 	}
+ 
+-	mlx5_ib_populate_pas(dev, umem, page_shift,
+-			     mr_align(mr_pas, MLX5_UMR_ALIGN), 1);
++	pas = PTR_ALIGN(mr_pas, MLX5_UMR_ALIGN);
++	mlx5_ib_populate_pas(dev, umem, page_shift, pas, MLX5_IB_MTT_PRESENT);
++	/* Clear padding after the actual pages. */
++	memset(pas + npages, 0, size - npages * sizeof(u64));
+ 
+-	dma = dma_map_single(ddev, mr_align(mr_pas, MLX5_UMR_ALIGN), size,
+-			     DMA_TO_DEVICE);
++	dma = dma_map_single(ddev, pas, size, DMA_TO_DEVICE);
+ 	if (dma_mapping_error(ddev, dma)) {
+ 		err = -ENOMEM;
+ 		goto free_pas;
+@@ -830,6 +829,8 @@ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+ 	struct mlx5_ib_mr *mr;
+ 	int inlen;
+ 	int err;
++	bool pg_cap = !!(dev->mdev->caps.gen.flags &
++			 MLX5_DEV_CAP_FLAG_ON_DMND_PG);
+ 
+ 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+ 	if (!mr)
+@@ -841,8 +842,12 @@ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+ 		err = -ENOMEM;
+ 		goto err_1;
+ 	}
+-	mlx5_ib_populate_pas(dev, umem, page_shift, in->pas, 0);
++	mlx5_ib_populate_pas(dev, umem, page_shift, in->pas,
++			     pg_cap ? MLX5_IB_MTT_PRESENT : 0);
+ 
++	/* The MLX5_MKEY_INBOX_PG_ACCESS bit allows setting the access flags
++	 * in the page list submitted with the command. */
++	in->flags = pg_cap ? cpu_to_be32(MLX5_MKEY_INBOX_PG_ACCESS) : 0;
+ 	in->seg.flags = convert_access(access_flags) |
+ 		MLX5_ACCESS_MODE_MTT;
+ 	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index ec7389fe4822..c56b108a3cde 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -198,6 +198,9 @@ enum {
+ 	MLX5_UMR_INLINE			= (1 << 7),
+ };
+ 
++#define MLX5_UMR_MTT_ALIGNMENT 0x40
++#define MLX5_UMR_MTT_MASK      (MLX5_UMR_MTT_ALIGNMENT - 1)
++
+ enum mlx5_event {
+ 	MLX5_EVENT_TYPE_COMP		   = 0x0,
+ 
 -- 
 1.7.11.2
 
