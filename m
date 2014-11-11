@@ -1,7 +1,7 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 12/17] IB/mlx5: Changes in memory region creation to support on-demand paging
-Date: Tue, 11 Nov 2014 18:36:18 +0200
-Message-ID: <1415723783-2138-13-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v2 04/17] IB/core: Add umem function to read data from user-space
+Date: Tue, 11 Nov 2014 18:36:10 +0200
+Message-ID: <1415723783-2138-5-git-send-email-haggaie@mellanox.com>
 References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1415723783-2138-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,263 +10,64 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch wraps together several changes needed for on-demand paging support
-in the mlx5_ib_populate_pas function, and when registering memory regions.
+In some drivers there's a need to read data from a user space area that
+was pinned using ib_umem, when running from a different process context.
 
-* Instead of accepting a UMR bit telling the function to enable all access
-  flags, the function now accepts the access flags themselves.
-* For on-demand paging memory regions, fill the memory tables from the
-  correct list, and enable/disable the access flags per-page according to
-  whether the page is present.
-* A new bit is set to enable writing of access flags when using the firmware
-  create_mkey command.
-* Disable contig pages when on-demand paging is enabled.
-
-In addition the patch changes the UMR code to use PTR_ALIGN instead of our own
-macro.
+The ib_umem_copy_from function allows reading data from the physical pages
+pinned in the ib_umem struct.
 
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mem.c     | 58 ++++++++++++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++++-
- drivers/infiniband/hw/mlx5/mr.c      | 33 +++++++++++---------
- include/linux/mlx5/device.h          |  3 ++
- 4 files changed, 88 insertions(+), 18 deletions(-)
+ drivers/infiniband/core/umem.c | 26 ++++++++++++++++++++++++++
+ include/rdma/ib_umem.h         |  2 ++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
-index dae07eae9507..5f7b30147180 100644
---- a/drivers/infiniband/hw/mlx5/mem.c
-+++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -32,6 +32,7 @@
- 
- #include <linux/module.h>
- #include <rdma/ib_umem.h>
-+#include <rdma/ib_umem_odp.h>
- #include "mlx5_ib.h"
- 
- /* @umem: umem object to scan
-@@ -57,6 +58,17 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
- 	int entry;
- 	unsigned long page_shift = ilog2(umem->page_size);
- 
-+	/* With ODP we must always match OS page size. */
-+	if (umem->odp_data) {
-+		*count = ib_umem_page_count(umem);
-+		*shift = PAGE_SHIFT;
-+		*ncont = *count;
-+		if (order)
-+			*order = ilog2(roundup_pow_of_two(*count));
-+
-+		return;
-+	}
-+
- 	addr = addr >> page_shift;
- 	tmp = (unsigned long)addr;
- 	m = find_first_bit(&tmp, sizeof(tmp));
-@@ -108,8 +120,32 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
- 	*count = i;
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index e0f883292374..77bec75963e7 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -292,3 +292,29 @@ int ib_umem_page_count(struct ib_umem *umem)
+ 	return n;
  }
- 
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
-+{
-+	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
-+
-+	if (umem_dma & ODP_READ_ALLOWED_BIT)
-+		mtt_entry |= MLX5_IB_MTT_READ;
-+	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
-+		mtt_entry |= MLX5_IB_MTT_WRITE;
-+
-+	return mtt_entry;
-+}
-+#endif
+ EXPORT_SYMBOL(ib_umem_page_count);
 +
 +/*
-+ * Populate the given array with bus addresses from the umem.
++ * Copy from the given ib_umem's pages to the given buffer.
 + *
-+ * dev - mlx5_ib device
-+ * umem - umem to use to fill the pages
-+ * page_shift - determines the page size used in the resulting array
-+ * pas - bus addresses array to fill
-+ * access_flags - access flags to set on all present pages.
-+		  use enum mlx5_ib_mtt_access_flags for this.
++ * umem - the umem to copy from
++ * offset - offset to start copying from
++ * dst - destination buffer
++ * length - buffer length
++ *
++ * Returns the number of copied bytes, or an error code.
 + */
- void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
--			  int page_shift, __be64 *pas, int umr)
-+			  int page_shift, __be64 *pas, int access_flags)
- {
- 	unsigned long umem_page_shift = ilog2(umem->page_size);
- 	int shift = page_shift - umem_page_shift;
-@@ -120,6 +156,23 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
- 	int len;
- 	struct scatterlist *sg;
- 	int entry;
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	const bool odp = umem->odp_data != NULL;
++int ib_umem_copy_from(struct ib_umem *umem, size_t offset, void *dst,
++		      size_t length)
++{
++	size_t end = offset + length;
 +
-+	if (odp) {
-+		int num_pages = ib_umem_num_pages(umem);
-+
-+		WARN_ON(shift != 0);
-+		WARN_ON(access_flags != (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE));
-+
-+		for (i = 0; i < num_pages; ++i) {
-+			dma_addr_t pa = umem->odp_data->dma_list[i];
-+
-+			pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
-+		}
-+		return;
++	if (offset > umem->length || end > umem->length || end < offset) {
++		pr_err("ib_umem_copy_from not in range. offset: %zd umem length: %zd end: %zd\n",
++		       offset, umem->length, end);
++		return -EINVAL;
 +	}
-+#endif
- 
- 	i = 0;
- 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
-@@ -128,8 +181,7 @@ void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
- 		for (k = 0; k < len; k++) {
- 			if (!(i & mask)) {
- 				cur = base + (k << umem_page_shift);
--				if (umr)
--					cur |= 3;
-+				cur |= access_flags;
- 
- 				pas[i >> shift] = cpu_to_be64(cur);
- 				mlx5_ib_dbg(dev, "pas[%d] 0x%llx\n",
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index cc50fce8cca7..83c1690e9dd0 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -268,6 +268,13 @@ struct mlx5_ib_xrcd {
- 	u32			xrcdn;
- };
- 
-+enum mlx5_ib_mtt_access_flags {
-+	MLX5_IB_MTT_READ  = (1 << 0),
-+	MLX5_IB_MTT_WRITE = (1 << 1),
-+};
 +
-+#define MLX5_IB_MTT_PRESENT (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE)
-+
- struct mlx5_ib_mr {
- 	struct ib_mr		ibmr;
- 	struct mlx5_core_mr	mmr;
-@@ -552,7 +559,7 @@ void mlx5_ib_cleanup_fmr(struct mlx5_ib_dev *dev);
- void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
- 			int *ncont, int *order);
- void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
--			  int page_shift, __be64 *pas, int umr);
-+			  int page_shift, __be64 *pas, int access_flags);
- void mlx5_ib_copy_pas(u64 *old, u64 *new, int step, int num);
- int mlx5_ib_get_cqe_size(struct mlx5_ib_dev *dev, struct ib_cq *ibcq);
- int mlx5_mr_cache_init(struct mlx5_ib_dev *dev);
-@@ -588,4 +595,7 @@ static inline u8 convert_access(int acc)
- 	       MLX5_PERM_LOCAL_READ;
- }
++	return sg_pcopy_to_buffer(umem->sg_head.sgl, umem->nmap, dst, length,
++			offset + ib_umem_offset(umem));
++}
++EXPORT_SYMBOL(ib_umem_copy_from);
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 7ed6d4ff58dc..ee897724cbf8 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -84,6 +84,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 			    size_t size, int access, int dmasync);
+ void ib_umem_release(struct ib_umem *umem);
+ int ib_umem_page_count(struct ib_umem *umem);
++int ib_umem_copy_from(struct ib_umem *umem, size_t start, void *dst,
++		      size_t length);
  
-+#define MLX5_MAX_UMR_SHIFT 16
-+#define MLX5_MAX_UMR_PAGES (1 << MLX5_MAX_UMR_SHIFT)
-+
- #endif /* MLX5_IB_H */
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index d69db8d7d227..fcd531e0758b 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -48,13 +48,6 @@ enum {
- 	MLX5_UMR_ALIGN	= 2048
- };
- 
--static __be64 *mr_align(__be64 *ptr, int align)
--{
--	unsigned long mask = align - 1;
--
--	return (__be64 *)(((unsigned long)ptr + mask) & ~mask);
--}
--
- static int order2idx(struct mlx5_ib_dev *dev, int order)
- {
- 	struct mlx5_mr_cache *cache = &dev->cache;
-@@ -666,7 +659,7 @@ static int get_octo_len(u64 addr, u64 len, int page_size)
- 
- static int use_umr(int order)
- {
--	return order <= 17;
-+	return order <= MLX5_MAX_UMR_SHIFT;
- }
- 
- static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
-@@ -744,8 +737,9 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	struct ib_send_wr wr, *bad;
- 	struct mlx5_ib_mr *mr;
- 	struct ib_sge sg;
--	int size = sizeof(u64) * npages;
-+	int size;
- 	__be64 *mr_pas;
-+	__be64 *pas;
- 	dma_addr_t dma;
- 	int err = 0;
- 	int i;
-@@ -765,17 +759,22 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 	if (!mr)
- 		return ERR_PTR(-EAGAIN);
- 
-+	/* UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes.
-+	 * To avoid copying garbage after the pas array, we allocate
-+	 * a little more. */
-+	size = ALIGN(sizeof(u64) * npages, MLX5_UMR_MTT_ALIGNMENT);
- 	mr_pas = kmalloc(size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
- 	if (!mr_pas) {
- 		err = -ENOMEM;
- 		goto free_mr;
- 	}
- 
--	mlx5_ib_populate_pas(dev, umem, page_shift,
--			     mr_align(mr_pas, MLX5_UMR_ALIGN), 1);
-+	pas = PTR_ALIGN(mr_pas, MLX5_UMR_ALIGN);
-+	mlx5_ib_populate_pas(dev, umem, page_shift, pas, MLX5_IB_MTT_PRESENT);
-+	/* Clear padding after the actual pages. */
-+	memset(pas + npages, 0, size - npages * sizeof(u64));
- 
--	dma = dma_map_single(ddev, mr_align(mr_pas, MLX5_UMR_ALIGN), size,
--			     DMA_TO_DEVICE);
-+	dma = dma_map_single(ddev, pas, size, DMA_TO_DEVICE);
- 	if (dma_mapping_error(ddev, dma)) {
- 		err = -ENOMEM;
- 		goto free_pas;
-@@ -830,6 +829,8 @@ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
- 	struct mlx5_ib_mr *mr;
- 	int inlen;
- 	int err;
-+	bool pg_cap = !!(dev->mdev->caps.gen.flags &
-+			 MLX5_DEV_CAP_FLAG_ON_DMND_PG);
- 
- 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
- 	if (!mr)
-@@ -841,8 +842,12 @@ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
- 		err = -ENOMEM;
- 		goto err_1;
- 	}
--	mlx5_ib_populate_pas(dev, umem, page_shift, in->pas, 0);
-+	mlx5_ib_populate_pas(dev, umem, page_shift, in->pas,
-+			     pg_cap ? MLX5_IB_MTT_PRESENT : 0);
- 
-+	/* The MLX5_MKEY_INBOX_PG_ACCESS bit allows setting the access flags
-+	 * in the page list submitted with the command. */
-+	in->flags = pg_cap ? cpu_to_be32(MLX5_MKEY_INBOX_PG_ACCESS) : 0;
- 	in->seg.flags = convert_access(access_flags) |
- 		MLX5_ACCESS_MODE_MTT;
- 	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index ec7389fe4822..c56b108a3cde 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -198,6 +198,9 @@ enum {
- 	MLX5_UMR_INLINE			= (1 << 7),
- };
- 
-+#define MLX5_UMR_MTT_ALIGNMENT 0x40
-+#define MLX5_UMR_MTT_MASK      (MLX5_UMR_MTT_ALIGNMENT - 1)
-+
- enum mlx5_event {
- 	MLX5_EVENT_TYPE_COMP		   = 0x0,
+ #else /* CONFIG_INFINIBAND_USER_MEM */
  
 -- 
 1.7.11.2
