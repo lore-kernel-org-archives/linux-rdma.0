@@ -1,36 +1,64 @@
-From: Mohammed Rafi K C <muhammedrafi13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: ibv_reg_mr fails to register memory
-Date: Tue, 11 Nov 2014 15:42:23 +0530
-Message-ID: <1415700743.7672.1.camel@rafi>
-Reply-To: muhammedrafi13-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: FMR Support in multi-function environment
+Date: Tue, 11 Nov 2014 12:54:15 +0200
+Message-ID: <20141111125415.5ce4886f@jpm-OptiPlex-GX620>
+References: <CANwwZzU+QzHqjo2wc-_E36E7PQMJhuuBsVW_Ux+JVfM_a+Ydqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANwwZzU+QzHqjo2wc-_E36E7PQMJhuuBsVW_Ux+JVfM_a+Ydqw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "rtalur-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <rtalur-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+On Mon, 10 Nov 2014 19:58:46 +0530
+Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-I was trying to implement an application that support rdma using
-librdmacm. When the process is trying to register the buffer using
-ibv_reg_mr, it failes after registering  some number buffer.
+> Hi,
+> 
+> Is FMR (Fast Memory Regions) supported in a multi-function mode?
 
-We are using Mellanox Technologies MT27500 Family [ConnectX-3] cards. 
+In SRIOV, FMR is supported only for the PF, not for VFs (since this
+feature requires writing directly to mapped ICM memory).
 
-Reconfigured options are :
+You can see this in file drivers/infiniband/hw/mlx4/main.c, function
+mlx4_ib_add() :
 
-1) cat /sys/module/mlx4_core/parameters/log_num_mtt
-    24
-2) cat /sys/module/mlx4_core/parameters/log_mtts_per_seg
-    7
 
-Can anyone point out reason behind ibv_reg_mr fails ?
+        if (!mlx4_is_slave(ibdev->dev)) {
+                ibdev->ib_dev.alloc_fmr         = mlx4_ib_fmr_alloc;
+                ibdev->ib_dev.map_phys_fmr      = mlx4_ib_map_phys_fmr;
+                ibdev->ib_dev.unmap_fmr         = mlx4_ib_unmap_fmr;
+                ibdev->ib_dev.dealloc_fmr       = mlx4_ib_fmr_dealloc;
+        }
 
-Thanks & Regards
-Rafi KC
+i.e., the fmr functions are not put into the device virtual function
+table for slave (= VF) devices.
+
+-Jack
+
+> 
+> If yes, I couldn't find the source code for the same in the mlx4
+> codebase. Can anyone please point me to the right location...
+> 
+> What I was trying to understand is this:
+> 
+> Suppose a VF driver wants to register large amount of memory using
+> FMR, will it be able to do so using the mlx4 code.
+> 
+> Or FMR is supported only in dedicated mode?
+> 
+> 
+> Thanks
+> 
+> Best Regards,
+> Bob
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
