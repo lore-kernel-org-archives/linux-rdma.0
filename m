@@ -1,615 +1,563 @@
 From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 08/17] IB/core: Add support for on demand paging regions
-Date: Tue, 11 Nov 2014 18:36:14 +0200
-Message-ID: <1415723783-2138-9-git-send-email-haggaie@mellanox.com>
+Subject: [PATCH v2 14/17] IB/mlx5: Page faults handling infrastructure
+Date: Tue, 11 Nov 2014 18:36:20 +0200
+Message-ID: <1415723783-2138-15-git-send-email-haggaie@mellanox.com>
 References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1415723783-2138-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+* Refactor MR registration and cleanup, and fix reg_pages accounting.
+* Create a work queue to handle page fault events in a kthread context.
+* Register a fault handler to get events from the core for each QP.
 
-* Extend the umem struct to keep the ODP related data.
-* Allocate and initialize the ODP related information in the umem
-  (page_list, dma_list) and freeing as needed in the end of the run.
-* Store a reference to the process PID struct in the ucontext. Used to
-  safely obtain the task_struct and the mm during fault handling, without
-  preventing the task destruction if needed.
-* Add 2 helper functions: ib_umem_odp_map_dma_pages and
-  ib_umem_odp_unmap_dma_pages. These functions get the DMA addresses of
-  specific pages of the umem (and, currently, pin them).
-* Support for page faults only - IB core will keep the reference on the pages
-  used and call put_page when freeing an ODP umem area. Invalidations support
-  will be added in a later patch.
+The registered fault handler is empty in this patch, and only a later patch
+implements it.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile      |   1 +
- drivers/infiniband/core/umem.c        |  24 +++
- drivers/infiniband/core/umem_odp.c    | 308 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_cmd.c  |   5 +
- drivers/infiniband/core/uverbs_main.c |   2 +
- include/rdma/ib_umem.h                |   2 +
- include/rdma/ib_umem_odp.h            |  97 +++++++++++
- include/rdma/ib_verbs.h               |   2 +
- 8 files changed, 441 insertions(+)
- create mode 100644 drivers/infiniband/core/umem_odp.c
- create mode 100644 include/rdma/ib_umem_odp.h
+ drivers/infiniband/hw/mlx5/main.c    |  31 +++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  67 +++++++++++++++-
+ drivers/infiniband/hw/mlx5/mr.c      |  45 +++++++----
+ drivers/infiniband/hw/mlx5/odp.c     | 145 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/qp.c      |  26 ++++++-
+ include/linux/mlx5/driver.h          |   2 +-
+ 6 files changed, 294 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index ffd0af6734af..c58f7913c560 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -11,6 +11,7 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
- ib_core-y :=			packer.o ud_header.o verbs.o sysfs.o \
- 				device.o fmr_pool.o cache.o netlink.o
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
-+ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e6d775f2446d..a801baa79c8e 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -864,7 +864,7 @@ static ssize_t show_reg_pages(struct device *device,
+ 	struct mlx5_ib_dev *dev =
+ 		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
  
- ib_mad-y :=			mad.o smi.o agent.o mad_rmpp.o
- 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index a140b2d4d94e..45d7794c7a2b 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -39,6 +39,7 @@
- #include <linux/hugetlb.h>
- #include <linux/dma-attrs.h>
- #include <linux/slab.h>
-+#include <rdma/ib_umem_odp.h>
- 
- #include "uverbs.h"
- 
-@@ -69,6 +70,10 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 
- /**
-  * ib_umem_get - Pin and DMA map userspace memory.
-+ *
-+ * If access flags indicate ODP memory, avoid pinning. Instead, stores
-+ * the mm for future page fault handling.
-+ *
-  * @context: userspace context to pin memory for
-  * @addr: userspace virtual address to start at
-  * @size: length of region to pin
-@@ -117,6 +122,17 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		(IB_ACCESS_LOCAL_WRITE   | IB_ACCESS_REMOTE_WRITE |
- 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
- 
-+	if (access & IB_ACCESS_ON_DEMAND) {
-+		ret = ib_umem_odp_get(context, umem);
-+		if (ret) {
-+			kfree(umem);
-+			return ERR_PTR(ret);
-+		}
-+		return umem;
-+	}
-+
-+	umem->odp_data = NULL;
-+
- 	/* We assume the memory is from hugetlb until proved otherwise */
- 	umem->hugetlb   = 1;
- 
-@@ -237,6 +253,11 @@ void ib_umem_release(struct ib_umem *umem)
- 	struct task_struct *task;
- 	unsigned long diff;
- 
-+	if (umem->odp_data) {
-+		ib_umem_odp_release(umem);
-+		return;
-+	}
-+
- 	__ib_umem_release(umem->context->device, umem, 1);
- 
- 	task = get_pid_task(umem->pid, PIDTYPE_PID);
-@@ -285,6 +306,9 @@ int ib_umem_page_count(struct ib_umem *umem)
- 	int n;
- 	struct scatterlist *sg;
- 
-+	if (umem->odp_data)
-+		return ib_umem_num_pages(umem);
-+
- 	shift = ilog2(umem->page_size);
- 
- 	n = 0;
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-new file mode 100644
-index 000000000000..b1a6a44439a2
---- /dev/null
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -0,0 +1,308 @@
-+/*
-+ * Copyright (c) 2014 Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/sched.h>
-+#include <linux/pid.h>
-+#include <linux/slab.h>
-+#include <linux/export.h>
-+#include <linux/vmalloc.h>
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_umem_odp.h>
-+
-+int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
-+{
-+	int ret_val;
-+	struct pid *our_pid;
-+
-+	/* Prevent creating ODP MRs in child processes */
-+	rcu_read_lock();
-+	our_pid = get_task_pid(current->group_leader, PIDTYPE_PID);
-+	rcu_read_unlock();
-+	put_pid(our_pid);
-+	if (context->tgid != our_pid)
-+		return -EINVAL;
-+
-+	umem->hugetlb = 0;
-+	umem->odp_data = kzalloc(sizeof(*umem->odp_data), GFP_KERNEL);
-+	if (!umem->odp_data)
-+		return -ENOMEM;
-+
-+	mutex_init(&umem->odp_data->umem_mutex);
-+
-+	umem->odp_data->page_list = vzalloc(ib_umem_num_pages(umem) *
-+					    sizeof(*umem->odp_data->page_list));
-+	if (!umem->odp_data->page_list) {
-+		ret_val = -ENOMEM;
-+		goto out_odp_data;
-+	}
-+
-+	umem->odp_data->dma_list = vzalloc(ib_umem_num_pages(umem) *
-+					  sizeof(*umem->odp_data->dma_list));
-+	if (!umem->odp_data->dma_list) {
-+		ret_val = -ENOMEM;
-+		goto out_page_list;
-+	}
-+
-+	return 0;
-+
-+out_page_list:
-+	vfree(umem->odp_data->page_list);
-+out_odp_data:
-+	kfree(umem->odp_data);
-+	return ret_val;
-+}
-+
-+void ib_umem_odp_release(struct ib_umem *umem)
-+{
-+	/*
-+	 * Ensure that no more pages are mapped in the umem.
-+	 *
-+	 * It is the driver's responsibility to ensure, before calling us,
-+	 * that the hardware will not attempt to access the MR any more.
-+	 */
-+	ib_umem_odp_unmap_dma_pages(umem, ib_umem_start(umem),
-+				    ib_umem_end(umem));
-+
-+	vfree(umem->odp_data->dma_list);
-+	vfree(umem->odp_data->page_list);
-+	kfree(umem);
-+}
-+
-+/*
-+ * Map for DMA and insert a single page into the on-demand paging page tables.
-+ *
-+ * @umem: the umem to insert the page to.
-+ * @page_index: index in the umem to add the page to.
-+ * @page: the page struct to map and add.
-+ * @access_mask: access permissions needed for this page.
-+ * @current_seq: sequence number for synchronization with invalidations.
-+ *               the sequence number is taken from
-+ *               umem->odp_data->notifiers_seq.
-+ *
-+ * The function returns -EFAULT if the DMA mapping operation fails.
-+ *
-+ * The page is released via put_page even if the operation failed. For
-+ * on-demand pinning, the page is released whenever it isn't stored in the
-+ * umem.
-+ */
-+static int ib_umem_odp_map_dma_single_page(
-+		struct ib_umem *umem,
-+		int page_index,
-+		struct page *page,
-+		u64 access_mask,
-+		unsigned long current_seq)
-+{
-+	struct ib_device *dev = umem->context->device;
-+	dma_addr_t dma_addr;
-+	int stored_page = 0;
-+	int ret = 0;
-+
-+	mutex_lock(&umem->odp_data->umem_mutex);
-+	if (!(umem->odp_data->dma_list[page_index])) {
-+		dma_addr = ib_dma_map_page(dev,
-+					   page,
-+					   0, PAGE_SIZE,
-+					   DMA_BIDIRECTIONAL);
-+		if (ib_dma_mapping_error(dev, dma_addr)) {
-+			ret = -EFAULT;
-+			goto out;
-+		}
-+		umem->odp_data->dma_list[page_index] = dma_addr | access_mask;
-+		umem->odp_data->page_list[page_index] = page;
-+		stored_page = 1;
-+	} else if (umem->odp_data->page_list[page_index] == page) {
-+		umem->odp_data->dma_list[page_index] |= access_mask;
-+	} else {
-+		pr_err("error: got different pages in IB device and from get_user_pages. IB device page: %p, gup page: %p\n",
-+		       umem->odp_data->page_list[page_index], page);
-+	}
-+
-+out:
-+	mutex_unlock(&umem->odp_data->umem_mutex);
-+
-+	if (!stored_page)
-+		put_page(page);
-+
-+	return ret;
-+}
-+
-+/**
-+ * ib_umem_odp_map_dma_pages - Pin and DMA map userspace memory in an ODP MR.
-+ *
-+ * Pins the range of pages passed in the argument, and maps them to
-+ * DMA addresses. The DMA addresses of the mapped pages is updated in
-+ * umem->odp_data->dma_list.
-+ *
-+ * Returns the number of pages mapped in success, negative error code
-+ * for failure.
-+ *
-+ * @umem: the umem to map and pin
-+ * @user_virt: the address from which we need to map.
-+ * @bcnt: the minimal number of bytes to pin and map. The mapping might be
-+ *        bigger due to alignment, and may also be smaller in case of an error
-+ *        pinning or mapping a page. The actual pages mapped is returned in
-+ *        the return value.
-+ * @access_mask: bit mask of the requested access permissions for the given
-+ *               range.
-+ * @current_seq: the MMU notifiers sequance value for synchronization with
-+ *               invalidations. the sequance number is read from
-+ *               umem->odp_data->notifiers_seq before calling this function
-+ */
-+int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
-+			      u64 access_mask, unsigned long current_seq)
-+{
-+	struct task_struct *owning_process  = NULL;
-+	struct mm_struct   *owning_mm       = NULL;
-+	struct page       **local_page_list = NULL;
-+	u64 off;
-+	int j, k, ret = 0, start_idx, npages = 0;
-+
-+	if (access_mask == 0)
-+		return -EINVAL;
-+
-+	if (user_virt < ib_umem_start(umem) ||
-+	    user_virt + bcnt > ib_umem_end(umem))
-+		return -EFAULT;
-+
-+	local_page_list = (struct page **)__get_free_page(GFP_KERNEL);
-+	if (!local_page_list)
-+		return -ENOMEM;
-+
-+	off = user_virt & (~PAGE_MASK);
-+	user_virt = user_virt & PAGE_MASK;
-+	bcnt += off; /* Charge for the first page offset as well. */
-+
-+	owning_process = get_pid_task(umem->context->tgid, PIDTYPE_PID);
-+	if (owning_process == NULL) {
-+		ret = -EINVAL;
-+		goto out_no_task;
-+	}
-+
-+	owning_mm = get_task_mm(owning_process);
-+	if (owning_mm == NULL) {
-+		ret = -EINVAL;
-+		goto out_put_task;
-+	}
-+
-+	start_idx = (user_virt - ib_umem_start(umem)) >> PAGE_SHIFT;
-+	k = start_idx;
-+
-+	while (bcnt > 0) {
-+		const size_t gup_num_pages =
-+			min_t(size_t, ALIGN(bcnt, PAGE_SIZE) / PAGE_SIZE,
-+			      PAGE_SIZE / sizeof(struct page *));
-+
-+		down_read(&owning_mm->mmap_sem);
-+		/*
-+		 * Note: this might result in redundent page getting. We can
-+		 * avoid this by checking dma_list to be 0 before calling
-+		 * get_user_pages. However, this make the code much more
-+		 * complex (and doesn't gain us much performance in most use
-+		 * cases).
-+		 */
-+		npages = get_user_pages(owning_process, owning_mm, user_virt,
-+					gup_num_pages,
-+					access_mask & ODP_WRITE_ALLOWED_BIT, 0,
-+					local_page_list, NULL);
-+		up_read(&owning_mm->mmap_sem);
-+
-+		if (npages < 0)
-+			break;
-+
-+		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
-+		user_virt += npages << PAGE_SHIFT;
-+		for (j = 0; j < npages; ++j) {
-+			ret = ib_umem_odp_map_dma_single_page(
-+				umem, k, local_page_list[j], access_mask,
-+				current_seq);
-+			if (ret < 0)
-+				break;
-+			k++;
-+		}
-+
-+		if (ret < 0) {
-+			/* Release left over pages when handling errors. */
-+			for (++j; j < npages; ++j)
-+				put_page(local_page_list[j]);
-+			break;
-+		}
-+	}
-+
-+	if (ret >= 0) {
-+		if (npages < 0 && k == start_idx)
-+			ret = npages;
-+		else
-+			ret = k - start_idx;
-+	}
-+
-+	mmput(owning_mm);
-+out_put_task:
-+	put_task_struct(owning_process);
-+out_no_task:
-+	free_page((unsigned long)local_page_list);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ib_umem_odp_map_dma_pages);
-+
-+void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 virt,
-+				 u64 bound)
-+{
-+	int idx;
-+	u64 addr;
-+	struct ib_device *dev = umem->context->device;
-+
-+	virt  = max_t(u64, virt,  ib_umem_start(umem));
-+	bound = min_t(u64, bound, ib_umem_end(umem));
-+	for (addr = virt; addr < bound; addr += (u64)umem->page_size) {
-+		idx = (addr - ib_umem_start(umem)) / PAGE_SIZE;
-+		mutex_lock(&umem->odp_data->umem_mutex);
-+		if (umem->odp_data->page_list[idx]) {
-+			struct page *page = umem->odp_data->page_list[idx];
-+			struct page *head_page = compound_head(page);
-+			dma_addr_t dma = umem->odp_data->dma_list[idx];
-+			dma_addr_t dma_addr = dma & ODP_DMA_ADDR_MASK;
-+
-+			WARN_ON(!dma_addr);
-+
-+			ib_dma_unmap_page(dev, dma_addr, PAGE_SIZE,
-+					  DMA_BIDIRECTIONAL);
-+			if (dma & ODP_WRITE_ALLOWED_BIT)
-+				set_page_dirty_lock(head_page);
-+			put_page(page);
-+		}
-+		mutex_unlock(&umem->odp_data->umem_mutex);
-+	}
-+}
-+EXPORT_SYMBOL(ib_umem_odp_unmap_dma_pages);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 46b60086a4bf..c094265c0ae4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -36,6 +36,7 @@
- #include <linux/file.h>
- #include <linux/fs.h>
- #include <linux/slab.h>
-+#include <linux/sched.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -325,6 +326,9 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&ucontext->ah_list);
- 	INIT_LIST_HEAD(&ucontext->xrcd_list);
- 	INIT_LIST_HEAD(&ucontext->rule_list);
-+	rcu_read_lock();
-+	ucontext->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
-+	rcu_read_unlock();
- 	ucontext->closing = 0;
- 
- 	resp.num_comp_vectors = file->device->num_comp_vectors;
-@@ -371,6 +375,7 @@ err_fd:
- 	put_unused_fd(resp.async_fd);
- 
- err_free:
-+	put_pid(ucontext->tgid);
- 	ibdev->dealloc_ucontext(ucontext);
- 
- err:
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 974025028790..e6c23b9eab33 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -297,6 +297,8 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 		kfree(uobj);
- 	}
- 
-+	put_pid(context->tgid);
-+
- 	return context->device->dealloc_ucontext(context);
+-	return sprintf(buf, "%d\n", dev->mdev->priv.reg_pages);
++	return sprintf(buf, "%d\n", atomic_read(&dev->mdev->priv.reg_pages));
  }
  
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index ee897724cbf8..d5f6db1d8cdf 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -38,6 +38,7 @@
- #include <linux/workqueue.h>
+ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+@@ -1389,16 +1389,19 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 		goto err_eqs;
  
- struct ib_ucontext;
-+struct ib_umem_odp;
+ 	mutex_init(&dev->cap_mask_mutex);
+-	spin_lock_init(&dev->mr_lock);
  
- struct ib_umem {
- 	struct ib_ucontext     *context;
-@@ -50,6 +51,7 @@ struct ib_umem {
- 	struct pid             *pid;
- 	struct mm_struct       *mm;
- 	unsigned long		diff;
-+	struct ib_umem_odp     *odp_data;
- 	struct sg_table sg_head;
- 	int             nmap;
- 	int             npages;
-diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-new file mode 100644
-index 000000000000..b5a2df1923b7
---- /dev/null
-+++ b/include/rdma/ib_umem_odp.h
-@@ -0,0 +1,97 @@
-+/*
-+ * Copyright (c) 2014 Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+ 	err = create_dev_resources(&dev->devr);
+ 	if (err)
+ 		goto err_eqs;
+ 
+-	err = ib_register_device(&dev->ib_dev, NULL);
++	err = mlx5_ib_odp_init_one(dev);
+ 	if (err)
+ 		goto err_rsrc;
+ 
++	err = ib_register_device(&dev->ib_dev, NULL);
++	if (err)
++		goto err_odp;
 +
-+#ifndef IB_UMEM_ODP_H
-+#define IB_UMEM_ODP_H
+ 	err = create_umr_res(dev);
+ 	if (err)
+ 		goto err_dev;
+@@ -1420,6 +1423,9 @@ err_umrc:
+ err_dev:
+ 	ib_unregister_device(&dev->ib_dev);
+ 
++err_odp:
++	mlx5_ib_odp_remove_one(dev);
 +
-+#include <rdma/ib_umem.h>
+ err_rsrc:
+ 	destroy_dev_resources(&dev->devr);
+ 
+@@ -1435,8 +1441,10 @@ err_dealloc:
+ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
+ {
+ 	struct mlx5_ib_dev *dev = context;
 +
-+struct ib_umem_odp {
-+	/*
-+	 * An array of the pages included in the on-demand paging umem.
-+	 * Indices of pages that are currently not mapped into the device will
-+	 * contain NULL.
-+	 */
-+	struct page		**page_list;
-+	/*
-+	 * An array of the same size as page_list, with DMA addresses mapped
-+	 * for pages the pages in page_list. The lower two bits designate
-+	 * access permissions. See ODP_READ_ALLOWED_BIT and
-+	 * ODP_WRITE_ALLOWED_BIT.
-+	 */
-+	dma_addr_t		*dma_list;
-+	/*
-+	 * The umem_mutex protects the page_list and dma_list fields of an ODP
-+	 * umem, allowing only a single thread to map/unmap pages.
-+	 */
-+	struct mutex		umem_mutex;
-+	void			*private; /* for the HW driver to use. */
-+};
+ 	ib_unregister_device(&dev->ib_dev);
+ 	destroy_umrc_res(dev);
++	mlx5_ib_odp_remove_one(dev);
+ 	destroy_dev_resources(&dev->devr);
+ 	free_comp_eqs(dev);
+ 	ib_dealloc_device(&dev->ib_dev);
+@@ -1450,15 +1458,30 @@ static struct mlx5_interface mlx5_ib_interface = {
+ 
+ static int __init mlx5_ib_init(void)
+ {
++	int err;
 +
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	if (deprecated_prof_sel != 2)
+ 		pr_warn("prof_sel is deprecated for mlx5_ib, set it for mlx5_core\n");
+ 
+-	return mlx5_register_interface(&mlx5_ib_interface);
++	err = mlx5_ib_odp_init();
++	if (err)
++		return err;
 +
-+int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem);
++	err = mlx5_register_interface(&mlx5_ib_interface);
++	if (err)
++		goto clean_odp;
 +
-+void ib_umem_odp_release(struct ib_umem *umem);
++	return err;
 +
-+/*
-+ * The lower 2 bits of the DMA address signal the R/W permissions for
-+ * the entry. To upgrade the permissions, provide the appropriate
-+ * bitmask to the map_dma_pages function.
-+ *
-+ * Be aware that upgrading a mapped address might result in change of
-+ * the DMA address for the page.
-+ */
-+#define ODP_READ_ALLOWED_BIT  (1<<0ULL)
-+#define ODP_WRITE_ALLOWED_BIT (1<<1ULL)
-+
-+#define ODP_DMA_ADDR_MASK (~(ODP_READ_ALLOWED_BIT | ODP_WRITE_ALLOWED_BIT))
-+
-+int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 start_offset, u64 bcnt,
-+			      u64 access_mask, unsigned long current_seq);
-+
-+void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 start_offset,
-+				 u64 bound);
-+
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-+
-+static inline int ib_umem_odp_get(struct ib_ucontext *context,
-+				  struct ib_umem *umem)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline void ib_umem_odp_release(struct ib_umem *umem) {}
-+
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-+
-+#endif /* IB_UMEM_ODP_H */
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a41bc5a39ebf..3af5dcad1b69 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1151,6 +1151,8 @@ struct ib_ucontext {
- 	struct list_head	xrcd_list;
- 	struct list_head	rule_list;
- 	int			closing;
-+
-+	struct pid             *tgid;
++clean_odp:
++	mlx5_ib_odp_cleanup();
++	return err;
+ }
+ 
+ static void __exit mlx5_ib_cleanup(void)
+ {
+ 	mlx5_unregister_interface(&mlx5_ib_interface);
++	mlx5_ib_odp_cleanup();
+ }
+ 
+ module_init(mlx5_ib_init);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 6856e27bfb6a..c6ceec3e3d6a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -149,6 +149,29 @@ enum {
+ 	MLX5_QP_EMPTY
  };
  
- struct ib_uobject {
++/*
++ * Connect-IB can trigger up to four concurrent pagefaults
++ * per-QP.
++ */
++enum mlx5_ib_pagefault_context {
++	MLX5_IB_PAGEFAULT_RESPONDER_READ,
++	MLX5_IB_PAGEFAULT_REQUESTOR_READ,
++	MLX5_IB_PAGEFAULT_RESPONDER_WRITE,
++	MLX5_IB_PAGEFAULT_REQUESTOR_WRITE,
++	MLX5_IB_PAGEFAULT_CONTEXTS
++};
++
++static inline enum mlx5_ib_pagefault_context
++	mlx5_ib_get_pagefault_context(struct mlx5_pagefault *pagefault)
++{
++	return pagefault->flags & (MLX5_PFAULT_REQUESTOR | MLX5_PFAULT_WRITE);
++}
++
++struct mlx5_ib_pfault {
++	struct work_struct	work;
++	struct mlx5_pagefault	mpfault;
++};
++
+ struct mlx5_ib_qp {
+ 	struct ib_qp		ibqp;
+ 	struct mlx5_core_qp	mqp;
+@@ -194,6 +217,21 @@ struct mlx5_ib_qp {
+ 
+ 	/* Store signature errors */
+ 	bool			signature_en;
++
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++	/*
++	 * A flag that is true for QP's that are in a state that doesn't
++	 * allow page faults, and shouldn't schedule any more faults.
++	 */
++	int                     disable_page_faults;
++	/*
++	 * The disable_page_faults_lock protects a QP's disable_page_faults
++	 * field, allowing for a thread to atomically check whether the QP
++	 * allows page faults, and if so schedule a page fault.
++	 */
++	spinlock_t              disable_page_faults_lock;
++	struct mlx5_ib_pfault	pagefaults[MLX5_IB_PAGEFAULT_CONTEXTS];
++#endif
+ };
+ 
+ struct mlx5_ib_cq_buf {
+@@ -392,13 +430,17 @@ struct mlx5_ib_dev {
+ 	struct umr_common		umrc;
+ 	/* sync used page count stats
+ 	 */
+-	spinlock_t			mr_lock;
+ 	struct mlx5_ib_resources	devr;
+ 	struct mlx5_mr_cache		cache;
+ 	struct timer_list		delay_timer;
+ 	int				fill_delay;
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	struct ib_odp_caps	odp_caps;
++	/*
++	 * Sleepable RCU that prevents destruction of MRs while they are still
++	 * being used by a page fault handler.
++	 */
++	struct srcu_struct      mr_srcu;
+ #endif
+ };
+ 
+@@ -575,12 +617,33 @@ int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
+ 			    struct ib_mr_status *mr_status);
+ 
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++extern struct workqueue_struct *mlx5_ib_page_fault_wq;
++
+ int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev);
+-#else
++void mlx5_ib_mr_pfault_handler(struct mlx5_ib_qp *qp,
++			       struct mlx5_ib_pfault *pfault);
++void mlx5_ib_odp_create_qp(struct mlx5_ib_qp *qp);
++int mlx5_ib_odp_init_one(struct mlx5_ib_dev *ibdev);
++void mlx5_ib_odp_remove_one(struct mlx5_ib_dev *ibdev);
++int __init mlx5_ib_odp_init(void);
++void mlx5_ib_odp_cleanup(void);
++void mlx5_ib_qp_disable_pagefaults(struct mlx5_ib_qp *qp);
++void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp);
++
++#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+ static inline int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev)
+ {
+ 	return 0;
+ }
++
++static inline void mlx5_ib_odp_create_qp(struct mlx5_ib_qp *qp)		{}
++static inline int mlx5_ib_odp_init_one(struct mlx5_ib_dev *ibdev) { return 0; }
++static inline void mlx5_ib_odp_remove_one(struct mlx5_ib_dev *ibdev)	{}
++static inline int mlx5_ib_odp_init(void) { return 0; }
++static inline void mlx5_ib_odp_cleanup(void)				{}
++static inline void mlx5_ib_qp_disable_pagefaults(struct mlx5_ib_qp *qp) {}
++static inline void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp)  {}
++
+ #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+ 
+ static inline void init_query_mad(struct ib_smp *mad)
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index e9675325af41..9c9e16cca043 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -52,6 +52,8 @@ static __be64 mlx5_ib_update_mtt_emergency_buffer[
+ static DEFINE_MUTEX(mlx5_ib_update_mtt_emergency_buffer_mutex);
+ #endif
+ 
++static int clean_mr(struct mlx5_ib_mr *mr);
++
+ static int order2idx(struct mlx5_ib_dev *dev, int order)
+ {
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+@@ -1046,6 +1048,10 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			mlx5_ib_dbg(dev, "cache empty for order %d", order);
+ 			mr = NULL;
+ 		}
++	} else if (access_flags & IB_ACCESS_ON_DEMAND) {
++		err = -EINVAL;
++		pr_err("Got MR registration for ODP MR > 512MB, not supported for Connect-IB");
++		goto error;
+ 	}
+ 
+ 	if (!mr)
+@@ -1061,9 +1067,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 
+ 	mr->umem = umem;
+ 	mr->npages = npages;
+-	spin_lock(&dev->mr_lock);
+-	dev->mdev->priv.reg_pages += npages;
+-	spin_unlock(&dev->mr_lock);
++	atomic_add(npages, &dev->mdev->priv.reg_pages);
+ 	mr->ibmr.lkey = mr->mmr.key;
+ 	mr->ibmr.rkey = mr->mmr.key;
+ 
+@@ -1107,12 +1111,9 @@ error:
+ 	return err;
+ }
+ 
+-int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
++static int clean_mr(struct mlx5_ib_mr *mr)
+ {
+-	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
+-	struct mlx5_ib_mr *mr = to_mmr(ibmr);
+-	struct ib_umem *umem = mr->umem;
+-	int npages = mr->npages;
++	struct mlx5_ib_dev *dev = to_mdev(mr->ibmr.device);
+ 	int umred = mr->umred;
+ 	int err;
+ 
+@@ -1132,16 +1133,32 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
+ 		free_cached_mr(dev, mr);
+ 	}
+ 
++	if (!umred)
++		kfree(mr);
++
++	return 0;
++}
++
++int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
++	struct mlx5_ib_mr *mr = to_mmr(ibmr);
++	int npages = mr->npages;
++	struct ib_umem *umem = mr->umem;
++
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++	if (umem)
++		/* Wait for all running page-fault handlers to finish. */
++		synchronize_srcu(&dev->mr_srcu);
++#endif
++
++	clean_mr(mr);
++
+ 	if (umem) {
+ 		ib_umem_release(umem);
+-		spin_lock(&dev->mr_lock);
+-		dev->mdev->priv.reg_pages -= npages;
+-		spin_unlock(&dev->mr_lock);
++		atomic_sub(npages, &dev->mdev->priv.reg_pages);
+ 	}
+ 
+-	if (!umred)
+-		kfree(mr);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 66c39ee16aff..63bbdba396f1 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -32,6 +32,8 @@
+ 
+ #include "mlx5_ib.h"
+ 
++struct workqueue_struct *mlx5_ib_page_fault_wq;
++
+ #define COPY_ODP_BIT_MLX_TO_IB(reg, ib_caps, field_name, bit_name) do {	\
+ 	if (be32_to_cpu(reg.field_name) & MLX5_ODP_SUPPORT_##bit_name)	\
+ 		ib_caps->field_name |= IB_ODP_SUPPORT_##bit_name;	\
+@@ -58,3 +60,146 @@ int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev)
+ out:
+ 	return err;
+ }
++
++static struct mlx5_ib_mr *mlx5_ib_odp_find_mr_lkey(struct mlx5_ib_dev *dev,
++						   u32 key)
++{
++	u32 base_key = mlx5_base_mkey(key);
++	struct mlx5_core_mr *mmr = __mlx5_mr_lookup(dev->mdev, base_key);
++
++	if (!mmr || mmr->key != key)
++		return NULL;
++
++	return container_of(mmr, struct mlx5_ib_mr, mmr);
++}
++
++static void mlx5_ib_page_fault_resume(struct mlx5_ib_qp *qp,
++				      struct mlx5_ib_pfault *pfault,
++				      int error) {
++	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.pd->device);
++	int ret = mlx5_core_page_fault_resume(dev->mdev, qp->mqp.qpn,
++					      pfault->mpfault.flags,
++					      error);
++	if (ret)
++		pr_err("Failed to resolve the page fault on QP 0x%x\n",
++		       qp->mqp.qpn);
++}
++
++void mlx5_ib_mr_pfault_handler(struct mlx5_ib_qp *qp,
++			       struct mlx5_ib_pfault *pfault)
++{
++	u8 event_subtype = pfault->mpfault.event_subtype;
++
++	switch (event_subtype) {
++	default:
++		pr_warn("Invalid page fault event subtype: 0x%x\n",
++			event_subtype);
++		mlx5_ib_page_fault_resume(qp, pfault, 1);
++		break;
++	}
++}
++
++static void mlx5_ib_qp_pfault_action(struct work_struct *work)
++{
++	struct mlx5_ib_pfault *pfault = container_of(work,
++						     struct mlx5_ib_pfault,
++						     work);
++	enum mlx5_ib_pagefault_context context =
++		mlx5_ib_get_pagefault_context(&pfault->mpfault);
++	struct mlx5_ib_qp *qp = container_of(pfault, struct mlx5_ib_qp,
++					     pagefaults[context]);
++	mlx5_ib_mr_pfault_handler(qp, pfault);
++}
++
++void mlx5_ib_qp_disable_pagefaults(struct mlx5_ib_qp *qp)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&qp->disable_page_faults_lock, flags);
++	qp->disable_page_faults = 1;
++	spin_unlock_irqrestore(&qp->disable_page_faults_lock, flags);
++
++	/*
++	 * Note that at this point, we are guarenteed that no more
++	 * work queue elements will be posted to the work queue with
++	 * the QP we are closing.
++	 */
++	flush_workqueue(mlx5_ib_page_fault_wq);
++}
++
++void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&qp->disable_page_faults_lock, flags);
++	qp->disable_page_faults = 0;
++	spin_unlock_irqrestore(&qp->disable_page_faults_lock, flags);
++}
++
++static void mlx5_ib_pfault_handler(struct mlx5_core_qp *qp,
++				   struct mlx5_pagefault *pfault)
++{
++	/*
++	 * Note that we will only get one fault event per QP per context
++	 * (responder/initiator, read/write), until we resolve the page fault
++	 * with the mlx5_ib_page_fault_resume command. Since this function is
++	 * called from within the work element, there is no risk of missing
++	 * events.
++	 */
++	struct mlx5_ib_qp *mibqp = to_mibqp(qp);
++	enum mlx5_ib_pagefault_context context =
++		mlx5_ib_get_pagefault_context(pfault);
++	struct mlx5_ib_pfault *qp_pfault = &mibqp->pagefaults[context];
++
++	qp_pfault->mpfault = *pfault;
++
++	/* No need to stop interrupts here since we are in an interrupt */
++	spin_lock(&mibqp->disable_page_faults_lock);
++	if (!mibqp->disable_page_faults)
++		queue_work(mlx5_ib_page_fault_wq, &qp_pfault->work);
++	spin_unlock(&mibqp->disable_page_faults_lock);
++}
++
++void mlx5_ib_odp_create_qp(struct mlx5_ib_qp *qp)
++{
++	int i;
++
++	qp->disable_page_faults = 1;
++	spin_lock_init(&qp->disable_page_faults_lock);
++
++	qp->mqp.pfault_handler	= mlx5_ib_pfault_handler;
++
++	for (i = 0; i < MLX5_IB_PAGEFAULT_CONTEXTS; ++i)
++		INIT_WORK(&qp->pagefaults[i].work, mlx5_ib_qp_pfault_action);
++}
++
++int mlx5_ib_odp_init_one(struct mlx5_ib_dev *ibdev)
++{
++	int ret;
++
++	ret = init_srcu_struct(&ibdev->mr_srcu);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++void mlx5_ib_odp_remove_one(struct mlx5_ib_dev *ibdev)
++{
++	cleanup_srcu_struct(&ibdev->mr_srcu);
++}
++
++int __init mlx5_ib_odp_init(void)
++{
++	mlx5_ib_page_fault_wq =
++		create_singlethread_workqueue("mlx5_ib_page_faults");
++	if (!mlx5_ib_page_fault_wq)
++		return -ENOMEM;
++
++	return 0;
++}
++
++void mlx5_ib_odp_cleanup(void)
++{
++	destroy_workqueue(mlx5_ib_page_fault_wq);
++}
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index d61e4ef73c34..3737295a06b9 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -878,6 +878,8 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	int inlen = sizeof(*in);
+ 	int err;
+ 
++	mlx5_ib_odp_create_qp(qp);
++
+ 	gen = &dev->mdev->caps.gen;
+ 	mutex_init(&qp->mutex);
+ 	spin_lock_init(&qp->sq.lock);
+@@ -1152,11 +1154,13 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	in = kzalloc(sizeof(*in), GFP_KERNEL);
+ 	if (!in)
+ 		return;
+-	if (qp->state != IB_QPS_RESET)
++	if (qp->state != IB_QPS_RESET) {
++		mlx5_ib_qp_disable_pagefaults(qp);
+ 		if (mlx5_core_qp_modify(dev->mdev, to_mlx5_state(qp->state),
+ 					MLX5_QP_STATE_RST, in, sizeof(*in), &qp->mqp))
+ 			mlx5_ib_warn(dev, "mlx5_ib: modify QP %06x to RESET failed\n",
+ 				     qp->mqp.qpn);
++	}
+ 
+ 	get_cqs(qp, &send_cq, &recv_cq);
+ 
+@@ -1704,6 +1708,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	if (mlx5_st < 0)
+ 		goto out;
+ 
++	/* If moving to a reset or error state, we must disable page faults on
++	 * this QP and flush all current page faults. Otherwise a stale page
++	 * fault may attempt to work on this QP after it is reset and moved
++	 * again to RTS, and may cause the driver and the device to get out of
++	 * sync. */
++	if (cur_state != IB_QPS_RESET && cur_state != IB_QPS_ERR &&
++	    (new_state == IB_QPS_RESET || new_state == IB_QPS_ERR))
++		mlx5_ib_qp_disable_pagefaults(qp);
++
+ 	optpar = ib_mask_to_mlx5_opt(attr_mask);
+ 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
+ 	in->optparam = cpu_to_be32(optpar);
+@@ -1713,6 +1726,9 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	if (err)
+ 		goto out;
+ 
++	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
++		mlx5_ib_qp_enable_pagefaults(qp);
++
+ 	qp->state = new_state;
+ 
+ 	if (attr_mask & IB_QP_ACCESS_FLAGS)
+@@ -3014,6 +3030,14 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
+ 	int mlx5_state;
+ 	int err = 0;
+ 
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++	/*
++	 * Wait for any outstanding page faults, in case the user frees memory
++	 * based upon this query's result.
++	 */
++	flush_workqueue(mlx5_ib_page_fault_wq);
++#endif
++
+ 	mutex_lock(&qp->mutex);
+ 	outb = kzalloc(sizeof(*outb), GFP_KERNEL);
+ 	if (!outb) {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 09c707dec29a..9e1a93ce4e1a 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -474,7 +474,7 @@ struct mlx5_priv {
+ 	struct workqueue_struct *pg_wq;
+ 	struct rb_root		page_root;
+ 	int			fw_pages;
+-	int			reg_pages;
++	atomic_t		reg_pages;
+ 	struct list_head	free_list;
+ 
+ 	struct mlx5_core_health health;
 -- 
 1.7.11.2
 
