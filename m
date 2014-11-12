@@ -1,7 +1,7 @@
 From: danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Subject: [PATCHv3] libibmad: Add new fields for SM:PortInfoExtended and for PM:PortExtendedSpeedsCounters
-Date: Wed, 12 Nov 2014 15:10:32 +0200
-Message-ID: <1415797832-29112-1-git-send-email-danby@mellanox.com>
+Date: Wed, 12 Nov 2014 15:21:53 +0200
+Message-ID: <1415798513-29753-1-git-send-email-danby@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
