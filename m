@@ -1,59 +1,213 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 0/3] DAPL support on s390x platform
-Date: Wed, 12 Nov 2014 14:38:49 +0200
-Message-ID: <546354D9.9050601@dev.mellanox.co.il>
-References: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com> <OF2939B020.E253C5B0-ONC1257D87.0050AE0F-C1257D87.0052C3AA@de.ibm.com> <CAL1RGDVLeNCAXrrq8mEhKxcm_z_xwgLUfO_wzhQE9xJz8Lnq7g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Subject: [PATCHv3] libibmad: Add new fields for SM:PortInfoExtended and for PM:PortExtendedSpeedsCounters
+Date: Wed, 12 Nov 2014 15:10:32 +0200
+Message-ID: <1415797832-29112-1-git-send-email-danby@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVLeNCAXrrq8mEhKxcm_z_xwgLUfO_wzhQE9xJz8Lnq7g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Utz Bacher <utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Cc: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Gonzalo Muelas Serrano <gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mschwid2-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, amira-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/12/2014 1:22 AM, Roland Dreier wrote:
-> On Wed, Nov 5, 2014 at 7:04 AM, Utz Bacher <utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org> wrote:
->> (B) Status of patches
->> 1. kernel code -- the new system call: reviewed, acked and accepted by the
->> s390x maintainer Martin Schwidefsky (2014/10/13), so we will have that
->> system call in the s390x kernel.
->> 2. libibverbs -- define barriers on s390x: Looking for your feedback. We
->> understand there have been no general objections so far.
->> 3. libmlx4 -- provide MMIO abstraction: reviewed by the Mellanox
->> maintainers and we understand they would apply this once you give the go
->> for the overall set.
->> Previously, a patch to DAPL to build on s390x has been accepted already
->> (Arlin Davis, 2014/09/02).
->>
->>    We gave your concern on MMIO handling on s390x serious consideration from
->> various angles, but the page fault handler does not appear workable. OTOH,
->> Mellanox is fine with the MMIO abstraction in libmlx4, and we didn't hear
->> of significant other concerns. With that, could you please consider the
->> patch set again to add s390x to the list of supported platforms? Happy to
->> repost the patches for convenience.
->
-> If Mellanox is willing to take on the maintenance burden of changing
-> all MMIO access to an inline function, and if you're willing to take
-> on the burden of knowing that every new adapter you support means
-> tracking down and convincing the maintainer of the driver library,
-> then I'm OK with adding the simple barrier patch to libibverbs.  Could
-> you please send the latest version of that patch to me?
->
+This change includes:
+1. Adding new AttributeID and fields for MAD SM:PortInfoExtended.
+2. Adding new fields to support PM:PortExtendedSpeedsCounters when
+RSFEC mode is active.
 
-The libmlx4 patch should pass some performance regression before it can 
-be approved, this task is in progress in our side.
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Changes since v1:
+    Add full subject
 
-> It does seem a little strange to be adding a new system call to
-> simulate kernel bypass, but I guess you do what you gotta do...
->
->   - R.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Changes since v2:
+    Add IB_PESC_RSFEC_PORT_SELECT_F to PortExtendedSpeedCounters enum fields
+    Changed printing of PortInfoExtended fields from decimal into hexa
+    
+
+ include/infiniband/mad.h |   42 ++++++++++++++++++++++++++++++++++++++++--
+ libibmad.ver             |    2 +-
+ src/dump.c               |   13 +++++++++++++
+ src/fields.c             |   36 +++++++++++++++++++++++++++++++++++-
+ src/libibmad.map         |    2 ++
+ 5 files changed, 91 insertions(+), 4 deletions(-)
+
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index cefcc54..77858c3 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -145,7 +145,7 @@ enum SMI_ATTR_ID {
+ 	IB_ATTR_LINKSPEEDWIDTHPAIRSTBL = 0x1c,
+ 	IB_ATTR_VENDORMADSTBL = 0x1d,
+ 	IB_ATTR_SMINFO = 0x20,
+-
++	IB_ATTR_PORT_INFO_EXT = 0x33,
+ 	IB_ATTR_LAST,
+ 
+ 	IB_ATTR_MLNX_EXT_PORT_INFO = 0xff90,
+@@ -1253,6 +1253,43 @@ enum MAD_FIELDS {
+ 	IB_PSR_COUNTER14_F,
+ 	IB_PSR_LAST_F,
+ 
++	/*
++	 * PortInfoExtended fields
++	 */
++	IB_PORT_EXT_FIRST_F,
++	IB_PORT_EXT_CAPMASK_F = IB_PORT_EXT_FIRST_F,
++	IB_PORT_EXT_FEC_MODE_ACTIVE_F,
++	IB_PORT_EXT_FDR_FEC_MODE_SUPPORTED_F,
++	IB_PORT_EXT_FDR_FEC_MODE_ENABLED_F,
++	IB_PORT_EXT_EDR_FEC_MODE_SUPPORTED_F,
++	IB_PORT_EXT_EDR_FEC_MODE_ENABLED_F,
++	IB_PORT_EXT_LAST_F,
++
++	/*
++	 * PortExtendedSpeedsCounters RSFEC active fields
++	 */
++	IB_PESC_RSFEC_FIRST_F,
++	IB_PESC_RSFEC_PORT_SELECT_F = IB_PESC_RSFEC_FIRST_F,
++	IB_PESC_RSFEC_COUNTER_SELECT_F,
++	IB_PESC_RSFEC_SYNC_HDR_ERR_CTR_F,
++	IB_PESC_RSFEC_UNK_BLOCK_CTR_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE0_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE1_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE2_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE3_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE4_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE5_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE6_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE7_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE8_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE9_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE10_F,
++	IB_PESC_RSFEC_FEC_CORR_SYMBOL_CTR_LANE11_F,
++	IB_PESC_PORT_FEC_CORR_BLOCK_CTR_F,
++	IB_PESC_PORT_FEC_UNCORR_BLOCK_CTR_F,
++	IB_PESC_PORT_FEC_CORR_SYMBOL_CTR_F,
++	IB_PESC_RSFEC_LAST_F,
++
+ 	IB_FIELD_LAST_		/* must be last */
+ };
+ 
+@@ -1615,7 +1652,8 @@ MAD_EXPORT ib_mad_dump_fn
+     mad_dump_cc_switchportcongestionsettingelement, mad_dump_cc_cacongestionsetting,
+     mad_dump_cc_cacongestionentry, mad_dump_cc_congestioncontroltable,
+     mad_dump_cc_congestioncontroltableentry, mad_dump_cc_timestamp,
+-    mad_dump_classportinfo, mad_dump_portsamples_result;
++    mad_dump_classportinfo, mad_dump_portsamples_result,
++    mad_dump_portinfo_ext, mad_dump_port_ext_speeds_counters_rsfec_active;
+ 
+ MAD_EXPORT void mad_dump_fields(char *buf, int bufsz, void *val, int valsz,
+ 				int start, int end);
+diff --git a/libibmad.ver b/libibmad.ver
+index 11698ff..4578eaf 100644
+--- a/libibmad.ver
++++ b/libibmad.ver
+@@ -6,4 +6,4 @@
+ # API_REV - advance on any added API
+ # RUNNING_REV - advance any change to the vendor files
+ # AGE - number of backward versions the API still supports
+-LIBVERSION=9:0:4
++LIBVERSION=10:0:5
+diff --git a/src/dump.c b/src/dump.c
+index efe4bc4..b7ad381 100644
+--- a/src/dump.c
++++ b/src/dump.c
+@@ -857,6 +857,13 @@ void mad_dump_portsamples_result(char *buf, int bufsz, void *val, int valsz)
+ 	_dump_fields(buf, bufsz, val, IB_PSR_TAG_F, IB_PSR_LAST_F);
+ }
+ 
++void mad_dump_port_ext_speeds_counters_rsfec_active(char *buf, int bufsz,
++						    void *val, int valsz)
++{
++	_dump_fields(buf, bufsz, val, IB_PESC_RSFEC_FIRST_F,
++		     IB_PESC_RSFEC_LAST_F);
++}
++
+ void mad_dump_port_ext_speeds_counters(char *buf, int bufsz, void *val, int valsz)
+ {
+ 	_dump_fields(buf, bufsz, val, IB_PESC_PORT_SELECT_F, IB_PESC_LAST_F);
+@@ -1115,6 +1122,12 @@ void mad_dump_classportinfo(char *buf, int bufsz, void *val, int valsz)
+ 	_dump_fields(buf, bufsz, val, IB_CPI_BASEVER_F, IB_CPI_TRAP_QKEY_F + 1);
+ }
+ 
++void mad_dump_portinfo_ext(char *buf, int bufsz, void *val, int valsz)
++{
++	_dump_fields(buf, bufsz, val, IB_PORT_EXT_FIRST_F,
++		     IB_PORT_EXT_LAST_F);
++}
++
+ void xdump(FILE * file, char *msg, void *p, int size)
+ {
+ #define HEX(x)  ((x) < 10 ? '0' + (x) : 'a' + ((x) -10))
+diff --git a/src/fields.c b/src/fields.c
+index 33a6364..507cff0 100644
+--- a/src/fields.c
++++ b/src/fields.c
+@@ -949,8 +949,42 @@ static const ib_field_t ib_mad_f[] = {
+ 	{480, 32, "Counter14", mad_dump_uint},
+ 	{0, 0},			/* IB_PSR_LAST_F */
+ 
+-	{0, 0}			/* IB_FIELD_LAST_ */
++	/*
++	 * PortInfoExtended fields
++	 */
++	{0, 32, "CapMask", mad_dump_hex},
++	{BITSOFFS(32, 16), "FECModeActive", mad_dump_uint},
++	{BITSOFFS(48, 16), "FDRFECModeSupported", mad_dump_hex},
++	{BITSOFFS(64, 16), "FDRFECModeEnabled", mad_dump_hex},
++	{BITSOFFS(80, 16), "EDRFECModeSupported", mad_dump_hex},
++	{BITSOFFS(96, 16), "EDRFECModeEnabled", mad_dump_hex},
++	{0, 0},			/* IB_PORT_EXT_LAST_F */
+ 
++	/*
++	 * PortExtendedSpeedsCounters RSFEC Active fields
++	 */
++	{BITSOFFS(8, 8), "PortSelect", mad_dump_uint},
++	{64, 64, "CounterSelect", mad_dump_hex},
++	{BITSOFFS(128, 16), "SyncHeaderErrorCounter", mad_dump_uint},
++	{BITSOFFS(144, 16), "UnknownBlockCounter", mad_dump_uint},
++	{352, 32, "FECCorrectableSymbolCtrLane0", mad_dump_uint},
++	{384, 32, "FECCorrectableSymbolCtrLane1", mad_dump_uint},
++	{416, 32, "FECCorrectableSymbolCtrLane2", mad_dump_uint},
++	{448, 32, "FECCorrectableSymbolCtrLane3", mad_dump_uint},
++	{480, 32, "FECCorrectableSymbolCtrLane4", mad_dump_uint},
++	{512, 32, "FECCorrectableSymbolCtrLane5", mad_dump_uint},
++	{544, 32, "FECCorrectableSymbolCtrLane6", mad_dump_uint},
++	{576, 32, "FECCorrectableSymbolCtrLane7", mad_dump_uint},
++	{608, 32, "FECCorrectableSymbolCtrLane8", mad_dump_uint},
++	{640, 32, "FECCorrectableSymbolCtrLane9", mad_dump_uint},
++	{672, 32, "FECCorrectableSymbolCtrLane10", mad_dump_uint},
++	{704, 32, "FECCorrectableSymbolCtrLane11", mad_dump_uint},
++	{1120, 32, "PortFECCorrectableBlockCtr", mad_dump_uint},
++	{1152, 32, "PortFECUncorrectableBlockCtr", mad_dump_uint},
++	{1184, 32, "PortFECCorrectedSymbolCtr", mad_dump_uint},
++	{0, 0},			/* IB_PESC_RSFEC_LAST_F */
++
++	{0, 0}			/* IB_FIELD_LAST_ */
+ };
+ 
+ static void _set_field64(void *buf, int base_offs, const ib_field_t * f,
+diff --git a/src/libibmad.map b/src/libibmad.map
+index 3f3aeef..3240a7b 100644
+--- a/src/libibmad.map
++++ b/src/libibmad.map
+@@ -19,6 +19,7 @@ IBMAD_1.3 {
+ 		mad_dump_linkwidthen;
+ 		mad_dump_linkwidthsup;
+ 		mad_dump_mlnx_ext_port_info;
++		mad_dump_portinfo_ext;
+ 		mad_dump_mtu;
+ 		mad_dump_node_type;
+ 		mad_dump_nodedesc;
+@@ -145,6 +146,7 @@ IBMAD_1.3 {
+ 		mad_field_name;
+ 		bm_call_via;
+ 		mad_dump_port_ext_speeds_counters;
++		mad_dump_port_ext_speeds_counters_rsfec_active;
+ 		cc_query_status_via;
+ 		cc_config_status_via;
+ 		smp_mkey_get;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
