@@ -1,55 +1,60 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [RFC PATCH 00/16] ib_mad: Add support for Intel Omni-Path Architecture (OPA) MAD processing.
-Date: Thu, 13 Nov 2014 14:54:09 -0500
-Message-ID: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
+Subject: [RFC PATCH 01/16] ib/mad: rename is_data_mad to is_rmpp_data_mad
+Date: Thu, 13 Nov 2014 14:54:10 -0500
+Message-ID: <1415908465-24392-2-git-send-email-ira.weiny@intel.com>
+References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1415908465-24392-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following patch series modifies the kernel MAD processing (ib_mad/ib_umad)
-and related interfaces to process Intel Omni-Path Architecture MADs on devices
-which support them.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In addition to supporting some IBTA management classes, OPA devices use MADs
-with lengths up to 2K.  These "jumbo" MADs increase the performance of
-management traffic.
+is_rmpp_data_mad is more descriptive for this function.
 
-To distinguish IBTA MADs from OPA MADs a new Base Version is introduced.  The
-new format shares the same common header with IBTA MADs which allows us to
-share most of the MAD processing code when dealing with the new Base Version.
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 74c30f4..4673262 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1734,7 +1734,7 @@ out:
+ 	return valid;
+ }
+ 
+-static int is_data_mad(struct ib_mad_agent_private *mad_agent_priv,
++static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 		       struct ib_mad_hdr *mad_hdr)
+ {
+ 	struct ib_rmpp_mad *rmpp_mad;
+@@ -1836,7 +1836,7 @@ ib_find_send_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 	 * been notified that the send has completed
+ 	 */
+ 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
+-		if (is_data_mad(mad_agent_priv, wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
+ 		    wr->tid == mad->mad_hdr.tid &&
+ 		    wr->timeout &&
+ 		    rcv_has_same_class(wr, wc) &&
+@@ -2411,7 +2411,8 @@ find_send_wr(struct ib_mad_agent_private *mad_agent_priv,
+ 
+ 	list_for_each_entry(mad_send_wr, &mad_agent_priv->send_list,
+ 			    agent_list) {
+-		if (is_data_mad(mad_agent_priv, mad_send_wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv,
++				     mad_send_wr->send_buf.mad) &&
+ 		    &mad_send_wr->send_buf == send_buf)
+ 			return mad_send_wr;
+ 	}
+-- 
+1.8.2
 
-The patch series is broken into 3 main areas.
-
-1) Add the ability for devices to indicate "jumbo" MAD support.  In addition,
-   modify the ib_mad module to detect those devices and allocate the resources
-   for the QPs on those devices.
-
-2) Enhance the interface to the device agents to support larger and variable
-   length MADs.
-
-3) Add support for creating and processing OPA Base Version MADs including 
-   a new SMP class version specific to OPA devices.
-
-
-  [RFC PATCH 01/16] ib/mad: rename is_data_mad to is_rmpp_data_mad
-  [RFC PATCH 02/16] ib/core: add IB_DEVICE_JUMBO_MAD_SUPPORT device cap
-  [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a device
-  [RFC PATCH 04/16] ib/mad: add base version parameter to
-  [RFC PATCH 05/16] ib/mad: Add MAD size parameters to process_mad
-  [RFC PATCH 06/16] ib/mad: Create jumbo_mad data structures
-  [RFC PATCH 07/16] ib/mad: create a jumbo MAD kmem_cache
-  [RFC PATCH 08/16] ib/mad: Add Intel Omni-Path Architecture defines
-  [RFC PATCH 09/16] ib/mad: Implement support for Intel Omni-Path
-  [RFC PATCH 10/16] ib/mad: Add registration check for Intel Omni-Path
-  [RFC PATCH 11/16] ib/mad: create helper function for
-  [RFC PATCH 12/16] ib/mad: create helper function for
-  [RFC PATCH 13/16] ib/mad: create helper function for
-  [RFC PATCH 14/16] ib/mad: Create helper function for SMI processing
-  [RFC PATCH 15/16] ib/mad: Implement Intel Omni-Path Architecture SMP
-  [RFC PATCH 16/16] ib/mad: Implement Intel Omni-Path Architecture General
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
