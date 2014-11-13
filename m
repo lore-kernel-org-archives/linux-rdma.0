@@ -1,76 +1,27 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next] RDMA/CMA: Mark IPv4 addresses correctly when
- the listener is IPv6
-Date: Thu, 13 Nov 2014 16:24:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E01B66@ORSMSX109.amr.corp.intel.com>
-References: <1415893935-4583-1-git-send-email-ogerlitz@mellanox.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] cxgb4i/cxgb4 : Refactor macros to conform to
+ uniform standards
+Date: Thu, 13 Nov 2014 14:36:36 -0500 (EST)
+Message-ID: <20141113.143636.2171639048701846459.davem@davemloft.net>
+References: <1415841357-19700-1-git-send-email-anish@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415893935-4583-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1415841357-19700-1-git-send-email-anish@chelsio.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: anish@chelsio.com
+Cc: netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, hch@infradead.org, jbottomley@parallels.com, roland@purestorage.com, hariprasad@chelsio.com, kxie@chelsio.com, swise@opengridcomputing.com
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> When accepting a new connection with the listener being IPv6, the
-> family of the new connection is set as IPv6. This causes cma_zero_addr
-> function to return true on an non-zero address. As a result, the wrong
-> code path is taken. This causes the connection request to be rejected,
-> as the RDMA-CM code looks for the wrong type of device.
-> 
-> Since copying the ip address is done in different function depending
-> on the family (cma_save_ip4_info/cma_save_ip6_info) this is fixed by
-> hard coding the family of the IP address according to the function.
-> 
-> Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/cma.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index d570030..6e5e11c 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -866,12 +866,12 @@ static void cma_save_ip4_info(struct rdma_cm_id *id,
-> struct rdma_cm_id *listen_i
-> 
->  	listen4 = (struct sockaddr_in *) &listen_id->route.addr.src_addr;
->  	ip4 = (struct sockaddr_in *) &id->route.addr.src_addr;
-> -	ip4->sin_family = listen4->sin_family;
-> +	ip4->sin_family = AF_INET;
->  	ip4->sin_addr.s_addr = hdr->dst_addr.ip4.addr;
->  	ip4->sin_port = listen4->sin_port;
-> 
->  	ip4 = (struct sockaddr_in *) &id->route.addr.dst_addr;
-> -	ip4->sin_family = listen4->sin_family;
-> +	ip4->sin_family = AF_INET;
->  	ip4->sin_addr.s_addr = hdr->src_addr.ip4.addr;
->  	ip4->sin_port = hdr->port;
->  }
-> @@ -883,12 +883,12 @@ static void cma_save_ip6_info(struct rdma_cm_id *id,
-> struct rdma_cm_id *listen_i
-> 
->  	listen6 = (struct sockaddr_in6 *) &listen_id->route.addr.src_addr;
->  	ip6 = (struct sockaddr_in6 *) &id->route.addr.src_addr;
-> -	ip6->sin6_family = listen6->sin6_family;
-> +	ip6->sin6_family = AF_INET6;
->  	ip6->sin6_addr = hdr->dst_addr.ip6;
->  	ip6->sin6_port = listen6->sin6_port;
-> 
->  	ip6 = (struct sockaddr_in6 *) &id->route.addr.dst_addr;
-> -	ip6->sin6_family = listen6->sin6_family;
-> +	ip6->sin6_family = AF_INET6;
->  	ip6->sin6_addr = hdr->src_addr.ip6;
->  	ip6->sin6_port = hdr->port;
+From: Anish Bhatt <anish@chelsio.com>
+Date: Wed, 12 Nov 2014 17:15:57 -0800
 
-I can't say that I understand what the problem is or how the change fixes it.  Is listen4->sin_port above not AF_INET?  If that's the case, then aren't we still taking the wrong code path and just masking some bug further up in the code path?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Refactored all macros used in cxgb4i as part of previously started cxgb4 macro
+> names cleanup. Makes them more uniform and avoids namespace collision.
+> Minor changes in other drivers where required as some of these macros are used
+>  by multiple drivers, affected drivers are iw_cxgb4, cxgb4(vf) & csiostor
+> 
+> Signed-off-by: Anish Bhatt <anish@chelsio.com>
+
+Applied, thanks.
