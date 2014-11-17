@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 1/3] ib_core: API for deriving common display strings
-Date: Sun, 16 Nov 2014 21:29:48 -0500
-Message-ID: <20141117022948.4079.36917.stgit@manet.1015granger.net>
+Subject: [PATCH v1 2/3] RDS: Replace event/status display helpers with
+ generic helpers
+Date: Sun, 16 Nov 2014 21:29:57 -0500
+Message-ID: <20141117022957.4079.41715.stgit@manet.1015granger.net>
 References: <20141117022038.4079.66922.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,276 +13,290 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce an API that can be shared among RDMA consumers for
-displaying string versions of status and event codes.
-
-Or Gerlitz suggested moving the functions from the RDS module
-written by Zach Brown into ib_core. These provide conversion from
-status/event codes to symbolic names, suitable for copy-and-paste
-into a source code search tool.
-
-Another interface is provided for displaying human-readable
-connection status suitable for administrative interfaces.
-
-It might also be interesting someday to provide conversion from op
-codes to symbolic names.
+These helpers have been moved into ib_core.ko.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile |    3 -
- drivers/infiniband/core/str.c    |  167 ++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_str.h            |   54 ++++++++++++
- 3 files changed, 223 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/core/str.c
- create mode 100644 include/rdma/ib_str.h
+ net/rds/af_rds.c         |    9 ---------
+ net/rds/ib.h             |    1 -
+ net/rds/ib_cm.c          |   36 +++---------------------------------
+ net/rds/ib_recv.c        |    4 ++--
+ net/rds/ib_send.c        |   38 ++------------------------------------
+ net/rds/rdma_transport.c |   34 +++-------------------------------
+ net/rds/rds.h            |    2 +-
+ 7 files changed, 11 insertions(+), 113 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index ffd0af6..c2eb383 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -9,7 +9,8 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
- 					$(user_access-y)
+diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
+index 1044337..11b623c 100644
+--- a/net/rds/af_rds.c
++++ b/net/rds/af_rds.c
+@@ -40,15 +40,6 @@
  
- ib_core-y :=			packer.o ud_header.o verbs.o sysfs.o \
--				device.o fmr_pool.o cache.o netlink.o
-+				device.o fmr_pool.o cache.o netlink.o \
-+				str.o
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+ #include "rds.h"
  
- ib_mad-y :=			mad.o smi.o agent.o mad_rmpp.o
-diff --git a/drivers/infiniband/core/str.c b/drivers/infiniband/core/str.c
-new file mode 100644
-index 0000000..2e316a1
---- /dev/null
-+++ b/drivers/infiniband/core/str.c
-@@ -0,0 +1,167 @@
-+/*
-+ * Copyright (c) 2006, 2014 Oracle.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
-+
+-char *rds_str_array(char **array, size_t elements, size_t index)
+-{
+-	if ((index < elements) && array[index])
+-		return array[index];
+-	else
+-		return "unknown";
+-}
+-EXPORT_SYMBOL(rds_str_array);
+-
+ /* this is just used for stats gathering :/ */
+ static DEFINE_SPINLOCK(rds_sock_lock);
+ static unsigned long rds_sock_count;
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 7280ab8..5d72294 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -340,7 +340,6 @@ u32 rds_ib_ring_completed(struct rds_ib_work_ring *ring, u32 wr_id, u32 oldest);
+ extern wait_queue_head_t rds_ib_ring_empty_wait;
+ 
+ /* ib_send.c */
+-char *rds_ib_wc_status_str(enum ib_wc_status status);
+ void rds_ib_xmit_complete(struct rds_connection *conn);
+ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
+ 		unsigned int hdr_off, unsigned int sg, unsigned int off);
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 31b74f5..9fe2c14 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -39,36 +39,6 @@
+ #include "rds.h"
+ #include "ib.h"
+ 
+-static char *rds_ib_event_type_strings[] = {
+-#define RDS_IB_EVENT_STRING(foo) \
+-		[IB_EVENT_##foo] = __stringify(IB_EVENT_##foo)
+-	RDS_IB_EVENT_STRING(CQ_ERR),
+-	RDS_IB_EVENT_STRING(QP_FATAL),
+-	RDS_IB_EVENT_STRING(QP_REQ_ERR),
+-	RDS_IB_EVENT_STRING(QP_ACCESS_ERR),
+-	RDS_IB_EVENT_STRING(COMM_EST),
+-	RDS_IB_EVENT_STRING(SQ_DRAINED),
+-	RDS_IB_EVENT_STRING(PATH_MIG),
+-	RDS_IB_EVENT_STRING(PATH_MIG_ERR),
+-	RDS_IB_EVENT_STRING(DEVICE_FATAL),
+-	RDS_IB_EVENT_STRING(PORT_ACTIVE),
+-	RDS_IB_EVENT_STRING(PORT_ERR),
+-	RDS_IB_EVENT_STRING(LID_CHANGE),
+-	RDS_IB_EVENT_STRING(PKEY_CHANGE),
+-	RDS_IB_EVENT_STRING(SM_CHANGE),
+-	RDS_IB_EVENT_STRING(SRQ_ERR),
+-	RDS_IB_EVENT_STRING(SRQ_LIMIT_REACHED),
+-	RDS_IB_EVENT_STRING(QP_LAST_WQE_REACHED),
+-	RDS_IB_EVENT_STRING(CLIENT_REREGISTER),
+-#undef RDS_IB_EVENT_STRING
+-};
+-
+-static char *rds_ib_event_str(enum ib_event_type type)
+-{
+-	return rds_str_array(rds_ib_event_type_strings,
+-			     ARRAY_SIZE(rds_ib_event_type_strings), type);
+-};
+-
+ /*
+  * Set the selected protocol version
+  */
+@@ -234,7 +204,7 @@ static void rds_ib_cm_fill_conn_param(struct rds_connection *conn,
+ static void rds_ib_cq_event_handler(struct ib_event *event, void *data)
+ {
+ 	rdsdebug("event %u (%s) data %p\n",
+-		 event->event, rds_ib_event_str(event->event), data);
++		 event->event, ib_event_type_symbol(event->event), data);
+ }
+ 
+ static void rds_ib_qp_event_handler(struct ib_event *event, void *data)
+@@ -243,7 +213,7 @@ static void rds_ib_qp_event_handler(struct ib_event *event, void *data)
+ 	struct rds_ib_connection *ic = conn->c_transport_data;
+ 
+ 	rdsdebug("conn %p ic %p event %u (%s)\n", conn, ic, event->event,
+-		 rds_ib_event_str(event->event));
++		 ib_event_type_symbol(event->event));
+ 
+ 	switch (event->event) {
+ 	case IB_EVENT_COMM_EST:
+@@ -252,7 +222,7 @@ static void rds_ib_qp_event_handler(struct ib_event *event, void *data)
+ 	default:
+ 		rdsdebug("Fatal QP Event %u (%s) "
+ 			"- connection %pI4->%pI4, reconnecting\n",
+-			event->event, rds_ib_event_str(event->event),
++			event->event, ib_event_type_symbol(event->event),
+ 			&conn->c_laddr, &conn->c_faddr);
+ 		rds_conn_drop(conn);
+ 		break;
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index d67de45..d861cd3 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -971,7 +971,7 @@ static inline void rds_poll_cq(struct rds_ib_connection *ic,
+ 	while (ib_poll_cq(ic->i_recv_cq, 1, &wc) > 0) {
+ 		rdsdebug("wc wr_id 0x%llx status %u (%s) byte_len %u imm_data %u\n",
+ 			 (unsigned long long)wc.wr_id, wc.status,
+-			 rds_ib_wc_status_str(wc.status), wc.byte_len,
++			 ib_wc_status_symbol(wc.status), wc.byte_len,
+ 			 be32_to_cpu(wc.ex.imm_data));
+ 		rds_ib_stats_inc(s_ib_rx_cq_event);
+ 
+@@ -993,7 +993,7 @@ static inline void rds_poll_cq(struct rds_ib_connection *ic,
+ 						  "status %u (%s), disconnecting and "
+ 						  "reconnecting\n", &conn->c_faddr,
+ 						  wc.status,
+-						  rds_ib_wc_status_str(wc.status));
++						  ib_wc_status_symbol(wc.status));
+ 		}
+ 
+ 		/*
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index 1dde91e..06ad063 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -39,40 +39,6 @@
+ #include "rds.h"
+ #include "ib.h"
+ 
+-static char *rds_ib_wc_status_strings[] = {
+-#define RDS_IB_WC_STATUS_STR(foo) \
+-		[IB_WC_##foo] = __stringify(IB_WC_##foo)
+-	RDS_IB_WC_STATUS_STR(SUCCESS),
+-	RDS_IB_WC_STATUS_STR(LOC_LEN_ERR),
+-	RDS_IB_WC_STATUS_STR(LOC_QP_OP_ERR),
+-	RDS_IB_WC_STATUS_STR(LOC_EEC_OP_ERR),
+-	RDS_IB_WC_STATUS_STR(LOC_PROT_ERR),
+-	RDS_IB_WC_STATUS_STR(WR_FLUSH_ERR),
+-	RDS_IB_WC_STATUS_STR(MW_BIND_ERR),
+-	RDS_IB_WC_STATUS_STR(BAD_RESP_ERR),
+-	RDS_IB_WC_STATUS_STR(LOC_ACCESS_ERR),
+-	RDS_IB_WC_STATUS_STR(REM_INV_REQ_ERR),
+-	RDS_IB_WC_STATUS_STR(REM_ACCESS_ERR),
+-	RDS_IB_WC_STATUS_STR(REM_OP_ERR),
+-	RDS_IB_WC_STATUS_STR(RETRY_EXC_ERR),
+-	RDS_IB_WC_STATUS_STR(RNR_RETRY_EXC_ERR),
+-	RDS_IB_WC_STATUS_STR(LOC_RDD_VIOL_ERR),
+-	RDS_IB_WC_STATUS_STR(REM_INV_RD_REQ_ERR),
+-	RDS_IB_WC_STATUS_STR(REM_ABORT_ERR),
+-	RDS_IB_WC_STATUS_STR(INV_EECN_ERR),
+-	RDS_IB_WC_STATUS_STR(INV_EEC_STATE_ERR),
+-	RDS_IB_WC_STATUS_STR(FATAL_ERR),
+-	RDS_IB_WC_STATUS_STR(RESP_TIMEOUT_ERR),
+-	RDS_IB_WC_STATUS_STR(GENERAL_ERR),
+-#undef RDS_IB_WC_STATUS_STR
+-};
+-
+-char *rds_ib_wc_status_str(enum ib_wc_status status)
+-{
+-	return rds_str_array(rds_ib_wc_status_strings,
+-			     ARRAY_SIZE(rds_ib_wc_status_strings), status);
+-}
+-
+ /*
+  * Convert IB-specific error message to RDS error message and call core
+  * completion handler.
+@@ -293,7 +259,7 @@ void rds_ib_send_cq_comp_handler(struct ib_cq *cq, void *context)
+ 	while (ib_poll_cq(cq, 1, &wc) > 0) {
+ 		rdsdebug("wc wr_id 0x%llx status %u (%s) byte_len %u imm_data %u\n",
+ 			 (unsigned long long)wc.wr_id, wc.status,
+-			 rds_ib_wc_status_str(wc.status), wc.byte_len,
++			 ib_wc_status_symbol(wc.status), wc.byte_len,
+ 			 be32_to_cpu(wc.ex.imm_data));
+ 		rds_ib_stats_inc(s_ib_tx_cq_event);
+ 
+@@ -344,7 +310,7 @@ void rds_ib_send_cq_comp_handler(struct ib_cq *cq, void *context)
+ 			rds_ib_conn_error(conn, "send completion on %pI4 had status "
+ 					  "%u (%s), disconnecting and reconnecting\n",
+ 					  &conn->c_faddr, wc.status,
+-					  rds_ib_wc_status_str(wc.status));
++					  ib_wc_status_symbol(wc.status));
+ 		}
+ 	}
+ }
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index 6cd9d1d..e3660ab 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -37,34 +37,6 @@
+ 
+ static struct rdma_cm_id *rds_rdma_listen_id;
+ 
+-static char *rds_cm_event_strings[] = {
+-#define RDS_CM_EVENT_STRING(foo) \
+-		[RDMA_CM_EVENT_##foo] = __stringify(RDMA_CM_EVENT_##foo)
+-	RDS_CM_EVENT_STRING(ADDR_RESOLVED),
+-	RDS_CM_EVENT_STRING(ADDR_ERROR),
+-	RDS_CM_EVENT_STRING(ROUTE_RESOLVED),
+-	RDS_CM_EVENT_STRING(ROUTE_ERROR),
+-	RDS_CM_EVENT_STRING(CONNECT_REQUEST),
+-	RDS_CM_EVENT_STRING(CONNECT_RESPONSE),
+-	RDS_CM_EVENT_STRING(CONNECT_ERROR),
+-	RDS_CM_EVENT_STRING(UNREACHABLE),
+-	RDS_CM_EVENT_STRING(REJECTED),
+-	RDS_CM_EVENT_STRING(ESTABLISHED),
+-	RDS_CM_EVENT_STRING(DISCONNECTED),
+-	RDS_CM_EVENT_STRING(DEVICE_REMOVAL),
+-	RDS_CM_EVENT_STRING(MULTICAST_JOIN),
+-	RDS_CM_EVENT_STRING(MULTICAST_ERROR),
+-	RDS_CM_EVENT_STRING(ADDR_CHANGE),
+-	RDS_CM_EVENT_STRING(TIMEWAIT_EXIT),
+-#undef RDS_CM_EVENT_STRING
+-};
+-
+-static char *rds_cm_event_str(enum rdma_cm_event_type type)
+-{
+-	return rds_str_array(rds_cm_event_strings,
+-			     ARRAY_SIZE(rds_cm_event_strings), type);
+-};
+-
+ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
+ 			      struct rdma_cm_event *event)
+ {
+@@ -74,7 +46,7 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
+ 	int ret = 0;
+ 
+ 	rdsdebug("conn %p id %p handling event %u (%s)\n", conn, cm_id,
+-		 event->event, rds_cm_event_str(event->event));
++		 event->event, rdma_cm_event_symbol(event->event));
+ 
+ 	if (cm_id->device->node_type == RDMA_NODE_RNIC)
+ 		trans = &rds_iw_transport;
+@@ -139,7 +111,7 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
+ 	default:
+ 		/* things like device disconnect? */
+ 		printk(KERN_ERR "RDS: unknown event %u (%s)!\n",
+-		       event->event, rds_cm_event_str(event->event));
++		       event->event, rdma_cm_event_symbol(event->event));
+ 		break;
+ 	}
+ 
+@@ -148,7 +120,7 @@ out:
+ 		mutex_unlock(&conn->c_cm_lock);
+ 
+ 	rdsdebug("id %p event %u (%s) handling ret %d\n", cm_id, event->event,
+-		 rds_cm_event_str(event->event), ret);
++		 rdma_cm_event_symbol(event->event), ret);
+ 
+ 	return ret;
+ }
+diff --git a/net/rds/rds.h b/net/rds/rds.h
+index 48f8ffc..1a75c64 100644
+--- a/net/rds/rds.h
++++ b/net/rds/rds.h
+@@ -5,6 +5,7 @@
+ #include <linux/scatterlist.h>
+ #include <linux/highmem.h>
+ #include <rdma/rdma_cm.h>
 +#include <rdma/ib_str.h>
-+
-+static const char *
-+__str_array(const char * const *array, size_t elements, size_t index)
-+{
-+	if ((index < elements) && array[index])
-+		return array[index];
-+	else
-+		return "unrecognized";
-+}
-+
-+#define __IB_WC_SYMBOL(foo) \
-+		[IB_WC_##foo] = "IB_WC_##foo"
-+static const char * const ib_wc_status_symbols[] = {
-+	__IB_WC_SYMBOL(SUCCESS),
-+	__IB_WC_SYMBOL(LOC_LEN_ERR),
-+	__IB_WC_SYMBOL(LOC_QP_OP_ERR),
-+	__IB_WC_SYMBOL(LOC_EEC_OP_ERR),
-+	__IB_WC_SYMBOL(LOC_PROT_ERR),
-+	__IB_WC_SYMBOL(WR_FLUSH_ERR),
-+	__IB_WC_SYMBOL(MW_BIND_ERR),
-+	__IB_WC_SYMBOL(BAD_RESP_ERR),
-+	__IB_WC_SYMBOL(LOC_ACCESS_ERR),
-+	__IB_WC_SYMBOL(REM_INV_REQ_ERR),
-+	__IB_WC_SYMBOL(REM_ACCESS_ERR),
-+	__IB_WC_SYMBOL(REM_OP_ERR),
-+	__IB_WC_SYMBOL(RETRY_EXC_ERR),
-+	__IB_WC_SYMBOL(RNR_RETRY_EXC_ERR),
-+	__IB_WC_SYMBOL(LOC_RDD_VIOL_ERR),
-+	__IB_WC_SYMBOL(REM_INV_RD_REQ_ERR),
-+	__IB_WC_SYMBOL(REM_ABORT_ERR),
-+	__IB_WC_SYMBOL(INV_EECN_ERR),
-+	__IB_WC_SYMBOL(INV_EEC_STATE_ERR),
-+	__IB_WC_SYMBOL(FATAL_ERR),
-+	__IB_WC_SYMBOL(RESP_TIMEOUT_ERR),
-+	__IB_WC_SYMBOL(GENERAL_ERR),
-+};
-+
-+const char *
-+ib_wc_status_symbol(enum ib_wc_status status)
-+{
-+	return __str_array(ib_wc_status_symbols,
-+			   ARRAY_SIZE(ib_wc_status_symbols), status);
-+}
-+EXPORT_SYMBOL(ib_wc_status_symbol);
-+
-+
-+#define __IB_EVENT_SYMBOL(foo) \
-+		[IB_EVENT_##foo] = "IB_EVENT_##foo"
-+static const char * const ib_event_type_symbols[] = {
-+	__IB_EVENT_SYMBOL(CQ_ERR),
-+	__IB_EVENT_SYMBOL(QP_FATAL),
-+	__IB_EVENT_SYMBOL(QP_REQ_ERR),
-+	__IB_EVENT_SYMBOL(QP_ACCESS_ERR),
-+	__IB_EVENT_SYMBOL(COMM_EST),
-+	__IB_EVENT_SYMBOL(SQ_DRAINED),
-+	__IB_EVENT_SYMBOL(PATH_MIG),
-+	__IB_EVENT_SYMBOL(PATH_MIG_ERR),
-+	__IB_EVENT_SYMBOL(DEVICE_FATAL),
-+	__IB_EVENT_SYMBOL(PORT_ACTIVE),
-+	__IB_EVENT_SYMBOL(PORT_ERR),
-+	__IB_EVENT_SYMBOL(LID_CHANGE),
-+	__IB_EVENT_SYMBOL(PKEY_CHANGE),
-+	__IB_EVENT_SYMBOL(SM_CHANGE),
-+	__IB_EVENT_SYMBOL(SRQ_ERR),
-+	__IB_EVENT_SYMBOL(SRQ_LIMIT_REACHED),
-+	__IB_EVENT_SYMBOL(QP_LAST_WQE_REACHED),
-+	__IB_EVENT_SYMBOL(CLIENT_REREGISTER),
-+	__IB_EVENT_SYMBOL(GID_CHANGE),
-+};
-+
-+const char *
-+ib_event_type_symbol(enum ib_event_type type)
-+{
-+	return __str_array(ib_event_type_symbols,
-+			   ARRAY_SIZE(ib_event_type_symbols), type);
-+};
-+EXPORT_SYMBOL(ib_event_type_symbol);
-+
-+#define __RDMA_CM_EVENT_SYMBOL(foo) \
-+		[RDMA_CM_EVENT_##foo] = "RDMA_CM_EVENT_##foo"
-+static const char * const rdma_cm_event_symbols[] = {
-+	__RDMA_CM_EVENT_SYMBOL(ADDR_RESOLVED),
-+	__RDMA_CM_EVENT_SYMBOL(ADDR_ERROR),
-+	__RDMA_CM_EVENT_SYMBOL(ROUTE_RESOLVED),
-+	__RDMA_CM_EVENT_SYMBOL(ROUTE_ERROR),
-+	__RDMA_CM_EVENT_SYMBOL(CONNECT_REQUEST),
-+	__RDMA_CM_EVENT_SYMBOL(CONNECT_RESPONSE),
-+	__RDMA_CM_EVENT_SYMBOL(CONNECT_ERROR),
-+	__RDMA_CM_EVENT_SYMBOL(UNREACHABLE),
-+	__RDMA_CM_EVENT_SYMBOL(REJECTED),
-+	__RDMA_CM_EVENT_SYMBOL(ESTABLISHED),
-+	__RDMA_CM_EVENT_SYMBOL(DISCONNECTED),
-+	__RDMA_CM_EVENT_SYMBOL(DEVICE_REMOVAL),
-+	__RDMA_CM_EVENT_SYMBOL(MULTICAST_JOIN),
-+	__RDMA_CM_EVENT_SYMBOL(MULTICAST_ERROR),
-+	__RDMA_CM_EVENT_SYMBOL(ADDR_CHANGE),
-+	__RDMA_CM_EVENT_SYMBOL(TIMEWAIT_EXIT),
-+};
-+
-+const char *
-+rdma_cm_event_symbol(enum rdma_cm_event_type type)
-+{
-+	return __str_array(rdma_cm_event_symbols,
-+			   ARRAY_SIZE(rdma_cm_event_symbols), type);
-+};
-+EXPORT_SYMBOL(rdma_cm_event_symbol);
-+
-+static const char * const rdma_cm_event_strings[] = {
-+	[RDMA_CM_EVENT_ADDR_RESOLVED]		= "address resolved",
-+	[RDMA_CM_EVENT_ADDR_ERROR]		= "address error",
-+	[RDMA_CM_EVENT_ROUTE_RESOLVED]		= "route resolved",
-+	[RDMA_CM_EVENT_ROUTE_ERROR]		= "route error",
-+	[RDMA_CM_EVENT_CONNECT_REQUEST]		= "connect request",
-+	[RDMA_CM_EVENT_CONNECT_RESPONSE]	= "connect response",
-+	[RDMA_CM_EVENT_CONNECT_ERROR]		= "connect error",
-+	[RDMA_CM_EVENT_UNREACHABLE]		= "unreachable",
-+	[RDMA_CM_EVENT_REJECTED]		= "rejected",
-+	[RDMA_CM_EVENT_ESTABLISHED]		= "established",
-+	[RDMA_CM_EVENT_DISCONNECTED]		= "disconnected",
-+	[RDMA_CM_EVENT_DEVICE_REMOVAL]		= "device removal",
-+	[RDMA_CM_EVENT_MULTICAST_JOIN]		= "multicast join",
-+	[RDMA_CM_EVENT_MULTICAST_ERROR]		= "multicast error",
-+	[RDMA_CM_EVENT_ADDR_CHANGE]		= "address change",
-+	[RDMA_CM_EVENT_TIMEWAIT_EXIT]		= "timewait exit",
-+};
-+
-+const char *
-+rdma_cm_event_str(enum rdma_cm_event_type type)
-+{
-+	return type < ARRAY_SIZE(rdma_cm_event_strings) ?
-+		rdma_cm_event_strings[type] : "unrecognized connection error";
-+};
-+EXPORT_SYMBOL(rdma_cm_event_str);
-diff --git a/include/rdma/ib_str.h b/include/rdma/ib_str.h
-new file mode 100644
-index 0000000..c330b8a
---- /dev/null
-+++ b/include/rdma/ib_str.h
-@@ -0,0 +1,54 @@
-+/*
-+ * Copyright (c) 2006, 2014 Oracle.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
-+
-+#if !defined(_RDMA_IB_STR_H)
-+#define _RDMA_IB_STR_H
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/rdma_cm.h>
-+
-+/*
-+ * Display the symbolic name of a status code. Suitable
-+ * for copy and paste into a source code search window.
-+ */
-+const char *ib_wc_status_symbol(enum ib_wc_status status);
-+const char *ib_event_type_symbol(enum ib_event_type type);
-+const char *rdma_cm_event_symbol(enum rdma_cm_event_type type);
-+
-+/*
-+ * Display a connection status message. Suitable for
-+ * administrative interfaces.
-+ */
-+const char *rdma_cm_event_str(enum rdma_cm_event_type type);
-+
-+#endif	/* _RDMA_IB_STR_H */
+ #include <linux/mutex.h>
+ #include <linux/rds.h>
+ 
+@@ -575,7 +576,6 @@ struct rds_statistics {
+ };
+ 
+ /* af_rds.c */
+-char *rds_str_array(char **array, size_t elements, size_t index);
+ void rds_sock_addref(struct rds_sock *rs);
+ void rds_sock_put(struct rds_sock *rs);
+ void rds_wake_sk_sleep(struct rds_sock *rs);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
