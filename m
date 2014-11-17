@@ -1,83 +1,66 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 3/3] xprtrdma: Replace array of connection strings
-Date: Sun, 16 Nov 2014 21:30:05 -0500
-Message-ID: <20141117023005.4079.11846.stgit@manet.1015granger.net>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 0/3] RFC: common API for displaying status codes
+Date: Mon, 17 Nov 2014 11:55:03 +0200
+Message-ID: <CAJ3xEMju=3PZefy1veTNCuA03hqMfdZOReYE_4Hb9enBJMev3w@mail.gmail.com>
 References: <20141117022038.4079.66922.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20141117022038.4079.66922.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the generic helper instead.
+On Mon, Nov 17, 2014 at 4:29 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Sagi and Or suggested developing a common API for displaying status
+> and event codes that can be shared among consumers of ib_core. The
+> first patch is a stab at that. The last two patches are examples of
+> how the new APIs are used. Lightly tested.
+>
+> If acceptable, I'll submit 1/3 via the IB tree. 3/3 will go through
+> Anna's tree after 1/3 is merged. Does 2/3 need to go through netdev?
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c     |   27 +--------------------------
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 2 files changed, 2 insertions(+), 26 deletions(-)
+no please.
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 61c4129..bd8cfe7 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -313,31 +313,6 @@ rpcrdma_flush_cqs(struct rpcrdma_ep *ep)
- 	rpcrdma_sendcq_upcall(ep->rep_attr.send_cq, ep);
- }
- 
--#ifdef RPC_DEBUG
--static const char * const conn[] = {
--	"address resolved",
--	"address error",
--	"route resolved",
--	"route error",
--	"connect request",
--	"connect response",
--	"connect error",
--	"unreachable",
--	"rejected",
--	"established",
--	"disconnected",
--	"device removal",
--	"multicast join",
--	"multicast error",
--	"address change",
--	"timewait exit",
--};
--
--#define CONNECTION_MSG(status)						\
--	((status) < ARRAY_SIZE(conn) ?					\
--		conn[(status)] : "unrecognized connection error")
--#endif
--
- static int
- rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
- {
-@@ -404,7 +379,7 @@ connected:
- 		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
- 			__func__, &addr->sin_addr.s_addr,
- 			ntohs(addr->sin_port), ep,
--			CONNECTION_MSG(event->event));
-+			rdma_cm_event_str(event->event));
- 		break;
- 	}
- 
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index ac7fc9a..bed6969 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -47,6 +47,7 @@
- 
- #include <rdma/rdma_cm.h>		/* RDMA connection api */
- #include <rdma/ib_verbs.h>		/* RDMA verbs api */
-+#include <rdma/ib_str.h>		/* RDMA error strings api */
- 
- #include <linux/sunrpc/clnt.h> 		/* rpc_xprt */
- #include <linux/sunrpc/rpc_rdma.h> 	/* RPC/RDMA protocol */
+Let's avoid asking the kernel maintainers to conduct three-way merge
+just for IB str-ing... all three patches can go through one tree, I
+vote for q tree with an active maintainer... choose one.
 
+Or.
+
+
+>
+> ---
+>
+> Chuck Lever (3):
+>       ib_core: API for deriving common display strings
+>       RDS: Replace event/status display helpers with generic helpers
+>       xprtrdma: Replace array of connection strings
+>
+>
+>  drivers/infiniband/core/Makefile |    3 -
+>  drivers/infiniband/core/str.c    |  167 ++++++++++++++++++++++++++++++++++++++
+>  include/rdma/ib_str.h            |   54 ++++++++++++
+>  net/rds/af_rds.c                 |    9 --
+>  net/rds/ib.h                     |    1
+>  net/rds/ib_cm.c                  |   36 +-------
+>  net/rds/ib_recv.c                |    4 -
+>  net/rds/ib_send.c                |   38 ---------
+>  net/rds/rdma_transport.c         |   34 +-------
+>  net/rds/rds.h                    |    2
+>  net/sunrpc/xprtrdma/verbs.c      |   27 ------
+>  net/sunrpc/xprtrdma/xprt_rdma.h  |    1
+>  12 files changed, 236 insertions(+), 140 deletions(-)
+>  create mode 100644 drivers/infiniband/core/str.c
+>  create mode 100644 include/rdma/ib_str.h
+>
+> --
+> Chuck Lever
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
