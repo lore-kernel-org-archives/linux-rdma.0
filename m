@@ -1,60 +1,83 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 2/2] IB/mlx4_ib: Disassociate support
-Date: Tue, 18 Nov 2014 23:50:41 +0200
-Message-ID: <CAJ3xEMjzZdf_aML2e+ht=cbYx3T9U7Lr7DOR6+JenEKTcxQ+Zw@mail.gmail.com>
-References: <1416312682-7899-1-git-send-email-yishaih@mellanox.com>
-	<1416312682-7899-3-git-send-email-yishaih@mellanox.com>
-	<546B5AE3.9060606@mellanox.com>
-	<546B7E73.40008@dev.mellanox.co.il>
+Subject: Re: [RFC PATCH 00/16] ib_mad: Add support for Intel Omni-Path
+ Architecture (OPA) MAD processing.
+Date: Wed, 19 Nov 2014 00:16:12 +0200
+Message-ID: <CAJ3xEMhtm99dRdcEvhK9s961mDr7YSU3pkv-WK=sESKe_K4kYw@mail.gmail.com>
+References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <546B7E73.40008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1415908465-24392-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 18, 2014 at 7:14 PM, Yishai Hadas
-<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 11/18/2014 4:42 PM, Or Gerlitz wrote:
+On Thu, Nov 13, 2014 at 9:54 PM,  <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> The following patch series modifies the kernel MAD processing (ib_mad/ib_umad)
+> and related interfaces to process Intel Omni-Path Architecture MADs on devices
+> which support them.
 
->> Can we somehow make this patch generic (e.g land in the IB core) such
->> that it can apply also for mlx5 (and other HW drivers...) basically, the
->> HW driver should tell the IB core which pages to zap and we should be
->> OK, isn't that?
+So this series allows to process such mad when it arrives or goes
+beyond that and allows to send such mad too?
 
-> We introduced a generic API that asked the low level driver to detach a
-> given ucontext from its HW resources. The specific driver implementation may
-> be different between HW devices and may not involve the zap usage, that's
-> why it wasn't put in IB core. In addition, the zap API should be in sync
-> with inflight VMA closing to prevent zapping an already unmapped address. To
-> achieve that the driver should implement some VMA ops and synchronize
-> between those flows.
+> In addition to supporting some IBTA management classes, OPA devices use MADs
+> with lengths up to 2K.  These "jumbo" MADs increase the performance of
+> management traffic.
 
-Again, drivers that don't want to go the zapping way, could just avoid
-this generic code.
+Can you provide 1-2 use cases where such mads will be sent and by what
+entity? I recall 2KB mads were mentioned over our LWG talks 8 years
+ago on IB routers...
 
-So we have already two more low-level drivers (cxgb3/4) that would be
-happily using the 95% of the mlx4_ib code you wrote after the
-re-factoring I suggested.
-I tend to think mlx5_ib should join too. Why not try it out, write the
-code in the way which
+> To distinguish IBTA MADs from OPA MADs a new Base Version is introduced.  The
+> new format shares the same common header with IBTA MADs which allows us to
+> share most of the MAD processing code when dealing with the new Base Version.
+>
+>
+> The patch series is broken into 3 main areas.
+>
+> 1) Add the ability for devices to indicate "jumbo" MAD support.  In addition,
+>    modify the ib_mad module to detect those devices and allocate the resources
+>    for the QPs on those devices.
+>
+> 2) Enhance the interface to the device agents to support larger and variable
+>    length MADs.
+>
+> 3) Add support for creating and processing OPA Base Version MADs including
+>    a new SMP class version specific to OPA devices.
+>
+>
+>   [RFC PATCH 01/16] ib/mad: rename is_data_mad to is_rmpp_data_mad
+>   [RFC PATCH 02/16] ib/core: add IB_DEVICE_JUMBO_MAD_SUPPORT device cap
+>   [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a device
+>   [RFC PATCH 04/16] ib/mad: add base version parameter to
+>   [RFC PATCH 05/16] ib/mad: Add MAD size parameters to process_mad
+>   [RFC PATCH 06/16] ib/mad: Create jumbo_mad data structures
+>   [RFC PATCH 07/16] ib/mad: create a jumbo MAD kmem_cache
 
-1. under the IB core
-2. easiest to use under this twist for mlx4_ib
+why not use a single kmem-cache instance with a non hard coded element
+size, 256B (or whatever we use today) or 2KB?
 
-and let cxgb3/4 and mlx5 maintainers to see if/how they can use it.
+Also (nit), please change the prefix for all patches to be IB/mad: and
+not ib/mad: to comply with the existing habit of patch titles for the
+IB subsystem
 
-> That code looks like something that fit to be done in
-> the driver and not as part of a IB core.
+And (another nit), generate patch 0/N using
 
-None of the arguments above doesn't make me get into this conclusion,
-open to more people, but why don't you just follow steps 1/2 above and
-see where it gets you?
+$ git format-patch --cover-letter
 
+so we have the exact subject line for each patch and the over-all
+diffstat in the cover-letter
 
-Or.
+>   [RFC PATCH 08/16] ib/mad: Add Intel Omni-Path Architecture defines
+>   [RFC PATCH 09/16] ib/mad: Implement support for Intel Omni-Path
+>   [RFC PATCH 10/16] ib/mad: Add registration check for Intel Omni-Path
+>   [RFC PATCH 11/16] ib/mad: create helper function for
+>   [RFC PATCH 12/16] ib/mad: create helper function for
+>   [RFC PATCH 13/16] ib/mad: create helper function for
+>   [RFC PATCH 14/16] ib/mad: Create helper function for SMI processing
+>   [RFC PATCH 15/16] ib/mad: Implement Intel Omni-Path Architecture SMP
+>   [RFC PATCH 16/16] ib/mad: Implement Intel Omni-Path Architecture General
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
