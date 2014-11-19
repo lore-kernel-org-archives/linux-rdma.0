@@ -1,42 +1,64 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 1/2] IB/uverbs: Enable device removal when
- there are active user space applications
-Date: Wed, 19 Nov 2014 16:49:19 +0200
-Message-ID: <546CADEF.6070905@mellanox.com>
-References: <1416312682-7899-1-git-send-email-yishaih@mellanox.com> <1416312682-7899-2-git-send-email-yishaih@mellanox.com>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 1/1] InfiniBand: Deletion of unnecessary checks before two
+ function calls
+Date: Wed, 19 Nov 2014 19:25:31 +0100
+Message-ID: <546CE09B.9090101@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
+ urceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416312682-7899-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <5317A59D.4-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/18/2014 2:11 PM, Yishai Hadas wrote:
-> @@ -533,6 +552,12 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
->   	struct ib_uverbs_file *file =
->   		container_of(handler, struct ib_uverbs_file, event_handler);
->   
-> +	if (event->event == IB_EVENT_DEVICE_FATAL) {
-> +		if (file->fatal_event_raised)
-> +			return;
-> +		file->fatal_event_raised = 1;
-> +	}
-> +
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Wed, 19 Nov 2014 19:19:21 +0100
 
-can we avoid the fatal_event_raised flag?
+The functions kfree() and pci_dev_put() test whether their argument is NULL
+and then return immediately. Thus the test around the call is not needed.
 
-In a similar manner to what defined for rdma-cm consumers, let's add 
-IB_EVENT_DEVICE_REMOVAL event and generate both events from  here 
-towards the uberbs consumer (the fatal for legacy apps and the device 
-removal for newer apps that maybe want to distinguish between the
-two)
+This issue was detected by using the Coccinelle software.
 
->   	ib_uverbs_async_handler(file, event->element.port_num, event->event,
->   				NULL, NULL);
->   }
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/main.c         | 3 +--
+ drivers/infiniband/hw/mthca/mthca_reset.c | 3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 8b72cf3..50dee1a 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2512,8 +2512,7 @@ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
+ 		if (!dm[i]) {
+ 			pr_err("failed to allocate memory for tunneling qp update work struct\n");
+ 			for (i = 0; i < dev->caps.num_ports; i++) {
+-				if (dm[i])
+-					kfree(dm[i]);
++				kfree(dm[i]);
+ 			}
+ 			goto out;
+ 		}
+diff --git a/drivers/infiniband/hw/mthca/mthca_reset.c b/drivers/infiniband/hw/mthca/mthca_reset.c
+index 74c6a94..c521654 100644
+--- a/drivers/infiniband/hw/mthca/mthca_reset.c
++++ b/drivers/infiniband/hw/mthca/mthca_reset.c
+@@ -279,8 +279,7 @@ good:
+ 	}
+ 
+ out:
+-	if (bridge)
+-		pci_dev_put(bridge);
++	pci_dev_put(bridge);
+ 	kfree(bridge_header);
+ 	kfree(hca_header);
+ 
+-- 
+2.1.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
