@@ -1,43 +1,44 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next] IB/core: Do not resolve VLAN if already resolved
-Date: Wed, 19 Nov 2014 11:28:18 +0200
-Message-ID: <1416389298-7431-1-git-send-email-ogerlitz@mellanox.com>
+From: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH 0/2] DAPL support on s390x platform
+Date: Wed, 19 Nov 2014 11:17:17 +0100
+Message-ID: <1416392239-10282-1-git-send-email-aishchuk@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ursula Braun <ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch series contains the changes to user space libraries required
+to provide support for the DAPL API on s390x platform. The corresponding
+kernel patch is on the features branch of linux-s390 for the next merge
+window.
+The current implementation of Infiniband verbs uses mapped memory areas to
+directly access the device UAR and Blueflame pages, which are located in
+the PCI I/O memory, from user space. On the s390x platform the PCI I/O
+memory can be accessed only using special privileged CPU instructions that
+cannot be used directly in user space programs. This restricts the usage of
+mapped memory areas to access the PCI I/O memory on s390x platform.
+There are 2 patches for the DAPL API libibverbs and libmlx4 user space
+components in this patch series. The patches for the perftest and dapl
+packages are not included into this series because those changes have been
+already applied to corresponding packages by the maintainers.
+	[PATCH 1/2] libibverbs: add support for the s390x plaform
+This patch contains the changes to the libibverbs user space library to
+provide support of the s390x platform.
+	[PATCH 2/2] libmlx4: add support for the s390x platform
+This patch contains the changes to the libmlx4 user space library intended
+to provide the PCI I/O memory access on the s390x platform. The direct
+access to mapped memory areas is replaced by appropriate system call
+invocation.
+All maintainers have stated general agreement with the patches previously,
+this is to provide a clean and up-to-date patch set for consideration for
+inclusion.
 
-For RoCE, resolution of layer 2 address attributes forces no VLAN if link local
-gids are used. This patch enables applications that want to choose VLAN ID for
-link local based RoCE gids by setting IB_QP_VID in their QP attribute mask and
-prevent the core to override this choice.
-
-Cc: Ursula Braun <ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/verbs.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index c2b89cc..f93eb8d 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -879,7 +879,8 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
- 		if (rdma_link_local_addr((struct in6_addr *)qp_attr->ah_attr.grh.dgid.raw)) {
- 			rdma_get_ll_mac((struct in6_addr *)qp_attr->ah_attr.grh.dgid.raw, qp_attr->ah_attr.dmac);
- 			rdma_get_ll_mac((struct in6_addr *)sgid.raw, qp_attr->smac);
--			qp_attr->vlan_id = rdma_get_vlan_id(&sgid);
-+			if (!(*qp_attr_mask & IB_QP_VID))
-+				qp_attr->vlan_id = rdma_get_vlan_id(&sgid);
- 		} else {
- 			ret = rdma_addr_find_dmac_by_grh(&sgid, &qp_attr->ah_attr.grh.dgid,
- 					qp_attr->ah_attr.dmac, &qp_attr->vlan_id);
+Alexey Ishchuk (2):
+  libibverbs: add s390x platform support
+  libmlx4: add s390x platform support
 -- 
-1.7.1
+1.8.5.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
