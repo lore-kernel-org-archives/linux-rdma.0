@@ -1,68 +1,42 @@
-From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 3/3] ibacm/ibacmp: fix a crash when SM restarts
-Date: Wed, 19 Nov 2014 09:46:47 -0500
-Message-ID: <1416408407-6774-4-git-send-email-kaike.wan@intel.com>
-References: <1416408407-6774-1-git-send-email-kaike.wan@intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 1/2] IB/uverbs: Enable device removal when
+ there are active user space applications
+Date: Wed, 19 Nov 2014 16:49:19 +0200
+Message-ID: <546CADEF.6070905@mellanox.com>
+References: <1416312682-7899-1-git-send-email-yishaih@mellanox.com> <1416312682-7899-2-git-send-email-yishaih@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416408407-6774-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1416312682-7899-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 11/18/2014 2:11 PM, Yishai Hadas wrote:
+> @@ -533,6 +552,12 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
+>   	struct ib_uverbs_file *file =
+>   		container_of(handler, struct ib_uverbs_file, event_handler);
+>   
+> +	if (event->event == IB_EVENT_DEVICE_FATAL) {
+> +		if (file->fatal_event_raised)
+> +			return;
+> +		file->fatal_event_raised = 1;
+> +	}
+> +
 
-Ibacm may cause segfault when the SM restarts: when the SM restarts, ibacm will
-receive P_Key change event and instruct ibacmp to close all endpoints. However,
-ibacmp only resets the core endpoint pointer in its ep structure and keeps the ep
-in the port's ep_list. Afterwards, the ibacm core will ask ibacmp to create
-an ep for each pkey enumerated from the local port. The ep will be found
-from the port's ep_list if it exists. However, if an old pkey is not present
-in the new SM configuration, the old ep will still be linked in the port's
-ep_list with the ep->endpoint being set to NULL. When the ibacm core forwards
-the client reregistration event to ibacmp, ibacmp will enumerate the ep_list and
-try to join multicast group for each ep, including any one with ep->endpoint
-set to NULL. In this case, it will cause segfault in acm_send_sa_mad().
-Additional check should be able to avoid the crash.
+can we avoid the fatal_event_raised flag?
 
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- prov/acmp/src/acmp.c |    4 ++++
- src/acm.c            |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+In a similar manner to what defined for rdma-cm consumers, let's add 
+IB_EVENT_DEVICE_REMOVAL event and generate both events from  here 
+towards the uberbs consumer (the fatal for legacy apps and the device 
+removal for newer apps that maybe want to distinguish between the
+two)
 
-diff --git a/prov/acmp/src/acmp.c b/prov/acmp/src/acmp.c
-index 7568b9c..2b85958 100644
---- a/prov/acmp/src/acmp.c
-+++ b/prov/acmp/src/acmp.c
-@@ -1446,6 +1446,10 @@ static int acmp_port_join(void *port_context)
- 	for (ep_entry = port->ep_list.Next; ep_entry != &port->ep_list;
- 		 ep_entry = ep_entry->Next) {
- 		ep = container_of(ep_entry, struct acmp_ep, entry);
-+		if (!ep->endpoint) {
-+			/* Stale endpoint */
-+			continue;
-+		}
- 		acmp_ep_join(ep);
- 	}
- 	acm_log(1, "joins for device %s port %d complete\n",
-diff --git a/src/acm.c b/src/acm.c
-index d807c73..2d0d2e1 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -2352,6 +2352,10 @@ acm_alloc_sa_mad(const struct acm_endpoint *endpoint, void *context,
- {
- 	struct acmc_sa_req *req;
- 
-+	if (!endpoint) {
-+		acm_log(0, "Error: NULL endpoint\n");
-+		return NULL;
-+	}
- 	req = calloc(1, sizeof (*req));
- 	if (!req) {
- 		acm_log(0, "Error: failed to allocate sa request\n");
--- 
-1.7.1
+>   	ib_uverbs_async_handler(file, event->element.port_num, event->event,
+>   				NULL, NULL);
+>   }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
