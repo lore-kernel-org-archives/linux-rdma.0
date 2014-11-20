@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH V1 for-next 1/2] IB/uverbs: Enable device removal when
  there are active user space applications
-Date: Thu, 20 Nov 2014 13:21:24 +0200
-Message-ID: <546DCEB4.8030401@mellanox.com>
+Date: Thu, 20 Nov 2014 13:21:13 +0200
+Message-ID: <546DCEA9.7010506@mellanox.com>
 References: <1416312682-7899-1-git-send-email-yishaih@mellanox.com> <1416312682-7899-2-git-send-email-yishaih@mellanox.com> <546CADEF.6070905@mellanox.com> <546D9DB2.8050900@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
@@ -22,7 +22,7 @@ On 11/20/2014 9:52 AM, Yishai Hadas wrote:
 > called when there were active applications.
 
 If your only concern is not generating duplicate fatal error events, I 
-would strongly recommend to go and drop this flag to make the code 
+would strongly recommend to go a drop this flag to make the code 
 clearer/simpler, object->I_already_did_operation_X flags should be 
 avoided in correct system programming IMHO.
 
