@@ -1,108 +1,118 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: NFSoRDMA developers bi-weekly meeting minutes (11/20)
-Date: Thu, 20 Nov 2014 10:24:00 -0800
-Message-ID: <546E31C0.1070400@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Charles EDWARD Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFSoRDMA developers bi-weekly meeting minutes (11/20)
+Date: Thu, 20 Nov 2014 13:46:38 -0500
+Message-ID: <2DA1028B-0EE0-415F-BA98-B9A50C87F820@oracle.com>
+References: <546E31C0.1070400@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <546E31C0.1070400-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Attendees:
 
-Jeff Becker (NASA)
-Yan Burman (Mellanox)
-Wendy Cheng (Intel)
-Rupert Dance (Soft Forge)
-Steve Dickson (Red Hat)
-Chuck Lever (Oracle)
-Doug Ledford (RedHat)
-Shirley Ma (Oracle)
-Sachin Prabhu (RedHat)
-Devesh Sharma (Emulex)
-Anna Schumaker (Net App)
-Steve Wise (OpenGridComputing, Chelsio)
+On Nov 20, 2014, at 1:24 PM, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-Moderator:
-Shirley Ma (Oracle)
+> Attendees:
+>=20
+> Jeff Becker (NASA)
+> Yan Burman (Mellanox)
+> Wendy Cheng (Intel)
+> Rupert Dance (Soft Forge)
+> Steve Dickson (Red Hat)
+> Chuck Lever (Oracle)
+> Doug Ledford (RedHat)
+> Shirley Ma (Oracle)
+> Sachin Prabhu (RedHat)
+> Devesh Sharma (Emulex)
+> Anna Schumaker (Net App)
+> Steve Wise (OpenGridComputing, Chelsio)
+>=20
+> Moderator:
+> Shirley Ma (Oracle)
+>=20
+> NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA =
+development and test effort from different resources to speed up NFSoRD=
+MA upstream kernel work and NFSoRDMA diagnosing/debugging tools develop=
+ment. Hopefully the quality of NFSoRDMA upstream patches can be improve=
+d by being tested with a quorum of HW vendors.
+>=20
+> Today's meeting notes:
+>=20
+> NFSoRDMA performance:
+> ---------------------
+> Even though NFSoRDMA performance seems better than IPoIB-cm, the gap =
+between what the IB protocol can provide and what NFS(RDMA,IPoIB-cm) ca=
+n achieve is still big on small I/O block size (focused on 8K IO size f=
+or database workload). Even large I/O block size(128K above), NFS perfo=
+rmance is not comparable to RDMA microbenchmark. We are focusing the ef=
+fort to figure out the root cause. Several experimental methods have be=
+en used on how to improve NFSoRDMA performance.
+>=20
+> Yan saw NFS server does RDMA send for small packet size, less than 10=
+0bytes, which should have used post_send instead.
 
-NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA development and test effort from different resources to speed up NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools development. Hopefully the quality of NFSoRDMA upstream patches can be improved by being tested with a quorum of HW vendors.
+This is an artifact of how NFS/RDMA works.
 
-Today's meeting notes:
+The client provides a registered area for the server to write
+into if an RPC reply is larger than the small pre-posted
+buffers that are normally used.
 
-NFSoRDMA performance:
----------------------
-Even though NFSoRDMA performance seems better than IPoIB-cm, the gap between what the IB protocol can provide and what NFS(RDMA,IPoIB-cm) can achieve is still big on small I/O block size (focused on 8K IO size for database workload). Even large I/O block size(128K above), NFS performance is not comparable to RDMA microbenchmark. We are focusing the effort to figure out the root cause. Several experimental methods have been used on how to improve NFSoRDMA performance.
+Most of the time, each RPC reply is small enough to use RDMA
+SEND, and the server can convey the RPC/RDMA header and the
+RPC reply in a single SEND operation.
 
-Yan saw NFS server does RDMA send for small packet size, less than 100bytes, which should have used post_send instead.
+If the reply is large, the server conveys the RPC/RDMA header
+via RDMA send, and the RPC reply via an RDMA WRITE into the
+client=92s registered buffer.
 
-1. performance experimental investigation: (Shirley, Chuck, Yan)
--- multiple QPs support:
-Created multiple subnets with different partition keys, different NFS client mount points to stretch single link performance, iozone multiple threading DIO 8K showed around 17% improvement, still a big gap to link speed
+Solaris server chooses RDMA SEND in nearly every case.
 
--- completion vector loading balance
-Split send queue and completion queue interrupts to different CPUs did not help on performance, then created a patch on distributing interrupts among available CPUs for different QPs, send and recv completion share the same completion vector, iozone multiple threading 8K DIO showed that 10% performance improvement
+Linux server chooses RDMA SEND then RDMA WRITE whenever
+the client offers that choice.
 
-Yan shared iser performance enhancement ideas:
--- batch recv packet processing
--- batch completion processing, not signaling every completion
--- per CPU connection, cq
-iser 8K could reach 4.5GB/s in 56Gb/s link speed, 1.5 million IOPS. 32K could reach 1.8 million IOPS
- 
--- increasing RPC credit limit from 32 to 64
-iozone 8K DIO results doesn't show any gain, which might indicate that we need to look at general NFS IO stack.
+Originally, it was felt that doing the RDMA WRITE is better
+for the client because the client doesn=92t have to copy the
+RPC header from the RDMA receive buffer back into rq_rcv_buf.
+Note that the RPC header is generally just a few hundred
+bytes.
 
--- increasing work queue priority to reduce latency
-NFS used work_queue not tasklet since it's in cansleep context, changed the flags to WQ_HIGHPRI | WQ_CPU_INTENSIVE did help reducing the latency when system under heavy workloads. 
+Several people have claimed that RDMA WRITE for small I/O
+is relatively expensive and should be avoided. It=92s also
+expensive for the client to register and deregister the
+receive buffer for the RDMA WRITE if the server doesn=92t
+use it.
 
--- lock contention
-perf top does show lock contention on top five list for both NFS client and NFS server. More granularity lock contention investigation is needed.
+I=92ve explored changing the client to offer no registered
+buffer if it knows the RPC reply will be small, thus
+forcing the server to use RDMA SEND where it=92s safe.
 
--- scheduling latency
-IO scheduling was developed for high latency devices, there might be some room in IO scheduling improvement.
+Solaris server worked fine. Of course, it already works
+this way.
 
--- wsize, rsize
-Chuck is looking at wsize, rsize to 1MB
+Linux server showed some data and metadata corruption on
+complex workloads like kernel builds. There=92s a bug in
+there somewhere that will need to be addressed before we
+can change the client behavior.
 
-2. performance analysis tools to use: 
--- perf, lockstat, ftrace, mountstats, nfsiostats... 
+The improvement was consistent, but under ten microseconds
+per RPC with FRWR (more with FMR because deregistering the
+buffer takes longer and is synchronous with RPC execution).
 
-3. performance test tools:
--- iozone, fio
--- direct IO, cached IO
+At this stage, there are bigger problems to be addressed,
+so this is not a top priority.
 
-Next step for performance analysis:
-1. Shirley will collect performance data on NFS IO layer to see any bottlenecks there.
-2. Someone needs to look at NFS server for RDMA small message size Yan has seen
-
-Feel free to reply here for anything missing. See you 12/4.
-
-12/04/2014
-@7:30am PDT
-@8:30am MDT
-@9:30am CDT
-@10:30am EDT
-@Bangalore @8:00pm
-@Israel @5:30pm
-
-Duration: 1 hour
-
-Call-in number:
-Israel: +972 37219638
-Bangalore: +91 8039890080 (180030109800)
-France  Colombes +33 1 5760 2222    +33 176728936
-US: 8666824770,  408-7744073
-
-Conference Code: 2308833
-Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember)
-
-Thanks everyone for joining the call and providing valuable inputs/work to the community to make NFSoRDMA better.
-
-Cheers,
-Shirley
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
