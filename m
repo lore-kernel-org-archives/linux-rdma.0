@@ -1,118 +1,39 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFSoRDMA developers bi-weekly meeting minutes (11/20)
-Date: Thu, 20 Nov 2014 13:46:38 -0500
-Message-ID: <2DA1028B-0EE0-415F-BA98-B9A50C87F820@oracle.com>
-References: <546E31C0.1070400@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Subject: Re: mlx5: don't duplicate kvfree()
+Date: Thu, 20 Nov 2014 18:51:09 +0000
+Message-ID: <20141120185108.GP7996@ZenIV.linux.org.uk>
+References: <20141120081357.GI7996@ZenIV.linux.org.uk>
+ <20141120081726.GK7996@ZenIV.linux.org.uk>
+ <546E204B.5080106@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <546E31C0.1070400-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <546E204B.5080106-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 20, 2014 at 07:09:31PM +0200, Or Gerlitz wrote:
+> On 11/20/2014 10:17 AM, Al Viro wrote:
+> >On Thu, Nov 20, 2014 at 08:13:57AM +0000, Al Viro wrote:
+> >>>  9 files changed, 21 insertions(+), 35 deletions(-)
+> >grr... 8 files changed, actually - that was from the diff that included mlx4
+> >bits.  Patch split correctly and sent in two pieces, summary left as is ;-/
+> >Sorry about the confusion it might cause...
+> Al,
+> 
+> I think the best way to proceed here is to come up with mlx4 and
+> mlx5 patches and get both of them in through netdev / net-nexttree,
+> don't worry about each of these drivers have a part which is also
+> under drivers/infiniband/hw -- it doesn't justify splitting in this
+> case
 
-On Nov 20, 2014, at 1:24 PM, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-
-> Attendees:
->=20
-> Jeff Becker (NASA)
-> Yan Burman (Mellanox)
-> Wendy Cheng (Intel)
-> Rupert Dance (Soft Forge)
-> Steve Dickson (Red Hat)
-> Chuck Lever (Oracle)
-> Doug Ledford (RedHat)
-> Shirley Ma (Oracle)
-> Sachin Prabhu (RedHat)
-> Devesh Sharma (Emulex)
-> Anna Schumaker (Net App)
-> Steve Wise (OpenGridComputing, Chelsio)
->=20
-> Moderator:
-> Shirley Ma (Oracle)
->=20
-> NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA =
-development and test effort from different resources to speed up NFSoRD=
-MA upstream kernel work and NFSoRDMA diagnosing/debugging tools develop=
-ment. Hopefully the quality of NFSoRDMA upstream patches can be improve=
-d by being tested with a quorum of HW vendors.
->=20
-> Today's meeting notes:
->=20
-> NFSoRDMA performance:
-> ---------------------
-> Even though NFSoRDMA performance seems better than IPoIB-cm, the gap =
-between what the IB protocol can provide and what NFS(RDMA,IPoIB-cm) ca=
-n achieve is still big on small I/O block size (focused on 8K IO size f=
-or database workload). Even large I/O block size(128K above), NFS perfo=
-rmance is not comparable to RDMA microbenchmark. We are focusing the ef=
-fort to figure out the root cause. Several experimental methods have be=
-en used on how to improve NFSoRDMA performance.
->=20
-> Yan saw NFS server does RDMA send for small packet size, less than 10=
-0bytes, which should have used post_send instead.
-
-This is an artifact of how NFS/RDMA works.
-
-The client provides a registered area for the server to write
-into if an RPC reply is larger than the small pre-posted
-buffers that are normally used.
-
-Most of the time, each RPC reply is small enough to use RDMA
-SEND, and the server can convey the RPC/RDMA header and the
-RPC reply in a single SEND operation.
-
-If the reply is large, the server conveys the RPC/RDMA header
-via RDMA send, and the RPC reply via an RDMA WRITE into the
-client=92s registered buffer.
-
-Solaris server chooses RDMA SEND in nearly every case.
-
-Linux server chooses RDMA SEND then RDMA WRITE whenever
-the client offers that choice.
-
-Originally, it was felt that doing the RDMA WRITE is better
-for the client because the client doesn=92t have to copy the
-RPC header from the RDMA receive buffer back into rq_rcv_buf.
-Note that the RPC header is generally just a few hundred
-bytes.
-
-Several people have claimed that RDMA WRITE for small I/O
-is relatively expensive and should be avoided. It=92s also
-expensive for the client to register and deregister the
-receive buffer for the RDMA WRITE if the server doesn=92t
-use it.
-
-I=92ve explored changing the client to offer no registered
-buffer if it knows the RPC reply will be small, thus
-forcing the server to use RDMA SEND where it=92s safe.
-
-Solaris server worked fine. Of course, it already works
-this way.
-
-Linux server showed some data and metadata corruption on
-complex workloads like kernel builds. There=92s a bug in
-there somewhere that will need to be addressed before we
-can change the client behavior.
-
-The improvement was consistent, but under ten microseconds
-per RPC with FRWR (more with FMR because deregistering the
-buffer takes longer and is synchronous with RPC execution).
-
-At this stage, there are bigger problems to be addressed,
-so this is not a top priority.
-
+Both had been sent to netdev today (and ACKed by respective drivers'
+maintainers).  I'd certainly prefer not to put them through vfs.git,
+but beyond that I really don't care which tree do those go into...
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
