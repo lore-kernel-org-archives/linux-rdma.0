@@ -1,30 +1,30 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 1/2] IB/uverbs: Enable device removal when
- there are active user space applications
-Date: Thu, 20 Nov 2014 13:21:13 +0200
-Message-ID: <546DCEA9.7010506@mellanox.com>
-References: <1416312682-7899-1-git-send-email-yishaih@mellanox.com> <1416312682-7899-2-git-send-email-yishaih@mellanox.com> <546CADEF.6070905@mellanox.com> <546D9DB2.8050900@dev.mellanox.co.il>
+Subject: Re: mlx5: don't duplicate kvfree()
+Date: Thu, 20 Nov 2014 19:09:31 +0200
+Message-ID: <546E204B.5080106@mellanox.com>
+References: <20141120081357.GI7996@ZenIV.linux.org.uk> <20141120081726.GK7996@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <546D9DB2.8050900-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20141120081726.GK7996-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/20/2014 9:52 AM, Yishai Hadas wrote:
->> can we avoid the fatal_event_raised flag?
->
-> We need this flag to prevent generating duplicate event. This may 
-> happen when a fatal error occurred and just later the remove one was 
-> called when there were active applications.
+On 11/20/2014 10:17 AM, Al Viro wrote:
+> On Thu, Nov 20, 2014 at 08:13:57AM +0000, Al Viro wrote:
+>> >  9 files changed, 21 insertions(+), 35 deletions(-)
+> grr... 8 files changed, actually - that was from the diff that included mlx4
+> bits.  Patch split correctly and sent in two pieces, summary left as is ;-/
+> Sorry about the confusion it might cause...
+Al,
 
-If your only concern is not generating duplicate fatal error events, I 
-would strongly recommend to go a drop this flag to make the code 
-clearer/simpler, object->I_already_did_operation_X flags should be 
-avoided in correct system programming IMHO.
+I think the best way to proceed here is to come up with mlx4 and mlx5 
+patches and get both of them in through netdev / net-nexttree, don't 
+worry about each of these drivers have a part which is also under 
+drivers/infiniband/hw -- it doesn't justify splitting in this case
 
 Or.
 --
