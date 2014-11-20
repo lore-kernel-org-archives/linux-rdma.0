@@ -1,33 +1,108 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx5: don't duplicate kvfree()
-Date: Thu, 20 Nov 2014 19:09:31 +0200
-Message-ID: <546E204B.5080106@mellanox.com>
-References: <20141120081357.GI7996@ZenIV.linux.org.uk> <20141120081726.GK7996@ZenIV.linux.org.uk>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: NFSoRDMA developers bi-weekly meeting minutes (11/20)
+Date: Thu, 20 Nov 2014 10:24:00 -0800
+Message-ID: <546E31C0.1070400@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141120081726.GK7996-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Charles EDWARD Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/20/2014 10:17 AM, Al Viro wrote:
-> On Thu, Nov 20, 2014 at 08:13:57AM +0000, Al Viro wrote:
->> >  9 files changed, 21 insertions(+), 35 deletions(-)
-> grr... 8 files changed, actually - that was from the diff that included mlx4
-> bits.  Patch split correctly and sent in two pieces, summary left as is ;-/
-> Sorry about the confusion it might cause...
-Al,
+Attendees:
 
-I think the best way to proceed here is to come up with mlx4 and mlx5 
-patches and get both of them in through netdev / net-nexttree, don't 
-worry about each of these drivers have a part which is also under 
-drivers/infiniband/hw -- it doesn't justify splitting in this case
+Jeff Becker (NASA)
+Yan Burman (Mellanox)
+Wendy Cheng (Intel)
+Rupert Dance (Soft Forge)
+Steve Dickson (Red Hat)
+Chuck Lever (Oracle)
+Doug Ledford (RedHat)
+Shirley Ma (Oracle)
+Sachin Prabhu (RedHat)
+Devesh Sharma (Emulex)
+Anna Schumaker (Net App)
+Steve Wise (OpenGridComputing, Chelsio)
 
-Or.
+Moderator:
+Shirley Ma (Oracle)
+
+NFSoRDMA developers bi-weekly meeting is to help organizing NFSoRDMA development and test effort from different resources to speed up NFSoRDMA upstream kernel work and NFSoRDMA diagnosing/debugging tools development. Hopefully the quality of NFSoRDMA upstream patches can be improved by being tested with a quorum of HW vendors.
+
+Today's meeting notes:
+
+NFSoRDMA performance:
+---------------------
+Even though NFSoRDMA performance seems better than IPoIB-cm, the gap between what the IB protocol can provide and what NFS(RDMA,IPoIB-cm) can achieve is still big on small I/O block size (focused on 8K IO size for database workload). Even large I/O block size(128K above), NFS performance is not comparable to RDMA microbenchmark. We are focusing the effort to figure out the root cause. Several experimental methods have been used on how to improve NFSoRDMA performance.
+
+Yan saw NFS server does RDMA send for small packet size, less than 100bytes, which should have used post_send instead.
+
+1. performance experimental investigation: (Shirley, Chuck, Yan)
+-- multiple QPs support:
+Created multiple subnets with different partition keys, different NFS client mount points to stretch single link performance, iozone multiple threading DIO 8K showed around 17% improvement, still a big gap to link speed
+
+-- completion vector loading balance
+Split send queue and completion queue interrupts to different CPUs did not help on performance, then created a patch on distributing interrupts among available CPUs for different QPs, send and recv completion share the same completion vector, iozone multiple threading 8K DIO showed that 10% performance improvement
+
+Yan shared iser performance enhancement ideas:
+-- batch recv packet processing
+-- batch completion processing, not signaling every completion
+-- per CPU connection, cq
+iser 8K could reach 4.5GB/s in 56Gb/s link speed, 1.5 million IOPS. 32K could reach 1.8 million IOPS
+ 
+-- increasing RPC credit limit from 32 to 64
+iozone 8K DIO results doesn't show any gain, which might indicate that we need to look at general NFS IO stack.
+
+-- increasing work queue priority to reduce latency
+NFS used work_queue not tasklet since it's in cansleep context, changed the flags to WQ_HIGHPRI | WQ_CPU_INTENSIVE did help reducing the latency when system under heavy workloads. 
+
+-- lock contention
+perf top does show lock contention on top five list for both NFS client and NFS server. More granularity lock contention investigation is needed.
+
+-- scheduling latency
+IO scheduling was developed for high latency devices, there might be some room in IO scheduling improvement.
+
+-- wsize, rsize
+Chuck is looking at wsize, rsize to 1MB
+
+2. performance analysis tools to use: 
+-- perf, lockstat, ftrace, mountstats, nfsiostats... 
+
+3. performance test tools:
+-- iozone, fio
+-- direct IO, cached IO
+
+Next step for performance analysis:
+1. Shirley will collect performance data on NFS IO layer to see any bottlenecks there.
+2. Someone needs to look at NFS server for RDMA small message size Yan has seen
+
+Feel free to reply here for anything missing. See you 12/4.
+
+12/04/2014
+@7:30am PDT
+@8:30am MDT
+@9:30am CDT
+@10:30am EDT
+@Bangalore @8:00pm
+@Israel @5:30pm
+
+Duration: 1 hour
+
+Call-in number:
+Israel: +972 37219638
+Bangalore: +91 8039890080 (180030109800)
+France  Colombes +33 1 5760 2222    +33 176728936
+US: 8666824770,  408-7744073
+
+Conference Code: 2308833
+Passcode: 63767362 (it's NFSoRDMA, in case you couldn't remember)
+
+Thanks everyone for joining the call and providing valuable inputs/work to the community to make NFSoRDMA better.
+
+Cheers,
+Shirley
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
