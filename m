@@ -1,33 +1,57 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFSoRDMA developers bi-weekly meeting minutes (11/20)
-Date: Thu, 20 Nov 2014 13:59:59 -0800
-Message-ID: <546E645F.4090301@oracle.com>
-References: <546E31C0.1070400@oracle.com> <1382BBBCFA085249836C0E3E91900D8999CA064C@ORSMSX115.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382BBBCFA085249836C0E3E91900D8999CA064C-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Cheng, Wendy" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Charles EDWARD Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Subject: [PATCH net-next 0/5] RDMA/cxgb4,cxgb4vf,csiostor: Cleanup macros
+Date: Fri, 21 Nov 2014 12:52:00 +0530
+Message-ID: <1416554525-11844-1-git-send-email-hariprasad@chelsio.com>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
+Cc: davem@davemloft.net, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, anish@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com, praveen@chelsio.com, varun@chelsio.com, Hariprasad Shenai <hariprasad@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
-On 11/20/2014 12:15 PM, Cheng, Wendy wrote:
->> -----Original Message-----
->> From: Shirley Ma [mailto:shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
->> Sent: Thursday, November 20, 2014 10:24 AM
->>
->> ....
->> iser 8K could reach 4.5GB/s in 56Gb/s link speed, 1.5 million IOPS. 32K could
->> reach 1.8 million IOPS
->>
-> 
-> How did the ISER data get measured ? Was the measure done on ISER layer, block layer, or filesystem layer ?
+This series continues to cleanup all the macros/register defines related to
+filter, port, VI, queue, RSS, LDST, firmware, etc that are defined in t4fw_api.h
+and the affected files.
 
-Here is the link on iser how to set up and measure performance:
-http://community.mellanox.com/docs/DOC-1483
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will post few more series so that we can cover all the macros so that they all
+follow the same style to be consistent.
+
+The patches series is created against 'net-next' tree.
+And includes patches on cxgb4, cxgb4vf, iw_cxgb4 and csiostor driver.
+
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
+
+Thanks
+
+Hariprasad Shenai (5):
+  RDMA/cxgb4: Cleanup Filter related macros/register defines
+  RDMA/cxgb4/csiostor: Cleansup FW related macros/register defines for
+    PF/VF and LDST
+  cxgb4/cxgb4vf/csiostor: Cleanup macros/register defines related to
+    queues
+  cxgb4/cxgb4vf/csiostor: Cleanup macros/register defines related to
+    port and VI
+  RDMA/cxgb4/cxgb4vf/csiostor: Cleanup macros/register defines related
+    to PCIE, RSS and FW
+
+ drivers/infiniband/hw/cxgb4/cm.c                   |   16 +-
+ drivers/infiniband/hw/cxgb4/provider.c             |    8 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h         |    8 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_dcb.c     |   14 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_dcb.h     |    4 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    |  193 +-
+ drivers/net/ethernet/chelsio/cxgb4/l2t.c           |    4 +-
+ drivers/net/ethernet/chelsio/cxgb4/sge.c           |  115 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c         |  292 ++--
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h      | 2121 +++++++++++++-------
+ .../net/ethernet/chelsio/cxgb4vf/cxgb4vf_main.c    |   26 +-
+ drivers/net/ethernet/chelsio/cxgb4vf/sge.c         |   63 +-
+ drivers/net/ethernet/chelsio/cxgb4vf/t4vf_hw.c     |  232 ++--
+ drivers/scsi/csiostor/csio_hw.c                    |   38 +-
+ drivers/scsi/csiostor/csio_init.c                  |    8 +-
+ drivers/scsi/csiostor/csio_mb.c                    |  171 +-
+ drivers/scsi/csiostor/csio_mb.h                    |   12 +-
+ 17 files changed, 2004 insertions(+), 1321 deletions(-)
+
