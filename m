@@ -1,41 +1,34 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH net-next 1/5] RDMA/cxgb4: Cleanup Filter related
- macros/register defines
-Date: Thu, 20 Nov 2014 23:55:54 -0800
-Message-ID: <1416556554.6651.35.camel@perches.com>
-References: <1416554525-11844-1-git-send-email-hariprasad@chelsio.com>
-	 <1416554525-11844-2-git-send-email-hariprasad@chelsio.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: Wake up waiters after flushing the qp
+Date: Fri, 21 Nov 2014 09:25:47 -0600
+Message-ID: <546F597B.4020404@opengridcomputing.com>
+References: <20141020153755.31500.44966.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1416554525-11844-2-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: Hariprasad Shenai <hariprasad@chelsio.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, davem@davemloft.net, roland@purestorage.com, JBottomley@parallels.com, hch@infradead.org, swise@opengridcomputing.com, leedom@chelsio.com, anish@chelsio.com, nirranjan@chelsio.com, kumaras@chelsio.com, praveen@chelsio.com, varun@chelsio.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141020153755.31500.44966.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2014-11-21 at 12:52 +0530, Hariprasad Shenai wrote:
-> This patch cleanups all filter related macros/register defines that are defined
-> in t4fw_api.h and the affected files.
+Hey Roland,
 
-Is there any real value in the FW_FILTER_WR_ prefix?
-Does it need to be so long?
+Hope you can get this bug fix into 3.18.  Plus these others that have 
+been submitted a while ago.  Here is the entire list:
 
-Perhaps it'd be nicer to read if
-_S was _SHIFT
-_M was _MASK
-_V was whatever it's supposed to represent (_SET?)
-and
-_G was _GET
+https://patchwork.kernel.org/patch/5106541/
+https://patchwork.kernel.org/patch/5249511/
+https://patchwork.kernel.org/patch/5249501/
+https://patchwork.kernel.org/patch/5089511/
+https://patchwork.kernel.org/patch/5089501/
 
-> +#define FW_FILTER_WR_TID_S      12
-> +#define FW_FILTER_WR_TID_M      0xfffff
-> +#define FW_FILTER_WR_TID_V(x)   ((x) << FW_FILTER_WR_TID_S)
-> +#define FW_FILTER_WR_TID_G(x)   \
-> +	(((x) >> FW_FILTER_WR_TID_S) & FW_FILTER_WR_TID_M)
 
-Why aren't the _V defines masked then shifted?
+Thanks,
 
-#define FW_FILTER_WR_<foo>_V(x)				\
-	(((x) & FW_FILTER_<foo>_M) << FW_FILTER_<foo>_S)
+Steve.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
