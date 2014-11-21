@@ -1,61 +1,24 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] iw_cxgb4: Wake up waiters after flushing the qp
-Date: Fri, 21 Nov 2014 09:42:10 -0600
-Message-ID: <001e01d005a1$b6517690$22f463b0$@opengridcomputing.com>
-References: <20141020153755.31500.44966.stgit@build.ogc.int> <546F597B.4020404@opengridcomputing.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: mlx5: don't duplicate kvfree()
+Date: Fri, 21 Nov 2014 14:58:28 -0500 (EST)
+Message-ID: <20141121.145828.1458101987936104160.davem@davemloft.net>
+References: <20141120081357.GI7996@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <546F597B.4020404-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20141120081357.GI7996-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org
+Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I've pushed these to:
+From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Date: Thu, 20 Nov 2014 08:13:57 +0000
 
-git://git.openfabrics.org/~swise/linux.git for_roland
+> Signed-off-by: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
 
-Steve
-
-Hariprasad Shenai (2):
-      iw_cxgb4: Fixes locking issue in process_mpa_request
-      iw_cxgb4: limit MRs to < 8GB for T4/T5 devices
-
-Pramod Kumar (2):
-      cxgb4/rdma:Increase epd buff size for debug interface
-      cxgb4/rdma: configure 0B MRs to match HW implementation
-
-Steve Wise (1):
-      iw_cxgb4: Wake up waiters after flushing the qp
-
-
-> -----Original Message-----
-> From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
-> Sent: Friday, November 21, 2014 9:26 AM
-> To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH] iw_cxgb4: Wake up waiters after flushing the qp
-> 
-> Hey Roland,
-> 
-> Hope you can get this bug fix into 3.18.  Plus these others that have
-> been submitted a while ago.  Here is the entire list:
-> 
-> https://patchwork.kernel.org/patch/5106541/
-> https://patchwork.kernel.org/patch/5249511/
-> https://patchwork.kernel.org/patch/5249501/
-> https://patchwork.kernel.org/patch/5089511/
-> https://patchwork.kernel.org/patch/5089501/
-> 
-> 
-> Thanks,
-> 
-> Steve.
-
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
