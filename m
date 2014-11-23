@@ -1,36 +1,27 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next 0/5] RDMA/cxgb4,cxgb4vf,csiostor: Cleanup
- macros
-Date: Sat, 22 Nov 2014 16:58:11 -0500 (EST)
-Message-ID: <20141122.165811.2270530256951559796.davem@davemloft.net>
-References: <1416554525-11844-1-git-send-email-hariprasad@chelsio.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Tutorials/howto to modify exiting tcp/ip app for rdma
+Date: Mon, 24 Nov 2014 00:41:37 +0400
+Message-ID: <CACaajQv2-TFkmANMNBikryG8CE_xhnOx05Qt9aQC8MXfyeRLSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416554525-11844-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, praveen-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Date: Fri, 21 Nov 2014 12:52:00 +0530
+Hello.
+I want to study ibverbs,rdma. I have application that use tcp/ip for
+transfer data.
+I want to add rdma support,avoiding usage IPoIB. So I want to write
+app that can find and connect to other nodes via guides.
+Does somebody share for me some links or how can I find it?
+Thanks
 
-> This series continues to cleanup all the macros/register defines related to
-> filter, port, VI, queue, RSS, LDST, firmware, etc that are defined in t4fw_api.h
-> and the affected files.
-> 
-> Will post few more series so that we can cover all the macros so that they all
-> follow the same style to be consistent.
-> 
-> The patches series is created against 'net-next' tree.
-> And includes patches on cxgb4, cxgb4vf, iw_cxgb4 and csiostor driver.
-> 
-> We have included all the maintainers of respective drivers. Kindly review the
-> change and let us know in case of any review comments.
 
-Series applied, thanks.
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
