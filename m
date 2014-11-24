@@ -1,34 +1,36 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v3 09/11] IB/srp: Use block layer tags
-Date: Mon, 24 Nov 2014 16:43:27 +0100
-Message-ID: <5473521F.2080409@acm.org>
-References: <545240AE.6060009@acm.org> <545241C7.5010707@acm.org> <20141112104537.GA13223@infradead.org>
+From: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: RDMA Programming: Java vs. C
+Date: Mon, 24 Nov 2014 22:01:04 +0000 (UTC)
+Message-ID: <loom.20141124T224935-43@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141112104537.GA13223-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Robert Elliott <Elliott-VXdhtT5mjnY@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/12/14 11:45, Christoph Hellwig wrote:
-> FYI, I've updated this to use .use_blk_tags = 1 isntead of
-> scsi_activate_tcq now that I've rebased the drivers-for-3.19 branch
-> over the tcq rework.  Please verify that it's workign as intented.
+Hello everyone.
 
-[ just arrived home from traveling ]
+I'm a newcomer to the world of InfiniBand and RDMA.
+I started to write small programs in C to leverage RDMA features in databases.
+I would like now to try out some of my ideas on
+benchmarking  tools which are mostly written in Java.
+So I was thinking maybe I should migrate to java to void 
+reinventing the wheel and ending up writing the whole benchmarks in C by myself. 
 
-Hello Christoph,
+So my questions are:
 
-The SRP initiator passes the same tests as before. I have checked with 
-ibdump and Wireshark that the SRP tags are still assigned properly. 
-These tests have been run with and without blk-mq (use_blk_mq=Y versus 
-N). The code I have tested is branch drivers-for-3.19 / commit 
-18f87a67e6d681d1c6f8b3c47985f21b25959a77.
+1- Is there any significant difference, performance-wise,
+between RDMA programming in Java and C?
+2- I have read on some blogs that  JDK has support for OFED 1.5.
+Is that true? I'm currently working with OFED 2.3.1, and really do
+not know which of the features I'm using are specific to this version.
+3- Can you point me to a good starting point (libraries, ....) for
+Java RDMA programming. Even a small example would be great.
 
-Bart.
+Thanks. 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
