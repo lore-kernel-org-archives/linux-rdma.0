@@ -1,49 +1,40 @@
-From: swell78646-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
-Date: Tue, 25 Nov 2014 22:16:14 +0530
-Message-ID: <5474b254.615f440a.59c8.4dd7@mx.google.com>
-Reply-To: julia.kites-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jay Vosburgh <jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
+Date: Tue, 25 Nov 2014 10:41:17 -0800
+Message-ID: <19740.1416940877@famine>
+References: <1416893768-21369-1-git-send-email-wen.gang.wang@oracle.com> <20141125.010741.450666241983239119.davem@davemloft.net> <54742D6E.9030605@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <54742D6E.9030605-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Sir
+Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-Did your website get hit by Google Penguin update on October 17th 2014?=
- What basically is Google Penguin Update? It is actually a code name fo=
-r Google algorithm which aims at decreasing your websites search engine=
- rankings that violate Google=92s guidelines by using black hat SEO tec=
-hniques to rank your webpage by giving number of spammy links to the pa=
-ge.
-=20
-We are one of those few SEO companies that can help you avoid penalties=
- from Google Updates like Penguin and Panda. Our clients have survived =
-all the previous and present updates with ease. They have never been hi=
-t because we use 100% white hat SEO techniques to rank Webpages.  Simpl=
-e thing that we do to keep websites away from any Penguin or Panda pena=
-lties is follow Google guidelines and we give Google users the best ans=
-wers to their queries.
+>On 11/25/2014 8:07 AM, David Miller wrote:
+>> IPOIB should not work over bonding as it requires that the device
+>> use ARPHRD_ETHER.
+>
+>Hi Dave,
+>
+>IPoIB devices can be enslaved to both bonding and teaming in their HA mode,
+>the bond device type becomes ARPHRD_INFINIBAND when this happens.
 
-If you are looking to increase the quality of your websites and to get =
-more targeted traffic or save your websites from these Google penalties=
- email us back with your interest.=20
+	The point was that pktgen disallows ARPHRD_INFINIBAND, not that
+bonding does.
 
-We will be glad to serve you and help you grow your business.
+	Pktgen specifically checks for type != ARPHRD_ETHER, so the
+IPoIB bond should not be able to be used with pkgten.  My suspicion is
+that pktgen is being configured on the bond first, then an IPoIB slave
+is added to the bond; this would change its type in a way that pktgen
+wouldn't notice.
 
-Regards
+	-J
 
-Julia kites
-
-SEO Manager ( TOB )
-B7 Green Avenue, Amritsar 143001 Punjab
-____________________________
-NO CLICK in the subject to STOP EMAILS
+---
+	-Jay Vosburgh, jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
