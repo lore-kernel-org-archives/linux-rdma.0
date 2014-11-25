@@ -1,44 +1,59 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
-Date: Tue, 25 Nov 2014 13:44:50 -0500 (EST)
-Message-ID: <20141125.134450.1265438298771389292.davem@davemloft.net>
-References: <20141125.010741.450666241983239119.davem@davemloft.net>
-	<54742D6E.9030605@mellanox.com>
-	<19740.1416940877@famine>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC PATCH 00/16] ib_mad: Add support for Intel Omni-Path
+ Architecture (OPA) MAD processing.
+Date: Tue, 25 Nov 2014 21:52:08 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBC6B23@CRSMSX101.amr.corp.intel.com>
+References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
+ <CAJ3xEMhtm99dRdcEvhK9s961mDr7YSU3pkv-WK=sESKe_K4kYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19740.1416940877@famine>
+In-Reply-To: <CAJ3xEMhtm99dRdcEvhK9s961mDr7YSU3pkv-WK=sESKe_K4kYw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jay Vosburgh <jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Date: Tue, 25 Nov 2014 10:41:17 -0800
-
-> Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> 
->>On 11/25/2014 8:07 AM, David Miller wrote:
->>> IPOIB should not work over bonding as it requires that the device
->>> use ARPHRD_ETHER.
->>
->>Hi Dave,
->>
->>IPoIB devices can be enslaved to both bonding and teaming in their HA mode,
->>the bond device type becomes ARPHRD_INFINIBAND when this happens.
-> 
-> 	The point was that pktgen disallows ARPHRD_INFINIBAND, not that
-> bonding does.
-> 
-> 	Pktgen specifically checks for type != ARPHRD_ETHER, so the
-> IPoIB bond should not be able to be used with pkgten.  My suspicion is
-> that pktgen is being configured on the bond first, then an IPoIB slave
-> is added to the bond; this would change its type in a way that pktgen
-> wouldn't notice.
-
-+1
+PiANCj4gT24gVGh1LCBOb3YgMTMsIDIwMTQgYXQgOTo1NCBQTSwgIDxpcmEud2VpbnlAaW50ZWwu
+Y29tPiB3cm90ZToNCj4gPiBUaGUgZm9sbG93aW5nIHBhdGNoIHNlcmllcyBtb2RpZmllcyB0aGUg
+a2VybmVsIE1BRCBwcm9jZXNzaW5nDQo+ID4gKGliX21hZC9pYl91bWFkKSBhbmQgcmVsYXRlZCBp
+bnRlcmZhY2VzIHRvIHByb2Nlc3MgSW50ZWwgT21uaS1QYXRoDQo+ID4gQXJjaGl0ZWN0dXJlIE1B
+RHMgb24gZGV2aWNlcyB3aGljaCBzdXBwb3J0IHRoZW0uDQo+IA0KPiBTbyB0aGlzIHNlcmllcyBh
+bGxvd3MgdG8gcHJvY2VzcyBzdWNoIG1hZCB3aGVuIGl0IGFycml2ZXMgb3IgZ29lcyBiZXlvbmQg
+dGhhdA0KPiBhbmQgYWxsb3dzIHRvIHNlbmQgc3VjaCBtYWQgdG9vPw0KDQpCb3RoIHNlbmQgYW5k
+IHJlY2VpdmUgaXMgc3VwcG9ydGVkLiAgTXkgYXBvbG9naWVzIGZvciBub3QgYmVpbmcgY2xlYXIu
+DQoNCj4gDQo+ID4gSW4gYWRkaXRpb24gdG8gc3VwcG9ydGluZyBzb21lIElCVEEgbWFuYWdlbWVu
+dCBjbGFzc2VzLCBPUEEgZGV2aWNlcw0KPiA+IHVzZSBNQURzIHdpdGggbGVuZ3RocyB1cCB0byAy
+Sy4gIFRoZXNlICJqdW1ibyIgTUFEcyBpbmNyZWFzZSB0aGUNCj4gPiBwZXJmb3JtYW5jZSBvZiBt
+YW5hZ2VtZW50IHRyYWZmaWMuDQo+IA0KPiBDYW4geW91IHByb3ZpZGUgMS0yIHVzZSBjYXNlcyB3
+aGVyZSBzdWNoIG1hZHMgd2lsbCBiZSBzZW50IGFuZCBieSB3aGF0DQo+IGVudGl0eT8gSSByZWNh
+bGwgMktCIG1hZHMgd2VyZSBtZW50aW9uZWQgb3ZlciBvdXIgTFdHIHRhbGtzIDggeWVhcnMgYWdv
+IG9uIElCDQo+IHJvdXRlcnMuLi4NCg0KVGhlIEludGVsIE9tbmktUGF0aCBkcml2ZXIgYW5kIFNN
+IHdpbGwgYmUgdGhlIGVudGl0aWVzIHVzaW5nIHRoZXNlIE1BRHMuICBUaGUgcGF0Y2ggc2VyaWVz
+IGlzIHdyaXR0ZW4gc3VjaCB0aGF0IG90aGVyIGRldmljZXMgY291bGQgdXNlIGp1bWJvIE1BRCdz
+IGJ1dCB0aGVyZSBpcyBubyBhdHRlbXB0IHRvIHByZWRpY3QgaG93IG90aGVyIHRlY2hub2xvZ2ll
+cyB3b3VsZCBkbyBzby4NCg0KW3NuaXBdDQoNCj4gPiAgIFtSRkMgUEFUQ0ggMDcvMTZdIGliL21h
+ZDogY3JlYXRlIGEganVtYm8gTUFEIGttZW1fY2FjaGUNCj4gDQo+IHdoeSBub3QgdXNlIGEgc2lu
+Z2xlIGttZW0tY2FjaGUgaW5zdGFuY2Ugd2l0aCBhIG5vbiBoYXJkIGNvZGVkIGVsZW1lbnQgc2l6
+ZSwNCj4gMjU2QiAob3Igd2hhdGV2ZXIgd2UgdXNlIHRvZGF5KSBvciAyS0I/DQoNCkkgd2FudGVk
+IHRvIGJlIGFibGUgdG8gYWRqdXN0IHRoZSBlbGVtZW50IGNvdW50IG9mIHRoZSBjYWNoZXMgc2Vw
+YXJhdGVseSB0byBiZXR0ZXIgdHVuZSBvdmVyYWxsIG1lbW9yeSB1c2FnZS4gIEhvd2V2ZXIsIEkg
+c3RvcHBlZCBzaG9ydCBvZiBhZGRpbmcgYWRkaXRpb25hbCBtb2R1bGUgcGFyYW1ldGVycyB0byBh
+ZGp1c3QgdGhlIDJLIGNhY2hlIGF0IHRoaXMgdGltZS4NCg0KPiANCj4gQWxzbyAobml0KSwgcGxl
+YXNlIGNoYW5nZSB0aGUgcHJlZml4IGZvciBhbGwgcGF0Y2hlcyB0byBiZSBJQi9tYWQ6IGFuZCBu
+b3QNCj4gaWIvbWFkOiB0byBjb21wbHkgd2l0aCB0aGUgZXhpc3RpbmcgaGFiaXQgb2YgcGF0Y2gg
+dGl0bGVzIGZvciB0aGUgSUIgc3Vic3lzdGVtDQoNCkkgd2lsbCB0aGFua3MuDQoNCj4gDQo+IEFu
+ZCAoYW5vdGhlciBuaXQpLCBnZW5lcmF0ZSBwYXRjaCAwL04gdXNpbmcNCj4gDQo+ICQgZ2l0IGZv
+cm1hdC1wYXRjaCAtLWNvdmVyLWxldHRlcg0KPiANCj4gc28gd2UgaGF2ZSB0aGUgZXhhY3Qgc3Vi
+amVjdCBsaW5lIGZvciBlYWNoIHBhdGNoIGFuZCB0aGUgb3Zlci1hbGwgZGlmZnN0YXQgaW4gdGhl
+DQo+IGNvdmVyLWxldHRlcg0KDQpJIHdpbGwuICBNeSByZWFzb24gZm9yIG5vdCBkb2luZyB0aGlz
+IHByZXZpb3VzbHkgd2FzIHRoYXQgSSBydW4gdGhlIGdpdCBzZW5kLWVtYWlsIGNvbW1hbmQgb24g
+Z2VuZXJhdGVkIHBhdGNoZXMgZnJvbSBhIGRpZmZlcmVudCBtYWNoaW5lIHRoYW4gdGhlIG9uZSBv
+biB3aGljaCBteSByZXBvIGlzIGxvY2F0ZWQgZHVlIHRvIEludGVsJ3MgZmlyZXdhbGwgc2V0dXAu
+ICBJIHdpbGwgY2xvbmUgdGhlIHJlcG8gdGhlcmUgYW5kIGRvIHRoaXMgaW4gdGhlIGZ1dHVyZS4N
+Cg0KLS0gSXJhDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
