@@ -1,78 +1,105 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC PATCH 00/16] ib_mad: Add support for Intel Omni-Path Architecture
- (OPA) MAD processing.
-Date: Tue, 25 Nov 2014 18:16:31 -0500
-Message-ID: <54750DCF.90308@dev.mellanox.co.il>
-References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
+From: Wengang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
+Date: Wed, 26 Nov 2014 09:30:52 +0800
+Message-ID: <54752D4C.7000603@oracle.com>
+References: <20141125.010741.450666241983239119.davem@davemloft.net>	<54742D6E.9030605@mellanox.com>	<19740.1416940877@famine> <20141125.134450.1265438298771389292.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415908465-24392-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20141125.134450.1265438298771389292.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/13/2014 2:54 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> The following patch series modifies the kernel MAD processing (ib_mad/ib_umad)
-> and related interfaces to process Intel Omni-Path Architecture MADs on devices
-> which support them.
-> 
-> In addition to supporting some IBTA management classes, OPA devices use MADs
-> with lengths up to 2K.  These "jumbo" MADs increase the performance of
-> management traffic.
-> 
-> To distinguish IBTA MADs from OPA MADs a new Base Version is introduced.  The
-> new format shares the same common header with IBTA MADs which allows us to
-> share most of the MAD processing code when dealing with the new Base Version.
+=E4=BA=8E 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 02:44, David Miller =E5=86=
+=99=E9=81=93:
+> From: Jay Vosburgh <jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> Date: Tue, 25 Nov 2014 10:41:17 -0800
+>
+>> Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>
+>>> On 11/25/2014 8:07 AM, David Miller wrote:
+>>>> IPOIB should not work over bonding as it requires that the device
+>>>> use ARPHRD_ETHER.
+>>> Hi Dave,
+>>>
+>>> IPoIB devices can be enslaved to both bonding and teaming in their =
+HA mode,
+>>> the bond device type becomes ARPHRD_INFINIBAND when this happens.
+>> 	The point was that pktgen disallows ARPHRD_INFINIBAND, not that
+>> bonding does.
+>>
+>> 	Pktgen specifically checks for type !=3D ARPHRD_ETHER, so the
+>> IPoIB bond should not be able to be used with pkgten.  My suspicion =
+is
+>> that pktgen is being configured on the bond first, then an IPoIB sla=
+ve
+>> is added to the bond; this would change its type in a way that pktge=
+n
+>> wouldn't notice.
+> +1
 
-Is there any intention on standardizing OPA (jumbo MADs) at the IBTA or
-has that ship already sailed ? I'm assuming it is the latter.
+I think it go this way:
 
-In any case, OPA base version should be claimed at IBTA so it won't be
-used by anything else in the future at the IBTA.
+1) bond_master is ready
+2) bond_enslave enslave a IPOIB interface calling bond_setup_by_slave
+3) then bond_setup_by_slave set change master type to ARPHRD_INFINIBAND=
+=2E
 
-Also, will OPA nodes interoperate with standard IBTA nodes or does OPA
-assume a homogeneous OPA subnet ?
+code is like this:
 
-> The patch series is broken into 3 main areas.
-> 
-> 1) Add the ability for devices to indicate "jumbo" MAD support.  In addition,
->    modify the ib_mad module to detect those devices and allocate the resources
->    for the QPs on those devices.
-> 
-> 2) Enhance the interface to the device agents to support larger and variable
->    length MADs.
-> 
-> 3) Add support for creating and processing OPA Base Version MADs including 
->    a new SMP class version specific to OPA devices.
+1 /* enslave device <slave> to bond device <master> */
+2 int bond_enslave(struct net_device *bond_dev, struct net_device=20
+*slave_dev)
+3 {
+4 <snip>...
+5 /* set bonding device ether type by slave - bonding netdevices are
+6 * created with ether_setup, so when the slave type is not ARPHRD_ETHE=
+R
+7 * there is a need to override some of the type dependent attribs/func=
+s.
+8 *
+9 * bond ether type mutual exclusion - don't allow slaves of dissimilar
+10 * ether type (eg ARPHRD_ETHER and ARPHRD_INFINIBAND) share the same =
+bond
+11 */
+12 if (!bond_has_slaves(bond)) {
+13 if (bond_dev->type !=3D slave_dev->type) {
+14 <snip>...
+15 if (slave_dev->type !=3D ARPHRD_ETHER)
+16 bond_setup_by_slave(bond_dev, slave_dev);
+17 else {
+18 ether_setup(bond_dev);
+19 bond_dev->priv_flags &=3D ~IFF_TX_SKB_SHARING;
+20 }
+21
+22 call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE,
+23 bond_dev);
+24 }
+25 <snip>...
+26 }
+27
+28 static void bond_setup_by_slave(struct net_device *bond_dev,
+29 struct net_device *slave_dev)
+30 {
+31 bond_dev->header_ops =3D slave_dev->header_ops;
+32
+33 bond_dev->type =3D slave_dev->type;
+34 bond_dev->hard_header_len =3D slave_dev->hard_header_len;
+35 bond_dev->addr_len =3D slave_dev->addr_len;
+36
+37 memcpy(bond_dev->broadcast, slave_dev->broadcast,
+38 slave_dev->addr_len);
+39 }
+40
 
-At a minimum, OPA SMP class version should also be claimed at IBTA.
-
->   [RFC PATCH 01/16] ib/mad: rename is_data_mad to is_rmpp_data_mad
->   [RFC PATCH 02/16] ib/core: add IB_DEVICE_JUMBO_MAD_SUPPORT device cap
->   [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a device
->   [RFC PATCH 04/16] ib/mad: add base version parameter to
->   [RFC PATCH 05/16] ib/mad: Add MAD size parameters to process_mad
->   [RFC PATCH 06/16] ib/mad: Create jumbo_mad data structures
->   [RFC PATCH 07/16] ib/mad: create a jumbo MAD kmem_cache
->   [RFC PATCH 08/16] ib/mad: Add Intel Omni-Path Architecture defines
->   [RFC PATCH 09/16] ib/mad: Implement support for Intel Omni-Path
->   [RFC PATCH 10/16] ib/mad: Add registration check for Intel Omni-Path
->   [RFC PATCH 11/16] ib/mad: create helper function for
->   [RFC PATCH 12/16] ib/mad: create helper function for
->   [RFC PATCH 13/16] ib/mad: create helper function for
->   [RFC PATCH 14/16] ib/mad: Create helper function for SMI processing
->   [RFC PATCH 15/16] ib/mad: Implement Intel Omni-Path Architecture SMP
->   [RFC PATCH 16/16] ib/mad: Implement Intel Omni-Path Architecture General
-
-Has regression testing yet been done with these changes in terms of IBTA
-MAD support in terms of agents, SMs, and diagnostics to be sure that
-things still work properly ?
-
--- Hal
+thanks
+wengang
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
