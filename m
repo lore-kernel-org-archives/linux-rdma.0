@@ -1,61 +1,70 @@
-From: Michela Peterson <cottereamonn-zLKRkbt3P8esTnJN9+BGXg@public.gmane.org>
-Subject: It's me michela
-Date: Thu, 27 Nov 2014 08:59:39 +0530
-Message-ID: <20141127085939.Horde.h9mqQRZS68xzIuwVUDS28w6__8605.77135249532$1417060655$gmane$org@webmail.zestsys.com>
-Reply-To: michelapeterson1988-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/2] Adding support for RoCE V2 specification
+Date: Thu, 27 Nov 2014 11:56:08 +0200
+Message-ID: <CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ@mail.gmail.com>
+References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed	DelSp=Yes
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <51dd1341-8216-494f-9574-120634cad8e7-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: michelapeterson1988-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 27, 2014 at 2:56 AM, Somnath Kotur <somnath.kotur-laKkSmNT4hZhl2p70BpVqQ@public.gmane.org=
+m> wrote:
+> Please apply.
+>
+> Somnath Kotur (2):
+>   IB/Core: Changes to the IB Core infrastructure for RoCE V2.
+>   IB/ocrdma: Changes to comply with RoCEv2 Specification changes
+>
+>  drivers/infiniband/core/addr.c              |   13 +++++-
+>  drivers/infiniband/core/cm.c                |   15 ++++---
+>  drivers/infiniband/core/cma.c               |    4 +-
+>  drivers/infiniband/core/sa_query.c          |    1 +
+>  drivers/infiniband/core/verbs.c             |   47 +++++++++++++++++=
+---
+>  drivers/infiniband/hw/ocrdma/ocrdma.h       |    2 +
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |   64 +++++++++++++++++=
+++++-----
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   26 +++++++++++
+>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |   16 ++++++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   11 ++++-
+>  include/rdma/ib_addr.h                      |    3 +-
+>  include/rdma/ib_sa.h                        |    1 +
+>  include/rdma/ib_verbs.h                     |   15 ++++++
+>  13 files changed, 187 insertions(+), 31 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+=46ew comments to the IB/core part
 
---=20
-Hei Rakas,
+1.       RoCEv2 spec (Annex A17) sees RoCE type (or as the patch name
+it - network_hdr_type) as an attribute of the source GID. If so, there
+is no point to for address structures (ib_ah_attr, ib_sa_path_rec, =E2=80=
+=A6)
+to have both sgid and RoCE type. The alternative is to keep an extra
+info in each GID table entry about the RoCE header (IPv4/IPv6 or GRH)
+and use it when modifying QP from INIT to RTR (RC/UC) or creating AH
+(UD).
 
-Nimeni on Michela, olen 26yrs vanha, olen vapaa mielinen, avoin =20
-hyv=C3=A4syd=C3=A4minen tytt=C3=B6, tykk=C3=A4=C3=A4n ottaa el=C3=A4m=C3=
-=A4n niin helppoa kuin pystyin, =20
-olen yksi niist=C3=A4 harvoista, joka uskoo edelleen yst=C3=A4vyys, rak=
-kaus, =20
-luottamus ja merkkej=C3=A4 , olen eritt=C3=A4in paljon yhden ja valmis =
-=20
-seurustella. oli selata internetin ja t=C3=B6rm=C3=A4sin yhteystietosi,=
- se on =20
-minun vilpit=C3=B6n ilo olla yst=C3=A4v=C3=A4si, jos et mieless=C3=A4, =
-toivon et ei ota =20
-pyynt=C3=B6ni itsest=C3=A4=C3=A4nselvyyten=C3=A4, rohkeasti s=C3=A4hk=C3=
-=B6postia minulle, min=C3=A4 =20
-arvostan sit=C3=A4, jos voit l=C3=A4hett=C3=A4=C3=A4 minulle joitakin k=
-uvia minun =20
-yksityinen S=C3=A4hk=C3=B6postiosoitteisto (michelapeterson1988@hotmail=
-=2Ecom) =20
-odotan kuulevani sinusta pian.
+2.       Population of  table in for RoCE should be a common code to
+all drivers and needs to be moved to IB/core (unlike today when it is
+specific to a vendor). We plan to push such a change soon.
 
-
-Michela.
-
-
-Hello Dear,
-
-My name is Michela, i am 26yrs old, i'm a free minded, open hearted =20
-girl, i like to take life as easy as i could, i'm one of the few that =20
-still believes in friendship,love, trust and signs, am very much =20
-single and ready to mingle. was browsing through the internet and came =
-=20
-across your contact, it will be my sincere pleasure to be your friend =20
-if you don't mind, i hope you will not take my request for granted, =20
-feel free to email me, i will appreciate it if you can send me some =20
-pics to my private email addres(michelapeterson1988-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org) i =20
-look forward to hear from you soon.
-
-
-Michela.
+3.       If I get it right, the purpose of the change in ib_addr is to
+that determine RoCE type based on the resolution of address from OS.
+If gateway is used (dest address is not in the subnet of source
+address) then the protocol will be V2, otherwise it will be V1. This
+means that IB over UDP is not possible on the same network. I don't
+think that this is acceptable.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
