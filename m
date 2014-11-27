@@ -1,90 +1,63 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] NFS/RDMA patches for 3.19
-Date: Wed, 26 Nov 2014 11:36:05 -0500
-Message-ID: <442D7450-449E-4E98-89F6-C3567E599E7B@oracle.com>
-References: <20141109010328.8806.5861.stgit@manet.1015granger.net> <5475FEFD.8070302@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Michela Peterson <cottereamonn-zLKRkbt3P8esTnJN9+BGXg@public.gmane.org>
+Subject: It's me michela
+Date: Thu, 27 Nov 2014 08:59:39 +0530
+Message-ID: <20141127085939.Horde.h9mqQRZS68xzIuwVUDS28w6__8605.77135249532$1417060655$gmane$org@webmail.zestsys.com>
+Reply-To: michelapeterson1988-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed	DelSp=Yes
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5475FEFD.8070302-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: michelapeterson1988-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Nov 26, 2014, at 11:25 AM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
 
-> Hi Chuck,
-> 
-> I've applied these to two different branches - one for the RDMA changes and another for the generic client side changes.  Both have been sent to Trond to be merged with 3.19.
+--=20
+Hei Rakas,
 
-Thanks Anna!
+Nimeni on Michela, olen 26yrs vanha, olen vapaa mielinen, avoin =20
+hyv=C3=A4syd=C3=A4minen tytt=C3=B6, tykk=C3=A4=C3=A4n ottaa el=C3=A4m=C3=
+=A4n niin helppoa kuin pystyin, =20
+olen yksi niist=C3=A4 harvoista, joka uskoo edelleen yst=C3=A4vyys, rak=
+kaus, =20
+luottamus ja merkkej=C3=A4 , olen eritt=C3=A4in paljon yhden ja valmis =
+=20
+seurustella. oli selata internetin ja t=C3=B6rm=C3=A4sin yhteystietosi,=
+ se on =20
+minun vilpit=C3=B6n ilo olla yst=C3=A4v=C3=A4si, jos et mieless=C3=A4, =
+toivon et ei ota =20
+pyynt=C3=B6ni itsest=C3=A4=C3=A4nselvyyten=C3=A4, rohkeasti s=C3=A4hk=C3=
+=B6postia minulle, min=C3=A4 =20
+arvostan sit=C3=A4, jos voit l=C3=A4hett=C3=A4=C3=A4 minulle joitakin k=
+uvia minun =20
+yksityinen S=C3=A4hk=C3=B6postiosoitteisto (michelapeterson1988@hotmail=
+=2Ecom) =20
+odotan kuulevani sinusta pian.
 
-> 
-> Anna
-> 
-> On 11/08/2014 08:14 PM, Chuck Lever wrote:
->> Hi-
->> 
->> This is a set of fixes and clean-ups for xprtrdma. Also available
->> in the nfs-rdma-for-3.19 topic branch at
->> 
->>  git://linux-nfs.org/projects/cel/cel-2.6.git
->> 
->> I've run cthon04, iozone, dbench, multi-process kernel build and
->> xfstests with NFSv3 and NFSv4.0 against a Linux and a Solaris
->> NFS server via RDMA, with all three memory registration modes.
->> 
->> Changes since v1:
->> 
->> - Merged up to v3.18-rc3
->> - Dropped patches that enable NFSv4.1 support for now
->> - CQ completion vector spinning dropped for now
->> - Addressed Anna's review comments
->> - Several bug fixes
->> 
->> ---
->> 
->> Chuck Lever (10):
->>      xprtrdma: Return an errno from rpcrdma_register_external()
->>      xprtrdma: Cap req_cqinit
->>      xprtrdma: unmap all FMRs during transport disconnect
->>      xprtrdma: Refactor tasklet scheduling
->>      xprtrdma: Re-write rpcrdma_flush_cqs()
->>      xprtrdma: Enable pad optimization
->>      xprtrdma: Display async errors
->>      SUNRPC: serialize iostats updates
->>      NFS: SETCLIENTID XDR buffer sizes are incorrect
->>      NFS: Clean up nfs4_init_callback()
->> 
->> 
->> fs/nfs/nfs4client.c             |   31 +++++------
->> fs/nfs/nfs4xdr.c                |   10 ++-
->> include/linux/sunrpc/metrics.h  |    3 +
->> net/sunrpc/stats.c              |   21 +++++--
->> net/sunrpc/xprtrdma/transport.c |    4 +
->> net/sunrpc/xprtrdma/verbs.c     |  114 ++++++++++++++++++++++++++++++++++-----
->> net/sunrpc/xprtrdma/xprt_rdma.h |    6 ++
->> 7 files changed, 146 insertions(+), 43 deletions(-)
->> 
->> --
->> Chuck Lever
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
-> 
 
+Michela.
+
+
+Hello Dear,
+
+My name is Michela, i am 26yrs old, i'm a free minded, open hearted =20
+girl, i like to take life as easy as i could, i'm one of the few that =20
+still believes in friendship,love, trust and signs, am very much =20
+single and ready to mingle. was browsing through the internet and came =
+=20
+across your contact, it will be my sincere pleasure to be your friend =20
+if you don't mind, i hope you will not take my request for granted, =20
+feel free to email me, i will appreciate it if you can send me some =20
+pics to my private email addres(michelapeterson1988-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org) i =20
+look forward to hear from you soon.
+
+
+Michela.
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
