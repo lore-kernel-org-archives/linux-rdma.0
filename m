@@ -1,36 +1,25 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: Tutorials/howto to modify exiting tcp/ip app for rdma
-Date: Thu, 27 Nov 2014 18:40:04 +0400
-Message-ID: <CACaajQsigz+nixfEvhZw8FqtXqWqd=h4gAOiHYLd9jVzsdiw7Q@mail.gmail.com>
-References: <CACaajQv2-TFkmANMNBikryG8CE_xhnOx05Qt9aQC8MXfyeRLSg@mail.gmail.com>
- <CACaajQsxHa48osSvtimGXn+-f3U3ZGUD+9yudrc1onAPdn_8hQ@mail.gmail.com> <000b01d00a3d$ad1a7720$074f6560$@soft-forge.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on
+ a device
+Date: Thu, 27 Nov 2014 16:59:37 +0200
+Message-ID: <54773C59.6080505@mellanox.com>
+References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
+ <1415908465-24392-4-git-send-email-ira.weiny@intel.com>
+ <54770F44.2090909@mellanox.com> <54772C70.8060602@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <000b01d00a3d$ad1a7720$074f6560$@soft-forge.com>
+In-Reply-To: <54772C70.8060602-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-2014-11-27 15:28 GMT+03:00 Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>:
-> Vasiliy,
->
-> Please review the OpenFabrics Alliance site and consider posting this question to the OFA User group.
->
-> OFA: https://www.openfabrics.org/index.php
-> User Group: http://lists.openfabrics.org/mailman/listinfo/users
-> OFS User Portal: https://www.openfabrics.org/index.php/ofs-users.html
->
-> Thanks
+On 11/27/2014 3:51 PM, Sagi Grimberg wrote:
+> We're already short on bits in device_cap_flags
 
-
-Thanks, i'm try.
-
--- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+no shortage @ the kernel... we can add more 32 bits if/when we need it
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
