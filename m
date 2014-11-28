@@ -1,72 +1,65 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Adding support for RoCE V2 specification
-Date: Fri, 28 Nov 2014 11:51:08 +0000
-Message-ID: <7F44EA5110810A40B7DAFB605C41975D312F40F4@CMEXMB1.ad.emulex.com>
-References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
- <CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Tutorials/howto to modify exiting tcp/ip app for rdma
+Date: Fri, 28 Nov 2014 11:08:50 -0500
+Message-ID: <54789E12.6000601@dev.mellanox.co.il>
+References: <CACaajQv2-TFkmANMNBikryG8CE_xhnOx05Qt9aQC8MXfyeRLSg@mail.gmail.com> <5477298A.6060605@dev.mellanox.co.il> <CACaajQs6vP=LJ+H=SC7G4EuwOebsjz9G1vxay=aYiKyo1AwSjg@mail.gmail.com> <54774122.1020502@dev.mellanox.co.il> <5477584A.9050605@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5477584A.9050605-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgTW9uaS9TaGFjaGFyLA0KCVRoYW5rIHlvdSBmb3IgeW91ciBmZWVkYmFjay9jb21tZW50cy4g
-SSBoYXZlIHRyaWVkIHRvIGFkZHJlc3MgIHNvbWUgb2YgeW91ciBjb25jZXJucyAvY29tbWVudHMg
-aW5saW5lIGJlbG93Lg0KDQoNCj4gRmV3IGNvbW1lbnRzIHRvIHRoZSBJQi9jb3JlIHBhcnQNCj4g
-DQo+IDEuICAgICAgIFJvQ0V2MiBzcGVjIChBbm5leCBBMTcpIHNlZXMgUm9DRSB0eXBlIChvciBh
-cyB0aGUgcGF0Y2ggbmFtZQ0KPiBpdCAtIG5ldHdvcmtfaGRyX3R5cGUpIGFzIGFuIGF0dHJpYnV0
-ZSBvZiB0aGUgc291cmNlIEdJRC4gSWYgc28sIHRoZXJlIGlzIG5vDQo+IHBvaW50IHRvIGZvciBh
-ZGRyZXNzIHN0cnVjdHVyZXMgKGliX2FoX2F0dHIsIGliX3NhX3BhdGhfcmVjLCDigKYpIHRvIGhh
-dmUgYm90aA0KPiBzZ2lkIGFuZCBSb0NFIHR5cGUuIFRoZSBhbHRlcm5hdGl2ZSBpcyB0byBrZWVw
-IGFuIGV4dHJhIGluZm8gaW4gZWFjaCBHSUQgdGFibGUNCj4gZW50cnkgYWJvdXQgdGhlIFJvQ0Ug
-aGVhZGVyIChJUHY0L0lQdjYgb3IgR1JIKSBhbmQgdXNlIGl0IHdoZW4gbW9kaWZ5aW5nDQo+IFFQ
-IGZyb20gSU5JVCB0byBSVFIgKFJDL1VDKSBvciBjcmVhdGluZyBBSCAoVUQpLg0KWWVzLCB0aGF0
-IGlzIGNvcnJlY3QuDQoNClRoZSBvdmVyYXJjaGluZyBnb2FsIGJlaGluZCB0aGlzIHBhdGNoIGlz
-IHRvIGtlZXAgUkRNQS1DTSBhcyB0aGUgY2VudHJhbCBlbnRpdHkgdGhhdCBkZWNpZGVzIHRoZSBw
-cm90b2NvbCAoUk9DRVYyIC9ST0NFVjEpDQphbmQgaGlkZXMgYWxsIHRoZSBhZGRyZXNzIHJlc29s
-dXRpb24gZGV0YWlscyBmcm9tIGFwcGxpY2F0aW9ucy4NClRoaXMgIGlzIGp1c3QgYSBjb250aW51
-YXRpb24gb2YgdGhlIGV4aXN0aW5nIFJETUEtQ00gZGVzaWduIHBoaWxvc29waHkgZm9yIElQIEJh
-c2VkIEdJRHMgdGhhdCBsZXRzIGFwcGxpY2F0aW9ucyBvcGVyYXRlIG92ZXIgYW55IGZvcm0NCm9m
-IFJETUEgU2VydmljZSBpbiBhIGNvbXBsZXRlbHkgdHJhbnNwYXJlbnQgd2F5IHdpdGhvdXQgYW55
-IGNoYW5nZXMgdG8gdGhlIGFwcGxpY2F0aW9ucyB0aGVtc2VsdmVzLg0KDQpQcm90b2NvbCBSZXNv
-bHV0aW9uKFJvQ0VWMiBvciBWMSkgbXVzdCBiZSBkb25lIGV2ZW4gYmVmb3JlIHdlIA0Kc2VuZCBv
-dXQgdGhlIDFzdCBjb25uZWN0aW9uIHJlcXVlc3QgcGFja2V0LCB0aGUgY29ycmVzcG9uZGluZyBN
-QUQgcGt0IG11c3QgYmUgVjIgZm9yIGEgZGVzdGluYXRpb24gdGhhdCBpcyBiZWhpbmQgIGEgcm91
-dGVyLCBjb3JyZWN0Pw0KSSBhbSBub3Qgc3VyZSB3ZSB3YW50IHRvIHRyeSBzZW5kaW5nIG91dCBS
-b0NFdjIgY29ubmVjdGlvbiByZXF1ZXN0cyBmaXJzdCBhbmQgaWYgdGhhdCBmYWlscyAsdGhlbiBm
-YWxsYmFjay9yZXRyeSB3aXRoIFJvQ0V2MSByZXF1ZXN0Lg0KVGhhdCB3b3VsZCBuZWVkbGVzc2x5
-IGNvbXBsaWNhdGUgYW5kIHNsb3cgZG93biB0aGUgY29ubmVjdGlvbi1lc3RhYmxpc2htZW50IHBy
-b2Nlc3MsIGRvIHlvdSBhZ3JlZSA/DQpJbnN0ZWFkIGl0J3MgbXVjaCBtb3JlIHNlYW1sZXNzIHRv
-IHRha2UgaGVscCBvZiB0aGUgSVAgc3RhY2sgdG8gc2VsZWN0IHRoZSBuZXR3b3JrIGhlYWRlciB0
-eXBlIGFuZCBzdWJzZXF1ZW50bHkgdGhlIFJPQ0UgcGt0IGZvcm1hdCB3aGlsZQ0KYXR0ZW1wdGlu
-ZyB0byBlc3RhYmxpc2ggdGhlIGNvbm5lY3Rpb24uDQoNClRoZSBvbmUgdGhpbmcgdGhhdCBteSBw
-YXRjaCBkb2VzIG1pc3Mgb3V0IHRob3VnaCBpcyB0aGUgYWJpbGl0eSBmb3IgbG9jYWwgc3VibmV0
-IGVuZCBub2RlcyB0byBiZSBhYmxlIHRvIGNvbW11bmljYXRlIHVzaW5nIFJvQ0V2MiBwYWNrZXQg
-Zm9ybWF0cy4NCihUaGUgZGVmYXVsdCBwb2xpY3kgaW4gdGhpcyBwYXRjaCBpcyB0byB1c2UgUk9D
-RVYxIGZvciBub2RlcyBjb25uZWN0ZWQgZGlyZWN0bHkgL3dpdGhpbiB0aGUgc2FtZSBsb2NhbCBz
-dWJuZXQuKQ0KSSBiZWxpZXZlIHRoYXQgY2FuIGJlIGFjaGlldmVkIGJ5IGV4dGVuZGluZyBSRE1B
-LUNNIHRvIG92ZXJyaWRlIHRoZSBkZWZhdWx0IHByb3RvY29sIHNlbGVjdGlvbiBwb2xpY3kgcHJv
-cG9zZWQgaW4gdGhpcyBwYXRjaCBieSBtYWtpbmcgdXNlIG9mDQp0aGUgR0lEIEVudHJ5IGF0dHJp
-YnV0ZSB0eXBlIGluIGFub3RoZXIgcGF0Y2guDQpUaGlzIHNjaGVtZSBzaG91bGQgc3RpbGwgd29y
-ayB3aXRoIHlvdXIgcHJvcG9zYWwgIGluIHBvaW50IyAyICwgd2hlcmUgR0lEIFRhYmxlIG1hbmFn
-ZW1lbnQgd291bGQgbW92ZSB0byBhIGNlbnRyYWwvc3RhY2sgbW9kdWxlIGluc3RlYWQgb2YgYmVp
-bmcNCnZlbmRvciBzcGVjaWZpYy4NCg0KVGhhbmtzDQpTb20NCiANCj4gMi4gICAgICAgUG9wdWxh
-dGlvbiBvZiAgdGFibGUgaW4gZm9yIFJvQ0Ugc2hvdWxkIGJlIGEgY29tbW9uIGNvZGUgdG8NCj4g
-YWxsIGRyaXZlcnMgYW5kIG5lZWRzIHRvIGJlIG1vdmVkIHRvIElCL2NvcmUgKHVubGlrZSB0b2Rh
-eSB3aGVuIGl0IGlzIHNwZWNpZmljDQo+IHRvIGEgdmVuZG9yKS4gV2UgcGxhbiB0byBwdXNoIHN1
-Y2ggYSBjaGFuZ2Ugc29vbi4NCj4gDQo+IDMuICAgICAgIElmIEkgZ2V0IGl0IHJpZ2h0LCB0aGUg
-cHVycG9zZSBvZiB0aGUgY2hhbmdlIGluIGliX2FkZHIgaXMgdG8NCj4gdGhhdCBkZXRlcm1pbmUg
-Um9DRSB0eXBlIGJhc2VkIG9uIHRoZSByZXNvbHV0aW9uIG9mIGFkZHJlc3MgZnJvbSBPUy4NCj4g
-SWYgZ2F0ZXdheSBpcyB1c2VkIChkZXN0IGFkZHJlc3MgaXMgbm90IGluIHRoZSBzdWJuZXQgb2Yg
-c291cmNlDQo+IGFkZHJlc3MpIHRoZW4gdGhlIHByb3RvY29sIHdpbGwgYmUgVjIsIG90aGVyd2lz
-ZSBpdCB3aWxsIGJlIFYxLiBUaGlzIG1lYW5zIHRoYXQNCj4gSUIgb3ZlciBVRFAgaXMgbm90IHBv
-c3NpYmxlIG9uIHRoZSBzYW1lIG5ldHdvcmsuIEkgZG9uJ3QgdGhpbmsgdGhhdCB0aGlzIGlzDQo+
-IGFjY2VwdGFibGUuDQo=
+On 11/27/2014 11:58 AM, Hal Rosenstock wrote:
+> On 11/27/2014 10:20 AM, Sagi Grimberg wrote:
+>> On 11/27/2014 4:39 PM, Vasiliy Tolstov wrote:
+>>> 2014-11-27 16:39 GMT+03:00 Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
+>>>> You can keep doing IP address resolution using rdma_cm.
+>>>>
+>>>> You can see perftest examples in
+>>>> git://flatbed.openfabrics.org/~grockah/perftest.git
+>>>> Or,
+>>>> librdmacm's rping in git://flatbed.openfabrics.org/~shefty/librdmacm.git
+>>>
+>>>
+>>> Thanks! But if don't have ipoib connection why i need ip address ?=)
+>>>
+>>
+>> My understanding was that you want to _add_ support for RDMA to a
+>> working tcp/ip application, the natural thing is using rdma_cm.
+>>
+>> If you want to replace IP address resolution you need to start
+>> communicating with the SM.
+> 
+> rsockets now supports AF_IB address family (assuming kernel does too -
+> 3.11 or beyond) but you need the path record to the destination IB
+> address (GID) to make the connection so that involves an SA query or the
+> equivalent...
+
+Also, you need librdmacm 1.0.19-1 or later for this.
+
+rstream is the best example of how to use AF_IB.
+
+-- Hal
+
+> 
+> -- Hal
+> 
+>>
+>> srptools is a nice example for that:
+>> git://flatbed.openfabrics.org/~bvanassche/srptools.git/.git
+>>
+>> Sagi.
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
