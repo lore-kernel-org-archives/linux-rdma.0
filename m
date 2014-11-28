@@ -1,85 +1,34 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Adding support for RoCE V2 specification
-Date: Fri, 28 Nov 2014 06:30:33 +0000
-Message-ID: <7F44EA5110810A40B7DAFB605C41975D312F3F3D@CMEXMB1.ad.emulex.com>
-References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
- <583cdb13b37145de92f9321e325f89b6@AM3PR05MB0935.eurprd05.prod.outlook.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/2] ib_srpt: convert printk's to pr_* functions
+Date: Fri, 28 Nov 2014 10:07:42 +0100
+Message-ID: <54783B5E.10803@acm.org>
+References: <cover.1413847199.git.dledford@redhat.com> <5f85bfc1e69ebb8dcd8c048d3a3a6bf135f5fc36.1413847199.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <583cdb13b37145de92f9321e325f89b6-LOZWmgKjnYgQouBfZGh8ttqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5f85bfc1e69ebb8dcd8c048d3a3a6bf135f5fc36.1413847199.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you Shachar for your comments. Sure, will respond to your queries and elaborate more with an updated cover note 
-and re-send the patch series . Hope that is fine with you?
+On 10/21/14 01:24, Doug Ledford wrote:
+> The driver already defined the pr_format, it just hadn't
+> been converted to use pr_info, pr_warn, and pr_err instead
+> of the equivalent printks.  Convert so that messages from
+> the driver are now properly tagged with their driver name
+> and can be more easily debugged.
+>
+> In addition, a number of these printk's were not newline
+> terminated, so fix that at the same time.
+>
+> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Thanks
-Som
+The second hunk of this patch does not apply on kernel v3.18-rc6. 
+Anyway, if you want you can add:
 
-> -----Original Message-----
-> From: Shachar Raindel [mailto:raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Thursday, November 27, 2014 9:22 PM
-> To: Somnath Kotur; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: [PATCH 0/2] Adding support for RoCE V2 specification
-> 
-> Hi,
-> 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Somnath Kotur
-> > Sent: Thursday, November 27, 2014 2:56 AM
-> > To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Somnath Kotur
-> > Subject: [PATCH 0/2] Adding support for RoCE V2 specification
-> >
-> > Please apply.
-> >
-> 
-> This cover letter is rather short. Can you please elaborate?
-> 
-> Specifically, I will be happy to hear what is the expected usage model with
-> RoCE v2.
-> 
-> What are the goals of the changes you are asking to push?
-> 
-> What assumptions do you have on the network topology? How do you
-> decide when to use RoCE v1 and RoCE v2?
-> 
-> What is the integration of RoCE v2 with the CMA?
-> 
-> What changes in the user space libraries and applications are needed to
-> support RoCE v2 on base of this kernel patch?
-> 
-> 
-> > Somnath Kotur (2):
-> >   IB/Core: Changes to the IB Core infrastructure for RoCE V2.
-> >   IB/ocrdma: Changes to comply with RoCEv2 Specification changes
-> >
-> >  drivers/infiniband/core/addr.c              |   13 +++++-
-> >  drivers/infiniband/core/cm.c                |   15 ++++---
-> >  drivers/infiniband/core/cma.c               |    4 +-
-> >  drivers/infiniband/core/sa_query.c          |    1 +
-> >  drivers/infiniband/core/verbs.c             |   47 +++++++++++++++++---
-> >  drivers/infiniband/hw/ocrdma/ocrdma.h       |    2 +
-> >  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |   64
-> > +++++++++++++++++++++-----
-> >  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   26 +++++++++++
-> >  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |   16 ++++++-
-> >  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   11 ++++-
-> >  include/rdma/ib_addr.h                      |    3 +-
-> >  include/rdma/ib_sa.h                        |    1 +
-> >  include/rdma/ib_verbs.h                     |   15 ++++++
-> >  13 files changed, 187 insertions(+), 31 deletions(-)
-> >
-> 
-> Thanks,
-> --Shachar
+Reviewed-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
