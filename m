@@ -1,39 +1,49 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: Tutorials/howto to modify exiting tcp/ip app for rdma
-Date: Sat, 29 Nov 2014 02:42:47 +0400
-Message-ID: <CACaajQuSFVQRPgdEeX5EstrcJkian0YODq8JYpnpFtMMzUVMdw@mail.gmail.com>
-References: <CACaajQv2-TFkmANMNBikryG8CE_xhnOx05Qt9aQC8MXfyeRLSg@mail.gmail.com>
- <5477298A.6060605@dev.mellanox.co.il> <CACaajQs6vP=LJ+H=SC7G4EuwOebsjz9G1vxay=aYiKyo1AwSjg@mail.gmail.com>
- <54774122.1020502@dev.mellanox.co.il> <5477584A.9050605@dev.mellanox.co.il> <54789E12.6000601@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Tina Johnson <tinajohnson.1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] drivers: infiniband: hw: Add pci_dma_mapping_error() call
+Date: Sat, 29 Nov 2014 22:51:17 +0530
+Message-ID: <1417281677-7133-1-git-send-email-tinajohnson.1234@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54789E12.6000601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, Tina Johnson <tinajohnson.1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2014-11-28 19:08 GMT+03:00 Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
-> Also, you need librdmacm 1.0.19-1 or later for this.
->
-> rstream is the best example of how to use AF_IB.
+Added a pci_dma_mapping_error() call to check for mapping errors before
+further using the dma handle. The previously allocated skb is freed in
+case of a mapping error. Unchecked dma handles were found using Coccinelle:
 
+@rule1@
+expression e1;
+identifier x;
+@@
 
-THanks! As i understand i need kernel for example 3.14... =) and
-librdmacm 1.0.19 or later and use rsockets to replace tcp/ip.
-How about resolving? Sorry i'm try to take all pieces =).
-For example i see that rdma_getaddrinfo can resolve address, but as i
-see http://manpages.ubuntu.com/manpages/raring/man3/rdma_resolve_addr.3.html
-i need ipoib.
-In case of pure RDMA network without IP as i understand i need to
-check opensm sources?
-whether there is somewhere the minimum example how to work with guid
-of ports without use ipoib ?
+*x = pci_map_single(...);
+ ... when != pci_dma_mapping_error(e1,x)
+
+Signed-off-by: Tina Johnson <tinajohnson.1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Acked-by: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+---
+ drivers/infiniband/hw/amso1100/c2.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/infiniband/hw/amso1100/c2.c b/drivers/infiniband/hw/amso1100/c2.c
+index 766a71c..c623e82 100644
+--- a/drivers/infiniband/hw/amso1100/c2.c
++++ b/drivers/infiniband/hw/amso1100/c2.c
+@@ -231,6 +231,10 @@ static inline int c2_rx_alloc(struct c2_port *c2_port, struct c2_element *elem)
+ 	mapaddr =
+ 	    pci_map_single(c2dev->pcidev, skb->data, maplen,
+ 			   PCI_DMA_FROMDEVICE);
++	if (pci_dma_mapping_error(c2dev->pcidev, mapaddr)) {
++		dev_kfree_skb(skb);
++		return -ENOMEM;
++	}
+ 
+ 	/* Set the sk_buff RXP_header to RXP_HRXD_READY */
+ 	rxp_hdr = (struct c2_rxp_hdr *) skb->data;
 -- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+1.7.10.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
