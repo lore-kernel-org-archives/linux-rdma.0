@@ -1,75 +1,33 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [RFC PATCH 00/16] ib_mad: Add support for Intel Omni-Path
  Architecture (OPA) MAD processing.
-Date: Mon, 1 Dec 2014 22:18:59 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBCD4E6@CRSMSX101.amr.corp.intel.com>
+Date: Mon, 1 Dec 2014 22:33:30 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBCD52F@CRSMSX101.amr.corp.intel.com>
 References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
- <CAJ3xEMhtm99dRdcEvhK9s961mDr7YSU3pkv-WK=sESKe_K4kYw@mail.gmail.com>
- <2807E5FD2F6FDA4886F6618EAC48510E0CBC6B23@CRSMSX101.amr.corp.intel.com>
- <5476F6BB.1020200@mellanox.com>
+ <54750DCF.90308@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5476F6BB.1020200-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <54750DCF.90308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+DQo+ID4+PiAgICBbUkZDIFBBVENIIDA3LzE2XSBpYi9tYWQ6IGNyZWF0ZSBhIGp1bWJvIE1B
-RCBrbWVtX2NhY2hlDQo+ID4+IHdoeSBub3QgdXNlIGEgc2luZ2xlIGttZW0tY2FjaGUgaW5zdGFu
-Y2Ugd2l0aCBhIG5vbiBoYXJkIGNvZGVkDQo+ID4+IGVsZW1lbnQgc2l6ZSwgMjU2QiAob3Igd2hh
-dGV2ZXIgd2UgdXNlIHRvZGF5KSBvciAyS0I/DQo+ID4gSSB3YW50ZWQgdG8gYmUgYWJsZSB0byBh
-ZGp1c3QgdGhlIGVsZW1lbnQgY291bnQgb2YgdGhlIGNhY2hlcyBzZXBhcmF0ZWx5IHRvDQo+IGJl
-dHRlciB0dW5lIG92ZXJhbGwgbWVtb3J5IHVzYWdlLiAgSG93ZXZlciwgSSBzdG9wcGVkIHNob3J0
-IG9mIGFkZGluZw0KPiBhZGRpdGlvbmFsIG1vZHVsZSBwYXJhbWV0ZXJzIHRvIGFkanVzdCB0aGUg
-MksgY2FjaGUgYXQgdGhpcyB0aW1lLg0KPiANCj4gDQo+IEkgdGVuZCB0byB0aGluayB0aGF0IHRo
-ZSByZXN1bHRlZCBjb2RlIGlzIHRvbyBtdWNoIG9mIGEgc3BlY2lhbCBwdXJwb3NlIG9uZQ0KPiB1
-bmRlciBhICAoanVtYm8gPT0gMkspIGFzc3VtcHRpb24uIFNlZSBzb21lIG1vcmUgY29tbWVudHMg
-aW4gdGhlIGluZGl2aWR1YWwNCj4gcGF0Y2hlcyBhbmQgd2UnbGwgdGFrZSBpdCBmcm9tIHRoZXJl
-Lg0KPiANCg0KT2ssIEknbGwgYWRkcmVzcyB0aG9zZSBjb21tZW50cyBpbiB0aGUgb3RoZXIgZW1h
-aWwgdGhyZWFkcy4NCg0KPiANCj4gDQo+ID4NCj4gPj4gQWxzbyAobml0KSwgcGxlYXNlIGNoYW5n
-ZSB0aGUgcHJlZml4IGZvciBhbGwgcGF0Y2hlcyB0byBiZSBJQi9tYWQ6DQo+ID4+IGFuZCBub3QN
-Cj4gPj4gaWIvbWFkOiB0byBjb21wbHkgd2l0aCB0aGUgZXhpc3RpbmcgaGFiaXQgb2YgcGF0Y2gg
-dGl0bGVzIGZvciB0aGUgSUINCj4gPj4gc3Vic3lzdGVtDQo+ID4gSSB3aWxsIHRoYW5rcy4NCj4g
-DQo+IEdvb2QuIFNlZSBiZWxvdyBhbm90aGVyIGVhc3ktdG8tZml4IG5pdHBpY2tpbmcgY29tbWVu
-dCwgYnV0IGJlZm9yZSB0aGF0LCBmb3INCj4gdGhlIHNha2Ugb2YgZWFzaWVyIHJldmlldyBhbmQg
-cG9zdC1yb2J1c3RuZXNzIG9mIHRoZSBjb2RlIHRvIGZ1dHVyZSBiaXNlY3Rpb25zLA0KPiBwbGVh
-c2UgZG8gYSByZS1vcmRlcmluZyBvZiB0aGUgc2VyaWVzIHN1Y2ggdGhhdCBhbGwgZ2VuZXJhbCBy
-ZWZhY3RvcmluZyBhbmQgcHJlLQ0KPiBwYXRjaGVzIGNvbWUgYmVmb3JlIHRoZSBPUEFwYXRjaGVz
-Lg0KPiANCj4gVGhpcyBnb2VzIHRvIHJlLW9yZGVyIHRoZSBjdXJyZW50IHNlcmllcyBzdWNoIHRh
-dCBwYXRjaGVzIDgvOS8xMCBhcmUgbG9jYXRlZA0KPiBhZnRlciBwYXRjaCAxNCwgYXMgbGlzdGVk
-IGhlcmU6DQo+IA0KPiAgICBbUkZDIFBBVENIIDAxLzE2XSBpYi9tYWQ6IHJlbmFtZSBpc19kYXRh
-X21hZCB0byBpc19ybXBwX2RhdGFfbWFkDQo+ICAgIFtSRkMgUEFUQ0ggMDIvMTZdIGliL2NvcmU6
-IGFkZCBJQl9ERVZJQ0VfSlVNQk9fTUFEX1NVUFBPUlQgZGV2aWNlDQo+IGNhcA0KPiAgICBbUkZD
-IFBBVENIIDAzLzE2XSBpYi9tYWQ6IEFkZCBjaGVjayBmb3IganVtYm8gTUFEcyBzdXBwb3J0IG9u
-IGEgZGV2aWNlDQo+ICAgIFtSRkMgUEFUQ0ggMDQvMTZdIGliL21hZDogYWRkIGJhc2UgdmVyc2lv
-biBwYXJhbWV0ZXIgdG8NCj4gICAgW1JGQyBQQVRDSCAwNS8xNl0gaWIvbWFkOiBBZGQgTUFEIHNp
-emUgcGFyYW1ldGVycyB0byBwcm9jZXNzX21hZA0KPiAgICBbUkZDIFBBVENIIDA2LzE2XSBpYi9t
-YWQ6IENyZWF0ZSBqdW1ib19tYWQgZGF0YSBzdHJ1Y3R1cmVzDQo+ICAgIFtSRkMgUEFUQ0ggMDcv
-MTZdIGliL21hZDogY3JlYXRlIGEganVtYm8gTUFEIGttZW1fY2FjaGUNCj4gICAgW1JGQyBQQVRD
-SCAxMS8xNl0gaWIvbWFkOiBjcmVhdGUgaGVscGVyIGZ1bmN0aW9uIGZvcg0KPiAgICBbUkZDIFBB
-VENIIDEyLzE2XSBpYi9tYWQ6IGNyZWF0ZSBoZWxwZXIgZnVuY3Rpb24gZm9yDQo+ICAgIFtSRkMg
-UEFUQ0ggMTMvMTZdIGliL21hZDogY3JlYXRlIGhlbHBlciBmdW5jdGlvbiBmb3INCj4gICAgW1JG
-QyBQQVRDSCAxNC8xNl0gaWIvbWFkOiBDcmVhdGUgaGVscGVyIGZ1bmN0aW9uIGZvciBTTUkgcHJv
-Y2Vzc2luZw0KPiAgICBbUkZDIFBBVENIIDA4LzE2XSBpYi9tYWQ6IEFkZCBJbnRlbCBPbW5pLVBh
-dGggQXJjaGl0ZWN0dXJlIGRlZmluZXMNCj4gICAgW1JGQyBQQVRDSCAwOS8xNl0gaWIvbWFkOiBJ
-bXBsZW1lbnQgc3VwcG9ydCBmb3IgSW50ZWwgT21uaS1QYXRoDQo+ICAgIFtSRkMgUEFUQ0ggMTAv
-MTZdIGliL21hZDogQWRkIHJlZ2lzdHJhdGlvbiBjaGVjayBmb3IgSW50ZWwgT21uaS1QYXRoDQo+
-ICAgIFtSRkMgUEFUQ0ggMTUvMTZdIGliL21hZDogSW1wbGVtZW50IEludGVsIE9tbmktUGF0aCBB
-cmNoaXRlY3R1cmUgU01QDQo+ICAgIFtSRkMgUEFUQ0ggMTYvMTZdIGliL21hZDogSW1wbGVtZW50
-IEludGVsIE9tbmktUGF0aCBBcmNoaXRlY3R1cmUgR2VuZXJhbA0KPiANCg0KRG9uZS4NCg0KPiBB
-bm90aGVyIGVhc3ktdG8tZml4IG5pdHBpY2tpbmcgY29tbWVudCB3b3VsZCBiZSB0byBoYXZlIGFs
-bCB0aGUgcGF0Y2hlcyBiZQ0KPiBjb25zaXN0ZW50IHcuci50IHRvIHRoZSBjYXBpdGFsaXphdGlv
-biBvZiB0aGUgMXN0IGxldHRlciBpbiB0aGUgMXN0IHdvcmQgYWZ0ZXIgdGhlDQo+IElCL2NvcmU6
-IG9yIElCL21hZDogIHByZWZpeCwgZS5nDQo+IA0KPiBpYi9tYWQ6IGNyZWF0ZSBoZWxwZXIgZnVu
-Y3Rpb24gZm9yIHNtaV9oYW5kbGVfZHJfc21wX3NlbmQNCj4gDQo+IGJlY29tZXMNCj4gDQo+IElC
-L21hZDogQ3JlYXRlIGhlbHBlciBmdW5jdGlvbiBmb3Igc21pX2hhbmRsZV9kcl9zbXBfc2VuZA0K
-DQpEb25lLg0KDQo+IA0KPiBCVFcsIGhlcmUgbXkgcGVyc29uYWwgcHJlZmVyZW5jZSBpcyAiQWRk
-IGhlbHBlciIgYW5kIG5vdCAiQ3JlYXRlIGhlbHBlciINCj4gDQo+IElCL21hZDogQWRkIGhlbHBl
-ciBmdW5jdGlvbiBmb3Igc21pX2hhbmRsZV9kcl9zbXBfc2VuZA0KDQpEb25lLg0KDQpJcmENCg0K
+I'll get back to you on the IBTA questions when I can but I wanted to address this question.
+
+> 
+> Has regression testing yet been done with these changes in terms of IBTA MAD
+> support in terms of agents, SMs, and diagnostics to be sure that things still work
+> properly ?
+> 
+
+Yes.  I have tested OpenSM and infiniband-diags running on qib and mlx4 hardware.  I don't have access to mlx5 or the older ehca and mthca cards.
+
+-- Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
