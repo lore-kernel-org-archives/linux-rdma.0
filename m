@@ -1,85 +1,105 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Adding support for RoCE V2 specification
-Date: Tue, 2 Dec 2014 05:35:28 +0000
-Message-ID: <7F44EA5110810A40B7DAFB605C41975D312F4C7C@CMEXMB1.ad.emulex.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/2] Adding support for RoCE V2 specification
+Date: Tue, 2 Dec 2014 08:47:06 +0200
+Message-ID: <CAG9sBKNt0sKixnKj_8ANc3ef4kwEGgrH_5WcCWr3-VfSSf8Ldw@mail.gmail.com>
 References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
 	<CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ@mail.gmail.com>
 	<7F44EA5110810A40B7DAFB605C41975D312F40F4@CMEXMB1.ad.emulex.com>
- <CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw@mail.gmail.com>
+	<CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw@mail.gmail.com>
+	<7F44EA5110810A40B7DAFB605C41975D312F4C7C@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D312F4C7C-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SEkgTW9uaSwNCglUaGFuayB5b3UgZm9yIHlvdXIgY29tbWVudHMgLCBwbGVhc2UgZmluZCBteSBy
-ZXNwb25zZSBpbmxpbmUuDQoNCg0KPiA+IFRoZSBvdmVyYXJjaGluZyBnb2FsIGJlaGluZCB0aGlz
-IHBhdGNoIGlzIHRvIGtlZXAgUkRNQS1DTSBhcyB0aGUNCj4gPiBjZW50cmFsIGVudGl0eSB0aGF0
-IGRlY2lkZXMgdGhlIHByb3RvY29sIChST0NFVjIgL1JPQ0VWMSkgYW5kIGhpZGVzIGFsbCB0aGUN
-Cj4gYWRkcmVzcyByZXNvbHV0aW9uIGRldGFpbHMgZnJvbSBhcHBsaWNhdGlvbnMuDQo+IEkgYWdy
-ZWUgYnV0IHdpdGggb25lIGNvbW1lbnQuIFJETUEtQ00sIGFsdGhvdWdoIHByZWZlcnJlZCwgIGlz
-IG5vdA0KPiBtYW5kYXRvcnkgdG8gZXN0YWJsaXNoIGEgY29ubmVjdGlvbi4gVGhlIHNvbHV0aW9u
-IG5lZWRzIHRvIHRha2UgY2FyZSBhbHNvIGZvcg0KPiBhcHBzIHRoYXQgZG9uJ3QgdXNlIFJETUEt
-Q00NCg0KQWdyZWVkIGFuZCB0aGlzIHBhdGNoIHRha2VzIGNhcmUgb2YgdGhhdCBhcyB3ZWxsIHRo
-YW5rcyB0byB0aGUgc29sdXRpb24gdGhhdCB3YXMgcHV0IGluIHBsYWNlIA0KZm9yIElQLWJhc2Vk
-IEdJRHMgYW55d2F5IGluIGBtb2RpZnlfcXBgIGVmZmVjdGl2ZWx5IGJ5IG1lYW5zIG9mIHRoZSBp
-Yl9yZXNvbHZlX2wyX2F0dHJzKCkuDQoNCj4gDQo+ID4gVGhpcyAgaXMganVzdCBhIGNvbnRpbnVh
-dGlvbiBvZiB0aGUgZXhpc3RpbmcgUkRNQS1DTSBkZXNpZ24gcGhpbG9zb3BoeQ0KPiA+IGZvciBJ
-UCBCYXNlZCBHSURzIHRoYXQgbGV0cyBhcHBsaWNhdGlvbnMgb3BlcmF0ZSBvdmVyIGFueSBmb3Jt
-IG9mIFJETUENCj4gU2VydmljZSBpbiBhIGNvbXBsZXRlbHkgdHJhbnNwYXJlbnQgd2F5IHdpdGhv
-dXQgYW55IGNoYW5nZXMgdG8gdGhlDQo+IGFwcGxpY2F0aW9ucyB0aGVtc2VsdmVzLg0KPiA+DQo+
-ID4gUHJvdG9jb2wgUmVzb2x1dGlvbihSb0NFVjIgb3IgVjEpIG11c3QgYmUgZG9uZSBldmVuIGJl
-Zm9yZSB3ZSBzZW5kIG91dA0KPiA+IHRoZSAxc3QgY29ubmVjdGlvbiByZXF1ZXN0IHBhY2tldCwg
-dGhlIGNvcnJlc3BvbmRpbmcgTUFEIHBrdCBtdXN0IGJlIFYyDQo+IGZvciBhIGRlc3RpbmF0aW9u
-IHRoYXQgaXMgYmVoaW5kICBhIHJvdXRlciwgY29ycmVjdD8NCj4gPiBJIGFtIG5vdCBzdXJlIHdl
-IHdhbnQgdG8gdHJ5IHNlbmRpbmcgb3V0IFJvQ0V2MiBjb25uZWN0aW9uIHJlcXVlc3RzIGZpcnN0
-DQo+IGFuZCBpZiB0aGF0IGZhaWxzICx0aGVuIGZhbGxiYWNrL3JldHJ5IHdpdGggUm9DRXYxIHJl
-cXVlc3QuDQo+IEkgYWdyZWUgYnV0IHdoZW4geW91IHNlbmQgdGhlIGZpcnN0IHBhY2tldCAocmVx
-dWVzdCBvciByZXNwb25zZSkgeW91IGtub3cNCj4gdGhlIFNHSUQgaW5kZXggdG8gYmUgdXNlZC4g
-S25vd2luZyB0aGF0IGFuZCBhc3N1bWluZyB5b3UgY2hvc2UgdGhlIFNHSUQNCj4gaW5kZXggY29y
-cmVjdGx5IHRoZXJlIGlzIG5vIG5lZWQgdG8gZ3Vlc3MuDQo+IEEgc3VnZ2VzdGlvbiBmb3IgY2hv
-b3NpbmcgdGhlIFNHSUQgaW5kZXggaXM6DQo+IDEuIEZpcnN0LCBwb3B1bGF0ZSBHSUQgdGFibGUg
-d2l0aCBHSURzIG1hdGNoaW5nIHRoZSBJUCBhZGRyZXNzIGxpc3Qgb2YgdGhlDQo+IGNvcnJlc3Bv
-bmRpbmcgbmV0IGRldmljZXMuIEVhY2ggR0lEIHdpbGwgYXBwZWFyIHR3aWNlLCBvbmUgZm9yDQo+
-IFJvQ0V2MSBhbmQgb25lIGZvciBSb0NFdjIuDQo+IDIuIFdoZW4gY29ubmVjdGlvbiBpcyBiZWlu
-ZyBlc3RhYmxpc2hlZCBSRE1BLUNNIHdpbGwgY2hvb3NlIG9uZSBvZiB0aGUNCj4gMiBtYXRjaGlu
-ZyBpbmRpY2VzIGJhc2VkIG9uIGEgcHJlZmVycmVkIHByb3RvY29sIGF0dHJpYnV0ZSBmb3IgdGhl
-IHJtZGFfaWQNCj4gKG5ldyBhdHRyLikgMy4gUHJvZmZlcmVkIHByb3RvY29sIGlzDQo+ICAgICAg
-YSkgZ2xvYmFsIGZvciB0aGUgbm9kZS9mYWJyaWMgYmFzZWQgb24gdGhlIGFkbWluaXN0cmF0b3Ig
-c2V0dGluZ3MNCj4gICAgICBiKSBjYW4gYmUgY2hhbmdlZCBieSBhcHBsaWNhdGlvbnMgdGhhdCB3
-YW50IHRvIG92ZXJyaWRlIHRoZSBkZWZhdWx0DQo+IChyZXF1aXJlcyBleHRyYSBBUEkpDQoNCkFn
-cmVlIHRvIHBvaW50IDEgd2hpY2ggaXMgd2hhdCB3ZSB3ZXJlIHRoaW5raW5nIG9mIGRvaW5nIGFz
-IHdlbGwgYXMgcGFydCBvZiB0aGUgJ292ZXJyaWRlJyBvcHRpb24uDQpTdGlsbCBmZWVsIHRoYXQg
-dGhlICdkZWZhdWx0JyBwcm90b2NvbCByZXNvbHV0aW9uIHNob3VsZCBiZSBiYXNlZCBvbiBoZWxw
-IGZyb20gdGhlIElQL05ldHdvcmtpbmcgc3RhY2sNCmFzIHRoYXQgd291bGQgc3RyYWlnaHQgYXdh
-eSBlbmFibGUgZXhpc3RpbmcgYXBwbGljYXRpb25zIGFuZCBtYWpvcml0eSBvZiB1c2UtY2FzZSBz
-Y2VuYXJpb3MgdGhhdCB1c2UgUkRNQS1DTSB0byBzZWFtbGVzc2x5DQp3b3JrIHdpdGhvdXQgYW55
-IGNoYW5nZSBmb3IgUm9DRSBWMi4NCldoYXQgdGhpcyBtZWFucyBpcyBub3cgUkRNQS1DTSB3aWxs
-IGNob29zZSBvbmUgb2YgdGhlIDIgbWF0Y2hpbmcgR0lEIGluZGljZXMgYmFzZWQgb24gaGVscCBm
-cm9tIHRoZSBJUCBzdGFjay4NCg0KRm9yIHRoaXMgdG8gaGFwcGVuICwgdGhlICdnaWRfY2FjaGUn
-IHN0cnVjdHVyZSB3aWxsIGhhdmUgdG8gdW5kZXJnbyBhIGNoYW5nZSB0byBub3cgaW5jb3Jwb3Jh
-dGUgYSBuZXcgJ2dpZF90eXBlJyBmaWVsZC4gDQpBY2NvcmRpbmdseSB0aGUgaGVscGVyIGZ1bmN0
-aW9ucyB0aGF0IGZpbmQgYSBjYWNoZWQgZ2lkIGVudHJ5IC0gaWJfZmluZF9jYWNoZWRfZ2lkKCkg
-d2lsbCBhbHNvIHVuZGVyZ28gYSBjaGFuZ2UgdG8gdGFrZSBpbnRvIGFjY291bnQgdGhpcyBuZXcg
-ZmllbGQuDQoNCkkgcGxhbiB0byByZXN1Ym1pdCB0aGUgcGF0Y2ggc2VyaWVzIG1ha2luZyB0aGUg
-Zm9sbG93aW5nIGNoYW5nZXMNCmEpIFBvcHVsYXRpbmcgR0lEIHRhYmxlIHdpdGggMiBlbnRyaWVz
-IHBlciBJUCBhZGRyZXNzDQpiKSBDaGFuZ2VzIHRvIHRoZSBHSUQgY2FjaGUgc3RydWN0dXJlIGFs
-b25nIHdpdGggaXQncyBoZWxwZXIgZnVuY3Rpb25zDQpjKSBNYWtlIHN1cmUgdGhhdCBSRE1BLUNN
-IHNlbGVjdHMvZmluZHMgdGhlIGNvcnJlc3BvbmRpbmcgR0lEIG9uY2UgYSBuZXR3b3JrIHR5cGUg
-aXMgY2hvc2VuIGJhc2VkIG9uIGhlbHAgZnJvbSB0aGUgSVAgc3RhY2suIA0KDQoNClRoZSBvbmx5
-IHRoaW5nIG1pc3NpbmcgaXMgdGhlIGFiaWxpdHkgZm9yIGVuZC1ub2RlcyBjb25uZWN0ZWQgbG9j
-YWxseSBpbnNpZGUgc2FtZSBzdWJuZXQgdG8gY29tbXVuaWNhdGUgdXNpbmcgVjIgYW5kIHRoYXQg
-DQpjb3VsZCBiZSBwcm92aWRlZCBhcyBhbiAnb3ZlcnJpZGUnIG9wdGlvbiB1c2luZyB0aGUgJ3By
-ZWZlcnJlZCBwcm90b2NvbCcgYXR0cmlidXRlIHNldHRpbmcgb24gYSBzeXN0ZW0td2lkZSBiYXNp
-cyBvciBvbiBhbiBhcHBsaWNhdGlvbiBiYXNpcyANCmFzIHlvdSBoYXZlIHByb3Bvc2VkLg0KVGhp
-cyBJIHByb3Bvc2UgYXMgYW4gYWRkaXRpb25hbCBwYXRjaCBhZnRlciB0aGUgYWJvdmUgcGF0Y2gg
-Z29lcyBpbiBmaXJzdC4NCg0KRG9lcyB0aGlzIHNvdW5kIGxpa2UgYSBwbGFuID8NCg0KVGhhbmtz
-DQpTb20NCg0K
+On Tue, Dec 2, 2014 at 7:35 AM, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> HI Moni,
+>         Thank you for your comments , please find my response inline.
+>
+>
+>> > The overarching goal behind this patch is to keep RDMA-CM as the
+>> > central entity that decides the protocol (ROCEV2 /ROCEV1) and hides all the
+>> address resolution details from applications.
+>> I agree but with one comment. RDMA-CM, although preferred,  is not
+>> mandatory to establish a connection. The solution needs to take care also for
+>> apps that don't use RDMA-CM
+>
+> Agreed and this patch takes care of that as well thanks to the solution that was put in place
+> for IP-based GIDs anyway in `modify_qp` effectively by means of the ib_resolve_l2_attrs().
+>
+>>
+>> > This  is just a continuation of the existing RDMA-CM design philosophy
+>> > for IP Based GIDs that lets applications operate over any form of RDMA
+>> Service in a completely transparent way without any changes to the
+>> applications themselves.
+>> >
+>> > Protocol Resolution(RoCEV2 or V1) must be done even before we send out
+>> > the 1st connection request packet, the corresponding MAD pkt must be V2
+>> for a destination that is behind  a router, correct?
+>> > I am not sure we want to try sending out RoCEv2 connection requests first
+>> and if that fails ,then fallback/retry with RoCEv1 request.
+>> I agree but when you send the first packet (request or response) you know
+>> the SGID index to be used. Knowing that and assuming you chose the SGID
+>> index correctly there is no need to guess.
+>> A suggestion for choosing the SGID index is:
+>> 1. First, populate GID table with GIDs matching the IP address list of the
+>> corresponding net devices. Each GID will appear twice, one for
+>> RoCEv1 and one for RoCEv2.
+>> 2. When connection is being established RDMA-CM will choose one of the
+>> 2 matching indices based on a preferred protocol attribute for the rmda_id
+>> (new attr.) 3. Proffered protocol is
+>>      a) global for the node/fabric based on the administrator settings
+>>      b) can be changed by applications that want to override the default
+>> (requires extra API)
+>
+> Agree to point 1 which is what we were thinking of doing as well as part of the 'override' option.
+> Still feel that the 'default' protocol resolution should be based on help from the IP/Networking stack
+> as that would straight away enable existing applications and majority of use-case scenarios that use RDMA-CM to seamlessly
+> work without any change for RoCE V2.
+> What this means is now RDMA-CM will choose one of the 2 matching GID indices based on help from the IP stack.
+>
+> For this to happen , the 'gid_cache' structure will have to undergo a change to now incorporate a new 'gid_type' field.
+> Accordingly the helper functions that find a cached gid entry - ib_find_cached_gid() will also undergo a change to take into account this new field.
+>
+> I plan to resubmit the patch series making the following changes
+> a) Populating GID table with 2 entries per IP address
+> b) Changes to the GID cache structure along with it's helper functions
+> c) Make sure that RDMA-CM selects/finds the corresponding GID once a network type is chosen based on help from the IP stack.
+>
+>
+> The only thing missing is the ability for end-nodes connected locally inside same subnet to communicate using V2 and that
+> could be provided as an 'override' option using the 'preferred protocol' attribute setting on a system-wide basis or on an application basis
+> as you have proposed.
+> This I propose as an additional patch after the above patch goes in first.
+>
+> Does this sound like a plan ?
+>
+> Thanks
+> Som
+>
+Hi Som
+Generally, I agree with the changes you suggested. To summarize (and
+make sure I got it right) your plan for V2 is to:
+
+1. Associate gid_index with RoCE type in GID table and GID cache.
+Requires helper functions to search for gid_index according to GID
+value and type
+2. Move the code that monitors IP address changes to populate GID
+table from device driver to IB/core. Requires each RoCE device driver
+to implement add_gid_entry/rem_gid_entry functions
+3. Remove the RoCE type from address structure (e.g. ib_ah_attr).
+Leave it only in rdma_addr to keep the hint from the IP stack
+4. Choose sgid_index (from all matching entries) in RDMA-CM based on
+hint from IP stack, user preference and admin policy
+
+If so, I guess that we have a plan.
+
+Thanks
+Moni
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
