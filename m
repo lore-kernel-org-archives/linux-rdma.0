@@ -1,86 +1,85 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next] IB/core: Fix mgid key handling in SA agent
- multicast data-base
-Date: Tue, 2 Dec 2014 00:59:14 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E208C9@ORSMSX109.amr.corp.intel.com>
-References: <1416388138-25669-1-git-send-email-ogerlitz@mellanox.com>
+From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 0/2] Adding support for RoCE V2 specification
+Date: Tue, 2 Dec 2014 05:35:28 +0000
+Message-ID: <7F44EA5110810A40B7DAFB605C41975D312F4C7C@CMEXMB1.ad.emulex.com>
+References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
+	<CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ@mail.gmail.com>
+	<7F44EA5110810A40B7DAFB605C41975D312F40F4@CMEXMB1.ad.emulex.com>
+ <CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416388138-25669-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> 
-> Applications can request that the SM assign an mgid, by passing a mcast
-> member request containing an mgid = 0. When the SM responds by sending
-> the allocated mgid, this mgid replaces the 0-mgid in the multicast group.
-> 
-> However, the mgid field in the group is also the key field in the IB core
-> multicast code red-black tree containing the multicast groups for the
-> port.
-> 
-> Since this is a key field, correct handling requires that the group entry
-> be deleted from the rb table, and then re-inserted with the new key,
-> so that the table structure is properly maintained.
-> 
-> The current code does not do this correctly. Correct operation
-> requires that if the key-field gid has changed at all, it should
-> be deleted and re-inserted, fix that.
-> 
-> Note that when inserting, if the new mgid is zero (not the case here
-> but the code should handle this correctly), we allow duplicate entries
-> for 0-mgids.
-> 
-> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-> ---
->  drivers/infiniband/core/multicast.c |   11 ++++++++---
->  1 files changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/multicast.c
-> b/drivers/infiniband/core/multicast.c
-> index d2360a8..fa17b55 100644
-> --- a/drivers/infiniband/core/multicast.c
-> +++ b/drivers/infiniband/core/multicast.c
-> @@ -525,17 +525,22 @@ static void join_handler(int status, struct
-> ib_sa_mcmember_rec *rec,
->  	if (status)
->  		process_join_error(group, status);
->  	else {
-> +		int mgids_changed, is_mgid0;
->  		ib_find_pkey(group->port->dev->device, group->port->port_num,
->  			     be16_to_cpu(rec->pkey), &pkey_index);
-> 
->  		spin_lock_irq(&group->port->lock);
-> -		group->rec = *rec;
->  		if (group->state == MCAST_BUSY &&
->  		    group->pkey_index == MCAST_INVALID_PKEY_INDEX)
->  			group->pkey_index = pkey_index;
-> -		if (!memcmp(&mgid0, &group->rec.mgid, sizeof mgid0)) {
-> +		mgids_changed = memcmp(&rec->mgid, &group->rec.mgid,
-> +				       sizeof(group->rec.mgid));
-> +		group->rec = *rec;
-> +		if (mgids_changed) {
->  			rb_erase(&group->node, &group->port->table);
-> -			mcast_insert(group->port, group, 1);
-> +			is_mgid0 = !memcmp(&mgid0, &group->rec.mgid,
-> +					   sizeof(mgid0));
-> +			mcast_insert(group->port, group, is_mgid0);
->  		}
->  		spin_unlock_irq(&group->port->lock);
->  	}
-> --
-> 1.7.1
-
+SEkgTW9uaSwNCglUaGFuayB5b3UgZm9yIHlvdXIgY29tbWVudHMgLCBwbGVhc2UgZmluZCBteSBy
+ZXNwb25zZSBpbmxpbmUuDQoNCg0KPiA+IFRoZSBvdmVyYXJjaGluZyBnb2FsIGJlaGluZCB0aGlz
+IHBhdGNoIGlzIHRvIGtlZXAgUkRNQS1DTSBhcyB0aGUNCj4gPiBjZW50cmFsIGVudGl0eSB0aGF0
+IGRlY2lkZXMgdGhlIHByb3RvY29sIChST0NFVjIgL1JPQ0VWMSkgYW5kIGhpZGVzIGFsbCB0aGUN
+Cj4gYWRkcmVzcyByZXNvbHV0aW9uIGRldGFpbHMgZnJvbSBhcHBsaWNhdGlvbnMuDQo+IEkgYWdy
+ZWUgYnV0IHdpdGggb25lIGNvbW1lbnQuIFJETUEtQ00sIGFsdGhvdWdoIHByZWZlcnJlZCwgIGlz
+IG5vdA0KPiBtYW5kYXRvcnkgdG8gZXN0YWJsaXNoIGEgY29ubmVjdGlvbi4gVGhlIHNvbHV0aW9u
+IG5lZWRzIHRvIHRha2UgY2FyZSBhbHNvIGZvcg0KPiBhcHBzIHRoYXQgZG9uJ3QgdXNlIFJETUEt
+Q00NCg0KQWdyZWVkIGFuZCB0aGlzIHBhdGNoIHRha2VzIGNhcmUgb2YgdGhhdCBhcyB3ZWxsIHRo
+YW5rcyB0byB0aGUgc29sdXRpb24gdGhhdCB3YXMgcHV0IGluIHBsYWNlIA0KZm9yIElQLWJhc2Vk
+IEdJRHMgYW55d2F5IGluIGBtb2RpZnlfcXBgIGVmZmVjdGl2ZWx5IGJ5IG1lYW5zIG9mIHRoZSBp
+Yl9yZXNvbHZlX2wyX2F0dHJzKCkuDQoNCj4gDQo+ID4gVGhpcyAgaXMganVzdCBhIGNvbnRpbnVh
+dGlvbiBvZiB0aGUgZXhpc3RpbmcgUkRNQS1DTSBkZXNpZ24gcGhpbG9zb3BoeQ0KPiA+IGZvciBJ
+UCBCYXNlZCBHSURzIHRoYXQgbGV0cyBhcHBsaWNhdGlvbnMgb3BlcmF0ZSBvdmVyIGFueSBmb3Jt
+IG9mIFJETUENCj4gU2VydmljZSBpbiBhIGNvbXBsZXRlbHkgdHJhbnNwYXJlbnQgd2F5IHdpdGhv
+dXQgYW55IGNoYW5nZXMgdG8gdGhlDQo+IGFwcGxpY2F0aW9ucyB0aGVtc2VsdmVzLg0KPiA+DQo+
+ID4gUHJvdG9jb2wgUmVzb2x1dGlvbihSb0NFVjIgb3IgVjEpIG11c3QgYmUgZG9uZSBldmVuIGJl
+Zm9yZSB3ZSBzZW5kIG91dA0KPiA+IHRoZSAxc3QgY29ubmVjdGlvbiByZXF1ZXN0IHBhY2tldCwg
+dGhlIGNvcnJlc3BvbmRpbmcgTUFEIHBrdCBtdXN0IGJlIFYyDQo+IGZvciBhIGRlc3RpbmF0aW9u
+IHRoYXQgaXMgYmVoaW5kICBhIHJvdXRlciwgY29ycmVjdD8NCj4gPiBJIGFtIG5vdCBzdXJlIHdl
+IHdhbnQgdG8gdHJ5IHNlbmRpbmcgb3V0IFJvQ0V2MiBjb25uZWN0aW9uIHJlcXVlc3RzIGZpcnN0
+DQo+IGFuZCBpZiB0aGF0IGZhaWxzICx0aGVuIGZhbGxiYWNrL3JldHJ5IHdpdGggUm9DRXYxIHJl
+cXVlc3QuDQo+IEkgYWdyZWUgYnV0IHdoZW4geW91IHNlbmQgdGhlIGZpcnN0IHBhY2tldCAocmVx
+dWVzdCBvciByZXNwb25zZSkgeW91IGtub3cNCj4gdGhlIFNHSUQgaW5kZXggdG8gYmUgdXNlZC4g
+S25vd2luZyB0aGF0IGFuZCBhc3N1bWluZyB5b3UgY2hvc2UgdGhlIFNHSUQNCj4gaW5kZXggY29y
+cmVjdGx5IHRoZXJlIGlzIG5vIG5lZWQgdG8gZ3Vlc3MuDQo+IEEgc3VnZ2VzdGlvbiBmb3IgY2hv
+b3NpbmcgdGhlIFNHSUQgaW5kZXggaXM6DQo+IDEuIEZpcnN0LCBwb3B1bGF0ZSBHSUQgdGFibGUg
+d2l0aCBHSURzIG1hdGNoaW5nIHRoZSBJUCBhZGRyZXNzIGxpc3Qgb2YgdGhlDQo+IGNvcnJlc3Bv
+bmRpbmcgbmV0IGRldmljZXMuIEVhY2ggR0lEIHdpbGwgYXBwZWFyIHR3aWNlLCBvbmUgZm9yDQo+
+IFJvQ0V2MSBhbmQgb25lIGZvciBSb0NFdjIuDQo+IDIuIFdoZW4gY29ubmVjdGlvbiBpcyBiZWlu
+ZyBlc3RhYmxpc2hlZCBSRE1BLUNNIHdpbGwgY2hvb3NlIG9uZSBvZiB0aGUNCj4gMiBtYXRjaGlu
+ZyBpbmRpY2VzIGJhc2VkIG9uIGEgcHJlZmVycmVkIHByb3RvY29sIGF0dHJpYnV0ZSBmb3IgdGhl
+IHJtZGFfaWQNCj4gKG5ldyBhdHRyLikgMy4gUHJvZmZlcmVkIHByb3RvY29sIGlzDQo+ICAgICAg
+YSkgZ2xvYmFsIGZvciB0aGUgbm9kZS9mYWJyaWMgYmFzZWQgb24gdGhlIGFkbWluaXN0cmF0b3Ig
+c2V0dGluZ3MNCj4gICAgICBiKSBjYW4gYmUgY2hhbmdlZCBieSBhcHBsaWNhdGlvbnMgdGhhdCB3
+YW50IHRvIG92ZXJyaWRlIHRoZSBkZWZhdWx0DQo+IChyZXF1aXJlcyBleHRyYSBBUEkpDQoNCkFn
+cmVlIHRvIHBvaW50IDEgd2hpY2ggaXMgd2hhdCB3ZSB3ZXJlIHRoaW5raW5nIG9mIGRvaW5nIGFz
+IHdlbGwgYXMgcGFydCBvZiB0aGUgJ292ZXJyaWRlJyBvcHRpb24uDQpTdGlsbCBmZWVsIHRoYXQg
+dGhlICdkZWZhdWx0JyBwcm90b2NvbCByZXNvbHV0aW9uIHNob3VsZCBiZSBiYXNlZCBvbiBoZWxw
+IGZyb20gdGhlIElQL05ldHdvcmtpbmcgc3RhY2sNCmFzIHRoYXQgd291bGQgc3RyYWlnaHQgYXdh
+eSBlbmFibGUgZXhpc3RpbmcgYXBwbGljYXRpb25zIGFuZCBtYWpvcml0eSBvZiB1c2UtY2FzZSBz
+Y2VuYXJpb3MgdGhhdCB1c2UgUkRNQS1DTSB0byBzZWFtbGVzc2x5DQp3b3JrIHdpdGhvdXQgYW55
+IGNoYW5nZSBmb3IgUm9DRSBWMi4NCldoYXQgdGhpcyBtZWFucyBpcyBub3cgUkRNQS1DTSB3aWxs
+IGNob29zZSBvbmUgb2YgdGhlIDIgbWF0Y2hpbmcgR0lEIGluZGljZXMgYmFzZWQgb24gaGVscCBm
+cm9tIHRoZSBJUCBzdGFjay4NCg0KRm9yIHRoaXMgdG8gaGFwcGVuICwgdGhlICdnaWRfY2FjaGUn
+IHN0cnVjdHVyZSB3aWxsIGhhdmUgdG8gdW5kZXJnbyBhIGNoYW5nZSB0byBub3cgaW5jb3Jwb3Jh
+dGUgYSBuZXcgJ2dpZF90eXBlJyBmaWVsZC4gDQpBY2NvcmRpbmdseSB0aGUgaGVscGVyIGZ1bmN0
+aW9ucyB0aGF0IGZpbmQgYSBjYWNoZWQgZ2lkIGVudHJ5IC0gaWJfZmluZF9jYWNoZWRfZ2lkKCkg
+d2lsbCBhbHNvIHVuZGVyZ28gYSBjaGFuZ2UgdG8gdGFrZSBpbnRvIGFjY291bnQgdGhpcyBuZXcg
+ZmllbGQuDQoNCkkgcGxhbiB0byByZXN1Ym1pdCB0aGUgcGF0Y2ggc2VyaWVzIG1ha2luZyB0aGUg
+Zm9sbG93aW5nIGNoYW5nZXMNCmEpIFBvcHVsYXRpbmcgR0lEIHRhYmxlIHdpdGggMiBlbnRyaWVz
+IHBlciBJUCBhZGRyZXNzDQpiKSBDaGFuZ2VzIHRvIHRoZSBHSUQgY2FjaGUgc3RydWN0dXJlIGFs
+b25nIHdpdGggaXQncyBoZWxwZXIgZnVuY3Rpb25zDQpjKSBNYWtlIHN1cmUgdGhhdCBSRE1BLUNN
+IHNlbGVjdHMvZmluZHMgdGhlIGNvcnJlc3BvbmRpbmcgR0lEIG9uY2UgYSBuZXR3b3JrIHR5cGUg
+aXMgY2hvc2VuIGJhc2VkIG9uIGhlbHAgZnJvbSB0aGUgSVAgc3RhY2suIA0KDQoNClRoZSBvbmx5
+IHRoaW5nIG1pc3NpbmcgaXMgdGhlIGFiaWxpdHkgZm9yIGVuZC1ub2RlcyBjb25uZWN0ZWQgbG9j
+YWxseSBpbnNpZGUgc2FtZSBzdWJuZXQgdG8gY29tbXVuaWNhdGUgdXNpbmcgVjIgYW5kIHRoYXQg
+DQpjb3VsZCBiZSBwcm92aWRlZCBhcyBhbiAnb3ZlcnJpZGUnIG9wdGlvbiB1c2luZyB0aGUgJ3By
+ZWZlcnJlZCBwcm90b2NvbCcgYXR0cmlidXRlIHNldHRpbmcgb24gYSBzeXN0ZW0td2lkZSBiYXNp
+cyBvciBvbiBhbiBhcHBsaWNhdGlvbiBiYXNpcyANCmFzIHlvdSBoYXZlIHByb3Bvc2VkLg0KVGhp
+cyBJIHByb3Bvc2UgYXMgYW4gYWRkaXRpb25hbCBwYXRjaCBhZnRlciB0aGUgYWJvdmUgcGF0Y2gg
+Z29lcyBpbiBmaXJzdC4NCg0KRG9lcyB0aGlzIHNvdW5kIGxpa2UgYSBwbGFuID8NCg0KVGhhbmtz
+DQpTb20NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
