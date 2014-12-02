@@ -1,105 +1,125 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/2] Adding support for RoCE V2 specification
-Date: Tue, 2 Dec 2014 08:47:06 +0200
-Message-ID: <CAG9sBKNt0sKixnKj_8ANc3ef4kwEGgrH_5WcCWr3-VfSSf8Ldw@mail.gmail.com>
+From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 0/2] Adding support for RoCE V2 specification
+Date: Tue, 2 Dec 2014 09:20:59 +0000
+Message-ID: <7F44EA5110810A40B7DAFB605C41975D312F642B@CMEXMB1.ad.emulex.com>
 References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
 	<CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ@mail.gmail.com>
 	<7F44EA5110810A40B7DAFB605C41975D312F40F4@CMEXMB1.ad.emulex.com>
 	<CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw@mail.gmail.com>
 	<7F44EA5110810A40B7DAFB605C41975D312F4C7C@CMEXMB1.ad.emulex.com>
+ <CAG9sBKNt0sKixnKj_8ANc3ef4kwEGgrH_5WcCWr3-VfSSf8Ldw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D312F4C7C-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <CAG9sBKNt0sKixnKj_8ANc3ef4kwEGgrH_5WcCWr3-VfSSf8Ldw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 2, 2014 at 7:35 AM, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> HI Moni,
->         Thank you for your comments , please find my response inline.
->
->
->> > The overarching goal behind this patch is to keep RDMA-CM as the
->> > central entity that decides the protocol (ROCEV2 /ROCEV1) and hides all the
->> address resolution details from applications.
->> I agree but with one comment. RDMA-CM, although preferred,  is not
->> mandatory to establish a connection. The solution needs to take care also for
->> apps that don't use RDMA-CM
->
-> Agreed and this patch takes care of that as well thanks to the solution that was put in place
-> for IP-based GIDs anyway in `modify_qp` effectively by means of the ib_resolve_l2_attrs().
->
->>
->> > This  is just a continuation of the existing RDMA-CM design philosophy
->> > for IP Based GIDs that lets applications operate over any form of RDMA
->> Service in a completely transparent way without any changes to the
->> applications themselves.
->> >
->> > Protocol Resolution(RoCEV2 or V1) must be done even before we send out
->> > the 1st connection request packet, the corresponding MAD pkt must be V2
->> for a destination that is behind  a router, correct?
->> > I am not sure we want to try sending out RoCEv2 connection requests first
->> and if that fails ,then fallback/retry with RoCEv1 request.
->> I agree but when you send the first packet (request or response) you know
->> the SGID index to be used. Knowing that and assuming you chose the SGID
->> index correctly there is no need to guess.
->> A suggestion for choosing the SGID index is:
->> 1. First, populate GID table with GIDs matching the IP address list of the
->> corresponding net devices. Each GID will appear twice, one for
->> RoCEv1 and one for RoCEv2.
->> 2. When connection is being established RDMA-CM will choose one of the
->> 2 matching indices based on a preferred protocol attribute for the rmda_id
->> (new attr.) 3. Proffered protocol is
->>      a) global for the node/fabric based on the administrator settings
->>      b) can be changed by applications that want to override the default
->> (requires extra API)
->
-> Agree to point 1 which is what we were thinking of doing as well as part of the 'override' option.
-> Still feel that the 'default' protocol resolution should be based on help from the IP/Networking stack
-> as that would straight away enable existing applications and majority of use-case scenarios that use RDMA-CM to seamlessly
-> work without any change for RoCE V2.
-> What this means is now RDMA-CM will choose one of the 2 matching GID indices based on help from the IP stack.
->
-> For this to happen , the 'gid_cache' structure will have to undergo a change to now incorporate a new 'gid_type' field.
-> Accordingly the helper functions that find a cached gid entry - ib_find_cached_gid() will also undergo a change to take into account this new field.
->
-> I plan to resubmit the patch series making the following changes
-> a) Populating GID table with 2 entries per IP address
-> b) Changes to the GID cache structure along with it's helper functions
-> c) Make sure that RDMA-CM selects/finds the corresponding GID once a network type is chosen based on help from the IP stack.
->
->
-> The only thing missing is the ability for end-nodes connected locally inside same subnet to communicate using V2 and that
-> could be provided as an 'override' option using the 'preferred protocol' attribute setting on a system-wide basis or on an application basis
-> as you have proposed.
-> This I propose as an additional patch after the above patch goes in first.
->
-> Does this sound like a plan ?
->
-> Thanks
-> Som
->
-Hi Som
-Generally, I agree with the changes you suggested. To summarize (and
-make sure I got it right) your plan for V2 is to:
-
-1. Associate gid_index with RoCE type in GID table and GID cache.
-Requires helper functions to search for gid_index according to GID
-value and type
-2. Move the code that monitors IP address changes to populate GID
-table from device driver to IB/core. Requires each RoCE device driver
-to implement add_gid_entry/rem_gid_entry functions
-3. Remove the RoCE type from address structure (e.g. ib_ah_attr).
-Leave it only in rdma_addr to keep the hint from the IP stack
-4. Choose sgid_index (from all matching entries) in RDMA-CM based on
-hint from IP stack, user preference and admin policy
-
-If so, I guess that we have a plan.
-
-Thanks
-Moni
+SGkgTW9uaSwNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IG1vbmlz
+b25saXN0c0BnbWFpbC5jb20gW21haWx0bzptb25pc29ubGlzdHNAZ21haWwuY29tXSBPbiBCZWhh
+bGYNCj4gT2YgTW9uaSBTaG91YQ0KPiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAwMiwgMjAxNCAx
+MjoxNyBQTQ0KPiBUbzogU29tbmF0aCBLb3R1cg0KPiBDYzogcm9sYW5kQGtlcm5lbC5vcmc7IGxp
+bnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMC8yXSBBZGRp
+bmcgc3VwcG9ydCBmb3IgUm9DRSBWMiBzcGVjaWZpY2F0aW9uDQo+IA0KPiBPbiBUdWUsIERlYyAy
+LCAyMDE0IGF0IDc6MzUgQU0sIFNvbW5hdGggS290dXINCj4gPFNvbW5hdGguS290dXJAZW11bGV4
+LmNvbT4gd3JvdGU6DQo+ID4gSEkgTW9uaSwNCj4gPiAgICAgICAgIFRoYW5rIHlvdSBmb3IgeW91
+ciBjb21tZW50cyAsIHBsZWFzZSBmaW5kIG15IHJlc3BvbnNlIGlubGluZS4NCj4gPg0KPiA+DQo+
+ID4+ID4gVGhlIG92ZXJhcmNoaW5nIGdvYWwgYmVoaW5kIHRoaXMgcGF0Y2ggaXMgdG8ga2VlcCBS
+RE1BLUNNIGFzIHRoZQ0KPiA+PiA+IGNlbnRyYWwgZW50aXR5IHRoYXQgZGVjaWRlcyB0aGUgcHJv
+dG9jb2wgKFJPQ0VWMiAvUk9DRVYxKSBhbmQgaGlkZXMNCj4gPj4gPiBhbGwgdGhlDQo+ID4+IGFk
+ZHJlc3MgcmVzb2x1dGlvbiBkZXRhaWxzIGZyb20gYXBwbGljYXRpb25zLg0KPiA+PiBJIGFncmVl
+IGJ1dCB3aXRoIG9uZSBjb21tZW50LiBSRE1BLUNNLCBhbHRob3VnaCBwcmVmZXJyZWQsICBpcyBu
+b3QNCj4gPj4gbWFuZGF0b3J5IHRvIGVzdGFibGlzaCBhIGNvbm5lY3Rpb24uIFRoZSBzb2x1dGlv
+biBuZWVkcyB0byB0YWtlIGNhcmUNCj4gPj4gYWxzbyBmb3IgYXBwcyB0aGF0IGRvbid0IHVzZSBS
+RE1BLUNNDQo+ID4NCj4gPiBBZ3JlZWQgYW5kIHRoaXMgcGF0Y2ggdGFrZXMgY2FyZSBvZiB0aGF0
+IGFzIHdlbGwgdGhhbmtzIHRvIHRoZQ0KPiA+IHNvbHV0aW9uIHRoYXQgd2FzIHB1dCBpbiBwbGFj
+ZSBmb3IgSVAtYmFzZWQgR0lEcyBhbnl3YXkgaW4gYG1vZGlmeV9xcGANCj4gZWZmZWN0aXZlbHkg
+YnkgbWVhbnMgb2YgdGhlIGliX3Jlc29sdmVfbDJfYXR0cnMoKS4NCj4gPg0KPiA+Pg0KPiA+PiA+
+IFRoaXMgIGlzIGp1c3QgYSBjb250aW51YXRpb24gb2YgdGhlIGV4aXN0aW5nIFJETUEtQ00gZGVz
+aWduDQo+ID4+ID4gcGhpbG9zb3BoeSBmb3IgSVAgQmFzZWQgR0lEcyB0aGF0IGxldHMgYXBwbGlj
+YXRpb25zIG9wZXJhdGUgb3Zlcg0KPiA+PiA+IGFueSBmb3JtIG9mIFJETUENCj4gPj4gU2Vydmlj
+ZSBpbiBhIGNvbXBsZXRlbHkgdHJhbnNwYXJlbnQgd2F5IHdpdGhvdXQgYW55IGNoYW5nZXMgdG8g
+dGhlDQo+ID4+IGFwcGxpY2F0aW9ucyB0aGVtc2VsdmVzLg0KPiA+PiA+DQo+ID4+ID4gUHJvdG9j
+b2wgUmVzb2x1dGlvbihSb0NFVjIgb3IgVjEpIG11c3QgYmUgZG9uZSBldmVuIGJlZm9yZSB3ZSBz
+ZW5kDQo+ID4+ID4gb3V0IHRoZSAxc3QgY29ubmVjdGlvbiByZXF1ZXN0IHBhY2tldCwgdGhlIGNv
+cnJlc3BvbmRpbmcgTUFEIHBrdA0KPiA+PiA+IG11c3QgYmUgVjINCj4gPj4gZm9yIGEgZGVzdGlu
+YXRpb24gdGhhdCBpcyBiZWhpbmQgIGEgcm91dGVyLCBjb3JyZWN0Pw0KPiA+PiA+IEkgYW0gbm90
+IHN1cmUgd2Ugd2FudCB0byB0cnkgc2VuZGluZyBvdXQgUm9DRXYyIGNvbm5lY3Rpb24gcmVxdWVz
+dHMNCj4gPj4gPiBmaXJzdA0KPiA+PiBhbmQgaWYgdGhhdCBmYWlscyAsdGhlbiBmYWxsYmFjay9y
+ZXRyeSB3aXRoIFJvQ0V2MSByZXF1ZXN0Lg0KPiA+PiBJIGFncmVlIGJ1dCB3aGVuIHlvdSBzZW5k
+IHRoZSBmaXJzdCBwYWNrZXQgKHJlcXVlc3Qgb3IgcmVzcG9uc2UpIHlvdQ0KPiA+PiBrbm93IHRo
+ZSBTR0lEIGluZGV4IHRvIGJlIHVzZWQuIEtub3dpbmcgdGhhdCBhbmQgYXNzdW1pbmcgeW91IGNo
+b3NlDQo+ID4+IHRoZSBTR0lEIGluZGV4IGNvcnJlY3RseSB0aGVyZSBpcyBubyBuZWVkIHRvIGd1
+ZXNzLg0KPiA+PiBBIHN1Z2dlc3Rpb24gZm9yIGNob29zaW5nIHRoZSBTR0lEIGluZGV4IGlzOg0K
+PiA+PiAxLiBGaXJzdCwgcG9wdWxhdGUgR0lEIHRhYmxlIHdpdGggR0lEcyBtYXRjaGluZyB0aGUg
+SVAgYWRkcmVzcyBsaXN0DQo+ID4+IG9mIHRoZSBjb3JyZXNwb25kaW5nIG5ldCBkZXZpY2VzLiBF
+YWNoIEdJRCB3aWxsIGFwcGVhciB0d2ljZSwgb25lIGZvcg0KPiA+PiBSb0NFdjEgYW5kIG9uZSBm
+b3IgUm9DRXYyLg0KPiA+PiAyLiBXaGVuIGNvbm5lY3Rpb24gaXMgYmVpbmcgZXN0YWJsaXNoZWQg
+UkRNQS1DTSB3aWxsIGNob29zZSBvbmUgb2YNCj4gPj4gdGhlDQo+ID4+IDIgbWF0Y2hpbmcgaW5k
+aWNlcyBiYXNlZCBvbiBhIHByZWZlcnJlZCBwcm90b2NvbCBhdHRyaWJ1dGUgZm9yIHRoZQ0KPiA+
+PiBybWRhX2lkIChuZXcgYXR0ci4pIDMuIFByb2ZmZXJlZCBwcm90b2NvbCBpcw0KPiA+PiAgICAg
+IGEpIGdsb2JhbCBmb3IgdGhlIG5vZGUvZmFicmljIGJhc2VkIG9uIHRoZSBhZG1pbmlzdHJhdG9y
+IHNldHRpbmdzDQo+ID4+ICAgICAgYikgY2FuIGJlIGNoYW5nZWQgYnkgYXBwbGljYXRpb25zIHRo
+YXQgd2FudCB0byBvdmVycmlkZSB0aGUNCj4gPj4gZGVmYXVsdCAocmVxdWlyZXMgZXh0cmEgQVBJ
+KQ0KPiA+DQo+ID4gQWdyZWUgdG8gcG9pbnQgMSB3aGljaCBpcyB3aGF0IHdlIHdlcmUgdGhpbmtp
+bmcgb2YgZG9pbmcgYXMgd2VsbCBhcyBwYXJ0IG9mDQo+IHRoZSAnb3ZlcnJpZGUnIG9wdGlvbi4N
+Cj4gPiBTdGlsbCBmZWVsIHRoYXQgdGhlICdkZWZhdWx0JyBwcm90b2NvbCByZXNvbHV0aW9uIHNo
+b3VsZCBiZSBiYXNlZCBvbg0KPiA+IGhlbHAgZnJvbSB0aGUgSVAvTmV0d29ya2luZyBzdGFjayBh
+cyB0aGF0IHdvdWxkIHN0cmFpZ2h0IGF3YXkgZW5hYmxlDQo+ID4gZXhpc3RpbmcgYXBwbGljYXRp
+b25zIGFuZCBtYWpvcml0eSBvZiB1c2UtY2FzZSBzY2VuYXJpb3MgdGhhdCB1c2UgUkRNQS1DTQ0K
+PiB0byBzZWFtbGVzc2x5IHdvcmsgd2l0aG91dCBhbnkgY2hhbmdlIGZvciBSb0NFIFYyLg0KPiA+
+IFdoYXQgdGhpcyBtZWFucyBpcyBub3cgUkRNQS1DTSB3aWxsIGNob29zZSBvbmUgb2YgdGhlIDIg
+bWF0Y2hpbmcgR0lEDQo+IGluZGljZXMgYmFzZWQgb24gaGVscCBmcm9tIHRoZSBJUCBzdGFjay4N
+Cj4gPg0KPiA+IEZvciB0aGlzIHRvIGhhcHBlbiAsIHRoZSAnZ2lkX2NhY2hlJyBzdHJ1Y3R1cmUg
+d2lsbCBoYXZlIHRvIHVuZGVyZ28gYSBjaGFuZ2UNCj4gdG8gbm93IGluY29ycG9yYXRlIGEgbmV3
+ICdnaWRfdHlwZScgZmllbGQuDQo+ID4gQWNjb3JkaW5nbHkgdGhlIGhlbHBlciBmdW5jdGlvbnMg
+dGhhdCBmaW5kIGEgY2FjaGVkIGdpZCBlbnRyeSAtDQo+IGliX2ZpbmRfY2FjaGVkX2dpZCgpIHdp
+bGwgYWxzbyB1bmRlcmdvIGEgY2hhbmdlIHRvIHRha2UgaW50byBhY2NvdW50IHRoaXMNCj4gbmV3
+IGZpZWxkLg0KPiA+DQo+ID4gSSBwbGFuIHRvIHJlc3VibWl0IHRoZSBwYXRjaCBzZXJpZXMgbWFr
+aW5nIHRoZSBmb2xsb3dpbmcgY2hhbmdlcw0KPiA+IGEpIFBvcHVsYXRpbmcgR0lEIHRhYmxlIHdp
+dGggMiBlbnRyaWVzIHBlciBJUCBhZGRyZXNzDQo+ID4gYikgQ2hhbmdlcyB0byB0aGUgR0lEIGNh
+Y2hlIHN0cnVjdHVyZSBhbG9uZyB3aXRoIGl0J3MgaGVscGVyIGZ1bmN0aW9ucw0KPiA+IGMpIE1h
+a2Ugc3VyZSB0aGF0IFJETUEtQ00gc2VsZWN0cy9maW5kcyB0aGUgY29ycmVzcG9uZGluZyBHSUQg
+b25jZSBhDQo+IG5ldHdvcmsgdHlwZSBpcyBjaG9zZW4gYmFzZWQgb24gaGVscCBmcm9tIHRoZSBJ
+UCBzdGFjay4NCj4gPg0KPiA+DQo+ID4gVGhlIG9ubHkgdGhpbmcgbWlzc2luZyBpcyB0aGUgYWJp
+bGl0eSBmb3IgZW5kLW5vZGVzIGNvbm5lY3RlZCBsb2NhbGx5DQo+ID4gaW5zaWRlIHNhbWUgc3Vi
+bmV0IHRvIGNvbW11bmljYXRlIHVzaW5nIFYyIGFuZCB0aGF0IGNvdWxkIGJlIHByb3ZpZGVkDQo+
+ID4gYXMgYW4gJ292ZXJyaWRlJyBvcHRpb24gdXNpbmcgdGhlICdwcmVmZXJyZWQgcHJvdG9jb2wn
+IGF0dHJpYnV0ZSBzZXR0aW5nIG9uIGENCj4gc3lzdGVtLXdpZGUgYmFzaXMgb3Igb24gYW4gYXBw
+bGljYXRpb24gYmFzaXMgYXMgeW91IGhhdmUgcHJvcG9zZWQuDQo+ID4gVGhpcyBJIHByb3Bvc2Ug
+YXMgYW4gYWRkaXRpb25hbCBwYXRjaCBhZnRlciB0aGUgYWJvdmUgcGF0Y2ggZ29lcyBpbiBmaXJz
+dC4NCj4gPg0KPiA+IERvZXMgdGhpcyBzb3VuZCBsaWtlIGEgcGxhbiA/DQo+ID4NCj4gPiBUaGFu
+a3MNCj4gPiBTb20NCj4gPg0KPiBIaSBTb20NCj4gR2VuZXJhbGx5LCBJIGFncmVlIHdpdGggdGhl
+IGNoYW5nZXMgeW91IHN1Z2dlc3RlZC4gVG8gc3VtbWFyaXplIChhbmQgbWFrZQ0KPiBzdXJlIEkg
+Z290IGl0IHJpZ2h0KSB5b3VyIHBsYW4gZm9yIFYyIGlzIHRvOg0KPiANCj4gMS4gQXNzb2NpYXRl
+IGdpZF9pbmRleCB3aXRoIFJvQ0UgdHlwZSBpbiBHSUQgdGFibGUgYW5kIEdJRCBjYWNoZS4NCj4g
+UmVxdWlyZXMgaGVscGVyIGZ1bmN0aW9ucyB0byBzZWFyY2ggZm9yIGdpZF9pbmRleCBhY2NvcmRp
+bmcgdG8gR0lEIHZhbHVlIGFuZA0KPiB0eXBlIDIuIE1vdmUgdGhlIGNvZGUgdGhhdCBtb25pdG9y
+cyBJUCBhZGRyZXNzIGNoYW5nZXMgdG8gcG9wdWxhdGUgR0lEDQo+IHRhYmxlIGZyb20gZGV2aWNl
+IGRyaXZlciB0byBJQi9jb3JlLiBSZXF1aXJlcyBlYWNoIFJvQ0UgZGV2aWNlIGRyaXZlciB0bw0K
+PiBpbXBsZW1lbnQgYWRkX2dpZF9lbnRyeS9yZW1fZ2lkX2VudHJ5IGZ1bmN0aW9ucyAzLiBSZW1v
+dmUgdGhlIFJvQ0UNCj4gdHlwZSBmcm9tIGFkZHJlc3Mgc3RydWN0dXJlIChlLmcuIGliX2FoX2F0
+dHIpLg0KPiBMZWF2ZSBpdCBvbmx5IGluIHJkbWFfYWRkciB0byBrZWVwIHRoZSBoaW50IGZyb20g
+dGhlIElQIHN0YWNrIDQuIENob29zZQ0KPiBzZ2lkX2luZGV4IChmcm9tIGFsbCBtYXRjaGluZyBl
+bnRyaWVzKSBpbiBSRE1BLUNNIGJhc2VkIG9uIGhpbnQgZnJvbSBJUA0KPiBzdGFjaywgdXNlciBw
+cmVmZXJlbmNlIGFuZCBhZG1pbiBwb2xpY3kNCg0KQWdyZWUgd2l0aCBhbGwgeW91ciBwb2ludHMg
+YWJvdmUgLCBleGNlcHQgZm9yIHBvaW50IyAyLiAgVGhhdCBJTUhPIHdvdWxkIGJlIG1vcmUgb2Yg
+YSBjb2RlIHJlZmFjdG9yaW5nL2NsZWFudXAgcGF0Y2ggDQp0aGF0IGNhbiBiZSB0YWtlbiB1cCBs
+YXRlciBvbmNlIHRoZSBiYXNlbGluZSB2ZXJzaW9uIGlzIGNoZWNrZWQgaW4gYXMgaXQncyBub3Qg
+cmVhbGx5IHJlbGF0ZWQgdG8gdGhpcyBwYXRjaCA/DQpBbHNvLCBpZiB3ZSBkbyB0aGF0ICwgdGhl
+biB3ZSBhbHNvIGhhdmUgdG8gdGFrZSBjYXJlIG9mICB0aGUgSUIgY2FzZSBhcyB3ZWxsIHdoZXJl
+IEdJRCBpcyBzb21ldGhpbmcgdGhhdCBpcyBvYnRhaW5lZCBmcm9tIHRoZSBwb3J0L2NhcmQocXVl
+cnlfZ2lkKQ0KYXMgb3Bwb3NlZCB0byBzb21ldGhpbmcgdGhhdCBpcyBwdXNoZWQgZG93biBmcm9t
+IHRoZSBzdGFjayBhcyB5b3UgYXJlIG5vdyBwcm9wb3NpbmcgZm9yIElQLWJhc2VkIEdJRHMuLiBp
+LmUgaW1wbGljYXRpb25zIGFyZSBtdWNoIG1vcmUgdGhhbg0Kd2hhdCB0aGlzIHBhdGNoIGludGVu
+ZHMgdG8gYWRkcmVzcy4NClNvIEknZCByYXRoZXIgZG8gdGhpcyBhdCBhIGxhdGVyIHBvaW50IGlu
+IHRpbWUgYW5kIG5vdCBjbHViIGl0IHdpdGggVjIsIHNvdW5kIGdvb2QgPw0KDQpUaGFua3MNClNv
+bQ0KDQoNCg0KPiANCj4gSWYgc28sIEkgZ3Vlc3MgdGhhdCB3ZSBoYXZlIGEgcGxhbi4NCj4gDQo+
+IFRoYW5rcw0KPiBNb25pDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
