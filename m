@@ -1,32 +1,85 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC PATCH 00/16] ib_mad: Add support for Intel Omni-Path
- Architecture (OPA) MAD processing.
-Date: Mon, 1 Dec 2014 22:33:30 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBCD52F@CRSMSX101.amr.corp.intel.com>
-References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
- <54750DCF.90308@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-next] IB/core: Fix mgid key handling in SA agent
+ multicast data-base
+Date: Tue, 2 Dec 2014 00:59:14 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E208C9@ORSMSX109.amr.corp.intel.com>
+References: <1416388138-25669-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54750DCF.90308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1416388138-25669-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eitan Zahavi <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'll get back to you on the IBTA questions when I can but I wanted to address this question.
-
+> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > 
-> Has regression testing yet been done with these changes in terms of IBTA MAD
-> support in terms of agents, SMs, and diagnostics to be sure that things still work
-> properly ?
+> Applications can request that the SM assign an mgid, by passing a mcast
+> member request containing an mgid = 0. When the SM responds by sending
+> the allocated mgid, this mgid replaces the 0-mgid in the multicast group.
 > 
+> However, the mgid field in the group is also the key field in the IB core
+> multicast code red-black tree containing the multicast groups for the
+> port.
+> 
+> Since this is a key field, correct handling requires that the group entry
+> be deleted from the rb table, and then re-inserted with the new key,
+> so that the table structure is properly maintained.
+> 
+> The current code does not do this correctly. Correct operation
+> requires that if the key-field gid has changed at all, it should
+> be deleted and re-inserted, fix that.
+> 
+> Note that when inserting, if the new mgid is zero (not the case here
+> but the code should handle this correctly), we allow duplicate entries
+> for 0-mgids.
+> 
+> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Yes.  I have tested OpenSM and infiniband-diags running on qib and mlx4 hardware.  I don't have access to mlx5 or the older ehca and mthca cards.
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
--- Ira
+> ---
+>  drivers/infiniband/core/multicast.c |   11 ++++++++---
+>  1 files changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/multicast.c
+> b/drivers/infiniband/core/multicast.c
+> index d2360a8..fa17b55 100644
+> --- a/drivers/infiniband/core/multicast.c
+> +++ b/drivers/infiniband/core/multicast.c
+> @@ -525,17 +525,22 @@ static void join_handler(int status, struct
+> ib_sa_mcmember_rec *rec,
+>  	if (status)
+>  		process_join_error(group, status);
+>  	else {
+> +		int mgids_changed, is_mgid0;
+>  		ib_find_pkey(group->port->dev->device, group->port->port_num,
+>  			     be16_to_cpu(rec->pkey), &pkey_index);
+> 
+>  		spin_lock_irq(&group->port->lock);
+> -		group->rec = *rec;
+>  		if (group->state == MCAST_BUSY &&
+>  		    group->pkey_index == MCAST_INVALID_PKEY_INDEX)
+>  			group->pkey_index = pkey_index;
+> -		if (!memcmp(&mgid0, &group->rec.mgid, sizeof mgid0)) {
+> +		mgids_changed = memcmp(&rec->mgid, &group->rec.mgid,
+> +				       sizeof(group->rec.mgid));
+> +		group->rec = *rec;
+> +		if (mgids_changed) {
+>  			rb_erase(&group->node, &group->port->table);
+> -			mcast_insert(group->port, group, 1);
+> +			is_mgid0 = !memcmp(&mgid0, &group->rec.mgid,
+> +					   sizeof(mgid0));
+> +			mcast_insert(group->port, group, is_mgid0);
+>  		}
+>  		spin_unlock_irq(&group->port->lock);
+>  	}
+> --
+> 1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
