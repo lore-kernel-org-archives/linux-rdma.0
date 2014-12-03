@@ -1,60 +1,43 @@
-From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/1] ibacm: incorrect ifc_len is specified in SIOCGIFCONF request
-Date: Wed,  3 Dec 2014 11:10:59 -0500
-Message-ID: <1417623059-15183-1-git-send-email-kaike.wan@intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 3/3] ibacm/ibacmp: fix a crash when SM restarts
+Date: Wed, 3 Dec 2014 19:42:26 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E21295@ORSMSX109.amr.corp.intel.com>
+References: <1416408407-6774-1-git-send-email-kaike.wan@intel.com>
+ <1416408407-6774-4-git-send-email-kaike.wan@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416408407-6774-4-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Ibacm may cause segfault when the SM restarts: when the SM restarts, ibacm
+> will
+> receive P_Key change event and instruct ibacmp to close all endpoints.
+> However,
+> ibacmp only resets the core endpoint pointer in its ep structure and keeps
+> the ep
+> in the port's ep_list. Afterwards, the ibacm core will ask ibacmp to
+> create
+> an ep for each pkey enumerated from the local port. The ep will be found
+> from the port's ep_list if it exists. However, if an old pkey is not
+> present
+> in the new SM configuration, the old ep will still be linked in the port's
+> ep_list with the ep->endpoint being set to NULL. When the ibacm core
+> forwards
+> the client reregistration event to ibacmp, ibacmp will enumerate the
+> ep_list and
+> try to join multicast group for each ep, including any one with ep-
+> >endpoint
+> set to NULL. In this case, it will cause segfault in acm_send_sa_mad().
+> Additional check should be able to avoid the crash.
 
-The ifc->ifs_len in the ioctl SIOCGIFCONF request should only specify the
-associated ifreq buffer length and not include the ifc header length.
-This bug was found by running ibacm with Valgrind:
+I'm having trouble following this.  Is the problem that the provider is not cleaning up properly/completely when being told to close its endpoint?
 
-==8201== Syscall param ioctl(SIOCGIFCONF).ifc_buf points to unaddressable byte(s)
-==8201==    at 0x3E886DF7B7: ioctl (in /lib64/libc-2.12.so)
-==8201==    by 0x40A11A: acm_if_iter_sys (acm_util.c:154)
-==8201==    by 0x406979: acm_get_system_ips (acm.c:1584)
-==8201==    by 0x4069FD: acm_assign_ep_names (acm.c:1602)
-==8201==    by 0x4070D1: acm_ep_up (acm.c:1744)
-==8201==    by 0x407799: acm_port_up (acm.c:1896)
-==8201==    by 0x407DE1: acm_activate_devices (acm.c:2027)
-==8201==    by 0x409CAC: main (acm.c:2728)
-==8201==  Address 0x5063470 is 0 bytes after a block of size 2,576 alloc'd
-==8201==    at 0x4A05FDE: malloc (vg_replace_malloc.c:236)
-==8201==    by 0x40A0BB: acm_if_iter_sys (acm_util.c:144)
-==8201==    by 0x406979: acm_get_system_ips (acm.c:1584)
-==8201==    by 0x4069FD: acm_assign_ep_names (acm.c:1602)
-==8201==    by 0x4070D1: acm_ep_up (acm.c:1744)
-==8201==    by 0x407799: acm_port_up (acm.c:1896)
-==8201==    by 0x407DE1: acm_activate_devices (acm.c:2027)
-==8201==    by 0x409CAC: main (acm.c:2728)
-
-
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/acm_util.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/acm_util.c b/src/acm_util.c
-index 50b46d8..d54f520 100644
---- a/src/acm_util.c
-+++ b/src/acm_util.c
-@@ -148,7 +148,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	}
- 
- 	memset(ifc, 0, len);
--	ifc->ifc_len = len;
-+	ifc->ifc_len = len - sizeof(*ifc);
- 	ifc->ifc_req = (struct ifreq *) (ifc + 1);
- 
- 	ret = ioctl(s, SIOCGIFCONF, ifc);
--- 
-1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
