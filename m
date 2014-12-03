@@ -1,47 +1,116 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/2] Adding support for RoCE V2 specification
-Date: Tue, 2 Dec 2014 14:14:51 +0200
-Message-ID: <CAG9sBKNEF4nme4Hjc-8Ehg31QXrY2kRBnp-qCUeQ+UZ6d+YQ5A@mail.gmail.com>
-References: <51dd1341-8216-494f-9574-120634cad8e7@CMEXHTCAS1.ad.emulex.com>
-	<CAG9sBKPGbHc49rLx+z3N+bgzMakFks2ihvgAkZpmjUz==2ZYDQ@mail.gmail.com>
-	<7F44EA5110810A40B7DAFB605C41975D312F40F4@CMEXMB1.ad.emulex.com>
-	<CAG9sBKMDLNnO1Q8QRNNq9cAnTdEL3DXPhpUqwKqFaN1aMGyomw@mail.gmail.com>
-	<7F44EA5110810A40B7DAFB605C41975D312F4C7C@CMEXMB1.ad.emulex.com>
-	<CAG9sBKNt0sKixnKj_8ANc3ef4kwEGgrH_5WcCWr3-VfSSf8Ldw@mail.gmail.com>
-	<7F44EA5110810A40B7DAFB605C41975D312F642B@CMEXMB1.ad.emulex.com>
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
+Date: Wed, 03 Dec 2014 09:50:40 +0800
+Message-ID: <547E6C70.7040809@oracle.com>
+References: <20141125.010741.450666241983239119.davem@davemloft.net>	<54742D6E.9030605@mellanox.com>	<19740.1416940877@famine> <20141125.134450.1265438298771389292.davem@davemloft.net> <54752D4C.7000603@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D312F642B-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <54752D4C.7000603@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, jay.vosburgh@canonical.com
+Cc: ogerlitz@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
->
-> Agree with all your points above , except for point# 2.  That IMHO would be more of a code refactoring/cleanup patch
-> that can be taken up later once the baseline version is checked in as it's not really related to this patch ?
-> Also, if we do that , then we also have to take care of  the IB case as well where GID is something that is obtained from the port/card(query_gid)
-> as opposed to something that is pushed down from the stack as you are now proposing for IP-based GIDs.. i.e implications are much more than
-> what this patch intends to address.
-> So I'd rather do this at a later point in time and not club it with V2, sound good ?
->
-> Thanks
-> Som
+Hi David and Jay,
 
-Hi Som
-I think that it can be done in 2 stages. Moving GID table management
-to IB/core is indeed not mandatory for RoCEv2.
-However, you might want to consider it anyway since RoCEv2 support is
-going to add changes to GID table management anyhow.
-So, instead of modifying each device driver sperately, do it once
-centrally and add a plugin function in struct ib_device (e.g.
-ib_write_gid(union ib_gid, struct ib_gid_info *info)). We can work in
-parallel and implement the mlx4 function while you concentrate in
-IB/core and ocrdma.
+Then about about the change in this patch?
 
-I leave it for you to decide how to proceed from here.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+wengang
+
+=E5=9C=A8 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 09:30, Wengang =E5=86=99=E9=
+=81=93:
+> =E4=BA=8E 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 02:44, David Miller =E5=
+=86=99=E9=81=93:
+>> From: Jay Vosburgh <jay.vosburgh@canonical.com>
+>> Date: Tue, 25 Nov 2014 10:41:17 -0800
+>>
+>>> Or Gerlitz <ogerlitz@mellanox.com> wrote:
+>>>
+>>>> On 11/25/2014 8:07 AM, David Miller wrote:
+>>>>> IPOIB should not work over bonding as it requires that the device
+>>>>> use ARPHRD_ETHER.
+>>>> Hi Dave,
+>>>>
+>>>> IPoIB devices can be enslaved to both bonding and teaming in their=
+=20
+>>>> HA mode,
+>>>> the bond device type becomes ARPHRD_INFINIBAND when this happens.
+>>>     The point was that pktgen disallows ARPHRD_INFINIBAND, not that
+>>> bonding does.
+>>>
+>>>     Pktgen specifically checks for type !=3D ARPHRD_ETHER, so the
+>>> IPoIB bond should not be able to be used with pkgten.  My suspicion=
+ is
+>>> that pktgen is being configured on the bond first, then an IPoIB sl=
+ave
+>>> is added to the bond; this would change its type in a way that pktg=
+en
+>>> wouldn't notice.
+>> +1
+>
+> I think it go this way:
+>
+> 1) bond_master is ready
+> 2) bond_enslave enslave a IPOIB interface calling bond_setup_by_slave
+> 3) then bond_setup_by_slave set change master type to ARPHRD_INFINIBA=
+ND.
+>
+> code is like this:
+>
+> 1 /* enslave device <slave> to bond device <master> */
+> 2 int bond_enslave(struct net_device *bond_dev, struct net_device=20
+> *slave_dev)
+> 3 {
+> 4 <snip>...
+> 5 /* set bonding device ether type by slave - bonding netdevices are
+> 6 * created with ether_setup, so when the slave type is not ARPHRD_ET=
+HER
+> 7 * there is a need to override some of the type dependent attribs/fu=
+ncs.
+> 8 *
+> 9 * bond ether type mutual exclusion - don't allow slaves of dissimil=
+ar
+> 10 * ether type (eg ARPHRD_ETHER and ARPHRD_INFINIBAND) share the sam=
+e=20
+> bond
+> 11 */
+> 12 if (!bond_has_slaves(bond)) {
+> 13 if (bond_dev->type !=3D slave_dev->type) {
+> 14 <snip>...
+> 15 if (slave_dev->type !=3D ARPHRD_ETHER)
+> 16 bond_setup_by_slave(bond_dev, slave_dev);
+> 17 else {
+> 18 ether_setup(bond_dev);
+> 19 bond_dev->priv_flags &=3D ~IFF_TX_SKB_SHARING;
+> 20 }
+> 21
+> 22 call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE,
+> 23 bond_dev);
+> 24 }
+> 25 <snip>...
+> 26 }
+> 27
+> 28 static void bond_setup_by_slave(struct net_device *bond_dev,
+> 29 struct net_device *slave_dev)
+> 30 {
+> 31 bond_dev->header_ops =3D slave_dev->header_ops;
+> 32
+> 33 bond_dev->type =3D slave_dev->type;
+> 34 bond_dev->hard_header_len =3D slave_dev->hard_header_len;
+> 35 bond_dev->addr_len =3D slave_dev->addr_len;
+> 36
+> 37 memcpy(bond_dev->broadcast, slave_dev->broadcast,
+> 38 slave_dev->addr_len);
+> 39 }
+> 40
+>
+> thanks
+> wengang
+> --=20
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
