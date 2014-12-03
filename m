@@ -1,116 +1,41 @@
-From: Wengang Wang <wen.gang.wang@oracle.com>
-Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
-Date: Wed, 03 Dec 2014 09:50:40 +0800
-Message-ID: <547E6C70.7040809@oracle.com>
-References: <20141125.010741.450666241983239119.davem@davemloft.net>	<54742D6E.9030605@mellanox.com>	<19740.1416940877@famine> <20141125.134450.1265438298771389292.davem@davemloft.net> <54752D4C.7000603@oracle.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/ocrdma: fix query-qp to report q_key value
+Date: Wed, 3 Dec 2014 11:36:33 +0530
+Message-ID: <47d5c87b-12ba-4882-98dd-61287af05da6@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <54752D4C.7000603@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, jay.vosburgh@canonical.com
-Cc: ogerlitz@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi David and Jay,
+From: Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Then about about the change in this patch?
+Fix ocrdma_query_qp to return correct value of qkey in case of UD QP
+Signed-off-by: Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-thanks,
-wengang
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index ef6c78c..d8569ca 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1410,6 +1410,8 @@ int ocrdma_query_qp(struct ib_qp *ibqp,
+ 	mutex_unlock(&dev->dev_lock);
+ 	if (status)
+ 		goto mbx_err;
++	if (qp->qp_type == IB_QPT_UD)
++		qp_attr->qkey = params.qkey;
+ 	qp_attr->qp_state = get_ibqp_state(IB_QPS_INIT);
+ 	qp_attr->cur_qp_state = get_ibqp_state(IB_QPS_INIT);
+ 	qp_attr->path_mtu =
+-- 
+1.7.1
 
-=E5=9C=A8 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 09:30, Wengang =E5=86=99=E9=
-=81=93:
-> =E4=BA=8E 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 02:44, David Miller =E5=
-=86=99=E9=81=93:
->> From: Jay Vosburgh <jay.vosburgh@canonical.com>
->> Date: Tue, 25 Nov 2014 10:41:17 -0800
->>
->>> Or Gerlitz <ogerlitz@mellanox.com> wrote:
->>>
->>>> On 11/25/2014 8:07 AM, David Miller wrote:
->>>>> IPOIB should not work over bonding as it requires that the device
->>>>> use ARPHRD_ETHER.
->>>> Hi Dave,
->>>>
->>>> IPoIB devices can be enslaved to both bonding and teaming in their=
-=20
->>>> HA mode,
->>>> the bond device type becomes ARPHRD_INFINIBAND when this happens.
->>>     The point was that pktgen disallows ARPHRD_INFINIBAND, not that
->>> bonding does.
->>>
->>>     Pktgen specifically checks for type !=3D ARPHRD_ETHER, so the
->>> IPoIB bond should not be able to be used with pkgten.  My suspicion=
- is
->>> that pktgen is being configured on the bond first, then an IPoIB sl=
-ave
->>> is added to the bond; this would change its type in a way that pktg=
-en
->>> wouldn't notice.
->> +1
->
-> I think it go this way:
->
-> 1) bond_master is ready
-> 2) bond_enslave enslave a IPOIB interface calling bond_setup_by_slave
-> 3) then bond_setup_by_slave set change master type to ARPHRD_INFINIBA=
-ND.
->
-> code is like this:
->
-> 1 /* enslave device <slave> to bond device <master> */
-> 2 int bond_enslave(struct net_device *bond_dev, struct net_device=20
-> *slave_dev)
-> 3 {
-> 4 <snip>...
-> 5 /* set bonding device ether type by slave - bonding netdevices are
-> 6 * created with ether_setup, so when the slave type is not ARPHRD_ET=
-HER
-> 7 * there is a need to override some of the type dependent attribs/fu=
-ncs.
-> 8 *
-> 9 * bond ether type mutual exclusion - don't allow slaves of dissimil=
-ar
-> 10 * ether type (eg ARPHRD_ETHER and ARPHRD_INFINIBAND) share the sam=
-e=20
-> bond
-> 11 */
-> 12 if (!bond_has_slaves(bond)) {
-> 13 if (bond_dev->type !=3D slave_dev->type) {
-> 14 <snip>...
-> 15 if (slave_dev->type !=3D ARPHRD_ETHER)
-> 16 bond_setup_by_slave(bond_dev, slave_dev);
-> 17 else {
-> 18 ether_setup(bond_dev);
-> 19 bond_dev->priv_flags &=3D ~IFF_TX_SKB_SHARING;
-> 20 }
-> 21
-> 22 call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE,
-> 23 bond_dev);
-> 24 }
-> 25 <snip>...
-> 26 }
-> 27
-> 28 static void bond_setup_by_slave(struct net_device *bond_dev,
-> 29 struct net_device *slave_dev)
-> 30 {
-> 31 bond_dev->header_ops =3D slave_dev->header_ops;
-> 32
-> 33 bond_dev->type =3D slave_dev->type;
-> 34 bond_dev->hard_header_len =3D slave_dev->hard_header_len;
-> 35 bond_dev->addr_len =3D slave_dev->addr_len;
-> 36
-> 37 memcpy(bond_dev->broadcast, slave_dev->broadcast,
-> 38 slave_dev->addr_len);
-> 39 }
-> 40
->
-> thanks
-> wengang
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
