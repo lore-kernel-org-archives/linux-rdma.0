@@ -1,78 +1,43 @@
-From: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: RDMA =?utf-8?b?RkVUQ0hfQU5EX0FERA==?= and =?utf-8?b?Q01QX0FORF9TV0FQ?= fail
-Date: Wed, 3 Dec 2014 21:56:26 +0000 (UTC)
-Message-ID: <loom.20141203T225347-18@post.gmane.org>
+From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 3/3] ibacm/ibacmp: fix a crash when SM restarts
+Date: Thu, 4 Dec 2014 12:22:29 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0868D135@CRSMSX101.amr.corp.intel.com>
+References: <1416408407-6774-1-git-send-email-kaike.wan@intel.com>
+ <1416408407-6774-4-git-send-email-kaike.wan@intel.com>
+ <1828884A29C6694DAF28B7E6B8A8237399E21295@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E21295-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello All,
-
-I can successfully send RDMA READ/WRITE,
-but I can't get RDMA atomic operations to work.
-I get an error when calling ibv_post_send function in the client,
-and the errno will be set to "Invalid Arguments."
-Below I pasted important parts of my code.
-Could you please check my code and let me know if I'm missing anything?
-
-
-*********** client side *****************:
--- Registering the memory regions --
-mr = ibv_reg_mr(pd, buff, size, IBV_ACCESS_LOCAL_WRITE);
-// and the size is 8
-
-if (!mr){
-   fprintf(stderr, "Error, memory registration failed\n");
-   return -1;
-}
-
--- Preparing RDMA ATOMIC FETCH AND 
-struct ibv_send_wr wr, *bad_wr = NULL;
-struct ibv_sge sge;
-	
-memset(&sge, 0, sizeof(sge));
-sge.addr 		= buff;
-sge.length 	= 8;
-sge.lkey 		= mr->lkey;
-	
-memset(&wr, 0, sizeof(wr));
-wr.wr_id     = 0;
-wr.opcode  = IBV_WR_ATOMIC_FETCH_AND_ADD;
-wr.sg_list 			= &sge;
-wr.num_sge 		= 1;
-wr.send_flags 		= IBV_SEND_SIGNALED;
-
-wr.wr.atomic.remote_addr	= remote_buffer;
-wr.wr.atomic.rkey        	= peer_mr->rkey;
-wr.wr.atomic.compare_add	= 1ULL; 
-
-if (ibv_post_send(qp, &wr, &bad_wr)) {
-    fprintf(stderr, "Error, ibv_post_send() failed\n");
-    return -1;
-}
-********* End of Client side *******
-
-****** Server side ****************
--- Registering the memory regions --
-mr = ibv_reg_mr(pd,  rdma_region_timestamp_oracle,
-         sizeof(TimestampOracle), 
-         IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE
-         | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_ATOMIC ));
-
-if (!mr){
-   fprintf(stderr, "Error, memory registration() failed\n");
-   return -1;
-}
-
-
-NOTE: TimestampOracle is a class with two int members,
-so its size is 8 bytes (satisfies 64-bit condition for RDMA ATOMIC operations)
-
-Thank you for your helps
+> > Ibacm may cause segfault when the SM restarts: when the SM restarts,
+> > ibacm will receive P_Key change event and instruct ibacmp to close all
+> > endpoints.
+> > However,
+> > ibacmp only resets the core endpoint pointer in its ep structure and
+> > keeps the ep in the port's ep_list. Afterwards, the ibacm core will
+> > ask ibacmp to create an ep for each pkey enumerated from the local
+> > port. The ep will be found from the port's ep_list if it exists.
+> > However, if an old pkey is not present in the new SM configuration,
+> > the old ep will still be linked in the port's ep_list with the
+> > ep->endpoint being set to NULL. When the ibacm core forwards the
+> > client reregistration event to ibacmp, ibacmp will enumerate the
+> > ep_list and try to join multicast group for each ep, including any one
+> > with ep-
+> > >endpoint
+> > set to NULL. In this case, it will cause segfault in acm_send_sa_mad().
+> > Additional check should be able to avoid the crash.
+> 
+> I'm having trouble following this.  Is the problem that the provider is not
+> cleaning up properly/completely when being told to close its endpoint?
+> 
+[Wan, Kaike] Yes, it's a problem for the current implementation of the default provider ibacmp. If the provider can clean up properly, it will not have such a problem. Nevertheless, the ibacm core should validate incoming parameters for a SA request from any provider.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
