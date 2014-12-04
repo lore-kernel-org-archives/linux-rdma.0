@@ -1,45 +1,134 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 3/3] ibacm/ibacmp: fix a crash when SM restarts
-Date: Thu, 4 Dec 2014 12:22:29 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0868D135@CRSMSX101.amr.corp.intel.com>
-References: <1416408407-6774-1-git-send-email-kaike.wan@intel.com>
- <1416408407-6774-4-git-send-email-kaike.wan@intel.com>
- <1828884A29C6694DAF28B7E6B8A8237399E21295@ORSMSX109.amr.corp.intel.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.12-1 rc4 release is available
+Date: Thu, 04 Dec 2014 14:39:44 +0200
+Message-ID: <54805610.3040605@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E21295-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1406774515388679000=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Ibacm may cause segfault when the SM restarts: when the SM restarts,
-> > ibacm will receive P_Key change event and instruct ibacmp to close all
-> > endpoints.
-> > However,
-> > ibacmp only resets the core endpoint pointer in its ep structure and
-> > keeps the ep in the port's ep_list. Afterwards, the ibacm core will
-> > ask ibacmp to create an ep for each pkey enumerated from the local
-> > port. The ep will be found from the port's ep_list if it exists.
-> > However, if an old pkey is not present in the new SM configuration,
-> > the old ep will still be linked in the port's ep_list with the
-> > ep->endpoint being set to NULL. When the ibacm core forwards the
-> > client reregistration event to ibacmp, ibacmp will enumerate the
-> > ep_list and try to join multicast group for each ep, including any one
-> > with ep-
-> > >endpoint
-> > set to NULL. In this case, it will cause segfault in acm_send_sa_mad().
-> > Additional check should be able to avoid the crash.
-> 
-> I'm having trouble following this.  Is the problem that the provider is not
-> cleaning up properly/completely when being told to close its endpoint?
-> 
-[Wan, Kaike] Yes, it's a problem for the current implementation of the default provider ibacmp. If the provider can clean up properly, it will not have such a problem. Nevertheless, the ibacm core should validate incoming parameters for a SA request from any provider.
+This is a multi-part message in MIME format.
+--===============1406774515388679000==
+Content-Type: multipart/alternative;
+ boundary="------------070407050005000605020501"
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is a multi-part message in MIME format.
+--------------070407050005000605020501
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi,
+OFED-3.12-1-rc4 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.12-1/OFED-3.12-1-rc4.tgz
+
+To get BUILD_ID run ofed_info
+
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.12-1
+
+Release notes: 
+https://openfabrics.org/downloads/OFED/release_notes/OFED_3.12-1_rc4_release_notes 
+
+
+Main Changes from OFED 3.12-1-rc3
+     - compat-rdma
+         IB/qib: streamline qib xeon-phi patches
+         qib add RHEL7 support
+         RDMA/nes: Fix for register mr with zero length
+     - ofed-scripts
+         install.pl: Build intel-mic-psm as needed
+         uninstall.sh: Replaced by perl script
+         install.pl: Remove kernel version check for qib/ipathverbs
+     - libocrdma-1.0.4
+
+Regards,
+Vladimir
+
+--------------070407050005000605020501
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+  <head>
+
+    <meta http-equiv=3D"content-type" content=3D"text/html; charset=3Dutf=
+-8">
+  </head>
+  <body text=3D"#000000" bgcolor=3D"#FFFFFF">
+    <div class=3D"moz-text-flowed" style=3D"font-family: -moz-fixed;
+      font-size: 12px;" lang=3D"x-unicode">Hi,
+      <br>
+      OFED-3.12-1-rc4 is available at:
+      <br>
+      <a class=3D"moz-txt-link-freetext"
+href=3D"https://openfabrics.org/downloads/OFED/ofed-3.12-1/OFED-3.12-1-rc=
+2.tgz">https://openfabrics.org/downloads/OFED/ofed-3.12-1/OFED-3.12-1-rc4=
+.tgz</a>
+      <br>
+      <br>
+      To get BUILD_ID run ofed_info
+      <br>
+      <br>
+      Please report any issues in bugzilla
+      <br>
+      <a class=3D"moz-txt-link-freetext"
+        href=3D"http://bugs.openfabrics.org/bugzilla/">http://bugs.openfa=
+brics.org/bugzilla/</a>
+      for OFED 3.12-1
+      <br>
+      <br>
+      Release notes: <a class=3D"moz-txt-link-freetext"
+href=3D"https://openfabrics.org/downloads/OFED/release_notes/OFED_3.12-1_=
+rc2_release_notes">https://openfabrics.org/downloads/OFED/release_notes/O=
+FED_3.12-1_rc4_release_notes</a>
+      <br>
+      <br>
+      Main Changes from OFED 3.12-1-rc3<br>
+      =C2=A0=C2=A0=C2=A0 - compat-rdma<br>
+      =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 IB/qib: streamline qib x=
+eon-phi patches<br>
+      =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 qib add RHEL7 support<br=
+>
+      =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 RDMA/nes: Fix for regist=
+er mr with zero length<br>
+      =C2=A0=C2=A0=C2=A0 - ofed-scripts<br>
+      =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 install.pl: Build intel-=
+mic-psm as needed<br>
+      =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 uninstall.sh: Replaced b=
+y perl script<br>
+      =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 install.pl: Remove kerne=
+l version check for qib/ipathverbs<br>
+      =C2=A0=C2=A0=C2=A0 - libocrdma-1.0.4<br>
+      <br>
+      Regards,
+      <br>
+      Vladimir
+      <br>
+    </div>
+  </body>
+</html>
+
+--------------070407050005000605020501--
+
+--===============1406774515388679000==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/mailman/listinfo/ewg
+--===============1406774515388679000==--
