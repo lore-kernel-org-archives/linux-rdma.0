@@ -1,34 +1,104 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a device
-Date: Mon, 8 Dec 2014 13:29:07 +0200
-Message-ID: <CAJ3xEMj-0_0F+VoGZDes92ShFRTbt9Et4WWPt=viY5gx_P-oNg@mail.gmail.com>
-References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
-	<1415908465-24392-4-git-send-email-ira.weiny@intel.com>
-	<54770F44.2090909@mellanox.com>
-	<2807E5FD2F6FDA4886F6618EAC48510E0CBD4F23@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH ] mlx4_core: Enhance device capabilities flags debug printouts
+Date: Sun,  7 Dec 2014 15:48:32 -0800
+Message-ID: <1417996112-19060-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CBD4F23-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 8, 2014 at 2:23 AM, Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+1. Add indication whether feature is supported or not.
+2. Add descriptions of all features.
+Without this fix there is no way to tell if feature is not supported or that description is not exist.
 
->> I find it very annoying that upper level drivers replicate in different ways
->> elements from the IB device attributes returned by ib_query_device. I met that
->> in multiple drivers and upcoming designs for which I do code review. Are you
->> up to come up with a patch that caches the device attributes on the device
->> structure?
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/fw.c |   37 +++++++++++++++++++++++++++---
+ 1 files changed, 33 insertions(+), 4 deletions(-)
 
-> I don't follow what you are asking for.  Could you give more details?
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index 2e88a23..79ab326 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -91,7 +91,10 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+ 		[ 8] = "P_Key violation counter",
+ 		[ 9] = "Q_Key violation counter",
+ 		[10] = "VMM",
++		[11] = "Fibre Channel Protocol On Ethernet Ports support",
+ 		[12] = "Dual Port Different Protocol (DPDP) support",
++		[13] = "Raw Ethertype support",
++		[14] = "Raw IPv6 support",
+ 		[15] = "Big LSO headers",
+ 		[16] = "MW support",
+ 		[17] = "APM support",
+@@ -99,16 +102,40 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+ 		[19] = "Raw multicast support",
+ 		[20] = "Address vector port checking support",
+ 		[21] = "UD multicast support",
++		[22] = "UD IPv4 Multicast support",
+ 		[24] = "Demand paging support",
+ 		[25] = "Router support",
++		[26] = "L2 Ethernet Multicast support",
++		[28] = "Software parsing support for UD transport",
++		[29] = "TCP checksum off-load support",
+ 		[30] = "IBoE support",
++		[31] = "FCoE T11 frame format support",
+ 		[32] = "Unicast loopback support",
++		[33] = "Multicast loopback support",
+ 		[34] = "FCS header control",
++		[35] = "Address Path ud_force_mgid support",
++		[36] = "Header-Data Split support",
++		[37] = "Wake On LAN support on port 1",
++		[38] = "Wake On LAN support on port 2",
++		[39] = "Fatal Warning Event upon a thermal warning condition",
+ 		[38] = "Wake On LAN support",
+ 		[40] = "UDP RSS support",
+ 		[41] = "Unicast VEP steering support",
+ 		[42] = "Multicast VEP steering support",
++		[43] = "VLAN Steering mechanism support",
++		[44] = "Steering according to EtherType support",
++		[45] = "WQE format version 1 support",
++		[46] = "Keep Alive Validiation support",
++		[47] = "PTP1588 support",
+ 		[48] = "Counters support",
++		[49] = "Advanced Counters support",
++		[50] = "Force Ethernet user priority from QPC support",
++		[51] = "RX Port Num check disabled",
++		[52] = "RSS on fragmented IP datagram support",
++		[55] = "Link Sensing support",
++		[56] = "Reliable Multicast support",
++		[57] = "Fast Drop support",
++		[58] = "Protected FMR support",
+ 		[53] = "Port ETS Scheduler support",
+ 		[55] = "Port link type sensing support",
+ 		[59] = "Port management change event support",
+@@ -119,8 +146,9 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+ 
+ 	mlx4_dbg(dev, "DEV_CAP flags:\n");
+ 	for (i = 0; i < ARRAY_SIZE(fname); ++i)
+-		if (fname[i] && (flags & (1LL << i)))
+-			mlx4_dbg(dev, "    %s\n", fname[i]);
++		if (fname[i])
++			mlx4_dbg(dev, "    (%c) %s\n", (flags & (1LL << i)) ?
++				 '*' : ' ', fname[i]);
+ }
+ 
+ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+@@ -144,8 +172,9 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(fname); ++i)
+-		if (fname[i] && (flags & (1LL << i)))
+-			mlx4_dbg(dev, "    %s\n", fname[i]);
++		if (fname[i])
++			mlx4_dbg(dev, "    (%c) %s\n", (flags & (1LL << i)) ?
++				 '*' : ' ', fname[i]);
+ }
+ 
+ int mlx4_MOD_STAT_CFG(struct mlx4_dev *dev, struct mlx4_mod_stat_cfg *cfg)
+-- 
+1.7.1
 
-1. add a struct ib_device_attr field to struct ib_device
-
-2. when the device registers itself with the IB core, go and run the
-query_device verb with the param being pointer to that field
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
