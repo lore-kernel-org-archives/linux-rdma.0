@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 06/16] IB/iser: Fix sparse warnings
-Date: Sun,  7 Dec 2014 16:09:57 +0200
-Message-ID: <1417961407-10139-7-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 11/16] IB/iser: Remove redundant is_mr indicator
+Date: Sun,  7 Dec 2014 16:10:02 +0200
+Message-ID: <1417961407-10139-12-git-send-email-ogerlitz@mellanox.com>
 References: <1417961407-10139-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1417961407-10139-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,95 +12,101 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Use uintptr_t to handle wr_id casting, which was found by
-Kbuild test robot and smatch. Also remove an internal definition
-of variable which potentially shadows an external one (and make
-sparse happy).
+It is enough to check mem_h pointer assignment, mem_h == NULL
+will indicate that buffer is not registered using mr.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c |    1 -
- drivers/infiniband/ulp/iser/iser_verbs.c  |   15 ++++++++-------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |    2 --
+ drivers/infiniband/ulp/iser/iser_memory.c |    9 ++-------
+ drivers/infiniband/ulp/iser/iser_verbs.c  |    6 ++----
+ 3 files changed, 4 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 8a5663d..e34263c 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -252,7 +252,6 @@ struct iscsi_endpoint;
+  * @va:           MR start address (buffer va)
+  * @len:          MR length
+  * @mem_h:        pointer to registration context (FMR/Fastreg)
+- * @is_mr:        indicates weather we registered the buffer
+  */
+ struct iser_mem_reg {
+ 	u32  lkey;
+@@ -260,7 +259,6 @@ struct iser_mem_reg {
+ 	u64  va;
+ 	u64  len;
+ 	void *mem_h;
+-	int  is_mr;
+ };
+ 
+ /**
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 6c5ce35..5796c95 100644
+index a70fd9a..d832705 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -73,7 +73,6 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
+@@ -408,7 +408,6 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 		regd_buf->reg.rkey = device->mr->rkey;
+ 		regd_buf->reg.len  = ib_sg_dma_len(ibdev, &sg[0]);
+ 		regd_buf->reg.va   = ib_sg_dma_address(ibdev, &sg[0]);
+-		regd_buf->reg.is_mr = 0;
  
- 	if (cmd_dir == ISER_DIR_OUT) {
- 		/* copy the unaligned sg the buffer which is used for RDMA */
--		int i;
- 		char *p, *from;
+ 		iser_dbg("PHYSICAL Mem.register: lkey: 0x%08X rkey: 0x%08X  "
+ 			 "va: 0x%08lX sz: %ld]\n",
+@@ -769,15 +768,11 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 		regd_buf->reg.rkey = desc->pi_ctx->sig_mr->rkey;
+ 		regd_buf->reg.va = sig_sge.addr;
+ 		regd_buf->reg.len = sig_sge.length;
+-		regd_buf->reg.is_mr = 1;
+ 	} else {
+-		if (desc) {
++		if (desc)
+ 			regd_buf->reg.rkey = desc->data_mr->rkey;
+-			regd_buf->reg.is_mr = 1;
+-		} else {
++		else
+ 			regd_buf->reg.rkey = device->mr->rkey;
+-			regd_buf->reg.is_mr = 0;
+-		}
  
- 		sgl = (struct scatterlist *)data->buf;
+ 		regd_buf->reg.lkey = data_sge.lkey;
+ 		regd_buf->reg.va = data_sge.addr;
 diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 583b09e..fb5ec35 100644
+index fb5ec35..ad493d2 100644
 --- a/drivers/infiniband/ulp/iser/iser_verbs.c
 +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -1077,7 +1077,7 @@ int iser_post_recvl(struct iser_conn *iser_conn)
- 	sge.length = ISER_RX_LOGIN_SIZE;
- 	sge.lkey   = ib_conn->device->mr->lkey;
+@@ -1009,7 +1009,6 @@ int iser_reg_page_vec(struct ib_conn *ib_conn,
+ 	mem_reg->rkey  = mem->fmr->rkey;
+ 	mem_reg->len   = page_vec->length * SIZE_4K;
+ 	mem_reg->va    = io_addr;
+-	mem_reg->is_mr = 1;
+ 	mem_reg->mem_h = (void *)mem;
  
--	rx_wr.wr_id   = (unsigned long)iser_conn->login_resp_buf;
-+	rx_wr.wr_id   = (uintptr_t)iser_conn->login_resp_buf;
- 	rx_wr.sg_list = &sge;
- 	rx_wr.num_sge = 1;
- 	rx_wr.next    = NULL;
-@@ -1101,7 +1101,7 @@ int iser_post_recvm(struct iser_conn *iser_conn, int count)
+ 	mem_reg->va   += page_vec->offset;
+@@ -1036,7 +1035,7 @@ void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	struct iser_mem_reg *reg = &iser_task->rdma_regd[cmd_dir].reg;
+ 	int ret;
  
- 	for (rx_wr = ib_conn->rx_wr, i = 0; i < count; i++, rx_wr++) {
- 		rx_desc		= &iser_conn->rx_descs[my_rx_head];
--		rx_wr->wr_id	= (unsigned long)rx_desc;
-+		rx_wr->wr_id	= (uintptr_t)rx_desc;
- 		rx_wr->sg_list	= &rx_desc->rx_sg;
- 		rx_wr->num_sge	= 1;
- 		rx_wr->next	= rx_wr + 1;
-@@ -1138,7 +1138,7 @@ int iser_post_send(struct ib_conn *ib_conn, struct iser_tx_desc *tx_desc,
- 				      DMA_TO_DEVICE);
+-	if (!reg->is_mr)
++	if (!reg->mem_h)
+ 		return;
  
- 	send_wr.next	   = NULL;
--	send_wr.wr_id	   = (unsigned long)tx_desc;
-+	send_wr.wr_id	   = (uintptr_t)tx_desc;
- 	send_wr.sg_list	   = tx_desc->tx_sg;
- 	send_wr.num_sge	   = tx_desc->num_sge;
- 	send_wr.opcode	   = IB_WR_SEND;
-@@ -1188,6 +1188,7 @@ static void
- iser_handle_comp_error(struct ib_conn *ib_conn,
- 		       struct ib_wc *wc)
- {
-+	void *wr_id = (void *)(uintptr_t)wc->wr_id;
- 	struct iser_conn *iser_conn = container_of(ib_conn, struct iser_conn,
- 						   ib_conn);
+ 	iser_dbg("PHYSICAL Mem.Unregister mem_h %p\n",reg->mem_h);
+@@ -1056,11 +1055,10 @@ void iser_unreg_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 	struct ib_conn *ib_conn = &iser_conn->ib_conn;
+ 	struct fast_reg_descriptor *desc = reg->mem_h;
  
-@@ -1196,8 +1197,8 @@ iser_handle_comp_error(struct ib_conn *ib_conn,
- 			iscsi_conn_failure(iser_conn->iscsi_conn,
- 					   ISCSI_ERR_CONN_FAILED);
+-	if (!reg->is_mr)
++	if (!desc)
+ 		return;
  
--	if (is_iser_tx_desc(iser_conn, (void *)wc->wr_id)) {
--		struct iser_tx_desc *desc = (struct iser_tx_desc *)wc->wr_id;
-+	if (is_iser_tx_desc(iser_conn, wr_id)) {
-+		struct iser_tx_desc *desc = wr_id;
- 
- 		if (desc->type == ISCSI_TX_DATAOUT)
- 			kmem_cache_free(ig.desc_cache, desc);
-@@ -1223,12 +1224,12 @@ static void iser_handle_wc(struct ib_wc *wc)
- 	ib_conn = wc->qp->qp_context;
- 	if (wc->status == IB_WC_SUCCESS) {
- 		if (wc->opcode == IB_WC_RECV) {
--			rx_desc = (struct iser_rx_desc *)wc->wr_id;
-+			rx_desc = (struct iser_rx_desc *)(uintptr_t)wc->wr_id;
- 			iser_rcv_completion(rx_desc, wc->byte_len,
- 					    ib_conn);
- 		} else
- 		if (wc->opcode == IB_WC_SEND) {
--			tx_desc = (struct iser_tx_desc *)wc->wr_id;
-+			tx_desc = (struct iser_tx_desc *)(uintptr_t)wc->wr_id;
- 			iser_snd_completion(tx_desc, ib_conn);
- 		} else {
- 			iser_err("Unknown wc opcode %d\n", wc->opcode);
+ 	reg->mem_h = NULL;
+-	reg->is_mr = 0;
+ 	spin_lock_bh(&ib_conn->lock);
+ 	list_add_tail(&desc->list, &ib_conn->fastreg.pool);
+ 	spin_unlock_bh(&ib_conn->lock);
 -- 
 1.7.1
 
