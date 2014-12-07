@@ -1,182 +1,199 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 01/16] IB/iser: Re-adjust CQ and QP send ring sizes to HW limits
-Date: Sun,  7 Dec 2014 16:09:52 +0200
-Message-ID: <1417961407-10139-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 15/16] IB/iser: DIX update
+Date: Sun,  7 Dec 2014 16:10:06 +0200
+Message-ID: <1417961407-10139-16-git-send-email-ogerlitz@mellanox.com>
 References: <1417961407-10139-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1417961407-10139-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Jayamohan Kallickal <jayamohan.kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Re-adjust max CQEs per CQ and max send_wr per QP according
-to the resource limits supported by underlying hardware.
+Following few recent Block integrity updates, we align the
+iSER data integrity offload settings with:
 
-Signed-off-by: Minh Tran <minhduc.tran-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Jayamohan Kallickal <jayamohan.kallickal-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+- Deprecate pi_guard module param
+- Expose support for DIX type 0.
+- Use scsi_transfer_length for the transfer length
+- Get pi_interval, ref_tag, ref_remap, bg_type and
+  check_mask setting from scsi_cmnd
+
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c |   10 +++++++---
- drivers/infiniband/ulp/iser/iscsi_iser.h |    7 +++++++
- drivers/infiniband/ulp/iser/iser_verbs.c |   29 ++++++++++++++++++++++++-----
- 3 files changed, 38 insertions(+), 8 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.c  |   21 +++++-----
+ drivers/infiniband/ulp/iser/iser_memory.c |   62 +++++++---------------------
+ 2 files changed, 26 insertions(+), 57 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index f42ab14..47bd87a 100644
+index a2dbd04..4dce90d 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.c
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -569,6 +569,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 	struct Scsi_Host *shost;
- 	struct iser_conn *iser_conn = NULL;
- 	struct ib_conn *ib_conn;
-+	u16 max_cmds;
+@@ -97,7 +97,7 @@ module_param_named(pi_enable, iser_pi_enable, bool, 0644);
+ MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
  
- 	shost = iscsi_host_alloc(&iscsi_iser_sht, 0, 0);
- 	if (!shost)
-@@ -586,6 +587,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 	 */
- 	if (ep) {
- 		iser_conn = ep->dd_data;
-+		max_cmds = iser_conn->max_cmds;
- 		ib_conn = &iser_conn->ib_conn;
- 		if (ib_conn->pi_support) {
+ module_param_named(pi_guard, iser_pi_guard, int, 0644);
+-MODULE_PARM_DESC(pi_guard, "T10-PI guard_type, 0:CRC|1:IP_CSUM (default:IP_CSUM)");
++MODULE_PARM_DESC(pi_guard, "T10-PI guard_type [deprecated]");
+ 
+ static struct workqueue_struct *release_wq;
+ struct iser_global ig;
+@@ -574,12 +574,13 @@ iscsi_iser_session_destroy(struct iscsi_cls_session *cls_session)
+ static inline unsigned int
+ iser_dif_prot_caps(int prot_caps)
+ {
+-	return ((prot_caps & IB_PROT_T10DIF_TYPE_1) ? SHOST_DIF_TYPE1_PROTECTION |
+-						      SHOST_DIX_TYPE1_PROTECTION : 0) |
+-	       ((prot_caps & IB_PROT_T10DIF_TYPE_2) ? SHOST_DIF_TYPE2_PROTECTION |
+-						      SHOST_DIX_TYPE2_PROTECTION : 0) |
+-	       ((prot_caps & IB_PROT_T10DIF_TYPE_3) ? SHOST_DIF_TYPE3_PROTECTION |
+-						      SHOST_DIX_TYPE3_PROTECTION : 0);
++	return ((prot_caps & IB_PROT_T10DIF_TYPE_1) ?
++		SHOST_DIF_TYPE1_PROTECTION | SHOST_DIX_TYPE0_PROTECTION |
++		SHOST_DIX_TYPE1_PROTECTION : 0) |
++	       ((prot_caps & IB_PROT_T10DIF_TYPE_2) ?
++		SHOST_DIF_TYPE2_PROTECTION | SHOST_DIX_TYPE2_PROTECTION : 0) |
++	       ((prot_caps & IB_PROT_T10DIF_TYPE_3) ?
++		SHOST_DIF_TYPE3_PROTECTION | SHOST_DIX_TYPE3_PROTECTION : 0);
+ }
+ 
+ /**
+@@ -635,10 +636,8 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
  			u32 sig_caps = ib_conn->device->dev_attr.sig_prot_cap;
-@@ -596,16 +598,18 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 			else
- 				scsi_host_set_guard(shost, SHOST_DIX_GUARD_CRC);
+ 
+ 			scsi_host_set_prot(shost, iser_dif_prot_caps(sig_caps));
+-			if (iser_pi_guard)
+-				scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP);
+-			else
+-				scsi_host_set_guard(shost, SHOST_DIX_GUARD_CRC);
++			scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP |
++						   SHOST_DIX_GUARD_CRC);
  		}
-+	} else {
-+		max_cmds = ISER_DEF_XMIT_CMDS_MAX;
- 	}
  
- 	if (iscsi_host_add(shost, ep ?
- 			   ib_conn->device->ib_device->dma_device : NULL))
- 		goto free_host;
+ 		if (iscsi_host_add(shost,
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index d832705..abce933 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -438,13 +438,13 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	return 0;
+ }
  
--	if (cmds_max > ISER_DEF_XMIT_CMDS_MAX) {
-+	if (cmds_max > max_cmds) {
- 		iser_info("cmds_max changed from %u to %u\n",
--			  cmds_max, ISER_DEF_XMIT_CMDS_MAX);
--		cmds_max = ISER_DEF_XMIT_CMDS_MAX;
-+			  cmds_max, max_cmds);
-+		cmds_max = max_cmds;
- 	}
- 
- 	cls_session = iscsi_session_setup(&iscsi_iser_transport, shost,
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index cd4174c..44d64b7 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -144,6 +144,11 @@
- 					ISER_MAX_TX_MISC_PDUS         + \
- 					ISER_MAX_RX_MISC_PDUS)
- 
-+#define ISER_GET_MAX_XMIT_CMDS(send_wr) ((send_wr			\
-+					 - ISER_MAX_TX_MISC_PDUS	\
-+					 - ISER_MAX_RX_MISC_PDUS) /	\
-+					 (1 + ISER_INFLIGHT_DATAOUTS))
-+
- #define ISER_WC_BATCH_COUNT   16
- #define ISER_SIGNAL_CMD_COUNT 32
- 
-@@ -482,6 +487,7 @@ struct ib_conn {
-  *                    to max number of post recvs
-  * @qp_max_recv_dtos_mask: (qp_max_recv_dtos - 1)
-  * @min_posted_rx:    (qp_max_recv_dtos >> 2)
-+ * @max_cmds:         maximum cmds allowed for this connection
-  * @name:             connection peer portal
-  * @release_work:     deffered work for release job
-  * @state_mutex:      protects iser onnection state
-@@ -507,6 +513,7 @@ struct iser_conn {
- 	unsigned		     qp_max_recv_dtos;
- 	unsigned		     qp_max_recv_dtos_mask;
- 	unsigned		     min_posted_rx;
-+	u16                          max_cmds;
- 	char 			     name[ISER_OBJECT_NAME_SIZE];
- 	struct work_struct	     release_work;
- 	struct mutex		     state_mutex;
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 67225bb..08e51e7 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -76,7 +76,7 @@ static void iser_event_handler(struct ib_event_handler *handler,
- static int iser_create_device_ib_res(struct iser_device *device)
+-static inline void
++static void
+ iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
+ 		    struct ib_sig_domain *domain)
  {
- 	struct ib_device_attr *dev_attr = &device->dev_attr;
--	int ret, i;
-+	int ret, i, max_cqe;
+ 	domain->sig_type = IB_SIG_TYPE_T10_DIF;
+-	domain->sig.dif.pi_interval = sc->device->sector_size;
+-	domain->sig.dif.ref_tag = scsi_get_lba(sc) & 0xffffffff;
++	domain->sig.dif.pi_interval = scsi_prot_interval(sc);
++	domain->sig.dif.ref_tag = scsi_prot_ref_tag(sc);
+ 	/*
+ 	 * At the moment we hard code those, but in the future
+ 	 * we will take them from sc.
+@@ -452,8 +452,7 @@ iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
+ 	domain->sig.dif.apptag_check_mask = 0xffff;
+ 	domain->sig.dif.app_escape = true;
+ 	domain->sig.dif.ref_escape = true;
+-	if (scsi_get_prot_type(sc) == SCSI_PROT_DIF_TYPE1 ||
+-	    scsi_get_prot_type(sc) == SCSI_PROT_DIF_TYPE2)
++	if (sc->prot_flags & SCSI_PROT_REF_INCREMENT)
+ 		domain->sig.dif.ref_remap = true;
+ };
  
- 	ret = ib_query_device(device->ib_device, dev_attr);
- 	if (ret) {
-@@ -106,9 +106,12 @@ static int iser_create_device_ib_res(struct iser_device *device)
+@@ -471,26 +470,16 @@ iser_set_sig_attrs(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs)
+ 	case SCSI_PROT_WRITE_STRIP:
+ 		sig_attrs->wire.sig_type = IB_SIG_TYPE_NONE;
+ 		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
+-		/*
+-		 * At the moment we use this modparam to tell what is
+-		 * the memory bg_type, in the future we will take it
+-		 * from sc.
+-		 */
+-		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
+-						 IB_T10DIF_CRC;
++		sig_attrs->mem.sig.dif.bg_type = sc->prot_flags & SCSI_PROT_IP_CHECKSUM ?
++						IB_T10DIF_CSUM : IB_T10DIF_CRC;
+ 		break;
+ 	case SCSI_PROT_READ_PASS:
+ 	case SCSI_PROT_WRITE_PASS:
+ 		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->wire);
+ 		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
+ 		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
+-		/*
+-		 * At the moment we use this modparam to tell what is
+-		 * the memory bg_type, in the future we will take it
+-		 * from sc.
+-		 */
+-		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
+-						 IB_T10DIF_CRC;
++		sig_attrs->mem.sig.dif.bg_type = sc->prot_flags & SCSI_PROT_IP_CHECKSUM ?
++						IB_T10DIF_CSUM : IB_T10DIF_CRC;
+ 		break;
+ 	default:
+ 		iser_err("Unsupported PI operation %d\n",
+@@ -501,26 +490,14 @@ iser_set_sig_attrs(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs)
+ 	return 0;
+ }
  
- 	device->comps_used = min(ISER_MAX_CQ,
- 				 device->ib_device->num_comp_vectors);
--	iser_info("using %d CQs, device %s supports %d vectors\n",
-+
-+	max_cqe = min(ISER_MAX_CQ_LEN, dev_attr->max_cqe);
-+
-+	iser_info("using %d CQs, device %s supports %d vectors max_cqe %d\n",
- 		  device->comps_used, device->ib_device->name,
--		  device->ib_device->num_comp_vectors);
-+		  device->ib_device->num_comp_vectors, max_cqe);
- 
- 	device->pd = ib_alloc_pd(device->ib_device);
- 	if (IS_ERR(device->pd))
-@@ -122,7 +125,7 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 					iser_cq_callback,
- 					iser_cq_event_callback,
- 					(void *)comp,
--					ISER_MAX_CQ_LEN, i);
-+					max_cqe, i);
- 		if (IS_ERR(comp->cq)) {
- 			comp->cq = NULL;
- 			goto cq_err;
-@@ -425,7 +428,10 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
-  */
- static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+-static int
++static inline void
+ iser_set_prot_checks(struct scsi_cmnd *sc, u8 *mask)
  {
-+	struct iser_conn *iser_conn = container_of(ib_conn, struct iser_conn,
-+						   ib_conn);
- 	struct iser_device	*device;
-+	struct ib_device_attr *dev_attr;
- 	struct ib_qp_init_attr	init_attr;
- 	int			ret = -ENOMEM;
- 	int index, min_index = 0;
-@@ -433,6 +439,7 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
- 	BUG_ON(ib_conn->device == NULL);
+-	switch (scsi_get_prot_type(sc)) {
+-	case SCSI_PROT_DIF_TYPE0:
+-		break;
+-	case SCSI_PROT_DIF_TYPE1:
+-	case SCSI_PROT_DIF_TYPE2:
+-		*mask = ISER_CHECK_GUARD | ISER_CHECK_REFTAG;
+-		break;
+-	case SCSI_PROT_DIF_TYPE3:
+-		*mask = ISER_CHECK_GUARD;
+-		break;
+-	default:
+-		iser_err("Unsupported protection type %d\n",
+-			 scsi_get_prot_type(sc));
+-		return -EINVAL;
+-	}
+-
+-	return 0;
++	*mask = 0;
++	if (sc->prot_flags & SCSI_PROT_REF_CHECK)
++		*mask |= ISER_CHECK_REFTAG;
++	if (sc->prot_flags & SCSI_PROT_GUARD_CHECK)
++		*mask |= ISER_CHECK_GUARD;
+ }
  
- 	device = ib_conn->device;
-+	dev_attr = &device->dev_attr;
+ static void
+@@ -554,9 +531,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 	if (ret)
+ 		goto err;
  
- 	memset(&init_attr, 0, sizeof init_attr);
+-	ret = iser_set_prot_checks(iser_task->sc, &sig_attrs.check_mask);
+-	if (ret)
+-		goto err;
++	iser_set_prot_checks(iser_task->sc, &sig_attrs.check_mask);
  
-@@ -460,8 +467,20 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
- 	if (ib_conn->pi_support) {
- 		init_attr.cap.max_send_wr = ISER_QP_SIG_MAX_REQ_DTOS + 1;
- 		init_attr.create_flags |= IB_QP_CREATE_SIGNATURE_EN;
-+		iser_conn->max_cmds =
-+			ISER_GET_MAX_XMIT_CMDS(ISER_QP_SIG_MAX_REQ_DTOS);
- 	} else {
--		init_attr.cap.max_send_wr  = ISER_QP_MAX_REQ_DTOS + 1;
-+		if (dev_attr->max_qp_wr > ISER_QP_MAX_REQ_DTOS) {
-+			init_attr.cap.max_send_wr  = ISER_QP_MAX_REQ_DTOS + 1;
-+			iser_conn->max_cmds =
-+				ISER_GET_MAX_XMIT_CMDS(ISER_QP_MAX_REQ_DTOS);
-+		} else {
-+			init_attr.cap.max_send_wr = dev_attr->max_qp_wr;
-+			iser_conn->max_cmds =
-+				ISER_GET_MAX_XMIT_CMDS(dev_attr->max_qp_wr);
-+			iser_dbg("device %s supports max_send_wr %d\n",
-+				 device->ib_device->name, dev_attr->max_qp_wr);
-+		}
- 	}
+ 	if (!(desc->reg_indicators & ISER_SIG_KEY_VALID)) {
+ 		iser_inv_rkey(&inv_wr, pi_ctx->sig_mr);
+@@ -590,12 +565,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
  
- 	ret = rdma_create_qp(ib_conn->cma_id, device->pd, &init_attr);
+ 	sig_sge->lkey = pi_ctx->sig_mr->lkey;
+ 	sig_sge->addr = 0;
+-	sig_sge->length = data_sge->length + prot_sge->length;
+-	if (scsi_get_prot_op(iser_task->sc) == SCSI_PROT_WRITE_INSERT ||
+-	    scsi_get_prot_op(iser_task->sc) == SCSI_PROT_READ_STRIP) {
+-		sig_sge->length += (data_sge->length /
+-				   iser_task->sc->device->sector_size) * 8;
+-	}
++	sig_sge->length = scsi_transfer_length(iser_task->sc);
+ 
+ 	iser_dbg("sig_sge: addr: 0x%llx  length: %u lkey: 0x%x\n",
+ 		 sig_sge->addr, sig_sge->length,
 -- 
 1.7.1
 
