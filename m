@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 15/16] IB/iser: DIX update
-Date: Sun,  7 Dec 2014 16:10:06 +0200
-Message-ID: <1417961407-10139-16-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 06/16] IB/iser: Fix sparse warnings
+Date: Sun,  7 Dec 2014 16:09:57 +0200
+Message-ID: <1417961407-10139-7-git-send-email-ogerlitz@mellanox.com>
 References: <1417961407-10139-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1417961407-10139-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,188 +12,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Following few recent Block integrity updates, we align the
-iSER data integrity offload settings with:
-
-- Deprecate pi_guard module param
-- Expose support for DIX type 0.
-- Use scsi_transfer_length for the transfer length
-- Get pi_interval, ref_tag, ref_remap, bg_type and
-  check_mask setting from scsi_cmnd
+Use uintptr_t to handle wr_id casting, which was found by
+Kbuild test robot and smatch. Also remove an internal definition
+of variable which potentially shadows an external one (and make
+sparse happy).
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c  |   21 +++++-----
- drivers/infiniband/ulp/iser/iser_memory.c |   62 +++++++---------------------
- 2 files changed, 26 insertions(+), 57 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c |    1 -
+ drivers/infiniband/ulp/iser/iser_verbs.c  |   15 ++++++++-------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index a2dbd04..4dce90d 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -97,7 +97,7 @@ module_param_named(pi_enable, iser_pi_enable, bool, 0644);
- MODULE_PARM_DESC(pi_enable, "Enable T10-PI offload support (default:disabled)");
- 
- module_param_named(pi_guard, iser_pi_guard, int, 0644);
--MODULE_PARM_DESC(pi_guard, "T10-PI guard_type, 0:CRC|1:IP_CSUM (default:IP_CSUM)");
-+MODULE_PARM_DESC(pi_guard, "T10-PI guard_type [deprecated]");
- 
- static struct workqueue_struct *release_wq;
- struct iser_global ig;
-@@ -574,12 +574,13 @@ iscsi_iser_session_destroy(struct iscsi_cls_session *cls_session)
- static inline unsigned int
- iser_dif_prot_caps(int prot_caps)
- {
--	return ((prot_caps & IB_PROT_T10DIF_TYPE_1) ? SHOST_DIF_TYPE1_PROTECTION |
--						      SHOST_DIX_TYPE1_PROTECTION : 0) |
--	       ((prot_caps & IB_PROT_T10DIF_TYPE_2) ? SHOST_DIF_TYPE2_PROTECTION |
--						      SHOST_DIX_TYPE2_PROTECTION : 0) |
--	       ((prot_caps & IB_PROT_T10DIF_TYPE_3) ? SHOST_DIF_TYPE3_PROTECTION |
--						      SHOST_DIX_TYPE3_PROTECTION : 0);
-+	return ((prot_caps & IB_PROT_T10DIF_TYPE_1) ?
-+		SHOST_DIF_TYPE1_PROTECTION | SHOST_DIX_TYPE0_PROTECTION |
-+		SHOST_DIX_TYPE1_PROTECTION : 0) |
-+	       ((prot_caps & IB_PROT_T10DIF_TYPE_2) ?
-+		SHOST_DIF_TYPE2_PROTECTION | SHOST_DIX_TYPE2_PROTECTION : 0) |
-+	       ((prot_caps & IB_PROT_T10DIF_TYPE_3) ?
-+		SHOST_DIF_TYPE3_PROTECTION | SHOST_DIX_TYPE3_PROTECTION : 0);
- }
- 
- /**
-@@ -635,10 +636,8 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
- 			u32 sig_caps = ib_conn->device->dev_attr.sig_prot_cap;
- 
- 			scsi_host_set_prot(shost, iser_dif_prot_caps(sig_caps));
--			if (iser_pi_guard)
--				scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP);
--			else
--				scsi_host_set_guard(shost, SHOST_DIX_GUARD_CRC);
-+			scsi_host_set_guard(shost, SHOST_DIX_GUARD_IP |
-+						   SHOST_DIX_GUARD_CRC);
- 		}
- 
- 		if (iscsi_host_add(shost,
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index d832705..abce933 100644
+index 6c5ce35..5796c95 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -438,13 +438,13 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
- 	return 0;
- }
+@@ -73,7 +73,6 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
  
--static inline void
-+static void
- iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
- 		    struct ib_sig_domain *domain)
+ 	if (cmd_dir == ISER_DIR_OUT) {
+ 		/* copy the unaligned sg the buffer which is used for RDMA */
+-		int i;
+ 		char *p, *from;
+ 
+ 		sgl = (struct scatterlist *)data->buf;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 583b09e..fb5ec35 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -1077,7 +1077,7 @@ int iser_post_recvl(struct iser_conn *iser_conn)
+ 	sge.length = ISER_RX_LOGIN_SIZE;
+ 	sge.lkey   = ib_conn->device->mr->lkey;
+ 
+-	rx_wr.wr_id   = (unsigned long)iser_conn->login_resp_buf;
++	rx_wr.wr_id   = (uintptr_t)iser_conn->login_resp_buf;
+ 	rx_wr.sg_list = &sge;
+ 	rx_wr.num_sge = 1;
+ 	rx_wr.next    = NULL;
+@@ -1101,7 +1101,7 @@ int iser_post_recvm(struct iser_conn *iser_conn, int count)
+ 
+ 	for (rx_wr = ib_conn->rx_wr, i = 0; i < count; i++, rx_wr++) {
+ 		rx_desc		= &iser_conn->rx_descs[my_rx_head];
+-		rx_wr->wr_id	= (unsigned long)rx_desc;
++		rx_wr->wr_id	= (uintptr_t)rx_desc;
+ 		rx_wr->sg_list	= &rx_desc->rx_sg;
+ 		rx_wr->num_sge	= 1;
+ 		rx_wr->next	= rx_wr + 1;
+@@ -1138,7 +1138,7 @@ int iser_post_send(struct ib_conn *ib_conn, struct iser_tx_desc *tx_desc,
+ 				      DMA_TO_DEVICE);
+ 
+ 	send_wr.next	   = NULL;
+-	send_wr.wr_id	   = (unsigned long)tx_desc;
++	send_wr.wr_id	   = (uintptr_t)tx_desc;
+ 	send_wr.sg_list	   = tx_desc->tx_sg;
+ 	send_wr.num_sge	   = tx_desc->num_sge;
+ 	send_wr.opcode	   = IB_WR_SEND;
+@@ -1188,6 +1188,7 @@ static void
+ iser_handle_comp_error(struct ib_conn *ib_conn,
+ 		       struct ib_wc *wc)
  {
- 	domain->sig_type = IB_SIG_TYPE_T10_DIF;
--	domain->sig.dif.pi_interval = sc->device->sector_size;
--	domain->sig.dif.ref_tag = scsi_get_lba(sc) & 0xffffffff;
-+	domain->sig.dif.pi_interval = scsi_prot_interval(sc);
-+	domain->sig.dif.ref_tag = scsi_prot_ref_tag(sc);
- 	/*
- 	 * At the moment we hard code those, but in the future
- 	 * we will take them from sc.
-@@ -452,8 +452,7 @@ iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
- 	domain->sig.dif.apptag_check_mask = 0xffff;
- 	domain->sig.dif.app_escape = true;
- 	domain->sig.dif.ref_escape = true;
--	if (scsi_get_prot_type(sc) == SCSI_PROT_DIF_TYPE1 ||
--	    scsi_get_prot_type(sc) == SCSI_PROT_DIF_TYPE2)
-+	if (sc->prot_flags & SCSI_PROT_REF_INCREMENT)
- 		domain->sig.dif.ref_remap = true;
- };
++	void *wr_id = (void *)(uintptr_t)wc->wr_id;
+ 	struct iser_conn *iser_conn = container_of(ib_conn, struct iser_conn,
+ 						   ib_conn);
  
-@@ -471,26 +470,16 @@ iser_set_sig_attrs(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs)
- 	case SCSI_PROT_WRITE_STRIP:
- 		sig_attrs->wire.sig_type = IB_SIG_TYPE_NONE;
- 		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
--		/*
--		 * At the moment we use this modparam to tell what is
--		 * the memory bg_type, in the future we will take it
--		 * from sc.
--		 */
--		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
--						 IB_T10DIF_CRC;
-+		sig_attrs->mem.sig.dif.bg_type = sc->prot_flags & SCSI_PROT_IP_CHECKSUM ?
-+						IB_T10DIF_CSUM : IB_T10DIF_CRC;
- 		break;
- 	case SCSI_PROT_READ_PASS:
- 	case SCSI_PROT_WRITE_PASS:
- 		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->wire);
- 		sig_attrs->wire.sig.dif.bg_type = IB_T10DIF_CRC;
- 		iser_set_dif_domain(sc, sig_attrs, &sig_attrs->mem);
--		/*
--		 * At the moment we use this modparam to tell what is
--		 * the memory bg_type, in the future we will take it
--		 * from sc.
--		 */
--		sig_attrs->mem.sig.dif.bg_type = iser_pi_guard ? IB_T10DIF_CSUM :
--						 IB_T10DIF_CRC;
-+		sig_attrs->mem.sig.dif.bg_type = sc->prot_flags & SCSI_PROT_IP_CHECKSUM ?
-+						IB_T10DIF_CSUM : IB_T10DIF_CRC;
- 		break;
- 	default:
- 		iser_err("Unsupported PI operation %d\n",
-@@ -501,26 +490,14 @@ iser_set_sig_attrs(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs)
- 	return 0;
- }
+@@ -1196,8 +1197,8 @@ iser_handle_comp_error(struct ib_conn *ib_conn,
+ 			iscsi_conn_failure(iser_conn->iscsi_conn,
+ 					   ISCSI_ERR_CONN_FAILED);
  
--static int
-+static inline void
- iser_set_prot_checks(struct scsi_cmnd *sc, u8 *mask)
- {
--	switch (scsi_get_prot_type(sc)) {
--	case SCSI_PROT_DIF_TYPE0:
--		break;
--	case SCSI_PROT_DIF_TYPE1:
--	case SCSI_PROT_DIF_TYPE2:
--		*mask = ISER_CHECK_GUARD | ISER_CHECK_REFTAG;
--		break;
--	case SCSI_PROT_DIF_TYPE3:
--		*mask = ISER_CHECK_GUARD;
--		break;
--	default:
--		iser_err("Unsupported protection type %d\n",
--			 scsi_get_prot_type(sc));
--		return -EINVAL;
--	}
--
--	return 0;
-+	*mask = 0;
-+	if (sc->prot_flags & SCSI_PROT_REF_CHECK)
-+		*mask |= ISER_CHECK_REFTAG;
-+	if (sc->prot_flags & SCSI_PROT_GUARD_CHECK)
-+		*mask |= ISER_CHECK_GUARD;
- }
+-	if (is_iser_tx_desc(iser_conn, (void *)wc->wr_id)) {
+-		struct iser_tx_desc *desc = (struct iser_tx_desc *)wc->wr_id;
++	if (is_iser_tx_desc(iser_conn, wr_id)) {
++		struct iser_tx_desc *desc = wr_id;
  
- static void
-@@ -554,9 +531,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	if (ret)
- 		goto err;
- 
--	ret = iser_set_prot_checks(iser_task->sc, &sig_attrs.check_mask);
--	if (ret)
--		goto err;
-+	iser_set_prot_checks(iser_task->sc, &sig_attrs.check_mask);
- 
- 	if (!(desc->reg_indicators & ISER_SIG_KEY_VALID)) {
- 		iser_inv_rkey(&inv_wr, pi_ctx->sig_mr);
-@@ -590,12 +565,7 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 
- 	sig_sge->lkey = pi_ctx->sig_mr->lkey;
- 	sig_sge->addr = 0;
--	sig_sge->length = data_sge->length + prot_sge->length;
--	if (scsi_get_prot_op(iser_task->sc) == SCSI_PROT_WRITE_INSERT ||
--	    scsi_get_prot_op(iser_task->sc) == SCSI_PROT_READ_STRIP) {
--		sig_sge->length += (data_sge->length /
--				   iser_task->sc->device->sector_size) * 8;
--	}
-+	sig_sge->length = scsi_transfer_length(iser_task->sc);
- 
- 	iser_dbg("sig_sge: addr: 0x%llx  length: %u lkey: 0x%x\n",
- 		 sig_sge->addr, sig_sge->length,
+ 		if (desc->type == ISCSI_TX_DATAOUT)
+ 			kmem_cache_free(ig.desc_cache, desc);
+@@ -1223,12 +1224,12 @@ static void iser_handle_wc(struct ib_wc *wc)
+ 	ib_conn = wc->qp->qp_context;
+ 	if (wc->status == IB_WC_SUCCESS) {
+ 		if (wc->opcode == IB_WC_RECV) {
+-			rx_desc = (struct iser_rx_desc *)wc->wr_id;
++			rx_desc = (struct iser_rx_desc *)(uintptr_t)wc->wr_id;
+ 			iser_rcv_completion(rx_desc, wc->byte_len,
+ 					    ib_conn);
+ 		} else
+ 		if (wc->opcode == IB_WC_SEND) {
+-			tx_desc = (struct iser_tx_desc *)wc->wr_id;
++			tx_desc = (struct iser_tx_desc *)(uintptr_t)wc->wr_id;
+ 			iser_snd_completion(tx_desc, ib_conn);
+ 		} else {
+ 			iser_err("Unknown wc opcode %d\n", wc->opcode);
 -- 
 1.7.1
 
