@@ -1,42 +1,51 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH ] mlx4_core: Verify that port types are the same only if DPDP supported
-Date: Sat,  6 Dec 2014 10:46:39 -0800
-Message-ID: <1417891599-11860-1-git-send-email-yuval.shaia@oracle.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: IB_CQ_VECTOR_LEAST_ATTACHED
+Date: Sun, 07 Dec 2014 12:20:53 +0200
+Message-ID: <54842A05.9070207@dev.mellanox.co.il>
+References: <54809030.6090107@oracle.com> <5480AB49.1080209@acm.org> <5480B8CE.3080704@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5480B8CE.3080704-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/main.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+On 12/4/2014 9:41 PM, Shirley Ma wrote:
+> On 12/04/2014 10:43 AM, Bart Van Assche wrote:
+>> On 12/04/14 17:47, Shirley Ma wrote:
+>>> What's the history of this patch?
+>>>      http://lists.openfabrics.org/pipermail/general/2008-May/050813.html
+>>>
+>>> I am working on multiple QPs workload. And I created a similar approach
+>>> with IB_CQ_VECTOR_LEAST_ATTACHED, which can bring up about 17% small I/O
+>>> performance. I think this CQ_VECTOR loading balance should be maintained
+>>> in provider not the caller. I didn't see this patch was submitted to
+>>> mainline kernel, wonder any reason behind?
+>>
+>> My interpretation is that an approach similar to IB_CQ_VECTOR_LEAST_ATTACHED is useful on single-socket systems but suboptimal on multi-socket systems. Hence the code for associating CQ sets with CPU sockets in the SRP initiator. These changes have been queued for kernel 3.19. See also branch drivers-for-3.19 in git repo git://git.infradead.org/users/hch/scsi-queue.git.
+>
+> What I did is that I manually controlled IRQ and working thread on the same socket. The CQ is created when mounting the file system in NFS/RDMA, but the workload thread might start from different socket, so per-cpu based implementation might not apply. I will look at SRP implementation.
+>
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 7920f5f..e3fd50a 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -567,15 +567,14 @@ int mlx4_check_port_params(struct mlx4_dev *dev,
- {
- 	int i;
- 
--	for (i = 0; i < dev->caps.num_ports - 1; i++) {
--		if (port_type[i] != port_type[i + 1]) {
--			if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP)) {
-+	if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP))
-+		for (i = 0; i < dev->caps.num_ports - 1; i++) {
-+			if (port_type[i] != port_type[i + 1]) {
- 				mlx4_err(dev, "Only same port types supported "
- 					 "on this HCA, aborting.\n");
- 				return -EINVAL;
- 			}
- 		}
--	}
- 
- 	for (i = 0; i < dev->caps.num_ports; i++) {
- 		if (!(port_type[i] & dev->caps.supported_type[i+1])) {
--- 
-1.7.1
+Hey Shirley,
+
+Bart is correct, in general the LEAST_ATTACHED approach might not be
+optimal in the NUMA case. The thread <-> QP/CQ/CPU assignment is 
+addressed by the multi-channel approach which to my understanding won't
+be implemented in NFSoRDMA in the near future (right Chuck?)
+
+However, the LEAST_ATTACH vector hint will revive again in the future
+as there is a need to spread applications on different interrupt
+vectors (especially for user-space).
+
+CC'ing Matan who is working on this, perhaps he can comment on this as
+well.
+
+Sagi.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
