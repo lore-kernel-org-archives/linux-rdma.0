@@ -1,39 +1,46 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH ] mlx4_core: Verify that port types are the same only if
- DPDP supported
-Date: Mon, 8 Dec 2014 08:29:01 +0200
-Message-ID: <20141208062900.GA3121@yuval-lab>
-References: <1417891599-11860-1-git-send-email-yuval.shaia@oracle.com>
- <CAL1RGDWOh=Jmno-dsFr-4-jue+21VuEkEmYx3DFxhU615LuMzw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH ] mlx4_core: Verify that port types are the same only if DPDP supported
+Date: Sun,  7 Dec 2014 09:05:56 -0800
+Message-ID: <1417971956-16577-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDWOh=Jmno-dsFr-4-jue+21VuEkEmYx3DFxhU615LuMzw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 07, 2014 at 09:24:26PM -0800, Roland Dreier wrote:
-> On Sat, Dec 6, 2014 at 10:46 AM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> > -       for (i = 0; i < dev->caps.num_ports - 1; i++) {
-> > -               if (port_type[i] != port_type[i + 1]) {
-> > -                       if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP)) {
-> > +       if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP))
-> > +               for (i = 0; i < dev->caps.num_ports - 1; i++) {
-> > +                       if (port_type[i] != port_type[i + 1]) {
-> 
-> I'm struggling to understand what this patch does.  It sure looks like
-> a NOP to me.
-Move check out of the loop just to make the code more nice & readable.
-> 
-> At least you need to resend it with a changelog that explains why we
-> want this change.
-Will do.
-> 
->  - R.
+This patch is merely makes code more nice and readable.
+Instead of checking for DPDP on every loop cycle the check moves out of the loop.
+
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 861035f..ec4e3fd 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -567,15 +567,14 @@ int mlx4_check_port_params(struct mlx4_dev *dev,
+ {
+ 	int i;
+ 
+-	for (i = 0; i < dev->caps.num_ports - 1; i++) {
+-		if (port_type[i] != port_type[i + 1]) {
+-			if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP)) {
++	if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP))
++		for (i = 0; i < dev->caps.num_ports - 1; i++) {
++			if (port_type[i] != port_type[i + 1]) {
+ 				mlx4_err(dev, "Only same port types supported "
+ 					 "on this HCA, aborting.\n");
+ 				return -EINVAL;
+ 			}
+ 		}
+-	}
+ 
+ 	for (i = 0; i < dev->caps.num_ports; i++) {
+ 		if (!(port_type[i] & dev->caps.supported_type[i+1])) {
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
