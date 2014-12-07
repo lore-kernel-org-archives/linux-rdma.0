@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 08/16] IB/iser: Fix race between iser connection teardown and scsi TMFs
-Date: Sun,  7 Dec 2014 16:09:59 +0200
-Message-ID: <1417961407-10139-9-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 10/16] IB/iser: Centralize memory region invalidation to a function
+Date: Sun,  7 Dec 2014 16:10:01 +0200
+Message-ID: <1417961407-10139-11-git-send-email-ogerlitz@mellanox.com>
 References: <1417961407-10139-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1417961407-10139-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,105 +12,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In certain scenarios (target kill with live IO) scsi TMFs may race
-with iser RDMA teardown, which might cause NULL dereference on iser
-IB device handle (which might have been freed). In this case we take
-a conditional lock for TMFs and check the connection state (avoid
-introducing lock contention in the IO path). This is indeed best effort
-approach, but sufficient to survive multi targets sudden death while heavy
-IO is inflight.
+Eliminates code duplication.
 
-While we are on it, add a nice kernel-doc style documentation.
-
-Reported-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c |   49 +++++++++++++++++++++++++-----
- 1 files changed, 41 insertions(+), 8 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c |   32 ++++++++++++++--------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 0b453e5..0c46f4a 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -164,18 +164,42 @@ iscsi_iser_pdu_alloc(struct iscsi_task *task, uint8_t opcode)
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 5796c95..a70fd9a 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -524,6 +524,20 @@ iser_set_prot_checks(struct scsi_cmnd *sc, u8 *mask)
  	return 0;
  }
  
--int iser_initialize_task_headers(struct iscsi_task *task,
--						struct iser_tx_desc *tx_desc)
-+/**
-+ * iser_initialize_task_headers() - Initialize task headers
-+ * @task:       iscsi task
-+ * @tx_desc:    iser tx descriptor
-+ *
-+ * Notes:
-+ * This routine may race with iser teardown flow for scsi
-+ * error handling TMFs. So for TMF we should acquire the
-+ * state mutex to avoid dereferencing the IB device which
-+ * may have already been terminated.
-+ */
-+int
-+iser_initialize_task_headers(struct iscsi_task *task,
-+			     struct iser_tx_desc *tx_desc)
- {
--	struct iser_conn       *iser_conn   = task->conn->dd_data;
-+	struct iser_conn *iser_conn = task->conn->dd_data;
- 	struct iser_device *device = iser_conn->ib_conn.device;
- 	struct iscsi_iser_task *iser_task = task->dd_data;
- 	u64 dma_addr;
-+	const bool mgmt_task = !task->sc && !in_interrupt();
-+	int ret = 0;
++static void
++iser_inv_rkey(struct ib_send_wr *inv_wr, struct ib_mr *mr)
++{
++	u32 rkey;
 +
-+	if (unlikely(mgmt_task))
-+		mutex_lock(&iser_conn->state_mutex);
++	memset(inv_wr, 0, sizeof(*inv_wr));
++	inv_wr->opcode = IB_WR_LOCAL_INV;
++	inv_wr->wr_id = ISER_FASTREG_LI_WRID;
++	inv_wr->ex.invalidate_rkey = mr->rkey;
 +
-+	if (unlikely(iser_conn->state != ISER_CONN_UP)) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
- 
- 	dma_addr = ib_dma_map_single(device->ib_device, (void *)tx_desc,
- 				ISER_HEADERS_LEN, DMA_TO_DEVICE);
--	if (ib_dma_mapping_error(device->ib_device, dma_addr))
--		return -ENOMEM;
-+	if (ib_dma_mapping_error(device->ib_device, dma_addr)) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
- 
- 	tx_desc->dma_addr = dma_addr;
- 	tx_desc->tx_sg[0].addr   = tx_desc->dma_addr;
-@@ -183,7 +207,11 @@ int iser_initialize_task_headers(struct iscsi_task *task,
- 	tx_desc->tx_sg[0].lkey   = device->mr->lkey;
- 
- 	iser_task->iser_conn = iser_conn;
--	return 0;
-+out:
-+	if (unlikely(mgmt_task))
-+		mutex_unlock(&iser_conn->state_mutex);
++	rkey = ib_inc_rkey(mr->rkey);
++	ib_update_fast_reg_key(mr, rkey);
++}
 +
-+	return ret;
- }
+ static int
+ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 		struct fast_reg_descriptor *desc, struct ib_sge *data_sge,
+@@ -535,7 +549,6 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 	struct ib_send_wr *bad_wr, *wr = NULL;
+ 	struct ib_sig_attrs sig_attrs;
+ 	int ret;
+-	u32 key;
  
- /**
-@@ -199,9 +227,14 @@ static int
- iscsi_iser_task_init(struct iscsi_task *task)
- {
- 	struct iscsi_iser_task *iser_task = task->dd_data;
-+	int ret;
+ 	memset(&sig_attrs, 0, sizeof(sig_attrs));
+ 	ret = iser_set_sig_attrs(iser_task->sc, &sig_attrs);
+@@ -547,14 +560,8 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
+ 		goto err;
  
--	if (iser_initialize_task_headers(task, &iser_task->desc))
--			return -ENOMEM;
-+	ret = iser_initialize_task_headers(task, &iser_task->desc);
-+	if (ret) {
-+		iser_err("Failed to init task %p, err = %d\n",
-+			 iser_task, ret);
-+		return ret;
-+	}
+ 	if (!(desc->reg_indicators & ISER_SIG_KEY_VALID)) {
+-		memset(&inv_wr, 0, sizeof(inv_wr));
+-		inv_wr.opcode = IB_WR_LOCAL_INV;
+-		inv_wr.wr_id = ISER_FASTREG_LI_WRID;
+-		inv_wr.ex.invalidate_rkey = pi_ctx->sig_mr->rkey;
++		iser_inv_rkey(&inv_wr, pi_ctx->sig_mr);
+ 		wr = &inv_wr;
+-		/* Bump the key */
+-		key = (u8)(pi_ctx->sig_mr->rkey & 0x000000FF);
+-		ib_update_fast_reg_key(pi_ctx->sig_mr, ++key);
+ 	}
  
- 	/* mgmt task */
- 	if (!task->sc)
+ 	memset(&sig_wr, 0, sizeof(sig_wr));
+@@ -612,7 +619,6 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	struct ib_fast_reg_page_list *frpl;
+ 	struct ib_send_wr fastreg_wr, inv_wr;
+ 	struct ib_send_wr *bad_wr, *wr = NULL;
+-	u8 key;
+ 	int ret, offset, size, plen;
+ 
+ 	/* if there a single dma entry, dma mr suffices */
+@@ -644,14 +650,8 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	}
+ 
+ 	if (!(desc->reg_indicators & ind)) {
+-		memset(&inv_wr, 0, sizeof(inv_wr));
+-		inv_wr.wr_id = ISER_FASTREG_LI_WRID;
+-		inv_wr.opcode = IB_WR_LOCAL_INV;
+-		inv_wr.ex.invalidate_rkey = mr->rkey;
++		iser_inv_rkey(&inv_wr, mr);
+ 		wr = &inv_wr;
+-		/* Bump the key */
+-		key = (u8)(mr->rkey & 0x000000FF);
+-		ib_update_fast_reg_key(mr, ++key);
+ 	}
+ 
+ 	/* Prepare FASTREG WR */
 -- 
 1.7.1
 
