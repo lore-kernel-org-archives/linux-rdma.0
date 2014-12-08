@@ -1,43 +1,43 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH ] mlx4_core: Verify that port types are the same only if DPDP supported
-Date: Sun,  7 Dec 2014 09:05:56 -0800
-Message-ID: <1417971956-16577-1-git-send-email-yuval.shaia@oracle.com>
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: handle NET_XMIT return codes
+Date: Mon,  8 Dec 2014 15:02:47 +0530
+Message-ID: <1418031167-15967-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is merely makes code more nice and readable.
-Instead of checking for DPDP on every loop cycle the check moves out of the loop.
+cxgb4_create_server() and cxgb4_create_server6() return NET_XMIT_*
+values or a negative errno. iw_cxgb4 need to handle this correctly.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/main.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 861035f..ec4e3fd 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -567,15 +567,14 @@ int mlx4_check_port_params(struct mlx4_dev *dev,
- {
- 	int i;
- 
--	for (i = 0; i < dev->caps.num_ports - 1; i++) {
--		if (port_type[i] != port_type[i + 1]) {
--			if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP)) {
-+	if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP))
-+		for (i = 0; i < dev->caps.num_ports - 1; i++) {
-+			if (port_type[i] != port_type[i + 1]) {
- 				mlx4_err(dev, "Only same port types supported "
- 					 "on this HCA, aborting.\n");
- 				return -EINVAL;
- 			}
- 		}
--	}
- 
- 	for (i = 0; i < dev->caps.num_ports; i++) {
- 		if (!(port_type[i] & dev->caps.supported_type[i+1])) {
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index ce87fd3..b50e5ef 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -3127,6 +3127,8 @@ static int create_server6(struct c4iw_dev *dev, struct c4iw_listen_ep *ep)
+ 		err = c4iw_wait_for_reply(&ep->com.dev->rdev,
+ 					  &ep->com.wr_wait,
+ 					  0, 0, __func__);
++	else if (err > 0)
++		err = net_xmit_errno(err);
+ 	if (err)
+ 		pr_err("cxgb4_create_server6/filter failed err %d stid %d laddr %pI6 lport %d\n",
+ 		       err, ep->stid,
+@@ -3160,6 +3162,8 @@ static int create_server4(struct c4iw_dev *dev, struct c4iw_listen_ep *ep)
+ 			err = c4iw_wait_for_reply(&ep->com.dev->rdev,
+ 						  &ep->com.wr_wait,
+ 						  0, 0, __func__);
++		else if (err > 0)
++			err = net_xmit_errno(err);
+ 	}
+ 	if (err)
+ 		pr_err("cxgb4_create_server/filter failed err %d stid %d laddr %pI4 lport %d\n"
 -- 
 1.7.1
 
