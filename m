@@ -1,103 +1,145 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH ] mlx4_core: Enhance device capabilities flags debug printouts
-Date: Sun,  7 Dec 2014 15:48:32 -0800
-Message-ID: <1417996112-19060-1-git-send-email-yuval.shaia@oracle.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] opensm/osm_perfmgr.c: Output remote port on perfmgr error
+	counter log messages
+Date: Mon, 08 Dec 2014 10:39:12 -0800
+Message-ID: <1418063952.20566.44.camel@auk59.llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-1. Add indication whether feature is supported or not.
-2. Add descriptions of all features.
-Without this fix there is no way to tell if feature is not supported or that description is not exist.
+Outputting the remote node and port aids in servicing the fabric more
+quickly for system administrators.  In addition, it aids in fabric
+monitoring efforts that scan the log.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Example output before this patch:
+
+perfmgr_log_errors: ERR 543C: VL15Dropped : 17 : node "ibcore1 L101" (NodeGUID: 0x66a02e8001313) : port 11
+
+Example output wth this patch:
+
+perfmgr_log_errors: ERR 543C: VL15Dropped : 17 : node "ibcore1 L101" (NodeGUID: 0x66a02e8001313) : port 11 connected to "hype355 qib0" (NodeGUID: 0x40ed770000751100) : port 1
+
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/fw.c |   37 +++++++++++++++++++++++++++---
- 1 files changed, 33 insertions(+), 4 deletions(-)
+ include/opensm/osm_perfmgr.h |    5 +++
+ opensm/osm_perfmgr.c         |   59 +++++++++++++++++++++++++++++++++--------
+ 2 files changed, 52 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index 2e88a23..79ab326 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -91,7 +91,10 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
- 		[ 8] = "P_Key violation counter",
- 		[ 9] = "Q_Key violation counter",
- 		[10] = "VMM",
-+		[11] = "Fibre Channel Protocol On Ethernet Ports support",
- 		[12] = "Dual Port Different Protocol (DPDP) support",
-+		[13] = "Raw Ethertype support",
-+		[14] = "Raw IPv6 support",
- 		[15] = "Big LSO headers",
- 		[16] = "MW support",
- 		[17] = "APM support",
-@@ -99,16 +102,40 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
- 		[19] = "Raw multicast support",
- 		[20] = "Address vector port checking support",
- 		[21] = "UD multicast support",
-+		[22] = "UD IPv4 Multicast support",
- 		[24] = "Demand paging support",
- 		[25] = "Router support",
-+		[26] = "L2 Ethernet Multicast support",
-+		[28] = "Software parsing support for UD transport",
-+		[29] = "TCP checksum off-load support",
- 		[30] = "IBoE support",
-+		[31] = "FCoE T11 frame format support",
- 		[32] = "Unicast loopback support",
-+		[33] = "Multicast loopback support",
- 		[34] = "FCS header control",
-+		[35] = "Address Path ud_force_mgid support",
-+		[36] = "Header-Data Split support",
-+		[37] = "Wake On LAN support on port 1",
-+		[38] = "Wake On LAN support on port 2",
-+		[39] = "Fatal Warning Event upon a thermal warning condition",
- 		[38] = "Wake On LAN support",
- 		[40] = "UDP RSS support",
- 		[41] = "Unicast VEP steering support",
- 		[42] = "Multicast VEP steering support",
-+		[43] = "VLAN Steering mechanism support",
-+		[44] = "Steering according to EtherType support",
-+		[45] = "WQE format version 1 support",
-+		[46] = "Keep Alive Validiation support",
-+		[47] = "PTP1588 support",
- 		[48] = "Counters support",
-+		[49] = "Advanced Counters support",
-+		[50] = "Force Ethernet user priority from QPC support",
-+		[51] = "RX Port Num check disabled",
-+		[52] = "RSS on fragmented IP datagram support",
-+		[55] = "Link Sensing support",
-+		[56] = "Reliable Multicast support",
-+		[57] = "Fast Drop support",
-+		[58] = "Protected FMR support",
- 		[53] = "Port ETS Scheduler support",
- 		[55] = "Port link type sensing support",
- 		[59] = "Port management change event support",
-@@ -119,8 +146,9 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+diff --git a/include/opensm/osm_perfmgr.h b/include/opensm/osm_perfmgr.h
+index 44a278d..ec12eb6 100644
+--- a/include/opensm/osm_perfmgr.h
++++ b/include/opensm/osm_perfmgr.h
+@@ -105,6 +105,11 @@ typedef struct monitored_port {
+ 	/* ClassPortInfo fields */
+ 	boolean_t cpi_valid;
+ 	ib_net16_t cap_mask;
++	/* Remote end connected to */
++	boolean_t remote_valid;
++	uint64_t remote_guid;
++	char *remote_name;
++	uint8_t remote_port;
+ } monitored_port_t;
  
- 	mlx4_dbg(dev, "DEV_CAP flags:\n");
- 	for (i = 0; i < ARRAY_SIZE(fname); ++i)
--		if (fname[i] && (flags & (1LL << i)))
--			mlx4_dbg(dev, "    %s\n", fname[i]);
-+		if (fname[i])
-+			mlx4_dbg(dev, "    (%c) %s\n", (flags & (1LL << i)) ?
-+				 '*' : ' ', fname[i]);
- }
+ /* Node to store information about nodes being monitored */
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index d3fa1f7..4ab654b 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -144,6 +144,7 @@ static void remove_marked_nodes(osm_perfmgr_t * pm)
+ {
+ 	while (pm->remove_list) {
+ 		monitored_node_t *next = pm->remove_list->next;
++		int port;
  
- static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
-@@ -144,8 +172,9 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
- 	int i;
+ 		cl_qmap_remove_item(&pm->monitored_map,
+ 				    (cl_map_item_t *) (pm->remove_list));
+@@ -155,6 +156,14 @@ static void remove_marked_nodes(osm_perfmgr_t * pm)
  
- 	for (i = 0; i < ARRAY_SIZE(fname); ++i)
--		if (fname[i] && (flags & (1LL << i)))
--			mlx4_dbg(dev, "    %s\n", fname[i]);
-+		if (fname[i])
-+			mlx4_dbg(dev, "    (%c) %s\n", (flags & (1LL << i)) ?
-+				 '*' : ' ', fname[i]);
- }
+ 		if (pm->remove_list->name)
+ 			free(pm->remove_list->name);
++
++		for (port = pm->remove_list->esp0 ? 0 : 1;
++		     port < pm->remove_list->num_ports;
++		     port++) {
++			if (pm->remove_list->port[port].remote_name)
++				free(pm->remove_list->port[port].remote_name);
++		}
++
+ 		free(pm->remove_list);
+ 		pm->remove_list = next;
+ 	}
+@@ -554,11 +563,24 @@ static void collect_guids(cl_map_item_t * p_map_item, void *context)
+ 				  ib_switch_info_is_enhanced_port0(&node->sw->
+ 								   switch_info));
+ 		for (port = mon_node->esp0 ? 0 : 1; port < num_ports; port++) {
+-			mon_node->port[port].orig_lid = 0;
+-			mon_node->port[port].valid = FALSE;
+-			if (osm_physp_is_valid(&node->physp_table[port])) {
+-				mon_node->port[port].orig_lid = get_base_lid(node, port);
+-				mon_node->port[port].valid = TRUE;
++			monitored_port_t *mon_port = &mon_node->port[port];
++			osm_physp_t *p_physp = &node->physp_table[port];
++			osm_physp_t *p_remote_physp = p_physp->p_remote_physp;
++
++			mon_port->orig_lid = 0;
++			mon_port->valid = FALSE;
++			if (osm_physp_is_valid(p_physp)) {
++				mon_port->orig_lid = get_base_lid(node, port);
++				mon_port->valid = TRUE;
++			}
++			mon_port->remote_valid = FALSE;
++			mon_port->remote_name = NULL;
++			if (p_remote_physp && osm_physp_is_valid(p_remote_physp)) {
++				osm_node_t *p_remote_node = p_remote_physp->p_node;
++				mon_port->remote_valid = TRUE;
++				mon_port->remote_guid = p_remote_node->node_info.node_guid;
++				mon_port->remote_name = strdup(p_remote_node->print_desc);
++				mon_port->remote_port = p_remote_physp->port_num;
+ 			}
+ 		}
  
- int mlx4_MOD_STAT_CFG(struct mlx4_dev *dev, struct mlx4_mod_stat_cfg *cfg)
+@@ -1429,13 +1451,26 @@ static void perfmgr_log_errors(osm_perfmgr_t * pm,
+ 	}
+ 
+ #define LOG_ERR_CNT(errname, errnum, counter_name) \
+-	if (reading->counter_name > prev_read.counter_name) \
+-		OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR %s: " \
+-			"%s : %" PRIu64 " : node " \
+-			"\"%s\" (NodeGUID: 0x%" PRIx64 ") : port %u\n", \
+-			errnum, errname, \
+-			reading->counter_name - prev_read.counter_name, \
+-			mon_node->name, mon_node->guid, port);
++	if (reading->counter_name > prev_read.counter_name) { \
++		if (mon_node->port[port].remote_valid == TRUE) \
++			OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR %s: " \
++				"%s : %" PRIu64 " : node " \
++				"\"%s\" (NodeGUID: 0x%" PRIx64 ") : port %u " \
++				"connected to \"%s\" (NodeGUID: 0x%" PRIx64 ") : port %u\n", \
++				errnum, errname, \
++				reading->counter_name - prev_read.counter_name, \
++				mon_node->name, mon_node->guid, port, \
++				mon_node->port[port].remote_name, \
++				mon_node->port[port].remote_guid, \
++				mon_node->port[port].remote_port); \
++		else \
++			OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR %s: " \
++				"%s : %" PRIu64 " : node " \
++				"\"%s\" (NodeGUID: 0x%" PRIx64 ") : port %u\n", \
++				errnum, errname, \
++				reading->counter_name - prev_read.counter_name, \
++				mon_node->name, mon_node->guid, port); \
++	}
+ 
+ 	LOG_ERR_CNT("SymbolErrorCounter",           "5431", symbol_err_cnt);
+ 	LOG_ERR_CNT("LinkErrorRecoveryCounter",     "5432", link_err_recover);
 -- 
 1.7.1
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
