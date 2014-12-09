@@ -1,58 +1,60 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 06/17] IB/core: Add support for extended query device caps
-Date: Tue, 9 Dec 2014 13:43:30 -0800
-Message-ID: <CAL1RGDXsYmWD2_ncMmRrMgAGn1bBaL9tNQ2mAYDG-kySF4037A@mail.gmail.com>
-References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com> <1415723783-2138-7-git-send-email-haggaie@mellanox.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a
+ device
+Date: Tue, 9 Dec 2014 22:36:06 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBD7A97@CRSMSX101.amr.corp.intel.com>
+References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
+	<1415908465-24392-4-git-send-email-ira.weiny@intel.com>
+	<54770F44.2090909@mellanox.com>
+	<2807E5FD2F6FDA4886F6618EAC48510E0CBD4F23@CRSMSX101.amr.corp.intel.com>
+ <CAJ3xEMj-0_0F+VoGZDes92ShFRTbt9Et4WWPt=viY5gx_P-oNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415723783-2138-7-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAJ3xEMj-0_0F+VoGZDes92ShFRTbt9Et4WWPt=viY5gx_P-oNg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I was getting ready to apply the ODP series, but then I noticed:
-
-On Tue, Nov 11, 2014 at 8:36 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-> index 71ab83fde472..974025028790 100644
-> --- a/drivers/infiniband/core/uverbs_main.c
-> +++ b/drivers/infiniband/core/uverbs_main.c
-> @@ -122,7 +122,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
->                                     struct ib_udata *ucore,
->                                     struct ib_udata *uhw) = {
->         [IB_USER_VERBS_EX_CMD_CREATE_FLOW]      = ib_uverbs_ex_create_flow,
-> -       [IB_USER_VERBS_EX_CMD_DESTROY_FLOW]     = ib_uverbs_ex_destroy_flow
-> +       [IB_USER_VERBS_EX_CMD_DESTROY_FLOW]     = ib_uverbs_ex_destroy_flow,
-> +       [IB_USER_VERBS_EX_CMD_QUERY_DEVICE]     = ib_uverbs_ex_query_device
->  };
->
->  static void ib_uverbs_add_one(struct ib_device *device);
-
-> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-> index 26daf55ff76e..ed8c3d9da42c 100644
-> --- a/include/uapi/rdma/ib_user_verbs.h
-> +++ b/include/uapi/rdma/ib_user_verbs.h
-> @@ -90,8 +90,9 @@ enum {
->  };
->
->  enum {
-> +       IB_USER_VERBS_EX_CMD_QUERY_DEVICE = IB_USER_VERBS_CMD_QUERY_DEVICE,
->         IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
-> -       IB_USER_VERBS_EX_CMD_DESTROY_FLOW
-> +       IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
->  };
-
-And this makes no sense to me.  I thought the whole point of "EX"
-commands was to add then after IB_USER_VERBS_CMD_THRESHOLD.
-
-In this case, if you make IB_USER_VERBS_EX_CMD_QUERY_DEVICE =
-IB_USER_VERBS_CMD_QUERY_DEVICE then doesn't the entry in
-uverbs_cmd_table[] for normal query device get overwritten with
-ib_uverbs_ex_query_device()??
-
- - R.
+PiANCj4gT24gTW9uLCBEZWMgOCwgMjAxNCBhdCAyOjIzIEFNLCBXZWlueSwgSXJhIDxpcmEud2Vp
+bnlAaW50ZWwuY29tPiB3cm90ZToNCj4gDQo+ID4+IEkgZmluZCBpdCB2ZXJ5IGFubm95aW5nIHRo
+YXQgdXBwZXIgbGV2ZWwgZHJpdmVycyByZXBsaWNhdGUgaW4NCj4gPj4gZGlmZmVyZW50IHdheXMg
+ZWxlbWVudHMgZnJvbSB0aGUgSUIgZGV2aWNlIGF0dHJpYnV0ZXMgcmV0dXJuZWQgYnkNCj4gPj4g
+aWJfcXVlcnlfZGV2aWNlLiBJIG1ldCB0aGF0IGluIG11bHRpcGxlIGRyaXZlcnMgYW5kIHVwY29t
+aW5nIGRlc2lnbnMNCj4gPj4gZm9yIHdoaWNoIEkgZG8gY29kZSByZXZpZXcuIEFyZSB5b3UgdXAg
+dG8gY29tZSB1cCB3aXRoIGEgcGF0Y2ggdGhhdA0KPiA+PiBjYWNoZXMgdGhlIGRldmljZSBhdHRy
+aWJ1dGVzIG9uIHRoZSBkZXZpY2Ugc3RydWN0dXJlPw0KPiANCj4gPiBJIGRvbid0IGZvbGxvdyB3
+aGF0IHlvdSBhcmUgYXNraW5nIGZvci4gIENvdWxkIHlvdSBnaXZlIG1vcmUgZGV0YWlscz8NCj4g
+DQo+IDEuIGFkZCBhIHN0cnVjdCBpYl9kZXZpY2VfYXR0ciBmaWVsZCB0byBzdHJ1Y3QgaWJfZGV2
+aWNlDQo+IA0KPiAyLiB3aGVuIHRoZSBkZXZpY2UgcmVnaXN0ZXJzIGl0c2VsZiB3aXRoIHRoZSBJ
+QiBjb3JlLCBnbyBhbmQgcnVuIHRoZQ0KPiBxdWVyeV9kZXZpY2UgdmVyYiB3aXRoIHRoZSBwYXJh
+bSBiZWluZyBwb2ludGVyIHRvIHRoYXQgZmllbGQNCg0KSSBzZWUgd2hlcmUgeW91IGFyZSBnb2lu
+Zy4gIFRoZW4gdGhlIE1BRCBzdGFjayBkb2VzIG5vdCBoYXZlIHRvIGNhY2hlIGEgIm1heF9tYWRf
+c2l6ZSIgdmFsdWUgYnV0IHJhdGhlciBsb29rcyBpbiB0aGUgaWJfZGV2aWNlIHN0cnVjdHVyZSAi
+b24gdGhlIGZseSIuLi4NCg0KU28sIHNvbWV0aGluZyBsaWtlIHRoZSBkaWZmIGJlbG93PyAgV2hh
+dCBhcmUgdGhlIGNoYW5jZXMgd2UgZW5kIHVwIHdpdGggYXR0cmlidXRlcyB3aGljaCBhcmUgbm90
+IGNvbnN0YW50Pw0KDQpJZiBSb2xhbmQgd291bGQgbGlrZSB0byBnbyB0aGlzIHdheSBJIGNhbiBy
+ZXdvcmsgbXkgc2VyaWVzIGJhc2VkIG9uIHRoZSBhdHRyaWJ1dGVzIGJlaW5nIGNhY2hlZC4NCg0K
+LS0gSXJhDQoNCg0KMTc6MTU6NTkgPiBnaXQgZGkNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmlu
+aWJhbmQvY29yZS9kZXZpY2UuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2RldmljZS5jDQpp
+bmRleCAxOGMxZWNlLi5kYjE4Nzk1IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvZGV2aWNlLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2RldmljZS5jDQpAQCAt
+MzIyLDYgKzMyMiw4IEBAIGludCBpYl9yZWdpc3Rlcl9kZXZpY2Uoc3RydWN0IGliX2RldmljZSAq
+ZGV2aWNlLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGllbnQtPmFkZChkZXZp
+Y2UpOw0KICAgICAgICB9DQogDQorICAgICAgIGRldmljZS0+cXVlcnlfZGV2aWNlKGRldmljZSwg
+JmRldmljZS0+YXR0cmlidXRlcyk7DQorDQogIG91dDoNCiAgICAgICAgbXV0ZXhfdW5sb2NrKCZk
+ZXZpY2VfbXV0ZXgpOw0KICAgICAgICByZXR1cm4gcmV0Ow0KZGlmZiAtLWdpdCBhL2luY2x1ZGUv
+cmRtYS9pYl92ZXJicy5oIGIvaW5jbHVkZS9yZG1hL2liX3ZlcmJzLmgNCmluZGV4IDQ3MGEwMTEu
+LjI0MWE4ODIgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL3JkbWEvaWJfdmVyYnMuaA0KKysrIGIvaW5j
+bHVkZS9yZG1hL2liX3ZlcmJzLmgNCkBAIC0xNjMwLDYgKzE2MzAsNyBAQCBzdHJ1Y3QgaWJfZGV2
+aWNlIHsNCiAgICAgICAgdTMyICAgICAgICAgICAgICAgICAgICAgICAgICBsb2NhbF9kbWFfbGtl
+eTsNCiAgICAgICAgdTggICAgICAgICAgICAgICAgICAgICAgICAgICBub2RlX3R5cGU7DQogICAg
+ICAgIHU4ICAgICAgICAgICAgICAgICAgICAgICAgICAgcGh5c19wb3J0X2NudDsNCisgICAgICAg
+c3RydWN0IGliX2RldmljZV9hdHRyICAgICAgICBhdHRyaWJ1dGVzOw0KIH07DQogDQogc3RydWN0
+IGliX2NsaWVudCB7DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
