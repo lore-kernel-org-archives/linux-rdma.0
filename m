@@ -1,47 +1,58 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: IB_CQ_VECTOR_LEAST_ATTACHED
-Date: Tue, 9 Dec 2014 22:11:54 +0200
-Message-ID: <CAJ3xEMj6zO57DRZUPD+tt6Kn50NrBu=E4CzJVK8CA+7Sjbef+A@mail.gmail.com>
-References: <54809030.6090107@oracle.com>
-	<5480AB49.1080209@acm.org>
-	<5480B8CE.3080704@oracle.com>
-	<54842A05.9070207@dev.mellanox.co.il>
-	<54844690.4040501@mellanox.com>
-	<54844F44.1010604@mellanox.com>
-	<54848724.4020908@mellanox.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 06/17] IB/core: Add support for extended query device caps
+Date: Tue, 9 Dec 2014 13:43:30 -0800
+Message-ID: <CAL1RGDXsYmWD2_ncMmRrMgAGn1bBaL9tNQ2mAYDG-kySF4037A@mail.gmail.com>
+References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com> <1415723783-2138-7-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54848724.4020908-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1415723783-2138-7-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Salomon <esalomon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 7, 2014 at 6:58 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 12/7/2014 2:59 PM, Or Gerlitz wrote:
->> On 12/7/2014 2:22 PM, Matan Barak wrote:
->>> Applications might want to create a CQ on n different cores
+I was getting ready to apply the ODP series, but then I noticed:
 
->> You mean like an IRQ can flush on a mask potentially made of multiple
->> CPUs?
+On Tue, Nov 11, 2014 at 8:36 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+> index 71ab83fde472..974025028790 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -122,7 +122,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+>                                     struct ib_udata *ucore,
+>                                     struct ib_udata *uhw) = {
+>         [IB_USER_VERBS_EX_CMD_CREATE_FLOW]      = ib_uverbs_ex_create_flow,
+> -       [IB_USER_VERBS_EX_CMD_DESTROY_FLOW]     = ib_uverbs_ex_destroy_flow
+> +       [IB_USER_VERBS_EX_CMD_DESTROY_FLOW]     = ib_uverbs_ex_destroy_flow,
+> +       [IB_USER_VERBS_EX_CMD_QUERY_DEVICE]     = ib_uverbs_ex_query_device
+>  };
+>
+>  static void ib_uverbs_add_one(struct ib_device *device);
 
-> Sort of. In both cases you try to spread the resources such that you'll get
-> best performance (that should be done by the device driver itself). The user
-> needs to somehow get n different least-used resources. Hopefully, if the
-> device driver does a decent job - the user would get his resources
-> potentially on multiple cpus.
+> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+> index 26daf55ff76e..ed8c3d9da42c 100644
+> --- a/include/uapi/rdma/ib_user_verbs.h
+> +++ b/include/uapi/rdma/ib_user_verbs.h
+> @@ -90,8 +90,9 @@ enum {
+>  };
+>
+>  enum {
+> +       IB_USER_VERBS_EX_CMD_QUERY_DEVICE = IB_USER_VERBS_CMD_QUERY_DEVICE,
+>         IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
+> -       IB_USER_VERBS_EX_CMD_DESTROY_FLOW
+> +       IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
+>  };
 
+And this makes no sense to me.  I thought the whole point of "EX"
+commands was to add then after IB_USER_VERBS_CMD_THRESHOLD.
 
-I am not sure to follow on the "n different LU resources".
+In this case, if you make IB_USER_VERBS_EX_CMD_QUERY_DEVICE =
+IB_USER_VERBS_CMD_QUERY_DEVICE then doesn't the entry in
+uverbs_cmd_table[] for normal query device get overwritten with
+ib_uverbs_ex_query_device()??
 
-Thinking on this matter little further, what user-space (and maybe
-kernel too?) apps would want follows the rmap (reverse map where cpu
---> set of IRQs) used by the kernel aRFS logic, where we let app
-choose some primitive that would cause the interrupt to be raised on
-the cpu they want. In this context, the param to the cq creation verb
-needs not be the vector number, but rather the cpu number (maybe nice
-default to THIS_CPU) or set of cpus?
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
