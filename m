@@ -1,63 +1,73 @@
-From: Utz Bacher <utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] DAPL support on s390x platform
-Date: Wed, 10 Dec 2014 17:27:38 +0100
-Message-ID: <OFA12CE4AE.0DA527AB-ONC1257DAA.0057DC75-C1257DAA.005A6BB7@de.ibm.com>
-References: <1412933657-52641-1-git-send-email-aishchuk@linux.vnet.ibm.com> <OF2939B020.E253C5B0-ONC1257D87.0050AE0F-C1257D87.0052C3AA@de.ibm.com> <CAL1RGDVLeNCAXrrq8mEhKxcm_z_xwgLUfO_wzhQE9xJz8Lnq7g@mail.gmail.com> <546354D9.9050601@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 02/10] IPoIB: Make the carrier_on_task race aware
+Date: Wed, 10 Dec 2014 11:46:59 -0500
+Message-ID: <9da7866273a37e8927eb079d90c96074a118c5bd.1418229671.git.dledford@redhat.com>
+References: <cover.1418229671.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <546354D9.9050601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <cover.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <cover.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, amira-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Gonzalo Muelas Serrano <gmuelas-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mschwid2-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland and Yishai,
+We blindly assume that we can just take the rtnl lock and that will
+prevent races with downing this interface.  Unfortunately, that's not
+the case.  In ipoib_mcast_stop_thread() we will call flush_workqueue()
+in an attempt to clear out all remaining instances of ipoib_join_task.
+But, since this task is put on the same workqueue as the join task, the
+flush_workqueue waits on this thread too.  But this thread is deadlocked
+on the rtnl lock.  The better thing here is to use trylock and loop on
+that until we either get the lock or we see that FLAG_ADMIN_UP has
+been cleared, in which case we don't need to do anything anyway and we
+just return.
 
-Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote on 12.11.2014 13:38:49:
-[...]
-> On 11/12/2014 1:22 AM, Roland Dreier wrote:
-> > On Wed, Nov 5, 2014 at 7:04 AM, Utz Bacher <utz.bacher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-wrote:
-> >> (B) Status of patches
-> >> 1. kernel code -- the new system call: reviewed, acked and accepted by
-the
-> >> s390x maintainer Martin Schwidefsky (2014/10/13), so we will have that
-> >> system call in the s390x kernel.
-> >> 2. libibverbs -- define barriers on s390x: Looking for your feedback.
-We
-> >> understand there have been no general objections so far.
-> >> 3. libmlx4 -- provide MMIO abstraction: reviewed by the Mellanox
-> >> maintainers and we understand they would apply this once you give the
-go
-> >> for the overall set.
-> >> Previously, a patch to DAPL to build on s390x has been accepted
-already
-> >> (Arlin Davis, 2014/09/02).
-[...]
-> > If Mellanox is willing to take on the maintenance burden of changing
-> > all MMIO access to an inline function, and if you're willing to take
-> > on the burden of knowing that every new adapter you support means
-> > tracking down and convincing the maintainer of the driver library,
-> > then I'm OK with adding the simple barrier patch to libibverbs.  Could
-> > you please send the latest version of that patch to me?
-> >
->
-> The libmlx4 patch should pass some performance regression before it can
-> be approved, this task is in progress in our side.
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-so when the libmlx4 patch passed the performance regression runs
-successfully, we would assume Roland and Yishai acknowledge the changes.
-Can we correctly expect these patches (without further changes) appearing
-in libmlx4 on top of 1.0.6 and libibverbs on top of 1.1.8?
-Just checking before we talk to distribution partners, so that everyone
-stays in sync with upstream. Martin Schwidefsky is applying the kernel
-changes, too.
-
-Thanks in advance,
-Utz
-
-:wq
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index eee66d13e5b..9862c76a83f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -353,18 +353,27 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+ 						   carrier_on_task);
+ 	struct ib_port_attr attr;
+ 
+-	/*
+-	 * Take rtnl_lock to avoid racing with ipoib_stop() and
+-	 * turning the carrier back on while a device is being
+-	 * removed.
+-	 */
+ 	if (ib_query_port(priv->ca, priv->port, &attr) ||
+ 	    attr.state != IB_PORT_ACTIVE) {
+ 		ipoib_dbg(priv, "Keeping carrier off until IB port is active\n");
+ 		return;
+ 	}
+ 
+-	rtnl_lock();
++	/*
++	 * Take rtnl_lock to avoid racing with ipoib_stop() and
++	 * turning the carrier back on while a device is being
++	 * removed.  However, ipoib_stop() will attempt to flush
++	 * the workqueue while holding the rtnl lock, so loop
++	 * on trylock until either we get the lock or we see
++	 * FLAG_ADMIN_UP go away as that signals that we are bailing
++	 * and can safely ignore the carrier on work
++	 */
++	while (!rtnl_trylock()) {
++		if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
++			return;
++		else
++			msleep(20);
++	}
+ 	if (!ipoib_cm_admin_enabled(priv->dev))
+ 		dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
+ 	netif_carrier_on(priv->dev);
+-- 
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
