@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 03/10] IPoIB: fix MCAST_FLAG_BUSY usage
-Date: Wed, 10 Dec 2014 11:47:00 -0500
-Message-ID: <3287eaddaf7948ccf6f471daa3312e27649ef798.1418229671.git.dledford@redhat.com>
+Subject: [PATCH 07/10] IPoIB: Make ipoib_mcast_stop_thread flush the workqueue
+Date: Wed, 10 Dec 2014 11:47:04 -0500
+Message-ID: <8c03e7569e7da863c0507dbf95e96ad06280b938.1418229671.git.dledford@redhat.com>
 References: <cover.1418229671.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,422 +12,117 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit a9c8ba5884 (IPoIB: Fix usage of uninitialized multicast objects)
-added a new flag MCAST_JOIN_STARTED, but was not very strict in how it
-was used.  We didn't always initialize the completion struct before we
-set the flag, and we didn't always call complete on the completion
-struct from all paths that complete it.  This made it less than totally
-effective, and certainly made its use confusing.  And in the flush
-function we would use the presence of this flag to signal that we should
-wait on the completion struct, but we never cleared this flag, ever.
-This is further muddied by the fact that we overload the MCAST_FLAG_BUSY
-flag to mean two different things: we have a join in flight, and we have
-succeeded in getting an ib_sa_join_multicast.
-
-In order to make things clearer and aid in resolving the rtnl deadlock
-bug I've been chasing, I cleaned this up a bit.
-
-1) Remove the MCAST_JOIN_STARTED flag entirely
-2) Un-overload MCAST_FLAG_BUSY so it now only means a join is in-flight
-3) Test on mcast->mc directly to see if we have completed
-ib_sa_join_multicast (using IS_ERR_OR_NULL)
-4) Make sure that before setting MCAST_FLAG_BUSY we always initialize
-the mcast->done completion struct
-5) Make sure that before calling complete(&mcast->done), we always clear
-the MCAST_FLAG_BUSY bit
-6) Take the mcast_mutex before we call ib_sa_multicast_join and also
-take the mutex in our join callback.  This forces ib_sa_multicast_join
-to return and set mcast->mc before we process the callback.  This way,
-our callback can safely clear mcast->mc if there is an error on the join
-and we will do the right thing as a result in mcast_dev_flush.
-7) Because we need the mutex to synchronize mcast->mc, we can no longer
-call mcast_sendonly_join directly from mcast_send and instead must add
-sendonly join processing to the mcast_join_task
-
-A number of different races are resolved with these changes.  These
-races existed with the old MCAST_FLAG_BUSY usage, the
-MCAST_JOIN_STARTED flag was an attempt to address them, and while it
-helped, a determined effort could still trip things up.
-
-One race looks something like this:
-
-Thread 1                             Thread 2
-ib_sa_join_multicast (as part of running restart mcast task)
-  alloc member
-  call callback
-                                     ifconfig ib0 down
-				     wait_for_completion
-    callback call completes
-                                     wait_for_completion in
-				     mcast_dev_flush completes
-				       mcast->mc is PTR_ERR_OR_NULL
-				       so we skip ib_sa_leave_multicast
-    return from callback
-  return from ib_sa_join_multicast
-set mcast->mc = return from ib_sa_multicast
-
-We now have a permanently unbalanced join/leave issue that trips up the
-refcounting in core/multicast.c
-
-Another like this:
-
-Thread 1                   Thread 2         Thread 3
-ib_sa_multicast_join
-                                            ifconfig ib0 down
-					    priv->broadcast = NULL
-                           join_complete
-			                    wait_for_completion
-			   mcast->mc is not yet set, so don't clear
-return from ib_sa_join_multicast and set mcast->mc
-			   complete
-			   return -EAGAIN (making mcast->mc invalid)
-			   		    call ib_sa_multicast_leave
-					    on invalid mcast->mc, hang
-					    forever
-
-By holding the mutex around ib_sa_multicast_join and taking the mutex
-early in the callback, we force mcast->mc to be valid at the time we run
-the callback.  This allows us to clear mcast->mc if there is an error
-and the join is going to fail.  We do this before we complete the mcast.
-In this way, mcast_dev_flush always sees consistent state in regards to
-mcast->mc membership at the time that the wait_for_completion() returns.
+We used to pass a flush variable to mcast_stop_thread to indicate if we
+should flush the workqueue or not.  This was due to some code trying to
+flush a workqueue that it was currently running on which is a no-no.
+Now that we have per-device work queues, and now that
+ipoib_mcast_restart_task has taken the fact that it is queued on a
+single thread workqueue with all of the ipoib_mcast_join_task's and
+therefore has no need to stop the join task while it runs, we can do
+away with the flush parameter and unilaterally flush always.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h           |  10 +-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 148 ++++++++++++++++---------
- 2 files changed, 101 insertions(+), 57 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c        |  4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21 +++++++++------------
+ 3 files changed, 12 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index d7562beb542..f4c1b20b23b 100644
+index 45fd10a72ec..28dc927c0e8 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib.h
 +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -98,9 +98,15 @@ enum {
+@@ -499,7 +499,7 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
  
- 	IPOIB_MCAST_FLAG_FOUND	  = 0,	/* used in set_multicast_list */
- 	IPOIB_MCAST_FLAG_SENDONLY = 1,
--	IPOIB_MCAST_FLAG_BUSY	  = 2,	/* joining or already joined */
-+	/*
-+	 * For IPOIB_MCAST_FLAG_BUSY
-+	 * When set, in flight join and mcast->mc is unreliable
-+	 * When clear and mcast->mc IS_ERR_OR_NULL, need to restart or
-+	 *   haven't started yet
-+	 * When clear and mcast->mc is valid pointer, join was successful
-+	 */
-+	IPOIB_MCAST_FLAG_BUSY	  = 2,
- 	IPOIB_MCAST_FLAG_ATTACHED = 3,
--	IPOIB_MCAST_JOIN_STARTED  = 4,
+ void ipoib_mcast_restart_task(struct work_struct *work);
+ int ipoib_mcast_start_thread(struct net_device *dev);
+-int ipoib_mcast_stop_thread(struct net_device *dev, int flush);
++int ipoib_mcast_stop_thread(struct net_device *dev);
  
- 	MAX_SEND_CQE		  = 16,
- 	IPOIB_CM_COPYBREAK	  = 256,
+ void ipoib_mcast_dev_down(struct net_device *dev);
+ void ipoib_mcast_dev_flush(struct net_device *dev);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index bfd17d41b5f..66096787119 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -747,7 +747,7 @@ int ipoib_ib_dev_down(struct net_device *dev, int flush)
+ 	clear_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 	netif_carrier_off(dev);
+ 
+-	ipoib_mcast_stop_thread(dev, flush);
++	ipoib_mcast_stop_thread(dev);
+ 	ipoib_mcast_dev_flush(dev);
+ 
+ 	ipoib_flush_paths(dev);
+@@ -1097,7 +1097,7 @@ void ipoib_ib_dev_cleanup(struct net_device *dev)
+ 	 */
+ 	ipoib_flush_paths(dev);
+ 
+-	ipoib_mcast_stop_thread(dev, 1);
++	ipoib_mcast_stop_thread(dev);
+ 	ipoib_mcast_dev_flush(dev);
+ 
+ 	ipoib_transport_dev_cleanup(dev);
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 9862c76a83f..a52c9f3f7e4 100644
+index 845f910eb21..bc50dd0d0e4 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -271,16 +271,27 @@ ipoib_mcast_sendonly_join_complete(int status,
- 	struct ipoib_mcast *mcast = multicast->context;
- 	struct net_device *dev = mcast->dev;
- 
-+	/*
-+	 * We have to take the mutex to force mcast_sendonly_join to
-+	 * return from ib_sa_multicast_join and set mcast->mc to a
-+	 * valid value.  Otherwise we were racing with ourselves in
-+	 * that we might fail here, but get a valid return from
-+	 * ib_sa_multicast_join after we had cleared mcast->mc here,
-+	 * resulting in mis-matched joins and leaves and a deadlock
-+	 */
-+	mutex_lock(&mcast_mutex);
-+
- 	/* We trap for port events ourselves. */
- 	if (status == -ENETRESET)
--		return 0;
-+		goto out;
- 
- 	if (!status)
- 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
- 
- 	if (status) {
- 		if (mcast->logcount++ < 20)
--			ipoib_dbg_mcast(netdev_priv(dev), "multicast join failed for %pI6, status %d\n",
-+			ipoib_dbg_mcast(netdev_priv(dev), "sendonly multicast "
-+					"join failed for %pI6, status %d\n",
- 					mcast->mcmember.mgid.raw, status);
- 
- 		/* Flush out any queued packets */
-@@ -290,11 +301,15 @@ ipoib_mcast_sendonly_join_complete(int status,
- 			dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
- 		}
- 		netif_tx_unlock_bh(dev);
--
--		/* Clear the busy flag so we try again */
--		status = test_and_clear_bit(IPOIB_MCAST_FLAG_BUSY,
--					    &mcast->flags);
- 	}
-+out:
-+	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-+	if (status)
-+		mcast->mc = NULL;
-+	complete(&mcast->done);
-+	if (status == -ENETRESET)
-+		status = 0;
-+	mutex_unlock(&mcast_mutex);
- 	return status;
+@@ -648,7 +648,7 @@ int ipoib_mcast_start_thread(struct net_device *dev)
+ 	return 0;
  }
  
-@@ -312,12 +327,14 @@ static int ipoib_mcast_sendonly_join(struct ipoib_mcast *mcast)
- 	int ret = 0;
+-int ipoib_mcast_stop_thread(struct net_device *dev, int flush)
++int ipoib_mcast_stop_thread(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
  
- 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags)) {
--		ipoib_dbg_mcast(priv, "device shutting down, no multicast joins\n");
-+		ipoib_dbg_mcast(priv, "device shutting down, no sendonly "
-+				"multicast joins\n");
- 		return -ENODEV;
- 	}
- 
--	if (test_and_set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags)) {
--		ipoib_dbg_mcast(priv, "multicast entry busy, skipping\n");
-+	if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags)) {
-+		ipoib_dbg_mcast(priv, "multicast entry busy, skipping "
-+				"sendonly join\n");
- 		return -EBUSY;
- 	}
- 
-@@ -325,6 +342,9 @@ static int ipoib_mcast_sendonly_join(struct ipoib_mcast *mcast)
- 	rec.port_gid = priv->local_gid;
- 	rec.pkey     = cpu_to_be16(priv->pkey);
- 
-+	mutex_lock(&mcast_mutex);
-+	init_completion(&mcast->done);
-+	set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	mcast->mc = ib_sa_join_multicast(&ipoib_sa_client, priv->ca,
- 					 priv->port, &rec,
- 					 IB_SA_MCMEMBER_REC_MGID	|
-@@ -337,12 +357,14 @@ static int ipoib_mcast_sendonly_join(struct ipoib_mcast *mcast)
- 	if (IS_ERR(mcast->mc)) {
- 		ret = PTR_ERR(mcast->mc);
- 		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
--		ipoib_warn(priv, "ib_sa_join_multicast failed (ret = %d)\n",
--			   ret);
-+		complete(&mcast->done);
-+		ipoib_warn(priv, "ib_sa_join_multicast for sendonly join "
-+			   "failed (ret = %d)\n", ret);
- 	} else {
--		ipoib_dbg_mcast(priv, "no multicast record for %pI6, starting join\n",
--				mcast->mcmember.mgid.raw);
-+		ipoib_dbg_mcast(priv, "no multicast record for %pI6, starting "
-+				"sendonly join\n", mcast->mcmember.mgid.raw);
- 	}
-+	mutex_unlock(&mcast_mutex);
- 
- 	return ret;
- }
-@@ -390,22 +412,28 @@ static int ipoib_mcast_join_complete(int status,
- 	ipoib_dbg_mcast(priv, "join completion for %pI6 (status %d)\n",
- 			mcast->mcmember.mgid.raw, status);
- 
-+	/*
-+	 * We have to take the mutex to force mcast_join to
-+	 * return from ib_sa_multicast_join and set mcast->mc to a
-+	 * valid value.  Otherwise we were racing with ourselves in
-+	 * that we might fail here, but get a valid return from
-+	 * ib_sa_multicast_join after we had cleared mcast->mc here,
-+	 * resulting in mis-matched joins and leaves and a deadlock
-+	 */
-+	mutex_lock(&mcast_mutex);
-+
- 	/* We trap for port events ourselves. */
--	if (status == -ENETRESET) {
--		status = 0;
-+	if (status == -ENETRESET)
- 		goto out;
--	}
- 
- 	if (!status)
- 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
- 
- 	if (!status) {
- 		mcast->backoff = 1;
--		mutex_lock(&mcast_mutex);
- 		if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 			queue_delayed_work(ipoib_workqueue,
- 					   &priv->mcast_task, 0);
--		mutex_unlock(&mcast_mutex);
- 
- 		/*
- 		 * Defer carrier on work to ipoib_workqueue to avoid a
-@@ -413,37 +441,35 @@ static int ipoib_mcast_join_complete(int status,
- 		 */
- 		if (mcast == priv->broadcast)
- 			queue_work(ipoib_workqueue, &priv->carrier_on_task);
--
--		status = 0;
--		goto out;
--	}
--
--	if (mcast->logcount++ < 20) {
--		if (status == -ETIMEDOUT || status == -EAGAIN) {
--			ipoib_dbg_mcast(priv, "multicast join failed for %pI6, status %d\n",
--					mcast->mcmember.mgid.raw, status);
--		} else {
--			ipoib_warn(priv, "multicast join failed for %pI6, status %d\n",
--				   mcast->mcmember.mgid.raw, status);
-+	} else {
-+		if (mcast->logcount++ < 20) {
-+			if (status == -ETIMEDOUT || status == -EAGAIN) {
-+				ipoib_dbg_mcast(priv, "multicast join failed for %pI6, status %d\n",
-+						mcast->mcmember.mgid.raw, status);
-+			} else {
-+				ipoib_warn(priv, "multicast join failed for %pI6, status %d\n",
-+					   mcast->mcmember.mgid.raw, status);
-+			}
- 		}
--	}
--
--	mcast->backoff *= 2;
--	if (mcast->backoff > IPOIB_MAX_BACKOFF_SECONDS)
--		mcast->backoff = IPOIB_MAX_BACKOFF_SECONDS;
--
--	/* Clear the busy flag so we try again */
--	status = test_and_clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 
--	mutex_lock(&mcast_mutex);
-+		mcast->backoff *= 2;
-+		if (mcast->backoff > IPOIB_MAX_BACKOFF_SECONDS)
-+			mcast->backoff = IPOIB_MAX_BACKOFF_SECONDS;
-+	}
-+out:
- 	spin_lock_irq(&priv->lock);
--	if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
-+	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-+	if (status)
-+		mcast->mc = NULL;
-+	complete(&mcast->done);
-+	if (status == -ENETRESET)
-+		status = 0;
-+	if (status && test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 		queue_delayed_work(ipoib_workqueue, &priv->mcast_task,
- 				   mcast->backoff * HZ);
- 	spin_unlock_irq(&priv->lock);
+@@ -659,8 +659,7 @@ int ipoib_mcast_stop_thread(struct net_device *dev, int flush)
+ 	cancel_delayed_work(&priv->mcast_task);
  	mutex_unlock(&mcast_mutex);
--out:
--	complete(&mcast->done);
-+
- 	return status;
+ 
+-	if (flush)
+-		flush_workqueue(priv->wq);
++	flush_workqueue(priv->wq);
+ 
+ 	return 0;
  }
+@@ -838,8 +837,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
  
-@@ -492,10 +518,9 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
- 		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
- 	}
+ 	ipoib_dbg_mcast(priv, "restarting multicast task\n");
  
--	set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-+	mutex_lock(&mcast_mutex);
- 	init_completion(&mcast->done);
--	set_bit(IPOIB_MCAST_JOIN_STARTED, &mcast->flags);
+-	ipoib_mcast_stop_thread(dev, 0);
 -
-+	set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	mcast->mc = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
- 					 &rec, comp_mask, GFP_KERNEL,
- 					 ipoib_mcast_join_complete, mcast);
-@@ -509,13 +534,12 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
- 		if (mcast->backoff > IPOIB_MAX_BACKOFF_SECONDS)
- 			mcast->backoff = IPOIB_MAX_BACKOFF_SECONDS;
- 
--		mutex_lock(&mcast_mutex);
- 		if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 			queue_delayed_work(ipoib_workqueue,
- 					   &priv->mcast_task,
- 					   mcast->backoff * HZ);
--		mutex_unlock(&mcast_mutex);
+ 	local_irq_save(flags);
+ 	netif_addr_lock(dev);
+ 	spin_lock(&priv->lock);
+@@ -936,13 +933,10 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 	 * We have to cancel outside of the spinlock, but we have to
+ 	 * take the rtnl lock or else we race with the removal of
+ 	 * entries from the remove list in mcast_dev_flush as part
+-	 * of ipoib_stop() which will call mcast_stop_thread with
+-	 * flush == 1 while holding the rtnl lock, and the
+-	 * flush_workqueue won't complete until this restart_mcast_task
+-	 * completes.  So do like the carrier on task and attempt to
+-	 * take the rtnl lock, but if we can't before the ADMIN_UP flag
+-	 * goes away, then just return and know that the remove list will
+-	 * get flushed later by mcast_stop_thread.
++	 * of ipoib_stop().  We detect the drop of the ADMIN_UP flag
++	 * to signal that we have hit this particular race, and we
++	 * return since we know we don't need to do anything else
++	 * anyway.
+ 	 */
+ 	while (!rtnl_trylock()) {
+ 		if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
+@@ -954,6 +948,9 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 		ipoib_mcast_leave(mcast->dev, mcast);
+ 		ipoib_mcast_free(mcast);
  	}
-+	mutex_unlock(&mcast_mutex);
++	/*
++	 * Restart our join task if needed
++	 */
+ 	ipoib_mcast_start_thread(dev);
+ 	rtnl_unlock();
  }
- 
- void ipoib_mcast_join_task(struct work_struct *work)
-@@ -568,7 +592,8 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	}
- 
- 	if (!test_bit(IPOIB_MCAST_FLAG_ATTACHED, &priv->broadcast->flags)) {
--		if (!test_bit(IPOIB_MCAST_FLAG_BUSY, &priv->broadcast->flags))
-+		if (IS_ERR_OR_NULL(priv->broadcast->mc) &&
-+		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &priv->broadcast->flags))
- 			ipoib_mcast_join(dev, priv->broadcast, 0);
- 		return;
- 	}
-@@ -576,23 +601,33 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	while (1) {
- 		struct ipoib_mcast *mcast = NULL;
- 
-+		/*
-+		 * Need the mutex so our flags are consistent, need the
-+		 * priv->lock so we don't race with list removals in either
-+		 * mcast_dev_flush or mcast_restart_task
-+		 */
-+		mutex_lock(&mcast_mutex);
- 		spin_lock_irq(&priv->lock);
- 		list_for_each_entry(mcast, &priv->multicast_list, list) {
--			if (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)
--			    && !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags)
--			    && !test_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags)) {
-+			if (IS_ERR_OR_NULL(mcast->mc) &&
-+			    !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags) &&
-+			    !test_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags)) {
- 				/* Found the next unjoined group */
- 				break;
- 			}
- 		}
- 		spin_unlock_irq(&priv->lock);
-+		mutex_unlock(&mcast_mutex);
- 
- 		if (&mcast->list == &priv->multicast_list) {
- 			/* All done */
- 			break;
- 		}
- 
--		ipoib_mcast_join(dev, mcast, 1);
-+		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-+			ipoib_mcast_sendonly_join(mcast);
-+		else
-+			ipoib_mcast_join(dev, mcast, 1);
- 		return;
- 	}
- 
-@@ -638,6 +673,9 @@ static int ipoib_mcast_leave(struct net_device *dev, struct ipoib_mcast *mcast)
- 	int ret = 0;
- 
- 	if (test_and_clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
-+		ipoib_warn(priv, "ipoib_mcast_leave on an in-flight join\n");
-+
-+	if (!IS_ERR_OR_NULL(mcast->mc))
- 		ib_sa_free_multicast(mcast->mc);
- 
- 	if (test_and_clear_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags)) {
-@@ -690,6 +728,8 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		memcpy(mcast->mcmember.mgid.raw, mgid, sizeof (union ib_gid));
- 		__ipoib_mcast_add(dev, mcast);
- 		list_add_tail(&mcast->list, &priv->multicast_list);
-+		if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
-+			queue_delayed_work(ipoib_workqueue, &priv->mcast_task, 0);
- 	}
- 
- 	if (!mcast->ah) {
-@@ -703,8 +743,6 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
- 			ipoib_dbg_mcast(priv, "no address vector, "
- 					"but multicast join already started\n");
--		else if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
--			ipoib_mcast_sendonly_join(mcast);
- 
- 		/*
- 		 * If lookup completes between here and out:, don't
-@@ -766,7 +804,7 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
- 
- 	/* seperate between the wait to the leave*/
- 	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
--		if (test_bit(IPOIB_MCAST_JOIN_STARTED, &mcast->flags))
-+		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
- 			wait_for_completion(&mcast->done);
- 
- 	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
 -- 
 2.1.0
 
