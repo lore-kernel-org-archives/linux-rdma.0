@@ -1,127 +1,109 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 06/17] IB/core: Add support for extended query device
- caps
-Date: Wed, 10 Dec 2014 16:54:14 +0200
-Message-ID: <54885E96.4040401@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 04/17] IB/core: Add umem function to read data from
+ user-space
+Date: Wed, 10 Dec 2014 17:22:01 +0100
+Message-ID: <1418228521.11111.50.camel@opteya.com>
 References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
-	 <1415723783-2138-7-git-send-email-haggaie@mellanox.com>
- <1418216676.11111.45.camel@opteya.com>
+	 <1415723783-2138-5-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418216676.11111.45.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1415723783-2138-5-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/12/2014 15:04, Yann Droneaud wrote:
-> Le mardi 11 novembre 2014 =C3=A0 18:36 +0200, Haggai Eran a =C3=A9cri=
-t :
->> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>
->> Add extensible query device capabilities verb to allow adding new fe=
-atures.
->> ib_uverbs_ex_query_device is added and copy_query_dev_fields is used=
- to copy
->> capability fields to be used by both ib_uverbs_query_device and
->> ib_uverbs_ex_query_device.
->>
->> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
-=2E..
+Hi,
 
->> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniba=
-nd/core/uverbs_cmd.c
->> index 5ba2a86aab6a..74ad0d0de92b 100644
->> --- a/drivers/infiniband/core/uverbs_cmd.c
->> +++ b/drivers/infiniband/core/uverbs_cmd.c
-
-=2E..
-
->> @@ -3253,3 +3259,36 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverb=
-s_file *file,
->> =20
->>  	return ret ? ret : in_len;
->>  }
->> +
->> +int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
->> +			      struct ib_udata *ucore,
->> +			      struct ib_udata *uhw)
->> +{
->> +	struct ib_uverbs_ex_query_device_resp resp;
->> +	struct ib_uverbs_ex_query_device  cmd;
->> +	struct ib_device_attr attr;
->> +	struct ib_device *device;
->> +	int err;
->> +
->> +	device =3D file->device->ib_dev;
->> +	if (ucore->inlen < sizeof(cmd))
->> +		return -EINVAL;
->> +
->> +	err =3D ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
->> +	if (err)
->> +		return err;
->> +
+Le mardi 11 novembre 2014 =C3=A0 18:36 +0200, Haggai Eran a =C3=A9crit =
+:
+> In some drivers there's a need to read data from a user space area th=
+at
+> was pinned using ib_umem, when running from a different process conte=
+xt.
 >=20
-> I believe you should had a check on cmd.comp_mask being 0.
-> ib_uverbs_ex_create_flow() has such check.
-
-I agree create_flow() should have such a check, but I think that would
-be problematic for a query verb like query_device(). Imagine a newer
-version of libibverbs and user space application running against an
-older kernel. The application wants to know which newer feature it can
-use, so it turns on every bit they are interested in their comp_mask.
-The older kernel doesn't support all these features, so it fails the
-request. The application will now need to try again, with a subset of
-the features.
-
-This flow seems unnecessarily complicated to me. I think in a verb that
-has no side effects like this one, it would be better for the kernel to
-just return the supported features in the response comp_mask field.
-
->> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/i=
-b_user_verbs.h
->> index 26daf55ff76e..ed8c3d9da42c 100644
->> --- a/include/uapi/rdma/ib_user_verbs.h
->> +++ b/include/uapi/rdma/ib_user_verbs.h
->> @@ -201,6 +202,15 @@ struct ib_uverbs_query_device_resp {
->>  	__u8  reserved[4];
->>  };
->> =20
->> +struct ib_uverbs_ex_query_device {
->> +	__u32 comp_mask;
+> The ib_umem_copy_from function allows reading data from the physical =
+pages
+> pinned in the ib_umem struct.
 >=20
-> _ex command buffer are supposed to be aligned on 64bit boundary.
-> You should add some padding at the end of the structure and add a che=
-ck
-> for it being 0.
-
-You're right. I will send an updated patch.
-
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/umem.c | 26 ++++++++++++++++++++++++++
+>  include/rdma/ib_umem.h         |  2 ++
+>  2 files changed, 28 insertions(+)
 >=20
->> +};
->> +
->> +struct ib_uverbs_ex_query_device_resp {
->> +	struct ib_uverbs_query_device_resp base;
->> +	__u32 comp_mask;
->> +};
->> +
->=20
-> _ex response buffer are supposed to be aligned on 64bit boundary:
-> you should probably add padding at the end of the structure and ensur=
-e
-> it's cleared before send it to userspace.
->=20
-> See commit f21519b23c1b ('IB/core: extended command: an improved
-> infrastructure for uverbs commands').
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core=
+/umem.c
+> index e0f883292374..77bec75963e7 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -292,3 +292,29 @@ int ib_umem_page_count(struct ib_umem *umem)
+>  	return n;
+>  }
+>  EXPORT_SYMBOL(ib_umem_page_count);
+> +
+> +/*
+> + * Copy from the given ib_umem's pages to the given buffer.
+> + *
+> + * umem - the umem to copy from
+> + * offset - offset to start copying from
+> + * dst - destination buffer
+> + * length - buffer length
+> + *
+> + * Returns the number of copied bytes, or an error code.
+> + */
+> +int ib_umem_copy_from(struct ib_umem *umem, size_t offset, void *dst=
+,
+> +		      size_t length)
 
-I will do that.
+I would prefer the arguments in the same order as ib_copy_from_udata()
 
-Thank you for reviewing the patch,
+int ib_umem_copy_from(void *dst,
+                      struct ib_umem *umem, size_t umem_offset,
+                      size_t length);
+=20
 
-Haggai
+> +{
+> +	size_t end =3D offset + length;
+> +
+> +	if (offset > umem->length || end > umem->length || end < offset) {
+> +		pr_err("ib_umem_copy_from not in range. offset: %zd umem length: %=
+zd end: %zd\n",
+> +		       offset, umem->length, end);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return sg_pcopy_to_buffer(umem->sg_head.sgl, umem->nmap, dst, lengt=
+h,
+> +			offset + ib_umem_offset(umem));
+> +}
+> +EXPORT_SYMBOL(ib_umem_copy_from);
+
+As the function return a "int", no more than INT_MAX bytes (likely 2^31
+- 1) can be copied. Perhaps changing the return type to to ssize_t woul=
+d
+be better (and a check to enfore ssize_t maximum value). Or change the
+function could return 0 in case of success or a error code, just like
+ib_copy_from_udata().
+
+> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+> index 7ed6d4ff58dc..ee897724cbf8 100644
+> --- a/include/rdma/ib_umem.h
+> +++ b/include/rdma/ib_umem.h
+> @@ -84,6 +84,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *con=
+text, unsigned long addr,
+>  			    size_t size, int access, int dmasync);
+>  void ib_umem_release(struct ib_umem *umem);
+>  int ib_umem_page_count(struct ib_umem *umem);
+> +int ib_umem_copy_from(struct ib_umem *umem, size_t start, void *dst,
+> +		      size_t length);
+> =20
+>  #else /* CONFIG_INFINIBAND_USER_MEM */
+> =20
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
