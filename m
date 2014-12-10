@@ -1,37 +1,74 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a device
-Date: Wed, 10 Dec 2014 09:52:15 +0200
-Message-ID: <CAJ3xEMhE+fzP3BRiMkbq1Zpedu8pKwezwrDFxf-wOPus2V6gWA@mail.gmail.com>
-References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
-	<1415908465-24392-4-git-send-email-ira.weiny@intel.com>
-	<54770F44.2090909@mellanox.com>
-	<2807E5FD2F6FDA4886F6618EAC48510E0CBD4F23@CRSMSX101.amr.corp.intel.com>
-	<CAJ3xEMj-0_0F+VoGZDes92ShFRTbt9Et4WWPt=viY5gx_P-oNg@mail.gmail.com>
-	<2807E5FD2F6FDA4886F6618EAC48510E0CBD7A97@CRSMSX101.amr.corp.intel.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 06/17] IB/core: Add support for extended query device
+ caps
+Date: Wed, 10 Dec 2014 09:20:58 +0200
+Message-ID: <5487F45A.4040403@mellanox.com>
+References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
+ <1415723783-2138-7-git-send-email-haggaie@mellanox.com>
+ <CAL1RGDXsYmWD2_ncMmRrMgAGn1bBaL9tNQ2mAYDG-kySF4037A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CBD7A97-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAL1RGDXsYmWD2_ncMmRrMgAGn1bBaL9tNQ2mAYDG-kySF4037A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 10, 2014 at 12:36 AM, Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> On Mon, Dec 8, 2014 at 2:23 AM, Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On 09/12/2014 23:43, Roland Dreier wrote:
+> I was getting ready to apply the ODP series, but then I noticed:
+> 
+> On Tue, Nov 11, 2014 at 8:36 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+>> index 71ab83fde472..974025028790 100644
+>> --- a/drivers/infiniband/core/uverbs_main.c
+>> +++ b/drivers/infiniband/core/uverbs_main.c
+>> @@ -122,7 +122,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+>>                                     struct ib_udata *ucore,
+>>                                     struct ib_udata *uhw) = {
+>>         [IB_USER_VERBS_EX_CMD_CREATE_FLOW]      = ib_uverbs_ex_create_flow,
+>> -       [IB_USER_VERBS_EX_CMD_DESTROY_FLOW]     = ib_uverbs_ex_destroy_flow
+>> +       [IB_USER_VERBS_EX_CMD_DESTROY_FLOW]     = ib_uverbs_ex_destroy_flow,
+>> +       [IB_USER_VERBS_EX_CMD_QUERY_DEVICE]     = ib_uverbs_ex_query_device
+>>  };
+>>
+>>  static void ib_uverbs_add_one(struct ib_device *device);
+> 
+>> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+>> index 26daf55ff76e..ed8c3d9da42c 100644
+>> --- a/include/uapi/rdma/ib_user_verbs.h
+>> +++ b/include/uapi/rdma/ib_user_verbs.h
+>> @@ -90,8 +90,9 @@ enum {
+>>  };
+>>
+>>  enum {
+>> +       IB_USER_VERBS_EX_CMD_QUERY_DEVICE = IB_USER_VERBS_CMD_QUERY_DEVICE,
+>>         IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
+>> -       IB_USER_VERBS_EX_CMD_DESTROY_FLOW
+>> +       IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
+>>  };
+> 
+> And this makes no sense to me.  I thought the whole point of "EX"
+> commands was to add then after IB_USER_VERBS_CMD_THRESHOLD.
+> 
+> In this case, if you make IB_USER_VERBS_EX_CMD_QUERY_DEVICE =
+> IB_USER_VERBS_CMD_QUERY_DEVICE then doesn't the entry in
+> uverbs_cmd_table[] for normal query device get overwritten with
+> ib_uverbs_ex_query_device()??
 
->> 1. add a struct ib_device_attr field to struct ib_device
->> 2. when the device registers itself with the IB core, go and run the
->> query_device verb with the param being pointer to that field
+That was my first thought as well, but a colleague pointed out that 
+ib_uverbs will decide whether to handle the command in the 
+uverbs_cmd_table[] or in the uverbs_ex_cmd_table[] based on whether 
+or not the IB_USER_VERBS_CMD_FLAG_EXTENDED bit in the command 
+opcode is on. (see ib_uverbs_write() for details, or the relevant 
+patch [1]). So there's actually no need for the extended verbs to 
+be above the threshold.
 
-> I see where you are going.  Then the MAD stack does not have to cache a "max_mad_size" value but rather looks in the ib_device structure "on the fly"...
-> So, something like the diff below?
+Haggai
 
-exactly, thanks.
-
-> What are the chances we end up with attributes which are not constant?
-
-I don't see how this can happen.
+[1] IB/core: extended command: an improved infrastructure for uverbs commands
+    http://www.spinics.net/lists/linux-rdma/msg17392.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
