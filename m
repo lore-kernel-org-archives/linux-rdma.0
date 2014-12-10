@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 01/10] IPoIB: Consolidate rtnl_lock tasks in workqueue
-Date: Wed, 10 Dec 2014 11:46:58 -0500
-Message-ID: <84fa20ea8c6763fee66b378adda1da52cd48e342.1418229671.git.dledford@redhat.com>
+Subject: [PATCH 05/10] IPoIB: change init sequence ordering
+Date: Wed, 10 Dec 2014 11:47:02 -0500
+Message-ID: <540b071b56bdc3b72d59e80707164da07243dc80.1418229671.git.dledford@redhat.com>
 References: <cover.1418229671.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,40 +12,87 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Setting the mtu can safely be moved to the carrier_on_task, which keeps
-us from needing to take the rtnl lock in the join_finish section.
+In preparation for using per device work queues, we need to move the
+start of the neighbor thread task to after ipoib_ib_dev_init and move
+the destruction of the neighbor task to before ipoib_ib_dev_cleanup.
+Otherwise we will end up freeing our workqueue with work possibly still
+on it.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index ffb83b5f7e8..eee66d13e5b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -190,12 +190,6 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
- 		spin_unlock_irq(&priv->lock);
- 		priv->tx_wr.wr.ud.remote_qkey = priv->qkey;
- 		set_qkey = 1;
--
--		if (!ipoib_cm_admin_enabled(dev)) {
--			rtnl_lock();
--			dev_set_mtu(dev, min(priv->mcast_mtu, priv->admin_mtu));
--			rtnl_unlock();
--		}
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 58b5aa3b6f2..2cf81ef5141 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1262,15 +1262,13 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 
+-	if (ipoib_neigh_hash_init(priv) < 0)
+-		goto out;
+ 	/* Allocate RX/TX "rings" to hold queued skbs */
+ 	priv->rx_ring =	kzalloc(ipoib_recvq_size * sizeof *priv->rx_ring,
+ 				GFP_KERNEL);
+ 	if (!priv->rx_ring) {
+ 		printk(KERN_WARNING "%s: failed to allocate RX ring (%d entries)\n",
+ 		       ca->name, ipoib_recvq_size);
+-		goto out_neigh_hash_cleanup;
++		goto out;
  	}
  
- 	if (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
-@@ -371,6 +365,8 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
- 	}
+ 	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
+@@ -1285,16 +1283,24 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	if (ipoib_ib_dev_init(dev, ca, port))
+ 		goto out_tx_ring_cleanup;
  
- 	rtnl_lock();
-+	if (!ipoib_cm_admin_enabled(priv->dev))
-+		dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
- 	netif_carrier_on(priv->dev);
- 	rtnl_unlock();
++	/*
++	 * Must be after ipoib_ib_dev_init so we can allocate a per
++	 * device wq there and use it here
++	 */
++	if (ipoib_neigh_hash_init(priv) < 0)
++		goto out_dev_uninit;
++
+ 	return 0;
+ 
++out_dev_uninit:
++	ipoib_ib_dev_cleanup();
++
+ out_tx_ring_cleanup:
+ 	vfree(priv->tx_ring);
+ 
+ out_rx_ring_cleanup:
+ 	kfree(priv->rx_ring);
+ 
+-out_neigh_hash_cleanup:
+-	ipoib_neigh_hash_uninit(dev);
+ out:
+ 	return -ENOMEM;
  }
+@@ -1317,6 +1323,12 @@ void ipoib_dev_cleanup(struct net_device *dev)
+ 	}
+ 	unregister_netdevice_many(&head);
+ 
++	/*
++	 * Must be before ipoib_ib_dev_cleanup or we delete an in use
++	 * work queue
++	 */
++	ipoib_neigh_hash_uninit(dev);
++
+ 	ipoib_ib_dev_cleanup(dev);
+ 
+ 	kfree(priv->rx_ring);
+@@ -1324,8 +1336,6 @@ void ipoib_dev_cleanup(struct net_device *dev)
+ 
+ 	priv->rx_ring = NULL;
+ 	priv->tx_ring = NULL;
+-
+-	ipoib_neigh_hash_uninit(dev);
+ }
+ 
+ static const struct header_ops ipoib_header_ops = {
 -- 
 2.1.0
 
