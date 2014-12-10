@@ -1,43 +1,53 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 00/10] IPoIB locking fixes and a couple minor other patches
-Date: Wed, 10 Dec 2014 11:46:57 -0500
-Message-ID: <cover.1418229671.git.dledford@redhat.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_perfmgr.c: Reset physp_discovered before discovery
+Date: Wed, 10 Dec 2014 12:29:17 -0500
+Message-ID: <548882ED.5000400@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, "Susan Coulter (skc-YOWKrPYUwWM@public.gmane.org)" <skc-YOWKrPYUwWM@public.gmane.org>, Florent Parent <florent.parent-hUdP7zcY/u2zFPF/XzyFIQ@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As the locking fixes have missed two releases now, I'm resending them.
-The other two items are minor (the pr_* function one at least makes
-the system more usable by making output message point to the module
-making all of the dmesg noise, the other is one I contend is the right
-thing to do until we have a replacement for the cache).
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-These can also be pulled from my github repo as:
+Bug description:
+When PerfMgr starts discovery, it resets the discovery_count of ports and
+node, but it doesn't reset the physp_discoved buffers.
+As a result, the drop manager frees osm_port_t and osm_physp_t objects
+of nodes without removing the nodes themselves.
+On the next discovery process, when OpenSM receives responses for
+NodeInfo from a switch, it treats it as a NodeInfo from an existing
+node and assumes that osm_physp_t objects of the switch exists and tries
+to access them.
 
-git://github.com/dledford/linux.git for-next
+This change adds code that clears the physp_discoverd buffers of all nodes
+at the beginning of the discovery process in PerfMgr.
 
-Bart Van Assche (1):
-  IB/srp: Use P_Key cache for P_Key lookups
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_perfmgr.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Doug Ledford (9):
-  IPoIB: Consolidate rtnl_lock tasks in workqueue
-  IPoIB: Make the carrier_on_task race aware
-  IPoIB: fix MCAST_FLAG_BUSY usage
-  IPoIB: fix mcast_dev_flush/mcast_restart_task race
-  IPoIB: change init sequence ordering
-  IPoIB: Use dedicated workqueues per interface
-  IPoIB: Make ipoib_mcast_stop_thread flush the workqueue
-  IPoIB: No longer use flush as a parameter
-  ib_srpt: convert printk's to pr_* functions
-
- drivers/infiniband/ulp/srp/ib_srp.c   |   9 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c | 188 ++++++++++++++++------------------
- 2 files changed, 96 insertions(+), 101 deletions(-)
-
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index 4ab654b..993fdb7 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -985,6 +985,9 @@ static void reset_node_count(cl_map_item_t * p_map_item, void *cxt)
+ {
+ 	osm_node_t *p_node = (osm_node_t *) p_map_item;
+ 	p_node->discovery_count = 0;
++
++	memset(p_node->physp_discovered, 0,
++	       sizeof(uint8_t) * p_node->physp_tbl_size);
+ }
+ 
+ static void reset_port_count(cl_map_item_t * p_map_item, void *cxt)
 -- 
-2.1.0
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
