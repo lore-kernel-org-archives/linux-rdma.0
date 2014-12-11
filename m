@@ -1,64 +1,103 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 04/17] IB/core: Add umem function to read data from
- user-space
-Date: Thu, 11 Dec 2014 15:48:10 +0100
-Message-ID: <1418309290.11111.108.camel@opteya.com>
-References: <1415723783-2138-1-git-send-email-haggaie@mellanox.com>
-	 <1415723783-2138-5-git-send-email-haggaie@mellanox.com>
-	 <1418228521.11111.50.camel@opteya.com> <54897B84.9000708@mellanox.com>
-	 <1418301590.11111.95.camel@opteya.com>
-	 <CAJ3xEMh-=wLD_FLxNaiDYofA4mOf+woep2PPmKDbY2-k9XBS+g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v3 01/17] IB/mlx5: Remove per-MR pas and dma pointers
+Date: Thu, 11 Dec 2014 17:04:10 +0200
+Message-ID: <1418310266-9584-2-git-send-email-haggaie@mellanox.com>
+References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMh-=wLD_FLxNaiDYofA4mOf+woep2PPmKDbY2-k9XBS+g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1418310266-9584-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or,
+Since UMR code now uses its own context struct on the stack, the pas and dma
+pointers for the UMR operation that remained in the mlx5_ib_mr struct are not
+necessary.  This patch removes them.
 
-Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 15:09 +0200, Or Gerlitz a =C3=A9c=
-rit :
-> On Thu, Dec 11, 2014 at 2:39 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>=
- wrote:
+Fixes: a74d24168d2d ("IB/mlx5: Refactor UMR to have its own context struct")
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 --
+ drivers/infiniband/hw/mlx5/mr.c      | 21 ++++++++++++---------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
-> > BTW, ib_copy_from_udata() is defined as an inline function. Would i=
-t be
-> > better to have ib_umem_copy_from() being an inline function too ?
-> > (In such case, I would remove the error message to not duplicate it
-> >  across all modules using the function)
->=20
-> Yann, Lets leave your 2nd comment to be addressed as future
-> cleanup/improvement. Really, these patches
-> are on the list for 7-8 moths and we were asking for feedback over al=
-l
-> this time, jumping now with inlining comments and such when the merge
-> window is just across the door isn't appropriate.
-
-Sure, I've no right and no power to delay or NACK anything: I'm just=20
-lazily following the list, and my involvement in InfiniBand/RDMA
-community is slowly dropping to 0, being involved in other (paid)=20
-projects, with some spike from time to time, waiting to find time to=20
-drain my patch queue. Unfortunately I'm not on the same schedule.
-
-Anyway, everyone is free to provide comments at anytime.
-And you're free to take them in account.
-
-It's a fact of kernel development: sometime a patchset take many months
-and multiple revision before being applied.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 386780f0d1e1..29da55222070 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -261,8 +261,6 @@ struct mlx5_ib_mr {
+ 	struct list_head	list;
+ 	int			order;
+ 	int			umred;
+-	__be64			*pas;
+-	dma_addr_t		dma;
+ 	int			npages;
+ 	struct mlx5_ib_dev     *dev;
+ 	struct mlx5_create_mkey_mbox_out out;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 8ee7cb46e059..610500810f75 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -740,6 +740,8 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	struct mlx5_ib_mr *mr;
+ 	struct ib_sge sg;
+ 	int size = sizeof(u64) * npages;
++	__be64 *mr_pas;
++	dma_addr_t dma;
+ 	int err = 0;
+ 	int i;
+ 
+@@ -758,25 +760,26 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	if (!mr)
+ 		return ERR_PTR(-EAGAIN);
+ 
+-	mr->pas = kmalloc(size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
+-	if (!mr->pas) {
++	mr_pas = kmalloc(size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
++	if (!mr_pas) {
+ 		err = -ENOMEM;
+ 		goto free_mr;
+ 	}
+ 
+ 	mlx5_ib_populate_pas(dev, umem, page_shift,
+-			     mr_align(mr->pas, MLX5_UMR_ALIGN), 1);
++			     mr_align(mr_pas, MLX5_UMR_ALIGN), 1);
+ 
+-	mr->dma = dma_map_single(ddev, mr_align(mr->pas, MLX5_UMR_ALIGN), size,
+-				 DMA_TO_DEVICE);
+-	if (dma_mapping_error(ddev, mr->dma)) {
++	dma = dma_map_single(ddev, mr_align(mr_pas, MLX5_UMR_ALIGN), size,
++			     DMA_TO_DEVICE);
++	if (dma_mapping_error(ddev, dma)) {
+ 		err = -ENOMEM;
+ 		goto free_pas;
+ 	}
+ 
+ 	memset(&wr, 0, sizeof(wr));
+ 	wr.wr_id = (u64)(unsigned long)&umr_context;
+-	prep_umr_reg_wqe(pd, &wr, &sg, mr->dma, npages, mr->mmr.key, page_shift, virt_addr, len, access_flags);
++	prep_umr_reg_wqe(pd, &wr, &sg, dma, npages, mr->mmr.key, page_shift,
++			 virt_addr, len, access_flags);
+ 
+ 	mlx5_ib_init_umr_context(&umr_context);
+ 	down(&umrc->sem);
+@@ -798,10 +801,10 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 
+ unmap_dma:
+ 	up(&umrc->sem);
+-	dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
++	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 
+ free_pas:
+-	kfree(mr->pas);
++	kfree(mr_pas);
+ 
+ free_mr:
+ 	if (err) {
+-- 
+1.7.11.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
