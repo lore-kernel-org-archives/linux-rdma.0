@@ -1,20 +1,28 @@
 From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 01/10] IPoIB: Consolidate rtnl_lock tasks in workqueue
-Date: Fri, 12 Dec 2014 14:02:23 +0000
-Message-ID: <F3529576D8E232409F431C309E2939930918C8A6@CRSMSX102.amr.corp.intel.com>
+Subject: RE: [PATCH 00/10] IPoIB locking fixes and a couple minor other
+ patches
+Date: Fri, 12 Dec 2014 14:01:29 +0000
+Message-ID: <F3529576D8E232409F431C309E2939930918C898@CRSMSX102.amr.corp.intel.com>
 References: <cover.1418229671.git.dledford@redhat.com>
- <84fa20ea8c6763fee66b378adda1da52cd48e342.1418229671.git.dledford@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <84fa20ea8c6763fee66b378adda1da52cd48e342.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Roland, Doug,
 
+I've looked into ipoib patch set (earlier posted one), also ran it on 3.17.
+I second it because ipoib locking fixes really straighten out multicast 
+initialization flow, and dedicated workqueue per interface is a great 
+improvement for overall ipoib stability and scalability.
+
+Thanks,
+Alex Estrin.
 
 > -----Original Message-----
 > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
@@ -22,46 +30,36 @@ List-Id: linux-rdma@vger.kernel.org
 > Sent: Wednesday, December 10, 2014 11:47 AM
 > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 > Cc: Doug Ledford
-> Subject: [PATCH 01/10] IPoIB: Consolidate rtnl_lock tasks in workqueue
+> Subject: [PATCH 00/10] IPoIB locking fixes and a couple minor other patches
 > 
-> Setting the mtu can safely be moved to the carrier_on_task, which keeps
-> us from needing to take the rtnl lock in the join_finish section.
+> As the locking fixes have missed two releases now, I'm resending them.
+> The other two items are minor (the pr_* function one at least makes
+> the system more usable by making output message point to the module
+> making all of the dmesg noise, the other is one I contend is the right
+> thing to do until we have a replacement for the cache).
 > 
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
-Acked-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
+> These can also be pulled from my github repo as:
 > 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index ffb83b5f7e8..eee66d13e5b 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -190,12 +190,6 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
->  		spin_unlock_irq(&priv->lock);
->  		priv->tx_wr.wr.ud.remote_qkey = priv->qkey;
->  		set_qkey = 1;
-> -
-> -		if (!ipoib_cm_admin_enabled(dev)) {
-> -			rtnl_lock();
-> -			dev_set_mtu(dev, min(priv->mcast_mtu, priv->admin_mtu));
-> -			rtnl_unlock();
-> -		}
->  	}
+> git://github.com/dledford/linux.git for-next
 > 
->  	if (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
-> @@ -371,6 +365,8 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
->  	}
+> Bart Van Assche (1):
+>   IB/srp: Use P_Key cache for P_Key lookups
 > 
->  	rtnl_lock();
-> +	if (!ipoib_cm_admin_enabled(priv->dev))
-> +		dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
->  	netif_carrier_on(priv->dev);
->  	rtnl_unlock();
->  }
+> Doug Ledford (9):
+>   IPoIB: Consolidate rtnl_lock tasks in workqueue
+>   IPoIB: Make the carrier_on_task race aware
+>   IPoIB: fix MCAST_FLAG_BUSY usage
+>   IPoIB: fix mcast_dev_flush/mcast_restart_task race
+>   IPoIB: change init sequence ordering
+>   IPoIB: Use dedicated workqueues per interface
+>   IPoIB: Make ipoib_mcast_stop_thread flush the workqueue
+>   IPoIB: No longer use flush as a parameter
+>   ib_srpt: convert printk's to pr_* functions
+> 
+>  drivers/infiniband/ulp/srp/ib_srp.c   |   9 +-
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 188 ++++++++++++++++------------------
+>  2 files changed, 96 insertions(+), 101 deletions(-)
+> 
 > --
 > 2.1.0
 > 
