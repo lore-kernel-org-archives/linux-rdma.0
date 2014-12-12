@@ -1,20 +1,18 @@
 From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 04/10] IPoIB: fix mcast_dev_flush/mcast_restart_task race
-Date: Fri, 12 Dec 2014 14:04:12 +0000
-Message-ID: <F3529576D8E232409F431C309E2939930918C8D6@CRSMSX102.amr.corp.intel.com>
+Subject: RE: [PATCH 02/10] IPoIB: Make the carrier_on_task race aware
+Date: Fri, 12 Dec 2014 14:02:47 +0000
+Message-ID: <F3529576D8E232409F431C309E2939930918C8B2@CRSMSX102.amr.corp.intel.com>
 References: <cover.1418229671.git.dledford@redhat.com>
- <fd20f0aae0dce26162aba317d2571e46bdbae919.1418229671.git.dledford@redhat.com>
+ <9da7866273a37e8927eb079d90c96074a118c5bd.1418229671.git.dledford@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fd20f0aae0dce26162aba317d2571e46bdbae919.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <9da7866273a37e8927eb079d90c96074a118c5bd.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-
 
 > -----Original Message-----
 > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
@@ -22,81 +20,56 @@ List-Id: linux-rdma@vger.kernel.org
 > Sent: Wednesday, December 10, 2014 11:47 AM
 > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 > Cc: Doug Ledford
-> Subject: [PATCH 04/10] IPoIB: fix mcast_dev_flush/mcast_restart_task race
+> Subject: [PATCH 02/10] IPoIB: Make the carrier_on_task race aware
 > 
-> Our mcast_dev_flush routine and our mcast_restart_task can race against
-> each other.  In particular, they both hold the priv->lock while
-> manipulating the rbtree and while removing mcast entries from the
-> multicast_list and while adding entries to the remove_list, but they
-> also both drop their locks prior to doing the actual removes.  The
-> mcast_dev_flush routine is run entirely under the rtnl lock and so has
-> at least some locking.  The actual race condition is like this:
-> 
-> Thread 1                                Thread 2
-> ifconfig ib0 up
->   start multicast join for broadcast
->   multicast join completes for broadcast
->   start to add more multicast joins
->     call mcast_restart_task to add new entries
->                                         ifconfig ib0 down
-> 					  mcast_dev_flush
-> 					    mcast_leave(mcast A)
->     mcast_leave(mcast A)
-> 
-> As mcast_leave calls ib_sa_multicast_leave, and as member in
-> core/multicast.c is ref counted, we run into an unbalanced refcount
-> issue.  To avoid stomping on each others removes, take the rtnl lock
-> specifically when we are deleting the entries from the remove list.
+> We blindly assume that we can just take the rtnl lock and that will
+> prevent races with downing this interface.  Unfortunately, that's not
+> the case.  In ipoib_mcast_stop_thread() we will call flush_workqueue()
+> in an attempt to clear out all remaining instances of ipoib_join_task.
+> But, since this task is put on the same workqueue as the join task, the
+> flush_workqueue waits on this thread too.  But this thread is deadlocked
+> on the rtnl lock.  The better thing here is to use trylock and loop on
+> that until we either get the lock or we see that FLAG_ADMIN_UP has
+> been cleared, in which case we don't need to do anything anyway and we
+> just return.
 > 
 > Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 Acked-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 37 ++++++++++++++++++++++----
->  1 file changed, 32 insertions(+), 5 deletions(-)
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21 +++++++++++++++------
+>  1 file changed, 15 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 > b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index a52c9f3f7e4..41325960e4e 100644
+> index eee66d13e5b..9862c76a83f 100644
 > --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 > +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -802,7 +802,10 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
+> @@ -353,18 +353,27 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+>  						   carrier_on_task);
+>  	struct ib_port_attr attr;
 > 
->  	spin_unlock_irqrestore(&priv->lock, flags);
+> -	/*
+> -	 * Take rtnl_lock to avoid racing with ipoib_stop() and
+> -	 * turning the carrier back on while a device is being
+> -	 * removed.
+> -	 */
+>  	if (ib_query_port(priv->ca, priv->port, &attr) ||
+>  	    attr.state != IB_PORT_ACTIVE) {
+>  		ipoib_dbg(priv, "Keeping carrier off until IB port is active\n");
+>  		return;
+>  	}
 > 
-> -	/* seperate between the wait to the leave*/
+> -	rtnl_lock();
 > +	/*
-> +	 * make sure the in-flight joins have finished before we attempt
-> +	 * to leave
-> +	 */
->  	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
->  		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
->  			wait_for_completion(&mcast->done);
-> @@ -923,14 +926,38 @@ void ipoib_mcast_restart_task(struct work_struct *work)
->  	netif_addr_unlock(dev);
->  	local_irq_restore(flags);
-> 
-> -	/* We have to cancel outside of the spinlock */
-> +	/*
-> +	 * make sure the in-flight joins have finished before we attempt
-> +	 * to leave
-> +	 */
-> +	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
-> +		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
-> +			wait_for_completion(&mcast->done);
-> +
-> +	/*
-> +	 * We have to cancel outside of the spinlock, but we have to
-> +	 * take the rtnl lock or else we race with the removal of
-> +	 * entries from the remove list in mcast_dev_flush as part
-> +	 * of ipoib_stop() which will call mcast_stop_thread with
-> +	 * flush == 1 while holding the rtnl lock, and the
-> +	 * flush_workqueue won't complete until this restart_mcast_task
-> +	 * completes.  So do like the carrier on task and attempt to
-> +	 * take the rtnl lock, but if we can't before the ADMIN_UP flag
-> +	 * goes away, then just return and know that the remove list will
-> +	 * get flushed later by mcast_dev_flush.
+> +	 * Take rtnl_lock to avoid racing with ipoib_stop() and
+> +	 * turning the carrier back on while a device is being
+> +	 * removed.  However, ipoib_stop() will attempt to flush
+> +	 * the workqueue while holding the rtnl lock, so loop
+> +	 * on trylock until either we get the lock or we see
+> +	 * FLAG_ADMIN_UP go away as that signals that we are bailing
+> +	 * and can safely ignore the carrier on work
 > +	 */
 > +	while (!rtnl_trylock()) {
 > +		if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
@@ -104,18 +77,9 @@ Acked-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > +		else
 > +			msleep(20);
 > +	}
->  	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
->  		ipoib_mcast_leave(mcast->dev, mcast);
->  		ipoib_mcast_free(mcast);
->  	}
-> -
-> -	if (test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
-> -		ipoib_mcast_start_thread(dev);
-> +	ipoib_mcast_start_thread(dev);
-> +	rtnl_unlock();
->  }
-> 
->  #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+>  	if (!ipoib_cm_admin_enabled(priv->dev))
+>  		dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
+>  	netif_carrier_on(priv->dev);
 > --
 > 2.1.0
 > 
