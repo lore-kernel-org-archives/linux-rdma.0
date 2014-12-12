@@ -1,47 +1,74 @@
-From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: positive or negative error values from vendor library for immediate
- errors?
-Date: Fri, 12 Dec 2014 13:56:31 +0200
-Message-ID: <548AD7EF.1030102@gmail.com>
-References: <EE7902D3F51F404C82415C4803930ACD51D6475F@CMEXMB1.ad.emulex.com>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 01/10] IPoIB: Consolidate rtnl_lock tasks in workqueue
+Date: Fri, 12 Dec 2014 14:02:23 +0000
+Message-ID: <F3529576D8E232409F431C309E2939930918C8A6@CRSMSX102.amr.corp.intel.com>
+References: <cover.1418229671.git.dledford@redhat.com>
+ <84fa20ea8c6763fee66b378adda1da52cd48e342.1418229671.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD51D6475F-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <84fa20ea8c6763fee66b378adda1da52cd48e342.1418229671.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Devesh.
 
-I wish that there was a header that maps the return errors to errno,
-to make things much more canonical. But currently we don't have it :(
 
-AFAIK, the guidelines is that kernel code returns negative values
-and userspace code should return positive values.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On
+> Behalf Of Doug Ledford
+> Sent: Wednesday, December 10, 2014 11:47 AM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: Doug Ledford
+> Subject: [PATCH 01/10] IPoIB: Consolidate rtnl_lock tasks in workqueue
+> 
+> Setting the mtu can safely be moved to the carrier_on_task, which keeps
+> us from needing to take the rtnl lock in the join_finish section.
+> 
+> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Thanks
-Dotan
+Acked-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On 08/12/2014 12:47, Devesh Sharma wrote:
-> Hello list,
->
-> While reviewing some the vendor library source I found that Mellanox and Pathscale user-space provider library returns positive error number if any immediate error is encountered.
-> However, other vendor user-space libraries return negative error numbers.
->
-> Is there any guideline on this topic. If not, what is the correct way to do this.
-> Taking reference of glibc implementation, I found that it expects negative integer as return value.
->
-> Any pointer/reference/guideline will be a great help.
->
-> -Regards
->   Devesh
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index ffb83b5f7e8..eee66d13e5b 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -190,12 +190,6 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+>  		spin_unlock_irq(&priv->lock);
+>  		priv->tx_wr.wr.ud.remote_qkey = priv->qkey;
+>  		set_qkey = 1;
+> -
+> -		if (!ipoib_cm_admin_enabled(dev)) {
+> -			rtnl_lock();
+> -			dev_set_mtu(dev, min(priv->mcast_mtu, priv->admin_mtu));
+> -			rtnl_unlock();
+> -		}
+>  	}
+> 
+>  	if (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
+> @@ -371,6 +365,8 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+>  	}
+> 
+>  	rtnl_lock();
+> +	if (!ipoib_cm_admin_enabled(priv->dev))
+> +		dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
+>  	netif_carrier_on(priv->dev);
+>  	rtnl_unlock();
+>  }
+> --
+> 2.1.0
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
