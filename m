@@ -1,864 +1,1634 @@
 From: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 3/3] dtestx: update IB extension example test with new v2.0.9 features
-Date: Mon, 15 Dec 2014 10:35:58 -0800
-Message-ID: <1418668558-695-4-git-send-email-arlin.r.davis@intel.com>
+Subject: [PATCH 2/3] dtest: add dtestsrq for SRQ example and provider testing
+Date: Mon, 15 Dec 2014 10:35:57 -0800
+Message-ID: <1418668558-695-3-git-send-email-arlin.r.davis@intel.com>
 References: <1418668558-695-1-git-send-email-arlin.r.davis@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1418668558-695-1-git-send-email-arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Amir Hanania <amir.hanania-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Add support for new IB extensions for CM and AH resource cleanup.
-Check for v2.0.9 and call dat_ib_ud_cm_free after connection
-establishment and dat_ib_ud_ah_free after all data has been
-transfered on UD endpoints.
-
-Also add socket based address exchange to eliminate the need
-to include lid and qpn parameters on the client side.
-
-Change the multiple EP mode to send from EP 0 to EP[0-3] on
-server side and EP[0-3] to EP[0-3] on client side.
+From: Amir Hanania <amir.hanania-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- test/dtest/dtestx.c |  581 +++++++++++++++++++++++++++++++++++++++------------
- 1 files changed, 451 insertions(+), 130 deletions(-)
+ test/dtest/dtestsrq.c | 1605 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 1605 insertions(+), 0 deletions(-)
+ create mode 100644 test/dtest/dtestsrq.c
 
-diff --git a/test/dtest/dtestx.c b/test/dtest/dtestx.c
-index 32ffe33..8b3294a 100755
---- a/test/dtest/dtestx.c
-+++ b/test/dtest/dtestx.c
-@@ -60,7 +60,7 @@
- #include <string.h>
- #include <unistd.h>
- 
--#define DAPL_PROVIDER "ofa-v2-ib0"
-+#define DAPL_PROVIDER "ofa-v2-mlx4_0-1u"
- #define F64x "%"PRIx64""
- #define F64u "%"PRIu64""
- 
-@@ -144,6 +144,7 @@ int disconnect_ep(void);
- #define SEND_BUF_INDEX		2
- #define RECV_BUF_INDEX		3
- #define MAX_EP_COUNT		8
-+#define MAX_AH_COUNT		(MAX_EP_COUNT * 2)
- 
- DAT_VADDR *atomic_buf;
- DAT_LMR_HANDLE lmr_atomic;
-@@ -174,16 +175,22 @@ int buf_size = BUF_SIZE;
- int msg_size = sizeof(DAT_RMR_TRIPLET);
- char provider[64] = DAPL_PROVIDER;
- char hostname[256] = { 0 };
--DAT_IB_ADDR_HANDLE remote_ah[MAX_EP_COUNT];
-+static DAT_IB_ADDR_HANDLE remote_ah[MAX_EP_COUNT][MAX_AH_COUNT];
- int eps = 1;
- int verbose = 0;
- int counters = 0;
- int counters_ok = 0;
- static int ucm = 0;
- static DAT_SOCK_ADDR6 remote;
-+static DAT_IA_ATTR ia_attr;
-+static DAT_PROVIDER_ATTR prov_attrs;
- 
- #define LOGPRINTF if (verbose) printf
- 
-+#define CONN_PORT 15828
-+#define CONN_MSG_SIZE 128
-+#define CONN_MSG_FMT "%04hx:%08x:%08x:%08x:%s"
+diff --git a/test/dtest/dtestsrq.c b/test/dtest/dtestsrq.c
+new file mode 100644
+index 0000000..2bc2596
+--- /dev/null
++++ b/test/dtest/dtestsrq.c
+@@ -0,0 +1,1605 @@
++/*
++ * Copyright (c) 2009 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ * $Id: $
++ */
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
 +
- void print_usage(void)
- {
- 	printf("\n dtestx usage \n\n");
-@@ -196,7 +203,7 @@ void print_usage(void)
- 	printf("h: hostname/address of Server, client and UDP server\n");
- 	printf("c: Client\n");
- 	printf("s: Server, default\n");
--	printf("P: provider name (default = ofa-v2-ib0)\n");
-+	printf("P: provider name (default = ofa-v2-mlx4_0-1u)\n");
- 	printf("\n");
- }
- 
-@@ -232,6 +239,265 @@ static void print_ia_address(struct sockaddr *sa)
- 	}
- }
- 
-+int conn_client_connect(const char *servername, int port)
++#ifdef DAPL_PROVIDER
++#undef DAPL_PROVIDER
++#endif
++
++#if defined(_WIN32) || defined(_WIN64)
++
++#include <windows.h>
++#include <winsock2.h>
++#include <ws2tcpip.h>
++#include <io.h>
++#include <process.h>
++#include <complib/cl_types.h>
++#include "..\..\..\..\etc\user\getopt.c"
++
++#define getpid() ((int)GetCurrentProcessId())
++#define F64x "%I64x"
++#define F64d "%I64d"
++
++#ifdef DBG
++#define DAPL_PROVIDER "ibnic0v2d"
++#else
++#define DAPL_PROVIDER "ibnic0v2"
++#endif
++
++#define ntohll _byteswap_uint64
++#define htonll _byteswap_uint64
++
++#else // _WIN32 || _WIN64
++
++#include <endian.h>
++#include <byteswap.h>
++#include <netdb.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <sys/time.h>
++#include <netinet/in.h>
++#include <netinet/tcp.h>
++#include <arpa/inet.h>
++#include <sys/mman.h>
++#include <getopt.h>
++#include <inttypes.h>
++#include <unistd.h>
++#include <stdlib.h>
++
++#define DAPL_PROVIDER "ofa-v2-ib0"
++
++#define F64x "%"PRIx64""
++#define F64d "%"PRId64""
++
++
++#if __BYTE_ORDER == __BIG_ENDIAN
++#define htonll(x) (x)
++#define ntohll(x) (x)
++#elif __BYTE_ORDER == __LITTLE_ENDIAN
++#define htonll(x)  bswap_64(x)
++#define ntohll(x)  bswap_64(x)
++#endif
++
++#endif // _WIN32 || _WIN64
++
++/* Header files needed for DAT/uDAPL */
++#include "dat2/udat.h"
++#include "dat2/dat_ib_extensions.h"
++
++/* definitions */
++#define SERVER_CONN_QUAL	45248
++#define CONN_TIMEOUT		(1000*1000*100)
++#define DTO_TIMEOUT		(1000*1000*5)
++#define CR_TIMEOUT		DAT_TIMEOUT_INFINITE
++#define MAX_CONN		100
++#define MAX_BURST		100
++#define MSG_IOV_COUNT		1
++
++/* Global DAT vars */
++static DAT_IA_HANDLE h_ia = DAT_HANDLE_NULL;
++static DAT_PZ_HANDLE h_pz = DAT_HANDLE_NULL;
++static DAT_SRQ_HANDLE h_srq = DAT_HANDLE_NULL;
++static DAT_CR_HANDLE h_cr = DAT_HANDLE_NULL;
++static DAT_PSP_HANDLE h_psp = DAT_HANDLE_NULL;
++static DAT_IB_ADDR_HANDLE *remote_ah = DAT_HANDLE_NULL;
++static DAT_EP_HANDLE *h_ep;
++
++static DAT_EVD_HANDLE h_async_evd = DAT_HANDLE_NULL;
++static DAT_EVD_HANDLE h_dto_req_evd = DAT_HANDLE_NULL;
++static DAT_EVD_HANDLE h_dto_rcv_evd = DAT_HANDLE_NULL;
++static DAT_EVD_HANDLE h_cr_evd = DAT_HANDLE_NULL;
++static DAT_EVD_HANDLE h_conn_evd = DAT_HANDLE_NULL;
++
++static DAT_EP_ATTR ep_attr;
++char hostname[256] = { 0 };
++char provider[64] = DAPL_PROVIDER;
++char addr_str[INET_ADDRSTRLEN];
++
++int status;
++
++/* defaults */
++static int server = 1;
++static int verbose = 0;
++static int connections = 1;
++static int bursts_number =  3;
++static int burst_size = 1;
++static int server_port_id = SERVER_CONN_QUAL;
++static int client_port_id = SERVER_CONN_QUAL + 1;
++static int ucm = 0;
++static int ud_test = 0;
++static int srq_test = 1;
++
++/* RDMA buffers */
++static DAT_LMR_HANDLE h_lmr_send = DAT_HANDLE_NULL;
++static DAT_LMR_HANDLE h_lmr_recv = DAT_HANDLE_NULL;
++static DAT_LMR_CONTEXT lmr_context_send;
++static DAT_LMR_CONTEXT lmr_context_recv;
++static DAT_RMR_CONTEXT rmr_context_send;
++static DAT_RMR_CONTEXT rmr_context_recv;
++static DAT_VLEN registered_size_send;
++static DAT_VLEN registered_size_recv;
++static DAT_VADDR registered_addr_send;
++static DAT_VADDR registered_addr_recv;
++
++static int tx_buf_len = 0, rx_buf_len;
++static int connected = 0;
++char *rbuf = NULL;
++char *sbuf = NULL;
++static DAT_SOCK_ADDR6 remote;
++
++/* forward prototypes */
++const char *DT_RetToString(DAT_RETURN ret_value);
++const char *DT_EventToSTr(DAT_EVENT_NUMBER event_code);
++void print_usage(void);
++void flush_evds(void);
++static void print_ia_address(struct sockaddr *sa);
++DAT_RETURN conn_client(void);
++DAT_RETURN conn_server(void);
++DAT_RETURN disconnect_eps(void);
++DAT_RETURN create_events(void);
++DAT_RETURN destroy_events(void);
++DAT_RETURN register_rdma_memory(void);
++void unregister_rdma_memory(void);
++DAT_RETURN send_msg(char *buff, char msg_head, DAT_UINT32 ep_num, DAT_UINT32 msg_num);
++DAT_RETURN process_cr(void);
++DAT_RETURN process_conn(void);
++#define LOGPRINTF if (verbose) printf
++
++int main(int argc, char **argv)
 +{
++	int i, j, c, ep_post_num;
++	DAT_RETURN ret;
++	DAT_IA_ATTR ia_attr;
++	DAT_SRQ_ATTR srq_attr;
++	DAT_DTO_COOKIE cookie;
++	DAT_LMR_TRIPLET l_iov;
++	DAT_COUNT nmore;
++	DAT_EVENT event;
++	int tx_before = 0, ep_num, b_num, ib_mtu = 0;
++	char *snd_buf;
++	char *rcv_buf, *msg_buf;
++	char incoming_header, recv_expected_header;
++	DAT_UINT32 incoming_ep_num, incoming_msg_num;
++	DAT_UINT32 *last_msg_num_from_ep;
++	DAT_UINT64 recv_buf_index;
++	DAT_PROVIDER_ATTR pr_attr;
 +
-+	struct addrinfo *res, *t;
-+	struct addrinfo hints = {
-+		.ai_family   = AF_UNSPEC,
-+		.ai_socktype = SOCK_STREAM
-+	};
-+	char *service;
-+	int n;
-+	int sockfd = -1;
-+
-+	if (asprintf(&service, "%d", port) < 0)
-+		return -1;
-+
-+	n = getaddrinfo(servername, service, &hints, &res);
-+
-+	if (n < 0) {
-+		fprintf(stderr, "%s for %s:%d\n",
-+			gai_strerror(n), servername, port);
-+		return n;
-+	}
-+
-+	for (t = res; t; t = t->ai_next) {
-+		sockfd = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
-+		if (sockfd >= 0) {
-+			if (!connect(sockfd, t->ai_addr, t->ai_addrlen))
-+				break;
-+			close(sockfd);
-+			sockfd = -1;
++	/* parse arguments */
++	while ((c = getopt(argc, argv, "svuB:c:t:h:P:p:q:l:b:S:")) != -1) {
++		switch (c) {
++		case 's':
++			server = 1;
++			break;
++		case 'v':
++			verbose = 1;
++			fflush(stdout);
++			break;
++		case 'c':
++			connections = atoi(optarg);
++			if (connections > MAX_CONN) {
++				printf("Too many connections. Max %d.\n",
++					MAX_CONN);
++				exit(-12);
++			}
++			break;
++		case 'b':
++			tx_buf_len = atoi(optarg);
++			if (tx_buf_len <= 0) {
++				printf(" Buffer size need to be positive\n");
++				exit(-12);
++			}
++			break;
++		case 't':
++			bursts_number = atoi(optarg);
++			if (bursts_number < 0) {
++				printf("Bursts number (%d) can't be negative.\n",
++					bursts_number);
++				exit(-12);
++			}
++			break;
++		case 'p':
++			server_port_id = atoi(optarg);
++			client_port_id = server_port_id + 1;
++			break;
++		case 'S':
++			srq_test = atoi(optarg);
++			break;
++		case 'B':
++			burst_size = atoi(optarg);
++			if (burst_size > MAX_BURST) {
++				printf("Burst size is too big. Max %d\n",
++					MAX_BURST);
++				exit(-12);
++			}
++			break;
++		case 'h':
++			server = 0;
++			strcpy(hostname, optarg);
++			break;
++		case 'P':
++			strcpy(provider, optarg);
++			break;
++		case 'q':
++			/* map UCM qpn into AF_INET6 sin6_flowinfo */
++			remote.sin6_family = AF_INET6;
++			remote.sin6_flowinfo = htonl(strtol(optarg,NULL,0));
++			ucm = 1;
++			server = 0;
++			break;
++		case 'l':
++			/* map UCM lid into AF_INET6 sin6_port */
++			remote.sin6_family = AF_INET6;
++			remote.sin6_port = htons(strtol(optarg,NULL,0));
++			ucm = 1;
++			server = 0;
++			break;
++		case 'u':
++			ud_test = 1;
++			break;
++	default:
++			print_usage();
++			exit(-12);
 +		}
 +	}
 +
-+	freeaddrinfo(res);
++#if defined(_WIN32) || defined(_WIN64)
++	{
++		WSADATA wsaData;
 +
-+	if (sockfd < 0) {
-+		fprintf(stderr, "Couldn't connect to %s:%d\n",
-+			servername, port);
-+		return sockfd;
-+	}
-+	return sockfd;
-+}
-+
-+int conn_server_connect(int port)
-+{
-+	struct addrinfo *res, *t;
-+	struct addrinfo hints = {
-+		.ai_flags    = AI_PASSIVE,
-+		.ai_family   = AF_UNSPEC,
-+		.ai_socktype = SOCK_STREAM
-+	};
-+	char *service;
-+	int sockfd = -1, connfd;
-+	int n;
-+
-+	if (asprintf(&service, "%d", port) < 0)
-+		return -1;
-+
-+	n = getaddrinfo(NULL, service, &hints, &res);
-+
-+	if (n < 0) {
-+		fprintf(stderr, "%s for port %d\n", gai_strerror(n), port);
-+		return n;
-+	}
-+
-+	for (t = res; t; t = t->ai_next) {
-+		sockfd = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
-+		if (sockfd >= 0) {
-+			n = 1;
-+
-+			setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &n,
-+				   sizeof n);
-+
-+			if (!bind(sockfd, t->ai_addr, t->ai_addrlen))
-+				break;
-+
-+			close(sockfd);
-+			sockfd = -1;
++		i = WSAStartup(MAKEWORD(2, 2), &wsaData);
++		if (i != 0) {
++			printf("%s WSAStartup(2.2) failed? (0x%x)\n", argv[0],
++			       i);
++			fflush(stdout);
++			exit(1);
 +		}
 +	}
++#endif
 +
-+	freeaddrinfo(res);
++	printf(" Running %s %s test as %s on %s with %d connections,"
++		" %d burst%s of %d messages\n", ud_test ? "UD":"RC",
++		srq_test ? "SRQ":"none SRQ",
++		server ? "SERVER:" : "CLIENT:", provider, connections,
++		bursts_number, bursts_number> 1 ? "s" : "", burst_size);
++	fflush(stdout);
 +
-+	if (sockfd < 0) {
-+		fprintf(stderr, "Couldn't listen to port %d\n", port);
-+		return sockfd;
++	/* allocate EP handles for all connections */
++	h_ep = (DAT_EP_HANDLE*)malloc(connections * sizeof(DAT_EP_HANDLE));
++	if (h_ep == NULL) {
++		perror("malloc ep");
++		exit(1);
++	}
++	memset(h_ep, 0, (connections * sizeof(DAT_EP_HANDLE)));
++
++	if (ud_test) {
++		remote_ah = (DAT_IB_ADDR_HANDLE*)malloc(connections * sizeof(DAT_IB_ADDR_HANDLE));
++		if (remote_ah == NULL) {
++			perror("malloc remote ah");
++			exit(1);
++		}
++		memset(remote_ah, 0, connections * sizeof(DAT_IB_ADDR_HANDLE));
 +	}
 +
-+	listen(sockfd, 1);
-+	connfd = accept(sockfd, NULL, 0);
-+	if (connfd < 0) {
-+		perror("server accept");
-+		fprintf(stderr, "accept() failed\n");
-+		close(sockfd);
-+		return connfd;
++	/* Save last message number for each ep */
++	last_msg_num_from_ep = malloc(connections * sizeof(DAT_UINT32));
++	if (last_msg_num_from_ep == NULL) {
++		perror("malloc last_msg_num_from_ep");
++		exit(1);
++	}
++	memset(last_msg_num_from_ep, 0, (connections * sizeof(DAT_UINT32)));
++
++	/* dat_ia_open, dat_pz_create */
++	h_async_evd = DAT_HANDLE_NULL;
++	ret = dat_ia_open(provider, 8, &h_async_evd, &h_ia);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error Adaptor open: %s\n",
++			DT_RetToString(ret));
++		exit(1);
++	} else
++		LOGPRINTF(" Opened Interface Adaptor %p\n", h_ia);
++
++	/* query for UCM addressing */
++	ret = dat_ia_query(h_ia, 0, DAT_IA_FIELD_ALL, &ia_attr,
++			   DAT_PROVIDER_FIELD_PROVIDER_SPECIFIC_ATTR,
++			   &pr_attr);
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Err Adaptor query: %s\n", DT_RetToString(ret));
++		exit(1);
 +	}
 +
-+	close(sockfd);
-+	return connfd;
-+}
-+
-+static int get_server_params(struct sockaddr *my_sa)
-+{
-+	int connfd, parsed;
-+	in_port_t ser_lid = 0;
-+	uint32_t scope_id = 0, ser_qpn = 0, ser_scope_id = 0, ser_sin_addr = 0;
-+	struct in_addr sin_addr;	/* Internet address.  */
-+	char msg[CONN_MSG_SIZE];
-+
-+	connfd = conn_client_connect(hostname, CONN_PORT);
-+	if (connfd < 0) {
-+		fprintf(stderr, "%d Could not connect to %s\n",
-+			getpid(), hostname);
-+		return -1;
-+	}
-+
-+	if (read(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "%d Couldn't read remote address\n", getpid());
-+		return -1;
-+	}
-+
-+	parsed = sscanf(msg, CONN_MSG_FMT, &ser_lid, &ser_qpn, &ser_scope_id,
-+			&ser_sin_addr, provider);
-+
-+	if (parsed != 5) {
-+		fprintf(stderr, "%d Couldn't parse line <%.*s>\n",
-+			getpid(), (int)sizeof msg, msg);
-+		return -1;
-+	}
-+
-+	if (ser_sin_addr) {
-+		sin_addr.s_addr = ser_sin_addr;
-+		inet_ntop(AF_INET, &sin_addr, hostname, INET6_ADDRSTRLEN);
-+		LOGPRINTF("%d remote data: provider %s hostname %s\n",
-+			  getpid(), provider, hostname);
-+	} else if (ser_lid && ser_qpn) {
-+		remote.sin6_family = AF_INET6;
-+		remote.sin6_port = ser_lid;
-+		remote.sin6_flowinfo = ser_qpn;
-+		remote.sin6_scope_id = ntohl(ser_scope_id);
-+		ucm = 1;
-+		LOGPRINTF("%d remote data: provider %s Client QPN 0x%x,"
-+			  " LID = 0x%x, scope_id 0x%x\n",
-+			  getpid(), provider, ntohl(ser_qpn), ntohs(ser_lid),
-+			  ntohl(ser_scope_id));
-+	} else {
-+		fprintf(stderr, "%d No valid data was received"
-+			" from the server\n",
-+			getpid());
-+		return -1;
-+	}
-+
-+	/* send client addr back to server */
-+	if (my_sa->sa_family == AF_INET6) {
-+		ser_qpn = ((struct sockaddr_in6 *)my_sa)->sin6_flowinfo;
-+		ser_lid = ((struct sockaddr_in6 *)my_sa)->sin6_port;
-+		scope_id = htonl(((struct sockaddr_in6 *)my_sa)->sin6_scope_id);
-+		LOGPRINTF("%d Client data to server: provider %s QPN 0x%x LID"
-+			  " = 0x%x SCCOPE_ID 0x%x\n",
-+			  getpid(), provider, ntohl(ser_qpn), ntohs(ser_lid),
-+			  ntohl(scope_id));
-+	} else if (my_sa->sa_family == AF_INET) {
-+		ser_sin_addr = ((struct sockaddr_in *)my_sa)->sin_addr.s_addr;
-+		LOGPRINTF("%d Server data to client: provider %s SIN_ADDR"
-+			  " 0x%x\n", getpid(), provider, ser_sin_addr);
-+	}
-+
-+	sprintf(msg, CONN_MSG_FMT, ser_lid, ser_qpn, scope_id,
-+		ser_sin_addr, provider);
-+	if (write(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "%d Couldn't send data", getpid());
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+static int send_server_params(struct sockaddr *ser_sa)
-+{
-+	in_port_t ser_lid = 0;
-+	uint32_t scope_id = 0, ser_qpn = 0, ser_scope_id = 0, ser_sin_addr = 0;
-+	int parsed, connfd;
-+	struct in_addr sin_addr;	/* Internet address.  */
-+	char msg[CONN_MSG_SIZE];
-+
-+	if (!ser_sa) {
-+		printf("%d no address\n", getpid());
-+		return -1;
-+	}
-+
-+	if (ser_sa->sa_family == AF_INET6) {
-+		ser_qpn = ((struct sockaddr_in6 *)ser_sa)->sin6_flowinfo;
-+		ser_lid = ((struct sockaddr_in6 *)ser_sa)->sin6_port;
-+		scope_id =
-+			htonl(((struct sockaddr_in6 *)ser_sa)->sin6_scope_id);
-+		LOGPRINTF("%d Server data to client: provider %s QPN 0x%x LID"
-+			  " = 0x%x SCCOPE_ID 0x%x\n",
-+			  getpid(), provider, ntohl(ser_qpn), ntohs(ser_lid),
-+			  ntohl(scope_id));
-+	} else if (ser_sa->sa_family == AF_INET) {
-+		ser_sin_addr = ((struct sockaddr_in *)ser_sa)->sin_addr.s_addr;
-+		LOGPRINTF("%d Server data to client: provider %s SIN_ADDR"
-+			  " 0x%x\n",
-+			  getpid(), provider, ser_sin_addr);
-+	}
-+
-+	connfd = conn_server_connect(CONN_PORT);
-+	if (connfd < 0) {
-+		fprintf(stderr, "%d Failed to connect to client\n", getpid());
-+		return -1;
-+	}
-+
-+	sprintf(msg, CONN_MSG_FMT, ser_lid, ser_qpn, scope_id,
-+		ser_sin_addr, provider);
-+	if (write(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "%d Couldn't send data", getpid());
-+		return -1;
-+	}
-+
-+	ser_lid = ser_qpn = ser_scope_id = ser_sin_addr = 0;
-+
-+	/* get remote address from Client */
-+	if (read(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "%d Couldn't read remote address\n", getpid());
-+		return -1;
-+	}
-+
-+	parsed = sscanf(msg, CONN_MSG_FMT, &ser_lid, &ser_qpn, &ser_scope_id,
-+			&ser_sin_addr, provider);
-+
-+	if (parsed != 5) {
-+		fprintf(stderr, "%d Couldn't parse line <%.*s>\n",
-+			getpid(), (int)sizeof msg, msg);
-+		return -1;
-+	}
-+
-+	if (ser_sin_addr) {
-+		sin_addr.s_addr = ser_sin_addr;
-+		inet_ntop(AF_INET, &sin_addr, hostname, INET6_ADDRSTRLEN);
-+		LOGPRINTF("%d remote data: provider %s hostname %s\n",
-+			  getpid(), provider, hostname);
-+	} else if (ser_lid && ser_qpn) {
-+		remote.sin6_family = AF_INET6;
-+		remote.sin6_port = ser_lid;
-+		remote.sin6_flowinfo = ser_qpn;
-+		remote.sin6_scope_id = ntohl(ser_scope_id);
-+		ucm = 1;
-+		LOGPRINTF("%d remote data: provider %s Client QPN 0x%x,"
-+			  " LID = 0x%x, scope_id 0x%x\n",
-+			  getpid(), provider, ntohl(ser_qpn), ntohs(ser_lid),
-+			  ntohl(ser_scope_id));
-+	} else {
-+		fprintf(stderr, "%d No valid data was received"
-+			" from the server\n",
-+			getpid());
-+		return -1;
-+	}
-+	return 0;
-+}
-+
- void
- send_msg(void *data,
- 	 DAT_COUNT size,
-@@ -253,27 +519,28 @@ send_msg(void *data,
- 	for (i = 0; i < eps; i++) {
- 		if (ud_test) {
- 			/* 
--			 * Client and Server: ep[0] and ah[0] on single 
--			 * and ep[i] on multiple (-m) endpoint options. 
-+			 * single QP - ep[0] and ah[0] for client and server
-+			 * multi QP  - ep[i]->ah[i] for client, to 0
-+			 *             ep[0]->ah[i] for server, to all
- 			 */
- 			if (multi_eps) {
--				ep_idx = i;
--				ah_idx = server ? 0 : i;
-+				ah_idx = i;
-+				if (!server)
-+					ep_idx = i;
- 			}
--			printf("%s sending on ep=%p to remote_ah: ah=%p"
--			       " qpn=0x%x addr=%s\n",
--			       server ? "Server" : "Client", ep[ep_idx],
--			       remote_ah[ah_idx].ah,
--			       remote_ah[ah_idx].qpn,
--			       inet_ntoa(((struct sockaddr_in *)
--					  &remote_ah[ah_idx].ia_addr)->
--					 sin_addr));
-+
-+			printf("%s send on ep=%p -> remote_ah[%d][%d]: ah=%p"
-+			       " qpn=0x%x\n",
-+			       server ? "Server" : "Client",
-+			       ep[ep_idx], ep_idx, ah_idx,
-+			       remote_ah[ep_idx][ah_idx].ah,
-+			       remote_ah[ep_idx][ah_idx].qpn);
- 
- 			/* client expects all data in on first EP */
- 			status = dat_ib_post_send_ud(ep[ep_idx],
- 						     1,
- 						     &iov,
--						     &remote_ah[ah_idx],
-+						     &remote_ah[ep_idx][ah_idx],
- 						     cookie, flags);
- 
- 		} else {
-@@ -356,9 +623,9 @@ void process_conn(int idx)
- 	DAT_EVENT event;
- 	DAT_COUNT nmore;
- 	DAT_RETURN status;
--	int pdata, exp_event;
-+	int i, ep_r = 0, ep_l = 0, exp_event;
- 	DAT_IB_EXTENSION_EVENT_DATA *ext_event = (DAT_IB_EXTENSION_EVENT_DATA *)
--	    & event.event_extension_data[0];
-+	    &event.event_extension_data[0];
- 	DAT_CONNECTION_EVENT_DATA *conn_event =
- 	    &event.event_data.connect_event_data;
- 
-@@ -379,9 +646,7 @@ void process_conn(int idx)
- 		exp_event = DAT_CONNECTION_EVENT_ESTABLISHED;
- 
- 	/* Waiting on CR's or CONN_EST */
--	if (event.event_number != exp_event ||  
--	    (ud_test && event.event_number !=
--		DAT_IB_UD_CONNECTION_EVENT_ESTABLISHED)) {
-+	if (event.event_number != exp_event) {
- 		printf("unexpected event, !conn established: 0x%x\n",
- 		event.event_number);
- 		exit(1);
-@@ -391,39 +656,64 @@ void process_conn(int idx)
- 	if (!ud_test)
- 		return;
- 
--	/* store each remote_ah according to remote EP index */
--	pdata = ntoh32(*((int *)conn_event->private_data));
--	LOGPRINTF(" Client got private data=0x%x\n", pdata);
-+	/* Initialize local EP index */
-+	for (i=0;i<eps;i++) {
-+		if (ep[i] == conn_event->ep_handle) {
-+			ep_l = i;
++	/* Set tx_buf_len to IB_MTU if it was not specified by the user */
++	for (i = 0; i < pr_attr.num_provider_specific_attr; i++) {
++		if (!strcmp (pr_attr.provider_specific_attr[i].name,
++			    "DAT_IB_TRANSPORT_MTU"))
++		{
++			ib_mtu = atoi(pr_attr.provider_specific_attr[i].value);
 +			break;
 +		}
 +	}
 +
-+	LOGPRINTF(" Client got private data: ep_idx = %d\n", ep_r);
- 
--	/* UD, get AH for sends. 
-+	/* UD, save AH for sends, active side only
- 	 * NOTE: bi-directional AH resolution results in a CONN_EST
- 	 * for both outbound connect and inbound CR.
--	 * Use Active CONN_EST which includes server's CR
--	 * pdata for remote_ah idx to send on and ignore PASSIVE CONN_EST.
-+	 * Active pdata includes remote_ah EP idx.
- 	 *
- 	 * DAT_IB_UD_PASSIVE_REMOTE_AH == passive side CONN_EST
- 	 * DAT_IB_UD_REMOTE_AH == active side CONN_EST
- 	 */
- 	if (ext_event->type == DAT_IB_UD_REMOTE_AH) {
--		remote_ah[pdata] = ext_event->remote_ah;
--		printf("remote_ah[%d]: ah=%p, qpn=0x%x "
--		       "addr=%s\n",
--		       pdata, remote_ah[pdata].ah,
--		       remote_ah[pdata].qpn, inet_ntoa(((struct sockaddr_in *)
--							&remote_ah[pdata].
--							ia_addr)->sin_addr));
--
--	} else if (ext_event->type != DAT_IB_UD_PASSIVE_REMOTE_AH) {
--		printf("unexpected UD ext_event type: 0x%x\n", ext_event->type);
-+		ep_r = ntoh32(*((int *)conn_event->private_data));
-+
-+		/* AH exists for this remote EP, FREE if provider supports */
-+		if (remote_ah[ep_l][ep_r].ah &&
-+		    ia_attr.extension_version >= 209)
-+			dat_ib_ud_ah_free(ep[ep_l], &ext_event->remote_ah);
-+		else
-+			remote_ah[ep_l][ep_r] = ext_event->remote_ah;
-+
-+		printf("CONNECT EP_L[%d]=%p (%p) -> remote_ah[%d][%d]: ah=%p,"
-+		       "qpn=0x%x cm_ctx %p %lu\n",
-+		       ep_l, ep[ep_l], conn_event->ep_handle, ep_l, ep_r,
-+		       remote_ah[ep_l][ep_r].ah, remote_ah[ep_l][ep_r].qpn,
-+		       ext_event->context.as_ptr, sizeof(*ext_event));
-+
-+	} else if (ext_event->type == DAT_IB_UD_PASSIVE_REMOTE_AH) {
-+		if (ia_attr.extension_version >= 209) {
-+			LOGPRINTF("PASSIVE EP_L[%d]=%p -> remote_ah %p qpn %d"
-+				  " AH_FREE\n",
-+				  ep_l, ep[ep_l], ext_event->remote_ah.ah,
-+				  ext_event->remote_ah.qpn);
-+			dat_ib_ud_ah_free(ep[ep_l], &ext_event->remote_ah);
++	if (ud_test) {
++		if (!ib_mtu) {
++			fprintf(stderr, " Error: ud test: IB_MTU was not found"
++				" in provider attr\n");
++			exit(1);
 +		}
-+	} else {
-+		printf("wrong UD ext_event type: 0x%x\n", ext_event->type);
- 		exit(1);
- 	}
-+
-+	if (ia_attr.extension_version >= 209) {
-+		/* Destroy CM resources for AH resolution */
-+		dat_ib_ud_cm_free(ep[ep_l], ext_event->context.as_ptr);
-+	}
-+
- }
- 
--int connect_ep(char *hostname)
-+int connect_ep(char *hostname, struct sockaddr *ser_sa)
- {
- 	DAT_IA_ADDRESS_PTR remote_addr = (DAT_IA_ADDRESS_PTR)&remote;
- 	DAT_EP_ATTR ep_attr;
--	DAT_IA_ATTR ia_attr;
- 	DAT_RETURN status;
- 	DAT_REGION_DESCRIPTION region;
- 	DAT_EVENT event;
-@@ -434,40 +724,9 @@ int connect_ep(char *hostname)
- 	DAT_CONN_QUAL conn_qual;
- 	DAT_BOOLEAN in, out;
- 	int i, ii, pdata, ctx;
--	DAT_PROVIDER_ATTR prov_attrs;
- 	DAT_DTO_COMPLETION_EVENT_DATA *dto_event =
- 	    &event.event_data.dto_completion_event_data;
- 
--	status = dat_ia_open(provider, 8, &async_evd, &ia);
--	_OK(status, "dat_ia_open");
--
--	memset(&prov_attrs, 0, sizeof(prov_attrs));
--	status = dat_ia_query(ia, NULL, 
--			      DAT_IA_FIELD_ALL, &ia_attr,
--			      DAT_PROVIDER_FIELD_ALL, &prov_attrs);
--	_OK(status, "dat_ia_query");
--
--	print_ia_address(ia_attr.ia_address_ptr);
--
--	if (ucm && ud_test) {
--		printf("%d UD test over UCM provider not supported\n",
--			getpid());
--		exit(1);
--	}
--
--	/* Print provider specific attributes */
--	for (i = 0; i < prov_attrs.num_provider_specific_attr; i++) {
--		LOGPRINTF(" Provider Specific Attribute[%d] %s=%s\n",
--			  i, prov_attrs.provider_specific_attr[i].name,
--			  prov_attrs.provider_specific_attr[i].value);
--
--		/* check for counter support */
--		status = strcmp(prov_attrs.provider_specific_attr[i].name,
--				"DAT_COUNTERS");
--		if (!status)
--			counters_ok = 1;
--	}
--
- 	/* make sure provider supports counters */
- 	if ((counters) && (!counters_ok)) {
- 		printf("Disable dat_query_counters:"
-@@ -561,13 +820,13 @@ int connect_ep(char *hostname)
- 			cookie.as_64 = (ii * REG_MEM_COUNT) + i;
- 			iov.lmr_context = lmr_context[(ii * REG_MEM_COUNT) + i];
- 			iov.virtual_address =
--			    (DAT_VADDR) (uintptr_t) buf[(ii * REG_MEM_COUNT) +
--							i];
-+				(DAT_VADDR) (uintptr_t) buf[(ii * REG_MEM_COUNT) + i];
- 			iov.segment_length = buf_size;
--			LOGPRINTF(" post_recv (%p) on ep[%d]=%p\n",
--				  buf[(ii * REG_MEM_COUNT) + i], ii, ep[ii]);
--			/* ep[0], unless testing Server and multi EP's */
--			if (server && multi_eps) {
-+			LOGPRINTF(" post_recv buf[%d]=(%p) on ep[%d]=%p\n",
-+				(ii * REG_MEM_COUNT) + i,
-+				buf[(ii * REG_MEM_COUNT) + i], ii, ep[ii]);
-+			/* ep[0], unless multi EP's */
-+			if (multi_eps) {
- 				ep_idx = ii;
- 				cookie.as_64 = i;
- 			}
-@@ -582,6 +841,15 @@ int connect_ep(char *hostname)
- 	/* setup receive buffer to initial string to be overwritten */
- 	strcpy((char *)buf[RCV_RDMA_BUF_INDEX], "blah, blah, blah\n");
- 
-+	if (server) {
-+		/* Exchange info with client */
-+		printf("%d Server - Client: waiting to snd addr\n", getpid());
-+		if (send_server_params(ser_sa)) {
-+			printf("%d Failed to send server params\n", getpid());
-+			return -1;
++		if (tx_buf_len > ib_mtu) {
++			fprintf(stderr, " Error: ud test: user buf len (%d)"
++				"bigger than IB_MTU (%d)\n", tx_buf_len, ib_mtu);
++			exit(1);
 +		}
 +	}
 +
- 	/* ud can resolve_ah and connect both ways, same EP */
- 	if (server || (!server && ud_test)) {
- 		if (server) {
-@@ -630,21 +898,31 @@ no_resolution:
- 		 * use private data to select EP on Server 
- 		 */
- 		for (i = 0; i < eps; i++) {
-+			int ep_l = 0;
-+
- 			/* pdata selects Server EP, 
- 			 * support both muliple Server and single EP's 
- 			 */
--			if (multi_eps)
-+			if (multi_eps) {
-+				if (!server)
-+					ep_l = i;
- 				pdata = hton32(i);
--			else
-+			} else
- 				pdata = 0;	/* just use first EP */
- 
--			status = dat_ep_connect(ep[0],
-+			status = dat_ep_connect(ep[ep_l],
- 						remote_addr,
- 						(server ? CLIENT_ID :
- 						 SERVER_ID), CONN_TIMEOUT, 4,
--						(DAT_PVOID) & pdata, 0,
-+						(DAT_PVOID) &pdata, 0,
- 						DAT_CONNECT_DEFAULT_FLAG);
- 			_OK(status, "dat_ep_connect");
-+
-+			printf("%s EP_L[%d]=%p connect to EP_R[%d]\n",
-+				  server ? "Server" : "Client",
-+				  ep_l, ep[ep_l],
-+				  ntoh32(pdata));
-+
- 		}
- 
- 		if (!ucm)
-@@ -700,7 +978,7 @@ no_resolution:
- 		LOGPRINTF("Waiting for remote to send RMR data\n");
- 
- 		status = dat_evd_wait(dto_evd, DTO_TIMEOUT, 1, &event, &nmore);
--		_OK(status, "dat_evd_wait after dat_ep_post_send");
-+		_OK(status, "dat_evd_wait for receive message");
- 
- 		if ((event.event_number != DAT_DTO_COMPLETION_EVENT) &&
- 		    (ud_test && event.event_number != DAT_IB_DTO_EVENT)) {
-@@ -710,11 +988,11 @@ no_resolution:
- 		}
- 		_OK(dto_event->status, "event status for post_recv");
- 
--		/* careful when checking cookies:
--		 * Client - receiving multi messages on a single EP 
--		 * Server - not receiving on multiple EP's
-+		/*
-+		 *  multi_eps - receive multi messages on single EP
-+		 * !mutli_eps - receive one message across multiple EPs
- 		 */
--		if (!server || (server && !multi_eps)) {
-+		if (!multi_eps) {
- 			if (dto_event->transfered_length != msg_size ||
- 			    dto_event->user_cookie.as_64 != ctx) {
- 				printf("unexpected event data on recv: len=%d"
-@@ -724,12 +1002,11 @@ no_resolution:
- 				       msg_size, ctx);
- 				exit(1);
- 			}
--			/* Server - receiving one message each across many EP's */
- 		} else {
- 			if (dto_event->transfered_length != msg_size ||
- 			    dto_event->user_cookie.as_64 != RECV_BUF_INDEX) {
- 				printf("unexpected event data on recv: len=%d"
--				       "cookie=" F64x " expected %d/%d\n",
-+				       " cookie=" F64x " expected %d/%d\n",
- 				       (int)dto_event->transfered_length,
- 				       dto_event->user_cookie.as_64,
- 				       msg_size, RECV_BUF_INDEX);
-@@ -738,12 +1015,10 @@ no_resolution:
- 		}
- 
- 		/* swap RMR,address info to host order */
--		if (!server || (server && !multi_eps))
-+		if (!multi_eps)
- 			r_iov = (DAT_RMR_TRIPLET *) buf[ctx];
- 		else
--			r_iov =
--			    (DAT_RMR_TRIPLET *) buf[(i * REG_MEM_COUNT) +
--						    RECV_BUF_INDEX];
-+			r_iov = (DAT_RMR_TRIPLET *) buf[((i * REG_MEM_COUNT) + RECV_BUF_INDEX)];
- 
- 		if (ud_test)
- 			r_iov = (DAT_RMR_TRIPLET *) ((char *)r_iov + 40);
-@@ -752,11 +1027,14 @@ no_resolution:
- 		r_iov->virtual_address = ntoh64(r_iov->virtual_address);
- 		r_iov->segment_length = ntoh32(r_iov->segment_length);
- 
--		printf("Recv RMR message: r_iov(%p):"
--		       " r_key_ctx=%x,va=" F64x ",len=0x%x on EP=%p\n",
-+		printf("Recv RMR message: buf[%d] r_iov(%p):"
-+		       " r_key_ctx=%x,va=" F64x ","
-+		       " len=0x%x on EP=%p ck=" F64x " \n",
-+		       multi_eps ? ((i * REG_MEM_COUNT) + RECV_BUF_INDEX):ctx,
- 		       r_iov, r_iov->rmr_context,
- 		       r_iov->virtual_address,
--		       r_iov->segment_length, dto_event->ep_handle);
-+		       r_iov->segment_length, dto_event->ep_handle,
-+		       dto_event->user_cookie.as_64);
- 	}
- 	return (0);
- }
-@@ -766,7 +1044,7 @@ int disconnect_ep(void)
- 	DAT_RETURN status;
- 	DAT_EVENT event;
- 	DAT_COUNT nmore;
--	int i;
-+	int i, ii;
- 	
- 	if (counters) {		/* examples of query and print */
- 		int ii;
-@@ -788,6 +1066,7 @@ int disconnect_ep(void)
- 				      &event, &nmore);
- 		_OK(status, "dat_evd_wait");
- 	}
-+
- 	if (psp) {
- 		status = dat_psp_free(psp);
- 		_OK2(status, "dat_psp_free");
-@@ -813,6 +1092,22 @@ int disconnect_ep(void)
- 			printf("\n");
- 			dat_print_counters(ep[i], DCNT_EP_ALL_COUNTERS, 0);
- 		}
-+
-+		/* free UD AH resources */
-+		if (ia_attr.extension_version >= 209) {
-+			for (ii = 0; ii < MAX_AH_COUNT; ii++) {
-+				if (remote_ah[i][ii].ah) {
-+					printf( "UD_AH_FREE on EP %p, AH EP[%d][%d]"
-+					        "ib_ah = %p\n",
-+						ep[i], i, ii,
-+						remote_ah[i][ii].ah);
-+					dat_ib_ud_ah_free(ep[i],
-+							  &remote_ah[i][ii]);
-+				}
-+				remote_ah[i][ii].ah = NULL;
-+			}
++	if (!tx_buf_len) {
++		/* no user input - set tx_buf_len to IB_MTU */
++		if (!ib_mtu) {
++			fprintf(stderr, " Error: no user input and IB_MTU was"
++				" not found in provider attr\n");
++			exit(1);
 +		}
-+
- 		status = dat_ep_free(ep[i]);
- 		_OK2(status, "dat_ep_free");
- 	}
-@@ -1242,12 +1537,14 @@ int do_fetch_add()
- 	return (0);
- }
- 
-+
- int main(int argc, char **argv)
- {
--	int rc;
-+	int i, rc;
-+	DAT_RETURN status;
- 
- 	/* parse arguments */
--	while ((rc = getopt(argc, argv, "csvumpU:h:b:P:q:l:")) != -1) {
-+	while ((rc = getopt(argc, argv, "csvumpU:h:b:P:")) != -1) {
- 		switch (rc) {
- 		case 'u':
- 			ud_test = 1;
-@@ -1282,20 +1579,6 @@ int main(int argc, char **argv)
- 		case 'v':
- 			verbose = 1;
- 			break;
--		case 'q':
--			/* map UCM qpn into AF_INET6 sin6_flowinfo */
--			remote.sin6_family = AF_INET6;
--			remote.sin6_flowinfo = htonl(strtol(optarg,NULL,0));
--			ucm = 1;
--			server = 0;
--			break;
--		case 'l':
--			/* map UCM lid into AF_INET6 sin6_port */
--			remote.sin6_family = AF_INET6;
--			remote.sin6_port = htons(strtol(optarg,NULL,0));
--			ucm = 1;
--			server = 0;
--			break;
- 		default:
- 			print_usage();
- 			exit(-12);
-@@ -1315,42 +1598,80 @@ int main(int argc, char **argv)
- 		}
- 	}
- #endif
-+	status = dat_ia_open(provider, 8, &async_evd, &ia);
-+	_OK(status, "dat_ia_open");
-+
-+	memset(&prov_attrs, 0, sizeof(prov_attrs));
-+	status = dat_ia_query(ia, NULL,
-+			      DAT_IA_FIELD_ALL, &ia_attr,
-+			      DAT_PROVIDER_FIELD_ALL, &prov_attrs);
-+	_OK(status, "dat_ia_query");
-+
-+	if (ia_attr.extension_supported != DAT_EXTENSION_IB) {
-+		printf("%d ERROR: IB extension not supported\n", getpid());
-+		exit(1);
++		tx_buf_len = ib_mtu;
 +	}
++
++	LOGPRINTF(" Tx buffer len set to device MTU %d\n", tx_buf_len);
++	rx_buf_len = tx_buf_len;
++	if (ud_test)
++		rx_buf_len = tx_buf_len + 40;
++	LOGPRINTF(" Rx buffer len set to %d\n", rx_buf_len);
 +
 +	print_ia_address(ia_attr.ia_address_ptr);
 +
-+	/* Print provider specific attributes */
-+	for (i = 0; i < prov_attrs.num_provider_specific_attr; i++) {
-+		LOGPRINTF(" Provider Specific Attribute[%d] %s=%s\n",
-+			  i, prov_attrs.provider_specific_attr[i].name,
-+			  prov_attrs.provider_specific_attr[i].value);
++	/* Create Protection Zone */
++	LOGPRINTF(" Create Protection Zone\n");
++	ret = dat_pz_create(h_ia, &h_pz);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error creating Protection Zone: %s\n",
++			DT_RetToString(ret));
++		exit(1);
++	} else
++		LOGPRINTF(" Created Protection Zone\n");
 +
-+		rc = strcmp(prov_attrs.provider_specific_attr[i].name,
-+				"DAT_COUNTERS");
-+		if (!rc)
-+			counters_ok = 1;
++	LOGPRINTF(" Create events\n");
++	ret = create_events();
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error creating events: %s\n",
++			DT_RetToString(ret));
++		goto cleanup;
++	} else {
++		LOGPRINTF(" Create events done\n");
 +	}
 +
++	/* Create SRQ */
++	if (srq_test) {
++		LOGPRINTF(" Create SRQ\n");
++		srq_attr.max_recv_dtos = connections * burst_size;
++		srq_attr.max_recv_iov  = MSG_IOV_COUNT;
++		srq_attr.low_watermark = 0;
 +
- 	/* for non UD tests, -h is always client */
- 	if (remote_host && !ud_test)
- 		server = 0;
- 
- 	if (!server) {
--		printf("\nRunning as Client - %s %s %d endpoint(s)\n",
--		       provider, ud_test ? "UD test" : "", eps);
-+		printf("%d Client: waiting for server input\n", getpid());
-+		if (get_server_params(ia_attr.ia_address_ptr)) {
-+			printf("%d Failed to get server parameters\n",
-+				getpid());
++		ret = dat_srq_create(h_ia, h_pz, &srq_attr, &h_srq);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error dat_srq_create: %s\n",
++				DT_RetToString(ret));
++			goto cleanup;
++		} else
++			LOGPRINTF(" SRQ created %p \n", h_srq);
++	}
++
++	/* allocate send and receive buffers */
++	if (((rbuf = malloc(connections * rx_buf_len * burst_size)) == NULL) ||
++	    ((sbuf = malloc(connections * tx_buf_len * burst_size)) == NULL)) {
++		fprintf(stderr, " Error allocating snd/rcv buffers\n");
++		goto cleanup;
++	}
++
++	/* Register memory */
++	LOGPRINTF(" Register RDMA memory\n");
++	ret = register_rdma_memory();
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error registering RDMA memory: %s\n",
++			DT_RetToString(ret));
++		goto cleanup;
++	} else
++		LOGPRINTF(" Register RDMA memory done\n");
++
++	/* create EP */
++	memset(&ep_attr, 0, sizeof(ep_attr));
++	if (ud_test) {
++		ep_attr.service_type = DAT_IB_SERVICE_TYPE_UD;
++		ep_attr.max_message_size = tx_buf_len;
++	} else {
++		ep_attr.service_type = DAT_SERVICE_TYPE_RC;
++		ep_attr.max_message_size = 0;
++	}
++	ep_attr.max_request_dtos = (server ? burst_size : (connections * burst_size));
++	ep_attr.max_recv_dtos = (server ? burst_size : (connections * burst_size));
++	ep_attr.max_rdma_size = 0;
++	ep_attr.qos = 0;
++	ep_attr.recv_completion_flags = 0;
++	ep_attr.max_recv_iov = MSG_IOV_COUNT;
++	ep_attr.max_request_iov = MSG_IOV_COUNT;
++	ep_attr.max_rdma_read_in = 0;
++	ep_attr.max_rdma_read_out = 0;
++	ep_attr.request_completion_flags = DAT_COMPLETION_DEFAULT_FLAG;
++	ep_attr.ep_transport_specific_count = 0;
++	ep_attr.ep_transport_specific = NULL;
++	ep_attr.ep_provider_specific_count = 0;
++	ep_attr.ep_provider_specific = NULL;
++
++	for (i = 0; i < connections; i++) {
++		if (srq_test)
++			ret = dat_ep_create_with_srq(h_ia, h_pz, h_dto_rcv_evd,
++				    h_dto_req_evd, h_conn_evd, h_srq,
++				    &ep_attr, &h_ep[i]);
++		else
++			ret = dat_ep_create(h_ia, h_pz, h_dto_rcv_evd,
++					    h_dto_req_evd, h_conn_evd,
++					    &ep_attr, &h_ep[i]);
++
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error dat_ep_create: %s\n",
++				DT_RetToString(ret));
++			goto cleanup;
++		} else
++			LOGPRINTF(" EP %d created %p\n", i, h_ep[i]);
++
++		/* For client in UD test we use one EP to many EPs on server */
++		if (!server && ud_test)
++			break;
++	}
++
++	/* pre-post all buffers */
++	rcv_buf = rbuf;
++	for (i = 0; i < connections; i++) {
++		for (j = 0; j < burst_size; j++) {
++			cookie.as_64 = i * burst_size + j;
++			l_iov.lmr_context = lmr_context_recv;
++			l_iov.virtual_address = (DAT_VADDR) (uintptr_t) rcv_buf;
++			l_iov.segment_length = rx_buf_len;
++
++			if (srq_test) {
++				LOGPRINTF(" Pre SRQ post receive msg buff %p cookie %ld.....",
++					  rcv_buf, cookie.as_64);
++				ret = dat_srq_post_recv(h_srq, 1, &l_iov, cookie);
++			} else {
++				if(server || !ud_test)
++					ep_post_num = i;
++				else
++					ep_post_num = 0;
++
++				LOGPRINTF(" Pre post receive for EP %d msg buff %p.....",
++						ep_post_num, rcv_buf);
++				ret = dat_ep_post_recv(h_ep[ep_post_num], 1, &l_iov,
++						       cookie, DAT_COMPLETION_DEFAULT_FLAG);
++			}
++
++			if (ret != DAT_SUCCESS) {
++				fprintf(stderr, "\n Error posting recv msg buffer: %s\n",
++					DT_RetToString(ret));
++				goto cleanup;
++			} else
++				LOGPRINTF("Done\n");
++
++			/* next buffer */
++			rcv_buf += rx_buf_len;
++		}
++	}
++
++	/* create the service point for server listen */
++	if (server) {
++		LOGPRINTF(" Creating server service point\n");
++		ret = dat_psp_create(h_ia,
++				     server ? server_port_id : client_port_id,
++				     h_cr_evd,
++				     DAT_PSP_CONSUMER_FLAG,
++				     &h_psp);
++
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " ERR psp_create: %s\n",
++				DT_RetToString(ret));
++			goto cleanup;
++		} else
++			printf(" %s ready on port %d\n",
++			       server ? "server" : "client",
++			       server ? server_port_id : client_port_id);
++	}
++
++	/* Connect all */
++	if (server)
++		ret = conn_server();
++	else
++		ret = conn_client();
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error %s: %s\n",
++			server ? "server()" : "client()",
++			DT_RetToString(ret));
++		goto cleanup;
++	} else
++		printf("\n ALL %d CONNECTED on %s!\n\n",
++			connections, server ? "server" : "client");
++
++	connected = 1;
++
++	/*
++	 * Client ping: 0x55, ep_num, ep msg_num
++	 * Server pong: 0xAA, ep, ep smg_num
++	 */
++	if (server)
++		recv_expected_header = 0x55;
++	else
++		recv_expected_header = 0xaa;
++
++	for (b_num = 0; b_num < bursts_number; b_num++) {
++		/* Initialize snd_buf to the beginning */
++		snd_buf = sbuf;
++
++		if (!server) { /* Send Ping */
++			for (ep_num = 0; ep_num < connections; ep_num++) {
++				for (i = 0; i < burst_size; i++) {
++					/* walk the send */
++					ret = send_msg(snd_buf, 0x55, ep_num,
++						       tx_before + i + 1);
++					if (ret != DAT_SUCCESS) {
++						fprintf(stderr,
++							" ERR: dat_ep_post_send() %s\n",
++							DT_RetToString(ret));
++						goto cleanup;
++					} else
++						LOGPRINTF(" send_msg completed\n");
++					/* next buffers */
++					snd_buf += tx_buf_len;
++				}
++			}
++		}
++
++		for (ep_num = 0; ep_num < connections; ep_num++) {
++			for (i = 0; i < burst_size; i++) {
++				/* walk the rcv */
++				ret = dat_evd_wait(h_dto_rcv_evd, DTO_TIMEOUT, 1,
++							&event, &nmore);
++				if (ret != DAT_SUCCESS) {
++					fprintf(stderr,
++						" Error waiting on h_dto_evd %p: %s\n",
++						h_dto_rcv_evd, DT_RetToString(ret));
++					goto cleanup;
++				}
++
++				/* validate event number and status */
++				LOGPRINTF(" inbound message; message arrived!\n");
++				if (event.event_number != DAT_DTO_COMPLETION_EVENT &&
++				    ud_test && event.event_number != DAT_IB_DTO_EVENT) {
++					fprintf(stderr, " Error unexpected DTO event (%d): %s\n",
++							event.event_number,
++							DT_EventToSTr(event.event_number));
++					goto cleanup;
++				}
++
++				if (event.event_data.dto_completion_event_data.
++						transfered_length != rx_buf_len) {
++					fprintf(stderr, " ERR: recv event: len=%d "
++						"cookie=" F64x " exp len %d\n",
++						(int)event.event_data.dto_completion_event_data.
++						transfered_length,
++						event.event_data.dto_completion_event_data.
++						user_cookie.as_64, (int)rx_buf_len);
++					goto cleanup;
++				}
++
++				/* Check data */
++				recv_buf_index = event.event_data.dto_completion_event_data.
++									user_cookie.as_64;
++				rcv_buf = rbuf + recv_buf_index * rx_buf_len;
++				if (ud_test)
++					msg_buf = rcv_buf + 40;
++				else
++					msg_buf = rcv_buf;
++
++				incoming_header = *msg_buf;
++				incoming_ep_num = ntohl(*((DAT_UINT32 *)(msg_buf + 4)));
++				incoming_msg_num = ntohl(*((DAT_UINT32 *)(msg_buf + 8)));
++				LOGPRINTF(" %s recv buffer %p (index %ld) buf len %d "
++					  " incoming data: header %d, ep num %d, ep msg num %d "
++					  " (nmore = %d)\n",
++					  server ? "SERVER:" : "CLIENT:", rcv_buf,
++					  recv_buf_index, rx_buf_len, incoming_header,
++					  incoming_ep_num, incoming_msg_num, nmore);
++
++				/* May have race condition between EPs therefore
++				 * need to track each ep last message number */
++				if (last_msg_num_from_ep[incoming_ep_num] + 1 != incoming_msg_num) {
++					fprintf(stderr, " ERR: ep %d recv msg %d exp %d\n",
++						incoming_ep_num, incoming_msg_num,
++						last_msg_num_from_ep[incoming_ep_num] + 1);
++					goto cleanup;
++				}
++				last_msg_num_from_ep[incoming_ep_num] = incoming_msg_num;
++
++				if (incoming_header != recv_expected_header) {
++					fprintf(stderr, " ERR: ep %d recv header"
++						" 0x%x exp 0x%x\n",
++						incoming_ep_num, incoming_header,
++						recv_expected_header);
++					goto cleanup;
++				}
++
++				/* Done with Recv buffer - post the buffer back */
++				cookie.as_64 = recv_buf_index;
++				l_iov.lmr_context = lmr_context_recv;
++				l_iov.virtual_address = (DAT_VADDR) (uintptr_t) rcv_buf;
++				l_iov.segment_length = rx_buf_len;
++
++				if (srq_test) {
++					LOGPRINTF(" Pre SRQ post receive msg buff %p.....",
++						  (DAT_PVOID)l_iov.virtual_address);
++					ret = dat_srq_post_recv(h_srq, 1, &l_iov, cookie);
++				} else {
++					LOGPRINTF(" Pre osted receive msg, "
++						  "from ep %p buffer %p.....",
++						  event.event_data.
++						  dto_completion_event_data.
++						  ep_handle , rcv_buf);
++					ret = dat_ep_post_recv(event.event_data.
++						  dto_completion_event_data.
++						  ep_handle, 1, &l_iov, cookie,
++						  DAT_COMPLETION_DEFAULT_FLAG);
++				}
++
++				if (ret != DAT_SUCCESS) {
++					fprintf(stderr, "\n Error posting recv "
++						"msg buffer: %s\n",
++						DT_RetToString(ret));
++					goto cleanup;
++				} else
++					LOGPRINTF("Done\n");
++			}
++		}
++
++		if (server) { /* Send pong */
++			for (ep_num = 0; ep_num < connections; ep_num++) {
++				for (i = 0; i < burst_size; i++) {
++					/* walk the send */
++					ret = send_msg(snd_buf, 0xaa, ep_num,
++						       tx_before + i + 1);
++					if (ret != DAT_SUCCESS) {
++						fprintf(stderr, " ERROR: dat_ep_post_send() %s\n",
++								DT_EventToSTr(ret));
++						goto cleanup;
++					} else
++						LOGPRINTF(" send_msg completed\n");
++					/* next buffers */
++					snd_buf += tx_buf_len;
++				}
++			}
++		}
++
++		tx_before += burst_size;
++		/* clean req evd */
++		for (ep_num = 0; ep_num < connections; ep_num++) {
++			for (i = 0; i < burst_size; i++) {
++				ret = dat_evd_wait(h_dto_req_evd, DTO_TIMEOUT, 1,
++						   &event, &nmore);
++				if (ret != DAT_SUCCESS) {
++					fprintf(stderr,
++						" Error waiting on h_req_evd %p: %s\n",
++						h_dto_req_evd, DT_RetToString(ret));
++					goto cleanup;
++				}
++
++				if ((event.event_data.dto_completion_event_data.
++						transfered_length != tx_buf_len)
++						|| event.event_data.dto_completion_event_data.
++						status != DAT_SUCCESS) {
++					fprintf(stderr, " ERROR: DTO REQ size %d, status %d\n",
++						event.event_data.dto_completion_event_data.
++						transfered_length,
++						event.event_data.
++						dto_completion_event_data.status);
++					goto cleanup;
++				}
++			}
++		}
++	}
++
++	goto complete;
++cleanup:
++	flush_evds();
++	goto bail;
++complete:
++
++	/* disconnect and free EP resources */
++	if (h_ep[0]) {
++		/* unregister message buffers and tear down connection */
++		LOGPRINTF(" Disconnect EPs\n");
++		ret = disconnect_eps();
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error disconnect_eps: %s\n",
++				DT_RetToString(ret));
++			goto bail;
++		} else {
++			LOGPRINTF(" disconnect_eps complete\n");
++		}
++	}
++
++	/* destroy server service point(s) */
++	if (h_psp != DAT_HANDLE_NULL) {
++		ret = dat_psp_free(h_psp);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error dat_psp_free: %s\n",
++				DT_RetToString(ret));
++			goto bail;
++		} else {
++			LOGPRINTF(" psp_free complete\n");
++		}
++	}
++
++	unregister_rdma_memory();
++
++	/* Free SRQ */
++	if (h_srq != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Free SRQ %p \n", h_srq);
++		ret = dat_srq_free(h_srq);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Err freeing SRQ: %s\n",
++					DT_RetToString(ret));
++		} else {
++			LOGPRINTF(" SRQ Freed\n");
++			h_srq = DAT_HANDLE_NULL;
++		}
++	}
++
++	/* free EVDs */
++	LOGPRINTF(" destroy events\n");
++	ret = destroy_events();
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error destroy_events: %s\n",
++			DT_RetToString(ret));
++		goto bail;
++	} else
++		LOGPRINTF(" destroy events done\n");
++
++	/* Free protection domain */
++	LOGPRINTF(" Freeing pz\n");
++	ret = dat_pz_free(h_pz);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error freeing PZ: %s\n", DT_RetToString(ret));
++		goto bail;
++	} else {
++		LOGPRINTF(" Freed pz\n");
++		h_pz = NULL;
++	}
++
++	/* close the device */
++	LOGPRINTF(" Closing Interface Adaptor\n");
++	ret = dat_ia_close(h_ia, DAT_CLOSE_ABRUPT_FLAG);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error Adaptor close: %s\n",
++			DT_RetToString(ret));
++		goto bail;
++	} else
++		LOGPRINTF(" Closed Interface Adaptor\n");
++
++	printf(" DAPL %s %s Test Complete.\n\n",
++		ud_test ? "UD" : "RC", srq_test ? "SRQ" : "none SRQ");
++
++	fflush(stderr);	fflush(stdout);
++bail:
++	free(h_ep);
++	if(remote_ah)
++		free(remote_ah);
++
++#if defined(_WIN32) || defined(_WIN64)
++	WSACleanup();
++#endif
++	return (0);
++}
++
++DAT_RETURN process_cr()
++{
++	DAT_RETURN ret;
++	DAT_EVENT event;
++	DAT_COUNT nmore;
++	DAT_CR_PARAM cr_param;
++	int i, pdata;
++	DAT_CR_ARRIVAL_EVENT_DATA *cr_event =
++		&event.event_data.cr_arrival_event_data;
++
++	printf(" Accepting...\n");
++	fflush(stdout);
++	for (i = 0; i < connections; i++) {
++		/* Wait for CR's */
++		ret = dat_evd_wait(h_cr_evd, CR_TIMEOUT, 1, &event, &nmore);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " ERR: CR dat_evd_wait() %s\n",
++				DT_RetToString(ret));
++			return ret;
++		}
++
++		if (event.event_number != DAT_CONNECTION_REQUEST_EVENT &&
++				(ud_test && event.event_number !=
++				 DAT_IB_UD_CONNECTION_REQUEST_EVENT)) {
++			fprintf(stderr, " Error unexpected cr event : %s\n",
++				DT_EventToSTr(event.event_number));
++			return (DAT_ABORT);
++		}
++
++		if ((event.event_data.cr_arrival_event_data.conn_qual !=
++			(server ? server_port_id : client_port_id))
++		    || (event.event_data.cr_arrival_event_data.sp_handle.
++			psp_handle != h_psp)) {
++			fprintf(stderr, " Error wrong cr event data : %s\n",
++				DT_EventToSTr(event.event_number));
++			return (DAT_ABORT);
++		}
++
++		/* accept connect request from client */
++		h_cr = cr_event->cr_handle;
++		ret = dat_cr_query(h_cr, DAT_CSP_FIELD_ALL, &cr_param);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error: unable to query cr\n");
++			return (DAT_ABORT);
++		}
++
++		/* use private data to select EP */
++		pdata = ntohl(*((int *)cr_param.private_data));
++
++		LOGPRINTF(" Accepting connect request %d from client:\n", pdata);
++
++		ret = dat_cr_accept(h_cr, h_ep[pdata], 4, cr_param.private_data);
++
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " ERR dat_cr_accept: %s\n",
++				DT_RetToString(ret));
++			return (ret);
++		} else
++			LOGPRINTF(" Accept[%d] complete\n", i);
++
++		event.event_number = 0;
++	}
++	return DAT_SUCCESS;
++}
++
++DAT_RETURN process_conn()
++{
++	DAT_RETURN ret;
++	DAT_EVENT event;
++	DAT_COUNT nmore;
++	int i, exp_event, pdata;
++	DAT_IB_EXTENSION_EVENT_DATA *ext_event = (DAT_IB_EXTENSION_EVENT_DATA *)
++	    & event.event_extension_data[0];
++	DAT_CONNECTION_EVENT_DATA *conn_event =
++	    &event.event_data.connect_event_data;
++
++	if (ud_test)
++		exp_event = DAT_IB_UD_CONNECTION_EVENT_ESTABLISHED;
++	else
++		exp_event = DAT_CONNECTION_EVENT_ESTABLISHED;
++
++	/* process the RTU, ESTABLISHMENT event */
++	printf(" Completing...\n");
++        for (i = 0; i < connections; i++) {
++
++        	/* process completions */
++		ret = dat_evd_wait(h_conn_evd, CONN_TIMEOUT, 1, &event, &nmore);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " ERR: CONN evd_wait() %s\n",
++				 DT_RetToString(ret));
++			return ret;
++		}
++		if (event.event_number != exp_event) {
++			fprintf(stderr, " Err unexpected conn event : 0x%x %s\n",
++				event.event_number,
++				DT_EventToSTr(event.event_number));
++			return (DAT_ABORT);
++		}
++		event.event_number = 0;
++		LOGPRINTF(" CONN_EST[%d] complete\n", i);
++
++		/* RC we are done */
++		if (!ud_test)
++			continue;
++
++		/* store each remote_ah according to remote EP index */
++		pdata = ntohl(*((int *)conn_event->private_data));
++		LOGPRINTF(" Got private data=0x%x\n", pdata);
++
++		/* UD, get AH for sends.
++		 * NOTE: bi-directional AH resolution results in a CONN_EST
++		 * for both outbound connect and inbound CR.
++		 * Use Active CONN_EST which includes server's CR
++		 * pdata for remote_ah idx to send.
++		 *
++		 * DAT_IB_UD_PASSIVE_REMOTE_AH == passive side CONN_EST
++		 * DAT_IB_UD_REMOTE_AH == active side CONN_EST
++		 */
++		if (ext_event->type == DAT_IB_UD_REMOTE_AH) {
++			remote_ah[pdata] = ext_event->remote_ah;
++			LOGPRINTF(" Active side - remote_ah[%d]: ah=%p, qpn=0x%x "
++			          "addr=%s\n", pdata, remote_ah[pdata].ah,
++			       remote_ah[pdata].qpn, inet_ntoa(((struct sockaddr_in *)
++								&remote_ah[pdata].
++								ia_addr)->sin_addr));
++		} else if (ext_event->type == DAT_IB_UD_PASSIVE_REMOTE_AH) {
++			remote_ah[pdata] = ext_event->remote_ah;
++			LOGPRINTF(" Passive side - remote_ah[%d]: ah=%p, qpn=0x%x "
++			          "addr=%s\n", pdata, remote_ah[pdata].ah,
++			       remote_ah[pdata].qpn, inet_ntoa(((struct sockaddr_in *)
++								&remote_ah[pdata].
++								ia_addr)->sin_addr));
++		} else {
++			printf(" Error - unexpected UD ext_event type: 0x%x\n",
++			       ext_event->type);
 +			exit(1);
 +		}
-+		printf("\nRunning as Client - %s %s %d endpoint(s) v%d\n",
-+		       provider, ud_test ? "UD test" : "", eps,
-+		       ia_attr.extension_version);
- 	} else {
--		printf("\nRunning as Server - %s %s %d endpoint(s)\n",
--		       provider, ud_test ? "UD test" : "", eps);
-+		printf("\nRunning as Server - %s %s %d endpoint(s) v%d\n",
-+		       provider, ud_test ? "UD test" : "", eps,
-+		       ia_attr.extension_version);
- 	}
- 
- 	/*
- 	 * connect
- 	 */
--	if (connect_ep(hostname)) {
-+	if (connect_ep(hostname, ia_attr.ia_address_ptr)) {
- 		_WSACleanup();
- 		exit(1);
- 	}
--	if (ud_test)
--		goto bail;
- 
--	if (do_immediate()) {
--		_WSACleanup();
--		exit(1);
--	}
--	if (do_cmp_swap()) {
--		_WSACleanup();
--		exit(1);
--	}
--	if (do_fetch_add()) {
--		_WSACleanup();
--		exit(1);
++        }
++	return DAT_SUCCESS;
++}
++
++DAT_RETURN conn_server()
++{
++	DAT_RETURN ret;
++
++	/* wait for conn REQ and accept */
++	ret = process_cr();
++	if (ret != DAT_SUCCESS)
++		return ret;
++
++	/* wait for conn EST */
++	ret = process_conn();
++	if (ret != DAT_SUCCESS)
++		return ret;
++
++	return DAT_SUCCESS;
++}
++
++DAT_RETURN conn_client()
++{
++	DAT_IA_ADDRESS_PTR raddr = (DAT_IA_ADDRESS_PTR)&remote;
++	DAT_RETURN ret;
++	struct addrinfo *target;
++	int rval, i, pdata;
++
++	if (ucm)
++		goto no_resolution;
++
++#if defined(_WIN32) || defined(_WIN64)
++	if ((rval = getaddrinfo(hostname, "ftp", NULL, &target)) != 0) {
++		printf("\n remote name resolution failed! %s\n",
++			gai_strerror(rval));
++		exit(1);
++	}
++	rval = ((struct sockaddr_in *)target->ai_addr)->sin_addr.s_addr;
++#else
++	if (getaddrinfo(hostname, NULL, NULL, &target) != 0) {
++		perror("\n remote name resolution failed!");
++		exit(1);
++	}
++	rval = ((struct sockaddr_in *)target->ai_addr)->sin_addr.s_addr;
++#endif
++	printf(" Connecting to Server: %s \n",  hostname);
++	printf(" Address: %d.%d.%d.%d port %d\n",
++		(rval >> 0) & 0xff, (rval >> 8) & 0xff,
++		(rval >> 16) & 0xff, (rval >> 24) & 0xff,
++		server_port_id);
++
++	raddr = (DAT_IA_ADDRESS_PTR)target->ai_addr;
++
++no_resolution:
++
++       	printf(" Connecting...\n");
++	for (i = 0; i < connections; i++) {
++		/* Client in UD test is one EP to many */
++		pdata = htonl(i);
++		ret = dat_ep_connect(ud_test ? h_ep[0]: h_ep[i],
++				     raddr, server_port_id, CONN_TIMEOUT,
++				     4, &pdata, 0, DAT_CONNECT_DEFAULT_FLAG);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " ERR dat_ep_connect: %s\n",
++				DT_RetToString(ret));
++			return (ret);
++		} else
++			LOGPRINTF(" dat_ep_connect [%d] complete\n", i);
++	}
++
++	/* wait for conn EST */
++	ret = process_conn();
++	if (ret != DAT_SUCCESS)
++		return ret;
++
++	if (!ucm)
++		freeaddrinfo(target);
++
++	return (DAT_SUCCESS);
++}
++
++/* validate disconnected EP's and free them */
++DAT_RETURN disconnect_eps(void)
++{
++	DAT_RETURN ret;
++	DAT_EVENT event, async_event;
++	DAT_COUNT nmore;
++	int i,ii;
++	DAT_CONNECTION_EVENT_DATA *conn_event =
++		&event.event_data.connect_event_data;
++
++	if (!connected)
++		return DAT_SUCCESS;
++
++	if (ud_test) {
++		for (ii = 0; ii < connections; ii++) {
++			LOGPRINTF(" Free EP[%d] %p\n", ii, h_ep[ii]);
++			ret = dat_ep_free(h_ep[ii]);
++			if (ret != DAT_SUCCESS) {
++				fprintf(stderr, "ERR free EP[%d] %p: %s\n",
++					ii, h_ep[ii], DT_RetToString(ret));
++			} else {
++				LOGPRINTF(" Freed EP[%d] %p\n", ii, h_ep[ii]);
++				h_ep[ii] = DAT_HANDLE_NULL;
++			}
++			/* Client use only EP zero in UD test */
++			if (!server)
++				break;
++		}
++		return DAT_SUCCESS;
++	}
++	/*
++	 * Only the client needs to call disconnect. The server _should_ be able
++	 * to just wait on the EVD associated with connection events for a
++	 * disconnect request and then exit.
++	 */
++	for (i = 0; i < connections; i++) {
++		if (!server) {
++			LOGPRINTF(" dat_ep_disconnect[%d]\n",i);
++
++			ret = dat_ep_disconnect(h_ep[i], DAT_CLOSE_DEFAULT);
++			if (ret != DAT_SUCCESS) {
++				fprintf(stderr, " Error disconnect: %s\n",
++					DT_RetToString(ret));
++				return ret;
++			} else {
++				LOGPRINTF(" disconnect completed[%d]\n", i);
++			}
++		}
++		else {
++			LOGPRINTF(" Server waiting for disconnect...\n");
++		}
++
++		LOGPRINTF(" Wait for Disc event\n");
++		nmore = 0;
++		event.event_number = 0;
++		conn_event->ep_handle = NULL;
++		ret = dat_evd_wait(h_conn_evd, DAT_TIMEOUT_INFINITE, 1, &event, &nmore);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error dat_evd_wait: %s\n", DT_RetToString(ret));
++			return ret;
++		} else
++			LOGPRINTF(" disc event[%d] complete\n", i);
++
++		if (srq_test) {
++			LOGPRINTF(" Wait for EP async event\n");
++			async_event.event_number = 0;
++			ret = dat_evd_wait(h_async_evd, DAT_TIMEOUT_INFINITE,
++					   1, &async_event, &nmore);
++			if (ret != DAT_SUCCESS) {
++				fprintf(stderr, " Error dat_evd_wait async evd: %s\n",
++					DT_RetToString(ret));
++				return ret;
++			} else
++				LOGPRINTF(" Async event 0x%x received for EP %p\n",
++					  async_event.event_number,
++					  async_event.event_data.asynch_error_event_data.dat_handle);
++
++			if (async_event.event_number != DAT_ASYNC_ERROR_EP_BROKEN) {
++				LOGPRINTF(" Invalid async event number 0x%x expected 0x%x\n",
++					  async_event.event_number, DAT_ASYNC_ERROR_EP_BROKEN);
++				return DAT_INVALID_HANDLE;
++			}
++
++			if (conn_event->ep_handle != async_event.
++					event_data.asynch_error_event_data.dat_handle) {
++				LOGPRINTF(" Invalid EP via async event. conn event EP = %p,"
++					  " async event EP = %p\n", conn_event->ep_handle,
++					  async_event.event_data.asynch_error_event_data.dat_handle);
++				return DAT_INVALID_HANDLE;
++			}
++		}
++
++		LOGPRINTF(" Check for valid EP and free it\n");
++		/* check for valid EP in creation list */
++		for (ii = 0; ii < connections; ii++) {
++			if (h_ep[ii] == conn_event->ep_handle) {
++				LOGPRINTF(" valid EP[%d] %p\n", ii, h_ep[ii]);
++				ret = dat_ep_free(h_ep[ii]);
++				if (ret != DAT_SUCCESS) {
++					fprintf(stderr, " ERR free EP[%d] %p: %s\n",
++						ii, h_ep[ii], DT_RetToString(ret));
++					return ret;
++				} else {
++					LOGPRINTF(" Freed EP[%d] %p\n", ii, h_ep[ii]);
++					h_ep[ii] = DAT_HANDLE_NULL;
++				}
++				break;
++			}
++		}
++		if (ii == connections) {
++			LOGPRINTF(" %s: invalid EP[%d] %p via DISC event!\n",
++				  server ? "Server" : "Client",
++				  i, conn_event->ep_handle);
++			return DAT_INVALID_HANDLE;
++		}
++	}
++
++	/* free EPs */
++	LOGPRINTF(" Successfully disconnected all %d EP's\n", connections);
++	return DAT_SUCCESS;
++}
++
++ /*
++  * Create CR, CONN, and DTO events
++  */
++DAT_RETURN create_events(void)
++{
++	DAT_RETURN ret;
++	DAT_EVD_PARAM param;
++	DAT_COUNT evd_min_qlen;
++
++	/*** create CR EVD ***/
++	evd_min_qlen = connections;
++	ret = dat_evd_create(h_ia,
++			     evd_min_qlen,
++			     DAT_HANDLE_NULL,
++			     DAT_EVD_CR_FLAG,
++			     &h_cr_evd);
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_create CR: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	}
++
++	/* query and check size */
++	ret = dat_evd_query(h_cr_evd, DAT_EVD_FIELD_EVD_QLEN, &param);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Err dat_evd_query CR evd: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	} else if (param.evd_qlen < evd_min_qlen)  {
++		fprintf(stderr, " Error dat_evd qsize too small: %d < %d\n",
++			param.evd_qlen, evd_min_qlen);
++		return (ret);
++	}
++
++	LOGPRINTF(" cr_evd created (%p). QLEN - requested %d and actual %d\n",
++			h_cr_evd, evd_min_qlen, param.evd_qlen);
++
++	/*** create conn EVD ***/
++	evd_min_qlen = connections * 2;
++	ret = dat_evd_create(h_ia,
++			     evd_min_qlen,
++			     DAT_HANDLE_NULL,
++			     DAT_EVD_CONNECTION_FLAG,
++			     &h_conn_evd);
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_create CONN: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	}
++
++	/* query and check size */
++	ret = dat_evd_query(h_conn_evd, DAT_EVD_FIELD_EVD_QLEN, &param);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_query CONN evd: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	} else if (param.evd_qlen < evd_min_qlen)  {
++		fprintf(stderr, " Error dat_evd qsize too small: %d < %d\n",
++			param.evd_qlen, evd_min_qlen);
++		return (ret);
++	}
++
++	LOGPRINTF(" conn_evd created (%p). QLEN - requested %d and actual %d\n",
++			h_conn_evd, evd_min_qlen, param.evd_qlen);
++
++	/*** create dto SND EVD ***/
++	evd_min_qlen = connections * burst_size;
++	ret = dat_evd_create(h_ia,
++			     evd_min_qlen,
++			     NULL,
++			     DAT_EVD_DTO_FLAG,
++			     &h_dto_req_evd);
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_create REQ: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	}
++
++	/* query and check size */
++	ret = dat_evd_query(h_dto_req_evd, DAT_EVD_FIELD_EVD_QLEN, &param);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_query REQ evd: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	} else if (param.evd_qlen < evd_min_qlen)  {
++		fprintf(stderr, " Error dat_evd qsize too small: %d < %d\n",
++			param.evd_qlen, evd_min_qlen);
++		return (ret);
++	}
++
++	LOGPRINTF(" req_evd created (%p). QLEN - requested %d and actual %d\n",
++			h_dto_req_evd, evd_min_qlen, param.evd_qlen);
++
++	/*** create dto RCV EVD ***/
++	evd_min_qlen = connections * burst_size;
++	ret = dat_evd_create(h_ia,
++			     evd_min_qlen,
++			     NULL,
++			     DAT_EVD_DTO_FLAG,
++			     &h_dto_rcv_evd);
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_create RCV: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	}
++
++	/* query and check size */
++	ret = dat_evd_query(h_dto_rcv_evd, DAT_EVD_FIELD_EVD_QLEN, &param);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error dat_evd_query RCV evd: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	} else if (param.evd_qlen < evd_min_qlen)  {
++		fprintf(stderr, " Error dat_evd qsize too small: %d < %d\n",
++			param.evd_qlen, evd_min_qlen);
++		return (ret);
++	}
++
++	LOGPRINTF(" rcv_evd created (%p). QLEN - requested %d and actual %d\n",
++			h_dto_rcv_evd, evd_min_qlen, param.evd_qlen);
++
++	return DAT_SUCCESS;
++}
++
++/*
++ * Destroy CR, CONN, CNO, and DTO events
++ */
++DAT_RETURN destroy_events(void)
++{
++	DAT_RETURN ret;
++
++	/* free cr EVD */
++	if (h_cr_evd != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Free cr EVD %p \n",  h_cr_evd);
++		ret = dat_evd_free(h_cr_evd);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error freeing cr EVD: %s\n",
++				DT_RetToString(ret));
++			return (ret);
++		} else {
++			LOGPRINTF(" Freed cr EVD\n");
++			h_cr_evd = DAT_HANDLE_NULL;
++		}
++	}
++
++	/* free conn EVD */
++	if (h_conn_evd != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Free conn EVD %p\n",  h_conn_evd);
++		ret = dat_evd_free(h_conn_evd);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error freeing conn EVD: %s\n",
++				DT_RetToString(ret));
++			return (ret);
++		} else {
++			LOGPRINTF(" Freed conn EVD\n");
++			h_conn_evd = DAT_HANDLE_NULL;
++		}
++	}
++
++	/* free RCV dto EVD */
++	if (h_dto_rcv_evd != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Free RCV dto EVD %p\n",  h_dto_rcv_evd);
++		ret = dat_evd_free(h_dto_rcv_evd);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error freeing dto EVD: %s\n",
++				DT_RetToString(ret));
++			return (ret);
++		} else {
++			LOGPRINTF(" Freed dto EVD\n");
++			h_dto_rcv_evd = DAT_HANDLE_NULL;
++		}
++	}
++
++	/* free REQ dto EVD */
++	if (h_dto_req_evd != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Free REQ dto EVD %p\n",  h_dto_req_evd);
++		ret = dat_evd_free(h_dto_req_evd);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr, " Error freeing dto EVD: %s\n",
++				DT_RetToString(ret));
++			return (ret);
++		} else {
++			LOGPRINTF(" Freed dto EVD\n");
++			h_dto_req_evd = DAT_HANDLE_NULL;
++		}
++	}
++
++	return DAT_SUCCESS;
++}
++
++/*
++ * Map DAT_RETURN values to readable strings,
++ * but don't assume the values are zero-based or contiguous.
++ */
++char errmsg[512] = { 0 };
++const char *DT_RetToString(DAT_RETURN ret_value)
++{
++	const char *major_msg, *minor_msg;
++
++	dat_strerror(ret_value, &major_msg, &minor_msg);
++
++	strcpy(errmsg, major_msg);
++	strcat(errmsg, " ");
++	strcat(errmsg, minor_msg);
++
++	return errmsg;
++}
++
++/*
++ * Map DAT_EVENT_CODE values to readable strings
++ */
++const char *DT_EventToSTr(DAT_EVENT_NUMBER event_code)
++{
++	unsigned int i;
++	static struct {
++		const char *name;
++		DAT_RETURN value;
++	} dat_events[] = {
++#   define DATxx(x) { # x, x }
++		DATxx(DAT_DTO_COMPLETION_EVENT),
++		    DATxx(DAT_RMR_BIND_COMPLETION_EVENT),
++		    DATxx(DAT_CONNECTION_REQUEST_EVENT),
++		    DATxx(DAT_CONNECTION_EVENT_ESTABLISHED),
++		    DATxx(DAT_CONNECTION_EVENT_PEER_REJECTED),
++		    DATxx(DAT_CONNECTION_EVENT_NON_PEER_REJECTED),
++		    DATxx(DAT_CONNECTION_EVENT_ACCEPT_COMPLETION_ERROR),
++		    DATxx(DAT_CONNECTION_EVENT_DISCONNECTED),
++		    DATxx(DAT_CONNECTION_EVENT_BROKEN),
++		    DATxx(DAT_CONNECTION_EVENT_TIMED_OUT),
++		    DATxx(DAT_CONNECTION_EVENT_UNREACHABLE),
++		    DATxx(DAT_ASYNC_ERROR_EVD_OVERFLOW),
++		    DATxx(DAT_ASYNC_ERROR_IA_CATASTROPHIC),
++		    DATxx(DAT_ASYNC_ERROR_EP_BROKEN),
++		    DATxx(DAT_ASYNC_ERROR_TIMED_OUT),
++		    DATxx(DAT_ASYNC_ERROR_PROVIDER_INTERNAL_ERROR),
++		    DATxx(DAT_SOFTWARE_EVENT)
++#   undef DATxx
++	};
++#   define NUM_EVENTS (sizeof(dat_events)/sizeof(dat_events[0]))
++
++	for (i = 0; i < NUM_EVENTS; i++) {
++		if (dat_events[i].value == event_code) {
++			return (dat_events[i].name);
++		}
++	}
++
++	return ("Invalid_DAT_EVENT_NUMBER");
++}
++
++void flush_evds(void)
++{
++	DAT_EVENT event;
++
++	/* Flush async error queue */
++	printf(" ERR: Checking ASYNC EVD...\n");
++	while (dat_evd_dequeue(h_async_evd, &event) == DAT_SUCCESS) {
++		printf(" ASYNC EVD ENTRY: handle=%p reason=%d\n",
++			event.event_data.asynch_error_event_data.dat_handle,
++			event.event_data.asynch_error_event_data.reason);
++	}
++}
++
++static void print_ia_address(struct sockaddr *sa)
++{
++	char str[INET6_ADDRSTRLEN] = {" ??? "};
++
++	switch(sa->sa_family) {
++	case AF_INET:
++		inet_ntop(AF_INET, &((struct sockaddr_in *)sa)->sin_addr, str, INET6_ADDRSTRLEN);
++		printf(" Local Address AF_INET - %s port %d\n", str, server_port_id);
++		break;
++	case AF_INET6:
++		inet_ntop(AF_INET6, &((struct sockaddr_in6 *)sa)->sin6_addr, str, INET6_ADDRSTRLEN);
++		printf(" Local Address AF_INET6 - %s flowinfo(QPN)=0x%x, port(LID)=0x%x\n",
++			str,
++			ntohl(((struct sockaddr_in6 *)sa)->sin6_flowinfo),
++			ntohs(((struct sockaddr_in6 *)sa)->sin6_port));
++		break;
++	default:
++		printf(" Local Address UNKOWN FAMILY - port %d\n", server_port_id);
++	}
++}
++
++/* Register RDMA Receive buffer */
++DAT_RETURN register_rdma_memory(void)
++{
++	DAT_RETURN ret;
++	DAT_REGION_DESCRIPTION region;
++
++	region.for_va = rbuf;
++	ret = dat_lmr_create(h_ia,
++			     DAT_MEM_TYPE_VIRTUAL,
++			     region,
++			     connections * rx_buf_len * burst_size,
++			     h_pz,
++			     DAT_MEM_PRIV_ALL_FLAG,
++			     DAT_VA_TYPE_VA,
++			     &h_lmr_recv,
++			     &lmr_context_recv,
++			     &rmr_context_recv,
++			     &registered_size_recv, &registered_addr_recv);
++
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error registering Receive RDMA buffer: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	} else {
++		LOGPRINTF(" Registered RCV RDMA Buffer  %p\n", region.for_va);
++	}
++
++	/* Register RDMA Send buffer */
++	region.for_va = sbuf;
++	ret = dat_lmr_create(h_ia,
++			     DAT_MEM_TYPE_VIRTUAL,
++			     region,
++			     connections * tx_buf_len * burst_size,
++			     h_pz,
++			     DAT_MEM_PRIV_ALL_FLAG,
++			     DAT_VA_TYPE_VA,
++			     &h_lmr_send,
++			     &lmr_context_send,
++			     &rmr_context_send,
++			     &registered_size_send, &registered_addr_send);
++	if (ret != DAT_SUCCESS) {
++		fprintf(stderr, " Error registering send RDMA buffer: %s\n",
++			DT_RetToString(ret));
++		return (ret);
++	} else {
++		LOGPRINTF(" Registered Send RDMA Buffer %p\n", region.for_va);
++	}
++
++	return DAT_SUCCESS;
++}
++
++void unregister_rdma_memory()
++{
++	DAT_RETURN ret;
++
++	/* Unregister Send message Buffer */
++	if (h_lmr_send != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Unregister send message h_lmr %p \n", h_lmr_send);
++		ret = dat_lmr_free(h_lmr_send);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr,
++				" Error deregistering send msg mr: %s\n",
++				DT_RetToString(ret));
++		} else {
++			LOGPRINTF(" Unregistered send message Buffer\n");
++			h_lmr_send = NULL;
++		}
++	}
++
++	/* Unregister recv message Buffer */
++	if (h_lmr_recv != DAT_HANDLE_NULL) {
++		LOGPRINTF(" Unregister recv message h_lmr %p \n", h_lmr_recv);
++		ret = dat_lmr_free(h_lmr_recv);
++		if (ret != DAT_SUCCESS) {
++			fprintf(stderr,
++				" Error deregistering recv msg mr: %s\n",
++				DT_RetToString(ret));
++		} else {
++			LOGPRINTF(" Unregistered recv message Buffer\n");
++			h_lmr_recv = NULL;
++		}
++	}
++}
++
++DAT_RETURN send_msg(char *buff, char msg_head, DAT_UINT32 ep_num,
++		    DAT_UINT32 msg_num)
++{
++	DAT_DTO_COOKIE cookie;
++	DAT_LMR_TRIPLET l_iov;
++
++	*buff = msg_head;
++	*((DAT_UINT32 *)(buff + 4)) = htonl(ep_num);
++	*((DAT_UINT32 *)(buff + 8)) = htonl(msg_num);
++
++	l_iov.lmr_context = lmr_context_send;
++#if defined(_WIN32)
++	l_iov.virtual_address = (DAT_VADDR) buff;
++#else
++	l_iov.virtual_address = (DAT_VADDR)(unsigned long)buff;
++#endif
++	l_iov.segment_length = tx_buf_len;
++
 +	if (!ud_test) {
-+		if (do_immediate()) {
-+			_WSACleanup();
-+			exit(1);
-+		}
-+		if (do_cmp_swap()) {
-+			_WSACleanup();
-+			exit(1);
-+		}
-+		if (do_fetch_add()) {
-+			_WSACleanup();
-+			exit(1);
-+		}
- 	}
--      bail:
++		LOGPRINTF(" %s RC SEND, ep %d, msg num %d, buffer %p len=%d\n",
++			  server ? "SERVER:" : "CLIENT:",
++			  ep_num, msg_num, buff, tx_buf_len);
 +
- 	rc = disconnect_ep();
-+	dat_ia_close(ia, DAT_CLOSE_DEFAULT);
- 	_WSACleanup();
- 
- 	if (!rc)
++		return dat_ep_post_send(h_ep[ep_num], 1, &l_iov, cookie,
++				DAT_COMPLETION_DEFAULT_FLAG);
++	} else {
++		/* UD section */
++		int ep_idx = (server ? ep_num : 0);
++		int ah_idx = (server ? 0 : ep_num);
++		LOGPRINTF(" %s UD SND, from ep %d to ep %d, msg num %d, buffer %p len %d\n",
++			  server ? "SERVER:" : "CLIENT:",
++			  ep_idx, ah_idx, msg_num, buff, tx_buf_len);
++		LOGPRINTF(" %s sending on ep=%p to remote_ah %p"
++		          " qpn=0x%x addr=%s\n",
++		          server ? "Server" : "Client", h_ep[ep_idx], remote_ah[ah_idx].ah,
++		          remote_ah[ah_idx].qpn, inet_ntoa(((struct sockaddr_in *)
++				  &remote_ah[ah_idx].ia_addr)->sin_addr));
++
++		/* client use all data in on first EP */
++		return dat_ib_post_send_ud(h_ep[ep_idx],
++					   1,
++					   &l_iov,
++					   &remote_ah[ah_idx],
++					   cookie,
++					   DAT_COMPLETION_DEFAULT_FLAG);
++	}
++}
++
++void print_usage(void)
++{
++	printf("\n DAPL SRQ USAGE \n\n");
++	printf("s: server\n");
++	printf("c: connections (default = 1, max = 100)\n");
++	printf("B: burst messages per connection (default = 1, max = 100)\n");
++	printf("t: bursts number per connection (default = 3)\n");
++	printf("b: buffer length to allocate (default DAT_IB_TRANSPORT_MTU)\n");
++	printf("v: verbose\n");
++	printf("h: hostname/address of server, specified on client\n");
++	printf("P: provider name (default = OpenIB-cma)\n");
++	printf("l: server lid (required ucm provider)\n");
++	printf("q: server qpn (required ucm provider)\n");
++	printf("u  unreliable datagram test (default false)\n");
++	printf("S  use SRQ (default = 1 = use SQR)\n");
++	printf("\n");
++}
 -- 
 1.7.3
 
