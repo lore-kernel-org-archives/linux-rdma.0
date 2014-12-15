@@ -1,7 +1,7 @@
 From: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 3/4] common: dapl_ep_free must serialize CM object destroy
-Date: Mon, 15 Dec 2014 11:58:54 -0800
-Message-ID: <1418673535-1464-4-git-send-email-arlin.r.davis@intel.com>
+Subject: [PATCH 1/4] ucm: RTU not retransmitted in TIMEWAIT state
+Date: Mon, 15 Dec 2014 11:58:52 -0800
+Message-ID: <1418673535-1464-2-git-send-email-arlin.r.davis@intel.com>
 References: <1418673535-1464-1-git-send-email-arlin.r.davis@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1418673535-1464-1-git-send-email-arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,64 +12,65 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-CM object could be destroyed from time_wait state from
-provider in separate thread. Destruction must be serialized
-with EP lock.
-
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_ep_free.c |   21 +++++++++++----------
- 1 files changed, 11 insertions(+), 10 deletions(-)
+ dapl/openib_ucm/cm.c |   21 ++++++++++++++++-----
+ 1 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/dapl/common/dapl_ep_free.c b/dapl/common/dapl_ep_free.c
-index 62d7eff..652b61d 100644
---- a/dapl/common/dapl_ep_free.c
-+++ b/dapl/common/dapl_ep_free.c
-@@ -66,7 +66,7 @@ DAT_RETURN DAT_API dapl_ep_free(IN DAT_EP_HANDLE ep_handle)
- 	DAPL_EP *ep_ptr;
- 	DAPL_IA *ia_ptr;
- 	DAT_EP_PARAM *param;
--	dp_ib_cm_handle_t cm_ptr, next_cm_ptr;
-+	dp_ib_cm_handle_t cm_ptr;
- 	ib_qp_state_t save_qp_state;
- 	DAT_RETURN dat_status = DAT_SUCCESS;
- 
-@@ -110,25 +110,26 @@ DAT_RETURN DAT_API dapl_ep_free(IN DAT_EP_HANDLE ep_handle)
- 	 */
- 	(void)dapl_ep_disconnect(ep_ptr, DAT_CLOSE_ABRUPT_FLAG);
- 
-+	/*
-+	 * Do verification of parameters and the state change atomically.
-+	 */
-+	dapl_os_lock(&ep_ptr->header.lock);
-+
- 	/* Free all CM objects */
- 	cm_ptr = (dapl_llist_is_empty(&ep_ptr->cm_list_head)
- 		  ? NULL : dapl_llist_peek_head(&ep_ptr->cm_list_head));
-+
- 	while (cm_ptr != NULL) {
-                 dapl_log(DAPL_DBG_TYPE_EP,
- 			 "dapl_ep_free: Free CM: EP=%p CM=%p\n",
- 			 ep_ptr, cm_ptr);
--
--		next_cm_ptr = dapl_llist_next_entry(&ep_ptr->cm_list_head,
--						    &cm_ptr->list_entry);
-+		dapl_os_unlock(&ep_ptr->header.lock);
- 		dapls_cm_free(cm_ptr); /* blocking call */
--		cm_ptr = next_cm_ptr;
-+		dapl_os_lock(&ep_ptr->header.lock);
-+		cm_ptr = (dapl_llist_is_empty(&ep_ptr->cm_list_head)
-+			  ? NULL : dapl_llist_peek_head(&ep_ptr->cm_list_head));
- 	}
- 
--	/*
--	 * Do verification of parameters and the state change atomically.
--	 */
--	dapl_os_lock(&ep_ptr->header.lock);
--
- #ifdef DAPL_DBG
- 	/* check if event pending and warn, don't assert, state is valid */
- 	if (ep_ptr->param.ep_state == DAT_EP_STATE_DISCONNECT_PENDING) {
+diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
+index e462632..141086d 100644
+--- a/dapl/openib_ucm/cm.c
++++ b/dapl/openib_ucm/cm.c
+@@ -231,7 +231,7 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 		*timer = cm->hca->ib_trans.cm_timer;
+ 		if ((time - cm->timer)/1000 >
+ 		     (cm->hca->ib_trans.rtu_time << cm->retries)) {
+-			dapl_log(DAPL_DBG_TYPE_CM_WARN,
++			dapl_log(DAPL_DBG_TYPE_CM,
+ 				 " CM_TIMEWAIT %d %p [lid, port, cqp, iqp]:"
+ 				 " %x %x %x %x -> %x %x %x %x r_pid %x"
+ 				 " Time(ms) %d > %d\n",
+@@ -247,8 +247,17 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 		}
+ 		if (cm->retries > 2) {
+ 			dapl_log(DAPL_DBG_TYPE_CM_WARN,
+-				" CM_TIMEWAIT expired (%d ms) for CM %p\n",
+-				 cm, (time - cm->timer)/1000);
++				 " CM_TIMEWAIT EXPIRED %d %p [lid, port, cqp, iqp]:"
++				 " %x %x %x %x -> %x %x %x %x r_pid %x"
++				 " Time(ms) %d > %d\n",
++				 cm->retries+1, cm,
++				 ntohs(cm->msg.saddr.ib.lid), ntohs(cm->msg.sport),
++				 ntohl(cm->msg.sqpn), ntohl(cm->msg.saddr.ib.qpn),
++				 ntohs(cm->msg.daddr.ib.lid), ntohs(cm->msg.dport),
++				 ntohl(cm->msg.dqpn), ntohl(cm->msg.daddr.ib.qpn),
++				 ntohl(cm->msg.d_id),
++				 (time - cm->timer)/1000,
++				 cm->hca->ib_trans.rtu_time << cm->retries);
+ 			cm->ah = NULL;  /* consumer will free AH */
+ 			cm->state = DCM_FREE;
+ 			dapl_os_unlock(&cm->lock);
+@@ -382,8 +391,10 @@ static void ucm_process_recv(ib_hca_transport_t *tp,
+ 		ucm_connect_rtu(cm, msg);
+ 		break;
+ 	case DCM_CONNECTED: /* active and passive */
++	case DCM_TIMEWAIT:  /* passive */
+ 		/* DREQ, change state and process */
+-		cm->retries = 2; 
++		if (cm->state == DCM_CONNECTED)
++			cm->retries = 2;
+ 		if (ntohs(msg->op) == DCM_DREQ) {
+ 			cm->state = DCM_DISC_RECV;
+ 			dapl_os_unlock(&cm->lock);
+@@ -395,7 +406,7 @@ static void ucm_process_recv(ib_hca_transport_t *tp,
+ 			dapl_log(DAPL_DBG_TYPE_CM_WARN,
+ 				 " RESEND RTU: op %s st %s [lid, port, cqp, iqp]:"
+ 				 " %x %x %x %x -> %x %x %x %x r_pid %x\n",
+-				  dapl_cm_op_str(ntohs(cm->msg.op)),
++				  dapl_cm_op_str(ntohs(msg->op)),
+ 				  dapl_cm_state_str(cm->state),
+ 				 ntohs(cm->msg.saddr.ib.lid), ntohs(cm->msg.sport),
+ 				 ntohl(cm->msg.sqpn), ntohl(cm->msg.saddr.ib.qpn),
 -- 
 1.7.3
 
