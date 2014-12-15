@@ -1,136 +1,141 @@
-From: Wengang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
-Date: Mon, 15 Dec 2014 09:12:53 +0800
-Message-ID: <548E3595.60206@oracle.com>
-References: <20141125.010741.450666241983239119.davem@davemloft.net>	<54742D6E.9030605@mellanox.com>	<19740.1416940877@famine> <20141125.134450.1265438298771389292.davem@davemloft.net> <54752D4C.7000603@oracle.com> <547E6C70.7040809@oracle.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH ] mlx4_core: Enhance device capabilities flags debug
+ printouts
+Date: Mon, 15 Dec 2014 11:21:54 +0200
+Message-ID: <20141215092153.GF2806@yuval-lab>
+References: <1417996112-19060-1-git-send-email-yuval.shaia@oracle.com>
+ <54881BFF.2030008@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <547E6C70.7040809-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <54881BFF.2030008-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Anyone please respond to this?
-
-thanks,
-wengang
-
-=E4=BA=8E 2014=E5=B9=B412=E6=9C=8803=E6=97=A5 09:50, Wengang Wang =E5=86=
-=99=E9=81=93:
-> Hi David and Jay,
->
-> Then about about the change in this patch?
->
-> thanks,
-> wengang
->
-> =E5=9C=A8 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 09:30, Wengang =E5=86=99=
-=E9=81=93:
->> =E4=BA=8E 2014=E5=B9=B411=E6=9C=8826=E6=97=A5 02:44, David Miller =E5=
-=86=99=E9=81=93:
->>> From: Jay Vosburgh <jay.vosburgh-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
->>> Date: Tue, 25 Nov 2014 10:41:17 -0800
->>>
->>>> Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>>>
->>>>> On 11/25/2014 8:07 AM, David Miller wrote:
->>>>>> IPOIB should not work over bonding as it requires that the devic=
-e
->>>>>> use ARPHRD_ETHER.
->>>>> Hi Dave,
->>>>>
->>>>> IPoIB devices can be enslaved to both bonding and teaming in thei=
-r=20
->>>>> HA mode,
->>>>> the bond device type becomes ARPHRD_INFINIBAND when this happens.
->>>>     The point was that pktgen disallows ARPHRD_INFINIBAND, not tha=
-t
->>>> bonding does.
->>>>
->>>>     Pktgen specifically checks for type !=3D ARPHRD_ETHER, so the
->>>> IPoIB bond should not be able to be used with pkgten.  My suspicio=
-n is
->>>> that pktgen is being configured on the bond first, then an IPoIB s=
-lave
->>>> is added to the bond; this would change its type in a way that pkt=
-gen
->>>> wouldn't notice.
->>> +1
->>
->> I think it go this way:
->>
->> 1) bond_master is ready
->> 2) bond_enslave enslave a IPOIB interface calling bond_setup_by_slav=
-e
->> 3) then bond_setup_by_slave set change master type to ARPHRD_INFINIB=
-AND.
->>
->> code is like this:
->>
->> 1 /* enslave device <slave> to bond device <master> */
->> 2 int bond_enslave(struct net_device *bond_dev, struct net_device=20
->> *slave_dev)
->> 3 {
->> 4 <snip>...
->> 5 /* set bonding device ether type by slave - bonding netdevices are
->> 6 * created with ether_setup, so when the slave type is not ARPHRD_E=
-THER
->> 7 * there is a need to override some of the type dependent=20
->> attribs/funcs.
->> 8 *
->> 9 * bond ether type mutual exclusion - don't allow slaves of dissimi=
-lar
->> 10 * ether type (eg ARPHRD_ETHER and ARPHRD_INFINIBAND) share the=20
->> same bond
->> 11 */
->> 12 if (!bond_has_slaves(bond)) {
->> 13 if (bond_dev->type !=3D slave_dev->type) {
->> 14 <snip>...
->> 15 if (slave_dev->type !=3D ARPHRD_ETHER)
->> 16 bond_setup_by_slave(bond_dev, slave_dev);
->> 17 else {
->> 18 ether_setup(bond_dev);
->> 19 bond_dev->priv_flags &=3D ~IFF_TX_SKB_SHARING;
->> 20 }
->> 21
->> 22 call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE,
->> 23 bond_dev);
->> 24 }
->> 25 <snip>...
->> 26 }
->> 27
->> 28 static void bond_setup_by_slave(struct net_device *bond_dev,
->> 29 struct net_device *slave_dev)
->> 30 {
->> 31 bond_dev->header_ops =3D slave_dev->header_ops;
->> 32
->> 33 bond_dev->type =3D slave_dev->type;
->> 34 bond_dev->hard_header_len =3D slave_dev->hard_header_len;
->> 35 bond_dev->addr_len =3D slave_dev->addr_len;
->> 36
->> 37 memcpy(bond_dev->broadcast, slave_dev->broadcast,
->> 38 slave_dev->addr_len);
->> 39 }
->> 40
->>
->> thanks
->> wengang
->> --=20
->> To unsubscribe from this list: send the line "unsubscribe netdev" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+On Wed, Dec 10, 2014 at 12:10:07PM +0200, Matan Barak wrote:
+> 
+> 
+> On 12/8/2014 1:48 AM, Yuval Shaia wrote:
+> >1. Add indication whether feature is supported or not.
+> >2. Add descriptions of all features.
+> >Without this fix there is no way to tell if feature is not supported or that description is not exist.
+> >
+> >Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >---
+> >  drivers/net/ethernet/mellanox/mlx4/fw.c |   37 +++++++++++++++++++++++++++---
+> >  1 files changed, 33 insertions(+), 4 deletions(-)
+> >
+> >diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+> >index 2e88a23..79ab326 100644
+> >--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
+> >+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+> >@@ -91,7 +91,10 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+> >                 [ 8] =P_Key violation counter",
+> >                 [ 9] =Q_Key violation counter",
+> >                 [10] =VMM",
+> >+               [11] =Fibre Channel Protocol On Ethernet Ports support",
+> >                 [12] =Dual Port Different Protocol (DPDP) support",
+> >+               [13] =Raw Ethertype support",
+> >+               [14] =Raw IPv6 support",
+> >                 [15] =Big LSO headers",
+> >                 [16] =MW support",
+> >                 [17] =APM support",
+> >@@ -99,16 +102,40 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+> >                 [19] =Raw multicast support",
+> >                 [20] =Address vector port checking support",
+> >                 [21] =UD multicast support",
+> >+               [22] =UD IPv4 Multicast support",
+> >                 [24] =Demand paging support",
+> >                 [25] =Router support",
+> >+               [26] =L2 Ethernet Multicast support",
+> >+               [28] =Software parsing support for UD transport",
+> >+               [29] =TCP checksum off-load support",
+> >                 [30] =IBoE support",
+> >+               [31] =FCoE T11 frame format support",
+> >                 [32] =Unicast loopback support",
+> >+               [33] =Multicast loopback support",
+> >                 [34] =FCS header control",
+> >+               [35] =Address Path ud_force_mgid support",
+> >+               [36] =Header-Data Split support",
+> >+               [37] =Wake On LAN support on port 1",
+> >+               [38] =Wake On LAN support on port 2",
+> >+               [39] =Fatal Warning Event upon a thermal warning condition",
+> >                 [38] =Wake On LAN support",
+> >                 [40] =UDP RSS support",
+> >                 [41] =Unicast VEP steering support",
+> >                 [42] =Multicast VEP steering support",
+> >+               [43] =VLAN Steering mechanism support",
+> >+               [44] =Steering according to EtherType support",
+> >+               [45] =WQE format version 1 support",
+> >+               [46] =Keep Alive Validiation support",
+> >+               [47] =PTP1588 support",
+> >                 [48] =Counters support",
+> >+               [49] =Advanced Counters support",
+> >+               [50] =Force Ethernet user priority from QPC support",
+> >+               [51] =RX Port Num check disabled",
+> >+               [52] =RSS on fragmented IP datagram support",
+> 
+> Hi,
+> 
+> Except for Or's comments, [55] exists twice. Furthermore, please
+> move [56]-[57] to be after [55] =Port link type sensing support".
+Thanks,
+Will send a revise patch soon.
+By accepting this patch it is agreed that function will dump device capabilities flag and not the combination of dev & driver capabilities.
+(as the name suggest)
+> 
+> >+               [55] =Link Sensing support",
+> >+               [56] =Reliable Multicast support",
+> >+               [57] =Fast Drop support",
+> >+               [58] =Protected FMR support",
+> >                 [53] =Port ETS Scheduler support",
+> >                 [55] =Port link type sensing support",
+> >                 [59] =Port management change event support",
+> >@@ -119,8 +146,9 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+> >
+> >         mlx4_dbg(dev, "DEV_CAP flags:\n");
+> >         for (i =; i < ARRAY_SIZE(fname); ++i)
+> >-               if (fname[i] && (flags & (1LL << i)))
+> >-                       mlx4_dbg(dev, "    %s\n", fname[i]);
+> >+               if (fname[i])
+> >+                       mlx4_dbg(dev, "    (%c) %s\n", (flags & (1LL << i)) ?
+> >+                                '*' : ' ', fname[i]);
+> >  }
+> 
+> I think that the strings should be displayed only if both driver and
+> FW supports them. You could add a QUERY_DEV_CAP_SUPPORTED_FLAGS
+> which ors all the supported flags in device.h and check if (flags &
+> QUERY_DEV_CAP_SUPPORTED_FLAGS) & (1LL << i)).
+> 
+> >
+> >  static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+> >@@ -144,8 +172,9 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+> >         int i;
+> >
+> >         for (i =; i < ARRAY_SIZE(fname); ++i)
+> >-               if (fname[i] && (flags & (1LL << i)))
+> >-                       mlx4_dbg(dev, "    %s\n", fname[i]);
+> >+               if (fname[i])
+> >+                       mlx4_dbg(dev, "    (%c) %s\n", (flags & (1LL << i)) ?
+> >+                                '*' : ' ', fname[i]);
+> >  }
+> >
+> >  int mlx4_MOD_STAT_CFG(struct mlx4_dev *dev, struct mlx4_mod_stat_cfg *cfg)
+> >--
+> >1.7.1
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> >the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> Regards,
+> Matan
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
