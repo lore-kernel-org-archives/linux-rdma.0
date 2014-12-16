@@ -1,62 +1,87 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 06/17] IB/core: Add support for extended query device
- caps
-Date: Tue, 16 Dec 2014 21:14:48 +0100
-Message-ID: <1418760888.3245.29.camel@dworkin>
-References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
-	 <1418310266-9584-7-git-send-email-haggaie@mellanox.com>
-	 <1418733236.2779.26.camel@opteya.com>
-	 <CAG4TOxP9OhPigPseCzhUacHADoH2pEdj672V0SVfZuBTjKLHVg@mail.gmail.com>
-	 <CAJ3xEMi+SCakMD=PYamYjqYWb0oCmccLzyR-4+K-fhF1bGfykQ@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] libibumad 1.3.10 release
+Date: Tue, 16 Dec 2014 15:35:41 -0500
+Message-ID: <5490979D.4020808@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMi+SCakMD=PYamYjqYWb0oCmccLzyR-4+K-fhF1bGfykQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+There is a new 1.3.10 release of libibumad.
 
-Le mardi 16 d=C3=A9cembre 2014 =C3=A0 22:07 +0200, Or Gerlitz a =C3=A9c=
-rit :
-> On Tue, Dec 16, 2014 at 7:41 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wr=
-ote:
-> > On Tue, Dec 16, 2014 at 4:33 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
-m> wrote:
-> >>
-> >> With the suggested change here, buffer overflow won't happen,
-> >> but the error is silently ignored, allowing uverb to return a
-> >> partial result, which is likely not expected by userspace as
-> >> it's a bit difficult to handle it gracefully.
-> >>
-> >> So this has to be removed, and a check on userspace response
-> >> buffer must be added to ib_uverbs_ex_query_device() instead.
-> >
-> > I'm not sure of the specifics of the change you're suggesting here.
-> > Would it be OK to go forward with the patch set we have, and then f=
-ix
-> > this issue before 3.19-rc2?
->=20
-> Roland,
->=20
-> Haggai will address the change in an incremental patch against your
-> for-next (3.19-rc1) so the fix will be ready on time for 3.19-rc2
->=20
+Tarball is available in:
+http://www.openfabrics.org/downloads/management/
+(listed in http://www.openfabrics.org/downloads/management/latest.txt)
 
-That's would be great.
+md5sum:
+3a4046ddaaf43bbb82f124808232a294  libibumad-1.3.10.tar.gz
 
-Thanks
+All component versions are from recent master branch. Full list of
+changes is below.
 
---=20
-Yann Droneaud
-OPTEYA
+Alex Netes (1):
+      libibumad: Fix memory leak in resolve_ca_port
 
+Dan Ben Yosef (1):
+      umad.c: Buffer not null terminated
+
+Hal Rosenstock (14):
+      libibumad: Minor fixups for previous umad_str patch
+      libibumad: Fix issues causing const warnings for strings
+      libibumad: Add recent/missing SM/SA attributes
+      libibumad: Rename attributes UMAD_SM_ATTR_XXX rather than UMAD_SMP_ATTR_XXX
+      libibumad: update shared library version
+      libibumad: package version update for 1.3.9 release
+      umad_sm.h: Add Mellanox extended port info SM attribute ID to enum
+      umad_[sm sa].h: Add PortInfoExtended SM and PortInfoExtendedRecord SA attributes
+      umad_sa.h: Add some new (at IBA 1.3) SA CapabilityMask2 bit definitions
+      umad_cm.h: Add new SAP and SPR CM attributes
+      umad_str.c: Add strings for newly added attributes
+      Added/updated some Mellanox copyrights
+      libibumad.ver: Update shared library version
+      configure.in: package version update for 1.3.10 release
+
+Ilya Nelkenbaum (1):
+      libibumad/umad.c: In resolve_ca_port, skip ethernet link layer ports
+
+Ira Weiny (11):
+      libibumad: fix umad_register man page
+      libibumad: update umad_[send|recv] man pages to document how rmpp is handled
+      libibumad: change UMAD_METHOD_RESP to UMAD_METHOD_RESP_MASK
+      libibumad: add UMAD_SA_STATUS_PRI_SUGGESTED to SA status.
+      libibumad: add string functions for various enums
+      libibumad: document the setting of errno for umad_send and umad_recv
+      libibumad: add SA CAP MASK[2] definitions
+      libibumad: add ClassPortInfo struct
+      umad_types.h: fix status type in umad_hdr
+      Add support for new registration ioctl
+      Add make check with umad register tests
+
+Line Holen (1):
+      umad_sm.h Add SM trap definitions
+
+Nick Mills (1):
+      configure.in: Remove unused --disable-libcheck configure option
+
+Sean Hefty (10):
+      libibumad: Provide MAD definitions with libibumad
+      libibumad: Add SA MAD definitions to umad
+      libibumad: Add basic SM definitions to umad
+      libibumad: Add CM definitions to umad
+      libibumad: Add new umad header files to release
+      libibumad: Define ntohll/htonll
+      libibumad: Define data type to indicate values are in big-endian
+      libibumad/sa: Add SA specific status values
+      libibumad: Define well known QKEY
+      Fix export of umad_sa_mad_status_str
+
+sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org (1):
+      Add UMAD_RMPP_FLAG_ACTIVE into umad_types.h
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
