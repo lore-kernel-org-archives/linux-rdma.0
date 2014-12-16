@@ -1,294 +1,278 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 07/17] IB/core: Add flags for on demand paging support
-Date: Tue, 16 Dec 2014 13:13:52 +0100
-Message-ID: <1418732032.2779.11.camel@opteya.com>
+Subject: Re: [PATCH v3 06/17] IB/core: Add support for extended query device
+ caps
+Date: Tue, 16 Dec 2014 13:33:56 +0100
+Message-ID: <1418733236.2779.26.camel@opteya.com>
 References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
-	 <1418310266-9584-8-git-send-email-haggaie@mellanox.com>
-	 <1418731378.2779.6.camel@opteya.com>
+	 <1418310266-9584-7-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418731378.2779.6.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1418310266-9584-7-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le mardi 16 d=C3=A9cembre 2014 =C3=A0 13:02 +0100, Yann Droneaud a =C3=A9=
+Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 17:04 +0200, Haggai Eran a =C3=A9=
 crit :
-> Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 17:04 +0200, Haggai Eran a =C3=A9=
-crit :
-> > From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >=20
-> > * Add a configuration option for enable on-demand paging support in=
- the
-> >   infiniband subsystem (CONFIG_INFINIBAND_ON_DEMAND_PAGING). In a l=
-ater patch,
-> >   this configuration option will select the MMU_NOTIFIER configurat=
-ion option
-> >   to enable mmu notifiers.
-> > * Add a flag for on demand paging (ODP) support in the IB device ca=
-pabilities.
-> > * Add a flag to request ODP MR in the access flags to reg_mr.
-> > * Fail registrations done with the ODP flag when the low-level driv=
-er doesn't
-> >   support this.
-> > * Change the conditions in which an MR will be writable to explicit=
-ly
-> >   specify the access flags. This is to avoid making an MR writable =
-just
-> >   because it is an ODP MR.
-> > * Add a ODP capabilities to the extended query device verb.
-> >=20
-> > Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/Kconfig           | 10 ++++++++++
-> >  drivers/infiniband/core/umem.c       |  8 +++++---
-> >  drivers/infiniband/core/uverbs_cmd.c | 25 ++++++++++++++++++++++++=
-+
-> >  include/rdma/ib_verbs.h              | 28 ++++++++++++++++++++++++=
-++--
-> >  include/uapi/rdma/ib_user_verbs.h    | 15 +++++++++++++++
-> >  5 files changed, 81 insertions(+), 5 deletions(-)
-> >=20
-> > diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfi=
-g
-> > index 77089399359b..089a2c2af329 100644
-> > --- a/drivers/infiniband/Kconfig
-> > +++ b/drivers/infiniband/Kconfig
-> > @@ -38,6 +38,16 @@ config INFINIBAND_USER_MEM
-> >  	depends on INFINIBAND_USER_ACCESS !=3D n
-> >  	default y
-> > =20
-> > +config INFINIBAND_ON_DEMAND_PAGING
-> > +	bool "InfiniBand on-demand paging support"
-> > +	depends on INFINIBAND_USER_MEM
-> > +	default y
-> > +	---help---
-> > +	  On demand paging support for the InfiniBand subsystem.
-> > +	  Together with driver support this allows registration of
-> > +	  memory regions without pinning their pages, fetching the
-> > +	  pages on demand instead.
-> > +
-> >  config INFINIBAND_ADDR_TRANS
-> >  	bool
-> >  	depends on INFINIBAND
-> > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/co=
-re/umem.c
-> > index 6f152628e0d2..c328e4693d14 100644
-> > --- a/drivers/infiniband/core/umem.c
-> > +++ b/drivers/infiniband/core/umem.c
-> > @@ -107,13 +107,15 @@ struct ib_umem *ib_umem_get(struct ib_ucontex=
-t *context, unsigned long addr,
-> >  	umem->page_size =3D PAGE_SIZE;
-> >  	umem->pid       =3D get_task_pid(current, PIDTYPE_PID);
-> >  	/*
-> > -	 * We ask for writable memory if any access flags other than
-> > -	 * "remote read" are set.  "Local write" and "remote write"
-> > +	 * We ask for writable memory if any of the following
-> > +	 * access flags are set.  "Local write" and "remote write"
-> >  	 * obviously require write access.  "Remote atomic" can do
-> >  	 * things like fetch and add, which will modify memory, and
-> >  	 * "MW bind" can change permissions by binding a window.
-> >  	 */
-> > -	umem->writable  =3D !!(access & ~IB_ACCESS_REMOTE_READ);
-> > +	umem->writable  =3D !!(access &
-> > +		(IB_ACCESS_LOCAL_WRITE   | IB_ACCESS_REMOTE_WRITE |
-> > +		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
-> > =20
-> >  	/* We assume the memory is from hugetlb until proved otherwise */
-> >  	umem->hugetlb   =3D 1;
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infinib=
-and/core/uverbs_cmd.c
-> > index c7a43624c96b..f9326ccda4b5 100644
-> > --- a/drivers/infiniband/core/uverbs_cmd.c
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -953,6 +953,18 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file=
- *file,
-> >  		goto err_free;
-> >  	}
-> > =20
-> > +	if (cmd.access_flags & IB_ACCESS_ON_DEMAND) {
-> > +		struct ib_device_attr attr;
-> > +
-> > +		ret =3D ib_query_device(pd->device, &attr);
-> > +		if (ret || !(attr.device_cap_flags &
-> > +				IB_DEVICE_ON_DEMAND_PAGING)) {
-> > +			pr_debug("ODP support not available\n");
-> > +			ret =3D -EINVAL;
-> > +			goto err_put;
-> > +		}
-> > +	}
-> > +
-> >  	mr =3D pd->device->reg_user_mr(pd, cmd.start, cmd.length, cmd.hca=
-_va,
-> >  				     cmd.access_flags, &udata);
-> >  	if (IS_ERR(mr)) {
-> > @@ -3289,6 +3301,19 @@ int ib_uverbs_ex_query_device(struct ib_uver=
-bs_file *file,
-> >  	copy_query_dev_fields(file, &resp.base, &attr);
-> >  	resp.comp_mask =3D 0;
-> > =20
-> > +#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-> > +	if (cmd.comp_mask & IB_USER_VERBS_EX_QUERY_DEVICE_ODP) {
-> > +		resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
-> > +		resp.odp_caps.per_transport_caps.rc_odp_caps =3D
-> > +			attr.odp_caps.per_transport_caps.rc_odp_caps;
-> > +		resp.odp_caps.per_transport_caps.uc_odp_caps =3D
-> > +			attr.odp_caps.per_transport_caps.uc_odp_caps;
-> > +		resp.odp_caps.per_transport_caps.ud_odp_caps =3D
-> > +			attr.odp_caps.per_transport_caps.ud_odp_caps;
-> > +		resp.comp_mask |=3D IB_USER_VERBS_EX_QUERY_DEVICE_ODP;
-> > +	}
+> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 >=20
-> You need to clear the tail of the response otherwise, kernel will lea=
-k
-> stack content to userspace:
+> Add extensible query device capabilities verb to allow adding new fea=
+tures.
+> ib_uverbs_ex_query_device is added and copy_query_dev_fields is used =
+to copy
+> capability fields to be used by both ib_uverbs_query_device and
+> ib_uverbs_ex_query_device.
 >=20
-> + #else /* !CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-> +	resp.odp_caps.general_caps =3D 0;
-> +	resp.odp_caps.per_transport_caps.rc_odp_caps =3D 0;
-> +	resp.odp_caps.per_transport_caps.uc_odp_caps =3D 0;
-> +	resp.odp_caps.per_transport_caps.ud_odp_caps =3D 0;
->  =09
-> > +#endif
-> > +
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/uverbs.h      |   1 +
+>  drivers/infiniband/core/uverbs_cmd.c  | 124 +++++++++++++++++++++++-=
+----------
+>  drivers/infiniband/core/uverbs_main.c |   3 +-
+>  include/rdma/ib_verbs.h               |   5 +-
+>  include/uapi/rdma/ib_user_verbs.h     |  14 +++-
+>  5 files changed, 103 insertions(+), 44 deletions(-)
 >=20
-> +	resp.odp_caps.reserved =3D 0
->=20
+> diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/co=
+re/uverbs.h
+> index 643c08a025a5..b716b0815644 100644
+> --- a/drivers/infiniband/core/uverbs.h
+> +++ b/drivers/infiniband/core/uverbs.h
+> @@ -258,5 +258,6 @@ IB_UVERBS_DECLARE_CMD(close_xrcd);
+> =20
+>  IB_UVERBS_DECLARE_EX_CMD(create_flow);
+>  IB_UVERBS_DECLARE_EX_CMD(destroy_flow);
+> +IB_UVERBS_DECLARE_EX_CMD(query_device);
+> =20
+>  #endif /* UVERBS_H */
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniban=
+d/core/uverbs_cmd.c
+> index 5ba2a86aab6a..c7a43624c96b 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -378,6 +378,52 @@ err:
+>  	return ret;
+>  }
+> =20
+> +static void copy_query_dev_fields(struct ib_uverbs_file *file,
+> +				  struct ib_uverbs_query_device_resp *resp,
+> +				  struct ib_device_attr *attr)
+> +{
+> +	resp->fw_ver		=3D attr->fw_ver;
+> +	resp->node_guid		=3D file->device->ib_dev->node_guid;
+> +	resp->sys_image_guid	=3D attr->sys_image_guid;
+> +	resp->max_mr_size	=3D attr->max_mr_size;
+> +	resp->page_size_cap	=3D attr->page_size_cap;
+> +	resp->vendor_id		=3D attr->vendor_id;
+> +	resp->vendor_part_id	=3D attr->vendor_part_id;
+> +	resp->hw_ver		=3D attr->hw_ver;
+> +	resp->max_qp		=3D attr->max_qp;
+> +	resp->max_qp_wr		=3D attr->max_qp_wr;
+> +	resp->device_cap_flags	=3D attr->device_cap_flags;
+> +	resp->max_sge		=3D attr->max_sge;
+> +	resp->max_sge_rd	=3D attr->max_sge_rd;
+> +	resp->max_cq		=3D attr->max_cq;
+> +	resp->max_cqe		=3D attr->max_cqe;
+> +	resp->max_mr		=3D attr->max_mr;
+> +	resp->max_pd		=3D attr->max_pd;
+> +	resp->max_qp_rd_atom	=3D attr->max_qp_rd_atom;
+> +	resp->max_ee_rd_atom	=3D attr->max_ee_rd_atom;
+> +	resp->max_res_rd_atom	=3D attr->max_res_rd_atom;
+> +	resp->max_qp_init_rd_atom	=3D attr->max_qp_init_rd_atom;
+> +	resp->max_ee_init_rd_atom	=3D attr->max_ee_init_rd_atom;
+> +	resp->atomic_cap		=3D attr->atomic_cap;
+> +	resp->max_ee			=3D attr->max_ee;
+> +	resp->max_rdd			=3D attr->max_rdd;
+> +	resp->max_mw			=3D attr->max_mw;
+> +	resp->max_raw_ipv6_qp		=3D attr->max_raw_ipv6_qp;
+> +	resp->max_raw_ethy_qp		=3D attr->max_raw_ethy_qp;
+> +	resp->max_mcast_grp		=3D attr->max_mcast_grp;
+> +	resp->max_mcast_qp_attach	=3D attr->max_mcast_qp_attach;
+> +	resp->max_total_mcast_qp_attach	=3D attr->max_total_mcast_qp_attach=
+;
+> +	resp->max_ah			=3D attr->max_ah;
+> +	resp->max_fmr			=3D attr->max_fmr;
+> +	resp->max_map_per_fmr		=3D attr->max_map_per_fmr;
+> +	resp->max_srq			=3D attr->max_srq;
+> +	resp->max_srq_wr		=3D attr->max_srq_wr;
+> +	resp->max_srq_sge		=3D attr->max_srq_sge;
+> +	resp->max_pkeys			=3D attr->max_pkeys;
+> +	resp->local_ca_ack_delay	=3D attr->local_ca_ack_delay;
+> +	resp->phys_port_cnt		=3D file->device->ib_dev->phys_port_cnt;
+> +}
+> +
+>  ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
+>  			       const char __user *buf,
+>  			       int in_len, int out_len)
+> @@ -398,47 +444,7 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_=
+file *file,
+>  		return ret;
+> =20
+>  	memset(&resp, 0, sizeof resp);
+> -
+> -	resp.fw_ver 		       =3D attr.fw_ver;
+> -	resp.node_guid 		       =3D file->device->ib_dev->node_guid;
+> -	resp.sys_image_guid 	       =3D attr.sys_image_guid;
+> -	resp.max_mr_size 	       =3D attr.max_mr_size;
+> -	resp.page_size_cap 	       =3D attr.page_size_cap;
+> -	resp.vendor_id 		       =3D attr.vendor_id;
+> -	resp.vendor_part_id 	       =3D attr.vendor_part_id;
+> -	resp.hw_ver 		       =3D attr.hw_ver;
+> -	resp.max_qp 		       =3D attr.max_qp;
+> -	resp.max_qp_wr 		       =3D attr.max_qp_wr;
+> -	resp.device_cap_flags 	       =3D attr.device_cap_flags;
+> -	resp.max_sge 		       =3D attr.max_sge;
+> -	resp.max_sge_rd 	       =3D attr.max_sge_rd;
+> -	resp.max_cq 		       =3D attr.max_cq;
+> -	resp.max_cqe 		       =3D attr.max_cqe;
+> -	resp.max_mr 		       =3D attr.max_mr;
+> -	resp.max_pd 		       =3D attr.max_pd;
+> -	resp.max_qp_rd_atom 	       =3D attr.max_qp_rd_atom;
+> -	resp.max_ee_rd_atom 	       =3D attr.max_ee_rd_atom;
+> -	resp.max_res_rd_atom 	       =3D attr.max_res_rd_atom;
+> -	resp.max_qp_init_rd_atom       =3D attr.max_qp_init_rd_atom;
+> -	resp.max_ee_init_rd_atom       =3D attr.max_ee_init_rd_atom;
+> -	resp.atomic_cap 	       =3D attr.atomic_cap;
+> -	resp.max_ee 		       =3D attr.max_ee;
+> -	resp.max_rdd 		       =3D attr.max_rdd;
+> -	resp.max_mw 		       =3D attr.max_mw;
+> -	resp.max_raw_ipv6_qp 	       =3D attr.max_raw_ipv6_qp;
+> -	resp.max_raw_ethy_qp 	       =3D attr.max_raw_ethy_qp;
+> -	resp.max_mcast_grp 	       =3D attr.max_mcast_grp;
+> -	resp.max_mcast_qp_attach       =3D attr.max_mcast_qp_attach;
+> -	resp.max_total_mcast_qp_attach =3D attr.max_total_mcast_qp_attach;
+> -	resp.max_ah 		       =3D attr.max_ah;
+> -	resp.max_fmr 		       =3D attr.max_fmr;
+> -	resp.max_map_per_fmr 	       =3D attr.max_map_per_fmr;
+> -	resp.max_srq 		       =3D attr.max_srq;
+> -	resp.max_srq_wr 	       =3D attr.max_srq_wr;
+> -	resp.max_srq_sge 	       =3D attr.max_srq_sge;
+> -	resp.max_pkeys 		       =3D attr.max_pkeys;
+> -	resp.local_ca_ack_delay        =3D attr.local_ca_ack_delay;
+> -	resp.phys_port_cnt	       =3D file->device->ib_dev->phys_port_cnt;
+> +	copy_query_dev_fields(file, &resp, &attr);
+> =20
+>  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+>  			 &resp, sizeof resp))
+> @@ -3253,3 +3259,39 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs=
+_file *file,
+> =20
+>  	return ret ? ret : in_len;
+>  }
+> +
+> +int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+> +			      struct ib_udata *ucore,
+> +			      struct ib_udata *uhw)
+> +{
+> +	struct ib_uverbs_ex_query_device_resp resp;
+> +	struct ib_uverbs_ex_query_device  cmd;
+> +	struct ib_device_attr attr;
+> +	struct ib_device *device;
+> +	int err;
+> +
+> +	device =3D file->device->ib_dev;
+> +	if (ucore->inlen < sizeof(cmd))
+> +		return -EINVAL;
+> +
+> +	err =3D ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
+> +	if (err)
+> +		return err;
+> +
+> +	if (cmd.reserved)
+> +		return -EINVAL;
+> +
+> +	err =3D device->query_device(device, &attr);
+> +	if (err)
+> +		return err;
+> +
+> +	memset(&resp, 0, sizeof(resp));
+> +	copy_query_dev_fields(file, &resp.base, &attr);
+> +	resp.comp_mask =3D 0;
+> +
+> +	err =3D ib_copy_to_udata(ucore, &resp, sizeof(resp));
+> +	if (err)
+> +		return err;
+> +
+> +	return 0;
+> +}
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniba=
+nd/core/uverbs_main.c
+> index 71ab83fde472..974025028790 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -122,7 +122,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uve=
+rbs_file *file,
+>  				    struct ib_udata *ucore,
+>  				    struct ib_udata *uhw) =3D {
+>  	[IB_USER_VERBS_EX_CMD_CREATE_FLOW]	=3D ib_uverbs_ex_create_flow,
+> -	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow
+> +	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow,
+> +	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	=3D ib_uverbs_ex_query_device
+>  };
+> =20
+>  static void ib_uverbs_add_one(struct ib_device *device);
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 470a011d6fa4..97a999f9e4d8 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1662,7 +1662,10 @@ static inline int ib_copy_from_udata(void *des=
+t, struct ib_udata *udata, size_t
+> =20
+>  static inline int ib_copy_to_udata(struct ib_udata *udata, void *src=
+, size_t len)
+>  {
+> -	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
+> +	size_t copy_sz;
+> +
+> +	copy_sz =3D min_t(size_t, len, udata->outlen);
+> +	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
+>  }
 
-I've missed the memset(&resp, 0, sizeof(resp)); added in
-ib_uverbs_ex_query_device() as part of '[PATCH v3 06/17] IB/core: Add
-support for extended query device caps'.
 
-Sorry for the noise.
+This is not the place to do this: as I'm guessing the purpose of this=20
+change from the patch in '[PATCH v3 07/17] IB/core: Add flags for on=20
+demand paging support', you're trying to handle uverbs call from=20
+a userspace program using a previous, shorter ABI.
 
-> >  	err =3D ib_copy_to_udata(ucore, &resp, sizeof(resp));
-> >  	if (err)
-> >  		return err;
-> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > index 97a999f9e4d8..a41bc5a39ebf 100644
-> > --- a/include/rdma/ib_verbs.h
-> > +++ b/include/rdma/ib_verbs.h
-> > @@ -123,7 +123,8 @@ enum ib_device_cap_flags {
-> >  	IB_DEVICE_MEM_WINDOW_TYPE_2A	=3D (1<<23),
-> >  	IB_DEVICE_MEM_WINDOW_TYPE_2B	=3D (1<<24),
-> >  	IB_DEVICE_MANAGED_FLOW_STEERING =3D (1<<29),
-> > -	IB_DEVICE_SIGNATURE_HANDOVER	=3D (1<<30)
-> > +	IB_DEVICE_SIGNATURE_HANDOVER	=3D (1<<30),
-> > +	IB_DEVICE_ON_DEMAND_PAGING	=3D (1<<31),
-> >  };
-> > =20
-> >  enum ib_signature_prot_cap {
-> > @@ -143,6 +144,27 @@ enum ib_atomic_cap {
-> >  	IB_ATOMIC_GLOB
-> >  };
-> > =20
-> > +enum ib_odp_general_cap_bits {
-> > +	IB_ODP_SUPPORT =3D 1 << 0,
-> > +};
-> > +
-> > +enum ib_odp_transport_cap_bits {
-> > +	IB_ODP_SUPPORT_SEND	=3D 1 << 0,
-> > +	IB_ODP_SUPPORT_RECV	=3D 1 << 1,
-> > +	IB_ODP_SUPPORT_WRITE	=3D 1 << 2,
-> > +	IB_ODP_SUPPORT_READ	=3D 1 << 3,
-> > +	IB_ODP_SUPPORT_ATOMIC	=3D 1 << 4,
-> > +};
-> > +
-> > +struct ib_odp_caps {
-> > +	uint64_t general_caps;
-> > +	struct {
-> > +		uint32_t  rc_odp_caps;
-> > +		uint32_t  uc_odp_caps;
-> > +		uint32_t  ud_odp_caps;
-> > +	} per_transport_caps;
-> > +};
-> > +
-> >  struct ib_device_attr {
-> >  	u64			fw_ver;
-> >  	__be64			sys_image_guid;
-> > @@ -186,6 +208,7 @@ struct ib_device_attr {
-> >  	u8			local_ca_ack_delay;
-> >  	int			sig_prot_cap;
-> >  	int			sig_guard_cap;
-> > +	struct ib_odp_caps	odp_caps;
-> >  };
-> > =20
-> >  enum ib_mtu {
-> > @@ -1073,7 +1096,8 @@ enum ib_access_flags {
-> >  	IB_ACCESS_REMOTE_READ	=3D (1<<2),
-> >  	IB_ACCESS_REMOTE_ATOMIC	=3D (1<<3),
-> >  	IB_ACCESS_MW_BIND	=3D (1<<4),
-> > -	IB_ZERO_BASED		=3D (1<<5)
-> > +	IB_ZERO_BASED		=3D (1<<5),
-> > +	IB_ACCESS_ON_DEMAND     =3D (1<<6),
-> >  };
-> > =20
-> >  struct ib_phys_buf {
-> > diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/=
-ib_user_verbs.h
-> > index e8a96071e352..4275b961bf60 100644
-> > --- a/include/uapi/rdma/ib_user_verbs.h
-> > +++ b/include/uapi/rdma/ib_user_verbs.h
-> > @@ -202,15 +202,30 @@ struct ib_uverbs_query_device_resp {
-> >  	__u8  reserved[4];
-> >  };
-> > =20
-> > +enum {
-> > +	IB_USER_VERBS_EX_QUERY_DEVICE_ODP =3D		1ULL << 0,
-> > +};
-> > +
-> >  struct ib_uverbs_ex_query_device {
-> >  	__u32 comp_mask;
-> >  	__u32 reserved;
-> >  };
-> > =20
-> > +struct ib_uverbs_odp_caps {
-> > +	__u64 general_caps;
-> > +	struct {
-> > +		__u32 rc_odp_caps;
-> > +		__u32 uc_odp_caps;
-> > +		__u32 ud_odp_caps;
-> > +	} per_transport_caps;
-> > +	__u32 reserved;
-> > +};
-> > +
-> >  struct ib_uverbs_ex_query_device_resp {
-> >  	struct ib_uverbs_query_device_resp base;
-> >  	__u32 comp_mask;
-> >  	__u32 reserved;
-> > +	struct ib_uverbs_odp_caps odp_caps;
-> >  };
->=20
-> Hopefully, no kernel was released with ib_uverbs_ex_query_device_resp
-> without odp_caps (eg. in between '[PATCH v3 06/17] IB/core: Add suppo=
-rt
-> for extended query device caps' and this one, or=20
-> ib_uverbs_ex_query_device() should have been modified
-> to handle shorter ib_uverbs_ex_query_device_resp to accomodate the AB=
-I
-> variations.
->=20
-
-Ouch ! I've seen how this would be handled in '[PATCH v3 06/17] IB/core=
-:
-Add support for extended query device caps', and I'm disappointed.
+But that's hidding bug where userspace will get it wrong at passing the=
 =20
-  static inline int ib_copy_to_udata(struct ib_udata *udata, void *src,
-size_t len)
- {
-       size_t copy_sz;
+correct buffer / size for all others uverb calls.
 
-       copy_sz =3D min_t(size_t, len, udata->outlen);
-       return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
- }
+That cannot work that way.
 
-This is not the correct way of doing this, but I'm going to comment on
-this issue on the related patch.
+In a previous patchset [1], I've suggested to add a check in=20
+ib_copy_{from,to}_udata()[2][3] in order to check the input/output
+buffer size to not read/write past userspace provided buffer
+boundaries: in case of mismatch an error would be returned to
+userspace.
+
+With the suggested change here, buffer overflow won't happen,
+but the error is silently ignored, allowing uverb to return a
+partial result, which is likely not expected by userspace as
+it's a bit difficult to handle it gracefully.
+
+So this has to be removed, and a check on userspace response
+buffer must be added to ib_uverbs_ex_query_device() instead.
+
+[1] "[PATCH 00/22] infiniband: improve userspace input check"
+
+http://marc.info/?i=3Dcover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[2] "[PATCH 03/22] infiniband: ib_copy_from_udata(): check input length=
+"
+
+http://mid.gmane.org/2bf102a41c51f61965ee09df827abe8fefb523a9.137684740=
+3.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[3] "[PATCH 04/22] infiniband: ib_copy_to_udata(): check output length"
+
+http://mid.gmane.org/d27716a3a1c180f832d153a7402f65ea8a75b734.137684740=
+3.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
 Regards.
 
