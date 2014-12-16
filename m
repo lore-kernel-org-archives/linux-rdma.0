@@ -1,288 +1,419 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 06/17] IB/core: Add support for extended query device
- caps
-Date: Tue, 16 Dec 2014 13:33:56 +0100
-Message-ID: <1418733236.2779.26.camel@opteya.com>
-References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
-	 <1418310266-9584-7-git-send-email-haggaie@mellanox.com>
+From: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: First byte of private_data transfered with rdma_connect() is always 0
+Date: Tue, 16 Dec 2014 15:32:43 +0100
+Message-ID: <20141216143242.GB4401@fholler.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="f+W+jCU1fRNres8c"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418310266-9584-7-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 17:04 +0200, Haggai Eran a =C3=A9=
-crit :
-> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->=20
-> Add extensible query device capabilities verb to allow adding new fea=
-tures.
-> ib_uverbs_ex_query_device is added and copy_query_dev_fields is used =
-to copy
-> capability fields to be used by both ib_uverbs_query_device and
-> ib_uverbs_ex_query_device.
->=20
-> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/uverbs.h      |   1 +
->  drivers/infiniband/core/uverbs_cmd.c  | 124 +++++++++++++++++++++++-=
+
+--f+W+jCU1fRNres8c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hello,
+
+we are using the conn_param->private_data field to transfer data with the
+rdma_connect() call to the server.
+When it's done on a RDMA_PS_IB rdma_cm_id the first Byte of the
+private_data, that is received by the server is _always_ 0.
+When a RDMA_PS_TCP rdma_cm_id is used, the data is received correctly on the
+server.
+
+We are using:
+- kernel 3.14.13
+- Mellanox Technologies MT26428 HCA
+- mlx4_0 driver
+
+I attached a simple client and server module to reproduce the behaviour.
+Can somebody have a look? Is there a problem in our modules? Or is it a bug?
+
 ----------
->  drivers/infiniband/core/uverbs_main.c |   3 +-
->  include/rdma/ib_verbs.h               |   5 +-
->  include/uapi/rdma/ib_user_verbs.h     |  14 +++-
->  5 files changed, 103 insertions(+), 44 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/co=
-re/uverbs.h
-> index 643c08a025a5..b716b0815644 100644
-> --- a/drivers/infiniband/core/uverbs.h
-> +++ b/drivers/infiniband/core/uverbs.h
-> @@ -258,5 +258,6 @@ IB_UVERBS_DECLARE_CMD(close_xrcd);
-> =20
->  IB_UVERBS_DECLARE_EX_CMD(create_flow);
->  IB_UVERBS_DECLARE_EX_CMD(destroy_flow);
-> +IB_UVERBS_DECLARE_EX_CMD(query_device);
-> =20
->  #endif /* UVERBS_H */
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniban=
-d/core/uverbs_cmd.c
-> index 5ba2a86aab6a..c7a43624c96b 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -378,6 +378,52 @@ err:
->  	return ret;
->  }
-> =20
-> +static void copy_query_dev_fields(struct ib_uverbs_file *file,
-> +				  struct ib_uverbs_query_device_resp *resp,
-> +				  struct ib_device_attr *attr)
-> +{
-> +	resp->fw_ver		=3D attr->fw_ver;
-> +	resp->node_guid		=3D file->device->ib_dev->node_guid;
-> +	resp->sys_image_guid	=3D attr->sys_image_guid;
-> +	resp->max_mr_size	=3D attr->max_mr_size;
-> +	resp->page_size_cap	=3D attr->page_size_cap;
-> +	resp->vendor_id		=3D attr->vendor_id;
-> +	resp->vendor_part_id	=3D attr->vendor_part_id;
-> +	resp->hw_ver		=3D attr->hw_ver;
-> +	resp->max_qp		=3D attr->max_qp;
-> +	resp->max_qp_wr		=3D attr->max_qp_wr;
-> +	resp->device_cap_flags	=3D attr->device_cap_flags;
-> +	resp->max_sge		=3D attr->max_sge;
-> +	resp->max_sge_rd	=3D attr->max_sge_rd;
-> +	resp->max_cq		=3D attr->max_cq;
-> +	resp->max_cqe		=3D attr->max_cqe;
-> +	resp->max_mr		=3D attr->max_mr;
-> +	resp->max_pd		=3D attr->max_pd;
-> +	resp->max_qp_rd_atom	=3D attr->max_qp_rd_atom;
-> +	resp->max_ee_rd_atom	=3D attr->max_ee_rd_atom;
-> +	resp->max_res_rd_atom	=3D attr->max_res_rd_atom;
-> +	resp->max_qp_init_rd_atom	=3D attr->max_qp_init_rd_atom;
-> +	resp->max_ee_init_rd_atom	=3D attr->max_ee_init_rd_atom;
-> +	resp->atomic_cap		=3D attr->atomic_cap;
-> +	resp->max_ee			=3D attr->max_ee;
-> +	resp->max_rdd			=3D attr->max_rdd;
-> +	resp->max_mw			=3D attr->max_mw;
-> +	resp->max_raw_ipv6_qp		=3D attr->max_raw_ipv6_qp;
-> +	resp->max_raw_ethy_qp		=3D attr->max_raw_ethy_qp;
-> +	resp->max_mcast_grp		=3D attr->max_mcast_grp;
-> +	resp->max_mcast_qp_attach	=3D attr->max_mcast_qp_attach;
-> +	resp->max_total_mcast_qp_attach	=3D attr->max_total_mcast_qp_attach=
-;
-> +	resp->max_ah			=3D attr->max_ah;
-> +	resp->max_fmr			=3D attr->max_fmr;
-> +	resp->max_map_per_fmr		=3D attr->max_map_per_fmr;
-> +	resp->max_srq			=3D attr->max_srq;
-> +	resp->max_srq_wr		=3D attr->max_srq_wr;
-> +	resp->max_srq_sge		=3D attr->max_srq_sge;
-> +	resp->max_pkeys			=3D attr->max_pkeys;
-> +	resp->local_ca_ack_delay	=3D attr->local_ca_ack_delay;
-> +	resp->phys_port_cnt		=3D file->device->ib_dev->phys_port_cnt;
-> +}
-> +
->  ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
->  			       const char __user *buf,
->  			       int in_len, int out_len)
-> @@ -398,47 +444,7 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_=
-file *file,
->  		return ret;
-> =20
->  	memset(&resp, 0, sizeof resp);
-> -
-> -	resp.fw_ver 		       =3D attr.fw_ver;
-> -	resp.node_guid 		       =3D file->device->ib_dev->node_guid;
-> -	resp.sys_image_guid 	       =3D attr.sys_image_guid;
-> -	resp.max_mr_size 	       =3D attr.max_mr_size;
-> -	resp.page_size_cap 	       =3D attr.page_size_cap;
-> -	resp.vendor_id 		       =3D attr.vendor_id;
-> -	resp.vendor_part_id 	       =3D attr.vendor_part_id;
-> -	resp.hw_ver 		       =3D attr.hw_ver;
-> -	resp.max_qp 		       =3D attr.max_qp;
-> -	resp.max_qp_wr 		       =3D attr.max_qp_wr;
-> -	resp.device_cap_flags 	       =3D attr.device_cap_flags;
-> -	resp.max_sge 		       =3D attr.max_sge;
-> -	resp.max_sge_rd 	       =3D attr.max_sge_rd;
-> -	resp.max_cq 		       =3D attr.max_cq;
-> -	resp.max_cqe 		       =3D attr.max_cqe;
-> -	resp.max_mr 		       =3D attr.max_mr;
-> -	resp.max_pd 		       =3D attr.max_pd;
-> -	resp.max_qp_rd_atom 	       =3D attr.max_qp_rd_atom;
-> -	resp.max_ee_rd_atom 	       =3D attr.max_ee_rd_atom;
-> -	resp.max_res_rd_atom 	       =3D attr.max_res_rd_atom;
-> -	resp.max_qp_init_rd_atom       =3D attr.max_qp_init_rd_atom;
-> -	resp.max_ee_init_rd_atom       =3D attr.max_ee_init_rd_atom;
-> -	resp.atomic_cap 	       =3D attr.atomic_cap;
-> -	resp.max_ee 		       =3D attr.max_ee;
-> -	resp.max_rdd 		       =3D attr.max_rdd;
-> -	resp.max_mw 		       =3D attr.max_mw;
-> -	resp.max_raw_ipv6_qp 	       =3D attr.max_raw_ipv6_qp;
-> -	resp.max_raw_ethy_qp 	       =3D attr.max_raw_ethy_qp;
-> -	resp.max_mcast_grp 	       =3D attr.max_mcast_grp;
-> -	resp.max_mcast_qp_attach       =3D attr.max_mcast_qp_attach;
-> -	resp.max_total_mcast_qp_attach =3D attr.max_total_mcast_qp_attach;
-> -	resp.max_ah 		       =3D attr.max_ah;
-> -	resp.max_fmr 		       =3D attr.max_fmr;
-> -	resp.max_map_per_fmr 	       =3D attr.max_map_per_fmr;
-> -	resp.max_srq 		       =3D attr.max_srq;
-> -	resp.max_srq_wr 	       =3D attr.max_srq_wr;
-> -	resp.max_srq_sge 	       =3D attr.max_srq_sge;
-> -	resp.max_pkeys 		       =3D attr.max_pkeys;
-> -	resp.local_ca_ack_delay        =3D attr.local_ca_ack_delay;
-> -	resp.phys_port_cnt	       =3D file->device->ib_dev->phys_port_cnt;
-> +	copy_query_dev_fields(file, &resp, &attr);
-> =20
->  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
->  			 &resp, sizeof resp))
-> @@ -3253,3 +3259,39 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs=
-_file *file,
-> =20
->  	return ret ? ret : in_len;
->  }
-> +
-> +int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
-> +			      struct ib_udata *ucore,
-> +			      struct ib_udata *uhw)
-> +{
-> +	struct ib_uverbs_ex_query_device_resp resp;
-> +	struct ib_uverbs_ex_query_device  cmd;
-> +	struct ib_device_attr attr;
-> +	struct ib_device *device;
-> +	int err;
-> +
-> +	device =3D file->device->ib_dev;
-> +	if (ucore->inlen < sizeof(cmd))
-> +		return -EINVAL;
-> +
-> +	err =3D ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
-> +	if (err)
-> +		return err;
-> +
-> +	if (cmd.reserved)
-> +		return -EINVAL;
-> +
-> +	err =3D device->query_device(device, &attr);
-> +	if (err)
-> +		return err;
-> +
-> +	memset(&resp, 0, sizeof(resp));
-> +	copy_query_dev_fields(file, &resp.base, &attr);
-> +	resp.comp_mask =3D 0;
-> +
-> +	err =3D ib_copy_to_udata(ucore, &resp, sizeof(resp));
-> +	if (err)
-> +		return err;
-> +
-> +	return 0;
-> +}
-> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniba=
-nd/core/uverbs_main.c
-> index 71ab83fde472..974025028790 100644
-> --- a/drivers/infiniband/core/uverbs_main.c
-> +++ b/drivers/infiniband/core/uverbs_main.c
-> @@ -122,7 +122,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uve=
-rbs_file *file,
->  				    struct ib_udata *ucore,
->  				    struct ib_udata *uhw) =3D {
->  	[IB_USER_VERBS_EX_CMD_CREATE_FLOW]	=3D ib_uverbs_ex_create_flow,
-> -	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow
-> +	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow,
-> +	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	=3D ib_uverbs_ex_query_device
->  };
-> =20
->  static void ib_uverbs_add_one(struct ib_device *device);
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 470a011d6fa4..97a999f9e4d8 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1662,7 +1662,10 @@ static inline int ib_copy_from_udata(void *des=
-t, struct ib_udata *udata, size_t
-> =20
->  static inline int ib_copy_to_udata(struct ib_udata *udata, void *src=
-, size_t len)
->  {
-> -	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
-> +	size_t copy_sz;
-> +
-> +	copy_sz =3D min_t(size_t, len, udata->outlen);
-> +	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
->  }
+Connection establishment via GID (RDMA_PS_IB):
+client:
+    # insmod client.ko gid_addr=fe80:0000:0000:0000:0002:c903:0010:c0f5
+    [ 7328.586773] private_dataffff88022a263c50: 57 48 41 5a 20 55 50 20 53 45 52 56 45 52 3f 00  WHAZ UP SERVER?.
+    
+server:
+    [ 1658.208238] private_dataffff8800b93e3bec: 00 48 41 5a 20 55 50 20 53 45 52 56 45 52 3f 00  .HAZ UP SERVER?.
+    [ 1658.208239] private_dataffff8800b93e3bfc: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    [ 1658.208241] private_dataffff8800b93e3c0c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    [ 1658.208242] private_dataffff8800b93e3c1c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    [ 1658.208244] private_dataffff8800b93e3c2c: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    [ 1658.208245] private_dataffff8800b93e3c3c: 00 00 00 00 00 00 00 00 00 00 00 00              ............
 
 
-This is not the place to do this: as I'm guessing the purpose of this=20
-change from the patch in '[PATCH v3 07/17] IB/core: Add flags for on=20
-demand paging support', you're trying to handle uverbs call from=20
-a userspace program using a previous, shorter ABI.
-
-But that's hidding bug where userspace will get it wrong at passing the=
-=20
-correct buffer / size for all others uverb calls.
-
-That cannot work that way.
-
-In a previous patchset [1], I've suggested to add a check in=20
-ib_copy_{from,to}_udata()[2][3] in order to check the input/output
-buffer size to not read/write past userspace provided buffer
-boundaries: in case of mismatch an error would be returned to
-userspace.
-
-With the suggested change here, buffer overflow won't happen,
-but the error is silently ignored, allowing uverb to return a
-partial result, which is likely not expected by userspace as
-it's a bit difficult to handle it gracefully.
-
-So this has to be removed, and a check on userspace response
-buffer must be added to ib_uverbs_ex_query_device() instead.
-
-[1] "[PATCH 00/22] infiniband: improve userspace input check"
-
-http://marc.info/?i=3Dcover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[2] "[PATCH 03/22] infiniband: ib_copy_from_udata(): check input length=
-"
-
-http://mid.gmane.org/2bf102a41c51f61965ee09df827abe8fefb523a9.137684740=
-3.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[3] "[PATCH 04/22] infiniband: ib_copy_to_udata(): check output length"
-
-http://mid.gmane.org/d27716a3a1c180f832d153a7402f65ea8a75b734.137684740=
-3.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+Connection establishment via IPv4 address (RDMA_PS_TCP):
+client:
+    # insmod client.ko ip_addr=10.50.100.62
+    [ 7179.219773] private_dataffff88022a263c50: 57 48 41 5a 20 55 50 20 53 45 # 52 56 45 52 3f 00  WHAZ UP SERVER?.
+    
+server:
+    [ 1508.840508] private_dataffff8800b8d25b90: 57 48 41 5a 20 55 50 20 53 45 52 56 45 52 3f 00  WHAZ UP SERVER?.
+    [ 1508.840509] private_dataffff8800b8d25ba0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    [ 1508.840511] private_dataffff8800b8d25bb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    [ 1508.840512] private_dataffff8800b8d25bc0: 00 00 00 00 00 00 00 00                          ........
+----------
 
 
+thanks
+
+Fabian
+
+--f+W+jCU1fRNres8c
+Content-Type: text/x-csrc; charset=us-ascii
+Content-Disposition: attachment; filename="client.c"
+
+#include <linux/module.h>
+#include <rdma/rdma_cm.h>
+#include <rdma/ib.h>
+#include <linux/inet.h>
+#include <linux/wait.h>
+
+MODULE_LICENSE("GPL");
+
+static char *ip_addr;
+module_param(ip_addr, charp, 0444);
+
+static char *gid_addr;
+module_param(gid_addr, charp, 0444);
+
+#define SERVER_PORT 1234
+
+#define my_printk(level, format, arg...) printk(level KBUILD_MODNAME \
+		" %s(), %d: " \
+		format, __func__, __LINE__, ## arg)
+#define LOG(format, arg...) my_printk(KERN_INFO, format, ## arg)
+
+struct con {
+	struct rdma_cm_id	*cm_id;
+	enum rdma_cm_event_type	ev;
+	wait_queue_head_t	wait_q;
+};
+
+static struct con con;
+
+#define XX(a) case (a): return #a
+static inline const char *rdma_event_str(enum rdma_cm_event_type event)
+{
+	switch (event) {
+	XX(RDMA_CM_EVENT_ADDR_RESOLVED);
+	XX(RDMA_CM_EVENT_ADDR_ERROR);
+	XX(RDMA_CM_EVENT_ROUTE_RESOLVED);
+	XX(RDMA_CM_EVENT_ROUTE_ERROR);
+	XX(RDMA_CM_EVENT_CONNECT_REQUEST);
+	XX(RDMA_CM_EVENT_CONNECT_RESPONSE);
+	XX(RDMA_CM_EVENT_CONNECT_ERROR);
+	XX(RDMA_CM_EVENT_UNREACHABLE);
+	XX(RDMA_CM_EVENT_REJECTED);
+	XX(RDMA_CM_EVENT_ESTABLISHED);
+	XX(RDMA_CM_EVENT_DISCONNECTED);
+	XX(RDMA_CM_EVENT_DEVICE_REMOVAL);
+	XX(RDMA_CM_EVENT_MULTICAST_JOIN);
+	XX(RDMA_CM_EVENT_MULTICAST_ERROR);
+	XX(RDMA_CM_EVENT_ADDR_CHANGE);
+	XX(RDMA_CM_EVENT_TIMEWAIT_EXIT);
+	default: return "RDMA_CM_UNKNOWN";
+	}
+}
+
+static int rdma_cm_ev_handler(struct rdma_cm_id *cm_id,
+			      struct rdma_cm_event *event)
+{
+	struct con *con = cm_id->context;
+
+	LOG("CM event %s, error %d\n", rdma_event_str(event->event),
+	     event->status);
+
+	con->ev = event->event;
+	wake_up_interruptible(&con->wait_q);
+	return 0;
+}
+
+static int str_gid_to_sockaddr(const char *gid, struct sockaddr_ib *dst)
+{
+	int ret;
+
+	ret = in6_pton(gid, strlen(gid),
+		       dst->sib_addr.sib_raw, '\n', NULL);
+	if (ret == 0)
+		return -EINVAL;
+
+	dst->sib_family = AF_IB;
+	dst->sib_sid = cpu_to_be64(RDMA_IB_IP_PS_IB | SERVER_PORT);
+	dst->sib_sid_mask = cpu_to_be64(0xffffffffffffffffULL);
+	dst->sib_pkey = cpu_to_be16(0xffff);
+	LOG("Converted %s to binary GID %pI6\n", gid, dst->sib_addr.sib_raw);
+	return 0;
+}
+
+static int str_ip_to_sockaddr(const char *ipaddr, struct sockaddr_storage *dst)
+{
+	int ret;
+	u8 ip4[4];
+
+	ret = in6_pton(ipaddr, strlen(ipaddr),
+		       ((struct sockaddr_in6 *)dst)->sin6_addr.s6_addr,
+		       '\n', NULL);
+	if (ret == 1) {
+		dst->ss_family = AF_INET6;
+		((struct sockaddr_in6 *)dst)->sin6_port =
+						htons(SERVER_PORT);
+		LOG("Converted %s to binary IPv6 %pI6\n", ipaddr,
+		    ((struct sockaddr_in6 *)dst)->sin6_addr.s6_addr);
+		return 0;
+	}
+
+	ret = in4_pton(ipaddr, strlen(ipaddr), ip4, '\n', NULL);
+	if (ret == 0)
+		return -EINVAL;
+
+	memcpy(&((struct sockaddr_in *)dst)->sin_addr.s_addr, ip4,
+	       sizeof(((struct sockaddr_in *)dst)->sin_addr.s_addr));
+	dst->ss_family = AF_INET;
+	((struct sockaddr_in *)dst)->sin_port = htons(SERVER_PORT);
+	LOG("Converted %s to binary IPv4 %pI4\n", ipaddr,
+	    &((struct sockaddr_in *)dst)->sin_addr.s_addr);
+	return 0;
+}
+
+static int fill_sockaddr(struct sockaddr_storage *s)
+{
+	if (gid_addr != NULL && strlen(gid_addr) > 0)
+		return str_gid_to_sockaddr(gid_addr, (struct sockaddr_ib *)s);
+	else if (ip_addr != NULL && strlen(ip_addr) > 0)
+		return str_ip_to_sockaddr(ip_addr, s);
+	return -EINVAL;
+}
+
+static int __init in(void)
+{
+	int ret;
+	struct sockaddr_storage addr;
+	struct rdma_conn_param conn_param;
+	const char msg[] = "WHAZ UP SERVER?";
+
+	con.ev = RDMA_CM_EVENT_DEVICE_REMOVAL;
+
+	init_waitqueue_head(&con.wait_q);
+	ret = fill_sockaddr(&addr);
+	if (ret)
+		return ret;
+
+	if (addr.ss_family == AF_IB)
+		con.cm_id = rdma_create_id(rdma_cm_ev_handler, &con, RDMA_PS_IB,
+					    IB_QPT_RC);
+	else
+		con.cm_id = rdma_create_id(rdma_cm_ev_handler, &con,
+					   RDMA_PS_TCP, IB_QPT_RC);
+	if (IS_ERR(con.cm_id)) {
+		ret = PTR_ERR(con.cm_id);
+		return ret;
+	}
+
+	ret = rdma_resolve_addr(con.cm_id, NULL, (struct sockaddr *)&addr,
+				1000);
+	if (ret) {
+		LOG("resolving addr failed\n");
+		goto cm_id;
+	}
+
+	ret = wait_event_interruptible(con.wait_q, con.ev ==
+				       RDMA_CM_EVENT_ADDR_RESOLVED);
+	if (ret < 0)
+		goto cm_id;
+
+	ret = rdma_resolve_route(con.cm_id, 1000);
+	if (ret) {
+		LOG("resolving route failed\n");
+		goto cm_id;
+	}
+	ret = wait_event_interruptible(con.wait_q, con.ev ==
+				       RDMA_CM_EVENT_ROUTE_RESOLVED);
+	if (ret < 0)
+		goto cm_id;
+
+	memset(&conn_param, 0, sizeof(conn_param));
+	conn_param.private_data		= &msg;
+	conn_param.private_data_len	= sizeof(msg);
+	conn_param.retry_count = 7;
+	print_hex_dump(KERN_INFO, "private_data", DUMP_PREFIX_ADDRESS, 16, 1,
+		       conn_param.private_data, conn_param.private_data_len,
+		       true);
+	ret = rdma_connect(con.cm_id, &conn_param);
+	if (ret) {
+		LOG("Connect failed: %d\n", ret);
+		goto cm_id;
+	}
+
+	rdma_disconnect(con.cm_id);
+cm_id:
+	rdma_destroy_id(con.cm_id);
+	return ret;
+}
+
+static void __exit out(void)
+{
+}
+module_init(in);
+module_exit(out);
+
+--f+W+jCU1fRNres8c
+Content-Type: text/x-csrc; charset=us-ascii
+Content-Disposition: attachment; filename="server.c"
+
+#include <linux/module.h>
+#include <rdma/rdma_cm.h>
+#include <rdma/ib.h>
+#include <linux/inet.h>
+
+
+#define SERVER_PORT 1234
+
+#define my_printk(level, format, arg...) printk(level KBUILD_MODNAME \
+		" %s(), %d: " \
+		format, __func__, __LINE__, ## arg)
+#define LOG(format, arg...) my_printk(KERN_INFO, format, ## arg)
+
+static const char msg[] = "WHAZ UP SERVER?";
+static struct rdma_cm_id *cm_ip;
+static struct rdma_cm_id *cm_ib;
+
+#define XX(a) case (a): return #a
+static inline const char *rdma_event_str(enum rdma_cm_event_type event)
+{
+	switch (event) {
+	XX(RDMA_CM_EVENT_ADDR_RESOLVED);
+	XX(RDMA_CM_EVENT_ADDR_ERROR);
+	XX(RDMA_CM_EVENT_ROUTE_RESOLVED);
+	XX(RDMA_CM_EVENT_ROUTE_ERROR);
+	XX(RDMA_CM_EVENT_CONNECT_REQUEST);
+	XX(RDMA_CM_EVENT_CONNECT_RESPONSE);
+	XX(RDMA_CM_EVENT_CONNECT_ERROR);
+	XX(RDMA_CM_EVENT_UNREACHABLE);
+	XX(RDMA_CM_EVENT_REJECTED);
+	XX(RDMA_CM_EVENT_ESTABLISHED);
+	XX(RDMA_CM_EVENT_DISCONNECTED);
+	XX(RDMA_CM_EVENT_DEVICE_REMOVAL);
+	XX(RDMA_CM_EVENT_MULTICAST_JOIN);
+	XX(RDMA_CM_EVENT_MULTICAST_ERROR);
+	XX(RDMA_CM_EVENT_ADDR_CHANGE);
+	XX(RDMA_CM_EVENT_TIMEWAIT_EXIT);
+	default: return "RDMA_CM_UNKNOWN";
+	}
+}
+
+static int rdma_cm_ev_handler(struct rdma_cm_id *cm_id,
+			      struct rdma_cm_event *event)
+{
+	LOG("CM event %s, error %d\n", rdma_event_str(event->event),
+	    event->status);
+
+	switch (event->event) {
+	case RDMA_CM_EVENT_CONNECT_REQUEST:
+		print_hex_dump(KERN_INFO, "private_data", DUMP_PREFIX_ADDRESS,
+			       16, 1, event->param.conn.private_data,
+			       event->param.conn.private_data_len, true);
+		return rdma_reject(cm_id, NULL, 0);
+
+		return 0;
+	default:
+		return 0;
+	}
+}
+
+static int ibtrs_srv_cm_init(struct rdma_cm_id **cm_id, struct sockaddr *addr,
+			     enum rdma_port_space ps)
+{
+	int ret;
+
+	*cm_id = rdma_create_id(rdma_cm_ev_handler, NULL, ps, IB_QPT_RC);
+	if (IS_ERR(*cm_id)) {
+		ret = PTR_ERR(*cm_id);
+		goto err_out;
+	}
+
+	ret = rdma_bind_addr(*cm_id, addr);
+	if (ret)
+		goto err_cm;
+	ret = rdma_listen(*cm_id, 64);
+	if (ret) {
+		LOG("rdma_listen() return %d\n", ret);
+		goto err_cm;
+	}
+
+	switch (addr->sa_family) {
+	case AF_INET:
+		LOG("listening on port %u\n",
+		    ((struct sockaddr_in *)addr)->sin_port);
+		break;
+	case AF_INET6:
+		LOG("listening on port %u\n",
+		    ((struct sockaddr_in6 *)addr)->sin6_port);
+		break;
+	case AF_IB:
+		LOG("listening on service id 0x%016llx\n",
+		    be64_to_cpu(rdma_get_service_id(*cm_id, addr)));
+		break;
+	default:
+		LOG("listening on address family %u\n", addr->sa_family);
+	}
+
+	return 0;
+
+err_cm:
+	rdma_destroy_id(*cm_id);
+err_out:
+	return ret;
+}
+
+static int gogo(void)
+{
+	int ret;
+
+	struct sockaddr_in6 sin = {
+		.sin6_family = AF_INET6,
+		.sin6_addr = IN6ADDR_ANY_INIT,
+		.sin6_port = htons(SERVER_PORT),
+	};
+	struct sockaddr_ib sib = {
+		.sib_family = AF_IB,
+		.sib_addr.sib_subnet_prefix = 0ULL,
+		.sib_addr.sib_interface_id = 0ULL,
+		.sib_sid = cpu_to_be64(RDMA_IB_IP_PS_IB | SERVER_PORT),
+		.sib_sid_mask = cpu_to_be64(0xffffffffffffffffULL),
+		.sib_pkey = cpu_to_be16(0xffff),
+	};
+
+	ret = ibtrs_srv_cm_init(&cm_ip, (struct sockaddr *)&sin, RDMA_PS_TCP);
+	if (ret)
+		return ret;
+
+	return ibtrs_srv_cm_init(&cm_ib, (struct sockaddr *)&sib, RDMA_PS_IB);
+}
+
+static int __init in(void)
+{
+	return gogo();
+}
+
+static void __exit out(void)
+{
+	rdma_disconnect(cm_ip);
+	rdma_disconnect(cm_ib);
+	rdma_destroy_id(cm_ip);
+	rdma_destroy_id(cm_ib);
+	return;
+}
+module_init(in);
+module_exit(out);
+
+--f+W+jCU1fRNres8c--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
