@@ -1,58 +1,64 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] RDMA/cma: fix first byte overwritten for AF_IB
-Date: Tue, 16 Dec 2014 21:29:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E2DE69@ORSMSX110.amr.corp.intel.com>
-References: <1418744596-25251-1-git-send-email-jinpu.wang@profitbricks.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.1.3-1 release
+Date: Tue, 16 Dec 2014 22:52:21 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F977D03059@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418744596-25251-1-git-send-email-jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> If user attach private data for AF_IB, the first byte will
-> be overwritten, because we always set the cma version no matter
-> family is AF_IB, so move the version set inside if condition.
-> 
-> Reported-by: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> ---
->  drivers/infiniband/core/cma.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index d570030..22a22e2 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -2618,10 +2618,10 @@ static int cma_format_hdr(void *hdr, struct
-> rdma_id_private *id_priv)
->  	struct cma_hdr *cma_hdr;
-> 
->  	cma_hdr = hdr;
-> -	cma_hdr->cma_version = CMA_VERSION;
->  	if (cma_family(id_priv) == AF_INET) {
->  		struct sockaddr_in *src4, *dst4;
-> 
-> +		cma_hdr->cma_version = CMA_VERSION;
->  		src4 = (struct sockaddr_in *) cma_src_addr(id_priv);
->  		dst4 = (struct sockaddr_in *) cma_dst_addr(id_priv);
-> 
-> @@ -2632,6 +2632,7 @@ static int cma_format_hdr(void *hdr, struct
-> rdma_id_private *id_priv)
->  	} else if (cma_family(id_priv) == AF_INET6) {
->  		struct sockaddr_in6 *src6, *dst6;
-> 
-> +		cma_hdr->cma_version = CMA_VERSION;
->  		src6 = (struct sockaddr_in6 *) cma_src_addr(id_priv);
->  		dst6 = (struct sockaddr_in6 *) cma_dst_addr(id_priv);
+New release for DAPL (2.1.3) is available at http://www.openfabrics.org/downloads/dapl
 
-I don't think this is sufficient.  The RDMA CM private data header is defined by the IB spec.  If the service ID starts with the prefix 0x0000000001, it's reasonable to assume that the header is part of the private data.  The receive side should probably even check the version and discard any unknown values.
+Vlad, please pull into OFED 3.18 daily builds.
 
-- Sean
+Latest Packages (see ChangeLog for recent changes, see README.mcm for MIC support):
+
+   md5sum: 04537bdd405b89c562d73bfdd6027c2b dapl-2.1.3.tar.gz
+
+For package install RPM packages as follow:
+
+   dapl-2.1.3-1
+   dapl-utils-2.1.3-1
+   dapl-devel-2.1.3-1
+   dapl-debuginfo-2.1.3-1
+
+Full list of changes since last release:
+
+Amir Hanania (2):
+  common: add srq support for openib verbs providers
+  dtest: add dtestsrq for SRQ example and provider testing
+
+Arlin Davis (21):
+  add provider and proxy support for GUID across platform
+  mpxyd: log warning if running in COMPAT mode
+  mpxyd/mcm: add provider specific attribute DAT_IB_PROXY_VERSION
+  extension: add IB UD extensions to reduce provider CM and AH memory footprint
+  openib: add new TIMEWAIT state for CM
+  openib: add IB UD cm_free/ah_free extension support in UCM provider
+  dtestx: update IB extension example test with new v2.0.9 features
+  mcm: provide CPU family/model attribute on both host and mic sides
+  openib: add port_num to provider named attributes
+  mpxyd: set global seg_sz to 128KB for proxy data service
+  mcm: add segmentation to HST->MXS mode for improved performance
+  mcm: HST->MXS mode incorrectly signals multiple fragments per WR
+  mpxyd: DTO completion ERR: status 12, op RDMA_WRITE running MPI alltoall test
+  mpxyd: increase max open files for service
+  ucm: RTU not retransmitted in TIMEWAIT state
+  dtestx: allow scale up to 1000 EP's
+  common: dapl_ep_free must serialize CM object destroy
+  ucm: add time wait override capability for CM services
+  dapl: add rdma_write_imm and write only option to dtest
+  dapl: mpxyd service changes to support multi-thread single-core
+
+Regards,
+
+Arlin
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
