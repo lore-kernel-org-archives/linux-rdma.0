@@ -1,86 +1,58 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] libibumad 1.3.10 release
-Date: Tue, 16 Dec 2014 15:35:41 -0500
-Message-ID: <5490979D.4020808@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] RDMA/cma: fix first byte overwritten for AF_IB
+Date: Tue, 16 Dec 2014 21:29:52 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E2DE69@ORSMSX110.amr.corp.intel.com>
+References: <1418744596-25251-1-git-send-email-jinpu.wang@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1418744596-25251-1-git-send-email-jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new 1.3.10 release of libibumad.
+> If user attach private data for AF_IB, the first byte will
+> be overwritten, because we always set the cma version no matter
+> family is AF_IB, so move the version set inside if condition.
+> 
+> Reported-by: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cma.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index d570030..22a22e2 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -2618,10 +2618,10 @@ static int cma_format_hdr(void *hdr, struct
+> rdma_id_private *id_priv)
+>  	struct cma_hdr *cma_hdr;
+> 
+>  	cma_hdr = hdr;
+> -	cma_hdr->cma_version = CMA_VERSION;
+>  	if (cma_family(id_priv) == AF_INET) {
+>  		struct sockaddr_in *src4, *dst4;
+> 
+> +		cma_hdr->cma_version = CMA_VERSION;
+>  		src4 = (struct sockaddr_in *) cma_src_addr(id_priv);
+>  		dst4 = (struct sockaddr_in *) cma_dst_addr(id_priv);
+> 
+> @@ -2632,6 +2632,7 @@ static int cma_format_hdr(void *hdr, struct
+> rdma_id_private *id_priv)
+>  	} else if (cma_family(id_priv) == AF_INET6) {
+>  		struct sockaddr_in6 *src6, *dst6;
+> 
+> +		cma_hdr->cma_version = CMA_VERSION;
+>  		src6 = (struct sockaddr_in6 *) cma_src_addr(id_priv);
+>  		dst6 = (struct sockaddr_in6 *) cma_dst_addr(id_priv);
 
-Tarball is available in:
-http://www.openfabrics.org/downloads/management/
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
+I don't think this is sufficient.  The RDMA CM private data header is defined by the IB spec.  If the service ID starts with the prefix 0x0000000001, it's reasonable to assume that the header is part of the private data.  The receive side should probably even check the version and discard any unknown values.
 
-md5sum:
-3a4046ddaaf43bbb82f124808232a294  libibumad-1.3.10.tar.gz
-
-All component versions are from recent master branch. Full list of
-changes is below.
-
-Alex Netes (1):
-      libibumad: Fix memory leak in resolve_ca_port
-
-Dan Ben Yosef (1):
-      umad.c: Buffer not null terminated
-
-Hal Rosenstock (14):
-      libibumad: Minor fixups for previous umad_str patch
-      libibumad: Fix issues causing const warnings for strings
-      libibumad: Add recent/missing SM/SA attributes
-      libibumad: Rename attributes UMAD_SM_ATTR_XXX rather than UMAD_SMP_ATTR_XXX
-      libibumad: update shared library version
-      libibumad: package version update for 1.3.9 release
-      umad_sm.h: Add Mellanox extended port info SM attribute ID to enum
-      umad_[sm sa].h: Add PortInfoExtended SM and PortInfoExtendedRecord SA attributes
-      umad_sa.h: Add some new (at IBA 1.3) SA CapabilityMask2 bit definitions
-      umad_cm.h: Add new SAP and SPR CM attributes
-      umad_str.c: Add strings for newly added attributes
-      Added/updated some Mellanox copyrights
-      libibumad.ver: Update shared library version
-      configure.in: package version update for 1.3.10 release
-
-Ilya Nelkenbaum (1):
-      libibumad/umad.c: In resolve_ca_port, skip ethernet link layer ports
-
-Ira Weiny (11):
-      libibumad: fix umad_register man page
-      libibumad: update umad_[send|recv] man pages to document how rmpp is handled
-      libibumad: change UMAD_METHOD_RESP to UMAD_METHOD_RESP_MASK
-      libibumad: add UMAD_SA_STATUS_PRI_SUGGESTED to SA status.
-      libibumad: add string functions for various enums
-      libibumad: document the setting of errno for umad_send and umad_recv
-      libibumad: add SA CAP MASK[2] definitions
-      libibumad: add ClassPortInfo struct
-      umad_types.h: fix status type in umad_hdr
-      Add support for new registration ioctl
-      Add make check with umad register tests
-
-Line Holen (1):
-      umad_sm.h Add SM trap definitions
-
-Nick Mills (1):
-      configure.in: Remove unused --disable-libcheck configure option
-
-Sean Hefty (10):
-      libibumad: Provide MAD definitions with libibumad
-      libibumad: Add SA MAD definitions to umad
-      libibumad: Add basic SM definitions to umad
-      libibumad: Add CM definitions to umad
-      libibumad: Add new umad header files to release
-      libibumad: Define ntohll/htonll
-      libibumad: Define data type to indicate values are in big-endian
-      libibumad/sa: Add SA specific status values
-      libibumad: Define well known QKEY
-      Fix export of umad_sa_mad_status_str
-
-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org (1):
-      Add UMAD_RMPP_FLAG_ACTIVE into umad_types.h
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
