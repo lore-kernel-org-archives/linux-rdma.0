@@ -1,78 +1,36 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 2/2] iw_cxgb4: don't hang threads forever waiting on WR replies
-Date: Wed, 17 Dec 2014 14:11:03 +0530
-Message-ID: <1418805663-15333-3-git-send-email-hariprasad@chelsio.com>
-References: <1418805663-15333-1-git-send-email-hariprasad@chelsio.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm/osm_torus.c: Increase PORTGRP_MAX_PORTS define
+Date: Wed, 17 Dec 2014 11:28:10 +0200
+Message-ID: <1418808490-27687-1-git-send-email-alexne@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418805663-15333-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In c4iw_wait_for_reply(), if a FW6_MSG WR reply is not received after
-C4IW_WR_TO seconds, fail the WR operation and mark the device as fatally
-dead. Further, if the device is marked fatally dead, then fail the WR
-wait immediately.
+Torus-2QoS fails to configure fabric with more than 16 HCAs.
+This patch extends PORTGRP_MAX_PORTS to be 34. Maximal practical ports
+per switch - 2 reserved ports (minimal of needed ports for switch to
+switch connections in 2D Torus).
 
-Also change the timeout to 60 seconds.
-
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ opensm/osm_torus.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index b5678ac..9214260 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -196,7 +196,7 @@ static inline int c4iw_num_stags(struct c4iw_rdev *rdev)
- 	return (int)(rdev->lldi.vr->stag.size >> 5);
- }
+diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+index 330f55d..b01f69f 100644
+--- a/opensm/osm_torus.c
++++ b/opensm/osm_torus.c
+@@ -59,7 +59,7 @@
+ #include <opensm/osm_opensm.h>
  
--#define C4IW_WR_TO (30*HZ)
-+#define C4IW_WR_TO (60*HZ)
+ #define TORUS_MAX_DIM        3
+-#define PORTGRP_MAX_PORTS    16
++#define PORTGRP_MAX_PORTS    34
+ #define SWITCH_MAX_PORTGRPS  (1 + 2 * TORUS_MAX_DIM)
+ #define DEFAULT_MAX_CHANGES  32
  
- struct c4iw_wr_wait {
- 	struct completion completion;
-@@ -220,22 +220,22 @@ static inline int c4iw_wait_for_reply(struct c4iw_rdev *rdev,
- 				 u32 hwtid, u32 qpid,
- 				 const char *func)
- {
--	unsigned to = C4IW_WR_TO;
- 	int ret;
- 
--	do {
--		ret = wait_for_completion_timeout(&wr_waitp->completion, to);
--		if (!ret) {
--			printk(KERN_ERR MOD "%s - Device %s not responding - "
--			       "tid %u qpid %u\n", func,
--			       pci_name(rdev->lldi.pdev), hwtid, qpid);
--			if (c4iw_fatal_error(rdev)) {
--				wr_waitp->ret = -EIO;
--				break;
--			}
--			to = to << 2;
--		}
--	} while (!ret);
-+	if (c4iw_fatal_error(rdev)) {
-+		wr_waitp->ret = -EIO;
-+		goto out;
-+	}
-+
-+	ret = wait_for_completion_timeout(&wr_waitp->completion, C4IW_WR_TO);
-+	if (!ret) {
-+		PDBG(KERN_ERR MOD "%s - Device %s not responding (disabling"
-+		     " device) - tid %u qpid %u\n", func,
-+		     pci_name(rdev->lldi.pdev), hwtid, qpid);
-+		rdev->flags |= T4_FATAL_ERROR;
-+		wr_waitp->ret = -EIO;
-+	}
-+out:
- 	if (wr_waitp->ret)
- 		PDBG("%s: FW reply %d tid %u qpid %u\n",
- 		     pci_name(rdev->lldi.pdev), wr_waitp->ret, hwtid, qpid);
 -- 
 1.7.1
 
