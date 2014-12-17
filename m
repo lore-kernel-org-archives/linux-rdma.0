@@ -1,61 +1,78 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Fix wrong usage of IPv4 protocol for multicast attach/detach
-Date: Wed, 17 Dec 2014 16:17:34 +0200
-Message-ID: <1418825854-30022-1-git-send-email-ogerlitz@mellanox.com>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V3 for-next 0/3] HW Device hot-removal support
+Date: Wed, 17 Dec 2014 18:08:10 +0200
+Message-ID: <1418832493-31273-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The MLX4_PROT_IB_IPV4 protocol should only be used with RoCEv2 and such.
-Removing this wrong usage allows to run multicast applications over RoCE.
+Currently, if there is any user space application using an IB device,
+it is impossible to unload the HW device driver for this device.
 
-Fixes: d487ee77740c ('IB/mlx4: Use IBoE (RoCE) IP based GIDs in the port GID table')
-Reported-by: Carol Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+Similarly, if the device is hot-unplugged or reset, the device driver
+hardware removal flow blocks until all user contexts are destroyed.
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index e861330..ea69975 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1221,8 +1221,7 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
- 	u64 reg_id;
- 	struct mlx4_ib_steering *ib_steering = NULL;
--	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
--		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
-+	enum mlx4_protocol prot = MLX4_PROT_IB_IPV6;
- 
- 	if (mdev->dev->caps.steering_mode ==
- 	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
-@@ -1235,8 +1234,10 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 				    !!(mqp->flags &
- 				       MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK),
- 				    prot, &reg_id);
--	if (err)
-+	if (err) {
-+		pr_err("multicast attach op failed, err %d\n", err);
- 		goto err_malloc;
-+	}
- 
- 	err = add_gid_entry(ibqp, gid);
- 	if (err)
-@@ -1284,8 +1285,7 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	struct net_device *ndev;
- 	struct mlx4_ib_gid_entry *ge;
- 	u64 reg_id = 0;
--	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
--		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
-+	enum mlx4_protocol prot =  MLX4_PROT_IB_IPV6;
- 
- 	if (mdev->dev->caps.steering_mode ==
- 	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
--- 
-1.7.1
+This patchset removes the above limitations from both uverbs and ucma.
+
+The IB-core and uverbs layers are still required to remain loaded as
+long as there are user applications using the verbs API. However, the
+hardware device drivers are not blocked any more by the user space
+activity.
+
+To support this, the hardware device needs to expose a new kernel API
+named 'disassociate_ucontext'. The device driver is given a ucontext
+to detach from, and it should block this user context from any future
+hardware access. In the IB-core level, we use this interface to
+deactivate all ucontext that address a specific device when handling a
+remove_one callback for it.
+
+In the RDMA-CM layer, a similar change is needed in the ucma module,
+to prevent blocking of the remove_one operation. This allows for
+hot-removal of devices with RDMA-CM users in the user space.
+
+The first patch introduces the new API between the HW device driver and
+the IB core. For devices which implement the functionality, IB core
+will use it in remove_one, disassociating any active ucontext from the
+hardware device. Other drivers that didn't implement it will behave as
+today, remove_one will block until all ucontexts referring the device
+are destroyed before returning.
+
+The second patch provides implementation of this API for the mlx4
+driver.
+
+The third patch extends ucma to avoid blocking remove_one operation in
+the cma module. When such device removal event is received, ucma is
+turning all user contexts to zombie contexts. This is done by
+releasing all underlying resources and preventing any further user
+operations on the context.
+
+Changes from V2:
+patch #1: Rebase over ODP patches.
+
+Changes from V1:
+patch #1: Use uverbs flags instead of disassociate support, drop fatal_event_raised flag.
+patch #3: Add support in ucma for handling device removal.
+
+Changes from V0:
+patch #1: ib_uverbs_close, reduced mutex scope to enable tasks run in parallel.
+
+
+Yishai Hadas (3):
+  IB/uverbs: Enable device removal when there are active user space
+    applications
+  IB/mlx4_ib: Disassociate support
+  IB/ucma: HW Device hot-removal support
+
+ drivers/infiniband/core/ucma.c        |  130 ++++++++++++-
+ drivers/infiniband/core/uverbs.h      |   12 ++
+ drivers/infiniband/core/uverbs_cmd.c  |    8 +
+ drivers/infiniband/core/uverbs_main.c |  324 +++++++++++++++++++++++++++------
+ drivers/infiniband/hw/mlx4/main.c     |  125 +++++++++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h  |   12 ++
+ include/rdma/ib_verbs.h               |    1 +
+ 7 files changed, 544 insertions(+), 68 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
