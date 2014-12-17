@@ -1,67 +1,71 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] opensm/osm_torus.c: Increase PORTGRP_MAX_PORTS define
-Date: Wed, 17 Dec 2014 10:59:11 +0000
-Message-ID: <DB4PR05MB39883B1C12A5EC12A81A629BE6D0@DB4PR05MB398.eurprd05.prod.outlook.com>
-References: <1418808490-27687-1-git-send-email-alexne@mellanox.com>
- <54915F10.4000205@dev.mellanox.co.il>
+From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH] RDMA/cma: fix first byte overwritten for AF_IB
+Date: Wed, 17 Dec 2014 12:58:09 +0100
+Message-ID: <CAMGffEm=ONPMi5RxGRKef5WaOyUrDTZbOKOziJVexffG86MZ5w@mail.gmail.com>
+References: <1418744596-25251-1-git-send-email-jinpu.wang@profitbricks.com> <54915D84.5000405@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54915F10.4000205-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <54915D84.5000405-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Torus-2QoS fails to configure fabric with more than 16 HCAs.
-> > This patch extends PORTGRP_MAX_PORTS to be 34. Maximal practical
-> ports
-> > per switch - 2 reserved ports (minimal of needed ports for switch to
-> > switch connections in 2D Torus).
-> >
-> > Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  opensm/osm_torus.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c index
-> > 330f55d..b01f69f 100644
-> > --- a/opensm/osm_torus.c
-> > +++ b/opensm/osm_torus.c
-> > @@ -59,7 +59,7 @@
-> >  #include <opensm/osm_opensm.h>
-> >
-> >  #define TORUS_MAX_DIM        3
-> > -#define PORTGRP_MAX_PORTS    16
-> > +#define PORTGRP_MAX_PORTS    34
-> >  #define SWITCH_MAX_PORTGRPS  (1 + 2 * TORUS_MAX_DIM)  #define
-> > DEFAULT_MAX_CHANGES  32
-> >
-> 
-> There is portgroup_max_ports configuration parameter for torus to change
-> this if needed.
-> 
-> man torus-2QoS.conf states:
->        portgroup_max_ports max_ports
->               This keyword specifies the maximum  number  of  parallel  inter-
->               switch  links,  and  also  the  maximum number of host ports per
->               switch, that torus-2QoS can accommodate.  The default  value  is
->               16.   Torus-2QoS  will log an error message during topology dis-
->               covery if this parameter needs to be increased.  If this keyword
->               appears multiple times, the last instance prevails.
-> 
->               Note  that  the  switch management port (switch port 0) gets put
->               into the same port group with the host ports, so if you have  16
->               host  ports  per switch, portgroup_max_ports would need to be at
->               least 17.
-> 
-> Is there really a need to change the default for this ?
+Hi Or,
 
-No. Missed that. Please ignore.
+We have some trouble in the past about IPoIB support about neighbour
+discovery, AF_IB doesn't relay on IPoIB, so
+we think have another option maybe give us more safe in some cases.
 
+
+
+On Wed, Dec 17, 2014 at 11:40 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
+ote:
+> On 12/16/2014 5:43 PM, Jack Wang wrote:
+>>
+>> If user attach private data for AF_IB,
+>
+>
+> Just out of curiosity, can you share what was the motivation for you =
+to use
+> AF_IB?
+>
+>
+> Or.
+>
+>
+>> the first byte will
+>> be overwritten, because we always set the cma version no matter
+>> family is AF_IB, so move the version set inside if condition.
+>
+>
+
+
+
+--=20
+Mit freundlichen Gr=C3=BC=C3=9Fen,
+Best Regards,
+
+Jack Wang
+
+Linux Kernel Developer Storage
+ProfitBricks GmbH  The IaaS-Company.
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+Tel: +49 30 5770083-42
+=46ax: +49 30 5770085-98
+Email: jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL: http://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B.
+Gesch=C3=A4ftsf=C3=BChrer: Andreas Gauger, Achim Weiss.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
