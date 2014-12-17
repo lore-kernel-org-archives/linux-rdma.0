@@ -1,74 +1,60 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 06/17] IB/core: Add support for extended query device
- caps
-Date: Wed, 17 Dec 2014 08:54:44 +0200
-Message-ID: <549128B4.5010301@mellanox.com>
-References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
-	 <1418310266-9584-7-git-send-email-haggaie@mellanox.com>
- <1418733236.2779.26.camel@opteya.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next 1/2] iw_cxgb4: serialize CQ event upcalls with CQ destruction
+Date: Wed, 17 Dec 2014 14:11:02 +0530
+Message-ID: <1418805663-15333-2-git-send-email-hariprasad@chelsio.com>
+References: <1418805663-15333-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1418733236.2779.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1418805663-15333-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 16/12/2014 14:33, Yann Droneaud wrote:
-> Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 17:04 +0200, Haggai Eran a =C3=A9=
-crit :
->>  static inline int ib_copy_to_udata(struct ib_udata *udata, void *sr=
-c, size_t len)
->>  {
->> -	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
->> +	size_t copy_sz;
->> +
->> +	copy_sz =3D min_t(size_t, len, udata->outlen);
->> +	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
->>  }
->=20
->=20
-> This is not the place to do this: as I'm guessing the purpose of this=
-=20
-> change from the patch in '[PATCH v3 07/17] IB/core: Add flags for on=20
-> demand paging support', you're trying to handle uverbs call from=20
-> a userspace program using a previous, shorter ABI.
+A race exists where the application can be destroying the CQ concurrently
+with a HW interrupt indicating a completion has been inserted into the CQ.
+This can case an event notification upcall to the application after the
+CQ has been destroyed.
 
-Yes, that was my intention.
+The solution is to serialize looking up the CQ in the IDR table and
+referencing the CQ in c4iw_ev_handler(), with removing the CQID from the
+IDR table and blocking until the refcnt reaches 0 in c4iw_destroy_cq().
 
->=20
-> But that's hidding bug where userspace will get it wrong at passing t=
-he=20
-> correct buffer / size for all others uverb calls.
->=20
-> That cannot work that way.
->=20
-> In a previous patchset [1], I've suggested to add a check in=20
-> ib_copy_{from,to}_udata()[2][3] in order to check the input/output
-> buffer size to not read/write past userspace provided buffer
-> boundaries: in case of mismatch an error would be returned to
-> userspace.
->=20
-> With the suggested change here, buffer overflow won't happen,
-> but the error is silently ignored, allowing uverb to return a
-> partial result, which is likely not expected by userspace as
-> it's a bit difficult to handle it gracefully.
->=20
-> So this has to be removed, and a check on userspace response
-> buffer must be added to ib_uverbs_ex_query_device() instead.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/ev.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
-I agree that we shouldn't silently ignore bugs in userspace, but I'm no=
-t
-sure the alternative is maintainable. If we have in the future N new
-extensions to this verb, will we need to validate the user space given
-output buffer is one of the N possible sizes?
+diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
+index c9df054..4498a89 100644
+--- a/drivers/infiniband/hw/cxgb4/ev.c
++++ b/drivers/infiniband/hw/cxgb4/ev.c
+@@ -225,13 +225,20 @@ int c4iw_ev_handler(struct c4iw_dev *dev, u32 qid)
+ 	struct c4iw_cq *chp;
+ 	unsigned long flag;
+ 
++	spin_lock_irqsave(&dev->lock, flag);
+ 	chp = get_chp(dev, qid);
+ 	if (chp) {
++		atomic_inc(&chp->refcnt);
++		spin_unlock_irqrestore(&dev->lock, flag);
+ 		t4_clear_cq_armed(&chp->cq);
+ 		spin_lock_irqsave(&chp->comp_handler_lock, flag);
+ 		(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
+ 		spin_unlock_irqrestore(&chp->comp_handler_lock, flag);
+-	} else
++		if (atomic_dec_and_test(&chp->refcnt))
++			wake_up(&chp->wait);
++	} else {
+ 		PDBG("%s unknown cqid 0x%x\n", __func__, qid);
++		spin_unlock_irqrestore(&dev->lock, flag);
++	}
+ 	return 0;
+ }
+-- 
+1.7.1
 
-Regards,
-Haggai
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
