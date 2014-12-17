@@ -1,69 +1,90 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cma: fix first byte overwritten for AF_IB
-Date: Wed, 17 Dec 2014 12:58:09 +0100
-Message-ID: <CAMGffEm=ONPMi5RxGRKef5WaOyUrDTZbOKOziJVexffG86MZ5w@mail.gmail.com>
-References: <1418744596-25251-1-git-send-email-jinpu.wang@profitbricks.com> <54915D84.5000405@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 06/17] IB/core: Add support for extended query device
+ caps
+Date: Wed, 17 Dec 2014 15:00:11 +0100
+Message-ID: <1418824811.3334.3.camel@dworkin>
+References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
+	 <1418310266-9584-7-git-send-email-haggaie@mellanox.com>
+	 <1418733236.2779.26.camel@opteya.com> <549128B4.5010301@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54915D84.5000405-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <549128B4.5010301-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or,
+Hi,
 
-We have some trouble in the past about IPoIB support about neighbour
-discovery, AF_IB doesn't relay on IPoIB, so
-we think have another option maybe give us more safe in some cases.
+Le mercredi 17 d=C3=A9cembre 2014 =C3=A0 08:54 +0200, Haggai Eran a =C3=
+=A9crit :
+> On 16/12/2014 14:33, Yann Droneaud wrote:
+> > Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 17:04 +0200, Haggai Eran a =C3=
+=A9crit :
+> >>  static inline int ib_copy_to_udata(struct ib_udata *udata, void *=
+src, size_t len)
+> >>  {
+> >> -	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
+> >> +	size_t copy_sz;
+> >> +
+> >> +	copy_sz =3D min_t(size_t, len, udata->outlen);
+> >> +	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
+> >>  }
+> >=20
+> >=20
+> > This is not the place to do this: as I'm guessing the purpose of th=
+is=20
+> > change from the patch in '[PATCH v3 07/17] IB/core: Add flags for o=
+n=20
+> > demand paging support', you're trying to handle uverbs call from=20
+> > a userspace program using a previous, shorter ABI.
+>=20
+> Yes, that was my intention.
+>=20
+> >=20
+> > But that's hidding bug where userspace will get it wrong at passing=
+ the=20
+> > correct buffer / size for all others uverb calls.
+> >=20
+> > That cannot work that way.
+> >=20
+> > In a previous patchset [1], I've suggested to add a check in=20
+> > ib_copy_{from,to}_udata()[2][3] in order to check the input/output
+> > buffer size to not read/write past userspace provided buffer
+> > boundaries: in case of mismatch an error would be returned to
+> > userspace.
+> >=20
+> > With the suggested change here, buffer overflow won't happen,
+> > but the error is silently ignored, allowing uverb to return a
+> > partial result, which is likely not expected by userspace as
+> > it's a bit difficult to handle it gracefully.
+> >=20
+> > So this has to be removed, and a check on userspace response
+> > buffer must be added to ib_uverbs_ex_query_device() instead.
+>=20
+> I agree that we shouldn't silently ignore bugs in userspace, but I'm =
+not
+> sure the alternative is maintainable. If we have in the future N new
+> extensions to this verb, will we need to validate the user space give=
+n
+> output buffer is one of the N possible sizes?
+>=20
 
+Yes.
 
+Additionnaly the size should be checked related to the flags set in the
+"comp_mask": eg. requiring IB_USER_VERBS_EX_QUERY_DEVICE_ODP but not
+providing the expected response buffer should be an error.
 
-On Wed, Dec 17, 2014 at 11:40 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
-ote:
-> On 12/16/2014 5:43 PM, Jack Wang wrote:
->>
->> If user attach private data for AF_IB,
->
->
-> Just out of curiosity, can you share what was the motivation for you =
-to use
-> AF_IB?
->
->
-> Or.
->
->
->> the first byte will
->> be overwritten, because we always set the cma version no matter
->> family is AF_IB, so move the version set inside if condition.
->
->
-
-
+Regards.
 
 --=20
-Mit freundlichen Gr=C3=BC=C3=9Fen,
-Best Regards,
+Yann Droneaud
+OPTEYA
 
-Jack Wang
 
-Linux Kernel Developer Storage
-ProfitBricks GmbH  The IaaS-Company.
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-Tel: +49 30 5770083-42
-=46ax: +49 30 5770085-98
-Email: jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: http://www.profitbricks.de
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B.
-Gesch=C3=A4ftsf=C3=BChrer: Andreas Gauger, Achim Weiss.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
