@@ -1,51 +1,64 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] libibmad/src/rpc.c: Remove superfluous packet dump
-Date: Fri, 19 Dec 2014 11:08:20 -0800
-Message-ID: <1419016100.20566.155.camel@auk59.llnl.gov>
+From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Subject: assertion failed in osm_switch_get_lft_block() function
+Date: Fri, 19 Dec 2014 21:46:47 +0100
+Message-ID: <54948EB7.1020706@simula.no>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="92GjALXTVTRP0h6wHMKQWv4u6oQqpsgHF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When idebug == 1, mad_rpc outputs only the mad data
-response in debug output.  It does not output the request
-mad data.  This is confusing since it's not clear if it's
-request or response output.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--92GjALXTVTRP0h6wHMKQWv4u6oQqpsgHF
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-When idebug > 1, full mad send and receive buffers are
-output, which makes the mad data output with idebug == 1
-superfluous.  Remove it to remove confusion.
+Hello,
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- src/rpc.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+When I use LIDs from the top LFT block (0xbfc0-0xbfff), I get an
+assertion error from the function osm_switch_get_lft_block() which is
+implemented in osm_switch.c.
 
-diff --git a/src/rpc.c b/src/rpc.c
-index 8d961f2..202fac5 100644
---- a/src/rpc.c
-+++ b/src/rpc.c
-@@ -272,11 +272,6 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
- 		return NULL;
- 	}
- 
--	if (ibdebug) {
--		IBWARN("data offs %d sz %d", rpc->dataoffs, rpc->datasz);
--		xdump(stderr, "mad data\n", mad + rpc->dataoffs, rpc->datasz);
--	}
--
- 	if (rcvdata)
- 		memcpy(rcvdata, mad + rpc->dataoffs, rpc->datasz);
- 
--- 
-1.7.1
+The line is this one:
+CL_ASSERT(base_lid_ho + IB_SMP_DATA_SIZE <=3D IB_LID_UCAST_END_HO);
+
+In the topmost LFT block, the base_lid_ho has the value 49088 and the
+IB_SMP_DATA_SIZE is 64. Together they add up to 49152 but the assertion
+checks if they are less than 0xbfff (49151).
+
+Shouldn't this line be something like the following?
+
+CL_ASSERT(base_lid_ho + IB_SMP_DATA_SIZE - 1 <=3D IB_LID_UCAST_END_HO);
+
+or
+
+CL_ASSERT(base_lid_ho + IB_SMP_DATA_SIZE <=3D IB_LID_UCAST_END_HO + 1);
+
+Cheers,
+Vangelis
 
 
+--92GjALXTVTRP0h6wHMKQWv4u6oQqpsgHF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iQEcBAEBAgAGBQJUlI63AAoJEEuGx9KTo03qU10IAIVSybOOTIXepZcKOFGTvr7S
+IPSiavCDF2b0ZQAgzGjf7VJNYi8tzcKn9Opc6eUGoeJv4vpLLr2W9bDomKxq6bd9
+6zz500YgQC3FGmi9WlisP9D0wTc52RhCwbgO/Xrk+3a68odyeOQNBKvkK7k5C+RQ
+XAKaZ6ojV6NdF3jnwSbxxTjlNBTJQdBP9wy9kpHeXw4SnTIxLDTZL7xD1X7Kw/tg
+tmF856GwW287ht2yohcMeEh4zN+lUPSPmUi1RsJLJXRl1qI2E2x9flMyn3EXceiA
+kaseK0V075JqQEo8KMfyTnQxIzF/nBna3TSStFhiT6UGGNgoY32BuOuJdU495CI=
+=H+f6
+-----END PGP SIGNATURE-----
+
+--92GjALXTVTRP0h6wHMKQWv4u6oQqpsgHF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
