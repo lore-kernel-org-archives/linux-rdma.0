@@ -1,49 +1,84 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: assertion failed in osm_switch_get_lft_block() function
-Date: Sat, 20 Dec 2014 08:08:16 -0500
-Message-ID: <549574C0.8030001@dev.mellanox.co.il>
-References: <54948EB7.1020706@simula.no>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+Subject: [PATCH] infiniband: hw: ipath: ipath_wc_ppc64.c:  Remove unused function
+Date: Sat, 20 Dec 2014 17:19:02 +0100
+Message-ID: <1419092342-7120-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54948EB7.1020706-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/19/2014 3:46 PM, Vangelis Tasoulas wrote:
-> Hello,
-> 
-> When I use LIDs from the top LFT block (0xbfc0-0xbfff), I get an
-> assertion error from the function osm_switch_get_lft_block() which is
-> implemented in osm_switch.c.
-> 
-> The line is this one:
-> CL_ASSERT(base_lid_ho + IB_SMP_DATA_SIZE <= IB_LID_UCAST_END_HO);
-> 
-> In the topmost LFT block, the base_lid_ho has the value 49088 and the
-> IB_SMP_DATA_SIZE is 64. Together they add up to 49152 but the assertion
-> checks if they are less than 0xbfff (49151).
-> 
-> Shouldn't this line be something like the following?
-> 
-> CL_ASSERT(base_lid_ho + IB_SMP_DATA_SIZE - 1 <= IB_LID_UCAST_END_HO);
-> 
-> or
-> 
-> CL_ASSERT(base_lid_ho + IB_SMP_DATA_SIZE <= IB_LID_UCAST_END_HO + 1);
+Remove the function ipath_unordered_wc() that is not used anywhere.
 
-Yes. Would you issue patch for this ?
+This was partially found by using a static code analysis program called cppcheck.
 
-Thanks.
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+---
+ drivers/infiniband/hw/ipath/ipath_kernel.h    |    3 ---
+ drivers/infiniband/hw/ipath/ipath_wc_ppc64.c  |   13 -------------
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c |   15 ---------------
+ 3 files changed, 31 deletions(-)
 
--- Hal
-
-> Cheers,
-> Vangelis
-> 
+diff --git a/drivers/infiniband/hw/ipath/ipath_kernel.h b/drivers/infiniband/hw/ipath/ipath_kernel.h
+index 6559af6..e08db70 100644
+--- a/drivers/infiniband/hw/ipath/ipath_kernel.h
++++ b/drivers/infiniband/hw/ipath/ipath_kernel.h
+@@ -908,9 +908,6 @@ void ipath_chip_cleanup(struct ipath_devdata *);
+ /* clean up any chip type-specific stuff */
+ void ipath_chip_done(void);
+ 
+-/* check to see if we have to force ordering for write combining */
+-int ipath_unordered_wc(void);
+-
+ void ipath_disarm_piobufs(struct ipath_devdata *, unsigned first,
+ 			  unsigned cnt);
+ void ipath_cancel_sends(struct ipath_devdata *, int);
+diff --git a/drivers/infiniband/hw/ipath/ipath_wc_ppc64.c b/drivers/infiniband/hw/ipath/ipath_wc_ppc64.c
+index 1d7bd82..1a7e20a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_wc_ppc64.c
++++ b/drivers/infiniband/hw/ipath/ipath_wc_ppc64.c
+@@ -47,16 +47,3 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+ {
+ 	return 0;
+ }
+-
+-/**
+- * ipath_unordered_wc - indicate whether write combining is unordered
+- *
+- * Because our performance depends on our ability to do write
+- * combining mmio writes in the most efficient way, we need to
+- * know if we are on a processor that may reorder stores when
+- * write combining.
+- */
+-int ipath_unordered_wc(void)
+-{
+-	return 1;
+-}
+diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+index 3428acb..4ad0b93 100644
+--- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
++++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+@@ -167,18 +167,3 @@ void ipath_disable_wc(struct ipath_devdata *dd)
+ 		dd->ipath_wc_cookie = 0; /* even on failure */
+ 	}
+ }
+-
+-/**
+- * ipath_unordered_wc - indicate whether write combining is ordered
+- *
+- * Because our performance depends on our ability to do write combining mmio
+- * writes in the most efficient way, we need to know if we are on an Intel
+- * or AMD x86_64 processor.  AMD x86_64 processors flush WC buffers out in
+- * the order completed, and so no special flushing is required to get
+- * correct ordering.  Intel processors, however, will flush write buffers
+- * out in "random" orders, and so explicit ordering is needed at times.
+- */
+-int ipath_unordered_wc(void)
+-{
+-	return boot_cpu_data.x86_vendor != X86_VENDOR_AMD;
+-}
+-- 
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
