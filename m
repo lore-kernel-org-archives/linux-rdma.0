@@ -1,33 +1,41 @@
-From: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: RDMA atomic operations fail
-Date: Wed, 24 Dec 2014 03:08:45 +0000 (UTC)
-Message-ID: <loom.20141224T040342-951@post.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: does i need compat-rdma package
+Date: Wed, 24 Dec 2014 10:19:57 +0200
+Message-ID: <549A772D.1040608@mellanox.com>
+References: <CACaajQs03WqcSdrxF3r78wGKL494V5YS5Woa8tW4t1e3qAGGaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACaajQs03WqcSdrxF3r78wGKL494V5YS5Woa8tW4t1e3qAGGaQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When I try to submit an RDMA FETCH_AND_ADD or CMP_AND_SWAP ,
-the ibv_post_send() function fails, with Errno set to "Invalid argument".
-I have no such problems with RDMA READ/WRITE. 
+On 12/23/2014 4:47 PM, Vasiliy Tolstov wrote:
+> Hello. I want to develop some software under linux 3.14 and using
+> infiniband libraries.
 
-I developed my entire code using RDMA CM (so no manual QP transitioning). 
-The queue pair is RC, and Atomic is enabled at the responder queue pair,
-and the memory regions are registered with atomic access.
+You can use the inbox libraries and install them through your distro 
+package installer, with RHEL, Fedora and such
+it would be just
 
-I suspected that there might be the source of this problem,
-so I wrote a small program using libibcm where I transition the QPs manually
-and set the flags fro atomic operations:
-qp_attr->qp_access_flags = IBV_ACCESS_REMOTE_ATOMIC; 
-qp_attr->max_rd_atomic = <something greater than zero>; 
-qp_attr->max_dest_rd_atomic = <something greater than zero>; 
+$ yum groupinstall "infiniband support"
 
-But still, the same error (invalid argument).
+to get you the set of required RPMS [1] SLES and Ubuntu should have 
+similar means, no need to use OFED, compat, etc.
 
-I'd appreciate your help.
+Or.
+
+[1] you mentioned ConnectX-3, so your basic needs are libmlx4, 
+libibverbs and librdmacm
+
+> I'm download latest ofed (3.12 ?) and see that
+> some packages i don't need (i'm use only mellanox connect x3)
+> But i can't understand in case of linux 3.14 does i need compat-rdma ?
+>
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
