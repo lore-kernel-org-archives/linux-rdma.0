@@ -1,116 +1,34 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
 Subject: Re: does i need compat-rdma package
-Date: Wed, 24 Dec 2014 13:29:41 +0100
-Message-ID: <549AB1B5.8030308@acm.org>
-References: <CACaajQs03WqcSdrxF3r78wGKL494V5YS5Woa8tW4t1e3qAGGaQ@mail.gmail.com> <549A772D.1040608@mellanox.com> <CA+Tq-Rq_2ieyc=Z37G70w2=3oHVr3dA_hOMAvZV2CqoPMFyc6w@mail.gmail.com> <CACaajQtJJ1w42jLqZi2SRWRv+KFWY4yMGFOXjiq3-EgYFXFCOA@mail.gmail.com>
+Date: Wed, 24 Dec 2014 16:37:56 +0400
+Message-ID: <CACaajQvVGPD7SaL=1PpJuRApiCxbMFTRyxQerGuDzV=77SFY6Q@mail.gmail.com>
+References: <CACaajQs03WqcSdrxF3r78wGKL494V5YS5Woa8tW4t1e3qAGGaQ@mail.gmail.com>
+ <549A772D.1040608@mellanox.com> <CA+Tq-Rq_2ieyc=Z37G70w2=3oHVr3dA_hOMAvZV2CqoPMFyc6w@mail.gmail.com>
+ <CACaajQtJJ1w42jLqZi2SRWRv+KFWY4yMGFOXjiq3-EgYFXFCOA@mail.gmail.com> <549AB1B5.8030308@acm.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000603020202050002040305"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACaajQtJJ1w42jLqZi2SRWRv+KFWY4yMGFOXjiq3-EgYFXFCOA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <549AB1B5.8030308-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Hiroyuki Sato <hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000603020202050002040305
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+2014-12-24 15:29 GMT+03:00 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
+> Hello Vasiliy,
+>
+> A possible alternative is to start from a recent upstream kernel and to
+> build and install the latest RDMA libraries from the upstream git
+> repositories. I have attached the script I use myself since considerable
+> time to install the latest RDMA libraries on openSUSE systems.
 
-On 12/24/14 11:19, Vasiliy Tolstov wrote:
-> 2014-12-24 12:03 GMT+03:00 Hiroyuki Sato <hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->> Hello Vasilly Tolstov
->>
->> This URL might be help.
->> http://www.rdmamojo.com
->>
->> There are RDMA configuration for many OSs. (RHEL, Ubuntu, SLES..)
-> 
-> Thanks, but.. i'm using source based disto that not listed in this site =(
 
-Hello Vasiliy,
+Nice! Thanks. I'm recheck my build (i'm already build all needed stuff).
 
-A possible alternative is to start from a recent upstream kernel and to
-build and install the latest RDMA libraries from the upstream git
-repositories. I have attached the script I use myself since considerable
-time to install the latest RDMA libraries on openSUSE systems.
-
-Bart.
-
---------------000603020202050002040305
-Content-Type: text/plain; charset=us-ascii;
- name="ofed-rebuild"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="ofed-rebuild"
-
-IyEvYmluL2Jhc2gKCiMgU2VlIGFsc28gaHR0cDovL3d3dy5vcGVuZmFicmljcy5vcmcvZG93
-bmxvYWRzL01BSU5UQUlORVJTCmNsb25lKCkgewogIGNhc2UgIiQxIiBpbgogICAgaWJhY20p
-CiAgICAgIGdpdCBjbG9uZSBnaXQ6Ly9naXQub3BlbmZhYnJpY3Mub3JnL35zaGVmdHkvaWJh
-Y20uZ2l0OzsKICAgIGlidXRpbHMpCiAgICAgIGdpdCBjbG9uZSBnaXQ6Ly9naXQub3BlbmZh
-YnJpY3Mub3JnL352bGFkL2lidXRpbHMuZ2l0OzsKICAgIGluZmluaWJhbmQtZGlhZ3MpCiAg
-ICAgIGdpdCBjbG9uZSBnaXQ6Ly9naXQub3BlbmZhYnJpY3Mub3JnL35pcmF3ZWlueS9pbmZp
-bmliYW5kLWRpYWdzLmdpdDs7CiAgICBsaWJpYmNtKQogICAgICBnaXQgY2xvbmUgZ2l0Oi8v
-Z2l0Lm9wZW5mYWJyaWNzLm9yZy9+c2hlZnR5L2xpYmliY20uZ2l0OzsKICAgIGxpYmlibWFk
-KQogICAgICBnaXQgY2xvbmUgZ2l0Oi8vZ2l0Lm9wZW5mYWJyaWNzLm9yZy9+aXJhd2Vpbnkv
-bGliaWJtYWQuZ2l0OzsKICAgIGxpYmlidW1hZCkKICAgICAgZ2l0IGNsb25lIGdpdDovL2dp
-dC5vcGVuZmFicmljcy5vcmcvfmhhbHIvbGliaWJ1bWFkLmdpdDs7CiAgICBsaWJpYnZlcmJz
-KQogICAgICBnaXQgY2xvbmUgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saWJzL2lu
-ZmluaWJhbmQvbGliaWJ2ZXJicy5naXQ7OwogICAgbGlibWx4NCkKICAgICAgZ2l0IGNsb25l
-IGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGlicy9pbmZpbmliYW5kL2xpYm1seDQu
-Z2l0OzsKICAgIGxpYnJkbWFjbSkKICAgICAgZ2l0IGNsb25lIGdpdDovL2dpdC5vcGVuZmFi
-cmljcy5vcmcvfnNoZWZ0eS9saWJyZG1hY20uZ2l0OzsKICAgIG1zdGZsaW50KQogICAgICBn
-aXQgY2xvbmUgZ2l0Oi8vZ2l0Lm9wZW5mYWJyaWNzLm9yZy9+bW9oYW1tYWRzL21zdGZsaW50
-LmdpdDs7CiAgICBvcGVuc20pCiAgICAgIGdpdCBjbG9uZSBnaXQ6Ly9naXQub3BlbmZhYnJp
-Y3Mub3JnL35oYWxyL29wZW5zbTs7CiAgICBwZXJmdGVzdCkKICAgICAgZ2l0IGNsb25lIGdp
-dDovL2dpdC5vcGVuZmFicmljcy5vcmcvfmdyb2NrYWgvcGVyZnRlc3QuZ2l0OzsKICAgIHNy
-cHRvb2xzKQogICAgICBnaXQgY2xvbmUgZ2l0Oi8vZ2l0Lm9wZW5mYWJyaWNzLm9yZy9+YnZh
-bmFzc2NoZS9zcnB0b29scy5naXQ7OwogICAgKikKICAgICAgZmFsc2U7OwogIGVzYWMKfQoK
-YnVpbGQoKSB7CiAgbG9jYWwgcmMKCiAgJHtzY3JpcHRzX2Rpcn0vY2xlYW4tc291cmNlLXRy
-ZWUgJiYKICAuL2F1dG9nZW4uc2ggJiYKICBycG0gLS1ldmFsICclY29uZmlndXJlJyB8IHNo
-ICYmCiAgbWFrZSAtcyAmJgogIHN1ZG8gbWFrZSAtcyBpbnN0YWxsCiAgcmM9JD8KICAke3Nj
-cmlwdHNfZGlyfS9jaGFuZ2Utb3duZXItdG8tYmFydAogIHJldHVybiAkcmMKfQoKYnVpbGRf
-bGliKCkgewogIGxvY2FsIHJjCgogICR7c2NyaXB0c19kaXJ9L2NsZWFuLXNvdXJjZS10cmVl
-ICYmCiAgLi9hdXRvZ2VuLnNoICYmCiAgcnBtIC0tZXZhbCAnJWNvbmZpZ3VyZScgXAogICAg
-fCBzZWQgInN8XChcLi9jb25maWd1cmUgXCl8XDEgLS1kaXNhYmxlLXN0YXRpYyAkQCB8IiBc
-CiAgICB8IHNoICYmCiAgbWFrZSAtcyAmJgogIHN1ZG8gbWFrZSAtcyBpbnN0YWxsCiAgcmM9
-JD8KICAke3NjcmlwdHNfZGlyfS9jaGFuZ2Utb3duZXItdG8tYmFydAogIHJldHVybiAkcmMK
-fQoKYnVpbGRfbGliaWJjbSgpIHsKICBidWlsZF9saWIgLS13aXRoLXZhbGdyaW5kCn0KCmJ1
-aWxkX2xpYmlidmVyYnMoKSB7CiAgYnVpbGRfbGliIC0td2l0aC12YWxncmluZAp9CgojIERl
-cGVuZHMgb24gbGliaWJ2ZXJicy4KYnVpbGRfbGlibWx4NCgpIHsKICBidWlsZF9saWIgLS13
-aXRoLXZhbGdyaW5kCn0KCmJ1aWxkX2xpYmlidW1hZCgpIHsKICBidWlsZF9saWIgLS13aXRo
-LXZhbGdyaW5kCn0KCiMgRGVwZW5kcyBvbiBsaWJpYnVtYWQuCmJ1aWxkX2xpYmlibWFkKCkg
-ewogIGJ1aWxkX2xpYgp9CgpidWlsZF9saWJyZG1hY20oKSB7CiAgYnVpbGRfbGliIC0td2l0
-aC12YWxncmluZAp9CgpidWlsZF9pYmFjbSgpIHsKICBidWlsZF9saWIKfQoKYnVpbGRfaWJ1
-dGlscygpIHsKICBidWlsZF9saWIKfQoKIyBEZXBlbmRzIG9uIGxpYmlidW1hZCBhbmQgbGli
-b3NtY29tcC4KYnVpbGRfaW5maW5pYmFuZF9kaWFncygpIHsKICBidWlsZF9saWIgLS13aXRo
-LWlicGF0aF9vdmVycmlkZT0kcHJlZml4L3NiaW4KfQoKYnVpbGRfbXN0ZmxpbnQoKSB7CiAg
-YnVpbGQKfQoKYnVpbGRfb3BlbnNtKCkgewogIGJ1aWxkX2xpYgp9CgojIERlcGVuZHMgb24g
-bGlicmRtYWNtLgpidWlsZF9wZXJmdGVzdCgpIHsKICBpZiBbIC1lIGF1dG9nZW4uc2ggXTsg
-dGhlbgogICAgYnVpbGQKICBlbHNlCiAgICAke3NjcmlwdHNfZGlyfS9jbGVhbi1zb3VyY2Ut
-dHJlZSAmJgogICAgbWFrZSAmJgogICAgc3VkbyBjcCBcCiAgICAgIGliX2F0b21pY19idyBc
-CiAgICAgIGliX2F0b21pY19sYXQgXAogICAgICBpYl9jbG9ja190ZXN0IFwKICAgICAgaWJf
-cmVhZF9idyBcCiAgICAgIGliX3JlYWRfbGF0IFwKICAgICAgaWJfc2VuZF9idyBcCiAgICAg
-IGliX3NlbmRfbGF0IFwKICAgICAgaWJfd3JpdGVfYncgXAogICAgICBpYl93cml0ZV9id19w
-b3N0bGlzdCBcCiAgICAgIGliX3dyaXRlX2xhdCBcCiAgICAgICRwcmVmaXgvYmluCiAgZmkK
-fQoKYnVpbGRfc3JwdG9vbHMoKSB7CiAgYnVpbGQKfQoKcHJlZml4PS91c3IKc2NyaXB0c19k
-aXI9IiQoZGlybmFtZSAkMCkiCmlmIFsgIiR7c2NyaXB0c19kaXIjL30iID0gIiR7c2NyaXB0
-c19kaXJ9IiBdOyB0aGVuCiAgc2NyaXB0c19kaXI9IiRQV0QvJHNjcmlwdHNfZGlyIgpmaQoK
-aWYgdHlwZSAtcCB6eXBwZXIgPi9kZXYvbnVsbCAyPiYxOyB0aGVuCiAgICB6eXBwZXIgaW5z
-dGFsbCAteSBhdXRvY29uZiBhdXRvbWFrZSBiaXNvbiBmbGV4IGdjYyBnY2MtYysrIGdsaWIy
-LWRldmVsIGxpYnRvb2wgbWFrZSBweXRob24tZG9jdXRpbHMgdmFsZ3JpbmQtZGV2ZWwgIyBn
-cmFwaHZpei10Y2wgc3dpZyB0Y2wtZGV2ZWwgdGstZGV2ZWwKZWxpZiB0eXBlIC1wIGFwdC1n
-ZXQgPi9kZXYvbnVsbCAyPiYxOyB0aGVuCiAgICBhcHQtZ2V0IGluc3RhbGwgLXEgLXkgYXV0
-b2NvbmYgYXV0b21ha2UgYmlzb24gZmxleCBnY2MgbGliZ2xpYjIuMC1kZXYgbGlidG9vbCBt
-YWtlIHB5dGhvbi1kb2N1dGlscyB2YWxncmluZCAjIGdyYXBodml6LXRjbCBzd2lnIHRjbC1k
-ZXYgdGstZGV2CmZpCgpjb21wb25lbnRzPSIke0A6LWxpYmlidmVyYnMgbGlibWx4NCBsaWJp
-YnVtYWQgbGliaWJtYWQgb3BlbnNtIGluZmluaWJhbmQtZGlhZ3MgbGliaWJjbSBsaWJyZG1h
-Y20gc3JwdG9vbHMgcGVyZnRlc3QgbXN0ZmxpbnR9IiAjIGlidXRpbHMKZm9yIHAgaW4gJHtj
-b21wb25lbnRzfQpkbwogICgKICAgIGVjaG8KICAgIGVjaG8gPT09PSAkcCA9PT09CiAgICBl
-Y2hvCiAgICBpZiBbICEgLWUgJHAgXTsgdGhlbgogICAgICBjbG9uZSAkcAogICAgZmkKICAg
-IGNkICRwICYmCiAgICBidWlsZF8ke3AvLS9ffQogICkgfHwgZXhpdCAkPwpkb25lCg==
---------------000603020202050002040305--
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
