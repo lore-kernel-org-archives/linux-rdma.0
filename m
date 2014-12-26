@@ -1,17 +1,33 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/6] IB/Core: Changes to the IB Core infrastructure for
+From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 1/6] IB/Core: Changes to the IB Core infrastructure for
  RoCEv2 support
-Date: Thu, 25 Dec 2014 18:07:56 +0200
-Message-ID: <CAG9sBKMus3vbEYS43EM01GaOLE9qSz1sxhNn=Z3eOdq8NNO7rg@mail.gmail.com>
-References: <99a3d3b9-842b-450f-916a-87eb197048a3@CMEXHTCAS2.ad.emulex.com>
+Date: Fri, 26 Dec 2014 05:29:28 +0000
+Message-ID: <29f65b01-b077-4147-b316-808ee03a1c73@CMEXHTCAS1.ad.emulex.com>
+References: <99a3d3b9-842b-450f-916a-87eb197048a3@CMEXHTCAS2.ad.emulex.com>,<CAG9sBKMus3vbEYS43EM01GaOLE9qSz1sxhNn=Z3eOdq8NNO7rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <99a3d3b9-842b-450f-916a-87eb197048a3-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+In-Reply-To: <CAG9sBKMus3vbEYS43EM01GaOLE9qSz1sxhNn=Z3eOdq8NNO7rg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+Hi Moni,
+                Thank you for your comments, my response inline. 
+Will be able to address your comments with a new patch when i'm back from vacation/shutdown post Jan 5th though
+
+Thanks
+Som
+              
+________________________________________
+From: monisonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [monisonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] on behalf of Moni Shoua [monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+Sent: Thursday, December 25, 2014 9:37 PM
+To: Somnath Kotur
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-rdma; Devesh Sharma
+Subject: Re: [PATCH 1/6] IB/Core: Changes to the IB Core infrastructure for RoCEv2 support
 
 On Thu, Dec 25, 2014 at 2:59 AM, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
 > From: Somnath kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
@@ -66,6 +82,8 @@ think you should make this a hint instead of a rule.
 Also, did you consider complicated topologies where rt_uses_gateway is
 false but IP header is required for the packet to reach?
 I'm not sure but maybe proxy ARP can be such an example
+
+[SOM]: Ok, that is an interesting point, will think/consider this one.
 
 
 >         ret = dst_fetch_ha(&rt->dst, addr, &fl4.daddr);
@@ -592,6 +610,9 @@ Although you follow the spec here, 3 types of RDMA_NETWORK are not
 really required. Maybe we can get rid of this
 Maybe we can get rid of this duplication
 
+[SOM]: Not sure i understood the duplication here or why it's not required? 
+We now have a new 'network/L3' layer on top of L2 - that was the reason, does it not make sense?
+
 
 > +static inline u8 ib_network_to_gid_type(enum rdma_network_type network_type)
 > +{
@@ -700,6 +721,13 @@ that the right use case in CMA for choosing a GID index is
 PREFER_V2, FORCE_V2,...)
 3. CMA implements a logic to choose GID index with the help of
 ib_find_cached_gid())
+[SOM]: Well, partly the use of get_port_type() was motivated by the SPEC(Query HCA - 17.5.x.x IIRC) talking about the need to have a port_type
+attribute as part of RoCEV2 that would indicate if a HW device/port supported RoCEV2 or not.  It was also serving another purpose
+in cma_acqure_dev() as you can see above in the patch where it was helping the use case of devices that only support V2 and not V1.
+Still feel it doesn't make sense? 
+Not sure how/where did you want point 2 coming from - sysfs/proc/debugfs?
+I'd prefer to have that in the next stage of the patchset
+
 
 >         int                        (*query_gid)(struct ib_device *device,
 >                                                 u8 port_num, int index,
@@ -732,8 +760,7 @@ ib_find_cached_gid())
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
