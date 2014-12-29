@@ -1,27 +1,60 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+From: Cong Wang <cwang@twopensource.com>
 Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
-Date: Mon, 29 Dec 2014 13:36:51 -0500 (EST)
-Message-ID: <20141229.133651.1848956829545470730.davem@davemloft.net>
+Date: Mon, 29 Dec 2014 13:32:50 -0800
+Message-ID: <CAHA+R7M-Nm_R-AaKQ0nX4L3O=BN5_m1v-8sWJSaE_UmGyo8zwA@mail.gmail.com>
 References: <1416893768-21369-1-git-send-email-wen.gang.wang@oracle.com>
-	<20141125.010741.450666241983239119.davem@davemloft.net>
-	<54A0FEA4.1080302@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54A0FEA4.1080302-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1416893768-21369-1-git-send-email-wen.gang.wang@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wengang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Mon, 29 Dec 2014 15:11:32 +0800
+On Mon, Nov 24, 2014 at 9:36 PM, Wengang Wang <wen.gang.wang@oracle.com> wrote:
+> When last slave of a bonding master is removed, the bonding then does not work.
+> At the time if packet_snd is called against with a master net_device, it calls
+> then header_ops->create which points to slave's header_ops. In case the slave
+> is ipoib and the module is unloaded, header_ops would point to invalid address.
+> Accessing it will cause problem.
+> This patch tries to fix this issue by moving ipoib_header_ops to vmlinux to keep
+> it valid even when ipoib module is unloaded.
+>
 
-> So, what information else do you need?
+I still don't think this is the right way to fix the bug, because
+there are other modules which have the same bug, for example,
+net/bluetooth/6lowpan.c (unless it can't be enslaved into a bond
+of course, I haven't verified). We don't want to move them all
+to builtin kernel, do we?
 
-I need a patch formally (re-)submitted.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On the other hand, as Jay explained, bonding is probably
+the only one which has the problem, why not solve it in bonding?
+I mean why do we have to adjust other modules just for bonding?
+
+When its slave device gets removed, some netdev event is sent
+to the master, so why not reset the header_ops to ether header ops
+up on this event? Something like below (not even compile tested):
+
+
+diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
+index 184c434..aedccae 100644
+--- a/drivers/net/bonding/bond_main.c
++++ b/drivers/net/bonding/bond_main.c
+@@ -1726,6 +1726,7 @@ static int __bond_release_one(struct net_device *bond_dev,
+        if (!bond_has_slaves(bond)) {
+                bond_set_carrier(bond);
+                eth_hw_addr_random(bond_dev);
++               ether_setup(bond_dev);
+        }
+
+        unblock_netpoll_tx();
+
+It should solve more than just your ipoib case.
+
+Last but not least, since you said you saw the crash in packet_snd(),
+it would also be interesting to know why packet_snd() still picks this
+bond dev after all its slaves are gone, after all it is not a functional
+device without any slave (its carrier is off).
+
+Thanks.
