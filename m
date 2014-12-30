@@ -1,35 +1,37 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+From: Wengang <wen.gang.wang@oracle.com>
 Subject: Re: [PATCH] bonding: move ipoib_header_ops to vmlinux
-Date: Mon, 29 Dec 2014 23:25:07 -0500 (EST)
-Message-ID: <20141229.232507.2086816594770925202.davem@davemloft.net>
-References: <1416893768-21369-1-git-send-email-wen.gang.wang@oracle.com>
-	<CAHA+R7M-Nm_R-AaKQ0nX4L3O=BN5_m1v-8sWJSaE_UmGyo8zwA@mail.gmail.com>
-	<54A21596.7000706@oracle.com>
+Date: Tue, 30 Dec 2014 16:26:43 +0800
+Message-ID: <54A261C3.1060805@oracle.com>
+References: <1416893768-21369-1-git-send-email-wen.gang.wang@oracle.com>	<CAHA+R7M-Nm_R-AaKQ0nX4L3O=BN5_m1v-8sWJSaE_UmGyo8zwA@mail.gmail.com>	<54A21596.7000706@oracle.com> <20141229.232507.2086816594770925202.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54A21596.7000706-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: cwang-xCSkyg8dI+0RB7SZvlqPiA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20141229.232507.2086816594770925202.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: cwang@twopensource.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wengang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Tue, 30 Dec 2014 11:01:42 +0800
+=E4=BA=8E 2014=E5=B9=B412=E6=9C=8830=E6=97=A5 12:25, David Miller =E5=86=
+=99=E9=81=93:
+> From: Wengang <wen.gang.wang@oracle.com>
+> Date: Tue, 30 Dec 2014 11:01:42 +0800
+>
+>> There are more than one way we do things. For this case, considering
+>> needs, complexity and stability I think moving ipoib_header_ops is t=
+he
+>> right way to go.
+> I completely disagree, it's a gross hack at best.
+>
+> It's papering over the real problem.
+>
+> When we have references to released objects in other areas of the
+> networking stack, we don't move those objects into the static kernel
+> image as a fix.
 
-> There are more than one way we do things. For this case, considering
-> needs, complexity and stability I think moving ipoib_header_ops is the
-> right way to go.
+OK. Let me see if I can make a patch to match what you want.
 
-I completely disagree, it's a gross hack at best.
-
-It's papering over the real problem.
-
-When we have references to released objects in other areas of the
-networking stack, we don't move those objects into the static kernel
-image as a fix.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+wengang
