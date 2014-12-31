@@ -1,77 +1,137 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 1/6] IB/Core: Changes to the IB Core infrastructure for
- RoCEv2 support
-Date: Wed, 31 Dec 2014 04:35:32 +0000
-Message-ID: <e02e4d88-afa7-4961-b6d3-9c28427e1d96@CMEXHTCAS2.ad.emulex.com>
-References: <99a3d3b9-842b-450f-916a-87eb197048a3@CMEXHTCAS2.ad.emulex.com>
-	<CAG9sBKMus3vbEYS43EM01GaOLE9qSz1sxhNn=Z3eOdq8NNO7rg@mail.gmail.com>
-	<29f65b01-b077-4147-b316-808ee03a1c73@CMEXHTCAS1.ad.emulex.com>
- <CAG9sBKP0k=dT+X9=Em8FVS=GQ5uHt-7jw4XTKTEKk-=pD_nMNQ@mail.gmail.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: mlx4: having trouble getting mlx4_NOP to succeed in the VF
+ driver
+Date: Wed, 31 Dec 2014 11:25:40 +0200
+Message-ID: <20141231112540.6b573c4f@jpm-OptiPlex-GX620>
+References: <CANwwZzXTFQefhJcDJ1_eK+becUqhq=D3KgVbPfW9+Xqj7yqk0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKP0k=dT+X9=Em8FVS=GQ5uHt-7jw4XTKTEKk-=pD_nMNQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CANwwZzXTFQefhJcDJ1_eK+becUqhq=D3KgVbPfW9+Xqj7yqk0w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgTW9uaSwNCg0KUGxlYXNlIGZpbmQgbXkgcmVzcG9uc2UgaW5saW5lOg0KDQo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IG1vbmlzb25saXN0c0BnbWFpbC5jb20gW21haWx0
-bzptb25pc29ubGlzdHNAZ21haWwuY29tXSBPbiBCZWhhbGYNCj4gT2YgTW9uaSBTaG91YQ0KPiBT
-ZW50OiBUdWVzZGF5LCBEZWNlbWJlciAzMCwgMjAxNCA5OjEwIFBNDQo+IFRvOiBTb21uYXRoIEtv
-dHVyDQo+IENjOiByb2xhbmRAa2VybmVsLm9yZzsgbGludXgtcmRtYTsgRGV2ZXNoIFNoYXJtYQ0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIDEvNl0gSUIvQ29yZTogQ2hhbmdlcyB0byB0aGUgSUIgQ29y
-ZSBpbmZyYXN0cnVjdHVyZSBmb3INCj4gUm9DRXYyIHN1cHBvcnQNCj4gDQo+ID4gQWx0aG91Z2gg
-eW91IGZvbGxvdyB0aGUgc3BlYyBoZXJlLCAzIHR5cGVzIG9mIFJETUFfTkVUV09SSyBhcmUgbm90
-DQo+ID4gcmVhbGx5IHJlcXVpcmVkLiBNYXliZSB3ZSBjYW4gZ2V0IHJpZCBvZiB0aGlzIE1heWJl
-IHdlIGNhbiBnZXQgcmlkIG9mDQo+ID4gdGhpcyBkdXBsaWNhdGlvbg0KPiA+DQo+ID4gW1NPTV06
-IE5vdCBzdXJlIGkgdW5kZXJzdG9vZCB0aGUgZHVwbGljYXRpb24gaGVyZSBvciB3aHkgaXQncyBu
-b3QgcmVxdWlyZWQ/DQo+ID4gV2Ugbm93IGhhdmUgYSBuZXcgJ25ldHdvcmsvTDMnIGxheWVyIG9u
-IHRvcCBvZiBMMiAtIHRoYXQgd2FzIHRoZSByZWFzb24sDQo+IGRvZXMgaXQgbm90IG1ha2Ugc2Vu
-c2U/DQo+ID4NCj4gT25jZSB5b3Uga25vdyBwYWlyICh0eXBlIG9mIFJvQ0UgYW5kIEdJRCB2YWx1
-ZSkgeW91IGtub3cgd2hhdCBpcyB0aGUNCj4gbmV0d29yayB0eXBlIEFuZCBvbmNlIHlvdSBrbm93
-IG5ldHdvcmsgdHlwZSB5b3Uga25vdyB0aGUgcGFpci4NCj4gU28sIGl0IGlzIG5vdCByZWFsbHkg
-bmVjZXNzYXJ5IHRvIGtlZXAgdGhlbSBhbGwgc3RvcmVkLg0KPiBNeSBpZGVhIGlzIHRvIGdldCBy
-aWQgaWYgdGhlIHR5cGUgdGhhdCBkZXNjcmliZXMgbmV0d29yayB0eXBlDQo+IA0KPiA+IFtTT01d
-OiBXZWxsLCBwYXJ0bHkgdGhlIHVzZSBvZiBnZXRfcG9ydF90eXBlKCkgd2FzIG1vdGl2YXRlZCBi
-eSB0aGUNCj4gPiBTUEVDKFF1ZXJ5IEhDQSAtIDE3LjUueC54IElJUkMpIHRhbGtpbmcgYWJvdXQg
-dGhlIG5lZWQgdG8gaGF2ZSBhDQo+ID4gcG9ydF90eXBlIGF0dHJpYnV0ZSBhcyBwYXJ0IG9mIFJv
-Q0VWMiB0aGF0IHdvdWxkIGluZGljYXRlIGlmIGEgSFcNCj4gZGV2aWNlL3BvcnQgc3VwcG9ydGVk
-IFJvQ0VWMiBvciBub3QuICBJdCB3YXMgYWxzbyBzZXJ2aW5nIGFub3RoZXIgcHVycG9zZSBpbg0K
-PiBjbWFfYWNxdXJlX2RldigpIGFzIHlvdSBjYW4gc2VlIGFib3ZlIGluIHRoZSBwYXRjaCB3aGVy
-ZSBpdCB3YXMgaGVscGluZw0KPiB0aGUgdXNlIGNhc2Ugb2YgZGV2aWNlcyB0aGF0IG9ubHkgc3Vw
-cG9ydCBWMiBhbmQgbm90IFYxLg0KPiA+IFN0aWxsIGZlZWwgaXQgZG9lc24ndCBtYWtlIHNlbnNl
-Pw0KPiA+IE5vdCBzdXJlIGhvdy93aGVyZSBkaWQgeW91IHdhbnQgcG9pbnQgMiBjb21pbmcgZnJv
-bSAtDQo+IHN5c2ZzL3Byb2MvZGVidWdmcz8NCj4gPiBJJ2QgcHJlZmVyIHRvIGhhdmUgdGhhdCBp
-biB0aGUgbmV4dCBzdGFnZSBvZiB0aGUgcGF0Y2hzZXQNCj4gDQo+IFNwZWMgaXMgY29uZnVzaW5n
-LiBVbmRlciB0aGUgc2VjdGlvbiBRVUVSWSBIQ0EgaXQgZGVzY3JpYmVzIGNoYW5nZXMgdG8gdGhl
-DQo+IHBvcnQgYXR0ci4NCj4gQW55d2F5LCBJIHNlZSB0aGF0IHNwZWMgcG9pbnRzIHRvIHRoZSBh
-YmlsaXR5IG9mIHF1ZXJ5aW5nIGNhcGFiaWxpdGllcyBhbmQNCj4gY29tcGFyaW5nIHRoZW0gYWdh
-aW5zdCBkZWNpc2lvbnMgYnV0IG5vdCBhcyBhIG1ldGhvZCB0byB0YWtlIGRlY2lzaW9ucy4NCj4g
-V2hhdCBJIHdvdWxkIGRvIGlzIHRvIGFkZCAyIGZsYWdzIHRvIGliX3BvcnRfY2FwX2ZsYWdzLCBJ
-Ql9QT1JUX1JPQ0VfU1VQDQo+IGFuZCBJQl9QT1JUX1JPQ0VfVjJfU1VQDQoNCltEU106IEluIHRo
-ZSBpYl9wb3J0X2NhcF9mbGFncyBzdWNoIGZsYWdzIGlzIGFkZGVkLCBob3dldmVyIGl0IG5lZWRz
-IGEgbmFtZSBjaGFuZ2UgYXMgcGVyIHlvdXINClN1Z2dlc3Rpb24uDQoNCkBAIC0yNjUsNyArMzI5
-LDggQEAgZW51bSBpYl9wb3J0X2NhcF9mbGFncyB7DQogCUlCX1BPUlRfQk9PVF9NR01UX1NVUAkJ
-CT0gMSA8PCAyMywNCiAJSUJfUE9SVF9MSU5LX0xBVEVOQ1lfU1VQCQk9IDEgPDwgMjQsDQogCUlC
-X1BPUlRfQ0xJRU5UX1JFR19TVVAJCQk9IDEgPDwgMjUsDQotCUlCX1BPUlRfSVBfQkFTRURfR0lE
-UwkJCT0gMSA8PCAyNg0KKwlJQl9QT1JUX0lQX0JBU0VEX0dJRFMJCQk9IDEgPDwgMjYsDQorCUlC
-X1BPUlRfUm9DRVYyX0JBU0VEX0dJRFMJCT0gMSA8PCAyNw0KIH07DQoNCk9uIHRoZSBvdGhlciBo
-YW5kOw0KVGhlIG1vdGl2ZSB0byBoYXZlIHJkbWFfZ2V0X3BvcnRfdHlwZSgpIGlzIHRvIHF1ZXJ5
-IHBvcnQgdHlwZSBpbiBjbWFfYWNxdWlyZV9kZXYoKSBldmVuIGlmIA0KIHBvcnRfbnVtID0gMC4g
-SWJfcXVlcnlfcG9ydCB3b3VsZCBmYWlsIHRvIHJlcG9ydCB0aGUgaWJfcG9ydF9jYXBfZmxhZ3Mg
-aWYgYXBwbGljYXRpb24gaGF2ZQ0Kbm90IHNwZWNpZmllZCB0aGUgZGV2aWNlIHBvcnQgbnVtYmVy
-IGV4cGxpY2l0bHkuIFRoZSBmYWlsdXJlIGlzIGR1ZSB0byBwb3J0IG51bWJlciByYW5nZSBjaGVj
-ay4NCkhvd2V2ZXIsIEkgdGhpbmsgaXQncyBhbHNvIG9rYXkgdG8gY2FsbCBpYl9xdWVyeV9wb3J0
-KCkgYW5kIHNraXAgdGhlIHN0YXR1cyBjaGVjayBmb3IgdGhpcyBjYWxsLiBNYWtlcyBzZW5zZT8N
-Cg0KLg0KPiANCj4gSSB0aGluayB0aGF0IHRoZSBtYWluIGRpZmZlcmVuY2UgYmV0d2VlbiBhcHBy
-b2FjaGVzIGlzIGhvdyB0byBkZWNpZGUgYWJvdXQNCj4gdGhlIFJvQ0UgdHlwZSB0byB1c2UgZm9y
-IGEgc2Vzc2lvbi4NCj4gVGhpcyBpcyBhbHNvIHdoeSBJIHRoaW5rIHRoYXQgd2Ugc2hvdWxkIG5v
-dCBwb3N0cG9uZSB0aGUgY2hhbmdlIGluDQo+IGNtYV9hY3F1aXJlX2RldiB0byBsYXRlci4NCj4g
-DQo+IHRoYW5rcw0KPiBNb25pDQo=
+On Wed, 31 Dec 2014 02:26:07 +0530
+Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+
+> Hi,
+> 
+> I was going through the mlx4 source code and had a few questions
+> regarding the generation of interrupts upon execution of the NOP
+> command from the VF driver.
+> 
+> If i am running as a dedicated driver, then NOP seems to work fine(I
+> get an interrupt)
+> 
+> But if I enable SRIOV and then from the VF driver, i run the NOP
+> command, I don't receive any interrupt(on the VF side)
+> 
+> err = mlx4_NOP(dev); //this command when executed from VF driver
+> doesn't raise any interrupt.
+> 
+> I get the following from VF logs:
+> 
+> [  117.879100] mlx4_core 0000:01:00.0: communication channel command
+> 0x5 timed out
+> [  117.879120] mlx4_core 0000:01:00.0: failed execution of VHCR_POST
+> commandopcode 0x31
+> [  117.879127] mlx4_core 0000:01:00.0: NOP command failed to generate
+> MSI-X interrupt IRQ 24).
+> 
+
+This simply indicates that the VF did not receive a command-completion
+interrupt.
+
+> 
+> I have checked the logs and it seems from the VHCR, NOP is received
+> properly on the PF side and the HCR command is successful.
+> 
+> Also GEN_EQE HCR command when executed in response to NOP is also
+> successful.( i can see the return status of the command execution)
+> 
+> 
+What is your setup topology?  Is the VF running on the Hypervisor?  Is
+it running on a VM?
+
+What is your O/S (Ubuntu X.Y, Fedora, SLES, etc).  What kernel are you
+running?
+
+I assume that you are running "inbox" under kernel 3.18.1.  Is this
+correct?
+
+> 
+> But on the VF side, the mlx4_eq_int function doesn't get called.
+>
+This is because GEN_EQE did not succeed in triggering the EQ which the
+VF uses for Async/command-completion events.
+ 
+> I have checked the return value of request_irq and it seems to be
+> 0(no error)
+> 
+> mlx4_enable_msi_x is also successful.
+> 
+> 
+> Can anyone please help me if I am missing something?
+> Is there anything to be done so as to get interrupts in the mlx4 VF
+> driver?
+> 
+> Can i check at any logs? dmesg output is the only place i was
+> checking.
+> 
+> 
+> 
+> Also, can the ConnectX hardware generate interrupt to the VF driver?
+ConnectX does generate *send/receive* completion events directly to the
+VF. This is because each CQ is associated individually with an EQ, and
+the VF associates CQs it creates with its own EQs.
+
+Each VF also creates an Async/command-completion EQ.  However, this EQ
+is triggered by the PF via GEN_EQ (see explanation immediately below).
+
+The issue here is that only the PF posts commands to the FW -- and
+receives the command-completion event when a command completes.
+The VF submits to the PF a command it wishes to post.  The PF posts
+the command to the firmware (i.e., the HCA), and fields the
+command-completion event.  It then invokes GEN_EQ to trigger the command
+completion event on the VF's async EQ.
+
+You need to verify that the IOMMU options are activated in
+make menuconfig on the Hypervisor:
+
+--- IOMMU Hardware Support
+[*]   AMD IOMMU support
+[*]     Export AMD IOMMU statistics to debugfs
+<>     AMD IOMMU Version 2 driver
+[*]   Support for Intel IOMMU using DMA Remapping Devices
+[*]     Enable Intel DMA Remapping Devices by default
+[*]   Support for Interrupt Remapping
+
+I suspect that this may not have been done.
+also, add intel_iommu=on to the kernel line in /boot/grub/menu.lst
+
+-Jack
+
+> Or is it that it only generates to the PF driver and PF driver uses
+> GEN_EQE? I understand that GEN_EQE is used to generate an event
+> towards a VF..But how are the interrupts routed to the VF driver?
+> 
+> 
+> I would be really very much grateful if I can get any kind of help.
+> 
+> 
+> Thanks so much !!
+> 
+> 
+> Best Regards,
+> Bob
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
