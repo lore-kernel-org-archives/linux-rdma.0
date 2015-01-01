@@ -1,53 +1,67 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Tue,  3 Feb 2015 13:42:55 -0800
-Message-ID: <1422999775-32111-1-git-send-email-roland@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: arivumani <dennis@redona.net>
+Subject: Fw (2): arivumani@gmail.com
+Date: Wed, 1 Jan 2015 09:05:42 +0000
+Message-ID: <6c567c326f4a$2b4366e6$79d4c9d0$@redona.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============6226039680320826875=="
+Return-path: <e1000-devel-bounces@lists.sourceforge.net>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
+	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
+List-Post: <mailto:e1000-devel@lists.sourceforge.net>
+List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
+	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: e1000-devel-bounces@lists.sourceforge.net
+To: linux rdma <linux-rdma@vger.kernel.org>, linux usb <linux-usb@vger.kernel.org>, linux wireless <linux-wireless@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>, virtualization <virtualization@lists.linux-foundation.org>, e1000 devel <e1000-devel@lists.sourceforge.net>, bridge <bridge@lists.linux-foundation.org>, devel <devel@linuxdriverproject.org>, nios2 dev <nios2-dev@lists.rocketboards.org>, linuxppc dev <linuxppc-dev@lists.ozlabs.org>, linux acenic <linux-acenic@sunsite.dk>, w lkml <w-lkml@lebenslange-mailadresse.de>, prabakar krishnamoorthy <kprabakar13@gmail.com>, Abhijit Kumbhare <abhijitkoss@gmail.com>, Luis Gomez <lpalacio@brocade.com>, Hung Nguyen The <hungnt1@saobacdau.vn>, Cristina Palomo Regidor <cristina.palomo.regidor@ericsson.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+This is a multi-part message in MIME format.
 
-Please pull from
+--===============6226039680320826875==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_BCC5_EAE52549.1A20BB63"
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+This is a multi-part message in MIME format.
 
-----------------------------------------------------------------
-Last minute InfiniBand/RDMA changes for 3.19:
- - Revert IPoIB driver back to 3.18 state.  We had a number of fixes go
-   into 3.19, but they introduced regressions.  We tried to get everything
-   fixed up but ran out of time, so we'll try again for 3.20.
- - Similarly, turn off the new "extended query port" verb.  Late in the
-   cycle we realized the ABI is not quite right, and rather than freeze
-   something in a rush and make a mistake, we'll take a bit more time
-   and get it right in 3.20.
+------=_NextPart_000_BCC5_EAE52549.1A20BB63
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-----------------------------------------------------------------
-Haggai Eran (1):
-      IB/core: Temporarily disable ex_query_device uverb
+Hi! How are you?
+It works! http://thpt-tranhungdao-brvt.edu.vn/Harley.php?arivumani_gmail_com
+   =20
+arivumani@gmail.com
+   =20
 
-Roland Dreier (9):
-      Revert "IPoIB: No longer use flush as a parameter"
-      Revert "IPoIB: Make ipoib_mcast_stop_thread flush the workqueue"
-      Revert "IPoIB: Use dedicated workqueues per interface"
-      Revert "IPoIB: change init sequence ordering"
-      Revert "IPoIB: fix mcast_dev_flush/mcast_restart_task race"
-      Revert "IPoIB: fix MCAST_FLAG_BUSY usage"
-      Revert "IPoIB: Make the carrier_on_task race aware"
-      Revert "IPoIB: Consolidate rtnl_lock tasks in workqueue"
-      Merge branches 'ipoib' and 'odp' into for-next
+------=_NextPart_000_BCC5_EAE52549.1A20BB63--
+Thread-Index: AdDP5VJhUHJ5OXNsdnlvOGQ4bGplOQ==
 
- drivers/infiniband/core/uverbs_main.c          |   1 -
- drivers/infiniband/ulp/ipoib/ipoib.h           |  19 +-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        |  18 +-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c        |  27 +--
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  49 ++---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 239 +++++++++----------------
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c     |  22 +--
- 7 files changed, 134 insertions(+), 241 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--===============6226039680320826875==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+------------------------------------------------------------------------------
+Dive into the World of Parallel Programming. The Go Parallel Website,
+sponsored by Intel and developed in partnership with Slashdot Media, is your
+hub for all things parallel software development, from weekly thought
+leadership blogs to news, videos, case studies, tutorials and more. Take a
+look and join the conversation now. http://goparallel.sourceforge.net/
+--===============6226039680320826875==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+E1000-devel mailing list
+E1000-devel@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/e1000-devel
+To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
+
+--===============6226039680320826875==--
+Thread-Index: AdDP5VJhUHJ5OXNsdnlvOGQ4bGplOQ==
