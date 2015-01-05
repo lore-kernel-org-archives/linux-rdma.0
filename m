@@ -1,26 +1,33 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/3] osm_congestion_control.c: Reset cc_timeout_count
- when count threshold passed
-Date: Mon, 05 Jan 2015 15:52:09 -0500
-Message-ID: <54AAF979.1080906@dev.mellanox.co.il>
-References: <1419291141.21271.17.camel@auk59.llnl.gov>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 0/5] RDMA/cxgb4/cxgb4vf/csiostor: Cleanup
+ register defines
+Date: Mon, 05 Jan 2015 16:35:28 -0500 (EST)
+Message-ID: <20150105.163528.2285094223396327404.davem@davemloft.net>
+References: <1420455647-23094-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1419291141.21271.17.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1420455647-23094-1-git-send-email-hariprasad@chelsio.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: hariprasad@chelsio.com
+Cc: netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, JBottomley@parallels.com, hch@infradead.org, roland@purestorage.com, leedom@chelsio.com, anish@chelsio.com, nirranjan@chelsio.com, praveenm@chelsio.com, swise@opengridcomputing.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/22/2014 6:32 PM, Albert Chu wrote:
-> Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+From: Hariprasad Shenai <hariprasad@chelsio.com>
+Date: Mon,  5 Jan 2015 16:30:42 +0530
 
-Thanks. Applied.
+> This series continues to cleanup all the macros/register defines related to
+> SGE, PCIE, MC, MA, TCAM, MAC, etc that are defined in t4_regs.h and the
+> affected files.
+> 
+> Will post another 1 or 2 series so that we can cover all the macros so that
+> they all follow the same style to be consistent.
+> 
+> The patches series is created against 'net-next' tree.
+> And includes patches on cxgb4, cxgb4vf, iw_cxgb4 and csiostor driver.
+> 
+> We have included all the maintainers of respective drivers. Kindly review the
+> change and let us know in case of any review comments.
 
--- Hal
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Series applied, thanks.
