@@ -1,73 +1,34 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4] Add IP and TCP/UDP TX checksum offload support
-Date: Tue,  6 Jan 2015 10:30:43 +0200
-Message-ID: <1420533043-28557-1-git-send-email-ogerlitz@mellanox.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/2] on-demand paging minor fixes
+Date: Tue,  6 Jan 2015 11:23:18 +0200
+Message-ID: <1420536200-5705-1-git-send-email-haggaie@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Roland,
 
-Add support for IBV_SEND_IP_CSUM for posted send work-requests.
+Here are a couple of patches fixing some minor issues with the on-demand paging
+patchset. I hope you can accept them for v3.19-rc4.
 
-When this flag is set, enable the HW checksum calculation by setting
-MLX4_WQE_CTRL_IP_CSUM and MLX4_WQE_CTRL_TCP_UDP_CSUM flags in the WQE
-control segment.
+Regards,
+Haggai
 
-Signed-off-by: Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/qp.c  |   11 ++++++++++-
- src/wqe.h |    2 ++
- 2 files changed, 12 insertions(+), 1 deletions(-)
+Haggai Eran (1):
+  IB/core: properly handle registration of on-demand paging MRs after
+    dereg
 
-diff --git a/src/qp.c b/src/qp.c
-index 721bed4..5b800e7 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -286,6 +286,10 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			break;
- 
- 		case IBV_QPT_UD:
-+			ctrl->srcrb_flags |=
-+				wr->send_flags & IBV_SEND_IP_CSUM ?
-+				htonl(MLX4_WQE_CTRL_IP_CSUM |
-+				      MLX4_WQE_CTRL_TCP_UDP_CSUM) : 0;
- 			set_datagram_seg(wqe, wr);
- 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
- 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
-@@ -294,7 +298,12 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 		case IBV_QPT_RAW_PACKET:
- 			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is used
- 			 * to indicate that no icrc should be calculated */
--			ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT);
-+			ctrl->srcrb_flags |=
-+				wr->send_flags & IBV_SEND_IP_CSUM ?
-+				htonl(MLX4_WQE_CTRL_IP_CSUM |
-+				      MLX4_WQE_CTRL_TCP_UDP_CSUM |
-+				      MLX4_WQE_CTRL_SOLICIT) :
-+				htonl(MLX4_WQE_CTRL_SOLICIT);
- 			break;
- 
- 		default:
-diff --git a/src/wqe.h b/src/wqe.h
-index bbd22ba..ebd5167 100644
---- a/src/wqe.h
-+++ b/src/wqe.h
-@@ -41,6 +41,8 @@ enum {
- 	MLX4_WQE_CTRL_FENCE	= 1 << 6,
- 	MLX4_WQE_CTRL_CQ_UPDATE	= 3 << 2,
- 	MLX4_WQE_CTRL_SOLICIT	= 1 << 1,
-+	MLX4_WQE_CTRL_IP_CSUM	= 1 << 4,
-+	MLX4_WQE_CTRL_TCP_UDP_CSUM = 1 << 5
- };
- 
- enum {
+Majd Dibbiny (1):
+  mlx5_ib: update the dev in reg_create
+
+ drivers/infiniband/core/umem_odp.c | 3 ++-
+ drivers/infiniband/hw/mlx5/mr.c    | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
 -- 
-1.7.1
+1.7.11.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
