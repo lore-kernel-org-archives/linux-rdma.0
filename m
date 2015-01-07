@@ -1,11 +1,11 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH FIX for-3.19] IB/ipoib: Fix broken multicast flow
-Date: Wed,  7 Jan 2015 16:59:27 +0200
-Message-ID: <1420642767-32268-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 FIX for-3.19] IB/ipoib: Fix broken multicast flow
+Date: Wed,  7 Jan 2015 17:04:26 +0200
+Message-ID: <1420643066-3599-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -15,7 +15,7 @@ both IPv6 traffic and for the most cases all IPv4 multicast traffic
 aren't working.
 
 After this change there is no mechanism to handle the work that does the
-join process for the rest of the mcg's. For example if in the list of
+join process for the rest of the mcg's. For example, if in the list of
 all the mcg's there is a send-only request, after its processing, the
 code in ipoib_mcast_sendonly_join_complete() will not requeue the
 mcast task, but leaves the bit that signals this task is running,
@@ -35,8 +35,12 @@ join callback will be called only after the SA agent initialized the relevant
 multicast object.
 
 Fixes: 016d9fb25cd9 ('IPoIB: fix MCAST_FLAG_BUSY usage')
+Reported-by: Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+V0 --> V1 changes: Added credits (...) and furnished the change-log abit.
+
  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   15 ++++++---------
  1 files changed, 6 insertions(+), 9 deletions(-)
 
