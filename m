@@ -1,114 +1,41 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 FIX for-3.19] IB/ipoib: Fix broken multicast flow
-Date: Wed,  7 Jan 2015 17:04:26 +0200
-Message-ID: <1420643066-3599-1-git-send-email-ogerlitz@mellanox.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on a
+ device
+Date: Wed, 7 Jan 2015 16:32:07 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBEE86E@CRSMSX101.amr.corp.intel.com>
+References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
+ <1415908465-24392-4-git-send-email-ira.weiny@intel.com>
+ <54770F44.2090909@mellanox.com> <54772C70.8060602@dev.mellanox.co.il>
+ <54773C59.6080505@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54773C59.6080505-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> On 11/27/2014 3:51 PM, Sagi Grimberg wrote:
+> > We're already short on bits in device_cap_flags
+> 
+> no shortage @ the kernel... we can add more 32 bits if/when we need it
 
-Following commit 016d9fb25cd9 "IPoIB: fix MCAST_FLAG_BUSY usage"
-both IPv6 traffic and for the most cases all IPv4 multicast traffic
-aren't working.
+Why is there a gap in the bits?
 
-After this change there is no mechanism to handle the work that does the
-join process for the rest of the mcg's. For example, if in the list of
-all the mcg's there is a send-only request, after its processing, the
-code in ipoib_mcast_sendonly_join_complete() will not requeue the
-mcast task, but leaves the bit that signals this task is running,
-and hence the task will never run.
+enum ib_device_cap_flags {
+...
+        IB_DEVICE_MEM_WINDOW_TYPE_2B    = (1<<24), 
+        IB_DEVICE_MANAGED_FLOW_STEERING = (1<<29),
+...
+};
 
-Also, whenever the kernel sends multicast packet (w.o joining to this
-group), we don't call ipoib_send_only_join(), the code tries to start
-the mcast task but it failed because the bit IPOIB_MCAST_RUN is always
-set, As a result the multicast packet will never be sent.
+25-28 are not used?  Is there some legacy software out there which uses these?
 
-The fix handles all the join requests via the same logic, and call
-explicitly to sendonly join whenever there is a packet from sendonly type.
-
-Since ipoib_mcast_sendonly_join() is now called from the driver TX flow,
-we can't take mutex there. Locking isn't required there since the multicast
-join callback will be called only after the SA agent initialized the relevant
-multicast object.
-
-Fixes: 016d9fb25cd9 ('IPoIB: fix MCAST_FLAG_BUSY usage')
-Reported-by: Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-V0 --> V1 changes: Added credits (...) and furnished the change-log abit.
-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   15 ++++++---------
- 1 files changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index bc50dd0..0ea4b08 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -301,9 +301,10 @@ ipoib_mcast_sendonly_join_complete(int status,
- 			dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
- 		}
- 		netif_tx_unlock_bh(dev);
-+
-+		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	}
- out:
--	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	if (status)
- 		mcast->mc = NULL;
- 	complete(&mcast->done);
-@@ -342,7 +343,6 @@ static int ipoib_mcast_sendonly_join(struct ipoib_mcast *mcast)
- 	rec.port_gid = priv->local_gid;
- 	rec.pkey     = cpu_to_be16(priv->pkey);
- 
--	mutex_lock(&mcast_mutex);
- 	init_completion(&mcast->done);
- 	set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	mcast->mc = ib_sa_join_multicast(&ipoib_sa_client, priv->ca,
-@@ -364,7 +364,6 @@ static int ipoib_mcast_sendonly_join(struct ipoib_mcast *mcast)
- 		ipoib_dbg_mcast(priv, "no multicast record for %pI6, starting "
- 				"sendonly join\n", mcast->mcmember.mgid.raw);
- 	}
--	mutex_unlock(&mcast_mutex);
- 
- 	return ret;
- }
-@@ -622,10 +621,8 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 			break;
- 		}
- 
--		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
--			ipoib_mcast_sendonly_join(mcast);
--		else
--			ipoib_mcast_join(dev, mcast, 1);
-+		ipoib_mcast_join(dev, mcast, 1);
-+
- 		return;
- 	}
- 
-@@ -725,8 +722,6 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		memcpy(mcast->mcmember.mgid.raw, mgid, sizeof (union ib_gid));
- 		__ipoib_mcast_add(dev, mcast);
- 		list_add_tail(&mcast->list, &priv->multicast_list);
--		if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
--			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
- 	}
- 
- 	if (!mcast->ah) {
-@@ -740,6 +735,8 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
- 			ipoib_dbg_mcast(priv, "no address vector, "
- 					"but multicast join already started\n");
-+		else if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-+			ipoib_mcast_sendonly_join(mcast);
- 
- 		/*
- 		 * If lookup completes between here and out:, don't
--- 
-1.7.1
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
