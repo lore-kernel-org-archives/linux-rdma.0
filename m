@@ -1,46 +1,61 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH 03/16] ib/mad: Add check for jumbo MADs support on
- a device
-Date: Thu, 8 Jan 2015 13:41:36 +0200
-Message-ID: <54AE6CF0.30902@mellanox.com>
-References: <1415908465-24392-1-git-send-email-ira.weiny@intel.com>
- <1415908465-24392-4-git-send-email-ira.weiny@intel.com>
- <54770F44.2090909@mellanox.com> <54772C70.8060602@dev.mellanox.co.il>
- <54773C59.6080505@mellanox.com>
- <2807E5FD2F6FDA4886F6618EAC48510E0CBEE86E@CRSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm 4/5] osm_ucast_cache.c: Rewrite p_sw->lft allocation
+ in osm_ucast_cache_process
+Date: Thu, 08 Jan 2015 07:49:59 -0500
+Message-ID: <54AE7CF7.5000805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CBEE86E-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/7/2015 6:32 PM, Weiny, Ira wrote:
->> >On 11/27/2014 3:51 PM, Sagi Grimberg wrote:
->>> > >We're already short on bits in device_cap_flags
->> >
->> >no shortage @ the kernel... we can add more 32 bits if/when we need it
-> Why is there a gap in the bits?
->
-> enum ib_device_cap_flags {
-> ...
->          IB_DEVICE_MEM_WINDOW_TYPE_2B    = (1<<24),
->          IB_DEVICE_MANAGED_FLOW_STEERING = (1<<29),
-> ...
-> };
->
-> 25-28 are not used?  Is there some legacy software out there which uses these?
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-sort of... the verbs RSS design which wasn't accepted upstream uses bits 
-25/26/27 and Mellanox Core-Direct (whose verbs model called 
-"Cross-Channel") which wasn't submitted upstream yet uses bit 28. Since 
-in the kernel we can trivially use 64 bits, I would opt to keep these 
-entries free for now.
+Performed the following changes in the code that allocates p_sw->lft
+buffer in osm_ucast_cache_process:
 
-Or.
+1. remove allocation of p_sw->new_lft and replace it with assert that
+checks that p_sw->is already allocated.
+p_sw->new_lft, should already be allocated and defined by either
+ucast_cache or the ucast_mgr.
+
+2. replace p_sw->need_update check, with checking if p_sw->lft is not
+allocated.
+p_sw->need update could indicate the switches LFT are not updated, and
+when p_sw->lft is already allocated, it cause memory leak.
+
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_ucast_cache.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/opensm/osm_ucast_cache.c b/opensm/osm_ucast_cache.c
+index 2fab643..3caf318 100644
+--- a/opensm/osm_ucast_cache.c
++++ b/opensm/osm_ucast_cache.c
+@@ -1040,13 +1040,8 @@ int osm_ucast_cache_process(osm_ucast_mgr_t * p_mgr)
+ 	for (item = cl_qmap_head(tbl); item != cl_qmap_end(tbl);
+ 	     item = cl_qmap_next(item)) {
+ 		p_sw = (osm_switch_t *) item;
+-
+-		if (p_sw->need_update) {
+-			if (!p_sw->new_lft)
+-				/* no new routing was recently calculated for this
+-				   switch, but the LFT needs to be updated anyway */
+-				p_sw->new_lft = p_sw->lft;
+-
++		CL_ASSERT(p_sw->new_lft);
++		if (!p_sw->lft) {
+ 			lft_size = (p_sw->max_lid_ho / IB_SMP_DATA_SIZE + 1)
+ 				   * IB_SMP_DATA_SIZE;
+ 			p_sw->lft = malloc(lft_size);
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
