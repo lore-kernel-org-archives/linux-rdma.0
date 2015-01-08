@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm 1/5] osm_ucast_mgr.c: Force unicast routing to fail
- when lft allocations fail
-Date: Thu, 08 Jan 2015 07:49:41 -0500
-Message-ID: <54AE7CE5.20203@dev.mellanox.co.il>
+Subject: [PATCH opensm 5/5] osm_ucast_mgr.c: Select exit ports for lid offset
+ > 0 using new_lft
+Date: Thu, 08 Jan 2015 07:50:03 -0500
+Message-ID: <54AE7CFB.6010402@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,36 +14,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Force unicast routing to fail when OpenSM fails to allocate memory for
-new_lft buffers for all the switches.
+Bug description:
+When opensm selects from which port it should continue selecting
+exit ports for lids with lid offset > 0, it uses the lft that was
+calculated and assigned to the switch on the previous sweep instead of
+the new lft.
 
 Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_ucast_mgr.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ opensm/osm_ucast_mgr.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
-index 9f435c6..a52b044 100644
+index 7dc69f3..a268ce2 100644
 --- a/opensm/osm_ucast_mgr.c
 +++ b/opensm/osm_ucast_mgr.c
-@@ -1096,7 +1096,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 	osm_opensm_t *p_osm;
- 	struct osm_routing_engine *p_routing_eng;
- 	cl_qmap_t *p_sw_guid_tbl;
--	int failed = 0;
-+	int failed = -1;
+@@ -235,7 +235,7 @@ static void ucast_mgr_process_port(IN osm_ucast_mgr_t * p_mgr,
+ 	if (lid_offset && !p_mgr->is_dor)
+ 		/* ignore potential overflow - it is handled in osm_switch.c */
+ 		start_from =
+-		    osm_switch_get_port_by_lid(p_sw, lid_ho - 1, OSM_LFT) + 1;
++		    osm_switch_get_port_by_lid(p_sw, lid_ho - 1, OSM_NEW_LFT) + 1;
  
- 	OSM_LOG_ENTER(p_mgr->p_log);
- 
-@@ -1113,7 +1113,6 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 	    ucast_mgr_setup_all_switches(p_mgr->p_subn) < 0)
- 		goto Exit;
- 
--	failed = -1;
- 	p_osm->routing_engine_used = NULL;
- 	while (p_routing_eng) {
- 		failed = ucast_mgr_route(p_routing_eng, p_osm);
+ 	OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
+ 		"Processing port 0x%" PRIx64
 -- 
 1.7.1
 
