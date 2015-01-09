@@ -1,67 +1,87 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] ibccquery.c: Account for enhanced switch
- port 0 in SwitchPortCongestionSetting handling
-Date: Fri, 09 Jan 2015 10:17:30 -0500
-Message-ID: <54AFF10A.4050806@dev.mellanox.co.il>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH infiniband-diags] ibccconfig.c: Account for enhanced
+ switch port 0 in SwitchPortCongestionSetting handling
+Date: Fri, 9 Jan 2015 15:46:49 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBF0137@CRSMSX101.amr.corp.intel.com>
+References: <54AFF110.9000005@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54AFF110.9000005-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enhanced switch port 0 can support CC (indicated in CC ClassPortInfo:CapabilityMask.EnhancedPort0CC).
+[off-list]
 
-portnum 0 is a valid port number and offsets should be calculated based on port 0
-rather than port 1.
+This replaces the first one?
 
-Also, fix some error messages to indicate switch port congestion setting
-rather then switch congestion setting failure.
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/src/ibccquery.c b/src/ibccquery.c
-index ac8bca2..39e45b7 100644
---- a/src/ibccquery.c
-+++ b/src/ibccquery.c
-@@ -224,11 +224,11 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
- 
- 		memset(data, '\0', sizeof data);
- 		if (!cc_query_status_via(data, dest, IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
--					 (portnum - 1) / 32, 0, NULL, srcport, cckey))
--			return "switch congestion setting query failed";
-+					 portnum / 32, 0, NULL, srcport, cckey))
-+			return "switch port congestion setting query failed";
- 
- 		mad_dump_cc_switchportcongestionsettingelement(buf, sizeof buf,
--							       data + (((portnum % 32) - 1) * 4),
-+							       data + ((portnum % 32) * 4),
- 							       4);
- 		printf("%s", buf);
- 		return NULL;
-@@ -236,16 +236,16 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
- 
- 	/* else get all port info */
- 
--	maxblocks = ((numports - 1) / 32) + 1;
-+	maxblocks = numports / 32 + 1;
- 
- 	for (i = 0; i < maxblocks; i++) {
- 		memset(data, '\0', sizeof data);
- 		if (!cc_query_status_via(data, dest, IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
- 					 i, 0, NULL, srcport, cckey))
--			return "switch congestion setting query failed";
-+			return "switch port congestion setting query failed";
- 
--		for (j = 0; j < 32 && outputcount < numports; j++) {
--			printf("Port:............................%u\n", i * 32 + j + 1);
-+		for (j = 0; j < 32 && outputcount <= numports; j++) {
-+			printf("Port:............................%u\n", i * 32 + j);
- 			mad_dump_cc_switchportcongestionsettingelement(buf, sizeof buf,
- 								       data + j * 4,
- 								       4);
+> -----Original Message-----
+> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Friday, January 09, 2015 7:18 AM
+> To: Weiny, Ira
+> Cc: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org); Chu, Al
+> Subject: [PATCH infiniband-diags] ibccconfig.c: Account for enhanced switch
+> port 0 in SwitchPortCongestionSetting handling
+> 
+> Enhanced switch port 0 can support CC (indicated in CC
+> ClassPortInfo:CapabilityMask.EnhancedPort0CC).
+> 
+> portnum 0 is a valid port number and offsets should be calculated based on
+> port 0 rather than port 1.
+> 
+> Also, fix some error messages to indicate switch port congestion setting rather
+> then switch congestion setting failure.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> diff --git a/src/ibccconfig.c b/src/ibccconfig.c index 11dfc07..22b16db 100644
+> --- a/src/ibccconfig.c
+> +++ b/src/ibccconfig.c
+> @@ -371,9 +371,6 @@ static char
+> *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+>  	if ((errstr = parseint(argv[5], &cong_parm_marking_rate, 0)))
+>  		return errstr;
+> 
+> -	if (!portnum)
+> -		return "invalid port number specified";
+> -
+>  	/* Figure out number of ports first */
+>  	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
+>  		return "node info config failed";
+> @@ -389,10 +386,10 @@ static char
+> *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+> 
+>  	/* We are modifying only 1 port, so get the current config */
+>  	if (!cc_query_status_via(payload, dest,
+> IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+> -				 (portnum - 1) / 32, 0, NULL, srcport, cckey))
+> -		return "switch congestion setting query failed";
+> +				 portnum / 32, 0, NULL, srcport, cckey))
+> +		return "switch port congestion setting query failed";
+> 
+> -	ptr = payload + (((portnum % 32 - 1) * 4));
+> +	ptr = payload + (((portnum % 32) * 4));
+> 
+>  	mad_encode_field(ptr,
+> 
+> IB_CC_SWITCH_PORT_CONGESTION_SETTING_ELEMENT_VALID_F,
+> @@ -415,8 +412,8 @@ static char
+> *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+>  			 &cong_parm_marking_rate);
+> 
+>  	if (!cc_config_status_via(payload, rcv, dest,
+> IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+> -				  (portnum - 1) / 32, 0, NULL, srcport, cckey))
+> -		return "switch congestion setting config failed";
+> +				  portnum / 32, 0, NULL, srcport, cckey))
+> +		return "switch port congestion setting config failed";
+> 
+>  	return NULL;
+>  }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
