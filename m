@@ -1,143 +1,67 @@
-From: Dominique Martinet <dominique.martinet@cea.fr>
-Subject: [PATCH] net/9p: add a privport option for RDMA transport.
-Date: Fri,  9 Jan 2015 13:07:00 +0100
-Message-ID: <1420805220-16639-1-git-send-email-dominique.martinet@cea.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Van Hensbergen <ericvh@gmail.com>, Ron Minnich <rminnich@sandia.gov>, Latchesar Ionkov <lucho@ionkov.net>
-Cc: v9fs-developer@lists.sourceforge.net, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Dominique Martinet <dominique.martinet@cea.fr>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibccconfig.c: Account for enhanced switch
+ port 0 in SwitchPortCongestionSetting handling
+Date: Fri, 09 Jan 2015 10:17:36 -0500
+Message-ID: <54AFF110.9000005@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RDMA can use the same kind of weak security as TCP by checking the
-client can bind to a privileged port, which is better than nothing
-if TAUTH isn't implemented.
+Enhanced switch port 0 can support CC (indicated in CC ClassPortInfo:CapabilityMask.EnhancedPort0CC).
 
-Signed-off-by: Dominique Martinet <dominique.martinet@cea.fr>
+portnum 0 is a valid port number and offsets should be calculated based on port 0
+rather than port 1.
+
+Also, fix some error messages to indicate switch port congestion setting
+rather then switch congestion setting failure.
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-
-Please note that this does NOT checkpatch because option tokens
-"Opt_foo" are considered CamelCase.
-To make this pass one would need to submit a first patch that'd "fix"
-token names all around 9p code (net and fs), I'd rather stay coherent
-and keep it as is for now.
-
-I tried to stick to keep code similar to the tcp equivalent, but happy
-to make any change deemed useful.
-
- net/9p/trans_rdma.c | 52 ++++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 44 insertions(+), 8 deletions(-)
-
-diff --git a/net/9p/trans_rdma.c b/net/9p/trans_rdma.c
-index 14ad43b..3533d2a 100644
---- a/net/9p/trans_rdma.c
-+++ b/net/9p/trans_rdma.c
-@@ -139,6 +139,7 @@ struct p9_rdma_opts {
- 	int sq_depth;
- 	int rq_depth;
- 	long timeout;
-+	int privport;
- };
+diff --git a/src/ibccconfig.c b/src/ibccconfig.c
+index 11dfc07..22b16db 100644
+--- a/src/ibccconfig.c
++++ b/src/ibccconfig.c
+@@ -371,9 +371,6 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+ 	if ((errstr = parseint(argv[5], &cong_parm_marking_rate, 0)))
+ 		return errstr;
  
- /*
-@@ -146,7 +147,10 @@ struct p9_rdma_opts {
-  */
- enum {
- 	/* Options that take integer arguments */
--	Opt_port, Opt_rq_depth, Opt_sq_depth, Opt_timeout, Opt_err,
-+	Opt_port, Opt_rq_depth, Opt_sq_depth, Opt_timeout,
-+	/* Options that take no argument */
-+	Opt_privport,
-+	Opt_err,
- };
+-	if (!portnum)
+-		return "invalid port number specified";
+-
+ 	/* Figure out number of ports first */
+ 	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
+ 		return "node info config failed";
+@@ -389,10 +386,10 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
  
- static match_table_t tokens = {
-@@ -154,6 +158,7 @@ static match_table_t tokens = {
- 	{Opt_sq_depth, "sq=%u"},
- 	{Opt_rq_depth, "rq=%u"},
- 	{Opt_timeout, "timeout=%u"},
-+	{Opt_privport, "privport"},
- 	{Opt_err, NULL},
- };
+ 	/* We are modifying only 1 port, so get the current config */
+ 	if (!cc_query_status_via(payload, dest, IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+-				 (portnum - 1) / 32, 0, NULL, srcport, cckey))
+-		return "switch congestion setting query failed";
++				 portnum / 32, 0, NULL, srcport, cckey))
++		return "switch port congestion setting query failed";
  
-@@ -175,6 +180,7 @@ static int parse_opts(char *params, struct p9_rdma_opts *opts)
- 	opts->sq_depth = P9_RDMA_SQ_DEPTH;
- 	opts->rq_depth = P9_RDMA_RQ_DEPTH;
- 	opts->timeout = P9_RDMA_TIMEOUT;
-+	opts->privport = 0;
+-	ptr = payload + (((portnum % 32 - 1) * 4));
++	ptr = payload + (((portnum % 32) * 4));
  
- 	if (!params)
- 		return 0;
-@@ -193,13 +199,13 @@ static int parse_opts(char *params, struct p9_rdma_opts *opts)
- 		if (!*p)
- 			continue;
- 		token = match_token(p, tokens, args);
--		if (token == Opt_err)
--			continue;
--		r = match_int(&args[0], &option);
--		if (r < 0) {
--			p9_debug(P9_DEBUG_ERROR,
--				 "integer field, but no integer?\n");
--			continue;
-+		if ((token != Opt_err) && (token != Opt_privport)) {
-+			r = match_int(&args[0], &option);
-+			if (r < 0) {
-+				p9_debug(P9_DEBUG_ERROR,
-+					 "integer field, but no integer?\n");
-+				continue;
-+			}
- 		}
- 		switch (token) {
- 		case Opt_port:
-@@ -214,6 +220,9 @@ static int parse_opts(char *params, struct p9_rdma_opts *opts)
- 		case Opt_timeout:
- 			opts->timeout = option;
- 			break;
-+		case Opt_privport:
-+			opts->privport = 1;
-+			break;
- 		default:
- 			continue;
- 		}
-@@ -607,6 +616,23 @@ static int rdma_cancelled(struct p9_client *client, struct p9_req_t *req)
- 	return 0;
+ 	mad_encode_field(ptr,
+ 			 IB_CC_SWITCH_PORT_CONGESTION_SETTING_ELEMENT_VALID_F,
+@@ -415,8 +412,8 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+ 			 &cong_parm_marking_rate);
+ 
+ 	if (!cc_config_status_via(payload, rcv, dest, IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+-				  (portnum - 1) / 32, 0, NULL, srcport, cckey))
+-		return "switch congestion setting config failed";
++				  portnum / 32, 0, NULL, srcport, cckey))
++		return "switch port congestion setting config failed";
+ 
+ 	return NULL;
  }
- 
-+static int p9_rdma_bind_privport(struct p9_trans_rdma *rdma)
-+{
-+	struct sockaddr_in cl = {
-+		.sin_family = AF_INET,
-+		.sin_addr.s_addr = htonl(INADDR_ANY),
-+	};
-+	int port, err = -EINVAL;
-+
-+	for (port = P9_DEF_MAX_RESVPORT; port >= P9_DEF_MIN_RESVPORT; port--) {
-+		cl.sin_port = htons((ushort)port);
-+		err = rdma_bind_addr(rdma->cm_id, (struct sockaddr *)&cl);
-+		if (err != -EADDRINUSE)
-+			break;
-+	}
-+	return err;
-+}
-+
- /**
-  * trans_create_rdma - Transport method for creating atransport instance
-  * @client: client instance
-@@ -642,6 +668,16 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
- 	/* Associate the client with the transport */
- 	client->trans = rdma;
- 
-+	/* Bind to a privileged port if we need to */
-+	if (opts.privport) {
-+		err = p9_rdma_bind_privport(rdma);
-+		if (err < 0) {
-+			pr_err("%s (%d): problem binding to privport: %d\n",
-+			       __func__, task_pid_nr(current), -err);
-+			goto error;
-+		}
-+	}
-+
- 	/* Resolve the server's address */
- 	rdma->addr.sin_family = AF_INET;
- 	rdma->addr.sin_addr.s_addr = in_aton(addr);
--- 
-1.9.3
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
