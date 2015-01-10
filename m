@@ -1,82 +1,86 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] libibmad/src/rpc.c: Remove superfluous packet dump
-Date: Sat, 10 Jan 2015 01:00:55 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBF0AB9@CRSMSX101.amr.corp.intel.com>
-References: <1419016100.20566.155.camel@auk59.llnl.gov>
-	 <2807E5FD2F6FDA4886F6618EAC48510E0CBF09D5@CRSMSX101.amr.corp.intel.com>
- <1420848359.21271.198.camel@auk59.llnl.gov>
+Subject: RE: [PATCH infiniband-diags] ibccquery.c: Account for enhanced
+ switch port 0 in SwitchPortCongestionSetting handling
+Date: Sat, 10 Jan 2015 01:07:08 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBF0AFA@CRSMSX101.amr.corp.intel.com>
+References: <54AFF10A.4050806@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1420848359.21271.198.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <54AFF10A.4050806-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 > 
-> When idebug is >= 1, mad_rpc and mad_rpc_rmpp output only the mad data
-> response in debug output.  It does not output the request mad data.  This is
-> confusing since it's not clear if it's request or response output.
+> Enhanced switch port 0 can support CC (indicated in CC
+> ClassPortInfo:CapabilityMask.EnhancedPort0CC).
 > 
-> When idebug > 1, full mad send and receive buffers are output, which makes
-> the mad data output with idebug == 1 superfluous.  Remove this output to
-> remove confusion.
+> portnum 0 is a valid port number and offsets should be calculated based on
+> port 0 rather than port 1.
 > 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> Also, fix some error messages to indicate switch port congestion setting rather
+> then switch congestion setting failure.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Thanks applied.
-
 Ira
 
-
 > ---
->  src/rpc.c |   11 -----------
->  1 files changed, 0 insertions(+), 11 deletions(-)
+> diff --git a/src/ibccquery.c b/src/ibccquery.c index ac8bca2..39e45b7 100644
+> --- a/src/ibccquery.c
+> +++ b/src/ibccquery.c
+> @@ -224,11 +224,11 @@ static char
+> *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
 > 
-> diff --git a/src/rpc.c b/src/rpc.c
-> index 8d961f2..f286af7 100644
-> --- a/src/rpc.c
-> +++ b/src/rpc.c
-> @@ -272,11 +272,6 @@ void *mad_rpc(const struct ibmad_port *port,
-> ib_rpc_t * rpc,
+>  		memset(data, '\0', sizeof data);
+>  		if (!cc_query_status_via(data, dest,
+> IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+> -					 (portnum - 1) / 32, 0, NULL, srcport,
+> cckey))
+> -			return "switch congestion setting query failed";
+> +					 portnum / 32, 0, NULL, srcport,
+> cckey))
+> +			return "switch port congestion setting query failed";
+> 
+>  		mad_dump_cc_switchportcongestionsettingelement(buf, sizeof
+> buf,
+> -							       data + (((portnum
+> % 32) - 1) * 4),
+> +							       data + ((portnum
+> % 32) * 4),
+>  							       4);
+>  		printf("%s", buf);
 >  		return NULL;
->  	}
+> @@ -236,16 +236,16 @@ static char
+> *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
 > 
-> -	if (ibdebug) {
-> -		IBWARN("data offs %d sz %d", rpc->dataoffs, rpc->datasz);
-> -		xdump(stderr, "mad data\n", mad + rpc->dataoffs, rpc-
-> >datasz);
-> -	}
-> -
->  	if (rcvdata)
->  		memcpy(rcvdata, mad + rpc->dataoffs, rpc->datasz);
+>  	/* else get all port info */
 > 
-> @@ -322,12 +317,6 @@ void *mad_rpc_rmpp(const struct ibmad_port *port,
-> ib_rpc_t * rpc,
->  		return NULL;
->  	}
+> -	maxblocks = ((numports - 1) / 32) + 1;
+> +	maxblocks = numports / 32 + 1;
 > 
-> -	if (ibdebug) {
-> -		IBWARN("data offs %d sz %d", rpc->dataoffs, rpc->datasz);
-> -		xdump(stderr, "rmpp mad data\n", mad + rpc->dataoffs,
-> -		      rpc->datasz);
-> -	}
-> -
->  	if (rmpp) {
->  		rmpp->flags = mad_get_field(mad, 0, IB_SA_RMPP_FLAGS_F);
->  		if ((rmpp->flags & 0x3) &&
-> --
-> 1.7.1
+>  	for (i = 0; i < maxblocks; i++) {
+>  		memset(data, '\0', sizeof data);
+>  		if (!cc_query_status_via(data, dest,
+> IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+>  					 i, 0, NULL, srcport, cckey))
+> -			return "switch congestion setting query failed";
+> +			return "switch port congestion setting query failed";
 > 
+> -		for (j = 0; j < 32 && outputcount < numports; j++) {
+> -			printf("Port:............................%u\n", i * 32 + j + 1);
+> +		for (j = 0; j < 32 && outputcount <= numports; j++) {
+> +			printf("Port:............................%u\n", i * 32 + j);
 > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 	mad_dump_cc_switchportcongestionsettingelement(buf, sizeof buf,
+>  								       data + j *
+> 4,
+>  								       4);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
