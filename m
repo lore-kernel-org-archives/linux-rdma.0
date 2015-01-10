@@ -1,14 +1,14 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] ibccquery.c: Account for enhanced
+Subject: RE: [PATCH infiniband-diags] ibccconfig.c: Account for enhanced
  switch port 0 in SwitchPortCongestionSetting handling
-Date: Sat, 10 Jan 2015 01:07:08 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBF0AFA@CRSMSX101.amr.corp.intel.com>
-References: <54AFF10A.4050806@dev.mellanox.co.il>
+Date: Sat, 10 Jan 2015 01:07:24 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CBF0B05@CRSMSX101.amr.corp.intel.com>
+References: <54AFF110.9000005@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54AFF10A.4050806-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <54AFF110.9000005-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -31,56 +31,50 @@ Thanks applied.
 Ira
 
 > ---
-> diff --git a/src/ibccquery.c b/src/ibccquery.c index ac8bca2..39e45b7 100644
-> --- a/src/ibccquery.c
-> +++ b/src/ibccquery.c
-> @@ -224,11 +224,11 @@ static char
+> diff --git a/src/ibccconfig.c b/src/ibccconfig.c index 11dfc07..22b16db 100644
+> --- a/src/ibccconfig.c
+> +++ b/src/ibccconfig.c
+> @@ -371,9 +371,6 @@ static char
+> *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+>  	if ((errstr = parseint(argv[5], &cong_parm_marking_rate, 0)))
+>  		return errstr;
+> 
+> -	if (!portnum)
+> -		return "invalid port number specified";
+> -
+>  	/* Figure out number of ports first */
+>  	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
+>  		return "node info config failed";
+> @@ -389,10 +386,10 @@ static char
 > *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
 > 
->  		memset(data, '\0', sizeof data);
->  		if (!cc_query_status_via(data, dest,
+>  	/* We are modifying only 1 port, so get the current config */
+>  	if (!cc_query_status_via(payload, dest,
 > IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
-> -					 (portnum - 1) / 32, 0, NULL, srcport,
-> cckey))
-> -			return "switch congestion setting query failed";
-> +					 portnum / 32, 0, NULL, srcport,
-> cckey))
-> +			return "switch port congestion setting query failed";
+> -				 (portnum - 1) / 32, 0, NULL, srcport, cckey))
+> -		return "switch congestion setting query failed";
+> +				 portnum / 32, 0, NULL, srcport, cckey))
+> +		return "switch port congestion setting query failed";
 > 
->  		mad_dump_cc_switchportcongestionsettingelement(buf, sizeof
-> buf,
-> -							       data + (((portnum
-> % 32) - 1) * 4),
-> +							       data + ((portnum
-> % 32) * 4),
->  							       4);
->  		printf("%s", buf);
->  		return NULL;
-> @@ -236,16 +236,16 @@ static char
+> -	ptr = payload + (((portnum % 32 - 1) * 4));
+> +	ptr = payload + (((portnum % 32) * 4));
+> 
+>  	mad_encode_field(ptr,
+> 
+> IB_CC_SWITCH_PORT_CONGESTION_SETTING_ELEMENT_VALID_F,
+> @@ -415,8 +412,8 @@ static char
 > *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+>  			 &cong_parm_marking_rate);
 > 
->  	/* else get all port info */
-> 
-> -	maxblocks = ((numports - 1) / 32) + 1;
-> +	maxblocks = numports / 32 + 1;
-> 
->  	for (i = 0; i < maxblocks; i++) {
->  		memset(data, '\0', sizeof data);
->  		if (!cc_query_status_via(data, dest,
+>  	if (!cc_config_status_via(payload, rcv, dest,
 > IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
->  					 i, 0, NULL, srcport, cckey))
-> -			return "switch congestion setting query failed";
-> +			return "switch port congestion setting query failed";
+> -				  (portnum - 1) / 32, 0, NULL, srcport, cckey))
+> -		return "switch congestion setting config failed";
+> +				  portnum / 32, 0, NULL, srcport, cckey))
+> +		return "switch port congestion setting config failed";
 > 
-> -		for (j = 0; j < 32 && outputcount < numports; j++) {
-> -			printf("Port:............................%u\n", i * 32 + j + 1);
-> +		for (j = 0; j < 32 && outputcount <= numports; j++) {
-> +			printf("Port:............................%u\n", i * 32 + j);
-> 
-> 	mad_dump_cc_switchportcongestionsettingelement(buf, sizeof buf,
->  								       data + j *
-> 4,
->  								       4);
+>  	return NULL;
+>  }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
