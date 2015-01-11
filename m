@@ -1,54 +1,82 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] IB: qib: qib_iba7322: Remove unused function
-Date: Sun, 11 Jan 2015 15:04:42 +0100
-Message-ID: <1420985082-17977-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 05/10] svcrdma: Find rmsgp more reliably
+Date: Sun, 11 Jan 2015 19:37:36 +0200
+Message-ID: <54B2B4E0.5060901@dev.mellanox.co.il>
+References: <20150109191910.4901.29548.stgit@klimt.1015granger.net> <20150109192237.4901.92644.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150109192237.4901.92644.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove the function qib_read_ureg() that is not used anywhere.
+On 1/9/2015 9:22 PM, Chuck Lever wrote:
+> xdr_start() can return the wrong rmsgp address if an assumption
+> about how the xdr_buf was constructed changes.  When it gets it
+> wrong, the client receives a reply that has gibberish in the
+> RPC/RDMA header, preventing it from matching a waiting RPC request.
+>
+> Instead, make (and document) just one assumption: that the RDMA
+> header for the client's RPC call is at the start of the first page
+> in rq_pages.
 
-This was partially found by using a static code analysis program called cppcheck.
+Would it make more sense to add another pointer assigned at req
+initialization (maybe in the RDMA request context) instead of hard
+coding this assumption? I may be completely wrong here though...
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |   22 ----------------------
- 1 file changed, 22 deletions(-)
+>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>
+>   net/sunrpc/xprtrdma/svc_rdma_sendto.c |   18 ++++--------------
+>   1 files changed, 4 insertions(+), 14 deletions(-)
+>
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> index 7d79897..7de33d1 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> @@ -483,18 +483,6 @@ void svc_rdma_prep_reply_hdr(struct svc_rqst *rqstp)
+>   {
+>   }
+>
+> -/*
+> - * Return the start of an xdr buffer.
+> - */
+> -static void *xdr_start(struct xdr_buf *xdr)
+> -{
+> -	return xdr->head[0].iov_base -
+> -		(xdr->len -
+> -		 xdr->page_len -
+> -		 xdr->tail[0].iov_len -
+> -		 xdr->head[0].iov_len);
+> -}
+> -
+>   int svc_rdma_sendto(struct svc_rqst *rqstp)
+>   {
+>   	struct svc_xprt *xprt = rqstp->rq_xprt;
+> @@ -512,8 +500,10 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+>
+>   	dprintk("svcrdma: sending response for rqstp=%p\n", rqstp);
+>
+> -	/* Get the RDMA request header. */
+> -	rdma_argp = xdr_start(&rqstp->rq_arg);
+> +	/* Get the RDMA request header. The receive logic always
+> +	 * places this at the start of page 0.
+> +	 */
+> +	rdma_argp = page_address(rqstp->rq_pages[0]);
+>
+>   	/* Build an req vec for the XDR */
+>   	ctxt = svc_rdma_get_context(rdma);
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index a7eb325..a57b1a2 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -783,28 +783,6 @@ static inline u32 qib_read_ureg32(const struct qib_devdata *dd,
- }
- 
- /**
-- * qib_read_ureg - read virtualized per-context register
-- * @dd: device
-- * @regno: register number
-- * @ctxt: context number
-- *
-- * Return the contents of a register that is virtualized to be per context.
-- * Returns -1 on errors (not distinguishable from valid contents at
-- * runtime; we may add a separate error variable at some point).
-- */
--static inline u64 qib_read_ureg(const struct qib_devdata *dd,
--				enum qib_ureg regno, int ctxt)
--{
--
--	if (!dd->kregbase || !(dd->flags & QIB_PRESENT))
--		return 0;
--	return readq(regno + (u64 __iomem *)(
--		(dd->ureg_align * ctxt) + (dd->userbase ?
--		 (char __iomem *)dd->userbase :
--		 (char __iomem *)dd->kregbase + dd->uregbase)));
--}
--
--/**
-  * qib_write_ureg - write virtualized per-context register
-  * @dd: device
-  * @regno: register number
--- 
-1.7.10.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
