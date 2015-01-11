@@ -1,74 +1,195 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 05/10] svcrdma: Find rmsgp more reliably
-Date: Sun, 11 Jan 2015 19:37:36 +0200
-Message-ID: <54B2B4E0.5060901@dev.mellanox.co.il>
-References: <20150109191910.4901.29548.stgit@klimt.1015granger.net> <20150109192237.4901.92644.stgit@klimt.1015granger.net>
+Subject: Re: [PATCH v1 06/10] svcrdma: Plant reader function in struct svcxprt_rdma
+Date: Sun, 11 Jan 2015 19:45:02 +0200
+Message-ID: <54B2B69E.2010503@dev.mellanox.co.il>
+References: <20150109191910.4901.29548.stgit@klimt.1015granger.net> <20150109192245.4901.89614.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150109192237.4901.92644.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20150109192245.4901.89614.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 1/9/2015 9:22 PM, Chuck Lever wrote:
-> xdr_start() can return the wrong rmsgp address if an assumption
-> about how the xdr_buf was constructed changes.  When it gets it
-> wrong, the client receives a reply that has gibberish in the
-> RPC/RDMA header, preventing it from matching a waiting RPC request.
+> The RDMA reader function doesn't change once an svcxprt is
+> instantiated. Instead of checking sc_devcap during every incoming
+> RPC, set the reader function once when the connection is accepted.
 >
-> Instead, make (and document) just one assumption: that the RDMA
-> header for the client's RPC call is at the start of the first page
-> in rq_pages.
 
-Would it make more sense to add another pointer assigned at req
-initialization (maybe in the RDMA request context) instead of hard
-coding this assumption? I may be completely wrong here though...
+General question(s),
 
->
+Any specific reason why to use FRMR in the server side? And why only
+for reads and not writes? Sorry if these are dumb questions...
+
+Sagi.
+
 > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
 >
->   net/sunrpc/xprtrdma/svc_rdma_sendto.c |   18 ++++--------------
->   1 files changed, 4 insertions(+), 14 deletions(-)
+>   include/linux/sunrpc/svc_rdma.h          |   10 ++++
+>   net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   71 +++++++++++-------------------
+>   net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +
+>   3 files changed, 39 insertions(+), 44 deletions(-)
 >
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> index 7d79897..7de33d1 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> @@ -483,18 +483,6 @@ void svc_rdma_prep_reply_hdr(struct svc_rqst *rqstp)
->   {
+> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+> index 2280325..f161e30 100644
+> --- a/include/linux/sunrpc/svc_rdma.h
+> +++ b/include/linux/sunrpc/svc_rdma.h
+> @@ -150,6 +150,10 @@ struct svcxprt_rdma {
+>   	struct ib_cq         *sc_rq_cq;
+>   	struct ib_cq         *sc_sq_cq;
+>   	struct ib_mr         *sc_phys_mr;	/* MR for server memory */
+> +	int		     (*sc_reader)(struct svcxprt_rdma *,
+> +					  struct svc_rqst *,
+> +					  struct svc_rdma_op_ctxt *,
+> +					  int *, u32 *, u32, u32, u64, bool);
+>   	u32		     sc_dev_caps;	/* distilled device caps */
+>   	u32		     sc_dma_lkey;	/* local dma key */
+>   	unsigned int	     sc_frmr_pg_list_len;
+> @@ -195,6 +199,12 @@ extern int svc_rdma_xdr_get_reply_hdr_len(struct rpcrdma_msg *);
+>
+>   /* svc_rdma_recvfrom.c */
+>   extern int svc_rdma_recvfrom(struct svc_rqst *);
+> +extern int rdma_read_chunk_lcl(struct svcxprt_rdma *, struct svc_rqst *,
+> +			       struct svc_rdma_op_ctxt *, int *, u32 *,
+> +			       u32, u32, u64, bool);
+> +extern int rdma_read_chunk_frmr(struct svcxprt_rdma *, struct svc_rqst *,
+> +				struct svc_rdma_op_ctxt *, int *, u32 *,
+> +				u32, u32, u64, bool);
+>
+>   /* svc_rdma_sendto.c */
+>   extern int svc_rdma_sendto(struct svc_rqst *);
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> index 577f865..c3aebc1 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> @@ -117,26 +117,16 @@ static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
+>   		return min_t(int, sge_count, xprt->sc_max_sge);
 >   }
 >
-> -/*
-> - * Return the start of an xdr buffer.
-> - */
-> -static void *xdr_start(struct xdr_buf *xdr)
-> -{
-> -	return xdr->head[0].iov_base -
-> -		(xdr->len -
-> -		 xdr->page_len -
-> -		 xdr->tail[0].iov_len -
-> -		 xdr->head[0].iov_len);
-> -}
+> -typedef int (*rdma_reader_fn)(struct svcxprt_rdma *xprt,
+> -			      struct svc_rqst *rqstp,
+> -			      struct svc_rdma_op_ctxt *head,
+> -			      int *page_no,
+> -			      u32 *page_offset,
+> -			      u32 rs_handle,
+> -			      u32 rs_length,
+> -			      u64 rs_offset,
+> -			      int last);
 > -
->   int svc_rdma_sendto(struct svc_rqst *rqstp)
+>   /* Issue an RDMA_READ using the local lkey to map the data sink */
+> -static int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+> -			       struct svc_rqst *rqstp,
+> -			       struct svc_rdma_op_ctxt *head,
+> -			       int *page_no,
+> -			       u32 *page_offset,
+> -			       u32 rs_handle,
+> -			       u32 rs_length,
+> -			       u64 rs_offset,
+> -			       int last)
+> +int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+> +			struct svc_rqst *rqstp,
+> +			struct svc_rdma_op_ctxt *head,
+> +			int *page_no,
+> +			u32 *page_offset,
+> +			u32 rs_handle,
+> +			u32 rs_length,
+> +			u64 rs_offset,
+> +			bool last)
 >   {
->   	struct svc_xprt *xprt = rqstp->rq_xprt;
-> @@ -512,8 +500,10 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+>   	struct ib_send_wr read_wr;
+>   	int pages_needed = PAGE_ALIGN(*page_offset + rs_length) >> PAGE_SHIFT;
+> @@ -221,15 +211,15 @@ static int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+>   }
 >
->   	dprintk("svcrdma: sending response for rqstp=%p\n", rqstp);
+>   /* Issue an RDMA_READ using an FRMR to map the data sink */
+> -static int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+> -				struct svc_rqst *rqstp,
+> -				struct svc_rdma_op_ctxt *head,
+> -				int *page_no,
+> -				u32 *page_offset,
+> -				u32 rs_handle,
+> -				u32 rs_length,
+> -				u64 rs_offset,
+> -				int last)
+> +int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+> +			 struct svc_rqst *rqstp,
+> +			 struct svc_rdma_op_ctxt *head,
+> +			 int *page_no,
+> +			 u32 *page_offset,
+> +			 u32 rs_handle,
+> +			 u32 rs_length,
+> +			 u64 rs_offset,
+> +			 bool last)
+>   {
+>   	struct ib_send_wr read_wr;
+>   	struct ib_send_wr inv_wr;
+> @@ -374,9 +364,9 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
+>   {
+>   	int page_no, ret;
+>   	struct rpcrdma_read_chunk *ch;
+> -	u32 page_offset, byte_count;
+> +	u32 handle, page_offset, byte_count;
+>   	u64 rs_offset;
+> -	rdma_reader_fn reader;
+> +	bool last;
 >
-> -	/* Get the RDMA request header. */
-> -	rdma_argp = xdr_start(&rqstp->rq_arg);
-> +	/* Get the RDMA request header. The receive logic always
-> +	 * places this at the start of page 0.
-> +	 */
-> +	rdma_argp = page_address(rqstp->rq_pages[0]);
+>   	/* If no read list is present, return 0 */
+>   	ch = svc_rdma_get_read_chunk(rmsgp);
+> @@ -399,27 +389,20 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
+>   	head->arg.len = rqstp->rq_arg.len;
+>   	head->arg.buflen = rqstp->rq_arg.buflen;
 >
->   	/* Build an req vec for the XDR */
->   	ctxt = svc_rdma_get_context(rdma);
+> -	/* Use FRMR if supported */
+> -	if (xprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)
+> -		reader = rdma_read_chunk_frmr;
+> -	else
+> -		reader = rdma_read_chunk_lcl;
+> -
+>   	page_no = 0; page_offset = 0;
+>   	for (ch = (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
+>   	     ch->rc_discrim != 0; ch++) {
+> -
+> +		handle = be32_to_cpu(ch->rc_target.rs_handle);
+> +		byte_count = be32_to_cpu(ch->rc_target.rs_length);
+>   		xdr_decode_hyper((__be32 *)&ch->rc_target.rs_offset,
+>   				 &rs_offset);
+> -		byte_count = ntohl(ch->rc_target.rs_length);
+>
+>   		while (byte_count > 0) {
+> -			ret = reader(xprt, rqstp, head,
+> -				     &page_no, &page_offset,
+> -				     ntohl(ch->rc_target.rs_handle),
+> -				     byte_count, rs_offset,
+> -				     ((ch+1)->rc_discrim == 0) /* last */
+> -				     );
+> +			last = (ch + 1)->rc_discrim == xdr_zero;
+> +			ret = xprt->sc_reader(xprt, rqstp, head,
+> +					      &page_no, &page_offset,
+> +					      handle, byte_count,
+> +					      rs_offset, last);
+>   			if (ret < 0)
+>   				goto err;
+>   			byte_count -= ret;
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> index f2e059b..f609c1c 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -974,10 +974,12 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+>   	 * NB:	iWARP requires remote write access for the data sink
+>   	 *	of an RDMA_READ. IB does not.
+>   	 */
+> +	newxprt->sc_reader = rdma_read_chunk_lcl;
+>   	if (devattr.device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
+>   		newxprt->sc_frmr_pg_list_len =
+>   			devattr.max_fast_reg_page_list_len;
+>   		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_FAST_REG;
+> +		newxprt->sc_reader = rdma_read_chunk_frmr;
+>   	}
+>
+>   	/*
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
