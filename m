@@ -1,36 +1,37 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch v2] IB/mlx5: fix error code in get_port_caps()
-Date: Mon, 12 Jan 2015 11:56:58 +0300
-Message-ID: <20150112085657.GA7568@mwanda>
-References: <alpine.DEB.2.10.1501120934540.2476@hadrien>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] libmlx5 1.0.2 released
+Date: Mon, 12 Jan 2015 11:08:37 +0200
+Message-ID: <20150112090837.GB5319@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1501120934540.2476@hadrien>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Eli Cohen <eli@mellanox.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, nirgal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The current code returns success when kmalloc() fails.  It should return
-an error code, -ENOMEM.
+Hi,
 
-Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-v2: re-write changelog
+I would like to announce the availability of libmlx5 version 1.0.2,
+the provider library for Mellanox Connect-IB devices.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 8a87404..cc4ac1e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -997,7 +997,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
- 	struct ib_device_attr *dprops = NULL;
- 	struct ib_port_attr *pprops = NULL;
- 	struct mlx5_general_caps *gen;
--	int err = 0;
-+	int err = -ENOMEM;
- 	int port;
- 
- 	gen = &dev->mdev->caps.gen;
+Main changes:
+Add support for XRC
+Add Connect-IB and ConnectX-4 devices to the list of supported
+devices.
+
+The library can be found here:
+https://www.openfabrics.org/downloads/mlx5/libmlx5-1.0.2.tar.gz
+
+Thanks,
+Eli
