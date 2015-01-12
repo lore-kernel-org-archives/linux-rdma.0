@@ -1,32 +1,32 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH TRIVIAL libibmad] fields.c: Fix commentary typo
-Date: Mon, 12 Jan 2015 14:08:25 -0500
-Message-ID: <54B41BA9.4050005@dev.mellanox.co.il>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 0/2] All Chelsio drivers : Cleanup CPL
+ messages macros
+Date: Mon, 12 Jan 2015 16:20:03 -0500 (EST)
+Message-ID: <20150112.162003.158111167752709707.davem@davemloft.net>
+References: <1420781896-25337-1-git-send-email-anish@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1420781896-25337-1-git-send-email-anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, kxie-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Anish Bhatt <anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Thu,  8 Jan 2015 21:38:14 -0800
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/src/fields.c b/src/fields.c
-index 33a6364..9965811 100644
---- a/src/fields.c
-+++ b/src/fields.c
-@@ -835,7 +835,7 @@ static const ib_field_t ib_mad_f[] = {
- 	{BITSOFFS(16, 16), "ThresholdEventCounter", mad_dump_uint},
- 	{BITSOFFS(32, 16), "ThresholdCongestionEventMap", mad_dump_hex},
- 	/* XXX: Q3/2010 errata lists offset 48, but that means field is not
--	 * world aligned.  Assume will be aligned to offset 64 later.
-+	 * word aligned.  Assume will be aligned to offset 64 later.
- 	 */
- 	{BITSOFFS(64, 32), "CurrentTimeStamp", mad_dump_uint},
- 	{0, 0},			/* IB_CC_CONGESTION_LOG_CA_LAST_F */
+> This patch series cleans up all register defines/MACROS defined in t4_msg.h and
+> affected files as part of the continuing cleanup effort
+> 
+> The patches series is created against 'net-next' tree and  includes patches 
+> to the cxgb4, cxgb4vf, iw_cxgb4, cxgb4i and csiostor drivers.
+> 
+> We have included all the maintainers of respective drivers. Kindly review the
+> change and let us know in case of any review comments.
+
+Looks fine, applied to net-next, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
