@@ -1,280 +1,128 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v1 06/10] svcrdma: Plant reader function in struct svcxprt_rdma
-Date: Mon, 12 Jan 2015 10:45:41 -0600
-Message-ID: <54B3FA35.4030003@opengridcomputing.com>
-References: <20150109191910.4901.29548.stgit@klimt.1015granger.net> <20150109192245.4901.89614.stgit@klimt.1015granger.net> <54B2B69E.2010503@dev.mellanox.co.il> <6A78707C-A371-412F-8E9A-24937318A01D@oracle.com> <002201d02e82$08d16070$1a742150$@opengridcomputing.com> <A84D07C5-1879-49ED-A181-6FFC76B4864B@oracle.com> <006b01d02e84$907f5890$b17e09b0$@opengridcomputing.com>
+Subject: [PATCH] rping: create persistent server threads in DETACHED state
+Date: Mon, 12 Jan 2015 10:57:40 -0600
+Message-ID: <20150112165740.17112.18209.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <006b01d02e84$907f5890$b17e09b0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Linux NFS Mailing List' <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/12/2015 10:26 AM, Steve Wise wrote:
->
->> -----Original Message-----
->> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
->> Sent: Monday, January 12, 2015 10:20 AM
->> To: Steve Wise
->> Cc: Sagi Grimberg; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linux NFS Mailing List
->> Subject: Re: [PATCH v1 06/10] svcrdma: Plant reader function in struct svcxprt_rdma
->>
->>
->> On Jan 12, 2015, at 11:08 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>
->>>
->>>> -----Original Message-----
->>>> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
->>>> Sent: Sunday, January 11, 2015 6:41 PM
->>>> To: Sagi Grimberg; Steve Wise
->>>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linux NFS Mailing List
->>>> Subject: Re: [PATCH v1 06/10] svcrdma: Plant reader function in struct svcxprt_rdma
->>>>
->>>>
->>>> On Jan 11, 2015, at 12:45 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>>
->>>>> On 1/9/2015 9:22 PM, Chuck Lever wrote:
->>>>>> The RDMA reader function doesn't change once an svcxprt is
->>>>>> instantiated. Instead of checking sc_devcap during every incoming
->>>>>> RPC, set the reader function once when the connection is accepted.
->>>>> General question(s),
->>>>>
->>>>> Any specific reason why to use FRMR in the server side? And why only
->>>>> for reads and not writes? Sorry if these are dumb questions...
->>>> Steve Wise presented patches a few months back to add FRMR, he
->>>> would have to answer this. Steve has a selection of iWARP adapters
->>>> and maybe could provide some idea of performance impact. I have
->>>> only CX-[23] here.
->>>>
->>> The rdma rpc server has always tried to use FRMR for rdma reads as far as I recall.  The patch I submitted refactored the design
-> in
->>> order to make it more efficient and to fix some bugs.   Unlike IB, the iWARP  protocol only allows 1 target/sink SGE in an rdma
-> read
->>> request message, so an FRMR is used to create that single target/sink SGE allowing 1 read to be submitted instead of many.
->> How does this work when the client uses PHYSICAL memory registration?
-> Each page would require a separate rdma read WR.  That is why we use FRMRs. :)
+Since the persistent server threads aren't joined, they must be created in
+the DETACHED state or resources will not be cleaned up when they exit.
+This results in pthread_create() failures after thousands of rping
+instances are run against a persistent server.
 
-Correction, each physical scatter gather entry would require a separate 
-read WR.  There may be contiguous chunks of physical mem that can be 
-described with one RDMA SGE...
+Also check the return from all calls to pthread_create() so we don't
+ignore a thread creation failure.
 
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
->> It can't form a read/write list SGE larger than a page, thus the
->> server must emit an RDMA READ or WRITE for each page in the payload.
->>
->> Curious, have you tried using iWARP with PHYSICAL MR on the client?
->>
-> No I haven't.
->
->>> I
->>> believe that the FRMR allows for more efficient IO since w/o it you end up with large SGLs of 4K each and lots of read requests.
->>> However, I have no data to back that up.  I would think that the write side (NFS READ) could also benefit from FRMRs too.  It
-> also
->>> could use refactoring, because I believe it still creates an intermediate data structure to hold the write chunks vs just
->>> translating them directly into the RDMA SGLs needed for the IO.  See send_write_chunks() and send_write() and how they create a
->>> svc_rdma_req_map vector first and then translate that into the SGL needed for the rdma writes.
->>>
->>>
->>>> My next step is to do some performance measurement to see if FRMR
->>>> is worth the trouble, at least with the cards on hand.
->>>>
->>>> I notice that the lcl case does not seem to work with my CX-3 Pro.
->>>> Probably a bug I will have to address first.
->>>>
->>>>> Sagi.
->>>>>
->>>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>>>> ---
->>>>>>
->>>>>> include/linux/sunrpc/svc_rdma.h          |   10 ++++
->>>>>> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   71 +++++++++++-------------------
->>>>>> net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +
->>>>>> 3 files changed, 39 insertions(+), 44 deletions(-)
->>>>>>
->>>>>> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
->>>>>> index 2280325..f161e30 100644
->>>>>> --- a/include/linux/sunrpc/svc_rdma.h
->>>>>> +++ b/include/linux/sunrpc/svc_rdma.h
->>>>>> @@ -150,6 +150,10 @@ struct svcxprt_rdma {
->>>>>> 	struct ib_cq         *sc_rq_cq;
->>>>>> 	struct ib_cq         *sc_sq_cq;
->>>>>> 	struct ib_mr         *sc_phys_mr;	/* MR for server memory */
->>>>>> +	int		     (*sc_reader)(struct svcxprt_rdma *,
->>>>>> +					  struct svc_rqst *,
->>>>>> +					  struct svc_rdma_op_ctxt *,
->>>>>> +					  int *, u32 *, u32, u32, u64, bool);
->>>>>> 	u32		     sc_dev_caps;	/* distilled device caps */
->>>>>> 	u32		     sc_dma_lkey;	/* local dma key */
->>>>>> 	unsigned int	     sc_frmr_pg_list_len;
->>>>>> @@ -195,6 +199,12 @@ extern int svc_rdma_xdr_get_reply_hdr_len(struct rpcrdma_msg *);
->>>>>>
->>>>>> /* svc_rdma_recvfrom.c */
->>>>>> extern int svc_rdma_recvfrom(struct svc_rqst *);
->>>>>> +extern int rdma_read_chunk_lcl(struct svcxprt_rdma *, struct svc_rqst *,
->>>>>> +			       struct svc_rdma_op_ctxt *, int *, u32 *,
->>>>>> +			       u32, u32, u64, bool);
->>>>>> +extern int rdma_read_chunk_frmr(struct svcxprt_rdma *, struct svc_rqst *,
->>>>>> +				struct svc_rdma_op_ctxt *, int *, u32 *,
->>>>>> +				u32, u32, u64, bool);
->>>>>>
->>>>>> /* svc_rdma_sendto.c */
->>>>>> extern int svc_rdma_sendto(struct svc_rqst *);
->>>>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
->>>>>> index 577f865..c3aebc1 100644
->>>>>> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
->>>>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
->>>>>> @@ -117,26 +117,16 @@ static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
->>>>>> 		return min_t(int, sge_count, xprt->sc_max_sge);
->>>>>> }
->>>>>>
->>>>>> -typedef int (*rdma_reader_fn)(struct svcxprt_rdma *xprt,
->>>>>> -			      struct svc_rqst *rqstp,
->>>>>> -			      struct svc_rdma_op_ctxt *head,
->>>>>> -			      int *page_no,
->>>>>> -			      u32 *page_offset,
->>>>>> -			      u32 rs_handle,
->>>>>> -			      u32 rs_length,
->>>>>> -			      u64 rs_offset,
->>>>>> -			      int last);
->>>>>> -
->>>>>> /* Issue an RDMA_READ using the local lkey to map the data sink */
->>>>>> -static int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
->>>>>> -			       struct svc_rqst *rqstp,
->>>>>> -			       struct svc_rdma_op_ctxt *head,
->>>>>> -			       int *page_no,
->>>>>> -			       u32 *page_offset,
->>>>>> -			       u32 rs_handle,
->>>>>> -			       u32 rs_length,
->>>>>> -			       u64 rs_offset,
->>>>>> -			       int last)
->>>>>> +int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
->>>>>> +			struct svc_rqst *rqstp,
->>>>>> +			struct svc_rdma_op_ctxt *head,
->>>>>> +			int *page_no,
->>>>>> +			u32 *page_offset,
->>>>>> +			u32 rs_handle,
->>>>>> +			u32 rs_length,
->>>>>> +			u64 rs_offset,
->>>>>> +			bool last)
->>>>>> {
->>>>>> 	struct ib_send_wr read_wr;
->>>>>> 	int pages_needed = PAGE_ALIGN(*page_offset + rs_length) >> PAGE_SHIFT;
->>>>>> @@ -221,15 +211,15 @@ static int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
->>>>>> }
->>>>>>
->>>>>> /* Issue an RDMA_READ using an FRMR to map the data sink */
->>>>>> -static int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
->>>>>> -				struct svc_rqst *rqstp,
->>>>>> -				struct svc_rdma_op_ctxt *head,
->>>>>> -				int *page_no,
->>>>>> -				u32 *page_offset,
->>>>>> -				u32 rs_handle,
->>>>>> -				u32 rs_length,
->>>>>> -				u64 rs_offset,
->>>>>> -				int last)
->>>>>> +int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
->>>>>> +			 struct svc_rqst *rqstp,
->>>>>> +			 struct svc_rdma_op_ctxt *head,
->>>>>> +			 int *page_no,
->>>>>> +			 u32 *page_offset,
->>>>>> +			 u32 rs_handle,
->>>>>> +			 u32 rs_length,
->>>>>> +			 u64 rs_offset,
->>>>>> +			 bool last)
->>>>>> {
->>>>>> 	struct ib_send_wr read_wr;
->>>>>> 	struct ib_send_wr inv_wr;
->>>>>> @@ -374,9 +364,9 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
->>>>>> {
->>>>>> 	int page_no, ret;
->>>>>> 	struct rpcrdma_read_chunk *ch;
->>>>>> -	u32 page_offset, byte_count;
->>>>>> +	u32 handle, page_offset, byte_count;
->>>>>> 	u64 rs_offset;
->>>>>> -	rdma_reader_fn reader;
->>>>>> +	bool last;
->>>>>>
->>>>>> 	/* If no read list is present, return 0 */
->>>>>> 	ch = svc_rdma_get_read_chunk(rmsgp);
->>>>>> @@ -399,27 +389,20 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
->>>>>> 	head->arg.len = rqstp->rq_arg.len;
->>>>>> 	head->arg.buflen = rqstp->rq_arg.buflen;
->>>>>>
->>>>>> -	/* Use FRMR if supported */
->>>>>> -	if (xprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)
->>>>>> -		reader = rdma_read_chunk_frmr;
->>>>>> -	else
->>>>>> -		reader = rdma_read_chunk_lcl;
->>>>>> -
->>>>>> 	page_no = 0; page_offset = 0;
->>>>>> 	for (ch = (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
->>>>>> 	     ch->rc_discrim != 0; ch++) {
->>>>>> -
->>>>>> +		handle = be32_to_cpu(ch->rc_target.rs_handle);
->>>>>> +		byte_count = be32_to_cpu(ch->rc_target.rs_length);
->>>>>> 		xdr_decode_hyper((__be32 *)&ch->rc_target.rs_offset,
->>>>>> 				 &rs_offset);
->>>>>> -		byte_count = ntohl(ch->rc_target.rs_length);
->>>>>>
->>>>>> 		while (byte_count > 0) {
->>>>>> -			ret = reader(xprt, rqstp, head,
->>>>>> -				     &page_no, &page_offset,
->>>>>> -				     ntohl(ch->rc_target.rs_handle),
->>>>>> -				     byte_count, rs_offset,
->>>>>> -				     ((ch+1)->rc_discrim == 0) /* last */
->>>>>> -				     );
->>>>>> +			last = (ch + 1)->rc_discrim == xdr_zero;
->>>>>> +			ret = xprt->sc_reader(xprt, rqstp, head,
->>>>>> +					      &page_no, &page_offset,
->>>>>> +					      handle, byte_count,
->>>>>> +					      rs_offset, last);
->>>>>> 			if (ret < 0)
->>>>>> 				goto err;
->>>>>> 			byte_count -= ret;
->>>>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->>>>>> index f2e059b..f609c1c 100644
->>>>>> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
->>>>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->>>>>> @@ -974,10 +974,12 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->>>>>> 	 * NB:	iWARP requires remote write access for the data sink
->>>>>> 	 *	of an RDMA_READ. IB does not.
->>>>>> 	 */
->>>>>> +	newxprt->sc_reader = rdma_read_chunk_lcl;
->>>>>> 	if (devattr.device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
->>>>>> 		newxprt->sc_frmr_pg_list_len =
->>>>>> 			devattr.max_fast_reg_page_list_len;
->>>>>> 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_FAST_REG;
->>>>>> +		newxprt->sc_reader = rdma_read_chunk_frmr;
->>>>>> 	}
->>>>>>
->>>>>> 	/*
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>> --
->>>> Chuck Lever
->>>> chuck[dot]lever[at]oracle[dot]com
->>>>
->>>
->> --
->> Chuck Lever
->> chuck[dot]lever[at]oracle[dot]com
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ examples/rping.c |   47 ++++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 42 insertions(+), 5 deletions(-)
+
+diff --git a/examples/rping.c b/examples/rping.c
+index 58b642e..9486314 100644
+--- a/examples/rping.c
++++ b/examples/rping.c
+@@ -793,7 +793,11 @@ static void *rping_persistent_server_thread(void *arg)
+ 		goto err2;
+ 	}
+ 
+-	pthread_create(&cb->cqthread, NULL, cq_thread, cb);
++	ret = pthread_create(&cb->cqthread, NULL, cq_thread, cb);
++	if (ret) {
++		perror("pthread_create");
++		goto err2;
++	}
+ 
+ 	ret = rping_accept(cb);
+ 	if (ret) {
+@@ -825,11 +829,27 @@ static int rping_run_persistent_server(struct rping_cb *listening_cb)
+ {
+ 	int ret;
+ 	struct rping_cb *cb;
++	pthread_attr_t attr;
+ 
+ 	ret = rping_bind_server(listening_cb);
+ 	if (ret)
+ 		return ret;
+ 
++	/*
++	 * Set persistent server threads to DEATCHED state so
++	 * they release all their resources when they exit.
++	 */
++	ret = pthread_attr_init(&attr);
++	if (ret) {
++		perror("pthread_attr_init");
++		return ret;
++	}
++	ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
++	if (ret) {
++		perror("pthread_attr_setdetachstate");
++		return ret;
++	}
++
+ 	while (1) {
+ 		sem_wait(&listening_cb->sem);
+ 		if (listening_cb->state != CONNECT_REQUEST) {
+@@ -841,7 +861,12 @@ static int rping_run_persistent_server(struct rping_cb *listening_cb)
+ 		cb = clone_cb(listening_cb);
+ 		if (!cb)
+ 			return -1;
+-		pthread_create(&cb->persistent_server_thread, NULL, rping_persistent_server_thread, cb);
++
++		ret = pthread_create(&cb->persistent_server_thread, &attr, rping_persistent_server_thread, cb);
++		if (ret) {
++			perror("pthread_create");
++			return ret;
++		}
+ 	}
+ 	return 0;
+ }
+@@ -880,7 +905,11 @@ static int rping_run_server(struct rping_cb *cb)
+ 		goto err2;
+ 	}
+ 
+-	pthread_create(&cb->cqthread, NULL, cq_thread, cb);
++	ret = pthread_create(&cb->cqthread, NULL, cq_thread, cb);
++	if (ret) {
++		perror("pthread_create");
++		goto err2;
++	}
+ 
+ 	ret = rping_accept(cb);
+ 	if (ret) {
+@@ -1055,7 +1084,11 @@ static int rping_run_client(struct rping_cb *cb)
+ 		goto err2;
+ 	}
+ 
+-	pthread_create(&cb->cqthread, NULL, cq_thread, cb);
++	ret = pthread_create(&cb->cqthread, NULL, cq_thread, cb);
++	if (ret) {
++		perror("pthread_create");
++		goto err2;
++	}
+ 
+ 	ret = rping_connect_client(cb);
+ 	if (ret) {
+@@ -1222,7 +1255,11 @@ int main(int argc, char *argv[])
+ 	}
+ 	DEBUG_LOG("created cm_id %p\n", cb->cm_id);
+ 
+-	pthread_create(&cb->cmthread, NULL, cm_thread, cb);
++	ret = pthread_create(&cb->cmthread, NULL, cm_thread, cb);
++	if (ret) {
++		perror("pthread_create");
++		goto out2;
++	}
+ 
+ 	if (cb->server) {
+ 		if (persistent_server)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
