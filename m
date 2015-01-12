@@ -1,128 +1,59 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] rping: create persistent server threads in DETACHED state
-Date: Mon, 12 Jan 2015 10:57:40 -0600
-Message-ID: <20150112165740.17112.18209.stgit@build.ogc.int>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 01/20] IB/mad: Rename is_data_mad to is_rmpp_data_mad
+Date: Mon, 12 Jan 2015 12:10:53 -0500
+Message-ID: <1421082672-22588-2-git-send-email-ira.weiny@intel.com>
+References: <1421082672-22588-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1421082672-22588-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since the persistent server threads aren't joined, they must be created in
-the DETACHED state or resources will not be cleaned up when they exit.
-This results in pthread_create() failures after thousands of rping
-instances are run against a persistent server.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Also check the return from all calls to pthread_create() so we don't
-ignore a thread creation failure.
+is_rmpp_data_mad is more descriptive for this function.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/core/mad.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
- examples/rping.c |   47 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 42 insertions(+), 5 deletions(-)
-
-diff --git a/examples/rping.c b/examples/rping.c
-index 58b642e..9486314 100644
---- a/examples/rping.c
-+++ b/examples/rping.c
-@@ -793,7 +793,11 @@ static void *rping_persistent_server_thread(void *arg)
- 		goto err2;
- 	}
- 
--	pthread_create(&cb->cqthread, NULL, cq_thread, cb);
-+	ret = pthread_create(&cb->cqthread, NULL, cq_thread, cb);
-+	if (ret) {
-+		perror("pthread_create");
-+		goto err2;
-+	}
- 
- 	ret = rping_accept(cb);
- 	if (ret) {
-@@ -825,11 +829,27 @@ static int rping_run_persistent_server(struct rping_cb *listening_cb)
- {
- 	int ret;
- 	struct rping_cb *cb;
-+	pthread_attr_t attr;
- 
- 	ret = rping_bind_server(listening_cb);
- 	if (ret)
- 		return ret;
- 
-+	/*
-+	 * Set persistent server threads to DEATCHED state so
-+	 * they release all their resources when they exit.
-+	 */
-+	ret = pthread_attr_init(&attr);
-+	if (ret) {
-+		perror("pthread_attr_init");
-+		return ret;
-+	}
-+	ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-+	if (ret) {
-+		perror("pthread_attr_setdetachstate");
-+		return ret;
-+	}
-+
- 	while (1) {
- 		sem_wait(&listening_cb->sem);
- 		if (listening_cb->state != CONNECT_REQUEST) {
-@@ -841,7 +861,12 @@ static int rping_run_persistent_server(struct rping_cb *listening_cb)
- 		cb = clone_cb(listening_cb);
- 		if (!cb)
- 			return -1;
--		pthread_create(&cb->persistent_server_thread, NULL, rping_persistent_server_thread, cb);
-+
-+		ret = pthread_create(&cb->persistent_server_thread, &attr, rping_persistent_server_thread, cb);
-+		if (ret) {
-+			perror("pthread_create");
-+			return ret;
-+		}
- 	}
- 	return 0;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 74c30f4..4673262 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1734,7 +1734,7 @@ out:
+ 	return valid;
  }
-@@ -880,7 +905,11 @@ static int rping_run_server(struct rping_cb *cb)
- 		goto err2;
+ 
+-static int is_data_mad(struct ib_mad_agent_private *mad_agent_priv,
++static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 		       struct ib_mad_hdr *mad_hdr)
+ {
+ 	struct ib_rmpp_mad *rmpp_mad;
+@@ -1836,7 +1836,7 @@ ib_find_send_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 	 * been notified that the send has completed
+ 	 */
+ 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
+-		if (is_data_mad(mad_agent_priv, wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
+ 		    wr->tid == mad->mad_hdr.tid &&
+ 		    wr->timeout &&
+ 		    rcv_has_same_class(wr, wc) &&
+@@ -2411,7 +2411,8 @@ find_send_wr(struct ib_mad_agent_private *mad_agent_priv,
+ 
+ 	list_for_each_entry(mad_send_wr, &mad_agent_priv->send_list,
+ 			    agent_list) {
+-		if (is_data_mad(mad_agent_priv, mad_send_wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv,
++				     mad_send_wr->send_buf.mad) &&
+ 		    &mad_send_wr->send_buf == send_buf)
+ 			return mad_send_wr;
  	}
- 
--	pthread_create(&cb->cqthread, NULL, cq_thread, cb);
-+	ret = pthread_create(&cb->cqthread, NULL, cq_thread, cb);
-+	if (ret) {
-+		perror("pthread_create");
-+		goto err2;
-+	}
- 
- 	ret = rping_accept(cb);
- 	if (ret) {
-@@ -1055,7 +1084,11 @@ static int rping_run_client(struct rping_cb *cb)
- 		goto err2;
- 	}
- 
--	pthread_create(&cb->cqthread, NULL, cq_thread, cb);
-+	ret = pthread_create(&cb->cqthread, NULL, cq_thread, cb);
-+	if (ret) {
-+		perror("pthread_create");
-+		goto err2;
-+	}
- 
- 	ret = rping_connect_client(cb);
- 	if (ret) {
-@@ -1222,7 +1255,11 @@ int main(int argc, char *argv[])
- 	}
- 	DEBUG_LOG("created cm_id %p\n", cb->cm_id);
- 
--	pthread_create(&cb->cmthread, NULL, cm_thread, cb);
-+	ret = pthread_create(&cb->cmthread, NULL, cm_thread, cb);
-+	if (ret) {
-+		perror("pthread_create");
-+		goto out2;
-+	}
- 
- 	if (cb->server) {
- 		if (persistent_server)
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
