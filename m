@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 10/20] IB/mad: Add helper function for smi_check_forward_dr_smp
-Date: Mon, 12 Jan 2015 12:11:02 -0500
-Message-ID: <1421082672-22588-11-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 11/20] IB/mad: Add helper function for SMI processing
+Date: Mon, 12 Jan 2015 12:11:03 -0500
+Message-ID: <1421082672-22588-12-git-send-email-ira.weiny@intel.com>
 References: <1421082672-22588-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1421082672-22588-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -16,63 +16,115 @@ This helper function will be used for processing both IB and OPA SMPs.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/smi.c |   26 +++++++++++++++++---------
- 1 files changed, 17 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/mad.c |   85 +++++++++++++++++++++++-----------------
+ 1 files changed, 49 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index 24670de..8a5fb1d 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -236,21 +236,20 @@ enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
- 					smp->dr_slid == IB_LID_PERMISSIVE);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index b1ec225..4e70e15 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1930,6 +1930,52 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	}
  }
  
--enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
-+static inline
-+enum smi_forward_action __smi_check_forward_dr_smp(u8 hop_ptr, u8 hop_cnt,
-+						   u8 direction,
-+						   int dr_dlid_is_permissive,
-+						   int dr_slid_is_permissive)
- {
--	u8 hop_ptr, hop_cnt;
--
--	hop_ptr = smp->hop_ptr;
--	hop_cnt = smp->hop_cnt;
--
--	if (!ib_get_smp_direction(smp)) {
-+	if (!direction) {
- 		/* C14-9:2 -- intermediate hop */
- 		if (hop_ptr && hop_ptr < hop_cnt)
- 			return IB_SMI_FORWARD;
- 
- 		/* C14-9:3 -- at the end of the DR segment of path */
- 		if (hop_ptr == hop_cnt)
--			return (smp->dr_dlid == IB_LID_PERMISSIVE ?
-+			return (dr_dlid_is_permissive ?
- 				IB_SMI_SEND : IB_SMI_LOCAL);
- 
- 		/* C14-9:4 -- hop_ptr = hop_cnt + 1 -> give to SMA/SM */
-@@ -263,10 +262,19 @@ enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
- 
- 		/* C14-13:3 -- at the end of the DR segment of path */
- 		if (hop_ptr == 1)
--			return (smp->dr_slid != IB_LID_PERMISSIVE ?
-+			return (dr_slid_is_permissive ?
- 				IB_SMI_SEND : IB_SMI_LOCAL);
- 	}
- 	return IB_SMI_LOCAL;
++enum smi_action handle_ib_smi(struct ib_mad_port_private *port_priv,
++			      struct ib_mad_qp_info *qp_info,
++			      struct ib_wc *wc,
++			      int port_num,
++			      struct ib_mad_private *recv,
++			      struct ib_mad_private *response)
++{
++	enum smi_forward_action retsmi;
 +
++	if (smi_handle_dr_smp_recv(&recv->mad.smp,
++				   port_priv->device->node_type,
++				   port_num,
++				   port_priv->device->phys_port_cnt) ==
++				   IB_SMI_DISCARD)
++		return IB_SMI_DISCARD;
++
++	retsmi = smi_check_forward_dr_smp(&recv->mad.smp);
++	if (retsmi == IB_SMI_LOCAL)
++		return IB_SMI_HANDLE;
++
++	if (retsmi == IB_SMI_SEND) { /* don't forward */
++		if (smi_handle_dr_smp_send(&recv->mad.smp,
++					   port_priv->device->node_type,
++					   port_num) == IB_SMI_DISCARD)
++			return IB_SMI_DISCARD;
++
++		if (smi_check_local_smp(&recv->mad.smp, port_priv->device) == IB_SMI_DISCARD)
++			return IB_SMI_DISCARD;
++	} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH) {
++		/* forward case for switches */
++		memcpy(response, recv, sizeof(*response));
++		response->header.recv_wc.wc = &response->header.wc;
++		response->header.recv_wc.recv_buf.mad = &response->mad.mad;
++		response->header.recv_wc.recv_buf.grh = &response->grh;
++
++		agent_send_response(&response->mad.mad,
++				    &response->grh, wc,
++				    port_priv->device,
++				    smi_get_fwd_port(&recv->mad.smp),
++				    qp_info->qp->qp_num);
++
++		return IB_SMI_DISCARD;
++	}
++	return IB_SMI_HANDLE;
 +}
 +
-+enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
-+{
-+	return __smi_check_forward_dr_smp(smp->hop_ptr, smp->hop_cnt,
-+					  ib_get_smp_direction(smp),
-+					  smp->dr_dlid == IB_LID_PERMISSIVE,
-+					  smp->dr_slid != IB_LID_PERMISSIVE);
- }
+ static size_t mad_recv_buf_size(struct ib_device *dev)
+ {
+ 	return(sizeof(struct ib_grh) + dev->attributes.mad_size);
+@@ -2006,45 +2052,12 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
  
- /*
+ 	if (recv->mad.mad.mad_hdr.mgmt_class ==
+ 	    IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) {
+-		enum smi_forward_action retsmi;
+-
+-		if (smi_handle_dr_smp_recv(&recv->mad.smp,
+-					   port_priv->device->node_type,
+-					   port_num,
+-					   port_priv->device->phys_port_cnt) ==
+-					   IB_SMI_DISCARD)
++		if (handle_ib_smi(port_priv, qp_info, wc, port_num, recv,
++				  response)
++		    == IB_SMI_DISCARD)
+ 			goto out;
+-
+-		retsmi = smi_check_forward_dr_smp(&recv->mad.smp);
+-		if (retsmi == IB_SMI_LOCAL)
+-			goto local;
+-
+-		if (retsmi == IB_SMI_SEND) { /* don't forward */
+-			if (smi_handle_dr_smp_send(&recv->mad.smp,
+-						   port_priv->device->node_type,
+-						   port_num) == IB_SMI_DISCARD)
+-				goto out;
+-
+-			if (smi_check_local_smp(&recv->mad.smp, port_priv->device) == IB_SMI_DISCARD)
+-				goto out;
+-		} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH) {
+-			/* forward case for switches */
+-			memcpy(response, recv, sizeof(*response));
+-			response->header.recv_wc.wc = &response->header.wc;
+-			response->header.recv_wc.recv_buf.mad = &response->mad.mad;
+-			response->header.recv_wc.recv_buf.grh = &response->grh;
+-
+-			agent_send_response(&response->mad.mad,
+-					    &response->grh, wc,
+-					    port_priv->device,
+-					    smi_get_fwd_port(&recv->mad.smp),
+-					    qp_info->qp->qp_num);
+-
+-			goto out;
+-		}
+ 	}
+ 
+-local:
+ 	/* Give driver "right of first refusal" on incoming MAD */
+ 	if (port_priv->device->process_mad) {
+ 		ret = port_priv->device->process_mad(port_priv->device, 0,
 -- 
 1.7.1
 
