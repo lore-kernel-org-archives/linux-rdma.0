@@ -1,32 +1,21 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next 0/2] All Chelsio drivers : Cleanup CPL
- messages macros
-Date: Mon, 12 Jan 2015 16:20:03 -0500 (EST)
-Message-ID: <20150112.162003.158111167752709707.davem@davemloft.net>
-References: <1420781896-25337-1-git-send-email-anish@chelsio.com>
+From: "Suklee Peck" <chaibi.medthameur-jHBqxI1HPOVFngycNdebug@public.gmane.org>
+Subject: Re:Investment
+Date: Mon, 12 Jan 2015 10:41:31 -0800
+Message-ID: <20150112223703.B62CC22DB6@mta.agrinet.tn>
+Reply-To: saitt1-9uewiaClKEY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1420781896-25337-1-git-send-email-anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, kxie-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Recipients <chaibi.medthameur-jHBqxI1HPOVFngycNdebug@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Anish Bhatt <anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Date: Thu,  8 Jan 2015 21:38:14 -0800
+I'm contacting you on behalf of an investment placed under management 5 years ago by Shui bian. He needs assistance in investing these funds. If you are interested, you can write to his private email ( saitt1-9uewiaClKEY@public.gmane.org ) for further details.
 
-> This patch series cleans up all register defines/MACROS defined in t4_msg.h and
-> affected files as part of the continuing cleanup effort
-> 
-> The patches series is created against 'net-next' tree and  includes patches 
-> to the cxgb4, cxgb4vf, iw_cxgb4, cxgb4i and csiostor drivers.
-> 
-> We have included all the maintainers of respective drivers. Kindly review the
-> change and let us know in case of any review comments.
-
-Looks fine, applied to net-next, thanks.
+Best Regards,
+Suklee Peck
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
