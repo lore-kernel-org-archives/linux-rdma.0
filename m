@@ -1,38 +1,21 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] infiniband: mlx5: avoid a compile-time warning
-Date: Tue, 13 Jan 2015 17:08:41 -0500 (EST)
-Message-ID: <20150113.170841.1549791027972784427.davem@davemloft.net>
-References: <2267004.49D0qFBpL1@wuerfel>
+From: "Suklee Peck" <chaibi.medthameur-jHBqxI1HPOVFngycNdebug@public.gmane.org>
+Subject: Re: Investment
+Date: Tue, 13 Jan 2015 10:23:16 -0800
+Message-ID: <20150113221845.A0C9422596@mta.agrinet.tn>
+Reply-To: saitt01-9uewiaClKEY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2267004.49D0qFBpL1@wuerfel>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arnd-r2nGTMty4D4@public.gmane.org
-Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients <chaibi.medthameur-jHBqxI1HPOVFngycNdebug@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Date: Tue, 13 Jan 2015 17:09:43 +0100
-
-> The return type of find_first_bit() is architecture specific,
-> on ARM it is 'unsigned int', while the asm-generic code used
-> on x86 and a lot of other architectures returns 'unsigned long'.
-> 
-> When building the mlx5 driver on ARM, we get a warning about
-> this:
-> 
-> infiniband/hw/mlx5/mem.c: In function 'mlx5_ib_cont_pages':
-> infiniband/hw/mlx5/mem.c:84:143: warning: comparison of distinct pointer types lacks a cast
->      m = min(m, find_first_bit(&tmp, sizeof(tmp)));
-> 
-> This patch changes the driver to use min_t to make it behave
-> the same way on all architectures.
-> 
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-
-Applied.
+I'm contacting you on behalf of an investment placed under management 5 years ago by Shui bian. He needs assistance in investing these funds. If you are interested, you can write to his private email ( saitt01-9uewiaClKEY@public.gmane.org ) for further details.
+gesalpe
+Best Regards,
+Suklee Peck
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
