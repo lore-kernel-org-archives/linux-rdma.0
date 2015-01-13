@@ -1,46 +1,72 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] infiniband: mlx5: avoid a compile-time warning
-Date: Tue, 13 Jan 2015 17:09:43 +0100
-Message-ID: <2267004.49D0qFBpL1@wuerfel>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 00/20] NFS/RDMA client for 3.20
+Date: Tue, 13 Jan 2015 11:24:43 -0500
+Message-ID: <20150113161440.14086.24801.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The return type of find_first_bit() is architecture specific,
-on ARM it is 'unsigned int', while the asm-generic code used
-on x86 and a lot of other architectures returns 'unsigned long'.
+The following series of patches for the Linux NFS client breaks up
+the per-transport buffer pool data structures to help them scale
+better with the size of SEND/RECV buffers (the inline threshold),
+the maximum NFS r/wsize, and the number of RDMA credits (concurrent
+RPC requests).
 
-When building the mlx5 driver on ARM, we get a warning about
-this:
+The primary change is that the header send buffers have been split
+from struct rpcrdma_req. Specific benefits are outlined in the patch
+descriptions.
 
-infiniband/hw/mlx5/mem.c: In function 'mlx5_ib_cont_pages':
-infiniband/hw/mlx5/mem.c:84:143: warning: comparison of distinct pointer types lacks a cast
-     m = min(m, find_first_bit(&tmp, sizeof(tmp)));
+More pre-requisites are required. Changes to raise the maximum
+r/wsize and other limits are left for a future merge window.
 
-This patch changes the driver to use min_t to make it behave
-the same way on all architectures.
+See the topic branch "nfs-rdma-for-3.20" at:
 
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+  git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
-index b56e4c5593ee..611a9fdf2f38 100644
---- a/drivers/infiniband/hw/mlx5/mem.c
-+++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -81,7 +81,7 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
- 		for (k = 0; k < len; k++) {
- 			if (!(i & mask)) {
- 				tmp = (unsigned long)pfn;
--				m = min(m, find_first_bit(&tmp, sizeof(tmp)));
-+				m = min_t(unsigned long, m, find_first_bit(&tmp, sizeof(tmp)));
- 				skip = 1 << m;
- 				mask = skip - 1;
- 				base = pfn;
+Changes since v1:
+ - Rebased on v3.19-rc4
+ - One short description fixed
+ - linux-rdma included this time (sorry for the noise)
 
+---
+
+Chuck Lever (20):
+      xprtrdma: human-readable completion status
+      xprtrdma: Modernize htonl and ntohl
+      xprtrdma: Display XIDs in host byte order
+      xprtrdma: Clean up hdrlen
+      xprtrdma: Rename "xprt" and "rdma_connect" fields in struct rpcrdma_xprt
+      xprtrdma: Remove rpcrdma_ep::rep_ia
+      xprtrdma: Remove rl_mr field, and the mr_chunk union
+      xprtrdma: Move credit update to RPC reply handler
+      xprtrdma: Remove rpcrdma_ep::rep_func and ::rep_xprt
+      xprtrdma: Free the pd if ib_query_qp() fails
+      xprtrdma: Take struct ib_device_attr off the stack
+      xprtrdma: Take struct ib_qp_attr and ib_qp_init_attr off the stack
+      xprtrdma: Simplify synopsis of rpcrdma_buffer_create()
+      xprtrdma: Refactor rpcrdma_buffer_create() and rpcrdma_buffer_destroy()
+      xprtrdma: Add struct rpcrdma_regbuf and helpers
+      xprtrdma: Allocate RPC send buffer separately from struct rpcrdma_req
+      xprtrdma: Allocate RPC/RDMA send buffer separately from struct rpcrdma_req
+      xprtrdma: Allocate RPC/RDMA receive buffer separately from struct rpcrdma_rep
+      xprtrdma: Allocate zero pad separately from rpcrdma_buffer
+      xprtrdma: Clean up after adding regbuf management
+
+
+ include/linux/sunrpc/rpc_rdma.h |   14 +
+ include/linux/sunrpc/svc_rdma.h |    2 
+ net/sunrpc/xprtrdma/rpc_rdma.c  |  108 ++++++----
+ net/sunrpc/xprtrdma/transport.c |  179 +++++++----------
+ net/sunrpc/xprtrdma/verbs.c     |  411 ++++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |  111 +++++++----
+ 6 files changed, 478 insertions(+), 347 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
