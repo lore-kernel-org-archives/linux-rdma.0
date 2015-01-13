@@ -1,138 +1,56 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 10/10] svcrdma: Handle additional inline content
-Date: Tue, 13 Jan 2015 11:03:53 -0500
-Message-ID: <20150113160353.8118.98740.stgit@klimt.1015granger.net>
-References: <20150113155904.8118.57718.stgit@klimt.1015granger.net>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] mlx5: avoid build warnings on 32-bit
+Date: Tue, 13 Jan 2015 17:08:06 +0100
+Message-ID: <4105686.Jz5UR0277i@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150113155904.8118.57718.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Most NFS RPCs place their large payload argument at the end of the
-RPC header (eg, NFSv3 WRITE). For NFSv3 WRITE and SYMLINK, RPC/RDMA
-sends the complete RPC header inline, and the payload argument in
-the read list. Data in the read list is the last part of the XDR
-stream.
+The mlx5 driver passes a string pointer in through a 'u64' variable,
+which on 32-bit machines causes a build warning:
 
-One important case is not like this, however. NFSv4 COMPOUND is a
-counted array of operations. A WRITE operation, with its large data
-payload, can appear in the middle of the compound's operations
-array. Thus NFSv4 WRITE compounds can have header content after the
-WRITE payload.
+drivers/net/ethernet/mellanox/mlx5/core/debugfs.c: In function 'qp_read_field':
+drivers/net/ethernet/mellanox/mlx5/core/debugfs.c:303:11: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
 
-The Linux client, for example, performs an NFSv4 WRITE like this:
+The code is in fact safe, so we can shut up the warning by adding
+extra type casts.
 
-  { PUTFH, WRITE, GETATTR }
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-Though RFC 5667 is not precise about this, the proper way to convey
-this compound is to place the GETATTR inline, _after_ the front of
-the RPC header. The receiver inserts the read list payload into the
-XDR stream after the initial WRITE arguments, and before the GETATTR
-operation, thanks to the value of the read list "position" field.
-
-The Linux client currently sends the GETATTR at the end of the
-RPC/RDMA read list, which is incorrect. It will be corrected in the
-future.
-
-The Linux server currently rejects NFSv4 compounds with inline
-content after the read list. For the above NFSv4 WRITE compound, the
-NFS compound header indicates there are three operations, but the
-server finds nonsense when it looks in the XDR stream for the third
-operation, and the compound fails with OP_ILLEGAL.
-
-Move trailing inline content to the end of the XDR buffer's page
-list. This presents incoming NFSv4 WRITE compounds to NFSD in the
-same way the socket transport does.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   55 +++++++++++++++++++++++++++++++
- 1 files changed, 55 insertions(+), 0 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index a345cad..f9f13a3 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -364,6 +364,56 @@ rdma_rcl_chunk_count(struct rpcrdma_read_chunk *ch)
- 	return count;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+index 10e1f1a18255..4878025e231c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+@@ -300,11 +300,11 @@ static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
+ 		param = qp->pid;
+ 		break;
+ 	case QP_STATE:
+-		param = (u64)mlx5_qp_state_str(be32_to_cpu(ctx->flags) >> 28);
++		param = (unsigned long)mlx5_qp_state_str(be32_to_cpu(ctx->flags) >> 28);
+ 		*is_str = 1;
+ 		break;
+ 	case QP_XPORT:
+-		param = (u64)mlx5_qp_type_str((be32_to_cpu(ctx->flags) >> 16) & 0xff);
++		param = (unsigned long)mlx5_qp_type_str((be32_to_cpu(ctx->flags) >> 16) & 0xff);
+ 		*is_str = 1;
+ 		break;
+ 	case QP_MTU:
+@@ -464,7 +464,7 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
  
-+/* If there was additional inline content, append it to the end of arg.pages.
-+ * Tail copy has to be done after the reader function has determined how many
-+ * pages are needed for RDMA READ.
-+ */
-+static int
-+rdma_copy_tail(struct svc_rqst *rqstp, struct svc_rdma_op_ctxt *head,
-+	       u32 position, u32 byte_count, u32 page_offset, int page_no)
-+{
-+	char *srcp, *destp;
-+	int ret;
-+
-+	ret = 0;
-+	srcp = head->arg.head[0].iov_base + position;
-+	byte_count = head->arg.head[0].iov_len - position;
-+	if (byte_count > PAGE_SIZE) {
-+		dprintk("svcrdma: large tail unsupported\n");
-+		return 0;
-+	}
-+
-+	/* Fit as much of the tail on the current page as possible */
-+	if (page_offset != PAGE_SIZE) {
-+		destp = page_address(rqstp->rq_arg.pages[page_no]);
-+		destp += page_offset;
-+		while (byte_count--) {
-+			*destp++ = *srcp++;
-+			page_offset++;
-+			if (page_offset == PAGE_SIZE && byte_count)
-+				goto more;
-+		}
-+		goto done;
-+	}
-+
-+more:
-+	/* Fit the rest on the next page */
-+	page_no++;
-+	destp = page_address(rqstp->rq_arg.pages[page_no]);
-+	while (byte_count--)
-+		*destp++ = *srcp++;
-+
-+	rqstp->rq_respages = &rqstp->rq_arg.pages[page_no+1];
-+	rqstp->rq_next_page = rqstp->rq_respages + 1;
-+
-+done:
-+	byte_count = head->arg.head[0].iov_len - position;
-+	head->arg.page_len += byte_count;
-+	head->arg.len += byte_count;
-+	head->arg.buflen += byte_count;
-+	return 1;
-+}
-+
- static int rdma_read_chunks(struct svcxprt_rdma *xprt,
- 			    struct rpcrdma_msg *rmsgp,
- 			    struct svc_rqst *rqstp,
-@@ -440,9 +490,14 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
- 		head->arg.page_len += pad;
- 		head->arg.len += pad;
- 		head->arg.buflen += pad;
-+		page_offset += pad;
- 	}
  
- 	ret = 1;
-+	if (position && position < head->arg.head[0].iov_len)
-+		ret = rdma_copy_tail(rqstp, head, position,
-+				     byte_count, page_offset, page_no);
-+	head->arg.head[0].iov_len = position;
- 	head->position = position;
+ 	if (is_str)
+-		ret = snprintf(tbuf, sizeof(tbuf), "%s\n", (const char *)field);
++		ret = snprintf(tbuf, sizeof(tbuf), "%s\n", (const char *)(unsigned long)field);
+ 	else
+ 		ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
  
-  err:
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
