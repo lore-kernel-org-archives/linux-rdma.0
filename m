@@ -1,77 +1,66 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 20/20] xprtrdma: Clean up after adding regbuf management
-Date: Tue, 13 Jan 2015 11:27:28 -0500
-Message-ID: <20150113162728.14086.15466.stgit@manet.1015granger.net>
-References: <20150113161440.14086.24801.stgit@manet.1015granger.net>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx5: avoid build warnings on 32-bit
+Date: Tue, 13 Jan 2015 18:28:03 +0200
+Message-ID: <20150113162803.GA7414@mtldesk30>
+References: <4105686.Jz5UR0277i@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150113161440.14086.24801.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4105686.Jz5UR0277i@wuerfel>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-rpcrdma_{de}register_internal() are used only in verbs.c now.
+On Tue, Jan 13, 2015 at 05:08:06PM +0100, Arnd Bergmann wrote:
 
-MAX_RPCRDMAHDR is no longer used and can be removed.
+Hi Arnd,
+wouldn't it work by casting to uintptr_t instead of unsigned long?
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c     |    4 ++--
- net/sunrpc/xprtrdma/xprt_rdma.h |    9 ---------
- 2 files changed, 2 insertions(+), 11 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 669f68a..f7c3d10 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1729,7 +1729,7 @@ rpcrdma_recv_buffer_put(struct rpcrdma_rep *rep)
-  * Wrappers for internal-use kmalloc memory registration, used by buffer code.
-  */
- 
--int
-+static int
- rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
- 				struct ib_mr **mrp, struct ib_sge *iov)
- {
-@@ -1780,7 +1780,7 @@ rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
- 	return rc;
- }
- 
--int
-+static int
- rpcrdma_deregister_internal(struct rpcrdma_ia *ia,
- 				struct ib_mr *mr, struct ib_sge *iov)
- {
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 5630353..c9d2a02 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -171,10 +171,6 @@ enum rpcrdma_chunktype {
- /* temporary static scatter/gather max */
- #define RPCRDMA_MAX_DATA_SEGS	(64)	/* max scatter/gather */
- #define RPCRDMA_MAX_SEGS 	(RPCRDMA_MAX_DATA_SEGS + 2) /* head+tail = 2 */
--#define MAX_RPCRDMAHDR	(\
--	/* max supported RPC/RDMA header */ \
--	sizeof(struct rpcrdma_msg) + (2 * sizeof(u32)) + \
--	(sizeof(struct rpcrdma_read_chunk) * RPCRDMA_MAX_SEGS) + sizeof(u32))
- 
- struct rpcrdma_buffer;
- 
-@@ -401,11 +397,6 @@ void rpcrdma_buffer_put(struct rpcrdma_req *);
- void rpcrdma_recv_buffer_get(struct rpcrdma_req *);
- void rpcrdma_recv_buffer_put(struct rpcrdma_rep *);
- 
--int rpcrdma_register_internal(struct rpcrdma_ia *, void *, int,
--				struct ib_mr **, struct ib_sge *);
--int rpcrdma_deregister_internal(struct rpcrdma_ia *,
--				struct ib_mr *, struct ib_sge *);
--
- int rpcrdma_register_external(struct rpcrdma_mr_seg *,
- 				int, int, struct rpcrdma_xprt *);
- int rpcrdma_deregister_external(struct rpcrdma_mr_seg *,
-
+> The mlx5 driver passes a string pointer in through a 'u64' variable,
+> which on 32-bit machines causes a build warning:
+> 
+> drivers/net/ethernet/mellanox/mlx5/core/debugfs.c: In function 'qp_read_field':
+> drivers/net/ethernet/mellanox/mlx5/core/debugfs.c:303:11: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+> 
+> The code is in fact safe, so we can shut up the warning by adding
+> extra type casts.
+> 
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+> index 10e1f1a18255..4878025e231c 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+> @@ -300,11 +300,11 @@ static u64 qp_read_field(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
+>  		param = qp->pid;
+>  		break;
+>  	case QP_STATE:
+> -		param = (u64)mlx5_qp_state_str(be32_to_cpu(ctx->flags) >> 28);
+> +		param = (unsigned long)mlx5_qp_state_str(be32_to_cpu(ctx->flags) >> 28);
+>  		*is_str = 1;
+>  		break;
+>  	case QP_XPORT:
+> -		param = (u64)mlx5_qp_type_str((be32_to_cpu(ctx->flags) >> 16) & 0xff);
+> +		param = (unsigned long)mlx5_qp_type_str((be32_to_cpu(ctx->flags) >> 16) & 0xff);
+>  		*is_str = 1;
+>  		break;
+>  	case QP_MTU:
+> @@ -464,7 +464,7 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
+>  
+>  
+>  	if (is_str)
+> -		ret = snprintf(tbuf, sizeof(tbuf), "%s\n", (const char *)field);
+> +		ret = snprintf(tbuf, sizeof(tbuf), "%s\n", (const char *)(unsigned long)field);
+>  	else
+>  		ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
