@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 01/10] svcrdma: Clean up dprintk
-Date: Tue, 13 Jan 2015 11:02:37 -0500
-Message-ID: <20150113160237.8118.29686.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 02/10] svcrdma: Remove unused variable
+Date: Tue, 13 Jan 2015 11:02:45 -0500
+Message-ID: <20150113160245.8118.24476.stgit@klimt.1015granger.net>
 References: <20150113155904.8118.57718.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,40 +13,34 @@ To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Nit: Fix inconsistent white space in dprintk messages.
+Nit: remove an unused variable to squelch a compiler warning.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index e011027..2c67de0 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -501,8 +501,8 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
- 	ret = rqstp->rq_arg.head[0].iov_len
- 		+ rqstp->rq_arg.page_len
- 		+ rqstp->rq_arg.tail[0].iov_len;
--	dprintk("svcrdma: deferred read ret=%d, rq_arg.len =%d, "
--		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len = %zd\n",
-+	dprintk("svcrdma: deferred read ret=%d, rq_arg.len=%u, "
-+		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zu\n",
- 		ret, rqstp->rq_arg.len,	rqstp->rq_arg.head[0].iov_base,
- 		rqstp->rq_arg.head[0].iov_len);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 4e61880..4ba11d0 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -687,7 +687,6 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ {
+ 	struct rdma_cm_id *listen_id;
+ 	struct svcxprt_rdma *cma_xprt;
+-	struct svc_xprt *xprt;
+ 	int ret;
  
-@@ -591,8 +591,8 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		+ rqstp->rq_arg.tail[0].iov_len;
- 	svc_rdma_put_context(ctxt, 0);
-  out:
--	dprintk("svcrdma: ret = %d, rq_arg.len =%d, "
--		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len = %zd\n",
-+	dprintk("svcrdma: ret=%d, rq_arg.len=%u, "
-+		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zd\n",
- 		ret, rqstp->rq_arg.len,
- 		rqstp->rq_arg.head[0].iov_base,
- 		rqstp->rq_arg.head[0].iov_len);
+ 	dprintk("svcrdma: Creating RDMA socket\n");
+@@ -698,7 +697,6 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 	cma_xprt = rdma_create_xprt(serv, 1);
+ 	if (!cma_xprt)
+ 		return ERR_PTR(-ENOMEM);
+-	xprt = &cma_xprt->sc_xprt;
+ 
+ 	listen_id = rdma_create_id(rdma_listen_handler, cma_xprt, RDMA_PS_TCP,
+ 				   IB_QPT_RC);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
