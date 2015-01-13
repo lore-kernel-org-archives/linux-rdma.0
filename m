@@ -1,59 +1,54 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 00/10] NFS/RDMA server for 3.20
-Date: Tue, 13 Jan 2015 11:02:28 -0500
-Message-ID: <20150113155904.8118.57718.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 01/10] svcrdma: Clean up dprintk
+Date: Tue, 13 Jan 2015 11:02:37 -0500
+Message-ID: <20150113160237.8118.29686.stgit@klimt.1015granger.net>
+References: <20150113155904.8118.57718.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150113155904.8118.57718.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In addition to miscellaneous clean up, the following series of
-patches for the Linux NFS server introduces support in the
-server=E2=80=99s RPC/RDMA transport implementation for RDMA_NOMSG type
-messages, and fixes a bug that prevents the server from handling
-RPC/RDMA messages with inline content following the read list.
+Nit: Fix inconsistent white space in dprintk messages.
 
-These patches are contained in the topic branch "nfsd-rdma-for-3.20"
-at:
-
- git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-Changes since v1:
- - Rebased on 3.19-rc4
- - Patch descriptions clarified
- - Bug addressed in "svcrdma: Handle additional inline content"
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
 
-Chuck Lever (10):
-      svcrdma: Handle additional inline content
-      svcrdma: Move read list XDR round-up logic
-      svcrdma: Support RDMA_NOMSG requests
-      svcrdma: rc_position sanity checking
-      svcrdma: Plant reader function in struct svcxprt_rdma
-      svcrdma: Find rmsgp more reliably
-      svcrdma: Scrub BUG_ON() and WARN_ON() call sites
-      svcrdma: Clean up read chunk counting
-      svcrdma: Remove unused variable
-      svcrdma: Clean up dprintk
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index e011027..2c67de0 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -501,8 +501,8 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
+ 	ret = rqstp->rq_arg.head[0].iov_len
+ 		+ rqstp->rq_arg.page_len
+ 		+ rqstp->rq_arg.tail[0].iov_len;
+-	dprintk("svcrdma: deferred read ret=%d, rq_arg.len =%d, "
+-		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len = %zd\n",
++	dprintk("svcrdma: deferred read ret=%d, rq_arg.len=%u, "
++		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zu\n",
+ 		ret, rqstp->rq_arg.len,	rqstp->rq_arg.head[0].iov_base,
+ 		rqstp->rq_arg.head[0].iov_len);
+ 
+@@ -591,8 +591,8 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 		+ rqstp->rq_arg.tail[0].iov_len;
+ 	svc_rdma_put_context(ctxt, 0);
+  out:
+-	dprintk("svcrdma: ret = %d, rq_arg.len =%d, "
+-		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len = %zd\n",
++	dprintk("svcrdma: ret=%d, rq_arg.len=%u, "
++		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zd\n",
+ 		ret, rqstp->rq_arg.len,
+ 		rqstp->rq_arg.head[0].iov_base,
+ 		rqstp->rq_arg.head[0].iov_len);
 
- include/linux/sunrpc/svc_rdma.h          |   13 +-
- net/sunrpc/xprtrdma/svc_rdma_marshal.c   |   16 --
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  244 +++++++++++++++++++---=
---------
- net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   46 +++---
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   47 ++++--
- 5 files changed, 217 insertions(+), 149 deletions(-)
-
---=20
-Chuck Lever
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
