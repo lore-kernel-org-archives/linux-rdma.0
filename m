@@ -1,21 +1,24 @@
-From: "Suklee Peck" <chaibi.medthameur-jHBqxI1HPOVFngycNdebug@public.gmane.org>
-Subject: Re:Investment
-Date: Mon, 12 Jan 2015 10:41:31 -0800
-Message-ID: <20150112223703.B62CC22DB6@mta.agrinet.tn>
-Reply-To: saitt1-9uewiaClKEY@public.gmane.org
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] ibdiag_common.c: Add more supported
+ device IDs
+Date: Tue, 13 Jan 2015 09:05:40 +0200
+Message-ID: <54B4C3C4.9000101@mellanox.com>
+References: <54B41B9D.5020700@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <54B41B9D.5020700-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <chaibi.medthameur-jHBqxI1HPOVFngycNdebug@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm contacting you on behalf of an investment placed under management 5 years ago by Shui bian. He needs assistance in investing these funds. If you are interested, you can write to his private email ( saitt1-9uewiaClKEY@public.gmane.org ) for further details.
+On 1/12/2015 9:08 PM, Hal Rosenstock wrote:
+> Add support for ConnectX-3 and ConnectX-4
 
-Best Regards,
-Suklee Peck
+So... ConnectX-3 isn't supported today?! on what infrastructure/tools 
+exactly?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
