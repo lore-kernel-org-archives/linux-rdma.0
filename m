@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 infiniband-diags] ibnetdisc.c: Add additional supported
- device IDs to is_mlnx_ext_port_info_supported
-Date: Wed, 14 Jan 2015 09:07:03 -0500
-Message-ID: <54B67807.5090507@dev.mellanox.co.il>
+Subject: [PATCHv2 infiniband-diags] vendstat.c: Add additional vendor IDs
+ to ext_fw_info_device
+Date: Wed, 14 Jan 2015 09:07:10 -0500
+Message-ID: <54B6780E.1050907@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,31 +12,31 @@ To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Similar to previous ibdiag_common.c patch, this adds additional device IDs
-to be supported to the ibnetdiscover internal is_mlnx_ext_port_info routine.
+Add additional supported device IDs to ext_fw_info_device.
 These IDs are ConnectX-4, ConnectX-IB, and Switch-IB.
+This affects is_ext_fw_info_supported which determine
+which Mellanox specific vendor MADs are issued to a device.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Change from v1:
-Changed ConnectX-3 to ConnectX-IB in patch description
+Change since v1:
+Changed ConnectX-3 to Connect-IB in patch description
 
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 121fe35..f3c6000 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -203,9 +203,9 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
- {
- 	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
+diff --git a/src/vendstat.c b/src/vendstat.c
+index f28ff02..7fc4a11 100644
+--- a/src/vendstat.c
++++ b/src/vendstat.c
+@@ -145,8 +145,9 @@ typedef struct {
+ static uint16_t ext_fw_info_device[][2] = {
+ 	{0x0245, 0x0245},	/* Switch-X */
+ 	{0xc738, 0xc738},	/* Switch-X */
++	{0xcb84, 0xcb84},	/* Switch-IB */
+ 	{0x01b3, 0x01b3},	/* IS-4 */
+-	{0x1003, 0x1011},	/* Connect-X */
++	{0x1003, 0x1016},	/* Connect-X */
+ 	{0x0000, 0x0000}};
  
--	if (devid == 0xc738)
-+	if (devid == 0xc738 || devid == 0xcb84)
- 		return 1;
--	if (devid >= 0x1003 && devid <= 0x1011)
-+	if (devid >= 0x1003 && devid <= 0x1016)
- 		return 1;
- 	return 0;
- }
+ static int is_ext_fw_info_supported(uint16_t device_id) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
