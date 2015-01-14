@@ -1,48 +1,34 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 14/20] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device cap
- flag
-Date: Wed, 14 Jan 2015 18:47:16 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC0060C@CRSMSX101.amr.corp.intel.com>
-References: <1421082672-22588-1-git-send-email-ira.weiny@intel.com>
- <1421082672-22588-15-git-send-email-ira.weiny@intel.com>
- <54B60A28.2030409@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 FIX For 3.19 0/3] IB/ipoib: fixup multicast join thread usage
+Date: Wed, 14 Jan 2015 14:05:25 -0500
+Message-ID: <cover.1421261785.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54B60A28.2030409-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On 1/12/2015 7:11 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> 
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
->   enum ib_signature_prot_cap {
->   	IB_PROT_T10DIF_TYPE_1 = 1,
->   	IB_PROT_T10DIF_TYPE_2 = 1 << 1,
-> @@ -210,6 +214,7 @@ struct ib_device_attr {
->   	int			sig_prot_cap;
->   	int			sig_guard_cap;
->   	struct ib_odp_caps	odp_caps;
-> +	u64			device_cap_flags2;
-> 
-> 
-> Just make the existing kernel size device_cap_flags field a u64, note it's not
-> blankly copied to user space in uverbs as part of a chunk, so just go there and
-> copy the lower 32 bits.
-> 
+This patch series fixes the multicast join behavior problems introduced
+by my previous patchset.  In particular, the original code did not use
+the send only join code from the multicast thread context, and so it
+did not need to restart the multicast thread.  After my previous patchset,
+it does get called from the thread context, and so the send only join
+completion areas need to restart the join thread but they don't.  This
+patchset makes them do so.  It then adds in some cleanups for restarting
+the thread, and fixes the fact that one delayed join holds up the entire
+list of joins.
 
-It is an easy change but before changing this I'd like to hear what Roland or others think.
+Doug Ledford (3):
+  IB/ipoib: Fix failed multicast joins/sends
+  IB/ipoib: Add a helper to restart the multicast task
+  IB/ipoib: make delayed tasks not hold up everything
 
-I prefer to define an additional field.  Eventually we are likely to have flags which need to be communicated to user space.  I think it will be cleaner at that time to report the entire new field rather than go through some sort of "upper 32 bit device capability" logic.
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  1 +
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 94 ++++++++++++++++++--------
+ 2 files changed, 66 insertions(+), 29 deletions(-)
 
-Thoughts?
-Ira
+-- 
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
