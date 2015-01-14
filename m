@@ -1,87 +1,43 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH FIX for-3.19] IB/ipoib: Fix failed multicast joins/sends
-Date: Wed, 14 Jan 2015 01:38:24 -0500
-Message-ID: <c903a4f1282f7d5852157c68bcc3f4324fd4300f.1421217352.git.dledford@redhat.com>
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 2/2] RDMA/libocrdma: update libocrdma version string
+Date: Wed, 14 Jan 2015 12:23:52 +0530
+Message-ID: <99b55899-3b89-4a5e-b9f4-84e72705d4d7@CMEXHTCAS2.ad.emulex.com>
+References: <1421218432-17812-1-git-send-email-devesh.sharma@emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1421218432-17812-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The usage of IPOIB_MCAST_RUN as a flag is inconsistent.  In some places
-it is used to mean "our device is administratively allowed to send
-multicast joins/leaves/packets" and in other places it means "our
-multicast join task thread is currently running and will process your
-request if you put it on the queue".  However, this latter meaning is in
-fact flawed as there is a race condition between the join task testing
-the mcast list and finding it empty of remaining work, dropping the
-mcast mutex and also the priv->lock spinlock, and clearing the
-IPOIB_MCAST_RUN flag.  Further, there are numerous locations that use
-the flag in the former fashion, and when all tasks complete and the task
-thread clears the RUN flag, all of those other locations will fail to
-ever again queue any work.  This results in the interface coming up fine
-initially, but having problems adding new multicast groups after the
-first round of groups have all been added and the RUN flag is cleared by
-the join task thread when it thinks it is done.  To resolve this issue,
-convert all locations in the code to treat the RUN flag as an indicator
-that the multicast portion of this interface is in fact administratively
-up and joins/leaves/sends can be performed.  There is no harm (other
-than a slight performance penalty) to never clearing this flag and using
-it in this fashion as it simply means that a few places that used to
-micro-optimize how often this task was queued on a work queue will now
-queue the task a few extra times.  We can address that suboptimal
-behavior in future patches.
-
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+version string updated from 1.0.4 to 1.0.5
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ configure.in |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index bc50dd0d0e4..91b8fe118ec 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -630,8 +630,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	}
+diff --git a/configure.in b/configure.in
+index 3b0cf21..140c07b 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1,11 +1,11 @@
+ dnl Process this file with autoconf to produce a configure script.
  
- 	ipoib_dbg_mcast(priv, "successfully joined all multicast groups\n");
--
--	clear_bit(IPOIB_MCAST_RUN, &priv->flags);
- }
+ AC_PREREQ(2.57)
+-AC_INIT(libocrdma, 1.0.4, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(libocrdma, 1.0.5, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/ocrdma_main.h])
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+-AM_INIT_AUTOMAKE(libocrdma, 1.0.4)
++AM_INIT_AUTOMAKE(libocrdma, 1.0.5)
+ AM_PROG_LIBTOOL
  
- int ipoib_mcast_start_thread(struct net_device *dev)
-@@ -641,8 +639,8 @@ int ipoib_mcast_start_thread(struct net_device *dev)
- 	ipoib_dbg_mcast(priv, "starting multicast thread\n");
- 
- 	mutex_lock(&mcast_mutex);
--	if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
--		queue_delayed_work(priv->wq, &priv->mcast_task, 0);
-+	set_bit(IPOIB_MCAST_RUN, &priv->flags);
-+	queue_delayed_work(priv->wq, &priv->mcast_task, 0);
- 	mutex_unlock(&mcast_mutex);
- 
- 	return 0;
-@@ -725,7 +723,7 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		memcpy(mcast->mcmember.mgid.raw, mgid, sizeof (union ib_gid));
- 		__ipoib_mcast_add(dev, mcast);
- 		list_add_tail(&mcast->list, &priv->multicast_list);
--		if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
-+		if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
- 	}
- 
-@@ -951,7 +949,8 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 	/*
- 	 * Restart our join task if needed
- 	 */
--	ipoib_mcast_start_thread(dev);
-+	if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
-+		queue_delayed_work(priv->wq, &priv->mcast_task, 0);
- 	rtnl_unlock();
- }
- 
+ AC_ARG_ENABLE(libcheck, [ --disable-libcheck    do not test for the presence of ib libraries],
 -- 
-2.1.0
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
