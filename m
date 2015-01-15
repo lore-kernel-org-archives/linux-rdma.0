@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH FIX For-3.19 v3 5/6] IB/ipoib: don't restart our thread on ENETRESET
-Date: Thu, 15 Jan 2015 15:59:40 -0500
-Message-ID: <93454e319400e3131948b47f11836e7d9d0e0edb.1421355536.git.dledford@redhat.com>
+Subject: [PATCH FIX For-3.19 v3 6/6] IB/ipoib: remove unneeded locks
+Date: Thu, 15 Jan 2015 15:59:41 -0500
+Message-ID: <e5bfbf98c937c05cd226489853b51f345639f3da.1421355536.git.dledford@redhat.com>
 References: <1421353631.2484.31.camel@redhat.com>
  <f0d0830949eb57626baa20a1d311b8e4b4f7768d.1421355536.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -13,44 +13,33 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make the send only join completion handler behave like the normal join
-completion handler in that we should restart the multicast join thread
-whenever our join completes with either an error or success, but don't
-restart the thread if we got a net reset event, let ipoib_event queue
-up a device flush, which will then call ipoib_mcast_dev_flush to remove
-all of the current mcast entries, and ipoib_mcase_restart_task to check
-out current mcast entry list against the netdev list of mcast entries
-we are supposed to have and requeue the ones we need to get back.
+During the various work I've done on this, some extra locking has crept
+in when things weren't working right.  This is one of those spots.
+Remove the unneeded spinlocks.  The mutex is enough to protect against
+what we need to protect against.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index e81ed117c30..34727254339 100644
+index 34727254339..9df74f831e2 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -336,17 +336,18 @@ ipoib_mcast_sendonly_join_complete(int status,
- 			dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
- 		}
- 		netif_tx_unlock_bh(dev);
-+		__ipoib_mcast_continue_join_thread(priv, mcast, 1);
- 	} else {
- 		/* Join completed, so reset any backoff parameters */
- 		mcast->backoff = 1;
- 		mcast->delay_until = jiffies;
-+		__ipoib_mcast_continue_join_thread(priv, NULL, 0);
+@@ -497,12 +497,10 @@ static int ipoib_mcast_join_complete(int status,
+ 		__ipoib_mcast_continue_join_thread(priv, mcast, 1);
  	}
  out:
+-	spin_lock_irq(&priv->lock);
  	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
  	if (status)
  		mcast->mc = NULL;
  	complete(&mcast->done);
--	__ipoib_mcast_continue_join_thread(priv, NULL, 0);
+-	spin_unlock_irq(&priv->lock);
  	mutex_unlock(&mcast_mutex);
+ 
  	return status;
- }
 -- 
 2.1.0
 
