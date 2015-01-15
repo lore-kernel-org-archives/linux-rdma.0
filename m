@@ -1,60 +1,80 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 14/20] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device cap
- flag
-Date: Wed, 14 Jan 2015 20:47:55 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC0073E@CRSMSX101.amr.corp.intel.com>
-References: <1421082672-22588-1-git-send-email-ira.weiny@intel.com>
- <1421082672-22588-15-git-send-email-ira.weiny@intel.com>
- <54B60C08.9090205@mellanox.com>
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH V3 FIX For-3.19 0/3] IB/ipoib: Fix multicast join flow
+Date: Thu, 15 Jan 2015 09:19:39 +0000
+Message-ID: <DBXPR05MB067182B666A7F24EE23DC8ADB64E0@DBXPR05MB0671.eurprd05.prod.outlook.com>
+References: <cover.1421264928.git.dledford@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54B60C08.9090205-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <cover.1421264928.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On 1/12/2015 7:11 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > Add a device capability flag to flag OPA MAD support on devices.
-> 
-> You should put few words here telling what is OPA/OPA MADs and why
-> supporting them fits the IB core.
-> 
-> See for example the IB core patch [1] that added signature verbs API is states in
-> a manner which is both generic across vendors and across different Mellanox
-> HCAs. Also see [2] the IB core patch that added support for BMME API  as
-> another example.
+Hi Doug,
 
-I'm not quite sure what should be covered in this message which is different from the cover letter or the subsequent patches.
+Thank you for the quick response.
 
-Would this be more acceptable?
+Now I can see 2 issues, that I want to draw your attention to:
 
-<quote>
+1. if there is a mcg that the driver failed to join, the mc_task enters to endless loop of re-queue, and the log will be full with the next messages:
+[682560.569826] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.580136] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.590364] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.600504] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.610627] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.620769] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.631082] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.640835] ib0: sendonly multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
+[682560.651033] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.660758] ib0: sendonly multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
+[682560.670923] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.680676] ib0: sendonly multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
+[682560.690898] ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting sendonly join
+[682560.700630] ib0: sendonly multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
 
-IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device cap flag
+around 100 times a sec.
 
-OPA MADs share a common header with IBTA MADs but with a different base version
-and an extended length.  These "jumbo" MADs increase the performance of
-management traffic.
+2. IPv6 still doesn't work for me, at the same case where it is not the first mcg in the list.
 
-Sharing a common header with IBTA MADs allows us to share most of the MAD
-processing code when dealing with OPA MADs in addition to supporting some IBTA 
-MADs on OPA devices.
+Thanks, Erez
 
-Add a device capability flag to indicate OPA MAD support on the device.
+-----Original Message-----
+From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org] 
+Sent: Wednesday, January 14, 2015 9:53 PM
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Amir Vadai; Eyal Perry; Erez Shitrit; Or Gerlitz; Doug Ledford
+Subject: [PATCH V3 FIX For-3.19 0/3] IB/ipoib: Fix multicast join flow
 
-</quote>
+This patch series fixes the multicast join behavior problems introduced by my previous patchset.  In particular, the original code did not use the send only join code from the multicast thread context, and so it did not need to restart the multicast thread.  After my previous patchset, it does get called from the thread context, and so the send only join completion areas need to restart the join thread but they don't.  This patchset makes them do so.  It then adds in some cleanups for restarting the thread, and fixes the fact that one delayed join holds up the entire list of joins.
 
-Ira
+v3: Resend because the last send didn't register in patchworks properly
+    (because the subject-prefix was not on all of the emails, only the
+    first) and because the Cc: list didn't not pass from cover letter
+    to patches
 
-> 
-> 
-> [1] 1b01d33 IB/core: Introduce signature verbs API [2] 00f7ec3 RDMA/core:
-> Add memory management extensions support
+v2: Added two new patches, the first creates a helper to restart the
+    multicast join thread and also adds using it in the two places where
+    it should have been used but wasn't, the second allows the joins to
+    proceed around a delayed join instead of stalling everything.
+
+v1: Addressed the usage of the IPOIB_MCAST_RUN flag
+
+Doug Ledford (3):
+  IB/ipoib: Fix failed multicast joins/sends
+  IB/ipoib: Add a helper to restart the multicast task
+  IB/ipoib: make delayed tasks not hold up everything
+
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  1 +
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 94 ++++++++++++++++++--------
+ 2 files changed, 66 insertions(+), 29 deletions(-)
+
+--
+2.1.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
