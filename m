@@ -1,37 +1,34 @@
-From: Hariprasad Shenai <hariprasad@chelsio.com>
-Subject: [PATCH for-next 0/2] Refactor macros to conform to uniform standards
-Date: Fri, 16 Jan 2015 09:24:46 +0530
-Message-ID: <1421380488-1111-1-git-send-email-hariprasad@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: davem@davemloft.net, roland@purestorage.com, leedom@chelsio.com, anish@chelsio.com, nirranjan@chelsio.com, praveenm@chelsio.com, swise@opengridcomputing.com, Hariprasad Shenai <hariprasad@chelsio.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] Refactor macros to conform to uniform
+ standards
+Date: Fri, 16 Jan 2015 01:07:29 -0500 (EST)
+Message-ID: <20150116.010729.2121341404983475041.davem@davemloft.net>
+References: <1421380488-1111-1-git-send-email-hariprasad@chelsio.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1421380488-1111-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, praveenm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Fri, 16 Jan 2015 09:24:46 +0530
 
-This patch series cleansup macros/register defines, defined in t4.h and
-t4fw_ri_api.h and all the affected files.
+> This patch series cleansup macros/register defines, defined in t4.h and
+> t4fw_ri_api.h and all the affected files.
+> 
+> This patch series is created against net-next tree and includes patches on
+> iw_cxgb4 tree. Since the patches are dependent on previous cleanup patched we
+> would line to get this series merged through net-next tree.
+> 
+> We have included all the maintainers of respective drivers. Kindly review the
+> change and let us know in case of any review comments.
 
-This patch series is created against net-next tree and includes patches on
-iw_cxgb4 tree. Since the patches are dependent on previous cleanup patched we
-would line to get this series merged through net-next tree.
-
-We have included all the maintainers of respective drivers. Kindly review the
-change and let us know in case of any review comments.
-
-Thanks
-
-Hariprasad Shenai (2):
-  iw_cxgb4: Cleanup register defines/MACROS defined in t4.h
-  iw_cxgb4: Cleanup register defines/MACROS defined in t4fw_ri_api.h
-
- drivers/infiniband/hw/cxgb4/cm.c          |   30 +-
- drivers/infiniband/hw/cxgb4/cq.c          |   60 ++--
- drivers/infiniband/hw/cxgb4/device.c      |   12 +-
- drivers/infiniband/hw/cxgb4/ev.c          |   12 +-
- drivers/infiniband/hw/cxgb4/mem.c         |   18 +-
- drivers/infiniband/hw/cxgb4/qp.c          |   62 ++--
- drivers/infiniband/hw/cxgb4/t4.h          |   90 ++--
- drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |  812 ++++++++++++++--------------
- 8 files changed, 548 insertions(+), 548 deletions(-)
+Series applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
