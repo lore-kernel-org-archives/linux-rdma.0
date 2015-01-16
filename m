@@ -1,52 +1,362 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: wait_for_completion_timeout does not return
- negativ status
-Date: Fri, 16 Jan 2015 12:57:34 +0100
-Message-ID: <54B8FCAE.2020408@sandisk.com>
-References: <1421407217-9105-1-git-send-email-der.herr@hofr.at>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: Do not write EEPROM
+Date: Fri, 16 Jan 2015 08:55:27 -0500
+Message-ID: <20150116135527.18204.79451.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1421407217-9105-1-git-send-email-der.herr-kA1LtwSENNE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicholas Mc Guire <der.herr-kA1LtwSENNE@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/16/15 12:20, Nicholas Mc Guire wrote:
-> Signed-off-by: Nicholas Mc Guire <der.herr-kA1LtwSENNE@public.gmane.org>
-> ---
-> 
-> Patch is against 3.19.0-rc3 -next-20150109
-> 
-> Patch was compiletested only with x86_64_defconfig +
-> CONFIG_TARGET_CORE=m, CONFIG_INFINIBAND=m, CONFIG_INFINIBAND_SRPT=m
-> 
->  drivers/infiniband/ulp/srpt/ib_srpt.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index eb694dd..4e58c76 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -3533,7 +3533,7 @@ static void srpt_close_session(struct se_session *se_sess)
->  	spin_unlock_irq(&sdev->spinlock);
->  
->  	res = wait_for_completion_timeout(&release_done, 60 * HZ);
-> -	WARN_ON(res <= 0);
-> +	WARN_ON(res == 0);
->  }
->  
->  /**
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The description of this patch explains why you would like to change this
-code but not why this change is useful. Does building the current code
-e.g. trigger a compiler warning ? If so, which warning ? If not, why
-would you like to change this code and why do you think this change is
-an improvement ?
+This changeset removes all the code that allows the
+driver to write to the EEPROM and update the recorded
+error counters and power on hours.
 
-Bart.
+These two stats are unused and writing them exposes a
+timing risk which could leave the EEPROM in a bad state
+preventing further normal operation of the HCA.
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib.h         |    9 --
+ drivers/infiniband/hw/qib/qib_eeprom.c  |  181 -------------------------------
+ drivers/infiniband/hw/qib/qib_iba6120.c |    2 
+ drivers/infiniband/hw/qib/qib_iba7220.c |    2 
+ drivers/infiniband/hw/qib/qib_iba7322.c |    2 
+ drivers/infiniband/hw/qib/qib_init.c    |    1 
+ drivers/infiniband/hw/qib/qib_sysfs.c   |   24 ----
+ 7 files changed, 1 insertion(+), 220 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index c00ae09..b218254 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -1082,12 +1082,6 @@ struct qib_devdata {
+ 	/* control high-level access to EEPROM */
+ 	struct mutex eep_lock;
+ 	uint64_t traffic_wds;
+-	/* active time is kept in seconds, but logged in hours */
+-	atomic_t active_time;
+-	/* Below are nominal shadow of EEPROM, new since last EEPROM update */
+-	uint8_t eep_st_errs[QIB_EEP_LOG_CNT];
+-	uint8_t eep_st_new_errs[QIB_EEP_LOG_CNT];
+-	uint16_t eep_hrs;
+ 	/*
+ 	 * masks for which bits of errs, hwerrs that cause
+ 	 * each of the counters to increment.
+@@ -1309,8 +1303,7 @@ int qib_twsi_blk_rd(struct qib_devdata *dd, int dev, int addr, void *buffer,
+ int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
+ 		    const void *buffer, int len);
+ void qib_get_eeprom_info(struct qib_devdata *);
+-int qib_update_eeprom_log(struct qib_devdata *dd);
+-void qib_inc_eeprom_err(struct qib_devdata *dd, u32 eidx, u32 incr);
++#define qib_inc_eeprom_err(dd, eidx, incr)
+ void qib_dump_lookup_output_queue(struct qib_devdata *);
+ void qib_force_pio_avail_update(struct qib_devdata *);
+ void qib_clear_symerror_on_linkup(unsigned long opaque);
+diff --git a/drivers/infiniband/hw/qib/qib_eeprom.c b/drivers/infiniband/hw/qib/qib_eeprom.c
+index 4d5d71a..e2280b0 100644
+--- a/drivers/infiniband/hw/qib/qib_eeprom.c
++++ b/drivers/infiniband/hw/qib/qib_eeprom.c
+@@ -267,190 +267,9 @@ void qib_get_eeprom_info(struct qib_devdata *dd)
+ 			"Board SN %s did not pass functional test: %s\n",
+ 			dd->serial, ifp->if_comment);
+ 
+-	memcpy(&dd->eep_st_errs, &ifp->if_errcntp, QIB_EEP_LOG_CNT);
+-	/*
+-	 * Power-on (actually "active") hours are kept as little-endian value
+-	 * in EEPROM, but as seconds in a (possibly as small as 24-bit)
+-	 * atomic_t while running.
+-	 */
+-	atomic_set(&dd->active_time, 0);
+-	dd->eep_hrs = ifp->if_powerhour[0] | (ifp->if_powerhour[1] << 8);
+-
+ done:
+ 	vfree(buf);
+ 
+ bail:;
+ }
+ 
+-/**
+- * qib_update_eeprom_log - copy active-time and error counters to eeprom
+- * @dd: the qlogic_ib device
+- *
+- * Although the time is kept as seconds in the qib_devdata struct, it is
+- * rounded to hours for re-write, as we have only 16 bits in EEPROM.
+- * First-cut code reads whole (expected) struct qib_flash, modifies,
+- * re-writes. Future direction: read/write only what we need, assuming
+- * that the EEPROM had to have been "good enough" for driver init, and
+- * if not, we aren't making it worse.
+- *
+- */
+-int qib_update_eeprom_log(struct qib_devdata *dd)
+-{
+-	void *buf;
+-	struct qib_flash *ifp;
+-	int len, hi_water;
+-	uint32_t new_time, new_hrs;
+-	u8 csum;
+-	int ret, idx;
+-	unsigned long flags;
+-
+-	/* first, check if we actually need to do anything. */
+-	ret = 0;
+-	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
+-		if (dd->eep_st_new_errs[idx]) {
+-			ret = 1;
+-			break;
+-		}
+-	}
+-	new_time = atomic_read(&dd->active_time);
+-
+-	if (ret == 0 && new_time < 3600)
+-		goto bail;
+-
+-	/*
+-	 * The quick-check above determined that there is something worthy
+-	 * of logging, so get current contents and do a more detailed idea.
+-	 * read full flash, not just currently used part, since it may have
+-	 * been written with a newer definition
+-	 */
+-	len = sizeof(struct qib_flash);
+-	buf = vmalloc(len);
+-	ret = 1;
+-	if (!buf) {
+-		qib_dev_err(dd,
+-			"Couldn't allocate memory to read %u bytes from eeprom for logging\n",
+-			len);
+-		goto bail;
+-	}
+-
+-	/* Grab semaphore and read current EEPROM. If we get an
+-	 * error, let go, but if not, keep it until we finish write.
+-	 */
+-	ret = mutex_lock_interruptible(&dd->eep_lock);
+-	if (ret) {
+-		qib_dev_err(dd, "Unable to acquire EEPROM for logging\n");
+-		goto free_bail;
+-	}
+-	ret = qib_twsi_blk_rd(dd, dd->twsi_eeprom_dev, 0, buf, len);
+-	if (ret) {
+-		mutex_unlock(&dd->eep_lock);
+-		qib_dev_err(dd, "Unable read EEPROM for logging\n");
+-		goto free_bail;
+-	}
+-	ifp = (struct qib_flash *)buf;
+-
+-	csum = flash_csum(ifp, 0);
+-	if (csum != ifp->if_csum) {
+-		mutex_unlock(&dd->eep_lock);
+-		qib_dev_err(dd, "EEPROM cks err (0x%02X, S/B 0x%02X)\n",
+-			    csum, ifp->if_csum);
+-		ret = 1;
+-		goto free_bail;
+-	}
+-	hi_water = 0;
+-	spin_lock_irqsave(&dd->eep_st_lock, flags);
+-	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
+-		int new_val = dd->eep_st_new_errs[idx];
+-		if (new_val) {
+-			/*
+-			 * If we have seen any errors, add to EEPROM values
+-			 * We need to saturate at 0xFF (255) and we also
+-			 * would need to adjust the checksum if we were
+-			 * trying to minimize EEPROM traffic
+-			 * Note that we add to actual current count in EEPROM,
+-			 * in case it was altered while we were running.
+-			 */
+-			new_val += ifp->if_errcntp[idx];
+-			if (new_val > 0xFF)
+-				new_val = 0xFF;
+-			if (ifp->if_errcntp[idx] != new_val) {
+-				ifp->if_errcntp[idx] = new_val;
+-				hi_water = offsetof(struct qib_flash,
+-						    if_errcntp) + idx;
+-			}
+-			/*
+-			 * update our shadow (used to minimize EEPROM
+-			 * traffic), to match what we are about to write.
+-			 */
+-			dd->eep_st_errs[idx] = new_val;
+-			dd->eep_st_new_errs[idx] = 0;
+-		}
+-	}
+-	/*
+-	 * Now update active-time. We would like to round to the nearest hour
+-	 * but unless atomic_t are sure to be proper signed ints we cannot,
+-	 * because we need to account for what we "transfer" to EEPROM and
+-	 * if we log an hour at 31 minutes, then we would need to set
+-	 * active_time to -29 to accurately count the _next_ hour.
+-	 */
+-	if (new_time >= 3600) {
+-		new_hrs = new_time / 3600;
+-		atomic_sub((new_hrs * 3600), &dd->active_time);
+-		new_hrs += dd->eep_hrs;
+-		if (new_hrs > 0xFFFF)
+-			new_hrs = 0xFFFF;
+-		dd->eep_hrs = new_hrs;
+-		if ((new_hrs & 0xFF) != ifp->if_powerhour[0]) {
+-			ifp->if_powerhour[0] = new_hrs & 0xFF;
+-			hi_water = offsetof(struct qib_flash, if_powerhour);
+-		}
+-		if ((new_hrs >> 8) != ifp->if_powerhour[1]) {
+-			ifp->if_powerhour[1] = new_hrs >> 8;
+-			hi_water = offsetof(struct qib_flash, if_powerhour) + 1;
+-		}
+-	}
+-	/*
+-	 * There is a tiny possibility that we could somehow fail to write
+-	 * the EEPROM after updating our shadows, but problems from holding
+-	 * the spinlock too long are a much bigger issue.
+-	 */
+-	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
+-	if (hi_water) {
+-		/* we made some change to the data, uopdate cksum and write */
+-		csum = flash_csum(ifp, 1);
+-		ret = eeprom_write_with_enable(dd, 0, buf, hi_water + 1);
+-	}
+-	mutex_unlock(&dd->eep_lock);
+-	if (ret)
+-		qib_dev_err(dd, "Failed updating EEPROM\n");
+-
+-free_bail:
+-	vfree(buf);
+-bail:
+-	return ret;
+-}
+-
+-/**
+- * qib_inc_eeprom_err - increment one of the four error counters
+- * that are logged to EEPROM.
+- * @dd: the qlogic_ib device
+- * @eidx: 0..3, the counter to increment
+- * @incr: how much to add
+- *
+- * Each counter is 8-bits, and saturates at 255 (0xFF). They
+- * are copied to the EEPROM (aka flash) whenever qib_update_eeprom_log()
+- * is called, but it can only be called in a context that allows sleep.
+- * This function can be called even at interrupt level.
+- */
+-void qib_inc_eeprom_err(struct qib_devdata *dd, u32 eidx, u32 incr)
+-{
+-	uint new_val;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dd->eep_st_lock, flags);
+-	new_val = dd->eep_st_new_errs[eidx] + incr;
+-	if (new_val > 255)
+-		new_val = 255;
+-	dd->eep_st_new_errs[eidx] = new_val;
+-	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
+-}
+diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
+index d68266a..f7f49a6 100644
+--- a/drivers/infiniband/hw/qib/qib_iba6120.c
++++ b/drivers/infiniband/hw/qib/qib_iba6120.c
+@@ -2681,8 +2681,6 @@ static void qib_get_6120_faststats(unsigned long opaque)
+ 	spin_lock_irqsave(&dd->eep_st_lock, flags);
+ 	traffic_wds -= dd->traffic_wds;
+ 	dd->traffic_wds += traffic_wds;
+-	if (traffic_wds  >= QIB_TRAFFIC_ACTIVE_THRESHOLD)
+-		atomic_add(5, &dd->active_time); /* S/B #define */
+ 	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
+ 
+ 	qib_chk_6120_errormask(dd);
+diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
+index 7dec89f..f5fa106 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7220.c
++++ b/drivers/infiniband/hw/qib/qib_iba7220.c
+@@ -3297,8 +3297,6 @@ static void qib_get_7220_faststats(unsigned long opaque)
+ 	spin_lock_irqsave(&dd->eep_st_lock, flags);
+ 	traffic_wds -= dd->traffic_wds;
+ 	dd->traffic_wds += traffic_wds;
+-	if (traffic_wds  >= QIB_TRAFFIC_ACTIVE_THRESHOLD)
+-		atomic_add(5, &dd->active_time); /* S/B #define */
+ 	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
+ done:
+ 	mod_timer(&dd->stats_timer, jiffies + HZ * ACTIVITY_TIMER);
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index a7eb325..23ca2ac 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -5178,8 +5178,6 @@ static void qib_get_7322_faststats(unsigned long opaque)
+ 		spin_lock_irqsave(&ppd->dd->eep_st_lock, flags);
+ 		traffic_wds -= ppd->dd->traffic_wds;
+ 		ppd->dd->traffic_wds += traffic_wds;
+-		if (traffic_wds >= QIB_TRAFFIC_ACTIVE_THRESHOLD)
+-			atomic_add(ACTIVITY_TIMER, &ppd->dd->active_time);
+ 		spin_unlock_irqrestore(&ppd->dd->eep_st_lock, flags);
+ 		if (ppd->cpspec->qdr_dfe_on && (ppd->link_speed_active &
+ 						QIB_IB_QDR) &&
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 729da39c..738269b 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -931,7 +931,6 @@ static void qib_shutdown_device(struct qib_devdata *dd)
+ 		qib_free_pportdata(ppd);
+ 	}
+ 
+-	qib_update_eeprom_log(dd);
+ }
+ 
+ /**
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index 3c8e4e3..b9ccbda 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -611,28 +611,6 @@ bail:
+ 	return ret < 0 ? ret : count;
+ }
+ 
+-static ssize_t show_logged_errs(struct device *device,
+-				struct device_attribute *attr, char *buf)
+-{
+-	struct qib_ibdev *dev =
+-		container_of(device, struct qib_ibdev, ibdev.dev);
+-	struct qib_devdata *dd = dd_from_dev(dev);
+-	int idx, count;
+-
+-	/* force consistency with actual EEPROM */
+-	if (qib_update_eeprom_log(dd) != 0)
+-		return -ENXIO;
+-
+-	count = 0;
+-	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
+-		count += scnprintf(buf + count, PAGE_SIZE - count, "%d%c",
+-				   dd->eep_st_errs[idx],
+-				   idx == (QIB_EEP_LOG_CNT - 1) ? '\n' : ' ');
+-	}
+-
+-	return count;
+-}
+-
+ /*
+  * Dump tempsense regs. in decimal, to ease shell-scripts.
+  */
+@@ -679,7 +657,6 @@ static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
+ static DEVICE_ATTR(nfreectxts, S_IRUGO, show_nfreectxts, NULL);
+ static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
+ static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
+-static DEVICE_ATTR(logged_errors, S_IRUGO, show_logged_errs, NULL);
+ static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
+ static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
+ static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
+@@ -693,7 +670,6 @@ static struct device_attribute *qib_attributes[] = {
+ 	&dev_attr_nfreectxts,
+ 	&dev_attr_serial,
+ 	&dev_attr_boardversion,
+-	&dev_attr_logged_errors,
+ 	&dev_attr_tempsense,
+ 	&dev_attr_localbus_info,
+ 	&dev_attr_chip_reset,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
