@@ -1,51 +1,44 @@
-From: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Subject: [PATCH 1/2] infiniband: Help gcc generate better code for ocrdma_srq_toggle_bit
-Date: Fri, 16 Jan 2015 15:39:55 +0100
-Message-ID: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 2/2] infiniband: Use unsigned for bit index
+Date: Fri, 16 Jan 2015 15:39:56 +0100
+Message-ID: <1421419196-4659-2-git-send-email-linux@rasmusvillemoes.dk>
+References: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-gcc emits a surprising amount of code in order to flip a bit. One
-would think that a single instruction is enough.
+In the expressions idx/32 and idx%32, both idx and 32 have signed
+type, and unfortunately the C standard prescribes rounding to 0, so
+unless gcc can prove that idx is non-negative, these cannot be
+implemented as simple shift respectively mask operations. Help gcc by
+changing the type of idx to unsigned - this cuts another few
+instructions from the generated code.
 
-$ scripts/bloat-o-meter /tmp/ocrdma_verbs.o drivers/infiniband/hw/ocrdma/ocrdma_verbs.o
-add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-142 (-142)
-function                                     old     new   delta
-ocrdma_post_srq_recv                         498     460     -38
-ocrdma_poll_cq                              2010    1962     -48
-ocrdma_discard_cqes                          495     439     -56
-
-All three calls of ocrdma_srq_toggle_bit happen within spinlocks, so
-saving a few useless instructions might be worthwhile.
-
-Signed-off-by: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index fb8d8c4dfbb9..eff11e6c6183 100644
+index eff11e6c6183..61c3047f5170 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1484,10 +1484,7 @@ static void ocrdma_srq_toggle_bit(struct ocrdma_srq *srq, int idx)
- 	int i = idx / 32;
- 	unsigned int mask = (1 << (idx % 32));
- 
--	if (srq->idx_bit_fields[i] & mask)
--		srq->idx_bit_fields[i] &= ~mask;
--	else
--		srq->idx_bit_fields[i] |= mask;
-+	srq->idx_bit_fields[i] ^= mask;
+@@ -1479,10 +1479,10 @@ mbx_err:
+ 	return status;
  }
  
- static int ocrdma_hwq_free_cnt(struct ocrdma_qp_hwq_info *q)
+-static void ocrdma_srq_toggle_bit(struct ocrdma_srq *srq, int idx)
++static void ocrdma_srq_toggle_bit(struct ocrdma_srq *srq, unsigned int idx)
+ {
+-	int i = idx / 32;
+-	unsigned int mask = (1 << (idx % 32));
++	unsigned int i = idx / 32;
++	u32 mask = (1U << (idx % 32));
+ 
+ 	srq->idx_bit_fields[i] ^= mask;
+ }
 -- 
 2.1.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
