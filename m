@@ -1,44 +1,39 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 2/2] infiniband: Use unsigned for bit index
-Date: Fri, 16 Jan 2015 15:39:56 +0100
-Message-ID: <1421419196-4659-2-git-send-email-linux@rasmusvillemoes.dk>
-References: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] infiniband: hw: ipath: ipath_wc_ppc64.c:  Remove unused
+ function
+Date: Fri, 16 Jan 2015 14:42:43 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC21D1C03B@fmsmsx120.amr.corp.intel.com>
+References: <1419092342-7120-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1419092342-7120-1-git-send-email-rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the expressions idx/32 and idx%32, both idx and 32 have signed
-type, and unfortunately the C standard prescribes rounding to 0, so
-unless gcc can prove that idx is non-negative, these cannot be
-implemented as simple shift respectively mask operations. Help gcc by
-changing the type of idx to unsigned - this cuts another few
-instructions from the generated code.
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Rickard Strandqvist
+> Sent: Saturday, December 20, 2014 11:19 AM
+> To: infinipath; Roland Dreier
+> Cc: Rickard Strandqvist; Hefty, Sean; Hal Rosenstock; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH] infiniband: hw: ipath: ipath_wc_ppc64.c: Remove unused
+> function
+> 
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Roland,
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index eff11e6c6183..61c3047f5170 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1479,10 +1479,10 @@ mbx_err:
- 	return status;
- }
- 
--static void ocrdma_srq_toggle_bit(struct ocrdma_srq *srq, int idx)
-+static void ocrdma_srq_toggle_bit(struct ocrdma_srq *srq, unsigned int idx)
- {
--	int i = idx / 32;
--	unsigned int mask = (1 << (idx % 32));
-+	unsigned int i = idx / 32;
-+	u32 mask = (1U << (idx % 32));
- 
- 	srq->idx_bit_fields[i] ^= mask;
- }
--- 
-2.1.3
+Can you change in summary from https://patchwork.kernel.org/patch/5522791:
+
+IB/ipath: Remove unused function in ipath_wc_ppc64
+
+Thanks for the patch!
+Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
