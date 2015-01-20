@@ -1,85 +1,144 @@
-From: =?UTF-8?B?U8OpYmFzdGllbiBEdWd1w6k=?= <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: [PATCH 1/2] mstflint: Fix make dist-xx Makefile targets
-Date: Tue, 20 Jan 2015 10:45:00 +0100
-Message-ID: <20150120104500.779f8ebd@b012350-ux>
-References: <20150120104126.7f424116@b012350-ux>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibtracert.c: Remove checking the port 0
+ state for BasePort0 switches
+Date: Tue, 20 Jan 2015 07:59:55 -0500
+Message-ID: <54BE514B.5030904@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150120104126.7f424116@b012350-ux>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Adrian Chiris <adrianc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-  Add some needed headers that make dist-xx left out of the generated
-archive.
+The port 0 state check is needed only for HCA/Routers and
+EnhancedPort0 switches.
 
-Signed-off-by: S=C3=A9bastien Dugu=C3=A9 <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+For BasePort0 switches, the PortState field in the PortInfo attribute
+for port0 is undefined (not used).
+
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- cmdif/Makefile.am      | 2 +-
- mflash/Makefile.am     | 2 +-
- mft_utils/Makefile.am  | 3 ++-
- reg_access/Makefile.am | 2 +-
- 4 files changed, 5 insertions(+), 4 deletions(-)
+ src/ibtracert.c |   47 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 40 insertions(+), 7 deletions(-)
 
-diff --git a/cmdif/Makefile.am b/cmdif/Makefile.am
-index b3ac612..60be402 100644
---- a/cmdif/Makefile.am
-+++ b/cmdif/Makefile.am
-@@ -40,5 +40,5 @@ AM_CFLAGS =3D -W -Wall -Werror -g -MP -MD $(COMPILER_=
-=46PIC) -DCMDIF_EXPORTS
- CMDIF_VERSION =3D 1
- noinst_LIBRARIES =3D libcmdif.a
-=20
--libcmdif_a_SOURCES =3D tools_cif.c
-+libcmdif_a_SOURCES =3D tools_cif.c tools_cif.h
-=20
-diff --git a/mflash/Makefile.am b/mflash/Makefile.am
-index b4a87cf..632539c 100644
---- a/mflash/Makefile.am
-+++ b/mflash/Makefile.am
-@@ -39,4 +39,4 @@ noinst_LIBRARIES =3D libmflash.a
-=20
- libmflash_a_SOURCES =3D  mflash.c mflash.h\
- 			mflash_pack_layer.c mflash_pack_layer.h mflash_access_layer.c mflas=
-h_access_layer.h\
--			mflash_types.h mlash_common_structs.h
-+			mflash_types.h mflash_common_structs.h
-diff --git a/mft_utils/Makefile.am b/mft_utils/Makefile.am
-index ad9ad8e..4cd121c 100644
---- a/mft_utils/Makefile.am
-+++ b/mft_utils/Makefile.am
-@@ -40,5 +40,6 @@ noinst_HEADERS =3D mft_sig_handler.h errmsg.h
-=20
- noinst_LIBRARIES =3D libmftutils.a
-=20
--libmftutils_a_SOURCES =3D  mft_sig_handler.c errmsg.cpp
-+libmftutils_a_SOURCES =3D  mft_sig_handler.c errmsg.cpp \
-+		$(top_srcdir)/common/tools_utils.h
-=20
-diff --git a/reg_access/Makefile.am b/reg_access/Makefile.am
-index 3e56406..7f78060 100644
---- a/reg_access/Makefile.am
-+++ b/reg_access/Makefile.am
-@@ -42,7 +42,7 @@ AM_CFLAGS =3D -W -Wall -Werror -g -MP -MD $(COMPILER_=
-=46PIC)
-=20
- noinst_LIBRARIES =3D libreg_access.a
-=20
--libreg_access_a_SOURCES =3D reg_access.c
-+libreg_access_a_SOURCES =3D reg_access.c reg_access.h
- libreg_access_a_DEPENDENCIES =3D $(USER_DIR)/tools_layouts/libtools_la=
-youts.a
- libreg_access_a_LIBADD =3D $(libreg_access_a_DEPENDENCIES)
-=20
---=20
-1.8.4
+diff --git a/src/ibtracert.c b/src/ibtracert.c
+index d32968b..326200b 100644
+--- a/src/ibtracert.c
++++ b/src/ibtracert.c
+@@ -92,6 +92,7 @@ struct Switch {
+ 	int mccap;
+ 	int linearFDBtop;
+ 	int fdb_base;
++	int enhsp0;
+ 	int8_t fdb[64];
+ 	char switchinfo[64];
+ };
+@@ -114,6 +115,17 @@ struct Node {
+ Node *nodesdist[MAXHOPS];
+ uint64_t target_portguid;
+ 
++static int is_route_inactive_port0(Node * node, Port * port, Switch * sw)
++{
++	int res = 0;
++	/* not active for HCA and for enhanced port0 Switches */
++	if (port->state != 4 &&
++	    (node->type != IB_NODE_SWITCH ||
++	     (node->type == IB_NODE_SWITCH && sw->enhsp0)))
++		res = 1;
++	return res;
++}
++
+ static int get_node(Node * node, Port * port, ib_portid_t * portid)
+ {
+ 	void *pi = port->portinfo, *ni = node->nodeinfo, *nd = node->nodedesc;
+@@ -164,6 +176,7 @@ static int switch_lookup(Switch * sw, ib_portid_t * portid, int lid)
+ 
+ 	mad_decode_field(si, IB_SW_LINEAR_FDB_CAP_F, &sw->linearcap);
+ 	mad_decode_field(si, IB_SW_LINEAR_FDB_TOP_F, &sw->linearFDBtop);
++	mad_decode_field(si, IB_SW_ENHANCED_PORT0_F, &sw->enhsp0);
+ 
+ 	if (lid >= sw->linearcap && lid > sw->linearFDBtop)
+ 		return -1;
+@@ -248,7 +261,7 @@ static int find_route(ib_portid_t * from, ib_portid_t * to, int dump)
+ 	Port *port, fromport, toport, nextport;
+ 	Switch sw;
+ 	int maxhops = MAXHOPS;
+-	int portnum, outport;
++	int portnum, outport = 255, next_sw_outport = 255;
+ 
+ 	memset(&fromnode,0,sizeof(Node));
+ 	memset(&tonode,0,sizeof(Node));
+@@ -274,20 +287,28 @@ static int find_route(ib_portid_t * from, ib_portid_t * to, int dump)
+ 	portnum = port->portnum;
+ 
+ 	dump_endnode(dump, "From", node, port);
++	if (node->type == IB_NODE_SWITCH) {
++		next_sw_outport = switch_lookup(&sw, from, to->lid);
++		if (next_sw_outport < 0 || next_sw_outport > node->numports) {
++			/* needed to print the port in badtbl */
++			outport = next_sw_outport;
++			goto badtbl;
++		}
++	}
+ 
+ 	while (maxhops--) {
+-		if (port->state != 4)
++		/* checking if the port state isn't active.
++		 * The "sw" argument is only relevant when the port is a
++		 * switch port for HCAs this argument is ignored */
++		if (is_route_inactive_port0(node, port, &sw))
+ 			goto badport;
+ 
+ 		if (sameport(port, &toport))
+ 			break;	/* found */
+ 
+-		outport = portnum;
+ 		if (node->type == IB_NODE_SWITCH) {
+ 			DEBUG("switch node");
+-			if ((outport = switch_lookup(&sw, from, to->lid)) < 0 ||
+-			    outport > node->numports)
+-				goto badtbl;
++			outport = next_sw_outport;
+ 
+ 			if (extend_dpath(&from->drpath, outport) < 0)
+ 				goto badpath;
+@@ -307,6 +328,7 @@ static int find_route(ib_portid_t * from, ib_portid_t * to, int dump)
+ 			   (node->type == IB_NODE_ROUTER)) {
+ 			int ca_src = 0;
+ 
++			outport = portnum;
+ 			DEBUG("ca or router node");
+ 			if (!sameport(port, &fromport)) {
+ 				IBWARN
+@@ -335,8 +357,19 @@ static int find_route(ib_portid_t * from, ib_portid_t * to, int dump)
+ 				nextport.portnum =
+ 				    from->drpath.p[from->drpath.cnt + 1];
+ 		}
++		/* only if the next node is a switch, get switch info */
++		if (nextnode.type == IB_NODE_SWITCH) {
++			next_sw_outport = switch_lookup(&sw, from, to->lid);
++			if (next_sw_outport < 0 ||
++			    next_sw_outport > nextnode.numports) {
++				/* needed to print the port in badtbl */
++				outport = next_sw_outport;
++				goto badtbl;
++			}
++		}
++
+ 		port = &nextport;
+-		if (port->state != 4)
++		if (is_route_inactive_port0(&nextnode, port, &sw))
+ 			goto badoutport;
+ 		node = &nextnode;
+ 		portnum = port->portnum;
+-- 
+1.7.8.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
