@@ -1,72 +1,67 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 16/20] IB/mad: Add Intel Omni-Path Architecture defines
-Date: Mon, 19 Jan 2015 22:50:38 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC05C0A@CRSMSX101.amr.corp.intel.com>
-References: <1421082672-22588-1-git-send-email-ira.weiny@intel.com>
- <1421082672-22588-17-git-send-email-ira.weiny@intel.com>
- <54B7CA4E.5050809@dev.mellanox.co.il>
- <2807E5FD2F6FDA4886F6618EAC48510E0CC02AB4@CRSMSX101.amr.corp.intel.com>
- <54B9268B.7080600@dev.mellanox.co.il>
- <2807E5FD2F6FDA4886F6618EAC48510E0CC03441@CRSMSX101.amr.corp.intel.com>
- <54BD3DCA.2050208@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A8237399E4F4BA@ORSMSX109.amr.corp.intel.com>
- <2807E5FD2F6FDA4886F6618EAC48510E0CC05436@CRSMSX101.amr.corp.intel.com>
- <20150119215311.GH13469@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH FIX For-3.19 v4 0/7] IB/ipoib: follow fixes for multicast handling
+Date: Mon, 19 Jan 2015 22:58:39 -0500
+Message-ID: <cover.1421725318.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150119215311.GH13469-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On Mon, Jan 19, 2015 at 07:57:22PM +0000, Weiny, Ira wrote:
-> 
-> > Perhaps you can give us an example of where the current code would
-> > work without modifications if the IBTA were to define any new base or
-> > smp class version?
-> 
-> I think the point here is that every check for OPA_MIN_CLASS_VERSION must
-> also be combined with a check if the device in question is OPA or not.
+These patches are to resolve issues created by my previous patch set.
+While that set worked fine in my testing, there were problems with
+multicast joins after the initial set of joins had completed.  Since my
+testing relied upon the normal set of multicast joins that happen
+when the interface is first brought up, I missed those problems.
 
-This contradicts what you say below....
+Symptoms vary from failure to send packets due to a failed join, to
+loss of connectivity after a subnet manager restart, to failure
+to properly release multicast groups on shutdown resulting in hangs
+when the mlx4 driver attempts to unload itself via its reboot
+notifier handler.
 
-> 
-> I don't see a problem with sharing the kernel structs or MAD processing, as
-> long as all OPA specific behavior is conditionalized on the device in question
-> being OPA - it should never be conditionalized on the class version of the MAD.
-> 
-> > commit a70a5af286b2985a0a95e9733d1e3166845a8be8
-> > Author: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Date:   Tue Sep 23 20:04:49 2014 -0400
-> >
-> >     IB/mad: Add registration check for Intel Omni-Path Architecture
-> > MADs
-> 
-> For instance:
-> 
-> +		if (mad_reg_req->mgmt_class_version >=
-> OPA_MIN_CLASS_VERSION
-> +		    && !port_priv->qp_info[qpn].supports_jumbo_mads) {
-> 
-> Is wrong because it means that no IB software can register for those MADs
-> anymore, which is cross polluting the two architectures in the kernel.
-> 
-> Presumably since supports_jumbo_mads is always true for OPA the above test
-> is not required at all and this patch should be dropped.
-> 
-> But I expect if we keep looking at uses of OPA_MIN_CLASS_VERSION we will
-> see other cases where they need to be conditionalized?
+This set of patches has passed a number of tests above and beyond my
+original tests.  As suggested by Or Gerlitz I added IPv6 and IPv4
+multicast tests.  I also added both subnet manager restarts and
+manual shutdown/restart of individual ports at the switch in order to
+ensure that the ENETRESET path was properly tested.  I included
+testing, then a subnet manager restart, then a quiescent period for
+caches to expire, then restarting testing to make sure that arp and
+neighbor discovery work after the subnet manager restart.
 
-That is the only use of OPA_MIN_CLASS_VERSION.  I agree with your second assessment and I'll remove the patch from the next series.
+All in all, I have not been able to trip the multicast joins up any
+longer.
 
-Hal was this your assessment as well?
+Additionally, the original impetus for my first 8 patch set was that
+it was simply too easy to break the IPoIB subsystem with this simple
+loop:
 
-Ira
+while true; do
+    ifconfig ib0 up
+    ifconfig ib0 down
+done
+
+Just to be safe, I made sure this problem did not resurface.
+
+Roland, the 3.19-rc code is broken.  We either need to revert my
+original patchset, or grab these, but I would not recommend leaving
+it as it currently stands.
+
+Doug Ledford (7):
+  IB/ipoib: Fix failed multicast joins/sends
+  IB/ipoib: Add a helper to restart the multicast task
+  IB/ipoib: make delayed tasks not hold up everything
+  IB/ipoib: Handle -ENETRESET properly in our callback
+  IB/ipoib: don't restart our thread on ENETRESET
+  IB/ipoib: remove unneeded locks
+  IB/ipoib: fix race between mcast_dev_flush and mcast_join
+
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   1 +
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 204 +++++++++++++++----------
+ 2 files changed, 121 insertions(+), 84 deletions(-)
+
+-- 
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
