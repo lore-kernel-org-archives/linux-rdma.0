@@ -1,203 +1,89 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 02/20] xprtrdma: Modernize htonl and ntohl
-Date: Wed, 21 Jan 2015 11:02:13 -0500
-Message-ID: <20150121160213.17297.70220.stgit@manet.1015granger.net>
+Subject: [PATCH v3 04/20] xprtrdma: Clean up hdrlen
+Date: Wed, 21 Jan 2015 11:02:29 -0500
+Message-ID: <20150121160229.17297.77084.stgit@manet.1015granger.net>
 References: <20150121155303.17297.47423.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20150121155303.17297.47423.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: Replace htonl and ntohl with the be32 equivalents.
+Clean up: Replace naked integers with a documenting macro.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- include/linux/sunrpc/rpc_rdma.h |    9 +++++++
- include/linux/sunrpc/svc_rdma.h |    2 --
- net/sunrpc/xprtrdma/rpc_rdma.c  |   48 +++++++++++++++++++++------------------
- 3 files changed, 35 insertions(+), 24 deletions(-)
+ include/linux/sunrpc/rpc_rdma.h |    5 ++++-
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   12 +++++++-----
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index b78f16b..1578ed2 100644
+index 1578ed2..f33c5a4 100644
 --- a/include/linux/sunrpc/rpc_rdma.h
 +++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -42,6 +42,9 @@
- 
- #include <linux/types.h>
- 
-+#define RPCRDMA_VERSION		1
-+#define rpcrdma_version		cpu_to_be32(RPCRDMA_VERSION)
-+
- struct rpcrdma_segment {
- 	__be32 rs_handle;	/* Registered memory handle */
- 	__be32 rs_length;	/* Length of the chunk in bytes */
-@@ -115,4 +118,10 @@ enum rpcrdma_proc {
- 	RDMA_ERROR = 4		/* An RPC RDMA encoding error */
+@@ -98,7 +98,10 @@ struct rpcrdma_msg {
+ 	} rm_body;
  };
  
-+#define rdma_msg	cpu_to_be32(RDMA_MSG)
-+#define rdma_nomsg	cpu_to_be32(RDMA_NOMSG)
-+#define rdma_msgp	cpu_to_be32(RDMA_MSGP)
-+#define rdma_done	cpu_to_be32(RDMA_DONE)
-+#define rdma_error	cpu_to_be32(RDMA_ERROR)
-+
- #endif				/* _LINUX_SUNRPC_RPC_RDMA_H */
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 975da75..ddfe88f 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -63,8 +63,6 @@ extern atomic_t rdma_stat_rq_prod;
- extern atomic_t rdma_stat_sq_poll;
- extern atomic_t rdma_stat_sq_prod;
+-#define RPCRDMA_HDRLEN_MIN	28
++/*
++ * Smallest RPC/RDMA header: rm_xid through rm_type, then rm_nochunks
++ */
++#define RPCRDMA_HDRLEN_MIN	(sizeof(__be32) * 7)
  
--#define RPCRDMA_VERSION 1
--
- /*
-  * Contexts are built when an RDMA request is created and are a
-  * record of the resources that can be recovered when the request
+ enum rpcrdma_errcode {
+ 	ERR_VERS = 1,
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index df01d12..a6fb30b 100644
+index 150dd76..dcf5ebc 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -209,9 +209,11 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- 		if (cur_rchunk) {	/* read */
- 			cur_rchunk->rc_discrim = xdr_one;
- 			/* all read chunks have the same "position" */
--			cur_rchunk->rc_position = htonl(pos);
--			cur_rchunk->rc_target.rs_handle = htonl(seg->mr_rkey);
--			cur_rchunk->rc_target.rs_length = htonl(seg->mr_len);
-+			cur_rchunk->rc_position = cpu_to_be32(pos);
-+			cur_rchunk->rc_target.rs_handle =
-+						cpu_to_be32(seg->mr_rkey);
-+			cur_rchunk->rc_target.rs_length =
-+						cpu_to_be32(seg->mr_len);
- 			xdr_encode_hyper(
- 					(__be32 *)&cur_rchunk->rc_target.rs_offset,
- 					seg->mr_base);
-@@ -222,8 +224,10 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- 			cur_rchunk++;
- 			r_xprt->rx_stats.read_chunk_count++;
- 		} else {		/* write/reply */
--			cur_wchunk->wc_target.rs_handle = htonl(seg->mr_rkey);
--			cur_wchunk->wc_target.rs_length = htonl(seg->mr_len);
-+			cur_wchunk->wc_target.rs_handle =
-+						cpu_to_be32(seg->mr_rkey);
-+			cur_wchunk->wc_target.rs_length =
-+						cpu_to_be32(seg->mr_len);
- 			xdr_encode_hyper(
- 					(__be32 *)&cur_wchunk->wc_target.rs_offset,
- 					seg->mr_base);
-@@ -257,7 +261,7 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
- 		*iptr++ = xdr_zero;	/* encode a NULL reply chunk */
- 	} else {
- 		warray->wc_discrim = xdr_one;
--		warray->wc_nchunks = htonl(nchunks);
-+		warray->wc_nchunks = cpu_to_be32(nchunks);
- 		iptr = (__be32 *) cur_wchunk;
- 		if (type == rpcrdma_writech) {
- 			*iptr++ = xdr_zero; /* finish the write chunk list */
-@@ -404,11 +408,11 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+@@ -472,7 +472,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 		return -EIO;
+ 	}
  
- 	/* build RDMA header in private area at front */
- 	headerp = (struct rpcrdma_msg *) req->rl_base;
--	/* don't htonl XID, it's already done in request */
-+	/* don't byte-swap XID, it's already done in request */
- 	headerp->rm_xid = rqst->rq_xid;
--	headerp->rm_vers = xdr_one;
--	headerp->rm_credit = htonl(r_xprt->rx_buf.rb_max_requests);
--	headerp->rm_type = htonl(RDMA_MSG);
-+	headerp->rm_vers = rpcrdma_version;
-+	headerp->rm_credit = cpu_to_be32(r_xprt->rx_buf.rb_max_requests);
-+	headerp->rm_type = rdma_msg;
+-	hdrlen = 28; /*sizeof *headerp;*/
++	hdrlen = RPCRDMA_HDRLEN_MIN;
+ 	padlen = 0;
  
  	/*
- 	 * Chunks needed for results?
-@@ -482,11 +486,11 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 						RPCRDMA_INLINE_PAD_VALUE(rqst));
- 
- 		if (padlen) {
--			headerp->rm_type = htonl(RDMA_MSGP);
-+			headerp->rm_type = rdma_msgp;
- 			headerp->rm_body.rm_padded.rm_align =
--				htonl(RPCRDMA_INLINE_PAD_VALUE(rqst));
-+				cpu_to_be32(RPCRDMA_INLINE_PAD_VALUE(rqst));
- 			headerp->rm_body.rm_padded.rm_thresh =
--				htonl(RPCRDMA_INLINE_PAD_THRESH);
-+				cpu_to_be32(RPCRDMA_INLINE_PAD_THRESH);
- 			headerp->rm_body.rm_padded.rm_pempty[0] = xdr_zero;
- 			headerp->rm_body.rm_padded.rm_pempty[1] = xdr_zero;
- 			headerp->rm_body.rm_padded.rm_pempty[2] = xdr_zero;
-@@ -570,7 +574,7 @@ rpcrdma_count_chunks(struct rpcrdma_rep *rep, unsigned int max, int wrchunk, __b
- 	unsigned int i, total_len;
- 	struct rpcrdma_write_chunk *cur_wchunk;
- 
--	i = ntohl(**iptrp);	/* get array count */
-+	i = be32_to_cpu(**iptrp);
- 	if (i > max)
- 		return -1;
- 	cur_wchunk = (struct rpcrdma_write_chunk *) (*iptrp + 1);
-@@ -582,11 +586,11 @@ rpcrdma_count_chunks(struct rpcrdma_rep *rep, unsigned int max, int wrchunk, __b
- 			xdr_decode_hyper((__be32 *)&seg->rs_offset, &off);
- 			dprintk("RPC:       %s: chunk %d@0x%llx:0x%x\n",
- 				__func__,
--				ntohl(seg->rs_length),
-+				be32_to_cpu(seg->rs_length),
- 				(unsigned long long)off,
--				ntohl(seg->rs_handle));
-+				be32_to_cpu(seg->rs_handle));
+@@ -748,7 +748,7 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
  		}
--		total_len += ntohl(seg->rs_length);
-+		total_len += be32_to_cpu(seg->rs_length);
- 		++cur_wchunk;
+ 		return;
  	}
- 	/* check and adjust for properly terminated write chunk */
-@@ -749,9 +753,9 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+-	if (rep->rr_len < 28) {
++	if (rep->rr_len < RPCRDMA_HDRLEN_MIN) {
+ 		dprintk("RPC:       %s: short/invalid reply\n", __func__);
  		goto repost;
  	}
- 	headerp = (struct rpcrdma_msg *) rep->rr_base;
--	if (headerp->rm_vers != xdr_one) {
-+	if (headerp->rm_vers != rpcrdma_version) {
- 		dprintk("RPC:       %s: invalid version %d\n",
--			__func__, ntohl(headerp->rm_vers));
-+			__func__, be32_to_cpu(headerp->rm_vers));
- 		goto repost;
- 	}
- 
-@@ -793,7 +797,7 @@ repost:
- 	/* check for expected message types */
- 	/* The order of some of these tests is important. */
- 	switch (headerp->rm_type) {
--	case htonl(RDMA_MSG):
-+	case rdma_msg:
- 		/* never expect read chunks */
- 		/* never expect reply chunks (two ways to check) */
- 		/* never expect write chunks without having offered RDMA */
-@@ -832,7 +836,7 @@ repost:
- 		rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len, rdmalen);
- 		break;
- 
--	case htonl(RDMA_NOMSG):
-+	case rdma_nomsg:
- 		/* never expect read or write chunks, always reply chunks */
- 		if (headerp->rm_body.rm_chunks[0] != xdr_zero ||
- 		    headerp->rm_body.rm_chunks[1] != xdr_zero ||
-@@ -853,7 +857,7 @@ badheader:
- 		dprintk("%s: invalid rpcrdma reply header (type %d):"
- 				" chunks[012] == %d %d %d"
- 				" expected chunks <= %d\n",
--				__func__, ntohl(headerp->rm_type),
-+				__func__, be32_to_cpu(headerp->rm_type),
- 				headerp->rm_body.rm_chunks[0],
- 				headerp->rm_body.rm_chunks[1],
- 				headerp->rm_body.rm_chunks[2],
+@@ -830,8 +830,9 @@ repost:
+ 		} else {
+ 			/* else ordinary inline */
+ 			rdmalen = 0;
+-			iptr = (__be32 *)((unsigned char *)headerp + 28);
+-			rep->rr_len -= 28; /*sizeof *headerp;*/
++			iptr = (__be32 *)((unsigned char *)headerp +
++							RPCRDMA_HDRLEN_MIN);
++			rep->rr_len -= RPCRDMA_HDRLEN_MIN;
+ 			status = rep->rr_len;
+ 		}
+ 		/* Fix up the rpc results for upper layer */
+@@ -845,7 +846,8 @@ repost:
+ 		    headerp->rm_body.rm_chunks[2] != xdr_one ||
+ 		    req->rl_nchunks == 0)
+ 			goto badheader;
+-		iptr = (__be32 *)((unsigned char *)headerp + 28);
++		iptr = (__be32 *)((unsigned char *)headerp +
++							RPCRDMA_HDRLEN_MIN);
+ 		rdmalen = rpcrdma_count_chunks(rep, req->rl_nchunks, 0, &iptr);
+ 		if (rdmalen < 0)
+ 			goto badheader;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
