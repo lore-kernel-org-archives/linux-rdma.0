@@ -1,176 +1,81 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 06/17] IB/core: Add support for extended query device
- caps
-Date: Wed, 21 Jan 2015 13:50:12 +0100
-Message-ID: <1421844612.13543.40.camel@opteya.com>
-References: <1418310266-9584-1-git-send-email-haggaie@mellanox.com>
-	 <1418310266-9584-7-git-send-email-haggaie@mellanox.com>
-	 <1418733236.2779.26.camel@opteya.com> <549128B4.5010301@mellanox.com>
-	 <1418824811.3334.3.camel@dworkin> <54918F50.7020705@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/20] NFS/RDMA client for 3.20
+Date: Wed, 21 Jan 2015 11:01:56 -0500
+Message-ID: <20150121155303.17297.47423.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54918F50.7020705-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+The following series of patches for the Linux NFS client breaks up
+the per-transport buffer pool data structures. The goal is to allow
+transport operation to scale better as the size of SEND/RECV buffers
+(the inline thresholds), the maximum NFS r/wsize, and the number of
+RDMA credits (concurrent RPC requests) is increased.
 
-Le mercredi 17 d=C3=A9cembre 2014 =C3=A0 16:12 +0200, Haggai Eran a =C3=
-=A9crit :
-> On 17/12/2014 16:00, Yann Droneaud wrote:
-> > Le mercredi 17 d=C3=A9cembre 2014 =C3=A0 08:54 +0200, Haggai Eran a=
- =C3=A9crit :
-> >> On 16/12/2014 14:33, Yann Droneaud wrote:
-> >>> Le jeudi 11 d=C3=A9cembre 2014 =C3=A0 17:04 +0200, Haggai Eran a =
-=C3=A9crit :
-> >>>>  static inline int ib_copy_to_udata(struct ib_udata *udata, void=
- *src, size_t len)
-> >>>>  {
-> >>>> -	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
-> >>>> +	size_t copy_sz;
-> >>>> +
-> >>>> +	copy_sz =3D min_t(size_t, len, udata->outlen);
-> >>>> +	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0=
-;
-> >>>>  }
-> >>>
-> >>>
-> >>> This is not the place to do this: as I'm guessing the purpose of =
-this=20
-> >>> change from the patch in '[PATCH v3 07/17] IB/core: Add flags for=
- on=20
-> >>> demand paging support', you're trying to handle uverbs call from=20
-> >>> a userspace program using a previous, shorter ABI.
-> >>
-> >> Yes, that was my intention.
-> >>
-> >>>
-> >>> But that's hidding bug where userspace will get it wrong at passi=
-ng the=20
-> >>> correct buffer / size for all others uverb calls.
-> >>>
-> >>> That cannot work that way.
-> >>>
-> >>> In a previous patchset [1], I've suggested to add a check in=20
-> >>> ib_copy_{from,to}_udata()[2][3] in order to check the input/outpu=
-t
-> >>> buffer size to not read/write past userspace provided buffer
-> >>> boundaries: in case of mismatch an error would be returned to
-> >>> userspace.
-> >>>
-> >>> With the suggested change here, buffer overflow won't happen,
-> >>> but the error is silently ignored, allowing uverb to return a
-> >>> partial result, which is likely not expected by userspace as
-> >>> it's a bit difficult to handle it gracefully.
-> >>>
-> >>> So this has to be removed, and a check on userspace response
-> >>> buffer must be added to ib_uverbs_ex_query_device() instead.
-> >>
-> >> I agree that we shouldn't silently ignore bugs in userspace, but I=
-'m not
-> >> sure the alternative is maintainable. If we have in the future N n=
-ew
-> >> extensions to this verb, will we need to validate the user space g=
-iven
-> >> output buffer is one of the N possible sizes?
-> >>
-> >=20
-> > Yes.
->=20
-> It would very easy for someone to forget one of the possible sizes, a=
-nd
-> thus blocking support for an older version of libibverbs. Such a bug
-> would be hard to detect because it requires testing all previous
-> versions of libibverbs. I think the problem you are trying to solve -
-> userspace accidentally setting a smaller response size then required =
--
-> will be detected immediately when one attempts to use that code.
->=20
-> >=20
-> > Additionnaly the size should be checked related to the flags set in=
- the
-> > "comp_mask": eg. requiring IB_USER_VERBS_EX_QUERY_DEVICE_ODP but no=
-t
-> > providing the expected response buffer should be an error.
->=20
-> In a query verb like EX_QUERY_DEVICE, I would expect the user-space c=
-ode
-> to request all bits in the comp_mask, since there's very little benef=
-it
-> from requesting a specific set (only a slightly shorter response for =
-the
-> system call). The kernel would ignore bits it doesn't know, and the
-> user-space would ignore bits it doesn't know in the response.
->=20
+The primary change is that the header send buffers have been split
+from struct rpcrdma_req. Specific benefits are outlined in the patch
+descriptions.
 
-Regarding comp_mask (not for this particular verb):
+More pre-requisites are required. Changes to raise the maximum
+r/wsize and other limits are left for a future merge window.
 
-It's not clear whether request's comp_mask describe the request or the
-response, as such I'm puzzled.
+See the topic branch "nfs-rdma-for-3.20" at:
 
-How would the kernel and the userspace be able to parse the request and
-the response if they ignore unknown bits ?
+ git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-How would they be able to skip the unrecognized chunk of the request an=
-d
-response buffer ?
+Anna, I think these are ready for you to merge.
 
-How one bit in a comp_mask is related to a chunk in the request or
-response ?
+Changes since v2:
+- Rebased on v3.19-rc5
+- Several patch descriptions clarified, based on review comments
+- New size of client receive buffers was needlessly large
 
-It's likely the kernel or userspace would have to skip the remaining
-comp_mask's bits after encountering an unknown bit as the size of the
-corresponding chunk in request or response would be unknown, making
-impossible to locate the corresponding chunk for the next bit set in
-comp_mask. Having said that, comp_mask is just a complicated way of
-expressing a version, which is turn describe a size (ever growing).
+Changes since v1:
+- Rebased on v3.19-rc4
+- One short description fixed
+- linux-rdma included this time (sorry for the noise)
 
-Anyway, I wanted to point to the perf subsystem and tool:
+---
 
-perf subsystem use a version in it's request (ok, it's a size):
+Chuck Lever (20):
+      xprtrdma: human-readable completion status
+      xprtrdma: Modernize htonl and ntohl
+      xprtrdma: Display XIDs in host byte order
+      xprtrdma: Clean up hdrlen
+      xprtrdma: Rename "xprt" and "rdma_connect" fields in struct rpcrdma_xprt
+      xprtrdma: Remove rpcrdma_ep::rep_ia
+      xprtrdma: Remove rl_mr field, and the mr_chunk union
+      xprtrdma: Move credit update to RPC reply handler
+      xprtrdma: Remove rpcrdma_ep::rep_func and ::rep_xprt
+      xprtrdma: Free the pd if ib_query_qp() fails
+      xprtrdma: Take struct ib_device_attr off the stack
+      xprtrdma: Take struct ib_qp_attr and ib_qp_init_attr off the stack
+      xprtrdma: Simplify synopsis of rpcrdma_buffer_create()
+      xprtrdma: Refactor rpcrdma_buffer_create() and rpcrdma_buffer_destroy()
+      xprtrdma: Add struct rpcrdma_regbuf and helpers
+      xprtrdma: Allocate RPC send buffer separately from struct rpcrdma_req
+      xprtrdma: Allocate RPC/RDMA send buffer separately from struct rpcrdma_req
+      xprtrdma: Allocate RPC/RDMA receive buffer separately from struct rpcrdma_rep
+      xprtrdma: Allocate zero pad separately from rpcrdma_buffer
+      xprtrdma: Clean up after adding regbuf management
 
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/inc=
-lude/uapi/linux/perf_event.h?id=3Dv3.19-rc5#n255
 
-It's checked in perf_copy_attr():
-
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/ker=
-nel/events/core.c?id=3Dv3.19-rc5#n7072
-
-As you can see, any unknown value passed to the kernel is rejected with
--EINVAL. Which is the way to follow, with respect to
-http://blog.ffwll.ch/2013/11/botching-up-ioctls.html rules.
-
-Then perf userspace tool is able to probe the maximum supported
-features:
-
-See __perf_evsel__open()
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/too=
-ls/perf/util/evsel.c?id=3Dv3.19-rc5#n1038
-
-Such complicated construct could be used in userspace to check what's
-the highest supported "comp_mask" is.
-
-I don't think it would solve our issue here, but this is a piece to be
-reviewed.
-
-By the way, we have to find how to handle the issue as soon as possible=
-,
-because we can't let this thing working this way for v3.19.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+ include/linux/sunrpc/rpc_rdma.h |   14 +
+ include/linux/sunrpc/svc_rdma.h |    2 
+ net/sunrpc/xprtrdma/rpc_rdma.c  |  108 ++++++----
+ net/sunrpc/xprtrdma/transport.c |  179 +++++++----------
+ net/sunrpc/xprtrdma/verbs.c     |  411 ++++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |  111 +++++++----
+ 6 files changed, 478 insertions(+), 347 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
