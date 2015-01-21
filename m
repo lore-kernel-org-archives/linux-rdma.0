@@ -1,51 +1,130 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH FIX For-3.19 v4 0/7] IB/ipoib: follow fixes for multicast handling
-Date: Wed, 21 Jan 2015 22:49:18 +0200
-Message-ID: <CAJ3xEMhQXLt1+iSO_OK+5AR73d9+792OunAmgvsbPpRs-H8ugA@mail.gmail.com>
-References: <cover.1421725318.git.dledford@redhat.com>
-	<54BE7F66.4070404@dev.mellanox.co.il>
-	<CAL1RGDVPCH3h7nZMd9=4rFPqbKEGZiXQC+Atvfwj5kWcf2S3Qg@mail.gmail.com>
-	<CAJ3xEMi5vGc-Urv_7RSWCn9-ZAiq0WzVn3y0__jrTc48jM9gpQ@mail.gmail.com>
-	<CAG4TOxO3wTguFbffxPFANrVTQo7=gVDzEAWwoDhh_acNTixXpQ@mail.gmail.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: consistency in the face of concurrent accesses
+Date: Wed, 21 Jan 2015 16:28:12 -0500
+Message-ID: <CADPSxAiVjYFm54qAuhA_JaLhKdTbLH3i4PGO8SDTcCv8j0N4-A@mail.gmail.com>
+References: <loom.20150121T212810-619@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxO3wTguFbffxPFANrVTQo7=gVDzEAWwoDhh_acNTixXpQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <loom.20150121T212810-619-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 21, 2015 at 10:37 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Wed, Jan 21, 2015 at 12:34 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>> Because Doug's changes fixed some bad, easy-to-reproduce issues.  On
->>> the other hand we don't want to introduce new regressions to fix the
->>> old issues.
->>
->> See above, we did introduced regressions.
+Hi Erfan.
+
+On Wed, Jan 21, 2015 at 3:32 PM, floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
+ote:
 >
-> Yes, I know, that's my whole point.
+> Hello All,
 >
-> We need to fix the current 3.19-rc code, and the two choices are to
-> keep the fixes we added during 3.19 or revert back to 3.18.
+> My question has to do with consistency in the face of concurrent acce=
+sses.
+> Specifically, I=E2=80=99d like to find the answers for the following =
+questions:
+>
+> 1- Machine A submits an atomic operation to machine B=E2=80=99s memor=
+y.
+> Meanwhile, machine B=E2=80=99s CPU modifies the same memory region of=
+ its local main
+> memory (the modification is either in CPU cache or directly to the ma=
+in memory).
+> Can these two operations interfere with each other? for example, can =
+they cause
+> that region in the memory to end up corrupted.
 
-> Doug's opinion is that your proposed fix is broken, and we don't have
-> an alternate fix.
 
-Before we go back to 3.18, there's the option I was asking Doug to
-comment on, namely is it really impossible to revert the offending
-patch? if this is the case, I'd like to get Erez few more days to
-discuss his proposed patch + changes to it from code review.
+A HCA's atomic operations are NOT atomic with respect to the attached
+processor. For example, if both the processor and the RDMA NIC do an
+atomic fetch-and-add on the same memory integer, the integer may not
+get incremented by 2.
 
-> So I suggest we revert the whole series from 3.19 and get this right for 3.20.
+>
+> 2- Machine A submits an RDMA READ operation to machine B=E2=80=99s me=
+mory.
+> Meanwhile, machine B=E2=80=99s CPU modifies the same memory region (a=
+nd hence the
+> changes are still in the cache).
+> Is the remote RDMA READ coming from machine A able to see the changes=
+ made
+> by B=E2=80=99s local CPU?
+> In other words, does RDMA READ flush out the remote CPU cache before
+> reading the remote memory region? If not, this might result in some d=
+irty reads.
+>
 
-Roland, I'm very happy to see that you're finally up to non -rc1 activity.
+RDMA reads use the CPU's cache coherence protocol (via the PCIe
+controller) to get the most recent values. A caveat here is that PCIe
+reads do not necessarily proceed in left-to-right address order, but
+PCIe writes do. This is useful when using RDMA reads for consistency.
 
-This didn't happen for 3.18 and maybe also for 3.17 and you know what,
-it's terribly impossible to run a kernel sub-system like that.
+>
+> 3- Do multiple operations from multiple HCA cards on a single machine=
+ interfere
+> with each other?
+> For example, machine A has 2 HCA cards, and it receives two concurren=
+t atomic
+> operations, one from each of its HCA cards. Can they interfere with e=
+ach other?
+>
 
- Or.
+I'd expect that in the case of different PCIe cards, atomic operations
+from one HCA are completely independent from another HCA. So they will
+indeed interfere with each other.
+
+Some useful papers about this (atomicity, RDMA staleness and ordering):
+* https://www.usenix.org/conference/atc13/technical-sessions/presentati=
+on/mitchell
+* https://www.usenix.org/system/files/conference/nsdi14/nsdi14-paper-dr=
+agojevic.pdf
+* https://www.cs.cmu.edu/~akalia/doc/herd_readable.pdf
+
+On Wed, Jan 21, 2015 at 3:32 PM, floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
+ote:
+> Hello All,
+>
+> My question has to do with consistency in the face of concurrent acce=
+sses.
+> Specifically, I=E2=80=99d like to find the answers for the following =
+questions:
+>
+> 1- Machine A submits an atomic operation to machine B=E2=80=99s memor=
+y.
+> Meanwhile, machine B=E2=80=99s CPU modifies the same memory region of=
+ its local main
+> memory (the modification is either in CPU cache or directly to the ma=
+in memory).
+> Can these two operations interfere with each other? for example, can =
+they cause
+> that region in the memory to end up corrupted?
+>
+> 2- Machine A submits an RDMA READ operation to machine B=E2=80=99s me=
+mory.
+> Meanwhile, machine B=E2=80=99s CPU modifies the same memory region (a=
+nd hence the
+> changes are still in the cache).
+> Is the remote RDMA READ coming from machine A able to see the changes=
+ made
+> by B=E2=80=99s local CPU?
+> In other words, does RDMA READ flush out the remote CPU cache before
+> reading the remote memory region? If not, this might result in some d=
+irty reads.
+>
+> 3- Do multiple operations from multiple HCA cards on a single machine=
+ interfere
+> with each other?
+> For example, machine A has 2 HCA cards, and it receives two concurren=
+t atomic
+> operations, one from each of its HCA cards. Can they interfere with e=
+ach other?
+>
+> Thank you in advance for your time.
+> Cheers,
+> Erfan
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
