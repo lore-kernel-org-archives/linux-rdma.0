@@ -1,95 +1,91 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH FIX For-3.19 v4 0/7] IB/ipoib: follow fixes for
- multicast handling
-Date: Thu, 22 Jan 2015 09:21:05 -0500
-Message-ID: <1421936465.3352.140.camel@redhat.com>
-References: <cover.1421725318.git.dledford@redhat.com>
-	 <54BE7F66.4070404@dev.mellanox.co.il>
-	 <CAL1RGDVPCH3h7nZMd9=4rFPqbKEGZiXQC+Atvfwj5kWcf2S3Qg@mail.gmail.com>
-	 <CAJ3xEMi5vGc-Urv_7RSWCn9-ZAiq0WzVn3y0__jrTc48jM9gpQ@mail.gmail.com>
-	 <CAG4TOxO3wTguFbffxPFANrVTQo7=gVDzEAWwoDhh_acNTixXpQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-W9Ma7C82VAVEC1+5Cg3p"
+Subject: [PATCH FIX For-3.19 v5 01/10] IB/ipoib: fix IPOIB_MCAST_RUN flag usage
+Date: Thu, 22 Jan 2015 09:31:26 -0500
+Message-ID: <68022bd26f94145c5d9371fee18e1f2dd9807545.1421936879.git.dledford@redhat.com>
+References: <cover.1421936879.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxO3wTguFbffxPFANrVTQo7=gVDzEAWwoDhh_acNTixXpQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The usage of IPOIB_MCAST_RUN as a flag is inconsistent.  In some places
+it is used to mean "our device is administratively allowed to send
+multicast joins/leaves/packets" and in other places it means "our
+multicast join task thread is currently running and will process your
+request if you put it on the queue".  However, this latter meaning is in
+fact flawed as there is a race condition between the join task testing
+the mcast list and finding it empty of remaining work, dropping the
+mcast mutex and also the priv->lock spinlock, and clearing the
+IPOIB_MCAST_RUN flag.  Further, there are numerous locations that use
+the flag in the former fashion, and when all tasks complete and the task
+thread clears the RUN flag, all of those other locations will fail to
+ever again queue any work.  This results in the interface coming up fine
+initially, but having problems adding new multicast groups after the
+first round of groups have all been added and the RUN flag is cleared by
+the join task thread when it thinks it is done.  To resolve this issue,
+convert all locations in the code to treat the RUN flag as an indicator
+that the multicast portion of this interface is in fact administratively
+up and joins/leaves/sends can be performed.  There is no harm (other
+than a slight performance penalty) to never clearing this flag and using
+it in this fashion as it simply means that a few places that used to
+micro-optimize how often this task was queued on a work queue will now
+queue the task a few extra times.  We can address that suboptimal
+behavior in future patches.
 
---=-W9Ma7C82VAVEC1+5Cg3p
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-On Wed, 2015-01-21 at 12:37 -0800, Roland Dreier wrote:
-> On Wed, Jan 21, 2015 at 12:34 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
-:
-> >> Because Doug's changes fixed some bad, easy-to-reproduce issues.  On
-> >> the other hand we don't want to introduce new regressions to fix the
-> >> old issues.
-> >
-> > See above, we did introduced regressions.
->=20
-> Yes, I know, that's my whole point.
->=20
-> We need to fix the current 3.19-rc code, and the two choices are to
-> keep the fixes we added during 3.19 or revert back to 3.18.
->=20
-> Doug's opinion is that your proposed fix is broken, and we don't have
-> an alternate fix.
-
-I will second that opinion.  Over night we ran a series of tests on some
-new patches I made, and they resolved the rmmod/insmod failure case in
-our testing.  There were two significant fixes.  One of them was related
-to the switch to using a separate work queue per device.  The other was
-an oversight in ipoib_mcast_restart_task().  Neither of these issues
-were addressed by the alternate fix.  So, at best, the alternate fix is
-paper machete that covers over two holes but leaves the holes in place.
-
-> So I suggest we revert the whole series from 3.19 and get this right for =
-3.20.
-
-Before you decide, please take a look at the final fix as I see it.
-This was a 7 patch series, now it's 10 patches.  But the final three
-patches are small, well understood, and obviously correct.
-
-Regardless of whether you take these 10, I do *not* suggest leaving the
-first 8 and using the alternate patch.  I suggest either an all or
-nothing approach.  But, like I said, the rmmod issue is now fixed in my
-testing.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-W9Ma7C82VAVEC1+5Cg3p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJUwQdRAAoJELgmozMOVy/dP1kP/1dNUphpShvaFQVD3TGO4quB
-vWqGm87vu6sk0qUY4dKvR5INJfhgEEztemu0WFPkneimad46cm56Z1DMXKwvyJJl
-xLXeXBp10uja/O+TtqTrDaaSlwtuOVG53HNKXqZDl6qxDemyLghHB+eZUg0zJbvN
-IjtvFlxVX7gD+vFkKDZJJB6zoqcDjmahb/tgFPCYgrzshBJ9P81RAGYyksdtVjTc
-t8myNGGu4zF90vUbm3d6QGg6JCfqWw31eCTq6/aKOdJQ9LJtA5lbOCtUOCehenEL
-w2yLfwsMWCx7bbhpf85W9lwXWCTSjF4XogWOXQ/lhP4mDGFfOoHI5YpUjtcC+ggy
-+Y5iyfkgOPthVHG5uSgT1ib40T0qZ2g24iBd8aRLO/s4dDwx3eIvTXQcv2cd9ajH
-E45boJujLYIsOgfVzsK8vcTEK5eBJTwhmK3yVkOvQdrE2ABvgVeNAylHcSJX3yCM
-5o1qrCu4//i93MILH8QtsJ+yiATIkfeuhTJ1Rl6+sVqq+fVoKxMdrqhSxckpgr8V
-ffifimNwuRDZDHiDcqj47f5nraFNR+uPHrx5hZpT1q7iUB6jXK7UVYGLLHCbTxMm
-jNya1vB/FyztblTunO4NF/zaXHRG0nM4RhV3BVJKE1pkZAZZvMILxg+jaQYHbT9i
-nR7C4r3wNeRkIG68j7JE
-=XTrA
------END PGP SIGNATURE-----
-
---=-W9Ma7C82VAVEC1+5Cg3p--
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index bc50dd0d0e4..91b8fe118ec 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -630,8 +630,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	}
+ 
+ 	ipoib_dbg_mcast(priv, "successfully joined all multicast groups\n");
+-
+-	clear_bit(IPOIB_MCAST_RUN, &priv->flags);
+ }
+ 
+ int ipoib_mcast_start_thread(struct net_device *dev)
+@@ -641,8 +639,8 @@ int ipoib_mcast_start_thread(struct net_device *dev)
+ 	ipoib_dbg_mcast(priv, "starting multicast thread\n");
+ 
+ 	mutex_lock(&mcast_mutex);
+-	if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
+-		queue_delayed_work(priv->wq, &priv->mcast_task, 0);
++	set_bit(IPOIB_MCAST_RUN, &priv->flags);
++	queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+ 	mutex_unlock(&mcast_mutex);
+ 
+ 	return 0;
+@@ -725,7 +723,7 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
+ 		memcpy(mcast->mcmember.mgid.raw, mgid, sizeof (union ib_gid));
+ 		__ipoib_mcast_add(dev, mcast);
+ 		list_add_tail(&mcast->list, &priv->multicast_list);
+-		if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
++		if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
+ 			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+ 	}
+ 
+@@ -951,7 +949,8 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 	/*
+ 	 * Restart our join task if needed
+ 	 */
+-	ipoib_mcast_start_thread(dev);
++	if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
++		queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+ 	rtnl_unlock();
+ }
+ 
+-- 
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
