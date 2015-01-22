@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH FIX For-3.19 v5 04/10] IB/ipoib: Handle -ENETRESET properly in our callback
-Date: Thu, 22 Jan 2015 09:31:29 -0500
-Message-ID: <1eb22dfa8137485abfd3f5f9a364b29b81637d00.1421936879.git.dledford@redhat.com>
+Subject: [PATCH FIX For-3.19 v5 09/10] IB/ipoib: flush the ipoib_workqueue on unregister
+Date: Thu, 22 Jan 2015 09:31:34 -0500
+Message-ID: <42f4127536f9182bccf11832c5c1544092f87030.1421936879.git.dledford@redhat.com>
 References: <cover.1421936879.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,66 +12,36 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When the core layer calls our callback with ENETRESET as the error, we
-clear the status to 0 before returning indicating that we are going to
-handle the error ourselves.  This causes the core layer to not free the
-mcast->mc structure, but we are releasing our reference to it by
-clearing mcast->mc.  So, preserve our reference to the multicast
-structure so when we next run ipoib_mcast_dev_flush, it will be able
-to properly release the mcast->mc entry at the right time in the right
-way.
+When we unregister our event handler as a prelude to removing our
+device, we need to go ahead and flush the ipoib_workqueue to make sure
+there are no delayed flushes for the device we are getting ready to
+remove.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 957e7d2e80c..50d2de2270a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -315,8 +315,10 @@ ipoib_mcast_sendonly_join_complete(int status,
- 	mutex_lock(&mcast_mutex);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 6bad17d4d58..8810514cf40 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1643,6 +1643,7 @@ sysfs_failed:
  
- 	/* We trap for port events ourselves. */
--	if (status == -ENETRESET)
-+	if (status == -ENETRESET) {
-+		status = 0;
- 		goto out;
-+	}
+ register_failed:
+ 	ib_unregister_event_handler(&priv->event_handler);
++	flush_workqueue(ipoib_workqueue);
+ 	/* Stop GC if started before flush */
+ 	set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+ 	cancel_delayed_work(&priv->neigh_reap_task);
+@@ -1709,6 +1710,7 @@ static void ipoib_remove_one(struct ib_device *device)
  
- 	if (!status)
- 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
-@@ -344,8 +346,6 @@ out:
- 	if (status)
- 		mcast->mc = NULL;
- 	complete(&mcast->done);
--	if (status == -ENETRESET)
--		status = 0;
- 	__ipoib_mcast_continue_join_thread(priv, NULL, 0);
- 	mutex_unlock(&mcast_mutex);
- 	return status;
-@@ -462,8 +462,10 @@ static int ipoib_mcast_join_complete(int status,
- 	mutex_lock(&mcast_mutex);
+ 	list_for_each_entry_safe(priv, tmp, dev_list, list) {
+ 		ib_unregister_event_handler(&priv->event_handler);
++		flush_workqueue(ipoib_workqueue);
  
- 	/* We trap for port events ourselves. */
--	if (status == -ENETRESET)
-+	if (status == -ENETRESET) {
-+		status = 0;
- 		goto out;
-+	}
- 
- 	if (!status)
- 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
-@@ -499,8 +501,6 @@ out:
- 	if (status)
- 		mcast->mc = NULL;
- 	complete(&mcast->done);
--	if (status == -ENETRESET)
--		status = 0;
- 	spin_unlock_irq(&priv->lock);
- 	mutex_unlock(&mcast_mutex);
- 
+ 		rtnl_lock();
+ 		dev_change_flags(priv->dev, priv->dev->flags & ~IFF_UP);
 -- 
 2.1.0
 
