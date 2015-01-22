@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH FIX For-3.19 v5 08/10] IB/ipoib: fix ipoib_mcast_restart_task
-Date: Thu, 22 Jan 2015 09:31:33 -0500
-Message-ID: <207b490655084b686a5f2ec52d65d964d5a77fe4.1421936879.git.dledford@redhat.com>
+Subject: [PATCH FIX For-3.19 v5 04/10] IB/ipoib: Handle -ENETRESET properly in our callback
+Date: Thu, 22 Jan 2015 09:31:29 -0500
+Message-ID: <1eb22dfa8137485abfd3f5f9a364b29b81637d00.1421936879.git.dledford@redhat.com>
 References: <cover.1421936879.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,79 +12,66 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There are two intertwined problems here.
-
-First, if we are downing the interface, we will get called as part of
-the process.  When that happens, we don't really want to do anything
-here as the next thing to happen is ipoib_mcast_dev_flush will get
-called.  We just want to let it do all the work since we don't need to
-do any address matches and such.  So, we should be testing for whether
-or not the interface is up at the beginning of this function and
-returning if it isn't.
-
-Second, the attempt to grab the rtnl_lock to prevent racing against
-ipoib_mcast_dev_flush was mistaken.  The removed mcast groups are on a
-stack local list head and so once we've removed them from the mcast
-rbtree, ipoib_mcast_dev_flush can no longer find them and race us on
-removing them.  However, because we attempt to take the lock, and then
-check the status of the interface, if our interface has gone down, we
-simply return.  This is absolutely the wrong thing to do as it means we
-just leaked all of the mcast entries on our remove list.
-
-The fix is to check for the interface being up at the very beginning of
-the function, and then to always remove our entries on the remove list
-no matter what as they will get leaked otherwise, and skip taking the
-rtnl_lock since it isn't needed anyway.
+When the core layer calls our callback with ENETRESET as the error, we
+clear the status to 0 before returning indicating that we are going to
+handle the error ourselves.  This causes the core layer to not free the
+mcast->mc structure, but we are releasing our reference to it by
+clearing mcast->mc.  So, preserve our reference to the multicast
+structure so when we next run ipoib_mcast_dev_flush, it will be able
+to properly release the mcast->mc entry at the right time in the right
+way.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 972fa15a225..10e05437c83 100644
+index 957e7d2e80c..50d2de2270a 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -871,6 +871,9 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 	unsigned long flags;
- 	struct ib_sa_mcmember_rec rec;
+@@ -315,8 +315,10 @@ ipoib_mcast_sendonly_join_complete(int status,
+ 	mutex_lock(&mcast_mutex);
  
-+	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
-+		return;
-+
- 	ipoib_dbg_mcast(priv, "restarting multicast task\n");
+ 	/* We trap for port events ourselves. */
+-	if (status == -ENETRESET)
++	if (status == -ENETRESET) {
++		status = 0;
+ 		goto out;
++	}
  
- 	local_irq_save(flags);
-@@ -965,21 +968,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
- 			wait_for_completion(&mcast->done);
- 
--	/*
--	 * We have to cancel outside of the spinlock, but we have to
--	 * take the rtnl lock or else we race with the removal of
--	 * entries from the remove list in mcast_dev_flush as part
--	 * of ipoib_stop().  We detect the drop of the ADMIN_UP flag
--	 * to signal that we have hit this particular race, and we
--	 * return since we know we don't need to do anything else
--	 * anyway.
--	 */
--	while (!rtnl_trylock()) {
--		if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
--			return;
--		else
--			msleep(20);
--	}
- 	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
- 		ipoib_mcast_leave(mcast->dev, mcast);
- 		ipoib_mcast_free(mcast);
-@@ -988,7 +976,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 	 * Restart our join task thread if needed
- 	 */
+ 	if (!status)
+ 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
+@@ -344,8 +346,6 @@ out:
+ 	if (status)
+ 		mcast->mc = NULL;
+ 	complete(&mcast->done);
+-	if (status == -ENETRESET)
+-		status = 0;
  	__ipoib_mcast_continue_join_thread(priv, NULL, 0);
--	rtnl_unlock();
- }
+ 	mutex_unlock(&mcast_mutex);
+ 	return status;
+@@ -462,8 +462,10 @@ static int ipoib_mcast_join_complete(int status,
+ 	mutex_lock(&mcast_mutex);
  
- #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+ 	/* We trap for port events ourselves. */
+-	if (status == -ENETRESET)
++	if (status == -ENETRESET) {
++		status = 0;
+ 		goto out;
++	}
+ 
+ 	if (!status)
+ 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
+@@ -499,8 +501,6 @@ out:
+ 	if (status)
+ 		mcast->mc = NULL;
+ 	complete(&mcast->done);
+-	if (status == -ENETRESET)
+-		status = 0;
+ 	spin_unlock_irq(&priv->lock);
+ 	mutex_unlock(&mcast_mutex);
+ 
 -- 
 2.1.0
 
