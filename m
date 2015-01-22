@@ -1,46 +1,26 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH FIX For-3.19 v5 06/10] IB/ipoib: remove unneeded locks
-Date: Thu, 22 Jan 2015 09:31:31 -0500
-Message-ID: <4b5930ef31d62a0251d3834c46daa70ead09567a.1421936879.git.dledford@redhat.com>
-References: <cover.1421936879.git.dledford@redhat.com>
+From: floaterions <floaterions-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: librdmacm and experimental verbs
+Date: Thu, 22 Jan 2015 17:17:50 +0000 (UTC)
+Message-ID: <loom.20150122T180904-367@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-References: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-During the various work I've done on this, some extra locking has crept
-in when things weren't working right.  This is one of those spots.
-Remove the unneeded spinlocks.  The mutex is enough to protect against
-what we need to protect against.
+Hello all,
 
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 2 --
- 1 file changed, 2 deletions(-)
+Since atomic operations in Connect-IB (with mlx5 driver) are not supported with
+the standard library, I have to use experimental verbs (e.g. ibv_exp_create_qp
+instead of ibv_create_qp when creating queue pairs).
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index a03b6a04203..424c602d5a0 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -497,12 +497,10 @@ static int ipoib_mcast_join_complete(int status,
- 		__ipoib_mcast_continue_join_thread(priv, mcast, 1);
- 	}
- out:
--	spin_lock_irq(&priv->lock);
- 	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	if (status)
- 		mcast->mc = NULL;
- 	complete(&mcast->done);
--	spin_unlock_irq(&priv->lock);
- 	mutex_unlock(&mcast_mutex);
- 
- 	return status;
--- 
-2.1.0
+Unfortunately my code is heavily based on librdmacm for creating the queue pairs
+and transitioning them from INIT to RTR and RTS states. I was wondering if
+librdmacm has any support for experimental verbs, perhaps in its newer versions?
+
+- Erfan
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
