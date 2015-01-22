@@ -1,78 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH FIX For-3.19 v5 00/10] Fix ipoib regressions
-Date: Thu, 22 Jan 2015 09:31:25 -0500
-Message-ID: <cover.1421936879.git.dledford@redhat.com>
+Subject: [PATCH FIX For-3.19 v5 05/10] IB/ipoib: don't restart our thread on ENETRESET
+Date: Thu, 22 Jan 2015 09:31:30 -0500
+Message-ID: <3a84fa37cf49b27ae342c3be727c481664ff6013.1421936879.git.dledford@redhat.com>
+References: <cover.1421936879.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-My 8 patch set taken into 3.19 caused some regressions.  This patch
-set resolves those issues.
+Make the send only join completion handler behave like the normal join
+completion handler in that we should restart the multicast join thread
+whenever our join completes with either an error or success, but don't
+restart the thread if we got a net reset event, let ipoib_event queue
+up a device flush, which will then call ipoib_mcast_dev_flush to remove
+all of the current mcast entries, and ipoib_mcase_restart_task to check
+out current mcast entry list against the netdev list of mcast entries
+we are supposed to have and requeue the ones we need to get back.
 
-These patches are to resolve issues created by my previous patch set.
-While that set worked fine in my testing, there were problems with
-multicast joins after the initial set of joins had completed.  Since my
-testing relied upon the normal set of multicast joins that happen
-when the interface is first brought up, I missed those problems.
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Symptoms vary from failure to send packets due to a failed join, to
-loss of connectivity after a subnet manager restart, to failure
-to properly release multicast groups on shutdown resulting in hangs
-when the mlx4 driver attempts to unload itself via its reboot
-notifier handler.
-
-This set of patches has passed a number of tests above and beyond my
-original tests.  As suggested by Or Gerlitz I added IPv6 and IPv4
-multicast tests.  I also added both subnet manager restarts and
-manual shutdown/restart of individual ports at the switch in order to
-ensure that the ENETRESET path was properly tested.  I included
-testing, then a subnet manager restart, then a quiescent period for
-caches to expire, then restarting testing to make sure that arp and
-neighbor discovery work after the subnet manager restart.
-
-All in all, I have not been able to trip the multicast joins up any
-longer.
-
-Additionally, the original impetus for my first 8 patch set was that
-it was simply too easy to break the IPoIB subsystem with this simple
-loop:
-
-while true; do
-    ifconfig ib0 up
-    ifconfig ib0 down
-done
-
-Just to be safe, I made sure this problem did not resurface.
-
-v5: fix an oversight in mcast_restart_task that leaked mcast joins
-    fix a failure to flush the ipoib_workqueue on deregister that
-    meant we could end up running our code after our device had been
-    removed, resulting in an oops
-    remove a debug message that could be trigger so fast that the
-    kernel printk mechanism would starve out the mcast join task thread
-    resulting in what looked like a mcast failure that was really just
-    delayed action
-
-
-Doug Ledford (10):
-  IB/ipoib: fix IPOIB_MCAST_RUN flag usage
-  IB/ipoib: Add a helper to restart the multicast task
-  IB/ipoib: make delayed tasks not hold up everything
-  IB/ipoib: Handle -ENETRESET properly in our callback
-  IB/ipoib: don't restart our thread on ENETRESET
-  IB/ipoib: remove unneeded locks
-  IB/ipoib: fix race between mcast_dev_flush and mcast_join
-  IB/ipoib: fix ipoib_mcast_restart_task
-  IB/ipoib: flush the ipoib_workqueue on unregister
-  IB/ipoib: cleanup a couple debug messages
-
- drivers/infiniband/ulp/ipoib/ipoib.h           |   1 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |   2 +
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 234 ++++++++++++++-----------
- 3 files changed, 131 insertions(+), 106 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 50d2de2270a..a03b6a04203 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -336,17 +336,18 @@ ipoib_mcast_sendonly_join_complete(int status,
+ 			dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
+ 		}
+ 		netif_tx_unlock_bh(dev);
++		__ipoib_mcast_continue_join_thread(priv, mcast, 1);
+ 	} else {
+ 		/* Join completed, so reset any backoff parameters */
+ 		mcast->backoff = 1;
+ 		mcast->delay_until = jiffies;
++		__ipoib_mcast_continue_join_thread(priv, NULL, 0);
+ 	}
+ out:
+ 	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+ 	if (status)
+ 		mcast->mc = NULL;
+ 	complete(&mcast->done);
+-	__ipoib_mcast_continue_join_thread(priv, NULL, 0);
+ 	mutex_unlock(&mcast_mutex);
+ 	return status;
+ }
 -- 
 2.1.0
 
