@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/4] IB/core: ib_copy_to_udata(): don't silently truncate response
-Date: Thu, 22 Jan 2015 14:28:03 +0100
-Message-ID: <3d22955e8011c770f052df8c1dba3ae776b55e6b.1421931555.git.ydroneaud@opteya.com>
+Subject: [PATCH 1/4] IB/uverbs: ex_query_device: fail if output buffer size does not match
+Date: Thu, 22 Jan 2015 14:28:02 +0100
+Message-ID: <d60715123c640bc7b720ad11a9faa3af78950aa6.1421931555.git.ydroneaud@opteya.com>
 References: <cover.1421931555.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1421931555.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,35 +12,24 @@ To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raind
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-While ib_copy_to_udata() should check for the available output
-space as already proposed in some other patches [1][2][3], the
-changes brought by commit 5a77abf9a97a ("IB/core: Add support for
-extended query device caps") are silently truncating the data to
-be written to userspace if the output buffer is not large enough
-to hold the response data.
+Instead of silently truncating extended QUERY_DEVICE uverb's
+response, see commit 5a77abf9a97a ("IB/core: Add support for
+extended query device caps")), this patch makes function
+ib_uverbs_ex_query_device() check the available space in the
+response buffer against the requested features set in comp_mask
+(currently only IB_USER_VERBS_EX_QUERY_DEVICE_ODP per commit
+860f10a799c8 ("IB/core: Add flags for on demand paging support").
 
-Silently truncating the response is not a reliable behavior as
-userspace is not given any hint about this truncation: userspace
-is leaved with garbage to play with.
+If the response buffer is not large enough to store the expected
+response, -ENOSPC is returned to userspace so that it can adjust
+the size of its buffer.
 
-Not checking the response buffer size and writing past the
-userspace buffer is no good either, but it's the current behavior.
-
-So this patch revert the particular change on ib_copy_to_udata()
-as a better behavior is implemented in the upper level function
-ib_uverbs_ex_query_device().
-
-[1] "[PATCH 00/22] infiniband: improve userspace input check"
-
-http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[2] "[PATCH 03/22] infiniband: ib_copy_from_udata(): check input length"
-
-http://mid.gmane.org/2bf102a41c51f61965ee09df827abe8fefb523a9.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[3] "[PATCH 04/22] infiniband: ib_copy_to_udata(): check output length"
-
-http://mid.gmane.org/d27716a3a1c180f832d153a7402f65ea8a75b734.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+Note: as offsetof() is used to retrieve the size of the lower chunk
+of the response, beware that it only works if the upper chunk
+is right after, without any implicit padding. And, as the size of
+the latter chunk is added to the base size, implicit padding at the
+end of the structure is not taken in account. Both point must be
+taken in account when extending the uverbs functionalities.
 
 Link: http://mid.gmane.org/cover.1421931555.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -49,25 +38,54 @@ Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0d74f1de99aa..65994a19e840 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1707,10 +1707,7 @@ static inline int ib_copy_from_udata(void *dest, struct ib_udata *udata, size_t
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 532d8eba8b02..8668b328b7e6 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3302,6 +3302,7 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	struct ib_uverbs_ex_query_device  cmd;
+ 	struct ib_device_attr attr;
+ 	struct ib_device *device;
++	size_t resp_len;
+ 	int err;
  
- static inline int ib_copy_to_udata(struct ib_udata *udata, void *src, size_t len)
- {
--	size_t copy_sz;
--
--	copy_sz = min_t(size_t, len, udata->outlen);
--	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
-+	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
- }
+ 	device = file->device->ib_dev;
+@@ -3315,6 +3316,11 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	if (cmd.reserved)
+ 		return -EINVAL;
  
- /**
++	resp_len = offsetof(typeof(resp), odp_caps);
++
++	if (ucore->outlen < resp_len)
++		return -ENOSPC;
++
+ 	err = device->query_device(device, &attr);
+ 	if (err)
+ 		return err;
+@@ -3325,6 +3331,11 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	if (cmd.comp_mask & IB_USER_VERBS_EX_QUERY_DEVICE_ODP) {
++		resp_len += sizeof(resp.odp_caps);
++
++		if (ucore->outlen < resp_len)
++			return -ENOSPC;
++
+ 		resp.odp_caps.general_caps = attr.odp_caps.general_caps;
+ 		resp.odp_caps.per_transport_caps.rc_odp_caps =
+ 			attr.odp_caps.per_transport_caps.rc_odp_caps;
+@@ -3336,7 +3347,7 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	}
+ #endif
+ 
+-	err = ib_copy_to_udata(ucore, &resp, sizeof(resp));
++	err = ib_copy_to_udata(ucore, &resp, resp_len);
+ 	if (err)
+ 		return err;
+ 
 -- 
 2.1.0
 
