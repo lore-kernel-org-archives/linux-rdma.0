@@ -1,74 +1,58 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 FIX for-3.19] IB/ipoib: Fix broken multicast flow
-Date: Fri, 23 Jan 2015 02:48:37 -0500
-Message-ID: <1421999317.3352.267.camel@redhat.com>
-References: <1421933479-18214-1-git-send-email-ogerlitz@mellanox.com>
-	 <1421959236.3352.233.camel@redhat.com>
-	 <CAJ3xEMhX9VWobHhUmW_=kumTNL6TWG6L+RrCtT2Zd=mjg-BOew@mail.gmail.com>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH FIX For-3.19 v5 00/10] Fix ipoib regressions
+Date: Fri, 23 Jan 2015 12:54:54 +0000
+Message-ID: <F3529576D8E232409F431C309E29399326C1DE5A@CRSMSX102.amr.corp.intel.com>
+References: <cover.1421936879.git.dledford@redhat.com>
+ <CAJ3xEMi7mowr_qFMUXtM5m8p974qF39nPf-Qh-NOYK_jUzswSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-SZ9u35NisnVrvov3e8m7"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhX9VWobHhUmW_=kumTNL6TWG6L+RrCtT2Zd=mjg-BOew-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMi7mowr_qFMUXtM5m8p974qF39nPf-Qh-NOYK_jUzswSg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-SZ9u35NisnVrvov3e8m7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2015-01-23 at 09:07 +0200, Or Gerlitz wrote:
-> >> 2. Sync between ipoib_mcast_sendonly_join() to ipoib_mcast_sendonly_jo=
-in_complete
-> >> using a IS_ERR_OR_NULL() test
->=20
-> > This part is no good.  You just added a kernel data corrupter or kernel
-> > oopser depending on the situation.
->=20
-> Yep, you probably have a point here, but didn't that exist prior to
-> your 3.19-rc1 series too? in other words, if bug X was there before
-> and you added bug Y and we fix Y that's fine and by the rules.
-
-No.  My patch set was written in response to bug A.  That bug actually
-had multiple sub-bugs that contributed to it.  This was one of them.
-Saying that it is OK because it existed before is to deny the entire
-purpose of the changes.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-SZ9u35NisnVrvov3e8m7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJUwfzVAAoJELgmozMOVy/d37UQAISH2ojzzJuVfGF4pSAyi4kb
-nMR/Bf2igPWt4MBJjxeLZOGaNCk/JUTXEjI2cyogg/1HaZjOdEiSNnIkpePxo0jb
-CqDRb4XGKLAq4neqaIppSfL98sa3UQ136hl4z2mR+49/rTfYQBHgN2IVK1TXqqrr
-V6qxRcu8IUsOlHUBp8lUUh0bxa1yrQiO0SJ6SU3KK0chEWEJwbZppBJl61tqgh7G
-t9pxsTjpaI9/T0s7+IiAYi6g/nhNXSLLXGWVS5yNFUy8c6M6JWlBpbcOZsFwOPsE
-CuDXwIwTEs3+APQrOo4p0A3mHswvz5nZuTUsUD32fdFJgwG2q0g0niJhawjHZ9tx
-MdcoG5C/Rn4f5gtf7BoqEIQNzz0FYMsiVcy+gC6UXbexgEjzWpHJJByUURz84FyB
-8+5oeZBg6jUkw/5vrrBmRnLuplWtGz9C4UCEzxRZ0Uik2kFNlumOD0139HvSyPTI
-8pKJYtkJvEZe4emsLD5D+F5oykkMi4EkhydA5N6Ty4izYED2pY3A/wuNC3x6Jn9y
-YvrHSj0IFcgr8kVQG2urXj2MDrLxc22AJiZwctPNsRNdnzqpHO1ijaFXA1h260vk
-R2jA+p1q7bPCMYThGe3+wM9grIp11Zj0v8FCfuUDp23RlKqX2WwX6e1VnzWgJHQ5
-mWgF0+LtqisxqEYHizpR
-=PFe6
------END PGP SIGNATURE-----
-
---=-SZ9u35NisnVrvov3e8m7--
-
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogT3IgR2VybGl0eiBbbWFp
+bHRvOmdlcmxpdHoub3JAZ21haWwuY29tXQ0KPiBTZW50OiBGcmlkYXksIEphbnVhcnkgMjMsIDIw
+MTUgMjowMiBBTQ0KPiBUbzogRG91ZyBMZWRmb3JkDQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2Vy
+bmVsLm9yZzsgUm9sYW5kIERyZWllcjsgQW1pciBWYWRhaTsgRXlhbCBQZXJyeTsgRXJleg0KPiBT
+aGl0cml0OyBFc3RyaW4sIEFsZXgNCj4gU3ViamVjdDogUmU6IFtQQVRDSCBGSVggRm9yLTMuMTkg
+djUgMDAvMTBdIEZpeCBpcG9pYiByZWdyZXNzaW9ucw0KPiANCj4gT24gVGh1LCBKYW4gMjIsIDIw
+MTUgYXQgNDozMSBQTSwgRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPiB3cm90ZToN
+Cj4gPiBNeSA4IHBhdGNoIHNldCB0YWtlbiBpbnRvIDMuMTkgY2F1c2VkIHNvbWUgcmVncmVzc2lv
+bnMuICBUaGlzIHBhdGNoDQo+ID4gc2V0IHJlc29sdmVzIHRob3NlIGlzc3Vlcy4NCj4gDQo+IERv
+dWcsIFJvbGFuZCAtIGVpZ2h0IHJjMSBwYXRjaGVzIGZvbGxvd2VkIHRlbiByYzYgZml4ZXMgLSBz
+b3VuZHMgYSBiaXQNCj4gdG9vIG11Y2ggdG8gbWUuIElmIHdlIChhbmQgTGludXMpIGxpa2Ugb3Ig
+bm90LCBwcm9iYWJseSB0aGUgcmlnaHQNCj4gdGhpbmcgdG8gZG8gaXMgcmV2ZXJ0IHRoZSByYzEg
+cGF0Y2hlcyBhbmQgY29tZSB1cCB3aXRoIGEgc2V0IG9mDQo+IGhvcGVmdWxseSA8IDE4IHBhdGNo
+ZXMgZm9yIDMuMjAgLSB1c2luZyBzcXVhc2hlcyBhbmQgc3VjaCwgYW5kIHRoZXJlJ3MNCj4gbm90
+IG11Y2ggdGltZSBmb3IgdGhhdCB0b28sIEJUVy4NCj4gDQo+IFRha2luZyBpbnRvIGFjY291bnQg
+RG91ZydzIGxpc3Rpbmcgb2YgdGhlIHJlbWFpbmluZyBwcm9ibGVtcyBpbiB0aGUNCj4gb3JpZ2lu
+YWwgc2V0IHdoaWNoIGFyZSBub3QgYWRkcmVzc2VkIGJ5IHRoZSBwYXRjaCBFcmV6IHN1Z2dlc3Rl
+ZCwgdGhpcw0KPiBpc24ndCBhbiBvcHRpb24gZWl0aGVyLg0KPiANCj4gQWxleCwgeW91IGFja2Vk
+IGFsbCB0aGUgc2VyaWVzLCBoYXZlbid0IHlvdSBub3RpY2VkIHRoZSBJUHY2IGFuZCBJUHY0DQo+
+IG11bHRpY2FzdCBicmVha2FnZSBvciBpdCB3b3JrZWQgZm9yIHlvdT8NCj4gDQoNCkkgZGlkbid0
+IHJ1biBlbGFib3JhdGUgbXVsdGljYXN0IHRlc3RzIG9uIHRoZSBwYXRjaC1zZXQgc28gSSBkaWRu
+J3QgaGl0IGl0Lg0KV2FzIGNvbmNlbnRyYXRlZCBvbiBpbml0aWFsaXphdGlvbiBmbG93LiBUaGF0
+IHdhcyBhIG1pc3Rha2UuDQoNCj4gT3IuDQo+IA0KPiA+IERvdWcgTGVkZm9yZCAoMTApOg0KPiA+
+ICAgSUIvaXBvaWI6IGZpeCBJUE9JQl9NQ0FTVF9SVU4gZmxhZyB1c2FnZQ0KPiA+ICAgSUIvaXBv
+aWI6IEFkZCBhIGhlbHBlciB0byByZXN0YXJ0IHRoZSBtdWx0aWNhc3QgdGFzaw0KPiA+ICAgSUIv
+aXBvaWI6IG1ha2UgZGVsYXllZCB0YXNrcyBub3QgaG9sZCB1cCBldmVyeXRoaW5nDQo+ID4gICBJ
+Qi9pcG9pYjogSGFuZGxlIC1FTkVUUkVTRVQgcHJvcGVybHkgaW4gb3VyIGNhbGxiYWNrDQo+ID4g
+ICBJQi9pcG9pYjogZG9uJ3QgcmVzdGFydCBvdXIgdGhyZWFkIG9uIEVORVRSRVNFVA0KPiA+ICAg
+SUIvaXBvaWI6IHJlbW92ZSB1bm5lZWRlZCBsb2Nrcw0KPiA+ICAgSUIvaXBvaWI6IGZpeCByYWNl
+IGJldHdlZW4gbWNhc3RfZGV2X2ZsdXNoIGFuZCBtY2FzdF9qb2luDQo+ID4gICBJQi9pcG9pYjog
+Zml4IGlwb2liX21jYXN0X3Jlc3RhcnRfdGFzaw0KPiA+ICAgSUIvaXBvaWI6IGZsdXNoIHRoZSBp
+cG9pYl93b3JrcXVldWUgb24gdW5yZWdpc3Rlcg0KPiA+ICAgSUIvaXBvaWI6IGNsZWFudXAgYSBj
+b3VwbGUgZGVidWcgbWVzc2FnZXMNCj4gPg0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvdWxwL2lw
+b2liL2lwb2liLmggICAgICAgICAgIHwgICAxICsNCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL3Vs
+cC9pcG9pYi9pcG9pYl9tYWluLmMgICAgICB8ICAgMiArDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFu
+ZC91bHAvaXBvaWIvaXBvaWJfbXVsdGljYXN0LmMgfCAyMzQgKysrKysrKysrKysrKystLS0tLS0t
+LS0tLQ0KPiA+ICAzIGZpbGVzIGNoYW5nZWQsIDEzMSBpbnNlcnRpb25zKCspLCAxMDYgZGVsZXRp
+b25zKC0pDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
