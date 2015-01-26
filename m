@@ -1,203 +1,212 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] mlx4_core: Enhance device capabilities flags debug printouts
-Date: Mon, 26 Jan 2015 06:30:23 -0800
-Message-ID: <1422282623-3744-1-git-send-email-yuval.shaia@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH FIX For-3.19 v5 00/10] Fix ipoib regressions
+Date: Mon, 26 Jan 2015 13:45:55 -0500
+Message-ID: <1422297955.2854.32.camel@redhat.com>
+References: <cover.1421936879.git.dledford@redhat.com>
+				 <1422031938.3352.286.camel@redhat.com>
+				 <54C4E793.2010103@dev.mellanox.co.il>
+			 <1422224477.3352.373.camel@redhat.com>
+			 <54C616A8.3050804@dev.mellanox.co.il>
+	 <1422276712.2854.5.camel@redhat.com>	 <54C6400E.30607@dev.mellanox.co.il>
+	 <1422279465.2854.15.camel@redhat.com> <54C64A2A.5070306@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-6G2av/r/yL5mJJa4Fn8H"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54C64A2A.5070306-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-1. Add descriptions of all features.
-2. Add indication whether feature is supported or not.
-With this enhancement all device features will be printed along with flags that shows if feature is supported by FW, Driver or both.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/fw.c | 54 +++++++++++++++++++++++++++------
- include/linux/mlx4/device.h             | 52 +++++++++++++++++++++++++++++++
- 2 files changed, 96 insertions(+), 10 deletions(-)
+--=-6G2av/r/yL5mJJa4Fn8H
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index 982861d..34a7ab3 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -77,6 +77,19 @@ MODULE_PARM_DESC(enable_qos, "Enable Quality of Service support in the HCA (defa
- 		}						      \
- 	} while (0)
- 
-+void dump_cap_flags(struct mlx4_dev *dev, u64 fw_flags, u64 drv_flags,
-+		    const char** fname, int fname_sz)
-+{
-+	int i;
-+	for (i = 0; i < fname_sz; ++i) {
-+		if (fname[i])
-+			mlx4_dbg(dev, "\t(%c%c) %s\n",
-+				 (fw_flags & (1LL << i)) ? '+' : '-',
-+				 (drv_flags & (1LL << i)) ? '+' : '-',
-+				 fname[i]);
-+	}
-+}
-+
- static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
- {
- 	static const char *fname[] = {
-@@ -91,7 +104,10 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
- 		[ 8] = "P_Key violation counter",
- 		[ 9] = "Q_Key violation counter",
- 		[10] = "VMM",
-+		[11] = "Fibre Channel Protocol On Ethernet Ports support",
- 		[12] = "Dual Port Different Protocol (DPDP) support",
-+		[13] = "Raw Ethertype support",
-+		[14] = "Raw IPv6 support",
- 		[15] = "Big LSO headers",
- 		[16] = "MW support",
- 		[17] = "APM support",
-@@ -99,33 +115,53 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
- 		[19] = "Raw multicast support",
- 		[20] = "Address vector port checking support",
- 		[21] = "UD multicast support",
-+		[22] = "UD IPv4 Multicast support",
- 		[24] = "Demand paging support",
- 		[25] = "Router support",
-+		[26] = "L2 Ethernet Multicast support",
-+		[28] = "Software parsing support for UD transport",
-+		[29] = "TCP checksum off-load support (ipv6)",
- 		[30] = "IBoE support",
-+		[31] = "FCoE T11 frame format support",
- 		[32] = "Unicast loopback support",
-+		[32] = "Multicast loopback support",
- 		[34] = "FCS header control",
--		[38] = "Wake On LAN support",
-+		[35] = "Address Path ud_force_mgid support",
-+		[36] = "Header-Data Split support",
-+		[37] = "Wake On LAN support on port 1",
-+		[38] = "Wake On LAN support on port 2",
-+		[39] = "Fatal Warning Event upon a thermal warning condition",
- 		[40] = "UDP RSS support",
- 		[41] = "Unicast VEP steering support",
- 		[42] = "Multicast VEP steering support",
-+		[43] = "VLAN Steering mechanism support",
-+		[44] = "Steering according to EtherType support",
-+		[45] = "WQE format version 1 support",
-+		[46] = "Keep Alive Validiation support",
-+		[47] = "PTP1588 support",
- 		[48] = "Counters support",
-+		[49] = "Advanced Counters support",
-+		[50] = "Force Ethernet user priority from QPC support",
-+		[51] = "RX Port Num check disabled",
-+		[52] = "RSS on fragmented IP datagram support",
- 		[53] = "Port ETS Scheduler support",
- 		[55] = "Port link type sensing support",
-+		[56] = "Reliable Multicast support",
-+		[57] = "Fast Drop support",
-+		[58] = "Protected FMR support",
- 		[59] = "Port management change event support",
- 		[61] = "64 byte EQE support",
- 		[62] = "64 byte CQE support",
- 	};
--	int i;
- 
- 	mlx4_dbg(dev, "DEV_CAP flags:\n");
--	for (i = 0; i < ARRAY_SIZE(fname); ++i)
--		if (fname[i] && (flags & (1LL << i)))
--			mlx4_dbg(dev, "    %s\n", fname[i]);
-+	dump_cap_flags(dev, flags, MLX4_DEV_CAP_FLAG_ALL, fname,
-+		       ARRAY_SIZE(fname));
- }
- 
- static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
- {
--	static const char * const fname[] = {
-+	static const char *fname[] = {
- 		[0] = "RSS support",
- 		[1] = "RSS Toeplitz Hash Function support",
- 		[2] = "RSS XOR Hash Function support",
-@@ -147,11 +183,9 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
- 		[18] = "More than 80 VFs support",
- 		[19] = "Performance optimized for limited rule configuration flow steering support"
- 	};
--	int i;
- 
--	for (i = 0; i < ARRAY_SIZE(fname); ++i)
--		if (fname[i] && (flags & (1LL << i)))
--			mlx4_dbg(dev, "    %s\n", fname[i]);
-+	dump_cap_flags(dev, flags, MLX4_DEV_CAP_FLAG2_ALL, fname,
-+		       ARRAY_SIZE(fname));
- }
- 
- int mlx4_MOD_STAT_CFG(struct mlx4_dev *dev, struct mlx4_mod_stat_cfg *cfg)
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 25c791e..e84badc 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -180,6 +180,37 @@ enum {
- 	MLX4_DEV_CAP_FLAG_64B_CQE	= 1LL << 62
- };
- 
-+#define MLX4_DEV_CAP_FLAG_ALL	MLX4_DEV_CAP_FLAG_RC | \
-+				MLX4_DEV_CAP_FLAG_UC | \
-+				MLX4_DEV_CAP_FLAG_UD | \
-+				MLX4_DEV_CAP_FLAG_XRC | \
-+				MLX4_DEV_CAP_FLAG_SRQ | \
-+				MLX4_DEV_CAP_FLAG_IPOIB_CSUM | \
-+				MLX4_DEV_CAP_FLAG_BAD_PKEY_CNTR	 | \
-+				MLX4_DEV_CAP_FLAG_BAD_QKEY_CNTR	 | \
-+				MLX4_DEV_CAP_FLAG_DPDP | \
-+				MLX4_DEV_CAP_FLAG_BLH | \
-+				MLX4_DEV_CAP_FLAG_MEM_WINDOW | \
-+				MLX4_DEV_CAP_FLAG_APM | \
-+				MLX4_DEV_CAP_FLAG_ATOMIC | \
-+				MLX4_DEV_CAP_FLAG_RAW_MCAST | \
-+				MLX4_DEV_CAP_FLAG_UD_AV_PORT | \
-+				MLX4_DEV_CAP_FLAG_UD_MCAST | \
-+				MLX4_DEV_CAP_FLAG_IBOE | \
-+				MLX4_DEV_CAP_FLAG_UC_LOOPBACK | \
-+				MLX4_DEV_CAP_FLAG_FCS_KEEP | \
-+				MLX4_DEV_CAP_FLAG_WOL_PORT1 | \
-+				MLX4_DEV_CAP_FLAG_WOL_PORT2 | \
-+				MLX4_DEV_CAP_FLAG_UDP_RSS | \
-+				MLX4_DEV_CAP_FLAG_VEP_UC_STEER | \
-+				MLX4_DEV_CAP_FLAG_VEP_MC_STEER | \
-+				MLX4_DEV_CAP_FLAG_COUNTERS | \
-+				MLX4_DEV_CAP_FLAG_SET_ETH_SCHED  | \
-+				MLX4_DEV_CAP_FLAG_SENSE_SUPPORT	 | \
-+				MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV  | \
-+				MLX4_DEV_CAP_FLAG_64B_EQE | \
-+				MLX4_DEV_CAP_FLAG_64B_CQE
-+
- enum {
- 	MLX4_DEV_CAP_FLAG2_RSS			= 1LL <<  0,
- 	MLX4_DEV_CAP_FLAG2_RSS_TOP		= 1LL <<  1,
-@@ -203,6 +234,27 @@ enum {
- 	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19
- };
- 
-+#define MLX4_DEV_CAP_FLAG2_ALL	MLX4_DEV_CAP_FLAG2_RSS | \
-+				MLX4_DEV_CAP_FLAG2_RSS_TOP | \
-+				MLX4_DEV_CAP_FLAG2_RSS_XOR | \
-+				MLX4_DEV_CAP_FLAG2_FS_EN | \
-+				MLX4_DEV_CAP_FLAG2_REASSIGN_MAC_EN | \
-+				MLX4_DEV_CAP_FLAG2_TS | \
-+				MLX4_DEV_CAP_FLAG2_VLAN_CONTROL | \
-+				MLX4_DEV_CAP_FLAG2_FSM | \
-+				MLX4_DEV_CAP_FLAG2_UPDATE_QP | \
-+				MLX4_DEV_CAP_FLAG2_DMFS_IPOIB | \
-+				MLX4_DEV_CAP_FLAG2_VXLAN_OFFLOADS | \
-+				MLX4_DEV_CAP_FLAG2_MAD_DEMUX | \
-+				MLX4_DEV_CAP_FLAG2_CQE_STRIDE | \
-+				MLX4_DEV_CAP_FLAG2_EQE_STRIDE | \
-+				MLX4_DEV_CAP_FLAG2_ETH_PROT_CTRL | \
-+				MLX4_DEV_CAP_FLAG2_ETH_BACKPL_AN_REP | \
-+				MLX4_DEV_CAP_FLAG2_CONFIG_DEV | \
-+				MLX4_DEV_CAP_FLAG2_SYS_EQS | \
-+				MLX4_DEV_CAP_FLAG2_80_VFS | \
-+				MLX4_DEV_CAP_FLAG2_FS_A0
-+
- enum {
- 	MLX4_QUERY_FUNC_FLAGS_BF_RES_QP		= 1LL << 0,
- 	MLX4_QUERY_FUNC_FLAGS_A0_RES_QP		= 1LL << 1
--- 
-1.9.1
+On Mon, 2015-01-26 at 16:07 +0200, Erez Shitrit wrote:
+> On 1/26/2015 3:37 PM, Doug Ledford wrote:
+> > On Mon, 2015-01-26 at 15:24 +0200, Erez Shitrit wrote:
+> >>>>>> The main cause is the concept that was broken for the send-only jo=
+in,
+> >>>>>> when you treat the sendonly like a regular mcg and add it to the m=
+c list
+> >>>>>> and to the mc_task etc.
+> >>>>> I'm looking at 3.18 right now, and 3.18 adds sendonly groups to the=
+ mcg
+> >>>>> just like my current code does.  The only difference, and I do mean
+> >>>>> *only*, is that it calls sendonly_join directly instead of via the
+> >>>>> mcast_task.
+> >>>> Yes, and i already wrote that it is more than just "only", it change=
+d
+> >>>> the concept of the sendonly mc packet.
+> >>> Be more specific please.  What do you mean by "concept"?  And just so=
+ we
+> >>> are clear, this all started because the existing multicast code was
+> >>> super easy to break and was racy, so if the "concept" you are referri=
+ng
+> >>> to is what made the original code easy to break and racy, I'm not goi=
+ng
+> >>> to care one whit that I changed that concept.
+> >>>
+> >> I agree that you fixed many bugs in your patches to 3.18, where the mc
+> >> flow was easy to break, no argue about that.
+> >> The only issue that i disagree is about the way now sendonly is handle=
+d
+> >> (and i think that this is the reason for the regression we see now).
+> > It's not.  The patch I sent you off list should be sufficient at this
+> > point to finally put your issues to rest.
+> >
+> >> In general, IMHO, the sendonly join is part of the TX flow and not par=
+t
+> >> of the  ipoib_set_mcast_list flow.
+> > I disagree.  I'll get into that below.
+> >
+> >> The original meaning of the ipoib_set_mcast_list task that restart the
+> >> mc_task is to be used for the kernel in order to add one or more new
+> >> mcg's macs to the driver/HW (ndo_set_rx_mode), the sendonly mc is not
+> >> such object, its mac should not be part of the "mac" list of the drive=
+r
+> >> (in IB wards, no qp_attach for it)
+> > This part I agree with.
+> >
+> >>   and from the kernel point of view
+> >> whenever it sends packet from sendonly mcg type no need to do the join=
+,
+> >> it's a regular send, the only reason we have the sendonly join is the =
+IB
+> >> enforcement for such mcg.
+> > This is where you and I differ.  There is a requirement on us from the
+> > IB spec that we have to join a sendonly MC group in order to do what th=
+e
+> > kernel would think of as a normal send if we were on Ethernet.  We
+> > aren't on Ethernet though, so acting like we are to the above layer is
+> > fine, but in our own layer we should be coding to the realities of our
+> > layer.  And that means treating a sendonly MC group like a regular MC
+> > group.
+>=20
+> Just to make it clear, the IB request to do sendonly join was done prior=
+=20
+> to your changes.
+
+Yes...
+
+>  (stopped after them.)
+
+What do you mean here?  With my changes we still do sendonly joins.
+
+> The IB spec doesn't care if you mix sendonly with full-member,
+
+Correct.
+
+>  the=20
+> kernel does care,
+
+Where?  What part of the kernel cares?
+
+>  and by adding them to the mc_list you abuse the kernel=20
+> ndo (by adding unnecessary joins to it, as i wrote in my previous mail)
+
+How?  We never add a sendonly during a typical set_multicast call
+invocation.  And in fact, we still do the exact same thing we used to do
+when the kernel ndo is called, which is to call restart_task which will
+scan our currently joined groups (both regular and sendonly, like it
+always has), clear out any that don't have a matching address entry set
+via the kernel ndo, and rejoin those that do have a matching entry set
+via the ndo.
+
+> I think you should not mix between RX operation (like the full-member=20
+> join, kernel rx ndo) to TX operation (sendonly join)
+
+And I think having two distinctly different code paths when it doesn't
+matter whether the join is sendonly or normal, they still must all be
+accurately tracked and reaped on shutdown and various other events, is
+wrong and is an invitation to failures for no good reason.
+
+> >
+> >> The reason the driver keeps the sendonly mcg in its mc_list is from
+> >> others reasons, the first is to handle the case when the kernel decide=
+s
+> >> to move a mcg from sendonly membership to full-member, one more other
+> >> reason is to do the leave operation when needed and not for being
+> >> handled as a full-member mcg.
+> > It's been a long time since I first started working on this issue, so
+> > some of the details are fuzzy in my memory.  I think my first 8 patch
+> > patchset is now about 6 months old.  But, I think probably the most
+> > important thing you left off this list, and the one that trumps all the
+> > others, is that whether a sendonly MC group has a QP attached or not, w=
+e
+> > still have to account for these groups, we have to track them, and on
+> > shutdown we have to reliably leave them without oopsing.  Putting the
+> > join of the sendonly groups directly in mcast_send opens us up to
+> > problems with synchronizing our mcast list (either due to a dev flush, =
+a
+> > mcast restart task, or something else).
+>=20
+> This is the reason the sendonly mcg was added to the mc_list. and should=
+=20
+> stay there.
+>=20
+> >    I can't say for certain that
+> > the change to how we record the return value from ib_sa_join_multicast
+> > in sendonly_join is enough to keep the sendonly join code from racing
+> > with the flush code and causing problems.  For that reason, I am highly
+> > reluctant to put the sendonly join back directly into the tx path
+> > because that could have been part of the original problem in the first
+> > place, it's just that my memory of back then is too fuzzy to say that
+> > with 100% certainty either way.
+>=20
+> That fear from the unknown is not a reason to break the original logic=
+=20
+> of the sendonly.
+
+No, the reason to break the original logic of the sendonly was that it
+was a bad design that contributed to other problems.  The reason not to
+consider putting that bad logic back in place right now, IMO, is that I
+can't remember the details of the breakage better than I do at this
+moment.
+
+> if there is such a problem, we need to find it and to fix.
+
+I disagree.  The original logic was an artificial and bad separation of
+too more or less identical things in the code that helped contribute to
+it being broken in the first place.  We are under no obligation to put
+it back to that bad design.  And in the future, I'd like to bring the
+sendonly and regular joins more in line with each other, quite possible
+doing away with them having separate functions.  I'd also like to
+completely deserialize them.  Both of these things will be easier to do
+from the starting point we have now versus going back to the old setup.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-6G2av/r/yL5mJJa4Fn8H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJUxotjAAoJELgmozMOVy/dhyMQALAZ3crw52xeq8Wb6pnQhaAz
+9fI7J6dHJPHDXu4gYLDVkUK/6waMmAjvTvKIFQJiidyHPeIgv6R6ZCDnLPb2Me/q
+1Du70unzYmijJkHkbmlDmuqqP+GoiotwiEUOikqk2sShIe2teziv8sE5/zPuVwf4
+0p+YnDp9urhkAQzPRlkcJyX74J534eeSAiKGgZXq8EdkhAWRRrFr0J1Scpk2o8sI
+n+MJnOXhGj7CDO2L8Oj7uXeknDklET64cjRAgyFqR0xffAzpjtFIRF9+HQ679Lkp
+B7iDchVMoo0e26pWWnFgcN5j8DGbV31PxI8T61zvDlkK/Yv0ub5huIz61Po2xi6A
+Nv1mC2tKPy2Ro3Oqi0UIedU3yltCctnIGDQ+jSznK7LzBY1IMHLFkaI1ESFRW82d
+fFQLLxKm0tG9cXJR8k84IYd+JDlcEvR6rSHZJicGlMphaEC/Pq9tkkBcIPLmlwp+
+PLHYzTyuofyGtqDj9/aQoV/q28ddzM02/TQ0Zi/6CrQZwTtrGC8/pazwQsqQ0yEC
+i77sBgcWz6tQ/tpAHNvVjKBfbjo1cdjLhtEOanSpZctdsKjcgxrYEfM7I81Hyy6N
+daVaA7+kwvHvJuR3+XHoRQGHQHf/SQhDNT9mnsNCjsgr7rPZ/YgnOYcVWWekGkba
+NYGrP4NxMQLc1qgjGCLq
+=676j
+-----END PGP SIGNATURE-----
+
+--=-6G2av/r/yL5mJJa4Fn8H--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
