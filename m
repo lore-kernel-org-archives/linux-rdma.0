@@ -1,148 +1,86 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/4] IB/uverbs: ex_query_device: fail if output buffer
- size does not match
-Date: Mon, 26 Jan 2015 11:05:31 +0100
-Message-ID: <1422266731.3133.14.camel@opteya.com>
-References: <cover.1421931555.git.ydroneaud@opteya.com>
-	 <d60715123c640bc7b720ad11a9faa3af78950aa6.1421931555.git.ydroneaud@opteya.com>
-	 <54C50BBD.5000009@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH FIX For-3.19 v5 00/10] Fix ipoib regressions
+Date: Mon, 26 Jan 2015 07:51:52 -0500
+Message-ID: <1422276712.2854.5.camel@redhat.com>
+References: <cover.1421936879.git.dledford@redhat.com>
+		 <1422031938.3352.286.camel@redhat.com>
+		 <54C4E793.2010103@dev.mellanox.co.il>
+	 <1422224477.3352.373.camel@redhat.com>
+	 <54C616A8.3050804@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-uDyFVKo2BClLADj5Xgk7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54C50BBD.5000009-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <54C616A8.3050804-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
 
-Le dimanche 25 janvier 2015 =C3=A0 17:29 +0200, Haggai Eran a =C3=A9cri=
-t :
-> On 22/01/2015 15:28, Yann Droneaud wrote:
-> > Instead of silently truncating extended QUERY_DEVICE uverb's
-> > response, see commit 5a77abf9a97a ("IB/core: Add support for
-> > extended query device caps")), this patch makes function
-> > ib_uverbs_ex_query_device() check the available space in the
-> > response buffer against the requested features set in comp_mask
-> > (currently only IB_USER_VERBS_EX_QUERY_DEVICE_ODP per commit
-> > 860f10a799c8 ("IB/core: Add flags for on demand paging support").
+--=-uDyFVKo2BClLADj5Xgk7
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2015-01-26 at 12:27 +0200, Erez Shitrit wrote:
+
+> New (and full) dmesg attached, (after modprobe ib_ipoib, with all debug=
+=20
+> flags set) it is all there.
+
+Thank you, I know what's going on here now.  Will correct shortly.
+
+> >> The main cause is the concept that was broken for the send-only join,
+> >> when you treat the sendonly like a regular mcg and add it to the mc li=
+st
+> >> and to the mc_task etc.
+> > I'm looking at 3.18 right now, and 3.18 adds sendonly groups to the mcg
+> > just like my current code does.  The only difference, and I do mean
+> > *only*, is that it calls sendonly_join directly instead of via the
+> > mcast_task.
 >=20
-> Currently you only need to check two possible sizes. With each
-> additional field you will need to check another size.
+> Yes, and i already wrote that it is more than just "only", it changed=20
+> the concept of the sendonly mc packet.
 
-Yes, that's mandatory for any interface with a dynamic, ever growing,
-data structure.
+Be more specific please.  What do you mean by "concept"?  And just so we
+are clear, this all started because the existing multicast code was
+super easy to break and was racy, so if the "concept" you are referring
+to is what made the original code easy to break and racy, I'm not going
+to care one whit that I changed that concept.
 
-> Sooner or later someone will forget to add a check and will create a =
-non-backward
-> compatible kernel.
->=20
-
-That's why we have to review userspace interface patch with lot of care=
-=2E
-
-Anyway, such a change should be fixed easily as it's would be
-definitively a bug.
-
-If the behavior I'm proposing is in place, userspace won't be allowed
-to supply unsupported bits in a request, so older userspace requests on
-newer kernels won't trigger unsupported new behavior. This ensure we ca=
-n
-extend the interfance with no risk of breaking existing program.
-
-> > If the response buffer is not large enough to store the expected
-> > response, -ENOSPC is returned to userspace so that it can adjust
-> > the size of its buffer.
-> >=20
-> > Note: as offsetof() is used to retrieve the size of the lower chunk
-> > of the response, beware that it only works if the upper chunk
-> > is right after, without any implicit padding. And, as the size of
-> > the latter chunk is added to the base size, implicit padding at the
-> > end of the structure is not taken in account. Both point must be
-> > taken in account when extending the uverbs functionalities.
->=20
-> Another point future contributors will easily miss.
->=20
-
-One should use "pahole" tool when modifying data structure part of the
-ABI to ensure the data structure are correctly aligned on various
-architectures.
-
-> > Link: http://mid.gmane.org/cover.1421931555.git.ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
-m
-> > Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Cc: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/uverbs_cmd.c | 13 ++++++++++++-
-> >  1 file changed, 12 insertions(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infinib=
-and/core/uverbs_cmd.c
-> > index 532d8eba8b02..8668b328b7e6 100644
-> > --- a/drivers/infiniband/core/uverbs_cmd.c
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -3302,6 +3302,7 @@ int ib_uverbs_ex_query_device(struct ib_uverb=
-s_file *file,
-> >  	struct ib_uverbs_ex_query_device  cmd;
-> >  	struct ib_device_attr attr;
-> >  	struct ib_device *device;
-> > +	size_t resp_len;
-> >  	int err;
-> > =20
-> >  	device =3D file->device->ib_dev;
-> > @@ -3315,6 +3316,11 @@ int ib_uverbs_ex_query_device(struct ib_uver=
-bs_file *file,
-> >  	if (cmd.reserved)
-> >  		return -EINVAL;
-> > =20
-> > +	resp_len =3D offsetof(typeof(resp), odp_caps);
-> > +
-> > +	if (ucore->outlen < resp_len)
-> > +		return -ENOSPC;
-> > +
-> >  	err =3D device->query_device(device, &attr);
-> >  	if (err)
-> >  		return err;
-> > @@ -3325,6 +3331,11 @@ int ib_uverbs_ex_query_device(struct ib_uver=
-bs_file *file,
-> > =20
-> >  #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-> >  	if (cmd.comp_mask & IB_USER_VERBS_EX_QUERY_DEVICE_ODP) {
-> > +		resp_len +=3D sizeof(resp.odp_caps);
-> > +
-> > +		if (ucore->outlen < resp_len)
-> > +			return -ENOSPC;
-> > +
-> >  		resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
-> >  		resp.odp_caps.per_transport_caps.rc_odp_caps =3D
-> >  			attr.odp_caps.per_transport_caps.rc_odp_caps;
-> > @@ -3336,7 +3347,7 @@ int ib_uverbs_ex_query_device(struct ib_uverb=
-s_file *file,
-> >  	}
-> >  #endif
-> > =20
-> > -	err =3D ib_copy_to_udata(ucore, &resp, sizeof(resp));
-> > +	err =3D ib_copy_to_udata(ucore, &resp, resp_len);
-> >  	if (err)
-> >  		return err;
-> > =20
-> >=20
->=20
-
-Regards.
 
 --=20
-Yann Droneaud
-OPTEYA
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
+
+
+--=-uDyFVKo2BClLADj5Xgk7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJUxjhoAAoJELgmozMOVy/deqsP/2V/uuHrxTzN7MKJcYNfdl6e
+y/6+6aSS+virKkwCsEwnWyxKcuSnLnhRq58s5nHtNNV8bMO9+T9O7Uj1XQDNUbzL
+AExv5/kb/QpTInmJvkLvpdItzppJ98uAHUDYTIw3cLiMZptAEbBYdm5FnVpSzyjT
+s1mi6mFMth5oSBPRtVMk/eZKSqDDupz+x1I83eblh5nlPgmJoI0/CDMFlKxVFYvm
+Kn5/+4thgLfljvo6zT6mjFX51aopssMrbeR2cfVEO1lgvOGONeRR7iLer+bQJVKh
+SN+J/D6vYgalrogyVNnw5crVRHFw4jPf0o9AP62Cd72Al62GCLVmGfj3Jm15Clib
+6KVDSbS3D5Lop/E2NLY6RnhmD3IgtTmhZetz+9xJbmmVlroUUBgQHtRGaMuP2+yX
+xBBVLTuksLXAeCiNJgqBr4flnjMvrFVqc+vGoRTiLrQEyEcEkxrC8h8zK2ofQKjD
+IcTvXKUHqaBTYUGWzRXle7mdYrv3ieao1QR3ffuiI+MIEGI3Fadi0topvlrykbpA
+aHpaWx6wk1KaB4bIC9LSusyswCZP3lVyY3xlLAAyMEyDuXwlIsDuJ23FT+mWfjdQ
+MyjwLyNCyVoFYIo1On26WEXjYjTbZa/SMufd/CL3bCk92J1mBzoO7CkChDcO9zEm
+z87qVSQTr16Pe6ekNcIx
+=+Dzd
+-----END PGP SIGNATURE-----
+
+--=-uDyFVKo2BClLADj5Xgk7--
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
