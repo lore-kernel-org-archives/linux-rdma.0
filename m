@@ -1,163 +1,75 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/4] IB/uverbs: ex_query_device: check request's
- comp_mask
-Date: Mon, 26 Jan 2015 12:17:09 +0100
-Message-ID: <1422271029.3133.68.camel@opteya.com>
+Subject: Re: [PATCH 1/4] IB/uverbs: ex_query_device: fail if output buffer
+ size does not match
+Date: Mon, 26 Jan 2015 11:05:31 +0100
+Message-ID: <1422266731.3133.14.camel@opteya.com>
 References: <cover.1421931555.git.ydroneaud@opteya.com>
-	 <063956366559d6919693aabb324bab83d676bc28.1421931555.git.ydroneaud@opteya.com>
-	 <54C50A67.6040306@mellanox.com>
+	 <d60715123c640bc7b720ad11a9faa3af78950aa6.1421931555.git.ydroneaud@opteya.com>
+	 <54C50BBD.5000009@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54C50A67.6040306-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <54C50BBD.5000009-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
-(adding linux-api@ for comments:
-
- We're introducing a new "uverb" in the InfiniBand subsystem:
- extended QUERY_DEVICE in v3.19:
-
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dri=
-vers/infiniband/core/uverbs_cmd.c?id=3Dv3.19-rc6#n3297
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/inc=
-lude/uapi/rdma/ib_user_verbs.h?id=3Dv3.19-rc6#n209
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/inc=
-lude/uapi/rdma/ib_user_verbs.h?id=3Dv3.19-rc6#n224
-
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?=
-id=3D5a77abf9a97a
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?=
-id=3D860f10a799c8
-
- As you may not already know, InfiniBand subsystem use a write()=20
- syscall[1] to issue ioctl()-like operations. Many operations (aka  =20
- verbs) are available [2], for each there's a query data structures
- and for some there's a response data structure [3]. As a result to a=20
- write() operation, kernel could allocate resources on the task behalf=20
- and/or write data back to userspace provided buffers whose pointers=20
- were part of buffer passed to write().
-
- I've expressed concern on the way the new extended QUERY_DEVICE
- was trying to be itself expandable: by silently ignoring shorter
- buffer, returning truncated data, the interface seems awkward.
-
-"Re: [PATCH v2 06/17] IB/core: Add support for extended query device ca=
-ps"
-http://mid.gmane.org/1418216676.11111.45.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-"Re: [PATCH v3 06/17] IB/core: Add support for extended query device ca=
-ps"
-http://mid.gmane.org/1418733236.2779.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-http://mid.gmane.org/1418824811.3334.3.camel@dworkin
-http://mid.gmane.org/1421844612.13543.40.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
- I recognize the author's intention to provide a way for userspace
- to retrieve easily the highest supported information as something
- desirable.
-
- But I believe we must be more strict on the request content and
- fail for any unrecognized, unsupported, incorrect bits to make
- safer to extend the interface latter.
-
- I've submitted a patchset[4] to address these issues.
- But, while I'm convinced it the way to go, I'm not able to find
- how it could be made to satisfy the original author expectations.
-=20
- I hope linux-api@ readers could provide some insight regarding
- the way we should implement such interface
-
-[1] http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree=
-/drivers/infiniband/core/uverbs_main.c?id=3Dv3.19-rc6#n599
-
-[2] http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree=
-/drivers/infiniband/core/uverbs_main.c?id=3Dv3.19-rc6#n81
-
-[3] http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree=
-/include/uapi/rdma/ib_user_verbs.h?id=3Dv3.19-rc6
-
-[4] http://mid.gmane.org/cover.1421931555.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-)
-
-Le dimanche 25 janvier 2015 =C3=A0 17:23 +0200, Haggai Eran a =C3=A9cri=
+Le dimanche 25 janvier 2015 =C3=A0 17:29 +0200, Haggai Eran a =C3=A9cri=
 t :
 > On 22/01/2015 15:28, Yann Droneaud wrote:
-> > This patch ensures the extended QUERY_DEVICE uverbs request's
-> > comp_mask has only known values. If userspace returns unknown
-> > features, -EINVAL will be returned, allowing to probe/discover
-> > which features are currently supported by the kernel.
+> > Instead of silently truncating extended QUERY_DEVICE uverb's
+> > response, see commit 5a77abf9a97a ("IB/core: Add support for
+> > extended query device caps")), this patch makes function
+> > ib_uverbs_ex_query_device() check the available space in the
+> > response buffer against the requested features set in comp_mask
+> > (currently only IB_USER_VERBS_EX_QUERY_DEVICE_ODP per commit
+> > 860f10a799c8 ("IB/core: Add flags for on demand paging support").
 >=20
-> This probing process will be much more cumbersome than it needs to be
-> because userspace will have to call QUERY_DEVICE repetitively with
-> different comp_mask fields until it finds out the exact set of suppor=
-ted
-> bits.
+> Currently you only need to check two possible sizes. With each
+> additional field you will need to check another size.
+
+Yes, that's mandatory for any interface with a dynamic, ever growing,
+data structure.
+
+> Sooner or later someone will forget to add a check and will create a =
+non-backward
+> compatible kernel.
 >=20
 
-O(log2(N))
-
-Or you had to add a different interface, dedicated to retrieve the exac=
-t
-supported feature mask.
-
-> > Moreover, it also ensure the requested features set in comp_mask
-> > are sequentially set, not skipping intermediate features, eg. the
-> > "highest" requested feature also request all the "lower" ones.
-> > This way each new feature will have to be stacked on top of the
-> > existing ones: this is especially important for the request and
-> > response data structures where fields are added after the
-> > current ones when expanded to support a new feature.
->=20
-> I think it is perfectly acceptable that not all drivers will implemen=
-t
-> all available features, and so you shouldn't enforce this requirement=
+That's why we have to review userspace interface patch with lot of care=
 =2E
 
-With regard to QUERY_DEVICE: the data structure layout depends on the
-comp_mask value. So either you propose a way to express multipart data
-structure (see CMSG or NETLINK), or we have to ensure the data structur=
-e
-is ever-growing, with each new chunck stacked over the existing ones:
-that's the purpose of :
+Anyway, such a change should be fixed easily as it's would be
+definitively a bug.
 
-	if (cmd.comp_mask & (cmd.comp_mask + 1))
-		return -EINVAL;
+If the behavior I'm proposing is in place, userspace won't be allowed
+to supply unsupported bits in a request, so older userspace requests on
+newer kernels won't trigger unsupported new behavior. This ensure we ca=
+n
+extend the interfance with no risk of breaking existing program.
 
-> Also, it makes the comp_mask nothing more than a wasteful version num=
-ber
-> between 0 and 63.
-
-That's what I've already explained earlier in "Re: [PATCH v3 06/17]
-IB/core: Add support for extended query device caps":
-
-http://mid.gmane.org/1421844612.13543.40.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
->=20
-> In the specific case of QUERY_DEVICE you might argue that there isn't
-> any need for input comp_mask, only for output, and then you may enfor=
-ce
-> the input comp_mask will always be zero.
-
-The extended QUERY_DEVICE uverbs as currently merged is using comp_mask
-from input to choose to report on-demand-paging related value. So it
-seems it's needed.
-
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dri=
-vers/infiniband/core/uverbs_cmd.c?id=3Dv3.19-rc6#n3297
-
-> However, you will in any case need to be able to extended the size of=
- the response in the future.
->=20
-
-That's already the case for on demand paging.
-
+> > If the response buffer is not large enough to store the expected
+> > response, -ENOSPC is returned to userspace so that it can adjust
+> > the size of its buffer.
 > >=20
+> > Note: as offsetof() is used to retrieve the size of the lower chunk
+> > of the response, beware that it only works if the upper chunk
+> > is right after, without any implicit padding. And, as the size of
+> > the latter chunk is added to the base size, implicit padding at the
+> > end of the structure is not taken in account. Both point must be
+> > taken in account when extending the uverbs functionalities.
+>=20
+> Another point future contributors will easily miss.
+>=20
+
+One should use "pahole" tool when modifying data structure part of the
+ABI to ensure the data structure are correctly aligned on various
+architectures.
+
 > > Link: http://mid.gmane.org/cover.1421931555.git.ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
 m
 > > Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -166,47 +78,58 @@ m
 > > Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > > Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 > > ---
-> >  drivers/infiniband/core/uverbs_cmd.c | 6 ++++++
-> >  1 file changed, 6 insertions(+)
+> >  drivers/infiniband/core/uverbs_cmd.c | 13 ++++++++++++-
+> >  1 file changed, 12 insertions(+), 1 deletion(-)
 > >=20
 > > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infinib=
 and/core/uverbs_cmd.c
-> > index 8668b328b7e6..80a1c90f1dbf 100644
+> > index 532d8eba8b02..8668b328b7e6 100644
 > > --- a/drivers/infiniband/core/uverbs_cmd.c
 > > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -3313,6 +3313,12 @@ int ib_uverbs_ex_query_device(struct ib_uver=
-bs_file *file,
-> >  	if (err)
-> >  		return err;
+> > @@ -3302,6 +3302,7 @@ int ib_uverbs_ex_query_device(struct ib_uverb=
+s_file *file,
+> >  	struct ib_uverbs_ex_query_device  cmd;
+> >  	struct ib_device_attr attr;
+> >  	struct ib_device *device;
+> > +	size_t resp_len;
+> >  	int err;
 > > =20
-> > +	if (cmd.comp_mask & (cmd.comp_mask + 1))
-> > +		return -EINVAL;
-> > +
-> > +	if (cmd.comp_mask & ~(__u32)IB_USER_VERBS_EX_QUERY_DEVICE_ODP)
-> > +		return -EINVAL;
-> > +
-
-If we keep the checks on output buffer size from patch 1, returning
--ENOSPC in case of size mismatch, and if we are sure that no bit in
-input comp_mask will ever trigger a call to a kernel function that can
-make the uverb fail, the latter check on known value could be dropped,
-allowing the userspace to set the highest mask (-1): userspace
-will use -ENOSPC to probe the expected size of the response buffer
-to match the highest supported comp_mask. But it's going to hurt
-userspace application not ready to receive -ENOSPC on newer kernel
-with extended QUERY_DEVICE ABI ... Oops.
-
-So in this end, the safest way to ensure userspace is doing the correct
-thing so that we have backward and forward compatibility is to check
-for known values in comp_mask, check for response buffer size and ensur=
-e
-that data structure chunk are stacked.
-
-The tighter are the checks now, the easier the interface could be
-extended latter.
-
+> >  	device =3D file->device->ib_dev;
+> > @@ -3315,6 +3316,11 @@ int ib_uverbs_ex_query_device(struct ib_uver=
+bs_file *file,
 > >  	if (cmd.reserved)
 > >  		return -EINVAL;
+> > =20
+> > +	resp_len =3D offsetof(typeof(resp), odp_caps);
+> > +
+> > +	if (ucore->outlen < resp_len)
+> > +		return -ENOSPC;
+> > +
+> >  	err =3D device->query_device(device, &attr);
+> >  	if (err)
+> >  		return err;
+> > @@ -3325,6 +3331,11 @@ int ib_uverbs_ex_query_device(struct ib_uver=
+bs_file *file,
+> > =20
+> >  #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> >  	if (cmd.comp_mask & IB_USER_VERBS_EX_QUERY_DEVICE_ODP) {
+> > +		resp_len +=3D sizeof(resp.odp_caps);
+> > +
+> > +		if (ucore->outlen < resp_len)
+> > +			return -ENOSPC;
+> > +
+> >  		resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
+> >  		resp.odp_caps.per_transport_caps.rc_odp_caps =3D
+> >  			attr.odp_caps.per_transport_caps.rc_odp_caps;
+> > @@ -3336,7 +3347,7 @@ int ib_uverbs_ex_query_device(struct ib_uverb=
+s_file *file,
+> >  	}
+> >  #endif
+> > =20
+> > -	err =3D ib_copy_to_udata(ucore, &resp, sizeof(resp));
+> > +	err =3D ib_copy_to_udata(ucore, &resp, resp_len);
+> >  	if (err)
+> >  		return err;
 > > =20
 > >=20
 >=20
