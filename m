@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 02/19] IB/core: Cache device attributes for use by upper level drivers
-Date: Mon, 26 Jan 2015 14:07:35 -0500
-Message-ID: <1422299272-15898-3-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 03/19] IB/mad: Change validate_mad signature to take ib_mad_hdr rather than ib_mad
+Date: Mon, 26 Jan 2015 14:07:36 -0500
+Message-ID: <1422299272-15898-4-git-send-email-ira.weiny@intel.com>
 References: <1422299272-15898-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1422299272-15898-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,45 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Upper level drivers can access these cached device attributes rather than
-caching them on their own.
+validate_mad only needs access to the MAD header and can be used for both IB
+and Jumbo MADs.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
 ---
+ drivers/infiniband/core/mad.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Changes from V2:
-	Change variable name from attributes to cached_dev_attrs
-
- drivers/infiniband/core/device.c | 2 ++
- include/rdma/ib_verbs.h          | 1 +
- 2 files changed, 3 insertions(+)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 18c1ece..30d9d09 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -294,6 +294,8 @@ int ib_register_device(struct ib_device *device,
- 	spin_lock_init(&device->event_handler_lock);
- 	spin_lock_init(&device->client_data_lock);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 4673262..9ffff9b 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1708,20 +1708,20 @@ out:
+ 	return mad_agent;
+ }
  
-+	device->query_device(device, &device->cached_dev_attrs);
-+
- 	ret = read_port_table_lengths(device);
- 	if (ret) {
- 		printk(KERN_WARNING "Couldn't create table lengths cache for device %s\n",
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0d74f1d..0116e4b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1675,6 +1675,7 @@ struct ib_device {
- 	u32			     local_dma_lkey;
- 	u8                           node_type;
- 	u8                           phys_port_cnt;
-+	struct ib_device_attr        cached_dev_attrs;
- };
+-static int validate_mad(struct ib_mad *mad, u32 qp_num)
++static int validate_mad(struct ib_mad_hdr *mad_hdr, u32 qp_num)
+ {
+ 	int valid = 0;
  
- struct ib_client {
+ 	/* Make sure MAD base version is understood */
+-	if (mad->mad_hdr.base_version != IB_MGMT_BASE_VERSION) {
++	if (mad_hdr->base_version != IB_MGMT_BASE_VERSION) {
+ 		pr_err("MAD received with unsupported base version %d\n",
+-			mad->mad_hdr.base_version);
++			mad_hdr->base_version);
+ 		goto out;
+ 	}
+ 
+ 	/* Filter SMI packets sent to other than QP0 */
+-	if ((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
+-	    (mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
++	if ((mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
++	    (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
+ 		if (qp_num == 0)
+ 			valid = 1;
+ 	} else {
+@@ -1979,7 +1979,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 		snoop_recv(qp_info, &recv->header.recv_wc, IB_MAD_SNOOP_RECVS);
+ 
+ 	/* Validate MAD */
+-	if (!validate_mad(&recv->mad.mad, qp_info->qp->qp_num))
++	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
+ 		goto out;
+ 
+ 	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
 -- 
 1.8.2
 
