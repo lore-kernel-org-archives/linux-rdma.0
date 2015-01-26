@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 03/19] IB/mad: Change validate_mad signature to take ib_mad_hdr rather than ib_mad
-Date: Mon, 26 Jan 2015 14:07:36 -0500
-Message-ID: <1422299272-15898-4-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 01/19] IB/mad: Rename is_data_mad to is_rmpp_data_mad
+Date: Mon, 26 Jan 2015 14:07:34 -0500
+Message-ID: <1422299272-15898-2-git-send-email-ira.weiny@intel.com>
 References: <1422299272-15898-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1422299272-15898-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,53 +12,46 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-validate_mad only needs access to the MAD header and can be used for both IB
-and Jumbo MADs.
+is_rmpp_data_mad is more descriptive for this function.
 
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/mad.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 4673262..9ffff9b 100644
+index 74c30f4..4673262 100644
 --- a/drivers/infiniband/core/mad.c
 +++ b/drivers/infiniband/core/mad.c
-@@ -1708,20 +1708,20 @@ out:
- 	return mad_agent;
+@@ -1734,7 +1734,7 @@ out:
+ 	return valid;
  }
  
--static int validate_mad(struct ib_mad *mad, u32 qp_num)
-+static int validate_mad(struct ib_mad_hdr *mad_hdr, u32 qp_num)
+-static int is_data_mad(struct ib_mad_agent_private *mad_agent_priv,
++static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 		       struct ib_mad_hdr *mad_hdr)
  {
- 	int valid = 0;
+ 	struct ib_rmpp_mad *rmpp_mad;
+@@ -1836,7 +1836,7 @@ ib_find_send_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 	 * been notified that the send has completed
+ 	 */
+ 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
+-		if (is_data_mad(mad_agent_priv, wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
+ 		    wr->tid == mad->mad_hdr.tid &&
+ 		    wr->timeout &&
+ 		    rcv_has_same_class(wr, wc) &&
+@@ -2411,7 +2411,8 @@ find_send_wr(struct ib_mad_agent_private *mad_agent_priv,
  
- 	/* Make sure MAD base version is understood */
--	if (mad->mad_hdr.base_version != IB_MGMT_BASE_VERSION) {
-+	if (mad_hdr->base_version != IB_MGMT_BASE_VERSION) {
- 		pr_err("MAD received with unsupported base version %d\n",
--			mad->mad_hdr.base_version);
-+			mad_hdr->base_version);
- 		goto out;
+ 	list_for_each_entry(mad_send_wr, &mad_agent_priv->send_list,
+ 			    agent_list) {
+-		if (is_data_mad(mad_agent_priv, mad_send_wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv,
++				     mad_send_wr->send_buf.mad) &&
+ 		    &mad_send_wr->send_buf == send_buf)
+ 			return mad_send_wr;
  	}
- 
- 	/* Filter SMI packets sent to other than QP0 */
--	if ((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
--	    (mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
-+	if ((mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
-+	    (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
- 		if (qp_num == 0)
- 			valid = 1;
- 	} else {
-@@ -1979,7 +1979,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 		snoop_recv(qp_info, &recv->header.recv_wc, IB_MAD_SNOOP_RECVS);
- 
- 	/* Validate MAD */
--	if (!validate_mad(&recv->mad.mad, qp_info->qp->qp_num))
-+	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
- 		goto out;
- 
- 	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
 -- 
 1.8.2
 
