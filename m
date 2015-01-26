@@ -1,137 +1,133 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH FIX For-3.19 v5 00/10] Fix ipoib regressions
-Date: Mon, 26 Jan 2015 14:30:21 -0500
-Message-ID: <1422300621.2854.38.camel@redhat.com>
+Subject: [PATCH FIX For-3.19 11/10] IB/ipoib: don't queue a work struct up twice
+Date: Mon, 26 Jan 2015 14:34:18 -0500
+Message-ID: <d0700cb3ff9d0ef629196ea48ea181c7563f3e60.1422300678.git.dledford@redhat.com>
 References: <cover.1421936879.git.dledford@redhat.com>
-			 <1422031938.3352.286.camel@redhat.com>
-			 <54C4E793.2010103@dev.mellanox.co.il>
-		 <1422224477.3352.373.camel@redhat.com>
-		 <54C616A8.3050804@dev.mellanox.co.il> <1422276712.2854.5.camel@redhat.com>
-	 <54C6400E.30607@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-bAqmGy4BQvY7VRPPaIJb"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54C6400E.30607-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <cover.1421936879.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+In b2d408f78b3 (IB/ipoib: make delayed tasks not hold up everything) I
+added the ability to have some joins processed around delayed joins.
+Because the join task processes one join at a time, we needed to queue
+the task to run again immediately and then again at the appropriate
+delay time.  I didn't think about the fact that our work struct can only
+be on the workqueue once at a given time and instead tried to queue the
+same struct up twice.  Instead, kick the queue again immediately on a
+delayed restart attempt, when the task sees that it has nothing to do
+but delayed work, it will pick the shortest work item and queue a delay
+equal to its expiration.  Finally, in case we have delayed work, in the
+send_mcast routine we need to cancel any delayed work before kicking the
+thread immediately.
 
---=-bAqmGy4BQvY7VRPPaIJb
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 49 ++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 18 deletions(-)
 
-On Mon, 2015-01-26 at 15:24 +0200, Erez Shitrit wrote:
-> On 1/26/2015 2:51 PM, Doug Ledford wrote:
-> > On Mon, 2015-01-26 at 12:27 +0200, Erez Shitrit wrote:
-> >
-> >> New (and full) dmesg attached, (after modprobe ib_ipoib, with all debu=
-g
-> >> flags set) it is all there.
-> > Thank you, I know what's going on here now.  Will correct shortly.
->=20
-> welcome -:)
-
-I munged my opensm configuration so that I could forcibly replicate the
-situation here (I intentionally took several well known multicast groups
-and forbid their creation).
-
-I was able to first replicate Eriz's problem.
-
-Then I installed a new ib_ipoib module with my proposed fix for Erez's
-problem and it worked exactly as expected.  It was a mistake in one of
-my earlier patches (the third in the series).  When I added a delayed
-queue of the task thread, I didn't have a separate work struct and
-instead tried to queue the same work struct twice.  I reworked it so
-that the work struct is only ever queued once and if the multicast task
-gets to the end of its run and there are delayed entries waiting still,
-it will queue itself to run again when the shortest delay has expired.
-I'll send that through.
-
-Here's the log of the attempt:
-
-[root@rdma-master linus (firewall/for-rc)]$ dmesg | tail -10
-[337072.429488] mlx4_ib0: successfully joined all multicast groups
-[337073.856932] mlx4_ib0: no multicast record for ff12:601b:ffff:0000:0000:=
-0000:0000:0002, starting sendonly join
-[337073.869686] mlx4_ib0: sendonly multicast join failed for ff12:601b:ffff=
-:0000:0000:0000:0000:0002, status -22
-[337073.882754] mlx4_ib0: successfully joined all multicast groups
-[337088.480082] mlx4_ib0: no multicast record for ff12:601b:ffff:0000:0000:=
-0000:0000:0016, starting sendonly join
-[337088.492789] mlx4_ib0: sendonly multicast join failed for ff12:601b:ffff=
-:0000:0000:0000:0000:0016, status -22
-[337088.505819] mlx4_ib0: successfully joined all multicast groups
-[337089.897041] mlx4_ib0: no multicast record for ff12:601b:ffff:0000:0000:=
-0000:0000:0002, starting sendonly join
-[337089.909870] mlx4_ib0: sendonly multicast join failed for ff12:601b:ffff=
-:0000:0000:0000:0000:0002, status -22
-[337089.922893] mlx4_ib0: successfully joined all multicast groups
-[root@rdma-master linus (firewall/for-rc)]$ ping6 -I mlx4_ib0 fe80::211:750=
-0:77:d3cc
-PING fe80::211:7500:77:d3cc(fe80::211:7500:77:d3cc) from fe80::f652:1403:7b=
-:cba1 mlx4_ib0: 56 data bytes
-64 bytes from fe80::211:7500:77:d3cc: icmp_seq=3D1 ttl=3D64 time=3D77.6 ms
-64 bytes from fe80::211:7500:77:d3cc: icmp_seq=3D2 ttl=3D64 time=3D0.159 ms
-64 bytes from fe80::211:7500:77:d3cc: icmp_seq=3D3 ttl=3D64 time=3D0.125 ms
-64 bytes from fe80::211:7500:77:d3cc: icmp_seq=3D4 ttl=3D64 time=3D0.128 ms
-^C
---- fe80::211:7500:77:d3cc ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3001ms
-rtt min/avg/max/mdev =3D 0.125/19.503/77.600/33.542 ms
-[root@rdma-master linus (firewall/for-rc)]$ dmesg | tail -10[337120.632427]=
- mlx4_ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016,=
- starting sendonly join
-[337120.645166] mlx4_ib0: sendonly multicast join failed for ff12:601b:ffff=
-:0000:0000:0000:0000:0016, status -22
-[337120.658292] mlx4_ib0: successfully joined all multicast groups
-[337121.977733] mlx4_ib0: no multicast record for ff12:601b:ffff:0000:0000:=
-0000:0000:0002, starting sendonly join
-[337121.990478] mlx4_ib0: sendonly multicast join failed for ff12:601b:ffff=
-:0000:0000:0000:0000:0002, status -22
-[337122.003589] mlx4_ib0: successfully joined all multicast groups
-[337130.410559] mlx4_ib0: setting up send only multicast group for ff12:601=
-b:ffff:0000:0000:0001:ff77:d3cc
-[337130.423203] mlx4_ib0: no multicast record for ff12:601b:ffff:0000:0000:=
-0001:ff77:d3cc, starting sendonly join
-[337130.436327] mlx4_ib0: MGID ff12:601b:ffff:0000:0000:0001:ff77:d3cc AV f=
-fff882027235f00, LID 0xc01e, SL 0
-[337130.448970] mlx4_ib0: successfully joined all multicast groups
-[root@rdma-master linus (firewall/for-rc)]$=20
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-bAqmGy4BQvY7VRPPaIJb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJUxpXNAAoJELgmozMOVy/dEpQQAKGhWGj1Rn7w2OXL94vELfdt
-hUHTvVDuYESj6LcQ97uxNmoqysLBTvk5kfsxwymrpJAly5cLyW74T6v2QiESPM4I
-OO2aqa8BuIjrCrzarEl/sj3QUYuHFEg9VDfxvkKbvRJ8cYJFEOmysDToPKKgw1rt
-tnHDH7DwUnc1io5XbW6Ia3bAd01hUp6wwZZZKF1CZsU4PUAQrK+7tBejFrYvU4Tk
-0ASdL2HuWihtTtb+cMh6kBq7mEcux+udHNqw9HlFr1Kghx1HgB0al2AHpFF/0NCk
-+uaVQbJXnFwrRRCIU7mE8psT1TbyM9twGIvj+SDlGLBwgiMiqZZw9Tw+cnZze/Yb
-ErpTsl9R7Y3WL4V0Nu3js1+8wsZ1qtFnzE0DTJN8PVPH/nxTsa2kRuM3XCAarEQU
-mw/rrAG18mwhHTDv2XX8l07iwWjz4FqzNMHyLgtcehM0d70m3nkvOPJfdrZsnSGI
-EfO86n5m6a2b8+MJpxCGOaF2sz5uh5oliQRzkXIQmFSsxXFivYucDUu2J/DcPwib
-mdrvYOHqDRCgYfMg189s561y4sFIyBwAKMBtc3dFoXjkbxS/3UfvcWMtwPSySZo2
-OZqk0NtU1Hzh5QYAyTr6CPBYtXZ/5hacU8n/lCTYr2WTYRCDiiAPdeWgyAFCEpq6
-AtuNeonp45ya9x3SAjs+
-=N3Nb
------END PGP SIGNATURE-----
-
---=-bAqmGy4BQvY7VRPPaIJb--
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index ad2bcd105e4..68b47bed33a 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -71,29 +71,28 @@ static void __ipoib_mcast_continue_join_thread(struct ipoib_dev_priv *priv,
+ 					       int delay)
+ {
+ 	if (test_bit(IPOIB_MCAST_RUN, &priv->flags)) {
+-		/*
+-		 * Mark this mcast for its delay and set a timer to kick the
+-		 * thread when the delay completes
+-		 */
+ 		if (mcast && delay) {
+ 			mcast->backoff *= 2;
+ 			if (mcast->backoff > IPOIB_MAX_BACKOFF_SECONDS)
+ 				mcast->backoff = IPOIB_MAX_BACKOFF_SECONDS;
+ 			mcast->delay_until = jiffies + (mcast->backoff * HZ);
+-			queue_delayed_work(priv->wq, &priv->mcast_task,
+-					   mcast->backoff * HZ);
++			/*
++			 * Mark this mcast for its delay, but restart the
++			 * task immediately.  It will make sure to clear
++			 * out all entries without delays, and then
++			 * schedule itself for run again when the delay
++			 * expires
++			 */
++			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+ 		} else if (delay) {
+-			/* Special case of retrying after a failure to
++			/*
++			 * Special case of retrying after a failure to
+ 			 * allocate the broadcast multicast group, wait
+ 			 * 1 second and try again
+ 			 */
+ 			queue_delayed_work(priv->wq, &priv->mcast_task, HZ);
+-		}
+-		/*
+-		 * But also rekick the thread immediately for any other
+-		 * tasks in queue behind this one
+-		 */
+-		queue_delayed_work(priv->wq, &priv->mcast_task, delay);
++		} else
++			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+ 	}
+ }
+ 
+@@ -568,6 +567,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	struct ib_port_attr port_attr;
+ 	struct ipoib_mcast *mcast = NULL;
+ 	int create = 1;
++	unsigned long delay_until = 0;
+ 
+ 	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
+ 		return;
+@@ -636,11 +636,14 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	list_for_each_entry(mcast, &priv->multicast_list, list) {
+ 		if (IS_ERR_OR_NULL(mcast->mc) &&
+ 		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags) &&
+-		    !test_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags) &&
+-		    (mcast->backoff == 1 ||
+-		     time_after_eq(jiffies, mcast->delay_until))) {
+-			/* Found the next unjoined group */
+-			break;
++		    !test_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags)) {
++			if (mcast->backoff == 1 ||
++			    time_after_eq(jiffies, mcast->delay_until))
++				/* Found the next unjoined group */
++				break;
++			else if (!delay_until ||
++				 time_before(mcast->delay_until, delay_until))
++				delay_until = mcast->delay_until;
+ 		}
+ 	}
+ 
+@@ -653,6 +656,9 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 		mcast = NULL;
+ 		ipoib_dbg_mcast(priv, "successfully joined all "
+ 				"multicast groups\n");
++		if (delay_until)
++			queue_delayed_work(priv->wq, &priv->mcast_task,
++					   delay_until - jiffies);
+ 	}
+ 
+ out:
+@@ -766,6 +772,13 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
+ 		memcpy(mcast->mcmember.mgid.raw, mgid, sizeof (union ib_gid));
+ 		__ipoib_mcast_add(dev, mcast);
+ 		list_add_tail(&mcast->list, &priv->multicast_list);
++		/*
++		 * Make sure that if we are currently waiting for a backoff
++		 * delay to expire, that we cancel that, run immediately,
++		 * and then requeue our task to fire when the backoff
++		 * timer is over.
++		 */
++		cancel_delayed_work(&priv->mcast_task);
+ 		__ipoib_mcast_continue_join_thread(priv, NULL, 0);
+ 	}
+ 
+-- 
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
