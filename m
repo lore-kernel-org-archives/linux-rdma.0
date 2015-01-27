@@ -1,149 +1,275 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V3 FIX for-3.19] IB/ipoib: Fix sendonly traffic and
- multicast traffic
-Date: Tue, 27 Jan 2015 12:02:10 -0500
-Message-ID: <1422378130.2854.119.camel@redhat.com>
-References: <1422277227-1086-1-git-send-email-erezsh@mellanox.com>
-		 <CAJ3xEMjERaEP5d_ZT8RN5+w8Z_Hig4T7dhuq3o+1NOUuQgfJLw@mail.gmail.com>
-		 <1422301106.2854.41.camel@redhat.com>
-		 <CAJ3xEMg3vYGbGuT+Z-XQMv5YuPws33XHQP_Wcz8gvpBbCg3TSw@mail.gmail.com>
-	 <1422309605.2854.62.camel@redhat.com> <54C74D49.3080201@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-l7ZFSHCyCHQwCc1aJWNm"
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ib_ipoib: Scatter-Gather support in connected mode
+Date: Tue, 27 Jan 2015 03:21:22 -0800
+Message-ID: <1422357682-8934-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54C74D49.3080201-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+With this fix Scatter-Gather will be supported also in connected mode
 
---=-l7ZFSHCyCHQwCc1aJWNm
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h      |    8 +--
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   |  107 +++++++++++++++++++++++------
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c   |    3 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    3 +-
+ 4 files changed, 91 insertions(+), 30 deletions(-)
 
-On Tue, 2015-01-27 at 10:33 +0200, Erez Shitrit wrote:
-> The patch I sent, only claims to fix the regression in multicast and=20
-> sendonly issues, it can replace the first 3 patches and the one you sent=
-=20
-> me off list from your last patchset.
-
-OK.  But my patchset resolve those issues too, and as you point out,
-it's not really my entire patchset that resolves just this regression.
-It would be easy enough to squash just those patches in my patchset
-required to solve just this regression down to just one patch if patch
-count bothers people (I find that to be a silly thing to be concerned
-with, but oh well).
-
-> (probably there are more bugs, that the rest of your patchset solved,=20
-> hence it should be tested with the rest of your patchset)
-
-Yes, there are.  But Or has been arguing that we should take your patch
-to resolve the regression and leave the rest out.  So, testing that
-specific situation seemed to make sense in terms of finding out if that
-left us with a kernel that was in reasonable shape.
-
-If we want to look at your patch combined with my patchset in lieu of
-the individual patches in mine that perform the same fix, then it would
-take some work to merge them as there are differences in assumptions
-made and they would not simply work together.
-
-> And probably there are more bugs that your patcheset didn't fix yet -:)
-> For example, I run your last patchset+ the last fix you sent me with:
-> modprobe -r ib_ipoib; modprobe  ib_ipoib;
-> ping6
-> some adding/deleting  one child interface and got the next panic:
->=20
-> [81209.348259] ib0: join completion for=20
-> ff12:601b:ffff:0000:0000:0001:ff43:3bf1 (status -102)
-> [81209.408787] BUG: unable to handle kernel NULL pointer dereference at=
-=20
-> 0000000000000020
-> [81209.416750] IP: [<ffffffffa096b399>] ipoib_mcast_join+0xa9/0x1b0=20
-> [ib_ipoib]
-
-This looks exactly like the issue solved by 3ee9876fbdb (IB/ipoib: fix
-race between mcast_dev_flush and mcast_join).  But without the full logs
-I wouldn't know.  However, if it happened while creating/deleting
-children then there might be something lurking in the child delete logic
-that is not properly locked.
-
-> Doug, there are bugs that probably will be found all the time with any=
-=20
-> patchset, my point was only according to the way sendonly need to be=20
-> handled.
-
-And I proved with my final patchset that sendonly does *not* have to be
-handled that way.  I proved that the regression could be solved without
-basically reverting the logic to the old split way of handling multicast
-joins.
-
-So you've argued several times that "sendonly conceptually should be in
-the tx path because at the Ethernet layer we are emulating there is no
-join for sendonly traffic, it just goes straight out".  To whit, your
-patch restores that behavior.
-
-My argument against is that:
-
-1) We are emulating Ethernet, we are not Ethernet, and we have to have a
-sendonly join that Ethernet does not.  Emulating Ethernet does not mean
-we should do conceptually silly things in our lower layer driver.  We
-must do a sendonly join, which is still a join, and splitting it off
-from other joins makes no sense for us at the InfiniBand layer.  And in
-fact, once it leaves the ipoib layer and enters the ib_sa layer, the two
-code paths completely merge and are absolutely no different.  And at
-that layer, they *always* get queued to a work queue and handled later.
-So there really is no advantage to doing the send directly in the tx
-path once you look beyond the ipoib_multicast.c file itself.
-
-2) Having two code paths that only vary in 2 simple ways
-  a) one path uses 1 for the membership type, one uses 4
-  b) one attaches a QP at the end, the other does not
-but which are otherwise almost identical (and could probably be joined
-into a single code path, which is something I'm planning for 3.20) does
-not make sense.
-
-3) Fixing oopses and races and other issues with (needlessly) multiple
-racing code paths is considerably harder than with fewer code paths.
-For the sake of hardening the IPoIB driver against various situations, a
-single code path is preferable to multiple code paths.
-
-I haven't heard an argument from you yet that I believe beats the points
-I've made above.  So I believe a solution that does not revert back to
-having two separate code paths to be maintained is preferable to your
-patch.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-l7ZFSHCyCHQwCc1aJWNm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJUx8SSAAoJELgmozMOVy/dvkwP/jvdNyr/3qKYolpjoRcocgEt
-axjDfmutXsgOK5N4c9e8bbybw43lxQ8+uWqrVGCmYxMgy1PbaDbUwwjvIVj08JCo
-X+Vln/ZTIIcvypQZ2ExKsjJJAqYkuRXv9JQ0j311SOGccMuVR5kScUDBxxrVbded
-eJAJdNJV/p8ybDjeXDKyKyAvYb8UcxOgDFHqL2hlxr1KU3IoYhf8Urh0gR8XEXtb
-chCpNPbu1lYxnWQlLS1fjSWeUlPVE63SoP9NKoh5jo2y3szrwZXWNgsx95ydc0fh
-uNpHB5XeUnulFblH+5h96paSIOBP4wXmogSUJ4q9B8wtbRuof0Y+GpPzpdvrQ2ea
-Nq1R5N/MZQmA6y72jwXFRUEXnH7Nv4S8avjXnWPRtXoEuahOBLrGBv27AyOkgqSn
-3e3rbOVzktKZktWjt1IuHO0KlZ8fjAyQofXLxkbfrA1Mf7SugYY3jVP4PKs422IN
-0nNiqK8fA77ow0rL1nrug2bh8NBQVNXD6/42FwLcdh4TpyC5lKHdgxBMnV6Wfdr4
-MEuQJrLnMeHVCpNDj2DJIFtCt6bChxrNlvufFiVo/9ONfC6lEOVqmAmgZfdgoAyQ
-VM2oUMzU3VFgFlSqKj2X9+Nv2uSbTAgd9FI/0pjucKUGocpsxvmUqe6/tOh9ZcA+
-SU/QX27C/TjO82u574jT
-=ZsTA
------END PGP SIGNATURE-----
-
---=-l7ZFSHCyCHQwCc1aJWNm--
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index d7562be..fb42834 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -170,11 +170,6 @@ struct ipoib_tx_buf {
+ 	u64		mapping[MAX_SKB_FRAGS + 1];
+ };
+ 
+-struct ipoib_cm_tx_buf {
+-	struct sk_buff *skb;
+-	u64		mapping;
+-};
+-
+ struct ib_cm_id;
+ 
+ struct ipoib_cm_data {
+@@ -233,7 +228,7 @@ struct ipoib_cm_tx {
+ 	struct net_device   *dev;
+ 	struct ipoib_neigh  *neigh;
+ 	struct ipoib_path   *path;
+-	struct ipoib_cm_tx_buf *tx_ring;
++	struct ipoib_tx_buf *tx_ring;
+ 	unsigned	     tx_head;
+ 	unsigned	     tx_tail;
+ 	unsigned long	     flags;
+@@ -496,6 +491,7 @@ int ipoib_mcast_stop_thread(struct net_device *dev, int flush);
+ 
+ void ipoib_mcast_dev_down(struct net_device *dev);
+ void ipoib_mcast_dev_flush(struct net_device *dev);
++int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req);
+ 
+ #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+ struct ipoib_mcast_iter *ipoib_mcast_iter_init(struct net_device *dev);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 933efce..056e4d2 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -88,6 +88,31 @@ static void ipoib_cm_dma_unmap_rx(struct ipoib_dev_priv *priv, int frags,
+ 		ib_dma_unmap_page(priv->ca, mapping[i + 1], PAGE_SIZE, DMA_FROM_DEVICE);
+ }
+ 
++static void ipoib_cm_dma_unmap_tx(struct ipoib_dev_priv *priv,
++				  struct ipoib_tx_buf *tx_req)
++{
++	struct sk_buff *skb;
++	int i, offs;
++
++	skb = tx_req->skb;
++	if (skb_shinfo(skb)->nr_frags) {
++		offs = 0;
++		if (skb_headlen(skb)) {
++			ib_dma_unmap_single(priv->ca, tx_req->mapping[0],
++					    skb_headlen(skb), DMA_TO_DEVICE);
++			offs = 1;
++		}
++		for (i = 0; i < skb_shinfo(skb)->nr_frags; ++i) {
++			const skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
++
++			ib_dma_unmap_single(priv->ca, tx_req->mapping[i + offs],
++					    skb_frag_size(frag), DMA_TO_DEVICE);
++		}
++	} else
++		ib_dma_unmap_single(priv->ca, tx_req->mapping[0], skb->len,
++				    DMA_TO_DEVICE);
++}
++
+ static int ipoib_cm_post_receive_srq(struct net_device *dev, int id)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -707,11 +732,39 @@ static inline int post_send(struct ipoib_dev_priv *priv,
+ 	return ib_post_send(tx->qp, &priv->tx_wr, &bad_wr);
+ }
+ 
++static inline int post_send_sg(struct ipoib_dev_priv *priv,
++			       struct ipoib_cm_tx *tx,
++			       unsigned int wr_id,
++			       struct sk_buff *skb,
++			       u64 mapping[MAX_SKB_FRAGS + 1])
++{
++	struct ib_send_wr *bad_wr;
++	int i, off;
++	skb_frag_t *frags = skb_shinfo(skb)->frags;
++	int nr_frags = skb_shinfo(skb)->nr_frags;
++
++	if (skb_headlen(skb)) {
++		priv->tx_sge[0].addr = mapping[0];
++		priv->tx_sge[0].length = skb_headlen(skb);
++		off = 1;
++	} else
++		off = 0;
++
++	for (i = 0; i < nr_frags; ++i) {
++		priv->tx_sge[i + off].addr = mapping[i + off];
++		priv->tx_sge[i + off].length = frags[i].size;
++	}
++	priv->tx_wr.num_sge = nr_frags + off;
++	priv->tx_wr.wr_id = wr_id | IPOIB_OP_CM;
++
++	return ib_post_send(tx->qp, &priv->tx_wr, &bad_wr);
++}
++
+ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_tx *tx)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-	struct ipoib_cm_tx_buf *tx_req;
+-	u64 addr;
++	struct ipoib_tx_buf *tx_req;
++	u64 addr = 0;
+ 	int rc;
+ 
+ 	if (unlikely(skb->len > tx->mtu)) {
+@@ -735,24 +788,37 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
+ 	 */
+ 	tx_req = &tx->tx_ring[tx->tx_head & (ipoib_sendq_size - 1)];
+ 	tx_req->skb = skb;
+-	addr = ib_dma_map_single(priv->ca, skb->data, skb->len, DMA_TO_DEVICE);
+-	if (unlikely(ib_dma_mapping_error(priv->ca, addr))) {
+-		++dev->stats.tx_errors;
+-		dev_kfree_skb_any(skb);
+-		return;
+-	}
+ 
+-	tx_req->mapping = addr;
++	if (skb_shinfo(skb)->nr_frags) {
++		if (unlikely(ipoib_dma_map_tx(priv->ca, tx_req))) {
++			++dev->stats.tx_errors;
++			dev_kfree_skb_any(skb);
++			return;
++		}
++		rc = post_send_sg(priv, tx, tx->tx_head &
++				  (ipoib_sendq_size - 1),
++				  skb, tx_req->mapping);
++	} else {
++		addr = ib_dma_map_single(priv->ca, skb->data, skb->len,
++					 DMA_TO_DEVICE);
++		if (unlikely(ib_dma_mapping_error(priv->ca, addr))) {
++			++dev->stats.tx_errors;
++			dev_kfree_skb_any(skb);
++			return;
++		}
++
++		tx_req->mapping[0] = addr;
+ 
+-	skb_orphan(skb);
+-	skb_dst_drop(skb);
++		skb_orphan(skb);
++		skb_dst_drop(skb);
+ 
+-	rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
+-		       addr, skb->len);
++		rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
++			       addr, skb->len);
++	}
+ 	if (unlikely(rc)) {
+ 		ipoib_warn(priv, "post_send failed, error %d\n", rc);
+ 		++dev->stats.tx_errors;
+-		ib_dma_unmap_single(priv->ca, addr, skb->len, DMA_TO_DEVICE);
++		ipoib_cm_dma_unmap_tx(priv, tx_req);
+ 		dev_kfree_skb_any(skb);
+ 	} else {
+ 		dev->trans_start = jiffies;
+@@ -777,7 +843,7 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct ipoib_cm_tx *tx = wc->qp->qp_context;
+ 	unsigned int wr_id = wc->wr_id & ~IPOIB_OP_CM;
+-	struct ipoib_cm_tx_buf *tx_req;
++	struct ipoib_tx_buf *tx_req;
+ 	unsigned long flags;
+ 
+ 	ipoib_dbg_data(priv, "cm send completion: id %d, status: %d\n",
+@@ -791,7 +857,7 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 
+ 	tx_req = &tx->tx_ring[wr_id];
+ 
+-	ib_dma_unmap_single(priv->ca, tx_req->mapping, tx_req->skb->len, DMA_TO_DEVICE);
++	ipoib_cm_dma_unmap_tx(priv, tx_req);
+ 
+ 	/* FIXME: is this right? Shouldn't we only increment on success? */
+ 	++dev->stats.tx_packets;
+@@ -1036,6 +1102,9 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
+ 
+ 	struct ib_qp *tx_qp;
+ 
++	if (dev->features & NETIF_F_SG)
++		attr.cap.max_send_sge = MAX_SKB_FRAGS + 1;
++
+ 	tx_qp = ib_create_qp(priv->pd, &attr);
+ 	if (PTR_ERR(tx_qp) == -EINVAL) {
+ 		ipoib_warn(priv, "can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
+@@ -1170,7 +1239,7 @@ err_tx:
+ static void ipoib_cm_tx_destroy(struct ipoib_cm_tx *p)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(p->dev);
+-	struct ipoib_cm_tx_buf *tx_req;
++	struct ipoib_tx_buf *tx_req;
+ 	unsigned long begin;
+ 
+ 	ipoib_dbg(priv, "Destroy active connection 0x%x head 0x%x tail 0x%x\n",
+@@ -1197,8 +1266,7 @@ timeout:
+ 
+ 	while ((int) p->tx_tail - (int) p->tx_head < 0) {
+ 		tx_req = &p->tx_ring[p->tx_tail & (ipoib_sendq_size - 1)];
+-		ib_dma_unmap_single(priv->ca, tx_req->mapping, tx_req->skb->len,
+-				    DMA_TO_DEVICE);
++		ipoib_cm_dma_unmap_tx(priv, tx_req);
+ 		dev_kfree_skb_any(tx_req->skb);
+ 		++p->tx_tail;
+ 		netif_tx_lock_bh(p->dev);
+@@ -1455,7 +1523,6 @@ static void ipoib_cm_stale_task(struct work_struct *work)
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+-
+ static ssize_t show_mode(struct device *d, struct device_attribute *attr,
+ 			 char *buf)
+ {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 72626c3..9e11447 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -312,8 +312,7 @@ repost:
+ 			   "for buf %d\n", wr_id);
+ }
+ 
+-static int ipoib_dma_map_tx(struct ib_device *ca,
+-			    struct ipoib_tx_buf *tx_req)
++int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req)
+ {
+ 	struct sk_buff *skb = tx_req->skb;
+ 	u64 *mapping = tx_req->mapping;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 58b5aa3..f9314c6 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -190,7 +190,7 @@ static netdev_features_t ipoib_fix_features(struct net_device *dev, netdev_featu
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 
+ 	if (test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags))
+-		features &= ~(NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_TSO);
++		features &= ~(NETIF_F_IP_CSUM | NETIF_F_TSO);
+ 
+ 	return features;
+ }
+@@ -233,7 +233,6 @@ int ipoib_set_mode(struct net_device *dev, const char *buf)
+ 			   "will cause multicast packet drops\n");
+ 		netdev_update_features(dev);
+ 		rtnl_unlock();
+-		priv->tx_wr.send_flags &= ~IB_SEND_IP_CSUM;
+ 
+ 		ipoib_flush_paths(dev);
+ 		rtnl_lock();
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
