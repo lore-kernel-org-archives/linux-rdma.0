@@ -1,161 +1,253 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V3 FIX for-3.19] IB/ipoib: Fix sendonly traffic and
- multicast traffic
-Date: Mon, 26 Jan 2015 17:00:05 -0500
-Message-ID: <1422309605.2854.62.camel@redhat.com>
-References: <1422277227-1086-1-git-send-email-erezsh@mellanox.com>
-	 <CAJ3xEMjERaEP5d_ZT8RN5+w8Z_Hig4T7dhuq3o+1NOUuQgfJLw@mail.gmail.com>
-	 <1422301106.2854.41.camel@redhat.com>
-	 <CAJ3xEMg3vYGbGuT+Z-XQMv5YuPws33XHQP_Wcz8gvpBbCg3TSw@mail.gmail.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 3/4] IB/uverbs: ex_query_device: check request's comp_mask
+Date: Tue, 27 Jan 2015 08:50:49 +0200
+Message-ID: <54C73549.5000003@mellanox.com>
+References: <cover.1421931555.git.ydroneaud@opteya.com>
+	 <063956366559d6919693aabb324bab83d676bc28.1421931555.git.ydroneaud@opteya.com>
+	 <54C50A67.6040306@mellanox.com> <1422271029.3133.68.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-r4JfqR/BRKewI13oUr7W"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMg3vYGbGuT+Z-XQMv5YuPws33XHQP_Wcz8gvpBbCg3TSw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1422271029.3133.68.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 26/01/2015 13:17, Yann Droneaud wrote:
+> ...
+> Le dimanche 25 janvier 2015 =C3=A0 17:23 +0200, Haggai Eran a =C3=A9c=
+rit :
+>> On 22/01/2015 15:28, Yann Droneaud wrote:
+>>> This patch ensures the extended QUERY_DEVICE uverbs request's
+>>> comp_mask has only known values. If userspace returns unknown
+>>> features, -EINVAL will be returned, allowing to probe/discover
+>>> which features are currently supported by the kernel.
+>>
+>> This probing process will be much more cumbersome than it needs to b=
+e
+>> because userspace will have to call QUERY_DEVICE repetitively with
+>> different comp_mask fields until it finds out the exact set of suppo=
+rted
+>> bits.
+>>
+>=20
+> O(log2(N))
 
---=-r4JfqR/BRKewI13oUr7W
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I don't think user space developers will be happy having to do trial an=
+d=20
+error to determine what features the kernel driver supports. It might b=
+e=20
+even more then O(log2(N)). If my understanding of comp_mask bits usage =
+is=20
+correct it would O(N). But it's not the time complexity I'm worried abo=
+ut,
+it's the fact that it requires user-space developers to go through hoop=
+s in
+order to get information that can be much more easily exported.
 
-On Mon, 2015-01-26 at 22:57 +0200, Or Gerlitz wrote:
-> On Mon, Jan 26, 2015 at 9:38 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote=
-:
-> > On Mon, 2015-01-26 at 15:16 +0200, Or Gerlitz wrote:
-> >> On Mon, Jan 26, 2015 at 3:00 PM, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
-ote:
-> >> > Following commit 016d9fb25cd9 "IPoIB: fix MCAST_FLAG_BUSY usage" bot=
-h
-> >> > IPv6 traffic and for the most cases all IPv4 multicast traffic aren'=
+> Or you had to add a different interface, dedicated to retrieve the ex=
+act
+> supported feature mask.
+>=20
+>>> Moreover, it also ensure the requested features set in comp_mask
+>>> are sequentially set, not skipping intermediate features, eg. the
+>>> "highest" requested feature also request all the "lower" ones.
+>>> This way each new feature will have to be stacked on top of the
+>>> existing ones: this is especially important for the request and
+>>> response data structures where fields are added after the
+>>> current ones when expanded to support a new feature.
+>>
+>> I think it is perfectly acceptable that not all drivers will impleme=
+nt
+>> all available features, and so you shouldn't enforce this requiremen=
+t.
+>=20
+> With regard to QUERY_DEVICE: the data structure layout depends on the
+> comp_mask value. So either you propose a way to express multipart dat=
+a
+> structure (see CMSG or NETLINK), or we have to ensure the data struct=
+ure
+> is ever-growing, with each new chunck stacked over the existing ones:
+> that's the purpose of :
+>=20
+> 	if (cmd.comp_mask & (cmd.comp_mask + 1))
+> 		return -EINVAL;
+>=20
+>> Also, it makes the comp_mask nothing more than a wasteful version nu=
+mber
+>> between 0 and 63.
+>=20
+> That's what I've already explained earlier in "Re: [PATCH v3 06/17]
+> IB/core: Add support for extended query device caps":
+>=20
+> http://mid.gmane.org/1421844612.13543.40.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+Yes, you wrote there:
+> Regarding comp_mask (not for this particular verb):
+>=20
+> It's not clear whether request's comp_mask describe the request or th=
+e
+> response, as such I'm puzzled.
+>=20
+> How would the kernel and the userspace be able to parse the request a=
+nd
+> the response if they ignore unknown bits ?
+>=20
+> How would they be able to skip the unrecognized chunk of the request =
+and
+> response buffer ?
+>=20
+> How one bit in a comp_mask is related to a chunk in the request or
+> response ?
+>=20
+> It's likely the kernel or userspace would have to skip the remaining
+> comp_mask's bits after encountering an unknown bit as the size of the
+> corresponding chunk in request or response would be unknown, making
+> impossible to locate the corresponding chunk for the next bit set in
+> comp_mask. Having said that, comp_mask is just a complicated way of
+> expressing a version, which is turn describe a size (ever growing).
+
+It is my understanding that each comp_mask bit marks a set of fields in=
+=20
+the command or in the response struct as valid, so the struct format=20
+remains the same and the kernel and userspace don't need to make=20
+difficult calculation as to where each field is, but you can still pass=
+=20
+a high bit set in comp_mask with one of the lower bits cleared.
+
+I couldn't find this explicit detail in the mailing list, but I did fou=
+nd
+a presentation that was presented in OFA International Developer=20
+Workshop 2013 [1], that gave an example of of an verb where each=20
+comp_mask bit marked a different field as valid.
+
+>=20
+>>
+>> In the specific case of QUERY_DEVICE you might argue that there isn'=
 t
-> >> > working.
-> >>
-> >>
-> >> Hi Doug + Roland
-> >>
-> >> Erez was very patiently reviewing and testing all the six (V0...V5)
-> >> patch series you sent to fix the 3.19-rc1 regression.
-> >
-> > Yes he has.
+>> any need for input comp_mask, only for output, and then you may enfo=
+rce
+>> the input comp_mask will always be zero.
 >=20
+> The extended QUERY_DEVICE uverbs as currently merged is using comp_ma=
+sk
+> from input to choose to report on-demand-paging related value. So it
+> seems it's needed.
 >=20
-> >>  Can you also give this patch a try?
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/d=
+rivers/infiniband/core/uverbs_cmd.c?id=3Dv3.19-rc6#n3297
 >=20
-> > I can test it.  But I need to know how it's supposed to be applied.
+>> However, you will in any case need to be able to extended the size o=
+f the response in the future.
+>>
 >=20
-> just apply it on latest upstream and run whatever tests you have, simple.
-
-I used the same base kernel that I used for my patchset.
-
-> > It might fix the regression, it might also reintroduce a race on
-> > ifup/ifdown.  I'll test and see.
+> That's already the case for on demand paging.
 >=20
-> Let's see it in action @ your env
+>>>
+>>> Link: http://mid.gmane.org/cover.1421931555.git.ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
+m
+>>> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Cc: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/core/uverbs_cmd.c | 6 ++++++
+>>>  1 file changed, 6 insertions(+)
+>>>
+>>> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infinib=
+and/core/uverbs_cmd.c
+>>> index 8668b328b7e6..80a1c90f1dbf 100644
+>>> --- a/drivers/infiniband/core/uverbs_cmd.c
+>>> +++ b/drivers/infiniband/core/uverbs_cmd.c
+>>> @@ -3313,6 +3313,12 @@ int ib_uverbs_ex_query_device(struct ib_uver=
+bs_file *file,
+>>>  	if (err)
+>>>  		return err;
+>>> =20
+>>> +	if (cmd.comp_mask & (cmd.comp_mask + 1))
+>>> +		return -EINVAL;
+>>> +
+>>> +	if (cmd.comp_mask & ~(__u32)IB_USER_VERBS_EX_QUERY_DEVICE_ODP)
+>>> +		return -EINVAL;
+>>> +
+>=20
+> If we keep the checks on output buffer size from patch 1, returning
+> -ENOSPC in case of size mismatch, and if we are sure that no bit in
+> input comp_mask will ever trigger a call to a kernel function that ca=
+n
+> make the uverb fail, the latter check on known value could be dropped=
+,
+> allowing the userspace to set the highest mask (-1): userspace
+> will use -ENOSPC to probe the expected size of the response buffer
+> to match the highest supported comp_mask. But it's going to hurt
+> userspace application not ready to receive -ENOSPC on newer kernel
+> with extended QUERY_DEVICE ABI ... Oops.
+>=20
+> So in this end, the safest way to ensure userspace is doing the corre=
+ct
+> thing so that we have backward and forward compatibility is to check
+> for known values in comp_mask, check for response buffer size and ens=
+ure
+> that data structure chunk are stacked.
+>=20
+> The tighter are the checks now, the easier the interface could be
+> extended latter.
 
-It passed the initial IPv6 after a failed join issue that my own
-patchset just finally passes.
+I understand this position, and I generally agree, but I think that=20
+specifically for a verb like QUERY_DEVICE that only reads information f=
+rom=20
+the kernel driver to user-space, there is no harm in the kernel just=20
+providing all the information it can fit in the response buffer provide=
+d=20
+by user-space.
 
-However, I didn't get more than 5 minutes into testing before I was able
-to livelock the system.  In this case, from machine A running my
-patchset, I did
+Let me explain: newer fields are added to the kernel response struct at=
+ the=20
+end, together with a new comp_mask bit.
 
-ping6 -I mlx4_ib0 -i .25 <machine B address>
+Older user-space with newer kernels will simply ask only for the buffer=
+=20
+size they care about. The fact that the struct is truncated doesn't aff=
+ect
+these programs because the truncated struct is a valid struct that was=20
+presented by the kernel in an older version.
 
-On machine B running Erez's patch, I did:
+They may or may not receive a comp_mask bit they don't recognize, but t=
+hat=20
+only tells them that the kernel supports new features they don't know a=
+bout.
 
-rmmod ib_ipoib; modprobe ib_ipoib mcast_debug_level=3D1; sleep 2; ping6
--i .25 -c 10 -I mlx4_ib0 <machine A address>
+Newer user-space with older kernel will give a larger buffer then the=20
+kernel can fill. The kernel only fills in the beginning of the user-spa=
+ce=20
+buffer, and provides user-space with the comp_mask bits that mark which
+fields are valid. So user-space can tell that the end of the buffer isn=
+'t=20
+valid.=20
 
-And on the machine rdma-master, where the opensm runs, I did just a few:
+In my implementation I also left the ending uninitialized, but the=20
+kernel can zero it if you think it is important.
 
-systemctl restart opensm
+So I hope you agree this scheme is extendible and allows keeping backwa=
+rd=20
+and forward compatibility. If you can think of another scheme that will=
+ be=20
+more strict with the buffer sizes, but doesn't require user-space to do=
+=20
+extra work, I'll be happy to hear about it.
 
-The livelock is in the mcast flushing code.  On the machine that
-livelocked, here's the dmesg tail:
+Regards,
+Haggai
 
-[  423.189514] mlx4_ib0.8002: multicast join failed for ff12:401b:8002:0000=
-:0000:0000:ffff:ffff, status -110
-[  423.189541] mlx4_ib0.8002: deleting multicast group ff12:401b:8002:0000:=
-0000:0000:0000:0001
-[  423.189545] mlx4_ib0.8002: deleting multicast group ff12:601b:8002:0000:=
-0000:0000:0000:0001
-[  423.189547] mlx4_ib0.8002: deleting multicast group ff12:601b:8002:0000:=
-0000:0001:ff7b:e1b1
-[  423.189549] mlx4_ib0.8002: deleting multicast group ff12:401b:8002:0000:=
-0000:0000:0000:00fb
-[  423.189551] mlx4_ib0.8002: deleting multicast group ff12:401b:8002:0000:=
-0000:0000:ffff:ffff
-[  423.204570] mlx4_ib0.8002: stopping multicast thread
-[  423.204573] mlx4_ib0.8002: flushing multicast list
-[  423.213567] mlx4_ib0: stopping multicast thread
-[  423.213571] mlx4_ib0: flushing multicast list
-
-The rmmod operation is stuck in ib_sa_unregister_client (one of the
-specific fixes my patchset resolves BTW).
-
-On another machine I started another one of my tests:
-
-On machine A:
-
-ping6 I mlx4_ib0 -i .25 <machine C address>
-
-On rdma-master:
-
-while true; do sleep 4; systemctl restart opensm; done
-
-One machine C:
-
-passes=3D0; while true; do ifdown qib_ib0; ifup qib_ib0; echo "Passes $pass=
-es..."; let passes++; done
-
-In this test Erez's patch made it through about 5 down/up cycles before
-the machine oopsed.
-
-Do I need to keep going?  I was able to crash two different machines on
-two different brands of hardware within only a few test cycles.  My
-patchset, while large and intrusive, now survives all of this with
-flying colors, and now that I've replicated Erez's specific multicast
-join failure, I've taken care of that corner case too (and will be
-adding that to my long term QE setup so it doesn't regress in the
-future).
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-r4JfqR/BRKewI13oUr7W
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJUxrjlAAoJELgmozMOVy/dtroP/i4UuZj8PMLqJSNkZ05FavEl
-C8pjBweVtXVP5wRElV5MtCJX6TAxitzT1hVLSuqfIpLVJNorg9/N7eCN7D/2Zgfz
-0aKUYc1dWMCDxQ1h7Br4+O385S/PieKG09hHwS/vQzkdg60D/PeO4cDpGT0sLDZq
-rQzyv24mnucIdwvZpRI2dFDAy9xvaKUOs/3UaIbYhPvruYRCinZj+HUL4zIS4J6S
-QcGG7hTiBdsAuaoa1UqYoe+tXaAKjzqsr4a+5FjBUUxEO48sDOqVVBRmG9uMSg+3
-N46UzrjnctDiYAAwHgobaC0t6GUwpHzDkZ+w0lGH3UrJ70up1hSwbJyDsGKXBQ+x
-nCBR0vUiO+5X5nD6uXtAkrP7Ocb/uAQ9hcbiPu6Y/aVu+fw6QMiwjUfFWlCjHSwO
-9uykslPYmjZIcI9M3vS0YmJfSIxYQ4iwGrNrS8gwqAJ5X/vp0Yyi4dGkkT6fUFCm
-g+Kvm+DlmzsTfA6iIFdERIVMR8NhjgLt61At0lNGthbIA5jSMqIZf9dCuB++O1+L
-/MCfJWPAyuW5OI0Zsa0wQ9zuIN+rz0cyXoxkEpsjsKAwdLK8eJYlq8FL/4jZoBhE
-RkfTVG+PapDVwk09d5SgnLP4g0RL74piypg2f3q6fDxtmQmyma6/Dm1WMDfSkV6x
-1+2IyJ+26R2NoODjEE5q
-=vxRa
------END PGP SIGNATURE-----
-
---=-r4JfqR/BRKewI13oUr7W--
-
+[1] Extending Verbs API, Tzahi Oved
+    https://www.openfabrics.org/images/docs/2013_Dev_Workshop/Tues_0423=
+/2013_Workshop_Tues_0830_Tzahi_Oved-verbs_extensions_ofa_2013-tzahio.pd=
+f
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
