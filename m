@@ -1,59 +1,183 @@
-From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Subject: Why SR-IOV Shared Port and not vSwitch?
-Date: Wed, 28 Jan 2015 01:14:08 +0100
-Message-ID: <54C829D0.5050106@simula.no>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH infiniband-diags] ibtracert.c: Remove checking the port
+ 0 state for BasePort0 switches
+Date: Wed, 28 Jan 2015 18:27:48 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC0D7F9@CRSMSX101.amr.corp.intel.com>
+References: <54BE514B.5030904@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="L4juxJfnSvq39q2FwXk2Vf5Rflh0sLKEK"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54BE514B.5030904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---L4juxJfnSvq39q2FwXk2Vf5Rflh0sLKEK
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Sorry for the delay.
 
-Hello,
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hal Rosenstock
+> Sent: Tuesday, January 20, 2015 5:00 AM
+> To: Weiny, Ira
+> Cc: Dan Ben-Yosef; linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+> Subject: [PATCH infiniband-diags] ibtracert.c: Remove checking the port 0 state
+> for BasePort0 switches
+> 
+> From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> The port 0 state check is needed only for HCA/Routers and
+> EnhancedPort0 switches.
+> 
+> For BasePort0 switches, the PortState field in the PortInfo attribute for port0 is
+> undefined (not used).
+> 
+> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  src/ibtracert.c |   47 ++++++++++++++++++++++++++++++++++++++++-------
+>  1 files changed, 40 insertions(+), 7 deletions(-)
+> 
+> diff --git a/src/ibtracert.c b/src/ibtracert.c index d32968b..326200b 100644
+> --- a/src/ibtracert.c
+> +++ b/src/ibtracert.c
+> @@ -92,6 +92,7 @@ struct Switch {
+>  	int mccap;
+>  	int linearFDBtop;
+>  	int fdb_base;
+> +	int enhsp0;
+>  	int8_t fdb[64];
+>  	char switchinfo[64];
+>  };
+> @@ -114,6 +115,17 @@ struct Node {
+>  Node *nodesdist[MAXHOPS];
+>  uint64_t target_portguid;
+> 
+> +static int is_route_inactive_port0(Node * node, Port * port, Switch *
+> +sw) {
 
-I was looking into the InfiniBand SR-IOV implementation and as I see here=
-:
-https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11956.html
-the shared port model has been implemented in the drivers.
+I would prefer this function be named something like:
 
-In an ~5 years old presentation from Liran Liss
-(https://www.openfabrics.org/index.php/ofa-documents/doc_view/255-infinib=
-and-and-rocee-virtualization-with-sr-iov.html),
-the virtual switch model is briefly mentioned as well.
+port_inactive_not_bsp0
 
-The disadvantage of the virtual switch model (that is mentioned in the
-presentation as well) is the bloated LID space. Is there any other good
-reason (or great disadvantage of the the vSwitch model) that the
-shared-port has been chosen in favor of the vSwitch?
+The current name is confusing as to what the logic is.
 
-Vangelis
+> +	int res = 0;
+> +	/* not active for HCA and for enhanced port0 Switches */
+> +	if (port->state != 4 &&
+
+Please use #defines here even though the original code did not.
+
+> +	    (node->type != IB_NODE_SWITCH ||
+> +	     (node->type == IB_NODE_SWITCH && sw->enhsp0)))
+> +		res = 1;
+> +	return res;
+> +}
+> +
+>  static int get_node(Node * node, Port * port, ib_portid_t * portid)  {
+>  	void *pi = port->portinfo, *ni = node->nodeinfo, *nd = node->nodedesc;
+> @@ -164,6 +176,7 @@ static int switch_lookup(Switch * sw, ib_portid_t *
+> portid, int lid)
+> 
+>  	mad_decode_field(si, IB_SW_LINEAR_FDB_CAP_F, &sw->linearcap);
+>  	mad_decode_field(si, IB_SW_LINEAR_FDB_TOP_F, &sw-
+> >linearFDBtop);
+> +	mad_decode_field(si, IB_SW_ENHANCED_PORT0_F, &sw->enhsp0);
+> 
+>  	if (lid >= sw->linearcap && lid > sw->linearFDBtop)
+>  		return -1;
+> @@ -248,7 +261,7 @@ static int find_route(ib_portid_t * from, ib_portid_t *
+> to, int dump)
+>  	Port *port, fromport, toport, nextport;
+>  	Switch sw;
+>  	int maxhops = MAXHOPS;
+> -	int portnum, outport;
+> +	int portnum, outport = 255, next_sw_outport = 255;
+> 
+>  	memset(&fromnode,0,sizeof(Node));
+>  	memset(&tonode,0,sizeof(Node));
+> @@ -274,20 +287,28 @@ static int find_route(ib_portid_t * from, ib_portid_t *
+> to, int dump)
+>  	portnum = port->portnum;
+> 
+>  	dump_endnode(dump, "From", node, port);
+> +	if (node->type == IB_NODE_SWITCH) {
+> +		next_sw_outport = switch_lookup(&sw, from, to->lid);
+> +		if (next_sw_outport < 0 || next_sw_outport > node->numports)
+> {
+> +			/* needed to print the port in badtbl */
+> +			outport = next_sw_outport;
+> +			goto badtbl;
+> +		}
+> +	}
+> 
+>  	while (maxhops--) {
+> -		if (port->state != 4)
+> +		/* checking if the port state isn't active.
+> +		 * The "sw" argument is only relevant when the port is a
+> +		 * switch port for HCAs this argument is ignored */
+
+This comment should go above the function signature and be enhanced to clarify that it is checking for port state inactive except for BSP0 which has no state.
 
 
---L4juxJfnSvq39q2FwXk2Vf5Rflh0sLKEK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Ira
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQEcBAEBAgAGBQJUyCnVAAoJEEuGx9KTo03qyJwH/jnNHvamvw5uUelToj2qmHgS
-oY8vpHsQSjh/W6QlFx0UurQwVDiSKdaNYEEhhtYa1EWDfmpv4neN5vEMVUboTaih
-qb98DEbDDHkDacIxKe1qeLiTAgqV2aj0mGpBLZzEFYZk5q1ONfsd/hnmd/zSlzqI
-mDjXN5mnNpPphZ+OJlEDRjITmRN8yuTijjNVhYgp2o8cLn6HC1ecOSHK4hAIR5i8
-92ePeGB3Wzkn90PWBD/AJhcHYD+elcnm1R/q17S1ND6GTnuzgKP4hwsVwCcN1EuD
-+fG8yFaA6NCSeuZ6nEj8iIHf4Gu7At6GmDVNLk0KWK2ThIzZE64GhoqORUB6r6A=
-=DmVn
------END PGP SIGNATURE-----
-
---L4juxJfnSvq39q2FwXk2Vf5Rflh0sLKEK--
+> +		if (is_route_inactive_port0(node, port, &sw))
+>  			goto badport;
+> 
+>  		if (sameport(port, &toport))
+>  			break;	/* found */
+> 
+> -		outport = portnum;
+>  		if (node->type == IB_NODE_SWITCH) {
+>  			DEBUG("switch node");
+> -			if ((outport = switch_lookup(&sw, from, to->lid)) < 0 ||
+> -			    outport > node->numports)
+> -				goto badtbl;
+> +			outport = next_sw_outport;
+> 
+>  			if (extend_dpath(&from->drpath, outport) < 0)
+>  				goto badpath;
+> @@ -307,6 +328,7 @@ static int find_route(ib_portid_t * from, ib_portid_t *
+> to, int dump)
+>  			   (node->type == IB_NODE_ROUTER)) {
+>  			int ca_src = 0;
+> 
+> +			outport = portnum;
+>  			DEBUG("ca or router node");
+>  			if (!sameport(port, &fromport)) {
+>  				IBWARN
+> @@ -335,8 +357,19 @@ static int find_route(ib_portid_t * from, ib_portid_t *
+> to, int dump)
+>  				nextport.portnum =
+>  				    from->drpath.p[from->drpath.cnt + 1];
+>  		}
+> +		/* only if the next node is a switch, get switch info */
+> +		if (nextnode.type == IB_NODE_SWITCH) {
+> +			next_sw_outport = switch_lookup(&sw, from, to->lid);
+> +			if (next_sw_outport < 0 ||
+> +			    next_sw_outport > nextnode.numports) {
+> +				/* needed to print the port in badtbl */
+> +				outport = next_sw_outport;
+> +				goto badtbl;
+> +			}
+> +		}
+> +
+>  		port = &nextport;
+> -		if (port->state != 4)
+> +		if (is_route_inactive_port0(&nextnode, port, &sw))
+>  			goto badoutport;
+>  		node = &nextnode;
+>  		portnum = port->portnum;
+> --
+> 1.7.8.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
