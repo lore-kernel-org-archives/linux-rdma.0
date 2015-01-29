@@ -1,51 +1,49 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 1/4] IB/core: When marshaling ucma path from user-space, clear unused fields
-Date: Thu, 29 Jan 2015 11:14:28 +0200
-Message-ID: <1422522871-11216-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-next 2/4] IB/core: Check mad_agent in ib_unregister_mad_agent before dereferencing it
+Date: Thu, 29 Jan 2015 11:14:29 +0200
+Message-ID: <1422522871-11216-3-git-send-email-ogerlitz@mellanox.com>
 References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1422522871-11216-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When marsheling a user path to the kernel struct ib_sa_path, need
-to zero smac, dmac and set the vlan id to the "no vlan" value.
+When ib_register_mad_agent fails, it returns a pointer with error which is not
+NULL, therefore when calling ib_unregister_mad_agent we need to check that the
+passed mad_agent is valid and not erroneous.
 
-This is to ensure that Ethernet attributes are not used with
-InfiniBand QPs.
-
-Fixes: dd5f03beb4f7 ("IB/core: Ethernet L2 attributes in verbs/cm structures")
-Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ drivers/infiniband/core/mad.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-FYI Sean, an easy way to reproduce the bug (and test the fix..) is have
-ibacm running plus librdmacm instance which uses it (the default in
-latest releases) and use rstream with gids, e.g
-
-$ rstream -f gid -s fe80::f452:1403:1:da81
-
- drivers/infiniband/core/ucma.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 56a4b7c..45d67e9 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1124,6 +1124,9 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
- 	if (!optlen)
- 		return -EINVAL;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 74c30f4..8ec811e 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -619,6 +619,9 @@ int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+ 	struct ib_mad_agent_private *mad_agent_priv;
+ 	struct ib_mad_snoop_private *mad_snoop_priv;
  
-+	memset(&sa_path, 0, sizeof(sa_path));
-+	sa_path.vlan_id = 0xffff;
++	if (IS_ERR(mad_agent))
++		goto out;
 +
- 	ib_sa_unpack_path(path_data->path_rec, &sa_path);
- 	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
- 	if (ret)
+ 	/* If the TID is zero, the agent can only snoop. */
+ 	if (mad_agent->hi_tid) {
+ 		mad_agent_priv = container_of(mad_agent,
+@@ -631,6 +634,7 @@ int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+ 					      agent);
+ 		unregister_mad_snoop(mad_snoop_priv);
+ 	}
++out:
+ 	return 0;
+ }
+ EXPORT_SYMBOL(ib_unregister_mad_agent);
 -- 
 1.7.1
 
