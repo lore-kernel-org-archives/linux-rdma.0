@@ -1,48 +1,73 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V3 FIX for-3.19] IB/ipoib: Fix sendonly traffic and multicast
- traffic
-Date: Thu, 29 Jan 2015 14:51:44 +0200
-Message-ID: <54CA2CE0.30107@mellanox.com>
-References: <1422277227-1086-1-git-send-email-erezsh@mellanox.com>
-		 <CAJ3xEMjERaEP5d_ZT8RN5+w8Z_Hig4T7dhuq3o+1NOUuQgfJLw@mail.gmail.com>
-		 <1422301106.2854.41.camel@redhat.com>
-		 <CAJ3xEMg3vYGbGuT+Z-XQMv5YuPws33XHQP_Wcz8gvpBbCg3TSw@mail.gmail.com>
-	 <1422309605.2854.62.camel@redhat.com> <54C74D49.3080201@dev.mellanox.co.il>
- <1422378130.2854.119.camel@redhat.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH] IB/srp: Process REQ_PREEMPT requests correctly
+Date: Thu, 29 Jan 2015 14:02:00 +0100
+Message-ID: <54CA2F48.605@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1422378130.2854.119.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Roland Dreier <roland@purestorage.com>
+Cc: Max Gurtuvoy <maxg@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/27/2015 7:02 PM, Doug Ledford wrote:
-> [...]
-> I haven't heard an argument from you yet that I believe beats the points
-> I've made above.  So I believe a solution that does not revert back to
-> having two separate code paths to be maintained is preferable to your patch.
+Delay REQ_PREEMPT requests submitted against a blocked device
+until the device is unblocked by returning SCSI_MLQUEUE_HOST_BUSY
+to the SCSI mid-layer. This avoids that a rescan shortly after a
+cable pull sporadically triggers the following kernel oops:
 
-Doug,
+BUG: unable to handle kernel paging request at ffffc9001a6bc084
+IP: [<ffffffffa04e08f2>] mlx4_ib_post_send+0xd2/0xb30 [mlx4_ib]
+Process rescan-scsi-bus (pid: 9241, threadinfo ffff88053484a000, task ffff880534aae100)
+Call Trace:
+ [<ffffffffa0718135>] srp_post_send+0x65/0x70 [ib_srp]
+ [<ffffffffa071b9df>] srp_queuecommand+0x1cf/0x3e0 [ib_srp]
+ [<ffffffffa0001ff1>] scsi_dispatch_cmd+0x101/0x280 [scsi_mod]
+ [<ffffffffa0009ad1>] scsi_request_fn+0x411/0x4d0 [scsi_mod]
+ [<ffffffff81223b37>] __blk_run_queue+0x27/0x30
+ [<ffffffff8122a8d2>] blk_execute_rq_nowait+0x82/0x110
+ [<ffffffff8122a9c2>] blk_execute_rq+0x62/0xf0
+ [<ffffffffa000b0e8>] scsi_execute+0xe8/0x190 [scsi_mod]
+ [<ffffffffa000b2f3>] scsi_execute_req+0xa3/0x130 [scsi_mod]
+ [<ffffffffa000c1aa>] scsi_probe_lun+0x17a/0x450 [scsi_mod]
+ [<ffffffffa000ce86>] scsi_probe_and_add_lun+0x156/0x480 [scsi_mod]
+ [<ffffffffa000dc2f>] __scsi_scan_target+0xdf/0x1f0 [scsi_mod]
+ [<ffffffffa000dfa3>] scsi_scan_host_selected+0x183/0x1c0 [scsi_mod]
+ [<ffffffffa000edfb>] scsi_scan+0xdb/0xe0 [scsi_mod]
+ [<ffffffffa000ee13>] store_scan+0x13/0x20 [scsi_mod]
+ [<ffffffff811c8d9b>] sysfs_write_file+0xcb/0x160
+ [<ffffffff811589de>] vfs_write+0xce/0x140
+ [<ffffffff81158b53>] sys_write+0x53/0xa0
+ [<ffffffff81464592>] system_call_fastpath+0x16/0x1b
+ [<00007f611c9d9300>] 0x7f611c9d92ff
 
-It's not going to work this way.
+Reported-by: Max Gurtuvoy <maxg@mellanox.com>
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-We should 1st and most take a decision what gonna happen with the 
-3.19driver
-and only then restart/resume the multi way/arguments discussion, and we 
-have
-very little time for 3.20-rc1too, BTW.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 0747c05..77a7a2f 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2003,8 +2003,13 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	if (in_scsi_eh)
+ 		mutex_lock(&rport->mutex);
+ 
++	/*
++	 * The "blocked" state of SCSI devices is ignored by the SCSI core for
++	 * REQ_PREEMPT requests. Hence the explicit check below for the SCSI
++	 * device state.
++	 */
+ 	scmnd->result = srp_chkready(target->rport);
+-	if (unlikely(scmnd->result))
++	if (unlikely(scmnd->result != 0 || scsi_device_blocked(scmnd->device)))
+ 		goto err;
+ 
+ 	WARN_ON_ONCE(scmnd->request->tag < 0);
+-- 
+2.1.4
 
-So lets close the 3.19 saga, again, either revert your eight patches or 
-apply Erez's patch.
-
-This way or another for 3.20 we can do things right by whatever method 
-we agree on.
-
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
