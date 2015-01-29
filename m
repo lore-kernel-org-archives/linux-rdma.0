@@ -1,109 +1,69 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 3/4] IB/core: Make sure that the PSN does not
- overflow
-Date: Thu, 29 Jan 2015 10:54:37 -0700
-Message-ID: <20150129175437.GF11842@obsidianresearch.com>
-References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
- <1422522871-11216-4-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1422522871-11216-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 0/5] IB/core: extended query device caps cleanup for v3.19
+Date: Thu, 29 Jan 2015 18:59:57 +0100
+Message-ID: <cover.1422553023.git.ydroneaud@opteya.com>
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 29, 2015 at 11:14:30AM +0200, Or Gerlitz wrote:
-> From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> The rq/sq->psn is 24 bits as defined in the IB spec, therefore ULPs and User
-> space applications shouldn't use the 8 most significant bits in the 32 bits
-> variables to avoid overflow in modify_qp.
-> 
-> Fixed the PSN usage for kernel ULPs and masked out the 8 most significant bits
-> for User-space applications.
-> 
-> From now on, we check in ib_modify_qp_is_ok that the PSN doesn't overflow, and
-> we fail if so.
+Hi,
 
-So, I guess the actual problem here is this:
+Following discussions in thread "[PATCH v3 06/17] IB/core: Add support
+for extended query device caps" [1] and further comments on previous
+patch in "[PATCH 3/4] IB/uverbs: ex_query_device: check request's
+comp_mask" thread [2], I'm proposing an updated patchset to implement
+a slighly different behavior to handle the request parameters in
+ib_uverbs_ex_query_device() in order to restore the current behavior
+of ib_copy_to_udata().
 
-        get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
+I think we found an agreement on the scheme to be implemented in
+Haggai Eran's response [3]:
 
-?
+- input's comp_mask is currently not used, so it must be 0;
+- the response buffer size is checked so that the base answer
+  can be returned without being truncated;
+- the extended feature (odp) information are returned
+  if, and only if, there's enough space in the response buffer,
+  allowing older programs to get only the features they would
+  expect. Newer programs are expected to provide more space,
+  but as the response's comp_mask will describe only the available
+  fields, newer program cannot be surprized to not get information
+  when run on older kernel (if we want to support this use case).
 
-So what we need is
+I feel even more confident this behavior would allow a better
+maintainability. Additionally, it's still looking more like the
+behavior already implemented by other InfiniBand/RDMA kernel <->
+userspace interfaces.
 
-        get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
-+       id_priv->seq_num &= 0xffffff;
+I hope this would go in v3.19 before its release so that the extended
+QUERY_DEVICE uverbs won't hurt us being part of an official release:
+in it's current shape it won't be easy to support it.
 
->  		if (qp_attr->qp_state == IB_QPS_RTR)
-> -			qp_attr->rq_psn = id_priv->seq_num;
-> +			qp_attr->rq_psn = id_priv->seq_num & 0xffffff;
+Regards.
 
-All this duplicitive masking should be centralized at the seq_num
-assignment, not sprinkled
+Changes from v0 [4]
+- don't use input's comp_mask to conditionnaly build the response
+- ensure input's comp_mask is set 0
 
->  int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
-> -		       enum ib_qp_type type, enum ib_qp_attr_mask mask,
-> -		       enum rdma_link_layer ll)
-> +		       enum ib_qp_type type, struct ib_qp_attr *attr,
-> +		       enum ib_qp_attr_mask mask, enum rdma_link_layer ll)
->  {
->  	enum ib_qp_attr_mask req_param, opt_param;
->  
-> @@ -860,6 +860,12 @@ int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
->  	if (mask & ~(req_param | opt_param | IB_QP_STATE))
->  		return 0;
->  
-> +	if ((mask & IB_QP_SQ_PSN) && (attr->sq_psn & 0xff000000))
-> +		return 0;
-> +
-> +	if ((mask & IB_QP_RQ_PSN) && (attr->rq_psn & 0xff000000))
-> +		return 0;
-> +
+[1] http://mid.gmane.org/1418733236.2779.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[2] http://mid.gmane.org/063956366559d6919693aabb324bab83d676bc28.1421931555.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[3] http://mid.gmane.org/54C902E4.5010600-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+[4] http://mid.gmane.org/cover.1421931555.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
-And since rdmacm has had this longstanding bug of generating > 24 bit
-PSNs, this change seems really scary - very likely to break working
-systems.
+Yann Droneaud (5):
+  IB/uverbs: ex_query_device: answer must not depend on request's
+    comp_mask
+  IB/uverbs: ex_query_device: check request's comp_mask
+  IB/uverbs: ex_query_device: answer must depend on response buffer's
+    size
+  IB/uverbs: ex_query_device: no need to clear the whole structure
+  IB/core: ib_copy_to_udata(): don't silently truncate response
 
-I think we'd be better off keeping the current behavior of masking
-the PSN, not enforcing the limit.
+ drivers/infiniband/core/uverbs_cmd.c | 39 +++++++++++++++++++++++++-----------
+ include/rdma/ib_verbs.h              |  5 +----
+ 2 files changed, 28 insertions(+), 16 deletions(-)
 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> index 56959ad..bdf35b0 100644
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -294,7 +294,7 @@ static int ipoib_cm_modify_rx_qp(struct net_device *dev,
->  		ipoib_warn(priv, "failed to init QP attr for RTR: %d\n", ret);
->  		return ret;
->  	}
-> -	qp_attr.rq_psn = psn;
-> +	qp_attr.rq_psn = psn & 0xffffff;
->  	ret = ib_modify_qp(qp, &qp_attr, qp_attr_mask);
-
-Please don't just sed/grep stuff without review. It was trivial for me
-to find that this is unneeded:
-
-        psn = prandom_u32() & 0xffffff;
-        ret = ipoib_cm_modify_rx_qp(dev, cm_id, p->qp, psn);
-
-> @@ -433,7 +433,7 @@ static int ipoib_cm_send_rep(struct net_device *dev, struct ib_cm_id *cm_id,
->  	rep.rnr_retry_count = req->rnr_retry_count;
->  	rep.srq = ipoib_cm_has_srq(dev);
->  	rep.qp_num = qp->qp_num;
-> -	rep.starting_psn = psn;
-> +	rep.starting_psn = psn & 0xffffff;
-
-ditto:
-
-        psn = prandom_u32() & 0xffffff;
-[..]
-        ret = ipoib_cm_send_rep(dev, cm_id, p->qp, &event->param.req_rcvd, psn);
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.1.0
