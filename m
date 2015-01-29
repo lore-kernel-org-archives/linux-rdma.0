@@ -1,65 +1,51 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/3] IB/mlx4: Bug fixes in mlx4_ib_resize_cq
-Date: Thu, 29 Jan 2015 10:41:42 +0200
-Message-ID: <1422520903-22007-3-git-send-email-ogerlitz@mellanox.com>
-References: <1422520903-22007-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-next 1/4] IB/core: When marshaling ucma path from user-space, clear unused fields
+Date: Thu, 29 Jan 2015 11:14:28 +0200
+Message-ID: <1422522871-11216-2-git-send-email-ogerlitz@mellanox.com>
+References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1422520903-22007-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1422522871-11216-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-1. Before the entries alignment, we need to check that the entries doesn't
-exceed the device's max cqe.
+When marsheling a user path to the kernel struct ib_sa_path, need
+to zero smac, dmac and set the vlan id to the "no vlan" value.
 
-2. After the alignment, we need to make sure that the aligned number doesn't
-exceed the max cqes+1. The additional cqe is used to denote that the resizing
-operation has completed.
+This is to ensure that Ethernet attributes are not used with
+InfiniBand QPs.
 
-3. If the users asks to resize the CQ with entries less than the oustanding cqes
-we should fail instead of returning 0.
-
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: dd5f03beb4f7 ("IB/core: Ethernet L2 attributes in verbs/cm structures")
+Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/cq.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index a3b70f6..cb63ecd 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -367,8 +367,7 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
- 	int err;
+FYI Sean, an easy way to reproduce the bug (and test the fix..) is have
+ibacm running plus librdmacm instance which uses it (the default in
+latest releases) and use rstream with gids, e.g
+
+$ rstream -f gid -s fe80::f452:1403:1:da81
+
+ drivers/infiniband/core/ucma.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 56a4b7c..45d67e9 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1124,6 +1124,9 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
+ 	if (!optlen)
+ 		return -EINVAL;
  
- 	mutex_lock(&cq->resize_mutex);
--
--	if (entries < 1) {
-+	if (entries < 1 || entries > dev->dev->caps.max_cqes) {
- 		err = -EINVAL;
- 		goto out;
- 	}
-@@ -379,7 +378,7 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
- 		goto out;
- 	}
- 
--	if (entries > dev->dev->caps.max_cqes) {
-+	if (entries > dev->dev->caps.max_cqes + 1) {
- 		err = -EINVAL;
- 		goto out;
- 	}
-@@ -392,7 +391,7 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
- 		/* Can't be smaller than the number of outstanding CQEs */
- 		outst_cqe = mlx4_ib_get_outstanding_cqes(cq);
- 		if (entries < outst_cqe + 1) {
--			err = 0;
-+			err = -EINVAL;
- 			goto out;
- 		}
- 
++	memset(&sa_path, 0, sizeof(sa_path));
++	sa_path.vlan_id = 0xffff;
++
+ 	ib_sa_unpack_path(path_data->path_rec, &sa_path);
+ 	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
+ 	if (ret)
 -- 
 1.7.1
 
