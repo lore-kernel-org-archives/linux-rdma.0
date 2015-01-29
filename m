@@ -1,54 +1,61 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 0/4] IB core fixes 29-Jan-2015
-Date: Thu, 29 Jan 2015 11:14:27 +0200
-Message-ID: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-next 4/4] IB/core: Fix deadlock on uverbs modify_qp error flow
+Date: Thu, 29 Jan 2015 11:14:31 +0200
+Message-ID: <1422522871-11216-5-git-send-email-ogerlitz@mellanox.com>
+References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1422522871-11216-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sending V1 as the wrong instance was sent for patch #2 (Gerrit hardows)
+From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi Roland,
+The deadlock occurs on __uverbs_modify_qp, we take a lock (idr_read_qp)
+and in case of failure in ib_resolve_eth_l2_attrs we don't release
+it (put_qp_read). Fix that.
 
-This is a batch with IB core fixes, please apply for 3.20
+Issue: 355606
+Fixes: ed4c54e5b4ba ("IB/core: Resolve Ethernet L2 addresses when modifying QP")
+Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-The patch that deals with PSN touches the HW drivers b/c we added the 
-qp attributes provided by the ULP as a param to the ib_modify_qp_is_ok() 
-IB core helper.
-
-Also, there's a pending CMA patch we sent for 3.19 and was approved
-by Sean, please pick it too "RDMA/CMA: Mark IPv4 addresses correctly 
-when the listener is IPv6" https://patchwork.kernel.org/patch/5298971/
-
-Or.
-
-Ilya Nelkenbaum (1):
-  IB/core: When marshaling ucma path from user-space, clear unused fields
-
-Majd Dibbiny (2):
-  IB/core: Check mad_agent in ib_unregister_mad_agent before dereferencing it
-  IB/core: Make sure that the PSN does not overflow
-
-Moshe Lazer (1):
-  IB/core: Fix deadlock on uverbs modify_qp error flow
-
- drivers/infiniband/core/cma.c               |    6 +++---
- drivers/infiniband/core/mad.c               |    4 ++++
- drivers/infiniband/core/ucma.c              |    3 +++
- drivers/infiniband/core/uverbs_cmd.c        |   13 +++++++------
- drivers/infiniband/core/verbs.c             |   10 ++++++++--
- drivers/infiniband/hw/ehca/ehca_qp.c        |    2 +-
- drivers/infiniband/hw/ipath/ipath_qp.c      |    2 +-
- drivers/infiniband/hw/mlx4/qp.c             |    6 +++---
- drivers/infiniband/hw/mlx5/qp.c             |    4 ++--
- drivers/infiniband/hw/mthca/mthca_qp.c      |    4 ++--
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    7 ++++---
- drivers/infiniband/hw/qib/qib_qp.c          |    2 +-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c     |    4 ++--
- include/rdma/ib_verbs.h                     |    7 ++++---
- 14 files changed, 45 insertions(+), 29 deletions(-)
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index ecb6430..a602ce9 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2097,20 +2097,21 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
+ 	if (qp->real_qp == qp) {
+ 		ret = ib_resolve_eth_l2_attrs(qp, attr, &cmd.attr_mask);
+ 		if (ret)
+-			goto out;
++			goto release_qp;
+ 		ret = qp->device->modify_qp(qp, attr,
+ 			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
+ 	} else {
+ 		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, cmd.attr_mask));
+ 	}
+ 
+-	put_qp_read(qp);
+-
+ 	if (ret)
+-		goto out;
++		goto release_qp;
+ 
+ 	ret = in_len;
+ 
++release_qp:
++	put_qp_read(qp);
++
+ out:
+ 	kfree(attr);
+ 
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
