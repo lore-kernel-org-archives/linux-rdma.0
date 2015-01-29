@@ -1,54 +1,39 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/4] IB/core: When marshaling ucma path from user-space, clear unused fields
-Date: Thu, 29 Jan 2015 11:00:30 +0200
-Message-ID: <1422522033-3024-2-git-send-email-ogerlitz@mellanox.com>
-References: <1422522033-3024-1-git-send-email-ogerlitz@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH ] mlx4_core: Enhance device capabilities flags debug
+ printouts
+Date: Thu, 29 Jan 2015 14:17:09 +0200
+Message-ID: <20150129121708.GB9956@yuval-lab>
+References: <1417996112-19060-1-git-send-email-yuval.shaia@oracle.com>
+ <54881BFF.2030008@mellanox.com>
+ <20141215092153.GF2806@yuval-lab>
+ <CAJ3xEMght7jLakWzDOHvqTT_gNSqJJHAjLu_F6gD0j+=Narqmg@mail.gmail.com>
+ <20141215122502.GA8027@yuval-lab>
+ <CAJ3xEMhespfjA1Epf6qS0wFf_a1wxSODg4L7tpLzAaNpnXiO8g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1422522033-3024-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMhespfjA1Epf6qS0wFf_a1wxSODg4L7tpLzAaNpnXiO8g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-When marsheling a user path to the kernel struct ib_sa_path, need
-to zero smac, dmac and set the vlan id to the "no vlan" value.
-
-This is to ensure that Ethernet attributes are not used with
-InfiniBand QPs.
-
-Fixes: dd5f03beb4f7 ("IB/core: Ethernet L2 attributes in verbs/cm structures")
-Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-
-FYI Sean, an easy way to reproduce the bug (and test the fix..) is have 
-ibacm running plus librdmacm instance which uses it (the default in 
-latest releases) and use rstream with gids, e.g 
-
-$ rstream -s fe80::f452:1403:1:da81 -f gid
-
- drivers/infiniband/core/ucma.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 56a4b7c..45d67e9 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1124,6 +1124,9 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
- 	if (!optlen)
- 		return -EINVAL;
- 
-+	memset(&sa_path, 0, sizeof(sa_path));
-+	sa_path.vlan_id = 0xffff;
-+
- 	ib_sa_unpack_path(path_data->path_rec, &sa_path);
- 	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
- 	if (ret)
--- 
-1.7.1
-
+On Mon, Dec 15, 2014 at 06:14:31PM +0200, Or Gerlitz wrote:
+> >>
+> >> NO, as Matan wrote you "except for Or's comments" - we do want to dump
+> > Sure, was not ignoring this one, it was just a warn :)
+> >> what is supported by both the device (firmware) and the driver, and
+> >> not more. A subset of your patch can be used, let me know if you want
+> >> me to prepare it.
+> > Yes please do as i have no idea from where this info can be retrieved.
+> 
+> 
+> Oh, that's easy, just follow on the MLX4_DEV_CAP_FLAG_YYY enum values
+> and look for holes in the string array.
+> 
+> Or.
+Sent new patch for review
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
