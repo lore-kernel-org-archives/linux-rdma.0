@@ -1,82 +1,119 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Process REQ_PREEMPT requests correctly
-Date: Thu, 29 Jan 2015 15:44:32 +0200
-Message-ID: <54CA3940.7040205@dev.mellanox.co.il>
-References: <54CA2F48.605@sandisk.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V3 FIX for-3.19] IB/ipoib: Fix sendonly traffic and
+ multicast traffic
+Date: Thu, 29 Jan 2015 10:34:37 -0500
+Message-ID: <1422545677.2854.260.camel@redhat.com>
+References: <1422277227-1086-1-git-send-email-erezsh@mellanox.com>
+	 <CAJ3xEMjERaEP5d_ZT8RN5+w8Z_Hig4T7dhuq3o+1NOUuQgfJLw@mail.gmail.com>
+	 <1422301106.2854.41.camel@redhat.com>
+	 <CAJ3xEMg3vYGbGuT+Z-XQMv5YuPws33XHQP_Wcz8gvpBbCg3TSw@mail.gmail.com>
+	 <1422309605.2854.62.camel@redhat.com> <54C74D49.3080201@dev.mellanox.co.il>
+	 <1422378130.2854.119.camel@redhat.com> <54CA2CE0.30107@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-Mdv7GZ5xvJoIwsOv9yjn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54CA2F48.605-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <54CA2CE0.30107-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eyal Perry <eyalpe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/29/2015 3:02 PM, Bart Van Assche wrote:
-> Delay REQ_PREEMPT requests submitted against a blocked device
-> until the device is unblocked by returning SCSI_MLQUEUE_HOST_BUSY
-> to the SCSI mid-layer. This avoids that a rescan shortly after a
-> cable pull sporadically triggers the following kernel oops:
->
-> BUG: unable to handle kernel paging request at ffffc9001a6bc084
-> IP: [<ffffffffa04e08f2>] mlx4_ib_post_send+0xd2/0xb30 [mlx4_ib]
-> Process rescan-scsi-bus (pid: 9241, threadinfo ffff88053484a000, task ffff880534aae100)
-> Call Trace:
->   [<ffffffffa0718135>] srp_post_send+0x65/0x70 [ib_srp]
->   [<ffffffffa071b9df>] srp_queuecommand+0x1cf/0x3e0 [ib_srp]
->   [<ffffffffa0001ff1>] scsi_dispatch_cmd+0x101/0x280 [scsi_mod]
->   [<ffffffffa0009ad1>] scsi_request_fn+0x411/0x4d0 [scsi_mod]
->   [<ffffffff81223b37>] __blk_run_queue+0x27/0x30
->   [<ffffffff8122a8d2>] blk_execute_rq_nowait+0x82/0x110
->   [<ffffffff8122a9c2>] blk_execute_rq+0x62/0xf0
->   [<ffffffffa000b0e8>] scsi_execute+0xe8/0x190 [scsi_mod]
->   [<ffffffffa000b2f3>] scsi_execute_req+0xa3/0x130 [scsi_mod]
->   [<ffffffffa000c1aa>] scsi_probe_lun+0x17a/0x450 [scsi_mod]
->   [<ffffffffa000ce86>] scsi_probe_and_add_lun+0x156/0x480 [scsi_mod]
->   [<ffffffffa000dc2f>] __scsi_scan_target+0xdf/0x1f0 [scsi_mod]
->   [<ffffffffa000dfa3>] scsi_scan_host_selected+0x183/0x1c0 [scsi_mod]
->   [<ffffffffa000edfb>] scsi_scan+0xdb/0xe0 [scsi_mod]
->   [<ffffffffa000ee13>] store_scan+0x13/0x20 [scsi_mod]
->   [<ffffffff811c8d9b>] sysfs_write_file+0xcb/0x160
->   [<ffffffff811589de>] vfs_write+0xce/0x140
->   [<ffffffff81158b53>] sys_write+0x53/0xa0
->   [<ffffffff81464592>] system_call_fastpath+0x16/0x1b
->   [<00007f611c9d9300>] 0x7f611c9d92ff
->
-> Reported-by: Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> ---
->   drivers/infiniband/ulp/srp/ib_srp.c | 7 ++++++-
->   1 file changed, 6 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 0747c05..77a7a2f 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -2003,8 +2003,13 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
->   	if (in_scsi_eh)
->   		mutex_lock(&rport->mutex);
->
-> +	/*
-> +	 * The "blocked" state of SCSI devices is ignored by the SCSI core for
-> +	 * REQ_PREEMPT requests. Hence the explicit check below for the SCSI
-> +	 * device state.
-> +	 */
->   	scmnd->result = srp_chkready(target->rport);
-> -	if (unlikely(scmnd->result))
-> +	if (unlikely(scmnd->result != 0 || scsi_device_blocked(scmnd->device)))
->   		goto err;
->
->   	WARN_ON_ONCE(scmnd->request->tag < 0);
->
+
+--=-Mdv7GZ5xvJoIwsOv9yjn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 2015-01-29 at 14:51 +0200, Or Gerlitz wrote:
+> On 1/27/2015 7:02 PM, Doug Ledford wrote:
+> > [...]
+> > I haven't heard an argument from you yet that I believe beats the point=
+s
+> > I've made above.  So I believe a solution that does not revert back to
+> > having two separate code paths to be maintained is preferable to your p=
+atch.
+>=20
+> Doug,
+>=20
+> It's not going to work this way.
+>=20
+> We should 1st and most take a decision what gonna happen with the=20
+> 3.19driver
+
+Yes.  And that's what my above comment was about, the 3.19 driver.  My
+opinion that I stated then, and I'll reiterate now, is that we should
+revert the original 8 or pull in my full patchset.
+
+> and only then restart/resume the multi way/arguments discussion, and we=
+=20
+> have
+> very little time for 3.20-rc1too, BTW.
+>=20
+> So lets close the 3.19 saga, again, either revert your eight patches
+
+I would support that option.
+
+>  or=20
+> apply Erez's patch.
+
+I disagree with this option.  You've chosen one regression to highlight,
+but ignored other regressions, and Erez's patch by itself does not
+address those other regressions.  You can't go picking and choosing
+which regressions to highlight and ignore if your rationale for
+justification is that we don't allow regressions in releases.
+Certainly, failure to unload the module or reboot due to a hand in
+ib_sa_unregister_client would be considered a regression too, yes?  But
+that isn't addressed by Erez's patchset.
+
+I'm tired of arguing about this Or.  You will not change my mind.
+Erez's patch is a bandaid that only solves one particular issue while
+ignoring others, it doesn't have half the testing my patchset has, it
+doesn't address half the issues mine does, and with it in place there
+are still glaring problems left for the end user to suffer through.  As
+much as it pains me to admit it, my original patchset had issues that
+were pretty severe, and a bandaid *does not do the job*.  It takes some
+honest to god stitching to fix that up.  If my much more complete fixup
+is "too much, too late", so be it.  We revert the original 8 patches.
+But a bandaid on a katana slice doesn't cut it.
+
+> This way or another for 3.20 we can do things right by whatever method=
+=20
+> we agree on.
+
+Agreed.
 
 
-Yep...
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+
+--=-Mdv7GZ5xvJoIwsOv9yjn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJUylMNAAoJELgmozMOVy/dfhcQALiGAKlJpwEYhfVnPocWnwwq
+xFwAc6MOMmLMUC0Kl+jErW1ImlUDY4JcsZy8WzH7XLIWtQwpocZaMl6/ZbOW+dKG
+/0ivSycjDfv0wALJCalyOJ/La7iKkwCv1N2XOwboOayQTbhEa0NP9TrqWF6lVpnx
+NfozZn1PYSbL64njvHWd49Tn9JAXmS86rw/IJlaGavkj7tGnoDQMfM1P8WkQRjbL
+9c4glelFhdLJycJt+flDCjnqh/fiXOOdvSFY63EiUY9OJeYx3L7axXm7M5b84Evq
+MlUoy+/G8uLk+all2g2GdTa6p6UOs8Z8Z7IQb2t2gqwibU91wRRiFtUKTuSkUcuw
+/d/dEj2MLOEc8ZHOF52ZMr2b7u8TvlfWh/QlX+IZOSKRtfWJHbD0/7qr+KZfUMDg
+1yYdJnRqPXuGNO7ntS2U6cj9AvOZy7a9c1jIBegHTxW5GeHcTh5jwPrqrvz65gzl
+YyWAwcA+2qX0qVLKDNK5yI9UgDCWMNOy49D+YlQQ9ndMwW2luIsdH9IzC6AsIQEC
+e5dn+3jbKNIdFSHJltHt4grp1wxqp0iCrJgKEwCQmne4xBkWixWMj/hRJciWYHtO
+H0i2OY+QAgsZwn806JpxTV2leCBDV9lykiw3gfwasUnMaUQhddPiI8r+9OAe+blt
+0RDKFLxVg7SsaMjKBu0A
+=8Tku
+-----END PGP SIGNATURE-----
+
+--=-Mdv7GZ5xvJoIwsOv9yjn--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
