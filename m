@@ -1,107 +1,91 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH] IB/srp: Process REQ_PREEMPT requests correctly
-Date: Fri, 30 Jan 2015 15:34:24 +0100
-Message-ID: <54CB9670.6080108@sandisk.com>
-References: <54CA2F48.605@sandisk.com> <54CA8C4C.1080508@cs.wisc.edu>
- <54CAE71C.6020002@cs.wisc.edu>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 00/20] NFS/RDMA client for 3.20
+Date: Fri, 30 Jan 2015 12:21:16 -0500
+Message-ID: <54CBBD8C.7090400@Netapp.com>
+References: <20150121155303.17297.47423.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <54CAE71C.6020002@cs.wisc.edu>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Roland Dreier <roland@purestorage.com>, Max Gurtuvoy <maxg@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150121155303.17297.47423.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/30/15 03:06, Mike Christie wrote:
-> I think I figured this out. I think we want to change the
-> scsi_prep_state_check check instead of each driver/class.
+Hi Chuck,
+
+I've applied these patches and the GPF flags patch for 3.20.  Let me know if you need anything else!
+
+Anna
+On 01/21/2015 11:01 AM, Chuck Lever wrote:
+> The following series of patches for the Linux NFS client breaks up
+> the per-transport buffer pool data structures. The goal is to allow
+> transport operation to scale better as the size of SEND/RECV buffers
+> (the inline thresholds), the maximum NFS r/wsize, and the number of
+> RDMA credits (concurrent RPC requests) is increased.
 > 
-> It looks like for the SDEV_QUIESCE state we want to allow REQ_PREEMPT
-> commands. James would know best, but I think SPI needs that ability.
+> The primary change is that the header send buffers have been split
+> from struct rpcrdma_req. Specific benefits are outlined in the patch
+> descriptions.
 > 
-> For SDEV_BLOCK/SDEV_CREATED_BLOCK, it looks like drivers/classes that
-> use that state do not want any commands to be queued at that time,
-> because the transport is normally down.
+> More pre-requisites are required. Changes to raise the maximum
+> r/wsize and other limits are left for a future merge window.
+> 
+> See the topic branch "nfs-rdma-for-3.20" at:
+> 
+>  git://git.linux-nfs.org/projects/cel/cel-2.6.git
+> 
+> Anna, I think these are ready for you to merge.
+> 
+> Changes since v2:
+> - Rebased on v3.19-rc5
+> - Several patch descriptions clarified, based on review comments
+> - New size of client receive buffers was needlessly large
+> 
+> Changes since v1:
+> - Rebased on v3.19-rc4
+> - One short description fixed
+> - linux-rdma included this time (sorry for the noise)
+> 
+> ---
+> 
+> Chuck Lever (20):
+>       xprtrdma: human-readable completion status
+>       xprtrdma: Modernize htonl and ntohl
+>       xprtrdma: Display XIDs in host byte order
+>       xprtrdma: Clean up hdrlen
+>       xprtrdma: Rename "xprt" and "rdma_connect" fields in struct rpcrdma_xprt
+>       xprtrdma: Remove rpcrdma_ep::rep_ia
+>       xprtrdma: Remove rl_mr field, and the mr_chunk union
+>       xprtrdma: Move credit update to RPC reply handler
+>       xprtrdma: Remove rpcrdma_ep::rep_func and ::rep_xprt
+>       xprtrdma: Free the pd if ib_query_qp() fails
+>       xprtrdma: Take struct ib_device_attr off the stack
+>       xprtrdma: Take struct ib_qp_attr and ib_qp_init_attr off the stack
+>       xprtrdma: Simplify synopsis of rpcrdma_buffer_create()
+>       xprtrdma: Refactor rpcrdma_buffer_create() and rpcrdma_buffer_destroy()
+>       xprtrdma: Add struct rpcrdma_regbuf and helpers
+>       xprtrdma: Allocate RPC send buffer separately from struct rpcrdma_req
+>       xprtrdma: Allocate RPC/RDMA send buffer separately from struct rpcrdma_req
+>       xprtrdma: Allocate RPC/RDMA receive buffer separately from struct rpcrdma_rep
+>       xprtrdma: Allocate zero pad separately from rpcrdma_buffer
+>       xprtrdma: Clean up after adding regbuf management
+> 
+> 
+>  include/linux/sunrpc/rpc_rdma.h |   14 +
+>  include/linux/sunrpc/svc_rdma.h |    2 
+>  net/sunrpc/xprtrdma/rpc_rdma.c  |  108 ++++++----
+>  net/sunrpc/xprtrdma/transport.c |  179 +++++++----------
+>  net/sunrpc/xprtrdma/verbs.c     |  411 ++++++++++++++++++++++++---------------
+>  net/sunrpc/xprtrdma/xprt_rdma.h |  111 +++++++----
+>  6 files changed, 478 insertions(+), 347 deletions(-)
+> 
+> --
+> Chuck Lever
+> 
 
-Hello Mike,
-
-Is something like the patch below what you had in mind ?
-
-Bart.
-
-[PATCH] Defer processing of REQ_PREEMPT requests for blocked devices
-
-SCSI transport drivers and SCSI LLDs block a SCSI device if the
-transport layer is not operational. This means that in this state
-no requests should be processed, even if the REQ_PREEMPT flag has
-been set. This patch avoids that a rescan shortly after a cable
-pull sporadically triggers the following kernel oops:
-
-BUG: unable to handle kernel paging request at ffffc9001a6bc084
-IP: [<ffffffffa04e08f2>] mlx4_ib_post_send+0xd2/0xb30 [mlx4_ib]
-Process rescan-scsi-bus (pid: 9241, threadinfo ffff88053484a000, task ffff880534aae100)
-Call Trace:
- [<ffffffffa0718135>] srp_post_send+0x65/0x70 [ib_srp]
- [<ffffffffa071b9df>] srp_queuecommand+0x1cf/0x3e0 [ib_srp]
- [<ffffffffa0001ff1>] scsi_dispatch_cmd+0x101/0x280 [scsi_mod]
- [<ffffffffa0009ad1>] scsi_request_fn+0x411/0x4d0 [scsi_mod]
- [<ffffffff81223b37>] __blk_run_queue+0x27/0x30
- [<ffffffff8122a8d2>] blk_execute_rq_nowait+0x82/0x110
- [<ffffffff8122a9c2>] blk_execute_rq+0x62/0xf0
- [<ffffffffa000b0e8>] scsi_execute+0xe8/0x190 [scsi_mod]
- [<ffffffffa000b2f3>] scsi_execute_req+0xa3/0x130 [scsi_mod]
- [<ffffffffa000c1aa>] scsi_probe_lun+0x17a/0x450 [scsi_mod]
- [<ffffffffa000ce86>] scsi_probe_and_add_lun+0x156/0x480 [scsi_mod]
- [<ffffffffa000dc2f>] __scsi_scan_target+0xdf/0x1f0 [scsi_mod]
- [<ffffffffa000dfa3>] scsi_scan_host_selected+0x183/0x1c0 [scsi_mod]
- [<ffffffffa000edfb>] scsi_scan+0xdb/0xe0 [scsi_mod]
- [<ffffffffa000ee13>] store_scan+0x13/0x20 [scsi_mod]
- [<ffffffff811c8d9b>] sysfs_write_file+0xcb/0x160
- [<ffffffff811589de>] vfs_write+0xce/0x140
- [<ffffffff81158b53>] sys_write+0x53/0xa0
- [<ffffffff81464592>] system_call_fastpath+0x16/0x1b
- [<00007f611c9d9300>] 0x7f611c9d92ff
-
----
- drivers/scsi/scsi_lib.c   | 4 +++-
- include/linux/blk_types.h | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-index 17bb541..7129701 100644
---- a/drivers/scsi/scsi_lib.c
-+++ b/drivers/scsi/scsi_lib.c
-@@ -1311,9 +1311,11 @@ scsi_prep_state_check(struct scsi_device *sdev, struct request *req)
- 				    "rejecting I/O to dead device\n");
- 			ret = BLKPREP_KILL;
- 			break;
--		case SDEV_QUIESCE:
- 		case SDEV_BLOCK:
- 		case SDEV_CREATED_BLOCK:
-+			ret = BLKPREP_DEFER;
-+			break;
-+		case SDEV_QUIESCE:
- 			/*
- 			 * If the devices is blocked we defer normal commands.
- 			 */
-diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
-index c294e3e..a1b25e3 100644
---- a/include/linux/blk_types.h
-+++ b/include/linux/blk_types.h
-@@ -181,7 +181,9 @@ enum rq_flag_bits {
- 	__REQ_ELVPRIV,		/* elevator private data attached */
- 	__REQ_FAILED,		/* set if the request failed */
- 	__REQ_QUIET,		/* don't worry about errors */
--	__REQ_PREEMPT,		/* set for "ide_preempt" requests */
-+	__REQ_PREEMPT,		/* set for "ide_preempt" requests and also
-+				   for requests for which the SCSI "quiesce"
-+				   state must be ignored. */
- 	__REQ_ALLOCED,		/* request came from our alloc pool */
- 	__REQ_COPY_USER,	/* contains copies of user pages */
- 	__REQ_FLUSH_SEQ,	/* request for flush sequence */
--- 
-2.1.4
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
