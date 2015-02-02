@@ -1,69 +1,89 @@
-From: Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 1/2] infiniband: Help gcc generate better code for
- ocrdma_srq_toggle_bit
-Date: Mon, 2 Feb 2015 12:58:44 +0000
-Message-ID: <b0df18bc-e011-4d22-8f12-10dd1363902d@CMEXHTCAS2.ad.emulex.com>
-References: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
-	 <87twz7ho25.fsf@rasmusvillemoes.dk> <1422702466.3030.4.camel@opteya.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Temporarily disable ex_query_device uverb
+Date: Mon, 02 Feb 2015 14:10:26 +0100
+Message-ID: <1422882626.3030.56.camel@opteya.com>
+References: <1422797730-14571-1-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1422702466.3030.4.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1422797730-14571-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Mitesh Ahuja <Mitesh.Ahuja-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmsgeW91IFlhbm4gRHJvbmVhdWQgZm9yIGZvcndhcmRpbmcgdGhpcyBtYWlsLg0KDQpXZSB3
-aWxsIGFkZCAgYW4gZW50cnkgZm9yIG9jcmRtYSBkcml2ZXIgaW4gTUFJTlRBSU5FUlMgZmlsZS4N
-Cg0KVGhhbmtzLA0KU2VsdmluIFhhdmllcg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+IEZyb206IFlhbm4gRHJvbmVhdWQgW21haWx0bzp5ZHJvbmVhdWRAb3B0ZXlhLmNvbV0NCj4g
-U2VudDogU2F0dXJkYXksIEphbnVhcnkgMzEsIDIwMTUgNDozOCBQTQ0KPiBUbzogUmFzbXVzIFZp
-bGxlbW9lcw0KPiBDYzogUm9sYW5kIERyZWllcjsgU2VhbiBIZWZ0eTsgSGFsIFJvc2Vuc3RvY2s7
-IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOw0KPiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
-b3JnOyBEZXZlc2ggU2hhcm1hOyBTZWx2aW4gWGF2aWVyOyBNaXRlc2ggQWh1amENCj4gU3ViamVj
-dDogUmU6IFtQQVRDSCAxLzJdIGluZmluaWJhbmQ6IEhlbHAgZ2NjIGdlbmVyYXRlIGJldHRlciBj
-b2RlIGZvcg0KPiBvY3JkbWFfc3JxX3RvZ2dsZV9iaXQNCj4gDQo+IEhpLA0KPiANCj4gTGUgc2Ft
-ZWRpIDMxIGphbnZpZXIgMjAxNSDDoCAwMDowMCArMDEwMCwgUmFzbXVzIFZpbGxlbW9lcyBhIMOp
-Y3JpdCA6DQo+ID4gcGluZw0KPiA+DQo+IA0KPiBBcyB5b3UncmUgZml4aW5nIG9jcmRtYSBkcml2
-ZXIsIEkgdGhpbmsgeW91IG1pZ2h0IHdhbnQgdG8gZmluZCBwZW9wbGUNCj4gQGVtdWxleC5jb20g
-dG8gcmV2aWV3IHlvdXIgcGF0Y2hlcy4NCj4gDQo+IEJUVywgdGhlcmUncyBubyBNQUlOVEFJTkVS
-UyBlbnRyeSBmb3Igb2NyZG1hIGRyaXZlciAuLi4gd2hpY2ggaXMgYSBwaXR5Lg0KPiANCj4gPiBP
-biBGcmksIEphbiAxNiAyMDE1LCBSYXNtdXMgVmlsbGVtb2VzIDxsaW51eEByYXNtdXN2aWxsZW1v
-ZXMuZGs+IHdyb3RlOg0KPiA+DQo+ID4gPiBnY2MgZW1pdHMgYSBzdXJwcmlzaW5nIGFtb3VudCBv
-ZiBjb2RlIGluIG9yZGVyIHRvIGZsaXAgYSBiaXQuIE9uZQ0KPiA+ID4gd291bGQgdGhpbmsgdGhh
-dCBhIHNpbmdsZSBpbnN0cnVjdGlvbiBpcyBlbm91Z2guDQo+ID4gPg0KPiA+ID4gJCBzY3JpcHRz
-L2Jsb2F0LW8tbWV0ZXIgL3RtcC9vY3JkbWFfdmVyYnMubw0KPiA+ID4gZHJpdmVycy9pbmZpbmli
-YW5kL2h3L29jcmRtYS9vY3JkbWFfdmVyYnMubw0KPiA+ID4gYWRkL3JlbW92ZTogMC8wIGdyb3cv
-c2hyaW5rOiAwLzMgdXAvZG93bjogMC8tMTQyICgtMTQyKQ0KPiA+ID4gZnVuY3Rpb24gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb2xkICAgICBuZXcgICBkZWx0YQ0KPiA+ID4g
-b2NyZG1hX3Bvc3Rfc3JxX3JlY3YgICAgICAgICAgICAgICAgICAgICAgICAgNDk4ICAgICA0NjAg
-ICAgIC0zOA0KPiA+ID4gb2NyZG1hX3BvbGxfY3EgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAyMDEwICAgIDE5NjIgICAgIC00OA0KPiA+ID4gb2NyZG1hX2Rpc2NhcmRfY3FlcyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgNDk1ICAgICA0MzkgICAgIC01Ng0KPiA+ID4NCj4gPiA+IEFsbCB0
-aHJlZSBjYWxscyBvZiBvY3JkbWFfc3JxX3RvZ2dsZV9iaXQgaGFwcGVuIHdpdGhpbiBzcGlubG9j
-a3MsIHNvDQo+ID4gPiBzYXZpbmcgYSBmZXcgdXNlbGVzcyBpbnN0cnVjdGlvbnMgbWlnaHQgYmUg
-d29ydGh3aGlsZS4NCj4gPiA+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBSYXNtdXMgVmlsbGVtb2Vz
-IDxsaW51eEByYXNtdXN2aWxsZW1vZXMuZGs+DQo+ID4gPiAtLS0NCj4gPiA+ICBkcml2ZXJzL2lu
-ZmluaWJhbmQvaHcvb2NyZG1hL29jcmRtYV92ZXJicy5jIHwgNSArLS0tLQ0KPiA+ID4gIDEgZmls
-ZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgNCBkZWxldGlvbnMoLSkNCj4gPiA+DQo+ID4gPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L29jcmRtYS9vY3JkbWFfdmVyYnMuYw0K
-PiA+ID4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvb2NyZG1hL29jcmRtYV92ZXJicy5jDQo+ID4g
-PiBpbmRleCBmYjhkOGM0ZGZiYjkuLmVmZjExZTZjNjE4MyAxMDA2NDQNCj4gPiA+IC0tLSBhL2Ry
-aXZlcnMvaW5maW5pYmFuZC9ody9vY3JkbWEvb2NyZG1hX3ZlcmJzLmMNCj4gPiA+ICsrKyBiL2Ry
-aXZlcnMvaW5maW5pYmFuZC9ody9vY3JkbWEvb2NyZG1hX3ZlcmJzLmMNCj4gPiA+IEBAIC0xNDg0
-LDEwICsxNDg0LDcgQEAgc3RhdGljIHZvaWQgb2NyZG1hX3NycV90b2dnbGVfYml0KHN0cnVjdA0K
-PiBvY3JkbWFfc3JxICpzcnEsIGludCBpZHgpDQo+ID4gPiAgCWludCBpID0gaWR4IC8gMzI7DQo+
-ID4gPiAgCXVuc2lnbmVkIGludCBtYXNrID0gKDEgPDwgKGlkeCAlIDMyKSk7DQo+ID4gPg0KPiA+
-ID4gLQlpZiAoc3JxLT5pZHhfYml0X2ZpZWxkc1tpXSAmIG1hc2spDQo+ID4gPiAtCQlzcnEtPmlk
-eF9iaXRfZmllbGRzW2ldICY9IH5tYXNrOw0KPiA+ID4gLQllbHNlDQo+ID4gPiAtCQlzcnEtPmlk
-eF9iaXRfZmllbGRzW2ldIHw9IG1hc2s7DQo+ID4gPiArCXNycS0+aWR4X2JpdF9maWVsZHNbaV0g
-Xj0gbWFzazsNCj4gPiA+ICB9DQo+ID4gPg0KPiA+ID4gIHN0YXRpYyBpbnQgb2NyZG1hX2h3cV9m
-cmVlX2NudChzdHJ1Y3Qgb2NyZG1hX3FwX2h3cV9pbmZvICpxKQ0KPiA+IC0tDQo+IA0KPiBSZWdh
-cmRzLg0KPiANCj4gLS0NCj4gWWFubiBEcm9uZWF1ZA0KPiBPUFRFWUENCj4gDQo+IA0KDQo=
+Le dimanche 01 f=C3=A9vrier 2015 =C3=A0 15:35 +0200, Haggai Eran a =C3=A9=
+crit :
+> Commit 5a77abf9a97a ("IB/core: Add support for extended query device =
+caps")
+> added a new extended verb to query the capabilities of RDMA devices, =
+but the
+> semantics of this verb are still under debate [1].
+>=20
+> Block access to this verb from user-space until the new semantics are=
+ in
+> place.
+>=20
+> Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> [1] [PATCH v1 0/5] IB/core: extended query device caps cleanup for v3=
+=2E19
+>     http://www.spinics.net/lists/linux-rdma/msg22904.html
+>=20
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+
+> ---
+>=20
+> Hi Roland,
+>=20
+> As I wrote in a separate mail, I hope you can accept Yann's patches t=
+o modify
+> the new query device verb [1] in time for kernel 3.19.=20
+>=20
+> If you decide to revert the extended query device verb, here is a min=
+imal patch
+> to do block this verb temporarily, leaving the rest of the ODP infras=
+tructure
+> in-place.
+>=20
+> Regards,
+> Haggai
+>=20
+>  drivers/infiniband/core/uverbs_main.c | 1 -
+>  1 file changed, 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniba=
+nd/core/uverbs_main.c
+> index e6c23b9eab33..5db1a8cc388d 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -123,7 +123,6 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uve=
+rbs_file *file,
+>  				    struct ib_udata *uhw) =3D {
+>  	[IB_USER_VERBS_EX_CMD_CREATE_FLOW]	=3D ib_uverbs_ex_create_flow,
+>  	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow,
+> -	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	=3D ib_uverbs_ex_query_device
+>  };
+> =20
+>  static void ib_uverbs_add_one(struct ib_device *device);
+
+That's the smallest (and smartest) patch to be applied instead of
+reverting.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
