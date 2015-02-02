@@ -1,78 +1,68 @@
 From: Selvin Xavier <Selvin.Xavier-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 Subject: RE: [PATCH 1/2] infiniband: Help gcc generate better code for
  ocrdma_srq_toggle_bit
-Date: Mon, 2 Feb 2015 12:04:28 +0000
-Message-ID: <36AE2E863FF33A4F9FBBE296E34DBC8F5A09725E@CMEXMB1.ad.emulex.com>
+Date: Mon, 2 Feb 2015 12:58:44 +0000
+Message-ID: <b0df18bc-e011-4d22-8f12-10dd1363902d@CMEXHTCAS2.ad.emulex.com>
 References: <1421419196-4659-1-git-send-email-linux@rasmusvillemoes.dk>
+	 <87twz7ho25.fsf@rasmusvillemoes.dk> <1422702466.3030.4.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1421419196-4659-1-git-send-email-linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+In-Reply-To: <1422702466.3030.4.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Mitesh Ahuja <Mitesh.Ahuja-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-
-Thanks!
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Rasmus Villemoes
-> Sent: Friday, January 16, 2015 8:10 PM
-> To: Roland Dreier; Sean Hefty; Hal Rosenstock
-> Cc: Rasmus Villemoes; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH 1/2] infiniband: Help gcc generate better code for
-> ocrdma_srq_toggle_bit
-> 
-> gcc emits a surprising amount of code in order to flip a bit. One would think
-> that a single instruction is enough.
-> 
-> $ scripts/bloat-o-meter /tmp/ocrdma_verbs.o
-> drivers/infiniband/hw/ocrdma/ocrdma_verbs.o
-> add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-142 (-142)
-> function                                     old     new   delta
-> ocrdma_post_srq_recv                         498     460     -38
-> ocrdma_poll_cq                              2010    1962     -48
-> ocrdma_discard_cqes                          495     439     -56
-> 
-> All three calls of ocrdma_srq_toggle_bit happen within spinlocks, so saving a
-> few useless instructions might be worthwhile.
-> 
-> Signed-off-by: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> index fb8d8c4dfbb9..eff11e6c6183 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -1484,10 +1484,7 @@ static void ocrdma_srq_toggle_bit(struct
-> ocrdma_srq *srq, int idx)
->  	int i = idx / 32;
->  	unsigned int mask = (1 << (idx % 32));
-> 
-> -	if (srq->idx_bit_fields[i] & mask)
-> -		srq->idx_bit_fields[i] &= ~mask;
-> -	else
-> -		srq->idx_bit_fields[i] |= mask;
-> +	srq->idx_bit_fields[i] ^= mask;
->  }
-> 
->  static int ocrdma_hwq_free_cnt(struct ocrdma_qp_hwq_info *q)
-> --
-> 2.1.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+VGhhbmsgeW91IFlhbm4gRHJvbmVhdWQgZm9yIGZvcndhcmRpbmcgdGhpcyBtYWlsLg0KDQpXZSB3
+aWxsIGFkZCAgYW4gZW50cnkgZm9yIG9jcmRtYSBkcml2ZXIgaW4gTUFJTlRBSU5FUlMgZmlsZS4N
+Cg0KVGhhbmtzLA0KU2VsdmluIFhhdmllcg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
+DQo+IEZyb206IFlhbm4gRHJvbmVhdWQgW21haWx0bzp5ZHJvbmVhdWRAb3B0ZXlhLmNvbV0NCj4g
+U2VudDogU2F0dXJkYXksIEphbnVhcnkgMzEsIDIwMTUgNDozOCBQTQ0KPiBUbzogUmFzbXVzIFZp
+bGxlbW9lcw0KPiBDYzogUm9sYW5kIERyZWllcjsgU2VhbiBIZWZ0eTsgSGFsIFJvc2Vuc3RvY2s7
+IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOw0KPiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
+b3JnOyBEZXZlc2ggU2hhcm1hOyBTZWx2aW4gWGF2aWVyOyBNaXRlc2ggQWh1amENCj4gU3ViamVj
+dDogUmU6IFtQQVRDSCAxLzJdIGluZmluaWJhbmQ6IEhlbHAgZ2NjIGdlbmVyYXRlIGJldHRlciBj
+b2RlIGZvcg0KPiBvY3JkbWFfc3JxX3RvZ2dsZV9iaXQNCj4gDQo+IEhpLA0KPiANCj4gTGUgc2Ft
+ZWRpIDMxIGphbnZpZXIgMjAxNSDDoCAwMDowMCArMDEwMCwgUmFzbXVzIFZpbGxlbW9lcyBhIMOp
+Y3JpdCA6DQo+ID4gcGluZw0KPiA+DQo+IA0KPiBBcyB5b3UncmUgZml4aW5nIG9jcmRtYSBkcml2
+ZXIsIEkgdGhpbmsgeW91IG1pZ2h0IHdhbnQgdG8gZmluZCBwZW9wbGUNCj4gQGVtdWxleC5jb20g
+dG8gcmV2aWV3IHlvdXIgcGF0Y2hlcy4NCj4gDQo+IEJUVywgdGhlcmUncyBubyBNQUlOVEFJTkVS
+UyBlbnRyeSBmb3Igb2NyZG1hIGRyaXZlciAuLi4gd2hpY2ggaXMgYSBwaXR5Lg0KPiANCj4gPiBP
+biBGcmksIEphbiAxNiAyMDE1LCBSYXNtdXMgVmlsbGVtb2VzIDxsaW51eEByYXNtdXN2aWxsZW1v
+ZXMuZGs+IHdyb3RlOg0KPiA+DQo+ID4gPiBnY2MgZW1pdHMgYSBzdXJwcmlzaW5nIGFtb3VudCBv
+ZiBjb2RlIGluIG9yZGVyIHRvIGZsaXAgYSBiaXQuIE9uZQ0KPiA+ID4gd291bGQgdGhpbmsgdGhh
+dCBhIHNpbmdsZSBpbnN0cnVjdGlvbiBpcyBlbm91Z2guDQo+ID4gPg0KPiA+ID4gJCBzY3JpcHRz
+L2Jsb2F0LW8tbWV0ZXIgL3RtcC9vY3JkbWFfdmVyYnMubw0KPiA+ID4gZHJpdmVycy9pbmZpbmli
+YW5kL2h3L29jcmRtYS9vY3JkbWFfdmVyYnMubw0KPiA+ID4gYWRkL3JlbW92ZTogMC8wIGdyb3cv
+c2hyaW5rOiAwLzMgdXAvZG93bjogMC8tMTQyICgtMTQyKQ0KPiA+ID4gZnVuY3Rpb24gICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb2xkICAgICBuZXcgICBkZWx0YQ0KPiA+ID4g
+b2NyZG1hX3Bvc3Rfc3JxX3JlY3YgICAgICAgICAgICAgICAgICAgICAgICAgNDk4ICAgICA0NjAg
+ICAgIC0zOA0KPiA+ID4gb2NyZG1hX3BvbGxfY3EgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAyMDEwICAgIDE5NjIgICAgIC00OA0KPiA+ID4gb2NyZG1hX2Rpc2NhcmRfY3FlcyAgICAgICAg
+ICAgICAgICAgICAgICAgICAgNDk1ICAgICA0MzkgICAgIC01Ng0KPiA+ID4NCj4gPiA+IEFsbCB0
+aHJlZSBjYWxscyBvZiBvY3JkbWFfc3JxX3RvZ2dsZV9iaXQgaGFwcGVuIHdpdGhpbiBzcGlubG9j
+a3MsIHNvDQo+ID4gPiBzYXZpbmcgYSBmZXcgdXNlbGVzcyBpbnN0cnVjdGlvbnMgbWlnaHQgYmUg
+d29ydGh3aGlsZS4NCj4gPiA+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBSYXNtdXMgVmlsbGVtb2Vz
+IDxsaW51eEByYXNtdXN2aWxsZW1vZXMuZGs+DQo+ID4gPiAtLS0NCj4gPiA+ICBkcml2ZXJzL2lu
+ZmluaWJhbmQvaHcvb2NyZG1hL29jcmRtYV92ZXJicy5jIHwgNSArLS0tLQ0KPiA+ID4gIDEgZmls
+ZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgNCBkZWxldGlvbnMoLSkNCj4gPiA+DQo+ID4gPiBk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L29jcmRtYS9vY3JkbWFfdmVyYnMuYw0K
+PiA+ID4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvb2NyZG1hL29jcmRtYV92ZXJicy5jDQo+ID4g
+PiBpbmRleCBmYjhkOGM0ZGZiYjkuLmVmZjExZTZjNjE4MyAxMDA2NDQNCj4gPiA+IC0tLSBhL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9vY3JkbWEvb2NyZG1hX3ZlcmJzLmMNCj4gPiA+ICsrKyBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9vY3JkbWEvb2NyZG1hX3ZlcmJzLmMNCj4gPiA+IEBAIC0xNDg0
+LDEwICsxNDg0LDcgQEAgc3RhdGljIHZvaWQgb2NyZG1hX3NycV90b2dnbGVfYml0KHN0cnVjdA0K
+PiBvY3JkbWFfc3JxICpzcnEsIGludCBpZHgpDQo+ID4gPiAgCWludCBpID0gaWR4IC8gMzI7DQo+
+ID4gPiAgCXVuc2lnbmVkIGludCBtYXNrID0gKDEgPDwgKGlkeCAlIDMyKSk7DQo+ID4gPg0KPiA+
+ID4gLQlpZiAoc3JxLT5pZHhfYml0X2ZpZWxkc1tpXSAmIG1hc2spDQo+ID4gPiAtCQlzcnEtPmlk
+eF9iaXRfZmllbGRzW2ldICY9IH5tYXNrOw0KPiA+ID4gLQllbHNlDQo+ID4gPiAtCQlzcnEtPmlk
+eF9iaXRfZmllbGRzW2ldIHw9IG1hc2s7DQo+ID4gPiArCXNycS0+aWR4X2JpdF9maWVsZHNbaV0g
+Xj0gbWFzazsNCj4gPiA+ICB9DQo+ID4gPg0KPiA+ID4gIHN0YXRpYyBpbnQgb2NyZG1hX2h3cV9m
+cmVlX2NudChzdHJ1Y3Qgb2NyZG1hX3FwX2h3cV9pbmZvICpxKQ0KPiA+IC0tDQo+IA0KPiBSZWdh
+cmRzLg0KPiANCj4gLS0NCj4gWWFubiBEcm9uZWF1ZA0KPiBPUFRFWUENCj4gDQo+IA0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
