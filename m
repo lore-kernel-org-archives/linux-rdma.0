@@ -1,66 +1,147 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: CUDA not working with ib_write_bw
-Date: Mon, 2 Feb 2015 09:59:10 -0600
-Message-ID: <000f01d03f01$2eb315b0$8c194110$@opengridcomputing.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: [PATCH] IB/srp: Add 64-bit LUN support
+Date: Mon, 2 Feb 2015 18:21:44 +0100
+Message-ID: <54CFB228.4070208@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Bates <Stephen.Bates-PwyqCcigF0Q@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, Brian King <brking@linux.vnet.ibm.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Tyrel Datwyler <tyreld@linux.vnet.ibm.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Gil,
+The largest LUN number that has been tested is 0xd2003fff00000000.
 
-I'm trying to test iWARP RDMA <-> GPU memory and I compiled CUDA into the top-o-tree perftest repo.  My Nvidia setup is working
-because I have verified it with another gpu rdma package (donard from pmc).  But when using ib_write_bw the server gets an error
-registering the gpu memory with the device.  Below is the output from ib_write_bw.  I instrumented the kernel registration path and
-I find that get_user_pages() is returning -14 (-EFAULT) when called by ib_umem_get(). 
+Checked the following structure sizes with gdb:
+* sizeof(struct srp_cmd) = 48
+* sizeof(struct srp_tsk_mgmt) = 48
+* sizeof(struct srp_aer_req) = 36
 
-Q:  Is this supposed to work with the upstream RDMA drivers?   I'm using a 3.16.3 kernel.org kernel.
+The ibmvscsi changes have been compile tested only (on a PPC system).
 
-Thanks,
-
-Steve
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Sebastian Parschauer <sebastian.riemer@profitbricks.com>
+Cc: Brian King <brking@linux.vnet.ibm.com>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
 ---
+ drivers/infiniband/ulp/srp/ib_srp.c | 8 ++++----
+ drivers/scsi/ibmvscsi/ibmvscsi.c    | 6 +++---
+ include/scsi/srp.h                  | 7 ++++---
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-[root@stevo1 perftest]# ./ib_write_bw -R --use_cuda
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 0747c05..e43cb86 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1841,7 +1841,7 @@ static void srp_process_aer_req(struct srp_rdma_ch *ch,
+ 	s32 delta = be32_to_cpu(req->req_lim_delta);
+ 
+ 	shost_printk(KERN_ERR, target->scsi_host, PFX
+-		     "ignoring AER for LUN %llu\n", be64_to_cpu(req->lun));
++		     "ignoring AER for LUN %llu\n", scsilun_to_int(&req->lun));
+ 
+ 	if (srp_response_common(ch, delta, &rsp, sizeof(rsp)))
+ 		shost_printk(KERN_ERR, target->scsi_host, PFX
+@@ -2033,7 +2033,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	memset(cmd, 0, sizeof *cmd);
+ 
+ 	cmd->opcode = SRP_CMD;
+-	cmd->lun    = cpu_to_be64((u64) scmnd->device->lun << 48);
++	int_to_scsilun(scmnd->device->lun, &cmd->lun);
+ 	cmd->tag    = tag;
+ 	memcpy(cmd->cdb, scmnd->cmnd, scmnd->cmd_len);
+ 
+@@ -2448,7 +2448,7 @@ static int srp_send_tsk_mgmt(struct srp_rdma_ch *ch, u64 req_tag,
+ 	memset(tsk_mgmt, 0, sizeof *tsk_mgmt);
+ 
+ 	tsk_mgmt->opcode 	= SRP_TSK_MGMT;
+-	tsk_mgmt->lun		= cpu_to_be64((u64) lun << 48);
++	int_to_scsilun(lun, &tsk_mgmt->lun);
+ 	tsk_mgmt->tag		= req_tag | SRP_TAG_TSK_MGMT;
+ 	tsk_mgmt->tsk_mgmt_func = func;
+ 	tsk_mgmt->task_tag	= req_tag;
+@@ -3145,7 +3145,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 	target_host->transportt  = ib_srp_transport_template;
+ 	target_host->max_channel = 0;
+ 	target_host->max_id      = 1;
+-	target_host->max_lun     = SRP_MAX_LUN;
++	target_host->max_lun     = -1LL;
+ 	target_host->max_cmd_len = sizeof ((struct srp_cmd *) (void *) 0L)->cdb;
+ 
+ 	target = host_to_target(target_host);
+diff --git a/drivers/scsi/ibmvscsi/ibmvscsi.c b/drivers/scsi/ibmvscsi/ibmvscsi.c
+index acea5d6..6a41c36 100644
+--- a/drivers/scsi/ibmvscsi/ibmvscsi.c
++++ b/drivers/scsi/ibmvscsi/ibmvscsi.c
+@@ -1053,7 +1053,7 @@ static int ibmvscsi_queuecommand_lck(struct scsi_cmnd *cmnd,
+ 	memset(srp_cmd, 0x00, SRP_MAX_IU_LEN);
+ 	srp_cmd->opcode = SRP_CMD;
+ 	memcpy(srp_cmd->cdb, cmnd->cmnd, sizeof(srp_cmd->cdb));
+-	srp_cmd->lun = cpu_to_be64(((u64)lun) << 48);
++	int_to_scsilun(lun, &srp_cmd->lun);
+ 
+ 	if (!map_data_for_srp_cmd(cmnd, evt_struct, srp_cmd, hostdata->dev)) {
+ 		if (!firmware_has_feature(FW_FEATURE_CMO))
+@@ -1529,7 +1529,7 @@ static int ibmvscsi_eh_abort_handler(struct scsi_cmnd *cmd)
+ 		/* Set up an abort SRP command */
+ 		memset(tsk_mgmt, 0x00, sizeof(*tsk_mgmt));
+ 		tsk_mgmt->opcode = SRP_TSK_MGMT;
+-		tsk_mgmt->lun = cpu_to_be64(((u64) lun) << 48);
++		int_to_scsilun(lun, &tsk_mgmt->lun);
+ 		tsk_mgmt->tsk_mgmt_func = SRP_TSK_ABORT_TASK;
+ 		tsk_mgmt->task_tag = (u64) found_evt;
+ 
+@@ -1652,7 +1652,7 @@ static int ibmvscsi_eh_device_reset_handler(struct scsi_cmnd *cmd)
+ 		/* Set up a lun reset SRP command */
+ 		memset(tsk_mgmt, 0x00, sizeof(*tsk_mgmt));
+ 		tsk_mgmt->opcode = SRP_TSK_MGMT;
+-		tsk_mgmt->lun = cpu_to_be64(((u64) lun) << 48);
++		int_to_scsilun(lun, &tsk_mgmt->lun);
+ 		tsk_mgmt->tsk_mgmt_func = SRP_TSK_LUN_RESET;
+ 
+ 		evt->sync_srp = &srp_rsp;
+diff --git a/include/scsi/srp.h b/include/scsi/srp.h
+index 1ae84db..5be834d 100644
+--- a/include/scsi/srp.h
++++ b/include/scsi/srp.h
+@@ -42,6 +42,7 @@
+  */
+ 
+ #include <linux/types.h>
++#include <scsi/scsi.h>
+ 
+ enum {
+ 	SRP_LOGIN_REQ	= 0x00,
+@@ -179,7 +180,7 @@ struct srp_tsk_mgmt {
+ 	u8	reserved1[6];
+ 	u64	tag;
+ 	u8	reserved2[4];
+-	__be64	lun __attribute__((packed));
++	struct scsi_lun	lun;
+ 	u8	reserved3[2];
+ 	u8	tsk_mgmt_func;
+ 	u8	reserved4;
+@@ -200,7 +201,7 @@ struct srp_cmd {
+ 	u8	data_in_desc_cnt;
+ 	u64	tag;
+ 	u8	reserved2[4];
+-	__be64	lun __attribute__((packed));
++	struct scsi_lun	lun;
+ 	u8	reserved3;
+ 	u8	task_attr;
+ 	u8	reserved4;
+@@ -265,7 +266,7 @@ struct srp_aer_req {
+ 	__be32	req_lim_delta;
+ 	u64	tag;
+ 	u32	reserved2;
+-	__be64	lun;
++	struct scsi_lun	lun;
+ 	__be32	sense_data_len;
+ 	u32	reserved3;
+ 	u8	sense_data[0];
+-- 
+2.1.4
 
-************************************
-* Waiting for client to connect... *
-************************************
----------------------------------------------------------------------------------------
-                    RDMA_Write BW Test
- Dual-port       : OFF          Device         : cxgb4_1
- Number of qps   : 1            Transport type : IW
- Connection type : RC           Using SRQ      : OFF
- CQ Moderation   : 100
- Mtu             : 1024[B]
- Link type       : Ethernet
- Gid index       : 0
- Max inline data : 0[B]
- rdma_cm QPs     : ON
- Data ex. method : rdma_cm
----------------------------------------------------------------------------------------
- Waiting for client rdma_cm QP to connect
- Please run the same command with the IB/RoCE interface IP
----------------------------------------------------------------------------------------
-initializing CUDA
-There is 1 device supporting CUDA
-[pid = 14124, dev = 0] device name = [Tesla K20Xm]
-creating CUDA Ctx
-making it the current CUDA Ctx
-cuMemAlloc() of a 131072 bytes GPU buffer
-allocated GPU buffer address at 0000001304260000 pointer=0x1304260000
-Couldn't allocate MR
- Unable to create the resources needed by comm struct
-Unable to perform rdma_client function
-[root@stevo1 perftest]#
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
