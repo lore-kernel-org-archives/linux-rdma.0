@@ -1,49 +1,123 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 3/4] IB/core: Make sure that the PSN does not
- overflow
-Date: Wed, 4 Feb 2015 16:28:07 -0700
-Message-ID: <20150204232807.GA30154@obsidianresearch.com>
-References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
- <1422522871-11216-4-git-send-email-ogerlitz@mellanox.com>
- <20150129175437.GF11842@obsidianresearch.com>
- <54CE0F0A.7080704@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH v4 00/19] IB/mad: Add support for Intel Omni-Path Architecture (OPA) MAD processing.
+Date: Wed,  4 Feb 2015 18:29:26 -0500
+Message-ID: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <54CE0F0A.7080704-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 01, 2015 at 01:33:30PM +0200, Or Gerlitz wrote:
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-> >>@@ -860,6 +860,12 @@ int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
-> >>  	if (mask & ~(req_param | opt_param | IB_QP_STATE))
-> >>  		return 0;
-> >>+	if ((mask & IB_QP_SQ_PSN) && (attr->sq_psn & 0xff000000))
-> >>+		return 0;
-> >>+
-> >>+	if ((mask & IB_QP_RQ_PSN) && (attr->rq_psn & 0xff000000))
-> >>+		return 0;
-> >>+
+The following patch series modifies the kernel MAD processing (ib_mad/ib_umad)
+and related interfaces to send and receive Intel Omni-Path Architecture MADs on
+devices which support them.
 
-> >And since rdmacm has had this longstanding bug of generating > 24
-> >bit PSNs, this change seems really scary - very likely to break
-> >working systems.
- 
-> By IBTA the HW can only use 24 bits, also the IB CM also makes sure
-> to only encode/decode 24 PSN bits to/from the wire (see the PSN
-> related helpers in drivers/infiniband/core/cm_msgs.h), so in that
-> respect, I don't see what other bits which are not 24 bits out of
-> the 32 generated ones could be of some use to existing applications,
-> please clarify.
+In addition to supporting some IBTA management classes, OPA devices use MADs
+with lengths up to 2K.  These "jumbo" MADs increase the performance of
+management traffic.
 
-Maybe you can explain why this check is suddenly important now? It
-seems risky with no rational?
+To distinguish IBTA MADs from OPA MADs a new Base Version is introduced.  The
+new format shares the same common header with IBTA MADs which allows us to
+share most of the MAD processing code when dealing with the new Base Version.
 
-Jason
+
+The patch series is broken into 3 main areas.
+
+1) Add the ability for devices to indicate MAD size.
+   modify the MAD code to use this MAD size
+
+2) Enhance the interface to the device agents to support larger and variable
+   length MADs.
+
+3) Add capability bit to indicate support for OPA MADs
+
+4) Add support for creating and processing OPA MADs
+
+
+Changes for V4:
+
+	Rebased to latest Rolands for-next branch (3.19-rc4)
+	Fixed compile issue in ehca driver found with 0-day build.
+
+
+Ira Weiny (19):
+  IB/mad: Rename is_data_mad to is_rmpp_data_mad
+  IB/core: Cache device attributes for use by upper level drivers
+  IB/mad: Change validate_mad signature to take ib_mad_hdr rather than
+    ib_mad
+  IB/mad: Change ib_response_mad signature to take ib_mad_hdr rather
+    than ib_mad
+  IB/mad: Change cast in rcv_has_same_class
+  IB/core: Add max_mad_size to ib_device_attr
+  IB/mad: Convert ib_mad_private allocations from kmem_cache to kmalloc
+  IB/mad: Add helper function for smi_handle_dr_smp_send
+  IB/mad: Add helper function for smi_handle_dr_smp_recv
+  IB/mad: Add helper function for smi_check_forward_dr_smp
+  IB/mad: Add helper function for SMI processing
+  IB/mad: Add MAD size parameters to process_mad
+  IB/mad: Add base version parameter to ib_create_send_mad
+  IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device cap flag
+  IB/mad: Create jumbo_mad data structures
+  IB/mad: Add Intel Omni-Path Architecture defines
+  IB/mad: Implement support for Intel Omni-Path Architecture base
+    version MADs in ib_create_send_mad
+  IB/mad: Implement Intel Omni-Path Architecture SMP processing
+  IB/mad: Implement Intel Omni-Path Architecture MAD processing
+
+ drivers/infiniband/core/agent.c              |  26 +-
+ drivers/infiniband/core/agent.h              |   3 +-
+ drivers/infiniband/core/cm.c                 |   6 +-
+ drivers/infiniband/core/device.c             |   2 +
+ drivers/infiniband/core/mad.c                | 519 ++++++++++++++++++---------
+ drivers/infiniband/core/mad_priv.h           |   7 +-
+ drivers/infiniband/core/mad_rmpp.c           | 144 ++++----
+ drivers/infiniband/core/opa_smi.h            |  78 ++++
+ drivers/infiniband/core/sa_query.c           |   3 +-
+ drivers/infiniband/core/smi.c                | 231 ++++++++----
+ drivers/infiniband/core/smi.h                |   6 +
+ drivers/infiniband/core/sysfs.c              |   5 +-
+ drivers/infiniband/core/user_mad.c           |  38 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c |   5 +-
+ drivers/infiniband/hw/amso1100/c2_rnic.c     |   1 +
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |   6 +-
+ drivers/infiniband/hw/cxgb4/provider.c       |   8 +-
+ drivers/infiniband/hw/ehca/ehca_hca.c        |   3 +
+ drivers/infiniband/hw/ehca/ehca_iverbs.h     |   4 +-
+ drivers/infiniband/hw/ehca/ehca_sqp.c        |   8 +-
+ drivers/infiniband/hw/ipath/ipath_mad.c      |   8 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |   1 +
+ drivers/infiniband/hw/ipath/ipath_verbs.h    |   3 +-
+ drivers/infiniband/hw/mlx4/mad.c             |  12 +-
+ drivers/infiniband/hw/mlx4/main.c            |   1 +
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |   3 +-
+ drivers/infiniband/hw/mlx5/mad.c             |   8 +-
+ drivers/infiniband/hw/mlx5/main.c            |   1 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |   3 +-
+ drivers/infiniband/hw/mthca/mthca_dev.h      |   4 +-
+ drivers/infiniband/hw/mthca/mthca_mad.c      |  12 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |   2 +
+ drivers/infiniband/hw/nes/nes_verbs.c        |   4 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c     |   3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h     |   3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   1 +
+ drivers/infiniband/hw/qib/qib_iba7322.c      |   3 +-
+ drivers/infiniband/hw/qib/qib_mad.c          |  11 +-
+ drivers/infiniband/hw/qib/qib_verbs.c        |   1 +
+ drivers/infiniband/hw/qib/qib_verbs.h        |   3 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   2 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c        |   3 +-
+ include/rdma/ib_mad.h                        |  40 ++-
+ include/rdma/ib_verbs.h                      |  15 +-
+ include/rdma/opa_smi.h                       | 106 ++++++
+ 45 files changed, 999 insertions(+), 357 deletions(-)
+ create mode 100644 drivers/infiniband/core/opa_smi.h
+ create mode 100644 include/rdma/opa_smi.h
+
+-- 
+1.8.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
