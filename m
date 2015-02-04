@@ -1,106 +1,50 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Temporarily disable ex_query_device uverb
-Date: Wed, 04 Feb 2015 17:31:43 +0100
-Message-ID: <1423067503.3030.83.camel@opteya.com>
-References: <1422797730-14571-1-git-send-email-haggaie@mellanox.com>
-	 <1422882626.3030.56.camel@opteya.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 3/4] IB/core: Make sure that the PSN does not
+ overflow
+Date: Wed, 4 Feb 2015 16:28:07 -0700
+Message-ID: <20150204232807.GA30154@obsidianresearch.com>
+References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
+ <1422522871-11216-4-git-send-email-ogerlitz@mellanox.com>
+ <20150129175437.GF11842@obsidianresearch.com>
+ <54CE0F0A.7080704@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1422882626.3030.56.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <54CE0F0A.7080704-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Sun, Feb 01, 2015 at 01:33:30PM +0200, Or Gerlitz wrote:
 
-Le lundi 02 f=C3=A9vrier 2015 =C3=A0 14:10 +0100, Yann Droneaud a =C3=A9=
-crit :
-> Le dimanche 01 f=C3=A9vrier 2015 =C3=A0 15:35 +0200, Haggai Eran a =C3=
-=A9crit :
-> > Commit 5a77abf9a97a ("IB/core: Add support for extended query devic=
-e caps")
-> > added a new extended verb to query the capabilities of RDMA devices=
-, but the
-> > semantics of this verb are still under debate [1].
-> >=20
-> > Block access to this verb from user-space until the new semantics a=
-re in
-> > place.
-> >=20
-> > Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-> > Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> > Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >=20
-> > [1] [PATCH v1 0/5] IB/core: extended query device caps cleanup for =
-v3.19
-> >     http://www.spinics.net/lists/linux-rdma/msg22904.html
-> >=20
-> > Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+> >>@@ -860,6 +860,12 @@ int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
+> >>  	if (mask & ~(req_param | opt_param | IB_QP_STATE))
+> >>  		return 0;
+> >>+	if ((mask & IB_QP_SQ_PSN) && (attr->sq_psn & 0xff000000))
+> >>+		return 0;
+> >>+
+> >>+	if ((mask & IB_QP_RQ_PSN) && (attr->rq_psn & 0xff000000))
+> >>+		return 0;
+> >>+
 
-> >  drivers/infiniband/core/uverbs_main.c | 1 -
-> >  1 file changed, 1 deletion(-)
-> >=20
-> > diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infini=
-band/core/uverbs_main.c
-> > index e6c23b9eab33..5db1a8cc388d 100644
-> > --- a/drivers/infiniband/core/uverbs_main.c
-> > +++ b/drivers/infiniband/core/uverbs_main.c
-> > @@ -123,7 +123,6 @@ static int (*uverbs_ex_cmd_table[])(struct ib_u=
-verbs_file *file,
-> >  				    struct ib_udata *uhw) =3D {
-> >  	[IB_USER_VERBS_EX_CMD_CREATE_FLOW]	=3D ib_uverbs_ex_create_flow,
-> >  	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow=
-,
-> > -	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	=3D ib_uverbs_ex_query_device
-> >  };
-> > =20
-> >  static void ib_uverbs_add_one(struct ib_device *device);
->=20
-> That's the smallest (and smartest) patch to be applied instead of
-> reverting.
->=20
+> >And since rdmacm has had this longstanding bug of generating > 24
+> >bit PSNs, this change seems really scary - very likely to break
+> >working systems.
+ 
+> By IBTA the HW can only use 24 bits, also the IB CM also makes sure
+> to only encode/decode 24 PSN bits to/from the wire (see the PSN
+> related helpers in drivers/infiniband/core/cm_msgs.h), so in that
+> respect, I don't see what other bits which are not 24 bits out of
+> the 32 generated ones could be of some use to existing applications,
+> please clarify.
 
-Unfortunately, I've missed the issue I was complaining about in the
-first place [1]. And I feel a bit guilty having missed the issue.
+Maybe you can explain why this check is suddenly important now? It
+seems risky with no rational?
 
-The present patch is fine as it fully disable the new extended=20
-QUERY_DEVICE uverb, but it doesn't disable the broken logic added in
-ib_copy_to_udata() by commit 5a77abf9a97a ('IB/core: Add support for
-extended query device caps'):
-
-  diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-  index 470a011d6fa4..97a999f9e4d8 100644
-  --- a/include/rdma/ib_verbs.h
-  +++ b/include/rdma/ib_verbs.h
-  @@ -1662,7 +1662,10 @@ static inline int ib_copy_from_udata(void *des=
-t, struct ib_udata *udata, size_t
-  =20
-   static inline int ib_copy_to_udata(struct ib_udata *udata, void *src=
-, size_t len)
-   {
-  -	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
-  +	size_t copy_sz;
-  +
-  +	copy_sz =3D min_t(size_t, len, udata->outlen);
-  +	return copy_to_user(udata->outbuf, src, copy_sz) ? -EFAULT : 0;
-   }
-
-That part of commit 5a77abf9a97a should be reverted as I'm not sure
-it doesn't introduce regressions, especially difficult to notice ones.
-
-Regards.
-
-[1] Re: [PATCH v3 06/17] IB/core: Add support for extended query device=
- caps
-    http://mid.gmane.org/1418733236.2779.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
