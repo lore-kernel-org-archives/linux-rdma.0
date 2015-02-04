@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 03/19] IB/mad: Change validate_mad signature to take ib_mad_hdr rather than ib_mad
-Date: Wed,  4 Feb 2015 18:29:29 -0500
-Message-ID: <1423092585-26692-4-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 09/19] IB/mad: Add helper function for smi_handle_dr_smp_recv
+Date: Wed,  4 Feb 2015 18:29:35 -0500
+Message-ID: <1423092585-26692-10-git-send-email-ira.weiny@intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423092585-26692-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,53 +12,156 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-validate_mad only needs access to the MAD header and can be used for both IB
-and Jumbo MADs.
+This helper function will be used for processing both IB and OPA SMP recvs.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/smi.c | 80 +++++++++++++++++++++++++------------------
+ 1 file changed, 47 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 4673262..9ffff9b 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1708,20 +1708,20 @@ out:
- 	return mad_agent;
+diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
+index 3bac6e6..24670de 100644
+--- a/drivers/infiniband/core/smi.c
++++ b/drivers/infiniband/core/smi.c
+@@ -137,91 +137,105 @@ enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
+ 					smp->dr_slid == IB_LID_PERMISSIVE);
  }
  
--static int validate_mad(struct ib_mad *mad, u32 qp_num)
-+static int validate_mad(struct ib_mad_hdr *mad_hdr, u32 qp_num)
+-/*
+- * Adjust information for a received SMP
+- * Return 0 if the SMP should be dropped
+- */
+-enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
+-				       int port_num, int phys_port_cnt)
++static inline
++enum smi_action __smi_handle_dr_smp_recv(u8 node_type, int port_num,
++					 int phys_port_cnt,
++					 u8 *hop_ptr, u8 hop_cnt,
++					 u8 *initial_path,
++					 u8 *return_path,
++					 u8 direction,
++					 int dr_dlid_is_permissive,
++					 int dr_slid_is_permissive)
  {
- 	int valid = 0;
+-	u8 hop_ptr, hop_cnt;
+-
+-	hop_ptr = smp->hop_ptr;
+-	hop_cnt = smp->hop_cnt;
+-
+ 	/* See section 14.2.2.2, Vol 1 IB spec */
+ 	/* C14-6 -- valid hop_cnt values are from 0 to 63 */
+ 	if (hop_cnt >= IB_SMP_MAX_PATH_HOPS)
+ 		return IB_SMI_DISCARD;
  
- 	/* Make sure MAD base version is understood */
--	if (mad->mad_hdr.base_version != IB_MGMT_BASE_VERSION) {
-+	if (mad_hdr->base_version != IB_MGMT_BASE_VERSION) {
- 		pr_err("MAD received with unsupported base version %d\n",
--			mad->mad_hdr.base_version);
-+			mad_hdr->base_version);
- 		goto out;
- 	}
+-	if (!ib_get_smp_direction(smp)) {
++	if (!direction) {
+ 		/* C14-9:1 -- sender should have incremented hop_ptr */
+-		if (hop_cnt && hop_ptr == 0)
++		if (hop_cnt && *hop_ptr == 0)
+ 			return IB_SMI_DISCARD;
  
- 	/* Filter SMI packets sent to other than QP0 */
--	if ((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
--	    (mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
-+	if ((mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
-+	    (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
- 		if (qp_num == 0)
- 			valid = 1;
+ 		/* C14-9:2 -- intermediate hop */
+-		if (hop_ptr && hop_ptr < hop_cnt) {
++		if (*hop_ptr && *hop_ptr < hop_cnt) {
+ 			if (node_type != RDMA_NODE_IB_SWITCH)
+ 				return IB_SMI_DISCARD;
+ 
+-			smp->return_path[hop_ptr] = port_num;
+-			/* smp->hop_ptr updated when sending */
+-			return (smp->initial_path[hop_ptr+1] <= phys_port_cnt ?
++			return_path[*hop_ptr] = port_num;
++			/* hop_ptr updated when sending */
++			return (initial_path[*hop_ptr+1] <= phys_port_cnt ?
+ 				IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 		}
+ 
+ 		/* C14-9:3 -- We're at the end of the DR segment of path */
+-		if (hop_ptr == hop_cnt) {
++		if (*hop_ptr == hop_cnt) {
+ 			if (hop_cnt)
+-				smp->return_path[hop_ptr] = port_num;
+-			/* smp->hop_ptr updated when sending */
++				return_path[*hop_ptr] = port_num;
++			/* hop_ptr updated when sending */
+ 
+ 			return (node_type == RDMA_NODE_IB_SWITCH ||
+-				smp->dr_dlid == IB_LID_PERMISSIVE ?
++				dr_dlid_is_permissive ?
+ 				IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 		}
+ 
+ 		/* C14-9:4 -- hop_ptr = hop_cnt + 1 -> give to SMA/SM */
+ 		/* C14-9:5 -- fail unreasonable hop pointer */
+-		return (hop_ptr == hop_cnt + 1 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
++		return (*hop_ptr == hop_cnt + 1 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 
  	} else {
-@@ -1979,7 +1979,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 		snoop_recv(qp_info, &recv->header.recv_wc, IB_MAD_SNOOP_RECVS);
  
- 	/* Validate MAD */
--	if (!validate_mad(&recv->mad.mad, qp_info->qp->qp_num))
-+	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
- 		goto out;
+ 		/* C14-13:1 */
+-		if (hop_cnt && hop_ptr == hop_cnt + 1) {
+-			smp->hop_ptr--;
+-			return (smp->return_path[smp->hop_ptr] ==
++		if (hop_cnt && *hop_ptr == hop_cnt + 1) {
++			(*hop_ptr)--;
++			return (return_path[*hop_ptr] ==
+ 				port_num ? IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 		}
  
- 	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
+ 		/* C14-13:2 */
+-		if (2 <= hop_ptr && hop_ptr <= hop_cnt) {
++		if (2 <= *hop_ptr && *hop_ptr <= hop_cnt) {
+ 			if (node_type != RDMA_NODE_IB_SWITCH)
+ 				return IB_SMI_DISCARD;
+ 
+-			/* smp->hop_ptr updated when sending */
+-			return (smp->return_path[hop_ptr-1] <= phys_port_cnt ?
++			/* hop_ptr updated when sending */
++			return (return_path[*hop_ptr-1] <= phys_port_cnt ?
+ 				IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 		}
+ 
+ 		/* C14-13:3 -- We're at the end of the DR segment of path */
+-		if (hop_ptr == 1) {
+-			if (smp->dr_slid == IB_LID_PERMISSIVE) {
++		if (*hop_ptr == 1) {
++			if (dr_slid_is_permissive) {
+ 				/* giving SMP to SM - update hop_ptr */
+-				smp->hop_ptr--;
++				(*hop_ptr)--;
+ 				return IB_SMI_HANDLE;
+ 			}
+-			/* smp->hop_ptr updated when sending */
++			/* hop_ptr updated when sending */
+ 			return (node_type == RDMA_NODE_IB_SWITCH ?
+ 				IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 		}
+ 
+ 		/* C14-13:4 -- hop_ptr = 0 -> give to SM */
+ 		/* C14-13:5 -- Check for unreasonable hop pointer */
+-		return (hop_ptr == 0 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
++		return (*hop_ptr == 0 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
+ 	}
+ }
+ 
++/*
++ * Adjust information for a received SMP
++ * Return 0 if the SMP should be dropped
++ */
++enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
++				       int port_num, int phys_port_cnt)
++{
++	return __smi_handle_dr_smp_recv(node_type, port_num, phys_port_cnt,
++					&smp->hop_ptr, smp->hop_cnt,
++					smp->initial_path,
++					smp->return_path,
++					ib_get_smp_direction(smp),
++					smp->dr_dlid == IB_LID_PERMISSIVE,
++					smp->dr_slid == IB_LID_PERMISSIVE);
++}
++
+ enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
+ {
+ 	u8 hop_ptr, hop_cnt;
 -- 
 1.8.2
 
