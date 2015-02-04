@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 07/19] IB/mad: Convert ib_mad_private allocations from kmem_cache to kmalloc
-Date: Wed,  4 Feb 2015 18:29:33 -0500
-Message-ID: <1423092585-26692-8-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 18/19] IB/mad: Implement Intel Omni-Path Architecture SMP processing
+Date: Wed,  4 Feb 2015 18:29:44 -0500
+Message-ID: <1423092585-26692-19-git-send-email-ira.weiny@intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423092585-26692-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,235 +12,357 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use the new max_mad_size specified by devices for the allocations and DMA maps.
-
-kmalloc is more flexible to support devices with different sized MADs and
-research and testing showed that the current use of kmem_cache does not provide
-performance benefits over kmalloc.
+Define the new OPA SMP format, create support functions for this format using
+the previously defined helper functions as appropriate.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
 ---
- drivers/infiniband/core/mad.c | 73 ++++++++++++++++++-------------------------
- 1 file changed, 30 insertions(+), 43 deletions(-)
+ drivers/infiniband/core/mad_priv.h |   2 +
+ drivers/infiniband/core/opa_smi.h  |  78 +++++++++++++++++++++++++++
+ drivers/infiniband/core/smi.c      |  54 +++++++++++++++++++
+ drivers/infiniband/core/smi.h      |   6 +++
+ include/rdma/opa_smi.h             | 106 +++++++++++++++++++++++++++++++++++++
+ 5 files changed, 246 insertions(+)
+ create mode 100644 drivers/infiniband/core/opa_smi.h
+ create mode 100644 include/rdma/opa_smi.h
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index a6a33cf..cc0a3ad 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -59,8 +59,6 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests
- module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
- MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
+index 10df80d..141b05a 100644
+--- a/drivers/infiniband/core/mad_priv.h
++++ b/drivers/infiniband/core/mad_priv.h
+@@ -41,6 +41,7 @@
+ #include <linux/workqueue.h>
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_smi.h>
++#include <rdma/opa_smi.h>
  
--static struct kmem_cache *ib_mad_cache;
--
- static struct list_head ib_mad_port_list;
- static u32 ib_mad_client_id = 0;
+ #define IB_MAD_QPS_CORE		2 /* Always QP0 and QP1 as a minimum */
  
-@@ -717,6 +715,13 @@ static void build_smp_wc(struct ib_qp *qp,
- 	wc->port_num = port_num;
+@@ -82,6 +83,7 @@ struct ib_mad_private {
+ 		struct ib_smp smp;
+ 		struct jumbo_mad jumbo_mad;
+ 		struct jumbo_rmpp_mad jumbo_rmpp_mad;
++		struct opa_smp opa_smp;
+ 	} mad;
+ } __attribute__ ((packed));
+ 
+diff --git a/drivers/infiniband/core/opa_smi.h b/drivers/infiniband/core/opa_smi.h
+new file mode 100644
+index 0000000..d180179
+--- /dev/null
++++ b/drivers/infiniband/core/opa_smi.h
+@@ -0,0 +1,78 @@
++/*
++ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
++
++#ifndef __OPA_SMI_H_
++#define __OPA_SMI_H_
++
++#include <rdma/ib_smi.h>
++#include <rdma/opa_smi.h>
++
++#include "smi.h"
++
++enum smi_action opa_smi_handle_dr_smp_recv(struct opa_smp *smp, u8 node_type,
++				       int port_num, int phys_port_cnt);
++int opa_smi_get_fwd_port(struct opa_smp *smp);
++extern enum smi_forward_action opa_smi_check_forward_dr_smp(struct opa_smp *smp);
++extern enum smi_action opa_smi_handle_dr_smp_send(struct opa_smp *smp,
++					      u8 node_type, int port_num);
++
++/*
++ * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
++ * via process_mad
++ */
++static inline enum smi_action opa_smi_check_local_smp(struct opa_smp *smp,
++						  struct ib_device *device)
++{
++	/* C14-9:3 -- We're at the end of the DR segment of path */
++	/* C14-9:4 -- Hop Pointer = Hop Count + 1 -> give to SMA/SM */
++	return (device->process_mad &&
++		!opa_get_smp_direction(smp) &&
++		(smp->hop_ptr == smp->hop_cnt + 1)) ?
++		IB_SMI_HANDLE : IB_SMI_DISCARD;
++}
++
++/*
++ * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
++ * via process_mad
++ */
++static inline enum smi_action opa_smi_check_local_returning_smp(struct opa_smp *smp,
++						   struct ib_device *device)
++{
++	/* C14-13:3 -- We're at the end of the DR segment of path */
++	/* C14-13:4 -- Hop Pointer == 0 -> give to SM */
++	return (device->process_mad &&
++		opa_get_smp_direction(smp) &&
++		!smp->hop_ptr) ? IB_SMI_HANDLE : IB_SMI_DISCARD;
++}
++
++#endif	/* __OPA_SMI_H_ */
+diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
+index 8a5fb1d..a38ccb4 100644
+--- a/drivers/infiniband/core/smi.c
++++ b/drivers/infiniband/core/smi.c
+@@ -5,6 +5,7 @@
+  * Copyright (c) 2004, 2005 Topspin Corporation.  All rights reserved.
+  * Copyright (c) 2004-2007 Voltaire Corporation.  All rights reserved.
+  * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
++ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -38,6 +39,7 @@
+ 
+ #include <rdma/ib_smi.h>
+ #include "smi.h"
++#include "opa_smi.h"
+ 
+ static inline
+ enum smi_action __smi_handle_dr_smp_send(u8 node_type, int port_num,
+@@ -137,6 +139,20 @@ enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
+ 					smp->dr_slid == IB_LID_PERMISSIVE);
  }
  
-+static struct ib_mad_private *alloc_mad_priv(struct ib_device *dev)
++enum smi_action opa_smi_handle_dr_smp_send(struct opa_smp *smp,
++				       u8 node_type, int port_num)
 +{
-+	return (kmalloc(sizeof(struct ib_mad_private_header) +
-+			sizeof(struct ib_grh) +
-+			dev->cached_dev_attrs.max_mad_size, GFP_ATOMIC));
++	return __smi_handle_dr_smp_send(node_type, port_num,
++					&smp->hop_ptr, smp->hop_cnt,
++					smp->route.dr.initial_path,
++					smp->route.dr.return_path,
++					opa_get_smp_direction(smp),
++					smp->route.dr.dr_dlid ==
++					OPA_LID_PERMISSIVE,
++					smp->route.dr.dr_slid ==
++					OPA_LID_PERMISSIVE);
++}
++
+ static inline
+ enum smi_action __smi_handle_dr_smp_recv(u8 node_type, int port_num,
+ 					 int phys_port_cnt,
+@@ -236,6 +252,24 @@ enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
+ 					smp->dr_slid == IB_LID_PERMISSIVE);
+ }
+ 
++/*
++ * Adjust information for a received SMP
++ * Return 0 if the SMP should be dropped
++ */
++enum smi_action opa_smi_handle_dr_smp_recv(struct opa_smp *smp, u8 node_type,
++					   int port_num, int phys_port_cnt)
++{
++	return __smi_handle_dr_smp_recv(node_type, port_num, phys_port_cnt,
++					&smp->hop_ptr, smp->hop_cnt,
++					smp->route.dr.initial_path,
++					smp->route.dr.return_path,
++					opa_get_smp_direction(smp),
++					smp->route.dr.dr_dlid ==
++					OPA_LID_PERMISSIVE,
++					smp->route.dr.dr_slid ==
++					OPA_LID_PERMISSIVE);
++}
++
+ static inline
+ enum smi_forward_action __smi_check_forward_dr_smp(u8 hop_ptr, u8 hop_cnt,
+ 						   u8 direction,
+@@ -277,6 +311,16 @@ enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
+ 					  smp->dr_slid != IB_LID_PERMISSIVE);
+ }
+ 
++enum smi_forward_action opa_smi_check_forward_dr_smp(struct opa_smp *smp)
++{
++	return __smi_check_forward_dr_smp(smp->hop_ptr, smp->hop_cnt,
++					  opa_get_smp_direction(smp),
++					  smp->route.dr.dr_dlid ==
++					  OPA_LID_PERMISSIVE,
++					  smp->route.dr.dr_slid ==
++					  OPA_LID_PERMISSIVE);
 +}
 +
  /*
-  * Return 0 if SMP is to be sent
-  * Return 1 if SMP was consumed locally (whether or not solicited)
-@@ -771,7 +776,8 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	}
- 	local->mad_priv = NULL;
- 	local->recv_mad_agent = NULL;
--	mad_priv = kmem_cache_alloc(ib_mad_cache, GFP_ATOMIC);
+  * Return the forwarding port number from initial_path for outgoing SMP and
+  * from return_path for returning SMP
+@@ -286,3 +330,13 @@ int smi_get_fwd_port(struct ib_smp *smp)
+ 	return (!ib_get_smp_direction(smp) ? smp->initial_path[smp->hop_ptr+1] :
+ 		smp->return_path[smp->hop_ptr-1]);
+ }
 +
-+	mad_priv = alloc_mad_priv(mad_agent_priv->agent.device);
- 	if (!mad_priv) {
- 		ret = -ENOMEM;
- 		dev_err(&device->dev, "No memory for local response MAD\n");
-@@ -801,10 +807,10 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 			 */
- 			atomic_inc(&mad_agent_priv->refcount);
- 		} else
--			kmem_cache_free(ib_mad_cache, mad_priv);
-+			kfree(mad_priv);
- 		break;
- 	case IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED:
--		kmem_cache_free(ib_mad_cache, mad_priv);
-+		kfree(mad_priv);
- 		break;
- 	case IB_MAD_RESULT_SUCCESS:
- 		/* Treat like an incoming receive MAD */
-@@ -820,14 +826,14 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 			 * No receiving agent so drop packet and
- 			 * generate send completion.
- 			 */
--			kmem_cache_free(ib_mad_cache, mad_priv);
-+			kfree(mad_priv);
- 			break;
- 		}
- 		local->mad_priv = mad_priv;
- 		local->recv_mad_agent = recv_mad_agent;
- 		break;
- 	default:
--		kmem_cache_free(ib_mad_cache, mad_priv);
-+		kfree(mad_priv);
- 		kfree(local);
- 		ret = -EINVAL;
- 		goto out;
-@@ -1237,7 +1243,7 @@ void ib_free_recv_mad(struct ib_mad_recv_wc *mad_recv_wc)
- 					    recv_wc);
- 		priv = container_of(mad_priv_hdr, struct ib_mad_private,
- 				    header);
--		kmem_cache_free(ib_mad_cache, priv);
-+		kfree(priv);
- 	}
- }
- EXPORT_SYMBOL(ib_free_recv_mad);
-@@ -1924,6 +1930,11 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 	}
- }
- 
-+static size_t mad_recv_buf_size(struct ib_device *dev)
++/*
++ * Return the forwarding port number from initial_path for outgoing SMP and
++ * from return_path for returning SMP
++ */
++int opa_smi_get_fwd_port(struct opa_smp *smp)
 +{
-+	return(sizeof(struct ib_grh) + dev->cached_dev_attrs.max_mad_size);
++	return !opa_get_smp_direction(smp) ? smp->route.dr.initial_path[smp->hop_ptr+1] :
++		smp->route.dr.return_path[smp->hop_ptr-1];
++}
+diff --git a/drivers/infiniband/core/smi.h b/drivers/infiniband/core/smi.h
+index aff96ba..e95c537 100644
+--- a/drivers/infiniband/core/smi.h
++++ b/drivers/infiniband/core/smi.h
+@@ -62,6 +62,9 @@ extern enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
+  * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
+  * via process_mad
+  */
++/* NOTE: This is called on opa_smp's don't check fields which are not common
++ * between ib_smp and opa_smp
++ */
+ static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
+ 						  struct ib_device *device)
+ {
+@@ -77,6 +80,9 @@ static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
+  * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
+  * via process_mad
+  */
++/* NOTE: This is called on opa_smp's don't check fields which are not common
++ * between ib_smp and opa_smp
++ */
+ static inline enum smi_action smi_check_local_returning_smp(struct ib_smp *smp,
+ 						   struct ib_device *device)
+ {
+diff --git a/include/rdma/opa_smi.h b/include/rdma/opa_smi.h
+new file mode 100644
+index 0000000..29063e8
+--- /dev/null
++++ b/include/rdma/opa_smi.h
+@@ -0,0 +1,106 @@
++/*
++ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#if !defined(OPA_SMI_H)
++#define OPA_SMI_H
++
++#include <rdma/ib_mad.h>
++#include <rdma/ib_smi.h>
++
++#define OPA_SMP_LID_DATA_SIZE			2016
++#define OPA_SMP_DR_DATA_SIZE			1872
++#define OPA_SMP_MAX_PATH_HOPS			64
++
++#define OPA_SMI_CLASS_VERSION			0x80
++
++#define OPA_LID_PERMISSIVE			cpu_to_be32(0xFFFFFFFF)
++
++struct opa_smp {
++	u8	base_version;
++	u8	mgmt_class;
++	u8	class_version;
++	u8	method;
++	__be16	status;
++	u8	hop_ptr;
++	u8	hop_cnt;
++	__be64	tid;
++	__be16	attr_id;
++	__be16	resv;
++	__be32	attr_mod;
++	__be64	mkey;
++	union {
++		struct {
++			uint8_t data[OPA_SMP_LID_DATA_SIZE];
++		} lid;
++		struct {
++			__be32	dr_slid;
++			__be32	dr_dlid;
++			u8	initial_path[OPA_SMP_MAX_PATH_HOPS];
++			u8	return_path[OPA_SMP_MAX_PATH_HOPS];
++			u8	reserved[8];
++			u8	data[OPA_SMP_DR_DATA_SIZE];
++		} dr;
++	} route;
++} __packed;
++
++
++static inline u8
++opa_get_smp_direction(struct opa_smp *smp)
++{
++	return ib_get_smp_direction((struct ib_smp *)smp);
 +}
 +
- static bool generate_unmatched_resp(struct ib_mad_private *recv,
- 				    struct ib_mad_private *response)
- {
-@@ -1964,8 +1975,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 	recv = container_of(mad_priv_hdr, struct ib_mad_private, header);
- 	ib_dma_unmap_single(port_priv->device,
- 			    recv->header.mapping,
--			    sizeof(struct ib_mad_private) -
--			      sizeof(struct ib_mad_private_header),
-+			    mad_recv_buf_size(port_priv->device),
- 			    DMA_FROM_DEVICE);
- 
- 	/* Setup MAD receive work completion from "normal" work completion */
-@@ -1982,7 +1992,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
- 		goto out;
- 
--	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
-+	response = alloc_mad_priv(port_priv->device);
- 	if (!response) {
- 		dev_err(&port_priv->device->dev,
- 			"ib_mad_recv_done_handler no memory for response buffer\n");
-@@ -2075,7 +2085,7 @@ out:
- 	if (response) {
- 		ib_mad_post_receive_mads(qp_info, response);
- 		if (recv)
--			kmem_cache_free(ib_mad_cache, recv);
-+			kfree(recv);
- 	} else
- 		ib_mad_post_receive_mads(qp_info, recv);
- }
-@@ -2535,7 +2545,7 @@ local_send_completion:
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 		atomic_dec(&mad_agent_priv->refcount);
- 		if (free_mad)
--			kmem_cache_free(ib_mad_cache, local->mad_priv);
-+			kfree(local->mad_priv);
- 		kfree(local);
- 	}
- 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
-@@ -2664,7 +2674,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 			mad_priv = mad;
- 			mad = NULL;
- 		} else {
--			mad_priv = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
-+			mad_priv = alloc_mad_priv(qp_info->port_priv->device);
- 			if (!mad_priv) {
- 				dev_err(&qp_info->port_priv->device->dev,
- 					"No memory for receive buffer\n");
-@@ -2674,8 +2684,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 		}
- 		sg_list.addr = ib_dma_map_single(qp_info->port_priv->device,
- 						 &mad_priv->grh,
--						 sizeof *mad_priv -
--						   sizeof mad_priv->header,
-+						 mad_recv_buf_size(qp_info->port_priv->device),
- 						 DMA_FROM_DEVICE);
- 		if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
- 						  sg_list.addr))) {
-@@ -2699,10 +2708,9 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 			spin_unlock_irqrestore(&recv_queue->lock, flags);
- 			ib_dma_unmap_single(qp_info->port_priv->device,
- 					    mad_priv->header.mapping,
--					    sizeof *mad_priv -
--					      sizeof mad_priv->header,
-+					    mad_recv_buf_size(qp_info->port_priv->device),
- 					    DMA_FROM_DEVICE);
--			kmem_cache_free(ib_mad_cache, mad_priv);
-+			kfree(mad_priv);
- 			dev_err(&qp_info->port_priv->device->dev,
- 				"ib_post_recv failed: %d\n", ret);
- 			break;
-@@ -2739,10 +2747,9 @@ static void cleanup_recv_queue(struct ib_mad_qp_info *qp_info)
- 
- 		ib_dma_unmap_single(qp_info->port_priv->device,
- 				    recv->header.mapping,
--				    sizeof(struct ib_mad_private) -
--				      sizeof(struct ib_mad_private_header),
-+				    mad_recv_buf_size(qp_info->port_priv->device),
- 				    DMA_FROM_DEVICE);
--		kmem_cache_free(ib_mad_cache, recv);
-+		kfree(recv);
- 	}
- 
- 	qp_info->recv_queue.count = 0;
-@@ -3138,45 +3145,25 @@ static struct ib_client mad_client = {
- 
- static int __init ib_mad_init_module(void)
- {
--	int ret;
--
- 	mad_recvq_size = min(mad_recvq_size, IB_MAD_QP_MAX_SIZE);
- 	mad_recvq_size = max(mad_recvq_size, IB_MAD_QP_MIN_SIZE);
- 
- 	mad_sendq_size = min(mad_sendq_size, IB_MAD_QP_MAX_SIZE);
- 	mad_sendq_size = max(mad_sendq_size, IB_MAD_QP_MIN_SIZE);
- 
--	ib_mad_cache = kmem_cache_create("ib_mad",
--					 sizeof(struct ib_mad_private),
--					 0,
--					 SLAB_HWCACHE_ALIGN,
--					 NULL);
--	if (!ib_mad_cache) {
--		pr_err("Couldn't create ib_mad cache\n");
--		ret = -ENOMEM;
--		goto error1;
--	}
--
- 	INIT_LIST_HEAD(&ib_mad_port_list);
- 
- 	if (ib_register_client(&mad_client)) {
- 		pr_err("Couldn't register ib_mad client\n");
--		ret = -EINVAL;
--		goto error2;
-+		return(-EINVAL);
- 	}
- 
- 	return 0;
--
--error2:
--	kmem_cache_destroy(ib_mad_cache);
--error1:
--	return ret;
- }
- 
- static void __exit ib_mad_cleanup_module(void)
- {
- 	ib_unregister_client(&mad_client);
--	kmem_cache_destroy(ib_mad_cache);
- }
- 
- module_init(ib_mad_init_module);
++static inline u8 *opa_get_smp_data(struct opa_smp *smp)
++{
++	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
++		return smp->route.dr.data;
++
++	return smp->route.lid.data;
++}
++
++static inline size_t opa_get_smp_data_size(struct opa_smp *smp)
++{
++	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
++		return sizeof(smp->route.dr.data);
++
++	return sizeof(smp->route.lid.data);
++}
++
++static inline size_t opa_get_smp_header_size(struct opa_smp *smp)
++{
++	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
++		return sizeof(*smp) - sizeof(smp->route.dr.data);
++
++	return sizeof(*smp) - sizeof(smp->route.lid.data);
++}
++
++#endif /* OPA_SMI_H */
 -- 
 1.8.2
 
