@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 02/19] IB/core: Cache device attributes for use by upper level drivers
-Date: Wed,  4 Feb 2015 18:29:28 -0500
-Message-ID: <1423092585-26692-3-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 05/19] IB/mad: Change cast in rcv_has_same_class
+Date: Wed,  4 Feb 2015 18:29:31 -0500
+Message-ID: <1423092585-26692-6-git-send-email-ira.weiny@intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423092585-26692-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,41 +12,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Upper level drivers can access these cached device attributes rather than
-caching them on their own.
+rcv_has_same_class only needs access to the MAD header and can be used for both IB
+and Jumbo MADs.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 ---
- drivers/infiniband/core/device.c | 2 ++
- include/rdma/ib_verbs.h          | 1 +
- 2 files changed, 3 insertions(+)
+ drivers/infiniband/core/mad.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 18c1ece..30d9d09 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -294,6 +294,8 @@ int ib_register_device(struct ib_device *device,
- 	spin_lock_init(&device->event_handler_lock);
- 	spin_lock_init(&device->client_data_lock);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 66b3940..819b794 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1750,7 +1750,7 @@ static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
+ static inline int rcv_has_same_class(struct ib_mad_send_wr_private *wr,
+ 				     struct ib_mad_recv_wc *rwc)
+ {
+-	return ((struct ib_mad *)(wr->send_buf.mad))->mad_hdr.mgmt_class ==
++	return ((struct ib_mad_hdr *)(wr->send_buf.mad))->mgmt_class ==
+ 		rwc->recv_buf.mad->mad_hdr.mgmt_class;
+ }
  
-+	device->query_device(device, &device->cached_dev_attrs);
-+
- 	ret = read_port_table_lengths(device);
- 	if (ret) {
- 		printk(KERN_WARNING "Couldn't create table lengths cache for device %s\n",
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0d74f1d..0116e4b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1675,6 +1675,7 @@ struct ib_device {
- 	u32			     local_dma_lkey;
- 	u8                           node_type;
- 	u8                           phys_port_cnt;
-+	struct ib_device_attr        cached_dev_attrs;
- };
- 
- struct ib_client {
 -- 
 1.8.2
 
