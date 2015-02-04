@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 01/19] IB/mad: Rename is_data_mad to is_rmpp_data_mad
-Date: Wed,  4 Feb 2015 18:29:27 -0500
-Message-ID: <1423092585-26692-2-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 02/19] IB/core: Cache device attributes for use by upper level drivers
+Date: Wed,  4 Feb 2015 18:29:28 -0500
+Message-ID: <1423092585-26692-3-git-send-email-ira.weiny@intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423092585-26692-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,46 +12,41 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-is_rmpp_data_mad is more descriptive for this function.
+Upper level drivers can access these cached device attributes rather than
+caching them on their own.
 
-Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/mad.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 74c30f4..4673262 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1734,7 +1734,7 @@ out:
- 	return valid;
- }
+---
+ drivers/infiniband/core/device.c | 2 ++
+ include/rdma/ib_verbs.h          | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 18c1ece..30d9d09 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -294,6 +294,8 @@ int ib_register_device(struct ib_device *device,
+ 	spin_lock_init(&device->event_handler_lock);
+ 	spin_lock_init(&device->client_data_lock);
  
--static int is_data_mad(struct ib_mad_agent_private *mad_agent_priv,
-+static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
- 		       struct ib_mad_hdr *mad_hdr)
- {
- 	struct ib_rmpp_mad *rmpp_mad;
-@@ -1836,7 +1836,7 @@ ib_find_send_mad(struct ib_mad_agent_private *mad_agent_priv,
- 	 * been notified that the send has completed
- 	 */
- 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
--		if (is_data_mad(mad_agent_priv, wr->send_buf.mad) &&
-+		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
- 		    wr->tid == mad->mad_hdr.tid &&
- 		    wr->timeout &&
- 		    rcv_has_same_class(wr, wc) &&
-@@ -2411,7 +2411,8 @@ find_send_wr(struct ib_mad_agent_private *mad_agent_priv,
++	device->query_device(device, &device->cached_dev_attrs);
++
+ 	ret = read_port_table_lengths(device);
+ 	if (ret) {
+ 		printk(KERN_WARNING "Couldn't create table lengths cache for device %s\n",
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 0d74f1d..0116e4b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1675,6 +1675,7 @@ struct ib_device {
+ 	u32			     local_dma_lkey;
+ 	u8                           node_type;
+ 	u8                           phys_port_cnt;
++	struct ib_device_attr        cached_dev_attrs;
+ };
  
- 	list_for_each_entry(mad_send_wr, &mad_agent_priv->send_list,
- 			    agent_list) {
--		if (is_data_mad(mad_agent_priv, mad_send_wr->send_buf.mad) &&
-+		if (is_rmpp_data_mad(mad_agent_priv,
-+				     mad_send_wr->send_buf.mad) &&
- 		    &mad_send_wr->send_buf == send_buf)
- 			return mad_send_wr;
- 	}
+ struct ib_client {
 -- 
 1.8.2
 
