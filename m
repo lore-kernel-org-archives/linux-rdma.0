@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 18/19] IB/mad: Implement Intel Omni-Path Architecture SMP processing
-Date: Wed,  4 Feb 2015 18:29:44 -0500
-Message-ID: <1423092585-26692-19-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 17/19] IB/mad: Implement support for Intel Omni-Path Architecture base version MADs in ib_create_send_mad
+Date: Wed,  4 Feb 2015 18:29:43 -0500
+Message-ID: <1423092585-26692-18-git-send-email-ira.weiny@intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423092585-26692-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,357 +12,112 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Define the new OPA SMP format, create support functions for this format using
-the previously defined helper functions as appropriate.
+If the device supports OPA MADs process the OPA base version.
+	Set MAD size and sg lengths as appropriate
+	Split RMPP MADs as appropriate
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/mad_priv.h |   2 +
- drivers/infiniband/core/opa_smi.h  |  78 +++++++++++++++++++++++++++
- drivers/infiniband/core/smi.c      |  54 +++++++++++++++++++
- drivers/infiniband/core/smi.h      |   6 +++
- include/rdma/opa_smi.h             | 106 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 246 insertions(+)
- create mode 100644 drivers/infiniband/core/opa_smi.h
- create mode 100644 include/rdma/opa_smi.h
 
-diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
-index 10df80d..141b05a 100644
---- a/drivers/infiniband/core/mad_priv.h
-+++ b/drivers/infiniband/core/mad_priv.h
-@@ -41,6 +41,7 @@
- #include <linux/workqueue.h>
- #include <rdma/ib_mad.h>
- #include <rdma/ib_smi.h>
-+#include <rdma/opa_smi.h>
- 
- #define IB_MAD_QPS_CORE		2 /* Always QP0 and QP1 as a minimum */
- 
-@@ -82,6 +83,7 @@ struct ib_mad_private {
- 		struct ib_smp smp;
- 		struct jumbo_mad jumbo_mad;
- 		struct jumbo_rmpp_mad jumbo_rmpp_mad;
-+		struct opa_smp opa_smp;
- 	} mad;
- } __attribute__ ((packed));
- 
-diff --git a/drivers/infiniband/core/opa_smi.h b/drivers/infiniband/core/opa_smi.h
-new file mode 100644
-index 0000000..d180179
---- /dev/null
-+++ b/drivers/infiniband/core/opa_smi.h
-@@ -0,0 +1,78 @@
-+/*
-+ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
-+
-+#ifndef __OPA_SMI_H_
-+#define __OPA_SMI_H_
-+
-+#include <rdma/ib_smi.h>
-+#include <rdma/opa_smi.h>
-+
-+#include "smi.h"
-+
-+enum smi_action opa_smi_handle_dr_smp_recv(struct opa_smp *smp, u8 node_type,
-+				       int port_num, int phys_port_cnt);
-+int opa_smi_get_fwd_port(struct opa_smp *smp);
-+extern enum smi_forward_action opa_smi_check_forward_dr_smp(struct opa_smp *smp);
-+extern enum smi_action opa_smi_handle_dr_smp_send(struct opa_smp *smp,
-+					      u8 node_type, int port_num);
-+
-+/*
-+ * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
-+ * via process_mad
-+ */
-+static inline enum smi_action opa_smi_check_local_smp(struct opa_smp *smp,
-+						  struct ib_device *device)
-+{
-+	/* C14-9:3 -- We're at the end of the DR segment of path */
-+	/* C14-9:4 -- Hop Pointer = Hop Count + 1 -> give to SMA/SM */
-+	return (device->process_mad &&
-+		!opa_get_smp_direction(smp) &&
-+		(smp->hop_ptr == smp->hop_cnt + 1)) ?
-+		IB_SMI_HANDLE : IB_SMI_DISCARD;
-+}
-+
-+/*
-+ * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
-+ * via process_mad
-+ */
-+static inline enum smi_action opa_smi_check_local_returning_smp(struct opa_smp *smp,
-+						   struct ib_device *device)
-+{
-+	/* C14-13:3 -- We're at the end of the DR segment of path */
-+	/* C14-13:4 -- Hop Pointer == 0 -> give to SM */
-+	return (device->process_mad &&
-+		opa_get_smp_direction(smp) &&
-+		!smp->hop_ptr) ? IB_SMI_HANDLE : IB_SMI_DISCARD;
-+}
-+
-+#endif	/* __OPA_SMI_H_ */
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index 8a5fb1d..a38ccb4 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -5,6 +5,7 @@
-  * Copyright (c) 2004, 2005 Topspin Corporation.  All rights reserved.
-  * Copyright (c) 2004-2007 Voltaire Corporation.  All rights reserved.
-  * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
-+ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -38,6 +39,7 @@
- 
- #include <rdma/ib_smi.h>
- #include "smi.h"
-+#include "opa_smi.h"
- 
- static inline
- enum smi_action __smi_handle_dr_smp_send(u8 node_type, int port_num,
-@@ -137,6 +139,20 @@ enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
- 					smp->dr_slid == IB_LID_PERMISSIVE);
+---
+ drivers/infiniband/core/mad.c | 38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 316b4b2..5aefe4c 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -857,11 +857,11 @@ out:
+ 	return ret;
  }
  
-+enum smi_action opa_smi_handle_dr_smp_send(struct opa_smp *smp,
-+				       u8 node_type, int port_num)
-+{
-+	return __smi_handle_dr_smp_send(node_type, port_num,
-+					&smp->hop_ptr, smp->hop_cnt,
-+					smp->route.dr.initial_path,
-+					smp->route.dr.return_path,
-+					opa_get_smp_direction(smp),
-+					smp->route.dr.dr_dlid ==
-+					OPA_LID_PERMISSIVE,
-+					smp->route.dr.dr_slid ==
-+					OPA_LID_PERMISSIVE);
-+}
-+
- static inline
- enum smi_action __smi_handle_dr_smp_recv(u8 node_type, int port_num,
- 					 int phys_port_cnt,
-@@ -236,6 +252,24 @@ enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
- 					smp->dr_slid == IB_LID_PERMISSIVE);
- }
- 
-+/*
-+ * Adjust information for a received SMP
-+ * Return 0 if the SMP should be dropped
-+ */
-+enum smi_action opa_smi_handle_dr_smp_recv(struct opa_smp *smp, u8 node_type,
-+					   int port_num, int phys_port_cnt)
-+{
-+	return __smi_handle_dr_smp_recv(node_type, port_num, phys_port_cnt,
-+					&smp->hop_ptr, smp->hop_cnt,
-+					smp->route.dr.initial_path,
-+					smp->route.dr.return_path,
-+					opa_get_smp_direction(smp),
-+					smp->route.dr.dr_dlid ==
-+					OPA_LID_PERMISSIVE,
-+					smp->route.dr.dr_slid ==
-+					OPA_LID_PERMISSIVE);
-+}
-+
- static inline
- enum smi_forward_action __smi_check_forward_dr_smp(u8 hop_ptr, u8 hop_cnt,
- 						   u8 direction,
-@@ -277,6 +311,16 @@ enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
- 					  smp->dr_slid != IB_LID_PERMISSIVE);
- }
- 
-+enum smi_forward_action opa_smi_check_forward_dr_smp(struct opa_smp *smp)
-+{
-+	return __smi_check_forward_dr_smp(smp->hop_ptr, smp->hop_cnt,
-+					  opa_get_smp_direction(smp),
-+					  smp->route.dr.dr_dlid ==
-+					  OPA_LID_PERMISSIVE,
-+					  smp->route.dr.dr_slid ==
-+					  OPA_LID_PERMISSIVE);
-+}
-+
- /*
-  * Return the forwarding port number from initial_path for outgoing SMP and
-  * from return_path for returning SMP
-@@ -286,3 +330,13 @@ int smi_get_fwd_port(struct ib_smp *smp)
- 	return (!ib_get_smp_direction(smp) ? smp->initial_path[smp->hop_ptr+1] :
- 		smp->return_path[smp->hop_ptr-1]);
- }
-+
-+/*
-+ * Return the forwarding port number from initial_path for outgoing SMP and
-+ * from return_path for returning SMP
-+ */
-+int opa_smi_get_fwd_port(struct opa_smp *smp)
-+{
-+	return !opa_get_smp_direction(smp) ? smp->route.dr.initial_path[smp->hop_ptr+1] :
-+		smp->route.dr.return_path[smp->hop_ptr-1];
-+}
-diff --git a/drivers/infiniband/core/smi.h b/drivers/infiniband/core/smi.h
-index aff96ba..e95c537 100644
---- a/drivers/infiniband/core/smi.h
-+++ b/drivers/infiniband/core/smi.h
-@@ -62,6 +62,9 @@ extern enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
-  * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
-  * via process_mad
-  */
-+/* NOTE: This is called on opa_smp's don't check fields which are not common
-+ * between ib_smp and opa_smp
-+ */
- static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
- 						  struct ib_device *device)
+-static int get_pad_size(int hdr_len, int data_len)
++static int get_pad_size(int hdr_len, int data_len, size_t mad_size)
  {
-@@ -77,6 +80,9 @@ static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
-  * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
-  * via process_mad
-  */
-+/* NOTE: This is called on opa_smp's don't check fields which are not common
-+ * between ib_smp and opa_smp
-+ */
- static inline enum smi_action smi_check_local_returning_smp(struct ib_smp *smp,
- 						   struct ib_device *device)
+ 	int seg_size, pad;
+ 
+-	seg_size = sizeof(struct ib_mad) - hdr_len;
++	seg_size = mad_size - hdr_len;
+ 	if (data_len && seg_size) {
+ 		pad = seg_size - data_len % seg_size;
+ 		return pad == seg_size ? 0 : pad;
+@@ -880,14 +880,14 @@ static void free_send_rmpp_list(struct ib_mad_send_wr_private *mad_send_wr)
+ }
+ 
+ static int alloc_send_rmpp_list(struct ib_mad_send_wr_private *send_wr,
+-				gfp_t gfp_mask)
++				size_t mad_size, gfp_t gfp_mask)
  {
-diff --git a/include/rdma/opa_smi.h b/include/rdma/opa_smi.h
-new file mode 100644
-index 0000000..29063e8
---- /dev/null
-+++ b/include/rdma/opa_smi.h
-@@ -0,0 +1,106 @@
-+/*
-+ * Copyright (c) 2014 Intel Corporation.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+ 	struct ib_mad_send_buf *send_buf = &send_wr->send_buf;
+ 	struct ib_rmpp_base *rmpp_base = send_buf->mad;
+ 	struct ib_rmpp_segment *seg = NULL;
+ 	int left, seg_size, pad;
+ 
+-	send_buf->seg_size = sizeof (struct ib_mad) - send_buf->hdr_len;
++	send_buf->seg_size = mad_size - send_buf->hdr_len;
+ 	seg_size = send_buf->seg_size;
+ 	pad = send_wr->pad;
+ 
+@@ -937,20 +937,31 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
+ 	struct ib_mad_send_wr_private *mad_send_wr;
+ 	int pad, message_size, ret, size;
+ 	void *buf;
++	size_t mad_size;
++	int opa;
+ 
+ 	mad_agent_priv = container_of(mad_agent, struct ib_mad_agent_private,
+ 				      agent);
+-	pad = get_pad_size(hdr_len, data_len);
 +
-+#if !defined(OPA_SMI_H)
-+#define OPA_SMI_H
++	opa = mad_agent_priv->agent.device->cached_dev_attrs.device_cap_flags2 &
++	      IB_DEVICE_OPA_MAD_SUPPORT;
 +
-+#include <rdma/ib_mad.h>
-+#include <rdma/ib_smi.h>
++	if (opa && base_version == OPA_MGMT_BASE_VERSION)
++		mad_size = sizeof(struct jumbo_mad);
++	else
++		mad_size = sizeof(struct ib_mad);
 +
-+#define OPA_SMP_LID_DATA_SIZE			2016
-+#define OPA_SMP_DR_DATA_SIZE			1872
-+#define OPA_SMP_MAX_PATH_HOPS			64
++	pad = get_pad_size(hdr_len, data_len, mad_size);
+ 	message_size = hdr_len + data_len + pad;
+ 
+ 	if (ib_mad_kernel_rmpp_agent(mad_agent)) {
+-		if (!rmpp_active && message_size > sizeof(struct ib_mad))
++		if (!rmpp_active && message_size > mad_size)
+ 			return ERR_PTR(-EINVAL);
+ 	} else
+-		if (rmpp_active || message_size > sizeof(struct ib_mad))
++		if (rmpp_active || message_size > mad_size)
+ 			return ERR_PTR(-EINVAL);
+ 
+-	size = rmpp_active ? hdr_len : sizeof(struct ib_mad);
++	size = rmpp_active ? hdr_len : mad_size;
+ 	buf = kzalloc(sizeof *mad_send_wr + size, gfp_mask);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+@@ -965,7 +976,14 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
+ 	mad_send_wr->mad_agent_priv = mad_agent_priv;
+ 	mad_send_wr->sg_list[0].length = hdr_len;
+ 	mad_send_wr->sg_list[0].lkey = mad_agent->mr->lkey;
+-	mad_send_wr->sg_list[1].length = sizeof(struct ib_mad) - hdr_len;
 +
-+#define OPA_SMI_CLASS_VERSION			0x80
++	/* OPA MADs don't have to be the full 2048 bytes */
++	if (opa && base_version == OPA_MGMT_BASE_VERSION &&
++	    data_len < mad_size - hdr_len)
++		mad_send_wr->sg_list[1].length = data_len;
++	else
++		mad_send_wr->sg_list[1].length = mad_size - hdr_len;
 +
-+#define OPA_LID_PERMISSIVE			cpu_to_be32(0xFFFFFFFF)
-+
-+struct opa_smp {
-+	u8	base_version;
-+	u8	mgmt_class;
-+	u8	class_version;
-+	u8	method;
-+	__be16	status;
-+	u8	hop_ptr;
-+	u8	hop_cnt;
-+	__be64	tid;
-+	__be16	attr_id;
-+	__be16	resv;
-+	__be32	attr_mod;
-+	__be64	mkey;
-+	union {
-+		struct {
-+			uint8_t data[OPA_SMP_LID_DATA_SIZE];
-+		} lid;
-+		struct {
-+			__be32	dr_slid;
-+			__be32	dr_dlid;
-+			u8	initial_path[OPA_SMP_MAX_PATH_HOPS];
-+			u8	return_path[OPA_SMP_MAX_PATH_HOPS];
-+			u8	reserved[8];
-+			u8	data[OPA_SMP_DR_DATA_SIZE];
-+		} dr;
-+	} route;
-+} __packed;
-+
-+
-+static inline u8
-+opa_get_smp_direction(struct opa_smp *smp)
-+{
-+	return ib_get_smp_direction((struct ib_smp *)smp);
-+}
-+
-+static inline u8 *opa_get_smp_data(struct opa_smp *smp)
-+{
-+	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
-+		return smp->route.dr.data;
-+
-+	return smp->route.lid.data;
-+}
-+
-+static inline size_t opa_get_smp_data_size(struct opa_smp *smp)
-+{
-+	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
-+		return sizeof(smp->route.dr.data);
-+
-+	return sizeof(smp->route.lid.data);
-+}
-+
-+static inline size_t opa_get_smp_header_size(struct opa_smp *smp)
-+{
-+	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
-+		return sizeof(*smp) - sizeof(smp->route.dr.data);
-+
-+	return sizeof(*smp) - sizeof(smp->route.lid.data);
-+}
-+
-+#endif /* OPA_SMI_H */
+ 	mad_send_wr->sg_list[1].lkey = mad_agent->mr->lkey;
+ 
+ 	mad_send_wr->send_wr.wr_id = (unsigned long) mad_send_wr;
+@@ -978,7 +996,7 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
+ 	mad_send_wr->send_wr.wr.ud.pkey_index = pkey_index;
+ 
+ 	if (rmpp_active) {
+-		ret = alloc_send_rmpp_list(mad_send_wr, gfp_mask);
++		ret = alloc_send_rmpp_list(mad_send_wr, mad_size, gfp_mask);
+ 		if (ret) {
+ 			kfree(buf);
+ 			return ERR_PTR(ret);
 -- 
 1.8.2
 
