@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 04/19] IB/mad: Change ib_response_mad signature to take ib_mad_hdr rather than ib_mad
-Date: Wed,  4 Feb 2015 18:29:30 -0500
-Message-ID: <1423092585-26692-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v4 03/19] IB/mad: Change validate_mad signature to take ib_mad_hdr rather than ib_mad
+Date: Wed,  4 Feb 2015 18:29:29 -0500
+Message-ID: <1423092585-26692-4-git-send-email-ira.weiny@intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423092585-26692-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,108 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-ib_response_mad only needs access to the MAD header and can be used for both IB
+validate_mad only needs access to the MAD header and can be used for both IB
 and Jumbo MADs.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c      | 20 ++++++++++----------
- drivers/infiniband/core/user_mad.c |  6 +++---
- include/rdma/ib_mad.h              |  2 +-
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/mad.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 9ffff9b..66b3940 100644
+index 4673262..9ffff9b 100644
 --- a/drivers/infiniband/core/mad.c
 +++ b/drivers/infiniband/core/mad.c
-@@ -179,12 +179,12 @@ static int is_vendor_method_in_use(
- 	return 0;
+@@ -1708,20 +1708,20 @@ out:
+ 	return mad_agent;
  }
  
--int ib_response_mad(struct ib_mad *mad)
-+int ib_response_mad(struct ib_mad_hdr *hdr)
+-static int validate_mad(struct ib_mad *mad, u32 qp_num)
++static int validate_mad(struct ib_mad_hdr *mad_hdr, u32 qp_num)
  {
--	return ((mad->mad_hdr.method & IB_MGMT_METHOD_RESP) ||
--		(mad->mad_hdr.method == IB_MGMT_METHOD_TRAP_REPRESS) ||
--		((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_BM) &&
--		 (mad->mad_hdr.attr_mod & IB_BM_ATTR_MOD_RESP)));
-+	return ((hdr->method & IB_MGMT_METHOD_RESP) ||
-+		(hdr->method == IB_MGMT_METHOD_TRAP_REPRESS) ||
-+		((hdr->mgmt_class == IB_MGMT_CLASS_BM) &&
-+		 (hdr->attr_mod & IB_BM_ATTR_MOD_RESP)));
- }
- EXPORT_SYMBOL(ib_response_mad);
+ 	int valid = 0;
  
-@@ -791,7 +791,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	switch (ret)
- 	{
- 	case IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY:
--		if (ib_response_mad(&mad_priv->mad.mad) &&
-+		if (ib_response_mad(&mad_priv->mad.mad.mad_hdr) &&
- 		    mad_agent_priv->agent.recv_handler) {
- 			local->mad_priv = mad_priv;
- 			local->recv_mad_agent = mad_agent_priv;
-@@ -1628,7 +1628,7 @@ find_mad_agent(struct ib_mad_port_private *port_priv,
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&port_priv->reg_lock, flags);
--	if (ib_response_mad(mad)) {
-+	if (ib_response_mad(&mad->mad_hdr)) {
- 		u32 hi_tid;
- 		struct ib_mad_agent_private *entry;
- 
-@@ -1765,8 +1765,8 @@ static inline int rcv_has_same_gid(struct ib_mad_agent_private *mad_agent_priv,
- 	u8 port_num = mad_agent_priv->agent.port_num;
- 	u8 lmc;
- 
--	send_resp = ib_response_mad((struct ib_mad *)wr->send_buf.mad);
--	rcv_resp = ib_response_mad(rwc->recv_buf.mad);
-+	send_resp = ib_response_mad((struct ib_mad_hdr *)wr->send_buf.mad);
-+	rcv_resp = ib_response_mad(&rwc->recv_buf.mad->mad_hdr);
- 
- 	if (send_resp == rcv_resp)
- 		/* both requests, or both responses. GIDs different */
-@@ -1879,7 +1879,7 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	/* Make sure MAD base version is understood */
+-	if (mad->mad_hdr.base_version != IB_MGMT_BASE_VERSION) {
++	if (mad_hdr->base_version != IB_MGMT_BASE_VERSION) {
+ 		pr_err("MAD received with unsupported base version %d\n",
+-			mad->mad_hdr.base_version);
++			mad_hdr->base_version);
+ 		goto out;
  	}
  
- 	/* Complete corresponding request */
--	if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
-+	if (ib_response_mad(&mad_recv_wc->recv_buf.mad->mad_hdr)) {
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 		mad_send_wr = ib_find_send_mad(mad_agent_priv, mad_recv_wc);
- 		if (!mad_send_wr) {
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 928cdd2..66b5217 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -426,11 +426,11 @@ static int is_duplicate(struct ib_umad_file *file,
- 		 * the same TID, reject the second as a duplicate.  This is more
- 		 * restrictive than required by the spec.
- 		 */
--		if (!ib_response_mad((struct ib_mad *) hdr)) {
--			if (!ib_response_mad((struct ib_mad *) sent_hdr))
-+		if (!ib_response_mad(hdr)) {
-+			if (!ib_response_mad(sent_hdr))
- 				return 1;
- 			continue;
--		} else if (!ib_response_mad((struct ib_mad *) sent_hdr))
-+		} else if (!ib_response_mad(sent_hdr))
- 			continue;
+ 	/* Filter SMI packets sent to other than QP0 */
+-	if ((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
+-	    (mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
++	if ((mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
++	    (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
+ 		if (qp_num == 0)
+ 			valid = 1;
+ 	} else {
+@@ -1979,7 +1979,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 		snoop_recv(qp_info, &recv->header.recv_wc, IB_MAD_SNOOP_RECVS);
  
- 		if (same_destination(&packet->mad.hdr, &sent_packet->mad.hdr))
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index 9bb99e9..9c89939 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -263,7 +263,7 @@ struct ib_mad_send_buf {
-  * ib_response_mad - Returns if the specified MAD has been generated in
-  *   response to a sent request or trap.
-  */
--int ib_response_mad(struct ib_mad *mad);
-+int ib_response_mad(struct ib_mad_hdr *hdr);
+ 	/* Validate MAD */
+-	if (!validate_mad(&recv->mad.mad, qp_info->qp->qp_num))
++	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
+ 		goto out;
  
- /**
-  * ib_get_rmpp_resptime - Returns the RMPP response time.
+ 	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
 -- 
 1.8.2
 
