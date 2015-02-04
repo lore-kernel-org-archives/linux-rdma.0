@@ -1,67 +1,223 @@
-From: arivumani <dennis@redona.net>
-Subject: Fw (2): arivumani@gmail.com
-Date: Wed, 1 Jan 2015 09:05:42 +0000
-Message-ID: <6c567c326f4a$2b4366e6$79d4c9d0$@redona.net>
+From: Quentin Lambert <lambert.quentin@gmail.com>
+Subject: [PATCH 1/1] IB/mthca: remove deprecated use of pci api
+Date: Wed, 4 Feb 2015 15:09:11 +0100
+Message-ID: <20150204140911.GA23076@sloth>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6226039680320826875=="
-Return-path: <e1000-devel-bounces@lists.sourceforge.net>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
-List-Post: <mailto:e1000-devel@lists.sourceforge.net>
-List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: e1000-devel-bounces@lists.sourceforge.net
-To: linux rdma <linux-rdma@vger.kernel.org>, linux usb <linux-usb@vger.kernel.org>, linux wireless <linux-wireless@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>, virtualization <virtualization@lists.linux-foundation.org>, e1000 devel <e1000-devel@lists.sourceforge.net>, bridge <bridge@lists.linux-foundation.org>, devel <devel@linuxdriverproject.org>, nios2 dev <nios2-dev@lists.rocketboards.org>, linuxppc dev <linuxppc-dev@lists.ozlabs.org>, linux acenic <linux-acenic@sunsite.dk>, w lkml <w-lkml@lebenslange-mailadresse.de>, prabakar krishnamoorthy <kprabakar13@gmail.com>, Abhijit Kumbhare <abhijitkoss@gmail.com>, Luis Gomez <lpalacio@brocade.com>, Hung Nguyen The <hungnt1@saobacdau.vn>, Cristina Palomo Regidor <cristina.palomo.regidor@ericsson.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: kernel-janitors@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Replace occurences of the pci api by appropriate call to the dma api.
 
---===============6226039680320826875==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_BCC5_EAE52549.1A20BB63"
+A simplified version of the semantic patch that finds this problem is as
+follows: (http://coccinelle.lip6.fr)
 
-This is a multi-part message in MIME format.
+@deprecated@
+idexpression id;
+position p;
+@@
 
-------=_NextPart_000_BCC5_EAE52549.1A20BB63
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+(
+  pci_dma_supported@p ( id, ...)
+|
+  pci_alloc_consistent@p ( id, ...)
+)
 
-Hi! How are you?
-It works! http://thpt-tranhungdao-brvt.edu.vn/Harley.php?arivumani_gmail_com
-   =20
-arivumani@gmail.com
-   =20
+@bad1@
+idexpression id;
+position deprecated.p;
+@@
+...when != &id->dev
+   when != pci_get_drvdata ( id )
+   when != pci_enable_device ( id )
+(
+  pci_dma_supported@p ( id, ...)
+|
+  pci_alloc_consistent@p ( id, ...)
+)
 
-------=_NextPart_000_BCC5_EAE52549.1A20BB63--
-Thread-Index: AdDP5VJhUHJ5OXNsdnlvOGQ4bGplOQ==
+@depends on !bad1@
+idexpression id;
+expression direction;
+position deprecated.p;
+@@
 
+(
+- pci_dma_supported@p ( id,
++ dma_supported ( &id->dev,
+...
++ , GFP_ATOMIC
+  )
+|
+- pci_alloc_consistent@p ( id,
++ dma_alloc_coherent ( &id->dev,
+...
++ , GFP_ATOMIC
+  )
+)
 
---===============6226039680320826875==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Signed-off-by: Quentin Lambert <lambert.quentin@gmail.com>
+---
+ drivers/infiniband/hw/mthca/mthca_eq.c      | 20 ++++++++++++--------
+ drivers/infiniband/hw/mthca/mthca_main.c    |  8 ++++----
+ drivers/infiniband/hw/mthca/mthca_memfree.c | 23 ++++++++++++++---------
+ 3 files changed, 30 insertions(+), 21 deletions(-)
 
-------------------------------------------------------------------------------
-Dive into the World of Parallel Programming. The Go Parallel Website,
-sponsored by Intel and developed in partnership with Slashdot Media, is your
-hub for all things parallel software development, from weekly thought
-leadership blogs to news, videos, case studies, tutorials and more. Take a
-look and join the conversation now. http://goparallel.sourceforge.net/
---===============6226039680320826875==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+diff --git a/drivers/infiniband/hw/mthca/mthca_eq.c b/drivers/infiniband/hw/mthca/mthca_eq.c
+index 6902017..cd99e8c 100644
+--- a/drivers/infiniband/hw/mthca/mthca_eq.c
++++ b/drivers/infiniband/hw/mthca/mthca_eq.c
+@@ -617,7 +617,7 @@ static void mthca_free_eq(struct mthca_dev *dev,
+ 
+ 	mthca_free_mr(dev, &eq->mr);
+ 	for (i = 0; i < npages; ++i)
+-		pci_free_consistent(dev->pdev, PAGE_SIZE,
++		dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
+ 				    eq->page_list[i].buf,
+ 				    dma_unmap_addr(&eq->page_list[i], mapping));
+ 
+@@ -739,17 +739,21 @@ int mthca_map_eq_icm(struct mthca_dev *dev, u64 icm_virt)
+ 	dev->eq_table.icm_page = alloc_page(GFP_HIGHUSER);
+ 	if (!dev->eq_table.icm_page)
+ 		return -ENOMEM;
+-	dev->eq_table.icm_dma  = pci_map_page(dev->pdev, dev->eq_table.icm_page, 0,
+-					      PAGE_SIZE, PCI_DMA_BIDIRECTIONAL);
+-	if (pci_dma_mapping_error(dev->pdev, dev->eq_table.icm_dma)) {
++	dev->eq_table.icm_dma  = dma_map_page(&dev->pdev->dev,
++					      dev->eq_table.icm_page, 0,
++					      PAGE_SIZE,
++					      (enum dma_data_direction)PCI_DMA_BIDIRECTIONAL);
++
++	if (dma_mapping_error(&dev->pdev->dev, dev->eq_table.icm_dma)) {
+ 		__free_page(dev->eq_table.icm_page);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	ret = mthca_MAP_ICM_page(dev, dev->eq_table.icm_dma, icm_virt);
+ 	if (ret) {
+-		pci_unmap_page(dev->pdev, dev->eq_table.icm_dma, PAGE_SIZE,
+-			       PCI_DMA_BIDIRECTIONAL);
++		dma_unmap_page(&dev->pdev->dev, dev->eq_table.icm_dma,
++			       PAGE_SIZE,
++			       (enum dma_data_direction)PCI_DMA_BIDIRECTIONAL);
+ 		__free_page(dev->eq_table.icm_page);
+ 	}
+ 
+@@ -759,8 +763,8 @@ int mthca_map_eq_icm(struct mthca_dev *dev, u64 icm_virt)
+ void mthca_unmap_eq_icm(struct mthca_dev *dev)
+ {
+ 	mthca_UNMAP_ICM(dev, dev->eq_table.icm_virt, 1);
+-	pci_unmap_page(dev->pdev, dev->eq_table.icm_dma, PAGE_SIZE,
+-		       PCI_DMA_BIDIRECTIONAL);
++	dma_unmap_page(&dev->pdev->dev, dev->eq_table.icm_dma, PAGE_SIZE,
++		       (enum dma_data_direction)PCI_DMA_BIDIRECTIONAL);
+ 	__free_page(dev->eq_table.icm_page);
+ }
+ 
+diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
+index ded76c1..2b52416 100644
+--- a/drivers/infiniband/hw/mthca/mthca_main.c
++++ b/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -940,20 +940,20 @@ static int __mthca_init_one(struct pci_dev *pdev, int hca_type)
+ 
+ 	pci_set_master(pdev);
+ 
+-	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
++	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(64));
+ 	if (err) {
+ 		dev_warn(&pdev->dev, "Warning: couldn't set 64-bit PCI DMA mask.\n");
+-		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+ 		if (err) {
+ 			dev_err(&pdev->dev, "Can't set PCI DMA mask, aborting.\n");
+ 			goto err_free_res;
+ 		}
+ 	}
+-	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
++	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
+ 	if (err) {
+ 		dev_warn(&pdev->dev, "Warning: couldn't set 64-bit "
+ 			 "consistent PCI DMA mask.\n");
+-		err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
++		err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+ 		if (err) {
+ 			dev_err(&pdev->dev, "Can't set consistent PCI DMA mask, "
+ 				"aborting.\n");
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index 7d2e42d..aba6866 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -66,8 +66,8 @@ static void mthca_free_icm_pages(struct mthca_dev *dev, struct mthca_icm_chunk *
+ 	int i;
+ 
+ 	if (chunk->nsg > 0)
+-		pci_unmap_sg(dev->pdev, chunk->mem, chunk->npages,
+-			     PCI_DMA_BIDIRECTIONAL);
++		dma_unmap_sg(&dev->pdev->dev, chunk->mem, chunk->npages,
++			     (enum dma_data_direction)PCI_DMA_BIDIRECTIONAL);
+ 
+ 	for (i = 0; i < chunk->npages; ++i)
+ 		__free_pages(sg_page(&chunk->mem[i]),
+@@ -184,9 +184,10 @@ struct mthca_icm *mthca_alloc_icm(struct mthca_dev *dev, int npages,
+ 			if (coherent)
+ 				++chunk->nsg;
+ 			else if (chunk->npages == MTHCA_ICM_CHUNK_LEN) {
+-				chunk->nsg = pci_map_sg(dev->pdev, chunk->mem,
++				chunk->nsg = dma_map_sg(&dev->pdev->dev,
++							chunk->mem,
+ 							chunk->npages,
+-							PCI_DMA_BIDIRECTIONAL);
++							(enum dma_data_direction)PCI_DMA_BIDIRECTIONAL);
+ 
+ 				if (chunk->nsg <= 0)
+ 					goto fail;
+@@ -204,9 +205,10 @@ struct mthca_icm *mthca_alloc_icm(struct mthca_dev *dev, int npages,
+ 	}
+ 
+ 	if (!coherent && chunk) {
+-		chunk->nsg = pci_map_sg(dev->pdev, chunk->mem,
++		chunk->nsg = dma_map_sg(&dev->pdev->dev,
++					chunk->mem,
+ 					chunk->npages,
+-					PCI_DMA_BIDIRECTIONAL);
++					(enum dma_data_direction)PCI_DMA_BIDIRECTIONAL);
+ 
+ 		if (chunk->nsg <= 0)
+ 			goto fail;
+@@ -480,7 +482,8 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 	sg_set_page(&db_tab->page[i].mem, pages[0], MTHCA_ICM_PAGE_SIZE,
+ 			uaddr & ~PAGE_MASK);
+ 
+-	ret = pci_map_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
++	ret = dma_map_sg(&dev->pdev->dev, &db_tab->page[i].mem, 1,
++			 (enum dma_data_direction)PCI_DMA_TODEVICE);
+ 	if (ret < 0) {
+ 		put_page(pages[0]);
+ 		goto out;
+@@ -489,7 +492,8 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 	ret = mthca_MAP_ICM_page(dev, sg_dma_address(&db_tab->page[i].mem),
+ 				 mthca_uarc_virt(dev, uar, i));
+ 	if (ret) {
+-		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
++		dma_unmap_sg(&dev->pdev->dev, &db_tab->page[i].mem, 1,
++			     (enum dma_data_direction)PCI_DMA_TODEVICE);
+ 		put_page(sg_page(&db_tab->page[i].mem));
+ 		goto out;
+ 	}
+@@ -555,7 +559,8 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
+ 	for (i = 0; i < dev->uar_table.uarc_size / MTHCA_ICM_PAGE_SIZE; ++i) {
+ 		if (db_tab->page[i].uvirt) {
+ 			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
+-			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
++			dma_unmap_sg(&dev->pdev->dev, &db_tab->page[i].mem, 1,
++				     (enum dma_data_direction)PCI_DMA_TODEVICE);
+ 			put_page(sg_page(&db_tab->page[i].mem));
+ 		}
+ 	}
+-- 
+1.9.1
 
-_______________________________________________
-E1000-devel mailing list
-E1000-devel@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/e1000-devel
-To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
-
---===============6226039680320826875==--
-Thread-Index: AdDP5VJhUHJ5OXNsdnlvOGQ4bGplOQ==
