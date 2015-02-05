@@ -1,115 +1,64 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] Add new configure flag to enable/disable
- the rdma-ndd build
-Date: Thu, 05 Feb 2015 07:19:15 -0500
-Message-ID: <54D35FC3.60407@dev.mellanox.co.il>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] InfiniBand: Delete unnecessary checks before the function,
+ call "srp_destroy_fr_pool"
+Date: Thu, 05 Feb 2015 13:26:56 +0100
+Message-ID: <54D36190.1050407@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
+ urceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 5 Feb 2015 13:20:42 +0100
 
-Add new flag --enable-rdma-ndd (default=yes) 
+The srp_destroy_fr_pool() function tests whether its argument is NULL and then
+returns immediately. Thus the test around the call is not needed.
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
-diff --git a/Makefile.am b/Makefile.am
-index 4e08c2b..63c4b48 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -15,9 +15,11 @@ sbin_PROGRAMS = src/ibaddr src/ibnetdiscover src/ibping src/ibportstate \
- 	        src/perfquery src/sminfo src/smpdump src/smpquery \
- 	        src/saquery src/vendstat src/iblinkinfo \
- 		src/ibqueryerrors src/ibcacheedit src/ibccquery \
--		src/ibccconfig \
--		src/dump_fts \
--		src/rdma-ndd
-+		src/ibccconfig src/dump_fts
+ drivers/infiniband/ulp/srp/ib_srp.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 0747c05..6f5dfa1 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -549,8 +549,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 				     "FR pool allocation failed (%d)\n", ret);
+ 			goto err_qp;
+ 		}
+-		if (ch->fr_pool)
+-			srp_destroy_fr_pool(ch->fr_pool);
++		srp_destroy_fr_pool(ch->fr_pool);
+ 		ch->fr_pool = fr_pool;
+ 	} else if (!dev->use_fast_reg && dev->has_fmr) {
+ 		fmr_pool = srp_alloc_fmr_pool(target);
+@@ -615,13 +614,12 @@ static void srp_free_ch_ib(struct srp_target_port *target,
+ 	if (!ch->qp)
+ 		return;
+ 
+-	if (dev->use_fast_reg) {
+-		if (ch->fr_pool)
+-			srp_destroy_fr_pool(ch->fr_pool);
+-	} else {
++	if (dev->use_fast_reg)
++		srp_destroy_fr_pool(ch->fr_pool);
++	else
+ 		if (ch->fmr_pool)
+ 			ib_destroy_fmr_pool(ch->fmr_pool);
+-	}
 +
-+if ENABLE_RDMA_NDD
-+sbin_PROGRAMS += src/rdma-ndd
-+endif
- 
- if ENABLE_TEST_UTILS
- sbin_PROGRAMS += src/ibsendtrap src/mcm_rereg_test
-@@ -71,10 +73,13 @@ man_MANS = doc/man/ibaddr.8 \
- 		doc/man/smpquery.8 \
- 		doc/man/vendstat.8 \
- 		doc/man/infiniband-diags.8 \
--		doc/man/rdma-ndd.8 \
- 		man/dump_lfts.8 \
- 		man/dump_mfts.8
- 
-+if ENABLE_RDMA_NDD
-+man_MANS += doc/man/rdma-ndd.8
-+endif
-+
- # define this for the dist target
- compat_man_pages = man/ibdiscover.8 man/ibcheckerrors.8 man/ibcheckerrs.8 \
- 		man/ibchecknet.8 man/ibchecknode.8 man/ibcheckport.8 \
-@@ -161,6 +166,8 @@ install-data-hook:
- 	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
- 	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
- 
-+if ENABLE_RDMA_NDD
- install-exec-hook:
- 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
- 	$(top_srcdir)/config/install-sh -m 755 $(top_srcdir)/etc/rdma-ndd.init $(DESTDIR)/$(sysconfdir)/init.d/rdma-ndd
-+endif
-diff --git a/configure.ac b/configure.ac
-index ed1b834..11f47f7 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -180,6 +180,18 @@ fi
- AC_SUBST(ibnetdisc_api_version)
- dnl End libibnetdisc stuff
- 
-+dnl with or with rdma-ndd
-+AC_MSG_CHECKING(for --enable-rdma-ndd)
-+AC_ARG_ENABLE(rdma-ndd,
-+[  --enable-rdma-ndd build rdma-ndd (default=yes)],
-+[case "${enableval}" in
-+  yes) rdmandd=yes ;;
-+  no)  rdmandd=no ;;
-+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-rdma-ndd) ;;
-+esac],[rdmandd=yes])
-+AM_CONDITIONAL(ENABLE_RDMA_NDD, test x$rdmandd = xyes)
-+AC_MSG_RESULT(${rdmandd=no})
-+
- dnl configures for rdma-ndd startup script
- default_rdma_service=openibd
- AC_ARG_WITH([rdma_service],
-@@ -198,9 +210,12 @@ default_start="null"
- AC_SUBST(DEFAULT_START, $default_start)
- AC_SUBST(DEFAULT_STOP, $default_stop)
- 
--AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no")
--AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is required for rdma-ndd...))
--AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
-+if test x$rdmandd = xyes; then
-+    AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no")
-+    AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is required for rdma-ndd...))
-+    AC_CONFIG_FILES([doc/man/rdma-ndd.8 etc/rdma-ndd.init])
-+    AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
-+fi
- 
- dnl Generate doc/man/*.in files if possible
- DOC_DATE="`date +%Y-%m-%d`"
-@@ -275,8 +290,6 @@ AC_CONFIG_FILES([\
- 	doc/man/smpquery.8 \
- 	doc/man/vendstat.8 \
- 	doc/man/infiniband-diags.8 \
--	doc/man/rdma-ndd.8 \
--	etc/rdma-ndd.init \
- 	libibnetdisc/Makefile \
- ])
- AC_OUTPUT
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	srp_destroy_qp(ch);
+ 	ib_destroy_cq(ch->send_cq);
+ 	ib_destroy_cq(ch->recv_cq);
+-- 
+2.2.2
