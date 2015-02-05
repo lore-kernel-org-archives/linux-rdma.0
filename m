@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RE-RESEND V2 for-next 4/5] IB/core: Make sure that the PSN does not overflow
-Date: Thu,  5 Feb 2015 13:53:51 +0200
-Message-ID: <1423137232-24587-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RE-RESEND V2 for-next 2/5] IB/core: Fixes in ib_sa_add_one error flow
+Date: Thu,  5 Feb 2015 13:53:49 +0200
+Message-ID: <1423137232-24587-3-git-send-email-ogerlitz@mellanox.com>
 References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423137232-24587-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,47 +12,51 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The rq/sq->psn is 24 bits as defined in the IB spec, therefore ULPs and User
-space applications shouldn't use the 8 most significant bits in the 32 bits
-variables to avoid overflow in modify_qp.
+Fixed off-by-one bug, we need to decrement the port number only after we
+released the resources to the current port.
 
-Fixed the PSN generation by the RDMA-CM to mask out the 8 most significant bits,
-also mask out these bits in uverbs for attributes provided by user-space.
+Call ib_unregister_mad_agent only for cases where ib_register_mad_agent succeeded.
+
+Separate the ib_register_event_handler() call error flow from the loop error
+flow. If the call to ib_register_event_handler fails, the client data must be
+reset to NULL, (in case at some point ib_register_event_handler() is modified so
+that it may return a non-zero (error) value).
 
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c        |    1 +
- drivers/infiniband/core/uverbs_cmd.c |    4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/sa_query.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d570030..fab0ee5 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -512,6 +512,7 @@ struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
- 	INIT_LIST_HEAD(&id_priv->listen_list);
- 	INIT_LIST_HEAD(&id_priv->mc_list);
- 	get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
-+	id_priv->seq_num &= 0xffffff;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index c38f030..80461af 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1202,7 +1202,7 @@ static void ib_sa_add_one(struct ib_device *device)
  
- 	return &id_priv->id;
- }
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 532d8eb..ecb6430 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2053,8 +2053,8 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 	attr->path_mtu 		  = cmd.path_mtu;
- 	attr->path_mig_state 	  = cmd.path_mig_state;
- 	attr->qkey 		  = cmd.qkey;
--	attr->rq_psn 		  = cmd.rq_psn;
--	attr->sq_psn 		  = cmd.sq_psn;
-+	attr->rq_psn              = cmd.rq_psn & 0xffffff;
-+	attr->sq_psn              = cmd.sq_psn & 0xffffff;
- 	attr->dest_qp_num 	  = cmd.dest_qp_num;
- 	attr->qp_access_flags 	  = cmd.qp_access_flags;
- 	attr->pkey_index 	  = cmd.pkey_index;
+ 	INIT_IB_EVENT_HANDLER(&sa_dev->event_handler, device, ib_sa_event);
+ 	if (ib_register_event_handler(&sa_dev->event_handler))
+-		goto err;
++		goto reg_err;
+ 
+ 	for (i = 0; i <= e - s; ++i)
+ 		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
+@@ -1210,9 +1210,13 @@ static void ib_sa_add_one(struct ib_device *device)
+ 
+ 	return;
+ 
++reg_err:
++	ib_set_client_data(device, &sa_client, NULL);
++	i = e - s;
+ err:
+-	while (--i >= 0)
+-		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
++	for (; i >= 0; --i)
++		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND &&
++		    !IS_ERR(sa_dev->port[i].agent))
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 
+ 	kfree(sa_dev);
 -- 
 1.7.1
 
