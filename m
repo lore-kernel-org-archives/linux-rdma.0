@@ -1,49 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V1 for-next 3/4] IB/core: Make sure that the PSN does
- not overflow
-Date: Wed, 4 Feb 2015 23:49:19 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E556FF@ORSMSX109.amr.corp.intel.com>
-References: <1422522871-11216-1-git-send-email-ogerlitz@mellanox.com>
- <1422522871-11216-4-git-send-email-ogerlitz@mellanox.com>
- <20150129175437.GF11842@obsidianresearch.com>
- <54CE0F0A.7080704@mellanox.com> <20150204232807.GA30154@obsidianresearch.com>
+From: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
+Subject: rdma_connect() and IBV_QPT_UC
+Date: Wed, 4 Feb 2015 20:39:38 -0500
+Message-ID: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150204232807.GA30154-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > >>@@ -860,6 +860,12 @@ int ib_modify_qp_is_ok(enum ib_qp_state
-> cur_state, enum ib_qp_state next_state,
-> > >>  	if (mask & ~(req_param | opt_param | IB_QP_STATE))
-> > >>  		return 0;
-> > >>+	if ((mask & IB_QP_SQ_PSN) && (attr->sq_psn & 0xff000000))
-> > >>+		return 0;
-> > >>+
-> > >>+	if ((mask & IB_QP_RQ_PSN) && (attr->rq_psn & 0xff000000))
-> > >>+		return 0;
-> > >>+
-> 
-> > >And since rdmacm has had this longstanding bug of generating > 24
-> > >bit PSNs, this change seems really scary - very likely to break
-> > >working systems.
-> 
-> > By IBTA the HW can only use 24 bits, also the IB CM also makes sure
-> > to only encode/decode 24 PSN bits to/from the wire (see the PSN
-> > related helpers in drivers/infiniband/core/cm_msgs.h), so in that
-> > respect, I don't see what other bits which are not 24 bits out of
-> > the 32 generated ones could be of some use to existing applications,
-> > please clarify.
-> 
-> Maybe you can explain why this check is suddenly important now? It
-> seems risky with no rational?
+Hey there,
 
-To add to this, there's a difference between the code ignoring the upper 8-bits, versus mandating that they be 0.
+I have a fairly complex system that I've built over the last few years
+as part of my PhD that uses reliable connections for message-passing
+and RDMA. After reading a recent paper, I decided to compare the
+performance of message-passing over unreliable connections for the
+sake of completeness, but unfortunately, I've repeatedly run into
+obstacles trying to switch to using the UC mode. I even wrote a tiny
+client and server that simply opens a connection, sends a message, and
+sends a response, and when I switch from RC to UC, the rdma_accept()
+at the server always fails with EINVAL when trying to accept the
+client's rdma_connect(). I'm afraid documentation, source code, and
+experimentation have left me stymied. I have tried using RDMA_PS_IB
+and RDMA_PS_UDP instead of RDMA_PS_TCP in rdma_create_id() to no
+avail, I've experimented with qp_attr fields, and my MWE shows the
+same problems as the larger system. Any assistance woudl be greatly
+appreciated, and I'd be happy to provide more details about my setup
+of the event channel, queue pair, buffers, and so on if necessary.
+
+Cheers,
+Christopher
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
