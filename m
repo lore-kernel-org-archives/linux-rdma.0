@@ -1,64 +1,36 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] InfiniBand: Delete unnecessary checks before the function,
- call "srp_destroy_fr_pool"
-Date: Thu, 05 Feb 2015 13:26:56 +0100
-Message-ID: <54D36190.1050407@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libmlx4 0/2] Memory Windows implementation
+Date: Thu,  5 Feb 2015 14:28:31 +0200
+Message-ID: <1423139313-17418-1-git-send-email-majd@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 5 Feb 2015 13:20:42 +0100
+This patch set implements the Memory Windows support that was introduced in
+libibverbs:
+http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg22856.html
 
-The srp_destroy_fr_pool() function tests whether its argument is NULL and then
-returns immediately. Thus the test around the call is not needed.
+This patch set includes two patches:
+Patch #1: Implements the Memory Windows verbs; ibv_alloc_mw, ibv_bind_mw and
+ibv_dealloc_mw.
+Patch #2: Implements the Send with invalidate.
 
-This issue was detected by using the Coccinelle software.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+Majd Dibbiny (2):
+  Add Memory Windows support
+  Implement Send with invalidate
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 0747c05..6f5dfa1 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -549,8 +549,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 				     "FR pool allocation failed (%d)\n", ret);
- 			goto err_qp;
- 		}
--		if (ch->fr_pool)
--			srp_destroy_fr_pool(ch->fr_pool);
-+		srp_destroy_fr_pool(ch->fr_pool);
- 		ch->fr_pool = fr_pool;
- 	} else if (!dev->use_fast_reg && dev->has_fmr) {
- 		fmr_pool = srp_alloc_fmr_pool(target);
-@@ -615,13 +614,12 @@ static void srp_free_ch_ib(struct srp_target_port *target,
- 	if (!ch->qp)
- 		return;
- 
--	if (dev->use_fast_reg) {
--		if (ch->fr_pool)
--			srp_destroy_fr_pool(ch->fr_pool);
--	} else {
-+	if (dev->use_fast_reg)
-+		srp_destroy_fr_pool(ch->fr_pool);
-+	else
- 		if (ch->fmr_pool)
- 			ib_destroy_fmr_pool(ch->fmr_pool);
--	}
-+
- 	srp_destroy_qp(ch);
- 	ib_destroy_cq(ch->send_cq);
- 	ib_destroy_cq(ch->recv_cq);
--- 
-2.2.2
+ src/cq.c    |   11 ++++++++++
+ src/mlx4.c  |    3 ++
+ src/mlx4.h  |    5 ++++
+ src/qp.c    |   58 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/verbs.c |   65 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/wqe.h   |   19 +++++++++++++++++
+ 6 files changed, 161 insertions(+), 0 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
