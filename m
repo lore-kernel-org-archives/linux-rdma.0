@@ -1,62 +1,114 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RE-RESEND V2 for-next 5/5] IB/core: Fix deadlock on uverbs modify_qp error flow
-Date: Thu,  5 Feb 2015 13:53:52 +0200
-Message-ID: <1423137232-24587-6-git-send-email-ogerlitz@mellanox.com>
-References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] Add new configure flag to enable/disable
+ the rdma-ndd build
+Date: Thu, 05 Feb 2015 07:19:15 -0500
+Message-ID: <54D35FC3.60407@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423137232-24587-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The deadlock occurs on __uverbs_modify_qp, we take a lock (idr_read_qp)
-and in case of failure in ib_resolve_eth_l2_attrs we don't release
-it (put_qp_read). Fix that.
+Add new flag --enable-rdma-ndd (default=yes) 
 
-Issue: 355606
-Fixes: ed4c54e5b4ba ("IB/core: Resolve Ethernet L2 addresses when modifying QP")
-Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index ecb6430..a602ce9 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2097,20 +2097,21 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 	if (qp->real_qp == qp) {
- 		ret = ib_resolve_eth_l2_attrs(qp, attr, &cmd.attr_mask);
- 		if (ret)
--			goto out;
-+			goto release_qp;
- 		ret = qp->device->modify_qp(qp, attr,
- 			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
- 	} else {
- 		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, cmd.attr_mask));
- 	}
- 
--	put_qp_read(qp);
--
- 	if (ret)
--		goto out;
-+		goto release_qp;
- 
- 	ret = in_len;
- 
-+release_qp:
-+	put_qp_read(qp);
+diff --git a/Makefile.am b/Makefile.am
+index 4e08c2b..63c4b48 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -15,9 +15,11 @@ sbin_PROGRAMS = src/ibaddr src/ibnetdiscover src/ibping src/ibportstate \
+ 	        src/perfquery src/sminfo src/smpdump src/smpquery \
+ 	        src/saquery src/vendstat src/iblinkinfo \
+ 		src/ibqueryerrors src/ibcacheedit src/ibccquery \
+-		src/ibccconfig \
+-		src/dump_fts \
+-		src/rdma-ndd
++		src/ibccconfig src/dump_fts
 +
- out:
- 	kfree(attr);
++if ENABLE_RDMA_NDD
++sbin_PROGRAMS += src/rdma-ndd
++endif
  
--- 
-1.7.1
-
+ if ENABLE_TEST_UTILS
+ sbin_PROGRAMS += src/ibsendtrap src/mcm_rereg_test
+@@ -71,10 +73,13 @@ man_MANS = doc/man/ibaddr.8 \
+ 		doc/man/smpquery.8 \
+ 		doc/man/vendstat.8 \
+ 		doc/man/infiniband-diags.8 \
+-		doc/man/rdma-ndd.8 \
+ 		man/dump_lfts.8 \
+ 		man/dump_mfts.8
+ 
++if ENABLE_RDMA_NDD
++man_MANS += doc/man/rdma-ndd.8
++endif
++
+ # define this for the dist target
+ compat_man_pages = man/ibdiscover.8 man/ibcheckerrors.8 man/ibcheckerrs.8 \
+ 		man/ibchecknet.8 man/ibchecknode.8 man/ibcheckport.8 \
+@@ -161,6 +166,8 @@ install-data-hook:
+ 	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
+ 	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
+ 
++if ENABLE_RDMA_NDD
+ install-exec-hook:
+ 	$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/init.d
+ 	$(top_srcdir)/config/install-sh -m 755 $(top_srcdir)/etc/rdma-ndd.init $(DESTDIR)/$(sysconfdir)/init.d/rdma-ndd
++endif
+diff --git a/configure.ac b/configure.ac
+index ed1b834..11f47f7 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -180,6 +180,18 @@ fi
+ AC_SUBST(ibnetdisc_api_version)
+ dnl End libibnetdisc stuff
+ 
++dnl with or with rdma-ndd
++AC_MSG_CHECKING(for --enable-rdma-ndd)
++AC_ARG_ENABLE(rdma-ndd,
++[  --enable-rdma-ndd build rdma-ndd (default=yes)],
++[case "${enableval}" in
++  yes) rdmandd=yes ;;
++  no)  rdmandd=no ;;
++  *) AC_MSG_ERROR(bad value ${enableval} for --enable-rdma-ndd) ;;
++esac],[rdmandd=yes])
++AM_CONDITIONAL(ENABLE_RDMA_NDD, test x$rdmandd = xyes)
++AC_MSG_RESULT(${rdmandd=no})
++
+ dnl configures for rdma-ndd startup script
+ default_rdma_service=openibd
+ AC_ARG_WITH([rdma_service],
+@@ -198,9 +210,12 @@ default_start="null"
+ AC_SUBST(DEFAULT_START, $default_start)
+ AC_SUBST(DEFAULT_STOP, $default_stop)
+ 
+-AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no")
+-AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is required for rdma-ndd...))
+-AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
++if test x$rdmandd = xyes; then
++    AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no")
++    AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is required for rdma-ndd...))
++    AC_CONFIG_FILES([doc/man/rdma-ndd.8 etc/rdma-ndd.init])
++    AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
++fi
+ 
+ dnl Generate doc/man/*.in files if possible
+ DOC_DATE="`date +%Y-%m-%d`"
+@@ -275,8 +290,6 @@ AC_CONFIG_FILES([\
+ 	doc/man/smpquery.8 \
+ 	doc/man/vendstat.8 \
+ 	doc/man/infiniband-diags.8 \
+-	doc/man/rdma-ndd.8 \
+-	etc/rdma-ndd.init \
+ 	libibnetdisc/Makefile \
+ ])
+ AC_OUTPUT
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
