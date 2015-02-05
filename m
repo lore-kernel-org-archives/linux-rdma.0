@@ -1,43 +1,43 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma_connect() and IBV_QPT_UC
-Date: Thu, 5 Feb 2015 02:19:59 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E55949@ORSMSX109.amr.corp.intel.com>
-References: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v1 1/5] IB/uverbs: ex_query_device: answer must not
+ depend on request's comp_mask
+Date: Thu, 5 Feb 2015 02:54:10 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC12C30@CRSMSX101.amr.corp.intel.com>
+References: <cover.1422553023.git.ydroneaud@opteya.com>
+ <24ceb1fc5b2b6563532e5776b1b2320b1ae37543.1422553023.git.ydroneaud@opteya.com>
+ <20150129182800.GH11842@obsidianresearch.com>
+ <1422557009.3133.172.camel@opteya.com>
+ <20150129191801.GM11842@obsidianresearch.com>
+ <1422564638.3133.198.camel@opteya.com>
+ <20150129211256.GA22099@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20150129211256.GA22099-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIGhhdmUgYSBmYWlybHkgY29tcGxleCBzeXN0ZW0gdGhhdCBJJ3ZlIGJ1aWx0IG92ZXIgdGhl
-IGxhc3QgZmV3IHllYXJzDQo+IGFzIHBhcnQgb2YgbXkgUGhEIHRoYXQgdXNlcyByZWxpYWJsZSBj
-b25uZWN0aW9ucyBmb3IgbWVzc2FnZS1wYXNzaW5nDQo+IGFuZCBSRE1BLiBBZnRlciByZWFkaW5n
-IGEgcmVjZW50IHBhcGVyLCBJIGRlY2lkZWQgdG8gY29tcGFyZSB0aGUNCj4gcGVyZm9ybWFuY2Ug
-b2YgbWVzc2FnZS1wYXNzaW5nIG92ZXIgdW5yZWxpYWJsZSBjb25uZWN0aW9ucyBmb3IgdGhlDQo+
-IHNha2Ugb2YgY29tcGxldGVuZXNzLCBidXQgdW5mb3J0dW5hdGVseSwgSSd2ZSByZXBlYXRlZGx5
-IHJ1biBpbnRvDQo+IG9ic3RhY2xlcyB0cnlpbmcgdG8gc3dpdGNoIHRvIHVzaW5nIHRoZSBVQyBt
-b2RlLiBJIGV2ZW4gd3JvdGUgYSB0aW55DQo+IGNsaWVudCBhbmQgc2VydmVyIHRoYXQgc2ltcGx5
-IG9wZW5zIGEgY29ubmVjdGlvbiwgc2VuZHMgYSBtZXNzYWdlLCBhbmQNCj4gc2VuZHMgYSByZXNw
-b25zZSwgYW5kIHdoZW4gSSBzd2l0Y2ggZnJvbSBSQyB0byBVQywgdGhlIHJkbWFfYWNjZXB0KCkN
-Cj4gYXQgdGhlIHNlcnZlciBhbHdheXMgZmFpbHMgd2l0aCBFSU5WQUwgd2hlbiB0cnlpbmcgdG8g
-YWNjZXB0IHRoZQ0KPiBjbGllbnQncyByZG1hX2Nvbm5lY3QoKS4gSSdtIGFmcmFpZCBkb2N1bWVu
-dGF0aW9uLCBzb3VyY2UgY29kZSwgYW5kDQo+IGV4cGVyaW1lbnRhdGlvbiBoYXZlIGxlZnQgbWUg
-c3R5bWllZC4gSSBoYXZlIHRyaWVkIHVzaW5nIFJETUFfUFNfSUINCj4gYW5kIFJETUFfUFNfVURQ
-IGluc3RlYWQgb2YgUkRNQV9QU19UQ1AgaW4gcmRtYV9jcmVhdGVfaWQoKSB0byBubw0KPiBhdmFp
-bCwgSSd2ZSBleHBlcmltZW50ZWQgd2l0aCBxcF9hdHRyIGZpZWxkcywgYW5kIG15IE1XRSBzaG93
-cyB0aGUNCj4gc2FtZSBwcm9ibGVtcyBhcyB0aGUgbGFyZ2VyIHN5c3RlbS4gQW55IGFzc2lzdGFu
-Y2Ugd291ZGwgYmUgZ3JlYXRseQ0KPiBhcHByZWNpYXRlZCwgYW5kIEknZCBiZSBoYXBweSB0byBw
-cm92aWRlIG1vcmUgZGV0YWlscyBhYm91dCBteSBzZXR1cA0KPiBvZiB0aGUgZXZlbnQgY2hhbm5l
-bCwgcXVldWUgcGFpciwgYnVmZmVycywgYW5kIHNvIG9uIGlmIG5lY2Vzc2FyeS4NCg0KSSBiZWxp
-ZXZlIHlvdSBjYW4gZ2V0IFVDIHN1cHBvcnQgYnkgdXNpbmcgdGhlIGNhbGxzIHJkbWFfZ2V0YWRk
-cmluZm8gYW5kIHJkbWFfY3JlYXRlX2VwLCB3aGljaCBhbGxvd3MgeW91IHRvIHNwZWNpZnkgdGhl
-IHFwX3R5cGUgYXMgSUJWX1FQVF9VQy4gIEZvciB0aGUgcG9ydCBzcGFjZSwgeW91IHdpbGwgbmVl
-ZCBSRE1BX1BTX0lCLiAgVGhlIFRDUCBhbmQgVURQIHBvcnQgc3BhY2VzIG1hcCB0byBRUCB0eXBl
-cyBSQyBhbmQgVUQsIHJlc3BlY3RpdmVseS4NCg==
+> 
+> On Thu, Jan 29, 2015 at 09:50:38PM +0100, Yann Droneaud wrote:
+> 
+> > Anyway, I recognize that uverb way of abusing write() syscall is
+> > borderline (at best) regarding other Linux subsystems and Unix
+> > paradigm in general. But it's not enough to screw it more.
+> 
+> Then we must return the correct output size explicitly in the struct.
+
+I was thinking this very same thing as I read through this thread.
+
+I too would like to avoid the use of comp_masks if at all possible.  The query call seems to be a verb where the structure size is all you really need to know the set of values returned.
+
+As Jason says, other calls may require the comp_mask where 0 is not sufficient to indicate "missing".
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
