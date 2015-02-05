@@ -1,72 +1,46 @@
-From: majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Subject: [PATCH libibverbs 0/3] Memory Windows support
-Date: Thu,  5 Feb 2015 13:10:34 +0200
-Message-ID: <1423134637-14438-1-git-send-email-majd@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH RESEND V2 for-next 1/5] IB/core: When marshaling ucma path from user-space, clear unused fields
+Date: Thu,  5 Feb 2015 13:35:40 +0200
+Message-ID: <1423136144-12784-2-git-send-email-ogerlitz@mellanox.com>
+References: <1423136144-12784-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1423136144-12784-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Overview:
-Memory Windows(MW) is a method to raise the remote privileges of memory range
-within a Memory Region(MR).
+When marsheling a user path to the kernel struct ib_sa_path, need
+to zero smac, dmac and set the vlan id to the "no vlan" value.
 
-A MW is allocated using ibv_alloc_mw, and for it to be useful it should be
-bound to a MR.
+This is to ensure that Ethernet attributes are not used with
+InfiniBand QPs.
 
-A MW can be bound to a MR according to it's type:
-1. Type 1 MW: Using ibv_bind_mw verb.
-2. Type 2 MW: Posting a send work request with opcode IBV_WR_BIND_MW to a QP.
+Fixes: dd5f03beb4f7 ("IB/core: Ethernet L2 attributes in verbs/cm structures")
+Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/ucma.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-The bind operation generates a new R_key with the new permissions for the MW.
-The advantages of MWs is the light weight generation of R_key with changing
-permissions.
-
-MW type 1's R_key can be invalidated by binding the MW to a MR where the length
-of the MW is zero.
-
-MW type 2 R_key can be invalidated by posting a send work request(WR), where the
-immediate data contains the MW's R_key and the opcode is on of the following:
-
-1. IBV_WR_LOCAL_INV: to invalidate a local MW's R_key.
-2. IBV_WR_SEND_WITH_INV: to invalidate a remote MW's R_key.
-
-When done, the user can unbind and deallocate the MW using ibv_dealloc_mw.
-
-For more detailed information, please refer to the manual pages.
-
-In this patch set we have three patches:
-
-Patch #1: Alignes the ibv_post_send manual page according the the header files.
-This update is necessary to add the MW related information afterwards.
-
-Patch #2: Adds the MW support.
-
-Patch #3: Adds Send with invalidate. This patch is necessary to the MW support
-to allow the users to remotely invalidate MW type 2 R_keys.
-
-Majd Dibbiny (3):
-  Update ibv_post_send manual page
-  Add Memory Windows support
-  Add Send with invalidate support
-
- Makefile.am                   |    7 ++-
- include/infiniband/driver.h   |    6 +++
- include/infiniband/kern-abi.h |   23 ++++++++++
- include/infiniband/verbs.h    |   84 +++++++++++++++++++++++++++++++++----
- man/ibv_alloc_mw.3            |   49 ++++++++++++++++++++++
- man/ibv_bind_mw.3             |   91 +++++++++++++++++++++++++++++++++++++++++
- man/ibv_inc_rkey.3            |   29 +++++++++++++
- man/ibv_post_send.3           |   33 +++++++++++++++
- src/cmd.c                     |   37 +++++++++++++++++
- src/libibverbs.map            |    3 +
- 10 files changed, 351 insertions(+), 11 deletions(-)
- create mode 100644 man/ibv_alloc_mw.3
- create mode 100644 man/ibv_bind_mw.3
- create mode 100644 man/ibv_inc_rkey.3
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 56a4b7c..45d67e9 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1124,6 +1124,9 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
+ 	if (!optlen)
+ 		return -EINVAL;
+ 
++	memset(&sa_path, 0, sizeof(sa_path));
++	sa_path.vlan_id = 0xffff;
++
+ 	ib_sa_unpack_path(path_data->path_rec, &sa_path);
+ 	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
+ 	if (ret)
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
