@@ -1,50 +1,77 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 2/2] infiniband: Fix duplicate KERN_* level
-Date: Fri,  6 Feb 2015 00:32:59 +0100
-Message-ID: <1423179179-16847-2-git-send-email-linux@rasmusvillemoes.dk>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH 1/2] infiniband: cxgb4: Fix some format strings
+Date: Thu, 5 Feb 2015 17:44:03 -0600
+Message-ID: <008401d0419d$9fb9a8c0$df2cfa40$@opengridcomputing.com>
 References: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
+Content-Language: en-us
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Eli Cohen <eli@mellanox.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: 'Rasmus Villemoes' <linux@rasmusvillemoes.dk>, 'Steve Wise' <swise@chelsio.com>, 'Roland Dreier' <roland@kernel.org>, 'Sean Hefty' <sean.hefty@intel.com>, 'Hal Rosenstock' <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The pr_* macros already supply the relevant KERN_* level; any extra
-just ends up as garbage in the output.
+Acked-by: Steve Wise <swise@opengridcomputing.com>
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/infiniband/hw/mlx4/main.c | 3 +--
- drivers/infiniband/hw/mlx5/qp.c   | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 9117b7a2d5f8..e1f0503e4889 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1494,8 +1494,7 @@ static void reset_gids_task(struct work_struct *work)
- 			       MLX4_CMD_TIME_CLASS_B,
- 			       MLX4_CMD_WRAPPED);
- 		if (err)
--			pr_warn(KERN_WARNING
--				"set port %d command failed\n", gw->port);
-+			pr_warn("set port %d command failed\n", gw->port);
- 	}
- 
- 	mlx4_free_cmd_mailbox(dev, mailbox);
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index be0cd358b080..e5b4253828b6 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1394,7 +1394,7 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, const struct ib_ah_attr *ah,
- 
- 	if (ah->ah_flags & IB_AH_GRH) {
- 		if (ah->grh.sgid_index >= gen->port[port - 1].gid_table_len) {
--			pr_err(KERN_ERR "sgid_index (%u) too large. max is %d\n",
-+			pr_err("sgid_index (%u) too large. max is %d\n",
- 			       ah->grh.sgid_index, gen->port[port - 1].gid_table_len);
- 			return -EINVAL;
- 		}
--- 
-2.1.3
+> -----Original Message-----
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Rasmus Villemoes
+> Sent: Thursday, February 05, 2015 5:33 PM
+> To: Steve Wise; Roland Dreier; Sean Hefty; Hal Rosenstock
+> Cc: Rasmus Villemoes; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH 1/2] infiniband: cxgb4: Fix some format strings
+> 
+> PDBG prepends MOD (which expands to "iw_cxgb4" ":") to the format
+> string. So the KERN_INFO just ends up in the middle where it just
+> garbles the output. At the same place, there's obviously no reason to
+> add MOD explicitly.
+> 
+> The two other are straight-forward fixes of KERN_ERR KERN_ERR, where
+> the second will end up as garbage in the output.
+> 
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> ---
+>  drivers/infiniband/hw/cxgb4/device.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+> index eb5df4e62703..536356a8c58c 100644
+> --- a/drivers/infiniband/hw/cxgb4/device.c
+> +++ b/drivers/infiniband/hw/cxgb4/device.c
+> @@ -979,7 +979,7 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
+>  		}
+>  	}
+> 
+> -	PDBG(KERN_INFO MOD "ocq memory: "
+> +	PDBG("ocq memory: "
+>  	       "hw_start 0x%x size %u mw_pa 0x%lx mw_kva %p\n",
+>  	       devp->rdev.lldi.vr->ocq.start, devp->rdev.lldi.vr->ocq.size,
+>  	       devp->rdev.oc_mw_pa, devp->rdev.oc_mw_kva);
+> @@ -1368,7 +1368,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
+>  					  t4_sq_host_wq_pidx(&qp->wq),
+>  					  t4_sq_wq_size(&qp->wq));
+>  		if (ret) {
+> -			pr_err(KERN_ERR MOD "%s: Fatal error - "
+> +			pr_err(MOD "%s: Fatal error - "
+>  			       "DB overflow recovery failed - "
+>  			       "error syncing SQ qid %u\n",
+>  			       pci_name(ctx->lldi.pdev), qp->wq.sq.qid);
+> @@ -1384,7 +1384,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
+>  					  t4_rq_wq_size(&qp->wq));
+> 
+>  		if (ret) {
+> -			pr_err(KERN_ERR MOD "%s: Fatal error - "
+> +			pr_err(MOD "%s: Fatal error - "
+>  			       "DB overflow recovery failed - "
+>  			       "error syncing RQ qid %u\n",
+>  			       pci_name(ctx->lldi.pdev), qp->wq.rq.qid);
+> --
+> 2.1.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
