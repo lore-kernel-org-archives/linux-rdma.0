@@ -1,46 +1,48 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RE-RESEND V2 for-next 1/5] IB/core: When marshaling ucma path from user-space, clear unused fields
-Date: Thu,  5 Feb 2015 13:53:48 +0200
-Message-ID: <1423137232-24587-2-git-send-email-ogerlitz@mellanox.com>
-References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RE-RESEND V2 for-next 0/5] IB core fixes 29-Jan-2015
+Date: Thu,  5 Feb 2015 13:53:47 +0200
+Message-ID: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423137232-24587-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+-- re-resent due to Gerrit IDs that were left by mistake, sorry for spamming you over (and over)
 
-When marsheling a user path to the kernel struct ib_sa_path, need
-to zero smac, dmac and set the vlan id to the "no vlan" value.
+Hi Roland,
 
-This is to ensure that Ethernet attributes are not used with
-InfiniBand QPs.
+This is a batch with small IB core fixes, please apply for 3.20
 
-Fixes: dd5f03beb4f7 ("IB/core: Ethernet L2 attributes in verbs/cm structures")
-Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/ucma.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+There's one fix which touches few HW drivers to make sure
+they invoke ib_unregister_mad_agent() only for valid cases
+in their error flows.
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 56a4b7c..45d67e9 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1124,6 +1124,9 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
- 	if (!optlen)
- 		return -EINVAL;
- 
-+	memset(&sa_path, 0, sizeof(sa_path));
-+	sa_path.vlan_id = 0xffff;
-+
- 	ib_sa_unpack_path(path_data->path_rec, &sa_path);
- 	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
- 	if (ret)
--- 
-1.7.1
+There's a pending CMA patch we sent for 3.19 and was approved
+by Sean, please pick it too "RDMA/CMA: Mark IPv4 addresses correctly 
+when the listener is IPv6" https://patchwork.kernel.org/patch/5298971/
+
+Majs and Or.
+
+Ilya Nelkenbaum (1):
+  IB/core: When marshaling ucma path from user-space, clear unused fields
+
+Majd Dibbiny (3):
+  IB/core: Fixes in ib_sa_add_one error flow
+  IB/core: Call ib_unregister_mad_agent() only for valid agents
+  IB/core: Make sure that the PSN does not overflow
+
+Moshe Lazer (1):
+  IB/core: Fix deadlock on uverbs modify_qp error flow
+
+ drivers/infiniband/core/cma.c           |    1 +
+ drivers/infiniband/core/sa_query.c      |   10 +++++++---
+ drivers/infiniband/core/ucma.c          |    3 +++
+ drivers/infiniband/core/uverbs_cmd.c    |   13 +++++++------
+ drivers/infiniband/hw/mlx4/mad.c        |    2 +-
+ drivers/infiniband/hw/mthca/mthca_mad.c |    2 +-
+ drivers/infiniband/hw/qib/qib_mad.c     |    2 +-
+ 7 files changed, 21 insertions(+), 12 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
