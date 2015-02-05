@@ -1,69 +1,48 @@
-From: arivumani <shad.mortazavi@openiq.com.au>
-Subject: (no subject)
-Date: Thu, 2 Jan 2015 09:29:54 +0000
-Message-ID: <00e9423c4139$2d5dee8e$be9db6c5$@openiq.com.au>
-Mime-Version: 1.0 (1.0)
-Content-Type: multipart/mixed; boundary="===============8222489688447016721=="
-Return-path: <e1000-devel-bounces@lists.sourceforge.net>
-References: 
-In-Reply-To: 
-Content-Language: en-us
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
-List-Post: <mailto:e1000-devel@lists.sourceforge.net>
-List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: e1000-devel-bounces@lists.sourceforge.net
-To: linux rdma <linux-rdma@vger.kernel.org>, linux usb <linux-usb@vger.kernel.org>, linux wireless <linux-wireless@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>, virtualization <virtualization@lists.linux-foundation.org>, e1000 devel <e1000-devel@lists.sourceforge.net>, bridge <bridge@lists.linux-foundation.org>, devel <devel@linuxdriverproject.org>, nios2 dev <nios2-dev@lists.rocketboards.org>, linuxppc dev <linuxppc-dev@lists.ozlabs.org>, linux acenic <linux-acenic@sunsite.dk>, w lkml <w-lkml@lebenslange-mailadresse.de>, prabakar krishnamoorthy <kprabakar13@gmail.com>, Abhijit Kumbhare <abhijitkoss@gmail.com>, Luis Gomez <lpalacio@brocade.com>, Hung Nguyen The <hungnt1@saobacdau.vn>, Cristina Palomo Regidor <cristina.palomo.regidor@ericsson.com>, Users OpenNebula <users@lists.opennebula.org>, Leszek Master <keksior>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 for-next 1/5] IB/core: When marshaling ucma path from user-space, clear unused fields
+Date: Thu,  5 Feb 2015 12:12:14 +0200
+Message-ID: <1423131138-19060-2-git-send-email-ogerlitz@mellanox.com>
+References: <1423131138-19060-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1423131138-19060-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---===============8222489688447016721==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_1F06_F021A852.09E7C674"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-------=_NextPart_000_1F06_F021A852.09E7C674
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+When marsheling a user path to the kernel struct ib_sa_path, need
+to zero smac, dmac and set the vlan id to the "no vlan" value.
 
-> Forwarded Message:
-http://econnoisseur.com/Sebastian.php?arivumani_gmail_com
+This is to ensure that Ethernet attributes are not used with
+InfiniBand QPs.
 
+Fixes: dd5f03beb4f7 ("IB/core: Ethernet L2 attributes in verbs/cm structures")
+Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/ucma.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-...
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 56a4b7c..45d67e9 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1124,6 +1124,9 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
+ 	if (!optlen)
+ 		return -EINVAL;
+ 
++	memset(&sa_path, 0, sizeof(sa_path));
++	sa_path.vlan_id = 0xffff;
++
+ 	ib_sa_unpack_path(path_data->path_rec, &sa_path);
+ 	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
+ 	if (ret)
+-- 
+1.7.1
 
-> 1/2/2015 9:29:54 AM, arivumani@gmail.com wrote:
->>>> Truth is what stands the test of experience. 
-
-------=_NextPart_000_1F06_F021A852.09E7C674--
-
-
---===============8222489688447016721==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-------------------------------------------------------------------------------
-Dive into the World of Parallel Programming. The Go Parallel Website,
-sponsored by Intel and developed in partnership with Slashdot Media, is your
-hub for all things parallel software development, from weekly thought
-leadership blogs to news, videos, case studies, tutorials and more. Take a
-look and join the conversation now. http://goparallel.sourceforge.net/
---===============8222489688447016721==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-E1000-devel mailing list
-E1000-devel@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/e1000-devel
-To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
-
---===============8222489688447016721==--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
