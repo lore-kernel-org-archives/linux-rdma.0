@@ -1,61 +1,50 @@
-From: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Subject: [PATCH 1/2] infiniband: cxgb4: Fix some format strings
-Date: Fri,  6 Feb 2015 00:32:58 +0100
-Message-ID: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 2/2] infiniband: Fix duplicate KERN_* level
+Date: Fri,  6 Feb 2015 00:32:59 +0100
+Message-ID: <1423179179-16847-2-git-send-email-linux@rasmusvillemoes.dk>
+References: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Eli Cohen <eli@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-PDBG prepends MOD (which expands to "iw_cxgb4" ":") to the format
-string. So the KERN_INFO just ends up in the middle where it just
-garbles the output. At the same place, there's obviously no reason to
-add MOD explicitly.
+The pr_* macros already supply the relevant KERN_* level; any extra
+just ends up as garbage in the output.
 
-The two other are straight-forward fixes of KERN_ERR KERN_ERR, where
-the second will end up as garbage in the output.
-
-Signed-off-by: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- drivers/infiniband/hw/cxgb4/device.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 3 +--
+ drivers/infiniband/hw/mlx5/qp.c   | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index eb5df4e62703..536356a8c58c 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -979,7 +979,7 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
- 		}
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 9117b7a2d5f8..e1f0503e4889 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1494,8 +1494,7 @@ static void reset_gids_task(struct work_struct *work)
+ 			       MLX4_CMD_TIME_CLASS_B,
+ 			       MLX4_CMD_WRAPPED);
+ 		if (err)
+-			pr_warn(KERN_WARNING
+-				"set port %d command failed\n", gw->port);
++			pr_warn("set port %d command failed\n", gw->port);
  	}
  
--	PDBG(KERN_INFO MOD "ocq memory: "
-+	PDBG("ocq memory: "
- 	       "hw_start 0x%x size %u mw_pa 0x%lx mw_kva %p\n",
- 	       devp->rdev.lldi.vr->ocq.start, devp->rdev.lldi.vr->ocq.size,
- 	       devp->rdev.oc_mw_pa, devp->rdev.oc_mw_kva);
-@@ -1368,7 +1368,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
- 					  t4_sq_host_wq_pidx(&qp->wq),
- 					  t4_sq_wq_size(&qp->wq));
- 		if (ret) {
--			pr_err(KERN_ERR MOD "%s: Fatal error - "
-+			pr_err(MOD "%s: Fatal error - "
- 			       "DB overflow recovery failed - "
- 			       "error syncing SQ qid %u\n",
- 			       pci_name(ctx->lldi.pdev), qp->wq.sq.qid);
-@@ -1384,7 +1384,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
- 					  t4_rq_wq_size(&qp->wq));
+ 	mlx4_free_cmd_mailbox(dev, mailbox);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index be0cd358b080..e5b4253828b6 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1394,7 +1394,7 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, const struct ib_ah_attr *ah,
  
- 		if (ret) {
--			pr_err(KERN_ERR MOD "%s: Fatal error - "
-+			pr_err(MOD "%s: Fatal error - "
- 			       "DB overflow recovery failed - "
- 			       "error syncing RQ qid %u\n",
- 			       pci_name(ctx->lldi.pdev), qp->wq.rq.qid);
+ 	if (ah->ah_flags & IB_AH_GRH) {
+ 		if (ah->grh.sgid_index >= gen->port[port - 1].gid_table_len) {
+-			pr_err(KERN_ERR "sgid_index (%u) too large. max is %d\n",
++			pr_err("sgid_index (%u) too large. max is %d\n",
+ 			       ah->grh.sgid_index, gen->port[port - 1].gid_table_len);
+ 			return -EINVAL;
+ 		}
 -- 
 2.1.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
