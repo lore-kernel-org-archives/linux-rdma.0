@@ -1,59 +1,64 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 for-next 5/5] IB/core: Fix deadlock on uverbs modify_qp error flow
-Date: Thu,  5 Feb 2015 12:12:18 +0200
-Message-ID: <1423131138-19060-6-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V2 for-next 2/5] IB/core: Fixes in ib_sa_add_one error flow
+Date: Thu,  5 Feb 2015 12:12:15 +0200
+Message-ID: <1423131138-19060-3-git-send-email-ogerlitz@mellanox.com>
 References: <1423131138-19060-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1423131138-19060-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The deadlock occurs on __uverbs_modify_qp, we take a lock (idr_read_qp)
-and in case of failure in ib_resolve_eth_l2_attrs we don't release
-it (put_qp_read). Fix that.
+Fixed off-by-one bug, we need to decrement the port number only after we
+released the resources to the current port.
 
-Issue: 355606
-Fixes: ed4c54e5b4ba ("IB/core: Resolve Ethernet L2 addresses when modifying QP")
-Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Call ib_unregister_mad_agent only for cases where ib_register_mad_agent succeeded.
+
+Separate the ib_register_event_handler() call error flow from the loop error
+flow. If the call to ib_register_event_handler fails, the client data must be
+reset to NULL, (in case at some point ib_register_event_handler() is modified so
+that it may return a non-zero (error) value).
+
+issue: none
+Change-Id: Ia79a2d5037f674d67d75494c620b5c197da86314
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/sa_query.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index ecb6430..a602ce9 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2097,20 +2097,21 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 	if (qp->real_qp == qp) {
- 		ret = ib_resolve_eth_l2_attrs(qp, attr, &cmd.attr_mask);
- 		if (ret)
--			goto out;
-+			goto release_qp;
- 		ret = qp->device->modify_qp(qp, attr,
- 			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
- 	} else {
- 		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, cmd.attr_mask));
- 	}
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index c38f030..80461af 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1202,7 +1202,7 @@ static void ib_sa_add_one(struct ib_device *device)
  
--	put_qp_read(qp);
--
- 	if (ret)
--		goto out;
-+		goto release_qp;
+ 	INIT_IB_EVENT_HANDLER(&sa_dev->event_handler, device, ib_sa_event);
+ 	if (ib_register_event_handler(&sa_dev->event_handler))
+-		goto err;
++		goto reg_err;
  
- 	ret = in_len;
+ 	for (i = 0; i <= e - s; ++i)
+ 		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
+@@ -1210,9 +1210,13 @@ static void ib_sa_add_one(struct ib_device *device)
  
-+release_qp:
-+	put_qp_read(qp);
-+
- out:
- 	kfree(attr);
+ 	return;
  
++reg_err:
++	ib_set_client_data(device, &sa_client, NULL);
++	i = e - s;
+ err:
+-	while (--i >= 0)
+-		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
++	for (; i >= 0; --i)
++		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND &&
++		    !IS_ERR(sa_dev->port[i].agent))
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 
+ 	kfree(sa_dev);
 -- 
 1.7.1
 
