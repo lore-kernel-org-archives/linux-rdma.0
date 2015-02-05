@@ -1,35 +1,43 @@
-From: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
-Subject: rdma_connect() and IBV_QPT_UC
-Date: Wed, 4 Feb 2015 20:39:38 -0500
-Message-ID: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma_connect() and IBV_QPT_UC
+Date: Thu, 5 Feb 2015 02:19:59 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E55949@ORSMSX109.amr.corp.intel.com>
+References: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey there,
-
-I have a fairly complex system that I've built over the last few years
-as part of my PhD that uses reliable connections for message-passing
-and RDMA. After reading a recent paper, I decided to compare the
-performance of message-passing over unreliable connections for the
-sake of completeness, but unfortunately, I've repeatedly run into
-obstacles trying to switch to using the UC mode. I even wrote a tiny
-client and server that simply opens a connection, sends a message, and
-sends a response, and when I switch from RC to UC, the rdma_accept()
-at the server always fails with EINVAL when trying to accept the
-client's rdma_connect(). I'm afraid documentation, source code, and
-experimentation have left me stymied. I have tried using RDMA_PS_IB
-and RDMA_PS_UDP instead of RDMA_PS_TCP in rdma_create_id() to no
-avail, I've experimented with qp_attr fields, and my MWE shows the
-same problems as the larger system. Any assistance woudl be greatly
-appreciated, and I'd be happy to provide more details about my setup
-of the event channel, queue pair, buffers, and so on if necessary.
-
-Cheers,
-Christopher
+PiBJIGhhdmUgYSBmYWlybHkgY29tcGxleCBzeXN0ZW0gdGhhdCBJJ3ZlIGJ1aWx0IG92ZXIgdGhl
+IGxhc3QgZmV3IHllYXJzDQo+IGFzIHBhcnQgb2YgbXkgUGhEIHRoYXQgdXNlcyByZWxpYWJsZSBj
+b25uZWN0aW9ucyBmb3IgbWVzc2FnZS1wYXNzaW5nDQo+IGFuZCBSRE1BLiBBZnRlciByZWFkaW5n
+IGEgcmVjZW50IHBhcGVyLCBJIGRlY2lkZWQgdG8gY29tcGFyZSB0aGUNCj4gcGVyZm9ybWFuY2Ug
+b2YgbWVzc2FnZS1wYXNzaW5nIG92ZXIgdW5yZWxpYWJsZSBjb25uZWN0aW9ucyBmb3IgdGhlDQo+
+IHNha2Ugb2YgY29tcGxldGVuZXNzLCBidXQgdW5mb3J0dW5hdGVseSwgSSd2ZSByZXBlYXRlZGx5
+IHJ1biBpbnRvDQo+IG9ic3RhY2xlcyB0cnlpbmcgdG8gc3dpdGNoIHRvIHVzaW5nIHRoZSBVQyBt
+b2RlLiBJIGV2ZW4gd3JvdGUgYSB0aW55DQo+IGNsaWVudCBhbmQgc2VydmVyIHRoYXQgc2ltcGx5
+IG9wZW5zIGEgY29ubmVjdGlvbiwgc2VuZHMgYSBtZXNzYWdlLCBhbmQNCj4gc2VuZHMgYSByZXNw
+b25zZSwgYW5kIHdoZW4gSSBzd2l0Y2ggZnJvbSBSQyB0byBVQywgdGhlIHJkbWFfYWNjZXB0KCkN
+Cj4gYXQgdGhlIHNlcnZlciBhbHdheXMgZmFpbHMgd2l0aCBFSU5WQUwgd2hlbiB0cnlpbmcgdG8g
+YWNjZXB0IHRoZQ0KPiBjbGllbnQncyByZG1hX2Nvbm5lY3QoKS4gSSdtIGFmcmFpZCBkb2N1bWVu
+dGF0aW9uLCBzb3VyY2UgY29kZSwgYW5kDQo+IGV4cGVyaW1lbnRhdGlvbiBoYXZlIGxlZnQgbWUg
+c3R5bWllZC4gSSBoYXZlIHRyaWVkIHVzaW5nIFJETUFfUFNfSUINCj4gYW5kIFJETUFfUFNfVURQ
+IGluc3RlYWQgb2YgUkRNQV9QU19UQ1AgaW4gcmRtYV9jcmVhdGVfaWQoKSB0byBubw0KPiBhdmFp
+bCwgSSd2ZSBleHBlcmltZW50ZWQgd2l0aCBxcF9hdHRyIGZpZWxkcywgYW5kIG15IE1XRSBzaG93
+cyB0aGUNCj4gc2FtZSBwcm9ibGVtcyBhcyB0aGUgbGFyZ2VyIHN5c3RlbS4gQW55IGFzc2lzdGFu
+Y2Ugd291ZGwgYmUgZ3JlYXRseQ0KPiBhcHByZWNpYXRlZCwgYW5kIEknZCBiZSBoYXBweSB0byBw
+cm92aWRlIG1vcmUgZGV0YWlscyBhYm91dCBteSBzZXR1cA0KPiBvZiB0aGUgZXZlbnQgY2hhbm5l
+bCwgcXVldWUgcGFpciwgYnVmZmVycywgYW5kIHNvIG9uIGlmIG5lY2Vzc2FyeS4NCg0KSSBiZWxp
+ZXZlIHlvdSBjYW4gZ2V0IFVDIHN1cHBvcnQgYnkgdXNpbmcgdGhlIGNhbGxzIHJkbWFfZ2V0YWRk
+cmluZm8gYW5kIHJkbWFfY3JlYXRlX2VwLCB3aGljaCBhbGxvd3MgeW91IHRvIHNwZWNpZnkgdGhl
+IHFwX3R5cGUgYXMgSUJWX1FQVF9VQy4gIEZvciB0aGUgcG9ydCBzcGFjZSwgeW91IHdpbGwgbmVl
+ZCBSRE1BX1BTX0lCLiAgVGhlIFRDUCBhbmQgVURQIHBvcnQgc3BhY2VzIG1hcCB0byBRUCB0eXBl
+cyBSQyBhbmQgVUQsIHJlc3BlY3RpdmVseS4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
