@@ -1,42 +1,39 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma_connect() and IBV_QPT_UC
-Date: Fri, 6 Feb 2015 20:53:37 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E56213@ORSMSX109.amr.corp.intel.com>
-References: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237399E55949@ORSMSX109.amr.corp.intel.com>
- <CAPb9-SHsznYpLmUoguY1=qKbOTwCbKVLHqhSe5W=yeAYiJdg-Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri,  6 Feb 2015 13:19:12 -0800
+Message-ID: <1423257552-3072-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPb9-SHsznYpLmUoguY1=qKbOTwCbKVLHqhSe5W=yeAYiJdg-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBUaGFua3MgZm9yIHRoZSBxdWljayByZXNwb25zZS4gSSd2ZSBtYWRlIHRoZSBzdWdnZXN0ZWQg
-Y2hhbmdlcywgYnV0DQo+IEknbSBhZnJhaWQgSSBhbSBoYXZpbmcgdGhlIHNhbWUgcHJvYmxlbXMu
-IEluIGZhY3QsIEkgc2VlIHRoYXQgYQ0KPiBwcmV2aW91cyB0aHJlYWQgKA0KPiBodHRwOi8vd3d3
-LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LXJkbWEvbXNnMDc1NzMuaHRtbCApIGZvbGxvd3MNCj4g
-YW5vdGhlciB1c2VyIHdpdGggdGhlIHNhbWUgcHJvYmxlbS4gSW4gZmFjdCwgSSBmaW5hbGx5IGZv
-dW5kIGEgbWVzc2FnZQ0KPiAoZnJvbSB5b3UsIGFjdHVhbGx5IQ0KPiBodHRwOi8vd3d3LnNwaW5p
-Y3MubmV0L2xpc3RzL2xpbnV4LXJkbWEvbXNnMDc2MDEuaHRtbCApIHNheWluZyB0aGF0IGFzDQo+
-IG9mIDIwMTEsIGxpYnJkbWFjbSBjYW4ndCBoYW5kbGUgVUMuIElzIHRoaXMgc3RpbGwgdGhlIGNh
-c2U/DQoNClVDIHN1cHBvcnQgaGFzIG5ldmVyIGJlZW4gYSBwcmlvcml0eSwgc28gaXQncyBub3Qg
-c29tZXRoaW5nIHRoYXQncyB0ZXN0ZWQuICBJIG1vZGlmaWVkIG9uZSBvZiB0aGUgZXhhbXBsZSBs
-aWJyZG1hY20gcHJvZ3JhbXMgdG8gdXNlIFVDLCBhbmQgaXQgc2VlbWVkIHRvIHdvcmsuICBBdCBs
-ZWFzdCBpdCBtYWRlIGEgY29ubmVjdGlvbiBhbmQgdHJhbnNmZXJyZWQgc29tZSBkYXRhLiAgSSBk
-aWQgbm90IHZlcmlmeSB0aGF0IFVDIHdhcyBhY3R1YWxseSBiZWluZyB1c2VkLg0KDQpBIG5ld2Vy
-IGtlcm5lbCBtYXkgYmUgbmVlZGVkLCBidXQgSSBkb24ndCByZW1lbWJlciB3aGF0IHBhdGNoZXMg
-YXJlIHJlcXVpcmVkIG9yIHdoaWNoIHZlcnNpb24gdGhlIGNoYW5nZXMgd2VudCB1cHN0cmVhbS4g
-IENoYW5nZXMgd2VyZSBuZXZlciBtYWRlIHNwZWNpZmljYWxseSB0byBzdXBwb3J0IFVDLCBidXQg
-dGhlIGNoYW5nZXMgdG8gc3VwcG9ydCBYUkMgYW5kIG5hdGl2ZSBJQiBhZGRyZXNzaW5nIHNob3Vs
-ZCBoYXZlIG1hZGUgaXQgcG9zc2libGUuDQoNCkJ0dywgaXMgdGhlcmUgYW55IHJlYXNvbiB3aHkg
-eW91J3JlIHdhbnRpbmcgdG8gcnVuIG92ZXIgVUM/ICBJdCBraW5kIG9mIGNvbWJpbmVzIHRoZSB3
-b3JzdCBwYXJ0IG9mIFVEIHdpdGggdGhlIHdvcnN0IGZlYXR1cmVzIG9mIFJDIC0tIGtpbmQgb2Yg
-dGhlIGVsIENhbWlubyBvZiBwcm90b2NvbHMuDQoNCi0gU2Vhbg0K
+Hi Linus,
+
+Please pull from
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+
+----------------------------------------------------------------
+One more last-second RDMA change for 3.19:
+ - Yann realized that the previous revert of new userspace ABI did not
+   go far enough, and we're still exposing a change that we don't want.
+   Revert even closer to 3.18 interface to make sure we get things right
+   in the long run.
+
+Sorry for sending this at the very end of the release cycle, but we
+didn't realize the scope of the required fix until just now.
+
+----------------------------------------------------------------
+Yann Droneaud (1):
+      Revert "IB/core: Add support for extended query device caps"
+
+ drivers/infiniband/core/uverbs.h     |   1 -
+ drivers/infiniband/core/uverbs_cmd.c | 137 +++++++++++------------------------
+ drivers/infiniband/hw/mlx5/main.c    |   2 -
+ include/rdma/ib_verbs.h              |   5 +-
+ include/uapi/rdma/ib_user_verbs.h    |  27 -------
+ 5 files changed, 42 insertions(+), 130 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
