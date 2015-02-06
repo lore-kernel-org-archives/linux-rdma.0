@@ -1,75 +1,53 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Fri, 06 Feb 2015 15:35:21 -0500
-Message-ID: <54D52589.8020305@dev.mellanox.co.il>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-15-git-send-email-ira.weiny@intel.com>
+From: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: rdma_connect() and IBV_QPT_UC
+Date: Fri, 6 Feb 2015 15:44:22 -0500
+Message-ID: <CAPb9-SHsznYpLmUoguY1=qKbOTwCbKVLHqhSe5W=yeAYiJdg-Q@mail.gmail.com>
+References: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237399E55949@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423092585-26692-15-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E55949-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/4/2015 6:29 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> OPA MADs share a common header with IBTA MADs but with a different ba=
-se version
-> and an extended length.  These "jumbo" MADs increase the performance =
-of
-> management traffic.
->=20
-> Sharing a common header with IBTA MADs allows us to share most of the=
- MAD
-> processing code when dealing with OPA MADs in addition to supporting =
-some IBTA
-> MADs on OPA devices.
->=20
-> Add a device capability flag to indicate OPA MAD support on the devic=
-e.
->=20
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> ---
->  include/rdma/ib_verbs.h | 5 +++++
->  1 file changed, 5 insertions(+)
->=20
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 3ab4033..2614233 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -128,6 +128,10 @@ enum ib_device_cap_flags {
->  	IB_DEVICE_ON_DEMAND_PAGING	=3D (1<<31),
->  };
-> =20
-> +enum ib_device_cap_flags2 {
-> +	IB_DEVICE_OPA_MAD_SUPPORT	=3D 1
-> +};
-> +
->  enum ib_signature_prot_cap {
->  	IB_PROT_T10DIF_TYPE_1 =3D 1,
->  	IB_PROT_T10DIF_TYPE_2 =3D 1 << 1,
-> @@ -210,6 +214,7 @@ struct ib_device_attr {
->  	int			sig_prot_cap;
->  	int			sig_guard_cap;
->  	struct ib_odp_caps	odp_caps;
-> +	u64			device_cap_flags2;
->  	u32			max_mad_size;
->  };
-> =20
+Sean,
 
-Why is OPA support determined via a device capability flag ? What are
-the tradeoffs for doing it this way versus the other choices that have
-been used in the past for other RDMA technologies like RoCE, iWARP,
-usNIC, =85 ?
+Thanks for the quick response. I've made the suggested changes, but
+I'm afraid I am having the same problems. In fact, I see that a
+previous thread (
+http://www.spinics.net/lists/linux-rdma/msg07573.html ) follows
+another user with the same problem. In fact, I finally found a message
+(from you, actually!
+http://www.spinics.net/lists/linux-rdma/msg07601.html ) saying that as
+of 2011, librdmacm can't handle UC. Is this still the case?
 
--- Hal
+Thanks,
+Christopher
+
+On Wed, Feb 4, 2015 at 9:19 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> I have a fairly complex system that I've built over the last few years
+>> as part of my PhD that uses reliable connections for message-passing
+>> and RDMA. After reading a recent paper, I decided to compare the
+>> performance of message-passing over unreliable connections for the
+>> sake of completeness, but unfortunately, I've repeatedly run into
+>> obstacles trying to switch to using the UC mode. I even wrote a tiny
+>> client and server that simply opens a connection, sends a message, and
+>> sends a response, and when I switch from RC to UC, the rdma_accept()
+>> at the server always fails with EINVAL when trying to accept the
+>> client's rdma_connect(). I'm afraid documentation, source code, and
+>> experimentation have left me stymied. I have tried using RDMA_PS_IB
+>> and RDMA_PS_UDP instead of RDMA_PS_TCP in rdma_create_id() to no
+>> avail, I've experimented with qp_attr fields, and my MWE shows the
+>> same problems as the larger system. Any assistance woudl be greatly
+>> appreciated, and I'd be happy to provide more details about my setup
+>> of the event channel, queue pair, buffers, and so on if necessary.
+>
+> I believe you can get UC support by using the calls rdma_getaddrinfo and rdma_create_ep, which allows you to specify the qp_type as IBV_QPT_UC.  For the port space, you will need RDMA_PS_IB.  The TCP and UDP port spaces map to QP types RC and UD, respectively.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
