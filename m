@@ -1,77 +1,89 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH 1/2] infiniband: cxgb4: Fix some format strings
-Date: Thu, 5 Feb 2015 17:44:03 -0600
-Message-ID: <008401d0419d$9fb9a8c0$df2cfa40$@opengridcomputing.com>
-References: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 1/2] infiniband: nes: Remove duplicate function names
+Date: Fri,  6 Feb 2015 01:09:04 +0100
+Message-ID: <1423181345-18449-1-git-send-email-linux@rasmusvillemoes.dk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1423179179-16847-1-git-send-email-linux@rasmusvillemoes.dk>
-Content-Language: en-us
 Sender: linux-kernel-owner@vger.kernel.org
-To: 'Rasmus Villemoes' <linux@rasmusvillemoes.dk>, 'Steve Wise' <swise@chelsio.com>, 'Roland Dreier' <roland@kernel.org>, 'Sean Hefty' <sean.hefty@intel.com>, 'Hal Rosenstock' <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Steve Wise <swise@opengridcomputing.com>
+The macro nes_debug already ensures that __func__ (and __LINE__) is
+part of the output, so there's no reason to duplicate the function
+name in the format string itself.
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Rasmus Villemoes
-> Sent: Thursday, February 05, 2015 5:33 PM
-> To: Steve Wise; Roland Dreier; Sean Hefty; Hal Rosenstock
-> Cc: Rasmus Villemoes; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH 1/2] infiniband: cxgb4: Fix some format strings
-> 
-> PDBG prepends MOD (which expands to "iw_cxgb4" ":") to the format
-> string. So the KERN_INFO just ends up in the middle where it just
-> garbles the output. At the same place, there's obviously no reason to
-> add MOD explicitly.
-> 
-> The two other are straight-forward fixes of KERN_ERR KERN_ERR, where
-> the second will end up as garbage in the output.
-> 
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> ---
->  drivers/infiniband/hw/cxgb4/device.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index eb5df4e62703..536356a8c58c 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -979,7 +979,7 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
->  		}
->  	}
-> 
-> -	PDBG(KERN_INFO MOD "ocq memory: "
-> +	PDBG("ocq memory: "
->  	       "hw_start 0x%x size %u mw_pa 0x%lx mw_kva %p\n",
->  	       devp->rdev.lldi.vr->ocq.start, devp->rdev.lldi.vr->ocq.size,
->  	       devp->rdev.oc_mw_pa, devp->rdev.oc_mw_kva);
-> @@ -1368,7 +1368,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
->  					  t4_sq_host_wq_pidx(&qp->wq),
->  					  t4_sq_wq_size(&qp->wq));
->  		if (ret) {
-> -			pr_err(KERN_ERR MOD "%s: Fatal error - "
-> +			pr_err(MOD "%s: Fatal error - "
->  			       "DB overflow recovery failed - "
->  			       "error syncing SQ qid %u\n",
->  			       pci_name(ctx->lldi.pdev), qp->wq.sq.qid);
-> @@ -1384,7 +1384,7 @@ static void recover_lost_dbs(struct uld_ctx *ctx, struct qp_list *qp_list)
->  					  t4_rq_wq_size(&qp->wq));
-> 
->  		if (ret) {
-> -			pr_err(KERN_ERR MOD "%s: Fatal error - "
-> +			pr_err(MOD "%s: Fatal error - "
->  			       "DB overflow recovery failed - "
->  			       "error syncing RQ qid %u\n",
->  			       pci_name(ctx->lldi.pdev), qp->wq.rq.qid);
-> --
-> 2.1.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+---
+ drivers/infiniband/hw/nes/nes.c       | 2 +-
+ drivers/infiniband/hw/nes/nes_cm.c    | 8 ++++----
+ drivers/infiniband/hw/nes/nes_verbs.c | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 3b2a6dc8ea99..65665bdd6c51 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -148,7 +148,7 @@ static int nes_inetaddr_event(struct notifier_block *notifier,
+ 	struct nes_vnic *nesvnic;
+ 	unsigned int is_bonded;
+ 
+-	nes_debug(NES_DBG_NETDEV, "nes_inetaddr_event: ip address %pI4, netmask %pI4.\n",
++	nes_debug(NES_DBG_NETDEV, "ip address %pI4, netmask %pI4.\n",
+ 		  &ifa->ifa_address, &ifa->ifa_mask);
+ 	list_for_each_entry(nesdev, &nes_dev_list, list) {
+ 		nes_debug(NES_DBG_NETDEV, "Nesdev list entry = 0x%p. (%s)\n",
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 6f09a72e78d7..3a45f06d20e4 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -2270,7 +2270,7 @@ static void passive_open_err(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 	cleanup_retrans_entry(cm_node);
+ 	cm_node->state = NES_CM_STATE_CLOSED;
+ 	if (reset) {
+-		nes_debug(NES_DBG_CM, "passive_open_err sending RST for "
++		nes_debug(NES_DBG_CM, "sending RST for "
+ 			  "cm_node=%p state =%d\n", cm_node, cm_node->state);
+ 		send_reset(cm_node, skb);
+ 	} else {
+@@ -2319,7 +2319,7 @@ static void process_packet(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 
+ 	skb_pull(skb, ip_hdr(skb)->ihl << 2);
+ 
+-	nes_debug(NES_DBG_CM, "process_packet: cm_node=%p state =%d syn=%d "
++	nes_debug(NES_DBG_CM, "cm_node=%p state =%d syn=%d "
+ 		  "ack=%d rst=%d fin=%d\n", cm_node, cm_node->state, tcph->syn,
+ 		  tcph->ack, tcph->rst, tcph->fin);
+ 
+@@ -3218,7 +3218,7 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	adapter = nesdev->nesadapter;
+ 
+ 	cm_node = (struct nes_cm_node *)cm_id->provider_data;
+-	nes_debug(NES_DBG_CM, "nes_accept: cm_node= %p nesvnic=%p, netdev=%p,"
++	nes_debug(NES_DBG_CM, "cm_node= %p nesvnic=%p, netdev=%p,"
+ 		"%s\n", cm_node, nesvnic, nesvnic->netdev,
+ 		nesvnic->netdev->name);
+ 
+@@ -3745,7 +3745,7 @@ static void cm_event_connected(struct nes_cm_event *event)
+ 	/* get all our handles */
+ 	cm_node = event->cm_node;
+ 	cm_id = cm_node->cm_id;
+-	nes_debug(NES_DBG_CM, "cm_event_connected - %p - cm_id = %p\n", cm_node, cm_id);
++	nes_debug(NES_DBG_CM, "%p - cm_id = %p\n", cm_node, cm_id);
+ 	nesqp = (struct nes_qp *)cm_id->provider_data;
+ 	nesvnic = to_nesvnic(nesqp->ibqp.device);
+ 	nesdev = nesvnic->nesdev;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index c0d0296e7a00..a8d73188c276 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -300,7 +300,7 @@ static int alloc_fast_reg_mr(struct nes_device *nesdev, struct nes_pd *nespd,
+ 		nes_debug(NES_DBG_MR, "Failed to get a cqp_request.\n");
+ 		return -ENOMEM;
+ 	}
+-	nes_debug(NES_DBG_MR, "alloc_fast_reg_mr: page_count = %d, "
++	nes_debug(NES_DBG_MR, "page_count = %d, "
+ 			      "region_length = %llu\n",
+ 			      page_count, region_length);
+ 	cqp_request->waiting = 1;
+-- 
+2.1.3
