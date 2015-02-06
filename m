@@ -1,55 +1,45 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 2/2] iser-target: Remove duplicate function names
-Date: Fri,  6 Feb 2015 01:09:05 +0100
-Message-ID: <1423181345-18449-2-git-send-email-linux@rasmusvillemoes.dk>
-References: <1423181345-18449-1-git-send-email-linux@rasmusvillemoes.dk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1423181345-18449-1-git-send-email-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] Revert "IB/core: Add support for extended query device
+ caps"
+Date: Fri, 06 Feb 2015 14:47:54 +0100
+Message-ID: <1423230474.3030.88.camel@opteya.com>
+References: <1423170618-12315-1-git-send-email-ydroneaud@opteya.com>
+	 <CAL1RGDWhNy2h1gqg0FYbnXX0J=ZBXy5uwf_N+gnXreJkLgLCpw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWhNy2h1gqg0FYbnXX0J=ZBXy5uwf_N+gnXreJkLgLCpw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The macro isert_dbg already ensures that __func__ is part of the
-output, so there's no reason to duplicate the function name in the
-format string itself.
+Hi,
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Le vendredi 06 f=C3=A9vrier 2015 =C3=A0 00:55 -0800, Roland Dreier a =C3=
+=A9crit :
+> Thanks for noticing this at the last moment.
+>=20
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index dafb3c531f96..20097de9ac45 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -949,7 +949,7 @@ isert_post_recv(struct isert_conn *isert_conn, u32 count)
- 		isert_err("ib_post_recv() failed with ret: %d\n", ret);
- 		isert_conn->post_recv_buf_count -= count;
- 	} else {
--		isert_dbg("isert_post_recv(): Posted %d RX buffers\n", count);
-+		isert_dbg("Posted %d RX buffers\n", count);
- 		isert_conn->conn_rx_desc_head = rx_head;
- 	}
- 	return ret;
-@@ -1709,8 +1709,7 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
- 		 * associated cmd->se_cmd needs to be released.
- 		 */
- 		if (cmd->se_cmd.se_tfo != NULL) {
--			isert_dbg("Calling transport_generic_free_cmd from"
--				 " isert_put_cmd for 0x%02x\n",
-+			isert_dbg("Calling transport_generic_free_cmd for 0x%02x\n",
- 				 cmd->iscsi_opcode);
- 			transport_generic_free_cmd(&cmd->se_cmd, 0);
- 			break;
-@@ -3136,7 +3135,7 @@ accept_wait:
- 	spin_lock_bh(&np->np_thread_lock);
- 	if (np->np_thread_state >= ISCSI_NP_THREAD_RESET) {
- 		spin_unlock_bh(&np->np_thread_lock);
--		isert_dbg("np_thread_state %d for isert_accept_np\n",
-+		isert_dbg("np_thread_state %d\n",
- 			 np->np_thread_state);
- 		/**
- 		 * No point in stalling here when np_thread
--- 
-2.1.3
+I should have noticed this earlier, but, as small is beautiful,
+I was impressed by the patch from Haggai and thought it would better=20
+than an ugly revert ... Foolish I was.
+
+> I will send this to Linus on Friday.
+
+Thanks a lot. And sorry about this epic adventure in ABI land :/
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
