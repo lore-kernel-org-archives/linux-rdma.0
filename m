@@ -1,52 +1,42 @@
-From: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: rdma_connect() and IBV_QPT_UC
-Date: Fri, 6 Feb 2015 15:44:22 -0500
-Message-ID: <CAPb9-SHsznYpLmUoguY1=qKbOTwCbKVLHqhSe5W=yeAYiJdg-Q@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma_connect() and IBV_QPT_UC
+Date: Fri, 6 Feb 2015 20:53:37 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E56213@ORSMSX109.amr.corp.intel.com>
 References: <CAPb9-SGWZmHnGQa+7Y72iBwDftsUeprFF3cGKDnf=RAAOSUo_g@mail.gmail.com>
 	<1828884A29C6694DAF28B7E6B8A8237399E55949@ORSMSX109.amr.corp.intel.com>
+ <CAPb9-SHsznYpLmUoguY1=qKbOTwCbKVLHqhSe5W=yeAYiJdg-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E55949-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAPb9-SHsznYpLmUoguY1=qKbOTwCbKVLHqhSe5W=yeAYiJdg-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Christopher Mitchell <christopher-1z5WdJkP5Frk1uMJSBkQmQ@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean,
-
-Thanks for the quick response. I've made the suggested changes, but
-I'm afraid I am having the same problems. In fact, I see that a
-previous thread (
-http://www.spinics.net/lists/linux-rdma/msg07573.html ) follows
-another user with the same problem. In fact, I finally found a message
-(from you, actually!
-http://www.spinics.net/lists/linux-rdma/msg07601.html ) saying that as
-of 2011, librdmacm can't handle UC. Is this still the case?
-
-Thanks,
-Christopher
-
-On Wed, Feb 4, 2015 at 9:19 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> I have a fairly complex system that I've built over the last few years
->> as part of my PhD that uses reliable connections for message-passing
->> and RDMA. After reading a recent paper, I decided to compare the
->> performance of message-passing over unreliable connections for the
->> sake of completeness, but unfortunately, I've repeatedly run into
->> obstacles trying to switch to using the UC mode. I even wrote a tiny
->> client and server that simply opens a connection, sends a message, and
->> sends a response, and when I switch from RC to UC, the rdma_accept()
->> at the server always fails with EINVAL when trying to accept the
->> client's rdma_connect(). I'm afraid documentation, source code, and
->> experimentation have left me stymied. I have tried using RDMA_PS_IB
->> and RDMA_PS_UDP instead of RDMA_PS_TCP in rdma_create_id() to no
->> avail, I've experimented with qp_attr fields, and my MWE shows the
->> same problems as the larger system. Any assistance woudl be greatly
->> appreciated, and I'd be happy to provide more details about my setup
->> of the event channel, queue pair, buffers, and so on if necessary.
->
-> I believe you can get UC support by using the calls rdma_getaddrinfo and rdma_create_ep, which allows you to specify the qp_type as IBV_QPT_UC.  For the port space, you will need RDMA_PS_IB.  The TCP and UDP port spaces map to QP types RC and UD, respectively.
+PiBUaGFua3MgZm9yIHRoZSBxdWljayByZXNwb25zZS4gSSd2ZSBtYWRlIHRoZSBzdWdnZXN0ZWQg
+Y2hhbmdlcywgYnV0DQo+IEknbSBhZnJhaWQgSSBhbSBoYXZpbmcgdGhlIHNhbWUgcHJvYmxlbXMu
+IEluIGZhY3QsIEkgc2VlIHRoYXQgYQ0KPiBwcmV2aW91cyB0aHJlYWQgKA0KPiBodHRwOi8vd3d3
+LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LXJkbWEvbXNnMDc1NzMuaHRtbCApIGZvbGxvd3MNCj4g
+YW5vdGhlciB1c2VyIHdpdGggdGhlIHNhbWUgcHJvYmxlbS4gSW4gZmFjdCwgSSBmaW5hbGx5IGZv
+dW5kIGEgbWVzc2FnZQ0KPiAoZnJvbSB5b3UsIGFjdHVhbGx5IQ0KPiBodHRwOi8vd3d3LnNwaW5p
+Y3MubmV0L2xpc3RzL2xpbnV4LXJkbWEvbXNnMDc2MDEuaHRtbCApIHNheWluZyB0aGF0IGFzDQo+
+IG9mIDIwMTEsIGxpYnJkbWFjbSBjYW4ndCBoYW5kbGUgVUMuIElzIHRoaXMgc3RpbGwgdGhlIGNh
+c2U/DQoNClVDIHN1cHBvcnQgaGFzIG5ldmVyIGJlZW4gYSBwcmlvcml0eSwgc28gaXQncyBub3Qg
+c29tZXRoaW5nIHRoYXQncyB0ZXN0ZWQuICBJIG1vZGlmaWVkIG9uZSBvZiB0aGUgZXhhbXBsZSBs
+aWJyZG1hY20gcHJvZ3JhbXMgdG8gdXNlIFVDLCBhbmQgaXQgc2VlbWVkIHRvIHdvcmsuICBBdCBs
+ZWFzdCBpdCBtYWRlIGEgY29ubmVjdGlvbiBhbmQgdHJhbnNmZXJyZWQgc29tZSBkYXRhLiAgSSBk
+aWQgbm90IHZlcmlmeSB0aGF0IFVDIHdhcyBhY3R1YWxseSBiZWluZyB1c2VkLg0KDQpBIG5ld2Vy
+IGtlcm5lbCBtYXkgYmUgbmVlZGVkLCBidXQgSSBkb24ndCByZW1lbWJlciB3aGF0IHBhdGNoZXMg
+YXJlIHJlcXVpcmVkIG9yIHdoaWNoIHZlcnNpb24gdGhlIGNoYW5nZXMgd2VudCB1cHN0cmVhbS4g
+IENoYW5nZXMgd2VyZSBuZXZlciBtYWRlIHNwZWNpZmljYWxseSB0byBzdXBwb3J0IFVDLCBidXQg
+dGhlIGNoYW5nZXMgdG8gc3VwcG9ydCBYUkMgYW5kIG5hdGl2ZSBJQiBhZGRyZXNzaW5nIHNob3Vs
+ZCBoYXZlIG1hZGUgaXQgcG9zc2libGUuDQoNCkJ0dywgaXMgdGhlcmUgYW55IHJlYXNvbiB3aHkg
+eW91J3JlIHdhbnRpbmcgdG8gcnVuIG92ZXIgVUM/ICBJdCBraW5kIG9mIGNvbWJpbmVzIHRoZSB3
+b3JzdCBwYXJ0IG9mIFVEIHdpdGggdGhlIHdvcnN0IGZlYXR1cmVzIG9mIFJDIC0tIGtpbmQgb2Yg
+dGhlIGVsIENhbWlubyBvZiBwcm90b2NvbHMuDQoNCi0gU2Vhbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
