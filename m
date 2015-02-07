@@ -1,27 +1,24 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCHv2 infiniband-diags] ibtracert.c: Remove checking the
- port 0 state for base switch port 0
-Date: Sat, 7 Feb 2015 03:40:16 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC20638@CRSMSX101.amr.corp.intel.com>
-References: <54C96995.6070404@dev.mellanox.co.il>
+Subject: RE: [PATCH infiniband-diags] Add new configure flag to
+ enable/disable the rdma-ndd build
+Date: Sat, 7 Feb 2015 03:40:46 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC20654@CRSMSX101.amr.corp.intel.com>
+References: <54D35FC3.60407@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54C96995.6070404-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <54D35FC3.60407-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 > 
 > From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> The port 0 state check needed to be only for HCA/Routers and
-> EnhancedPort0 switches.
-> For BasePort0 switches, the PortState field, in PortInfo arrtibute, for port0 is
-> undefined.
+> Add new flag --enable-rdma-ndd (default=yes)
 > 
 > Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
@@ -29,128 +26,101 @@ Thanks applied,
 Ira 
 
 > ---
-> Changes since v1:
-> Changed is_route_inactive_port0 to is_port_inactive Moved description from
-> above use of routine to above routine (is_port_inactive)
-> 
-> diff --git a/src/ibtracert.c b/src/ibtracert.c index d32968b..9414618 100644
-> --- a/src/ibtracert.c
-> +++ b/src/ibtracert.c
-> @@ -92,6 +92,7 @@ struct Switch {
->  	int mccap;
->  	int linearFDBtop;
->  	int fdb_base;
-> +	int enhsp0;
->  	int8_t fdb[64];
->  	char switchinfo[64];
->  };
-> @@ -114,6 +115,24 @@ struct Node {
->  Node *nodesdist[MAXHOPS];
->  uint64_t target_portguid;
-> 
-> +/*
-> + * is_port_inactive
-> + * Checks whether or not the port state is other than active.
-> + * The "sw" argument is only relevant when the port is on a
-> + * switch; for HCAs and routers, this argument is ignored.
-> + * Returns 1 when port is not active and 0 when active.
-> + * Base switch port 0 is considered always active.
-> + */
-> +static int is_port_inactive(Node * node, Port * port, Switch * sw) {
-> +	int res = 0;
-> +	if (port->state != 4 &&
-> +	    (node->type != IB_NODE_SWITCH ||
-> +	     (node->type == IB_NODE_SWITCH && sw->enhsp0)))
-> +		res = 1;
-> +	return res;
-> +}
+> diff --git a/Makefile.am b/Makefile.am
+> index 4e08c2b..63c4b48 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -15,9 +15,11 @@ sbin_PROGRAMS = src/ibaddr src/ibnetdiscover
+> src/ibping src/ibportstate \
+>  	        src/perfquery src/sminfo src/smpdump src/smpquery \
+>  	        src/saquery src/vendstat src/iblinkinfo \
+>  		src/ibqueryerrors src/ibcacheedit src/ibccquery \
+> -		src/ibccconfig \
+> -		src/dump_fts \
+> -		src/rdma-ndd
+> +		src/ibccconfig src/dump_fts
 > +
->  static int get_node(Node * node, Port * port, ib_portid_t * portid)  {
->  	void *pi = port->portinfo, *ni = node->nodeinfo, *nd = node->nodedesc;
-> @@ -164,6 +183,7 @@ static int switch_lookup(Switch * sw, ib_portid_t *
-> portid, int lid)
+> +if ENABLE_RDMA_NDD
+> +sbin_PROGRAMS += src/rdma-ndd
+> +endif
 > 
->  	mad_decode_field(si, IB_SW_LINEAR_FDB_CAP_F, &sw->linearcap);
->  	mad_decode_field(si, IB_SW_LINEAR_FDB_TOP_F, &sw-
-> >linearFDBtop);
-> +	mad_decode_field(si, IB_SW_ENHANCED_PORT0_F, &sw->enhsp0);
+>  if ENABLE_TEST_UTILS
+>  sbin_PROGRAMS += src/ibsendtrap src/mcm_rereg_test @@ -71,10 +73,13
+> @@ man_MANS = doc/man/ibaddr.8 \
+>  		doc/man/smpquery.8 \
+>  		doc/man/vendstat.8 \
+>  		doc/man/infiniband-diags.8 \
+> -		doc/man/rdma-ndd.8 \
+>  		man/dump_lfts.8 \
+>  		man/dump_mfts.8
 > 
->  	if (lid >= sw->linearcap && lid > sw->linearFDBtop)
->  		return -1;
-> @@ -248,7 +268,7 @@ static int find_route(ib_portid_t * from, ib_portid_t *
-> to, int dump)
->  	Port *port, fromport, toport, nextport;
->  	Switch sw;
->  	int maxhops = MAXHOPS;
-> -	int portnum, outport;
-> +	int portnum, outport = 255, next_sw_outport = 255;
-> 
->  	memset(&fromnode,0,sizeof(Node));
->  	memset(&tonode,0,sizeof(Node));
-> @@ -274,20 +294,25 @@ static int find_route(ib_portid_t * from, ib_portid_t *
-> to, int dump)
->  	portnum = port->portnum;
-> 
->  	dump_endnode(dump, "From", node, port);
-> +	if (node->type == IB_NODE_SWITCH) {
-> +		next_sw_outport = switch_lookup(&sw, from, to->lid);
-> +		if (next_sw_outport < 0 || next_sw_outport > node->numports)
-> {
-> +			/* needed to print the port in badtbl */
-> +			outport = next_sw_outport;
-> +			goto badtbl;
-> +		}
-> +	}
-> 
->  	while (maxhops--) {
-> -		if (port->state != 4)
-> +		if (is_port_inactive(node, port, &sw))
->  			goto badport;
-> 
->  		if (sameport(port, &toport))
->  			break;	/* found */
-> 
-> -		outport = portnum;
->  		if (node->type == IB_NODE_SWITCH) {
->  			DEBUG("switch node");
-> -			if ((outport = switch_lookup(&sw, from, to->lid)) < 0 ||
-> -			    outport > node->numports)
-> -				goto badtbl;
-> +			outport = next_sw_outport;
-> 
->  			if (extend_dpath(&from->drpath, outport) < 0)
->  				goto badpath;
-> @@ -307,6 +332,7 @@ static int find_route(ib_portid_t * from, ib_portid_t *
-> to, int dump)
->  			   (node->type == IB_NODE_ROUTER)) {
->  			int ca_src = 0;
-> 
-> +			outport = portnum;
->  			DEBUG("ca or router node");
->  			if (!sameport(port, &fromport)) {
->  				IBWARN
-> @@ -335,8 +361,19 @@ static int find_route(ib_portid_t * from, ib_portid_t *
-> to, int dump)
->  				nextport.portnum =
->  				    from->drpath.p[from->drpath.cnt + 1];
->  		}
-> +		/* only if the next node is a switch, get switch info */
-> +		if (nextnode.type == IB_NODE_SWITCH) {
-> +			next_sw_outport = switch_lookup(&sw, from, to->lid);
-> +			if (next_sw_outport < 0 ||
-> +			    next_sw_outport > nextnode.numports) {
-> +				/* needed to print the port in badtbl */
-> +				outport = next_sw_outport;
-> +				goto badtbl;
-> +			}
-> +		}
+> +if ENABLE_RDMA_NDD
+> +man_MANS += doc/man/rdma-ndd.8
+> +endif
 > +
->  		port = &nextport;
-> -		if (port->state != 4)
-> +		if (is_port_inactive(&nextnode, port, &sw))
->  			goto badoutport;
->  		node = &nextnode;
->  		portnum = port->portnum;
+>  # define this for the dist target
+>  compat_man_pages = man/ibdiscover.8 man/ibcheckerrors.8
+> man/ibcheckerrs.8 \
+>  		man/ibchecknet.8 man/ibchecknode.8 man/ibcheckport.8 \
+> @@ -161,6 +166,8 @@ install-data-hook:
+>  	$(top_srcdir)/config/install-sh -c -m 444
+> $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
+>  	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf
+> $(DESTDIR)/$(sysconfdir)/infiniband-diags
+> 
+> +if ENABLE_RDMA_NDD
+>  install-exec-hook:
+>  	$(top_srcdir)/config/install-sh -m 755 -d
+> $(DESTDIR)/$(sysconfdir)/init.d
+>  	$(top_srcdir)/config/install-sh -m 755 $(top_srcdir)/etc/rdma-ndd.init
+> $(DESTDIR)/$(sysconfdir)/init.d/rdma-ndd
+> +endif
+> diff --git a/configure.ac b/configure.ac index ed1b834..11f47f7 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -180,6 +180,18 @@ fi
+>  AC_SUBST(ibnetdisc_api_version)
+>  dnl End libibnetdisc stuff
+> 
+> +dnl with or with rdma-ndd
+> +AC_MSG_CHECKING(for --enable-rdma-ndd)
+> +AC_ARG_ENABLE(rdma-ndd,
+> +[  --enable-rdma-ndd build rdma-ndd (default=yes)], [case
+> +"${enableval}" in
+> +  yes) rdmandd=yes ;;
+> +  no)  rdmandd=no ;;
+> +  *) AC_MSG_ERROR(bad value ${enableval} for --enable-rdma-ndd) ;;
+> +esac],[rdmandd=yes])
+> +AM_CONDITIONAL(ENABLE_RDMA_NDD, test x$rdmandd = xyes)
+> +AC_MSG_RESULT(${rdmandd=no})
+> +
+>  dnl configures for rdma-ndd startup script  default_rdma_service=openibd
+> AC_ARG_WITH([rdma_service], @@ -198,9 +210,12 @@ default_start="null"
+>  AC_SUBST(DEFAULT_START, $default_start)  AC_SUBST(DEFAULT_STOP,
+> $default_stop)
+> 
+> -AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no") -
+> AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is
+> required for rdma-ndd...))
+> -AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
+> +if test x$rdmandd = xyes; then
+> +    AC_CHECK_HEADER(libudev.h, with_udev="yes", with_udev="no")
+> +    AC_CHECK_LIB(udev, udev_monitor_ref, [], AC_MSG_ERROR(libudev is
+> required for rdma-ndd...))
+> +    AC_CONFIG_FILES([doc/man/rdma-ndd.8 etc/rdma-ndd.init])
+> +    AC_CHECK_FUNCS_ONCE(udev_get_sys_path)
+> +fi
+> 
+>  dnl Generate doc/man/*.in files if possible  DOC_DATE="`date +%Y-%m-%d`"
+> @@ -275,8 +290,6 @@ AC_CONFIG_FILES([\
+>  	doc/man/smpquery.8 \
+>  	doc/man/vendstat.8 \
+>  	doc/man/infiniband-diags.8 \
+> -	doc/man/rdma-ndd.8 \
+> -	etc/rdma-ndd.init \
+>  	libibnetdisc/Makefile \
+>  ])
+>  AC_OUTPUT
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
