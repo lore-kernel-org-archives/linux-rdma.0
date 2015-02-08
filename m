@@ -1,36 +1,68 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 0/2] On-demand paging minor fixes
-Date: Sun, 8 Feb 2015 14:15:08 +0200
-Message-ID: <54D7534C.6010002@mellanox.com>
-References: <1420545362-18571-1-git-send-email-haggaie@mellanox.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 2/2] iser-target: Remove duplicate function names
+Date: Sun, 08 Feb 2015 21:03:04 +0200
+Message-ID: <54D7B2E8.8060000@dev.mellanox.co.il>
+References: <1423181345-18449-1-git-send-email-linux@rasmusvillemoes.dk>	 <1423181345-18449-2-git-send-email-linux@rasmusvillemoes.dk> <1423248545.9544.1.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1420545362-18571-1-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1423248545.9544.1.camel@haakon3.risingtidesystems.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Sagi Grimberg <sagig@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+On 2/6/2015 8:49 PM, Nicholas A. Bellinger wrote:
+> On Fri, 2015-02-06 at 01:09 +0100, Rasmus Villemoes wrote:
+>> The macro isert_dbg already ensures that __func__ is part of the
+>> output, so there's no reason to duplicate the function name in the
+>> format string itself.
+>>
+>> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+>> ---
+>>   drivers/infiniband/ulp/isert/ib_isert.c | 7 +++----
+>>   1 file changed, 3 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+>> index dafb3c531f96..20097de9ac45 100644
+>> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+>> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+>> @@ -949,7 +949,7 @@ isert_post_recv(struct isert_conn *isert_conn, u32 count)
+>>   		isert_err("ib_post_recv() failed with ret: %d\n", ret);
+>>   		isert_conn->post_recv_buf_count -= count;
+>>   	} else {
+>> -		isert_dbg("isert_post_recv(): Posted %d RX buffers\n", count);
+>> +		isert_dbg("Posted %d RX buffers\n", count);
+>>   		isert_conn->conn_rx_desc_head = rx_head;
+>>   	}
+>>   	return ret;
+>> @@ -1709,8 +1709,7 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
+>>   		 * associated cmd->se_cmd needs to be released.
+>>   		 */
+>>   		if (cmd->se_cmd.se_tfo != NULL) {
+>> -			isert_dbg("Calling transport_generic_free_cmd from"
+>> -				 " isert_put_cmd for 0x%02x\n",
+>> +			isert_dbg("Calling transport_generic_free_cmd for 0x%02x\n",
+>>   				 cmd->iscsi_opcode);
+>>   			transport_generic_free_cmd(&cmd->se_cmd, 0);
+>>   			break;
+>> @@ -3136,7 +3135,7 @@ accept_wait:
+>>   	spin_lock_bh(&np->np_thread_lock);
+>>   	if (np->np_thread_state >= ISCSI_NP_THREAD_RESET) {
+>>   		spin_unlock_bh(&np->np_thread_lock);
+>> -		isert_dbg("np_thread_state %d for isert_accept_np\n",
+>> +		isert_dbg("np_thread_state %d\n",
+>>   			 np->np_thread_state);
+>>   		/**
+>>   		 * No point in stalling here when np_thread
+>
+> Applied to target-pending/for-next.
+>
+> Thanks Rasmus!
 
-On 06/01/2015 13:56, Haggai Eran wrote:
-> I've updated these patches' commit message and subject lines with some style
-> changed following comments from Or Gerlitz. They contain fixes for minor issues
-> with the on-demand paging patchset. I hope you can accept them for v3.19-rc4.
+You can add my ack if you want:
 
-Could you take these minor ODP fixes into v3.20?
+Acked-by: Sagi Grimberg <sagig@mellanox.com>
 
-The patches were archived at:
-  http://marc.info/?l=linux-rdma&m=142054539427218
-
-Thanks,
-Haggai
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi.
