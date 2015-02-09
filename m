@@ -1,50 +1,91 @@
-From: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Add 64-bit LUN support
-Date: Mon, 09 Feb 2015 17:39:03 +0100
-Message-ID: <54D8E2A7.1020204@suse.de>
-References: <54CFB228.4070208@sandisk.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 00/19] IB/mad: Add support for Intel Omni-Path
+ Architecture (OPA) MAD processing.
+Date: Mon, 9 Feb 2015 21:20:34 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC21D76@CRSMSX101.amr.corp.intel.com>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
+ <54D52562.5050408@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54CFB228.4070208-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <54D52562.5050408-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Nathan Fontenot <nfont-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Tyrel Datwyler <tyreld-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/02/2015 06:21 PM, Bart Van Assche wrote:
-> The largest LUN number that has been tested is 0xd2003fff00000000.
->=20
-> Checked the following structure sizes with gdb:
-> * sizeof(struct srp_cmd) =3D 48
-> * sizeof(struct srp_tsk_mgmt) =3D 48
-> * sizeof(struct srp_aer_req) =3D 36
->=20
-> The ibmvscsi changes have been compile tested only (on a PPC system).
->=20
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Cc: Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> Cc: Nathan Fontenot <nfont-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> Cc: Tyrel Datwyler <tyreld-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> 
+> On 2/4/2015 6:29 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > The following patch series modifies the kernel MAD processing
+> > (ib_mad/ib_umad) and related interfaces to send and receive Intel
+> > Omni-Path Architecture MADs on devices which support them.
+> >
+> > In addition to supporting some IBTA management classes, OPA devices
+> > use MADs with lengths up to 2K.  These "jumbo" MADs increase the
+> > performance of management traffic.
+> >
+> > To distinguish IBTA MADs from OPA MADs a new Base Version is introduced.
+> 
+> With your recent changes, I don't think that statement above is strictly true any
+> longer. While OPA does use a different base version for it's jumbo MADs, aren't
+> OPA MADs distinguished from IBTA MADs by the new OPA MAD device
+> capability bit ?
+> 
 
-Looks good.
+True.
 
-Reviewed-by: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
+However, OPA MADs with a base version of 0x1 are compatible with and therefore can be processed by the same code as IBTA MADs.
 
-Cheers,
+If I need to respin the series I will update the comment.
 
-Hannes
---=20
-Dr. Hannes Reinecke		      zSeries & Storage
-hare-l3A5Bk7waGM@public.gmane.org			      +49 911 74053 688
-SUSE LINUX Products GmbH, Maxfeldstr. 5, 90409 N=C3=BCrnberg
-GF: J. Hawn, J. Guild, F. Imend=C3=B6rffer, HRB 16746 (AG N=C3=BCrnberg=
-)
+> 
+> What performance tests were run in terms of IBTA MADs ?
+
+Sorry for the delay.  As there have been a couple of versions of this series since I ran those tests in December I took the time to re-run these tests.  
+
+OpenSM (sweep time) and infiniband-diag (iblinkinfo and saquery) were timed on my small cluster with no noticeable change in performance.  But this is not the best test as I only have 6 or so nodes on 2 switches.
+
+For example iblinkinfo runs very quickly:
+
+[root@phcppriv12 OPENIB_FF]# time iblinkinfo > /dev/null
+
+real    0m0.072s
+user    0m0.002s
+sys     0m0.041s
+
+
+The better test we have at this small scale are a couple of tools (closed source) which send SMA and PMA packets as rapidly as possible.
+
+Those showed no difference in performance.
+
+For example I ran these tools with 3 different kernels 1) "stock roland",  2) the series in question up to the kmalloc patch,  and  final 3) then the full OPA series.
+
+Here is a summary of the results:
+
+                   Roland for-next (ecb7b12)             up to kmalloc patch                   full OPA patch set
+
+SMA            21072                                                21324                                        21381
+SMA rcv      17139                                                17329                                        17303
+
+PMA            24159.4                                             24401.2                                     24166.5
+PMA rcv      24159.4                                             24401.2                                     24166.5
+
+
+NOTE: The results shown above are specifically shown without units as I am not allowed to publish performance numbers.  However larger numbers equal better performance.
+
+The numbers are quite repeatable and as you can see are all close to each other from kernel to kernel.
+ 
+The remote node for these tests was running the stock RHEL7 kernel.  All software and hardware was held constant except for the kernel patches in question.
+	
+Ira
+
+> 
+> -- Hal
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
