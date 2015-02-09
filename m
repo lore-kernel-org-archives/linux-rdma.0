@@ -1,68 +1,64 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 2/2] iser-target: Remove duplicate function names
-Date: Sun, 08 Feb 2015 21:03:04 +0200
-Message-ID: <54D7B2E8.8060000@dev.mellanox.co.il>
-References: <1423181345-18449-1-git-send-email-linux@rasmusvillemoes.dk>	 <1423181345-18449-2-git-send-email-linux@rasmusvillemoes.dk> <1423248545.9544.1.camel@haakon3.risingtidesystems.com>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH v2] net: Mellanox: Delete unnecessary checks before the function
+ call "vunmap"
+Date: Mon, 09 Feb 2015 11:21:26 +0100
+Message-ID: <54D88A26.2060307@users.sourceforge.net>
+References: <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>	<5317A59D.4@users.sourceforge.net>	<54D22B29.3020200@users.sourceforge.net> <20150205.003404.261962007607296519.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1423248545.9544.1.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sagi Grimberg <sagig@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150205.003404.261962007607296519.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/6/2015 8:49 PM, Nicholas A. Bellinger wrote:
-> On Fri, 2015-02-06 at 01:09 +0100, Rasmus Villemoes wrote:
->> The macro isert_dbg already ensures that __func__ is part of the
->> output, so there's no reason to duplicate the function name in the
->> format string itself.
->>
->> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
->> ---
->>   drivers/infiniband/ulp/isert/ib_isert.c | 7 +++----
->>   1 file changed, 3 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
->> index dafb3c531f96..20097de9ac45 100644
->> --- a/drivers/infiniband/ulp/isert/ib_isert.c
->> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
->> @@ -949,7 +949,7 @@ isert_post_recv(struct isert_conn *isert_conn, u32 count)
->>   		isert_err("ib_post_recv() failed with ret: %d\n", ret);
->>   		isert_conn->post_recv_buf_count -= count;
->>   	} else {
->> -		isert_dbg("isert_post_recv(): Posted %d RX buffers\n", count);
->> +		isert_dbg("Posted %d RX buffers\n", count);
->>   		isert_conn->conn_rx_desc_head = rx_head;
->>   	}
->>   	return ret;
->> @@ -1709,8 +1709,7 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
->>   		 * associated cmd->se_cmd needs to be released.
->>   		 */
->>   		if (cmd->se_cmd.se_tfo != NULL) {
->> -			isert_dbg("Calling transport_generic_free_cmd from"
->> -				 " isert_put_cmd for 0x%02x\n",
->> +			isert_dbg("Calling transport_generic_free_cmd for 0x%02x\n",
->>   				 cmd->iscsi_opcode);
->>   			transport_generic_free_cmd(&cmd->se_cmd, 0);
->>   			break;
->> @@ -3136,7 +3135,7 @@ accept_wait:
->>   	spin_lock_bh(&np->np_thread_lock);
->>   	if (np->np_thread_state >= ISCSI_NP_THREAD_RESET) {
->>   		spin_unlock_bh(&np->np_thread_lock);
->> -		isert_dbg("np_thread_state %d for isert_accept_np\n",
->> +		isert_dbg("np_thread_state %d\n",
->>   			 np->np_thread_state);
->>   		/**
->>   		 * No point in stalling here when np_thread
->
-> Applied to target-pending/for-next.
->
-> Thanks Rasmus!
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Mon, 9 Feb 2015 11:10:41 +0100
 
-You can add my ack if you want:
+The vunmap() function performs also input parameter validation.
+Thus the test around the call is not needed.
 
-Acked-by: Sagi Grimberg <sagig@mellanox.com>
+This issue was detected by using the Coccinelle software.
 
-Sagi.
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Acked-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/alloc.c      | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/alloc.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+index a716c26..0c51c69 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+@@ -662,7 +662,7 @@ void mlx4_buf_free(struct mlx4_dev *dev, int size, struct mlx4_buf *buf)
+ 				  buf->direct.buf,
+ 				  buf->direct.map);
+ 	else {
+-		if (BITS_PER_LONG == 64 && buf->direct.buf)
++		if (BITS_PER_LONG == 64)
+ 			vunmap(buf->direct.buf);
+ 
+ 		for (i = 0; i < buf->nbufs; ++i)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+index 56779c1..201ca6d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+@@ -121,7 +121,7 @@ void mlx5_buf_free(struct mlx5_core_dev *dev, struct mlx5_buf *buf)
+ 		dma_free_coherent(&dev->pdev->dev, buf->size, buf->direct.buf,
+ 				  buf->direct.map);
+ 	else {
+-		if (BITS_PER_LONG == 64 && buf->direct.buf)
++		if (BITS_PER_LONG == 64)
+ 			vunmap(buf->direct.buf);
+ 
+ 		for (i = 0; i < buf->nbufs; i++)
+-- 
+2.2.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
