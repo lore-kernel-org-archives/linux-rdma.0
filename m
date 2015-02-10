@@ -1,80 +1,70 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Add 64-bit LUN support
-Date: Tue, 10 Feb 2015 14:00:35 +0100
-Message-ID: <1423573235.32606.11.camel@opteya.com>
-References: <54CFB228.4070208@sandisk.com>
-	 <1423556633.32606.7.camel@opteya.com> <54D9EE62.1010304@sandisk.com>
+From: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: mlx4: IB_EVENT_PATH_MIG not generated on path migration
+Date: Tue, 10 Feb 2015 16:56:43 +0100
+Message-ID: <20150210155643.GB13690@fholler.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54D9EE62.1010304-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Nathan Fontenot <nfont-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Tyrel Datwyler <tyreld-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+Hello,
 
-Le mardi 10 f=C3=A9vrier 2015 =C3=A0 12:41 +0100, Bart Van Assche a =C3=
-=A9crit :
-> On 02/10/15 11:13, Yann Droneaud wrote:
-> > Le lundi 02 f=C3=A9vrier 2015 =C3=A0 18:21 +0100, Bart Van Assche a=
- =C3=A9crit :
-> >> The largest LUN number that has been tested is 0xd2003fff00000000.
-> >>
-> >> Checked the following structure sizes with gdb:
-> >> * sizeof(struct srp_cmd) =3D 48
-> >> * sizeof(struct srp_tsk_mgmt) =3D 48
-> >> * sizeof(struct srp_aer_req) =3D 36
-> >=20
-> > You can use 'pahole' tool to retrieve the size (and layout) of any
-> > data structure from a .o object file.
->=20
-> Thanks, I will have a look at that tool.
->=20
-> >> The ibmvscsi changes have been compile tested only (on a PPC syste=
-m).
-> >=20
-> > The changelog lack of any information about the purpose of 64bit LU=
-Ns.
-> > Please detail a bit why and how.
->=20
-> You might have missed Hannes' patch series through which 64-bit LUN
-> support was added in the SCSI core and in most SCSI LLD drivers.
+We are using Linux 3.14.29 with mlx4 drivers and trying to use automatic path
+migration for RC connections.
+The path migration works, but no IB_EVENT_PATH_MIG* events are generated when
+it happens.
 
-Yes I've missed this thread, and, as this commit doesn't have a clear
-reference to it, I feel I might not be alone wondering about it.
+APM is configured on machine A by the following code snippet:
+        [..]
+        err = ib_query_qp(qp, &qp_attr, 0, &init_attr);                                                                                            
+        if (err)                                                                                                                                   
+                return err;                                                                                                                        
+                                                                                                                                                   
+        memcpy(&qp_attr.alt_ah_attr, &qp_attr.ah_attr,
+               sizeof(qp_attr.alt_ah_attr));
+                                                                                                                                                   
+        qp_attr.alt_pkey_index          = qp_attr.pkey_index;
+        qp_attr.alt_timeout             = qp_attr.timeout;
+        qp_attr.path_mig_state          = IB_MIG_REARM;
+        qp_attr.alt_ah_attr.dlid        = dlid; /* peer's 2. port dlid */
 
->  The
-> description of one of the patches in that series reads as follows:
->=20
->    "The SCSI standard defines 64-bit values for LUNs, and large array=
-s
->     employing large or hierarchical LUN numbers become more and more
->     common.
->=20
->     So update the linux SCSI stack to use 64-bit LUN numbers."
->=20
-> Is it OK for you if I resend this patch with that text added in the
-> patch description ?
->=20
+        err = ib_modify_qp(con->qp, &qp_attr,
+                           IB_QP_ALT_PATH | IB_QP_PATH_MIG_STATE);
 
-That's would be perfect: it makes a lot more sense with these
-information added. Additionally, you could add a link to the patch
-series.
+(I experiment with setting also the ah_attr.port_num and alt_port_num
+attributes, they seem to have no effect.)
 
-Thanks a lot.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+The QP event handler is registered when calling rdma_create_qp():
+        [..]
+        init_attr.event_handler = qp_event_handler;
+        init_attr.qp_context = con;
+        ret = rdma_create_qp(cm_id, pd, &init_attr);
 
 
+Both machines have MT26428 HCAs.
+1 Port of machine A, both ports of machine B are connected to a switch.
+We establish the connection to the 1. port of machine B, unplug the
+corresponding cable and the path is migrated transparently to the second port
+of machine B.
+The connection can be used like nothing happens.
+
+As soon as the migration happens I expect that a IB_EVENT_PATH_MIG* is
+generated on the QP event handler, but I don't receive any QP events.
+
+We need the event notification to rearm the path migration state machine for
+another migration.
+
+Does anybody have an idea what could be wrong?
+Are the PATH_MIG* notifications with mlx4 drivers are working for somebody?
+
+
+thanks
+
+Fabian
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
