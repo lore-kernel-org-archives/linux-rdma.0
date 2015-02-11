@@ -1,54 +1,50 @@
-From: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: mlx4: IB_EVENT_PATH_MIG not generated on path migration
-Date: Wed, 11 Feb 2015 10:21:36 +0100
-Message-ID: <20150211092136.GB492@fholler.de>
-References: <20150210155643.GB13690@fholler.de>
- <20150210180039.GD7427@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_ucast_mgr.c: Support diverse paths for LMC > 0
+ when scatter_ports is enabled
+Date: Wed, 11 Feb 2015 07:22:21 -0500
+Message-ID: <54DB497D.70600@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150210180039.GD7427-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason,
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-thanks for your answer.
+The patch adds an ability to calculate diverse paths for all LIDs
+(LMC > 0) derived from the same Base LID,
+when scatter ports is enabled (different from 0).
+We apply randomization during selection of the outports
+only when routing is calculated for the Base LID. For LIDs different
+from the Base LID, we don't randomize the outport but apply the procedure
+for calculating diverse path as if scatter_ports equals 0.
+The patch is relevant for minhop/updn routing.
 
-On Tue, Feb 10, 2015 at 11:00:39AM -0700, Jason Gunthorpe wrote:
-> On Tue, Feb 10, 2015 at 04:56:43PM +0100, Fabian Holler wrote:
-> 
-> > Does anybody have an idea what could be wrong?
-> > Are the PATH_MIG* notifications with mlx4 drivers are working for somebody?
-> 
-> IIRC rdmacm does not forward these events.
-> 
-> There is a lot missing to support APM with RDMA CM, it doesn't do any
-> of the CM state machine operations to coordinate loading alternate
-> paths, for instance.
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_ucast_mgr.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Alternate paths can be set directly at the QP.
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 0b24e73..219e080 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -260,7 +260,7 @@ static void ucast_mgr_process_port(IN osm_ucast_mgr_t * p_mgr,
+ 					 p_mgr->p_subn->opt.lmc,
+ 					 p_mgr->is_dor,
+ 					 p_mgr->p_subn->opt.port_shifting,
+-					 p_port->use_scatter,
++					 !lid_offset && p_port->use_scatter,
+ 					 OSM_LFT);
+ 
+ 	if (port == OSM_NO_PATH) {
+-- 
+1.7.8.2
 
-> > As soon as the migration happens I expect that a IB_EVENT_PATH_MIG* is
-> > generated on the QP event handler, but I don't receive any QP events.
-> 
-> qp_event_handler is a RDMA CM event handler, it handles
-> RDMA_CM_EVENT_* and there is no RDMA_CM_EVENT_PATH_MIGRATED.
-> You'd need to listen to the verbs level events directly, I don't
-> recall if this is possible with RDMA CM or not, sorry.
-
-The RDMA CM event handler is registered by the rdma_create_id() call.
-
-The event handler specified in the struct ib_qp_init_attr * parameter of
-rdma_create_qp() is registered as QP event handler.
-rdma_create_qp() calls ib_create_qp() and sets qp->event_handler to
-ib_qp_init_attr->event_handler.
-
-
-Fabian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
