@@ -1,66 +1,34 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH FIX For-3.19] IB/ipoib: make sure we reap all our ah on
- shutdown
-Date: Thu, 12 Feb 2015 20:10:39 +0200
-Message-ID: <54DCEC9F.8030304@mellanox.com>
-References: <31ba9a1b4528599de17670083aad043b28eff755.1421964024.git.dledford@redhat.com>
+Subject: Re: [PATCH 20/22] IB/ipoib: don't queue a work struct up twice
+Date: Thu, 12 Feb 2015 20:33:48 +0200
+Message-ID: <54DCF20C.3040704@mellanox.com>
+References: <cover.1423703861.git.dledford@redhat.com> <30a5bd6461381448c52af0d7408dbc14da9ac4d0.1423703861.git.dledford@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <31ba9a1b4528599de17670083aad043b28eff755.1421964024.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <30a5bd6461381448c52af0d7408dbc14da9ac4d0.1423703861.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/23/2015 12:02 AM, Doug Ledford wrote:
-> The introduction of garbage collection for neighbors in the ipoib stack
-> caused a leak of resources.  In particular, an ah can have a refcount
-> from a mcast struct, from a neigh struct, and from a path struct.  When
-> we put an ah ref, the ah gets moved to a dead list to be reaped later if
-> the refcount goes to 0.
->
-> During ipoib_ib_dev_stop we attempt to reap these ah entries, but since
-> that function does not force the neigh garbage collection to be run, it
-> can leak any entries held by a neighbor.  And even though the code
-> attempts to warn us that we will leak entries, that warning is broken
-> because the entries we are leaking will not yet be on the dead_ahs list
-> because they still have valid references held elsewhere.  It is during
-> shutdown, when we finally kill the neighbor garbage collection, that our
-> final ahs will get put on the dead_ahs list, but after the point at
-> which we run the neighbor garbage collection, no attempt is made to reap
-> the newly added ahs, and because during ipoib_ib_dev_stop we killed the
-> ah_reap task, no timed attempt will be made to clear them either.
->
-> Instead, create a an ipoib_flush_ah and ipoib_stop_ah routines to use at
-> appropriate times to flush out all remaining ah entries before we shut
-> the device down.
->
-> Additionally do one final flush of our priv->wq before we start tearing
-> down ib resources to make sure all possible queued work is done and
-> all possible resources freed.
->
-> This is done to prevent resource leaks on shutdown, which manifest with
-> this message on ib_ipoib module remove:
->
-> <ibdev>: ib_dealloc_pd failed
-
-Doug,
-
-If you make this bug fix apply-able before the rest of the series we can 
-push it to stable
-kernels too, can you make it?
-
->
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
-Please add above your signature a "Fixes:" line which specifies which 
-commit you are fixing, is it this one?
-
-b63b70d87741 IPoIB: Use a private hash table for path lookup in xmit path
-
-
+On 02/12/2015 03:43 AM, Doug Ledford wrote:
+> In b2d408f78b3 (IB/ipoib: make delayed tasks not hold up everything) I
+> added the ability to have some joins processed around delayed joins.
+> Because the join task processes one join at a time, we needed to queue
+> the task to run again immediately and then again at the appropriate
+> delay time.  I didn't think about the fact that our work struct can only
+> be on the workqueue once at a given time and instead tried to queue the
+> same struct up twice.  Instead, kick the queue again immediately on a
+> delayed restart attempt, when the task sees that it has nothing to do
+> but delayed work, it will pick the shortest work item and queue a delay
+> equal to its expiration.  Finally, in case we have delayed work, in the
+> send_mcast routine we need to cancel any delayed work before kicking the
+> thread immediately.
+This is strictly a fix to a downstream patch of the series, lets squash 
+it there somehow, I see no point to submit
+commit that has a bug and later a fix in the same series.
 
 
 --
