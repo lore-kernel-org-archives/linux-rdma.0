@@ -1,70 +1,82 @@
-From: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: mlx4: IB_EVENT_PATH_MIG not generated on path migration
-Date: Thu, 12 Feb 2015 09:20:36 +0100
-Message-ID: <20150212082036.GG492@fholler.de>
-References: <20150210155643.GB13690@fholler.de>
- <20150210180039.GD7427@obsidianresearch.com>
- <20150211092136.GB492@fholler.de>
- <20150211173837.GA20243@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
+ cap flag
+Date: Thu, 12 Feb 2015 09:00:09 -0500
+Message-ID: <54DCB1E9.7010309@dev.mellanox.co.il>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-15-git-send-email-ira.weiny@intel.com> <54D52589.8020305@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150211173837.GA20243-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
-
-On Wed, Feb 11, 2015 at 10:38:38AM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 11, 2015 at 10:21:36AM +0100, Fabian Holler wrote:
-> > Hello Jason,
-> > 
-> > thanks for your answer.
-> > 
-> > On Tue, Feb 10, 2015 at 11:00:39AM -0700, Jason Gunthorpe wrote:
-> > > On Tue, Feb 10, 2015 at 04:56:43PM +0100, Fabian Holler wrote:
-> > > 
-> > > > Does anybody have an idea what could be wrong?
-> > > > Are the PATH_MIG* notifications with mlx4 drivers are working for somebody?
-> > > 
-> > > IIRC rdmacm does not forward these events.
-> > > 
-> > > There is a lot missing to support APM with RDMA CM, it doesn't do any
-> > > of the CM state machine operations to coordinate loading alternate
-> > > paths, for instance.
-> > 
-> > Alternate paths can be set directly at the QP.
+On 2/11/2015 10:40 AM, Weiny, Ira wrote:
+>> On 2/4/2015 6:29 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>>> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>
+>>> OPA MADs share a common header with IBTA MADs but with a different
+>>> base version and an extended length.  These "jumbo" MADs increase the
+>>> performance of management traffic.
+>>>
+>>> Sharing a common header with IBTA MADs allows us to share most of the
+>>> MAD processing code when dealing with OPA MADs in addition to
+>>> supporting some IBTA MADs on OPA devices.
+>>>
+>>> Add a device capability flag to indicate OPA MAD support on the device.
+>>>
+>>> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>
+>>> ---
+>>>  include/rdma/ib_verbs.h | 5 +++++
+>>>  1 file changed, 5 insertions(+)
+>>>
+>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
+>>> 3ab4033..2614233 100644
+>>> --- a/include/rdma/ib_verbs.h
+>>> +++ b/include/rdma/ib_verbs.h
+>>> @@ -128,6 +128,10 @@ enum ib_device_cap_flags {
+>>>  	IB_DEVICE_ON_DEMAND_PAGING	= (1<<31),
+>>>  };
+>>>
+>>> +enum ib_device_cap_flags2 {
+>>> +	IB_DEVICE_OPA_MAD_SUPPORT	= 1
+>>> +};
+>>> +
+>>>  enum ib_signature_prot_cap {
+>>>  	IB_PROT_T10DIF_TYPE_1 = 1,
+>>>  	IB_PROT_T10DIF_TYPE_2 = 1 << 1,
+>>> @@ -210,6 +214,7 @@ struct ib_device_attr {
+>>>  	int			sig_prot_cap;
+>>>  	int			sig_guard_cap;
+>>>  	struct ib_odp_caps	odp_caps;
+>>> +	u64			device_cap_flags2;
+>>>  	u32			max_mad_size;
+>>>  };
+>>>
+>>
+>> Why is OPA support determined via a device capability flag ? What are the
+>> tradeoffs for doing it this way versus the other choices that have been used in
+>> the past for other RDMA technologies like RoCE, iWARP, usNIC, ... ?
 > 
-> APM requires a certain amount of synchronization between the local and
-> remote QP state, particularly if you want it to work more than
-> once. That is supposed to be done with CMA mads.
-
-Ok, we discovered functions to configure APM in ib_cm.h.
-We will investigate if we can use them to setup APM.
-
-> > The event handler specified in the struct ib_qp_init_attr * parameter of 
-> > rdma_create_qp() is registered as QP event handler.
-> > rdma_create_qp() calls ib_create_qp() and sets qp->event_handler to
-> > ib_qp_init_attr->event_handler.
+> None of those technologies use the MAD stack for Subnet Management.  Other MAD support is very limited (ie IB compatible PMA queries on the local port only).
 > 
-> Okay, right, I was thinking of something else.
+> Do you have a suggestion for alternatives?
+
+The desire to leverage the IB MAD infrastructure for OPA is understood
+but the current approach represents OPA as a device capability which
+does not seem appropriate because OPA is clearly a different type of
+RDMA technology than IB.
+
+-- Hal
+
+> Ira
 > 
-> We had exactly this working a few months ago for a demo, in kernel
-> using Lustre and RDMA CM. I checked the patches we made and yes, the
-> event_handler was being properly called with IB_EVENT_PATH_MIG on
-> mlx4 and qib cards.
 > 
-> IIRC we may have needed the latest firmware on the mlx side.
 
-We will also try a firmware upgrade.
-
-
-thanks a lot!
-
-Fabian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
