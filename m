@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 08/22] IB/ipoib: No longer use flush as a parameter
-Date: Wed, 11 Feb 2015 20:43:31 -0500
-Message-ID: <7cc752f372e50e7c9fa07e21bd5b6cfc54d4ec1a.1423703861.git.dledford@redhat.com>
+Subject: [PATCH 07/22] IB/ipoib: Make ipoib_mcast_stop_thread flush the workqueue
+Date: Wed, 11 Feb 2015 20:43:30 -0500
+Message-ID: <1f21c17cb58a7ba1aeadb50808a185f7442a4478.1423703861.git.dledford@redhat.com>
 References: <cover.1423703861.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1423703861.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,144 +12,117 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Various places in the IPoIB code had a deadlock related to flushing
-the ipoib workqueue.  Now that we have per device workqueues and a
-specific flush workqueue, there is no longer a deadlock issue with
-flushing the device specific workqueues and we can do so unilaterally.
+We used to pass a flush variable to mcast_stop_thread to indicate if
+we should flush the workqueue or not.  This was due to some code
+trying to flush a workqueue that it was currently running on which is
+a no-no.  Now that we have per-device work queues, and now that
+ipoib_mcast_restart_task has taken the fact that it is queued on a
+single thread workqueue with all of the ipoib_mcast_join_task's and
+therefore has no need to stop the join task while it runs, we can do
+away with the flush parameter and unilaterally flush always.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h      |  6 +++---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   | 19 +++++++++----------
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  8 ++++----
- 3 files changed, 16 insertions(+), 17 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c        |  4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21 +++++++++------------
+ 3 files changed, 12 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 28dc927c0e8..8ba80a6d3a4 100644
+index 45fd10a72ec..28dc927c0e8 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib.h
 +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -484,10 +484,10 @@ void ipoib_ib_dev_flush_heavy(struct work_struct *work);
- void ipoib_pkey_event(struct work_struct *work);
- void ipoib_ib_dev_cleanup(struct net_device *dev);
+@@ -499,7 +499,7 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
  
--int ipoib_ib_dev_open(struct net_device *dev, int flush);
-+int ipoib_ib_dev_open(struct net_device *dev);
- int ipoib_ib_dev_up(struct net_device *dev);
--int ipoib_ib_dev_down(struct net_device *dev, int flush);
--int ipoib_ib_dev_stop(struct net_device *dev, int flush);
-+int ipoib_ib_dev_down(struct net_device *dev);
-+int ipoib_ib_dev_stop(struct net_device *dev);
- void ipoib_pkey_dev_check_presence(struct net_device *dev);
+ void ipoib_mcast_restart_task(struct work_struct *work);
+ int ipoib_mcast_start_thread(struct net_device *dev);
+-int ipoib_mcast_stop_thread(struct net_device *dev, int flush);
++int ipoib_mcast_stop_thread(struct net_device *dev);
  
- int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
+ void ipoib_mcast_dev_down(struct net_device *dev);
+ void ipoib_mcast_dev_flush(struct net_device *dev);
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 66096787119..fe65abb5150 100644
+index bfd17d41b5f..66096787119 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -664,7 +664,7 @@ static void ipoib_ib_tx_timer_func(unsigned long ctx)
- 	drain_tx_cq((struct net_device *)ctx);
+@@ -747,7 +747,7 @@ int ipoib_ib_dev_down(struct net_device *dev, int flush)
+ 	clear_bit(IPOIB_FLAG_OPER_UP, &priv->flags);
+ 	netif_carrier_off(dev);
+ 
+-	ipoib_mcast_stop_thread(dev, flush);
++	ipoib_mcast_stop_thread(dev);
+ 	ipoib_mcast_dev_flush(dev);
+ 
+ 	ipoib_flush_paths(dev);
+@@ -1097,7 +1097,7 @@ void ipoib_ib_dev_cleanup(struct net_device *dev)
+ 	 */
+ 	ipoib_flush_paths(dev);
+ 
+-	ipoib_mcast_stop_thread(dev, 1);
++	ipoib_mcast_stop_thread(dev);
+ 	ipoib_mcast_dev_flush(dev);
+ 
+ 	ipoib_transport_dev_cleanup(dev);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 845f910eb21..bc50dd0d0e4 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -648,7 +648,7 @@ int ipoib_mcast_start_thread(struct net_device *dev)
+ 	return 0;
  }
  
--int ipoib_ib_dev_open(struct net_device *dev, int flush)
-+int ipoib_ib_dev_open(struct net_device *dev)
+-int ipoib_mcast_stop_thread(struct net_device *dev, int flush)
++int ipoib_mcast_stop_thread(struct net_device *dev)
  {
  	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
-@@ -706,7 +706,7 @@ int ipoib_ib_dev_open(struct net_device *dev, int flush)
- dev_stop:
- 	if (!test_and_set_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
- 		napi_enable(&priv->napi);
--	ipoib_ib_dev_stop(dev, flush);
-+	ipoib_ib_dev_stop(dev);
- 	return -1;
- }
  
-@@ -738,7 +738,7 @@ int ipoib_ib_dev_up(struct net_device *dev)
- 	return ipoib_mcast_start_thread(dev);
- }
+@@ -659,8 +659,7 @@ int ipoib_mcast_stop_thread(struct net_device *dev, int flush)
+ 	cancel_delayed_work(&priv->mcast_task);
+ 	mutex_unlock(&mcast_mutex);
  
--int ipoib_ib_dev_down(struct net_device *dev, int flush)
-+int ipoib_ib_dev_down(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
-@@ -807,7 +807,7 @@ void ipoib_drain_cq(struct net_device *dev)
- 	local_bh_enable();
- }
- 
--int ipoib_ib_dev_stop(struct net_device *dev, int flush)
-+int ipoib_ib_dev_stop(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ib_qp_attr qp_attr;
-@@ -880,8 +880,7 @@ timeout:
- 	/* Wait for all AHs to be reaped */
- 	set_bit(IPOIB_STOP_REAPER, &priv->flags);
- 	cancel_delayed_work(&priv->ah_reap_task);
 -	if (flush)
 -		flush_workqueue(priv->wq);
 +	flush_workqueue(priv->wq);
  
- 	begin = jiffies;
- 
-@@ -918,7 +917,7 @@ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
- 		    (unsigned long) dev);
- 
- 	if (dev->flags & IFF_UP) {
--		if (ipoib_ib_dev_open(dev, 1)) {
-+		if (ipoib_ib_dev_open(dev)) {
- 			ipoib_transport_dev_cleanup(dev);
- 			return -ENODEV;
- 		}
-@@ -1040,12 +1039,12 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 	}
- 
- 	if (level >= IPOIB_FLUSH_NORMAL)
--		ipoib_ib_dev_down(dev, 0);
-+		ipoib_ib_dev_down(dev);
- 
- 	if (level == IPOIB_FLUSH_HEAVY) {
- 		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
--			ipoib_ib_dev_stop(dev, 0);
--		if (ipoib_ib_dev_open(dev, 0) != 0)
-+			ipoib_ib_dev_stop(dev);
-+		if (ipoib_ib_dev_open(dev) != 0)
- 			return;
- 		if (netif_queue_stopped(dev))
- 			netif_start_queue(dev);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 42e5c278f48..6bad17d4d58 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -108,7 +108,7 @@ int ipoib_open(struct net_device *dev)
- 
- 	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
- 
--	if (ipoib_ib_dev_open(dev, 1)) {
-+	if (ipoib_ib_dev_open(dev)) {
- 		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
- 			return 0;
- 		goto err_disable;
-@@ -139,7 +139,7 @@ int ipoib_open(struct net_device *dev)
  	return 0;
+ }
+@@ -838,8 +837,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
  
- err_stop:
--	ipoib_ib_dev_stop(dev, 1);
-+	ipoib_ib_dev_stop(dev);
+ 	ipoib_dbg_mcast(priv, "restarting multicast task\n");
  
- err_disable:
- 	clear_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
-@@ -157,8 +157,8 @@ static int ipoib_stop(struct net_device *dev)
- 
- 	netif_stop_queue(dev);
- 
--	ipoib_ib_dev_down(dev, 1);
--	ipoib_ib_dev_stop(dev, 0);
-+	ipoib_ib_dev_down(dev);
-+	ipoib_ib_dev_stop(dev);
- 
- 	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
- 		struct ipoib_dev_priv *cpriv;
+-	ipoib_mcast_stop_thread(dev, 0);
+-
+ 	local_irq_save(flags);
+ 	netif_addr_lock(dev);
+ 	spin_lock(&priv->lock);
+@@ -936,13 +933,10 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 	 * We have to cancel outside of the spinlock, but we have to
+ 	 * take the rtnl lock or else we race with the removal of
+ 	 * entries from the remove list in mcast_dev_flush as part
+-	 * of ipoib_stop() which will call mcast_stop_thread with
+-	 * flush == 1 while holding the rtnl lock, and the
+-	 * flush_workqueue won't complete until this restart_mcast_task
+-	 * completes.  So do like the carrier on task and attempt to
+-	 * take the rtnl lock, but if we can't before the ADMIN_UP flag
+-	 * goes away, then just return and know that the remove list will
+-	 * get flushed later by mcast_stop_thread.
++	 * of ipoib_stop().  We detect the drop of the ADMIN_UP flag
++	 * to signal that we have hit this particular race, and we
++	 * return since we know we don't need to do anything else
++	 * anyway.
+ 	 */
+ 	while (!rtnl_trylock()) {
+ 		if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
+@@ -954,6 +948,9 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 		ipoib_mcast_leave(mcast->dev, mcast);
+ 		ipoib_mcast_free(mcast);
+ 	}
++	/*
++	 * Restart our join task if needed
++	 */
+ 	ipoib_mcast_start_thread(dev);
+ 	rtnl_unlock();
+ }
 -- 
 2.1.0
 
