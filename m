@@ -1,78 +1,67 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/22] IB/ipoib: Fixups for multicast issues
-Date: Thu, 12 Feb 2015 09:02:57 -0500
-Message-ID: <1423749777.3424.76.camel@redhat.com>
-References: <cover.1423703861.git.dledford@redhat.com>
-		 <54DC303C.2020207@mellanox.com> <1423716906.3424.74.camel@redhat.com>
-	 <54DC3934.3010401@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH FIX For-3.19] IB/ipoib: make sure we reap all our ah on
+ shutdown
+Date: Thu, 12 Feb 2015 20:10:39 +0200
+Message-ID: <54DCEC9F.8030304@mellanox.com>
+References: <31ba9a1b4528599de17670083aad043b28eff755.1421964024.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-HHUhRkmbb7Bf2cLrKziS"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54DC3934.3010401-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <31ba9a1b4528599de17670083aad043b28eff755.1421964024.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 01/23/2015 12:02 AM, Doug Ledford wrote:
+> The introduction of garbage collection for neighbors in the ipoib stack
+> caused a leak of resources.  In particular, an ah can have a refcount
+> from a mcast struct, from a neigh struct, and from a path struct.  When
+> we put an ah ref, the ah gets moved to a dead list to be reaped later if
+> the refcount goes to 0.
+>
+> During ipoib_ib_dev_stop we attempt to reap these ah entries, but since
+> that function does not force the neigh garbage collection to be run, it
+> can leak any entries held by a neighbor.  And even though the code
+> attempts to warn us that we will leak entries, that warning is broken
+> because the entries we are leaking will not yet be on the dead_ahs list
+> because they still have valid references held elsewhere.  It is during
+> shutdown, when we finally kill the neighbor garbage collection, that our
+> final ahs will get put on the dead_ahs list, but after the point at
+> which we run the neighbor garbage collection, no attempt is made to reap
+> the newly added ahs, and because during ipoib_ib_dev_stop we killed the
+> ah_reap task, no timed attempt will be made to clear them either.
+>
+> Instead, create a an ipoib_flush_ah and ipoib_stop_ah routines to use at
+> appropriate times to flush out all remaining ah entries before we shut
+> the device down.
+>
+> Additionally do one final flush of our priv->wq before we start tearing
+> down ib resources to make sure all possible queued work is done and
+> all possible resources freed.
+>
+> This is done to prevent resource leaks on shutdown, which manifest with
+> this message on ib_ipoib module remove:
+>
+> <ibdev>: ib_dealloc_pd failed
 
---=-HHUhRkmbb7Bf2cLrKziS
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Doug,
 
-On Thu, 2015-02-12 at 00:25 -0500, Or Gerlitz wrote:
-> On 2/11/2015 11:55 PM, Doug Ledford wrote:
-> > I tried, but the most appropriate squashes were things like patch 18 an=
-d
-> > 19 squashed into patch 3, and some other similar jumping around of
-> > patches.  The number of conflicts that created in both the original
-> > squash and the follow on patches was perverse.  So, since the original
-> > 20 patches as I submitted previously are what has gone through our QA, =
-I
-> > left them as they were.  If I fixed them up and squashed them, and if
-> > some overlooked fixup failure snuck in there, it would invalidate all o=
-f
-> > that testing.
->=20
-> I see. Does this sequence bisect-able? namely the driver builds and=20
-> functions after applying patch by patch? note this is hard requirement=
-=20
-> when modifying existing upstream drivers.
+If you make this bug fix apply-able before the rest of the series we can 
+push it to stable
+kernels too, can you make it?
 
-Yes.  There might be some oddities in the behavior of the running IPoIB
-driver specifically when testing the mcast abilities in the middle of
-this patch set, but they will all build and function at a basic level.
+>
+> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Please add above your signature a "Fixes:" line which specifies which 
+commit you are fixing, is it this one?
+
+b63b70d87741 IPoIB: Use a private hash table for path lookup in xmit path
 
 
 
---=-HHUhRkmbb7Bf2cLrKziS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJU3LKRAAoJELgmozMOVy/dbSUP/3Hcu4SmBy3oQ/GQJtVHNuTP
-RX71at+T7ANhQl/UgTq3ZGtv1JUhkUHB8YsIYDzz5SNCURDEr5Tw+eBD9jxAa61S
-gFlLAtMr3SZyEO7HAUXR62QfP7WuYOGhcoqJyDRHWsdWPUpH0/0rQkAkOCeXaDRD
-Z6s2FO7bAJykMIVHySh3e8tYUDIfVSLKj48x35kPDXbw+kalhWoYnXeW5Ptgt5To
-A414KTuf/WnZsMCJYMv6kibGRyV0V+8CIaELHQniq5IguRsKgQU6/mnmrzH2Wwx6
-vjpHkHe1SexduaLRnpuCoHivpiuqyUWsTXYW2dAc8FF4mEyzyTAnSANYdBTm9NV3
-pTq2GYAuoNEjNC7wgoWD0/HGlD5GRxwZgYnLxQ3vDb8rlrrLVti+bB2N0WzkgJqn
-tmf06sAKsCC67WKcsIX2b6cimU4t2wwqT+B0BYcapAQ8MEoxqxvM+jAPLGEHo52k
-zlTU4W2fTK3OopSdsUeLIVHzxTzhust2av85mMSMkNBLVC7ehu7npkW1AHQCR0EF
-EJO0iDhhswMKQ4aPiIIOuz8TFnwV26vqJP6tD471HCAV05lmeysJSQgVXRTq6hLM
-kemZUkSjVPVlTtxLlmp25BCgJZM5wxLvNZuzsx4zQNc5E3UltrabbpZmxEfhrpRO
-p2TA9JEr2miPJuhKY/kv
-=EyLZ
------END PGP SIGNATURE-----
-
---=-HHUhRkmbb7Bf2cLrKziS--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
