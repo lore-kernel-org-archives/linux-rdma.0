@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 02/22] IB/ipoib: Make the carrier_on_task race aware
-Date: Wed, 11 Feb 2015 20:43:25 -0500
-Message-ID: <2306bc8da2aed5ea1645445920e84afc46496de5.1423703861.git.dledford@redhat.com>
+Subject: [PATCH 04/22] IB/ipoib: fix mcast_dev_flush/mcast_restart_task race
+Date: Wed, 11 Feb 2015 20:43:27 -0500
+Message-ID: <4133bfe2ad236899caf0831475ea636354a54883.1423703861.git.dledford@redhat.com>
 References: <cover.1423703861.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1423703861.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,50 +12,75 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We blindly assume that we can just take the rtnl lock and that will
-prevent races with downing this interface.  Unfortunately, that's not
-the case.  In ipoib_mcast_stop_thread() we will call flush_workqueue()
-in an attempt to clear out all remaining instances of ipoib_join_task.
-But, since this task is put on the same workqueue as the join task,
-the flush_workqueue waits on this thread too.  But this thread is
-deadlocked on the rtnl lock.  The better thing here is to use trylock
-and loop on that until we either get the lock or we see that
-FLAG_ADMIN_UP has been cleared, in which case we don't need to do
-anything anyway and we just return.
+Our mcast_dev_flush routine and our mcast_restart_task can race
+against each other.  In particular, they both hold the priv->lock
+while manipulating the rbtree and while removing mcast entries from
+the multicast_list and while adding entries to the remove_list, but
+they also both drop their locks prior to doing the actual removes.
+The mcast_dev_flush routine is run entirely under the rtnl lock and so
+has at least some locking.  The actual race condition is like this:
+
+Thread 1                                Thread 2
+ifconfig ib0 up
+  start multicast join for broadcast
+  multicast join completes for broadcast
+  start to add more multicast joins
+    call mcast_restart_task to add new entries
+                                        ifconfig ib0 down
+					  mcast_dev_flush
+					    mcast_leave(mcast A)
+    mcast_leave(mcast A)
+
+As mcast_leave calls ib_sa_multicast_leave, and as member in
+core/multicast.c is ref counted, we run into an unbalanced refcount
+issue.  To avoid stomping on each others removes, take the rtnl lock
+specifically when we are deleting the entries from the remove list.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 37 ++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index eee66d13e5b..9862c76a83f 100644
+index a52c9f3f7e4..41325960e4e 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -353,18 +353,27 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
- 						   carrier_on_task);
- 	struct ib_port_attr attr;
+@@ -802,7 +802,10 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
  
--	/*
--	 * Take rtnl_lock to avoid racing with ipoib_stop() and
--	 * turning the carrier back on while a device is being
--	 * removed.
--	 */
- 	if (ib_query_port(priv->ca, priv->port, &attr) ||
- 	    attr.state != IB_PORT_ACTIVE) {
- 		ipoib_dbg(priv, "Keeping carrier off until IB port is active\n");
- 		return;
- 	}
+ 	spin_unlock_irqrestore(&priv->lock, flags);
  
--	rtnl_lock();
+-	/* seperate between the wait to the leave*/
 +	/*
-+	 * Take rtnl_lock to avoid racing with ipoib_stop() and
-+	 * turning the carrier back on while a device is being
-+	 * removed.  However, ipoib_stop() will attempt to flush
-+	 * the workqueue while holding the rtnl lock, so loop
-+	 * on trylock until either we get the lock or we see
-+	 * FLAG_ADMIN_UP go away as that signals that we are bailing
-+	 * and can safely ignore the carrier on work
++	 * make sure the in-flight joins have finished before we attempt
++	 * to leave
++	 */
+ 	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
+ 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
+ 			wait_for_completion(&mcast->done);
+@@ -923,14 +926,38 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 	netif_addr_unlock(dev);
+ 	local_irq_restore(flags);
+ 
+-	/* We have to cancel outside of the spinlock */
++	/*
++	 * make sure the in-flight joins have finished before we attempt
++	 * to leave
++	 */
++	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
++		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
++			wait_for_completion(&mcast->done);
++
++	/*
++	 * We have to cancel outside of the spinlock, but we have to
++	 * take the rtnl lock or else we race with the removal of
++	 * entries from the remove list in mcast_dev_flush as part
++	 * of ipoib_stop() which will call mcast_stop_thread with
++	 * flush == 1 while holding the rtnl lock, and the
++	 * flush_workqueue won't complete until this restart_mcast_task
++	 * completes.  So do like the carrier on task and attempt to
++	 * take the rtnl lock, but if we can't before the ADMIN_UP flag
++	 * goes away, then just return and know that the remove list will
++	 * get flushed later by mcast_dev_flush.
 +	 */
 +	while (!rtnl_trylock()) {
 +		if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
@@ -63,9 +88,18 @@ index eee66d13e5b..9862c76a83f 100644
 +		else
 +			msleep(20);
 +	}
- 	if (!ipoib_cm_admin_enabled(priv->dev))
- 		dev_set_mtu(priv->dev, min(priv->mcast_mtu, priv->admin_mtu));
- 	netif_carrier_on(priv->dev);
+ 	list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
+ 		ipoib_mcast_leave(mcast->dev, mcast);
+ 		ipoib_mcast_free(mcast);
+ 	}
+-
+-	if (test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
+-		ipoib_mcast_start_thread(dev);
++	ipoib_mcast_start_thread(dev);
++	rtnl_unlock();
+ }
+ 
+ #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
 -- 
 2.1.0
 
