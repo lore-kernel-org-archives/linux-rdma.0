@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 13/22] IB/ipoib: don't restart our thread on ENETRESET
-Date: Wed, 11 Feb 2015 20:43:36 -0500
-Message-ID: <5e75081d5ddf8c3c1cded28dd33174f3c0a62ca4.1423703861.git.dledford@redhat.com>
+Subject: [PATCH 12/22] IB/ipoib: Handle -ENETRESET properly in our callback
+Date: Wed, 11 Feb 2015 20:43:35 -0500
+Message-ID: <96da4f01e70152dc0e7f4f32656f69cd3d188c45.1423703861.git.dledford@redhat.com>
 References: <cover.1423703861.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1423703861.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,44 +12,66 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make the send only join completion handler behave like the normal join
-completion handler in that we should restart the multicast join thread
-whenever our join completes with either an error or success, but don't
-restart the thread if we got a net reset event, let ipoib_event queue
-up a device flush, which will then call ipoib_mcast_dev_flush to remove
-all of the current mcast entries, and ipoib_mcase_restart_task to check
-out current mcast entry list against the netdev list of mcast entries
-we are supposed to have and requeue the ones we need to get back.
+When the core layer calls our callback with ENETRESET as the error, we
+clear the status to 0 before returning indicating that we are going to
+handle the error ourselves.  This causes the core layer to not free the
+mcast->mc structure, but we are releasing our reference to it by
+clearing mcast->mc.  So, preserve our reference to the multicast
+structure so when we next run ipoib_mcast_dev_flush, it will be able
+to properly release the mcast->mc entry at the right time in the right
+way.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 50d2de2270a..a03b6a04203 100644
+index 957e7d2e80c..50d2de2270a 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -336,17 +336,18 @@ ipoib_mcast_sendonly_join_complete(int status,
- 			dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
- 		}
- 		netif_tx_unlock_bh(dev);
-+		__ipoib_mcast_continue_join_thread(priv, mcast, 1);
- 	} else {
- 		/* Join completed, so reset any backoff parameters */
- 		mcast->backoff = 1;
- 		mcast->delay_until = jiffies;
-+		__ipoib_mcast_continue_join_thread(priv, NULL, 0);
- 	}
- out:
- 	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+@@ -315,8 +315,10 @@ ipoib_mcast_sendonly_join_complete(int status,
+ 	mutex_lock(&mcast_mutex);
+ 
+ 	/* We trap for port events ourselves. */
+-	if (status == -ENETRESET)
++	if (status == -ENETRESET) {
++		status = 0;
+ 		goto out;
++	}
+ 
+ 	if (!status)
+ 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
+@@ -344,8 +346,6 @@ out:
  	if (status)
  		mcast->mc = NULL;
  	complete(&mcast->done);
--	__ipoib_mcast_continue_join_thread(priv, NULL, 0);
+-	if (status == -ENETRESET)
+-		status = 0;
+ 	__ipoib_mcast_continue_join_thread(priv, NULL, 0);
  	mutex_unlock(&mcast_mutex);
  	return status;
- }
+@@ -462,8 +462,10 @@ static int ipoib_mcast_join_complete(int status,
+ 	mutex_lock(&mcast_mutex);
+ 
+ 	/* We trap for port events ourselves. */
+-	if (status == -ENETRESET)
++	if (status == -ENETRESET) {
++		status = 0;
+ 		goto out;
++	}
+ 
+ 	if (!status)
+ 		status = ipoib_mcast_join_finish(mcast, &multicast->rec);
+@@ -499,8 +501,6 @@ out:
+ 	if (status)
+ 		mcast->mc = NULL;
+ 	complete(&mcast->done);
+-	if (status == -ENETRESET)
+-		status = 0;
+ 	spin_unlock_irq(&priv->lock);
+ 	mutex_unlock(&mcast_mutex);
+ 
 -- 
 2.1.0
 
