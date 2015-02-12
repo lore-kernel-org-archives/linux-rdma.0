@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 20/22] IB/ipoib: don't queue a work struct up twice
-Date: Wed, 11 Feb 2015 20:43:43 -0500
-Message-ID: <30a5bd6461381448c52af0d7408dbc14da9ac4d0.1423703861.git.dledford@redhat.com>
+Subject: [PATCH 22/22] IB/ipoib: drop mcast_mutex usage
+Date: Wed, 11 Feb 2015 20:43:45 -0500
+Message-ID: <d2ae0fa10b8a98c8a8a1c6cf4c404369d2d5ed0e.1423703861.git.dledford@redhat.com>
 References: <cover.1423703861.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1423703861.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,121 +12,166 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In b2d408f78b3 (IB/ipoib: make delayed tasks not hold up everything) I
-added the ability to have some joins processed around delayed joins.
-Because the join task processes one join at a time, we needed to queue
-the task to run again immediately and then again at the appropriate
-delay time.  I didn't think about the fact that our work struct can only
-be on the workqueue once at a given time and instead tried to queue the
-same struct up twice.  Instead, kick the queue again immediately on a
-delayed restart attempt, when the task sees that it has nothing to do
-but delayed work, it will pick the shortest work item and queue a delay
-equal to its expiration.  Finally, in case we have delayed work, in the
-send_mcast routine we need to cancel any delayed work before kicking the
-thread immediately.
+We needed the mcast_mutex when we had to protect two different workqueue
+threads against stomping on each others work.  By no longer using
+mcast->mc to directly store the return value of ib_sa_join_multicast, we
+can switch all of the mcast flag/completion locking to being only the
+priv->lock spinlock.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 49 ++++++++++++++++----------
- 1 file changed, 31 insertions(+), 18 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 55 +++++++++-----------------
+ 1 file changed, 19 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index ad2bcd105e4..68b47bed33a 100644
+index 355c320dc4d..e1fab519f96 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -71,29 +71,28 @@ static void __ipoib_mcast_continue_join_thread(struct ipoib_dev_priv *priv,
- 					       int delay)
- {
- 	if (test_bit(IPOIB_MCAST_RUN, &priv->flags)) {
--		/*
--		 * Mark this mcast for its delay and set a timer to kick the
--		 * thread when the delay completes
--		 */
- 		if (mcast && delay) {
- 			mcast->backoff *= 2;
- 			if (mcast->backoff > IPOIB_MAX_BACKOFF_SECONDS)
- 				mcast->backoff = IPOIB_MAX_BACKOFF_SECONDS;
- 			mcast->delay_until = jiffies + (mcast->backoff * HZ);
--			queue_delayed_work(priv->wq, &priv->mcast_task,
--					   mcast->backoff * HZ);
-+			/*
-+			 * Mark this mcast for its delay, but restart the
-+			 * task immediately.  It will make sure to clear
-+			 * out all entries without delays, and then
-+			 * schedule itself for run again when the delay
-+			 * expires
-+			 */
-+			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
- 		} else if (delay) {
--			/* Special case of retrying after a failure to
-+			/*
-+			 * Special case of retrying after a failure to
- 			 * allocate the broadcast multicast group, wait
- 			 * 1 second and try again
- 			 */
- 			queue_delayed_work(priv->wq, &priv->mcast_task, HZ);
--		}
--		/*
--		 * But also rekick the thread immediately for any other
--		 * tasks in queue behind this one
--		 */
--		queue_delayed_work(priv->wq, &priv->mcast_task, delay);
-+		} else
-+			queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+@@ -55,8 +55,6 @@ MODULE_PARM_DESC(mcast_debug_level,
+ 		 "Enable multicast debug tracing if > 0");
+ #endif
+ 
+-static DEFINE_MUTEX(mcast_mutex);
+-
+ struct ipoib_mcast_iter {
+ 	struct net_device *dev;
+ 	union ib_gid       mgid;
+@@ -340,16 +338,6 @@ static int ipoib_mcast_join_complete(int status,
+ 			"sendonly " : "",
+ 			mcast->mcmember.mgid.raw, status);
+ 
+-	/*
+-	 * We have to take the mutex to force mcast_join to
+-	 * return from ib_sa_multicast_join and set mcast->mc to a
+-	 * valid value.  Otherwise we were racing with ourselves in
+-	 * that we might fail here, but get a valid return from
+-	 * ib_sa_multicast_join after we had cleared mcast->mc here,
+-	 * resulting in mis-matched joins and leaves and a deadlock
+-	 */
+-	mutex_lock(&mcast_mutex);
+-
+ 	/* We trap for port events ourselves. */
+ 	if (status == -ENETRESET) {
+ 		status = 0;
+@@ -410,11 +398,14 @@ static int ipoib_mcast_join_complete(int status,
+ 			__ipoib_mcast_continue_join_thread(priv, mcast, 1);
  	}
+ out:
++	spin_lock_irq(&priv->lock);
+ 	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+ 	if (status)
+ 		mcast->mc = NULL;
++	else
++		mcast->mc = multicast;
+ 	complete(&mcast->done);
+-	mutex_unlock(&mcast_mutex);
++	spin_unlock_irq(&priv->lock);
+ 
+ 	return status;
+ }
+@@ -423,6 +414,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
+ 			     int create)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	struct ib_sa_multicast *multicast;
+ 	struct ib_sa_mcmember_rec rec = {
+ 		.join_state = 1
+ 	};
+@@ -464,19 +456,20 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
+ 		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
+ 	}
+ 
+-	mutex_lock(&mcast_mutex);
+-	mcast->mc = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
++	multicast = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
+ 					 &rec, comp_mask, GFP_KERNEL,
+ 					 ipoib_mcast_join_complete, mcast);
+-	if (IS_ERR(mcast->mc)) {
+-		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+-		complete(&mcast->done);
+-		ret = PTR_ERR(mcast->mc);
++	if (IS_ERR(multicast)) {
++		ret = PTR_ERR(multicast);
++		mcast->mc = NULL;
+ 		ipoib_warn(priv, "ib_sa_join_multicast failed, status %d\n", ret);
++		spin_lock_irq(&priv->lock);
++		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+ 		/* Requeue this join task with a backoff delay */
+ 		__ipoib_mcast_continue_join_thread(priv, mcast, 1);
++		complete(&mcast->done);
++		spin_unlock_irq(&priv->lock);
+ 	}
+-	mutex_unlock(&mcast_mutex);
  }
  
-@@ -568,6 +567,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	struct ib_port_attr port_attr;
- 	struct ipoib_mcast *mcast = NULL;
- 	int create = 1;
-+	unsigned long delay_until = 0;
+ void ipoib_mcast_join_task(struct work_struct *work)
+@@ -505,15 +498,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	else
+ 		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
  
- 	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 		return;
-@@ -636,11 +636,14 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	list_for_each_entry(mcast, &priv->multicast_list, list) {
- 		if (IS_ERR_OR_NULL(mcast->mc) &&
- 		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags) &&
--		    !test_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags) &&
--		    (mcast->backoff == 1 ||
--		     time_after_eq(jiffies, mcast->delay_until))) {
--			/* Found the next unjoined group */
--			break;
-+		    !test_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags)) {
-+			if (mcast->backoff == 1 ||
-+			    time_after_eq(jiffies, mcast->delay_until))
-+				/* Found the next unjoined group */
-+				break;
-+			else if (!delay_until ||
-+				 time_before(mcast->delay_until, delay_until))
-+				delay_until = mcast->delay_until;
- 		}
+-	/*
+-	 * We have to hold the mutex to keep from racing with the join
+-	 * completion threads on setting flags on mcasts, and we have
+-	 * to hold the priv->lock because dev_flush will remove entries
+-	 * out from underneath us, so at a minimum we need the lock
+-	 * through the time that we do the for_each loop of the mcast
+-	 * list or else dev_flush can make us oops.
+-	 */
+-	mutex_lock(&mcast_mutex);
+ 	spin_lock_irq(&priv->lock);
+ 	if (!test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
+ 		goto out;
+@@ -573,9 +557,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 				else
+ 					create = 1;
+ 				spin_unlock_irq(&priv->lock);
+-				mutex_unlock(&mcast_mutex);
+ 				ipoib_mcast_join(dev, mcast, create);
+-				mutex_lock(&mcast_mutex);
+ 				spin_lock_irq(&priv->lock);
+ 			} else if (!delay_until ||
+ 				 time_before(mcast->delay_until, delay_until))
+@@ -597,7 +579,6 @@ out:
+ 		set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
  	}
+ 	spin_unlock_irq(&priv->lock);
+-	mutex_unlock(&mcast_mutex);
+ 	if (mcast)
+ 		ipoib_mcast_join(dev, mcast, create);
+ 	return;
+@@ -606,13 +587,14 @@ out:
+ int ipoib_mcast_start_thread(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	unsigned long flags;
  
-@@ -653,6 +656,9 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 		mcast = NULL;
- 		ipoib_dbg_mcast(priv, "successfully joined all "
- 				"multicast groups\n");
-+		if (delay_until)
-+			queue_delayed_work(priv->wq, &priv->mcast_task,
-+					   delay_until - jiffies);
- 	}
+ 	ipoib_dbg_mcast(priv, "starting multicast thread\n");
  
- out:
-@@ -766,6 +772,13 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		memcpy(mcast->mcmember.mgid.raw, mgid, sizeof (union ib_gid));
- 		__ipoib_mcast_add(dev, mcast);
- 		list_add_tail(&mcast->list, &priv->multicast_list);
-+		/*
-+		 * Make sure that if we are currently waiting for a backoff
-+		 * delay to expire, that we cancel that, run immediately,
-+		 * and then requeue our task to fire when the backoff
-+		 * timer is over.
-+		 */
-+		cancel_delayed_work(&priv->mcast_task);
- 		__ipoib_mcast_continue_join_thread(priv, NULL, 0);
- 	}
+-	mutex_lock(&mcast_mutex);
++	spin_lock_irqsave(&priv->lock, flags);
+ 	set_bit(IPOIB_MCAST_RUN, &priv->flags);
+ 	queue_delayed_work(priv->wq, &priv->mcast_task, 0);
+-	mutex_unlock(&mcast_mutex);
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -620,13 +602,14 @@ int ipoib_mcast_start_thread(struct net_device *dev)
+ int ipoib_mcast_stop_thread(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	unsigned long flags;
+ 
+ 	ipoib_dbg_mcast(priv, "stopping multicast thread\n");
+ 
+-	mutex_lock(&mcast_mutex);
++	spin_lock_irqsave(&priv->lock, flags);
+ 	clear_bit(IPOIB_MCAST_RUN, &priv->flags);
+ 	cancel_delayed_work(&priv->mcast_task);
+-	mutex_unlock(&mcast_mutex);
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	flush_workqueue(priv->wq);
  
 -- 
 2.1.0
