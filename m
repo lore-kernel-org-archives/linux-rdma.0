@@ -1,81 +1,78 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Thu, 12 Feb 2015 09:00:09 -0500
-Message-ID: <54DCB1E9.7010309@dev.mellanox.co.il>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-15-git-send-email-ira.weiny@intel.com> <54D52589.8020305@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8@CRSMSX101.amr.corp.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/22] IB/ipoib: Fixups for multicast issues
+Date: Thu, 12 Feb 2015 09:02:57 -0500
+Message-ID: <1423749777.3424.76.camel@redhat.com>
+References: <cover.1423703861.git.dledford@redhat.com>
+		 <54DC303C.2020207@mellanox.com> <1423716906.3424.74.camel@redhat.com>
+	 <54DC3934.3010401@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-HHUhRkmbb7Bf2cLrKziS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <54DC3934.3010401-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/11/2015 10:40 AM, Weiny, Ira wrote:
->> On 2/4/2015 6:29 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
->>> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>
->>> OPA MADs share a common header with IBTA MADs but with a different
->>> base version and an extended length.  These "jumbo" MADs increase the
->>> performance of management traffic.
->>>
->>> Sharing a common header with IBTA MADs allows us to share most of the
->>> MAD processing code when dealing with OPA MADs in addition to
->>> supporting some IBTA MADs on OPA devices.
->>>
->>> Add a device capability flag to indicate OPA MAD support on the device.
->>>
->>> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>
->>> ---
->>>  include/rdma/ib_verbs.h | 5 +++++
->>>  1 file changed, 5 insertions(+)
->>>
->>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
->>> 3ab4033..2614233 100644
->>> --- a/include/rdma/ib_verbs.h
->>> +++ b/include/rdma/ib_verbs.h
->>> @@ -128,6 +128,10 @@ enum ib_device_cap_flags {
->>>  	IB_DEVICE_ON_DEMAND_PAGING	= (1<<31),
->>>  };
->>>
->>> +enum ib_device_cap_flags2 {
->>> +	IB_DEVICE_OPA_MAD_SUPPORT	= 1
->>> +};
->>> +
->>>  enum ib_signature_prot_cap {
->>>  	IB_PROT_T10DIF_TYPE_1 = 1,
->>>  	IB_PROT_T10DIF_TYPE_2 = 1 << 1,
->>> @@ -210,6 +214,7 @@ struct ib_device_attr {
->>>  	int			sig_prot_cap;
->>>  	int			sig_guard_cap;
->>>  	struct ib_odp_caps	odp_caps;
->>> +	u64			device_cap_flags2;
->>>  	u32			max_mad_size;
->>>  };
->>>
->>
->> Why is OPA support determined via a device capability flag ? What are the
->> tradeoffs for doing it this way versus the other choices that have been used in
->> the past for other RDMA technologies like RoCE, iWARP, usNIC, ... ?
-> 
-> None of those technologies use the MAD stack for Subnet Management.  Other MAD support is very limited (ie IB compatible PMA queries on the local port only).
-> 
-> Do you have a suggestion for alternatives?
 
-The desire to leverage the IB MAD infrastructure for OPA is understood
-but the current approach represents OPA as a device capability which
-does not seem appropriate because OPA is clearly a different type of
-RDMA technology than IB.
+--=-HHUhRkmbb7Bf2cLrKziS
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
--- Hal
+On Thu, 2015-02-12 at 00:25 -0500, Or Gerlitz wrote:
+> On 2/11/2015 11:55 PM, Doug Ledford wrote:
+> > I tried, but the most appropriate squashes were things like patch 18 an=
+d
+> > 19 squashed into patch 3, and some other similar jumping around of
+> > patches.  The number of conflicts that created in both the original
+> > squash and the follow on patches was perverse.  So, since the original
+> > 20 patches as I submitted previously are what has gone through our QA, =
+I
+> > left them as they were.  If I fixed them up and squashed them, and if
+> > some overlooked fixup failure snuck in there, it would invalidate all o=
+f
+> > that testing.
+>=20
+> I see. Does this sequence bisect-able? namely the driver builds and=20
+> functions after applying patch by patch? note this is hard requirement=
+=20
+> when modifying existing upstream drivers.
 
-> Ira
-> 
-> 
+Yes.  There might be some oddities in the behavior of the running IPoIB
+driver specifically when testing the mcast abilities in the middle of
+this patch set, but they will all build and function at a basic level.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-HHUhRkmbb7Bf2cLrKziS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJU3LKRAAoJELgmozMOVy/dbSUP/3Hcu4SmBy3oQ/GQJtVHNuTP
+RX71at+T7ANhQl/UgTq3ZGtv1JUhkUHB8YsIYDzz5SNCURDEr5Tw+eBD9jxAa61S
+gFlLAtMr3SZyEO7HAUXR62QfP7WuYOGhcoqJyDRHWsdWPUpH0/0rQkAkOCeXaDRD
+Z6s2FO7bAJykMIVHySh3e8tYUDIfVSLKj48x35kPDXbw+kalhWoYnXeW5Ptgt5To
+A414KTuf/WnZsMCJYMv6kibGRyV0V+8CIaELHQniq5IguRsKgQU6/mnmrzH2Wwx6
+vjpHkHe1SexduaLRnpuCoHivpiuqyUWsTXYW2dAc8FF4mEyzyTAnSANYdBTm9NV3
+pTq2GYAuoNEjNC7wgoWD0/HGlD5GRxwZgYnLxQ3vDb8rlrrLVti+bB2N0WzkgJqn
+tmf06sAKsCC67WKcsIX2b6cimU4t2wwqT+B0BYcapAQ8MEoxqxvM+jAPLGEHo52k
+zlTU4W2fTK3OopSdsUeLIVHzxTzhust2av85mMSMkNBLVC7ehu7npkW1AHQCR0EF
+EJO0iDhhswMKQ4aPiIIOuz8TFnwV26vqJP6tD471HCAV05lmeysJSQgVXRTq6hLM
+kemZUkSjVPVlTtxLlmp25BCgJZM5wxLvNZuzsx4zQNc5E3UltrabbpZmxEfhrpRO
+p2TA9JEr2miPJuhKY/kv
+=EyLZ
+-----END PGP SIGNATURE-----
+
+--=-HHUhRkmbb7Bf2cLrKziS--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
