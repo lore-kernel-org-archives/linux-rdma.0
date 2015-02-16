@@ -1,81 +1,213 @@
-From: Fabian Holler <fabian.holler-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: mlx4: IB_EVENT_PATH_MIG not generated on path migration
-Date: Mon, 16 Feb 2015 12:48:27 +0100
-Message-ID: <20150216114827.GD16899@fholler.de>
-References: <20150210155643.GB13690@fholler.de>
- <20150210180039.GD7427@obsidianresearch.com>
- <20150211092136.GB492@fholler.de>
- <20150211173837.GA20243@obsidianresearch.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] mlx4_core: Enhance device capabilities flags debug
+ printouts
+Date: Mon, 16 Feb 2015 19:32:47 +0200
+Message-ID: <20150216173246.GA3284@yuval-lab>
+References: <1422282623-3744-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2iBwrppp/7QCDedR"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150211173837.GA20243-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1422282623-3744-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+ping
 
---2iBwrppp/7QCDedR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hello Jason,
-
-On Wed, Feb 11, 2015 at 10:38:38AM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 11, 2015 at 10:21:36AM +0100, Fabian Holler wrote:
-> > On Tue, Feb 10, 2015 at 11:00:39AM -0700, Jason Gunthorpe wrote:
-> > > On Tue, Feb 10, 2015 at 04:56:43PM +0100, Fabian Holler wrote:
-> > >=20
-> > > > Does anybody have an idea what could be wrong?
-> > > > Are the PATH_MIG* notifications with mlx4 drivers are working for s=
-omebody?
-[..]
-> > The event handler specified in the struct ib_qp_init_attr * parameter of
-> > rdma_create_qp() is registered as QP event handler.
-> > rdma_create_qp() calls ib_create_qp() and sets qp->event_handler to
-> > ib_qp_init_attr->event_handler.
->=20
-> Okay, right, I was thinking of something else.
->=20
-> We had exactly this working a few months ago for a demo, in kernel
-> using Lustre and RDMA CM. I checked the patches we made and yes, the
-> event_handler was being properly called with IB_EVENT_PATH_MIG on
-> mlx4 and qib cards.
-
-are your patches for APM support with RDMA CM available somewhere?
-We would be glad to test them :-)
-
-
-regards
-
-Fabian
-
---2iBwrppp/7QCDedR
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJU4dkLAAoJEKFglfj27o3IyEYP/2pFtSqp5xELmX5wmipziyP1
-f3Hxy1ePxaiO7uVNW4YpHiRHBSMQAKMVIEW94ZV288oNpfbk0fdr2oHSkGVdjCNr
-/aox0EvXLNAJZYX8smRmB2Xus5/5RhF/R2M5EKypqbu5OV1k23wDhm9m8qHnBI1S
-AmcmAYYivQD8ty267RS8gdSvCDI0KUM8JrIgQ2Ict4rzrA1G2knYf/bw4NO27/vm
-7QrVQsTUIrDDnTcy7W8ni0bDI4W2986NjEYYWpYOzrW2Io5k/Saf8we9Bih72mDJ
-XJOltF8gNxddOP0+Zn24kldN7nenLrIOA+NM7jpVMwlMa6wrWSSy4GYUu4TAyL1b
-HtgSLHeY5rPFvZ8EfMNLSf/PogyBsN2/JUQPYZYBNJE5yWZAcRRjq4h3ExE2LNsL
-WxXn6N0PModqWlcVP6tPIXnwKqCQzmq5ZkTsorboZa2nDZ8RtBxLKirCasX0QQjs
-WTi9K/DPslW4ZGVr3N53Ruobu/PoQ/QLkLmMbDxcpaW6hNbDVq6YQmbb0dDR1sOT
-GgoFaXSMreC7use0Qgo/TGPZwjQ+7GkhqKWswS45mrVshdgaxt4oKXQEN0LYGB1X
-q5I5vQ/MhXRJ4/TxobJ5FsbIXlhRG+/WA0kT8eEDimGOJL+NYpUyEoVtbe6s64rm
-6f14IF+2T5gXNSHxh8NM
-=gbQI
------END PGP SIGNATURE-----
-
---2iBwrppp/7QCDedR--
+On Mon, Jan 26, 2015 at 06:30:23AM -0800, Yuval Shaia wrote:
+> 1. Add descriptions of all features.
+> 2. Add indication whether feature is supported or not.
+> With this enhancement all device features will be printed along with flags that shows if feature is supported by FW, Driver or both.
+> 
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/fw.c | 54 +++++++++++++++++++++++++++------
+>  include/linux/mlx4/device.h             | 52 +++++++++++++++++++++++++++++++
+>  2 files changed, 96 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+> index 982861d..34a7ab3 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/fw.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+> @@ -77,6 +77,19 @@ MODULE_PARM_DESC(enable_qos, "Enable Quality of Service support in the HCA (defa
+>  		}						      \
+>  	} while (0)
+>  
+> +void dump_cap_flags(struct mlx4_dev *dev, u64 fw_flags, u64 drv_flags,
+> +		    const char** fname, int fname_sz)
+> +{
+> +	int i;
+> +	for (i = 0; i < fname_sz; ++i) {
+> +		if (fname[i])
+> +			mlx4_dbg(dev, "\t(%c%c) %s\n",
+> +				 (fw_flags & (1LL << i)) ? '+' : '-',
+> +				 (drv_flags & (1LL << i)) ? '+' : '-',
+> +				 fname[i]);
+> +	}
+> +}
+> +
+>  static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+>  {
+>  	static const char *fname[] = {
+> @@ -91,7 +104,10 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+>  		[ 8] = "P_Key violation counter",
+>  		[ 9] = "Q_Key violation counter",
+>  		[10] = "VMM",
+> +		[11] = "Fibre Channel Protocol On Ethernet Ports support",
+>  		[12] = "Dual Port Different Protocol (DPDP) support",
+> +		[13] = "Raw Ethertype support",
+> +		[14] = "Raw IPv6 support",
+>  		[15] = "Big LSO headers",
+>  		[16] = "MW support",
+>  		[17] = "APM support",
+> @@ -99,33 +115,53 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+>  		[19] = "Raw multicast support",
+>  		[20] = "Address vector port checking support",
+>  		[21] = "UD multicast support",
+> +		[22] = "UD IPv4 Multicast support",
+>  		[24] = "Demand paging support",
+>  		[25] = "Router support",
+> +		[26] = "L2 Ethernet Multicast support",
+> +		[28] = "Software parsing support for UD transport",
+> +		[29] = "TCP checksum off-load support (ipv6)",
+>  		[30] = "IBoE support",
+> +		[31] = "FCoE T11 frame format support",
+>  		[32] = "Unicast loopback support",
+> +		[32] = "Multicast loopback support",
+>  		[34] = "FCS header control",
+> -		[38] = "Wake On LAN support",
+> +		[35] = "Address Path ud_force_mgid support",
+> +		[36] = "Header-Data Split support",
+> +		[37] = "Wake On LAN support on port 1",
+> +		[38] = "Wake On LAN support on port 2",
+> +		[39] = "Fatal Warning Event upon a thermal warning condition",
+>  		[40] = "UDP RSS support",
+>  		[41] = "Unicast VEP steering support",
+>  		[42] = "Multicast VEP steering support",
+> +		[43] = "VLAN Steering mechanism support",
+> +		[44] = "Steering according to EtherType support",
+> +		[45] = "WQE format version 1 support",
+> +		[46] = "Keep Alive Validiation support",
+> +		[47] = "PTP1588 support",
+>  		[48] = "Counters support",
+> +		[49] = "Advanced Counters support",
+> +		[50] = "Force Ethernet user priority from QPC support",
+> +		[51] = "RX Port Num check disabled",
+> +		[52] = "RSS on fragmented IP datagram support",
+>  		[53] = "Port ETS Scheduler support",
+>  		[55] = "Port link type sensing support",
+> +		[56] = "Reliable Multicast support",
+> +		[57] = "Fast Drop support",
+> +		[58] = "Protected FMR support",
+>  		[59] = "Port management change event support",
+>  		[61] = "64 byte EQE support",
+>  		[62] = "64 byte CQE support",
+>  	};
+> -	int i;
+>  
+>  	mlx4_dbg(dev, "DEV_CAP flags:\n");
+> -	for (i = 0; i < ARRAY_SIZE(fname); ++i)
+> -		if (fname[i] && (flags & (1LL << i)))
+> -			mlx4_dbg(dev, "    %s\n", fname[i]);
+> +	dump_cap_flags(dev, flags, MLX4_DEV_CAP_FLAG_ALL, fname,
+> +		       ARRAY_SIZE(fname));
+>  }
+>  
+>  static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+>  {
+> -	static const char * const fname[] = {
+> +	static const char *fname[] = {
+>  		[0] = "RSS support",
+>  		[1] = "RSS Toeplitz Hash Function support",
+>  		[2] = "RSS XOR Hash Function support",
+> @@ -147,11 +183,9 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+>  		[18] = "More than 80 VFs support",
+>  		[19] = "Performance optimized for limited rule configuration flow steering support"
+>  	};
+> -	int i;
+>  
+> -	for (i = 0; i < ARRAY_SIZE(fname); ++i)
+> -		if (fname[i] && (flags & (1LL << i)))
+> -			mlx4_dbg(dev, "    %s\n", fname[i]);
+> +	dump_cap_flags(dev, flags, MLX4_DEV_CAP_FLAG2_ALL, fname,
+> +		       ARRAY_SIZE(fname));
+>  }
+>  
+>  int mlx4_MOD_STAT_CFG(struct mlx4_dev *dev, struct mlx4_mod_stat_cfg *cfg)
+> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+> index 25c791e..e84badc 100644
+> --- a/include/linux/mlx4/device.h
+> +++ b/include/linux/mlx4/device.h
+> @@ -180,6 +180,37 @@ enum {
+>  	MLX4_DEV_CAP_FLAG_64B_CQE	= 1LL << 62
+>  };
+>  
+> +#define MLX4_DEV_CAP_FLAG_ALL	MLX4_DEV_CAP_FLAG_RC | \
+> +				MLX4_DEV_CAP_FLAG_UC | \
+> +				MLX4_DEV_CAP_FLAG_UD | \
+> +				MLX4_DEV_CAP_FLAG_XRC | \
+> +				MLX4_DEV_CAP_FLAG_SRQ | \
+> +				MLX4_DEV_CAP_FLAG_IPOIB_CSUM | \
+> +				MLX4_DEV_CAP_FLAG_BAD_PKEY_CNTR	 | \
+> +				MLX4_DEV_CAP_FLAG_BAD_QKEY_CNTR	 | \
+> +				MLX4_DEV_CAP_FLAG_DPDP | \
+> +				MLX4_DEV_CAP_FLAG_BLH | \
+> +				MLX4_DEV_CAP_FLAG_MEM_WINDOW | \
+> +				MLX4_DEV_CAP_FLAG_APM | \
+> +				MLX4_DEV_CAP_FLAG_ATOMIC | \
+> +				MLX4_DEV_CAP_FLAG_RAW_MCAST | \
+> +				MLX4_DEV_CAP_FLAG_UD_AV_PORT | \
+> +				MLX4_DEV_CAP_FLAG_UD_MCAST | \
+> +				MLX4_DEV_CAP_FLAG_IBOE | \
+> +				MLX4_DEV_CAP_FLAG_UC_LOOPBACK | \
+> +				MLX4_DEV_CAP_FLAG_FCS_KEEP | \
+> +				MLX4_DEV_CAP_FLAG_WOL_PORT1 | \
+> +				MLX4_DEV_CAP_FLAG_WOL_PORT2 | \
+> +				MLX4_DEV_CAP_FLAG_UDP_RSS | \
+> +				MLX4_DEV_CAP_FLAG_VEP_UC_STEER | \
+> +				MLX4_DEV_CAP_FLAG_VEP_MC_STEER | \
+> +				MLX4_DEV_CAP_FLAG_COUNTERS | \
+> +				MLX4_DEV_CAP_FLAG_SET_ETH_SCHED  | \
+> +				MLX4_DEV_CAP_FLAG_SENSE_SUPPORT	 | \
+> +				MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV  | \
+> +				MLX4_DEV_CAP_FLAG_64B_EQE | \
+> +				MLX4_DEV_CAP_FLAG_64B_CQE
+> +
+>  enum {
+>  	MLX4_DEV_CAP_FLAG2_RSS			= 1LL <<  0,
+>  	MLX4_DEV_CAP_FLAG2_RSS_TOP		= 1LL <<  1,
+> @@ -203,6 +234,27 @@ enum {
+>  	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19
+>  };
+>  
+> +#define MLX4_DEV_CAP_FLAG2_ALL	MLX4_DEV_CAP_FLAG2_RSS | \
+> +				MLX4_DEV_CAP_FLAG2_RSS_TOP | \
+> +				MLX4_DEV_CAP_FLAG2_RSS_XOR | \
+> +				MLX4_DEV_CAP_FLAG2_FS_EN | \
+> +				MLX4_DEV_CAP_FLAG2_REASSIGN_MAC_EN | \
+> +				MLX4_DEV_CAP_FLAG2_TS | \
+> +				MLX4_DEV_CAP_FLAG2_VLAN_CONTROL | \
+> +				MLX4_DEV_CAP_FLAG2_FSM | \
+> +				MLX4_DEV_CAP_FLAG2_UPDATE_QP | \
+> +				MLX4_DEV_CAP_FLAG2_DMFS_IPOIB | \
+> +				MLX4_DEV_CAP_FLAG2_VXLAN_OFFLOADS | \
+> +				MLX4_DEV_CAP_FLAG2_MAD_DEMUX | \
+> +				MLX4_DEV_CAP_FLAG2_CQE_STRIDE | \
+> +				MLX4_DEV_CAP_FLAG2_EQE_STRIDE | \
+> +				MLX4_DEV_CAP_FLAG2_ETH_PROT_CTRL | \
+> +				MLX4_DEV_CAP_FLAG2_ETH_BACKPL_AN_REP | \
+> +				MLX4_DEV_CAP_FLAG2_CONFIG_DEV | \
+> +				MLX4_DEV_CAP_FLAG2_SYS_EQS | \
+> +				MLX4_DEV_CAP_FLAG2_80_VFS | \
+> +				MLX4_DEV_CAP_FLAG2_FS_A0
+> +
+>  enum {
+>  	MLX4_QUERY_FUNC_FLAGS_BF_RES_QP		= 1LL << 0,
+>  	MLX4_QUERY_FUNC_FLAGS_A0_RES_QP		= 1LL << 1
+> -- 
+> 1.9.1
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
