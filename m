@@ -1,214 +1,308 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] mlx4_core: Enhance device capabilities flags debug
- printouts
-Date: Mon, 16 Feb 2015 19:32:47 +0200
-Message-ID: <20150216173246.GA3284@yuval-lab>
-References: <1422282623-3744-1-git-send-email-yuval.shaia@oracle.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/core: Add support for extended query device caps
+Date: Mon, 16 Feb 2015 21:56:06 +0100
+Message-ID: <1424120166.32606.17.camel@opteya.com>
+References: <1423394932-2965-1-git-send-email-haggaie@mellanox.com>
+	 <1423394932-2965-2-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1422282623-3744-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1423394932-2965-2-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ping
-
-On Mon, Jan 26, 2015 at 06:30:23AM -0800, Yuval Shaia wrote:
-> 1. Add descriptions of all features.
-> 2. Add indication whether feature is supported or not.
-> With this enhancement all device features will be printed along with flags that shows if feature is supported by FW, Driver or both.
-> 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Le dimanche 08 f=C3=A9vrier 2015 =C3=A0 13:28 +0200, Haggai Eran a =C3=A9=
+crit :
+> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Add extensible query device capabilities verb to allow adding new fea=
+tures.
+> ib_uverbs_ex_query_device is added and copy_query_dev_fields is used =
+to copy
+> capability fields to be used by both ib_uverbs_query_device and
+> ib_uverbs_ex_query_device.
+>=20
+> Following the discussion about this patch [1], the code now validates=
+ the
+> command's comp_mask is zero, returning -EINVAL for unknown values, in=
+ order to
+> allow extending the verb in the future.
+>=20
+> The verb also checks the user-space provided response buffer size and=
+ only
+> fills in capabilities that will fit in the buffer. In attempt to foll=
+ow the
+> spirit of presentation [2] by Tzahi Oved that was presented during Op=
+enFabrics
+> Alliance International Developer Workshop 2013, the comp_mask bits wi=
+ll only
+> describe which fields are valid. Furthermore, fields that can simply =
+be
+> cleared when they are not supported, do not require a comp_mask bit a=
+t all.
+> The verb returns a response_length field containing the actual number=
+ of bytes
+> written by the kernel, so that a newer version running on an older ke=
+rnel can
+> tell which fields were actually returned.
+>=20
+> [1] [PATCH v1 0/5] IB/core: extended query device caps cleanup for v3=
+=2E19
+>     http://thread.gmane.org/gmane.linux.kernel.api/7889/
+>=20
+> [2] https://www.openfabrics.org/images/docs/2013_Dev_Workshop/Tues_04=
+23/2013_Workshop_Tues_0830_Tzahi_Oved-verbs_extensions_ofa_2013-tzahio.=
+pdf
+>=20
+> Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/net/ethernet/mellanox/mlx4/fw.c | 54 +++++++++++++++++++++++++++------
->  include/linux/mlx4/device.h             | 52 +++++++++++++++++++++++++++++++
->  2 files changed, 96 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-> index 982861d..34a7ab3 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-> @@ -77,6 +77,19 @@ MODULE_PARM_DESC(enable_qos, "Enable Quality of Service support in the HCA (defa
->  		}						      \
->  	} while (0)
->  
-> +void dump_cap_flags(struct mlx4_dev *dev, u64 fw_flags, u64 drv_flags,
-> +		    const char** fname, int fname_sz)
+>  drivers/infiniband/core/uverbs.h      |   1 +
+>  drivers/infiniband/core/uverbs_cmd.c  | 131 +++++++++++++++++++++++-=
+----------
+>  drivers/infiniband/core/uverbs_main.c |   1 +
+>  include/uapi/rdma/ib_user_verbs.h     |  12 ++++
+>  4 files changed, 104 insertions(+), 41 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/co=
+re/uverbs.h
+> index 643c08a025a5..b716b0815644 100644
+> --- a/drivers/infiniband/core/uverbs.h
+> +++ b/drivers/infiniband/core/uverbs.h
+> @@ -258,5 +258,6 @@ IB_UVERBS_DECLARE_CMD(close_xrcd);
+> =20
+>  IB_UVERBS_DECLARE_EX_CMD(create_flow);
+>  IB_UVERBS_DECLARE_EX_CMD(destroy_flow);
+> +IB_UVERBS_DECLARE_EX_CMD(query_device);
+> =20
+>  #endif /* UVERBS_H */
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniban=
+d/core/uverbs_cmd.c
+> index b7943ff16ed3..8f507538c42b 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -400,6 +400,52 @@ err:
+>  	return ret;
+>  }
+> =20
+> +static void copy_query_dev_fields(struct ib_uverbs_file *file,
+> +				  struct ib_uverbs_query_device_resp *resp,
+> +				  struct ib_device_attr *attr)
 > +{
-> +	int i;
-> +	for (i = 0; i < fname_sz; ++i) {
-> +		if (fname[i])
-> +			mlx4_dbg(dev, "\t(%c%c) %s\n",
-> +				 (fw_flags & (1LL << i)) ? '+' : '-',
-> +				 (drv_flags & (1LL << i)) ? '+' : '-',
-> +				 fname[i]);
-> +	}
+> +	resp->fw_ver		=3D attr->fw_ver;
+> +	resp->node_guid		=3D file->device->ib_dev->node_guid;
+> +	resp->sys_image_guid	=3D attr->sys_image_guid;
+> +	resp->max_mr_size	=3D attr->max_mr_size;
+> +	resp->page_size_cap	=3D attr->page_size_cap;
+> +	resp->vendor_id		=3D attr->vendor_id;
+> +	resp->vendor_part_id	=3D attr->vendor_part_id;
+> +	resp->hw_ver		=3D attr->hw_ver;
+> +	resp->max_qp		=3D attr->max_qp;
+> +	resp->max_qp_wr		=3D attr->max_qp_wr;
+> +	resp->device_cap_flags	=3D attr->device_cap_flags;
+> +	resp->max_sge		=3D attr->max_sge;
+> +	resp->max_sge_rd	=3D attr->max_sge_rd;
+> +	resp->max_cq		=3D attr->max_cq;
+> +	resp->max_cqe		=3D attr->max_cqe;
+> +	resp->max_mr		=3D attr->max_mr;
+> +	resp->max_pd		=3D attr->max_pd;
+> +	resp->max_qp_rd_atom	=3D attr->max_qp_rd_atom;
+> +	resp->max_ee_rd_atom	=3D attr->max_ee_rd_atom;
+> +	resp->max_res_rd_atom	=3D attr->max_res_rd_atom;
+> +	resp->max_qp_init_rd_atom	=3D attr->max_qp_init_rd_atom;
+> +	resp->max_ee_init_rd_atom	=3D attr->max_ee_init_rd_atom;
+> +	resp->atomic_cap		=3D attr->atomic_cap;
+> +	resp->max_ee			=3D attr->max_ee;
+> +	resp->max_rdd			=3D attr->max_rdd;
+> +	resp->max_mw			=3D attr->max_mw;
+> +	resp->max_raw_ipv6_qp		=3D attr->max_raw_ipv6_qp;
+> +	resp->max_raw_ethy_qp		=3D attr->max_raw_ethy_qp;
+> +	resp->max_mcast_grp		=3D attr->max_mcast_grp;
+> +	resp->max_mcast_qp_attach	=3D attr->max_mcast_qp_attach;
+> +	resp->max_total_mcast_qp_attach	=3D attr->max_total_mcast_qp_attach=
+;
+> +	resp->max_ah			=3D attr->max_ah;
+> +	resp->max_fmr			=3D attr->max_fmr;
+> +	resp->max_map_per_fmr		=3D attr->max_map_per_fmr;
+> +	resp->max_srq			=3D attr->max_srq;
+> +	resp->max_srq_wr		=3D attr->max_srq_wr;
+> +	resp->max_srq_sge		=3D attr->max_srq_sge;
+> +	resp->max_pkeys			=3D attr->max_pkeys;
+> +	resp->local_ca_ack_delay	=3D attr->local_ca_ack_delay;
+> +	resp->phys_port_cnt		=3D file->device->ib_dev->phys_port_cnt;
 > +}
 > +
->  static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
->  {
->  	static const char *fname[] = {
-> @@ -91,7 +104,10 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
->  		[ 8] = "P_Key violation counter",
->  		[ 9] = "Q_Key violation counter",
->  		[10] = "VMM",
-> +		[11] = "Fibre Channel Protocol On Ethernet Ports support",
->  		[12] = "Dual Port Different Protocol (DPDP) support",
-> +		[13] = "Raw Ethertype support",
-> +		[14] = "Raw IPv6 support",
->  		[15] = "Big LSO headers",
->  		[16] = "MW support",
->  		[17] = "APM support",
-> @@ -99,33 +115,53 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
->  		[19] = "Raw multicast support",
->  		[20] = "Address vector port checking support",
->  		[21] = "UD multicast support",
-> +		[22] = "UD IPv4 Multicast support",
->  		[24] = "Demand paging support",
->  		[25] = "Router support",
-> +		[26] = "L2 Ethernet Multicast support",
-> +		[28] = "Software parsing support for UD transport",
-> +		[29] = "TCP checksum off-load support (ipv6)",
->  		[30] = "IBoE support",
-> +		[31] = "FCoE T11 frame format support",
->  		[32] = "Unicast loopback support",
-> +		[32] = "Multicast loopback support",
->  		[34] = "FCS header control",
-> -		[38] = "Wake On LAN support",
-> +		[35] = "Address Path ud_force_mgid support",
-> +		[36] = "Header-Data Split support",
-> +		[37] = "Wake On LAN support on port 1",
-> +		[38] = "Wake On LAN support on port 2",
-> +		[39] = "Fatal Warning Event upon a thermal warning condition",
->  		[40] = "UDP RSS support",
->  		[41] = "Unicast VEP steering support",
->  		[42] = "Multicast VEP steering support",
-> +		[43] = "VLAN Steering mechanism support",
-> +		[44] = "Steering according to EtherType support",
-> +		[45] = "WQE format version 1 support",
-> +		[46] = "Keep Alive Validiation support",
-> +		[47] = "PTP1588 support",
->  		[48] = "Counters support",
-> +		[49] = "Advanced Counters support",
-> +		[50] = "Force Ethernet user priority from QPC support",
-> +		[51] = "RX Port Num check disabled",
-> +		[52] = "RSS on fragmented IP datagram support",
->  		[53] = "Port ETS Scheduler support",
->  		[55] = "Port link type sensing support",
-> +		[56] = "Reliable Multicast support",
-> +		[57] = "Fast Drop support",
-> +		[58] = "Protected FMR support",
->  		[59] = "Port management change event support",
->  		[61] = "64 byte EQE support",
->  		[62] = "64 byte CQE support",
->  	};
-> -	int i;
->  
->  	mlx4_dbg(dev, "DEV_CAP flags:\n");
-> -	for (i = 0; i < ARRAY_SIZE(fname); ++i)
-> -		if (fname[i] && (flags & (1LL << i)))
-> -			mlx4_dbg(dev, "    %s\n", fname[i]);
-> +	dump_cap_flags(dev, flags, MLX4_DEV_CAP_FLAG_ALL, fname,
-> +		       ARRAY_SIZE(fname));
+>  ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
+>  			       const char __user *buf,
+>  			       int in_len, int out_len)
+> @@ -420,47 +466,7 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_=
+file *file,
+>  		return ret;
+> =20
+>  	memset(&resp, 0, sizeof resp);
+> -
+> -	resp.fw_ver 		       =3D attr.fw_ver;
+> -	resp.node_guid 		       =3D file->device->ib_dev->node_guid;
+> -	resp.sys_image_guid 	       =3D attr.sys_image_guid;
+> -	resp.max_mr_size 	       =3D attr.max_mr_size;
+> -	resp.page_size_cap 	       =3D attr.page_size_cap;
+> -	resp.vendor_id 		       =3D attr.vendor_id;
+> -	resp.vendor_part_id 	       =3D attr.vendor_part_id;
+> -	resp.hw_ver 		       =3D attr.hw_ver;
+> -	resp.max_qp 		       =3D attr.max_qp;
+> -	resp.max_qp_wr 		       =3D attr.max_qp_wr;
+> -	resp.device_cap_flags 	       =3D attr.device_cap_flags;
+> -	resp.max_sge 		       =3D attr.max_sge;
+> -	resp.max_sge_rd 	       =3D attr.max_sge_rd;
+> -	resp.max_cq 		       =3D attr.max_cq;
+> -	resp.max_cqe 		       =3D attr.max_cqe;
+> -	resp.max_mr 		       =3D attr.max_mr;
+> -	resp.max_pd 		       =3D attr.max_pd;
+> -	resp.max_qp_rd_atom 	       =3D attr.max_qp_rd_atom;
+> -	resp.max_ee_rd_atom 	       =3D attr.max_ee_rd_atom;
+> -	resp.max_res_rd_atom 	       =3D attr.max_res_rd_atom;
+> -	resp.max_qp_init_rd_atom       =3D attr.max_qp_init_rd_atom;
+> -	resp.max_ee_init_rd_atom       =3D attr.max_ee_init_rd_atom;
+> -	resp.atomic_cap 	       =3D attr.atomic_cap;
+> -	resp.max_ee 		       =3D attr.max_ee;
+> -	resp.max_rdd 		       =3D attr.max_rdd;
+> -	resp.max_mw 		       =3D attr.max_mw;
+> -	resp.max_raw_ipv6_qp 	       =3D attr.max_raw_ipv6_qp;
+> -	resp.max_raw_ethy_qp 	       =3D attr.max_raw_ethy_qp;
+> -	resp.max_mcast_grp 	       =3D attr.max_mcast_grp;
+> -	resp.max_mcast_qp_attach       =3D attr.max_mcast_qp_attach;
+> -	resp.max_total_mcast_qp_attach =3D attr.max_total_mcast_qp_attach;
+> -	resp.max_ah 		       =3D attr.max_ah;
+> -	resp.max_fmr 		       =3D attr.max_fmr;
+> -	resp.max_map_per_fmr 	       =3D attr.max_map_per_fmr;
+> -	resp.max_srq 		       =3D attr.max_srq;
+> -	resp.max_srq_wr 	       =3D attr.max_srq_wr;
+> -	resp.max_srq_sge 	       =3D attr.max_srq_sge;
+> -	resp.max_pkeys 		       =3D attr.max_pkeys;
+> -	resp.local_ca_ack_delay        =3D attr.local_ca_ack_delay;
+> -	resp.phys_port_cnt	       =3D file->device->ib_dev->phys_port_cnt;
+> +	copy_query_dev_fields(file, &resp, &attr);
+> =20
+>  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+>  			 &resp, sizeof resp))
+> @@ -3287,3 +3293,46 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs=
+_file *file,
+> =20
+>  	return ret ? ret : in_len;
 >  }
->  
->  static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
->  {
-> -	static const char * const fname[] = {
-> +	static const char *fname[] = {
->  		[0] = "RSS support",
->  		[1] = "RSS Toeplitz Hash Function support",
->  		[2] = "RSS XOR Hash Function support",
-> @@ -147,11 +183,9 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
->  		[18] = "More than 80 VFs support",
->  		[19] = "Performance optimized for limited rule configuration flow steering support"
->  	};
-> -	int i;
->  
-> -	for (i = 0; i < ARRAY_SIZE(fname); ++i)
-> -		if (fname[i] && (flags & (1LL << i)))
-> -			mlx4_dbg(dev, "    %s\n", fname[i]);
-> +	dump_cap_flags(dev, flags, MLX4_DEV_CAP_FLAG2_ALL, fname,
-> +		       ARRAY_SIZE(fname));
->  }
->  
->  int mlx4_MOD_STAT_CFG(struct mlx4_dev *dev, struct mlx4_mod_stat_cfg *cfg)
-> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-> index 25c791e..e84badc 100644
-> --- a/include/linux/mlx4/device.h
-> +++ b/include/linux/mlx4/device.h
-> @@ -180,6 +180,37 @@ enum {
->  	MLX4_DEV_CAP_FLAG_64B_CQE	= 1LL << 62
->  };
->  
-> +#define MLX4_DEV_CAP_FLAG_ALL	MLX4_DEV_CAP_FLAG_RC | \
-> +				MLX4_DEV_CAP_FLAG_UC | \
-> +				MLX4_DEV_CAP_FLAG_UD | \
-> +				MLX4_DEV_CAP_FLAG_XRC | \
-> +				MLX4_DEV_CAP_FLAG_SRQ | \
-> +				MLX4_DEV_CAP_FLAG_IPOIB_CSUM | \
-> +				MLX4_DEV_CAP_FLAG_BAD_PKEY_CNTR	 | \
-> +				MLX4_DEV_CAP_FLAG_BAD_QKEY_CNTR	 | \
-> +				MLX4_DEV_CAP_FLAG_DPDP | \
-> +				MLX4_DEV_CAP_FLAG_BLH | \
-> +				MLX4_DEV_CAP_FLAG_MEM_WINDOW | \
-> +				MLX4_DEV_CAP_FLAG_APM | \
-> +				MLX4_DEV_CAP_FLAG_ATOMIC | \
-> +				MLX4_DEV_CAP_FLAG_RAW_MCAST | \
-> +				MLX4_DEV_CAP_FLAG_UD_AV_PORT | \
-> +				MLX4_DEV_CAP_FLAG_UD_MCAST | \
-> +				MLX4_DEV_CAP_FLAG_IBOE | \
-> +				MLX4_DEV_CAP_FLAG_UC_LOOPBACK | \
-> +				MLX4_DEV_CAP_FLAG_FCS_KEEP | \
-> +				MLX4_DEV_CAP_FLAG_WOL_PORT1 | \
-> +				MLX4_DEV_CAP_FLAG_WOL_PORT2 | \
-> +				MLX4_DEV_CAP_FLAG_UDP_RSS | \
-> +				MLX4_DEV_CAP_FLAG_VEP_UC_STEER | \
-> +				MLX4_DEV_CAP_FLAG_VEP_MC_STEER | \
-> +				MLX4_DEV_CAP_FLAG_COUNTERS | \
-> +				MLX4_DEV_CAP_FLAG_SET_ETH_SCHED  | \
-> +				MLX4_DEV_CAP_FLAG_SENSE_SUPPORT	 | \
-> +				MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV  | \
-> +				MLX4_DEV_CAP_FLAG_64B_EQE | \
-> +				MLX4_DEV_CAP_FLAG_64B_CQE
 > +
->  enum {
->  	MLX4_DEV_CAP_FLAG2_RSS			= 1LL <<  0,
->  	MLX4_DEV_CAP_FLAG2_RSS_TOP		= 1LL <<  1,
-> @@ -203,6 +234,27 @@ enum {
->  	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19
->  };
->  
-> +#define MLX4_DEV_CAP_FLAG2_ALL	MLX4_DEV_CAP_FLAG2_RSS | \
-> +				MLX4_DEV_CAP_FLAG2_RSS_TOP | \
-> +				MLX4_DEV_CAP_FLAG2_RSS_XOR | \
-> +				MLX4_DEV_CAP_FLAG2_FS_EN | \
-> +				MLX4_DEV_CAP_FLAG2_REASSIGN_MAC_EN | \
-> +				MLX4_DEV_CAP_FLAG2_TS | \
-> +				MLX4_DEV_CAP_FLAG2_VLAN_CONTROL | \
-> +				MLX4_DEV_CAP_FLAG2_FSM | \
-> +				MLX4_DEV_CAP_FLAG2_UPDATE_QP | \
-> +				MLX4_DEV_CAP_FLAG2_DMFS_IPOIB | \
-> +				MLX4_DEV_CAP_FLAG2_VXLAN_OFFLOADS | \
-> +				MLX4_DEV_CAP_FLAG2_MAD_DEMUX | \
-> +				MLX4_DEV_CAP_FLAG2_CQE_STRIDE | \
-> +				MLX4_DEV_CAP_FLAG2_EQE_STRIDE | \
-> +				MLX4_DEV_CAP_FLAG2_ETH_PROT_CTRL | \
-> +				MLX4_DEV_CAP_FLAG2_ETH_BACKPL_AN_REP | \
-> +				MLX4_DEV_CAP_FLAG2_CONFIG_DEV | \
-> +				MLX4_DEV_CAP_FLAG2_SYS_EQS | \
-> +				MLX4_DEV_CAP_FLAG2_80_VFS | \
-> +				MLX4_DEV_CAP_FLAG2_FS_A0
+> +int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+> +			      struct ib_udata *ucore,
+> +			      struct ib_udata *uhw)
+> +{
+> +	struct ib_uverbs_ex_query_device_resp resp;
+> +	struct ib_uverbs_ex_query_device  cmd;
+> +	struct ib_device_attr attr;
+> +	struct ib_device *device;
+> +	int err;
 > +
+> +	device =3D file->device->ib_dev;
+
+Please an empty line after, or may be, move this in device declaration.
+
+> +	if (ucore->inlen < sizeof(cmd))
+> +		return -EINVAL;
+> +
+> +	err =3D ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
+> +	if (err)
+> +		return err;
+> +
+> +	if (cmd.comp_mask)
+> +		return -EINVAL;
+> +
+> +	if (cmd.reserved)
+> +		return -EINVAL;
+> +
+> +	resp.response_length =3D sizeof(resp);
+> +
+> +	if (ucore->outlen < resp.response_length)
+> +		return -ENOSPC;
+> +
+> +	err =3D device->query_device(device, &attr);
+> +	if (err)
+> +		return err;
+> +
+> +	copy_query_dev_fields(file, &resp.base, &attr);
+> +	resp.comp_mask =3D 0;
+> +
+> +	err =3D ib_copy_to_udata(ucore, &resp, resp.response_length);
+> +	if (err)
+> +		return err;
+> +
+> +	return 0;
+> +}
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniba=
+nd/core/uverbs_main.c
+> index 5db1a8cc388d..259dcc7779f5 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -123,6 +123,7 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uve=
+rbs_file *file,
+>  				    struct ib_udata *uhw) =3D {
+>  	[IB_USER_VERBS_EX_CMD_CREATE_FLOW]	=3D ib_uverbs_ex_create_flow,
+>  	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	=3D ib_uverbs_ex_destroy_flow,
+> +	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	=3D ib_uverbs_ex_query_device,
+>  };
+> =20
+>  static void ib_uverbs_add_one(struct ib_device *device);
+> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib=
+_user_verbs.h
+> index 867cc5084afb..f0f799afd856 100644
+> --- a/include/uapi/rdma/ib_user_verbs.h
+> +++ b/include/uapi/rdma/ib_user_verbs.h
+> @@ -90,6 +90,7 @@ enum {
+>  };
+> =20
 >  enum {
->  	MLX4_QUERY_FUNC_FLAGS_BF_RES_QP		= 1LL << 0,
->  	MLX4_QUERY_FUNC_FLAGS_A0_RES_QP		= 1LL << 1
-> -- 
-> 1.9.1
-> 
+> +	IB_USER_VERBS_EX_CMD_QUERY_DEVICE =3D IB_USER_VERBS_CMD_QUERY_DEVIC=
+E,
+>  	IB_USER_VERBS_EX_CMD_CREATE_FLOW =3D IB_USER_VERBS_CMD_THRESHOLD,
+>  	IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
+>  };
+> @@ -201,6 +202,17 @@ struct ib_uverbs_query_device_resp {
+>  	__u8  reserved[4];
+>  };
+> =20
+> +struct ib_uverbs_ex_query_device {
+> +	__u32 comp_mask;
+> +	__u32 reserved;
+> +};
+> +
+> +struct ib_uverbs_ex_query_device_resp {
+> +	struct ib_uverbs_query_device_resp base;
+> +	__u32 comp_mask;
+> +	__u32 response_length;
+> +};
+> +
+>  struct ib_uverbs_query_port {
+>  	__u64 response;
+>  	__u8  port_num;
+
+Everything else seems OK for me. Thanks a lot the new patch with all th=
+e
+fixes.
+
+Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
