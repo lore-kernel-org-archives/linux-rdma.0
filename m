@@ -1,104 +1,30 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RE-RESEND V2 for-next 3/5] IB/core: Call
- ib_unregister_mad_agent() only for valid agents
-Date: Mon, 16 Feb 2015 22:28:12 +0100
-Message-ID: <1424122092.32606.36.camel@opteya.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH RE-RESEND V2 for-next 4/5] IB/core: Make sure that the
+ PSN does not overflow
+Date: Mon, 16 Feb 2015 22:06:07 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC282FF@CRSMSX101.amr.corp.intel.com>
 References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
-	 <1423137232-24587-4-git-send-email-ogerlitz@mellanox.com>
+	 <1423137232-24587-5-git-send-email-ogerlitz@mellanox.com>
+ <1424121752.32606.32.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423137232-24587-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1424121752.32606.32.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le jeudi 05 f=C3=A9vrier 2015 =C3=A0 13:53 +0200, Or Gerlitz a =C3=A9cr=
-it :
-> From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> In some error flows, ib_mad_unregister_agent is being invoked also in=
- cases where
-                      ^^^^^^^^^^^^^^^^^^^^^^^
-                      ib_unregister_mad_agent()
-
-> the ib_mad_register_agent call failed (resulting in an illegal pointe=
-r in the
-     ^^^^^^^^^^^^^^^^^^^^^
-     ib_register_mad_agent()
-
-> agent field).  This causes a kernel crash in the error flow.
->=20
-> Fix this by calling ib_unregister_mad_agent only for cases where
-> ib_register_mad_agent succeeded.
->=20
-
-The code was checking for struct ib_mad_agent *agent not being NULL,=20
-while ib_register_mad_agent() returns a ERR_PTR() in case of error
-=2E.. bad :(
-
-> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx4/mad.c        |    2 +-
->  drivers/infiniband/hw/mthca/mthca_mad.c |    2 +-
->  drivers/infiniband/hw/qib/qib_mad.c     |    2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw=
-/mlx4/mad.c
-> index 82a7dd8..6be0d2c 100644
-> --- a/drivers/infiniband/hw/mlx4/mad.c
-> +++ b/drivers/infiniband/hw/mlx4/mad.c
-> @@ -907,7 +907,7 @@ int mlx4_ib_mad_init(struct mlx4_ib_dev *dev)
->  err:
->  	for (p =3D 0; p < dev->num_ports; ++p)
->  		for (q =3D 0; q <=3D 1; ++q)
-> -			if (dev->send_agent[p][q])
-> +			if (!IS_ERR(dev->send_agent[p][q]))
->  				ib_unregister_mad_agent(dev->send_agent[p][q]);
-> =20
->  	return ret;
-> diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infini=
-band/hw/mthca/mthca_mad.c
-> index 8881fa3..5f1a7ce 100644
-> --- a/drivers/infiniband/hw/mthca/mthca_mad.c
-> +++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-> @@ -317,7 +317,7 @@ int mthca_create_agents(struct mthca_dev *dev)
->  err:
->  	for (p =3D 0; p < dev->limits.num_ports; ++p)
->  		for (q =3D 0; q <=3D 1; ++q)
-> -			if (dev->send_agent[p][q])
-> +			if (!IS_ERR(dev->send_agent[p][q]))
->  				ib_unregister_mad_agent(dev->send_agent[p][q]);
-> =20
->  	return ret;
-> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband=
-/hw/qib/qib_mad.c
-> index 636be11..6c7cc80 100644
-> --- a/drivers/infiniband/hw/qib/qib_mad.c
-> +++ b/drivers/infiniband/hw/qib/qib_mad.c
-> @@ -2499,7 +2499,7 @@ int qib_create_agents(struct qib_ibdev *dev)
->  err:
->  	for (p =3D 0; p < dd->num_pports; p++) {
->  		ibp =3D &dd->pport[p].ibport_data;
-> -		if (ibp->send_agent) {
-> +		if (!IS_ERR(ibp->send_agent)) {
->  			agent =3D ibp->send_agent;
->  			ibp->send_agent =3D NULL;
->  			ib_unregister_mad_agent(agent);
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+DQo+IA0KPiAweGZmZmZmZiBjb3VsZCBiZSBtYWRlIGEgI2RlZmluZQ0KPiANCj4gUXVlc3Rpb246
+IHVzZXJzcGFjZSBpcyBhbGxvd2VkIHRvIGFzayBmb3IgYSBQU04gb24gMzJiaXRzLCBidXQgaXQg
+d2lsbCBiZSBzaWxlbnRseQ0KPiB0cnVuY2F0ZWQsIGlzIGl0IGdvaW5nIHRvIHB1enpsZSBhcHBs
+aWNhdGlvbnMgPw0KPiANCj4gQW55d2F5LCBpdCB3b3VsZCBoYXZlIGJlZW4gYmV0dGVyIHRvIHJl
+dHVybiBhbiBlcnJvciBpbiB0aGUgZmlyc3QgcGxhY2UgLi4uIG5vdA0KPiBzdXJlIGlmIHdlIGNh
+biBkbyBpdCBub3cgLi4uDQo+IA0KDQpZZXMgSSdtIHN0aWxsIG5vdCBzdXJlIHdoYXQgYnVnIHRo
+aXMgZml4ZXMuICBPciBkaWQgeW91IGV2ZXIgZmluZCBvdXQ/DQoNCklyYQ0KIA0KDQo=
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
