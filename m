@@ -1,38 +1,42 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH FIXES for-3.19 0/2] iser initiator fixes for kernel 3.19
-Date: Tue, 17 Feb 2015 14:21:14 -0500
-Message-ID: <CAJ3xEMin6m7FZXMzBrZG80LokNCE_7H9iy2PoqJLxN_-AkCOng@mail.gmail.com>
-References: <1421592667-4099-1-git-send-email-sagig@mellanox.com>
+Subject: Re: [PATCH for-next 0/3] Mellanox mlx4 IB driver fixes 29-Jan-2015
+Date: Tue, 17 Feb 2015 14:23:08 -0500
+Message-ID: <CAJ3xEMhmgYhOvyroaXq5HJU4yvbPBC61fJcd7WQ=YxtP+6BYSg@mail.gmail.com>
+References: <1422520903-22007-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1421592667-4099-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1422520903-22007-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 18, 2015 at 9:51 AM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> This set consist of two fixes error flows (cleanup resources).
+On Thu, Jan 29, 2015 at 3:41 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Roland,
+>
+> This is small batch of mlx4 IB driver fixes, please apply for for 3.20
 
-Hi Roland, I see now that you started to pull the updates for 3.20,
-please remember to take these two too they are @ your patchworks
-
-Or.
+Ditto here, these are for 3.20 and at your patchworks
 
 >
-> Ariel Nahum (1):
->   IB/iser: Release the iscsi endpoint if ep_disconnect wasn't called
+> Note that there's another mlx4 IB driver fix I sent for 3.19 and you
+> didn't pick yet, "IB/mlx4: Fix wrong usage of IPv4 protocol for multicast
+> attach/detach" https://patchwork.kernel.org/patch/5507181 -- add it too.
 >
-> Sagi Grimberg (1):
->   IB/iser: Fix memory regions possible leak
+> Or.
 >
->  drivers/infiniband/ulp/iser/iser_initiator.c |  4 ----
->  drivers/infiniband/ulp/iser/iser_verbs.c     | 27 ++++++++++++++++-----------
->  2 files changed, 16 insertions(+), 15 deletions(-)
+> Jack Morgenstein (1):
+>   IB/mlx4: In mlx4_ib_demux_cm, print out GUID in host-endian order
 >
-> --
-> 1.8.4.3
+> Majd Dibbiny (2):
+>   IB/mlx4: Fix memory leak in __mlx4_ib_modify_qp
+>   IB/mlx4: Bug fixes in mlx4_ib_resize_cq
+>
+>  drivers/infiniband/hw/mlx4/cm.c |    2 +-
+>  drivers/infiniband/hw/mlx4/cq.c |    7 +++----
+>  drivers/infiniband/hw/mlx4/qp.c |    6 ++++--
+>  3 files changed, 8 insertions(+), 7 deletions(-)
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
