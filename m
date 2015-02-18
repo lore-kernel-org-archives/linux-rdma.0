@@ -1,70 +1,75 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RE-RESEND V2 for-next 5/5] IB/core: Fix deadlock on uverbs
- modify_qp error flow
-Date: Wed, 18 Feb 2015 00:03:58 -0500
-Message-ID: <54E41D3E.6020809@mellanox.com>
-References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com> <1423137232-24587-6-git-send-email-ogerlitz@mellanox.com>
+Subject: Re: [PATCH] IB/mlx4: Fix wrong usage of IPv4 protocol for multicast
+ attach/detach
+Date: Wed, 18 Feb 2015 00:10:03 -0500
+Message-ID: <54E41EAB.3000403@mellanox.com>
+References: <1418825854-30022-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423137232-24587-6-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1418825854-30022-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/5/2015 6:53 AM, Or Gerlitz wrote:
-> From: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+On 12/17/2014 9:17 AM, Or Gerlitz wrote:
+> The MLX4_PROT_IB_IPV4 protocol should only be used with RoCEv2 and such.
+> Removing this wrong usage allows to run multicast applications over RoCE.
 >
-> The deadlock occurs on __uverbs_modify_qp, we take a lock (idr_read_qp)
-> and in case of failure in ib_resolve_eth_l2_attrs we don't release
-> it (put_qp_read). Fix that.
->
-> Issue: 355606
-> Fixes: ed4c54e5b4ba ("IB/core: Resolve Ethernet L2 addresses when modifying QP")
-> Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Fixes: d487ee77740c ('IB/mlx4: Use IBoE (RoCE) IP based GIDs in the port GID table')
+> Reported-by: Carol Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 > Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Roland, can you please pick this one too, it's a bug fix and no comments 
-were raised against it.
-I just failed to remove the Gerrit Issue: XXX line,  so if you can do 
-that, will be great
-
 > ---
->   drivers/infiniband/core/uverbs_cmd.c |    9 +++++----
->   1 files changed, 5 insertions(+), 4 deletions(-)
+
+Roland, you missed picking this one (was sent to you whole two months 
+ago) for 3.19 and meanwhile some code went into mlx4 from the net-next 
+tree which will cause a small collision here. I am traveling now and 
+can't send you the revised patch but it should be very easy to generate, 
+just 1-2 lines added. I would suggest for you to rebase against Dave's 
+net tree or Linus tree, you should also see it from 0-days builds if you 
+wait few hours.
+>   drivers/infiniband/hw/mlx4/main.c |   10 +++++-----
+>   1 files changed, 5 insertions(+), 5 deletions(-)
 >
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> index ecb6430..a602ce9 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -2097,20 +2097,21 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
->   	if (qp->real_qp == qp) {
->   		ret = ib_resolve_eth_l2_attrs(qp, attr, &cmd.attr_mask);
->   		if (ret)
-> -			goto out;
-> +			goto release_qp;
->   		ret = qp->device->modify_qp(qp, attr,
->   			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
->   	} else {
->   		ret = ib_modify_qp(qp, attr, modify_qp_mask(qp->qp_type, cmd.attr_mask));
->   	}
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+> index e861330..ea69975 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -1221,8 +1221,7 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+>   	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
+>   	u64 reg_id;
+>   	struct mlx4_ib_steering *ib_steering = NULL;
+> -	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
+> -		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
+> +	enum mlx4_protocol prot = MLX4_PROT_IB_IPV6;
 >   
-> -	put_qp_read(qp);
-> -
->   	if (ret)
-> -		goto out;
-> +		goto release_qp;
+>   	if (mdev->dev->caps.steering_mode ==
+>   	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
+> @@ -1235,8 +1234,10 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+>   				    !!(mqp->flags &
+>   				       MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK),
+>   				    prot, &reg_id);
+> -	if (err)
+> +	if (err) {
+> +		pr_err("multicast attach op failed, err %d\n", err);
+>   		goto err_malloc;
+> +	}
 >   
->   	ret = in_len;
+>   	err = add_gid_entry(ibqp, gid);
+>   	if (err)
+> @@ -1284,8 +1285,7 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+>   	struct net_device *ndev;
+>   	struct mlx4_ib_gid_entry *ge;
+>   	u64 reg_id = 0;
+> -	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
+> -		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
+> +	enum mlx4_protocol prot =  MLX4_PROT_IB_IPV6;
 >   
-> +release_qp:
-> +	put_qp_read(qp);
-> +
->   out:
->   	kfree(attr);
->   
+>   	if (mdev->dev->caps.steering_mode ==
+>   	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
