@@ -1,35 +1,28 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [PATCH next] RDMA/ocrdma: ocrdma_free_pd_pool() can be static
-Date: Wed, 18 Feb 2015 11:49:30 +0800
-Message-ID: <20150218034930.GA54160@snb>
-References: <201502181113.2969SUKJ%fengguang.wu@intel.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH RE-RESEND V2 for-next 5/5] IB/core: Fix deadlock on uverbs
+ modify_qp error flow
+Date: Tue, 17 Feb 2015 22:07:19 -0800
+Message-ID: <CAG4TOxOhnc_ihooLyKJ09P90RMM4MbcWS5McwNOMV4gQ+Ls4Qg@mail.gmail.com>
+References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
+ <1423137232-24587-6-git-send-email-ogerlitz@mellanox.com> <54E41D3E.6020809@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201502181113.2969SUKJ%fengguang.wu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mitesh Ahuja <mitesh.ahuja@emulex.com>
-Cc: kbuild-all@01.org, Roland Dreier <roland@purestorage.com>, Devesh Sharma <devesh.sharma@emulex.com>, Selvin Xavier <selvin.xavier@emulex.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jes Sorensen <Jes.Sorensen@redhat.com>, Prarit Bhargava <prarit@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54E41D3E.6020809-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-drivers/infiniband/hw/ocrdma/ocrdma_hw.c:1510:6: sparse: symbol 'ocrdma_free_pd_pool' was not declared. Should it be static?
+On Tue, Feb 17, 2015 at 9:03 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Roland, can you please pick this one too, it's a bug fix and no comments
+> were raised against it.
+> I just failed to remove the Gerrit Issue: XXX line,  so if you can do that,
+> will be great
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
- ocrdma_hw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index ec4571b..037893a 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1507,7 +1507,7 @@ void ocrdma_alloc_pd_pool(struct ocrdma_dev *dev)
- 	}
- }
- 
--void ocrdma_free_pd_pool(struct ocrdma_dev *dev)
-+static void ocrdma_free_pd_pool(struct ocrdma_dev *dev)
- {
- 	ocrdma_mbx_dealloc_pd_range(dev);
- 	kfree(dev->pd_mgr->pd_norm_bitmap);
+OK.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
