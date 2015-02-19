@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 08/30] IB/core: Support find sgid index using a filter function
-Date: Fri, 20 Feb 2015 03:32:23 +0530
-Message-ID: <3f9746be-8d95-429c-945e-59b0b90a17e8@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 07/30] IB/core: Report gid_type and gid_ndev through sysfs
+Date: Fri, 20 Feb 2015 03:32:22 +0530
+Message-ID: <1baea3df-1ac8-4084-a43c-37e4cfb20749@CMEXHTCAS2.ad.emulex.com>
 References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,194 +14,354 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Sometimes a sgid index need to be found based on variable parameters.
-For example, when the CM gets a packet from network, it needs to
-match a sgid_index that matches the appropriate L2 attributes
-of a packet. Extending the cache's API to include Ethernet L2
-attribute is problematic, since they may be vastly extended
-in the future. As a result, we add a find function that
-gets a user filter function and searches the GID table
-until a match is found.
+Since we've added GID attributes to the RoCE GID table,
+the users need a convenient way to query them.
+Adding the GID type and relate net device to IB's sysfs.
+
+The new attributes are available in:
+/sys/class/infiniband/<device>/ports/<port>/gid_attrs/ndevs/<index>
+/sys/class/infiniband/<device>/ports/<port>/gid_attrs/types/<index>
+
+The <index> corresponds to the index of the respective GID in:
+/sys/class/infiniband/<device>/ports/<port>/gids/<index>
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c          |   24 +++++++++++
- drivers/infiniband/core/core_priv.h      |    9 ++++
- drivers/infiniband/core/roce_gid_cache.c |   66 ++++++++++++++++++++++++++++++
- include/rdma/ib_cache.h                  |   27 ++++++++++++
- 4 files changed, 126 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/core_priv.h      |    2 +
+ drivers/infiniband/core/roce_gid_cache.c |   13 ++
+ drivers/infiniband/core/sysfs.c          |  185 +++++++++++++++++++++++++++++-
+ 3 files changed, 198 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 882d491..ae86fe8 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -273,6 +273,30 @@ int ib_find_cached_gid_by_port(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_find_cached_gid_by_port);
- 
-+int ib_find_gid_by_filter(struct ib_device *device,
-+			  union ib_gid *gid,
-+			  u8 port_num,
-+			  bool (*filter)(const union ib_gid *gid,
-+					 const struct ib_gid_attr *,
-+					 void *),
-+			  void *context, u16 *index)
-+{
-+	/* Look for a RoCE device with the specified GID. */
-+	if (!ib_cache_use_roce_gid_cache(device, port_num))
-+		return roce_gid_cache_find_gid_by_filter(device, gid,
-+							 port_num, filter,
-+							 context, index);
-+
-+	/* Only RoCE GID cache supports filter function */
-+	if (filter)
-+		return -ENOSYS;
-+
-+	/* If no RoCE devices with the specified GID, look for IB device. */
-+	return __ib_find_cached_gid_by_port(device, port_num,
-+					    gid, index);
-+}
-+EXPORT_SYMBOL(ib_find_gid_by_filter);
-+
- int ib_get_cached_pkey(struct ib_device *device,
- 		       u8                port_num,
- 		       int               index,
 diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 411672f..d6e73f8 100644
+index 6ab40a9..411672f 100644
 --- a/drivers/infiniband/core/core_priv.h
 +++ b/drivers/infiniband/core/core_priv.h
-@@ -84,6 +84,15 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
- 				    enum ib_gid_type gid_type, u8 port,
- 				    struct net *net, int if_index, u16 *index);
+@@ -71,6 +71,8 @@ void ib_enum_roce_ports_of_netdev(roce_netdev_filter filter,
+ 				  roce_netdev_callback cb,
+ 				  void *cookie);
  
-+int roce_gid_cache_find_gid_by_filter(struct ib_device *ib_dev,
-+				      union ib_gid *gid,
-+				      u8 port,
-+				      bool (*filter)(const union ib_gid *gid,
-+						     const struct ib_gid_attr *,
-+						     void *),
-+				      void *context,
-+				      u16 *index);
++const char *roce_gid_cache_type_str(enum ib_gid_type gid_type);
 +
- int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port);
+ int roce_gid_cache_get_gid(struct ib_device *ib_dev, u8 port, int index,
+ 			   union ib_gid *gid, struct ib_gid_attr *attr);
  
- enum roce_gid_cache_default_mode {
 diff --git a/drivers/infiniband/core/roce_gid_cache.c b/drivers/infiniband/core/roce_gid_cache.c
-index 895b9c1..6017ba0 100644
+index fc6a4e6..895b9c1 100644
 --- a/drivers/infiniband/core/roce_gid_cache.c
 +++ b/drivers/infiniband/core/roce_gid_cache.c
-@@ -436,6 +436,72 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
- 	return -ENOENT;
- }
+@@ -48,6 +48,11 @@ enum gid_attr_find_mask {
+ 	GID_ATTR_FIND_MASK_NETDEV	= 1UL << 1,
+ };
  
-+int roce_gid_cache_find_gid_by_filter(struct ib_device *ib_dev,
-+				      union ib_gid *gid,
-+				      u8 port,
-+				      bool (*filter)(const union ib_gid *,
-+						     const struct ib_gid_attr *,
-+						     void *),
-+				      void *context,
-+				      u16 *index)
++static const char * const gid_type_str[] = {
++	[IB_GID_TYPE_IB]	= "IB/RoCE V1\n",
++	[IB_GID_TYPE_ROCE_V2]	= "RoCE V2\n",
++};
++
+ static inline int start_port(struct ib_device *ib_dev)
+ {
+ 	return (ib_dev->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
+@@ -58,6 +63,14 @@ struct dev_put_rcu {
+ 	struct net_device	*ndev;
+ };
+ 
++const char *roce_gid_cache_type_str(enum ib_gid_type gid_type)
 +{
-+	struct ib_roce_gid_cache *cache;
-+	unsigned int i;
-+	bool found = false;
++	if (gid_type < ARRAY_SIZE(gid_type_str) && gid_type_str[gid_type])
++		return gid_type_str[gid_type];
 +
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return -ENOSYS;
-+
-+	if (port < start_port(ib_dev) ||
-+	    port > start_port(ib_dev) + ib_dev->phys_port_cnt ||
-+	    rdma_port_get_link_layer(ib_dev, port) !=
-+		IB_LINK_LAYER_ETHERNET)
-+		return -ENOSYS;
-+
-+	cache = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
-+
-+	if (!cache->active)
-+		return -ENOENT;
-+
-+	for (i = 0; i < cache->sz; i++) {
-+		unsigned int orig_seq;
-+		struct ib_gid_attr attr;
-+
-+		orig_seq = cache->data_vec[i].seq;
-+		if (orig_seq == -1)
-+			continue;
-+		/* Make sure the sequence number we remeber was read
-+		 * before the gid cache entry content is read.
-+		 */
-+		smp_rmb();
-+
-+		if (memcmp(gid, &cache->data_vec[i].gid, sizeof(*gid)))
-+			continue;
-+
-+		memcpy(&attr, &cache->data_vec[i].attr, sizeof(attr));
-+
-+		rcu_read_lock();
-+
-+		/* Make sure we finished reading the attribute */
-+		smp_rmb();
-+		if (orig_seq == ACCESS_ONCE(cache->data_vec[i].seq))
-+			if (!filter || filter(gid, &attr, context))
-+				found = true;
-+
-+		rcu_read_unlock();
-+
-+		if (found)
-+			break;
-+	}
-+
-+	if (!found)
-+		return -ENOENT;
-+
-+	if (index)
-+		*index = i;
-+	return 0;
++	return "Invalid GID type";
 +}
 +
- static struct ib_roce_gid_cache *alloc_roce_gid_cache(int sz)
+ static void put_ndev(struct rcu_head *rcu)
  {
- 	struct ib_roce_gid_cache *cache =
-diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
-index 36b72bf..c6c1a51 100644
---- a/include/rdma/ib_cache.h
-+++ b/include/rdma/ib_cache.h
-@@ -111,6 +111,33 @@ int ib_find_cached_gid_by_port(struct ib_device *device,
- 			       struct net	*net,
- 			       int		if_index,
- 			       u16              *index);
+ 	struct dev_put_rcu *put_rcu =
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 5cee246..51f0e32 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -37,12 +37,22 @@
+ #include <linux/slab.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
++#include <linux/netdevice.h>
+ 
+ #include <rdma/ib_mad.h>
+ 
++struct ib_port;
 +
-+/**
-+ * ib_find_cached_gid_by_port - Returns the GID table index where a specified
-+ * GID value occurs
-+ * @device: The device to query.
-+ * @gid: The GID value to search for.
-+ * @port_num: The port number of the device where the GID value could be
-+ *   searched.
-+ * @filter: The filter function is executed on any matching GID in the table.
-+ *   If the filter function returns true, the corresponding index is returned,
-+ *   otherwise, we continue searching the GID table. It's guaranteed that
-+ *   while filter is executed, ndev field is valid and the structure won't
-+ *   change. filter is executed in an atomic context. filter must be NULL
-+ *   when RoCE GID cache isn't supported on the respective device's port.
-+ * @index: The index into the cached GID table where the GID was found.  This
-+ *   parameter may be NULL.
-+ *
-+ * ib_find_cached_gid_by_port() searches for the specified GID value in
-+ * the local software cache.
-+ */
-+int ib_find_gid_by_filter(struct ib_device *device,
-+			  union ib_gid *gid,
-+			  u8 port_num,
-+			  bool (*filter)(const union ib_gid *gid,
-+					 const struct ib_gid_attr *,
-+					 void *),
-+			  void *context, u16 *index);
- /**
-  * ib_get_cached_pkey - Returns a cached PKey table entry
-  * @device: The device to query.
++struct gid_attr_group {
++	struct ib_port		*port;
++	struct kobject		kobj;
++	struct attribute_group	ndev;
++	struct attribute_group	type;
++};
+ struct ib_port {
+ 	struct kobject         kobj;
+ 	struct ib_device      *ibdev;
++	struct gid_attr_group *gid_attr_group;
+ 	struct attribute_group gid_group;
+ 	struct attribute_group pkey_group;
+ 	u8                     port_num;
+@@ -84,6 +94,24 @@ static const struct sysfs_ops port_sysfs_ops = {
+ 	.show = port_attr_show
+ };
+ 
++static ssize_t gid_attr_show(struct kobject *kobj,
++			     struct attribute *attr, char *buf)
++{
++	struct port_attribute *port_attr =
++		container_of(attr, struct port_attribute, attr);
++	struct ib_port *p = container_of(kobj, struct gid_attr_group,
++					 kobj)->port;
++
++	if (!port_attr->show)
++		return -EIO;
++
++	return port_attr->show(p, port_attr, buf);
++}
++
++static const struct sysfs_ops gid_attr_sysfs_ops = {
++	.show = gid_attr_show
++};
++
+ static ssize_t state_show(struct ib_port *p, struct port_attribute *unused,
+ 			  char *buf)
+ {
+@@ -281,6 +309,46 @@ static struct attribute *port_default_attrs[] = {
+ 	NULL
+ };
+ 
++static size_t print_ndev(struct ib_gid_attr *gid_attr, char *buf)
++{
++	if (!gid_attr->ndev)
++		return -EINVAL;
++
++	return sprintf(buf, "%s\n", gid_attr->ndev->name);
++}
++
++static size_t print_gid_type(struct ib_gid_attr *gid_attr, char *buf)
++{
++	return sprintf(buf, "%s", roce_gid_cache_type_str(gid_attr->gid_type));
++}
++
++static ssize_t _show_port_gid_attr(struct ib_port *p,
++				   struct port_attribute *attr,
++				   char *buf,
++				   size_t (*print)(struct ib_gid_attr *gid_attr,
++						   char *buf))
++{
++	struct port_table_attribute *tab_attr =
++		container_of(attr, struct port_table_attribute, attr);
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr;
++	ssize_t ret;
++	va_list args;
++
++	rcu_read_lock();
++	ret = ib_query_gid(p->ibdev, p->port_num, tab_attr->index, &gid,
++			   &gid_attr);
++	if (ret)
++		goto err;
++
++	ret = print(&gid_attr, buf);
++
++err:
++	va_end(args);
++	rcu_read_unlock();
++	return ret;
++}
++
+ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
+ 			     char *buf)
+ {
+@@ -296,6 +364,19 @@ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
+ 	return sprintf(buf, "%pI6\n", gid.raw);
+ }
+ 
++static ssize_t show_port_gid_attr_ndev(struct ib_port *p,
++				       struct port_attribute *attr, char *buf)
++{
++	return _show_port_gid_attr(p, attr, buf, print_ndev);
++}
++
++static ssize_t show_port_gid_attr_gid_type(struct ib_port *p,
++					   struct port_attribute *attr,
++					   char *buf)
++{
++	return _show_port_gid_attr(p, attr, buf, print_gid_type);
++}
++
+ static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
+ 			      char *buf)
+ {
+@@ -446,12 +527,41 @@ static void ib_port_release(struct kobject *kobj)
+ 	kfree(p);
+ }
+ 
++static void ib_port_gid_attr_release(struct kobject *kobj)
++{
++	struct gid_attr_group *g = container_of(kobj, struct gid_attr_group,
++						kobj);
++	struct attribute *a;
++	int i;
++
++	if (g->ndev.attrs) {
++		for (i = 0; (a = g->ndev.attrs[i]); ++i)
++			kfree(a);
++
++		kfree(g->ndev.attrs);
++	}
++
++	if (g->type.attrs) {
++		for (i = 0; (a = g->type.attrs[i]); ++i)
++			kfree(a);
++
++		kfree(g->type.attrs);
++	}
++
++	kfree(g);
++}
++
+ static struct kobj_type port_type = {
+ 	.release       = ib_port_release,
+ 	.sysfs_ops     = &port_sysfs_ops,
+ 	.default_attrs = port_default_attrs
+ };
+ 
++static struct kobj_type gid_attr_type = {
++	.sysfs_ops	= &gid_attr_sysfs_ops,
++	.release	= ib_port_gid_attr_release
++};
++
+ static void ib_device_release(struct device *device)
+ {
+ 	struct ib_device *dev = container_of(device, struct ib_device, dev);
+@@ -545,9 +655,23 @@ static int add_port(struct ib_device *device, int port_num,
+ 		return ret;
+ 	}
+ 
++	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
++	if (!p->gid_attr_group) {
++		ret = -ENOMEM;
++		goto err_put;
++	}
++
++	p->gid_attr_group->port = p;
++	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
++				   &p->kobj, "gid_attrs");
++	if (ret) {
++		kfree(p->gid_attr_group);
++		goto err_put;
++	}
++
+ 	ret = sysfs_create_group(&p->kobj, &pma_group);
+ 	if (ret)
+-		goto err_put;
++		goto err_put_gid_attrs;
+ 
+ 	p->gid_group.name  = "gids";
+ 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
+@@ -560,12 +684,38 @@ static int add_port(struct ib_device *device, int port_num,
+ 	if (ret)
+ 		goto err_free_gid;
+ 
++	p->gid_attr_group->ndev.name = "ndevs";
++	p->gid_attr_group->ndev.attrs = alloc_group_attrs(show_port_gid_attr_ndev,
++							  attr.gid_tbl_len);
++	if (!p->gid_attr_group->ndev.attrs) {
++		ret = -ENOMEM;
++		goto err_remove_gid;
++	}
++
++	ret = sysfs_create_group(&p->gid_attr_group->kobj,
++				 &p->gid_attr_group->ndev);
++	if (ret)
++		goto err_free_gid_ndev;
++
++	p->gid_attr_group->type.name = "types";
++	p->gid_attr_group->type.attrs = alloc_group_attrs(show_port_gid_attr_gid_type,
++							  attr.gid_tbl_len);
++	if (!p->gid_attr_group->type.attrs) {
++		ret = -ENOMEM;
++		goto err_remove_gid_ndev;
++	}
++
++	ret = sysfs_create_group(&p->gid_attr_group->kobj,
++				 &p->gid_attr_group->type);
++	if (ret)
++		goto err_free_gid_type;
++
+ 	p->pkey_group.name  = "pkeys";
+ 	p->pkey_group.attrs = alloc_group_attrs(show_port_pkey,
+ 						attr.pkey_tbl_len);
+ 	if (!p->pkey_group.attrs) {
+ 		ret = -ENOMEM;
+-		goto err_remove_gid;
++		goto err_remove_gid_type;
+ 	}
+ 
+ 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
+@@ -580,6 +730,7 @@ static int add_port(struct ib_device *device, int port_num,
+ 
+ 	list_add_tail(&p->kobj.entry, &device->port_list);
+ 
++	kobject_uevent(&p->gid_attr_group->kobj, KOBJ_ADD);
+ 	kobject_uevent(&p->kobj, KOBJ_ADD);
+ 	return 0;
+ 
+@@ -593,6 +744,28 @@ err_free_pkey:
+ 	kfree(p->pkey_group.attrs);
+ 	p->pkey_group.attrs = NULL;
+ 
++err_remove_gid_type:
++	sysfs_remove_group(&p->gid_attr_group->kobj,
++			   &p->gid_attr_group->type);
++
++err_free_gid_type:
++	for (i = 0; i < attr.gid_tbl_len; ++i)
++		kfree(p->gid_attr_group->type.attrs[i]);
++
++	kfree(p->gid_attr_group->type.attrs);
++	p->gid_attr_group->type.attrs = NULL;
++
++err_remove_gid_ndev:
++	sysfs_remove_group(&p->gid_attr_group->kobj,
++			   &p->gid_attr_group->ndev);
++
++err_free_gid_ndev:
++	for (i = 0; i < attr.gid_tbl_len; ++i)
++		kfree(p->gid_attr_group->ndev.attrs[i]);
++
++	kfree(p->gid_attr_group->ndev.attrs);
++	p->gid_attr_group->ndev.attrs = NULL;
++
+ err_remove_gid:
+ 	sysfs_remove_group(&p->kobj, &p->gid_group);
+ 
+@@ -606,6 +779,9 @@ err_free_gid:
+ err_remove_pma:
+ 	sysfs_remove_group(&p->kobj, &pma_group);
+ 
++err_put_gid_attrs:
++	kobject_put(&p->gid_attr_group->kobj);
++
+ err_put:
+ 	kobject_put(&p->kobj);
+ 	return ret;
+@@ -826,6 +1002,11 @@ static void free_port_list_attributes(struct ib_device *device)
+ 		sysfs_remove_group(p, &pma_group);
+ 		sysfs_remove_group(p, &port->pkey_group);
+ 		sysfs_remove_group(p, &port->gid_group);
++		sysfs_remove_group(&port->gid_attr_group->kobj,
++				   &port->gid_attr_group->ndev);
++		sysfs_remove_group(&port->gid_attr_group->kobj,
++				   &port->gid_attr_group->type);
++		kobject_put(&port->gid_attr_group->kobj);
+ 		kobject_put(p);
+ 	}
+ 
 -- 
 1.7.1
 
