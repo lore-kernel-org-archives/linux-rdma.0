@@ -1,54 +1,414 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 10/30] IB/core: Add gid_type to path and rdma_id_private
-Date: Thu, 19 Feb 2015 17:51:49 +0200
-Message-ID: <54E60695.3050907@mellanox.com>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH 29/30] IB/mlx4: Create and use another QP1 for RoCEv2
+Date: Thu, 19 Feb 2015 16:11:03 +0000
+Message-ID: <AM3PR05MB0935E2EAAFB7CCF2FAC28281DC2D0@AM3PR05MB0935.eurprd05.prod.outlook.com>
 References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
- <0ebef7be-0586-47bf-bcc4-f3ff21ca4f3b@CMEXHTCAS2.ad.emulex.com>
+ <7d3158cd-5b84-4f60-a705-71fca630e04a@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0ebef7be-0586-47bf-bcc4-f3ff21ca4f3b-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+In-Reply-To: <7d3158cd-5b84-4f60-a705-71fca630e04a-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/02/2015 00:02, Somnath Kotur wrote:
-> @@ -1521,6 +1520,8 @@ static int cm_req_handler(struct cm_work *work)
->  	struct ib_cm_id *cm_id;
->  	struct cm_id_private *cm_id_priv, *listen_cm_id_priv;
->  	struct cm_req_msg *req_msg;
-> +	union ib_gid gid;
-> +	struct ib_gid_attr gid_attr;
->  	int ret;
->  
->  	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
-> @@ -1560,11 +1561,19 @@ static int cm_req_handler(struct cm_work *work)
->  	cm_format_paths_from_req(req_msg, &work->path[0], &work->path[1]);
->  
->  	memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
-> -	ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
-> +	ret = ib_get_cached_gid(work->port->cm_dev->ib_device,
-> +				work->port->port_num,
-> +				cm_id_priv->av.ah_attr.grh.sgid_index,
-> +				&gid, &gid_attr);
-> +	if (!ret) {
-> +		work->path[0].gid_type = gid_attr.gid_type;
-> +		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
-> +	}
->  	if (ret) {
->  		ib_get_cached_gid(work->port->cm_dev->ib_device,
->  				  work->port->port_num, 0, &work->path[0].sgid,
-> -				  NULL);
-> +				  &gid_attr);
-> +		work->path[0].gid_type = gid_attr.gid_type;
->  		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
->  			       &work->path[0].sgid, sizeof work->path[0].sgid,
->  			       NULL, 0);
 
-Is there support for alternative path? (Because I don't see a similar
-change for path[1]).
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Somnath Kotur
+> Sent: Friday, February 20, 2015 12:03 AM
+> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Moni Shoua; Somnath Kotur
+> Subject: [PATCH 29/30] IB/mlx4: Create and use another QP1 for RoCEv2
+> 
+> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> The mlx4 driver uses a special QP to implement the GSI QP. This kind of
+> QP allows to build the InfiniBand headers in SW to be put before the
+> payload that comes in with the WR. The mlx4 HW builds the packet,
+> calculates the ICRC and puts it at the end of the payload. This ICRC
+> calculation however depends on the QP configuration which is determined
+> when QP is modified (roce_mode during INIT->RTR). On the other hand,
+> ICRC
+> verification when packet is received does to depend on this
+
+The grammar in this sentence is broken. Generally speaking, it is hard to understand what the patch does and aim to do from this commit message.
+Please rephrase.
+
+> configuration.
+> Therefore, using 2 GSI QPs for send (one for each RoCE version) and 1
+> GSI QP for receive are required.
+> 
+> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h |    7 ++
+>  drivers/infiniband/hw/mlx4/qp.c      |  154
+> ++++++++++++++++++++++++++++++----
+>  2 files changed, 143 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> index 018bda6..a853330 100644
+> --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+> @@ -159,11 +159,18 @@ struct mlx4_ib_wq {
+>  	unsigned		tail;
+>  };
+> 
+> +enum {
+> +	MLX4_IB_QP_CREATE_ROCE_V2_GSI = IB_QP_CREATE_RESERVED_START
+> +};
+> +
+>  enum mlx4_ib_qp_flags {
+>  	MLX4_IB_QP_LSO = IB_QP_CREATE_IPOIB_UD_LSO,
+>  	MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK =
+> IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK,
+>  	MLX4_IB_QP_NETIF = IB_QP_CREATE_NETIF_QP,
+>  	MLX4_IB_QP_CREATE_USE_GFP_NOIO = IB_QP_CREATE_USE_GFP_NOIO,
+> +
+> +	/* Mellanox specific flags start from IB_QP_CREATE_RESERVED_START
+> */
+> +	MLX4_IB_ROCE_V2_GSI_QP = MLX4_IB_QP_CREATE_ROCE_V2_GSI,
+
+Why do you need 2 enums for this flag definition?
+Also, the comment refers to IB_QP_CREATE_RESERVED_START, which is not appearing here.
+
+>  	MLX4_IB_SRIOV_TUNNEL_QP = 1 << 30,
+>  	MLX4_IB_SRIOV_SQP = 1 << 31,
+>  };
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c
+> b/drivers/infiniband/hw/mlx4/qp.c
+> index 9996527..161b933 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -81,6 +81,7 @@ struct mlx4_ib_sqp {
+>  	u32			send_psn;
+>  	struct ib_ud_header	ud_header;
+>  	u8			header_buf[MLX4_IB_UD_HEADER_SIZE];
+> +	struct ib_qp		*roce_v2_gsi;
+>  };
+> 
+>  enum {
+> @@ -150,7 +151,10 @@ static int is_sqp(struct mlx4_ib_dev *dev, struct
+> mlx4_ib_qp *qp)
+>  			}
+>  		}
+>  	}
+> -	return proxy_sqp;
+> +	if (proxy_sqp)
+> +		return 1;
+> +
+> +	return !!(qp->flags & MLX4_IB_ROCE_V2_GSI_QP);
+
+What are the implications of this double-QP scheme in virtualization scenario?
+
+>  }
+> 
+>  /* used for INIT/CLOSE port logic */
+> @@ -672,6 +676,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev,
+> struct ib_pd *pd,
+>  			qp = &sqp->qp;
+>  			qp->pri.vid = 0xFFFF;
+>  			qp->alt.vid = 0xFFFF;
+> +			sqp->roce_v2_gsi = NULL;
+>  		} else {
+>  			qp = kzalloc(sizeof (struct mlx4_ib_qp), gfp);
+>  			if (!qp)
+> @@ -1029,9 +1034,17 @@ static void destroy_qp_common(struct mlx4_ib_dev
+> *dev, struct mlx4_ib_qp *qp,
+>  	del_gid_entries(qp);
+>  }
+> 
+> -static u32 get_sqp_num(struct mlx4_ib_dev *dev, struct ib_qp_init_attr
+> *attr)
+> +static int get_sqp_num(struct mlx4_ib_dev *dev, struct ib_qp_init_attr
+> *attr)
+>  {
+>  	/* Native or PPF */
+> +	if ((!mlx4_is_mfunc(dev->dev) || mlx4_is_master(dev->dev)) &&
+> +	    attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI) {
+> +		int sqpn;
+> +		int res = mlx4_qp_reserve_range(dev->dev, 1, 1, &sqpn, 0);
+> +
+> +		return res ? -abs(res) : sqpn;
+
+This seems wrong. Mlx4_qp_reserve_range returns either 0 (success) or negative errno value on error. The check here should therefore say "res ? res : sqpn;".
+
+If you want, you can add a WARN_ON(res > 0); above it.
+
+> +	}
+> +
+>  	if (!mlx4_is_mfunc(dev->dev) ||
+>  	    (mlx4_is_master(dev->dev) &&
+>  	     attr->create_flags & MLX4_IB_SRIOV_SQP)) {
+> @@ -1039,6 +1052,7 @@ static u32 get_sqp_num(struct mlx4_ib_dev *dev,
+> struct ib_qp_init_attr *attr)
+>  			(attr->qp_type == IB_QPT_SMI ? 0 : 2) +
+>  			attr->port_num - 1;
+>  	}
+> +
+>  	/* PF or VF -- creating proxies */
+>  	if (attr->qp_type == IB_QPT_SMI)
+>  		return dev->dev->caps.qp0_proxy[attr->port_num - 1];
+> @@ -1046,9 +1060,9 @@ static u32 get_sqp_num(struct mlx4_ib_dev *dev,
+> struct ib_qp_init_attr *attr)
+>  		return dev->dev->caps.qp1_proxy[attr->port_num - 1];
+>  }
+> 
+> -struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+> -				struct ib_qp_init_attr *init_attr,
+> -				struct ib_udata *udata)
+> +static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+> +					struct ib_qp_init_attr *init_attr,
+> +					struct ib_udata *udata)
+>  {
+>  	struct mlx4_ib_qp *qp = NULL;
+>  	int err;
+> @@ -1066,6 +1080,7 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+>  					MLX4_IB_SRIOV_TUNNEL_QP |
+>  					MLX4_IB_SRIOV_SQP |
+>  					MLX4_IB_QP_NETIF |
+> +					MLX4_IB_QP_CREATE_ROCE_V2_GSI |
+>  					MLX4_IB_QP_CREATE_USE_GFP_NOIO))
+>  		return ERR_PTR(-EINVAL);
+> 
+> @@ -1074,13 +1089,19 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd
+> *pd,
+>  			return ERR_PTR(-EINVAL);
+>  	}
+> 
+> -	if (init_attr->create_flags &&
+> -	    (udata ||
+> -	     ((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP |
+> MLX4_IB_QP_CREATE_USE_GFP_NOIO)) &&
+> -	      init_attr->qp_type != IB_QPT_UD) ||
+> -	     ((init_attr->create_flags & MLX4_IB_SRIOV_SQP) &&
+> -	      init_attr->qp_type > IB_QPT_GSI)))
+> -		return ERR_PTR(-EINVAL);
+> +	if (init_attr->create_flags) {
+> +		/* userspace is not allowed to set create flags */
+> +		if (udata)
+> +			return ERR_PTR(-EINVAL);
+> +
+> +		if ((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP |
+> MLX4_IB_QP_CREATE_USE_GFP_NOIO) &&
+> +		     init_attr->qp_type != IB_QPT_UD) &&
+
+You changed the logic of the condition here - you switched from OR between the clauses to an AND.
+You can just split each verification to a separate if statement, like you did with udata. Please also add a justification for the condition when doing so.
+
+> +		    (init_attr->create_flags & MLX4_IB_SRIOV_SQP &&
+> +		     init_attr->qp_type > IB_QPT_GSI) &&
+> +		    (init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI
+> &&
+> +		     init_attr->qp_type != IB_QPT_GSI))
+> +			return ERR_PTR(-EINVAL);
+> +	}
+> 
+>  	switch (init_attr->qp_type) {
+>  	case IB_QPT_XRC_TGT:
+> @@ -1117,19 +1138,25 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd
+> *pd,
+>  	case IB_QPT_SMI:
+>  	case IB_QPT_GSI:
+>  	{
+> +		int sqpn;
+> +
+>  		/* Userspace is not allowed to create special QPs: */
+>  		if (udata)
+>  			return ERR_PTR(-EINVAL);
+> +		sqpn = get_sqp_num(to_mdev(pd->device), init_attr);
+> +
+> +		if (sqpn < 0)
+> +			return ERR_PTR(sqpn);
+> 
+>  		err = create_qp_common(to_mdev(pd->device), pd, init_attr,
+> udata,
+> -				       get_sqp_num(to_mdev(pd->device), init_attr),
+> +				       sqpn,
+>  				       &qp, gfp);
+>  		if (err)
+>  			return ERR_PTR(err);
+> 
+>  		qp->port	= init_attr->port_num;
+> -		qp->ibqp.qp_num = init_attr->qp_type == IB_QPT_SMI ? 0 : 1;
+> -
+> +		qp->ibqp.qp_num = init_attr->qp_type == IB_QPT_SMI ? 0 :
+> +			init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI
+> ? sqpn : 1;
+>  		break;
+>  	}
+>  	default:
+> @@ -1140,7 +1167,41 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+>  	return &qp->ibqp;
+>  }
+> 
+> -int mlx4_ib_destroy_qp(struct ib_qp *qp)
+> +struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+> +				struct ib_qp_init_attr *init_attr,
+> +				struct ib_udata *udata) {
+> +	struct ib_qp *ibqp;
+> +	struct mlx4_ib_dev *dev = to_mdev(pd->device);
+> +
+> +	ibqp = _mlx4_ib_create_qp(pd, init_attr, udata);
+> +
+> +	if (!IS_ERR_OR_NULL(ibqp) &&
+> +	    (init_attr->qp_type == IB_QPT_GSI) &&
+> +	    !(init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI)) {
+> +		struct mlx4_ib_sqp *sqp = to_msqp((to_mqp(ibqp)));
+> +		int is_eth = rdma_port_get_link_layer(pd->device, init_attr-
+> >port_num) ==
+> +			IB_LINK_LAYER_ETHERNET;
+> +
+> +		if (is_eth &&
+> +		    dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+> +			init_attr->create_flags |=
+> MLX4_IB_QP_CREATE_ROCE_V2_GSI;
+> +			sqp->roce_v2_gsi = ib_create_qp(pd, init_attr);
+> +
+> +			if (IS_ERR_OR_NULL(sqp->roce_v2_gsi)) {
+> +				pr_err("Failed to create GSI QP for RoCEv2
+> (%ld)\n", PTR_ERR(sqp->roce_v2_gsi));
+> +				sqp->roce_v2_gsi = NULL;
+> +			} else {
+> +				sqp = to_msqp(to_mqp(sqp->roce_v2_gsi));
+> +				sqp->qp.flags |= MLX4_IB_ROCE_V2_GSI_QP;
+> +			}
+> +
+> +			init_attr->create_flags &=
+> ~MLX4_IB_QP_CREATE_ROCE_V2_GSI;
+> +		}
+> +	}
+> +	return ibqp;
+> +}
+> +
+> +static int _mlx4_ib_destroy_qp(struct ib_qp *qp)
+>  {
+>  	struct mlx4_ib_dev *dev = to_mdev(qp->device);
+>  	struct mlx4_ib_qp *mqp = to_mqp(qp);
+> @@ -1166,6 +1227,20 @@ int mlx4_ib_destroy_qp(struct ib_qp *qp)
+>  	return 0;
+>  }
+> 
+> +int mlx4_ib_destroy_qp(struct ib_qp *qp)
+> +{
+> +	struct mlx4_ib_qp *mqp = to_mqp(qp);
+> +
+> +	if (mqp->mlx4_ib_qp_type == MLX4_IB_QPT_GSI) {
+> +		struct mlx4_ib_sqp *sqp = to_msqp(mqp);
+> +
+> +		if (sqp->roce_v2_gsi)
+> +			ib_destroy_qp(sqp->roce_v2_gsi);
+> +	}
+> +
+> +	return _mlx4_ib_destroy_qp(qp);
+> +}
+> +
+>  static int to_mlx4_st(struct mlx4_ib_dev *dev, enum mlx4_ib_qp_type
+> type)
+>  {
+>  	switch (type) {
+> @@ -1539,6 +1614,14 @@ static int __mlx4_ib_modify_qp(struct ib_qp
+> *ibqp,
+>  			mlx4_ib_steer_qp_reg(dev, qp, 1);
+>  			steer_qp = 1;
+>  		}
+> +
+> +		if (ibqp->qp_type == IB_QPT_GSI) {
+> +			enum ib_gid_type gid_type = qp->flags &
+> MLX4_IB_ROCE_V2_GSI_QP ?
+> +				IB_GID_TYPE_ROCE_V2 : IB_GID_TYPE_IB;
+> +			u8 qpc_roce_mode = gid_type_to_qpc(gid_type);
+> +
+> +			context->rlkey_roce_mode |= (qpc_roce_mode << 6);
+> +		}
+>  	}
+> 
+>  	if (attr_mask & IB_QP_PKEY_INDEX) {
+> @@ -1936,8 +2019,8 @@ out:
+>  	return err;
+>  }
+> 
+> -int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+> -		      int attr_mask, struct ib_udata *udata)
+> +static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr
+> *attr,
+> +			      int attr_mask, struct ib_udata *udata)
+>  {
+>  	struct mlx4_ib_dev *dev = to_mdev(ibqp->device);
+>  	struct mlx4_ib_qp *qp = to_mqp(ibqp);
+> @@ -2040,6 +2123,25 @@ out:
+>  	return err;
+>  }
+> 
+> +int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+> +		      int attr_mask, struct ib_udata *udata)
+> +{
+> +	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
+> +	int ret;
+> +
+> +	ret = _mlx4_ib_modify_qp(ibqp, attr, attr_mask, udata);
+> +
+> +	if (mqp->mlx4_ib_qp_type == MLX4_IB_QPT_GSI) {
+
+You are missing a check here for _mlx4_ib_modify_qp failing. In such case, you should bail out immediately, as modifying the roce_v2 QP will fail as well.
+
+> +		struct mlx4_ib_sqp *sqp = to_msqp(mqp);
+> +
+> +		if (sqp->roce_v2_gsi)
+> +			ret = ib_modify_qp(sqp->roce_v2_gsi, attr, attr_mask);
+> +		if (ret)
+> +			pr_err("Failed to modify GSI QP for RoCEv2 (%d)\n",
+> ret);
+> +	}
+> +	return ret;
+> +}
+> +
+>  static int vf_get_qp0_qkey(struct mlx4_dev *dev, int qpn, u32 *qkey)
+>  {
+>  	int i;
+> @@ -2702,6 +2804,22 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct
+> ib_send_wr *wr,
+>  	__be32 blh;
+>  	int i;
+> 
+> +	if (qp->mlx4_ib_qp_type == MLX4_IB_QPT_GSI) {
+> +		struct mlx4_ib_sqp *sqp = to_msqp(qp);
+> +
+> +		if (sqp->roce_v2_gsi) {
+> +			struct mlx4_ib_ah *ah = to_mah(wr->wr.ud.ah);
+> +			struct ib_gid_attr gid_attr;
+> +			union ib_gid gid;
+> +
+> +			if (!ib_get_cached_gid(ibqp->device,
+> +					       be32_to_cpu(ah->av.ib.port_pd) >> 24,
+
+This is the 4th time, in this file, where you are doing a be32_to_cpu + shift just to get the port number from the AV. Consider either adding it as an explicit field or writing a small helper for doing this (mlx4_ib_ah_to_port). Also, many of the other uses are in the same function, consider keeping a cached copy of the value.
+
+> +					       ah->av.ib.gid_index, &gid, &gid_attr))
+> +				qp = (gid_attr.gid_type == IB_GID_TYPE_ROCE_V2) ?
+> +					to_mqp(sqp->roce_v2_gsi) : qp;
+
+What happens if sqp->roce_v2_gsi is NULL? Can it happen? If so, wouldn't the to_mqp code cause really weird results?
+
+> +		}
+> +	}
+> +
+>  	spin_lock_irqsave(&qp->sq.lock, flags);
+> 
+>  	ind = qp->sq_next_wqe;
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
