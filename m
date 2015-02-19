@@ -1,46 +1,51 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RE-RESEND V2 for-next 5/5] IB/core: Fix deadlock on uverbs
- modify_qp error flow
-Date: Thu, 19 Feb 2015 10:31:45 +0200
-Message-ID: <54E59F71.6050300@mellanox.com>
-References: <1423137232-24587-1-git-send-email-ogerlitz@mellanox.com>
- <1423137232-24587-6-git-send-email-ogerlitz@mellanox.com>
- <54E41D3E.6020809@mellanox.com>
- <CAG4TOxOhnc_ihooLyKJ09P90RMM4MbcWS5McwNOMV4gQ+Ls4Qg@mail.gmail.com>
+From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v1 00/30] IB/Core: Adding support for RoCEV2
+ Specification
+Date: Thu, 19 Feb 2015 08:43:36 +0000
+Message-ID: <7F44EA5110810A40B7DAFB605C41975D58F54885@CMEXMB1.ad.emulex.com>
+References: <e201834a-9d58-41e2-b6cc-931d97a82de2@CMEXHTCAS2.ad.emulex.com>
+ <54E59BDE.3060606@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxOhnc_ihooLyKJ09P90RMM4MbcWS5McwNOMV4gQ+Ls4Qg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <54E59BDE.3060606-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Bart,
+	Here's the link to the git tree with the patches
 
-On 2/18/2015 8:07 AM, Roland Dreier wrote:
-> On Tue, Feb 17, 2015 at 9:03 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> Roland, can you please pick this one too, it's a bug fix and no comments
->> were raised against it.
->> I just failed to remove the Gerrit Issue: XXX line,  so if you can do that,
->> will be great
->
-> OK.
+https://github.com/matanb10/linux.git 
+branch name: rocev2_rc4
 
-I noted that these commits which are targeted to 3.20 are @ your master 
-branch but not on for-next, just
-dropping you a note to make sure they are not left behind.
+Thanks
+Som
 
-
-IB/core: Add on demand paging caps to ib_uverbs_ex_query_device
-IB/core: Add support for extended query device caps
-IB/core: Fix deadlock on uverbs modify_qp error flow
-IB/core: Properly handle registration of on-demand paging MRs after dereg
-IB/mlx4: Bug fixes in mlx4_ib_resize_cq
-IB/mlx4: Fix memory leak in __mlx4_ib_modify_qp
-IB/mlx4: In mlx4_ib_demux_cm, print out GUID in host-endian order
-IB/mlx5: Enable the ODP capability query verb
-IB/mlx5: Update the dev in reg_create
+> -----Original Message-----
+> From: Bart Van Assche [mailto:bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org]
+> Sent: Thursday, February 19, 2015 1:47 PM
+> To: Somnath Kotur; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH v1 00/30] IB/Core: Adding support for RoCEV2
+> Specification
+> 
+> On 02/19/15 23:02, Somnath Kotur wrote:
+> > This series depends on RoCE LAG series (already accepted in net-next
+> > tree)
+> 
+> Hello Somnath,
+> 
+> Can you make a git tree available with these patches ? These patches do not
+> apply cleanly on Dave Miller's latest net-next branch (git commit ID
+> fece13ca005a5f559147e9424321f4b5e01272b4; Feb 17, 2015).
+> 
+> Thanks,
+> 
+> Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
