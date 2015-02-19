@@ -1,236 +1,513 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 13/30] IB/Core: Changes to the IB Core infrastructure for RoCEv2 support
-Date: Thu, 19 Feb 2015 15:51:40 +0530
-Message-ID: <8aa48493-7ae0-4480-80ad-072c40878fdd@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 14/30] RDMA/ocrdma: Changes in driver to incorporate the moving of GID Table mgmt to IB/Core.
+Date: Thu, 19 Feb 2015 15:51:55 +0530
+Message-ID: <517922d4-525d-4e6b-a424-a540d98321d7@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-1. Choose sgid_index and type from all the matching entries in RDMA-CM
-   based on hint from the IP stack.
-2. Set hop_limit for the IP Packet based on above hint from IP stack
-3. Define a RDMA_NETWORK enum type.
+1.Check and set port capability flags to indicate RoCEV2 support.
+2.Change query_gid hook to return value from IB/Core GID Mgmt APIs.
+3.Get rid of all the netdev notifier chain subscription code as well as
+maintenance of SGID Table in memory.
+4.Implement get_netdev hook in driver.
 
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c  |    8 ++++
- drivers/infiniband/core/cma.c   |   10 +++++-
- drivers/infiniband/core/verbs.c |   70 +++++++++++++++++++++------------------
- include/rdma/ib_addr.h          |    1 +
- include/rdma/ib_verbs.h         |    6 +++
- 5 files changed, 62 insertions(+), 33 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |   10 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    3 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  233 +--------------------------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |   13 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   31 ++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |    4 +
+ 6 files changed, 63 insertions(+), 231 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 43af7f5..da24c0e 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -257,6 +257,9 @@ static int addr4_resolve(struct sockaddr_in *src_in,
- 		goto put;
- 	}
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index 16ee36e..97f971a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -100,6 +100,7 @@ struct ocrdma_dev_attr {
+ 	u8 local_ca_ack_delay;
+ 	u8 ird;
+ 	u8 num_ird_pages;
++	u8 roce_flags;
+ };
  
-+	if (rt->rt_uses_gateway)
-+		addr->network = RDMA_NETWORK_IPV4;
-+
- 	ret = dst_fetch_ha(&rt->dst, addr, &fl4.daddr);
- put:
- 	ip_rt_put(rt);
-@@ -271,6 +274,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- {
- 	struct flowi6 fl6;
- 	struct dst_entry *dst;
-+	struct rt6_info *rt;
- 	int ret;
- 
- 	memset(&fl6, 0, sizeof fl6);
-@@ -282,6 +286,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- 	if ((ret = dst->error))
- 		goto put;
- 
-+	rt = (struct rt6_info *)dst;
- 	if (ipv6_addr_any(&fl6.saddr)) {
- 		ret = ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)->dev,
- 					 &fl6.daddr, 0, &fl6.saddr);
-@@ -305,6 +310,9 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- 		goto put;
- 	}
- 
-+	if (rt->rt6i_flags & RTF_GATEWAY)
-+		addr->network = RDMA_NETWORK_IPV6;
-+
- 	ret = dst_fetch_ha(dst, addr, &fl6.daddr);
- put:
- 	dst_release(dst);
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 237f2dd..50635fe 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1952,6 +1952,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- {
- 	struct rdma_route *route = &id_priv->id.route;
- 	struct rdma_addr *addr = &route->addr;
-+	enum ib_gid_type network_gid_type;
- 	struct cma_work *work;
- 	int ret;
- 	struct net_device *ndev = NULL;
-@@ -1990,7 +1991,14 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
- 		    &route->path_rec->dgid);
- 
--	route->path_rec->hop_limit = 1;
-+	/* Use the hint from IP Stack to select GID Type */
-+	network_gid_type = ib_network_to_gid_type(addr->dev_addr.network);
-+	if (addr->dev_addr.network != RDMA_NETWORK_IB) {
-+		route->path_rec->gid_type = network_gid_type;
-+		route->path_rec->hop_limit = IPV6_DEFAULT_HOPLIMIT;
-+	} else {
-+		route->path_rec->hop_limit = 1;
-+	}
- 	route->path_rec->reversible = 1;
- 	route->path_rec->pkey = cpu_to_be16(0xffff);
- 	route->path_rec->mtu_selector = IB_SA_EQ;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 0fdac14..5478c5d 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -219,37 +219,6 @@ static int ib_get_grh_header_version(const void *h)
- 	return 6;
+ struct ocrdma_dma_mem {
+@@ -575,4 +576,13 @@ static inline u8 ocrdma_is_enabled_and_synced(u32 state)
+ 		(state & OCRDMA_STATE_FLAG_SYNC);
  }
  
--static int ib_get_dgid_sgid_by_grh(const void *h,
--				   enum rdma_network_type net_type,
--				   union ib_gid *dgid, union ib_gid *sgid)
--{
--	switch (net_type) {
--	case RDMA_NETWORK_IPV4: {
--		const struct iphdr *ip4h = (struct iphdr *)(h + 20);
--
--		ipv6_addr_set_v4mapped(ip4h->daddr, (struct in6_addr *)dgid);
--		ipv6_addr_set_v4mapped(ip4h->saddr, (struct in6_addr *)sgid);
--		return 0;
--	}
--	case RDMA_NETWORK_IPV6: {
--		struct ipv6hdr *ip6h = (struct ipv6hdr *)h;
--
--		memcpy(dgid, &ip6h->daddr, sizeof(*dgid));
--		memcpy(sgid, &ip6h->saddr, sizeof(*sgid));
--		return 0;
--	}
--	case RDMA_NETWORK_IB: {
--		struct ib_grh *grh = (struct ib_grh *)h;
--
--		memcpy(dgid, &grh->dgid, sizeof(*dgid));
--		memcpy(sgid, &grh->sgid, sizeof(*sgid));
--		return 0;
--	}
--	}
--
--	return -EINVAL;
--}
--
- static enum rdma_network_type ib_get_net_type_by_grh(struct ib_device *device,
- 						     u8 port_num,
- 						     const struct ib_grh *grh)
-@@ -305,6 +274,40 @@ static int get_sgid_index_from_eth(struct ib_device *device, u8 port_num,
- 				     &context, gid_index);
- }
- 
-+static int get_gids_from_grh(struct ib_grh *grh, enum rdma_network_type net_type,
-+			     union ib_gid *sgid, union ib_gid *dgid)
++static inline bool ocrdma_is_rocev2_supported(struct ocrdma_dev *dev)
 +{
-+	union rdma_network_hdr *l3grh;
-+	struct sockaddr_in  src_in;
-+	struct sockaddr_in  dst_in;
-+	__be32 src_saddr, dst_saddr;
-+
-+	if (!sgid || !dgid)
-+		return -EINVAL;
-+
-+	if (net_type == RDMA_NETWORK_IPV4) {
-+		l3grh = (union rdma_network_hdr *)
-+			((u8 *)grh + 20);
-+		memcpy(&src_in.sin_addr.s_addr,
-+		       &l3grh->roce4grh.saddr, 4);
-+		memcpy(&dst_in.sin_addr.s_addr,
-+		       &l3grh->roce4grh.daddr, 4);
-+		src_saddr = src_in.sin_addr.s_addr;
-+		dst_saddr = dst_in.sin_addr.s_addr;
-+		ipv6_addr_set_v4mapped(src_saddr,
-+				       (struct in6_addr *)sgid);
-+		ipv6_addr_set_v4mapped(dst_saddr,
-+				       (struct in6_addr *)dgid);
-+		return 0;
-+	} else if (net_type == RDMA_NETWORK_IPV6 ||
-+		   net_type == RDMA_NETWORK_IB) {
-+		*dgid = grh->dgid;
-+		*sgid = grh->sgid;
-+		return 0;
-+	} else
-+		return -EINVAL;
++	return (dev->attr.roce_flags & (OCRDMA_L3_TYPE_IPV4 <<
++					OCRDMA_ROUDP_FLAGS_SHIFT) ||
++		dev->attr.roce_flags & (OCRDMA_L3_TYPE_IPV6 <<
++					OCRDMA_ROUDP_FLAGS_SHIFT)) ?
++								true : false;
 +}
 +
- int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
- 		       struct ib_grh *grh, struct ib_ah_attr *ah_attr)
+ #endif
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index c0dda74..cb98911 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -1112,6 +1112,9 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
+ 	attr->local_ca_ack_delay = (rsp->max_pd_ca_ack_delay &
+ 				    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_MASK) >>
+ 	    OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT;
++	attr->roce_flags = (rsp->max_pd_ca_ack_delay &
++				OCRDMA_MBX_QUERY_CFG_L3_TYPE_MASK) >>
++				OCRDMA_MBX_QUERY_CFG_L3_TYPE_SHIFT;
+ 	attr->max_mw = rsp->max_mw;
+ 	attr->max_mr = rsp->max_mr;
+ 	attr->max_mr_size = ((u64)rsp->max_mr_size_hi << 32) |
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 7a2b59a..a81492f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -51,8 +51,6 @@ static LIST_HEAD(ocrdma_dev_list);
+ static DEFINE_SPINLOCK(ocrdma_devlist_lock);
+ static DEFINE_IDR(ocrdma_dev_id);
+ 
+-static union ib_gid ocrdma_zero_sgid;
+-
+ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
  {
-@@ -326,7 +329,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
- 			net_type = ib_get_net_type_by_grh(device, port_num, grh);
- 		gid_type = ib_network_to_gid_type(net_type);
- 	}
--	ret = ib_get_dgid_sgid_by_grh(grh, net_type, &dgid, &sgid);
-+	ret = get_gids_from_grh(grh, net_type, &sgid, &dgid);
- 	if (ret)
- 		return ret;
+ 	u8 mac_addr[6];
+@@ -67,135 +65,6 @@ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
+ 	guid[6] = mac_addr[4];
+ 	guid[7] = mac_addr[5];
+ }
+-
+-static bool ocrdma_add_sgid(struct ocrdma_dev *dev, union ib_gid *new_sgid)
+-{
+-	int i;
+-	unsigned long flags;
+-
+-	memset(&ocrdma_zero_sgid, 0, sizeof(union ib_gid));
+-
+-
+-	spin_lock_irqsave(&dev->sgid_lock, flags);
+-	for (i = 0; i < OCRDMA_MAX_SGID; i++) {
+-		if (!memcmp(&dev->sgid_tbl[i], &ocrdma_zero_sgid,
+-			    sizeof(union ib_gid))) {
+-			/* found free entry */
+-			memcpy(&dev->sgid_tbl[i], new_sgid,
+-			       sizeof(union ib_gid));
+-			spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-			return true;
+-		} else if (!memcmp(&dev->sgid_tbl[i], new_sgid,
+-				   sizeof(union ib_gid))) {
+-			/* entry already present, no addition is required. */
+-			spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-			return false;
+-		}
+-	}
+-	spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-	return false;
+-}
+-
+-static bool ocrdma_del_sgid(struct ocrdma_dev *dev, union ib_gid *sgid)
+-{
+-	int found = false;
+-	int i;
+-	unsigned long flags;
+-
+-
+-	spin_lock_irqsave(&dev->sgid_lock, flags);
+-	/* first is default sgid, which cannot be deleted. */
+-	for (i = 1; i < OCRDMA_MAX_SGID; i++) {
+-		if (!memcmp(&dev->sgid_tbl[i], sgid, sizeof(union ib_gid))) {
+-			/* found matching entry */
+-			memset(&dev->sgid_tbl[i], 0, sizeof(union ib_gid));
+-			found = true;
+-			break;
+-		}
+-	}
+-	spin_unlock_irqrestore(&dev->sgid_lock, flags);
+-	return found;
+-}
+-
+-static int ocrdma_addr_event(unsigned long event, struct net_device *netdev,
+-			     union ib_gid *gid)
+-{
+-	struct ib_event gid_event;
+-	struct ocrdma_dev *dev;
+-	bool found = false;
+-	bool updated = false;
+-	bool is_vlan = false;
+-
+-	is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
+-	if (is_vlan)
+-		netdev = rdma_vlan_dev_real_dev(netdev);
+-
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(dev, &ocrdma_dev_list, entry) {
+-		if (dev->nic_info.netdev == netdev) {
+-			found = true;
+-			break;
+-		}
+-	}
+-	rcu_read_unlock();
+-
+-	if (!found)
+-		return NOTIFY_DONE;
+-
+-	mutex_lock(&dev->dev_lock);
+-	switch (event) {
+-	case NETDEV_UP:
+-		updated = ocrdma_add_sgid(dev, gid);
+-		break;
+-	case NETDEV_DOWN:
+-		updated = ocrdma_del_sgid(dev, gid);
+-		break;
+-	default:
+-		break;
+-	}
+-	if (updated) {
+-		/* GID table updated, notify the consumers about it */
+-		gid_event.device = &dev->ibdev;
+-		gid_event.element.port_num = 1;
+-		gid_event.event = IB_EVENT_GID_CHANGE;
+-		ib_dispatch_event(&gid_event);
+-	}
+-	mutex_unlock(&dev->dev_lock);
+-	return NOTIFY_OK;
+-}
+-
+-static int ocrdma_inetaddr_event(struct notifier_block *notifier,
+-				  unsigned long event, void *ptr)
+-{
+-	struct in_ifaddr *ifa = ptr;
+-	union ib_gid gid;
+-	struct net_device *netdev = ifa->ifa_dev->dev;
+-
+-	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
+-	return ocrdma_addr_event(event, netdev, &gid);
+-}
+-
+-static struct notifier_block ocrdma_inetaddr_notifier = {
+-	.notifier_call = ocrdma_inetaddr_event
+-};
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-
+-static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+-				  unsigned long event, void *ptr)
+-{
+-	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
+-	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
+-	struct net_device *netdev = ifa->idev->dev;
+-	return ocrdma_addr_event(event, netdev, gid);
+-}
+-
+-static struct notifier_block ocrdma_inet6addr_notifier = {
+-	.notifier_call = ocrdma_inet6addr_event
+-};
+-
+-#endif /* IPV6 and VLAN */
+-
+ static enum rdma_link_layer ocrdma_link_layer(struct ib_device *device,
+ 					      u8 port_num)
+ {
+@@ -246,6 +115,8 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ 	dev->ibdev.query_port = ocrdma_query_port;
+ 	dev->ibdev.modify_port = ocrdma_modify_port;
+ 	dev->ibdev.query_gid = ocrdma_query_gid;
++	dev->ibdev.get_netdev = ocrdma_get_netdev;
++	dev->ibdev.modify_gid = ocrdma_modify_gid;
+ 	dev->ibdev.get_link_layer = ocrdma_link_layer;
+ 	dev->ibdev.alloc_pd = ocrdma_alloc_pd;
+ 	dev->ibdev.dealloc_pd = ocrdma_dealloc_pd;
+@@ -307,12 +178,6 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
+ {
+ 	mutex_init(&dev->dev_lock);
+-	dev->sgid_tbl = kzalloc(sizeof(union ib_gid) *
+-				OCRDMA_MAX_SGID, GFP_KERNEL);
+-	if (!dev->sgid_tbl)
+-		goto alloc_err;
+-	spin_lock_init(&dev->sgid_lock);
+-
+ 	dev->cq_tbl = kzalloc(sizeof(struct ocrdma_cq *) *
+ 			      OCRDMA_MAX_CQ, GFP_KERNEL);
+ 	if (!dev->cq_tbl)
+@@ -344,7 +209,6 @@ static void ocrdma_free_resources(struct ocrdma_dev *dev)
+ 	kfree(dev->stag_arr);
+ 	kfree(dev->qp_tbl);
+ 	kfree(dev->cq_tbl);
+-	kfree(dev->sgid_tbl);
+ }
  
-@@ -1004,6 +1007,9 @@ int ib_resolve_eth_dmac(struct ib_qp *qp,
- 				rcu_read_unlock();
- 				goto out;
- 			}
-+			if (sgid_attr.gid_type == IB_GID_TYPE_ROCE_V2)
-+				qp_attr->ah_attr.grh.hop_limit =
-+							IPV6_DEFAULT_HOPLIMIT;
+ /* OCRDMA sysfs interface */
+@@ -390,68 +254,6 @@ static void ocrdma_remove_sysfiles(struct ocrdma_dev *dev)
+ 		device_remove_file(&dev->ibdev.dev, ocrdma_attributes[i]);
+ }
  
- 			dev_hold(sgid_attr.ndev);
- 			ifindex = sgid_attr.ndev->ifindex;
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index 0dfaaa7..80afbf7 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -71,6 +71,7 @@ struct rdma_dev_addr {
- 	unsigned short dev_type;
- 	int bound_dev_if;
- 	enum rdma_transport_type transport;
-+	enum rdma_network_type network;
+-static void ocrdma_add_default_sgid(struct ocrdma_dev *dev)
+-{
+-	/* GID Index 0 - Invariant manufacturer-assigned EUI-64 */
+-	union ib_gid *sgid = &dev->sgid_tbl[0];
+-
+-	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+-	ocrdma_get_guid(dev, &sgid->raw[8]);
+-}
+-
+-static void ocrdma_init_ipv4_gids(struct ocrdma_dev *dev,
+-				  struct net_device *net)
+-{
+-	struct in_device *in_dev;
+-	union ib_gid gid;
+-	in_dev = in_dev_get(net);
+-	if (in_dev) {
+-		for_ifa(in_dev) {
+-			ipv6_addr_set_v4mapped(ifa->ifa_address,
+-					       (struct in6_addr *)&gid);
+-			ocrdma_add_sgid(dev, &gid);
+-		}
+-		endfor_ifa(in_dev);
+-		in_dev_put(in_dev);
+-	}
+-}
+-
+-static void ocrdma_init_ipv6_gids(struct ocrdma_dev *dev,
+-				  struct net_device *net)
+-{
+-#if IS_ENABLED(CONFIG_IPV6)
+-	struct inet6_dev *in6_dev;
+-	union ib_gid  *pgid;
+-	struct inet6_ifaddr *ifp;
+-	in6_dev = in6_dev_get(net);
+-	if (in6_dev) {
+-		read_lock_bh(&in6_dev->lock);
+-		list_for_each_entry(ifp, &in6_dev->addr_list, if_list) {
+-			pgid = (union ib_gid *)&ifp->addr;
+-			ocrdma_add_sgid(dev, pgid);
+-		}
+-		read_unlock_bh(&in6_dev->lock);
+-		in6_dev_put(in6_dev);
+-	}
+-#endif
+-}
+-
+-static void ocrdma_init_gid_table(struct ocrdma_dev *dev)
+-{
+-	struct  net_device *net_dev;
+-
+-	for_each_netdev(&init_net, net_dev) {
+-		struct net_device *real_dev = rdma_vlan_dev_real_dev(net_dev) ?
+-				rdma_vlan_dev_real_dev(net_dev) : net_dev;
+-
+-		if (real_dev == dev->nic_info.netdev) {
+-			ocrdma_add_default_sgid(dev);
+-			ocrdma_init_ipv4_gids(dev, net_dev);
+-			ocrdma_init_ipv6_gids(dev, net_dev);
+-		}
+-	}
+-}
+-
+ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ {
+ 	int status = 0, i;
+@@ -480,7 +282,6 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ 		goto alloc_err;
+ 
+ 	ocrdma_init_service_level(dev);
+-	ocrdma_init_gid_table(dev);
+ 	status = ocrdma_register_device(dev);
+ 	if (status)
+ 		goto alloc_err;
+@@ -627,34 +428,12 @@ static struct ocrdma_driver ocrdma_drv = {
+ 	.be_abi_version		= OCRDMA_BE_ROCE_ABI_VERSION,
  };
  
- /**
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 01eaf32..fa541b9 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -51,6 +51,7 @@
- #include <net/net_namespace.h>
- #include <uapi/linux/if_ether.h>
- #include <net/ipv6.h>
-+#include <net/ip.h>
+-static void ocrdma_unregister_inet6addr_notifier(void)
+-{
+-#if IS_ENABLED(CONFIG_IPV6)
+-	unregister_inet6addr_notifier(&ocrdma_inet6addr_notifier);
+-#endif
+-}
+-
+-static void ocrdma_unregister_inetaddr_notifier(void)
+-{
+-	unregister_inetaddr_notifier(&ocrdma_inetaddr_notifier);
+-}
+-
+ static int __init ocrdma_init_module(void)
+ {
+ 	int status;
  
- #include <linux/atomic.h>
- #include <linux/mmu_notifier.h>
-@@ -516,6 +517,11 @@ struct ib_grh {
- 	union ib_gid	dgid;
+ 	ocrdma_init_debugfs();
+ 
+-	status = register_inetaddr_notifier(&ocrdma_inetaddr_notifier);
+-	if (status)
+-		return status;
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-	status = register_inet6addr_notifier(&ocrdma_inet6addr_notifier);
+-	if (status)
+-		goto err_notifier6;
+-#endif
+-
+ 	status = be_roce_register_driver(&ocrdma_drv);
+ 	if (status)
+ 		goto err_be_reg;
+@@ -662,19 +441,13 @@ static int __init ocrdma_init_module(void)
+ 	return 0;
+ 
+ err_be_reg:
+-#if IS_ENABLED(CONFIG_IPV6)
+-	ocrdma_unregister_inet6addr_notifier();
+-err_notifier6:
+-#endif
+-	ocrdma_unregister_inetaddr_notifier();
++
+ 	return status;
+ }
+ 
+ static void __exit ocrdma_exit_module(void)
+ {
+ 	be_roce_unregister_driver(&ocrdma_drv);
+-	ocrdma_unregister_inet6addr_notifier();
+-	ocrdma_unregister_inetaddr_notifier();
+ 	ocrdma_rem_debugfs();
+ }
+ 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index 243c87c..6b74eb9 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -125,6 +125,14 @@ enum {
+ 	OCRDMA_DB_RQ_SHIFT		= 24
  };
  
-+union rdma_network_hdr {
-+	struct ib_grh ibgrh;
-+	struct iphdr roce4grh;
++enum {
++	OCRDMA_L3_TYPE_IB_GRH   = 0x00,
++	OCRDMA_L3_TYPE_IPV4     = 0x01,
++	OCRDMA_L3_TYPE_IPV6     = 0x02
 +};
 +
- enum {
- 	IB_MULTICAST_QPN = 0xffffff
- };
++#define OCRDMA_ROUDP_FLAGS_SHIFT	0x03
++
+ #define OCRDMA_DB_CQ_RING_ID_MASK       0x3FF	/* bits 0 - 9 */
+ #define OCRDMA_DB_CQ_RING_ID_EXT_MASK  0x0C00	/* bits 10-11 of qid at 12-11 */
+ /* qid #2 msbits at 12-11 */
+@@ -488,6 +496,9 @@ enum {
+ 	OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT		= 8,
+ 	OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_MASK		= 0xFF <<
+ 				OCRDMA_MBX_QUERY_CFG_CA_ACK_DELAY_SHIFT,
++	OCRDMA_MBX_QUERY_CFG_L3_TYPE_SHIFT		 = 0,
++	OCRDMA_MBX_QUERY_CFG_L3_TYPE_MASK		= 0xFF <<
++				OCRDMA_MBX_QUERY_CFG_L3_TYPE_SHIFT,
+ 
+ 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT		= 0,
+ 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK		= 0xFFFF,
+@@ -1049,6 +1060,8 @@ enum {
+ 	OCRDMA_QP_PARAMS_STATE_MASK		= BIT(5) | BIT(6) | BIT(7),
+ 	OCRDMA_QP_PARAMS_FLAGS_SQD_ASYNC	= BIT(8),
+ 	OCRDMA_QP_PARAMS_FLAGS_INB_ATEN		= BIT(9),
++	OCRDMA_QP_PARAMS_FLAGS_L3_TYPE_SHIFT	= 11,
++	OCRDMA_QP_PARAMS_FLAGS_L3_TYPE_MASK	= BIT(11) | BIT(12) | BIT(13),
+ 	OCRDMA_QP_PARAMS_MAX_SGE_RECV_SHIFT	= 16,
+ 	OCRDMA_QP_PARAMS_MAX_SGE_RECV_MASK	= 0xFFFF <<
+ 					OCRDMA_QP_PARAMS_MAX_SGE_RECV_SHIFT,
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 2fcec2f..17c80d5 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -31,12 +31,14 @@
+ #include <rdma/iw_cm.h>
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/ib_cache.h>
+ 
+ #include "ocrdma.h"
+ #include "ocrdma_hw.h"
+ #include "ocrdma_verbs.h"
+ #include "ocrdma_abi.h"
+ 
++union ib_gid zgid;
+ int ocrdma_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
+ {
+ 	if (index > 1)
+@@ -49,6 +51,7 @@ int ocrdma_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
+ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
+ 		     int index, union ib_gid *sgid)
+ {
++	int ret;
+ 	struct ocrdma_dev *dev;
+ 
+ 	dev = get_ocrdma_dev(ibdev);
+@@ -56,7 +59,22 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
+ 	if (index >= OCRDMA_MAX_SGID)
+ 		return -EINVAL;
+ 
+-	memcpy(sgid, &dev->sgid_tbl[index], sizeof(*sgid));
++	ret = ib_get_cached_gid(ibdev, port, index, sgid, NULL);
++	if (ret == -EAGAIN) {
++		memcpy(sgid, &zgid, sizeof(*sgid));
++		return 0;
++	}
++
++	return ret;
++}
++
++int ocrdma_modify_gid(struct ib_device *ibdev, u8 port_num, unsigned int index,
++		      const union ib_gid *gid, const struct ib_gid_attr *attr,
++		      void **context)
++{
++	struct ocrdma_dev *dev;
++
++	dev = get_ocrdma_dev(ibdev);
+ 
+ 	return 0;
+ }
+@@ -106,6 +124,15 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
+ 	return 0;
+ }
+ 
++struct net_device *ocrdma_get_netdev(struct ib_device *ibdev, u8 port_num)
++{
++	struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
++
++	if (dev)
++		return dev->nic_info.netdev;
++
++	return NULL;
++}
+ static inline void get_link_speed_and_width(struct ocrdma_dev *dev,
+ 					    u8 *ib_speed, u8 *ib_width)
+ {
+@@ -176,6 +203,8 @@ int ocrdma_query_port(struct ib_device *ibdev,
+ 	    IB_PORT_CM_SUP |
+ 	    IB_PORT_REINIT_SUP |
+ 	    IB_PORT_DEVICE_MGMT_SUP | IB_PORT_VENDOR_CLASS_SUP | IB_PORT_IP_BASED_GIDS;
++	if (ocrdma_is_rocev2_supported(dev))
++		props->port_cap_flags |= IB_PORT_ROCE_V2 | IB_PORT_ROCE;
+ 	props->gid_tbl_len = OCRDMA_MAX_SGID;
+ 	props->pkey_tbl_len = 1;
+ 	props->bad_pkey_cntr = 0;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index b8f7853..8204182 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -44,6 +44,10 @@ int ocrdma_modify_port(struct ib_device *, u8 port, int mask,
+ void ocrdma_get_guid(struct ocrdma_dev *, u8 *guid);
+ int ocrdma_query_gid(struct ib_device *, u8 port,
+ 		     int index, union ib_gid *gid);
++struct net_device *ocrdma_get_netdev(struct ib_device *device, u8 port_num);
++int ocrdma_modify_gid(struct ib_device *ibdev, u8 port_num, unsigned int index,
++		      const union ib_gid *gid, const struct ib_gid_attr *attr,
++		      void **context);
+ int ocrdma_query_pkey(struct ib_device *, u8 port, u16 index, u16 *pkey);
+ 
+ struct ib_ucontext *ocrdma_alloc_ucontext(struct ib_device *,
 -- 
 1.7.1
 
