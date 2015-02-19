@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 16/30] RDMA/ocrdma: changes to support RoCE-v2 in RC path
-Date: Fri, 20 Feb 2015 03:32:31 +0530
-Message-ID: <35e356a4-98db-4225-b42d-be0ff7357460@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 17/30] RDMA/ocrdma: changes to support user AH creation
+Date: Fri, 20 Feb 2015 03:32:32 +0530
+Message-ID: <c5d825cb-2fc5-42b4-9f64-0258fd677b26@CMEXHTCAS2.ad.emulex.com>
 References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,78 +14,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-To support RoCE-V2 this patch implements following changes
-1. Get the GID-type for a given sgid.
-2. Based on the gid type get IPv4 L3 address
-   and give those to FW.
-3. Provide l3-type to FW.
+To support user space AH this uses ahid field to convey
+l3-type to user space library. The library is responsible
+for decoding the l3-type out of ahid.
 
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |   28 +++++++++++++++++++++++++++-
- 1 files changed, 27 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    5 +++++
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h |    5 +++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index cb98911..237b62c 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2433,7 +2433,13 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 	union ib_gid sgid, zgid;
- 	struct ib_gid_attr sgid_attr;
- 	u32 vlan_id = 0xffff;
--	u8 mac_addr[6];
-+	u8 mac_addr[6], hdr_type;
-+	union {
-+		struct sockaddr     _sockaddr;
-+		struct sockaddr_in  _sockaddr_in;
-+		struct sockaddr_in6 _sockaddr_in6;
-+	} sgid_addr, dgid_addr;
-+
- 	struct ocrdma_dev *dev = get_ocrdma_dev(qp->ibqp.device);
- 
- 	if ((ah_attr->ah_flags & IB_AH_GRH) == 0)
-@@ -2448,6 +2454,8 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 	cmd->params.hop_lmt_rq_psn |=
- 	    (ah_attr->grh.hop_limit << OCRDMA_QP_PARAMS_HOP_LMT_SHIFT);
- 	cmd->flags |= OCRDMA_QP_PARA_FLOW_LBL_VALID;
-+
-+	/* GIDs */
- 	memcpy(&cmd->params.dgid[0], &ah_attr->grh.dgid.raw[0],
- 	       sizeof(cmd->params.dgid));
- 
-@@ -2471,6 +2479,19 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 		return status;
- 	cmd->params.dmac_b0_to_b3 = mac_addr[0] | (mac_addr[1] << 8) |
- 				(mac_addr[2] << 16) | (mac_addr[3] << 24);
-+	hdr_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
-+	if (hdr_type == RDMA_NETWORK_IPV4) {
-+		status = rdma_gid2ip(&sgid_addr._sockaddr, &sgid);
-+		if (status)
-+			return status;
-+		status = rdma_gid2ip(&dgid_addr._sockaddr, &ah_attr->grh.dgid);
-+		if (status)
-+			return status;
-+		memcpy(&cmd->params.dgid[0],
-+		       &dgid_addr._sockaddr_in.sin_addr.s_addr, 4);
-+		memcpy(&cmd->params.sgid[0],
-+		       &sgid_addr._sockaddr_in.sin_addr.s_addr, 4);
-+	}
- 	/* convert them to LE format. */
- 	ocrdma_cpu_to_le32(&cmd->params.dgid[0], sizeof(cmd->params.dgid));
- 	ocrdma_cpu_to_le32(&cmd->params.sgid[0], sizeof(cmd->params.sgid));
-@@ -2482,6 +2503,11 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 		cmd->params.rnt_rc_sl_fl |=
- 			(dev->sl & 0x07) << OCRDMA_QP_PARAMS_SL_SHIFT;
- 	}
-+
-+	cmd->params.max_sge_recv_flags |=
-+					 ((hdr_type <<
-+					 OCRDMA_QP_PARAMS_FLAGS_L3_TYPE_SHIFT) &
-+					 OCRDMA_QP_PARAMS_FLAGS_L3_TYPE_MASK);
- 	return 0;
- }
- 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index 70a885b..b42fa24 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -190,6 +190,11 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
+ 		ahid_addr = pd->uctx->ah_tbl.va + attr->dlid;
+ 		*ahid_addr = 0;
+ 		*ahid_addr |= ah->id & OCRDMA_AH_ID_MASK;
++		if (ocrdma_is_rocev2_supported(dev)) {
++			*ahid_addr |= ((u32)ah->hdr_type &
++				       OCRDMA_AH_L3_TYPE_MASK) <<
++				       OCRDMA_AH_L3_TYPE_SHIFT;
++		}
+ 		if (isvlan)
+ 			*ahid_addr |= (OCRDMA_AH_VLAN_VALID_MASK <<
+ 				       OCRDMA_AH_VLAN_VALID_SHIFT);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+index 726a87c..ed45ecd 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+@@ -31,9 +31,10 @@
+ enum {
+ 	OCRDMA_AH_ID_MASK		= 0x3FF,
+ 	OCRDMA_AH_VLAN_VALID_MASK	= 0x01,
+-	OCRDMA_AH_VLAN_VALID_SHIFT	= 0x1F
++	OCRDMA_AH_VLAN_VALID_SHIFT	= 0x1F,
++	OCRDMA_AH_L3_TYPE_MASK		= 0x03,
++	OCRDMA_AH_L3_TYPE_SHIFT		= 0x1D /* 29 bits */
+ };
+-
+ struct ib_ah *ocrdma_create_ah(struct ib_pd *, struct ib_ah_attr *);
+ int ocrdma_destroy_ah(struct ib_ah *);
+ int ocrdma_query_ah(struct ib_ah *, struct ib_ah_attr *);
 -- 
 1.7.1
 
