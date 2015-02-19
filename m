@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 28/30] IB/mlx4: Enable send of RoCE QP1 packets with IP/UDP headers
-Date: Fri, 20 Feb 2015 03:32:43 +0530
-Message-ID: <86aec158-d18c-4cf5-bb33-6e822c94001c@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 30/30] IB/cma: Join and leave multicast groups with IGMP
+Date: Fri, 20 Feb 2015 03:32:45 +0530
+Message-ID: <91da5137-4651-4991-852e-d57faeabe6a5@CMEXHTCAS2.ad.emulex.com>
 References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,190 +14,158 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-RoCEv2 packets are sent over IP/UDP protocols.
-The mlx4 driver uses a type of RAW QP to send packets for QP1 and
-therefore needs to build the network headers below BTH in software.
-
-This patche adds option to build QP1 packets with IP and UDP headers if
-RoCEv2 is requested.
+Since RoCEv2 is a protocol over IP header it is required to send IGMP
+join and leave requests to the network when joining and leaving
+multicast groups.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c |   84 ++++++++++++++++++++++++---------------
- 1 files changed, 52 insertions(+), 32 deletions(-)
+ drivers/infiniband/core/cma.c |   78 ++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 74 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index f55f4d4..9996527 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -32,6 +32,8 @@
-  */
- 
- #include <linux/log2.h>
-+#include <linux/if_ether.h>
-+#include <net/ip.h>
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 50635fe..6e658e8 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -38,6 +38,7 @@
+ #include <linux/in6.h>
+ #include <linux/mutex.h>
+ #include <linux/random.h>
++#include <linux/igmp.h>
+ #include <linux/idr.h>
+ #include <linux/inetdevice.h>
  #include <linux/slab.h>
- #include <linux/netdevice.h>
+@@ -185,6 +186,7 @@ struct rdma_id_private {
+ 	u8			reuseaddr;
+ 	u8			afonly;
+ 	enum ib_gid_type	gid_type;
++	bool			igmp_joined;
+ };
  
-@@ -2164,16 +2166,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
- 	return 0;
+ struct cma_multicast {
+@@ -283,6 +285,26 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
+ 	hdr->ip_version = (ip_ver << 4) | (hdr->ip_version & 0xF);
  }
  
--static void mlx4_u64_to_smac(u8 *dst_mac, u64 src_mac)
--{
--	int i;
--
--	for (i = ETH_ALEN; i; i--) {
--		dst_mac[i - 1] = src_mac & 0xff;
--		src_mac >>= 8;
--	}
--}
--
-+#define MLX4_ROCEV2_QP1_SPORT 0xC000
- static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 			    void *wqe, unsigned *mlx_seg_len)
++static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
++{
++	struct in_device *in_dev = NULL;
++
++	if (ndev) {
++		rtnl_lock();
++		in_dev = __in_dev_get_rtnl(ndev);
++		if (in_dev) {
++			if (join)
++				ip_mc_inc_group(in_dev,
++						*(__be32 *)(mgid->raw+12));
++			else
++				ip_mc_dec_group(in_dev,
++						*(__be32 *)(mgid->raw+12));
++		}
++		rtnl_unlock();
++	}
++	return (in_dev) ? 0 : -ENODEV;
++}
++
+ static void cma_attach_to_dev(struct rdma_id_private *id_priv,
+ 			      struct cma_device *cma_dev)
  {
-@@ -2193,6 +2186,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	bool is_eth;
- 	bool is_vlan = false;
- 	bool is_grh;
-+	bool is_udp = false;
-+	int ip_version = 0;
+@@ -585,6 +607,7 @@ struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
+ 	INIT_LIST_HEAD(&id_priv->listen_list);
+ 	INIT_LIST_HEAD(&id_priv->mc_list);
+ 	get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
++	id_priv->igmp_joined = false;
  
- 	send_size = 0;
- 	for (i = 0; i < wr->num_sge; ++i)
-@@ -2201,6 +2196,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	is_eth = rdma_port_get_link_layer(sqp->qp.ibqp.device, sqp->qp.port) == IB_LINK_LAYER_ETHERNET;
- 	is_grh = mlx4_ib_ah_grh_present(ah);
- 	if (is_eth) {
-+		struct ib_gid_attr gid_attr;
+ 	return &id_priv->id;
+ }
+@@ -1076,6 +1099,20 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
+ 			kfree(mc);
+ 			break;
+ 		case IB_LINK_LAYER_ETHERNET:
++			if (id_priv->igmp_joined) {
++				struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
++				struct net_device *ndev = NULL;
 +
- 		if (mlx4_is_mfunc(to_mdev(ib_dev)->dev)) {
- 			/* When multi-function is enabled, the ib_core gid
- 			 * indexes don't necessarily match the hw ones, so
-@@ -2211,21 +2208,29 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 			if (err)
- 				return err;
- 		} else  {
--			err = ib_get_cached_gid(ib_dev,
-+			err = ib_get_cached_gid(sqp->qp.ibqp.device,
- 						be32_to_cpu(ah->av.ib.port_pd) >> 24,
--						ah->av.ib.gid_index, &sgid,
--						NULL);
--			if (err)
-+						ah->av.ib.gid_index, &sgid, &gid_attr);
-+			if (!err) {
-+				is_udp = (gid_attr.gid_type == IB_GID_TYPE_ROCE_V2) ? true : false;
-+				if (is_udp) {
-+					if (ipv6_addr_v4mapped((struct in6_addr *)&sgid))
-+						ip_version = 4;
-+					else
-+						ip_version = 6;
-+					is_grh = false;
++				if (dev_addr->bound_dev_if)
++					ndev = dev_get_by_index(&init_net,
++								dev_addr->bound_dev_if);
++				if (ndev) {
++					cma_igmp_send(ndev,
++						      &mc->multicast.ib->rec.mgid,
++						      false);
++					dev_put(ndev);
 +				}
-+			} else {
- 				return err;
 +			}
- 		}
--
- 		if (ah->av.eth.vlan != cpu_to_be16(0xffff)) {
- 			vlan = be16_to_cpu(ah->av.eth.vlan) & 0x0fff;
- 			is_vlan = 1;
- 		}
- 	}
- 	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
--				0, 0, 0, &sqp->ud_header);
-+			  ip_version, is_udp, 0, &sqp->ud_header);
- 	if (err)
- 		return err;
+ 			kref_put(&mc->mcref, release_mc);
+ 			break;
+ 		default:
+@@ -3356,7 +3393,7 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
+ {
+ 	struct iboe_mcast_work *work;
+ 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+-	int err;
++	int err = 0;
+ 	struct sockaddr *addr = (struct sockaddr *)&mc->addr;
+ 	struct net_device *ndev = NULL;
  
-@@ -2236,12 +2241,14 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 		sqp->ud_header.lrh.source_lid = cpu_to_be16(ah->av.ib.g_slid & 0x7f);
- 	}
- 
--	if (is_grh) {
-+	if (is_grh || (ip_version == 6)) {
- 		sqp->ud_header.grh.traffic_class =
- 			(be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 20) & 0xff;
- 		sqp->ud_header.grh.flow_label    =
- 			ah->av.ib.sl_tclass_flowlabel & cpu_to_be32(0xfffff);
--		sqp->ud_header.grh.hop_limit     = ah->av.ib.hop_limit;
+@@ -3388,13 +3425,31 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
+ 	mc->multicast.ib->rec.rate = iboe_get_rate(ndev);
+ 	mc->multicast.ib->rec.hop_limit = 1;
+ 	mc->multicast.ib->rec.mtu = iboe_get_mtu(ndev->mtu);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &mc->multicast.ib->rec.port_gid);
 +
-+		sqp->ud_header.grh.hop_limit     = (is_udp) ?
-+			IPV6_DEFAULT_HOPLIMIT : ah->av.ib.hop_limit;
- 		if (is_eth)
- 			memcpy(sqp->ud_header.grh.source_gid.raw, sgid.raw, 16);
- 		else {
-@@ -2265,6 +2272,26 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 		       ah->av.ib.dgid, 16);
- 	}
- 
-+	if (ip_version == 4) {
-+		sqp->ud_header.ip4.tos =
-+			(be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 20) & 0xff;
-+		sqp->ud_header.ip4.id = 0;
-+		sqp->ud_header.ip4.frag_off = htons(IP_DF);
-+		sqp->ud_header.ip4.ttl = (is_udp) ?
-+			IPV6_DEFAULT_HOPLIMIT : ah->av.eth.hop_limit;
++	if (addr->sa_family == AF_INET) {
++		u16 sgid_index;
 +
-+		memcpy(&sqp->ud_header.ip4.saddr,
-+		       sgid.raw + 12, 4);
-+		memcpy(&sqp->ud_header.ip4.daddr, ah->av.ib.dgid + 12, 4);
-+		sqp->ud_header.ip4.check = ib_ud_ip4_csum(&sqp->ud_header);
++		err = ib_find_cached_gid_by_port(id_priv->cma_dev->device,
++						 &mc->multicast.ib->rec.port_gid,
++						 IB_GID_TYPE_ROCE_V2,
++						 id_priv->id.port_num,
++						 &init_net, dev_addr->bound_dev_if,
++						 &sgid_index);
++		if (!err)
++			err = cma_igmp_send(ndev, &mc->multicast.ib->rec.mgid, true);
++		if (!err) {
++			id_priv->igmp_joined = true;
++			mc->multicast.ib->rec.hop_limit = IPV6_DEFAULT_HOPLIMIT;
++		}
 +	}
+ 	dev_put(ndev);
+-	if (!mc->multicast.ib->rec.mtu) {
++	if (err || !mc->multicast.ib->rec.mtu) {
+ 		err = -EINVAL;
+ 		goto out2;
+ 	}
+-	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
+-		    &mc->multicast.ib->rec.port_gid);
 +
-+	if (is_udp) {
-+		sqp->ud_header.udp.dport = htons(ROCE_V2_UDP_DPORT);
-+		sqp->ud_header.udp.sport = htons(MLX4_ROCEV2_QP1_SPORT);
-+		sqp->ud_header.udp.csum = 0;
-+	}
+ 	work->id = id_priv;
+ 	work->mc = mc;
+ 	INIT_WORK(&work->work, iboe_mcast_work_handler);
+@@ -3486,6 +3541,21 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
+ 					kfree(mc);
+ 					break;
+ 				case IB_LINK_LAYER_ETHERNET:
++					if (id_priv->igmp_joined) {
++						struct rdma_dev_addr *dev_addr = &id->route.addr.dev_addr;
++						struct net_device *ndev = NULL;
 +
- 	mlx->flags &= cpu_to_be32(MLX4_WQE_CTRL_CQ_UPDATE);
- 
- 	if (!is_eth) {
-@@ -2293,34 +2320,27 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 
- 	if (is_eth) {
- 		struct in6_addr in6;
--
-+		u16 ether_type;
- 		u16 pcp = (be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 29) << 13;
- 
-+		ether_type = (!is_udp) ? MLX4_IB_IBOE_ETHERTYPE :
-+			(ip_version == 4 ? ETH_P_IP : ETH_P_IPV6);
-+
- 		mlx->sched_prio = cpu_to_be16(pcp);
- 
-+		ether_addr_copy(sqp->ud_header.eth.smac_h, ah->av.eth.s_mac);
- 		memcpy(sqp->ud_header.eth.dmac_h, ah->av.eth.mac, 6);
--		/* FIXME: cache smac value? */
- 		memcpy(&ctrl->srcrb_flags16[0], ah->av.eth.mac, 2);
- 		memcpy(&ctrl->imm, ah->av.eth.mac + 2, 4);
- 		memcpy(&in6, sgid.raw, sizeof(in6));
- 
--		if (!mlx4_is_mfunc(to_mdev(ib_dev)->dev)) {
--			u64 mac = atomic64_read(&to_mdev(ib_dev)->iboe.mac[sqp->qp.port - 1]);
--			u8 smac[ETH_ALEN];
--
--			mlx4_u64_to_smac(smac, mac);
--			memcpy(sqp->ud_header.eth.smac_h, smac, ETH_ALEN);
--		} else {
--			/* use the src mac of the tunnel */
--			memcpy(sqp->ud_header.eth.smac_h, ah->av.eth.s_mac, ETH_ALEN);
--		}
- 
- 		if (!memcmp(sqp->ud_header.eth.smac_h, sqp->ud_header.eth.dmac_h, 6))
- 			mlx->flags |= cpu_to_be32(MLX4_WQE_CTRL_FORCE_LOOPBACK);
- 		if (!is_vlan) {
--			sqp->ud_header.eth.type = cpu_to_be16(MLX4_IB_IBOE_ETHERTYPE);
-+			sqp->ud_header.eth.type = cpu_to_be16(ether_type);
- 		} else {
--			sqp->ud_header.vlan.type = cpu_to_be16(MLX4_IB_IBOE_ETHERTYPE);
-+			sqp->ud_header.vlan.type = cpu_to_be16(ether_type);
- 			sqp->ud_header.vlan.tag = cpu_to_be16(vlan | pcp);
- 		}
- 	} else {
++						if (dev_addr->bound_dev_if)
++							ndev = dev_get_by_index(&init_net,
++										dev_addr->bound_dev_if);
++						if (ndev) {
++							cma_igmp_send(ndev,
++								      &mc->multicast.ib->rec.mgid,
++								      false);
++							dev_put(ndev);
++						}
++						id_priv->igmp_joined = false;
++					}
+ 					kref_put(&mc->mcref, release_mc);
+ 					break;
+ 				default:
 -- 
 1.7.1
 
