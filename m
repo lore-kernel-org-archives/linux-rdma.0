@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 24/30] IB/mlx4: Implement ib_device callback - modify_gid
-Date: Fri, 20 Feb 2015 03:32:39 +0530
-Message-ID: <95bad495-8509-4e7b-b7e9-460efd5f0576@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 25/30] IB/mlx4: Configure device to work in RoCEv2
+Date: Fri, 20 Feb 2015 03:32:40 +0530
+Message-ID: <9a076007-e02a-4a12-9453-5a2573a79b99@CMEXHTCAS2.ad.emulex.com>
 References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,343 +14,311 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is a new callbac that is required for RoCEv2 support.
-In RoCE, GID table is managed in the IB core driver. The role of the
-mlx4 driver is to synchronize the HW with the entries in the GID table.
-Since it is possible that the same GID value will appear more than once
-in the GID table (though with different attributes) it is required from
-the mlx4 driver to maintain a reference counting mechanism and populate
-the HW with a single value.
-Since an index to the GID table is not necessarily the same as index to
-the matching entry in the HW GID table, a translation between indexes is
-required.
+Some mlx4 adapters are RoCEv2 capable. To enable this feature some
+hardware configuration is required. This is
+
+1. Set port general parameters
+2. Configure the outgoing UDP destination port
+3. Configure the QP that work with RoCEv2
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    |  224 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   18 +++
- include/linux/mlx4/cmd.h             |    3 +-
- include/linux/mlx4/device.h          |    3 +-
- 4 files changed, 246 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c         |   10 ++++++-
+ drivers/infiniband/hw/mlx4/qp.c           |   39 ++++++++++++++++++++++++++--
+ drivers/net/ethernet/mellanox/mlx4/fw.c   |   16 +++++++++++-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    3 +-
+ drivers/net/ethernet/mellanox/mlx4/port.c |    9 ++++++-
+ drivers/net/ethernet/mellanox/mlx4/qp.c   |   27 ++++++++++++++++++++
+ include/linux/mlx4/device.h               |    3 +-
+ include/linux/mlx4/qp.h                   |   15 +++++++++-
+ 8 files changed, 112 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 38061a0..ca19d1d 100644
+index ca19d1d..50612b8 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1543,6 +1543,228 @@ static struct net_device *mlx4_ib_get_netdev(struct ib_device *device, u8 port_n
- 	return mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
- }
+@@ -2154,7 +2154,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (mlx4_ib_init_sriov(ibdev))
+ 		goto err_mad;
  
-+static int mlx4_ib_update_gids_v1(struct gid_entry *gids,
-+				  struct mlx4_ib_dev *ibdev,
-+				  u8 port_num)
-+{
-+	struct mlx4_cmd_mailbox *mailbox;
-+	int err;
-+	struct mlx4_dev *dev = ibdev->dev;
-+	int i;
-+	union ib_gid *gid_tbl;
-+
-+	mailbox = mlx4_alloc_cmd_mailbox(dev);
-+	if (IS_ERR(mailbox))
-+		return -ENOMEM;
-+
-+	gid_tbl = mailbox->buf;
-+
-+	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
-+		memcpy(&gid_tbl[i], &gids[i].gid, sizeof(union ib_gid));
-+
-+	err = mlx4_cmd(dev, mailbox->dma,
-+		       MLX4_SET_PORT_GID_TABLE << 8 | port_num,
-+		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
-+		       MLX4_CMD_WRAPPED);
-+	if (mlx4_is_bonded(dev))
-+		err += mlx4_cmd(dev, mailbox->dma,
-+				MLX4_SET_PORT_GID_TABLE << 8 | 2,
-+				1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
-+				MLX4_CMD_WRAPPED);
-+
-+	mlx4_free_cmd_mailbox(dev, mailbox);
-+	return err;
-+}
-+
-+static int mlx4_ib_update_gids_v1_v2(struct gid_entry *gids,
-+				     struct mlx4_ib_dev *ibdev,
-+				     u8 port_num)
-+{
-+	struct mlx4_cmd_mailbox *mailbox;
-+	int err;
-+	struct mlx4_dev *dev = ibdev->dev;
-+	int i;
-+	struct {
-+		union ib_gid	gid;
-+		__be32		rsrvd1[2];
-+		__be16		rsrvd2;
-+		u8		type;
-+		u8		version;
-+		__be32		rsrvd3;
-+	} *gid_tbl;
-+
-+	mailbox = mlx4_alloc_cmd_mailbox(dev);
-+	if (IS_ERR(mailbox))
-+		return -ENOMEM;
-+
-+	gid_tbl = mailbox->buf;
-+	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i) {
-+		memcpy(&gid_tbl[i].gid, &gids[i].gid, sizeof(union ib_gid));
-+		if (gids[i].gid_type == IB_GID_TYPE_ROCE_V2) {
-+			gid_tbl[i].version = 2;
-+			if (!ipv6_addr_v4mapped((struct in6_addr *)&gids[i].gid))
-+				gid_tbl[i].type = 1;
-+		}
-+	}
-+
-+	err = mlx4_cmd(dev, mailbox->dma,
-+		       MLX4_SET_PORT_ROCE_ADDR << 8 | port_num,
-+		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
-+		       MLX4_CMD_WRAPPED);
-+	if (mlx4_is_bonded(dev))
-+		err += mlx4_cmd(dev, mailbox->dma,
-+				MLX4_SET_PORT_ROCE_ADDR << 8 | 2,
-+				1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
-+				MLX4_CMD_WRAPPED);
-+
-+	mlx4_free_cmd_mailbox(dev, mailbox);
-+	return err;
-+}
-+
-+static int mlx4_ib_update_gids(struct gid_entry *gids,
-+			       struct mlx4_ib_dev *ibdev,
-+			       u8 port_num)
-+{
-+	if (ibdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2)
-+		return mlx4_ib_update_gids_v1_v2(gids, ibdev, port_num);
-+
-+	return mlx4_ib_update_gids_v1(gids, ibdev, port_num);
-+}
-+
-+static int mlx4_ib_modify_gid(struct ib_device *device,
-+		       u8 port_num, unsigned int index,
-+		       const union ib_gid *gid,
-+		       const struct ib_gid_attr *attr,
-+		       void **context)
-+{
-+	struct mlx4_ib_dev *ibdev = to_mdev(device);
-+	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
-+	struct mlx4_port_gid_table   *port_gid_table;
-+	int free = -1, found = -1;
-+	int ret = 0;
-+	int clear = !memcmp(&zgid, gid, sizeof(*gid));
-+	int hw_update = 0;
-+	int i;
-+	struct gid_entry *gids = NULL;
-+
-+	if (ib_cache_use_roce_gid_cache(device, port_num))
-+		return -EINVAL;
-+
-+	if (port_num > MLX4_MAX_PORTS)
-+		return -EINVAL;
-+
-+	if (!context)
-+		return -EINVAL;
-+
-+	down_write(&iboe->sem);
-+	port_gid_table = &iboe->gid_table[port_num - 1];
-+
-+	if (clear) {
-+		struct gid_cache_context *ctx = *context;
-+
-+		if (ctx) {
-+			ctx->refcount--;
-+			if (!ctx->refcount) {
-+				memcpy(&port_gid_table->gids[ctx->real_index].gid, &zgid, sizeof(*gid));
-+				port_gid_table->gids[ctx->real_index].ctx = NULL;
-+				kfree(port_gid_table->gids[ctx->real_index].ctx);
-+				hw_update = 1;
+-	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) {
++	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE ||
++	    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+ 		if (!iboe->nb.notifier_call) {
+ 			iboe->nb.notifier_call = mlx4_ib_netdev_event;
+ 			err = register_netdevice_notifier(&iboe->nb);
+@@ -2163,6 +2164,13 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 				goto err_notif;
+ 			}
+ 		}
++		if (!mlx4_is_slave(dev) &&
++		    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
++			err = mlx4_config_roce_v2_port(dev, ROCE_V2_UDP_DPORT);
++			if (err) {
++				goto err_notif;
 +			}
 +		}
-+	} else {
-+		for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i) {
-+			if (!memcmp(&port_gid_table->gids[i].gid, gid, sizeof(*gid))) {
-+				found = (port_gid_table->gids[i].gid_type == attr->gid_type) ? i : -1;
-+				if (found >= 0)
-+					break;
-+			}
-+			if (free < 0 && !memcmp(&port_gid_table->gids[i].gid, &zgid, sizeof(*gid)))
-+				free = i; /* HW has space */
-+		}
-+
-+		if (found < 0) {
-+			if (free < 0) {
-+				ret = -ENOSPC;
-+			} else {
-+				port_gid_table->gids[free].ctx = kmalloc(sizeof(*port_gid_table->gids[free].ctx), GFP_KERNEL);
-+				if (!port_gid_table->gids[free].ctx) {
-+					ret = -ENOMEM;
-+				} else {
-+					*context = port_gid_table->gids[free].ctx;
-+					memcpy(&port_gid_table->gids[free].gid, gid, sizeof(*gid));
-+					port_gid_table->gids[free].gid_type = attr->gid_type;
-+					port_gid_table->gids[free].ctx->real_index = free;
-+					port_gid_table->gids[free].ctx->refcount = 1;
-+					hw_update = 1;
-+				}
-+			}
-+		} else {
-+			struct gid_cache_context *ctx = port_gid_table->gids[found].ctx;
-+			*context = ctx;
-+			ctx->refcount++;
-+		}
-+	}
-+	if (!ret && hw_update) {
-+		gids = kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_KERNEL);
-+		if (!gids) {
-+			ret = -ENOMEM;
-+		} else {
-+			for (i = 0; i < MLX4_MAX_PORT_GIDS; i++) {
-+				memcpy(&gids[i].gid, &port_gid_table->gids[i].gid, sizeof(union ib_gid));
-+				gids[i].gid_type = port_gid_table->gids[i].gid_type;
-+			}
-+		}
-+	}
-+	up_write(&iboe->sem);
-+
-+	if (!ret && hw_update) {
-+		ret = mlx4_ib_update_gids(gids, ibdev, port_num);
-+		kfree(gids);
-+	}
-+
-+	return ret;
-+}
-+
-+int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
-+				    u8 port_num, int index)
-+{
-+	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
-+	struct gid_cache_context *ctx = NULL;
-+	union ib_gid gid;
-+	struct mlx4_port_gid_table   *port_gid_table;
-+	int real_index = -EINVAL;
-+	int i;
-+	int ret;
-+	struct ib_gid_attr attr;
-+
-+	if (port_num > MLX4_MAX_PORTS)
-+		return -EINVAL;
-+
-+	if (ib_cache_use_roce_gid_cache(&ibdev->ib_dev, port_num))
-+		return index;
-+
-+	ret = ib_get_cached_gid(&ibdev->ib_dev, port_num, index, &gid, &attr);
-+	if (ret)
-+		return ret;
-+
-+	if (!memcmp(&gid, &zgid, sizeof(gid)))
-+		return -EINVAL;
-+
-+	down_read(&iboe->sem);
-+	port_gid_table = &iboe->gid_table[port_num - 1];
-+
-+	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
-+		if (!memcmp(&port_gid_table->gids[i].gid, &gid, sizeof(gid)) &&
-+		    (attr.gid_type == port_gid_table->gids[i].gid_type)) {
-+			ctx = port_gid_table->gids[i].ctx;
-+			break;
-+		}
-+	if (ctx)
-+		real_index = ctx->real_index;
-+	up_read(&iboe->sem);
-+	return real_index;
-+}
-+
- static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 				 struct net_device *dev,
- 				 unsigned long event)
-@@ -1823,6 +2045,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
- 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
- 	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
-+	ibdev->ib_dev.modify_gid	= mlx4_ib_modify_gid;
- 
- 	if (!mlx4_is_slave(ibdev->dev)) {
- 		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
-@@ -1918,6 +2141,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 			goto err_steer_free_bitmap;
  	}
  
-+	memset(iboe->gid_table, 0, sizeof(struct mlx4_port_gid_table) * MLX4_MAX_PORTS);
- 	for (j = 1; j <= ibdev->dev->caps.num_ports; j++)
- 		atomic64_set(&iboe->mac[j - 1], ibdev->dev->caps.def_mac[j]);
+ 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 9ab9156..9731c07 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1408,6 +1408,24 @@ static int handle_eth_ud_smac_index(struct mlx4_ib_dev *dev,
+ 	return 0;
+ }
  
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 166ebf9..018bda6 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -454,11 +454,27 @@ struct mlx4_ib_sriov {
- 	struct idr pv_id_table;
- };
- 
-+struct gid_cache_context {
-+	int real_index;
-+	int refcount;
++enum {
++	MLX4_QPC_ROCE_MODE_1 = 0,
++	MLX4_QPC_ROCE_MODE_2 = 2,
++	MLX4_QPC_ROCE_MODE_MAX = 0xff
 +};
 +
-+struct gid_entry {
-+	union ib_gid	gid;
-+	enum ib_gid_type gid_type;
-+	struct gid_cache_context *ctx;
-+};
++static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
++{
++	switch (gid_type) {
++	case IB_GID_TYPE_IB:
++		return MLX4_QPC_ROCE_MODE_1;
++	case IB_GID_TYPE_ROCE_V2:
++		return MLX4_QPC_ROCE_MODE_2;
++	default:
++		return MLX4_QPC_ROCE_MODE_MAX;
++	}
++}
 +
-+struct mlx4_port_gid_table {
-+	struct gid_entry gids[MLX4_MAX_PORT_GIDS];
-+};
+ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 			       const struct ib_qp_attr *attr, int attr_mask,
+ 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
+@@ -1532,9 +1550,12 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		u16 vlan = 0xffff;
+ 		u8 smac[ETH_ALEN];
+ 		int status = 0;
++		int is_eth = rdma_port_get_link_layer(&dev->ib_dev, qp->port) ==
++				IB_LINK_LAYER_ETHERNET;
+ 
+-		if (rdma_port_get_link_layer(&dev->ib_dev, qp->port) ==
+-				IB_LINK_LAYER_ETHERNET) {
++		if (is_eth) {
++			if (mlx4_is_bonded(dev->dev))
++				port_num  = 1;
+ 			rcu_read_lock();
+ 			status = ib_get_cached_gid(ibqp->device, port_num,
+ 						   index, &gid, &gid_attr);
+@@ -1551,8 +1572,20 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 				  port_num, vlan, smac))
+ 			goto out;
+ 
++		if (is_eth && gid_attr.gid_type == IB_GID_TYPE_ROCE_V2)
++			context->pri_path.hop_limit = IPV6_DEFAULT_HOPLIMIT;
 +
- struct mlx4_ib_iboe {
- 	struct rw_semaphore	sem; /* guard from concurrent access to data in this struct */
- 	struct net_device      *netdevs[MLX4_MAX_PORTS];
- 	atomic64_t		mac[MLX4_MAX_PORTS];
- 	struct notifier_block 	nb;
-+	struct mlx4_port_gid_table gid_table[MLX4_MAX_PORTS];
+ 		optpar |= (MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH |
+ 			   MLX4_QP_OPTPAR_SCHED_QUEUE);
++
++		if (is_eth && (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR)) {
++			u8 qpc_roce_mode = gid_type_to_qpc(gid_attr.gid_type);
++
++			if (qpc_roce_mode == MLX4_QPC_ROCE_MODE_MAX)
++				goto out;
++			context->rlkey_roce_mode |= (qpc_roce_mode << 6);
++		}
++
+ 	}
+ 
+ 	if (attr_mask & IB_QP_TIMEOUT) {
+@@ -1722,7 +1755,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		sqd_event = 0;
+ 
+ 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
+-		context->rlkey |= (1 << 4);
++		context->rlkey_roce_mode |= (1 << 4);
+ 
+ 	/*
+ 	 * Before passing a kernel QP to the HW, make sure that the
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index d573e73..0086aab 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -2056,7 +2056,8 @@ struct mlx4_config_dev {
+ 	__be32	rsvd1[3];
+ 	__be16	vxlan_udp_dport;
+ 	__be16	rsvd2;
+-	__be32	rsvd3;
++	__be16  roce_v2_entropy;
++	__be16  roce_v2_udp_dport;
+ 	__be32	roce_flags;
+ 	__be32	rsvd4[25];
+ 	__be16	rsvd5;
+@@ -2065,6 +2066,7 @@ struct mlx4_config_dev {
  };
  
- struct pkey_mgt {
-@@ -804,5 +820,7 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
- 			  u64 start, u64 length, u64 virt_addr,
- 			  int mr_access_flags, struct ib_pd *pd,
- 			  struct ib_udata *udata);
-+int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
-+				    u8 port_num, int index);
+ #define MLX4_VXLAN_UDP_DPORT (1 << 0)
++#define MLX4_ROCE_V2_UDP_DPORT BIT(3)
+ #define MLX4_DISABLE_RX_PORT BIT(18)
  
- #endif /* MLX4_IB_H */
-diff --git a/include/linux/mlx4/cmd.h b/include/linux/mlx4/cmd.h
-index d764350..8cec202 100644
---- a/include/linux/mlx4/cmd.h
-+++ b/include/linux/mlx4/cmd.h
-@@ -192,7 +192,8 @@ enum {
- 	MLX4_SET_PORT_GID_TABLE = 0x5,
- 	MLX4_SET_PORT_PRIO2TC	= 0x8,
- 	MLX4_SET_PORT_SCHEDULER = 0x9,
--	MLX4_SET_PORT_VXLAN	= 0xB
-+	MLX4_SET_PORT_VXLAN	= 0xB,
-+	MLX4_SET_PORT_ROCE_ADDR	= 0xD
- };
+ static int mlx4_CONFIG_DEV_set(struct mlx4_dev *dev, struct mlx4_config_dev *config_dev)
+@@ -2182,6 +2184,18 @@ int mlx4_disable_rx_port_check(struct mlx4_dev *dev, bool dis)
+ 	return mlx4_CONFIG_DEV_set(dev, &config_dev);
+ }
  
- enum {
++int mlx4_config_roce_v2_port(struct mlx4_dev *dev, u16 udp_port)
++{
++	struct mlx4_config_dev config_dev;
++
++	memset(&config_dev, 0, sizeof(config_dev));
++	config_dev.update_flags    = cpu_to_be32(MLX4_ROCE_V2_UDP_DPORT);
++	config_dev.roce_v2_udp_dport = cpu_to_be16(udp_port);
++
++	return mlx4_CONFIG_DEV_set(dev, &config_dev);
++}
++EXPORT_SYMBOL_GPL(mlx4_config_roce_v2_port);
++
+ int mlx4_virt2phy_port_map(struct mlx4_dev *dev, u32 port1, u32 port2)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index beb1c08..f4160a8 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -763,7 +763,8 @@ enum {
+ struct mlx4_set_port_general_context {
+ 	u8 reserved[3];
+ 	u8 flags;
+-	u16 reserved2;
++	u8 roce_mode;
++	u8 rr_proto;
+ 	__be16 mtu;
+ 	u8 pptx;
+ 	u8 pfctx;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index 30eb1ea..3757b98 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -955,6 +955,8 @@ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port, int pkey_tbl_sz)
+ 	return err;
+ }
+ 
++#define SET_PORT_ROCE_2_FLAGS          0x10
++#define MLX4_SET_PORT_ROCE_V1_V2       0x2
+ int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
+ 			  u8 pptx, u8 pfctx, u8 pprx, u8 pfcrx)
+ {
+@@ -973,7 +975,12 @@ int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
+ 	context->pfctx = pfctx;
+ 	context->pprx = (pprx * (!pfcrx)) << 7;
+ 	context->pfcrx = pfcrx;
+-
++	if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
++		context->flags |= SET_PORT_ROCE_2_FLAGS;
++		context->roce_mode |=
++			(MLX4_SET_PORT_ROCE_V1_V2 & 7)
++			<< 4;
++	}
+ 	in_mod = MLX4_SET_PORT_GENERAL << 8 | port;
+ 	err = mlx4_cmd(dev, mailbox->dma, in_mod, 1, MLX4_CMD_SET_PORT,
+ 		       MLX4_CMD_TIME_CLASS_B,  MLX4_CMD_WRAPPED);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/qp.c b/drivers/net/ethernet/mellanox/mlx4/qp.c
+index 2bb8553..03917dd 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx4/qp.c
+@@ -167,6 +167,13 @@ static int __mlx4_qp_modify(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+ 		context->log_page_size   = mtt->page_shift - MLX4_ICM_PAGE_SHIFT;
+ 	}
+ 
++	if ((cur_state == MLX4_QP_STATE_RTR) &&
++	    (new_state == MLX4_QP_STATE_RTS) &&
++	    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2 &&
++	    !mlx4_is_mfunc(dev)) {
++		context->roce_entropy = cpu_to_be16(mlx4_qp_roce_entropy(dev, qp->qpn));
++	}
++
+ 	*(__be32 *) mailbox->buf = cpu_to_be32(optpar);
+ 	memcpy(mailbox->buf + 8, context, sizeof *context);
+ 
+@@ -898,3 +905,23 @@ int mlx4_qp_to_ready(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(mlx4_qp_to_ready);
++
++u32 mlx4_qp_roce_entropy(struct mlx4_dev *dev, u32 qpn)
++{
++	struct mlx4_qp_context context;
++	struct mlx4_qp qp;
++	int err;
++
++	qp.qpn = qpn;
++	err = mlx4_qp_query(dev, &qp, &context);
++	if (!err) {
++		u32 dest_qpn = be32_to_cpu(context.remote_qpn) & 0xffffff;
++		u16 folded_dst = folded_qp(dest_qpn);
++		u16 folded_src = folded_qp(qpn);
++
++		return (dest_qpn != qpn) ? ((folded_dst ^ folded_src) | 0xC000) :
++			folded_src | 0xC000;
++	}
++	return 0xdead;
++}
++EXPORT_SYMBOL_GPL(mlx4_qp_roce_entropy);
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 02dd6a0..b384ce6 100644
+index b384ce6..dd1488c 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
-@@ -80,7 +80,8 @@ enum {
- 
- enum {
- 	MLX4_MAX_PORTS		= 2,
--	MLX4_MAX_PORT_PKEYS	= 128
-+	MLX4_MAX_PORT_PKEYS	= 128,
-+	MLX4_MAX_PORT_GIDS	= 128
+@@ -204,7 +204,7 @@ enum {
+ 	MLX4_DEV_CAP_FLAG2_80_VFS		= 1LL <<  18,
+ 	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19,
+ 	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21,
+-+	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
++	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
  };
  
- /* base qkey for use in sriov tunnel-qp/proxy-qp communication.
+ enum {
+@@ -1354,6 +1354,7 @@ int mlx4_get_base_gid_ix(struct mlx4_dev *dev, int slave, int port);
+ 
+ int mlx4_config_vxlan_port(struct mlx4_dev *dev, __be16 udp_port);
+ int mlx4_disable_rx_port_check(struct mlx4_dev *dev, bool dis);
++int mlx4_config_roce_v2_port(struct mlx4_dev *dev, u16 udp_port);
+ int mlx4_virt2phy_port_map(struct mlx4_dev *dev, u32 port1, u32 port2);
+ int mlx4_vf_smi_enabled(struct mlx4_dev *dev, int slave, int port);
+ int mlx4_vf_get_enable_smi_admin(struct mlx4_dev *dev, int slave, int port);
+diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
+index 2bbc62a..b7497b9 100644
+--- a/include/linux/mlx4/qp.h
++++ b/include/linux/mlx4/qp.h
+@@ -184,7 +184,7 @@ struct mlx4_qp_context {
+ 	u8			mtu_msgmax;
+ 	u8			rq_size_stride;
+ 	u8			sq_size_stride;
+-	u8			rlkey;
++	u8			rlkey_roce_mode;
+ 	__be32			usr_page;
+ 	__be32			local_qpn;
+ 	__be32			remote_qpn;
+@@ -194,7 +194,8 @@ struct mlx4_qp_context {
+ 	u32			reserved1;
+ 	__be32			next_send_psn;
+ 	__be32			cqn_send;
+-	u32			reserved2[2];
++	__be16                  roce_entropy;
++	__be16                  reserved2[3];
+ 	__be32			last_acked_psn;
+ 	__be32			ssn;
+ 	__be32			params2;
+@@ -462,4 +463,14 @@ static inline struct mlx4_qp *__mlx4_qp_lookup(struct mlx4_dev *dev, u32 qpn)
+ 
+ void mlx4_qp_remove(struct mlx4_dev *dev, struct mlx4_qp *qp);
+ 
++static inline u16 folded_qp(u32 q)
++{
++	u16 res;
++
++	res = ((q & 0xff) ^ ((q & 0xff0000) >> 16)) | (q & 0xff00);
++	return res;
++}
++
++u32 mlx4_qp_roce_entropy(struct mlx4_dev *dev, u32 qpn);
++
+ #endif /* MLX4_QP_H */
 -- 
 1.7.1
 
