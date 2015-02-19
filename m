@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 23/30] IB/mlx4: Implement ib_device callback - get_netdev
-Date: Thu, 19 Feb 2015 15:54:26 +0530
-Message-ID: <90084c83-479f-41dd-9d18-8d9f32624e5c@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH 24/30] IB/mlx4: Implement ib_device callback - modify_gid
+Date: Thu, 19 Feb 2015 15:54:38 +0530
+Message-ID: <4545aefa-7767-4b50-9cdd-0bc333fe28f4@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,95 +12,343 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is a new callback that is required for RoCEv2 support.
-In port aggregation mode it is required to return the netdev of the
-active port so  support in mlx4 core driver to figure out that port
-identity is required.
+This is a new callbac that is required for RoCEv2 support.
+In RoCE, GID table is managed in the IB core driver. The role of the
+mlx4 driver is to synchronize the HW with the entries in the GID table.
+Since it is possible that the same GID value will appear more than once
+in the GID table (though with different attributes) it is required from
+the mlx4 driver to maintain a reference counting mechanism and populate
+the HW with a single value.
+Since an index to the GID table is not necessarily the same as index to
+the matching entry in the HW GID table, a translation between indexes is
+required.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c         |   17 +++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/main.c |   18 ++++++++++++++++++
- include/linux/mlx4/driver.h               |    1 +
- 3 files changed, 36 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c    |  224 ++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   18 +++
+ include/linux/mlx4/cmd.h             |    3 +-
+ include/linux/mlx4/device.h          |    3 +-
+ 4 files changed, 246 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bf87a95..38061a0 100644
+index 38061a0..ca19d1d 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1527,6 +1527,22 @@ unlock:
- 	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
+@@ -1543,6 +1543,228 @@ static struct net_device *mlx4_ib_get_netdev(struct ib_device *device, u8 port_n
+ 	return mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
  }
  
-+static struct net_device *mlx4_ib_get_netdev(struct ib_device *device, u8 port_num)
++static int mlx4_ib_update_gids_v1(struct gid_entry *gids,
++				  struct mlx4_ib_dev *ibdev,
++				  u8 port_num)
 +{
-+	struct mlx4_ib_dev *ibdev = to_mdev(device);
++	struct mlx4_cmd_mailbox *mailbox;
++	int err;
++	struct mlx4_dev *dev = ibdev->dev;
++	int i;
++	union ib_gid *gid_tbl;
 +
-+	if (mlx4_is_bonded(ibdev->dev)) {
-+		u8 true_port_num;
++	mailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(mailbox))
++		return -ENOMEM;
 +
-+		if (!mlx4_port_map_get(ibdev->dev, port_num, &true_port_num))
-+			port_num = true_port_num;
-+		else
-+			return NULL;
++	gid_tbl = mailbox->buf;
++
++	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
++		memcpy(&gid_tbl[i], &gids[i].gid, sizeof(union ib_gid));
++
++	err = mlx4_cmd(dev, mailbox->dma,
++		       MLX4_SET_PORT_GID_TABLE << 8 | port_num,
++		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++		       MLX4_CMD_WRAPPED);
++	if (mlx4_is_bonded(dev))
++		err += mlx4_cmd(dev, mailbox->dma,
++				MLX4_SET_PORT_GID_TABLE << 8 | 2,
++				1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++				MLX4_CMD_WRAPPED);
++
++	mlx4_free_cmd_mailbox(dev, mailbox);
++	return err;
++}
++
++static int mlx4_ib_update_gids_v1_v2(struct gid_entry *gids,
++				     struct mlx4_ib_dev *ibdev,
++				     u8 port_num)
++{
++	struct mlx4_cmd_mailbox *mailbox;
++	int err;
++	struct mlx4_dev *dev = ibdev->dev;
++	int i;
++	struct {
++		union ib_gid	gid;
++		__be32		rsrvd1[2];
++		__be16		rsrvd2;
++		u8		type;
++		u8		version;
++		__be32		rsrvd3;
++	} *gid_tbl;
++
++	mailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(mailbox))
++		return -ENOMEM;
++
++	gid_tbl = mailbox->buf;
++	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i) {
++		memcpy(&gid_tbl[i].gid, &gids[i].gid, sizeof(union ib_gid));
++		if (gids[i].gid_type == IB_GID_TYPE_ROCE_V2) {
++			gid_tbl[i].version = 2;
++			if (!ipv6_addr_v4mapped((struct in6_addr *)&gids[i].gid))
++				gid_tbl[i].type = 1;
++		}
 +	}
 +
-+	return mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
++	err = mlx4_cmd(dev, mailbox->dma,
++		       MLX4_SET_PORT_ROCE_ADDR << 8 | port_num,
++		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++		       MLX4_CMD_WRAPPED);
++	if (mlx4_is_bonded(dev))
++		err += mlx4_cmd(dev, mailbox->dma,
++				MLX4_SET_PORT_ROCE_ADDR << 8 | 2,
++				1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++				MLX4_CMD_WRAPPED);
++
++	mlx4_free_cmd_mailbox(dev, mailbox);
++	return err;
++}
++
++static int mlx4_ib_update_gids(struct gid_entry *gids,
++			       struct mlx4_ib_dev *ibdev,
++			       u8 port_num)
++{
++	if (ibdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2)
++		return mlx4_ib_update_gids_v1_v2(gids, ibdev, port_num);
++
++	return mlx4_ib_update_gids_v1(gids, ibdev, port_num);
++}
++
++static int mlx4_ib_modify_gid(struct ib_device *device,
++		       u8 port_num, unsigned int index,
++		       const union ib_gid *gid,
++		       const struct ib_gid_attr *attr,
++		       void **context)
++{
++	struct mlx4_ib_dev *ibdev = to_mdev(device);
++	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct mlx4_port_gid_table   *port_gid_table;
++	int free = -1, found = -1;
++	int ret = 0;
++	int clear = !memcmp(&zgid, gid, sizeof(*gid));
++	int hw_update = 0;
++	int i;
++	struct gid_entry *gids = NULL;
++
++	if (ib_cache_use_roce_gid_cache(device, port_num))
++		return -EINVAL;
++
++	if (port_num > MLX4_MAX_PORTS)
++		return -EINVAL;
++
++	if (!context)
++		return -EINVAL;
++
++	down_write(&iboe->sem);
++	port_gid_table = &iboe->gid_table[port_num - 1];
++
++	if (clear) {
++		struct gid_cache_context *ctx = *context;
++
++		if (ctx) {
++			ctx->refcount--;
++			if (!ctx->refcount) {
++				memcpy(&port_gid_table->gids[ctx->real_index].gid, &zgid, sizeof(*gid));
++				port_gid_table->gids[ctx->real_index].ctx = NULL;
++				kfree(port_gid_table->gids[ctx->real_index].ctx);
++				hw_update = 1;
++			}
++		}
++	} else {
++		for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i) {
++			if (!memcmp(&port_gid_table->gids[i].gid, gid, sizeof(*gid))) {
++				found = (port_gid_table->gids[i].gid_type == attr->gid_type) ? i : -1;
++				if (found >= 0)
++					break;
++			}
++			if (free < 0 && !memcmp(&port_gid_table->gids[i].gid, &zgid, sizeof(*gid)))
++				free = i; /* HW has space */
++		}
++
++		if (found < 0) {
++			if (free < 0) {
++				ret = -ENOSPC;
++			} else {
++				port_gid_table->gids[free].ctx = kmalloc(sizeof(*port_gid_table->gids[free].ctx), GFP_KERNEL);
++				if (!port_gid_table->gids[free].ctx) {
++					ret = -ENOMEM;
++				} else {
++					*context = port_gid_table->gids[free].ctx;
++					memcpy(&port_gid_table->gids[free].gid, gid, sizeof(*gid));
++					port_gid_table->gids[free].gid_type = attr->gid_type;
++					port_gid_table->gids[free].ctx->real_index = free;
++					port_gid_table->gids[free].ctx->refcount = 1;
++					hw_update = 1;
++				}
++			}
++		} else {
++			struct gid_cache_context *ctx = port_gid_table->gids[found].ctx;
++			*context = ctx;
++			ctx->refcount++;
++		}
++	}
++	if (!ret && hw_update) {
++		gids = kmalloc(sizeof(*gids) * MLX4_MAX_PORT_GIDS, GFP_KERNEL);
++		if (!gids) {
++			ret = -ENOMEM;
++		} else {
++			for (i = 0; i < MLX4_MAX_PORT_GIDS; i++) {
++				memcpy(&gids[i].gid, &port_gid_table->gids[i].gid, sizeof(union ib_gid));
++				gids[i].gid_type = port_gid_table->gids[i].gid_type;
++			}
++		}
++	}
++	up_write(&iboe->sem);
++
++	if (!ret && hw_update) {
++		ret = mlx4_ib_update_gids(gids, ibdev, port_num);
++		kfree(gids);
++	}
++
++	return ret;
++}
++
++int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
++				    u8 port_num, int index)
++{
++	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct gid_cache_context *ctx = NULL;
++	union ib_gid gid;
++	struct mlx4_port_gid_table   *port_gid_table;
++	int real_index = -EINVAL;
++	int i;
++	int ret;
++	struct ib_gid_attr attr;
++
++	if (port_num > MLX4_MAX_PORTS)
++		return -EINVAL;
++
++	if (ib_cache_use_roce_gid_cache(&ibdev->ib_dev, port_num))
++		return index;
++
++	ret = ib_get_cached_gid(&ibdev->ib_dev, port_num, index, &gid, &attr);
++	if (ret)
++		return ret;
++
++	if (!memcmp(&gid, &zgid, sizeof(gid)))
++		return -EINVAL;
++
++	down_read(&iboe->sem);
++	port_gid_table = &iboe->gid_table[port_num - 1];
++
++	for (i = 0; i < MLX4_MAX_PORT_GIDS; ++i)
++		if (!memcmp(&port_gid_table->gids[i].gid, &gid, sizeof(gid)) &&
++		    (attr.gid_type == port_gid_table->gids[i].gid_type)) {
++			ctx = port_gid_table->gids[i].ctx;
++			break;
++		}
++	if (ctx)
++		real_index = ctx->real_index;
++	up_read(&iboe->sem);
++	return real_index;
 +}
 +
  static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
  				 struct net_device *dev,
  				 unsigned long event)
-@@ -1806,6 +1822,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->ib_dev.attach_mcast	= mlx4_ib_mcg_attach;
+@@ -1823,6 +2045,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
  	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
  	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
-+	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
+ 	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
++	ibdev->ib_dev.modify_gid	= mlx4_ib_modify_gid;
  
  	if (!mlx4_is_slave(ibdev->dev)) {
  		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 1893a57..6311897 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1237,6 +1237,24 @@ int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p)
- }
- EXPORT_SYMBOL_GPL(mlx4_port_map_set);
+@@ -1918,6 +2141,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			goto err_steer_free_bitmap;
+ 	}
  
-+int mlx4_port_map_get(struct mlx4_dev *dev, u8 vport, u8 *pport)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+
-+	if (!pport)
-+		return -EINVAL;
-+	*pport = 0;
-+
-+	if (vport == 1)
-+		*pport = priv->v2p.port1;
-+	else if (vport == 2)
-+		*pport = priv->v2p.port2;
-+	if (!*pport)
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_port_map_get);
-+
- static int mlx4_load_fw(struct mlx4_dev *dev)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 5a06d96..a992971 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -81,6 +81,7 @@ struct mlx4_port_map {
++	memset(iboe->gid_table, 0, sizeof(struct mlx4_port_gid_table) * MLX4_MAX_PORTS);
+ 	for (j = 1; j <= ibdev->dev->caps.num_ports; j++)
+ 		atomic64_set(&iboe->mac[j - 1], ibdev->dev->caps.def_mac[j]);
+ 
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 166ebf9..018bda6 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -454,11 +454,27 @@ struct mlx4_ib_sriov {
+ 	struct idr pv_id_table;
  };
  
- int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p);
-+int mlx4_port_map_get(struct mlx4_dev *dev, u8 vport, u8 *pport);
++struct gid_cache_context {
++	int real_index;
++	int refcount;
++};
++
++struct gid_entry {
++	union ib_gid	gid;
++	enum ib_gid_type gid_type;
++	struct gid_cache_context *ctx;
++};
++
++struct mlx4_port_gid_table {
++	struct gid_entry gids[MLX4_MAX_PORT_GIDS];
++};
++
+ struct mlx4_ib_iboe {
+ 	struct rw_semaphore	sem; /* guard from concurrent access to data in this struct */
+ 	struct net_device      *netdevs[MLX4_MAX_PORTS];
+ 	atomic64_t		mac[MLX4_MAX_PORTS];
+ 	struct notifier_block 	nb;
++	struct mlx4_port_gid_table gid_table[MLX4_MAX_PORTS];
+ };
  
- void *mlx4_get_protocol_dev(struct mlx4_dev *dev, enum mlx4_protocol proto, int port);
+ struct pkey_mgt {
+@@ -804,5 +820,7 @@ int mlx4_ib_rereg_user_mr(struct ib_mr *mr, int flags,
+ 			  u64 start, u64 length, u64 virt_addr,
+ 			  int mr_access_flags, struct ib_pd *pd,
+ 			  struct ib_udata *udata);
++int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
++				    u8 port_num, int index);
  
+ #endif /* MLX4_IB_H */
+diff --git a/include/linux/mlx4/cmd.h b/include/linux/mlx4/cmd.h
+index d764350..8cec202 100644
+--- a/include/linux/mlx4/cmd.h
++++ b/include/linux/mlx4/cmd.h
+@@ -192,7 +192,8 @@ enum {
+ 	MLX4_SET_PORT_GID_TABLE = 0x5,
+ 	MLX4_SET_PORT_PRIO2TC	= 0x8,
+ 	MLX4_SET_PORT_SCHEDULER = 0x9,
+-	MLX4_SET_PORT_VXLAN	= 0xB
++	MLX4_SET_PORT_VXLAN	= 0xB,
++	MLX4_SET_PORT_ROCE_ADDR	= 0xD
+ };
+ 
+ enum {
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 02dd6a0..b384ce6 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -80,7 +80,8 @@ enum {
+ 
+ enum {
+ 	MLX4_MAX_PORTS		= 2,
+-	MLX4_MAX_PORT_PKEYS	= 128
++	MLX4_MAX_PORT_PKEYS	= 128,
++	MLX4_MAX_PORT_GIDS	= 128
+ };
+ 
+ /* base qkey for use in sriov tunnel-qp/proxy-qp communication.
 -- 
 1.7.1
 
