@@ -1,202 +1,298 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 00/30] IB/Core: Adding support for RoCEV2 Specification
-Date: Thu, 19 Feb 2015 05:36:20 +0000
-Message-ID: <8fac36c8-c131-4c4d-8139-59f6c5f12f61@CMEXHTCAS2.ad.emulex.com>
-References: <e49e0e12-e53d-4a90-b9aa-d7f05e2dfbc5@CMEXHTCAS2.ad.emulex.com>
+From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 05/30] IB/core: Add RoCE cache bonding support
+Date: Fri, 20 Feb 2015 03:32:20 +0530
+Message-ID: <1a54c125-fc73-4812-9aad-600260cbb44c@CMEXHTCAS2.ad.emulex.com>
+References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e49e0e12-e53d-4a90-b9aa-d7f05e2dfbc5-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1424383365-19337-1-git-send-email-somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
-	Missed out one bug fix in patch 14/30 for the `ocrdma` driver.  
-Resubmitting the series again with this patch fixed
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Apologies for any inconvenience.
+Bonding is a unique behavior since when working in
+active-backup mode, only the current selected slave
+should occupy the default GIDs and the master's GID.
+Listening to bonding events and only adding the
+required GIDs to the active slave in the RoCE cache
+GID table.
 
-Thanks
-Som
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/roce_gid_mgmt.c |  137 ++++++++++++++++++++++++++++++-
+ drivers/net/bonding/bond_options.c      |   13 ---
+ include/net/bonding.h                   |    7 ++
+ 3 files changed, 140 insertions(+), 17 deletions(-)
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Somnath Kotur
-> Sent: Thursday, February 19, 2015 3:44 PM
-> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Somnath Kotur
-> Subject: [PATCH 00/30] IB/Core: Adding support for RoCEV2 Specification
-> 
-> Hi Roland,
-> 
-> This patch series was created out of collaboration between Emulex and
-> Mellanox.
-> While Emulex sent out the RoCEV2 patch first to the community, Mellanox
-> which was also working on some core infrastructure changes from the
-> ground-up towards
-> RoCEV2 felt that the RoCEV2 patch would be better served if done on top of
-> their basic infrastructure changes to associate entities like MAC, VLAN, IP
-> Address with GIDs and thereby move GID Table Management from HW
-> Vendor drivers to IB/Core.
-> This patchset is the result of joint development effort between the two
-> teams.
-> 
-> Patch 0001 creates a new infrastructure for storing GIDs and their attributes
-> in IB/core. This infrastructure support lock-less read of GIDs using a sequence
-> number.  The data structure is initialized only for RoCE ports.
-> Every gid has meta information describes its related net device and its type.
-> 
-> Patches 0002, 0004 and 0005 add population of this table for various cases
-> based on net device events. We always enable default gids for an active
-> device (an active device is defined here as a device that doesn't have a
-> bonding master or is the current active slave). This is done in order to allow
-> loopback traffic
-> 
-> Patch 0005 adds proper bonding support - only the active slaves retain their
-> master's IP based gids and default gids.
-> 
-> This whole concept needs to fit the existing sysfs model, thus patch 0006
-> adds sysfs entries that represent the net device and gid type related to each
-> gid.
-> 
-> Patches 0002, 0007, 0008 and 0009 changes the rest of IB/core to fit the new
-> model.
-> Instead of storing smac and vlan, we store either if_index, gid and gid_type
-> or sgid_index. Either set suffices in order to resolve all the required Ethernet
-> parameters. ib_init_ah_from_wc was changed, such as that when a wc is
-> arrived, we query all the net devices in all namespaces trying to find a match.
-> This match is later used to find an appropriate sgid_index.
-> 
-> Patch 0010 is used in order to configure the default mode of the cma.
-> In order to avoid changing existing rdma-cm applications, we adds a configfs
-> that states for each ib device what's the default RoCE mode.
-> 
-> Patch 0011 mainly corrects the hop limit value and adds a hint about RoCE
-> type according to whether we have a gateway. This is the patch that makes it
-> possible for applications to seamlessly interop between RoCE V1 and V2
-> without undergoing any changes themselves.
-> 
-> The rest of the patches add support for ocrdma and mlx4 devices.
-> 
-> This series depends on RoCE LAG series (already accepted in net-next tree)
-> 
-> Thanks,
-> Somnath, Devesh, Moni and Matan
-> 
-> Devesh Sharma (3):
->   RDMA/ocrdma: changes to support RoCE-v2 in UD path
->   RDMA/ocrdma: changes to support RoCE-v2 in RC path
->   RDMA/ocrdma: changes to support user AH creation
-> 
-> Matan Barak (12):
->   IB/core: Add RoCE GID cache
->   IB/core: Add kref to IB devices
->   IB/core: Add RoCE GID population
->   IB/core: Add default GID for RoCE GID Cache
->   IB/core: Add RoCE cache bonding support
->   IB/core: GID attribute should be returned from verbs API and cache
->     API
->   IB/core: Report gid_type and gid_ndev through sysfs
->   IB/core: Support find sgid index using a filter function
->   IB/core: Modify ib_verbs and cma in order to use roce_gid_cache
->   IB/core: Add gid_type to path and rdma_id_private
->   IB/core: Add rdma_network_type to wc
->   IB/cma: Add configfs for rdma_cm
-> 
-> Moni Shoua (13):
->   IB/mlx4: Remove gid table management for RoCE
->   IB/mlx4: Replace spin_lock with rw_semaphore
->   IB/mlx4: Lock with RCU instead of RTNL
->   net/mlx4: Postpone the registration of net_device
->   IB/mlx4: Advertise RoCE support in port capabilities
->   IB/mlx4: Implement ib_device callback - get_netdev
->   IB/mlx4: Implement ib_device callback - modify_gid
->   IB/mlx4: Configure device to work in RoCEv2
->   IB/mlx4: Translate cache gid index to real index
->   IB/core: Initialize UD header structure with IP and UDP headers
->   IB/mlx4: Enable send of RoCE QP1 packets with IP/UDP headers
->   IB/mlx4: Create and use another QP1 for RoCEv2
->   IB/cma: Join and leave multicast groups with IGMP
-> 
-> Somnath Kotur (2):
->   IB/Core: Changes to the IB Core infrastructure for RoCEv2 support
->   RDMA/ocrdma: Changes in driver to incorporate the moving of GID Table
->     mgmt to IB/Core.
-> 
->  drivers/infiniband/core/Makefile               |    5 +-
->  drivers/infiniband/core/addr.c                 |   11 +-
->  drivers/infiniband/core/cache.c                |  249 +++++++--
->  drivers/infiniband/core/cm.c                   |   49 +--
->  drivers/infiniband/core/cma.c                  |  229 ++++++--
->  drivers/infiniband/core/cma_configfs.c         |  222 +++++++
->  drivers/infiniband/core/core_priv.h            |   88 +++-
->  drivers/infiniband/core/device.c               |  150 +++++-
->  drivers/infiniband/core/mad.c                  |    2 +-
->  drivers/infiniband/core/multicast.c            |    3 +-
->  drivers/infiniband/core/roce_gid_cache.c       |  755
-> ++++++++++++++++++++++++
->  drivers/infiniband/core/roce_gid_mgmt.c        |  703
-> ++++++++++++++++++++++
->  drivers/infiniband/core/sa_query.c             |   12 +-
->  drivers/infiniband/core/sysfs.c                |  187 ++++++-
->  drivers/infiniband/core/ucma.c                 |    1 -
->  drivers/infiniband/core/ud_header.c            |  153 +++++-
->  drivers/infiniband/core/uverbs_cmd.c           |    6 +-
->  drivers/infiniband/core/uverbs_marshall.c      |    5 +-
->  drivers/infiniband/core/verbs.c                |  264 ++++++---
->  drivers/infiniband/hw/mlx4/ah.c                |   15 +-
->  drivers/infiniband/hw/mlx4/mad.c               |   12 +-
->  drivers/infiniband/hw/mlx4/main.c              |  744 ++++++++---------------
->  drivers/infiniband/hw/mlx4/mcg.c               |    2 +-
->  drivers/infiniband/hw/mlx4/mlx4_ib.h           |   33 +-
->  drivers/infiniband/hw/mlx4/qp.c                |  331 +++++++++--
->  drivers/infiniband/hw/mthca/mthca_av.c         |    2 +-
->  drivers/infiniband/hw/mthca/mthca_qp.c         |    2 +-
->  drivers/infiniband/hw/ocrdma/ocrdma.h          |   12 +
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c       |   93 +++-
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.h       |    5 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c       |   48 ++-
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c     |  233 +-------
->  drivers/infiniband/hw/ocrdma/ocrdma_sli.h      |   18 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |   52 ++-
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h    |    4 +
->  drivers/infiniband/ulp/ipoib/ipoib_main.c      |    2 +-
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    2 +-
->  drivers/infiniband/ulp/srp/ib_srp.c            |    2 +-
->  drivers/infiniband/ulp/srpt/ib_srpt.c          |    3 +-
->  drivers/net/bonding/bond_options.c             |   13 -
->  drivers/net/ethernet/mellanox/mlx4/en_main.c   |   36 +-
->  drivers/net/ethernet/mellanox/mlx4/fw.c        |   21 +-
->  drivers/net/ethernet/mellanox/mlx4/intf.c      |    3 +
->  drivers/net/ethernet/mellanox/mlx4/main.c      |   18 +
->  drivers/net/ethernet/mellanox/mlx4/mlx4.h      |    3 +-
->  drivers/net/ethernet/mellanox/mlx4/port.c      |    9 +-
->  drivers/net/ethernet/mellanox/mlx4/qp.c        |   27 +
->  include/linux/mlx4/cmd.h                       |    3 +-
->  include/linux/mlx4/device.h                    |   17 +-
->  include/linux/mlx4/driver.h                    |    2 +
->  include/linux/mlx4/qp.h                        |   15 +-
->  include/net/addrconf.h                         |   31 +
->  include/net/bonding.h                          |    7 +
->  include/rdma/ib_addr.h                         |    5 +-
->  include/rdma/ib_cache.h                        |   71 +++-
->  include/rdma/ib_pack.h                         |   44 ++-
->  include/rdma/ib_sa.h                           |    5 +-
->  include/rdma/ib_verbs.h                        |  120 ++++-
->  net/ipv6/addrconf.c                            |   31 -
->  59 files changed, 4056 insertions(+), 1134 deletions(-)  create mode 100644
-> drivers/infiniband/core/cma_configfs.c
->  create mode 100644 drivers/infiniband/core/roce_gid_cache.c
->  create mode 100644 drivers/infiniband/core/roce_gid_mgmt.c
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index b65eab8..e724295 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -37,6 +37,7 @@
+ 
+ /* For in6_dev_get/in6_dev_put */
+ #include <net/addrconf.h>
++#include <net/bonding.h>
+ 
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
+@@ -127,12 +128,40 @@ static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
+ 	}
+ }
+ 
++#define IS_NETDEV_BONDING_MASTER(ndev)	\
++	(((ndev)->priv_flags &		\
++	  (IFF_BONDING | IFF_MASTER)) == (IFF_BONDING | IFF_MASTER))
++
++enum bonding_slave_state {
++	BONDING_SLAVE_STATE_ACTIVE,
++	BONDING_SLAVE_STATE_INACTIVE,
++	BONDING_SLAVE_STATE_NA
++};
++
++static enum bonding_slave_state is_eth_active_slave_of_bonding(struct net_device *idev,
++							       struct net_device *upper)
++{
++	if (upper && IS_NETDEV_BONDING_MASTER(upper)) {
++		struct net_device *pdev;
++
++		rcu_read_lock();
++		pdev = bond_option_active_slave_get_rcu(netdev_priv(upper));
++		rcu_read_unlock();
++		if (pdev)
++			return idev == pdev ? BONDING_SLAVE_STATE_ACTIVE :
++				BONDING_SLAVE_STATE_INACTIVE;
++	}
++
++	return BONDING_SLAVE_STATE_NA;
++}
++
+ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+ 				 struct net_device *idev, void *cookie)
+ {
+ 	struct net_device *rdev;
+ 	struct net_device *mdev;
+ 	struct net_device *ndev = (struct net_device *)cookie;
++	int res;
+ 
+ 	if (!idev)
+ 		return 0;
+@@ -140,9 +169,16 @@ static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
+ 	rcu_read_lock();
+ 	mdev = netdev_master_upper_dev_get_rcu(idev);
+ 	rdev = rdma_vlan_dev_real_dev(ndev);
+-	rcu_read_unlock();
++	if (!rdev)
++		rdev = ndev;
+ 
+-	return (rdev ? rdev : ndev) == (mdev ? mdev : idev);
++	res = (rdev == idev ||
++	       (rdev == mdev &&
++		is_eth_active_slave_of_bonding(idev, mdev) !=
++		BONDING_SLAVE_STATE_INACTIVE));
++
++	rcu_read_unlock();
++	return res;
+ }
+ 
+ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
+@@ -151,6 +187,26 @@ static int pass_all_filter(struct ib_device *ib_dev, u8 port,
+ 	return 1;
+ }
+ 
++static int bonding_slaves_filter(struct ib_device *ib_dev, u8 port,
++				 struct net_device *idev, void *cookie)
++{
++	struct net_device *mdev;
++	struct net_device *rdev;
++	struct net_device *ndev = (struct net_device *)cookie;
++
++	rdev = rdma_vlan_dev_real_dev(ndev);
++
++	ndev = rdev ? rdev : ndev;
++	if (!idev || !IS_NETDEV_BONDING_MASTER(ndev))
++		return 0;
++
++	rcu_read_lock();
++	mdev = netdev_master_upper_dev_get_rcu(idev);
++	rcu_read_unlock();
++
++	return ndev == mdev;
++}
++
+ static void netdevice_event_work_handler(struct work_struct *_work)
+ {
+ 	struct netdev_event_work *work =
+@@ -186,8 +242,16 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
+ {
+ 	unsigned long gid_type_mask;
+ 
+-	if (idev != ndev)
++	rcu_read_lock();
++	if (!idev ||
++	    ((idev != ndev && netdev_master_upper_dev_get_rcu(idev) != ndev) ||
++	     is_eth_active_slave_of_bonding(idev,
++					    netdev_master_upper_dev_get_rcu(idev)) ==
++	     BONDING_SLAVE_STATE_INACTIVE)) {
++		rcu_read_unlock();
+ 		return;
++	}
++	rcu_read_unlock();
+ 
+ 	gid_type_mask = gid_type_mask_support(ib_dev, port);
+ 
+@@ -195,6 +259,35 @@ static void enum_netdev_default_gids(struct ib_device *ib_dev,
+ 				       ROCE_GID_CACHE_DEFAULT_MODE_SET);
+ }
+ 
++static void bond_delete_netdev_default_gids(struct ib_device *ib_dev,
++					    u8 port, struct net_device *ndev,
++					    struct net_device *idev)
++{
++	struct net_device *upper;
++
++	if (!idev)
++		return;
++
++	rcu_read_lock();
++	upper = netdev_master_upper_dev_get_rcu(idev);
++
++	if ((upper == ndev) &&
++	    is_eth_active_slave_of_bonding(idev, upper) ==
++	    BONDING_SLAVE_STATE_INACTIVE) {
++		unsigned long gid_type_mask;
++
++		rcu_read_unlock();
++
++		gid_type_mask = gid_type_mask_support(ib_dev, port);
++
++		roce_gid_cache_set_default_gid(ib_dev, port, idev,
++					       gid_type_mask,
++					       ROCE_GID_CACHE_DEFAULT_MODE_DELETE);
++	} else {
++		rcu_read_unlock();
++	}
++}
++
+ static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
+ 				 u8 port, struct net_device *ndev)
+ {
+@@ -317,6 +410,27 @@ static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
+ 	struct net_device *ndev = (struct net_device *)cookie;
+ 
+ 	roce_del_all_netdev_gids(ib_dev, port, ndev);
++	if (idev) {
++		bool is_upper;
++
++		rcu_read_lock();
++		is_upper = netdev_master_upper_dev_get_rcu(idev) == ndev;
++		rcu_read_unlock();
++
++		if (is_upper)
++			/* Delete default GIDs, vlans should be deleted
++			 * first by user
++			 */
++			roce_del_all_netdev_gids(ib_dev, port, idev);
++	}
++}
++
++static void del_netdev_default_ips(struct ib_device *ib_dev, u8 port,
++				   struct net_device *idev, void *cookie)
++{
++	struct net_device *ndev = (struct net_device *)cookie;
++
++	bond_delete_netdev_default_gids(ib_dev, port, ndev, idev);
+ }
+ 
+ static int netdevice_event(struct notifier_block *this, unsigned long event,
+@@ -326,6 +440,10 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
+ 		.cb = add_netdev_ips, .filter = is_eth_port_of_netdev};
+ 	static const struct netdev_event_work_cmd del_cmd = {
+ 		.cb = del_netdev_ips, .filter = pass_all_filter};
++	static const struct netdev_event_work_cmd bonding_default_del_cmd = {
++		.cb = del_netdev_default_ips, .filter = bonding_slaves_filter};
++	static const struct netdev_event_work_cmd bonding_ips_del_cmd = {
++		.cb = del_netdev_ips, .filter = bonding_slaves_filter};
+ 	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
+ 	struct netdev_event_work *ndev_work;
+ 	struct netdev_event_work_cmd cmds[ROCE_NETDEV_CALLBACK_SZ] = { {NULL} };
+@@ -336,7 +454,8 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
+ 	switch (event) {
+ 	case NETDEV_REGISTER:
+ 	case NETDEV_UP:
+-		cmds[0] = add_cmd;
++		cmds[0] = bonding_default_del_cmd;
++		cmds[1] = add_cmd;
+ 		break;
+ 
+ 	case NETDEV_UNREGISTER:
+@@ -350,6 +469,16 @@ static int netdevice_event(struct notifier_block *this, unsigned long event,
+ 		cmds[0] = del_cmd;
+ 		cmds[1] = add_cmd;
+ 		break;
++
++	case NETDEV_BONDING_FAILOVER:
++		cmds[0] = bonding_ips_del_cmd;
++		cmds[1] = add_cmd;
++		break;
++	case NETDEV_JOIN:
++		cmds[0] = bonding_default_del_cmd;
++		cmds[1] = add_cmd;
++		break;
++
+ 	default:
+ 		return NOTIFY_DONE;
+ 	}
+diff --git a/drivers/net/bonding/bond_options.c b/drivers/net/bonding/bond_options.c
+index 1a61cc9..42e30e5 100644
+--- a/drivers/net/bonding/bond_options.c
++++ b/drivers/net/bonding/bond_options.c
+@@ -690,19 +690,6 @@ static int bond_option_mode_set(struct bonding *bond,
+ 	return 0;
+ }
+ 
+-static struct net_device *__bond_option_active_slave_get(struct bonding *bond,
+-							 struct slave *slave)
+-{
+-	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
+-}
+-
+-struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond)
+-{
+-	struct slave *slave = rcu_dereference(bond->curr_active_slave);
+-
+-	return __bond_option_active_slave_get(bond, slave);
+-}
+-
+ static int bond_option_active_slave_set(struct bonding *bond,
+ 					const struct bond_opt_value *newval)
+ {
+diff --git a/include/net/bonding.h b/include/net/bonding.h
+index 4c2b0f4..074bcad 100644
+--- a/include/net/bonding.h
++++ b/include/net/bonding.h
+@@ -314,6 +314,13 @@ static inline bool bond_uses_primary(struct bonding *bond)
+ 	return bond_mode_uses_primary(BOND_MODE(bond));
+ }
+ 
++static inline struct net_device *bond_option_active_slave_get_rcu(struct bonding *bond)
++{
++	struct slave *slave = rcu_dereference(bond->curr_active_slave);
++
++	return bond_uses_primary(bond) && slave ? slave->dev : NULL;
++}
++
+ static inline bool bond_slave_is_up(struct slave *slave)
+ {
+ 	return netif_running(slave->dev) && netif_carrier_ok(slave->dev);
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
