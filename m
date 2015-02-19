@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 01/30] IB/core: Add RoCE GID cache
-Date: Fri, 20 Feb 2015 03:32:16 +0530
-Message-ID: <eceb8ec5-7485-4c79-936d-26fb54f13ef9@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 03/30] IB/core: Add RoCE GID population
+Date: Fri, 20 Feb 2015 03:32:18 +0530
+Message-ID: <6817ff35-189c-4235-8580-dbc7decbb3f0@CMEXHTCAS2.ad.emulex.com>
 References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,94 +14,293 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to manage multiple types, vlans and MACs per GID, we
-need to store them along the GID itself. We store the net device
-as well, as sometimes GIDs should be handled according to the
-net device they came from. Since populating the GID table should
-be identical for every RoCE provider, the GIDs table should be
-handled in ib_core.
+In order to populate the GID table, we need to listen for
+events:
+(a) IB device has been added or removed - used in order
+    to allocate/deallocate the cache and populate
+    the GID table internally.
+(b) inet events - add new GIDs (according to the IP addresses)
+    to the table.
+(c) netdev up/down/change_addr - if a netdev is built onto our
+    RoCE device, we need to add/delete its IPs.
 
-Adding a GID cache table that supports a lockless find, add and
-delete gids. The lockless nature comes from using a unique
-sequence number per table entry and detecting that while reading/
-writing this sequence wasn't changed.
-
-By using this RoCE GID cache table, providers must implement a
-modify_gid callback. The table is managed exclusively by
-this roce_gid_cache and the provider just need to write
-the data to the hardware.
+When an event is received, multiple entries (each with
+different GID type) are added.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile         |    3 +-
- drivers/infiniband/core/core_priv.h      |   24 ++
- drivers/infiniband/core/roce_gid_cache.c |  511 ++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx4/main.c        |    2 -
- include/rdma/ib_verbs.h                  |   55 ++++-
- 5 files changed, 591 insertions(+), 4 deletions(-)
- create mode 100644 drivers/infiniband/core/roce_gid_cache.c
+ drivers/infiniband/core/Makefile         |    2 +-
+ drivers/infiniband/core/core_priv.h      |   26 ++
+ drivers/infiniband/core/device.c         |   80 +++++
+ drivers/infiniband/core/roce_gid_cache.c |   66 ++++
+ drivers/infiniband/core/roce_gid_mgmt.c  |  545 ++++++++++++++++++++++++++++++
+ include/rdma/ib_addr.h                   |    2 +-
+ include/rdma/ib_verbs.h                  |    9 +
+ 7 files changed, 728 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/infiniband/core/roce_gid_mgmt.c
 
 diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index acf7367..9b63bdf 100644
+index 9b63bdf..2c94963 100644
 --- a/drivers/infiniband/core/Makefile
 +++ b/drivers/infiniband/core/Makefile
-@@ -9,7 +9,8 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
- 					$(user_access-y)
+@@ -10,7 +10,7 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
  
  ib_core-y :=			packer.o ud_header.o verbs.o sysfs.o \
--				device.o fmr_pool.o cache.o netlink.o
-+				device.o fmr_pool.o cache.o netlink.o \
-+				roce_gid_cache.o
+ 				device.o fmr_pool.o cache.o netlink.o \
+-				roce_gid_cache.o
++				roce_gid_cache.o roce_gid_mgmt.o
  ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
  ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
  
 diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 87d1936..a502daa 100644
+index a502daa..12797d9 100644
 --- a/drivers/infiniband/core/core_priv.h
 +++ b/drivers/infiniband/core/core_priv.h
-@@ -35,6 +35,7 @@
- 
- #include <linux/list.h>
- #include <linux/spinlock.h>
-+#include <net/net_namespace.h>
+@@ -39,6 +39,8 @@
  
  #include <rdma/ib_verbs.h>
  
-@@ -51,4 +52,27 @@ void ib_cache_cleanup(void);
- 
++extern struct workqueue_struct *roce_gid_mgmt_wq;
++
+ int  ib_device_register_sysfs(struct ib_device *device,
+ 			      int (*port_callback)(struct ib_device *,
+ 						   u8, struct kobject *));
+@@ -53,6 +55,22 @@ void ib_cache_cleanup(void);
  int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
  			    struct ib_qp_attr *qp_attr, int *qp_attr_mask);
+ 
++typedef void (*roce_netdev_callback)(struct ib_device *device, u8 port,
++	      struct net_device *idev, void *cookie);
 +
-+int roce_gid_cache_get_gid(struct ib_device *ib_dev, u8 port, int index,
-+			   union ib_gid *gid, struct ib_gid_attr *attr);
++typedef int (*roce_netdev_filter)(struct ib_device *device, u8 port,
++	     struct net_device *idev, void *cookie);
 +
-+int roce_gid_cache_find_gid(struct ib_device *ib_dev, union ib_gid *gid,
-+			    enum ib_gid_type gid_type, struct net *net,
-+			    int if_index, u8 *port, u16 *index);
++void ib_dev_roce_ports_of_netdev(struct ib_device *ib_dev,
++				 roce_netdev_filter filter,
++				 void *filter_cookie,
++				 roce_netdev_callback cb,
++				 void *cookie);
++void ib_enum_roce_ports_of_netdev(roce_netdev_filter filter,
++				  void *filter_cookie,
++				  roce_netdev_callback cb,
++				  void *cookie);
 +
-+int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
-+				    enum ib_gid_type gid_type, u8 port,
-+				    struct net *net, int if_index, u16 *index);
+ int roce_gid_cache_get_gid(struct ib_device *ib_dev, u8 port, int index,
+ 			   union ib_gid *gid, struct ib_gid_attr *attr);
+ 
+@@ -66,6 +84,9 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
+ 
+ int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port);
+ 
++int roce_gid_cache_setup(void);
++void roce_gid_cache_cleanup(void);
 +
-+int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port);
+ int roce_add_gid(struct ib_device *ib_dev, u8 port,
+ 		 union ib_gid *gid, struct ib_gid_attr *attr);
+ 
+@@ -75,4 +96,9 @@ int roce_del_gid(struct ib_device *ib_dev, u8 port,
+ int roce_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
+ 			     struct net_device *ndev);
+ 
++int roce_gid_mgmt_init(void);
++void roce_gid_mgmt_cleanup(void);
 +
-+int roce_add_gid(struct ib_device *ib_dev, u8 port,
-+		 union ib_gid *gid, struct ib_gid_attr *attr);
-+
-+int roce_del_gid(struct ib_device *ib_dev, u8 port,
-+		 union ib_gid *gid, struct ib_gid_attr *attr);
-+
-+int roce_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
-+			     struct net_device *ndev);
++int roce_rescan_device(struct ib_device *ib_dev);
 +
  #endif /* _CORE_PRIV_H */
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 8616a95..5ce57bf 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -39,6 +39,7 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <rdma/rdma_netlink.h>
++#include <rdma/ib_addr.h>
+ 
+ #include "core_priv.h"
+ 
+@@ -640,6 +641,82 @@ int ib_query_gid(struct ib_device *device,
+ EXPORT_SYMBOL(ib_query_gid);
+ 
+ /**
++ * ib_dev_roce_ports_of_netdev - enumerate RoCE ports of ibdev in
++ *				 respect of netdev
++ * @ib_dev : IB device we want to query
++ * @filter: Should we call the callback?
++ * @filter_cookie: Cookie passed to filter
++ * @cb: Callback to call for each found RoCE ports
++ * @cookie: Cookie passed back to the callback
++ *
++ * Enumerates all of the physical RoCE ports of ib_dev RoCE ports
++ * which are relaying Ethernet packets to a specific
++ * (possibly virtual) netdevice according to filter.
++ */
++void ib_dev_roce_ports_of_netdev(struct ib_device *ib_dev,
++				 roce_netdev_filter filter,
++				 void *filter_cookie,
++				 roce_netdev_callback cb,
++				 void *cookie)
++{
++	u8 port;
++
++	if (ib_dev->modify_gid)
++		for (port = start_port(ib_dev); port <= end_port(ib_dev);
++		     port++)
++			if (ib_dev->get_link_layer(ib_dev, port) ==
++			    IB_LINK_LAYER_ETHERNET) {
++				struct net_device *idev = NULL;
++
++				rcu_read_lock();
++				if (ib_dev->get_netdev)
++					idev = ib_dev->get_netdev(ib_dev, port);
++
++				if (idev &&
++				    idev->reg_state >= NETREG_UNREGISTERED)
++					idev = NULL;
++
++				if (idev)
++					dev_hold(idev);
++
++				rcu_read_unlock();
++
++				if (filter(ib_dev, port, idev, filter_cookie))
++					cb(ib_dev, port, idev, cookie);
++
++				if (idev)
++					dev_put(idev);
++			}
++}
++
++/**
++ * ib_enum_roce_ports_of_netdev - enumerate RoCE ports of a netdev
++ * @filter: Should we call the callback?
++ * @filter_cookie: Cookie passed to filter
++ * @cb: Callback to call for each found RoCE ports
++ * @cookie: Cookie passed back to the callback
++ *
++ * Enumerates all of the physical RoCE ports which are relaying
++ * Ethernet packets to a specific (possibly virtual) netdevice
++ * according to filter.
++ */
++void ib_enum_roce_ports_of_netdev(roce_netdev_filter filter,
++				  void *filter_cookie,
++				  roce_netdev_callback cb,
++				  void *cookie)
++{
++	struct ib_device *dev;
++
++	mutex_lock(&device_mutex);
++
++	list_for_each_entry(dev, &device_list, core_list)
++		ib_dev_roce_ports_of_netdev(dev, filter, filter_cookie, cb,
++					    cookie);
++
++	mutex_unlock(&device_mutex);
++}
++
++/**
+  * ib_query_pkey - Get P_Key table entry
+  * @device:Device to query
+  * @port_num:Port number to query
+@@ -794,6 +871,8 @@ static int __init ib_core_init(void)
+ 		goto err_sysfs;
+ 	}
+ 
++	roce_gid_cache_setup();
++
+ 	ret = ib_cache_setup();
+ 	if (ret) {
+ 		printk(KERN_WARNING "Couldn't set up InfiniBand P_Key/GID cache\n");
+@@ -815,6 +894,7 @@ err:
+ 
+ static void __exit ib_core_cleanup(void)
+ {
++	roce_gid_cache_cleanup();
+ 	ib_cache_cleanup();
+ 	ibnl_cleanup();
+ 	ib_sysfs_cleanup();
 diff --git a/drivers/infiniband/core/roce_gid_cache.c b/drivers/infiniband/core/roce_gid_cache.c
-new file mode 100644
-index 0000000..8f6af4a
---- /dev/null
+index 8f6af4a..f072533 100644
+--- a/drivers/infiniband/core/roce_gid_cache.c
 +++ b/drivers/infiniband/core/roce_gid_cache.c
-@@ -0,0 +1,511 @@
+@@ -509,3 +509,69 @@ int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port)
+ 	return ib_dev->cache.roce_gid_cache &&
+ 		ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)]->active;
+ }
++
++static void roce_gid_cache_client_setup_one(struct ib_device *ib_dev)
++{
++	if (!roce_gid_cache_setup_one(ib_dev)) {
++		roce_gid_cache_set_active_state(ib_dev, 1);
++		if (roce_rescan_device(ib_dev)) {
++			roce_gid_cache_set_active_state(ib_dev, 0);
++			roce_gid_cache_cleanup_one(ib_dev);
++		}
++	}
++}
++
++static void roce_gid_cache_client_cleanup_work_handler(struct work_struct *work)
++{
++	struct ib_cache *ib_cache = container_of(work, struct ib_cache,
++						 roce_gid_cache_cleanup_work);
++	struct ib_device *ib_dev = container_of(ib_cache, struct ib_device,
++						cache);
++
++	/* Make sure no gid update task is still referencing this device */
++	flush_workqueue(roce_gid_mgmt_wq);
++
++	/* No need to flush the system wq, even though we use it in
++	 * roce_rescan_device because we are guarenteed to run this
++	 * on the system_wq after roce_rescan_device.
++	 */
++
++	roce_gid_cache_cleanup_one(ib_dev);
++	ib_device_put(ib_dev);
++}
++
++static void roce_gid_cache_client_cleanup_one_work(struct ib_device *ib_dev)
++{
++	ib_device_hold(ib_dev);
++	INIT_WORK(&ib_dev->cache.roce_gid_cache_cleanup_work,
++		  roce_gid_cache_client_cleanup_work_handler);
++	schedule_work(&ib_dev->cache.roce_gid_cache_cleanup_work);
++}
++
++static void roce_gid_cache_client_cleanup_one(struct ib_device *ib_dev)
++{
++	roce_gid_cache_set_active_state(ib_dev, 0);
++	roce_gid_cache_client_cleanup_one_work(ib_dev);
++}
++
++static struct ib_client cache_client = {
++	.name   = "roce_gid_cache",
++	.add    = roce_gid_cache_client_setup_one,
++	.remove = roce_gid_cache_client_cleanup_one
++};
++
++int __init roce_gid_cache_setup(void)
++{
++	roce_gid_mgmt_init();
++
++	return ib_register_client(&cache_client);
++}
++
++void __exit roce_gid_cache_cleanup(void)
++{
++	ib_unregister_client(&cache_client);
++
++	roce_gid_mgmt_cleanup();
++
++	flush_workqueue(system_wq);
++}
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+new file mode 100644
+index 0000000..48f9267
+--- /dev/null
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -0,0 +1,545 @@
 +/*
 + * Copyright (c) 2015, Mellanox Technologies inc.  All rights reserved.
 + *
@@ -134,585 +333,559 @@ index 0000000..8f6af4a
 + * SOFTWARE.
 + */
 +
-+#include <linux/slab.h>
-+#include <linux/netdevice.h>
-+#include <linux/rtnetlink.h>
-+#include <rdma/ib_cache.h>
-+
 +#include "core_priv.h"
 +
-+union ib_gid zgid;
-+EXPORT_SYMBOL_GPL(zgid);
++#include <linux/in.h>
++#include <linux/in6.h>
 +
-+static const struct ib_gid_attr zattr;
++/* For in6_dev_get/in6_dev_put */
++#include <net/addrconf.h>
 +
-+enum gid_attr_find_mask {
-+	GID_ATTR_FIND_MASK_GID_TYPE	= 1UL << 0,
-+	GID_ATTR_FIND_MASK_NETDEV	= 1UL << 1,
++#include <rdma/ib_cache.h>
++#include <rdma/ib_addr.h>
++
++struct workqueue_struct *roce_gid_mgmt_wq;
++
++enum gid_op_type {
++	GID_DEL = 0,
++	GID_ADD
 +};
 +
-+static inline int start_port(struct ib_device *ib_dev)
++struct  update_gid_event_work {
++	struct work_struct work;
++	union ib_gid       gid;
++	struct ib_gid_attr gid_attr;
++	enum gid_op_type gid_op;
++};
++
++#define ROCE_NETDEV_CALLBACK_SZ		2
++struct netdev_event_work_cmd {
++	roce_netdev_callback	cb;
++	roce_netdev_filter	filter;
++};
++
++struct netdev_event_work {
++	struct work_struct		work;
++	struct netdev_event_work_cmd	cmds[ROCE_NETDEV_CALLBACK_SZ];
++	struct net_device		*ndev;
++};
++
++struct roce_rescan_work {
++	struct work_struct	work;
++	struct ib_device	*ib_dev;
++};
++
++static const struct {
++	int flag_mask;
++	enum ib_gid_type gid_type;
++} PORT_CAP_TO_GID_TYPE[] = {
++	{IB_PORT_ROCE_V2,   IB_GID_TYPE_ROCE_V2},
++	{IB_PORT_ROCE,      IB_GID_TYPE_IB},
++};
++
++#define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
++
++static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
++		       u8 port, union ib_gid *gid,
++		       struct ib_gid_attr *gid_attr)
 +{
-+	return (ib_dev->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
++	struct ib_port_attr pattr;
++	int i;
++	int err;
++
++	err = ib_query_port(ib_dev, port, &pattr);
++	if (err) {
++		pr_warn("update_gid: ib_query_port() failed for %s, %d\n",
++			ib_dev->name, err);
++	}
++
++	for (i = 0; i < CAP_TO_GID_TABLE_SIZE; i++) {
++		if (pattr.port_cap_flags & PORT_CAP_TO_GID_TYPE[i].flag_mask) {
++			gid_attr->gid_type =
++				PORT_CAP_TO_GID_TYPE[i].gid_type;
++			switch (gid_op) {
++			case GID_ADD:
++				roce_add_gid(ib_dev, port,
++					     gid, gid_attr);
++				break;
++			case GID_DEL:
++				roce_del_gid(ib_dev, port,
++					     gid, gid_attr);
++				break;
++			}
++		}
++	}
 +}
 +
-+struct dev_put_rcu {
-+	struct rcu_head		rcu;
++static int is_eth_port_of_netdev(struct ib_device *ib_dev, u8 port,
++				 struct net_device *idev, void *cookie)
++{
++	struct net_device *rdev;
++	struct net_device *mdev;
++	struct net_device *ndev = (struct net_device *)cookie;
++
++	if (!idev)
++		return 0;
++
++	rcu_read_lock();
++	mdev = netdev_master_upper_dev_get_rcu(idev);
++	rdev = rdma_vlan_dev_real_dev(ndev);
++	rcu_read_unlock();
++
++	return (rdev ? rdev : ndev) == (mdev ? mdev : idev);
++}
++
++static int pass_all_filter(struct ib_device *ib_dev, u8 port,
++			   struct net_device *idev, void *cookie)
++{
++	return 1;
++}
++
++static void netdevice_event_work_handler(struct work_struct *_work)
++{
++	struct netdev_event_work *work =
++		container_of(_work, struct netdev_event_work, work);
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(work->cmds) && work->cmds[i].cb; i++)
++		ib_enum_roce_ports_of_netdev(work->cmds[i].filter, work->ndev,
++					     work->cmds[i].cb, work->ndev);
++
++	dev_put(work->ndev);
++	kfree(work);
++}
++
++static void update_gid_ip(enum gid_op_type gid_op,
++			  struct ib_device *ib_dev,
++			  u8 port, struct net_device *ndev,
++			  const struct sockaddr *addr)
++{
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr;
++
++	rdma_ip2gid(addr, &gid);
++	memset(&gid_attr, 0, sizeof(gid_attr));
++	gid_attr.ndev = ndev;
++
++	update_gid(gid_op, ib_dev, port, &gid, &gid_attr);
++}
++
++static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
++				 u8 port, struct net_device *ndev)
++{
++	struct in_device *in_dev;
++
++	if (ndev->reg_state >= NETREG_UNREGISTERING)
++		return;
++
++	in_dev = in_dev_get(ndev);
++	if (!in_dev)
++		return;
++
++	for_ifa(in_dev) {
++		struct sockaddr_in ip;
++
++		ip.sin_family = AF_INET;
++		ip.sin_addr.s_addr = ifa->ifa_address;
++		update_gid_ip(GID_ADD, ib_dev, port, ndev,
++			      (struct sockaddr *)&ip);
++	}
++	endfor_ifa(in_dev);
++
++	in_dev_put(in_dev);
++}
++
++#if IS_ENABLED(CONFIG_IPV6)
++struct update_gid_work {
++	struct work_struct work;
++	enum gid_op_type   gid_op;
++	struct ib_device   *ib_dev;
++	u8                 port;
++	union ib_gid       gid;
++	struct ib_gid_attr gid_attr;
++};
++
++static void update_gid_work_handler(struct work_struct *_work)
++{
++	struct update_gid_work *work =
++		container_of(_work, struct update_gid_work, work);
++
++	update_gid(work->gid_op, work->ib_dev, work->port,
++		   &work->gid, &work->gid_attr);
++
++	dev_put(work->gid_attr.ndev);
++	kfree(work);
++}
++
++static void queue_update_gid_work(enum gid_op_type gid_op,
++				  struct ib_device *ib_dev,
++				  u8 port, struct net_device *ndev,
++				  const struct sockaddr *addr)
++{
++	struct update_gid_work *work;
++
++	if (!roce_gid_cache_is_active(ib_dev, port))
++		return;
++
++	work = kmalloc(sizeof(*work), GFP_ATOMIC);
++	if (!work)
++		return;
++
++	INIT_WORK(&work->work, update_gid_work_handler);
++
++	work->gid_op = gid_op;
++	work->ib_dev = ib_dev;
++	work->port   = port;
++	rdma_ip2gid(addr, &work->gid);
++
++	memset(&work->gid_attr, 0, sizeof(work->gid_attr));
++
++	dev_hold(ndev);
++	work->gid_attr.ndev   = ndev;
++
++	queue_work(roce_gid_mgmt_wq, &work->work);
++}
++
++static void enum_netdev_ipv6_ips(struct ib_device *ib_dev,
++				 u8 port, struct net_device *ndev)
++{
++	struct inet6_ifaddr *ifp;
++	struct inet6_dev *in6_dev;
++
++	if (ndev->reg_state >= NETREG_UNREGISTERING)
++		return;
++
++	in6_dev = in6_dev_get(ndev);
++	if (!in6_dev)
++		return;
++
++	read_lock_bh(&in6_dev->lock);
++	list_for_each_entry(ifp, &in6_dev->addr_list, if_list) {
++		struct sockaddr_in6 ip;
++
++		ip.sin6_family = AF_INET6;
++		ip.sin6_addr = ifp->addr;
++		queue_update_gid_work(GID_ADD, ib_dev, port, ndev,
++				      (const struct sockaddr *)&ip);
++	}
++	read_unlock_bh(&in6_dev->lock);
++
++	in6_dev_put(in6_dev);
++}
++#endif
++
++static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
++			   struct net_device *idev, void *cookie)
++{
++	struct net_device *ndev = (struct net_device *)cookie;
++
++	enum_netdev_ipv4_ips(ib_dev, port, ndev);
++#if IS_ENABLED(CONFIG_IPV6)
++	enum_netdev_ipv6_ips(ib_dev, port, ndev);
++#endif
++}
++
++static void del_netdev_ips(struct ib_device *ib_dev, u8 port,
++			   struct net_device *idev, void *cookie)
++{
++	struct net_device *ndev = (struct net_device *)cookie;
++
++	roce_del_all_netdev_gids(ib_dev, port, ndev);
++}
++
++static int netdevice_event(struct notifier_block *this, unsigned long event,
++			   void *ptr)
++{
++	static const struct netdev_event_work_cmd add_cmd = {
++		.cb = add_netdev_ips, .filter = is_eth_port_of_netdev};
++	static const struct netdev_event_work_cmd del_cmd = {
++		.cb = del_netdev_ips, .filter = pass_all_filter};
++	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
++	struct netdev_event_work *ndev_work;
++	struct netdev_event_work_cmd cmds[ROCE_NETDEV_CALLBACK_SZ] = { {NULL} };
++
++	if (ndev->type != ARPHRD_ETHER)
++		return NOTIFY_DONE;
++
++	switch (event) {
++	case NETDEV_REGISTER:
++	case NETDEV_UP:
++		cmds[0] = add_cmd;
++		break;
++
++	case NETDEV_UNREGISTER:
++		if (ndev->reg_state < NETREG_UNREGISTERED)
++			cmds[0] = del_cmd;
++		else
++			return NOTIFY_DONE;
++		break;
++
++	case NETDEV_CHANGEADDR:
++		cmds[0] = del_cmd;
++		cmds[1] = add_cmd;
++		break;
++	default:
++		return NOTIFY_DONE;
++	}
++
++	ndev_work = kmalloc(sizeof(*ndev_work), GFP_KERNEL);
++	if (!ndev_work) {
++		pr_warn("roce_gid_mgmt: can't allocate work for netdevice_event\n");
++		return NOTIFY_DONE;
++	}
++
++	memcpy(ndev_work->cmds, cmds, sizeof(ndev_work->cmds));
++	ndev_work->ndev = ndev;
++	dev_hold(ndev);
++	INIT_WORK(&ndev_work->work, netdevice_event_work_handler);
++
++	queue_work(roce_gid_mgmt_wq, &ndev_work->work);
++
++	return NOTIFY_DONE;
++}
++
++static void callback_for_addr_gid_device_scan(struct ib_device *device,
++					      u8 port,
++					      struct net_device *idev,
++					      void *cookie)
++{
++	struct update_gid_event_work *parsed = cookie;
++
++	return update_gid(parsed->gid_op, device,
++			  port, &parsed->gid,
++			  &parsed->gid_attr);
++}
++
++static void update_gid_event_work_handler(struct work_struct *_work)
++{
++	struct update_gid_event_work *work =
++		container_of(_work, struct update_gid_event_work, work);
++
++	ib_enum_roce_ports_of_netdev(is_eth_port_of_netdev, work->gid_attr.ndev,
++				     callback_for_addr_gid_device_scan, work);
++
++	dev_put(work->gid_attr.ndev);
++	kfree(work);
++}
++
++static int addr_event(struct notifier_block *this, unsigned long event,
++		      struct sockaddr *sa, struct net_device *ndev)
++{
++	struct update_gid_event_work *work;
++	enum gid_op_type gid_op;
++
++	if (ndev->type != ARPHRD_ETHER)
++		return NOTIFY_DONE;
++
++	switch (event) {
++	case NETDEV_UP:
++		gid_op = GID_ADD;
++		break;
++
++	case NETDEV_DOWN:
++		gid_op = GID_DEL;
++		break;
++
++	default:
++		return NOTIFY_DONE;
++	}
++
++	work = kmalloc(sizeof(*work), GFP_ATOMIC);
++	if (!work) {
++		pr_warn("roce_gid_mgmt: Couldn't allocate work for addr_event\n");
++		return NOTIFY_DONE;
++	}
++
++	INIT_WORK(&work->work, update_gid_event_work_handler);
++
++	rdma_ip2gid(sa, &work->gid);
++	work->gid_op = gid_op;
++
++	memset(&work->gid_attr, 0, sizeof(work->gid_attr));
++	dev_hold(ndev);
++	work->gid_attr.ndev   = ndev;
++
++	queue_work(roce_gid_mgmt_wq, &work->work);
++
++	return NOTIFY_DONE;
++}
++
++static void enum_all_gids_of_dev_cb(struct ib_device *ib_dev,
++				    u8 port,
++				    struct net_device *idev,
++				    void *cookie)
++{
++	struct net *net;
++	struct net_device *ndev;
++
++	/* Lock the rtnl to make sure the netdevs does not move under
++	 * our feet
++	 */
++	rtnl_lock();
++	for_each_net(net)
++		for_each_netdev(net, ndev)
++			if (is_eth_port_of_netdev(ib_dev, port, idev, ndev))
++				add_netdev_ips(ib_dev, port, idev, ndev);
++	rtnl_unlock();
++}
++
++/* This function will rescan all of the network devices in the system
++ * and add their gids, as needed, to the relevant RoCE devices. Will
++ * take rtnl and the IB device list mutexes. Must not be called from
++ * ib_wq or deadlock will happen. */
++static void enum_all_gids_of_dev(struct ib_device *ib_dev)
++{
++	ib_dev_roce_ports_of_netdev(ib_dev, pass_all_filter, NULL,
++				    enum_all_gids_of_dev_cb, NULL);
++}
++
++static int inetaddr_event(struct notifier_block *this, unsigned long event,
++			  void *ptr)
++{
++	struct sockaddr_in	in;
 +	struct net_device	*ndev;
++	struct in_ifaddr	*ifa = ptr;
++
++	in.sin_family = AF_INET;
++	in.sin_addr.s_addr = ifa->ifa_address;
++	ndev = ifa->ifa_dev->dev;
++
++	return addr_event(this, event, (struct sockaddr *)&in, ndev);
++}
++
++#if IS_ENABLED(CONFIG_IPV6)
++static int inet6addr_event(struct notifier_block *this, unsigned long event,
++			   void *ptr)
++{
++	struct sockaddr_in6	in6;
++	struct net_device	*ndev;
++	struct inet6_ifaddr	*ifa6 = ptr;
++
++	in6.sin6_family = AF_INET6;
++	in6.sin6_addr = ifa6->addr;
++	ndev = ifa6->idev->dev;
++
++	return addr_event(this, event, (struct sockaddr *)&in6, ndev);
++}
++#endif
++
++static struct notifier_block nb_netdevice = {
++	.notifier_call = netdevice_event
 +};
 +
-+static void put_ndev(struct rcu_head *rcu)
-+{
-+	struct dev_put_rcu *put_rcu =
-+		container_of(rcu, struct dev_put_rcu, rcu);
++static struct notifier_block nb_inetaddr = {
++	.notifier_call = inetaddr_event
++};
 +
-+	dev_put(put_rcu->ndev);
-+	kfree(put_rcu);
++#if IS_ENABLED(CONFIG_IPV6)
++static struct notifier_block nb_inet6addr = {
++	.notifier_call = inet6addr_event
++};
++#endif
++
++static void roce_rescan_device_work_handler(struct work_struct *_work)
++{
++	struct roce_rescan_work *work =
++		container_of(_work, struct roce_rescan_work, work);
++
++	enum_all_gids_of_dev(work->ib_dev);
++	kfree(work);
 +}
 +
-+static int write_gid(struct ib_device *ib_dev, u8 port,
-+		     struct ib_roce_gid_cache *cache, int ix,
-+		     const union ib_gid *gid,
-+		     const struct ib_gid_attr *attr)
++/* Caller must flush system workqueue before removing the ib_device */
++int roce_rescan_device(struct ib_device *ib_dev)
 +{
-+	unsigned int orig_seq;
-+	int ret;
-+	struct dev_put_rcu	*put_rcu;
-+	struct net_device *old_net_dev;
++	struct roce_rescan_work *work = kmalloc(sizeof(*work), GFP_KERNEL);
 +
-+	orig_seq = cache->data_vec[ix].seq;
-+	cache->data_vec[ix].seq = -1;
-+	/* Ensure that all readers will see invalid sequence
-+	 * identifier before starting the actual GID update.
-+	 */
-+	smp_wmb();
++	if (!work)
++		return -ENOMEM;
 +
-+	ret = ib_dev->modify_gid(ib_dev, port, ix, gid, attr,
-+				 &cache->data_vec[ix].context);
++	work->ib_dev = ib_dev;
++	INIT_WORK(&work->work, roce_rescan_device_work_handler);
++	schedule_work(&work->work);
 +
-+	old_net_dev = cache->data_vec[ix].attr.ndev;
-+	if (old_net_dev && old_net_dev != attr->ndev) {
-+		put_rcu = kmalloc(sizeof(*put_rcu), GFP_KERNEL);
-+		if (put_rcu) {
-+			put_rcu->ndev = old_net_dev;
-+			call_rcu(&put_rcu->rcu, put_ndev);
-+		} else {
-+			pr_warn("roce_gid_cache: can't allocate rcu context, using synchronize\n");
-+			synchronize_rcu();
-+			dev_put(old_net_dev);
-+		}
-+	}
-+	/* if modify_gid failed, just delete the old gid */
-+	if (ret) {
-+		gid = &zgid;
-+		attr = &zattr;
-+		cache->data_vec[ix].context = NULL;
-+	}
-+	memcpy(&cache->data_vec[ix].gid, gid, sizeof(*gid));
-+	memcpy(&cache->data_vec[ix].attr, attr, sizeof(*attr));
-+	if (cache->data_vec[ix].attr.ndev &&
-+	    cache->data_vec[ix].attr.ndev != old_net_dev)
-+		dev_hold(cache->data_vec[ix].attr.ndev);
-+
-+	/* Ensure that all cached gid data updating is finished before
-+	 * marking the entry as available.
-+	 */
-+	smp_wmb();
-+
-+	if (++orig_seq == (unsigned int)-1)
-+		orig_seq = 0;
-+	ACCESS_ONCE(cache->data_vec[ix].seq) = orig_seq;
-+
-+	if (!ret) {
-+		struct ib_event event;
-+
-+		event.device		= ib_dev;
-+		event.element.port_num	= port;
-+		event.event		= IB_EVENT_GID_CHANGE;
-+
-+		ib_dispatch_event(&event);
-+	}
-+	return ret;
-+}
-+
-+static int find_gid(struct ib_roce_gid_cache *cache, union ib_gid *gid,
-+		    const struct ib_gid_attr *val, unsigned long mask)
-+{
-+	int i;
-+	unsigned int orig_seq;
-+
-+	for (i = 0; i < cache->sz; i++) {
-+		struct ib_gid_attr *attr = &cache->data_vec[i].attr;
-+
-+		orig_seq = cache->data_vec[i].seq;
-+		if (orig_seq == -1)
-+			continue;
-+		/* Make sure the sequence number we remeber was read
-+		 * before the gid cache entry content is read.
-+		 */
-+		smp_rmb();
-+
-+		if (mask & GID_ATTR_FIND_MASK_GID_TYPE &&
-+		    attr->gid_type != val->gid_type)
-+			continue;
-+
-+		if (memcmp(gid, &cache->data_vec[i].gid, sizeof(*gid)))
-+			continue;
-+
-+		if (mask & GID_ATTR_FIND_MASK_NETDEV &&
-+		    attr->ndev != val->ndev)
-+			continue;
-+
-+		/* We have a match, verify that the data we
-+		 * compared is valid. Make sure that the
-+		 * sequence number we read is the last to be
-+		 * read.
-+		 */
-+		smp_rmb();
-+		if (orig_seq == ACCESS_ONCE(cache->data_vec[i].seq))
-+			return i;
-+		/* The sequence number changed under our feet,
-+		 * the GID entry is invalid. Continue to the
-+		 * next entry.
-+		 */
-+	}
-+
-+	return -1;
-+}
-+
-+int roce_add_gid(struct ib_device *ib_dev, u8 port,
-+		 union ib_gid *gid, struct ib_gid_attr *attr)
-+{
-+	struct ib_roce_gid_cache *cache;
-+	int ix;
-+	int ret = 0;
-+
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return -ENOSYS;
-+
-+	cache = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
-+
-+	if (!cache->active)
-+		return -ENOSYS;
-+
-+	mutex_lock(&cache->lock);
-+
-+	ix = find_gid(cache, gid, attr, GID_ATTR_FIND_MASK_GID_TYPE |
-+		      GID_ATTR_FIND_MASK_NETDEV);
-+	if (ix >= 0)
-+		goto out_unlock;
-+
-+	ix = find_gid(cache, &zgid, NULL, 0);
-+	if (ix < 0) {
-+		ret = -ENOSPC;
-+		goto out_unlock;
-+	}
-+
-+	write_gid(ib_dev, port, cache, ix, gid, attr);
-+
-+out_unlock:
-+	mutex_unlock(&cache->lock);
-+	return ret;
-+}
-+
-+int roce_del_gid(struct ib_device *ib_dev, u8 port,
-+		 union ib_gid *gid, struct ib_gid_attr *attr)
-+{
-+	struct ib_roce_gid_cache *cache;
-+	int ix;
-+
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return 0;
-+
-+	cache  = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
-+
-+	if (!cache->active)
-+		return -ENOSYS;
-+
-+	mutex_lock(&cache->lock);
-+
-+	ix = find_gid(cache, gid, attr,
-+		      GID_ATTR_FIND_MASK_GID_TYPE |
-+		      GID_ATTR_FIND_MASK_NETDEV);
-+	if (ix < 0)
-+		goto out_unlock;
-+
-+	write_gid(ib_dev, port, cache, ix, &zgid, &zattr);
-+
-+out_unlock:
-+	mutex_unlock(&cache->lock);
 +	return 0;
 +}
 +
-+int roce_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
-+			     struct net_device *ndev)
++int __init roce_gid_mgmt_init(void)
 +{
-+	struct ib_roce_gid_cache *cache;
-+	int ix;
++	roce_gid_mgmt_wq = alloc_ordered_workqueue("roce_gid_mgmt_wq", 0);
 +
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return 0;
-+
-+	cache  = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
-+
-+	if (!cache->active)
-+		return -ENOSYS;
-+
-+	mutex_lock(&cache->lock);
-+
-+	for (ix = 0; ix < cache->sz; ix++)
-+		if (cache->data_vec[ix].attr.ndev == ndev)
-+			write_gid(ib_dev, port, cache, ix, &zgid, &zattr);
-+
-+	mutex_unlock(&cache->lock);
-+	return 0;
-+}
-+
-+int roce_gid_cache_get_gid(struct ib_device *ib_dev, u8 port, int index,
-+			   union ib_gid *gid, struct ib_gid_attr *attr)
-+{
-+	struct ib_roce_gid_cache *cache;
-+	union ib_gid local_gid;
-+	struct ib_gid_attr local_attr;
-+	unsigned int orig_seq;
-+
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return -EINVAL;
-+
-+	cache = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
-+
-+	if (!cache->active)
-+		return -ENOSYS;
-+
-+	if (index < 0 || index >= cache->sz)
-+		return -EINVAL;
-+
-+	orig_seq = ACCESS_ONCE(cache->data_vec[index].seq);
-+	/* Make sure we read the sequence number before copying the
-+	 * gid to local storage. */
-+	smp_rmb();
-+
-+	memcpy(&local_gid, &cache->data_vec[index].gid, sizeof(local_gid));
-+	memcpy(&local_attr, &cache->data_vec[index].attr, sizeof(local_attr));
-+	/* Ensure the local copy completed reading before verifying
-+	 * the new sequence number. */
-+	smp_rmb();
-+
-+	if (orig_seq == -1 ||
-+	    orig_seq != ACCESS_ONCE(cache->data_vec[index].seq))
-+		return -EAGAIN;
-+
-+	memcpy(gid, &local_gid, sizeof(*gid));
-+	if (attr)
-+		memcpy(attr, &local_attr, sizeof(*attr));
-+	return 0;
-+}
-+
-+static int _roce_gid_cache_find_gid(struct ib_device *ib_dev, union ib_gid *gid,
-+				    const struct ib_gid_attr *val,
-+				    unsigned long mask,
-+				    u8 *port, u16 *index)
-+{
-+	struct ib_roce_gid_cache *cache;
-+	u8 p;
-+	int local_index;
-+
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return -ENOENT;
-+
-+	for (p = 0; p < ib_dev->phys_port_cnt; p++) {
-+		if (rdma_port_get_link_layer(ib_dev, p + start_port(ib_dev)) !=
-+		    IB_LINK_LAYER_ETHERNET)
-+			continue;
-+		cache = ib_dev->cache.roce_gid_cache[p];
-+		if (!cache->active)
-+			continue;
-+		local_index = find_gid(cache, gid, val, mask);
-+		if (local_index >= 0) {
-+			if (index)
-+				*index = local_index;
-+			if (port)
-+				*port = p + start_port(ib_dev);
-+			return 0;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int get_netdev_from_ifindex(struct net *net, int if_index,
-+				   struct ib_gid_attr *gid_attr_val)
-+{
-+	if (if_index && net) {
-+		rcu_read_lock();
-+		gid_attr_val->ndev = dev_get_by_index_rcu(net, if_index);
-+		rcu_read_unlock();
-+		if (gid_attr_val->ndev)
-+			return GID_ATTR_FIND_MASK_NETDEV;
-+	}
-+	return 0;
-+}
-+
-+int roce_gid_cache_find_gid(struct ib_device *ib_dev, union ib_gid *gid,
-+			    enum ib_gid_type gid_type, struct net *net,
-+			    int if_index, u8 *port, u16 *index)
-+{
-+	unsigned long mask = GID_ATTR_FIND_MASK_GID_TYPE;
-+	struct ib_gid_attr gid_attr_val = {.gid_type = gid_type};
-+
-+	mask |= get_netdev_from_ifindex(net, if_index, &gid_attr_val);
-+
-+	return _roce_gid_cache_find_gid(ib_dev, gid, &gid_attr_val,
-+					mask, port, index);
-+}
-+
-+int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
-+				    enum ib_gid_type gid_type, u8 port,
-+				    struct net *net, int if_index, u16 *index)
-+{
-+	int local_index;
-+	struct ib_roce_gid_cache *cache;
-+	unsigned long mask = GID_ATTR_FIND_MASK_GID_TYPE;
-+	struct ib_gid_attr val = {.gid_type = gid_type};
-+
-+	if (!ib_dev->cache.roce_gid_cache || port < start_port(ib_dev) ||
-+	    port >= (start_port(ib_dev) + ib_dev->phys_port_cnt))
-+		return -ENOENT;
-+
-+	cache = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
-+	if (!cache->active)
-+		return -ENOENT;
-+
-+	mask |= get_netdev_from_ifindex(net, if_index, &val);
-+
-+	local_index = find_gid(cache, gid, &val, mask);
-+	if (local_index >= 0) {
-+		if (index)
-+			*index = local_index;
-+		return 0;
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static struct ib_roce_gid_cache *alloc_roce_gid_cache(int sz)
-+{
-+	struct ib_roce_gid_cache *cache =
-+		kzalloc(sizeof(struct ib_roce_gid_cache), GFP_KERNEL);
-+	if (!cache)
-+		return NULL;
-+
-+	cache->data_vec = kcalloc(sz, sizeof(*cache->data_vec), GFP_KERNEL);
-+	if (!cache->data_vec)
-+		goto err_free_cache;
-+
-+	mutex_init(&cache->lock);
-+
-+	cache->sz = sz;
-+
-+	return cache;
-+
-+err_free_cache:
-+	kfree(cache);
-+	return NULL;
-+}
-+
-+static void free_roce_gid_cache(struct ib_roce_gid_cache *cache)
-+{
-+	int i;
-+
-+	if (!cache)
-+		return;
-+
-+	for (i = 0; i < cache->sz; ++i) {
-+		if (cache->data_vec[i].attr.ndev)
-+			dev_put(cache->data_vec[i].attr.ndev);
-+	}
-+	kfree(cache->data_vec);
-+	kfree(cache);
-+}
-+
-+static void set_roce_gid_cache_active(struct ib_roce_gid_cache *cache,
-+				      int active)
-+{
-+	if (!cache)
-+		return;
-+
-+	cache->active = active;
-+}
-+
-+static int roce_gid_cache_setup_one(struct ib_device *ib_dev)
-+{
-+	u8 port;
-+	int err = 0;
-+
-+	if (!ib_dev->modify_gid)
-+		return -ENOSYS;
-+
-+	ib_dev->cache.roce_gid_cache =
-+		kcalloc(ib_dev->phys_port_cnt,
-+			sizeof(*ib_dev->cache.roce_gid_cache), GFP_KERNEL);
-+
-+	if (!ib_dev->cache.roce_gid_cache) {
-+		pr_warn("failed to allocate roce addr cache for %s\n",
-+			ib_dev->name);
++	if (!roce_gid_mgmt_wq) {
++		pr_warn("roce_gid_mgmt: can't allocate work queue\n");
 +		return -ENOMEM;
 +	}
 +
-+	for (port = 0; port < ib_dev->phys_port_cnt; port++) {
-+		if (rdma_port_get_link_layer(ib_dev, port + start_port(ib_dev))
-+		    != IB_LINK_LAYER_ETHERNET)
-+			continue;
-+		ib_dev->cache.roce_gid_cache[port] =
-+			alloc_roce_gid_cache(ib_dev->gid_tbl_len[port]);
-+		if (!ib_dev->cache.roce_gid_cache[port]) {
-+			err = -ENOMEM;
-+			goto rollback_cache_setup;
-+		}
-+	}
++	register_inetaddr_notifier(&nb_inetaddr);
++#if IS_ENABLED(CONFIG_IPV6)
++	register_inet6addr_notifier(&nb_inet6addr);
++#endif
++	/* We relay on the netdevice notifier to enumerate all
++	 * existing devices in the system. Register to this notifier
++	 * last to make sure we will not miss any IP add/del
++	 * callbacks.
++	 */
++	register_netdevice_notifier(&nb_netdevice);
++
 +	return 0;
-+
-+rollback_cache_setup:
-+	for (port = 0; port < ib_dev->phys_port_cnt; port++)
-+		free_roce_gid_cache(ib_dev->cache.roce_gid_cache[port]);
-+
-+	kfree(ib_dev->cache.roce_gid_cache);
-+	ib_dev->cache.roce_gid_cache = NULL;
-+	return err;
 +}
 +
-+static void roce_gid_cache_cleanup_one(struct ib_device *ib_dev)
++void __exit roce_gid_mgmt_cleanup(void)
 +{
-+	u8 port;
-+
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return;
-+
-+	for (port = 0; port < ib_dev->phys_port_cnt; port++)
-+		free_roce_gid_cache(ib_dev->cache.roce_gid_cache[port]);
-+
-+	kfree(ib_dev->cache.roce_gid_cache);
-+	ib_dev->cache.roce_gid_cache = NULL;
++#if IS_ENABLED(CONFIG_IPV6)
++	unregister_inet6addr_notifier(&nb_inet6addr);
++#endif
++	unregister_inetaddr_notifier(&nb_inetaddr);
++	unregister_netdevice_notifier(&nb_netdevice);
++	/* Ensure all gid deletion tasks complete before we go down,
++	 * to avoid any reference to free'd memory. By the time
++	 * ib-core is removed, all physical devices have been removed,
++	 * so no issue with remaining hardware contexts.
++	 */
++	synchronize_rcu();
++	drain_workqueue(roce_gid_mgmt_wq);
++	destroy_workqueue(roce_gid_mgmt_wq);
 +}
-+
-+static void roce_gid_cache_set_active_state(struct ib_device *ib_dev,
-+					    int active)
-+{
-+	u8 port;
-+
-+	if (!ib_dev->cache.roce_gid_cache)
-+		return;
-+
-+	for (port = 0; port < ib_dev->phys_port_cnt; port++)
-+		set_roce_gid_cache_active(ib_dev->cache.roce_gid_cache[port],
-+					  active);
-+}
-+
-+int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port)
-+{
-+	return ib_dev->cache.roce_gid_cache &&
-+		ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)]->active;
-+}
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 5261665..6fa5e49 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -93,8 +93,6 @@ static void init_query_mad(struct ib_smp *mad)
- 	mad->method	   = IB_MGMT_METHOD_GET;
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index ce55906..3cf32d1 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -142,7 +142,7 @@ static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+ 		vlan_dev_vlan_id(dev) : 0xffff;
  }
  
--static union ib_gid zgid;
--
- static int check_flow_steering_support(struct mlx4_dev *dev)
+-static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
++static inline int rdma_ip2gid(const struct sockaddr *addr, union ib_gid *gid)
  {
- 	int eth_num_ports = 0;
+ 	switch (addr->sa_family) {
+ 	case AF_INET:
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 65994a1..1866595 100644
+index a7593b0..1bc13b1 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -64,6 +64,36 @@ union ib_gid {
- 	} global;
- };
- 
-+extern union ib_gid zgid;
-+
-+enum ib_gid_type {
-+	/* If link layer is Ethernet, this is RoCE V1 */
-+	IB_GID_TYPE_IB        = 0,
-+	IB_GID_TYPE_ROCE_V2   = 1,
-+	IB_GID_TYPE_SIZE
-+};
-+
-+struct ib_gid_attr {
-+	enum ib_gid_type	gid_type;
-+	struct net_device	*ndev;
-+};
-+
-+struct ib_roce_gid_cache_entry {
-+	/* seq number of 0 indicates entry being changed. */
-+	unsigned int        seq;
-+	union ib_gid        gid;
-+	struct ib_gid_attr  attr;
-+	void		   *context;
-+};
-+
-+struct ib_roce_gid_cache {
-+	int		     active;
-+	int                  sz;
-+	/* locking against multiple writes in data_vec */
-+	struct mutex         lock;
-+	struct ib_roce_gid_cache_entry *data_vec;
-+};
-+
- enum rdma_node_type {
- 	/* IB values map to NodeInfo:NodeType. */
- 	RDMA_NODE_IB_CA 	= 1,
-@@ -265,7 +295,9 @@ enum ib_port_cap_flags {
- 	IB_PORT_BOOT_MGMT_SUP			= 1 << 23,
- 	IB_PORT_LINK_LATENCY_SUP		= 1 << 24,
- 	IB_PORT_CLIENT_REG_SUP			= 1 << 25,
--	IB_PORT_IP_BASED_GIDS			= 1 << 26
-+	IB_PORT_IP_BASED_GIDS			= 1 << 26,
-+	IB_PORT_ROCE				= 1 << 27,
-+	IB_PORT_ROCE_V2				= 1 << 28,
- };
- 
- enum ib_port_width {
-@@ -1431,6 +1463,7 @@ struct ib_cache {
- 	struct ib_pkey_cache  **pkey_cache;
+@@ -1464,6 +1464,7 @@ struct ib_cache {
  	struct ib_gid_cache   **gid_cache;
  	u8                     *lmc_cache;
-+	struct ib_roce_gid_cache **roce_gid_cache;
+ 	struct ib_roce_gid_cache **roce_gid_cache;
++	struct work_struct	roce_gid_cache_cleanup_work;
  };
  
  struct ib_dma_mapping_ops {
-@@ -1506,6 +1539,26 @@ struct ib_device {
+@@ -1536,6 +1537,14 @@ struct ib_device {
+ 						 struct ib_port_attr *port_attr);
+ 	enum rdma_link_layer	   (*get_link_layer)(struct ib_device *device,
+ 						     u8 port_num);
++	/* When calling get_netdev, the HW vendor's driver should return the
++	 * net device of device @device at port @port_num. The function
++	 * is called in rtnl_lock. The HW vendor's device driver must guarantee
++	 * to return NULL before the net device has reached
++	 * NETDEV_UNREGISTER_FINAL state.
++	 */
++	struct net_device	  *(*get_netdev)(struct ib_device *device,
++						 u8 port_num);
  	int		           (*query_gid)(struct ib_device *device,
  						u8 port_num, int index,
  						union ib_gid *gid);
-+	/* When calling modify_gid, the HW vendor's driver should
-+	 * modify the gid of device @device at gid index @index of
-+	 * port @port to be @gid. Meta-info of that gid (for example,
-+	 * the network device related to this gid is available
-+	 * at @attr. @context allows the HW vendor driver to store extra
-+	 * information together with a GID entry. The HW vendor may allocate
-+	 * memory to contain this information and store it in @context when a
-+	 * new GID entry is written to. Upon the deletion of a GID entry,
-+	 * the HW vendor must free any allocated memory. The caller will clear
-+	 * @context afterwards.GID deletion is done by passing the zero gid.
-+	 * Params are consistent until the next call of modify_gid.
-+	 * The function should return 0 on success or error otherwise.
-+	 * The function could be called concurrently for different ports.
-+	 */
-+	int		           (*modify_gid)(struct ib_device *device,
-+						 u8 port_num,
-+						 unsigned int index,
-+						 const union ib_gid *gid,
-+						 const struct ib_gid_attr *attr,
-+						 void **context);
- 	int		           (*query_pkey)(struct ib_device *device,
- 						 u8 port_num, u16 index, u16 *pkey);
- 	int		           (*modify_device)(struct ib_device *device,
 -- 
 1.7.1
 
