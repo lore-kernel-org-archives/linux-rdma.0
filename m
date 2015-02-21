@@ -1,180 +1,304 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri, 20 Feb 2015 09:08:21 -0800
-Message-ID: <1424452101-10247-1-git-send-email-roland@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 15/30] RDMA/ocrdma: changes to support RoCE-v2 in UD path
+Date: Sat, 21 Feb 2015 13:13:16 +0000
+Message-ID: <d6d3f866-d379-40c0-9447-a71088a757c7@CMEXHTCAS2.ad.emulex.com>
+References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
+ <7d2d787d-b849-42af-a93f-32b13ec319ba@CMEXHTCAS2.ad.emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7d2d787d-b849-42af-a93f-32b13ec319ba-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Hi Som,
 
-Please pull from
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Somnath Kotur
+> Sent: Friday, February 20, 2015 3:33 AM
+> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Devesh Sharma; Somnath Kotur
+> Subject: [PATCH 15/30] RDMA/ocrdma: changes to support RoCE-v2 in UD path
+> 
+> From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> 
+> To support UD protocol this patch adds following changes to existing UD
+> implementation.
+> 
+> 1. AH creation resolves gid-type for a given index.
+> 2. Based on GID-type protocol header is built.
+> 3. Work completion reports l3-type if f/w supports RoCE-v2
+>    and sets IB_WC_WITH_NETWORK_HDR_TYPE flag in wc->wc_flags.
+> 
+> Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 +
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |   68
+> ++++++++++++++++++++++-----
+>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |    5 ++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   23 +++++++--
+>  4 files changed, 80 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h
+> b/drivers/infiniband/hw/ocrdma/ocrdma.h
+> index 97f971a..302fd0e 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma.h
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+> @@ -341,6 +341,7 @@ struct ocrdma_ah {
+>  	struct ocrdma_av *av;
+>  	u16 sgid_index;
+>  	u32 id;
+> +	u8 hdr_type;
+>  };
+> 
+>  struct ocrdma_qp_hwq_info {
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+> b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+> index 7ecd230..70a885b 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+> @@ -39,6 +39,20 @@
+> 
+>  #define OCRDMA_VID_PCP_SHIFT	0xD
+> 
+> +static u16 ocrdma_hdr_type_to_proto_num(u8 hdr_type) {
+> +	switch (hdr_type) {
+> +	case OCRDMA_L3_TYPE_IB_GRH:
+> +		return (u16)0x8915;
+> +	case OCRDMA_L3_TYPE_IPV4:
+> +		return (u16)0x0800;
+> +	case OCRDMA_L3_TYPE_IPV6:
+> +		return (u16)0x86dd;
+> +	default:
+> +		return 0;
+> +	}
+> +}
+> +
+>  static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+>  			struct ib_ah_attr *attr, union ib_gid *sgid,
+>  			int pdid, bool *isvlan, u16 vlan_tag) @@ -47,22 +61,32
+> @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah
+> *ah,
+>  	struct ocrdma_eth_vlan eth;
+>  	struct ocrdma_grh grh;
+>  	int eth_sz;
+> +	u16 proto_num = 0;
+> +	struct iphdr ipv4;
+> +	union {
+> +		struct sockaddr     _sockaddr;
+> +		struct sockaddr_in  _sockaddr_in;
+> +		struct sockaddr_in6 _sockaddr_in6;
+> +	} sgid_addr, dgid_addr;
+> 
+>  	memset(&eth, 0, sizeof(eth));
+>  	memset(&grh, 0, sizeof(grh));
+> +	/* Protocol Number */
+> +	proto_num = ocrdma_hdr_type_to_proto_num(ah->hdr_type);
+> +
+> 
+>  	/* VLAN */
+>  	if (!vlan_tag || (vlan_tag > 0xFFF))
+>  		vlan_tag = dev->pvid;
+>  	if (vlan_tag && (vlan_tag < 0x1000)) {
+>  		eth.eth_type = cpu_to_be16(0x8100);
+> -		eth.roce_eth_type =
+> cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
+> +		eth.roce_eth_type = cpu_to_be16(proto_num);
+>  		vlan_tag |= (dev->sl & 0x07) << OCRDMA_VID_PCP_SHIFT;
+>  		eth.vlan_tag = cpu_to_be16(vlan_tag);
+>  		eth_sz = sizeof(struct ocrdma_eth_vlan);
+>  		*isvlan = true;
+>  	} else {
+> -		eth.eth_type = cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
+> +		eth.eth_type = cpu_to_be16(proto_num);
+>  		eth_sz = sizeof(struct ocrdma_eth_basic);
+>  	}
+>  	/* MAC */
+> @@ -71,18 +95,34 @@ static inline int set_av_attr(struct ocrdma_dev *dev,
+> struct ocrdma_ah *ah,
+>  	if (status)
+>  		return status;
+>  	ah->sgid_index = attr->grh.sgid_index;
+> -	memcpy(&grh.sgid[0], sgid->raw, sizeof(union ib_gid));
+> -	memcpy(&grh.dgid[0], attr->grh.dgid.raw, sizeof(attr->grh.dgid.raw));
+> -
+> -	grh.tclass_flow = cpu_to_be32((6 << 28) |
+> -			(attr->grh.traffic_class << 24) |
+> -			attr->grh.flow_label);
+> -	/* 0x1b is next header value in GRH */
+> -	grh.pdid_hoplimit = cpu_to_be32((pdid << 16) |
+> -			(0x1b << 8) | attr->grh.hop_limit);
+>  	/* Eth HDR */
+>  	memcpy(&ah->av->eth_hdr, &eth, eth_sz);
+> -	memcpy((u8 *)ah->av + eth_sz, &grh, sizeof(struct ocrdma_grh));
+> +	if (ah->hdr_type == RDMA_NETWORK_IPV4) {
+> +		*((__be16 *)&ipv4) = htons((4 << 12) | (5 << 8) |
+> +					   attr->grh.traffic_class);
+> +		ipv4.id = cpu_to_be16(pdid);
+> +		ipv4.frag_off = htons(IP_DF);
+> +		ipv4.tot_len = htons(0);
+> +		ipv4.ttl = attr->grh.hop_limit;
+> +		ipv4.protocol = 0x11;
+> +		rdma_gid2ip(&sgid_addr._sockaddr, sgid);
+> +		ipv4.saddr = sgid_addr._sockaddr_in.sin_addr.s_addr;
+> +		rdma_gid2ip(&dgid_addr._sockaddr, &attr->grh.dgid);
+> +		ipv4.daddr = dgid_addr._sockaddr_in.sin_addr.s_addr;
+> +		memcpy((u8 *)ah->av + eth_sz, &ipv4, sizeof(struct iphdr));
+> +	} else {
+> +		memcpy(&grh.sgid[0], sgid->raw, sizeof(union ib_gid));
+> +		grh.tclass_flow = cpu_to_be32((6 << 28) |
+> +					      (attr->grh.traffic_class << 24) |
+> +					      attr->grh.flow_label);
+> +		memcpy(&grh.dgid[0], attr->grh.dgid.raw,
+> +		       sizeof(attr->grh.dgid.raw));
+> +		/* 0x1b is next header value in GRH */
+> +		grh.pdid_hoplimit = cpu_to_be32((pdid << 16) |
+> +						(0x11 << 8) |
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+We should decide next-header = 0x1b/0x11 based on the proto_num
 
-----------------------------------------------------------------
-InfiniBand/RDMA changes for 3.20 merge window:
- - Re-enable on-demand paging changes with stable ABI
- - Fairly large set of ocrdma HW driver fixes
- - Some qib HW driver fixes
- - Other miscellaneous changes
 
-----------------------------------------------------------------
-Andreea-Cristina Bernat (2):
-      IB/qib: Replace rcu_assign_pointer() with RCU_INIT_POINTER() in qib_qp.c
-      IB/qib: Replace rcu_assign_pointer() with RCU_INIT_POINTER() in qib_keys.c
-
-Ariel Nahum (1):
-      IB/iser: Release the iscsi endpoint if ep_disconnect wasn't called
-
-Bart Van Assche (1):
-      MAINTAINERS: Update SRP initiator entry
-
-Dan Carpenter (2):
-      IB/mlx5: Fix error code in get_port_caps()
-      RDMA/ocrdma: Fix off by one in ocrdma_query_gid()
-
-Devesh Sharma (4):
-      RDMA/ocrdma: Report correct count of interrupt vectors while registering ocrdma device
-      RDMA/ocrdma: Discontinue support of RDMA-READ-WITH-INVALIDATE
-      RDMA/ocrdma: Honor return value of ocrdma_resolve_dmac
-      RDMA/ocrdma: set vlan present bit for user AH
-
-Eli Cohen (1):
-      IB/core: Add support for extended query device caps
-
-Haggai Eran (3):
-      IB/core: Properly handle registration of on-demand paging MRs after dereg
-      IB/core: Add on demand paging caps to ib_uverbs_ex_query_device
-      IB/mlx5: Enable the ODP capability query verb
-
-Hariprasad S (2):
-      RDMA/cxgb4: Serialize CQ event upcalls with CQ destruction
-      RDMA/cxgb4: Don't hang threads forever waiting on WR replies
-
-Ilya Nelkenbaum (1):
-      IB/core: When marshaling ucma path from user-space, clear unused fields
-
-Jack Morgenstein (1):
-      IB/mlx4: In mlx4_ib_demux_cm, print out GUID in host-endian order
-
-Majd Dibbiny (3):
-      IB/mlx4: Fix memory leak in __mlx4_ib_modify_qp
-      IB/mlx4: Bug fixes in mlx4_ib_resize_cq
-      IB/mlx5: Update the dev in reg_create
-
-Mike Marciniszyn (3):
-      IB/qib: Fix sizeof checkpatch warnings
-      IB/qib: Fix checkpatch warnings
-      IB/qib: Add blank line after declaration
-
-Mitesh Ahuja (7):
-      RDMA/ocrdma: Add support for IB stack compliant stats in sysfs.
-      RDMA/ocrdma: Increase the GID table size.
-      RDMA/ocrdma: Move PD resource management to driver.
-      RDMA/ocrdma: Host crash on destroying device resources
-      RDMA/ocrdma: Add support for interrupt moderation
-      RDMA/ocrdma: remove reference of ocrdma_dev out of ocrdma_qp structure
-      RDMA/ocrdma: Update the ocrdma module version string
-
-Mitko Haralanov (1):
-      IB/qib: Do not write EEPROM
-
-Moshe Lazer (1):
-      IB/core: Fix deadlock on uverbs modify_qp error flow
-
-Or Gerlitz (1):
-      IB/mlx4: Fix wrong usage of IPv4 protocol for multicast attach/detach
-
-Padmanabh Ratnakar (1):
-      RDMA/ocrdma: Report correct state in ibv_query_qp
-
-Rasmus Villemoes (2):
-      RDMA/ocrdma: Help gcc generate better code for ocrdma_srq_toggle_bit
-      RDMA/ocrdma: Use unsigned for bit index
-
-Rickard Strandqvist (1):
-      IB/ipath: Remove unused function in ipath_wc_ppc64
-
-Roi Dayan (1):
-      IB/iser: Use correct dma direction when unmapping SGs
-
-Roland Dreier (1):
-      Merge branches 'core', 'cxgb4', 'iser', 'mlx4', 'mlx5', 'ocrdma', 'odp', 'qib' and 'srp' into for-next
-
-Sagi Grimberg (1):
-      IB/iser: Fix memory regions possible leak
-
-Selvin Xavier (2):
-      RDMA/ocrdma: Debugfs enhancments for ocrdma driver
-      RDMA/ocrdma: Allow expansion of the SQ CQEs via buddy CQ expansion of the QP
-
-Vinit Agnihotri (1):
-      IB/qib: Add support for the new QMH7360 card
-
- MAINTAINERS                                   |   2 +-
- drivers/infiniband/core/ucma.c                |   3 +
- drivers/infiniband/core/umem_odp.c            |   3 +-
- drivers/infiniband/core/uverbs.h              |   1 +
- drivers/infiniband/core/uverbs_cmd.c          | 158 +++++++++----
- drivers/infiniband/core/uverbs_main.c         |   1 +
- drivers/infiniband/hw/cxgb4/ev.c              |   9 +-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h        |  29 ++-
- drivers/infiniband/hw/ipath/ipath_kernel.h    |   3 -
- drivers/infiniband/hw/ipath/ipath_wc_ppc64.c  |  13 --
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c |  15 --
- drivers/infiniband/hw/mlx4/cm.c               |   2 +-
- drivers/infiniband/hw/mlx4/cq.c               |   7 +-
- drivers/infiniband/hw/mlx4/main.c             |  10 +-
- drivers/infiniband/hw/mlx4/qp.c               |   6 +-
- drivers/infiniband/hw/mlx5/main.c             |   4 +-
- drivers/infiniband/hw/mlx5/mr.c               |   1 +
- drivers/infiniband/hw/ocrdma/ocrdma.h         |  38 +++-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c      |  38 +++-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.h      |   6 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c      | 312 ++++++++++++++++++++++----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h      |   2 +
- drivers/infiniband/hw/ocrdma/ocrdma_main.c    |  12 +-
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h     |  68 +++++-
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c   | 241 ++++++++++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_stats.h   |   6 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   | 183 ++++++++++++---
- drivers/infiniband/hw/qib/qib.h               |  16 +-
- drivers/infiniband/hw/qib/qib_common.h        |   4 +-
- drivers/infiniband/hw/qib/qib_debugfs.c       |   1 -
- drivers/infiniband/hw/qib/qib_diag.c          |   9 +-
- drivers/infiniband/hw/qib/qib_driver.c        |   5 +-
- drivers/infiniband/hw/qib/qib_eeprom.c        | 198 +---------------
- drivers/infiniband/hw/qib/qib_file_ops.c      |  26 ++-
- drivers/infiniband/hw/qib/qib_fs.c            |   9 +-
- drivers/infiniband/hw/qib/qib_iba6120.c       |  15 +-
- drivers/infiniband/hw/qib/qib_iba7220.c       |  14 +-
- drivers/infiniband/hw/qib/qib_iba7322.c       |  52 +++--
- drivers/infiniband/hw/qib/qib_init.c          |  12 +-
- drivers/infiniband/hw/qib/qib_intr.c          |   1 -
- drivers/infiniband/hw/qib/qib_keys.c          |   4 +-
- drivers/infiniband/hw/qib/qib_mad.c           |  20 +-
- drivers/infiniband/hw/qib/qib_mmap.c          |   2 +-
- drivers/infiniband/hw/qib/qib_mr.c            |  10 +-
- drivers/infiniband/hw/qib/qib_pcie.c          |  10 +-
- drivers/infiniband/hw/qib/qib_qp.c            |   8 +-
- drivers/infiniband/hw/qib/qib_qsfp.c          |  13 +-
- drivers/infiniband/hw/qib/qib_rc.c            |   4 +-
- drivers/infiniband/hw/qib/qib_ruc.c           |   8 +-
- drivers/infiniband/hw/qib/qib_sd7220.c        |   9 +-
- drivers/infiniband/hw/qib/qib_sysfs.c         |  28 +--
- drivers/infiniband/hw/qib/qib_twsi.c          |   5 +-
- drivers/infiniband/hw/qib/qib_tx.c            |   1 +
- drivers/infiniband/hw/qib/qib_ud.c            |   2 +-
- drivers/infiniband/hw/qib/qib_user_sdma.c     |   8 +-
- drivers/infiniband/hw/qib/qib_verbs.c         |  15 +-
- drivers/infiniband/hw/qib/qib_verbs_mcast.c   |   4 +-
- drivers/infiniband/hw/qib/qib_wc_x86_64.c     |   7 +-
- drivers/infiniband/ulp/iser/iscsi_iser.h      |   4 +-
- drivers/infiniband/ulp/iser/iser_initiator.c  |  16 +-
- drivers/infiniband/ulp/iser/iser_memory.c     |   9 +-
- drivers/infiniband/ulp/iser/iser_verbs.c      |  27 ++-
- include/uapi/rdma/ib_user_verbs.h             |  23 ++
- 63 files changed, 1212 insertions(+), 560 deletions(-)
+> +						attr->grh.hop_limit);
+> +		memcpy((u8 *)ah->av + eth_sz, &grh, sizeof(struct
+> ocrdma_grh));
+> +	}
+>  	if (*isvlan)
+>  		ah->av->valid |= OCRDMA_AV_VLAN_VALID;
+>  	ah->av->valid = cpu_to_le32(ah->av->valid); @@ -106,6 +146,7 @@
+> struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
+> 
+>  	if (atomic_cmpxchg(&dev->update_sl, 1, 0))
+>  		ocrdma_init_service_level(dev);
+> +
+>  	ah = kzalloc(sizeof(*ah), GFP_ATOMIC);
+>  	if (!ah)
+>  		return ERR_PTR(-ENOMEM);
+> @@ -126,6 +167,9 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd,
+> struct ib_ah_attr *attr)
+>  		vlan_tag = vlan_dev_vlan_id(sgid_attr.ndev);
+>  	rcu_read_unlock();
+> 
+> +	/* Get network header type for this GID */
+> +	ah->hdr_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
+> +
+>  	if (pd->uctx) {
+>  		status = rdma_addr_find_dmac_by_grh(&sgid, &attr->grh.dgid,
+>  						    attr->dmac, &vlan_tag,
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+> b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+> index 6b74eb9..4fb68ee 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+> @@ -1681,8 +1681,11 @@ enum {
+> 
+>  	/* w1 */
+>  	OCRDMA_CQE_UD_XFER_LEN_SHIFT	= 16,
+> +	OCRDMA_CQE_UD_XFER_LEN_MASK     = 0x1FFF,
+>  	OCRDMA_CQE_PKEY_SHIFT		= 0,
+>  	OCRDMA_CQE_PKEY_MASK		= 0xFFFF,
+> +	OCRDMA_CQE_UD_L3TYPE_SHIFT      = 29,
+> +	OCRDMA_CQE_UD_L3TYPE_MASK       = 0x07,
+> 
+>  	/* w2 */
+>  	OCRDMA_CQE_QPN_SHIFT		= 0,
+> @@ -1807,7 +1810,7 @@ struct ocrdma_ewqe_ud_hdr {
+>  	u32 rsvd_dest_qpn;
+>  	u32 qkey;
+>  	u32 rsvd_ahid;
+> -	u32 rsvd;
+> +	u32 hdr_type;
+>  };
+> 
+>  /* extended wqe followed by hdr_wqe for Fast Memory register */ diff --git
+> a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> index 17c80d5..90a6351 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -31,7 +31,6 @@
+>  #include <rdma/iw_cm.h>
+>  #include <rdma/ib_umem.h>
+>  #include <rdma/ib_addr.h>
+> -#include <rdma/ib_cache.h>
+> 
+>  #include "ocrdma.h"
+>  #include "ocrdma_hw.h"
+> @@ -1963,6 +1962,7 @@ static void ocrdma_build_ud_hdr(struct ocrdma_qp
+> *qp,
+>  	else
+>  		ud_hdr->qkey = wr->wr.ud.remote_qkey;
+>  	ud_hdr->rsvd_ahid = ah->id;
+> +	ud_hdr->hdr_type = ah->hdr_type;
+>  	if (ah->av->valid & OCRDMA_AV_VLAN_VALID)
+>  		hdr->cw |= (OCRDMA_FLAG_AH_VLAN_PR <<
+> OCRDMA_WQE_FLAGS_SHIFT);  } @@ -2698,9 +2698,11 @@ static bool
+> ocrdma_poll_scqe(struct ocrdma_qp *qp, struct ocrdma_cqe *cqe,
+>  	return expand;
+>  }
+> 
+> -static int ocrdma_update_ud_rcqe(struct ib_wc *ibwc, struct ocrdma_cqe
+> *cqe)
+> +static int ocrdma_update_ud_rcqe(struct ocrdma_dev *dev, struct ib_wc
+> *ibwc,
+> +				 struct ocrdma_cqe *cqe)
+>  {
+>  	int status;
+> +	u16 hdr_type = 0;
+> 
+>  	status = (le32_to_cpu(cqe->flags_status_srcqpn) &
+>  		OCRDMA_CQE_UD_STATUS_MASK) >>
+> OCRDMA_CQE_UD_STATUS_SHIFT; @@ -2710,7 +2712,17 @@ static int
+> ocrdma_update_ud_rcqe(struct ib_wc *ibwc, struct ocrdma_cqe *cqe)
+>  						OCRDMA_CQE_PKEY_MASK;
+>  	ibwc->wc_flags = IB_WC_GRH;
+>  	ibwc->byte_len = (le32_to_cpu(cqe->ud.rxlen_pkey) >>
+> -					OCRDMA_CQE_UD_XFER_LEN_SHIFT);
+> +			  OCRDMA_CQE_UD_XFER_LEN_SHIFT) &
+> +			  OCRDMA_CQE_UD_XFER_LEN_MASK;
+> +
+> +	if (ocrdma_is_rocev2_supported(dev)) {
+> +		hdr_type = (le32_to_cpu(cqe->ud.rxlen_pkey) >>
+> +			    OCRDMA_CQE_UD_L3TYPE_SHIFT) &
+> +			    OCRDMA_CQE_UD_L3TYPE_MASK;
+> +		ibwc->wc_flags |= IB_WC_WITH_NETWORK_HDR_TYPE;
+> +		ibwc->network_hdr_type = hdr_type;
+> +	}
+> +
+>  	return status;
+>  }
+> 
+> @@ -2773,12 +2785,15 @@ static bool ocrdma_poll_err_rcqe(struct
+> ocrdma_qp *qp, struct ocrdma_cqe *cqe,  static void
+> ocrdma_poll_success_rcqe(struct ocrdma_qp *qp,
+>  				     struct ocrdma_cqe *cqe, struct ib_wc
+> *ibwc)  {
+> +	struct ocrdma_dev *dev;
+> +
+> +	dev = get_ocrdma_dev(qp->ibqp.device);
+>  	ibwc->opcode = IB_WC_RECV;
+>  	ibwc->qp = &qp->ibqp;
+>  	ibwc->status = IB_WC_SUCCESS;
+> 
+>  	if (qp->qp_type == IB_QPT_UD || qp->qp_type == IB_QPT_GSI)
+> -		ocrdma_update_ud_rcqe(ibwc, cqe);
+> +		ocrdma_update_ud_rcqe(dev, ibwc, cqe);
+>  	else
+>  		ibwc->byte_len = le32_to_cpu(cqe->rq.rxlen);
+> 
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
