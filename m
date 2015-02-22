@@ -1,223 +1,33 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 9/9] IB/ipoib: drop mcast_mutex usage
-Date: Sat, 21 Feb 2015 19:27:07 -0500
-Message-ID: <767f4c41779db63ce8c6dbba04b21959aba70ef9.1424562072.git.dledford@redhat.com>
-References: <cover.1424562072.git.dledford@redhat.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 1/3] IB/core: Add support for extended query device
+ caps
+Date: Sun, 22 Feb 2015 09:14:36 +0200
+Message-ID: <54E981DC.5050801@mellanox.com>
+References: <1424244364-6242-1-git-send-email-haggaie@mellanox.com>
+ <1424244364-6242-2-git-send-email-haggaie@mellanox.com>
+ <CAAKD3BAPL82RC5u5uxJg9QPgiM+05TcnURzO14Y5OKYxhYrmqw@mail.gmail.com>
+ <20150219182750.GA30093@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1424562072.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1424562072.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-References: <cover.1424562072.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150219182750.GA30093-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We needed the mcast_mutex when we had to prevent the join completion
-callback from having the value it stored in mcast->mc overwritten
-by a delayed return from ib_sa_join_multicast.  By storing the return
-of ib_sa_join_multicast in an intermediate variable, we prevent a
-delayed return from ib_sa_join_multicast overwriting the valid
-contents of mcast->mc, and we no longer need a mutex to force the
-join callback to run after the return of ib_sa_join_multicast.  This
-allows us to do away with the mutex entirely and protect our critical
-sections with a just a spinlock instead.  This is highly desirable
-as there were some places where we couldn't use a mutex because the
-code was not allowed to sleep, and so we were currently using a mix
-of mutex and spinlock to protect what we needed to protect.  Now we
-only have a spin lock and the locking complexity is greatly reduced.
+On 19/02/2015 20:27, Jason Gunthorpe wrote:
+> On Thu, Feb 19, 2015 at 02:30:29PM +0200, Matan Barak wrote:
+>> > Furthermore, ibv_create_flow and ibv_destroy_flow were already
+>> > accepted using the old schema.
+> IIRC they didn't have values that could meaningfully be 0?
 
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 70 ++++++++++++--------------
- 1 file changed, 32 insertions(+), 38 deletions(-)
+I think they don't have any extension yet -- I don't see any change
+before 69ad5da41b4e ("IB/core: Re-enable create_flow/destroy_flow uverbs").
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index c670d9c2cda..3203ebe9b10 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -55,8 +55,6 @@ MODULE_PARM_DESC(mcast_debug_level,
- 		 "Enable multicast debug tracing if > 0");
- #endif
- 
--static DEFINE_MUTEX(mcast_mutex);
--
- struct ipoib_mcast_iter {
- 	struct net_device *dev;
- 	union ib_gid       mgid;
-@@ -67,7 +65,7 @@ struct ipoib_mcast_iter {
- };
- 
- /*
-- * This should be called with the mcast_mutex held
-+ * This should be called with the priv->lock held
-  */
- static void __ipoib_mcast_schedule_join_thread(struct ipoib_dev_priv *priv,
- 					       struct ipoib_mcast *mcast,
-@@ -352,16 +350,6 @@ static int ipoib_mcast_join_complete(int status,
- 			"sendonly " : "",
- 			mcast->mcmember.mgid.raw, status);
- 
--	/*
--	 * We have to take the mutex to force mcast_join to
--	 * return from ib_sa_multicast_join and set mcast->mc to a
--	 * valid value.  Otherwise we were racing with ourselves in
--	 * that we might fail here, but get a valid return from
--	 * ib_sa_multicast_join after we had cleared mcast->mc here,
--	 * resulting in mis-matched joins and leaves and a deadlock
--	 */
--	mutex_lock(&mcast_mutex);
--
- 	/* We trap for port events ourselves. */
- 	if (status == -ENETRESET) {
- 		status = 0;
-@@ -383,8 +371,10 @@ static int ipoib_mcast_join_complete(int status,
- 		 * send out all of the non-broadcast joins
- 		 */
- 		if (mcast == priv->broadcast) {
-+			spin_lock_irq(&priv->lock);
- 			queue_work(priv->wq, &priv->carrier_on_task);
- 			__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
-+			goto out_locked;
- 		}
- 	} else {
- 		if (mcast->logcount++ < 20) {
-@@ -417,16 +407,28 @@ static int ipoib_mcast_join_complete(int status,
- 				dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
- 			}
- 			netif_tx_unlock_bh(dev);
--		} else
-+		} else {
-+			spin_lock_irq(&priv->lock);
- 			/* Requeue this join task with a backoff delay */
- 			__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
-+			goto out_locked;
-+		}
- 	}
- out:
--	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-+	spin_lock_irq(&priv->lock);
-+out_locked:
-+	/*
-+	 * Make sure to set mcast->mc before we clear the busy flag to avoid
-+	 * racing with code that checks for BUSY before checking mcast->mc
-+	 */
- 	if (status)
- 		mcast->mc = NULL;
-+	else
-+		mcast->mc = multicast;
-+	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-+	spin_unlock_irq(&priv->lock);
- 	complete(&mcast->done);
--	mutex_unlock(&mcast_mutex);
-+
- 	return status;
- }
- 
-@@ -434,6 +436,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
- 			     int create)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ib_sa_multicast *multicast;
- 	struct ib_sa_mcmember_rec rec = {
- 		.join_state = 1
- 	};
-@@ -475,18 +478,19 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
- 		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
- 	}
- 
--	mutex_lock(&mcast_mutex);
--	mcast->mc = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
-+	multicast = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
- 					 &rec, comp_mask, GFP_KERNEL,
- 					 ipoib_mcast_join_complete, mcast);
--	if (IS_ERR(mcast->mc)) {
--		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
--		ret = PTR_ERR(mcast->mc);
-+	if (IS_ERR(multicast)) {
-+		ret = PTR_ERR(multicast);
- 		ipoib_warn(priv, "ib_sa_join_multicast failed, status %d\n", ret);
-+		spin_lock_irq(&priv->lock);
-+		/* Requeue this join task with a backoff delay */
- 		__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
-+		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
-+		spin_unlock_irq(&priv->lock);
- 		complete(&mcast->done);
- 	}
--	mutex_unlock(&mcast_mutex);
- }
- 
- void ipoib_mcast_join_task(struct work_struct *work)
-@@ -515,15 +519,6 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	else
- 		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
- 
--	/*
--	 * We have to hold the mutex to keep from racing with the join
--	 * completion threads on setting flags on mcasts, and we have
--	 * to hold the priv->lock because dev_flush will remove entries
--	 * out from underneath us, so at a minimum we need the lock
--	 * through the time that we do the for_each loop of the mcast
--	 * list or else dev_flush can make us oops.
--	 */
--	mutex_lock(&mcast_mutex);
- 	spin_lock_irq(&priv->lock);
- 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
- 		goto out;
-@@ -584,9 +579,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 				else
- 					create = 1;
- 				spin_unlock_irq(&priv->lock);
--				mutex_unlock(&mcast_mutex);
- 				ipoib_mcast_join(dev, mcast, create);
--				mutex_lock(&mcast_mutex);
- 				spin_lock_irq(&priv->lock);
- 			} else if (!delay_until ||
- 				 time_before(mcast->delay_until, delay_until))
-@@ -608,7 +601,6 @@ out:
- 		set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
- 	}
- 	spin_unlock_irq(&priv->lock);
--	mutex_unlock(&mcast_mutex);
- 	if (mcast)
- 		ipoib_mcast_join(dev, mcast, create);
- }
-@@ -616,13 +608,14 @@ out:
- int ipoib_mcast_start_thread(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	unsigned long flags;
- 
- 	ipoib_dbg_mcast(priv, "starting multicast thread\n");
- 
--	mutex_lock(&mcast_mutex);
-+	spin_lock_irqsave(&priv->lock, flags);
- 	set_bit(IPOIB_MCAST_RUN, &priv->flags);
- 	__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
--	mutex_unlock(&mcast_mutex);
-+	spin_unlock_irqrestore(&priv->lock, flags);
- 
- 	return 0;
- }
-@@ -630,13 +623,14 @@ int ipoib_mcast_start_thread(struct net_device *dev)
- int ipoib_mcast_stop_thread(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	unsigned long flags;
- 
- 	ipoib_dbg_mcast(priv, "stopping multicast thread\n");
- 
--	mutex_lock(&mcast_mutex);
-+	spin_lock_irqsave(&priv->lock, flags);
- 	clear_bit(IPOIB_MCAST_RUN, &priv->flags);
- 	cancel_delayed_work(&priv->mcast_task);
--	mutex_unlock(&mcast_mutex);
-+	spin_unlock_irqrestore(&priv->lock, flags);
- 
- 	flush_workqueue(priv->wq);
- 
--- 
-2.1.0
-
+They verify comp_mask == 0 on command entry, and create_flow zeros the
+response's comp_mask when it returns.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
