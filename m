@@ -1,40 +1,37 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 1/3] IB/core: Add support for extended query device caps
-Date: Sun, 22 Feb 2015 11:56:20 +0200
-Message-ID: <CAAKD3BCFiQhTKLPURpb3FWT+qaGHicyEbJE2NByyuKAAA-8JvQ@mail.gmail.com>
-References: <1424244364-6242-1-git-send-email-haggaie@mellanox.com>
-	<1424244364-6242-2-git-send-email-haggaie@mellanox.com>
-	<CAAKD3BAPL82RC5u5uxJg9QPgiM+05TcnURzO14Y5OKYxhYrmqw@mail.gmail.com>
-	<20150219182750.GA30093@obsidianresearch.com>
-	<54E981DC.5050801@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 18/30] IB/mlx4: Remove gid table management for RoCE
+Date: Sun, 22 Feb 2015 13:41:10 +0200
+Message-ID: <54E9C056.1070609@mellanox.com>
+References: <1424383365-19337-1-git-send-email-somnath.kotur@emulex.com>
+ <250dc054-e0c4-40b4-8855-7315489c0f58@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54E981DC.5050801-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <250dc054-e0c4-40b4-8855-7315489c0f58-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 22, 2015 at 9:14 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 19/02/2015 20:27, Jason Gunthorpe wrote:
->> On Thu, Feb 19, 2015 at 02:30:29PM +0200, Matan Barak wrote:
->>> > Furthermore, ibv_create_flow and ibv_destroy_flow were already
->>> > accepted using the old schema.
->> IIRC they didn't have values that could meaningfully be 0?
+On 2/20/2015 12:02 AM, Somnath Kotur wrote:
+> From: Moni Shoua<monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> I think they don't have any extension yet -- I don't see any change
-> before 69ad5da41b4e ("IB/core: Re-enable create_flow/destroy_flow uverbs").
+> RoCE GID table management moved to InfiniBand core driver. Core driver is now responsible to populate the GID table and supply query and lookup functions for GIDs. HW drivers are responsible only modify GID table in network adapters. The query_gid hook should now return the answer from the cache when link layer is Ethernet.
 >
-> They verify comp_mask == 0 on command entry, and create_flow zeros the
-> response's comp_mask when it returns.
+> Signed-off-by: Moni Shoua<monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Somnath Kotur<somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>   drivers/infiniband/hw/mlx4/main.c    |  495 +---------------------------------
 
-Correct, but they don't have the response_length field.
+And we are left with pretty much nothing else... that is, this series 
+isn't bisectable, please fix it.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>   drivers/infiniband/hw/mlx4/mlx4_ib.h |    4 -
+>   2 files changed, 14 insertions(+), 485 deletions(-)
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
