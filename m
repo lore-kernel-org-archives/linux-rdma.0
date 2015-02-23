@@ -1,78 +1,99 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 9/9] IB/ipoib: drop mcast_mutex usage
-Date: Mon, 23 Feb 2015 12:41:13 -0500
-Message-ID: <1424713273.4847.9.camel@redhat.com>
-References: <cover.1424562072.git.dledford@redhat.com>
-	 <767f4c41779db63ce8c6dbba04b21959aba70ef9.1424562072.git.dledford@redhat.com>
-	 <CAJ3xEMgLPF9pCwQDy9QyL9fAERJXJRXN2gBj3nhuXUCcbfCMPg@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
+ cap flag
+Date: Mon, 23 Feb 2015 13:54:14 -0500
+Message-ID: <54EB7756.7070407@dev.mellanox.co.il>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-15-git-send-email-ira.weiny@intel.com> <54D52589.8020305@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8@CRSMSX101.amr.corp.intel.com> <54DCB1E9.7010309@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC29020@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-r7ohWzbHge+DehKDT0S/"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgLPF9pCwQDy9QyL9fAERJXJRXN2gBj3nhuXUCcbfCMPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CC29020-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-r7ohWzbHge+DehKDT0S/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 2015-02-23 at 18:56 +0200, Or Gerlitz wrote:
-> On Sun, Feb 22, 2015 at 2:27 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote=
-:
-> > We needed the mcast_mutex when we had to prevent the join completion
-> > callback from having the value it stored in mcast->mc overwritten
+On 2/17/2015 4:25 PM, Weiny, Ira wrote:
+>>>>>
+>>>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h in=
+dex
+>>>>> 3ab4033..2614233 100644
+>>>>> --- a/include/rdma/ib_verbs.h
+>>>>> +++ b/include/rdma/ib_verbs.h
+>>>>> @@ -128,6 +128,10 @@ enum ib_device_cap_flags {
+>>>>>  	IB_DEVICE_ON_DEMAND_PAGING	=3D (1<<31),
+>>>>>  };
+>>>>>
+>>>>> +enum ib_device_cap_flags2 {
+>>>>> +	IB_DEVICE_OPA_MAD_SUPPORT	=3D 1
+>>>>> +};
+>>>>> +
+>>>>>  enum ib_signature_prot_cap {
+>>>>>  	IB_PROT_T10DIF_TYPE_1 =3D 1,
+>>>>>  	IB_PROT_T10DIF_TYPE_2 =3D 1 << 1,
+>>>>> @@ -210,6 +214,7 @@ struct ib_device_attr {
+>>>>>  	int			sig_prot_cap;
+>>>>>  	int			sig_guard_cap;
+>>>>>  	struct ib_odp_caps	odp_caps;
+>>>>> +	u64			device_cap_flags2;
+>>>>>  	u32			max_mad_size;
+>>>>>  };
+>>>>>
+>>>>
+>>>> Why is OPA support determined via a device capability flag ? What =
+are
+>>>> the tradeoffs for doing it this way versus the other choices that
+>>>> have been used in the past for other RDMA technologies like RoCE, =
+iWARP,
+>> usNIC, ... ?
+>>>
+>>> None of those technologies use the MAD stack for Subnet Management.
+>> Other MAD support is very limited (ie IB compatible PMA queries on t=
+he local
+>> port only).
+>>>
+>>> Do you have a suggestion for alternatives?
+>>
+>> The desire to leverage the IB MAD infrastructure for OPA is understo=
+od but the
+>> current approach represents OPA as a device capability which does no=
+t seem
+>> appropriate because OPA is clearly a different type of RDMA technolo=
+gy than
+>> IB.
+>>
 >=20
-> downstream patches of this series (7/9 and 8/9) make pretty much heavy
-> usage of the mcast_mutex (e.g add/delete lines that use it), and patch
-> 9/9 removes it altogether.. which would be very confusing for
-> maintaining purposes. Is there a sane way to avoid that?!
+> While it is a different type of technology, standard verbs[*] remains=
+ 100% compatible.  Unlike other verbs technologies user space software =
+does not need any knowledge that the underlying device is not IB.  For =
+example, PR (and SA) queries, CM, rdmacm, and verbs calls themselves ar=
+e all 100% IB compatible.
 
-No.  The changes that make dropping the mutex possible are part of patch
-7.  Patch 7 changes the semantics of the MCAST_FLAG_BUSY usage, and
-fixes some locking bugs, but that's different than wholesale changing of
-the locking type.  If you want to preserve bisecability and be able to
-test the semantic changes to the FLAG_BUSY usage separate from the
-changes to the locking type, then they have to be separated.  So, for
-the sake of good engineering practices and separation of distinctly
-different types of changes, that locking change should not be folded
-into patch 7.
+Even if OPA is 100% standard verbs compatible which it does not appear
+to be, that does not make OPA an extra capability of an IBA device.
+While it is a primary goal of the RDMA stack to have a common verbs API
+for various RDMA interconnects, each one is properly represented to
+allow it=92s unique characteristics to be exposed.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> Therefore, to address your initial question regarding tradeoffs I bel=
+ieve this method is the least invasive to the code as well as removing =
+any potential performance penalties to core verbs.
+>=20
+> Ira
+>=20
+> [*] We don't support some of the extensions particularly those which =
+have been most recently introduced.  And we would like to make our own =
+extensions in the form of higher MTU availability, but the patch is not=
+ yet ready to be submitted upstream.
 
+There appear to be a number of things that are not exposed by the
+current patch set which will be needed in subsequent patches. It would
+be better to see the complete picture so it can be reviewed as a whole.
 
-
---=-r7ohWzbHge+DehKDT0S/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJU62Y5AAoJELgmozMOVy/dTZ8P/1ydgovqiaMEeaQK9+75AmR5
-EVWbxiiwwxgU48gaFouJb4kvRj2jy8Wf6fvtOWqXTv/9QsK1LeI4X0JT9AROmHLn
-88ZhgkFwGtgwtveSkvF4Z8h3ZNMHgGyz4HoZrRPJ7inm/F25f80d1zAjJXE0hIXv
-XggW0Z+khUUdhMj7e0exPuoLDXECeVnIN4uTleNskKc9sndDQxsYurvAalqI8z5R
-Y7mK0lN2VQBjUNGV5TQ/bHg/6c7QnC4PqDuMIgbbo6n2ycGbtcJFBNfFr2wBrQq2
-vrDvjdiQziOk7rSfRcD76QB4gu/fS6k//fAV2ZliwVtrVuBOD0e31I17nMsoRVRc
-cwPqoC00eGNQ51U0Gb2FXlAiQFa8mB3u9geCoc+3anJ7GAjZGB4rJqjVxR9gqX52
-SIVGbG5DCAb/Ddp4BnoeS9gZBBTV4ZcHC3m5Qq2jVLOqYlDECD9uENgFndIjhK2O
-0RqbIYnJi/q201J72yQKGhVcyQXwnv6eHfFng37+788FQvnu4LPsxPgMnlokHWx9
-aPx34psbWPHn1F0MKJPdpRN1C5vcYLyKN2Vxj5LMo6cY2M+jzhiPjkJNYnzYpg/8
-cN53wjbEVHN+qD1UrDShmSkA/5uQv8vXgfjWZA5ula/j1XuSLCUPGDpEwvwj5wiw
-7Leqp5EIml3NtbSowaGT
-=0eap
------END PGP SIGNATURE-----
-
---=-r7ohWzbHge+DehKDT0S/--
-
+-- Hal
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
