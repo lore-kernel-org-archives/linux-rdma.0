@@ -1,51 +1,45 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 07/19] IB/mad: Convert ib_mad_private allocations
- from kmem_cache to kmalloc
-Date: Wed, 25 Feb 2015 18:23:57 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC3ED2D@CRSMSX101.amr.corp.intel.com>
+Subject: RE: [PATCH v4 06/19] IB/core: Add max_mad_size to ib_device_attr
+Date: Wed, 25 Feb 2015 18:32:27 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC3ED5B@CRSMSX101.amr.corp.intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
-	 <1423092585-26692-8-git-send-email-ira.weiny@intel.com>
- <1424787735.4847.19.camel@redhat.com>
+ <1423092585-26692-7-git-send-email-ira.weiny@intel.com>
+ <1424787385.4847.16.camel@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E0CC3ECE5@CRSMSX101.amr.corp.intel.com>
+ <20150225182308.GA14580@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1424787735.4847.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150225182308.GA14580-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+DQo+ID4gK3N0YXRpYyBzdHJ1Y3QgaWJfbWFkX3ByaXZhdGUgKmFsbG9jX21hZF9wcml2KHN0
-cnVjdCBpYl9kZXZpY2UgKmRldikgew0KPiA+ICsJcmV0dXJuIChrbWFsbG9jKHNpemVvZihzdHJ1
-Y3QgaWJfbWFkX3ByaXZhdGVfaGVhZGVyKSArDQo+ID4gKwkJCXNpemVvZihzdHJ1Y3QgaWJfZ3Jo
-KSArDQo+ID4gKwkJCWRldi0+Y2FjaGVkX2Rldl9hdHRycy5tYXhfbWFkX3NpemUsDQo+IEdGUF9B
-VE9NSUMpKTsNCj4gDQo+IE91Y2ghICBHRlBfQVRPTUlDPyAgSSB0aG91Z2h0IHRoYXQgZ2VuZXJh
-bGx5IGFsbCBvZiB0aGUgbWFkIHByb2Nlc3Npbmcgd2FzDQo+IGRvbmUgZnJvbSB3b3JrcXVldWUg
-Y29udGV4dCB3aGVyZSBzbGVlcGluZyBpcyBhbGxvd2VkPyAgSW4gdGhlIHR3byBwbGFjZXMNCj4g
-d2hlcmUgeW91IHJlbW92ZWQga21lbV9jYWNoZV9hbGxvYygpIGNhbGxzIGFuZCByZXBsYWNlZCBp
-dCB3aXRoIGNhbGxzIHRvIHRoaXMNCj4gY29kZSwgdGhleSBib3RoIHVzZWQgR0ZQX0tFUk5FTCBh
-bmQgbm93IHlvdSBoYXZlIHN3aXRjaGVkIGl0IHRvDQo+IEdGUF9BVE9NSUMuICBJZiB0aGVyZSBp
-c24ndCBhIGdvb2QgcmVhc29uIGZvciB0aGlzLCBpdCBzaG91bGQgYmUgc3dpdGNoZWQgYmFjaw0K
-PiB0byBHRlBfS0VSTkVMLg0KDQpUaGUgb3JpZ2luYWwga21lbV9jYWNoZV9hbGxvY3MgYXJlIGFj
-dHVhbGx5IGJvdGggR0ZQX0FUT01JQyAoMSB1c2FnZSwgc2VlIGJlbG93KSBhbmQgR0ZQX0tFUk5F
-TCAodGhlIDIgdXNhZ2VzIHlvdSByZWZlcmVuY2UpLg0KDQpNeSBiYWQgZm9yIG5vdCBtYWtpbmcg
-dGhpcyBzcGVjaWZpYyB0byB0aGUgYWxsb2NhdGlvbi4NCg0KSSB3aWxsIHJlc2VhcmNoIHRoZSBv
-cmlnaW5hbCBHRlBfQVRPTUlDIHVzYWdlIGFuZCBpZiBpdCBpcyBuZWNlc3NhcnkgaGF2ZSB0aGlz
-IGZ1bmN0aW9uIHRha2UgZ2ZwX3QuICBPdGhlcndpc2UgaWYgd2UgY2FuIGdldCBhd2F5IHdpdGgg
-R0ZQX0tFUk5FTCBJIGFncmVlIHRoYXQgd291bGQgYmUgYmVzdC4NCg0KPiANCj4gPiArfQ0KPiA+
-ICsNCj4gPiAgLyoNCj4gPiAgICogUmV0dXJuIDAgaWYgU01QIGlzIHRvIGJlIHNlbnQNCj4gPiAg
-ICogUmV0dXJuIDEgaWYgU01QIHdhcyBjb25zdW1lZCBsb2NhbGx5ICh3aGV0aGVyIG9yIG5vdCBz
-b2xpY2l0ZWQpIEBADQo+ID4gLTc3MSw3ICs3NzYsOCBAQCBzdGF0aWMgaW50IGhhbmRsZV9vdXRn
-b2luZ19kcl9zbXAoc3RydWN0DQo+IGliX21hZF9hZ2VudF9wcml2YXRlICptYWRfYWdlbnRfcHJp
-diwNCj4gPiAgCX0NCj4gPiAgCWxvY2FsLT5tYWRfcHJpdiA9IE5VTEw7DQo+ID4gIAlsb2NhbC0+
-cmVjdl9tYWRfYWdlbnQgPSBOVUxMOw0KPiA+IC0JbWFkX3ByaXYgPSBrbWVtX2NhY2hlX2FsbG9j
-KGliX21hZF9jYWNoZSwgR0ZQX0FUT01JQyk7DQoNCk9yaWdpbmFsIHVzYWdlIGhlcmUuLi4gDQoN
-ClRoYW5rcywNCklyYQ0KDQo+ID4gKw0KPiA+ICsJbWFkX3ByaXYgPSBhbGxvY19tYWRfcHJpdiht
-YWRfYWdlbnRfcHJpdi0+YWdlbnQuZGV2aWNlKTsNCj4gPiAgCWlmICghbWFkX3ByaXYpIHsNCj4g
-PiAgCQlyZXQgPSAtRU5PTUVNOw0KPiA+ICAJCWRldl9lcnIoJmRldmljZS0+ZGV2LCAiTm8gbWVt
-b3J5IGZvciBsb2NhbCByZXNwb25zZQ0KPiBNQURcbiIpOyBAQA0KDQo=
+> >
+> > Fixed for v5 with this message.
+> >
+> > +               dev_err(&device->dev,
+> > +                       "Max supported MAD size (%u) < min required by ib_mad
+> (%u), ignoring device (%s)\n",
+> > +                       device->cached_dev_attrs.max_mad_size,
+> > +                       IB_MGMT_MAD_SIZE, device->name);
+> 
+> It also seems redundant since the only call to ib_mad_port_open is:
+> 
+>                 if (ib_mad_port_open(device, i)) {
+>                         printk(KERN_ERR PFX "Couldn't open %s port %d\n",
+>                                device->name, i);
+> 
+> So, why does this particular error deserve a special double error print? I
+> assume it is basically impossible to hit?
+
+This does indicate a coding error.  Generally I prefer details of why the device could not open the port.  But if the community feels this is redundant or "not possible" I can drop the hunk.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
