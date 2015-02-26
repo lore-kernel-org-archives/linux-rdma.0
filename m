@@ -1,56 +1,129 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter
-Date: Thu, 26 Feb 2015 15:30:00 +0300
-Message-ID: <20150226123000.GA6728@mwanda>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/9] IB/ipoib: factor out ah flushing
+Date: Thu, 26 Feb 2015 15:28:07 +0200
+Message-ID: <54EF1F67.4000001@dev.mellanox.co.il>
+References: <cover.1424562072.git.dledford@redhat.com> <b06eb720c2f654f5ecdb72c66f4e89149d1c24ec.1424562072.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <b06eb720c2f654f5ecdb72c66f4e89149d1c24ec.1424562072.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Parav Pandit,
+On 2/22/2015 2:26 AM, Doug Ledford wrote:
+> Create a an ipoib_flush_ah and ipoib_stop_ah routines to use at
+> appropriate times to flush out all remaining ah entries before we shut
+> the device down.
+>
+> Because neighbors and mcast entries can each have a reference on any
+> given ah, we must make sure to free all of those first before our ah
+> will actually have a 0 refcount and be able to be reaped.
+>
+> This factoring is needed in preparation for having per-device work
+> queues.  The original per-device workqueue code resulted in the following
+> error message:
+>
+> <ibdev>: ib_dealloc_pd failed
+>
+> That error was tracked down to this issue.  With the changes to which
+> workqueues were flushed when, there were no flushes of the per device
+> workqueue after the last ah's were freed, resulting in an attempt to
+> dealloc the pd with outstanding resources still allocated.  This code
+> puts the explicit flushes in the needed places to avoid that problem.
+>
+> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/ipoib/ipoib_ib.c | 46 ++++++++++++++++++++-------------
+>   1 file changed, 28 insertions(+), 18 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> index 72626c34817..cb02466a0eb 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> @@ -659,6 +659,24 @@ void ipoib_reap_ah(struct work_struct *work)
+>   				   round_jiffies_relative(HZ));
+>   }
+>   
+> +static void ipoib_flush_ah(struct net_device *dev, int flush)
+> +{
+> +	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> +
+> +	cancel_delayed_work(&priv->ah_reap_task);
+> +	if (flush)
+> +		flush_workqueue(ipoib_workqueue);
+> +	ipoib_reap_ah(&priv->ah_reap_task.work);
+> +}
+> +
+> +static void ipoib_stop_ah(struct net_device *dev, int flush)
+> +{
+> +	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> +
+> +	set_bit(IPOIB_STOP_REAPER, &priv->flags);
+> +	ipoib_flush_ah(dev, flush);
+> +}
+> +
+>   static void ipoib_ib_tx_timer_func(unsigned long ctx)
+>   {
+>   	drain_tx_cq((struct net_device *)ctx);
+> @@ -877,24 +895,7 @@ timeout:
+>   	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
+>   		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
+>   
+> -	/* Wait for all AHs to be reaped */
+> -	set_bit(IPOIB_STOP_REAPER, &priv->flags);
+> -	cancel_delayed_work(&priv->ah_reap_task);
+> -	if (flush)
+> -		flush_workqueue(ipoib_workqueue);
+> -
+> -	begin = jiffies;
+> -
+> -	while (!list_empty(&priv->dead_ahs)) {
+> -		__ipoib_reap_ah(dev);
+> -
+> -		if (time_after(jiffies, begin + HZ)) {
+> -			ipoib_warn(priv, "timing out; will leak address handles\n");
+> -			break;
+> -		}
+> -
+> -		msleep(1);
+> -	}
+> +	ipoib_flush_ah(dev, flush);
+>   
+>   	ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP);
+>   
+> @@ -1037,6 +1038,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+>   	if (level == IPOIB_FLUSH_LIGHT) {
+>   		ipoib_mark_paths_invalid(dev);
+>   		ipoib_mcast_dev_flush(dev);
+> +		ipoib_flush_ah(dev, 0);
 
-The patch fe2caefcdf58: "RDMA/ocrdma: Add driver for Emulex
-OneConnect IBoE RDMA adapter" from Mar 21, 2012, leads to the
-following static checker warning:
+Why do you need to call the flush function here?
+I can't see the reason to use the flush not from the stop_ah, meaning 
+without setting the IPOIB_STOP_REAPER, the flush can send twice the same 
+work.
 
-	drivers/infiniband/hw/ocrdma/ocrdma_verbs.c:1426 _ocrdma_modify_qp()
-	warn: bool is not less than zero.
+>   	}
+>   
+>   	if (level >= IPOIB_FLUSH_NORMAL)
+> @@ -1100,6 +1102,14 @@ void ipoib_ib_dev_cleanup(struct net_device *dev)
+>   	ipoib_mcast_stop_thread(dev, 1);
+>   	ipoib_mcast_dev_flush(dev);
+>   
+> +	/*
+> +	 * All of our ah references aren't free until after
+> +	 * ipoib_mcast_dev_flush(), ipoib_flush_paths, and
+> +	 * the neighbor garbage collection is stopped and reaped.
+> +	 * That should all be done now, so make a final ah flush.
+> +	 */
+> +	ipoib_stop_ah(dev, 1);
+> +
+>   	ipoib_transport_dev_cleanup(dev);
+>   }
+>   
 
-drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-  1411  int _ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-  1412                        int attr_mask)
-  1413  {
-  1414          int status = 0;
-  1415          struct ocrdma_qp *qp;
-  1416          struct ocrdma_dev *dev;
-  1417          enum ib_qp_state old_qps;
-  1418  
-  1419          qp = get_ocrdma_qp(ibqp);
-  1420          dev = get_ocrdma_dev(ibqp->device);
-  1421          if (attr_mask & IB_QP_STATE)
-  1422                  status = ocrdma_qp_state_change(qp, attr->qp_state, &old_qps);
-  1423          /* if new and previous states are same hw doesn't need to
-  1424           * know about it.
-  1425           */
-  1426          if (status < 0)
-
-This check is never true.  Based on the comment then the check should
-be:
-		if (status == 1)
-			return SOMETHING;
-
-  1427                  return status;
-  1428          status = ocrdma_mbx_modify_qp(dev, qp, attr, attr_mask);
-  1429  
-  1430          return status;
-  1431  }
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
