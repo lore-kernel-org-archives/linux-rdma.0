@@ -1,143 +1,185 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/9] IB/ipoib: factor out ah flushing
-Date: Mon, 02 Mar 2015 10:09:27 -0500
-Message-ID: <1425308967.2354.19.camel@redhat.com>
+Subject: Re: [PATCH 7/9] IB/ipoib: fix MCAST_FLAG_BUSY usage
+Date: Mon, 02 Mar 2015 10:27:16 -0500
+Message-ID: <1425310036.2354.24.camel@redhat.com>
 References: <cover.1424562072.git.dledford@redhat.com>
-		 <b06eb720c2f654f5ecdb72c66f4e89149d1c24ec.1424562072.git.dledford@redhat.com>
-		 <54EF1F67.4000001@dev.mellanox.co.il>
-	 <1424968046.2543.18.camel@redhat.com> <54F2B61C.9080308@dev.mellanox.co.il>
+	 <9d657f64ee961ee3b3233520d8b499b234a42bcd.1424562072.git.dledford@redhat.com>
+	 <54F2DC81.304@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-wShcWSq8SXpzgTKg9QKy"
+	boundary="=-O7y8LTWOHhpaNOZMsxr8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54F2B61C.9080308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <54F2DC81.304-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-wShcWSq8SXpzgTKg9QKy
+--=-O7y8LTWOHhpaNOZMsxr8
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2015-03-01 at 08:47 +0200, Erez Shitrit wrote:
-> On 2/26/2015 6:27 PM, Doug Ledford wrote:
+On Sun, 2015-03-01 at 11:31 +0200, Erez Shitrit wrote:
+> On 2/22/2015 2:27 AM, Doug Ledford wrote:
+> > Commit a9c8ba5884 ("IPoIB: Fix usage of uninitialized multicast
+> > objects") added a new flag MCAST_JOIN_STARTED, but was not very strict
+> > in how it was used.  We didn't always initialize the completion struct
+> > before we set the flag, and we didn't always call complete on the
+> > completion struct from all paths that complete it.  And when we did
+> > complete it, sometimes we continued to touch the mcast entry after
+> > the completion, opening us up to possible use after free issues.
 > >
-> >>> @@ -1037,6 +1038,7 @@ static void __ipoib_ib_dev_flush(struct ipoib_d=
-ev_priv *priv,
-> >>>    	if (level =3D=3D IPOIB_FLUSH_LIGHT) {
-> >>>    		ipoib_mark_paths_invalid(dev);
-> >>>    		ipoib_mcast_dev_flush(dev);
-> >>> +		ipoib_flush_ah(dev, 0);
-> >> Why do you need to call the flush function here?
-> > To remove all of the ah's that were reduced to a 0 refcount by the
-> > previous two functions prior to restarting operations.  When we remove
-> > an ah, it calls ib_destroy_ah which calls all the way down into the low
-> > level driver.  This was to make sure that old, stale data was removed
-> > all the way down to the card level before we started new queries for
-> > paths and ahs.
->=20
-> Yes. but it is not needed.
-
-That depends on the card.  For the modern cards (mlx4, mlx5, qib), it
-isn't needed but doesn't hurt either.  For older cards (in particular,
-mthca), the driver actually frees up card resources at the time of the
-call.
-
-> The bug happened when the driver was removed (via modprobe -r etc.), and=
-=20
-> there were ah's in the dead_ah list, that was fixed by you in the=20
-> function ipoib_ib_dev_cleanup, the call that you added here is not=20
-> relevant to the bug (and IMHO is not needed at all)
-
-I never said that this hunk was part of the original bug I saw before.
-
-> So, the the task of cleaning the dead_ah is already there, no need to=20
-> recall it, it will be called anyway 1 sec at the most from now.
->=20
-> You can try that, take of that call, no harm or memory leak will happened=
-.
-
-I have no doubt that it will get freed later.  As I said, I never
-considered this particular hunk part of that original bug.  But, as I
-point out above, there is no harm in it for any hardware, and depending
-on hardware it can help to make sure there isn't a shortage of
-resources.  Given that fact, I see no reason to remove it.
-
-> >> I can't see the reason to use the flush not from the stop_ah, meaning
-> >> without setting the IPOIB_STOP_REAPER, the flush can send twice the sa=
-me
-> >> work.
-> > No, it can't.  The ah flush routine does not search through ahs to find
-> > ones to flush.  When you delete neighbors and mcasts, they release thei=
-r
-> > references to ahs.  When the refcount goes to 0, the put routine puts
-> > the ah on the to-be-deleted ah list.  All the flush does is take that
-> > list and delete the items.  If you run the flush twice, the first run
-> > deletes all the items on the to-be-deleted list, the second run sees an
-> > empty list and does nothing.
+> > This made it less than totally effective, and certainly made its use
+> > confusing.  And in the flush function we would use the presence of this
+> > flag to signal that we should wait on the completion struct, but we nev=
+er
+> > cleared this flag, ever.
 > >
-> > As for using flush versus stop: the flush function cancels any delayed
-> > ah_flush work so that it isn't racing with the normally scheduled
->=20
-> when you call cancel_delayed_work to work that can schedule itself, it=
-=20
-> is not help, the work can be at the middle of the run and re-schedule=20
-> itself...
-
-If it is in the middle of a run and reschedules itself, then it will
-schedule itself at precisely the same time we would have anyway, and we
-will get flushed properly, so the net result of this particular race is
-that we end up doing exactly what we wanted to do anyway.
-
->=20
-> > ah_flush, then flushes the workqueue to make sure anything that might
-> > result in an ah getting freed is done, then flushes, then schedules a
-> > new delayed flush_ah work 1 second later.  So, it does exactly what a
-> > flush should do: it removes what there is currently to remove, and in
-> > the case of a periodically scheduled garbage collection, schedules a ne=
-w
-> > periodic flush at the maximum interval.
+> > In order to make things clearer and aid in resolving the rtnl deadlock
+> > bug I've been chasing, I cleaned this up a bit.
 > >
-> > It is not appropriate to call stop_ah at this point because it will
-> > cancel the delayed work, flush the ahs, then never reschedule the
-> > garbage collection.  If we called stop here, we would have to call star=
-t
-> > later.  But that's not really necessary as the flush cancels the
-> > scheduled work and reschedules it for a second later.
+> >   1) Remove the MCAST_JOIN_STARTED flag entirely
+> >   2) Change MCAST_FLAG_BUSY so it now only means a join is in-flight
+> >   3) Test mcast->mc directly to see if we have completed
+> >      ib_sa_join_multicast (using IS_ERR_OR_NULL)
+> >   4) Make sure that before setting MCAST_FLAG_BUSY we always initialize
+> >      the mcast->done completion struct
+> >   5) Make sure that before calling complete(&mcast->done), we always cl=
+ear
+> >      the MCAST_FLAG_BUSY bit
+> >   6) Take the mcast_mutex before we call ib_sa_multicast_join and also
+> >      take the mutex in our join callback.  This forces
+> >      ib_sa_multicast_join to return and set mcast->mc before we process
+> >      the callback.  This way, our callback can safely clear mcast->mc
+> >      if there is an error on the join and we will do the right thing as
+> >      a result in mcast_dev_flush.
+> >   7) Because we need the mutex to synchronize mcast->mc, we can no
+> >      longer call mcast_sendonly_join directly from mcast_send and
+> >      instead must add sendonly join processing to the mcast_join_task
+> >   8) Make MCAST_RUN mean that we have a working mcast subsystem, not th=
+at
+> >      we have a running task.  We know when we need to reschedule our
+> >      join task thread and don't need a flag to tell us.
+> >   9) Add a helper for rescheduling the join task thread
 > >
-> >>>    	}
-> >>>   =20
-> >>>    	if (level >=3D IPOIB_FLUSH_NORMAL)
-> >>> @@ -1100,6 +1102,14 @@ void ipoib_ib_dev_cleanup(struct net_device *d=
-ev)
-> >>>    	ipoib_mcast_stop_thread(dev, 1);
-> >>>    	ipoib_mcast_dev_flush(dev);
-> >>>   =20
-> >>> +	/*
-> >>> +	 * All of our ah references aren't free until after
-> >>> +	 * ipoib_mcast_dev_flush(), ipoib_flush_paths, and
-> >>> +	 * the neighbor garbage collection is stopped and reaped.
-> >>> +	 * That should all be done now, so make a final ah flush.
-> >>> +	 */
-> >>> +	ipoib_stop_ah(dev, 1);
-> >>> +
-> >>>    	ipoib_transport_dev_cleanup(dev);
-> >>>    }
-> >>>   =20
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
-in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > A number of different races are resolved with these changes.  These
+> > races existed with the old MCAST_FLAG_BUSY usage, the
+> > MCAST_JOIN_STARTED flag was an attempt to address them, and while it
+> > helped, a determined effort could still trip things up.
 > >
+> > One race looks something like this:
+> >
+> > Thread 1                             Thread 2
+> > ib_sa_join_multicast (as part of running restart mcast task)
+> >    alloc member
+> >    call callback
+> >                                       ifconfig ib0 down
+> > 				     wait_for_completion
+> >      callback call completes
+> >                                       wait_for_completion in
+> > 				     mcast_dev_flush completes
+> > 				       mcast->mc is PTR_ERR_OR_NULL
+> > 				       so we skip ib_sa_leave_multicast
+> >      return from callback
+> >    return from ib_sa_join_multicast
+> > set mcast->mc =3D return from ib_sa_multicast
+> >
+> > We now have a permanently unbalanced join/leave issue that trips up the
+> > refcounting in core/multicast.c
+> >
+> > Another like this:
+> >
+> > Thread 1                   Thread 2         Thread 3
+> > ib_sa_multicast_join
+> >                                              ifconfig ib0 down
+> > 					    priv->broadcast =3D NULL
+> >                             join_complete
+> > 			                    wait_for_completion
+> > 			   mcast->mc is not yet set, so don't clear
+> > return from ib_sa_join_multicast and set mcast->mc
+> > 			   complete
+> > 			   return -EAGAIN (making mcast->mc invalid)
+> > 			   		    call ib_sa_multicast_leave
+> > 					    on invalid mcast->mc, hang
+> > 					    forever
+> >
+> > By holding the mutex around ib_sa_multicast_join and taking the mutex
+> > early in the callback, we force mcast->mc to be valid at the time we
+> > run the callback.  This allows us to clear mcast->mc if there is an
+> > error and the join is going to fail.  We do this before we complete
+> > the mcast.  In this way, mcast_dev_flush always sees consistent state
+> > in regards to mcast->mc membership at the time that the
+> > wait_for_completion() returns.
+> >
+> > Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >   drivers/infiniband/ulp/ipoib/ipoib.h           |  11 +-
+> >   drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 355 ++++++++++++++++=
+---------
+> >   2 files changed, 238 insertions(+), 128 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/=
+ulp/ipoib/ipoib.h
+> > index 9ef432ae72e..c79dcd5ee8a 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> > @@ -98,9 +98,15 @@ enum {
+> >  =20
+> >   	IPOIB_MCAST_FLAG_FOUND	  =3D 0,	/* used in set_multicast_list */
+> >   	IPOIB_MCAST_FLAG_SENDONLY =3D 1,
+> > -	IPOIB_MCAST_FLAG_BUSY	  =3D 2,	/* joining or already joined */
+> > +	/*
+> > +	 * For IPOIB_MCAST_FLAG_BUSY
+> > +	 * When set, in flight join and mcast->mc is unreliable
+> > +	 * When clear and mcast->mc IS_ERR_OR_NULL, need to restart or
+> > +	 *   haven't started yet
+> > +	 * When clear and mcast->mc is valid pointer, join was successful
+> > +	 */
+> > +	IPOIB_MCAST_FLAG_BUSY	  =3D 2,
+> >   	IPOIB_MCAST_FLAG_ATTACHED =3D 3,
+> > -	IPOIB_MCAST_JOIN_STARTED  =3D 4,
+> >  =20
+> >   	MAX_SEND_CQE		  =3D 16,
+> >   	IPOIB_CM_COPYBREAK	  =3D 256,
+> > @@ -148,6 +154,7 @@ struct ipoib_mcast {
+> >  =20
+> >   	unsigned long created;
+> >   	unsigned long backoff;
+> > +	unsigned long delay_until;
+> >  =20
+> >   	unsigned long flags;
+> >   	unsigned char logcount;
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/i=
+nfiniband/ulp/ipoib/ipoib_multicast.c
+> > index bb1b69904f9..277e7ac7c4d 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> > @@ -66,6 +66,48 @@ struct ipoib_mcast_iter {
+> >   	unsigned int       send_only;
+> >   };
+> >  =20
+> > +/*
+> > + * This should be called with the mcast_mutex held
+> > + */
+> > +static void __ipoib_mcast_schedule_join_thread(struct ipoib_dev_priv *=
+priv,
+> > +					       struct ipoib_mcast *mcast,
+> > +					       bool delay)
+> > +{
+> > +	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
 >=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> You don't need the flag IPOIB_MCAST_RUN, it is duplicated of=20
+> IPOIB_FLAG_OPER_UP
+> probably, need to be taken from all places (including ipoib.h file).
 
+This is probably true, however I skipped it for this series of patches.
+It wasn't a requirement of proper operation, and depending on where in
+the patch series you tried to inject this change, it had unintended
+negative consequences.  In particular, up until patch 7/9,
+mcast_restart_task used to do a hand rolled stop thread and a matching
+start_thread and so couldn't use FLAG_OPER_UP because we needed
+FLAG_OPER_UP to tell us whether or not to restart the thread.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -145,7 +187,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---=-wShcWSq8SXpzgTKg9QKy
+--=-O7y8LTWOHhpaNOZMsxr8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -153,22 +195,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABAgAGBQJU9H0nAAoJELgmozMOVy/d5OAP/2Ev6kmAzbtIzP+9OE/jLLpb
-xXwsAYvQ9e8I8HFLdp/FgiHavQhzujtLdnITPmMuB4D4mcWpWTZRSjwVhbngHsJl
-NbMhFJeONSHgMqf2ysc/s20K5tMrkfsf3dIjlQzYcHicPDcb83izvtrjmJ8KdeAN
-sfdp2ZKOZproXRYAUwtsd0qO9SAMDYwRXKxQnsbhBf6R8IZ0iMDcCLNEJ4cfeLCY
-BxoNQUYh/CXafKD2gjz9GVDHNT/CKLdupai/ozlcmGM0csxbtRpXq67Wj7c6DLCz
-9UJfPsryaSyeyYaYfaXwTaXyB7d3MYL1p183zz7PJWdGe4KVvHADcp4PyTizbuqx
-VQDtU0kt1ytcYV2U2wdtMpTNl4YIUERvXf5PsdD5m9JG0wk6hZpK6QzXxltdaAXG
-7l0W/r3/9ZZdIcptE18YoxGsy6rOqpAm1kI5thLjLobCybkHfEyV9lJ1meFKJP2Y
-N2OOxPvT83gxZPat5e6f5EO8v4sPglE8dOUX/d0++JtnC3DNt1updnAUFDmMc4lF
-J+tDd3NZ2e1QIVx5oSvaIKBf8Hjscmkj7Q2bRbgPYogKAmPmANNgqV06rVMPC1DJ
-RRXu0FUcM5Hk6u+R2tvS8w61JSYUkFjBcISr0BsXg61HpGUJyprSY1YkFlv8hYEl
-GLY3n++GtwG71Li4l2Pe
-=r49s
+iQIcBAABAgAGBQJU9IFUAAoJELgmozMOVy/dVE8QAKpFbOTu09KaGd3rGl1bH3dI
+9Xxa9qFh7WPwrbI4WHpo7ONJ2YXxNtMaeMSHQgMZFSoQWfZ4HVBi/RFW//tXaOty
+nqRxDNLQPo9Y/N5K+0j+holrnCWhwD8rSJrbWZUYLfpZrpEOjikaA7Folj5TMJJy
+Nzw8T+mSC34GaKf3ufRgBuGe1ljGGS3qfJfj6WOlsX05h1/Dl6LZE9CutKMP8kC5
+etZBKoUSUYer0fo+YUAb98FPzr1tEqHtdPdG88gMIQLlR158cs8on5eVMElT87rO
+ZwqD7ulDQXeVfW2j9xqlquZY5deIiU6iFByl4SUKtXbPLh9YhSU9lAao6RHbrsA6
+eN1i+fIf0d/9mHpaYHQQ25GR2/u+wMe71IcmDCRNVfonjUjOf6UUUNeOWO7TJ3Xc
+fJtbNpSRmprs/mW97JY3UZv8CSem8Sm2HzXHvGmmnZULRgBhrFX+Dh03SWtDCuwd
+pjctUzGDCsvwECmgktBxgLX8mGDHrhEdZFabCjHDU3pj4aIfNkU468+fvlY1ddSi
+r5qRqyzwqmz3zrs5RfkCGVR+b6jwAJNd1PDpH6eggTbF63cLKLQOLq4WFgbWSNSz
+LoEX/Ji7XGtc9h2KGdcO8ykWIM95uLXmJhJHeSeVTWMH0zThouBJKoQXN3cwPzM9
+h0/tAyib//8LOxrIWhAN
+=psiI
 -----END PGP SIGNATURE-----
 
---=-wShcWSq8SXpzgTKg9QKy--
+--=-O7y8LTWOHhpaNOZMsxr8--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
