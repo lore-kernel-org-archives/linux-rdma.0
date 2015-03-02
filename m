@@ -1,185 +1,253 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 7/9] IB/ipoib: fix MCAST_FLAG_BUSY usage
-Date: Mon, 02 Mar 2015 10:27:16 -0500
-Message-ID: <1425310036.2354.24.camel@redhat.com>
+Subject: Re: [PATCH 8/9] IB/ipoib: deserialize multicast joins
+Date: Mon, 02 Mar 2015 10:29:05 -0500
+Message-ID: <1425310145.2354.26.camel@redhat.com>
 References: <cover.1424562072.git.dledford@redhat.com>
-	 <9d657f64ee961ee3b3233520d8b499b234a42bcd.1424562072.git.dledford@redhat.com>
-	 <54F2DC81.304@dev.mellanox.co.il>
+	 <a24ade295dfdd1369aac47a978003569ec190952.1424562072.git.dledford@redhat.com>
+	 <54F31AEC.3010001@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-O7y8LTWOHhpaNOZMsxr8"
+	boundary="=-dgtMycviCzdKwAPbrpz6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54F2DC81.304-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <54F31AEC.3010001-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-O7y8LTWOHhpaNOZMsxr8
+--=-dgtMycviCzdKwAPbrpz6
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2015-03-01 at 11:31 +0200, Erez Shitrit wrote:
+On Sun, 2015-03-01 at 15:58 +0200, Erez Shitrit wrote:
 > On 2/22/2015 2:27 AM, Doug Ledford wrote:
-> > Commit a9c8ba5884 ("IPoIB: Fix usage of uninitialized multicast
-> > objects") added a new flag MCAST_JOIN_STARTED, but was not very strict
-> > in how it was used.  We didn't always initialize the completion struct
-> > before we set the flag, and we didn't always call complete on the
-> > completion struct from all paths that complete it.  And when we did
-> > complete it, sometimes we continued to touch the mcast entry after
-> > the completion, opening us up to possible use after free issues.
+> > Allow the ipoib layer to attempt to join all outstanding multicast
+> > groups at once.  The ib_sa layer will serialize multiple attempts to
+> > join the same group, but will process attempts to join different groups
+> > in parallel.  Take advantage of that.
 > >
-> > This made it less than totally effective, and certainly made its use
-> > confusing.  And in the flush function we would use the presence of this
-> > flag to signal that we should wait on the completion struct, but we nev=
-er
-> > cleared this flag, ever.
+> > In order to make this happen, change the mcast_join_thread to loop
+> > through all needed joins, sending a join request for each one that we
+> > still need to join.  There are a few special cases we handle though:
 > >
-> > In order to make things clearer and aid in resolving the rtnl deadlock
-> > bug I've been chasing, I cleaned this up a bit.
-> >
-> >   1) Remove the MCAST_JOIN_STARTED flag entirely
-> >   2) Change MCAST_FLAG_BUSY so it now only means a join is in-flight
-> >   3) Test mcast->mc directly to see if we have completed
-> >      ib_sa_join_multicast (using IS_ERR_OR_NULL)
-> >   4) Make sure that before setting MCAST_FLAG_BUSY we always initialize
-> >      the mcast->done completion struct
-> >   5) Make sure that before calling complete(&mcast->done), we always cl=
-ear
-> >      the MCAST_FLAG_BUSY bit
-> >   6) Take the mcast_mutex before we call ib_sa_multicast_join and also
-> >      take the mutex in our join callback.  This forces
-> >      ib_sa_multicast_join to return and set mcast->mc before we process
-> >      the callback.  This way, our callback can safely clear mcast->mc
-> >      if there is an error on the join and we will do the right thing as
-> >      a result in mcast_dev_flush.
-> >   7) Because we need the mutex to synchronize mcast->mc, we can no
-> >      longer call mcast_sendonly_join directly from mcast_send and
-> >      instead must add sendonly join processing to the mcast_join_task
-> >   8) Make MCAST_RUN mean that we have a working mcast subsystem, not th=
-at
-> >      we have a running task.  We know when we need to reschedule our
-> >      join task thread and don't need a flag to tell us.
-> >   9) Add a helper for rescheduling the join task thread
-> >
-> > A number of different races are resolved with these changes.  These
-> > races existed with the old MCAST_FLAG_BUSY usage, the
-> > MCAST_JOIN_STARTED flag was an attempt to address them, and while it
-> > helped, a determined effort could still trip things up.
-> >
-> > One race looks something like this:
-> >
-> > Thread 1                             Thread 2
-> > ib_sa_join_multicast (as part of running restart mcast task)
-> >    alloc member
-> >    call callback
-> >                                       ifconfig ib0 down
-> > 				     wait_for_completion
-> >      callback call completes
-> >                                       wait_for_completion in
-> > 				     mcast_dev_flush completes
-> > 				       mcast->mc is PTR_ERR_OR_NULL
-> > 				       so we skip ib_sa_leave_multicast
-> >      return from callback
-> >    return from ib_sa_join_multicast
-> > set mcast->mc =3D return from ib_sa_multicast
-> >
-> > We now have a permanently unbalanced join/leave issue that trips up the
-> > refcounting in core/multicast.c
-> >
-> > Another like this:
-> >
-> > Thread 1                   Thread 2         Thread 3
-> > ib_sa_multicast_join
-> >                                              ifconfig ib0 down
-> > 					    priv->broadcast =3D NULL
-> >                             join_complete
-> > 			                    wait_for_completion
-> > 			   mcast->mc is not yet set, so don't clear
-> > return from ib_sa_join_multicast and set mcast->mc
-> > 			   complete
-> > 			   return -EAGAIN (making mcast->mc invalid)
-> > 			   		    call ib_sa_multicast_leave
-> > 					    on invalid mcast->mc, hang
-> > 					    forever
-> >
-> > By holding the mutex around ib_sa_multicast_join and taking the mutex
-> > early in the callback, we force mcast->mc to be valid at the time we
-> > run the callback.  This allows us to clear mcast->mc if there is an
-> > error and the join is going to fail.  We do this before we complete
-> > the mcast.  In this way, mcast_dev_flush always sees consistent state
-> > in regards to mcast->mc membership at the time that the
-> > wait_for_completion() returns.
+> > 1) Don't attempt to join anything but the broadcast group until the joi=
+n
+> > of the broadcast group has succeeded.
+> > 2) No longer restart the join task at the end of completion handling.
+> > If we completed successfully, we are done.  The join task now needs kic=
+ked
+> > either by mcast_send or mcast_restart_task or mcast_start_thread, but
+> > should not need started anytime else except when scheduling a backoff
+> > attempt to rejoin.
+> > 3) No longer use separate join/completion routines for regular and
+> > sendonly joins, pass them all through the same routine and just do the
+> > right thing based on the SENDONLY join flag.
+> > 4) Only try to join a SENDONLY join twice, then drop the packets and
+> > quit trying.  We leave the mcast group in the list so that if we get a
+> > new packet, all that we have to do is queue up the packet and restart
+> > the join task and it will automatically try to join twice and then
+> > either send or flush the queue again.
 > >
 > > Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > > ---
-> >   drivers/infiniband/ulp/ipoib/ipoib.h           |  11 +-
-> >   drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 355 ++++++++++++++++=
+> >   drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 250 ++++++++--------=
 ---------
-> >   2 files changed, 238 insertions(+), 128 deletions(-)
+> >   1 file changed, 82 insertions(+), 168 deletions(-)
 > >
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/=
-ulp/ipoib/ipoib.h
-> > index 9ef432ae72e..c79dcd5ee8a 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > @@ -98,9 +98,15 @@ enum {
-> >  =20
-> >   	IPOIB_MCAST_FLAG_FOUND	  =3D 0,	/* used in set_multicast_list */
-> >   	IPOIB_MCAST_FLAG_SENDONLY =3D 1,
-> > -	IPOIB_MCAST_FLAG_BUSY	  =3D 2,	/* joining or already joined */
-> > +	/*
-> > +	 * For IPOIB_MCAST_FLAG_BUSY
-> > +	 * When set, in flight join and mcast->mc is unreliable
-> > +	 * When clear and mcast->mc IS_ERR_OR_NULL, need to restart or
-> > +	 *   haven't started yet
-> > +	 * When clear and mcast->mc is valid pointer, join was successful
-> > +	 */
-> > +	IPOIB_MCAST_FLAG_BUSY	  =3D 2,
-> >   	IPOIB_MCAST_FLAG_ATTACHED =3D 3,
-> > -	IPOIB_MCAST_JOIN_STARTED  =3D 4,
-> >  =20
-> >   	MAX_SEND_CQE		  =3D 16,
-> >   	IPOIB_CM_COPYBREAK	  =3D 256,
-> > @@ -148,6 +154,7 @@ struct ipoib_mcast {
-> >  =20
-> >   	unsigned long created;
-> >   	unsigned long backoff;
-> > +	unsigned long delay_until;
-> >  =20
-> >   	unsigned long flags;
-> >   	unsigned char logcount;
 > > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/i=
 nfiniband/ulp/ipoib/ipoib_multicast.c
-> > index bb1b69904f9..277e7ac7c4d 100644
+> > index 277e7ac7c4d..c670d9c2cda 100644
 > > --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 > > +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> > @@ -66,6 +66,48 @@ struct ipoib_mcast_iter {
-> >   	unsigned int       send_only;
-> >   };
+> > @@ -307,111 +307,6 @@ static int ipoib_mcast_join_finish(struct ipoib_m=
+cast *mcast,
+> >   	return 0;
+> >   }
 > >  =20
-> > +/*
-> > + * This should be called with the mcast_mutex held
-> > + */
-> > +static void __ipoib_mcast_schedule_join_thread(struct ipoib_dev_priv *=
+> > -static int
+> > -ipoib_mcast_sendonly_join_complete(int status,
+> > -				   struct ib_sa_multicast *multicast)
+> > -{
+> > -	struct ipoib_mcast *mcast =3D multicast->context;
+> > -	struct net_device *dev =3D mcast->dev;
+> > -	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+> > -
+> > -	/*
+> > -	 * We have to take the mutex to force mcast_sendonly_join to
+> > -	 * return from ib_sa_multicast_join and set mcast->mc to a
+> > -	 * valid value.  Otherwise we were racing with ourselves in
+> > -	 * that we might fail here, but get a valid return from
+> > -	 * ib_sa_multicast_join after we had cleared mcast->mc here,
+> > -	 * resulting in mis-matched joins and leaves and a deadlock
+> > -	 */
+> > -	mutex_lock(&mcast_mutex);
+> > -
+> > -	/* We trap for port events ourselves. */
+> > -	if (status =3D=3D -ENETRESET) {
+> > -		status =3D 0;
+> > -		goto out;
+> > -	}
+> > -
+> > -	if (!status)
+> > -		status =3D ipoib_mcast_join_finish(mcast, &multicast->rec);
+> > -
+> > -	if (status) {
+> > -		if (mcast->logcount++ < 20)
+> > -			ipoib_dbg_mcast(netdev_priv(dev), "sendonly multicast "
+> > -					"join failed for %pI6, status %d\n",
+> > -					mcast->mcmember.mgid.raw, status);
+> > -
+> > -		/* Flush out any queued packets */
+> > -		netif_tx_lock_bh(dev);
+> > -		while (!skb_queue_empty(&mcast->pkt_queue)) {
+> > -			++dev->stats.tx_dropped;
+> > -			dev_kfree_skb_any(skb_dequeue(&mcast->pkt_queue));
+> > -		}
+> > -		netif_tx_unlock_bh(dev);
+> > -		__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
+> > -	} else {
+> > -		mcast->backoff =3D 1;
+> > -		mcast->delay_until =3D jiffies;
+> > -		__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
+> > -	}
+> > -out:
+> > -	clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+> > -	if (status)
+> > -		mcast->mc =3D NULL;
+> > -	complete(&mcast->done);
+> > -	mutex_unlock(&mcast_mutex);
+> > -	return status;
+> > -}
+> > -
+> > -static int ipoib_mcast_sendonly_join(struct ipoib_mcast *mcast)
+> > -{
+> > -	struct net_device *dev =3D mcast->dev;
+> > -	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+> > -	struct ib_sa_mcmember_rec rec =3D {
+> > -#if 0				/* Some SMs don't support send-only yet */
+> > -		.join_state =3D 4
+> > -#else
+> > -		.join_state =3D 1
+> > -#endif
+> > -	};
+> > -	int ret =3D 0;
+> > -
+> > -	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags)) {
+> > -		ipoib_dbg_mcast(priv, "device shutting down, no sendonly "
+> > -				"multicast joins\n");
+> > -		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+> > -		complete(&mcast->done);
+> > -		return -ENODEV;
+> > -	}
+> > -
+> > -	rec.mgid     =3D mcast->mcmember.mgid;
+> > -	rec.port_gid =3D priv->local_gid;
+> > -	rec.pkey     =3D cpu_to_be16(priv->pkey);
+> > -
+> > -	mutex_lock(&mcast_mutex);
+> > -	mcast->mc =3D ib_sa_join_multicast(&ipoib_sa_client, priv->ca,
+> > -					 priv->port, &rec,
+> > -					 IB_SA_MCMEMBER_REC_MGID	|
+> > -					 IB_SA_MCMEMBER_REC_PORT_GID	|
+> > -					 IB_SA_MCMEMBER_REC_PKEY	|
+> > -					 IB_SA_MCMEMBER_REC_JOIN_STATE,
+> > -					 GFP_ATOMIC,
+> > -					 ipoib_mcast_sendonly_join_complete,
+> > -					 mcast);
+> > -	if (IS_ERR(mcast->mc)) {
+> > -		ret =3D PTR_ERR(mcast->mc);
+> > -		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+> > -		ipoib_warn(priv, "ib_sa_join_multicast for sendonly join "
+> > -			   "failed (ret =3D %d)\n", ret);
+> > -		complete(&mcast->done);
+> > -	} else {
+> > -		ipoib_dbg_mcast(priv, "no multicast record for %pI6, starting "
+> > -				"sendonly join\n", mcast->mcmember.mgid.raw);
+> > -	}
+> > -	mutex_unlock(&mcast_mutex);
+> > -
+> > -	return ret;
+> > -}
+> > -
+> >   void ipoib_mcast_carrier_on_task(struct work_struct *work)
+> >   {
+> >   	struct ipoib_dev_priv *priv =3D container_of(work, struct ipoib_dev_=
 priv,
-> > +					       struct ipoib_mcast *mcast,
-> > +					       bool delay)
-> > +{
-> > +	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
+> > @@ -452,7 +347,9 @@ static int ipoib_mcast_join_complete(int status,
+> >   	struct net_device *dev =3D mcast->dev;
+> >   	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+> >  =20
+> > -	ipoib_dbg_mcast(priv, "join completion for %pI6 (status %d)\n",
+> > +	ipoib_dbg_mcast(priv, "%sjoin completion for %pI6 (status %d)\n",
+> > +			test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ?
+> > +			"sendonly " : "",
+> >   			mcast->mcmember.mgid.raw, status);
+> >  =20
+> >   	/*
+> > @@ -477,27 +374,52 @@ static int ipoib_mcast_join_complete(int status,
+> >   	if (!status) {
+> >   		mcast->backoff =3D 1;
+> >   		mcast->delay_until =3D jiffies;
+> > -		__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
+> >  =20
+> >   		/*
+> >   		 * Defer carrier on work to priv->wq to avoid a
+> > -		 * deadlock on rtnl_lock here.
+> > +		 * deadlock on rtnl_lock here.  Requeue our multicast
+> > +		 * work too, which will end up happening right after
+> > +		 * our carrier on task work and will allow us to
+> > +		 * send out all of the non-broadcast joins
+> >   		 */
+> > -		if (mcast =3D=3D priv->broadcast)
+> > +		if (mcast =3D=3D priv->broadcast) {
+> >   			queue_work(priv->wq, &priv->carrier_on_task);
+> > +			__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
+> > +		}
+> >   	} else {
+> >   		if (mcast->logcount++ < 20) {
+> >   			if (status =3D=3D -ETIMEDOUT || status =3D=3D -EAGAIN) {
+> > -				ipoib_dbg_mcast(priv, "multicast join failed for %pI6, status %d\n=
+",
+> > +				ipoib_dbg_mcast(priv, "%smulticast join failed for %pI6, status %d=
+\n",
+> > +						test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ? "sendonly "=
+ : "",
+> >   						mcast->mcmember.mgid.raw, status);
+> >   			} else {
+> > -				ipoib_warn(priv, "multicast join failed for %pI6, status %d\n",
+> > +				ipoib_warn(priv, "%smulticast join failed for %pI6, status %d\n",
+> > +						test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ? "sendonly "=
+ : "",
+> >   					   mcast->mcmember.mgid.raw, status);
+> >   			}
+> >   		}
+> >  =20
+> > -		/* Requeue this join task with a backoff delay */
+> > -		__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
+> > +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
+> > +		    mcast->backoff >=3D 2) {
+> > +			/*
+> > +			 * We only retry sendonly joins once before we drop
+> > +			 * the packet and quit trying to deal with the
+> > +			 * group.  However, we leave the group in the
+> > +			 * mcast list as an unjoined group.  If we want to
+> > +			 * try joining again, we simply queue up a packet
+> > +			 * and restart the join thread.  The empty queue
+> > +			 * is why the join thread ignores this group.
+> > +			 */
 >=20
-> You don't need the flag IPOIB_MCAST_RUN, it is duplicated of=20
-> IPOIB_FLAG_OPER_UP
-> probably, need to be taken from all places (including ipoib.h file).
+> Question: the sendonly is at the list for ever? looks like that, and it=
+=20
+> is prior to your patches, so probably it should be sent in some other=20
+> patch to solve that.
 
-This is probably true, however I skipped it for this series of patches.
-It wasn't a requirement of proper operation, and depending on where in
-the patch series you tried to inject this change, it had unintended
-negative consequences.  In particular, up until patch 7/9,
-mcast_restart_task used to do a hand rolled stop thread and a matching
-start_thread and so couldn't use FLAG_OPER_UP because we needed
-FLAG_OPER_UP to tell us whether or not to restart the thread.
+Correct.  That logic is unchanged.  It probably deserves some sort of
+timeout such that after X seconds with no traffic on a sendonly group,
+we leave that group and only rejoin if we get a new send.  I had thought
+about making it something really long, like 20 minutes, but thinking
+about it is all I've done.  I didn't code anything up or include that in
+these patches.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -187,7 +255,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---=-O7y8LTWOHhpaNOZMsxr8
+--=-dgtMycviCzdKwAPbrpz6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -195,22 +263,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABAgAGBQJU9IFUAAoJELgmozMOVy/dVE8QAKpFbOTu09KaGd3rGl1bH3dI
-9Xxa9qFh7WPwrbI4WHpo7ONJ2YXxNtMaeMSHQgMZFSoQWfZ4HVBi/RFW//tXaOty
-nqRxDNLQPo9Y/N5K+0j+holrnCWhwD8rSJrbWZUYLfpZrpEOjikaA7Folj5TMJJy
-Nzw8T+mSC34GaKf3ufRgBuGe1ljGGS3qfJfj6WOlsX05h1/Dl6LZE9CutKMP8kC5
-etZBKoUSUYer0fo+YUAb98FPzr1tEqHtdPdG88gMIQLlR158cs8on5eVMElT87rO
-ZwqD7ulDQXeVfW2j9xqlquZY5deIiU6iFByl4SUKtXbPLh9YhSU9lAao6RHbrsA6
-eN1i+fIf0d/9mHpaYHQQ25GR2/u+wMe71IcmDCRNVfonjUjOf6UUUNeOWO7TJ3Xc
-fJtbNpSRmprs/mW97JY3UZv8CSem8Sm2HzXHvGmmnZULRgBhrFX+Dh03SWtDCuwd
-pjctUzGDCsvwECmgktBxgLX8mGDHrhEdZFabCjHDU3pj4aIfNkU468+fvlY1ddSi
-r5qRqyzwqmz3zrs5RfkCGVR+b6jwAJNd1PDpH6eggTbF63cLKLQOLq4WFgbWSNSz
-LoEX/Ji7XGtc9h2KGdcO8ykWIM95uLXmJhJHeSeVTWMH0zThouBJKoQXN3cwPzM9
-h0/tAyib//8LOxrIWhAN
-=psiI
+iQIcBAABAgAGBQJU9IHBAAoJELgmozMOVy/dMjAP/iDZ8AqDPAvknTLgUm9bcakr
+MEswN1JEeQcMh1W9bdO7lZdSig62C9ywHYbDVoktkYLVmh57UODhrNjQtJVnISo1
+5laDUZySAM/5baRH/x+FmrjD/TBIwHSvrmbCbMRF2RFHlUoXO9MyPSURTEoT7dQQ
+/swpoUtuDpy6vjbjazOsb2QmAr/EWZzximGpF3kbUFStSd0uM7dt9DwsA0RYFl/n
+/Sb4R6KVoj+UdEToqynYn+BirucnCsoCqW6zZB9h9FsOa7MaMheDmBlJIFxl1zHC
+f5MM06e1n3T5cKCYn+hMPATf+DRPjDaO9CsbWreuCSIOJd6XAe1KKRrDo1ywgWvS
+i/TGV8+JDtSI57yHSf769p7kTXytFJBhJ99j+KzzkfVR7fcX47/G1wzAy56yVymF
+H+mkZ/FnQHFrgO9u5S/snBskMgfSz+sJRv5MK0T7Ua+/b2HtNkSEjGAAoXOzG3jd
+JSYHWNmZtxO83DwA1m7L2vEZLVGyFitKB4xXPSMdtDw8QdNx1sO3/atLZnMf9tNw
+8TwS8LBxG+eRz82bJqevBdHDLK/KI/4L9tAWeDzixItGxnawEQ2+STX7xHX1wNHj
+zAr8yp0SF9HCtqupek0alZodcs8e4cq4yUAjWY5D3O147bobDvpQ53vDjHfXp2JT
+ee+IJMcSkJdt8T287cbv
+=pFhi
 -----END PGP SIGNATURE-----
 
---=-O7y8LTWOHhpaNOZMsxr8--
+--=-dgtMycviCzdKwAPbrpz6--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
