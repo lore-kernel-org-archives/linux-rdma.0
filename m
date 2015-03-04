@@ -1,119 +1,111 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Wed, 4 Mar 2015 07:21:48 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC4F18C@CRSMSX101.amr.corp.intel.com>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
-	 <1423092585-26692-15-git-send-email-ira.weiny@intel.com>
-	 <54D52589.8020305@dev.mellanox.co.il>
-	 <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8@CRSMSX101.amr.corp.intel.com>
-	 <54DCB1E9.7010309@dev.mellanox.co.il>
-	 <2807E5FD2F6FDA4886F6618EAC48510E0CC29020@CRSMSX101.amr.corp.intel.com>
-	 <54EB7756.7070407@dev.mellanox.co.il>
-	 <2807E5FD2F6FDA4886F6618EAC48510E0CC3D330@CRSMSX101.amr.corp.intel.com>
- <1424884438.4847.91.camel@redhat.com>
+From: Vaishali Thakkar <vthakkar1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] IB/ipatch: Use setup_timer and mod_timer
+Date: Wed, 4 Mar 2015 13:26:14 +0530
+Message-ID: <20150304075614.GA7854@vaishali-Ideapad-Z570>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1424884438.4847.91.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RG91ZywNCg0KWW91IGhhdmUgZ2l2ZW4gbWUgYSBsb3QgdG8gdGhpbmsgYWJvdXQuLi4gIENvbW1l
-bnRzIGJlbG93Li4uDQoNCj4gPiA+ID4NCj4gPiA+ID4gV2hpbGUgaXQgaXMgYSBkaWZmZXJlbnQg
-dHlwZSBvZiB0ZWNobm9sb2d5LCBzdGFuZGFyZCB2ZXJic1sqXQ0KPiA+ID4gPiByZW1haW5zIDEw
-MCUNCj4gPiA+IGNvbXBhdGlibGUuICBVbmxpa2Ugb3RoZXIgdmVyYnMgdGVjaG5vbG9naWVzIHVz
-ZXIgc3BhY2Ugc29mdHdhcmUNCj4gPiA+IGRvZXMgbm90IG5lZWQgYW55IGtub3dsZWRnZSB0aGF0
-IHRoZSB1bmRlcmx5aW5nIGRldmljZSBpcyBub3QgSUIuDQo+ID4gPiBGb3IgZXhhbXBsZSwgUFIg
-KGFuZCBTQSkgcXVlcmllcywgQ00sIHJkbWFjbSwgYW5kIHZlcmJzIGNhbGxzIHRoZW1zZWx2ZXMN
-Cj4gYXJlIGFsbCAxMDAlIElCIGNvbXBhdGlibGUuDQo+ID4gPg0KPiA+ID4gRXZlbiBpZiBPUEEg
-aXMgMTAwJSBzdGFuZGFyZCB2ZXJicyBjb21wYXRpYmxlIHdoaWNoIGl0IGRvZXMgbm90DQo+ID4g
-PiBhcHBlYXIgdG8gYmUsIHRoYXQgZG9lcyBub3QgbWFrZSBPUEEgYW4gZXh0cmEgY2FwYWJpbGl0
-eSBvZiBhbiBJQkEgZGV2aWNlLg0KPiA+DQo+ID4gSSBkb24ndCB3YW50IHRvIG1ha2UgaXQgYW4g
-ZXh0cmEgY2FwYWJpbGl0eSBvZiBhbiBJQkEgZGV2aWNlLiAgSSB3YW50IHRvIG1ha2UgaXQNCj4g
-YW4gZXh0cmEgY2FwYWJpbGl0eSBvZiBhICJ2ZXJicyIgZGV2aWNlLg0KPiANCj4gQW5kIHRoaXMs
-IGZyaWVuZHMsIGlzIHdoeSBpdCdzIGJhZCB0byBtYWtlIGJvdGggYSBsaW5rIGxheWVyIGFuZCBh
-biB1c2VyIHNwYWNlIEFQSQ0KPiB3aXRoIHRoZSBleGFjdCBzYW1lIG5hbWUgOy0pLiAgQW55d2F5
-LCBJIGdldCB5b3VyIHBvaW50IElyYSBhbmQgaXQgbWFrZXMgc2Vuc2UNCj4gdG8gbWUuICBIb3dl
-dmVyLCBJIGFsc28gZ2V0IEhhbCdzIHBvaW50LiAgT3VyIHRyYWNrIHJlY29yZCBvbiB0aGlzIHBh
-cnRpY3VsYXINCj4gaXNzdWUgaXMgYSBiaXQgd29ua3kgdGhvdWdoLg0KDQpUaGFua3MgZm9yIGxh
-eWluZyB0aGlzIG91dC4gIEkgdG9vIHVuZGVyc3RhbmQgSGFscyBwb2ludC4NCg0KPiANCj4gRmly
-c3Qgd2UgaGFkIEluZmluaUJhbmQuDQo+IA0KPiBUaGVuIGNhbWUgaVdBUlAsIGFuZCB3ZSB1c2Vk
-IHRoZSB0cmFuc3BvcnQgdHlwZSB0byBkaWZmZXJlbnRpYXRlIGl0IGZyb20gYW4NCj4gYWN0dWFs
-IEluZmluaUJhbmQgZGV2aWNlLCBidXQgbGVmdCB0aGUgdW5kZXJseWluZyBsaW5rIGxheWVyIGxp
-c3RlZCBhcyBJbmZpbmlCYW5kLg0KPiBUaGVuIGNhbWUgUm9DRSwgYW5kIHdlIGxpc3RlZCBpdHMg
-dHJhbnNwb3J0IHR5cGUgYXMgSW5maW5pQmFuZCwgYnV0IGNoYW5nZWQNCj4gdGhlIGxpbmsgbGF5
-ZXIgdG8gRXRoZXJuZXQuICBXaGljaCBsZWZ0IHVzIGluIHRoZSBveHltb3JvbmljIHBvc2l0aW9u
-IHRoYXQgZXZlbg0KPiB0aG91Z2ggaVdBUlAgd2FzIG92ZXIgRXRoZXJuZXQsIHRoZSB0b29scyBz
-YWlkIGl0IHdhcyBvdmVyIEluZmluaUJhbmQsIHdoaWxlDQo+IFJvQ0Ugd2FzIHRoZSBvbmx5IHRo
-aW5nIHRoYXQgbGlzdGVkIEV0aGVybmV0IGFzIHRoZSBsaW5rIGxheWVyLiAgV2UgbGF0ZXIgZml4
-ZWQNCj4gdGhhdCB1cCB3aXRoIHNvbWUgaGFja3MgaW4gdG9vbHMgdG8ga2VlcCB1c2VycyBmcm9t
-IGJlaW5nIGNvbmZ1c2VkIGFuZCBmaWxpbmcNCj4gYnVncy4NCj4gDQo+IE1heWJlIHRoaXMgcmVw
-cmVzZW50cyBhbiBvcHBvcnR1bml0eSB0byBzdHJhaWdodGVuIHNvbWUgb2YgdGhpcyBtZXNzIG91
-dC4gIElmIEkNCj4gcmVtZW1iZXIgY29ycmVjdGx5LCB0aGlzIGlzIHRoZSBtYXRyaXggb2YgdGVj
-aG5vbG9naWVzIHRvZGF5Og0KPiANCj4gVGVjaG5vbG9neQlMaW5rTGF5ZXIJVHJhbnNwb3J0DQo+
-IA0KPiBJbmZpbmlCYW5kCUluZmluaUJhbmQJSW5maW5pQmFuZCBWZXJicw0KPiBpV0FSUAkJSW5m
-aW5pQmFuZAlpV0FSUCBWZXJicyAoc3Vic2V0IG9mIElCViwgd2l0aA0KPiAJCQkJc3BlY2lmaWMg
-Y29ubmVjdGlvbiBlc3RhYmxpc2htZW50DQo+IAkJCQlyZXF1aXJlbWVudHMgdGhhdCBkb24ndCBl
-eGlzdCB3aXRoIElCVikNCj4gUm9DRQkJRXRoZXJuZXQJSW5maW5pQmFuZCBWZXJicyAoYnV0IHdp
-dGggZGlmZmVyZW50DQo+IAkJCQlhZGRyZXNzaW5nIGJlY2F1c2Ugb2YgdGhlIGRpZmZlcmVudA0K
-PiAJCQkJbGluayBsYXllcikNCj4gT1BBCQk/CQlJbmZpbmlCYW5kIFZlcmJzDQoNCkkgdGhpbmsg
-dGhpcyBpcyBfcmVsYXRpdmVseV8gYWNjdXJhdGUuICBUaGUgb25lIGV4Y2VwdGlvbiBpcyB3aXRo
-IHRoZSB2YXJpb3VzIElCIHZlcmJzIGV4dGVuc2lvbnMgd2hpY2ggaGF2ZSBiZWVuIGludHJvZHVj
-ZWQuICBXaGlsZSBtb3N0IGFyZSBiZWluZyBwdXNoZWQgaW50byB0aGUgc3BlYyBub3QgYWxsIG9m
-IHRoZW0gYXJlIGluIHRoZSBzcGVjIHByaW9yIHRvIGJlaW5nIGluIHRoZSBrZXJuZWwuICBJdCBt
-YWtlcyBrZWVwaW5nIHVwIHdpdGggd2hhdCAiSUIgVmVyYnMiIHJlYWxseSBpcyBkaWZmaWN1bHQu
-DQoNCk1pbmQgeW91IEknbSBub3Qgb3Bwb3NpbmcgaGF2aW5nIElCIFZlcmJzIGJlIGZsZXhpYmxl
-LiAgQnV0IEkgdGhpbmsgd2UgY2FuIGFjY3VyYXRlbHkgaGF2ZSBtdWx0aXBsZSB1bmRlcmx5aW5n
-IHRlY2hub2xvZ2llcyB3aGljaCBzdXBwb3J0IElCIFZlcmJzIHdpdGggdmFyaW91cyBleHRlbnNp
-b25zLg0KDQo+IA0KPiBJdCBtYWtlcyBtZSB3b25kZXIgaWYgd2Ugc2hvdWxkbid0IG1ha2UgdGhp
-cyBtYXRyaXggbW9yZSBhY2N1cmF0ZToNCj4gDQo+IFRlY2hub2xvZ3kJTGlua0xheWVyCVRyYW5z
-cG9ydA0KPiANCj4gSW5maW5pQmFuZAlJbmZpbmlCYW5kCUluZmluaUJhbmQgVmVyYnMNCj4gaVdB
-UlAJCUV0aGVybmV0CWlXQVJQIFZlcmJzDQo+IFJvQ0UJCUV0aGVybmV0CVJvQ0UtdjEgb3IgUm9D
-RS12Mg0KPiBPUEEJCT8JCU9QQSBWZXJicw0KPiANCj4gV2l0aCB0aGlzIHNvcnQgb2Ygc2V0dXAs
-IHRoZSBjb3JlIGliX21hZC9pYl91bWFkIGNvZGUgd291bGQgc2ltcGx5IGNoZWNrIHRoZQ0KPiB2
-ZXJicyB0eXBlIHRvIHNlZSB3aGF0IHN1cHBvcnQgaXQgY2FuIGVuYWJsZS4gIEZvciBJQlYgaXQg
-d291bGQgYmUgdGhlIGV4aXN0aW5nDQo+IHN1cHBvcnQsIGZvciBPUEFWIGl0IHdvdWxkIGJlIHRo
-ZSBhZGRpdGlvbmFsIGp1bWJvIHN1cHBvcnQuDQoNCk9QQSwgdG8gYmUgY29tcGF0aWJsZSB3aXRo
-IElCIFZlcmJzLCB1c2VzIHRoZSBzYW1lIG5vZGUgdHlwZXMgYXMgSW5maW5pQmFuZCB2ZXJicyAo
-MSA9PSBDQSwgMiA9PSBTd2l0Y2gpLiAgQXMgc3VjaCBpdCByZXR1cm5zIHRoZSBzYW1lIFRyYW5z
-cG9ydCB0eXBlLg0KDQo+IA0KPiBJJ20gbm90IHN1cmUgaG93IG11Y2ggd2UgbWlnaHQgZXhwZWN0
-IGEgY2hhbmdlIGxpa2UgdGhpcyB0byBicmVhayBleGlzdGluZw0KPiBzb2Z0d2FyZSB0aG91Z2gs
-IHNvIG1heWJlIHN0YWlnaHRlbmluZyB0aGlzIG1lc3Mgb3V0IGlzIGEgbm9uLXN0YXJ0ZXIuDQoN
-CkkgdGhpbmsgdGhpcyBpcyBnb2luZyB0byBicmVhayBxdWl0ZSBhIGJpdC4gIEkgaGF2ZSBwcm90
-b3R5cGVkIHNldHRpbmcgT1BBIGRldmljZXMgdG8gIk9QQSBMaW5rIExheWVyIiBhbmQgdGhlIHBl
-cmZ0ZXN0IHRvb2xzIGp1c3QgZmFsbCBvdmVyLiAgQW55IGNoYW5nZXMgdG8gdGhlIExpbmsgbGF5
-ZXIgb3IgdGhlIHRyYW5zcG9ydCB0eXBlcyB3aWxsIHJlcXVpcmUgYSB0cmFuc2l0aW9uIHBlcmlv
-ZCBmb3IgVUxQcy4NCg0KPiANCj4gPiA+IFdoaWxlIGl0IGlzIGEgcHJpbWFyeSBnb2FsIG9mIHRo
-ZSBSRE1BIHN0YWNrIHRvIGhhdmUgYSBjb21tb24gdmVyYnMNCj4gPiA+IEFQSSBmb3IgdmFyaW91
-cyBSRE1BIGludGVyY29ubmVjdHMsIGVhY2ggb25lIGlzIHByb3Blcmx5IHJlcHJlc2VudGVkDQo+
-ID4gPiB0byBhbGxvdyBpdCdzIHVuaXF1ZSBjaGFyYWN0ZXJpc3RpY3MgdG8gYmUgZXhwb3NlZC4N
-Cj4gPg0KPiA+IFRoZSBkaWZmZXJlbmNlIGhlcmUgaXMgdGhhdCB3ZSBoYXZlIG1haW50YWluZWQg
-SUIgVmVyYnMgY29tcGF0aWJpbGl0eSB3aGVyZQ0KPiBvdGhlciBSRE1BIHRlY2hub2xvZ2llcyBk
-aWQgbm90LiAgV2UgaGF2ZSB0ZXN0ZWQgbWFueSBWZXJicyBhcHBsaWNhdGlvbnMNCj4gKGJvdGgg
-a2VybmVsIGFuZCB1c2VyIHNwYWNlKSBhbmQgdGhleSBmdW5jdGlvbiBfd2l0aG91dF8gX21vZGlm
-aWNhdGlvbl8uDQo+ID4NCj4gPiBEZXNwaXRlIHRoaXMgY29tcGF0aWJpbGl0eSB3ZSBhcmUgc3Rp
-bGwgaGF2aW5nIHRoaXMgZGlzY3Vzc2lvbi4NCj4gPg0KPiA+IEkgY2FuIHRoaW5rIG9mIG5vIG90
-aGVyIHdheSB0byBzaWduYWwgdGhlIE1BRCBjYXBhYmlsaXR5IHRvIHRoZSBNQUQgc3RhY2sNCj4g
-d2hpY2ggd2lsbCBwcmVzZXJ2ZSB0aGUgdmVyYnMgY29tcGF0aWJpbGl0eSBpbiB0aGUgc2FtZSB3
-YXkuDQo+IA0KPiBTZWUgYWJvdmUuICBEZWZpbmUgYSBuZXcgdHJhbnNwb3J0IHR5cGUsIE9QQVZl
-cmJzLCB0aGF0IGlzIGEgc3VwZXJzZXQgb2YgSUJWDQo+IGFuZCBlbmFibGUganVtYm8gc3VwcG9y
-dCB3aGVuIE9QQVYgaXMgdGhlIHRyYW5zcG9ydCBvbiB0aGUgbGluay4NCg0KQnV0IHRoZSB0cmFu
-c3BvcnQgdHlwZSBpcyBub3QgY2hhbmdpbmcuICBPbmNlIGFnYWluIHdlIGFyZSBhdHRlbXB0aW5n
-IHRvIGJlIGNvbXBsZXRlbHkgdmVyYnMgY29tcGF0aWJsZS4gIEZyb20gdGhlIE1BRCBzdGFjayBQ
-T1YgdGhlIHZlcmJzIGNhbGxzIGluIHRoZSBrZXJuZWwgYXJlIG5vdCBkaWZmZXJlbnQuDQoNCldv
-dWxkIGl0IGJlIGFjY2VwdGFibGUgaWYgdGhlIHJlc3VsdCBvZiBteSBwYXRjaCBzZXJpZXMgd2Fz
-Og0KDQpJbmZpbmlCYW5kCUluZmluaUJhbmQJSW5maW5pQmFuZCBWZXJicw0KaVdBUlAJCUluZmlu
-aUJhbmQJaVdBUlAgVmVyYnMgKHN1YnNldCBvZiBJQlYsIHdpdGgNCgkJCQlzcGVjaWZpYyBjb25u
-ZWN0aW9uIGVzdGFibGlzaG1lbnQNCgkJCQlyZXF1aXJlbWVudHMgdGhhdCBkb24ndCBleGlzdCB3
-aXRoIElCVikNClJvQ0UJCUV0aGVybmV0CUluZmluaUJhbmQgVmVyYnMgKGJ1dCB3aXRoIGRpZmZl
-cmVudA0KCQkJCWFkZHJlc3NpbmcgYmVjYXVzZSBvZiB0aGUgZGlmZmVyZW50DQoJCQkJbGluayBs
-YXllcikNCk9QQQkJT1BBCQlJbmZpbmlCYW5kIFZlcmJzDQoNCkFuZCB0aGUgTUFEIHN0YWNrIGxv
-b2tlZCBhdCB0aGUgbGluayBsYXllciB0byBzZWUgdGhlIGRpZmZlcmVuY2U/DQoNCklyYQ0KDQo=
+Use timer API functions setup_timer and mod_timer instead
+of structure assignments as they are standard way to set
+the timer and to update the expire field of an active timer
+respectively.
+
+This is done using Coccinelle and semantic patch used for
+this is as follows:
+
+// <smpl>
+@@
+expression x,y,z,a,b;
+@@
+
+-init_timer (&x);
++setup_timer (&x, y, z);
++mod_timer (&a, b);
+-x.function = y;
+-x.data = z;
+-x.expires = b;
+-add_timer(&a);
+// </smpl>
+
+Signed-off-by: Vaishali Thakkar <vthakkar1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+Changes since v1:
+	- Add useful comments which were removed in
+	  v1
+
+ drivers/infiniband/hw/ipath/ipath_driver.c    | 9 +++------
+ drivers/infiniband/hw/ipath/ipath_init_chip.c | 8 +++-----
+ drivers/infiniband/hw/ipath/ipath_verbs.c     | 7 ++-----
+ 3 files changed, 8 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
+index bd0caed..7c5968a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_driver.c
++++ b/drivers/infiniband/hw/ipath/ipath_driver.c
+@@ -2300,12 +2300,9 @@ void ipath_set_led_override(struct ipath_devdata *dd, unsigned int val)
+ 	 */
+ 	if (atomic_inc_return(&dd->ipath_led_override_timer_active) == 1) {
+ 		/* Need to start timer */
+-		init_timer(&dd->ipath_led_override_timer);
+-		dd->ipath_led_override_timer.function =
+-						 ipath_run_led_override;
+-		dd->ipath_led_override_timer.data = (unsigned long) dd;
+-		dd->ipath_led_override_timer.expires = jiffies + 1;
+-		add_timer(&dd->ipath_led_override_timer);
++		setup_timer(&dd->ipath_led_override_timer,
++			     ipath_run_led_override, (unsigned long)dd);
++		mod_timer(&dd->ipath_led_override_timer, jiffies + 1);
+ 	} else
+ 		atomic_dec(&dd->ipath_led_override_timer_active);
+ }
+diff --git a/drivers/infiniband/hw/ipath/ipath_init_chip.c b/drivers/infiniband/hw/ipath/ipath_init_chip.c
+index be2a60e..f59ca1b 100644
+--- a/drivers/infiniband/hw/ipath/ipath_init_chip.c
++++ b/drivers/infiniband/hw/ipath/ipath_init_chip.c
+@@ -950,13 +950,11 @@ int ipath_init_chip(struct ipath_devdata *dd, int reinit)
+ 		 * set up stats retrieval timer, even if we had errors
+ 		 * in last portion of setup
+ 		 */
+-		init_timer(&dd->ipath_stats_timer);
+-		dd->ipath_stats_timer.function = ipath_get_faststats;
+-		dd->ipath_stats_timer.data = (unsigned long) dd;
++		setup_timer(&dd->ipath_stats_timer, ipath_get_faststats,
++			    (unsigned long)dd);
+ 		/* every 5 seconds; */
+-		dd->ipath_stats_timer.expires = jiffies + 5 * HZ;
++		mod_timer(&dd->ipath_stats_timer, jiffies + 5 * HZ);
+ 		/* takes ~16 seconds to overflow at full IB 4x bandwdith */
+-		add_timer(&dd->ipath_stats_timer);
+ 		dd->ipath_stats_timer_active = 1;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
+index 44ea939..41929ea 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -1952,11 +1952,8 @@ static int enable_timer(struct ipath_devdata *dd)
+ 				 dd->ipath_gpio_mask);
+ 	}
+ 
+-	init_timer(&dd->verbs_timer);
+-	dd->verbs_timer.function = __verbs_timer;
+-	dd->verbs_timer.data = (unsigned long)dd;
+-	dd->verbs_timer.expires = jiffies + 1;
+-	add_timer(&dd->verbs_timer);
++	setup_timer(&dd->verbs_timer, __verbs_timer, (unsigned long)dd);
++	mod_timer(&dd->verbs_timer, jiffies + 1);
+ 
+ 	return 0;
+ }
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
