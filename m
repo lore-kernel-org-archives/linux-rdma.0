@@ -1,42 +1,30 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH libibumad] umad.h: Remove umad_reg_flags from enum
- declaration
-Date: Tue, 3 Mar 2015 20:33:59 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0CC4E7E3@CRSMSX101.amr.corp.intel.com>
-References: <54F61829.3070903@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] libibumad 1.3.10.2 release
+Date: Wed, 04 Mar 2015 00:09:16 -0500
+Message-ID: <54F6937C.3060601@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54F61829.3070903-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "rafiw-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <rafiw-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hal Rosenstock
-> Sent: Tuesday, March 03, 2015 12:23 PM
-> To: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
-> Cc: Weiny, Ira; rafiw-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Subject: [PATCH libibumad] umad.h: Remove umad_reg_flags from enum
-> declaration
-> 
-> 
-> This causes it to be a global variable which causes linking issues when used by
-> multiple files linked together. It results in multiple definition of
-> `umad_reg_flags'.
-> 
-> Found-by: Rafi Weiner <rafiw-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
+There is a new 1.3.10.2 release of libibumad.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
+Tarball is available in:
+http://www.openfabrics.org/downloads/management/
+(listed in http://www.openfabrics.org/downloads/management/latest.txt)
 
+md5sum:
+dd017844c55713bd335aa229e6841d41  libibumad-1.3.10.2.tar.gz
+
+All component versions are from recent master branch. Full list of
+changes is below.
+
+Hal Rosenstock (2):
+      umad.h: Remove umad_reg_flags from enum declaration
+      configure.in: package version update for 1.3.10.2 release
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
