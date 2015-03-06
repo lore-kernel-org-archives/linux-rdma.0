@@ -1,178 +1,218 @@
-From: Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Mellanox Technologies MT23108 causes #MC exceptions under heavy load
-Date: Fri, 6 Mar 2015 15:52:59 +0200
-Message-ID: <CACAwPwb5_OcteXTLvBjMcXbwnaXRDRsFycATpq26G0cQ2UJO3w@mail.gmail.com>
-References: <CACAwPwaEw2nVnCYp=3eAc378DOEEDK+06avLThzYc=2UhjBQLQ@mail.gmail.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] IB/srp: Add 64-bit LUN support
+Date: Fri, 06 Mar 2015 15:28:09 +0100
+Message-ID: <1425652089.3991.1.camel@opteya.com>
+References: <54F72BA6.1060300@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACAwPwaEw2nVnCYp=3eAc378DOEEDK+06avLThzYc=2UhjBQLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <54F72BA6.1060300-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Nathan Fontenot <nfont-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Tyrel Datwyler <tyreld-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-False alarm, had exactly the same failure with infiniband disabled.
+Hi,
 
-Best regards,
-         Maxim Levitsky
+Le mercredi 04 mars 2015 =C3=A0 16:58 +0100, Bart Van Assche a =C3=A9cr=
+it :
+> The SCSI standard defines 64-bit values for LUNs. Large arrays
+> employing large or hierarchical LUN numbers become more and more
+> common. So update the SRP initiator to use 64-bit LUN numbers.
+> See also Hannes Reinecke, commit 9cb78c16f5da ("scsi: use 64-bit LUNs=
+"),
+> June 2014.
+>=20
+> The largest LUN number that has been tested is 0xd2003fff00000000.
+>=20
+> The following structure sizes have been verified with gdb:
+> * sizeof(struct srp_cmd) =3D 48
+> * sizeof(struct srp_tsk_mgmt) =3D 48
+> * sizeof(struct srp_aer_req) =3D 36
+>=20
+> The ibmvscsi changes have been compile tested only (on a PPC system).
+>=20
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Cc: Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> Cc: Nathan Fontenot <nfont-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> Cc: Tyrel Datwyler <tyreld-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> ---
+>=20
+> Changes compared to v1:
+> - Removed SRP_MAX_LUN definition from ib_srp.h
+>=20
 
-On Fri, Mar 6, 2015 at 5:35 AM, Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> We are running CPU and network heavy test on marmot.pdl.cmu.edu cluster.
-> It has Mellanox Technologies MT23108 InfiniHost controller.
->
-> When we start using it for network communications, after just few
-> minutes some of the nodes of the cluster die
-> with the following machine check exception.
-> I repeated this test with Ethernet few times and had not an single
-> failure so far (I thought to had one but it turned to be another
-> unrelated issue)
->
-> It happened already on most nodes of this 128 node cluster, thus I
-> expect this to be kernel bug.
-> Do you have any pointers what we could try?
->
-> I compiled and tested current HEAD  of the vanilla kernel
-> (99aedde0869ce194539166ac5a4d2e1a20995348)
-> 4.0.0-rc2
-> but this happens even on 2.6.38 (which was in one of
-> their stock kernel images).
->
-> Best regards,
->           Maxim Levitsky
->
-> The kernel log of failure captured via serial console:
->
-> [  297.575167] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  564.704428] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  951.619320] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  956.790789] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  957.301036] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  957.333938] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  957.924656] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  958.125879] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  958.147588] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  958.485607] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  959.050155] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  959.120109] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  960.048666] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  960.110928] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  960.754363] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  961.390093] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  972.199782] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  972.496511] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  983.078444] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  983.618178] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [  991.365565] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [ 1003.344498] ib0: can't use GFP_NOIO for QPs on device mthca0, using
-> GFP_KERNEL
-> [ 1013.748036] Disabling lock debugging due to kernel taint
-> [ 1013.747903] [Hardware Error]: System Fatal error.
-> [ 1013.747903] [Hardware Error]: CPU:0 (f:5:1)
-> MC4_STATUS[-|UE|-|PCC|-]: 0xb200000000070f0f
-> [ 1013.747903] [Hardware Error]: MC4 Error (node 0): Watchdog timeout
-> due to lack of progress.
-> [ 1013.747903] [Hardware Error]: cache level: L3/GEN, mem/io: GEN,
-> mem-tx: GEN, part-proc: GEN (timed out)
-> [ 1013.747903] mce: [Hardware Error]: CPU 0: Machine Check Exception:
-> 4 Bank 4: b200000000070f0f
-> [ 1013.747903] mce: [Hardware Error]: TSC 1a2dcecb6b8
-> [ 1013.747903] mce: [Hardware Error]: PROCESSOR 2:f51 TIME 1425610753
-> SOCKET 0 APIC 0 microcode 0
-> [ 1013.747903] [Hardware Error]: System Fatal error.
-> [ 1013.747903] [Hardware Error]: CPU:0 (f:5:1)
-> MC4_STATUS[-|UE|-|PCC|-]: 0xb200000000070f0f
-> [ 1013.747903] [Hardware Error]: MC4 Error (node 0): Watchdog timeout
-> due to lack of progress.
-> [ 1013.747903] [Hardware Error]: cache level: L3/GEN, mem/io: GEN,
-> mem-tx: GEN, part-proc: GEN (timed out)
-> [ 1013.747903] mce: [Hardware Error]: Machine check: Processor context corrupt
-> [ 1013.747903] Kernel panic - not syncing: Fatal machine check on current CPU
-> [ 1013.748036] [Hardware Error]: System Fatal error.
-> [ 1013.748036] [Hardware Error]: CPU:1 (f:5:1)
-> MC4_STATUS[-|UE|-|PCC|-]: 0xb200000000070f0f
-> [ 1013.748036] [Hardware Error]: MC4 Error (node 1): Watchdog timeout
-> due to lack of progress.
-> [ 1013.748036] [Hardware Error]: cache level: L3/GEN, mem/io: GEN,
-> mem-tx: GEN, part-proc: GEN (timed out)
-> [ 1013.747903] Kernel Offset: disabled
-> [ 1013.747903] ---[ end Kernel panic - not syncing: Fatal machine
-> check on current CPU
-> [ 1019.239423] ------------[ cut here ]------------
-> [ 1019.244144] WARNING: CPU: 0 PID: 13875 at arch/x86/kernel/smp.c:124
-> native_smp_send_reschedule+0x5f/0x70()
-> [ 1019.249416] Modules linked in: ib_ipoib ib_cm ib_sa nfsv2 nfs lockd
-> sunrpc grace i2c_piix4 ib_mthca ib_mad ib_core ib_addr shpchp
-> amd64_edac_mod i2c_amd756 k8temp amd_rng edac_core edac_mce_amd tg3
-> ptp pps_core sata_promise pata_amd
-> [ 1019.249416] CPU: 0 PID: 13875 Comm: java Tainted: G   M
-> 4.0.0-rc2+ #1
-> [ 1019.249416] Hardware name: RIOWORKS HDAMA/HDAMA, BIOS V2.17 03/20/2006
-> [ 1019.249416]  000000000000007c ffff8801f8409a80 ffffffff815f33ff
-> 000000000000007c
-> [ 1019.249416]  0000000000000000 ffff8801f8409ac0 ffffffff81055c97
-> ffff8801f8413d28
-> [ 1019.249416]  ffff8803ffc13cc0 0000000000000001 ffff8801f8413cc0
-> 0000000000000000
-> [ 1019.249416] Call Trace:
-> [ 1019.249416]  <#MC>  [<ffffffff815f33ff>] dump_stack+0x48/0x61
-> [ 1019.249416]  [<ffffffff81055c97>] warn_slowpath_common+0x97/0xe0
-> [ 1019.249416]  [<ffffffff81055cfa>] warn_slowpath_null+0x1a/0x20
-> [ 1019.249416]  [<ffffffff81032aef>] native_smp_send_reschedule+0x5f/0x70
-> [ 1019.249416]  [<ffffffff8108a24a>] trigger_load_balance+0x15a/0x200
-> [ 1019.249416]  [<ffffffff8107e038>] scheduler_tick+0x88/0xa0
-> [ 1019.249416]  [<ffffffff810ac3d1>] update_process_times+0x51/0x70
-> [ 1019.249416]  [<ffffffff810bb7f0>] tick_sched_handle.clone.11+0x30/0x70
-> [ 1019.249416]  [<ffffffff810bb92f>] tick_sched_timer+0x4f/0x90
-> [ 1019.249416]  [<ffffffff810acbdc>] __run_hrtimer+0x6c/0x1b0
-> [ 1019.249416]  [<ffffffff810bb8e0>] ? tick_nohz_handler+0xb0/0xb0
-> [ 1019.249416]  [<ffffffff810ad393>] hrtimer_interrupt+0xe3/0x200
-> [ 1019.249416]  [<ffffffff81035179>] local_apic_timer_interrupt+0x39/0x60
-> [ 1019.249416]  [<ffffffff815fa355>] smp_apic_timer_interrupt+0x45/0x60
-> [ 1019.249416]  [<ffffffff815f892a>] apic_timer_interrupt+0x6a/0x70
-> [ 1019.249416]  [<ffffffff815f3170>] ? panic+0x1b9/0x1fb
-> [ 1019.249416]  [<ffffffff815f316c>] ? panic+0x1b5/0x1fb
-> [ 1019.249416]  [<ffffffff815f31f8>] ? printk+0x46/0x48
-> [ 1019.249416]  [<ffffffff810295cf>] mce_panic+0x24f/0x270
-> [ 1019.249416]  [<ffffffff8102a687>] do_machine_check+0x767/0xa60
-> [ 1019.249416]  [<ffffffff815f95d6>] machine_check+0x26/0x50
-> [ 1019.249416]  [<ffffffffa000b2c5>] ? pdc_interrupt+0x2d5/0x430 [sata_promise]
-> [ 1019.249416]  <<EOE>>  <IRQ>  [<ffffffff8109d1a4>]
-> handle_irq_event_percpu+0x54/0x1a0
-> [ 1019.249416]  [<ffffffff8109d332>] handle_irq_event+0x42/0x70
-> [ 1019.249416]  [<ffffffff8109fcd9>] handle_fasteoi_irq+0x79/0x130
-> [ 1019.249416]  [<ffffffff81006222>] handle_irq+0x22/0x40
-> [ 1019.249416]  [<ffffffff815fa25c>] do_IRQ+0x5c/0x110
-> [ 1019.249416]  [<ffffffff815f85ea>] common_interrupt+0x6a/0x6a
-> [ 1019.249416]  <EOI>  [<ffffffff811d3f57>] ? fsnotify+0xc7/0x340
-> [ 1019.249416]  [<ffffffff811d40e4>] ? fsnotify+0x254/0x340
-> [ 1019.249416]  [<ffffffff811968cf>] vfs_write+0x12f/0x1d0
-> [ 1019.249416]  [<ffffffff81196c16>] SyS_write+0x56/0xd0
-> [ 1019.249416]  [<ffffffff811da81e>] ? SyS_epoll_wait+0xbe/0xe0
-> [ 1019.249416]  [<ffffffff815f7b32>] system_call_fastpath+0x12/0x17
-> [ 1019.249416] ---[ end trace 3ba0c941409cb2fb ]---
+Thanks.
+
+>  drivers/infiniband/ulp/srp/ib_srp.c | 12 ++++++------
+>  drivers/infiniband/ulp/srp/ib_srp.h |  1 -
+>  drivers/scsi/ibmvscsi/ibmvscsi.c    |  6 +++---
+>  include/scsi/srp.h                  |  7 ++++---
+>  4 files changed, 13 insertions(+), 13 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband=
+/ulp/srp/ib_srp.c
+> index a0e24a8..e427454 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -1842,7 +1842,7 @@ static void srp_process_aer_req(struct srp_rdma=
+_ch *ch,
+>  	s32 delta =3D be32_to_cpu(req->req_lim_delta);
+> =20
+>  	shost_printk(KERN_ERR, target->scsi_host, PFX
+> -		     "ignoring AER for LUN %llu\n", be64_to_cpu(req->lun));
+> +		     "ignoring AER for LUN %llu\n", scsilun_to_int(&req->lun));
+> =20
+>  	if (srp_response_common(ch, delta, &rsp, sizeof(rsp)))
+>  		shost_printk(KERN_ERR, target->scsi_host, PFX
+> @@ -2034,7 +2034,7 @@ static int srp_queuecommand(struct Scsi_Host *s=
+host, struct scsi_cmnd *scmnd)
+>  	memset(cmd, 0, sizeof *cmd);
+> =20
+>  	cmd->opcode =3D SRP_CMD;
+> -	cmd->lun    =3D cpu_to_be64((u64) scmnd->device->lun << 48);
+> +	int_to_scsilun(scmnd->device->lun, &cmd->lun);
+>  	cmd->tag    =3D tag;
+>  	memcpy(cmd->cdb, scmnd->cmnd, scmnd->cmd_len);
+> =20
+> @@ -2414,8 +2414,8 @@ srp_change_queue_depth(struct scsi_device *sdev=
+, int qdepth)
+>  	return scsi_change_queue_depth(sdev, qdepth);
+>  }
+> =20
+> -static int srp_send_tsk_mgmt(struct srp_rdma_ch *ch, u64 req_tag,
+> -			     unsigned int lun, u8 func)
+> +static int srp_send_tsk_mgmt(struct srp_rdma_ch *ch, u64 req_tag, u6=
+4 lun,
+> +			     u8 func)
+>  {
+>  	struct srp_target_port *target =3D ch->target;
+>  	struct srp_rport *rport =3D target->rport;
+> @@ -2449,7 +2449,7 @@ static int srp_send_tsk_mgmt(struct srp_rdma_ch=
+ *ch, u64 req_tag,
+>  	memset(tsk_mgmt, 0, sizeof *tsk_mgmt);
+> =20
+>  	tsk_mgmt->opcode 	=3D SRP_TSK_MGMT;
+> -	tsk_mgmt->lun		=3D cpu_to_be64((u64) lun << 48);
+> +	int_to_scsilun(lun, &tsk_mgmt->lun);
+>  	tsk_mgmt->tag		=3D req_tag | SRP_TAG_TSK_MGMT;
+>  	tsk_mgmt->tsk_mgmt_func =3D func;
+>  	tsk_mgmt->task_tag	=3D req_tag;
+> @@ -3146,7 +3146,7 @@ static ssize_t srp_create_target(struct device =
+*dev,
+>  	target_host->transportt  =3D ib_srp_transport_template;
+>  	target_host->max_channel =3D 0;
+>  	target_host->max_id      =3D 1;
+> -	target_host->max_lun     =3D SRP_MAX_LUN;
+> +	target_host->max_lun     =3D -1LL;
+>  	target_host->max_cmd_len =3D sizeof ((struct srp_cmd *) (void *) 0L=
+)->cdb;
+> =20
+>  	target =3D host_to_target(target_host);
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband=
+/ulp/srp/ib_srp.h
+> index a611556..ce6dcf8 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.h
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.h
+> @@ -54,7 +54,6 @@ enum {
+>  	SRP_DLID_REDIRECT	=3D 2,
+>  	SRP_STALE_CONN		=3D 3,
+> =20
+> -	SRP_MAX_LUN		=3D 512,
+>  	SRP_DEF_SG_TABLESIZE	=3D 12,
+> =20
+>  	SRP_DEFAULT_QUEUE_SIZE	=3D 1 << 6,
+> diff --git a/drivers/scsi/ibmvscsi/ibmvscsi.c b/drivers/scsi/ibmvscsi=
+/ibmvscsi.c
+> index acea5d6..6a41c36 100644
+> --- a/drivers/scsi/ibmvscsi/ibmvscsi.c
+> +++ b/drivers/scsi/ibmvscsi/ibmvscsi.c
+> @@ -1053,7 +1053,7 @@ static int ibmvscsi_queuecommand_lck(struct scs=
+i_cmnd *cmnd,
+>  	memset(srp_cmd, 0x00, SRP_MAX_IU_LEN);
+>  	srp_cmd->opcode =3D SRP_CMD;
+>  	memcpy(srp_cmd->cdb, cmnd->cmnd, sizeof(srp_cmd->cdb));
+> -	srp_cmd->lun =3D cpu_to_be64(((u64)lun) << 48);
+> +	int_to_scsilun(lun, &srp_cmd->lun);
+> =20
+>  	if (!map_data_for_srp_cmd(cmnd, evt_struct, srp_cmd, hostdata->dev)=
+) {
+>  		if (!firmware_has_feature(FW_FEATURE_CMO))
+> @@ -1529,7 +1529,7 @@ static int ibmvscsi_eh_abort_handler(struct scs=
+i_cmnd *cmd)
+>  		/* Set up an abort SRP command */
+>  		memset(tsk_mgmt, 0x00, sizeof(*tsk_mgmt));
+>  		tsk_mgmt->opcode =3D SRP_TSK_MGMT;
+> -		tsk_mgmt->lun =3D cpu_to_be64(((u64) lun) << 48);
+> +		int_to_scsilun(lun, &tsk_mgmt->lun);
+>  		tsk_mgmt->tsk_mgmt_func =3D SRP_TSK_ABORT_TASK;
+>  		tsk_mgmt->task_tag =3D (u64) found_evt;
+> =20
+> @@ -1652,7 +1652,7 @@ static int ibmvscsi_eh_device_reset_handler(str=
+uct scsi_cmnd *cmd)
+>  		/* Set up a lun reset SRP command */
+>  		memset(tsk_mgmt, 0x00, sizeof(*tsk_mgmt));
+>  		tsk_mgmt->opcode =3D SRP_TSK_MGMT;
+> -		tsk_mgmt->lun =3D cpu_to_be64(((u64) lun) << 48);
+> +		int_to_scsilun(lun, &tsk_mgmt->lun);
+>  		tsk_mgmt->tsk_mgmt_func =3D SRP_TSK_LUN_RESET;
+> =20
+>  		evt->sync_srp =3D &srp_rsp;
+> diff --git a/include/scsi/srp.h b/include/scsi/srp.h
+> index 1ae84db..5be834d 100644
+> --- a/include/scsi/srp.h
+> +++ b/include/scsi/srp.h
+> @@ -42,6 +42,7 @@
+>   */
+> =20
+>  #include <linux/types.h>
+> +#include <scsi/scsi.h>
+> =20
+>  enum {
+>  	SRP_LOGIN_REQ	=3D 0x00,
+> @@ -179,7 +180,7 @@ struct srp_tsk_mgmt {
+>  	u8	reserved1[6];
+>  	u64	tag;
+>  	u8	reserved2[4];
+> -	__be64	lun __attribute__((packed));
+> +	struct scsi_lun	lun;
+>  	u8	reserved3[2];
+>  	u8	tsk_mgmt_func;
+>  	u8	reserved4;
+> @@ -200,7 +201,7 @@ struct srp_cmd {
+>  	u8	data_in_desc_cnt;
+>  	u64	tag;
+>  	u8	reserved2[4];
+> -	__be64	lun __attribute__((packed));
+> +	struct scsi_lun	lun;
+>  	u8	reserved3;
+>  	u8	task_attr;
+>  	u8	reserved4;
+> @@ -265,7 +266,7 @@ struct srp_aer_req {
+>  	__be32	req_lim_delta;
+>  	u64	tag;
+>  	u32	reserved2;
+> -	__be64	lun;
+> +	struct scsi_lun	lun;
+>  	__be32	sense_data_len;
+>  	u32	reserved3;
+>  	u8	sense_data[0];
+
+Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
