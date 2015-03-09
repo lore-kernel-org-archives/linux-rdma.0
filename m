@@ -1,72 +1,73 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rdma: replace deprecated ifconfig in doc
-Date: Mon, 09 Mar 2015 13:06:30 +0100
-Message-ID: <1425902790.3991.3.camel@opteya.com>
-References: <20150308163614.1cb3da70@urahara>
+From: Chris Moore <Chris.Moore@Emulex.Com>
+Subject: RE: [PATCH] iser-target: Handle errors from isert_put_datain and
+ isert_get_dataout
+Date: Mon, 9 Mar 2015 15:30:06 +0000
+Message-ID: <462EF229174FDB4D92ACE4656EA561005DD34C62@CMEXMB1.ad.emulex.com>
+References: <462EF229174FDB4D92ACE4656EA561005DD2BD41@CMEXMB1.ad.emulex.com>
+	 <54FA5F8B.1030003@dev.mellanox.co.il>
+ <1425712747.22358.18.camel@haakon3.risingtidesystems.com>
+ <54FB733F.2030304@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150308163614.1cb3da70@urahara>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <54FB733F.2030304@dev.mellanox.co.il>
+Content-Language: en-US
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel (target-devel@vger.kernel.org)" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-
-Le dimanche 08 mars 2015 =C3=A0 16:36 -0700, Stephen Hemminger a =C3=A9=
-crit :
-> The ifconfig command has been deprecated for many years.
-> To encourage new users not to continue using it and learning
-> iproute2; the ifconfig should not be used in examples.
->=20
-> Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
->=20
->=20
-> --- a/Documentation/filesystems/nfs/nfs-rdma.txt	2014-09-28 16:27:20.=
-393505440 -0700
-> +++ b/Documentation/filesystems/nfs/nfs-rdma.txt	2015-03-08 16:33:21.=
-483985810 -0700
-> @@ -187,8 +187,10 @@ Check RDMA and NFS Setup
->      To further test the InfiniBand software stack, use IPoIB (this
->      assumes you have two IB hosts named host1 and host2):
-> =20
-> -    host1$ ifconfig ib0 a.b.c.x
-> -    host2$ ifconfig ib0 a.b.c.y
-> +    host1$ ip link set dev ib0 up
-> +    host1$ ip address add dev ib0 a.b.c.x
-> +    host2$ ip link set dev ib0 up
-
-I don't think we need to "up" the device twice.
-
-> +    host2$ ip address add dev ib0 a.b.c.y
->      host1$ ping a.b.c.y
->      host2$ ping a.b.c.x
-> =20
-> @@ -229,7 +231,8 @@ NFS/RDMA Setup
-> =20
->      $ modprobe ib_mthca
->      $ modprobe ib_ipoib
-> -    $ ifconfig ib0 a.b.c.d
-> +    $ ip li set dev ib0 up
-
-s/li/link ?
-
-> +    $ ip addr add dev ib0 a.b.c.d
-> =20
->      NOTE: use unique addresses for the client and server
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBGcm9tOiBTYWdpIEdyaW1iZXJnIFttYWlsdG86c2FnaWdAZGV2Lm1lbGxhbm94LmNvLmlsXQ0K
+PiBPbiAzLzcvMjAxNSA5OjE5IEFNLCBOaWNob2xhcyBBLiBCZWxsaW5nZXIgd3JvdGU6DQo+ID4g
+T24gU2F0LCAyMDE1LTAzLTA3IGF0IDA0OjE2ICswMjAwLCBTYWdpIEdyaW1iZXJnIHdyb3RlOg0K
+PiA+PiBPbiAzLzYvMjAxNSA3OjU2IFBNLCBDaHJpcyBNb29yZSB3cm90ZToNCj4gPj4+IGlzZXJ0
+X3B1dF9kYXRhaW4oKSBhbHdheXMgcmV0dXJucyAxIGFuZCBpc2VydF9nZXRfZGF0YW91dCgpIGFs
+d2F5cw0KPiByZXR1cm5zIDAsIGV2ZW4gaWYNCj4gPj4+IGliX3Bvc3Rfc2VuZCgpIGZhaWxzLiAg
+IFRoZXkgc2hvdWxkIHJldHVybiBhbiBlcnJvciBpbiB0aGlzIGNhc2Ugc28gdGhlDQo+IGNhbGxl
+ciBjYW4gaGFuZGxlIGl0Lg0KPiA+Pj4gQWxzbywgaW4gdGhlIGNhc2Ugb2YgYW4gaWJfcG9zdF9z
+ZW5kKCkgZmFpbHVyZSwgdXNlciBpc2VydF9lcnIgaW5zdGVhZCBvZg0KPiBpc2VydF93YXJuLg0K
+PiA+Pj4NCj4gPj4+IFdpdGggdGhlc2UgY2hhbmdlcywgdGhlc2UgdHdvIGZ1bmN0aW9ucyBoYW5k
+bGUgZXJyb3JzIGZyb20NCj4gPj4+IGliX3Bvc3Rfc2VuZCgpIGluIHRoZSBzYW1lIHdheSBhcyBv
+dGhlciBmdW5jdGlvbnMgd2l0aGluIGliX2lzZXJ0LmMNCj4gPj4+DQo+ID4+DQo+ID4+IEhpIENo
+cmlzLA0KPiA+Pg0KPiA+PiBUaGlzIGlzIGluZGVlZCBuZWVkZWQsIGJ1dCBJJ20gYWZyYWlkIHRo
+aXMgaXMgbm90IGNvbXBsZXRlIGdpdmVuIHRoZQ0KPiA+PiByYyBpcyBjb21wbGV0ZWx5IGlnbm9y
+ZWQgYnkgdGhlIGNhbGxlcnMgKHNlZQ0KPiA+PiBsaW9fcXVldWVfZGF0YV9pbi9saW9fd3JpdGVf
+cGVuZGluZykuDQo+ID4+DQo+ID4NCj4gPiBTbyBsaW9fd3JpdGVfcGVuZGluZygpIGlzIHByb3Bh
+Z2F0aW5nIHVwIHRoZSByZXR1cm4gYmFjayB0bw0KPiA+IHRyYW5zcG9ydF9nZW5lcmljX25ld19j
+bWQoKS4gIFdoZW4gdGhlIHJldHVybiBpcyAtRUFHQUlOIG9yIC1FTk9NRU0sDQo+ID4gaXQgdHJp
+Z2dlcnMgdHJhbnNwb3J0X2hhbmRsZV9xdWV1ZV9mdWxsKCkgdG8gcmV0cnkgLT53cml0ZV9wZW5k
+aW5nKCkNCj4gPiBmcm9tIHNlX2RldmljZS0+cWZfd29ya19xdWV1ZSBjb250ZXh0Lg0KPiANCj4g
+QWgsIFJpZ2h0Li4uDQo+IA0KPiA+DQo+ID4gSXQncyBsaW9fcXVldWVfZGF0YV9pbigpICsgbGlv
+X3F1ZXVlX3N0YXR1cygpIHRoYXQgYXJlbid0IHByb3BhZ2F0aW5nDQo+ID4gdXAgZmFpbHVyZXMg
+dG8gdHJpZ2dlciBxdWV1ZV9mdWxsIGluIHRhcmdldF9jb21wbGV0ZV9va193b3JrKCkuDQo+ID4g
+TG9va2luZyBhdCB0aGlzIGNvZGUgYWdhaW4gZm9yIHRyYWRpdGlvbmFsIGlzY3NpLXRhcmdldCwg
+SSBkb24ndCBzZWUgYQ0KPiA+IHJlYXNvbiB3aHkNCj4gPiBpc2NzaXRfYWRkX2NtZF90b19yZXNw
+b25zZV9xdWV1ZSgpIGZhaWx1cmUgc2hvdWxkIG5vdCBiZSB0cmlnZ2VyaW5nDQo+ID4gcXVldWVf
+ZnVsbCBsb2dpYyB0byBraWNrIGluLi4NCj4gPg0KPiA+IE9uIHRoZSBpc2VyLXRhcmdldCBzaWRl
+LCBpcyBpdCBPSyBmb3IgaXNlcnRfcHV0X2RhdGFpbigpICsNCj4gPiBpc2VydF9wdXRfcmVzcG9u
+c2UoKSB0byBiZSByZS1pbnZva2VkIGZyb20gdHJhbnNwb3J0X2NvbXBsZXRlX3FmKCkNCj4gPiBj
+b250ZXh0IGFmdGVyIGliX3Bvc3Rfc2VuZCgpIGZhaWx1cmUuLj8NCj4gDQo+IFdlbGwsIEdlbmVy
+YWxseSB0aGUgUVAgb3duZXIgaXMgb2JsaWdhdGVkIHRvIG5vdCBwb3N0IG1vcmUgdGhhbiB0aGUg
+UVAgc2l6ZQ0KPiBhbmQvb3IgcmVxdWVzdCBmb3Igc2VuZCBjb21wbGV0aW9uIG9uY2UgZXZlcnkg
+U1Egc2l6ZS4gSWYgd2UgZ290IEVOT01FTQ0KPiBmcm9tIGliX3Bvc3Rfc2VuZCB0aGlzIHVzdWFs
+bHkgaW5kaWNhdGVzIGEgYnVnLCBhbmQgdGhlcmUgaXMgbm8gc2Vuc2UgaW4NCj4gcmV0cnlpbmcg
+bGF0ZXIsIGFuZCBJJ20gbm90IGF3YXJlIG9mIGFueSBwcm92aWRlciB0aGF0IG1heSByZXR1cm4g
+RUFHQUlOIGF0DQo+IHRoZSBtb21lbnQsIGJ1dCBtYXliZSB0aGlzIGNhbiBoYXBwZW4gdGhlb3Jl
+dGljYWxseS4uLg0KPiANCj4gQnV0IEkgdGhpbmsgdGhlIGNvcnJlY3QgYmVoYXZpb3IgZnJvbSBp
+U0NTSSBQb1YgaXMgdG8gaGF2ZSBFTk9NRU0vRUFHQUlODQo+IGVycm9yIGNvZGVzIGZyb20gcXVl
+dWVfZGF0YV9pbi9xdWV1ZV9zdGF0dXMgdHJpZ2dlciBxdWV1ZV9mdWxsIGxvZ2ljIGFuZA0KPiB0
+ZXJtaW5hdGUgdGhlIHNlc3Npb24gZm9yIGFueSBvdGhlcg0KPiAobm9uLXRyYW5zaWVudCkgZXJy
+b3IgY29kZS4NCg0KSW50ZXJlc3RpbmcsIEkgbWlzc2VkIHRoYXQgcGFydC4gIEkgYW0gc2VlaW5n
+IG9jcmRtYV9wb3N0X3NlbmQoKSBmYWlsIGJlY2F1c2UgaXQncw0Kb3V0IG9mIFFQIGVudHJpZXMu
+ICAgU28gbWF5YmUgdGhlIHJlYWwgZml4IGlzIHRvIGZpbmQgb3V0IHdoeSB0aGF0J3MgaGFwcGVu
+aW5nLiAgRWl0aGVyIHRoZQ0KY2FsbGVyIGlzIHBvc3RpbmcgbW9yZSBlbnRyaWVzIHRoYW4gaXQg
+c2hvdWxkLCBvciBtYXliZSBvY3JkbWEgaXMgcmVwb3J0aW5nIHRoZQ0Kd3JvbmcgUVAgc2l6ZS4g
+IEFueSBwb2ludGVycyB0byB3aGVyZSB0aGF0IGdldHMgY2hlY2tlZD8gICBJZiB0aGUgdGFyZ2V0
+IGhhcyByZWNlaXZlZA0KYSBTQ1NJIFJFQUQgaXQncyBnb2luZyB0byBoYXZlIHRvIHBvc3QgYmFj
+ayBvbmUgb3IgbW9yZSBkYXRhaW4gcGhhc2VzLiAgU29tZXdoZXJlDQppbiB0aGUgc3RhY2sgdGhl
+cmUgaGFzIHRvIGJlIGJhY2sgcHJlc3N1cmUgc28gdGhhdCB0aGUgdGFyZ2V0IGxheWVyIGRvZXNu
+J3QgdHJ5IHRvIA0Kc2VuZCBhIGRhdGFpbiBpZiB0aGUgUVAgaXMgZnVsbC4gIEkgaGFkIGFzc3Vt
+ZWQgdGhhdCB3YXMgaGFuZGxlZCBieSB0aGUgRU5PTUVNDQpyZXR1cm4gYW5kIHRoZW4gcXVldWUg
+ZnVsbCBwcm9jZXNzaW5nLCBidXQgaXQgc291bmRzIGxpa2UgaXQgc2hvdWxkIGJlIGNhdWdodCBi
+ZWZvcmUNCnRoZSBlcnJvciBldmVuIG9jY3Vycy4NCg0KQ2hyaXMNCg==
