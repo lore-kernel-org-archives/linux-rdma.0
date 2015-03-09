@@ -1,75 +1,63 @@
-From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Subject: Re: [PATCH] rdma: replace deprecated ifconfig in doc
-Date: Mon, 9 Mar 2015 11:29:32 -0700
-Message-ID: <20150309112932.2dbbdccb@urahara>
-References: <20150308163614.1cb3da70@urahara>
-	<1425902790.3991.3.camel@opteya.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
+ cap flag
+Date: Mon, 09 Mar 2015 17:22:30 -0400
+Message-ID: <54FE0F16.5090905@dev.mellanox.co.il>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>  <1423092585-26692-15-git-send-email-ira.weiny@intel.com>  <54D52589.8020305@dev.mellanox.co.il>  <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8@CRSMSX101.amr.corp.intel.com>  <54DCB1E9.7010309@dev.mellanox.co.il>  <2807E5FD2F6FDA4886F6618EAC48510E0CC29020@CRSMSX101.amr.corp.intel.com>  <54EB7756.7070407@dev.mellanox.co.il>  <2807E5FD2F6FDA4886F6618EAC48510E0CC3D330@CRSMSX101.amr.corp.intel.com> <1424884438.4847.91.camel@redhat.com> <2807E5FD2F6FDA4886F6618EAC48510E0CC4F18C@CRSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237399E6F06F@ORSMSX110.amr.corp.intel.com> <2807E5FD2F6FDA4886F6618EAC48510E0CC4F50B@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1425902790.3991.3.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CC4F50B-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 09 Mar 2015 13:06:30 +0100
-Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
+On 3/4/2015 11:41 AM, Weiny, Ira wrote:
+>>
+>>> InfiniBand	InfiniBand	InfiniBand Verbs
+>>> iWARP		InfiniBand	iWARP Verbs (subset of IBV, with
+>>> 				specific connection establishment
+>>> 				requirements that don't exist with IBV)
+>>> RoCE		Ethernet	InfiniBand Verbs (but with different
+>>> 				addressing because of the different
+>>> 				link layer)
+>>> OPA		OPA		InfiniBand Verbs
+>>
+>> Verbs is an interface definition to hardware that has been twisted to be a
+>> software API and extended to expose vendor-specific implementation 'features'
+>> as extensions.  It is not a transport.
+>>
+>> The device capability bits seems to have evolved to mean: vendor A
+>> implemented some random 'feature' in their hardware and wants all
+>> applications to now check for this 'feature' and change their code to use it.
+>> Basically, what gets defined as a device cap is rather arbitrary.
+>>
+> 
+> This was the point I was trying to make and the reason the OPA MAD support was implemented as a device capability.
 
-> Hi,
->=20
-> Le dimanche 08 mars 2015 =C3=A0 16:36 -0700, Stephen Hemminger a =C3=A9=
-crit :
-> > The ifconfig command has been deprecated for many years.
-> > To encourage new users not to continue using it and learning
-> > iproute2; the ifconfig should not be used in examples.
-> >=20
-> > Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-> >=20
-> >=20
-> > --- a/Documentation/filesystems/nfs/nfs-rdma.txt	2014-09-28 16:27:2=
-0.393505440 -0700
-> > +++ b/Documentation/filesystems/nfs/nfs-rdma.txt	2015-03-08 16:33:2=
-1.483985810 -0700
-> > @@ -187,8 +187,10 @@ Check RDMA and NFS Setup
-> >      To further test the InfiniBand software stack, use IPoIB (this
-> >      assumes you have two IB hosts named host1 and host2):
-> > =20
-> > -    host1$ ifconfig ib0 a.b.c.x
-> > -    host2$ ifconfig ib0 a.b.c.y
-> > +    host1$ ip link set dev ib0 up
-> > +    host1$ ip address add dev ib0 a.b.c.x
-> > +    host2$ ip link set dev ib0 up
->=20
-> I don't think we need to "up" the device twice.
+The proposed device capability stands for a change that is way more
+drastic than just a vendor extension. This is a device running a
+completely different wire protocol which does not interoperate with the
+IB device that is impersonating.
 
-You need to do it on each host.
+Also, it does not come under the same jurisdication as IB. It is
+entirely possible that IBTA could make some change in the future where
+OPA can no longer masquerade as IB.
 
-> > +    host2$ ip address add dev ib0 a.b.c.y
-> >      host1$ ping a.b.c.y
-> >      host2$ ping a.b.c.x
-> > =20
-> > @@ -229,7 +231,8 @@ NFS/RDMA Setup
-> > =20
-> >      $ modprobe ib_mthca
-> >      $ modprobe ib_ipoib
-> > -    $ ifconfig ib0 a.b.c.d
-> > +    $ ip li set dev ib0 up
->=20
-> s/li/link ?
+OPA must also be identifiable by any verbs or management application. To
+do that, it should be properly represented in node type, transport type,
+and link layer as all the other RDMA technologies have been regardless
+of the changes needed. All the other RDMA technologies have gone through
+this process.
 
-ip commands support shorthand.
+-- Hal
 
-> > +    $ ip addr add dev ib0 a.b.c.d
-> > =20
-> >      NOTE: use unique addresses for the client and server
->=20
-> Regards.
->=20
+> Ira
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
