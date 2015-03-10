@@ -1,47 +1,150 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Mon, 09 Mar 2015 17:23:11 -0400
-Message-ID: <54FE0F3F.6060806@dev.mellanox.co.il>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-15-git-send-email-ira.weiny@intel.com> <54D52589.8020305@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC244A8@CRSMSX101.amr.corp.intel.com> <54DCB1E9.7010309@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC29020@CRSMSX101.amr.corp.intel.com> <54EB7756.7070407@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E0CC3D330@CRSMSX101.amr.corp.intel.com> <1424884438.4847.91.camel@redhat.com> <2807E5FD2F6FDA4886F6618EAC48510E0CC4F18C@CRSMSX101.amr.corp.intel.com> <20150306174729.GE22375@obsidianresearch.com> <2807E5FD2F6FDA4886F6618EAC48510E0CC53437@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next] iw_cxgb4: Remove negative advice dmesg warnings
+Date: Tue, 10 Mar 2015 17:29:45 +0530
+Message-ID: <1425988785-21328-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0CC53437-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/6/2015 5:47 PM, Weiny, Ira wrote:
->>
->> On Wed, Mar 04, 2015 at 07:21:48AM +0000, Weiny, Ira wrote:
->>
->>> I think this is going to break quite a bit.  I have prototyped setting
->>> OPA devices to "OPA Link Layer" and the perftest tools just fall over.
->>> Any changes to the Link layer or the transport types will require a
->>> transition period for ULPs.
->>
->> How do the perftest tools work with OPA in the first place? OPA seems to have
->> 32 bit lids. Do you mean it 'works' as long as the lid is < 16 bits? Same general
->> point about all of verbs, lots of 'uint16_t lid' in the interfaces?
-> 
-> The 32 bit LIDs in the SMP are designed for future expansion.  Currently OPA does not support > 16 bit LIDs.
+Remove these log messages in favor of per-endpoint counters as well as
+device-global counters that can be inspected via debugfs.
 
-It's not just verbs (structures and APIs) but also CM and any other
-place where LID is used which are numerous.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c       |   27 ++++++++++++++++++---------
+ drivers/infiniband/hw/cxgb4/device.c   |    7 +++++++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |    7 +++++++
+ 3 files changed, 32 insertions(+), 9 deletions(-)
 
-Is a new verbs coming for this ? How will compatibility be dealt with ?
-
-This is also another example why a more complete picture of OPA is needed.
-
--- Hal
-
-> 
-> Ira
-> 
-> 
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 9edc200..743b805 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -2042,9 +2042,12 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	     status, status2errno(status));
+ 
+ 	if (is_neg_adv(status)) {
+-		dev_warn(&dev->rdev.lldi.pdev->dev,
+-			 "Connection problems for atid %u status %u (%s)\n",
+-			 atid, status, neg_adv_str(status));
++		PDBG("%s Connection problems for atid %u status %u (%s)\n",
++		       __func__, atid, status, neg_adv_str(status));
++		ep->stats.connect_neg_adv++;
++		mutex_lock(&dev->rdev.stats.lock);
++		dev->rdev.stats.neg_adv++;
++		mutex_unlock(&dev->rdev.stats.lock);
+ 		return 0;
+ 	}
+ 
+@@ -2520,9 +2523,13 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	ep = lookup_tid(t, tid);
+ 	if (is_neg_adv(req->status)) {
+-		dev_warn(&dev->rdev.lldi.pdev->dev,
+-			 "Negative advice on abort - tid %u status %d (%s)\n",
+-			 ep->hwtid, req->status, neg_adv_str(req->status));
++		PDBG("%s Negative advice on abort- tid %u status %d (%s)\n",
++		     __func__, ep->hwtid, req->status,
++		     neg_adv_str(req->status));
++		ep->stats.abort_neg_adv++;
++		mutex_lock(&dev->rdev.stats.lock);
++		dev->rdev.stats.neg_adv++;
++		mutex_unlock(&dev->rdev.stats.lock);
+ 		return 0;
+ 	}
+ 	PDBG("%s ep %p tid %u state %u\n", __func__, ep, ep->hwtid,
+@@ -3931,9 +3938,11 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		return 0;
+ 	}
+ 	if (is_neg_adv(req->status)) {
+-		dev_warn(&dev->rdev.lldi.pdev->dev,
+-			 "Negative advice on abort - tid %u status %d (%s)\n",
+-			 ep->hwtid, req->status, neg_adv_str(req->status));
++		PDBG("%s Negative advice on abort- tid %u status %d (%s)\n",
++		     __func__, ep->hwtid, req->status,
++		     neg_adv_str(req->status));
++		ep->stats.abort_neg_adv++;
++		dev->rdev.stats.neg_adv++;
+ 		kfree_skb(skb);
+ 		return 0;
+ 	}
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index eb5df4e..78ed883 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -489,6 +489,7 @@ static int stats_show(struct seq_file *seq, void *v)
+ 		   dev->rdev.stats.act_ofld_conn_fails);
+ 	seq_printf(seq, "PAS_OFLD_CONN_FAILS: %10llu\n",
+ 		   dev->rdev.stats.pas_ofld_conn_fails);
++	seq_printf(seq, "NEG_ADV_RCVD: %10llu\n", dev->rdev.stats.neg_adv);
+ 	seq_printf(seq, "AVAILABLE IRD: %10u\n", dev->avail_ird);
+ 	return 0;
+ }
+@@ -560,10 +561,13 @@ static int dump_ep(int id, void *p, void *data)
+ 		cc = snprintf(epd->buf + epd->pos, space,
+ 			      "ep %p cm_id %p qp %p state %d flags 0x%lx "
+ 			      "history 0x%lx hwtid %d atid %d "
++			      "conn_na %u abort_na %u "
+ 			      "%pI4:%d/%d <-> %pI4:%d/%d\n",
+ 			      ep, ep->com.cm_id, ep->com.qp,
+ 			      (int)ep->com.state, ep->com.flags,
+ 			      ep->com.history, ep->hwtid, ep->atid,
++			      ep->stats.connect_neg_adv,
++			      ep->stats.abort_neg_adv,
+ 			      &lsin->sin_addr, ntohs(lsin->sin_port),
+ 			      ntohs(mapped_lsin->sin_port),
+ 			      &rsin->sin_addr, ntohs(rsin->sin_port),
+@@ -581,10 +585,13 @@ static int dump_ep(int id, void *p, void *data)
+ 		cc = snprintf(epd->buf + epd->pos, space,
+ 			      "ep %p cm_id %p qp %p state %d flags 0x%lx "
+ 			      "history 0x%lx hwtid %d atid %d "
++			      "conn_na %u abort_na %u "
+ 			      "%pI6:%d/%d <-> %pI6:%d/%d\n",
+ 			      ep, ep->com.cm_id, ep->com.qp,
+ 			      (int)ep->com.state, ep->com.flags,
+ 			      ep->com.history, ep->hwtid, ep->atid,
++			      ep->stats.connect_neg_adv,
++			      ep->stats.abort_neg_adv,
+ 			      &lsin6->sin6_addr, ntohs(lsin6->sin6_port),
+ 			      ntohs(mapped_lsin6->sin6_port),
+ 			      &rsin6->sin6_addr, ntohs(rsin6->sin6_port),
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index d87e165..97bb555 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -137,6 +137,7 @@ struct c4iw_stats {
+ 	u64  tcam_full;
+ 	u64  act_ofld_conn_fails;
+ 	u64  pas_ofld_conn_fails;
++	u64  neg_adv;
+ };
+ 
+ struct c4iw_hw_queue {
+@@ -814,6 +815,11 @@ struct c4iw_listen_ep {
+ 	int backlog;
+ };
+ 
++struct c4iw_ep_stats {
++	unsigned connect_neg_adv;
++	unsigned abort_neg_adv;
++};
++
+ struct c4iw_ep {
+ 	struct c4iw_ep_common com;
+ 	struct c4iw_ep *parent_ep;
+@@ -846,6 +852,7 @@ struct c4iw_ep {
+ 	unsigned int retry_count;
+ 	int snd_win;
+ 	int rcv_win;
++	struct c4iw_ep_stats stats;
+ };
+ 
+ static inline void print_addr(struct c4iw_ep_common *epc, const char *func,
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
