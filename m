@@ -1,51 +1,47 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 3/15] net/mlx5_core: don't export static symbol
-Date: Wed, 11 Mar 2015 17:56:25 +0100
-Message-ID: <1426092997-30605-4-git-send-email-Julia.Lawall@lip6.fr>
-References: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Eli Cohen <eli@mellanox.com>
-Cc: kernel-janitors@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, daniel@iogearbox.net
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.18-rc1 release is available
+Date: Wed, 11 Mar 2015 19:30:07 +0200
+Message-ID: <55007B9F.6080102@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hi,
+OFED-3.18-rc1 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.18/OFED-3.18-rc1.tgz
 
-The semantic patch that fixes this problem is as follows:
-(http://coccinelle.lip6.fr/)
+To get BUILD_ID run ofed_info
 
-// <smpl>
-@r@
-type T;
-identifier f;
-@@
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
 
-static T f (...) { ... }
+Release notes: https://openfabrics.org/downloads/OFED/release_notes/OFED_3.18-rc1_release_notes
 
-@@
-identifier r.f;
-declarer name EXPORT_SYMBOL;
-@@
+OFED-3.18-rc1 Main Changes from OFED 3.12-1 GA
+-------------------------------------------------------------------------------
+Updated packages:
+  - compat-rdma-3.18
+  - dapl-2.1.3
+  - infiniband-diags-1.6.5
+  - libfabric-1.0.0rc2
+  - libibmad-1.3.12
+  - libibumad-1.3.10.2
+  - libiwpm-1.0.1
+  - libmlx5-1.0.2
+  - libocrdma-1.0.5
+  - mstflint-3.8.0-1.27.gf3d39b6
+  - opensm-3.3.19
+  - perftest-2.4-0.8.gd3c2b22
+  - srptools-1.0.3
 
--EXPORT_SYMBOL(f);
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 -
- 1 file changed, 1 deletion(-)
-
-diff -u -p a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -697,7 +697,6 @@ err_dbg:
- 	debugfs_remove(priv->dbg_root);
- 	return err;
- }
--EXPORT_SYMBOL(mlx5_dev_init);
- 
- static void mlx5_dev_cleanup(struct mlx5_core_dev *dev)
- {
-
+Regards,
+Vladimir
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
