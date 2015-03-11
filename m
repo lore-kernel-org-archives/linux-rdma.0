@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 05/32] net/bonding: make DRV macros private
-Date: Wed, 11 Mar 2015 10:25:57 +0530
-Message-ID: <19822496-d528-4445-92c8-c09826922487@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 04/32] IB/core: Add default GID for RoCE GID Cache
+Date: Wed, 11 Mar 2015 10:25:56 +0530
+Message-ID: <5e67b41c-a8c6-488e-a260-fc42957058e0@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,101 +14,346 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The bonding modules currently defines 4 macros with
-general names that pollute the global namespace:
-DRV_VERSION
-DRV_RELDATE
-DRV_NAME
-DRV_DESCRIPTION
-
-Fixing that by defining a private bonding_priv.h
-header files which includes those defines.
+When RoCE is used, a default GID address should be generated
+for every supported RoCE type. These default GID addresses are
+generated based on the IPv6 link-local address, but in contrast
+to the GID based on the regular IPv6 link-local (as we generate
+GID per IP address), these GIDs are also available if the net
+device is down (in order to support loopback).
+Moreover, these default GID addresses can't be deleted.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/net/bonding/bond_main.c    |  2 ++
- drivers/net/bonding/bond_procfs.c  |  1 +
- drivers/net/bonding/bonding_priv.h | 26 ++++++++++++++++++++++++++
- include/net/bonding.h              |  7 -------
- 4 files changed, 29 insertions(+), 7 deletions(-)
- create mode 100644 drivers/net/bonding/bonding_priv.h
+ drivers/infiniband/core/core_priv.h      | 10 ++++
+ drivers/infiniband/core/roce_gid_cache.c | 86 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/roce_gid_mgmt.c  | 43 +++++++++++++---
+ include/net/addrconf.h                   | 31 ++++++++++++
+ net/ipv6/addrconf.c                      | 31 ------------
+ 5 files changed, 163 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/net/bonding/bond_main.c b/drivers/net/bonding/bond_main.c
-index 468c70e..55f2d3e 100644
---- a/drivers/net/bonding/bond_main.c
-+++ b/drivers/net/bonding/bond_main.c
-@@ -81,6 +81,8 @@
- #include <net/bond_3ad.h>
- #include <net/bond_alb.h>
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 12797d9..6ab40a9 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -84,6 +84,16 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
  
-+#include "bonding_priv.h"
-+
- /*---------------------------- Module parameters ----------------------------*/
+ int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port);
  
- /* monitor all links that often (in milliseconds). <=0 disables monitoring */
-diff --git a/drivers/net/bonding/bond_procfs.c b/drivers/net/bonding/bond_procfs.c
-index 976f5ad..b50a002 100644
---- a/drivers/net/bonding/bond_procfs.c
-+++ b/drivers/net/bonding/bond_procfs.c
-@@ -4,6 +4,7 @@
- #include <net/netns/generic.h>
- #include <net/bonding.h>
++enum roce_gid_cache_default_mode {
++	ROCE_GID_CACHE_DEFAULT_MODE_SET,
++	ROCE_GID_CACHE_DEFAULT_MODE_DELETE
++};
++
++void roce_gid_cache_set_default_gid(struct ib_device *ib_dev, u8 port,
++				    struct net_device *ndev,
++				    unsigned long gid_type_mask,
++				    enum roce_gid_cache_default_mode mode);
++
+ int roce_gid_cache_setup(void);
+ void roce_gid_cache_cleanup(void);
  
-+#include "bonding_priv.h"
+diff --git a/drivers/infiniband/core/roce_gid_cache.c b/drivers/infiniband/core/roce_gid_cache.c
+index 2b0a310..2bd663f 100644
+--- a/drivers/infiniband/core/roce_gid_cache.c
++++ b/drivers/infiniband/core/roce_gid_cache.c
+@@ -34,6 +34,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/rtnetlink.h>
+ #include <rdma/ib_cache.h>
++#include <net/addrconf.h>
  
- static void *bond_info_seq_start(struct seq_file *seq, loff_t *pos)
- 	__acquires(RCU)
-diff --git a/drivers/net/bonding/bonding_priv.h b/drivers/net/bonding/bonding_priv.h
-new file mode 100644
-index 0000000..c093e91
---- /dev/null
-+++ b/drivers/net/bonding/bonding_priv.h
-@@ -0,0 +1,26 @@
-+/*
-+ * Bond several ethernet interfaces into a Cisco, running 'Etherchannel'.
-+ *
-+ * Portions are (c) Copyright 1995 Simon "Guru Aleph-Null" Janes
-+ * NCM: Network and Communications Management, Inc.
-+ *
-+ * BUT, I'm the one who modified it for ethernet, so:
-+ * (c) Copyright 1999, Thomas Davis, tadavis-/3juihCSby0@public.gmane.org
-+ *
-+ *	This software may be used and distributed according to the terms
-+ *	of the GNU Public License, incorporated herein by reference.
-+ *
-+ */
-+
-+#ifndef _BONDING_PRIV_H
-+#define _BONDING_PRIV_H
-+
-+#define DRV_VERSION	"3.7.1"
-+#define DRV_RELDATE	"April 27, 2011"
-+#define DRV_NAME	"bonding"
-+#define DRV_DESCRIPTION	"Ethernet Channel Bonding Driver"
-+
-+#define bond_version DRV_DESCRIPTION ": v" DRV_VERSION " (" DRV_RELDATE ")\n"
-+
-+#endif
-+
-diff --git a/include/net/bonding.h b/include/net/bonding.h
-index 4c2b0f4..a124173 100644
---- a/include/net/bonding.h
-+++ b/include/net/bonding.h
-@@ -30,13 +30,6 @@
- #include <net/bond_alb.h>
- #include <net/bond_options.h>
+ #include "core_priv.h"
  
--#define DRV_VERSION	"3.7.1"
--#define DRV_RELDATE	"April 27, 2011"
--#define DRV_NAME	"bonding"
--#define DRV_DESCRIPTION	"Ethernet Channel Bonding Driver"
+@@ -176,12 +177,19 @@ static int find_gid(struct ib_roce_gid_cache *cache, union ib_gid *gid,
+ 	return -1;
+ }
+ 
++static void make_default_gid(struct  net_device *dev, union ib_gid *gid)
++{
++	gid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
++	addrconf_ifid_eui48(&gid->raw[8], dev);
++}
++
+ int roce_add_gid(struct ib_device *ib_dev, u8 port,
+ 		 union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+ 	struct ib_roce_gid_cache *cache;
+ 	int ix;
+ 	int ret = 0;
++	struct net_device *idev;
+ 
+ 	if (!ib_dev->cache.roce_gid_cache)
+ 		return -ENOSYS;
+@@ -191,6 +199,22 @@ int roce_add_gid(struct ib_device *ib_dev, u8 port,
+ 	if (!cache || !cache->active)
+ 		return -ENOSYS;
+ 
++	if (ib_dev->get_netdev) {
++		rcu_read_lock();
++		idev = ib_dev->get_netdev(ib_dev, port);
++		if (idev && attr->ndev != idev) {
++			union ib_gid default_gid;
++
++			/* Adding default GIDs in not permitted */
++			make_default_gid(idev, &default_gid);
++			if (!memcmp(gid, &default_gid, sizeof(*gid))) {
++				rcu_read_unlock();
++				return -EPERM;
++			}
++		}
++		rcu_read_unlock();
++	}
++
+ 	mutex_lock(&cache->lock);
+ 
+ 	ix = find_gid(cache, gid, attr, GID_ATTR_FIND_MASK_GID_TYPE |
+@@ -215,6 +239,7 @@ int roce_del_gid(struct ib_device *ib_dev, u8 port,
+ 		 union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+ 	struct ib_roce_gid_cache *cache;
++	union ib_gid default_gid;
+ 	int ix;
+ 
+ 	if (!ib_dev->cache.roce_gid_cache)
+@@ -225,6 +250,13 @@ int roce_del_gid(struct ib_device *ib_dev, u8 port,
+ 	if (!cache || !cache->active)
+ 		return -ENOSYS;
+ 
++	if (attr->ndev) {
++		/* Deleting default GIDs in not permitted */
++		make_default_gid(attr->ndev, &default_gid);
++		if (!memcmp(gid, &default_gid, sizeof(*gid)))
++			return -EPERM;
++	}
++
+ 	mutex_lock(&cache->lock);
+ 
+ 	ix = find_gid(cache, gid, attr,
+@@ -437,6 +469,60 @@ static void set_roce_gid_cache_active(struct ib_roce_gid_cache *cache,
+ 	cache->active = active;
+ }
+ 
++void roce_gid_cache_set_default_gid(struct ib_device *ib_dev, u8 port,
++				    struct net_device *ndev,
++				    unsigned long gid_type_mask,
++				    enum roce_gid_cache_default_mode mode)
++{
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr;
++	struct ib_roce_gid_cache *cache;
++	unsigned int gid_type;
++	unsigned int gid_index = 0;
++
++	cache  = ib_dev->cache.roce_gid_cache[port - 1];
++
++	if (!cache)
++		return;
++
++	make_default_gid(ndev, &gid);
++	memset(&gid_attr, 0, sizeof(gid_attr));
++	gid_attr.ndev = ndev;
++	for (gid_type = 0; gid_type < IB_GID_TYPE_SIZE; ++gid_type) {
++		union ib_gid current_gid;
++		struct ib_gid_attr current_gid_attr;
++
++		if (1UL << gid_type & ~gid_type_mask)
++			continue;
++
++		gid_attr.gid_type = gid_type;
++
++		if (!roce_gid_cache_get_gid(ib_dev, port, gid_index,
++					    &current_gid, &current_gid_attr) &&
++		    !memcmp(&gid, &current_gid, sizeof(gid)) &&
++		    !memcmp(&gid_attr, &current_gid_attr, sizeof(gid_attr)) &&
++		    mode == ROCE_GID_CACHE_DEFAULT_MODE_SET)
++			continue;
++
++		mutex_lock(&cache->lock);
++		if (write_gid(ib_dev, port, cache, gid_index, &zgid, &zattr)) {
++			pr_warn("roce_gid_cache: can't delete index %d for default gid %pI6\n",
++				gid_index, gid.raw);
++			mutex_unlock(&cache->lock);
++			++gid_index;
++			continue;
++		}
++
++		if (mode == ROCE_GID_CACHE_DEFAULT_MODE_SET &&
++		    write_gid(ib_dev, port, cache, gid_index, &gid, &gid_attr))
++			pr_warn("roce_gid_cache: unable to add default gid %pI6\n",
++				gid.raw);
++
++		mutex_unlock(&cache->lock);
++		++gid_index;
++	}
++}
++
+ static int roce_gid_cache_setup_one(struct ib_device *ib_dev)
+ {
+ 	u8 port;
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index d51138c..3c11a64 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -82,24 +82,37 @@ static const struct {
+ 
+ #define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
+ 
+-static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
+-		       u8 port, union ib_gid *gid,
+-		       struct ib_gid_attr *gid_attr)
++static unsigned long gid_type_mask_support(struct ib_device *ib_dev, u8 port)
+ {
+ 	struct ib_port_attr pattr;
+ 	int i;
+ 	int err;
++	unsigned int ret_flags = 0;
+ 
+ 	err = ib_query_port(ib_dev, port, &pattr);
+ 	if (err) {
+ 		pr_warn("update_gid: ib_query_port() failed for %s, %d\n",
+ 			ib_dev->name, err);
++		return 0;
+ 	}
+ 
+-	for (i = 0; i < CAP_TO_GID_TABLE_SIZE; i++) {
+-		if (pattr.port_cap_flags & PORT_CAP_TO_GID_TYPE[i].flag_mask) {
+-			gid_attr->gid_type =
+-				PORT_CAP_TO_GID_TYPE[i].gid_type;
++	for (i = 0; i < CAP_TO_GID_TABLE_SIZE; i++)
++		if (pattr.port_cap_flags & PORT_CAP_TO_GID_TYPE[i].flag_mask)
++			ret_flags |= 1UL << PORT_CAP_TO_GID_TYPE[i].gid_type;
++
++	return ret_flags;
++}
++
++static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
++		       u8 port, union ib_gid *gid,
++		       struct ib_gid_attr *gid_attr)
++{
++	int i;
++	unsigned long gid_type_mask = gid_type_mask_support(ib_dev, port);
++
++	for (i = 0; i < IB_GID_TYPE_SIZE; i++) {
++		if ((1UL << i) & gid_type_mask) {
++			gid_attr->gid_type = i;
+ 			switch (gid_op) {
+ 			case GID_ADD:
+ 				roce_add_gid(ib_dev, port,
+@@ -167,6 +180,21 @@ static void update_gid_ip(enum gid_op_type gid_op,
+ 	update_gid(gid_op, ib_dev, port, &gid, &gid_attr);
+ }
+ 
++static void enum_netdev_default_gids(struct ib_device *ib_dev,
++				     u8 port, struct net_device *ndev,
++				     struct net_device *idev)
++{
++	unsigned long gid_type_mask;
++
++	if (idev != ndev)
++		return;
++
++	gid_type_mask = gid_type_mask_support(ib_dev, port);
++
++	roce_gid_cache_set_default_gid(ib_dev, port, idev, gid_type_mask,
++				       ROCE_GID_CACHE_DEFAULT_MODE_SET);
++}
++
+ static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
+ 				 u8 port, struct net_device *ndev)
+ {
+@@ -247,6 +275,7 @@ static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
+ {
+ 	struct net_device *ndev = (struct net_device *)cookie;
+ 
++	enum_netdev_default_gids(ib_dev, port, ndev, idev);
+ 	enum_netdev_ipv4_ips(ib_dev, port, ndev);
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	enum_netdev_ipv6_ips(ib_dev, port, ndev);
+diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+index d13573b..378bf82 100644
+--- a/include/net/addrconf.h
++++ b/include/net/addrconf.h
+@@ -88,6 +88,37 @@ int ipv6_rcv_saddr_equal(const struct sock *sk, const struct sock *sk2);
+ void addrconf_join_solict(struct net_device *dev, const struct in6_addr *addr);
+ void addrconf_leave_solict(struct inet6_dev *idev, const struct in6_addr *addr);
+ 
++static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
++{
++	if (dev->addr_len != ETH_ALEN)
++		return -1;
++	memcpy(eui, dev->dev_addr, 3);
++	memcpy(eui + 5, dev->dev_addr + 3, 3);
++
++	/*
++	 * The zSeries OSA network cards can be shared among various
++	 * OS instances, but the OSA cards have only one MAC address.
++	 * This leads to duplicate address conflicts in conjunction
++	 * with IPv6 if more than one instance uses the same card.
++	 *
++	 * The driver for these cards can deliver a unique 16-bit
++	 * identifier for each instance sharing the same card.  It is
++	 * placed instead of 0xFFFE in the interface identifier.  The
++	 * "u" bit of the interface identifier is not inverted in this
++	 * case.  Hence the resulting interface identifier has local
++	 * scope according to RFC2373.
++	 */
++	if (dev->dev_id) {
++		eui[3] = (dev->dev_id >> 8) & 0xFF;
++		eui[4] = dev->dev_id & 0xFF;
++	} else {
++		eui[3] = 0xFF;
++		eui[4] = 0xFE;
++		eui[0] ^= 2;
++	}
++	return 0;
++}
++
+ static inline unsigned long addrconf_timeout_fixup(u32 timeout,
+ 						   unsigned int unit)
+ {
+diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
+index f7c8bbe..1ad323d 100644
+--- a/net/ipv6/addrconf.c
++++ b/net/ipv6/addrconf.c
+@@ -1765,37 +1765,6 @@ static void addrconf_leave_anycast(struct inet6_ifaddr *ifp)
+ 	__ipv6_dev_ac_dec(ifp->idev, &addr);
+ }
+ 
+-static int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+-{
+-	if (dev->addr_len != ETH_ALEN)
+-		return -1;
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
 -
--#define bond_version DRV_DESCRIPTION ": v" DRV_VERSION " (" DRV_RELDATE ")\n"
+-	/*
+-	 * The zSeries OSA network cards can be shared among various
+-	 * OS instances, but the OSA cards have only one MAC address.
+-	 * This leads to duplicate address conflicts in conjunction
+-	 * with IPv6 if more than one instance uses the same card.
+-	 *
+-	 * The driver for these cards can deliver a unique 16-bit
+-	 * identifier for each instance sharing the same card.  It is
+-	 * placed instead of 0xFFFE in the interface identifier.  The
+-	 * "u" bit of the interface identifier is not inverted in this
+-	 * case.  Hence the resulting interface identifier has local
+-	 * scope according to RFC2373.
+-	 */
+-	if (dev->dev_id) {
+-		eui[3] = (dev->dev_id >> 8) & 0xFF;
+-		eui[4] = dev->dev_id & 0xFF;
+-	} else {
+-		eui[3] = 0xFF;
+-		eui[4] = 0xFE;
+-		eui[0] ^= 2;
+-	}
+-	return 0;
+-}
 -
- #define BOND_MAX_ARP_TARGETS	16
- 
- #define BOND_DEFAULT_MIIMON	100
+ static int addrconf_ifid_eui64(u8 *eui, struct net_device *dev)
+ {
+ 	if (dev->addr_len != IEEE802154_ADDR_LEN)
 -- 
 2.1.0
 
