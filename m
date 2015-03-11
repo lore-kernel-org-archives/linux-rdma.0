@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 24/32] IB/mlx4: Implement ib_device callback - get_netdev
-Date: Wed, 11 Mar 2015 10:26:16 +0530
-Message-ID: <10010fab-c551-4eb8-9179-7459dca06d6f@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 27/32] IB/mlx4: Translate cache gid index to real index
+Date: Wed, 11 Mar 2015 10:26:19 +0530
+Message-ID: <7130b342-6ccc-48d4-9c1a-6b28dc639261@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,114 +14,42 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is a new callback that is required for RoCEv2 support.
-In port aggregation mode it is required to return the netdev of the
-active port so  support in mlx4 core driver to figure out that port
-identity is required.
+When QP is modified with path the given sgid_index is not necessarily
+the index that HW knows. This is due to optimizations that can save
+place in the HW table. Therefore, translation is required.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c         | 29 +++++++++++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/main.c | 18 ++++++++++++++++++
- include/linux/mlx4/driver.h               |  1 +
- 3 files changed, 48 insertions(+)
+ drivers/infiniband/hw/mlx4/qp.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bf87a95..04e6603 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -47,6 +47,8 @@
- #include <rdma/ib_addr.h>
- #include <rdma/ib_cache.h>
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 847f9ec..d7d7c5a 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1256,14 +1256,18 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 		path->static_rate = 0;
  
-+#include <net/bonding.h>
+ 	if (ah->ah_flags & IB_AH_GRH) {
+-		if (ah->grh.sgid_index >= dev->dev->caps.gid_table_len[port]) {
++		int real_sgid_index = mlx4_ib_gid_index_to_real_index(dev,
++								      port,
++								      ah->grh.sgid_index);
 +
- #include <linux/mlx4/driver.h>
- #include <linux/mlx4/cmd.h>
- #include <linux/mlx4/qp.h>
-@@ -1527,6 +1529,32 @@ unlock:
- 	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
- }
++		if (real_sgid_index >= dev->dev->caps.gid_table_len[port]) {
+ 			pr_err("sgid_index (%u) too large. max is %d\n",
+-			       ah->grh.sgid_index, dev->dev->caps.gid_table_len[port] - 1);
++			       real_sgid_index, dev->dev->caps.gid_table_len[port] - 1);
+ 			return -1;
+ 		}
  
-+static struct net_device *mlx4_ib_get_netdev(struct ib_device *device, u8 port_num)
-+{
-+	struct mlx4_ib_dev *ibdev = to_mdev(device);
-+
-+	if (mlx4_is_bonded(ibdev->dev)) {
-+		struct net_device *dev;
-+		struct net_device *upper = NULL;
-+
-+		rcu_read_lock();
-+
-+		dev = mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
-+		if (dev)
-+			upper = netdev_master_upper_dev_get_rcu(dev);
-+		else
-+			goto unlock;
-+		if (upper)
-+			dev = bond_option_active_slave_get_rcu(netdev_priv(upper));
-+unlock:
-+		rcu_read_unlock();
-+
-+		return dev;
-+	}
-+
-+	return mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
-+}
-+
- static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 				 struct net_device *dev,
- 				 unsigned long event)
-@@ -1806,6 +1834,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->ib_dev.attach_mcast	= mlx4_ib_mcg_attach;
- 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
- 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
-+	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
- 
- 	if (!mlx4_is_slave(ibdev->dev)) {
- 		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 1893a57..6311897 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1237,6 +1237,24 @@ int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p)
- }
- EXPORT_SYMBOL_GPL(mlx4_port_map_set);
- 
-+int mlx4_port_map_get(struct mlx4_dev *dev, u8 vport, u8 *pport)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+
-+	if (!pport)
-+		return -EINVAL;
-+	*pport = 0;
-+
-+	if (vport == 1)
-+		*pport = priv->v2p.port1;
-+	else if (vport == 2)
-+		*pport = priv->v2p.port2;
-+	if (!*pport)
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_port_map_get);
-+
- static int mlx4_load_fw(struct mlx4_dev *dev)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 5a06d96..a992971 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -81,6 +81,7 @@ struct mlx4_port_map {
- };
- 
- int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p);
-+int mlx4_port_map_get(struct mlx4_dev *dev, u8 vport, u8 *pport);
- 
- void *mlx4_get_protocol_dev(struct mlx4_dev *dev, enum mlx4_protocol proto, int port);
- 
+ 		path->grh_mylmc |= 1 << 7;
+-		path->mgid_index = ah->grh.sgid_index;
++		path->mgid_index = real_sgid_index;
+ 		path->hop_limit  = ah->grh.hop_limit;
+ 		path->tclass_flowlabel =
+ 			cpu_to_be32((ah->grh.traffic_class << 20) |
 -- 
 2.1.0
 
