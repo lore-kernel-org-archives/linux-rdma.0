@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 16/32] RDMA/ocrdma: changes to support RoCE-v2 in UD path
-Date: Wed, 11 Mar 2015 10:26:08 +0530
-Message-ID: <e276c9e4-14c3-4b19-af40-dab4b644122d@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 11/32] IB/core: Add gid_type to path and rdma_id_private
+Date: Wed, 11 Mar 2015 10:26:03 +0530
+Message-ID: <7e39caf6-9fa2-4b82-ae37-1ab0e986c1e1@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,262 +9,139 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1426049785-30364-1-git-send-email-somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-To support UD protocol this patch adds following
-changes to existing UD implementation.
+When using rdma cm, we want to take the gid_type from
+the rdma_id_private. This is mandatory before adding
+an API from user-space/configfs that sets
+the gid_type of CM connection.
 
-1. AH creation resolves gid-type for a given index.
-2. Based on GID-type protocol header is built.
-3. Work completion reports l3-type if f/w supports RoCE-v2
-   and sets IB_WC_WITH_NETWORK_HDR_TYPE flag in wc->wc_flags.
-4. Set hop_limit to enable non RDMA-CM applications for RoCEV2.
-
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 +
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |   70 ++++++++++++++++++++++-----
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |    5 ++-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   23 +++++++--
- 4 files changed, 82 insertions(+), 17 deletions(-)
+ drivers/infiniband/core/cm.c              | 19 ++++++++++++++-----
+ drivers/infiniband/core/cma.c             |  2 ++
+ drivers/infiniband/core/sa_query.c        |  3 ++-
+ drivers/infiniband/core/uverbs_marshall.c |  1 +
+ include/rdma/ib_sa.h                      |  1 +
+ 5 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 97f971a..302fd0e 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -341,6 +341,7 @@ struct ocrdma_ah {
- 	struct ocrdma_av *av;
- 	u16 sgid_index;
- 	u32 id;
-+	u8 hdr_type;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 7974e74..22dac05 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -358,9 +358,8 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+ 	read_lock_irqsave(&cm.device_lock, flags);
+ 	list_for_each_entry(cm_dev, &cm.device_list, list) {
+ 		if (!ib_find_cached_gid(cm_dev->ib_device, &path->sgid,
+-					IB_GID_TYPE_IB, path->net,
+-					path->ifindex,
+-					&p, NULL)) {
++					path->gid_type, path->net,
++					path->ifindex, &p, NULL)) {
+ 			port = cm_dev->port[p-1];
+ 			break;
+ 		}
+@@ -1521,6 +1520,8 @@ static int cm_req_handler(struct cm_work *work)
+ 	struct ib_cm_id *cm_id;
+ 	struct cm_id_private *cm_id_priv, *listen_cm_id_priv;
+ 	struct cm_req_msg *req_msg;
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr;
+ 	int ret;
+ 
+ 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
+@@ -1560,11 +1561,19 @@ static int cm_req_handler(struct cm_work *work)
+ 	cm_format_paths_from_req(req_msg, &work->path[0], &work->path[1]);
+ 
+ 	memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
+-	ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
++	ret = ib_get_cached_gid(work->port->cm_dev->ib_device,
++				work->port->port_num,
++				cm_id_priv->av.ah_attr.grh.sgid_index,
++				&gid, &gid_attr);
++	if (!ret) {
++		work->path[0].gid_type = gid_attr.gid_type;
++		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av);
++	}
+ 	if (ret) {
+ 		ib_get_cached_gid(work->port->cm_dev->ib_device,
+ 				  work->port->port_num, 0, &work->path[0].sgid,
+-				  NULL);
++				  &gid_attr);
++		work->path[0].gid_type = gid_attr.gid_type;
+ 		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
+ 			       &work->path[0].sgid, sizeof work->path[0].sgid,
+ 			       NULL, 0);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 659676c..9afa410 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -146,6 +146,7 @@ struct rdma_id_private {
+ 	u8			tos;
+ 	u8			reuseaddr;
+ 	u8			afonly;
++	enum ib_gid_type	gid_type;
  };
  
- struct ocrdma_qp_hwq_info {
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index 7ecd230..6f838f1 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -39,6 +39,20 @@
- 
- #define OCRDMA_VID_PCP_SHIFT	0xD
- 
-+static u16 ocrdma_hdr_type_to_proto_num(u8 hdr_type)
-+{
-+	switch (hdr_type) {
-+	case OCRDMA_L3_TYPE_IB_GRH:
-+		return (u16)0x8915;
-+	case OCRDMA_L3_TYPE_IPV4:
-+		return (u16)0x0800;
-+	case OCRDMA_L3_TYPE_IPV6:
-+		return (u16)0x86dd;
-+	default:
-+		return 0;
-+	}
-+}
-+
- static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 			struct ib_ah_attr *attr, union ib_gid *sgid,
- 			int pdid, bool *isvlan, u16 vlan_tag)
-@@ -47,22 +61,33 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 	struct ocrdma_eth_vlan eth;
- 	struct ocrdma_grh grh;
- 	int eth_sz;
-+	u16 proto_num = 0;
-+	u8 nxthdr = 0x11;
-+	struct iphdr ipv4;
-+	union {
-+		struct sockaddr     _sockaddr;
-+		struct sockaddr_in  _sockaddr_in;
-+		struct sockaddr_in6 _sockaddr_in6;
-+	} sgid_addr, dgid_addr;
- 
- 	memset(&eth, 0, sizeof(eth));
- 	memset(&grh, 0, sizeof(grh));
-+	/* Protocol Number */
-+	proto_num = ocrdma_hdr_type_to_proto_num(ah->hdr_type);
-+	nxthdr = (proto_num == 0x8915) ? 0x1b : 0x11;
- 
- 	/* VLAN */
- 	if (!vlan_tag || (vlan_tag > 0xFFF))
- 		vlan_tag = dev->pvid;
- 	if (vlan_tag && (vlan_tag < 0x1000)) {
- 		eth.eth_type = cpu_to_be16(0x8100);
--		eth.roce_eth_type = cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
-+		eth.roce_eth_type = cpu_to_be16(proto_num);
- 		vlan_tag |= (dev->sl & 0x07) << OCRDMA_VID_PCP_SHIFT;
- 		eth.vlan_tag = cpu_to_be16(vlan_tag);
- 		eth_sz = sizeof(struct ocrdma_eth_vlan);
- 		*isvlan = true;
- 	} else {
--		eth.eth_type = cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
-+		eth.eth_type = cpu_to_be16(proto_num);
- 		eth_sz = sizeof(struct ocrdma_eth_basic);
+ struct cma_multicast {
+@@ -1936,6 +1937,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
+ 		route->path_rec->net = &init_net;
+ 		route->path_rec->ifindex = addr->dev_addr.bound_dev_if;
++		route->path_rec->gid_type = id_priv->gid_type;
  	}
- 	/* MAC */
-@@ -71,18 +96,34 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 	if (status)
- 		return status;
- 	ah->sgid_index = attr->grh.sgid_index;
--	memcpy(&grh.sgid[0], sgid->raw, sizeof(union ib_gid));
--	memcpy(&grh.dgid[0], attr->grh.dgid.raw, sizeof(attr->grh.dgid.raw));
--
--	grh.tclass_flow = cpu_to_be32((6 << 28) |
--			(attr->grh.traffic_class << 24) |
--			attr->grh.flow_label);
--	/* 0x1b is next header value in GRH */
--	grh.pdid_hoplimit = cpu_to_be32((pdid << 16) |
--			(0x1b << 8) | attr->grh.hop_limit);
- 	/* Eth HDR */
- 	memcpy(&ah->av->eth_hdr, &eth, eth_sz);
--	memcpy((u8 *)ah->av + eth_sz, &grh, sizeof(struct ocrdma_grh));
-+	if (ah->hdr_type == RDMA_NETWORK_IPV4) {
-+		*((__be16 *)&ipv4) = htons((4 << 12) | (5 << 8) |
-+					   attr->grh.traffic_class);
-+		ipv4.id = cpu_to_be16(pdid);
-+		ipv4.frag_off = htons(IP_DF);
-+		ipv4.tot_len = htons(0);
-+		ipv4.ttl = attr->grh.hop_limit;
-+		ipv4.protocol = nxthdr;
-+		rdma_gid2ip(&sgid_addr._sockaddr, sgid);
-+		ipv4.saddr = sgid_addr._sockaddr_in.sin_addr.s_addr;
-+		rdma_gid2ip(&dgid_addr._sockaddr, &attr->grh.dgid);
-+		ipv4.daddr = dgid_addr._sockaddr_in.sin_addr.s_addr;
-+		memcpy((u8 *)ah->av + eth_sz, &ipv4, sizeof(struct iphdr));
-+	} else {
-+		memcpy(&grh.sgid[0], sgid->raw, sizeof(union ib_gid));
-+		grh.tclass_flow = cpu_to_be32((6 << 28) |
-+					      (attr->grh.traffic_class << 24) |
-+					      attr->grh.flow_label);
-+		memcpy(&grh.dgid[0], attr->grh.dgid.raw,
-+		       sizeof(attr->grh.dgid.raw));
-+		/* 0x1b is next header value in GRH */
-+		grh.pdid_hoplimit = cpu_to_be32((pdid << 16) |
-+						(nxthdr << 8) |
-+						attr->grh.hop_limit);
-+		memcpy((u8 *)ah->av + eth_sz, &grh, sizeof(struct ocrdma_grh));
-+	}
- 	if (*isvlan)
- 		ah->av->valid |= OCRDMA_AV_VLAN_VALID;
- 	ah->av->valid = cpu_to_le32(ah->av->valid);
-@@ -106,6 +147,7 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
+ 	if (!ndev) {
+ 		ret = -ENODEV;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 705b6b8..f770049 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -546,7 +546,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+ 		ah_attr->ah_flags = IB_AH_GRH;
+ 		ah_attr->grh.dgid = rec->dgid;
  
- 	if (atomic_cmpxchg(&dev->update_sl, 1, 0))
- 		ocrdma_init_service_level(dev);
-+
- 	ah = kzalloc(sizeof(*ah), GFP_ATOMIC);
- 	if (!ah)
- 		return ERR_PTR(-ENOMEM);
-@@ -126,6 +168,10 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
- 		vlan_tag = vlan_dev_vlan_id(sgid_attr.ndev);
- 	rcu_read_unlock();
- 
-+	/* Get network header type for this GID */
-+	ah->hdr_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
-+	if (ah->hdr_type != RDMA_NETWORK_IB)
-+		attr->grh.hop_limit = IPV6_DEFAULT_HOPLIMIT;
- 	if (pd->uctx) {
- 		status = rdma_addr_find_dmac_by_grh(&sgid, &attr->grh.dgid,
- 						    attr->dmac, &vlan_tag,
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 6b74eb9..4fb68ee 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -1681,8 +1681,11 @@ enum {
- 
- 	/* w1 */
- 	OCRDMA_CQE_UD_XFER_LEN_SHIFT	= 16,
-+	OCRDMA_CQE_UD_XFER_LEN_MASK     = 0x1FFF,
- 	OCRDMA_CQE_PKEY_SHIFT		= 0,
- 	OCRDMA_CQE_PKEY_MASK		= 0xFFFF,
-+	OCRDMA_CQE_UD_L3TYPE_SHIFT      = 29,
-+	OCRDMA_CQE_UD_L3TYPE_MASK       = 0x07,
- 
- 	/* w2 */
- 	OCRDMA_CQE_QPN_SHIFT		= 0,
-@@ -1807,7 +1810,7 @@ struct ocrdma_ewqe_ud_hdr {
- 	u32 rsvd_dest_qpn;
- 	u32 qkey;
- 	u32 rsvd_ahid;
--	u32 rsvd;
-+	u32 hdr_type;
+-		ret = ib_find_cached_gid(device, &rec->sgid, IB_GID_TYPE_IB,
++		ret = ib_find_cached_gid(device, &rec->sgid, rec->gid_type,
+ 					 rec->net, rec->ifindex, &port_num,
+ 					 &gid_index);
+ 		if (ret)
+@@ -676,6 +676,7 @@ static void ib_sa_path_rec_callback(struct ib_sa_query *sa_query,
+ 			  mad->data, &rec);
+ 		rec.net = NULL;
+ 		rec.ifindex = 0;
++		rec.gid_type = IB_GID_TYPE_IB;
+ 		memset(rec.dmac, 0, ETH_ALEN);
+ 		query->callback(status, &rec, query->context);
+ 	} else
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index 7d2f14c..af020f8 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -144,5 +144,6 @@ void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
+ 	memset(dst->dmac, 0, sizeof(dst->dmac));
+ 	dst->net = NULL;
+ 	dst->ifindex = 0;
++	dst->gid_type = IB_GID_TYPE_IB;
+ }
+ EXPORT_SYMBOL(ib_copy_path_rec_from_user);
+diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+index eea01e6..61bc231 100644
+--- a/include/rdma/ib_sa.h
++++ b/include/rdma/ib_sa.h
+@@ -157,6 +157,7 @@ struct ib_sa_path_rec {
+ 	u8           dmac[ETH_ALEN];
+ 	int	     ifindex;
+ 	struct net  *net;
++	enum ib_gid_type gid_type;
  };
  
- /* extended wqe followed by hdr_wqe for Fast Memory register */
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index a1e5a58..a5a6eec 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -31,7 +31,6 @@
- #include <rdma/iw_cm.h>
- #include <rdma/ib_umem.h>
- #include <rdma/ib_addr.h>
--#include <rdma/ib_cache.h>
- 
- #include "ocrdma.h"
- #include "ocrdma_hw.h"
-@@ -1964,6 +1963,7 @@ static void ocrdma_build_ud_hdr(struct ocrdma_qp *qp,
- 	else
- 		ud_hdr->qkey = wr->wr.ud.remote_qkey;
- 	ud_hdr->rsvd_ahid = ah->id;
-+	ud_hdr->hdr_type = ah->hdr_type;
- 	if (ah->av->valid & OCRDMA_AV_VLAN_VALID)
- 		hdr->cw |= (OCRDMA_FLAG_AH_VLAN_PR << OCRDMA_WQE_FLAGS_SHIFT);
- }
-@@ -2699,9 +2699,11 @@ static bool ocrdma_poll_scqe(struct ocrdma_qp *qp, struct ocrdma_cqe *cqe,
- 	return expand;
- }
- 
--static int ocrdma_update_ud_rcqe(struct ib_wc *ibwc, struct ocrdma_cqe *cqe)
-+static int ocrdma_update_ud_rcqe(struct ocrdma_dev *dev, struct ib_wc *ibwc,
-+				 struct ocrdma_cqe *cqe)
- {
- 	int status;
-+	u16 hdr_type = 0;
- 
- 	status = (le32_to_cpu(cqe->flags_status_srcqpn) &
- 		OCRDMA_CQE_UD_STATUS_MASK) >> OCRDMA_CQE_UD_STATUS_SHIFT;
-@@ -2711,7 +2713,17 @@ static int ocrdma_update_ud_rcqe(struct ib_wc *ibwc, struct ocrdma_cqe *cqe)
- 						OCRDMA_CQE_PKEY_MASK;
- 	ibwc->wc_flags = IB_WC_GRH;
- 	ibwc->byte_len = (le32_to_cpu(cqe->ud.rxlen_pkey) >>
--					OCRDMA_CQE_UD_XFER_LEN_SHIFT);
-+			  OCRDMA_CQE_UD_XFER_LEN_SHIFT) &
-+			  OCRDMA_CQE_UD_XFER_LEN_MASK;
-+
-+	if (ocrdma_is_rocev2_supported(dev)) {
-+		hdr_type = (le32_to_cpu(cqe->ud.rxlen_pkey) >>
-+			    OCRDMA_CQE_UD_L3TYPE_SHIFT) &
-+			    OCRDMA_CQE_UD_L3TYPE_MASK;
-+		ibwc->wc_flags |= IB_WC_WITH_NETWORK_HDR_TYPE;
-+		ibwc->network_hdr_type = hdr_type;
-+	}
-+
- 	return status;
- }
- 
-@@ -2774,12 +2786,15 @@ static bool ocrdma_poll_err_rcqe(struct ocrdma_qp *qp, struct ocrdma_cqe *cqe,
- static void ocrdma_poll_success_rcqe(struct ocrdma_qp *qp,
- 				     struct ocrdma_cqe *cqe, struct ib_wc *ibwc)
- {
-+	struct ocrdma_dev *dev;
-+
-+	dev = get_ocrdma_dev(qp->ibqp.device);
- 	ibwc->opcode = IB_WC_RECV;
- 	ibwc->qp = &qp->ibqp;
- 	ibwc->status = IB_WC_SUCCESS;
- 
- 	if (qp->qp_type == IB_QPT_UD || qp->qp_type == IB_QPT_GSI)
--		ocrdma_update_ud_rcqe(ibwc, cqe);
-+		ocrdma_update_ud_rcqe(dev, ibwc, cqe);
- 	else
- 		ibwc->byte_len = le32_to_cpu(cqe->rq.rxlen);
- 
+ #define IB_SA_MCMEMBER_REC_MGID				IB_SA_COMP_MASK( 0)
 -- 
-1.7.1
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
