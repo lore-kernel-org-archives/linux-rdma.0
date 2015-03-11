@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 26/32] IB/mlx4: Configure device to work in RoCEv2
-Date: Wed, 11 Mar 2015 10:26:18 +0530
-Message-ID: <f92b7922-52b2-4247-90f8-bdc15c2a45aa@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 23/32] IB/mlx4: Advertise RoCE support in port capabilities
+Date: Wed, 11 Mar 2015 10:26:15 +0530
+Message-ID: <89256789-f3ed-4d6a-8339-841492c73765@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,314 +14,104 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Some mlx4 adapters are RoCEv2 capable. To enable this feature some
-hardware configuration is required. This is
-
-1. Set port general parameters
-2. Configure the outgoing UDP destination port
-3. Configure the QP that work with RoCEv2
+The port capability flags should indicate the support in RoCE modes (V1
+or V2) of the port. The mlx4 driver sets these flags according to the
+capabilities reported by the HW.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c         | 10 +++++++-
- drivers/infiniband/hw/mlx4/qp.c           | 40 +++++++++++++++++++++++++++----
- drivers/net/ethernet/mellanox/mlx4/fw.c   | 16 ++++++++++++-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h |  3 ++-
- drivers/net/ethernet/mellanox/mlx4/port.c |  9 ++++++-
- drivers/net/ethernet/mellanox/mlx4/qp.c   | 27 +++++++++++++++++++++
- include/linux/mlx4/device.h               |  3 ++-
- include/linux/mlx4/qp.h                   | 15 ++++++++++--
- 8 files changed, 112 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c       |  6 ++++++
+ drivers/net/ethernet/mellanox/mlx4/fw.c |  5 ++++-
+ include/linux/mlx4/device.h             | 13 ++++++++++---
+ 3 files changed, 20 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 9d651cf..53c855b 100644
+index 32cd009..bf87a95 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2166,7 +2166,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	if (mlx4_ib_init_sriov(ibdev))
- 		goto err_mad;
- 
--	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) {
-+	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE ||
-+	    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
- 		if (!iboe->nb.notifier_call) {
- 			iboe->nb.notifier_call = mlx4_ib_netdev_event;
- 			err = register_netdevice_notifier(&iboe->nb);
-@@ -2175,6 +2176,13 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 				goto err_notif;
- 			}
- 		}
-+		if (!mlx4_is_slave(dev) &&
-+		    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
-+			err = mlx4_config_roce_v2_port(dev, ROCE_V2_UDP_DPORT);
-+			if (err) {
-+				goto err_notif;
-+			}
-+		}
- 	}
- 
- 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 6f6d0db..847f9ec 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1408,6 +1408,24 @@ static int handle_eth_ud_smac_index(struct mlx4_ib_dev *dev,
- 	return 0;
- }
- 
-+enum {
-+	MLX4_QPC_ROCE_MODE_1 = 0,
-+	MLX4_QPC_ROCE_MODE_2 = 2,
-+	MLX4_QPC_ROCE_MODE_MAX = 0xff
-+};
+@@ -359,6 +359,12 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 						IB_WIDTH_4X : IB_WIDTH_1X;
+ 	props->active_speed	= IB_SPEED_QDR;
+ 	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
 +
-+static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
-+{
-+	switch (gid_type) {
-+	case IB_GID_TYPE_IB:
-+		return MLX4_QPC_ROCE_MODE_1;
-+	case IB_GID_TYPE_ROCE_V2:
-+		return MLX4_QPC_ROCE_MODE_2;
-+	default:
-+		return MLX4_QPC_ROCE_MODE_MAX;
-+	}
-+}
++	if (mdev->dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE)
++		props->port_cap_flags	|= IB_PORT_ROCE;
++	if (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2)
++		props->port_cap_flags	|= IB_PORT_ROCE_V2 | IB_PORT_ROCE;
 +
- static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 			       const struct ib_qp_attr *attr, int attr_mask,
- 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
-@@ -1531,12 +1549,14 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		u16 vlan = 0xffff;
- 		u8 smac[ETH_ALEN];
- 		int status = 0;
-+		int is_eth = rdma_port_get_link_layer(&dev->ib_dev, qp->port) ==
-+				IB_LINK_LAYER_ETHERNET;
- 
--		if (rdma_port_get_link_layer(&dev->ib_dev, qp->port) ==
--		    IB_LINK_LAYER_ETHERNET &&
--		    attr->ah_attr.ah_flags & IB_AH_GRH) {
-+		if (is_eth && attr->ah_attr.ah_flags & IB_AH_GRH) {
- 			int index = attr->ah_attr.grh.sgid_index;
- 
-+			if (mlx4_is_bonded(dev->dev))
-+				port_num  = 1;
- 			rcu_read_lock();
- 			status = ib_get_cached_gid(ibqp->device, port_num,
- 						   index, &gid, &gid_attr);
-@@ -1555,8 +1575,20 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 				  port_num, vlan, smac))
- 			goto out;
- 
-+		if (is_eth && gid_attr.gid_type == IB_GID_TYPE_ROCE_V2)
-+			context->pri_path.hop_limit = IPV6_DEFAULT_HOPLIMIT;
-+
- 		optpar |= (MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH |
- 			   MLX4_QP_OPTPAR_SCHED_QUEUE);
-+
-+		if (is_eth && (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR)) {
-+			u8 qpc_roce_mode = gid_type_to_qpc(gid_attr.gid_type);
-+
-+			if (qpc_roce_mode == MLX4_QPC_ROCE_MODE_MAX)
-+				goto out;
-+			context->rlkey_roce_mode |= (qpc_roce_mode << 6);
-+		}
-+
- 	}
- 
- 	if (attr_mask & IB_QP_TIMEOUT) {
-@@ -1728,7 +1760,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		sqd_event = 0;
- 
- 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
--		context->rlkey |= (1 << 4);
-+		context->rlkey_roce_mode |= (1 << 4);
- 
- 	/*
- 	 * Before passing a kernel QP to the HW, make sure that the
+ 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
+ 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
+ 	props->pkey_tbl_len	= 1;
 diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index d573e73..0086aab 100644
+index 3702fd1..d573e73 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/fw.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -2056,7 +2056,8 @@ struct mlx4_config_dev {
- 	__be32	rsvd1[3];
- 	__be16	vxlan_udp_dport;
- 	__be16	rsvd2;
--	__be32	rsvd3;
-+	__be16  roce_v2_entropy;
-+	__be16  roce_v2_udp_dport;
- 	__be32	roce_flags;
- 	__be32	rsvd4[25];
- 	__be16	rsvd5;
-@@ -2065,6 +2066,7 @@ struct mlx4_config_dev {
- };
+@@ -146,7 +146,8 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+ 		[17] = "Asymmetric EQs support",
+ 		[18] = "More than 80 VFs support",
+ 		[19] = "Performance optimized for limited rule configuration flow steering support",
+-		[21] = "Port Remap support"
++		[21] = "Port Remap support",
++		[22] = "RoCEv2 support"
+ 	};
+ 	int i;
  
- #define MLX4_VXLAN_UDP_DPORT (1 << 0)
-+#define MLX4_ROCE_V2_UDP_DPORT BIT(3)
- #define MLX4_DISABLE_RX_PORT BIT(18)
- 
- static int mlx4_CONFIG_DEV_set(struct mlx4_dev *dev, struct mlx4_config_dev *config_dev)
-@@ -2182,6 +2184,18 @@ int mlx4_disable_rx_port_check(struct mlx4_dev *dev, bool dis)
- 	return mlx4_CONFIG_DEV_set(dev, &config_dev);
- }
- 
-+int mlx4_config_roce_v2_port(struct mlx4_dev *dev, u16 udp_port)
-+{
-+	struct mlx4_config_dev config_dev;
-+
-+	memset(&config_dev, 0, sizeof(config_dev));
-+	config_dev.update_flags    = cpu_to_be32(MLX4_ROCE_V2_UDP_DPORT);
-+	config_dev.roce_v2_udp_dport = cpu_to_be16(udp_port);
-+
-+	return mlx4_CONFIG_DEV_set(dev, &config_dev);
-+}
-+EXPORT_SYMBOL_GPL(mlx4_config_roce_v2_port);
-+
- int mlx4_virt2phy_port_map(struct mlx4_dev *dev, u32 port1, u32 port2)
- {
- 	struct mlx4_cmd_mailbox *mailbox;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index beb1c08..f4160a8 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -763,7 +763,8 @@ enum {
- struct mlx4_set_port_general_context {
- 	u8 reserved[3];
- 	u8 flags;
--	u16 reserved2;
-+	u8 roce_mode;
-+	u8 rr_proto;
- 	__be16 mtu;
- 	u8 pptx;
- 	u8 pfctx;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
-index 30eb1ea..3757b98 100644
---- a/drivers/net/ethernet/mellanox/mlx4/port.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/port.c
-@@ -955,6 +955,8 @@ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port, int pkey_tbl_sz)
- 	return err;
- }
- 
-+#define SET_PORT_ROCE_2_FLAGS          0x10
-+#define MLX4_SET_PORT_ROCE_V1_V2       0x2
- int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
- 			  u8 pptx, u8 pfctx, u8 pprx, u8 pfcrx)
- {
-@@ -973,7 +975,12 @@ int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
- 	context->pfctx = pfctx;
- 	context->pprx = (pprx * (!pfcrx)) << 7;
- 	context->pfcrx = pfcrx;
--
-+	if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
-+		context->flags |= SET_PORT_ROCE_2_FLAGS;
-+		context->roce_mode |=
-+			(MLX4_SET_PORT_ROCE_V1_V2 & 7)
-+			<< 4;
-+	}
- 	in_mod = MLX4_SET_PORT_GENERAL << 8 | port;
- 	err = mlx4_cmd(dev, mailbox->dma, in_mod, 1, MLX4_CMD_SET_PORT,
- 		       MLX4_CMD_TIME_CLASS_B,  MLX4_CMD_WRAPPED);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/qp.c b/drivers/net/ethernet/mellanox/mlx4/qp.c
-index 2bb8553..03917dd 100644
---- a/drivers/net/ethernet/mellanox/mlx4/qp.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/qp.c
-@@ -167,6 +167,13 @@ static int __mlx4_qp_modify(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
- 		context->log_page_size   = mtt->page_shift - MLX4_ICM_PAGE_SHIFT;
- 	}
- 
-+	if ((cur_state == MLX4_QP_STATE_RTR) &&
-+	    (new_state == MLX4_QP_STATE_RTS) &&
-+	    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2 &&
-+	    !mlx4_is_mfunc(dev)) {
-+		context->roce_entropy = cpu_to_be16(mlx4_qp_roce_entropy(dev, qp->qpn));
-+	}
-+
- 	*(__be32 *) mailbox->buf = cpu_to_be32(optpar);
- 	memcpy(mailbox->buf + 8, context, sizeof *context);
- 
-@@ -898,3 +905,23 @@ int mlx4_qp_to_ready(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(mlx4_qp_to_ready);
-+
-+u32 mlx4_qp_roce_entropy(struct mlx4_dev *dev, u32 qpn)
-+{
-+	struct mlx4_qp_context context;
-+	struct mlx4_qp qp;
-+	int err;
-+
-+	qp.qpn = qpn;
-+	err = mlx4_qp_query(dev, &qp, &context);
-+	if (!err) {
-+		u32 dest_qpn = be32_to_cpu(context.remote_qpn) & 0xffffff;
-+		u16 folded_dst = folded_qp(dest_qpn);
-+		u16 folded_src = folded_qp(qpn);
-+
-+		return (dest_qpn != qpn) ? ((folded_dst ^ folded_src) | 0xC000) :
-+			folded_src | 0xC000;
-+	}
-+	return 0xdead;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_qp_roce_entropy);
+@@ -852,6 +853,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_EQE_STRIDE;
+ 	MLX4_GET(dev_cap->bmme_flags, outbox,
+ 		 QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
++	if (dev_cap->bmme_flags & MLX4_FLAG_ROCE_V1_V2)
++		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_ROCE_V1_V2;
+ 	if (dev_cap->bmme_flags & MLX4_FLAG_PORT_REMAP)
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_PORT_REMAP;
+ 	MLX4_GET(field, outbox, QUERY_DEV_CAP_CONFIG_DEV_OFFSET);
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index b384ce6..dd1488c 100644
+index 9a05e73..02dd6a0 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
-@@ -204,7 +204,7 @@ enum {
+@@ -202,7 +202,8 @@ enum {
+ 	MLX4_DEV_CAP_FLAG2_SYS_EQS		= 1LL <<  17,
  	MLX4_DEV_CAP_FLAG2_80_VFS		= 1LL <<  18,
  	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19,
- 	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21,
--+	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
-+	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
+-	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21
++	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21,
+++	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
  };
  
  enum {
-@@ -1354,6 +1354,7 @@ int mlx4_get_base_gid_ix(struct mlx4_dev *dev, int slave, int port);
+@@ -250,6 +251,7 @@ enum {
+ 	MLX4_BMME_FLAG_TYPE_2_WIN	= 1 <<  9,
+ 	MLX4_BMME_FLAG_RESERVED_LKEY	= 1 << 10,
+ 	MLX4_BMME_FLAG_FAST_REG_WR	= 1 << 11,
++	MLX4_BMME_FLAG_ROCE_V1_V2	= 1 << 19,
+ 	MLX4_BMME_FLAG_PORT_REMAP	= 1 << 24,
+ 	MLX4_BMME_FLAG_VSD_INIT2RTR	= 1 << 28,
+ };
+@@ -258,6 +260,10 @@ enum {
+ 	MLX4_FLAG_PORT_REMAP		= MLX4_BMME_FLAG_PORT_REMAP
+ };
  
- int mlx4_config_vxlan_port(struct mlx4_dev *dev, __be16 udp_port);
- int mlx4_disable_rx_port_check(struct mlx4_dev *dev, bool dis);
-+int mlx4_config_roce_v2_port(struct mlx4_dev *dev, u16 udp_port);
- int mlx4_virt2phy_port_map(struct mlx4_dev *dev, u32 port1, u32 port2);
- int mlx4_vf_smi_enabled(struct mlx4_dev *dev, int slave, int port);
- int mlx4_vf_get_enable_smi_admin(struct mlx4_dev *dev, int slave, int port);
-diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
-index 2bbc62a..b7497b9 100644
---- a/include/linux/mlx4/qp.h
-+++ b/include/linux/mlx4/qp.h
-@@ -184,7 +184,7 @@ struct mlx4_qp_context {
- 	u8			mtu_msgmax;
- 	u8			rq_size_stride;
- 	u8			sq_size_stride;
--	u8			rlkey;
-+	u8			rlkey_roce_mode;
- 	__be32			usr_page;
- 	__be32			local_qpn;
- 	__be32			remote_qpn;
-@@ -194,7 +194,8 @@ struct mlx4_qp_context {
- 	u32			reserved1;
- 	__be32			next_send_psn;
- 	__be32			cqn_send;
--	u32			reserved2[2];
-+	__be16                  roce_entropy;
-+	__be16                  reserved2[3];
- 	__be32			last_acked_psn;
- 	__be32			ssn;
- 	__be32			params2;
-@@ -462,4 +463,14 @@ static inline struct mlx4_qp *__mlx4_qp_lookup(struct mlx4_dev *dev, u32 qpn)
++enum {
++	MLX4_FLAG_ROCE_V1_V2		= MLX4_BMME_FLAG_ROCE_V1_V2
++};
++
+ enum mlx4_event {
+ 	MLX4_EVENT_TYPE_COMP		   = 0x00,
+ 	MLX4_EVENT_TYPE_PATH_MIG	   = 0x01,
+@@ -888,9 +894,10 @@ struct mlx4_mad_ifc {
+ 		if (((dev)->caps.port_mask[port] != MLX4_PORT_TYPE_IB))
  
- void mlx4_qp_remove(struct mlx4_dev *dev, struct mlx4_qp *qp);
+ #define mlx4_foreach_ib_transport_port(port, dev)                         \
+-	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)	  \
++	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)       \
+ 		if (((dev)->caps.port_mask[port] == MLX4_PORT_TYPE_IB) || \
+-			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE))
++			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) || \
++			((dev)->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2))
  
-+static inline u16 folded_qp(u32 q)
-+{
-+	u16 res;
-+
-+	res = ((q & 0xff) ^ ((q & 0xff0000) >> 16)) | (q & 0xff00);
-+	return res;
-+}
-+
-+u32 mlx4_qp_roce_entropy(struct mlx4_dev *dev, u32 qpn);
-+
- #endif /* MLX4_QP_H */
+ #define MLX4_INVALID_SLAVE_ID	0xFF
+ 
 -- 
 2.1.0
 
