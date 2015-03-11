@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 23/32] IB/mlx4: Advertise RoCE support in port capabilities
-Date: Wed, 11 Mar 2015 10:26:15 +0530
-Message-ID: <89256789-f3ed-4d6a-8339-841492c73765@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 21/32] IB/mlx4: Lock with RCU instead of RTNL
+Date: Wed, 11 Mar 2015 10:26:13 +0530
+Message-ID: <e13c7b94-ce14-45dd-8ee7-6a34d5e8b572@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,104 +14,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The port capability flags should indicate the support in RoCE modes (V1
-or V2) of the port. The mlx4 driver sets these flags according to the
-capabilities reported by the HW.
+The function eth_link_query_port() used to take the RTNL lock when
+call to netdev_master_upper_dev_get() was necessary. This makes it
+impossible to call this function with RTNL lock is held. Calling
+netdev_master_upper_dev_get_rcu() and locking with RCU instead solve
+this problem.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c       |  6 ++++++
- drivers/net/ethernet/mellanox/mlx4/fw.c |  5 ++++-
- include/linux/mlx4/device.h             | 13 ++++++++++---
- 3 files changed, 20 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 32cd009..bf87a95 100644
+index d8b227e..32cd009 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -359,6 +359,12 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 						IB_WIDTH_4X : IB_WIDTH_1X;
- 	props->active_speed	= IB_SPEED_QDR;
- 	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
-+
-+	if (mdev->dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE)
-+		props->port_cap_flags	|= IB_PORT_ROCE;
-+	if (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2)
-+		props->port_cap_flags	|= IB_PORT_ROCE_V2 | IB_PORT_ROCE;
-+
- 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
- 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
- 	props->pkey_tbl_len	= 1;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index 3702fd1..d573e73 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -146,7 +146,8 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
- 		[17] = "Asymmetric EQs support",
- 		[18] = "More than 80 VFs support",
- 		[19] = "Performance optimized for limited rule configuration flow steering support",
--		[21] = "Port Remap support"
-+		[21] = "Port Remap support",
-+		[22] = "RoCEv2 support"
- 	};
- 	int i;
+@@ -367,14 +367,15 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->state		= IB_PORT_DOWN;
+ 	props->phys_state	= state_to_phys_state(props->state);
+ 	props->active_mtu	= IB_MTU_256;
+-	if (is_bonded)
+-		rtnl_lock(); /* required to get upper dev */
+ 	down_read(&iboe->sem);
+ 	ndev = iboe->netdevs[port - 1];
+-	if (ndev && is_bonded)
+-		ndev = netdev_master_upper_dev_get(ndev);
++	if (ndev && is_bonded) {
++		rcu_read_lock(); /* required to get upper dev */
++		ndev = netdev_master_upper_dev_get_rcu(ndev);
++		rcu_read_unlock();
++	}
+ 	if (!ndev)
+-		goto out_unlock;
++		goto unlock;
  
-@@ -852,6 +853,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
- 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_EQE_STRIDE;
- 	MLX4_GET(dev_cap->bmme_flags, outbox,
- 		 QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
-+	if (dev_cap->bmme_flags & MLX4_FLAG_ROCE_V1_V2)
-+		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_ROCE_V1_V2;
- 	if (dev_cap->bmme_flags & MLX4_FLAG_PORT_REMAP)
- 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_PORT_REMAP;
- 	MLX4_GET(field, outbox, QUERY_DEV_CAP_CONFIG_DEV_OFFSET);
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 9a05e73..02dd6a0 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -202,7 +202,8 @@ enum {
- 	MLX4_DEV_CAP_FLAG2_SYS_EQS		= 1LL <<  17,
- 	MLX4_DEV_CAP_FLAG2_80_VFS		= 1LL <<  18,
- 	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19,
--	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21
-+	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21,
-++	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
- };
- 
- enum {
-@@ -250,6 +251,7 @@ enum {
- 	MLX4_BMME_FLAG_TYPE_2_WIN	= 1 <<  9,
- 	MLX4_BMME_FLAG_RESERVED_LKEY	= 1 << 10,
- 	MLX4_BMME_FLAG_FAST_REG_WR	= 1 << 11,
-+	MLX4_BMME_FLAG_ROCE_V1_V2	= 1 << 19,
- 	MLX4_BMME_FLAG_PORT_REMAP	= 1 << 24,
- 	MLX4_BMME_FLAG_VSD_INIT2RTR	= 1 << 28,
- };
-@@ -258,6 +260,10 @@ enum {
- 	MLX4_FLAG_PORT_REMAP		= MLX4_BMME_FLAG_PORT_REMAP
- };
- 
-+enum {
-+	MLX4_FLAG_ROCE_V1_V2		= MLX4_BMME_FLAG_ROCE_V1_V2
-+};
-+
- enum mlx4_event {
- 	MLX4_EVENT_TYPE_COMP		   = 0x00,
- 	MLX4_EVENT_TYPE_PATH_MIG	   = 0x01,
-@@ -888,9 +894,10 @@ struct mlx4_mad_ifc {
- 		if (((dev)->caps.port_mask[port] != MLX4_PORT_TYPE_IB))
- 
- #define mlx4_foreach_ib_transport_port(port, dev)                         \
--	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)	  \
-+	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)       \
- 		if (((dev)->caps.port_mask[port] == MLX4_PORT_TYPE_IB) || \
--			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE))
-+			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) || \
-+			((dev)->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2))
- 
- #define MLX4_INVALID_SLAVE_ID	0xFF
- 
+ 	tmp = iboe_get_mtu(ndev->mtu);
+ 	props->active_mtu = tmp ? min(props->max_mtu, tmp) : IB_MTU_256;
+@@ -382,10 +383,8 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->state		= (netif_running(ndev) && netif_carrier_ok(ndev)) ?
+ 					IB_PORT_ACTIVE : IB_PORT_DOWN;
+ 	props->phys_state	= state_to_phys_state(props->state);
+-out_unlock:
++unlock:
+ 	up_read(&iboe->sem);
+-	if (is_bonded)
+-		rtnl_unlock();
+ out:
+ 	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
+ 	return err;
 -- 
 2.1.0
 
