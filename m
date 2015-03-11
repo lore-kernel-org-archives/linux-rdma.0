@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 02/32] IB/core: Add kref to IB devices
-Date: Wed, 11 Mar 2015 10:25:54 +0530
-Message-ID: <35c593d8-0150-49c9-b18a-2e55a685bfb3@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 09/32] IB/core: Support find sgid index using a filter function
+Date: Wed, 11 Mar 2015 10:26:01 +0530
+Message-ID: <aeabda28-769f-44a5-a590-8e2e5956ce80@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,125 +14,194 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Previously. we used device_mutex lock in order to protect
-the device's list. That means that in order to guarantee a
-device isn't freed while we use it, we had to lock all
-devices.
-
-Adding a kref per IB device. Before an IB device
-is unregistered, we wait before its not held anymore.
+Sometimes a sgid index need to be found based on variable parameters.
+For example, when the CM gets a packet from network, it needs to
+match a sgid_index that matches the appropriate L2 attributes
+of a packet. Extending the cache's API to include Ethernet L2
+attribute is problematic, since they may be vastly extended
+in the future. As a result, we add a find function that
+gets a user filter function and searches the GID table
+until a match is found.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 41 ++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h          |  6 ++++++
- 2 files changed, 47 insertions(+)
+ drivers/infiniband/core/cache.c          | 24 ++++++++++++
+ drivers/infiniband/core/core_priv.h      |  9 +++++
+ drivers/infiniband/core/roce_gid_cache.c | 66 ++++++++++++++++++++++++++++++++
+ include/rdma/ib_cache.h                  | 27 +++++++++++++
+ 4 files changed, 126 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 18c1ece..8616a95 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -261,6 +261,39 @@ out:
- 	return ret;
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 882d491..ae86fe8 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -273,6 +273,30 @@ int ib_find_cached_gid_by_port(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_find_cached_gid_by_port);
+ 
++int ib_find_gid_by_filter(struct ib_device *device,
++			  union ib_gid *gid,
++			  u8 port_num,
++			  bool (*filter)(const union ib_gid *gid,
++					 const struct ib_gid_attr *,
++					 void *),
++			  void *context, u16 *index)
++{
++	/* Look for a RoCE device with the specified GID. */
++	if (!ib_cache_use_roce_gid_cache(device, port_num))
++		return roce_gid_cache_find_gid_by_filter(device, gid,
++							 port_num, filter,
++							 context, index);
++
++	/* Only RoCE GID cache supports filter function */
++	if (filter)
++		return -ENOSYS;
++
++	/* If no RoCE devices with the specified GID, look for IB device. */
++	return __ib_find_cached_gid_by_port(device, port_num,
++					    gid, index);
++}
++EXPORT_SYMBOL(ib_find_gid_by_filter);
++
+ int ib_get_cached_pkey(struct ib_device *device,
+ 		       u8                port_num,
+ 		       int               index,
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 411672f..d6e73f8 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -84,6 +84,15 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
+ 				    enum ib_gid_type gid_type, u8 port,
+ 				    struct net *net, int if_index, u16 *index);
+ 
++int roce_gid_cache_find_gid_by_filter(struct ib_device *ib_dev,
++				      union ib_gid *gid,
++				      u8 port,
++				      bool (*filter)(const union ib_gid *gid,
++						     const struct ib_gid_attr *,
++						     void *),
++				      void *context,
++				      u16 *index);
++
+ int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port);
+ 
+ enum roce_gid_cache_default_mode {
+diff --git a/drivers/infiniband/core/roce_gid_cache.c b/drivers/infiniband/core/roce_gid_cache.c
+index 5c109f7..ee9ac4d 100644
+--- a/drivers/infiniband/core/roce_gid_cache.c
++++ b/drivers/infiniband/core/roce_gid_cache.c
+@@ -436,6 +436,72 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
+ 	return -ENOENT;
  }
  
-+static void ib_device_complete_cb(struct kref *kref)
++int roce_gid_cache_find_gid_by_filter(struct ib_device *ib_dev,
++				      union ib_gid *gid,
++				      u8 port,
++				      bool (*filter)(const union ib_gid *,
++						     const struct ib_gid_attr *,
++						     void *),
++				      void *context,
++				      u16 *index)
 +{
-+	struct ib_device *device = container_of(kref, struct ib_device,
-+						refcount);
++	struct ib_roce_gid_cache *cache;
++	unsigned int i;
++	bool found = false;
 +
-+	if (device->reg_state >= IB_DEV_UNREGISTERING)
-+		complete(&device->free);
++	if (!ib_dev->cache.roce_gid_cache)
++		return -ENOSYS;
++
++	if (port < start_port(ib_dev) ||
++	    port > start_port(ib_dev) + ib_dev->phys_port_cnt ||
++	    rdma_port_get_link_layer(ib_dev, port) !=
++		IB_LINK_LAYER_ETHERNET)
++		return -ENOSYS;
++
++	cache = ib_dev->cache.roce_gid_cache[port - start_port(ib_dev)];
++
++	if (!cache || !cache->active)
++		return -ENOENT;
++
++	for (i = 0; i < cache->sz; i++) {
++		unsigned int orig_seq;
++		struct ib_gid_attr attr;
++
++		orig_seq = cache->data_vec[i].seq;
++		if (orig_seq == -1)
++			continue;
++		/* Make sure the sequence number we remeber was read
++		 * before the gid cache entry content is read.
++		 */
++		smp_rmb();
++
++		if (memcmp(gid, &cache->data_vec[i].gid, sizeof(*gid)))
++			continue;
++
++		memcpy(&attr, &cache->data_vec[i].attr, sizeof(attr));
++
++		rcu_read_lock();
++
++		/* Make sure we finished reading the attribute */
++		smp_rmb();
++		if (orig_seq == ACCESS_ONCE(cache->data_vec[i].seq))
++			if (!filter || filter(gid, &attr, context))
++				found = true;
++
++		rcu_read_unlock();
++
++		if (found)
++			break;
++	}
++
++	if (!found)
++		return -ENOENT;
++
++	if (index)
++		*index = i;
++	return 0;
 +}
++
+ static struct ib_roce_gid_cache *alloc_roce_gid_cache(int sz)
+ {
+ 	struct ib_roce_gid_cache *cache =
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index 36b72bf..5ed728c 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -111,6 +111,33 @@ int ib_find_cached_gid_by_port(struct ib_device *device,
+ 			       struct net	*net,
+ 			       int		if_index,
+ 			       u16              *index);
 +
 +/**
-+ * ib_device_hold - increase the reference count of device
-+ * @device: ib device to prevent from being free'd
++ * ib_find_gid_by_filter - Returns the GID table index where a specified
++ * GID value occurs
++ * @device: The device to query.
++ * @gid: The GID value to search for.
++ * @port_num: The port number of the device where the GID value could be
++ *   searched.
++ * @filter: The filter function is executed on any matching GID in the table.
++ *   If the filter function returns true, the corresponding index is returned,
++ *   otherwise, we continue searching the GID table. It's guaranteed that
++ *   while filter is executed, ndev field is valid and the structure won't
++ *   change. filter is executed in an atomic context. filter must be NULL
++ *   when RoCE GID cache isn't supported on the respective device's port.
++ * @index: The index into the cached GID table where the GID was found.  This
++ *   parameter may be NULL.
 + *
-+ * Prevent the device from being free'd.
++ * ib_find_gid_by_filter() searches for the specified GID value in
++ * the local software cache.
 + */
-+void ib_device_hold(struct ib_device *device)
-+{
-+	kref_get(&device->refcount);
-+}
-+EXPORT_SYMBOL(ib_device_hold);
-+
-+/**
-+ * ib_device_put - decrease the reference count of device
-+ * @device: allows this device to be free'd
-+ *
-+ * Puts the ib_device and allows it to be free'd.
-+ */
-+int ib_device_put(struct ib_device *device)
-+{
-+	return kref_put(&device->refcount, ib_device_complete_cb);
-+}
-+EXPORT_SYMBOL(ib_device_put);
-+
++int ib_find_gid_by_filter(struct ib_device *device,
++			  union ib_gid *gid,
++			  u8 port_num,
++			  bool (*filter)(const union ib_gid *gid,
++					 const struct ib_gid_attr *,
++					 void *),
++			  void *context, u16 *index);
  /**
-  * ib_register_device - Register an IB device with IB core
-  * @device:Device to register
-@@ -312,6 +345,9 @@ int ib_register_device(struct ib_device *device,
- 
- 	list_add_tail(&device->core_list, &device_list);
- 
-+	kref_init(&device->refcount);
-+	init_completion(&device->free);
-+
- 	device->reg_state = IB_DEV_REGISTERED;
- 
- 	{
-@@ -342,6 +378,8 @@ void ib_unregister_device(struct ib_device *device)
- 
- 	mutex_lock(&device_mutex);
- 
-+	device->reg_state = IB_DEV_UNREGISTERING;
-+
- 	list_for_each_entry_reverse(client, &client_list, list)
- 		if (client->remove)
- 			client->remove(device);
-@@ -355,6 +393,9 @@ void ib_unregister_device(struct ib_device *device)
- 
- 	ib_device_unregister_sysfs(device);
- 
-+	ib_device_put(device);
-+	wait_for_completion(&device->free);
-+
- 	spin_lock_irqsave(&device->client_data_lock, flags);
- 	list_for_each_entry_safe(context, tmp, &device->client_data_list, list)
- 		kfree(context);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1866595..a7593b0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1716,6 +1716,7 @@ struct ib_device {
- 	enum {
- 		IB_DEV_UNINITIALIZED,
- 		IB_DEV_REGISTERED,
-+		IB_DEV_UNREGISTERING,
- 		IB_DEV_UNREGISTERED
- 	}                            reg_state;
- 
-@@ -1728,6 +1729,8 @@ struct ib_device {
- 	u32			     local_dma_lkey;
- 	u8                           node_type;
- 	u8                           phys_port_cnt;
-+	struct kref		     refcount;
-+	struct completion	     free;
- };
- 
- struct ib_client {
-@@ -1741,6 +1744,9 @@ struct ib_client {
- struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
- 
-+void ib_device_hold(struct ib_device *device);
-+int ib_device_put(struct ib_device *device);
-+
- int ib_register_device(struct ib_device *device,
- 		       int (*port_callback)(struct ib_device *,
- 					    u8, struct kobject *));
+  * ib_get_cached_pkey - Returns a cached PKey table entry
+  * @device: The device to query.
 -- 
 2.1.0
 
