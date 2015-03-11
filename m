@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 08/32] IB/core: Report gid_type and gid_ndev through sysfs
-Date: Wed, 11 Mar 2015 10:26:00 +0530
-Message-ID: <db543524-a72d-4bf7-bdd5-ff453ae98b7e@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v2 for-next 12/32] IB/core: Add rdma_network_type to wc
+Date: Wed, 11 Mar 2015 10:26:04 +0530
+Message-ID: <633166dc-3a8a-4faf-8e3b-108f8cec9252@CMEXHTCAS2.ad.emulex.com>
 References: <1426049785-30364-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,346 +14,249 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since we've added GID attributes to the RoCE GID table,
-the users need a convenient way to query them.
-Adding the GID type and relate net device to IB's sysfs.
-
-The new attributes are available in:
-/sys/class/infiniband/<device>/ports/<port>/gid_attrs/ndevs/<index>
-/sys/class/infiniband/<device>/ports/<port>/gid_attrs/types/<index>
-
-The <index> corresponds to the index of the respective GID in:
-/sys/class/infiniband/<device>/ports/<port>/gids/<index>
+Providers should tell IB core the wc's network type.
+This is used in order to search for the proper GID in the
+GID table. When using HCAs that can't provide this info,
+IB core tries to deep examine the packet and extract
+the GID type by itself.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h      |   2 +
- drivers/infiniband/core/roce_gid_cache.c |  13 +++
- drivers/infiniband/core/sysfs.c          | 184 ++++++++++++++++++++++++++++++-
- 3 files changed, 197 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/verbs.c | 106 ++++++++++++++++++++++++++++++++++++++--
+ include/rdma/ib_verbs.h         |  30 ++++++++++++
+ 2 files changed, 131 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 6ab40a9..411672f 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -71,6 +71,8 @@ void ib_enum_roce_ports_of_netdev(roce_netdev_filter filter,
- 				  roce_netdev_callback cb,
- 				  void *cookie);
- 
-+const char *roce_gid_cache_type_str(enum ib_gid_type gid_type);
-+
- int roce_gid_cache_get_gid(struct ib_device *ib_dev, u8 port, int index,
- 			   union ib_gid *gid, struct ib_gid_attr *attr);
- 
-diff --git a/drivers/infiniband/core/roce_gid_cache.c b/drivers/infiniband/core/roce_gid_cache.c
-index 2bd663f..5c109f7 100644
---- a/drivers/infiniband/core/roce_gid_cache.c
-+++ b/drivers/infiniband/core/roce_gid_cache.c
-@@ -48,6 +48,11 @@ enum gid_attr_find_mask {
- 	GID_ATTR_FIND_MASK_NETDEV	= 1UL << 1,
- };
- 
-+static const char * const gid_type_str[] = {
-+	[IB_GID_TYPE_IB]	= "IB/RoCE V1\n",
-+	[IB_GID_TYPE_ROCE_V2]	= "RoCE V2\n",
-+};
-+
- static inline int start_port(struct ib_device *ib_dev)
- {
- 	return (ib_dev->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
-@@ -58,6 +63,14 @@ struct dev_put_rcu {
- 	struct net_device	*ndev;
- };
- 
-+const char *roce_gid_cache_type_str(enum ib_gid_type gid_type)
-+{
-+	if (gid_type < ARRAY_SIZE(gid_type_str) && gid_type_str[gid_type])
-+		return gid_type_str[gid_type];
-+
-+	return "Invalid GID type";
-+}
-+
- static void put_ndev(struct rcu_head *rcu)
- {
- 	struct dev_put_rcu *put_rcu =
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 5cee246..887c2f8 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -37,12 +37,22 @@
- #include <linux/slab.h>
- #include <linux/stat.h>
- #include <linux/string.h>
-+#include <linux/netdevice.h>
- 
- #include <rdma/ib_mad.h>
- 
-+struct ib_port;
-+
-+struct gid_attr_group {
-+	struct ib_port		*port;
-+	struct kobject		kobj;
-+	struct attribute_group	ndev;
-+	struct attribute_group	type;
-+};
- struct ib_port {
- 	struct kobject         kobj;
- 	struct ib_device      *ibdev;
-+	struct gid_attr_group *gid_attr_group;
- 	struct attribute_group gid_group;
- 	struct attribute_group pkey_group;
- 	u8                     port_num;
-@@ -84,6 +94,24 @@ static const struct sysfs_ops port_sysfs_ops = {
- 	.show = port_attr_show
- };
- 
-+static ssize_t gid_attr_show(struct kobject *kobj,
-+			     struct attribute *attr, char *buf)
-+{
-+	struct port_attribute *port_attr =
-+		container_of(attr, struct port_attribute, attr);
-+	struct ib_port *p = container_of(kobj, struct gid_attr_group,
-+					 kobj)->port;
-+
-+	if (!port_attr->show)
-+		return -EIO;
-+
-+	return port_attr->show(p, port_attr, buf);
-+}
-+
-+static const struct sysfs_ops gid_attr_sysfs_ops = {
-+	.show = gid_attr_show
-+};
-+
- static ssize_t state_show(struct ib_port *p, struct port_attribute *unused,
- 			  char *buf)
- {
-@@ -281,6 +309,46 @@ static struct attribute *port_default_attrs[] = {
- 	NULL
- };
- 
-+static size_t print_ndev(struct ib_gid_attr *gid_attr, char *buf)
-+{
-+	if (!gid_attr->ndev)
-+		return -EINVAL;
-+
-+	return sprintf(buf, "%s\n", gid_attr->ndev->name);
-+}
-+
-+static size_t print_gid_type(struct ib_gid_attr *gid_attr, char *buf)
-+{
-+	return sprintf(buf, "%s", roce_gid_cache_type_str(gid_attr->gid_type));
-+}
-+
-+static ssize_t _show_port_gid_attr(struct ib_port *p,
-+				   struct port_attribute *attr,
-+				   char *buf,
-+				   size_t (*print)(struct ib_gid_attr *gid_attr,
-+						   char *buf))
-+{
-+	struct port_table_attribute *tab_attr =
-+		container_of(attr, struct port_table_attribute, attr);
-+	union ib_gid gid;
-+	struct ib_gid_attr gid_attr;
-+	ssize_t ret;
-+	va_list args;
-+
-+	rcu_read_lock();
-+	ret = ib_query_gid(p->ibdev, p->port_num, tab_attr->index, &gid,
-+			   &gid_attr);
-+	if (ret)
-+		goto err;
-+
-+	ret = print(&gid_attr, buf);
-+
-+err:
-+	va_end(args);
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
- static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
- 			     char *buf)
- {
-@@ -296,6 +364,19 @@ static ssize_t show_port_gid(struct ib_port *p, struct port_attribute *attr,
- 	return sprintf(buf, "%pI6\n", gid.raw);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 2f5fd7a..2e7ccad 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -195,8 +195,84 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
  }
+ EXPORT_SYMBOL(ib_create_ah);
  
-+static ssize_t show_port_gid_attr_ndev(struct ib_port *p,
-+				       struct port_attribute *attr, char *buf)
++static int ib_get_grh_header_version(const void *h)
 +{
-+	return _show_port_gid_attr(p, attr, buf, print_ndev);
++	const struct iphdr *ip4h = (struct iphdr *)(h + 20);
++	struct iphdr ip4h_checked;
++	const struct ipv6hdr *ip6h = (struct ipv6hdr *)h;
++
++	if (ip6h->version != 6)
++		return (ip4h->version == 4) ? 4 : 0;
++	/* version may be 6 or 4 */
++	if (ip4h->ihl != 5) /* IPv4 header length must be 5 for RR */
++		return 6;
++	/* Verify checksum.
++	   We can't write on scattered buffers so we need to copy to
++	   temp buffer.
++	 */
++	memcpy(&ip4h_checked, ip4h, sizeof(ip4h_checked));
++	ip4h_checked.check = 0;
++	ip4h_checked.check = ip_fast_csum((u8 *)&ip4h_checked, 5);
++	/* if IPv4 header checksum is OK, bellive it */
++	if (ip4h->check == ip4h_checked.check)
++		return 4;
++	return 6;
 +}
 +
-+static ssize_t show_port_gid_attr_gid_type(struct ib_port *p,
-+					   struct port_attribute *attr,
-+					   char *buf)
++static int ib_get_dgid_sgid_by_grh(const void *h,
++				   enum rdma_network_type net_type,
++				   union ib_gid *dgid, union ib_gid *sgid)
 +{
-+	return _show_port_gid_attr(p, attr, buf, print_gid_type);
-+}
++	switch (net_type) {
++	case RDMA_NETWORK_IPV4: {
++		const struct iphdr *ip4h = (struct iphdr *)(h + 20);
 +
- static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
- 			      char *buf)
- {
-@@ -446,12 +527,41 @@ static void ib_port_release(struct kobject *kobj)
- 	kfree(p);
- }
- 
-+static void ib_port_gid_attr_release(struct kobject *kobj)
-+{
-+	struct gid_attr_group *g = container_of(kobj, struct gid_attr_group,
-+						kobj);
-+	struct attribute *a;
-+	int i;
++		ipv6_addr_set_v4mapped(ip4h->daddr, (struct in6_addr *)dgid);
++		ipv6_addr_set_v4mapped(ip4h->saddr, (struct in6_addr *)sgid);
++		return 0;
++	}
++	case RDMA_NETWORK_IPV6: {
++		struct ipv6hdr *ip6h = (struct ipv6hdr *)h;
 +
-+	if (g->ndev.attrs) {
-+		for (i = 0; (a = g->ndev.attrs[i]); ++i)
-+			kfree(a);
++		memcpy(dgid, &ip6h->daddr, sizeof(*dgid));
++		memcpy(sgid, &ip6h->saddr, sizeof(*sgid));
++		return 0;
++	}
++	case RDMA_NETWORK_IB: {
++		struct ib_grh *grh = (struct ib_grh *)h;
 +
-+		kfree(g->ndev.attrs);
++		memcpy(dgid, &grh->dgid, sizeof(*dgid));
++		memcpy(sgid, &grh->sgid, sizeof(*sgid));
++		return 0;
++	}
 +	}
 +
-+	if (g->type.attrs) {
-+		for (i = 0; (a = g->type.attrs[i]); ++i)
-+			kfree(a);
-+
-+		kfree(g->type.attrs);
-+	}
-+
-+	kfree(g);
++	return -EINVAL;
 +}
 +
- static struct kobj_type port_type = {
- 	.release       = ib_port_release,
- 	.sysfs_ops     = &port_sysfs_ops,
- 	.default_attrs = port_default_attrs
++static enum rdma_network_type ib_get_net_type_by_grh(struct ib_device *device,
++						     u8 port_num,
++						     const struct ib_grh *grh)
++{
++	int grh_version;
++
++	if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND)
++		return RDMA_NETWORK_IB;
++
++	grh_version = ib_get_grh_header_version(grh);
++
++	if (grh_version == 4)
++		return RDMA_NETWORK_IPV4;
++
++	if (grh->next_hdr == IPPROTO_UDP)
++		return RDMA_NETWORK_IPV6;
++
++	return RDMA_NETWORK_IB;
++}
++
+ struct find_gid_index_context {
+ 	u16 vlan_id;
++	enum ib_gid_type gid_type;
  };
  
-+static struct kobj_type gid_attr_type = {
-+	.sysfs_ops	= &gid_attr_sysfs_ops,
-+	.release	= ib_port_gid_attr_release
+ static bool find_gid_index(const union ib_gid *gid,
+@@ -206,6 +282,9 @@ static bool find_gid_index(const union ib_gid *gid,
+ 	struct find_gid_index_context *ctx =
+ 		(struct find_gid_index_context *)context;
+ 
++	if (ctx->gid_type != gid_attr->gid_type)
++		return false;
++
+ 	if ((!!(ctx->vlan_id != 0xffff) == !is_vlan_dev(gid_attr->ndev)) ||
+ 	    (is_vlan_dev(gid_attr->ndev) &&
+ 	     vlan_dev_vlan_id(gid_attr->ndev) != ctx->vlan_id))
+@@ -216,9 +295,11 @@ static bool find_gid_index(const union ib_gid *gid,
+ 
+ static int get_sgid_index_from_eth(struct ib_device *device, u8 port_num,
+ 				   u16 vlan_id, union ib_gid *sgid,
++				   enum ib_gid_type gid_type,
+ 				   u16 *gid_index)
+ {
+-	struct find_gid_index_context context = {.vlan_id = vlan_id};
++	struct find_gid_index_context context = {.vlan_id = vlan_id,
++						 .gid_type = gid_type};
+ 
+ 	return ib_find_gid_by_filter(device, sgid, port_num, find_gid_index,
+ 				     &context, gid_index);
+@@ -232,9 +313,24 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ 	int ret;
+ 	int is_eth = (rdma_port_get_link_layer(device, port_num) ==
+ 			IB_LINK_LAYER_ETHERNET);
++	enum rdma_network_type net_type = RDMA_NETWORK_IB;
++	enum ib_gid_type gid_type = IB_GID_TYPE_IB;
++	union ib_gid dgid;
++	union ib_gid sgid;
+ 
+ 	memset(ah_attr, 0, sizeof *ah_attr);
+ 	if (is_eth) {
++		if (wc->wc_flags & IB_WC_WITH_NETWORK_HDR_TYPE)
++			net_type = wc->network_hdr_type;
++		else
++			net_type = ib_get_net_type_by_grh(device, port_num, grh);
++		gid_type = ib_network_to_gid_type(net_type);
++	}
++	ret = ib_get_dgid_sgid_by_grh(grh, net_type, &dgid, &sgid);
++	if (ret)
++		return ret;
++
++	if (is_eth) {
+ 		u16 vlan_id = wc->wc_flags & IB_WC_WITH_VLAN ?
+ 				wc->vlan_id : 0xffff;
+ 
+@@ -243,7 +339,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ 
+ 		if (!(wc->wc_flags & IB_WC_WITH_SMAC) ||
+ 		    !(wc->wc_flags & IB_WC_WITH_VLAN)) {
+-			ret = rdma_addr_find_dmac_by_grh(&grh->dgid, &grh->sgid,
++			ret = rdma_addr_find_dmac_by_grh(&dgid, &sgid,
+ 							 ah_attr->dmac,
+ 							 wc->wc_flags & IB_WC_WITH_VLAN ?
+ 							 NULL : &vlan_id,
+@@ -253,7 +349,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ 		}
+ 
+ 		ret = get_sgid_index_from_eth(device, port_num, vlan_id,
+-					      &grh->dgid, &gid_index);
++					      &dgid, gid_type, &gid_index);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -268,10 +364,10 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ 
+ 	if (wc->wc_flags & IB_WC_GRH) {
+ 		ah_attr->ah_flags = IB_AH_GRH;
+-		ah_attr->grh.dgid = grh->sgid;
++		ah_attr->grh.dgid = sgid;
+ 
+ 		if (!is_eth) {
+-			ret = ib_find_cached_gid_by_port(device, &grh->dgid,
++			ret = ib_find_cached_gid_by_port(device, &dgid,
+ 							 IB_GID_TYPE_IB,
+ 							 port_num, NULL, 0,
+ 							 &gid_index);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index bd68c5b..c673d64 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -50,6 +50,7 @@
+ #include <linux/workqueue.h>
+ #include <net/net_namespace.h>
+ #include <uapi/linux/if_ether.h>
++#include <net/ipv6.h>
+ 
+ #include <linux/atomic.h>
+ #include <linux/mmu_notifier.h>
+@@ -117,6 +118,33 @@ enum rdma_transport_type {
+ __attribute_const__ enum rdma_transport_type
+ rdma_node_get_transport(enum rdma_node_type node_type);
+ 
++enum rdma_network_type {
++	RDMA_NETWORK_IB,
++	RDMA_NETWORK_IPV4,
++	RDMA_NETWORK_IPV6
 +};
 +
- static void ib_device_release(struct device *device)
- {
- 	struct ib_device *dev = container_of(device, struct ib_device, dev);
-@@ -545,9 +655,23 @@ static int add_port(struct ib_device *device, int port_num,
- 		return ret;
- 	}
++static inline enum ib_gid_type ib_network_to_gid_type(enum rdma_network_type network_type)
++{
++	if (network_type == RDMA_NETWORK_IPV4 ||
++	    network_type == RDMA_NETWORK_IPV6)
++		return IB_GID_TYPE_ROCE_V2;
++
++	return IB_GID_TYPE_IB;
++}
++
++static inline enum rdma_network_type ib_gid_to_network_type(enum ib_gid_type gid_type,
++							    union ib_gid *gid)
++{
++	if (gid_type == IB_GID_TYPE_IB)
++		return RDMA_NETWORK_IB;
++
++	if (ipv6_addr_v4mapped((struct in6_addr *)gid))
++		return RDMA_NETWORK_IPV4;
++	else
++		return RDMA_NETWORK_IPV6;
++}
++
+ enum rdma_link_layer {
+ 	IB_LINK_LAYER_UNSPECIFIED,
+ 	IB_LINK_LAYER_INFINIBAND,
+@@ -724,6 +752,7 @@ enum ib_wc_flags {
+ 	IB_WC_IP_CSUM_OK	= (1<<3),
+ 	IB_WC_WITH_SMAC		= (1<<4),
+ 	IB_WC_WITH_VLAN		= (1<<5),
++	IB_WC_WITH_NETWORK_HDR_TYPE	= (1<<6),
+ };
  
-+	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
-+	if (!p->gid_attr_group) {
-+		ret = -ENOMEM;
-+		goto err_put;
-+	}
-+
-+	p->gid_attr_group->port = p;
-+	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
-+				   &p->kobj, "gid_attrs");
-+	if (ret) {
-+		kfree(p->gid_attr_group);
-+		goto err_put;
-+	}
-+
- 	ret = sysfs_create_group(&p->kobj, &pma_group);
- 	if (ret)
--		goto err_put;
-+		goto err_put_gid_attrs;
+ struct ib_wc {
+@@ -746,6 +775,7 @@ struct ib_wc {
+ 	u8			port_num;	/* valid only for DR SMPs on switches */
+ 	u8			smac[ETH_ALEN];
+ 	u16			vlan_id;
++	u8			network_hdr_type;
+ };
  
- 	p->gid_group.name  = "gids";
- 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
-@@ -560,12 +684,38 @@ static int add_port(struct ib_device *device, int port_num,
- 	if (ret)
- 		goto err_free_gid;
- 
-+	p->gid_attr_group->ndev.name = "ndevs";
-+	p->gid_attr_group->ndev.attrs = alloc_group_attrs(show_port_gid_attr_ndev,
-+							  attr.gid_tbl_len);
-+	if (!p->gid_attr_group->ndev.attrs) {
-+		ret = -ENOMEM;
-+		goto err_remove_gid;
-+	}
-+
-+	ret = sysfs_create_group(&p->gid_attr_group->kobj,
-+				 &p->gid_attr_group->ndev);
-+	if (ret)
-+		goto err_free_gid_ndev;
-+
-+	p->gid_attr_group->type.name = "types";
-+	p->gid_attr_group->type.attrs = alloc_group_attrs(show_port_gid_attr_gid_type,
-+							  attr.gid_tbl_len);
-+	if (!p->gid_attr_group->type.attrs) {
-+		ret = -ENOMEM;
-+		goto err_remove_gid_ndev;
-+	}
-+
-+	ret = sysfs_create_group(&p->gid_attr_group->kobj,
-+				 &p->gid_attr_group->type);
-+	if (ret)
-+		goto err_free_gid_type;
-+
- 	p->pkey_group.name  = "pkeys";
- 	p->pkey_group.attrs = alloc_group_attrs(show_port_pkey,
- 						attr.pkey_tbl_len);
- 	if (!p->pkey_group.attrs) {
- 		ret = -ENOMEM;
--		goto err_remove_gid;
-+		goto err_remove_gid_type;
- 	}
- 
- 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
-@@ -593,6 +743,28 @@ err_free_pkey:
- 	kfree(p->pkey_group.attrs);
- 	p->pkey_group.attrs = NULL;
- 
-+err_remove_gid_type:
-+	sysfs_remove_group(&p->gid_attr_group->kobj,
-+			   &p->gid_attr_group->type);
-+
-+err_free_gid_type:
-+	for (i = 0; i < attr.gid_tbl_len; ++i)
-+		kfree(p->gid_attr_group->type.attrs[i]);
-+
-+	kfree(p->gid_attr_group->type.attrs);
-+	p->gid_attr_group->type.attrs = NULL;
-+
-+err_remove_gid_ndev:
-+	sysfs_remove_group(&p->gid_attr_group->kobj,
-+			   &p->gid_attr_group->ndev);
-+
-+err_free_gid_ndev:
-+	for (i = 0; i < attr.gid_tbl_len; ++i)
-+		kfree(p->gid_attr_group->ndev.attrs[i]);
-+
-+	kfree(p->gid_attr_group->ndev.attrs);
-+	p->gid_attr_group->ndev.attrs = NULL;
-+
- err_remove_gid:
- 	sysfs_remove_group(&p->kobj, &p->gid_group);
- 
-@@ -606,6 +778,9 @@ err_free_gid:
- err_remove_pma:
- 	sysfs_remove_group(&p->kobj, &pma_group);
- 
-+err_put_gid_attrs:
-+	kobject_put(&p->gid_attr_group->kobj);
-+
- err_put:
- 	kobject_put(&p->kobj);
- 	return ret;
-@@ -826,6 +1001,11 @@ static void free_port_list_attributes(struct ib_device *device)
- 		sysfs_remove_group(p, &pma_group);
- 		sysfs_remove_group(p, &port->pkey_group);
- 		sysfs_remove_group(p, &port->gid_group);
-+		sysfs_remove_group(&port->gid_attr_group->kobj,
-+				   &port->gid_attr_group->ndev);
-+		sysfs_remove_group(&port->gid_attr_group->kobj,
-+				   &port->gid_attr_group->type);
-+		kobject_put(&port->gid_attr_group->kobj);
- 		kobject_put(p);
- 	}
- 
+ enum ib_cq_notify_flags {
 -- 
 2.1.0
 
