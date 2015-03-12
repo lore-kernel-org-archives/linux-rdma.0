@@ -1,27 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 3/15] net/mlx5_core: don't export static symbol
-Date: Thu, 12 Mar 2015 00:04:23 -0400 (EDT)
-Message-ID: <20150312.000423.2003322738364745908.davem@davemloft.net>
-References: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1426092997-30605-4-git-send-email-Julia.Lawall@lip6.fr>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: 2 port ib card rsocket and failover
+Date: Thu, 12 Mar 2015 10:07:47 +0300
+Message-ID: <CACaajQtRO=fgqN2N1ksneY4jLg-vHFwPDXKuUE42cd_En5Nn_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1426092997-30605-4-git-send-email-Julia.Lawall@lip6.fr>
-Sender: netdev-owner@vger.kernel.org
-To: Julia.Lawall@lip6.fr
-Cc: eli@mellanox.com, kernel-janitors@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, daniel@iogearbox.net
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Date: Wed, 11 Mar 2015 17:56:25 +0100
+Hello. Two years ago i used scst with multipath to provide block devices.
+Now i need to drop scst and go to software defined storage.
+In case of usage rsocket how i can implement failover of one path?
+Also if i resolve address via rsocket and server have two paths (two
+ports) which port is used for data ?
 
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> The semantic patch that fixes this problem is as follows:
-> (http://coccinelle.lip6.fr/)
- ...
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
-Applied, thank you Julia.
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
