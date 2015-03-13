@@ -1,7 +1,7 @@
 From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: 2 port ib card rsocket and failover
-Date: Thu, 12 Mar 2015 10:07:47 +0300
-Message-ID: <CACaajQtRO=fgqN2N1ksneY4jLg-vHFwPDXKuUE42cd_En5Nn_A@mail.gmail.com>
+Subject: detect rdma capable devices
+Date: Fri, 13 Mar 2015 10:16:36 +0300
+Message-ID: <CACaajQvKaZBmYN5YpJnawSxrUoJOvT+mVkt94oSOFWYT5iNO2w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -9,11 +9,11 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello. Two years ago i used scst with multipath to provide block devices.
-Now i need to drop scst and go to software defined storage.
-In case of usage rsocket how i can implement failover of one path?
-Also if i resolve address via rsocket and server have two paths (two
-ports) which port is used for data ?
+I have software that can operate via rdma and via ethernet, what is
+right way to detect rdma devices?
+For example if system have rdma device i'm try to use
+rdma_getaddrinfo, if no rdma drivers/devices - i'm switch to
+getaddrinfo...
 
 -- 
 Vasiliy Tolstov,
