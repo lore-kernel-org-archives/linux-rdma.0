@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 02/16] xprtrdma: Perform a full marshal on retransmit
-Date: Fri, 13 Mar 2015 17:26:50 -0400
-Message-ID: <20150313212650.22783.28071.stgit@manet.1015granger.net>
+Subject: [PATCH v1 04/16] xprtrdma: Add a "max_payload" op for each memreg
+ mode
+Date: Fri, 13 Mar 2015 17:27:08 -0400
+Message-ID: <20150313212708.22783.70403.stgit@manet.1015granger.net>
 References: <20150313212517.22783.18364.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,223 +13,199 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 6ab59945f292 ("xprtrdma: Update rkeys after transport
-reconnect" added logic in the ->send_request path to update the
-chunk list when an RPC/RDMA request is retransmitted.
-
-Note that rpc_xdr_encode() resets and re-encodes the entire RPC
-send buffer for each retransmit of an RPC. The RPC send buffer
-is not preserved from the previous transmission of an RPC.
-
-Revert 6ab59945f292, and instead, just force each request to be
-fully marshaled every time through ->send_request. This should
-preserve the fix from 6ab59945f292, while also performing pullup
-during retransmits.
+The max_payload computation is generalized to ensure that the
+payload maximum is the lesser of RPC_MAX_DATA_SEGS and the number of
+data segments that can be transmitted in an inline buffer.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |   71 ++++++++++++++++++---------------------
- net/sunrpc/xprtrdma/transport.c |    5 +--
- net/sunrpc/xprtrdma/xprt_rdma.h |   10 -----
- 3 files changed, 34 insertions(+), 52 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c      |   13 ++++++++++
+ net/sunrpc/xprtrdma/frwr_ops.c     |   13 ++++++++++
+ net/sunrpc/xprtrdma/physical_ops.c |   10 +++++++
+ net/sunrpc/xprtrdma/transport.c    |    5 +++-
+ net/sunrpc/xprtrdma/verbs.c        |   49 +++++++++++-------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h    |    5 +++-
+ 6 files changed, 59 insertions(+), 36 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 91ffde8..41456d9 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -53,6 +53,14 @@
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index ffb7d93..eec2660 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -17,6 +17,19 @@
  # define RPCDBG_FACILITY	RPCDBG_TRANS
  #endif
  
-+enum rpcrdma_chunktype {
-+	rpcrdma_noch = 0,
-+	rpcrdma_readch,
-+	rpcrdma_areadch,
-+	rpcrdma_writech,
-+	rpcrdma_replych
-+};
++/* Maximum scatter/gather per FMR */
++#define RPCRDMA_MAX_FMR_SGES	(64)
 +
- #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
- static const char transfertypes[][12] = {
- 	"pure inline",	/* no chunks */
-@@ -284,28 +292,6 @@ out:
- }
- 
- /*
-- * Marshal chunks. This routine returns the header length
-- * consumed by marshaling.
-- *
-- * Returns positive RPC/RDMA header size, or negative errno.
-- */
--
--ssize_t
--rpcrdma_marshal_chunks(struct rpc_rqst *rqst, ssize_t result)
--{
--	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
--	struct rpcrdma_msg *headerp = rdmab_to_msg(req->rl_rdmabuf);
--
--	if (req->rl_rtype != rpcrdma_noch)
--		result = rpcrdma_create_chunks(rqst, &rqst->rq_snd_buf,
--					       headerp, req->rl_rtype);
--	else if (req->rl_wtype != rpcrdma_noch)
--		result = rpcrdma_create_chunks(rqst, &rqst->rq_rcv_buf,
--					       headerp, req->rl_wtype);
--	return result;
--}
--
--/*
-  * Copy write data inline.
-  * This function is used for "small" requests. Data which is passed
-  * to RPC via iovecs (or page list) is copied directly into the
-@@ -397,6 +383,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	char *base;
- 	size_t rpclen, padlen;
- 	ssize_t hdrlen;
-+	enum rpcrdma_chunktype rtype, wtype;
- 	struct rpcrdma_msg *headerp;
- 
- 	/*
-@@ -433,13 +420,13 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	 * into pages; otherwise use reply chunks.
- 	 */
- 	if (rqst->rq_rcv_buf.buflen <= RPCRDMA_INLINE_READ_THRESHOLD(rqst))
--		req->rl_wtype = rpcrdma_noch;
-+		wtype = rpcrdma_noch;
- 	else if (rqst->rq_rcv_buf.page_len == 0)
--		req->rl_wtype = rpcrdma_replych;
-+		wtype = rpcrdma_replych;
- 	else if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
--		req->rl_wtype = rpcrdma_writech;
-+		wtype = rpcrdma_writech;
- 	else
--		req->rl_wtype = rpcrdma_replych;
-+		wtype = rpcrdma_replych;
- 
- 	/*
- 	 * Chunks needed for arguments?
-@@ -456,16 +443,16 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	 * TBD check NFSv4 setacl
- 	 */
- 	if (rqst->rq_snd_buf.len <= RPCRDMA_INLINE_WRITE_THRESHOLD(rqst))
--		req->rl_rtype = rpcrdma_noch;
-+		rtype = rpcrdma_noch;
- 	else if (rqst->rq_snd_buf.page_len == 0)
--		req->rl_rtype = rpcrdma_areadch;
-+		rtype = rpcrdma_areadch;
- 	else
--		req->rl_rtype = rpcrdma_readch;
-+		rtype = rpcrdma_readch;
- 
- 	/* The following simplification is not true forever */
--	if (req->rl_rtype != rpcrdma_noch && req->rl_wtype == rpcrdma_replych)
--		req->rl_wtype = rpcrdma_noch;
--	if (req->rl_rtype != rpcrdma_noch && req->rl_wtype != rpcrdma_noch) {
-+	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
-+		wtype = rpcrdma_noch;
-+	if (rtype != rpcrdma_noch && wtype != rpcrdma_noch) {
- 		dprintk("RPC:       %s: cannot marshal multiple chunk lists\n",
- 			__func__);
- 		return -EIO;
-@@ -479,7 +466,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	 * When padding is in use and applies to the transfer, insert
- 	 * it and change the message type.
- 	 */
--	if (req->rl_rtype == rpcrdma_noch) {
-+	if (rtype == rpcrdma_noch) {
- 
- 		padlen = rpcrdma_inline_pullup(rqst,
- 						RPCRDMA_INLINE_PAD_VALUE(rqst));
-@@ -494,7 +481,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 			headerp->rm_body.rm_padded.rm_pempty[1] = xdr_zero;
- 			headerp->rm_body.rm_padded.rm_pempty[2] = xdr_zero;
- 			hdrlen += 2 * sizeof(u32); /* extra words in padhdr */
--			if (req->rl_wtype != rpcrdma_noch) {
-+			if (wtype != rpcrdma_noch) {
- 				dprintk("RPC:       %s: invalid chunk list\n",
- 					__func__);
- 				return -EIO;
-@@ -515,18 +502,26 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 			 * on receive. Therefore, we request a reply chunk
- 			 * for non-writes wherever feasible and efficient.
- 			 */
--			if (req->rl_wtype == rpcrdma_noch)
--				req->rl_wtype = rpcrdma_replych;
-+			if (wtype == rpcrdma_noch)
-+				wtype = rpcrdma_replych;
- 		}
- 	}
- 
--	hdrlen = rpcrdma_marshal_chunks(rqst, hdrlen);
-+	if (rtype != rpcrdma_noch) {
-+		hdrlen = rpcrdma_create_chunks(rqst, &rqst->rq_snd_buf,
-+					       headerp, rtype);
-+		wtype = rtype;	/* simplify dprintk */
++/* FMR mode conveys up to 64 pages of payload per chunk segment.
++ */
++static size_t
++fmr_op_maxpages(struct rpcrdma_xprt *r_xprt)
++{
++	return min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
++		     rpcrdma_max_segments(r_xprt) * RPCRDMA_MAX_FMR_SGES);
++}
 +
-+	} else if (wtype != rpcrdma_noch) {
-+		hdrlen = rpcrdma_create_chunks(rqst, &rqst->rq_rcv_buf,
-+					       headerp, wtype);
-+	}
- 	if (hdrlen < 0)
- 		return hdrlen;
+ const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
++	.ro_maxpages			= fmr_op_maxpages,
+ 	.ro_displayname			= "fmr",
+ };
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 79173f9..73a5ac8 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -17,6 +17,19 @@
+ # define RPCDBG_FACILITY	RPCDBG_TRANS
+ #endif
  
- 	dprintk("RPC:       %s: %s: hdrlen %zd rpclen %zd padlen %zd"
- 		" headerp 0x%p base 0x%p lkey 0x%x\n",
--		__func__, transfertypes[req->rl_wtype], hdrlen, rpclen, padlen,
-+		__func__, transfertypes[wtype], hdrlen, rpclen, padlen,
- 		headerp, base, rdmab_lkey(req->rl_rdmabuf));
++/* FRWR mode conveys a list of pages per chunk segment. The
++ * maximum length of that list is the FRWR page list depth.
++ */
++static size_t
++frwr_op_maxpages(struct rpcrdma_xprt *r_xprt)
++{
++	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
++
++	return min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
++		     rpcrdma_max_segments(r_xprt) * ia->ri_max_frmr_depth);
++}
++
+ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
++	.ro_maxpages			= frwr_op_maxpages,
+ 	.ro_displayname			= "frwr",
+ };
+diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+index b0922ac..28ade19 100644
+--- a/net/sunrpc/xprtrdma/physical_ops.c
++++ b/net/sunrpc/xprtrdma/physical_ops.c
+@@ -19,6 +19,16 @@
+ # define RPCDBG_FACILITY	RPCDBG_TRANS
+ #endif
  
- 	/*
++/* PHYSICAL memory registration conveys one page per chunk segment.
++ */
++static size_t
++physical_op_maxpages(struct rpcrdma_xprt *r_xprt)
++{
++	return min_t(unsigned int, RPCRDMA_MAX_DATA_SEGS,
++		     rpcrdma_max_segments(r_xprt));
++}
++
+ const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops = {
++	.ro_maxpages			= physical_op_maxpages,
+ 	.ro_displayname			= "physical",
+ };
 diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 26a62e7..271d306 100644
+index 271d306..9a9da40 100644
 --- a/net/sunrpc/xprtrdma/transport.c
 +++ b/net/sunrpc/xprtrdma/transport.c
-@@ -608,10 +608,7 @@ xprt_rdma_send_request(struct rpc_task *task)
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
- 	int rc = 0;
+@@ -406,7 +406,10 @@ xprt_setup_rdma(struct xprt_create *args)
+ 			  xprt_rdma_connect_worker);
  
--	if (req->rl_niovs == 0)
--		rc = rpcrdma_marshal_req(rqst);
--	else if (r_xprt->rx_ia.ri_memreg_strategy != RPCRDMA_ALLPHYSICAL)
--		rc = rpcrdma_marshal_chunks(rqst, 0);
-+	rc = rpcrdma_marshal_req(rqst);
- 	if (rc < 0)
- 		goto failed_marshal;
+ 	xprt_rdma_format_addresses(xprt);
+-	xprt->max_payload = rpcrdma_max_payload(new_xprt);
++	xprt->max_payload = new_xprt->rx_ia.ri_ops->ro_maxpages(new_xprt);
++	if (xprt->max_payload == 0)
++		goto out4;
++	xprt->max_payload <<= PAGE_SHIFT;
+ 	dprintk("RPC:       %s: transport data payload maximum: %zu bytes\n",
+ 		__func__, xprt->max_payload);
  
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 0a16fb6..c8afd83 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -143,14 +143,6 @@ rdmab_to_msg(struct rpcrdma_regbuf *rb)
- 	return (struct rpcrdma_msg *)rb->rg_base;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index e4d9d9c..837d4ea 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -2215,43 +2215,24 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
+ 	return rc;
  }
  
--enum rpcrdma_chunktype {
--	rpcrdma_noch = 0,
--	rpcrdma_readch,
--	rpcrdma_areadch,
--	rpcrdma_writech,
--	rpcrdma_replych
--};
+-/* Physical mapping means one Read/Write list entry per-page.
+- * All list entries must fit within an inline buffer
+- *
+- * NB: The server must return a Write list for NFS READ,
+- *     which has the same constraint. Factor in the inline
+- *     rsize as well.
++/* How many chunk list items fit within our inline buffers?
+  */
+-static size_t
+-rpcrdma_physical_max_payload(struct rpcrdma_xprt *r_xprt)
++unsigned int
++rpcrdma_max_segments(struct rpcrdma_xprt *r_xprt)
+ {
+ 	struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
+-	unsigned int inline_size, pages;
 -
+-	inline_size = min_t(unsigned int,
+-			    cdata->inline_wsize, cdata->inline_rsize);
+-	inline_size -= RPCRDMA_HDRLEN_MIN;
+-	pages = inline_size / sizeof(struct rpcrdma_segment);
+-	return pages << PAGE_SHIFT;
+-}
++	int bytes, segments;
+ 
+-static size_t
+-rpcrdma_mr_max_payload(struct rpcrdma_xprt *r_xprt)
+-{
+-	return RPCRDMA_MAX_DATA_SEGS << PAGE_SHIFT;
+-}
+-
+-size_t
+-rpcrdma_max_payload(struct rpcrdma_xprt *r_xprt)
+-{
+-	size_t result;
+-
+-	switch (r_xprt->rx_ia.ri_memreg_strategy) {
+-	case RPCRDMA_ALLPHYSICAL:
+-		result = rpcrdma_physical_max_payload(r_xprt);
+-		break;
+-	default:
+-		result = rpcrdma_mr_max_payload(r_xprt);
++	bytes = min_t(unsigned int, cdata->inline_wsize, cdata->inline_rsize);
++	bytes -= RPCRDMA_HDRLEN_MIN;
++	if (bytes < sizeof(struct rpcrdma_segment) * 2) {
++		pr_warn("RPC:       %s: inline threshold too small\n",
++			__func__);
++		return 0;
+ 	}
+-	return result;
++
++	segments = 1 << (fls(bytes / sizeof(struct rpcrdma_segment)) - 1);
++	dprintk("RPC:       %s: max chunk list size = %d segments\n",
++		__func__, segments);
++	return segments;
+ }
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index ef3cf4a..59e627e 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -334,7 +334,9 @@ struct rpcrdma_stats {
  /*
-  * struct rpcrdma_rep -- this structure encapsulates state required to recv
-  * and complete a reply, asychronously. It needs several pieces of
-@@ -258,7 +250,6 @@ struct rpcrdma_req {
- 	unsigned int	rl_niovs;	/* 0, 2 or 4 */
- 	unsigned int	rl_nchunks;	/* non-zero if chunks */
- 	unsigned int	rl_connect_cookie;	/* retry detection */
--	enum rpcrdma_chunktype	rl_rtype, rl_wtype;
- 	struct rpcrdma_buffer *rl_buffer; /* home base for this structure */
- 	struct rpcrdma_rep	*rl_reply;/* holder for reply buffer */
- 	struct ib_sge	rl_send_iov[4];	/* for active requests */
-@@ -418,7 +409,6 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
+  * Per-registration mode operations
+  */
++struct rpcrdma_xprt;
+ struct rpcrdma_memreg_ops {
++	size_t		(*ro_maxpages)(struct rpcrdma_xprt *);
+ 	const char	*ro_displayname;
+ };
+ 
+@@ -411,6 +413,8 @@ struct rpcrdma_regbuf *rpcrdma_alloc_regbuf(struct rpcrdma_ia *,
+ void rpcrdma_free_regbuf(struct rpcrdma_ia *,
+ 			 struct rpcrdma_regbuf *);
+ 
++unsigned int rpcrdma_max_segments(struct rpcrdma_xprt *);
++
  /*
+  * RPC/RDMA connection management calls - xprtrdma/rpc_rdma.c
+  */
+@@ -422,7 +426,6 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
   * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
   */
--ssize_t rpcrdma_marshal_chunks(struct rpc_rqst *, ssize_t);
  int rpcrdma_marshal_req(struct rpc_rqst *);
- size_t rpcrdma_max_payload(struct rpcrdma_xprt *);
+-size_t rpcrdma_max_payload(struct rpcrdma_xprt *);
  
+ /* Temporary NFS request map cache. Created in svc_rdma.c  */
+ extern struct kmem_cache *svc_rdma_map_cachep;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
