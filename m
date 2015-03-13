@@ -1,30 +1,32 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/9] IB/ipoib: fixup multicast locking issues
-Date: Fri, 13 Mar 2015 10:41:42 +0200
-Message-ID: <CAJ3xEMjHrTH_F=zPDsH9A9qRWo=AYN4sgbsdDKV62nzBkB5kXA@mail.gmail.com>
-References: <cover.1424562072.git.dledford@redhat.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: detect rdma capable devices
+Date: Fri, 13 Mar 2015 11:46:37 +0300
+Message-ID: <CACaajQs8x0TQFyxWgeWjhrWR_D00ZAn7DfiK6BZ_M0n7Nrmz1w@mail.gmail.com>
+References: <CACaajQvKaZBmYN5YpJnawSxrUoJOvT+mVkt94oSOFWYT5iNO2w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1424562072.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CACaajQvKaZBmYN5YpJnawSxrUoJOvT+mVkt94oSOFWYT5iNO2w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 22, 2015 at 2:26 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> This is the re-ordered, squashed version of my 22 patch set that I
-> posted on Feb 11.  There are a few minor differences between that
-> set and this one.  They are:
-[...]
+2015-03-13 10:16 GMT+03:00 Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>:
+> I have software that can operate via rdma and via ethernet, what is
+> right way to detect rdma devices?
+> For example if system have rdma device i'm try to use
+> rdma_getaddrinfo, if no rdma drivers/devices - i'm switch to
+> getaddrinfo...
 
-Doug, you wrote here a very detailed listing of the changes from
-earlier posts and the testing the patches went through, which is
-excellent. It would be very good if you can also post few liner
-telling the changes done by the series in high level, so we can have
-this test as part of a "merge" commit that says in the kernel logs.
 
-Or.
+Now i'm try to get rdma_get_devices and check it for null, but does it
+right solution ?
+
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
