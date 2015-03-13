@@ -1,72 +1,155 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 00/16] NFS/RDMA patches proposed for 4.1
-Date: Fri, 13 Mar 2015 17:26:31 -0400
-Message-ID: <20150313212517.22783.18364.stgit@manet.1015granger.net>
+Subject: [PATCH v1 01/16] xprtrdma: Display IPv6 addresses and port numbers
+ correctly
+Date: Fri, 13 Mar 2015 17:26:41 -0400
+Message-ID: <20150313212641.22783.93522.stgit@manet.1015granger.net>
+References: <20150313212517.22783.18364.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150313212517.22783.18364.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a series of client-side patches for NFS/RDMA. In preparation
-for increasing the transport credit limit and maximum rsize/wsize,
-I've re-factored the memory registration logic into separate files,
-invoked via a method API.
-
-Two optimizations appear in this series:
-
-The old code pre-allocated 64 MRs for every RPC, and attached 64 MRs
-to each RPC before posting it. The new code attaches just enough MRs
-to handle each RPC. When no data payload chunk is needed, no MRs are
-attached to the RPC. For modern HCAs, only one MR is needed for NFS
-read or write data payloads.
-
-The final patch in the series splits the rb_lock in two in order to
-reduce lock contention.
-
-The series is also available in the nfs-rdma-for-4.1 topic branch at
-
- git://linux-nfs.org/projects/cel/cel-2.6.git
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/transport.c |   47 ++++++++++++++++++++++++++++++++-------
+ net/sunrpc/xprtrdma/verbs.c     |   21 +++++++----------
+ 2 files changed, 47 insertions(+), 21 deletions(-)
 
-Chuck Lever (16):
-      xprtrdma: Display IPv6 addresses and port numbers correctly
-      xprtrdma: Perform a full marshal on retransmit
-      xprtrdma: Add vector of ops for each memory registration strategy
-      xprtrdma: Add a "max_payload" op for each memreg mode
-      xprtrdma: Add a "register_external" op for each memreg mode
-      xprtrdma: Add a "deregister_external" op for each memreg mode
-      xprtrdma: Add "init MRs" memreg op
-      xprtrdma: Add "reset MRs" memreg op
-      xprtrdma: Add "destroy MRs" memreg op
-      xprtrdma: Add "open" memreg op
-      xprtrdma: Handle non-SEND completions via a callout
-      xprtrdma: Acquire FMRs in rpcrdma_fmr_register_external()
-      xprtrdma: Acquire MRs in rpcrdma_register_external()
-      xprtrdma: Remove rpcrdma_ia::ri_memreg_strategy
-      xprtrdma: Make rpcrdma_{un}map_one() into inline functions
-      xprtrdma: Split rb_lock
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 2e192ba..26a62e7 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -157,12 +157,47 @@ static struct ctl_table sunrpc_table[] = {
+ static struct rpc_xprt_ops xprt_rdma_procs;	/* forward reference */
+ 
+ static void
++xprt_rdma_format_addresses4(struct rpc_xprt *xprt, struct sockaddr *sap)
++{
++	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
++	char buf[20];
++
++	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
++	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
++
++	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma";
++}
++
++static void
++xprt_rdma_format_addresses6(struct rpc_xprt *xprt, struct sockaddr *sap)
++{
++	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
++	char buf[40];
++
++	snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
++	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
++
++	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma6";
++}
++
++static void
+ xprt_rdma_format_addresses(struct rpc_xprt *xprt)
+ {
+ 	struct sockaddr *sap = (struct sockaddr *)
+ 					&rpcx_to_rdmad(xprt).addr;
+-	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+-	char buf[64];
++	char buf[128];
++
++	switch (sap->sa_family) {
++	case AF_INET:
++		xprt_rdma_format_addresses4(xprt, sap);
++		break;
++	case AF_INET6:
++		xprt_rdma_format_addresses6(xprt, sap);
++		break;
++	default:
++		pr_err("rpcrdma: Unrecognized address family\n");
++		return;
++	}
+ 
+ 	(void)rpc_ntop(sap, buf, sizeof(buf));
+ 	xprt->address_strings[RPC_DISPLAY_ADDR] = kstrdup(buf, GFP_KERNEL);
+@@ -170,16 +205,10 @@ xprt_rdma_format_addresses(struct rpc_xprt *xprt)
+ 	snprintf(buf, sizeof(buf), "%u", rpc_get_port(sap));
+ 	xprt->address_strings[RPC_DISPLAY_PORT] = kstrdup(buf, GFP_KERNEL);
+ 
+-	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
+-
+-	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+-	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
+-
+ 	snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
+ 	xprt->address_strings[RPC_DISPLAY_HEX_PORT] = kstrdup(buf, GFP_KERNEL);
+ 
+-	/* netid */
+-	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma";
++	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
+ }
+ 
+ static void
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 124676c..1aa55b7 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -50,6 +50,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
+ #include <linux/prefetch.h>
++#include <linux/sunrpc/addr.h>
+ #include <asm/bitops.h>
+ 
+ #include "xprt_rdma.h"
+@@ -424,7 +425,7 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
+ 	struct rpcrdma_ia *ia = &xprt->rx_ia;
+ 	struct rpcrdma_ep *ep = &xprt->rx_ep;
+ #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+-	struct sockaddr_in *addr = (struct sockaddr_in *) &ep->rep_remote_addr;
++	struct sockaddr *sap = (struct sockaddr *)&ep->rep_remote_addr;
+ #endif
+ 	struct ib_qp_attr *attr = &ia->ri_qp_attr;
+ 	struct ib_qp_init_attr *iattr = &ia->ri_qp_init_attr;
+@@ -480,9 +481,8 @@ connected:
+ 		wake_up_all(&ep->rep_connect_wait);
+ 		/*FALLTHROUGH*/
+ 	default:
+-		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
+-			__func__, &addr->sin_addr.s_addr,
+-			ntohs(addr->sin_port), ep,
++		dprintk("RPC:       %s: %pIS:%u (ep 0x%p): %s\n",
++			__func__, sap, rpc_get_port(sap), ep,
+ 			CONNECTION_MSG(event->event));
+ 		break;
+ 	}
+@@ -491,19 +491,16 @@ connected:
+ 	if (connstate == 1) {
+ 		int ird = attr->max_dest_rd_atomic;
+ 		int tird = ep->rep_remote_cma.responder_resources;
+-		printk(KERN_INFO "rpcrdma: connection to %pI4:%u "
+-			"on %s, memreg %d slots %d ird %d%s\n",
+-			&addr->sin_addr.s_addr,
+-			ntohs(addr->sin_port),
++
++		pr_info("rpcrdma: connection to %pIS:%u on %s, memreg %d slots %d ird %d%s\n",
++			sap, rpc_get_port(sap),
+ 			ia->ri_id->device->name,
+ 			ia->ri_memreg_strategy,
+ 			xprt->rx_buf.rb_max_requests,
+ 			ird, ird < 4 && ird < tird / 2 ? " (low!)" : "");
+ 	} else if (connstate < 0) {
+-		printk(KERN_INFO "rpcrdma: connection to %pI4:%u closed (%d)\n",
+-			&addr->sin_addr.s_addr,
+-			ntohs(addr->sin_port),
+-			connstate);
++		pr_info("rpcrdma: connection to %pIS:%u closed (%d)\n",
++			sap, rpc_get_port(sap), connstate);
+ 	}
+ #endif
+ 
 
-
- include/linux/sunrpc/xprtrdma.h    |    3 
- net/sunrpc/xprtrdma/Makefile       |    3 
- net/sunrpc/xprtrdma/fmr_ops.c      |  270 +++++++++++
- net/sunrpc/xprtrdma/frwr_ops.c     |  485 ++++++++++++++++++++
- net/sunrpc/xprtrdma/physical_ops.c |  110 +++++
- net/sunrpc/xprtrdma/rpc_rdma.c     |   82 ++-
- net/sunrpc/xprtrdma/transport.c    |   65 ++-
- net/sunrpc/xprtrdma/verbs.c        |  856 +++---------------------------------
- net/sunrpc/xprtrdma/xprt_rdma.h    |  108 ++++-
- 9 files changed, 1096 insertions(+), 886 deletions(-)
- create mode 100644 net/sunrpc/xprtrdma/fmr_ops.c
- create mode 100644 net/sunrpc/xprtrdma/frwr_ops.c
- create mode 100644 net/sunrpc/xprtrdma/physical_ops.c
-
---
-Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
