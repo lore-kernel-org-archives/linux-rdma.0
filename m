@@ -1,239 +1,219 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 02/16] xprtrdma: Perform a full marshal on retransmit
-Date: Sun, 15 Mar 2015 05:01:02 +0200
-Message-ID: <5504F5EE.7080708@dev.mellanox.co.il>
-References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212650.22783.28071.stgit@manet.1015granger.net>
+Subject: Re: [PATCH v1 03/16] xprtrdma: Add vector of ops for each memory
+ registration strategy
+Date: Sun, 15 Mar 2015 05:04:40 +0200
+Message-ID: <5504F6C8.9030902@dev.mellanox.co.il>
+References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212659.22783.28341.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150313212650.22783.28071.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20150313212659.22783.28341.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 3/13/2015 11:26 PM, Chuck Lever wrote:
-> Commit 6ab59945f292 ("xprtrdma: Update rkeys after transport
-> reconnect" added logic in the ->send_request path to update the
-> chunk list when an RPC/RDMA request is retransmitted.
+> Instead of employing switch() statements, let's use the typical
+> Linux kernel idiom for handling behavioral variation: virtual
+> functions.
 >
-> Note that rpc_xdr_encode() resets and re-encodes the entire RPC
-> send buffer for each retransmit of an RPC. The RPC send buffer
-> is not preserved from the previous transmission of an RPC.
->
-> Revert 6ab59945f292, and instead, just force each request to be
-> fully marshaled every time through ->send_request. This should
-> preserve the fix from 6ab59945f292, while also performing pullup
-> during retransmits.
+> Define a vector of operations for each supported memory registration
+> mode, and add a source file for each mode.
 >
 > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->   net/sunrpc/xprtrdma/rpc_rdma.c  |   71 ++++++++++++++++++---------------------
->   net/sunrpc/xprtrdma/transport.c |    5 +--
->   net/sunrpc/xprtrdma/xprt_rdma.h |   10 -----
->   3 files changed, 34 insertions(+), 52 deletions(-)
+>   net/sunrpc/xprtrdma/Makefile       |    3 ++-
+>   net/sunrpc/xprtrdma/fmr_ops.c      |   22 ++++++++++++++++++++++
+>   net/sunrpc/xprtrdma/frwr_ops.c     |   22 ++++++++++++++++++++++
+>   net/sunrpc/xprtrdma/physical_ops.c |   24 ++++++++++++++++++++++++
+>   net/sunrpc/xprtrdma/verbs.c        |   11 +++++++----
+>   net/sunrpc/xprtrdma/xprt_rdma.h    |   12 ++++++++++++
+>   6 files changed, 89 insertions(+), 5 deletions(-)
+>   create mode 100644 net/sunrpc/xprtrdma/fmr_ops.c
+>   create mode 100644 net/sunrpc/xprtrdma/frwr_ops.c
+>   create mode 100644 net/sunrpc/xprtrdma/physical_ops.c
 >
-> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-> index 91ffde8..41456d9 100644
-> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> @@ -53,6 +53,14 @@
->   # define RPCDBG_FACILITY	RPCDBG_TRANS
->   #endif
+> diff --git a/net/sunrpc/xprtrdma/Makefile b/net/sunrpc/xprtrdma/Makefile
+> index da5136f..579f72b 100644
+> --- a/net/sunrpc/xprtrdma/Makefile
+> +++ b/net/sunrpc/xprtrdma/Makefile
+> @@ -1,6 +1,7 @@
+>   obj-$(CONFIG_SUNRPC_XPRT_RDMA_CLIENT) += xprtrdma.o
 >
-> +enum rpcrdma_chunktype {
-> +	rpcrdma_noch = 0,
-> +	rpcrdma_readch,
-> +	rpcrdma_areadch,
-> +	rpcrdma_writech,
-> +	rpcrdma_replych
+> -xprtrdma-y := transport.o rpc_rdma.o verbs.o
+> +xprtrdma-y := transport.o rpc_rdma.o verbs.o \
+> +	fmr_ops.o frwr_ops.o physical_ops.o
+>
+>   obj-$(CONFIG_SUNRPC_XPRT_RDMA_SERVER) += svcrdma.o
+>
+> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+> new file mode 100644
+> index 0000000..ffb7d93
+> --- /dev/null
+> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
+> @@ -0,0 +1,22 @@
+> +/*
+> + * Copyright (c) 2015 Oracle.  All rights reserved.
+> + * Copyright (c) 2003-2007 Network Appliance, Inc. All rights reserved.
+> + */
+> +
+> +/* Lightweight memory registration using Fast Memory Regions (FMR).
+> + * Referred to sometimes as MTHCAFMR mode.
+> + *
+> + * FMR uses synchronous memory registration and deregistration.
+> + * FMR registration is known to be fast, but FMR deregistration
+> + * can take tens of usecs to complete.
+> + */
+> +
+> +#include "xprt_rdma.h"
+> +
+> +#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+> +# define RPCDBG_FACILITY	RPCDBG_TRANS
+> +#endif
+> +
+> +const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+> +	.ro_displayname			= "fmr",
 > +};
+> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+> new file mode 100644
+> index 0000000..79173f9
+> --- /dev/null
+> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
+> @@ -0,0 +1,22 @@
+> +/*
+> + * Copyright (c) 2015 Oracle.  All rights reserved.
+> + * Copyright (c) 2003-2007 Network Appliance, Inc. All rights reserved.
+> + */
 > +
->   #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
->   static const char transfertypes[][12] = {
->   	"pure inline",	/* no chunks */
-> @@ -284,28 +292,6 @@ out:
->   }
+> +/* Lightweight memory registration using Fast Registration Work
+> + * Requests (FRWR). Also referred to sometimes as FRMR mode.
+> + *
+> + * FRWR features ordered asynchronous registration and deregistration
+> + * of arbitrarily sized memory regions. This is the fastest and safest
+> + * but most complex memory registration mode.
+> + */
+> +
+> +#include "xprt_rdma.h"
+> +
+> +#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+> +# define RPCDBG_FACILITY	RPCDBG_TRANS
+> +#endif
+> +
+> +const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+> +	.ro_displayname			= "frwr",
+> +};
+> diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+> new file mode 100644
+> index 0000000..b0922ac
+> --- /dev/null
+> +++ b/net/sunrpc/xprtrdma/physical_ops.c
+> @@ -0,0 +1,24 @@
+> +/*
+> + * Copyright (c) 2015 Oracle.  All rights reserved.
+> + * Copyright (c) 2003-2007 Network Appliance, Inc. All rights reserved.
+> + */
+> +
+> +/* No-op chunk preparation. All client memory is pre-registered.
+> + * Sometimes referred to as ALLPHYSICAL mode.
+> + *
+> + * Physical registration is simple because all client memory is
+> + * pre-registered and never deregistered. This mode is good for
+> + * adapter bring up, but is considered not safe: the server is
+> + * trusted not to abuse its access to client memory not involved
+> + * in RDMA I/O.
+> + */
+> +
+> +#include "xprt_rdma.h"
+> +
+> +#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+> +# define RPCDBG_FACILITY	RPCDBG_TRANS
+> +#endif
+> +
+> +const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops = {
+> +	.ro_displayname			= "physical",
+> +};
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 1aa55b7..e4d9d9c 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -492,10 +492,10 @@ connected:
+>   		int ird = attr->max_dest_rd_atomic;
+>   		int tird = ep->rep_remote_cma.responder_resources;
 >
->   /*
-> - * Marshal chunks. This routine returns the header length
-> - * consumed by marshaling.
-> - *
-> - * Returns positive RPC/RDMA header size, or negative errno.
-> - */
-> -
-> -ssize_t
-> -rpcrdma_marshal_chunks(struct rpc_rqst *rqst, ssize_t result)
-> -{
-> -	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
-> -	struct rpcrdma_msg *headerp = rdmab_to_msg(req->rl_rdmabuf);
-> -
-> -	if (req->rl_rtype != rpcrdma_noch)
-> -		result = rpcrdma_create_chunks(rqst, &rqst->rq_snd_buf,
-> -					       headerp, req->rl_rtype);
-> -	else if (req->rl_wtype != rpcrdma_noch)
-> -		result = rpcrdma_create_chunks(rqst, &rqst->rq_rcv_buf,
-> -					       headerp, req->rl_wtype);
-> -	return result;
-> -}
-> -
-> -/*
->    * Copy write data inline.
->    * This function is used for "small" requests. Data which is passed
->    * to RPC via iovecs (or page list) is copied directly into the
-> @@ -397,6 +383,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->   	char *base;
->   	size_t rpclen, padlen;
->   	ssize_t hdrlen;
-> +	enum rpcrdma_chunktype rtype, wtype;
->   	struct rpcrdma_msg *headerp;
->
->   	/*
-> @@ -433,13 +420,13 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->   	 * into pages; otherwise use reply chunks.
+> -		pr_info("rpcrdma: connection to %pIS:%u on %s, memreg %d slots %d ird %d%s\n",
+> +		pr_info("rpcrdma: connection to %pIS:%u on %s, memreg '%s', %d credits, %d responders%s\n",
+>   			sap, rpc_get_port(sap),
+>   			ia->ri_id->device->name,
+> -			ia->ri_memreg_strategy,
+> +			ia->ri_ops->ro_displayname,
+>   			xprt->rx_buf.rb_max_requests,
+>   			ird, ird < 4 && ird < tird / 2 ? " (low!)" : "");
+>   	} else if (connstate < 0) {
+> @@ -649,13 +649,16 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
 >   	 */
->   	if (rqst->rq_rcv_buf.buflen <= RPCRDMA_INLINE_READ_THRESHOLD(rqst))
-> -		req->rl_wtype = rpcrdma_noch;
-> +		wtype = rpcrdma_noch;
->   	else if (rqst->rq_rcv_buf.page_len == 0)
-> -		req->rl_wtype = rpcrdma_replych;
-> +		wtype = rpcrdma_replych;
->   	else if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
-> -		req->rl_wtype = rpcrdma_writech;
-> +		wtype = rpcrdma_writech;
->   	else
-> -		req->rl_wtype = rpcrdma_replych;
-> +		wtype = rpcrdma_replych;
->
->   	/*
->   	 * Chunks needed for arguments?
-> @@ -456,16 +443,16 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->   	 * TBD check NFSv4 setacl
->   	 */
->   	if (rqst->rq_snd_buf.len <= RPCRDMA_INLINE_WRITE_THRESHOLD(rqst))
-> -		req->rl_rtype = rpcrdma_noch;
-> +		rtype = rpcrdma_noch;
->   	else if (rqst->rq_snd_buf.page_len == 0)
-> -		req->rl_rtype = rpcrdma_areadch;
-> +		rtype = rpcrdma_areadch;
->   	else
-> -		req->rl_rtype = rpcrdma_readch;
-> +		rtype = rpcrdma_readch;
->
->   	/* The following simplification is not true forever */
-> -	if (req->rl_rtype != rpcrdma_noch && req->rl_wtype == rpcrdma_replych)
-> -		req->rl_wtype = rpcrdma_noch;
-> -	if (req->rl_rtype != rpcrdma_noch && req->rl_wtype != rpcrdma_noch) {
-> +	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
-> +		wtype = rpcrdma_noch;
-> +	if (rtype != rpcrdma_noch && wtype != rpcrdma_noch) {
->   		dprintk("RPC:       %s: cannot marshal multiple chunk lists\n",
->   			__func__);
->   		return -EIO;
-> @@ -479,7 +466,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->   	 * When padding is in use and applies to the transfer, insert
->   	 * it and change the message type.
->   	 */
-> -	if (req->rl_rtype == rpcrdma_noch) {
-> +	if (rtype == rpcrdma_noch) {
->
->   		padlen = rpcrdma_inline_pullup(rqst,
->   						RPCRDMA_INLINE_PAD_VALUE(rqst));
-> @@ -494,7 +481,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->   			headerp->rm_body.rm_padded.rm_pempty[1] = xdr_zero;
->   			headerp->rm_body.rm_padded.rm_pempty[2] = xdr_zero;
->   			hdrlen += 2 * sizeof(u32); /* extra words in padhdr */
-> -			if (req->rl_wtype != rpcrdma_noch) {
-> +			if (wtype != rpcrdma_noch) {
->   				dprintk("RPC:       %s: invalid chunk list\n",
->   					__func__);
->   				return -EIO;
-> @@ -515,18 +502,26 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
->   			 * on receive. Therefore, we request a reply chunk
->   			 * for non-writes wherever feasible and efficient.
->   			 */
-> -			if (req->rl_wtype == rpcrdma_noch)
-> -				req->rl_wtype = rpcrdma_replych;
-> +			if (wtype == rpcrdma_noch)
-> +				wtype = rpcrdma_replych;
->   		}
+>   	switch (memreg) {
+>   	case RPCRDMA_FRMR:
+> +		ia->ri_ops = &rpcrdma_frwr_memreg_ops;
+>   		break;
+>   	case RPCRDMA_ALLPHYSICAL:
+> +		ia->ri_ops = &rpcrdma_physical_memreg_ops;
+>   		mem_priv = IB_ACCESS_LOCAL_WRITE |
+>   				IB_ACCESS_REMOTE_WRITE |
+>   				IB_ACCESS_REMOTE_READ;
+>   		goto register_setup;
+>   	case RPCRDMA_MTHCAFMR:
+> +		ia->ri_ops = &rpcrdma_fmr_memreg_ops;
+>   		if (ia->ri_have_dma_lkey)
+>   			break;
+>   		mem_priv = IB_ACCESS_LOCAL_WRITE;
+> @@ -675,8 +678,8 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+>   		rc = -ENOMEM;
+>   		goto out3;
 >   	}
+> -	dprintk("RPC:       %s: memory registration strategy is %d\n",
+> -		__func__, memreg);
+> +	dprintk("RPC:       %s: memory registration strategy is '%s'\n",
+> +		__func__, ia->ri_ops->ro_displayname);
 >
-> -	hdrlen = rpcrdma_marshal_chunks(rqst, hdrlen);
-> +	if (rtype != rpcrdma_noch) {
-> +		hdrlen = rpcrdma_create_chunks(rqst, &rqst->rq_snd_buf,
-> +					       headerp, rtype);
-> +		wtype = rtype;	/* simplify dprintk */
-> +
-> +	} else if (wtype != rpcrdma_noch) {
-> +		hdrlen = rpcrdma_create_chunks(rqst, &rqst->rq_rcv_buf,
-> +					       headerp, wtype);
-> +	}
->   	if (hdrlen < 0)
->   		return hdrlen;
->
->   	dprintk("RPC:       %s: %s: hdrlen %zd rpclen %zd padlen %zd"
->   		" headerp 0x%p base 0x%p lkey 0x%x\n",
-> -		__func__, transfertypes[req->rl_wtype], hdrlen, rpclen, padlen,
-> +		__func__, transfertypes[wtype], hdrlen, rpclen, padlen,
->   		headerp, base, rdmab_lkey(req->rl_rdmabuf));
->
->   	/*
-> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-> index 26a62e7..271d306 100644
-> --- a/net/sunrpc/xprtrdma/transport.c
-> +++ b/net/sunrpc/xprtrdma/transport.c
-> @@ -608,10 +608,7 @@ xprt_rdma_send_request(struct rpc_task *task)
->   	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
->   	int rc = 0;
->
-> -	if (req->rl_niovs == 0)
-> -		rc = rpcrdma_marshal_req(rqst);
-> -	else if (r_xprt->rx_ia.ri_memreg_strategy != RPCRDMA_ALLPHYSICAL)
-> -		rc = rpcrdma_marshal_chunks(rqst, 0);
-> +	rc = rpcrdma_marshal_req(rqst);
->   	if (rc < 0)
->   		goto failed_marshal;
->
+>   	/* Else will do memory reg/dereg for each chunk */
+>   	ia->ri_memreg_strategy = memreg;
 > diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index 0a16fb6..c8afd83 100644
+> index c8afd83..ef3cf4a 100644
 > --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 > +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -143,14 +143,6 @@ rdmab_to_msg(struct rpcrdma_regbuf *rb)
->   	return (struct rpcrdma_msg *)rb->rg_base;
->   }
->
-> -enum rpcrdma_chunktype {
-> -	rpcrdma_noch = 0,
-> -	rpcrdma_readch,
-> -	rpcrdma_areadch,
-> -	rpcrdma_writech,
-> -	rpcrdma_replych
-> -};
-> -
->   /*
->    * struct rpcrdma_rep -- this structure encapsulates state required to recv
->    * and complete a reply, asychronously. It needs several pieces of
-> @@ -258,7 +250,6 @@ struct rpcrdma_req {
->   	unsigned int	rl_niovs;	/* 0, 2 or 4 */
->   	unsigned int	rl_nchunks;	/* non-zero if chunks */
->   	unsigned int	rl_connect_cookie;	/* retry detection */
-> -	enum rpcrdma_chunktype	rl_rtype, rl_wtype;
->   	struct rpcrdma_buffer *rl_buffer; /* home base for this structure */
->   	struct rpcrdma_rep	*rl_reply;/* holder for reply buffer */
->   	struct ib_sge	rl_send_iov[4];	/* for active requests */
-> @@ -418,7 +409,6 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
->   /*
->    * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
+> @@ -60,6 +60,7 @@
+>    * Interface Adapter -- one per transport instance
 >    */
-> -ssize_t rpcrdma_marshal_chunks(struct rpc_rqst *, ssize_t);
->   int rpcrdma_marshal_req(struct rpc_rqst *);
->   size_t rpcrdma_max_payload(struct rpcrdma_xprt *);
+>   struct rpcrdma_ia {
+> +	const struct rpcrdma_memreg_ops	*ri_ops;
+>   	rwlock_t		ri_qplock;
+>   	struct rdma_cm_id 	*ri_id;
+>   	struct ib_pd		*ri_pd;
+> @@ -331,6 +332,17 @@ struct rpcrdma_stats {
+>   };
+>
+>   /*
+> + * Per-registration mode operations
+> + */
+> +struct rpcrdma_memreg_ops {
+> +	const char	*ro_displayname;
+> +};
+> +
+> +extern const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops;
+> +extern const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops;
+> +extern const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops;
+> +
+> +/*
+>    * RPCRDMA transport -- encapsulates the structures above for
+>    * integration with RPC.
+>    *
 >
 
-Seems fine.
+Don't know if I'd use three different files, but other than that I like
+the change.
 
-Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
