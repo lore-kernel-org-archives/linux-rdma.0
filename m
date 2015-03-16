@@ -1,59 +1,63 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sa_mcmember_record.c: Extend P_Pkey validation
- on MCMemberRecord(Join)
-Date: Mon, 16 Mar 2015 13:09:19 -0400
-Message-ID: <55070E3F.2030005@dev.mellanox.co.il>
+From: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH] infiniband/mlx4: check for mapping error
+Date: Mon, 16 Mar 2015 18:49:59 +0100 (CET)
+Message-ID: <alpine.LFD.2.11.1503161844400.1763@denkbrett>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Verify that a port that joins a multicast group is in
-the partition for that MC group.
+Since ib_dma_map_single can fail use ib_dma_mapping_error to check
+for errors.
 
-Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 ---
- opensm/osm_sa_mcmember_record.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c |    9 +++++++++
+ drivers/infiniband/hw/mlx4/qp.c  |    4 ++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 227742a..8d7938d 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -1197,6 +1197,24 @@ static void mcmr_rcv_join_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
- 		goto Exit;
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1418,6 +1418,10 @@ static int mlx4_ib_alloc_pv_bufs(struct
+ 							tun_qp->ring[i].addr,
+ 							rx_buf_size,
+ 							DMA_FROM_DEVICE);
++		if (ib_dma_mapping_error(ctx->ib_dev, tun_qp->ring[i].map)) {
++			kfree(tun_qp->ring[i].addr);
++			goto err;
++		}
  	}
  
-+	/* verify that the joining port is in the partition of the group */
-+	if (!osm_physp_has_pkey(sa->p_log, p_mgrp->mcmember_rec.pkey, p_physp)) {
-+		char gid_str[INET6_ADDRSTRLEN];
-+		if (is_new_group)
-+			osm_mgrp_cleanup(sa->p_subn, p_mgrp);
-+		CL_PLOCK_RELEASE(sa->p_lock);
-+		memset(gid_str, 0, sizeof(gid_str));
-+		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1B14: "
-+			"Cannot join port 0x%016" PRIx64 " to MGID %s - "
-+			"Port is not in partition of this MC group\n",
-+			cl_ntoh64(portguid),
-+			inet_ntop(AF_INET6,
-+				  p_mgrp->mcmember_rec.mgid.raw,
-+				  gid_str, sizeof(gid_str)));
-+		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
-+		goto Exit;
-+	}
-+
- 	/*
- 	 * o15-0.2.1 requires validation of the requesting port
- 	 * in the case of modification:
--- 
-1.7.1
+ 	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
+@@ -1430,6 +1434,11 @@ static int mlx4_ib_alloc_pv_bufs(struct
+ 					  tun_qp->tx_ring[i].buf.addr,
+ 					  tx_buf_size,
+ 					  DMA_TO_DEVICE);
++		if (ib_dma_mapping_error(ctx->ib_dev,
++					 tun_qp->tx_ring[i].buf.map)) {
++			kfree(tun_qp->tx_ring[i].buf.addr);
++			goto tx_err;
++		}
+ 		tun_qp->tx_ring[i].ah = NULL;
+ 	}
+ 	spin_lock_init(&tun_qp->tx_lock);
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -566,6 +566,10 @@ static int alloc_proxy_bufs(struct ib_de
+ 			ib_dma_map_single(dev, qp->sqp_proxy_rcv[i].addr,
+ 					  sizeof (struct mlx4_ib_proxy_sqp_hdr),
+ 					  DMA_FROM_DEVICE);
++		if (ib_dma_mapping_error(dev, qp->sqp_proxy_rcv[i].map)) {
++			kfree(qp->sqp_proxy_rcv[i].addr);
++			goto err;
++		}
+ 	}
+ 	return 0;
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
