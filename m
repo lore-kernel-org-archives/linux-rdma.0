@@ -1,234 +1,72 @@
 From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 12/16] xprtrdma: Acquire FMRs in rpcrdma_fmr_register_external()
-Date: Mon, 16 Mar 2015 14:28:28 +0200
-Message-ID: <5506CC6C.8090106@dev.mellanox.co.il>
-References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212825.22783.51384.stgit@manet.1015granger.net>
+Subject: Re: [PATCH v1 14/16] xprtrdma: Remove rpcrdma_ia::ri_memreg_strategy
+Date: Mon, 16 Mar 2015 14:45:08 +0200
+Message-ID: <5506D054.5000906@dev.mellanox.co.il>
+References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212844.22783.1438.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150313212825.22783.51384.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20150313212844.22783.1438.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 3/13/2015 11:28 PM, Chuck Lever wrote:
-> Acquiring 64 FMRs in rpcrdma_buffer_get() while holding the buffer
-> pool lock is expensive, and unnecessary because FMR mode can
-> transfer up to a 1MB payload using just a single ib_fmr.
->
-> Instead, acquire ib_fmrs one-at-a-time as chunks are registered, and
-> return them to rb_mws immediately during deregistration.
+> Clean up: This field is no longer used.
 >
 > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->   net/sunrpc/xprtrdma/fmr_ops.c   |   41 ++++++++++++++++++++++++++++++++++++---
->   net/sunrpc/xprtrdma/verbs.c     |   41 ++++++++++++++-------------------------
->   net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
->   3 files changed, 54 insertions(+), 29 deletions(-)
+>   include/linux/sunrpc/xprtrdma.h |    3 ++-
+>   net/sunrpc/xprtrdma/verbs.c     |    3 ---
+>   net/sunrpc/xprtrdma/xprt_rdma.h |    1 -
+>   3 files changed, 2 insertions(+), 5 deletions(-)
 >
-> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-> index 96e6cd3..9c6c2e8 100644
-> --- a/net/sunrpc/xprtrdma/fmr_ops.c
-> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-> @@ -28,10 +28,11 @@ __fmr_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
->   {
->   	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
->   	struct rpcrdma_mr_seg *seg1 = seg;
-> +	struct rpcrdma_mw *mw = seg1->rl_mw;
->   	int rc, nsegs = seg->mr_nsegs;
->   	LIST_HEAD(l);
+> diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
+> index 64a0a0a..10bc3cde 100644
+> --- a/include/linux/sunrpc/xprtrdma.h
+> +++ b/include/linux/sunrpc/xprtrdma.h
+> @@ -61,7 +61,8 @@
 >
-> -	list_add(&seg1->rl_mw->r.fmr->list, &l);
-> +	list_add(&mw->r.fmr->list, &l);
->   	rc = ib_unmap_fmr(&l);
->   	read_lock(&ia->ri_qplock);
->   	while (seg1->mr_nsegs--)
-> @@ -39,11 +40,14 @@ __fmr_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
->   	read_unlock(&ia->ri_qplock);
->   	if (rc)
->   		goto out_err;
-> +out:
-> +	seg1->rl_mw = NULL;
-> +	rpcrdma_put_mw(r_xprt, mw);
->   	return nsegs;
+>   #define RPCRDMA_INLINE_PAD_THRESH  (512)/* payload threshold to pad (bytes) */
 >
->   out_err:
->   	dprintk("RPC:       %s: ib_unmap_fmr status %i\n", __func__, rc);
-> -	return nsegs;
-> +	goto out;
->   }
->
->   static int
-> @@ -117,6 +121,27 @@ out_fmr_err:
->   	return rc;
->   }
->
-> +static struct rpcrdma_mw *
-> +__fmr_get_mw(struct rpcrdma_xprt *r_xprt)
-
-This introduces an asymmetric approach where you have fmr/frwr get_mw
-routines but have a single rpcrdma_put_mw. I noticed that the
-frwr_get_mw (next patch) is almost completely different - but I wander
-if that should really be that different?
-
-Just raising the question.
-
-> +{
-> +	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
-> +	struct rpcrdma_mw *mw = NULL;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&buf->rb_lock, flags);
-> +
-> +	if (!list_empty(&buf->rb_mws)) {
-> +		mw = list_entry(buf->rb_mws.next,
-> +				struct rpcrdma_mw, mw_list);
-> +		list_del_init(&mw->mw_list);
-> +	} else {
-> +		pr_err("RPC:       %s: no MWs available\n", __func__);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&buf->rb_lock, flags);
-> +	return mw;
-> +}
-> +
->   /* Use the ib_map_phys_fmr() verb to register a memory region
->    * for remote access via RDMA READ or RDMA WRITE.
->    */
-> @@ -126,10 +151,18 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->   {
->   	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
->   	struct rpcrdma_mr_seg *seg1 = seg;
-> -	struct rpcrdma_mw *mw = seg1->rl_mw;
-> +	struct rpcrdma_mw *mw;
->   	u64 physaddrs[RPCRDMA_MAX_DATA_SEGS];
->   	int len, pageoff, i, rc;
->
-> +	mw = __fmr_get_mw(r_xprt);
-> +	if (!mw)
-> +		return -ENOMEM;
-> +	if (seg1->rl_mw) {
-> +		rpcrdma_put_mw(r_xprt, seg1->rl_mw);
-> +		seg1->rl_mw = NULL;
-> +	}
-> +
-
-How can this happen? getting to op_map with existing rl_mw? and
-wouldn't it be better to use rl_mw instead of getting a new mw and
-putting seg1->rl_mw?
-
->   	pageoff = offset_in_page(seg1->mr_offset);
->   	seg1->mr_offset -= pageoff;	/* start of page */
->   	seg1->mr_len += pageoff;
-> @@ -152,6 +185,7 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->   	if (rc)
->   		goto out_maperr;
->
-> +	seg1->rl_mw = mw;
->   	seg1->mr_rkey = mw->r.fmr->rkey;
->   	seg1->mr_base = seg1->mr_dma + pageoff;
->   	seg1->mr_nsegs = i;
-> @@ -164,6 +198,7 @@ out_maperr:
->   		pageoff, i, rc);
->   	while (i--)
->   		rpcrdma_unmap_one(ia, --seg);
-> +	rpcrdma_put_mw(r_xprt, mw);
->   	return rc;
->   }
->
+> -/* memory registration strategies */
+> +/* Memory registration strategies, by number.
+> + * This is part of a kernel / user space API. Do not remove. */
+>   enum rpcrdma_memreg {
+>   	RPCRDMA_BOUNCEBUFFERS = 0,
+>   	RPCRDMA_REGISTER,
 > diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index f108a57..f2316d8 100644
+> index 5b9c104..21b63fe 100644
 > --- a/net/sunrpc/xprtrdma/verbs.c
 > +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -1171,6 +1171,21 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
->   	kfree(buf->rb_pool);
->   }
+> @@ -669,9 +669,6 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+>   	dprintk("RPC:       %s: memory registration strategy is '%s'\n",
+>   		__func__, ia->ri_ops->ro_displayname);
 >
-> +void
-> +rpcrdma_put_mw(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mw *mw)
-> +{
-> +	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
-> +	unsigned long flags;
-> +
-> +	if (!list_empty(&mw->mw_list))
-> +		pr_warn("RPC:       %s: mw %p still on a list!\n",
-> +			__func__, mw);
-> +
-> +	spin_lock_irqsave(&buf->rb_lock, flags);
-> +	list_add_tail(&mw->mw_list, &buf->rb_mws);
-> +	spin_unlock_irqrestore(&buf->rb_lock, flags);
-> +}
-> +
->   /* "*mw" can be NULL when rpcrdma_buffer_get_mrs() fails, leaving
->    * some req segments uninitialized.
->    */
-> @@ -1292,28 +1307,6 @@ rpcrdma_buffer_get_frmrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf,
->   	return NULL;
->   }
+> -	/* Else will do memory reg/dereg for each chunk */
+> -	ia->ri_memreg_strategy = memreg;
+> -
+>   	rwlock_init(&ia->ri_qplock);
+>   	return 0;
 >
-> -static struct rpcrdma_req *
-> -rpcrdma_buffer_get_fmrs(struct rpcrdma_req *req, struct rpcrdma_buffer *buf)
-> -{
-> -	struct rpcrdma_mw *r;
-> -	int i;
-> -
-> -	i = RPCRDMA_MAX_SEGS - 1;
-> -	while (!list_empty(&buf->rb_mws)) {
-> -		r = list_entry(buf->rb_mws.next,
-> -			       struct rpcrdma_mw, mw_list);
-> -		list_del(&r->mw_list);
-> -		req->rl_segments[i].rl_mw = r;
-> -		if (unlikely(i-- == 0))
-> -			return req;	/* Success */
-> -	}
-> -
-> -	/* Not enough entries on rb_mws for this req */
-> -	rpcrdma_buffer_put_sendbuf(req, buf);
-> -	rpcrdma_buffer_put_mrs(req, buf);
-> -	return NULL;
-> -}
-> -
->   /*
->    * Get a set of request/reply buffers.
->    *
-> @@ -1355,9 +1348,6 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
->   	case RPCRDMA_FRMR:
->   		req = rpcrdma_buffer_get_frmrs(req, buffers, &stale);
->   		break;
-> -	case RPCRDMA_MTHCAFMR:
-> -		req = rpcrdma_buffer_get_fmrs(req, buffers);
-> -		break;
->   	default:
->   		break;
->   	}
-> @@ -1382,7 +1372,6 @@ rpcrdma_buffer_put(struct rpcrdma_req *req)
->   	rpcrdma_buffer_put_sendbuf(req, buffers);
->   	switch (ia->ri_memreg_strategy) {
->   	case RPCRDMA_FRMR:
-> -	case RPCRDMA_MTHCAFMR:
->   		rpcrdma_buffer_put_mrs(req, buffers);
->   		break;
->   	default:
 > diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index 40a0ee8..d5aa5b4 100644
+> index d5aa5b4..b167e44 100644
 > --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 > +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -426,6 +426,7 @@ void rpcrdma_free_regbuf(struct rpcrdma_ia *,
->   unsigned int rpcrdma_max_segments(struct rpcrdma_xprt *);
->   void rpcrdma_map_one(struct rpcrdma_ia *, struct rpcrdma_mr_seg *, bool);
->   void rpcrdma_unmap_one(struct rpcrdma_ia *, struct rpcrdma_mr_seg *);
-> +void rpcrdma_put_mw(struct rpcrdma_xprt *, struct rpcrdma_mw *);
->
->   /*
->    * RPC/RDMA connection management calls - xprtrdma/rpc_rdma.c
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -69,7 +69,6 @@ struct rpcrdma_ia {
+>   	int			ri_have_dma_lkey;
+>   	struct completion	ri_done;
+>   	int			ri_async_rc;
+> -	enum rpcrdma_memreg	ri_memreg_strategy;
+>   	unsigned int		ri_max_frmr_depth;
+>   	struct ib_device_attr	ri_devattr;
+>   	struct ib_qp_attr	ri_qp_attr;
 >
 
+looks good,
+
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
