@@ -1,21 +1,78 @@
-From: Jinghao Printing - CHINA <carlmwilson128-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Please let me know if you need to print color box, display box and labels
-Date: Wed, 18 Mar 2015 14:54:43 +0800
-Message-ID: <CAC7N8i_Y21xYMujX2vi0K+n-Cc_dyrumaZoA1kUTXYUZ8r2YNw@mail.gmail.com>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical memory
+ access
+Date: Wed, 18 Mar 2015 17:39:08 +0000
+Message-ID: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org" <oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, this is David Wu from Shanghai, China.
-Please let me know if you need color box, display box, corrugated box,
-label, hang tag etc.
+Hi,
 
-I will send you the website.
+It was found that the Linux kernel's InfiniBand/RDMA subsystem did not properly sanitize input parameters while registering memory regions from user space via the (u)verbs API. A local user with access to a /dev/infiniband/uverbsX device could use this flaw to crash the system or, potentially, escalate their privileges on the system.
 
-Best regards,
-David Wu
+The issue has been assigned CVE-2014-8159.
+
+The issue exists in the InfiniBand/RDMA/iWARP drivers since Linux Kernel version 2.6.13.
+
+Mellanox OFED 2.4-1.0.4 fixes the issue. Available from:
+http://www.mellanox.com/page/products_dyn?product_family=26&mtag=linux_sw_drivers 
+
+RedHat errata: https://access.redhat.com/security/cve/CVE-2014-8159
+Canonical errata: http://people.canonical.com/~ubuntu-security/cve/2014/CVE-2014-8159.html
+Novell (Suse) bug tracking: https://bugzilla.novell.com/show_bug.cgi?id=914742
+
+
+The following patch fixes the issue:
+
+--------------- 8< ------------------------------
+
+>From d4d68430d4a12c569e28b4f4468284ea22111186 Mon Sep 17 00:00:00 2001
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Sun, 04 Jan 2015 18:30:32 +0200
+Subject: [PATCH] IB/core: Prevent integer overflow in ib_umem_get address arithmetic
+
+Properly verify that the resulting page aligned end address is larger
+than both the start address and the length of the memory area
+requested.
+
+Both the start and length arguments for ib_umem_get are controlled by
+the user. A misbehaving user can provide values which will cause an
+integer overflow when calculating the page aligned end address.
+
+This overflow can cause also miscalculation of the number of pages
+mapped, and additional logic issues.
+
+Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index aec7a6a..8c014b5 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -99,6 +99,14 @@
+ 	if (dmasync)
+ 		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
+ 
++	/*
++	 * If the combination of the addr and size requested for this memory
++	 * region causes an integer overflow, return error.
++	 */
++	if ((PAGE_ALIGN(addr + size) <= size) ||
++	    (PAGE_ALIGN(addr + size) <= addr))
++		return ERR_PTR(-EINVAL);
++
+ 	if (!can_do_mlock())
+ 		return ERR_PTR(-EPERM);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
