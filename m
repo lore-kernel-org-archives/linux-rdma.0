@@ -1,41 +1,64 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH RFC] IB/verbs: introduce rdma_transport_is_ib() to check
- transport type
-Date: Thu, 19 Mar 2015 18:29:36 +0100
-Message-ID: <550B0780.9040406@profitbricks.com>
-References: <550AD2D6.7030800@profitbricks.com> <1828884A29C6694DAF28B7E6B8A8237399E821EA@ORSMSX109.amr.corp.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] scsi: fnic: use kernel's '%pM' format option to print
+ MAC
+Date: Thu, 19 Mar 2015 19:54:02 +0200
+Message-ID: <1426787642.14897.375.camel@linux.intel.com>
+References: <1398782723-13433-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E821EA@ORSMSX109.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hefty, Sean" <sean.hefty@intel.com>, Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>, "Weiny, Ira" <ira.weiny@intel.com>, Moni Shoua <monis@mellanox.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, "David S. Miller" <davem@davemloft.net>, "Estrin, Alex" <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, Eric Dumazet <edumazet@google.com>, Erez Shitrit <erezsh@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Eli Cohen <eli@dev.mellanox.co.il>, Matan Barak <matanb@mellanox.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1398782723-13433-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-scsi@vger.kernel.org
+Cc: Hiral Patel <hiralpat@cisco.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Sean
+On Tue, 2014-04-29 at 17:45 +0300, Andy Shevchenko wrote:
+> Instead of supplying each byte through stack let's use %pM specifier.
 
-Thanks for point it out for me :-)
+Anyone to comment or apply this patch?
 
-I'll try to follow the conversation to understand what
-really needs to be done, see if I could do some
-contribution on it.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Cc: Tom Tucker <tom@opengridcomputing.com>
+> Cc: Steve Wise <swise@opengridcomputing.com>
+> Cc: linux-rdma@vger.kernel.org
+> ---
+>  drivers/scsi/fnic/vnic_dev.c | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/scsi/fnic/vnic_dev.c b/drivers/scsi/fnic/vnic_dev.c
+> index 9795d6f..ba69d61 100644
+> --- a/drivers/scsi/fnic/vnic_dev.c
+> +++ b/drivers/scsi/fnic/vnic_dev.c
+> @@ -499,10 +499,7 @@ void vnic_dev_add_addr(struct vnic_dev *vdev, u8 *addr)
+>  
+>  	err = vnic_dev_cmd(vdev, CMD_ADDR_ADD, &a0, &a1, wait);
+>  	if (err)
+> -		printk(KERN_ERR
+> -			"Can't add addr [%02x:%02x:%02x:%02x:%02x:%02x], %d\n",
+> -			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5],
+> -			err);
+> +		pr_err("Can't add addr [%pM], %d\n", addr, err);
+>  }
+>  
+>  void vnic_dev_del_addr(struct vnic_dev *vdev, u8 *addr)
+> @@ -517,10 +514,7 @@ void vnic_dev_del_addr(struct vnic_dev *vdev, u8 *addr)
+>  
+>  	err = vnic_dev_cmd(vdev, CMD_ADDR_DEL, &a0, &a1, wait);
+>  	if (err)
+> -		printk(KERN_ERR
+> -			"Can't del addr [%02x:%02x:%02x:%02x:%02x:%02x], %d\n",
+> -			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5],
+> -			err);
+> +		pr_err("Can't del addr [%pM], %d\n", addr, err);
+>  }
+>  
+>  int vnic_dev_notify_set(struct vnic_dev *vdev, u16 intr)
 
-Regards,
-Michael Wang
 
-On 03/19/2015 06:02 PM, Hefty, Sean wrote:
->> We have plenty of places where we don't care what exactly the
->> transport type is, but only care if it's IB type.
->>
->> This patch introduce rdma_transport_is_ib() as shortcuts to check
->> whether an 'ib_device' is infiniband transport type, which help us to
->> save some code.
-> In most of these places, the check that we want is whether IB management is used.  The transport check is an indirect way of checking for that, and I believe we should use a more direct method of checking for the functionality that's actually desired.
->
-> Please see the following thread that is related to these changes:
->
-> http://www.spinics.net/lists/linux-rdma/msg23484.html
->
-> - Sean
+-- 
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
+
