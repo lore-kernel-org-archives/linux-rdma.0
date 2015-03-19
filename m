@@ -1,29 +1,49 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: RE: [PATCH RFC] IB/verbs: introduce rdma_transport_is_ib() to check
- transport type
-Date: Thu, 19 Mar 2015 17:02:28 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E821EA@ORSMSX109.amr.corp.intel.com>
-References: <550AD2D6.7030800@profitbricks.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v1 00/10] Add network namespace support in the RDMA-CM
+Date: Thu, 19 Mar 2015 17:14:30 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E82269@ORSMSX109.amr.corp.intel.com>
+References: <1423667204-8807-1-git-send-email-raindel@mellanox.com>
+ <54E363E7.5090507@mellanox.com> <550AD952.7060900@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <550AD2D6.7030800@profitbricks.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <550AD952.7060900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>, "Weiny, Ira" <ira.weiny@intel.com>, Moni Shoua <monis@mellanox.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, "David S. Miller" <davem@davemloft.net>, "Estrin, Alex" <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, Eric Dumazet <edumazet@google.com>, Erez Shitrit <erezsh@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Eli Cohen <eli@dev.mellanox.co.il>, Matan Barak <matanb@mellanox.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBXZSBoYXZlIHBsZW50eSBvZiBwbGFjZXMgd2hlcmUgd2UgZG9uJ3QgY2FyZSB3aGF0IGV4YWN0
-bHkgdGhlDQo+IHRyYW5zcG9ydCB0eXBlIGlzLCBidXQgb25seSBjYXJlIGlmIGl0J3MgSUIgdHlw
-ZS4NCj4gDQo+IFRoaXMgcGF0Y2ggaW50cm9kdWNlIHJkbWFfdHJhbnNwb3J0X2lzX2liKCkgYXMg
-c2hvcnRjdXRzIHRvIGNoZWNrDQo+IHdoZXRoZXIgYW4gJ2liX2RldmljZScgaXMgaW5maW5pYmFu
-ZCB0cmFuc3BvcnQgdHlwZSwgd2hpY2ggaGVscCB1cyB0bw0KPiBzYXZlIHNvbWUgY29kZS4NCg0K
-SW4gbW9zdCBvZiB0aGVzZSBwbGFjZXMsIHRoZSBjaGVjayB0aGF0IHdlIHdhbnQgaXMgd2hldGhl
-ciBJQiBtYW5hZ2VtZW50IGlzIHVzZWQuICBUaGUgdHJhbnNwb3J0IGNoZWNrIGlzIGFuIGluZGly
-ZWN0IHdheSBvZiBjaGVja2luZyBmb3IgdGhhdCwgYW5kIEkgYmVsaWV2ZSB3ZSBzaG91bGQgdXNl
-IGEgbW9yZSBkaXJlY3QgbWV0aG9kIG9mIGNoZWNraW5nIGZvciB0aGUgZnVuY3Rpb25hbGl0eSB0
-aGF0J3MgYWN0dWFsbHkgZGVzaXJlZC4NCg0KUGxlYXNlIHNlZSB0aGUgZm9sbG93aW5nIHRocmVh
-ZCB0aGF0IGlzIHJlbGF0ZWQgdG8gdGhlc2UgY2hhbmdlczoNCg0KaHR0cDovL3d3dy5zcGluaWNz
-Lm5ldC9saXN0cy9saW51eC1yZG1hL21zZzIzNDg0Lmh0bWwNCg0KLSBTZWFuDQo=
+> > On 02/11/2015 05:06 PM, Shachar Raindel wrote:
+> >> RDMA-CM uses IP based addressing and routing to setup RDMA
+> >> connections between
+> >> hosts. Currently, all of the IP interfaces and addresses used by the
+> >> RDMA-CM
+> >> must reside in the init_net namespace. This restricts the usage of
+> >> containers
+> >> with RDMA to only work with host network namespace (aka the kernel
+> >> init_net NS
+> >> instance).
+> >>
+> >> This patchset allows using network namespaces with the RDMA-CM.
+> >>
+> >> Each RDMA-CM and CM id is keeping a reference to a network namespace.
+> > [...]
+> >
+> >
+> > Hi Sean,
+> >
+> > Did you had the chance to look on the patches that do the changes to
+> > the cm and cma code?
+> >
+> 
+> Sean, ping... you are the maintainer of the rdma-cm, these patches are
+> here for many weeks,  can you please take a look and provide your
+> feedback.
+
+I have the patches, but have not had time to look at them in detail at this point.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
