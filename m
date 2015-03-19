@@ -1,84 +1,41 @@
-From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/1] ibacm: Use pkey 0xffff or 0x7fff for SA query
-Date: Thu, 19 Mar 2015 13:28:37 -0400
-Message-ID: <1426786117-24257-1-git-send-email-kaike.wan@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH RFC] IB/verbs: introduce rdma_transport_is_ib() to check
+ transport type
+Date: Thu, 19 Mar 2015 18:29:36 +0100
+Message-ID: <550B0780.9040406@profitbricks.com>
+References: <550AD2D6.7030800@profitbricks.com> <1828884A29C6694DAF28B7E6B8A8237399E821EA@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E821EA@ORSMSX109.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>, Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, "Weiny, Ira" <ira.weiny@intel.com>, Moni Shoua <monis@mellanox.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, "David S. Miller" <davem@davemloft.net>, "Estrin, Alex" <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, Eric Dumazet <edumazet@google.com>, Erez Shitrit <erezsh@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Eli Cohen <eli@dev.mellanox.co.il>, Matan Barak <matanb@mellanox.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi, Sean
 
-Currently, ibacm uses the first pkey on the local port to query SA. More
-appropriately, it should use either 0xffff or 0x7fff for SA query.
-However, if the local port is not configured with either pkey, ibacm will
-continue to use the first pkey.
+Thanks for point it out for me :-)
 
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/acm.c |   23 ++++++++++++++++++++++-
- 1 files changed, 22 insertions(+), 1 deletions(-)
+I'll try to follow the conversation to understand what
+really needs to be done, see if I could do some
+contribution on it.
 
-diff --git a/src/acm.c b/src/acm.c
-index 815a916..7649725 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -106,6 +106,7 @@ struct acmc_port {
- 	union ibv_gid       *gid_tbl;
- 	uint16_t            lid;
- 	uint16_t            lid_mask;
-+	int                 default_pkey_index;
- };
- 
- struct acmc_device {
-@@ -1844,6 +1845,7 @@ static void acm_port_up(struct acmc_port *port)
- 	uint16_t pkey;
- 	int i, ret;
- 	struct acmc_prov_context *dev_ctx;
-+	int index = -1;
- 
- 	acm_log(1, "%s %d\n", port->dev->device.verbs->device->name, 
- 		port->port.port_num);
-@@ -1889,6 +1891,25 @@ static void acm_port_up(struct acmc_port *port)
- 		goto err1;
- 	}
- 
-+	/* Determine the default pkey first.
-+	   Order of preference: 0xffff, 0x7fff, first pkey
-+	*/
-+	for (i = 0; i < attr.pkey_tbl_len; i++) {
-+		ret = ibv_query_pkey(port->dev->device.verbs, 
-+				     port->port.port_num, i, &pkey);
-+		if (ret)
-+			continue;
-+		pkey = ntohs(pkey);
-+		if (pkey == 0xffff) {
-+			index = i;
-+			break;
-+		}
-+		else if (pkey == 0x7fff) {
-+			index = i;
-+		}
-+	}
-+	port->default_pkey_index = index < 0 ? 0: index;
-+
- 	for (i = 0; i < attr.pkey_tbl_len; i++) {
- 		ret = ibv_query_pkey(port->dev->device.verbs, 
- 				     port->port.port_num, i, &pkey);
-@@ -2397,7 +2418,7 @@ int acm_send_sa_mad(struct acm_sa_mad *mad)
- 	mad->umad.addr.qkey = port->sa_addr.qkey;
- 	mad->umad.addr.lid = htons(port->sa_addr.lid);
- 	mad->umad.addr.sl = port->sa_addr.sl;
--	// TODO: mad->umad.addr.pkey_index = req->ep->?;
-+	mad->umad.addr.pkey_index = req->ep->port->default_pkey_index;
- 
- 	lock_acquire(&port->lock);
- 	if (port->sa_credits && DListEmpty(&port->sa_wait)) {
--- 
-1.7.1
+Regards,
+Michael Wang
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 03/19/2015 06:02 PM, Hefty, Sean wrote:
+>> We have plenty of places where we don't care what exactly the
+>> transport type is, but only care if it's IB type.
+>>
+>> This patch introduce rdma_transport_is_ib() as shortcuts to check
+>> whether an 'ib_device' is infiniband transport type, which help us to
+>> save some code.
+> In most of these places, the check that we want is whether IB management is used.  The transport check is an indirect way of checking for that, and I believe we should use a more direct method of checking for the functionality that's actually desired.
+>
+> Please see the following thread that is related to these changes:
+>
+> http://www.spinics.net/lists/linux-rdma/msg23484.html
+>
+> - Sean
