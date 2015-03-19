@@ -1,99 +1,61 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH RFC] IB/core: Move start_port() and end_port() to head file
-Date: Thu, 19 Mar 2015 15:33:09 +0100
-Message-ID: <550ADE25.9060605@profitbricks.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next 1/4] iw_cxgb4: Cleanup register defines/MACROS
+Date: Thu, 19 Mar 2015 22:13:27 +0530
+Message-ID: <1426783410-5128-2-git-send-email-hariprasad@chelsio.com>
+References: <1426783410-5128-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426783410-5128-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-start_port() and end_port() has been defined in both 'cache.c' and
-'device.c' with exactly the same implementation.
+Cleanup macros and register defines for consistency
 
-This patch move them to the head file 'core_priv.h' for all the IB
-core files to utilize.
-
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
-  drivers/infiniband/core/cache.c     | 11 -----------
-  drivers/infiniband/core/core_priv.h | 12 ++++++++++++
-  drivers/infiniband/core/device.c    | 12 ------------
-  3 files changed, 12 insertions(+), 23 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c          |    4 ++--
+ drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |    4 +++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c 
-b/drivers/infiniband/core/cache.c
-index 80f6cf2..02315a1 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -58,17 +58,6 @@ struct ib_update_work {
-      u8                 port_num;
-  };
-
--static inline int start_port(struct ib_device *device)
--{
--    return (device->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
--}
--
--static inline int end_port(struct ib_device *device)
--{
--    return (device->node_type == RDMA_NODE_IB_SWITCH) ?
--        0 : device->phys_port_cnt;
--}
--
-  int ib_get_cached_gid(struct ib_device *device,
-                u8                port_num,
-                int               index,
-diff --git a/drivers/infiniband/core/core_priv.h 
-b/drivers/infiniband/core/core_priv.h
-index 87d1936..3a74db0 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -51,4 +51,16 @@ void ib_cache_cleanup(void);
-
-  int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
-                  struct ib_qp_attr *qp_attr, int *qp_attr_mask);
-+
-+static inline int start_port(struct ib_device *device)
-+{
-+    return (device->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
-+}
-+
-+static inline int end_port(struct ib_device *device)
-+{
-+    return (device->node_type == RDMA_NODE_IB_SWITCH) ?
-+        0 : device->phys_port_cnt;
-+}
-+
-  #endif /* _CORE_PRIV_H */
-diff --git a/drivers/infiniband/core/device.c 
-b/drivers/infiniband/core/device.c
-index 18c1ece..2c29dea 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -151,18 +151,6 @@ static int alloc_name(char *name)
-      return 0;
-  }
-
--static int start_port(struct ib_device *device)
--{
--    return (device->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
--}
--
--
--static int end_port(struct ib_device *device)
--{
--    return (device->node_type == RDMA_NODE_IB_SWITCH) ?
--        0 : device->phys_port_cnt;
--}
--
-  /**
-   * ib_alloc_device - allocate an IB device struct
-   * @size:size of structure to allocate
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 743b805..85167dc 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -675,7 +675,7 @@ static int send_connect(struct c4iw_ep *ep)
+ 	if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
+ 		opt2 |= T5_OPT_2_VALID_F;
+ 		opt2 |= V_CONG_CNTRL(CONG_ALG_TAHOE);
+-		opt2 |= CONG_CNTRL_VALID; /* OPT_2_ISS for T5 */
++		opt2 |= T5_ISS_F;
+ 	}
+ 	t4_set_arp_err_handler(skb, ep, act_open_req_arp_failure);
+ 
+@@ -2217,7 +2217,7 @@ static void accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+ 		u32 isn = (prandom_u32() & ~7UL) - 1;
+ 		opt2 |= T5_OPT_2_VALID_F;
+ 		opt2 |= V_CONG_CNTRL(CONG_ALG_TAHOE);
+-		opt2 |= CONG_CNTRL_VALID; /* OPT_2_ISS for T5 */
++		opt2 |= T5_ISS_F;
+ 		rpl5 = (void *)rpl;
+ 		memset(&rpl5->iss, 0, roundup(sizeof(*rpl5)-sizeof(*rpl), 16));
+ 		if (peer2peer)
+diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+index 5709e77..fe29e87 100644
+--- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
++++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+@@ -848,6 +848,8 @@ enum {                     /* TCP congestion control algorithms */
+ #define V_CONG_CNTRL(x) ((x) << S_CONG_CNTRL)
+ #define G_CONG_CNTRL(x) (((x) >> S_CONG_CNTRL) & M_CONG_CNTRL)
+ 
+-#define CONG_CNTRL_VALID   (1 << 18)
++#define T5_ISS_S    18
++#define T5_ISS_V(x) ((x) << T5_ISS_S)
++#define T5_ISS_F    T5_ISS_V(1U)
+ 
+ #endif /* _T4FW_RI_API_H_ */
 -- 
-2.1.0
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
