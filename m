@@ -1,65 +1,53 @@
-From: "Shankar, Hari" <Hari.Shankar-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: udaddy test failure; RDMA_CM_EVENT_UNREACHABLE, error: 2
-Date: Sun, 22 Mar 2015 22:20:15 +0000
-Message-ID: <D1348EAF.EFB3%hari.shankar@netapp.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
+ cap flag
+Date: Mon, 23 Mar 2015 16:31:43 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E82E58@ORSMSX109.amr.corp.intel.com>
+References: <550C2514.5070001@profitbricks.com>
+	<6A3D3202-0128-4F33-B596-D7A76AB66DF8@gmail.com>
+	<20150320235748.GA22703@phlsvsds.ph.intel.com>
+	<20150321000541.GA24717@phlsvsds.ph.intel.com>
+ <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-Content-ID: <AB0CC2D1678FAC40AEC2325D668834BD-c5HhxtLuC0z3oGB3hsPCZA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yun Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Trying to test UDP with AF_IB family using udaddy binary. However client
-is failing with RDMA_CM_EVENT_UNREACHABLE error. Here is the output
-
-Using ConnectX-3 for IB support,
-
-On Server,
-
-./udaddy -b fe80::a0:9800:30:76f4  -f gid -P udp
-
-rdma_bind_addr:848
-udaddy: starting server
-ucma_getaddrinfo: ret=0
-rdma_bind_addr:848
-rdma_listen:1543
-rdma_get_cm_event:2089
-
-On Client,
- ./udaddy -s fe80::a0:9800:30:76f4  -f gid -P udp
-
-rdma_bind_addr:848
-udaddy: starting client
-ucma_getaddrinfo: ret=0
-udaddy: connecting
-rdma_resolve_addr:929
-rdma_get_cm_event:2089
-rdma_resolve_route:991
-rdma_get_cm_event:2089
-rdma_create_qp:1415
-rdma_create_qp_ex:1351
-rdma_connect:1495
-rdma_get_cm_event:2089
-udaddy: event: RDMA_CM_EVENT_UNREACHABLE, error: 2
-test complete
-rdma_destroy_qp:1426
-return status 2
-
-
-
-Running ucmatose with the following works fine,
-
-On Server
-./ucmatose -b fe80::a0:9800:30:76f4  -f gid -P ib
-
-On Client
-./ucmatose -s fe80::a0:9800:30:76f4  -f gid -P ib
-
-Any suggestions on what I am missing/doing wrong,
-
+PiBZZXMsIGl0J3MgY3VycmVudGx5IGNvcHkgdGhlIGxvZ2ljYWwgd2UgYXJlIHVzaW5nIHRvIGJy
+YW5jaCB0aGUNCj4gbWFuYWdlbWVudCwgaG93ZXZlciwgaWYgdGhlIHZlbmRvciBjb3VsZCBwcm92
+aWRlIGhpcyBvd24gc2V0dXAgY29kZQ0KPiBoZXJlLCB3ZSBkb24ndCByZWFsbHkgbmVlZCB0byBp
+bmZlciBhbnltb3JlIGJ1dCBmb2xsb3dpbmcgdGhlDQo+IGluZGljYXRvciBmcm9tIHZlbmRvciwg
+dGhpcyAnZGVmYXVsdCcgbWV0aG9kIGlzIGZvciB0cmFuc2l0aW9uLg0KPiANCj4gU2VhbiwgY291
+bGQgeW91IHBsZWFzZSBnaXZlIG1vcmUgaGludCBvciBkZXRhaWxzIG9uIHdoYXQgeW91J2QgcmF0
+aGVyDQo+IGxpa2UgdG8gaGF2ZT8gSSB0aGluayBJIGdvdCBzb21lIG1pc3VuZGVyc3RhbmRpbmcg
+b24geW91cg0KPiBzdWdnZXN0aW9uLi4uDQoNClRvIHJlc3RhdGUgbXkgc3VnZ2VzdGluZywgSSB3
+YXMgdGhpbmtpbmcgb2YgZGVmaW5pbmcgc29tZXRoaW5nIGxpa2UgdGhpczoNCg0KZW51bSB7DQoJ
+SUJfTUdNVF9QUk9UT19TTSA9ICgxIDw8IDApLCAgIC8qIHN1cHBvcnRzIElCIFNNUHMgKi8NCglJ
+Ql9NR01UX1BST1RPX1NBID0gKDEgPDwgMSksICAgLyogc3VwcG9ydHMgSUIgU0EgTUFEcyAqLw0K
+CUlCX01HTVRfUFJPVE9fR1MgPSAoMSA8PCAyKSwgICAvKiBzdXBwb3J0cyBJQiBHU0kgTUFEcyAo
+ZS5nLiBQTSwgLi4uKSAqLw0KCUlCX01HTVRfUFJPVE9fQ00gPSAoMSA8PCAzKSwgICAvKiBJQiBD
+TSBjYWxsZWQgb3V0IHNlcGFyYXRlbHkgKi8NCglJQl9NR01UX1BST1RPX0lXX0NNID0gKDEgPDwg
+NCksLyogaVdhcnAgQ00gKi8NCgkvKiBPUEEgY2FuIGRlZmluZSBuZXcgdmFsdWVzIGhlcmUgKi8N
+Cn07DQoNCnN0cnVjdCBpYl9wb3J0X2F0dHIgew0KCS4uLg0KCXUzMgltZ210X3Byb3RvOyAgLyog
+Yml0bWFzayBvZiBzdXBwb3J0ZWQgcHJvdG9jb2xzICovDQp9Ow0KDQpJIGFtIG5vdCBmYW1pbGlh
+ciBlbm91Z2ggd2l0aCBSb0NFIChJQm9FKSB0byBrbm93IG9mZiB0aGUgdG9wIG9mIG15IGhlYWQg
+aWYgdGhpcyBicmVha2Rvd24gd29ya3MgYXMgSSBkZWZpbmVkIGl0LCBvciBpZiBJQl9NR01UX1BS
+T1RPX0dTIG5lZWRzIHRvIGJlIHNlcGFyYXRlZCBpbnRvIG1vcmUgbWdtdCBjbGFzc2VzLiAgKEhh
+bCBvciBJcmEgbWlnaHQuKSAgSSBzZXBhcmF0ZWQgb3V0IHRoZSBDTSBjbGFzcywgYXMgdGhlIHJk
+bWEgY20gaGFzIGNoZWNrcyB3aGVyZSBpdCB3YW50cyB0byBkaXN0aW5ndWlzaCBiZXR3ZWVuIHdo
+aWNoIENNIHByb3RvY29sIHRvIGV4ZWN1dGUgKElCIG9yIGlXYXJwKS4NCg0KVGhpcyBjaGFuZ2Ug
+d291bGQgYmUgbGltaXRlZCB0byBtYW5hZ2VtZW50IGNoZWNrcyBvbmx5LiAgVGhlcmUgbWF5IHN0
+aWxsIGJlIHBsYWNlcyBpbiB0aGUgY29kZSB3aGVyZSB0aGUgbGluayBhbmQgdHJhbnNwb3J0IGNo
+ZWNrcyB3b3VsZCBjb250aW51ZSB0byBleGlzdC4gIEFnYWluLCB0aGlzIGlzIGp1c3QgYSBzdWdn
+ZXN0aW9uLiAgV2l0aG91dCBhY3R1YWxseSBpbXBsZW1lbnRpbmcgdGhlIHBhdGNoLCBJIGRvbid0
+IGtub3cgaWYgdGhpcyB3b3VsZCBzaW1wbGlmeSB0aGluZ3MuICBUaGUgY2hlY2tzIGluIHRoZSBy
+ZG1hIGNtLCBpbiBwYXJ0aWN1bGFyLCBhcmUgbWVzc3kuDQoNCi0gU2Vhbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
