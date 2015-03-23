@@ -1,53 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Mon, 23 Mar 2015 16:31:43 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E82E58@ORSMSX109.amr.corp.intel.com>
-References: <550C2514.5070001@profitbricks.com>
-	<6A3D3202-0128-4F33-B596-D7A76AB66DF8@gmail.com>
-	<20150320235748.GA22703@phlsvsds.ph.intel.com>
-	<20150321000541.GA24717@phlsvsds.ph.intel.com>
- <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] ib_ipoib: Scatter-Gather support in connected mode
+Date: Mon, 23 Mar 2015 11:17:49 -0600
+Message-ID: <20150323171749.GA3580@obsidianresearch.com>
+References: <1422357682-8934-1-git-send-email-yuval.shaia@oracle.com>
+ <1422444987.3133.81.camel@opteya.com>
+ <20150201070941.GA4778@yuval-lab>
+ <20150315151616.GA3546@yuval-lab>
+ <20150322092149.GA5229@yuval-lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20150322092149.GA5229@yuval-lab>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yun Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBZZXMsIGl0J3MgY3VycmVudGx5IGNvcHkgdGhlIGxvZ2ljYWwgd2UgYXJlIHVzaW5nIHRvIGJy
-YW5jaCB0aGUNCj4gbWFuYWdlbWVudCwgaG93ZXZlciwgaWYgdGhlIHZlbmRvciBjb3VsZCBwcm92
-aWRlIGhpcyBvd24gc2V0dXAgY29kZQ0KPiBoZXJlLCB3ZSBkb24ndCByZWFsbHkgbmVlZCB0byBp
-bmZlciBhbnltb3JlIGJ1dCBmb2xsb3dpbmcgdGhlDQo+IGluZGljYXRvciBmcm9tIHZlbmRvciwg
-dGhpcyAnZGVmYXVsdCcgbWV0aG9kIGlzIGZvciB0cmFuc2l0aW9uLg0KPiANCj4gU2VhbiwgY291
-bGQgeW91IHBsZWFzZSBnaXZlIG1vcmUgaGludCBvciBkZXRhaWxzIG9uIHdoYXQgeW91J2QgcmF0
-aGVyDQo+IGxpa2UgdG8gaGF2ZT8gSSB0aGluayBJIGdvdCBzb21lIG1pc3VuZGVyc3RhbmRpbmcg
-b24geW91cg0KPiBzdWdnZXN0aW9uLi4uDQoNClRvIHJlc3RhdGUgbXkgc3VnZ2VzdGluZywgSSB3
-YXMgdGhpbmtpbmcgb2YgZGVmaW5pbmcgc29tZXRoaW5nIGxpa2UgdGhpczoNCg0KZW51bSB7DQoJ
-SUJfTUdNVF9QUk9UT19TTSA9ICgxIDw8IDApLCAgIC8qIHN1cHBvcnRzIElCIFNNUHMgKi8NCglJ
-Ql9NR01UX1BST1RPX1NBID0gKDEgPDwgMSksICAgLyogc3VwcG9ydHMgSUIgU0EgTUFEcyAqLw0K
-CUlCX01HTVRfUFJPVE9fR1MgPSAoMSA8PCAyKSwgICAvKiBzdXBwb3J0cyBJQiBHU0kgTUFEcyAo
-ZS5nLiBQTSwgLi4uKSAqLw0KCUlCX01HTVRfUFJPVE9fQ00gPSAoMSA8PCAzKSwgICAvKiBJQiBD
-TSBjYWxsZWQgb3V0IHNlcGFyYXRlbHkgKi8NCglJQl9NR01UX1BST1RPX0lXX0NNID0gKDEgPDwg
-NCksLyogaVdhcnAgQ00gKi8NCgkvKiBPUEEgY2FuIGRlZmluZSBuZXcgdmFsdWVzIGhlcmUgKi8N
-Cn07DQoNCnN0cnVjdCBpYl9wb3J0X2F0dHIgew0KCS4uLg0KCXUzMgltZ210X3Byb3RvOyAgLyog
-Yml0bWFzayBvZiBzdXBwb3J0ZWQgcHJvdG9jb2xzICovDQp9Ow0KDQpJIGFtIG5vdCBmYW1pbGlh
-ciBlbm91Z2ggd2l0aCBSb0NFIChJQm9FKSB0byBrbm93IG9mZiB0aGUgdG9wIG9mIG15IGhlYWQg
-aWYgdGhpcyBicmVha2Rvd24gd29ya3MgYXMgSSBkZWZpbmVkIGl0LCBvciBpZiBJQl9NR01UX1BS
-T1RPX0dTIG5lZWRzIHRvIGJlIHNlcGFyYXRlZCBpbnRvIG1vcmUgbWdtdCBjbGFzc2VzLiAgKEhh
-bCBvciBJcmEgbWlnaHQuKSAgSSBzZXBhcmF0ZWQgb3V0IHRoZSBDTSBjbGFzcywgYXMgdGhlIHJk
-bWEgY20gaGFzIGNoZWNrcyB3aGVyZSBpdCB3YW50cyB0byBkaXN0aW5ndWlzaCBiZXR3ZWVuIHdo
-aWNoIENNIHByb3RvY29sIHRvIGV4ZWN1dGUgKElCIG9yIGlXYXJwKS4NCg0KVGhpcyBjaGFuZ2Ug
-d291bGQgYmUgbGltaXRlZCB0byBtYW5hZ2VtZW50IGNoZWNrcyBvbmx5LiAgVGhlcmUgbWF5IHN0
-aWxsIGJlIHBsYWNlcyBpbiB0aGUgY29kZSB3aGVyZSB0aGUgbGluayBhbmQgdHJhbnNwb3J0IGNo
-ZWNrcyB3b3VsZCBjb250aW51ZSB0byBleGlzdC4gIEFnYWluLCB0aGlzIGlzIGp1c3QgYSBzdWdn
-ZXN0aW9uLiAgV2l0aG91dCBhY3R1YWxseSBpbXBsZW1lbnRpbmcgdGhlIHBhdGNoLCBJIGRvbid0
-IGtub3cgaWYgdGhpcyB3b3VsZCBzaW1wbGlmeSB0aGluZ3MuICBUaGUgY2hlY2tzIGluIHRoZSBy
-ZG1hIGNtLCBpbiBwYXJ0aWN1bGFyLCBhcmUgbWVzc3kuDQoNCi0gU2Vhbg0K
+On Sun, Mar 22, 2015 at 11:21:50AM +0200, Yuval Shaia wrote:
+> On Sun, Mar 15, 2015 at 05:16:16PM +0200, Yuval Shaia wrote:
+> > Hi,
+> > I didn't got any further comments on this one.
+> > Any idea why SG in CM is un-welcome?
+> By mistake I sent a private mail only.
+> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+> Your advice would be very appreciated.
+
+I haven't looked in detail at the patch, but in principle, using S/G
+when ever possible should be the default, even if this creates a
+performance regression.
+
+It is well known that high order allocations are problematic in Linux
+and should be avoided, and I also have seen systems blow up because of
+high order IPoIB allocations.
+
+That said, there may be cases where S/G is not possible, you should
+try and get Mellanox to comment if all their offloads work on all
+their cards when S/G is used. Work may be required to resolve any of
+these constraints. I'd like to belive there is some reason why we've
+been doing high order allocations for so many years.
+
+FWIW, I would probably choose to default S/G over any other offload
+acceleration.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
