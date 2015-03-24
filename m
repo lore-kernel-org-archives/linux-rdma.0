@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 11/15] xprtrdma: Add "reset MRs" memreg op
-Date: Tue, 24 Mar 2015 16:32:10 -0400
-Message-ID: <20150324203210.2311.42644.stgit@manet.1015granger.net>
+Subject: [PATCH v2 10/15] xprtrdma: Add "init MRs" memreg op
+Date: Tue, 24 Mar 2015 16:32:01 -0400
+Message-ID: <20150324203201.2311.47936.stgit@manet.1015granger.net>
 References: <20150324201849.2311.53599.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,290 +12,327 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This method is invoked when a transport instance is about to be
-reconnected. Each Memory Region object is reset to its initial
-state.
+This method is used when setting up a new transport instance to
+create a pool of Memory Region objects that will be used to register
+memory during operation.
+
+Memory Regions are not needed for "physical" registration, since
+->prepare and ->release are no-ops for that mode.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c      |   23 ++++++++
- net/sunrpc/xprtrdma/frwr_ops.c     |   51 ++++++++++++++++++
- net/sunrpc/xprtrdma/physical_ops.c |    6 ++
- net/sunrpc/xprtrdma/verbs.c        |  103 +-----------------------------------
+ net/sunrpc/xprtrdma/fmr_ops.c      |   42 +++++++++++++++
+ net/sunrpc/xprtrdma/frwr_ops.c     |   66 +++++++++++++++++++++++
+ net/sunrpc/xprtrdma/physical_ops.c |    7 ++
+ net/sunrpc/xprtrdma/verbs.c        |  104 +-----------------------------------
  net/sunrpc/xprtrdma/xprt_rdma.h    |    1 
- 5 files changed, 83 insertions(+), 101 deletions(-)
+ 5 files changed, 119 insertions(+), 101 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 825ce96..93261b0 100644
+index 888aa10..825ce96 100644
 --- a/net/sunrpc/xprtrdma/fmr_ops.c
 +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -146,10 +146,33 @@ out_err:
- 	return nsegs;
+@@ -29,6 +29,47 @@ fmr_op_maxpages(struct rpcrdma_xprt *r_xprt)
+ 		     rpcrdma_max_segments(r_xprt) * RPCRDMA_MAX_FMR_SGES);
  }
  
-+/* After a disconnect, unmap all FMRs.
-+ *
-+ * This is invoked only in the transport connect worker in order
-+ * to serialize with rpcrdma_register_fmr_external().
-+ */
-+static void
-+fmr_op_reset(struct rpcrdma_xprt *r_xprt)
++static int
++fmr_op_init(struct rpcrdma_xprt *r_xprt)
 +{
 +	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
++	int mr_access_flags = IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ;
++	struct ib_fmr_attr fmr_attr = {
++		.max_pages	= RPCRDMA_MAX_FMR_SGES,
++		.max_maps	= 1,
++		.page_shift	= PAGE_SHIFT
++	};
++	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
 +	struct rpcrdma_mw *r;
-+	LIST_HEAD(list);
-+	int rc;
++	int i, rc;
 +
-+	list_for_each_entry(r, &buf->rb_all, mw_all)
-+		list_add(&r->r.fmr->list, &list);
++	INIT_LIST_HEAD(&buf->rb_mws);
++	INIT_LIST_HEAD(&buf->rb_all);
 +
-+	rc = ib_unmap_fmr(&list);
-+	if (rc)
-+		dprintk("RPC:       %s: ib_unmap_fmr failed %i\n",
-+			__func__, rc);
++	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
++	dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
++
++	while (i--) {
++		r = kzalloc(sizeof(*r), GFP_KERNEL);
++		if (!r)
++			return -ENOMEM;
++
++		r->r.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
++		if (IS_ERR(r->r.fmr))
++			goto out_fmr_err;
++
++		list_add(&r->mw_list, &buf->rb_mws);
++		list_add(&r->mw_all, &buf->rb_all);
++	}
++	return 0;
++
++out_fmr_err:
++	rc = PTR_ERR(r->r.fmr);
++	dprintk("RPC:       %s: ib_alloc_fmr status %i\n", __func__, rc);
++	kfree(r);
++	return rc;
 +}
 +
- const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+ /* Use the ib_map_phys_fmr() verb to register a memory region
+  * for remote access via RDMA READ or RDMA WRITE.
+  */
+@@ -109,5 +150,6 @@ const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
  	.ro_map				= fmr_op_map,
  	.ro_unmap			= fmr_op_unmap,
  	.ro_maxpages			= fmr_op_maxpages,
- 	.ro_init			= fmr_op_init,
-+	.ro_reset			= fmr_op_reset,
++	.ro_init			= fmr_op_init,
  	.ro_displayname			= "fmr",
  };
 diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 9168c15..c2bb29d 100644
+index 35b725b..9168c15 100644
 --- a/net/sunrpc/xprtrdma/frwr_ops.c
 +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -46,6 +46,18 @@ out_list_err:
- 	return rc;
- }
+@@ -17,6 +17,35 @@
+ # define RPCDBG_FACILITY	RPCDBG_TRANS
+ #endif
  
-+static void
-+__frwr_release(struct rpcrdma_mw *r)
++static int
++__frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, struct ib_device *device,
++	    unsigned int depth)
 +{
++	struct rpcrdma_frmr *f = &r->r.frmr;
 +	int rc;
 +
-+	rc = ib_dereg_mr(r->r.frmr.fr_mr);
-+	if (rc)
-+		dprintk("RPC:       %s: ib_dereg_mr status %i\n",
-+			__func__, rc);
-+	ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
++	f->fr_mr = ib_alloc_fast_reg_mr(pd, depth);
++	if (IS_ERR(f->fr_mr))
++		goto out_mr_err;
++	f->fr_pgl = ib_alloc_fast_reg_page_list(device, depth);
++	if (IS_ERR(f->fr_pgl))
++		goto out_list_err;
++	return 0;
++
++out_mr_err:
++	rc = PTR_ERR(f->fr_mr);
++	dprintk("RPC:       %s: ib_alloc_fast_reg_mr status %i\n",
++		__func__, rc);
++	return rc;
++
++out_list_err:
++	rc = PTR_ERR(f->fr_pgl);
++	dprintk("RPC:       %s: ib_alloc_fast_reg_page_list status %i\n",
++		__func__, rc);
++	ib_dereg_mr(f->fr_mr);
++	return rc;
 +}
 +
  /* FRWR mode conveys a list of pages per chunk segment. The
   * maximum length of that list is the FRWR page list depth.
   */
-@@ -210,10 +222,49 @@ out_err:
- 	return nsegs;
+@@ -29,6 +58,42 @@ frwr_op_maxpages(struct rpcrdma_xprt *r_xprt)
+ 		     rpcrdma_max_segments(r_xprt) * ia->ri_max_frmr_depth);
  }
  
-+/* After a disconnect, a flushed FAST_REG_MR can leave an FRMR in
-+ * an unusable state. Find FRMRs in this state and dereg / reg
-+ * each.  FRMRs that are VALID and attached to an rpcrdma_req are
-+ * also torn down.
-+ *
-+ * This gives all in-use FRMRs a fresh rkey and leaves them INVALID.
-+ *
-+ * This is invoked only in the transport connect worker in order
-+ * to serialize with rpcrdma_register_frmr_external().
-+ */
-+static void
-+frwr_op_reset(struct rpcrdma_xprt *r_xprt)
++static int
++frwr_op_init(struct rpcrdma_xprt *r_xprt)
 +{
 +	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
 +	struct ib_device *device = r_xprt->rx_ia.ri_id->device;
 +	unsigned int depth = r_xprt->rx_ia.ri_max_frmr_depth;
 +	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
-+	struct rpcrdma_mw *r;
-+	int rc;
++	int i;
 +
-+	list_for_each_entry(r, &buf->rb_all, mw_all) {
-+		if (r->r.frmr.fr_state == FRMR_IS_INVALID)
-+			continue;
++	INIT_LIST_HEAD(&buf->rb_mws);
++	INIT_LIST_HEAD(&buf->rb_all);
 +
-+		__frwr_release(r);
++	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
++	dprintk("RPC:       %s: initalizing %d FRMRs\n", __func__, i);
++
++	while (i--) {
++		struct rpcrdma_mw *r;
++		int rc;
++
++		r = kzalloc(sizeof(*r), GFP_KERNEL);
++		if (!r)
++			return -ENOMEM;
++
 +		rc = __frwr_init(r, pd, device, depth);
 +		if (rc) {
-+			dprintk("RPC:       %s: mw %p left %s\n",
-+				__func__, r,
-+				(r->r.frmr.fr_state == FRMR_IS_STALE ?
-+					"stale" : "valid"));
-+			continue;
++			kfree(r);
++			return rc;
 +		}
 +
-+		r->r.frmr.fr_state = FRMR_IS_INVALID;
++		list_add(&r->mw_list, &buf->rb_mws);
++		list_add(&r->mw_all, &buf->rb_all);
 +	}
++
++	return 0;
 +}
 +
- const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+ /* Post a FAST_REG Work Request to register a memory region
+  * for remote access via RDMA READ or RDMA WRITE.
+  */
+@@ -149,5 +214,6 @@ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
  	.ro_map				= frwr_op_map,
  	.ro_unmap			= frwr_op_unmap,
  	.ro_maxpages			= frwr_op_maxpages,
- 	.ro_init			= frwr_op_init,
-+	.ro_reset			= frwr_op_reset,
++	.ro_init			= frwr_op_init,
  	.ro_displayname			= "frwr",
  };
 diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
-index c372051..e060713 100644
+index 5b5a63a..c372051 100644
 --- a/net/sunrpc/xprtrdma/physical_ops.c
 +++ b/net/sunrpc/xprtrdma/physical_ops.c
-@@ -59,10 +59,16 @@ physical_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
- 	return 1;
+@@ -28,6 +28,12 @@ physical_op_maxpages(struct rpcrdma_xprt *r_xprt)
+ 		     rpcrdma_max_segments(r_xprt));
  }
  
-+static void
-+physical_op_reset(struct rpcrdma_xprt *r_xprt)
++static int
++physical_op_init(struct rpcrdma_xprt *r_xprt)
 +{
++	return 0;
 +}
 +
- const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops = {
+ /* The client's physical memory is already exposed for
+  * remote access via RDMA READ or RDMA WRITE.
+  */
+@@ -57,5 +63,6 @@ const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops = {
  	.ro_map				= physical_op_map,
  	.ro_unmap			= physical_op_unmap,
  	.ro_maxpages			= physical_op_maxpages,
- 	.ro_init			= physical_op_init,
-+	.ro_reset			= physical_op_reset,
++	.ro_init			= physical_op_init,
  	.ro_displayname			= "physical",
  };
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index e89a57d..1b2c1f4 100644
+index b167c99..e89a57d 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -63,9 +63,6 @@
- # define RPCDBG_FACILITY	RPCDBG_TRANS
- #endif
- 
--static void rpcrdma_reset_frmrs(struct rpcrdma_ia *);
--static void rpcrdma_reset_fmrs(struct rpcrdma_ia *);
--
- /*
-  * internal functions
-  */
-@@ -945,21 +942,9 @@ retry:
- 		rpcrdma_ep_disconnect(ep, ia);
- 		rpcrdma_flush_cqs(ep);
- 
--		switch (ia->ri_memreg_strategy) {
--		case RPCRDMA_FRMR:
--			rpcrdma_reset_frmrs(ia);
--			break;
--		case RPCRDMA_MTHCAFMR:
--			rpcrdma_reset_fmrs(ia);
--			break;
--		case RPCRDMA_ALLPHYSICAL:
--			break;
--		default:
--			rc = -EIO;
--			goto out;
--		}
--
- 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
-+		ia->ri_ops->ro_reset(xprt);
-+
- 		id = rpcrdma_create_id(xprt, ia,
- 				(struct sockaddr *)&xprt->rx_data.addr);
- 		if (IS_ERR(id)) {
-@@ -1289,90 +1274,6 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
- 	kfree(buf->rb_pool);
+@@ -1124,91 +1124,6 @@ out:
+ 	return ERR_PTR(rc);
  }
  
--/* After a disconnect, unmap all FMRs.
-- *
-- * This is invoked only in the transport connect worker in order
-- * to serialize with rpcrdma_register_fmr_external().
-- */
--static void
--rpcrdma_reset_fmrs(struct rpcrdma_ia *ia)
+-static int
+-rpcrdma_init_fmrs(struct rpcrdma_ia *ia, struct rpcrdma_buffer *buf)
 -{
--	struct rpcrdma_xprt *r_xprt =
--				container_of(ia, struct rpcrdma_xprt, rx_ia);
--	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
--	struct list_head *pos;
+-	int mr_access_flags = IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ;
+-	struct ib_fmr_attr fmr_attr = {
+-		.max_pages	= RPCRDMA_MAX_DATA_SEGS,
+-		.max_maps	= 1,
+-		.page_shift	= PAGE_SHIFT
+-	};
 -	struct rpcrdma_mw *r;
--	LIST_HEAD(l);
--	int rc;
+-	int i, rc;
 -
--	list_for_each(pos, &buf->rb_all) {
--		r = list_entry(pos, struct rpcrdma_mw, mw_all);
+-	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
+-	dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
 -
--		INIT_LIST_HEAD(&l);
--		list_add(&r->r.fmr->list, &l);
--		rc = ib_unmap_fmr(&l);
--		if (rc)
--			dprintk("RPC:       %s: ib_unmap_fmr failed %i\n",
+-	while (i--) {
+-		r = kzalloc(sizeof(*r), GFP_KERNEL);
+-		if (r == NULL)
+-			return -ENOMEM;
+-
+-		r->r.fmr = ib_alloc_fmr(ia->ri_pd, mr_access_flags, &fmr_attr);
+-		if (IS_ERR(r->r.fmr)) {
+-			rc = PTR_ERR(r->r.fmr);
+-			dprintk("RPC:       %s: ib_alloc_fmr failed %i\n",
 -				__func__, rc);
+-			goto out_free;
+-		}
+-
+-		list_add(&r->mw_list, &buf->rb_mws);
+-		list_add(&r->mw_all, &buf->rb_all);
 -	}
+-	return 0;
+-
+-out_free:
+-	kfree(r);
+-	return rc;
 -}
 -
--/* After a disconnect, a flushed FAST_REG_MR can leave an FRMR in
-- * an unusable state. Find FRMRs in this state and dereg / reg
-- * each.  FRMRs that are VALID and attached to an rpcrdma_req are
-- * also torn down.
-- *
-- * This gives all in-use FRMRs a fresh rkey and leaves them INVALID.
-- *
-- * This is invoked only in the transport connect worker in order
-- * to serialize with rpcrdma_register_frmr_external().
-- */
--static void
--rpcrdma_reset_frmrs(struct rpcrdma_ia *ia)
+-static int
+-rpcrdma_init_frmrs(struct rpcrdma_ia *ia, struct rpcrdma_buffer *buf)
 -{
--	struct rpcrdma_xprt *r_xprt =
--				container_of(ia, struct rpcrdma_xprt, rx_ia);
--	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
--	struct list_head *pos;
+-	struct rpcrdma_frmr *f;
 -	struct rpcrdma_mw *r;
--	int rc;
+-	int i, rc;
 -
--	list_for_each(pos, &buf->rb_all) {
--		r = list_entry(pos, struct rpcrdma_mw, mw_all);
+-	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
+-	dprintk("RPC:       %s: initalizing %d FRMRs\n", __func__, i);
 -
--		if (r->r.frmr.fr_state == FRMR_IS_INVALID)
--			continue;
+-	while (i--) {
+-		r = kzalloc(sizeof(*r), GFP_KERNEL);
+-		if (r == NULL)
+-			return -ENOMEM;
+-		f = &r->r.frmr;
 -
--		rc = ib_dereg_mr(r->r.frmr.fr_mr);
--		if (rc)
--			dprintk("RPC:       %s: ib_dereg_mr failed %i\n",
--				__func__, rc);
--		ib_free_fast_reg_page_list(r->r.frmr.fr_pgl);
--
--		r->r.frmr.fr_mr = ib_alloc_fast_reg_mr(ia->ri_pd,
--					ia->ri_max_frmr_depth);
--		if (IS_ERR(r->r.frmr.fr_mr)) {
--			rc = PTR_ERR(r->r.frmr.fr_mr);
--			dprintk("RPC:       %s: ib_alloc_fast_reg_mr"
--				" failed %i\n", __func__, rc);
--			continue;
+-		f->fr_mr = ib_alloc_fast_reg_mr(ia->ri_pd,
+-						ia->ri_max_frmr_depth);
+-		if (IS_ERR(f->fr_mr)) {
+-			rc = PTR_ERR(f->fr_mr);
+-			dprintk("RPC:       %s: ib_alloc_fast_reg_mr "
+-				"failed %i\n", __func__, rc);
+-			goto out_free;
 -		}
--		r->r.frmr.fr_pgl = ib_alloc_fast_reg_page_list(
--					ia->ri_id->device,
--					ia->ri_max_frmr_depth);
--		if (IS_ERR(r->r.frmr.fr_pgl)) {
--			rc = PTR_ERR(r->r.frmr.fr_pgl);
--			dprintk("RPC:       %s: "
--				"ib_alloc_fast_reg_page_list "
+-
+-		f->fr_pgl = ib_alloc_fast_reg_page_list(ia->ri_id->device,
+-							ia->ri_max_frmr_depth);
+-		if (IS_ERR(f->fr_pgl)) {
+-			rc = PTR_ERR(f->fr_pgl);
+-			dprintk("RPC:       %s: ib_alloc_fast_reg_page_list "
 -				"failed %i\n", __func__, rc);
 -
--			ib_dereg_mr(r->r.frmr.fr_mr);
--			continue;
+-			ib_dereg_mr(f->fr_mr);
+-			goto out_free;
 -		}
--		r->r.frmr.fr_state = FRMR_IS_INVALID;
+-
+-		list_add(&r->mw_list, &buf->rb_mws);
+-		list_add(&r->mw_all, &buf->rb_all);
 -	}
+-
+-	return 0;
+-
+-out_free:
+-	kfree(r);
+-	return rc;
 -}
 -
- /* "*mw" can be NULL when rpcrdma_buffer_get_mrs() fails, leaving
-  * some req segments uninitialized.
-  */
+ int
+ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+ {
+@@ -1245,22 +1160,9 @@ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+ 	buf->rb_recv_bufs = (struct rpcrdma_rep **) p;
+ 	p = (char *) &buf->rb_recv_bufs[buf->rb_max_requests];
+ 
+-	INIT_LIST_HEAD(&buf->rb_mws);
+-	INIT_LIST_HEAD(&buf->rb_all);
+-	switch (ia->ri_memreg_strategy) {
+-	case RPCRDMA_FRMR:
+-		rc = rpcrdma_init_frmrs(ia, buf);
+-		if (rc)
+-			goto out;
+-		break;
+-	case RPCRDMA_MTHCAFMR:
+-		rc = rpcrdma_init_fmrs(ia, buf);
+-		if (rc)
+-			goto out;
+-		break;
+-	default:
+-		break;
+-	}
++	rc = ia->ri_ops->ro_init(r_xprt);
++	if (rc)
++		goto out;
+ 
+ 	for (i = 0; i < buf->rb_max_requests; i++) {
+ 		struct rpcrdma_req *req;
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 90b60fe..0680239 100644
+index 9a727f9..90b60fe 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -342,6 +342,7 @@ struct rpcrdma_memreg_ops {
+@@ -341,6 +341,7 @@ struct rpcrdma_memreg_ops {
+ 	int		(*ro_unmap)(struct rpcrdma_xprt *,
  				    struct rpcrdma_mr_seg *);
  	size_t		(*ro_maxpages)(struct rpcrdma_xprt *);
- 	int		(*ro_init)(struct rpcrdma_xprt *);
-+	void		(*ro_reset)(struct rpcrdma_xprt *);
++	int		(*ro_init)(struct rpcrdma_xprt *);
  	const char	*ro_displayname;
  };
  
