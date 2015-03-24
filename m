@@ -1,55 +1,211 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Tue, 24 Mar 2015 13:49:37 +0100
-Message-ID: <55115D61.9040201@profitbricks.com>
-References: <550C2514.5070001@profitbricks.com>	<6A3D3202-0128-4F33-B596-D7A76AB66DF8@gmail.com>	<20150320235748.GA22703@phlsvsds.ph.intel.com>	<20150321000541.GA24717@phlsvsds.ph.intel.com> <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237399E82E58@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 01/16] xprtrdma: Display IPv6 addresses and port numbers correctly
+Date: Tue, 24 Mar 2015 10:43:06 -0400
+Message-ID: <487BADAD-DE92-4B0C-865D-C01F9AA0AB7C@oracle.com>
+References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212641.22783.93522.stgit@manet.1015granger.net> <EE7902D3F51F404C82415C4803930ACD5DC3A952@CMEXMB1.ad.emulex.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237399E82E58-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD5DC3A952-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/23/2015 05:31 PM, Hefty, Sean wrote:
->> [snip]
-> To restate my suggesting, I was thinking of defining something like this:
->
-> enum {
-> 	IB_MGMT_PROTO_SM = (1 << 0),   /* supports IB SMPs */
-> 	IB_MGMT_PROTO_SA = (1 << 1),   /* supports IB SA MADs */
-> 	IB_MGMT_PROTO_GS = (1 << 2),   /* supports IB GSI MADs (e.g. PM, ...) */
-> 	IB_MGMT_PROTO_CM = (1 << 3),   /* IB CM called out separately */
-> 	IB_MGMT_PROTO_IW_CM = (1 << 4),/* iWarp CM */
-> 	/* OPA can define new values here */
-> };
->
-> struct ib_port_attr {
-> 	...
-> 	u32	mgmt_proto;  /* bitmask of supported protocols */
-> };
 
-Thanks for the restate, Sean :) seems like your proposal is also to ask 
-vendor
-setup 'mgmt_proto' during ib_query_port(), correct?
+On Mar 24, 2015, at 4:27 AM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> wrote:
 
->
-> I am not familiar enough with RoCE (IBoE) to know off the top of my head if this breakdown works as I defined it, or if IB_MGMT_PROTO_GS needs to be separated into more mgmt classes.  (Hal or Ira might.)  I separated out the CM class, as the rdma cm has checks where it wants to distinguish between which CM protocol to execute (IB or iWarp).
+> I see in the svcrdma code, there is a big check to abort creating listener if AF is not AF_INET,
+> Do we have plans to address this on the server as well?
 
-Maybe we can apply this thought to CM part firstly?
->
-> This change would be limited to management checks only.  There may still be places in the code where the link and transport checks would continue to exist.  Again, this is just a suggestion.  Without actually implementing the patch, I don't know if this would simplify things.  The checks in the rdma cm, in particular, are messy.
-I think it's time to make a formal patch now and discuss the problem in
-a separate thread, I'll still use the mechanism in draft and apply these
-flags, let's see if it satisfied peoples ;-)
+No specific plans yet, but yes, the server needs IPv6 updates as well.
 
-Regards,
-Michael Wang
 
-> - Sean
+> static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+>                                        struct net *net,
+>                                        struct sockaddr *sa, int salen,
+>                                        int flags)
+> {
+>        struct rdma_cm_id *listen_id;
+>        struct svcxprt_rdma *cma_xprt;
+>        int ret;
+> 
+>        dprintk("svcrdma: Creating RDMA socket\n");
+>        if (sa->sa_family != AF_INET) {
+>                dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
+>                return ERR_PTR(-EAFNOSUPPORT);
+> 
+> -Regards
+> Devesh
+> 
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
+>> Sent: Saturday, March 14, 2015 2:57 AM
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: [PATCH v1 01/16] xprtrdma: Display IPv6 addresses and port numbers
+>> correctly
+>> 
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> net/sunrpc/xprtrdma/transport.c |   47
+>> ++++++++++++++++++++++++++++++++-------
+>> net/sunrpc/xprtrdma/verbs.c     |   21 +++++++----------
+>> 2 files changed, 47 insertions(+), 21 deletions(-)
+>> 
+>> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+>> index 2e192ba..26a62e7 100644
+>> --- a/net/sunrpc/xprtrdma/transport.c
+>> +++ b/net/sunrpc/xprtrdma/transport.c
+>> @@ -157,12 +157,47 @@ static struct ctl_table sunrpc_table[] = {
+>> static struct rpc_xprt_ops xprt_rdma_procs;	/* forward reference */
+>> 
+>> static void
+>> +xprt_rdma_format_addresses4(struct rpc_xprt *xprt, struct sockaddr
+>> +*sap) {
+>> +	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+>> +	char buf[20];
+>> +
+>> +	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+>> +	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf,
+>> +GFP_KERNEL);
+>> +
+>> +	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma"; }
+>> +
+>> +static void
+>> +xprt_rdma_format_addresses6(struct rpc_xprt *xprt, struct sockaddr
+>> +*sap) {
+>> +	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
+>> +	char buf[40];
+>> +
+>> +	snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
+>> +	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf,
+>> +GFP_KERNEL);
+>> +
+>> +	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma6"; }
+>> +
+>> +static void
+>> xprt_rdma_format_addresses(struct rpc_xprt *xprt)  {
+>> 	struct sockaddr *sap = (struct sockaddr *)
+>> 					&rpcx_to_rdmad(xprt).addr;
+>> -	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+>> -	char buf[64];
+>> +	char buf[128];
+>> +
+>> +	switch (sap->sa_family) {
+>> +	case AF_INET:
+>> +		xprt_rdma_format_addresses4(xprt, sap);
+>> +		break;
+>> +	case AF_INET6:
+>> +		xprt_rdma_format_addresses6(xprt, sap);
+>> +		break;
+>> +	default:
+>> +		pr_err("rpcrdma: Unrecognized address family\n");
+>> +		return;
+>> +	}
+>> 
+>> 	(void)rpc_ntop(sap, buf, sizeof(buf));
+>> 	xprt->address_strings[RPC_DISPLAY_ADDR] = kstrdup(buf,
+>> GFP_KERNEL); @@ -170,16 +205,10 @@ xprt_rdma_format_addresses(struct
+>> rpc_xprt *xprt)
+>> 	snprintf(buf, sizeof(buf), "%u", rpc_get_port(sap));
+>> 	xprt->address_strings[RPC_DISPLAY_PORT] = kstrdup(buf,
+>> GFP_KERNEL);
+>> 
+>> -	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
+>> -
+>> -	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+>> -	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf,
+>> GFP_KERNEL);
+>> -
+>> 	snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
+>> 	xprt->address_strings[RPC_DISPLAY_HEX_PORT] = kstrdup(buf,
+>> GFP_KERNEL);
+>> 
+>> -	/* netid */
+>> -	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma";
+>> +	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
+>> }
+>> 
+>> static void
+>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c index
+>> 124676c..1aa55b7 100644
+>> --- a/net/sunrpc/xprtrdma/verbs.c
+>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>> @@ -50,6 +50,7 @@
+>> #include <linux/interrupt.h>
+>> #include <linux/slab.h>
+>> #include <linux/prefetch.h>
+>> +#include <linux/sunrpc/addr.h>
+>> #include <asm/bitops.h>
+>> 
+>> #include "xprt_rdma.h"
+>> @@ -424,7 +425,7 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct
+>> rdma_cm_event *event)
+>> 	struct rpcrdma_ia *ia = &xprt->rx_ia;
+>> 	struct rpcrdma_ep *ep = &xprt->rx_ep;
+>> #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+>> -	struct sockaddr_in *addr = (struct sockaddr_in *) &ep-
+>>> rep_remote_addr;
+>> +	struct sockaddr *sap = (struct sockaddr *)&ep->rep_remote_addr;
+>> #endif
+>> 	struct ib_qp_attr *attr = &ia->ri_qp_attr;
+>> 	struct ib_qp_init_attr *iattr = &ia->ri_qp_init_attr; @@ -480,9 +481,8
+>> @@ connected:
+>> 		wake_up_all(&ep->rep_connect_wait);
+>> 		/*FALLTHROUGH*/
+>> 	default:
+>> -		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
+>> -			__func__, &addr->sin_addr.s_addr,
+>> -			ntohs(addr->sin_port), ep,
+>> +		dprintk("RPC:       %s: %pIS:%u (ep 0x%p): %s\n",
+>> +			__func__, sap, rpc_get_port(sap), ep,
+>> 			CONNECTION_MSG(event->event));
+>> 		break;
+>> 	}
+>> @@ -491,19 +491,16 @@ connected:
+>> 	if (connstate == 1) {
+>> 		int ird = attr->max_dest_rd_atomic;
+>> 		int tird = ep->rep_remote_cma.responder_resources;
+>> -		printk(KERN_INFO "rpcrdma: connection to %pI4:%u "
+>> -			"on %s, memreg %d slots %d ird %d%s\n",
+>> -			&addr->sin_addr.s_addr,
+>> -			ntohs(addr->sin_port),
+>> +
+>> +		pr_info("rpcrdma: connection to %pIS:%u on %s, memreg %d
+>> slots %d ird %d%s\n",
+>> +			sap, rpc_get_port(sap),
+>> 			ia->ri_id->device->name,
+>> 			ia->ri_memreg_strategy,
+>> 			xprt->rx_buf.rb_max_requests,
+>> 			ird, ird < 4 && ird < tird / 2 ? " (low!)" : "");
+>> 	} else if (connstate < 0) {
+>> -		printk(KERN_INFO "rpcrdma: connection to %pI4:%u closed
+>> (%d)\n",
+>> -			&addr->sin_addr.s_addr,
+>> -			ntohs(addr->sin_port),
+>> -			connstate);
+>> +		pr_info("rpcrdma: connection to %pIS:%u closed (%d)\n",
+>> +			sap, rpc_get_port(sap), connstate);
+>> 	}
+>> #endif
+>> 
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+>> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
