@@ -1,205 +1,373 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 01/16] xprtrdma: Display IPv6 addresses and port numbers correctly
-Date: Tue, 24 Mar 2015 10:43:06 -0400
-Message-ID: <487BADAD-DE92-4B0C-865D-C01F9AA0AB7C@oracle.com>
-References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212641.22783.93522.stgit@manet.1015granger.net> <EE7902D3F51F404C82415C4803930ACD5DC3A952@CMEXMB1.ad.emulex.com>
+Subject: Re: [PATCH v1 06/16] xprtrdma: Add a "deregister_external" op for each memreg mode
+Date: Tue, 24 Mar 2015 10:54:26 -0400
+Message-ID: <E8FC3BD5-865A-4524-AF12-F77053382F36@oracle.com>
+References: <20150313212517.22783.18364.stgit@manet.1015granger.net> <20150313212728.22783.11821.stgit@manet.1015granger.net> <EE7902D3F51F404C82415C4803930ACD5DC3A9C4@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD5DC3A952-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD5DC3A9C4-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Mar 24, 2015, at 4:27 AM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> wrote:
+On Mar 24, 2015, at 7:12 AM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> wrote:
 
-> I see in the svcrdma code, there is a big check to abort creating listener if AF is not AF_INET,
-> Do we have plans to address this on the server as well?
-
-No specific plans yet, but yes, the server needs IPv6 updates as well.
-
-
-> static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
->                                        struct net *net,
->                                        struct sockaddr *sa, int salen,
->                                        int flags)
-> {
->        struct rdma_cm_id *listen_id;
->        struct svcxprt_rdma *cma_xprt;
->        int ret;
-> 
->        dprintk("svcrdma: Creating RDMA socket\n");
->        if (sa->sa_family != AF_INET) {
->                dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
->                return ERR_PTR(-EAFNOSUPPORT);
-> 
-> -Regards
-> Devesh
-> 
 >> -----Original Message-----
 >> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
 >> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
 >> Sent: Saturday, March 14, 2015 2:57 AM
 >> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: [PATCH v1 01/16] xprtrdma: Display IPv6 addresses and port numbers
->> correctly
+>> Subject: [PATCH v1 06/16] xprtrdma: Add a "deregister_external" op for each
+>> memreg mode
+>> 
+>> There is very little common processing among the different external memory
+>> deregistration functions.
+>> 
+>> In addition, instead of calling the deregistration function for each segment,
+>> have one call release all segments for a request. This makes the API a little
+>> asymmetrical, but a hair faster.
 >> 
 >> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 >> ---
->> net/sunrpc/xprtrdma/transport.c |   47
->> ++++++++++++++++++++++++++++++++-------
->> net/sunrpc/xprtrdma/verbs.c     |   21 +++++++----------
->> 2 files changed, 47 insertions(+), 21 deletions(-)
+>> net/sunrpc/xprtrdma/fmr_ops.c      |   37 ++++++++++++++++
+>> net/sunrpc/xprtrdma/frwr_ops.c     |   46 ++++++++++++++++++++
+>> net/sunrpc/xprtrdma/physical_ops.c |   13 ++++++
+>> net/sunrpc/xprtrdma/rpc_rdma.c     |    7 +--
+>> net/sunrpc/xprtrdma/transport.c    |    8 +---
+>> net/sunrpc/xprtrdma/verbs.c        |   81 ------------------------------------
+>> net/sunrpc/xprtrdma/xprt_rdma.h    |    5 +-
+>> 7 files changed, 103 insertions(+), 94 deletions(-)
 >> 
->> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
->> index 2e192ba..26a62e7 100644
->> --- a/net/sunrpc/xprtrdma/transport.c
->> +++ b/net/sunrpc/xprtrdma/transport.c
->> @@ -157,12 +157,47 @@ static struct ctl_table sunrpc_table[] = {
->> static struct rpc_xprt_ops xprt_rdma_procs;	/* forward reference */
+>> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+>> index 45fb646..9b983b4 100644
+>> --- a/net/sunrpc/xprtrdma/fmr_ops.c
+>> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
+>> @@ -20,6 +20,32 @@
+>> /* Maximum scatter/gather per FMR */
+>> #define RPCRDMA_MAX_FMR_SGES	(64)
 >> 
->> static void
->> +xprt_rdma_format_addresses4(struct rpc_xprt *xprt, struct sockaddr
->> +*sap) {
->> +	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
->> +	char buf[20];
+>> +/* Use the ib_unmap_fmr() verb to prevent further remote
+>> + * access via RDMA READ or RDMA WRITE.
+>> + */
+>> +static int
+>> +__fmr_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg) {
+>> +	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+>> +	struct rpcrdma_mr_seg *seg1 = seg;
+>> +	int rc, nsegs = seg->mr_nsegs;
+>> +	LIST_HEAD(l);
 >> +
->> +	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
->> +	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf,
->> +GFP_KERNEL);
+>> +	list_add(&seg1->rl_mw->r.fmr->list, &l);
+>> +	rc = ib_unmap_fmr(&l);
+>> +	read_lock(&ia->ri_qplock);
+>> +	while (seg1->mr_nsegs--)
+>> +		rpcrdma_unmap_one(ia, seg++);
+>> +	read_unlock(&ia->ri_qplock);
+>> +	if (rc)
+>> +		goto out_err;
+>> +	return nsegs;
 >> +
->> +	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma"; }
+>> +out_err:
+>> +	dprintk("RPC:       %s: ib_unmap_fmr status %i\n", __func__, rc);
+>> +	return nsegs;
+>> +}
 >> +
->> +static void
->> +xprt_rdma_format_addresses6(struct rpc_xprt *xprt, struct sockaddr
->> +*sap) {
->> +	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sap;
->> +	char buf[40];
->> +
->> +	snprintf(buf, sizeof(buf), "%pi6", &sin6->sin6_addr);
->> +	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf,
->> +GFP_KERNEL);
->> +
->> +	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma6"; }
->> +
->> +static void
->> xprt_rdma_format_addresses(struct rpc_xprt *xprt)  {
->> 	struct sockaddr *sap = (struct sockaddr *)
->> 					&rpcx_to_rdmad(xprt).addr;
->> -	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
->> -	char buf[64];
->> +	char buf[128];
->> +
->> +	switch (sap->sa_family) {
->> +	case AF_INET:
->> +		xprt_rdma_format_addresses4(xprt, sap);
->> +		break;
->> +	case AF_INET6:
->> +		xprt_rdma_format_addresses6(xprt, sap);
->> +		break;
->> +	default:
->> +		pr_err("rpcrdma: Unrecognized address family\n");
->> +		return;
->> +	}
->> 
->> 	(void)rpc_ntop(sap, buf, sizeof(buf));
->> 	xprt->address_strings[RPC_DISPLAY_ADDR] = kstrdup(buf,
->> GFP_KERNEL); @@ -170,16 +205,10 @@ xprt_rdma_format_addresses(struct
->> rpc_xprt *xprt)
->> 	snprintf(buf, sizeof(buf), "%u", rpc_get_port(sap));
->> 	xprt->address_strings[RPC_DISPLAY_PORT] = kstrdup(buf,
->> GFP_KERNEL);
->> 
->> -	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
->> -
->> -	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
->> -	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf,
->> GFP_KERNEL);
->> -
->> 	snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
->> 	xprt->address_strings[RPC_DISPLAY_HEX_PORT] = kstrdup(buf,
->> GFP_KERNEL);
->> 
->> -	/* netid */
->> -	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma";
->> +	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
+>> /* FMR mode conveys up to 64 pages of payload per chunk segment.
+>>  */
+>> static size_t
+>> @@ -79,8 +105,19 @@ out_maperr:
+>> 	return rc;
 >> }
 >> 
->> static void
+>> +static void
+>> +fmr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+>> +	     unsigned int count)
+>> +{
+>> +	unsigned int i;
+>> +
+>> +	for (i = 0; count--;)
+>> +		i += __fmr_unmap(r_xprt, &req->rl_segments[i]); }
+>> +
+>> const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+>> 	.ro_map				= fmr_op_map,
+>> +	.ro_unmap			= fmr_op_unmap,
+>> 	.ro_maxpages			= fmr_op_maxpages,
+>> 	.ro_displayname			= "fmr",
+>> };
+>> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+>> index 2b5ccb0..05b5761 100644
+>> --- a/net/sunrpc/xprtrdma/frwr_ops.c
+>> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
+>> @@ -17,6 +17,41 @@
+>> # define RPCDBG_FACILITY	RPCDBG_TRANS
+>> #endif
+>> 
+>> +/* Post a LOCAL_INV Work Request to prevent further remote access
+>> + * via RDMA READ or RDMA WRITE.
+>> + */
+>> +static int
+>> +__frwr_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg) {
+>> +	struct rpcrdma_mr_seg *seg1 = seg;
+>> +	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+>> +	struct ib_send_wr invalidate_wr, *bad_wr;
+>> +	int rc, nsegs = seg->mr_nsegs;
+>> +
+>> +	seg1->rl_mw->r.frmr.fr_state = FRMR_IS_INVALID;
+>> +
+>> +	memset(&invalidate_wr, 0, sizeof(invalidate_wr));
+>> +	invalidate_wr.wr_id = (unsigned long)(void *)seg1->rl_mw;
+>> +	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+>> +	invalidate_wr.ex.invalidate_rkey = seg1->rl_mw->r.frmr.fr_mr->rkey;
+>> +	DECR_CQCOUNT(&r_xprt->rx_ep);
+>> +
+>> +	read_lock(&ia->ri_qplock);
+>> +	while (seg1->mr_nsegs--)
+>> +		rpcrdma_unmap_one(ia, seg++);
+>> +	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+>> +	read_unlock(&ia->ri_qplock);
+>> +	if (rc)
+>> +		goto out_err;
+>> +	return nsegs;
+>> +
+>> +out_err:
+>> +	/* Force rpcrdma_buffer_get() to retry */
+>> +	seg1->rl_mw->r.frmr.fr_state = FRMR_IS_STALE;
+>> +	dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
+>> +	return nsegs;
+>> +}
+>> +
+>> /* FRWR mode conveys a list of pages per chunk segment. The
+>>  * maximum length of that list is the FRWR page list depth.
+>>  */
+>> @@ -116,8 +151,19 @@ out_err:
+>> 	return rc;
+>> }
+>> 
+>> +static void
+>> +frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+>> +	      unsigned int count)
+>> +{
+>> +	unsigned int i;
+>> +
+>> +	for (i = 0; count--;)
+>> +		i += __frwr_unmap(r_xprt, &req->rl_segments[i]); }
+>> +
+>> const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+>> 	.ro_map				= frwr_op_map,
+>> +	.ro_unmap			= frwr_op_unmap,
+>> 	.ro_maxpages			= frwr_op_maxpages,
+>> 	.ro_displayname			= "frwr",
+>> };
+>> diff --git a/net/sunrpc/xprtrdma/physical_ops.c
+>> b/net/sunrpc/xprtrdma/physical_ops.c
+>> index 5a284ee..f2c15be 100644
+>> --- a/net/sunrpc/xprtrdma/physical_ops.c
+>> +++ b/net/sunrpc/xprtrdma/physical_ops.c
+>> @@ -44,8 +44,21 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>> 	return 1;
+>> }
+>> 
+>> +/* Unmap a memory region, but leave it registered.
+>> + */
+>> +static void
+>> +physical_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+>> +		  unsigned int count)
+>> +{
+>> +	unsigned int i;
+>> +
+>> +	for (i = 0; i < count; i++)
+>> +		rpcrdma_unmap_one(&r_xprt->rx_ia, &req->rl_segments[i]); }
+>> +
+>> const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops = {
+>> 	.ro_map				= physical_op_map,
+>> +	.ro_unmap			= physical_op_unmap,
+>> 	.ro_maxpages			= physical_op_maxpages,
+>> 	.ro_displayname			= "physical",
+>> };
+>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> b/net/sunrpc/xprtrdma/rpc_rdma.c index 6ab1d03..7b51d9d 100644
+>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+>> @@ -284,11 +284,8 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct
+>> xdr_buf *target,
+>> 	return (unsigned char *)iptr - (unsigned char *)headerp;
+>> 
+>> out:
+>> -	if (r_xprt->rx_ia.ri_memreg_strategy != RPCRDMA_FRMR) {
+>> -		for (pos = 0; nchunks--;)
+>> -			pos += rpcrdma_deregister_external(
+>> -					&req->rl_segments[pos], r_xprt);
+>> -	}
+>> +	if (r_xprt->rx_ia.ri_memreg_strategy != RPCRDMA_FRMR)
+>> +		r_xprt->rx_ia.ri_ops->ro_unmap(r_xprt, req, nchunks);
+> 
+> Do we still need to check for memreg_strategy in this exit path? Am I missing something..?
+
+The check is removed in a later patch.
+
+> 
+>> 	return n;
+>> }
+>> 
+>> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+>> index 9a9da40..c484671 100644
+>> --- a/net/sunrpc/xprtrdma/transport.c
+>> +++ b/net/sunrpc/xprtrdma/transport.c
+>> @@ -571,7 +571,6 @@ xprt_rdma_free(void *buffer)
+>> 	struct rpcrdma_req *req;
+>> 	struct rpcrdma_xprt *r_xprt;
+>> 	struct rpcrdma_regbuf *rb;
+>> -	int i;
+>> 
+>> 	if (buffer == NULL)
+>> 		return;
+>> @@ -582,11 +581,8 @@ xprt_rdma_free(void *buffer)
+>> 
+>> 	dprintk("RPC:       %s: called on 0x%p\n", __func__, req->rl_reply);
+>> 
+>> -	for (i = 0; req->rl_nchunks;) {
+>> -		--req->rl_nchunks;
+>> -		i += rpcrdma_deregister_external(
+>> -			&req->rl_segments[i], r_xprt);
+>> -	}
+>> +	r_xprt->rx_ia.ri_ops->ro_unmap(r_xprt, req, req->rl_nchunks);
+>> +	req->rl_nchunks = 0;
+>> 
+>> 	rpcrdma_buffer_put(req);
+>> }
 >> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c index
->> 124676c..1aa55b7 100644
+>> 851ed97..a1621fd 100644
 >> --- a/net/sunrpc/xprtrdma/verbs.c
 >> +++ b/net/sunrpc/xprtrdma/verbs.c
->> @@ -50,6 +50,7 @@
->> #include <linux/interrupt.h>
->> #include <linux/slab.h>
->> #include <linux/prefetch.h>
->> +#include <linux/sunrpc/addr.h>
->> #include <asm/bitops.h>
->> 
->> #include "xprt_rdma.h"
->> @@ -424,7 +425,7 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct
->> rdma_cm_event *event)
->> 	struct rpcrdma_ia *ia = &xprt->rx_ia;
->> 	struct rpcrdma_ep *ep = &xprt->rx_ep;
->> #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
->> -	struct sockaddr_in *addr = (struct sockaddr_in *) &ep-
->>> rep_remote_addr;
->> +	struct sockaddr *sap = (struct sockaddr *)&ep->rep_remote_addr;
->> #endif
->> 	struct ib_qp_attr *attr = &ia->ri_qp_attr;
->> 	struct ib_qp_init_attr *iattr = &ia->ri_qp_init_attr; @@ -480,9 +481,8
->> @@ connected:
->> 		wake_up_all(&ep->rep_connect_wait);
->> 		/*FALLTHROUGH*/
->> 	default:
->> -		dprintk("RPC:       %s: %pI4:%u (ep 0x%p): %s\n",
->> -			__func__, &addr->sin_addr.s_addr,
->> -			ntohs(addr->sin_port), ep,
->> +		dprintk("RPC:       %s: %pIS:%u (ep 0x%p): %s\n",
->> +			__func__, sap, rpc_get_port(sap), ep,
->> 			CONNECTION_MSG(event->event));
->> 		break;
+>> @@ -1509,7 +1509,7 @@ rpcrdma_buffer_put_sendbuf(struct rpcrdma_req
+>> *req, struct rpcrdma_buffer *buf)
 >> 	}
->> @@ -491,19 +491,16 @@ connected:
->> 	if (connstate == 1) {
->> 		int ird = attr->max_dest_rd_atomic;
->> 		int tird = ep->rep_remote_cma.responder_resources;
->> -		printk(KERN_INFO "rpcrdma: connection to %pI4:%u "
->> -			"on %s, memreg %d slots %d ird %d%s\n",
->> -			&addr->sin_addr.s_addr,
->> -			ntohs(addr->sin_port),
->> +
->> +		pr_info("rpcrdma: connection to %pIS:%u on %s, memreg %d
->> slots %d ird %d%s\n",
->> +			sap, rpc_get_port(sap),
->> 			ia->ri_id->device->name,
->> 			ia->ri_memreg_strategy,
->> 			xprt->rx_buf.rb_max_requests,
->> 			ird, ird < 4 && ird < tird / 2 ? " (low!)" : "");
->> 	} else if (connstate < 0) {
->> -		printk(KERN_INFO "rpcrdma: connection to %pI4:%u closed
->> (%d)\n",
->> -			&addr->sin_addr.s_addr,
->> -			ntohs(addr->sin_port),
->> -			connstate);
->> +		pr_info("rpcrdma: connection to %pIS:%u closed (%d)\n",
->> +			sap, rpc_get_port(sap), connstate);
->> 	}
->> #endif
+>> }
 >> 
+>> -/* rpcrdma_unmap_one() was already done by
+>> rpcrdma_deregister_frmr_external().
+>> +/* rpcrdma_unmap_one() was already done during deregistration.
+>>  * Redo only the ib_post_send().
+>>  */
+>> static void
+>> @@ -1889,85 +1889,6 @@ rpcrdma_unmap_one(struct rpcrdma_ia *ia, struct
+>> rpcrdma_mr_seg *seg)
+>> 				seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
+>> }
+>> 
+>> -static int
+>> -rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
+>> -			struct rpcrdma_ia *ia, struct rpcrdma_xprt *r_xprt)
+>> -{
+>> -	struct rpcrdma_mr_seg *seg1 = seg;
+>> -	struct ib_send_wr invalidate_wr, *bad_wr;
+>> -	int rc;
+>> -
+>> -	seg1->rl_mw->r.frmr.fr_state = FRMR_IS_INVALID;
+>> -
+>> -	memset(&invalidate_wr, 0, sizeof invalidate_wr);
+>> -	invalidate_wr.wr_id = (unsigned long)(void *)seg1->rl_mw;
+>> -	invalidate_wr.opcode = IB_WR_LOCAL_INV;
+>> -	invalidate_wr.ex.invalidate_rkey = seg1->rl_mw->r.frmr.fr_mr->rkey;
+>> -	DECR_CQCOUNT(&r_xprt->rx_ep);
+>> -
+>> -	read_lock(&ia->ri_qplock);
+>> -	while (seg1->mr_nsegs--)
+>> -		rpcrdma_unmap_one(ia, seg++);
+>> -	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
+>> -	read_unlock(&ia->ri_qplock);
+>> -	if (rc) {
+>> -		/* Force rpcrdma_buffer_get() to retry */
+>> -		seg1->rl_mw->r.frmr.fr_state = FRMR_IS_STALE;
+>> -		dprintk("RPC:       %s: failed ib_post_send for invalidate,"
+>> -			" status %i\n", __func__, rc);
+>> -	}
+>> -	return rc;
+>> -}
+>> -
+>> -static int
+>> -rpcrdma_deregister_fmr_external(struct rpcrdma_mr_seg *seg,
+>> -			struct rpcrdma_ia *ia)
+>> -{
+>> -	struct rpcrdma_mr_seg *seg1 = seg;
+>> -	LIST_HEAD(l);
+>> -	int rc;
+>> -
+>> -	list_add(&seg1->rl_mw->r.fmr->list, &l);
+>> -	rc = ib_unmap_fmr(&l);
+>> -	read_lock(&ia->ri_qplock);
+>> -	while (seg1->mr_nsegs--)
+>> -		rpcrdma_unmap_one(ia, seg++);
+>> -	read_unlock(&ia->ri_qplock);
+>> -	if (rc)
+>> -		dprintk("RPC:       %s: failed ib_unmap_fmr,"
+>> -			" status %i\n", __func__, rc);
+>> -	return rc;
+>> -}
+>> -
+>> -int
+>> -rpcrdma_deregister_external(struct rpcrdma_mr_seg *seg,
+>> -		struct rpcrdma_xprt *r_xprt)
+>> -{
+>> -	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+>> -	int nsegs = seg->mr_nsegs, rc;
+>> -
+>> -	switch (ia->ri_memreg_strategy) {
+>> -
+>> -	case RPCRDMA_ALLPHYSICAL:
+>> -		read_lock(&ia->ri_qplock);
+>> -		rpcrdma_unmap_one(ia, seg);
+>> -		read_unlock(&ia->ri_qplock);
+>> -		break;
+>> -
+>> -	case RPCRDMA_FRMR:
+>> -		rc = rpcrdma_deregister_frmr_external(seg, ia, r_xprt);
+>> -		break;
+>> -
+>> -	case RPCRDMA_MTHCAFMR:
+>> -		rc = rpcrdma_deregister_fmr_external(seg, ia);
+>> -		break;
+>> -
+>> -	default:
+>> -		break;
+>> -	}
+>> -	return nsegs;
+>> -}
+>> -
+>> /*
+>>  * Prepost any receive buffer, then post send.
+>>  *
+>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h
+>> b/net/sunrpc/xprtrdma/xprt_rdma.h index 7bf077b..3aabbb2 100644
+>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
+>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+>> @@ -338,6 +338,8 @@ struct rpcrdma_xprt;  struct rpcrdma_memreg_ops {
+>> 	int		(*ro_map)(struct rpcrdma_xprt *,
+>> 				  struct rpcrdma_mr_seg *, int, bool);
+>> +	void		(*ro_unmap)(struct rpcrdma_xprt *,
+>> +				    struct rpcrdma_req *, unsigned int);
+>> 	size_t		(*ro_maxpages)(struct rpcrdma_xprt *);
+>> 	const char	*ro_displayname;
+>> };
+>> @@ -405,9 +407,6 @@ void rpcrdma_buffer_put(struct rpcrdma_req *);  void
+>> rpcrdma_recv_buffer_get(struct rpcrdma_req *);  void
+>> rpcrdma_recv_buffer_put(struct rpcrdma_rep *);
+>> 
+>> -int rpcrdma_deregister_external(struct rpcrdma_mr_seg *,
+>> -				struct rpcrdma_xprt *);
+>> -
+>> struct rpcrdma_regbuf *rpcrdma_alloc_regbuf(struct rpcrdma_ia *,
+>> 					    size_t, gfp_t);
+>> void rpcrdma_free_regbuf(struct rpcrdma_ia *,
 >> 
 >> --
 >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
 >> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
 >> http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 Chuck Lever
