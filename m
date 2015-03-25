@@ -1,219 +1,254 @@
-From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 33/33] IB/cma: Join and leave multicast groups with IGMP
-Date: Thu, 26 Mar 2015 02:50:22 +0530
-Message-ID: <2334f3f5-0847-433b-ae77-1712894775a7@CMEXHTCAS2.ad.emulex.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+From: Mitesh Ahuja <Mitesh.Ahuja-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] perftest: Incorrect completion count in ib_write_bw.
+Date: Wed, 25 Mar 2015 09:23:45 +0000
+Message-ID: <4306D3FCDE7FF14BB4D6856D9B10D39C3A518FC7@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/mixed;
+	boundary="_000_4306D3FCDE7FF14BB4D6856D9B10D39C3A518FC7CMEXMB1ademulex_"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427318422-12004-1-git-send-email-somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: "gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--_000_4306D3FCDE7FF14BB4D6856D9B10D39C3A518FC7CMEXMB1ademulex_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Since RoCEv2 is a protocol over IP header it is required to send IGMP
-join and leave requests to the network when joining and leaving
-multicast groups.
+Fixed an issue with ib_write_bw, test hangs randomly with qp > 5.
+Completion count is incorrectly incremented by cq_mod even if posted work r=
+equests are less than cq_mod.
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c       | 78 ++++++++++++++++++++++++++++++++++---
- drivers/infiniband/core/multicast.c | 18 ++++++++-
- include/rdma/ib_sa.h                |  3 ++
- 3 files changed, 92 insertions(+), 7 deletions(-)
+src/perftest_resources.c |   10 ++++++++--
+1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 6f345e2..8f997d7 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -38,6 +38,7 @@
- #include <linux/in6.h>
- #include <linux/mutex.h>
- #include <linux/random.h>
-+#include <linux/igmp.h>
- #include <linux/idr.h>
- #include <linux/inetdevice.h>
- #include <linux/slab.h>
-@@ -196,6 +197,7 @@ struct cma_multicast {
- 	void			*context;
- 	struct sockaddr_storage	addr;
- 	struct kref		mcref;
-+	bool			igmp_joined;
- };
- 
- struct cma_work {
-@@ -283,6 +285,26 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
- 	hdr->ip_version = (ip_ver << 4) | (hdr->ip_version & 0xF);
- }
- 
-+static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
-+{
-+	struct in_device *in_dev = NULL;
-+
-+	if (ndev) {
-+		rtnl_lock();
-+		in_dev = __in_dev_get_rtnl(ndev);
-+		if (in_dev) {
-+			if (join)
-+				ip_mc_inc_group(in_dev,
-+						*(__be32 *)(mgid->raw+12));
-+			else
-+				ip_mc_dec_group(in_dev,
-+						*(__be32 *)(mgid->raw+12));
-+		}
-+		rtnl_unlock();
-+	}
-+	return (in_dev) ? 0 : -ENODEV;
-+}
-+
- static void cma_attach_to_dev(struct rdma_id_private *id_priv,
- 			      struct cma_device *cma_dev)
- {
-@@ -1076,6 +1098,20 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
- 			kfree(mc);
- 			break;
- 		case IB_LINK_LAYER_ETHERNET:
-+			if (mc->igmp_joined) {
-+				struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
-+				struct net_device *ndev = NULL;
-+
-+				if (dev_addr->bound_dev_if)
-+					ndev = dev_get_by_index(&init_net,
-+								dev_addr->bound_dev_if);
-+				if (ndev) {
-+					cma_igmp_send(ndev,
-+						      &mc->multicast.ib->rec.mgid,
-+						      false);
-+					dev_put(ndev);
-+				}
-+			}
- 			kref_put(&mc->mcref, release_mc);
- 			break;
- 		default:
-@@ -3356,7 +3392,7 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- {
- 	struct iboe_mcast_work *work;
- 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
--	int err;
-+	int err = 0;
- 	struct sockaddr *addr = (struct sockaddr *)&mc->addr;
- 	struct net_device *ndev = NULL;
- 
-@@ -3388,13 +3424,30 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- 	mc->multicast.ib->rec.rate = iboe_get_rate(ndev);
- 	mc->multicast.ib->rec.hop_limit = 1;
- 	mc->multicast.ib->rec.mtu = iboe_get_mtu(ndev->mtu);
-+	mc->multicast.ib->rec.ifindex = dev_addr->bound_dev_if;
-+	mc->multicast.ib->rec.net = &init_net;
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &mc->multicast.ib->rec.port_gid);
-+
-+	if (addr->sa_family == AF_INET) {
-+		mc->multicast.ib->rec.gid_type =
-+			id_priv->cma_dev->default_gid_type;
-+		if (mc->multicast.ib->rec.gid_type == IB_GID_TYPE_ROCE_V2)
-+			err = cma_igmp_send(ndev, &mc->multicast.ib->rec.mgid,
-+					    true);
-+		if (!err) {
-+			mc->igmp_joined = true;
-+			mc->multicast.ib->rec.hop_limit = IPV6_DEFAULT_HOPLIMIT;
-+		}
-+	} else {
-+		mc->multicast.ib->rec.gid_type = IB_GID_TYPE_IB;
-+	}
- 	dev_put(ndev);
--	if (!mc->multicast.ib->rec.mtu) {
-+	if (err || !mc->multicast.ib->rec.mtu) {
- 		err = -EINVAL;
- 		goto out2;
- 	}
--	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
--		    &mc->multicast.ib->rec.port_gid);
-+
- 	work->id = id_priv;
- 	work->mc = mc;
- 	INIT_WORK(&work->work, iboe_mcast_work_handler);
-@@ -3429,7 +3482,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	memcpy(&mc->addr, addr, rdma_addr_size(addr));
- 	mc->context = context;
- 	mc->id_priv = id_priv;
--
-+	mc->igmp_joined = false;
- 	spin_lock(&id_priv->lock);
- 	list_add(&mc->list, &id_priv->mc_list);
- 	spin_unlock(&id_priv->lock);
-@@ -3486,6 +3539,21 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 					kfree(mc);
- 					break;
- 				case IB_LINK_LAYER_ETHERNET:
-+					if (mc->igmp_joined) {
-+						struct rdma_dev_addr *dev_addr = &id->route.addr.dev_addr;
-+						struct net_device *ndev = NULL;
-+
-+						if (dev_addr->bound_dev_if)
-+							ndev = dev_get_by_index(&init_net,
-+										dev_addr->bound_dev_if);
-+						if (ndev) {
-+							cma_igmp_send(ndev,
-+								      &mc->multicast.ib->rec.mgid,
-+								      false);
-+							dev_put(ndev);
-+						}
-+						mc->igmp_joined = false;
-+					}
- 					kref_put(&mc->mcref, release_mc);
- 					break;
- 				default:
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index f1927f1..9cbee6c 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -729,8 +729,22 @@ int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
- 	u16 gid_index;
- 	u8 p;
- 
--	ret = ib_find_cached_gid(device, &rec->port_gid, IB_GID_TYPE_IB,
--				 NULL, 0, &p, &gid_index);
-+	switch (rdma_port_get_link_layer(device, port_num)) {
-+	case IB_LINK_LAYER_ETHERNET:
-+		ret = ib_find_cached_gid_by_port(device, &rec->port_gid,
-+						 rec->gid_type, port_num,
-+						 rec->net, rec->ifindex,
-+						 &gid_index);
-+		break;
-+	case IB_LINK_LAYER_INFINIBAND:
-+		ret = ib_find_cached_gid(device, &rec->port_gid,
-+					 IB_GID_TYPE_IB, NULL, 0, &p,
-+					 &gid_index);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
- 	if (ret)
- 		return ret;
- 
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 61bc231..653d538 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -198,6 +198,9 @@ struct ib_sa_mcmember_rec {
- 	u8           scope;
- 	u8           join_state;
- 	int          proxy_join;
-+	int	     ifindex;
-+	struct net  *net;
-+	enum ib_gid_type gid_type;
- };
- 
- /* Service Record Component Mask Sec 15.2.5.14 Ver 1.1	*/
--- 
-2.1.0
+diff --git a/src/perftest_resources.c b/src/perftest_resources.c
+index ac03c88..822690d 100755
+--- a/src/perftest_resources.c
++++ b/src/perftest_resources.c
+@@ -2400,6 +2400,7 @@ int run_iter_bw(struct pingpong_context *ctx,struct p=
+erftest_parameters *user_pa
+        int                     is_sending_burst =3D 0;
+        int                     cpu_mhz =3D 0;
+        int                     return_value =3D 0;
++       int                     qp_poll_ccnt =3D 0;
 
+        ALLOCATE(wc ,struct ibv_wc ,CTX_POLL_BATCH);
+
+@@ -2584,8 +2585,13 @@ int run_iter_bw(struct pingpong_context *ctx,struct =
+perftest_parameters *user_pa
+                                                return_value =3D 1;
+                                                goto cleaning;
+                                        }
+-                                       ctx->ccnt[(int)wc[i].wr_id] +=3D us=
+er_param->cq_mod;
+-                                       totccnt +=3D user_param->cq_mod;
++                                       qp_poll_ccnt =3D ctx->scnt[(int)wc[=
+i].wr_id] - ctx->ccnt[(int)wc[i].wr_id];
++
++                                       if (qp_poll_ccnt > user_param->cq_m=
+od)
++                                               qp_poll_ccnt =3D user_param=
+->cq_mod;
++
++                                       ctx->ccnt[(int)wc[i].wr_id] +=3D qp=
+_poll_ccnt;
++                                       totccnt +=3D qp_poll_ccnt;
+
+                                        if (user_param->noPeak =3D=3D OFF) =
+{
+
+--
+
+--_000_4306D3FCDE7FF14BB4D6856D9B10D39C3A518FC7CMEXMB1ademulex_
+Content-Disposition: attachment; filename="winmail.dat"
+Content-Transfer-Encoding: base64
+Content-Type: application/ms-tnef; name="winmail.dat"
+
+eJ8+Ig4xAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEJgAEAIQAAAEQzOEExREFC
+MURCQkMwNDNCNDVENzlDQTk3RjYwRENCAIMHAQ2ABAACAAAAAgACAAEFgAMADgAAAN8HAwAZAAkA
+FwAtAAMAUgEBIIADAA4AAADfBwMAGQAJABcALQADAFIBAQiABwAYAAAASVBNLk1pY3Jvc29mdCBN
+YWlsLk5vdGUAMQgBBIABAD0AAABbUEFUQ0hdIHBlcmZ0ZXN0OiBJbmNvcnJlY3QgY29tcGxldGlv
+biBjb3VudCBpbiBpYl93cml0ZV9idy4ALRYBA5AGAKgmAAA7AAAAAgF/AAEAAABBAAAAPDQzMDZE
+M0ZDREU3RkYxNEJCNEQ2ODU2RDlCMTBEMzlDM0E1MThGQzdAQ01FWE1CMS5hZC5lbXVsZXguY29t
+PgAAAAACARMQAQAAAOAcAAA8aHRtbCB4bWxuczp2PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29t
+OnZtbCIgeG1sbnM6bz0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6b2ZmaWNlIiB4
+bWxuczp3PSJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTp3b3JkIiB4bWxuczptPSJo
+dHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL29mZmljZS8yMDA0LzEyL29tbWwiIHhtbG5zPSJo
+dHRwOi8vd3d3LnczLm9yZy9UUi9SRUMtaHRtbDQwIj48aGVhZD48bWV0YSBodHRwLWVxdWl2PUNv
+bnRlbnQtVHlwZSBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9dXMtYXNjaWkiPjxtZXRhIG5h
+bWU9R2VuZXJhdG9yIGNvbnRlbnQ9Ik1pY3Jvc29mdCBXb3JkIDE0IChmaWx0ZXJlZCBtZWRpdW0p
+Ij48c3R5bGU+PCEtLQ0KLyogRm9udCBEZWZpbml0aW9ucyAqLw0KQGZvbnQtZmFjZQ0KCXtmb250
+LWZhbWlseTpDYWxpYnJpOw0KCXBhbm9zZS0xOjIgMTUgNSAyIDIgMiA0IDMgMiA0O30NCi8qIFN0
+eWxlIERlZmluaXRpb25zICovDQpwLk1zb05vcm1hbCwgbGkuTXNvTm9ybWFsLCBkaXYuTXNvTm9y
+bWFsDQoJe21hcmdpbjowaW47DQoJbWFyZ2luLWJvdHRvbTouMDAwMXB0Ow0KCWZvbnQtc2l6ZTox
+MS4wcHQ7DQoJZm9udC1mYW1pbHk6IkNhbGlicmkiLCJzYW5zLXNlcmlmIjt9DQphOmxpbmssIHNw
+YW4uTXNvSHlwZXJsaW5rDQoJe21zby1zdHlsZS1wcmlvcml0eTo5OTsNCgljb2xvcjpibHVlOw0K
+CXRleHQtZGVjb3JhdGlvbjp1bmRlcmxpbmU7fQ0KYTp2aXNpdGVkLCBzcGFuLk1zb0h5cGVybGlu
+a0ZvbGxvd2VkDQoJe21zby1zdHlsZS1wcmlvcml0eTo5OTsNCgljb2xvcjpwdXJwbGU7DQoJdGV4
+dC1kZWNvcmF0aW9uOnVuZGVybGluZTt9DQpzcGFuLkVtYWlsU3R5bGUxNw0KCXttc28tc3R5bGUt
+dHlwZTpwZXJzb25hbC1jb21wb3NlOw0KCWZvbnQtZmFtaWx5OiJDYWxpYnJpIiwic2Fucy1zZXJp
+ZiI7DQoJY29sb3I6d2luZG93dGV4dDt9DQouTXNvQ2hwRGVmYXVsdA0KCXttc28tc3R5bGUtdHlw
+ZTpleHBvcnQtb25seTsNCglmb250LWZhbWlseToiQ2FsaWJyaSIsInNhbnMtc2VyaWYiO30NCkBw
+YWdlIFdvcmRTZWN0aW9uMQ0KCXtzaXplOjguNWluIDExLjBpbjsNCgltYXJnaW46MS4waW4gMS4w
+aW4gMS4waW4gMS4waW47fQ0KZGl2LldvcmRTZWN0aW9uMQ0KCXtwYWdlOldvcmRTZWN0aW9uMTt9
+DQotLT48L3N0eWxlPjwhLS1baWYgZ3RlIG1zbyA5XT48eG1sPg0KPG86c2hhcGVkZWZhdWx0cyB2
+OmV4dD0iZWRpdCIgc3BpZG1heD0iMTAyNiIgLz4NCjwveG1sPjwhW2VuZGlmXS0tPjwhLS1baWYg
+Z3RlIG1zbyA5XT48eG1sPg0KPG86c2hhcGVsYXlvdXQgdjpleHQ9ImVkaXQiPg0KPG86aWRtYXAg
+djpleHQ9ImVkaXQiIGRhdGE9IjEiIC8+DQo8L286c2hhcGVsYXlvdXQ+PC94bWw+PCFbZW5kaWZd
+LS0+PC9oZWFkPjxib2R5IGxhbmc9RU4tVVMgbGluaz1ibHVlIHZsaW5rPXB1cnBsZT48ZGl2IGNs
+YXNzPVdvcmRTZWN0aW9uMT48cCBjbGFzcz1Nc29Ob3JtYWw+Rml4ZWQgYW4gaXNzdWUgd2l0aCBp
+Yl93cml0ZV9idywgdGVzdCBoYW5ncyByYW5kb21seSB3aXRoIHFwICZndDsgNS48bzpwPjwvbzpw
+PjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+Q29tcGxldGlvbiBjb3VudCBpcyBpbmNvcnJlY3RseSBp
+bmNyZW1lbnRlZCBieSBjcV9tb2QgZXZlbiBpZiBwb3N0ZWQgd29yayByZXF1ZXN0cyBhcmUgbGVz
+cyB0aGFuIGNxX21vZC48bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+PG86cD4mbmJz
+cDs8L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPlNpZ25lZC1vZmYtYnk6IE1pdGVzaCBBaHVq
+YSAmbHQ7bWl0ZXNoLmFodWphQGVtdWxleC5jb20mZ3Q7PG86cD48L286cD48L3A+PHAgY2xhc3M9
+TXNvTm9ybWFsPi0tLTxvOnA+PC9vOnA+PC9wPjxwIGNsYXNzPU1zb05vcm1hbD4gc3JjL3BlcmZ0
+ZXN0X3Jlc291cmNlcy5jIHwmbmJzcDsmbmJzcDsgMTAgKysrKysrKystLTxvOnA+PC9vOnA+PC9w
+PjxwIGNsYXNzPU1zb05vcm1hbD4gMSBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDIg
+ZGVsZXRpb25zKC0pPG86cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPjxvOnA+Jm5ic3A7
+PC9vOnA+PC9wPjxwIGNsYXNzPU1zb05vcm1hbD5kaWZmIC0tZ2l0IGEvc3JjL3BlcmZ0ZXN0X3Jl
+c291cmNlcy5jIGIvc3JjL3BlcmZ0ZXN0X3Jlc291cmNlcy5jPG86cD48L286cD48L3A+PHAgY2xh
+c3M9TXNvTm9ybWFsPmluZGV4IGFjMDNjODguLjgyMjY5MGQgMTAwNzU1PG86cD48L286cD48L3A+
+PHAgY2xhc3M9TXNvTm9ybWFsPi0tLSBhL3NyYy9wZXJmdGVzdF9yZXNvdXJjZXMuYzxvOnA+PC9v
+OnA+PC9wPjxwIGNsYXNzPU1zb05vcm1hbD4rKysgYi9zcmMvcGVyZnRlc3RfcmVzb3VyY2VzLmM8
+bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+QEAgLTI0MDAsNiArMjQwMCw3IEBAIGlu
+dCBydW5faXRlcl9idyhzdHJ1Y3QgcGluZ3BvbmdfY29udGV4dCAqY3R4LHN0cnVjdCBwZXJmdGVz
+dF9wYXJhbWV0ZXJzICp1c2VyX3BhPG86cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPiZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBpbnQmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgaXNfc2Vu
+ZGluZ19idXJzdCA9IDA7PG86cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPiZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBpbnQmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsgJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Y3B1X21oeiA9IDA7
+PG86cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyBpbnQmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgcmV0dXJuX3ZhbHVlID0gMDs8bzpwPjwvbzpw
+PjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+KyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyBpbnQmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsgcXBfcG9sbF9jY250ID0gMDs8bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1N
+c29Ob3JtYWw+PG86cD4mbmJzcDs8L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPiZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBBTExPQ0FURSh3YyAsc3RydWN0IGli
+dl93YyAsQ1RYX1BPTExfQkFUQ0gpOzxvOnA+PC9vOnA+PC9wPjxwIGNsYXNzPU1zb05vcm1hbD48
+bzpwPiZuYnNwOzwvbzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+QEAgLTI1ODQsOCArMjU4NSwx
+MyBAQCBpbnQgcnVuX2l0ZXJfYncoc3RydWN0IHBpbmdwb25nX2NvbnRleHQgKmN0eCxzdHJ1Y3Qg
+cGVyZnRlc3RfcGFyYW1ldGVycyAqdXNlcl9wYTxvOnA+PC9vOnA+PC9wPjxwIGNsYXNzPU1zb05v
+cm1hbD4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsgcmV0dXJuX3ZhbHVlID0gMTs8bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IGdvdG8g
+Y2xlYW5pbmc7PG86cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPiZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyAmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDt9PG86cD48
+L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPi0mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgY3R4LSZndDtjY250WyhpbnQpd2NbaV0ud3Jf
+aWRdICs9IHVzZXJfcGFyYW0tJmd0O2NxX21vZDs8bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1Nc29O
+b3JtYWw+LSZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyB0b3RjY250ICs9IHVzZXJfcGFyYW0tJmd0O2NxX21vZDs8bzpwPjwvbzpwPjwvcD48
+cCBjbGFzcz1Nc29Ob3JtYWw+KyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyBxcF9wb2xsX2NjbnQgPSBjdHgtJmd0O3NjbnRbKGludCl3Y1tp
+XS53cl9pZF0gLSBjdHgtJmd0O2NjbnRbKGludCl3Y1tpXS53cl9pZF07PG86cD48L286cD48L3A+
+PHAgY2xhc3M9TXNvTm9ybWFsPis8bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+KyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBp
+ZiAocXBfcG9sbF9jY250ICZndDsgdXNlcl9wYXJhbS0mZ3Q7Y3FfbW9kKTxvOnA+PC9vOnA+PC9w
+PjxwIGNsYXNzPU1zb05vcm1hbD4rJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7IHFwX3BvbGxfY2NudCA9IHVzZXJfcGFyYW0tJmd0O2NxX21vZDs8bzpwPjwv
+bzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+KzxvOnA+PC9vOnA+PC9wPjxwIGNsYXNzPU1zb05v
+cm1hbD4rJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7IGN0eC0mZ3Q7Y2NudFsoaW50KXdjW2ldLndyX2lkXSArPSBxcF9wb2xsX2NjbnQ7PG86
+cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPismbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgdG90Y2NudCArPSBxcF9wb2xsX2NjbnQ7
+PG86cD48L286cD48L3A+PHAgY2xhc3M9TXNvTm9ybWFsPjxvOnA+Jm5ic3A7PC9vOnA+PC9wPjxw
+IGNsYXNzPU1zb05vcm1hbD4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgaWYgKHVzZXJfcGFyYW0tJmd0O25vUGVhayA9PSBPRkYp
+IHs8bzpwPjwvbzpwPjwvcD48cCBjbGFzcz1Nc29Ob3JtYWw+PG86cD4mbmJzcDs8L286cD48L3A+
+PHAgY2xhc3M9TXNvTm9ybWFsPi0tPG86cD48L286cD48L3A+PC9kaXY+PC9ib2R5PjwvaHRtbD4f
+AEIAAQAAABoAAABNAGkAdABlAHMAaAAgAEEAaAB1AGoAYQAAAAAAHwBlAAEAAAAwAAAATQBpAHQA
+ZQBzAGgALgBBAGgAdQBqAGEAQABFAG0AdQBsAGUAeAAuAEMAbwBtAAAAHwBkAAEAAAAKAAAAUwBN
+AFQAUAAAAAAAAgFBAAEAAABsAAAAAAAAAIErH6S+oxAZnW4A3QEPVAIAAACATQBpAHQAZQBzAGgA
+IABBAGgAdQBqAGEAAABTAE0AVABQAAAATQBpAHQAZQBzAGgALgBBAGgAdQBqAGEAQABFAG0AdQBs
+AGUAeAAuAEMAbwBtAAAAHwACXQEAAAAwAAAATQBpAHQAZQBzAGgALgBBAGgAdQBqAGEAQABFAG0A
+dQBsAGUAeAAuAEMAbwBtAAAAHwDlXwEAAAA4AAAAcwBpAHAAOgBtAGkAdABlAHMAaAAuAGEAaAB1
+AGoAYQBAAGUAbQB1AGwAZQB4AC4AYwBvAG0AAAAfABoMAQAAABoAAABNAGkAdABlAHMAaAAgAEEA
+aAB1AGoAYQAAAAAAHwAfDAEAAAAwAAAATQBpAHQAZQBzAGgALgBBAGgAdQBqAGEAQABFAG0AdQBs
+AGUAeAAuAEMAbwBtAAAAHwAeDAEAAAAKAAAAUwBNAFQAUAAAAAAAAgEZDAEAAABsAAAAAAAAAIEr
+H6S+oxAZnW4A3QEPVAIAAACATQBpAHQAZQBzAGgAIABBAGgAdQBqAGEAAABTAE0AVABQAAAATQBp
+AHQAZQBzAGgALgBBAGgAdQBqAGEAQABFAG0AdQBsAGUAeAAuAEMAbwBtAAAAHwABXQEAAAAwAAAA
+TQBpAHQAZQBzAGgALgBBAGgAdQBqAGEAQABFAG0AdQBsAGUAeAAuAEMAbwBtAAAAHwD4PwEAAAAa
+AAAATQBpAHQAZQBzAGgAIABBAGgAdQBqAGEAAAAAAB8AI0ABAAAAMAAAAE0AaQB0AGUAcwBoAC4A
+QQBoAHUAagBhAEAARQBtAHUAbABlAHgALgBDAG8AbQAAAB8AIkABAAAACgAAAFMATQBUAFAAAAAA
+AAIB+T8BAAAAbAAAAAAAAACBKx+kvqMQGZ1uAN0BD1QCAAAAgE0AaQB0AGUAcwBoACAAQQBoAHUA
+agBhAAAAUwBNAFQAUAAAAE0AaQB0AGUAcwBoAC4AQQBoAHUAagBhAEAARQBtAHUAbABlAHgALgBD
+AG8AbQAAAB8ACV0BAAAAMAAAAE0AaQB0AGUAcwBoAC4AQQBoAHUAagBhAEAARQBtAHUAbABlAHgA
+LgBDAG8AbQAAAB8AMUABAAAAAgAAAAAAAAALAEA6AQAAAB8AMEABAAAAAgAAAAAAAAAfABoAAQAA
+ABIAAABJAFAATQAuAE4AbwB0AGUAAAAAAAMA8T8JBAAACwBAOgEAAAADAP0/5AQAAAIBCzABAAAA
+EAAAANOKHasdu8BDtF15ypf2DcsDABcAAQAAAEAAOQCAJkhk3WbQAUAACDAeW0pk3WbQAQsAKQAA
+AAAACwAjAAAAAAAfAACAhgMCAAAAAADAAAAAAAAARgEAAAAeAAAAYQBjAGMAZQBwAHQAbABhAG4A
+ZwB1AGEAZwBlAAAAAAABAAAADAAAAGUAbgAtAFUAUwAAAAsAAIAIIAYAAAAAAMAAAAAAAABGAAAA
+AAaFAAAAAAAAHwA3AAEAAAB6AAAAWwBQAEEAVABDAEgAXQAgAHAAZQByAGYAdABlAHMAdAA6ACAA
+SQBuAGMAbwByAHIAZQBjAHQAIABjAG8AbQBwAGwAZQB0AGkAbwBuACAAYwBvAHUAbgB0ACAAaQBu
+ACAAaQBiAF8AdwByAGkAdABlAF8AYgB3AC4AAAAAAB8APQABAAAAAgAAAAAAAAADADYAAAAAAAIB
+cQABAAAAFgAAAAHQZtLdSC6eTdzIikVhqjVXXQB3muYAAB8AcAABAAAAegAAAFsAUABBAFQAQwBI
+AF0AIABwAGUAcgBmAHQAZQBzAHQAOgAgAEkAbgBjAG8AcgByAGUAYwB0ACAAYwBvAG0AcABsAGUA
+dABpAG8AbgAgAGMAbwB1AG4AdAAgAGkAbgAgAGkAYgBfAHcAcgBpAHQAZQBfAGIAdwAuAAAAAAAf
+ADUQAQAAAIIAAAA8ADQAMwAwADYARAAzAEYAQwBEAEUANwBGAEYAMQA0AEIAQgA0AEQANgA4ADUA
+NgBEADkAQgAxADAARAAzADkAQwAzAEEANQAxADgARgBDADcAQABDAE0ARQBYAE0AQgAxAC4AYQBk
+AC4AZQBtAHUAbABlAHgALgBjAG8AbQA+AAAAAAADAN4/n04AAAsAAIAIIAYAAAAAAMAAAAAAAABG
+AAAAAAOFAAAAAAAAAwAAgAggBgAAAAAAwAAAAAAAAEYAAAAAAYUAAAAAAAADAIAQ/////0AABzDW
+YM5j3WbQAQsAAgABAAAAAwAmAAAAAAACAUcAAQAAADoAAABjPVVTO2E9IDtwPUVtdWxleCBDb3Jw
+b3JhdGk7bD1DTUVYTUIxLTE1MDMyNTA5MjM0NVotMTA4NTIAAAACARAwAQAAAEYAAAAAAAAAxDrw
+wcVciUuXR7bD8Z3DlQcAQwbT/N5/8Uu01oVtmxDTnAAAAASX9gAA7u8RlYlTpkGVOAj2IjZ40AAA
+Cz+PGQAAAAAfAPo/AQAAABoAAABNAGkAdABlAHMAaAAgAEEAaAB1AGoAYQAAAAAAAwACWQAAFgAD
+AAlZAgAAAAMAAIAIIAYAAAAAAMAAAAAAAABGAAAAABCFAAAAAAAACwAAgAggBgAAAAAAwAAAAAAA
+AEYAAAAADoUAAAAAAABAAACACCAGAAAAAADAAAAAAAAARgAAAAC/hQAA0GAkU9Nm0AEDAACACCAG
+AAAAAADAAAAAAAAARgAAAAAYhQAAAAAAAAsAAIAIIAYAAAAAAMAAAAAAAABGAAAAAIKFAAAAAAAA
+AwANNP0/AAAfAACAhgMCAAAAAADAAAAAAAAARgEAAAAgAAAAeAAtAG0AcwAtAGgAYQBzAC0AYQB0
+AHQAYQBjAGgAAAABAAAAAgAAAAAAAAAfAACAhgMCAAAAAADAAAAAAAAARgEAAAAiAAAAeAAtAG8A
+cgBpAGcAaQBuAGEAdABpAG4AZwAtAGkAcAAAAAAAAQAAACAAAABbADEAMAAuADIAMgA2AC4AMQA5
+ADMALgAyADMAXQAAAFdn
+
+--_000_4306D3FCDE7FF14BB4D6856D9B10D39C3A518FC7CMEXMB1ademulex_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
