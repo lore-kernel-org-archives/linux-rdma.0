@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 21/33] IB/mlx4: Replace spin_lock with rw_semaphore
-Date: Thu, 26 Mar 2015 02:50:10 +0530
-Message-ID: <b4463141-8858-494a-bce0-1e994946e657@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v3 for-next 23/33] net/mlx4: Postpone the registration of net_device
+Date: Thu, 26 Mar 2015 02:50:12 +0530
+Message-ID: <13871ae3-4fe4-4aa9-a7d7-61a2ea4f2a48@CMEXHTCAS2.ad.emulex.com>
 References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,133 +14,111 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Protection on iboe->netdevs is no longer required to be from an atomic context.
-Replacing a spin_lock with a semaphore is allowed and makes more sense.
+The mlx4 network driver was registered in the context of the 'add'
+function of the core driver (called when HW should be registered).
+This makes the netdev event NETDEV_REGISTER to be sent in a context
+where the answer to get_protocol_dev() callback returns NULL. This may
+be confusing to listeners of netdev events.
+This patch is a preparation to the patch that implements the
+get_netdev() callback in the IB/mlx4 driver.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    | 27 ++++++++++-----------------
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  2 +-
- 2 files changed, 11 insertions(+), 18 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_main.c | 36 ++++++++++++++++------------
+ drivers/net/ethernet/mellanox/mlx4/intf.c    |  3 +++
+ include/linux/mlx4/driver.h                  |  1 +
+ 3 files changed, 25 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 91caffc..d8b227e 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -369,7 +369,7 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	props->active_mtu	= IB_MTU_256;
- 	if (is_bonded)
- 		rtnl_lock(); /* required to get upper dev */
--	spin_lock_bh(&iboe->lock);
-+	down_read(&iboe->sem);
- 	ndev = iboe->netdevs[port - 1];
- 	if (ndev && is_bonded)
- 		ndev = netdev_master_upper_dev_get(ndev);
-@@ -383,7 +383,7 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 					IB_PORT_ACTIVE : IB_PORT_DOWN;
- 	props->phys_state	= state_to_phys_state(props->state);
- out_unlock:
--	spin_unlock_bh(&iboe->lock);
-+	up_read(&iboe->sem);
- 	if (is_bonded)
- 		rtnl_unlock();
- out:
-@@ -825,11 +825,11 @@ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
- 	if (!mqp->port)
- 		return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+index 2859ac6..64b4f8d2 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+@@ -219,6 +219,26 @@ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
+ 	kfree(mdev);
+ }
  
--	spin_lock_bh(&mdev->iboe.lock);
-+	down_read(&mdev->iboe.sem);
- 	ndev = mdev->iboe.netdevs[mqp->port - 1];
- 	if (ndev)
- 		dev_hold(ndev);
--	spin_unlock_bh(&mdev->iboe.lock);
-+	up_read(&mdev->iboe.sem);
- 
- 	if (ndev) {
- 		ret = 1;
-@@ -1330,7 +1330,6 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	struct mlx4_ib_dev *mdev = to_mdev(ibqp->device);
- 	struct mlx4_dev *dev = mdev->dev;
- 	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
--	struct net_device *ndev;
- 	struct mlx4_ib_gid_entry *ge;
- 	enum mlx4_protocol prot =  MLX4_PROT_IB_IPV6;
- 	struct mlx4_flow_reg_id reg_id = {0, 0};
-@@ -1370,13 +1369,6 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	mutex_lock(&mqp->mutex);
- 	ge = find_gid_entry(mqp, gid->raw);
- 	if (ge) {
--		spin_lock_bh(&mdev->iboe.lock);
--		ndev = ge->added ? mdev->iboe.netdevs[ge->port - 1] : NULL;
--		if (ndev)
--			dev_hold(ndev);
--		spin_unlock_bh(&mdev->iboe.lock);
--		if (ndev)
--			dev_put(ndev);
- 		list_del(&ge->list);
- 		kfree(ge);
- 	} else
-@@ -1543,7 +1535,7 @@ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 
- 	iboe = &ibdev->iboe;
- 
--	spin_lock_bh(&iboe->lock);
-+	down_write(&iboe->sem);
- 	mlx4_foreach_ib_transport_port(port, ibdev->dev) {
- 
- 		iboe->netdevs[port - 1] =
-@@ -1555,7 +1547,7 @@ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 			update_qps_port = port;
- 
- 	}
--	spin_unlock_bh(&iboe->lock);
-+	up_write(&iboe->sem);
- 
- 	if (update_qps_port > 0)
- 		mlx4_ib_update_qps(ibdev, dev, update_qps_port);
-@@ -1848,7 +1840,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 
- 	mlx4_ib_alloc_eqs(dev, ibdev);
- 
--	spin_lock_init(&iboe->lock);
-+	init_rwsem(&iboe->sem);
- 
- 	if (init_node_data(ibdev))
- 		goto err_map;
-@@ -2153,7 +2145,8 @@ static void handle_bonded_port_state_event(struct work_struct *work)
- 	struct ib_event ibev;
- 
- 	kfree(ew);
--	spin_lock_bh(&ibdev->iboe.lock);
++static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
++{
++	int i;
++	struct mlx4_en_dev *mdev = ctx;
 +
-+	down_read(&ibdev->iboe.sem);
- 	for (i = 0; i < MLX4_MAX_PORTS; ++i) {
- 		struct net_device *curr_netdev = ibdev->iboe.netdevs[i];
++	/* Create a netdev for each port */
++	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
++		mlx4_info(mdev, "Activating port:%d\n", i);
++		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
++			mdev->pndev[i] = NULL;
++	}
++
++	/* register notifier */
++	mdev->nb.notifier_call = mlx4_en_netdev_event;
++	if (register_netdevice_notifier(&mdev->nb)) {
++		mdev->nb.notifier_call = NULL;
++		mlx4_err(mdev, "Failed to create notifier\n");
++	}
++}
++
+ static void *mlx4_en_add(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_en_dev *mdev;
+@@ -292,21 +312,6 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
+ 	mutex_init(&mdev->state_lock);
+ 	mdev->device_up = true;
  
-@@ -2165,7 +2158,7 @@ static void handle_bonded_port_state_event(struct work_struct *work)
- 		bonded_port_state = (bonded_port_state != IB_PORT_ACTIVE) ?
- 			curr_port_state : IB_PORT_ACTIVE;
- 	}
--	spin_unlock_bh(&ibdev->iboe.lock);
-+	up_read(&ibdev->iboe.sem);
+-	/* Setup ports */
+-
+-	/* Create a netdev for each port */
+-	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
+-		mlx4_info(mdev, "Activating port:%d\n", i);
+-		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
+-			mdev->pndev[i] = NULL;
+-	}
+-	/* register notifier */
+-	mdev->nb.notifier_call = mlx4_en_netdev_event;
+-	if (register_netdevice_notifier(&mdev->nb)) {
+-		mdev->nb.notifier_call = NULL;
+-		mlx4_err(mdev, "Failed to create notifier\n");
+-	}
+-
+ 	return mdev;
  
- 	ibev.device = &ibdev->ib_dev;
- 	ibev.element.port_num = 1;
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index e3805a4..166ebf9 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -455,7 +455,7 @@ struct mlx4_ib_sriov {
+ err_mr:
+@@ -330,6 +335,7 @@ static struct mlx4_interface mlx4_en_interface = {
+ 	.event		= mlx4_en_event,
+ 	.get_dev	= mlx4_en_get_netdev,
+ 	.protocol	= MLX4_PROT_ETH,
++	.activate	= mlx4_en_activate,
  };
  
- struct mlx4_ib_iboe {
--	spinlock_t		lock;
-+	struct rw_semaphore	sem; /* guard from concurrent access to data in this struct */
- 	struct net_device      *netdevs[MLX4_MAX_PORTS];
- 	atomic64_t		mac[MLX4_MAX_PORTS];
- 	struct notifier_block 	nb;
+ static void mlx4_en_verify_params(void)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
+index a1a5985..ccd4030 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/intf.c
++++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
+@@ -63,8 +63,11 @@ static void mlx4_add_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
+ 		spin_lock_irq(&priv->ctx_lock);
+ 		list_add_tail(&dev_ctx->list, &priv->ctx_list);
+ 		spin_unlock_irq(&priv->ctx_lock);
++		if (intf->activate)
++			intf->activate(&priv->dev, dev_ctx->context);
+ 	} else
+ 		kfree(dev_ctx);
++
+ }
+ 
+ static void mlx4_remove_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
+diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
+index 9553a73..5a06d96 100644
+--- a/include/linux/mlx4/driver.h
++++ b/include/linux/mlx4/driver.h
+@@ -59,6 +59,7 @@ struct mlx4_interface {
+ 	void			(*event) (struct mlx4_dev *dev, void *context,
+ 					  enum mlx4_dev_event event, unsigned long param);
+ 	void *			(*get_dev)(struct mlx4_dev *dev, void *context, u8 port);
++	void			(*activate)(struct mlx4_dev *dev, void *context);
+ 	struct list_head	list;
+ 	enum mlx4_protocol	protocol;
+ 	int			flags;
 -- 
 2.1.0
 
