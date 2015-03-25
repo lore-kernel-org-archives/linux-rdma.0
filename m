@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 25/33] IB/mlx4: Implement ib_device callback - get_netdev
-Date: Thu, 26 Mar 2015 02:50:14 +0530
-Message-ID: <87913518-05db-4c2b-9cf9-587d5dae1517@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v3 for-next 24/33] IB/mlx4: Advertise RoCE support in port capabilities
+Date: Thu, 26 Mar 2015 02:50:13 +0530
+Message-ID: <233b0d6e-abf5-4625-99d6-31a99ce31a43@CMEXHTCAS2.ad.emulex.com>
 References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,113 +14,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is a new callback that is required for RoCEv2 support.
-In port aggregation mode it is required to return the netdev of the
-active port so  support in mlx4 core driver to figure out that port
-identity is required.
+The port capability flags should indicate the support in RoCE modes (V1
+or V2) of the port. The mlx4 driver sets these flags according to the
+capabilities reported by the HW.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c         | 29 +++++++++++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx4/main.c | 18 ++++++++++++++++++
- include/linux/mlx4/driver.h               |  1 +
- 3 files changed, 48 insertions(+)
+ drivers/infiniband/hw/mlx4/main.c         |  6 ++++++
+ drivers/net/ethernet/mellanox/mlx4/fw.c   |  5 ++++-
+ drivers/net/ethernet/mellanox/mlx4/main.c |  6 +++++-
+ include/linux/mlx4/device.h               | 13 ++++++++++---
+ 4 files changed, 25 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bf87a95..04e6603 100644
+index 32cd009..bf87a95 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -47,6 +47,8 @@
- #include <rdma/ib_addr.h>
- #include <rdma/ib_cache.h>
+@@ -359,6 +359,12 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 						IB_WIDTH_4X : IB_WIDTH_1X;
+ 	props->active_speed	= IB_SPEED_QDR;
+ 	props->port_cap_flags	= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
++
++	if (mdev->dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE)
++		props->port_cap_flags	|= IB_PORT_ROCE;
++	if (mdev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2)
++		props->port_cap_flags	|= IB_PORT_ROCE_V2 | IB_PORT_ROCE;
++
+ 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
+ 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
+ 	props->pkey_tbl_len	= 1;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index 3702fd1..d573e73 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -146,7 +146,8 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+ 		[17] = "Asymmetric EQs support",
+ 		[18] = "More than 80 VFs support",
+ 		[19] = "Performance optimized for limited rule configuration flow steering support",
+-		[21] = "Port Remap support"
++		[21] = "Port Remap support",
++		[22] = "RoCEv2 support"
+ 	};
+ 	int i;
  
-+#include <net/bonding.h>
-+
- #include <linux/mlx4/driver.h>
- #include <linux/mlx4/cmd.h>
- #include <linux/mlx4/qp.h>
-@@ -1527,6 +1529,32 @@ unlock:
- 	mutex_unlock(&ibdev->qp1_proxy_lock[port - 1]);
- }
- 
-+static struct net_device *mlx4_ib_get_netdev(struct ib_device *device, u8 port_num)
-+{
-+	struct mlx4_ib_dev *ibdev = to_mdev(device);
-+
-+	if (mlx4_is_bonded(ibdev->dev)) {
-+		struct net_device *dev;
-+		struct net_device *upper = NULL;
-+
-+		rcu_read_lock();
-+
-+		dev = mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
-+		if (dev)
-+			upper = netdev_master_upper_dev_get_rcu(dev);
-+		else
-+			goto unlock;
-+		if (upper)
-+			dev = bond_option_active_slave_get_rcu(netdev_priv(upper));
-+unlock:
-+		rcu_read_unlock();
-+
-+		return dev;
-+	}
-+
-+	return mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port_num);
-+}
-+
- static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
- 				 struct net_device *dev,
- 				 unsigned long event)
-@@ -1806,6 +1834,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->ib_dev.attach_mcast	= mlx4_ib_mcg_attach;
- 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
- 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
-+	ibdev->ib_dev.get_netdev	= mlx4_ib_get_netdev;
- 
- 	if (!mlx4_is_slave(ibdev->dev)) {
- 		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
+@@ -852,6 +853,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_EQE_STRIDE;
+ 	MLX4_GET(dev_cap->bmme_flags, outbox,
+ 		 QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
++	if (dev_cap->bmme_flags & MLX4_FLAG_ROCE_V1_V2)
++		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_ROCE_V1_V2;
+ 	if (dev_cap->bmme_flags & MLX4_FLAG_PORT_REMAP)
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_PORT_REMAP;
+ 	MLX4_GET(field, outbox, QUERY_DEV_CAP_CONFIG_DEV_OFFSET);
 diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 29c60fd..3f469d3 100644
+index 1893a57..29c60fd 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1241,6 +1241,24 @@ int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p)
- }
- EXPORT_SYMBOL_GPL(mlx4_port_map_set);
+@@ -386,8 +386,12 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 	if (mlx4_priv(dev)->pci_dev_data & MLX4_PCI_DEV_FORCE_SENSE_PORT)
+ 		dev->caps.flags |= MLX4_DEV_CAP_FLAG_SENSE_SUPPORT;
+ 	/* Don't do sense port on multifunction devices (for now at least) */
+-	if (mlx4_is_mfunc(dev))
++	/* Don't do enable RoCE V2 on multifunction devices */
++	if (mlx4_is_mfunc(dev)) {
+ 		dev->caps.flags &= ~MLX4_DEV_CAP_FLAG_SENSE_SUPPORT;
++		dev_cap->flags2 &= ~MLX4_DEV_CAP_FLAG2_ROCE_V1_V2;
++		mlx4_dbg(dev, "RoCE V2 is not supported when SR-IOV is enabled\n");
++	}
  
-+int mlx4_port_map_get(struct mlx4_dev *dev, u8 vport, u8 *pport)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+
-+	if (!pport)
-+		return -EINVAL;
-+	*pport = 0;
-+
-+	if (vport == 1)
-+		*pport = priv->v2p.port1;
-+	else if (vport == 2)
-+		*pport = priv->v2p.port2;
-+	if (!*pport)
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_port_map_get);
-+
- static int mlx4_load_fw(struct mlx4_dev *dev)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 5a06d96..a992971 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -81,6 +81,7 @@ struct mlx4_port_map {
+ 	if (mlx4_low_memory_profile()) {
+ 		dev->caps.log_num_macs  = MLX4_MIN_LOG_NUM_MAC;
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 9a05e73..9bdf157 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -202,7 +202,8 @@ enum {
+ 	MLX4_DEV_CAP_FLAG2_SYS_EQS		= 1LL <<  17,
+ 	MLX4_DEV_CAP_FLAG2_80_VFS		= 1LL <<  18,
+ 	MLX4_DEV_CAP_FLAG2_FS_A0		= 1LL <<  19,
+-	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21
++	MLX4_DEV_CAP_FLAG2_PORT_REMAP		= 1LL <<  21,
++	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1LL <<  22
  };
  
- int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p);
-+int mlx4_port_map_get(struct mlx4_dev *dev, u8 vport, u8 *pport);
+ enum {
+@@ -250,6 +251,7 @@ enum {
+ 	MLX4_BMME_FLAG_TYPE_2_WIN	= 1 <<  9,
+ 	MLX4_BMME_FLAG_RESERVED_LKEY	= 1 << 10,
+ 	MLX4_BMME_FLAG_FAST_REG_WR	= 1 << 11,
++	MLX4_BMME_FLAG_ROCE_V1_V2	= 1 << 19,
+ 	MLX4_BMME_FLAG_PORT_REMAP	= 1 << 24,
+ 	MLX4_BMME_FLAG_VSD_INIT2RTR	= 1 << 28,
+ };
+@@ -258,6 +260,10 @@ enum {
+ 	MLX4_FLAG_PORT_REMAP		= MLX4_BMME_FLAG_PORT_REMAP
+ };
  
- void *mlx4_get_protocol_dev(struct mlx4_dev *dev, enum mlx4_protocol proto, int port);
++enum {
++	MLX4_FLAG_ROCE_V1_V2		= MLX4_BMME_FLAG_ROCE_V1_V2
++};
++
+ enum mlx4_event {
+ 	MLX4_EVENT_TYPE_COMP		   = 0x00,
+ 	MLX4_EVENT_TYPE_PATH_MIG	   = 0x01,
+@@ -888,9 +894,10 @@ struct mlx4_mad_ifc {
+ 		if (((dev)->caps.port_mask[port] != MLX4_PORT_TYPE_IB))
+ 
+ #define mlx4_foreach_ib_transport_port(port, dev)                         \
+-	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)	  \
++	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)       \
+ 		if (((dev)->caps.port_mask[port] == MLX4_PORT_TYPE_IB) || \
+-			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE))
++			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) || \
++			((dev)->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2))
+ 
+ #define MLX4_INVALID_SLAVE_ID	0xFF
  
 -- 
 2.1.0
