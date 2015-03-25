@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 23/33] net/mlx4: Postpone the registration of net_device
-Date: Thu, 26 Mar 2015 02:50:12 +0530
-Message-ID: <13871ae3-4fe4-4aa9-a7d7-61a2ea4f2a48@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v3 for-next 22/33] IB/mlx4: Lock with RCU instead of RTNL
+Date: Thu, 26 Mar 2015 02:50:11 +0530
+Message-ID: <1b745f6c-6e0f-45d5-87e8-4405dd3224e7@CMEXHTCAS2.ad.emulex.com>
 References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,111 +14,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The mlx4 network driver was registered in the context of the 'add'
-function of the core driver (called when HW should be registered).
-This makes the netdev event NETDEV_REGISTER to be sent in a context
-where the answer to get_protocol_dev() callback returns NULL. This may
-be confusing to listeners of netdev events.
-This patch is a preparation to the patch that implements the
-get_netdev() callback in the IB/mlx4 driver.
+The function eth_link_query_port() used to take the RTNL lock when
+call to netdev_master_upper_dev_get() was necessary. This makes it
+impossible to call this function with RTNL lock is held. Calling
+netdev_master_upper_dev_get_rcu() and locking with RCU instead solve
+this problem.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/en_main.c | 36 ++++++++++++++++------------
- drivers/net/ethernet/mellanox/mlx4/intf.c    |  3 +++
- include/linux/mlx4/driver.h                  |  1 +
- 3 files changed, 25 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-index 2859ac6..64b4f8d2 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-@@ -219,6 +219,26 @@ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
- 	kfree(mdev);
- }
- 
-+static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
-+{
-+	int i;
-+	struct mlx4_en_dev *mdev = ctx;
-+
-+	/* Create a netdev for each port */
-+	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
-+		mlx4_info(mdev, "Activating port:%d\n", i);
-+		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
-+			mdev->pndev[i] = NULL;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index d8b227e..32cd009 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -367,14 +367,15 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->state		= IB_PORT_DOWN;
+ 	props->phys_state	= state_to_phys_state(props->state);
+ 	props->active_mtu	= IB_MTU_256;
+-	if (is_bonded)
+-		rtnl_lock(); /* required to get upper dev */
+ 	down_read(&iboe->sem);
+ 	ndev = iboe->netdevs[port - 1];
+-	if (ndev && is_bonded)
+-		ndev = netdev_master_upper_dev_get(ndev);
++	if (ndev && is_bonded) {
++		rcu_read_lock(); /* required to get upper dev */
++		ndev = netdev_master_upper_dev_get_rcu(ndev);
++		rcu_read_unlock();
 +	}
-+
-+	/* register notifier */
-+	mdev->nb.notifier_call = mlx4_en_netdev_event;
-+	if (register_netdevice_notifier(&mdev->nb)) {
-+		mdev->nb.notifier_call = NULL;
-+		mlx4_err(mdev, "Failed to create notifier\n");
-+	}
-+}
-+
- static void *mlx4_en_add(struct mlx4_dev *dev)
- {
- 	struct mlx4_en_dev *mdev;
-@@ -292,21 +312,6 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
- 	mutex_init(&mdev->state_lock);
- 	mdev->device_up = true;
+ 	if (!ndev)
+-		goto out_unlock;
++		goto unlock;
  
--	/* Setup ports */
--
--	/* Create a netdev for each port */
--	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
--		mlx4_info(mdev, "Activating port:%d\n", i);
--		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))
--			mdev->pndev[i] = NULL;
--	}
--	/* register notifier */
--	mdev->nb.notifier_call = mlx4_en_netdev_event;
--	if (register_netdevice_notifier(&mdev->nb)) {
--		mdev->nb.notifier_call = NULL;
--		mlx4_err(mdev, "Failed to create notifier\n");
--	}
--
- 	return mdev;
- 
- err_mr:
-@@ -330,6 +335,7 @@ static struct mlx4_interface mlx4_en_interface = {
- 	.event		= mlx4_en_event,
- 	.get_dev	= mlx4_en_get_netdev,
- 	.protocol	= MLX4_PROT_ETH,
-+	.activate	= mlx4_en_activate,
- };
- 
- static void mlx4_en_verify_params(void)
-diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
-index a1a5985..ccd4030 100644
---- a/drivers/net/ethernet/mellanox/mlx4/intf.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
-@@ -63,8 +63,11 @@ static void mlx4_add_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
- 		spin_lock_irq(&priv->ctx_lock);
- 		list_add_tail(&dev_ctx->list, &priv->ctx_list);
- 		spin_unlock_irq(&priv->ctx_lock);
-+		if (intf->activate)
-+			intf->activate(&priv->dev, dev_ctx->context);
- 	} else
- 		kfree(dev_ctx);
-+
- }
- 
- static void mlx4_remove_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 9553a73..5a06d96 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -59,6 +59,7 @@ struct mlx4_interface {
- 	void			(*event) (struct mlx4_dev *dev, void *context,
- 					  enum mlx4_dev_event event, unsigned long param);
- 	void *			(*get_dev)(struct mlx4_dev *dev, void *context, u8 port);
-+	void			(*activate)(struct mlx4_dev *dev, void *context);
- 	struct list_head	list;
- 	enum mlx4_protocol	protocol;
- 	int			flags;
+ 	tmp = iboe_get_mtu(ndev->mtu);
+ 	props->active_mtu = tmp ? min(props->max_mtu, tmp) : IB_MTU_256;
+@@ -382,10 +383,8 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->state		= (netif_running(ndev) && netif_carrier_ok(ndev)) ?
+ 					IB_PORT_ACTIVE : IB_PORT_DOWN;
+ 	props->phys_state	= state_to_phys_state(props->state);
+-out_unlock:
++unlock:
+ 	up_read(&iboe->sem);
+-	if (is_bonded)
+-		rtnl_unlock();
+ out:
+ 	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
+ 	return err;
 -- 
 2.1.0
 
