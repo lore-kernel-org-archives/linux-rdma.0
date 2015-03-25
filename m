@@ -1,73 +1,61 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH 1/2] IB/Verbs: Use helpers to refine the checking on transport
- and link layer
-Date: Wed, 25 Mar 2015 12:19:09 +0100
-Message-ID: <551299AD.7070702@profitbricks.com>
-References: <55129832.2070707@profitbricks.com>
+Subject: [PATCH 0/2 RESEND] IB/Verbs: Use helpers to refine the checking on
+ transport and link layer
+Date: Wed, 25 Mar 2015 16:09:36 +0100
+Message-ID: <5512CFB0.1050108@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55129832.2070707@profitbricks.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Steve Wise <swise@opengridcomputing.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Yann Droneaud <ydroneaud@opteya.com>, Bart Van Assche <bvanassche@acm.org>, Colin Ian King <colin.king@canonical.com>, Mel Gorman <mgorman@suse.de>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Dan Carpenter <dan.carpenter@oracle.com>, Eugenia Emantayev <eugenia@mellanox.co.il>, Doug Ledford <dledford@redhat.com>, Alex Estrin <alex.estrin@intel.com>, Erez Shitrit <erezsh@mellanox.com>, Eric Dumazet <edumazet@google.com>
+To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Moni Shoua <monis@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Dan Carpenter <dan.carpenter@oracle.com>, Mel Gorman <mgorman@suse.de>, Alex Estrin <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, Eric Dumazet <edumazet@google.com>, Erez Shitrit <erezsh@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Haggai Eran <haggaie@mellanox.c>
 List-Id: linux-rdma@vger.kernel.org
 
-This should be [PATCH 0/2], and my sincerely apologize on the duplicated
-mail, the connection is really terrible...
 
-Regards,
-Michael Wang
+My sincerely apologies for the corrupted mails, and thanks for Dan's kindly
+remind :-)
 
-On 03/25/2015 12:12 PM, Michael Wang wrote:
->
-> There are too many lengthy code to check the transport type of IB device,
-> or the link layer type of it's port, this patch set try to use some 
-> helper to
-> refine and save us some code.
->
-> TODO:
->     Currently we inferred from the transport type and link layer type 
-> to identify
->     the way of management, it will be better if we can directly get 
-> the indicator
->     from vendor.
->
->     Sean proposed one suggestion:
->  https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.html
->
->     It may need a big work to adapt current implementation to utilize
->     these flags elegantly.
->
->     Also the performance concern on query_port() need to be addressed, 
-> may be
->     some new callback like query_mgmt() could works.
->
-> Michael Wang (2):
->     [PATCH 1/2] IB/Verbs: Use helpers to check transport and link layer
->     [PATCH 2/2] IB/Verbs: Use helpers to check IBoE technology
->
-> ---
->  drivers/infiniband/core/agent.c           |    2 -
->  drivers/infiniband/core/cm.c              |    2 -
->  drivers/infiniband/core/cma.c             |   33 
-> ++++++++++++------------------
->  drivers/infiniband/core/mad.c             |    6 ++---
->  drivers/infiniband/core/multicast.c       |   11 +++-------
->  drivers/infiniband/core/sa_query.c        |   14 ++++++------
->  drivers/infiniband/core/ucm.c             |    3 --
->  drivers/infiniband/core/user_mad.c        |    2 -
->  drivers/infiniband/core/verbs.c           |    5 +---
->  drivers/infiniband/hw/mlx4/ah.c           |    2 -
->  drivers/infiniband/hw/mlx4/cq.c           |    4 ---
->  drivers/infiniband/hw/mlx4/mad.c          |   14 +++---------
->  drivers/infiniband/hw/mlx4/main.c         |    8 ++-----
->  drivers/infiniband/hw/mlx4/mlx4_ib.h      |    2 -
->  drivers/infiniband/hw/mlx4/qp.c           |   21 ++++++-------------
->  drivers/infiniband/hw/mlx4/sysfs.c        |    6 +----
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |    6 ++---
->  include/rdma/ib_verbs.h                   |   30 
-> +++++++++++++++++++++++++++
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    3 --
->  19 files changed, 87 insertions(+), 87 deletions(-)
+There are too many lengthy code to check the transport type of IB device,
+or the link layer type of it's port, this patch set try to use some helper to
+refine and save us some code.
+
+TODO:
+    Currently we inferred from the transport type and link layer type to identify
+    the way of management, it will be better if we can directly get the indicator
+    from vendor.
+
+    Sean proposed one suggestion:
+        https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.html
+
+    It may need a big work to adapt current implementation to utilize
+    these flags elegantly.
+
+    Also the performance concern on query_port() need to be addressed, may be
+    some new callback like query_mgmt() could works.
+
+Michael Wang (2):
+    [PATCH 1/2] IB/Verbs: Use helpers to check transport and link layer
+    [PATCH 2/2] IB/Verbs: Use helpers to check IBoE technology
+
+---
+ drivers/infiniband/core/agent.c           |    2 -
+ drivers/infiniband/core/cm.c              |    2 -
+ drivers/infiniband/core/cma.c             |   33 ++++++++++++------------------
+ drivers/infiniband/core/mad.c             |    6 ++---
+ drivers/infiniband/core/multicast.c       |   11 +++-------
+ drivers/infiniband/core/sa_query.c        |   14 ++++++------
+ drivers/infiniband/core/ucm.c             |    3 --
+ drivers/infiniband/core/user_mad.c        |    2 -
+ drivers/infiniband/core/verbs.c           |    5 +---
+ drivers/infiniband/hw/mlx4/ah.c           |    2 -
+ drivers/infiniband/hw/mlx4/cq.c           |    4 ---
+ drivers/infiniband/hw/mlx4/mad.c          |   14 +++---------
+ drivers/infiniband/hw/mlx4/main.c         |    8 ++-----
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |    2 -
+ drivers/infiniband/hw/mlx4/qp.c           |   21 ++++++-------------
+ drivers/infiniband/hw/mlx4/sysfs.c        |    6 +----
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    6 ++---
+ include/rdma/ib_verbs.h                   |   30 +++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    3 --
+ 19 files changed, 87 insertions(+), 87 deletions(-)
