@@ -1,17 +1,18 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/1] ibacm: Use pkey 0xffff or 0x7fff for SA query
-Date: Wed, 25 Mar 2015 22:41:58 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E83FED@ORSMSX109.amr.corp.intel.com>
-References: <1426786117-24257-1-git-send-email-kaike.wan@intel.com>
+Subject: RE: [PATCH librdmacm] rstream.c: Add missing binding to source
+ address in client_connect
+Date: Wed, 25 Mar 2015 22:47:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E84028@ORSMSX109.amr.corp.intel.com>
+References: <54F9C0A5.5010909@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1426786117-24257-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <54F9C0A5.5010909-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Thanks - applied
