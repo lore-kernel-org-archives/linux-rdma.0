@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Thu, 26 Mar 2015 02:49:51 +0530
-Message-ID: <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v3 for-next 04/33] IB/core: Add default GID for RoCE GID Cache
+Date: Thu, 26 Mar 2015 02:49:53 +0530
+Message-ID: <206c25e1-3f82-494c-ae2a-56016d821f43@CMEXHTCAS2.ad.emulex.com>
 References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,125 +14,560 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Previously. we used device_mutex lock in order to protect
-the device's list. That means that in order to guarantee a
-device isn't freed while we use it, we had to lock all
-devices.
-
-Adding a kref per IB device. Before an IB device
-is unregistered, we wait before its not held anymore.
+When RoCE is used, a default GID address should be generated
+for every supported RoCE type. These default GID addresses are
+generated based on the IPv6 link-local address, but in contrast
+to the GID based on the regular IPv6 link-local (as we generate
+GID per IP address), these GIDs are also available if the net
+device is down (in order to support loopback).
+Moreover, these default GID addresses can't be deleted.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 41 ++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h          |  6 ++++++
- 2 files changed, 47 insertions(+)
+ drivers/infiniband/core/core_priv.h      |  12 +++
+ drivers/infiniband/core/roce_gid_cache.c | 179 ++++++++++++++++++++++++++++---
+ drivers/infiniband/core/roce_gid_mgmt.c  |  43 ++++++--
+ include/net/addrconf.h                   |  31 ++++++
+ include/rdma/ib_verbs.h                  |   1 +
+ net/ipv6/addrconf.c                      |  31 ------
+ 6 files changed, 243 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 18c1ece..8616a95 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -261,6 +261,39 @@ out:
- 	return ret;
- }
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 12797d9..128d2b3 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -84,6 +84,16 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
  
-+static void ib_device_complete_cb(struct kref *kref)
-+{
-+	struct ib_device *device = container_of(kref, struct ib_device,
-+						refcount);
+ int roce_gid_cache_is_active(struct ib_device *ib_dev, u8 port);
+ 
++enum roce_gid_cache_default_mode {
++	ROCE_GID_CACHE_DEFAULT_MODE_SET,
++	ROCE_GID_CACHE_DEFAULT_MODE_DELETE
++};
 +
-+	if (device->reg_state >= IB_DEV_UNREGISTERING)
-+		complete(&device->free);
-+}
++void roce_gid_cache_set_default_gid(struct ib_device *ib_dev, u8 port,
++				    struct net_device *ndev,
++				    unsigned long gid_type_mask,
++				    enum roce_gid_cache_default_mode mode);
 +
-+/**
-+ * ib_device_hold - increase the reference count of device
-+ * @device: ib device to prevent from being free'd
-+ *
-+ * Prevent the device from being free'd.
-+ */
-+void ib_device_hold(struct ib_device *device)
-+{
-+	kref_get(&device->refcount);
-+}
-+EXPORT_SYMBOL(ib_device_hold);
+ int roce_gid_cache_setup(void);
+ void roce_gid_cache_cleanup(void);
+ 
+@@ -100,5 +110,7 @@ int roce_gid_mgmt_init(void);
+ void roce_gid_mgmt_cleanup(void);
+ 
+ int roce_rescan_device(struct ib_device *ib_dev);
++unsigned long roce_gid_type_mask_support(struct ib_device *ib_dev, u8 port);
 +
-+/**
-+ * ib_device_put - decrease the reference count of device
-+ * @device: allows this device to be free'd
-+ *
-+ * Puts the ib_device and allows it to be free'd.
-+ */
-+int ib_device_put(struct ib_device *device)
-+{
-+	return kref_put(&device->refcount, ib_device_complete_cb);
-+}
-+EXPORT_SYMBOL(ib_device_put);
-+
- /**
-  * ib_register_device - Register an IB device with IB core
-  * @device:Device to register
-@@ -312,6 +345,9 @@ int ib_register_device(struct ib_device *device,
  
- 	list_add_tail(&device->core_list, &device_list);
+ #endif /* _CORE_PRIV_H */
+diff --git a/drivers/infiniband/core/roce_gid_cache.c b/drivers/infiniband/core/roce_gid_cache.c
+index 1d0f841..1f30dad 100644
+--- a/drivers/infiniband/core/roce_gid_cache.c
++++ b/drivers/infiniband/core/roce_gid_cache.c
+@@ -34,6 +34,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/rtnetlink.h>
+ #include <rdma/ib_cache.h>
++#include <net/addrconf.h>
  
-+	kref_init(&device->refcount);
-+	init_completion(&device->free);
-+
- 	device->reg_state = IB_DEV_REGISTERED;
+ #include "core_priv.h"
  
- 	{
-@@ -342,6 +378,8 @@ void ib_unregister_device(struct ib_device *device)
+@@ -43,8 +44,10 @@ EXPORT_SYMBOL_GPL(zgid);
+ static const struct ib_gid_attr zattr;
  
- 	mutex_lock(&device_mutex);
- 
-+	device->reg_state = IB_DEV_UNREGISTERING;
-+
- 	list_for_each_entry_reverse(client, &client_list, list)
- 		if (client->remove)
- 			client->remove(device);
-@@ -355,6 +393,9 @@ void ib_unregister_device(struct ib_device *device)
- 
- 	ib_device_unregister_sysfs(device);
- 
-+	ib_device_put(device);
-+	wait_for_completion(&device->free);
-+
- 	spin_lock_irqsave(&device->client_data_lock, flags);
- 	list_for_each_entry_safe(context, tmp, &device->client_data_list, list)
- 		kfree(context);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1866595..a7593b0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1716,6 +1716,7 @@ struct ib_device {
- 	enum {
- 		IB_DEV_UNINITIALIZED,
- 		IB_DEV_REGISTERED,
-+		IB_DEV_UNREGISTERING,
- 		IB_DEV_UNREGISTERED
- 	}                            reg_state;
- 
-@@ -1728,6 +1729,8 @@ struct ib_device {
- 	u32			     local_dma_lkey;
- 	u8                           node_type;
- 	u8                           phys_port_cnt;
-+	struct kref		     refcount;
-+	struct completion	     free;
+ enum gid_attr_find_mask {
+-	GID_ATTR_FIND_MASK_GID_TYPE	= 1UL << 0,
+-	GID_ATTR_FIND_MASK_NETDEV	= 1UL << 1,
++	GID_ATTR_FIND_MASK_GID		= 1UL << 0,
++	GID_ATTR_FIND_MASK_GID_TYPE	= 1UL << 1,
++	GID_ATTR_FIND_MASK_NETDEV	= 1UL << 2,
++	GID_ATTR_FIND_MASK_DEFAULT	= 1UL << 3,
  };
  
- struct ib_client {
-@@ -1741,6 +1744,9 @@ struct ib_client {
- struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
+ static inline int start_port(struct ib_device *ib_dev)
+@@ -69,7 +72,8 @@ static void put_ndev(struct rcu_head *rcu)
+ static int write_gid(struct ib_device *ib_dev, u8 port,
+ 		     struct ib_roce_gid_cache *cache, int ix,
+ 		     const union ib_gid *gid,
+-		     const struct ib_gid_attr *attr)
++		     const struct ib_gid_attr *attr,
++		     bool  default_gid)
+ {
+ 	unsigned int orig_seq;
+ 	int ret;
+@@ -83,6 +87,7 @@ static int write_gid(struct ib_device *ib_dev, u8 port,
+ 	 */
+ 	smp_wmb();
  
-+void ib_device_hold(struct ib_device *device);
-+int ib_device_put(struct ib_device *device);
++	cache->data_vec[ix].default_gid = default_gid;
+ 	ret = ib_dev->modify_gid(ib_dev, port, ix, gid, attr,
+ 				 &cache->data_vec[ix].context);
+ 
+@@ -132,7 +137,8 @@ static int write_gid(struct ib_device *ib_dev, u8 port,
+ }
+ 
+ static int find_gid(struct ib_roce_gid_cache *cache, union ib_gid *gid,
+-		    const struct ib_gid_attr *val, unsigned long mask)
++		    const struct ib_gid_attr *val, bool default_gid,
++		    unsigned long mask)
+ {
+ 	int i;
+ 	unsigned int orig_seq;
+@@ -152,13 +158,18 @@ static int find_gid(struct ib_roce_gid_cache *cache, union ib_gid *gid,
+ 		    attr->gid_type != val->gid_type)
+ 			continue;
+ 
+-		if (memcmp(gid, &cache->data_vec[i].gid, sizeof(*gid)))
++		if (mask & GID_ATTR_FIND_MASK_GID &&
++		    memcmp(gid, &cache->data_vec[i].gid, sizeof(*gid)))
+ 			continue;
+ 
+ 		if (mask & GID_ATTR_FIND_MASK_NETDEV &&
+ 		    attr->ndev != val->ndev)
+ 			continue;
+ 
++		if (mask & GID_ATTR_FIND_MASK_DEFAULT &&
++		    cache->data_vec[i].default_gid != default_gid)
++			continue;
 +
- int ib_register_device(struct ib_device *device,
- 		       int (*port_callback)(struct ib_device *,
- 					    u8, struct kobject *));
+ 		/* We have a match, verify that the data we
+ 		 * compared is valid. Make sure that the
+ 		 * sequence number we read is the last to be
+@@ -176,12 +187,19 @@ static int find_gid(struct ib_roce_gid_cache *cache, union ib_gid *gid,
+ 	return -1;
+ }
+ 
++static void make_default_gid(struct  net_device *dev, union ib_gid *gid)
++{
++	gid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
++	addrconf_ifid_eui48(&gid->raw[8], dev);
++}
++
+ int roce_add_gid(struct ib_device *ib_dev, u8 port,
+ 		 union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+ 	struct ib_roce_gid_cache *cache;
+ 	int ix;
+ 	int ret = 0;
++	struct net_device *idev;
+ 
+ 	if (!ib_dev->cache.roce_gid_cache)
+ 		return -ENOSYS;
+@@ -194,20 +212,38 @@ int roce_add_gid(struct ib_device *ib_dev, u8 port,
+ 	if (!memcmp(gid, &zgid, sizeof(*gid)))
+ 		return -EINVAL;
+ 
++	if (ib_dev->get_netdev) {
++		rcu_read_lock();
++		idev = ib_dev->get_netdev(ib_dev, port);
++		if (idev && attr->ndev != idev) {
++			union ib_gid default_gid;
++
++			/* Adding default GIDs in not permitted */
++			make_default_gid(idev, &default_gid);
++			if (!memcmp(gid, &default_gid, sizeof(*gid))) {
++				rcu_read_unlock();
++				return -EPERM;
++			}
++		}
++		rcu_read_unlock();
++	}
++
+ 	mutex_lock(&cache->lock);
+ 
+-	ix = find_gid(cache, gid, attr, GID_ATTR_FIND_MASK_GID_TYPE |
++	ix = find_gid(cache, gid, attr, false, GID_ATTR_FIND_MASK_GID |
++		      GID_ATTR_FIND_MASK_GID_TYPE |
+ 		      GID_ATTR_FIND_MASK_NETDEV);
+ 	if (ix >= 0)
+ 		goto out_unlock;
+ 
+-	ix = find_gid(cache, &zgid, NULL, 0);
++	ix = find_gid(cache, &zgid, NULL, false, GID_ATTR_FIND_MASK_GID |
++		      GID_ATTR_FIND_MASK_DEFAULT);
+ 	if (ix < 0) {
+ 		ret = -ENOSPC;
+ 		goto out_unlock;
+ 	}
+ 
+-	write_gid(ib_dev, port, cache, ix, gid, attr);
++	write_gid(ib_dev, port, cache, ix, gid, attr, false);
+ 
+ out_unlock:
+ 	mutex_unlock(&cache->lock);
+@@ -218,6 +254,7 @@ int roce_del_gid(struct ib_device *ib_dev, u8 port,
+ 		 union ib_gid *gid, struct ib_gid_attr *attr)
+ {
+ 	struct ib_roce_gid_cache *cache;
++	union ib_gid default_gid;
+ 	int ix;
+ 
+ 	if (!ib_dev->cache.roce_gid_cache)
+@@ -228,15 +265,24 @@ int roce_del_gid(struct ib_device *ib_dev, u8 port,
+ 	if (!cache || !cache->active)
+ 		return -ENOSYS;
+ 
++	if (attr->ndev) {
++		/* Deleting default GIDs in not permitted */
++		make_default_gid(attr->ndev, &default_gid);
++		if (!memcmp(gid, &default_gid, sizeof(*gid)))
++			return -EPERM;
++	}
++
+ 	mutex_lock(&cache->lock);
+ 
+-	ix = find_gid(cache, gid, attr,
++	ix = find_gid(cache, gid, attr, false,
++		      GID_ATTR_FIND_MASK_GID	  |
+ 		      GID_ATTR_FIND_MASK_GID_TYPE |
+-		      GID_ATTR_FIND_MASK_NETDEV);
++		      GID_ATTR_FIND_MASK_NETDEV	  |
++		      GID_ATTR_FIND_MASK_DEFAULT);
+ 	if (ix < 0)
+ 		goto out_unlock;
+ 
+-	write_gid(ib_dev, port, cache, ix, &zgid, &zattr);
++	write_gid(ib_dev, port, cache, ix, &zgid, &zattr, false);
+ 
+ out_unlock:
+ 	mutex_unlock(&cache->lock);
+@@ -261,7 +307,7 @@ int roce_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
+ 
+ 	for (ix = 0; ix < cache->sz; ix++)
+ 		if (cache->data_vec[ix].attr.ndev == ndev)
+-			write_gid(ib_dev, port, cache, ix, &zgid, &zattr);
++			write_gid(ib_dev, port, cache, ix, &zgid, &zattr, false);
+ 
+ 	mutex_unlock(&cache->lock);
+ 	return 0;
+@@ -326,7 +372,7 @@ static int _roce_gid_cache_find_gid(struct ib_device *ib_dev, union ib_gid *gid,
+ 		cache = ib_dev->cache.roce_gid_cache[p];
+ 		if (!cache || !cache->active)
+ 			continue;
+-		local_index = find_gid(cache, gid, val, mask);
++		local_index = find_gid(cache, gid, val, false, mask);
+ 		if (local_index >= 0) {
+ 			if (index)
+ 				*index = local_index;
+@@ -372,7 +418,8 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
+ {
+ 	int local_index;
+ 	struct ib_roce_gid_cache *cache;
+-	unsigned long mask = GID_ATTR_FIND_MASK_GID_TYPE;
++	unsigned long mask = GID_ATTR_FIND_MASK_GID |
++			     GID_ATTR_FIND_MASK_GID_TYPE;
+ 	struct ib_gid_attr val = {.gid_type = gid_type};
+ 
+ 	if (!ib_dev->cache.roce_gid_cache || port < start_port(ib_dev) ||
+@@ -385,7 +432,7 @@ int roce_gid_cache_find_gid_by_port(struct ib_device *ib_dev, union ib_gid *gid,
+ 
+ 	mask |= get_netdev_from_ifindex(net, if_index, &val);
+ 
+-	local_index = find_gid(cache, gid, &val, mask);
++	local_index = find_gid(cache, gid, &val, false, mask);
+ 	if (local_index >= 0) {
+ 		if (index)
+ 			*index = local_index;
+@@ -429,7 +476,8 @@ static void free_roce_gid_cache(struct ib_device *ib_dev, u8 port)
+ 	for (i = 0; i < cache->sz; ++i) {
+ 		if (memcmp(&cache->data_vec[i].gid, &zgid,
+ 			   sizeof(cache->data_vec[i].gid)))
+-		    write_gid(ib_dev, port, cache, i, &zgid, &zattr);
++		    write_gid(ib_dev, port, cache, i, &zgid, &zattr,
++			      cache->data_vec[i].default_gid);
+ 	}
+ 	kfree(cache->data_vec);
+ 	kfree(cache);
+@@ -444,6 +492,101 @@ static void set_roce_gid_cache_active(struct ib_roce_gid_cache *cache,
+ 	cache->active = active;
+ }
+ 
++void roce_gid_cache_set_default_gid(struct ib_device *ib_dev, u8 port,
++				    struct net_device *ndev,
++				    unsigned long gid_type_mask,
++				    enum roce_gid_cache_default_mode mode)
++{
++	union ib_gid gid;
++	struct ib_gid_attr gid_attr;
++	struct ib_gid_attr zattr_type = zattr;
++	struct ib_roce_gid_cache *cache;
++	unsigned int gid_type;
++
++	cache  = ib_dev->cache.roce_gid_cache[port - 1];
++
++	if (!cache)
++		return;
++
++	make_default_gid(ndev, &gid);
++	memset(&gid_attr, 0, sizeof(gid_attr));
++	gid_attr.ndev = ndev;
++	for (gid_type = 0; gid_type < IB_GID_TYPE_SIZE; ++gid_type) {
++		int ix;
++		union ib_gid current_gid;
++		struct ib_gid_attr current_gid_attr;
++
++		if (1UL << gid_type & ~gid_type_mask)
++			continue;
++
++		gid_attr.gid_type = gid_type;
++
++		ix = find_gid(cache, &gid, &gid_attr, true,
++			      GID_ATTR_FIND_MASK_GID_TYPE |
++			      GID_ATTR_FIND_MASK_DEFAULT);
++
++		if (ix < 0) {
++			pr_warn("roce_gid_cache: couldn't find index for default gid type %u\n",
++				gid_type);
++			continue;
++		}
++
++		zattr_type.gid_type = gid_type;
++
++		mutex_lock(&cache->lock);
++		if (!roce_gid_cache_get_gid(ib_dev, port, ix,
++					    &current_gid, &current_gid_attr) &&
++		    mode == ROCE_GID_CACHE_DEFAULT_MODE_SET &&
++		    !memcmp(&gid, &current_gid, sizeof(gid)) &&
++		    !memcmp(&gid_attr, &current_gid_attr, sizeof(gid_attr))) {
++			mutex_unlock(&cache->lock);
++			continue;
++		}
++
++		if ((memcmp(&current_gid, &zgid, sizeof(current_gid)) ||
++		     memcmp(&current_gid_attr, &zattr_type,
++			    sizeof(current_gid_attr))) &&
++		    write_gid(ib_dev, port, cache, ix, &zgid, &zattr, true)) {
++			pr_warn("roce_gid_cache: can't delete index %d for default gid %pI6\n",
++				ix, gid.raw);
++			mutex_unlock(&cache->lock);
++			continue;
++		}
++
++		if (mode == ROCE_GID_CACHE_DEFAULT_MODE_SET)
++			if (write_gid(ib_dev, port, cache, ix, &gid, &gid_attr,
++				      true))
++				pr_warn("roce_gid_cache: unable to add default gid %pI6\n",
++					gid.raw);
++
++		mutex_unlock(&cache->lock);
++	}
++}
++
++static int roce_gid_cache_reserve_default(struct ib_device *ib_dev, u8 port)
++{
++	unsigned int i;
++	unsigned long roce_gid_type_mask;
++	unsigned int num_default_gids;
++	struct ib_roce_gid_cache *cache;
++
++	cache  = ib_dev->cache.roce_gid_cache[port - 1];
++
++	roce_gid_type_mask = roce_gid_type_mask_support(ib_dev, port);
++	num_default_gids = hweight_long(roce_gid_type_mask);
++	for (i = 0; i < num_default_gids && i < cache->sz; i++) {
++		struct ib_roce_gid_cache_entry *entry =
++			&cache->data_vec[i];
++
++		entry->default_gid = true;
++		entry->attr.gid_type = find_next_bit(&roce_gid_type_mask,
++						     BITS_PER_LONG,
++						     i);
++	}
++
++	return 0;
++}
++
+ static int roce_gid_cache_setup_one(struct ib_device *ib_dev)
+ {
+ 	u8 port;
+@@ -472,6 +615,10 @@ static int roce_gid_cache_setup_one(struct ib_device *ib_dev)
+ 			err = -ENOMEM;
+ 			goto rollback_cache_setup;
+ 		}
++
++		err = roce_gid_cache_reserve_default(ib_dev, port + 1);
++		if (err)
++			goto rollback_cache_setup;
+ 	}
+ 	return 0;
+ 
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index d51138c..c0cbb23 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -82,24 +82,37 @@ static const struct {
+ 
+ #define CAP_TO_GID_TABLE_SIZE	ARRAY_SIZE(PORT_CAP_TO_GID_TYPE)
+ 
+-static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
+-		       u8 port, union ib_gid *gid,
+-		       struct ib_gid_attr *gid_attr)
++unsigned long roce_gid_type_mask_support(struct ib_device *ib_dev, u8 port)
+ {
+ 	struct ib_port_attr pattr;
+ 	int i;
+ 	int err;
++	unsigned int ret_flags = 0;
+ 
+ 	err = ib_query_port(ib_dev, port, &pattr);
+ 	if (err) {
+ 		pr_warn("update_gid: ib_query_port() failed for %s, %d\n",
+ 			ib_dev->name, err);
++		return 0;
+ 	}
+ 
+-	for (i = 0; i < CAP_TO_GID_TABLE_SIZE; i++) {
+-		if (pattr.port_cap_flags & PORT_CAP_TO_GID_TYPE[i].flag_mask) {
+-			gid_attr->gid_type =
+-				PORT_CAP_TO_GID_TYPE[i].gid_type;
++	for (i = 0; i < CAP_TO_GID_TABLE_SIZE; i++)
++		if (pattr.port_cap_flags & PORT_CAP_TO_GID_TYPE[i].flag_mask)
++			ret_flags |= 1UL << PORT_CAP_TO_GID_TYPE[i].gid_type;
++
++	return ret_flags;
++}
++
++static void update_gid(enum gid_op_type gid_op, struct ib_device *ib_dev,
++		       u8 port, union ib_gid *gid,
++		       struct ib_gid_attr *gid_attr)
++{
++	int i;
++	unsigned long gid_type_mask = roce_gid_type_mask_support(ib_dev, port);
++
++	for (i = 0; i < IB_GID_TYPE_SIZE; i++) {
++		if ((1UL << i) & gid_type_mask) {
++			gid_attr->gid_type = i;
+ 			switch (gid_op) {
+ 			case GID_ADD:
+ 				roce_add_gid(ib_dev, port,
+@@ -167,6 +180,21 @@ static void update_gid_ip(enum gid_op_type gid_op,
+ 	update_gid(gid_op, ib_dev, port, &gid, &gid_attr);
+ }
+ 
++static void enum_netdev_default_gids(struct ib_device *ib_dev,
++				     u8 port, struct net_device *ndev,
++				     struct net_device *idev)
++{
++	unsigned long gid_type_mask;
++
++	if (idev != ndev)
++		return;
++
++	gid_type_mask = roce_gid_type_mask_support(ib_dev, port);
++
++	roce_gid_cache_set_default_gid(ib_dev, port, idev, gid_type_mask,
++				       ROCE_GID_CACHE_DEFAULT_MODE_SET);
++}
++
+ static void enum_netdev_ipv4_ips(struct ib_device *ib_dev,
+ 				 u8 port, struct net_device *ndev)
+ {
+@@ -247,6 +275,7 @@ static void add_netdev_ips(struct ib_device *ib_dev, u8 port,
+ {
+ 	struct net_device *ndev = (struct net_device *)cookie;
+ 
++	enum_netdev_default_gids(ib_dev, port, ndev, idev);
+ 	enum_netdev_ipv4_ips(ib_dev, port, ndev);
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	enum_netdev_ipv6_ips(ib_dev, port, ndev);
+diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+index d13573b..378bf82 100644
+--- a/include/net/addrconf.h
++++ b/include/net/addrconf.h
+@@ -88,6 +88,37 @@ int ipv6_rcv_saddr_equal(const struct sock *sk, const struct sock *sk2);
+ void addrconf_join_solict(struct net_device *dev, const struct in6_addr *addr);
+ void addrconf_leave_solict(struct inet6_dev *idev, const struct in6_addr *addr);
+ 
++static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
++{
++	if (dev->addr_len != ETH_ALEN)
++		return -1;
++	memcpy(eui, dev->dev_addr, 3);
++	memcpy(eui + 5, dev->dev_addr + 3, 3);
++
++	/*
++	 * The zSeries OSA network cards can be shared among various
++	 * OS instances, but the OSA cards have only one MAC address.
++	 * This leads to duplicate address conflicts in conjunction
++	 * with IPv6 if more than one instance uses the same card.
++	 *
++	 * The driver for these cards can deliver a unique 16-bit
++	 * identifier for each instance sharing the same card.  It is
++	 * placed instead of 0xFFFE in the interface identifier.  The
++	 * "u" bit of the interface identifier is not inverted in this
++	 * case.  Hence the resulting interface identifier has local
++	 * scope according to RFC2373.
++	 */
++	if (dev->dev_id) {
++		eui[3] = (dev->dev_id >> 8) & 0xFF;
++		eui[4] = dev->dev_id & 0xFF;
++	} else {
++		eui[3] = 0xFF;
++		eui[4] = 0xFE;
++		eui[0] ^= 2;
++	}
++	return 0;
++}
++
+ static inline unsigned long addrconf_timeout_fixup(u32 timeout,
+ 						   unsigned int unit)
+ {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1bc13b1..3956863 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -84,6 +84,7 @@ struct ib_roce_gid_cache_entry {
+ 	union ib_gid        gid;
+ 	struct ib_gid_attr  attr;
+ 	void		   *context;
++	bool		    default_gid;
+ };
+ 
+ struct ib_roce_gid_cache {
+diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
+index f7c8bbe..1ad323d 100644
+--- a/net/ipv6/addrconf.c
++++ b/net/ipv6/addrconf.c
+@@ -1765,37 +1765,6 @@ static void addrconf_leave_anycast(struct inet6_ifaddr *ifp)
+ 	__ipv6_dev_ac_dec(ifp->idev, &addr);
+ }
+ 
+-static int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+-{
+-	if (dev->addr_len != ETH_ALEN)
+-		return -1;
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
+-
+-	/*
+-	 * The zSeries OSA network cards can be shared among various
+-	 * OS instances, but the OSA cards have only one MAC address.
+-	 * This leads to duplicate address conflicts in conjunction
+-	 * with IPv6 if more than one instance uses the same card.
+-	 *
+-	 * The driver for these cards can deliver a unique 16-bit
+-	 * identifier for each instance sharing the same card.  It is
+-	 * placed instead of 0xFFFE in the interface identifier.  The
+-	 * "u" bit of the interface identifier is not inverted in this
+-	 * case.  Hence the resulting interface identifier has local
+-	 * scope according to RFC2373.
+-	 */
+-	if (dev->dev_id) {
+-		eui[3] = (dev->dev_id >> 8) & 0xFF;
+-		eui[4] = dev->dev_id & 0xFF;
+-	} else {
+-		eui[3] = 0xFF;
+-		eui[4] = 0xFE;
+-		eui[0] ^= 2;
+-	}
+-	return 0;
+-}
+-
+ static int addrconf_ifid_eui64(u8 *eui, struct net_device *dev)
+ {
+ 	if (dev->addr_len != IEEE802154_ADDR_LEN)
 -- 
 2.1.0
 
