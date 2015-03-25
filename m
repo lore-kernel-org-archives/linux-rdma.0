@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 31/33] IB/mlx4: Enable send of RoCE QP1 packets with IP/UDP headers
-Date: Thu, 26 Mar 2015 02:50:20 +0530
-Message-ID: <4aa1278c-ec21-48d3-955b-6c163b505a27@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH v3 for-next 30/33] IB/core: Initialize UD header structure with IP and UDP headers
+Date: Thu, 26 Mar 2015 02:50:19 +0530
+Message-ID: <e8595914-8b70-4246-835d-f98dd121aa69@CMEXHTCAS2.ad.emulex.com>
 References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,192 +14,354 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-RoCEv2 packets are sent over IP/UDP protocols.
-The mlx4 driver uses a type of RAW QP to send packets for QP1 and
-therefore needs to build the network headers below BTH in software.
-
-This patche adds option to build QP1 packets with IP and UDP headers if
-RoCEv2 is requested.
+ib_ud_header_init() is used to format InfiniBand headers
+in a buffer up to (but not with) BTH. For RoCEv2 it is required that
+this function would be able to build also IP and UDP headers.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 84 +++++++++++++++++++++++++----------------
- 1 file changed, 52 insertions(+), 32 deletions(-)
+ drivers/infiniband/core/ud_header.c    | 153 ++++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx4/qp.c        |   7 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c |   2 +-
+ include/rdma/ib_pack.h                 |  44 ++++++++--
+ 4 files changed, 186 insertions(+), 20 deletions(-)
 
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 72feee6..a4d4072 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -35,6 +35,7 @@
+ #include <linux/string.h>
+ #include <linux/export.h>
+ #include <linux/if_ether.h>
++#include <linux/ip.h>
+ 
+ #include <rdma/ib_pack.h>
+ 
+@@ -116,6 +117,68 @@ static const struct ib_field vlan_table[]  = {
+ 	  .size_bits    = 16 }
+ };
+ 
++static const struct ib_field ip4_table[]  = {
++	{ STRUCT_FIELD(ip4, ver_len),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, tos),
++	  .offset_words = 0,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, tot_len),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, id),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, frag_off),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, ttl),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, protocol),
++	  .offset_words = 2,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ STRUCT_FIELD(ip4, check),
++	  .offset_words = 2,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(ip4, saddr),
++	  .offset_words = 3,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(ip4, daddr),
++	  .offset_words = 4,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 }
++};
++
++static const struct ib_field udp_table[]  = {
++	{ STRUCT_FIELD(udp, sport),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, dport),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, length),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(udp, csum),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 }
++};
++
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -213,6 +276,26 @@ static const struct ib_field deth_table[] = {
+ 	  .size_bits    = 24 }
+ };
+ 
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header)
++{
++	struct iphdr iph;
++
++	iph.ihl		= 5;
++	iph.version	= 4;
++	iph.tos		= header->ip4.tos;
++	iph.tot_len	= header->ip4.tot_len;
++	iph.id		= header->ip4.id;
++	iph.frag_off	= header->ip4.frag_off;
++	iph.ttl		= header->ip4.ttl;
++	iph.protocol	= header->ip4.protocol;
++	iph.check	= 0;
++	iph.saddr	= header->ip4.saddr;
++	iph.daddr	= header->ip4.daddr;
++
++	return ip_fast_csum((u8 *)&iph, iph.ihl);
++}
++EXPORT_SYMBOL(ib_ud_ip4_csum);
++
+ /**
+  * ib_ud_header_init - Initialize UD header structure
+  * @payload_bytes:Length of packet payload
+@@ -220,19 +303,35 @@ static const struct ib_field deth_table[] = {
+  * @eth_present: specify if Eth header is present
+  * @vlan_present: packet is tagged vlan
+  * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @ip_version:GRH flag (if non-zero, IP header, V4 or V6, will be included)
++ * @grh_present:GRH flag (if non-zero, UDP header will be included)
+  * @immediate_present: specify if immediate data is present
+  * @header:Structure to initialize
+  */
+-void ib_ud_header_init(int     		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int    		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header)
++int ib_ud_header_init(int     payload_bytes,
++		      int    lrh_present,
++		      int    eth_present,
++		      int    vlan_present,
++		      int    grh_present,
++		      int    ip_version,
++		      int    udp_present,
++		      int    immediate_present,
++		      struct ib_ud_header *header)
+ {
++	int ipv4_present;
++	int ipv6_present;
++
++	grh_present = grh_present && !ip_version;
+ 	memset(header, 0, sizeof *header);
+ 
++	/*
++	 * UDP header without IP header doesn't make sense
++	 */
++	if (udp_present && ip_version != 4 && ip_version != 6)
++		return -EINVAL;
++
++	ipv4_present = (ip_version == 4);
++	ipv6_present = (ip_version == 6);
+ 	if (lrh_present) {
+ 		u16 packet_length;
+ 
+@@ -252,7 +351,7 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	if (vlan_present)
+ 		header->eth.type = cpu_to_be16(ETH_P_8021Q);
+ 
+-	if (grh_present) {
++	if (ipv6_present || grh_present) {
+ 		header->grh.ip_version      = 6;
+ 		header->grh.payload_length  =
+ 			cpu_to_be16((IB_BTH_BYTES     +
+@@ -260,8 +359,29 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 				     payload_bytes    +
+ 				     4                + /* ICRC     */
+ 				     3) & ~3);          /* round up */
+-		header->grh.next_header     = 0x1b;
++		header->grh.next_header     = udp_present ? IPPROTO_UDP : 0x1b;
++	}
++
++	if (ipv4_present) {
++		int udp_bytes = udp_present ? IB_UDP_BYTES : 0;
++
++		header->ip4.ver_len = 0x45; /* version 4, 5 words */
++		header->ip4.tot_len =
++			cpu_to_be16(IB_IP4_BYTES   +
++				     udp_bytes     +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
++		header->ip4.protocol = IPPROTO_UDP;
+ 	}
++	if (udp_present && ip_version)
++		header->udp.length =
++			cpu_to_be16(IB_UDP_BYTES   +
++				     IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4);     /* ICRC     */
+ 
+ 	if (immediate_present)
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
+@@ -273,8 +393,11 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 	header->lrh_present = lrh_present;
+ 	header->eth_present = eth_present;
+ 	header->vlan_present = vlan_present;
+-	header->grh_present = grh_present;
++	header->grh_present = grh_present || ipv6_present;
++	header->ipv4_present = ipv4_present;
++	header->udp_present = udp_present;
+ 	header->immediate_present = immediate_present;
++	return 0;
+ }
+ EXPORT_SYMBOL(ib_ud_header_init);
+ 
+@@ -311,6 +434,16 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ 			&header->grh, buf + len);
+ 		len += IB_GRH_BYTES;
+ 	}
++	if (header->ipv4_present) {
++		ib_pack(ip4_table, ARRAY_SIZE(ip4_table),
++			&header->ip4, buf + len);
++		len += IB_IP4_BYTES;
++	}
++	if (header->udp_present) {
++		ib_pack(udp_table, ARRAY_SIZE(udp_table),
++			&header->udp, buf + len);
++		len += IB_UDP_BYTES;
++	}
+ 
+ 	ib_pack(bth_table, ARRAY_SIZE(bth_table),
+ 		&header->bth, buf + len);
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 1141cf0..fb37415 100644
+index d7d7c5a..1141cf0 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -32,6 +32,8 @@
-  */
+@@ -2085,7 +2085,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER)
+ 		send_size += sizeof (struct mlx4_ib_tunnel_header);
  
- #include <linux/log2.h>
-+#include <linux/if_ether.h>
-+#include <net/ip.h>
- #include <linux/slab.h>
- #include <linux/netdevice.h>
+-	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, &sqp->ud_header);
++	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, 0, 0, &sqp->ud_header);
  
-@@ -2169,16 +2171,7 @@ static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
- 	return 0;
- }
- 
--static void mlx4_u64_to_smac(u8 *dst_mac, u64 src_mac)
--{
--	int i;
--
--	for (i = ETH_ALEN; i; i--) {
--		dst_mac[i - 1] = src_mac & 0xff;
--		src_mac >>= 8;
--	}
--}
--
-+#define MLX4_ROCEV2_QP1_SPORT 0xC000
- static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 			    void *wqe, unsigned *mlx_seg_len)
- {
-@@ -2198,6 +2191,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	bool is_eth;
- 	bool is_vlan = false;
- 	bool is_grh;
-+	bool is_udp = false;
-+	int ip_version = 0;
- 
- 	send_size = 0;
- 	for (i = 0; i < wr->num_sge; ++i)
-@@ -2206,6 +2201,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	is_eth = rdma_port_get_link_layer(sqp->qp.ibqp.device, sqp->qp.port) == IB_LINK_LAYER_ETHERNET;
- 	is_grh = mlx4_ib_ah_grh_present(ah);
- 	if (is_eth) {
-+		struct ib_gid_attr gid_attr;
-+
- 		if (mlx4_is_mfunc(to_mdev(ib_dev)->dev)) {
- 			/* When multi-function is enabled, the ib_core gid
- 			 * indexes don't necessarily match the hw ones, so
-@@ -2216,23 +2213,31 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 			if (err)
- 				return err;
- 		} else  {
--			err = ib_get_cached_gid(ib_dev,
-+			err = ib_get_cached_gid(sqp->qp.ibqp.device,
- 						be32_to_cpu(ah->av.ib.port_pd) >> 24,
--						ah->av.ib.gid_index, &sgid,
--						NULL);
-+						ah->av.ib.gid_index, &sgid, &gid_attr);
- 			if (!err && !memcmp(&sgid, &zgid, sizeof(sgid)))
- 				err = -ENOENT;
--			if (err)
-+			if (!err) {
-+				is_udp = (gid_attr.gid_type == IB_GID_TYPE_ROCE_V2) ? true : false;
-+				if (is_udp) {
-+					if (ipv6_addr_v4mapped((struct in6_addr *)&sgid))
-+						ip_version = 4;
-+					else
-+						ip_version = 6;
-+					is_grh = false;
-+				}
-+			} else {
- 				return err;
-+			}
- 		}
--
- 		if (ah->av.eth.vlan != cpu_to_be16(0xffff)) {
- 			vlan = be16_to_cpu(ah->av.eth.vlan) & 0x0fff;
+ 	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER) {
+ 		sqp->ud_header.lrh.service_level =
+@@ -2231,7 +2231,10 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
  			is_vlan = 1;
  		}
  	}
- 	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
--				0, 0, 0, &sqp->ud_header);
-+			  ip_version, is_udp, 0, &sqp->ud_header);
- 	if (err)
- 		return err;
- 
-@@ -2243,12 +2248,14 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 		sqp->ud_header.lrh.source_lid = cpu_to_be16(ah->av.ib.g_slid & 0x7f);
- 	}
- 
--	if (is_grh) {
-+	if (is_grh || (ip_version == 6)) {
- 		sqp->ud_header.grh.traffic_class =
- 			(be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 20) & 0xff;
- 		sqp->ud_header.grh.flow_label    =
- 			ah->av.ib.sl_tclass_flowlabel & cpu_to_be32(0xfffff);
--		sqp->ud_header.grh.hop_limit     = ah->av.ib.hop_limit;
-+
-+		sqp->ud_header.grh.hop_limit     = (is_udp) ?
-+			IPV6_DEFAULT_HOPLIMIT : ah->av.ib.hop_limit;
- 		if (is_eth)
- 			memcpy(sqp->ud_header.grh.source_gid.raw, sgid.raw, 16);
- 		else {
-@@ -2272,6 +2279,26 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 		       ah->av.ib.dgid, 16);
- 	}
- 
-+	if (ip_version == 4) {
-+		sqp->ud_header.ip4.tos =
-+			(be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 20) & 0xff;
-+		sqp->ud_header.ip4.id = 0;
-+		sqp->ud_header.ip4.frag_off = htons(IP_DF);
-+		sqp->ud_header.ip4.ttl = (is_udp) ?
-+			IPV6_DEFAULT_HOPLIMIT : ah->av.eth.hop_limit;
-+
-+		memcpy(&sqp->ud_header.ip4.saddr,
-+		       sgid.raw + 12, 4);
-+		memcpy(&sqp->ud_header.ip4.daddr, ah->av.ib.dgid + 12, 4);
-+		sqp->ud_header.ip4.check = ib_ud_ip4_csum(&sqp->ud_header);
-+	}
-+
-+	if (is_udp) {
-+		sqp->ud_header.udp.dport = htons(ROCE_V2_UDP_DPORT);
-+		sqp->ud_header.udp.sport = htons(MLX4_ROCEV2_QP1_SPORT);
-+		sqp->ud_header.udp.csum = 0;
-+	}
-+
- 	mlx->flags &= cpu_to_be32(MLX4_WQE_CTRL_CQ_UPDATE);
+-	ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh, 0, &sqp->ud_header);
++	err = ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh,
++				0, 0, 0, &sqp->ud_header);
++	if (err)
++		return err;
  
  	if (!is_eth) {
-@@ -2300,34 +2327,27 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+ 		sqp->ud_header.lrh.service_level =
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index e354b2f..22a04fd 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -1485,7 +1485,7 @@ static int build_mlx_header(struct mthca_dev *dev, struct mthca_sqp *sqp,
+ 	u16 pkey;
  
- 	if (is_eth) {
- 		struct in6_addr in6;
--
-+		u16 ether_type;
- 		u16 pcp = (be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 29) << 13;
+ 	ib_ud_header_init(256, /* assume a MAD */ 1, 0, 0,
+-			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0,
++			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0, 0, 0,
+ 			  &sqp->ud_header);
  
-+		ether_type = (!is_udp) ? MLX4_IB_IBOE_ETHERTYPE :
-+			(ip_version == 4 ? ETH_P_IP : ETH_P_IPV6);
+ 	err = mthca_read_ah(dev, to_mah(wr->wr.ud.ah), &sqp->ud_header);
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index b1f7592..acbc1af 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -41,6 +41,8 @@ enum {
+ 	IB_ETH_BYTES  = 14,
+ 	IB_VLAN_BYTES = 4,
+ 	IB_GRH_BYTES  = 40,
++	IB_IP4_BYTES  = 20,
++	IB_UDP_BYTES  = 8,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+ };
+@@ -221,6 +223,26 @@ struct ib_unpacked_eth {
+ 	__be16	type;
+ };
+ 
++struct ib_unpacked_ip4 {
++	u8	ver_len;
++	u8	tos;
++	__be16	tot_len;
++	__be16	id;
++	__be16	frag_off;
++	u8	ttl;
++	u8	protocol;
++	__be16	check;
++	__be32	saddr;
++	__be32	daddr;
++};
 +
- 		mlx->sched_prio = cpu_to_be16(pcp);
++struct ib_unpacked_udp {
++	__be16	sport;
++	__be16	dport;
++	__be16	length;
++	__be16	csum;
++};
++
+ struct ib_unpacked_vlan {
+ 	__be16  tag;
+ 	__be16  type;
+@@ -235,6 +257,10 @@ struct ib_ud_header {
+ 	struct ib_unpacked_vlan vlan;
+ 	int			grh_present;
+ 	struct ib_unpacked_grh	grh;
++	int			ipv4_present;
++	struct ib_unpacked_ip4	ip4;
++	int			udp_present;
++	struct ib_unpacked_udp	udp;
+ 	struct ib_unpacked_bth	bth;
+ 	struct ib_unpacked_deth deth;
+ 	int			immediate_present;
+@@ -251,13 +277,17 @@ void ib_unpack(const struct ib_field        *desc,
+ 	       void                         *buf,
+ 	       void                         *structure);
  
-+		ether_addr_copy(sqp->ud_header.eth.smac_h, ah->av.eth.s_mac);
- 		memcpy(sqp->ud_header.eth.dmac_h, ah->av.eth.mac, 6);
--		/* FIXME: cache smac value? */
- 		memcpy(&ctrl->srcrb_flags16[0], ah->av.eth.mac, 2);
- 		memcpy(&ctrl->imm, ah->av.eth.mac + 2, 4);
- 		memcpy(&in6, sgid.raw, sizeof(in6));
+-void ib_ud_header_init(int		    payload_bytes,
+-		       int		    lrh_present,
+-		       int		    eth_present,
+-		       int		    vlan_present,
+-		       int		    grh_present,
+-		       int		    immediate_present,
+-		       struct ib_ud_header *header);
++__be16 ib_ud_ip4_csum(struct ib_ud_header *header);
++
++int ib_ud_header_init(int		    payload_bytes,
++		      int		    lrh_present,
++		      int		    eth_present,
++		      int		    vlan_present,
++		      int		    grh_present,
++		      int		    ip_version,
++		      int		    udp_present,
++		      int		    immediate_present,
++		      struct ib_ud_header *header);
  
--		if (!mlx4_is_mfunc(to_mdev(ib_dev)->dev)) {
--			u64 mac = atomic64_read(&to_mdev(ib_dev)->iboe.mac[sqp->qp.port - 1]);
--			u8 smac[ETH_ALEN];
--
--			mlx4_u64_to_smac(smac, mac);
--			memcpy(sqp->ud_header.eth.smac_h, smac, ETH_ALEN);
--		} else {
--			/* use the src mac of the tunnel */
--			memcpy(sqp->ud_header.eth.smac_h, ah->av.eth.s_mac, ETH_ALEN);
--		}
- 
- 		if (!memcmp(sqp->ud_header.eth.smac_h, sqp->ud_header.eth.dmac_h, 6))
- 			mlx->flags |= cpu_to_be32(MLX4_WQE_CTRL_FORCE_LOOPBACK);
- 		if (!is_vlan) {
--			sqp->ud_header.eth.type = cpu_to_be16(MLX4_IB_IBOE_ETHERTYPE);
-+			sqp->ud_header.eth.type = cpu_to_be16(ether_type);
- 		} else {
--			sqp->ud_header.vlan.type = cpu_to_be16(MLX4_IB_IBOE_ETHERTYPE);
-+			sqp->ud_header.vlan.type = cpu_to_be16(ether_type);
- 			sqp->ud_header.vlan.tag = cpu_to_be16(vlan | pcp);
- 		}
- 	} else {
+ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		      void                *buf);
 -- 
 2.1.0
 
