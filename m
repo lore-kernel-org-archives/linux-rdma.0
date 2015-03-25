@@ -1,69 +1,35 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH 2/2 RESEND] IB/Verbs: Use helpers to check IBoE technology
-Date: Wed, 25 Mar 2015 16:14:29 +0100
-Message-ID: <5512D0D5.6010807@profitbricks.com>
-References: <5512CFB0.1050108@profitbricks.com>
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: [PATCH amirv] IB/ipoib: Prepare the napi in the RX flow [ib-next:
+ ipoib_rx_poll() can be static
+Date: Wed, 25 Mar 2015 23:53:33 +0800
+Message-ID: <20150325155333.GA54248@lkp-sb04>
+References: <201503252315.8wVkJr4n%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5512CFB0.1050108@profitbricks.com>
+Content-Disposition: inline
+In-Reply-To: <201503252315.8wVkJr4n%fengguang.wu@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>
-Cc: Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Moni Shoua <monis@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Dan Carpenter <dan.carpenter@oracle.com>, Mel Gorman <mgorman@suse.de>, Alex Estrin <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, Eric Dumazet <edumazet@google.com>, Erez Shitrit <erezsh@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Haggai Eran <haggaie@mellanox.c>
+To: Erez Shitrit <erezsh@mellanox.com>
+Cc: kbuild-all@01.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Doug Ledford <dledford@redhat.com>, Alex Estrin <alex.estrin@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-This patch will introduce rdma_tech_is_iboe() and use it to save some code.
-
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
 ---
- drivers/infiniband/core/cma.c | 6 ++----
- include/rdma/ib_verbs.h       | 6 ++++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ ipoib_ib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 668e955..d354857 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -375,8 +375,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
-                      listen_id_priv->id.port_num) == dev_ll) {
-         cma_dev = listen_id_priv->cma_dev;
-         port = listen_id_priv->id.port_num;
--        if (rdma_transport_is_ib(cma_dev->device) &&
--            rdma_port_ll_is_eth(cma_dev->device, port))
-+        if (rdma_tech_is_iboe(cma_dev->device, port))
-             ret = ib_find_cached_gid(cma_dev->device, &iboe_gid,
-                          &found_port, NULL);
-         else
-@@ -395,8 +394,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
-                 listen_id_priv->id.port_num == port)
-                 continue;
-             if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
--                if (rdma_transport_is_ib(cma_dev->device) &&
--                    rdma_port_ll_is_eth(cma_dev->device, port))
-+                if (rdma_tech_is_iboe(cma_dev->device, port))
-                     ret = ib_find_cached_gid(cma_dev->device, &iboe_gid, &found_port, NULL);
-                 else
-                     ret = ib_find_cached_gid(cma_dev->device, &gid, &found_port, NULL);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 2bf9094..9a811f8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1767,6 +1767,12 @@ static inline int rdma_port_ll_is_eth(struct ib_device *device, u8 port_num)
-             == IB_LINK_LAYER_ETHERNET;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index af52a01..8f31a93 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -375,7 +375,7 @@ static int poll_tx(struct ipoib_dev_priv *priv)
+ 	return n == MAX_SEND_CQE;
  }
-
-+static inline int rdma_tech_is_iboe(struct ib_device *device, u8 port_num)
-+{
-+    return rdma_transport_is_ib(device) &&
-+            rdma_port_ll_is_eth(device, port_num);
-+}
-+
- int ib_query_gid(struct ib_device *device,
-          u8 port_num, int index, union ib_gid *gid);
-
--- 
-2.1.0
+ 
+-int ipoib_rx_poll(struct napi_struct *napi, int budget)
++static int ipoib_rx_poll(struct napi_struct *napi, int budget)
+ {
+ 	struct ipoib_dev_priv *priv = container_of(napi, struct ipoib_dev_priv, napi_rx);
+ 	struct net_device *dev = priv->dev;
