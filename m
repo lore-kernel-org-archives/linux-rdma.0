@@ -1,276 +1,244 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 15/15] xprtrdma: Make rpcrdma_{un}map_one() into inline
- functions
-Date: Tue, 24 Mar 2015 16:32:47 -0400
-Message-ID: <20150324203247.2311.59032.stgit@manet.1015granger.net>
-References: <20150324201849.2311.53599.stgit@manet.1015granger.net>
+From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 for-next 00/33] RoCE V1/V2 per GID
+Date: Thu, 26 Mar 2015 02:49:49 +0530
+Message-ID: <529b3b9b-ee4a-42db-a70e-619e01e0db27@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150324201849.2311.53599.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-These functions are called in a loop for each page transferred via
-RDMA READ or WRITE. Extract loop invariants and inline them to
-reduce CPU overhead.
+Hi Roland,
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/fmr_ops.c      |   10 ++++++--
- net/sunrpc/xprtrdma/frwr_ops.c     |   10 ++++++--
- net/sunrpc/xprtrdma/physical_ops.c |   10 ++++++--
- net/sunrpc/xprtrdma/verbs.c        |   44 ++++++-----------------------------
- net/sunrpc/xprtrdma/xprt_rdma.h    |   45 ++++++++++++++++++++++++++++++++++--
- 5 files changed, 73 insertions(+), 46 deletions(-)
+This patch series was created out of collaboration between Emulex and Mellanox.
+While Emulex sent out the RoCEV2 patch first to the community, Mellanox which
+was also working on some core infrastructure changes from the ground-up towards
+RoCEV2 felt that the RoCEV2 patch would be better served if done on top of
+their basic infrastructure changes to associate entities like MAC, VLAN,
+IP Address with GIDs and thereby move GID Table Management from HW Vendor
+drivers to IB/Core.
+This patchset is the result of joint development effort between the two teams.
 
-diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index e8a9837..a91ba2c 100644
---- a/net/sunrpc/xprtrdma/fmr_ops.c
-+++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -85,6 +85,8 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 	   int nsegs, bool writing)
- {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
-+	struct ib_device *device = ia->ri_id->device;
-+	enum dma_data_direction direction = rpcrdma_data_dir(writing);
- 	struct rpcrdma_mr_seg *seg1 = seg;
- 	struct rpcrdma_mw *mw = seg1->rl_mw;
- 	u64 physaddrs[RPCRDMA_MAX_DATA_SEGS];
-@@ -97,7 +99,7 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 	if (nsegs > RPCRDMA_MAX_FMR_SGES)
- 		nsegs = RPCRDMA_MAX_FMR_SGES;
- 	for (i = 0; i < nsegs;) {
--		rpcrdma_map_one(ia, seg, writing);
-+		rpcrdma_map_one(device, seg, direction);
- 		physaddrs[i] = seg->mr_dma;
- 		len += seg->mr_len;
- 		++seg;
-@@ -123,7 +125,7 @@ out_maperr:
- 		__func__, len, (unsigned long long)seg1->mr_dma,
- 		pageoff, i, rc);
- 	while (i--)
--		rpcrdma_unmap_one(ia, --seg);
-+		rpcrdma_unmap_one(device, --seg);
- 	return rc;
- }
- 
-@@ -135,14 +137,16 @@ fmr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
- {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
- 	struct rpcrdma_mr_seg *seg1 = seg;
-+	struct ib_device *device;
- 	int rc, nsegs = seg->mr_nsegs;
- 	LIST_HEAD(l);
- 
- 	list_add(&seg1->rl_mw->r.fmr->list, &l);
- 	rc = ib_unmap_fmr(&l);
- 	read_lock(&ia->ri_qplock);
-+	device = ia->ri_id->device;
- 	while (seg1->mr_nsegs--)
--		rpcrdma_unmap_one(ia, seg++);
-+		rpcrdma_unmap_one(device, seg++);
- 	read_unlock(&ia->ri_qplock);
- 	if (rc)
- 		goto out_err;
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index ea59c1b..0a7b9df 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -178,6 +178,8 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 	    int nsegs, bool writing)
- {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
-+	struct ib_device *device = ia->ri_id->device;
-+	enum dma_data_direction direction = rpcrdma_data_dir(writing);
- 	struct rpcrdma_mr_seg *seg1 = seg;
- 	struct rpcrdma_mw *mw = seg1->rl_mw;
- 	struct rpcrdma_frmr *frmr = &mw->r.frmr;
-@@ -197,7 +199,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 	if (nsegs > ia->ri_max_frmr_depth)
- 		nsegs = ia->ri_max_frmr_depth;
- 	for (page_no = i = 0; i < nsegs;) {
--		rpcrdma_map_one(ia, seg, writing);
-+		rpcrdma_map_one(device, seg, direction);
- 		pa = seg->mr_dma;
- 		for (seg_len = seg->mr_len; seg_len > 0; seg_len -= PAGE_SIZE) {
- 			frmr->fr_pgl->page_list[page_no++] = pa;
-@@ -247,7 +249,7 @@ out_senderr:
- 	ib_update_fast_reg_key(mr, --key);
- 	frmr->fr_state = FRMR_IS_INVALID;
- 	while (i--)
--		rpcrdma_unmap_one(ia, --seg);
-+		rpcrdma_unmap_one(device, --seg);
- 	return rc;
- }
- 
-@@ -261,6 +263,7 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
- 	struct ib_send_wr invalidate_wr, *bad_wr;
- 	int rc, nsegs = seg->mr_nsegs;
-+	struct ib_device *device;
- 
- 	seg1->rl_mw->r.frmr.fr_state = FRMR_IS_INVALID;
- 
-@@ -271,8 +274,9 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
- 	read_lock(&ia->ri_qplock);
-+	device = ia->ri_id->device;
- 	while (seg1->mr_nsegs--)
--		rpcrdma_unmap_one(ia, seg++);
-+		rpcrdma_unmap_one(device, seg++);
- 	rc = ib_post_send(ia->ri_id->qp, &invalidate_wr, &bad_wr);
- 	read_unlock(&ia->ri_qplock);
- 	if (rc)
-diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
-index 0ba130b..ba518af 100644
---- a/net/sunrpc/xprtrdma/physical_ops.c
-+++ b/net/sunrpc/xprtrdma/physical_ops.c
-@@ -50,7 +50,8 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- {
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
- 
--	rpcrdma_map_one(ia, seg, writing);
-+	rpcrdma_map_one(ia->ri_id->device, seg,
-+			rpcrdma_data_dir(writing));
- 	seg->mr_rkey = ia->ri_bind_mem->rkey;
- 	seg->mr_base = seg->mr_dma;
- 	seg->mr_nsegs = 1;
-@@ -62,7 +63,12 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- static int
- physical_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
- {
--	rpcrdma_unmap_one(&r_xprt->rx_ia, seg);
-+	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
-+
-+	read_lock(&ia->ri_qplock);
-+	rpcrdma_unmap_one(ia->ri_id->device, seg);
-+	read_unlock(&ia->ri_qplock);
-+
- 	return 1;
- }
- 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index cac06f2..4870d27 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1436,6 +1436,14 @@ rpcrdma_recv_buffer_put(struct rpcrdma_rep *rep)
-  * Wrappers for internal-use kmalloc memory registration, used by buffer code.
-  */
- 
-+void
-+rpcrdma_mapping_error(struct rpcrdma_mr_seg *seg)
-+{
-+	dprintk("RPC:       map_one: offset %p iova %llx len %zu\n",
-+		seg->mr_offset,
-+		(unsigned long long)seg->mr_dma, seg->mr_dmalen);
-+}
-+
- static int
- rpcrdma_register_internal(struct rpcrdma_ia *ia, void *va, int len,
- 				struct ib_mr **mrp, struct ib_sge *iov)
-@@ -1561,42 +1569,6 @@ rpcrdma_free_regbuf(struct rpcrdma_ia *ia, struct rpcrdma_regbuf *rb)
- }
- 
- /*
-- * Wrappers for chunk registration, shared by read/write chunk code.
-- */
--
--void
--rpcrdma_map_one(struct rpcrdma_ia *ia, struct rpcrdma_mr_seg *seg, bool writing)
--{
--	seg->mr_dir = writing ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
--	seg->mr_dmalen = seg->mr_len;
--	if (seg->mr_page)
--		seg->mr_dma = ib_dma_map_page(ia->ri_id->device,
--				seg->mr_page, offset_in_page(seg->mr_offset),
--				seg->mr_dmalen, seg->mr_dir);
--	else
--		seg->mr_dma = ib_dma_map_single(ia->ri_id->device,
--				seg->mr_offset,
--				seg->mr_dmalen, seg->mr_dir);
--	if (ib_dma_mapping_error(ia->ri_id->device, seg->mr_dma)) {
--		dprintk("RPC:       %s: mr_dma %llx mr_offset %p mr_dma_len %zu\n",
--			__func__,
--			(unsigned long long)seg->mr_dma,
--			seg->mr_offset, seg->mr_dmalen);
--	}
--}
--
--void
--rpcrdma_unmap_one(struct rpcrdma_ia *ia, struct rpcrdma_mr_seg *seg)
--{
--	if (seg->mr_page)
--		ib_dma_unmap_page(ia->ri_id->device,
--				seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
--	else
--		ib_dma_unmap_single(ia->ri_id->device,
--				seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
--}
--
--/*
-  * Prepost any receive buffer, then post send.
-  *
-  * Receive buffer is donated to hardware, reclaimed upon recv completion.
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 54bcbe4..78e0b8b 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -424,8 +424,49 @@ void rpcrdma_free_regbuf(struct rpcrdma_ia *,
- 			 struct rpcrdma_regbuf *);
- 
- unsigned int rpcrdma_max_segments(struct rpcrdma_xprt *);
--void rpcrdma_map_one(struct rpcrdma_ia *, struct rpcrdma_mr_seg *, bool);
--void rpcrdma_unmap_one(struct rpcrdma_ia *, struct rpcrdma_mr_seg *);
-+
-+/*
-+ * Wrappers for chunk registration, shared by read/write chunk code.
-+ */
-+
-+void rpcrdma_mapping_error(struct rpcrdma_mr_seg *);
-+
-+static inline enum dma_data_direction
-+rpcrdma_data_dir(bool writing)
-+{
-+	return writing ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+}
-+
-+static inline void
-+rpcrdma_map_one(struct ib_device *device, struct rpcrdma_mr_seg *seg,
-+		enum dma_data_direction direction)
-+{
-+	seg->mr_dir = direction;
-+	seg->mr_dmalen = seg->mr_len;
-+
-+	if (seg->mr_page)
-+		seg->mr_dma = ib_dma_map_page(device,
-+				seg->mr_page, offset_in_page(seg->mr_offset),
-+				seg->mr_dmalen, seg->mr_dir);
-+	else
-+		seg->mr_dma = ib_dma_map_single(device,
-+				seg->mr_offset,
-+				seg->mr_dmalen, seg->mr_dir);
-+
-+	if (ib_dma_mapping_error(device, seg->mr_dma))
-+		rpcrdma_mapping_error(seg);
-+}
-+
-+static inline void
-+rpcrdma_unmap_one(struct ib_device *device, struct rpcrdma_mr_seg *seg)
-+{
-+	if (seg->mr_page)
-+		ib_dma_unmap_page(device,
-+				  seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
-+	else
-+		ib_dma_unmap_single(device,
-+				    seg->mr_dma, seg->mr_dmalen, seg->mr_dir);
-+}
- 
- /*
-  * RPC/RDMA connection management calls - xprtrdma/rpc_rdma.c
+RoCE per GID patch-set aims to introduce RoCE V2 GID type while
+maintaining compatibility with RoCE V1. This is done by adding
+a type attribute for every GID type in addition to the required
+extra net device attribute required for RoCE V2. Previously,
+every vendor implemented its net device notifiers in its own
+driver. This introduces a huge code duplication as figuring
+whether the event is related to the vendor's net device in the
+various cases (bonding, vlan or any other upper device) is
+similar for all vendors. Introducing multiple GID types and other
+attributes would have made this code duplication even worse. Therefore,
+we decided moving this into a common core core. roce_gid_cache and
+roce_gid_mgmt were created in order to store and manage
+the new GID table, by filling it when getting the related events.
+Vendors now only have to implement modify_gid and get_netdev IB
+device calls, which are truly unique for each vendor.
+Patch 0001 creates a new infrastructure for storing GIDs and their attributes
+in IB/core. This infrastructure supports lock-less read of GIDs using a
+sequence number. The data structure is initialized only for RoCE ports.
+Every gid has meta information that describes it's related net device and it's
+type.
+
+Patch 0002 adds a reference count mechanism to IB devices. This mechanism
+is similar to dev_hold and dev_put available for net devices. This is
+mandatory for later patches as IB clients might want to wait for its
+work to complete in the device removal function, but a work might
+traverse the device list. This might cause a dead lock, as the removal
+function grabbed the device lock and in turn it waits for the client's work
+which wants to grab the device mutex as well.
+
+Patches 0003, 0004 and 0006 add population of this table for various cases
+based on net device events. We always enable default gids for an active
+device (an active device is defined here as a device that doesn't have
+a bonding master or is the current active slave). This is done in order
+to allow loopback traffic. Patch 0005 adds proper bonding support -
+only the active slaves retain their master's IP based gids and default gids.
+
+This whole concept needs to fit the existing sysfs model, thus patch 0008
+adds sysfs entries that represent the net device and gid type related to
+each gid.
+
+Patch 0009 adds a new API for RoCE gid cache lookup. Since users might
+want to find a GID which matches a net device with a specific attributes,
+the new API allows them to pass a filter function. This function is a bit
+slower than the "regular" find by gid, gid_type, if_index and namespace -
+thus it should be used only when necessary.
+
+Patches 0007, 0010, 0011 and 0012 changes the rest of IB/core to fit the new
+model. Instead of storing smac and vlan, we store either if_index, gid
+and gid_type or sgid_index. Either set suffices in order to resolve all
+the required Ethernet parameters. ib_init_ah_from_wc was changed, such
+that when a wc is arrived, we search our RoCE gid cache in order to
+find a suitable sgid_index that matches the net device. Matching is
+done based on GID and VLAN.
+
+Patch 0013 is used in order to configure the default mode of the cma.
+In order to avoid changing existing rdma-cm applications, we add a
+configfs that states for each ib device what the default RoCE mode is.
+
+Patch 0014 mainly corrects the hop limit value and adds a hint about
+RoCE type according to whether we have a gateway. This is the patch that
+makes it possible for applications to seamlessly interop between RoCE V1
+and V2 without undergoing any changes themselves.
+
+Patch 0029 deals with serializing QP1 packets for software based
+QP1 and the last patch handles joining and leaving IGMP groups
+for RoCE V2 multicast functionality.
+
+The rest of the patches add support for ocrdma and mlx4 devices.
+
+This series depends on RoCE LAG series (already accepted in net-next tree).
+
+Thanks,
+Devesh, Somnath, Moni and Matan
+
+Changes from V2:
+(1) When creating multiple vlans over an interface,
+    only the last created vlan's GID was populated in the table
+    (regression from V2).
+(2) Inactive slave of bonding sometimes lost GIDs related to IPs
+    that were directly applied to it.
+(3) Memory leak in mlx4
+(4) roce_gid_cache now calls modify_gid with zgid in order to cause
+    the provider to delete all the information it allocated for those
+    GIDs.
+(4) A mlx4 patch didn't compile and a downstream patch fixed it.
+(5) cma_configfs should depend on both address translation and configfs.
+(6) ocrdma driver redefined zgid.
+(7) Added event information for NETDEV_CHANGEUPPER event.
+
+Changes from V1:
+(1) Addressed Shachar and Haggai's comments
+(2) Fixed multicast support
+(3) Generalized bonding support
+(4) Added default GID after the IB device's net device was removed from bonding
+(5) Fixed bugs in mlx4 implementation regarding multicast
+(6) Fixed bugs in mlx4 when using XRC QPs after this patchset was applied
+(7) Fixed bug when the RoCE gid cache didn't exist
+(8) Moved the bonding's DRV macros to a private header
+(9) Support non-configfs configurations
+
+Devesh Sharma (3):
+  RDMA/ocrdma: changes to support RoCE-v2 in UD path
+  RDMA/ocrdma: changes to support RoCE-v2 in RC path
+  RDMA/ocrdma: changes to support user AH creation
+
+Maor Gottlieb (1):
+  net/mlx4_core: Add handlning of R-RoCE over IPV4 in qp attach flow
+
+Matan Barak (14):
+  IB/core: Add RoCE GID cache
+  IB/core: Add kref to IB devices
+  IB/core: Add RoCE GID population
+  IB/core: Add default GID for RoCE GID Cache
+  net/bonding: make DRV macros private
+  net: Add info for NETDEV_CHANGEUPPER event
+  IB/core: Add RoCE cache bonding support
+  IB/core: GID attribute should be returned from verbs API and cache API
+  IB/core: Report gid_type and gid_ndev through sysfs
+  IB/core: Support find sgid index using a filter function
+  IB/core: Modify ib_verbs and cma in order to use roce_gid_cache
+  IB/core: Add gid_type to path and rdma_id_private
+  IB/core: Add rdma_network_type to wc
+  IB/cma: Add configfs for rdma_cm
+
+Moni Shoua (13):
+  IB/mlx4: Remove gid table management for RoCE
+  IB/mlx4: Replace spin_lock with rw_semaphore
+  IB/mlx4: Lock with RCU instead of RTNL
+  net/mlx4: Postpone the registration of net_device
+  IB/mlx4: Advertise RoCE support in port capabilities
+  IB/mlx4: Implement ib_device callback - get_netdev
+  IB/mlx4: Implement ib_device callback - modify_gid
+  IB/mlx4: Configure device to work in RoCEv2
+  IB/mlx4: Translate cache gid index to real index
+  IB/core: Initialize UD header structure with IP and UDP headers
+  IB/mlx4: Enable send of RoCE QP1 packets with IP/UDP headers
+  IB/mlx4: Create and use another QP1 for RoCEv2
+  IB/cma: Join and leave multicast groups with IGMP
+
+Somnath Kotur (2):
+  IB/Core: Changes to the IB Core infrastructure for RoCEv2 support
+  RDMA/ocrdma: Changes in driver to incorporate the moving of GID Table
+    mgmt to IB/Core.
+
+ drivers/infiniband/Kconfig                     |   5 +
+ drivers/infiniband/core/Makefile               |   5 +-
+ drivers/infiniband/core/addr.c                 |  11 +-
+ drivers/infiniband/core/cache.c                | 249 ++++++--
+ drivers/infiniband/core/cm.c                   |  49 +-
+ drivers/infiniband/core/cma.c                  | 233 +++++--
+ drivers/infiniband/core/cma_configfs.c         | 222 +++++++
+ drivers/infiniband/core/core_priv.h            |  92 ++-
+ drivers/infiniband/core/device.c               | 150 ++++-
+ drivers/infiniband/core/mad.c                  |   2 +-
+ drivers/infiniband/core/multicast.c            |  17 +-
+ drivers/infiniband/core/roce_gid_cache.c       | 825 +++++++++++++++++++++++++
+ drivers/infiniband/core/roce_gid_mgmt.c        | 804 ++++++++++++++++++++++++
+ drivers/infiniband/core/sa_query.c             |  12 +-
+ drivers/infiniband/core/sysfs.c                | 186 +++++-
+ drivers/infiniband/core/ucma.c                 |   1 -
+ drivers/infiniband/core/ud_header.c            | 153 ++++-
+ drivers/infiniband/core/uverbs_cmd.c           |   3 +-
+ drivers/infiniband/core/uverbs_marshall.c      |   5 +-
+ drivers/infiniband/core/verbs.c                | 266 ++++++--
+ drivers/infiniband/hw/mlx4/ah.c                |  15 +-
+ drivers/infiniband/hw/mlx4/mad.c               |  12 +-
+ drivers/infiniband/hw/mlx4/main.c              | 758 +++++++++--------------
+ drivers/infiniband/hw/mlx4/mcg.c               |   2 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h           |  33 +-
+ drivers/infiniband/hw/mlx4/qp.c                | 337 ++++++++--
+ drivers/infiniband/hw/mthca/mthca_av.c         |   2 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c         |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma.h          |  12 +
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c       |  94 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h       |   5 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c       |  50 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c     | 233 +------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h      |  18 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |  54 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h    |   4 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   2 +-
+ drivers/infiniband/ulp/srp/ib_srp.c            |   2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c          |   3 +-
+ drivers/net/bonding/bond_main.c                |   2 +
+ drivers/net/bonding/bond_options.c             |  13 -
+ drivers/net/bonding/bond_procfs.c              |   1 +
+ drivers/net/bonding/bonding_priv.h             |  26 +
+ drivers/net/ethernet/mellanox/mlx4/en_main.c   |  36 +-
+ drivers/net/ethernet/mellanox/mlx4/fw.c        |  21 +-
+ drivers/net/ethernet/mellanox/mlx4/intf.c      |   3 +
+ drivers/net/ethernet/mellanox/mlx4/main.c      |  24 +-
+ drivers/net/ethernet/mellanox/mlx4/mcg.c       |  14 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h      |   3 +-
+ drivers/net/ethernet/mellanox/mlx4/port.c      |   9 +-
+ drivers/net/ethernet/mellanox/mlx4/qp.c        |  27 +
+ include/linux/mlx4/cmd.h                       |   3 +-
+ include/linux/mlx4/device.h                    |  23 +-
+ include/linux/mlx4/driver.h                    |   2 +
+ include/linux/mlx4/qp.h                        |  15 +-
+ include/linux/netdevice.h                      |  14 +
+ include/net/addrconf.h                         |  31 +
+ include/net/bonding.h                          |  14 +-
+ include/rdma/ib_addr.h                         |   5 +-
+ include/rdma/ib_cache.h                        |  71 ++-
+ include/rdma/ib_pack.h                         |  44 +-
+ include/rdma/ib_sa.h                           |   8 +-
+ include/rdma/ib_verbs.h                        | 128 +++-
+ net/core/dev.c                                 |  12 +-
+ net/ipv6/addrconf.c                            |  31 -
+ 66 files changed, 4359 insertions(+), 1151 deletions(-)
+ create mode 100644 drivers/infiniband/core/cma_configfs.c
+ create mode 100644 drivers/infiniband/core/roce_gid_cache.c
+ create mode 100644 drivers/infiniband/core/roce_gid_mgmt.c
+ create mode 100644 drivers/net/bonding/bonding_priv.h
+
+-- 
+2.1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
