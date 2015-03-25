@@ -1,98 +1,67 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device
- cap flag
-Date: Wed, 25 Mar 2015 11:30:32 +0100
-Message-ID: <55128E48.1080406@profitbricks.com>
-References: <550C2514.5070001@profitbricks.com>	<6A3D3202-0128-4F33-B596-D7A76AB66DF8@gmail.com>	<20150320235748.GA22703@phlsvsds.ph.intel.com>	<20150321000541.GA24717@phlsvsds.ph.intel.com> <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237399E82E58@ORSMSX109.amr.corp.intel.com> <55115D61.9040201@profitbricks.com>
+Subject: [PATCH 1/2] IB/Verbs: Use helpers to refine the checking on transport
+ and link layer
+Date: Wed, 25 Mar 2015 12:12:50 +0100
+Message-ID: <55129832.2070707@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55115D61.9040201-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eugenia Emantayev <eugenia-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Sean
 
-On 03/24/2015 01:49 PM, Michael Wang wrote:
-> On 03/23/2015 05:31 PM, Hefty, Sean wrote:
->>> [snip]
->> To restate my suggesting, I was thinking of defining something like 
->> this:
->>
->> enum {
->>     IB_MGMT_PROTO_SM = (1 << 0),   /* supports IB SMPs */
->>     IB_MGMT_PROTO_SA = (1 << 1),   /* supports IB SA MADs */
->>     IB_MGMT_PROTO_GS = (1 << 2),   /* supports IB GSI MADs (e.g. PM, 
->> ...) */
->>     IB_MGMT_PROTO_CM = (1 << 3),   /* IB CM called out separately */
->>     IB_MGMT_PROTO_IW_CM = (1 << 4),/* iWarp CM */
->>     /* OPA can define new values here */
->> };
->>
->> struct ib_port_attr {
->>     ...
->>     u32    mgmt_proto;  /* bitmask of supported protocols */
->> };
->
-> Thanks for the restate, Sean :) seems like your proposal is also to 
-> ask vendor
-> setup 'mgmt_proto' during ib_query_port(), correct?
+There are too many lengthy code to check the transport type of IB device,
+or the link layer type of it's port, this patch set try to use some 
+helper to
+refine and save us some code.
 
-I think we got one problem here, if we rely on ib_query_port() to setup 
-mgmt flags
-each time, the performance may suffered, since some implementation of
-query_port() is really expensive, like hardware communication (mlx4/5) and
-mutex protection (usnic)...
+TODO:
+     Currently we inferred from the transport type and link layer type 
+to identify
+     the way of management, it will be better if we can directly get the 
+indicator
+     from vendor.
 
-And also I found that the current implementation doesn't match the idea 
-very well,
-for example CM, I haven't found any scene to check whether a specified 
-port support
-CM or not (correct me please), mostly only check the device rather than 
-it's port,
-SM is checking the port, however since we already verified transport 
-layer at beginning,
-just check link layer sounds not that bad...
+     Sean proposed one suggestion:
+  https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23339.html
 
-Thus I think using flags may not very helpful to the current 
-implementation, may
-be use some helper to refine the code is more applicable?
+     It may need a big work to adapt current implementation to utilize
+     these flags elegantly.
 
-I'll send out the patch later with just helpers, we can discuss in that 
-thread see if
-there is any better solutions ;-)
+     Also the performance concern on query_port() need to be addressed, 
+may be
+     some new callback like query_mgmt() could works.
 
-Regards,
-Michael Wang
+Michael Wang (2):
+     [PATCH 1/2] IB/Verbs: Use helpers to check transport and link layer
+     [PATCH 2/2] IB/Verbs: Use helpers to check IBoE technology
 
->
->>
->> I am not familiar enough with RoCE (IBoE) to know off the top of my 
->> head if this breakdown works as I defined it, or if IB_MGMT_PROTO_GS 
->> needs to be separated into more mgmt classes. (Hal or Ira might.)  I 
->> separated out the CM class, as the rdma cm has checks where it wants 
->> to distinguish between which CM protocol to execute (IB or iWarp).
->
-> Maybe we can apply this thought to CM part firstly?
->>
->> This change would be limited to management checks only.  There may 
->> still be places in the code where the link and transport checks would 
->> continue to exist.  Again, this is just a suggestion.  Without 
->> actually implementing the patch, I don't know if this would simplify 
->> things.  The checks in the rdma cm, in particular, are messy.
-> I think it's time to make a formal patch now and discuss the problem in
-> a separate thread, I'll still use the mechanism in draft and apply these
-> flags, let's see if it satisfied peoples ;-)
->
-> Regards,
-> Michael Wang
->
->> - Sean
->
-
+---
+  drivers/infiniband/core/agent.c           |    2 -
+  drivers/infiniband/core/cm.c              |    2 -
+  drivers/infiniband/core/cma.c             |   33 
+++++++++++++------------------
+  drivers/infiniband/core/mad.c             |    6 ++---
+  drivers/infiniband/core/multicast.c       |   11 +++-------
+  drivers/infiniband/core/sa_query.c        |   14 ++++++------
+  drivers/infiniband/core/ucm.c             |    3 --
+  drivers/infiniband/core/user_mad.c        |    2 -
+  drivers/infiniband/core/verbs.c           |    5 +---
+  drivers/infiniband/hw/mlx4/ah.c           |    2 -
+  drivers/infiniband/hw/mlx4/cq.c           |    4 ---
+  drivers/infiniband/hw/mlx4/mad.c          |   14 +++---------
+  drivers/infiniband/hw/mlx4/main.c         |    8 ++-----
+  drivers/infiniband/hw/mlx4/mlx4_ib.h      |    2 -
+  drivers/infiniband/hw/mlx4/qp.c           |   21 ++++++-------------
+  drivers/infiniband/hw/mlx4/sysfs.c        |    6 +----
+  drivers/infiniband/ulp/ipoib/ipoib_main.c |    6 ++---
+  include/rdma/ib_verbs.h                   |   30 
++++++++++++++++++++++++++++
+  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    3 --
+  19 files changed, 87 insertions(+), 87 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
