@@ -1,35 +1,21 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [amirv:for-upstream 115/141]
- drivers/infiniband/ulp/ipoib/ipoib_ib.c:424:5: sparse: symbol
- 'ipoib_tx_poll' was not declared. Should it be static?
-Date: Thu, 26 Mar 2015 00:04:15 +0800
-Message-ID: <201503260000.pSiGcDdD%fengguang.wu@intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/1] ibacm: Use pkey 0xffff or 0x7fff for SA query
+Date: Wed, 25 Mar 2015 22:41:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237399E83FED@ORSMSX109.amr.corp.intel.com>
+References: <1426786117-24257-1-git-send-email-kaike.wan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Erez Shitrit <erezsh@mellanox.com>
-Cc: kbuild-all@01.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Doug Ledford <dledford@redhat.com>, Alex Estrin <alex.estrin@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1426786117-24257-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-tree:   git://flatbed.openfabrics.org/~amirv/linux.git for-upstream
-head:   fbf635aeba2bba8091d58dc9d4180c04e9dd01f0
-commit: c87f933e10ff036c0e13a9cbccd5f5c4671bcd01 [115/141] IB/ipoib: Use napi api in TX flow [ib-next:ipoib-s1]
-reproduce:
-  # apt-get install sparse
-  git checkout c87f933e10ff036c0e13a9cbccd5f5c4671bcd01
-  make ARCH=x86_64 allmodconfig
-  make C=1 CF=-D__CHECK_ENDIAN__
-
-
-sparse warnings: (new ones prefixed by >>)
-
-   drivers/infiniband/ulp/ipoib/ipoib_ib.c:378:5: sparse: symbol 'ipoib_rx_poll' was not declared. Should it be static?
->> drivers/infiniband/ulp/ipoib/ipoib_ib.c:424:5: sparse: symbol 'ipoib_tx_poll' was not declared. Should it be static?
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+Thanks - applied
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
