@@ -1,103 +1,159 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
-Date: Thu, 26 Mar 2015 14:05:18 +0000
-Message-ID: <7F44EA5110810A40B7DAFB605C41975D58F8EBD2@CMEXMB1.ad.emulex.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
- <44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
- <551347E9.5090503@sandisk.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 0/2 RESEND] IB/Verbs: Use helpers to refine the checking
+ on transport and link layer
+Date: Thu, 26 Mar 2015 10:09:00 -0400
+Message-ID: <1427378940.21101.100.camel@redhat.com>
+References: <5512CFB0.1050108@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <551347E9.5090503-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-/Ql6gYk8G0P7tUSi+MWG"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5512CFB0.1050108@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Moni Shoua <monis@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Dan Carpenter <dan.carpenter@o>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Matan/Moni,
-                    Could either of you please respond to both of Bart's queries?
 
-Thanks
-Somnath
+--=-/Ql6gYk8G0P7tUSi+MWG
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Bart Van Assche [mailto:bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org]
-> Sent: Thursday, March 26, 2015 5:13 AM
-> To: Somnath Kotur; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak
-> Subject: Re: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
-> 
-> On 03/25/2015 02:19 PM, Somnath Kotur wrote:
-> > +	if (cache->data_vec[ix].attr.ndev &&
-> > +	    cache->data_vec[ix].attr.ndev != old_net_dev)
-> 
-> A few lines earlier the memory old_net_dev points at was freed. If two
-> instances of this function run concurrently, what prevents that the
-> old_net_dev memory has been reallocated and hence that attr.ndev ==
-> old_net_dev although both pointers refer(red) to different network devices
-> ?
-> 
-> > +	ACCESS_ONCE(cache->data_vec[ix].seq) = orig_seq;
-> 
-> Invoking write_gid() is only safe if the caller serializes write_gid() calls.
-> Apparently the cache->lock mutex is used for that purpose. So why is it
-> necessary to use ACCESS_ONCE() here ? Why is it needed to prevent that
-> the compiler coalesces this write with another write into the same structure
-> ?
-> 
-> > +		/* Make sure the sequence number we remeber was read
-> 
-> This looks like a typo - shouldn't the above read "remember" ?
-> 
-> BTW, the style of that comment is recommended only for networking code
-> and not for IB code. Have you verified this patch with checkpatch ?
-> 
-> > +	mutex_lock(&cache->lock);
-> > +
-> > +	for (ix = 0; ix < cache->sz; ix++)
-> > +		if (cache->data_vec[ix].attr.ndev == ndev)
-> > +			write_gid(ib_dev, port, cache, ix, &zgid, &zattr);
-> > +
-> > +	mutex_unlock(&cache->lock);
-> > +	return 0;
-> 
-> The traditional Linux kernel coding style is one blank line before
-> mutex_lock() and after mutex_unlock() but not after mutex_lock() nor
-> before mutex_unlock().
-> 
-> > +	orig_seq = ACCESS_ONCE(cache->data_vec[index].seq);
-> > +	/* Make sure we read the sequence number before copying the
-> > +	 * gid to local storage. */
-> > +	smp_rmb();
-> 
-> Please use READ_ONCE() instead of ACCESS_ONCE() as recommended in
-> <linux/compiler.h>.
-> 
-> > +static void free_roce_gid_cache(struct ib_device *ib_dev, u8 port) {
-> > +	int i;
-> > +	struct ib_roce_gid_cache *cache =
-> > +		ib_dev->cache.roce_gid_cache[port - 1];
-> > +
-> > +	if (!cache)
-> > +		return;
-> > +
-> > +	for (i = 0; i < cache->sz; ++i) {
-> > +		if (memcmp(&cache->data_vec[i].gid, &zgid,
-> > +			   sizeof(cache->data_vec[i].gid)))
-> > +		    write_gid(ib_dev, port, cache, i, &zgid, &zattr);
-> > +	}
->  > +	kfree(cache->data_vec);
->  > +	kfree(cache);
->  > +}
-> 
-> Overwriting data just before it is freed is not useful. Please use
-> CONFIG_SLUB_DEBUG=y to debug use-after-free issues instead of such
-> code.
-> 
-> Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 2015-03-25 at 16:09 +0100, Michael Wang wrote:
+> My sincerely apologies for the corrupted mails, and thanks for Dan's kind=
+ly
+> remind :-)
+>=20
+> There are too many lengthy code to check the transport type of IB device,
+> or the link layer type of it's port, this patch set try to use some helpe=
+r to
+> refine and save us some code.
+>=20
+> TODO:
+>     Currently we inferred from the transport type and link layer type to =
+identify
+>     the way of management, it will be better if we can directly get the i=
+ndicator
+>     from vendor.
+>=20
+>     Sean proposed one suggestion:
+>         https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.=
+html
+>=20
+>     It may need a big work to adapt current implementation to utilize
+>     these flags elegantly.
+>=20
+>     Also the performance concern on query_port() need to be addressed, ma=
+y be
+>     some new callback like query_mgmt() could works.
+>=20
+> Michael Wang (2):
+>     [PATCH 1/2] IB/Verbs: Use helpers to check transport and link layer
+>     [PATCH 2/2] IB/Verbs: Use helpers to check IBoE technology
+>=20
+> ---
+>  drivers/infiniband/core/agent.c           |    2 -
+>  drivers/infiniband/core/cm.c              |    2 -
+>  drivers/infiniband/core/cma.c             |   33 ++++++++++++-----------=
+-------
+>  drivers/infiniband/core/mad.c             |    6 ++---
+>  drivers/infiniband/core/multicast.c       |   11 +++-------
+>  drivers/infiniband/core/sa_query.c        |   14 ++++++------
+>  drivers/infiniband/core/ucm.c             |    3 --
+>  drivers/infiniband/core/user_mad.c        |    2 -
+>  drivers/infiniband/core/verbs.c           |    5 +---
+>  drivers/infiniband/hw/mlx4/ah.c           |    2 -
+>  drivers/infiniband/hw/mlx4/cq.c           |    4 ---
+>  drivers/infiniband/hw/mlx4/mad.c          |   14 +++---------
+>  drivers/infiniband/hw/mlx4/main.c         |    8 ++-----
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h      |    2 -
+>  drivers/infiniband/hw/mlx4/qp.c           |   21 ++++++-------------
+>  drivers/infiniband/hw/mlx4/sysfs.c        |    6 +----
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c |    6 ++---
+>  include/rdma/ib_verbs.h                   |   30 +++++++++++++++++++++++=
+++++
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    3 --
+>  19 files changed, 87 insertions(+), 87 deletions(-)
+>=20
+
+I think this is a step in the right direction.  However, as I brought up
+in a different thread, I think it would be best if we start to clear up
+some of the funny things in this space, such as calling iWARP link layer
+InfiniBand.
+
+One thing we didn't discuss before is that, even if changing these items
+around in user space would break user space, changing them around in the
+kernel won't break anything except maybe Lustre (which we can inform the
+authors about the change so they can anticipate it and do the right
+thing in their code) because we can fix up our return values we pass to
+user space with no impact to them as it's not on a hot path.  We can
+then emulate the old way of setting all these variables to user space
+while fixing them up in kernel space.
+
+So, I would suggest that we fix things up thusly:
+
+enum transport {
+	TRANSPORT_IB=3D1,
+	TRANSPORT_IWARP=3D2,
+	TRANSPORT_ROCE=3D4,
+	TRANSPORT_OPA=3D8,
+	TRANSPORT_USNIC=3D10,
+};
+
+#define HAS_SA(ibdev) ((ibdev)->transport & (TRANSPORT_IB|TRANSPORT_OPA))
+#define HAS_JUMBO_SA(ibdev) ((ibdev)->transport & TRANSPORT_OPA))
+
+or possibly
+
+static bool ib_dev_has_sa(struct ibv_device *ibdev)
+{
+	return ibdev->transport & (TRANSPORT_IB | TRANSPORT_OPA);
+}
+
+If we do this, then the only thing we have to fix up to preserve ABI
+with user space is to make sure that any time we export an ibv_device
+struct and any time we import the same, we convert from our new internal
+representation to the old representation that user space expects.  And
+we also need to make a few changes in the sysfs code to display the
+properties as things expect.  But, that would allow us to fix up what I
+see as a problem right now, which is that we hide the information we
+need to know what sort of device we are working on in two different
+fields: the transport and the link layer.  Instead, just use one field
+with enough variants that we can store all of the relevant information
+we need in that one field.  This has the benefit that any comparisons
+that happen in hot paths will now always be a single bitwise comparison
+and will no longer need to hit two separate variables for two separate
+compares.
+
+
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-/Ql6gYk8G0P7tUSi+MWG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVFBL8AAoJELgmozMOVy/dtc4P/3R67xJKqEwzXUK+oX+R7H3E
+6BNtV9xkB8fVXHseL188/iFCE0mP4WO2WaMt88/iwVU+LChZX1bRClehjue4nl3B
+qrDoiW+5r+xKkBGjPj6Y593kwVSZKsKBkC50+gekxtTdzbff8HIk3JW+OVIBXVUp
+IwWSX7cwAqws1e/Y4ldFcNMKXkkvqr8QyEQsUGDvZNt+tph28YKxbpk/ZYF294tW
+JuWqVV0cYa0ZTkNDBbLqAnBSaFSCkYFkY6DA470Y3FzUaiEf8YWHxUrie7BlJ4Qd
+r/TW0T8N5rklmn14JK7K85j+DuWy7ad2bEFhDQP6tikUosn0XMXpg82sv2Wcl/TP
+o+GsXixfrUOBd9Y5/MRBpVx5zTWjD4Uq8LrYBf76qphtqUInTc6GcCwZsh+o1yi8
+znhFBwl/vU4qCrzcplIu103stQMXgI00A0byzjwsaKY6+GATxgtRU/ehm3BMh0bS
+uSWQxbGrGZBgVb7jb4pFpSdp3+PUv/t5BwJSq7YoXsQCdxlPXWbTuTk1/Sws9OzZ
+Y3gkxLA2w/Til58wXlW2zYIAH7/8RkcmYZBNH5uIqdxmEScn3neGnWUo3uoNdVcq
++hC+mQEgI34fg0k9SvRv4cchkXo3QCF2bdhLIbVLVZ03zMoqJbwveCuAIhK0wYtM
+K5tAbB0u2AqUqyTtq+DD
+=oFE4
+-----END PGP SIGNATURE-----
+
+--=-/Ql6gYk8G0P7tUSi+MWG--
