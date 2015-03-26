@@ -1,117 +1,54 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
-Date: Thu, 26 Mar 2015 13:43:38 -0500
-Message-ID: <D8D8F30A-1E68-49AB-B10C-8A858C27F2E0@oracle.com>
-References: <20150324201849.2311.53599.stgit@manet.1015granger.net> <55145274.203@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/2 RESEND] IB/Verbs: Use helpers to refine the checking
+ on transport and link layer
+Date: Thu, 26 Mar 2015 15:13:34 -0600
+Message-ID: <20150326211334.GA3359@obsidianresearch.com>
+References: <5512CFB0.1050108@profitbricks.com>
+ <1427378940.21101.100.camel@redhat.com>
+ <55142DFD.2060100@profitbricks.com>
+ <1427387258.21101.124.camel@redhat.com>
+ <55143AAC.8040206@profitbricks.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55145274.203-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55143AAC.8040206-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd@mellanox.c>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Mar 26, 2015 at 05:58:20PM +0100, Michael Wang wrote:
 
-On Mar 26, 2015, at 1:39 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+> The questions is just wondering how the transition method could be, but
+> if we have to do the changes for vendor, that sounds like a tough job...
 
-> Hey Chuck,
-> 
-> I didn't see anything that needs to be fixed up in these patches.  Are they ready for me?
+I would see changing how the information is represented in the struct
+as a follow on issue. The first patch should go through and replace
+all direct access to the link layer/transport/etc with an
+appropriately narrow is_XX() test like Doug was suggesting.
 
-Thanks for the review. IMO we can go one of two routes:
+That means looking at each code site and determining what it needs,
+making a is_XX for it and a kdoc describing exactly what is needed for
+the test to return true.
 
- - Wait for HCA vendors to test this latest version of the series, or
+The follow on patch can then rework the is_XX and drop the link
+layer/transport stuff..
 
- - Merge it now, and simply apply any needed fixes on top before the 4.1
-window opens.
+Some ideas for is_XX:
+  IB compatible SA
+  QP0 SMP mechanism
+  IB SMP format
+  OPA SMP format
+  QP1 GMP mechanism
+  IB compatible CM
+  GID addressing
+  IP/IPv6 addressing
+  Ethernet VLAN
+  ...
 
-What do you prefer? Is it possible to get this series in front of the
-zero-day test folks before you merge?
-
-
-> Anna
-> 
-> On 03/24/2015 04:30 PM, Chuck Lever wrote:
->> This is a series of client-side patches for NFS/RDMA. In preparation
->> for increasing the transport credit limit and maximum rsize/wsize,
->> I've re-factored the memory registration logic into separate files,
->> invoked via a method API.
->> 
->> The two main optimizations in v1 of this series have been dropped.
->> Sagi Grimberg didn't like the complexity of the solution, and there
->> isn't enough time to rework it, test the new version, and get it
->> reviewed before the 4.1 merge window opens. I'm going to prepare
->> these for 4.2.
->> 
->> Fixes suggested by reviewers have been included before the
->> refactoring patches to make it easier to backport them to previous
->> kernels.
->> 
->> The series is available in the nfs-rdma-for-4.1 topic branch at
->> 
->> git://linux-nfs.org/projects/cel/cel-2.6.git
->> 
->> Changes since v1:
->> - Rebased on 4.0-rc5
->> - Main optimizations postponed to 4.2
->> - Addressed review comments from Anna, Sagi, and Devesh
->> 
->> ---
->> 
->> Chuck Lever (15):
->>      SUNRPC: Introduce missing well-known netids
->>      xprtrdma: Display IPv6 addresses and port numbers correctly
->>      xprtrdma: Perform a full marshal on retransmit
->>      xprtrdma: Byte-align FRWR registration
->>      xprtrdma: Prevent infinite loop in rpcrdma_ep_create()
->>      xprtrdma: Add vector of ops for each memory registration strategy
->>      xprtrdma: Add a "max_payload" op for each memreg mode
->>      xprtrdma: Add a "register_external" op for each memreg mode
->>      xprtrdma: Add a "deregister_external" op for each memreg mode
->>      xprtrdma: Add "init MRs" memreg op
->>      xprtrdma: Add "reset MRs" memreg op
->>      xprtrdma: Add "destroy MRs" memreg op
->>      xprtrdma: Add "open" memreg op
->>      xprtrdma: Handle non-SEND completions via a callout
->>      xprtrdma: Make rpcrdma_{un}map_one() into inline functions
->> 
->> 
->> include/linux/sunrpc/msg_prot.h    |    8 
->> net/sunrpc/xprtrdma/Makefile       |    3 
->> net/sunrpc/xprtrdma/fmr_ops.c      |  208 +++++++++++
->> net/sunrpc/xprtrdma/frwr_ops.c     |  353 ++++++++++++++++++
->> net/sunrpc/xprtrdma/physical_ops.c |   94 +++++
->> net/sunrpc/xprtrdma/rpc_rdma.c     |   87 ++--
->> net/sunrpc/xprtrdma/transport.c    |   61 ++-
->> net/sunrpc/xprtrdma/verbs.c        |  699 +++---------------------------------
->> net/sunrpc/xprtrdma/xprt_rdma.h    |   90 ++++-
->> 9 files changed, 882 insertions(+), 721 deletions(-)
->> create mode 100644 net/sunrpc/xprtrdma/fmr_ops.c
->> create mode 100644 net/sunrpc/xprtrdma/frwr_ops.c
->> create mode 100644 net/sunrpc/xprtrdma/physical_ops.c
->> 
->> --
->> Chuck Lever
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Jason
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
