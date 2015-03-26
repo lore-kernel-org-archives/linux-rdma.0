@@ -1,159 +1,86 @@
-From: Doug Ledford <dledford@redhat.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Subject: Re: [PATCH 0/2 RESEND] IB/Verbs: Use helpers to refine the checking
  on transport and link layer
-Date: Thu, 26 Mar 2015 10:09:00 -0400
-Message-ID: <1427378940.21101.100.camel@redhat.com>
-References: <5512CFB0.1050108@profitbricks.com>
+Date: Thu, 26 Mar 2015 17:04:13 +0100
+Message-ID: <55142DFD.2060100@profitbricks.com>
+References: <5512CFB0.1050108@profitbricks.com> <1427378940.21101.100.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-/Ql6gYk8G0P7tUSi+MWG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5512CFB0.1050108@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Wang <yun.wang@profitbricks.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Moni Shoua <monis@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Dan Carpenter <dan.carpenter@o>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1427378940.21101.100.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter@o>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi, Doug
 
---=-/Ql6gYk8G0P7tUSi+MWG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks for the excellent comments :-)
 
-On Wed, 2015-03-25 at 16:09 +0100, Michael Wang wrote:
-> My sincerely apologies for the corrupted mails, and thanks for Dan's kind=
-ly
-> remind :-)
->=20
-> There are too many lengthy code to check the transport type of IB device,
-> or the link layer type of it's port, this patch set try to use some helpe=
-r to
-> refine and save us some code.
->=20
-> TODO:
->     Currently we inferred from the transport type and link layer type to =
-identify
->     the way of management, it will be better if we can directly get the i=
-ndicator
->     from vendor.
->=20
->     Sean proposed one suggestion:
->         https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.=
-html
->=20
->     It may need a big work to adapt current implementation to utilize
->     these flags elegantly.
->=20
->     Also the performance concern on query_port() need to be addressed, ma=
-y be
->     some new callback like query_mgmt() could works.
->=20
-> Michael Wang (2):
->     [PATCH 1/2] IB/Verbs: Use helpers to check transport and link layer
->     [PATCH 2/2] IB/Verbs: Use helpers to check IBoE technology
->=20
-> ---
->  drivers/infiniband/core/agent.c           |    2 -
->  drivers/infiniband/core/cm.c              |    2 -
->  drivers/infiniband/core/cma.c             |   33 ++++++++++++-----------=
--------
->  drivers/infiniband/core/mad.c             |    6 ++---
->  drivers/infiniband/core/multicast.c       |   11 +++-------
->  drivers/infiniband/core/sa_query.c        |   14 ++++++------
->  drivers/infiniband/core/ucm.c             |    3 --
->  drivers/infiniband/core/user_mad.c        |    2 -
->  drivers/infiniband/core/verbs.c           |    5 +---
->  drivers/infiniband/hw/mlx4/ah.c           |    2 -
->  drivers/infiniband/hw/mlx4/cq.c           |    4 ---
->  drivers/infiniband/hw/mlx4/mad.c          |   14 +++---------
->  drivers/infiniband/hw/mlx4/main.c         |    8 ++-----
->  drivers/infiniband/hw/mlx4/mlx4_ib.h      |    2 -
->  drivers/infiniband/hw/mlx4/qp.c           |   21 ++++++-------------
->  drivers/infiniband/hw/mlx4/sysfs.c        |    6 +----
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |    6 ++---
->  include/rdma/ib_verbs.h                   |   30 +++++++++++++++++++++++=
-++++
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    3 --
->  19 files changed, 87 insertions(+), 87 deletions(-)
->=20
+On 03/26/2015 03:09 PM, Doug Ledford wrote:
+> On Wed, 2015-03-25 at 16:09 +0100, Michael Wang wrote:
+>> [snip]
+>>
+> [snip]
+>
+> So, I would suggest that we fix things up thusly:
+>
+> enum transport {
+> 	TRANSPORT_IB=1,
+> 	TRANSPORT_IWARP=2,
+> 	TRANSPORT_ROCE=4,
+> 	TRANSPORT_OPA=8,
+> 	TRANSPORT_USNIC=10,
+> };
+>
+> #define HAS_SA(ibdev) ((ibdev)->transport & (TRANSPORT_IB|TRANSPORT_OPA))
+> #define HAS_JUMBO_SA(ibdev) ((ibdev)->transport & TRANSPORT_OPA))
+>
+> or possibly
+>
+> static bool ib_dev_has_sa(struct ibv_device *ibdev)
+> {
+> 	return ibdev->transport & (TRANSPORT_IB | TRANSPORT_OPA);
+> }
 
-I think this is a step in the right direction.  However, as I brought up
-in a different thread, I think it would be best if we start to clear up
-some of the funny things in this space, such as calling iWARP link layer
-InfiniBand.
+The idea sounds interesting, and here my silly questions come :-P
 
-One thing we didn't discuss before is that, even if changing these items
-around in user space would break user space, changing them around in the
-kernel won't break anything except maybe Lustre (which we can inform the
-authors about the change so they can anticipate it and do the right
-thing in their code) because we can fix up our return values we pass to
-user space with no impact to them as it's not on a hot path.  We can
-then emulate the old way of setting all these variables to user space
-while fixing them up in kernel space.
+So are you suggesting that we add a new bitmask 'transport' into 'struct ib_device'
+in kernel, and setup it at very beginning?
 
-So, I would suggest that we fix things up thusly:
+Few more questions here is:
+1. when to setup? (maybe inside ib_register_device() before doing client->add() callback?)
 
-enum transport {
-	TRANSPORT_IB=3D1,
-	TRANSPORT_IWARP=3D2,
-	TRANSPORT_ROCE=3D4,
-	TRANSPORT_OPA=3D8,
-	TRANSPORT_USNIC=3D10,
-};
+2. how to setup? (still infer from the transport and link layer like we currently do?)
 
-#define HAS_SA(ibdev) ((ibdev)->transport & (TRANSPORT_IB|TRANSPORT_OPA))
-#define HAS_JUMBO_SA(ibdev) ((ibdev)->transport & TRANSPORT_OPA))
+3. in case if a device has ports with different link layer type (please correct
+    me if this will never happen), then only one bitmask may not be enough to
+    present the transport of all the ports? (maybe create a bitmask per port?)
 
-or possibly
+Regards,
+Michael Wang
 
-static bool ib_dev_has_sa(struct ibv_device *ibdev)
-{
-	return ibdev->transport & (TRANSPORT_IB | TRANSPORT_OPA);
-}
+>
+> If we do this, then the only thing we have to fix up to preserve ABI
+> with user space is to make sure that any time we export an ibv_device
+> struct and any time we import the same, we convert from our new internal
+> representation to the old representation that user space expects.  And
+> we also need to make a few changes in the sysfs code to display the
+> properties as things expect.  But, that would allow us to fix up what I
+> see as a problem right now, which is that we hide the information we
+> need to know what sort of device we are working on in two different
+> fields: the transport and the link layer.  Instead, just use one field
+> with enough variants that we can store all of the relevant information
+> we need in that one field.  This has the benefit that any comparisons
+> that happen in hot paths will now always be a single bitwise comparison
+> and will no longer need to hit two separate variables for two separate
+> compares.
+>
+>
+>
 
-If we do this, then the only thing we have to fix up to preserve ABI
-with user space is to make sure that any time we export an ibv_device
-struct and any time we import the same, we convert from our new internal
-representation to the old representation that user space expects.  And
-we also need to make a few changes in the sysfs code to display the
-properties as things expect.  But, that would allow us to fix up what I
-see as a problem right now, which is that we hide the information we
-need to know what sort of device we are working on in two different
-fields: the transport and the link layer.  Instead, just use one field
-with enough variants that we can store all of the relevant information
-we need in that one field.  This has the benefit that any comparisons
-that happen in hot paths will now always be a single bitwise comparison
-and will no longer need to hit two separate variables for two separate
-compares.
-
-
-
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
-
-
-
---=-/Ql6gYk8G0P7tUSi+MWG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJVFBL8AAoJELgmozMOVy/dtc4P/3R67xJKqEwzXUK+oX+R7H3E
-6BNtV9xkB8fVXHseL188/iFCE0mP4WO2WaMt88/iwVU+LChZX1bRClehjue4nl3B
-qrDoiW+5r+xKkBGjPj6Y593kwVSZKsKBkC50+gekxtTdzbff8HIk3JW+OVIBXVUp
-IwWSX7cwAqws1e/Y4ldFcNMKXkkvqr8QyEQsUGDvZNt+tph28YKxbpk/ZYF294tW
-JuWqVV0cYa0ZTkNDBbLqAnBSaFSCkYFkY6DA470Y3FzUaiEf8YWHxUrie7BlJ4Qd
-r/TW0T8N5rklmn14JK7K85j+DuWy7ad2bEFhDQP6tikUosn0XMXpg82sv2Wcl/TP
-o+GsXixfrUOBd9Y5/MRBpVx5zTWjD4Uq8LrYBf76qphtqUInTc6GcCwZsh+o1yi8
-znhFBwl/vU4qCrzcplIu103stQMXgI00A0byzjwsaKY6+GATxgtRU/ehm3BMh0bS
-uSWQxbGrGZBgVb7jb4pFpSdp3+PUv/t5BwJSq7YoXsQCdxlPXWbTuTk1/Sws9OzZ
-Y3gkxLA2w/Til58wXlW2zYIAH7/8RkcmYZBNH5uIqdxmEScn3neGnWUo3uoNdVcq
-+hC+mQEgI34fg0k9SvRv4cchkXo3QCF2bdhLIbVLVZ03zMoqJbwveCuAIhK0wYtM
-K5tAbB0u2AqUqyTtq+DD
-=oFE4
------END PGP SIGNATURE-----
-
---=-/Ql6gYk8G0P7tUSi+MWG--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
