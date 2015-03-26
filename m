@@ -1,78 +1,91 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH 0/2 RESEND] IB/Verbs: Use helpers to refine the checking
- on transport and link layer
-Date: Thu, 26 Mar 2015 17:58:20 +0100
-Message-ID: <55143AAC.8040206@profitbricks.com>
-References: <5512CFB0.1050108@profitbricks.com>	 <1427378940.21101.100.camel@redhat.com> <55142DFD.2060100@profitbricks.com> <1427387258.21101.124.camel@redhat.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
+Date: Thu, 26 Mar 2015 14:39:48 -0400
+Message-ID: <55145274.203@Netapp.com>
+References: <20150324201849.2311.53599.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1427387258.21101.124.camel@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Moni Shoua <monis@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Steve Wise <swise@opengridcomputing.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Dan Carpenter <dan.carpenter@o>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150324201849.2311.53599.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/26/2015 05:27 PM, Doug Ledford wrote:
-> On Thu, 2015-03-26 at 17:04 +0100, Michael Wang wrote:
->> [snip]
->>
->> Few more questions here is:
->> 1. when to setup? (maybe inside ib_register_device() before doing client->add() callback?)
-> I don't think "we" can set it up here.  The driver's have to set it up.
-> After all, the mlx4 driver will have to decide for itself what the port
-> transport is and tell us, we can't tell it.
->> 2. how to setup? (still infer from the transport and link layer like we currently do?)
-> Find each point in each driver where they currently set the link layer
-> and transport fields today, and replace that with setting the new
-> transport bitmask instead.
+Hey Chuck,
 
-Forgive me but I'm not very familiar with the process of such changing...
+I didn't see anything that needs to be fixed up in these patches.  Are they ready for me?
 
-So shall we do this for all the vendors? or provide a transition method
-and asking them to do this later by themselves?
+Anna
 
-The questions is just wondering how the transition method could be, but
-if we have to do the changes for vendor, that sounds like a tough job...
+On 03/24/2015 04:30 PM, Chuck Lever wrote:
+> This is a series of client-side patches for NFS/RDMA. In preparation
+> for increasing the transport credit limit and maximum rsize/wsize,
+> I've re-factored the memory registration logic into separate files,
+> invoked via a method API.
+> 
+> The two main optimizations in v1 of this series have been dropped.
+> Sagi Grimberg didn't like the complexity of the solution, and there
+> isn't enough time to rework it, test the new version, and get it
+> reviewed before the 4.1 merge window opens. I'm going to prepare
+> these for 4.2.
+> 
+> Fixes suggested by reviewers have been included before the
+> refactoring patches to make it easier to backport them to previous
+> kernels.
+> 
+> The series is available in the nfs-rdma-for-4.1 topic branch at
+> 
+> git://linux-nfs.org/projects/cel/cel-2.6.git
+> 
+> Changes since v1:
+> - Rebased on 4.0-rc5
+> - Main optimizations postponed to 4.2
+> - Addressed review comments from Anna, Sagi, and Devesh
+> 
+> ---
+> 
+> Chuck Lever (15):
+>       SUNRPC: Introduce missing well-known netids
+>       xprtrdma: Display IPv6 addresses and port numbers correctly
+>       xprtrdma: Perform a full marshal on retransmit
+>       xprtrdma: Byte-align FRWR registration
+>       xprtrdma: Prevent infinite loop in rpcrdma_ep_create()
+>       xprtrdma: Add vector of ops for each memory registration strategy
+>       xprtrdma: Add a "max_payload" op for each memreg mode
+>       xprtrdma: Add a "register_external" op for each memreg mode
+>       xprtrdma: Add a "deregister_external" op for each memreg mode
+>       xprtrdma: Add "init MRs" memreg op
+>       xprtrdma: Add "reset MRs" memreg op
+>       xprtrdma: Add "destroy MRs" memreg op
+>       xprtrdma: Add "open" memreg op
+>       xprtrdma: Handle non-SEND completions via a callout
+>       xprtrdma: Make rpcrdma_{un}map_one() into inline functions
+> 
+> 
+>  include/linux/sunrpc/msg_prot.h    |    8 
+>  net/sunrpc/xprtrdma/Makefile       |    3 
+>  net/sunrpc/xprtrdma/fmr_ops.c      |  208 +++++++++++
+>  net/sunrpc/xprtrdma/frwr_ops.c     |  353 ++++++++++++++++++
+>  net/sunrpc/xprtrdma/physical_ops.c |   94 +++++
+>  net/sunrpc/xprtrdma/rpc_rdma.c     |   87 ++--
+>  net/sunrpc/xprtrdma/transport.c    |   61 ++-
+>  net/sunrpc/xprtrdma/verbs.c        |  699 +++---------------------------------
+>  net/sunrpc/xprtrdma/xprt_rdma.h    |   90 ++++-
+>  9 files changed, 882 insertions(+), 721 deletions(-)
+>  create mode 100644 net/sunrpc/xprtrdma/fmr_ops.c
+>  create mode 100644 net/sunrpc/xprtrdma/frwr_ops.c
+>  create mode 100644 net/sunrpc/xprtrdma/physical_ops.c
+> 
+> --
+> Chuck Lever
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
->
->> 3. in case if a device has ports with different link layer type (please correct
->>     me if this will never happen), then only one bitmask may not be enough to
->>     present the transport of all the ports? (maybe create a bitmask per port?)
-> [snip]
->
-> That preserves the user space ABI and all user programs keep working,
-> while we update to an internal representation that makes more sense for
-> how things have evolved.
-
-I get your point :-) to reassemble the information in old style, maybe
-we can temporarily reserve the old mechanism, and do reform for
-the user space in another separate patch set, also cleanup the old
-stuff too.
-
-Regards,
-Michael Wang
-
->
->> Regards,
->> Michael Wang
->>
->>> If we do this, then the only thing we have to fix up to preserve ABI
->>> with user space is to make sure that any time we export an ibv_device
->>> struct and any time we import the same, we convert from our new internal
->>> representation to the old representation that user space expects.  And
->>> we also need to make a few changes in the sysfs code to display the
->>> properties as things expect.  But, that would allow us to fix up what I
->>> see as a problem right now, which is that we hide the information we
->>> need to know what sort of device we are working on in two different
->>> fields: the transport and the link layer.  Instead, just use one field
->>> with enough variants that we can store all of the relevant information
->>> we need in that one field.  This has the benefit that any comparisons
->>> that happen in hot paths will now always be a single bitwise comparison
->>> and will no longer need to hit two separate variables for two separate
->>> compares.
->>>
->>>
->>>
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
