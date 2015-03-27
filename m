@@ -1,118 +1,106 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [RFC PATCH 05/11] IB/Verbs: Use management helper has_cm() for cm-check
-Date: Fri, 27 Mar 2015 16:45:25 +0100
-Message-ID: <55157B15.3040400@profitbricks.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [RFC PATCH 06/11] IB/Verbs: Use management helper has_sa() and cap_sa(),
+ for sa-check
+Date: Fri, 27 Mar 2015 16:46:11 +0100
+Message-ID: <55157B43.6060507@profitbricks.com>
 References: <551579CA.4030901@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <551579CA.4030901@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Alex Estrin <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, Eric Dumazet <edumazet@google.com>, Erez Shitrit <erezsh@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Mike Marciniszyn <mike.m>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <551579CA.4030901-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.m>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper has_cm() to help us check if an IB device
-support Communication Manager.
+Introduce helper has_sa() and cap_sa() to help us check if an IB device
+or it's port support Subnet Administrator.
 
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c  |  2 +-
- drivers/infiniband/core/cma.c | 10 ++++------
- drivers/infiniband/core/ucm.c |  2 +-
- include/rdma/ib_verbs.h       | 13 +++++++++++++
- 4 files changed, 19 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/sa_query.c | 12 ++++++------
+ include/rdma/ib_verbs.h            | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 2c72e9e..5c1f01b 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3762,7 +3762,7 @@ static void cm_add_one(struct ib_device *ib_device)
-     int ret;
-     u8 i;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index d95d25f..89c27da 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+         struct ib_sa_port *port =
+             &sa_dev->port[event->element.port_num - sa_dev->start_port];
  
--    if (!rdma_transport_is_ib(ib_device))
-+    if (!has_cm(ib_device))
+-        if (!rdma_port_ll_is_ib(handler->device, port->port_num))
++        if (!cap_sa(handler->device, port->port_num))
+             return;
+ 
+         spin_lock_irqsave(&port->ah_lock, flags);
+@@ -1154,7 +1154,7 @@ static void ib_sa_add_one(struct ib_device *device)
+     struct ib_sa_device *sa_dev;
+     int s, e, i;
+ 
+-    if (!rdma_transport_is_ib(device))
++    if (!has_sa(device))
          return;
  
-     cm_dev = kzalloc(sizeof(*cm_dev) + sizeof(*port) *
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 280cfe3..276fb76 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -433,7 +433,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
-     pkey = ntohs(addr->sib_pkey);
+     if (device->node_type == RDMA_NODE_IB_SWITCH)
+@@ -1175,7 +1175,7 @@ static void ib_sa_add_one(struct ib_device *device)
  
-     list_for_each_entry(cur_dev, &dev_list, list) {
--        if (!rdma_transport_is_ib(cur_dev->device))
-+        if (!has_cm(cur_dev->device))
+     for (i = 0; i <= e - s; ++i) {
+         spin_lock_init(&sa_dev->port[i].ah_lock);
+-        if (!rdma_port_ll_is_ib(device, i + 1))
++        if (!cap_sa(device, i + 1))
              continue;
  
-         for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
-@@ -631,7 +631,7 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
-     if (ret)
-         goto out;
+         sa_dev->port[i].sm_ah    = NULL;
+@@ -1205,14 +1205,14 @@ static void ib_sa_add_one(struct ib_device *device)
+         goto err;
  
--    if (rdma_transport_is_ib(id_priv->cma_dev->device) &&
-+    if (has_cm(id_priv->cma_dev->device) &&
-         rdma_port_ll_is_eth(id_priv->id.device, id_priv->id.port_num)) {
-         ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
+     for (i = 0; i <= e - s; ++i)
+-        if (rdma_port_ll_is_ib(device, i + 1))
++        if (cap_sa(device, i + 1))
+             update_sm_ah(&sa_dev->port[i].update_task);
  
-@@ -1620,8 +1620,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
-     struct rdma_cm_id *id;
-     int ret;
+     return;
  
--    if (cma_family(id_priv) == AF_IB &&
--        !rdma_transport_is_ib(cma_dev->device))
-+    if (cma_family(id_priv) == AF_IB && !has_cm(cma_dev->device))
-         return;
+ err:
+     while (--i >= 0)
+-        if (rdma_port_ll_is_ib(device, i + 1))
++        if (cap_sa(device, i + 1))
+             ib_unregister_mad_agent(sa_dev->port[i].agent);
  
-     id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
-@@ -2022,8 +2021,7 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
-     cma_dev = NULL;
-     mutex_lock(&lock);
-     list_for_each_entry(cur_dev, &dev_list, list) {
--        if (cma_family(id_priv) == AF_IB &&
--            !rdma_transport_is_ib(cur_dev->device))
-+        if (cma_family(id_priv) == AF_IB && !has_cm(cur_dev->device))
-             continue;
+     kfree(sa_dev);
+@@ -1233,7 +1233,7 @@ static void ib_sa_remove_one(struct ib_device *device)
+     flush_workqueue(ib_wq);
  
-         if (!cma_dev)
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index ddbe0b4..7084181 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1253,7 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
-     dev_t base;
-     struct ib_ucm_device *ucm_dev;
- 
--    if (!device->alloc_ucontext || !rdma_transport_is_ib(device))
-+    if (!device->alloc_ucontext || !has_cm(device))
-         return;
- 
-     ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
+     for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+-        if (rdma_port_ll_is_ib(device, i + 1)) {
++        if (cap_sa(device, i + 1)) {
+             ib_unregister_mad_agent(sa_dev->port[i].agent);
+             if (sa_dev->port[i].sm_ah)
+                 kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3d06178..c0a63f8 100644
+index c0a63f8..fa8ffa3 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1797,6 +1797,19 @@ static inline int has_mad(struct ib_device *device)
+@@ -1810,6 +1810,19 @@ static inline int has_cm(struct ib_device *device)
  }
  
  /**
-+ * has_cm - Check if a device support Communication Manager.
++ * has_sa - Check if a device support Subnet Administrator.
 + *
 + * @device: Device to be checked
 + *
-+ * Return 0 when a device has none port to support Communication
-+ * Manager.
++ * Return 0 when a device has none port to support
++ * Subnet Administrator.
 + */
-+static inline int has_cm(struct ib_device *device)
++static inline int has_sa(struct ib_device *device)
 +{
 +    return rdma_transport_is_ib(device);
 +}
@@ -121,5 +109,32 @@ index 3d06178..c0a63f8 100644
   * cap_smi - Check if the port of device has the capability
   * Subnet Management Interface.
   *
+@@ -1824,6 +1837,21 @@ static inline int cap_smi(struct ib_device *device, u8 port_num)
+     return rdma_port_ll_is_ib(device, port_num);
+ }
+ 
++/**
++ * cap_sa - Check if the port of device has the capability
++ * Subnet Administrator.
++ *
++ * @device: Device to be checked
++ * @port_num: Port number of the device
++ *
++ * Return 0 when port of the device don't support
++ * Subnet Administrator.
++ */
++static inline int cap_sa(struct ib_device *device, u8 port_num)
++{
++    return rdma_port_ll_is_ib(device, port_num);
++}
++
+ int ib_query_gid(struct ib_device *device,
+          u8 port_num, int index, union ib_gid *gid);
+ 
 -- 
 2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
