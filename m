@@ -1,101 +1,84 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
-Date: Fri, 27 Mar 2015 05:44:20 +0000
-Message-ID: <c541888a-6b49-4b9f-98ba-a1d77df1d071@CMEXHTCAS2.ad.emulex.com>
-References: <20150324201849.2311.53599.stgit@manet.1015granger.net>
- <55145274.203@Netapp.com>
- <EE7902D3F51F404C82415C4803930ACD5DC3B914@CMEXMB1.ad.emulex.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD5DC3B914-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Meghana Cheripady <Meghana.Cheripady-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+From: Jens Domke <jens.domke-PZVgAJowwIsUtdQbppsyvg@public.gmane.org>
+Subject: [PATCH 1/1] OpenSM: command line option ignore-guids broken
+Date: Fri, 27 Mar 2015 10:00:52 +0100
+Message-ID: <1427446852-11864-1-git-send-email-jens.domke@tu-dresden.de>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mIERldmVzaCBTaGFybWENCj4gU2VudDogRnJpZGF5LCBNYXJjaCAyNywg
-MjAxNSAxMToxMyBBTQ0KPiBUbzogQW5uYSBTY2h1bWFrZXI7IENodWNrIExldmVyOyBsaW51eC1y
-ZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IG5mc0B2Z2VyLmtlcm5lbC5vcmcNCj4gU3Vi
-amVjdDogUkU6IFtQQVRDSCB2MiAwMC8xNV0gTkZTL1JETUEgcGF0Y2hlcyBwcm9wb3NlZCBmb3Ig
-NC4xDQo+IA0KPiBIaSBDaHVjaywNCj4gDQo+IEkgaGF2ZSB2YWxpZGF0ZWQgdGhlc2Ugc2V0IG9m
-IHBhdGNoZXMgd2l0aCBvY3JkbWEgZGV2aWNlLCBpb3pvbmUgcGFzc2VzIHdpdGgNCj4gdGhlc2Uu
-DQoNCg0KVGhhbmtzIHRvIE1lZ2huYS4NCg0KPiANCj4gLVJlZ2FyZHMNCj4gRGV2ZXNoDQo+IA0K
-PiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogbGludXgtcmRtYS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiA+IG93bmVyQHZnZXIua2Vy
-bmVsLm9yZ10gT24gQmVoYWxmIE9mIEFubmEgU2NodW1ha2VyDQo+ID4gU2VudDogRnJpZGF5LCBN
-YXJjaCAyNywgMjAxNSAxMjoxMCBBTQ0KPiA+IFRvOiBDaHVjayBMZXZlcjsgbGludXgtcmRtYUB2
-Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LW5mc0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBTdWJqZWN0OiBS
-ZTogW1BBVENIIHYyIDAwLzE1XSBORlMvUkRNQSBwYXRjaGVzIHByb3Bvc2VkIGZvciA0LjENCj4g
-Pg0KPiA+IEhleSBDaHVjaywNCj4gPg0KPiA+IEkgZGlkbid0IHNlZSBhbnl0aGluZyB0aGF0IG5l
-ZWRzIHRvIGJlIGZpeGVkIHVwIGluIHRoZXNlIHBhdGNoZXMuICBBcmUNCj4gPiB0aGV5IHJlYWR5
-IGZvciBtZT8NCj4gPg0KPiA+IEFubmENCj4gPg0KPiA+IE9uIDAzLzI0LzIwMTUgMDQ6MzAgUE0s
-IENodWNrIExldmVyIHdyb3RlOg0KPiA+ID4gVGhpcyBpcyBhIHNlcmllcyBvZiBjbGllbnQtc2lk
-ZSBwYXRjaGVzIGZvciBORlMvUkRNQS4gSW4gcHJlcGFyYXRpb24NCj4gPiA+IGZvciBpbmNyZWFz
-aW5nIHRoZSB0cmFuc3BvcnQgY3JlZGl0IGxpbWl0IGFuZCBtYXhpbXVtIHJzaXplL3dzaXplLA0K
-PiA+ID4gSSd2ZSByZS1mYWN0b3JlZCB0aGUgbWVtb3J5IHJlZ2lzdHJhdGlvbiBsb2dpYyBpbnRv
-IHNlcGFyYXRlIGZpbGVzLA0KPiA+ID4gaW52b2tlZCB2aWEgYSBtZXRob2QgQVBJLg0KPiA+ID4N
-Cj4gPiA+IFRoZSB0d28gbWFpbiBvcHRpbWl6YXRpb25zIGluIHYxIG9mIHRoaXMgc2VyaWVzIGhh
-dmUgYmVlbiBkcm9wcGVkLg0KPiA+ID4gU2FnaSBHcmltYmVyZyBkaWRuJ3QgbGlrZSB0aGUgY29t
-cGxleGl0eSBvZiB0aGUgc29sdXRpb24sIGFuZCB0aGVyZQ0KPiA+ID4gaXNuJ3QgZW5vdWdoIHRp
-bWUgdG8gcmV3b3JrIGl0LCB0ZXN0IHRoZSBuZXcgdmVyc2lvbiwgYW5kIGdldCBpdA0KPiA+ID4g
-cmV2aWV3ZWQgYmVmb3JlIHRoZSA0LjEgbWVyZ2Ugd2luZG93IG9wZW5zLiBJJ20gZ29pbmcgdG8g
-cHJlcGFyZQ0KPiA+ID4gdGhlc2UgZm9yIDQuMi4NCj4gPiA+DQo+ID4gPiBGaXhlcyBzdWdnZXN0
-ZWQgYnkgcmV2aWV3ZXJzIGhhdmUgYmVlbiBpbmNsdWRlZCBiZWZvcmUgdGhlDQo+ID4gPiByZWZh
-Y3RvcmluZyBwYXRjaGVzIHRvIG1ha2UgaXQgZWFzaWVyIHRvIGJhY2twb3J0IHRoZW0gdG8gcHJl
-dmlvdXMga2VybmVscy4NCj4gPiA+DQo+ID4gPiBUaGUgc2VyaWVzIGlzIGF2YWlsYWJsZSBpbiB0
-aGUgbmZzLXJkbWEtZm9yLTQuMSB0b3BpYyBicmFuY2ggYXQNCj4gPiA+DQo+ID4gPiBnaXQ6Ly9s
-aW51eC1uZnMub3JnL3Byb2plY3RzL2NlbC9jZWwtMi42LmdpdA0KPiA+ID4NCj4gPiA+IENoYW5n
-ZXMgc2luY2UgdjE6DQo+ID4gPiAtIFJlYmFzZWQgb24gNC4wLXJjNQ0KPiA+ID4gLSBNYWluIG9w
-dGltaXphdGlvbnMgcG9zdHBvbmVkIHRvIDQuMg0KPiA+ID4gLSBBZGRyZXNzZWQgcmV2aWV3IGNv
-bW1lbnRzIGZyb20gQW5uYSwgU2FnaSwgYW5kIERldmVzaA0KPiA+ID4NCj4gPiA+IC0tLQ0KPiA+
-ID4NCj4gPiA+IENodWNrIExldmVyICgxNSk6DQo+ID4gPiAgICAgICBTVU5SUEM6IEludHJvZHVj
-ZSBtaXNzaW5nIHdlbGwta25vd24gbmV0aWRzDQo+ID4gPiAgICAgICB4cHJ0cmRtYTogRGlzcGxh
-eSBJUHY2IGFkZHJlc3NlcyBhbmQgcG9ydCBudW1iZXJzIGNvcnJlY3RseQ0KPiA+ID4gICAgICAg
-eHBydHJkbWE6IFBlcmZvcm0gYSBmdWxsIG1hcnNoYWwgb24gcmV0cmFuc21pdA0KPiA+ID4gICAg
-ICAgeHBydHJkbWE6IEJ5dGUtYWxpZ24gRlJXUiByZWdpc3RyYXRpb24NCj4gPiA+ICAgICAgIHhw
-cnRyZG1hOiBQcmV2ZW50IGluZmluaXRlIGxvb3AgaW4gcnBjcmRtYV9lcF9jcmVhdGUoKQ0KPiA+
-ID4gICAgICAgeHBydHJkbWE6IEFkZCB2ZWN0b3Igb2Ygb3BzIGZvciBlYWNoIG1lbW9yeSByZWdp
-c3RyYXRpb24gc3RyYXRlZ3kNCj4gPiA+ICAgICAgIHhwcnRyZG1hOiBBZGQgYSAibWF4X3BheWxv
-YWQiIG9wIGZvciBlYWNoIG1lbXJlZyBtb2RlDQo+ID4gPiAgICAgICB4cHJ0cmRtYTogQWRkIGEg
-InJlZ2lzdGVyX2V4dGVybmFsIiBvcCBmb3IgZWFjaCBtZW1yZWcgbW9kZQ0KPiA+ID4gICAgICAg
-eHBydHJkbWE6IEFkZCBhICJkZXJlZ2lzdGVyX2V4dGVybmFsIiBvcCBmb3IgZWFjaCBtZW1yZWcg
-bW9kZQ0KPiA+ID4gICAgICAgeHBydHJkbWE6IEFkZCAiaW5pdCBNUnMiIG1lbXJlZyBvcA0KPiA+
-ID4gICAgICAgeHBydHJkbWE6IEFkZCAicmVzZXQgTVJzIiBtZW1yZWcgb3ANCj4gPiA+ICAgICAg
-IHhwcnRyZG1hOiBBZGQgImRlc3Ryb3kgTVJzIiBtZW1yZWcgb3ANCj4gPiA+ICAgICAgIHhwcnRy
-ZG1hOiBBZGQgIm9wZW4iIG1lbXJlZyBvcA0KPiA+ID4gICAgICAgeHBydHJkbWE6IEhhbmRsZSBu
-b24tU0VORCBjb21wbGV0aW9ucyB2aWEgYSBjYWxsb3V0DQo+ID4gPiAgICAgICB4cHJ0cmRtYTog
-TWFrZSBycGNyZG1hX3t1bn1tYXBfb25lKCkgaW50byBpbmxpbmUgZnVuY3Rpb25zDQo+ID4gPg0K
-PiA+ID4NCj4gPiA+ICBpbmNsdWRlL2xpbnV4L3N1bnJwYy9tc2dfcHJvdC5oICAgIHwgICAgOA0K
-PiA+ID4gIG5ldC9zdW5ycGMveHBydHJkbWEvTWFrZWZpbGUgICAgICAgfCAgICAzDQo+ID4gPiAg
-bmV0L3N1bnJwYy94cHJ0cmRtYS9mbXJfb3BzLmMgICAgICB8ICAyMDggKysrKysrKysrKysNCj4g
-PiA+ICBuZXQvc3VucnBjL3hwcnRyZG1hL2Zyd3Jfb3BzLmMgICAgIHwgIDM1MyArKysrKysrKysr
-KysrKysrKysNCj4gPiA+ICBuZXQvc3VucnBjL3hwcnRyZG1hL3BoeXNpY2FsX29wcy5jIHwgICA5
-NCArKysrKw0KPiA+ID4gIG5ldC9zdW5ycGMveHBydHJkbWEvcnBjX3JkbWEuYyAgICAgfCAgIDg3
-ICsrLS0NCj4gPiA+ICBuZXQvc3VucnBjL3hwcnRyZG1hL3RyYW5zcG9ydC5jICAgIHwgICA2MSAr
-Ky0NCj4gPiA+ICBuZXQvc3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMgICAgICAgIHwgIDY5OSArKyst
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiA+ICBuZXQvc3VucnBjL3hwcnRy
-ZG1hL3hwcnRfcmRtYS5oICAgIHwgICA5MCArKysrLQ0KPiA+ID4gIDkgZmlsZXMgY2hhbmdlZCwg
-ODgyIGluc2VydGlvbnMoKyksIDcyMSBkZWxldGlvbnMoLSkgIGNyZWF0ZSBtb2RlDQo+ID4gPiAx
-MDA2NDQgbmV0L3N1bnJwYy94cHJ0cmRtYS9mbXJfb3BzLmMgIGNyZWF0ZSBtb2RlIDEwMDY0NA0K
-PiA+ID4gbmV0L3N1bnJwYy94cHJ0cmRtYS9mcndyX29wcy5jICBjcmVhdGUgbW9kZSAxMDA2NDQN
-Cj4gPiA+IG5ldC9zdW5ycGMveHBydHJkbWEvcGh5c2ljYWxfb3BzLmMNCj4gPiA+DQo+ID4gPiAt
-LQ0KPiA+ID4gQ2h1Y2sgTGV2ZXINCj4gPiA+IC0tDQo+ID4gPiBUbyB1bnN1YnNjcmliZSBmcm9t
-IHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbmZzIg0KPiA+ID4g
-aW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9y
-ZSBtYWpvcmRvbW8NCj4gPiA+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
-b21vLWluZm8uaHRtbA0KPiA+ID4NCj4gPg0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJv
-bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiDQo+ID4g
-aW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9y
-ZSBtYWpvcmRvbW8NCj4gPiBpbmZvIGF0IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21v
-LWluZm8uaHRtbA0KPiATICDsubscICYgfiAmIBggICstICDdthcgIHcgIMubICAgbSBiICBrdmYg
-ICBebiByICAgeiAaICBoICAgICYgIB4gRyAgIGggAygg6ZqOIN2iaiIgIBogG20gICAgIHoNCj4g
-3pYgICBmICAgaCAgIH4gbQ0K
+this patch changes the documentation (--help and man page) from
+--ignore-guids to --ignore_guids, so that it matches the implementation
+
+Signed-off-by: Jens Domke <jens.domke-PZVgAJowwIsUtdQbppsyvg@public.gmane.org>
+---
+ doc/current-routing.txt | 2 +-
+ man/opensm.8.in         | 6 +++---
+ opensm/main.c           | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/doc/current-routing.txt b/doc/current-routing.txt
+index d23ae0d..acfeb56 100644
+--- a/doc/current-routing.txt
++++ b/doc/current-routing.txt
+@@ -127,7 +127,7 @@ subscription is also equalized with the ability to override based on
+ port GUID. The latter is supplied by:
+ 
+ -i <equalize-ignore-guids-file>
+--ignore-guids <equalize-ignore-guids-file>
++--ignore_guids <equalize-ignore-guids-file>
+           This option provides the means to define a set of ports
+           (by guids) that will be ignored by the link load
+           equalization algorithm.
+diff --git a/man/opensm.8.in b/man/opensm.8.in
+index c1092cc..8ea127d 100644
+--- a/man/opensm.8.in
++++ b/man/opensm.8.in
+@@ -37,7 +37,7 @@ opensm \- InfiniBand subnet manager and administration (SM/SA)
+ [\-\-maxsmps <number>]
+ [\-\-console [off | local | socket | loopback]]
+ [\-\-console-port <port>]
+-[\-i(gnore-guids) <equalize-ignore-guids-file>]
++[\-i | \-\-ignore_guids <equalize-ignore-guids-file>]
+ [\-w | \-\-hop_weights_file <path to file>]
+ [\-O | \-\-port_search_ordering_file <path to file>]
+ [\-O | \-\-dimn_ports_file <path to file>] (DEPRECATED)
+@@ -298,7 +298,7 @@ Specify an alternate telnet port for the socket console (default 10000).
+ Note that this option only appears if OpenSM was built with
+ --enable-console-socket.
+ .TP
+-\fB\-i\fR, \fB\-\-ignore-guids\fR <equalize-ignore-guids-file>
++\fB\-i\fR, \fB\-\-ignore_guids\fR <equalize-ignore-guids-file>
+ This option provides the means to define a set of ports
+ (by node guid and port number) that will be ignored by the link load
+ equalization algorithm.
+@@ -987,7 +987,7 @@ port GUID. The latter is supplied by:
+ 
+ -i <equalize-ignore-guids-file>
+ .br
+-\-\-ignore-guids <equalize-ignore-guids-file>
++\-\-ignore_guids <equalize-ignore-guids-file>
+           This option provides the means to define a set of ports
+           (by guid) that will be ignored by the link load
+           equalization algorithm. Note that only endports (CA,
+diff --git a/opensm/main.c b/opensm/main.c
+index 6551a37..8419e68 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -289,7 +289,7 @@ static void show_usage(void)
+ 	       "          Specify an alternate telnet port for the console (default %d).\n\n",
+ 	       OSM_DEFAULT_CONSOLE_PORT);
+ #endif
+-	printf("--ignore-guids, -i <equalize-ignore-guids-file>\n"
++	printf("--ignore_guids, -i <equalize-ignore-guids-file>\n"
+ 	       "          This option provides the means to define a set of ports\n"
+ 	       "          (by guid) that will be ignored by the link load\n"
+ 	       "          equalization algorithm.\n\n");
+-- 
+1.9.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
