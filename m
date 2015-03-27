@@ -1,8 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [RFC PATCH 02/11] IB/Verbs: Use management helper tech_iboe() for
- iboe-check
-Date: Fri, 27 Mar 2015 16:42:07 +0100
-Message-ID: <55157A4F.1090301@profitbricks.com>
+Subject: [RFC PATCH 03/11] IB/Verbs: Use management helper has_mad() for mad-check
+Date: Fri, 27 Mar 2015 16:43:09 +0100
+Message-ID: <55157A8D.8080907@profitbricks.com>
 References: <551579CA.4030901@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,8 +14,8 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@p
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper tech_iboe() to help us check if the port of an IB
-device is using RoCE/IBoE technology.
+Introduce helper has_mad() to help us check if an IB device support
+Management Datagrams.
 
 Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Cc: Doug Ledford <dledford@redhat.com>
@@ -24,56 +23,65 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c |  6 ++----
- include/rdma/ib_verbs.h       | 16 ++++++++++++++++
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/mad.c      |  4 ++--
+ drivers/infiniband/core/user_mad.c |  2 +-
+ include/rdma/ib_verbs.h            | 13 +++++++++++++
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 668e955..280cfe3 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -375,8 +375,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
-                      listen_id_priv->id.port_num) == dev_ll) {
-         cma_dev = listen_id_priv->cma_dev;
-         port = listen_id_priv->id.port_num;
--        if (rdma_transport_is_ib(cma_dev->device) &&
--            rdma_port_ll_is_eth(cma_dev->device, port))
-+        if (tech_iboe(cma_dev->device, port))
-             ret = ib_find_cached_gid(cma_dev->device, &iboe_gid,
-                          &found_port, NULL);
-         else
-@@ -395,8 +394,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
-                 listen_id_priv->id.port_num == port)
-                 continue;
-             if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
--                if (rdma_transport_is_ib(cma_dev->device) &&
--                    rdma_port_ll_is_eth(cma_dev->device, port))
-+                if (tech_iboe(cma_dev->device, port))
-                     ret = ib_find_cached_gid(cma_dev->device, &iboe_gid, &found_port, NULL);
-                 else
-                     ret = ib_find_cached_gid(cma_dev->device, &gid, &found_port, NULL);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 23cf9e8..896b749 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -3057,7 +3057,7 @@ static void ib_mad_init_device(struct ib_device *device)
+ {
+     int start, end, i;
+ 
+-    if (!rdma_transport_is_ib(device))
++    if (!has_mad(device))
+         return;
+ 
+     if (device->node_type == RDMA_NODE_IB_SWITCH) {
+@@ -3102,7 +3102,7 @@ static void ib_mad_remove_device(struct ib_device *device)
+ {
+     int i, num_ports, cur_port;
+ 
+-    if (!rdma_transport_is_ib(device))
++    if (!has_mad(device))
+         return;
+ 
+     if (device->node_type == RDMA_NODE_IB_SWITCH) {
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 28a8b30..31feec3 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1274,7 +1274,7 @@ static void ib_umad_add_one(struct ib_device *device)
+     struct ib_umad_device *umad_dev;
+     int s, e, i;
+ 
+-    if (!rdma_transport_is_ib(device))
++    if (!has_mad(device))
+         return;
+ 
+     if (device->node_type == RDMA_NODE_IB_SWITCH)
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 2bf9094..ca6d6bc 100644
+index ca6d6bc..7b2bfe8 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1767,6 +1767,22 @@ static inline int rdma_port_ll_is_eth(struct ib_device *device, u8 port_num)
-             == IB_LINK_LAYER_ETHERNET;
+@@ -1783,6 +1783,19 @@ static inline int tech_iboe(struct ib_device *device, u8 port_num)
+             rdma_port_ll_is_eth(device, port_num);
  }
  
 +/**
-+ * tech_iboe - Check if the port of device using technology
-+ * RoCE/IBoE.
++ * has_mad - Check if a device support Management Datagrams.
 + *
 + * @device: Device to be checked
-+ * @port_num: Port number of the device
 + *
-+ * Return 0 when port of the device is not using technology
-+ * RoCE/IBoE.
++ * Return 0 when a device has none port to support
++ * Management Datagrams.
 + */
-+static inline int tech_iboe(struct ib_device *device, u8 port_num)
++static inline int has_mad(struct ib_device *device)
 +{
-+    return rdma_transport_is_ib(device) &&
-+            rdma_port_ll_is_eth(device, port_num);
++    return rdma_transport_is_ib(device);
 +}
 +
  int ib_query_gid(struct ib_device *device,
