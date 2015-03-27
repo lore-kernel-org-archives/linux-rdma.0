@@ -1,153 +1,78 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
-Date: Fri, 27 Mar 2015 09:17:47 -0500
-Message-ID: <AFCD874E-D85C-4788-A409-17906D841C5B@oracle.com>
-References: <20150324201849.2311.53599.stgit@manet.1015granger.net> <55145274.203@Netapp.com> <EE7902D3F51F404C82415C4803930ACD5DC3B914@CMEXMB1.ad.emulex.com> <c541888a-6b49-4b9f-98ba-a1d77df1d071@CMEXHTCAS2.ad.emulex.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [RFC PATCH 00/11] IB/Verbs: IB Management Helpers
+Date: Fri, 27 Mar 2015 16:39:54 +0100
+Message-ID: <551579CA.4030901@profitbricks.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c541888a-6b49-4b9f-98ba-a1d77df1d071-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Meghana Cheripady <Meghana.Cheripady-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.m>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Mar 27, 2015, at 12:44 AM, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org> =
-wrote:
+There are plenty of lengthy code to check the transport type of IB device,
+or the link layer type of it's port, but actually we are just speculating
+whether a particular management is supported by the device/port.
 
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Devesh Sharma
->> Sent: Friday, March 27, 2015 11:13 AM
->> To: Anna Schumaker; Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
->> nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: RE: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
->>=20
->> Hi Chuck,
->>=20
->> I have validated these set of patches with ocrdma device, iozone pas=
-ses with
->> these.
->=20
->=20
-> Thanks to Meghna.
+Thus instead of inferring, we should have our own mechanism for
+IB management capability/protocol checking, several proposals below.
 
-Hi Devesh-
+This patch set is the pioneer which try to collecting all the cases where
+a management helper applicable, and put all the speculating logical together,
+in order to be easily integrated to the new querying mechanism in future.
 
-Is there a Tested-by tag that Anna can add to these patches?
+TODO:
+    The helper in patch 10 and 11 are still to be classified, that is
+    cap_ib() and cap_eth().
 
+    The name/description of each helper may not correct enough, those folks
+    who are familiar with these particular parts, your suggestion would be
+    invaluable ;-)
 
->>=20
->> -Regards
->> Devesh
->>=20
->>> -----Original Message-----
->>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Anna Schumaker
->>> Sent: Friday, March 27, 2015 12:10 AM
->>> To: Chuck Lever; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TasMV2rI37PzA@public.gmane.org=
-org
->>> Subject: Re: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
->>>=20
->>> Hey Chuck,
->>>=20
->>> I didn't see anything that needs to be fixed up in these patches.  =
-Are
->>> they ready for me?
->>>=20
->>> Anna
->>>=20
->>> On 03/24/2015 04:30 PM, Chuck Lever wrote:
->>>> This is a series of client-side patches for NFS/RDMA. In preparati=
-on
->>>> for increasing the transport credit limit and maximum rsize/wsize,
->>>> I've re-factored the memory registration logic into separate files=
-,
->>>> invoked via a method API.
->>>>=20
->>>> The two main optimizations in v1 of this series have been dropped.
->>>> Sagi Grimberg didn't like the complexity of the solution, and ther=
-e
->>>> isn't enough time to rework it, test the new version, and get it
->>>> reviewed before the 4.1 merge window opens. I'm going to prepare
->>>> these for 4.2.
->>>>=20
->>>> Fixes suggested by reviewers have been included before the
->>>> refactoring patches to make it easier to backport them to previous=
- kernels.
->>>>=20
->>>> The series is available in the nfs-rdma-for-4.1 topic branch at
->>>>=20
->>>> git://linux-nfs.org/projects/cel/cel-2.6.git
->>>>=20
->>>> Changes since v1:
->>>> - Rebased on 4.0-rc5
->>>> - Main optimizations postponed to 4.2
->>>> - Addressed review comments from Anna, Sagi, and Devesh
->>>>=20
->>>> ---
->>>>=20
->>>> Chuck Lever (15):
->>>>      SUNRPC: Introduce missing well-known netids
->>>>      xprtrdma: Display IPv6 addresses and port numbers correctly
->>>>      xprtrdma: Perform a full marshal on retransmit
->>>>      xprtrdma: Byte-align FRWR registration
->>>>      xprtrdma: Prevent infinite loop in rpcrdma_ep_create()
->>>>      xprtrdma: Add vector of ops for each memory registration stra=
-tegy
->>>>      xprtrdma: Add a "max_payload" op for each memreg mode
->>>>      xprtrdma: Add a "register_external" op for each memreg mode
->>>>      xprtrdma: Add a "deregister_external" op for each memreg mode
->>>>      xprtrdma: Add "init MRs" memreg op
->>>>      xprtrdma: Add "reset MRs" memreg op
->>>>      xprtrdma: Add "destroy MRs" memreg op
->>>>      xprtrdma: Add "open" memreg op
->>>>      xprtrdma: Handle non-SEND completions via a callout
->>>>      xprtrdma: Make rpcrdma_{un}map_one() into inline functions
->>>>=20
->>>>=20
->>>> include/linux/sunrpc/msg_prot.h    |    8
->>>> net/sunrpc/xprtrdma/Makefile       |    3
->>>> net/sunrpc/xprtrdma/fmr_ops.c      |  208 +++++++++++
->>>> net/sunrpc/xprtrdma/frwr_ops.c     |  353 ++++++++++++++++++
->>>> net/sunrpc/xprtrdma/physical_ops.c |   94 +++++
->>>> net/sunrpc/xprtrdma/rpc_rdma.c     |   87 ++--
->>>> net/sunrpc/xprtrdma/transport.c    |   61 ++-
->>>> net/sunrpc/xprtrdma/verbs.c        |  699 +++---------------------=
-------------
->>>> net/sunrpc/xprtrdma/xprt_rdma.h    |   90 ++++-
->>>> 9 files changed, 882 insertions(+), 721 deletions(-)  create mode
->>>> 100644 net/sunrpc/xprtrdma/fmr_ops.c  create mode 100644
->>>> net/sunrpc/xprtrdma/frwr_ops.c  create mode 100644
->>>> net/sunrpc/xprtrdma/physical_ops.c
->>>>=20
->>>> --
->>>> Chuck Lever
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-nf=
-s"
->>>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordo=
-mo
->>>> info at  http://vger.kernel.org/majordomo-info.html
->>>>=20
->>>=20
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdm=
-a"
->>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordom=
-o
->>> info at http://vger.kernel.org/majordomo-info.html
->> =13  =EC=B9=BB=1C & ~ & =18  +-  =DD=B6=17  w  =CB=9B   m b  kvf   ^=
-n r   z =1A  h    &  =1E G   h =03( =E9=9A=8E =DD=A2j"  =1A =1Bm     z
->> =DE=96   f   h   ~ m
+Proposals:
+    Sean:
+    https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23339.html
+    Doug:
+    https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23418.html
+    Jason:
+    https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23425.html
 
---
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+Michael Wang (11):
+    [PATCH 01/11] IB/Verbs: Use helpers to check transport and link layer
+    [RFC PATCH 02/11] IB/Verbs: Use management helper tech_iboe() for iboe-check
+    [RFC PATCH 03/11] IB/Verbs: Use management helper has_mad() for mad-check
+    [RFC PATCH 04/11] IB/Verbs: Use management helper cap_smi() for smi-check
+    [RFC PATCH 05/11] IB/Verbs: Use management helper has_cm() for cm-check
+    [RFC PATCH 06/11] IB/Verbs: Use management helper has_sa() and cap_sa() for sa-check
+    [RFC PATCH 07/11] IB/Verbs: Use management helper has_mcast() and cap_mcast() for mcast-check
+    [RFC PATCH 08/11] IB/Verbs: Use management helper has_iwarp() for iwarp-check
+    [RFC PATCH 09/11] IB/Verbs: Use management helper has_ipoib() and cap_ipoib() for ipoib-check
+    [RFC PATCH 10/11] IB/Verbs: Use management helper cap_ib() for ib-check
+    [RFC PATCH 11/11] IB/Verbs: Use management helper cap_eth() for eth-check
 
-
+---
+ drivers/infiniband/core/agent.c           |    6
+ drivers/infiniband/core/cm.c              |    6
+ drivers/infiniband/core/cma.c             |   79 ++++------
+ drivers/infiniband/core/mad.c             |   18 +-
+ drivers/infiniband/core/multicast.c       |   30 +---
+ drivers/infiniband/core/sa_query.c        |   42 ++---
+ drivers/infiniband/core/ucm.c             |    8 -
+ drivers/infiniband/core/user_mad.c        |    6
+ drivers/infiniband/core/verbs.c           |   14 -
+ drivers/infiniband/hw/mlx4/ah.c           |    6
+ drivers/infiniband/hw/mlx4/cq.c           |   10 -
+ drivers/infiniband/hw/mlx4/mad.c          |   36 +---
+ drivers/infiniband/hw/mlx4/main.c         |   23 +--
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |    6
+ drivers/infiniband/hw/mlx4/qp.c           |   57 ++-----
+ drivers/infiniband/hw/mlx4/sysfs.c        |   16 --
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |   18 +-
+ include/rdma/ib_verbs.h                   |  218 ++++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    8 -
+ 19 files changed, 381 insertions(+), 226 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
