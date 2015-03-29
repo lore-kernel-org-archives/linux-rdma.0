@@ -1,169 +1,195 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 07/18] iser-target: Remove redundant casting on void pointers
-Date: Sun, 29 Mar 2015 15:52:09 +0300
-Message-ID: <1427633540-30352-8-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 09/18] iser-target: Introduce isert_[alloc|free]_comps
+Date: Sun, 29 Mar 2015 15:52:11 +0300
+Message-ID: <1427633540-30352-10-git-send-email-sagig@mellanox.com>
 References: <1427633540-30352-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1427633540-30352-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Oren Duer <oren@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1427633540-30352-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-No need to cast void pointers.
+Move the code for completion context handling to dedicated
+routines. This simplifies the code and removes code duplication.
 
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c |   32 +++++++++++++++---------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c |  106 +++++++++++++++++-------------
+ 1 files changed, 60 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index ae09561..1b13337 100644
+index 2a4a435..db5460a 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -76,7 +76,7 @@ isert_prot_cmd(struct isert_conn *conn, struct se_cmd *cmd)
+@@ -275,39 +275,31 @@ isert_free_rx_descriptors(struct isert_conn *isert_conn)
+ static void isert_cq_work(struct work_struct *);
+ static void isert_cq_callback(struct ib_cq *, void *);
+ 
+-static int
+-isert_create_device_ib_res(struct isert_device *device)
++static void
++isert_free_comps(struct isert_device *device)
+ {
+-	struct ib_device *ib_dev = device->ib_device;
+-	struct ib_device_attr *dev_attr;
+-	int ret = 0, i;
+-	int max_cqe;
+-
+-	dev_attr = &device->dev_attr;
+-	ret = isert_query_device(ib_dev, dev_attr);
+-	if (ret)
+-		return ret;
++	int i;
+ 
+-	max_cqe = min(ISER_MAX_CQ_LEN, dev_attr->max_cqe);
++	for (i = 0; i < device->comps_used; i++) {
++		struct isert_comp *comp = &device->comps[i];
+ 
+-	/* asign function handlers */
+-	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
+-	    dev_attr->device_cap_flags & IB_DEVICE_SIGNATURE_HANDOVER) {
+-		device->use_fastreg = 1;
+-		device->reg_rdma_mem = isert_reg_rdma;
+-		device->unreg_rdma_mem = isert_unreg_rdma;
+-	} else {
+-		device->use_fastreg = 0;
+-		device->reg_rdma_mem = isert_map_rdma;
+-		device->unreg_rdma_mem = isert_unmap_cmd;
++		if (comp->cq) {
++			cancel_work_sync(&comp->work);
++			ib_destroy_cq(comp->cq);
++		}
+ 	}
++	kfree(device->comps);
++}
+ 
+-	/* Check signature cap */
+-	device->pi_capable = dev_attr->device_cap_flags &
+-			     IB_DEVICE_SIGNATURE_HANDOVER ? true : false;
++static int
++isert_alloc_comps(struct isert_device *device,
++		  struct ib_device_attr *attr)
++{
++	int i, max_cqe, ret = 0;
+ 
+ 	device->comps_used = min(ISERT_MAX_CQ, min_t(int, num_online_cpus(),
+-					device->ib_device->num_comp_vectors));
++				 device->ib_device->num_comp_vectors));
++
+ 	isert_info("Using %d CQs, %s supports %d vectors support "
+ 		   "Fast registration %d pi_capable %d\n",
+ 		   device->comps_used, device->ib_device->name,
+@@ -321,6 +313,8 @@ isert_create_device_ib_res(struct isert_device *device)
+ 		return -ENOMEM;
+ 	}
+ 
++	max_cqe = min(ISER_MAX_CQ_LEN, attr->max_cqe);
++
+ 	for (i = 0; i < device->comps_used; i++) {
+ 		struct isert_comp *comp = &device->comps[i];
+ 
+@@ -332,6 +326,7 @@ isert_create_device_ib_res(struct isert_device *device)
+ 					(void *)comp,
+ 					max_cqe, i);
+ 		if (IS_ERR(comp->cq)) {
++			isert_err("Unable to allocate cq\n");
+ 			ret = PTR_ERR(comp->cq);
+ 			comp->cq = NULL;
+ 			goto out_cq;
+@@ -342,6 +337,40 @@ isert_create_device_ib_res(struct isert_device *device)
+ 			goto out_cq;
+ 	}
+ 
++	return 0;
++out_cq:
++	isert_free_comps(device);
++	return ret;
++}
++
++static int
++isert_create_device_ib_res(struct isert_device *device)
++{
++	struct ib_device *ib_dev = device->ib_device;
++	struct ib_device_attr *dev_attr;
++	int ret = 0;
++
++	dev_attr = &device->dev_attr;
++	ret = isert_query_device(ib_dev, dev_attr);
++	if (ret)
++		return ret;
++
++	/* asign function handlers */
++	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
++	    dev_attr->device_cap_flags & IB_DEVICE_SIGNATURE_HANDOVER) {
++		device->use_fastreg = 1;
++		device->reg_rdma_mem = isert_reg_rdma;
++		device->unreg_rdma_mem = isert_unreg_rdma;
++	} else {
++		device->use_fastreg = 0;
++		device->reg_rdma_mem = isert_map_rdma;
++		device->unreg_rdma_mem = isert_unmap_cmd;
++	}
++
++	ret = isert_alloc_comps(device, dev_attr);
++	if (ret)
++		return ret;
++
+ 	device->pd = ib_alloc_pd(device->ib_device);
+ 	if (IS_ERR(device->pd)) {
+ 		ret = PTR_ERR(device->pd);
+@@ -358,42 +387,27 @@ isert_create_device_ib_res(struct isert_device *device)
+ 		goto out_mr;
+ 	}
+ 
++	/* Check signature cap */
++	device->pi_capable = dev_attr->device_cap_flags &
++			     IB_DEVICE_SIGNATURE_HANDOVER ? true : false;
+ 
+ 	return 0;
+ 
+ out_mr:
+ 	ib_dealloc_pd(device->pd);
+ out_cq:
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct isert_comp *comp = &device->comps[i];
+-
+-		if (comp->cq) {
+-			cancel_work_sync(&comp->work);
+-			ib_destroy_cq(comp->cq);
+-		}
+-	}
+-	kfree(device->comps);
+-
++	isert_free_comps(device);
+ 	return ret;
+ }
+ 
  static void
- isert_qp_event_callback(struct ib_event *e, void *context)
+ isert_free_device_ib_res(struct isert_device *device)
  {
--	struct isert_conn *isert_conn = (struct isert_conn *)context;
-+	struct isert_conn *isert_conn = context;
+-	int i;
+-
+ 	isert_info("device %p\n", device);
  
- 	isert_err("conn %p event: %d\n", isert_conn, e->event);
- 	switch (e->event) {
-@@ -1200,7 +1200,7 @@ isert_rx_login_req(struct isert_conn *isert_conn)
- static struct iscsi_cmd
- *isert_allocate_cmd(struct iscsi_conn *conn)
- {
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct isert_cmd *isert_cmd;
- 	struct iscsi_cmd *cmd;
+ 	ib_dereg_mr(device->mr);
+ 	ib_dealloc_pd(device->pd);
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct isert_comp *comp = &device->comps[i];
+-
+-		cancel_work_sync(&comp->work);
+-		ib_destroy_cq(comp->cq);
+-		comp->cq = NULL;
+-	}
+-	kfree(device->comps);
++	isert_free_comps(device);
+ }
  
-@@ -2085,7 +2085,7 @@ static int
- isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
- 	struct iscsi_scsi_rsp *hdr = (struct iscsi_scsi_rsp *)
- 				&isert_cmd->tx_desc.iscsi_header;
-@@ -2134,7 +2134,7 @@ static void
- isert_aborted_task(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct isert_device *device = isert_conn->conn_device;
- 
- 	spin_lock_bh(&conn->cmd_lock);
-@@ -2151,7 +2151,7 @@ isert_aborted_task(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- static enum target_prot_op
- isert_get_sup_prot_ops(struct iscsi_conn *conn)
- {
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct isert_device *device = isert_conn->conn_device;
- 
- 	if (conn->tpg->tpg_attrib.t10_pi) {
-@@ -2173,7 +2173,7 @@ isert_put_nopin(struct iscsi_cmd *cmd, struct iscsi_conn *conn,
- 		bool nopout_response)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
- 
- 	isert_create_send_desc(isert_conn, isert_cmd, &isert_cmd->tx_desc);
-@@ -2192,7 +2192,7 @@ static int
- isert_put_logout_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
- 
- 	isert_create_send_desc(isert_conn, isert_cmd, &isert_cmd->tx_desc);
-@@ -2210,7 +2210,7 @@ static int
- isert_put_tm_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
- 
- 	isert_create_send_desc(isert_conn, isert_cmd, &isert_cmd->tx_desc);
-@@ -2228,7 +2228,7 @@ static int
- isert_put_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
- 	struct isert_device *device = isert_conn->conn_device;
- 	struct ib_device *ib_dev = device->ib_device;
-@@ -2261,7 +2261,7 @@ static int
- isert_put_text_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
- {
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
- 	struct iscsi_text_rsp *hdr =
- 		(struct iscsi_text_rsp *)&isert_cmd->tx_desc.iscsi_header;
-@@ -2352,7 +2352,7 @@ isert_map_rdma(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
- {
- 	struct se_cmd *se_cmd = &cmd->se_cmd;
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct isert_data_buf *data = &wr->data;
- 	struct ib_send_wr *send_wr;
- 	struct ib_sge *ib_sge;
-@@ -2836,7 +2836,7 @@ isert_put_datain(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
- 	struct se_cmd *se_cmd = &cmd->se_cmd;
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
- 	struct isert_rdma_wr *wr = &isert_cmd->rdma_wr;
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct isert_device *device = isert_conn->conn_device;
- 	struct ib_send_wr *wr_failed;
- 	int rc;
-@@ -2886,7 +2886,7 @@ isert_get_dataout(struct iscsi_conn *conn, struct iscsi_cmd *cmd, bool recovery)
- 	struct se_cmd *se_cmd = &cmd->se_cmd;
- 	struct isert_cmd *isert_cmd = iscsit_priv_cmd(cmd);
- 	struct isert_rdma_wr *wr = &isert_cmd->rdma_wr;
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	struct isert_device *device = isert_conn->conn_device;
- 	struct ib_send_wr *wr_failed;
- 	int rc;
-@@ -3074,7 +3074,7 @@ isert_rdma_accept(struct isert_conn *isert_conn)
- static int
- isert_get_login_rx(struct iscsi_conn *conn, struct iscsi_login *login)
- {
--	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-+	struct isert_conn *isert_conn = conn->context;
- 	int ret;
- 
- 	isert_info("before login_req comp conn: %p\n", isert_conn);
-@@ -3144,7 +3144,7 @@ isert_set_conn_info(struct iscsi_np *np, struct iscsi_conn *conn,
- static int
- isert_accept_np(struct iscsi_np *np, struct iscsi_conn *conn)
- {
--	struct isert_np *isert_np = (struct isert_np *)np->np_context;
-+	struct isert_np *isert_np = np->np_context;
- 	struct isert_conn *isert_conn;
- 	int max_accept = 0, ret;
- 
-@@ -3191,7 +3191,7 @@ accept_wait:
  static void
- isert_free_np(struct iscsi_np *np)
- {
--	struct isert_np *isert_np = (struct isert_np *)np->np_context;
-+	struct isert_np *isert_np = np->np_context;
- 	struct isert_conn *isert_conn, *n;
- 
- 	if (isert_np->np_cm_id)
 -- 
 1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
