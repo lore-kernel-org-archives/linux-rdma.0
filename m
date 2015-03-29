@@ -1,48 +1,52 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 04/18] IB/iser: Remove redundant cmd_data_len calculation
-Date: Sun, 29 Mar 2015 15:45:18 +0300
-Message-ID: <1427633132-23910-5-git-send-email-sagig@mellanox.com>
-References: <1427633132-23910-1-git-send-email-sagig@mellanox.com>
+Subject: iser patches for kernel 4.1
+Date: Sun, 29 Mar 2015 15:45:14 +0300
+Message-ID: <1427633132-23910-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427633132-23910-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This code was added before we had protection data length
-calculation (in iser_send_command), so we needed to calc
-the sg data length from the sg itself. This is not needed
-anymore.
+Hi Roland,
 
-This patch does not change any functionality.
+This set contains bug fixes as well as code refactoring patches
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_memory.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+- Patches 1-3:	   Bug fixes (stable material)
+- Patches 4-6:     Bounce buffer related code cleanups
+- Patches 7-12,16: Refactoring
+- Patches 13-15:   Minor optimizations
+- Patch 17:        Version bump
+- Patch 18:        Bounce buffer rewrite to handle situations where
+                   large transfers are unaligned causing iser to
+		   use high order allocations
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 341040b..32ccd5c 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -53,12 +53,9 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
- 	struct scatterlist *sgl = (struct scatterlist *)data->buf;
- 	struct scatterlist *sg;
- 	char *mem = NULL;
--	unsigned long  cmd_data_len = 0;
-+	unsigned long  cmd_data_len = data->data_len;
- 	int dma_nents, i;
- 
--	for_each_sg(sgl, sg, data->size, i)
--		cmd_data_len += ib_sg_dma_len(dev, sg);
--
- 	if (cmd_data_len > ISER_KMALLOC_THRESHOLD)
- 		mem = (void *)__get_free_pages(GFP_ATOMIC,
- 		      ilog2(roundup_pow_of_two(cmd_data_len)) - PAGE_SHIFT);
--- 
-1.7.1
+Sagi Grimberg (18):
+  IB/iser: Fix unload during ep_poll wrong dereference
+  IB/iser: Handle fastreg/local_inv completion errors
+  IB/iser: Fix wrong calculation of protection buffer length
+  IB/iser: Remove redundant cmd_data_len calculation
+  IB/iser: Remove a redundant struct iser_data_buf
+  IB/iser: Don't pass ib_device to fall_to_bounce_buff routine
+  IB/iser: Move memory reg/dereg routines to iser_memory.c
+  IB/iser: Remove redundant assignments in iser_reg_page_vec
+  IB/iser: Get rid of struct iser_rdma_regd
+  IB/iser: Merge build page-vec into register page-vec
+  IB/iser: Move fastreg descriptor pool get/put to helper functions
+  IB/iser: Move PI context alloc/free to routines
+  IB/iser: Make fastreg pool cache friendly
+  IB/iser: Modify struct iser_mem_reg members
+  IB/iser: Pass struct iser_mem_reg to iser_fast_reg_mr and
+    iser_reg_sig_mr
+  IB/iser: Remove code duplication for a single DMA entry
+  IB/iser: Bump version to 1.6
+  IB/iser: Rewrite bounce buffer code path
+
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |   64 +---
+ drivers/infiniband/ulp/iser/iser_initiator.c |   66 ++--
+ drivers/infiniband/ulp/iser/iser_memory.c    |  524 +++++++++++++++-----------
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  220 ++++--------
+ 4 files changed, 431 insertions(+), 443 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
