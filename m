@@ -1,212 +1,62 @@
-From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 13/18] iser-target: Split some logic in isert_connect_request to routines
-Date: Sun, 29 Mar 2015 15:52:15 +0300
-Message-ID: <1427633540-30352-14-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 14/18] iser-target: Get rid of redundant max_accept
+Date: Sun, 29 Mar 2015 15:52:16 +0300
+Message-ID: <1427633540-30352-15-git-send-email-sagig@mellanox.com>
 References: <1427633540-30352-1-git-send-email-sagig@mellanox.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1427633540-30352-1-git-send-email-sagig@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Oren Duer <oren@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1427633540-30352-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Move login buffer alloc/free code to dedicated
-routines and introduce isert_conn_init which
-initializes the connection lists and locks.
+Not sure what it was used for, but there is
+no real need for it now as I see it. Go ahead
+and get rid of it.
 
-Simplifies and cleans up the code a little bit.
-
-Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c |  118 ++++++++++++++++++-------------
- 1 files changed, 70 insertions(+), 48 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index d19271b..4fddc08 100644
+index 4fddc08..97cee96 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -636,32 +636,9 @@ err:
- 	return ret;
- }
- 
--static int
--isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
-+static void
-+isert_init_conn(struct isert_conn *isert_conn)
+@@ -3209,11 +3209,11 @@ isert_accept_np(struct iscsi_np *np, struct iscsi_conn *conn)
  {
--	struct isert_np *isert_np = cma_id->context;
--	struct iscsi_np *np = isert_np->np;
--	struct isert_conn *isert_conn;
--	struct isert_device *device;
--	struct ib_device *ib_dev = cma_id->device;
--	int ret = 0;
--
--	spin_lock_bh(&np->np_thread_lock);
--	if (!np->enabled) {
--		spin_unlock_bh(&np->np_thread_lock);
--		isert_dbg("iscsi_np is not enabled, reject connect request\n");
--		return rdma_reject(cma_id, NULL, 0);
--	}
--	spin_unlock_bh(&np->np_thread_lock);
--
--	isert_dbg("cma_id: %p, portal: %p\n",
--		 cma_id, cma_id->context);
--
--	isert_conn = kzalloc(sizeof(struct isert_conn), GFP_KERNEL);
--	if (!isert_conn) {
--		isert_err("Unable to allocate isert_conn\n");
--		return -ENOMEM;
--	}
- 	isert_conn->state = ISER_CONN_INIT;
- 	INIT_LIST_HEAD(&isert_conn->conn_accept_node);
- 	init_completion(&isert_conn->conn_login_comp);
-@@ -671,20 +648,38 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 	mutex_init(&isert_conn->conn_mutex);
- 	spin_lock_init(&isert_conn->conn_lock);
- 	INIT_LIST_HEAD(&isert_conn->conn_fr_pool);
-+}
- 
--	isert_conn->conn_cm_id = cma_id;
-+static void
-+isert_free_login_buf(struct isert_conn *isert_conn)
-+{
-+	struct ib_device *ib_dev = isert_conn->conn_device->ib_device;
-+
-+	ib_dma_unmap_single(ib_dev, isert_conn->login_rsp_dma,
-+			    ISER_RX_LOGIN_SIZE, DMA_TO_DEVICE);
-+	ib_dma_unmap_single(ib_dev, isert_conn->login_req_dma,
-+			    ISCSI_DEF_MAX_RECV_SEG_LEN,
-+			    DMA_FROM_DEVICE);
-+	kfree(isert_conn->login_buf);
-+}
-+
-+static int
-+isert_alloc_login_buf(struct isert_conn *isert_conn,
-+		      struct ib_device *ib_dev)
-+{
+ 	struct isert_np *isert_np = np->np_context;
+ 	struct isert_conn *isert_conn;
+-	int max_accept = 0, ret;
 +	int ret;
  
- 	isert_conn->login_buf = kzalloc(ISCSI_DEF_MAX_RECV_SEG_LEN +
- 					ISER_RX_LOGIN_SIZE, GFP_KERNEL);
- 	if (!isert_conn->login_buf) {
- 		isert_err("Unable to allocate isert_conn->login_buf\n");
--		ret = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 
- 	isert_conn->login_req_buf = isert_conn->login_buf;
- 	isert_conn->login_rsp_buf = isert_conn->login_buf +
- 				    ISCSI_DEF_MAX_RECV_SEG_LEN;
-+
- 	isert_dbg("Set login_buf: %p login_req_buf: %p login_rsp_buf: %p\n",
- 		 isert_conn->login_buf, isert_conn->login_req_buf,
- 		 isert_conn->login_rsp_buf);
-@@ -695,8 +690,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 
- 	ret = ib_dma_mapping_error(ib_dev, isert_conn->login_req_dma);
- 	if (ret) {
--		isert_err("ib_dma_mapping_error failed for login_req_dma: %d\n",
--		       ret);
-+		isert_err("login_req_dma mapping error: %d\n", ret);
- 		isert_conn->login_req_dma = 0;
- 		goto out_login_buf;
- 	}
-@@ -707,12 +701,52 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 
- 	ret = ib_dma_mapping_error(ib_dev, isert_conn->login_rsp_dma);
- 	if (ret) {
--		isert_err("ib_dma_mapping_error failed for login_rsp_dma: %d\n",
--		       ret);
-+		isert_err("login_rsp_dma mapping error: %d\n", ret);
- 		isert_conn->login_rsp_dma = 0;
- 		goto out_req_dma_map;
- 	}
- 
-+	return 0;
-+
-+out_req_dma_map:
-+	ib_dma_unmap_single(ib_dev, isert_conn->login_req_dma,
-+			    ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_FROM_DEVICE);
-+out_login_buf:
-+	kfree(isert_conn->login_buf);
-+	return ret;
-+}
-+
-+static int
-+isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
-+{
-+	struct isert_np *isert_np = cma_id->context;
-+	struct iscsi_np *np = isert_np->np;
-+	struct isert_conn *isert_conn;
-+	struct isert_device *device;
-+	int ret = 0;
-+
-+	spin_lock_bh(&np->np_thread_lock);
-+	if (!np->enabled) {
-+		spin_unlock_bh(&np->np_thread_lock);
-+		isert_dbg("iscsi_np is not enabled, reject connect request\n");
-+		return rdma_reject(cma_id, NULL, 0);
-+	}
-+	spin_unlock_bh(&np->np_thread_lock);
-+
-+	isert_dbg("cma_id: %p, portal: %p\n",
-+		 cma_id, cma_id->context);
-+
-+	isert_conn = kzalloc(sizeof(struct isert_conn), GFP_KERNEL);
-+	if (!isert_conn)
-+		return -ENOMEM;
-+
-+	isert_init_conn(isert_conn);
-+	isert_conn->conn_cm_id = cma_id;
-+
-+	ret = isert_alloc_login_buf(isert_conn, cma_id->device);
+ accept_wait:
+ 	ret = down_interruptible(&isert_np->np_sem);
+-	if (ret || max_accept > 5)
 +	if (ret)
-+		goto out;
-+
- 	device = isert_device_get(cma_id);
- 	if (IS_ERR(device)) {
- 		ret = PTR_ERR(device);
-@@ -749,13 +783,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- out_conn_dev:
- 	isert_device_put(device);
- out_rsp_dma_map:
--	ib_dma_unmap_single(ib_dev, isert_conn->login_rsp_dma,
--			    ISER_RX_LOGIN_SIZE, DMA_TO_DEVICE);
--out_req_dma_map:
--	ib_dma_unmap_single(ib_dev, isert_conn->login_req_dma,
--			    ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_FROM_DEVICE);
--out_login_buf:
--	kfree(isert_conn->login_buf);
-+	isert_free_login_buf(isert_conn);
- out:
- 	kfree(isert_conn);
- 	rdma_reject(cma_id, NULL, 0);
-@@ -766,7 +794,6 @@ static void
- isert_connect_release(struct isert_conn *isert_conn)
- {
- 	struct isert_device *device = isert_conn->conn_device;
--	struct ib_device *ib_dev = device->ib_device;
+ 		return -ENODEV;
  
- 	isert_dbg("conn %p\n", isert_conn);
- 
-@@ -784,14 +811,9 @@ isert_connect_release(struct isert_conn *isert_conn)
- 		ib_destroy_qp(isert_conn->conn_qp);
+ 	spin_lock_bh(&np->np_thread_lock);
+@@ -3232,7 +3232,6 @@ accept_wait:
+ 	mutex_lock(&isert_np->np_accept_mutex);
+ 	if (list_empty(&isert_np->np_accept_list)) {
+ 		mutex_unlock(&isert_np->np_accept_mutex);
+-		max_accept++;
+ 		goto accept_wait;
  	}
+ 	isert_conn = list_first_entry(&isert_np->np_accept_list,
+@@ -3242,7 +3241,6 @@ accept_wait:
  
--	if (isert_conn->login_buf) {
--		ib_dma_unmap_single(ib_dev, isert_conn->login_rsp_dma,
--				    ISER_RX_LOGIN_SIZE, DMA_TO_DEVICE);
--		ib_dma_unmap_single(ib_dev, isert_conn->login_req_dma,
--				    ISCSI_DEF_MAX_RECV_SEG_LEN,
--				    DMA_FROM_DEVICE);
--		kfree(isert_conn->login_buf);
--	}
-+	if (isert_conn->login_buf)
-+		isert_free_login_buf(isert_conn);
-+
- 	kfree(isert_conn);
+ 	conn->context = isert_conn;
+ 	isert_conn->conn = conn;
+-	max_accept = 0;
  
- 	if (device)
+ 	isert_set_conn_info(np, conn, isert_conn);
+ 
 -- 
 1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
