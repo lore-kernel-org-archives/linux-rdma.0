@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 15/18] IB/iser: Pass struct iser_mem_reg to iser_fast_reg_mr and iser_reg_sig_mr
-Date: Sun, 29 Mar 2015 15:45:29 +0300
-Message-ID: <1427633132-23910-16-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 18/18] IB/iser: Rewrite bounce buffer code path
+Date: Sun, 29 Mar 2015 15:45:32 +0300
+Message-ID: <1427633132-23910-19-git-send-email-sagig@mellanox.com>
 References: <1427633132-23910-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1427633132-23910-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,175 +10,335 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of passing ib_sge as output variable, we pass the mem_reg
-pointer to have the routines fill the rkey as well. This reduces
-code duplication and extra assignments. This is a preparation step
-to unify some registration logics together.
+In some rare cases, IO operations may be not aligned to page
+boundaries. This prevents iser from performing fast memory
+registration. In order to overcome that iser uses a bounce
+buffer to carry the transaction. We basically allocate a buffer
+in the size of the transaction and perform a copy.
 
-This patch does not change any functionality.
+The buffer allocation using kmalloc is too restrictive since it
+requires higher order (atomic) allocations for large transactions
+(which may result in memory exhaustion fairly fast for some workloads).
+We rewrite the bounce buffer code path to allocate scattered pages
+and perform a copy between the transaction sg and the bounce sg.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c |   68 ++++++++++++----------------
- 1 files changed, 29 insertions(+), 39 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |    8 +-
+ drivers/infiniband/ulp/iser/iser_initiator.c |    8 +-
+ drivers/infiniband/ulp/iser/iser_memory.c    |  211 ++++++++++++++++----------
+ 3 files changed, 138 insertions(+), 89 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 9c15f37..6d0493a 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -222,12 +222,9 @@ enum iser_data_dir {
+  * @size:         num entries of this sg
+  * @data_len:     total beffer byte len
+  * @dma_nents:    returned by dma_map_sg
+- * @copy_buf:     allocated copy buf for SGs unaligned
+- *                for rdma which are copied
+  * @orig_sg:      pointer to the original sg list (in case
+  *                we used a copy)
+- * @sg_single:    SG-ified clone of a non SG SC or
+- *                unaligned SG
++ * @orig_size:    num entris of orig sg list
+  */
+ struct iser_data_buf {
+ 	struct scatterlist *sg;
+@@ -235,8 +232,7 @@ struct iser_data_buf {
+ 	unsigned long      data_len;
+ 	unsigned int       dma_nents;
+ 	struct scatterlist *orig_sg;
+-	char               *copy_buf;
+-	struct scatterlist sg_single;
++	unsigned int       orig_size;
+   };
+ 
+ /* fwd declarations */
+diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
+index b2e3b77..3e2118e 100644
+--- a/drivers/infiniband/ulp/iser/iser_initiator.c
++++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+@@ -674,28 +674,28 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
+ 	/* if we were reading, copy back to unaligned sglist,
+ 	 * anyway dma_unmap and free the copy
+ 	 */
+-	if (iser_task->data[ISER_DIR_IN].copy_buf) {
++	if (iser_task->data[ISER_DIR_IN].orig_sg) {
+ 		is_rdma_data_aligned = 0;
+ 		iser_finalize_rdma_unaligned_sg(iser_task,
+ 						&iser_task->data[ISER_DIR_IN],
+ 						ISER_DIR_IN);
+ 	}
+ 
+-	if (iser_task->data[ISER_DIR_OUT].copy_buf) {
++	if (iser_task->data[ISER_DIR_OUT].orig_sg) {
+ 		is_rdma_data_aligned = 0;
+ 		iser_finalize_rdma_unaligned_sg(iser_task,
+ 						&iser_task->data[ISER_DIR_OUT],
+ 						ISER_DIR_OUT);
+ 	}
+ 
+-	if (iser_task->prot[ISER_DIR_IN].copy_buf) {
++	if (iser_task->prot[ISER_DIR_IN].orig_sg) {
+ 		is_rdma_prot_aligned = 0;
+ 		iser_finalize_rdma_unaligned_sg(iser_task,
+ 						&iser_task->prot[ISER_DIR_IN],
+ 						ISER_DIR_IN);
+ 	}
+ 
+-	if (iser_task->prot[ISER_DIR_OUT].copy_buf) {
++	if (iser_task->prot[ISER_DIR_OUT].orig_sg) {
+ 		is_rdma_prot_aligned = 0;
+ 		iser_finalize_rdma_unaligned_sg(iser_task,
+ 						&iser_task->prot[ISER_DIR_OUT],
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 40d22d5..b4b0098 100644
+index e78ce53..223ef7a 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -590,8 +590,10 @@ iser_inv_rkey(struct ib_send_wr *inv_wr, struct ib_mr *mr)
+@@ -39,7 +39,112 @@
  
- static int
- iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
--		struct fast_reg_descriptor *desc, struct ib_sge *data_sge,
--		struct ib_sge *prot_sge, struct ib_sge *sig_sge)
-+		struct fast_reg_descriptor *desc,
-+		struct iser_mem_reg *data_reg,
-+		struct iser_mem_reg *prot_reg,
-+		struct iser_mem_reg *sig_reg)
+ #include "iscsi_iser.h"
+ 
+-#define ISER_KMALLOC_THRESHOLD 0x20000 /* 128K - kmalloc limit */
++static void
++iser_free_bounce_sg(struct iser_data_buf *data)
++{
++	struct scatterlist *sg;
++	int count;
++
++	for_each_sg(data->sg, sg, data->size, count)
++		__free_page(sg_page(sg));
++
++	kfree(data->sg);
++
++	data->sg = data->orig_sg;
++	data->size = data->orig_size;
++	data->orig_sg = NULL;
++	data->orig_size = 0;
++}
++
++static int
++iser_alloc_bounce_sg(struct iser_data_buf *data)
++{
++	struct scatterlist *sg;
++	struct page *page;
++	unsigned long length = data->data_len;
++	int i = 0, nents = DIV_ROUND_UP(length, PAGE_SIZE);
++
++	sg = kcalloc(nents, sizeof(*sg), GFP_ATOMIC);
++	if (!sg)
++		goto err;
++
++	sg_init_table(sg, nents);
++	while (length) {
++		u32 page_len = min_t(u32, length, PAGE_SIZE);
++
++		page = alloc_page(GFP_ATOMIC);
++		if (!page)
++			goto err;
++
++		sg_set_page(&sg[i], page, page_len, 0);
++		length -= page_len;
++		i++;
++	}
++
++	data->orig_sg = data->sg;
++	data->orig_size = data->size;
++	data->sg = sg;
++	data->size = nents;
++
++	return 0;
++
++err:
++	for (; i > 0; i--)
++		__free_page(sg_page(&sg[i]));
++	kfree(sg);
++
++	return -ENOMEM;
++}
++
++static void
++iser_copy_bounce(struct iser_data_buf *data, bool to_buffer)
++{
++	struct scatterlist *osg, *bsg = data->sg;
++	void *oaddr, *baddr;
++	unsigned int left = data->data_len;
++	unsigned int bsg_off = 0;
++	int i;
++
++	for_each_sg(data->orig_sg, osg, data->orig_size, i) {
++		unsigned int copy_len, osg_off = 0;
++
++		oaddr = kmap_atomic(sg_page(osg)) + osg->offset;
++		copy_len = min(left, osg->length);
++		while (copy_len) {
++			unsigned int len = min(copy_len, bsg->length - bsg_off);
++
++			baddr = kmap_atomic(sg_page(bsg)) + bsg->offset;
++			if (to_buffer)
++				memcpy(baddr + bsg_off, oaddr + osg_off, len);
++			else
++				memcpy(oaddr + osg_off, baddr + bsg_off, len);
++
++			osg_off += len;
++			bsg_off += len;
++			copy_len -= len;
++
++			if (bsg_off >= bsg->length) {
++				bsg = sg_next(bsg);
++				bsg_off = 0;
++			}
++			kunmap_atomic(baddr);
++		}
++		left -= osg_off;
++		kunmap_atomic(oaddr);
++	}
++}
++
++static inline void
++iser_copy_from_bounce(struct iser_data_buf *data)
++{
++	iser_copy_bounce(data, false);
++}
++
++static inline void
++iser_copy_to_bounce(struct iser_data_buf *data)
++{
++	iser_copy_bounce(data, true);
++}
+ 
+ struct fast_reg_descriptor *
+ iser_reg_desc_get(struct ib_conn *ib_conn)
+@@ -75,52 +180,32 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
+ 					enum iser_data_dir cmd_dir)
  {
- 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
- 	struct iser_pi_context *pi_ctx = desc->pi_ctx;
-@@ -615,12 +617,12 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	memset(&sig_wr, 0, sizeof(sig_wr));
- 	sig_wr.opcode = IB_WR_REG_SIG_MR;
- 	sig_wr.wr_id = ISER_FASTREG_LI_WRID;
--	sig_wr.sg_list = data_sge;
-+	sig_wr.sg_list = &data_reg->sge;
- 	sig_wr.num_sge = 1;
- 	sig_wr.wr.sig_handover.sig_attrs = &sig_attrs;
- 	sig_wr.wr.sig_handover.sig_mr = pi_ctx->sig_mr;
- 	if (scsi_prot_sg_count(iser_task->sc))
--		sig_wr.wr.sig_handover.prot = prot_sge;
-+		sig_wr.wr.sig_handover.prot = &prot_reg->sge;
- 	sig_wr.wr.sig_handover.access_flags = IB_ACCESS_LOCAL_WRITE |
- 					      IB_ACCESS_REMOTE_READ |
- 					      IB_ACCESS_REMOTE_WRITE;
-@@ -637,13 +639,14 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	}
- 	desc->reg_indicators &= ~ISER_SIG_KEY_VALID;
+ 	struct ib_device *dev = iser_task->iser_conn->ib_conn.device->ib_device;
+-	struct scatterlist *sgl = data->sg;
+-	struct scatterlist *sg;
+-	char *mem = NULL;
+-	unsigned long  cmd_data_len = data->data_len;
+-	int dma_nents, i;
++	int rc;
  
--	sig_sge->lkey = pi_ctx->sig_mr->lkey;
--	sig_sge->addr = 0;
--	sig_sge->length = scsi_transfer_length(iser_task->sc);
-+	sig_reg->sge.lkey = pi_ctx->sig_mr->lkey;
-+	sig_reg->rkey = pi_ctx->sig_mr->rkey;
-+	sig_reg->sge.addr = 0;
-+	sig_reg->sge.length = scsi_transfer_length(iser_task->sc);
- 
--	iser_dbg("sig_sge: addr: 0x%llx  length: %u lkey: 0x%x\n",
--		 sig_sge->addr, sig_sge->length,
--		 sig_sge->lkey);
-+	iser_dbg("sig_sge: lkey: 0x%x, rkey: 0x%x, addr: 0x%llx, length: %u\n",
-+		 sig_reg->sge.lkey, sig_reg->rkey, sig_reg->sge.addr,
-+		 sig_reg->sge.length);
- err:
- 	return ret;
- }
-@@ -652,7 +655,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 			    struct iser_mem_reg *mem_reg,
- 			    struct iser_data_buf *mem,
- 			    enum iser_reg_indicator ind,
--			    struct ib_sge *sge)
-+			    struct iser_mem_reg *reg)
- {
- 	struct fast_reg_descriptor *desc = mem_reg->mem_h;
- 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
-@@ -668,12 +671,13 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 	if (mem->dma_nents == 1) {
- 		struct scatterlist *sg = mem->sg;
- 
--		sge->lkey = device->mr->lkey;
--		sge->addr   = ib_sg_dma_address(ibdev, &sg[0]);
--		sge->length  = ib_sg_dma_len(ibdev, &sg[0]);
-+		reg->sge.lkey = device->mr->lkey;
-+		reg->rkey = device->mr->rkey;
-+		reg->sge.addr = ib_sg_dma_address(ibdev, &sg[0]);
-+		reg->sge.length = ib_sg_dma_len(ibdev, &sg[0]);
- 
- 		iser_dbg("Single DMA entry: lkey=0x%x, addr=0x%llx, length=0x%x\n",
--			 sge->lkey, sge->addr, sge->length);
-+			 reg->sge.lkey, reg->sge.addr, reg->sge.length);
- 		return 0;
- 	}
- 
-@@ -723,9 +727,10 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 	}
- 	desc->reg_indicators &= ~ind;
- 
--	sge->lkey = mr->lkey;
--	sge->addr = frpl->page_list[0] + offset;
--	sge->length = size;
-+	reg->sge.lkey = mr->lkey;
-+	reg->rkey = mr->rkey;
-+	reg->sge.addr = frpl->page_list[0] + offset;
-+	reg->sge.length = size;
- 
- 	return ret;
- }
-@@ -745,7 +750,6 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
- 	struct iser_mem_reg *mem_reg = &iser_task->rdma_reg[cmd_dir];
- 	struct fast_reg_descriptor *desc = NULL;
--	struct ib_sge data_sge;
- 	int err, aligned_len;
- 
- 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
-@@ -765,14 +769,14 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	}
- 
- 	err = iser_fast_reg_mr(iser_task, mem_reg, mem,
--			       ISER_DATA_KEY_VALID, &data_sge);
-+			       ISER_DATA_KEY_VALID, mem_reg);
- 	if (err)
- 		goto err_reg;
- 
- 	if (scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
--		struct ib_sge prot_sge, sig_sge;
-+		struct iser_mem_reg prot_reg;
- 
--		memset(&prot_sge, 0, sizeof(prot_sge));
-+		memset(&prot_reg, 0, sizeof(prot_reg));
- 		if (scsi_prot_sg_count(iser_task->sc)) {
- 			mem = &iser_task->prot[cmd_dir];
- 			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
-@@ -786,32 +790,18 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 			}
- 
- 			err = iser_fast_reg_mr(iser_task, mem_reg, mem,
--					       ISER_PROT_KEY_VALID, &prot_sge);
-+					       ISER_PROT_KEY_VALID, &prot_reg);
- 			if (err)
- 				goto err_reg;
- 		}
- 
--		err = iser_reg_sig_mr(iser_task, desc, &data_sge,
--				      &prot_sge, &sig_sge);
-+		err = iser_reg_sig_mr(iser_task, desc, mem_reg,
-+				      &prot_reg, mem_reg);
- 		if (err) {
- 			iser_err("Failed to register signature mr\n");
- 			return err;
- 		}
- 		desc->reg_indicators |= ISER_FASTREG_PROTECTED;
+-	if (cmd_data_len > ISER_KMALLOC_THRESHOLD)
+-		mem = (void *)__get_free_pages(GFP_ATOMIC,
+-		      ilog2(roundup_pow_of_two(cmd_data_len)) - PAGE_SHIFT);
+-	else
+-		mem = kmalloc(cmd_data_len, GFP_ATOMIC);
 -
--		mem_reg->sge.lkey = sig_sge.lkey;
--		mem_reg->rkey = desc->pi_ctx->sig_mr->rkey;
--		mem_reg->sge.addr = sig_sge.addr;
--		mem_reg->sge.length = sig_sge.length;
--	} else {
--		if (desc)
--			mem_reg->rkey = desc->data_mr->rkey;
--		else
--			mem_reg->rkey = device->mr->rkey;
+-	if (mem == NULL) {
+-		iser_err("Failed to allocate mem size %d %d for copying sglist\n",
+-			 data->size, (int)cmd_data_len);
+-		return -ENOMEM;
+-	}
 -
--		mem_reg->sge.lkey = data_sge.lkey;
--		mem_reg->sge.addr = data_sge.addr;
--		mem_reg->sge.length = data_sge.length;
+-	if (cmd_dir == ISER_DIR_OUT) {
+-		/* copy the unaligned sg the buffer which is used for RDMA */
+-		char *p, *from;
+-
+-		sgl = data->sg;
+-		p = mem;
+-		for_each_sg(sgl, sg, data->size, i) {
+-			from = kmap_atomic(sg_page(sg));
+-			memcpy(p,
+-			       from + sg->offset,
+-			       sg->length);
+-			kunmap_atomic(from);
+-			p += sg->length;
+-		}
++	rc = iser_alloc_bounce_sg(data);
++	if (rc) {
++		iser_err("Failed to allocate bounce for data len %lu\n",
++			 data->data_len);
++		goto err;
  	}
+ 
+-	sg_init_one(&data->sg_single, mem, cmd_data_len);
+-	data->orig_sg = data->sg;
+-	data->sg = &data->sg_single;
+-	data->copy_buf = mem;
+-	dma_nents = ib_dma_map_sg(dev, data->sg, 1,
+-				  (cmd_dir == ISER_DIR_OUT) ?
+-				  DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-	BUG_ON(dma_nents == 0);
++	if (cmd_dir == ISER_DIR_OUT)
++		iser_copy_to_bounce(data);
+ 
+-	data->dma_nents = dma_nents;
++	data->dma_nents = ib_dma_map_sg(dev, data->sg, data->size,
++					(cmd_dir == ISER_DIR_OUT) ?
++					DMA_TO_DEVICE : DMA_FROM_DEVICE);
++	if (!data->dma_nents) {
++		iser_err("Got dma_nents %d, something went wrong...\n",
++			 data->dma_nents);
++		rc = -ENOMEM;
++		goto err;
++	}
  
  	return 0;
++err:
++	iser_free_bounce_sg(data);
++	return rc;
+ }
+ 
+ /**
+@@ -131,48 +216,16 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
+ 				     struct iser_data_buf *data,
+ 				     enum iser_data_dir cmd_dir)
+ {
+-	struct ib_device *dev;
+-	unsigned long  cmd_data_len;
+-
+-	dev = iser_task->iser_conn->ib_conn.device->ib_device;
++	struct ib_device *dev = iser_task->iser_conn->ib_conn.device->ib_device;
+ 
+-	ib_dma_unmap_sg(dev, data->sg, 1,
++	ib_dma_unmap_sg(dev, data->sg, data->size,
+ 			(cmd_dir == ISER_DIR_OUT) ?
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE);
+ 
+-	if (cmd_dir == ISER_DIR_IN) {
+-		char *mem;
+-		struct scatterlist *sgl, *sg;
+-		unsigned char *p, *to;
+-		unsigned int sg_size;
+-		int i;
+-
+-		/* copy back read RDMA to unaligned sg */
+-		mem = data->copy_buf;
+-
+-		sgl = data->sg;
+-		sg_size = data->size;
+-
+-		p = mem;
+-		for_each_sg(sgl, sg, sg_size, i) {
+-			to = kmap_atomic(sg_page(sg));
+-			memcpy(to + sg->offset,
+-			       p,
+-			       sg->length);
+-			kunmap_atomic(to);
+-			p += sg->length;
+-		}
+-	}
+-
+-	cmd_data_len = data->data_len;
+-
+-	if (cmd_data_len > ISER_KMALLOC_THRESHOLD)
+-		free_pages((unsigned long)data->copy_buf,
+-			   ilog2(roundup_pow_of_two(cmd_data_len)) - PAGE_SHIFT);
+-	else
+-		kfree(data->copy_buf);
++	if (cmd_dir == ISER_DIR_IN)
++		iser_copy_from_bounce(data);
+ 
+-	data->copy_buf = NULL;
++	iser_free_bounce_sg(data);
+ }
+ 
+ #define IS_4K_ALIGNED(addr)	((((unsigned long)addr) & ~MASK_4K) == 0)
 -- 
 1.7.1
 
