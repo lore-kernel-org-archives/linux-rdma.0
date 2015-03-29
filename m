@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 9/9] IB/mlx4: Change alias guids default to be host assigned
-Date: Sun, 29 Mar 2015 16:51:33 +0300
-Message-ID: <1427637093-6711-10-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 3/9] net/mlx4_core: Set initial admin GUIDs for VFs
+Date: Sun, 29 Mar 2015 16:51:27 +0300
+Message-ID: <1427637093-6711-4-git-send-email-ogerlitz@mellanox.com>
 References: <1427637093-6711-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1427637093-6711-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,35 +12,83 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Change the default mode to be HOST assigned instead of SM assigned. This is
-the expected operational mode, because it doesn't depend on SM availability.
-
-As PF generates random GUIDs as the initial admin values, this gives
-out of the box experience.
+To have out of the box experience, the PF generates random GUIDs who
+serve as the initial admin values.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/cmd.c  |    1 +
+ drivers/net/ethernet/mellanox/mlx4/main.c |   23 +++++++++++++++++++++++
+ include/linux/mlx4/device.h               |    1 +
+ 3 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 35f00ae..7a55fee 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -66,9 +66,9 @@ MODULE_DESCRIPTION("Mellanox ConnectX HCA InfiniBand driver");
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_VERSION(DRV_VERSION);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index 20b3c7b..778de74 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -2255,6 +2255,7 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
+ 				priv->mfunc.master.vf_oper[i].vport[port].state.default_vlan = MLX4_VGT;
+ 				priv->mfunc.master.vf_oper[i].vport[port].vlan_idx = NO_INDX;
+ 				priv->mfunc.master.vf_oper[i].vport[port].mac_idx = NO_INDX;
++				mlx4_set_random_admin_guid(dev, i, port);
+ 			}
+ 			spin_lock_init(&s_state->lock);
+ 		}
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 6d1f10e..67e57e5 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -42,6 +42,7 @@
+ #include <linux/io-mapping.h>
+ #include <linux/delay.h>
+ #include <linux/kmod.h>
++#include <linux/etherdevice.h>
  
--int mlx4_ib_sm_guid_assign = 1;
-+int mlx4_ib_sm_guid_assign = 0;
- module_param_named(sm_guid_assign, mlx4_ib_sm_guid_assign, int, 0444);
--MODULE_PARM_DESC(sm_guid_assign, "Enable SM alias_GUID assignment if sm_guid_assign > 0 (Default: 1)");
-+MODULE_PARM_DESC(sm_guid_assign, "Enable SM alias_GUID assignment if sm_guid_assign > 0 (Default: 0)");
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/doorbell.h>
+@@ -2245,6 +2246,28 @@ __be64 mlx4_get_admin_guid(struct mlx4_dev *dev, int entry, int port)
+ }
+ EXPORT_SYMBOL_GPL(mlx4_get_admin_guid);
  
- static const char mlx4_ib_version[] =
- 	DRV_NAME ": Mellanox ConnectX InfiniBand driver v"
++void mlx4_set_random_admin_guid(struct mlx4_dev *dev, int entry, int port)
++{
++	struct mlx4_priv *priv = mlx4_priv(dev);
++	u8 random_mac[6];
++	char *raw_gid;
++
++	/* hw GUID */
++	if (entry == 0)
++		return;
++
++	eth_random_addr(random_mac);
++	raw_gid = (char *)&priv->mfunc.master.vf_admin[entry].vport[port].guid;
++	raw_gid[0] = random_mac[0] ^ 2;
++	raw_gid[1] = random_mac[1];
++	raw_gid[2] = random_mac[2];
++	raw_gid[3] = 0xff;
++	raw_gid[4] = 0xfe;
++	raw_gid[5] = random_mac[3];
++	raw_gid[6] = random_mac[4];
++	raw_gid[7] = random_mac[5];
++}
++
+ static int mlx4_setup_hca(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 5c67bf0..f867d25 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -1340,6 +1340,7 @@ void mlx4_counter_free(struct mlx4_dev *dev, u32 idx);
+ void mlx4_set_admin_guid(struct mlx4_dev *dev, __be64 guid, int entry,
+ 			 int port);
+ __be64 mlx4_get_admin_guid(struct mlx4_dev *dev, int entry, int port);
++void mlx4_set_random_admin_guid(struct mlx4_dev *dev, int entry, int port);
+ int mlx4_flow_attach(struct mlx4_dev *dev,
+ 		     struct mlx4_net_trans_rule *rule, u64 *reg_id);
+ int mlx4_flow_detach(struct mlx4_dev *dev, u64 reg_id);
 -- 
 1.7.1
 
