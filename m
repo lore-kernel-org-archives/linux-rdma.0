@@ -1,61 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 3/9] net/mlx4_core: Set initial admin GUIDs for
- VFs
-Date: Mon, 30 Mar 2015 11:16:31 -0600
-Message-ID: <20150330171631.GA1152@obsidianresearch.com>
-References: <1427637093-6711-1-git-send-email-ogerlitz@mellanox.com>
- <1427637093-6711-4-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
+Date: Mon, 30 Mar 2015 13:53:02 -0400
+Message-ID: <9D560F87-71BF-470E-B411-EF68D75070AA@oracle.com>
+References: <20150324201849.2311.53599.stgit@manet.1015granger.net> <55195B3B.40205@opengridcomputing.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1427637093-6711-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <55195B3B.40205-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 29, 2015 at 04:51:27PM +0300, Or Gerlitz wrote:
-> +void mlx4_set_random_admin_guid(struct mlx4_dev *dev, int entry, int port)
-> +{
-> +	struct mlx4_priv *priv = mlx4_priv(dev);
-> +	u8 random_mac[6];
-> +	char *raw_gid;
-> +
-> +	/* hw GUID */
-> +	if (entry == 0)
-> +		return;
-> +
-> +	eth_random_addr(random_mac);
-> +	raw_gid = (char *)&priv->mfunc.master.vf_admin[entry].vport[port].guid;
 
-raw_gid is actually a guid
+On Mar 30, 2015, at 10:18 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
 
-> +	raw_gid[0] = random_mac[0] ^ 2;
+> Hey Chuck,
+> 
+> Chelsio's QA regression tested this series on iw_cxgb4.  Tests out good.
+> 
+> Tests ran: spew, ffsb, xdd, fio, dbench, and cthon with both v3 and v4.
 
-eth_random_addr already guarentees the ULA bit is set to one (local),
-so this is wrong. IBA uses the EUI-64 system, not the IPv6
-modification.
+Thanks, Steve. Who should I credit in the Tested-by tag?
 
-> +	raw_gid[1] = random_mac[1];
-> +	raw_gid[2] = random_mac[2];
-> +	raw_gid[3] = 0xff;
-> +	raw_gid[4] = 0xfe;
+--
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
 
-This should be 0xff for mapping a MAC to a EUI-64
 
-But, it doesn't really make sense to use eth_random_addr (which
-doesn't have a special OUI) and not randomize every bit.
 
-        get_random_bytes(&guid, sizeof(guid));
-        guid &= ~(1ULL << 56);
-	guid |= 1ULL << 57;
-
-I also don't think the kernel should be generating random GUIDs. Either
-the SA should be consulted to do this, or the management stack should
-generate a cloud wide unique number.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
