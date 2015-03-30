@@ -1,149 +1,41 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [RFC PATCH 07/11] IB/Verbs: Use management helper has_mcast()
- and, cap_mcast() for mcast-check
-Date: Mon, 30 Mar 2015 18:20:48 +0200
-Message-ID: <551977E0.5030001@profitbricks.com>
-References: <551579CA.4030901@profitbricks.com>	 <55157B71.6040505@profitbricks.com> <1427731918.21101.198.camel@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 00/10] Add network namespace support in the RDMA-CM
+Date: Mon, 30 Mar 2015 19:21:18 +0300
+Message-ID: <CAJ3xEMg5h+4DZUCGWY-z+QQxE4Vm6KQ3_+gHgG7GtQ-DOy7jyA@mail.gmail.com>
+References: <1423667204-8807-1-git-send-email-raindel@mellanox.com>
+	<54E363E7.5090507@mellanox.com>
+	<550AD952.7060900@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427731918.21101.198.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Alex Estrin <alex.estrin@int>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <550AD952.7060900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/30/2015 06:11 PM, Doug Ledford wrote:
-> On Fri, 2015-03-27 at 16:46 +0100, Michael Wang wrote:
->> Introduce helper has_mcast() and cap_mcast() to help us check if an
->> IB device or it's port support Multicast.
-> This probably needs reworded or rethought.  In truth, *all* rdma devices
-> are multicast capable.  *BUT*, IB/OPA devices require multicast
-> registration done the IB way (including for sendonly multicast sends),
-> while Ethernet devices do multicast the Ethernet way.  These tests are
-> really just for IB specific multicast registration and deregistration.
-> Call it has_mcast() and cap_mcast() is incorrect.
+On Thu, Mar 19, 2015 at 5:12 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 2/17/2015 5:53 PM, Or Gerlitz wrote:
+>> On 02/11/2015 05:06 PM, Shachar Raindel wrote:
 
-Thanks for the explanation :-)
+>>> This patchset allows using network namespaces with the RDMA-CM.
+>>> Each RDMA-CM and CM id is keeping a reference to a network namespace.
+>> [...]
 
-Jason also mentioned we should use cap_ib_XX() instead, I'll use
-that name then we can distinguish the management between
-Eth and IB/OPA.
+>> Hi Sean,
+>> Did you had the chance to look on the patches that do the changes to the
+>> cm and cma code?
 
-Regards,
-Michael Wang
+> Sean, ping... you are the maintainer of the rdma-cm, these patches are here
+> for many weeks,  can you please take a look and provide your feedback.
 
+Sean, PING.  Busy as you may be, the upstream cm && rdma-cm maintainer
+hat is sitting solid on your head, and makes no sense for people doing
+development to submit patches touching these layers and get no
+feedback from you over months, so?
 
->
->> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->> Cc: Doug Ledford <dledford@redhat.com>
->> Cc: Ira Weiny <ira.weiny@intel.com>
->> Cc: Sean Hefty <sean.hefty@intel.com>
->> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
->> ---
->>  drivers/infiniband/core/cma.c       |  2 +-
->>  drivers/infiniband/core/multicast.c |  8 ++++----
->>  include/rdma/ib_verbs.h             | 28 ++++++++++++++++++++++++++++
->>  3 files changed, 33 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
->> index 276fb76..cbbc85b 100644
->> --- a/drivers/infiniband/core/cma.c
->> +++ b/drivers/infiniband/core/cma.c
->> @@ -3398,7 +3398,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
->>                  ib_detach_mcast(id->qp,
->>                          &mc->multicast.ib->rec.mgid,
->>                          be16_to_cpu(mc->multicast.ib->rec.mlid));
->> -            if (rdma_transport_is_ib(id_priv->cma_dev->device)) {
->> +            if (has_mcast(id_priv->cma_dev->device)) {
->>                  switch (rdma_port_get_link_layer(id->device, id->port_num)) {
->>                  case IB_LINK_LAYER_INFINIBAND:
->>                      ib_sa_free_multicast(mc->multicast.ib);
->> diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
->> index 17573ff..ffeaf27 100644
->> --- a/drivers/infiniband/core/multicast.c
->> +++ b/drivers/infiniband/core/multicast.c
->> @@ -780,7 +780,7 @@ static void mcast_event_handler(struct ib_event_handler *handler,
->>      int index;
->>  
->>      dev = container_of(handler, struct mcast_device, event_handler);
->> -    if (!rdma_port_ll_is_ib(dev->device, event->element.port_num))
->> +    if (!cap_mcast(dev->device, event->element.port_num))
->>          return;
->>  
->>      index = event->element.port_num - dev->start_port;
->> @@ -807,7 +807,7 @@ static void mcast_add_one(struct ib_device *device)
->>      int i;
->>      int count = 0;
->>  
->> -    if (!rdma_transport_is_ib(device))
->> +    if (!has_mcast(device))
->>          return;
->>  
->>      dev = kmalloc(sizeof *dev + device->phys_port_cnt * sizeof *port,
->> @@ -823,7 +823,7 @@ static void mcast_add_one(struct ib_device *device)
->>      }
->>  
->>      for (i = 0; i <= dev->end_port - dev->start_port; i++) {
->> -        if (!rdma_port_ll_is_ib(device, dev->start_port + i))
->> +        if (!cap_mcast(device, dev->start_port + i))
->>              continue;
->>          port = &dev->port[i];
->>          port->dev = dev;
->> @@ -861,7 +861,7 @@ static void mcast_remove_one(struct ib_device *device)
->>      flush_workqueue(mcast_wq);
->>  
->>      for (i = 0; i <= dev->end_port - dev->start_port; i++) {
->> -        if (rdma_port_ll_is_ib(device, dev->start_port + i)) {
->> +        if (cap_mcast(device, dev->start_port + i)) {
->>              port = &dev->port[i];
->>              deref_port(port);
->>              wait_for_completion(&port->comp);
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index fa8ffa3..e796104 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -1823,6 +1823,19 @@ static inline int has_sa(struct ib_device *device)
->>  }
->>  
->>  /**
->> + * has_mcast - Check if a device support Multicast.
->> + *
->> + * @device: Device to be checked
->> + *
->> + * Return 0 when a device has none port to support
->> + * Multicast.
->> + */
->> +static inline int has_mcast(struct ib_device *device)
->> +{
->> +    return rdma_transport_is_ib(device);
->> +}
->> +
->> +/**
->>   * cap_smi - Check if the port of device has the capability
->>   * Subnet Management Interface.
->>   *
->> @@ -1852,6 +1865,21 @@ static inline int cap_sa(struct ib_device *device, u8 port_num)
->>      return rdma_port_ll_is_ib(device, port_num);
->>  }
->>  
->> +/**
->> + * cap_mcast - Check if the port of device has the capability
->> + * Multicast.
->> + *
->> + * @device: Device to be checked
->> + * @port_num: Port number of the device
->> + *
->> + * Return 0 when port of the device don't support
->> + * Multicast.
->> + */
->> +static inline int cap_mcast(struct ib_device *device, u8 port_num)
->> +{
->> +    return rdma_port_ll_is_ib(device, port_num);
->> +}
->> +
->>  int ib_query_gid(struct ib_device *device,
->>           u8 port_num, int index, union ib_gid *gid);
->>  
->
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
