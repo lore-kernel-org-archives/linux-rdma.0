@@ -1,49 +1,49 @@
-From: Luis Henriques <luis.henriques-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: Re: [-stable] commit 377b513485fd ("IB/core: Avoid leakage from
- kernel to user space")
-Date: Mon, 30 Mar 2015 11:21:04 +0100
-Message-ID: <20150330102104.GC20509@charon.olymp>
-References: <1410702475-28826-1-git-send-email-eli@mellanox.com>
- <1410702475-28826-4-git-send-email-eli@mellanox.com>
- <1410788700.7830.3.camel@localhost.localdomain>
- <1427460164.12712.8.camel@opteya.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] IB/srpt: Suppress a compiler warning
+Date: Mon, 30 Mar 2015 12:37:19 +0200
+Message-ID: <5519275F.6070102@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1427460164.12712.8.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Binderman <dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 27, 2015 at 01:42:44PM +0100, Yann Droneaud wrote:
-> Hi,
->=20
-> Please add commit 377b513485fd ("IB/core: Avoid leakage from kernel t=
-o
-> user space") to -stable. It can be applied to v2.6.32 and later.
->=20
-> Regards.
->=20
-> --=20
-> Yann Droneaud
-> OPTEYA
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe stable" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Remove a BUG_ON(!ch) statement because it is superfluous - if
+the ch pointer would be NULL then the assignment in the first
+line of srpt_map_sg_to_ib_sge() would trigger a kernel oops anyway.
 
-Thanks, I'm queuing it for the 3.16 kernel.
+This patch suppresses the following compiler warning:
 
-Cheers,
+Possible null pointer dereference: ch - otherwise it is redundant to
+check it against null.
+
+Reported-by: David Binderman <dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c
+b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 6e0a477..4e74fc8 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1095,7 +1095,6 @@ static int srpt_map_sg_to_ib_sge(struct
+srpt_rdma_ch *ch,
+ 	int count, nrdma;
+ 	int i, j, k;
+
+-	BUG_ON(!ch);
+ 	BUG_ON(!ioctx);
+ 	cmd = &ioctx->cmd;
+ 	dir = cmd->data_direction;
+-- 
+2.1.4
+
 --
-Lu=EDs
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
