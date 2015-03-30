@@ -1,48 +1,72 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
-Date: Mon, 30 Mar 2015 13:01:20 -0500
-Message-ID: <029301d06b13$86ec05f0$94c411d0$@opengridcomputing.com>
-References: <20150324201849.2311.53599.stgit@manet.1015granger.net> <55195B3B.40205@opengridcomputing.com> <9D560F87-71BF-470E-B411-EF68D75070AA@oracle.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/15] NFS/RDMA patches proposed for 4.1
+Date: Mon, 30 Mar 2015 14:33:22 -0400
+Message-ID: <20150330182615.7856.61170.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9D560F87-71BF-470E-B411-EF68D75070AA-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Linux NFS Mailing List' <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Veeresh U. Kokatnur" <veereshuk-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Veeresh U. Kokatnur <veereshuk-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+This is a series of client-side patches for NFS/RDMA. In preparation
+for increasing the transport credit limit and maximum rsize/wsize,
+I've re-factored the memory registration logic into separate files,
+invoked via a method API.
+
+The series is available in the nfs-rdma-for-4.1 topic branch at
+
+git://linux-nfs.org/projects/cel/cel-2.6.git
+
+Changes since v2:
+- Rebased on 4.0-rc6
+- One minor fix squashed into 01/15
+- Tested-by tags added
+
+Changes since v1:
+- Rebased on 4.0-rc5
+- Main optimizations postponed to 4.2
+- Addressed review comments from Anna, Sagi, and Devesh
+
+---
+
+Chuck Lever (15):
+      SUNRPC: Introduce missing well-known netids
+      xprtrdma: Display IPv6 addresses and port numbers correctly
+      xprtrdma: Perform a full marshal on retransmit
+      xprtrdma: Byte-align FRWR registration
+      xprtrdma: Prevent infinite loop in rpcrdma_ep_create()
+      xprtrdma: Add vector of ops for each memory registration strategy
+      xprtrdma: Add a "max_payload" op for each memreg mode
+      xprtrdma: Add a "register_external" op for each memreg mode
+      xprtrdma: Add a "deregister_external" op for each memreg mode
+      xprtrdma: Add "init MRs" memreg op
+      xprtrdma: Add "reset MRs" memreg op
+      xprtrdma: Add "destroy MRs" memreg op
+      xprtrdma: Add "open" memreg op
+      xprtrdma: Handle non-SEND completions via a callout
+      xprtrdma: Make rpcrdma_{un}map_one() into inline functions
 
 
-> -----Original Message-----
-> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> Sent: Monday, March 30, 2015 12:53 PM
-> To: Steve Wise
-> Cc: linux-rdma; Linux NFS Mailing List
-> Subject: Re: [PATCH v2 00/15] NFS/RDMA patches proposed for 4.1
-> 
-> 
-> On Mar 30, 2015, at 10:18 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> 
-> > Hey Chuck,
-> >
-> > Chelsio's QA regression tested this series on iw_cxgb4.  Tests out good.
-> >
-> > Tests ran: spew, ffsb, xdd, fio, dbench, and cthon with both v3 and v4.
-> 
-> Thanks, Steve. Who should I credit in the Tested-by tag?
-> 
-> --
-> Chuck Lever
-> chuck[dot]lever[at]oracle[dot]com
-> 
-
+ include/linux/sunrpc/msg_prot.h    |    8 
+ include/linux/sunrpc/xprtrdma.h    |    5 
+ net/sunrpc/xprtrdma/Makefile       |    3 
+ net/sunrpc/xprtrdma/fmr_ops.c      |  208 +++++++++++
+ net/sunrpc/xprtrdma/frwr_ops.c     |  353 ++++++++++++++++++
+ net/sunrpc/xprtrdma/physical_ops.c |   94 +++++
+ net/sunrpc/xprtrdma/rpc_rdma.c     |   87 ++--
+ net/sunrpc/xprtrdma/transport.c    |   61 ++-
+ net/sunrpc/xprtrdma/verbs.c        |  699 +++---------------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   90 ++++-
+ 10 files changed, 882 insertions(+), 726 deletions(-)
+ create mode 100644 net/sunrpc/xprtrdma/fmr_ops.c
+ create mode 100644 net/sunrpc/xprtrdma/frwr_ops.c
+ create mode 100644 net/sunrpc/xprtrdma/physical_ops.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
