@@ -1,148 +1,135 @@
-From: Michael Wang <yun.wang@profitbricks.com>
+From: Doug Ledford <dledford@redhat.com>
 Subject: Re: [RFC PATCH 06/11] IB/Verbs: Use management helper has_sa() and
  cap_sa(), for sa-check
-Date: Mon, 30 Mar 2015 18:42:03 +0200
-Message-ID: <55197CDB.3040105@profitbricks.com>
-References: <551579CA.4030901@profitbricks.com>	 <55157B43.6060507@profitbricks.com> <1427732191.21101.201.camel@redhat.com>
+Date: Mon, 30 Mar 2015 13:02:03 -0400
+Message-ID: <1427734923.21101.227.camel@redhat.com>
+References: <551579CA.4030901@profitbricks.com>
+		 <55157B43.6060507@profitbricks.com>
+	 <1427732191.21101.201.camel@redhat.com> <55197CDB.3040105@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-fqhanlu0R7Vl3zOXg+sU"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427732191.21101.201.camel@redhat.com>
+In-Reply-To: <55197CDB.3040105@profitbricks.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
+To: Michael Wang <yun.wang@profitbricks.com>
 Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Alex Estrin <alex.estrin@int>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/30/2015 06:16 PM, Doug Ledford wrote:
-> On Fri, 2015-03-27 at 16:46 +0100, Michael Wang wrote:
->> Introduce helper has_sa() and cap_sa() to help us check if an IB device
->> or it's port support Subnet Administrator.
-> There's no functional reason to have both rdma_transport_is_ib and
-> rdma_port_ll_is_ib, just use one.  Then there is also no reason for both
-> has_sa and cap_sa.  Just use one.
-The has_sa() will be eliminated :-)
 
-rdma_transport_is_ib and rdma_port_ll_is_ib is actually just rough helper
-to save some code, we can get rid of them when we no longer need them, but
-currently device driver still using them a lot, I'm not sure if the new
-mechanism could take cover all these cases...
+--=-fqhanlu0R7Vl3zOXg+sU
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Michael Wang 
+On Mon, 2015-03-30 at 18:42 +0200, Michael Wang wrote:
+> On 03/30/2015 06:16 PM, Doug Ledford wrote:
+> > On Fri, 2015-03-27 at 16:46 +0100, Michael Wang wrote:
+> >> Introduce helper has_sa() and cap_sa() to help us check if an IB devic=
+e
+> >> or it's port support Subnet Administrator.
+> > There's no functional reason to have both rdma_transport_is_ib and
+> > rdma_port_ll_is_ib, just use one.  Then there is also no reason for bot=
+h
+> > has_sa and cap_sa.  Just use one.
+> The has_sa() will be eliminated :-)
+>=20
+> rdma_transport_is_ib and rdma_port_ll_is_ib is actually just rough helper
+> to save some code, we can get rid of them when we no longer need them, bu=
+t
+> currently device driver still using them a lot, I'm not sure if the new
+> mechanism could take cover all these cases...
+
+Sure it would.  This is what I had suggested (well, close to this, I
+rearranged the order this time around):
+
+enum rdma_transport {
+	RDMA_TRANSPORT_IB =3D      0x01,
+	RDMA_TRANSPORT_OPA =3D     0x02,
+	RDMA_TRANSPORT_IWARP =3D   0x04,
+	RDMA_TRANSPORT_ROCE_V1 =3D 0x08,
+	RDMA_TRANSPORT_ROCE_V2 =3D 0x10,
+};
+
+struct ib_port {
+	...
+	enum rdma_transport;
+	...
+};
+
+static inline bool rdma_transport_is_ib(struct ib_port *port)
+{
+	return port->transport & (RDMA_TRANSPORT_IB | RDMA_TRANSPORT_OPA);
+}
+
+static inline bool rdma_transport_is_opa(struct ib_port *port)
+{
+	return port->transport & RDMA_TRANSPORT_OPA;
+}
+
+static inline bool rdma_transport_is_iwarp(struct ib_port *port)
+{
+	return port->transport & RDMA_TRANSPORT_IWARP;
+}
+
+static inline bool rdma_transport_is_roce(struct ib_port *port)
+{
+	return port->transport & (RDMA_TRANSPORT_ROCE_V1 | RDMA_TRANSPORT_ROCE_V2)=
+;
+}
+
+static inline bool rdma_ib_mgmt(struct ib_port *port)
+{
+	return port->transport & (RDMA_TRANSPORT_IB | RDMA_TRANSPORT_OPA);
+}
+
+static inline bool rdma_opa_mgmt(struct ib_port *port)
+{
+	return port->transport & RDMA_TRANSPORT_OPA;
+}
 
 
->> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->> Cc: Doug Ledford <dledford@redhat.com>
->> Cc: Ira Weiny <ira.weiny@intel.com>
->> Cc: Sean Hefty <sean.hefty@intel.com>
->> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
->> ---
->>  drivers/infiniband/core/sa_query.c | 12 ++++++------
->>  include/rdma/ib_verbs.h            | 28 ++++++++++++++++++++++++++++
->>  2 files changed, 34 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
->> index d95d25f..89c27da 100644
->> --- a/drivers/infiniband/core/sa_query.c
->> +++ b/drivers/infiniband/core/sa_query.c
->> @@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
->>          struct ib_sa_port *port =
->>              &sa_dev->port[event->element.port_num - sa_dev->start_port];
->>  
->> -        if (!rdma_port_ll_is_ib(handler->device, port->port_num))
->> +        if (!cap_sa(handler->device, port->port_num))
->>              return;
->>  
->>          spin_lock_irqsave(&port->ah_lock, flags);
->> @@ -1154,7 +1154,7 @@ static void ib_sa_add_one(struct ib_device *device)
->>      struct ib_sa_device *sa_dev;
->>      int s, e, i;
->>  
->> -    if (!rdma_transport_is_ib(device))
->> +    if (!has_sa(device))
->>          return;
->>  
->>      if (device->node_type == RDMA_NODE_IB_SWITCH)
->> @@ -1175,7 +1175,7 @@ static void ib_sa_add_one(struct ib_device *device)
->>  
->>      for (i = 0; i <= e - s; ++i) {
->>          spin_lock_init(&sa_dev->port[i].ah_lock);
->> -        if (!rdma_port_ll_is_ib(device, i + 1))
->> +        if (!cap_sa(device, i + 1))
->>              continue;
->>  
->>          sa_dev->port[i].sm_ah    = NULL;
->> @@ -1205,14 +1205,14 @@ static void ib_sa_add_one(struct ib_device *device)
->>          goto err;
->>  
->>      for (i = 0; i <= e - s; ++i)
->> -        if (rdma_port_ll_is_ib(device, i + 1))
->> +        if (cap_sa(device, i + 1))
->>              update_sm_ah(&sa_dev->port[i].update_task);
->>  
->>      return;
->>  
->>  err:
->>      while (--i >= 0)
->> -        if (rdma_port_ll_is_ib(device, i + 1))
->> +        if (cap_sa(device, i + 1))
->>              ib_unregister_mad_agent(sa_dev->port[i].agent);
->>  
->>      kfree(sa_dev);
->> @@ -1233,7 +1233,7 @@ static void ib_sa_remove_one(struct ib_device *device)
->>      flush_workqueue(ib_wq);
->>  
->>      for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
->> -        if (rdma_port_ll_is_ib(device, i + 1)) {
->> +        if (cap_sa(device, i + 1)) {
->>              ib_unregister_mad_agent(sa_dev->port[i].agent);
->>              if (sa_dev->port[i].sm_ah)
->>                  kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index c0a63f8..fa8ffa3 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -1810,6 +1810,19 @@ static inline int has_cm(struct ib_device *device)
->>  }
->>  
->>  /**
->> + * has_sa - Check if a device support Subnet Administrator.
->> + *
->> + * @device: Device to be checked
->> + *
->> + * Return 0 when a device has none port to support
->> + * Subnet Administrator.
->> + */
->> +static inline int has_sa(struct ib_device *device)
->> +{
->> +    return rdma_transport_is_ib(device);
->> +}
->> +
->> +/**
->>   * cap_smi - Check if the port of device has the capability
->>   * Subnet Management Interface.
->>   *
->> @@ -1824,6 +1837,21 @@ static inline int cap_smi(struct ib_device *device, u8 port_num)
->>      return rdma_port_ll_is_ib(device, port_num);
->>  }
->>  
->> +/**
->> + * cap_sa - Check if the port of device has the capability
->> + * Subnet Administrator.
->> + *
->> + * @device: Device to be checked
->> + * @port_num: Port number of the device
->> + *
->> + * Return 0 when port of the device don't support
->> + * Subnet Administrator.
->> + */
->> +static inline int cap_sa(struct ib_device *device, u8 port_num)
->> +{
->> +    return rdma_port_ll_is_ib(device, port_num);
->> +}
->> +
->>  int ib_query_gid(struct ib_device *device,
->>           u8 port_num, int index, union ib_gid *gid);
->>  
->
+If we use something like this, then the above is all you need.  Then
+every place in the code that checks for something like has_sa or cap_sa
+can be replaced with rdma_ib_mgmt.  When Ira updates his patches for
+this, he can check for rdma_opa_mgmt to enable jumbo MAD packets and
+whatever else he needs.  Every place that does transport =3D=3D IB and ll =
+=3D=3D
+Ethernet can become rdma_transport_is_roce.  Every place that does
+transport =3D=3D IB and ll =3D=3D INFINIBAND becomes rdma_transport_is_ib. =
+ The
+code in multicast.c just needs to check rdma_ib_mgmt() (which happens to
+make perfect sense anyway as the code in multicast.c that is checking
+that we are on an IB interface is doing so because IB requires extra
+management of the multicast group joins/leaves).  But, like I said, this
+is an all or nothing change, it isn't something we can ease into.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-fqhanlu0R7Vl3zOXg+sU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVGYGLAAoJELgmozMOVy/dbpYP/Rs230S0wBbPl0uzl/L8Ocj9
++PUf0XMZFMNdoJ7OO4MMVcUWnKuF7v96L2Cqf/NjuLtEseD5SW6l5C5EDVUQUc/U
+Wmze2dvKiuByPWSnWo0i1gvHOBssTvHwEKQj6JHNae2OuY4xL4uRxC1gKebfMIgs
+9V1mAqD7B18yKAjTUWbeVM1Z0ZMmkS/6kEz10BegSUNKjLG0P8IKFpGwHUm7H3Tp
+mRuqPTqFCCeAXo6O1M6TcmXfal8FX2BK+Ivonkur1CcU50tBcOJBrizHsdg7KhQ5
+fYhS7S5DjlTCHPxa10qbkXPgx0zSw6qAHwHjMXONXc+ej09EAHbT/tjp3YD/LAIv
+e2UIFaRjC+xmUDBhLtUKZb1YT/Sqw2bff+yZSgpVZTxzuC1VBmP2YeMzZqEb+qcz
+XuM2QLetOIO7D+Gm9VxyrU3mMsSFIrV2kFnVIHQTuIsnVtj5cG/+BqbdvzGOS/LF
+jZFdKpCED3MTs5gtMqvF5T1vxlA/zHoTdX+LGhK5YHFFDfngoH63Azst/SRfskP2
+IlcSTIIXpQagSZ9wlOcpq54iMYHDJGuyCl58+UzHDIqyRZAfX7w1d8NUP8eJUwgu
+6lsoQzsytCQVVbcyaTuXZQTscYGeMDjS0H8PBDbmqQYnvY2FpRvLpeeotcbdDr2w
+npAIjOSuyiL/8RK2PG5w
+=WiF1
+-----END PGP SIGNATURE-----
+
+--=-fqhanlu0R7Vl3zOXg+sU--
