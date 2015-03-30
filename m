@@ -1,103 +1,128 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
-Date: Mon, 30 Mar 2015 19:17:01 +0300
-Message-ID: <CAJ3xEMj0T8QXBQdVHmfEFMXwjAFVD-O6ywAwyyVY+M3oRLzAVA@mail.gmail.com>
-References: <1427637093-6711-1-git-send-email-ogerlitz@mellanox.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [RFC PATCH 02/11] IB/Verbs: Use management helper tech_iboe()
+ for iboe-check
+Date: Mon, 30 Mar 2015 12:17:30 -0400
+Message-ID: <1427732250.21101.202.camel@redhat.com>
+References: <551579CA.4030901@profitbricks.com>
+	 <55157A4F.1090301@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427637093-6711-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-/0N6b25DvOTNJA4/Cn5h"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55157A4F.1090301@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Alex Estrin <alex.estrin@int>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 29, 2015 at 4:51 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Under the existing implementation for virtual GIDs, if the SM is not
-> reachable or incurs a delayed response, or if the VF is probed into a
-> VM before their GUID is registered with the SM, there exists a window
-> in time in which the VF sees an incorrect GID, i.e., not the GID that
-> was intended by the admin. This results in exposing a temporal identity
-> to the VF.
 
-Hi Roland, so your for-next branch is again way behind, still on 3.19
-and while 4.0 is soon @ rc6, we couldn't even rebase this series on
-it. It's really hard where your tree is really active once every nine
-weeks or so, e.g only few days before/after rc1's. I'm not sure what
-you expect us to do, kernel development simply needs not be like this.
+--=-/0N6b25DvOTNJA4/Cn5h
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-April 3rd-12th is holiday here, and we would like to really really
-know early this week what you intend to pull for 4.1 out of the
-pending things in linux-rdma.
+On Fri, 2015-03-27 at 16:42 +0100, Michael Wang wrote:
+> Introduce helper tech_iboe() to help us check if the port of an IB
+> device is using RoCE/IBoE technology.
 
-Or.
+Just use rdma_transport_is_roce() instead.
+
+> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+> ---
+>  drivers/infiniband/core/cma.c |  6 ++----
+>  include/rdma/ib_verbs.h       | 16 ++++++++++++++++
+>  2 files changed, 18 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.=
+c
+> index 668e955..280cfe3 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -375,8 +375,7 @@ static int cma_acquire_dev(struct rdma_id_private *id=
+_priv,
+>                       listen_id_priv->id.port_num) =3D=3D dev_ll) {
+>          cma_dev =3D listen_id_priv->cma_dev;
+>          port =3D listen_id_priv->id.port_num;
+> -        if (rdma_transport_is_ib(cma_dev->device) &&
+> -            rdma_port_ll_is_eth(cma_dev->device, port))
+> +        if (tech_iboe(cma_dev->device, port))
+>              ret =3D ib_find_cached_gid(cma_dev->device, &iboe_gid,
+>                           &found_port, NULL);
+>          else
+> @@ -395,8 +394,7 @@ static int cma_acquire_dev(struct rdma_id_private *id=
+_priv,
+>                  listen_id_priv->id.port_num =3D=3D port)
+>                  continue;
+>              if (rdma_port_get_link_layer(cma_dev->device, port) =3D=3D d=
+ev_ll) {
+> -                if (rdma_transport_is_ib(cma_dev->device) &&
+> -                    rdma_port_ll_is_eth(cma_dev->device, port))
+> +                if (tech_iboe(cma_dev->device, port))
+>                      ret =3D ib_find_cached_gid(cma_dev->device, &iboe_gi=
+d, &found_port, NULL);
+>                  else
+>                      ret =3D ib_find_cached_gid(cma_dev->device, &gid, &f=
+ound_port, NULL);
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 2bf9094..ca6d6bc 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1767,6 +1767,22 @@ static inline int rdma_port_ll_is_eth(struct ib_de=
+vice *device, u8 port_num)
+>              =3D=3D IB_LINK_LAYER_ETHERNET;
+>  }
+> =20
+> +/**
+> + * tech_iboe - Check if the port of device using technology
+> + * RoCE/IBoE.
+> + *
+> + * @device: Device to be checked
+> + * @port_num: Port number of the device
+> + *
+> + * Return 0 when port of the device is not using technology
+> + * RoCE/IBoE.
+> + */
+> +static inline int tech_iboe(struct ib_device *device, u8 port_num)
+> +{
+> +    return rdma_transport_is_ib(device) &&
+> +            rdma_port_ll_is_eth(device, port_num);
+> +}
+> +
+>  int ib_query_gid(struct ib_device *device,
+>           u8 port_num, int index, union ib_gid *gid);
+> =20
 
 
-> Moreover, a subsequent change in the alias GID causes a spec-incompliant
-> change to the VF identity. Some guest operating systems, such as Windows,
-> cannot tolerate such changes.
->
-> This series solves above problem by exposing the admin desired value instead
-> of the value that was approved by the SM. As long as the SM doesn't approve
-> the GID, the VF would see its link as down.
->
-> In addition, we request GIDs from the SM on demand, i.e., when a VF actually
-> needs them, and release them when the GIDs are no longer in use. In cloud
-> environments, this is useful for GID migrations, in which a GID is assigned to
-> a VF on the destination HCA, while the VF on the source HCA is shut down (but
-> the GID was not administratively released).
->
-> For reasons of compatibility, an explicit admin request to set/change a GUID
-> entry is done immediately, regardless of whether the VF is active or not. This
-> allows administrators to change the GUID without the need to unbind/bind the VF.
->
-> In addition, the existing implementation doesn't support a persistency
-> mechanism to retry a GUID request when the SM has rejected it for any reason.
-> The PF driver shall keep trying to acquire the specified GUID indefinitely by
-> utilizing an exponential back off scheme, this should be managed per GUID and
-> be aligned with other incoming admin requests.
->
-> This ability needed especially for the on-demand GUID feature. In this case, we
-> must manage the GUID's status per entry and handle cases that some entries are
-> temporarily rejected.
->
-> The first patch adds the persistency support and is pre-requisites for the
-> series.  Further patches make the change to use the admin VF behavior as
-> described above.
->
-> Finally, the default mode is changed to be HOST assigned instead of SM
-> assigned. This is the expected operational mode, because it doesn't depend on
-> SM availability as described above.
->
-> Yishai and Or.
->
-> Yishai Hadas (9):
->   IB/mlx4: Alias GUID adding persistency support
->   net/mlx4_core: Manage alias GUID per VF
->   net/mlx4_core: Set initial admin GUIDs for VFs
->   IB/mlx4: Manage admin alias GUID upon admin request
->   IB/mlx4: Change init flow to request alias GUIDs for active VFs
->   IB/mlx4: Request alias GUID on demand
->   net/mlx4_core: Raise slave shutdown event upon FLR
->   net/mlx4_core: Return the admin alias GUID upon host view request
->   IB/mlx4: Change alias guids default to be host assigned
->
->  drivers/infiniband/hw/mlx4/alias_GUID.c   |  468 +++++++++++++++++++++--------
->  drivers/infiniband/hw/mlx4/main.c         |   26 ++-
->  drivers/infiniband/hw/mlx4/mlx4_ib.h      |   14 +-
->  drivers/infiniband/hw/mlx4/sysfs.c        |   44 +--
->  drivers/net/ethernet/mellanox/mlx4/cmd.c  |   42 ++-
->  drivers/net/ethernet/mellanox/mlx4/eq.c   |    2 +
->  drivers/net/ethernet/mellanox/mlx4/main.c |   39 +++
->  drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 +
->  include/linux/mlx4/device.h               |    4 +
->  9 files changed, 459 insertions(+), 181 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-/0N6b25DvOTNJA4/Cn5h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVGXcaAAoJELgmozMOVy/dfOsP/1qrdA8/BgOwJ1r5SBQCRsPE
+KVMzguH1Mbg6r/0xy2mx5JPDTdkZcaHtDg9dq/ZXu+cmBPNhgxsgZcktGc+2U364
+2WEFSioUSHBQ61WVTNLLOXACgqdG3ZVSNSwU8u1MuMqTO0vgUQWIEbY56U6nfgSw
+VEtZ/jINz7Uh29xFyzrgG+saG9x5NKzThi9OuP7p8mebvvemF0dheogB0hMko9xq
+w8gcn0c0j0QQ9Y/Excbre1Tq7RvnsfY2Akk6G2IFjuOPsjmWo29DtztTahQQH399
+ov+JKCa674jJpowbXSzL7sqfuB/oBTWgvh3vmr9EcCPLqulKP9FPuz9gjGZGBFxS
+B4Zl2ENfu1t3Ji6wC+VXXza3eh+948DRUSqn0+YzOj9R3opLrDq7w+qmxvXH26Kj
+W8YNaBebUsT6/3JM4/v5vxuGgDrmckVpgTBaEpt7YBMuhFgT/gdcfKhqxSt5erOl
+LPJ73tYohejnjqS1L0jVnbPbNNXLTbfZXKgtCQZ+WwrEaxVpJUjDFUxbKy4hTwVE
+wUdeGI9HSA9NEHx+0HYGC19fkBOToHCNQiVNkge7rc0v9tAVH+LboyqPooLIy8+w
+iSAnNg+HzpH4+klD6eW0wO7ogt54Kacf+6p1NmNOZB/dp2qqdqVuvxC+fGsmGbfS
+NxjfJ5ezm+Nv0fp42r+G
+=oiy4
+-----END PGP SIGNATURE-----
+
+--=-/0N6b25DvOTNJA4/Cn5h--
