@@ -1,45 +1,49 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [RFC PATCH 08/11] IB/Verbs: Use management helper has_iwarp()
- for, iwarp-check
-Date: Tue, 31 Mar 2015 13:41:07 +0200
-Message-ID: <551A87D3.2070306@profitbricks.com>
-References: <551579CA.4030901@profitbricks.com> <55157B98.1060103@profitbricks.com> <20150327161319.GB28412@obsidianresearch.com> <20150327171631.GC27862@phlsvsds.ph.intel.com> <20150327172912.GA28901@obsidianresearch.com> <55196754.5010600@profitbricks.com> <20150330223528.GB27728@obsidianresearch.com> <551A4F24.6090405@profitbricks.com> <551A82D3.70806@talpey.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <551A82D3.70806@talpey.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Alex Estrin <alex.estrin@>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
+Date: Tue, 31 Mar 2015 07:49:38 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1503310735380.13128@gentwo.org>
+References: <1427637093-6711-1-git-send-email-ogerlitz@mellanox.com> <CAJ3xEMj0T8QXBQdVHmfEFMXwjAFVD-O6ywAwyyVY+M3oRLzAVA@mail.gmail.com> <20150330.233602.155832546277570456.davem@davemloft.net> <CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
+ <CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Tom
+Well this needs to be addressed yes but in order to have that done someone
+needs to step forward do the proper work, maintain git trees, do the
+review and show up for the conferences. Neither Roland nor Or was there at
+the Infiniband conferences in Monterey this year(!) and this is the prime
+venue for face to face conversation about the subsystem each year.
 
-Thanks for the comments :-)
+Just looked at the MAINTAINERS file: Surprise: We already have 3
+maintainers for the IB subsystem:
 
-On 03/31/2015 01:19 PM, Tom Talpey wrote:
-> [snip]
->
->>
->> Actually I'm thinking about Doug's idea to use rdma_transport_is_XX()
->> instead of the current basic helper, thus may be use rdma_transport_is_iwarp()
->> in here could be better, since it's actually a feature of iwarp tech
->> that RDMA Read only support one scatter-gather entry.
->
-> No, you should expose an attribute to surface the maximum length of
-> the remote gather list, which varies by adapter as well as protocol.
-> The fact that iWARP is different from IB is not relevant, and conflates
-> unrelated properties.
+INFINIBAND SUBSYSTEM
+M:      Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+M:      Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+M:      Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+L:      linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+W:      http://www.openfabrics.org/
+Q:      http://patchwork.kernel.org/project/linux-rdma/list/
+T:      git git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git
+S:      Supported
+F:      Documentation/infiniband/
+F:      drivers/infiniband/
+F:      include/uapi/linux/if_infiniband.h
 
-To be confirmed, so your point is that the max-read-sges will be different
-even the transport is the same IWRAP, and that depends on the capability
-of adapter, correct?
+Sean and Hal showed up for the conference. Sean is active mostly in
+focusing on userspace stuff. Both could become more involved in the kernel
+ib tree and the review process? Hal is employed by Mellanox but is not
+participating in these patch related discussions? Can Mellanox give Hal
+more time for his role as the kernel ib subsystem maintainer? Maybe you
+could get that resolved at Mellanox? You already have one of your own as
+a maintainer of the IB subsystem.
 
-I currently only find this one place where infer max-read-sges from
-transport type, it looks more like a special case to me rather than a generic
-method we could exposed... and also  not very related with IB management
-helper concept IMHO.
 
-Regards,
-Michael Wang
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
