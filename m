@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 17/18] IB/iser: Bump version to 1.6
-Date: Tue, 31 Mar 2015 19:45:57 +0300
-Message-ID: <1427820358-15087-18-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v2 01/18] IB/iser: Fix unload during ep_poll wrong dereference
+Date: Tue, 31 Mar 2015 19:45:41 +0300
+Message-ID: <1427820358-15087-2-git-send-email-sagig@mellanox.com>
 References: <1427820358-15087-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1427820358-15087-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,24 +10,34 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+In case the user unloaded ib_iser while ep_connect is in
+progress, we need to destroy the endpoint although ep_disconnect
+wasn't invoked (we detect this by the iser conn state != DOWN).
+However, if we got an REJECTED/UNREACHABLE CM event we move the
+connection state to DOWN which will prevent us from destroying
+the endpoint in the module unload stage. Fix this by setting the
+connection state to TERMINATING in iser_conn_error so we can still
+destroy the endpoint at unload stage.
+
+Reported-by: Ariel Nahum <arieln-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h |    2 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 5fd0963..a39645a 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -69,7 +69,7 @@
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 4065abe..070c5af 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -721,7 +721,7 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
+ 	struct iser_conn *iser_conn;
  
- #define DRV_NAME	"iser"
- #define PFX		DRV_NAME ": "
--#define DRV_VER		"1.5"
-+#define DRV_VER		"1.6"
+ 	iser_conn = (struct iser_conn *)cma_id->context;
+-	iser_conn->state = ISER_CONN_DOWN;
++	iser_conn->state = ISER_CONN_TERMINATING;
+ }
  
- #define iser_dbg(fmt, arg...)				 \
- 	do {						 \
+ /**
 -- 
 1.7.1
 
