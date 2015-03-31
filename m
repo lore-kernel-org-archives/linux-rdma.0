@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 15/18] IB/iser: Pass struct iser_mem_reg to iser_fast_reg_mr and iser_reg_sig_mr
-Date: Tue, 31 Mar 2015 19:45:55 +0300
-Message-ID: <1427820358-15087-16-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v2 16/18] IB/iser: Remove code duplication for a single DMA entry
+Date: Tue, 31 Mar 2015 19:45:56 +0300
+Message-ID: <1427820358-15087-17-git-send-email-sagig@mellanox.com>
 References: <1427820358-15087-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1427820358-15087-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,175 +10,105 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of passing ib_sge as output variable, we pass the mem_reg
-pointer to have the routines fill the rkey as well. This reduces
-code duplication and extra assignments. This is a preparation step
-to unify some registration logics together.
+In singleton scatterlists, DMA memory registration code
+is taken both for Fastreg and FMR code paths. Move it to
+a function.
 
 This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c |   68 ++++++++++++----------------
- 1 files changed, 29 insertions(+), 39 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c |   48 ++++++++++++----------------
+ 1 files changed, 21 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 40d22d5..b4b0098 100644
+index b4b0098..e78ce53 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -590,8 +590,10 @@ iser_inv_rkey(struct ib_send_wr *inv_wr, struct ib_mr *mr)
- 
- static int
- iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
--		struct fast_reg_descriptor *desc, struct ib_sge *data_sge,
--		struct ib_sge *prot_sge, struct ib_sge *sig_sge)
-+		struct fast_reg_descriptor *desc,
-+		struct iser_mem_reg *data_reg,
-+		struct iser_mem_reg *prot_reg,
-+		struct iser_mem_reg *sig_reg)
- {
- 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
- 	struct iser_pi_context *pi_ctx = desc->pi_ctx;
-@@ -615,12 +617,12 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	memset(&sig_wr, 0, sizeof(sig_wr));
- 	sig_wr.opcode = IB_WR_REG_SIG_MR;
- 	sig_wr.wr_id = ISER_FASTREG_LI_WRID;
--	sig_wr.sg_list = data_sge;
-+	sig_wr.sg_list = &data_reg->sge;
- 	sig_wr.num_sge = 1;
- 	sig_wr.wr.sig_handover.sig_attrs = &sig_attrs;
- 	sig_wr.wr.sig_handover.sig_mr = pi_ctx->sig_mr;
- 	if (scsi_prot_sg_count(iser_task->sc))
--		sig_wr.wr.sig_handover.prot = prot_sge;
-+		sig_wr.wr.sig_handover.prot = &prot_reg->sge;
- 	sig_wr.wr.sig_handover.access_flags = IB_ACCESS_LOCAL_WRITE |
- 					      IB_ACCESS_REMOTE_READ |
- 					      IB_ACCESS_REMOTE_WRITE;
-@@ -637,13 +639,14 @@ iser_reg_sig_mr(struct iscsi_iser_task *iser_task,
- 	}
- 	desc->reg_indicators &= ~ISER_SIG_KEY_VALID;
- 
--	sig_sge->lkey = pi_ctx->sig_mr->lkey;
--	sig_sge->addr = 0;
--	sig_sge->length = scsi_transfer_length(iser_task->sc);
-+	sig_reg->sge.lkey = pi_ctx->sig_mr->lkey;
-+	sig_reg->rkey = pi_ctx->sig_mr->rkey;
-+	sig_reg->sge.addr = 0;
-+	sig_reg->sge.length = scsi_transfer_length(iser_task->sc);
- 
--	iser_dbg("sig_sge: addr: 0x%llx  length: %u lkey: 0x%x\n",
--		 sig_sge->addr, sig_sge->length,
--		 sig_sge->lkey);
-+	iser_dbg("sig_sge: lkey: 0x%x, rkey: 0x%x, addr: 0x%llx, length: %u\n",
-+		 sig_reg->sge.lkey, sig_reg->rkey, sig_reg->sge.addr,
-+		 sig_reg->sge.length);
- err:
- 	return ret;
+@@ -334,6 +334,24 @@ void iser_dma_unmap_task_data(struct iscsi_iser_task *iser_task,
+ 	ib_dma_unmap_sg(dev, data->sg, data->size, dir);
  }
-@@ -652,7 +655,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 			    struct iser_mem_reg *mem_reg,
- 			    struct iser_data_buf *mem,
- 			    enum iser_reg_indicator ind,
--			    struct ib_sge *sge)
-+			    struct iser_mem_reg *reg)
- {
+ 
++static int
++iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
++	     struct iser_mem_reg *reg)
++{
++	struct scatterlist *sg = mem->sg;
++
++	reg->sge.lkey = device->mr->lkey;
++	reg->rkey = device->mr->rkey;
++	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
++	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
++
++	iser_dbg("Single DMA entry: lkey=0x%x, rkey=0x%x, addr=0x%llx,"
++		 " length=0x%x\n", reg->sge.lkey, reg->rkey,
++		 reg->sge.addr, reg->sge.length);
++
++	return 0;
++}
++
+ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
+ 			      struct iser_data_buf *mem,
+ 			      enum iser_data_dir cmd_dir,
+@@ -461,7 +479,6 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	int aligned_len;
+ 	int err;
+ 	int i;
+-	struct scatterlist *sg;
+ 
+ 	mem_reg = &iser_task->rdma_reg[cmd_dir];
+ 
+@@ -477,19 +494,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 
+ 	/* if there a single dma entry, FMR is not needed */
+ 	if (mem->dma_nents == 1) {
+-		sg = mem->sg;
+-
+-		mem_reg->sge.lkey = device->mr->lkey;
+-		mem_reg->rkey = device->mr->rkey;
+-		mem_reg->sge.length = ib_sg_dma_len(ibdev, &sg[0]);
+-		mem_reg->sge.addr = ib_sg_dma_address(ibdev, &sg[0]);
+-
+-		iser_dbg("PHYSICAL Mem.register: lkey: 0x%08X rkey: 0x%08X  "
+-			 "va: 0x%08lX sz: %ld]\n",
+-			 (unsigned int)mem_reg->sge.lkey,
+-			 (unsigned int)mem_reg->rkey,
+-			 (unsigned long)mem_reg->sge.addr,
+-			 (unsigned long)mem_reg->sge.length);
++		return iser_reg_dma(device, mem, mem_reg);
+ 	} else { /* use FMR for multiple dma entries */
+ 		err = iser_reg_page_vec(iser_task, mem, ib_conn->fmr.page_vec,
+ 					mem_reg);
+@@ -660,7 +665,6 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
  	struct fast_reg_descriptor *desc = mem_reg->mem_h;
  	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
-@@ -668,12 +671,13 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 	if (mem->dma_nents == 1) {
- 		struct scatterlist *sg = mem->sg;
+ 	struct iser_device *device = ib_conn->device;
+-	struct ib_device *ibdev = device->ib_device;
+ 	struct ib_mr *mr;
+ 	struct ib_fast_reg_page_list *frpl;
+ 	struct ib_send_wr fastreg_wr, inv_wr;
+@@ -668,18 +672,8 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	int ret, offset, size, plen;
  
--		sge->lkey = device->mr->lkey;
--		sge->addr   = ib_sg_dma_address(ibdev, &sg[0]);
--		sge->length  = ib_sg_dma_len(ibdev, &sg[0]);
-+		reg->sge.lkey = device->mr->lkey;
-+		reg->rkey = device->mr->rkey;
-+		reg->sge.addr = ib_sg_dma_address(ibdev, &sg[0]);
-+		reg->sge.length = ib_sg_dma_len(ibdev, &sg[0]);
- 
- 		iser_dbg("Single DMA entry: lkey=0x%x, addr=0x%llx, length=0x%x\n",
--			 sge->lkey, sge->addr, sge->length);
-+			 reg->sge.lkey, reg->sge.addr, reg->sge.length);
- 		return 0;
- 	}
- 
-@@ -723,9 +727,10 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 	}
- 	desc->reg_indicators &= ~ind;
- 
--	sge->lkey = mr->lkey;
--	sge->addr = frpl->page_list[0] + offset;
--	sge->length = size;
-+	reg->sge.lkey = mr->lkey;
-+	reg->rkey = mr->rkey;
-+	reg->sge.addr = frpl->page_list[0] + offset;
-+	reg->sge.length = size;
- 
- 	return ret;
- }
-@@ -745,7 +750,6 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
- 	struct iser_mem_reg *mem_reg = &iser_task->rdma_reg[cmd_dir];
- 	struct fast_reg_descriptor *desc = NULL;
--	struct ib_sge data_sge;
- 	int err, aligned_len;
- 
- 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
-@@ -765,14 +769,14 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	}
- 
- 	err = iser_fast_reg_mr(iser_task, mem_reg, mem,
--			       ISER_DATA_KEY_VALID, &data_sge);
-+			       ISER_DATA_KEY_VALID, mem_reg);
- 	if (err)
- 		goto err_reg;
- 
- 	if (scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
--		struct ib_sge prot_sge, sig_sge;
-+		struct iser_mem_reg prot_reg;
- 
--		memset(&prot_sge, 0, sizeof(prot_sge));
-+		memset(&prot_reg, 0, sizeof(prot_reg));
- 		if (scsi_prot_sg_count(iser_task->sc)) {
- 			mem = &iser_task->prot[cmd_dir];
- 			aligned_len = iser_data_buf_aligned_len(mem, ibdev);
-@@ -786,32 +790,18 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 			}
- 
- 			err = iser_fast_reg_mr(iser_task, mem_reg, mem,
--					       ISER_PROT_KEY_VALID, &prot_sge);
-+					       ISER_PROT_KEY_VALID, &prot_reg);
- 			if (err)
- 				goto err_reg;
- 		}
- 
--		err = iser_reg_sig_mr(iser_task, desc, &data_sge,
--				      &prot_sge, &sig_sge);
-+		err = iser_reg_sig_mr(iser_task, desc, mem_reg,
-+				      &prot_reg, mem_reg);
- 		if (err) {
- 			iser_err("Failed to register signature mr\n");
- 			return err;
- 		}
- 		desc->reg_indicators |= ISER_FASTREG_PROTECTED;
+ 	/* if there a single dma entry, dma mr suffices */
+-	if (mem->dma_nents == 1) {
+-		struct scatterlist *sg = mem->sg;
 -
--		mem_reg->sge.lkey = sig_sge.lkey;
--		mem_reg->rkey = desc->pi_ctx->sig_mr->rkey;
--		mem_reg->sge.addr = sig_sge.addr;
--		mem_reg->sge.length = sig_sge.length;
--	} else {
--		if (desc)
--			mem_reg->rkey = desc->data_mr->rkey;
--		else
--			mem_reg->rkey = device->mr->rkey;
+-		reg->sge.lkey = device->mr->lkey;
+-		reg->rkey = device->mr->rkey;
+-		reg->sge.addr = ib_sg_dma_address(ibdev, &sg[0]);
+-		reg->sge.length = ib_sg_dma_len(ibdev, &sg[0]);
 -
--		mem_reg->sge.lkey = data_sge.lkey;
--		mem_reg->sge.addr = data_sge.addr;
--		mem_reg->sge.length = data_sge.length;
- 	}
+-		iser_dbg("Single DMA entry: lkey=0x%x, addr=0x%llx, length=0x%x\n",
+-			 reg->sge.lkey, reg->sge.addr, reg->sge.length);
+-		return 0;
+-	}
++	if (mem->dma_nents == 1)
++		return iser_reg_dma(device, mem, mem_reg);
  
- 	return 0;
+ 	if (ind == ISER_DATA_KEY_VALID) {
+ 		mr = desc->data_mr;
 -- 
 1.7.1
 
