@@ -1,51 +1,41 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 3/9] net/mlx4_core: Set initial admin GUIDs for
- VFs
-Date: Tue, 31 Mar 2015 12:54:56 +0300
-Message-ID: <551A6EF0.4090300@mellanox.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
+Date: Tue, 31 Mar 2015 14:22:50 +0300
+Message-ID: <CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
 References: <1427637093-6711-1-git-send-email-ogerlitz@mellanox.com>
- <1427637093-6711-4-git-send-email-ogerlitz@mellanox.com>
- <20150330171631.GA1152@obsidianresearch.com>
+	<CAJ3xEMj0T8QXBQdVHmfEFMXwjAFVD-O6ywAwyyVY+M3oRLzAVA@mail.gmail.com>
+	<20150330.233602.155832546277570456.davem@davemloft.net>
+	<CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150330171631.GA1152-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/30/2015 8:16 PM, Jason Gunthorpe wrote:
-> But, it doesn't really make sense to use eth_random_addr (which
-> doesn't have a special OUI) and not randomize every bit.
+On Tue, Mar 31, 2015 at 6:47 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> Roland, I have to genuinely agree with Or, that your handling of
+>> patch integration is sub-par and really painful for anyone actually
+>> trying to get real work done here.
+>>
+>> If you simply don't have the time to devote to constantly reviewing
+>> patches as they come in, and doing so in a timely manner, please let
+>> someone who is actually interested and has the time to take over.
 >
->          get_random_bytes(&guid, sizeof(guid));
->          guid &= ~(1ULL << 56);
-> 	guid |= 1ULL << 57;
+> It's a fair criticism, and certainly for at least the last year or so
+> I have not had the time to do enough work as a maintainer.  I have
+> hope that some of the things that have been keeping me busy are dying
+> down and that I'll have more time to spend on handling the RDMA tree,
+> but that's just talk until I actually get more done.
 
-OK, we can do that, sure.
-
-> I also don't think the kernel should be generating random GUIDs. Either the SA should be consulted to do this, or the management stack should generate a cloud wide unique number.
-
-There **is** an option to consult with the SM controlled by the 
-sm_guid_assign module param of mlx4_ib. When this mode is in action, the 
-randomized guid would be overridden by the one assigned by the SA.
-
-In real life environments, people will use the "host assigned" option 
-(sm_guid_assign = false) where the virtualization systems generate a 
-unique guid to be used by the VF/VM and provision it through mlx4_ib to 
-be provided to VF when the bindin.
-
-The only place where the random value will be used, is for OOTB 
-experience for staging purposes and such, when one wants to have working 
-system with zero-touch. The practice of generating locally random 
-address for non-provisioned VF is also used by the pretty much the whole 
-set of Ethernet VF drivers (ixgbe_vf, i40e_vf, mlx4 VF code, etc). This 
-is low cost solution for point cases which need that.
-
-Or.
-
+Roland, well, with few variations, this goes way beyond a year. I
+would say more or less half of the time you're wearing the maintainer
+hat (2005-now). The practice of updating your for-next branch to rc1
+only few days/hours before the the kernel is out and the merge window
+opens, is an attitude, not lack of resources and will not be solved by
+whatever processes people suggest. You need to act differently.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
