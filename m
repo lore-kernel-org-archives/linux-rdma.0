@@ -1,150 +1,49 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [RFC PATCH 07/11] IB/Verbs: Use management helper has_mcast()
- and, cap_mcast() for mcast-check
-Date: Tue, 31 Mar 2015 09:25:45 +0200
-Message-ID: <551A4BF9.8050801@profitbricks.com>
-References: <551579CA.4030901@profitbricks.com> <55157B71.6040505@profitbricks.com> <1427731918.21101.198.camel@redhat.com> <551977E0.5030001@profitbricks.com> <20150330234717.GA28446@phlsvsds.ph.intel.com>
+Subject: Re: [RFC PATCH 08/11] IB/Verbs: Use management helper has_iwarp()
+ for, iwarp-check
+Date: Tue, 31 Mar 2015 09:39:16 +0200
+Message-ID: <551A4F24.6090405@profitbricks.com>
+References: <551579CA.4030901@profitbricks.com> <55157B98.1060103@profitbricks.com> <20150327161319.GB28412@obsidianresearch.com> <20150327171631.GC27862@phlsvsds.ph.intel.com> <20150327172912.GA28901@obsidianresearch.com> <55196754.5010600@profitbricks.com> <20150330223528.GB27728@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150330234717.GA28446-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150330223528.GB27728-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin@>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/31/2015 01:47 AM, ira.weiny wrote:
-> On Mon, Mar 30, 2015 at 06:20:48PM +0200, Michael Wang wrote:
->> [snip]
->>>> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->>>> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>>> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>> Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
->>>> ---
->>>>  drivers/infiniband/core/cma.c       |  2 +-
->>>>  drivers/infiniband/core/multicast.c |  8 ++++----
->>>>  include/rdma/ib_verbs.h             | 28 ++++++++++++++++++++++++++++
->>>>  3 files changed, 33 insertions(+), 5 deletions(-)
->>>>
->>>> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
->>>> index 276fb76..cbbc85b 100644
->>>> --- a/drivers/infiniband/core/cma.c
->>>> +++ b/drivers/infiniband/core/cma.c
->>>> @@ -3398,7 +3398,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
->>>>                  ib_detach_mcast(id->qp,
->>>>                          &mc->multicast.ib->rec.mgid,
->>>>                          be16_to_cpu(mc->multicast.ib->rec.mlid));
->>>> -            if (rdma_transport_is_ib(id_priv->cma_dev->device)) {
->>>> +            if (has_mcast(id_priv->cma_dev->device)) {
+On 03/31/2015 12:35 AM, Jason Gunthorpe wrote:
+> On Mon, Mar 30, 2015 at 05:10:12PM +0200, Michael Wang wrote:
+>> I found that actually we don't have to touch this one which
+>> only used by HW driver currently.
+> I'm having a hard time understanding this, the code in question was in
 >
-> You need a similar check in rdma_join_multicast.
-Thanks for the remind, I'll give it a reform :-)
+> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+>
+> Which is the NFS ULP, not a device driver.
+
+I'm not familiar with this part too :-P but yes, it looks like an ulp
+to support NFS.
+
+Actually I'm thinking about Doug's idea to use rdma_transport_is_XX()
+instead of the current basic helper, thus may be use rdma_transport_is_iwarp()
+in here could be better, since it's actually a feature of iwarp tech
+that RDMA Read only support one scatter-gather entry.
+
+But I need more investigation on that idea, there are some part
+especially inside device driver I'm not very clear, things could be more
+easier if the semantic there is compatible with Doug's proposal ;-)
 
 Regards,
 Michael Wang
 
-
 >
-> Ira
->
->
->>>>                  switch (rdma_port_get_link_layer(id->device, id->port_num)) {
->>>>                  case IB_LINK_LAYER_INFINIBAND:
->>>>                      ib_sa_free_multicast(mc->multicast.ib);
->>>> diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
->>>> index 17573ff..ffeaf27 100644
->>>> --- a/drivers/infiniband/core/multicast.c
->>>> +++ b/drivers/infiniband/core/multicast.c
->>>> @@ -780,7 +780,7 @@ static void mcast_event_handler(struct ib_event_handler *handler,
->>>>      int index;
->>>>  
->>>>      dev = container_of(handler, struct mcast_device, event_handler);
->>>> -    if (!rdma_port_ll_is_ib(dev->device, event->element.port_num))
->>>> +    if (!cap_mcast(dev->device, event->element.port_num))
->>>>          return;
->>>>  
->>>>      index = event->element.port_num - dev->start_port;
->>>> @@ -807,7 +807,7 @@ static void mcast_add_one(struct ib_device *device)
->>>>      int i;
->>>>      int count = 0;
->>>>  
->>>> -    if (!rdma_transport_is_ib(device))
->>>> +    if (!has_mcast(device))
->>>>          return;
->>>>  
->>>>      dev = kmalloc(sizeof *dev + device->phys_port_cnt * sizeof *port,
->>>> @@ -823,7 +823,7 @@ static void mcast_add_one(struct ib_device *device)
->>>>      }
->>>>  
->>>>      for (i = 0; i <= dev->end_port - dev->start_port; i++) {
->>>> -        if (!rdma_port_ll_is_ib(device, dev->start_port + i))
->>>> +        if (!cap_mcast(device, dev->start_port + i))
->>>>              continue;
->>>>          port = &dev->port[i];
->>>>          port->dev = dev;
->>>> @@ -861,7 +861,7 @@ static void mcast_remove_one(struct ib_device *device)
->>>>      flush_workqueue(mcast_wq);
->>>>  
->>>>      for (i = 0; i <= dev->end_port - dev->start_port; i++) {
->>>> -        if (rdma_port_ll_is_ib(device, dev->start_port + i)) {
->>>> +        if (cap_mcast(device, dev->start_port + i)) {
->>>>              port = &dev->port[i];
->>>>              deref_port(port);
->>>>              wait_for_completion(&port->comp);
->>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>>> index fa8ffa3..e796104 100644
->>>> --- a/include/rdma/ib_verbs.h
->>>> +++ b/include/rdma/ib_verbs.h
->>>> @@ -1823,6 +1823,19 @@ static inline int has_sa(struct ib_device *device)
->>>>  }
->>>>  
->>>>  /**
->>>> + * has_mcast - Check if a device support Multicast.
->>>> + *
->>>> + * @device: Device to be checked
->>>> + *
->>>> + * Return 0 when a device has none port to support
->>>> + * Multicast.
->>>> + */
->>>> +static inline int has_mcast(struct ib_device *device)
->>>> +{
->>>> +    return rdma_transport_is_ib(device);
->>>> +}
->>>> +
->>>> +/**
->>>>   * cap_smi - Check if the port of device has the capability
->>>>   * Subnet Management Interface.
->>>>   *
->>>> @@ -1852,6 +1865,21 @@ static inline int cap_sa(struct ib_device *device, u8 port_num)
->>>>      return rdma_port_ll_is_ib(device, port_num);
->>>>  }
->>>>  
->>>> +/**
->>>> + * cap_mcast - Check if the port of device has the capability
->>>> + * Multicast.
->>>> + *
->>>> + * @device: Device to be checked
->>>> + * @port_num: Port number of the device
->>>> + *
->>>> + * Return 0 when port of the device don't support
->>>> + * Multicast.
->>>> + */
->>>> +static inline int cap_mcast(struct ib_device *device, u8 port_num)
->>>> +{
->>>> +    return rdma_port_ll_is_ib(device, port_num);
->>>> +}
->>>> +
->>>>  int ib_query_gid(struct ib_device *device,
->>>>           u8 port_num, int index, union ib_gid *gid);
->>>>  
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Jason
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
