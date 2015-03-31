@@ -1,50 +1,68 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/9] IB/ipoib: fixup multicast locking issues
-Date: Tue, 31 Mar 2015 23:42:29 +0300
-Message-ID: <CAJ3xEMhXSTmAEDfn-H808OiSKHtTjS8J0=e8B_98w3Estm_pyw@mail.gmail.com>
-References: <cover.1424562072.git.dledford@redhat.com>
-	<CAJ3xEMjHrTH_F=zPDsH9A9qRWo=AYN4sgbsdDKV62nzBkB5kXA@mail.gmail.com>
-	<F42024C5-60A5-4B92-B4AC-4D225E2C0FC3@redhat.com>
-	<20150331170452.GA6261@phlsvsds.ph.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-next 0/9] mlx4 changes in virtual GID management
+Date: Tue, 31 Mar 2015 21:33:48 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBBCE3@ORSMSX109.amr.corp.intel.com>
+References: <20150330.233602.155832546277570456.davem@davemloft.net>
+	<CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
+	<CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
+	<20150331.114824.651005354305268415.davem@davemloft.net>
+	<1828884A29C6694DAF28B7E6B8A82373A8FBB790@ORSMSX109.amr.corp.intel.com>
+ <CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150331170452.GA6261-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 31, 2015 at 8:04 PM, ira.weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Sun, Mar 15, 2015 at 11:52:44AM -0700, Doug Ledford wrote:
->>
->> > On Mar 13, 2015, at 1:41 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> >
->> > On Sun, Feb 22, 2015 at 2:26 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> >> This is the re-ordered, squashed version of my 22 patch set that I
->> >> posted on Feb 11.  There are a few minor differences between that
->> >> set and this one.  They are:
->> > [...]
->> >
->> > Doug, you wrote here a very detailed listing of the changes from
->> > earlier posts and the testing the patches went through, which is
->> > excellent. It would be very good if you can also post few liner
->> > telling the changes done by the series in high level, so we can have
->> > this test as part of a "merge" commit that says in the kernel logs.
->>
->> OK.  I would take what I had in the original message and expand upon it then:
->>
->> This entire patchset was intended to address the issue of ipoib
->> interfaces being brought up/down in a tight loop, which will hardlock
->> a standard v3.19 kernel.  It succeeds at resolving that problem.
->
->
-> I pulled this series and did some medium weight testing on 3.19 (module
-> reloads, insmod/rmmod, opensm restarts (client re-register)).  IPoIB recovered
-> without issue on each of the tests.
-> Tested-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Yep, here too. We tested upstream + this series and it works well.
+PiBJIG11c3QgZGlzYWdyZWUuIFlvdSBtYWRlIHRoaXMgY2xhaW0gYmFjayB3aGVuIHdlIHN1Ym1p
+dHRlZCB0aGUgSUINCj4gY29yZSBwYXRjaCB3aGljaCBhZGRzIHN1cHBvcnQgZm9yIHNpZ25hdHVy
+ZSwgcHJvdGVjdGlvbiBldGMgb2ZmbG9hZHMNCj4gKGNvbW1pdCAxYjAxZDMzNTYwZTcgIklCL2Nv
+cmU6IEludHJvZHVjZSBzaWduYXR1cmUgdmVyYnMgQVBJIiBhbmQgdGhlDQo+IGRldGFpbGVkIHJl
+cGxpZWQgeW91IGdvdCB3ZXJlIGV4cGxhaW5pbmcgdGhhdA0KDQpBbmQgSSdsbCBjb250aW51ZSB0
+byBtYWtlIHRoaXMgY2xhaW0gYmVjYXVzZSBpdCBpcyB0cnVlLg0KDQo+IFZlcnkgc2ltaWxhciBh
+cmd1bWVudHMgd291bGQgYXBwbHkgdG8gdGhlIE9EUCBzdWJtaXNzaW9uLg0KDQpZZXMgLSBPRFAg
+d2lsbCBfaGF2ZV8gdG8gY2hhbmdlIHRoZSBjb3JlLiAgVVNOSUMgaGFkIHRvIGNoYW5nZSB0aGUg
+Y29yZSwgYW5kIGhhZCBjaGFuZ2VzIHJlamVjdGVkIHRoYXQgbWFkZSBwZXJmZWN0IHNlbnNlIGNv
+bmNlcHR1YWxseS4gIFRoaXMgaXMgcGFydCBvZiB0aGUgcHJvYmxlbSEhISAgIElmIHlvdSBkaXNh
+Z3JlZSwgdGhlbiBzdWJtaXQgcGF0Y2hlcyB0aGF0IGRvbid0IHRvdWNoIHRoZSBjb3JlLg0KDQo+
+IFNvIGV4YW1wbGVzIHBsZWFzZSENCg0KU3VyZSAtIHRoaXMgaXMgZnJvbSBTb21uYXRoJ3MgbGF0
+ZXN0IHBhdGNoIHNlcmllczoNCg0KTWF0YW4gQmFyYWsgKDE0KToNCiAgSUIvY29yZTogQWRkIFJv
+Q0UgR0lEIGNhY2hlDQogIElCL2NvcmU6IEFkZCBrcmVmIHRvIElCIGRldmljZXMNCiAgSUIvY29y
+ZTogQWRkIFJvQ0UgR0lEIHBvcHVsYXRpb24NCiAgSUIvY29yZTogQWRkIGRlZmF1bHQgR0lEIGZv
+ciBSb0NFIEdJRCBDYWNoZQ0KICBuZXQvYm9uZGluZzogbWFrZSBEUlYgbWFjcm9zIHByaXZhdGUN
+CiAgbmV0OiBBZGQgaW5mbyBmb3IgTkVUREVWX0NIQU5HRVVQUEVSIGV2ZW50DQogIElCL2NvcmU6
+IEFkZCBSb0NFIGNhY2hlIGJvbmRpbmcgc3VwcG9ydA0KICBJQi9jb3JlOiBHSUQgYXR0cmlidXRl
+IHNob3VsZCBiZSByZXR1cm5lZCBmcm9tIHZlcmJzIEFQSSBhbmQgY2FjaGUgQVBJDQogIElCL2Nv
+cmU6IFJlcG9ydCBnaWRfdHlwZSBhbmQgZ2lkX25kZXYgdGhyb3VnaCBzeXNmcw0KICBJQi9jb3Jl
+OiBTdXBwb3J0IGZpbmQgc2dpZCBpbmRleCB1c2luZyBhIGZpbHRlciBmdW5jdGlvbg0KICBJQi9j
+b3JlOiBNb2RpZnkgaWJfdmVyYnMgYW5kIGNtYSBpbiBvcmRlciB0byB1c2Ugcm9jZV9naWRfY2Fj
+aGUNCiAgSUIvY29yZTogQWRkIGdpZF90eXBlIHRvIHBhdGggYW5kIHJkbWFfaWRfcHJpdmF0ZQ0K
+ICBJQi9jb3JlOiBBZGQgcmRtYV9uZXR3b3JrX3R5cGUgdG8gd2MNCiAgSUIvY21hOiBBZGQgY29u
+ZmlnZnMgZm9yIHJkbWFfY20NCg0KTW9uaSBTaG91YSAoMTMpOg0KICBJQi9tbHg0OiBSZW1vdmUg
+Z2lkIHRhYmxlIG1hbmFnZW1lbnQgZm9yIFJvQ0UNCiAgSUIvbWx4NDogUmVwbGFjZSBzcGluX2xv
+Y2sgd2l0aCByd19zZW1hcGhvcmUNCiAgSUIvbWx4NDogTG9jayB3aXRoIFJDVSBpbnN0ZWFkIG9m
+IFJUTkwNCiAgbmV0L21seDQ6IFBvc3Rwb25lIHRoZSByZWdpc3RyYXRpb24gb2YgbmV0X2Rldmlj
+ZQ0KICBJQi9tbHg0OiBBZHZlcnRpc2UgUm9DRSBzdXBwb3J0IGluIHBvcnQgY2FwYWJpbGl0aWVz
+DQogIElCL21seDQ6IEltcGxlbWVudCBpYl9kZXZpY2UgY2FsbGJhY2sgLSBnZXRfbmV0ZGV2DQog
+IElCL21seDQ6IEltcGxlbWVudCBpYl9kZXZpY2UgY2FsbGJhY2sgLSBtb2RpZnlfZ2lkDQogIElC
+L21seDQ6IENvbmZpZ3VyZSBkZXZpY2UgdG8gd29yayBpbiBSb0NFdjINCiAgSUIvbWx4NDogVHJh
+bnNsYXRlIGNhY2hlIGdpZCBpbmRleCB0byByZWFsIGluZGV4DQogIElCL2NvcmU6IEluaXRpYWxp
+emUgVUQgaGVhZGVyIHN0cnVjdHVyZSB3aXRoIElQIGFuZCBVRFAgaGVhZGVycw0KICBJQi9tbHg0
+OiBFbmFibGUgc2VuZCBvZiBSb0NFIFFQMSBwYWNrZXRzIHdpdGggSVAvVURQIGhlYWRlcnMNCiAg
+SUIvbWx4NDogQ3JlYXRlIGFuZCB1c2UgYW5vdGhlciBRUDEgZm9yIFJvQ0V2Mg0KICBJQi9jbWE6
+IEpvaW4gYW5kIGxlYXZlIG11bHRpY2FzdCBncm91cHMgd2l0aCBJR01QDQoNClRoYXQncyBhIHNp
+Z25pZmljYW50IG51bWJlciBvZiBwYXRjaGVzIHRoYXQgbW9kaWZ5IHRoZSBjb3JlIHJkbWEgbGF5
+ZXIuICBORlNvUkRNQSBoYWQgNSBkaWZmZXJlbnQgd2F5cyB0byByZWdpc3RlciBtZW1vcnkuDQoN
+CkkgYWdyZWUgdGhhdCBSb2xhbmQncyByZXNwb25zZSB0aW1lIGlzIHJpZGljdWxvdXNseSBzbG93
+LiAgQnV0IGhlIGRvZXMgdGVuZCB0byBtZXJnZSBpbiBuZXcgZHJpdmVycyBhbmQgdXBkYXRlcyB0
+aGF0IG9ubHkgdG91Y2ggYSBzaW5nbGUgdmVuZG9yJ3MgZHJpdmVyIGZhaXJseSBxdWlja2x5LiAg
+SXQncyB0aGUgdGhyYXNoaW5nIG9uIHRoZSBjb3JlIHRoYXQgc2VlcyBzaWduaWZpY2FudCBkZWxh
+eXMuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
