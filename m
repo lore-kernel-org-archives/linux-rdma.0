@@ -1,31 +1,39 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
-Date: Tue, 31 Mar 2015 10:49:47 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1503311049100.14893@gentwo.org>
-References: <1427637093-6711-1-git-send-email-ogerlitz@mellanox.com> <CAJ3xEMj0T8QXBQdVHmfEFMXwjAFVD-O6ywAwyyVY+M3oRLzAVA@mail.gmail.com> <20150330.233602.155832546277570456.davem@davemloft.net> <CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
- <CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com> <alpine.DEB.2.11.1503310735380.13128@gentwo.org> <551A99D4.7060703@dev.mellanox.co.il>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Tue, 31 Mar 2015 11:50:52 -0400 (EDT)
+Message-ID: <20150331.115052.1321302787804579694.davem@davemloft.net>
+References: <CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
+	<CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
+	<alpine.DEB.2.11.1503310735380.13128@gentwo.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <551A99D4.7060703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.11.1503310735380.13128-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+Cc: gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 31 Mar 2015, Hal Rosenstock wrote:
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Date: Tue, 31 Mar 2015 07:49:38 -0500 (CDT)
 
-> > Sean and Hal showed up for the conference. Sean is active mostly in
-> > focusing on userspace stuff. Both could become more involved in the kernel
-> > ib tree and the review process? Hal is employed by Mellanox but is not
-> > participating in these patch related discussions? Can Mellanox give Hal
-> > more time for his role as the kernel ib subsystem maintainer? Maybe you
-> > could get that resolved at Mellanox? You already have one of your own as
-> > a maintainer of the IB subsystem.
->
-> My involvement is limited to IB management related aspects in the kernel.
+> Well this needs to be addressed yes but in order to have that done someone
+> needs to step forward do the proper work, maintain git trees, do the
+> review and show up for the conferences. Neither Roland nor Or was there at
+> the Infiniband conferences in Monterey this year(!) and this is the prime
+> venue for face to face conversation about the subsystem each year.
 
-Need to update the entry then I think.
+I don't go to IETF meetings, ever, yet I am rather sure that nobody
+uses that to question my ability to be the networking maintainer.
 
+I've gone several years at times without meeting other networking
+developers as well, and that also I am pretty sure did not harm my
+stature as the networking maintainer.
+
+So I absolutely disagree that these two acts are requirements for
+someone whose job is to steadily and reasonably review and apply
+patches for a subsystem.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
