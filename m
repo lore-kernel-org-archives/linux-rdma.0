@@ -1,69 +1,61 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next 0/9] mlx4 changes in virtual GID management
-Date: Tue, 31 Mar 2015 21:33:48 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBBCE3@ORSMSX109.amr.corp.intel.com>
-References: <20150330.233602.155832546277570456.davem@davemloft.net>
-	<CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
-	<CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
-	<20150331.114824.651005354305268415.davem@davemloft.net>
-	<1828884A29C6694DAF28B7E6B8A82373A8FBB790@ORSMSX109.amr.corp.intel.com>
- <CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC PATCH 06/11] IB/Verbs: Use management helper has_sa() and
+ cap_sa(), for sa-check
+Date: Tue, 31 Mar 2015 17:12:02 -0600
+Message-ID: <20150331231202.GA20094@obsidianresearch.com>
+References: <551579CA.4030901@profitbricks.com>
+ <55157B43.6060507@profitbricks.com>
+ <1427732191.21101.201.camel@redhat.com>
+ <55197CDB.3040105@profitbricks.com>
+ <1427734923.21101.227.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1427734923.21101.227.camel@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@m>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIG11c3QgZGlzYWdyZWUuIFlvdSBtYWRlIHRoaXMgY2xhaW0gYmFjayB3aGVuIHdlIHN1Ym1p
-dHRlZCB0aGUgSUINCj4gY29yZSBwYXRjaCB3aGljaCBhZGRzIHN1cHBvcnQgZm9yIHNpZ25hdHVy
-ZSwgcHJvdGVjdGlvbiBldGMgb2ZmbG9hZHMNCj4gKGNvbW1pdCAxYjAxZDMzNTYwZTcgIklCL2Nv
-cmU6IEludHJvZHVjZSBzaWduYXR1cmUgdmVyYnMgQVBJIiBhbmQgdGhlDQo+IGRldGFpbGVkIHJl
-cGxpZWQgeW91IGdvdCB3ZXJlIGV4cGxhaW5pbmcgdGhhdA0KDQpBbmQgSSdsbCBjb250aW51ZSB0
-byBtYWtlIHRoaXMgY2xhaW0gYmVjYXVzZSBpdCBpcyB0cnVlLg0KDQo+IFZlcnkgc2ltaWxhciBh
-cmd1bWVudHMgd291bGQgYXBwbHkgdG8gdGhlIE9EUCBzdWJtaXNzaW9uLg0KDQpZZXMgLSBPRFAg
-d2lsbCBfaGF2ZV8gdG8gY2hhbmdlIHRoZSBjb3JlLiAgVVNOSUMgaGFkIHRvIGNoYW5nZSB0aGUg
-Y29yZSwgYW5kIGhhZCBjaGFuZ2VzIHJlamVjdGVkIHRoYXQgbWFkZSBwZXJmZWN0IHNlbnNlIGNv
-bmNlcHR1YWxseS4gIFRoaXMgaXMgcGFydCBvZiB0aGUgcHJvYmxlbSEhISAgIElmIHlvdSBkaXNh
-Z3JlZSwgdGhlbiBzdWJtaXQgcGF0Y2hlcyB0aGF0IGRvbid0IHRvdWNoIHRoZSBjb3JlLg0KDQo+
-IFNvIGV4YW1wbGVzIHBsZWFzZSENCg0KU3VyZSAtIHRoaXMgaXMgZnJvbSBTb21uYXRoJ3MgbGF0
-ZXN0IHBhdGNoIHNlcmllczoNCg0KTWF0YW4gQmFyYWsgKDE0KToNCiAgSUIvY29yZTogQWRkIFJv
-Q0UgR0lEIGNhY2hlDQogIElCL2NvcmU6IEFkZCBrcmVmIHRvIElCIGRldmljZXMNCiAgSUIvY29y
-ZTogQWRkIFJvQ0UgR0lEIHBvcHVsYXRpb24NCiAgSUIvY29yZTogQWRkIGRlZmF1bHQgR0lEIGZv
-ciBSb0NFIEdJRCBDYWNoZQ0KICBuZXQvYm9uZGluZzogbWFrZSBEUlYgbWFjcm9zIHByaXZhdGUN
-CiAgbmV0OiBBZGQgaW5mbyBmb3IgTkVUREVWX0NIQU5HRVVQUEVSIGV2ZW50DQogIElCL2NvcmU6
-IEFkZCBSb0NFIGNhY2hlIGJvbmRpbmcgc3VwcG9ydA0KICBJQi9jb3JlOiBHSUQgYXR0cmlidXRl
-IHNob3VsZCBiZSByZXR1cm5lZCBmcm9tIHZlcmJzIEFQSSBhbmQgY2FjaGUgQVBJDQogIElCL2Nv
-cmU6IFJlcG9ydCBnaWRfdHlwZSBhbmQgZ2lkX25kZXYgdGhyb3VnaCBzeXNmcw0KICBJQi9jb3Jl
-OiBTdXBwb3J0IGZpbmQgc2dpZCBpbmRleCB1c2luZyBhIGZpbHRlciBmdW5jdGlvbg0KICBJQi9j
-b3JlOiBNb2RpZnkgaWJfdmVyYnMgYW5kIGNtYSBpbiBvcmRlciB0byB1c2Ugcm9jZV9naWRfY2Fj
-aGUNCiAgSUIvY29yZTogQWRkIGdpZF90eXBlIHRvIHBhdGggYW5kIHJkbWFfaWRfcHJpdmF0ZQ0K
-ICBJQi9jb3JlOiBBZGQgcmRtYV9uZXR3b3JrX3R5cGUgdG8gd2MNCiAgSUIvY21hOiBBZGQgY29u
-ZmlnZnMgZm9yIHJkbWFfY20NCg0KTW9uaSBTaG91YSAoMTMpOg0KICBJQi9tbHg0OiBSZW1vdmUg
-Z2lkIHRhYmxlIG1hbmFnZW1lbnQgZm9yIFJvQ0UNCiAgSUIvbWx4NDogUmVwbGFjZSBzcGluX2xv
-Y2sgd2l0aCByd19zZW1hcGhvcmUNCiAgSUIvbWx4NDogTG9jayB3aXRoIFJDVSBpbnN0ZWFkIG9m
-IFJUTkwNCiAgbmV0L21seDQ6IFBvc3Rwb25lIHRoZSByZWdpc3RyYXRpb24gb2YgbmV0X2Rldmlj
-ZQ0KICBJQi9tbHg0OiBBZHZlcnRpc2UgUm9DRSBzdXBwb3J0IGluIHBvcnQgY2FwYWJpbGl0aWVz
-DQogIElCL21seDQ6IEltcGxlbWVudCBpYl9kZXZpY2UgY2FsbGJhY2sgLSBnZXRfbmV0ZGV2DQog
-IElCL21seDQ6IEltcGxlbWVudCBpYl9kZXZpY2UgY2FsbGJhY2sgLSBtb2RpZnlfZ2lkDQogIElC
-L21seDQ6IENvbmZpZ3VyZSBkZXZpY2UgdG8gd29yayBpbiBSb0NFdjINCiAgSUIvbWx4NDogVHJh
-bnNsYXRlIGNhY2hlIGdpZCBpbmRleCB0byByZWFsIGluZGV4DQogIElCL2NvcmU6IEluaXRpYWxp
-emUgVUQgaGVhZGVyIHN0cnVjdHVyZSB3aXRoIElQIGFuZCBVRFAgaGVhZGVycw0KICBJQi9tbHg0
-OiBFbmFibGUgc2VuZCBvZiBSb0NFIFFQMSBwYWNrZXRzIHdpdGggSVAvVURQIGhlYWRlcnMNCiAg
-SUIvbWx4NDogQ3JlYXRlIGFuZCB1c2UgYW5vdGhlciBRUDEgZm9yIFJvQ0V2Mg0KICBJQi9jbWE6
-IEpvaW4gYW5kIGxlYXZlIG11bHRpY2FzdCBncm91cHMgd2l0aCBJR01QDQoNClRoYXQncyBhIHNp
-Z25pZmljYW50IG51bWJlciBvZiBwYXRjaGVzIHRoYXQgbW9kaWZ5IHRoZSBjb3JlIHJkbWEgbGF5
-ZXIuICBORlNvUkRNQSBoYWQgNSBkaWZmZXJlbnQgd2F5cyB0byByZWdpc3RlciBtZW1vcnkuDQoN
-CkkgYWdyZWUgdGhhdCBSb2xhbmQncyByZXNwb25zZSB0aW1lIGlzIHJpZGljdWxvdXNseSBzbG93
-LiAgQnV0IGhlIGRvZXMgdGVuZCB0byBtZXJnZSBpbiBuZXcgZHJpdmVycyBhbmQgdXBkYXRlcyB0
-aGF0IG9ubHkgdG91Y2ggYSBzaW5nbGUgdmVuZG9yJ3MgZHJpdmVyIGZhaXJseSBxdWlja2x5LiAg
-SXQncyB0aGUgdGhyYXNoaW5nIG9uIHRoZSBjb3JlIHRoYXQgc2VlcyBzaWduaWZpY2FudCBkZWxh
-eXMuDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Mar 30, 2015 at 01:02:03PM -0400, Doug Ledford wrote:
+
+> If we use something like this, then the above is all you need.  Then
+> every place in the code that checks for something like has_sa or cap_sa
+> can be replaced with rdma_ib_mgmt. 
+
+I don't want to see this slide back into some ill defined feature
+test.
+
+We need to clearly define exactly what these tests are checking, and I
+think, since we have so much code sharing, the checks should be narrow
+in scope, not just an entire standard.
+
+I think the basic family of checks Michael identified seemed like
+a reasonable start.
+
+Going forward we want to NAK stuff like this:
+
+  if (rdma_ib_mgmt() || rdma_opa_mgmt())
+  if (has_sa() || has_opa_foobar())
+
+That indicates we need a new micro feature test.
+
+A big problem here is people working on the core may not know the
+intricate details of all the families. This will only get worse when
+proprietary tech like OPA gets added. Documenting requirements via a
+narrow feature test gives a much higher chance that core stuff will be
+right via review.
+
+> But, like I said, this is an all or nothing change, it isn't
+> something we can ease into.
+
+Well, we ease into it by introducing the micro tests and then wiping
+the legacy ones, followed by changing how the driver/core communicates
+the port and device feature set, ideally to a bitset like you've
+described.
+
+Michael has tackled the core code, another series could work on the
+drivers..
+
+Jason
