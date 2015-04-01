@@ -1,93 +1,87 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 4/9] IB/mlx4: Manage admin alias GUID upon admin request
-Date: Wed,  1 Apr 2015 14:55:52 +0300
-Message-ID: <1427889357-16078-5-git-send-email-ogerlitz@mellanox.com>
-References: <1427889357-16078-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V2 0/9] mlx4 changes in virtual GID management
+Date: Wed,  1 Apr 2015 14:55:48 +0300
+Message-ID: <1427889357-16078-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427889357-16078-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+changes from V1:
+ - returned one hunk in patch #1 was removed by mistake in V1 as part 
+   of the smatch warnings cleanup
 
-Set the admin alias GUID per the administrator's request via the sysfs
-mechanism into the core layer.
+changes from V0:
+ - addressed comments from Jason
+ - fixed static checker (smatch) warnings 
 
-The "get" request returns the current value. However, if the administrator
-requests the SM to assign a new value by requesting 0, the SM assigned
-GUID is returned.
+Under the existing implementation for virtual GIDs, if the SM is not 
+reachable or incurs a delayed response, or if the VF is probed into a
+VM before their GUID is registered with the SM, there exists a window 
+in time in which the VF sees an incorrect GID, i.e., not the GID that 
+was intended by the admin. This results in exposing a temporal identity 
+to the VF.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/alias_GUID.c |    6 ++++++
- drivers/infiniband/hw/mlx4/sysfs.c      |   18 +++++++++---------
- 2 files changed, 15 insertions(+), 9 deletions(-)
+Moreover, a subsequent change in the alias GID causes a spec-incompliant
+change to the VF identity. Some guest operating systems, such as Windows,
+cannot tolerate such changes.
 
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index a968388..e4edd73 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -328,6 +328,12 @@ static void aliasguid_query_handler(int status,
- 			} else {
- 				*(__be64 *)&rec->all_recs[i * GUID_REC_SIZE] =
- 					sm_response;
-+				if (required_val == 0)
-+					mlx4_set_admin_guid(dev->dev,
-+							    sm_response,
-+							    (guid_rec->block_num
-+							    * NUM_ALIAS_GUID_IN_REC) + i,
-+							    cb_ctx->port);
- 				goto next_entry;
- 			}
- 		}
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index 7423d7e..bb1c34a 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -46,21 +46,17 @@
- static ssize_t show_admin_alias_guid(struct device *dev,
- 			      struct device_attribute *attr, char *buf)
- {
--	int record_num;/*0-15*/
--	int guid_index_in_rec; /*0 - 7*/
- 	struct mlx4_ib_iov_sysfs_attr *mlx4_ib_iov_dentry =
- 		container_of(attr, struct mlx4_ib_iov_sysfs_attr, dentry);
- 	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
- 	struct mlx4_ib_dev *mdev = port->dev;
-+	__be64 sysadmin_ag_val;
- 
--	record_num = mlx4_ib_iov_dentry->entry_num / 8 ;
--	guid_index_in_rec = mlx4_ib_iov_dentry->entry_num % 8 ;
-+	sysadmin_ag_val = mlx4_get_admin_guid(mdev->dev,
-+					      mlx4_ib_iov_dentry->entry_num,
-+					      port->num);
- 
--	return sprintf(buf, "%llx\n",
--		       be64_to_cpu(*(__be64 *)&mdev->sriov.alias_guid.
--				   ports_guid[port->num - 1].
--				   all_rec_per_port[record_num].
--				   all_recs[8 * guid_index_in_rec]));
-+	return sprintf(buf, "%llx\n", be64_to_cpu(sysadmin_ag_val));
- }
- 
- /* store_admin_alias_guid stores the (new) administratively assigned value of that GUID.
-@@ -98,6 +94,10 @@ static ssize_t store_admin_alias_guid(struct device *dev,
- 	/* Change the state to be pending for update */
- 	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].status
- 		= MLX4_GUID_INFO_STATUS_IDLE ;
-+	mlx4_set_admin_guid(mdev->dev, cpu_to_be64(sysadmin_ag_val),
-+			    mlx4_ib_iov_dentry->entry_num,
-+			    port->num);
-+
- 	switch (sysadmin_ag_val) {
- 	case MLX4_GUID_FOR_DELETE_VAL:
- 		mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].ownership
--- 
-1.7.1
+This series solves above problem by exposing the admin desired value instead 
+of the value that was approved by the SM. As long as the SM doesn't approve 
+the GID, the VF would see its link as down.
+
+In addition, we request GIDs from the SM on demand, i.e., when a VF actually
+needs them, and release them when the GIDs are no longer in use. In cloud
+environments, this is useful for GID migrations, in which a GID is assigned to
+a VF on the destination HCA, while the VF on the source HCA is shut down (but
+the GID was not administratively released).
+
+For reasons of compatibility, an explicit admin request to set/change a GUID
+entry is done immediately, regardless of whether the VF is active or not. This
+allows administrators to change the GUID without the need to unbind/bind the VF.
+
+In addition, the existing implementation doesn't support a persistency
+mechanism to retry a GUID request when the SM has rejected it for any reason.
+The PF driver shall keep trying to acquire the specified GUID indefinitely by
+utilizing an exponential back off scheme, this should be managed per GUID and
+be aligned with other incoming admin requests.
+
+This ability needed especially for the on-demand GUID feature. In this case, we
+must manage the GUID's status per entry and handle cases that some entries are
+temporarily rejected.
+
+The first patch adds the persistency support and is pre-requisites for the
+series.  Further patches make the change to use the admin VF behavior as
+described above.
+
+Finally, the default mode is changed to be HOST assigned instead of SM
+assigned. This is the expected operational mode, because it doesn't depend on
+SM availability as described above.
+
+Yishai, Jack and Or.
+
+Yishai Hadas (9):
+  IB/mlx4: Alias GUID adding persistency support
+  net/mlx4_core: Manage alias GUID per VF
+  net/mlx4_core: Set initial admin GUIDs for VFs
+  IB/mlx4: Manage admin alias GUID upon admin request
+  IB/mlx4: Change init flow to request alias GUIDs for active VFs
+  IB/mlx4: Request alias GUID on demand
+  net/mlx4_core: Raise slave shutdown event upon FLR
+  net/mlx4_core: Return the admin alias GUID upon host view request
+  IB/mlx4: Change alias guids default to be host assigned
+
+ drivers/infiniband/hw/mlx4/alias_GUID.c   |  457 +++++++++++++++++++++--------
+ drivers/infiniband/hw/mlx4/main.c         |   26 ++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |   14 +-
+ drivers/infiniband/hw/mlx4/sysfs.c        |   44 +--
+ drivers/net/ethernet/mellanox/mlx4/cmd.c  |   42 ++-
+ drivers/net/ethernet/mellanox/mlx4/eq.c   |    2 +
+ drivers/net/ethernet/mellanox/mlx4/main.c |   31 ++
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 +
+ include/linux/mlx4/device.h               |    4 +
+ 9 files changed, 443 insertions(+), 178 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
