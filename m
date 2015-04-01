@@ -1,66 +1,85 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC PATCH 06/11] IB/Verbs: Use management helper has_sa() and
- cap_sa(), for sa-check
-Date: Tue, 31 Mar 2015 19:31:35 -0600
-Message-ID: <20150401013135.GA29331@obsidianresearch.com>
-References: <551579CA.4030901@profitbricks.com>
- <55157B43.6060507@profitbricks.com>
- <1427732191.21101.201.camel@redhat.com>
- <55197CDB.3040105@profitbricks.com>
- <1427734923.21101.227.camel@redhat.com>
- <20150331231202.GA20094@obsidianresearch.com>
- <20150401005113.GA15327@phlsvsds.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150401005113.GA15327-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Matan Barak <mata>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next V1 0/9] mlx4 changes in virtual GID management
+Date: Wed,  1 Apr 2015 14:14:06 +0300
+Message-ID: <1427886855-16727-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 31, 2015 at 08:51:13PM -0400, ira.weiny wrote:
+changes from V0:
+ - addressed comments from Jason
+ - fixed static checker (smatch) warnings 
 
-> > Going forward we want to NAK stuff like this:
-> > 
-> >   if (rdma_ib_mgmt() || rdma_opa_mgmt())
-> >   if (has_sa() || has_opa_foobar())
-> 
-> I'm confused.
-> 
-> Is the idea that you would NAK has_sa but be in favor of has_ib_sa?
+Under the existing implementation for virtual GIDs, if the SM is not 
+reachable or incurs a delayed response, or if the VF is probed into a
+VM before their GUID is registered with the SM, there exists a window 
+in time in which the VF sees an incorrect GID, i.e., not the GID that 
+was intended by the admin. This results in exposing a temporal identity 
+to the VF.
 
-It is the || I don't want to see. Feature tests should be one thing.
+Moreover, a subsequent change in the alias GID causes a spec-incompliant
+change to the VF identity. Some guest operating systems, such as Windows,
+cannot tolerate such changes.
 
-> I believe it is reasonable to flag OPA MAD support as a feature set through a
-> single bit.  From this the MAD stack can know if OPA MAD base/class versions
-> are allowed (or treated differently from future IB versions) and if it should
-> processing OPA SM Class DR MADs differently.  I don't want devices to be
-> required to supply a list of MAD Base/Class Versions they support.
+This series solves above problem by exposing the admin desired value instead 
+of the value that was approved by the SM. As long as the SM doesn't approve 
+the GID, the VF would see its link as down.
 
-That seems reasonable, but we'd gain a is_ib_smp and is_opa_smp test
-to do that.
+In addition, we request GIDs from the SM on demand, i.e., when a VF actually
+needs them, and release them when the GIDs are no longer in use. In cloud
+environments, this is useful for GID migrations, in which a GID is assigned to
+a VF on the destination HCA, while the VF on the source HCA is shut down (but
+the GID was not administratively released).
 
-> For example, the MAD size is more generally (and perhaps better) communicated
-> via an actual mad_size attribute rather than as part of the OPA MAD feature
-> set.
+For reasons of compatibility, an explicit admin request to set/change a GUID
+entry is done immediately, regardless of whether the VF is active or not. This
+allows administrators to change the GUID without the need to unbind/bind the VF.
 
-Start with a bit and change when that makes no sense, MTUs as ints
-make sense.
+In addition, the existing implementation doesn't support a persistency
+mechanism to retry a GUID request when the SM has rejected it for any reason.
+The PF driver shall keep trying to acquire the specified GUID indefinitely by
+utilizing an exponential back off scheme, this should be managed per GUID and
+be aligned with other incoming admin requests.
 
-> Another example is the question of is it appropriate to wrap up the single READ
-> SGL entry support within the "is iwarp" flag?
+This ability needed especially for the on-demand GUID feature. In this case, we
+must manage the GUID's status per entry and handle cases that some entries are
+temporarily rejected.
 
-Again, stick with a single bit test until a HW vendors needs more,
-then someone can clean it. At least they now know what to clean and
-why.
+The first patch adds the persistency support and is pre-requisites for the
+series.  Further patches make the change to use the admin VF behavior as
+described above.
 
-Remember, this is in the kernel, we can change it when it outlives its
-life.
+Finally, the default mode is changed to be HOST assigned instead of SM
+assigned. This is the expected operational mode, because it doesn't depend on
+SM availability as described above.
 
-Jason
+Yishai, Jack and Or.
+
+Yishai Hadas (9):
+  IB/mlx4: Alias GUID adding persistency support
+  net/mlx4_core: Manage alias GUID per VF
+  net/mlx4_core: Set initial admin GUIDs for VFs
+  IB/mlx4: Manage admin alias GUID upon admin request
+  IB/mlx4: Change init flow to request alias GUIDs for active VFs
+  IB/mlx4: Request alias GUID on demand
+  net/mlx4_core: Raise slave shutdown event upon FLR
+  net/mlx4_core: Return the admin alias GUID upon host view request
+  IB/mlx4: Change alias guids default to be host assigned
+
+ drivers/infiniband/hw/mlx4/alias_GUID.c   |  460 +++++++++++++++++++++--------
+ drivers/infiniband/hw/mlx4/main.c         |   26 ++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |   14 +-
+ drivers/infiniband/hw/mlx4/sysfs.c        |   44 +--
+ drivers/net/ethernet/mellanox/mlx4/cmd.c  |   42 ++-
+ drivers/net/ethernet/mellanox/mlx4/eq.c   |    2 +
+ drivers/net/ethernet/mellanox/mlx4/main.c |   31 ++
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 +
+ include/linux/mlx4/device.h               |    4 +
+ 9 files changed, 443 insertions(+), 181 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
