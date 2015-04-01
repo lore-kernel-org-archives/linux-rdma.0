@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 8/9] net/mlx4_core: Return the admin alias GUID upon host view request
-Date: Wed,  1 Apr 2015 14:14:14 +0300
-Message-ID: <1427886855-16727-9-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V1 4/9] IB/mlx4: Manage admin alias GUID upon admin request
+Date: Wed,  1 Apr 2015 14:14:10 +0300
+Message-ID: <1427886855-16727-5-git-send-email-ogerlitz@mellanox.com>
 References: <1427886855-16727-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1427886855-16727-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,73 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Return the admin alias GUID value upon a GET request via HOST. We do this so
-that the GUID value requested by the admin is returned even if the SM has not
-yet approved this GUID (e.g. the SM is down).
+Set the admin alias GUID per the administrator's request via the sysfs
+mechanism into the core layer.
 
-Note that this does not create a problem, since the virtual port will remain
-down until the SM does ACK the requested GUID value.
+The "get" request returns the current value. However, if the administrator
+requests the SM to assign a new value by requesting 0, the SM assigned
+GUID is returned.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/cmd.c |   41 +++++++++++++++++++----------
- 1 files changed, 27 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/mlx4/alias_GUID.c |    6 ++++++
+ drivers/infiniband/hw/mlx4/sysfs.c      |   18 +++++++++---------
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index 778de74..bcc6b2d 100644
---- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -936,21 +936,34 @@ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
- 				return err;
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 4e994bf..2c476aa 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -325,6 +325,12 @@ static void aliasguid_query_handler(int status,
+ 			} else {
+ 				*(__be64 *)&rec->all_recs[i * GUID_REC_SIZE] =
+ 					sm_response;
++				if (required_val == 0)
++					mlx4_set_admin_guid(dev->dev,
++							    sm_response,
++							    (guid_rec->block_num
++							    * NUM_ALIAS_GUID_IN_REC) + i,
++							    cb_ctx->port);
+ 				goto next_entry;
  			}
- 			if (smp->attr_id == IB_SMP_ATTR_GUID_INFO) {
--				/* compute slave's gid block */
--				smp->attr_mod = cpu_to_be32(slave / 8);
--				/* execute cmd */
--				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
--					     vhcr->in_modifier, opcode_modifier,
--					     vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
--				if (!err) {
--					/* if needed, move slave gid to index 0 */
--					if (slave % 8)
--						memcpy(outsmp->data,
--						       outsmp->data + (slave % 8) * 8, 8);
--					/* delete all other gids */
--					memset(outsmp->data + 8, 0, 56);
-+				__be64 guid = mlx4_get_admin_guid(dev, slave,
-+								  port);
+ 		}
+diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
+index 7423d7e..bb1c34a 100644
+--- a/drivers/infiniband/hw/mlx4/sysfs.c
++++ b/drivers/infiniband/hw/mlx4/sysfs.c
+@@ -46,21 +46,17 @@
+ static ssize_t show_admin_alias_guid(struct device *dev,
+ 			      struct device_attribute *attr, char *buf)
+ {
+-	int record_num;/*0-15*/
+-	int guid_index_in_rec; /*0 - 7*/
+ 	struct mlx4_ib_iov_sysfs_attr *mlx4_ib_iov_dentry =
+ 		container_of(attr, struct mlx4_ib_iov_sysfs_attr, dentry);
+ 	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
+ 	struct mlx4_ib_dev *mdev = port->dev;
++	__be64 sysadmin_ag_val;
+ 
+-	record_num = mlx4_ib_iov_dentry->entry_num / 8 ;
+-	guid_index_in_rec = mlx4_ib_iov_dentry->entry_num % 8 ;
++	sysadmin_ag_val = mlx4_get_admin_guid(mdev->dev,
++					      mlx4_ib_iov_dentry->entry_num,
++					      port->num);
+ 
+-	return sprintf(buf, "%llx\n",
+-		       be64_to_cpu(*(__be64 *)&mdev->sriov.alias_guid.
+-				   ports_guid[port->num - 1].
+-				   all_rec_per_port[record_num].
+-				   all_recs[8 * guid_index_in_rec]));
++	return sprintf(buf, "%llx\n", be64_to_cpu(sysadmin_ag_val));
+ }
+ 
+ /* store_admin_alias_guid stores the (new) administratively assigned value of that GUID.
+@@ -98,6 +94,10 @@ static ssize_t store_admin_alias_guid(struct device *dev,
+ 	/* Change the state to be pending for update */
+ 	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].status
+ 		= MLX4_GUID_INFO_STATUS_IDLE ;
++	mlx4_set_admin_guid(mdev->dev, cpu_to_be64(sysadmin_ag_val),
++			    mlx4_ib_iov_dentry->entry_num,
++			    port->num);
 +
-+				/* set the PF admin guid to the FW/HW burned
-+				 * GUID, if it wasn't yet set
-+				 */
-+				if (slave == 0 && guid == 0) {
-+					smp->attr_mod = 0;
-+					err = mlx4_cmd_box(dev,
-+							   inbox->dma,
-+							   outbox->dma,
-+							   vhcr->in_modifier,
-+							   opcode_modifier,
-+							   vhcr->op,
-+							   MLX4_CMD_TIME_CLASS_C,
-+							   MLX4_CMD_NATIVE);
-+					if (err)
-+						return err;
-+					mlx4_set_admin_guid(dev,
-+							    *(__be64 *)outsmp->
-+							    data, slave, port);
-+				} else {
-+					memcpy(outsmp->data, &guid, 8);
- 				}
--				return err;
-+
-+				/* clean all other gids */
-+				memset(outsmp->data + 8, 0, 56);
-+				return 0;
- 			}
- 			if (smp->attr_id == IB_SMP_ATTR_NODE_INFO) {
- 				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
+ 	switch (sysadmin_ag_val) {
+ 	case MLX4_GUID_FOR_DELETE_VAL:
+ 		mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].ownership
 -- 
 1.7.1
 
