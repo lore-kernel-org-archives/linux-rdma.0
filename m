@@ -1,46 +1,76 @@
-From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
  memory access
-Date: Thu, 2 Apr 2015 10:52:52 +0000
-Message-ID: <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+Date: Thu, 02 Apr 2015 15:30:31 +0200
+Message-ID: <1427981431.22575.21.camel@opteya.com>
 References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
- <1427969085.17020.5.camel@opteya.com>
-Reply-To: oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org
+	 <1427969085.17020.5.camel@opteya.com>
+	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <oss-security-return-16353-gcsos-oss-security=m.gmane.org-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
-List-Post: <mailto:oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
-List-Help: <mailto:oss-security-help-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <mailto:oss-security-unsubscribe-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
-List-Subscribe: <mailto:oss-security-subscribe-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
-In-Reply-To: <1427969085.17020.5.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20-LOZWmgKjnYgQouBfZGh8ttqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org" <oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWWFubiBEcm9uZWF1
-ZCBbbWFpbHRvOnlkcm9uZWF1ZEBvcHRleWEuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwg
-MDIsIDIwMTUgMTowNSBQTQ0KPiBUbzogU2hhY2hhciBSYWluZGVsDQo+IENjOiBvc3Mtc2VjdXJp
-dHlAbGlzdHMub3BlbndhbGwuY29tOyA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IChs
-aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZyk7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7
-DQo+IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IENWRS0yMDE0LTgxNTkg
-a2VybmVsOiBpbmZpbmliYW5kOiB1dmVyYnM6IHVucHJvdGVjdGVkDQo+IHBoeXNpY2FsIG1lbW9y
-eSBhY2Nlc3MNCj4gDQo+IEhpLA0KPiANCj4gTGUgbWVyY3JlZGkgMTggbWFycyAyMDE1IMOgIDE3
-OjM5ICswMDAwLCBTaGFjaGFyIFJhaW5kZWwgYSDDqWNyaXQgOg0KPiA+IEhpLA0KPiA+DQoNCjxz
-bmlwcGVkIGxvbmcgZS1tYWlsPg0KIA0KPiA+ICsJLyoNCj4gPiArCSAqIElmIHRoZSBjb21iaW5h
-dGlvbiBvZiB0aGUgYWRkciBhbmQgc2l6ZSByZXF1ZXN0ZWQgZm9yIHRoaXMNCj4gbWVtb3J5DQo+
-ID4gKwkgKiByZWdpb24gY2F1c2VzIGFuIGludGVnZXIgb3ZlcmZsb3csIHJldHVybiBlcnJvci4N
-Cj4gPiArCSAqLw0KPiA+ICsJaWYgKChQQUdFX0FMSUdOKGFkZHIgKyBzaXplKSA8PSBzaXplKSB8
-fA0KPiA+ICsJICAgIChQQUdFX0FMSUdOKGFkZHIgKyBzaXplKSA8PSBhZGRyKSkNCj4gPiArCQly
-ZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsNCj4gPiArDQo+IA0KPiBDYW4gYWNjZXNzX29rKCkgYmUg
-dXNlZCBoZXJlID8NCj4gDQo+ICAgICAgICAgIGlmICghYWNjZXNzX29rKHdyaXRhYmxlID8gVkVS
-SUZZX1dSSVRFIDogVkVSSUZZX1JFQUQsDQo+ICAgICAgICAgICAgICAgICAgICAgICAgIGFkZHIs
-IHNpemUpKQ0KPiAgICAgICAgICAgICAgICAgICByZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsNCj4g
-DQoNCk5vLCB0aGlzIHdpbGwgYnJlYWsgdGhlIGN1cnJlbnQgT0RQIHNlbWFudGljcy4NCg0KT0RQ
-IGFsbG93cyB0aGUgdXNlciB0byByZWdpc3RlciBtZW1vcnkgdGhhdCBpcyBub3QgYWNjZXNzaWJs
-ZSB5ZXQuDQpUaGlzIGlzIGEgY3JpdGljYWwgZGVzaWduIGZlYXR1cmUsIGFzIGl0IGFsbG93cyBh
-dm9pZGluZyBob2xkaW5nDQphIHJlZ2lzdHJhdGlvbiBjYWNoZS4gQWRkaW5nIHRoaXMgY2hlY2sg
-d2lsbCBicmVhayB0aGUgYmVoYXZpb3IsDQpmb3JjaW5nIG1lbW9yeSB0byBiZSBhbGwgYWNjZXNz
-aWJsZSB3aGVuIHJlZ2lzdGVyaW5nIGFuIE9EUCBNUi4NCg0KVGhhbmtzLA0KLS1TaGFjaGFyDQo=
+Hi,
+
+Le jeudi 02 avril 2015 =C3=A0 10:52 +0000, Shachar Raindel a =C3=A9crit=
+ :
+> > -----Original Message-----
+> > From: Yann Droneaud [mailto:ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org]
+> > Sent: Thursday, April 02, 2015 1:05 PM
+> > Le mercredi 18 mars 2015 =C3=A0 17:39 +0000, Shachar Raindel a =C3=A9=
+crit :
+
+> > > +	/*
+> > > +	 * If the combination of the addr and size requested for this
+> > memory
+> > > +	 * region causes an integer overflow, return error.
+> > > +	 */
+> > > +	if ((PAGE_ALIGN(addr + size) <=3D size) ||
+> > > +	    (PAGE_ALIGN(addr + size) <=3D addr))
+> > > +		return ERR_PTR(-EINVAL);
+> > > +
+> >=20
+> > Can access_ok() be used here ?
+> >=20
+> >          if (!access_ok(writable ? VERIFY_WRITE : VERIFY_READ,
+> >                         addr, size))
+> >                   return ERR_PTR(-EINVAL);
+> >=20
+>=20
+> No, this will break the current ODP semantics.
+>=20
+> ODP allows the user to register memory that is not accessible yet.
+> This is a critical design feature, as it allows avoiding holding
+> a registration cache. Adding this check will break the behavior,
+> forcing memory to be all accessible when registering an ODP MR.
+>=20
+
+Where's the check for the range being in userspace memory space,
+especially for the ODP case ?
+
+=46or non ODP case (eg. plain old behavior), does get_user_pages()
+ensure the requested pages fit in userspace region on all=20
+architectures ? I think so.
+
+In ODP case, I'm not sure such check is ever done ?
+(Aside, does it take special mesure to protect shared mapping from
+being read and/or *written* ?)
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
