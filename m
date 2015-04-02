@@ -1,68 +1,49 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ib_ipoib: Scatter-Gather support in connected mode
-Date: Wed, 1 Apr 2015 23:33:15 +0300
-Message-ID: <20150401203314.GF8024@yuval-lab>
-References: <1422357682-8934-1-git-send-email-yuval.shaia@oracle.com>
- <1422444987.3133.81.camel@opteya.com>
- <20150201070941.GA4778@yuval-lab>
- <20150315151616.GA3546@yuval-lab>
- <20150322092149.GA5229@yuval-lab>
- <20150323171749.GA3580@obsidianresearch.com>
+From: Shachar Raindel <raindel@mellanox.com>
+Subject: RE: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+ memory access
+Date: Thu, 2 Apr 2015 07:52:17 +0000
+Message-ID: <AM3PR05MB0935CC450033AE6DFF0B14B3DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
+ <CAL1RGDXQh2+WQxf9w2Qvo-Npr2MnBZYObyfYfy7fn-Pfue=Odg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150323171749.GA3580-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDXQh2+WQxf9w2Qvo-Npr2MnBZYObyfYfy7fn-Pfue=Odg@mail.gmail.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Roland Dreier <roland@purestorage.com>
+Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 23, 2015 at 11:17:49AM -0600, Jason Gunthorpe wrote:
-> On Sun, Mar 22, 2015 at 11:21:50AM +0200, Yuval Shaia wrote:
-> > On Sun, Mar 15, 2015 at 05:16:16PM +0200, Yuval Shaia wrote:
-> > > Hi,
-> > > I didn't got any further comments on this one.
-> > > Any idea why SG in CM is un-welcome?
-> > By mistake I sent a private mail only.
-> > Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > 
-> > Your advice would be very appreciated.
-> 
-> I haven't looked in detail at the patch, but in principle, using S/G
-> when ever possible should be the default, even if this creates a
-> performance regression.
-Per my testings - no impact on performance.
-> 
-> It is well known that high order allocations are problematic in Linux
-> and should be avoided, and I also have seen systems blow up because of
-> high order IPoIB allocations.
-Yes, snapshot from oops:
-Call Trace:
- [<ffffffff810ddf74>] __alloc_pages_nodemask+0x524/0x595
- [<ffffffff8110da3f>] kmem_getpages+0x4f/0xf4
- [<ffffffff8110dc12>] fallback_alloc+0x12e/0x1ce
- [<ffffffff8110ddd3>] ____cache_alloc_node+0x121/0x134
- [<ffffffff8110e3f3>] kmem_cache_alloc_node_notrace+0x84/0xb9
- [<ffffffff8110e46e>] __kmalloc_node+0x46/0x73
- [<ffffffff813b9aa8>] ? __alloc_skb+0x72/0x13d
-> 
-> That said, there may be cases where S/G is not possible, you should
-> try and get Mellanox to comment if all their offloads work on all
-> their cards when S/G is used. Work may be required to resolve any of
-> these constraints. I'd like to belive there is some reason why we've
-> been doing high order allocations for so many years.
-Old kernels (2.6.39) restrict the usage of S/G only to H/W which supports CSUM offload.
-Mellanox HCA supports CSUM offload only for UD and this is why we can find S/G support for UD but not for CM.
-With the introduction of commit ec5f061 this limitation is no longer there so no reason not to add this support.
-> 
-> FWIW, I would probably choose to default S/G over any other offload
-> acceleration.
-> 
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9sYW5kIERyZWllciBb
+bWFpbHRvOnJvbGFuZEBwdXJlc3RvcmFnZS5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwgQXByaWwg
+MDEsIDIwMTUgODoyOCBQTQ0KPiBUbzogU2hhY2hhciBSYWluZGVsDQo+IENjOiBvc3Mtc2VjdXJp
+dHlAbGlzdHMub3BlbndhbGwuY29tOyA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IChs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZyk7IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3Vi
+amVjdDogUmU6IENWRS0yMDE0LTgxNTkga2VybmVsOiBpbmZpbmliYW5kOiB1dmVyYnM6IHVucHJv
+dGVjdGVkDQo+IHBoeXNpY2FsIG1lbW9yeSBhY2Nlc3MNCj4gDQo+IE9uIFdlZCwgTWFyIDE4LCAy
+MDE1IGF0IDEwOjM5IEFNLCBTaGFjaGFyIFJhaW5kZWwgPHJhaW5kZWxAbWVsbGFub3guY29tPg0K
+PiB3cm90ZToNCj4gPiBEYXRlOiBTdW4sIDA0IEphbiAyMDE1IDE4OjMwOjMyICswMjAwDQo+ID4g
+U3ViamVjdDogW1BBVENIXSBJQi9jb3JlOiBQcmV2ZW50IGludGVnZXIgb3ZlcmZsb3cgaW4gaWJf
+dW1lbV9nZXQNCj4gYWRkcmVzcyBhcml0aG1ldGljDQo+IA0KPiBKdXN0IHNvIHdlJ3JlIGNsZWFy
+LCB0aGlzIGJ1ZyBoYXMgYmVlbiBrbm93biBzaW5jZSBKYW51YXJ5IDQsIGFuZCBpdCdzDQo+IGdl
+dHRpbmcgc2VudCB1cHN0cmVhbSBub3c/DQo+IA0KDQpUaGlzIGJ1ZyBoYXMgYmVlbiBrbm93biBz
+aW5jZSBKYW51YXJ5LCB5ZXMuIFRvIHJlZHVjZSB0aGUgd2luZG93IG9mDQp2dWxuZXJhYmlsaXR5
+LCB3ZSBwcml2YXRlbHkgcmVwb3J0ZWQgaXQgdG8gbWFqb3IgZGlzdHJpYnV0aW9ucyBmaXJzdCwN
+CmFsaWduaW5nIGV2ZXJ5b25lIG9uIHRoZSBzYW1lIHJlbGVhc2UgZGF0ZS4gU3VjaCBzeW5jaHJv
+bml6YXRpb24gdGFrZXMNCnRpbWUuIEdpdmVuIHRoYXQgdGhlIGJ1ZyB3YXMgbm90LCB0byB0aGUg
+YmVzdCBvZiBvdXIga25vd2xlZGdlLA0KZXhwbG9pdGVkIGluIHRoZSB3aWxkLCB3ZSBiZWxpZXZl
+ZCB0aGF0IDMgbW9udGhzIG9mIGVtYmFyZ28gaXMgbm90DQpleHViZXJhdGVkLiBUaGlzIGlzIGEg
+Y29tbW9uIHByYWN0aWNlIGluIHRoZSBzZWN1cml0eSBpbmR1c3RyeSwgY2FsbGVkDQoicmVzcG9u
+c2libGUgZGlzY2xvc3VyZS4iDQoNCkZvbGxvd2luZyB0aGUga2VybmVsICBzZWN1cml0eSBidWdz
+IHBvbGljeSBbMV0sIHdlIHJlcG9ydGVkIGl0IHRvIA0KdGhlIGtlcm5lbCBzZWN1cml0eSBjb250
+YWN0cyBmZXcgZGF5cyBiZWZvcmUgbWFraW5nIHRoZSBpc3N1ZSBwdWJsaWMuDQpGZXcgZGF5cyBh
+ZnRlciBpc3N1ZSBiZWNhbWUgcHVibGljLCB3ZSBwdWJsaXNoZWQgYSBjbGVhciByZXBvcnQgdG8g
+YWxsDQpvZiB0aGUgcmVsZXZhbnQgbWFpbGluZyBsaXN0cy4NCg0KPiBJIGFzc3VtZSB3ZSB3YW50
+IGl0IGluIDQuMCBhbmQgLXN0YWJsZT8NCg0KWWVzLiBTaG91bGQgYmUgYXBwbGllZCBBU0FQIHRv
+IGFsbCBrZXJuZWxzIHRoYXQgY29udGFpbiB1dmVyYnMuDQpXZSBwdXQgc29tZSBlZmZvcnQgdG8g
+bWFrZSBzdXJlIHRoZSBwYXRjaCB3aWxsIGFwcGx5IGNsZWFubHkgb24gYWxsDQpoaXN0b3JpY2Fs
+IHZlcnNpb25zIG9mIHRoZSBrZXJuZWwsIHNvIGJhY2twb3J0aW5nIHNob3VsZCBiZSBzaW1wbGUu
+DQoNCg0KVGhhbmtzLA0KLS1TaGFjaGFyDQoNClsxXSBodHRwczovL3d3dy5rZXJuZWwub3JnL2Rv
+Yy9Eb2N1bWVudGF0aW9uL1NlY3VyaXR5QnVncw0K
