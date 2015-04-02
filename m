@@ -1,136 +1,129 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
-Date: Thu, 2 Apr 2015 17:32:53 +0300
-Message-ID: <CAJ3xEMgptECgnWXfW7wN8sjqRfUvzF3tCN=Lj8MZtdOG8yg3jQ@mail.gmail.com>
-References: <20150330.233602.155832546277570456.davem@davemloft.net>
-	<CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
-	<CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
-	<20150331.114824.651005354305268415.davem@davemloft.net>
-	<1828884A29C6694DAF28B7E6B8A82373A8FBB790@ORSMSX109.amr.corp.intel.com>
-	<CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A82373A8FBBCE3@ORSMSX109.amr.corp.intel.com>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+ memory access
+Date: Thu, 02 Apr 2015 17:15:52 +0200
+Message-ID: <1427987752.22575.65.camel@opteya.com>
+References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
+	 <1427969085.17020.5.camel@opteya.com>
+	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBBCE3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+Sender: stable-owner@vger.kernel.org
+To: Shachar Raindel <raindel@mellanox.com>
+Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 1, 2015 at 12:33 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> I must disagree. You made this claim back when we submitted the IB
->> core patch which adds support for signature, protection etc offloads
->> (commit 1b01d33560e7 "IB/core: Introduce signature verbs API" and the
->> detailed replied you got were explaining that
->
-> And I'll continue to make this claim because it is true.
->
->> Very similar arguments would apply to the ODP submission.
->
-> Yes - ODP will _have_ to change the core.  USNIC had to change the core, and had changes rejected that made perfect sense conceptually.  This is part of the problem!!!   If you disagree, then submit patches that don't touch the core.
+Hi,
+Le jeudi 02 avril 2015 =C3=A0 10:52 +0000, Shachar Raindel a =C3=A9crit=
+ :
+> > -----Original Message-----
+> > From: Yann Droneaud [mailto:ydroneaud@opteya.com]
+> > Sent: Thursday, April 02, 2015 1:05 PM
+> > Le mercredi 18 mars 2015 =C3=A0 17:39 +0000, Shachar Raindel a =C3=A9=
+crit :
+=2E..
+> > > +	/*
+> > > +	 * If the combination of the addr and size requested for this
+> > memory
+> > > +	 * region causes an integer overflow, return error.
+> > > +	 */
+> > > +	if ((PAGE_ALIGN(addr + size) <=3D size) ||
+> > > +	    (PAGE_ALIGN(addr + size) <=3D addr))
+> > > +		return ERR_PTR(-EINVAL);
+> > > +
+> >=20
+> > Can access_ok() be used here ?
+> >=20
+> >          if (!access_ok(writable ? VERIFY_WRITE : VERIFY_READ,
+> >                         addr, size))
+> >                   return ERR_PTR(-EINVAL);
+> >=20
+>=20
+> No, this will break the current ODP semantics.
+>=20
+> ODP allows the user to register memory that is not accessible yet.
+> This is a critical design feature, as it allows avoiding holding
+> a registration cache. Adding this check will break the behavior,
+> forcing memory to be all accessible when registering an ODP MR.
+>=20
 
-Sean,
+=46ailed to notice previously, but since this would break ODP, and ODP =
+is=20
+only available starting v3.19-rc1, my proposed fix might be applicable=20
+for older kernel (if not better).
 
-ODP (On Demand Paging)
+=46rom 2a3beaeb4b35d968f127cb59cfda2f12dbd87e4b Mon Sep 17 00:00:00 200=
+1
+=46rom: Yann Droneaud <ydroneaud@opteya.com>
+Date: Thu, 2 Apr 2015 17:01:05 +0200
+Subject: [RFC PATCH] IB/core: reject invalid userspace memory range reg=
+istration
 
-8ada2c1 IB/core: Add support for on demand paging regions
-860f10a IB/core: Add flags for on demand paging support
+Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
+---
+ drivers/infiniband/core/umem.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-is upstream for few releases already, and it changed the core indeed.
-Memory Registration is sort of PITA for RDMA consumers and ODP is a
-brilliant concept which down the road should be removing the hassle of
-memory registration altogether (think on transparent lkey per process,
-but days will tell).
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/u=
+mem.c
+index df0c4f605a21..6758b4ac56eb 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -90,6 +90,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *conte=
+xt, unsigned long addr,
+ 	DEFINE_DMA_ATTRS(attrs);
+ 	struct scatterlist *sg, *sg_list_start;
+ 	int need_release =3D 0;
++	bool writable;
+=20
+ 	if (dmasync)
+ 		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
+@@ -97,6 +98,19 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *cont=
+ext, unsigned long addr,
+ 	if (!can_do_mlock())
+ 		return ERR_PTR(-EPERM);
+=20
++	/*
++	 * We ask for writable memory if any access flags other than
++	 * "remote read" are set.  "Local write" and "remote write"
++	 * obviously require write access.  "Remote atomic" can do
++	 * things like fetch and add, which will modify memory, and
++	 * "MW bind" can change permissions by binding a window.
++	 */
++	writable  =3D !!(access & ~IB_ACCESS_REMOTE_READ);
++
++	if (!access_ok(writable ? VERIFY_WRITE : VERIFY_READ,
++		       (void __user *)addr, size))
++		return ERR_PTR(-EFAULT);
++
+ 	umem =3D kzalloc(sizeof *umem, GFP_KERNEL);
+ 	if (!umem)
+ 		return ERR_PTR(-ENOMEM);
+@@ -106,14 +120,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *co=
+ntext, unsigned long addr,
+ 	umem->offset    =3D addr & ~PAGE_MASK;
+ 	umem->page_size =3D PAGE_SIZE;
+ 	umem->pid       =3D get_task_pid(current, PIDTYPE_PID);
+-	/*
+-	 * We ask for writable memory if any access flags other than
+-	 * "remote read" are set.  "Local write" and "remote write"
+-	 * obviously require write access.  "Remote atomic" can do
+-	 * things like fetch and add, which will modify memory, and
+-	 * "MW bind" can change permissions by binding a window.
+-	 */
+-	umem->writable  =3D !!(access & ~IB_ACCESS_REMOTE_READ);
++	umem->writable  =3D writable;
+=20
+ 	/* We assume the memory is from hugetlb until proved otherwise */
+ 	umem->hugetlb   =3D 1;
+--=20
+2.1.0
 
-As you pointed out during the USNIC review, it's sort of hack which is
-not supported by any standard, unlike the other supported RDMA
-technologies which are upstream: IB, RoCE and iWARP. But guess what,
-the RDMA maintainer made no comments, and silently picked it up.
+Regards.
 
-Your claim says more or less "don't touch the good old
-include/rdma/ib_verbs.h from 2.6.12, just add new low-level drivers"
--- this is very close to claiming that it doesn't make sense to change
-anything in the low areas of the core networking stack or in
-netdevice.h over the years, just add new Ethernet drivers. This does
-not make any sense.
-
-There are more and more new use cases for RDMA and indeed a nice
-challenge to frame them generally with modified/new verbs APIs and
-changes to the IB core, such as the patches to support name-spaces to
-make RDMA usable in containers which you (maintainer of the CM and
-RDMA-CM in the IB core) is ignoring for couple of months too
-(following Roland?).
-
-
->> So examples please!
-> Sure - this is from Somnath's latest patch series:
->
-> Matan Barak (14):
->   IB/core: Add RoCE GID cache
->   IB/core: Add kref to IB devices
->   IB/core: Add RoCE GID population
->   IB/core: Add default GID for RoCE GID Cache
->   net/bonding: make DRV macros private
->   net: Add info for NETDEV_CHANGEUPPER event
->   IB/core: Add RoCE cache bonding support
->   IB/core: GID attribute should be returned from verbs API and cache API
->   IB/core: Report gid_type and gid_ndev through sysfs
->   IB/core: Support find sgid index using a filter function
->   IB/core: Modify ib_verbs and cma in order to use roce_gid_cache
->   IB/core: Add gid_type to path and rdma_id_private
->   IB/core: Add rdma_network_type to wc
->   IB/cma: Add configfs for rdma_cm
->
-> Moni Shoua (13):
->   IB/mlx4: Remove gid table management for RoCE
->   IB/mlx4: Replace spin_lock with rw_semaphore
->   IB/mlx4: Lock with RCU instead of RTNL
->   net/mlx4: Postpone the registration of net_device
->   IB/mlx4: Advertise RoCE support in port capabilities
->   IB/mlx4: Implement ib_device callback - get_netdev
->   IB/mlx4: Implement ib_device callback - modify_gid
->   IB/mlx4: Configure device to work in RoCEv2
->   IB/mlx4: Translate cache gid index to real index
->   IB/core: Initialize UD header structure with IP and UDP headers
->   IB/mlx4: Enable send of RoCE QP1 packets with IP/UDP headers
->   IB/mlx4: Create and use another QP1 for RoCEv2
->   IB/cma: Join and leave multicast groups with IGMP
->
-> That's a significant number of patches that modify the core rdma layer.
-
-This series indeed is a bit heavy as it brings three changes
-
-1. move the RoCE GID table management from LL drivers (ocrdma and
-mlx4) into the IB core
-2. support multiple GID types
-3. support RoCE V2
-
-#1 is terribly making sense, b/c RoCE GID addresses are derived
-through net events
-from IP addresses configured to the  buddy Ethernet net-device and uppers (vlan,
-bond and such) so there's no point to have this logic replicated over
-and over in LL drivers.
-
-#2 and #3 follow the IBTA spec of RoCE V2
-
-It could be perfect maintainer comment to say: do it one-by-one, but
-anybody there?
-
-If you have concrete feedback on step #1 or anything else in the
-series, let them know.
-
-> NFSoRDMA had 5 different ways to register memory.
-
-that's bad protocol implementation, so they are fixing it now. Has
-nothing to do with the IB core.
-
-> I agree that Roland's response time is ridiculously slow.  But he does tend to merge in new drivers and updates that only touch a single vendor's driver fairly quickly.  It's the thrashing on the core that sees significant delays.
-
-Without ability to add the changed to the core, we can't make progress
-
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Yann Droneaud
+OPTEYA
