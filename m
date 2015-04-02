@@ -1,107 +1,131 @@
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
- memory access
-Date: Thu, 02 Apr 2015 12:04:45 +0200
-Message-ID: <1427969085.17020.5.camel@opteya.com>
-References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
-Sender: stable-owner@vger.kernel.org
-To: Shachar Raindel <raindel@mellanox.com>
-Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, "stable@vger.kernel.org" <stable@vger.kernel.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 3/6] IB/ipoib: Handle QP in SQE state
+Date: Thu,  2 Apr 2015 13:39:02 +0300
+Message-ID: <1427971145-26943-4-git-send-email-ogerlitz@mellanox.com>
+References: <1427971145-26943-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1427971145-26943-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Le mercredi 18 mars 2015 =C3=A0 17:39 +0000, Shachar Raindel a =C3=A9cr=
-it :
-> Hi,
->=20
-> It was found that the Linux kernel's InfiniBand/RDMA subsystem did no=
-t
-> properly sanitize input parameters while registering memory regions
-> from user space via the (u)verbs API. A local user with access to
-> a /dev/infiniband/uverbsX device could use this flaw to crash the
-> system or, potentially, escalate their privileges on the system.
->=20
-> The issue has been assigned CVE-2014-8159.
->=20
-> The issue exists in the InfiniBand/RDMA/iWARP drivers since Linux
-> Kernel version 2.6.13.
->=20
-> Mellanox OFED 2.4-1.0.4 fixes the issue. Available from:
-> http://www.mellanox.com/page/products_dyn?product_family=3D26&mtag=3D=
-linux_sw_drivers=20
->=20
-> RedHat errata: https://access.redhat.com/security/cve/CVE-2014-8159
-> Canonical errata: http://people.canonical.com/~ubuntu-security/cve/20=
-14/CVE-2014-8159.html
-> Novell (Suse) bug tracking: https://bugzilla.novell.com/show_bug.cgi?=
-id=3D914742
->=20
->=20
-> The following patch fixes the issue:
->=20
-> --------------- 8< ------------------------------
->=20
-> From d4d68430d4a12c569e28b4f4468284ea22111186 Mon Sep 17 00:00:00 200=
-1
-> From: Shachar Raindel <raindel@mellanox.com>
-> Date: Sun, 04 Jan 2015 18:30:32 +0200
-> Subject: [PATCH] IB/core: Prevent integer overflow in ib_umem_get add=
-ress arithmetic
->=20
-> Properly verify that the resulting page aligned end address is larger
-> than both the start address and the length of the memory area
-> requested.
->=20
-> Both the start and length arguments for ib_umem_get are controlled by
-> the user. A misbehaving user can provide values which will cause an
-> integer overflow when calculating the page aligned end address.
->=20
-> This overflow can cause also miscalculation of the number of pages
-> mapped, and additional logic issues.
->=20
-> Signed-off-by: Shachar Raindel <raindel@mellanox.com>
-> Signed-off-by: Jack Morgenstein <jackm@mellanox.com>
-> Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
-> ---
->=20
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core=
-/umem.c
-> index aec7a6a..8c014b5 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -99,6 +99,14 @@
->  	if (dmasync)
->  		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
-> =20
-> +	/*
-> +	 * If the combination of the addr and size requested for this memor=
-y
-> +	 * region causes an integer overflow, return error.
-> +	 */
-> +	if ((PAGE_ALIGN(addr + size) <=3D size) ||
-> +	    (PAGE_ALIGN(addr + size) <=3D addr))
-> +		return ERR_PTR(-EINVAL);
-> +
+As the result of a completion error the QP can moved to SQE state by
+the hardware. Since it's not the Error state, there are no flushes
+and hence the driver doesn't know about that.
 
-Can access_ok() be used here ?
+The fix creates a task that after completion with error which is not a
+flush tracks the QP state and if it is in SQE state moves it back to RTS.
 
-         if (!access_ok(writable ? VERIFY_WRITE : VERIFY_READ,
-                        addr, size))
-                  return ERR_PTR(-EINVAL);
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h    |    5 +++
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   59 ++++++++++++++++++++++++++++++-
+ 2 files changed, 63 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 769044c..2703d9a 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -299,6 +299,11 @@ struct ipoib_neigh_table {
+ 	struct completion		deleted;
+ };
+ 
++struct ipoib_qp_state_validate {
++	struct work_struct work;
++	struct ipoib_dev_priv   *priv;
++};
++
+ /*
+  * Device private locking: network stack tx_lock protects members used
+  * in TX fast path, lock protects everything else.  lock nests inside
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 29b376d..63b92cb 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -327,6 +327,51 @@ static void ipoib_dma_unmap_tx(struct ib_device *ca,
+ 	}
+ }
+ 
++/*
++ * As the result of a completion error the QP Can be transferred to SQE states.
++ * The function checks if the (send)QP is in SQE state and
++ * moves it back to RTS state, that in order to have it functional again.
++ */
++static void ipoib_qp_state_validate_work(struct work_struct *work)
++{
++	struct ipoib_qp_state_validate *qp_work =
++		container_of(work, struct ipoib_qp_state_validate, work);
++
++	struct ipoib_dev_priv *priv = qp_work->priv;
++	struct ib_qp_attr qp_attr;
++	struct ib_qp_init_attr query_init_attr;
++	int ret;
++
++	ret = ib_query_qp(priv->qp, &qp_attr, IB_QP_STATE, &query_init_attr);
++	if (ret) {
++		ipoib_warn(priv, "%s: Failed to query QP ret: %d\n",
++			   __func__, ret);
++		goto free_res;
++	}
++	pr_info("%s: QP: 0x%x is in state: %d\n",
++		__func__, priv->qp->qp_num, qp_attr.qp_state);
++
++	/* currently support only in SQE->RTS transition*/
++	if (qp_attr.qp_state == IB_QPS_SQE) {
++		qp_attr.qp_state = IB_QPS_RTS;
++
++		ret = ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE);
++		if (ret) {
++			pr_warn("failed(%d) modify QP:0x%x SQE->RTS\n",
++				ret, priv->qp->qp_num);
++			goto free_res;
++		}
++		pr_info("%s: QP: 0x%x moved from IB_QPS_SQE to IB_QPS_RTS\n",
++			__func__, priv->qp->qp_num);
++	} else {
++		pr_warn("QP (%d) will stay in state: %d\n",
++			priv->qp->qp_num, qp_attr.qp_state);
++	}
++
++free_res:
++	kfree(qp_work);
++}
++
+ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+@@ -358,10 +403,22 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 		netif_wake_queue(dev);
+ 
+ 	if (wc->status != IB_WC_SUCCESS &&
+-	    wc->status != IB_WC_WR_FLUSH_ERR)
++	    wc->status != IB_WC_WR_FLUSH_ERR) {
++		struct ipoib_qp_state_validate *qp_work;
+ 		ipoib_warn(priv, "failed send event "
+ 			   "(status=%d, wrid=%d vend_err %x)\n",
+ 			   wc->status, wr_id, wc->vendor_err);
++		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
++		if (!qp_work) {
++			ipoib_warn(priv, "%s Failed alloc ipoib_qp_state_validate for qp: 0x%x\n",
++				   __func__, priv->qp->qp_num);
++			return;
++		}
++
++		INIT_WORK(&qp_work->work, ipoib_qp_state_validate_work);
++		qp_work->priv = priv;
++		queue_work(priv->wq, &qp_work->work);
++	}
+ }
+ 
+ static int poll_tx(struct ipoib_dev_priv *priv)
+-- 
+1.7.1
 
->  	if (!can_do_mlock())
->  		return ERR_PTR(-EPERM);
->=20
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
