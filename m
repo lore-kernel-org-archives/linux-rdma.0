@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 3/6] IB/ipoib: Handle QP in SQE state
-Date: Thu,  2 Apr 2015 13:39:02 +0300
-Message-ID: <1427971145-26943-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 5/6] IB/ipoib: Remove IPOIB_MCAST_RUN bit
+Date: Thu,  2 Apr 2015 13:39:04 +0300
+Message-ID: <1427971145-26943-6-git-send-email-ogerlitz@mellanox.com>
 References: <1427971145-26943-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1427971145-26943-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,116 +12,66 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-As the result of a completion error the QP can moved to SQE state by
-the hardware. Since it's not the Error state, there are no flushes
-and hence the driver doesn't know about that.
-
-The fix creates a task that after completion with error which is not a
-flush tracks the QP state and if it is in SQE state moves it back to RTS.
+After Doug Ledford's changes there is no need in that bit, it's
+semantic becomes subset of the IPOIB_FLAG_OPER_UP bit.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h    |    5 +++
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   59 ++++++++++++++++++++++++++++++-
- 2 files changed, 63 insertions(+), 1 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h           |    1 -
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    6 ++----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 769044c..2703d9a 100644
+index 2703d9a..bd94b0a 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib.h
 +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -299,6 +299,11 @@ struct ipoib_neigh_table {
- 	struct completion		deleted;
- };
- 
-+struct ipoib_qp_state_validate {
-+	struct work_struct work;
-+	struct ipoib_dev_priv   *priv;
-+};
-+
- /*
-  * Device private locking: network stack tx_lock protects members used
-  * in TX fast path, lock protects everything else.  lock nests inside
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 29b376d..63b92cb 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -327,6 +327,51 @@ static void ipoib_dma_unmap_tx(struct ib_device *ca,
- 	}
- }
- 
-+/*
-+ * As the result of a completion error the QP Can be transferred to SQE states.
-+ * The function checks if the (send)QP is in SQE state and
-+ * moves it back to RTS state, that in order to have it functional again.
-+ */
-+static void ipoib_qp_state_validate_work(struct work_struct *work)
-+{
-+	struct ipoib_qp_state_validate *qp_work =
-+		container_of(work, struct ipoib_qp_state_validate, work);
-+
-+	struct ipoib_dev_priv *priv = qp_work->priv;
-+	struct ib_qp_attr qp_attr;
-+	struct ib_qp_init_attr query_init_attr;
-+	int ret;
-+
-+	ret = ib_query_qp(priv->qp, &qp_attr, IB_QP_STATE, &query_init_attr);
-+	if (ret) {
-+		ipoib_warn(priv, "%s: Failed to query QP ret: %d\n",
-+			   __func__, ret);
-+		goto free_res;
-+	}
-+	pr_info("%s: QP: 0x%x is in state: %d\n",
-+		__func__, priv->qp->qp_num, qp_attr.qp_state);
-+
-+	/* currently support only in SQE->RTS transition*/
-+	if (qp_attr.qp_state == IB_QPS_SQE) {
-+		qp_attr.qp_state = IB_QPS_RTS;
-+
-+		ret = ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE);
-+		if (ret) {
-+			pr_warn("failed(%d) modify QP:0x%x SQE->RTS\n",
-+				ret, priv->qp->qp_num);
-+			goto free_res;
-+		}
-+		pr_info("%s: QP: 0x%x moved from IB_QPS_SQE to IB_QPS_RTS\n",
-+			__func__, priv->qp->qp_num);
-+	} else {
-+		pr_warn("QP (%d) will stay in state: %d\n",
-+			priv->qp->qp_num, qp_attr.qp_state);
-+	}
-+
-+free_res:
-+	kfree(qp_work);
-+}
-+
- static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+@@ -87,7 +87,6 @@ enum {
+ 	IPOIB_FLAG_ADMIN_UP	  = 2,
+ 	IPOIB_PKEY_ASSIGNED	  = 3,
+ 	IPOIB_FLAG_SUBINTERFACE	  = 5,
+-	IPOIB_MCAST_RUN		  = 6,
+ 	IPOIB_STOP_REAPER	  = 7,
+ 	IPOIB_FLAG_ADMIN_CM	  = 9,
+ 	IPOIB_FLAG_UMCAST	  = 10,
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index c83c958..0d23e05 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -71,7 +71,7 @@ static void __ipoib_mcast_schedule_join_thread(struct ipoib_dev_priv *priv,
+ 					       struct ipoib_mcast *mcast,
+ 					       bool delay)
  {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-@@ -358,10 +403,22 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 		netif_wake_queue(dev);
+-	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
++	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
+ 		return;
  
- 	if (wc->status != IB_WC_SUCCESS &&
--	    wc->status != IB_WC_WR_FLUSH_ERR)
-+	    wc->status != IB_WC_WR_FLUSH_ERR) {
-+		struct ipoib_qp_state_validate *qp_work;
- 		ipoib_warn(priv, "failed send event "
- 			   "(status=%d, wrid=%d vend_err %x)\n",
- 			   wc->status, wr_id, wc->vendor_err);
-+		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
-+		if (!qp_work) {
-+			ipoib_warn(priv, "%s Failed alloc ipoib_qp_state_validate for qp: 0x%x\n",
-+				   __func__, priv->qp->qp_num);
-+			return;
-+		}
-+
-+		INIT_WORK(&qp_work->work, ipoib_qp_state_validate_work);
-+		qp_work->priv = priv;
-+		queue_work(priv->wq, &qp_work->work);
-+	}
- }
+ 	/*
+@@ -519,7 +519,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	struct ipoib_mcast *mcast = NULL;
+ 	int create = 1;
  
- static int poll_tx(struct ipoib_dev_priv *priv)
+-	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
++	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
+ 		return;
+ 
+ 	if (ib_query_port(priv->ca, priv->port, &port_attr) ||
+@@ -629,7 +629,6 @@ int ipoib_mcast_start_thread(struct net_device *dev)
+ 	ipoib_dbg_mcast(priv, "starting multicast thread\n");
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+-	set_bit(IPOIB_MCAST_RUN, &priv->flags);
+ 	__ipoib_mcast_schedule_join_thread(priv, NULL, 0);
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+@@ -644,7 +643,6 @@ int ipoib_mcast_stop_thread(struct net_device *dev)
+ 	ipoib_dbg_mcast(priv, "stopping multicast thread\n");
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+-	clear_bit(IPOIB_MCAST_RUN, &priv->flags);
+ 	cancel_delayed_work(&priv->mcast_task);
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 
 -- 
 1.7.1
 
