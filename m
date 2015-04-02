@@ -1,59 +1,46 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 6/6] IB/mlx4: Fix WQE LSO segment calculation
-Date: Thu,  2 Apr 2015 13:39:05 +0300
-Message-ID: <1427971145-26943-7-git-send-email-ogerlitz@mellanox.com>
-References: <1427971145-26943-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1427971145-26943-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+ memory access
+Date: Thu, 2 Apr 2015 10:52:52 +0000
+Message-ID: <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
+ <1427969085.17020.5.camel@opteya.com>
+Reply-To: oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <oss-security-return-16353-gcsos-oss-security=m.gmane.org-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
+List-Post: <mailto:oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
+List-Help: <mailto:oss-security-help-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <mailto:oss-security-unsubscribe-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
+List-Subscribe: <mailto:oss-security-subscribe-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1427969085.17020.5.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: "oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org" <oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-The current code decreases from the mss size (which is the gso_size
-from the kernel skb) the size of the packet headers.
-
-It shouldn't do that because the mss that comes from the stack
-(e.g IPoIB) includes only the tcp payload without the headers.
-
-The result is indication to the HW that each packet that the HW sends
-is smaller than what it could be, and too many packets will be sent
-for big messages.
-
-An easy way to demonstrate one more aspect of the problem is by
-configuring the ipoib mtu to be less than 2*hlen (2*56) and then
-run app sending big TCP messages. This will tell the HW to send packets
-with giant (negative value which under unsigned arithmetics becomes
-a huge positive one) length and the QP moves to SQE state.
-
-Fixes: b832be1e4007 ('IB/mlx4: Add IPoIB LSO support')
-Reported-by: Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index ed2bd67..fbde33a 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -2605,8 +2605,7 @@ static int build_lso_seg(struct mlx4_wqe_lso_seg *wqe, struct ib_send_wr *wr,
- 
- 	memcpy(wqe->header, wr->wr.ud.header, wr->wr.ud.hlen);
- 
--	*lso_hdr_sz  = cpu_to_be32((wr->wr.ud.mss - wr->wr.ud.hlen) << 16 |
--				   wr->wr.ud.hlen);
-+	*lso_hdr_sz  = cpu_to_be32(wr->wr.ud.mss << 16 | wr->wr.ud.hlen);
- 	*lso_seg_len = halign;
- 	return 0;
- }
--- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWWFubiBEcm9uZWF1
+ZCBbbWFpbHRvOnlkcm9uZWF1ZEBvcHRleWEuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwg
+MDIsIDIwMTUgMTowNSBQTQ0KPiBUbzogU2hhY2hhciBSYWluZGVsDQo+IENjOiBvc3Mtc2VjdXJp
+dHlAbGlzdHMub3BlbndhbGwuY29tOyA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IChs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZyk7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7
+DQo+IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IENWRS0yMDE0LTgxNTkg
+a2VybmVsOiBpbmZpbmliYW5kOiB1dmVyYnM6IHVucHJvdGVjdGVkDQo+IHBoeXNpY2FsIG1lbW9y
+eSBhY2Nlc3MNCj4gDQo+IEhpLA0KPiANCj4gTGUgbWVyY3JlZGkgMTggbWFycyAyMDE1IMOgIDE3
+OjM5ICswMDAwLCBTaGFjaGFyIFJhaW5kZWwgYSDDqWNyaXQgOg0KPiA+IEhpLA0KPiA+DQoNCjxz
+bmlwcGVkIGxvbmcgZS1tYWlsPg0KIA0KPiA+ICsJLyoNCj4gPiArCSAqIElmIHRoZSBjb21iaW5h
+dGlvbiBvZiB0aGUgYWRkciBhbmQgc2l6ZSByZXF1ZXN0ZWQgZm9yIHRoaXMNCj4gbWVtb3J5DQo+
+ID4gKwkgKiByZWdpb24gY2F1c2VzIGFuIGludGVnZXIgb3ZlcmZsb3csIHJldHVybiBlcnJvci4N
+Cj4gPiArCSAqLw0KPiA+ICsJaWYgKChQQUdFX0FMSUdOKGFkZHIgKyBzaXplKSA8PSBzaXplKSB8
+fA0KPiA+ICsJICAgIChQQUdFX0FMSUdOKGFkZHIgKyBzaXplKSA8PSBhZGRyKSkNCj4gPiArCQly
+ZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsNCj4gPiArDQo+IA0KPiBDYW4gYWNjZXNzX29rKCkgYmUg
+dXNlZCBoZXJlID8NCj4gDQo+ICAgICAgICAgIGlmICghYWNjZXNzX29rKHdyaXRhYmxlID8gVkVS
+SUZZX1dSSVRFIDogVkVSSUZZX1JFQUQsDQo+ICAgICAgICAgICAgICAgICAgICAgICAgIGFkZHIs
+IHNpemUpKQ0KPiAgICAgICAgICAgICAgICAgICByZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsNCj4g
+DQoNCk5vLCB0aGlzIHdpbGwgYnJlYWsgdGhlIGN1cnJlbnQgT0RQIHNlbWFudGljcy4NCg0KT0RQ
+IGFsbG93cyB0aGUgdXNlciB0byByZWdpc3RlciBtZW1vcnkgdGhhdCBpcyBub3QgYWNjZXNzaWJs
+ZSB5ZXQuDQpUaGlzIGlzIGEgY3JpdGljYWwgZGVzaWduIGZlYXR1cmUsIGFzIGl0IGFsbG93cyBh
+dm9pZGluZyBob2xkaW5nDQphIHJlZ2lzdHJhdGlvbiBjYWNoZS4gQWRkaW5nIHRoaXMgY2hlY2sg
+d2lsbCBicmVhayB0aGUgYmVoYXZpb3IsDQpmb3JjaW5nIG1lbW9yeSB0byBiZSBhbGwgYWNjZXNz
+aWJsZSB3aGVuIHJlZ2lzdGVyaW5nIGFuIE9EUCBNUi4NCg0KVGhhbmtzLA0KLS1TaGFjaGFyDQo=
