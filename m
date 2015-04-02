@@ -1,58 +1,129 @@
-From: Shachar Raindel <raindel@mellanox.com>
-Subject: RE: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
  memory access
-Date: Thu, 2 Apr 2015 16:34:05 +0000
-Message-ID: <AM2PR05MB0929EDC60BBE5DAAAD4AB1B4DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
+Date: Thu, 02 Apr 2015 18:35:06 +0200
+Message-ID: <1427992506.22575.80.camel@opteya.com>
 References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
 	 <1427969085.17020.5.camel@opteya.com>
 	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
- <1427987752.22575.65.camel@opteya.com>
+	 <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1427987752.22575.65.camel@opteya.com>
-Content-Language: en-US
+In-Reply-To: <551D5DC8.6070909@mellanox.com>
 Sender: stable-owner@vger.kernel.org
-To: Yann Droneaud <ydroneaud@opteya.com>
-Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Shachar Raindel <raindel@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWWFubiBEcm9uZWF1
-ZCBbbWFpbHRvOnlkcm9uZWF1ZEBvcHRleWEuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwg
-MDIsIDIwMTUgNjoxNiBQTQ0KPiBUbzogU2hhY2hhciBSYWluZGVsDQo+IENjOiBvc3Mtc2VjdXJp
-dHlAbGlzdHMub3BlbndhbGwuY29tOyA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IChs
-aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZyk7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7
-DQo+IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IENWRS0yMDE0LTgxNTkg
-a2VybmVsOiBpbmZpbmliYW5kOiB1dmVyYnM6IHVucHJvdGVjdGVkDQo+IHBoeXNpY2FsIG1lbW9y
-eSBhY2Nlc3MNCj4gDQo+IEhpLA0KPiBMZSBqZXVkaSAwMiBhdnJpbCAyMDE1IMOgIDEwOjUyICsw
-MDAwLCBTaGFjaGFyIFJhaW5kZWwgYSDDqWNyaXQgOg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0NCj4gPiA+IEZyb206IFlhbm4gRHJvbmVhdWQgW21haWx0bzp5ZHJvbmVhdWRAb3B0
-ZXlhLmNvbV0NCj4gPiA+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAwMiwgMjAxNSAxOjA1IFBNDQo+
-ID4gPiBMZSBtZXJjcmVkaSAxOCBtYXJzIDIwMTUgw6AgMTc6MzkgKzAwMDAsIFNoYWNoYXIgUmFp
-bmRlbCBhIMOpY3JpdCA6DQo+IC4uLg0KPiA+ID4gPiArCS8qDQo+ID4gPiA+ICsJICogSWYgdGhl
-IGNvbWJpbmF0aW9uIG9mIHRoZSBhZGRyIGFuZCBzaXplIHJlcXVlc3RlZCBmb3IgdGhpcw0KPiA+
-ID4gbWVtb3J5DQo+ID4gPiA+ICsJICogcmVnaW9uIGNhdXNlcyBhbiBpbnRlZ2VyIG92ZXJmbG93
-LCByZXR1cm4gZXJyb3IuDQo+ID4gPiA+ICsJICovDQo+ID4gPiA+ICsJaWYgKChQQUdFX0FMSUdO
-KGFkZHIgKyBzaXplKSA8PSBzaXplKSB8fA0KPiA+ID4gPiArCSAgICAoUEFHRV9BTElHTihhZGRy
-ICsgc2l6ZSkgPD0gYWRkcikpDQo+ID4gPiA+ICsJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOw0K
-PiA+ID4gPiArDQo+ID4gPg0KPiA+ID4gQ2FuIGFjY2Vzc19vaygpIGJlIHVzZWQgaGVyZSA/DQo+
-ID4gPg0KPiA+ID4gICAgICAgICAgaWYgKCFhY2Nlc3Nfb2sod3JpdGFibGUgPyBWRVJJRllfV1JJ
-VEUgOiBWRVJJRllfUkVBRCwNCj4gPiA+ICAgICAgICAgICAgICAgICAgICAgICAgIGFkZHIsIHNp
-emUpKQ0KPiA+ID4gICAgICAgICAgICAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7DQo+
-ID4gPg0KPiA+DQo+ID4gTm8sIHRoaXMgd2lsbCBicmVhayB0aGUgY3VycmVudCBPRFAgc2VtYW50
-aWNzLg0KPiA+DQo+ID4gT0RQIGFsbG93cyB0aGUgdXNlciB0byByZWdpc3RlciBtZW1vcnkgdGhh
-dCBpcyBub3QgYWNjZXNzaWJsZSB5ZXQuDQo+ID4gVGhpcyBpcyBhIGNyaXRpY2FsIGRlc2lnbiBm
-ZWF0dXJlLCBhcyBpdCBhbGxvd3MgYXZvaWRpbmcgaG9sZGluZw0KPiA+IGEgcmVnaXN0cmF0aW9u
-IGNhY2hlLiBBZGRpbmcgdGhpcyBjaGVjayB3aWxsIGJyZWFrIHRoZSBiZWhhdmlvciwNCj4gPiBm
-b3JjaW5nIG1lbW9yeSB0byBiZSBhbGwgYWNjZXNzaWJsZSB3aGVuIHJlZ2lzdGVyaW5nIGFuIE9E
-UCBNUi4NCj4gPg0KPiANCj4gRmFpbGVkIHRvIG5vdGljZSBwcmV2aW91c2x5LCBidXQgc2luY2Ug
-dGhpcyB3b3VsZCBicmVhayBPRFAsIGFuZCBPRFAgaXMNCj4gb25seSBhdmFpbGFibGUgc3RhcnRp
-bmcgdjMuMTktcmMxLCBteSBwcm9wb3NlZCBmaXggbWlnaHQgYmUgYXBwbGljYWJsZQ0KPiBmb3Ig
-b2xkZXIga2VybmVsIChpZiBub3QgYmV0dGVyKS4NCj4gDQoNCkNhbiB5b3UgZXhwbGFpbiBob3cg
-dGhpcyBwcm9wb3NlZCBmaXggaXMgYmV0dGVyIHRoYW4gdGhlIGV4aXN0aW5nIHBhdGNoPw0KV2h5
-IGRvIHdlIHdhbnQgdG8gcHVzaCB0byB0aGUgc3RhYmxlIHRyZWUgYSBwYXRjaCB0aGF0IGlzIG5v
-dCBpbiB0aGUNCnVwc3RyZWFtPyBUaGVyZSBpcyBhbiBleGlzdGluZywgdGVzdGVkLCBwYXRjaCB0
-aGF0IGlzIGdvaW5nIHRvIHRoZSB0aXANCm9mIHRoZSBkZXZlbG9wbWVudC4gSXQgZXZlbiBhcHBs
-aWVzIGNsZWFubHkgb24gZXZlcnkga2VybmVsIHZlcnNpb24gYXJvdW5kLg0KDQpUaGFua3MsDQot
-LVNoYWNoYXINCg==
+Hi Haggai,
+
+Le jeudi 02 avril 2015 =C3=A0 18:18 +0300, Haggai Eran a =C3=A9crit :
+> On 02/04/2015 16:30, Yann Droneaud wrote:
+> > Hi,
+> >=20
+> > Le jeudi 02 avril 2015 =C3=A0 10:52 +0000, Shachar Raindel a =C3=A9=
+crit :
+> >>> -----Original Message-----
+> >>> From: Yann Droneaud [mailto:ydroneaud@opteya.com]
+> >>> Sent: Thursday, April 02, 2015 1:05 PM
+> >>> Le mercredi 18 mars 2015 =C3=A0 17:39 +0000, Shachar Raindel a =C3=
+=A9crit :
+> >=20
+> >>>> +	/*
+> >>>> +	 * If the combination of the addr and size requested for this
+> >>> memory
+> >>>> +	 * region causes an integer overflow, return error.
+> >>>> +	 */
+> >>>> +	if ((PAGE_ALIGN(addr + size) <=3D size) ||
+> >>>> +	    (PAGE_ALIGN(addr + size) <=3D addr))
+> >>>> +		return ERR_PTR(-EINVAL);
+> >>>> +
+> >>>
+> >>> Can access_ok() be used here ?
+> >>>
+> >>>          if (!access_ok(writable ? VERIFY_WRITE : VERIFY_READ,
+> >>>                         addr, size))
+> >>>                   return ERR_PTR(-EINVAL);
+> >>>
+> >>
+> >> No, this will break the current ODP semantics.
+> >>
+> >> ODP allows the user to register memory that is not accessible yet.
+> >> This is a critical design feature, as it allows avoiding holding
+> >> a registration cache. Adding this check will break the behavior,
+> >> forcing memory to be all accessible when registering an ODP MR.
+> >>
+> >=20
+> > Where's the check for the range being in userspace memory space,
+> > especially for the ODP case ?
+> >=20
+> > For non ODP case (eg. plain old behavior), does get_user_pages()
+> > ensure the requested pages fit in userspace region on all=20
+> > architectures ? I think so.
+>=20
+> Yes, get_user_pages will return a smaller amount of pages than reques=
+ted
+> if it encounters an unmapped region (or a region without write
+> permissions for write requests). If this happens, the loop in
+> ib_umem_get calls get_user_pages again with the next set of pages, an=
+d
+> this time if it the first page still cannot be mapped an error is ret=
+urned.
+>=20
+> >=20
+> > In ODP case, I'm not sure such check is ever done ?
+>=20
+> In ODP, we also call get_user_pages, but only when a page fault occur=
+s
+> (see ib_umem_odp_map_dma_pages()). This allows the user to pre-regist=
+er
+> a memory region that contains unmapped virtual space, and then mmap
+> different files into that area without needing to re-register.
+>=20
+
+OK, thanks for the description.
+
+> > (Aside, does it take special mesure to protect shared mapping from
+> > being read and/or *written* ?)
+>=20
+> I'm not sure I understand the question. Shared mappings that the proc=
+ess
+> is allowed to read or write are also allowed for the HCA (specificall=
+y,
+> to local and remote operations the same process performs using the HC=
+A),
+> provided the application has registered their virtual address space a=
+s a
+> memory region.
+>=20
+
+I was refering to description of get_user_pages():
+
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/mm/=
+gup.c?id=3Dv4.0-rc6#n765
+
+ * @force:	whether to force access even when user mapping is currently
+ *		protected (but never forces write access to shared mapping).
+
+But since ib_umem_odp_map_dma_pages() use get_user_pages() with force
+argument set to 0, it's OK.
+
+Another related question: as the large memory range could be registered=
+=20
+by user space with ibv_reg_mr(pd, base, size, IB_ACCESS_ON_DEMAND),=20
+what's prevent the kernel to map a file as the result of mmap(0, ...)
+in this  region, making it available remotely through IBV_WR_RDMA_READ =
+/
+IBV_WR_RDMA_WRITE ?
+
+Again, thanks for the information I was missing to understand how ODP i=
+s
+checking the memory ranges.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
