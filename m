@@ -1,102 +1,30 @@
-From: Shachar Raindel <raindel@mellanox.com>
-Subject: RE: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
- memory access
-Date: Thu, 2 Apr 2015 16:44:07 +0000
-Message-ID: <AM2PR05MB0929FB71C5A4DE92A7709F92DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
-References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427969085.17020.5.camel@opteya.com>
-	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
- <1427992506.22575.80.camel@opteya.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427992506.22575.80.camel@opteya.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yann Droneaud <ydroneaud@opteya.com>, Haggai Eran <haggaie@mellanox.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>, "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Thu,  2 Apr 2015 10:27:40 -0700
+Message-ID: <1427995660-29956-1-git-send-email-roland@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWWFubiBEcm9uZWF1ZCBb
-bWFpbHRvOnlkcm9uZWF1ZEBvcHRleWEuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwgMDIs
-IDIwMTUgNzozNSBQTQ0KPiBUbzogSGFnZ2FpIEVyYW4NCj4gQ2M6IFNoYWNoYXIgUmFpbmRlbDsg
-U2FnaSBHcmltYmVyZzsgb3NzLXNlY3VyaXR5QGxpc3RzLm9wZW53YWxsLmNvbTsNCj4gPGxpbnV4
-LXJkbWFAdmdlci5rZXJuZWwub3JnPiAobGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcpOyBsaW51
-eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgc3RhYmxlQHZnZXIua2VybmVsLm9yZw0KPiBT
-dWJqZWN0OiBSZTogQ1ZFLTIwMTQtODE1OSBrZXJuZWw6IGluZmluaWJhbmQ6IHV2ZXJiczogdW5w
-cm90ZWN0ZWQNCj4gcGh5c2ljYWwgbWVtb3J5IGFjY2Vzcw0KPiANCj4gSGkgSGFnZ2FpLA0KPiAN
-Cj4gTGUgamV1ZGkgMDIgYXZyaWwgMjAxNSDDoCAxODoxOCArMDMwMCwgSGFnZ2FpIEVyYW4gYSDD
-qWNyaXQgOg0KPiA+IE9uIDAyLzA0LzIwMTUgMTY6MzAsIFlhbm4gRHJvbmVhdWQgd3JvdGU6DQo+
-ID4gPiBIaSwNCj4gPiA+DQo+ID4gPiBMZSBqZXVkaSAwMiBhdnJpbCAyMDE1IMOgIDEwOjUyICsw
-MDAwLCBTaGFjaGFyIFJhaW5kZWwgYSDDqWNyaXQgOg0KPiA+ID4+PiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiA+ID4+PiBGcm9tOiBZYW5uIERyb25lYXVkIFttYWlsdG86eWRyb25lYXVk
-QG9wdGV5YS5jb21dDQo+ID4gPj4+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAwMiwgMjAxNSAxOjA1
-IFBNDQo+ID4gPj4+IExlIG1lcmNyZWRpIDE4IG1hcnMgMjAxNSDDoCAxNzozOSArMDAwMCwgU2hh
-Y2hhciBSYWluZGVsIGEgw6ljcml0IDoNCj4gPiA+DQo+ID4gPj4+PiArCS8qDQo+ID4gPj4+PiAr
-CSAqIElmIHRoZSBjb21iaW5hdGlvbiBvZiB0aGUgYWRkciBhbmQgc2l6ZSByZXF1ZXN0ZWQgZm9y
-IHRoaXMNCj4gPiA+Pj4gbWVtb3J5DQo+ID4gPj4+PiArCSAqIHJlZ2lvbiBjYXVzZXMgYW4gaW50
-ZWdlciBvdmVyZmxvdywgcmV0dXJuIGVycm9yLg0KPiA+ID4+Pj4gKwkgKi8NCj4gPiA+Pj4+ICsJ
-aWYgKChQQUdFX0FMSUdOKGFkZHIgKyBzaXplKSA8PSBzaXplKSB8fA0KPiA+ID4+Pj4gKwkgICAg
-KFBBR0VfQUxJR04oYWRkciArIHNpemUpIDw9IGFkZHIpKQ0KPiA+ID4+Pj4gKwkJcmV0dXJuIEVS
-Ul9QVFIoLUVJTlZBTCk7DQo+ID4gPj4+PiArDQo+ID4gPj4+DQo+ID4gPj4+IENhbiBhY2Nlc3Nf
-b2soKSBiZSB1c2VkIGhlcmUgPw0KPiA+ID4+Pg0KPiA+ID4+PiAgICAgICAgICBpZiAoIWFjY2Vz
-c19vayh3cml0YWJsZSA/IFZFUklGWV9XUklURSA6IFZFUklGWV9SRUFELA0KPiA+ID4+PiAgICAg
-ICAgICAgICAgICAgICAgICAgICBhZGRyLCBzaXplKSkNCj4gPiA+Pj4gICAgICAgICAgICAgICAg
-ICAgcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7DQo+ID4gPj4+DQo+ID4gPj4NCj4gPiA+PiBObywg
-dGhpcyB3aWxsIGJyZWFrIHRoZSBjdXJyZW50IE9EUCBzZW1hbnRpY3MuDQo+ID4gPj4NCj4gPiA+
-PiBPRFAgYWxsb3dzIHRoZSB1c2VyIHRvIHJlZ2lzdGVyIG1lbW9yeSB0aGF0IGlzIG5vdCBhY2Nl
-c3NpYmxlIHlldC4NCj4gPiA+PiBUaGlzIGlzIGEgY3JpdGljYWwgZGVzaWduIGZlYXR1cmUsIGFz
-IGl0IGFsbG93cyBhdm9pZGluZyBob2xkaW5nDQo+ID4gPj4gYSByZWdpc3RyYXRpb24gY2FjaGUu
-IEFkZGluZyB0aGlzIGNoZWNrIHdpbGwgYnJlYWsgdGhlIGJlaGF2aW9yLA0KPiA+ID4+IGZvcmNp
-bmcgbWVtb3J5IHRvIGJlIGFsbCBhY2Nlc3NpYmxlIHdoZW4gcmVnaXN0ZXJpbmcgYW4gT0RQIE1S
-Lg0KPiA+ID4+DQo+ID4gPg0KPiA+ID4gV2hlcmUncyB0aGUgY2hlY2sgZm9yIHRoZSByYW5nZSBi
-ZWluZyBpbiB1c2Vyc3BhY2UgbWVtb3J5IHNwYWNlLA0KPiA+ID4gZXNwZWNpYWxseSBmb3IgdGhl
-IE9EUCBjYXNlID8NCj4gPiA+DQo+ID4gPiBGb3Igbm9uIE9EUCBjYXNlIChlZy4gcGxhaW4gb2xk
-IGJlaGF2aW9yKSwgZG9lcyBnZXRfdXNlcl9wYWdlcygpDQo+ID4gPiBlbnN1cmUgdGhlIHJlcXVl
-c3RlZCBwYWdlcyBmaXQgaW4gdXNlcnNwYWNlIHJlZ2lvbiBvbiBhbGwNCj4gPiA+IGFyY2hpdGVj
-dHVyZXMgPyBJIHRoaW5rIHNvLg0KPiA+DQo+ID4gWWVzLCBnZXRfdXNlcl9wYWdlcyB3aWxsIHJl
-dHVybiBhIHNtYWxsZXIgYW1vdW50IG9mIHBhZ2VzIHRoYW4NCj4gcmVxdWVzdGVkDQo+ID4gaWYg
-aXQgZW5jb3VudGVycyBhbiB1bm1hcHBlZCByZWdpb24gKG9yIGEgcmVnaW9uIHdpdGhvdXQgd3Jp
-dGUNCj4gPiBwZXJtaXNzaW9ucyBmb3Igd3JpdGUgcmVxdWVzdHMpLiBJZiB0aGlzIGhhcHBlbnMs
-IHRoZSBsb29wIGluDQo+ID4gaWJfdW1lbV9nZXQgY2FsbHMgZ2V0X3VzZXJfcGFnZXMgYWdhaW4g
-d2l0aCB0aGUgbmV4dCBzZXQgb2YgcGFnZXMsIGFuZA0KPiA+IHRoaXMgdGltZSBpZiBpdCB0aGUg
-Zmlyc3QgcGFnZSBzdGlsbCBjYW5ub3QgYmUgbWFwcGVkIGFuIGVycm9yIGlzDQo+IHJldHVybmVk
-Lg0KPiA+DQo+ID4gPg0KPiA+ID4gSW4gT0RQIGNhc2UsIEknbSBub3Qgc3VyZSBzdWNoIGNoZWNr
-IGlzIGV2ZXIgZG9uZSA/DQo+ID4NCj4gPiBJbiBPRFAsIHdlIGFsc28gY2FsbCBnZXRfdXNlcl9w
-YWdlcywgYnV0IG9ubHkgd2hlbiBhIHBhZ2UgZmF1bHQgb2NjdXJzDQo+ID4gKHNlZSBpYl91bWVt
-X29kcF9tYXBfZG1hX3BhZ2VzKCkpLiBUaGlzIGFsbG93cyB0aGUgdXNlciB0byBwcmUtDQo+IHJl
-Z2lzdGVyDQo+ID4gYSBtZW1vcnkgcmVnaW9uIHRoYXQgY29udGFpbnMgdW5tYXBwZWQgdmlydHVh
-bCBzcGFjZSwgYW5kIHRoZW4gbW1hcA0KPiA+IGRpZmZlcmVudCBmaWxlcyBpbnRvIHRoYXQgYXJl
-YSB3aXRob3V0IG5lZWRpbmcgdG8gcmUtcmVnaXN0ZXIuDQo+ID4NCj4gDQo+IE9LLCB0aGFua3Mg
-Zm9yIHRoZSBkZXNjcmlwdGlvbi4NCj4gDQo+ID4gPiAoQXNpZGUsIGRvZXMgaXQgdGFrZSBzcGVj
-aWFsIG1lc3VyZSB0byBwcm90ZWN0IHNoYXJlZCBtYXBwaW5nIGZyb20NCj4gPiA+IGJlaW5nIHJl
-YWQgYW5kL29yICp3cml0dGVuKiA/KQ0KPiA+DQo+ID4gSSdtIG5vdCBzdXJlIEkgdW5kZXJzdGFu
-ZCB0aGUgcXVlc3Rpb24uIFNoYXJlZCBtYXBwaW5ncyB0aGF0IHRoZQ0KPiBwcm9jZXNzDQo+ID4g
-aXMgYWxsb3dlZCB0byByZWFkIG9yIHdyaXRlIGFyZSBhbHNvIGFsbG93ZWQgZm9yIHRoZSBIQ0EN
-Cj4gKHNwZWNpZmljYWxseSwNCj4gPiB0byBsb2NhbCBhbmQgcmVtb3RlIG9wZXJhdGlvbnMgdGhl
-IHNhbWUgcHJvY2VzcyBwZXJmb3JtcyB1c2luZyB0aGUNCj4gSENBKSwNCj4gPiBwcm92aWRlZCB0
-aGUgYXBwbGljYXRpb24gaGFzIHJlZ2lzdGVyZWQgdGhlaXIgdmlydHVhbCBhZGRyZXNzIHNwYWNl
-IGFzDQo+IGENCj4gPiBtZW1vcnkgcmVnaW9uLg0KPiA+DQo+IA0KPiBJIHdhcyByZWZlcmluZyB0
-byBkZXNjcmlwdGlvbiBvZiBnZXRfdXNlcl9wYWdlcygpOg0KPiANCj4gaHR0cDovL2dpdC5rZXJu
-ZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51eC5naXQvdHJlZS9tbS9n
-DQo+IHVwLmM/aWQ9djQuMC1yYzYjbjc2NQ0KPiANCj4gICogQGZvcmNlOgl3aGV0aGVyIHRvIGZv
-cmNlIGFjY2VzcyBldmVuIHdoZW4gdXNlciBtYXBwaW5nIGlzIGN1cnJlbnRseQ0KPiAgKgkJcHJv
-dGVjdGVkIChidXQgbmV2ZXIgZm9yY2VzIHdyaXRlIGFjY2VzcyB0byBzaGFyZWQgbWFwcGluZyku
-DQo+IA0KPiBCdXQgc2luY2UgaWJfdW1lbV9vZHBfbWFwX2RtYV9wYWdlcygpIHVzZSBnZXRfdXNl
-cl9wYWdlcygpIHdpdGggZm9yY2UNCj4gYXJndW1lbnQgc2V0IHRvIDAsIGl0J3MgT0suDQo+IA0K
-PiBBbm90aGVyIHJlbGF0ZWQgcXVlc3Rpb246IGFzIHRoZSBsYXJnZSBtZW1vcnkgcmFuZ2UgY291
-bGQgYmUgcmVnaXN0ZXJlZA0KPiBieSB1c2VyIHNwYWNlIHdpdGggaWJ2X3JlZ19tcihwZCwgYmFz
-ZSwgc2l6ZSwgSUJfQUNDRVNTX09OX0RFTUFORCksDQo+IHdoYXQncyBwcmV2ZW50IHRoZSBrZXJu
-ZWwgdG8gbWFwIGEgZmlsZSBhcyB0aGUgcmVzdWx0IG9mIG1tYXAoMCwgLi4uKQ0KPiBpbiB0aGlz
-ICByZWdpb24sIG1ha2luZyBpdCBhdmFpbGFibGUgcmVtb3RlbHkgdGhyb3VnaCBJQlZfV1JfUkRN
-QV9SRUFEIC8NCj4gSUJWX1dSX1JETUFfV1JJVEUgPw0KPiANCg0KVGhpcyBpcyBub3QgYSBidWcu
-IFRoaXMgaXMgYSBmZWF0dXJlLg0KDQpFeHBvc2luZyBhIGZpbGUgdGhyb3VnaCBSRE1BLCB1c2lu
-ZyBPRFAsIGNhbiBiZSBkb25lIGV4YWN0bHkgbGlrZSB0aGlzLg0KR2l2ZW4gdGhhdCB0aGUgYXBw
-bGljYXRpb24gZXhwbGljaXRseSByZXF1ZXN0ZWQgdGhpcyBiZWhhdmlvciwgSSBkb24ndA0Kc2Vl
-IHdoeSBpdCBpcyBhIHByb2JsZW0uIEFjdHVhbGx5LCBzb21lIG9mIG91ciB0ZXN0cyB1c2Ugc3Vj
-aCBmbG93cy4NClRoZSBtbXUgbm90aWZpZXJzIG1lY2hhbmlzbSBhbGxvdyB1cyB0byBkbyB0aGlz
-IHNhZmVseS4gV2hlbiB0aGUgcGFnZSBpcw0Kd3JpdHRlbiBiYWNrIHRvIGRpc2ssIGl0IGlzIHJl
-bW92ZWQgZnJvbSB0aGUgT0RQIG1hcHBpbmcuIFdoZW4gaXQgaXMNCmFjY2Vzc2VkIGJ5IHRoZSBI
-Q0EsIGl0IGlzIGJyb3VnaHQgYmFjayB0byBSQU0uDQoNCg0KVGhhbmtzLA0KLS1TaGFjaGFyDQo=
+Hi Linus,
+
+Please pull from
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+
+----------------------------------------------------------------
+One 4.0 RDMA change:
+ - Fix for exploitable integer overflow in uverbs interface.
+
+----------------------------------------------------------------
+Shachar Raindel (1):
+      IB/uverbs: Prevent integer overflow in ib_umem_get address arithmetic
+
+ drivers/infiniband/core/umem.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
