@@ -1,31 +1,58 @@
-From: Roland Dreier <roland@purestorage.com>
-Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+From: Shachar Raindel <raindel@mellanox.com>
+Subject: RE: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
  memory access
-Date: Thu, 2 Apr 2015 09:32:56 -0700
-Message-ID: <CAL1RGDWtbEzepxbmHUzteJ-+dcW=VxmTshGzsSN219Tgx3bMvQ@mail.gmail.com>
+Date: Thu, 2 Apr 2015 16:34:05 +0000
+Message-ID: <AM2PR05MB0929EDC60BBE5DAAAD4AB1B4DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
 References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
- <CAL1RGDXQh2+WQxf9w2Qvo-Npr2MnBZYObyfYfy7fn-Pfue=Odg@mail.gmail.com> <AM3PR05MB0935CC450033AE6DFF0B14B3DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+	 <1427969085.17020.5.camel@opteya.com>
+	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+ <1427987752.22575.65.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <AM3PR05MB0935CC450033AE6DFF0B14B3DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+In-Reply-To: <1427987752.22575.65.camel@opteya.com>
+Content-Language: en-US
 Sender: stable-owner@vger.kernel.org
-To: Shachar Raindel <raindel@mellanox.com>
-Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Yann Droneaud <ydroneaud@opteya.com>
+Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 2, 2015 at 12:52 AM, Shachar Raindel <raindel@mellanox.com> wrote:
-> This is a common practice in the security industry, called
-> "responsible disclosure."
->
-> Following the kernel  security bugs policy [1], we reported it to
-> the kernel security contacts few days before making the issue public.
-> Few days after issue became public, we published a clear report to all
-> of the relevant mailing lists.
-
-Isn't the point of responsible disclosure to delay disclosure until a
-fix is in place?  What's the point of sending a notification to the
-kernel security team if you're going to disclose publicly before the
-upstream kernel is fixed?
-
- - R.
+SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWWFubiBEcm9uZWF1
+ZCBbbWFpbHRvOnlkcm9uZWF1ZEBvcHRleWEuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgQXByaWwg
+MDIsIDIwMTUgNjoxNiBQTQ0KPiBUbzogU2hhY2hhciBSYWluZGVsDQo+IENjOiBvc3Mtc2VjdXJp
+dHlAbGlzdHMub3BlbndhbGwuY29tOyA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IChs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZyk7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7
+DQo+IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IENWRS0yMDE0LTgxNTkg
+a2VybmVsOiBpbmZpbmliYW5kOiB1dmVyYnM6IHVucHJvdGVjdGVkDQo+IHBoeXNpY2FsIG1lbW9y
+eSBhY2Nlc3MNCj4gDQo+IEhpLA0KPiBMZSBqZXVkaSAwMiBhdnJpbCAyMDE1IMOgIDEwOjUyICsw
+MDAwLCBTaGFjaGFyIFJhaW5kZWwgYSDDqWNyaXQgOg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNz
+YWdlLS0tLS0NCj4gPiA+IEZyb206IFlhbm4gRHJvbmVhdWQgW21haWx0bzp5ZHJvbmVhdWRAb3B0
+ZXlhLmNvbV0NCj4gPiA+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAwMiwgMjAxNSAxOjA1IFBNDQo+
+ID4gPiBMZSBtZXJjcmVkaSAxOCBtYXJzIDIwMTUgw6AgMTc6MzkgKzAwMDAsIFNoYWNoYXIgUmFp
+bmRlbCBhIMOpY3JpdCA6DQo+IC4uLg0KPiA+ID4gPiArCS8qDQo+ID4gPiA+ICsJICogSWYgdGhl
+IGNvbWJpbmF0aW9uIG9mIHRoZSBhZGRyIGFuZCBzaXplIHJlcXVlc3RlZCBmb3IgdGhpcw0KPiA+
+ID4gbWVtb3J5DQo+ID4gPiA+ICsJICogcmVnaW9uIGNhdXNlcyBhbiBpbnRlZ2VyIG92ZXJmbG93
+LCByZXR1cm4gZXJyb3IuDQo+ID4gPiA+ICsJICovDQo+ID4gPiA+ICsJaWYgKChQQUdFX0FMSUdO
+KGFkZHIgKyBzaXplKSA8PSBzaXplKSB8fA0KPiA+ID4gPiArCSAgICAoUEFHRV9BTElHTihhZGRy
+ICsgc2l6ZSkgPD0gYWRkcikpDQo+ID4gPiA+ICsJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOw0K
+PiA+ID4gPiArDQo+ID4gPg0KPiA+ID4gQ2FuIGFjY2Vzc19vaygpIGJlIHVzZWQgaGVyZSA/DQo+
+ID4gPg0KPiA+ID4gICAgICAgICAgaWYgKCFhY2Nlc3Nfb2sod3JpdGFibGUgPyBWRVJJRllfV1JJ
+VEUgOiBWRVJJRllfUkVBRCwNCj4gPiA+ICAgICAgICAgICAgICAgICAgICAgICAgIGFkZHIsIHNp
+emUpKQ0KPiA+ID4gICAgICAgICAgICAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7DQo+
+ID4gPg0KPiA+DQo+ID4gTm8sIHRoaXMgd2lsbCBicmVhayB0aGUgY3VycmVudCBPRFAgc2VtYW50
+aWNzLg0KPiA+DQo+ID4gT0RQIGFsbG93cyB0aGUgdXNlciB0byByZWdpc3RlciBtZW1vcnkgdGhh
+dCBpcyBub3QgYWNjZXNzaWJsZSB5ZXQuDQo+ID4gVGhpcyBpcyBhIGNyaXRpY2FsIGRlc2lnbiBm
+ZWF0dXJlLCBhcyBpdCBhbGxvd3MgYXZvaWRpbmcgaG9sZGluZw0KPiA+IGEgcmVnaXN0cmF0aW9u
+IGNhY2hlLiBBZGRpbmcgdGhpcyBjaGVjayB3aWxsIGJyZWFrIHRoZSBiZWhhdmlvciwNCj4gPiBm
+b3JjaW5nIG1lbW9yeSB0byBiZSBhbGwgYWNjZXNzaWJsZSB3aGVuIHJlZ2lzdGVyaW5nIGFuIE9E
+UCBNUi4NCj4gPg0KPiANCj4gRmFpbGVkIHRvIG5vdGljZSBwcmV2aW91c2x5LCBidXQgc2luY2Ug
+dGhpcyB3b3VsZCBicmVhayBPRFAsIGFuZCBPRFAgaXMNCj4gb25seSBhdmFpbGFibGUgc3RhcnRp
+bmcgdjMuMTktcmMxLCBteSBwcm9wb3NlZCBmaXggbWlnaHQgYmUgYXBwbGljYWJsZQ0KPiBmb3Ig
+b2xkZXIga2VybmVsIChpZiBub3QgYmV0dGVyKS4NCj4gDQoNCkNhbiB5b3UgZXhwbGFpbiBob3cg
+dGhpcyBwcm9wb3NlZCBmaXggaXMgYmV0dGVyIHRoYW4gdGhlIGV4aXN0aW5nIHBhdGNoPw0KV2h5
+IGRvIHdlIHdhbnQgdG8gcHVzaCB0byB0aGUgc3RhYmxlIHRyZWUgYSBwYXRjaCB0aGF0IGlzIG5v
+dCBpbiB0aGUNCnVwc3RyZWFtPyBUaGVyZSBpcyBhbiBleGlzdGluZywgdGVzdGVkLCBwYXRjaCB0
+aGF0IGlzIGdvaW5nIHRvIHRoZSB0aXANCm9mIHRoZSBkZXZlbG9wbWVudC4gSXQgZXZlbiBhcHBs
+aWVzIGNsZWFubHkgb24gZXZlcnkga2VybmVsIHZlcnNpb24gYXJvdW5kLg0KDQpUaGFua3MsDQot
+LVNoYWNoYXINCg==
