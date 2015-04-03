@@ -1,15 +1,15 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 03/19] IB/mad: Change validate_mad signature to take
- ib_mad_hdr rather than ib_mad
-Date: Fri, 3 Apr 2015 21:20:15 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBD5CF@ORSMSX109.amr.corp.intel.com>
+Subject: RE: [PATCH v4 04/19] IB/mad: Change ib_response_mad signature to
+ take ib_mad_hdr rather than ib_mad
+Date: Fri, 3 Apr 2015 21:20:39 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBD5E3@ORSMSX109.amr.corp.intel.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
- <1423092585-26692-4-git-send-email-ira.weiny@intel.com>
+ <1423092585-26692-5-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1423092585-26692-4-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1423092585-26692-5-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
