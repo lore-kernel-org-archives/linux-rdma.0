@@ -1,67 +1,105 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 14/19] IB/core: Add IB_DEVICE_OPA_MAD_SUPPORT device cap flag
-Date: Thu, 2 Apr 2015 18:45:36 -0400
-Message-ID: <20150402224535.GA5687@phlsvsds.ph.intel.com>
-References: <550C2514.5070001@profitbricks.com> <6A3D3202-0128-4F33-B596-D7A76AB66DF8@gmail.com> <20150320235748.GA22703@phlsvsds.ph.intel.com> <20150321000541.GA24717@phlsvsds.ph.intel.com> <CAJuTgQUsZ34F-dKpsmW+5=axDWb93pA43LZ-qKbEjqyu-RUUmg@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237399E82E58@ORSMSX109.amr.corp.intel.com> <55115D61.9040201@profitbricks.com> <55128E48.1080406@profitbricks.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
+ memory access
+Date: Fri, 3 Apr 2015 08:39:44 +0000
+Message-ID: <1428050408201.35668@mellanox.com>
+References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
+	 <1427969085.17020.5.camel@opteya.com>
+	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+	 <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
+	 <1427992506.22575.80.camel@opteya.com>
+	 <AM2PR05MB0929FB71C5A4DE92A7709F92DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>,<1428007208.22575.104.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55128E48.1080406-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1428007208.22575.104.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 25, 2015 at 11:30:32AM +0100, Michael Wang wrote:
-> Hi, Sean
-> 
-> On 03/24/2015 01:49 PM, Michael Wang wrote:
-> >On 03/23/2015 05:31 PM, Hefty, Sean wrote:
-> >>>[snip]
-> >>To restate my suggesting, I was thinking of defining something like 
-> >>this:
-> >>
-> >>enum {
-> >>    IB_MGMT_PROTO_SM = (1 << 0),   /* supports IB SMPs */
-> >>    IB_MGMT_PROTO_SA = (1 << 1),   /* supports IB SA MADs */
-> >>    IB_MGMT_PROTO_GS = (1 << 2),   /* supports IB GSI MADs (e.g. PM, 
-> >>...) */
-> >>    IB_MGMT_PROTO_CM = (1 << 3),   /* IB CM called out separately */
-> >>    IB_MGMT_PROTO_IW_CM = (1 << 4),/* iWarp CM */
-> >>    /* OPA can define new values here */
-> >>};
-> >>
-> >>struct ib_port_attr {
-> >>    ...
-> >>    u32    mgmt_proto;  /* bitmask of supported protocols */
-> >>};
-> >
-> >Thanks for the restate, Sean :) seems like your proposal is also to 
-> >ask vendor
-> >setup 'mgmt_proto' during ib_query_port(), correct?
-> 
-> I think we got one problem here, if we rely on ib_query_port() to setup 
-> mgmt flags
-> each time, the performance may suffered, since some implementation of
-> query_port() is really expensive, like hardware communication (mlx4/5) and
-> mutex protection (usnic)...
+On Thursday, April 2, 2015 11:40 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
+m> wrote:
+> Le jeudi 02 avril 2015 =E0 16:44 +0000, Shachar Raindel a =E9crit :
+>> > -----Original Message-----
+>> > From: Yann Droneaud [mailto:ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org]
+>> > Sent: Thursday, April 02, 2015 7:35 PM
+>=20
+>> > Another related question: as the large memory range could be regis=
+tered
+>> > by user space with ibv_reg_mr(pd, base, size, IB_ACCESS_ON_DEMAND)=
+,
+>> > what's prevent the kernel to map a file as the result of mmap(0, .=
+=2E.)
+>> > in this  region, making it available remotely through IBV_WR_RDMA_=
+READ /
+>> > IBV_WR_RDMA_WRITE ?
+>> >
+>>
+>> This is not a bug. This is a feature.
+>>
+>> Exposing a file through RDMA, using ODP, can be done exactly like th=
+is.
+>> Given that the application explicitly requested this behavior, I don=
+'t
+>> see why it is a problem.
+>=20
+> If the application cannot choose what will end up in the region it ha=
+s
+> registered, it's an issue !
+>=20
+> What might happen if one library in a program call mmap(0, size, ...)=
+ to
+> load a file storing a secret (a private key), and that file ends up
+> being mapped in an registered but otherwise free region (afaict, the
+> kernel is allowed to do it) ?
+> What might happen if one library in a program call call mmap(0,
+> size, ..., MAP_ANONYMOUS,...) to allocate memory, call mlock(), then
+> write in this location a secret (a passphrase), and that area ends up
+> in the memory region registered for on demand paging ?
+>=20
+> The application haven't choose to disclose these confidential piece o=
+f
+> information, but they are available for reading/writing by remote
+> through RDMA given it knows the rkey of the memory region (which is a
+> 32bits value).
+>=20
+> I hope I'm missing something, because I'm not feeling confident such
+> behavor is a feature.
 
-This is why my OPA patch series included a cache of the device attributes.
+What we are aiming for is the possibility to register the entire proces=
+s' address=20
+space for RDMA operations (if the process chooses to use this feature).
+This is similar to multiple threads accessing the same address space. I=
+'m sure=20
+you wouldn't be complaining about the ability of one thread to access t=
+he secret=20
+passphrase mmapped by another thread in your example.
 
-https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg22827.html
+> I'm trying to understand how the application can choose what is expos=
+ed
+> through RDMA if it registers a very large memory region for later use
+> (but do not actually explicitly map something there yet): what's the
+> consequences ?
+>=20
+>    void *start =3D sbrk(0);
+>    size_t size =3D ULONG_MAX - (unsigned long)start;
+>=20
+>    ibv_reg_mr(pd, start, size, IB_ACCESS_ON_DEMAND)
 
-This was suggested by Or and incorporated rather than having the MAD stack
-issue ib_query_device.  The same could be done for port attributes.
+The consequences are exactly as you wrote. Just as giving a non-ODP rke=
+y=20
+to a remote node allows the node to access the registered memory behind=
+ that=20
+rkey, giving an ODP rkey to a remote node allows that node to access th=
+e=20
+virtual address space behind that rkey.
 
-That said I would like to see the next version of your patch series.  We have
-had a lot of churn on that thread and I think you have a lot of things you were
-going to incorporate.  :-D
-
-Thanks!
-Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Regards,
+Haggai--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
