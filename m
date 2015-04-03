@@ -1,152 +1,90 @@
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
- memory access
-Date: Fri, 03 Apr 2015 13:49:45 +0200
-Message-ID: <1428061785.22575.139.camel@opteya.com>
+From: Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>
+Subject: Re: [oss-security] RE: CVE-2014-8159 kernel: infiniband: uverbs:
+ unprotected physical memory access
+Date: Fri, 3 Apr 2015 14:43:56 +0200
+Message-ID: <20150403124356.GA3141@u-blusson>
 References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427969085.17020.5.camel@opteya.com>
-	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
-	 <1427992506.22575.80.camel@opteya.com>
-	 <AM2PR05MB0929FB71C5A4DE92A7709F92DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
-	,<1428007208.22575.104.camel@opteya.com> <1428050408201.35668@mellanox.com>
+ <1427969085.17020.5.camel@opteya.com>
+ <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+ <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
+ <1427992506.22575.80.camel@opteya.com>
+ <AM2PR05MB0929FB71C5A4DE92A7709F92DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
+ <20150402174401.GA24285@nautica>
+ <AM3PR05MB0935F9F1011E30F11C2A08BDDCF10@AM3PR05MB0935.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1428050408201.35668@mellanox.com>
-Sender: stable-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Shachar Raindel <raindel@mellanox.com>, Sagi Grimberg <sagig@mellanox.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AM3PR05MB0935F9F1011E30F11C2A08BDDCF10-LOZWmgKjnYgQouBfZGh8ttqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
-Le vendredi 03 avril 2015 =C3=A0 08:39 +0000, Haggai Eran a =C3=A9crit =
-:
-> On Thursday, April 2, 2015 11:40 PM, Yann Droneaud <ydroneaud@opteya.=
-com> wrote:
-> > Le jeudi 02 avril 2015 =C3=A0 16:44 +0000, Shachar Raindel a =C3=A9=
-crit :
-> >> > -----Original Message-----
-> >> > From: Yann Droneaud [mailto:ydroneaud@opteya.com]
-> >> > Sent: Thursday, April 02, 2015 7:35 PM
-> >=20
-> >> > Another related question: as the large memory range could be reg=
-istered
-> >> > by user space with ibv_reg_mr(pd, base, size, IB_ACCESS_ON_DEMAN=
-D),
-> >> > what's prevent the kernel to map a file as the result of mmap(0,=
- ...)
-> >> > in this  region, making it available remotely through IBV_WR_RDM=
-A_READ /
-> >> > IBV_WR_RDMA_WRITE ?
-> >> >
-> >>
-> >> This is not a bug. This is a feature.
-> >>
-> >> Exposing a file through RDMA, using ODP, can be done exactly like =
-this.
-> >> Given that the application explicitly requested this behavior, I d=
-on't
-> >> see why it is a problem.
-> >=20
-> > If the application cannot choose what will end up in the region it =
-has
-> > registered, it's an issue !
-> >=20
-> > What might happen if one library in a program call mmap(0, size, ..=
-=2E) to
-> > load a file storing a secret (a private key), and that file ends up
-> > being mapped in an registered but otherwise free region (afaict, th=
-e
-> > kernel is allowed to do it) ?
-> > What might happen if one library in a program call call mmap(0,
-> > size, ..., MAP_ANONYMOUS,...) to allocate memory, call mlock(), the=
-n
-> > write in this location a secret (a passphrase), and that area ends =
-up
-> > in the memory region registered for on demand paging ?
-> >=20
-> > The application haven't choose to disclose these confidential piece=
- of
-> > information, but they are available for reading/writing by remote
-> > through RDMA given it knows the rkey of the memory region (which is=
- a
-> > 32bits value).
-> >=20
-> > I hope I'm missing something, because I'm not feeling confident suc=
-h
-> > behavor is a feature.
->=20
-> What we are aiming for is the possibility to register the entire proc=
-ess' address=20
-> space for RDMA operations (if the process chooses to use this feature=
-).
-> This is similar to multiple threads accessing the same address space.=
- I'm sure=20
-> you wouldn't be complaining about the ability of one thread to access=
- the secret=20
-> passphrase mmapped by another thread in your example.
->=20
-> > I'm trying to understand how the application can choose what is exp=
-osed
-> > through RDMA if it registers a very large memory region for later u=
-se
-> > (but do not actually explicitly map something there yet): what's th=
-e
-> > consequences ?
-> >=20
-> >    void *start =3D sbrk(0);
-> >    size_t size =3D ULONG_MAX - (unsigned long)start;
-> >=20
-> >    ibv_reg_mr(pd, start, size, IB_ACCESS_ON_DEMAND)
->=20
-> The consequences are exactly as you wrote. Just as giving a non-ODP r=
-key=20
-> to a remote node allows the node to access the registered memory behi=
-nd that=20
-> rkey, giving an ODP rkey to a remote node allows that node to access =
-the=20
-> virtual address space behind that rkey.
->=20
+Shachar Raindel wrote on Fri, Apr 03, 2015 at 11:49:13AM +0000:
+> > couldn't get it to work - ibv_reg_mr would return EINVAL on an address
+> > obtained by mmap.
+> 
+> Were you mmaping a normal disk file, or was the mmap targeting an MMIO of
+> another hardware device? mmap of a normal disk file should work also with
+> normal memory registration, assuming you are providing the proper length.
 
-There's a difference: it's impossible to give a valid non-ODP rkey that
-point to a memory region not already mapped (backed by a file for=20
-example), so the application *choose* the content of the memory to be
-made accessible remotely before making it accessible.
+On a proper file.
+It was a year or two ago, I actually tried again now and it does seem
+to work alright even on older kernels... I wonder what I did wrong back
+then!
 
-As I understand the last explanation regarding ODP, at creation time,
-an ODP rkey can point to a free, unused, unallocated memory portion.
-At this point the kernel can happily map anything the application
-(and its libraries) want to map at a (almost) *random* address that
-could be in (or partially in) the ODP memory region.
+> mmap of the MMIO area of another hardware device (i.e. interfacing an FPGA,
+> NVRAM, or similar things) requires some code changes on both sides. The
+> current kernel code in the infiniband side is using get_user_pages, which
+> does not support MMIO pages. The proposed PeerDirect patches [1] allows peer
+> device to declare ownership of virtual address ranges, and enable such
+> registration. However, these patches are have not yet been merged upstream.
 
-And I have a problem with such random behavior. Allowing this is seems
-dangerous and should be done with care.
+Interesting, I don't need this right now but it's good to know.
 
-I believe the application must kept the control of what's end up in its=
-=20
-ODP registered memory region.
+> > Conceptually as well I'm not sure how it's supposed to work, mmap should
+> > only actually issue reads when memory access issues page faults (give or
+> > take suitable readahead logic), but I don't think direct memory access
+> > from the IB/RDMA adapter would issue such page faults ?
+> 
+> You are correct. RDMA adapters without ODP support do not issue page faults.
+> Instead, during memory registration, the ib_umem code calls get_user_pages,
+> which ensures all relevant pages are in memory, and pins them as needed.
+> 
+> > Likewise on writes, would need the kernel to notice memory has been
+> > written and pages are dirty/needs flushing.
+> > 
+> 
+> Similarly, when deregistering a writable memory region, the kernel driver
+> marks all pages as dirty before unpinning them. You can see the code doing
+> this in [2].
 
-Especially for multi thread program: imagine one thread creating a larg=
-e
-memory region for its future purposes, then send the rkey to a remote=20
-peer and wait for some work to be done.
-In the mean time another call mmap(0, ...) to map a file at a kernel=20
-chosen address, and that address happen to be in the memory region=20
-registered by the other thread:
+Ok this makes sense, thanks for clearing it up.
 
-1) the first thread is amputated from a portion of memory it was=20
-willing to use;
-2) the data used by the second thread is accessible to the remote=20
-peer(s) while not expected.
+> Liran Liss gave a presentation about ODP at OFA [3]. The technology is
+> available for ConnectIB devices using the most recent firmware and kernel
+> versions above 3.19.
 
-Speculatively registering memory seems dangerous for any use case I
-could think of.
+I don't have any recent kernel around, but I'll give it a shot next
+week.
+(I'm working on a userspace file server, nfs-ganesha, so being able to
+mmap a file and use it directly for I/O is very promising for me!)
 
-Regards.
 
---=20
-Yann Droneaud
-OPTEYA
+> [1] http://www.spinics.net/lists/linux-rdma/msg21770.html
+> [2] http://lxr.free-electrons.com/source/drivers/infiniband/core/umem.c#L62
+> [3] https://www.openfabrics.org/images/Workshops_2014/DevWorkshop/presos/Tuesday/pdf/09.30_2014_OFA_Workshop_ODP_update_final.pdf and https://www.youtube.com/watch?v=KbrlsXQbHCw
+
+
+Thanks for the detailed reply, I'll dig a bit further and come back
+straight to the list if need to.
+
+-- 
+Dominique Martinet
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
