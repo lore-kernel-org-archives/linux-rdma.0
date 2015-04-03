@@ -1,105 +1,92 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
- memory access
-Date: Fri, 3 Apr 2015 08:39:44 +0000
-Message-ID: <1428050408201.35668@mellanox.com>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [oss-security] RE: CVE-2014-8159 kernel: infiniband: uverbs:
+ unprotected physical memory access
+Date: Fri, 3 Apr 2015 11:49:13 +0000
+Message-ID: <AM3PR05MB0935F9F1011E30F11C2A08BDDCF10@AM3PR05MB0935.eurprd05.prod.outlook.com>
 References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427969085.17020.5.camel@opteya.com>
-	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
-	 <1427992506.22575.80.camel@opteya.com>
-	 <AM2PR05MB0929FB71C5A4DE92A7709F92DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>,<1428007208.22575.104.camel@opteya.com>
+ <1427969085.17020.5.camel@opteya.com>
+ <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
+ <1427981431.22575.21.camel@opteya.com> <551D5DC8.6070909@mellanox.com>
+ <1427992506.22575.80.camel@opteya.com>
+ <AM2PR05MB0929FB71C5A4DE92A7709F92DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
+ <20150402174401.GA24285@nautica>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1428007208.22575.104.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150402174401.GA24285@nautica>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday, April 2, 2015 11:40 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
-m> wrote:
-> Le jeudi 02 avril 2015 =E0 16:44 +0000, Shachar Raindel a =E9crit :
->> > -----Original Message-----
->> > From: Yann Droneaud [mailto:ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org]
->> > Sent: Thursday, April 02, 2015 7:35 PM
->=20
->> > Another related question: as the large memory range could be regis=
-tered
->> > by user space with ibv_reg_mr(pd, base, size, IB_ACCESS_ON_DEMAND)=
-,
->> > what's prevent the kernel to map a file as the result of mmap(0, .=
-=2E.)
->> > in this  region, making it available remotely through IBV_WR_RDMA_=
-READ /
->> > IBV_WR_RDMA_WRITE ?
->> >
->>
->> This is not a bug. This is a feature.
->>
->> Exposing a file through RDMA, using ODP, can be done exactly like th=
-is.
->> Given that the application explicitly requested this behavior, I don=
-'t
->> see why it is a problem.
->=20
-> If the application cannot choose what will end up in the region it ha=
-s
-> registered, it's an issue !
->=20
-> What might happen if one library in a program call mmap(0, size, ...)=
- to
-> load a file storing a secret (a private key), and that file ends up
-> being mapped in an registered but otherwise free region (afaict, the
-> kernel is allowed to do it) ?
-> What might happen if one library in a program call call mmap(0,
-> size, ..., MAP_ANONYMOUS,...) to allocate memory, call mlock(), then
-> write in this location a secret (a passphrase), and that area ends up
-> in the memory region registered for on demand paging ?
->=20
-> The application haven't choose to disclose these confidential piece o=
-f
-> information, but they are available for reading/writing by remote
-> through RDMA given it knows the rkey of the memory region (which is a
-> 32bits value).
->=20
-> I hope I'm missing something, because I'm not feeling confident such
-> behavor is a feature.
-
-What we are aiming for is the possibility to register the entire proces=
-s' address=20
-space for RDMA operations (if the process chooses to use this feature).
-This is similar to multiple threads accessing the same address space. I=
-'m sure=20
-you wouldn't be complaining about the ability of one thread to access t=
-he secret=20
-passphrase mmapped by another thread in your example.
-
-> I'm trying to understand how the application can choose what is expos=
-ed
-> through RDMA if it registers a very large memory region for later use
-> (but do not actually explicitly map something there yet): what's the
-> consequences ?
->=20
->    void *start =3D sbrk(0);
->    size_t size =3D ULONG_MAX - (unsigned long)start;
->=20
->    ibv_reg_mr(pd, start, size, IB_ACCESS_ON_DEMAND)
-
-The consequences are exactly as you wrote. Just as giving a non-ODP rke=
-y=20
-to a remote node allows the node to access the registered memory behind=
- that=20
-rkey, giving an ODP rkey to a remote node allows that node to access th=
-e=20
-virtual address space behind that rkey.
-
-Regards,
-Haggai--
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+SGkgRG9taW5pcXVlLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IERv
+bWluaXF1ZSBNYXJ0aW5ldCBbbWFpbHRvOmRvbWluaXF1ZS5tYXJ0aW5ldEBjZWEuZnJdDQo+IFNl
+bnQ6IFRodXJzZGF5LCBBcHJpbCAwMiwgMjAxNSA4OjQ0IFBNDQo+IFRvOiBTaGFjaGFyIFJhaW5k
+ZWwNCj4gU3ViamVjdDogUmU6IFtvc3Mtc2VjdXJpdHldIFJFOiBDVkUtMjAxNC04MTU5IGtlcm5l
+bDogaW5maW5pYmFuZDoNCj4gdXZlcmJzOiB1bnByb3RlY3RlZCBwaHlzaWNhbCBtZW1vcnkgYWNj
+ZXNzDQo+IA0KPiBIaSwNCj4gDQo+IFNoYWNoYXIgUmFpbmRlbCB3cm90ZSBvbiBUaHUsIEFwciAw
+MiwgMjAxNToNCj4gPiBGcm9tOiBZYW5uIERyb25lYXVkIFttYWlsdG86eWRyb25lYXVkQG9wdGV5
+YS5jb21dDQo+ID4gPiBBbm90aGVyIHJlbGF0ZWQgcXVlc3Rpb246IGFzIHRoZSBsYXJnZSBtZW1v
+cnkgcmFuZ2UgY291bGQgYmUNCj4gcmVnaXN0ZXJlZA0KPiA+ID4gYnkgdXNlciBzcGFjZSB3aXRo
+IGlidl9yZWdfbXIocGQsIGJhc2UsIHNpemUsIElCX0FDQ0VTU19PTl9ERU1BTkQpLA0KPiA+ID4g
+d2hhdCdzIHByZXZlbnQgdGhlIGtlcm5lbCB0byBtYXAgYSBmaWxlIGFzIHRoZSByZXN1bHQgb2Yg
+bW1hcCgwLA0KPiAuLi4pDQo+ID4gPiBpbiB0aGlzICByZWdpb24sIG1ha2luZyBpdCBhdmFpbGFi
+bGUgcmVtb3RlbHkgdGhyb3VnaA0KPiBJQlZfV1JfUkRNQV9SRUFEIC8NCj4gPiA+IElCVl9XUl9S
+RE1BX1dSSVRFID8NCj4gPiA+DQo+ID4NCj4gPiBUaGlzIGlzIG5vdCBhIGJ1Zy4gVGhpcyBpcyBh
+IGZlYXR1cmUuDQo+ID4NCj4gPiBFeHBvc2luZyBhIGZpbGUgdGhyb3VnaCBSRE1BLCB1c2luZyBP
+RFAsIGNhbiBiZSBkb25lIGV4YWN0bHkgbGlrZQ0KPiB0aGlzLg0KPiA+IEdpdmVuIHRoYXQgdGhl
+IGFwcGxpY2F0aW9uIGV4cGxpY2l0bHkgcmVxdWVzdGVkIHRoaXMgYmVoYXZpb3IsIEkgZG9uJ3QN
+Cj4gPiBzZWUgd2h5IGl0IGlzIGEgcHJvYmxlbS4gQWN0dWFsbHksIHNvbWUgb2Ygb3VyIHRlc3Rz
+IHVzZSBzdWNoIGZsb3dzLg0KPiA+IFRoZSBtbXUgbm90aWZpZXJzIG1lY2hhbmlzbSBhbGxvdyB1
+cyB0byBkbyB0aGlzIHNhZmVseS4gV2hlbiB0aGUgcGFnZQ0KPiBpcw0KPiA+IHdyaXR0ZW4gYmFj
+ayB0byBkaXNrLCBpdCBpcyByZW1vdmVkIGZyb20gdGhlIE9EUCBtYXBwaW5nLiBXaGVuIGl0IGlz
+DQo+ID4gYWNjZXNzZWQgYnkgdGhlIEhDQSwgaXQgaXMgYnJvdWdodCBiYWNrIHRvIFJBTS4NCj4g
+DQo+IEZvcmdpdmUgdGhlIHByaXZhdGUgcmVwbHksIGJ1dCBJJ3ZlIGFjdHVhbGx5IHRyaWVkIHRo
+YXQgYSB3aGlsZSBhZ28gYW5kDQoNCk5vIHByb2JsZW0sIGJldHRlciB0aGFuIGUtbWFpbGluZyB0
+aGUgZW50aXJlIHdvcmxkIG9uIFJETUEgc3BlY2lmaWMgdG9waWNzLg0KQXMgdGhpcyBkaXNjdXNz
+aW9uIGlzIHJlbGV2YW50IHRvIHRoZSBMaW51eCBSRE1BIHVzZXJzLCBJJ20gYWRkaW5nIGJhY2sN
+CnRoZSBsaW51eC1yZG1hIG1haWxpbmcgbGlzdC4NCg0KPiBjb3VsZG4ndCBnZXQgaXQgdG8gd29y
+ayAtIGlidl9yZWdfbXIgd291bGQgcmV0dXJuIEVJTlZBTCBvbiBhbiBhZGRyZXNzDQo+IG9idGFp
+bmVkIGJ5IG1tYXAuDQoNCldlcmUgeW91IG1tYXBpbmcgYSBub3JtYWwgZGlzayBmaWxlLCBvciB3
+YXMgdGhlIG1tYXAgdGFyZ2V0aW5nIGFuIE1NSU8gb2YNCmFub3RoZXIgaGFyZHdhcmUgZGV2aWNl
+PyBtbWFwIG9mIGEgbm9ybWFsIGRpc2sgZmlsZSBzaG91bGQgd29yayBhbHNvIHdpdGgNCm5vcm1h
+bCBtZW1vcnkgcmVnaXN0cmF0aW9uLCBhc3N1bWluZyB5b3UgYXJlIHByb3ZpZGluZyB0aGUgcHJv
+cGVyIGxlbmd0aC4NCg0KbW1hcCBvZiB0aGUgTU1JTyBhcmVhIG9mIGFub3RoZXIgaGFyZHdhcmUg
+ZGV2aWNlIChpLmUuIGludGVyZmFjaW5nIGFuIEZQR0EsDQpOVlJBTSwgb3Igc2ltaWxhciB0aGlu
+Z3MpIHJlcXVpcmVzIHNvbWUgY29kZSBjaGFuZ2VzIG9uIGJvdGggc2lkZXMuIFRoZQ0KY3VycmVu
+dCBrZXJuZWwgY29kZSBpbiB0aGUgaW5maW5pYmFuZCBzaWRlIGlzIHVzaW5nIGdldF91c2VyX3Bh
+Z2VzLCB3aGljaA0KZG9lcyBub3Qgc3VwcG9ydCBNTUlPIHBhZ2VzLiBUaGUgcHJvcG9zZWQgUGVl
+ckRpcmVjdCBwYXRjaGVzIFsxXSBhbGxvd3MgcGVlcg0KZGV2aWNlIHRvIGRlY2xhcmUgb3duZXJz
+aGlwIG9mIHZpcnR1YWwgYWRkcmVzcyByYW5nZXMsIGFuZCBlbmFibGUgc3VjaA0KcmVnaXN0cmF0
+aW9uLiBIb3dldmVyLCB0aGVzZSBwYXRjaGVzIGFyZSBoYXZlIG5vdCB5ZXQgYmVlbiBtZXJnZWQg
+dXBzdHJlYW0uDQoNCj4gDQo+IENvbmNlcHR1YWxseSBhcyB3ZWxsIEknbSBub3Qgc3VyZSBob3cg
+aXQncyBzdXBwb3NlZCB0byB3b3JrLCBtbWFwIHNob3VsZA0KPiBvbmx5IGFjdHVhbGx5IGlzc3Vl
+IHJlYWRzIHdoZW4gbWVtb3J5IGFjY2VzcyBpc3N1ZXMgcGFnZSBmYXVsdHMgKGdpdmUgb3INCj4g
+dGFrZSBzdWl0YWJsZSByZWFkYWhlYWQgbG9naWMpLCBidXQgSSBkb24ndCB0aGluayBkaXJlY3Qg
+bWVtb3J5IGFjY2Vzcw0KPiBmcm9tIHRoZSBJQi9SRE1BIGFkYXB0ZXIgd291bGQgaXNzdWUgc3Vj
+aCBwYWdlIGZhdWx0cyA/DQoNCllvdSBhcmUgY29ycmVjdC4gUkRNQSBhZGFwdGVycyB3aXRob3V0
+IE9EUCBzdXBwb3J0IGRvIG5vdCBpc3N1ZSBwYWdlIGZhdWx0cy4NCkluc3RlYWQsIGR1cmluZyBt
+ZW1vcnkgcmVnaXN0cmF0aW9uLCB0aGUgaWJfdW1lbSBjb2RlIGNhbGxzIGdldF91c2VyX3BhZ2Vz
+LA0Kd2hpY2ggZW5zdXJlcyBhbGwgcmVsZXZhbnQgcGFnZXMgYXJlIGluIG1lbW9yeSwgYW5kIHBp
+bnMgdGhlbSBhcyBuZWVkZWQuDQoNCj4gTGlrZXdpc2Ugb24gd3JpdGVzLCB3b3VsZCBuZWVkIHRo
+ZSBrZXJuZWwgdG8gbm90aWNlIG1lbW9yeSBoYXMgYmVlbg0KPiB3cml0dGVuIGFuZCBwYWdlcyBh
+cmUgZGlydHkvbmVlZHMgZmx1c2hpbmcuDQo+IA0KDQpTaW1pbGFybHksIHdoZW4gZGVyZWdpc3Rl
+cmluZyBhIHdyaXRhYmxlIG1lbW9yeSByZWdpb24sIHRoZSBrZXJuZWwgZHJpdmVyDQptYXJrcyBh
+bGwgcGFnZXMgYXMgZGlydHkgYmVmb3JlIHVucGlubmluZyB0aGVtLiBZb3UgY2FuIHNlZSB0aGUg
+Y29kZSBkb2luZw0KdGhpcyBpbiBbMl0uDQoNCj4gU28sIHdoYXQgYW0gSSBtaXNzaW5nPyBJJ2Qg
+d2FnZXIgaXQncyB0aGF0ICJPRFAiIHlvdSdyZSB0YWxraW5nIGFib3V0LA0KPiBkbyB5b3UgaGF2
+ZSBhbnkgZG9jdW1lbnRhdGlvbiBJIGNvdWxkIHNraW0gdGhyb3VnaCA/DQo+IA0KDQpMaXJhbiBM
+aXNzIGdhdmUgYSBwcmVzZW50YXRpb24gYWJvdXQgT0RQIGF0IE9GQSBbM10uIFRoZSB0ZWNobm9s
+b2d5IGlzDQphdmFpbGFibGUgZm9yIENvbm5lY3RJQiBkZXZpY2VzIHVzaW5nIHRoZSBtb3N0IHJl
+Y2VudCBmaXJtd2FyZSBhbmQga2VybmVsDQp2ZXJzaW9ucyBhYm92ZSAzLjE5Lg0KDQpUaGFua3Ms
+DQotLVNoYWNoYXINCg0KWzFdIGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtcmRt
+YS9tc2cyMTc3MC5odG1sDQpbMl0gaHR0cDovL2x4ci5mcmVlLWVsZWN0cm9ucy5jb20vc291cmNl
+L2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VtZW0uYyNMNjINClszXSBodHRwczovL3d3dy5vcGVu
+ZmFicmljcy5vcmcvaW1hZ2VzL1dvcmtzaG9wc18yMDE0L0RldldvcmtzaG9wL3ByZXNvcy9UdWVz
+ZGF5L3BkZi8wOS4zMF8yMDE0X09GQV9Xb3Jrc2hvcF9PRFBfdXBkYXRlX2ZpbmFsLnBkZiBhbmQg
+aHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1LYnJsc1hRYkhDdw0KDQoNCg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
