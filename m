@@ -1,48 +1,95 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
-Date: Sun, 5 Apr 2015 07:51:08 -0700
-Message-ID: <CAG4TOxOv98YjNOi9MbKHiHg6aLw75XRfasMaScdRccRitiE3-g@mail.gmail.com>
-References: <20150330.233602.155832546277570456.davem@davemloft.net>
- <CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
- <CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
- <20150331.114824.651005354305268415.davem@davemloft.net> <1828884A29C6694DAF28B7E6B8A82373A8FBB790@ORSMSX109.amr.corp.intel.com>
- <CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FBBCE3@ORSMSX109.amr.corp.intel.com>
- <CAJ3xEMgptECgnWXfW7wN8sjqRfUvzF3tCN=Lj8MZtdOG8yg3jQ@mail.gmail.com>
- <20150402223135.GA12588@phlsvsds.ph.intel.com> <CAJ3xEMgsHAFJomuCN+EzMcYaxTOTQqHuDdr9zztuO9pH9QicXw@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 12/16] ib_srpt: fix error return code
+Date: Sun, 5 Apr 2015 18:27:14 +0200
+Message-ID: <55216262.7000601@sandisk.com>
+References: <1428235596-4757-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1428235596-4757-13-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgsHAFJomuCN+EzMcYaxTOTQqHuDdr9zztuO9pH9QicXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1428235596-4757-13-git-send-email-Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Apr 4, 2015 at 10:15 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Indeed. No maintainer voice makes it kind of impossible for
-> discussions to converge. What happens over the last years is that when
-> there's no easy consensus on matter Y, everyone stops breathing and
-> wait to see what happens on the rc1 night, b/c Roland doesn't spell
-> his view/preference (nor exposes his for-next branch till the last
-> minute, see now) many times it seems more as coin flipping.
+On 04/05/15 14:06, Julia Lawall wrote:
+> Return a negative error code on failure.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> @@
+> identifier ret; expression e1,e2;
+> @@
+> (
+> if (\(ret < 0\|ret != 0\))
+>   { ... return ret; }
+> |
+> ret = 0
+> )
+> ... when != ret = e1
+>      when != &ret
+> *if(...)
+> {
+>    ... when != ret = e2
+>        when forall
+>   return ret;
+> }
+> // </smpl>
+>
+> In the first case, the printk is changed to use the ret value, rather
+> than duplicating PTR_ERR(ch->thread).  This requires changing the format
+> from %ld to %d, to account for the type of ret.
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+>
+> ---
+>   drivers/infiniband/ulp/srpt/ib_srpt.c |    6 ++++--
+>   1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 6e0a477..5ec98f5 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -2143,8 +2143,8 @@ retry:
+>
+>   	ch->thread = kthread_run(srpt_compl_thread, ch, "ib_srpt_compl");
+>   	if (IS_ERR(ch->thread)) {
+> -		printk(KERN_ERR "failed to create kernel thread %ld\n",
+> -		       PTR_ERR(ch->thread));
+> +		ret = PTR_ERR(ch->thread);
+> +		printk(KERN_ERR "failed to create kernel thread %d\n", ret);
+>   		ch->thread = NULL;
+>   		goto err_destroy_qp;
+>   	}
+> @@ -2590,6 +2590,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+>   		       " configured yet for initiator %s.\n", ch->sess_name);
+>   		rej->reason = __constant_cpu_to_be32(
+>   				SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED);
+> +		ret = -EINVAL;
+>   		goto destroy_ib;
+>   	}
+>
+> @@ -2598,6 +2599,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+>   		rej->reason = __constant_cpu_to_be32(
+>   				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+>   		pr_debug("Failed to create session\n");
+> +		ret = PTR_ERR(ch->sess);
+>   		goto deregister_session;
+>   	}
+>   	ch->sess->se_node_acl = &nacl->nacl;
 
-To me this attitude shows a failure of the community.  If I need to
-make every decision, then that doesn't scale.  People can ask
-questions a lot more easily than I can answer them.
+This is not the proper way to fix srpt_cm_req_recv(). The kthread_run() 
+call must be moved from srpt_create_ch_ib() to after the session 
+registration code in srpt_cm_req_recv(), and the session registration 
+call + the kthread_run() call must be protected via a mutex against 
+concurrent HCA hot-plug removal events (see also srpt_remove_one() and 
+srpt_remove_sdev()).
 
-In general if a consensus emerges, I'm pretty likely to trust it.  In
-particular, as Sean mentioned, I tend to trust vendors about low-level
-drivers, although of course I sometimes catch mistakes even then.
-
-But for changes that touch the core, when there's a disagreement, you
-can't expect me to be the one who always solves it.  I might have an
-opinion, but in a lot of cases, both sides might have a point and the
-only way forward is to come up with a new idea that works for
-everyone.  And I'm not smart enough to come up with that solution
-every time.
-
- - R.
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
