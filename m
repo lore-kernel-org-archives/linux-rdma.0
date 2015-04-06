@@ -1,90 +1,70 @@
-From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: [RFC PATCH 00/11] IB/Verbs: IB Management Helpers
-Date: Mon, 6 Apr 2015 16:22:56 -0400
-Message-ID: <20150406202255.GA31445@phlsvsds.ph.intel.com>
-References: <551579CA.4030901@profitbricks.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 02/19] IB/core: Cache device attributes for use by upper level drivers
+Date: Mon, 6 Apr 2015 18:10:44 -0400
+Message-ID: <20150406221044.GA433@phlsvsds.ph.intel.com>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-3-git-send-email-ira.weiny@intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FBD574@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <551579CA.4030901@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Wang <yun.wang@profitbricks.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Trond Myklebust <trond.myklebust@primarydata.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Moni Shoua <monis@mellanox.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Yan Burman <yanb@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Bart Van Assche <bvanassche@acm.org>, Yann Droneaud <ydroneaud@opteya.com>, Colin Ian King <colin.king@canonical.com>, Majd Dibbiny <majd@mellanox.com>, Jiri Kosina <jkosina@suse.cz>, Matan Barak <matanb@mellanox.com>, Alex Estrin <alex.estrin@intel.com>, Doug Ledford <dledford@>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBD574-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 27, 2015 at 04:39:54PM +0100, Michael Wang wrote:
+On Fri, Apr 03, 2015 at 02:43:46PM -0600, Hefty, Sean wrote:
+> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> > index 0d74f1d..0116e4b 100644
+> > --- a/include/rdma/ib_verbs.h
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -1675,6 +1675,7 @@ struct ib_device {
+> >  	u32			     local_dma_lkey;
+> >  	u8                           node_type;
+> >  	u8                           phys_port_cnt;
+> > +	struct ib_device_attr        cached_dev_attrs;
+> >  };
 > 
-> There are plenty of lengthy code to check the transport type of IB device,
-> or the link layer type of it's port, but actually we are just speculating
-> whether a particular management is supported by the device/port.
+> Looking at the device attributes, I think all of the values are static for a given device.
+>
 
-Michael,
+Yes
 
-There was a lot of input on this patch series which I believe indicates we
-would like to move forward.  Were you working through another version of the
-series with the suggested changes?
+> If this is indeed the case, then I would just remove the word 'cached' from the field name.  Cached makes me think of the values dynamically changing, and if that's the case, then this patch isn't sufficient.
+> 
 
-Thanks,
+I understand your point and I originally called this "attributes" but it was
+suggested to call it cached_dev_attrs.
+
+https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg22486.html
+
+I can change it back if we are all agreed.
+
+
+Roland?
+
+
+> Alternatively, if there's only a few values that ULPs need, maybe just store those.
+
+This patch was suggested because there are too many of the flags needed by
+ULPs.
+
+A quote from Or:
+
+"I find it very annoying that upper level drivers replicate in different ways
+elements from the IB device attributes returned by ib_query_device. I met that
+in multiple drivers and upcoming designs for which I do code review. Are you up
+to come up with a patch that caches the device attributes on the device
+structure? if not, I can do that.. and have your code to see it."
+
+https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg22011.html
+
+Roland is having such a patch even acceptable or would you prefer to have a
+query_device call by each ULP?
+
 Ira
 
-
-> 
-> Thus instead of inferring, we should have our own mechanism for
-> IB management capability/protocol checking, several proposals below.
-> 
-> This patch set is the pioneer which try to collecting all the cases where
-> a management helper applicable, and put all the speculating logical together,
-> in order to be easily integrated to the new querying mechanism in future.
-> 
-> TODO:
->     The helper in patch 10 and 11 are still to be classified, that is
->     cap_ib() and cap_eth().
-> 
->     The name/description of each helper may not correct enough, those folks
->     who are familiar with these particular parts, your suggestion would be
->     invaluable ;-)
-> 
-> Proposals:
->     Sean:
->     https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.html
->     Doug:
->     https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23418.html
->     Jason:
->     https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23425.html
-> 
-> Michael Wang (11):
->     [PATCH 01/11] IB/Verbs: Use helpers to check transport and link layer
->     [RFC PATCH 02/11] IB/Verbs: Use management helper tech_iboe() for iboe-check
->     [RFC PATCH 03/11] IB/Verbs: Use management helper has_mad() for mad-check
->     [RFC PATCH 04/11] IB/Verbs: Use management helper cap_smi() for smi-check
->     [RFC PATCH 05/11] IB/Verbs: Use management helper has_cm() for cm-check
->     [RFC PATCH 06/11] IB/Verbs: Use management helper has_sa() and cap_sa() for sa-check
->     [RFC PATCH 07/11] IB/Verbs: Use management helper has_mcast() and cap_mcast() for mcast-check
->     [RFC PATCH 08/11] IB/Verbs: Use management helper has_iwarp() for iwarp-check
->     [RFC PATCH 09/11] IB/Verbs: Use management helper has_ipoib() and cap_ipoib() for ipoib-check
->     [RFC PATCH 10/11] IB/Verbs: Use management helper cap_ib() for ib-check
->     [RFC PATCH 11/11] IB/Verbs: Use management helper cap_eth() for eth-check
-> 
-> ---
->  drivers/infiniband/core/agent.c           |    6
->  drivers/infiniband/core/cm.c              |    6
->  drivers/infiniband/core/cma.c             |   79 ++++------
->  drivers/infiniband/core/mad.c             |   18 +-
->  drivers/infiniband/core/multicast.c       |   30 +---
->  drivers/infiniband/core/sa_query.c        |   42 ++---
->  drivers/infiniband/core/ucm.c             |    8 -
->  drivers/infiniband/core/user_mad.c        |    6
->  drivers/infiniband/core/verbs.c           |   14 -
->  drivers/infiniband/hw/mlx4/ah.c           |    6
->  drivers/infiniband/hw/mlx4/cq.c           |   10 -
->  drivers/infiniband/hw/mlx4/mad.c          |   36 +---
->  drivers/infiniband/hw/mlx4/main.c         |   23 +--
->  drivers/infiniband/hw/mlx4/mlx4_ib.h      |    6
->  drivers/infiniband/hw/mlx4/qp.c           |   57 ++-----
->  drivers/infiniband/hw/mlx4/sysfs.c        |   16 --
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |   18 +-
->  include/rdma/ib_verbs.h                   |  218 ++++++++++++++++++++++++++++++
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c   |    8 -
->  19 files changed, 381 insertions(+), 226 deletions(-)
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
