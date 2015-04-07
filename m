@@ -1,68 +1,102 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v2 11/17] IB/Verbs: Reform link_layer_show() and ib_uverbs_query_port()
-Date: Tue, 07 Apr 2015 14:36:00 +0200
-Message-ID: <5523CF30.7000608@profitbricks.com>
+Subject: [PATCH v2 12/17] IB/Verbs: Use management helper cap_ib_cm_dev()
+ for cm-device-check
+Date: Tue, 07 Apr 2015 14:36:34 +0200
+Message-ID: <5523CF52.4030606@profitbricks.com>
 References: <5523CCD5.6030401@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <5523CCD5.6030401@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org
 Cc: Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Ira Weiny <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai Eran <haggaie@mellanox.com>, Ilya Nelkenbaum <ilyan@mellanox.com>, Yann Droneaud <ydroneaud@opteya.com>, Bart Van Assche <bvanassche@acm.org>, Shachar Raindel <raindel@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Reform link_layer_show() and ib_uverbs_query_port() with management helpers.
+Introduce helper cap_ib_cm_dev() to help us check if any port of device
+has the capability Infiniband Communication Manager.
 
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/sysfs.c      | 8 ++------
- drivers/infiniband/core/uverbs_cmd.c | 6 ++++--
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/cma.c |  5 ++---
+ drivers/infiniband/core/ucm.c |  3 +--
+ include/rdma/ib_verbs.h       | 20 ++++++++++++++++++++
+ 3 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index cbd0383..aa53e40 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -248,14 +248,10 @@ static ssize_t phys_state_show(struct ib_port *p, struct port_attribute *unused,
- static ssize_t link_layer_show(struct ib_port *p, struct port_attribute *unused,
- 			       char *buf)
- {
--	switch (rdma_port_get_link_layer(p->ibdev, p->port_num)) {
--	case IB_LINK_LAYER_INFINIBAND:
-+	if (rdma_transport_ib(p->ibdev, p->port_num))
- 		return sprintf(buf, "%s\n", "InfiniBand");
--	case IB_LINK_LAYER_ETHERNET:
-+	else
- 		return sprintf(buf, "%s\n", "Ethernet");
--	default:
--		return sprintf(buf, "%s\n", "Unknown");
--	}
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d570030..d8a8ea7 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1625,8 +1625,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	struct rdma_cm_id *id;
+ 	int ret;
+ 
+-	if (cma_family(id_priv) == AF_IB &&
+-	    rdma_node_get_transport(cma_dev->device->node_type) != RDMA_TRANSPORT_IB)
++	if (cma_family(id_priv) == AF_IB && !cap_ib_cm_dev(cma_dev->device))
+ 		return;
+ 
+ 	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
+@@ -2028,7 +2027,7 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
+ 	mutex_lock(&lock);
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+ 		if (cma_family(id_priv) == AF_IB &&
+-		    rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
++		    !cap_ib_cm_dev(cur_dev->device))
+ 			continue;
+ 
+ 		if (!cma_dev)
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index f2f6393..065405e 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1253,8 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	dev_t base;
+ 	struct ib_ucm_device *ucm_dev;
+ 
+-	if (!device->alloc_ucontext ||
+-	    rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
++	if (!device->alloc_ucontext || !cap_ib_cm_dev(device))
+ 		return;
+ 
+ 	ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index cae6f2d..2767a91 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1819,6 +1819,26 @@ static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
  }
  
- static PORT_ATTR_RO(state);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index a9f0489..3eb6eb5 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -515,8 +515,10 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
- 	resp.active_width    = attr.active_width;
- 	resp.active_speed    = attr.active_speed;
- 	resp.phys_state      = attr.phys_state;
--	resp.link_layer      = rdma_port_get_link_layer(file->device->ib_dev,
--							cmd.port_num);
-+	resp.link_layer      = rdma_transport_ib(file->device->ib_dev,
-+							cmd.port_num) ?
-+			       IB_LINK_LAYER_INFINIBAND :
-+			       IB_LINK_LAYER_ETHERNET;
- 
- 	if (copy_to_user((void __user *) (unsigned long) cmd.response,
- 			 &resp, sizeof resp))
+ /**
++ * cap_ib_cm_dev - Check if any port of device has the capability Infiniband
++ * Communication Manager.
++ *
++ * @device: Device to be checked
++ *
++ * Return 0 when all port of the device don't support Infiniband
++ * Communication Manager.
++ */
++static inline int cap_ib_cm_dev(struct ib_device *device)
++{
++	int i;
++
++	for (i = 1; i <= device->phys_port_cnt; i++) {
++		if (cap_ib_cm(device, i))
++			return 1;
++	}
++	return 0;
++}
++
++/**
+  * cap_ib_sa - Check if the port of device has the capability Infiniband
+  * Subnet Administrator.
+  *
 -- 
 2.1.0
