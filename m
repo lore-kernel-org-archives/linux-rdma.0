@@ -1,137 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v2 09/17] IB/Verbs: Use helper cap_read_multi_sge() and
- reform svc_rdma_accept()
-Date: Tue, 7 Apr 2015 11:42:23 -0600
-Message-ID: <20150407174223.GB15704@obsidianresearch.com>
-References: <5523CCD5.6030401@profitbricks.com>
- <5523CEE4.5060901@profitbricks.com>
- <5523FBF1.80304@talpey.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 12/19] IB/mad: Add MAD size parameters to process_mad
+Date: Tue, 7 Apr 2015 17:53:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBE224@ORSMSX109.amr.corp.intel.com>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
+ <1423092585-26692-13-git-send-email-ira.weiny@intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBD692@ORSMSX109.amr.corp.intel.com>
+ <20150407172303.GB433@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5523FBF1.80304@talpey.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>
-Cc: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Ira Weiny <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150407172303.GB433-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 07, 2015 at 11:46:57AM -0400, Tom Talpey wrote:
-> On 4/7/2015 8:34 AM, Michael Wang wrote:
-> >  /**
-> >+ * cap_read_multi_sge - Check if the port of device has the capability
-> >+ * RDMA Read Multiple Scatter-Gather Entries.
-> >+ *
-> >+ * @device: Device to be checked
-> >+ * @port_num: Port number of the device
-> >+ *
-> >+ * Return 0 when port of the device don't support
-> >+ * RDMA Read Multiple Scatter-Gather Entries.
-> >+ */
-> >+static inline int cap_read_multi_sge(struct ib_device *device, u8 port_num)
-> >+{
-> >+	return !rdma_transport_iwarp(device, port_num);
-> >+}
+> > Rather than calling device->process_mad() directly, would it be better
+> to call a common function?  So we can avoid adding:
+> >
+> > > +	struct ib_mad *in_mad = (struct ib_mad *)in;
+> > > +	struct ib_mad *out_mad = (struct ib_mad *)out;
+> > > +
+> > > +	if (in_mad_size != sizeof(*in_mad) || *out_mad_size !=
+> > > sizeof(*out_mad))
+> > > +		return IB_MAD_RESULT_FAILURE;
+> >
+> > to existing drivers?
 > 
-> This just papers over the issue we discussed earlier. How *many*
-> entries does the device support? If a device supports one, or two,
-> is that enough? How does the upper layer know the limit?
+> No.  The checks need to be done by the devices.  IB devices expect exactly
+> 256
+> bytes, OPA devices expect 2K, while some drivers don't care at all (don't
+> support MADs).
 
-I think Michael is fine to just make this one mechanical change.
+The checks are per device, but that doesn't mean that every driver has to do the same check.
 
-The kernel only supports two kinds of devices today, ones with 1 read
-SGE and ones where READ SGE == WRITE SGE == SEND SGE.
+ib_process_mad(...)
+{
+	if (ib_device(...))
+		insert check here
+	else if (opa_device(...))
+		insert some other check here
+	else
+		hit caller on nose
+	dev->process_mad(...)
+}
 
-If someone makes another variation then it is up to them to propose a
-better fix.
+I'm fine either way.  It's more a matter of how much trust is given to the other kernel components.
 
-
-> >  static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
-> >  {
-> >-	if (rdma_node_get_transport(xprt->sc_cm_id->device->node_type) ==
-> >-	     RDMA_TRANSPORT_IWARP)
-> >+	if (!cap_read_multi_sge(xprt->sc_cm_id->device,
-> >+				xprt->sc_cm_id->port_num))
-> >  		return 1;
-> >  	else
-> >  		return min_t(int, sge_count, xprt->sc_max_sge);
-> 
-> This is incorrect. The RDMA Read max is not at all the same as the
-> max_sge. It is a different operation, with a different set of work
-> request parameters.
-
-The algorithm looks OK to me,
-
-        newxprt->sc_max_sge = min((size_t)devattr.max_sge,
-                                  (size_t)RPCSVC_MAXPAGES);
-
-So it returns 1 or the number of sge entries per WR, and max_sge is
-for READ/WRITE/SEND in every case except when cap_read_multi_sge == 1
-
-> >  	/*
-> >  	 * Determine if a DMA MR is required and if so, what privs are required
-> >  	 */
-> >-	switch (rdma_node_get_transport(newxprt->sc_cm_id->device->node_type)) {
-> >-	case RDMA_TRANSPORT_IWARP:
-> >+	if (rdma_transport_iwarp(newxprt->sc_cm_id->device,
-> >+				 newxprt->sc_cm_id->port_num)) {
-> >  		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
-> 
-> Do I read this correctly that it is forcing the "read with invalidate"
-> capability to "on" for all iWARP devices? I don't think that is correct,
-> for the legacy devices you're also supporting.
-
-No idea here, this logic was added in:
-
-commit 3a5c63803d0552a3ad93b85c262f12cd86471443
-Author: Tom Tucker <tom@opengridcomputing.com>
-Date:   Tue Sep 30 13:46:13 2008 -0500
-
-    svcrdma: Query device for Fast Reg support during connection setup
-    
-    Query the device capabilities in the svc_rdma_accept function to determine
-    what advanced memory management capabilities are supported by the device.
-    Based on the query, select the most secure model available given the
-    requirements of the transport and capabilities of the adapter.
-    
-    Signed-off-by: Tom Tucker <tom@opengridcomputing.com>
-
-> >@@ -992,8 +992,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
-> >  			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
-> >  		} else
-> >  			need_dma_mr = 0;
-> >-		break;
-> >-	case RDMA_TRANSPORT_IB:
-> >+	} else if (rdma_ib_mgmt(newxprt->sc_cm_id->device,
-> >+				newxprt->sc_cm_id->port_num)) {
-> >  		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
-> >  			need_dma_mr = 1;
-> >  			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
-> 
-> Now I'm even more confused. How is the presence of IB management
-> related to needing a privileged lmr?
-
-Agree, this needs to be someone else. 
-
-I think the test is probably based on this comment:
-
-        * NB:  iWARP requires remote write access for the data sink
-        *      of an RDMA_READ. IB does not.
-
-So the if should be:
-
-          if (cap_rdma_read_needs_write(..) && 
-	  !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
-                       need_dma_mr = 1;
-                       dma_mr_acc =
-                               (IB_ACCESS_LOCAL_WRITE |
-                                IB_ACCESS_REMOTE_WRITE);
-
-And the identical if blocks merged.
-
-Plus the
-	if (rdma_transport_iwarp(newxprt->sc_cm_id->device,
-				 newxprt->sc_cm_id->port_num))
-  		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV
-
-Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
