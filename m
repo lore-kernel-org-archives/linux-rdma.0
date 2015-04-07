@@ -1,79 +1,62 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 11/17] IB/Verbs: Reform link_layer_show() and ib_uverbs_query_port()
-Date: Tue, 7 Apr 2015 13:56:47 -0500
-Message-ID: <005e01d07164$9954e390$cbfeaab0$@opengridcomputing.com>
-References: <5523CCD5.6030401@profitbricks.com> <5523CF30.7000608@profitbricks.com> <1828884A29C6694DAF28B7E6B8A82373A8FBE2FA@ORSMSX109.amr.corp.intel.com>
+From: Ido Shamay <idos@dev.mellanox.co.il>
+Subject: Re: [PATCH RFC] net/mlx4: Remove improper usage of dma_alloc_coherent().
+Date: Tue, 07 Apr 2015 22:43:30 +0300
+Message-ID: <55243362.5040207@dev.mellanox.co.il>
+References: <1428361229-31542-1-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBE2FA-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-us
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Michael Wang' <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Tom Tucker' <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Hoang-Nam Nguyen' <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, 'Christoph Raisch' <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, 'infinipath' <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Eli Cohen' <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Latif, Faisal'" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Upinder Malhi' <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Trond Myklebust' <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "'David S. Miller'" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "'Weiny, Ira'" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'PJ Waskiewicz' <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, "'Nikolova, Tatyana E'" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Jack Morgenstein' <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Haggai Eran' <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Ilya Nelkenbaum' <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yann Droneaud' <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'Sha
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1428361229-31542-1-git-send-email-ddaney.cavm@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Amir Vadai <amirv@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Moni Shoua <monis@mellanox.com>, Eugenia Emantayev <eugenia@mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, Yuval Atias <yuvala@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, David Daney <david.daney@cavium.com>, liranl@mellanox.com, gdror@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> > diff --git a/drivers/infiniband/core/sysfs.c
-> > b/drivers/infiniband/core/sysfs.c
-> > index cbd0383..aa53e40 100644
-> > --- a/drivers/infiniband/core/sysfs.c
-> > +++ b/drivers/infiniband/core/sysfs.c
-> > @@ -248,14 +248,10 @@ static ssize_t phys_state_show(struct ib_port *p,
-> > struct port_attribute *unused,
-> >  static ssize_t link_layer_show(struct ib_port *p, struct port_attribute
-> > *unused,
-> >  			       char *buf)
-> >  {
-> > -	switch (rdma_port_get_link_layer(p->ibdev, p->port_num)) {
-> > -	case IB_LINK_LAYER_INFINIBAND:
-> > +	if (rdma_transport_ib(p->ibdev, p->port_num))
-> >  		return sprintf(buf, "%s\n", "InfiniBand");
-> > -	case IB_LINK_LAYER_ETHERNET:
-> > +	else
-> >  		return sprintf(buf, "%s\n", "Ethernet");
-> > -	default:
-> > -		return sprintf(buf, "%s\n", "Unknown");
-> > -	}
-> >  }
-> >
-> >  static PORT_ATTR_RO(state);
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c
-> > b/drivers/infiniband/core/uverbs_cmd.c
-> > index a9f0489..3eb6eb5 100644
-> > --- a/drivers/infiniband/core/uverbs_cmd.c
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -515,8 +515,10 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file
-> > *file,
-> >  	resp.active_width    = attr.active_width;
-> >  	resp.active_speed    = attr.active_speed;
-> >  	resp.phys_state      = attr.phys_state;
-> > -	resp.link_layer      = rdma_port_get_link_layer(file->device-
-> > >ib_dev,
-> > -							cmd.port_num);
-> > +	resp.link_layer      = rdma_transport_ib(file->device->ib_dev,
-> > +							cmd.port_num) ?
-> > +			       IB_LINK_LAYER_INFINIBAND :
-> > +			       IB_LINK_LAYER_ETHERNET;
-> >
-> >  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
-> >  			 &resp, sizeof resp))
-> 
-> Both of the above check the transport in order to determine the link layer.
-> 
-> These values are exposed to user space.  Does anyone know what link layer iWarp returns to user space?
+On 4/7/2015 2:00 AM, David Daney wrote:
+> From: David Daney <david.daney@cavium.com>
+>
+> The dma_alloc_coherent() function returns a virtual address which can
+> be used for coherent access to the underlying memory.  On some
+> architectures, like arm64, undefined behavior results if this memory is
+> also accessed via virtual mappings that are not coherent.  Because of
+> their undefined nature, operations like virt_to_page() return garbage
+> when passed virtual addresses obtained from dma_alloc_coherent().  Any
+> subsequent mappings via vmap() of the garbage page values are unusable
+> and result in bad things like bus errors (synchronous aborts in ARM64
+> speak).
+>
+> The MLX4 driver contains code that does the equivalent of:
+>
+>    vmap(virt_to_page(dma_alloc_coherent))
+>
+> This results in an OOPs when the device is opened.
+>
+> To fix this...
+>
+> Always use result of dma_alloc_coherent() directly.
+Hi David,
 
-Ethernet:
+I'm not sure this solution is good enough for the common case(s).
+Typical allocation size will be around 64KB (with default 1K ring size).
+We can't rely on the system to always provide us with that amount of 
+contiguous memory.
 
-t4:~ # ibv_devinfo -d cxgb4_0|grep link_layer
-                        link_layer:             Ethernet
-                        link_layer:             Ethernet
+Current code allocation scheme is more robust, max_direct is typically 2 
+* PAGE_SIZE,
+so pages from order 1 are far more available then higher order.
 
-Steve.
+I need to check why the code is written as it is today,  and not as in 
+this RFC (which is much more trivial).
+I'll continue to investigate tomorrow, will get back with some answers.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ido
+> Remove 'max_direct' parameter to mlx4_buf_alloc(), as it is unused,
+> and adjust all callers.
+>
+> Remove mlx4_en_map_buffer() and mlx4_en_unmap_buffer() as they now do
+> nothing, and adjust all callers.
+>
+> Remove 'page_list' element from struct mlx4_buf as it is unused.
+>
+> Signed-off-by: David Daney <david.daney@cavium.com>
