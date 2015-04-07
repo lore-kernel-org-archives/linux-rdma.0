@@ -1,54 +1,55 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 12/19] IB/mad: Add MAD size parameters to process_mad
-Date: Tue, 7 Apr 2015 17:53:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBE224@ORSMSX109.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v4 19/19] IB/mad: Implement Intel Omni-Path Architecture
+ MAD processing
+Date: Tue, 7 Apr 2015 12:06:10 -0600
+Message-ID: <20150407180610.GA15958@obsidianresearch.com>
 References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
- <1423092585-26692-13-git-send-email-ira.weiny@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FBD692@ORSMSX109.amr.corp.intel.com>
- <20150407172303.GB433@phlsvsds.ph.intel.com>
+ <1423092585-26692-20-git-send-email-ira.weiny@intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBD9DE@ORSMSX109.amr.corp.intel.com>
+ <20150407022954.GA7531@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBE150@ORSMSX109.amr.corp.intel.com>
+ <20150407171659.GA15634@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBE1EB@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150407172303.GB433-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBE1EB-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Rather than calling device->process_mad() directly, would it be better
-> to call a common function?  So we can avoid adding:
-> >
-> > > +	struct ib_mad *in_mad = (struct ib_mad *)in;
-> > > +	struct ib_mad *out_mad = (struct ib_mad *)out;
-> > > +
-> > > +	if (in_mad_size != sizeof(*in_mad) || *out_mad_size !=
-> > > sizeof(*out_mad))
-> > > +		return IB_MAD_RESULT_FAILURE;
-> >
-> > to existing drivers?
+On Tue, Apr 07, 2015 at 05:41:34PM +0000, Hefty, Sean wrote:
+> > > > The IBA is pretty clear what should happen to process an unsupported
+> > class
+> > > > version and and adding OPA shouldn't suddenly make the IB side
+> > > > non-conformant, however aesthetically unpleasing the code may be.
+> > >
+> > > Are there checks to ensure that MADs not supported by RoCE aren't
+> > > processed on RoCE ports?
+> > 
+> > RoCE isn't different, it uses the same numbering space and rules as
+> > IB.
 > 
-> No.  The checks need to be done by the devices.  IB devices expect exactly
-> 256
-> bytes, OPA devices expect 2K, while some drivers don't care at all (don't
-> support MADs).
+> I was agreeing with the point made about non-compliance.  RoCE only
+> supports a subset of IB management, and AFAIK, there are no checks
+> to validate MADs received over a RoCE port.  Those should be added.
 
-The checks are per device, but that doesn't mean that every driver has to do the same check.
+RoCE follows the base IB spec pretty well, except that there is no QP0
+(or SMPs, or SMI, etc). There is already code that avoids creating QP0
+MAD stuff and the SMI for RoCE. A RoCE driver should never deliver a
+QP0 packet to the mad layer.
 
-ib_process_mad(...)
-{
-	if (ib_device(...))
-		insert check here
-	else if (opa_device(...))
-		insert some other check here
-	else
-		hit caller on nose
-	dev->process_mad(...)
-}
+There are already various checks that tie SMP's to QP0, on tx and also
+in validate_mad. Eg validate_mad already refuses every SMP on RoCE
+since qp_num can never be 0.
 
-I'm fine either way.  It's more a matter of how much trust is given to the other kernel components.
+So I think we are good already. Every difference not caught by the
+missing QP0 is handled by not registering certain agents for RoCE,
+which looks OK already since I think most GSI's are supported.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
