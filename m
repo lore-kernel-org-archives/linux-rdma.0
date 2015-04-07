@@ -1,56 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v4 19/19] IB/mad: Implement Intel Omni-Path Architecture
- MAD processing
-Date: Tue, 7 Apr 2015 12:06:10 -0600
-Message-ID: <20150407180610.GA15958@obsidianresearch.com>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
- <1423092585-26692-20-git-send-email-ira.weiny@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FBD9DE@ORSMSX109.amr.corp.intel.com>
- <20150407022954.GA7531@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FBE150@ORSMSX109.amr.corp.intel.com>
- <20150407171659.GA15634@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FBE1EB@ORSMSX109.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [PATCH v2 10/17] IB/Verbs: Adopt management helpers for IB
+ helpers
+Date: Tue, 7 Apr 2015 18:40:14 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBE2A5@ORSMSX109.amr.corp.intel.com>
+References: <5523CCD5.6030401@profitbricks.com>
+ <5523CF0A.5090206@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBE1EB-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5523CF0A.5090206@profitbricks.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, infinipath <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, "Latif, Faisal" <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, "Weiny, Ira" <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai Eran <haggaie@mellanox.com>, Ilya Nelkenbaum <ilyan@mellanox.com>, Yann Droneaud <ydroneaud@opteya.com>, Bart Van Assche <bvanassche@acm.org>, Shachar Raindel <raindel@me>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 07, 2015 at 05:41:34PM +0000, Hefty, Sean wrote:
-> > > > The IBA is pretty clear what should happen to process an unsupported
-> > class
-> > > > version and and adding OPA shouldn't suddenly make the IB side
-> > > > non-conformant, however aesthetically unpleasing the code may be.
-> > >
-> > > Are there checks to ensure that MADs not supported by RoCE aren't
-> > > processed on RoCE ports?
-> > 
-> > RoCE isn't different, it uses the same numbering space and rules as
-> > IB.
-> 
-> I was agreeing with the point made about non-compliance.  RoCE only
-> supports a subset of IB management, and AFAIK, there are no checks
-> to validate MADs received over a RoCE port.  Those should be added.
-
-RoCE follows the base IB spec pretty well, except that there is no QP0
-(or SMPs, or SMI, etc). There is already code that avoids creating QP0
-MAD stuff and the SMI for RoCE. A RoCE driver should never deliver a
-QP0 packet to the mad layer.
-
-There are already various checks that tie SMP's to QP0, on tx and also
-in validate_mad. Eg validate_mad already refuses every SMP on RoCE
-since qp_num can never be 0.
-
-So I think we are good already. Every difference not caught by the
-missing QP0 is handled by not registering certain agents for RoCE,
-which looks OK already since I think most GSI's are supported.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvc2FfcXVlcnkuYw0KPiBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC9jb3JlL3NhX3F1ZXJ5LmMNCj4gaW5kZXggZjcwNDI1NC4uNGU2MTEw
+NCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvc2FfcXVlcnkuYw0KPiAr
+KysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9zYV9xdWVyeS5jDQo+IEBAIC01NDAsNyArNTQw
+LDcgQEAgaW50IGliX2luaXRfYWhfZnJvbV9wYXRoKHN0cnVjdCBpYl9kZXZpY2UgKmRldmljZSwg
+dTgNCj4gcG9ydF9udW0sDQo+ICAJYWhfYXR0ci0+cG9ydF9udW0gPSBwb3J0X251bTsNCj4gIAlh
+aF9hdHRyLT5zdGF0aWNfcmF0ZSA9IHJlYy0+cmF0ZTsNCj4gDQo+IC0JZm9yY2VfZ3JoID0gcmRt
+YV9wb3J0X2dldF9saW5rX2xheWVyKGRldmljZSwgcG9ydF9udW0pID09DQo+IElCX0xJTktfTEFZ
+RVJfRVRIRVJORVQ7DQo+ICsJZm9yY2VfZ3JoID0gIXJkbWFfdHJhbnNwb3J0X2liKGRldmljZSwg
+cG9ydF9udW0pOw0KPiANCj4gIAlpZiAocmVjLT5ob3BfbGltaXQgPiAxIHx8IGZvcmNlX2dyaCkg
+ew0KPiAgCQlhaF9hdHRyLT5haF9mbGFncyA9IElCX0FIX0dSSDsNCj4gZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvY29y
+ZS92ZXJicy5jDQo+IGluZGV4IDgzMzcwZGUuLmNhMDZmNzYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
+cnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmMNCj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvdmVyYnMuYw0KPiBAQCAtMjAwLDExICsyMDAsOSBAQCBpbnQgaWJfaW5pdF9haF9mcm9tX3dj
+KHN0cnVjdCBpYl9kZXZpY2UgKmRldmljZSwgdTgNCj4gcG9ydF9udW0sIHN0cnVjdCBpYl93YyAq
+d2MsDQo+ICAJdTMyIGZsb3dfY2xhc3M7DQo+ICAJdTE2IGdpZF9pbmRleDsNCj4gIAlpbnQgcmV0
+Ow0KPiAtCWludCBpc19ldGggPSAocmRtYV9wb3J0X2dldF9saW5rX2xheWVyKGRldmljZSwgcG9y
+dF9udW0pID09DQo+IC0JCQlJQl9MSU5LX0xBWUVSX0VUSEVSTkVUKTsNCj4gDQo+ICAJbWVtc2V0
+KGFoX2F0dHIsIDAsIHNpemVvZiAqYWhfYXR0cik7DQo+IC0JaWYgKGlzX2V0aCkgew0KPiArCWlm
+ICghcmRtYV90cmFuc3BvcnRfaWIoZGV2aWNlLCBwb3J0X251bSkpIHsNCj4gIAkJaWYgKCEod2Mt
+PndjX2ZsYWdzICYgSUJfV0NfR1JIKSkNCj4gIAkJCXJldHVybiAtRVBST1RPVFlQRTsNCj4gDQo+
+IEBAIC04NzMsNyArODcxLDcgQEAgaW50IGliX3Jlc29sdmVfZXRoX2wyX2F0dHJzKHN0cnVjdCBp
+Yl9xcCAqcXAsDQo+ICAJdW5pb24gaWJfZ2lkICBzZ2lkOw0KPiANCj4gIAlpZiAoKCpxcF9hdHRy
+X21hc2sgJiBJQl9RUF9BVikgICYmDQo+IC0JICAgIChyZG1hX3BvcnRfZ2V0X2xpbmtfbGF5ZXIo
+cXAtPmRldmljZSwgcXBfYXR0ci0+YWhfYXR0ci5wb3J0X251bSkNCj4gPT0gSUJfTElOS19MQVlF
+Ul9FVEhFUk5FVCkpIHsNCj4gKwkgICAgKCFyZG1hX3RyYW5zcG9ydF9pYihxcC0+ZGV2aWNlLCBx
+cF9hdHRyLT5haF9hdHRyLnBvcnRfbnVtKSkpIHsNCj4gIAkJcmV0ID0gaWJfcXVlcnlfZ2lkKHFw
+LT5kZXZpY2UsIHFwX2F0dHItPmFoX2F0dHIucG9ydF9udW0sDQo+ICAJCQkJICAgcXBfYXR0ci0+
+YWhfYXR0ci5ncmguc2dpZF9pbmRleCwgJnNnaWQpOw0KPiAgCQlpZiAocmV0KQ0KDQpUaGUgYWJv
+dmUgY2hlY2tzIHdvdWxkIGJlIGJldHRlciBhczoNCg0KCWZvcmNlX2dyaCA9IHJkbWFfdHJhbnNw
+b3J0X2lib2UoLi4uKQ0KDQpUaGV5IGFyZSBSb0NFL0lCb0Ugc3BlY2lmaWMgY2hlY2tzLg0K
