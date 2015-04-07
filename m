@@ -1,141 +1,34 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v2 09/17] IB/Verbs: Use helper cap_read_multi_sge() and
- reform svc_rdma_accept()
-Date: Tue, 07 Apr 2015 18:05:18 +0200
-Message-ID: <5524003E.8060500@profitbricks.com>
-References: <5523CCD5.6030401@profitbricks.com> <5523CEE4.5060901@profitbricks.com> <5523FBF1.80304@talpey.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 19/19] IB/mad: Implement Intel Omni-Path Architecture
+ MAD processing
+Date: Tue, 7 Apr 2015 16:57:43 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBE150@ORSMSX109.amr.corp.intel.com>
+References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com>
+ <1423092585-26692-20-git-send-email-ira.weiny@intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBD9DE@ORSMSX109.amr.corp.intel.com>
+ <20150407022954.GA7531@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5523FBF1.80304-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, PJ Waskiewicz <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150407022954.GA7531-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Tom
-
-Thanks for the comments :-)
-
-On 04/07/2015 05:46 PM, Tom Talpey wrote:
-> On 4/7/2015 8:34 AM, Michael Wang wrote:
->>   /**
->> + * cap_read_multi_sge - Check if the port of device has the capability
->> + * RDMA Read Multiple Scatter-Gather Entries.
->> + *
->> + * @device: Device to be checked
->> + * @port_num: Port number of the device
->> + *
->> + * Return 0 when port of the device don't support
->> + * RDMA Read Multiple Scatter-Gather Entries.
->> + */
->> +static inline int cap_read_multi_sge(struct ib_device *device, u8 port_num)
->> +{
->> +    return !rdma_transport_iwarp(device, port_num);
->> +}
+> Hal asked for this, and I agree. It is just lazy not to check the
+> underlying device type for this stuff - they are different number
+> spaces, administered by different bodies with no apparent
+> coordination.
 > 
-> This just papers over the issue we discussed earlier. How *many*
-> entries does the device support? If a device supports one, or two,
-> is that enough? How does the upper layer know the limit?
-> 
-> This needs an explicit device attribute, to be fixed properly.
+> The IBA is pretty clear what should happen to process an unsupported class
+> version and and adding OPA shouldn't suddenly make the IB side
+> non-conformant, however aesthetically unpleasing the code may be.
 
-This is the prototype to expose the problem we have in here, I
-would prefer some one good at this part to extending the API in
-future, basing on the right logical.
-
-Currently this just inherit from the legacy, it implemented
-in order to be compatible with the current code.
-
-> 
->> +
->> +/**
->>    * cap_ipoib - Check if the port of device has the capability
->>    * IP over Infiniband.
->>    *
->> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
->> index e011027..604d035 100644
->> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
->> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
->> @@ -118,8 +118,8 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
->>
->>   static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
->>   {
->> -    if (rdma_node_get_transport(xprt->sc_cm_id->device->node_type) ==
->> -         RDMA_TRANSPORT_IWARP)
->> +    if (!cap_read_multi_sge(xprt->sc_cm_id->device,
->> +                xprt->sc_cm_id->port_num))
->>           return 1;
->>       else
->>           return min_t(int, sge_count, xprt->sc_max_sge);
-> 
-> This is incorrect. The RDMA Read max is not at all the same as the
-> max_sge. It is a different operation, with a different set of work
-> request parameters.
-> 
-> In other words, the above same comment applies.
-
-Any idea on how to improve this part?
-
-Again, all these helpers just inherit the old logical, if
-it's wrong, let's correct it ;-)
-
-And if we don't know how to correct, we can leave this as a
-signpost and waiting for someone good at this particular part
-to fix it.
-
-> 
-> 
->> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> index 4e61880..e75175d 100644
->> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> @@ -979,8 +979,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->>       /*
->>        * Determine if a DMA MR is required and if so, what privs are required
->>        */
->> -    switch (rdma_node_get_transport(newxprt->sc_cm_id->device->node_type)) {
->> -    case RDMA_TRANSPORT_IWARP:
->> +    if (rdma_transport_iwarp(newxprt->sc_cm_id->device,
->> +                 newxprt->sc_cm_id->port_num)) {
->>           newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
-> 
-> Do I read this correctly that it is forcing the "read with invalidate"
-> capability to "on" for all iWARP devices? I don't think that is correct,
-> for the legacy devices you're also supporting.
-
-Hmm.. but that's exactly same as the old logical, correct?
-Or do you mean the old logical is wrong?
-
-> 
-> 
->> @@ -992,8 +992,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->>               dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
->>           } else
->>               need_dma_mr = 0;
->> -        break;
->> -    case RDMA_TRANSPORT_IB:
->> +    } else if (rdma_ib_mgmt(newxprt->sc_cm_id->device,
->> +                newxprt->sc_cm_id->port_num)) {
->>           if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
->>               need_dma_mr = 1;
->>               dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
-> 
-> Now I'm even more confused. How is the presence of IB management
-> related to needing a privileged lmr?
-
-I think you actually mean we need some more wrapper here
-with the right name, correct?
-
-I'm not good at this part, any suggestions?
-
-Regards,
-Michael Wang
-
-> 
-> 
+Are there checks to ensure that MADs not supported by RoCE aren't processed on RoCE ports?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
