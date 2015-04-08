@@ -1,65 +1,64 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 12/19] IB/mad: Add MAD size parameters to process_mad
-Date: Wed, 8 Apr 2015 12:07:46 -0400
-Message-ID: <20150408160745.GE433@phlsvsds.ph.intel.com>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-13-git-send-email-ira.weiny@intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FBD692@ORSMSX109.amr.corp.intel.com> <20150407172303.GB433@phlsvsds.ph.intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FBE224@ORSMSX109.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [PATCH v2 13/17] IB/Verbs: Reform cma/ucma with management
+ helpers
+Date: Wed, 8 Apr 2015 17:02:11 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FBF037@ORSMSX109.amr.corp.intel.com>
+References: <5523CCD5.6030401@profitbricks.com>
+ <5523CF74.8020004@profitbricks.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBE42B@ORSMSX109.amr.corp.intel.com>
+ <5524F6BD.30105@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBE224-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5524F6BD.30105@profitbricks.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, infinipath <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, "Latif, Faisal" <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, "Weiny, Ira" <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai Eran <haggaie@mellanox.com>, Ilya Nelkenbaum <ilyan@mellanox.com>, Yann Droneaud <ydroneaud@opteya.com>, Bart Van Assche <bvanassche@acm.org>, Shachar Raindel <raindel@me>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 07, 2015 at 11:53:00AM -0600, Hefty, Sean wrote:
-> > > Rather than calling device->process_mad() directly, would it be better
-> > to call a common function?  So we can avoid adding:
-> > >
-> > > > +	struct ib_mad *in_mad = (struct ib_mad *)in;
-> > > > +	struct ib_mad *out_mad = (struct ib_mad *)out;
-> > > > +
-> > > > +	if (in_mad_size != sizeof(*in_mad) || *out_mad_size !=
-> > > > sizeof(*out_mad))
-> > > > +		return IB_MAD_RESULT_FAILURE;
-> > >
-> > > to existing drivers?
-> > 
-> > No.  The checks need to be done by the devices.  IB devices expect exactly
-> > 256
-> > bytes, OPA devices expect 2K, while some drivers don't care at all (don't
-> > support MADs).
-> 
-> The checks are per device, but that doesn't mean that every driver has to do the same check.
-> 
-> ib_process_mad(...)
-> {
-> 	if (ib_device(...))
-> 		insert check here
-> 	else if (opa_device(...))
-> 		insert some other check here
-> 	else
-> 		hit caller on nose
-
-See this is another Oddity in the stack.  Those devices which are neither OPA
-nor IB (iWarp or RoCE) have some support for MADs so we can't just "hit the
-caller on the nose.
-
-> 	dev->process_mad(...)
-> }
-> 
-> I'm fine either way.  It's more a matter of how much trust is given to the other kernel components.
-
-Indeed, I debated if I should add such checks at all.  In the end I have very
-little trust so I did...  ;-)
-
-However, to better reflect the nature of the error I've changed them all to
-WARN_ONs.
-
-Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBPbiAwNC8wNy8yMDE1IDExOjM2IFBNLCBIZWZ0eSwgU2VhbiB3cm90ZToNCj4gPj4gZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jDQo+IGIvZHJpdmVycy9pbmZpbmli
+YW5kL2NvcmUvY21hLmMNCj4gPj4gaW5kZXggZDhhOGVhNy4uYzIzZjQ4MyAxMDA2NDQNCj4gPj4g
+LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMNCj4gPj4gKysrIGIvZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvY21hLmMNCj4gPj4gQEAgLTQzNSwxMCArNDM1LDEwIEBAIHN0YXRpYyBp
+bnQgY21hX3Jlc29sdmVfaWJfZGV2KHN0cnVjdA0KPiByZG1hX2lkX3ByaXZhdGUNCj4gPj4gKmlk
+X3ByaXYpDQo+ID4+ICAJcGtleSA9IG50b2hzKGFkZHItPnNpYl9wa2V5KTsNCj4gPj4NCj4gPj4g
+IAlsaXN0X2Zvcl9lYWNoX2VudHJ5KGN1cl9kZXYsICZkZXZfbGlzdCwgbGlzdCkgew0KPiA+PiAt
+CQlpZiAocmRtYV9ub2RlX2dldF90cmFuc3BvcnQoY3VyX2Rldi0+ZGV2aWNlLT5ub2RlX3R5cGUp
+ICE9DQo+ID4+IFJETUFfVFJBTlNQT1JUX0lCKQ0KPiA+PiAtCQkJY29udGludWU7DQo+ID4+IC0N
+Cj4gPj4gIAkJZm9yIChwID0gMTsgcCA8PSBjdXJfZGV2LT5kZXZpY2UtPnBoeXNfcG9ydF9jbnQ7
+ICsrcCkgew0KPiA+PiArCQkJaWYgKCFyZG1hX2liX21nbXQoY3VyX2Rldi0+ZGV2aWNlLCBwKSkN
+Cj4gPj4gKwkJCQljb250aW51ZTsNCj4gPg0KPiA+IFRoaXMgY2hlY2sgd2FudHMgdG8gYmUgc29t
+ZXRoaW5nIGxpa2UgaXNfYWZfaWJfc3VwcG9ydGVkKCkuICBDaGVja2luZw0KPiBmb3IgSUIgdHJh
+bnNwb3J0IG1heSBhY3R1YWxseSBiZSBiZXR0ZXIgdGhhbiBjaGVja2luZyBmb3IgSUIgbWFuYWdl
+bWVudC4NCj4gSSBkb24ndCBrbm93IGlmIElCb0UvUm9DRSBkZXZpY2VzIHN1cHBvcnQgQUZfSUIu
+DQo+IA0KPiBUaGUgd3JhcHBlciBtYWtlIHNlbnNlLCBidXQgZG8gd2UgaGF2ZSB0aGUgZ3VhcmFu
+dGVlIHRoYXQgSUJvRSBwb3J0IHdvbid0DQo+IGJlIHVzZWQgZm9yIEFGX0lCIGFkZHJlc3M/IEkg
+anVzdCBjYW4ndCBsb2NhdGUgdGhlIHBsYWNlIHdlIGZpbHRlcmVkIGl0DQo+IG91dC4uLg0KDQpJ
+IGNhbid0IHRoaW5rIG9mIGEgcmVhc29uIHdoeSBJQm9FIHdvdWxkbid0IHdvcmsgd2l0aCBBRl9J
+QiwgYnV0IEknbSBub3Qgc3VyZSBpZiBhbnlvbmUgaGFzIHRlc3RlZCBpdC4gIFRoZSBvcmlnaW5h
+bCBjaGVjayB3b3VsZCBoYXZlIGxldCBJQm9FIHRocm91Z2guICBXaGVuIEkgc3VnZ2VzdGVkIGNo
+ZWNraW5nIGZvciBJQiB0cmFuc3BvcnQsIEkgbWVhbnQgdGhlIGFjdHVhbCB0cmFuc3BvcnQgcHJv
+dG9jb2wsIHdoaWNoIHdvdWxkIGhhdmUgaW5jbHVkZWQgYm90aCBJQiBhbmQgSUJvRS4NCg0KPiA+
+PiBAQCAtNzAwLDggKzcwMCw3IEBAIHN0YXRpYyBpbnQgY21hX2liX2luaXRfcXBfYXR0cihzdHJ1
+Y3QNCj4gcmRtYV9pZF9wcml2YXRlDQo+ID4+ICppZF9wcml2LA0KPiA+PiAgCWludCByZXQ7DQo+
+ID4+ICAJdTE2IHBrZXk7DQo+ID4+DQo+ID4+IC0JaWYgKHJkbWFfcG9ydF9nZXRfbGlua19sYXll
+cihpZF9wcml2LT5pZC5kZXZpY2UsIGlkX3ByaXYtDQo+ID4+PiBpZC5wb3J0X251bSkgPT0NCj4g
+Pj4gLQkgICAgSUJfTElOS19MQVlFUl9JTkZJTklCQU5EKQ0KPiA+PiArCWlmIChyZG1hX3RyYW5z
+cG9ydF9pYihpZF9wcml2LT5pZC5kZXZpY2UsIGlkX3ByaXYtPmlkLnBvcnRfbnVtKSkNCj4gPj4g
+IAkJcGtleSA9IGliX2FkZHJfZ2V0X3BrZXkoZGV2X2FkZHIpOw0KPiA+PiAgCWVsc2UNCj4gPj4g
+IAkJcGtleSA9IDB4ZmZmZjsNCj4gPg0KPiA+IENoZWNrIGhlcmUgc2hvdWxkIGJlIGFnYWluc3Qg
+dGhlIGxpbmsgbGF5ZXIsIG5vdCB0cmFuc3BvcnQuDQo+IA0KPiBJIGd1ZXNzIHRoZSBuYW1lIGNv
+bmZ1c2luZyB1cyBhZ2Fpbi4uLiB3aGF0IGlmIHVzZSByZG1hX3RlY2hfaWIoKSBoZXJlPw0KPiBp
+dCdzIHRoZSBvbmx5IHRlY2ggdXNpbmcgSUIgbGluayBsYXllcnMsIG90aGVycyBhcmUgYWxsIEVU
+SC4NCg0KWWVzLCB0aGF0IHdvdWxkIHdvcmsuDQoNCj4gPj4gIAlpZF9wcml2LT5pZC5yb3V0ZS5h
+ZGRyLmRldl9hZGRyLmRldl90eXBlID0NCj4gPj4gLQkJKHJkbWFfcG9ydF9nZXRfbGlua19sYXll
+cihjbWFfZGV2LT5kZXZpY2UsIHApID09DQo+ID4+IElCX0xJTktfTEFZRVJfSU5GSU5JQkFORCkg
+Pw0KPiA+PiArCQkocmRtYV90cmFuc3BvcnRfaWIoY21hX2Rldi0+ZGV2aWNlLCBwKSkgPw0KPiA+
+PiAgCQlBUlBIUkRfSU5GSU5JQkFORCA6IEFSUEhSRF9FVEhFUjsNCj4gPg0KPiA+IFRoaXMgd2Fu
+dHMgdGhlIGxpbmsgbGF5ZXIsIG9yIG1heWJlIHVzZSBjYXBfaXBvaWIuDQo+IA0KPiBJcyB0aGlz
+IHJlbGF0ZWQgd2l0aCBpcG9pYiBvbmx5Pw0KDQpBUlBIRFJfSU5GSU5JQkFORCBpcyByZWxhdGVk
+IHRvIGlwb2liLiAgSW4geW91ciBuZXh0IHVwZGF0ZSwgbWF5YmUgZ28gd2l0aCB0ZWNoX2liLiAg
+SSBkb24ndCBrbm93IHRoZSBzdGF0dXMgb2YgaXBvaWIgb3ZlciBpYm9lLg0KDQo=
