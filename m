@@ -1,121 +1,72 @@
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: Re: CVE-2014-8159 kernel: infiniband: uverbs: unprotected physical
- memory access
-Date: Wed, 08 Apr 2015 14:44:03 +0200
-Message-ID: <1428497043.22575.176.camel@opteya.com>
-References: <AM3PR05MB0935AABF569F15EA846B8E72DC000@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427969085.17020.5.camel@opteya.com>
-	 <AM3PR05MB0935AA4898B4B519D2DAA3C4DCF20@AM3PR05MB0935.eurprd05.prod.outlook.com>
-	 <1427987752.22575.65.camel@opteya.com>
-	 <AM2PR05MB0929EDC60BBE5DAAAD4AB1B4DCF20@AM2PR05MB0929.eurprd05.prod.outlook.com>
-	 <1428495568.22575.172.camel@opteya.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management
+Date: Wed, 8 Apr 2015 16:03:22 +0300
+Message-ID: <CAJ3xEMj-ueR3WVm9_Ny85auZggQOXKeLE9APmxOcsYuaTZvsgw@mail.gmail.com>
+References: <20150330.233602.155832546277570456.davem@davemloft.net>
+	<CAL1RGDUmDGCGdTBeTTBiHygO5UgEbRm_Qgxtx-+bxo1vg1v-8g@mail.gmail.com>
+	<CAJ3xEMjfbxt2Ouh4bhuf3_LMc7qY807h6FryvdCr0rr_gdiZAw@mail.gmail.com>
+	<20150331.114824.651005354305268415.davem@davemloft.net>
+	<1828884A29C6694DAF28B7E6B8A82373A8FBB790@ORSMSX109.amr.corp.intel.com>
+	<CAJ3xEMgm+6t1OSMZFJ41Hr4=8B1cKP+5svwc38Lg0wfpCZMO=g@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A82373A8FBBCE3@ORSMSX109.amr.corp.intel.com>
+	<CAJ3xEMgptECgnWXfW7wN8sjqRfUvzF3tCN=Lj8MZtdOG8yg3jQ@mail.gmail.com>
+	<20150402223135.GA12588@phlsvsds.ph.intel.com>
+	<CAJ3xEMgsHAFJomuCN+EzMcYaxTOTQqHuDdr9zztuO9pH9QicXw@mail.gmail.com>
+	<CAG4TOxOv98YjNOi9MbKHiHg6aLw75XRfasMaScdRccRitiE3-g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1428495568.22575.172.camel@opteya.com>
-Sender: stable-owner@vger.kernel.org
-To: Shachar Raindel <raindel@mellanox.com>
-Cc: "oss-security@lists.openwall.com" <oss-security@lists.openwall.com>, "<linux-rdma@vger.kernel.org> (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG4TOxOv98YjNOi9MbKHiHg6aLw75XRfasMaScdRccRitiE3-g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Sun, Apr 5, 2015 at 5:51 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Sat, Apr 4, 2015 at 10:15 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Indeed. No maintainer voice makes it kind of impossible for
+>> discussions to converge. What happens over the last years is that when
+>> there's no easy consensus on matter Y, everyone stops breathing and
+>> wait to see what happens on the rc1 night, b/c Roland doesn't spell
+>> his view/preference (nor exposes his for-next branch till the last
+>> minute, see now) many times it seems more as coin flipping.
+>
+> To me this attitude shows a failure of the community.  If I need to
+> make every decision, then that doesn't scale.  People can ask
+> questions a lot more easily than I can answer them.
+>
+> In general if a consensus emerges, I'm pretty likely to trust it.  In
+> particular, as Sean mentioned, I tend to trust vendors about low-level
+> drivers, although of course I sometimes catch mistakes even then.
+>
+> But for changes that touch the core, when there's a disagreement, you
+> can't expect me to be the one who always solves it.  I might have an
+> opinion, but in a lot of cases, both sides might have a point and the
+> only way forward is to come up with a new idea that works for
+> everyone.  And I'm not smart enough to come up with that solution every time.
 
-Le mercredi 08 avril 2015 =C3=A0 14:19 +0200, Yann Droneaud a =C3=A9cri=
-t :
-> Le jeudi 02 avril 2015 =C3=A0 16:34 +0000, Shachar Raindel a =C3=A9cr=
-it :
-> > > -----Original Message-----
-> > > From: Yann Droneaud [mailto:ydroneaud@opteya.com]
-> > > Sent: Thursday, April 02, 2015 6:16 PM
-> > > Le jeudi 02 avril 2015 =C3=A0 10:52 +0000, Shachar Raindel a =C3=A9=
-crit :
-> > > > > -----Original Message-----
-> > > > > From: Yann Droneaud [mailto:ydroneaud@opteya.com]
-> > > > > Sent: Thursday, April 02, 2015 1:05 PM
-> > > > > Le mercredi 18 mars 2015 =C3=A0 17:39 +0000, Shachar Raindel =
-a =C3=A9crit :
-> > > ...
-> > > > > > +	/*
-> > > > > > +	 * If the combination of the addr and size requested for =
-this
-> > > > > memory
-> > > > > > +	 * region causes an integer overflow, return error.
-> > > > > > +	 */
-> > > > > > +	if ((PAGE_ALIGN(addr + size) <=3D size) ||
-> > > > > > +	    (PAGE_ALIGN(addr + size) <=3D addr))
-> > > > > > +		return ERR_PTR(-EINVAL);
-> > > > > > +
-> > > > >
-> > > > > Can access_ok() be used here ?
-> > > > >
-> > > > >          if (!access_ok(writable ? VERIFY_WRITE : VERIFY_READ=
-,
-> > > > >                         addr, size))
-> > > > >                   return ERR_PTR(-EINVAL);
-> > > > >
-> > > >
-> > > > No, this will break the current ODP semantics.
-> > > >
-> > > > ODP allows the user to register memory that is not accessible y=
-et.
-> > > > This is a critical design feature, as it allows avoiding holdin=
-g
-> > > > a registration cache. Adding this check will break the behavior=
-,
-> > > > forcing memory to be all accessible when registering an ODP MR.
-> > > >
-> > >=20
-> > > Failed to notice previously, but since this would break ODP, and =
-ODP is
-> > > only available starting v3.19-rc1, my proposed fix might be appli=
-cable
-> > > for older kernel (if not better).
-> > >=20
-> >=20
-> > Can you explain how this proposed fix is better than the existing p=
-atch?
-> > Why do we want to push to the stable tree a patch that is not in th=
-e
-> > upstream? There is an existing, tested, patch that is going to the =
-tip
-> > of the development. It even applies cleanly on every kernel version=
- around.
-> >=20
->=20
-> access_ok() check for overflow *and* that the region is the memory ra=
-nge
-> for the current process. The later check is not done in your proposed=
-=20
-> fix (but it should not be needed as get_user_pages() will be called=20
-> to validate the whole region for non-ODP memory registration).
->=20
-> Anyway, AFAIK access_ok() won't check for address being not NULL and
-> size not being 0, and I've noticed your proposed fix also ensure addr=
-ess
-> is not equal to NULL and, more important, that size is not equal to 0
+To make it a little more clear, my rc1 night note came to describe
+situations where
+not only that you didn't do the essential part of subsystem maintainer
+job of dropping
+a note on how you see things and where yo think the solution should be
+going etc --
+you went ahead and kind of randomly applied patch series for which there was no
+consensus or bunch of open reviewer comments unanswered by the
+submitters to your
+for-next branch which you didn't post publicly and in < 12h sent pull
+request to Linus, crazy!!
 
-It only check address not being 0 if size is already PAGE_SIZE aligned,
-and it only check size not being 0 if address is already PAGE_SIZE
-aligned.
+BTW as we speak now (after rc7), the patches you already have for 4.1
+(and there are such, as you acked
+@ least one series on the list {BTW about 5y ago you stopped for 90%
+of the cases to ack pactches
+on the list, which is very frustrating for developers too}) aren't
+public, you have a private clone which isn't
+reflected at kernel.org
 
-> before v3.15-rc1 and commit eeb8461e36c9 ("IB: Refactor umem to use
-> linear SG table"), calling ib_umem_get() with size equal to 0 would=20
-> succeed with any arbitrary address ... who knows what might happen in=
-=20
-> the lowlevel drivers (aka. providers) if they got an umem for a 0-siz=
-ed
-> memory region.
-> This part of the changes was not detailled in your commit message: it=
-'s
-> an issue not related to overflow which is addressed by your patch.
->=20
-> So I agree my proposed patch is no better than yours: I've missed the
-> 0-sized memory region issue and didn't take care of NULL address.
->=20
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
