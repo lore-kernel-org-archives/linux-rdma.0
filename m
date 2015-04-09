@@ -1,145 +1,75 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 18/19] IB/mad: Implement Intel Omni-Path Architecture SMP processing
-Date: Thu, 9 Apr 2015 00:41:52 -0400
-Message-ID: <20150409044151.GA28926@phlsvsds.ph.intel.com>
-References: <1423092585-26692-1-git-send-email-ira.weiny@intel.com> <1423092585-26692-19-git-send-email-ira.weiny@intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FBD742@ORSMSX109.amr.corp.intel.com>
+Subject: Re: [PATCH v2 10/17] IB/Verbs: Adopt management helpers for IB helpers
+Date: Thu, 9 Apr 2015 01:36:51 -0400
+Message-ID: <20150409053651.GB28926@phlsvsds.ph.intel.com>
+References: <5523CCD5.6030401@profitbricks.com> <5523CF0A.5090206@profitbricks.com> <20150407201259.GA17147@obsidianresearch.com> <008401d0716f$bc41c5c0$34c55140$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBD742-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <008401d0716f$bc41c5c0$34c55140$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Michael Wang' <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Tom Tucker' <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Hoang-Nam Nguyen' <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, 'Christoph Raisch' <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, 'Mike Marciniszyn' <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Eli Cohen' <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Upinder Malhi' <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, 'Trond Myklebust' <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, "'J. Bruce Fields'" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "'David S. Miller'" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, 'PJ Waskiewicz' <pj.waskiewicz-PrFOU5CTvK1l57MIdRCFDg@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Or Gerl
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 03, 2015 at 05:47:49PM -0600, Hefty, Sean wrote:
-> > @@ -236,6 +252,24 @@ enum smi_action smi_handle_dr_smp_recv(struct ib_smp
-> > *smp, u8 node_type,
-> >  					smp->dr_slid == IB_LID_PERMISSIVE);
-> >  }
+On Tue, Apr 07, 2015 at 03:16:30PM -0500, Steve Wise wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> > Sent: Tuesday, April 07, 2015 3:13 PM
+> > To: Michael Wang
+> > Cc: Roland Dreier; Sean Hefty; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Hal Rosenstock; Tom Tucker; Steve Wise; Hoang-Nam Nguyen; Christoph Raisch; Mike Marciniszyn; Eli Cohen;
+> > Faisal Latif; Upinder Malhi; Trond Myklebust; J. Bruce Fields; David S. Miller; Ira Weiny; PJ Waskiewicz; Tatyana Nikolova; Or
+> Gerlitz; Jack
+> > Morgenstein; Haggai Eran; Ilya Nelkenbaum; Yann Droneaud; Bart Van Assche; Shachar Raindel; Sagi Grimberg; Devesh Sharma; Matan
+> > Barak; Moni Shoua; Jiri Kosina; Selvin Xavier; Mitesh Ahuja; Li RongQing; Rasmus Villemoes; Alex Estrin; Doug Ledford; Eric
+> Dumazet; Erez
+> > Shitrit; Tom Gundersen; Chuck Lever
+> > Subject: Re: [PATCH v2 10/17] IB/Verbs: Adopt management helpers for IB helpers
 > > 
-> > +/*
-> > + * Adjust information for a received SMP
-> > + * Return 0 if the SMP should be dropped
-> 
-> The function returns an enum.  The comment of returning 0 is misleading.  The entire comment seems unnecessary. 
-
-Sorry, I just copied the same comment from the IB function.
-
-/*
- * Adjust information for a received SMP
- * Return 0 if the SMP should be dropped
- */
-enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
-                                       int port_num, int phys_port_cnt)
-
-I'll add a patch which cleans up those original comments and then update those
-in this series.
-
-> 
-> > + */
-> > +enum smi_action opa_smi_handle_dr_smp_recv(struct opa_smp *smp, u8
-> > node_type,
-> > +					   int port_num, int phys_port_cnt)
-> > +{
-> > +	return __smi_handle_dr_smp_recv(node_type, port_num, phys_port_cnt,
-> > +					&smp->hop_ptr, smp->hop_cnt,
-> > +					smp->route.dr.initial_path,
-> > +					smp->route.dr.return_path,
-> > +					opa_get_smp_direction(smp),
-> > +					smp->route.dr.dr_dlid ==
-> > +					OPA_LID_PERMISSIVE,
-> > +					smp->route.dr.dr_slid ==
-> > +					OPA_LID_PERMISSIVE);
-> > +}
-> > +
-> >  static inline
-> >  enum smi_forward_action __smi_check_forward_dr_smp(u8 hop_ptr, u8
-> > hop_cnt,
-> >  						   u8 direction,
-> > @@ -277,6 +311,16 @@ enum smi_forward_action
-> > smi_check_forward_dr_smp(struct ib_smp *smp)
-> >  					  smp->dr_slid != IB_LID_PERMISSIVE);
-> >  }
+> > On Tue, Apr 07, 2015 at 02:35:22PM +0200, Michael Wang wrote:
+> > > index f704254..4e61104 100644
+> > > +++ b/drivers/infiniband/core/sa_query.c
+> > > @@ -540,7 +540,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+> > >  	ah_attr->port_num = port_num;
+> > >  	ah_attr->static_rate = rec->rate;
+> > >
+> > > -	force_grh = rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_ETHERNET;
+> > > +	force_grh = !rdma_transport_ib(device, port_num);
 > > 
-> > +enum smi_forward_action opa_smi_check_forward_dr_smp(struct opa_smp *smp)
-> > +{
-> > +	return __smi_check_forward_dr_smp(smp->hop_ptr, smp->hop_cnt,
-> > +					  opa_get_smp_direction(smp),
-> > +					  smp->route.dr.dr_dlid ==
-> > +					  OPA_LID_PERMISSIVE,
-> > +					  smp->route.dr.dr_slid ==
-> > +					  OPA_LID_PERMISSIVE);
-> > +}
-> > +
-> >  /*
-> >   * Return the forwarding port number from initial_path for outgoing SMP
-> > and
-> >   * from return_path for returning SMP
-> > @@ -286,3 +330,13 @@ int smi_get_fwd_port(struct ib_smp *smp)
-> >  	return (!ib_get_smp_direction(smp) ? smp->initial_path[smp-
-> > >hop_ptr+1] :
-> >  		smp->return_path[smp->hop_ptr-1]);
-> >  }
-> > +
-> > +/*
-> > + * Return the forwarding port number from initial_path for outgoing SMP
-> > and
-> > + * from return_path for returning SMP
-> > + */
-> > +int opa_smi_get_fwd_port(struct opa_smp *smp)
-> > +{
-> > +	return !opa_get_smp_direction(smp) ? smp->route.dr.initial_path[smp-
-> > >hop_ptr+1] :
-> > +		smp->route.dr.return_path[smp->hop_ptr-1];
-> > +}
-> > diff --git a/drivers/infiniband/core/smi.h b/drivers/infiniband/core/smi.h
-> > index aff96ba..e95c537 100644
-> > --- a/drivers/infiniband/core/smi.h
-> > +++ b/drivers/infiniband/core/smi.h
-> > @@ -62,6 +62,9 @@ extern enum smi_action smi_handle_dr_smp_send(struct
-> > ib_smp *smp,
-> >   * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
-> >   * via process_mad
-> >   */
-> > +/* NOTE: This is called on opa_smp's don't check fields which are not
-> > common
-> > + * between ib_smp and opa_smp
-> > + */
+> > Maybe these tests should be called cap_mandatory_grh - but I'm not
+> > really sure how iWarp uses the GRH fields in the AH...
+> > 
 > 
-> This comment suggests that the function is not correct for OPA.  ?
+> iWARP runs on top of TCP...this SA code is all IB-specific.  The reason it was checking for ETHERNET, I think, is for RoCE.    So
+> this change is totally incorrect,  I think,  because RoCE is an IB transport, but it runs on ETHERNET.
 
-This was a mistake left over from an early version of the patches.  OPA
-versions are in opa_smi.h.  Those should be used.
+But RoCE does not have an SA?
 
-Removed comment and fixed handle_outgoing_dr_smp.
+Looks like ib_init_ah_from_path was overloaded to handle non-standard "path
+records".
 
-> 
-> >  static inline enum smi_action smi_check_local_smp(struct ib_smp *smp,
-> >  						  struct ib_device *device)
-> >  {
-> > @@ -77,6 +80,9 @@ static inline enum smi_action smi_check_local_smp(struct
-> > ib_smp *smp,
-> >   * Return IB_SMI_HANDLE if the SMP should be handled by the local SMA/SM
-> >   * via process_mad
-> >   */
-> > +/* NOTE: This is called on opa_smp's don't check fields which are not
-> > common
-> > + * between ib_smp and opa_smp
-> > + */
-> 
-> Same comment
+It seems like the correct functionality would be to use ib_init_ah_from_path()
+for true SA PathRecords and have another call iboe_init_ah() wrap
+ib_init_ah_from_path() when RoCE address information is needed in the AH.
 
-Same fix.
+For Michaels patches I think 
+
+	force_grh = rdma_device_is_iboe(...)
+
+is the logic we need here.
 
 Ira
 
+
 > 
-> >  static inline enum smi_action smi_check_local_returning_smp(struct ib_smp
-> > *smp,
-> >  						   struct ib_device *device)
-> >  {
+> Steve.
+> 
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
