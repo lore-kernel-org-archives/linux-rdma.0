@@ -1,48 +1,63 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Thu, 09 Apr 2015 17:16:44 -0400
-Message-ID: <1428614204.2980.285.camel@redhat.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v2 01/17] IB/Verbs: Implement new callback
+ query_transport() for each HW
+Date: Thu, 09 Apr 2015 17:19:08 -0400
+Message-ID: <1428614348.2980.287.camel@redhat.com>
+References: <5523CCD5.6030401@profitbricks.com>
+	 <5523D098.3020007@profitbricks.com> <1428517786.2980.180.camel@redhat.com>
+	 <20150408201015.GB28666@obsidianresearch.com>
+	 <1428590070.2980.190.camel@redhat.com>
+	 <20150409160123.GA31353@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-BVdpJUZWH0rP1iCCm3/q"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+	boundary="=-F54YLA5QHQfaO4OMd8BL"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150409160123.GA31353@obsidianresearch.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Ira Weiny <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-BVdpJUZWH0rP1iCCm3/q
+--=-F54YLA5QHQfaO4OMd8BL
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2015-04-09 at 10:41 -0700, Roland Dreier wrote:
-> On Tue, Apr 7, 2015 at 10:12 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > I don't think you understand how deep the problem Or is describing
-> > goes.
+On Thu, 2015-04-09 at 10:01 -0600, Jason Gunthorpe wrote:
+> On Thu, Apr 09, 2015 at 10:34:30AM -0400, Doug Ledford wrote:
 >=20
-> > [...Appropriate and correct critique...]
+> > These are exactly the tests I proposed Jason.  I'm not sure I see your
+> > point here.  I guess my point is that although the scenario of all the
+> > different items seems complex, it really does boil down to needing only
+> > exactly what I proposed earlier to fulfill the entire test matrix.
 >=20
-> This thread has made me realize that even as I am able to carve out
-> more time to work on things like IB maintaintership, I no longer have
-> the desire to spend my time maintaining the IB subsystem.  Since my
-> current level of activity is clearly hurting the community, I've
-> decided to step down as maintainer.
+> I have no problem with minimizing a bitmap, but I want the accessors
+> to make sense first.
+>=20
+> My specific problem with your suggestion was combining cap_ib_mad,
+> cap_ib_sa, and cap_ib_smi into rdma_port_ib_fabric_mgmt.
+>=20
+> Not only do the three cap things not return the same value for all
+> situations, the documentary knowledge is lost by the reduction.
+>=20
+> I'd prefer we look at this from a 'what do the call sites need' view,
+> not a 'how do we minimize' view.
+>=20
+> I've written this before: The mess here is that it is too hard to know
+> what the call sites are actually checking for when it is some baroque
+> conditional.
 
-Thank you for the long, thankless years of service.  I wish you the best
-in whatever endeavors you choose to focus on!
+The two goals: being specific about what the test is returning and
+minimizing the bitmap footprint; are not necessarily opposed.  One can
+do both at the same time.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---=-BVdpJUZWH0rP1iCCm3/q
+--=-F54YLA5QHQfaO4OMd8BL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -50,24 +65,19 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABAgAGBQJVJuw8AAoJELgmozMOVy/dUYkP/3FT0/OW7TrcNK7ajkYtn8ZL
-h8WLS1RoP096HPZ7J+hhzloUfvQQ2XED1rSAPZze86xxe4AZLCKBZU4ztG6CSNwC
-reEXPEsm4oNVYZKQHDC75YeLbdPeVpwqZ0DUzAXnkzmS55KnH7oBu2OS1ppfOBgH
-k1qw8A9AdhoAjwejfrB6MsbNA1ieQqP8FxswUMSxCgahJo9OD0lAGPJ2D+/QBG1j
-Bjcp0Fkx7sr166yuDcn9VS0YbvkYMsQhaxdpthA2+LdVFGg5E0OvNI754IMMAJvQ
-0zAYppvv9JA6nNrRA36UlrU2SDp9cMkk1UuwML+OLscSU2xpYYdm82C+s41kXYBv
-H4TKhsNYn8DXxqGnONUPYrPJJe03neqGTqBH+CPpQ8jB9ZtQwpVyGL1m71+OK9yK
-zxJK5BwoWRyZyh+KJ2lWYOu8a5buJc9Ol8Mri0REasTLWNqbR8dLJ43ZiyYltMvf
-fmXHslKCDog6DlT+62K+GekDmDRQh4RSsa3zBNcvYRoaQ9D/+WI6C7j4UY9X24WU
-kFyWtIDrHdD84/4a6ova4lhE98ZkYjb1oiE+qwBIMCeq0O7ARFJ0LKfBApewsywD
-X1LsKLGILBTj5qVDz7r/xlMXxtDrK4hWgYRdQAEYFvuX7oUMe8Xl3oysZjA1AGXv
-sLIU2/4on4Ku+F+93q6u
-=W9HG
+iQIcBAABAgAGBQJVJuzMAAoJELgmozMOVy/dnrwQAL/QOAmf0x/HpGD4S7csBX7p
+enjQRlFAedSrAXXEme14kP4gqJ44QGsdlzQCRwxGszc5hx+g/H8/LeAXTA0FokL1
+Cm3Zi80oN8Ru/Cctdz4+MSUQfTHKul59rZG1iwfvEXrY5wmM1CQsCCV6yixbu0lN
+jwonILGfwb+S6JFcFVchw92rYKItmCplKKw0CjQzqDyvHlP6iBbLXOz77jy2gIc+
+OWqaAw3hp4lmgcu1PEMQ9iRx6fICBagj98LiY7UmgvHXU2QWCTGjt3Zqww2U0ZSz
+Vxzlso6KnRZiwKZzxzYWR0HhdliBaV2tPGkt8DBmqb79czHEmkV/q3O/uzA8B53w
+ouKViWbv0QsIGUsu7ROcAcTO7ix4a2/YRCJAJNVOsX+i5g5Dg/KPjoReV7mD3LU3
+sMO6Tuk0tXp8RWQdF4DWrH1oqHN3XboZI0L3pyHJGn/XWFmiZGQQerec3+Z9gyGH
+iPW8Fs6BtPrSizPE63YtKRPmTHhXTmP/5TKkRzM23azUK6dpSw2+LKSrI4I6Z3bF
+1VRRffP6Rm89RRnmbs3S5/ca0yr13OQzoCe38k5dqh/tulkPPbk1+xmZ69YJluVs
+l4d+DHJ/UyAbdV1g3IzPCKDG7GdkwctrUbw1MVD7U9dFS4sGK8Yz9chk5oUKYnEF
+W7b512XsPvioVNfR0EBl
+=l7rL
 -----END PGP SIGNATURE-----
 
---=-BVdpJUZWH0rP1iCCm3/q--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-F54YLA5QHQfaO4OMd8BL--
