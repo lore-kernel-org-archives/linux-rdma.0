@@ -1,25 +1,33 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMA Multicasting
-Date: Thu, 9 Apr 2015 09:56:21 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1504090955080.19714@gentwo.org>
-References: <A1EC1DB6D8AEAF4CB8006B3653F61C5471F997F9@CMEXMB1.ad.emulex.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A1EC1DB6D8AEAF4CB8006B3653F61C5471F997F9-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Allen Andrews <Allen.Andrews-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v2 01/17] IB/Verbs: Implement new callback
+ query_transport() for each HW
+Date: Thu, 9 Apr 2015 10:00:54 -0600
+Message-ID: <20150409160054.GB2035@obsidianresearch.com>
+References: <5523CCD5.6030401@profitbricks.com>
+ <5523D098.3020007@profitbricks.com>
+ <1428517786.2980.180.camel@redhat.com>
+ <20150408201015.GB28666@obsidianresearch.com>
+ <552673B0.7040500@profitbricks.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <552673B0.7040500@profitbricks.com>
+Sender: netdev-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Ira Weiny <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 8 Apr 2015, Allen Andrews wrote:
+On Thu, Apr 09, 2015 at 02:42:24PM +0200, Michael Wang wrote:
+> On 04/08/2015 10:10 PM, Jason Gunthorpe wrote:
+> [snip]
+> > 
+> > Some of the other checks in this file revolve around pkey, I'm not
+> > sure what rocee does there? cap_pkey_supported ?
+> 
+> I'm not sure if this count in capability... how shall we describe it?
 
-> I am trying to find out if RDMA Multicasting is supported on RoCE in Linux.
-> If so, is it supported above the verbs interface?
+I'm not sure how rocee uses pkey, but maybe the the GRH and pkey thing
+would work well together under a single 'cap_ethernet_ah' ?
 
-RDMA multicasting? You mean sending ud(or udp) messages via the RDMA API?
-That works even without RoCE.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
