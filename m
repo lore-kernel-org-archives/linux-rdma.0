@@ -1,30 +1,33 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v2 01/17] IB/Verbs: Implement new callback query_transport()
- for each HW
-Date: Thu, 09 Apr 2015 14:42:24 +0200
-Message-ID: <552673B0.7040500@profitbricks.com>
-References: <5523CCD5.6030401@profitbricks.com> <5523D098.3020007@profitbricks.com> <1428517786.2980.180.camel@redhat.com> <20150408201015.GB28666@obsidianresearch.com>
+From: Bob Biloxi <iambobbiloxi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Multicast Filtering - mlx4_SET_MCAST_FLTR
+Date: Thu, 9 Apr 2015 19:56:52 +0530
+Message-ID: <CANwwZzU7gVhaicvnmS26xBmi3rdDX01gAHWXbmAme7W5Aen4wg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150408201015.GB28666@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, Ira Weiny <ira.weiny@intel.com>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/08/2015 10:10 PM, Jason Gunthorpe wrote:
-[snip]
-> 
-> Some of the other checks in this file revolve around pkey, I'm not
-> sure what rocee does there? cap_pkey_supported ?
+Hi,
 
-I'm not sure if this count in capability... how shall we describe it?
+I was going through the mlx4 code and noticed that this function
+mlx4_SET_MCAST_FLTR calls the mlx4_SET_MCAST_FLTR_wrapper which in
+turns has an empty body.
 
-Regards,
-Michael Wang
 
-> 
-> Jason
-> 
+So, I was just wondering if the multicast filtering functionality is disabled?
+
+Is QP_ATTACH the replacement for this?
+
+Couldn't understand so wanted your help on this...
+
+
+Thanks
+
+Best Regards,
+Bob
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
