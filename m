@@ -1,40 +1,53 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMA Multicasting
-Date: Thu, 9 Apr 2015 13:35:14 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1504091329180.24028@gentwo.org>
-References: <A1EC1DB6D8AEAF4CB8006B3653F61C5471F997F9@CMEXMB1.ad.emulex.com> <alpine.DEB.2.11.1504090955080.19714@gentwo.org> <5526c0f8.2116430a.28f7.ffffd059SMTPIN_ADDED_BROKEN@mx.google.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Thu, 09 Apr 2015 22:25:13 +0200
+Message-ID: <1428611113.22575.200.camel@opteya.com>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+	 <20150409180103.GB16117@obsidianresearch.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FBF7E8@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5526c0f8.2116430a.28f7.ffffd059SMTPIN_ADDED_BROKEN-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FBF7E8-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Caitlin Bestler <cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org>
-Cc: Allen Andrews <Allen.Andrews-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 9 Apr 2015, Caitlin Bestler wrote:
+Hi Roland,
 
-> RDMA requires specific delivery semantics. Successful completion of an
-> untagged message (an RDMA Send) implies that all prior tagged
-> (Write/Read) packets have been successfully placed in user memory.
+Le jeudi 09 avril 2015 =C3=A0 18:06 +0000, Hefty, Sean a =C3=A9crit :
+> > > This thread has made me realize that even as I am able to carve o=
+ut
+> > > more time to work on things like IB maintaintership, I no longer
+> > > have the desire to spend my time maintaining the IB subsystem.
+> > > Since my current level of activity is clearly hurting the communi=
+ty,
+> > > I've decided to step down as maintainer.
+> >=20
+> > Thank you for all of your work over the years. I know that your
+> > technical skills and opinion have been widely appreciated and
+> > respected by the entire community.
+>=20
+> I concur, and I'd like to thank you for the personal time that you de=
+dicated to this project.
 
-That seems to be incompatible with a multicast delivery mechanism
-because there is state to all endpoints involved.
+Thank you for all your work !
 
-> Just putting RDMA packets over an unreliable transport will not accomplish that.
+Anyway, I hope you will keep contributing to the kernel and userspace
+parts of the InfiniBand/RDMA subsystem.
 
-I am not sure what an "RDMA packet" is. RDMA is a memory to memory
-transfer action. A packet is information send on a medium. A packet that
-describes an RDMA action to be taken between certain endpoints?
+Best regards.
 
-Infiniband is lossless and thus what "unreliable" means is also quite
-foggy.
+--=20
+Yann Droneaud
+OPTEYA
 
-> You are probably better off using RDMA ideas over UDP/UD, and doing the
-> direct memory placement from your own code, instead.
 
-So send the memory transfer info via multicast datagram to the
-endpoints and then run the transfer from the endpoint.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
