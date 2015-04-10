@@ -1,60 +1,76 @@
 From: Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>
-Subject: Re: RDMA Multicasting
-Date: Fri, 10 Apr 2015 14:33:02 -0700
-Message-ID: <5528418E.9040403@nasa.gov>
-References: <A1EC1DB6D8AEAF4CB8006B3653F61C5471F997F9@CMEXMB1.ad.emulex.com> <alpine.DEB.2.11.1504090955080.19714@gentwo.org> <5526c0f8.2116430a.28f7.ffffd059SMTPIN_ADDED_BROKEN@mx.google.com> <alpine.DEB.2.11.1504091329180.24028@gentwo.org> <5526e18b.a50c450a.4b9f.77beSMTPIN_ADDED_BROKEN@mx.google.com> <alpine.DEB.2.11.1504101011300.30374@gentwo.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Fri, 10 Apr 2015 15:09:14 -0700
+Message-ID: <55284A0A.70007@nasa.gov>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1504101011300.30374-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Caitlin Bestler <cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org>
-Cc: Allen Andrews <Allen.Andrews-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 4/10/15 8:14 AM, Christoph Lameter wrote:
-> On Thu, 9 Apr 2015, Caitlin Bestler wrote:
+On 4/9/15 10:41 AM, Roland Dreier wrote:
+> On Tue, Apr 7, 2015 at 10:12 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> I don't think you understand how deep the problem Or is describing
+>> goes.
 >
->>> Infiniband is lossless and thus what "unreliable" means is also quite
->>> foggy.
->>
->> InfiniBand is not lossless. It does a superb job of avoiding drops caused
->> by congestion. But applications should not assume that all UD messages
->> have been received, but should add their own checking. That is why the
->> U stands for Unreliable.
+>> [...Appropriate and correct critique...]
 >
-> Well applications can screw up yes but the fabric *IS* lossless.
-
-This is a very bad assumption. Fabric *is not* lossless.
-
-Packet loss happens - for various reasons that are typically specific to the environment.
-We have found several broken pieces of SW that assumed RC connections are reliable, and
-do bad things when the qp hits its retry limit. So not only loosing 1 packet, but 7 in a
-row. Building SW that relied on RC - well OK, but assuming UD reliable in all environments?
-If HW never broke, and systems were never overloaded, room temperatures never fluctuated, IB
-cables were always reliable... Its not that uncommon to see packet loss on a perfectly functioning
-(large) system let alone one thats having HW issues...
+> This thread has made me realize that even as I am able to carve out
+> more time to work on things like IB maintaintership, I no longer have
+> the desire to spend my time maintaining the IB subsystem.  Since my
+> current level of activity is clearly hurting the community, I've
+> decided to step down as maintainer.
 
 
->>>> You are probably better off using RDMA ideas over UDP/UD, and doing the
->>>> direct memory placement from your own code, instead.
->>>
->>> So send the memory transfer info via multicast datagram to the
->>> endpoints and then run the transfer from the endpoint.
->>
->> Yes, possibly in a kermel module.
+Hi Roland,
+
+We have met a couple of times. I occasionally lurk on this list.
+
+Just wanted to pass on thanks for contributing so much over the years.
+
+You probably didn't know the impacts of much of your work, but its used
+extensively at NASA to do stuff like find planets around stars many lig=
+ht
+years away, build rocket ships, and understand the dynamics of the ocea=
+n.
+If you ever want to visit our facility in Mt View, let me know.
+
+
+Thank You.
+
+bob
+
+
 >
-> Why? You can simply do this already from userspace with verbs messaging
-> and RDMA tranfers.
+> I'm on a perhaps-unfortunately-timed vacation this week, but to make
+> the transition smooth, I'll handle the easy patches that are in fligh=
+t
+> for 4.1, and then turn things over to the community for 4.2.  (Unless
+> the feeling is that it's better for me to step down immediately =E2=80=
+=94 I
+> have no problem doing that, I just don't want to leave people in the
+> lurch)
+>
+> Thanks,
+>    Roland
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
