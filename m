@@ -1,71 +1,30 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v2 01/17] IB/Verbs: Implement new callback query_transport()
- for each HW
-Date: Fri, 10 Apr 2015 10:25:21 +0200
-Message-ID: <552788F1.4070301@profitbricks.com>
-References: <5523CCD5.6030401@profitbricks.com> <5523D098.3020007@profitbricks.com> <1428517786.2980.180.camel@redhat.com> <20150408201015.GB28666@obsidianresearch.com> <20150410061610.GA26288@phlsvsds.ph.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Fri, 10 Apr 2015 08:09:44 -0400
+Message-ID: <5527BD88.9050807@dev.mellanox.co.il>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150410061610.GA26288@phlsvsds.ph.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "ira.weiny" <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/10/2015 08:16 AM, ira.weiny wrote:
-> First off there are 2 separate issues here:
-> 
-> 1) We need to communicate if a port supports or requires various management
->    support from the ib_mad, ib_cm, and/or ib_sa modules.
-> 
-> 2) We need to communicate how a addresses are formated and resolved for a
->    particular port
-> 
-> 
-> In general I don't think we need to remove all uses of the Transport
-> or Link Layer.
-> 
-> Although we may be able to remove most of the transport uses.
-> 
-> On Wed, Apr 08, 2015 at 02:10:15PM -0600, Jason Gunthorpe wrote:
-[snip]
-> 
->>
->> Some of the other checks in this file revolve around pkey, I'm not
->> sure what rocee does there? cap_pkey_supported ?
-> 
-> It seems IBoE just hardcodes the pkey to 0xffff.  I don't see it used anywhere.
-> 
-> Function where port requires "real" PKey
-> 
-> 	-- cma.c: cma_ib_init_qp_attr
-> 
-> Check rdma_port_req_pkey()?
+On 4/9/2015 1:41 PM, Roland Dreier wrote:
+> I've decided to step down as maintainer.
 
-What about cap_eth_ah() for all the cases need eth addressing handling?
+>From the seminal days of PathForward and OpenIB some 10+ years ago, you
+have been the main driving force for and the reason there even is RDMA
+in linux. You will be sorely missed and I hope you will still contribute
+but maybe you have other things in mind with the time you will reclaim
+by not being maintainer ;-) Thanks for all your efforts over the many years!
 
-> 
-> 
-> Over all for the addressing choices:
-> 
-> The "Transport" (or protocol, or whatever) is Verbs.  The Layer below Verbs
-> (OPA/IB/Eth/TCP) defines how addressing, route, and connection information is
-> generated, communicated, and used.
-> 
-> As Jason and Doug have been saying sometimes we want to know when that requires
-> SA interaction or the use of the CM protocol (or neither).  Other times we just
-> need to know what the Address format or Link Layer is.
-
-Till now it seems like we could be able to eliminate the link layer helper in core
-layer, but I'll reserve that helper in next version, if later we do not need it anymore,
-let's erase it then ;-)
-
-Regards,
-Michael Wang
-
-> 
-> 
-> Ira
-> 
+-- Hal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
