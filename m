@@ -1,79 +1,64 @@
-From: Eli Cohen <eli@mellanox.com>
-Subject: RE: [linux-next PATCH] mlx5: wrong page mask if
- CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
-Date: Sun, 12 Apr 2015 15:04:16 +0000
-Message-ID: <DB4PR05MB4487E0A2EDB25BF090A9742C5F80@DB4PR05MB448.eurprd05.prod.outlook.com>
-References: <1428836751-23037-1-git-send-email-honli@redhat.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Sun, 12 Apr 2015 19:16:33 +0200
+Message-ID: <1428858993.3470.12.camel@dworkin>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428836751-23037-1-git-send-email-honli@redhat.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Honggang Li <honli@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC0120-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Good catch, thanks!
+Hi,
 
-There are more places in this file where PAGE_MASK is wrongly used. Need to fix them as well.
+Le vendredi 10 avril 2015 =C3=A0 20:39 +0000, Hefty, Sean a =C3=A9crit =
+:
+> > I'm on a perhaps-unfortunately-timed vacation this week, but to mak=
+e
+> > the transition smooth, I'll handle the easy patches that are in fli=
+ght
+> > for 4.1, and then turn things over to the community for 4.2.  (Unle=
+ss
+> > the feeling is that it's better for me to step down immediately =E2=
+=80=94 I
+> > have no problem doing that, I just don't want to leave people in th=
+e
+> > lurch)
+>=20
+> This transition plan makes sense to me.  I can dedicate more of my
+> time helping to review kernel patches, at least for a couple of
+> months.  Hal is listed as the other sub-maintainer.  He usually limit=
+s
+> his input to the IB mgmt components, but maybe he can contribute more
+> until we're over this hump?
+>=20
+> I'm not trying to volunteer anyone, but longer term, Doug appears to
+> be in an ideal situation for maintaining the RDMA subtree.  Because o=
+f
+> his position at RedHat, he has a strong interest in ensuring user
+> space compatibility, can test across a wide range of devices, and
+> needs to deal with long term maintenance issues.
+>=20
 
-Also, see below [Eli]
+That would make sense to have someone like Doug or Jason being the
+potential successors to Roland in order to keep InfiniBand subsystem
+vendor neutrality.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
 
 
-
------Original Message-----
-From: Honggang Li [mailto:honli@redhat.com] 
-Sent: Sunday, April 12, 2015 2:06 PM
-To: Eli Cohen; netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
-Cc: Honggang Li
-Subject: [linux-next PATCH] mlx5: wrong page mask if CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
-
-If CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for x86 systems and physical memory is more than 4GB, dma_map_page may return a valid memory address which greater than 0xffffffff. As a result, the mlx5 device page allocator RB tree will be initialized with valid addresses greater than 0xfffffff.
-
-However, (addr & PAGE_MASK) set the high four bytes to zeros. So, it's impossible for the function, free_4k, to release the pages whose addresses greater than 4GB. Memory leaks. And mlx5_ib module can't release the pages when user try to remove the module, as a result, system hang.
-
-[root@rdma05 root]# dmesg  | grep addr | head
-addr             = 3fe384000
-addr & PAGE_MASK =  fe384000
-[root@rdma05 root]# rmmod mlx5_ib   <---- hang on
-
----------------------- cosnole log ----------------- mlx5_ib 0000:04:00.0: irq 138 for MSI/MSI-X
-  alloc irq_desc for 139 on node -1
-  alloc kstat_irqs on node -1
-mlx5_ib 0000:04:00.0: irq 139 for MSI/MSI-X 0000:04:00.0:free_4k:221:(pid 1519): page not found 0000:04:00.0:free_4k:221:(pid 1519): page not found 0000:04:00.0:free_4k:221:(pid 1519): page not found 0000:04:00.0:free_4k:221:(pid 1519): page not found
----------------------- cosnole log -----------------
-
-Signed-off-by: Honggang Li <honli@redhat.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-index df22383..27c72da 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -211,12 +211,14 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
- 	return 0;
- }
- 
-+#define MLX5_U64_4K_PAGE_MASK ((~(u64)0U) << PAGE_SHIFT)
-+
- static void free_4k(struct mlx5_core_dev *dev, u64 addr)  {
- 	struct fw_page *fwp;
- 	int n;
- 
--	fwp = find_fw_page(dev, addr & PAGE_MASK);
-+	fwp = find_fw_page(dev, addr & MLX5_U64_4K_PAGE_MASK);
- 	if (!fwp) {
- 		mlx5_core_warn(dev, "page not found\n");
- 		return;
-@@ -241,7 +243,7 @@ static void free_4k(struct mlx5_core_dev *dev, u64 addr)  static int alloc_system_page(struct mlx5_core_dev *dev, u16 func_id)  {
- 	struct page *page;
--	u64 addr;
-+	u64 addr = 0; [Eli] Why is this required?
- 	int err;
- 	int nid = dev_to_node(&dev->pdev->dev);
- 
 --
-1.8.3.1
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
