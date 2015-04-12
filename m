@@ -1,64 +1,67 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Sun, 12 Apr 2015 19:16:33 +0200
-Message-ID: <1428858993.3470.12.camel@dworkin>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
+From: Ido Shamay <idos@dev.mellanox.co.il>
+Subject: Re: [PATCH RFC] net/mlx4: Remove improper usage of dma_alloc_coherent().
+Date: Mon, 13 Apr 2015 00:33:24 +0300
+Message-ID: <552AE4A4.30005@dev.mellanox.co.il>
+References: <1428361229-31542-1-git-send-email-ddaney.cavm@gmail.com> <55243362.5040207@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC0120-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55243362.5040207@dev.mellanox.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Amir Vadai <amirv@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Moni Shoua <monis@mellanox.com>, Eugenia Emantayev <eugenia@mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, Yuval Atias <yuvala@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, David Daney <david.daney@cavium.com>, liranl@mellanox.com, gdror@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 4/7/2015 10:43 PM, Ido Shamay wrote:
+> On 4/7/2015 2:00 AM, David Daney wrote:
+>> From: David Daney <david.daney@cavium.com>
+>>
+>> The dma_alloc_coherent() function returns a virtual address which can
+>> be used for coherent access to the underlying memory.  On some
+>> architectures, like arm64, undefined behavior results if this memory is
+>> also accessed via virtual mappings that are not coherent. Because of
+>> their undefined nature, operations like virt_to_page() return garbage
+>> when passed virtual addresses obtained from dma_alloc_coherent().  Any
+>> subsequent mappings via vmap() of the garbage page values are unusable
+>> and result in bad things like bus errors (synchronous aborts in ARM64
+>> speak).
+>>
+>> The MLX4 driver contains code that does the equivalent of:
+>>
+>>    vmap(virt_to_page(dma_alloc_coherent))
+>>
+>> This results in an OOPs when the device is opened.
+>>
+>> To fix this...
+>>
+>> Always use result of dma_alloc_coherent() directly.
+> Hi David,
+>
+> I'm not sure this solution is good enough for the common case(s).
+> Typical allocation size will be around 64KB (with default 1K ring size).
+> We can't rely on the system to always provide us with that amount of 
+> contiguous memory.
+>
+> Current code allocation scheme is more robust, max_direct is typically 
+> 2 * PAGE_SIZE,
+> so pages from order 1 are far more available then higher order.
+>
+> I need to check why the code is written as it is today,  and not as in 
+> this RFC (which is much more trivial).
+> I'll continue to investigate tomorrow, will get back with some answers.
+>
+> Ido
 
-Le vendredi 10 avril 2015 =C3=A0 20:39 +0000, Hefty, Sean a =C3=A9crit =
-:
-> > I'm on a perhaps-unfortunately-timed vacation this week, but to mak=
-e
-> > the transition smooth, I'll handle the easy patches that are in fli=
-ght
-> > for 4.1, and then turn things over to the community for 4.2.  (Unle=
-ss
-> > the feeling is that it's better for me to step down immediately =E2=
-=80=94 I
-> > have no problem doing that, I just don't want to leave people in th=
-e
-> > lurch)
->=20
-> This transition plan makes sense to me.  I can dedicate more of my
-> time helping to review kernel patches, at least for a couple of
-> months.  Hal is listed as the other sub-maintainer.  He usually limit=
-s
-> his input to the IB mgmt components, but maybe he can contribute more
-> until we're over this hump?
->=20
-> I'm not trying to volunteer anyone, but longer term, Doug appears to
-> be in an ideal situation for maintaining the RDMA subtree.  Because o=
-f
-> his position at RedHat, he has a strong interest in ensuring user
-> space compatibility, can test across a wide range of devices, and
-> needs to deal with long term maintenance issues.
->=20
+Acked-by: Ido Shamay <idos@mellanox.com>
+Thanks David, this is good for us
 
-That would make sense to have someone like Doug or Jason being the
-potential successors to Roland in order to keep InfiniBand subsystem
-vendor neutrality.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Remove 'max_direct' parameter to mlx4_buf_alloc(), as it is unused,
+>> and adjust all callers.
+>>
+>> Remove mlx4_en_map_buffer() and mlx4_en_unmap_buffer() as they now do
+>> nothing, and adjust all callers.
+>>
+>> Remove 'page_list' element from struct mlx4_buf as it is unused.
+>>
+>> Signed-off-by: David Daney <david.daney@cavium.com>
