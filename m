@@ -1,74 +1,78 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Sun, 12 Apr 2015 01:51:23 +0300
-Message-ID: <CAJ3xEMiky+s55zsqH0Vxpw8wmk3uGsx1wyMdNqsFihCaiBDgtw@mail.gmail.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [linux-next PATCH] mlx5: wrong page mask if CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
+Date: Sun, 12 Apr 2015 19:05:51 +0800
+Message-ID: <1428836751-23037-1-git-send-email-honli@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 9, 2015 at 8:41 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Tue, Apr 7, 2015 at 10:12 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> I don't think you understand how deep the problem Or is describing goes.
+If CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for x86 systems and physical
+memory is more than 4GB, dma_map_page may return a valid memory
+address which greater than 0xffffffff. As a result, the mlx5 device page
+allocator RB tree will be initialized with valid addresses greater than
+0xfffffff.
 
->> [...Appropriate and correct critique...]
+However, (addr & PAGE_MASK) set the high four bytes to zeros. So, it's
+impossible for the function, free_4k, to release the pages whose
+addresses greater than 4GB. Memory leaks. And mlx5_ib module can't
+release the pages when user try to remove the module, as a result,
+system hang.
 
-> This thread has made me realize that even as I am able to carve out
-> more time to work on things like IB maintaintership, I no longer have
-> the desire to spend my time maintaining the IB subsystem.  Since my
-> current level of activity is clearly hurting the community, I've
-> decided to step down as maintainer.
+[root@rdma05 root]# dmesg  | grep addr | head
+addr             = 3fe384000
+addr & PAGE_MASK =  fe384000
+[root@rdma05 root]# rmmod mlx5_ib   <---- hang on
 
-> I'm on a perhaps-unfortunately-timed vacation this week
+---------------------- cosnole log -----------------
+mlx5_ib 0000:04:00.0: irq 138 for MSI/MSI-X
+  alloc irq_desc for 139 on node -1
+  alloc kstat_irqs on node -1
+mlx5_ib 0000:04:00.0: irq 139 for MSI/MSI-X
+0000:04:00.0:free_4k:221:(pid 1519): page not found
+0000:04:00.0:free_4k:221:(pid 1519): page not found
+0000:04:00.0:free_4k:221:(pid 1519): page not found
+0000:04:00.0:free_4k:221:(pid 1519): page not found
+---------------------- cosnole log -----------------
 
-OK, but this is the last time for making these excuses (...)
+Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-> but to make the transition smooth, I'll handle the easy patches that are in flight
-> for 4.1 and then turn things over to the community for 4.2
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+index df22383..27c72da 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+@@ -211,12 +211,14 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
+ 	return 0;
+ }
+ 
++#define MLX5_U64_4K_PAGE_MASK ((~(u64)0U) << PAGE_SHIFT)
++
+ static void free_4k(struct mlx5_core_dev *dev, u64 addr)
+ {
+ 	struct fw_page *fwp;
+ 	int n;
+ 
+-	fwp = find_fw_page(dev, addr & PAGE_MASK);
++	fwp = find_fw_page(dev, addr & MLX5_U64_4K_PAGE_MASK);
+ 	if (!fwp) {
+ 		mlx5_core_warn(dev, "page not found\n");
+ 		return;
+@@ -241,7 +243,7 @@ static void free_4k(struct mlx5_core_dev *dev, u64 addr)
+ static int alloc_system_page(struct mlx5_core_dev *dev, u16 func_id)
+ {
+ 	struct page *page;
+-	u64 addr;
++	u64 addr = 0;
+ 	int err;
+ 	int nid = dev_to_node(&dev->pdev->dev);
+ 
+-- 
+1.8.3.1
 
-Sounds a fair plan to me.
-
-As we're just two days before the merge window is likely to open,
-could you please but ASAP immediately make what's queued @ your
-for-next branch private clone public?!
-
-currently, there's nothing there expect for one 4.- rc fix.
-
-Some from top of my head quick listing contains:
-
-1. Doug's IPoIB patches which finally passed full review and
-regression by Erez Shitrit @ Mellanox plus some review and testing by
-Intel/Ira
-http://marc.info/?t=142456493600003&r=1&w=2
-
-2. Erez's followup patch series which few IPoIB changes and one mlx4 fix
-http://marc.info/?l=linux-rdma&m=142797117721383&w=2
-
-3. Yishai's mlx4 patches (where we started this thread)
-http://marc.info/?l=linux-rdma&m=142788688230585&w=2
-
-4. Sagi's iSER updates for 4.1 - which you acked but didn't make public
-
-Unfortunately, Sean -- you haven't provided for > 2 months any
-feedback on the patches to the CM/CMA modules which you own/maintain
-for supporting name-spaces and such which are part of enabling proper
-RDMA support for containers.
-http://marc.info/?l=linux-netdev&m=142366747608908&w=2 This makes your
-co-maintainer position sort of problematic, BTW. Jason, any chance you
-can look on
-that?
-
-As for the core and driver RoCE changes, I see that there are comments
-from Sean and Bart, so the review isn't over yet.
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
