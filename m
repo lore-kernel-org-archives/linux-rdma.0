@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v3 12/28] IB/Verbs: Reform mcast related part in IB-core cma
-Date: Mon, 13 Apr 2015 14:28:22 +0200
-Message-ID: <552BB666.1010503@profitbricks.com>
+Subject: [PATCH v3 13/28] IB/Verbs: Reserve legacy transport type in 'dev_addr'
+Date: Mon, 13 Apr 2015 14:28:54 +0200
+Message-ID: <552BB686.6050104@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,7 +14,9 @@ Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wi
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use raw management helpers to reform mcast related part in IB-core cma.
+Reserve the legacy transport type for the 'transport' member
+of 'struct rdma_dev_addr' until we make sure this is no
+longer needed.
 
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
@@ -24,95 +26,51 @@ Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 57 +++++++++++++++----------------------------
- 1 file changed, 19 insertions(+), 38 deletions(-)
+ drivers/infiniband/core/cma.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 8c41b3f..0a36a42 100644
+index 0a36a42..d2052a4 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -998,17 +998,12 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
- 		mc = container_of(id_priv->mc_list.next,
- 				  struct cma_multicast, list);
- 		list_del(&mc->list);
--		switch (rdma_port_get_link_layer(id_priv->cma_dev->device, id_priv->id.port_num)) {
--		case IB_LINK_LAYER_INFINIBAND:
-+		if (rdma_tech_ib(id_priv->cma_dev->device,
-+				      id_priv->id.port_num)) {
- 			ib_sa_free_multicast(mc->multicast.ib);
- 			kfree(mc);
--			break;
--		case IB_LINK_LAYER_ETHERNET:
-+		} else
- 			kref_put(&mc->mcref, release_mc);
--			break;
--		default:
--			break;
--		}
- 	}
+@@ -244,14 +244,35 @@ static inline void cma_set_ip_ver(struct cma_hdr *hdr, u8 ip_ver)
+ 	hdr->ip_version = (ip_ver << 4) | (hdr->ip_version & 0xF);
  }
  
-@@ -3316,24 +3311,13 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	list_add(&mc->list, &id_priv->mc_list);
- 	spin_unlock(&id_priv->lock);
++static inline void cma_set_legacy_transport(struct rdma_cm_id *id)
++{
++	switch (id->device->node_type) {
++	case RDMA_NODE_IB_CA:
++	case RDMA_NODE_IB_SWITCH:
++	case RDMA_NODE_IB_ROUTER:
++		id->route.addr.dev_addr.transport = RDMA_TRANSPORT_IB;
++		break;
++	case RDMA_NODE_RNIC:
++		id->route.addr.dev_addr.transport = RDMA_TRANSPORT_IWARP;
++		break;
++	case RDMA_NODE_USNIC:
++		id->route.addr.dev_addr.transport = RDMA_TRANSPORT_USNIC;
++		break;
++	case RDMA_NODE_USNIC_UDP:
++		id->route.addr.dev_addr.transport = RDMA_TRANSPORT_USNIC_UDP;
++		break;
++	default:
++		BUG();
++	}
++}
++
+ static void cma_attach_to_dev(struct rdma_id_private *id_priv,
+ 			      struct cma_device *cma_dev)
+ {
+ 	atomic_inc(&cma_dev->refcount);
+ 	id_priv->cma_dev = cma_dev;
+ 	id_priv->id.device = cma_dev->device;
+-	id_priv->id.route.addr.dev_addr.transport =
+-		rdma_node_get_transport(cma_dev->device->node_type);
++	cma_set_legacy_transport(&id_priv->id);
+ 	list_add_tail(&id_priv->list, &cma_dev->id_list);
+ }
  
--	switch (rdma_node_get_transport(id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
--		switch (rdma_port_get_link_layer(id->device, id->port_num)) {
--		case IB_LINK_LAYER_INFINIBAND:
--			ret = cma_join_ib_multicast(id_priv, mc);
--			break;
--		case IB_LINK_LAYER_ETHERNET:
--			kref_init(&mc->mcref);
--			ret = cma_iboe_join_multicast(id_priv, mc);
--			break;
--		default:
--			ret = -EINVAL;
--		}
--		break;
--	default:
-+	if (rdma_tech_iboe(id->device, id->port_num)) {
-+		kref_init(&mc->mcref);
-+		ret = cma_iboe_join_multicast(id_priv, mc);
-+	} else if (rdma_tech_ib(id->device, id->port_num))
-+		ret = cma_join_ib_multicast(id_priv, mc);
-+	else
- 		ret = -ENOSYS;
--		break;
--	}
- 
- 	if (ret) {
- 		spin_lock_irq(&id_priv->lock);
-@@ -3361,19 +3345,16 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 				ib_detach_mcast(id->qp,
- 						&mc->multicast.ib->rec.mgid,
- 						be16_to_cpu(mc->multicast.ib->rec.mlid));
--			if (rdma_node_get_transport(id_priv->cma_dev->device->node_type) == RDMA_TRANSPORT_IB) {
--				switch (rdma_port_get_link_layer(id->device, id->port_num)) {
--				case IB_LINK_LAYER_INFINIBAND:
--					ib_sa_free_multicast(mc->multicast.ib);
--					kfree(mc);
--					break;
--				case IB_LINK_LAYER_ETHERNET:
--					kref_put(&mc->mcref, release_mc);
--					break;
--				default:
--					break;
--				}
--			}
-+
-+			BUG_ON(id_priv->cma_dev->device != id->device);
-+
-+			if (rdma_tech_ib(id->device, id->port_num)) {
-+				ib_sa_free_multicast(mc->multicast.ib);
-+				kfree(mc);
-+			} else if (rdma_tech_iboe(id->device,
-+						       id->port_num))
-+				kref_put(&mc->mcref, release_mc);
-+
- 			return;
- 		}
- 	}
 -- 
 2.1.0
 --
