@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v3 22/28] IB/Verbs: Use management helper cap_ipoib()
-Date: Mon, 13 Apr 2015 14:33:48 +0200
-Message-ID: <552BB7AC.2010402@profitbricks.com>
+Subject: [PATCH v3 23/28] IB/Verbs: Use management helper cap_read_multi_sge()
+Date: Mon, 13 Apr 2015 14:34:14 +0200
+Message-ID: <552BB7C6.8010700@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,8 +14,8 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper cap_ipoib() to help us check if the port of an
-IB device support IP over Infiniband.
+Introduce helper cap_read_multi_sge() to help us check if the port of an
+IB device support RDMA Read Multiple Scatter-Gather Entries.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -25,48 +25,49 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
- include/rdma/ib_verbs.h                   | 15 +++++++++++++++
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ include/rdma/ib_verbs.h                 | 15 +++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |  3 ++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 97372b1..150768f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1671,7 +1671,7 @@ static void ipoib_add_one(struct ib_device *device)
- 	}
- 
- 	for (p = s; p <= e; ++p) {
--		if (!rdma_tech_ib(device, p))
-+		if (!cap_ipoib(device, p))
- 			continue;
- 		dev = ipoib_add_port("ib%d", device, p);
- 		if (!IS_ERR(dev)) {
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index b2cee8d..ac62b3a 100644
+index ac62b3a..60f7efb 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1863,6 +1863,21 @@ static inline int cap_ib_mcast(struct ib_device *device, u8 port_num)
- 	return cap_ib_sa(device, port_num);
+@@ -1878,6 +1878,21 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
+ 	return rdma_tech_ib(device, port_num);
  }
  
 +/**
-+ * cap_ipoib - Check if the port of device has the capability
-+ * IP over Infiniband.
++ * cap_read_multi_sge - Check if the port of device has the capability
++ * RDMA Read Multiple Scatter-Gather Entries.
 + *
 + * @device: Device to be checked
 + * @port_num: Port number of the device
 + *
 + * Return 0 when port of the device don't support
-+ * IP over Infiniband.
++ * RDMA Read Multiple Scatter-Gather Entries.
 + */
-+static inline int cap_ipoib(struct ib_device *device, u8 port_num)
++static inline int cap_read_multi_sge(struct ib_device *device, u8 port_num)
 +{
-+	return rdma_tech_ib(device, port_num);
++	return !rdma_tech_iwarp(device, port_num);
 +}
 +
  int ib_query_gid(struct ib_device *device,
  		 u8 port_num, int index, union ib_gid *gid);
  
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index a5bed5b..7711b7a 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -117,7 +117,8 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
+ 
+ static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
+ {
+-	if (rdma_tech_iwarp(xprt->sc_cm_id->device, xprt->sc_cm_id->port_num))
++	if (!cap_read_multi_sge(xprt->sc_cm_id->device,
++				xprt->sc_cm_id->port_num))
+ 		return 1;
+ 	else
+ 		return min_t(int, sge_count, xprt->sc_max_sge);
 -- 
 2.1.0
