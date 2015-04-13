@@ -1,31 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Mon, 13 Apr 2015 10:42:38 -0600
-Message-ID: <20150413164238.GB17521@obsidianresearch.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
- <1428858993.3470.12.camel@dworkin>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.18-rc2 release is available
+Date: Mon, 13 Apr 2015 19:56:12 +0300
+Message-ID: <552BF52C.8040208@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1428858993.3470.12.camel@dworkin>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 12, 2015 at 07:16:33PM +0200, Yann Droneaud wrote:
+Hi,
+OFED-3.18-rc2 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.18/OFED-3.18-rc2.tgz
 
-> That would make sense to have someone like Doug or Jason being the
-> potential successors to Roland in order to keep InfiniBand subsystem
-> vendor neutrality.
+To get BUILD_ID run ofed_info
 
-Several people have been asking me privately, I am looking into if
-this would be possible or not.
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
 
-Jason
+Release notes: https://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.18-rc2_release_notes
+
+OFED-3.18-rc2 Main Changes from OFED 3.18-rc1
+-------------------------------------------------------------------------------
+1. Updated packages:
+  - dapl-2.1.4
+  - libfabric-1.0.0rc4
+  - librdmacm-1.0.20
+
+2. Added RHEL7.1 support
+
+3. compat-rdma changes
+  - IB/uverbs: Prevent integer overflow in ib_umem_get address arithmetic
+  - NFSoRDMA: backport for RHEL 6.5 and 6.6
+  - Fixed mlx4 backport
+  - Added RHEL7.1 backport patches
+  - RDMA/ocrdma: rebasing the upstream sync up patch
+  - be2net-ocrdma: Fixing the RH 6.5/6 backport patch
+  - be2net-ocrdma: move backport patches to the correct folder
+  - Updated XEON-Phi patches
+  - Updated compat-rdma.spec for XEON-Phi
+  - NFS/RDMA: SLES11SP3 backport
+
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
