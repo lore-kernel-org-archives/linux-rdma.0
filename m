@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v3 21/28] IB/Verbs: Use management helper cap_ib_mcast()
-Date: Mon, 13 Apr 2015 14:33:20 +0200
-Message-ID: <552BB790.20409@profitbricks.com>
+Subject: [PATCH v3 22/28] IB/Verbs: Use management helper cap_ipoib()
+Date: Mon, 13 Apr 2015 14:33:48 +0200
+Message-ID: <552BB7AC.2010402@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,8 +14,8 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper cap_ib_mcast() to help us check if the port of an
-IB device support Infiniband Multicast.
+Introduce helper cap_ipoib() to help us check if the port of an
+IB device support IP over Infiniband.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -25,94 +25,44 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c       |  6 +++---
- drivers/infiniband/core/multicast.c |  6 +++---
- include/rdma/ib_verbs.h             | 15 +++++++++++++++
- 3 files changed, 21 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
+ include/rdma/ib_verbs.h                   | 15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 013930c..4ed582e 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1029,7 +1029,7 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
- 		mc = container_of(id_priv->mc_list.next,
- 				  struct cma_multicast, list);
- 		list_del(&mc->list);
--		if (rdma_tech_ib(id_priv->cma_dev->device,
-+		if (cap_ib_mcast(id_priv->cma_dev->device,
- 				      id_priv->id.port_num)) {
- 			ib_sa_free_multicast(mc->multicast.ib);
- 			kfree(mc);
-@@ -3345,7 +3345,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	if (rdma_tech_iboe(id->device, id->port_num)) {
- 		kref_init(&mc->mcref);
- 		ret = cma_iboe_join_multicast(id_priv, mc);
--	} else if (rdma_tech_ib(id->device, id->port_num))
-+	} else if (cap_ib_mcast(id->device, id->port_num))
- 		ret = cma_join_ib_multicast(id_priv, mc);
- 	else
- 		ret = -ENOSYS;
-@@ -3379,7 +3379,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 
- 			BUG_ON(id_priv->cma_dev->device != id->device);
- 
--			if (rdma_tech_ib(id->device, id->port_num)) {
-+			if (cap_ib_mcast(id->device, id->port_num)) {
- 				ib_sa_free_multicast(mc->multicast.ib);
- 				kfree(mc);
- 			} else if (rdma_tech_iboe(id->device,
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index 24d93f5..bdc1880 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -780,7 +780,7 @@ static void mcast_event_handler(struct ib_event_handler *handler,
- 	int index;
- 
- 	dev = container_of(handler, struct mcast_device, event_handler);
--	if (WARN_ON(!rdma_tech_ib(dev->device, event->element.port_num)))
-+	if (WARN_ON(!cap_ib_mcast(dev->device, event->element.port_num)))
- 		return;
- 
- 	index = event->element.port_num - dev->start_port;
-@@ -820,7 +820,7 @@ static void mcast_add_one(struct ib_device *device)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 97372b1..150768f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1671,7 +1671,7 @@ static void ipoib_add_one(struct ib_device *device)
  	}
  
- 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
--		if (!rdma_tech_ib(device, dev->start_port + i))
-+		if (!cap_ib_mcast(device, dev->start_port + i))
+ 	for (p = s; p <= e; ++p) {
+-		if (!rdma_tech_ib(device, p))
++		if (!cap_ipoib(device, p))
  			continue;
- 		port = &dev->port[i];
- 		port->dev = dev;
-@@ -858,7 +858,7 @@ static void mcast_remove_one(struct ib_device *device)
- 	flush_workqueue(mcast_wq);
- 
- 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
--		if (rdma_tech_ib(device, dev->start_port + i)) {
-+		if (cap_ib_mcast(device, dev->start_port + i)) {
- 			port = &dev->port[i];
- 			deref_port(port);
- 			wait_for_completion(&port->comp);
+ 		dev = ipoib_add_port("ib%d", device, p);
+ 		if (!IS_ERR(dev)) {
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3bfdf81..b2cee8d 100644
+index b2cee8d..ac62b3a 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1848,6 +1848,21 @@ static inline int cap_ib_sa(struct ib_device *device, u8 port_num)
- 	return rdma_tech_ib(device, port_num);
+@@ -1863,6 +1863,21 @@ static inline int cap_ib_mcast(struct ib_device *device, u8 port_num)
+ 	return cap_ib_sa(device, port_num);
  }
  
 +/**
-+ * cap_ib_mcast - Check if the port of device has the capability Infiniband
-+ * Multicast.
++ * cap_ipoib - Check if the port of device has the capability
++ * IP over Infiniband.
 + *
 + * @device: Device to be checked
 + * @port_num: Port number of the device
 + *
-+ * Return 0 when port of the device don't support Infiniband
-+ * Multicast.
++ * Return 0 when port of the device don't support
++ * IP over Infiniband.
 + */
-+static inline int cap_ib_mcast(struct ib_device *device, u8 port_num)
++static inline int cap_ipoib(struct ib_device *device, u8 port_num)
 +{
-+	return cap_ib_sa(device, port_num);
++	return rdma_tech_ib(device, port_num);
 +}
 +
  int ib_query_gid(struct ib_device *device,
