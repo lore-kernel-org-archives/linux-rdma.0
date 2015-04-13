@@ -1,51 +1,34 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 3.18-rc2 release is available
-Date: Mon, 13 Apr 2015 19:56:12 +0300
-Message-ID: <552BF52C.8040208@dev.mellanox.co.il>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next v2 3/4] cxgb4: add DDP support for FCoE target
+Date: Mon, 13 Apr 2015 13:12:59 -0400 (EDT)
+Message-ID: <20150413.131259.1507649278753208323.davem@davemloft.net>
+References: <cover.1428930614.git.varun@chelsio.com>
+	<cover.1428930614.git.varun@chelsio.com>
+	<a8d335d453e84d5cf2ca7826e6de24eba96af253.1428930614.git.varun@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <a8d335d453e84d5cf2ca7826e6de24eba96af253.1428930614.git.varun@chelsio.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: varun@chelsio.com
+Cc: netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, JBottomley@parallels.com, roland@purestorage.com, leedom@chelsio.com, anish@chelsio.com, hariprasad@chelsio.com, swise@opengridcomputing.com, kxie@chelsio.com, praveenm@chelsio.com, kumaras@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-3.18-rc2 is available at:
-https://openfabrics.org/downloads/OFED/ofed-3.18/OFED-3.18-rc2.tgz
+From: Varun Prakash <varun@chelsio.com>
+Date: Mon, 13 Apr 2015 19:34:25 +0530
 
-To get BUILD_ID run ofed_info
+> diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_fcoe.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_fcoe.c
+> index 6c8a62e..f78d632 100644
+> --- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_fcoe.c
+> +++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_fcoe.c
+...
+> + */
+> +static inline unsigned int pages2ppods(unsigned int pages)
+> +{
+> +	return (pages + PPOD_PAGES - 1) / PPOD_PAGES +
 
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
+Please do not ever use inline in foo.c file function definitions.  Let
+the compiler decide on it's own.
 
-Release notes: https://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.18-rc2_release_notes
-
-OFED-3.18-rc2 Main Changes from OFED 3.18-rc1
--------------------------------------------------------------------------------
-1. Updated packages:
-  - dapl-2.1.4
-  - libfabric-1.0.0rc4
-  - librdmacm-1.0.20
-
-2. Added RHEL7.1 support
-
-3. compat-rdma changes
-  - IB/uverbs: Prevent integer overflow in ib_umem_get address arithmetic
-  - NFSoRDMA: backport for RHEL 6.5 and 6.6
-  - Fixed mlx4 backport
-  - Added RHEL7.1 backport patches
-  - RDMA/ocrdma: rebasing the upstream sync up patch
-  - be2net-ocrdma: Fixing the RH 6.5/6 backport patch
-  - be2net-ocrdma: move backport patches to the correct folder
-  - Updated XEON-Phi patches
-  - Updated compat-rdma.spec for XEON-Phi
-  - NFS/RDMA: SLES11SP3 backport
-
-Regards,
-Vladimir
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
