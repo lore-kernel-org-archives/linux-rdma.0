@@ -1,52 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v3 10/28] IB/Verbs: Reform cm related part in IB-core cma
-Date: Mon, 13 Apr 2015 13:50:40 -0600
-Message-ID: <20150413195040.GB19112@obsidianresearch.com>
-References: <552BB470.4090407@profitbricks.com>
- <552BB60F.60109@profitbricks.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF@ORSMSX109.amr.corp.intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 04/28] IB/Verbs: Reform IB-core cm
+Date: Mon, 13 Apr 2015 15:52:17 -0400
+Message-ID: <20150413195216.GB21467@phlsvsds.ph.intel.com>
+References: <552BB470.4090407@profitbricks.com> <552BB552.1030905@profitbricks.com> <20150413181248.GA2464@phlsvsds.ph.intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FC0A3A@ORSMSX109.amr.corp.intel.com> <20150413192930.GA18587@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20150413192930.GA18587-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 13, 2015 at 07:25:48PM +0000, Hefty, Sean wrote:
-> > @@ -1037,17 +1033,13 @@ void rdma_destroy_id(struct rdma_cm_id *id)
-> >  	mutex_unlock(&id_priv->handler_mutex);
+On Mon, Apr 13, 2015 at 01:29:30PM -0600, Jason Gunthorpe wrote:
+> On Mon, Apr 13, 2015 at 06:40:35PM +0000, Hefty, Sean wrote:
+> > > > -	if (rdma_node_get_transport(ib_device->node_type) !=
+> > > RDMA_TRANSPORT_IB)
+> > > > -		return;
+> > > > +	int count = 0;
+> > > 
+> > > I'm ok with this as an intermediate patch but going forward if we are
+> > > going to
+> > > have calls like
+> > > 
+> > > static inline int cap_ib_cm_dev(struct ib_device *device)
 > > 
-> >  	if (id_priv->cma_dev) {
-> > -		switch (rdma_node_get_transport(id_priv->id.device-
-> > >node_type)) {
-> > -		case RDMA_TRANSPORT_IB:
-> > +		if (rdma_ib_or_iboe(id_priv->id.device, id_priv->id.port_num))
+> > I would rather keep everything to checking per port, not per device.
+> > Specifically, because we have code that does this:
 > 
-> A listen id can be associated with a device without being associated
-> with a port (see the listen_any_list).  Some other check is needed
-> to handle this case.  I guess the code could check the first port on
-> the device (replace port_num with hardcoded value 1).  Then we
-> wouldn't be any more broken than the code already is.  (The 'break'
-> is conceptual, not practical.)
+> Argee.
+> 
+> I asked Michael for it and stand by it, the property is per-port, not
+> per device. Having the per-device tests just muddles the logic, look
+> at the trouble Sean notices in #10 when we are now forced to think of
+> things clearly.
 
-Hum. So, devices on a port must have some compatibility when it comes
-to these invariants. It looks like all ports must have the same
-iwarpyness, for multiple reasons.
+What about having those be helpers within the corresponding C code?
 
-Less clear is how rocee vs ib work within a device... Can you APM
-between those two kinds of ports?
+For example move cap_ib_cm_dev() into cm.c.  Or just put the logic at the top
+of cm_add_one()?
 
-All these switches are so ugly :| Function pointers setup in
-iw_/ib_create_cm_id would be a lot clearer and safer.
+I think that having the ib_umad, ib_sa, and ib_cm modules skip devices which
+have no ports which support those functions makes the code clean.  But I
+understand the desire to have checks from the devices be per port.
 
-> This appears to be highlighting an architectural flaw in the iboe integration.
+Also for these function clean up patches we preserve the existing logic.
 
-You mean iwarp?
+Ira
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
