@@ -1,33 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Mon, 13 Apr 2015 16:10:16 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC07D4@ORSMSX109.amr.corp.intel.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
- <CAJ3xEMiky+s55zsqH0Vxpw8wmk3uGsx1wyMdNqsFihCaiBDgtw@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH net-next v2 1/4] cxgb4/iw_cxgb4/cxgb4i: remove duplicate
+ definitions
+Date: Mon, 13 Apr 2015 10:38:08 -0600
+Message-ID: <20150413163808.GA17521@obsidianresearch.com>
+References: <cover.1428930614.git.varun@chelsio.com>
+ <6358f849b5a1a3727879f4f2f5c855e3a5b95ab4.1428930614.git.varun@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMiky+s55zsqH0Vxpw8wmk3uGsx1wyMdNqsFihCaiBDgtw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6358f849b5a1a3727879f4f2f5c855e3a5b95ab4.1428930614.git.varun@chelsio.com>
+Sender: netdev-owner@vger.kernel.org
+To: Varun Prakash <varun@chelsio.com>
+Cc: netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, davem@davemloft.net, JBottomley@parallels.com, roland@purestorage.com, leedom@chelsio.com, anish@chelsio.com, hariprasad@chelsio.com, swise@opengridcomputing.com, kxie@chelsio.com, praveenm@chelsio.com, kumaras@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-PiBVbmZvcnR1bmF0ZWx5LCBTZWFuIC0tIHlvdSBoYXZlbid0IHByb3ZpZGVkIGZvciA+IDIgbW9u
-dGhzIGFueQ0KPiBmZWVkYmFjayBvbiB0aGUgcGF0Y2hlcyB0byB0aGUgQ00vQ01BIG1vZHVsZXMg
-d2hpY2ggeW91IG93bi9tYWludGFpbg0KPiBmb3Igc3VwcG9ydGluZyBuYW1lLXNwYWNlcyBhbmQg
-c3VjaCB3aGljaCBhcmUgcGFydCBvZiBlbmFibGluZyBwcm9wZXINCj4gUkRNQSBzdXBwb3J0IGZv
-ciBjb250YWluZXJzLg0KPiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LW5ldGRldiZtPTE0MjM2
-Njc0NzYwODkwOCZ3PTIgVGhpcyBtYWtlcyB5b3VyDQo+IGNvLW1haW50YWluZXIgcG9zaXRpb24g
-c29ydCBvZiBwcm9ibGVtYXRpYywgQlRXLiBKYXNvbiwgYW55IGNoYW5jZSB5b3UNCj4gY2FuIGxv
-b2sgb24NCj4gdGhhdD8NCg0KTGludXggZG9lcyBub3QgcHVsbCBhbnl0aGluZyBmcm9tIG1lIGRp
-cmVjdGx5LiAgTXkgb3duIHBhdGNoZXMgdG8gdGhlIGNvZGUgdGhhdCBJIHN1cHBvc2VkbHkgbWFp
-bnRhaW4gdGFrZSAqeWVhcnMqIHRvIGdldCB1cHN0cmVhbS4gIEkgZmFpbCB0byBzZWUgaG93IG9y
-IHdoeSBJIG5lZWQgdG8gcmV2aWV3IHBhdGNoZXMgZnJvbSBhIGhvc3RpbGUgcGFydHkuDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Apr 13, 2015 at 07:34:23PM +0530, Varun Prakash wrote:
+> define struct ulptx_idata in common header file t4_msg.h
+> to remove duplicate definitions.
+
+The Infiniband side of this patch looks OK.
+
+Reviewed-By: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+
+Just some random thoughts on the other patches:
+ - Try and use 'if (IS_ENABLED(CONFIG_XX))' over #ifdef 
+   to improve compile test coverage. This would drop a fair number
+   of ifdefs.
+ - Some of the commit message are short, or non existant (ie #4)
+ - Generally, no need for 'static inline' in a .c file, the compiler knows
+   what to do.
+
+Regards,
+Jason
