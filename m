@@ -1,45 +1,57 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
-Date: Mon, 13 Apr 2015 14:33:50 -0600
-Message-ID: <20150413203350.GA20611@obsidianresearch.com>
-References: <552BB470.4090407@profitbricks.com>
- <552BB85D.7010400@profitbricks.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Mon, 13 Apr 2015 23:50:45 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC0C00@ORSMSX109.amr.corp.intel.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+ <44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBE792@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D58F98121@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <552BB85D.7010400-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D58F98121-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 13, 2015 at 02:36:45PM +0200, Michael Wang wrote:
-> We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
-> is no longer necessary, thus clean it up.
+> Yes, this comment probably could use a reword..
+> > > +	IB_GID_TYPE_IB        = 0,
+> > > +	IB_GID_TYPE_ROCE_V2   = 1,
+> > > +	IB_GID_TYPE_SIZE
+> > > +};
+> >
+> > Can you explain the purpose of defining a 'GID type'.  A GID is just a
+> global
+> > address.  Why does it matter to anyone using it how it was constructed?
+> 
+> This is part of RoCE V2 Specification.  Please refer to Section A 17.8 .
+> The GID Type determines the protocol for outbound packet generation i.e
+> RoCE V1 (0x8915 Ether Type) or RoCEV2 (IPv4 or IPv6)
 
-So, the net result is not looking too bad, but I'm confused about the
-structure of this series.
+This isn't an interface for the RoCE specification.  Why does this need to be added to the verbs interface?  It hasn't been needed by apps yet, and I don't see why the apps should be made to care now how the GID is formatted.
 
-Why introduce query_transport early on?
+> > > @@ -265,7 +295,9 @@ enum ib_port_cap_flags {
+> > >  	IB_PORT_BOOT_MGMT_SUP			= 1 << 23,
+> > >  	IB_PORT_LINK_LATENCY_SUP		= 1 << 24,
+> > >  	IB_PORT_CLIENT_REG_SUP			= 1 << 25,
+> > > -	IB_PORT_IP_BASED_GIDS			= 1 << 26
+> > > +	IB_PORT_IP_BASED_GIDS			= 1 << 26,
+> > > +	IB_PORT_ROCE				= 1 << 27,
+> > > +	IB_PORT_ROCE_V2				= 1 << 28,
+> >
+> > Why does RoCE suddenly require a port capability bit?  RoCE runs today
+> > without setting any bit.
+> Again, this is part of RoCE V2 SPEC, please refer to Section A17.5.1-
+> Query HCA(Pasting snippet below)
+> A new "RoCE Supported" capability bit shall be added to the Port
+> Attributes
+> list. This capability bit applies exclusively to ports of the new
+> "RoCEv2" type
 
-Why is the patch series going through this progression most lines?
-
--       if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
-+       if (rdma_tech_ib(device, port_num)) {
-+       if (cap_ib_smi(device, port_num)) {
-
-This would be a lot shorter and simpler to look at if the cap's were
-introduced first, then their implementation finalized.
-
-I thought we agreed Doug's bitmask plan should be the final
-destination for this series, so this progress seems even stranger?
-
-I would be very happy to see a patch that adds cap_ib_smi to the
-current tree and states 'This patch is tested to have no change on the
-binary compilation results'
-
-Jason
+Same comment as above.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
