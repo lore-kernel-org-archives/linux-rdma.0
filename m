@@ -1,154 +1,118 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v3 18/28] IB/Verbs: Use management helper cap_ib_cm()
-Date: Mon, 13 Apr 2015 14:31:28 +0200
-Message-ID: <552BB720.1090100@profitbricks.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: [PATCH v3 21/28] IB/Verbs: Use management helper cap_ib_mcast()
+Date: Mon, 13 Apr 2015 14:33:20 +0200
+Message-ID: <552BB790.20409@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552BB470.4090407-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <552BB470.4090407@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Michael Wang <yun.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper cap_ib_cm() to help us check if the port of an
-IB device support Infiniband Communication Manager.
+Introduce helper cap_ib_mcast() to help us check if the port of an
+IB device support Infiniband Multicast.
 
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cm.c  |  6 +++---
- drivers/infiniband/core/cma.c | 14 +++++++-------
- include/rdma/ib_verbs.h       | 15 +++++++++++++++
- 3 files changed, 25 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/cma.c       |  6 +++---
+ drivers/infiniband/core/multicast.c |  6 +++---
+ include/rdma/ib_verbs.h             | 15 +++++++++++++++
+ 3 files changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 50321fe..63418ee 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3781,7 +3781,7 @@ static void cm_add_one(struct ib_device *ib_device)
- 
- 	set_bit(IB_MGMT_METHOD_SEND, reg_req.method_mask);
- 	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
--		if (!rdma_ib_or_iboe(ib_device, i))
-+		if (!cap_ib_cm(ib_device, i))
- 			continue;
- 
- 		port = kzalloc(sizeof *port, GFP_KERNEL);
-@@ -3835,7 +3835,7 @@ error1:
- 	port_modify.set_port_cap_mask = 0;
- 	port_modify.clr_port_cap_mask = IB_PORT_CM_SUP;
- 	while (--i) {
--		if (!rdma_ib_or_iboe(ib_device, i))
-+		if (!cap_ib_cm(ib_device, i))
- 			continue;
- 
- 		port = cm_dev->port[i-1];
-@@ -3866,7 +3866,7 @@ static void cm_remove_one(struct ib_device *ib_device)
- 	write_unlock_irqrestore(&cm.device_lock, flags);
- 
- 	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
--		if (!rdma_ib_or_iboe(ib_device, i))
-+		if (!cap_ib_cm(ib_device, i))
- 			continue;
- 
- 		port = cm_dev->port[i-1];
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 33d080f..ccd319a 100644
+index 013930c..4ed582e 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -767,7 +767,7 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
- 	int ret = 0;
+@@ -1029,7 +1029,7 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
+ 		mc = container_of(id_priv->mc_list.next,
+ 				  struct cma_multicast, list);
+ 		list_del(&mc->list);
+-		if (rdma_tech_ib(id_priv->cma_dev->device,
++		if (cap_ib_mcast(id_priv->cma_dev->device,
+ 				      id_priv->id.port_num)) {
+ 			ib_sa_free_multicast(mc->multicast.ib);
+ 			kfree(mc);
+@@ -3345,7 +3345,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
+ 	if (rdma_tech_iboe(id->device, id->port_num)) {
+ 		kref_init(&mc->mcref);
+ 		ret = cma_iboe_join_multicast(id_priv, mc);
+-	} else if (rdma_tech_ib(id->device, id->port_num))
++	} else if (cap_ib_mcast(id->device, id->port_num))
+ 		ret = cma_join_ib_multicast(id_priv, mc);
+ 	else
+ 		ret = -ENOSYS;
+@@ -3379,7 +3379,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
  
- 	id_priv = container_of(id, struct rdma_id_private, id);
--	if (rdma_ib_or_iboe(id_priv->id.device, id_priv->id.port_num)) {
-+	if (cap_ib_cm(id_priv->id.device, id_priv->id.port_num)) {
- 		if (!id_priv->cm_id.ib || (id_priv->id.qp_type == IB_QPT_UD))
- 			ret = cma_ib_init_qp_attr(id_priv, qp_attr, qp_attr_mask);
- 		else
-@@ -1056,7 +1056,7 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 	mutex_unlock(&id_priv->handler_mutex);
+ 			BUG_ON(id_priv->cma_dev->device != id->device);
  
- 	if (id_priv->cma_dev) {
--		if (rdma_ib_or_iboe(id_priv->id.device, id_priv->id.port_num)) {
-+		if (cap_ib_cm(id_priv->id.device, id_priv->id.port_num)) {
- 			if (id_priv->cm_id.ib)
- 				ib_destroy_cm_id(id_priv->cm_id.ib);
- 		} else if (rdma_tech_iwarp(id_priv->id.device,
-@@ -2541,7 +2541,7 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+-			if (rdma_tech_ib(id->device, id->port_num)) {
++			if (cap_ib_mcast(id->device, id->port_num)) {
+ 				ib_sa_free_multicast(mc->multicast.ib);
+ 				kfree(mc);
+ 			} else if (rdma_tech_iboe(id->device,
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 24d93f5..bdc1880 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -780,7 +780,7 @@ static void mcast_event_handler(struct ib_event_handler *handler,
+ 	int index;
  
- 	id_priv->backlog = backlog;
- 	if (id->device) {
--		if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+		if (cap_ib_cm(id->device, id->port_num)) {
- 			ret = cma_ib_listen(id_priv);
- 			if (ret)
- 				goto err;
-@@ -2885,7 +2885,7 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 		id_priv->srq = conn_param->srq;
+ 	dev = container_of(handler, struct mcast_device, event_handler);
+-	if (WARN_ON(!rdma_tech_ib(dev->device, event->element.port_num)))
++	if (WARN_ON(!cap_ib_mcast(dev->device, event->element.port_num)))
+ 		return;
+ 
+ 	index = event->element.port_num - dev->start_port;
+@@ -820,7 +820,7 @@ static void mcast_add_one(struct ib_device *device)
  	}
  
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD)
- 			ret = cma_resolve_ib_udp(id_priv, conn_param);
- 		else
-@@ -2996,7 +2996,7 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 		id_priv->srq = conn_param->srq;
- 	}
+ 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
+-		if (!rdma_tech_ib(device, dev->start_port + i))
++		if (!cap_ib_mcast(device, dev->start_port + i))
+ 			continue;
+ 		port = &dev->port[i];
+ 		port->dev = dev;
+@@ -858,7 +858,7 @@ static void mcast_remove_one(struct ib_device *device)
+ 	flush_workqueue(mcast_wq);
  
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD) {
- 			if (conn_param)
- 				ret = cma_send_sidr_rep(id_priv, IB_SIDR_SUCCESS,
-@@ -3059,7 +3059,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 	if (!id_priv->cm_id.ib)
- 		return -EINVAL;
- 
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD)
- 			ret = cma_send_sidr_rep(id_priv, IB_SIDR_REJECT, 0,
- 						private_data, private_data_len);
-@@ -3086,7 +3086,7 @@ int rdma_disconnect(struct rdma_cm_id *id)
- 	if (!id_priv->cm_id.ib)
- 		return -EINVAL;
- 
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		ret = cma_modify_qp_err(id_priv);
- 		if (ret)
- 			goto out;
+ 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
+-		if (rdma_tech_ib(device, dev->start_port + i)) {
++		if (cap_ib_mcast(device, dev->start_port + i)) {
+ 			port = &dev->port[i];
+ 			deref_port(port);
+ 			wait_for_completion(&port->comp);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 873b9a6..6805e3e 100644
+index 3bfdf81..b2cee8d 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1803,6 +1803,21 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
+@@ -1848,6 +1848,21 @@ static inline int cap_ib_sa(struct ib_device *device, u8 port_num)
  	return rdma_tech_ib(device, port_num);
  }
  
 +/**
-+ * cap_ib_cm - Check if the port of device has the capability Infiniband
-+ * Communication Manager.
++ * cap_ib_mcast - Check if the port of device has the capability Infiniband
++ * Multicast.
 + *
 + * @device: Device to be checked
 + * @port_num: Port number of the device
 + *
 + * Return 0 when port of the device don't support Infiniband
-+ * Communication Manager.
++ * Multicast.
 + */
-+static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
++static inline int cap_ib_mcast(struct ib_device *device, u8 port_num)
 +{
-+	return rdma_ib_or_iboe(device, port_num);
++	return cap_ib_sa(device, port_num);
 +}
 +
  int ib_query_gid(struct ib_device *device,
@@ -156,7 +120,3 @@ index 873b9a6..6805e3e 100644
  
 -- 
 2.1.0
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
