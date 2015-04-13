@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v3 26/28] IB/Verbs: Use management helper cap_eth_ah()
-Date: Mon, 13 Apr 2015 14:35:38 +0200
-Message-ID: <552BB81A.4020104@profitbricks.com>
+Subject: [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
+Date: Mon, 13 Apr 2015 14:36:45 +0200
+Message-ID: <552BB85D.7010400@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,8 +14,8 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper cap_eth_ah() to help us check if the port of an
-IB device support Ethernet Address Handler.
+We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
+is no longer necessary, thus clean it up.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -25,81 +25,77 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c      |  6 +++---
- drivers/infiniband/core/sa_query.c |  2 +-
- drivers/infiniband/core/verbs.c    |  2 +-
- include/rdma/ib_verbs.h            | 15 +++++++++++++++
- 4 files changed, 20 insertions(+), 5 deletions(-)
+ include/rdma/ib_verbs.h                  | 19 +++++++++----------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  6 ++++--
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 7f5815d..4b083f5 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -733,10 +733,10 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
- 	int ret;
- 	u16 pkey;
- 
--	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num))
--		pkey = ib_addr_get_pkey(dev_addr);
--	else
-+	if (cap_eth_ah(id_priv->id.device, id_priv->id.port_num))
- 		pkey = 0xffff;
-+	else
-+		pkey = ib_addr_get_pkey(dev_addr);
- 
- 	ret = ib_find_cached_pkey(id_priv->id.device, id_priv->id.port_num,
- 				  pkey, &qp_attr->pkey_index);
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index fc7e161..409ec4e 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -540,7 +540,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 	ah_attr->port_num = port_num;
- 	ah_attr->static_rate = rec->rate;
- 
--	force_grh = rdma_tech_iboe(device, port_num);
-+	force_grh = cap_eth_ah(device, port_num);
- 
- 	if (rec->hop_limit > 1 || force_grh) {
- 		ah_attr->ah_flags = IB_AH_GRH;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 6b5fd9d..2e0c2cf1 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -202,7 +202,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
- 	int ret;
- 
- 	memset(ah_attr, 0, sizeof *ah_attr);
--	if (rdma_tech_iboe(device, port_num)) {
-+	if (cap_eth_ah(device, port_num)) {
- 		if (!(wc->wc_flags & IB_WC_GRH))
- 			return -EPROTOTYPE;
- 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index dfe33f3..78a5cdb2 100644
+index 78a5cdb2..9f6b88e 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1894,6 +1894,21 @@ static inline int cap_af_ib(struct ib_device *device, u8 port_num)
+@@ -1766,13 +1766,6 @@ static inline int rdma_tech_iwarp(struct ib_device *device, u8 port_num)
+ 			== RDMA_TRANSPORT_IWARP;
+ }
+ 
+-static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
+-{
+-	enum rdma_transport_type tp = device->query_transport(device, port_num);
+-
+-	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+-}
+-
+ /**
+  * cap_ib_mad - Check if the port of device has the capability Infiniband
+  * Management Datagrams.
+@@ -1785,7 +1778,9 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
+  */
+ static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
+ {
+-	return rdma_ib_or_iboe(device, port_num);
++	enum rdma_transport_type tp = device->query_transport(device, port_num);
++
++	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
  }
  
  /**
-+ * cap_eth_ah - Check if the port of device has the capability
-+ * Ethernet Address Handler.
-+ *
-+ * @device: Device to be checked
-+ * @port_num: Port number of the device
-+ *
-+ * Return 0 when port of the device don't support
-+ * Ethernet Address Handler.
-+ */
-+static inline int cap_eth_ah(struct ib_device *device, u8 port_num)
-+{
-+	return rdma_tech_iboe(device, port_num);
-+}
+@@ -1815,7 +1810,9 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
+  */
+ static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
+ {
+-	return rdma_ib_or_iboe(device, port_num);
++	enum rdma_transport_type tp = device->query_transport(device, port_num);
 +
-+/**
-  * cap_read_multi_sge - Check if the port of device has the capability
-  * RDMA Read Multiple Scatter-Gather Entries.
-  *
++	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+ }
+ 
+ /**
+@@ -1890,7 +1887,9 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
+  */
+ static inline int cap_af_ib(struct ib_device *device, u8 port_num)
+ {
+-	return rdma_ib_or_iboe(device, port_num);
++	enum rdma_transport_type tp = device->query_transport(device, port_num);
++
++	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+ }
+ 
+ /**
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index a09b7a1..8af6f92 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -987,8 +987,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	 */
+ 	if (!rdma_tech_iwarp(newxprt->sc_cm_id->device,
+ 			     newxprt->sc_cm_id->port_num) &&
+-	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
+-			     newxprt->sc_cm_id->port_num))
++	    !rdma_tech_ib(newxprt->sc_cm_id->device,
++			  newxprt->sc_cm_id->port_num) &&
++	    !rdma_tech_iboe(newxprt->sc_cm_id->device,
++			    newxprt->sc_cm_id->port_num))
+ 		goto errout;
+ 
+ 	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
 -- 
 2.1.0
