@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v3 14/28] IB/Verbs: Reform cma_acquire_dev()
-Date: Mon, 13 Apr 2015 14:29:21 +0200
-Message-ID: <552BB6A1.30003@profitbricks.com>
+Subject: [PATCH v3 15/28] IB/Verbs: Reform rest part in IB-core cma
+Date: Mon, 13 Apr 2015 14:29:47 +0200
+Message-ID: <552BB6BB.70701@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,8 +14,7 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-Reform cma_acquire_dev() with management helpers, introduce
-cma_validate_port() to make the code more clean.
+Use raw management helpers to reform rest part in IB-core cma.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -25,114 +24,50 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c | 69 +++++++++++++++++++++++++------------------
- 1 file changed, 41 insertions(+), 28 deletions(-)
+ drivers/infiniband/core/cma.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d2052a4..c528d17 100644
+index c528d17..33d080f 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -370,18 +370,36 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
- 	return ret;
- }
+@@ -469,10 +469,10 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	pkey = ntohs(addr->sib_pkey);
  
-+static inline int cma_validate_port(struct ib_device *device, u8 port,
-+				      union ib_gid *gid, int dev_type)
-+{
-+	u8 found_port;
-+	int ret = -ENODEV;
-+
-+	if ((dev_type == ARPHRD_INFINIBAND) && !rdma_tech_ib(device, port))
-+		return ret;
-+
-+	if ((dev_type != ARPHRD_INFINIBAND) && rdma_tech_ib(device, port))
-+		return ret;
-+
-+	ret = ib_find_cached_gid(device, gid, &found_port, NULL);
-+
-+	if (!ret && (port == found_port))
-+		return 0;
-+
-+	return ret;
-+}
-+
- static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 			   struct rdma_id_private *listen_id_priv)
- {
- 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
- 	struct cma_device *cma_dev;
--	union ib_gid gid, iboe_gid;
-+	union ib_gid gid, iboe_gid, *gidp;
- 	int ret = -ENODEV;
--	u8 port, found_port;
--	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
--		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
-+	u8 port;
- 
--	if (dev_ll != IB_LINK_LAYER_INFINIBAND &&
-+	if (dev_addr->dev_type != ARPHRD_INFINIBAND &&
- 	    id_priv->id.ps == RDMA_PS_IPOIB)
- 		return -EINVAL;
- 
-@@ -391,41 +409,36 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 
- 	memcpy(&gid, dev_addr->src_dev_addr +
- 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
--	if (listen_id_priv &&
--	    rdma_port_get_link_layer(listen_id_priv->id.device,
--				     listen_id_priv->id.port_num) == dev_ll) {
-+
-+	if (listen_id_priv) {
- 		cma_dev = listen_id_priv->cma_dev;
- 		port = listen_id_priv->id.port_num;
--		if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
--		    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
--			ret = ib_find_cached_gid(cma_dev->device, &iboe_gid,
--						 &found_port, NULL);
--		else
--			ret = ib_find_cached_gid(cma_dev->device, &gid,
--						 &found_port, NULL);
-+		gidp = rdma_tech_iboe(cma_dev->device, port) ?
-+		       &iboe_gid : &gid;
- 
--		if (!ret && (port  == found_port)) {
--			id_priv->id.port_num = found_port;
-+		ret = cma_validate_port(cma_dev->device, port, gidp,
-+					dev_addr->dev_type);
-+		if (!ret) {
-+			id_priv->id.port_num = port;
- 			goto out;
- 		}
- 	}
-+
- 	list_for_each_entry(cma_dev, &dev_list, list) {
- 		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port) {
- 			if (listen_id_priv &&
- 			    listen_id_priv->cma_dev == cma_dev &&
- 			    listen_id_priv->id.port_num == port)
- 				continue;
--			if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
--				if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
--				    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
--					ret = ib_find_cached_gid(cma_dev->device, &iboe_gid, &found_port, NULL);
--				else
--					ret = ib_find_cached_gid(cma_dev->device, &gid, &found_port, NULL);
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+-		if (rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
+-			continue;
 -
--				if (!ret && (port == found_port)) {
--					id_priv->id.port_num = found_port;
--					goto out;
--				}
+ 		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
++			if (!rdma_ib_or_iboe(cur_dev->device, p))
++				continue;
 +
-+			gidp = rdma_tech_iboe(cma_dev->device, port) ?
-+			       &iboe_gid : &gid;
+ 			if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
+ 				continue;
+ 
+@@ -667,10 +667,9 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
+ 	if (ret)
+ 		goto out;
+ 
+-	if (rdma_node_get_transport(id_priv->cma_dev->device->node_type)
+-	    == RDMA_TRANSPORT_IB &&
+-	    rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num)
+-	    == IB_LINK_LAYER_ETHERNET) {
++	BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
 +
-+			ret = cma_validate_port(cma_dev->device, port, gidp,
-+						dev_addr->dev_type);
-+			if (!ret) {
-+				id_priv->id.port_num = port;
-+				goto out;
- 			}
- 		}
- 	}
++	if (rdma_tech_iboe(id_priv->id.device, id_priv->id.port_num)) {
+ 		ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
+ 
+ 		if (ret)
+@@ -734,8 +733,7 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
+ 	int ret;
+ 	u16 pkey;
+ 
+-	if (rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num) ==
+-	    IB_LINK_LAYER_INFINIBAND)
++	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num))
+ 		pkey = ib_addr_get_pkey(dev_addr);
+ 	else
+ 		pkey = 0xffff;
 -- 
 2.1.0
