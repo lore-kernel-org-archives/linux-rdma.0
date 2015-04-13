@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v3 08/28] IB/Verbs: Reform IB-ulp xprtrdma
-Date: Mon, 13 Apr 2015 14:25:43 +0200
-Message-ID: <552BB5C7.1040301@profitbricks.com>
+Subject: [PATCH v3 09/28] IB/Verbs: Reform IB-core verbs/uverbs_cmd/sysfs
+Date: Mon, 13 Apr 2015 14:26:23 +0200
+Message-ID: <552BB5EF.80707@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,7 +14,7 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use raw management helpers to reform IB-ulp xprtrdma.
+Use raw management helpers to reform IB-core verbs/uverbs_cmd/sysfs.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -24,89 +24,74 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  3 +--
- net/sunrpc/xprtrdma/svc_rdma_transport.c | 45 +++++++++++++-------------------
- 2 files changed, 19 insertions(+), 29 deletions(-)
+ drivers/infiniband/core/sysfs.c      | 8 ++------
+ drivers/infiniband/core/uverbs_cmd.c | 6 ++++--
+ drivers/infiniband/core/verbs.c      | 6 ++----
+ 3 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index f9f13a3..a5bed5b 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -117,8 +117,7 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
- 
- static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index cbd0383..8570180 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -248,14 +248,10 @@ static ssize_t phys_state_show(struct ib_port *p, struct port_attribute *unused,
+ static ssize_t link_layer_show(struct ib_port *p, struct port_attribute *unused,
+ 			       char *buf)
  {
--	if (rdma_node_get_transport(xprt->sc_cm_id->device->node_type) ==
--	     RDMA_TRANSPORT_IWARP)
-+	if (rdma_tech_iwarp(xprt->sc_cm_id->device, xprt->sc_cm_id->port_num))
- 		return 1;
- 	else
- 		return min_t(int, sge_count, xprt->sc_max_sge);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index f609c1c..a09b7a1 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -851,7 +851,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	struct ib_qp_init_attr qp_attr;
- 	struct ib_device_attr devattr;
- 	int uninitialized_var(dma_mr_acc);
--	int need_dma_mr;
-+	int need_dma_mr = 0;
- 	int ret;
- 	int i;
- 
-@@ -985,35 +985,26 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	/*
- 	 * Determine if a DMA MR is required and if so, what privs are required
- 	 */
--	switch (rdma_node_get_transport(newxprt->sc_cm_id->device->node_type)) {
--	case RDMA_TRANSPORT_IWARP:
--		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
--		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
--			need_dma_mr = 1;
--			dma_mr_acc =
--				(IB_ACCESS_LOCAL_WRITE |
--				 IB_ACCESS_REMOTE_WRITE);
--		} else if (!(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
--			need_dma_mr = 1;
--			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
--		} else
--			need_dma_mr = 0;
--		break;
--	case RDMA_TRANSPORT_IB:
--		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
--			need_dma_mr = 1;
--			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
--		} else if (!(devattr.device_cap_flags &
--			     IB_DEVICE_LOCAL_DMA_LKEY)) {
--			need_dma_mr = 1;
--			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
--		} else
--			need_dma_mr = 0;
--		break;
+-	switch (rdma_port_get_link_layer(p->ibdev, p->port_num)) {
+-	case IB_LINK_LAYER_INFINIBAND:
++	if (rdma_tech_ib(p->ibdev, p->port_num))
+ 		return sprintf(buf, "%s\n", "InfiniBand");
+-	case IB_LINK_LAYER_ETHERNET:
++	else
+ 		return sprintf(buf, "%s\n", "Ethernet");
 -	default:
-+	if (!rdma_tech_iwarp(newxprt->sc_cm_id->device,
-+			     newxprt->sc_cm_id->port_num) &&
-+	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
-+			     newxprt->sc_cm_id->port_num))
- 		goto errout;
-+
-+	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
-+	    !(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
-+		need_dma_mr = 1;
-+		dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
-+		if (rdma_tech_iwarp(newxprt->sc_cm_id->device,
-+				    newxprt->sc_cm_id->port_num) &&
-+		    !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG))
-+			dma_mr_acc |= IB_ACCESS_REMOTE_WRITE;
- 	}
+-		return sprintf(buf, "%s\n", "Unknown");
+-	}
+ }
  
-+	if (rdma_tech_iwarp(newxprt->sc_cm_id->device,
-+			    newxprt->sc_cm_id->port_num))
-+		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
-+
- 	/* Create the DMA MR if needed, otherwise, use the DMA LKEY */
- 	if (need_dma_mr) {
- 		/* Register all of physical memory */
+ static PORT_ATTR_RO(state);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index a9f0489..5dc90aa 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -515,8 +515,10 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
+ 	resp.active_width    = attr.active_width;
+ 	resp.active_speed    = attr.active_speed;
+ 	resp.phys_state      = attr.phys_state;
+-	resp.link_layer      = rdma_port_get_link_layer(file->device->ib_dev,
+-							cmd.port_num);
++	resp.link_layer      = rdma_tech_ib(file->device->ib_dev,
++							cmd.port_num) ?
++			       IB_LINK_LAYER_INFINIBAND :
++			       IB_LINK_LAYER_ETHERNET;
+ 
+ 	if (copy_to_user((void __user *) (unsigned long) cmd.response,
+ 			 &resp, sizeof resp))
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 626c9cf..6b5fd9d 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -200,11 +200,9 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ 	u32 flow_class;
+ 	u16 gid_index;
+ 	int ret;
+-	int is_eth = (rdma_port_get_link_layer(device, port_num) ==
+-			IB_LINK_LAYER_ETHERNET);
+ 
+ 	memset(ah_attr, 0, sizeof *ah_attr);
+-	if (is_eth) {
++	if (rdma_tech_iboe(device, port_num)) {
+ 		if (!(wc->wc_flags & IB_WC_GRH))
+ 			return -EPROTOTYPE;
+ 
+@@ -873,7 +871,7 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
+ 	union ib_gid  sgid;
+ 
+ 	if ((*qp_attr_mask & IB_QP_AV)  &&
+-	    (rdma_port_get_link_layer(qp->device, qp_attr->ah_attr.port_num) == IB_LINK_LAYER_ETHERNET)) {
++	    (rdma_tech_iboe(qp->device, qp_attr->ah_attr.port_num))) {
+ 		ret = ib_query_gid(qp->device, qp_attr->ah_attr.port_num,
+ 				   qp_attr->ah_attr.grh.sgid_index, &sgid);
+ 		if (ret)
 -- 
 2.1.0
