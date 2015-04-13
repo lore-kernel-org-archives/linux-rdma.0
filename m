@@ -1,58 +1,56 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v2 01/17] IB/Verbs: Implement new callback query_transport()
- for each HW
-Date: Mon, 13 Apr 2015 09:40:15 +0200
-Message-ID: <552B72DF.2080600@profitbricks.com>
-References: <5523CCD5.6030401@profitbricks.com> <5523D098.3020007@profitbricks.com> <1428517786.2980.180.camel@redhat.com> <20150410074805.GA11855@phlsvsds.ph.intel.com> <1428685843.2980.353.camel@redhat.com> <20150410173650.GB26419@obsidianresearch.com>
+From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [linux-next PATCH] mlx5: wrong page mask if
+  CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
+Date: Mon, 13 Apr 2015 17:19:38 +0800
+Message-ID: <20150413091937.GA23372@honli.nay.redhat.com>
+References: <1428836751-23037-1-git-send-email-honli@redhat.com>
+ <DB4PR05MB4487E0A2EDB25BF090A9742C5F80@DB4PR05MB448.eurprd05.prod.outlook.com>
+ <20150413003333.GA17193@honli.nay.redhat.com>
+ <DB4PR05MB448D41F0471F690E688F6BCC5E70@DB4PR05MB448.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150410173650.GB26419@obsidianresearch.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Upinder Malhi <umalhi@cisco.com>, Trond Myklebust <trond.myklebust@primarydata.com>, "J. Bruce Fields" <bfields@fieldses.org>, "David S. Miller" <davem@davemloft.net>, PJ Waskiewicz <pj.waskiewicz@solidfire.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <DB4PR05MB448D41F0471F690E688F6BCC5E70-xsq7jzH2t6kaHWsdJSteB2u6+pknBqLbXA4E9RH9d+qIuWR1G4zioA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/10/2015 07:36 PM, Jason Gunthorpe wrote:
-> On Fri, Apr 10, 2015 at 01:10:43PM -0400, Doug Ledford wrote:
+On Mon, Apr 13, 2015 at 06:47:11AM +0000, Eli Cohen wrote:
+>  On Mon, Apr 13, 2015 at 08:33:33AM +0800, Honggang LI wrote:
+> > 
+> > Yes, replaced all of the PAGE_MASK in the file. Please see attched new
+> > patch.
+> > 
 > 
->> documented.  I get why you link the address variant, because it pops out
->> all the things that are special about IBoE addressing and calls out that
->> the issues need to be handled.  However, saying requires_iboe_addr(),
->> while foreshadowing the work that needs done, doesn't actually document
->> the work that needs done.  Whether we call is dev_is_iboe() or
->> requires_iboe_addr(), it would be good if the documentation spelled out
->> those specific requirements for reference sake.
+> I think you need to send the new patch inline in your email.
 > 
-> My deep hope for this, was that the test 'requires_iboe_addr' or
-> whatever we call it would have a *really good* kdoc.
+
+I will resent the patch.
+
+> > > 
+> > > @@ -241,7 +243,7 @@ static void free_4k(struct mlx5_core_dev *dev, u64 addr)  static int alloc_system_page(struct mlx5_core_dev *dev, u16 func_id)  {
+> > >     struct page *page;
+> > > -   u64 addr;
+> > > +   u64 addr = 0; [Eli] Why is this required?
+> > 
+> > For 32bit architectures, if CONFIG_ARCH_DMA_ADDR_T_64BIT disabled and
+> > physical memory is less than 4GB, dma_map_page will return an u32 integer 
+> > less than 0xffff_ffff. And if addr had been initialized with random
+> > rubbish in the stack of alloc_system_page, the high four bytes is
+> > unpredictable. The new mask, MLX5_NUM_4K_IN_PAGE, will reserve the high
+> > four bytes. So, free_4k/find_fw_page will randomly failed.
+> > 
 > 
-> List all the ways iboe_addr's work, how they differ from IB addresses,
-> refer to the specs people should read to understand it, etc.
-> 
-> The patches don't do this, and maybe Michael is the wrong person to
-> fill that in, but we can get it done..
+> Sorry, I still don't understand the issue here. MLX5_NUM_4K_IN_PAGE is
+> not a mask and will always get the correct value which is fairly
+> small.
 
-That's exactly what I'm thinking ;-)
+Sorry. It was a typo. It should be MLX5_U64_4K_PAGE_MASK.
 
-At first I'm just trying to save us some code but now it's becoming
-a topic far above that purpose, I'd like to help commit whatever we already
-settled and pass the internal reforming works to experts like you guys
-, implement the bitmask stuff ;-)
 
-And I can still help on review and may be testing with mlx4 if later I
-got the access.
-
-> 
-> Jason
-> 
-> BTW: Michael, next time you post the series, please trim the CC
-> list...
-
-Thanks for the remind, I'll do trim in v3 :-)
-
-Regards,
-Michael Wang
-
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
