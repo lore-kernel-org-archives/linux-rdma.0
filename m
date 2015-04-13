@@ -1,96 +1,147 @@
-From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH linux-next v2] mlx5: wrong page mask if CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
-Date: Mon, 13 Apr 2015 17:21:58 +0800
-Message-ID: <1428916918-24404-1-git-send-email-honli@redhat.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: [PATCH v3 00/28] IB/Verbs: IB Management Helpers
+Date: Mon, 13 Apr 2015 14:20:00 +0200
+Message-ID: <552BB470.4090407@profitbricks.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Michael Wang <yun.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-If CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for x86 systems and physical
-memory is more than 4GB, dma_map_page may return a valid memory
-address which greater than 0xffffffff. As a result, the mlx5 device page
-allocator RB tree will be initialized with valid addresses greater than
-0xfffffff.
 
-However, (addr & PAGE_MASK) set the high four bytes to zeros. So, it's
-impossible for the function, free_4k, to release the pages whose
-addresses greater than 4GB. Memory leaks. And mlx5_ib module can't
-release the pages when user try to remove the module, as a result,
-system hang.
+Since v2:
+  * Apply suggestions from Doug, Ira, Jason, Tom, Steve, thanks for the comments :-)
+    and please remind me if I missed anything :-P
 
-[root@rdma05 root]# dmesg  | grep addr | head
-addr             = 3fe384000
-addr & PAGE_MASK =  fe384000
-[root@rdma05 root]# rmmod mlx5_ib   <---- hang on
+There are plenty of lengthy code to check the transport type of IB device,
+or the link layer type of it's port, but actually we are just speculating
+whether a particular management/feature is supported by the device/port.
 
----------------------- cosnole log -----------------
-mlx5_ib 0000:04:00.0: irq 138 for MSI/MSI-X
-  alloc irq_desc for 139 on node -1
-  alloc kstat_irqs on node -1
-mlx5_ib 0000:04:00.0: irq 139 for MSI/MSI-X
-0000:04:00.0:free_4k:221:(pid 1519): page not found
-0000:04:00.0:free_4k:221:(pid 1519): page not found
-0000:04:00.0:free_4k:221:(pid 1519): page not found
-0000:04:00.0:free_4k:221:(pid 1519): page not found
----------------------- cosnole log -----------------
+Thus instead of inferring, we should have our own mechanism for IB management
+capability/protocol/feature checking, several proposals below.
 
-Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+This patch set will reform the method of getting transport type, we will
+now using query_transport() instead of inferring from transport and link
+layer respectively, also we defined the new transport type to make the
+concept more reasonable.
+
+Mapping List:
+		node-type	link-layer	old-transport	new-transport
+nes		RNIC		ETH		IWARP		IWARP
+amso1100	RNIC		ETH		IWARP		IWARP
+cxgb3   	RNIC		ETH		IWARP		IWARP
+cxgb4   	RNIC		ETH		IWARP		IWARP
+usnic   	USNIC_UDP	ETH		USNIC_UDP	USNIC_UDP
+ocrdma  	IB_CA		ETH		IB		IBOE
+mlx4    	IB_CA		IB/ETH		IB		IB/IBOE
+mlx5    	IB_CA		IB		IB		IB
+ehca    	IB_CA		IB		IB		IB
+ipath   	IB_CA		IB		IB		IB
+mthca   	IB_CA		IB		IB		IB
+qib     	IB_CA		IB		IB		IB
+
+For example:
+	if (transport == IB) && (link-layer == ETH)
+will now become:
+	if (query_transport() == IBOE)
+
+Thus we will be able to get rid of the respective transport and link-layer
+checking, and it will help us to add new protocol/Technology (like OPA) more
+easier, also with the introduced management helpers, IB management logical
+will be more clear and easier for extending.
+
+Highlights:
+    The patch set covered a wide range of IB stuff, thus for those who are
+    familiar with the particular part, your suggestion would be invaluable ;-)
+
+    Patches haven't been tested yet, we appreciate if any one who have these
+    HW willing to provide his Tested-by :-)
+
+    Doug suggested the bitmask mechanism:
+	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23765.html
+    which could be the plan for future reforming, we prefer that to be another
+    series which focus on semantic and performance.
+
+    This patch-set is somewhat 'bloated' now and it may be a good timing for
+    staging, I'd like to suggest we focus on improving existed helpers and push
+    all the further reforms into next series ;-)
+
+Proposals:
+    Sean:
+	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.html
+    Doug:
+	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23418.html
+	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23765.html
+    Jason:
+	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23425.html
+
+Michael Wang (28):
+    [PATCH v3 01/28] IB/Verbs: Implement new callback query_transport()
+    [PATCH v3 02/28] IB/Verbs: Implement raw management helpers
+    [PATCH v3 03/28] IB/Verbs: Reform IB-core mad/agent/user_mad
+    [PATCH v3 04/28] IB/Verbs: Reform IB-core cm
+    [PATCH v3 05/28] IB/Verbs: Reform IB-core sa_query
+    [PATCH v3 06/28] IB/Verbs: Reform IB-core multicast
+    [PATCH v3 07/28] IB/Verbs: Reform IB-ulp ipoib
+    [PATCH v3 08/28] IB/Verbs: Reform IB-ulp xprtrdma
+    [PATCH v3 09/28] IB/Verbs: Reform IB-core verbs/uverbs_cmd/sysfs
+    [PATCH v3 10/28] IB/Verbs: Reform cm related part in IB-core cma
+    [PATCH v3 11/28] IB/Verbs: Reform route related part in IB-core cma
+    [PATCH v3 12/28] IB/Verbs: Reform mcast related part in IB-core cma
+    [PATCH v3 13/28] IB/Verbs: Reserve legacy transport type in 'dev_addr'
+    [PATCH v3 14/28] IB/Verbs: Reform cma_acquire_dev()
+    [PATCH v3 15/28] IB/Verbs: Reform rest part in IB-core cma
+    [PATCH v3 16/28] IB/Verbs: Use management helper cap_ib_mad()
+    [PATCH v3 17/28] IB/Verbs: Use management helper cap_ib_smi()
+    [PATCH v3 18/28] IB/Verbs: Use management helper cap_ib_cm()
+    [PATCH v3 19/28] IB/Verbs: Use management helper cap_iw_cm()
+    [PATCH v3 20/28] IB/Verbs: Use management helper cap_ib_sa()
+    [PATCH v3 21/28] IB/Verbs: Use management helper cap_ib_mcast()
+    [PATCH v3 22/28] IB/Verbs: Use management helper cap_ipoib()
+    [PATCH v3 23/28] IB/Verbs: Use management helper cap_read_multi_sge()
+    [PATCH v3 24/28] IB/Verbs: Use management helper cap_ib_cm_dev()
+    [PATCH v3 25/28] IB/Verbs: Use management helper cap_af_ib()
+    [PATCH v3 26/28] IB/Verbs: Use management helper cap_eth_ah()
+    [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
+    [PATCH v3 28/28] IB/Verbs: Cleanup rdma_node_get_transport()
+
 ---
- drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-index df22383..595b507 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -211,26 +211,28 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
- 	return 0;
- }
- 
-+#define MLX5_U64_4K_PAGE_MASK ((~(u64)0U) << PAGE_SHIFT)
-+
- static void free_4k(struct mlx5_core_dev *dev, u64 addr)
- {
- 	struct fw_page *fwp;
- 	int n;
- 
--	fwp = find_fw_page(dev, addr & PAGE_MASK);
-+	fwp = find_fw_page(dev, addr & MLX5_U64_4K_PAGE_MASK);
- 	if (!fwp) {
- 		mlx5_core_warn(dev, "page not found\n");
- 		return;
- 	}
- 
--	n = (addr & ~PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
-+	n = (addr & ~MLX5_U64_4K_PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
- 	fwp->free_count++;
- 	set_bit(n, &fwp->bitmask);
- 	if (fwp->free_count == MLX5_NUM_4K_IN_PAGE) {
- 		rb_erase(&fwp->rb_node, &dev->priv.page_root);
- 		if (fwp->free_count != 1)
- 			list_del(&fwp->list);
--		dma_unmap_page(&dev->pdev->dev, addr & PAGE_MASK, PAGE_SIZE,
--			       DMA_BIDIRECTIONAL);
-+		dma_unmap_page(&dev->pdev->dev, addr & MLX5_U64_4K_PAGE_MASK,
-+			       PAGE_SIZE, DMA_BIDIRECTIONAL);
- 		__free_page(fwp->page);
- 		kfree(fwp);
- 	} else if (fwp->free_count == 1) {
-@@ -241,7 +243,7 @@ static void free_4k(struct mlx5_core_dev *dev, u64 addr)
- static int alloc_system_page(struct mlx5_core_dev *dev, u16 func_id)
- {
- 	struct page *page;
--	u64 addr;
-+	u64 addr = 0;
- 	int err;
- 	int nid = dev_to_node(&dev->pdev->dev);
- 
--- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/infiniband/core/agent.c              |    4 
+ drivers/infiniband/core/cm.c                 |   28 +-
+ drivers/infiniband/core/cma.c                |  331 ++++++++++++---------------
+ drivers/infiniband/core/device.c             |    1 
+ drivers/infiniband/core/mad.c                |   28 +-
+ drivers/infiniband/core/multicast.c          |   18 -
+ drivers/infiniband/core/sa_query.c           |   41 +--
+ drivers/infiniband/core/sysfs.c              |    8 
+ drivers/infiniband/core/ucm.c                |    3 
+ drivers/infiniband/core/ucma.c               |   27 --
+ drivers/infiniband/core/user_mad.c           |   32 +-
+ drivers/infiniband/core/uverbs_cmd.c         |    6 
+ drivers/infiniband/core/verbs.c              |   33 --
+ drivers/infiniband/hw/amso1100/c2_provider.c |    7 
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |    7 
+ drivers/infiniband/hw/cxgb4/provider.c       |    7 
+ drivers/infiniband/hw/ehca/ehca_hca.c        |    6 
+ drivers/infiniband/hw/ehca/ehca_iverbs.h     |    3 
+ drivers/infiniband/hw/ehca/ehca_main.c       |    1 
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |    7 
+ drivers/infiniband/hw/mlx4/main.c            |   10 
+ drivers/infiniband/hw/mlx5/main.c            |    7 
+ drivers/infiniband/hw/mthca/mthca_provider.c |    7 
+ drivers/infiniband/hw/nes/nes_verbs.c        |    6 
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |    1 
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    6 
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    3 
+ drivers/infiniband/hw/qib/qib_verbs.c        |    7 
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  |    1 
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |    6 
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |    2 
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    |   17 -
+ include/rdma/ib_verbs.h                      |  224 +++++++++++++++++-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |    6 
+ net/sunrpc/xprtrdma/svc_rdma_transport.c     |   51 +---
+ 35 files changed, 599 insertions(+), 353 deletions(-)
