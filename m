@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v3 06/28] IB/Verbs: Reform IB-core multicast
-Date: Mon, 13 Apr 2015 14:24:44 +0200
-Message-ID: <552BB58C.1010501@profitbricks.com>
+Subject: [PATCH v3 07/28] IB/Verbs: Reform IB-ulp ipoib
+Date: Mon, 13 Apr 2015 14:25:16 +0200
+Message-ID: <552BB5AC.6050101@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,7 +14,7 @@ Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wi
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use raw management helpers to reform IB-core multicast.
+Use raw management helpers to reform IB-ulp ipoib.
 
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
@@ -24,53 +24,55 @@ Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/multicast.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index fa17b55..24d93f5 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -780,8 +780,7 @@ static void mcast_event_handler(struct ib_event_handler *handler,
- 	int index;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 58b5aa3..97372b1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1654,9 +1654,7 @@ static void ipoib_add_one(struct ib_device *device)
+ 	struct net_device *dev;
+ 	struct ipoib_dev_priv *priv;
+ 	int s, e, p;
+-
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
++	int count = 0;
  
- 	dev = container_of(handler, struct mcast_device, event_handler);
--	if (rdma_port_get_link_layer(dev->device, event->element.port_num) !=
--	    IB_LINK_LAYER_INFINIBAND)
-+	if (WARN_ON(!rdma_tech_ib(dev->device, event->element.port_num)))
- 		return;
+ 	dev_list = kmalloc(sizeof *dev_list, GFP_KERNEL);
+ 	if (!dev_list)
+@@ -1673,13 +1671,19 @@ static void ipoib_add_one(struct ib_device *device)
+ 	}
  
- 	index = event->element.port_num - dev->start_port;
-@@ -808,9 +807,6 @@ static void mcast_add_one(struct ib_device *device)
- 	int i;
- 	int count = 0;
+ 	for (p = s; p <= e; ++p) {
+-		if (rdma_port_get_link_layer(device, p) != IB_LINK_LAYER_INFINIBAND)
++		if (!rdma_tech_ib(device, p))
+ 			continue;
+ 		dev = ipoib_add_port("ib%d", device, p);
+ 		if (!IS_ERR(dev)) {
+ 			priv = netdev_priv(dev);
+ 			list_add_tail(&priv->list, dev_list);
+ 		}
++		count++;
++	}
++
++	if (!count) {
++		kfree(dev_list);
++		return;
+ 	}
+ 
+ 	ib_set_client_data(device, &ipoib_client, dev_list);
+@@ -1690,9 +1694,6 @@ static void ipoib_remove_one(struct ib_device *device)
+ 	struct ipoib_dev_priv *priv, *tmp;
+ 	struct list_head *dev_list;
  
 -	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
 -		return;
 -
- 	dev = kmalloc(sizeof *dev + device->phys_port_cnt * sizeof *port,
- 		      GFP_KERNEL);
- 	if (!dev)
-@@ -824,8 +820,7 @@ static void mcast_add_one(struct ib_device *device)
- 	}
- 
- 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
--		if (rdma_port_get_link_layer(device, dev->start_port + i) !=
--		    IB_LINK_LAYER_INFINIBAND)
-+		if (!rdma_tech_ib(device, dev->start_port + i))
- 			continue;
- 		port = &dev->port[i];
- 		port->dev = dev;
-@@ -863,8 +858,7 @@ static void mcast_remove_one(struct ib_device *device)
- 	flush_workqueue(mcast_wq);
- 
- 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
--		if (rdma_port_get_link_layer(device, dev->start_port + i) ==
--		    IB_LINK_LAYER_INFINIBAND) {
-+		if (rdma_tech_ib(device, dev->start_port + i)) {
- 			port = &dev->port[i];
- 			deref_port(port);
- 			wait_for_completion(&port->comp);
+ 	dev_list = ib_get_client_data(device, &ipoib_client);
+ 	if (!dev_list)
+ 		return;
 -- 
 2.1.0
 --
