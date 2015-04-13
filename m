@@ -1,34 +1,97 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Mon, 13 Apr 2015 18:09:27 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC099C@ORSMSX109.amr.corp.intel.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
- <1428858993.3470.12.camel@dworkin>
- <20150413164238.GB17521@obsidianresearch.com>
- <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1@redhat.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 04/28] IB/Verbs: Reform IB-core cm
+Date: Mon, 13 Apr 2015 14:12:49 -0400
+Message-ID: <20150413181248.GA2464@phlsvsds.ph.intel.com>
+References: <552BB470.4090407@profitbricks.com> <552BB552.1030905@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <552BB552.1030905-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTYW1lIGhlcmUgKGhhdmluZyBiZWVuIGFza2VkIHByaXZhdGVseSB0byBsb29rIGludG8gZG9p
-bmcgdGhpcykuICBGV0lXLA0KPiBSZWQgSGF0IGhhcyBhZ3JlZWQgdGhhdCB0aGV5IGFyZSB3aWxs
-aW5nIHRvIGFsbG93IG1lIHRvIHRyYW5zaXRpb24gbXkgam9iDQo+IHRvIGEgZnVsbCB0aW1lIHVw
-c3RyZWFtIGZvY3VzZWQgcG9zaXRpb24gKGFzIG9mIG5vdywgSSB3b3JrIG9uIHVwc3RyZWFtDQo+
-IGFyb3VuZCBteSBkZWxpdmVyYWJsZXMgaW5zaWRlIHRoZSBjb21wYW55KS4NCg0KRXhjZWxsZW50
-LiAgVG8gbWUsIHRoaXMgc2VlbXMgaWRlYWwuICBEb3VnLCBzaW5jZSB5b3UgaGF2ZSB0aGUgYnJv
-YWRlc3QgdGVzdGluZywgcmVnYXJkbGVzcyBvZiB3aG8gcmV2aWV3cyB0aGUgcGF0Y2hlcywgd291
-bGQgeW91IGJlIHdpbGxpbmcgdG8gc3RhZ2UgdGhlIHVwc3RyZWFtIGNoYW5nZXMgc3RhcnRpbmcg
-d2l0aCA0LjI/DQoNCkRvZXMgYW55b25lIChtb3N0IGltcG9ydGFudGx5LCBEb3VnKSBoYXZlIGFu
-eSBpc3N1ZXMgd2l0aCB0aGlzPyANCg==
+On Mon, Apr 13, 2015 at 02:23:46PM +0200, Michael Wang wrote:
+> 
+> Use raw management helpers to reform IB-core cm.
+> 
+> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cm.c | 22 +++++++++++++++++++---
+>  1 file changed, 19 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index e28a494..50321fe 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -3761,9 +3761,7 @@ static void cm_add_one(struct ib_device *ib_device)
+>  	unsigned long flags;
+>  	int ret;
+>  	u8 i;
+> -
+> -	if (rdma_node_get_transport(ib_device->node_type) != RDMA_TRANSPORT_IB)
+> -		return;
+> +	int count = 0;
+
+I'm ok with this as an intermediate patch but going forward if we are going to
+have calls like 
+
+static inline int cap_ib_cm_dev(struct ib_device *device)
+
+Then I think we should have similar calls like
+
+cap_ib_mad_dev(device)
+
+Which eliminates the clean up below...
+
+>  
+>  	cm_dev = kzalloc(sizeof(*cm_dev) + sizeof(*port) *
+>  			 ib_device->phys_port_cnt, GFP_KERNEL);
+> @@ -3783,6 +3781,9 @@ static void cm_add_one(struct ib_device *ib_device)
+>  
+>  	set_bit(IB_MGMT_METHOD_SEND, reg_req.method_mask);
+>  	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
+> +		if (!rdma_ib_or_iboe(ib_device, i))
+> +			continue;
+> +
+>  		port = kzalloc(sizeof *port, GFP_KERNEL);
+>  		if (!port)
+>  			goto error1;
+> @@ -3809,7 +3810,16 @@ static void cm_add_one(struct ib_device *ib_device)
+>  		ret = ib_modify_port(ib_device, i, 0, &port_modify);
+>  		if (ret)
+>  			goto error3;
+> +
+> +		count++;
+>  	}
+> +
+> +	if (!count) {
+> +		device_unregister(cm_dev->device);
+> +		kfree(cm_dev);
+> +		return;
+
+Here.
+
+I worry about mistakes being made when we loop through only to find that none
+of the ports support the feature and then we have to clean up.  As this is
+initialization code I don't see any issue with looping through the ports 2
+times and making the code cleaner.
+
+This applies to the SA and CM modules as well.
+
+However, in the ib_cm module you already have cap_ib_cm_dev(device) so you
+should use it at the start of cm_add_one.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
