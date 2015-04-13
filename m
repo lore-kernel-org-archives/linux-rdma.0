@@ -1,56 +1,46 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: RE: [PATCH v3 10/28] IB/Verbs: Reform cm related part in IB-core cma
-Date: Mon, 13 Apr 2015 20:31:06 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC0B58@ORSMSX109.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
+Date: Mon, 13 Apr 2015 14:33:50 -0600
+Message-ID: <20150413203350.GA20611@obsidianresearch.com>
 References: <552BB470.4090407@profitbricks.com>
- <552BB60F.60109@profitbricks.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF@ORSMSX109.amr.corp.intel.com>
- <20150413195040.GB19112@obsidianresearch.com>
+ <552BB85D.7010400@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150413195040.GB19112@obsidianresearch.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, infinipath <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, "Latif, Faisal" <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, "Weiny, Ira" <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Doug Ledford <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <552BB85D.7010400-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Mon, Apr 13, 2015 at 07:25:48PM +0000, Hefty, Sean wrote:
-> > > @@ -1037,17 +1033,13 @@ void rdma_destroy_id(struct rdma_cm_id *id)
-> > >  	mutex_unlock(&id_priv->handler_mutex);
-> > >
-> > >  	if (id_priv->cma_dev) {
-> > > -		switch (rdma_node_get_transport(id_priv->id.device-
-> > > >node_type)) {
-> > > -		case RDMA_TRANSPORT_IB:
-> > > +		if (rdma_ib_or_iboe(id_priv->id.device, id_priv->id.port_num))
-> >
-> > A listen id can be associated with a device without being associated
-> > with a port (see the listen_any_list).  Some other check is needed
-> > to handle this case.  I guess the code could check the first port on
-> > the device (replace port_num with hardcoded value 1).  Then we
-> > wouldn't be any more broken than the code already is.  (The 'break'
-> > is conceptual, not practical.)
-> 
-> Hum. So, devices on a port must have some compatibility when it comes
-> to these invariants. It looks like all ports must have the same
-> iwarpyness, for multiple reasons.
-> 
-> Less clear is how rocee vs ib work within a device... Can you APM
-> between those two kinds of ports?
+On Mon, Apr 13, 2015 at 02:36:45PM +0200, Michael Wang wrote:
+> We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
+> is no longer necessary, thus clean it up.
 
-No idea
+So, the net result is not looking too bad, but I'm confused about the
+structure of this series.
 
-> All these switches are so ugly :| Function pointers setup in
-> iw_/ib_create_cm_id would be a lot clearer and safer.
+Why introduce query_transport early on?
 
-I noticed this too.  The if checks throughout the cma are becoming unmaintainable.  It may be cleaner if all devices adopted using the cm device function pointers.
+Why is the patch series going through this progression most lines?
 
-> > This appears to be highlighting an architectural flaw in the iboe
-> integration.
-> 
-> You mean iwarp?
+-       if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
++       if (rdma_tech_ib(device, port_num)) {
++       if (cap_ib_smi(device, port_num)) {
 
-I meant iboe.  Wildcard listens map to multiple listens, one per device.  The assumption being that all ports on the device are the same.  IBoE changed that assumption.
+This would be a lot shorter and simpler to look at if the cap's were
+introduced first, then their implementation finalized.
+
+I thought we agreed Doug's bitmask plan should be the final
+destination for this series, so this progress seems even stranger?
+
+I would be very happy to see a patch that adds cap_ib_smi to the
+current tree and states 'This patch is tested to have no change on the
+binary compilation results'
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
