@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v3 28/28] IB/Verbs: Cleanup rdma_node_get_transport()
-Date: Mon, 13 Apr 2015 14:37:13 +0200
-Message-ID: <552BB879.4000409@profitbricks.com>
+Subject: [PATCH v3 20/28] IB/Verbs: Use management helper cap_ib_sa()
+Date: Mon, 13 Apr 2015 14:32:36 +0200
+Message-ID: <552BB764.7080903@profitbricks.com>
 References: <552BB470.4090407@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,8 +14,8 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-We have get rid of all the scene using legacy rdma_node_get_transport(),
-now clean it up.
+Introduce helper cap_ib_sa() to help us check if the port of an
+IB device support Infiniband Subnet Administrator.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -25,55 +25,121 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/verbs.c | 21 ---------------------
- include/rdma/ib_verbs.h         |  3 ---
- 2 files changed, 24 deletions(-)
+ drivers/infiniband/core/cma.c      |  4 ++--
+ drivers/infiniband/core/sa_query.c | 10 +++++-----
+ drivers/infiniband/core/ucma.c     |  2 +-
+ include/rdma/ib_verbs.h            | 15 +++++++++++++++
+ 4 files changed, 23 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 2e0c2cf1..d2a2b52 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -107,27 +107,6 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate)
- }
- EXPORT_SYMBOL(ib_rate_to_mbps);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 4f4a420..013930c 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -955,7 +955,7 @@ static inline int cma_user_data_offset(struct rdma_id_private *id_priv)
  
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type)
--{
--	switch (node_type) {
--	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
--		return RDMA_TRANSPORT_IB;
--	case RDMA_NODE_RNIC:
--		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
--	case RDMA_NODE_USNIC_UDP:
--		return RDMA_TRANSPORT_USNIC_UDP;
--	default:
--		BUG();
--		return 0;
--	}
--}
--EXPORT_SYMBOL(rdma_node_get_transport);
--
- enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
+ static void cma_cancel_route(struct rdma_id_private *id_priv)
  {
- 	if (device->get_link_layer)
+-	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num)) {
++	if (cap_ib_sa(id_priv->id.device, id_priv->id.port_num)) {
+ 		if (id_priv->query)
+ 			ib_sa_cancel_query(id_priv->query_id, id_priv->query);
+ 	}
+@@ -1981,7 +1981,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
+ 		return -EINVAL;
+ 
+ 	atomic_inc(&id_priv->refcount);
+-	if (rdma_tech_ib(id->device, id->port_num))
++	if (cap_ib_sa(id->device, id->port_num))
+ 		ret = cma_resolve_ib_route(id_priv, timeout_ms);
+ 	else if (rdma_tech_iboe(id->device, id->port_num))
+ 		ret = cma_resolve_iboe_route(id_priv);
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 803ccf7..fc7e161 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 		struct ib_sa_port *port =
+ 			&sa_dev->port[event->element.port_num - sa_dev->start_port];
+ 
+-		if (WARN_ON(!rdma_tech_ib(handler->device, port->port_num)))
++		if (WARN_ON(!cap_ib_sa(handler->device, port->port_num)))
+ 			return;
+ 
+ 		spin_lock_irqsave(&port->ah_lock, flags);
+@@ -1173,7 +1173,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 
+ 	for (i = 0; i <= e - s; ++i) {
+ 		spin_lock_init(&sa_dev->port[i].ah_lock);
+-		if (!rdma_tech_ib(device, i + 1))
++		if (!cap_ib_sa(device, i + 1))
+ 			continue;
+ 
+ 		sa_dev->port[i].sm_ah    = NULL;
+@@ -1210,7 +1210,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 		goto err;
+ 
+ 	for (i = 0; i <= e - s; ++i) {
+-		if (rdma_tech_ib(device, i + 1))
++		if (cap_ib_sa(device, i + 1))
+ 			update_sm_ah(&sa_dev->port[i].update_task);
+ 	}
+ 
+@@ -1218,7 +1218,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 
+ err:
+ 	while (--i >= 0) {
+-		if (rdma_tech_ib(device, i + 1))
++		if (cap_ib_sa(device, i + 1))
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 	}
+ 
+@@ -1240,7 +1240,7 @@ static void ib_sa_remove_one(struct ib_device *device)
+ 	flush_workqueue(ib_wq);
+ 
+ 	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+-		if (rdma_tech_ib(device, i + 1)) {
++		if (cap_ib_sa(device, i + 1)) {
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 			if (sa_dev->port[i].sm_ah)
+ 				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 7331c6c..bed7957 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -723,7 +723,7 @@ static ssize_t ucma_query_route(struct ucma_file *file,
+ 	resp.node_guid = (__force __u64) ctx->cm_id->device->node_guid;
+ 	resp.port_num = ctx->cm_id->port_num;
+ 
+-	if (rdma_tech_ib(ctx->cm_id->device, ctx->cm_id->port_num))
++	if (cap_ib_sa(ctx->cm_id->device, ctx->cm_id->port_num))
+ 		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
+ 	else if (rdma_tech_iboe(ctx->cm_id->device, ctx->cm_id->port_num))
+ 		ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 9f6b88e..3cc3f53 100644
+index e4999f6..3bfdf81 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -84,9 +84,6 @@ enum rdma_transport_type {
- 	RDMA_TRANSPORT_IBOE,
- };
+@@ -1833,6 +1833,21 @@ static inline int cap_iw_cm(struct ib_device *device, u8 port_num)
+ 	return rdma_tech_iwarp(device, port_num);
+ }
  
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type);
--
- enum rdma_link_layer {
- 	IB_LINK_LAYER_UNSPECIFIED,
- 	IB_LINK_LAYER_INFINIBAND,
++/**
++ * cap_ib_sa - Check if the port of device has the capability Infiniband
++ * Subnet Administrator.
++ *
++ * @device: Device to be checked
++ * @port_num: Port number of the device
++ *
++ * Return 0 when port of the device don't support Infiniband
++ * Subnet Administrator.
++ */
++static inline int cap_ib_sa(struct ib_device *device, u8 port_num)
++{
++	return rdma_tech_ib(device, port_num);
++}
++
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid);
+ 
 -- 
 2.1.0
