@@ -1,91 +1,134 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 2/2] IB/core: don't disallow registering region starting
- at 0x0
-Date: Tue, 14 Apr 2015 15:50:50 +0300
-Message-ID: <552D0D2A.8000604@dev.mellanox.co.il>
-References: <cover.1428929103.git.ydroneaud@opteya.com>	 <ca0fad20f6eff1dae5c4c8cd92fccad188d685c4.1428929103.git.ydroneaud@opteya.com>	 <552CDBD6.1020205@dev.mellanox.co.il> <1429012859.4333.2.camel@opteya.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Tue, 14 Apr 2015 16:23:18 +0300
+Message-ID: <552D14C6.50000@mellanox.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+ <44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
+ <551347E9.5090503@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429012859.4333.2.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <551347E9.5090503-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/14/2015 3:00 PM, Yann Droneaud wrote:
-> Hi,
+
+
+On 3/26/2015 1:42 AM, Bart Van Assche wrote:
+> On 03/25/2015 02:19 PM, Somnath Kotur wrote:
+>> +    if (cache->data_vec[ix].attr.ndev &&
+>> +        cache->data_vec[ix].attr.ndev != old_net_dev)
 >
-> Le mardi 14 avril 2015 =C3=A0 12:20 +0300, Sagi Grimberg a =C3=A9crit=
- :
->> On 4/13/2015 3:56 PM, Yann Droneaud wrote:
->>> In a call to ib_umem_get(), if address is 0x0 and size is
->>> already page aligned, check added in commit 8494057ab5e4
->>> ("IB/uverbs: Prevent integer overflow in ib_umem_get address
->>> arithmetic") will refuse to register a memory region that
->>> could otherwise be valid (provided vm.mmap_min_addr sysctl
->>> and mmap_low_allowed SELinux knobs allow userspace to map
->>> something at address 0x0).
->>>
->>> This patch allows back such registration: ib_umem_get()
->>> should probably don't care of the base address provided it
->>> can be pinned with get_user_pages().
->>>
->>> There's two possible overflows, in (addr + size) and in
->>> PAGE_ALIGN(addr + size), this patch keep ensuring none
->>> of them happen while allowing to pin memory at address
->>> 0x0. Anyway, the case of size equal 0 is no more (partially)
->>> handled as 0-length memory region are disallowed by an
->>> earlier check.
->>>
->>> Link: http://mid.gmane.org/cover.1428929103.git.ydroneaud-RlY5vtjFyJ1hl2p70BpVqQ@public.gmane.org=
-m
->>> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 8494057ab5e4 ("IB/uverbs: Prevent in=
-teger overflow in ib_umem_get address arithmetic")
->>> Cc: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Cc: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
->>> ---
->>>    drivers/infiniband/core/umem.c | 4 ++--
->>>    1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/co=
-re/umem.c
->>> index 9ac4068d2088..38acb3cfc545 100644
->>> --- a/drivers/infiniband/core/umem.c
->>> +++ b/drivers/infiniband/core/umem.c
->>> @@ -106,8 +106,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext =
-*context, unsigned long addr,
->>>    	 * If the combination of the addr and size requested for this m=
-emory
->>>    	 * region causes an integer overflow, return error.
->>>    	 */
->>> -	if ((PAGE_ALIGN(addr + size) <=3D size) ||
->>> -	    (PAGE_ALIGN(addr + size) <=3D addr))
->>> +	if (((addr + size) < addr) ||
->>> +	    PAGE_ALIGN(addr + size) < (addr + size))
->>
->> If you do change the first statement to be: (addr + size) <=3D addr
->> wouldn't it cover patch #1?
->>
->
-> Yes, but it doesn't sound a great place to do it: here it's about
-> overflow, so I'd prefer not doing the null memory region check there.
->
-> Regards.
+> A few lines earlier the memory old_net_dev points at was freed. If two
+> instances of this function run concurrently, what prevents that the
+> old_net_dev memory has been reallocated and hence that attr.ndev ==
+> old_net_dev although both pointers refer(red) to different network
+> devices ?
 >
 
-Sounds reasonable to me.
+write_gid is *almost* always called in a mutex. The only case it's not 
+protected is in free_roce_gid_cache. free_roce_gid_cache is called only 
+in the error flow of roce_gid_cache_setup_one, when no concurrent 
+write_gid could be made (as the cache isn't setup yet) and in 
+roce_gid_cache_cleanup_one. roce_gid_cache_client_setup_one is called in 
+the error flow of roce_gid_cache_client_setup_one (where no other 
+write_gid are expected for the same above reason) and in 
+roce_gid_cache_client_cleanup_work_handler, where it's called after 
+flush_workqueue(roce_gid_mgmt_wq). Since all write_gids are called 
+through roce_gid_mgmt_wq and we set the cache to inactive mode before 
+flushing the wq and freeing the cache, I think we can conclude no 
+concurrent write_gid on the same cache are possible.
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> +    ACCESS_ONCE(cache->data_vec[ix].seq) = orig_seq;
+>
+> Invoking write_gid() is only safe if the caller serializes write_gid()
+> calls. Apparently the cache->lock mutex is used for that purpose. So why
+> is it necessary to use ACCESS_ONCE() here ? Why is it needed to prevent
+> that the compiler coalesces this write with another write into the same
+> structure ?
+>
 
-Let's poke Shachar/Haggai to comment/approve on this as well.
+The mutex only serializes cache writes. Cache reads could be done in 
+concurrent with writes and are protected by the ACCESS_ONCE.
 
+>> +        /* Make sure the sequence number we remeber was read
+>
+> This looks like a typo - shouldn't the above read "remember" ?
+>
+
+Will be fixed in V4, thanks.
+
+> BTW, the style of that comment is recommended only for networking code
+> and not for IB code. Have you verified this patch with checkpatch ?
+>
+
+Of course and I've just re-run checkpatch on this patch. It doesn't 
+catch this.
+
+>> +    mutex_lock(&cache->lock);
+>> +
+>> +    for (ix = 0; ix < cache->sz; ix++)
+>> +        if (cache->data_vec[ix].attr.ndev == ndev)
+>> +            write_gid(ib_dev, port, cache, ix, &zgid, &zattr);
+>> +
+>> +    mutex_unlock(&cache->lock);
+>> +    return 0;
+>
+> The traditional Linux kernel coding style is one blank line before
+> mutex_lock() and after mutex_unlock() but not after mutex_lock() nor
+> before mutex_unlock().
+>
+
+I didn't find this in the CodingStyle doc. Could you please quote or 
+post a link?
+
+>> +    orig_seq = ACCESS_ONCE(cache->data_vec[index].seq);
+>> +    /* Make sure we read the sequence number before copying the
+>> +     * gid to local storage. */
+>> +    smp_rmb();
+>
+> Please use READ_ONCE() instead of ACCESS_ONCE() as recommended in
+> <linux/compiler.h>.
+>
+
+Ok, I'll change that in V4. I see that READ_ONCE and WRITE_ONCE is 
+different from ACCESS_ONCE only for aggregated data types (which isn't 
+our case), but it won't hurt to change that.
+
+>> +static void free_roce_gid_cache(struct ib_device *ib_dev, u8 port)
+>> +{
+>> +    int i;
+>> +    struct ib_roce_gid_cache *cache =
+>> +        ib_dev->cache.roce_gid_cache[port - 1];
+>> +
+>> +    if (!cache)
+>> +        return;
+>> +
+>> +    for (i = 0; i < cache->sz; ++i) {
+>> +        if (memcmp(&cache->data_vec[i].gid, &zgid,
+>> +               sizeof(cache->data_vec[i].gid)))
+>> +            write_gid(ib_dev, port, cache, i, &zgid, &zattr);
+>> +    }
+>  > +    kfree(cache->data_vec);
+>  > +    kfree(cache);
+>  > +}
+>
+> Overwriting data just before it is freed is not useful. Please use
+> CONFIG_SLUB_DEBUG=y to debug use-after-free issues instead of such code.
+>
+
+It's mandatory as write_gid with zgid might cause the vendor driver to 
+free memory it allocated for this GID entry (like in the mlx4 case).
+
+> Bart.
+
+Thanks for the review :)
+
+Matan
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
