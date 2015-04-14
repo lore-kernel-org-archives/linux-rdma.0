@@ -1,81 +1,46 @@
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: Re: [PATCH v1 2/2] IB/core: don't disallow registering region
- starting at 0x0
-Date: Tue, 14 Apr 2015 14:00:59 +0200
-Message-ID: <1429012859.4333.2.camel@opteya.com>
-References: <cover.1428929103.git.ydroneaud@opteya.com>
-	 <ca0fad20f6eff1dae5c4c8cd92fccad188d685c4.1428929103.git.ydroneaud@opteya.com>
-	 <552CDBD6.1020205@dev.mellanox.co.il>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Tue, 14 Apr 2015 15:07:28 +0300
+Message-ID: <CAJ3xEMimhFzwF7EPpQEsK-Us61EQ+K_QguWoqUASWdoKPOY+QA@mail.gmail.com>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+	<CAJ3xEMiky+s55zsqH0Vxpw8wmk3uGsx1wyMdNqsFihCaiBDgtw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A82373A8FC07D4@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <552CDBD6.1020205@dev.mellanox.co.il>
-Sender: stable-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, Shachar Raindel <raindel@mellanox.com>, Jack Morgenstein <jackm@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC07D4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Mon, Apr 13, 2015 at 7:10 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> Unfortunately, Sean -- you haven't provided for > 2 months any
+>> feedback on the patches to the CM/CMA modules which you own/maintain
+>> for supporting name-spaces and such which are part of enabling proper
+>> RDMA support for containers.
+>> http://marc.info/?l=linux-netdev&m=142366747608908&w=2 This makes your
+>> co-maintainer position sort of problematic, BTW. Jason, any chance you
+>> can look on that?
 
-Le mardi 14 avril 2015 =C3=A0 12:20 +0300, Sagi Grimberg a =C3=A9crit :
-> On 4/13/2015 3:56 PM, Yann Droneaud wrote:
-> > In a call to ib_umem_get(), if address is 0x0 and size is
-> > already page aligned, check added in commit 8494057ab5e4
-> > ("IB/uverbs: Prevent integer overflow in ib_umem_get address
-> > arithmetic") will refuse to register a memory region that
-> > could otherwise be valid (provided vm.mmap_min_addr sysctl
-> > and mmap_low_allowed SELinux knobs allow userspace to map
-> > something at address 0x0).
-> >
-> > This patch allows back such registration: ib_umem_get()
-> > should probably don't care of the base address provided it
-> > can be pinned with get_user_pages().
-> >
-> > There's two possible overflows, in (addr + size) and in
-> > PAGE_ALIGN(addr + size), this patch keep ensuring none
-> > of them happen while allowing to pin memory at address
-> > 0x0. Anyway, the case of size equal 0 is no more (partially)
-> > handled as 0-length memory region are disallowed by an
-> > earlier check.
-> >
-> > Link: http://mid.gmane.org/cover.1428929103.git.ydroneaud@opteya.co=
-m
-> > Cc: <stable@vger.kernel.org> # 8494057ab5e4 ("IB/uverbs: Prevent in=
-teger overflow in ib_umem_get address arithmetic")
-> > Cc: Shachar Raindel <raindel@mellanox.com>
-> > Cc: Jack Morgenstein <jackm@mellanox.com>
-> > Cc: Or Gerlitz <ogerlitz@mellanox.com>
-> > Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
-> > ---
-> >   drivers/infiniband/core/umem.c | 4 ++--
-> >   1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/co=
-re/umem.c
-> > index 9ac4068d2088..38acb3cfc545 100644
-> > --- a/drivers/infiniband/core/umem.c
-> > +++ b/drivers/infiniband/core/umem.c
-> > @@ -106,8 +106,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext =
-*context, unsigned long addr,
-> >   	 * If the combination of the addr and size requested for this me=
-mory
-> >   	 * region causes an integer overflow, return error.
-> >   	 */
-> > -	if ((PAGE_ALIGN(addr + size) <=3D size) ||
-> > -	    (PAGE_ALIGN(addr + size) <=3D addr))
-> > +	if (((addr + size) < addr) ||
-> > +	    PAGE_ALIGN(addr + size) < (addr + size))
->=20
-> If you do change the first statement to be: (addr + size) <=3D addr
-> wouldn't it cover patch #1?
->=20
+> Linux does not pull anything from me directly.  My own patches to the code that I supposedly maintain take *years* to get upstream.  I fail to see how or why I need to review patches from a hostile party.
 
-Yes, but it doesn't sound a great place to do it: here it's about
-overflow, so I'd prefer not doing the null memory region check there.
+Sure, I know that Linus doesn't pull directly from you and also that
+being a co-maintainer didn't help for when it took Roland 2-3 years to
+pick your AF_IB patch series.
 
-Regards.
+However, fact is that you are the author and maintainer of the CM and
+RDMA_CM and over the years Roland didn't pick patches to these
+components prior to your review and ack.
 
---=20
-Yann Droneaud
-OPTEYA
+> two months ago we sent patch series which serves to add RDMA support to containers and modify these two drivers, and not a word from you. This is what missing. In the past it took you two hours to provide excellent feedback, now something is broken out.
+
+Sean, please speak up and explain who is hostile and why you think so,
+BTW is that a personal comment?
+
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
