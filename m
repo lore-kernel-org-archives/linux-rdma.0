@@ -1,198 +1,87 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 07/28] IB/Verbs: Reform IB-ulp ipoib
-Date: Tue, 14 Apr 2015 10:18:07 -0400
-Message-ID: <20150414141806.GA7354@phlsvsds.ph.intel.com>
-References: <552BB470.4090407@profitbricks.com> <552BB5AC.6050101@profitbricks.com> <20150413192701.GA19112@obsidianresearch.com> <20150413194602.GA21467@phlsvsds.ph.intel.com> <20150413200138.GC19112@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Tue, 14 Apr 2015 17:23:56 +0300
+Message-ID: <CAJ3xEMgW8ZHHnk8yO3pFDRCNaiLKZmTBA2AmUeL5R-c9bFUW6w@mail.gmail.com>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+	<CAJ3xEMiky+s55zsqH0Vxpw8wmk3uGsx1wyMdNqsFihCaiBDgtw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150413200138.GC19112-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAJ3xEMiky+s55zsqH0Vxpw8wmk3uGsx1wyMdNqsFihCaiBDgtw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland.dreier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 13, 2015 at 02:01:38PM -0600, Jason Gunthorpe wrote:
-> On Mon, Apr 13, 2015 at 03:46:03PM -0400, ira.weiny wrote:
-> 
-> > > This doesn't quite look right, it should be 'goto error1'
-> > 
-> > Looks like you replied to the wrong patch.  ??  I don't see error1 in ipoib_add_one.
-> 
-> > For the ib_cm module...
-> 
-> Right, sorry.
->  
-> > Yes I think it should go to "error1".  However, see below...
-> > 
-> > This is the type of clean up error which would be avoided if a call to
-> > cap_ib_cm_dev() were done at the top of the function.
-> 
-> So what does cap_ib_cm_dev return in your example:
+On Sun, Apr 12, 2015 at 1:51 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Apr 9, 2015 at 8:41 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> On Tue, Apr 7, 2015 at 10:12 AM, Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>>> I don't think you understand how deep the problem Or is describing goes.
+>
+>>> [...Appropriate and correct critique...]
+>
+>> This thread has made me realize that even as I am able to carve out
+>> more time to work on things like IB maintaintership, I no longer have
+>> the desire to spend my time maintaining the IB subsystem.  Since my
+>> current level of activity is clearly hurting the community, I've
+>> decided to step down as maintainer.
+>
+>> I'm on a perhaps-unfortunately-timed vacation this week
+>
+> OK, but this is the last time for making these excuses (...)
+>
+>> but to make the transition smooth, I'll handle the easy patches that are in flight
+>> for 4.1 and then turn things over to the community for 4.2
+>
+> Sounds a fair plan to me.
+>
+> As we're just two days before the merge window is likely to open,
+> could you please but ASAP immediately make what's queued @ your
+> for-next branch private clone public?!
 
-I was thinking it was all or nothing.  But I see now that the cap_ib_cm_dev is
-actually true if "any" port supports the CM.
+Roland,
 
-> > Dev
-> > 	port 1 : cap_is_cm == true
-> > 	port 2 : cap_is_cm == false
-> > 	port 3 : cap_is_cm == true
-> 
-> True? Then the code is still broken, having cap_ib_cm_dev doesn't help
-> anything.
+So the merge window and there's still pretty much nothing in your
+for-next branch. Could you please comment what are those easy patches
+that you are going to put into the pull request for 4.1-rc1?!
 
-I see that now.
+If you don't intend to send anything, please say it too. So we can
+send these already reviewed patches through other sub system
+maintainers.
 
-> 
-> If we make it possible to be per port then it has to be fixed.
+Or.
 
-Yes
-
-> 
-> If you want to argue the above example is illegal and port 2 has to be
-> on a different device, I'd be interested to see what that looks like.
-
-I think the easiest fix for this series is to add this to the final CM code
-(applies after the end of the series compile tested only):
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 63418ee..0d0fc24 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3761,7 +3761,11 @@ static void cm_add_one(struct ib_device *ib_device)
-        unsigned long flags;
-        int ret;
-        u8 i;
--       int count = 0;
-+
-+       for (i = 1; i <= ib_device->phys_port_cnt; i++) {
-+               if (!cap_ib_cm(ib_device, i))
-+                       return;
-+       }
- 
-        cm_dev = kzalloc(sizeof(*cm_dev) + sizeof(*port) *
-                         ib_device->phys_port_cnt, GFP_KERNEL);
-@@ -3810,14 +3814,6 @@ static void cm_add_one(struct ib_device *ib_device)
-                ret = ib_modify_port(ib_device, i, 0, &port_modify);
-                if (ret)
-                        goto error3;
--
--               count++;
--       }
--
--       if (!count) {
--               device_unregister(cm_dev->device);
--               kfree(cm_dev);
--               return;
-	}
- 
-        ib_set_client_data(ib_device, &cm_client, cm_dev);
-
-
-> 
-> Thinking about it some more, cap_foo_dev only makes sense if all ports
-> are either true or false. Mixed is a BUG.
-
-Agree
-
-After more thought and reading other opinions, I must agree we should not
-have cap_foo_dev.
-
-For the CM case which has some need to support itself device device wide what
-about this patch (compile tested only):
-
-
-10:03:57 > git di
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 4b083f5..7347445 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1639,7 +1639,7 @@ static void cma_listen_on_dev(struct rdma_id_private
-*id_priv,
-        struct rdma_cm_id *id;
-        int ret;
- 
--       if (cma_family(id_priv) == AF_IB && !cap_ib_cm_dev(cma_dev->device))
-+       if (cma_family(id_priv) == AF_IB && !cap_ib_cm_any_port(cma_dev->device))
-                return;
- 
-        id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
-@@ -2030,7 +2030,7 @@ static int cma_bind_loopback(struct rdma_id_private
-*id_priv)
-        mutex_lock(&lock);
-        list_for_each_entry(cur_dev, &dev_list, list) {
-                if (cma_family(id_priv) == AF_IB &&
--                   !cap_ib_cm_dev(cur_dev->device))
-+                   !cap_ib_cm_any_port(cur_dev->device))
-                        continue;
- 
-                if (!cma_dev)
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 065405e..dc4caae 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1253,7 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
-        dev_t base;
-        struct ib_ucm_device *ucm_dev;
- 
--       if (!device->alloc_ucontext || !cap_ib_cm_dev(device))
-+       if (!device->alloc_ucontext || !cap_ib_cm_any_port(device))
-                return;
- 
-        ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3cc3f53..a8fa1f5 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1920,15 +1920,14 @@ static inline int cap_read_multi_sge(struct ib_device
-*device, u8 port_num)
- }
- 
- /**
-- * cap_ib_cm_dev - Check if any port of device has the capability Infiniband
-- * Communication Manager.
-+ * cap_ib_cm_any_port - Check if any port of the device has Infiniband
-+ * Communication Manager (CM) support.
-  *
-  * @device: Device to be checked
-  *
-- * Return 0 when all port of the device don't support Infiniband
-- * Communication Manager.
-+ * Return 1 if any port of the device supports the IB CM.
-  */
--static inline int cap_ib_cm_dev(struct ib_device *device)
-+static inline int cap_ib_cm_any_port(struct ib_device *device)
- {
-        int i;
- 
-
-> 
-> That seems reasonable, and solves the #10 problem, but we should
-> enforce this invariant during device register.
-> 
-> Typically the ports seem to be completely orthogonal (like SA), so in those
-> cases the _dev and restriction makes no sense.
-
-While the ports in ib_sa and ib_umad probably can be orthogonal the current
-implementation does not support that and this patch series obscures that a bit.
-
-> 
-> CM seems to be different, so it should probably enforce its rules
-
-Technically, the implementation of the ib_sa and ib_umad modules are not
-different it is just that Michaels patch is not broken.
-
-I'm not saying we can't change the ib_sa and ib_umad modules but the current
-logic is all or nothing.  And I think changing this :
-
-	1) require more review and testing
-	2) is not the purpose of this series.
-
-Ira
-
-> 
-> Jason
+>
+> currently, there's nothing there expect for one 4.- rc fix.
+>
+> Some from top of my head quick listing contains:
+>
+> 1. Doug's IPoIB patches which finally passed full review and
+> regression by Erez Shitrit @ Mellanox plus some review and testing by
+> Intel/Ira
+> http://marc.info/?t=142456493600003&r=1&w=2
+>
+> 2. Erez's followup patch series which few IPoIB changes and one mlx4 fix
+> http://marc.info/?l=linux-rdma&m=142797117721383&w=2
+>
+> 3. Yishai's mlx4 patches (where we started this thread)
+> http://marc.info/?l=linux-rdma&m=142788688230585&w=2
+>
+> 4. Sagi's iSER updates for 4.1 - which you acked but didn't make public
+>
+> Unfortunately, Sean -- you haven't provided for > 2 months any
+> feedback on the patches to the CM/CMA modules which you own/maintain
+> for supporting name-spaces and such which are part of enabling proper
+> RDMA support for containers.
+> http://marc.info/?l=linux-netdev&m=142366747608908&w=2 This makes your
+> co-maintainer position sort of problematic, BTW. Jason, any chance you
+> can look on
+> that?
+>
+> As for the core and driver RoCE changes, I see that there are comments
+> from Sean and Bart, so the review isn't over yet.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
