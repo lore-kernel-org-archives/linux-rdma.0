@@ -1,77 +1,46 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH linux-next 1/4] infiniband/ipoib: fix possible NULL
- pointer dereference in ipoib_get_iflink
-Date: Tue, 14 Apr 2015 09:14:11 -0700
-Message-ID: <1429028051.7346.40.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH linux-next v2] infiniband/ipoib: fix possible NULL pointer dereference in ipoib_get_iflink
+Date: Wed, 15 Apr 2015 00:26:50 +0800
+Message-ID: <1429028811-29888-1-git-send-email-honli@redhat.com>
 References: <1429024817-21561-1-git-send-email-honli@redhat.com>
-	 <1429024817-21561-2-git-send-email-honli@redhat.com>
-	 <1429025673.7346.37.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20150414154422.GB21856@honli.nay.redhat.com> <552D3723.9050706@6wind.com>
-	 <20150414155307.GD21856@honli.nay.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150414155307.GD21856-9l7K0WC0B0wP68cbUhXDDlaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1429024817-21561-1-git-send-email-honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maheshb-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, andrew-g2DYL2Zd6BY@public.gmane.org, sfeldma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2015-04-14 at 23:53 +0800, Honggang LI wrote:
-> On Tue, Apr 14, 2015 at 05:49:55PM +0200, Nicolas Dichtel wrote:
-> > Le 14/04/2015 17:44, Honggang LI a =C3=A9crit :
-> > >On Tue, Apr 14, 2015 at 08:34:33AM -0700, Eric Dumazet wrote:
-> > >>On Tue, 2015-04-14 at 23:20 +0800, Honggang Li wrote:
-> > >>>Starting monitoring for VG vg_rdma01:   3 logical volume(s) in v=
-olume
-> > >>>group "vg_rdma01" monitored
-> > >>>[  OK  ]
-> > >>
-> > >>
-> > >>>CR2: 0000000000000120
-> > >>>---[ end trace a8610f6e9640eb85 ]---
-> > >>>
-> > >>>Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > >>
-> > >>When was this bug added ?
-> > >>
-> > >
-> > >Sorry, I do not know. I ran into this bug today when I'm tracing a=
- race
-> > >condition issue related qib. In order to check upstream linux-next=
- fix
-> > >the race condition or not, I build linux-next-20150414 on two mach=
-ines. Both
-> > >machines panic at modprobe ib_ipoib. Do you means I need to report=
- a
-> > >bug? But I do not know report to who or where.
-> >=20
-> > Here is the tag:
-> > Fixes: 5aa7add8f14b ("infiniband/ipoib: implement ndo_get_iflink")
-> >
->=20
-> thank you.=20
+1) Droped ipvlan/macvlan/dsa patches.
+2) Do not check the pointer returned by netdev_priv.
+3) Add the FIX tag.
 
-By adding a proper tag you :
+--------------------- console log ---------------
+ipoib_get_iflink  dev = ffff88026eb1c000, priv = ffff88026eb1c7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff88026eb1c000, priv = ffff88026eb1c7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff880225c8a000, priv = ffff880225c8a7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff880225c8a000, priv = ffff880225c8a7c0, priv->parent =           (null)
+[  OK  ]
+ipoib_get_iflink  dev = ffff88026eb1c000, priv = ffff88026eb1c7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff88026eb1c000, priv = ffff88026eb1c7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff880225c8a000, priv = ffff880225c8a7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff880225c8a000, priv = ffff880225c8a7c0, priv->parent =           (null)
+Shutting down interface cxgb4_1:  ipoib_get_iflink  dev = ffff88026eb1c000, priv = ffff88026eb1c7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff88026eb1c000, priv = ffff88026eb1c7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff880225c8a000, priv = ffff880225c8a7c0, priv->parent =           (null)
+ipoib_get_iflink  dev = ffff880225c8a000, priv = ffff880225c8a7c0, priv->parent =           (null)
+--------------------- console log ---------------
 
-1) Assert you did a research in git history/blame to find original
-commit.
+Honggang Li (1):
+  infiniband/ipoib: fix possible NULL pointer dereference in
+    ipoib_get_iflink
 
-2) You looked at other similar bugs added by this commit
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-3) Add meta information in git history to ease backports
-
-4) CC original author to let him/her know he made a mistake and increas=
-e
-his/her knowledge.
-
-5) Help maintainers
-
-
+-- 
+1.8.3.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
