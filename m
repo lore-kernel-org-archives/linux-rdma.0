@@ -1,77 +1,71 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v3 07/28] IB/Verbs: Reform IB-ulp ipoib
-Date: Tue, 14 Apr 2015 16:32:57 +0200
-Message-ID: <552D2519.6000500@profitbricks.com>
-References: <552BB470.4090407@profitbricks.com> <552BB5AC.6050101@profitbricks.com> <20150413192701.GA19112@obsidianresearch.com> <20150413194602.GA21467@phlsvsds.ph.intel.com> <20150413200138.GC19112@obsidianresearch.com> <20150414141806.GA7354@phlsvsds.ph.intel.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 2/2] IB/core: don't disallow registering region starting
+ at 0x0
+Date: Tue, 14 Apr 2015 17:35:02 +0300
+Message-ID: <552D2596.50901@mellanox.com>
+References: <cover.1428929103.git.ydroneaud@opteya.com>
+	 <ca0fad20f6eff1dae5c4c8cd92fccad188d685c4.1428929103.git.ydroneaud@opteya.com>
+	 <552CDBD6.1020205@dev.mellanox.co.il> <1429012859.4333.2.camel@opteya.com>
+ <552D0D2A.8000604@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150414141806.GA7354-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <552D0D2A.8000604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 04/14/2015 04:18 PM, ira.weiny wrote:
-[snip]
->  
->  /**
-> - * cap_ib_cm_dev - Check if any port of device has the capability Infiniband
-> - * Communication Manager.
-> + * cap_ib_cm_any_port - Check if any port of the device has Infiniband
-> + * Communication Manager (CM) support.
->   *
->   * @device: Device to be checked
->   *
-> - * Return 0 when all port of the device don't support Infiniband
-> - * Communication Manager.
-> + * Return 1 if any port of the device supports the IB CM.
->   */
-> -static inline int cap_ib_cm_dev(struct ib_device *device)
-> +static inline int cap_ib_cm_any_port(struct ib_device *device)
->  {
->         int i;
-
-I think we maybe able to get rid of this helper according to Sean's suggestion :-)
-
-We just need to check the port 1 of HCA see if it support ib cm, seems like
-currently there is no case that port 1 support cm while others doesn't.
-
-Regards,
-Michael Wang
-
->  
-> 
+On 14/04/2015 15:50, Sagi Grimberg wrote:
+> On 4/14/2015 3:00 PM, Yann Droneaud wrote:
+>> Le mardi 14 avril 2015 =C3=A0 12:20 +0300, Sagi Grimberg a =C3=A9cri=
+t :
+>>> On 4/13/2015 3:56 PM, Yann Droneaud wrote:
+=2E..
+>>>> diff --git a/drivers/infiniband/core/umem.c
+>>>> b/drivers/infiniband/core/umem.c
+>>>> index 9ac4068d2088..38acb3cfc545 100644
+>>>> --- a/drivers/infiniband/core/umem.c
+>>>> +++ b/drivers/infiniband/core/umem.c
+>>>> @@ -106,8 +106,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext=
+ *context, unsigned long addr,
+>>>>         * If the combination of the addr and size requested for th=
+is memory
+>>>>         * region causes an integer overflow, return error.
+>>>>         */
+>>>> -    if ((PAGE_ALIGN(addr + size) <=3D size) ||
+>>>> -        (PAGE_ALIGN(addr + size) <=3D addr))
+>>>> +    if (((addr + size) < addr) ||
+>>>> +        PAGE_ALIGN(addr + size) < (addr + size))
+>>>
+>>> If you do change the first statement to be: (addr + size) <=3D addr
+>>> wouldn't it cover patch #1?
+>>>
 >>
->> That seems reasonable, and solves the #10 problem, but we should
->> enforce this invariant during device register.
+>> Yes, but it doesn't sound a great place to do it: here it's about
+>> overflow, so I'd prefer not doing the null memory region check there=
+=2E
 >>
->> Typically the ports seem to be completely orthogonal (like SA), so in those
->> cases the _dev and restriction makes no sense.
-> 
-> While the ports in ib_sa and ib_umad probably can be orthogonal the current
-> implementation does not support that and this patch series obscures that a bit.
-> 
+>> Regards.
 >>
->> CM seems to be different, so it should probably enforce its rules
-> 
-> Technically, the implementation of the ib_sa and ib_umad modules are not
-> different it is just that Michaels patch is not broken.
-> 
-> I'm not saying we can't change the ib_sa and ib_umad modules but the current
-> logic is all or nothing.  And I think changing this :
-> 
-> 	1) require more review and testing
-> 	2) is not the purpose of this series.
-> 
-> Ira
-> 
->>
->> Jason
+>=20
+> Sounds reasonable to me.
+
+Me too. As long as we prevent the integer overflow, there is no need to
+disallow regions starting at 0x0.
+
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+>=20
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Let's poke Shachar/Haggai to comment/approve on this as well.
+>=20
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
