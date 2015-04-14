@@ -1,140 +1,39 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [patch v3 11/18] IB/iser: Move fastreg descriptor pool get/put to helper functions
-Date: Tue, 14 Apr 2015 18:08:21 +0300
-Message-ID: <1429024108-7221-12-git-send-email-sagig@mellanox.com>
-References: <1429024108-7221-1-git-send-email-sagig@mellanox.com>
+From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH linux-next 0/4] fix possile NULL pointer dereference in ndo_get_iflink callback functions
+Date: Tue, 14 Apr 2015 23:20:13 +0800
+Message-ID: <1429024817-21561-1-git-send-email-honli@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429024108-7221-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, maheshb-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, andrew-g2DYL2Zd6BY@public.gmane.org, sfeldma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of open-coding connection fastreg pool get/put,
-we introduce iser_reg_desc[get|put] helpers.
 
-We aren't setting these static as this will be a per-device
-routine later on. Also, cleanup iser_unreg_rdma_mem_fastreg
-a bit.
+The four callback functions deferference the pointers without test. 
+As ipoib_get_iflink failed, it is a good reason to fix the other three
+functions. Those functions will return zero on error, as valid ifindex
+greater than zero.
 
-This patch does not change any functionality.
+I understand that those simple patches should be emerged into a single
+patch. However, those files have be maintained by different maintainers.
+So, I split it for review. It also will be convenient to remove one or
+more patches with the rest not be affected.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.h  |    5 +++
- drivers/infiniband/ulp/iser/iser_memory.c |   50 ++++++++++++++++++----------
- 2 files changed, 37 insertions(+), 18 deletions(-)
+Honggang Li (4):
+  infiniband/ipoib: fix possible NULL pointer dereference in
+ ipoib_get_iflink
+  ipvlan: fix possible NULL pointer dereference in ipvlan_get_iflink
+  macvlan: fix possible NULL pointer dereference in macvlan_dev_get_iflink
+  net/dsa: fix possible NULL pointer dereference in dsa_slave_get_iflink
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 8133678..185d2ec 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -644,4 +644,9 @@ int iser_create_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max);
- void iser_free_fastreg_pool(struct ib_conn *ib_conn);
- u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 			     enum iser_data_dir cmd_dir, sector_t *sector);
-+struct fast_reg_descriptor *
-+iser_reg_desc_get(struct ib_conn *ib_conn);
-+void
-+iser_reg_desc_put(struct ib_conn *ib_conn,
-+		  struct fast_reg_descriptor *desc);
- #endif
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 6e6b753..17a5d70 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -41,6 +41,32 @@
- 
- #define ISER_KMALLOC_THRESHOLD 0x20000 /* 128K - kmalloc limit */
- 
-+struct fast_reg_descriptor *
-+iser_reg_desc_get(struct ib_conn *ib_conn)
-+{
-+	struct fast_reg_descriptor *desc;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ib_conn->lock, flags);
-+	desc = list_first_entry(&ib_conn->fastreg.pool,
-+				struct fast_reg_descriptor, list);
-+	list_del(&desc->list);
-+	spin_unlock_irqrestore(&ib_conn->lock, flags);
-+
-+	return desc;
-+}
-+
-+void
-+iser_reg_desc_put(struct ib_conn *ib_conn,
-+		  struct fast_reg_descriptor *desc)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ib_conn->lock, flags);
-+	list_add_tail(&desc->list, &ib_conn->fastreg.pool);
-+	spin_unlock_irqrestore(&ib_conn->lock, flags);
-+}
-+
- /**
-  * iser_start_rdma_unaligned_sg
-  */
-@@ -409,17 +435,13 @@ void iser_unreg_mem_fastreg(struct iscsi_iser_task *iser_task,
- 			    enum iser_data_dir cmd_dir)
- {
- 	struct iser_mem_reg *reg = &iser_task->rdma_reg[cmd_dir];
--	struct iser_conn *iser_conn = iser_task->iser_conn;
--	struct ib_conn *ib_conn = &iser_conn->ib_conn;
--	struct fast_reg_descriptor *desc = reg->mem_h;
- 
--	if (!desc)
-+	if (!reg->mem_h)
- 		return;
- 
-+	iser_reg_desc_put(&iser_task->iser_conn->ib_conn,
-+			  reg->mem_h);
- 	reg->mem_h = NULL;
--	spin_lock_bh(&ib_conn->lock);
--	list_add_tail(&desc->list, &ib_conn->fastreg.pool);
--	spin_unlock_bh(&ib_conn->lock);
- }
- 
- /**
-@@ -725,7 +747,6 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 	struct fast_reg_descriptor *desc = NULL;
- 	struct ib_sge data_sge;
- 	int err, aligned_len;
--	unsigned long flags;
- 
- 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
- 	if (aligned_len != mem->dma_nents) {
-@@ -739,11 +760,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 
- 	if (mem->dma_nents != 1 ||
- 	    scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
--		spin_lock_irqsave(&ib_conn->lock, flags);
--		desc = list_first_entry(&ib_conn->fastreg.pool,
--					struct fast_reg_descriptor, list);
--		list_del(&desc->list);
--		spin_unlock_irqrestore(&ib_conn->lock, flags);
-+		desc = iser_reg_desc_get(ib_conn);
- 		mem_reg->mem_h = desc;
- 	}
- 
-@@ -799,11 +816,8 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
- 
- 	return 0;
- err_reg:
--	if (desc) {
--		spin_lock_irqsave(&ib_conn->lock, flags);
--		list_add_tail(&desc->list, &ib_conn->fastreg.pool);
--		spin_unlock_irqrestore(&ib_conn->lock, flags);
--	}
-+	if (desc)
-+		iser_reg_desc_put(ib_conn, desc);
- 
- 	return err;
- }
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 ++++-
+ drivers/net/ipvlan/ipvlan_main.c          | 5 ++++-
+ drivers/net/macvlan.c                     | 4 +++-
+ net/dsa/slave.c                           | 5 ++++-
+ 4 files changed, 15 insertions(+), 4 deletions(-)
+
 -- 
-1.7.1
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
