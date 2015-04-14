@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [patch v3 10/18] IB/iser: Merge build page-vec into register page-vec
-Date: Tue, 14 Apr 2015 18:08:20 +0300
-Message-ID: <1429024108-7221-11-git-send-email-sagig@mellanox.com>
+Subject: [patch v3 12/18] IB/iser: Move PI context alloc/free to routines
+Date: Tue, 14 Apr 2015 18:08:22 +0300
+Message-ID: <1429024108-7221-13-git-send-email-sagig@mellanox.com>
 References: <1429024108-7221-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1429024108-7221-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,141 +10,164 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-No need for these two separate. Keep it in a single routine
-like in the fastreg case. This will also make iser_reg_page_vec
-closer to iser_fast_reg_mr arguments. This is a preparation
-step for registration flow refactor.
+Make iser_[create|destroy]_fastreg_desc shorter, more
+readable and easily extendable.
 
 This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_memory.c |   91 ++++++++++------------------
- 1 files changed, 33 insertions(+), 58 deletions(-)
+ drivers/infiniband/ulp/iser/iser_verbs.c |  118 ++++++++++++++++--------------
+ 1 files changed, 63 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 0b8656f..6e6b753 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -280,31 +280,6 @@ static void iser_dump_page_vec(struct iser_page_vec *page_vec)
- 		iser_err("%d %lx\n",i,(unsigned long)page_vec->pages[i]);
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 20eec09..cc2dd35 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -274,6 +274,65 @@ void iser_free_fmr_pool(struct ib_conn *ib_conn)
  }
  
--static void iser_page_vec_build(struct iser_data_buf *data,
--				struct iser_page_vec *page_vec,
--				struct ib_device *ibdev)
--{
--	int page_vec_len = 0;
--
--	page_vec->length = 0;
--	page_vec->offset = 0;
--
--	iser_dbg("Translating sg sz: %d\n", data->dma_nents);
--	page_vec_len = iser_sg_to_page_vec(data, ibdev, page_vec->pages,
--					   &page_vec->offset,
--					   &page_vec->data_size);
--	iser_dbg("sg len %d page_vec_len %d\n", data->dma_nents, page_vec_len);
--
--	page_vec->length = page_vec_len;
--
--	if (page_vec_len * SIZE_4K < page_vec->data_size) {
--		iser_err("page_vec too short to hold this SG\n");
--		iser_data_buf_dump(data, ibdev);
--		iser_dump_page_vec(page_vec);
--		BUG();
--	}
--}
--
- int iser_dma_map_task_data(struct iscsi_iser_task *iser_task,
- 			    struct iser_data_buf *data,
- 			    enum iser_data_dir iser_dir,
-@@ -367,43 +342,44 @@ static int fall_to_bounce_buf(struct iscsi_iser_task *iser_task,
-  * returns: 0 on success, errno code on failure
-  */
- static
--int iser_reg_page_vec(struct ib_conn *ib_conn,
-+int iser_reg_page_vec(struct iscsi_iser_task *iser_task,
-+		      struct iser_data_buf *mem,
- 		      struct iser_page_vec *page_vec,
--		      struct iser_mem_reg  *mem_reg)
-+		      struct iser_mem_reg *mem_reg)
- {
--	struct ib_pool_fmr *mem;
--	u64		   io_addr;
--	u64		   *page_list;
--	int		   status;
--
--	page_list = page_vec->pages;
--	io_addr	  = page_list[0];
-+	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
-+	struct iser_device *device = ib_conn->device;
-+	struct ib_pool_fmr *fmr;
-+	int ret, plen;
+ static int
++iser_alloc_pi_ctx(struct ib_device *ib_device, struct ib_pd *pd,
++		  struct fast_reg_descriptor *desc)
++{
++	struct iser_pi_context *pi_ctx = NULL;
++	struct ib_mr_init_attr mr_init_attr = {.max_reg_descriptors = 2,
++					       .flags = IB_MR_SIGNATURE_EN};
++	int ret = 0;
 +
-+	plen = iser_sg_to_page_vec(mem, device->ib_device,
-+				   page_vec->pages,
-+				   &page_vec->offset,
-+				   &page_vec->data_size);
-+	page_vec->length = plen;
-+	if (plen * SIZE_4K < page_vec->data_size) {
-+		iser_err("page vec too short to hold this SG\n");
-+		iser_data_buf_dump(mem, device->ib_device);
-+		iser_dump_page_vec(page_vec);
-+		return -EINVAL;
++	desc->pi_ctx = kzalloc(sizeof(*desc->pi_ctx), GFP_KERNEL);
++	if (!desc->pi_ctx)
++		return -ENOMEM;
++
++	pi_ctx = desc->pi_ctx;
++
++	pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(ib_device,
++					    ISCSI_ISER_SG_TABLESIZE);
++	if (IS_ERR(pi_ctx->prot_frpl)) {
++		ret = PTR_ERR(pi_ctx->prot_frpl);
++		goto prot_frpl_failure;
 +	}
- 
--	mem  = ib_fmr_pool_map_phys(ib_conn->fmr.pool,
--				    page_list,
-+	fmr  = ib_fmr_pool_map_phys(ib_conn->fmr.pool,
-+				    page_vec->pages,
- 				    page_vec->length,
--				    io_addr);
--
--	if (IS_ERR(mem)) {
--		status = (int)PTR_ERR(mem);
--		iser_err("ib_fmr_pool_map_phys failed: %d\n", status);
--		return status;
-+				    page_vec->pages[0]);
-+	if (IS_ERR(fmr)) {
-+		ret = PTR_ERR(fmr);
-+		iser_err("ib_fmr_pool_map_phys failed: %d\n", ret);
-+		return ret;
- 	}
- 
--	mem_reg->lkey  = mem->fmr->lkey;
--	mem_reg->rkey  = mem->fmr->rkey;
--	mem_reg->len   = page_vec->data_size;
--	mem_reg->va    = io_addr + page_vec->offset;
--	mem_reg->mem_h = (void *)mem;
--
--	iser_dbg("PHYSICAL Mem.register, [PHYS p_array: 0x%p, sz: %d, "
--		 "entry[0]: (0x%08lx,%ld)] -> "
--		 "[lkey: 0x%08X mem_h: 0x%p va: 0x%08lX sz: %ld]\n",
--		 page_vec, page_vec->length,
--		 (unsigned long)page_vec->pages[0],
--		 (unsigned long)page_vec->data_size,
--		 (unsigned int)mem_reg->lkey, mem_reg->mem_h,
--		 (unsigned long)mem_reg->va, (unsigned long)mem_reg->len);
-+	mem_reg->lkey = fmr->fmr->lkey;
-+	mem_reg->rkey = fmr->fmr->rkey;
-+	mem_reg->va = page_vec->pages[0] + page_vec->offset;
-+	mem_reg->len = page_vec->data_size;
-+	mem_reg->mem_h = fmr;
 +
- 	return 0;
- }
++	pi_ctx->prot_mr = ib_alloc_fast_reg_mr(pd,
++					ISCSI_ISER_SG_TABLESIZE + 1);
++	if (IS_ERR(pi_ctx->prot_mr)) {
++		ret = PTR_ERR(pi_ctx->prot_mr);
++		goto prot_mr_failure;
++	}
++	desc->reg_indicators |= ISER_PROT_KEY_VALID;
++
++	pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
++	if (IS_ERR(pi_ctx->sig_mr)) {
++		ret = PTR_ERR(pi_ctx->sig_mr);
++		goto sig_mr_failure;
++	}
++	desc->reg_indicators |= ISER_SIG_KEY_VALID;
++	desc->reg_indicators &= ~ISER_FASTREG_PROTECTED;
++
++	return 0;
++
++sig_mr_failure:
++	ib_dereg_mr(desc->pi_ctx->prot_mr);
++prot_mr_failure:
++	ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
++prot_frpl_failure:
++	kfree(desc->pi_ctx);
++
++	return ret;
++}
++
++static void
++iser_free_pi_ctx(struct iser_pi_context *pi_ctx)
++{
++	ib_free_fast_reg_page_list(pi_ctx->prot_frpl);
++	ib_dereg_mr(pi_ctx->prot_mr);
++	ib_destroy_mr(pi_ctx->sig_mr);
++	kfree(pi_ctx);
++}
++
++static int
+ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
+ 			 bool pi_enable, struct fast_reg_descriptor *desc)
+ {
+@@ -297,59 +356,12 @@ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
+ 	desc->reg_indicators |= ISER_DATA_KEY_VALID;
  
-@@ -493,8 +469,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
- 			 (unsigned long)mem_reg->va,
- 			 (unsigned long)mem_reg->len);
- 	} else { /* use FMR for multiple dma entries */
--		iser_page_vec_build(mem, ib_conn->fmr.page_vec, ibdev);
--		err = iser_reg_page_vec(ib_conn, ib_conn->fmr.page_vec,
-+		err = iser_reg_page_vec(iser_task, mem, ib_conn->fmr.page_vec,
- 					mem_reg);
- 		if (err && err != -EAGAIN) {
- 			iser_data_buf_dump(mem, ibdev);
+ 	if (pi_enable) {
+-		struct ib_mr_init_attr mr_init_attr = {0};
+-		struct iser_pi_context *pi_ctx = NULL;
+-
+-		desc->pi_ctx = kzalloc(sizeof(*desc->pi_ctx), GFP_KERNEL);
+-		if (!desc->pi_ctx) {
+-			iser_err("Failed to allocate pi context\n");
+-			ret = -ENOMEM;
++		ret = iser_alloc_pi_ctx(ib_device, pd, desc);
++		if (ret)
+ 			goto pi_ctx_alloc_failure;
+-		}
+-		pi_ctx = desc->pi_ctx;
+-
+-		pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(ib_device,
+-						    ISCSI_ISER_SG_TABLESIZE);
+-		if (IS_ERR(pi_ctx->prot_frpl)) {
+-			ret = PTR_ERR(pi_ctx->prot_frpl);
+-			iser_err("Failed to allocate prot frpl ret=%d\n",
+-				 ret);
+-			goto prot_frpl_failure;
+-		}
+-
+-		pi_ctx->prot_mr = ib_alloc_fast_reg_mr(pd,
+-						ISCSI_ISER_SG_TABLESIZE + 1);
+-		if (IS_ERR(pi_ctx->prot_mr)) {
+-			ret = PTR_ERR(pi_ctx->prot_mr);
+-			iser_err("Failed to allocate prot frmr ret=%d\n",
+-				 ret);
+-			goto prot_mr_failure;
+-		}
+-		desc->reg_indicators |= ISER_PROT_KEY_VALID;
+-
+-		mr_init_attr.max_reg_descriptors = 2;
+-		mr_init_attr.flags |= IB_MR_SIGNATURE_EN;
+-		pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
+-		if (IS_ERR(pi_ctx->sig_mr)) {
+-			ret = PTR_ERR(pi_ctx->sig_mr);
+-			iser_err("Failed to allocate signature enabled mr err=%d\n",
+-				 ret);
+-			goto sig_mr_failure;
+-		}
+-		desc->reg_indicators |= ISER_SIG_KEY_VALID;
+ 	}
+-	desc->reg_indicators &= ~ISER_FASTREG_PROTECTED;
+-
+-	iser_dbg("Create fr_desc %p page_list %p\n",
+-		 desc, desc->data_frpl->page_list);
+ 
+ 	return 0;
+-sig_mr_failure:
+-	ib_dereg_mr(desc->pi_ctx->prot_mr);
+-prot_mr_failure:
+-	ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
+-prot_frpl_failure:
+-	kfree(desc->pi_ctx);
+ pi_ctx_alloc_failure:
+ 	ib_dereg_mr(desc->data_mr);
+ fast_reg_mr_failure:
+@@ -416,12 +428,8 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
+ 		list_del(&desc->list);
+ 		ib_free_fast_reg_page_list(desc->data_frpl);
+ 		ib_dereg_mr(desc->data_mr);
+-		if (desc->pi_ctx) {
+-			ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
+-			ib_dereg_mr(desc->pi_ctx->prot_mr);
+-			ib_destroy_mr(desc->pi_ctx->sig_mr);
+-			kfree(desc->pi_ctx);
+-		}
++		if (desc->pi_ctx)
++			iser_free_pi_ctx(desc->pi_ctx);
+ 		kfree(desc);
+ 		++i;
+ 	}
 -- 
 1.7.1
 
