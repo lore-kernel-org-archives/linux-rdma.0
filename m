@@ -1,58 +1,32 @@
-From: Erez Shitrit <erezsh@dev.mellanox.co.il>
-Subject: Re: [PATCH linux-next 1/4] infiniband/ipoib: fix possible NULL
- pointer dereference in ipoib_get_iflink
-Date: Tue, 14 Apr 2015 19:30:03 +0300
-Message-ID: <CAAk-MO-O9sjHQvDfCEuzJJPvUMXJTuRaCzrCkB0xc1DUfK8Aew@mail.gmail.com>
-References: <1429024817-21561-1-git-send-email-honli@redhat.com>
-	<1429024817-21561-2-git-send-email-honli@redhat.com>
+From: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH linux-next 1/4] infiniband/ipoib: fix possible NULL pointer
+ dereference in ipoib_get_iflink
+Date: Tue, 14 Apr 2015 18:44:11 +0200
+Message-ID: <552D43DB.5070403@6wind.com>
+References: <1429024817-21561-1-git-send-email-honli@redhat.com>	 <1429024817-21561-2-git-send-email-honli@redhat.com>	 <1429025673.7346.37.camel@edumazet-glaptop2.roam.corp.google.com>	 <20150414154422.GB21856@honli.nay.redhat.com> <552D3723.9050706@6wind.com> <1429027293.4333.5.camel@opteya.com>
+Reply-To: nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1429024817-21561-2-git-send-email-honli@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Honggang Li <honli@redhat.com>
-Cc: Roland Dreier <roland@kernel.org>, sean.hefty@intel.com, hal.rosenstock@gmail.com, kaber@trash.net, davem@davemloft.net, Alex Estrin <alex.estrin@intel.com>, Doug Ledford <dledford@redhat.com>, edumazet@google.com, Erez Shitrit <erezsh@mellanox.com>, nicolas.dichtel@6wind.com, maheshb@google.com, jbenc@redhat.com, ebiederm@xmission.com, elfring@users.sourceforge.net, f.fainelli@gmail.com, linux@roeck-us.net, andrew@lunn.ch, sfeldma@gmail.com, alexander.h.duyck@intel.com, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429027293.4333.5.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maheshb-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, andrew-g2DYL2Zd6BY@public.gmane.org, sfeldma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 14, 2015 at 6:20 PM, Honggang Li <honli@redhat.com> wrote:
+Le 14/04/2015 18:01, Yann Droneaud a =C3=A9crit :
+[snip]
+>> Here is the tag:
+>> Fixes: 5aa7add8f14b ("infiniband/ipoib: implement ndo_get_iflink")
+>>
 >
-
-[...]
-
-Hi,
-
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 657b89b..11ea6e2 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -846,7 +846,10 @@ static int ipoib_get_iflink(const struct net_device *dev)
->  {
->         struct ipoib_dev_priv *priv = netdev_priv(dev);
->
-> -       return priv->parent->ifindex;
-> +       if (priv && priv->parent)
-> +               return priv->parent->ifindex;
-> +       else
-> +               return 0;
-This will make parent interface to return 0 instead of its own ifindex.
-I would suggest write something like that:
-
-+       /* parent interface */
-+       if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-+               return dev->ifindex;
-+
-+       /* child/vlan interface */
-+       if (!priv->parent)
-+               return -1;
-+
-        return priv->parent->ifindex;
-
-Thanks,
-Erez.
-
->  }
->
->  static u32 ipoib_addr_hash(struct ipoib_neigh_hash *htbl, u8 *daddr)
-> --
-> 1.8.3.1
->
+> Pardon me, but this patch was never submitted to
+> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org for review !?
+Sorry for that, I missed it. Only Roland Dreier was CCed.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
