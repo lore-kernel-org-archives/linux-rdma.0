@@ -1,85 +1,63 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
-Date: Tue, 14 Apr 2015 11:13:03 +0200
-Message-ID: <552CDA1F.4050609@profitbricks.com>
-References: <552BB470.4090407@profitbricks.com> <552BB85D.7010400@profitbricks.com> <20150413203350.GA20611@obsidianresearch.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH v1 2/2] IB/core: don't disallow registering region starting
+ at 0x0
+Date: Tue, 14 Apr 2015 12:20:22 +0300
+Message-ID: <552CDBD6.1020205@dev.mellanox.co.il>
+References: <cover.1428929103.git.ydroneaud@opteya.com> <ca0fad20f6eff1dae5c4c8cd92fccad188d685c4.1428929103.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150413203350.GA20611-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <ca0fad20f6eff1dae5c4c8cd92fccad188d685c4.1428929103.git.ydroneaud@opteya.com>
+Sender: stable-owner@vger.kernel.org
+To: Yann Droneaud <ydroneaud@opteya.com>, Roland Dreier <roland@kernel.org>
+Cc: linux-rdma@vger.kernel.org, Shachar Raindel <raindel@mellanox.com>, Jack Morgenstein <jackm@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/13/2015 3:56 PM, Yann Droneaud wrote:
+> In a call to ib_umem_get(), if address is 0x0 and size is
+> already page aligned, check added in commit 8494057ab5e4
+> ("IB/uverbs: Prevent integer overflow in ib_umem_get address
+> arithmetic") will refuse to register a memory region that
+> could otherwise be valid (provided vm.mmap_min_addr sysctl
+> and mmap_low_allowed SELinux knobs allow userspace to map
+> something at address 0x0).
+>
+> This patch allows back such registration: ib_umem_get()
+> should probably don't care of the base address provided it
+> can be pinned with get_user_pages().
+>
+> There's two possible overflows, in (addr + size) and in
+> PAGE_ALIGN(addr + size), this patch keep ensuring none
+> of them happen while allowing to pin memory at address
+> 0x0. Anyway, the case of size equal 0 is no more (partially)
+> handled as 0-length memory region are disallowed by an
+> earlier check.
+>
+> Link: http://mid.gmane.org/cover.1428929103.git.ydroneaud@opteya.com
+> Cc: <stable@vger.kernel.org> # 8494057ab5e4 ("IB/uverbs: Prevent integer overflow in ib_umem_get address arithmetic")
+> Cc: Shachar Raindel <raindel@mellanox.com>
+> Cc: Jack Morgenstein <jackm@mellanox.com>
+> Cc: Or Gerlitz <ogerlitz@mellanox.com>
+> Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
+> ---
+>   drivers/infiniband/core/umem.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> index 9ac4068d2088..38acb3cfc545 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -106,8 +106,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+>   	 * If the combination of the addr and size requested for this memory
+>   	 * region causes an integer overflow, return error.
+>   	 */
+> -	if ((PAGE_ALIGN(addr + size) <= size) ||
+> -	    (PAGE_ALIGN(addr + size) <= addr))
+> +	if (((addr + size) < addr) ||
+> +	    PAGE_ALIGN(addr + size) < (addr + size))
 
+If you do change the first statement to be: (addr + size) <= addr
+wouldn't it cover patch #1?
 
-On 04/13/2015 10:33 PM, Jason Gunthorpe wrote:
-> On Mon, Apr 13, 2015 at 02:36:45PM +0200, Michael Wang wrote:
->> We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
->> is no longer necessary, thus clean it up.
-> 
-> So, the net result is not looking too bad, but I'm confused about the
-> structure of this series.
-> 
-> Why introduce query_transport early on?
-
-This won't be erased until bitmask introduced, at this moment it's the basic
-method for helpers to acquire port transport from device.
-
-Sure we can still use the legacy method but IMHO this abstraction will be
-more readable for internal reforming, it's like 'mapping from tech to bits'
-VS 'mapping from transport and link layer to bits'.
-
-> 
-> Why is the patch series going through this progression most lines?
-> 
-> -       if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
-> +       if (rdma_tech_ib(device, port_num)) {
-
-This is mostly focus on the reforming on logical.
-
-> +       if (cap_ib_smi(device, port_num)) {
-
-This focus on the description and semantic, won't contain logical reform
-, just replace the helper.
-
-I want this way to help us focus on the different main point during the review :-)
-
-> 
-> This would be a lot shorter and simpler to look at if the cap's were
-> introduced first, then their implementation finalized.
-> 
-> I thought we agreed Doug's bitmask plan should be the final
-> destination for this series, so this progress seems even stranger?
-> 
-> I would be very happy to see a patch that adds cap_ib_smi to the
-> current tree and states 'This patch is tested to have no change on the
-> binary compilation results'
-
-There are too much reform there (per-dev to per-port), I guess the binary
-will changed more or less anyway...
-
-BTW, I may misunderstanding your point on "Re: [PATCH v2 03/17]":
-
-> I would prefer to see these changes in control flow as dedicated
-> patches, at the top of your patch stack.
-> For this kind of work a patch should be mechanical changes only, it is
-> easier to review that way.
-> Same comment applies throughout.
-
-I thought you prefer introducing cap_XX() based on the reforming...
-
-But anyway, please let me know if this really bothered the review :-)
-
-Regards,
-Michael Wang
-
-> 
-> Jason
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi.
