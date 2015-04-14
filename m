@@ -1,67 +1,136 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v3 10/28] IB/Verbs: Reform cm related part in IB-core
- cma
-Date: Tue, 14 Apr 2015 10:35:34 +0200
-Message-ID: <552CD156.9060709@profitbricks.com>
-References: <552BB470.4090407@profitbricks.com> <552BB60F.60109@profitbricks.com> <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF@ORSMSX109.amr.corp.intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/verbs: Check each operation of dma_ops individually
+Date: Tue, 14 Apr 2015 11:45:40 +0300
+Message-ID: <20150414084539.GA6385@yuval-lab>
+References: <1424667027-8790-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF@ORSMSX109.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hefty, Sean" <sean.hefty@intel.com>, Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, infinipath <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, "Latif, Faisal" <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, "Weiny, Ira" <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1424667027-8790-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+ping
 
-
-On 04/13/2015 09:25 PM, Hefty, Sean wrote:
->> @@ -1037,17 +1033,13 @@ void rdma_destroy_id(struct rdma_cm_id *id)
->>  	mutex_unlock(&id_priv->handler_mutex);
->>
->>  	if (id_priv->cma_dev) {
->> -		switch (rdma_node_get_transport(id_priv->id.device-
->>> node_type)) {
->> -		case RDMA_TRANSPORT_IB:
->> +		if (rdma_ib_or_iboe(id_priv->id.device, id_priv->id.port_num))
+On Sun, Feb 22, 2015 at 08:50:27PM -0800, Yuval Shaia wrote:
+> Current approach force one to implement all ops even when some functions can use the default implementation.
+> As a result, for new DMA ops (e.x new arch) many functions just wrap the default function.
+> The fix is to check each DMA operation individually so one can leave empty the ones not need to be override.
 > 
-> A listen id can be associated with a device without being associated with a port (see the listen_any_list). 
-Some other check is needed to handle this case.  I guess the code could check the first port on the device
-(replace port_num with hardcoded value 1).  Then we wouldn't be any more broken than the code already is.
-(The 'break' is conceptual, not practical.)
-
-Agree, seems like this is very similar to the case of cma_listen_on_dev() which
-do not associated with any particular port in #24.
-
-If the port 1 is enough to present the whole device's cm capability, maybe we can
-get rid of cap_ib_cm_dev() too?
-
-And maybe cap_ib_cm(device, device->node_type == RDMA_NODE_IB_SWITCH ? 0:1) would
-be safer?
-
-Regards,
-Michael Wang
-
-
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/rdma/ib_verbs.h |   22 +++++++++++-----------
+>  1 files changed, 11 insertions(+), 11 deletions(-)
 > 
-> This appears to be highlighting an architectural flaw in the iboe integration.
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 0d74f1d..166c01a 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -2145,7 +2145,7 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags);
+>   */
+>  static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->mapping_error)
+>  		return dev->dma_ops->mapping_error(dev, dma_addr);
+>  	return dma_mapping_error(dev->dma_device, dma_addr);
+>  }
+> @@ -2161,7 +2161,7 @@ static inline u64 ib_dma_map_single(struct ib_device *dev,
+>  				    void *cpu_addr, size_t size,
+>  				    enum dma_data_direction direction)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->map_single)
+>  		return dev->dma_ops->map_single(dev, cpu_addr, size, direction);
+>  	return dma_map_single(dev->dma_device, cpu_addr, size, direction);
+>  }
+> @@ -2177,7 +2177,7 @@ static inline void ib_dma_unmap_single(struct ib_device *dev,
+>  				       u64 addr, size_t size,
+>  				       enum dma_data_direction direction)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->unmap_single)
+>  		dev->dma_ops->unmap_single(dev, addr, size, direction);
+>  	else
+>  		dma_unmap_single(dev->dma_device, addr, size, direction);
+> @@ -2215,7 +2215,7 @@ static inline u64 ib_dma_map_page(struct ib_device *dev,
+>  				  size_t size,
+>  					 enum dma_data_direction direction)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->map_page)
+>  		return dev->dma_ops->map_page(dev, page, offset, size, direction);
+>  	return dma_map_page(dev->dma_device, page, offset, size, direction);
+>  }
+> @@ -2231,7 +2231,7 @@ static inline void ib_dma_unmap_page(struct ib_device *dev,
+>  				     u64 addr, size_t size,
+>  				     enum dma_data_direction direction)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->unmap_page)
+>  		dev->dma_ops->unmap_page(dev, addr, size, direction);
+>  	else
+>  		dma_unmap_page(dev->dma_device, addr, size, direction);
+> @@ -2248,7 +2248,7 @@ static inline int ib_dma_map_sg(struct ib_device *dev,
+>  				struct scatterlist *sg, int nents,
+>  				enum dma_data_direction direction)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->map_sg)
+>  		return dev->dma_ops->map_sg(dev, sg, nents, direction);
+>  	return dma_map_sg(dev->dma_device, sg, nents, direction);
+>  }
+> @@ -2264,7 +2264,7 @@ static inline void ib_dma_unmap_sg(struct ib_device *dev,
+>  				   struct scatterlist *sg, int nents,
+>  				   enum dma_data_direction direction)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->unmap_sg)
+>  		dev->dma_ops->unmap_sg(dev, sg, nents, direction);
+>  	else
+>  		dma_unmap_sg(dev->dma_device, sg, nents, direction);
+> @@ -2325,7 +2325,7 @@ static inline void ib_dma_sync_single_for_cpu(struct ib_device *dev,
+>  					      size_t size,
+>  					      enum dma_data_direction dir)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->sync_single_for_cpu)
+>  		dev->dma_ops->sync_single_for_cpu(dev, addr, size, dir);
+>  	else
+>  		dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
+> @@ -2343,7 +2343,7 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
+>  						 size_t size,
+>  						 enum dma_data_direction dir)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->sync_single_for_device)
+>  		dev->dma_ops->sync_single_for_device(dev, addr, size, dir);
+>  	else
+>  		dma_sync_single_for_device(dev->dma_device, addr, size, dir);
+> @@ -2361,7 +2361,7 @@ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
+>  					   u64 *dma_handle,
+>  					   gfp_t flag)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->alloc_coherent)
+>  		return dev->dma_ops->alloc_coherent(dev, size, dma_handle, flag);
+>  	else {
+>  		dma_addr_t handle;
+> @@ -2384,7 +2384,7 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
+>  					size_t size, void *cpu_addr,
+>  					u64 dma_handle)
+>  {
+> -	if (dev->dma_ops)
+> +	if (dev->dma_ops && dev->dma_ops->free_coherent)
+>  		dev->dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
+>  	else
+>  		dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
+> -- 
+> 1.7.1
 > 
->> {
->>  			if (id_priv->cm_id.ib)
->>  				ib_destroy_cm_id(id_priv->cm_id.ib);
->> -			break;
->> -		case RDMA_TRANSPORT_IWARP:
->> +		} else if (rdma_tech_iwarp(id_priv->id.device,
->> +					   id_priv->id.port_num)) {
->>  			if (id_priv->cm_id.iw)
->>  				iw_destroy_cm_id(id_priv->cm_id.iw);
->> -			break;
->> -		default:
->> -			break;
->>  		}
->>  		cma_leave_mc_groups(id_priv);
->>  		cma_release_dev(id_priv);
-> 
->  - Sean
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
