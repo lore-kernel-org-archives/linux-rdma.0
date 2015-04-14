@@ -1,136 +1,84 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/verbs: Check each operation of dma_ops individually
-Date: Tue, 14 Apr 2015 11:52:11 +0300
-Message-ID: <552CD53B.3@dev.mellanox.co.il>
-References: <1424667027-8790-1-git-send-email-yuval.shaia@oracle.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
+Date: Tue, 14 Apr 2015 11:13:03 +0200
+Message-ID: <552CDA1F.4050609@profitbricks.com>
+References: <552BB470.4090407@profitbricks.com> <552BB85D.7010400@profitbricks.com> <20150413203350.GA20611@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1424667027-8790-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150413203350.GA20611-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/23/2015 6:50 AM, Yuval Shaia wrote:
-> Current approach force one to implement all ops even when some functions can use the default implementation.
-> As a result, for new DMA ops (e.x new arch) many functions just wrap the default function.
-> The fix is to check each DMA operation individually so one can leave empty the ones not need to be override.
->
 
-I guess this is OK, but aren't we better off with wrappers than
-adding another condition statement?
 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->   include/rdma/ib_verbs.h |   22 +++++++++++-----------
->   1 files changed, 11 insertions(+), 11 deletions(-)
->
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 0d74f1d..166c01a 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -2145,7 +2145,7 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags);
->    */
->   static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->mapping_error)
->   		return dev->dma_ops->mapping_error(dev, dma_addr);
->   	return dma_mapping_error(dev->dma_device, dma_addr);
->   }
-> @@ -2161,7 +2161,7 @@ static inline u64 ib_dma_map_single(struct ib_device *dev,
->   				    void *cpu_addr, size_t size,
->   				    enum dma_data_direction direction)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->map_single)
->   		return dev->dma_ops->map_single(dev, cpu_addr, size, direction);
->   	return dma_map_single(dev->dma_device, cpu_addr, size, direction);
->   }
-> @@ -2177,7 +2177,7 @@ static inline void ib_dma_unmap_single(struct ib_device *dev,
->   				       u64 addr, size_t size,
->   				       enum dma_data_direction direction)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->unmap_single)
->   		dev->dma_ops->unmap_single(dev, addr, size, direction);
->   	else
->   		dma_unmap_single(dev->dma_device, addr, size, direction);
-> @@ -2215,7 +2215,7 @@ static inline u64 ib_dma_map_page(struct ib_device *dev,
->   				  size_t size,
->   					 enum dma_data_direction direction)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->map_page)
->   		return dev->dma_ops->map_page(dev, page, offset, size, direction);
->   	return dma_map_page(dev->dma_device, page, offset, size, direction);
->   }
-> @@ -2231,7 +2231,7 @@ static inline void ib_dma_unmap_page(struct ib_device *dev,
->   				     u64 addr, size_t size,
->   				     enum dma_data_direction direction)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->unmap_page)
->   		dev->dma_ops->unmap_page(dev, addr, size, direction);
->   	else
->   		dma_unmap_page(dev->dma_device, addr, size, direction);
-> @@ -2248,7 +2248,7 @@ static inline int ib_dma_map_sg(struct ib_device *dev,
->   				struct scatterlist *sg, int nents,
->   				enum dma_data_direction direction)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->map_sg)
->   		return dev->dma_ops->map_sg(dev, sg, nents, direction);
->   	return dma_map_sg(dev->dma_device, sg, nents, direction);
->   }
-> @@ -2264,7 +2264,7 @@ static inline void ib_dma_unmap_sg(struct ib_device *dev,
->   				   struct scatterlist *sg, int nents,
->   				   enum dma_data_direction direction)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->unmap_sg)
->   		dev->dma_ops->unmap_sg(dev, sg, nents, direction);
->   	else
->   		dma_unmap_sg(dev->dma_device, sg, nents, direction);
-> @@ -2325,7 +2325,7 @@ static inline void ib_dma_sync_single_for_cpu(struct ib_device *dev,
->   					      size_t size,
->   					      enum dma_data_direction dir)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->sync_single_for_cpu)
->   		dev->dma_ops->sync_single_for_cpu(dev, addr, size, dir);
->   	else
->   		dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
-> @@ -2343,7 +2343,7 @@ static inline void ib_dma_sync_single_for_device(struct ib_device *dev,
->   						 size_t size,
->   						 enum dma_data_direction dir)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->sync_single_for_device)
->   		dev->dma_ops->sync_single_for_device(dev, addr, size, dir);
->   	else
->   		dma_sync_single_for_device(dev->dma_device, addr, size, dir);
-> @@ -2361,7 +2361,7 @@ static inline void *ib_dma_alloc_coherent(struct ib_device *dev,
->   					   u64 *dma_handle,
->   					   gfp_t flag)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->alloc_coherent)
->   		return dev->dma_ops->alloc_coherent(dev, size, dma_handle, flag);
->   	else {
->   		dma_addr_t handle;
-> @@ -2384,7 +2384,7 @@ static inline void ib_dma_free_coherent(struct ib_device *dev,
->   					size_t size, void *cpu_addr,
->   					u64 dma_handle)
->   {
-> -	if (dev->dma_ops)
-> +	if (dev->dma_ops && dev->dma_ops->free_coherent)
->   		dev->dma_ops->free_coherent(dev, size, cpu_addr, dma_handle);
->   	else
->   		dma_free_coherent(dev->dma_device, size, cpu_addr, dma_handle);
->
+On 04/13/2015 10:33 PM, Jason Gunthorpe wrote:
+> On Mon, Apr 13, 2015 at 02:36:45PM +0200, Michael Wang wrote:
+>> We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
+>> is no longer necessary, thus clean it up.
+> 
+> So, the net result is not looking too bad, but I'm confused about the
+> structure of this series.
+> 
+> Why introduce query_transport early on?
 
+This won't be erased until bitmask introduced, at this moment it's the basic
+method for helpers to acquire port transport from device.
+
+Sure we can still use the legacy method but IMHO this abstraction will be
+more readable for internal reforming, it's like 'mapping from tech to bits'
+VS 'mapping from transport and link layer to bits'.
+
+> 
+> Why is the patch series going through this progression most lines?
+> 
+> -       if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
+> +       if (rdma_tech_ib(device, port_num)) {
+
+This is mostly focus on the reforming on logical.
+
+> +       if (cap_ib_smi(device, port_num)) {
+
+This focus on the description and semantic, won't contain logical reform
+, just replace the helper.
+
+I want this way to help us focus on the different main point during the review :-)
+
+> 
+> This would be a lot shorter and simpler to look at if the cap's were
+> introduced first, then their implementation finalized.
+> 
+> I thought we agreed Doug's bitmask plan should be the final
+> destination for this series, so this progress seems even stranger?
+> 
+> I would be very happy to see a patch that adds cap_ib_smi to the
+> current tree and states 'This patch is tested to have no change on the
+> binary compilation results'
+
+There are too much reform there (per-dev to per-port), I guess the binary
+will changed more or less anyway...
+
+BTW, I may misunderstanding your point on "Re: [PATCH v2 03/17]":
+
+> I would prefer to see these changes in control flow as dedicated
+> patches, at the top of your patch stack.
+> For this kind of work a patch should be mechanical changes only, it is
+> easier to review that way.
+> Same comment applies throughout.
+
+I thought you prefer introducing cap_XX() based on the reforming...
+
+But anyway, please let me know if this really bothered the review :-)
+
+Regards,
+Michael Wang
+
+> 
+> Jason
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
