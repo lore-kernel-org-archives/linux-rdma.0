@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [patch v3 12/18] IB/iser: Move PI context alloc/free to routines
-Date: Tue, 14 Apr 2015 18:08:22 +0300
-Message-ID: <1429024108-7221-13-git-send-email-sagig@mellanox.com>
+Subject: [patch v3 11/18] IB/iser: Move fastreg descriptor pool get/put to helper functions
+Date: Tue, 14 Apr 2015 18:08:21 +0300
+Message-ID: <1429024108-7221-12-git-send-email-sagig@mellanox.com>
 References: <1429024108-7221-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1429024108-7221-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,164 +10,129 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make iser_[create|destroy]_fastreg_desc shorter, more
-readable and easily extendable.
+Instead of open-coding connection fastreg pool get/put,
+we introduce iser_reg_desc[get|put] helpers.
+
+We aren't setting these static as this will be a per-device
+routine later on. Also, cleanup iser_unreg_rdma_mem_fastreg
+a bit.
 
 This patch does not change any functionality.
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Adir Lev <adirl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c |  118 ++++++++++++++++--------------
- 1 files changed, 63 insertions(+), 55 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |    5 +++
+ drivers/infiniband/ulp/iser/iser_memory.c |   50 ++++++++++++++++++----------
+ 2 files changed, 37 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 20eec09..cc2dd35 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -274,6 +274,65 @@ void iser_free_fmr_pool(struct ib_conn *ib_conn)
- }
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 8133678..185d2ec 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -644,4 +644,9 @@ int iser_create_fastreg_pool(struct ib_conn *ib_conn, unsigned cmds_max);
+ void iser_free_fastreg_pool(struct ib_conn *ib_conn);
+ u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
+ 			     enum iser_data_dir cmd_dir, sector_t *sector);
++struct fast_reg_descriptor *
++iser_reg_desc_get(struct ib_conn *ib_conn);
++void
++iser_reg_desc_put(struct ib_conn *ib_conn,
++		  struct fast_reg_descriptor *desc);
+ #endif
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 6e6b753..17a5d70 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -41,6 +41,32 @@
  
- static int
-+iser_alloc_pi_ctx(struct ib_device *ib_device, struct ib_pd *pd,
+ #define ISER_KMALLOC_THRESHOLD 0x20000 /* 128K - kmalloc limit */
+ 
++struct fast_reg_descriptor *
++iser_reg_desc_get(struct ib_conn *ib_conn)
++{
++	struct fast_reg_descriptor *desc;
++	unsigned long flags;
++
++	spin_lock_irqsave(&ib_conn->lock, flags);
++	desc = list_first_entry(&ib_conn->fastreg.pool,
++				struct fast_reg_descriptor, list);
++	list_del(&desc->list);
++	spin_unlock_irqrestore(&ib_conn->lock, flags);
++
++	return desc;
++}
++
++void
++iser_reg_desc_put(struct ib_conn *ib_conn,
 +		  struct fast_reg_descriptor *desc)
 +{
-+	struct iser_pi_context *pi_ctx = NULL;
-+	struct ib_mr_init_attr mr_init_attr = {.max_reg_descriptors = 2,
-+					       .flags = IB_MR_SIGNATURE_EN};
-+	int ret = 0;
++	unsigned long flags;
 +
-+	desc->pi_ctx = kzalloc(sizeof(*desc->pi_ctx), GFP_KERNEL);
-+	if (!desc->pi_ctx)
-+		return -ENOMEM;
-+
-+	pi_ctx = desc->pi_ctx;
-+
-+	pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(ib_device,
-+					    ISCSI_ISER_SG_TABLESIZE);
-+	if (IS_ERR(pi_ctx->prot_frpl)) {
-+		ret = PTR_ERR(pi_ctx->prot_frpl);
-+		goto prot_frpl_failure;
-+	}
-+
-+	pi_ctx->prot_mr = ib_alloc_fast_reg_mr(pd,
-+					ISCSI_ISER_SG_TABLESIZE + 1);
-+	if (IS_ERR(pi_ctx->prot_mr)) {
-+		ret = PTR_ERR(pi_ctx->prot_mr);
-+		goto prot_mr_failure;
-+	}
-+	desc->reg_indicators |= ISER_PROT_KEY_VALID;
-+
-+	pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
-+	if (IS_ERR(pi_ctx->sig_mr)) {
-+		ret = PTR_ERR(pi_ctx->sig_mr);
-+		goto sig_mr_failure;
-+	}
-+	desc->reg_indicators |= ISER_SIG_KEY_VALID;
-+	desc->reg_indicators &= ~ISER_FASTREG_PROTECTED;
-+
-+	return 0;
-+
-+sig_mr_failure:
-+	ib_dereg_mr(desc->pi_ctx->prot_mr);
-+prot_mr_failure:
-+	ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
-+prot_frpl_failure:
-+	kfree(desc->pi_ctx);
-+
-+	return ret;
++	spin_lock_irqsave(&ib_conn->lock, flags);
++	list_add_tail(&desc->list, &ib_conn->fastreg.pool);
++	spin_unlock_irqrestore(&ib_conn->lock, flags);
 +}
 +
-+static void
-+iser_free_pi_ctx(struct iser_pi_context *pi_ctx)
-+{
-+	ib_free_fast_reg_page_list(pi_ctx->prot_frpl);
-+	ib_dereg_mr(pi_ctx->prot_mr);
-+	ib_destroy_mr(pi_ctx->sig_mr);
-+	kfree(pi_ctx);
-+}
-+
-+static int
- iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
- 			 bool pi_enable, struct fast_reg_descriptor *desc)
+ /**
+  * iser_start_rdma_unaligned_sg
+  */
+@@ -409,17 +435,13 @@ void iser_unreg_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 			    enum iser_data_dir cmd_dir)
  {
-@@ -297,59 +356,12 @@ iser_create_fastreg_desc(struct ib_device *ib_device, struct ib_pd *pd,
- 	desc->reg_indicators |= ISER_DATA_KEY_VALID;
+ 	struct iser_mem_reg *reg = &iser_task->rdma_reg[cmd_dir];
+-	struct iser_conn *iser_conn = iser_task->iser_conn;
+-	struct ib_conn *ib_conn = &iser_conn->ib_conn;
+-	struct fast_reg_descriptor *desc = reg->mem_h;
  
- 	if (pi_enable) {
--		struct ib_mr_init_attr mr_init_attr = {0};
--		struct iser_pi_context *pi_ctx = NULL;
--
--		desc->pi_ctx = kzalloc(sizeof(*desc->pi_ctx), GFP_KERNEL);
--		if (!desc->pi_ctx) {
--			iser_err("Failed to allocate pi context\n");
--			ret = -ENOMEM;
-+		ret = iser_alloc_pi_ctx(ib_device, pd, desc);
-+		if (ret)
- 			goto pi_ctx_alloc_failure;
--		}
--		pi_ctx = desc->pi_ctx;
--
--		pi_ctx->prot_frpl = ib_alloc_fast_reg_page_list(ib_device,
--						    ISCSI_ISER_SG_TABLESIZE);
--		if (IS_ERR(pi_ctx->prot_frpl)) {
--			ret = PTR_ERR(pi_ctx->prot_frpl);
--			iser_err("Failed to allocate prot frpl ret=%d\n",
--				 ret);
--			goto prot_frpl_failure;
--		}
--
--		pi_ctx->prot_mr = ib_alloc_fast_reg_mr(pd,
--						ISCSI_ISER_SG_TABLESIZE + 1);
--		if (IS_ERR(pi_ctx->prot_mr)) {
--			ret = PTR_ERR(pi_ctx->prot_mr);
--			iser_err("Failed to allocate prot frmr ret=%d\n",
--				 ret);
--			goto prot_mr_failure;
--		}
--		desc->reg_indicators |= ISER_PROT_KEY_VALID;
--
--		mr_init_attr.max_reg_descriptors = 2;
--		mr_init_attr.flags |= IB_MR_SIGNATURE_EN;
--		pi_ctx->sig_mr = ib_create_mr(pd, &mr_init_attr);
--		if (IS_ERR(pi_ctx->sig_mr)) {
--			ret = PTR_ERR(pi_ctx->sig_mr);
--			iser_err("Failed to allocate signature enabled mr err=%d\n",
--				 ret);
--			goto sig_mr_failure;
--		}
--		desc->reg_indicators |= ISER_SIG_KEY_VALID;
+-	if (!desc)
++	if (!reg->mem_h)
+ 		return;
+ 
++	iser_reg_desc_put(&iser_task->iser_conn->ib_conn,
++			  reg->mem_h);
+ 	reg->mem_h = NULL;
+-	spin_lock_bh(&ib_conn->lock);
+-	list_add_tail(&desc->list, &ib_conn->fastreg.pool);
+-	spin_unlock_bh(&ib_conn->lock);
+ }
+ 
+ /**
+@@ -725,7 +747,6 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 	struct fast_reg_descriptor *desc = NULL;
+ 	struct ib_sge data_sge;
+ 	int err, aligned_len;
+-	unsigned long flags;
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+ 	if (aligned_len != mem->dma_nents) {
+@@ -739,11 +760,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 
+ 	if (mem->dma_nents != 1 ||
+ 	    scsi_get_prot_op(iser_task->sc) != SCSI_PROT_NORMAL) {
+-		spin_lock_irqsave(&ib_conn->lock, flags);
+-		desc = list_first_entry(&ib_conn->fastreg.pool,
+-					struct fast_reg_descriptor, list);
+-		list_del(&desc->list);
+-		spin_unlock_irqrestore(&ib_conn->lock, flags);
++		desc = iser_reg_desc_get(ib_conn);
+ 		mem_reg->mem_h = desc;
  	}
--	desc->reg_indicators &= ~ISER_FASTREG_PROTECTED;
--
--	iser_dbg("Create fr_desc %p page_list %p\n",
--		 desc, desc->data_frpl->page_list);
+ 
+@@ -799,11 +816,8 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
  
  	return 0;
--sig_mr_failure:
--	ib_dereg_mr(desc->pi_ctx->prot_mr);
--prot_mr_failure:
--	ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
--prot_frpl_failure:
--	kfree(desc->pi_ctx);
- pi_ctx_alloc_failure:
- 	ib_dereg_mr(desc->data_mr);
- fast_reg_mr_failure:
-@@ -416,12 +428,8 @@ void iser_free_fastreg_pool(struct ib_conn *ib_conn)
- 		list_del(&desc->list);
- 		ib_free_fast_reg_page_list(desc->data_frpl);
- 		ib_dereg_mr(desc->data_mr);
--		if (desc->pi_ctx) {
--			ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
--			ib_dereg_mr(desc->pi_ctx->prot_mr);
--			ib_destroy_mr(desc->pi_ctx->sig_mr);
--			kfree(desc->pi_ctx);
--		}
-+		if (desc->pi_ctx)
-+			iser_free_pi_ctx(desc->pi_ctx);
- 		kfree(desc);
- 		++i;
- 	}
+ err_reg:
+-	if (desc) {
+-		spin_lock_irqsave(&ib_conn->lock, flags);
+-		list_add_tail(&desc->list, &ib_conn->fastreg.pool);
+-		spin_unlock_irqrestore(&ib_conn->lock, flags);
+-	}
++	if (desc)
++		iser_reg_desc_put(ib_conn, desc);
+ 
+ 	return err;
+ }
 -- 
 1.7.1
 
