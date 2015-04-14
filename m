@@ -1,66 +1,69 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v3 10/28] IB/Verbs: Reform cm related part in IB-core
- cma
-Date: Tue, 14 Apr 2015 17:58:49 +0200
-Message-ID: <552D3939.6010802@profitbricks.com>
-References: <552BB470.4090407@profitbricks.com> <552BB60F.60109@profitbricks.com> <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF@ORSMSX109.amr.corp.intel.com> <552CD156.9060709@profitbricks.com> <20150414155033.GB13852@phlsvsds.ph.intel.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH linux-next 1/4] infiniband/ipoib: fix possible NULL
+ pointer dereference in ipoib_get_iflink
+Date: Tue, 14 Apr 2015 18:01:33 +0200
+Message-ID: <1429027293.4333.5.camel@opteya.com>
+References: <1429024817-21561-1-git-send-email-honli@redhat.com>
+	 <1429024817-21561-2-git-send-email-honli@redhat.com>
+	 <1429025673.7346.37.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20150414154422.GB21856@honli.nay.redhat.com> <552D3723.9050706@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150414155033.GB13852-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <552D3723.9050706-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
+Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maheshb-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, andrew-g2DYL2Zd6BY@public.gmane.org, sfeldma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Nicolas,
+
+Le mardi 14 avril 2015 =C3=A0 17:49 +0200, Nicolas Dichtel a =C3=A9crit=
+ :
+> Le 14/04/2015 17:44, Honggang LI a =C3=A9crit :
+> > On Tue, Apr 14, 2015 at 08:34:33AM -0700, Eric Dumazet wrote:
+> >> On Tue, 2015-04-14 at 23:20 +0800, Honggang Li wrote:
+> >>> Starting monitoring for VG vg_rdma01:   3 logical volume(s) in vo=
+lume
+> >>> group "vg_rdma01" monitored
+> >>> [  OK  ]
+> >>
+> >>
+> >>> CR2: 0000000000000120
+> >>> ---[ end trace a8610f6e9640eb85 ]---
+> >>>
+> >>> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >>
+> >> When was this bug added ?
+> >>
+> >
+> > Sorry, I do not know. I ran into this bug today when I'm tracing a =
+race
+> > condition issue related qib. In order to check upstream linux-next =
+fix
+> > the race condition or not, I build linux-next-20150414 on two machi=
+nes. Both
+> > machines panic at modprobe ib_ipoib. Do you means I need to report =
+a
+> > bug? But I do not know report to who or where.
+>=20
+> Here is the tag:
+> Fixes: 5aa7add8f14b ("infiniband/ipoib: implement ndo_get_iflink")
+>=20
+
+Pardon me, but this patch was never submitted to
+linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org for review !?
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
 
 
-On 04/14/2015 05:50 PM, ira.weiny wrote:
-> On Tue, Apr 14, 2015 at 10:35:34AM +0200, Michael Wang wrote:
->>
->>
->> On 04/13/2015 09:25 PM, Hefty, Sean wrote:
->>>> @@ -1037,17 +1033,13 @@ void rdma_destroy_id(struct rdma_cm_id *id)
->>>>  	mutex_unlock(&id_priv->handler_mutex);
->>>>
->>>>  	if (id_priv->cma_dev) {
->>>> -		switch (rdma_node_get_transport(id_priv->id.device-
->>>>> node_type)) {
->>>> -		case RDMA_TRANSPORT_IB:
->>>> +		if (rdma_ib_or_iboe(id_priv->id.device, id_priv->id.port_num))
->>>
->>> A listen id can be associated with a device without being associated with a port (see the listen_any_list). 
->> Some other check is needed to handle this case.  I guess the code could check the first port on the device
->> (replace port_num with hardcoded value 1).  Then we wouldn't be any more broken than the code already is.
->> (The 'break' is conceptual, not practical.)
->>
->> Agree, seems like this is very similar to the case of cma_listen_on_dev() which
->> do not associated with any particular port in #24.
->>
->> If the port 1 is enough to present the whole device's cm capability, maybe we can
->> get rid of cap_ib_cm_dev() too?
->>
->> And maybe cap_ib_cm(device, device->node_type == RDMA_NODE_IB_SWITCH ? 0:1) would
->> be safer?
-> 
-> I don't see support for switch port 0 in cm_add_one() now.  Are switches supposed
-> to be supported?
-
-Just concern about the validation of port... is it possible that the device we check
-in here don't have port 1? (forgive me if the question is too silly :-P)
-
-Regards,
-Michael Wang
-
-> 
-> Ira
-> 
->>
->> Regards,
->> Michael Wang
->>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
