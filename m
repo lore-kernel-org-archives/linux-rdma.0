@@ -1,62 +1,57 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 01/28] IB/Verbs: Implement new callback query_transport()
-Date: Wed, 15 Apr 2015 16:39:47 -0400
-Message-ID: <20150415203947.GB15877@phlsvsds.ph.intel.com>
-References: <552BB470.4090407@profitbricks.com> <552BB4FA.5000109@profitbricks.com> <552EAF9D.8050400@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FC1C7C@ORSMSX109.amr.corp.intel.com>
+From: Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Date: Wed, 15 Apr 2015 13:42:47 -0700
+Message-ID: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC1C7C-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Andy Walls <awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala-ORSVBvAovxo@public.gmane.org>, Linux
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 15, 2015 at 01:29:31PM -0600, Hefty, Sean wrote:
-> > libibverbs also exposes transport at the device level. Isn't a change to
-> > make transport per port rather than per device needed there as well to
-> > be consistent with these proposed kernel changes ? If so, would the
-> > additional IBoE transport be exposed ? We also need to worry about
-> > backward compatibility for existing applications.
-> 
-> Libibverbs probably can't change without bumping the major version number.  If the kernel attribute structures change, this is probably something that the user_verbs module would need to handle to avoid breaking the ABI.
+On Mon, Apr 13, 2015 at 10:49 AM, Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org> wrote:
+
+> c) ivtv: the driver does not have the PCI space mapped out separately, and
+> in fact it actually does not do the math for the framebuffer, instead it lets
+> the device's own CPU do that and assume where its at, see
+> ivtvfb_get_framebuffer() and CX2341X_OSD_GET_FRAMEBUFFER, it has a get
+> but not a setter. Its not clear if the firmware would make a split easy.
+> We'd need ioremap_ucminus() here too and __arch_phys_wc_add().
 >
 
-Transport is not directly sent thought the kernel ABI.  It is fabricated when
-the HCA provider driver is loaded.
+IMO this should be conceptually easy to split.  Once we get the
+framebuffer address, just unmap it (or don't prematurely map it) and
+then ioremap the thing.
 
-static struct ibv_device *try_driver(struct ibv_driver *driver,
-                                     struct ibv_sysfs_dev *sysfs_dev)
-{
-...
-        switch (dev->node_type) {
-        case IBV_NODE_CA:
-        case IBV_NODE_SWITCH:
-        case IBV_NODE_ROUTER:
-                dev->transport_type = IBV_TRANSPORT_IB;
-                break;
-        case IBV_NODE_RNIC:
-                dev->transport_type = IBV_TRANSPORT_IWARP;
-                break;
-        case IBV_NODE_USNIC:
-                dev->transport_type = IBV_TRANSPORT_USNIC;
-                break;
-        case IBV_NODE_USNIC_UDP:
-                dev->transport_type = IBV_TRANSPORT_USNIC_UDP;
-                break;
-        default:
-                dev->transport_type = IBV_TRANSPORT_UNKNOWN;
-                break;
-        }
-...
-}
+> From the beginning it seems only framebuffer devices used MTRR/WC, lately it
+> seems infiniband drivers also find good use for for it for PIO TX buffers to
+> blast some sort of data, in the future I would not be surprised if other
+> devices found use for it.
 
-I'm not sure how to fix this once we get to the user space problem.  But I
-don't think it affects this set of patches.
+IMO the Infiniband maintainers should fix their code.  Especially in
+the server space, there aren't that many MTRRs to go around.  I wrote
+arch_phys_wc_add in the first place because my server *ran out of
+MTRRs*.
 
-Ira
+Hey, IB people: can you fix your drivers to use arch_phys_wc_add
+(which is permitted to be a no-op) along with ioremap_wc?  Your users
+will thank you.
 
+> It may be true that the existing drivers that
+> requires the above type of work are corner cases -- but I wouldn't hold my
+> breath for that. The ivtv device is a good example of the worst type of
+> situations and these days. So perhap __arch_phys_wc_add() and a
+> ioremap_ucminus() might be something more than transient unless hardware folks
+> get a good memo or already know how to just Do The Right Thing (TM).
+
+I disagree.  We should try to NACK any new code that can't function
+without MTRRs.
+
+(Plus, ARM is growing in popularity in the server space, and ARM quite
+sensibly doesn't have MTRRs.)
+
+--Andy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
