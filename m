@@ -1,105 +1,60 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/4] Misc. fixes and cleanup for iw_cxgb4
-Date: Wed, 15 Apr 2015 16:33:29 -0400
-Message-ID: <1429130009.2980.399.camel@redhat.com>
-References: <1426783410-5128-1-git-send-email-hariprasad@chelsio.com>
-	 <552EB35B.2060805@opengridcomputing.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 01/28] IB/Verbs: Implement new callback query_transport()
+Date: Wed, 15 Apr 2015 16:33:33 -0400
+Message-ID: <20150415203332.GA15877@phlsvsds.ph.intel.com>
+References: <552BB470.4090407@profitbricks.com> <552BB4FA.5000109@profitbricks.com> <552EAF9D.8050400@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-kXmOQb0UCFVcvgkqy13h"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552EB35B.2060805-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <552EAF9D.8050400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Apr 15, 2015 at 02:36:13PM -0400, Hal Rosenstock wrote:
+> On 4/13/2015 8:22 AM, Michael Wang wrote:
+> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> > index 65994a1..d54f91e 100644
+> > --- a/include/rdma/ib_verbs.h
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -75,10 +75,13 @@ enum rdma_node_type {
+> >  };
+> >  
+> >  enum rdma_transport_type {
+> > +	/* legacy for users */
+> >  	RDMA_TRANSPORT_IB,
+> >  	RDMA_TRANSPORT_IWARP,
+> >  	RDMA_TRANSPORT_USNIC,
+> > -	RDMA_TRANSPORT_USNIC_UDP
+> > +	RDMA_TRANSPORT_USNIC_UDP,
+> > +	/* new transport */
+> > +	RDMA_TRANSPORT_IBOE,
+> >  };
+> >  
+> >  __attribute_const__ enum rdma_transport_type
+> > @@ -1501,6 +1504,8 @@ struct ib_device {
+> >  	int		           (*query_port)(struct ib_device *device,
+> >  						 u8 port_num,
+> >  						 struct ib_port_attr *port_attr);
+> > +	enum rdma_transport_type   (*query_transport)(struct ib_device *device,
+> > +						      u8 port_num);
+> >  	enum rdma_link_layer	   (*get_link_layer)(struct ib_device *device,
+> >  						     u8 port_num);
+> >  	int		           (*query_gid)(struct ib_device *device,
+> 
+> libibverbs also exposes transport at the device level. Isn't a change to
+> make transport per port rather than per device needed there as well to
+> be consistent with these proposed kernel changes ? If so, would the
+> additional IBoE transport be exposed ? We also need to worry about
+> backward compatibility for existing applications.
 
---=-kXmOQb0UCFVcvgkqy13h
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Early on in this thread we agreed that user space would stay the same until we
+get the kernel straightened out.  The above enum and function are not exported
+to user space so I believe this is in alignment with that plan.
 
-On Wed, 2015-04-15 at 13:52 -0500, Steve Wise wrote:
-> Hey Doug/Roland,
->=20
-> Please include this in the 4.1 merge...
-
-These patches no longer apply cleanly.
-
-> Thanks,
->=20
-> Steve.
->=20
->=20
->=20
-> On 3/19/2015 11:43 AM, Hariprasad Shenai wrote:
-> > Hi,
-> >
-> > This patch series changes a macro definition to be consistent with othe=
-r
-> > register macro defines. Fixes for 32b platform, use BAR2 register for k=
-ernel
-> > mode CQ's and enforces qp/cq id requirements.
-> >
-> > The patches series is created against 'infiniband' tree for-next branch=
-.
-> > And includes patches on iw_cxgb4 driver.
-> >
-> > We have included all the maintainers of respective drivers. Kindly revi=
-ew the
-> > change and let us know in case of any review comments.
-> >
-> > Thanks
-> >
-> > Hariprasad Shenai (4):
-> >    iw_cxgb4: Cleanup register defines/MACROS
-> >    iw_cxgb4: 32b platform fixes
-> >    iw_cxgb4: use BAR2 GTS register for T5 kernel mode CQs
-> >    iw_cxgb4: enforce qp/cq id requirements
-> >
-> >   drivers/infiniband/hw/cxgb4/cm.c          |    6 +++---
-> >   drivers/infiniband/hw/cxgb4/cq.c          |   21 ++++++++++++++------=
--
-> >   drivers/infiniband/hw/cxgb4/device.c      |   29 ++++++++++++++++++++=
-++++++---
-> >   drivers/infiniband/hw/cxgb4/mem.c         |   10 +++++-----
-> >   drivers/infiniband/hw/cxgb4/qp.c          |   14 +++++++-------
-> >   drivers/infiniband/hw/cxgb4/t4.h          |    7 ++++---
-> >   drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |    4 +++-
-> >   7 files changed, 62 insertions(+), 29 deletions(-)
->=20
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-kXmOQb0UCFVcvgkqy13h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJVLssaAAoJELgmozMOVy/dhvUP/j4CG9m18xavREVDI/6l+G4T
-dC3SYt/aJsBRTrXCoaeoFLItsVmqzjco+YM3cZox4u4gvgGntL8nGd7ZtFNuLyxd
-d6CxMosIxFI5wuwf2wPQ9u0/B16E97SO+mBwcsP3qp83ioyn7vj6glmQqMEGcsiq
-XElixT+0GzDPAJXjm/tquFiJDRgl7BIJ5uBLz9PjCT7+f6DzyTTfGOM7y2XpoiCl
-NCikgKh3Jy7xAGTbaQfSen4QIG8Mj/ko+zXIwoa2Snc7xfrrFlJ/rdZ89Nienupe
-qTxOMYZnWhUI/DF4zU7yLXSti1bK6wQsWNdjCWisUHcCJf9OL4ZTJEmJeZIXmdJu
-mhPqcEaVHXwsllgiHsOq1pipbCo49IwZF/3A1333n8d0SkVre3wqZjwAfiSZSdva
-BvUMsHzMll/k7/fAa3WfTSbSzXhiwuP8dOqiCZl0iW2xPVF+csHPPqwK2twfyo05
-Tydooq+BA6oKNBTmIOjrpWEjs992+sLaQywttds1tQN4GKIQv3nnM2LRGaT6ZRgl
-3p6je6Lxmkc4jSBu2JQro1y4tJxBOPXymEK53MUzBf9a7Ug38fXZqxNlrOa/OXtg
-tp/j8I8zZmz7uRsqrjP/yFfRYbZ7pX1hYZ3wuCY5GvluPuZ/CPtbpbfnM71Bh1is
-OFFh+huU5sePBE9TIMhu
-=5HP3
------END PGP SIGNATURE-----
-
---=-kXmOQb0UCFVcvgkqy13h--
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
