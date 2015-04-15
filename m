@@ -1,66 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH linux-next 1/4] infiniband/ipoib: fix possible NULL
- pointer dereference in ipoib_get_iflink
-Date: Wed, 15 Apr 2015 10:06:23 -0600
-Message-ID: <20150415160623.GA4653@obsidianresearch.com>
-References: <1429024817-21561-1-git-send-email-honli@redhat.com>
- <1429024817-21561-2-git-send-email-honli@redhat.com>
- <CAAk-MO-O9sjHQvDfCEuzJJPvUMXJTuRaCzrCkB0xc1DUfK8Aew@mail.gmail.com>
- <20150414204133.GJ7682@obsidianresearch.com>
- <552E026A.4020200@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Wed, 15 Apr 2015 16:08:25 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC19D9@ORSMSX109.amr.corp.intel.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+ <44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBE792@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D58F98121@CMEXMB1.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC0C00@ORSMSX109.amr.corp.intel.com>
+ <552CDEA5.6020709@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC11F3@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D58FA0B05@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <552E026A.4020200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D58FA0B05-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, maheshb-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, andrew-g2DYL2Zd6BY@public.gmane.org, sfeldma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 15, 2015 at 09:17:14AM +0300, Erez Shitrit wrote:
-> >>+       /* parent interface */
-> >>+       if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-> >>+               return dev->ifindex;
-> >>+
-> >>+       /* child/vlan interface */
-> >>+       if (!priv->parent)
-> >>+               return -1;
+> It does not  break every app, the choice of which GID type to use is made
+> by the RDMA-CM based on network topology hint obtained from the IP stack.
+> Please refer to patch 15/33: IB/Core: Changes to the IB Core
+> infrastructure for RoCEv2 support.
+> Of course, if the user does not want to go with this choice made by the
+> RDMA-CM, then there is the option of overriding it using the configfs
+> patch (PATCH 14/33)
+> Hope that clarifies?
 
-> >Like was said for other drivers, I can't see how parent can be null
-> >while IPOIB_FLAG_SUBINTERFACE is set. Drop the last if.
+RoCE v2 is really Infiniband over UDP over IP.  Why don't we just call it IBoUDP like it is?
 
-> It can, at least for ipoib child interface (AKA "vlan"), you can't
-> control the call for that ndo and it can be called before the parent
-> was set.
-
-If the ndo can be called before the netdev private structures are fully
-prepared then we have another bug, and returning -1 or 0 is not the right
-answer anyhow.
-
-For safety, fold this into your patch.
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index 9fad7b5ac8b9..e62b007adf5d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -58,6 +58,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
-        /* MTU will be reset when mcast join happens */
-        priv->dev->mtu   = IPOIB_UD_MTU(priv->max_ib_mtu);
-        priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
-+       priv->parent = ppriv->dev;
-        set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
- 
-        result = ipoib_set_dev_features(priv, ppriv->ca);
-@@ -84,8 +85,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
-                goto register_failed;
-        }
- 
--       priv->parent = ppriv->dev;
--
-        ipoib_create_debug_files(priv->dev);
- 
-        /* RTNL childs don't need proprietary sysfs entries */
+IBoUDP changes the Ethertype, replaces the network header, adds a new transport protocol header, and layers IB over that.  This change should be exposed properly and not as just a new GID type.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
