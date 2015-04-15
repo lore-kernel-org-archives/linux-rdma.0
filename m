@@ -1,53 +1,60 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Wed, 15 Apr 2015 16:02:28 +0300
-Message-ID: <552E6164.7000802@dev.mellanox.co.il>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com> <1428858993.3470.12.camel@dworkin> <20150413164238.GB17521@obsidianresearch.com> <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1@redhat.com> <20150414234258.GA25810@phlsvsds.ph.intel.com> <232BEA5DF26EF54583B8B332938DD0B84BB8E335@CMEXMB1.ad.emulex.com> <F6B0F954-1E60-4CE9-AF39-7A6E8C8EC47B@redhat.com>
+From: Varun Prakash <varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH net-next v2 1/4] cxgb4/iw_cxgb4/cxgb4i: remove duplicate
+ definitions
+Date: Wed, 15 Apr 2015 18:34:27 +0530
+Message-ID: <20150415130425.GA5317@chelsio.com>
+References: <cover.1428930614.git.varun@chelsio.com>
+ <6358f849b5a1a3727879f4f2f5c855e3a5b95ab4.1428930614.git.varun@chelsio.com>
+ <20150413163808.GA17521@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F6B0F954-1E60-4CE9-AF39-7A6E8C8EC47B-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150413163808.GA17521-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Pradeep Kankipati <Pradeep.Kankipati-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, anish-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, kxie-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, praveenm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/15/2015 3:39 PM, Doug Ledford wrote:
->
->> On Apr 15, 2015, at 7:43 AM, Pradeep Kankipati <Pradeep.Kankipati@Em=
-ulex.Com> wrote:
->>
->> We at Emulex, have been working with Doug on the RH inboxing effort =
-for a while and feel this just makes complete sense for him to take on =
-this role for all the reasons mentioned. Personally too I feel he is an=
- excellent choice.
->
-> Regardless of what we end up doing long term, Roland is out at the mo=
-ment, so 4.1 is happening more or less without him :-/
->
-> I went ahead and put together a 4.1 branch and pulled the patches I t=
-hought were ready.  That=E2=80=99s been pushed to my github.  I know it=
-=E2=80=99s hard to get things done without being able to make sure your=
- patches apply cleanly.  For instance, the namespace patches aren=E2=80=
-=99t included, and that=E2=80=99s at least partially because they didn=E2=
-=80=99t apply cleanly any more.  So, I included the following series of=
- patches:
->
-> My IPoIB changes
-> Erez=E2=80=99s IPoIB changes
-> Or=E2=80=99s mlx4 changes
-> Sagi=E2=80=99s iSER changes
+On Mon, Apr 13, 2015 at 10:38:08AM -0600, Jason Gunthorpe wrote:
+> On Mon, Apr 13, 2015 at 07:34:23PM +0530, Varun Prakash wrote:
+> > define struct ulptx_idata in common header file t4_msg.h
+> > to remove duplicate definitions.
+> 
+> The Infiniband side of this patch looks OK.
+> 
+> Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> 
+> Just some random thoughts on the other patches:
+>  - Try and use 'if (IS_ENABLED(CONFIG_XX))' over #ifdef 
+>    to improve compile test coverage. This would drop a fair number
+>    of ifdefs.
 
-Hey Doug,
+FCoE specific structures and functions are defined only if 
+CONFIG_CHELSIO_T4_FCOE is enabled.
 
-Did you pull v3?
+#ifdef CONFIG_CHELSIO_T4_FCOE
+void cxgb_fcoe_init_ddp(struct adapter *adap)
+{
+	...
+}
+#endif
 
-Sagi.
+If CONFIG_CHELSIO_T4_FCOE is disabled then following code will
+result in build error "implicit declaration of function cxgb_fcoe_init_ddp"
+
+if (IS_ENABLED(CONFIG_CHELSIO_T4_FCOE))
+	cxgb_fcoe_init_ddp(adap);
+
+>  - Some of the commit message are short, or non existant (ie #4)
+>  - Generally, no need for 'static inline' in a .c file, the compiler knows
+>    what to do.
+> 
+> Regards,
+> Jason
+>
+Thanks 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
