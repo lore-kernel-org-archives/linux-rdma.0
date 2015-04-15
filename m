@@ -1,68 +1,52 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH net-next v2 1/4] cxgb4/iw_cxgb4/cxgb4i: remove duplicate
- definitions
-Date: Wed, 15 Apr 2015 10:12:34 -0600
-Message-ID: <20150415161234.GB4653@obsidianresearch.com>
-References: <cover.1428930614.git.varun@chelsio.com>
- <6358f849b5a1a3727879f4f2f5c855e3a5b95ab4.1428930614.git.varun@chelsio.com>
- <20150413163808.GA17521@obsidianresearch.com>
- <20150415130425.GA5317@chelsio.com>
+From: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Wed, 15 Apr 2015 16:21:34 +0000
+Message-ID: <CY1PR03MB1440108D65F18916AF9B2425DEE50@CY1PR03MB1440.namprd03.prod.outlook.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+ <44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FBE792@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D58F98121@CMEXMB1.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC0C00@ORSMSX109.amr.corp.intel.com>
+ <552CDEA5.6020709@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC11F3@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D58FA0B05@CMEXMB1.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC19D9@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150415130425.GA5317@chelsio.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Varun Prakash <varun@chelsio.com>
-Cc: netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, davem@davemloft.net, JBottomley@parallels.com, roland@purestorage.com, leedom@chelsio.com, anish@chelsio.com, hariprasad@chelsio.com, swise@opengridcomputing.com, kxie@chelsio.com, praveenm@chelsio.com, kumaras@chelsio.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC19D9-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 15, 2015 at 06:34:27PM +0530, Varun Prakash wrote:
-> On Mon, Apr 13, 2015 at 10:38:08AM -0600, Jason Gunthorpe wrote:
-> > On Mon, Apr 13, 2015 at 07:34:23PM +0530, Varun Prakash wrote:
-> > > define struct ulptx_idata in common header file t4_msg.h
-> > > to remove duplicate definitions.
-> > 
-> > The Infiniband side of this patch looks OK.
-> > 
-> > Reviewed-By: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-> > 
-> > Just some random thoughts on the other patches:
-> >  - Try and use 'if (IS_ENABLED(CONFIG_XX))' over #ifdef 
-> >    to improve compile test coverage. This would drop a fair number
-> >    of ifdefs.
-> 
-> FCoE specific structures and functions are defined only if 
-> CONFIG_CHELSIO_T4_FCOE is enabled.
+IMHO, it would be good to have a physical layer representation in the naming convention.
 
-I saw a number of places that could be switched, you should look
-through.
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
+Sent: Wednesday, April 15, 2015 12:08 PM
+To: Somnath Kotur; Matan Barak; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
 
-> #ifdef CONFIG_CHELSIO_T4_FCOE
-> void cxgb_fcoe_init_ddp(struct adapter *adap)
-> {
-> 	...
-> }
-> #endif
-> 
-> If CONFIG_CHELSIO_T4_FCOE is disabled then following code will
-> result in build error "implicit declaration of function cxgb_fcoe_init_ddp"
->
-> if (IS_ENABLED(CONFIG_CHELSIO_T4_FCOE))
-> 	cxgb_fcoe_init_ddp(adap);
+> It does not  break every app, the choice of which GID type to use is
+> made by the RDMA-CM based on network topology hint obtained from the IP stack.
+> Please refer to patch 15/33: IB/Core: Changes to the IB Core
+> infrastructure for RoCEv2 support.
+> Of course, if the user does not want to go with this choice made by
+> the RDMA-CM, then there is the option of overriding it using the
+> configfs patch (PATCH 14/33) Hope that clarifies?
 
-Commonly the ifdef would be moved to the function header and a static
-inline cxgb_fcoe_init_ddp(..) {} declared for the ifndef case. For the
-case of static function calls, just drop the ifdefing entirely. The
-compiler will silently drop unused static functions. Think carefully
-about ifdefing out structure members - I don't think saving a few bytes of
-heap in a driver like cxgb4 is worthwhile.
+RoCE v2 is really Infiniband over UDP over IP.  Why don't we just call it IBoUDP like it is?
 
-I also just noticed that
+IBoUDP changes the Ethertype, replaces the network header, adds a new transport protocol header, and layers IB over that.  This change should be exposed properly and not as just a new GID type.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-drivers/net/ethernet/chelsio/cxgb4/cxgb4_fcoe.c
-
-Is wrapped in a whole file #ifdef CONFIG_CHELSIO_T4_FCOE - please use
-the makefile instead for this.
-
-Jason
+This correspondence, and any attachments or files transmitted with this correspondence, contains information which may be confidential and privileged and is intended solely for the use of the addressee. Unless you are the addressee or are authorized to receive messages for the addressee, you may not use, copy, disseminate, or disclose this correspondence or any information contained in this correspondence to any third party. If you have received this correspondence in error, please notify the sender immediately and delete this correspondence and any attachments or files transmitted with this correspondence from your system, and destroy any and all copies thereof, electronic or otherwise. Your cooperation and understanding are greatly appreciated.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
