@@ -1,84 +1,76 @@
-From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH linux-next v5] mlx5: wrong page mask if CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
-Date: Wed, 15 Apr 2015 16:36:15 +0800
-Message-ID: <1429086975-15506-1-git-send-email-honli@redhat.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/iser: Fix regression in DIX mode fast registration flow
+Date: Wed, 15 Apr 2015 13:50:14 +0300
+Message-ID: <1429095014-21789-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for x86 systems and physical
-memory is more than 4GB, dma_map_page may return a valid memory
-address which greater than 0xffffffff. As a result, the mlx5 device page
-allocator RB tree will be initialized with valid addresses greater than
-0xfffffff.
+Fix a wrong setting for a single DMA entry. This
+is menifested only in DIX mode where the protection
+information buffer reg info overrides the data buffer
+reg info.
 
-However, (addr & PAGE_MASK) set the high four bytes to zeros. So, it's
-impossible for the function, free_4k, to release the pages whose
-addresses greater than 4GB. Memory leaks. And mlx5_ib module can't
-release the pages when user try to remove the module, as a result,
-system hang.
-
-[root@rdma05 root]# dmesg  | grep addr | head
-addr             = 3fe384000
-addr & PAGE_MASK =  fe384000
-[root@rdma05 root]# rmmod mlx5_ib   <---- hang on
-
----------------------- cosnole log -----------------
-mlx5_ib 0000:04:00.0: irq 138 for MSI/MSI-X
-  alloc irq_desc for 139 on node -1
-  alloc kstat_irqs on node -1
-mlx5_ib 0000:04:00.0: irq 139 for MSI/MSI-X
-0000:04:00.0:free_4k:221:(pid 1519): page not found
-0000:04:00.0:free_4k:221:(pid 1519): page not found
-0000:04:00.0:free_4k:221:(pid 1519): page not found
-0000:04:00.0:free_4k:221:(pid 1519): page not found
----------------------- cosnole log -----------------
-
-Fixes: bf0bf77f6519 ('mlx5: Support communicating arbitrary host page size to firmware')
-Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Fixes: 6e19ed0dba03 ("IB/iser: Pass struct iser_mem_reg to [...]")
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+Roland,
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-index df22383..8a64542 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -211,26 +211,28 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
- 	return 0;
+This patch is incremental to "iser patches for kernel 4.1 [v2]"
+so just in case you have [v2] applied and it's easier for you
+to apply this instead (although the fixed commit-id needs to
+be altered).
+
+ drivers/infiniband/ulp/iser/iser_memory.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index f90d6de..f0cdc96 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -710,12 +710,11 @@ err:
  }
  
-+#define MLX5_U64_4K_PAGE_MASK ((~(u64)0U) << PAGE_SHIFT)
-+
- static void free_4k(struct mlx5_core_dev *dev, u64 addr)
+ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+-			    struct iser_mem_reg *mem_reg,
+ 			    struct iser_data_buf *mem,
++			    struct fast_reg_descriptor *desc,
+ 			    enum iser_reg_indicator ind,
+ 			    struct iser_mem_reg *reg)
  {
- 	struct fw_page *fwp;
- 	int n;
+-	struct fast_reg_descriptor *desc = mem_reg->mem_h;
+ 	struct ib_conn *ib_conn = &iser_task->iser_conn->ib_conn;
+ 	struct iser_device *device = ib_conn->device;
+ 	struct ib_mr *mr;
+@@ -726,7 +725,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
  
--	fwp = find_fw_page(dev, addr & PAGE_MASK);
-+	fwp = find_fw_page(dev, addr & MLX5_U64_4K_PAGE_MASK);
- 	if (!fwp) {
- 		mlx5_core_warn(dev, "page not found\n");
- 		return;
+ 	/* if there a single dma entry, dma mr suffices */
+ 	if (mem->dma_nents == 1)
+-		return iser_reg_dma(device, mem, mem_reg);
++		return iser_reg_dma(device, mem, reg);
+ 
+ 	if (ind == ISER_DATA_KEY_VALID) {
+ 		mr = desc->data_mr;
+@@ -815,7 +814,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 		mem_reg->mem_h = desc;
  	}
  
--	n = (addr & ~PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
-+	n = (addr & ~MLX5_U64_4K_PAGE_MASK) >> MLX5_ADAPTER_PAGE_SHIFT;
- 	fwp->free_count++;
- 	set_bit(n, &fwp->bitmask);
- 	if (fwp->free_count == MLX5_NUM_4K_IN_PAGE) {
- 		rb_erase(&fwp->rb_node, &dev->priv.page_root);
- 		if (fwp->free_count != 1)
- 			list_del(&fwp->list);
--		dma_unmap_page(&dev->pdev->dev, addr & PAGE_MASK, PAGE_SIZE,
--			       DMA_BIDIRECTIONAL);
-+		dma_unmap_page(&dev->pdev->dev, addr & MLX5_U64_4K_PAGE_MASK,
-+			       PAGE_SIZE, DMA_BIDIRECTIONAL);
- 		__free_page(fwp->page);
- 		kfree(fwp);
- 	} else if (fwp->free_count == 1) {
+-	err = iser_fast_reg_mr(iser_task, mem_reg, mem,
++	err = iser_fast_reg_mr(iser_task, mem, desc,
+ 			       ISER_DATA_KEY_VALID, mem_reg);
+ 	if (err)
+ 		goto err_reg;
+@@ -836,7 +835,7 @@ int iser_reg_rdma_mem_fastreg(struct iscsi_iser_task *iser_task,
+ 				}
+ 			}
+ 
+-			err = iser_fast_reg_mr(iser_task, mem_reg, mem,
++			err = iser_fast_reg_mr(iser_task, mem, desc,
+ 					       ISER_PROT_KEY_VALID, &prot_reg);
+ 			if (err)
+ 				goto err_reg;
 -- 
 1.7.1
 
