@@ -1,52 +1,105 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management)
-Date: Wed, 15 Apr 2015 15:24:28 -0500
-Message-ID: <011e01d077ba$2c6763a0$85362ae0$@opengridcomputing.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com> <1428858993.3470.12.camel@dworkin> <20150413164238.GB17521@obsidianresearch.com> <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/4] Misc. fixes and cleanup for iw_cxgb4
+Date: Wed, 15 Apr 2015 16:33:29 -0400
+Message-ID: <1429130009.2980.399.camel@redhat.com>
+References: <1426783410-5128-1-git-send-email-hariprasad@chelsio.com>
+	 <552EB35B.2060805@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-kXmOQb0UCFVcvgkqy13h"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <552EB35B.2060805-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Yann Droneaud' <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'David Miller' <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, 'Or Gerlitz' <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "'Weiny, Ira'" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, 'Amir Vadai' <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Haggai Eran' <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Shachar Raindel' <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--=-kXmOQb0UCFVcvgkqy13h
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
-> Sent: Monday, April 13, 2015 12:15 PM
-> To: Jason Gunthorpe
-> Cc: Yann Droneaud; Hefty, Sean; Roland Dreier; Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org); David Miller; Or Gerlitz; Weiny, Ira; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; Amir Vadai; Sagi Grimberg; Haggai Eran; Shachar Raindel
-> Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4 changes in virtual GID management)
-> 
-> 
-> > On Apr 13, 2015, at 12:42 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Wed, 2015-04-15 at 13:52 -0500, Steve Wise wrote:
+> Hey Doug/Roland,
+>=20
+> Please include this in the 4.1 merge...
+
+These patches no longer apply cleanly.
+
+> Thanks,
+>=20
+> Steve.
+>=20
+>=20
+>=20
+> On 3/19/2015 11:43 AM, Hariprasad Shenai wrote:
+> > Hi,
 > >
-> > On Sun, Apr 12, 2015 at 07:16:33PM +0200, Yann Droneaud wrote:
+> > This patch series changes a macro definition to be consistent with othe=
+r
+> > register macro defines. Fixes for 32b platform, use BAR2 register for k=
+ernel
+> > mode CQ's and enforces qp/cq id requirements.
 > >
-> >> That would make sense to have someone like Doug or Jason being the
-> >> potential successors to Roland in order to keep InfiniBand subsystem
-> >> vendor neutrality.
+> > The patches series is created against 'infiniband' tree for-next branch=
+.
+> > And includes patches on iw_cxgb4 driver.
 > >
-> > Several people have been asking me privately, I am looking into if
-> > this would be possible or not.
+> > We have included all the maintainers of respective drivers. Kindly revi=
+ew the
+> > change and let us know in case of any review comments.
 > >
-> 
-> Same here (having been asked privately to look into doing this).  FWIW, Red Hat has agreed that they are willing to allow me to transition
-> my job to a full time upstream focused position (as of now, I work on upstream around my deliverables inside the company).
-> 
+> > Thanks
+> >
+> > Hariprasad Shenai (4):
+> >    iw_cxgb4: Cleanup register defines/MACROS
+> >    iw_cxgb4: 32b platform fixes
+> >    iw_cxgb4: use BAR2 GTS register for T5 kernel mode CQs
+> >    iw_cxgb4: enforce qp/cq id requirements
+> >
+> >   drivers/infiniband/hw/cxgb4/cm.c          |    6 +++---
+> >   drivers/infiniband/hw/cxgb4/cq.c          |   21 ++++++++++++++------=
+-
+> >   drivers/infiniband/hw/cxgb4/device.c      |   29 ++++++++++++++++++++=
+++++++---
+> >   drivers/infiniband/hw/cxgb4/mem.c         |   10 +++++-----
+> >   drivers/infiniband/hw/cxgb4/qp.c          |   14 +++++++-------
+> >   drivers/infiniband/hw/cxgb4/t4.h          |    7 ++++---
+> >   drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |    4 +++-
+> >   7 files changed, 62 insertions(+), 29 deletions(-)
+>=20
 
-Doug, I think you're a good fit for the RDMA maintainer if you're willing.
 
-Steve.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
 
+
+--=-kXmOQb0UCFVcvgkqy13h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVLssaAAoJELgmozMOVy/dhvUP/j4CG9m18xavREVDI/6l+G4T
+dC3SYt/aJsBRTrXCoaeoFLItsVmqzjco+YM3cZox4u4gvgGntL8nGd7ZtFNuLyxd
+d6CxMosIxFI5wuwf2wPQ9u0/B16E97SO+mBwcsP3qp83ioyn7vj6glmQqMEGcsiq
+XElixT+0GzDPAJXjm/tquFiJDRgl7BIJ5uBLz9PjCT7+f6DzyTTfGOM7y2XpoiCl
+NCikgKh3Jy7xAGTbaQfSen4QIG8Mj/ko+zXIwoa2Snc7xfrrFlJ/rdZ89Nienupe
+qTxOMYZnWhUI/DF4zU7yLXSti1bK6wQsWNdjCWisUHcCJf9OL4ZTJEmJeZIXmdJu
+mhPqcEaVHXwsllgiHsOq1pipbCo49IwZF/3A1333n8d0SkVre3wqZjwAfiSZSdva
+BvUMsHzMll/k7/fAa3WfTSbSzXhiwuP8dOqiCZl0iW2xPVF+csHPPqwK2twfyo05
+Tydooq+BA6oKNBTmIOjrpWEjs992+sLaQywttds1tQN4GKIQv3nnM2LRGaT6ZRgl
+3p6je6Lxmkc4jSBu2JQro1y4tJxBOPXymEK53MUzBf9a7Ug38fXZqxNlrOa/OXtg
+tp/j8I8zZmz7uRsqrjP/yFfRYbZ7pX1hYZ3wuCY5GvluPuZ/CPtbpbfnM71Bh1is
+OFFh+huU5sePBE9TIMhu
+=5HP3
+-----END PGP SIGNATURE-----
+
+--=-kXmOQb0UCFVcvgkqy13h--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
