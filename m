@@ -1,52 +1,25 @@
-From: Hal Rosenstock <hal@dev.mellanox.co.il>
-Subject: Re: [PATCH v3 01/28] IB/Verbs: Implement new callback query_transport()
-Date: Wed, 15 Apr 2015 14:36:13 -0400
-Message-ID: <552EAF9D.8050400@dev.mellanox.co.il>
-References: <552BB470.4090407@profitbricks.com> <552BB4FA.5000109@profitbricks.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3 10/28] IB/Verbs: Reform cm related part in IB-core
+ cma
+Date: Wed, 15 Apr 2015 14:36:28 -0400
+Message-ID: <552EAFAC.40108@dev.mellanox.co.il>
+References: <552BB470.4090407@profitbricks.com> <552BB60F.60109@profitbricks.com> <1828884A29C6694DAF28B7E6B8A82373A8FC0ACF@ORSMSX109.amr.corp.intel.com> <20150413195040.GB19112@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <552BB4FA.5000109@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Wang <yun.wang@profitbricks.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150413195040.GB19112-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/13/2015 8:22 AM, Michael Wang wrote:
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 65994a1..d54f91e 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -75,10 +75,13 @@ enum rdma_node_type {
->  };
->  
->  enum rdma_transport_type {
-> +	/* legacy for users */
->  	RDMA_TRANSPORT_IB,
->  	RDMA_TRANSPORT_IWARP,
->  	RDMA_TRANSPORT_USNIC,
-> -	RDMA_TRANSPORT_USNIC_UDP
-> +	RDMA_TRANSPORT_USNIC_UDP,
-> +	/* new transport */
-> +	RDMA_TRANSPORT_IBOE,
->  };
->  
->  __attribute_const__ enum rdma_transport_type
-> @@ -1501,6 +1504,8 @@ struct ib_device {
->  	int		           (*query_port)(struct ib_device *device,
->  						 u8 port_num,
->  						 struct ib_port_attr *port_attr);
-> +	enum rdma_transport_type   (*query_transport)(struct ib_device *device,
-> +						      u8 port_num);
->  	enum rdma_link_layer	   (*get_link_layer)(struct ib_device *device,
->  						     u8 port_num);
->  	int		           (*query_gid)(struct ib_device *device,
+On 4/13/2015 3:50 PM, Jason Gunthorpe wrote:
+> Less clear is how rocee vs ib work within a device... Can you APM
+> between those two kinds of ports?
 
-libibverbs also exposes transport at the device level. Isn't a change to
-make transport per port rather than per device needed there as well to
-be consistent with these proposed kernel changes ? If so, would the
-additional IBoE transport be exposed ? We also need to worry about
-backward compatibility for existing applications.
-
--- Hal
+The specs allow this to work but AFAIK it's not implemented.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
