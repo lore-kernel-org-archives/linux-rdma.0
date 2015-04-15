@@ -1,83 +1,44 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH for-next 0/4] Misc. fixes and cleanup for iw_cxgb4
-Date: Wed, 15 Apr 2015 15:55:32 -0500
-Message-ID: <014201d077be$833e63a0$89bb2ae0$@opengridcomputing.com>
-References: <1426783410-5128-1-git-send-email-hariprasad@chelsio.com>	 <552EB35B.2060805@opengridcomputing.com> <1429130009.2980.399.camel@redhat.com>
+From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Date: Wed, 15 Apr 2015 13:56:14 -0700
+Message-ID: <552ED06E.8030303@zytor.com>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429130009.2980.399.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Andy Walls <awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala-ORSVBvAovxo@public.gmane.org>, Linux Fbdev development list <linux-fbdev-u79uwXL29TY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ok, Hari can you please resubmit.   Should it be based on your github for-4.1 branch? 
-
-
-
-
-
-> -----Original Message-----
-> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Wednesday, April 15, 2015 3:33 PM
-> To: Steve Wise
-> Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org; Hariprasad Shenai; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-> Subject: Re: [PATCH for-next 0/4] Misc. fixes and cleanup for iw_cxgb4
+On 04/15/2015 01:42 PM, Andy Lutomirski wrote:
 > 
-> On Wed, 2015-04-15 at 13:52 -0500, Steve Wise wrote:
-> > Hey Doug/Roland,
-> >
-> > Please include this in the 4.1 merge...
+> I disagree.  We should try to NACK any new code that can't function
+> without MTRRs.
 > 
-> These patches no longer apply cleanly.
-> 
-> > Thanks,
-> >
-> > Steve.
-> >
-> >
-> >
-> > On 3/19/2015 11:43 AM, Hariprasad Shenai wrote:
-> > > Hi,
-> > >
-> > > This patch series changes a macro definition to be consistent with other
-> > > register macro defines. Fixes for 32b platform, use BAR2 register for kernel
-> > > mode CQ's and enforces qp/cq id requirements.
-> > >
-> > > The patches series is created against 'infiniband' tree for-next branch.
-> > > And includes patches on iw_cxgb4 driver.
-> > >
-> > > We have included all the maintainers of respective drivers. Kindly review the
-> > > change and let us know in case of any review comments.
-> > >
-> > > Thanks
-> > >
-> > > Hariprasad Shenai (4):
-> > >    iw_cxgb4: Cleanup register defines/MACROS
-> > >    iw_cxgb4: 32b platform fixes
-> > >    iw_cxgb4: use BAR2 GTS register for T5 kernel mode CQs
-> > >    iw_cxgb4: enforce qp/cq id requirements
-> > >
-> > >   drivers/infiniband/hw/cxgb4/cm.c          |    6 +++---
-> > >   drivers/infiniband/hw/cxgb4/cq.c          |   21 ++++++++++++++-------
-> > >   drivers/infiniband/hw/cxgb4/device.c      |   29 ++++++++++++++++++++++++++---
-> > >   drivers/infiniband/hw/cxgb4/mem.c         |   10 +++++-----
-> > >   drivers/infiniband/hw/cxgb4/qp.c          |   14 +++++++-------
-> > >   drivers/infiniband/hw/cxgb4/t4.h          |    7 ++++---
-> > >   drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |    4 +++-
-> > >   7 files changed, 62 insertions(+), 29 deletions(-)
-> >
-> 
-> 
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
+> (Plus, ARM is growing in popularity in the server space, and ARM quite
+> sensibly doesn't have MTRRs.)
 > 
 
+<NOT SPEAKING FOR INTEL HERE>
+
+Yes.  People need to understand that MTRRs are fundamentally a
+transitional solution, a replacement for the KEN# logic in the P4 and P5
+generation processors.  The KEN# logic in the chipset would notify the
+CPU that a specific address should not be cached, without affecting the
+software (which may have been written for x86s built before caching
+existed, even.)
+
+MTRRs move this to the head end, so the CPU knows ahead of time what to
+do, as is required with newer architectures.  It also enabled write
+combining in a transparent fashion.  However, it is still transitional;
+it is there to describe the underlying constraints of the memory system
+so that code which doesn't use paging can run at all, but the only thing
+that can actually scale is PAT.
+
+	-hpa
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
