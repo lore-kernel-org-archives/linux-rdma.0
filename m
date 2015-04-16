@@ -1,82 +1,56 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v4 27/27] IB/Verbs: Cleanup rdma_node_get_transport()
-Date: Thu, 16 Apr 2015 10:15:48 +0200
-Message-ID: <552F6FB4.3060903@profitbricks.com>
-References: <552F6CF2.4000606@profitbricks.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: RDMA patches for 4.1
+Date: Thu, 16 Apr 2015 13:34:01 +0300
+Message-ID: <552F9019.6000303@mellanox.com>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
+	 <1428858993.3470.12.camel@dworkin>
+	 <20150413164238.GB17521@obsidianresearch.com>
+	 <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1@redhat.com>
+	 <20150414234258.GA25810@phlsvsds.ph.intel.com>
+	 <232BEA5DF26EF54583B8B332938DD0B84BB8E335@CMEXMB1.ad.emulex.com>
+	 <F6B0F954-1E60-4CE9-AF39-7A6E8C8EC47B@redhat.com>
+	 <552E6D7E.3090002@mellanox.com>
+	 <CAG4TOxO=z3_KLy+_86BS29-ZByuJbj6dWte14bi5oasinkbtzA@mail.gmail.com>
+	 <F6310773-5388-49B0-99F5-30D18AA335D5@redhat.com>
+	 <CAG4TOxNr8BxeyYatROudxFbVGyKnCoCTN7g71C5jUGRSRiLfLQ@mail.gmail.com>
+ <1429130738.2980.402.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552F6CF2.4000606-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1429130738.2980.402.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/15/2015 11:45 PM, Doug Ledford wrote:
+> On Wed, 2015-04-15 at 12:38 -0700, Roland Dreier wrote:
+>> On Wed, Apr 15, 2015 at 11:16 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>>> He has patches that don't conflict available. I can rebase my tree to that if you want. I just can't do it for a couple more hours (appt I couldn't skip).
+>>
+>> Not sure I follow.  I thought the new patches were just rebased on top
+>> of net-next?
+> I've pushed an updated tree with Or's redone patchset, and that picks up
+> the mlx5 page mask fix from Honggang Li.  Local compile test passed, but
+> run tests are impossible at the moment as my cluster is down while the
+> head node undergoes hardware updates.
+>
 
-We have get rid of all the scene using legacy rdma_node_get_transport(),
-now clean it up.
+Doug - I don't think now is the time to run lengthy run tests, we made 
+all these runs throughout the development phase and this is what the 
+merge window is about - get it there and sign rc1. If something 
+breaks/bug-s we will fix.
 
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/core/verbs.c | 21 ---------------------
- include/rdma/ib_verbs.h         |  3 ---
- 2 files changed, 24 deletions(-)
+I still didn't hear clear response from Roland confirming that he's 
+gonna send pull request with these bits.
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index ee4b5cb..bbea0c0 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -107,27 +107,6 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate)
- }
- EXPORT_SYMBOL(ib_rate_to_mbps);
- 
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type)
--{
--	switch (node_type) {
--	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
--		return RDMA_TRANSPORT_IB;
--	case RDMA_NODE_RNIC:
--		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
--	case RDMA_NODE_USNIC_UDP:
--		return RDMA_TRANSPORT_USNIC_UDP;
--	default:
--		BUG();
--		return 0;
--	}
--}
--EXPORT_SYMBOL(rdma_node_get_transport);
--
- enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
- {
- 	if (device->get_link_layer)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 262bf44..f9ef479 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -84,9 +84,6 @@ enum rdma_transport_type {
- 	RDMA_TRANSPORT_IBOE,
- };
- 
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type);
--
- enum rdma_link_layer {
- 	IB_LINK_LAYER_UNSPECIFIED,
- 	IB_LINK_LAYER_INFINIBAND,
--- 
-2.1.0
+Roland, please confirm that you are taking this and if not, Dave can you 
+help us here? copied linux-rdma.
+
+Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
