@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v4 26/27] IB/Verbs: Clean up rdma_ib_or_iboe()
-Date: Thu, 16 Apr 2015 10:15:24 +0200
-Message-ID: <552F6F9C.1050001@profitbricks.com>
+Subject: [PATCH v4 02/27] IB/Verbs: Implement raw management helpers
+Date: Thu, 16 Apr 2015 10:05:17 +0200
+Message-ID: <552F6D3D.9060206@profitbricks.com>
 References: <552F6CF2.4000606@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,8 +14,12 @@ Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wi
 List-Id: linux-rdma@vger.kernel.org
 
 
-We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
-is no longer necessary, thus clean it up.
+Add raw helpers:
+	rdma_tech_ib
+	rdma_tech_iboe
+	rdma_tech_iwarp
+	rdma_ib_or_iboe (transition, clean up later)
+To help us detect which technology the port supported.
 
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
@@ -25,78 +29,45 @@ Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- include/rdma/ib_verbs.h                  | 19 +++++++++----------
- net/sunrpc/xprtrdma/svc_rdma_transport.c |  6 ++++--
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ include/rdma/ib_verbs.h | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 09c83ae..262bf44 100644
+index d54f91e..a12e876 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1766,13 +1766,6 @@ static inline int rdma_tech_iwarp(struct ib_device *device, u8 port_num)
- 			== RDMA_TRANSPORT_IWARP;
- }
+@@ -1748,6 +1748,31 @@ int ib_query_port(struct ib_device *device,
+ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device,
+ 					       u8 port_num);
  
--static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
--{
--	enum rdma_transport_type tp = device->query_transport(device, port_num);
--
--	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
--}
--
- /**
-  * cap_ib_mad - Check if the port of device has the capability Infiniband
-  * Management Datagrams.
-@@ -1785,7 +1778,9 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
-  */
- static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
- {
--	return rdma_ib_or_iboe(device, port_num);
++static inline int rdma_tech_ib(struct ib_device *device, u8 port_num)
++{
++	return device->query_transport(device, port_num)
++			== RDMA_TRANSPORT_IB;
++}
++
++static inline int rdma_tech_iboe(struct ib_device *device, u8 port_num)
++{
++	return device->query_transport(device, port_num)
++			== RDMA_TRANSPORT_IBOE;
++}
++
++static inline int rdma_tech_iwarp(struct ib_device *device, u8 port_num)
++{
++	return device->query_transport(device, port_num)
++			== RDMA_TRANSPORT_IWARP;
++}
++
++static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
++{
 +	enum rdma_transport_type tp = device->query_transport(device, port_num);
 +
 +	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
- }
- 
- /**
-@@ -1815,7 +1810,9 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
-  */
- static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
- {
--	return rdma_ib_or_iboe(device, port_num);
-+	enum rdma_transport_type tp = device->query_transport(device, port_num);
++}
 +
-+	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
- }
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid);
  
- /**
-@@ -1890,7 +1887,9 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
-  */
- static inline int cap_af_ib(struct ib_device *device, u8 port_num)
- {
--	return rdma_ib_or_iboe(device, port_num);
-+	enum rdma_transport_type tp = device->query_transport(device, port_num);
-+
-+	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
- }
- 
- /**
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index a09b7a1..8af6f92 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -987,8 +987,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	 */
- 	if (!rdma_tech_iwarp(newxprt->sc_cm_id->device,
- 			     newxprt->sc_cm_id->port_num) &&
--	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
--			     newxprt->sc_cm_id->port_num))
-+	    !rdma_tech_ib(newxprt->sc_cm_id->device,
-+			  newxprt->sc_cm_id->port_num) &&
-+	    !rdma_tech_iboe(newxprt->sc_cm_id->device,
-+			    newxprt->sc_cm_id->port_num))
- 		goto errout;
- 
- 	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
 -- 
 2.1.0
 --
