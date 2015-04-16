@@ -1,72 +1,142 @@
-From: Erez Shitrit <erezsh@mellanox.com>
-Subject: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
-Date: Thu, 16 Apr 2015 16:34:34 +0300
-Message-ID: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, nicolas.dichtel@6wind.com, linux-rdma@vger.kernel.org, Erez Shitrit <erezsh@mellanox.com>, Honggang Li <honli@redhat.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v4 14/27] IB/Verbs: Reform cma_acquire_dev()
+Date: Thu, 16 Apr 2015 15:35:15 +0200
+Message-ID: <552FBA93.1030304@profitbricks.com>
+References: <552F6CF2.4000606@profitbricks.com> <552F6E43.2070700@profitbricks.com> <552FB6CA.1040106@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <552FB6CA.1040106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, iflink of the parent interface was always accessed, even 
-when interface didn't have a parent and hence we crashed there.
 
-Handle the interface types properly: for a child interface, return
-the ifindex of the parent, for parent interface, return its ifindex.
 
-For child devices, make sure to set the parent pointer prior to
-invoking register_netdevice(), this allows the new ndo to be called
-by the stack immediately after the child device is registered.
+On 04/16/2015 03:19 PM, Hal Rosenstock wrote:
+[snip]
+>>  
+>> +static inline int cma_validate_port(struct ib_device *device, u8 port,
+>> +				      union ib_gid *gid, int dev_type)
+>> +{
+>> +	u8 found_port;
+>> +	int ret = -ENODEV;
+>> +
+>> +	if ((dev_type == ARPHRD_INFINIBAND) && !rdma_tech_ib(device, port))
+>> +		return ret;
+>> +
+>> +	if ((dev_type != ARPHRD_INFINIBAND) && rdma_tech_ib(device, port))
+>> +		return ret;
+>> +
+>> +	ret = ib_find_cached_gid(device, gid, &found_port, NULL);
+>> +
+>> +	if (!ret && (port == found_port))
+>> +		return 0;
+>> +
+>> +	return ret;
+> 
+> Should the case where ret = 0 and port != found_port need to be handled
+> the same as currently ? It looks different to me since in this case the
+> port will be saved into id_priv->id.port_num whereas currently it isn't.
 
-Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
-Reported-by: Honggang Li <honli@redhat.com>
-Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
-Signed-off-by: Honggang Li <honli@redhat.com>
----
+I get your point :-) what about:
 
-changes from V0:
- - fixed two typos in the change-log
+	ret = ib_find_cached_gid(device, gid, &found_port, NULL);
+	if (port != found_port)
+		return -ENODEV;
 
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +++++
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 3 +--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+	return ret
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 657b89b..915ad04 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -846,6 +846,11 @@ static int ipoib_get_iflink(const struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
-+	/* parent interface */
-+	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-+		return dev->ifindex;
-+
-+	/* child/vlan interface */
- 	return priv->parent->ifindex;
- }
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index 4dd1313..fca1a88 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -58,6 +58,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 	/* MTU will be reset when mcast join happens */
- 	priv->dev->mtu   = IPOIB_UD_MTU(priv->max_ib_mtu);
- 	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
-+	priv->parent = ppriv->dev;
- 	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
- 
- 	result = ipoib_set_dev_features(priv, ppriv->ca);
-@@ -84,8 +85,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 		goto register_failed;
- 	}
- 
--	priv->parent = ppriv->dev;
--
- 	ipoib_create_debug_files(priv->dev);
- 
- 	/* RTNL childs don't need proprietary sysfs entries */
--- 
-1.7.11.3
+Regards,
+Michael Wang
+
+> 
+> -- Hal
+> 
+>> +}
+>> +
+>>  static int cma_acquire_dev(struct rdma_id_private *id_priv,
+>>  			   struct rdma_id_private *listen_id_priv)
+>>  {
+>>  	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+>>  	struct cma_device *cma_dev;
+>> -	union ib_gid gid, iboe_gid;
+>> +	union ib_gid gid, iboe_gid, *gidp;
+>>  	int ret = -ENODEV;
+>> -	u8 port, found_port;
+>> -	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
+>> -		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
+>> +	u8 port;
+>>  
+>> -	if (dev_ll != IB_LINK_LAYER_INFINIBAND &&
+>> +	if (dev_addr->dev_type != ARPHRD_INFINIBAND &&
+>>  	    id_priv->id.ps == RDMA_PS_IPOIB)
+>>  		return -EINVAL;
+>>  
+>> @@ -391,41 +409,36 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
+>>  
+>>  	memcpy(&gid, dev_addr->src_dev_addr +
+>>  	       rdma_addr_gid_offset(dev_addr), sizeof gid);
+>> -	if (listen_id_priv &&
+>> -	    rdma_port_get_link_layer(listen_id_priv->id.device,
+>> -				     listen_id_priv->id.port_num) == dev_ll) {
+>> +
+>> +	if (listen_id_priv) {
+>>  		cma_dev = listen_id_priv->cma_dev;
+>>  		port = listen_id_priv->id.port_num;
+>> -		if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
+>> -		    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
+>> -			ret = ib_find_cached_gid(cma_dev->device, &iboe_gid,
+>> -						 &found_port, NULL);
+>> -		else
+>> -			ret = ib_find_cached_gid(cma_dev->device, &gid,
+>> -						 &found_port, NULL);
+>> +		gidp = rdma_tech_iboe(cma_dev->device, port) ?
+>> +		       &iboe_gid : &gid;
+>>  
+>> -		if (!ret && (port  == found_port)) {
+>> -			id_priv->id.port_num = found_port;
+>> +		ret = cma_validate_port(cma_dev->device, port, gidp,
+>> +					dev_addr->dev_type);
+>> +		if (!ret) {
+>> +			id_priv->id.port_num = port;
+>>  			goto out;
+>>  		}
+>>  	}
+>> +
+>>  	list_for_each_entry(cma_dev, &dev_list, list) {
+>>  		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port) {
+>>  			if (listen_id_priv &&
+>>  			    listen_id_priv->cma_dev == cma_dev &&
+>>  			    listen_id_priv->id.port_num == port)
+>>  				continue;
+>> -			if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
+>> -				if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
+>> -				    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
+>> -					ret = ib_find_cached_gid(cma_dev->device, &iboe_gid, &found_port, NULL);
+>> -				else
+>> -					ret = ib_find_cached_gid(cma_dev->device, &gid, &found_port, NULL);
+>> -
+>> -				if (!ret && (port == found_port)) {
+>> -					id_priv->id.port_num = found_port;
+>> -					goto out;
+>> -				}
+>> +
+>> +			gidp = rdma_tech_iboe(cma_dev->device, port) ?
+>> +			       &iboe_gid : &gid;
+>> +
+>> +			ret = cma_validate_port(cma_dev->device, port, gidp,
+>> +						dev_addr->dev_type);
+>> +			if (!ret) {
+>> +				id_priv->id.port_num = port;
+>> +				goto out;
+>>  			}
+>>  		}
+>>  	}
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
