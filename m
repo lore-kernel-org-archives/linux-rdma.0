@@ -1,72 +1,73 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v4 27/27] IB/Verbs: Cleanup rdma_node_get_transport()
-Date: Thu, 16 Apr 2015 08:51:04 -0500
-Message-ID: <552FBE48.2080104@opengridcomputing.com>
-References: <552F6CF2.4000606@profitbricks.com> <552F6FB4.3060903@profitbricks.com> <552FBAD6.6000400@dev.mellanox.co.il> <552FBBEC.3020606@profitbricks.com> <552FBC48.3010900@dev.mellanox.co.il> <552FBCF4.2070105@profitbricks.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 25/28] IB/Verbs: Use management helper cap_af_ib()
+Date: Thu, 16 Apr 2015 16:57:51 +0300
+Message-ID: <CAJ3xEMiEoosZzHhpoJOLdxmdhRrjOfB=HV6bHhus7E=QmHiwPQ@mail.gmail.com>
+References: <552BB470.4090407@profitbricks.com>
+	<552BB801.2010506@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552FBCF4.2070105-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <552BB801.2010506-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/16/15 8:45 AM, Michael Wang wrote:
+On Mon, Apr 13, 2015 at 3:35 PM, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
 >
-> On 04/16/2015 03:42 PM, Hal Rosenstock wrote:
->> On 4/16/2015 9:41 AM, Michael Wang wrote:
->>>
->>> On 04/16/2015 03:36 PM, Hal Rosenstock wrote:
->>> [snip]
->>>>> -EXPORT_SYMBOL(rdma_node_get_transport);
->>>>> -
->>>>>   enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
->>>>>   {
->>>>>   	if (device->get_link_layer)
->>>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>>>> index 262bf44..f9ef479 100644
->>>>> --- a/include/rdma/ib_verbs.h
->>>>> +++ b/include/rdma/ib_verbs.h
->>>>> @@ -84,9 +84,6 @@ enum rdma_transport_type {
->>>>>   	RDMA_TRANSPORT_IBOE,
->>>>>   };
->>>>>   
->>>>> -__attribute_const__ enum rdma_transport_type
->>>>> -rdma_node_get_transport(enum rdma_node_type node_type);
->>>>> -
->>>>>   enum rdma_link_layer {
->>>>>   	IB_LINK_LAYER_UNSPECIFIED,
->>>> Is IB_LINK_LAYER_UNSPECIFIED still possible ?
->>> Actually it's impossible in kernel at first, all those who implemented the callback
->>> won't return UNSPECIFIED, others all have the correct transport type (otherwise BUG())
->>> and won't result UNSPECIFIED :-)
->> Should it be removed from this enum somewhere in this patch series
->> (perhaps early on) ?
-I don't think it's ever been 'possible.' It's purpose is to catch 
-initialized errors where the transport fails to initialize it's 
-transport type. So for example,
-
-provider = calloc(1, sizeof *provider)
-
-If 0 is a valid link layer type, then you wouldn't catch these kinds of 
-errors.
-
-Tom
-> It was still directly used by helper like ib_modify_qp_is_ok() as indicator, may be
-> better in another following patch to reform those part :-)
+> Introduce helper cap_af_ib() to help us check if the port of an
+> IB device support Native Infiniband Address.
 >
-> Regards,
-> Michael Wang
+> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cma.c |  2 +-
+>  include/rdma/ib_verbs.h       | 15 +++++++++++++++
+>  2 files changed, 16 insertions(+), 1 deletion(-)
 >
->> -- Hal
->>
->>> Regards,
->>> Michael Wang
->>>
->>>>>   	IB_LINK_LAYER_INFINIBAND,
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 65e41f4..7f5815d 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -470,7 +470,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+>
+>         list_for_each_entry(cur_dev, &dev_list, list) {
+>                 for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
+> -                       if (!rdma_ib_or_iboe(cur_dev->device, p))
+> +                       if (!cap_af_ib(cur_dev->device, p))
+>                                 continue;
+>
+>                         if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 29ddd14..dfe33f3 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1879,6 +1879,21 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
+>  }
+>
+>  /**
+> + * cap_af_ib - Check if the port of device has the capability
+> + * Native Infiniband Address.
+> + *
+> + * @device: Device to be checked
+> + * @port_num: Port number of the device
+> + *
+> + * Return 0 when port of the device don't support
+> + * Native Infiniband Address.
+> + */
+> +static inline int cap_af_ib(struct ib_device *device, u8 port_num)
+> +{
+> +       return rdma_ib_or_iboe(device, port_num);
+> +}
 
+Sean, can you please put a precise writeup what does it take to
+support AF_IB... I am a bit
+confused here and wasn't sure if this can be supported with RoCE.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
