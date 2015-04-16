@@ -1,78 +1,39 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
-Date: Thu, 16 Apr 2015 10:12:33 -0600
-Message-ID: <20150416161233.GC21809@obsidianresearch.com>
-References: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
+Subject: Re: [PATCH v3 27/28] IB/Verbs: Clean up rdma_ib_or_iboe()
+Date: Thu, 16 Apr 2015 10:43:11 -0600
+Message-ID: <20150416164311.GB22946@obsidianresearch.com>
+References: <552BB470.4090407@profitbricks.com>
+ <552BB85D.7010400@profitbricks.com>
+ <20150413203350.GA20611@obsidianresearch.com>
+ <552CDA1F.4050609@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1429191274-11600-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <552CDA1F.4050609-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 16, 2015 at 04:34:34PM +0300, Erez Shitrit wrote:
-> Currently, iflink of the parent interface was always accessed, even 
-> when interface didn't have a parent and hence we crashed there.
-> 
-> Handle the interface types properly: for a child interface, return
-> the ifindex of the parent, for parent interface, return its ifindex.
-> 
-> For child devices, make sure to set the parent pointer prior to
-> invoking register_netdevice(), this allows the new ndo to be called
-> by the stack immediately after the child device is registered.
-> 
-> Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
-> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On Tue, Apr 14, 2015 at 11:13:03AM +0200, Michael Wang wrote:
 
-Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>+
+> > I would be very happy to see a patch that adds cap_ib_smi to the
+> > current tree and states 'This patch is tested to have no change on the
+> > binary compilation results'
+> 
+> There are too much reform there (per-dev to per-port), I guess the binary
+> will changed more or less anyway...
 
-> changes from V0:
->  - fixed two typos in the change-log
-> 
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +++++
->  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 3 +--
->  2 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 657b89b..915ad04 100644
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -846,6 +846,11 @@ static int ipoib_get_iflink(const struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
->  
-> +	/* parent interface */
-> +	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-> +		return dev->ifindex;
-> +
-> +	/* child/vlan interface */
->  	return priv->parent->ifindex;
->  }
->  
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> index 4dd1313..fca1a88 100644
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> @@ -58,6 +58,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
->  	/* MTU will be reset when mcast join happens */
->  	priv->dev->mtu   = IPOIB_UD_MTU(priv->max_ib_mtu);
->  	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
-> +	priv->parent = ppriv->dev;
->  	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
->  
->  	result = ipoib_set_dev_features(priv, ppriv->ca);
-> @@ -84,8 +85,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
->  		goto register_failed;
->  	}
->  
-> -	priv->parent = ppriv->dev;
-> -
->  	ipoib_create_debug_files(priv->dev);
->  
->  	/* RTNL childs don't need proprietary sysfs entries */
+I think this patch series is huge, and everytime someone new looks at
+it small functional errors seem to pop up..
+
+Doing something to reduce the review surface would be really helpful
+here. Not changing the same line twice, using tools too perform these
+transforms and then assert the patch is a NOP because .. tools. Some
+other idea?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
