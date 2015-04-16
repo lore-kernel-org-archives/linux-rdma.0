@@ -1,105 +1,38 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
-Date: Thu, 16 Apr 2015 18:10:34 +0200
-Message-ID: <1429200634.4333.9.camel@opteya.com>
-References: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 07/28] IB/Verbs: Reform IB-ulp ipoib
+Date: Thu, 16 Apr 2015 10:02:46 -0700
+Message-ID: <CAG4TOxPMaRAR_B69J1_SHaHh8YMW2Unx786t2FbrA8g=05BAgA@mail.gmail.com>
+References: <20150413192701.GA19112@obsidianresearch.com> <20150413194602.GA21467@phlsvsds.ph.intel.com>
+ <20150413200138.GC19112@obsidianresearch.com> <20150414141806.GA7354@phlsvsds.ph.intel.com>
+ <20150414172514.GB7682@obsidianresearch.com> <20150414174311.GA28111@phlsvsds.ph.intel.com>
+ <20150414175904.GB13896@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FC127C@ORSMSX109.amr.corp.intel.com>
+ <20150414182137.GD7682@obsidianresearch.com> <552E1A1A.4090704@profitbricks.com>
+ <20150416164418.GC22946@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429191274-11600-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150416164418.GC22946-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Thu, Apr 16, 2015 at 9:44 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> We can give client->add() callback a return value and make
+>> ib_register_device() return -ENOMEM when it failed, just wondering
+>> why we don't do this at first, any special reason?
 
-Le jeudi 16 avril 2015 =C3=A0 16:34 +0300, Erez Shitrit a =C3=A9crit :
-> Currently, iflink of the parent interface was always accessed, even=20
-> when interface didn't have a parent and hence we crashed there.
+> No idea, but having ib_register_device fail and unwind if a client
+> fails to attach makes sense to me.
 
-+ since commit 5aa7add8f14b ('infiniband/ipoib: implement
-ndo_get_iflink').
+It seems a bit unfriendly to fail an entire device if one ULP has a
+problem.  Let's say you have a system whose main network connection is
+IPoIB.  Would you want that connection to come up even if, say, the
+NFS/RDMA server fails to find the memory registration type it likes?
 
-as there was no crash here before AFAIK.
-
->=20
-> Handle the interface types properly: for a child interface, return
-> the ifindex of the parent, for parent interface, return its ifindex.
->=20
-> For child devices, make sure to set the parent pointer prior to
-> invoking register_netdevice(), this allows the new ndo to be called
-> by the stack immediately after the child device is registered.
->=20
-> Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
-
-Cc: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-
-> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->=20
-> changes from V0:
->  - fixed two typos in the change-log
->=20
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +++++
->  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 3 +--
->  2 files changed, 6 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infi=
-niband/ulp/ipoib/ipoib_main.c
-> index 657b89b..915ad04 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -846,6 +846,11 @@ static int ipoib_get_iflink(const struct net_dev=
-ice *dev)
->  {
->  	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
-> =20
-> +	/* parent interface */
-> +	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-> +		return dev->ifindex;
-> +
-> +	/* child/vlan interface */
->  	return priv->parent->ifindex;
->  }
-> =20
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infi=
-niband/ulp/ipoib/ipoib_vlan.c
-> index 4dd1313..fca1a88 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> @@ -58,6 +58,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, =
-struct ipoib_dev_priv *priv,
->  	/* MTU will be reset when mcast join happens */
->  	priv->dev->mtu   =3D IPOIB_UD_MTU(priv->max_ib_mtu);
->  	priv->mcast_mtu  =3D priv->admin_mtu =3D priv->dev->mtu;
-> +	priv->parent =3D ppriv->dev;
->  	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
-> =20
->  	result =3D ipoib_set_dev_features(priv, ppriv->ca);
-> @@ -84,8 +85,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, =
-struct ipoib_dev_priv *priv,
->  		goto register_failed;
->  	}
-> =20
-> -	priv->parent =3D ppriv->dev;
-> -
->  	ipoib_create_debug_files(priv->dev);
-> =20
->  	/* RTNL childs don't need proprietary sysfs entries */
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
