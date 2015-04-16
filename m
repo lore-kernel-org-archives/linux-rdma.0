@@ -1,59 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
- changes in virtual GID management)
-Date: Thu, 16 Apr 2015 15:37:27 -0600
-Message-ID: <20150416213726.GA26437@obsidianresearch.com>
-References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
- <1428858993.3470.12.camel@dworkin>
- <20150413164238.GB17521@obsidianresearch.com>
- <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1@redhat.com>
- <20150414234258.GA25810@phlsvsds.ph.intel.com>
- <232BEA5DF26EF54583B8B332938DD0B84BB8E335@CMEXMB1.ad.emulex.com>
- <F6B0F954-1E60-4CE9-AF39-7A6E8C8EC47B@redhat.com>
- <20150416201310.GA24838@obsidianresearch.com>
- <CAJ3xEMizgYb2DfbJxTCb2=zYQA60p5LfeJQ+TJuBa6HnWKvMCQ@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Thu, 16 Apr 2015 22:01:19 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC3752@ORSMSX109.amr.corp.intel.com>
+References: <DB4PR05MB0863248FC7422B05765DD8E5B1E40@DB4PR05MB0863.eurprd05.prod.outlook.com>
+ <DB4PR05MB0863F49028F5E0E252278A6BB1E40@DB4PR05MB0863.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMizgYb2DfbJxTCb2=zYQA60p5LfeJQ+TJuBa6HnWKvMCQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <DB4PR05MB0863F49028F5E0E252278A6BB1E40-xsq7jzH2t6llkovD9u25SNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Pradeep Kankipati <Pradeep.Kankipati-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Somnath Kotur (Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org)" <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 17, 2015 at 12:26:47AM +0300, Or Gerlitz wrote:
-> On Thu, Apr 16, 2015 at 11:13 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Wed, Apr 15, 2015 at 08:39:13AM -0400, Doug Ledford wrote:
-> >
-> >> Let=E2=80=99s take this as a starting point.  If there are other p=
-atches
-> >> people think should make 4.1, please bring them to my attention an=
-d
-> >> I=E2=80=99ll add them for review and possible addition to the list=
-=2E
-> >>
-> >> git://github.com/dledford/linux.git for-4.1
-> >
-> > I noticed a few patches didn't get Reviewed-By's etc from the maili=
-ng
-> > list annotated..
->=20
-> Every patch need not have a Reviewed-By annotation, it's perfectly up
-> to the maintainer judgement to make sure there was either consensus,
+> The RoCE Verbs interface references the HCA GID table in QPs and AHs, for
+> all RoCE versions.
 
-More clearly: There were several patches where a Reviewed-By/etc was
-*provided* on-list but did not get captured in the git commit.
+The IBTA specifically does not define software interfaces.  The concern here is the architecture and definition of the linux rdma software stack, not verbs, despite the fact that the layer is named that.
 
-AFAIK, capturing provided tags is considered best practice as a way to
-recognize and retain contributors.
+> As I said earlier, the network layer (e.g., IPv4, IPv6, or GRH) cannot be
+> a port attribute because RoCE HCAs support all of them over the same
+> physical port.
 
-Jason
+IMO, the architecture needs to change to support multiple network and transport layers over the same link layer.  The current restriction of 1 "transport" per port is too restrictive, and doesn't seem to be true even for current devices, like usnic.
+
+> Maybe we should change these patches to encode the port "summary" as a bit
+> mask, and provide convenient masks for queries?
+
+Switching to bit masks is the longer term objective.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
