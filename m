@@ -1,68 +1,120 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: NFSoRDMA bi-weekly developers meeting minutes (4/16/15)
-Date: Thu, 16 Apr 2015 12:00:15 -0700
-Message-ID: <553006BF.6050306@oracle.com>
-References: <53BC2123.4070206@oracle.com> <54063CB7.6060503@oracle.com> <54C7D09D.3000600@oracle.com> <54C937BA.9020606@oracle.com> <552EE56E.5060705@oracle.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
+Date: Thu, 16 Apr 2015 22:08:13 +0300
+Message-ID: <CAJ3xEMhauY9Rjaiyf4sGUKQjAnfszDK8WDsG17yXkxTRsv5TCg@mail.gmail.com>
+References: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
+	<1429200634.4333.9.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552EE56E.5060705-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1429200634.4333.9.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "<Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>" <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "<yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>" <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>, wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>, sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Attendees:
+On Thu, Apr 16, 2015, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
+> Hi,
+>
+> Le jeudi 16 avril 2015 =C3=A0 16:34 +0300, Erez Shitrit a =C3=A9crit =
+:
+>> Currently, iflink of the parent interface was always accessed, even
+>> when interface didn't have a parent and hence we crashed there.
+>
+> + since commit 5aa7add8f14b ('infiniband/ipoib: implement
+> ndo_get_iflink').
+>
+> as there was no crash here before AFAIK.
+
+Disagree, it's redundant, as the Fixes tag below points to this commit
 
 
-Jeff Becker (NASA)
-Wendy Cheng (Intel)
-Chuck Lever (Oracle)
-Doug Ledford (RedHat)
-Shirley Ma (Oracle)
-Anna Schumaker (Net App)
-Steve Wise (OpenGridComputing, Chelsio)
+>> Handle the interface types properly: for a child interface, return
+>> the ifindex of the parent, for parent interface, return its ifindex.
+>>
+>> For child devices, make sure to set the parent pointer prior to
+>> invoking register_netdevice(), this allows the new ndo to be called
+>> by the stack immediately after the child device is registered.
+>>
+>> Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
+>
+> Cc: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
 
-Today's meeting notes:
+Ditto, I find it enough to just copy Nicholas on the patch submission,
+as we did here.
 
-NFSoRDMA server support:
------------------------
-NFSoRDMA Server is still technology preview in RHEL 7.2, since customers are looking for Linux NFSoRDMA server support, there is possible to open NFSoRDMA server support in the future. Jeff from NASA has some plan to deploy Linux NFSoRDMA, Mellanox OFED stack release might not support it, move to upstream OFED 3.18 is an option. Their fabrics is InfiniBand.
+Or.
 
-NFSoRDMA test plan (Doug, Wendy, Chuck)
-------------------
-Doug talked about future NFSoRDMA test infrastructure in RedHat. He has completed SCSI disk drivers characterization, the BW is around 3.9GB/s, next is file system, then NFSoRDMA and storage RDMA. Performance work will be investigated in both HW and software stack to see where to optimize it. He is open to take inputs on which particular file system to test, people can give suggests on which file systems they are interested. Chuck suggested NFSoRDMA performance work should include tempfs test since persistent disk is too slow for NFSoRDMA transport layer performance evaluation. The fabrics is mixed with DDR, QDR and EDR.
-  
-Wendy also talked about the possibility NFSoRDMA test in Intel. Currently they don't include NFSoRDMA in SPECNFS test, she asked whether it's possible to include it. Chuck replied the test client doesn't support NFSoRDMA client. He will talk to the maintainer to see whether NFSoRDMA can be supported, but needs to good reason to add it. Intel's test set up is RHEL 7.1, if enables NFSoRDMA test, the kernel should move to 3.18.
-
-NFS bake-a-thon planning: (Doug, Chuck)
--------------------------
-Chuck and Doug talked about incoming bake-a-thon plan, Doug has a small IB test et up, he can bring it to test. Solaris requires particular HCAs to work. They will talk to SteveD about several different possibilities to make it work.
-
-NFSoRDMA performance: (Shirley, Chuck, SteveW)
----------------------
->From ftrace function-graph report, both large I/O workload and intensive CPU workload showed that the interrupts and scheduling are two key contributes to NFS operations (READ, WRITE, GETATTR...). In CPU intensive workload like make kernel in the background, wake_up_bit is too costly. Is that possible to replace wake_up_bit? Chuck mentioned that it used to be wait queue, wake up queue. We could try it to see any performance difference. To reduce the interrupts, Shirley is trying to see the performance gain from disabling interrupts and wait a bit, there are some throughput gain with heavy cpu utilization. She will continue to investigate it. Chuck has tried to move completion up call from CQ to WQ context. There is no more items queuing in receiving queue, only saw one or two. SteveW repli
- ed that the queue should be built in this scenarios. Shirley thinks without addressing the scheduling issue in this workload, it might not be possible to see any other improvement.
-
-Doug works on performance evaluation work in his large system test bed. He will set up more accurate baseline performance, then investigate where to optimized in the stack as well as the HW.
-
-We are looking for good tools to simulate real workloads, like database workload. Right now we are using fio to simulate. We need to define real workloads. If anybody has any suggestion, that would be great. Shirley will send a separated email thread to discuss it.
-
-Storage RDMA technology (Shirley, Chuck, Doug)
------------------------
-Whether can we use this call to cover iSCSI/iSER/SRP work? The performance issues will be different, however both of they use RDMA as transport, so it might be helpful to discuss storage RDMA work here as long as NFSoRDMA is still the focus and we have time to discuss about the work.
-
-
-Feel free to reply here for anything missing or incorrect. Thanks everyone for joining the call and providing valuable inputs/work to the community to make NFSoRDMA better.
-
-Cheers,
-Shirley
-
-
-
-
+>> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>
+>> changes from V0:
+>>  - fixed two typos in the change-log
+>>
+>>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +++++
+>>  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 3 +--
+>>  2 files changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/inf=
+iniband/ulp/ipoib/ipoib_main.c
+>> index 657b89b..915ad04 100644
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> @@ -846,6 +846,11 @@ static int ipoib_get_iflink(const struct net_de=
+vice *dev)
+>>  {
+>>       struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+>>
+>> +     /* parent interface */
+>> +     if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
+>> +             return dev->ifindex;
+>> +
+>> +     /* child/vlan interface */
+>>       return priv->parent->ifindex;
+>>  }
+>>
+>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/inf=
+iniband/ulp/ipoib/ipoib_vlan.c
+>> index 4dd1313..fca1a88 100644
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+>> @@ -58,6 +58,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv,=
+ struct ipoib_dev_priv *priv,
+>>       /* MTU will be reset when mcast join happens */
+>>       priv->dev->mtu   =3D IPOIB_UD_MTU(priv->max_ib_mtu);
+>>       priv->mcast_mtu  =3D priv->admin_mtu =3D priv->dev->mtu;
+>> +     priv->parent =3D ppriv->dev;
+>>       set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
+>>
+>>       result =3D ipoib_set_dev_features(priv, ppriv->ca);
+>> @@ -84,8 +85,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv,=
+ struct ipoib_dev_priv *priv,
+>>               goto register_failed;
+>>       }
+>>
+>> -     priv->parent =3D ppriv->dev;
+>> -
+>>       ipoib_create_debug_files(priv->dev);
+>>
+>>       /* RTNL childs don't need proprietary sysfs entries */
+>
+> Regards.
+>
+> --
+> Yann Droneaud
+> OPTEYA
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
