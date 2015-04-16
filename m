@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v4 11/27] IB/Verbs: Reform route related part in IB-core cma
-Date: Thu, 16 Apr 2015 10:08:30 +0200
-Message-ID: <552F6DFE.2060909@profitbricks.com>
+Subject: [PATCH v4 15/27] IB/Verbs: Reform rest part in IB-core cma
+Date: Thu, 16 Apr 2015 10:10:11 +0200
+Message-ID: <552F6E63.4080709@profitbricks.com>
 References: <552F6CF2.4000606@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,7 +14,7 @@ Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use raw management helpers to reform route related part in IB-core cma.
+Use raw management helpers to reform rest part in IB-core cma.
 
 Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -24,99 +24,50 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c  | 31 ++++++++-----------------------
- drivers/infiniband/core/ucma.c | 25 ++++++-------------------
- 2 files changed, 14 insertions(+), 42 deletions(-)
+ drivers/infiniband/core/cma.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 6b8a64d..4adb909 100644
+index 902cc1a..40ca5c6 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -923,13 +923,9 @@ static inline int cma_user_data_offset(struct rdma_id_private *id_priv)
+@@ -469,10 +469,10 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	pkey = ntohs(addr->sib_pkey);
  
- static void cma_cancel_route(struct rdma_id_private *id_priv)
- {
--	switch (rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num)) {
--	case IB_LINK_LAYER_INFINIBAND:
-+	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num)) {
- 		if (id_priv->query)
- 			ib_sa_cancel_query(id_priv->query_id, id_priv->query);
--		break;
--	default:
--		break;
- 	}
- }
- 
-@@ -1957,26 +1953,15 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
- 		return -EINVAL;
- 
- 	atomic_inc(&id_priv->refcount);
--	switch (rdma_node_get_transport(id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
--		switch (rdma_port_get_link_layer(id->device, id->port_num)) {
--		case IB_LINK_LAYER_INFINIBAND:
--			ret = cma_resolve_ib_route(id_priv, timeout_ms);
--			break;
--		case IB_LINK_LAYER_ETHERNET:
--			ret = cma_resolve_iboe_route(id_priv);
--			break;
--		default:
--			ret = -ENOSYS;
--		}
--		break;
--	case RDMA_TRANSPORT_IWARP:
-+	if (rdma_tech_ib(id->device, id->port_num))
-+		ret = cma_resolve_ib_route(id_priv, timeout_ms);
-+	else if (rdma_tech_iboe(id->device, id->port_num))
-+		ret = cma_resolve_iboe_route(id_priv);
-+	else if (rdma_tech_iwarp(id->device, id->port_num))
- 		ret = cma_resolve_iw_route(id_priv, timeout_ms);
--		break;
--	default:
-+	else
- 		ret = -ENOSYS;
--		break;
--	}
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+-		if (rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
+-			continue;
+-
+ 		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
++			if (!rdma_ib_or_iboe(cur_dev->device, p))
++				continue;
 +
+ 			if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
+ 				continue;
+ 
+@@ -667,10 +667,9 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
  	if (ret)
- 		goto err;
+ 		goto out;
  
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 45d67e9..7331c6c 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -722,26 +722,13 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 
- 	resp.node_guid = (__force __u64) ctx->cm_id->device->node_guid;
- 	resp.port_num = ctx->cm_id->port_num;
--	switch (rdma_node_get_transport(ctx->cm_id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
--		switch (rdma_port_get_link_layer(ctx->cm_id->device,
--			ctx->cm_id->port_num)) {
--		case IB_LINK_LAYER_INFINIBAND:
--			ucma_copy_ib_route(&resp, &ctx->cm_id->route);
--			break;
--		case IB_LINK_LAYER_ETHERNET:
--			ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
--			break;
--		default:
--			break;
--		}
--		break;
--	case RDMA_TRANSPORT_IWARP:
+-	if (rdma_node_get_transport(id_priv->cma_dev->device->node_type)
+-	    == RDMA_TRANSPORT_IB &&
+-	    rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num)
+-	    == IB_LINK_LAYER_ETHERNET) {
++	BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
 +
-+	if (rdma_tech_ib(ctx->cm_id->device, ctx->cm_id->port_num))
-+		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
-+	else if (rdma_tech_iboe(ctx->cm_id->device, ctx->cm_id->port_num))
-+		ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
-+	else if (rdma_tech_iwarp(ctx->cm_id->device, ctx->cm_id->port_num))
- 		ucma_copy_iw_route(&resp, &ctx->cm_id->route);
--		break;
--	default:
--		break;
--	}
++	if (rdma_tech_iboe(id_priv->id.device, id_priv->id.port_num)) {
+ 		ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
  
- out:
- 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
+ 		if (ret)
+@@ -734,8 +733,7 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
+ 	int ret;
+ 	u16 pkey;
+ 
+-	if (rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num) ==
+-	    IB_LINK_LAYER_INFINIBAND)
++	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num))
+ 		pkey = ib_addr_get_pkey(dev_addr);
+ 	else
+ 		pkey = 0xffff;
 -- 
 2.1.0
