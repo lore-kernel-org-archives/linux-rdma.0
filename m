@@ -1,82 +1,187 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v4 17/27] IB/Verbs: Use management helper cap_ib_smi()
-Date: Thu, 16 Apr 2015 10:11:42 +0200
-Message-ID: <552F6EBE.8010900@profitbricks.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: [PATCH v4 18/27] IB/Verbs: Use management helper cap_ib_cm()
+Date: Thu, 16 Apr 2015 10:12:04 +0200
+Message-ID: <552F6ED4.6080607@profitbricks.com>
 References: <552F6CF2.4000606@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552F6CF2.4000606-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <552F6CF2.4000606@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, hal@dev.mellanox.co.il, Michael Wang <yun.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper cap_ib_smi() to help us check if the port of an
-IB device support Infiniband Subnet Management Interface.
+Introduce helper cap_ib_cm() to help us check if the port of an
+IB device support Infiniband Communication Manager.
 
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/agent.c |  2 +-
- drivers/infiniband/core/mad.c   |  2 +-
- include/rdma/ib_verbs.h         | 15 +++++++++++++++
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cm.c  |  6 +++---
+ drivers/infiniband/core/cma.c | 19 +++++++++----------
+ drivers/infiniband/core/ucm.c |  2 +-
+ include/rdma/ib_verbs.h       | 15 +++++++++++++++
+ 4 files changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
-index ffdef4d..61471ee 100644
---- a/drivers/infiniband/core/agent.c
-+++ b/drivers/infiniband/core/agent.c
-@@ -156,7 +156,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
- 		goto error1;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 50321fe..63418ee 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -3781,7 +3781,7 @@ static void cm_add_one(struct ib_device *ib_device)
+ 
+ 	set_bit(IB_MGMT_METHOD_SEND, reg_req.method_mask);
+ 	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
+-		if (!rdma_ib_or_iboe(ib_device, i))
++		if (!cap_ib_cm(ib_device, i))
+ 			continue;
+ 
+ 		port = kzalloc(sizeof *port, GFP_KERNEL);
+@@ -3835,7 +3835,7 @@ error1:
+ 	port_modify.set_port_cap_mask = 0;
+ 	port_modify.clr_port_cap_mask = IB_PORT_CM_SUP;
+ 	while (--i) {
+-		if (!rdma_ib_or_iboe(ib_device, i))
++		if (!cap_ib_cm(ib_device, i))
+ 			continue;
+ 
+ 		port = cm_dev->port[i-1];
+@@ -3866,7 +3866,7 @@ static void cm_remove_one(struct ib_device *ib_device)
+ 	write_unlock_irqrestore(&cm.device_lock, flags);
+ 
+ 	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
+-		if (!rdma_ib_or_iboe(ib_device, i))
++		if (!cap_ib_cm(ib_device, i))
+ 			continue;
+ 
+ 		port = cm_dev->port[i-1];
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 40ca5c6..7415078 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -767,7 +767,7 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
+ 	int ret = 0;
+ 
+ 	id_priv = container_of(id, struct rdma_id_private, id);
+-	if (rdma_ib_or_iboe(id_priv->id.device, 1)) {
++	if (cap_ib_cm(id_priv->id.device, 1)) {
+ 		if (!id_priv->cm_id.ib || (id_priv->id.qp_type == IB_QPT_UD))
+ 			ret = cma_ib_init_qp_attr(id_priv, qp_attr, qp_attr_mask);
+ 		else
+@@ -1055,7 +1055,7 @@ void rdma_destroy_id(struct rdma_cm_id *id)
+ 	mutex_unlock(&id_priv->handler_mutex);
+ 
+ 	if (id_priv->cma_dev) {
+-		if (rdma_ib_or_iboe(id_priv->id.device, 1)) {
++		if (cap_ib_cm(id_priv->id.device, 1)) {
+ 			if (id_priv->cm_id.ib)
+ 				ib_destroy_cm_id(id_priv->cm_id.ib);
+ 		} else if (rdma_tech_iwarp(id_priv->id.device, 1)) {
+@@ -1638,8 +1638,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	struct rdma_cm_id *id;
+ 	int ret;
+ 
+-	if (cma_family(id_priv) == AF_IB &&
+-	    !rdma_ib_or_iboe(cma_dev->device, 1))
++	if (cma_family(id_priv) == AF_IB && !cap_ib_cm(cma_dev->device, 1))
+ 		return;
+ 
+ 	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
+@@ -2030,7 +2029,7 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
+ 	mutex_lock(&lock);
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+ 		if (cma_family(id_priv) == AF_IB &&
+-		    !rdma_ib_or_iboe(cur_dev->device, 1))
++		    !cap_ib_cm(cur_dev->device, 1))
+ 			continue;
+ 
+ 		if (!cma_dev)
+@@ -2539,7 +2538,7 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+ 
+ 	id_priv->backlog = backlog;
+ 	if (id->device) {
+-		if (rdma_ib_or_iboe(id->device, 1)) {
++		if (cap_ib_cm(id->device, 1)) {
+ 			ret = cma_ib_listen(id_priv);
+ 			if (ret)
+ 				goto err;
+@@ -2883,7 +2882,7 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+ 		id_priv->srq = conn_param->srq;
  	}
  
--	if (rdma_tech_ib(device, port_num)) {
-+	if (cap_ib_smi(device, port_num)) {
- 		/* Obtain send only MAD agent for SMI QP */
- 		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
- 							    IB_QPT_SMI, NULL, 0,
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 750ad3e..2668d4e 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -2938,7 +2938,7 @@ static int ib_mad_port_open(struct ib_device *device,
- 	init_mad_qp(port_priv, &port_priv->qp_info[1]);
+-	if (rdma_ib_or_iboe(id->device, 1)) {
++	if (cap_ib_cm(id->device, 1)) {
+ 		if (id->qp_type == IB_QPT_UD)
+ 			ret = cma_resolve_ib_udp(id_priv, conn_param);
+ 		else
+@@ -2994,7 +2993,7 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+ 		id_priv->srq = conn_param->srq;
+ 	}
  
- 	cq_size = mad_sendq_size + mad_recvq_size;
--	has_smi = rdma_tech_ib(device, port_num);
-+	has_smi = cap_ib_smi(device, port_num);
- 	if (has_smi)
- 		cq_size *= 2;
+-	if (rdma_ib_or_iboe(id->device, 1)) {
++	if (cap_ib_cm(id->device, 1)) {
+ 		if (id->qp_type == IB_QPT_UD) {
+ 			if (conn_param)
+ 				ret = cma_send_sidr_rep(id_priv, IB_SIDR_SUCCESS,
+@@ -3057,7 +3056,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+ 	if (!id_priv->cm_id.ib)
+ 		return -EINVAL;
  
+-	if (rdma_ib_or_iboe(id->device, 1)) {
++	if (cap_ib_cm(id->device, 1)) {
+ 		if (id->qp_type == IB_QPT_UD)
+ 			ret = cma_send_sidr_rep(id_priv, IB_SIDR_REJECT, 0,
+ 						private_data, private_data_len);
+@@ -3084,7 +3083,7 @@ int rdma_disconnect(struct rdma_cm_id *id)
+ 	if (!id_priv->cm_id.ib)
+ 		return -EINVAL;
+ 
+-	if (rdma_ib_or_iboe(id->device, 1)) {
++	if (cap_ib_cm(id->device, 1)) {
+ 		ret = cma_modify_qp_err(id_priv);
+ 		if (ret)
+ 			goto out;
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 70e0ccb..f7290c8 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1253,7 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	dev_t base;
+ 	struct ib_ucm_device *ucm_dev;
+ 
+-	if (!device->alloc_ucontext || !rdma_ib_or_iboe(device, 1))
++	if (!device->alloc_ucontext || !cap_ib_cm(device, 1))
+ 		return;
+ 
+ 	ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 624e963..873b9a6 100644
+index 873b9a6..6805e3e 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1788,6 +1788,21 @@ static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
- 	return rdma_ib_or_iboe(device, port_num);
+@@ -1803,6 +1803,21 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
+ 	return rdma_tech_ib(device, port_num);
  }
  
 +/**
-+ * cap_ib_smi - Check if the port of device has the capability Infiniband
-+ * Subnet Management Interface.
++ * cap_ib_cm - Check if the port of device has the capability Infiniband
++ * Communication Manager.
 + *
 + * @device: Device to be checked
 + * @port_num: Port number of the device
 + *
 + * Return 0 when port of the device don't support Infiniband
-+ * Subnet Management Interface.
++ * Communication Manager.
 + */
-+static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
++static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
 +{
-+	return rdma_tech_ib(device, port_num);
++	return rdma_ib_or_iboe(device, port_num);
 +}
 +
  int ib_query_gid(struct ib_device *device,
@@ -84,7 +189,3 @@ index 624e963..873b9a6 100644
  
 -- 
 2.1.0
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
