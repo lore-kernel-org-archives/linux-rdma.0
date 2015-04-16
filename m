@@ -1,289 +1,92 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v4 10/27] IB/Verbs: Reform cm related part in IB-core
- cma/ucm
-Date: Thu, 16 Apr 2015 15:19:43 +0200
-Message-ID: <552FB6EF.80107@profitbricks.com>
-References: <552F6CF2.4000606@profitbricks.com> <552F6DEA.9080701@profitbricks.com> <552FB4D0.5080302@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] Close additional file descriptor in iblinkinfo
+ in advance
+Date: Thu, 16 Apr 2015 09:22:28 -0400
+Message-ID: <552FB794.7080503@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <552FB4D0.5080302-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Tue, 14 Apr 2015 18:14:48 +0300
 
+Additional file descriptor for SMP MADs should be closed before running
+ibnd_discover_fabric() to avoid parallel usage of two SMP file descriptors
 
-On 04/16/2015 03:10 PM, Hal Rosenstock wrote:
-> On 4/16/2015 4:08 AM, Michael Wang wrote:
->>
->> Use raw management helpers to reform cm related part in IB-core cma/ucm.
->>
->> These checks focus on the device cm type rather than the port capability,
->> directly pass port 1 works currently, but can't support mixing cm type
->> device in future.
-> 
-> This is equivalent to today where the checks are per node rather than
-> per port.
-> 
-> Should all checks here be port 1 based or only certain ones like listen
-> ? For example, in connect/reject/disconnect, don't we already have port
-> ? Guess this can be dealt with later as this is not a regression from
-> the current implementation.
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/iblinkinfo.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-Yeah, these parts of cma may need more carve in future, like some new callback
-for different CM type as Sean suggested.
+diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
+index 92ff3c6..9dcf698 100644
+--- a/src/iblinkinfo.c
++++ b/src/iblinkinfo.c
+@@ -594,6 +594,7 @@ int main(int argc, char **argv)
+ 	ibnd_fabric_t *diff_fabric = NULL;
+ 	struct ibmad_port *ibmad_port;
+ 	ib_portid_t port_id = { 0 };
++	uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+ 	int mgmt_classes[3] =
+ 	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
+ 
+@@ -653,12 +654,20 @@ int main(int argc, char **argv)
+ 		config.timeout_ms = ibd_timeout;
+ 	}
+ 
++	if (!smp_query_via(ni, &port_id, IB_ATTR_NODE_INFO, 0,
++				   ibd_timeout, ibmad_port)){
++			mad_rpc_close_port(ibmad_port);
++			fprintf(stderr,
++				"Failed to get local Node Info\n");
++			exit(1);
++	}
+ 	config.flags = ibd_ibnetdisc_flags;
+ 	config.mkey = ibd_mkey;
+ 
+ 	node_name_map = open_node_name_map(node_name_map_file);
+ 
+ 	if (dr_path && load_cache_file) {
++		mad_rpc_close_port(ibmad_port);
+ 		fprintf(stderr, "Cannot specify cache and direct route path\n");
+ 		exit(1);
+ 	}
+@@ -678,6 +687,7 @@ int main(int argc, char **argv)
+ 			IBWARN("Failed to resolve %s; attempting full scan\n",
+ 			       guid_str);
+ 	}
++	mad_rpc_close_port(ibmad_port);
+ 
+ 	if (diff_cache_file &&
+ 	    !(diff_fabric = ibnd_load_fabric(diff_cache_file, 0)))
+@@ -723,11 +733,6 @@ int main(int argc, char **argv)
+ 			fprintf(stderr, "Failed to find port: %s\n", guid_str);
+ 	} else if (!all && dr_path) {
+ 		ibnd_port_t *p = NULL;
+-		uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+-
+-		if (!smp_query_via(ni, &port_id, IB_ATTR_NODE_INFO, 0,
+-				   ibd_timeout, ibmad_port))
+-			return -1;
+ 		mad_decode_field(ni, IB_NODE_PORT_GUID_F, &(guid));
+ 
+ 		p = ibnd_find_port_guid(fabric, guid);
+@@ -758,6 +763,5 @@ int main(int argc, char **argv)
+ 
+ close_port:
+ 	close_node_name_map(node_name_map);
+-	mad_rpc_close_port(ibmad_port);
+ 	exit(rc);
+ }
+-- 
+1.7.8.2
 
-Maybe directly using 1 could help to highlight the problem ;-)
-
-Regards,
-Michael Wanga
-
-> 
-> -- Hal
-> 
->>
->> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
->> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
->> ---
->>  drivers/infiniband/core/cma.c | 81 +++++++++++++------------------------------
->>  drivers/infiniband/core/ucm.c |  3 +-
->>  2 files changed, 26 insertions(+), 58 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
->> index d570030..6b8a64d 100644
->> --- a/drivers/infiniband/core/cma.c
->> +++ b/drivers/infiniband/core/cma.c
->> @@ -735,8 +735,7 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
->>  	int ret = 0;
->>  
->>  	id_priv = container_of(id, struct rdma_id_private, id);
->> -	switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
->> -	case RDMA_TRANSPORT_IB:
->> +	if (rdma_ib_or_iboe(id_priv->id.device, 1)) {
->>  		if (!id_priv->cm_id.ib || (id_priv->id.qp_type == IB_QPT_UD))
->>  			ret = cma_ib_init_qp_attr(id_priv, qp_attr, qp_attr_mask);
->>  		else
->> @@ -745,19 +744,15 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
->>  
->>  		if (qp_attr->qp_state == IB_QPS_RTR)
->>  			qp_attr->rq_psn = id_priv->seq_num;
->> -		break;
->> -	case RDMA_TRANSPORT_IWARP:
->> +	} else if (rdma_tech_iwarp(id_priv->id.device, 1)) {
->>  		if (!id_priv->cm_id.iw) {
->>  			qp_attr->qp_access_flags = 0;
->>  			*qp_attr_mask = IB_QP_STATE | IB_QP_ACCESS_FLAGS;
->>  		} else
->>  			ret = iw_cm_init_qp_attr(id_priv->cm_id.iw, qp_attr,
->>  						 qp_attr_mask);
->> -		break;
->> -	default:
->> +	} else
->>  		ret = -ENOSYS;
->> -		break;
->> -	}
->>  
->>  	return ret;
->>  }
->> @@ -1037,17 +1032,12 @@ void rdma_destroy_id(struct rdma_cm_id *id)
->>  	mutex_unlock(&id_priv->handler_mutex);
->>  
->>  	if (id_priv->cma_dev) {
->> -		switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
->> -		case RDMA_TRANSPORT_IB:
->> +		if (rdma_ib_or_iboe(id_priv->id.device, 1)) {
->>  			if (id_priv->cm_id.ib)
->>  				ib_destroy_cm_id(id_priv->cm_id.ib);
->> -			break;
->> -		case RDMA_TRANSPORT_IWARP:
->> +		} else if (rdma_tech_iwarp(id_priv->id.device, 1)) {
->>  			if (id_priv->cm_id.iw)
->>  				iw_destroy_cm_id(id_priv->cm_id.iw);
->> -			break;
->> -		default:
->> -			break;
->>  		}
->>  		cma_leave_mc_groups(id_priv);
->>  		cma_release_dev(id_priv);
->> @@ -1626,7 +1616,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
->>  	int ret;
->>  
->>  	if (cma_family(id_priv) == AF_IB &&
->> -	    rdma_node_get_transport(cma_dev->device->node_type) != RDMA_TRANSPORT_IB)
->> +	    !rdma_ib_or_iboe(cma_dev->device, 1))
->>  		return;
->>  
->>  	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
->> @@ -2028,7 +2018,7 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
->>  	mutex_lock(&lock);
->>  	list_for_each_entry(cur_dev, &dev_list, list) {
->>  		if (cma_family(id_priv) == AF_IB &&
->> -		    rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
->> +		    !rdma_ib_or_iboe(cur_dev->device, 1))
->>  			continue;
->>  
->>  		if (!cma_dev)
->> @@ -2060,7 +2050,7 @@ port_found:
->>  		goto out;
->>  
->>  	id_priv->id.route.addr.dev_addr.dev_type =
->> -		(rdma_port_get_link_layer(cma_dev->device, p) == IB_LINK_LAYER_INFINIBAND) ?
->> +		(rdma_tech_ib(cma_dev->device, p)) ?
->>  		ARPHRD_INFINIBAND : ARPHRD_ETHER;
->>  
->>  	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
->> @@ -2537,18 +2527,15 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
->>  
->>  	id_priv->backlog = backlog;
->>  	if (id->device) {
->> -		switch (rdma_node_get_transport(id->device->node_type)) {
->> -		case RDMA_TRANSPORT_IB:
->> +		if (rdma_ib_or_iboe(id->device, 1)) {
->>  			ret = cma_ib_listen(id_priv);
->>  			if (ret)
->>  				goto err;
->> -			break;
->> -		case RDMA_TRANSPORT_IWARP:
->> +		} else if (rdma_tech_iwarp(id->device, 1)) {
->>  			ret = cma_iw_listen(id_priv, backlog);
->>  			if (ret)
->>  				goto err;
->> -			break;
->> -		default:
->> +		} else {
->>  			ret = -ENOSYS;
->>  			goto err;
->>  		}
->> @@ -2884,20 +2871,15 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
->>  		id_priv->srq = conn_param->srq;
->>  	}
->>  
->> -	switch (rdma_node_get_transport(id->device->node_type)) {
->> -	case RDMA_TRANSPORT_IB:
->> +	if (rdma_ib_or_iboe(id->device, 1)) {
->>  		if (id->qp_type == IB_QPT_UD)
->>  			ret = cma_resolve_ib_udp(id_priv, conn_param);
->>  		else
->>  			ret = cma_connect_ib(id_priv, conn_param);
->> -		break;
->> -	case RDMA_TRANSPORT_IWARP:
->> +	} else if (rdma_tech_iwarp(id->device, 1))
->>  		ret = cma_connect_iw(id_priv, conn_param);
->> -		break;
->> -	default:
->> +	else
->>  		ret = -ENOSYS;
->> -		break;
->> -	}
->>  	if (ret)
->>  		goto err;
->>  
->> @@ -3000,8 +2982,7 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
->>  		id_priv->srq = conn_param->srq;
->>  	}
->>  
->> -	switch (rdma_node_get_transport(id->device->node_type)) {
->> -	case RDMA_TRANSPORT_IB:
->> +	if (rdma_ib_or_iboe(id->device, 1)) {
->>  		if (id->qp_type == IB_QPT_UD) {
->>  			if (conn_param)
->>  				ret = cma_send_sidr_rep(id_priv, IB_SIDR_SUCCESS,
->> @@ -3017,14 +2998,10 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
->>  			else
->>  				ret = cma_rep_recv(id_priv);
->>  		}
->> -		break;
->> -	case RDMA_TRANSPORT_IWARP:
->> +	} else if (rdma_tech_iwarp(id->device, 1))
->>  		ret = cma_accept_iw(id_priv, conn_param);
->> -		break;
->> -	default:
->> +	else
->>  		ret = -ENOSYS;
->> -		break;
->> -	}
->>  
->>  	if (ret)
->>  		goto reject;
->> @@ -3068,8 +3045,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
->>  	if (!id_priv->cm_id.ib)
->>  		return -EINVAL;
->>  
->> -	switch (rdma_node_get_transport(id->device->node_type)) {
->> -	case RDMA_TRANSPORT_IB:
->> +	if (rdma_ib_or_iboe(id->device, 1)) {
->>  		if (id->qp_type == IB_QPT_UD)
->>  			ret = cma_send_sidr_rep(id_priv, IB_SIDR_REJECT, 0,
->>  						private_data, private_data_len);
->> @@ -3077,15 +3053,12 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
->>  			ret = ib_send_cm_rej(id_priv->cm_id.ib,
->>  					     IB_CM_REJ_CONSUMER_DEFINED, NULL,
->>  					     0, private_data, private_data_len);
->> -		break;
->> -	case RDMA_TRANSPORT_IWARP:
->> +	} else if (rdma_tech_iwarp(id->device, 1)) {
->>  		ret = iw_cm_reject(id_priv->cm_id.iw,
->>  				   private_data, private_data_len);
->> -		break;
->> -	default:
->> +	} else
->>  		ret = -ENOSYS;
->> -		break;
->> -	}
->> +
->>  	return ret;
->>  }
->>  EXPORT_SYMBOL(rdma_reject);
->> @@ -3099,22 +3072,18 @@ int rdma_disconnect(struct rdma_cm_id *id)
->>  	if (!id_priv->cm_id.ib)
->>  		return -EINVAL;
->>  
->> -	switch (rdma_node_get_transport(id->device->node_type)) {
->> -	case RDMA_TRANSPORT_IB:
->> +	if (rdma_ib_or_iboe(id->device, 1)) {
->>  		ret = cma_modify_qp_err(id_priv);
->>  		if (ret)
->>  			goto out;
->>  		/* Initiate or respond to a disconnect. */
->>  		if (ib_send_cm_dreq(id_priv->cm_id.ib, NULL, 0))
->>  			ib_send_cm_drep(id_priv->cm_id.ib, NULL, 0);
->> -		break;
->> -	case RDMA_TRANSPORT_IWARP:
->> +	} else if (rdma_tech_iwarp(id->device, 1)) {
->>  		ret = iw_cm_disconnect(id_priv->cm_id.iw, 0);
->> -		break;
->> -	default:
->> +	} else
->>  		ret = -EINVAL;
->> -		break;
->> -	}
->> +
->>  out:
->>  	return ret;
->>  }
->> diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
->> index f2f6393..70e0ccb 100644
->> --- a/drivers/infiniband/core/ucm.c
->> +++ b/drivers/infiniband/core/ucm.c
->> @@ -1253,8 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
->>  	dev_t base;
->>  	struct ib_ucm_device *ucm_dev;
->>  
->> -	if (!device->alloc_ucontext ||
->> -	    rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
->> +	if (!device->alloc_ucontext || !rdma_ib_or_iboe(device, 1))
->>  		return;
->>  
->>  	ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
