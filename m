@@ -1,118 +1,40 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
-Date: Thu, 16 Apr 2015 22:08:13 +0300
-Message-ID: <CAJ3xEMhauY9Rjaiyf4sGUKQjAnfszDK8WDsG17yXkxTRsv5TCg@mail.gmail.com>
-References: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
-	<1429200634.4333.9.camel@opteya.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Stepping down as maintainer (was Re: [PATCH for-next 0/9] mlx4
+ changes in virtual GID management)
+Date: Thu, 16 Apr 2015 14:13:11 -0600
+Message-ID: <20150416201310.GA24838@obsidianresearch.com>
+References: <CAG4TOxPQX+hBiEcaWD7DOAeLEmi9bWMeE06to+QyCdo3pAU+Yw@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC0120@ORSMSX109.amr.corp.intel.com>
+ <1428858993.3470.12.camel@dworkin>
+ <20150413164238.GB17521@obsidianresearch.com>
+ <4EC214DA-97F8-4BCD-AEA6-6FB539E820F1@redhat.com>
+ <20150414234258.GA25810@phlsvsds.ph.intel.com>
+ <232BEA5DF26EF54583B8B332938DD0B84BB8E335@CMEXMB1.ad.emulex.com>
+ <F6B0F954-1E60-4CE9-AF39-7A6E8C8EC47B@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429200634.4333.9.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F6B0F954-1E60-4CE9-AF39-7A6E8C8EC47B-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Pradeep Kankipati <Pradeep.Kankipati-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 16, 2015, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
-> Hi,
->
-> Le jeudi 16 avril 2015 =C3=A0 16:34 +0300, Erez Shitrit a =C3=A9crit =
-:
->> Currently, iflink of the parent interface was always accessed, even
->> when interface didn't have a parent and hence we crashed there.
->
-> + since commit 5aa7add8f14b ('infiniband/ipoib: implement
-> ndo_get_iflink').
->
-> as there was no crash here before AFAIK.
+On Wed, Apr 15, 2015 at 08:39:13AM -0400, Doug Ledford wrote:
 
-Disagree, it's redundant, as the Fixes tag below points to this commit
+> Let=E2=80=99s take this as a starting point.  If there are other patc=
+hes
+> people think should make 4.1, please bring them to my attention and
+> I=E2=80=99ll add them for review and possible addition to the list.
+>=20
+> git://github.com/dledford/linux.git for-4.1
 
+I noticed a few patches didn't get Reviewed-By's etc from the mailing
+list annotated..
 
->> Handle the interface types properly: for a child interface, return
->> the ifindex of the parent, for parent interface, return its ifindex.
->>
->> For child devices, make sure to set the parent pointer prior to
->> invoking register_netdevice(), this allows the new ndo to be called
->> by the stack immediately after the child device is registered.
->>
->> Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
->
-> Cc: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-
-Ditto, I find it enough to just copy Nicholas on the patch submission,
-as we did here.
-
-Or.
-
->> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> ---
->>
->> changes from V0:
->>  - fixed two typos in the change-log
->>
->>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +++++
->>  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 3 +--
->>  2 files changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/inf=
-iniband/ulp/ipoib/ipoib_main.c
->> index 657b89b..915ad04 100644
->> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> @@ -846,6 +846,11 @@ static int ipoib_get_iflink(const struct net_de=
-vice *dev)
->>  {
->>       struct ipoib_dev_priv *priv =3D netdev_priv(dev);
->>
->> +     /* parent interface */
->> +     if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
->> +             return dev->ifindex;
->> +
->> +     /* child/vlan interface */
->>       return priv->parent->ifindex;
->>  }
->>
->> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/inf=
-iniband/ulp/ipoib/ipoib_vlan.c
->> index 4dd1313..fca1a88 100644
->> --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
->> @@ -58,6 +58,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv,=
- struct ipoib_dev_priv *priv,
->>       /* MTU will be reset when mcast join happens */
->>       priv->dev->mtu   =3D IPOIB_UD_MTU(priv->max_ib_mtu);
->>       priv->mcast_mtu  =3D priv->admin_mtu =3D priv->dev->mtu;
->> +     priv->parent =3D ppriv->dev;
->>       set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
->>
->>       result =3D ipoib_set_dev_features(priv, ppriv->ca);
->> @@ -84,8 +85,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv,=
- struct ipoib_dev_priv *priv,
->>               goto register_failed;
->>       }
->>
->> -     priv->parent =3D ppriv->dev;
->> -
->>       ipoib_create_debug_files(priv->dev);
->>
->>       /* RTNL childs don't need proprietary sysfs entries */
->
-> Regards.
->
-> --
-> Yann Droneaud
-> OPTEYA
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
