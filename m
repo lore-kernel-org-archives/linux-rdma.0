@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v4 02/27] IB/Verbs: Implement raw management helpers
-Date: Thu, 16 Apr 2015 10:05:17 +0200
-Message-ID: <552F6D3D.9060206@profitbricks.com>
+Subject: [PATCH v4 27/27] IB/Verbs: Cleanup rdma_node_get_transport()
+Date: Thu, 16 Apr 2015 10:15:48 +0200
+Message-ID: <552F6FB4.3060903@profitbricks.com>
 References: <552F6CF2.4000606@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,12 +14,8 @@ Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wi
 List-Id: linux-rdma@vger.kernel.org
 
 
-Add raw helpers:
-	rdma_tech_ib
-	rdma_tech_iboe
-	rdma_tech_iwarp
-	rdma_ib_or_iboe (transition, clean up later)
-To help us detect which technology the port supported.
+We have get rid of all the scene using legacy rdma_node_get_transport(),
+now clean it up.
 
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
@@ -29,45 +25,56 @@ Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ drivers/infiniband/core/verbs.c | 21 ---------------------
+ include/rdma/ib_verbs.h         |  3 ---
+ 2 files changed, 24 deletions(-)
 
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index ee4b5cb..bbea0c0 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -107,27 +107,6 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate)
+ }
+ EXPORT_SYMBOL(ib_rate_to_mbps);
+ 
+-__attribute_const__ enum rdma_transport_type
+-rdma_node_get_transport(enum rdma_node_type node_type)
+-{
+-	switch (node_type) {
+-	case RDMA_NODE_IB_CA:
+-	case RDMA_NODE_IB_SWITCH:
+-	case RDMA_NODE_IB_ROUTER:
+-		return RDMA_TRANSPORT_IB;
+-	case RDMA_NODE_RNIC:
+-		return RDMA_TRANSPORT_IWARP;
+-	case RDMA_NODE_USNIC:
+-		return RDMA_TRANSPORT_USNIC;
+-	case RDMA_NODE_USNIC_UDP:
+-		return RDMA_TRANSPORT_USNIC_UDP;
+-	default:
+-		BUG();
+-		return 0;
+-	}
+-}
+-EXPORT_SYMBOL(rdma_node_get_transport);
+-
+ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
+ {
+ 	if (device->get_link_layer)
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index d54f91e..a12e876 100644
+index 262bf44..f9ef479 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1748,6 +1748,31 @@ int ib_query_port(struct ib_device *device,
- enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device,
- 					       u8 port_num);
+@@ -84,9 +84,6 @@ enum rdma_transport_type {
+ 	RDMA_TRANSPORT_IBOE,
+ };
  
-+static inline int rdma_tech_ib(struct ib_device *device, u8 port_num)
-+{
-+	return device->query_transport(device, port_num)
-+			== RDMA_TRANSPORT_IB;
-+}
-+
-+static inline int rdma_tech_iboe(struct ib_device *device, u8 port_num)
-+{
-+	return device->query_transport(device, port_num)
-+			== RDMA_TRANSPORT_IBOE;
-+}
-+
-+static inline int rdma_tech_iwarp(struct ib_device *device, u8 port_num)
-+{
-+	return device->query_transport(device, port_num)
-+			== RDMA_TRANSPORT_IWARP;
-+}
-+
-+static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
-+{
-+	enum rdma_transport_type tp = device->query_transport(device, port_num);
-+
-+	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
-+}
-+
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid);
- 
+-__attribute_const__ enum rdma_transport_type
+-rdma_node_get_transport(enum rdma_node_type node_type);
+-
+ enum rdma_link_layer {
+ 	IB_LINK_LAYER_UNSPECIFIED,
+ 	IB_LINK_LAYER_INFINIBAND,
 -- 
 2.1.0
 --
