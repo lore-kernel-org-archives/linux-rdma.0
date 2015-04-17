@@ -1,8 +1,8 @@
 From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-4.1 1/3] RDMA/core: Enable the iWarp Port Mapper to
- provide the actual address of the remote connecting peer
-Date: Fri, 17 Apr 2015 17:54:07 -0500
-Message-ID: <20150417225407.GA12640@TENIKOLO-MOBL2>
+Subject: [PATCH for-4.1 2/3] RDMA/nes: Report the actual address of the
+ remote connecting peer
+Date: Fri, 17 Apr 2015 17:56:37 -0500
+Message-ID: <20150417225637.GA6656@TENIKOLO-MOBL2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,555 +12,125 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford
 Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series was first submitted for inclusion upstream on 10/13/14, but
-it seems to have slipped through the cracks.
-
-Add functionality to allow the port mapper to provide to its client
-the actual (non-mapped) ip/tcp address information of the remote connecting peer
-
-1) Adding remote_info_cb() to process the address info of
-   the remote peer when it initiates the connection
-2) Adding a hash list to store the remote address info
-3) Adding functionality to add/remove the remote address info
-   After the info has been provided to the port mapper client,
-   it is removed from the hash list 
-
-
-The port mapper client needs to know the actual (non-mapped) address info of 
-the remote peer for each connection, because it is reporting it to the
-user space application which isn't aware of the port mapper service. 
-(The clients already know the local non-mapped address info)
-
+Get the actual (non-mapped) ip/tcp address of the remote connecting peer
+from the port mapper and report the address info to the user space application
+at the time of connection establishment
 
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/iwpm_msg.c  |   73 ++++++++++++-
- drivers/infiniband/core/iwpm_util.c |  208 +++++++++++++++++++++++++++++------
- drivers/infiniband/core/iwpm_util.h |   15 +++
- include/rdma/iw_portmap.h           |   25 ++++
- include/uapi/rdma/rdma_netlink.h    |    1 +
- 5 files changed, 288 insertions(+), 34 deletions(-)
+ drivers/infiniband/hw/nes/nes.c    |    1 +
+ drivers/infiniband/hw/nes/nes_cm.c |   65 ++++++++++++++++++++++++++---------
+ 2 files changed, 49 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index b85ddbc..ab08170 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -468,7 +468,8 @@ add_mapping_response_exit:
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 3b2a6dc..9f9d5c5 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -116,6 +116,7 @@ static struct ibnl_client_cbs nes_nl_cb_table[] = {
+ 	[RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
+ 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
+ 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
++	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
+ 	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
+ 	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
+ 	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb}
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 6f09a72..785c2fa 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -596,27 +596,52 @@ static void nes_form_reg_msg(struct nes_vnic *nesvnic,
+ 	memcpy(pm_msg->if_name, nesvnic->netdev->name, IWPM_IFNAME_SIZE);
  }
- EXPORT_SYMBOL(iwpm_add_mapping_cb);
  
--/* netlink attribute policy for the response to add and query mapping request */
-+/* netlink attribute policy for the response to add and query mapping request
-+ * and response with remote address info */
- static const struct nla_policy resp_query_policy[IWPM_NLA_RQUERY_MAPPING_MAX] = {
- 	[IWPM_NLA_QUERY_MAPPING_SEQ]      = { .type = NLA_U32 },
- 	[IWPM_NLA_QUERY_LOCAL_ADDR]       = { .len = sizeof(struct sockaddr_storage) },
-@@ -559,6 +560,76 @@ query_mapping_response_exit:
- }
- EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
- 
++static void record_sockaddr_info(struct sockaddr_storage *addr_info,
++					nes_addr_t *ip_addr, u16 *port_num)
++{
++	struct sockaddr_in *in_addr = (struct sockaddr_in *)addr_info;
++
++	if (in_addr->sin_family == AF_INET) {
++		*ip_addr = ntohl(in_addr->sin_addr.s_addr);
++		*port_num = ntohs(in_addr->sin_port);
++	}
++}
++
+ /*
+  * nes_record_pm_msg - Save the received mapping info
+  */
+ static void nes_record_pm_msg(struct nes_cm_info *cm_info,
+ 			struct iwpm_sa_data *pm_msg)
+ {
+-	struct sockaddr_in *mapped_loc_addr =
+-			(struct sockaddr_in *)&pm_msg->mapped_loc_addr;
+-	struct sockaddr_in *mapped_rem_addr =
+-			(struct sockaddr_in *)&pm_msg->mapped_rem_addr;
+-
+-	if (mapped_loc_addr->sin_family == AF_INET) {
+-		cm_info->mapped_loc_addr =
+-			ntohl(mapped_loc_addr->sin_addr.s_addr);
+-		cm_info->mapped_loc_port = ntohs(mapped_loc_addr->sin_port);
+-	}
+-	if (mapped_rem_addr->sin_family == AF_INET) {
+-		cm_info->mapped_rem_addr =
+-			ntohl(mapped_rem_addr->sin_addr.s_addr);
+-		cm_info->mapped_rem_port = ntohs(mapped_rem_addr->sin_port);
+-	}
++	record_sockaddr_info(&pm_msg->mapped_loc_addr,
++		&cm_info->mapped_loc_addr, &cm_info->mapped_loc_port);
++
++	record_sockaddr_info(&pm_msg->mapped_rem_addr,
++		&cm_info->mapped_rem_addr, &cm_info->mapped_rem_port);
++}
++
 +/*
-+ * iwpm_remote_info_cb - Process a port mapper message, containing
-+ *			  the remote connecting peer address info
++ * nes_get_reminfo - Get the address info of the remote connecting peer
 + */
-+int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
++static int nes_get_remote_addr(struct nes_cm_node *cm_node)
 +{
-+	struct nlattr *nltb[IWPM_NLA_RQUERY_MAPPING_MAX];
-+	struct sockaddr_storage *local_sockaddr, *remote_sockaddr;
-+	struct sockaddr_storage *mapped_loc_sockaddr, *mapped_rem_sockaddr;
-+	struct iwpm_remote_info *rem_info;
-+	const char *msg_type;
-+	u8 nl_client;
-+	int ret = -EINVAL;
-+
-+	msg_type = "Remote Mapping info";
-+	if (iwpm_parse_nlmsg(cb, IWPM_NLA_RQUERY_MAPPING_MAX,
-+				resp_query_policy, nltb, msg_type))
-+		return ret;
-+
-+	nl_client = RDMA_NL_GET_CLIENT(cb->nlh->nlmsg_type);
-+	if (!iwpm_valid_client(nl_client)) {
-+		pr_info("%s: Invalid port mapper client = %d\n",
-+				__func__, nl_client);
-+		return ret;
-+	}
-+	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
-+
-+	local_sockaddr = (struct sockaddr_storage *)
-+			nla_data(nltb[IWPM_NLA_QUERY_LOCAL_ADDR]);
-+	remote_sockaddr = (struct sockaddr_storage *)
-+			nla_data(nltb[IWPM_NLA_QUERY_REMOTE_ADDR]);
-+	mapped_loc_sockaddr = (struct sockaddr_storage *)
-+			nla_data(nltb[IWPM_NLA_RQUERY_MAPPED_LOC_ADDR]);
-+	mapped_rem_sockaddr = (struct sockaddr_storage *)
-+			nla_data(nltb[IWPM_NLA_RQUERY_MAPPED_REM_ADDR]);
-+
-+	if (mapped_loc_sockaddr->ss_family != local_sockaddr->ss_family ||
-+		mapped_rem_sockaddr->ss_family != remote_sockaddr->ss_family) {
-+		pr_info("%s: Sockaddr family doesn't match the requested one\n",
-+				__func__);
-+		return ret;
-+	}
-+	rem_info = kzalloc(sizeof(struct iwpm_remote_info), GFP_ATOMIC);
-+	if (!rem_info) {
-+		pr_err("%s: Unable to allocate a remote info\n", __func__);
-+		ret = -ENOMEM;
-+		return ret;
-+	}
-+	memcpy(&rem_info->mapped_loc_sockaddr, mapped_loc_sockaddr,
-+	       sizeof(struct sockaddr_storage));
-+	memcpy(&rem_info->remote_sockaddr, remote_sockaddr,
-+	       sizeof(struct sockaddr_storage));
-+	memcpy(&rem_info->mapped_rem_sockaddr, mapped_rem_sockaddr,
-+	       sizeof(struct sockaddr_storage));
-+	rem_info->nl_client = nl_client;
-+
-+	iwpm_add_remote_info(rem_info);
-+
-+	iwpm_print_sockaddr(local_sockaddr,
-+			"remote_info: Local sockaddr:");
-+	iwpm_print_sockaddr(mapped_loc_sockaddr,
-+			"remote_info: Mapped local sockaddr:");
-+	iwpm_print_sockaddr(remote_sockaddr,
-+			"remote_info: Remote sockaddr:");
-+	iwpm_print_sockaddr(mapped_rem_sockaddr,
-+			"remote_info: Mapped remote sockaddr:");
-+	return ret;
-+}
-+EXPORT_SYMBOL(iwpm_remote_info_cb);
-+
- /* netlink attribute policy for the received request for mapping info */
- static const struct nla_policy resp_mapinfo_policy[IWPM_NLA_MAPINFO_REQ_MAX] = {
- 	[IWPM_NLA_MAPINFO_ULIB_NAME] = { .type = NLA_STRING,
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index 69e9f84..d1b24d2 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -33,8 +33,10 @@
- 
- #include "iwpm_util.h"
- 
--#define IWPM_HASH_BUCKET_SIZE	512
--#define IWPM_HASH_BUCKET_MASK	(IWPM_HASH_BUCKET_SIZE - 1)
-+#define IWPM_MAPINFO_HASH_SIZE	512
-+#define IWPM_MAPINFO_HASH_MASK	(IWPM_MAPINFO_HASH_SIZE - 1)
-+#define IWPM_REMINFO_HASH_SIZE	64
-+#define IWPM_REMINFO_HASH_MASK	(IWPM_REMINFO_HASH_SIZE - 1)
- 
- static LIST_HEAD(iwpm_nlmsg_req_list);
- static DEFINE_SPINLOCK(iwpm_nlmsg_req_lock);
-@@ -42,31 +45,49 @@ static DEFINE_SPINLOCK(iwpm_nlmsg_req_lock);
- static struct hlist_head *iwpm_hash_bucket;
- static DEFINE_SPINLOCK(iwpm_mapinfo_lock);
- 
-+static struct hlist_head *iwpm_reminfo_bucket;
-+static DEFINE_SPINLOCK(iwpm_reminfo_lock);
-+
- static DEFINE_MUTEX(iwpm_admin_lock);
- static struct iwpm_admin_data iwpm_admin;
- 
- int iwpm_init(u8 nl_client)
- {
-+	int ret = 0;
- 	if (iwpm_valid_client(nl_client))
- 		return -EINVAL;
- 	mutex_lock(&iwpm_admin_lock);
- 	if (atomic_read(&iwpm_admin.refcount) == 0) {
--		iwpm_hash_bucket = kzalloc(IWPM_HASH_BUCKET_SIZE *
-+		iwpm_hash_bucket = kzalloc(IWPM_MAPINFO_HASH_SIZE *
- 					sizeof(struct hlist_head), GFP_KERNEL);
- 		if (!iwpm_hash_bucket) {
--			mutex_unlock(&iwpm_admin_lock);
-+			ret = -ENOMEM;
- 			pr_err("%s Unable to create mapinfo hash table\n", __func__);
--			return -ENOMEM;
-+			goto init_exit;
-+		}
-+		iwpm_reminfo_bucket = kzalloc(IWPM_REMINFO_HASH_SIZE *
-+					sizeof(struct hlist_head), GFP_KERNEL);
-+		if (!iwpm_reminfo_bucket) {
-+			kfree(iwpm_hash_bucket);
-+			ret = -ENOMEM;
-+			pr_err("%s Unable to create reminfo hash table\n", __func__);
-+			goto init_exit;
- 		}
- 	}
- 	atomic_inc(&iwpm_admin.refcount);
-+init_exit:
- 	mutex_unlock(&iwpm_admin_lock);
--	iwpm_set_valid(nl_client, 1);
--	return 0;
-+	if (!ret) {
-+		iwpm_set_valid(nl_client, 1);
-+		pr_debug("%s: Mapinfo and reminfo tables are created\n",
-+				__func__);
-+	}
-+	return ret;
- }
- EXPORT_SYMBOL(iwpm_init);
- 
- static void free_hash_bucket(void);
-+static void free_reminfo_bucket(void);
- 
- int iwpm_exit(u8 nl_client)
- {
-@@ -81,7 +100,8 @@ int iwpm_exit(u8 nl_client)
- 	}
- 	if (atomic_dec_and_test(&iwpm_admin.refcount)) {
- 		free_hash_bucket();
--		pr_debug("%s: Mapinfo hash table is destroyed\n", __func__);
-+		free_reminfo_bucket();
-+		pr_debug("%s: Resources are destroyed\n", __func__);
- 	}
- 	mutex_unlock(&iwpm_admin_lock);
- 	iwpm_set_valid(nl_client, 0);
-@@ -89,7 +109,7 @@ int iwpm_exit(u8 nl_client)
- }
- EXPORT_SYMBOL(iwpm_exit);
- 
--static struct hlist_head *get_hash_bucket_head(struct sockaddr_storage *,
-+static struct hlist_head *get_mapinfo_hash_bucket(struct sockaddr_storage *,
- 					       struct sockaddr_storage *);
- 
- int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
-@@ -99,9 +119,10 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	struct hlist_head *hash_bucket_head;
- 	struct iwpm_mapping_info *map_info;
- 	unsigned long flags;
-+	int ret = -EINVAL;
- 
- 	if (!iwpm_valid_client(nl_client))
--		return -EINVAL;
-+		return ret;
- 	map_info = kzalloc(sizeof(struct iwpm_mapping_info), GFP_KERNEL);
- 	if (!map_info) {
- 		pr_err("%s: Unable to allocate a mapping info\n", __func__);
-@@ -115,13 +136,16 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
- 
- 	spin_lock_irqsave(&iwpm_mapinfo_lock, flags);
- 	if (iwpm_hash_bucket) {
--		hash_bucket_head = get_hash_bucket_head(
-+		hash_bucket_head = get_mapinfo_hash_bucket(
- 					&map_info->local_sockaddr,
- 					&map_info->mapped_sockaddr);
--		hlist_add_head(&map_info->hlist_node, hash_bucket_head);
-+		if (hash_bucket_head) {
-+			hlist_add_head(&map_info->hlist_node, hash_bucket_head);
-+			ret = 0;
-+		}
- 	}
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
--	return 0;
-+	return ret;
- }
- EXPORT_SYMBOL(iwpm_create_mapinfo);
- 
-@@ -136,9 +160,12 @@ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 
- 	spin_lock_irqsave(&iwpm_mapinfo_lock, flags);
- 	if (iwpm_hash_bucket) {
--		hash_bucket_head = get_hash_bucket_head(
-+		hash_bucket_head = get_mapinfo_hash_bucket(
- 					local_sockaddr,
- 					mapped_local_addr);
-+		if (!hash_bucket_head)
-+			goto remove_mapinfo_exit;
-+
- 		hlist_for_each_entry_safe(map_info, tmp_hlist_node,
- 					hash_bucket_head, hlist_node) {
- 
-@@ -152,6 +179,7 @@ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 			}
- 		}
- 	}
-+remove_mapinfo_exit:
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
-@@ -166,7 +194,7 @@ static void free_hash_bucket(void)
- 
- 	/* remove all the mapinfo data from the list */
- 	spin_lock_irqsave(&iwpm_mapinfo_lock, flags);
--	for (i = 0; i < IWPM_HASH_BUCKET_SIZE; i++) {
-+	for (i = 0; i < IWPM_MAPINFO_HASH_SIZE; i++) {
- 		hlist_for_each_entry_safe(map_info, tmp_hlist_node,
- 			&iwpm_hash_bucket[i], hlist_node) {
- 
-@@ -180,6 +207,96 @@ static void free_hash_bucket(void)
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- }
- 
-+static void free_reminfo_bucket(void)
-+{
-+	struct hlist_node *tmp_hlist_node;
-+	struct iwpm_remote_info *rem_info;
-+	unsigned long flags;
-+	int i;
-+
-+	/* remove all the remote info from the list */
-+	spin_lock_irqsave(&iwpm_reminfo_lock, flags);
-+	for (i = 0; i < IWPM_REMINFO_HASH_SIZE; i++) {
-+		hlist_for_each_entry_safe(rem_info, tmp_hlist_node,
-+			&iwpm_reminfo_bucket[i], hlist_node) {
-+
-+				hlist_del_init(&rem_info->hlist_node);
-+				kfree(rem_info);
-+			}
-+	}
-+	/* free the hash list */
-+	kfree(iwpm_reminfo_bucket);
-+	iwpm_reminfo_bucket = NULL;
-+	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
-+}
-+
-+static struct hlist_head *get_reminfo_hash_bucket(struct sockaddr_storage *,
-+						struct sockaddr_storage *);
-+
-+void iwpm_add_remote_info(struct iwpm_remote_info *rem_info)
-+{
-+	struct hlist_head *hash_bucket_head;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&iwpm_reminfo_lock, flags);
-+	if (iwpm_reminfo_bucket) {
-+		hash_bucket_head = get_reminfo_hash_bucket(
-+					&rem_info->mapped_loc_sockaddr,
-+					&rem_info->mapped_rem_sockaddr);
-+		if (hash_bucket_head)
-+			hlist_add_head(&rem_info->hlist_node, hash_bucket_head);
-+	}
-+	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
-+}
-+
-+int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
-+				struct sockaddr_storage *mapped_rem_addr,
-+				struct sockaddr_storage *remote_addr,
-+				u8 nl_client)
-+{
-+	struct hlist_node *tmp_hlist_node;
-+	struct hlist_head *hash_bucket_head;
-+	struct iwpm_remote_info *rem_info = NULL;
-+	unsigned long flags;
-+	int ret = -EINVAL;
-+
-+	if (!iwpm_valid_client(nl_client)) {
-+		pr_info("%s: Invalid client = %d\n", __func__, nl_client);
-+		return ret;
-+	}
-+	spin_lock_irqsave(&iwpm_reminfo_lock, flags);
-+	if (iwpm_reminfo_bucket) {
-+		hash_bucket_head = get_reminfo_hash_bucket(
-+					mapped_loc_addr,
-+					mapped_rem_addr);
-+		if (!hash_bucket_head)
-+			goto get_remote_info_exit;
-+		hlist_for_each_entry_safe(rem_info, tmp_hlist_node,
-+					hash_bucket_head, hlist_node) {
-+
-+			if (!iwpm_compare_sockaddr(&rem_info->mapped_loc_sockaddr,
-+				mapped_loc_addr) &&
-+				!iwpm_compare_sockaddr(&rem_info->mapped_rem_sockaddr,
-+				mapped_rem_addr)) {
-+
-+				memcpy(remote_addr, &rem_info->remote_sockaddr,
-+					sizeof(struct sockaddr_storage));
-+				iwpm_print_sockaddr(remote_addr,
-+						"get_remote_info: Remote sockaddr:");
-+
-+				hlist_del_init(&rem_info->hlist_node);
-+				kfree(rem_info);
-+				ret = 0;
-+				break;
-+			}
-+		}
-+	}
-+get_remote_info_exit:
-+	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL(iwpm_get_remote_info);
-+
- struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
- 					u8 nl_client, gfp_t gfp)
- {
-@@ -409,31 +528,54 @@ static u32 iwpm_ipv4_jhash(struct sockaddr_in *ipv4_sockaddr)
- 	return hash;
- }
- 
--static struct hlist_head *get_hash_bucket_head(struct sockaddr_storage
--					       *local_sockaddr,
--					       struct sockaddr_storage
--					       *mapped_sockaddr)
-+static int get_hash_bucket(struct sockaddr_storage *a_sockaddr,
-+				struct sockaddr_storage *b_sockaddr, u32 *hash)
- {
--	u32 local_hash, mapped_hash, hash;
-+	u32 a_hash, b_hash;
- 
--	if (local_sockaddr->ss_family == AF_INET) {
--		local_hash = iwpm_ipv4_jhash((struct sockaddr_in *) local_sockaddr);
--		mapped_hash = iwpm_ipv4_jhash((struct sockaddr_in *) mapped_sockaddr);
-+	if (a_sockaddr->ss_family == AF_INET) {
-+		a_hash = iwpm_ipv4_jhash((struct sockaddr_in *) a_sockaddr);
-+		b_hash = iwpm_ipv4_jhash((struct sockaddr_in *) b_sockaddr);
- 
--	} else if (local_sockaddr->ss_family == AF_INET6) {
--		local_hash = iwpm_ipv6_jhash((struct sockaddr_in6 *) local_sockaddr);
--		mapped_hash = iwpm_ipv6_jhash((struct sockaddr_in6 *) mapped_sockaddr);
-+	} else if (a_sockaddr->ss_family == AF_INET6) {
-+		a_hash = iwpm_ipv6_jhash((struct sockaddr_in6 *) a_sockaddr);
-+		b_hash = iwpm_ipv6_jhash((struct sockaddr_in6 *) b_sockaddr);
- 	} else {
- 		pr_err("%s: Invalid sockaddr family\n", __func__);
--		return NULL;
-+		return -EINVAL;
- 	}
- 
--	if (local_hash == mapped_hash) /* if port mapper isn't available */
--		hash = local_hash;
-+	if (a_hash == b_hash) /* if port mapper isn't available */
-+		*hash = a_hash;
- 	else
--		hash = jhash_2words(local_hash, mapped_hash, 0);
-+		*hash = jhash_2words(a_hash, b_hash, 0);
-+	return 0;
-+}
-+
-+static struct hlist_head *get_mapinfo_hash_bucket(struct sockaddr_storage
-+				*local_sockaddr, struct sockaddr_storage
-+				*mapped_sockaddr)
-+{
-+	u32 hash;
-+	int ret;
- 
--	return &iwpm_hash_bucket[hash & IWPM_HASH_BUCKET_MASK];
-+	ret = get_hash_bucket(local_sockaddr, mapped_sockaddr, &hash);
-+	if (ret)
-+		return NULL;
-+	return &iwpm_hash_bucket[hash & IWPM_MAPINFO_HASH_MASK];
-+}
-+
-+static struct hlist_head *get_reminfo_hash_bucket(struct sockaddr_storage
-+				*mapped_loc_sockaddr, struct sockaddr_storage
-+				*mapped_rem_sockaddr)
-+{
-+	u32 hash;
++	struct sockaddr_storage mapped_loc_addr, mapped_rem_addr;
++	struct sockaddr_storage remote_addr;
 +	int ret;
 +
-+	ret = get_hash_bucket(mapped_loc_sockaddr, mapped_rem_sockaddr, &hash);
++	nes_create_sockaddr(htonl(cm_node->mapped_loc_addr),
++			htons(cm_node->mapped_loc_port), &mapped_loc_addr);
++	nes_create_sockaddr(htonl(cm_node->mapped_rem_addr),
++			htons(cm_node->mapped_rem_port), &mapped_rem_addr);
++
++	ret = iwpm_get_remote_info(&mapped_loc_addr, &mapped_rem_addr,
++				&remote_addr, RDMA_NL_NES);
 +	if (ret)
-+		return NULL;
-+	return &iwpm_reminfo_bucket[hash & IWPM_REMINFO_HASH_MASK];
++		nes_debug(NES_DBG_CM, "Unable to find remote peer address info\n");
++	else
++		record_sockaddr_info(&remote_addr, &cm_node->rem_addr,
++				&cm_node->rem_port);
++	return ret;
  }
  
- static int send_mapinfo_num(u32 mapping_num, u8 nl_client, int iwpm_pid)
-@@ -512,7 +654,7 @@ int iwpm_send_mapinfo(u8 nl_client, int iwpm_pid)
- 	}
- 	skb_num++;
- 	spin_lock_irqsave(&iwpm_mapinfo_lock, flags);
--	for (i = 0; i < IWPM_HASH_BUCKET_SIZE; i++) {
-+	for (i = 0; i < IWPM_MAPINFO_HASH_SIZE; i++) {
- 		hlist_for_each_entry(map_info, &iwpm_hash_bucket[i],
- 				     hlist_node) {
- 			if (map_info->nl_client != nl_client)
-@@ -595,7 +737,7 @@ int iwpm_mapinfo_available(void)
- 
- 	spin_lock_irqsave(&iwpm_mapinfo_lock, flags);
- 	if (iwpm_hash_bucket) {
--		for (i = 0; i < IWPM_HASH_BUCKET_SIZE; i++) {
-+		for (i = 0; i < IWPM_MAPINFO_HASH_SIZE; i++) {
- 			if (!hlist_empty(&iwpm_hash_bucket[i])) {
- 				full_bucket = 1;
- 				break;
-diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
-index 9777c86..ee2d9ff 100644
---- a/drivers/infiniband/core/iwpm_util.h
-+++ b/drivers/infiniband/core/iwpm_util.h
-@@ -76,6 +76,14 @@ struct iwpm_mapping_info {
- 	u8     nl_client;
- };
- 
-+struct iwpm_remote_info {
-+	struct hlist_node hlist_node;
-+	struct sockaddr_storage remote_sockaddr;
-+	struct sockaddr_storage mapped_loc_sockaddr;
-+	struct sockaddr_storage mapped_rem_sockaddr;
-+	u8     nl_client;
-+};
-+
- struct iwpm_admin_data {
- 	atomic_t refcount;
- 	atomic_t nlmsg_seq;
-@@ -128,6 +136,13 @@ int iwpm_wait_complete_req(struct iwpm_nlmsg_request *nlmsg_request);
- int iwpm_get_nlmsg_seq(void);
- 
  /**
-+ * iwpm_add_reminfo - Add remote address info of the connecting peer
-+ *                    to the remote info hash table
-+ * @reminfo: The remote info to be added
-+ */
-+void iwpm_add_remote_info(struct iwpm_remote_info *reminfo);
-+
-+/**
-  * iwpm_valid_client - Check if the port mapper client is valid
-  * @nl_client: The index of the netlink client
-  *
-diff --git a/include/rdma/iw_portmap.h b/include/rdma/iw_portmap.h
-index 928b277..fda3167 100644
---- a/include/rdma/iw_portmap.h
-+++ b/include/rdma/iw_portmap.h
-@@ -148,6 +148,16 @@ int iwpm_add_mapping_cb(struct sk_buff *, struct netlink_callback *);
- int iwpm_add_and_query_mapping_cb(struct sk_buff *, struct netlink_callback *);
+@@ -1566,9 +1591,14 @@ static struct nes_cm_node *make_cm_node(struct nes_cm_core *cm_core,
+ 		return NULL;
  
- /**
-+ * iwpm_remote_info_cb - Process remote connecting peer address info, which
-+ *                       the port mapper has received from the connecting peer
-+ *
-+ * @cb: Contains the received message (payload and netlink header)
-+ *
-+ * Stores the IPv4/IPv6 address info in a hash table
-+ */
-+int iwpm_remote_info_cb(struct sk_buff *, struct netlink_callback *);
-+
-+/**
-  * iwpm_mapping_error_cb - Process port mapper notification for error
-  *
-  * @skb:
-@@ -175,6 +185,21 @@ int iwpm_mapping_info_cb(struct sk_buff *, struct netlink_callback *);
- int iwpm_ack_mapping_info_cb(struct sk_buff *, struct netlink_callback *);
+ 	/* set our node specific transport info */
+-	cm_node->loc_addr = cm_info->loc_addr;
++	if (listener) {
++		cm_node->loc_addr = listener->loc_addr;
++		cm_node->loc_port = listener->loc_port;
++	} else {
++		cm_node->loc_addr = cm_info->loc_addr;
++		cm_node->loc_port = cm_info->loc_port;
++	}
+ 	cm_node->rem_addr = cm_info->rem_addr;
+-	cm_node->loc_port = cm_info->loc_port;
+ 	cm_node->rem_port = cm_info->rem_port;
  
- /**
-+ * iwpm_get_remote_info - Get the remote connecting peer address info
-+ *
-+ * @mapped_loc_addr: Mapped local address of the listening peer
-+ * @mapped_rem_addr: Mapped remote address of the connecting peer
-+ * @remote_addr: To store the remote address of the connecting peer
-+ * @nl_client: The index of the netlink client
-+ *
-+ * The remote address info is retrieved and provided to the client in
-+ * the remote_addr. After that it is removed from the hash table
-+ */
-+int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
-+			struct sockaddr_storage *mapped_rem_addr,
-+			struct sockaddr_storage *remote_addr, u8 nl_client);
-+
-+/**
-  * iwpm_create_mapinfo - Store local and mapped IPv4/IPv6 address
-  *                       info in a hash table
-  * @local_addr: Local ip/tcp address
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index de69170..6e4bb42 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -37,6 +37,7 @@ enum {
- 	RDMA_NL_IWPM_ADD_MAPPING,
- 	RDMA_NL_IWPM_QUERY_MAPPING,
- 	RDMA_NL_IWPM_REMOVE_MAPPING,
-+	RDMA_NL_IWPM_REMOTE_INFO,
- 	RDMA_NL_IWPM_HANDLE_ERR,
- 	RDMA_NL_IWPM_MAPINFO,
- 	RDMA_NL_IWPM_MAPINFO_NUM,
+ 	cm_node->mapped_loc_addr = cm_info->mapped_loc_addr;
+@@ -2151,6 +2181,7 @@ static int handle_ack_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 		cm_node->state = NES_CM_STATE_ESTABLISHED;
+ 		if (datasize) {
+ 			cm_node->tcp_cntxt.rcv_nxt = inc_sequence + datasize;
++			nes_get_remote_addr(cm_node);
+ 			handle_rcv_mpa(cm_node, skb);
+ 		} else { /* rcvd ACK only */
+ 			dev_kfree_skb_any(skb);
 -- 
 1.7.1
 
