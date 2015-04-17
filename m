@@ -1,49 +1,62 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v4 10/27] IB/Verbs: Reform cm related part in IB-core
- cma/ucm
-Date: Fri, 17 Apr 2015 10:36:27 +0200
-Message-ID: <5530C60B.5060308@profitbricks.com>
-References: <552F6CF2.4000606@profitbricks.com> <552F6DEA.9080701@profitbricks.com> <20150416155823.GB21809@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-4.1 1/4] iw_cxgb4: Cleanup register defines/MACROS
+Date: Fri, 17 Apr 2015 20:35:02 +0530
+Message-ID: <1429283105-13243-2-git-send-email-hariprasad@chelsio.com>
+References: <1429283105-13243-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150416155823.GB21809-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1429283105-13243-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Cleanup macros and register defines for consistency
 
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c          | 4 ++--
+ drivers/infiniband/hw/cxgb4/t4fw_ri_api.h | 4 +++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-On 04/16/2015 05:58 PM, Jason Gunthorpe wrote:
-> On Thu, Apr 16, 2015 at 10:08:10AM +0200, Michael Wang wrote:
->>
->> Use raw management helpers to reform cm related part in IB-core cma/ucm.
->>
->> These checks focus on the device cm type rather than the port capability,
->> directly pass port 1 works currently, but can't support mixing cm type
->> device in future.
-> 
-> After the discussion settled, I ended up thinking that implementing
-> explicit device checks, for use by CM, and the BUG_ON at register to
-> require all ports have the same value was the best option.
-> 
-> It also looks like hardwired 1 won't work on switch ports, so it is no-go.
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 57176dd..6ed5025 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -675,7 +675,7 @@ static int send_connect(struct c4iw_ep *ep)
+ 	if (is_t5(ep->com.dev->rdev.lldi.adapter_type)) {
+ 		opt2 |= T5_OPT_2_VALID_F;
+ 		opt2 |= CONG_CNTRL_V(CONG_ALG_TAHOE);
+-		opt2 |= CONG_CNTRL_VALID; /* OPT_2_ISS for T5 */
++		opt2 |= T5_ISS_F;
+ 	}
+ 	t4_set_arp_err_handler(skb, ep, act_open_req_arp_failure);
+ 
+@@ -2214,7 +2214,7 @@ static void accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+ 		u32 isn = (prandom_u32() & ~7UL) - 1;
+ 		opt2 |= T5_OPT_2_VALID_F;
+ 		opt2 |= CONG_CNTRL_V(CONG_ALG_TAHOE);
+-		opt2 |= CONG_CNTRL_VALID; /* OPT_2_ISS for T5 */
++		opt2 |= T5_ISS_F;
+ 		rpl5 = (void *)rpl;
+ 		memset(&rpl5->iss, 0, roundup(sizeof(*rpl5)-sizeof(*rpl), 16));
+ 		if (peer2peer)
+diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+index 5e53327..343e8daf 100644
+--- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
++++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+@@ -848,6 +848,8 @@ enum {                     /* TCP congestion control algorithms */
+ #define CONG_CNTRL_V(x) ((x) << CONG_CNTRL_S)
+ #define CONG_CNTRL_G(x) (((x) >> CONG_CNTRL_S) & CONG_CNTRL_M)
+ 
+-#define CONG_CNTRL_VALID   (1 << 18)
++#define T5_ISS_S    18
++#define T5_ISS_V(x) ((x) << T5_ISS_S)
++#define T5_ISS_F    T5_ISS_V(1U)
+ 
+ #endif /* _T4FW_RI_API_H_ */
+-- 
+2.3.4
 
-AFAIK, the current HW won't trigger such Bug, actually only mlx4 using port_num
-to check the link-layer (but still ib cm anyway), others are just static whatever
-the port_num is.
-
-Thus as long as the check is still count on transport type and link-layer, the
-BUG may never be triggered...
-
-Regards,
-Michael Wang
-
-> 
-> Jason
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
