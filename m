@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-4.1 3/4] iw_cxgb4: use BAR2 GTS register for T5 kernel mode CQs
-Date: Fri, 17 Apr 2015 20:35:04 +0530
-Message-ID: <1429283105-13243-4-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH for-4.1 4/4] iw_cxgb4: enforce qp/cq id requirements
+Date: Fri, 17 Apr 2015 20:35:05 +0530
+Message-ID: <1429283105-13243-5-git-send-email-hariprasad@chelsio.com>
 References: <1429283105-13243-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1429283105-13243-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -10,80 +10,56 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For T5, we must not use the kdb/kgts registers, in order avoid db drops
-under extreme loads.
+Currently the iw_cxgb4 implementation requires the qp and cq qid densities
+to match as well as the qp and cq id ranges.  So fail a device open if
+the device configuration doesn't meet the requirements.
+
+The reason for these restictions has to do with the fact that IQ qid X
+has a UGTS register in the same bar2 page as EQ qid X.  Thus both qids
+need to be allocated to the same user process for security reasons.
+The logic that does this (the qpid allocator in iw_cxgb4/resource.c)
+handles this but requires the above restrictions.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cq.c | 15 +++++++++++----
- drivers/infiniband/hw/cxgb4/t4.h |  7 ++++---
- 2 files changed, 15 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index a0358b1..2504bce 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -156,12 +156,19 @@ static int create_cq(struct c4iw_rdev *rdev, struct t4_cq *cq,
- 		goto err4;
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 5f7bb78..f36aa21 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -765,6 +765,29 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	c4iw_init_dev_ucontext(rdev, &rdev->uctx);
  
- 	cq->gen = 1;
--	cq->gts = rdev->lldi.gts_reg;
- 	cq->rdev = rdev;
- 	if (user) {
--		cq->ugts = (u64)pci_resource_start(rdev->lldi.pdev, 2) +
--					(cq->cqid << rdev->cqshift);
--		cq->ugts &= PAGE_MASK;
-+		u32 off = (cq->cqid << rdev->cqshift) & PAGE_MASK;
+ 	/*
++	 * This implementation assumes udb_density == ucq_density!  Eventually
++	 * we might need to support this but for now fail the open. Also the
++	 * cqid and qpid range must match for now.
++	 */
++	if (rdev->lldi.udb_density != rdev->lldi.ucq_density) {
++		pr_err(MOD "%s: unsupported udb/ucq densities %u/%u\n",
++		       pci_name(rdev->lldi.pdev), rdev->lldi.udb_density,
++		       rdev->lldi.ucq_density);
++		err = -EINVAL;
++		goto err1;
++	}
++	if (rdev->lldi.vr->qp.start != rdev->lldi.vr->cq.start ||
++	    rdev->lldi.vr->qp.size != rdev->lldi.vr->cq.size) {
++		pr_err(MOD "%s: unsupported qp and cq id ranges "
++		       "qp start %u size %u cq start %u size %u\n",
++		       pci_name(rdev->lldi.pdev), rdev->lldi.vr->qp.start,
++		       rdev->lldi.vr->qp.size, rdev->lldi.vr->cq.size,
++		       rdev->lldi.vr->cq.size);
++		err = -EINVAL;
++		goto err1;
++	}
 +
-+		cq->ugts = (u64)rdev->bar2_pa + off;
-+	} else if (is_t4(rdev->lldi.adapter_type)) {
-+		cq->gts = rdev->lldi.gts_reg;
-+		cq->qid_mask = -1U;
-+	} else {
-+		u32 off = ((cq->cqid << rdev->cqshift) & PAGE_MASK) + 12;
-+
-+		cq->gts = rdev->bar2_kva + off;
-+		cq->qid_mask = rdev->qpmask;
- 	}
- 	return 0;
- err4:
-diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
-index 871cdca..0b47f9a 100644
---- a/drivers/infiniband/hw/cxgb4/t4.h
-+++ b/drivers/infiniband/hw/cxgb4/t4.h
-@@ -539,6 +539,7 @@ struct t4_cq {
- 	size_t memsize;
- 	__be64 bits_type_ts;
- 	u32 cqid;
-+	u32 qid_mask;
- 	int vector;
- 	u16 size; /* including status page */
- 	u16 cidx;
-@@ -563,12 +564,12 @@ static inline int t4_arm_cq(struct t4_cq *cq, int se)
- 	set_bit(CQ_ARMED, &cq->flags);
- 	while (cq->cidx_inc > CIDXINC_M) {
- 		val = SEINTARM_V(0) | CIDXINC_V(CIDXINC_M) | TIMERREG_V(7) |
--		      INGRESSQID_V(cq->cqid);
-+		      INGRESSQID_V(cq->cqid & cq->qid_mask);
- 		writel(val, cq->gts);
- 		cq->cidx_inc -= CIDXINC_M;
- 	}
- 	val = SEINTARM_V(se) | CIDXINC_V(cq->cidx_inc) | TIMERREG_V(6) |
--	      INGRESSQID_V(cq->cqid);
-+	      INGRESSQID_V(cq->cqid & cq->qid_mask);
- 	writel(val, cq->gts);
- 	cq->cidx_inc = 0;
- 	return 0;
-@@ -601,7 +602,7 @@ static inline void t4_hwcq_consume(struct t4_cq *cq)
- 		u32 val;
- 
- 		val = SEINTARM_V(0) | CIDXINC_V(cq->cidx_inc) | TIMERREG_V(7) |
--		      INGRESSQID_V(cq->cqid);
-+		      INGRESSQID_V(cq->cqid & cq->qid_mask);
- 		writel(val, cq->gts);
- 		cq->cidx_inc = 0;
- 	}
++	/*
+ 	 * qpshift is the number of bits to shift the qpid left in order
+ 	 * to get the correct address of the doorbell for that qp.
+ 	 */
 -- 
 2.3.4
 
