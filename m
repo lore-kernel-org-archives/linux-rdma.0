@@ -1,60 +1,38 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: RE: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
-Date: Thu, 16 Apr 2015 22:32:53 +0000
-Message-ID: <DB4PR05MB0863C1F08DB56D677265A7BDB1E40@DB4PR05MB0863.eurprd05.prod.outlook.com>
-References: <DB4PR05MB0863248FC7422B05765DD8E5B1E40@DB4PR05MB0863.eurprd05.prod.outlook.com>
- <DB4PR05MB0863F49028F5E0E252278A6BB1E40@DB4PR05MB0863.eurprd05.prod.outlook.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC3752@ORSMSX109.amr.corp.intel.com>
+From: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
+Date: Fri, 17 Apr 2015 09:11:28 +0200
+Message-ID: <5530B220.10002@6wind.com>
+References: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
+Reply-To: nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC3752-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1429191274-11600-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Somnath Kotur (Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org)" <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> > The RoCE Verbs interface references the HCA GID table in QPs and AHs,
-> > for all RoCE versions.
-> 
-> The IBTA specifically does not define software interfaces.  The concern here is
-> the architecture and definition of the linux rdma software stack, not verbs,
-> despite the fact that the layer is named that.
+Le 16/04/2015 15:34, Erez Shitrit a =C3=A9crit :
+> Currently, iflink of the parent interface was always accessed, even
+> when interface didn't have a parent and hence we crashed there.
 >
-
-Whatever.
-The ib_* API is the Linux implementation for IBTA Verbs (both Infiniband and RoCE flavors) and iWARP Verbs.
-This interface uses a GID table.
-In this patch-set, there is no conceptual change in this regard.
-It adds GID types, as stated by the RoCE specification, which is a natural extension to the existing code.
-I am sure that we can consider additional changes in the future, but one patch-set at a time...
- 
-> > As I said earlier, the network layer (e.g., IPv4, IPv6, or GRH) cannot
-> > be a port attribute because RoCE HCAs support all of them over the
-> > same physical port.
-> 
-> IMO, the architecture needs to change to support multiple network and
-> transport layers over the same link layer.  The current restriction of 1
-> "transport" per port is too restrictive, and doesn't seem to be true even for
-> current devices, like usnic.
-> 
-
-usnic uses UDP transport.
-Infiniband and RoCE use the IB transport (all the BTH+ header stuff as defined by IBTA).
-iWARP uses IETF defined protocols over TCP, namely RDMAP+DDP+MPA.
-
-I am not aware of any device that mixes these transports today.
-If we ever see such a need in the future, let's talk again. Currently, this is irrelevant.
-
-> > Maybe we should change these patches to encode the port "summary" as a
-> > bit mask, and provide convenient masks for queries?
-> 
-> Switching to bit masks is the longer term objective.
-
+> Handle the interface types properly: for a child interface, return
+> the ifindex of the parent, for parent interface, return its ifindex.
+>
+> For child devices, make sure to set the parent pointer prior to
+> invoking register_netdevice(), this allows the new ndo to be called
+> by the stack immediately after the child device is registered.
+>
+> Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
+> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Acked-by: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
