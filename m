@@ -1,135 +1,30 @@
-From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-4.1 3/3] RDMA/cxgb4: Report the actual address of the
- remote connecting peer
-Date: Fri, 17 Apr 2015 17:56:50 -0500
-Message-ID: <20150417225650.GA12948@TENIKOLO-MOBL2>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-4.1 1/3] RDMA/core: Enable the iWarp Port Mapper to
+ provide the actual address of the remote connecting peer
+Date: Sun, 19 Apr 2015 14:57:40 +0300
+Message-ID: <55339834.6050306@mellanox.com>
+References: <20150417225407.GA12640@TENIKOLO-MOBL2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20150417225407.GA12640@TENIKOLO-MOBL2>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+On 4/18/2015 1:54 AM, Tatyana Nikolova wrote:
+> This patch series was first submitted for inclusion upstream on 10/13/14, but
+> it seems to have slipped through the cracks.
 
-When iWARP port mapping is being done, the passive side of a connection
-only knows the mapped address/port of the peer.  So now query the IWPM
-to get the actual address/port of the peer.
+The above text is irrelevant for the kernel git logs, can you re-send 
+with proper cover letter explaining what this series is about.
 
-Also setup the passive side endpoint to correctly display the actual
-and mapped addresses for the new connection.
+>
+> Add functionality to allow the port mapper to provide to its client
+> the actual (non-mapped) ip/tcp address information of the remote connecting peer
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- drivers/infiniband/hw/cxgb4/cm.c     |   54 +++++++++++++++++++++++++++++++---
- drivers/infiniband/hw/cxgb4/device.c |    1 +
- 2 files changed, 51 insertions(+), 4 deletions(-)
-
-
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index c2fb71c..f6c7b32 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -580,6 +580,22 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
- 		sizeof(ep->com.mapped_remote_addr));
- }
- 
-+static int get_remote_addr(struct c4iw_ep *ep)
-+{
-+	int ret;
-+
-+	print_addr(&ep->com, __func__, "get_remote_addr");
-+
-+	ret = iwpm_get_remote_info(&ep->com.mapped_local_addr,
-+				   &ep->com.mapped_remote_addr,
-+				   &ep->com.remote_addr, RDMA_NL_C4IW);
-+	if (ret)
-+		pr_info(MOD "Unable to find remote peer addr info - err %d\n",
-+			ret);
-+
-+	return ret;
-+}
-+
- static void best_mtu(const unsigned short *mtus, unsigned short mtu,
- 		     unsigned int *idx, int use_ts)
- {
-@@ -2343,27 +2359,57 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	state_set(&child_ep->com, CONNECTING);
- 	child_ep->com.dev = dev;
- 	child_ep->com.cm_id = NULL;
-+
-+	/*
-+	 * The mapped_local and mapped_remote addresses get setup with
-+	 * the actual 4-tuple.  The local address will be based on the
-+	 * actual local address of the connection, but on the port number
-+	 * of the parent listening endpoint.  The remote address is
-+	 * setup based on a query to the IWPM since we don't know what it
-+	 * originally was before mapping.  If no mapping was done, then
-+	 * mapped_remote == remote, and mapped_local == local.
-+	 */
- 	if (iptype == 4) {
- 		struct sockaddr_in *sin = (struct sockaddr_in *)
--			&child_ep->com.local_addr;
-+			&child_ep->com.mapped_local_addr;
-+
- 		sin->sin_family = PF_INET;
- 		sin->sin_port = local_port;
- 		sin->sin_addr.s_addr = *(__be32 *)local_ip;
--		sin = (struct sockaddr_in *)&child_ep->com.remote_addr;
-+
-+		sin = (struct sockaddr_in *)&child_ep->com.local_addr;
-+		sin->sin_family = PF_INET;
-+		sin->sin_port = ((struct sockaddr_in *)
-+				 &parent_ep->com.local_addr)->sin_port;
-+		sin->sin_addr.s_addr = *(__be32 *)local_ip;
-+
-+		sin = (struct sockaddr_in *)&child_ep->com.mapped_remote_addr;
- 		sin->sin_family = PF_INET;
- 		sin->sin_port = peer_port;
- 		sin->sin_addr.s_addr = *(__be32 *)peer_ip;
- 	} else {
- 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)
--			&child_ep->com.local_addr;
-+			&child_ep->com.mapped_local_addr;
-+
- 		sin6->sin6_family = PF_INET6;
- 		sin6->sin6_port = local_port;
- 		memcpy(sin6->sin6_addr.s6_addr, local_ip, 16);
--		sin6 = (struct sockaddr_in6 *)&child_ep->com.remote_addr;
-+
-+		sin6 = (struct sockaddr_in6 *)&child_ep->com.local_addr;
-+		sin6->sin6_family = PF_INET6;
-+		sin6->sin6_port = ((struct sockaddr_in6 *)
-+				   &parent_ep->com.local_addr)->sin6_port;
-+		memcpy(sin6->sin6_addr.s6_addr, local_ip, 16);
-+
-+		sin6 = (struct sockaddr_in6 *)&child_ep->com.mapped_remote_addr;
- 		sin6->sin6_family = PF_INET6;
- 		sin6->sin6_port = peer_port;
- 		memcpy(sin6->sin6_addr.s6_addr, peer_ip, 16);
- 	}
-+	memcpy(&child_ep->com.remote_addr, &child_ep->com.mapped_remote_addr,
-+	       sizeof(child_ep->com.remote_addr));
-+	get_remote_addr(child_ep);
-+
- 	c4iw_get_ep(&parent_ep->com);
- 	child_ep->parent_ep = parent_ep;
- 	child_ep->tos = GET_POPEN_TOS(ntohl(req->tos_stid));
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 72f1f05..4c0f238 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -93,6 +93,7 @@ static struct ibnl_client_cbs c4iw_nl_cb_table[] = {
- 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
- 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
- 	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
-+	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
- 	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
- 	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb}
- };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
