@@ -1,124 +1,179 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v2 01/11] RDMA/CMA: Mark IPv4 addresses correctly when
- the listener is IPv6
-Date: Mon, 20 Apr 2015 14:01:11 -0600
-Message-ID: <20150420200111.GA32449@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 02/11] IB/addr: Pass network namespace as a parameter
+Date: Mon, 20 Apr 2015 18:05:30 -0400
+Message-ID: <1429567530.45956.31.camel@redhat.com>
 References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
- <1429520622-10303-2-git-send-email-haggaie@mellanox.com>
- <20150420164140.GC7676@obsidianresearch.com>
- <CAJ3xEMgKFdr68Qt0vNCaf1p4YjPK2KUSn2FdtQVP0SZQ+Y7atg@mail.gmail.com>
+	 <1429520622-10303-3-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMgKFdr68Qt0vNCaf1p4YjPK2KUSn2FdtQVP0SZQ+Y7atg@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Haggai Eran <haggaie@mellanox.com>, Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-+285zWrsSafreHchff6E"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429520622-10303-3-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 09:38:02PM +0300, Or Gerlitz wrote:
-> On Mon, Apr 20, 2015 at 7:41 PM, Jason Gunthorpe
-> <jgunthorpe@obsidianresearch.com> wrote:
-> > On Mon, Apr 20, 2015 at 12:03:32PM +0300, Haggai Eran wrote:
-> >> From: Yotam Kenneth <yotamke@mellanox.com>
-> >>
-> >> When accepting a new connection with the listener being IPv6, the
-> >> family of the new connection is set as IPv6. This causes cma_zero_addr
-> >> function to return true on an non-zero address. As a result, the wrong
-> >> code path is taken. This causes the connection request to be rejected,
-> >> as the RDMA-CM code looks for the wrong type of device.
-> >
-> > This description doesn't really make sense as to what the problem is.
 
-> Jason, could you take a look @ this thread
-> http://marc.info/?t=141589395000004&r=1&w=2 where the authors
-> addressed some comments from Sean and he eventually Acked the patch?
+--=-+285zWrsSafreHchff6E
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Please actually read my comments:
+On Mon, 2015-04-20 at 12:03 +0300, Haggai Eran wrote:
+> From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Add network namespace support to the ib_addr module. For that, all the ad=
+dress
+> resolution and matching should be done using the appropriate namespace in=
+stead
+> of init_net.
+>=20
+> This is achieved by:
+>=20
+> 1. Adding an explicit network namespace argument to exported function tha=
+t
+>    require a namespace.
+> 2. Saving the namespace in the rdma_addr_client structure.
+> 3. Using it when calling networking functions.
+>=20
+> In order to preserve the behavior of calling modules, &init_net is
+> passed as the parameter in calls from other modules. This is modified as
+> namespace support is added on more levels.
+>=20
+> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/addr.c           | 31 ++++++++++++----------
+>  drivers/infiniband/core/cma.c            |  4 ++-
+>  drivers/infiniband/core/verbs.c          | 14 +++++++---
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c |  3 ++-
+>  include/rdma/ib_addr.h                   | 44 ++++++++++++++++++++++++++=
+++----
+>  5 files changed, 72 insertions(+), 24 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/add=
+r.c
+> index f80da50d84a5..95beaef6b66d 100644
+> --- a/drivers/infiniband/core/addr.c
+> +++ b/drivers/infiniband/core/addr.c
+> @@ -128,7 +128,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct r=
+dma_dev_addr *dev_addr,
+>  	int ret =3D -EADDRNOTAVAIL;
+> =20
+>  	if (dev_addr->bound_dev_if) {
+> -		dev =3D dev_get_by_index(&init_net, dev_addr->bound_dev_if);
+> +		dev =3D dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
+>  		if (!dev)
+>  			return -ENODEV;
+>  		ret =3D rdma_copy_addr(dev_addr, dev, NULL);
+> @@ -137,9 +137,10 @@ int rdma_translate_ip(struct sockaddr *addr, struct =
+rdma_dev_addr *dev_addr,
+>  	}
+> =20
+>  	switch (addr->sa_family) {
+> -	case AF_INET:
+> -		dev =3D ip_dev_find(&init_net,
+> -			((struct sockaddr_in *) addr)->sin_addr.s_addr);
+> +	case AF_INET: {
+                       ^ Please don't add brackets just so you can
+convert a cast into a variable declaration that's unnecessary
 
- If listen_id->route.addr.src_addr.ss_family != AF_INET then it is
- invalid to cast to sockaddr_in.
+> +		struct sockaddr_in *addr_in =3D (struct sockaddr_in *)addr;
+> +
+> +		dev =3D ip_dev_find(dev_addr->net, addr_in->sin_addr.s_addr);
+> =20
+>  		if (!dev)
+>  			return ret;
+> @@ -149,12 +150,12 @@ int rdma_translate_ip(struct sockaddr *addr, struct=
+ rdma_dev_addr *dev_addr,
+>  			*vlan_id =3D rdma_vlan_dev_vlan_id(dev);
+>  		dev_put(dev);
+>  		break;
+> -
+> +	}
+>  #if IS_ENABLED(CONFIG_IPV6)
+>  	case AF_INET6:
+>  		rcu_read_lock();
+> -		for_each_netdev_rcu(&init_net, dev) {
+> -			if (ipv6_chk_addr(&init_net,
+> +		for_each_netdev_rcu(dev_addr->net, dev) {
+> +			if (ipv6_chk_addr(dev_addr->net,
+>  					  &((struct sockaddr_in6 *) addr)->sin6_addr,
+>  					  dev, 1)) {
+>  				ret =3D rdma_copy_addr(dev_addr, dev, NULL);
+> @@ -236,7 +237,7 @@ static int addr4_resolve(struct sockaddr_in *src_in,
+>  	fl4.daddr =3D dst_ip;
+>  	fl4.saddr =3D src_ip;
+>  	fl4.flowi4_oif =3D addr->bound_dev_if;
+> -	rt =3D ip_route_output_key(&init_net, &fl4);
+> +	rt =3D ip_route_output_key(addr->net, &fl4);
+>  	if (IS_ERR(rt)) {
+>  		ret =3D PTR_ERR(rt);
+>  		goto out;
+> @@ -278,12 +279,13 @@ static int addr6_resolve(struct sockaddr_in6 *src_i=
+n,
+>  	fl6.saddr =3D src_in->sin6_addr;
+>  	fl6.flowi6_oif =3D addr->bound_dev_if;
+> =20
+> -	dst =3D ip6_route_output(&init_net, NULL, &fl6);
+> +	dst =3D ip6_route_output(addr->net, NULL, &fl6);
+>  	if ((ret =3D dst->error))
+>  		goto put;
+> =20
+>  	if (ipv6_addr_any(&fl6.saddr)) {
+> -		ret =3D ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)->dev,
+> +		ret =3D ipv6_dev_get_saddr(addr->net,
+> +					 ip6_dst_idev(dst)->dev,
+>  					 &fl6.daddr, 0, &fl6.saddr);
+>  		if (ret)
+>  			goto put;
+> @@ -458,7 +460,7 @@ static void resolve_cb(int status, struct sockaddr *s=
+rc_addr,
+>  }
+> =20
+>  int rdma_addr_find_dmac_by_grh(union ib_gid *sgid, union ib_gid *dgid, u=
+8 *dmac,
+> -			       u16 *vlan_id)
+> +			       u16 *vlan_id, struct net *net)
 
-Sean asked basically the same thing, and his question was ignored too.
+In the core networking code, the net namespace is always first.  Please
+stick with that paradigm.
 
-This should take care of it, testing, and figuring the fixes tag is
-left as an exercise to the reader..
 
->From 24cdf029349c9ffad0b2aab37058048ab422960f Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Date: Mon, 20 Apr 2015 13:48:52 -0600
-Subject: [PATCH] RDMA/CMA: Canonize IPv4 on IPV6 sockets properly
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-When accepting a new IPv4 connect to an IPv6 socket, the CMA tries to
-canonize the address family to IPv4, but does not properly process
-the listening sockaddr to get the listening port, and does not properly
-set the address family of the canonized sockaddr.
 
-Cc: <stable@vger.kernel.org>
-Reported-By: Yotam Kenneth <yotamke@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
----
- drivers/infiniband/core/cma.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d570030d899c..e8d492eceff3 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -859,19 +859,27 @@ static void cma_save_ib_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_id
- 	memcpy(&ib->sib_addr, &path->dgid, 16);
- }
- 
-+static unsigned int ss_get_port(const struct sockaddr_storage *ss)
-+{
-+	if (ss->ss_family == AF_INET)
-+		return ((struct sockaddr_in *)ss)->sin_port;
-+	else if (ss->ss_family == AF_INET6)
-+		return ((struct sockaddr_in6 *)ss)->sin6_port;
-+	BUG();
-+}
-+
- static void cma_save_ip4_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_id,
- 			      struct cma_hdr *hdr)
- {
--	struct sockaddr_in *listen4, *ip4;
-+	struct sockaddr_in *ip4;
- 
--	listen4 = (struct sockaddr_in *) &listen_id->route.addr.src_addr;
- 	ip4 = (struct sockaddr_in *) &id->route.addr.src_addr;
--	ip4->sin_family = listen4->sin_family;
-+	ip4->sin_family = AF_INET;
- 	ip4->sin_addr.s_addr = hdr->dst_addr.ip4.addr;
--	ip4->sin_port = listen4->sin_port;
-+	ip4->sin_port = ss_get_port(&listen_id->route.addr.src_addr);
- 
- 	ip4 = (struct sockaddr_in *) &id->route.addr.dst_addr;
--	ip4->sin_family = listen4->sin_family;
-+	ip4->sin_family = AF_INET;
- 	ip4->sin_addr.s_addr = hdr->src_addr.ip4.addr;
- 	ip4->sin_port = hdr->port;
- }
-@@ -879,16 +887,15 @@ static void cma_save_ip4_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_i
- static void cma_save_ip6_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_id,
- 			      struct cma_hdr *hdr)
- {
--	struct sockaddr_in6 *listen6, *ip6;
-+	struct sockaddr_in6 *ip6;
- 
--	listen6 = (struct sockaddr_in6 *) &listen_id->route.addr.src_addr;
- 	ip6 = (struct sockaddr_in6 *) &id->route.addr.src_addr;
--	ip6->sin6_family = listen6->sin6_family;
-+	ip6->sin6_family = AF_INET6;
- 	ip6->sin6_addr = hdr->dst_addr.ip6;
--	ip6->sin6_port = listen6->sin6_port;
-+	ip6->sin6_port = ss_get_port(&listen_id->route.addr.src_addr);
- 
- 	ip6 = (struct sockaddr_in6 *) &id->route.addr.dst_addr;
--	ip6->sin6_family = listen6->sin6_family;
-+	ip6->sin6_family = AF_INET6;
- 	ip6->sin6_addr = hdr->src_addr.ip6;
- 	ip6->sin6_port = hdr->port;
- }
--- 
-1.9.1
+--=-+285zWrsSafreHchff6E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVNXgqAAoJELgmozMOVy/dvTgQALIsvMMo3Y/0bHddqkJc7kMI
+3IU3IEphcdRP6NVIOKxjV+cvyxO3Cs8EyE5JfY+Gw6ktxFyJK82SnF5PiqieKYp8
+NKdIE6VRpru7d2CtOtW2usckD98Fyh0SOPjfe2yNGmz1eb/I1ivTEGOfIlYDZ1EM
+Dqbwvd7ppZXTMmitYL6+fOJ67rUGV7ARb6PHFFppkCugmmCsVDj0iBN+fhFK3vAs
+7cTFa0VdmqPPDUW5ViRh4ikyRgnQNoJDefWWhfC8kle9fkBk1Hc/i8y01bhjktof
+81tNF1fZ5c0nIza447Vt7IzGeXa0+gEveVgW19+K2DyWS3Nd+1z+4pYGmuQAs3ZJ
+DnM6apVsFlex5yygJ9tPur7A3o21166cMvw70l8IdJupR+xW+fYc1AUdolsdyl3O
+9OiVEi15Y2ww0NzXZGgZTMgnjoZuDsA/vVcYY01Chs42LcN4PY/n3gialRY8yydT
+DxI49Vi7BEAeAFJe8rkxKqRb9jOStKf/+7N86rtE4cdsjoXlcuJ647+sdnKrrFPL
+oKu1LuyCuCkfCtPN/tsAPW9YyDQjtJzxzw4x0sH+GS6CNg6lJPpV0lV+YjnLlf3j
+LvhB3xgWFYp0xV8gVG2ly1m9ZJsn/5ohmLwvxg1BGgQ5bD72C/8dwMR5buVoj27s
+Q7qWQYhia4i/ioTxn0v+
+=kX7+
+-----END PGP SIGNATURE-----
+
+--=-+285zWrsSafreHchff6E--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
