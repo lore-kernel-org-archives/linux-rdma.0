@@ -1,74 +1,77 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v5 23/27] IB/Verbs: Use management helper cap_read_multi_sge()
-Date: Mon, 20 Apr 2015 10:42:07 +0200
-Message-ID: <5534BBDF.1070609@profitbricks.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH v5 24/27] IB/Verbs: Use management helper cap_af_ib()
+Date: Mon, 20 Apr 2015 10:42:33 +0200
+Message-ID: <5534BBF9.80703@profitbricks.com>
 References: <5534B8C9.506@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5534B8C9.506@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, hal@dev.mellanox.co.il
-Cc: Michael Wang <yun.wang@profitbricks.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5534B8C9.506-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Introduce helper cap_read_multi_sge() to help us check if the port of an
-IB device support RDMA Read Multiple Scatter-Gather Entries.
+Introduce helper cap_af_ib() to help us check if the port of an
+IB device support Native Infiniband Address.
 
-Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- include/rdma/ib_verbs.h                 | 15 +++++++++++++++
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |  3 ++-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c |  2 +-
+ include/rdma/ib_verbs.h       | 15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 05d148e..9c1f5b72 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -469,7 +469,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+ 		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
+-			if (!rdma_ib_or_iboe(cur_dev->device, p))
++			if (!cap_af_ib(cur_dev->device, p))
+ 				continue;
+ 
+ 			if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index d0ae08e..074f66d 100644
+index 074f66d..9cfab09 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1878,6 +1878,21 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
- 	return rdma_tech_ib(device, port_num);
+@@ -1879,6 +1879,21 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
  }
  
-+/**
-+ * cap_read_multi_sge - Check if the port of device has the capability
-+ * RDMA Read Multiple Scatter-Gather Entries.
+ /**
++ * cap_af_ib - Check if the port of device has the capability
++ * Native Infiniband Address.
 + *
 + * @device: Device to be checked
 + * @port_num: Port number of the device
 + *
 + * Return 0 when port of the device don't support
-+ * RDMA Read Multiple Scatter-Gather Entries.
++ * Native Infiniband Address.
 + */
-+static inline int cap_read_multi_sge(struct ib_device *device, u8 port_num)
++static inline int cap_af_ib(struct ib_device *device, u8 port_num)
 +{
-+	return !rdma_tech_iwarp(device, port_num);
++	return rdma_ib_or_iboe(device, port_num);
 +}
 +
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid);
- 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index a5bed5b..7711b7a 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -117,7 +117,8 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
- 
- static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
- {
--	if (rdma_tech_iwarp(xprt->sc_cm_id->device, xprt->sc_cm_id->port_num))
-+	if (!cap_read_multi_sge(xprt->sc_cm_id->device,
-+				xprt->sc_cm_id->port_num))
- 		return 1;
- 	else
- 		return min_t(int, sge_count, xprt->sc_max_sge);
++/**
+  * cap_read_multi_sge - Check if the port of device has the capability
+  * RDMA Read Multiple Scatter-Gather Entries.
+  *
 -- 
 2.1.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
