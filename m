@@ -1,179 +1,155 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/11] IB/addr: Pass network namespace as a parameter
-Date: Mon, 20 Apr 2015 18:05:30 -0400
-Message-ID: <1429567530.45956.31.camel@redhat.com>
-References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
-	 <1429520622-10303-3-git-send-email-haggaie@mellanox.com>
+From: "ira.weiny" <ira.weiny@intel.com>
+Subject: Re: [PATCH v2 05/11] IB/ipoib: Return IPoIB devices as possible matches to get_net_device_by_port_pkey_ip
+Date: Mon, 20 Apr 2015 19:09:33 -0400
+Message-ID: <20150420230931.GA1409@phlsvsds.ph.intel.com>
+References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com> <1429520622-10303-6-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-+285zWrsSafreHchff6E"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429520622-10303-3-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1429520622-10303-6-git-send-email-haggaie@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-+285zWrsSafreHchff6E
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 2015-04-20 at 12:03 +0300, Haggai Eran wrote:
-> From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Add network namespace support to the ib_addr module. For that, all the ad=
-dress
-> resolution and matching should be done using the appropriate namespace in=
-stead
-> of init_net.
->=20
-> This is achieved by:
->=20
-> 1. Adding an explicit network namespace argument to exported function tha=
-t
->    require a namespace.
-> 2. Saving the namespace in the rdma_addr_client structure.
-> 3. Using it when calling networking functions.
->=20
-> In order to preserve the behavior of calling modules, &init_net is
-> passed as the parameter in calls from other modules. This is modified as
-> namespace support is added on more levels.
->=20
-> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, Apr 20, 2015 at 12:03:36PM +0300, Haggai Eran wrote:
+> From: Guy Shapiro <guysh@mellanox.com>
+> 
+> Implement callback that returns network device to ib_core according to
+> connection parameters. Check the ipoib device and iterate over all child
+> devices to look for a match.
+> 
+> For each ipoib device we iterate through all upper devices when searching for
+> a matching IP, in order to support bonding.
+> 
+> Signed-off-by: Guy Shapiro <guysh@mellanox.com>
+> Signed-off-by: Haggai Eran <haggaie@mellanox.com>
+> Signed-off-by: Yotam Kenneth <yotamke@mellanox.com>
+> Signed-off-by: Shachar Raindel <raindel@mellanox.com>
 > ---
->  drivers/infiniband/core/addr.c           | 31 ++++++++++++----------
->  drivers/infiniband/core/cma.c            |  4 ++-
->  drivers/infiniband/core/verbs.c          | 14 +++++++---
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c |  3 ++-
->  include/rdma/ib_addr.h                   | 44 ++++++++++++++++++++++++++=
-++----
->  5 files changed, 72 insertions(+), 24 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/add=
-r.c
-> index f80da50d84a5..95beaef6b66d 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -128,7 +128,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct r=
-dma_dev_addr *dev_addr,
->  	int ret =3D -EADDRNOTAVAIL;
-> =20
->  	if (dev_addr->bound_dev_if) {
-> -		dev =3D dev_get_by_index(&init_net, dev_addr->bound_dev_if);
-> +		dev =3D dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
->  		if (!dev)
->  			return -ENODEV;
->  		ret =3D rdma_copy_addr(dev_addr, dev, NULL);
-> @@ -137,9 +137,10 @@ int rdma_translate_ip(struct sockaddr *addr, struct =
-rdma_dev_addr *dev_addr,
->  	}
-> =20
->  	switch (addr->sa_family) {
-> -	case AF_INET:
-> -		dev =3D ip_dev_find(&init_net,
-> -			((struct sockaddr_in *) addr)->sin_addr.s_addr);
-> +	case AF_INET: {
-                       ^ Please don't add brackets just so you can
-convert a cast into a variable declaration that's unnecessary
-
-> +		struct sockaddr_in *addr_in =3D (struct sockaddr_in *)addr;
-> +
-> +		dev =3D ip_dev_find(dev_addr->net, addr_in->sin_addr.s_addr);
-> =20
->  		if (!dev)
->  			return ret;
-> @@ -149,12 +150,12 @@ int rdma_translate_ip(struct sockaddr *addr, struct=
- rdma_dev_addr *dev_addr,
->  			*vlan_id =3D rdma_vlan_dev_vlan_id(dev);
->  		dev_put(dev);
->  		break;
-> -
-> +	}
->  #if IS_ENABLED(CONFIG_IPV6)
->  	case AF_INET6:
->  		rcu_read_lock();
-> -		for_each_netdev_rcu(&init_net, dev) {
-> -			if (ipv6_chk_addr(&init_net,
-> +		for_each_netdev_rcu(dev_addr->net, dev) {
-> +			if (ipv6_chk_addr(dev_addr->net,
->  					  &((struct sockaddr_in6 *) addr)->sin6_addr,
->  					  dev, 1)) {
->  				ret =3D rdma_copy_addr(dev_addr, dev, NULL);
-> @@ -236,7 +237,7 @@ static int addr4_resolve(struct sockaddr_in *src_in,
->  	fl4.daddr =3D dst_ip;
->  	fl4.saddr =3D src_ip;
->  	fl4.flowi4_oif =3D addr->bound_dev_if;
-> -	rt =3D ip_route_output_key(&init_net, &fl4);
-> +	rt =3D ip_route_output_key(addr->net, &fl4);
->  	if (IS_ERR(rt)) {
->  		ret =3D PTR_ERR(rt);
->  		goto out;
-> @@ -278,12 +279,13 @@ static int addr6_resolve(struct sockaddr_in6 *src_i=
-n,
->  	fl6.saddr =3D src_in->sin6_addr;
->  	fl6.flowi6_oif =3D addr->bound_dev_if;
-> =20
-> -	dst =3D ip6_route_output(&init_net, NULL, &fl6);
-> +	dst =3D ip6_route_output(addr->net, NULL, &fl6);
->  	if ((ret =3D dst->error))
->  		goto put;
-> =20
->  	if (ipv6_addr_any(&fl6.saddr)) {
-> -		ret =3D ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)->dev,
-> +		ret =3D ipv6_dev_get_saddr(addr->net,
-> +					 ip6_dst_idev(dst)->dev,
->  					 &fl6.daddr, 0, &fl6.saddr);
->  		if (ret)
->  			goto put;
-> @@ -458,7 +460,7 @@ static void resolve_cb(int status, struct sockaddr *s=
-rc_addr,
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 122 +++++++++++++++++++++++++++++-
+>  1 file changed, 121 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> index 7cad4dd87469..89a59a0e17e6 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -48,6 +48,9 @@
+>  
+>  #include <linux/jhash.h>
+>  #include <net/arp.h>
+> +#include <net/addrconf.h>
+> +#include <linux/inetdevice.h>
+> +#include <rdma/ib_cache.h>
+>  
+>  #define DRV_VERSION "1.0.0"
+>  
+> @@ -91,11 +94,15 @@ struct ib_sa_client ipoib_sa_client;
+>  static void ipoib_add_one(struct ib_device *device);
+>  static void ipoib_remove_one(struct ib_device *device);
+>  static void ipoib_neigh_reclaim(struct rcu_head *rp);
+> +static struct net_device *ipoib_get_net_device_by_port_pkey_ip(
+> +		struct ib_device *dev, u8 port, u16 pkey,
+> +		struct sockaddr *addr);
+>  
+>  static struct ib_client ipoib_client = {
+>  	.name   = "ipoib",
+>  	.add    = ipoib_add_one,
+> -	.remove = ipoib_remove_one
+> +	.remove = ipoib_remove_one,
+> +	.get_net_device_by_port_pkey_ip = ipoib_get_net_device_by_port_pkey_ip,
+>  };
+>  
+>  int ipoib_open(struct net_device *dev)
+> @@ -222,6 +229,119 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
+>  	return 0;
 >  }
-> =20
->  int rdma_addr_find_dmac_by_grh(union ib_gid *sgid, union ib_gid *dgid, u=
-8 *dmac,
-> -			       u16 *vlan_id)
-> +			       u16 *vlan_id, struct net *net)
+>  
+> +static bool ipoib_is_dev_match_addr(struct sockaddr *addr,
+> +				    struct net_device *dev)
+> +{
+> +	struct net *net = dev_net(dev);
+> +
+> +	if (addr->sa_family == AF_INET) {
+> +		struct in_device *in_dev = in_dev_get(dev);
+> +		struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
+> +		__be32 ret_addr;
+> +
+> +		if (!in_dev)
+> +			return false;
+> +
+> +		ret_addr = inet_confirm_addr(net, in_dev, 0,
+> +					     addr_in->sin_addr.s_addr,
+> +					     RT_SCOPE_HOST);
+> +		in_dev_put(in_dev);
+> +		if (ret_addr)
+> +			return true;
+> +	}
+> +#if IS_ENABLED(CONFIG_IPV6)
+> +	else if (addr->sa_family == AF_INET6) {
+> +		struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
+> +
+> +		if (ipv6_chk_addr(net, &addr_in6->sin6_addr, dev, 1))
+> +			return true;
+> +	}
+> +#endif
+> +	return false;
+> +}
+> +
+> +/**
+> + * Find a net_device matching the given address, which is an upper device of
+> + * the given net_device.
+> + * @addr: IP address to look for.
+> + * @dev: base IPoIB net_device
+> + *
+> + * If found, returns the net_device with a reference held. Otherwise return
+> + * NULL.
+> + */
+> +static struct net_device *ipoib_get_net_dev_match_addr(struct sockaddr *addr,
+> +						       struct net_device *dev)
+> +{
+> +	struct net_device *upper,
+> +			  *result = NULL;
+> +	struct list_head *iter;
+> +
+> +	if (ipoib_is_dev_match_addr(addr, dev)) {
+> +		dev_hold(dev);
+> +		return dev;
+> +	}
+> +
+> +	rcu_read_lock();
+> +	netdev_for_each_all_upper_dev_rcu(dev, upper, iter) {
+> +		if (ipoib_is_dev_match_addr(addr, upper)) {
+> +			dev_hold(upper);
+> +			result = upper;
+> +			break;
+> +		}
+> +	}
+> +	rcu_read_unlock();
+> +	return result;
+> +}
+> +
+> +static struct net_device *ipoib_get_net_device_by_port_pkey_ip(
+> +		struct ib_device *dev, u8 port, u16 pkey, struct sockaddr *addr)
+> +{
+> +	struct ipoib_dev_priv *priv;
+> +	struct list_head *dev_list;
+> +	u16 pkey_index;
+> +
+> +	ib_find_cached_pkey(dev, port, pkey, &pkey_index);
+> +	if (pkey_index == (u16)-1)
+> +		return NULL;
 
-In the core networking code, the net namespace is always first.  Please
-stick with that paradigm.
+Why not check the return value of ib_find_cached_pkey?
 
+> +
+> +	if (rdma_node_get_transport(dev->node_type) != RDMA_TRANSPORT_IB)
+> +		return NULL;
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+The use of Link Layer and Transport in this series will need to be reevaluated
+based on Michaels work:
 
+https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg24140.html
 
-
---=-+285zWrsSafreHchff6E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJVNXgqAAoJELgmozMOVy/dvTgQALIsvMMo3Y/0bHddqkJc7kMI
-3IU3IEphcdRP6NVIOKxjV+cvyxO3Cs8EyE5JfY+Gw6ktxFyJK82SnF5PiqieKYp8
-NKdIE6VRpru7d2CtOtW2usckD98Fyh0SOPjfe2yNGmz1eb/I1ivTEGOfIlYDZ1EM
-Dqbwvd7ppZXTMmitYL6+fOJ67rUGV7ARb6PHFFppkCugmmCsVDj0iBN+fhFK3vAs
-7cTFa0VdmqPPDUW5ViRh4ikyRgnQNoJDefWWhfC8kle9fkBk1Hc/i8y01bhjktof
-81tNF1fZ5c0nIza447Vt7IzGeXa0+gEveVgW19+K2DyWS3Nd+1z+4pYGmuQAs3ZJ
-DnM6apVsFlex5yygJ9tPur7A3o21166cMvw70l8IdJupR+xW+fYc1AUdolsdyl3O
-9OiVEi15Y2ww0NzXZGgZTMgnjoZuDsA/vVcYY01Chs42LcN4PY/n3gialRY8yydT
-DxI49Vi7BEAeAFJe8rkxKqRb9jOStKf/+7N86rtE4cdsjoXlcuJ647+sdnKrrFPL
-oKu1LuyCuCkfCtPN/tsAPW9YyDQjtJzxzw4x0sH+GS6CNg6lJPpV0lV+YjnLlf3j
-LvhB3xgWFYp0xV8gVG2ly1m9ZJsn/5ohmLwvxg1BGgQ5bD72C/8dwMR5buVoj27s
-Q7qWQYhia4i/ioTxn0v+
-=kX7+
------END PGP SIGNATURE-----
-
---=-+285zWrsSafreHchff6E--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ira
