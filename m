@@ -1,53 +1,34 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 07/11] IB/cm: Add network namespace support
-Date: Mon, 20 Apr 2015 11:06:59 -0600
-Message-ID: <20150420170659.GD7676@obsidianresearch.com>
+Subject: Re: [PATCH v2 02/11] IB/addr: Pass network namespace as a parameter
+Date: Mon, 20 Apr 2015 11:09:25 -0600
+Message-ID: <20150420170925.GE7676@obsidianresearch.com>
 References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
- <1429520622-10303-8-git-send-email-haggaie@mellanox.com>
+ <1429520622-10303-3-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1429520622-10303-8-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1429520622-10303-3-git-send-email-haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 12:03:38PM +0300, Haggai Eran wrote:
-> From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Add namespace support to the IB-CM layer.
+On Mon, Apr 20, 2015 at 12:03:33PM +0300, Haggai Eran wrote:
+> +/** rdma_addr_find_smac_by_sgid() - Find the src MAC and VLAN ID for a src GID
+> + * @sgid:	Source GID to find the MAC and VLAN for.
+> + * @smac:	A buffer to contain the resulting MAC address.
+> + * @vlan_id:	Will contain the resulting VLAN ID.
+> + * @net:	Network namespace to use for the address resolution.
+> + *
+> + * It is the caller's responsibility to keep the network namespace alive until
+> + * the function returns.
+> + */
+> +int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id,
+> +				struct net *net);
 
-> - Each CM-ID now has a network namespace it is associated with, assigned at
->   creation. This namespace is used as needed during subsequent action on the
->   CM-ID or related objects.
-
-There is really something weird about this layering. At the CM layer
-there should be no concept of an IP address, it only deals with GIDs.
-
-So how can a CM object have a network namespace associated with it?
-
->  {
->  	av->port = port;
->  	av->pkey_index = wc->pkey_index;
->  	ib_init_ah_from_wc(port->cm_dev->ib_device, port->port_num, wc,
-> -			   grh, &av->ah_attr, &init_net);
-> +			   grh, &av->ah_attr, net);
-
-There is something deeply wrong with adding network namespace
-arguments to verbs.
-
-For rocee the gid index clearly specifies the network namespace
-to use, so much of this should go away and have rocee get the
-namespace from the gid index.
-
-Ie in ib_init_ah_from_wc we have the ib_wc which contains the sgid
-index.
-
-I'm really not excited at how many places are gaining a net when those
-layers shouldn't even need to care about IP layer details. Just acting
-as a pass through for rocee doesn't make sense.
+kdocs are typically placed with the body of the function, not at the
+prototype.
 
 Jason
 --
