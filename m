@@ -1,84 +1,182 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v5 27/27] IB/Verbs: Cleanup rdma_node_get_transport()
-Date: Mon, 20 Apr 2015 10:43:51 +0200
-Message-ID: <5534BC47.6080706@profitbricks.com>
-References: <5534B8C9.506@profitbricks.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5534B8C9.506-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: [PATCH v2 05/11] IB/ipoib: Return IPoIB devices as possible matches to get_net_device_by_port_pkey_ip
+Date: Mon, 20 Apr 2015 12:03:36 +0300
+Message-ID: <1429520622-10303-6-git-send-email-haggaie@mellanox.com>
+References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Guy Shapiro <guysh@mellanox.com>
 
-We have get rid of all the scene using legacy rdma_node_get_transport(),
-now clean it up.
+Implement callback that returns network device to ib_core according to
+connection parameters. Check the ipoib device and iterate over all child
+devices to look for a match.
 
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+For each ipoib device we iterate through all upper devices when searching for
+a matching IP, in order to support bonding.
+
+Signed-off-by: Guy Shapiro <guysh@mellanox.com>
+Signed-off-by: Haggai Eran <haggaie@mellanox.com>
+Signed-off-by: Yotam Kenneth <yotamke@mellanox.com>
+Signed-off-by: Shachar Raindel <raindel@mellanox.com>
 ---
- drivers/infiniband/core/verbs.c | 21 ---------------------
- include/rdma/ib_verbs.h         |  3 ---
- 2 files changed, 24 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 122 +++++++++++++++++++++++++++++-
+ 1 file changed, 121 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index ee4b5cb..bbea0c0 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -107,27 +107,6 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate)
- }
- EXPORT_SYMBOL(ib_rate_to_mbps);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 7cad4dd87469..89a59a0e17e6 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -48,6 +48,9 @@
  
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type)
--{
--	switch (node_type) {
--	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
--		return RDMA_TRANSPORT_IB;
--	case RDMA_NODE_RNIC:
--		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
--	case RDMA_NODE_USNIC_UDP:
--		return RDMA_TRANSPORT_USNIC_UDP;
--	default:
--		BUG();
--		return 0;
--	}
--}
--EXPORT_SYMBOL(rdma_node_get_transport);
--
- enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
- {
- 	if (device->get_link_layer)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0c0a4f0..f2ea6e7 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -84,9 +84,6 @@ enum rdma_transport_type {
- 	RDMA_TRANSPORT_IBOE,
+ #include <linux/jhash.h>
+ #include <net/arp.h>
++#include <net/addrconf.h>
++#include <linux/inetdevice.h>
++#include <rdma/ib_cache.h>
+ 
+ #define DRV_VERSION "1.0.0"
+ 
+@@ -91,11 +94,15 @@ struct ib_sa_client ipoib_sa_client;
+ static void ipoib_add_one(struct ib_device *device);
+ static void ipoib_remove_one(struct ib_device *device);
+ static void ipoib_neigh_reclaim(struct rcu_head *rp);
++static struct net_device *ipoib_get_net_device_by_port_pkey_ip(
++		struct ib_device *dev, u8 port, u16 pkey,
++		struct sockaddr *addr);
+ 
+ static struct ib_client ipoib_client = {
+ 	.name   = "ipoib",
+ 	.add    = ipoib_add_one,
+-	.remove = ipoib_remove_one
++	.remove = ipoib_remove_one,
++	.get_net_device_by_port_pkey_ip = ipoib_get_net_device_by_port_pkey_ip,
  };
  
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type);
--
- enum rdma_link_layer {
- 	IB_LINK_LAYER_UNSPECIFIED,
- 	IB_LINK_LAYER_INFINIBAND,
+ int ipoib_open(struct net_device *dev)
+@@ -222,6 +229,119 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
+ 	return 0;
+ }
+ 
++static bool ipoib_is_dev_match_addr(struct sockaddr *addr,
++				    struct net_device *dev)
++{
++	struct net *net = dev_net(dev);
++
++	if (addr->sa_family == AF_INET) {
++		struct in_device *in_dev = in_dev_get(dev);
++		struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
++		__be32 ret_addr;
++
++		if (!in_dev)
++			return false;
++
++		ret_addr = inet_confirm_addr(net, in_dev, 0,
++					     addr_in->sin_addr.s_addr,
++					     RT_SCOPE_HOST);
++		in_dev_put(in_dev);
++		if (ret_addr)
++			return true;
++	}
++#if IS_ENABLED(CONFIG_IPV6)
++	else if (addr->sa_family == AF_INET6) {
++		struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
++
++		if (ipv6_chk_addr(net, &addr_in6->sin6_addr, dev, 1))
++			return true;
++	}
++#endif
++	return false;
++}
++
++/**
++ * Find a net_device matching the given address, which is an upper device of
++ * the given net_device.
++ * @addr: IP address to look for.
++ * @dev: base IPoIB net_device
++ *
++ * If found, returns the net_device with a reference held. Otherwise return
++ * NULL.
++ */
++static struct net_device *ipoib_get_net_dev_match_addr(struct sockaddr *addr,
++						       struct net_device *dev)
++{
++	struct net_device *upper,
++			  *result = NULL;
++	struct list_head *iter;
++
++	if (ipoib_is_dev_match_addr(addr, dev)) {
++		dev_hold(dev);
++		return dev;
++	}
++
++	rcu_read_lock();
++	netdev_for_each_all_upper_dev_rcu(dev, upper, iter) {
++		if (ipoib_is_dev_match_addr(addr, upper)) {
++			dev_hold(upper);
++			result = upper;
++			break;
++		}
++	}
++	rcu_read_unlock();
++	return result;
++}
++
++static struct net_device *ipoib_get_net_device_by_port_pkey_ip(
++		struct ib_device *dev, u8 port, u16 pkey, struct sockaddr *addr)
++{
++	struct ipoib_dev_priv *priv;
++	struct list_head *dev_list;
++	u16 pkey_index;
++
++	ib_find_cached_pkey(dev, port, pkey, &pkey_index);
++	if (pkey_index == (u16)-1)
++		return NULL;
++
++	if (rdma_node_get_transport(dev->node_type) != RDMA_TRANSPORT_IB)
++		return NULL;
++
++	dev_list = ib_get_client_data(dev, &ipoib_client);
++	if (!dev_list)
++		return NULL;
++
++	list_for_each_entry(priv, dev_list, list) {
++		struct net_device *net_dev = NULL;
++		struct ipoib_dev_priv *child_priv;
++
++		if (priv->port != port)
++			continue;
++
++		if (priv->pkey_index == pkey_index) {
++			net_dev = ipoib_get_net_dev_match_addr(addr, priv->dev);
++			if (net_dev)
++				return net_dev;
++		}
++
++		down_read(&priv->vlan_rwsem);
++		list_for_each_entry(child_priv,
++				    &priv->child_intfs, list) {
++			if (child_priv->pkey_index != pkey_index)
++				continue;
++
++			net_dev = ipoib_get_net_dev_match_addr(
++					addr, child_priv->dev);
++			if (net_dev)
++				break;
++		}
++		up_read(&priv->vlan_rwsem);
++		if (net_dev)
++			return net_dev;
++	}
++	return NULL;
++}
++
+ int ipoib_set_mode(struct net_device *dev, const char *buf)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 -- 
-2.1.0
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.11.2
