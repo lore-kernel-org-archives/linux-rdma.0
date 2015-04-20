@@ -1,56 +1,91 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v5 19/27] IB/Verbs: Use management helper cap_iw_cm()
-Date: Mon, 20 Apr 2015 17:16:08 +0200
-Message-ID: <55351838.2060006@profitbricks.com>
-References: <5534B8C9.506@profitbricks.com> <5534BB7B.4020601@profitbricks.com> <55350698.9000109@opengridcomputing.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH V1 net-next] IB/ipoib: Fix ndo_get_iflink
+Date: Mon, 20 Apr 2015 11:37:02 -0400
+Message-ID: <1429544222.45956.1.camel@redhat.com>
+References: <1429191274-11600-1-git-send-email-erezsh@mellanox.com>
+	 <20150417.152133.1818018053733533978.davem@davemloft.net>
+	 <5534B5E2.6060804@mellanox.com>
+	 <CAJ3xEMgRDT+h7D3smju2VFTovA4J38ZnK3R4PD4+Xisbg40Tyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55350698.9000109@opengridcomputing.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, hal@dev.mellanox.co.il
-Cc: Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-XbQ1agsRyWNqGDw20AZt"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMgRDT+h7D3smju2VFTovA4J38ZnK3R4PD4+Xisbg40Tyg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Haggai Eran <haggaie@mellanox.com>, Roland Dreier <roland@kernel.org>, David Miller <davem@davemloft.net>, Erez Shitrit <erezsh@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, Nicolas Dichtel <nicolas.dichtel@6wind.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Honggang Li <honli@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/20/2015 04:00 PM, Steve Wise wrote:
-> On 4/20/2015 3:40 AM, Michael Wang wrote:
-[snip]
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 6805e3e..e4999f6 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -1818,6 +1818,21 @@ static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
->>       return rdma_ib_or_iboe(device, port_num);
->>   }
->>   +/**
->> + * cap_iw_cm - Check if the port of device has the capability IWARP
->> + * Communication Manager.
->> + *
->> + * @device: Device to be checked
->> + * @port_num: Port number of the device
->> + *
->> + * Return 0 when port of the device don't support IWARP
->> + * Communication Manager.
->> + */
->> +static inline int cap_iw_cm(struct ib_device *device, u8 port_num)
->> +{
->> +    return rdma_tech_iwarp(device, port_num);
->> +}
->> +
->>   int ib_query_gid(struct ib_device *device,
->>            u8 port_num, int index, union ib_gid *gid);
->>   
-> 
-> iWARP devices _must_ support the IWCM so cap_iw_cm() is not really useful.
 
-Sean suggested to add this helper paired with cap_ib_cm(), may be there are
-some consideration on maintainability?
+--=-XbQ1agsRyWNqGDw20AZt
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Me too also prefer this way to make the code more readable ;-)
+On Mon, 2015-04-20 at 12:21 +0300, Or Gerlitz wrote:
+> On Mon, Apr 20, 2015 at 11:16 AM, Haggai Eran <haggaie@mellanox.com> wrot=
+e:
+> > On 17/04/2015 22:21, David Miller wrote:
+> >> From: Erez Shitrit <erezsh@mellanox.com>
+> >> Date: Thu, 16 Apr 2015 16:34:34 +0300
+> >>
+> >>> Currently, iflink of the parent interface was always accessed, even
+> >>> when interface didn't have a parent and hence we crashed there.
+> >>>
+> >>> Handle the interface types properly: for a child interface, return
+> >>> the ifindex of the parent, for parent interface, return its ifindex.
+> >>>
+> >>> For child devices, make sure to set the parent pointer prior to
+> >>> invoking register_netdevice(), this allows the new ndo to be called
+> >>> by the stack immediately after the child device is registered.
+> >>>
+> >>> Fixes: 5aa7add8f14b ('infiniband/ipoib: implement ndo_get_iflink')
+> >>> Reported-by: Honggang Li <honli@redhat.com>
+> >>> Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
+> >>> Signed-off-by: Honggang Li <honli@redhat.com>
+> >>
+> >> Applied, thanks.
+> >
+> > Doug, Roland,
+> > You might want to include this patch in your for-next / for-4.1 trees,
+> > or merge net-next again. Currently they contain the issue it fixes, and
+> > it can prevent some systems with IPoIB from booting.
+>=20
+> Haggai,
+>=20
+>=20
+> It's upstream by now, pull Linus tree.
+>=20
+> Or.
 
-Regards,
-Michael Wang
+Right, it already went via net-next.  I skipped it because of that.
 
-> 
-> 
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-XbQ1agsRyWNqGDw20AZt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVNR0eAAoJELgmozMOVy/dLFAP/2hlp3nJlAlWKqnqIzM+2X5R
+QJCSstcSLijV6eAotCqvjvaxXq86HGQG9j8E9o7QYl1EFSzuhc3i04uPAnGyyt+A
+7eM7vfkCKZTxwvdnclnpSJvBA+JEtz5ADOXvIHvX14zdZ4uuygGmBRGXn/PACo3Z
+1xTwcmV1tlMbqhXyYY0EHqCMjP9MAxit67k9yiEaQuBLi5MK29bh91xeLjxoFAvx
+ucmHtadSG6H3tP8KE/skrsVPEUkoGb/aObvn2xMTSL1aqGTJfo7EgxFM6ZvKpC2U
+ym5yZnxMroy9AIv8PagHUdiMdcXGNFG/+bZLJAJB+VESUJnUBYBDbyz/sS3fwGE9
+qVK9BoiXtu3rAM4iIOJUkGOZ+VkYMPeTFMWT0+63DbRiBKvXA66SjYlUBWEqFJVF
+hfG9D5+NLxUtSdCOGFWvLw7NXq3tN9oSlz9Re4RxUGRKyYVNzPbkuNxPfwvL4rHq
+GuVdDhBUTfM8CUU9DCngNC2+CXUnUlu/a63g+bru7Qodx2y2/jzeAXN0O9U6KV3Q
+0fIq6Y0LgQPBLfejZM57wtpRXMCDVMWledROjorK9W7n7m4GRhl534WsYUGayEEY
+yUlf2aFnkxgBuuf5eIP6d3RrQuU/is3kahtMUCjhRP7PwvDh0M02KMeVnIR5xxjs
+BHMrCvja8Dy0kHB/e0Ys
+=8tVZ
+-----END PGP SIGNATURE-----
+
+--=-XbQ1agsRyWNqGDw20AZt--
