@@ -1,127 +1,117 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v5 11/27] IB/Verbs: Reform route related part in IB-core cma
-Date: Mon, 20 Apr 2015 10:37:13 +0200
-Message-ID: <5534BAB9.1000600@profitbricks.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: [PATCH v5 12/27] IB/Verbs: Reform mcast related part in IB-core cma
+Date: Mon, 20 Apr 2015 10:37:35 +0200
+Message-ID: <5534BACF.3080700@profitbricks.com>
 References: <5534B8C9.506@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5534B8C9.506-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5534B8C9.506@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, hal@dev.mellanox.co.il
+Cc: Michael Wang <yun.wang@profitbricks.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use raw management helpers to reform route related part in IB-core cma.
+Use raw management helpers to reform mcast related part in IB-core cma.
 
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c  | 31 ++++++++-----------------------
- drivers/infiniband/core/ucma.c | 25 ++++++-------------------
- 2 files changed, 14 insertions(+), 42 deletions(-)
+ drivers/infiniband/core/cma.c | 56 ++++++++++++++-----------------------------
+ 1 file changed, 18 insertions(+), 38 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 815e41b..fa69f34 100644
+index fa69f34..a89c246 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -923,13 +923,9 @@ static inline int cma_user_data_offset(struct rdma_id_private *id_priv)
- 
- static void cma_cancel_route(struct rdma_id_private *id_priv)
- {
--	switch (rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num)) {
--	case IB_LINK_LAYER_INFINIBAND:
-+	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num)) {
- 		if (id_priv->query)
- 			ib_sa_cancel_query(id_priv->query_id, id_priv->query);
--		break;
--	default:
--		break;
+@@ -997,17 +997,12 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
+ 		mc = container_of(id_priv->mc_list.next,
+ 				  struct cma_multicast, list);
+ 		list_del(&mc->list);
+-		switch (rdma_port_get_link_layer(id_priv->cma_dev->device, id_priv->id.port_num)) {
+-		case IB_LINK_LAYER_INFINIBAND:
++		if (rdma_tech_ib(id_priv->cma_dev->device,
++				      id_priv->id.port_num)) {
+ 			ib_sa_free_multicast(mc->multicast.ib);
+ 			kfree(mc);
+-			break;
+-		case IB_LINK_LAYER_ETHERNET:
++		} else
+ 			kref_put(&mc->mcref, release_mc);
+-			break;
+-		default:
+-			break;
+-		}
  	}
  }
  
-@@ -1957,26 +1953,15 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
- 		return -EINVAL;
+@@ -3314,24 +3309,13 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
+ 	list_add(&mc->list, &id_priv->mc_list);
+ 	spin_unlock(&id_priv->lock);
  
- 	atomic_inc(&id_priv->refcount);
 -	switch (rdma_node_get_transport(id->device->node_type)) {
 -	case RDMA_TRANSPORT_IB:
 -		switch (rdma_port_get_link_layer(id->device, id->port_num)) {
 -		case IB_LINK_LAYER_INFINIBAND:
--			ret = cma_resolve_ib_route(id_priv, timeout_ms);
+-			ret = cma_join_ib_multicast(id_priv, mc);
 -			break;
 -		case IB_LINK_LAYER_ETHERNET:
--			ret = cma_resolve_iboe_route(id_priv);
+-			kref_init(&mc->mcref);
+-			ret = cma_iboe_join_multicast(id_priv, mc);
 -			break;
 -		default:
--			ret = -ENOSYS;
+-			ret = -EINVAL;
 -		}
 -		break;
--	case RDMA_TRANSPORT_IWARP:
-+	if (rdma_tech_ib(id->device, id->port_num))
-+		ret = cma_resolve_ib_route(id_priv, timeout_ms);
-+	else if (rdma_tech_iboe(id->device, id->port_num))
-+		ret = cma_resolve_iboe_route(id_priv);
-+	else if (rdma_tech_iwarp(id->device, id->port_num))
- 		ret = cma_resolve_iw_route(id_priv, timeout_ms);
--		break;
 -	default:
++	if (rdma_tech_iboe(id->device, id->port_num)) {
++		kref_init(&mc->mcref);
++		ret = cma_iboe_join_multicast(id_priv, mc);
++	} else if (rdma_tech_ib(id->device, id->port_num))
++		ret = cma_join_ib_multicast(id_priv, mc);
 +	else
  		ret = -ENOSYS;
 -		break;
 -	}
+ 
+ 	if (ret) {
+ 		spin_lock_irq(&id_priv->lock);
+@@ -3359,19 +3343,15 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
+ 				ib_detach_mcast(id->qp,
+ 						&mc->multicast.ib->rec.mgid,
+ 						be16_to_cpu(mc->multicast.ib->rec.mlid));
+-			if (rdma_node_get_transport(id_priv->cma_dev->device->node_type) == RDMA_TRANSPORT_IB) {
+-				switch (rdma_port_get_link_layer(id->device, id->port_num)) {
+-				case IB_LINK_LAYER_INFINIBAND:
+-					ib_sa_free_multicast(mc->multicast.ib);
+-					kfree(mc);
+-					break;
+-				case IB_LINK_LAYER_ETHERNET:
+-					kref_put(&mc->mcref, release_mc);
+-					break;
+-				default:
+-					break;
+-				}
+-			}
 +
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 45d67e9..7331c6c 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -722,26 +722,13 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 
- 	resp.node_guid = (__force __u64) ctx->cm_id->device->node_guid;
- 	resp.port_num = ctx->cm_id->port_num;
--	switch (rdma_node_get_transport(ctx->cm_id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
--		switch (rdma_port_get_link_layer(ctx->cm_id->device,
--			ctx->cm_id->port_num)) {
--		case IB_LINK_LAYER_INFINIBAND:
--			ucma_copy_ib_route(&resp, &ctx->cm_id->route);
--			break;
--		case IB_LINK_LAYER_ETHERNET:
--			ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
--			break;
--		default:
--			break;
--		}
--		break;
--	case RDMA_TRANSPORT_IWARP:
++			BUG_ON(id_priv->cma_dev->device != id->device);
 +
-+	if (rdma_tech_ib(ctx->cm_id->device, ctx->cm_id->port_num))
-+		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
-+	else if (rdma_tech_iboe(ctx->cm_id->device, ctx->cm_id->port_num))
-+		ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
-+	else if (rdma_tech_iwarp(ctx->cm_id->device, ctx->cm_id->port_num))
- 		ucma_copy_iw_route(&resp, &ctx->cm_id->route);
--		break;
--	default:
--		break;
--	}
- 
- out:
- 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
++			if (rdma_tech_ib(id->device, id->port_num)) {
++				ib_sa_free_multicast(mc->multicast.ib);
++				kfree(mc);
++			} else if (rdma_tech_iboe(id->device, id->port_num))
++				kref_put(&mc->mcref, release_mc);
++
+ 			return;
+ 		}
+ 	}
 -- 
 2.1.0
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
