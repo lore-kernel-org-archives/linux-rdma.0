@@ -1,69 +1,38 @@
-From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: [PATCH v2 11/11] IB/ucm: Add partial support for network namespaces
-Date: Mon, 20 Apr 2015 19:46:29 -0400
-Message-ID: <20150420234629.GD1409@phlsvsds.ph.intel.com>
-References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com> <1429520622-10303-12-git-send-email-haggaie@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1429520622-10303-12-git-send-email-haggaie@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+From: Sergei Zviagintsev <sergei-E844GTqJAzo@public.gmane.org>
+Subject: [PATCH] IB/qib: Remove EOL whitespaces
+Date: Tue, 21 Apr 2015 02:47:02 +0300
+Message-ID: <1429573622-893-1-git-send-email-sergei@s15v.net>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sergei Zviagintsev <sergei-E844GTqJAzo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 12:03:42PM +0300, Haggai Eran wrote:
-> From: Shachar Raindel <raindel@mellanox.com>
-> 
-> It is impossible to completely support network namespaces for UCM, as
-> we cannot identify the target IPoIB device.
->
+Remove EOL whitespaces added by commit 4961772560d2
+("infinibad: weird APIs switched to ->write_iter()")
 
-As Jasons said it seems like the use of namespaces should be limited to the
-RDMA CM layer.  If so I _think_ this patch would not be needed?
+Signed-off-by: Sergei Zviagintsev <sergei-E844GTqJAzo@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_file_ops.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Ira
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index 9ea6c440a00c..14414bc5a34d 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -2261,7 +2261,7 @@ static ssize_t qib_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	if (!iter_is_iovec(from) || !from->nr_segs || !pq)
+ 		return -EINVAL;
+-			 
++
+ 	return qib_user_sdma_writev(rcd, pq, from->iov, from->nr_segs);
+ }
+ 
+-- 
+1.8.3.1
 
-
->
-> However, we add support
-> which will work if the user is following the IB-Spec Annex 11 (RDMA IP
-> CM Services) with the service ID and private data formatting.
-> 
-> Signed-off-by: Haggai Eran <haggaie@mellanox.com>
-> Signed-off-by: Yotam Kenneth <yotamke@mellanox.com>
-> Signed-off-by: Shachar Raindel <raindel@mellanox.com>
-> Signed-off-by: Guy Shapiro <guysh@mellanox.com>
-> ---
->  drivers/infiniband/core/ucm.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-> index 9604ab068984..424421091dae 100644
-> --- a/drivers/infiniband/core/ucm.c
-> +++ b/drivers/infiniband/core/ucm.c
-> @@ -45,6 +45,7 @@
->  #include <linux/idr.h>
->  #include <linux/mutex.h>
->  #include <linux/slab.h>
-> +#include <linux/nsproxy.h>
->  
->  #include <asm/uaccess.h>
->  
-> @@ -490,7 +491,7 @@ static ssize_t ib_ucm_create_id(struct ib_ucm_file *file,
->  	ctx->uid = cmd.uid;
->  	ctx->cm_id = ib_create_cm_id(file->device->ib_dev,
->  				     ib_ucm_event_handler, ctx,
-> -				     &init_net);
-> +				     current->nsproxy->net_ns);
->  	if (IS_ERR(ctx->cm_id)) {
->  		result = PTR_ERR(ctx->cm_id);
->  		goto err1;
-> -- 
-> 1.7.11.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
