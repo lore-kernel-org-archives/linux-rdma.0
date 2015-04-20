@@ -1,56 +1,54 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the target-updates tree with the
- infiniband tree
-Date: Mon, 20 Apr 2015 14:29:41 +1000
-Message-ID: <20150420142941.766b4015@canb.auug.org.au>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH linux-next v5] mlx5: wrong page mask if
+ CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for 32Bit architectures
+Date: Mon, 20 Apr 2015 10:48:48 +0300
+Message-ID: <20150420074848.GA17506@mtldesk30>
+References: <1429086975-15506-1-git-send-email-honli@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/.VlFmj.=a6.JCjz/vpipwQw"; protocol="application/pgp-signature"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1429086975-15506-1-git-send-email-honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/.VlFmj.=a6.JCjz/vpipwQw
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Wed, Apr 15, 2015 at 04:36:15PM +0800, Honggang Li wrote:
+> If CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for x86 systems and physical
+> memory is more than 4GB, dma_map_page may return a valid memory
+> address which greater than 0xffffffff. As a result, the mlx5 device page
+> allocator RB tree will be initialized with valid addresses greater than
+> 0xfffffff.
+> 
+> However, (addr & PAGE_MASK) set the high four bytes to zeros. So, it's
+> impossible for the function, free_4k, to release the pages whose
+> addresses greater than 4GB. Memory leaks. And mlx5_ib module can't
+> release the pages when user try to remove the module, as a result,
+> system hang.
+> 
+> [root@rdma05 root]# dmesg  | grep addr | head
+> addr             = 3fe384000
+> addr & PAGE_MASK =  fe384000
+> [root@rdma05 root]# rmmod mlx5_ib   <---- hang on
+> 
+> ---------------------- cosnole log -----------------
+> mlx5_ib 0000:04:00.0: irq 138 for MSI/MSI-X
+>   alloc irq_desc for 139 on node -1
+>   alloc kstat_irqs on node -1
+> mlx5_ib 0000:04:00.0: irq 139 for MSI/MSI-X
+> 0000:04:00.0:free_4k:221:(pid 1519): page not found
+> 0000:04:00.0:free_4k:221:(pid 1519): page not found
+> 0000:04:00.0:free_4k:221:(pid 1519): page not found
+> 0000:04:00.0:free_4k:221:(pid 1519): page not found
+> ---------------------- cosnole log -----------------
+> 
+> Fixes: bf0bf77f6519 ('mlx5: Support communicating arbitrary host page size to firmware')
+> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
 
-Hi Nicholas,
-
-Today's linux-next merge of the target-updates tree got a conflict in
-drivers/infiniband/ulp/srpt/ib_srpt.c between commit 9f5d32af09b9
-("ib_srpt: convert printk's to pr_* functions") from the infiniband
-tree and commit 9ac8928e6a3e ("target: simplify the target template
-registration API") from the target-updates tree.
-
-I fixed it up (the latter removed some of the code updated by the
-former) and can carry the fix as necessary (no action is required).
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Sig_/.VlFmj.=a6.JCjz/vpipwQw
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVNIC6AAoJEMDTa8Ir7ZwVQ/kP/R0kLVtpcrDb7ZaBUNwcM4RO
-haXCPUVv/lCPhNSFOjnZfe4Mw8eL2qVke1QPnowWBYhcDdTVYk4chNnH4X58t4Wq
-ozsC2wSAluY+yas+U8XYvDA2JdAR39Zgo9hKZOl4e4d/H10DbyNiVnYwweLHen6U
-xwzN51MmEPSZvoWhF79jQUu354qoNY2jz1t1RtfrdeY/YRRqyAWsTLKg8ExmOCPS
-MABUJ+D16AqGMRVXKyfChB6g8SMLxoWXRxgHIX1x6jMEokYhvYxLZqSWK5UUMO0D
-M57aYRy/XtTFIOrmvpTNsXLZ0QmoapVGdm16ynL7vc8diQIYLjpwf+mqPvz6x0Pu
-aC+hAst2Pkzx806KI61jJzOsu8+FS6Lfd4rxBuvcVyyH7WXTkysamn/tsomiI78p
-hVggwRCVr3BztfTpcQWynxyizGYOIWqLi3MUw+Czh1tNjJL2iyWq8PUYdS8KYZdI
-gWa3zu2hzffOtwwStIMZwvU0F0QHYxhpvjpR3mzB/ruhv30hnOfhfHIfhtuJKgJ2
-POo7KeW7R7wGct/zPeu29CYCTxYAyKPPo+x/42hFp+f+dN9/N1QcezODBVtw/COj
-Sc8xzrcvxDmvN1P0GqLwkU3Q6AH1NRvn05h1jHm1PMemGFjEctXT7xLXlBrGOZ3l
-vmDWUCq5VsriH22TPgkd
-=ZG2k
------END PGP SIGNATURE-----
-
---Sig_/.VlFmj.=a6.JCjz/vpipwQw--
+Acked-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
