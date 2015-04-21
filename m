@@ -1,67 +1,120 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 07/11] IB/cm: Add network namespace support
-Date: Tue, 21 Apr 2015 14:59:55 +0300
-Message-ID: <55363BBB.1020407@mellanox.com>
-References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
- <1429520622-10303-8-git-send-email-haggaie@mellanox.com>
- <20150420170659.GD7676@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/2 infiniband-diags] ibqueryerrors: Close global file descriptor
+ before running ibnd_discover_fabric
+Date: Tue, 21 Apr 2015 08:15:03 -0400
+Message-ID: <55363F47.5090802@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150420170659.GD7676-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/04/2015 20:06, Jason Gunthorpe wrote:
-> On Mon, Apr 20, 2015 at 12:03:38PM +0300, Haggai Eran wrote:
->> From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> Add namespace support to the IB-CM layer.
-> 
->> - Each CM-ID now has a network namespace it is associated with, assigned at
->>   creation. This namespace is used as needed during subsequent action on the
->>   CM-ID or related objects.
-> 
-> There is really something weird about this layering. At the CM layer
-> there should be no concept of an IP address, it only deals with GIDs.
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 16 Apr 2015 16:29:43 +0300
 
-Using the GID alone is not enough to distinguish between namespaces,
-because you can have multiple IPoIB interfaces, all using the GID (and
-possibly the same P_Key), and each belonging to a different namespace.
+Global file descriptor for SMPs and GMPs should be closed before running
+ibnd_discover_fabric() to avoid parallel usage of two SMP file descriptors
 
-> So how can a CM object have a network namespace associated with it?
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/ibqueryerrors.c |   34 +++++++++++++++++++++++++++-------
+ 1 files changed, 27 insertions(+), 7 deletions(-)
 
-The listener rbtree's key is currently the service ID, for instance. Now
-with namespaces, you can have multiple listeners listening on the same
-service ID, so we need to use (service ID, namespace) as the key.
+diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
+index 9d9ec45..8fbb9d1 100644
+--- a/src/ibqueryerrors.c
++++ b/src/ibqueryerrors.c
+@@ -973,6 +975,7 @@ int main(int argc, char **argv)
+ 		{0}
+ 	};
+ 	char usage_args[] = "";
++	uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+ 
+ 	memset(suppressed_fields, 0, sizeof suppressed_fields);
+ 	ibdiag_process_opts(argc, argv, &config, "cDGKLnRrSs", opts, process_opt,
+@@ -998,14 +1001,21 @@ int main(int argc, char **argv)
+ 	config.flags = ibd_ibnetdisc_flags;
+ 	config.mkey = ibd_mkey;
+ 
++	if (!smp_query_via(ni, &portid, IB_ATTR_NODE_INFO, 0,
++			   ibd_timeout, ibmad_port)) {
++		mad_rpc_close_port(ibmad_port);
++		IBEXIT("Failed to query local Node Info\n");
++	}
+ 	node_name_map = open_node_name_map(node_name_map_file);
+ 
+ 	if (dr_path && load_cache_file) {
++		mad_rpc_close_port(ibmad_port);
+ 		fprintf(stderr, "Cannot specify cache and direct route path\n");
+ 		exit(-1);
+ 	}
+ 
+ 	if (resolve_self(ibd_ca, ibd_ca_port, &self_portid, &port, &self_gid.raw) < 0) {
++		mad_rpc_close_port(ibmad_port);
+ 		IBEXIT("can't resolve self port %s", argv[0]);
+ 		goto close_port;
+ 	}
+@@ -1028,6 +1038,8 @@ int main(int argc, char **argv)
+ 			lid2sl_table[portid.lid] = portid.sl;
+ 	}
+ 
++	mad_rpc_close_port(ibmad_port);
++
+ 	if (load_cache_file) {
+ 		if ((fabric = ibnd_load_fabric(load_cache_file, 0)) == NULL) {
+ 			fprintf(stderr, "loading cached fabric failed\n");
+@@ -1064,13 +1076,7 @@ int main(int argc, char **argv)
+ 				port_guid_str);
+ 	} else if (dr_path) {
+ 		ibnd_port_t *port = ibnd_find_port_dr(fabric, dr_path);
+-		uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+ 
+-		if (!smp_query_via(ni, &portid, IB_ATTR_NODE_INFO, 0,
+-				   ibd_timeout, ibmad_port)) {
+-			rc = -1;
+-			goto destroy_fabric;
+-		}
+ 		mad_decode_field(ni, IB_NODE_PORT_GUID_F, &(port_guid));
+ 
+ 		port = ibnd_find_port_guid(fabric, port_guid);
+@@ -1085,7 +1091,22 @@ int main(int argc, char **argv)
+ 		if(obtain_sl)
+ 			if(path_record_query(self_gid,0))
+ 				goto destroy_fabric;
++
++		/* reopen the global ibmad_port */
++		ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port,
++					       mgmt_classes, 4);
++		if (!ibmad_port)
++			IBEXIT("Failed to reopen port: %s:%d\n",
++				ibd_ca, ibd_ca_port);
++
++
++		smp_mkey_set(ibmad_port, ibd_mkey);
++
++		if (ibd_timeout)
++			mad_rpc_set_timeout(ibmad_port, ibd_timeout);
++
+ 		ibnd_iter_nodes(fabric, print_node, NULL);
++		mad_rpc_close_port(ibmad_port);
+ 	}
+ 
+ 	rc = print_summary();
+@@ -1096,7 +1117,6 @@ destroy_fabric:
+ 	ibnd_destroy_fabric(fabric);
+ 
+ close_port:
+-	mad_rpc_close_port(ibmad_port);
+ 	close_node_name_map(node_name_map);
+ 	exit(rc);
+ }
+-- 
+1.7.8.2
 
-> 
->>  {
->>  	av->port = port;
->>  	av->pkey_index = wc->pkey_index;
->>  	ib_init_ah_from_wc(port->cm_dev->ib_device, port->port_num, wc,
->> -			   grh, &av->ah_attr, &init_net);
->> +			   grh, &av->ah_attr, net);
-> 
-> There is something deeply wrong with adding network namespace
-> arguments to verbs.
-> 
-> For rocee the gid index clearly specifies the network namespace
-> to use, so much of this should go away and have rocee get the
-> namespace from the gid index.
-> 
-> Ie in ib_init_ah_from_wc we have the ib_wc which contains the sgid
-> index.
-
-I don't see it there. The code seem to fetch the GID from the GRH.
-Because the IP address in the source GID can be the same for different
-namespaces, this is not enough to pick the right namespace.
-
-Regards,
-Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
