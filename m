@@ -1,67 +1,60 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCHv2 for-4.1 4/4] iw_cxgb4: enforce qp/cq id requirements
-Date: Wed, 22 Apr 2015 01:45:01 +0530
-Message-ID: <1429647301-6832-5-git-send-email-hariprasad@chelsio.com>
-References: <1429647301-6832-1-git-send-email-hariprasad@chelsio.com>
+From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v5 19/27] IB/Verbs: Use management helper cap_iw_cm()
+Date: Tue, 21 Apr 2015 10:06:51 -0500
+Message-ID: <5536678B.50504@opengridcomputing.com>
+References: <5534B8C9.506@profitbricks.com> <5534BB7B.4020601@profitbricks.com> <55350698.9000109@opengridcomputing.com> <55351838.2060006@profitbricks.com> <5535209E.3020807@opengridcomputing.com> <5535FE9F.8070809@profitbricks.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429647301-6832-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <5535FE9F.8070809-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently the iw_cxgb4 implementation requires the qp and cq qid densities
-to match as well as the qp and cq id ranges.  So fail a device open if
-the device configuration doesn't meet the requirements.
+On 4/21/15 2:39 AM, Michael Wang wrote:
+>
+> On 04/20/2015 05:51 PM, Tom Tucker wrote:
+> [snip]
+>>>>>     int ib_query_gid(struct ib_device *device,
+>>>>>              u8 port_num, int index, union ib_gid *gid);
+>>>>>     
+>>>> iWARP devices _must_ support the IWCM so cap_iw_cm() is not really useful.
+>>> Sean suggested to add this helper paired with cap_ib_cm(), may be there are
+>>> some consideration on maintainability?
+>>>
+>>> Me too also prefer this way to make the code more readable ;-)
+>> It's more consistent, but not necessarily more readable -- if by readability we mean understanding.
+>>
+>> If the reader knows how the transports work, then the reader would be confused by the addition of a check that is always true. For the reader that doesn't know, the addition of the check implies that the support is optional, which it is not.
+> The purpose is to make sure folks understand what we really want to check
+> when they reviewing the code :-) and prepared for the further reform which may
+> not rely on technology type any more, for example the device could tell core
+> layer directly what management it required with a bitmask :-)
+Hi Michael,
 
-The reason for these restictions has to do with the fact that IQ qid X
-has a UGTS register in the same bar2 page as EQ qid X.  Thus both qids
-need to be allocated to the same user process for security reasons.
-The logic that does this (the qpid allocator in iw_cxgb4/resource.c)
-handles this but requires the above restrictions.
+Thanks for the reply, but my premise was just wrong...I need to review the 
+whole patch, not just a snippet.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/device.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 33bd1ac..3f782f9 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -765,6 +765,29 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
- 	c4iw_init_dev_ucontext(rdev, &rdev->uctx);
- 
- 	/*
-+	 * This implementation assumes udb_density == ucq_density!  Eventually
-+	 * we might need to support this but for now fail the open. Also the
-+	 * cqid and qpid range must match for now.
-+	 */
-+	if (rdev->lldi.udb_density != rdev->lldi.ucq_density) {
-+		pr_err(MOD "%s: unsupported udb/ucq densities %u/%u\n",
-+		       pci_name(rdev->lldi.pdev), rdev->lldi.udb_density,
-+		       rdev->lldi.ucq_density);
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+	if (rdev->lldi.vr->qp.start != rdev->lldi.vr->cq.start ||
-+	    rdev->lldi.vr->qp.size != rdev->lldi.vr->cq.size) {
-+		pr_err(MOD "%s: unsupported qp and cq id ranges "
-+		       "qp start %u size %u cq start %u size %u\n",
-+		       pci_name(rdev->lldi.pdev), rdev->lldi.vr->qp.start,
-+		       rdev->lldi.vr->qp.size, rdev->lldi.vr->cq.size,
-+		       rdev->lldi.vr->cq.size);
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+
-+	/*
- 	 * qpshift is the number of bits to shift the qpid left in order
- 	 * to get the correct address of the doorbell for that qp.
- 	 */
--- 
-2.3.4
+Thanks,
+Tom
+> Regards,
+> Michael Wang
+>
+>> Tom
+>>
+>>> Regards,
+>>> Michael Wang
+>>>
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
