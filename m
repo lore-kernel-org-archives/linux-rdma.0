@@ -1,52 +1,56 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH v2 00/11] Add network namespace support in the RDMA-CM
-Date: Tue, 21 Apr 2015 09:36:25 +0300
-Message-ID: <5535EFE9.3000106@mellanox.com>
-References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
- <553512FA.1040708@opengridcomputing.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v5 19/27] IB/Verbs: Use management helper cap_iw_cm()
+Date: Tue, 21 Apr 2015 09:39:11 +0200
+Message-ID: <5535FE9F.8070809@profitbricks.com>
+References: <5534B8C9.506@profitbricks.com> <5534BB7B.4020601@profitbricks.com> <55350698.9000109@opengridcomputing.com> <55351838.2060006@profitbricks.com> <5535209E.3020807@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <553512FA.1040708@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5535209E.3020807-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/04/2015 17:53, Steve Wise wrote:
-> 
-> Hey Haggai,
-> 
-> Did you check for changes needed in drivers/infiniband/core/iwcm.c? 
 
-We focused on namespace support for InfiniBand alone in this series. We
-didn't handle iWARP, nor did we implement support for RoCE or other
-transports.
 
-> I notice that it uses init_net here:
+On 04/20/2015 05:51 PM, Tom Tucker wrote:
+[snip]
+>>>>    int ib_query_gid(struct ib_device *device,
+>>>>             u8 port_num, int index, union ib_gid *gid);
+>>>>    
+>>> iWARP devices _must_ support the IWCM so cap_iw_cm() is not really useful.
+>> Sean suggested to add this helper paired with cap_ib_cm(), may be there are
+>> some consideration on maintainability?
+>>
+>> Me too also prefer this way to make the code more readable ;-)
 > 
-> static int __init iw_cm_init(void)
-> {
->         iwcm_wq = create_singlethread_workqueue("iw_cm_wq");
->         if (!iwcm_wq)
->                 return -ENOMEM;
+> It's more consistent, but not necessarily more readable -- if by readability we mean understanding.
 > 
->         iwcm_ctl_table_hdr = register_net_sysctl(&init_net, "net/iw_cm",
->                                                  iwcm_ctl_table);
->         if (!iwcm_ctl_table_hdr) {
->                 pr_err("iw_cm: couldn't register sysctl paths\n");
->                 destroy_workqueue(iwcm_wq);
->                 return -ENOMEM;
->         }
-> 
->         return 0;
-> }
-> 
+> If the reader knows how the transports work, then the reader would be confused by the addition of a check that is always true. For the reader that doesn't know, the addition of the check implies that the support is optional, which it is not.
 
-I see the only thing in the iWARP sysctl registered here is the default
-backlog. If you want to control this parameter per namespace, we could
-store it per network namespace, and add a namespace parameter to
-iw_cm_listen. I'm not sure how important this is though.
+The purpose is to make sure folks understand what we really want to check
+when they reviewing the code :-) and prepared for the further reform which may
+not rely on technology type any more, for example the device could tell core
+layer directly what management it required with a bitmask :-)
 
-Haggai
+Regards,
+Michael Wang
+
+> 
+> Tom
+> 
+>> Regards,
+>> Michael Wang
+>>
+>>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
