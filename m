@@ -1,115 +1,52 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v5 14/27] IB/Verbs: Reform cma_acquire_dev()
-Date: Tue, 21 Apr 2015 06:15:48 +0000
-Message-ID: <EE7902D3F51F404C82415C4803930ACD5DC44164@CMEXMB1.ad.emulex.com>
-References: <5534B8C9.506@profitbricks.com>
- <5534BAFF.5030107@profitbricks.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH v2 00/11] Add network namespace support in the RDMA-CM
+Date: Tue, 21 Apr 2015 09:36:25 +0300
+Message-ID: <5535EFE9.3000106@mellanox.com>
+References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
+ <553512FA.1040708@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5534BAFF.5030107-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <553512FA.1040708@opengridcomputing.com>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, Doug Ledford <dledford@redhat.com>, Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-TG9va3MgZ29vZCwgSSB3b3VsZCBsaWtlIHRvIHRlc3Qgd2l0aCBvY3JkbWEgYmVmb3JlIGNvbmZp
-cm1pbmcuDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRt
-YS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2Vy
-Lmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBNaWNoYWVsIFdhbmcNCj4gU2VudDogTW9uZGF5LCBB
-cHJpbCAyMCwgMjAxNSAyOjA4IFBNDQo+IFRvOiBSb2xhbmQgRHJlaWVyOyBTZWFuIEhlZnR5OyBs
-aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5v
-cmc7IGhhbEBkZXYubWVsbGFub3guY28uaWwNCj4gQ2M6IE1pY2hhZWwgV2FuZzsgVG9tIFR1Y2tl
-cjsgU3RldmUgV2lzZTsgSG9hbmctTmFtIE5ndXllbjsgQ2hyaXN0b3BoDQo+IFJhaXNjaDsgTWlr
-ZSBNYXJjaW5pc3p5bjsgRWxpIENvaGVuOyBGYWlzYWwgTGF0aWY7IEphY2sgTW9yZ2Vuc3RlaW47
-IE9yIEdlcmxpdHo7DQo+IEhhZ2dhaSBFcmFuOyBJcmEgV2Vpbnk7IFRvbSBUYWxwZXk7IEphc29u
-IEd1bnRob3JwZTsgRG91ZyBMZWRmb3JkDQo+IFN1YmplY3Q6IFtQQVRDSCB2NSAxNC8yN10gSUIv
-VmVyYnM6IFJlZm9ybSBjbWFfYWNxdWlyZV9kZXYoKQ0KPiANCj4gDQo+IFJlZm9ybSBjbWFfYWNx
-dWlyZV9kZXYoKSB3aXRoIG1hbmFnZW1lbnQgaGVscGVycywgaW50cm9kdWNlDQo+IGNtYV92YWxp
-ZGF0ZV9wb3J0KCkgdG8gbWFrZSB0aGUgY29kZSBtb3JlIGNsZWFuLg0KPiANCj4gQ2M6IEhhbCBS
-b3NlbnN0b2NrIDxoYWxAZGV2Lm1lbGxhbm94LmNvLmlsPg0KPiBDYzogU3RldmUgV2lzZSA8c3dp
-c2VAb3BlbmdyaWRjb21wdXRpbmcuY29tPg0KPiBDYzogVG9tIFRhbHBleSA8dG9tQHRhbHBleS5j
-b20+DQo+IENjOiBKYXNvbiBHdW50aG9ycGUgPGpndW50aG9ycGVAb2JzaWRpYW5yZXNlYXJjaC5j
-b20+DQo+IENjOiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+IENjOiBJcmEg
-V2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+IENjOiBTZWFuIEhlZnR5IDxzZWFuLmhlZnR5
-QGludGVsLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogTWljaGFlbCBXYW5nIDx5dW4ud2FuZ0Bwcm9m
-aXRicmlja3MuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jIHwg
-NjggKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0NCj4gLS0NCj4gIDEg
-ZmlsZSBjaGFuZ2VkLCA0MCBpbnNlcnRpb25zKCspLCAyOCBkZWxldGlvbnMoLSkNCj4gDQo+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbWEuYyBiL2RyaXZlcnMvaW5maW5p
-YmFuZC9jb3JlL2NtYS5jDQo+IGluZGV4IDYxOTViZjYuLjQ0ZTdiYjkgMTAwNjQ0DQo+IC0tLSBh
-L2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFu
-ZC9jb3JlL2NtYS5jDQo+IEBAIC0zNzAsMTggKzM3MCwzNSBAQCBzdGF0aWMgaW50IGNtYV90cmFu
-c2xhdGVfYWRkcihzdHJ1Y3Qgc29ja2FkZHIgKmFkZHIsDQo+IHN0cnVjdCByZG1hX2Rldl9hZGRy
-ICpkZXZfYQ0KPiAgCXJldHVybiByZXQ7DQo+ICB9DQo+IA0KPiArc3RhdGljIGlubGluZSBpbnQg
-Y21hX3ZhbGlkYXRlX3BvcnQoc3RydWN0IGliX2RldmljZSAqZGV2aWNlLCB1OCBwb3J0LA0KPiAr
-CQkJCSAgICAgIHVuaW9uIGliX2dpZCAqZ2lkLCBpbnQgZGV2X3R5cGUpIHsNCj4gKwl1OCBmb3Vu
-ZF9wb3J0Ow0KPiArCWludCByZXQgPSAtRU5PREVWOw0KPiArDQo+ICsJaWYgKChkZXZfdHlwZSA9
-PSBBUlBIUkRfSU5GSU5JQkFORCkgJiYgIXJkbWFfdGVjaF9pYihkZXZpY2UsDQo+IHBvcnQpKQ0K
-PiArCQlyZXR1cm4gcmV0Ow0KPiArDQo+ICsJaWYgKChkZXZfdHlwZSAhPSBBUlBIUkRfSU5GSU5J
-QkFORCkgJiYgcmRtYV90ZWNoX2liKGRldmljZSwgcG9ydCkpDQo+ICsJCXJldHVybiByZXQ7DQo+
-ICsNCj4gKwlyZXQgPSBpYl9maW5kX2NhY2hlZF9naWQoZGV2aWNlLCBnaWQsICZmb3VuZF9wb3J0
-LCBOVUxMKTsNCj4gKwlpZiAocG9ydCAhPSBmb3VuZF9wb3J0KQ0KPiArCQlyZXR1cm4gLUVOT0RF
-VjsNCj4gKw0KPiArCXJldHVybiByZXQ7DQo+ICt9DQo+ICsNCj4gIHN0YXRpYyBpbnQgY21hX2Fj
-cXVpcmVfZGV2KHN0cnVjdCByZG1hX2lkX3ByaXZhdGUgKmlkX3ByaXYsDQo+ICAJCQkgICBzdHJ1
-Y3QgcmRtYV9pZF9wcml2YXRlICpsaXN0ZW5faWRfcHJpdikgIHsNCj4gIAlzdHJ1Y3QgcmRtYV9k
-ZXZfYWRkciAqZGV2X2FkZHIgPSAmaWRfcHJpdi0+aWQucm91dGUuYWRkci5kZXZfYWRkcjsNCj4g
-IAlzdHJ1Y3QgY21hX2RldmljZSAqY21hX2RldjsNCj4gLQl1bmlvbiBpYl9naWQgZ2lkLCBpYm9l
-X2dpZDsNCj4gKwl1bmlvbiBpYl9naWQgZ2lkLCBpYm9lX2dpZCwgKmdpZHA7DQo+ICAJaW50IHJl
-dCA9IC1FTk9ERVY7DQo+IC0JdTggcG9ydCwgZm91bmRfcG9ydDsNCj4gLQllbnVtIHJkbWFfbGlu
-a19sYXllciBkZXZfbGwgPSBkZXZfYWRkci0+ZGV2X3R5cGUgPT0NCj4gQVJQSFJEX0lORklOSUJB
-TkQgPw0KPiAtCQlJQl9MSU5LX0xBWUVSX0lORklOSUJBTkQgOiBJQl9MSU5LX0xBWUVSX0VUSEVS
-TkVUOw0KPiArCXU4IHBvcnQ7DQo+IA0KPiAtCWlmIChkZXZfbGwgIT0gSUJfTElOS19MQVlFUl9J
-TkZJTklCQU5EICYmDQo+ICsJaWYgKGRldl9hZGRyLT5kZXZfdHlwZSAhPSBBUlBIUkRfSU5GSU5J
-QkFORCAmJg0KPiAgCSAgICBpZF9wcml2LT5pZC5wcyA9PSBSRE1BX1BTX0lQT0lCKQ0KPiAgCQly
-ZXR1cm4gLUVJTlZBTDsNCj4gDQo+IEBAIC0zOTEsNDEgKzQwOCwzNiBAQCBzdGF0aWMgaW50IGNt
-YV9hY3F1aXJlX2RldihzdHJ1Y3QgcmRtYV9pZF9wcml2YXRlDQo+ICppZF9wcml2LA0KPiANCj4g
-IAltZW1jcHkoJmdpZCwgZGV2X2FkZHItPnNyY19kZXZfYWRkciArDQo+ICAJICAgICAgIHJkbWFf
-YWRkcl9naWRfb2Zmc2V0KGRldl9hZGRyKSwgc2l6ZW9mIGdpZCk7DQo+IC0JaWYgKGxpc3Rlbl9p
-ZF9wcml2ICYmDQo+IC0JICAgIHJkbWFfcG9ydF9nZXRfbGlua19sYXllcihsaXN0ZW5faWRfcHJp
-di0+aWQuZGV2aWNlLA0KPiAtCQkJCSAgICAgbGlzdGVuX2lkX3ByaXYtPmlkLnBvcnRfbnVtKSA9
-PSBkZXZfbGwpIHsNCj4gKw0KPiArCWlmIChsaXN0ZW5faWRfcHJpdikgew0KPiAgCQljbWFfZGV2
-ID0gbGlzdGVuX2lkX3ByaXYtPmNtYV9kZXY7DQo+ICAJCXBvcnQgPSBsaXN0ZW5faWRfcHJpdi0+
-aWQucG9ydF9udW07DQo+IC0JCWlmIChyZG1hX25vZGVfZ2V0X3RyYW5zcG9ydChjbWFfZGV2LT5k
-ZXZpY2UtPm5vZGVfdHlwZSkNCj4gPT0gUkRNQV9UUkFOU1BPUlRfSUIgJiYNCj4gLQkJICAgIHJk
-bWFfcG9ydF9nZXRfbGlua19sYXllcihjbWFfZGV2LT5kZXZpY2UsIHBvcnQpID09DQo+IElCX0xJ
-TktfTEFZRVJfRVRIRVJORVQpDQo+IC0JCQlyZXQgPSBpYl9maW5kX2NhY2hlZF9naWQoY21hX2Rl
-di0+ZGV2aWNlLCAmaWJvZV9naWQsDQo+IC0JCQkJCQkgJmZvdW5kX3BvcnQsIE5VTEwpOw0KPiAt
-CQllbHNlDQo+IC0JCQlyZXQgPSBpYl9maW5kX2NhY2hlZF9naWQoY21hX2Rldi0+ZGV2aWNlLCAm
-Z2lkLA0KPiAtCQkJCQkJICZmb3VuZF9wb3J0LCBOVUxMKTsNCj4gKwkJZ2lkcCA9IHJkbWFfdGVj
-aF9pYm9lKGNtYV9kZXYtPmRldmljZSwgcG9ydCkgPw0KPiArCQkgICAgICAgJmlib2VfZ2lkIDog
-JmdpZDsNCj4gDQo+IC0JCWlmICghcmV0ICYmIChwb3J0ICA9PSBmb3VuZF9wb3J0KSkgew0KPiAt
-CQkJaWRfcHJpdi0+aWQucG9ydF9udW0gPSBmb3VuZF9wb3J0Ow0KPiArCQlyZXQgPSBjbWFfdmFs
-aWRhdGVfcG9ydChjbWFfZGV2LT5kZXZpY2UsIHBvcnQsIGdpZHAsDQo+ICsJCQkJCWRldl9hZGRy
-LT5kZXZfdHlwZSk7DQo+ICsJCWlmICghcmV0KSB7DQo+ICsJCQlpZF9wcml2LT5pZC5wb3J0X251
-bSA9IHBvcnQ7DQo+ICAJCQlnb3RvIG91dDsNCj4gIAkJfQ0KPiAgCX0NCj4gKw0KPiAgCWxpc3Rf
-Zm9yX2VhY2hfZW50cnkoY21hX2RldiwgJmRldl9saXN0LCBsaXN0KSB7DQo+ICAJCWZvciAocG9y
-dCA9IDE7IHBvcnQgPD0gY21hX2Rldi0+ZGV2aWNlLT5waHlzX3BvcnRfY250OyArK3BvcnQpDQo+
-IHsNCj4gIAkJCWlmIChsaXN0ZW5faWRfcHJpdiAmJg0KPiAgCQkJICAgIGxpc3Rlbl9pZF9wcml2
-LT5jbWFfZGV2ID09IGNtYV9kZXYgJiYNCj4gIAkJCSAgICBsaXN0ZW5faWRfcHJpdi0+aWQucG9y
-dF9udW0gPT0gcG9ydCkNCj4gIAkJCQljb250aW51ZTsNCj4gLQkJCWlmIChyZG1hX3BvcnRfZ2V0
-X2xpbmtfbGF5ZXIoY21hX2Rldi0+ZGV2aWNlLCBwb3J0KQ0KPiA9PSBkZXZfbGwpIHsNCj4gLQkJ
-CQlpZiAocmRtYV9ub2RlX2dldF90cmFuc3BvcnQoY21hX2Rldi0NCj4gPmRldmljZS0+bm9kZV90
-eXBlKSA9PSBSRE1BX1RSQU5TUE9SVF9JQiAmJg0KPiAtCQkJCSAgICByZG1hX3BvcnRfZ2V0X2xp
-bmtfbGF5ZXIoY21hX2Rldi0NCj4gPmRldmljZSwgcG9ydCkgPT0gSUJfTElOS19MQVlFUl9FVEhF
-Uk5FVCkNCj4gLQkJCQkJcmV0ID0gaWJfZmluZF9jYWNoZWRfZ2lkKGNtYV9kZXYtDQo+ID5kZXZp
-Y2UsICZpYm9lX2dpZCwgJmZvdW5kX3BvcnQsIE5VTEwpOw0KPiAtCQkJCWVsc2UNCj4gLQkJCQkJ
-cmV0ID0gaWJfZmluZF9jYWNoZWRfZ2lkKGNtYV9kZXYtDQo+ID5kZXZpY2UsICZnaWQsICZmb3Vu
-ZF9wb3J0LCBOVUxMKTsNCj4gLQ0KPiAtCQkJCWlmICghcmV0ICYmIChwb3J0ID09IGZvdW5kX3Bv
-cnQpKSB7DQo+IC0JCQkJCWlkX3ByaXYtPmlkLnBvcnRfbnVtID0gZm91bmRfcG9ydDsNCj4gLQkJ
-CQkJZ290byBvdXQ7DQo+IC0JCQkJfQ0KPiArDQo+ICsJCQlnaWRwID0gcmRtYV90ZWNoX2lib2Uo
-Y21hX2Rldi0+ZGV2aWNlLCBwb3J0KSA/DQo+ICsJCQkgICAgICAgJmlib2VfZ2lkIDogJmdpZDsN
-Cj4gKw0KPiArCQkJcmV0ID0gY21hX3ZhbGlkYXRlX3BvcnQoY21hX2Rldi0+ZGV2aWNlLCBwb3J0
-LCBnaWRwLA0KPiArCQkJCQkJZGV2X2FkZHItPmRldl90eXBlKTsNCj4gKwkJCWlmICghcmV0KSB7
-DQo+ICsJCQkJaWRfcHJpdi0+aWQucG9ydF9udW0gPSBwb3J0Ow0KPiArCQkJCWdvdG8gb3V0Ow0K
-PiAgCQkJfQ0KPiAgCQl9DQo+ICAJfQ0KPiAtLQ0KPiAyLjEuMA0KPiAtLQ0KPiBUbyB1bnN1YnNj
-cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRt
-YSIgaW4gdGhlIGJvZHkNCj4gb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5v
-cmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9y
-ZG9tby1pbmZvLmh0bWwNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 20/04/2015 17:53, Steve Wise wrote:
+> 
+> Hey Haggai,
+> 
+> Did you check for changes needed in drivers/infiniband/core/iwcm.c? 
+
+We focused on namespace support for InfiniBand alone in this series. We
+didn't handle iWARP, nor did we implement support for RoCE or other
+transports.
+
+> I notice that it uses init_net here:
+> 
+> static int __init iw_cm_init(void)
+> {
+>         iwcm_wq = create_singlethread_workqueue("iw_cm_wq");
+>         if (!iwcm_wq)
+>                 return -ENOMEM;
+> 
+>         iwcm_ctl_table_hdr = register_net_sysctl(&init_net, "net/iw_cm",
+>                                                  iwcm_ctl_table);
+>         if (!iwcm_ctl_table_hdr) {
+>                 pr_err("iw_cm: couldn't register sysctl paths\n");
+>                 destroy_workqueue(iwcm_wq);
+>                 return -ENOMEM;
+>         }
+> 
+>         return 0;
+> }
+> 
+
+I see the only thing in the iWARP sysctl registered here is the default
+backlog. If you want to control this parameter per namespace, we could
+store it per network namespace, and add a namespace parameter to
+iw_cm_listen. I'm not sure how important this is though.
+
+Haggai
