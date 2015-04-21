@@ -1,139 +1,179 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 02/11] IB/addr: Pass network namespace as a parameter
-Date: Tue, 21 Apr 2015 13:34:58 +0300
-Message-ID: <553627D2.7050607@mellanox.com>
-References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
-	 <1429520622-10303-3-git-send-email-haggaie@mellanox.com>
- <1429567530.45956.31.camel@redhat.com>
+From: Devesh Sharma <Devesh.Sharma@Emulex.Com>
+Subject: RE: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+Date: Tue, 21 Apr 2015 11:03:46 +0000
+Message-ID: <EE7902D3F51F404C82415C4803930ACD5DC44287@CMEXMB1.ad.emulex.com>
+References: <5534B8C9.506@profitbricks.com>
+ <EE7902D3F51F404C82415C4803930ACD5DC44113@CMEXMB1.ad.emulex.com>
+ <5536006E.3000200@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429567530.45956.31.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5536006E.3000200@profitbricks.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hal@dev.mellanox.co.il" <hal@dev.mellanox.co.il>
+Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 21/04/2015 01:05, Doug Ledford wrote:
-> On Mon, 2015-04-20 at 12:03 +0300, Haggai Eran wrote:
->> From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> Add network namespace support to the ib_addr module. For that, all the address
->> resolution and matching should be done using the appropriate namespace instead
->> of init_net.
->>
->> This is achieved by:
->>
->> 1. Adding an explicit network namespace argument to exported function that
->>    require a namespace.
->> 2. Saving the namespace in the rdma_addr_client structure.
->> 3. Using it when calling networking functions.
->>
->> In order to preserve the behavior of calling modules, &init_net is
->> passed as the parameter in calls from other modules. This is modified as
->> namespace support is added on more levels.
->>
->> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/core/addr.c           | 31 ++++++++++++----------
->>  drivers/infiniband/core/cma.c            |  4 ++-
->>  drivers/infiniband/core/verbs.c          | 14 +++++++---
->>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c |  3 ++-
->>  include/rdma/ib_addr.h                   | 44 ++++++++++++++++++++++++++++----
->>  5 files changed, 72 insertions(+), 24 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
->> index f80da50d84a5..95beaef6b66d 100644
->> --- a/drivers/infiniband/core/addr.c
->> +++ b/drivers/infiniband/core/addr.c
->> @@ -128,7 +128,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
->>  	int ret = -EADDRNOTAVAIL;
->>  
->>  	if (dev_addr->bound_dev_if) {
->> -		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
->> +		dev = dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
->>  		if (!dev)
->>  			return -ENODEV;
->>  		ret = rdma_copy_addr(dev_addr, dev, NULL);
->> @@ -137,9 +137,10 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
->>  	}
->>  
->>  	switch (addr->sa_family) {
->> -	case AF_INET:
->> -		dev = ip_dev_find(&init_net,
->> -			((struct sockaddr_in *) addr)->sin_addr.s_addr);
->> +	case AF_INET: {
->                        ^ Please don't add brackets just so you can
-> convert a cast into a variable declaration that's unnecessary
-> 
->> +		struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
->> +
->> +		dev = ip_dev_find(dev_addr->net, addr_in->sin_addr.s_addr);
->>  
->>  		if (!dev)
->>  			return ret;
->> @@ -149,12 +150,12 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr,
->>  			*vlan_id = rdma_vlan_dev_vlan_id(dev);
->>  		dev_put(dev);
->>  		break;
->> -
->> +	}
->>  #if IS_ENABLED(CONFIG_IPV6)
->>  	case AF_INET6:
->>  		rcu_read_lock();
->> -		for_each_netdev_rcu(&init_net, dev) {
->> -			if (ipv6_chk_addr(&init_net,
->> +		for_each_netdev_rcu(dev_addr->net, dev) {
->> +			if (ipv6_chk_addr(dev_addr->net,
->>  					  &((struct sockaddr_in6 *) addr)->sin6_addr,
->>  					  dev, 1)) {
->>  				ret = rdma_copy_addr(dev_addr, dev, NULL);
->> @@ -236,7 +237,7 @@ static int addr4_resolve(struct sockaddr_in *src_in,
->>  	fl4.daddr = dst_ip;
->>  	fl4.saddr = src_ip;
->>  	fl4.flowi4_oif = addr->bound_dev_if;
->> -	rt = ip_route_output_key(&init_net, &fl4);
->> +	rt = ip_route_output_key(addr->net, &fl4);
->>  	if (IS_ERR(rt)) {
->>  		ret = PTR_ERR(rt);
->>  		goto out;
->> @@ -278,12 +279,13 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
->>  	fl6.saddr = src_in->sin6_addr;
->>  	fl6.flowi6_oif = addr->bound_dev_if;
->>  
->> -	dst = ip6_route_output(&init_net, NULL, &fl6);
->> +	dst = ip6_route_output(addr->net, NULL, &fl6);
->>  	if ((ret = dst->error))
->>  		goto put;
->>  
->>  	if (ipv6_addr_any(&fl6.saddr)) {
->> -		ret = ipv6_dev_get_saddr(&init_net, ip6_dst_idev(dst)->dev,
->> +		ret = ipv6_dev_get_saddr(addr->net,
->> +					 ip6_dst_idev(dst)->dev,
->>  					 &fl6.daddr, 0, &fl6.saddr);
->>  		if (ret)
->>  			goto put;
->> @@ -458,7 +460,7 @@ static void resolve_cb(int status, struct sockaddr *src_addr,
->>  }
->>  
->>  int rdma_addr_find_dmac_by_grh(union ib_gid *sgid, union ib_gid *dgid, u8 *dmac,
->> -			       u16 *vlan_id)
->> +			       u16 *vlan_id, struct net *net)
-> 
-> In the core networking code, the net namespace is always first.  Please
-> stick with that paradigm.
-> 
-
-I'll fix these comments in the next revision.
-
-Thanks,
-Haggai
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgTWljaGFlbCwNCg0KSXQgd2lsbCBiZSBncmVhdCBoZWxwIGlmIHlvdSBjb3VsZCBiYXNlIHlv
+dSBwYXRjaGVzIG9uIGV4aXN0aW5nIFJvbGFuZCdzIHRyZWUgYW5kIHNoYXJlIHRvIGJyYW5jaCBk
+ZXRhaWxzIHRvIHB1bGwuIA0KSnVzdCBsaWtlIENodWNrIGxldmVyIGRvZXMgZm9yIGhpcyBuZnMt
+cmRtYSBwYXRjaGVzPw0KDQotUmVnYXJkcw0KRGV2ZXNoDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNz
+YWdlLS0tLS0NCj4gRnJvbTogTWljaGFlbCBXYW5nIFttYWlsdG86eXVuLndhbmdAcHJvZml0YnJp
+Y2tzLmNvbV0NCj4gU2VudDogVHVlc2RheSwgQXByaWwgMjEsIDIwMTUgMToxNyBQTQ0KPiBUbzog
+RGV2ZXNoIFNoYXJtYTsgUm9sYW5kIERyZWllcjsgU2VhbiBIZWZ0eTsgSGFsIFJvc2Vuc3RvY2s7
+IGxpbnV4LQ0KPiByZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
+Lm9yZzsgaGFsQGRldi5tZWxsYW5veC5jby5pbA0KPiBDYzogVG9tIFR1Y2tlcjsgU3RldmUgV2lz
+ZTsgSG9hbmctTmFtIE5ndXllbjsgQ2hyaXN0b3BoIFJhaXNjaDsgTWlrZQ0KPiBNYXJjaW5pc3p5
+bjsgRWxpIENvaGVuOyBGYWlzYWwgTGF0aWY7IEphY2sgTW9yZ2Vuc3RlaW47IE9yIEdlcmxpdHo7
+IEhhZ2dhaSBFcmFuOw0KPiBJcmEgV2Vpbnk7IFRvbSBUYWxwZXk7IEphc29uIEd1bnRob3JwZTsg
+RG91ZyBMZWRmb3JkDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjUgMDAvMjddIElCL1ZlcmJzOiBJ
+QiBNYW5hZ2VtZW50IEhlbHBlcnMNCj4gDQo+IEhpLCBEZXZlc2gNCj4gDQo+IE9uIDA0LzIxLzIw
+MTUgMDc6NDEgQU0sIERldmVzaCBTaGFybWEgd3JvdGU6DQo+ID4gSGkgTWljaGFlbCwNCj4gPg0K
+PiA+IGlzIHRoZXJlIGEgc3BlY2lmaWMgZ2l0IGJyYW5jaCBhdmFpbGFibGUgdG8gcHVsbCBvdXQg
+YWxsIHRoZSBwYXRjaGVzPw0KPiANCj4gTm90IHlldCwgd2UgbWF5IG5lZWQgdGhlIG1haW50YWlu
+ZXIgdG8gdGVsbCB1cyB3aGljaCBicmFuY2ggY291bGQgdGhlIHNlcmllcw0KPiBiZWVuIGFwcGxp
+ZWQgZm9yIHRlc3RpbmcgcHVycG9zZSwgYWZ0ZXIgd2UgYWxsIHNhdGlzZmllZCA6LSkNCj4gDQo+
+IEZvciBub3cgd2UgY291bGQgJ2dpdCBhbScgdGhlc2UgcGF0Y2hlcyB0byAnaW5maW5pYmFuZC5n
+aXQvZm9yLW5leHQnDQo+IGluIG9yZGVyIHRvIGRvIHRlc3RpbmcuDQo+IA0KPiBSZWdhcmRzLA0K
+PiBNaWNoYWVsIFdhbmcNCj4gDQo+ID4NCj4gPiAtUmVnYXJkcw0KPiA+IERldmVzaA0KPiA+DQo+
+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IGxpbnV4LXJkbWEtb3du
+ZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gPj4gb3duZXJAdmdlci5r
+ZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgTWljaGFlbCBXYW5nDQo+ID4+IFNlbnQ6IE1vbmRheSwg
+QXByaWwgMjAsIDIwMTUgMTo1OSBQTQ0KPiA+PiBUbzogUm9sYW5kIERyZWllcjsgU2VhbiBIZWZ0
+eTsgSGFsIFJvc2Vuc3RvY2s7DQo+ID4+IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51
+eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOw0KPiA+PiBoYWxAZGV2Lm1lbGxhbm94LmNvLmlsDQo+
+ID4+IENjOiBUb20gVHVja2VyOyBTdGV2ZSBXaXNlOyBIb2FuZy1OYW0gTmd1eWVuOyBDaHJpc3Rv
+cGggUmFpc2NoOyBNaWtlDQo+ID4+IE1hcmNpbmlzenluOyBFbGkgQ29oZW47IEZhaXNhbCBMYXRp
+ZjsgSmFjayBNb3JnZW5zdGVpbjsgT3IgR2VybGl0ejsNCj4gPj4gSGFnZ2FpIEVyYW47IElyYSBX
+ZWlueTsgVG9tIFRhbHBleTsgSmFzb24gR3VudGhvcnBlOyBEb3VnIExlZGZvcmQ7DQo+ID4+IE1p
+Y2hhZWwgV2FuZw0KPiA+PiBTdWJqZWN0OiBbUEFUQ0ggdjUgMDAvMjddIElCL1ZlcmJzOiBJQiBN
+YW5hZ2VtZW50IEhlbHBlcnMNCj4gPj4NCj4gPj4NCj4gPj4gU2luY2UgdjQ6DQo+ID4+ICAgKiBU
+aGFua3MgZm9yIHRoZSBjb21tZW50cyBmcm9tIEhhbCwgU2VhbiwgVG9tLCBPciBHZXJsaXR6LCBK
+YXNvbiwNCj4gPj4gICAgIFJvbGFuZCwgSXJhIGFuZCBTdGV2ZSA6LSkgUGxlYXNlIHJlbWluZCBt
+ZSBpZiBhbnl0aGluZyBtaXNzZWQgOi1QDQo+ID4+ICAgKiBGaXggbG9naWNhbCBpc3N1ZSBpbnNp
+ZGUgMyMsIDE0Iw0KPiA+PiAgICogUmVmaW5lIDMjLCA0IywgNSMgd2l0aCBsYWJlbCAnZnJlZScN
+Cj4gPj4gICAqIFJld29yayAxMCMgdG8gc3RvcCB1c2luZyBwb3J0IDEgd2hlbiBwb3J0IGFscmVh
+ZHkgYXNzaWduZWQNCj4gPj4NCj4gPj4gVGhlcmUgYXJlIHBsZW50eSBvZiBsZW5ndGh5IGNvZGUg
+dG8gY2hlY2sgdGhlIHRyYW5zcG9ydCB0eXBlIG9mIElCDQo+ID4+IGRldmljZSwgb3IgdGhlIGxp
+bmsgbGF5ZXIgdHlwZSBvZiBpdCdzIHBvcnQsIGJ1dCBhY3R1YWxseSB3ZSBhcmUganVzdA0KPiA+
+PiBzcGVjdWxhdGluZyB3aGV0aGVyIGEgcGFydGljdWxhciBtYW5hZ2VtZW50L2ZlYXR1cmUgaXMg
+c3VwcG9ydGVkIGJ5IHRoZQ0KPiBkZXZpY2UvcG9ydC4NCj4gPj4NCj4gPj4gVGh1cyBpbnN0ZWFk
+IG9mIGluZmVycmluZywgd2Ugc2hvdWxkIGhhdmUgb3VyIG93biBtZWNoYW5pc20gZm9yIElCDQo+
+ID4+IG1hbmFnZW1lbnQgY2FwYWJpbGl0eS9wcm90b2NvbC9mZWF0dXJlIGNoZWNraW5nLCBzZXZl
+cmFsIHByb3Bvc2FscyBiZWxvdy4NCj4gPj4NCj4gPj4gVGhpcyBwYXRjaCBzZXQgd2lsbCByZWZv
+cm0gdGhlIG1ldGhvZCBvZiBnZXR0aW5nIHRyYW5zcG9ydCB0eXBlLCB3ZQ0KPiA+PiB3aWxsIG5v
+dyB1c2luZyBxdWVyeV90cmFuc3BvcnQoKSBpbnN0ZWFkIG9mIGluZmVycmluZyBmcm9tIHRyYW5z
+cG9ydA0KPiA+PiBhbmQgbGluayBsYXllciByZXNwZWN0aXZlbHksIGFsc28gd2UgZGVmaW5lZCB0
+aGUgbmV3IHRyYW5zcG9ydCB0eXBlDQo+ID4+IHRvIG1ha2UgdGhlIGNvbmNlcHQgbW9yZSByZWFz
+b25hYmxlLg0KPiA+Pg0KPiA+PiBNYXBwaW5nIExpc3Q6DQo+ID4+IAkJbm9kZS10eXBlCWxpbmst
+bGF5ZXIJb2xkLXRyYW5zcG9ydAluZXctdHJhbnNwb3J0DQo+ID4+IG5lcwkJUk5JQwkJRVRICQlJ
+V0FSUAkJSVdBUlANCj4gPj4gYW1zbzExMDAJUk5JQwkJRVRICQlJV0FSUAkJSVdBUlANCj4gPj4g
+Y3hnYjMgICAJUk5JQwkJRVRICQlJV0FSUAkJSVdBUlANCj4gPj4gY3hnYjQgICAJUk5JQwkJRVRI
+CQlJV0FSUAkJSVdBUlANCj4gPj4gdXNuaWMgICAJVVNOSUNfVURQCUVUSAkJVVNOSUNfVURQCVVT
+TklDX1VEUA0KPiA+PiBvY3JkbWEgIAlJQl9DQQkJRVRICQlJQgkJSUJPRQ0KPiA+PiBtbHg0ICAg
+IAlJQl9DQQkJSUIvRVRICQlJQgkJSUIvSUJPRQ0KPiA+PiBtbHg1ICAgIAlJQl9DQQkJSUIJCUlC
+CQlJQg0KPiA+PiBlaGNhICAgIAlJQl9DQQkJSUIJCUlCCQlJQg0KPiA+PiBpcGF0aCAgIAlJQl9D
+QQkJSUIJCUlCCQlJQg0KPiA+PiBtdGhjYSAgIAlJQl9DQQkJSUIJCUlCCQlJQg0KPiA+PiBxaWIg
+ICAgIAlJQl9DQQkJSUIJCUlCCQlJQg0KPiA+Pg0KPiA+PiBGb3IgZXhhbXBsZToNCj4gPj4gCWlm
+ICh0cmFuc3BvcnQgPT0gSUIpICYmIChsaW5rLWxheWVyID09IEVUSCkgd2lsbCBub3cgYmVjb21l
+Og0KPiA+PiAJaWYgKHF1ZXJ5X3RyYW5zcG9ydCgpID09IElCT0UpDQo+ID4+DQo+ID4+IFRodXMg
+d2Ugd2lsbCBiZSBhYmxlIHRvIGdldCByaWQgb2YgdGhlIHJlc3BlY3RpdmUgdHJhbnNwb3J0IGFu
+ZA0KPiA+PiBsaW5rLWxheWVyIGNoZWNraW5nLCBhbmQgaXQgd2lsbCBoZWxwIHVzIHRvIGFkZCBu
+ZXcNCj4gPj4gcHJvdG9jb2wvVGVjaG5vbG9neSAobGlrZSBPUEEpIG1vcmUgZWFzaWVyLCBhbHNv
+IHdpdGggdGhlIGludHJvZHVjZWQNCj4gPj4gbWFuYWdlbWVudCBoZWxwZXJzLCBJQiBtYW5hZ2Vt
+ZW50IGxvZ2ljYWwgd2lsbCBiZSBtb3JlIGNsZWFyIGFuZCBlYXNpZXINCj4gZm9yIGV4dGVuZGlu
+Zy4NCj4gPj4NCj4gPj4gSGlnaGxpZ2h0czoNCj4gPj4gICAgIFRoZSBwYXRjaCBzZXQgY292ZXJl
+ZCBhIHdpZGUgcmFuZ2Ugb2YgSUIgc3R1ZmYsIHRodXMgZm9yIHRob3NlIHdobyBhcmUNCj4gPj4g
+ICAgIGZhbWlsaWFyIHdpdGggdGhlIHBhcnRpY3VsYXIgcGFydCwgeW91ciBzdWdnZXN0aW9uIHdv
+dWxkIGJlDQo+ID4+IGludmFsdWFibGUgOy0pDQo+ID4+DQo+ID4+ICAgICBQYXRjaCAxI34xNSMg
+aW5jbHVkZWQgYWxsIHRoZSBsb2dpY2FsIHJlZm9ybSwgMTYjfjI1IyBpbnRyb2R1Y2VkIHRoZQ0K
+PiA+PiAgICAgbWFuYWdlbWVudCBoZWxwZXJzLCAyNiN+MjcjIGRvIGNsZWFuIHVwLg0KPiA+Pg0K
+PiA+PiAgICAgUGF0Y2hlcyBoYXZlbid0IGJlZW4gdGVzdGVkIHlldCwgd2UgYXBwcmVjaWF0ZSBp
+ZiBhbnkgb25lIHdobyBoYXZlIHRoZXNlDQo+ID4+ICAgICBIVyB3aWxsaW5nIHRvIHByb3ZpZGUg
+aGlzIFRlc3RlZC1ieSA6LSkNCj4gPj4NCj4gPj4gICAgIERvdWcgc3VnZ2VzdGVkIHRoZSBiaXRt
+YXNrIG1lY2hhbmlzbToNCj4gPj4gCWh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgt
+DQo+ID4+IHJkbWFAdmdlci5rZXJuZWwub3JnL21zZzIzNzY1Lmh0bWwNCj4gPj4gICAgIHdoaWNo
+IGNvdWxkIGJlIHRoZSBwbGFuIGZvciBmdXR1cmUgcmVmb3JtaW5nLCB3ZSBwcmVmZXIgdGhhdCB0
+byBiZQ0KPiBhbm90aGVyDQo+ID4+ICAgICBzZXJpZXMgd2hpY2ggZm9jdXMgb24gc2VtYW50aWMg
+YW5kIHBlcmZvcm1hbmNlLg0KPiA+Pg0KPiA+PiAgICAgVGhpcyBwYXRjaC1zZXQgaXMgc29tZXdo
+YXQgJ2Jsb2F0ZWQnIG5vdyBhbmQgaXQgbWF5IGJlIGEgZ29vZCB0aW1pbmcgZm9yDQo+ID4+ICAg
+ICBzdGFnaW5nLCBJJ2QgbGlrZSB0byBzdWdnZXN0IHdlIGZvY3VzIG9uIGltcHJvdmluZyBleGlz
+dGVkIGhlbHBlcnMgYW5kIHB1c2gNCj4gPj4gICAgIGFsbCB0aGUgZnVydGhlciByZWZvcm1zIGlu
+dG8gbmV4dCBzZXJpZXMgOy0pDQo+ID4+DQo+ID4+IFByb3Bvc2FsczoNCj4gPj4gICAgIFNlYW46
+DQo+ID4+IAlodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LQ0KPiA+PiByZG1hQHZn
+ZXIua2VybmVsLm9yZy9tc2cyMzMzOS5odG1sDQo+ID4+ICAgICBEb3VnOg0KPiA+PiAJaHR0cHM6
+Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC0NCj4gPj4gcmRtYUB2Z2VyLmtlcm5lbC5vcmcv
+bXNnMjM0MTguaHRtbA0KPiA+PiAJaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC0N
+Cj4gPj4gcmRtYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMjM3NjUuaHRtbA0KPiA+PiAgICAgSmFzb246
+DQo+ID4+IAlodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LQ0KPiA+PiByZG1hQHZn
+ZXIua2VybmVsLm9yZy9tc2cyMzQyNS5odG1sDQo+ID4+DQo+ID4+IE1pY2hhZWwgV2FuZyAoMjcp
+Og0KPiA+PiAgICAgSUIvVmVyYnM6IEltcGxlbWVudCBuZXcgY2FsbGJhY2sgcXVlcnlfdHJhbnNw
+b3J0KCkNCj4gPj4gICAgIElCL1ZlcmJzOiBJbXBsZW1lbnQgcmF3IG1hbmFnZW1lbnQgaGVscGVy
+cw0KPiA+PiAgICAgSUIvVmVyYnM6IFJlZm9ybSBJQi1jb3JlIG1hZC9hZ2VudC91c2VyX21hZA0K
+PiA+PiAgICAgSUIvVmVyYnM6IFJlZm9ybSBJQi1jb3JlIGNtDQo+ID4+ICAgICBJQi9WZXJiczog
+UmVmb3JtIElCLWNvcmUgc2FfcXVlcnkNCj4gPj4gICAgIElCL1ZlcmJzOiBSZWZvcm0gSUItY29y
+ZSBtdWx0aWNhc3QNCj4gPj4gICAgIElCL1ZlcmJzOiBSZWZvcm0gSUItdWxwIGlwb2liDQo+ID4+
+ICAgICBJQi9WZXJiczogUmVmb3JtIElCLXVscCB4cHJ0cmRtYQ0KPiA+PiAgICAgSUIvVmVyYnM6
+IFJlZm9ybSBJQi1jb3JlIHZlcmJzL3V2ZXJic19jbWQvc3lzZnMNCj4gPj4gICAgIElCL1ZlcmJz
+OiBSZWZvcm0gY20gcmVsYXRlZCBwYXJ0IGluIElCLWNvcmUgY21hL3VjbQ0KPiA+PiAgICAgSUIv
+VmVyYnM6IFJlZm9ybSByb3V0ZSByZWxhdGVkIHBhcnQgaW4gSUItY29yZSBjbWENCj4gPj4gICAg
+IElCL1ZlcmJzOiBSZWZvcm0gbWNhc3QgcmVsYXRlZCBwYXJ0IGluIElCLWNvcmUgY21hDQo+ID4+
+ICAgICBJQi9WZXJiczogUmVzZXJ2ZSBsZWdhY3kgdHJhbnNwb3J0IHR5cGUgaW4gJ2Rldl9hZGRy
+Jw0KPiA+PiAgICAgSUIvVmVyYnM6IFJlZm9ybSBjbWFfYWNxdWlyZV9kZXYoKQ0KPiA+PiAgICAg
+SUIvVmVyYnM6IFJlZm9ybSByZXN0IHBhcnQgaW4gSUItY29yZSBjbWENCj4gPj4gICAgIElCL1Zl
+cmJzOiBVc2UgbWFuYWdlbWVudCBoZWxwZXIgY2FwX2liX21hZCgpDQo+ID4+ICAgICBJQi9WZXJi
+czogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNhcF9pYl9zbWkoKQ0KPiA+PiAgICAgSUIvVmVyYnM6
+IFVzZSBtYW5hZ2VtZW50IGhlbHBlciBjYXBfaWJfY20oKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVz
+ZSBtYW5hZ2VtZW50IGhlbHBlciBjYXBfaXdfY20oKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVzZSBt
+YW5hZ2VtZW50IGhlbHBlciBjYXBfaWJfc2EoKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVzZSBtYW5h
+Z2VtZW50IGhlbHBlciBjYXBfaWJfbWNhc3QoKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVzZSBtYW5h
+Z2VtZW50IGhlbHBlciBjYXBfaXBvaWIoKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVzZSBtYW5hZ2Vt
+ZW50IGhlbHBlciBjYXBfcmVhZF9tdWx0aV9zZ2UoKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVzZSBt
+YW5hZ2VtZW50IGhlbHBlciBjYXBfYWZfaWIoKQ0KPiA+PiAgICAgSUIvVmVyYnM6IFVzZSBtYW5h
+Z2VtZW50IGhlbHBlciBjYXBfZXRoX2FoKCkNCj4gPj4gICAgIElCL1ZlcmJzOiBDbGVhbiB1cCBy
+ZG1hX2liX29yX2lib2UoKQ0KPiA+PiAgICAgSUIvVmVyYnM6IENsZWFudXAgcmRtYV9ub2RlX2dl
+dF90cmFuc3BvcnQoKQ0KPiA+Pg0KPiA+PiAtLS0NCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9j
+b3JlL2FnZW50LmMgICAgICAgICAgICAgIHwgICAgNA0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5k
+L2NvcmUvY20uYyAgICAgICAgICAgICAgICAgfCAgIDI2ICstDQo+ID4+ICBkcml2ZXJzL2luZmlu
+aWJhbmQvY29yZS9jbWEuYyAgICAgICAgICAgICAgICB8ICAzMjggKysrKysrKysrKysrLS0tLS0t
+LS0tLS0tLS0tDQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9kZXZpY2UuYyAgICAgICAg
+ICAgICB8ICAgIDENCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jICAgICAgICAg
+ICAgICAgIHwgICA1MSArKy0tDQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9tdWx0aWNh
+c3QuYyAgICAgICAgICB8ICAgMTggLQ0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvc2Ff
+cXVlcnkuYyAgICAgICAgICAgfCAgIDQxICstLQ0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvc3lzZnMuYyAgICAgICAgICAgICAgfCAgICA4DQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQv
+Y29yZS91Y20uYyAgICAgICAgICAgICAgICB8ICAgIDUNCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFu
+ZC9jb3JlL3VjbWEuYyAgICAgICAgICAgICAgIHwgICAyNyAtLQ0KPiA+PiAgZHJpdmVycy9pbmZp
+bmliYW5kL2NvcmUvdXNlcl9tYWQuYyAgICAgICAgICAgfCAgIDMyICstDQo+ID4+ICBkcml2ZXJz
+L2luZmluaWJhbmQvY29yZS91dmVyYnNfY21kLmMgICAgICAgICB8ICAgIDYNCj4gPj4gIGRyaXZl
+cnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmMgICAgICAgICAgICAgIHwgICAzMyAtLQ0KPiA+PiAg
+ZHJpdmVycy9pbmZpbmliYW5kL2h3L2Ftc28xMTAwL2MyX3Byb3ZpZGVyLmMgfCAgICA3DQo+ID4+
+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvY3hnYjMvaXdjaF9wcm92aWRlci5jICB8ICAgIDcNCj4g
+Pj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9jeGdiNC9wcm92aWRlci5jICAgICAgIHwgICAgNw0K
+PiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2VoY2EvZWhjYV9oY2EuYyAgICAgICAgfCAgICA2
+DQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvZWhjYS9laGNhX2l2ZXJicy5oICAgICB8ICAg
+IDMNCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9laGNhL2VoY2FfbWFpbi5jICAgICAgIHwg
+ICAgMQ0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2lwYXRoL2lwYXRoX3ZlcmJzLmMgICAg
+fCAgICA3DQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tYWluLmMgICAgICAgICAg
+ICB8ICAgMTANCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21haW4uYyAgICAgICAg
+ICAgIHwgICAgNw0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L210aGNhL210aGNhX3Byb3Zp
+ZGVyLmMgfCAgICA3DQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbmVzL25lc192ZXJicy5j
+ICAgICAgICB8ICAgIDYNCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9vY3JkbWEvb2NyZG1h
+X21haW4uYyAgIHwgICAgMQ0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L29jcmRtYS9vY3Jk
+bWFfdmVyYnMuYyAgfCAgICA2DQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvb2NyZG1hL29j
+cmRtYV92ZXJicy5oICB8ICAgIDMNCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWli
+X3ZlcmJzLmMgICAgICAgIHwgICAgNw0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3Vzbmlj
+L3VzbmljX2liX21haW4uYyAgfCAgICAxDQo+ID4+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvdXNu
+aWMvdXNuaWNfaWJfdmVyYnMuYyB8ICAgIDYNCj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody91
+c25pYy91c25pY19pYl92ZXJicy5oIHwgICAgMg0KPiA+PiAgZHJpdmVycy9pbmZpbmliYW5kL3Vs
+cC9pcG9pYi9pcG9pYl9tYWluLmMgICAgfCAgIDE3IC0NCj4gPj4gIGluY2x1ZGUvcmRtYS9pYl92
+ZXJicy5oICAgICAgICAgICAgICAgICAgICAgIHwgIDIwNCArKysrKysrKysrKysrKystDQo+ID4+
+ICBuZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3JlY3Zmcm9tLmMgICAgICB8ICAgIDYNCj4g
+Pj4gIG5ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfdHJhbnNwb3J0LmMgICAgIHwgICA1MSAr
+LS0tDQo+ID4+ICAzNSBmaWxlcyBjaGFuZ2VkLCA1ODQgaW5zZXJ0aW9ucygrKSwgMzY4IGRlbGV0
+aW9ucygtKQ0KPiA+PiAtLQ0KPiA+PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2Vu
+ZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSINCj4gPj4gaW4gdGhlIGJvZHkgb2Yg
+YSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8NCj4g
+Pj4gaW5mbyBhdCBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
