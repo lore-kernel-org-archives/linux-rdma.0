@@ -1,60 +1,197 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v5 04/27] IB/Verbs: Reform IB-core cm
-Date: Tue, 21 Apr 2015 09:42:22 +0200
-Message-ID: <5535FF5E.4080502@profitbricks.com>
-References: <5534B8C9.506@profitbricks.com> <5534B9E9.1020108@profitbricks.com> <5535318A.8050307@dev.mellanox.co.il>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+Date: Tue, 21 Apr 2015 09:46:54 +0200
+Message-ID: <5536006E.3000200@profitbricks.com>
+References: <5534B8C9.506@profitbricks.com> <EE7902D3F51F404C82415C4803930ACD5DC44113@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5535318A.8050307@dev.mellanox.co.il>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hal Rosenstock <hal@dev.mellanox.co.il>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EE7902D3F51F404C82415C4803930ACD5DC44113-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi, Devesh
 
-
-On 04/20/2015 07:04 PM, Hal Rosenstock wrote:
-> On 4/20/2015 4:33 AM, Michael Wang wrote:
->>
->> Use raw management helpers to reform IB-core cm.
->>
->> Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
->> Cc: Steve Wise <swise@opengridcomputing.com>
->> Cc: Tom Talpey <tom@talpey.com>
->> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->> Cc: Doug Ledford <dledford@redhat.com>
->> Cc: Ira Weiny <ira.weiny@intel.com>
->> Cc: Sean Hefty <sean.hefty@intel.com>
->> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
->> ---
->>  drivers/infiniband/core/cm.c | 20 +++++++++++++++++---
->>  1 file changed, 17 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
->> index e28a494..3c10b75 100644
->> --- a/drivers/infiniband/core/cm.c
->> +++ b/drivers/infiniband/core/cm.c
->> @@ -3761,9 +3761,7 @@ static void cm_add_one(struct ib_device *ib_device)
->>  	unsigned long flags;
->>  	int ret;
->>  	u8 i;
->> -
->> -	if (rdma_node_get_transport(ib_device->node_type) != RDMA_TRANSPORT_IB)
->> -		return;
->> +	int count = 0;
+On 04/21/2015 07:41 AM, Devesh Sharma wrote:
+> Hi Michael,
 > 
-> Nit: Should the int count line be moved above u8 i declaration so
-> declarations are naturally aligned ?
+> is there a specific git branch available to pull out all the patches?
 
-Make sense, will be in next version :-)
+Not yet, we may need the maintainer to tell us which branch could
+the series been applied for testing purpose, after we all satisfied :-)
+
+For now we could 'git am' these patches to 'infiniband.git/for-next'
+in order to do testing.
 
 Regards,
 Michael Wang
 
 > 
-> -- Hal
+> -Regards
+> Devesh
 > 
-> <snip...>
-> 
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Michael Wang
+>> Sent: Monday, April 20, 2015 1:59 PM
+>> To: Roland Dreier; Sean Hefty; Hal Rosenstock; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+>> Cc: Tom Tucker; Steve Wise; Hoang-Nam Nguyen; Christoph Raisch; Mike
+>> Marciniszyn; Eli Cohen; Faisal Latif; Jack Morgenstein; Or Gerlitz; Haggai Eran;
+>> Ira Weiny; Tom Talpey; Jason Gunthorpe; Doug Ledford; Michael Wang
+>> Subject: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+>>
+>>
+>> Since v4:
+>>   * Thanks for the comments from Hal, Sean, Tom, Or Gerlitz, Jason,
+>>     Roland, Ira and Steve :-) Please remind me if anything missed :-P
+>>   * Fix logical issue inside 3#, 14#
+>>   * Refine 3#, 4#, 5# with label 'free'
+>>   * Rework 10# to stop using port 1 when port already assigned
+>>
+>> There are plenty of lengthy code to check the transport type of IB device, or the
+>> link layer type of it's port, but actually we are just speculating whether a
+>> particular management/feature is supported by the device/port.
+>>
+>> Thus instead of inferring, we should have our own mechanism for IB
+>> management capability/protocol/feature checking, several proposals below.
+>>
+>> This patch set will reform the method of getting transport type, we will now
+>> using query_transport() instead of inferring from transport and link layer
+>> respectively, also we defined the new transport type to make the concept more
+>> reasonable.
+>>
+>> Mapping List:
+>> 		node-type	link-layer	old-transport	new-transport
+>> nes		RNIC		ETH		IWARP		IWARP
+>> amso1100	RNIC		ETH		IWARP		IWARP
+>> cxgb3   	RNIC		ETH		IWARP		IWARP
+>> cxgb4   	RNIC		ETH		IWARP		IWARP
+>> usnic   	USNIC_UDP	ETH		USNIC_UDP	USNIC_UDP
+>> ocrdma  	IB_CA		ETH		IB		IBOE
+>> mlx4    	IB_CA		IB/ETH		IB		IB/IBOE
+>> mlx5    	IB_CA		IB		IB		IB
+>> ehca    	IB_CA		IB		IB		IB
+>> ipath   	IB_CA		IB		IB		IB
+>> mthca   	IB_CA		IB		IB		IB
+>> qib     	IB_CA		IB		IB		IB
+>>
+>> For example:
+>> 	if (transport == IB) && (link-layer == ETH) will now become:
+>> 	if (query_transport() == IBOE)
+>>
+>> Thus we will be able to get rid of the respective transport and link-layer
+>> checking, and it will help us to add new protocol/Technology (like OPA) more
+>> easier, also with the introduced management helpers, IB management logical
+>> will be more clear and easier for extending.
+>>
+>> Highlights:
+>>     The patch set covered a wide range of IB stuff, thus for those who are
+>>     familiar with the particular part, your suggestion would be invaluable ;-)
+>>
+>>     Patch 1#~15# included all the logical reform, 16#~25# introduced the
+>>     management helpers, 26#~27# do clean up.
+>>
+>>     Patches haven't been tested yet, we appreciate if any one who have these
+>>     HW willing to provide his Tested-by :-)
+>>
+>>     Doug suggested the bitmask mechanism:
+>> 	https://www.mail-archive.com/linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23765.html
+>>     which could be the plan for future reforming, we prefer that to be another
+>>     series which focus on semantic and performance.
+>>
+>>     This patch-set is somewhat 'bloated' now and it may be a good timing for
+>>     staging, I'd like to suggest we focus on improving existed helpers and push
+>>     all the further reforms into next series ;-)
+>>
+>> Proposals:
+>>     Sean:
+>> 	https://www.mail-archive.com/linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23339.html
+>>     Doug:
+>> 	https://www.mail-archive.com/linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23418.html
+>> 	https://www.mail-archive.com/linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23765.html
+>>     Jason:
+>> 	https://www.mail-archive.com/linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23425.html
+>>
+>> Michael Wang (27):
+>>     IB/Verbs: Implement new callback query_transport()
+>>     IB/Verbs: Implement raw management helpers
+>>     IB/Verbs: Reform IB-core mad/agent/user_mad
+>>     IB/Verbs: Reform IB-core cm
+>>     IB/Verbs: Reform IB-core sa_query
+>>     IB/Verbs: Reform IB-core multicast
+>>     IB/Verbs: Reform IB-ulp ipoib
+>>     IB/Verbs: Reform IB-ulp xprtrdma
+>>     IB/Verbs: Reform IB-core verbs/uverbs_cmd/sysfs
+>>     IB/Verbs: Reform cm related part in IB-core cma/ucm
+>>     IB/Verbs: Reform route related part in IB-core cma
+>>     IB/Verbs: Reform mcast related part in IB-core cma
+>>     IB/Verbs: Reserve legacy transport type in 'dev_addr'
+>>     IB/Verbs: Reform cma_acquire_dev()
+>>     IB/Verbs: Reform rest part in IB-core cma
+>>     IB/Verbs: Use management helper cap_ib_mad()
+>>     IB/Verbs: Use management helper cap_ib_smi()
+>>     IB/Verbs: Use management helper cap_ib_cm()
+>>     IB/Verbs: Use management helper cap_iw_cm()
+>>     IB/Verbs: Use management helper cap_ib_sa()
+>>     IB/Verbs: Use management helper cap_ib_mcast()
+>>     IB/Verbs: Use management helper cap_ipoib()
+>>     IB/Verbs: Use management helper cap_read_multi_sge()
+>>     IB/Verbs: Use management helper cap_af_ib()
+>>     IB/Verbs: Use management helper cap_eth_ah()
+>>     IB/Verbs: Clean up rdma_ib_or_iboe()
+>>     IB/Verbs: Cleanup rdma_node_get_transport()
+>>
+>> ---
+>>  drivers/infiniband/core/agent.c              |    4
+>>  drivers/infiniband/core/cm.c                 |   26 +-
+>>  drivers/infiniband/core/cma.c                |  328 ++++++++++++---------------
+>>  drivers/infiniband/core/device.c             |    1
+>>  drivers/infiniband/core/mad.c                |   51 ++--
+>>  drivers/infiniband/core/multicast.c          |   18 -
+>>  drivers/infiniband/core/sa_query.c           |   41 +--
+>>  drivers/infiniband/core/sysfs.c              |    8
+>>  drivers/infiniband/core/ucm.c                |    5
+>>  drivers/infiniband/core/ucma.c               |   27 --
+>>  drivers/infiniband/core/user_mad.c           |   32 +-
+>>  drivers/infiniband/core/uverbs_cmd.c         |    6
+>>  drivers/infiniband/core/verbs.c              |   33 --
+>>  drivers/infiniband/hw/amso1100/c2_provider.c |    7
+>>  drivers/infiniband/hw/cxgb3/iwch_provider.c  |    7
+>>  drivers/infiniband/hw/cxgb4/provider.c       |    7
+>>  drivers/infiniband/hw/ehca/ehca_hca.c        |    6
+>>  drivers/infiniband/hw/ehca/ehca_iverbs.h     |    3
+>>  drivers/infiniband/hw/ehca/ehca_main.c       |    1
+>>  drivers/infiniband/hw/ipath/ipath_verbs.c    |    7
+>>  drivers/infiniband/hw/mlx4/main.c            |   10
+>>  drivers/infiniband/hw/mlx5/main.c            |    7
+>>  drivers/infiniband/hw/mthca/mthca_provider.c |    7
+>>  drivers/infiniband/hw/nes/nes_verbs.c        |    6
+>>  drivers/infiniband/hw/ocrdma/ocrdma_main.c   |    1
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    6
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    3
+>>  drivers/infiniband/hw/qib/qib_verbs.c        |    7
+>>  drivers/infiniband/hw/usnic/usnic_ib_main.c  |    1
+>>  drivers/infiniband/hw/usnic/usnic_ib_verbs.c |    6
+>>  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |    2
+>>  drivers/infiniband/ulp/ipoib/ipoib_main.c    |   17 -
+>>  include/rdma/ib_verbs.h                      |  204 +++++++++++++++-
+>>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |    6
+>>  net/sunrpc/xprtrdma/svc_rdma_transport.c     |   51 +---
+>>  35 files changed, 584 insertions(+), 368 deletions(-)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+>> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
