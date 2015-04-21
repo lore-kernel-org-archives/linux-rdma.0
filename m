@@ -1,37 +1,60 @@
-From: Sergei Zviagintsev <sergei-E844GTqJAzo@public.gmane.org>
-Subject: [PATCH] IB/qib: Remove EOL whitespaces
-Date: Tue, 21 Apr 2015 02:47:02 +0300
-Message-ID: <1429573622-893-1-git-send-email-sergei@s15v.net>
+From: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH v2 01/11] RDMA/CMA: Mark IPv4 addresses correctly when the
+ listener is IPv6
+Date: Tue, 21 Apr 2015 05:18:18 +0000
+Message-ID: <AM3PR05MB0935A4C8ECDB01DDE146BCA2DCEF0@AM3PR05MB0935.eurprd05.prod.outlook.com>
+References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
+	<1429520622-10303-2-git-send-email-haggaie@mellanox.com>
+	<20150420164140.GC7676@obsidianresearch.com>
+ <CAJ3xEMgKFdr68Qt0vNCaf1p4YjPK2KUSn2FdtQVP0SZQ+Y7atg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMgKFdr68Qt0vNCaf1p4YjPK2KUSn2FdtQVP0SZQ+Y7atg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sergei Zviagintsev <sergei-E844GTqJAzo@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove EOL whitespaces added by commit 4961772560d2
-("infinibad: weird APIs switched to ->write_iter()")
-
-Signed-off-by: Sergei Zviagintsev <sergei-E844GTqJAzo@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_file_ops.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index 9ea6c440a00c..14414bc5a34d 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -2261,7 +2261,7 @@ static ssize_t qib_write_iter(struct kiocb *iocb, struct iov_iter *from)
- 
- 	if (!iter_is_iovec(from) || !from->nr_segs || !pq)
- 		return -EINVAL;
--			 
-+
- 	return qib_user_sdma_writev(rcd, pq, from->iov, from->nr_segs);
- }
- 
--- 
-1.8.3.1
-
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogT3IgR2VybGl0eiBbbWFp
+bHRvOmdlcmxpdHoub3JAZ21haWwuY29tXQ0KPiBTZW50OiBNb25kYXksIEFwcmlsIDIwLCAyMDE1
+IDk6MzggUE0NCj4gDQo+IE9uIE1vbiwgQXByIDIwLCAyMDE1IGF0IDc6NDEgUE0sIEphc29uIEd1
+bnRob3JwZQ0KPiA8amd1bnRob3JwZUBvYnNpZGlhbnJlc2VhcmNoLmNvbT4gd3JvdGU6DQo+ID4g
+T24gTW9uLCBBcHIgMjAsIDIwMTUgYXQgMTI6MDM6MzJQTSArMDMwMCwgSGFnZ2FpIEVyYW4gd3Jv
+dGU6DQo+ID4+IEZyb206IFlvdGFtIEtlbm5ldGggPHlvdGFta2VAbWVsbGFub3guY29tPg0KPiA+
+Pg0KPiA+PiBXaGVuIGFjY2VwdGluZyBhIG5ldyBjb25uZWN0aW9uIHdpdGggdGhlIGxpc3RlbmVy
+IGJlaW5nIElQdjYsIHRoZQ0KPiA+PiBmYW1pbHkgb2YgdGhlIG5ldyBjb25uZWN0aW9uIGlzIHNl
+dCBhcyBJUHY2LiBUaGlzIGNhdXNlcw0KPiBjbWFfemVyb19hZGRyDQo+ID4+IGZ1bmN0aW9uIHRv
+IHJldHVybiB0cnVlIG9uIGFuIG5vbi16ZXJvIGFkZHJlc3MuIEFzIGEgcmVzdWx0LCB0aGUNCj4g
+d3JvbmcNCj4gPj4gY29kZSBwYXRoIGlzIHRha2VuLiBUaGlzIGNhdXNlcyB0aGUgY29ubmVjdGlv
+biByZXF1ZXN0IHRvIGJlDQo+IHJlamVjdGVkLA0KPiA+PiBhcyB0aGUgUkRNQS1DTSBjb2RlIGxv
+b2tzIGZvciB0aGUgd3JvbmcgdHlwZSBvZiBkZXZpY2UuDQo+ID4NCj4gPiBUaGlzIGRlc2NyaXB0
+aW9uIGRvZXNuJ3QgcmVhbGx5IG1ha2Ugc2Vuc2UgYXMgdG8gd2hhdCB0aGUgcHJvYmxlbSBpcy4N
+Cj4gPg0KPiA+PiBAQCAtODY2LDEyICs4NjYsMTIgQEAgc3RhdGljIHZvaWQgY21hX3NhdmVfaXA0
+X2luZm8oc3RydWN0IHJkbWFfY21faWQNCj4gKmlkLCBzdHJ1Y3QgcmRtYV9jbV9pZCAqbGlzdGVu
+X2kNCj4gPj4NCj4gPj4gICAgICAgbGlzdGVuNCA9IChzdHJ1Y3Qgc29ja2FkZHJfaW4gKikgJmxp
+c3Rlbl9pZC0NCj4gPnJvdXRlLmFkZHIuc3JjX2FkZHI7DQo+ID4+ICAgICAgIGlwNCA9IChzdHJ1
+Y3Qgc29ja2FkZHJfaW4gKikgJmlkLT5yb3V0ZS5hZGRyLnNyY19hZGRyOw0KPiA+PiAtICAgICBp
+cDQtPnNpbl9mYW1pbHkgPSBsaXN0ZW40LT5zaW5fZmFtaWx5Ow0KPiA+PiArICAgICBpcDQtPnNp
+bl9mYW1pbHkgPSBBRl9JTkVUOw0KPiA+DQo+ID4gSWYgbGlzdGVuX2lkLT5yb3V0ZS5hZGRyLnNy
+Y19hZGRyLnNzX2ZhbWlseSAhPSBBRl9JTkVUIHRoZW4gaXQgaXMNCj4gPiBpbnZhbGlkIHRvIGNh
+c3QgdG8gc29ja2FkZHJfaW4uDQo+ID4NCj4gPiBTbyBsaXN0ZW40LT5zaW5fZmFtaWx5IE1VU1Qg
+YmUgQUZfSU5FVCBvciB0aGlzIGZ1bmN0aW9uIE1VU1QgTk9UIGJlDQo+ID4gY2FsbGVkLg0KPiA+
+DQo+ID4gRm9yY2luZyB0byBBRl9JTkVUIGNhbm5vdCBiZSBjb3JyZWN0IGhlcmUuDQo+IA0KPiBK
+YXNvbiwgY291bGQgeW91IHRha2UgYSBsb29rIEAgdGhpcyB0aHJlYWQNCj4gaHR0cDovL21hcmMu
+aW5mby8/dD0xNDE1ODkzOTUwMDAwMDQmcj0xJnc9MiB3aGVyZSB0aGUgYXV0aG9ycw0KPiBhZGRy
+ZXNzZWQgc29tZSBjb21tZW50cyBmcm9tIFNlYW4gYW5kIGhlIGV2ZW50dWFsbHkgQWNrZWQgdGhl
+IHBhdGNoPw0KPiANCj4gPiBXaGF0IGRvZXMgdGhpcyBwYXRjaCBoYXZlIHRvIGRvIHdpdGggdGhp
+cyBzZXJpZXM/DQo+IA0KPiBJIGJlbGlldmUgaXQncyBlaXRoZXIgYSBwcmUtcGF0Y2ggdG8gYWRk
+cmVzcyBzb21lIGFzc3VtcHRpb24gb3INCj4gc29tZXRoaW5nIHRoZXkgc3RlcHBlZCBvbiB3aGls
+ZSB0ZXN0aW5nDQo+IA0KDQpXZSBzdGVwcGVkIHVwb24gdGhpcyBpc3N1ZSB3aGlsZSB0ZXN0aW5n
+IHRoZSBjb250YWluZXJzIHN1cHBvcnQgd2UgYXJlDQpTdWJtaXR0aW5nIGhlcmUuIFdoZW4gY3Jl
+YXRpbmcgYSBuZXcgbmV0d29yayBuYW1lc3BhY2UsIHRoZSBrZXJuZWwgc2V0IA0KbmV0LT5pcHY2
+LnN5c2N0bC5iaW5kdjZvbmx5IHRvIDAuIEFzIGEgcmVzdWx0LCB3ZSBnb3QgdGhlIElQdjYgbGlz
+dGVuaW5nDQpJRCBhY2NlcHRpbmcgSVB2NCBjb25uZWN0aW9uLiBUaGlzIGlzIGZpeGVkIGJ5IHRo
+ZSBhYm92ZSBwYXRjaC4NCg0KVGhhbmtzLA0KLS1TaGFjaGFyDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
