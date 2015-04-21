@@ -1,56 +1,60 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v5 19/27] IB/Verbs: Use management helper cap_iw_cm()
-Date: Tue, 21 Apr 2015 09:39:11 +0200
-Message-ID: <5535FE9F.8070809@profitbricks.com>
-References: <5534B8C9.506@profitbricks.com> <5534BB7B.4020601@profitbricks.com> <55350698.9000109@opengridcomputing.com> <55351838.2060006@profitbricks.com> <5535209E.3020807@opengridcomputing.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH v5 04/27] IB/Verbs: Reform IB-core cm
+Date: Tue, 21 Apr 2015 09:42:22 +0200
+Message-ID: <5535FF5E.4080502@profitbricks.com>
+References: <5534B8C9.506@profitbricks.com> <5534B9E9.1020108@profitbricks.com> <5535318A.8050307@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5535209E.3020807-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5535318A.8050307@dev.mellanox.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hal Rosenstock <hal@dev.mellanox.co.il>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 04/20/2015 05:51 PM, Tom Tucker wrote:
-[snip]
->>>>    int ib_query_gid(struct ib_device *device,
->>>>             u8 port_num, int index, union ib_gid *gid);
->>>>    
->>> iWARP devices _must_ support the IWCM so cap_iw_cm() is not really useful.
->> Sean suggested to add this helper paired with cap_ib_cm(), may be there are
->> some consideration on maintainability?
+On 04/20/2015 07:04 PM, Hal Rosenstock wrote:
+> On 4/20/2015 4:33 AM, Michael Wang wrote:
 >>
->> Me too also prefer this way to make the code more readable ;-)
+>> Use raw management helpers to reform IB-core cm.
+>>
+>> Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
+>> Cc: Steve Wise <swise@opengridcomputing.com>
+>> Cc: Tom Talpey <tom@talpey.com>
+>> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+>> Cc: Doug Ledford <dledford@redhat.com>
+>> Cc: Ira Weiny <ira.weiny@intel.com>
+>> Cc: Sean Hefty <sean.hefty@intel.com>
+>> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+>> ---
+>>  drivers/infiniband/core/cm.c | 20 +++++++++++++++++---
+>>  1 file changed, 17 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+>> index e28a494..3c10b75 100644
+>> --- a/drivers/infiniband/core/cm.c
+>> +++ b/drivers/infiniband/core/cm.c
+>> @@ -3761,9 +3761,7 @@ static void cm_add_one(struct ib_device *ib_device)
+>>  	unsigned long flags;
+>>  	int ret;
+>>  	u8 i;
+>> -
+>> -	if (rdma_node_get_transport(ib_device->node_type) != RDMA_TRANSPORT_IB)
+>> -		return;
+>> +	int count = 0;
 > 
-> It's more consistent, but not necessarily more readable -- if by readability we mean understanding.
-> 
-> If the reader knows how the transports work, then the reader would be confused by the addition of a check that is always true. For the reader that doesn't know, the addition of the check implies that the support is optional, which it is not.
+> Nit: Should the int count line be moved above u8 i declaration so
+> declarations are naturally aligned ?
 
-The purpose is to make sure folks understand what we really want to check
-when they reviewing the code :-) and prepared for the further reform which may
-not rely on technology type any more, for example the device could tell core
-layer directly what management it required with a bitmask :-)
+Make sense, will be in next version :-)
 
 Regards,
 Michael Wang
 
 > 
-> Tom
+> -- Hal
 > 
->> Regards,
->> Michael Wang
->>
->>>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> <snip...>
 > 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
