@@ -1,119 +1,214 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 09/27] IB/Verbs: Reform IB-core verbs/uverbs_cmd/sysfs
-Date: Tue, 21 Apr 2015 19:19:58 -0400
-Message-ID: <20150421231958.GA15893@phlsvsds.ph.intel.com>
-References: <5534B8C9.506@profitbricks.com> <5534BA7C.2010600@profitbricks.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+Date: Tue, 21 Apr 2015 23:36:40 +0000
+Message-ID: <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+References: <5534B8C9.506@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5534BA7C.2010600-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <5534B8C9.506-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 10:36:12AM +0200, Michael Wang wrote:
-> 
-> Use raw management helpers to reform IB-core verbs/uverbs_cmd/sysfs.
-> 
-> Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> ---
->  drivers/infiniband/core/sysfs.c      | 8 ++------
->  drivers/infiniband/core/uverbs_cmd.c | 6 ++++--
->  drivers/infiniband/core/verbs.c      | 6 ++----
->  3 files changed, 8 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-> index cbd0383..8570180 100644
-> --- a/drivers/infiniband/core/sysfs.c
-> +++ b/drivers/infiniband/core/sysfs.c
-> @@ -248,14 +248,10 @@ static ssize_t phys_state_show(struct ib_port *p, struct port_attribute *unused,
->  static ssize_t link_layer_show(struct ib_port *p, struct port_attribute *unused,
->  			       char *buf)
->  {
-> -	switch (rdma_port_get_link_layer(p->ibdev, p->port_num)) {
-> -	case IB_LINK_LAYER_INFINIBAND:
-> +	if (rdma_tech_ib(p->ibdev, p->port_num))
-
-Is the final intention to remove Link Layer from the rdma stack entirely?
-
-I know that the use of link layer in userspace is just as convoluted as what we
-are trying to fix here in the kernel.  So it would be nice if we can eventually
-get user space cleaned up to not use link layer as it currently does.
-
-However, standard networking tools can report the link layer.  So while the
-current use of "link layer" via userspace software is wrong I don't think it is
-wrong to report this information _to_ userspace.
-
-So unless we intend to completely hide the link layer from userspace I don't
-think we should be removing the rdma_port_get_link_layer call.  It is still
-valid information even though we don't want to use it in most places.
-
-Ira
-
->  		return sprintf(buf, "%s\n", "InfiniBand");
-> -	case IB_LINK_LAYER_ETHERNET:
-> +	else
->  		return sprintf(buf, "%s\n", "Ethernet");
-> -	default:
-> -		return sprintf(buf, "%s\n", "Unknown");
-> -	}
->  }
->  
->  static PORT_ATTR_RO(state);
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> index a9f0489..5dc90aa 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -515,8 +515,10 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
->  	resp.active_width    = attr.active_width;
->  	resp.active_speed    = attr.active_speed;
->  	resp.phys_state      = attr.phys_state;
-> -	resp.link_layer      = rdma_port_get_link_layer(file->device->ib_dev,
-> -							cmd.port_num);
-> +	resp.link_layer      = rdma_tech_ib(file->device->ib_dev,
-> +							cmd.port_num) ?
-> +			       IB_LINK_LAYER_INFINIBAND :
-> +			       IB_LINK_LAYER_ETHERNET;
->  
->  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
->  			 &resp, sizeof resp))
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index 626c9cf..7264860 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -200,11 +200,9 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
->  	u32 flow_class;
->  	u16 gid_index;
->  	int ret;
-> -	int is_eth = (rdma_port_get_link_layer(device, port_num) ==
-> -			IB_LINK_LAYER_ETHERNET);
->  
->  	memset(ah_attr, 0, sizeof *ah_attr);
-> -	if (is_eth) {
-> +	if (rdma_tech_iboe(device, port_num)) {
->  		if (!(wc->wc_flags & IB_WC_GRH))
->  			return -EPROTOTYPE;
->  
-> @@ -873,7 +871,7 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
->  	union ib_gid  sgid;
->  
->  	if ((*qp_attr_mask & IB_QP_AV)  &&
-> -	    (rdma_port_get_link_layer(qp->device, qp_attr->ah_attr.port_num) == IB_LINK_LAYER_ETHERNET)) {
-> +	    (rdma_tech_iboe(qp->device, qp_attr->ah_attr.port_num))) {
->  		ret = ib_query_gid(qp->device, qp_attr->ah_attr.port_num,
->  				   qp_attr->ah_attr.grh.sgid_index, &sgid);
->  		if (ret)
-> -- 
-> 2.1.0
+SGkgTWljaGFlbCwNCg0KVGhlIHNwaXJpdCBvZiB0aGlzIHBhdGNoLXNldCBpcyBncmVhdCwgYnV0
+IEkgdGhpbmsgdGhhdCB3ZSBuZWVkIHRvIGNsYXJpZnkgc29tZSBjb25jZXB0cy4NClNpbmNlIHRo
+aXMgd2lsbCBhZmZlY3QgdGhlIHdob2xlIHBhdGNoLXNldCwgSSBhbSBsYXlpbmcgb3V0IG15IGNv
+bmNlcm5zIGhlcmUgaW5zdGVhZC4NCg0KQSBzdWdnZXN0aW9uIGZvciB0aGUgcmVzdWx0aW5nIG1h
+bmFnZW1lbnQgaGVscGVycyBpcyBnaXZlbiBiZWxvdy4NCkkgYmVsaWV2ZSB0aGUgcmVzdWx0IHdv
+dWxkIGJlIG11Y2ggbW9yZSBjb2hlcmVudC4NCi0tTGlyYW4NCg0KSW4gZ2VuZXJhbA0KPT09PT09
+PT0NCg0KQW4gaWJfZGV2IChvciBhIHBvcnQgb2YpIHNob3VsZCBiZSBkaXN0aW5ndWlzaGVkIGJ5
+IDMgcXVhbGlmaWVyczoNCi0gVGhlIGxpbmsgbGF5ZXI6DQotLSBFdGhlcm5ldCAoc2hhcmVkIGJ5
+IGlXQVJQLCBVU05JQywgYW5kIFJPQ0UpDQotLSBJbmZpbmliYW5kDQoNCi0gVGhlIHRyYW5zcG9y
+dCAoKikNCi0tIElCVEEgdHJhbnNwb3J0IChzaGFyZWQgYnkgSUIgYW5kIFJPQ0UpDQotLSBpV0FS
+UCB0cmFuc3BvcnQNCi0tIFVTTklDIHRyYW5zcG9ydA0KDQooKikgVHJhbnNwb3J0IG1lYW5zIGJv
+dGg6DQotIFRoZSBMNCB3aXJlIHByb3RvY29scyAoZS5nLiwgQlRIKyBoZWFkZXJzIG9mIElCVEEs
+IG9wdGlvbmFsbHkgZW5jYXBzdWxhdGVkIGJ5IFVEUCBpbiBST0NFdjIsIG9yIHRoZSBpV0FSUCBz
+dGFjaykNCi0gVGhlIHRyYW5zcG9ydCBzZW1hbnRpY3MgKGZvciBleGFtcGxlLCB0aGVyZSBhcmUg
+c2xpZ2h0IHNlbWFudGljIGRpZmZlcmVuY2VzIGJldHdlZW4gSUJUQSBhbmQgaVdBUlApDQoNCi0g
+VGhlIG5vZGUgdHlwZSAoKiopDQotLSBDQQ0KLS0gU3dpdGNoDQotLSBSb3V0ZXINCg0KKCoqKSBU
+aGlzIGhhcyBiZWVuIGV4dGVuZGVkIHRvIGFsc28gZW5jb2RlIHRoZSB0cmFuc3BvcnQgaW4gdGhl
+IGN1cnJlbnQgY29kZS4NCkF0IGxlYXN0IGZvciB1c2VyLXNwYWNlIHZpc2libGUgQVBJcywgd2Ug
+bWlnaHQgY2hvc2UgdG8gbGVhdmUgdGhpcyBmb3IgYmFja3dhcmQgY29tcGF0aWJpbGl0eSwgYnV0
+IHdlIGNhbiBjb25zaWRlciBjbGVhbmluZyB1cCB0aGUga2VybmVsIGNvZGUuDQoNClNvLCBJIHRo
+aW5rIHRoYXQgb3VyICJvbGQtdHJhbnNwb3J0IiBiZWxvdyBpcyBqdXN0IGZpbmUuDQpObyBuZWVk
+IHRvIGNoYW5nZSBpdCAoYW5kIHlvdSBhcmVuJ3QsIHNpbmNlIGl0IGlzIGN1cnJlbnRseSBpbXBs
+ZW1lbnRlZCBhcyBhIGZ1bmN0aW9uKS4NCg0KVGhlICJuZXctdHJhbnNwb3J0IiBkb2VzIG5vdCBy
+ZWFsbHkgZXhpc3QsIGJ1dCBpcyBicm9rZW4gaW50byBzZXZlcmFsIGNhcGFiaWxpdHkgY2hlY2tz
+IG9mIHRoZSBMNCB0cmFuc3BvcnQsIG9wdGlvbmFsbHkgd2l0aCBjb25kaXRpb25zIG9uIHRoZSBs
+aW5rIHR5cGUuDQpJIHdvdWxkIHJlbW92ZSB0aGUgdGFibGUgYmVsb3cgYW5kIHRlbGwgd2hhdCB3
+ZSByZWFsbHkgd2FudCB0byBhY2hpZXZlOg0KPT0+IG1vdmUgdGVjaG5vbG9neS1zcGVjaWZpYyBm
+ZWF0dXJlLWNoZWNrIGxvZ2ljIG91dCBvZiB0aGUgKG11bHRpcGxlISkgSUIgY29kZSBjb21wb25l
+bnRzIGFuZCB2YXJpb3VzIFVMUHMgaW50byBwZXItZmVhdHVyZSBoZWxwZXJzLg0KDQoNCkRldGFp
+bGVkIHJlbWFya3MNCj09PT09PT09PT09PT09DQoNCjEpIFRoZSBpbnRyb2R1Y3Rpb24gb2YgY2Fw
+XypfKigpIHN0dWZmIHNob3VsZCBoYXZlIGJlZW4gaW50cm9kdWNlZCBkaXJlY3RseSBpbiBwYXRj
+aCAwMi8yNy4NClRoaXMgYmFjay1hbmQtZm9ydGggYmV0d2VlbiByZG1hX2liX29yX2lib2UoKSBh
+bmQgY2FwXyogaXMgY29uZnVzaW5nIGFuZCBpbmNyZWFzZXMgdGhlIG51bWJlciBvZiBwYXRjaGVz
+IGluIHRoZSBwYXRjaC1zZXQuDQpEbyB0aGlzIGFuZCByZW1vdmUgcGF0Y2hlcyAxNi0yNC4NCg0K
+MilUaGUgbmFtZSByZG1hX3RlY2hfKiBpcyBsYW1lLg0KcmRtYV90cmFuc3BvcnRfKigpLCBhZGhl
+cmluZyB0byB0aGUgYWJvdmUgKCopIHJlbWFyaywgaXMgbXVjaCBiZXR0ZXIuDQpGb3IgZXhhbXBs
+ZSwgYm90aCBJQiBhbmQgUk9DRSAqZG8qIHVzZSB0aGUgc2FtZSB0cmFuc3BvcnQuIA0KDQozKSBU
+aGUgbmFtZSBjYXBfKiBhcyBpdCBpcyB1c2VkIGFib3ZlIGlzIG5vdCBhY2N1cmF0ZS4NCllvdSB1
+c2UgaXQgdG8gZGVzY3JpYmUgdGVjaG5vbG9neSBjaGFyYWN0ZXJpc3RpY3MgcmF0aGVyIHRoYW4g
+ZXh0ZW5kYWJsZSBjYXBhYmlsaXRpZXMuDQpJIHdvdWxkIHN1Z2dlc3QgaGF2aW5nIGEgc2luZ2xl
+IGNvbnZlbnRpb24gZm9yIGFsbCBoZWxwZXJzLCBzdWNoIGFzIHJkbWFfaGFzXyooKSBhbmQgcmRt
+YV9pc18qKCkuDQpGb3IgZXhhbXBsZTogY2FwX2liX3NtaSgpID09PiByZG1hX2hhc19zbWkoKS4N
+Cg0KNCkgUmVtb3ZlIGFsbCBjYXBhYmlsaXRpZXMgdGhhdCBkbyBub3QgaW50cm9kdWNlIGFueSBk
+aXN0aW5jdGlvbiBpbiB0aGUgY3VycmVudCBjb2RlLg0KV2UgY2FuIGFkZCB0aGVtIGFzIG5lZWRl
+ZCBsYXRlci4NClRoaXMgbWVhbnMgcmVtb3ZlIHBhdGNoZXM6DQotIFtQQVRDSCB2NSAyMi8yN10g
+SUIvVmVyYnM6IFVzZSBtYW5hZ2VtZW50IGhlbHBlciBjYXBfaXBvaWIoKSDigJMgYWxsIElCIGRl
+dmljZXMgc3VwcG9ydCBpcG9pYg0KLSBbUEFUQ0ggdjUgMjQvMjddIElCL1ZlcmJzOiBVc2UgbWFu
+YWdlbWVudCBoZWxwZXIgY2FwX2FmX2liKCkg4oCTIGFsbCBJQiBkZXZpY2VzIHN1cHBvcnQgQUZf
+SUIuDQoNCk9uIHRoZSBvdGhlciBoYW5kOg0KLSByZG1hX2hhc19tdWx0aWNhc3QoKSBtYWtlcyBz
+ZW5zZSwgc2luY2UgaVdBUlAgZG9lc27igJl0IHN1cHBvcnQgaXQuDQotIGNhcF9pYl9zYSgpIG1p
+Z2h0IG1ha2Ugc2Vuc2UgdG8gY3V0IGNvZGUgZXZlbiBmdXJ0aGVyIGluIHRoZSBDTUEsIHNpbmNl
+IFJvQ0UgaGFzIGEgR1NJIGJ1dCBubyBTQS4NCg0KNSkgRG8gbm8gbW9kaWZ5IHBoeXNfc3RhdGVf
+c2hvdygpIGluIFtQQVRDSCB2NSAwOS8yN10gSUIvVmVyYnM6IFJlZm9ybSBJQi1jb3JlIHZlcmJz
+L3V2ZXJic19jbWQvc3lzZnMNCkl0ICppcyogdGhlIGxpbmsgbGF5ZXIhDQoNCjYpIFJlbW92ZSBj
+YXBfcmVhZF9tdWx0aV9zZ2UNCkl0IGlzIG5vdCBkZXZpY2UvcG9ydCBmZWF0dXJlLCBidXQgYSB0
+cmFuc3BvcnQgY2FwYWJpbGl0eS4NClVzZSByZG1hX2lzX2l3YXJwX3RyYW5zcG9ydCgpIGluc3Rl
+YWQsIG9yIGludHJvZHVjZSBhIG5ldyB0cmFuc3BvcnQgZmxhZyBpbiAnZW51bSBpYl9kZXZpY2Vf
+Y2FwX2ZsYWdzJy4NCiANCjcpIFJlbW92ZSBbUEFUQ0ggdjUgMjUvMjddIElCL1ZlcmJzOiBVc2Ug
+bWFuYWdlbWVudCBoZWxwZXIgY2FwX2V0aF9haCgpLg0KQWRkcmVzcyBoYW5kbGVzIHRoYXQgcmVm
+ZXIgdG8gRXRoZXJuZXQgbGlua3MgYWx3YXlzIGhhdmUgRXRoZXJuZXQgYWRkcmVzc2luZy4NCg0K
+SW4gdGhlIENNQSBjb2RlLCB1c2luZyByZG1hX3RlY2hfaWJvZSgpIGlzIGp1c3QgZmluZS4gVGhp
+cyBpcyBob3cgeW91IGRlZmluZSBjYXBfZXRoX2FoKCkgYW55d2F5Lg0KQ3VycmVudGx5LCB0aGlz
+IHBhdGNoIGp1c3QgYWRkcyBjbHV0dGVyLg0KDQo4KSBSZW1vdmUgcGF0Y2ggW1BBVENIIHY1IDI2
+LzI3XSBJQi9WZXJiczogQ2xlYW4gdXAgcmRtYV9pYl9vcl9pYm9lKCkuDQpXZSBkbyBuZWVkIGEg
+dHJhbnNwb3J0IHF1YWxpZmllciwgYXMgZXhlbXBsaWZpZWQgaW4gY29tbWVudCA1KSBhYm92ZSwg
+YW5kIGZvciBhIGNvbXBsZXRlIGNsZWFuIG1vZGVsLg0KVGhpcyBpcyBhZnRlciByZW5hbWluZyB0
+aGUgZnVuY3Rpb24gdG8gcmRtYV9pc19pYl90cmFuc3BvcnQoKS4uLg0KDQoNClB1dHRpbmcgaXQg
+YWxsIHRvZ2V0aGVyDQo9PT09PT09PT09PT09PT09PT0NCg0KV2UgYXJlIGxlZnQgd2l0aCB0aGUg
+Zm9sbG93aW5nIGhlbHBlcnM6DQotIHJkbWFfaXNfaWJfdHJhbnNwb3J0KCkNCi0gcmRtYV9pc19p
+d2FycF90cmFuc3BvcnQoKQ0KLSByZG1hX2lzX3VzbmljX3RyYW5zcG9ydCgpDQotIHJkbWFfaXNf
+aWJvZSgpDQotIHJkbWFfaGFzX21hZCgpDQotIHJkbWFfaGFzX3NtaSgpDQotIHJkbWFfaGFzX2dz
+aSgpIC0gY29tcGxlbWVudHMgc21pOyBjYW4gYmUgdXNlZCBieSB0aGUgbWFkIGNvZGUgZm9yIGNs
+YXJpdHkNCi0gcmRtYV9oYXNfc2EoKQ0KLSByZG1hX2hhc19jbSgpDQotIHJkbWFfaGFzX21jYXN0
+KCkNCg0KDQo+IFN1YmplY3Q6IFtQQVRDSCB2NSAwMC8yN10gSUIvVmVyYnM6IElCIE1hbmFnZW1l
+bnQgSGVscGVycw0KPiANCj4gDQo+IFNpbmNlIHY0Og0KPiAgICogVGhhbmtzIGZvciB0aGUgY29t
+bWVudHMgZnJvbSBIYWwsIFNlYW4sIFRvbSwgT3IgR2VybGl0eiwgSmFzb24sDQo+ICAgICBSb2xh
+bmQsIElyYSBhbmQgU3RldmUgOi0pIFBsZWFzZSByZW1pbmQgbWUgaWYgYW55dGhpbmcgbWlzc2Vk
+IDotUA0KPiAgICogRml4IGxvZ2ljYWwgaXNzdWUgaW5zaWRlIDMjLCAxNCMNCj4gICAqIFJlZmlu
+ZSAzIywgNCMsIDUjIHdpdGggbGFiZWwgJ2ZyZWUnDQo+ICAgKiBSZXdvcmsgMTAjIHRvIHN0b3Ag
+dXNpbmcgcG9ydCAxIHdoZW4gcG9ydCBhbHJlYWR5IGFzc2lnbmVkDQo+IA0KPiBUaGVyZSBhcmUg
+cGxlbnR5IG9mIGxlbmd0aHkgY29kZSB0byBjaGVjayB0aGUgdHJhbnNwb3J0IHR5cGUgb2YgSUIg
+ZGV2aWNlLCBvcg0KPiB0aGUgbGluayBsYXllciB0eXBlIG9mIGl0J3MgcG9ydCwgYnV0IGFjdHVh
+bGx5IHdlIGFyZSBqdXN0IHNwZWN1bGF0aW5nIHdoZXRoZXIgYQ0KPiBwYXJ0aWN1bGFyIG1hbmFn
+ZW1lbnQvZmVhdHVyZSBpcyBzdXBwb3J0ZWQgYnkgdGhlIGRldmljZS9wb3J0Lg0KPiANCj4gVGh1
+cyBpbnN0ZWFkIG9mIGluZmVycmluZywgd2Ugc2hvdWxkIGhhdmUgb3VyIG93biBtZWNoYW5pc20g
+Zm9yIElCDQo+IG1hbmFnZW1lbnQgY2FwYWJpbGl0eS9wcm90b2NvbC9mZWF0dXJlIGNoZWNraW5n
+LCBzZXZlcmFsIHByb3Bvc2FscyBiZWxvdy4NCj4gDQo+IFRoaXMgcGF0Y2ggc2V0IHdpbGwgcmVm
+b3JtIHRoZSBtZXRob2Qgb2YgZ2V0dGluZyB0cmFuc3BvcnQgdHlwZSwgd2Ugd2lsbCBub3cNCj4g
+dXNpbmcgcXVlcnlfdHJhbnNwb3J0KCkgaW5zdGVhZCBvZiBpbmZlcnJpbmcgZnJvbSB0cmFuc3Bv
+cnQgYW5kIGxpbmsgbGF5ZXINCj4gcmVzcGVjdGl2ZWx5LCBhbHNvIHdlIGRlZmluZWQgdGhlIG5l
+dyB0cmFuc3BvcnQgdHlwZSB0byBtYWtlIHRoZSBjb25jZXB0DQo+IG1vcmUgcmVhc29uYWJsZS4N
+Cj4gDQo+IE1hcHBpbmcgTGlzdDoNCj4gCQlub2RlLXR5cGUJbGluay1sYXllcglvbGQtdHJhbnNw
+b3J0CW5ldy10cmFuc3BvcnQNCj4gbmVzCQlSTklDCQlFVEgJCUlXQVJQCQlJV0FSUA0KPiBhbXNv
+MTEwMAlSTklDCQlFVEgJCUlXQVJQCQlJV0FSUA0KPiBjeGdiMyAgIAlSTklDCQlFVEgJCUlXQVJQ
+CQlJV0FSUA0KPiBjeGdiNCAgIAlSTklDCQlFVEgJCUlXQVJQCQlJV0FSUA0KPiB1c25pYyAgIAlV
+U05JQ19VRFAJRVRICQlVU05JQ19VRFAJVVNOSUNfVURQDQo+IG9jcmRtYSAgCUlCX0NBCQlFVEgJ
+CUlCCQlJQk9FDQo+IG1seDQgICAgCUlCX0NBCQlJQi9FVEgJCUlCCQlJQi9JQk9FDQo+IG1seDUg
+ICAgCUlCX0NBCQlJQgkJSUIJCUlCDQo+IGVoY2EgICAgCUlCX0NBCQlJQgkJSUIJCUlCDQo+IGlw
+YXRoICAgCUlCX0NBCQlJQgkJSUIJCUlCDQo+IG10aGNhICAgCUlCX0NBCQlJQgkJSUIJCUlCDQo+
+IHFpYiAgICAgCUlCX0NBCQlJQgkJSUIJCUlCDQo+IA0KPiBGb3IgZXhhbXBsZToNCj4gCWlmICh0
+cmFuc3BvcnQgPT0gSUIpICYmIChsaW5rLWxheWVyID09IEVUSCkgd2lsbCBub3cgYmVjb21lOg0K
+PiAJaWYgKHF1ZXJ5X3RyYW5zcG9ydCgpID09IElCT0UpDQo+IA0KPiBUaHVzIHdlIHdpbGwgYmUg
+YWJsZSB0byBnZXQgcmlkIG9mIHRoZSByZXNwZWN0aXZlIHRyYW5zcG9ydCBhbmQgbGluay1sYXll
+cg0KPiBjaGVja2luZywgYW5kIGl0IHdpbGwgaGVscCB1cyB0byBhZGQgbmV3IHByb3RvY29sL1Rl
+Y2hub2xvZ3kgKGxpa2UgT1BBKSBtb3JlDQo+IGVhc2llciwgYWxzbyB3aXRoIHRoZSBpbnRyb2R1
+Y2VkIG1hbmFnZW1lbnQgaGVscGVycywgSUIgbWFuYWdlbWVudCBsb2dpY2FsDQo+IHdpbGwgYmUg
+bW9yZSBjbGVhciBhbmQgZWFzaWVyIGZvciBleHRlbmRpbmcuDQo+IA0KPiBIaWdobGlnaHRzOg0K
+PiAgICAgVGhlIHBhdGNoIHNldCBjb3ZlcmVkIGEgd2lkZSByYW5nZSBvZiBJQiBzdHVmZiwgdGh1
+cyBmb3IgdGhvc2Ugd2hvIGFyZQ0KPiAgICAgZmFtaWxpYXIgd2l0aCB0aGUgcGFydGljdWxhciBw
+YXJ0LCB5b3VyIHN1Z2dlc3Rpb24gd291bGQgYmUgaW52YWx1YWJsZSA7LSkNCj4gDQo+ICAgICBQ
+YXRjaCAxI34xNSMgaW5jbHVkZWQgYWxsIHRoZSBsb2dpY2FsIHJlZm9ybSwgMTYjfjI1IyBpbnRy
+b2R1Y2VkIHRoZQ0KPiAgICAgbWFuYWdlbWVudCBoZWxwZXJzLCAyNiN+MjcjIGRvIGNsZWFuIHVw
+Lg0KPiANCj4gICAgIFBhdGNoZXMgaGF2ZW4ndCBiZWVuIHRlc3RlZCB5ZXQsIHdlIGFwcHJlY2lh
+dGUgaWYgYW55IG9uZSB3aG8gaGF2ZSB0aGVzZQ0KPiAgICAgSFcgd2lsbGluZyB0byBwcm92aWRl
+IGhpcyBUZXN0ZWQtYnkgOi0pDQo+IA0KPiAgICAgRG91ZyBzdWdnZXN0ZWQgdGhlIGJpdG1hc2sg
+bWVjaGFuaXNtOg0KPiAJaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC0NCj4gcmRt
+YUB2Z2VyLmtlcm5lbC5vcmcvbXNnMjM3NjUuaHRtbA0KPiAgICAgd2hpY2ggY291bGQgYmUgdGhl
+IHBsYW4gZm9yIGZ1dHVyZSByZWZvcm1pbmcsIHdlIHByZWZlciB0aGF0IHRvIGJlIGFub3RoZXIN
+Cj4gICAgIHNlcmllcyB3aGljaCBmb2N1cyBvbiBzZW1hbnRpYyBhbmQgcGVyZm9ybWFuY2UuDQo+
+IA0KPiAgICAgVGhpcyBwYXRjaC1zZXQgaXMgc29tZXdoYXQgJ2Jsb2F0ZWQnIG5vdyBhbmQgaXQg
+bWF5IGJlIGEgZ29vZCB0aW1pbmcgZm9yDQo+ICAgICBzdGFnaW5nLCBJJ2QgbGlrZSB0byBzdWdn
+ZXN0IHdlIGZvY3VzIG9uIGltcHJvdmluZyBleGlzdGVkIGhlbHBlcnMgYW5kIHB1c2gNCj4gICAg
+IGFsbCB0aGUgZnVydGhlciByZWZvcm1zIGludG8gbmV4dCBzZXJpZXMgOy0pDQo+IA0KPiBQcm9w
+b3NhbHM6DQo+ICAgICBTZWFuOg0KPiAJaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51
+eC0NCj4gcmRtYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMjMzMzkuaHRtbA0KPiAgICAgRG91ZzoNCj4g
+CWh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtDQo+IHJkbWFAdmdlci5rZXJuZWwu
+b3JnL21zZzIzNDE4Lmh0bWwNCj4gCWh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgt
+DQo+IHJkbWFAdmdlci5rZXJuZWwub3JnL21zZzIzNzY1Lmh0bWwNCj4gICAgIEphc29uOg0KPiAJ
+aHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC0NCj4gcmRtYUB2Z2VyLmtlcm5lbC5v
+cmcvbXNnMjM0MjUuaHRtbA0KPiANCj4gTWljaGFlbCBXYW5nICgyNyk6DQo+ICAgICBJQi9WZXJi
+czogSW1wbGVtZW50IG5ldyBjYWxsYmFjayBxdWVyeV90cmFuc3BvcnQoKQ0KPiAgICAgSUIvVmVy
+YnM6IEltcGxlbWVudCByYXcgbWFuYWdlbWVudCBoZWxwZXJzDQo+ICAgICBJQi9WZXJiczogUmVm
+b3JtIElCLWNvcmUgbWFkL2FnZW50L3VzZXJfbWFkDQo+ICAgICBJQi9WZXJiczogUmVmb3JtIElC
+LWNvcmUgY20NCj4gICAgIElCL1ZlcmJzOiBSZWZvcm0gSUItY29yZSBzYV9xdWVyeQ0KPiAgICAg
+SUIvVmVyYnM6IFJlZm9ybSBJQi1jb3JlIG11bHRpY2FzdA0KPiAgICAgSUIvVmVyYnM6IFJlZm9y
+bSBJQi11bHAgaXBvaWINCj4gICAgIElCL1ZlcmJzOiBSZWZvcm0gSUItdWxwIHhwcnRyZG1hDQo+
+ICAgICBJQi9WZXJiczogUmVmb3JtIElCLWNvcmUgdmVyYnMvdXZlcmJzX2NtZC9zeXNmcw0KPiAg
+ICAgSUIvVmVyYnM6IFJlZm9ybSBjbSByZWxhdGVkIHBhcnQgaW4gSUItY29yZSBjbWEvdWNtDQo+
+ICAgICBJQi9WZXJiczogUmVmb3JtIHJvdXRlIHJlbGF0ZWQgcGFydCBpbiBJQi1jb3JlIGNtYQ0K
+PiAgICAgSUIvVmVyYnM6IFJlZm9ybSBtY2FzdCByZWxhdGVkIHBhcnQgaW4gSUItY29yZSBjbWEN
+Cj4gICAgIElCL1ZlcmJzOiBSZXNlcnZlIGxlZ2FjeSB0cmFuc3BvcnQgdHlwZSBpbiAnZGV2X2Fk
+ZHInDQo+ICAgICBJQi9WZXJiczogUmVmb3JtIGNtYV9hY3F1aXJlX2RldigpDQo+ICAgICBJQi9W
+ZXJiczogUmVmb3JtIHJlc3QgcGFydCBpbiBJQi1jb3JlIGNtYQ0KPiAgICAgSUIvVmVyYnM6IFVz
+ZSBtYW5hZ2VtZW50IGhlbHBlciBjYXBfaWJfbWFkKCkNCj4gICAgIElCL1ZlcmJzOiBVc2UgbWFu
+YWdlbWVudCBoZWxwZXIgY2FwX2liX3NtaSgpDQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1l
+bnQgaGVscGVyIGNhcF9pYl9jbSgpDQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVs
+cGVyIGNhcF9pd19jbSgpDQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNh
+cF9pYl9zYSgpDQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNhcF9pYl9t
+Y2FzdCgpDQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNhcF9pcG9pYigp
+DQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNhcF9yZWFkX211bHRpX3Nn
+ZSgpDQo+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNhcF9hZl9pYigpDQo+
+ICAgICBJQi9WZXJiczogVXNlIG1hbmFnZW1lbnQgaGVscGVyIGNhcF9ldGhfYWgoKQ0KPiAgICAg
+SUIvVmVyYnM6IENsZWFuIHVwIHJkbWFfaWJfb3JfaWJvZSgpDQo+ICAgICBJQi9WZXJiczogQ2xl
+YW51cCByZG1hX25vZGVfZ2V0X3RyYW5zcG9ydCgpDQo+IA0KPiAtLS0NCj4gIGRyaXZlcnMvaW5m
+aW5pYmFuZC9jb3JlL2FnZW50LmMgICAgICAgICAgICAgIHwgICAgNA0KPiAgZHJpdmVycy9pbmZp
+bmliYW5kL2NvcmUvY20uYyAgICAgICAgICAgICAgICAgfCAgIDI2ICstDQo+ICBkcml2ZXJzL2lu
+ZmluaWJhbmQvY29yZS9jbWEuYyAgICAgICAgICAgICAgICB8ICAzMjggKysrKysrKysrKysrLS0t
+LS0tLS0tLS0tLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9kZXZpY2UuYyAgICAgICAg
+ICAgICB8ICAgIDENCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jICAgICAgICAgICAg
+ICAgIHwgICA1MSArKy0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9tdWx0aWNhc3QuYyAg
+ICAgICAgICB8ICAgMTggLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvc2FfcXVlcnkuYyAg
+ICAgICAgICAgfCAgIDQxICstLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvc3lzZnMuYyAg
+ICAgICAgICAgICAgfCAgICA4DQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS91Y20uYyAgICAg
+ICAgICAgICAgICB8ICAgIDUNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VjbWEuYyAgICAg
+ICAgICAgICAgIHwgICAyNyAtLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXNlcl9tYWQu
+YyAgICAgICAgICAgfCAgIDMyICstDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNf
+Y21kLmMgICAgICAgICB8ICAgIDYNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmMg
+ICAgICAgICAgICAgIHwgICAzMyAtLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2Ftc28xMTAw
+L2MyX3Byb3ZpZGVyLmMgfCAgICA3DQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvY3hnYjMvaXdj
+aF9wcm92aWRlci5jICB8ICAgIDcNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9jeGdiNC9wcm92
+aWRlci5jICAgICAgIHwgICAgNw0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2VoY2EvZWhjYV9o
+Y2EuYyAgICAgICAgfCAgICA2DQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvZWhjYS9laGNhX2l2
+ZXJicy5oICAgICB8ICAgIDMNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9laGNhL2VoY2FfbWFp
+bi5jICAgICAgIHwgICAgMQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2lwYXRoL2lwYXRoX3Zl
+cmJzLmMgICAgfCAgICA3DQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tYWluLmMgICAg
+ICAgICAgICB8ICAgMTANCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21haW4uYyAgICAg
+ICAgICAgIHwgICAgNw0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L210aGNhL210aGNhX3Byb3Zp
+ZGVyLmMgfCAgICA3DQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbmVzL25lc192ZXJicy5jICAg
+ICAgICB8ICAgIDYNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9vY3JkbWEvb2NyZG1hX21haW4u
+YyAgIHwgICAgMQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L29jcmRtYS9vY3JkbWFfdmVyYnMu
+YyAgfCAgICA2DQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvb2NyZG1hL29jcmRtYV92ZXJicy5o
+ICB8ICAgIDMNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX3ZlcmJzLmMgICAgICAg
+IHwgICAgNw0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3VzbmljL3VzbmljX2liX21haW4uYyAg
+fCAgICAxDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvdXNuaWMvdXNuaWNfaWJfdmVyYnMuYyB8
+ICAgIDYNCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody91c25pYy91c25pY19pYl92ZXJicy5oIHwg
+ICAgMg0KPiAgZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9tYWluLmMgICAgfCAg
+IDE3IC0NCj4gIGluY2x1ZGUvcmRtYS9pYl92ZXJicy5oICAgICAgICAgICAgICAgICAgICAgIHwg
+IDIwNCArKysrKysrKysrKysrKystDQo+ICBuZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1hX3Jl
+Y3Zmcm9tLmMgICAgICB8ICAgIDYNCj4gIG5ldC9zdW5ycGMveHBydHJkbWEvc3ZjX3JkbWFfdHJh
+bnNwb3J0LmMgICAgIHwgICA1MSArLS0tDQo+ICAzNSBmaWxlcyBjaGFuZ2VkLCA1ODQgaW5zZXJ0
+aW9ucygrKSwgMzY4IGRlbGV0aW9ucygtKQ0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRo
+aXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIgaW4gdGhlDQo+
+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpv
+cmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0
+bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
