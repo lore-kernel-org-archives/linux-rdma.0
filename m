@@ -1,65 +1,104 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v4 2/2] IB/qib: use arch_phys_wc_add()
-Date: Wed, 22 Apr 2015 09:54:38 -0400
-Message-ID: <1429710878.45956.94.camel@redhat.com>
-References: <1429653035-19424-1-git-send-email-mcgrof@do-not-panic.com>
-	 <1429653035-19424-3-git-send-email-mcgrof@do-not-panic.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] Close additional file descriptor in iblinkinfo in advance
+Date: Wed, 22 Apr 2015 10:32:22 -0400
+Message-ID: <20150422143221.GA28220@phlsvsds.ph.intel.com>
+References: <552FB794.7080503@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-i1OaxEyZGKNoZjkKBi/K"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1429653035-19424-3-git-send-email-mcgrof@do-not-panic.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: infinipath@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, luto@amacapital.net, mst@redhat.com, linux-kernel@vger.kernel.org, cocci@systeme.lip6.fr, "Luis R. Rodriguez" <mcgrof@suse.com>, Toshi Kani <toshi.kani@hp.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Roland Dreier <roland@purestorage.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Suresh Siddha <sbsiddha@gmail.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Juergen Gross <jgross@suse.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Antonino Daplas <adaplas@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Dave Hansen <dave>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <552FB794.7080503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Apr 16, 2015 at 09:22:28AM -0400, Hal Rosenstock wrote:
+> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Tue, 14 Apr 2015 18:14:48 +0300
+> 
+> Additional file descriptor for SMP MADs should be closed before running
+> ibnd_discover_fabric() to avoid parallel usage of two SMP file descriptors
+> 
+> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---=-i1OaxEyZGKNoZjkKBi/K
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I'm not quite sure why but this patch breaks the DR processing of iblinkinfo.
 
-On Tue, 2015-04-21 at 14:50 -0700, Luis R. Rodriguez wrote:
+Please test iblinkinfo -D <path>
 
-This:
-> +	/* MTRR was used if this is non-zero */
-> +	if (!dd->wc_cookie)
->  		vma->vm_page_prot =3D pgprot_writecombine(vma->vm_page_prot);
+I don't have the time to figure this out at the moment.
 
-And this:
-> +		dd->wc_cookie =3D arch_phys_wc_add(pioaddr, piolen);
-> +		if (dd->wc_cookie < 0)
-> +			ret =3D -EINVAL;
+Ira
 
-don't agree on what wc_cookie will be on error.
-
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
-
-
-
---=-i1OaxEyZGKNoZjkKBi/K
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABAgAGBQJVN6geAAoJELgmozMOVy/dINYQAJVTs2h1J+xLHdOCMfjEZeW+
-fnyf6xbapVV/GaP5VMoJVpZmYLCYgwjJdUTVfYtY80RaahnH8cbJfgPxiYYtQgKE
-A+M8S9rKNsUM1P4NpxhHm1eKQT3bPEwJm/zvIIGN9d5+9t+/tb1cFSXB5JX+3Fj9
-HCuTibuq0Wz4/wyBMhCX/x1c7VB/oSImUOruXXIO1WDX2D8a/N1xWjYb9NIDC0KN
-hZnLFqDXSEopDVaoNXExuy4HPbXCPC6aRaWUo0kQYeXiNjchmz9Gd5FTV9J9/Oig
-0mxe58sksx+3Sj+pEdFOON0kKNawGQ22eun51By+U69OAqyoXi63I3dhR6J0DtXR
-Fl5fLCmTvKyr1c/zwzXwBQRWSOqg4ZLc5mk1VIQXN6iax3NZhMNo7tfLJ9tcceTa
-CikprNiQWJuJhG5USuxW7u2M4ZIk5NnqVa5sYgb2+JTlDp/zvIz8/UdF71h0yPuD
-oPEzr6IeRWSrPPyPQT055+3LyzaeRokbRmKPtWi044iJ8XD7fZzACha15zPts+dX
-nCk4jqlkS6x4wYmj0MruZCFr/7nBZP1f/yNX2nMN+3QD1NdwQuP27IlS2zDJj/DT
-94giD43UUxEgcqC/eQBpxJ7xoS2MQ5fcC6m+WchlE6CVw95kZojyxRnkYtJGgyDQ
-m4tBzsqPGq58MMnI9Fz6
-=pViF
------END PGP SIGNATURE-----
-
---=-i1OaxEyZGKNoZjkKBi/K--
+> ---
+>  src/iblinkinfo.c |   16 ++++++++++------
+>  1 files changed, 10 insertions(+), 6 deletions(-)
+> 
+> diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
+> index 92ff3c6..9dcf698 100644
+> --- a/src/iblinkinfo.c
+> +++ b/src/iblinkinfo.c
+> @@ -594,6 +594,7 @@ int main(int argc, char **argv)
+>  	ibnd_fabric_t *diff_fabric = NULL;
+>  	struct ibmad_port *ibmad_port;
+>  	ib_portid_t port_id = { 0 };
+> +	uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+>  	int mgmt_classes[3] =
+>  	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
+>  
+> @@ -653,12 +654,20 @@ int main(int argc, char **argv)
+>  		config.timeout_ms = ibd_timeout;
+>  	}
+>  
+> +	if (!smp_query_via(ni, &port_id, IB_ATTR_NODE_INFO, 0,
+> +				   ibd_timeout, ibmad_port)){
+> +			mad_rpc_close_port(ibmad_port);
+> +			fprintf(stderr,
+> +				"Failed to get local Node Info\n");
+> +			exit(1);
+> +	}
+>  	config.flags = ibd_ibnetdisc_flags;
+>  	config.mkey = ibd_mkey;
+>  
+>  	node_name_map = open_node_name_map(node_name_map_file);
+>  
+>  	if (dr_path && load_cache_file) {
+> +		mad_rpc_close_port(ibmad_port);
+>  		fprintf(stderr, "Cannot specify cache and direct route path\n");
+>  		exit(1);
+>  	}
+> @@ -678,6 +687,7 @@ int main(int argc, char **argv)
+>  			IBWARN("Failed to resolve %s; attempting full scan\n",
+>  			       guid_str);
+>  	}
+> +	mad_rpc_close_port(ibmad_port);
+>  
+>  	if (diff_cache_file &&
+>  	    !(diff_fabric = ibnd_load_fabric(diff_cache_file, 0)))
+> @@ -723,11 +733,6 @@ int main(int argc, char **argv)
+>  			fprintf(stderr, "Failed to find port: %s\n", guid_str);
+>  	} else if (!all && dr_path) {
+>  		ibnd_port_t *p = NULL;
+> -		uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+> -
+> -		if (!smp_query_via(ni, &port_id, IB_ATTR_NODE_INFO, 0,
+> -				   ibd_timeout, ibmad_port))
+> -			return -1;
+>  		mad_decode_field(ni, IB_NODE_PORT_GUID_F, &(guid));
+>  
+>  		p = ibnd_find_port_guid(fabric, guid);
+> @@ -758,6 +763,5 @@ int main(int argc, char **argv)
+>  
+>  close_port:
+>  	close_node_name_map(node_name_map);
+> -	mad_rpc_close_port(ibmad_port);
+>  	exit(rc);
+>  }
+> -- 
+> 1.7.8.2
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
