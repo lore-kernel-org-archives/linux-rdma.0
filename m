@@ -1,22 +1,22 @@
 From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: [PATCH v5 24/27] IB/Verbs: Use management helper cap_af_ib()
-Date: Tue, 21 Apr 2015 20:11:38 -0400
-Message-ID: <20150422001137.GX15893@phlsvsds.ph.intel.com>
-References: <5534B8C9.506@profitbricks.com> <5534BBF9.80703@profitbricks.com>
+Subject: Re: [PATCH v5 25/27] IB/Verbs: Use management helper cap_eth_ah()
+Date: Tue, 21 Apr 2015 20:11:51 -0400
+Message-ID: <20150422001150.GY15893@phlsvsds.ph.intel.com>
+References: <5534B8C9.506@profitbricks.com> <5534BC17.9030809@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5534BBF9.80703@profitbricks.com>
+In-Reply-To: <5534BC17.9030809@profitbricks.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Michael Wang <yun.wang@profitbricks.com>
 Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, hal@dev.mellanox.co.il, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 10:42:33AM +0200, Michael Wang wrote:
+On Mon, Apr 20, 2015 at 10:43:03AM +0200, Michael Wang wrote:
 > 
-> Introduce helper cap_af_ib() to help us check if the port of an
-> IB device support Native Infiniband Address.
+> Introduce helper cap_eth_ah() to help us check if the port of an
+> IB device support Ethernet Address Handler.
 > 
 > Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
 > Cc: Steve Wise <swise@opengridcomputing.com>
@@ -30,43 +30,71 @@ On Mon, Apr 20, 2015 at 10:42:33AM +0200, Michael Wang wrote:
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
 > ---
->  drivers/infiniband/core/cma.c |  2 +-
->  include/rdma/ib_verbs.h       | 15 +++++++++++++++
->  2 files changed, 16 insertions(+), 1 deletion(-)
+>  drivers/infiniband/core/cma.c      |  2 +-
+>  drivers/infiniband/core/sa_query.c |  2 +-
+>  drivers/infiniband/core/verbs.c    |  2 +-
+>  include/rdma/ib_verbs.h            | 15 +++++++++++++++
+>  4 files changed, 18 insertions(+), 3 deletions(-)
 > 
 > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 05d148e..9c1f5b72 100644
+> index 9c1f5b72..b9f7ccc 100644
 > --- a/drivers/infiniband/core/cma.c
 > +++ b/drivers/infiniband/core/cma.c
-> @@ -469,7 +469,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+> @@ -732,7 +732,7 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
+>  	int ret;
+>  	u16 pkey;
 >  
->  	list_for_each_entry(cur_dev, &dev_list, list) {
->  		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
-> -			if (!rdma_ib_or_iboe(cur_dev->device, p))
-> +			if (!cap_af_ib(cur_dev->device, p))
->  				continue;
+> -	if (rdma_tech_iboe(id_priv->id.device, id_priv->id.port_num))
+> +	if (cap_eth_ah(id_priv->id.device, id_priv->id.port_num))
+>  		pkey = 0xffff;
+>  	else
+>  		pkey = ib_addr_get_pkey(dev_addr);
+> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+> index f14a66f..063c17c 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -540,7 +540,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+>  	ah_attr->port_num = port_num;
+>  	ah_attr->static_rate = rec->rate;
 >  
->  			if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
+> -	force_grh = rdma_tech_iboe(device, port_num);
+> +	force_grh = cap_eth_ah(device, port_num);
+>  
+>  	if (rec->hop_limit > 1 || force_grh) {
+>  		ah_attr->ah_flags = IB_AH_GRH;
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 7264860..ee4b5cb 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -202,7 +202,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+>  	int ret;
+>  
+>  	memset(ah_attr, 0, sizeof *ah_attr);
+> -	if (rdma_tech_iboe(device, port_num)) {
+> +	if (cap_eth_ah(device, port_num)) {
+>  		if (!(wc->wc_flags & IB_WC_GRH))
+>  			return -EPROTOTYPE;
+>  
 > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 074f66d..9cfab09 100644
+> index 9cfab09..45050cb 100644
 > --- a/include/rdma/ib_verbs.h
 > +++ b/include/rdma/ib_verbs.h
-> @@ -1879,6 +1879,21 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
+> @@ -1894,6 +1894,21 @@ static inline int cap_af_ib(struct ib_device *device, u8 port_num)
 >  }
 >  
 >  /**
-> + * cap_af_ib - Check if the port of device has the capability
-> + * Native Infiniband Address.
+> + * cap_eth_ah - Check if the port of device has the capability
+> + * Ethernet Address Handler.
 > + *
 > + * @device: Device to be checked
 > + * @port_num: Port number of the device
 > + *
 > + * Return 0 when port of the device don't support
-> + * Native Infiniband Address.
+> + * Ethernet Address Handler.
 > + */
-> +static inline int cap_af_ib(struct ib_device *device, u8 port_num)
+> +static inline int cap_eth_ah(struct ib_device *device, u8 port_num)
 > +{
-> +	return rdma_ib_or_iboe(device, port_num);
+> +	return rdma_tech_iboe(device, port_num);
 > +}
 > +
 > +/**
