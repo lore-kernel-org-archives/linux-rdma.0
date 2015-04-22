@@ -1,22 +1,22 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 26/27] IB/Verbs: Clean up rdma_ib_or_iboe()
-Date: Tue, 21 Apr 2015 20:12:49 -0400
-Message-ID: <20150422001249.GZ15893@phlsvsds.ph.intel.com>
-References: <5534B8C9.506@profitbricks.com> <5534BC2E.40307@profitbricks.com>
+Subject: Re: [PATCH v5 27/27] IB/Verbs: Cleanup rdma_node_get_transport()
+Date: Tue, 21 Apr 2015 20:13:08 -0400
+Message-ID: <20150422001307.GA15893@phlsvsds.ph.intel.com>
+References: <5534B8C9.506@profitbricks.com> <5534BC47.6080706@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5534BC2E.40307-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <5534BC47.6080706-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 10:43:26AM +0200, Michael Wang wrote:
+On Mon, Apr 20, 2015 at 10:43:51AM +0200, Michael Wang wrote:
 > 
-> We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
-> is no longer necessary, thus clean it up.
+> We have get rid of all the scene using legacy rdma_node_get_transport(),
+> now clean it up.
 > 
 > Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -29,80 +29,57 @@ On Mon, Apr 20, 2015 at 10:43:26AM +0200, Michael Wang wrote:
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
->
 > ---
->  include/rdma/ib_verbs.h                  | 19 +++++++++----------
->  net/sunrpc/xprtrdma/svc_rdma_transport.c |  6 ++++--
->  2 files changed, 13 insertions(+), 12 deletions(-)
+>  drivers/infiniband/core/verbs.c | 21 ---------------------
+>  include/rdma/ib_verbs.h         |  3 ---
+>  2 files changed, 24 deletions(-)
 > 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index ee4b5cb..bbea0c0 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -107,27 +107,6 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate)
+>  }
+>  EXPORT_SYMBOL(ib_rate_to_mbps);
+>  
+> -__attribute_const__ enum rdma_transport_type
+> -rdma_node_get_transport(enum rdma_node_type node_type)
+> -{
+> -	switch (node_type) {
+> -	case RDMA_NODE_IB_CA:
+> -	case RDMA_NODE_IB_SWITCH:
+> -	case RDMA_NODE_IB_ROUTER:
+> -		return RDMA_TRANSPORT_IB;
+> -	case RDMA_NODE_RNIC:
+> -		return RDMA_TRANSPORT_IWARP;
+> -	case RDMA_NODE_USNIC:
+> -		return RDMA_TRANSPORT_USNIC;
+> -	case RDMA_NODE_USNIC_UDP:
+> -		return RDMA_TRANSPORT_USNIC_UDP;
+> -	default:
+> -		BUG();
+> -		return 0;
+> -	}
+> -}
+> -EXPORT_SYMBOL(rdma_node_get_transport);
+> -
+>  enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
+>  {
+>  	if (device->get_link_layer)
 > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 45050cb..0c0a4f0 100644
+> index 0c0a4f0..f2ea6e7 100644
 > --- a/include/rdma/ib_verbs.h
 > +++ b/include/rdma/ib_verbs.h
-> @@ -1766,13 +1766,6 @@ static inline int rdma_tech_iwarp(struct ib_device *device, u8 port_num)
->  			== RDMA_TRANSPORT_IWARP;
->  }
+> @@ -84,9 +84,6 @@ enum rdma_transport_type {
+>  	RDMA_TRANSPORT_IBOE,
+>  };
 >  
-> -static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
-> -{
-> -	enum rdma_transport_type tp = device->query_transport(device, port_num);
+> -__attribute_const__ enum rdma_transport_type
+> -rdma_node_get_transport(enum rdma_node_type node_type);
 > -
-> -	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
-> -}
-> -
->  /**
->   * cap_ib_mad - Check if the port of device has the capability Infiniband
->   * Management Datagrams.
-> @@ -1785,7 +1778,9 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
->   */
->  static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
->  {
-> -	return rdma_ib_or_iboe(device, port_num);
-> +	enum rdma_transport_type tp = device->query_transport(device, port_num);
-> +
-> +	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
->  }
->  
->  /**
-> @@ -1815,7 +1810,9 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
->   */
->  static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
->  {
-> -	return rdma_ib_or_iboe(device, port_num);
-> +	enum rdma_transport_type tp = device->query_transport(device, port_num);
-> +
-> +	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
->  }
->  
->  /**
-> @@ -1890,7 +1887,9 @@ static inline int cap_ipoib(struct ib_device *device, u8 port_num)
->   */
->  static inline int cap_af_ib(struct ib_device *device, u8 port_num)
->  {
-> -	return rdma_ib_or_iboe(device, port_num);
-> +	enum rdma_transport_type tp = device->query_transport(device, port_num);
-> +
-> +	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
->  }
->  
->  /**
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> index a09b7a1..8af6f92 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> @@ -987,8 +987,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
->  	 */
->  	if (!rdma_tech_iwarp(newxprt->sc_cm_id->device,
->  			     newxprt->sc_cm_id->port_num) &&
-> -	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
-> -			     newxprt->sc_cm_id->port_num))
-> +	    !rdma_tech_ib(newxprt->sc_cm_id->device,
-> +			  newxprt->sc_cm_id->port_num) &&
-> +	    !rdma_tech_iboe(newxprt->sc_cm_id->device,
-> +			    newxprt->sc_cm_id->port_num))
->  		goto errout;
->  
->  	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
+>  enum rdma_link_layer {
+>  	IB_LINK_LAYER_UNSPECIFIED,
+>  	IB_LINK_LAYER_INFINIBAND,
 > -- 
 > 2.1.0
 --
