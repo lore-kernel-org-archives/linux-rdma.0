@@ -1,328 +1,126 @@
-From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
-Subject: [PATCH v5 2/2] IB/qib: use arch_phys_wc_add()
-Date: Wed, 22 Apr 2015 11:38:24 -0700
-Message-ID: <1429727904-5812-1-git-send-email-mcgrof@do-not-panic.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Date: Wed, 22 Apr 2015 14:53:11 -0400
+Message-ID: <1429728791.121496.10.camel@redhat.com>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+	 <20150421224601.GY5622@wotan.suse.de>
+	 <20150421225732.GA17356@obsidianresearch.com>
+	 <20150421233907.GA5622@wotan.suse.de>
+	 <20150422053939.GA29609@obsidianresearch.com>
+	 <20150422152328.GB5622@wotan.suse.de>
+	 <20150422161755.GA19500@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-c/d/LKEizloNkCfqZIim"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150422161755.GA19500-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Antonino Daplas <adaplas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Stefan Bader <stefan.bader-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, ville.syrjala@l
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Thomas
 List-Id: linux-rdma@vger.kernel.org
 
-=46rom: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 
-This driver already makes use of ioremap_wc() on PIO buffers,
-so convert it to use arch_phys_wc_add().
+--=-c/d/LKEizloNkCfqZIim
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The qib driver uses a mmap() special case for when PAT is
-not used, this behaviour used to be determined with a
-module parameter but since we have been asked to just
-remove that module parameter this checks for the WC cookie,
-if not set we can assume PAT was used. If its set we do
-what we used to do for the mmap for when MTRR was enabled.
+On Wed, 2015-04-22 at 10:17 -0600, Jason Gunthorpe wrote:
+> On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
+> > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+> > > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+> > > > > Mike, do you think the time is right to just remove the iPath dri=
+ver?
+> > > >=20
+> > > > With PAT now being default the driver effectively won't work
+> > > > with write-combining on modern kernels. Even if systems are old
+> > > > they likely had PAT support, when upgrading kernels PAT will work
+> > > > but write-combing won't on ipath.
+> > >=20
+> > > Sorry, do you mean the driver already doesn't get WC? Or do you mean
+> > > after some more pending patches are applied?
+> >=20
+> > No, you have to consider the system used and the effects of calls used
+> > on the driver in light of this table:
+>=20
+> So, just to be clear:
+>=20
+> At some point Linux started setting the PAT bits during
+> ioremap_nocache, which overrides MTRR, and at that point the driver
+> became broken on all PAT capable systems?
+>=20
+> Not only that, but we've only just noticed it now, and no user ever
+> complained?
+>=20
+> So that means either no users exist, or all users are on non-PAT
+> systems?
+>=20
+> This driver only works on x86-64 systems. Are there any x86-64 systems
+> that are not PAT capable? IIRC even the first Opteron had PAT, but my
+> memory is fuzzy from back then :|
+>=20
+> > Another option in order to enable this type of checks at run time
+> > and still be able to build the driver on standard distributions and
+> > just prevent if from loading on PAT systems is to have some code in
+> > place which would prevent the driver from loading if PAT was
+> > enabled, this would enable folks to disable PAT via a kernel command
+> > line option, and if that was used then the driver probe would
+> > complete.
+>=20
+> This seems like a reasonble option to me. At the very least we might
+> learn if anyone is still using these cards.
+>=20
+> I'd also love to remove the driver if it turns out there are actually
+> no users. qib substantially replaces it except for a few very old
+> cards.
 
-The removal of the module parameter is OK given that Andy
-notes that even if users of module parameter are still around
-it will not prevent loading of the module on recent kernels.
+To be precise, the split is that ipath powers the old HTX bus cards that
+only work in AMD systems, qib is all PCI-e cards.  I still have a few
+HTX cards, but I no longer have any systems with HTX slots, so we
+haven't even used this driver in testing for 3 or 4 years now.  And
+these are all old SDR cards, where the performance numbers were 800MB/s
+with WC enabled, 50MB/s without it.
 
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>
-Cc: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>
-Cc: Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>
-Cc: Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>
-Cc: Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Antonino Daplas <adaplas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Stefan Bader <stefan.bader-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: ville.syrjala-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Cc: david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org
-Cc: jbeulich-IBi9RG/b67k@public.gmane.org
-Cc: Roger Pau Monn=C3=A9 <roger.pau-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: xen-devel-GuqFBffKawuULHF6PoxzQEEOCMrvLtNR@public.gmane.org
-Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
----
+> Mike?
+>=20
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-This v5 changes the comment to make it clear when the mmap code
-will be true as requested by Doug. This patch still depends on
-the v4 1/2 qib patch which enables accounting for the mtrr_add()
-call. I won't be resending that one.
 
- drivers/infiniband/hw/qib/qib.h           |  1 -
- drivers/infiniband/hw/qib/qib_file_ops.c  |  3 ++-
- drivers/infiniband/hw/qib/qib_iba6120.c   |  8 +++---
- drivers/infiniband/hw/qib/qib_iba7220.c   |  8 +++---
- drivers/infiniband/hw/qib/qib_iba7322.c   | 41 +++++++++++++++--------=
---------
- drivers/infiniband/hw/qib/qib_init.c      | 26 ++++++--------------
- drivers/infiniband/hw/qib/qib_wc_x86_64.c | 31 +++--------------------
- 7 files changed, 39 insertions(+), 79 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qi=
-b/qib.h
-index ffd48bf..ba5173e2 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1136,7 +1136,6 @@ extern struct qib_devdata *qib_lookup(int unit);
- extern u32 qib_cpulist_count;
- extern unsigned long *qib_cpulist;
-=20
--extern unsigned qib_wc_pat;
- extern unsigned qib_cc_table_size;
- int qib_init(struct qib_devdata *, int);
- int init_chip_wc_pat(struct qib_devdata *dd, u32);
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infinib=
-and/hw/qib/qib_file_ops.c
-index 9ea6c44..7258818 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -835,7 +835,8 @@ static int mmap_piobufs(struct vm_area_struct *vma,
- 	vma->vm_flags &=3D ~VM_MAYREAD;
- 	vma->vm_flags |=3D VM_DONTCOPY | VM_DONTEXPAND;
-=20
--	if (qib_wc_pat)
-+	/* We used PAT if wc_cookie =3D=3D 0 */
-+	if (!dd->wc_cookie)
- 		vma->vm_page_prot =3D pgprot_writecombine(vma->vm_page_prot);
-=20
- 	ret =3D io_remap_pfn_range(vma, vma->vm_start, phys >> PAGE_SHIFT,
-diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniba=
-nd/hw/qib/qib_iba6120.c
-index 0d2ba59..4b927809 100644
---- a/drivers/infiniband/hw/qib/qib_iba6120.c
-+++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -3315,11 +3315,9 @@ static int init_6120_variables(struct qib_devdat=
-a *dd)
- 	qib_6120_config_ctxts(dd);
- 	qib_set_ctxtcnt(dd);
-=20
--	if (qib_wc_pat) {
--		ret =3D init_chip_wc_pat(dd, 0);
--		if (ret)
--			goto bail;
--	}
-+	ret =3D init_chip_wc_pat(dd, 0);
-+	if (ret)
-+		goto bail;
- 	set_6120_baseaddrs(dd); /* set chip access pointers now */
-=20
- 	ret =3D 0;
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniba=
-nd/hw/qib/qib_iba7220.c
-index 22affda..00b2af2 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -4126,11 +4126,9 @@ static int qib_init_7220_variables(struct qib_de=
-vdata *dd)
- 	qib_7220_config_ctxts(dd);
- 	qib_set_ctxtcnt(dd);  /* needed for PAT setup */
-=20
--	if (qib_wc_pat) {
--		ret =3D init_chip_wc_pat(dd, 0);
--		if (ret)
--			goto bail;
--	}
-+	ret =3D init_chip_wc_pat(dd, 0);
-+	if (ret)
-+		goto bail;
- 	set_7220_baseaddrs(dd); /* set chip access pointers now */
-=20
- 	ret =3D 0;
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniba=
-nd/hw/qib/qib_iba7322.c
-index ef97b71..f32b462 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6429,6 +6429,7 @@ static int qib_init_7322_variables(struct qib_dev=
-data *dd)
- 	unsigned features, pidx, sbufcnt;
- 	int ret, mtu;
- 	u32 sbufs, updthresh;
-+	resource_size_t vl15off;
-=20
- 	/* pport structs are contiguous, allocated after devdata */
- 	ppd =3D (struct qib_pportdata *)(dd + 1);
-@@ -6677,29 +6678,27 @@ static int qib_init_7322_variables(struct qib_d=
-evdata *dd)
- 	qib_7322_config_ctxts(dd);
- 	qib_set_ctxtcnt(dd);
-=20
--	if (qib_wc_pat) {
--		resource_size_t vl15off;
--		/*
--		 * We do not set WC on the VL15 buffers to avoid
--		 * a rare problem with unaligned writes from
--		 * interrupt-flushed store buffers, so we need
--		 * to map those separately here.  We can't solve
--		 * this for the rarely used mtrr case.
--		 */
--		ret =3D init_chip_wc_pat(dd, 0);
--		if (ret)
--			goto bail;
-+	/*
-+	 * We do not set WC on the VL15 buffers to avoid
-+	 * a rare problem with unaligned writes from
-+	 * interrupt-flushed store buffers, so we need
-+	 * to map those separately here.  We can't solve
-+	 * this for the rarely used mtrr case.
-+	 */
-+	ret =3D init_chip_wc_pat(dd, 0);
-+	if (ret)
-+		goto bail;
-=20
--		/* vl15 buffers start just after the 4k buffers */
--		vl15off =3D dd->physaddr + (dd->piobufbase >> 32) +
--			dd->piobcnt4k * dd->align4k;
--		dd->piovl15base	=3D ioremap_nocache(vl15off,
--						  NUM_VL15_BUFS * dd->align4k);
--		if (!dd->piovl15base) {
--			ret =3D -ENOMEM;
--			goto bail;
--		}
-+	/* vl15 buffers start just after the 4k buffers */
-+	vl15off =3D dd->physaddr + (dd->piobufbase >> 32) +
-+		  dd->piobcnt4k * dd->align4k;
-+	dd->piovl15base	=3D ioremap_nocache(vl15off,
-+					  NUM_VL15_BUFS * dd->align4k);
-+	if (!dd->piovl15base) {
-+		ret =3D -ENOMEM;
-+		goto bail;
- 	}
-+
- 	qib_7322_set_baseaddrs(dd); /* set chip access pointers now */
-=20
- 	ret =3D 0;
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/=
-hw/qib/qib_init.c
-index 2ee3695..7e00470 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -91,15 +91,6 @@ MODULE_PARM_DESC(krcvqs, "number of kernel receive q=
-ueues per IB port");
- unsigned qib_cc_table_size;
- module_param_named(cc_table_size, qib_cc_table_size, uint, S_IRUGO);
- MODULE_PARM_DESC(cc_table_size, "Congestion control table entries 0 (C=
-CA disabled - default), min =3D 128, max =3D 1984");
--/*
-- * qib_wc_pat parameter:
-- *      0 is WC via MTRR
-- *      1 is WC via PAT
-- *      If PAT initialization fails, code reverts back to MTRR
-- */
--unsigned qib_wc_pat =3D 1; /* default (1) is to use PAT, not MTRR */
--module_param_named(wc_pat, qib_wc_pat, uint, S_IRUGO);
--MODULE_PARM_DESC(wc_pat, "enable write-combining via PAT mechanism");
-=20
- static void verify_interrupt(unsigned long);
-=20
-@@ -1377,8 +1368,7 @@ static void cleanup_device_data(struct qib_devdat=
-a *dd)
- 		spin_unlock(&dd->pport[pidx].cc_shadow_lock);
- 	}
-=20
--	if (!qib_wc_pat)
--		qib_disable_wc(dd);
-+	qib_disable_wc(dd);
-=20
- 	if (dd->pioavailregs_dma) {
- 		dma_free_coherent(&dd->pcidev->dev, PAGE_SIZE,
-@@ -1547,14 +1537,12 @@ static int qib_init_one(struct pci_dev *pdev, c=
-onst struct pci_device_id *ent)
- 		goto bail;
- 	}
-=20
--	if (!qib_wc_pat) {
--		ret =3D qib_enable_wc(dd);
--		if (ret) {
--			qib_dev_err(dd,
--				"Write combining not enabled (err %d): performance may be poor\n",
--				-ret);
--			ret =3D 0;
--		}
-+	ret =3D qib_enable_wc(dd);
-+	if (ret) {
-+		qib_dev_err(dd,
-+			"Write combining not enabled (err %d): performance may be poor\n",
-+			-ret);
-+		ret =3D 0;
- 	}
-=20
- 	qib_verify_pioperf(dd);
-diff --git a/drivers/infiniband/hw/qib/qib_wc_x86_64.c b/drivers/infini=
-band/hw/qib/qib_wc_x86_64.c
-index fe0850a..6d61ef9 100644
---- a/drivers/infiniband/hw/qib/qib_wc_x86_64.c
-+++ b/drivers/infiniband/hw/qib/qib_wc_x86_64.c
-@@ -116,21 +116,9 @@ int qib_enable_wc(struct qib_devdata *dd)
- 	}
-=20
- 	if (!ret) {
--		int cookie;
--
--		cookie =3D mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
--		if (cookie < 0) {
--			{
--				qib_devinfo(dd->pcidev,
--					 "mtrr_add()  WC for PIO bufs failed (%d)\n",
--					 cookie);
--				ret =3D -EINVAL;
--			}
--		} else {
--			dd->wc_cookie =3D cookie;
--			dd->wc_base =3D (unsigned long) pioaddr;
--			dd->wc_len =3D (unsigned long) piolen;
--		}
-+		dd->wc_cookie =3D arch_phys_wc_add(pioaddr, piolen);
-+		if (dd->wc_cookie < 0)
-+			ret =3D -EINVAL;
- 	}
-=20
- 	return ret;
-@@ -142,18 +130,7 @@ int qib_enable_wc(struct qib_devdata *dd)
-  */
- void qib_disable_wc(struct qib_devdata *dd)
- {
--	if (dd->wc_cookie) {
--		int r;
--
--		r =3D mtrr_del(dd->wc_cookie, dd->wc_base,
--			     dd->wc_len);
--		if (r < 0)
--			qib_devinfo(dd->pcidev,
--				 "mtrr_del(%lx, %lx, %lx) failed: %d\n",
--				 dd->wc_cookie, dd->wc_base,
--				 dd->wc_len, r);
--		dd->wc_cookie =3D 0; /* even on failure */
--	}
-+	arch_phys_wc_del(dd->wc_cookie);
- }
-=20
- /**
 --=20
-2.3.2.209.gd67f9d5.dirty
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-c/d/LKEizloNkCfqZIim
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVN+4XAAoJELgmozMOVy/d974QAIbAblVZOWJ3bSplFMqY7SaJ
+441MB14jdqVrdvJc8tLRLykYjy751m8lEiG63oN78va287gaAtfLJzuvQqFeUzVs
++YPkD88jgVhiCM9aFV3aikgKb5kGM2TdTyHDYuQhS1v/SqBtf9xG1MU3RaU9/IjH
+s548v35Hrm5QQ2wK2bcl03Y70ju6JWez1hpH53sFh2k73g/Pt3p+ohRtz6Qeqcrr
+m1xkOxQuT0KXIkEAWvC9npm6SVZmavwDS3/a0gg6kuvzVtBPP8c9XaRYhYTkkgAG
+ZuHCkjCVVTqviMFw03wZbYdOrpXAvVTRgZmzJRoZVUGefOVnZaa8VmcQS/nKNQQH
+FKD+XcXzRUiFQPH6SUS34Xlo/bDn1FOjprkSXOnmjLbdcWvPMRhbeDyEeVRjnInq
+NQhATSNN0ByssHJDhgERhS6+nQqN90LCiuFKzktIxySmpv+vEFsT8vIgYsP7nRWn
+Xg7ZKeiGziKPmKY2yi/iSqbLd9MAhJaf8wFDG4CkfmRlrRHKxKFS/S0IvLIcpUZ/
+QYWYH4owCUq/YTi098zIFRgsweKdfjVizZuFqNGd7pGpDR3U56Pd/UAzG0BlcnhU
+DYbq6EXmLOeW1JWt2QiKIn/mKIJG25yMiB3S4iQL/f2bNqMQiKBTFM8gWbop9dxD
+V07prexdr+wIaHgKFQ9k
+=lFcy
+-----END PGP SIGNATURE-----
+
+--=-c/d/LKEizloNkCfqZIim--
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
