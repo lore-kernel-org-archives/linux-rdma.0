@@ -1,81 +1,255 @@
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Date: Wed, 22 Apr 2015 17:23:28 +0200
-Message-ID: <20150422152328.GB5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de>
- <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de>
- <20150422053939.GA29609@obsidianresearch.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] vendstat: mad_rpc_close_port not called in corner cases
+Date: Wed, 22 Apr 2015 11:26:50 -0400
+Message-ID: <20150422152649.GA7601@phlsvsds.ph.intel.com>
+References: <5536584C.8070505@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150422053939.GA29609@obsidianresearch.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com, infinipath@intel.com, linux-rdma@vger.kernel.org, awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Suresh Siddha <sbsiddha@gmail.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Roland Dreier <roland@purestorage.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>, Davidlohr Bueso <dbueso@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Thomas Gleixner <tglx@linutronix.de>, Ville
+In-Reply-To: <5536584C.8070505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
-> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
-> > > Mike, do you think the time is right to just remove the iPath driver?
-> > 
-> > With PAT now being default the driver effectively won't work
-> > with write-combining on modern kernels. Even if systems are old
-> > they likely had PAT support, when upgrading kernels PAT will work
-> > but write-combing won't on ipath.
+On Tue, Apr 21, 2015 at 10:01:48AM -0400, Hal Rosenstock wrote:
+> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Thu, 16 Apr 2015 18:27:39 +0300
 > 
-> Sorry, do you mean the driver already doesn't get WC? Or do you mean
-> after some more pending patches are applied?
+> Call mad_rpc_close_port in all corner cases.
+> This is needed so fds are not leaked with ibsim.
+> 
+> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  src/vendstat.c |   82 ++++++++++++++++++++++++++++++++++++--------------------
+>  1 files changed, 53 insertions(+), 29 deletions(-)
+> 
+> diff --git a/src/vendstat.c b/src/vendstat.c
+> index 11ee73e..baade3e 100644
+> --- a/src/vendstat.c
+> +++ b/src/vendstat.c
+> @@ -172,13 +172,14 @@ static int do_vendor(ib_portid_t *portid, struct ibmad_port *srcport,
+>  	call.attrid = attr_id;
+>  	call.mod = attr_mod;
+>  
+> -	if (!ib_vendor_call_via(data, portid, &call, srcport))
+> -		IBEXIT("vendstat: method %u, attribute %u", method, attr_id);
+> -
+> +	if (!ib_vendor_call_via(data, portid, &call, srcport)) {
+> +		fprintf(stderr,"vendstat: method %u, attribute %u failure\n", method, attr_id);
 
-No, you have to consider the system used and the effects of calls used
-on the driver in light of this table:
+We lose the function information when not calling IBEXIT.
 
-----------------------------------------------------------------------
-MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
-----------------------------------------------------------------------
-                                                  Non-PAT |  PAT
-     PAT
-     |PCD
-     ||PWT
-     |||
-WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
-WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
-WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
-WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
-----------------------------------------------------------------------
+Can you create a new MACRO in ibdiag_comon.h called IBERROR?  And preserve this
+information.
 
-(*) denotes implementation defined and is discouraged
+Same comment throughout,
+Ira
 
-ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
-in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
-the default. When that flip occurs it will mean ipath cannot get
-write-combining on both non-PAT and PAT systems. Now that is for
-the future, lets review the current situation for ipath.
-
-For PAT capable systems if mtrr_add() is used today on a Linux system on a
-region mapped with ioremap_nocache() that will mean you effectively nullify the
-mtrr_add() effect as the combinatorial effect above yields an effective memory
-type of UC.  For PAT systems you want to use ioremap_wc() on the region in
-which you need write-combining followed by arch_phys_wc_add() which will *only*
-call mtrr_add() *iff* PAT was not enabled. This also means we need to split
-the ioremap'd areas so that the area that is using ioremap_nocache() can never
-get write-combining (_PAGE_CACHE_MODE_UC). The ipath driver needs the regions
-split just as was done for the qib driver.
-
-Now we could just say that leaving things as-is is a non-issue if you are OK
-with non-write-combining effects being the default behaviour left on the ipath
-driver for PAT systems. In that case we can just use arch_phys_wc_add() on the
-driver and while it won't trigger the mtrr_add() on PAT systems it sill won't
-have any effect. We just typically don't want to see use of ioremap_nocache()
-paired with arch_phys_wc_add(), grammatically the correct thing to do is pair
-ioremap_wc() areas with a arch_phys_wc_add() to make the write-combining effects
-on non-PAT systems. If the ipath driver is not going to get he work required
-to split the regions though perhaps we can live with a corner case driver that
-annotates PAT must be disabled on the systems that use it and convert it to
-arch_phys_wc_add() to just help with phasing out of direct use of mtrr_add().
-With this strategy if and when ipath driver gets a split done it would gain WC
-on both PAT and non-PAT.
-
-  Luis
+> +		return -1;
+> +	}
+>  	return 0;
+>  }
+>  
+> -static void do_config_space_records(ib_portid_t *portid, unsigned set,
+> +static int do_config_space_records(ib_portid_t *portid, unsigned set,
+>  				    is3_config_space_t *cs, unsigned records)
+>  {
+>  	unsigned i;
+> @@ -194,17 +195,19 @@ static void do_config_space_records(ib_portid_t *portid, unsigned set,
+>  	if (do_vendor(portid, srcport, IB_MLX_VENDOR_CLASS,
+>  		      set ? IB_MAD_METHOD_SET : IB_MAD_METHOD_GET,
+>  		      IB_MLX_IS3_CONFIG_SPACE_ACCESS, 2 << 22 | records << 16,
+> -		      cs))
+> -		IBEXIT("cannot %s config space records", set ? "set" : "get");
+> -
+> +		      cs)) {
+> +		fprintf(stderr,"cannot %s config space records\n", set ? "set" : "get");
+> +		return -1;
+> +	}
+>  	for (i = 0; i < records; i++) {
+>  		printf("Config space record at 0x%x: 0x%x\n",
+>  		       ntohl(cs->record[i].address),
+>  		       ntohl(cs->record[i].data & cs->record[i].mask));
+>  	}
+> +	return 0;
+>  }
+>  
+> -static void counter_groups_info(ib_portid_t * portid, int port)
+> +static int counter_groups_info(ib_portid_t * portid, int port)
+>  {
+>  	char buf[1024];
+>  	is4_counter_group_info_t *cg_info;
+> @@ -213,15 +216,17 @@ static void counter_groups_info(ib_portid_t * portid, int port)
+>  	/* Counter Group Info */
+>  	memset(&buf, 0, sizeof(buf));
+>  	if (do_vendor(portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+> -		      IB_MLX_IS4_COUNTER_GROUP_INFO, port, buf))
+> -		IBEXIT("counter group info query");
+> -
+> +		      IB_MLX_IS4_COUNTER_GROUP_INFO, port, buf)) {
+> +		fprintf(stderr,"counter group info query failure\n");
+> +		return -1;
+> +	}
+>  	cg_info = (is4_counter_group_info_t *) & buf;
+>  	num_cg = cg_info->num_of_counter_groups;
+>  	printf("counter_group_info:\n");
+>  	printf("%d counter groups\n", num_cg);
+>  	for (i = 0; i < num_cg; i++)
+>  		printf("group%d mask %#x\n", i, ntohl(cg_info->group_masks[i]));
+> +	return 0;
+>  }
+>  
+>  /* Group0 counter config values */
+> @@ -236,7 +241,7 @@ static void counter_groups_info(ib_portid_t * portid, int port)
+>  
+>  static int cg0, cg1;
+>  
+> -static void config_counter_groups(ib_portid_t * portid, int port)
+> +static int config_counter_groups(ib_portid_t * portid, int port)
+>  {
+>  	char buf[1024];
+>  	is4_config_counter_groups_t *cg_config;
+> @@ -251,15 +256,19 @@ static void config_counter_groups(ib_portid_t * portid, int port)
+>  	cg_config->group_selects[1].group_select = (uint8_t) cg1;
+>  
+>  	if (do_vendor(portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_SET,
+> -		      IB_MLX_IS4_CONFIG_COUNTER_GROUP, port, buf))
+> -		IBEXIT("config counter group set");
+> -
+> +		      IB_MLX_IS4_CONFIG_COUNTER_GROUP, port, buf)) {
+> +		fprintf(stderr, "config counter group set failure\n");
+> +		return -1;
+> +	}
+>  	/* get config counter groups */
+>  	memset(&buf, 0, sizeof(buf));
+>  
+>  	if (do_vendor(portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+> -		      IB_MLX_IS4_CONFIG_COUNTER_GROUP, port, buf))
+> -		IBEXIT("config counter group query");
+> +		      IB_MLX_IS4_CONFIG_COUNTER_GROUP, port, buf)) {
+> +		fprintf(stderr, "config counter group query failure\n");
+> +		return -1;
+> +	}
+> +	return 0;
+>  }
+>  
+>  static int general_info, xmit_wait, counter_group_info, config_counter_group;
+> @@ -364,20 +373,26 @@ int main(int argc, char **argv)
+>  
+>  	if (argc) {
+>  		if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+> -				       ibd_dest_type, ibd_sm_id, srcport) < 0)
+> +				       ibd_dest_type, ibd_sm_id, srcport) < 0) {
+> +			mad_rpc_close_port(srcport);
+>  			IBEXIT("can't resolve destination port %s", argv[0]);
+> +		}
+>  	} else {
+> -		if (resolve_self(ibd_ca, ibd_ca_port, &portid, &port, 0) < 0)
+> +		if (resolve_self(ibd_ca, ibd_ca_port, &portid, &port, 0) < 0) {
+> +			mad_rpc_close_port(srcport);
+>  			IBEXIT("can't resolve self port %s", argv[0]);
+> +		}
+>  	}
+>  
+>  	if (counter_group_info) {
+>  		counter_groups_info(&portid, port);
+> +		mad_rpc_close_port(srcport);
+>  		exit(0);
+>  	}
+>  
+>  	if (config_counter_group) {
+>  		config_counter_groups(&portid, port);
+> +		mad_rpc_close_port(srcport);
+>  		exit(0);
+>  	}
+>  
+> @@ -388,6 +403,7 @@ int main(int argc, char **argv)
+>  		if (write_cs_records)
+>  			do_config_space_records(&portid, 1, &write_cs,
+>  						write_cs_records);
+> +		mad_rpc_close_port(srcport);
+>  		exit(0);
+>  	}
+>  
+> @@ -395,23 +411,27 @@ int main(int argc, char **argv)
+>  	/* but vendors change the VendorId so how know for sure ? */
+>  	/* Only General Info and Port Xmit Wait Counters */
+>  	/* queries are currently supported */
+> -	if (!general_info && !xmit_wait)
+> +	if (!general_info && !xmit_wait) {
+> +		mad_rpc_close_port(srcport);
+>  		IBEXIT("at least one of -N and -w must be specified");
+> -
+> +	}
+>  	/* Would need a list of these and it might not be complete */
+>  	/* so for right now, punt on this */
+>  
+>  	/* vendor ClassPortInfo is required attribute if class supported */
+>  	memset(&buf, 0, sizeof(buf));
+>  	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+> -		      CLASS_PORT_INFO, 0, buf))
+> +		      CLASS_PORT_INFO, 0, buf)) {
+> +		mad_rpc_close_port(srcport);
+>  		IBEXIT("classportinfo query");
+> -
+> +	}
+>  	memset(&buf, 0, sizeof(buf));
+>  	gi_is3 = (is3_general_info_t *) &buf;
+>  	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+> -		      IB_MLX_IS3_GENERAL_INFO, 0, gi_is3))
+> +		      IB_MLX_IS3_GENERAL_INFO, 0, gi_is3)) {
+> +		mad_rpc_close_port(srcport);
+>  		IBEXIT("generalinfo query");
+> +	}
+>  
+>  	if (is_ext_fw_info_supported(ntohs(gi_is3->hw_info.device_id))) {
+>  		gi_is4 = (is4_general_info_t *) &buf;
+> @@ -452,10 +472,11 @@ int main(int argc, char **argv)
+>  		is3_config_space_t *cs;
+>  		unsigned i;
+>  
+> -		if (ntohs(gi_is3->hw_info.device_id) != IS3_DEVICE_ID)
+> +		if (ntohs(gi_is3->hw_info.device_id) != IS3_DEVICE_ID) {
+> +			mad_rpc_close_port(srcport);
+>  			IBEXIT("Unsupported device ID 0x%x",
+>  				ntohs(gi_is3->hw_info.device_id));
+> -
+> +		}
+>  		memset(&buf, 0, sizeof(buf));
+>  		/* Set record addresses for each port */
+>  		cs = (is3_config_space_t *) & buf;
+> @@ -464,9 +485,10 @@ int main(int argc, char **argv)
+>  			    htonl(IB_MLX_IS3_PORT_XMIT_WAIT + ((i + 1) << 12));
+>  		if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS,
+>  			      IB_MAD_METHOD_GET, IB_MLX_IS3_CONFIG_SPACE_ACCESS,
+> -			      2 << 22 | 16 << 16, cs))
+> +			      2 << 22 | 16 << 16, cs)) {
+> +			mad_rpc_close_port(srcport);
+>  			IBEXIT("vendstat");
+> -
+> +		}
+>  		for (i = 0; i < 16; i++)
+>  			if (cs->record[i].data)	/* PortXmitWait is 32 bit counter */
+>  				printf("Port %d: PortXmitWait 0x%x\n", i + 4, ntohl(cs->record[i].data));	/* port 4 is first port */
+> @@ -480,8 +502,10 @@ int main(int argc, char **argv)
+>  			    htonl(IB_MLX_IS3_PORT_XMIT_WAIT + ((i + 17) << 12));
+>  		if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS,
+>  			      IB_MAD_METHOD_GET, IB_MLX_IS3_CONFIG_SPACE_ACCESS,
+> -			      2 << 22 | 8 << 16, cs))
+> +			      2 << 22 | 8 << 16, cs)) {
+> +			mad_rpc_close_port(srcport);
+>  			IBEXIT("vendstat");
+> +		}
+>  
+>  		for (i = 0; i < 8; i++)
+>  			if (cs->record[i].data)	/* PortXmitWait is 32 bit counter */
+> -- 
+> 1.7.8.2
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
