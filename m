@@ -1,48 +1,98 @@
-From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH v4 2/2] IB/qib: use arch_phys_wc_add()
-Date: Wed, 22 Apr 2015 17:33:48 +0200
-Message-ID: <20150422153348.GD5622@wotan.suse.de>
-References: <1429653035-19424-1-git-send-email-mcgrof@do-not-panic.com>
- <1429653035-19424-3-git-send-email-mcgrof@do-not-panic.com>
- <1429710878.45956.94.camel@redhat.com>
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Date: Wed, 22 Apr 2015 17:54:46 +0200
+Message-ID: <20150422155446.GF5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
+ <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de>
+ <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1429710878.45956.94.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cocci-/FJkirnvOdkvYVN+rsErww@public.gmane.org, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Antonino Daplas <adaplas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>Dave
+In-Reply-To: <20150422152328.GB5622@wotan.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com, infinipath@intel.com, linux-rdma@vger.kernel.org, awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Suresh Siddha <sbsiddha@gmail.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Roland Dreier <roland@purestorage.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>, Davidlohr Bueso <dbueso@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Thomas Gleixner <tglx@linutronix.de>, Ville
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 22, 2015 at 09:54:38AM -0400, Doug Ledford wrote:
-> On Tue, 2015-04-21 at 14:50 -0700, Luis R. Rodriguez wrote:
+On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
+> On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+> > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+> > > > Mike, do you think the time is right to just remove the iPath driver?
+> > > 
+> > > With PAT now being default the driver effectively won't work
+> > > with write-combining on modern kernels. Even if systems are old
+> > > they likely had PAT support, when upgrading kernels PAT will work
+> > > but write-combing won't on ipath.
+> > 
+> > Sorry, do you mean the driver already doesn't get WC? Or do you mean
+> > after some more pending patches are applied?
 > 
-> This:
-> > +	/* MTRR was used if this is non-zero */
-> > +	if (!dd->wc_cookie)
-> >  		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+> No, you have to consider the system used and the effects of calls used
+> on the driver in light of this table:
 > 
-> And this:
-> > +		dd->wc_cookie = arch_phys_wc_add(pioaddr, piolen);
-> > +		if (dd->wc_cookie < 0)
-> > +			ret = -EINVAL;
+> ----------------------------------------------------------------------
+> MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
+> ----------------------------------------------------------------------
+>                                                   Non-PAT |  PAT
+>      PAT
+>      |PCD
+>      ||PWT
+>      |||
+> WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
+> WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
+> WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
+> WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
+> ----------------------------------------------------------------------
 > 
-> don't agree on what wc_cookie will be on error.
+> (*) denotes implementation defined and is discouraged
+> 
+> ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
+> in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
+> the default. When that flip occurs it will mean ipath cannot get
+> write-combining on both non-PAT and PAT systems. Now that is for
+> the future, lets review the current situation for ipath.
+> 
+> For PAT capable systems if mtrr_add() is used today on a Linux system on a
+> region mapped with ioremap_nocache() that will mean you effectively nullify the
+> mtrr_add() effect as the combinatorial effect above yields an effective memory
+> type of UC.  For PAT systems you want to use ioremap_wc() on the region in
+> which you need write-combining followed by arch_phys_wc_add() which will *only*
+> call mtrr_add() *iff* PAT was not enabled. This also means we need to split
+> the ioremap'd areas so that the area that is using ioremap_nocache() can never
+> get write-combining (_PAGE_CACHE_MODE_UC). The ipath driver needs the regions
+> split just as was done for the qib driver.
+> 
+> Now we could just say that leaving things as-is is a non-issue if you are OK
+> with non-write-combining effects being the default behaviour left on the ipath
+> driver for PAT systems. In that case we can just use arch_phys_wc_add() on the
+> driver and while it won't trigger the mtrr_add() on PAT systems it sill won't
+> have any effect. We just typically don't want to see use of ioremap_nocache()
+> paired with arch_phys_wc_add(), grammatically the correct thing to do is pair
+> ioremap_wc() areas with a arch_phys_wc_add() to make the write-combining effects
+> on non-PAT systems. If the ipath driver is not going to get he work required
+> to split the regions though perhaps we can live with a corner case driver that
+> annotates PAT must be disabled on the systems that use it and convert it to
+> arch_phys_wc_add() to just help with phasing out of direct use of mtrr_add().
+> With this strategy if and when ipath driver gets a split done it would gain WC
+> on both PAT and non-PAT.
 
-Can you elaborate? The one below is the one that starts things,
-and arch_phys_wc_add() will return 0 on PAT systems. For non-PAT
-systems it will return a number > 0 *iff* a valid MTRR was added.
-It will return negative onloy on error then.
+Folks, after some thought I do believe the above temporary strategy would
+avoid issues and would not have to stir people up to go and make code
+changes. We can use the same strategy for both ivtv and ipath:
 
-The change above is meant to replace a check put in place to see
-if PAT was enabled. The way we replace this is to ensure that
-arch_phys_wc_add() returned 0.
+  * Annotate via Kconfig for the driver that it depends on !X86_PAT
+    that will ensure that PAT systems won't use it, and convert it
+    to use arch_phys_wc_add() to help phase out direct access to mtrr_add()
 
-If you disagree it'd be great if you can elaborate why.
+This would be correct given that the current situation on the driver
+makes write-combining non-effective on PAT systems, we in fact gain
+avoiding these type of use-cases, and annotate this as a big TODO item
+for folks who do want it for PAT systems.
+
+Thoughts?
 
   Luis
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
