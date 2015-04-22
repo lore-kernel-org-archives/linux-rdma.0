@@ -1,22 +1,22 @@
 From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: [PATCH v5 16/27] IB/Verbs: Use management helper cap_ib_mad()
-Date: Tue, 21 Apr 2015 20:09:00 -0400
-Message-ID: <20150422000859.GP15893@phlsvsds.ph.intel.com>
-References: <5534B8C9.506@profitbricks.com> <5534BB30.9010509@profitbricks.com>
+Subject: Re: [PATCH v5 17/27] IB/Verbs: Use management helper cap_ib_smi()
+Date: Tue, 21 Apr 2015 20:09:15 -0400
+Message-ID: <20150422000914.GQ15893@phlsvsds.ph.intel.com>
+References: <5534B8C9.506@profitbricks.com> <5534BB49.2090101@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5534BB30.9010509@profitbricks.com>
+In-Reply-To: <5534BB49.2090101@profitbricks.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Michael Wang <yun.wang@profitbricks.com>
 Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, hal@dev.mellanox.co.il, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 20, 2015 at 10:39:12AM +0200, Michael Wang wrote:
+On Mon, Apr 20, 2015 at 10:39:37AM +0200, Michael Wang wrote:
 > 
-> Introduce helper cap_ib_mad() to help us check if the port of an
-> IB device support Infiniband Management Datagrams.
+> Introduce helper cap_ib_smi() to help us check if the port of an
+> IB device support Infiniband Subnet Management Interface.
 > 
 > Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
 > Cc: Steve Wise <swise@opengridcomputing.com>
@@ -30,94 +30,58 @@ On Mon, Apr 20, 2015 at 10:39:12AM +0200, Michael Wang wrote:
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
 > ---
->  drivers/infiniband/core/mad.c      |  6 +++---
->  drivers/infiniband/core/user_mad.c |  6 +++---
->  include/rdma/ib_verbs.h            | 15 +++++++++++++++
->  3 files changed, 21 insertions(+), 6 deletions(-)
+>  drivers/infiniband/core/agent.c |  2 +-
+>  drivers/infiniband/core/mad.c   |  2 +-
+>  include/rdma/ib_verbs.h         | 15 +++++++++++++++
+>  3 files changed, 17 insertions(+), 2 deletions(-)
 > 
+> diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
+> index ffdef4d..61471ee 100644
+> --- a/drivers/infiniband/core/agent.c
+> +++ b/drivers/infiniband/core/agent.c
+> @@ -156,7 +156,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
+>  		goto error1;
+>  	}
+>  
+> -	if (rdma_tech_ib(device, port_num)) {
+> +	if (cap_ib_smi(device, port_num)) {
+>  		/* Obtain send only MAD agent for SMI QP */
+>  		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
+>  							    IB_QPT_SMI, NULL, 0,
 > diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 1822932..4315aeb 100644
+> index 4315aeb..ee3a05e 100644
 > --- a/drivers/infiniband/core/mad.c
 > +++ b/drivers/infiniband/core/mad.c
-> @@ -3066,7 +3066,7 @@ static void ib_mad_init_device(struct ib_device *device)
->  	}
+> @@ -2938,7 +2938,7 @@ static int ib_mad_port_open(struct ib_device *device,
+>  	init_mad_qp(port_priv, &port_priv->qp_info[1]);
 >  
->  	for (i = start; i <= end; i++) {
-> -		if (!rdma_ib_or_iboe(device, i))
-> +		if (!cap_ib_mad(device, i))
->  			continue;
->  
->  		if (ib_mad_port_open(device, i)) {
-> @@ -3087,7 +3087,7 @@ error_agent:
->  
->  error:
->  	while (--i >= start) {
-> -		if (!rdma_ib_or_iboe(device, i))
-> +		if (!cap_ib_mad(device, i))
->  			continue;
->  
->  		if (ib_agent_port_close(device, i))
-> @@ -3111,7 +3111,7 @@ static void ib_mad_remove_device(struct ib_device *device)
->  	}
->  
->  	for (i = start; i <= end; i++) {
-> -		if (!rdma_ib_or_iboe(device, i))
-> +		if (!cap_ib_mad(device, i))
->  			continue;
->  
->  		if (ib_agent_port_close(device, i))
-> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-> index 71fc8ba..b52884b 100644
-> --- a/drivers/infiniband/core/user_mad.c
-> +++ b/drivers/infiniband/core/user_mad.c
-> @@ -1294,7 +1294,7 @@ static void ib_umad_add_one(struct ib_device *device)
->  	umad_dev->end_port   = e;
->  
->  	for (i = s; i <= e; ++i) {
-> -		if (!rdma_ib_or_iboe(device, i))
-> +		if (!cap_ib_mad(device, i))
->  			continue;
->  
->  		umad_dev->port[i - s].umad_dev = umad_dev;
-> @@ -1317,7 +1317,7 @@ static void ib_umad_add_one(struct ib_device *device)
->  
->  err:
->  	while (--i >= s) {
-> -		if (!rdma_ib_or_iboe(device, i))
-> +		if (!cap_ib_mad(device, i))
->  			continue;
->  
->  		ib_umad_kill_port(&umad_dev->port[i - s]);
-> @@ -1335,7 +1335,7 @@ static void ib_umad_remove_one(struct ib_device *device)
->  		return;
->  
->  	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i) {
-> -		if (rdma_ib_or_iboe(device, i))
-> +		if (cap_ib_mad(device, i))
->  			ib_umad_kill_port(&umad_dev->port[i]);
->  	}
+>  	cq_size = mad_sendq_size + mad_recvq_size;
+> -	has_smi = rdma_tech_ib(device, port_num);
+> +	has_smi = cap_ib_smi(device, port_num);
+>  	if (has_smi)
+>  		cq_size *= 2;
 >  
 > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index a12e876..624e963 100644
+> index 624e963..873b9a6 100644
 > --- a/include/rdma/ib_verbs.h
 > +++ b/include/rdma/ib_verbs.h
-> @@ -1773,6 +1773,21 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
->  	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+> @@ -1788,6 +1788,21 @@ static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
+>  	return rdma_ib_or_iboe(device, port_num);
 >  }
 >  
 > +/**
-> + * cap_ib_mad - Check if the port of device has the capability Infiniband
-> + * Management Datagrams.
+> + * cap_ib_smi - Check if the port of device has the capability Infiniband
+> + * Subnet Management Interface.
 > + *
 > + * @device: Device to be checked
 > + * @port_num: Port number of the device
 > + *
 > + * Return 0 when port of the device don't support Infiniband
-> + * Management Datagrams.
+> + * Subnet Management Interface.
 > + */
-> +static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
+> +static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
 > +{
-> +	return rdma_ib_or_iboe(device, port_num);
+> +	return rdma_tech_ib(device, port_num);
 > +}
 > +
 >  int ib_query_gid(struct ib_device *device,
