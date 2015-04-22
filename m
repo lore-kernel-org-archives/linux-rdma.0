@@ -1,118 +1,126 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v5 09/27] IB/Verbs: Reform IB-core verbs/uverbs_cmd/sysfs
-Date: Wed, 22 Apr 2015 09:38:57 +0200
-Message-ID: <55375011.7010805@profitbricks.com>
-References: <5534B8C9.506@profitbricks.com> <5534BA7C.2010600@profitbricks.com> <20150421231958.GA15893@phlsvsds.ph.intel.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+Date: Wed, 22 Apr 2015 09:44:56 +0200
+Message-ID: <55375178.7080508@profitbricks.com>
+References: <5534B8C9.506@profitbricks.com> <20150422002850.GB15893@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150421231958.GA15893-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150422002850.GB15893@phlsvsds.ph.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "ira.weiny" <ira.weiny@intel.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, hal@dev.mellanox.co.il, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Ira
 
-Thanks for the review :-)
 
-On 04/22/2015 01:19 AM, ira.weiny wrote:
+On 04/22/2015 02:28 AM, ira.weiny wrote:
 [snip]
->> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
->> index cbd0383..8570180 100644
->> --- a/drivers/infiniband/core/sysfs.c
->> +++ b/drivers/infiniband/core/sysfs.c
->> @@ -248,14 +248,10 @@ static ssize_t phys_state_show(struct ib_port *p, struct port_attribute *unused,
->>  static ssize_t link_layer_show(struct ib_port *p, struct port_attribute *unused,
->>  			       char *buf)
->>  {
->> -	switch (rdma_port_get_link_layer(p->ibdev, p->port_num)) {
->> -	case IB_LINK_LAYER_INFINIBAND:
->> +	if (rdma_tech_ib(p->ibdev, p->port_num))
+>>
+>> Highlights:
+>>     The patch set covered a wide range of IB stuff, thus for those who are
+>>     familiar with the particular part, your suggestion would be invaluable ;-)
+>>
+>>     Patch 1#~15# included all the logical reform, 16#~25# introduced the
+>>     management helpers, 26#~27# do clean up.
+>>
+>>     Patches haven't been tested yet, we appreciate if any one who have these
+>>     HW willing to provide his Tested-by :-)
+>>
+>>     Doug suggested the bitmask mechanism:
+>> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23765.html
+>>     which could be the plan for future reforming, we prefer that to be another
+>>     series which focus on semantic and performance.
+>>
+>>     This patch-set is somewhat 'bloated' now and it may be a good timing for
+>>     staging, I'd like to suggest we focus on improving existed helpers and push
+>>     all the further reforms into next series ;-)
+>>
 > 
-> Is the final intention to remove Link Layer from the rdma stack entirely?
+> Series tested for IPoIB and MAD functionality on qib and mlx4 hardware.
 > 
-> I know that the use of link layer in userspace is just as convoluted as what we
-> are trying to fix here in the kernel.  So it would be nice if we can eventually
-> get user space cleaned up to not use link layer as it currently does.
-> 
-> However, standard networking tools can report the link layer.  So while the
-> current use of "link layer" via userspace software is wrong I don't think it is
-> wrong to report this information _to_ userspace.
-> 
-> So unless we intend to completely hide the link layer from userspace I don't
-> think we should be removing the rdma_port_get_link_layer call.  It is still
-> valid information even though we don't want to use it in most places.
+> Tested-by: Ira Weiny <ira.weiny@intel.com>
 
-This series won't erase the rdma_port_get_link_layer(), although
-currently only mlx4 still using it in kernel...
-
-link_layer_show() was supposed to report the same info to user
-space as usual, so user tool don't have to change anything :-)
+Thanks for the testing :-)
 
 Regards,
 Michael Wang
 
 > 
-> Ira
-> 
->>  		return sprintf(buf, "%s\n", "InfiniBand");
->> -	case IB_LINK_LAYER_ETHERNET:
->> +	else
->>  		return sprintf(buf, "%s\n", "Ethernet");
->> -	default:
->> -		return sprintf(buf, "%s\n", "Unknown");
->> -	}
->>  }
->>  
->>  static PORT_ATTR_RO(state);
->> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
->> index a9f0489..5dc90aa 100644
->> --- a/drivers/infiniband/core/uverbs_cmd.c
->> +++ b/drivers/infiniband/core/uverbs_cmd.c
->> @@ -515,8 +515,10 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
->>  	resp.active_width    = attr.active_width;
->>  	resp.active_speed    = attr.active_speed;
->>  	resp.phys_state      = attr.phys_state;
->> -	resp.link_layer      = rdma_port_get_link_layer(file->device->ib_dev,
->> -							cmd.port_num);
->> +	resp.link_layer      = rdma_tech_ib(file->device->ib_dev,
->> +							cmd.port_num) ?
->> +			       IB_LINK_LAYER_INFINIBAND :
->> +			       IB_LINK_LAYER_ETHERNET;
->>  
->>  	if (copy_to_user((void __user *) (unsigned long) cmd.response,
->>  			 &resp, sizeof resp))
->> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
->> index 626c9cf..7264860 100644
->> --- a/drivers/infiniband/core/verbs.c
->> +++ b/drivers/infiniband/core/verbs.c
->> @@ -200,11 +200,9 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
->>  	u32 flow_class;
->>  	u16 gid_index;
->>  	int ret;
->> -	int is_eth = (rdma_port_get_link_layer(device, port_num) ==
->> -			IB_LINK_LAYER_ETHERNET);
->>  
->>  	memset(ah_attr, 0, sizeof *ah_attr);
->> -	if (is_eth) {
->> +	if (rdma_tech_iboe(device, port_num)) {
->>  		if (!(wc->wc_flags & IB_WC_GRH))
->>  			return -EPROTOTYPE;
->>  
->> @@ -873,7 +871,7 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
->>  	union ib_gid  sgid;
->>  
->>  	if ((*qp_attr_mask & IB_QP_AV)  &&
->> -	    (rdma_port_get_link_layer(qp->device, qp_attr->ah_attr.port_num) == IB_LINK_LAYER_ETHERNET)) {
->> +	    (rdma_tech_iboe(qp->device, qp_attr->ah_attr.port_num))) {
->>  		ret = ib_query_gid(qp->device, qp_attr->ah_attr.port_num,
->>  				   qp_attr->ah_attr.grh.sgid_index, &sgid);
->>  		if (ret)
->> -- 
->> 2.1.0
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> Proposals:
+>>     Sean:
+>> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.html
+>>     Doug:
+>> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23418.html
+>> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23765.html
+>>     Jason:
+>> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23425.html
+>>
+>> Michael Wang (27):
+>>     IB/Verbs: Implement new callback query_transport()
+>>     IB/Verbs: Implement raw management helpers
+>>     IB/Verbs: Reform IB-core mad/agent/user_mad
+>>     IB/Verbs: Reform IB-core cm
+>>     IB/Verbs: Reform IB-core sa_query
+>>     IB/Verbs: Reform IB-core multicast
+>>     IB/Verbs: Reform IB-ulp ipoib
+>>     IB/Verbs: Reform IB-ulp xprtrdma
+>>     IB/Verbs: Reform IB-core verbs/uverbs_cmd/sysfs
+>>     IB/Verbs: Reform cm related part in IB-core cma/ucm
+>>     IB/Verbs: Reform route related part in IB-core cma
+>>     IB/Verbs: Reform mcast related part in IB-core cma
+>>     IB/Verbs: Reserve legacy transport type in 'dev_addr'
+>>     IB/Verbs: Reform cma_acquire_dev()
+>>     IB/Verbs: Reform rest part in IB-core cma
+>>     IB/Verbs: Use management helper cap_ib_mad()
+>>     IB/Verbs: Use management helper cap_ib_smi()
+>>     IB/Verbs: Use management helper cap_ib_cm()
+>>     IB/Verbs: Use management helper cap_iw_cm()
+>>     IB/Verbs: Use management helper cap_ib_sa()
+>>     IB/Verbs: Use management helper cap_ib_mcast()
+>>     IB/Verbs: Use management helper cap_ipoib()
+>>     IB/Verbs: Use management helper cap_read_multi_sge()
+>>     IB/Verbs: Use management helper cap_af_ib()
+>>     IB/Verbs: Use management helper cap_eth_ah()
+>>     IB/Verbs: Clean up rdma_ib_or_iboe()
+>>     IB/Verbs: Cleanup rdma_node_get_transport()
+>>
+>> ---
+>>  drivers/infiniband/core/agent.c              |    4 
+>>  drivers/infiniband/core/cm.c                 |   26 +-
+>>  drivers/infiniband/core/cma.c                |  328 ++++++++++++---------------
+>>  drivers/infiniband/core/device.c             |    1 
+>>  drivers/infiniband/core/mad.c                |   51 ++--
+>>  drivers/infiniband/core/multicast.c          |   18 -
+>>  drivers/infiniband/core/sa_query.c           |   41 +--
+>>  drivers/infiniband/core/sysfs.c              |    8 
+>>  drivers/infiniband/core/ucm.c                |    5 
+>>  drivers/infiniband/core/ucma.c               |   27 --
+>>  drivers/infiniband/core/user_mad.c           |   32 +-
+>>  drivers/infiniband/core/uverbs_cmd.c         |    6 
+>>  drivers/infiniband/core/verbs.c              |   33 --
+>>  drivers/infiniband/hw/amso1100/c2_provider.c |    7 
+>>  drivers/infiniband/hw/cxgb3/iwch_provider.c  |    7 
+>>  drivers/infiniband/hw/cxgb4/provider.c       |    7 
+>>  drivers/infiniband/hw/ehca/ehca_hca.c        |    6 
+>>  drivers/infiniband/hw/ehca/ehca_iverbs.h     |    3 
+>>  drivers/infiniband/hw/ehca/ehca_main.c       |    1 
+>>  drivers/infiniband/hw/ipath/ipath_verbs.c    |    7 
+>>  drivers/infiniband/hw/mlx4/main.c            |   10 
+>>  drivers/infiniband/hw/mlx5/main.c            |    7 
+>>  drivers/infiniband/hw/mthca/mthca_provider.c |    7 
+>>  drivers/infiniband/hw/nes/nes_verbs.c        |    6 
+>>  drivers/infiniband/hw/ocrdma/ocrdma_main.c   |    1 
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    6 
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    3 
+>>  drivers/infiniband/hw/qib/qib_verbs.c        |    7 
+>>  drivers/infiniband/hw/usnic/usnic_ib_main.c  |    1 
+>>  drivers/infiniband/hw/usnic/usnic_ib_verbs.c |    6 
+>>  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |    2 
+>>  drivers/infiniband/ulp/ipoib/ipoib_main.c    |   17 -
+>>  include/rdma/ib_verbs.h                      |  204 +++++++++++++++-
+>>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |    6 
+>>  net/sunrpc/xprtrdma/svc_rdma_transport.c     |   51 +---
+>>  35 files changed, 584 insertions(+), 368 deletions(-)
