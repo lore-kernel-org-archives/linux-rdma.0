@@ -1,104 +1,138 @@
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Date: Wed, 22 Apr 2015 19:07:31 +0200
-Message-ID: <20150422170731.GH5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de>
- <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de>
- <20150422053939.GA29609@obsidianresearch.com>
- <20150422152328.GB5622@wotan.suse.de>
- <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Wed, 22 Apr 2015 10:08:31 -0700
+Message-ID: <1429722511-10884-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Mike Marciniszyn <infinipath@intel.com>, linux-rdma@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>, Toshi Kani <toshi.kani@hp.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Suresh Siddha <sbsiddha@gmail.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Roland Dreier <roland@purestorage.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>, Davidlohr Bueso <dbueso@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 22, 2015 at 09:53:03AM -0700, Andy Lutomirski wrote:
-> On Wed, Apr 22, 2015 at 8:23 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
-> >> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
-> >> > > Mike, do you think the time is right to just remove the iPath driver?
-> >> >
-> >> > With PAT now being default the driver effectively won't work
-> >> > with write-combining on modern kernels. Even if systems are old
-> >> > they likely had PAT support, when upgrading kernels PAT will work
-> >> > but write-combing won't on ipath.
-> >>
-> >> Sorry, do you mean the driver already doesn't get WC? Or do you mean
-> >> after some more pending patches are applied?
-> >
-> > No, you have to consider the system used and the effects of calls used
-> > on the driver in light of this table:
-> >
-> > ----------------------------------------------------------------------
-> > MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
-> > ----------------------------------------------------------------------
-> >                                                   Non-PAT |  PAT
-> >      PAT
-> >      |PCD
-> >      ||PWT
-> >      |||
-> > WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
-> > WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
-> > WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
-> > WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
-> > ----------------------------------------------------------------------
-> >
-> > (*) denotes implementation defined and is discouraged
-> >
-> > ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
-> > in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
-> > the default. When that flip occurs it will mean ipath cannot get
-> > write-combining on both non-PAT and PAT systems. Now that is for
-> > the future, lets review the current situation for ipath.
-> >
-> > For PAT capable systems if mtrr_add() is used today on a Linux system on a
-> > region mapped with ioremap_nocache() that will mean you effectively nullify the
-> > mtrr_add() effect as the combinatorial effect above yields an effective memory
-> > type of UC.
-> 
-> Are you sure?
+Hi Linus,
 
-Well lets double check.
+Please pull from
 
->  I thought that ioremap_nocache currently is UC-,
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git=
+ tags/rdma-for-linus
 
-It is.
+----------------------------------------------------------------
+InfiniBand/RDMA updates for 4.1:
+ - IPoIB fixes from Doug Ledford and Erez Shitrit
+ - iSER updates from Sagi Grimberg
+ - mlx4 GUID handling changes from Yishai Hadas
+ - other misc fixes
 
-> so mtrr_add + ioremap_nocache gets WC even on PAT systems.
+----------------------------------------------------------------
+Bart Van Assche (1):
+      IB/srp: Use P_Key cache for P_Key lookups
 
-https://www-ssl.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-manual-325462.pdf
+Doug Ledford (11):
+      IB/ipoib: factor out ah flushing
+      IB/ipoib: change init sequence ordering
+      IB/ipoib: Consolidate rtnl_lock tasks in workqueue
+      IB/ipoib: Make the carrier_on_task race aware
+      IB/ipoib: Use dedicated workqueues per interface
+      IB/ipoib: No longer use flush as a parameter
+      IB/ipoib: fix MCAST_FLAG_BUSY usage
+      IB/ipoib: deserialize multicast joins
+      IB/ipoib: drop mcast_mutex usage
+      ib_srpt: convert printk's to pr_* functions
+      Merge branches 'cve-fixup', 'ipoib', 'iser', 'misc-4.1', 'or-mlx4=
+' and 'srp' into for-4.1
 
-    As per Intel SDM "11.5.2.2 Selecting Memory Types for Pentium
-    III and More Recent Processor Families" the ffect of a WC MTRR
-    for a region with a PAT entry value of UC will be UC. The effect
-    of a WC MTRR on a region with a PAT entry UC- will be WC. The
-    effect of a WC MTRR on a regoin with PAT entry WC is WC.
+Erez Shitrit (6):
+      IB/ipoib: Use one linear skb in RX flow
+      IB/ipoib: Update broadcast record values after each successful jo=
+in request
+      IB/ipoib: Handle QP in SQE state
+      IB/ipoib: Save only IPOIB_MAX_PATH_REC_QUEUE skb's
+      IB/ipoib: Remove IPOIB_MCAST_RUN bit
+      IB/mlx4: Fix WQE LSO segment calculation
 
-And indeed as per table 11-7 mtrr WC on PAT UC- yields WC. So ineed the above
-table needs adjustment for this. So for PAT systems write-combing would be
-effective with mtrr_add(), but once strong UC (_PAGE_CACHE_MODE_UC) is used by
-default for ioremap_nocache() what I mentioned will be true. Furhtermore if we
-switch the drivers to use arch_phys_wc_add() then for sure write-combining will
-also not be effective.
+Honggang LI (1):
+      mlx5: wrong page mask if CONFIG_ARCH_DMA_ADDR_T_64BIT enabled for=
+ 32Bit architectures
 
-Jason, Andy, is the change still a reasonable compromise? We'd just be asking
-users to boot with noat for users for ipath, ivtv until the drivers gets proper
-PAT support with a split.
+Sagi Grimberg (18):
+      IB/iser: Fix unload during ep_poll wrong dereference
+      IB/iser: Handle fastreg/local_inv completion errors
+      IB/iser: Fix wrong calculation of protection buffer length
+      IB/iser: Remove redundant cmd_data_len calculation
+      IB/iser: Remove a redundant struct iser_data_buf
+      IB/iser: Don't pass ib_device to fall_to_bounce_buff routine
+      IB/iser: Move memory reg/dereg routines to iser_memory.c
+      IB/iser: Remove redundant assignments in iser_reg_page_vec
+      IB/iser: Get rid of struct iser_rdma_regd
+      IB/iser: Merge build page-vec into register page-vec
+      IB/iser: Move fastreg descriptor pool get/put to helper functions
+      IB/iser: Move PI context alloc/free to routines
+      IB/iser: Make fastreg pool cache friendly
+      IB/iser: Modify struct iser_mem_reg members
+      IB/iser: Pass struct iser_mem_reg to iser_fast_reg_mr and iser_re=
+g_sig_mr
+      IB/iser: Remove code duplication for a single DMA entry
+      IB/iser: Bump version to 1.6
+      IB/iser: Rewrite bounce buffer code path
 
-There are two motivations for this:
+Sebastian Ott (1):
+      infiniband/mlx4: check for mapping error
 
-  * help move to strong UC as default
-  * bury MTRR
+Selvin Xavier (1):
+      MAINTAINERS: Adding list of maintainers for ocrdma
 
-> Going forward, when mtrr_add is gone, this will change, of course.
+Stephen Hemminger (1):
+      rdma: replace deprecated ifconfig in doc
 
-Indeed.
+S=C3=A9bastien Dugu=C3=A9 (1):
+      ib_uverbs: Fix pages leak when using XRC SRQs
 
-  Luis
+Yann Droneaud (2):
+      IB/core: disallow registering 0-sized memory region
+      IB/core: don't disallow registering region starting at 0x0
+
+Yishai Hadas (9):
+      IB/mlx4: Alias GUID adding persistency support
+      net/mlx4_core: Manage alias GUID per VF
+      net/mlx4_core: Set initial admin GUIDs for VFs
+      IB/mlx4: Manage admin alias GUID upon admin request
+      IB/mlx4: Change init flow to request alias GUIDs for active VFs
+      IB/mlx4: Request alias GUID on demand
+      net/mlx4_core: Raise slave shutdown event upon FLR
+      net/mlx4_core: Return the admin alias GUID upon host view request
+      IB/mlx4: Change alias guids default to be host assigned
+
+ Documentation/filesystems/nfs/nfs-rdma.txt         |   9 +-
+ MAINTAINERS                                        |   9 +
+ drivers/infiniband/core/umem.c                     |   7 +-
+ drivers/infiniband/core/uverbs_main.c              |  22 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c            | 457 +++++++++++++=
+-----
+ drivers/infiniband/hw/mlx4/mad.c                   |   9 +
+ drivers/infiniband/hw/mlx4/main.c                  |  26 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |  14 +-
+ drivers/infiniband/hw/mlx4/qp.c                    |   7 +-
+ drivers/infiniband/hw/mlx4/sysfs.c                 |  44 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h               |  31 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c            |  18 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c            | 195 ++++----
+ drivers/infiniband/ulp/ipoib/ipoib_main.c          |  73 ++-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c     | 520 ++++++++++---=
+-------
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c         |  44 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h           |  66 +--
+ drivers/infiniband/ulp/iser/iser_initiator.c       |  66 ++-
+ drivers/infiniband/ulp/iser/iser_memory.c          | 523 ++++++++++++-=
+--------
+ drivers/infiniband/ulp/iser/iser_verbs.c           | 220 +++------
+ drivers/infiniband/ulp/srp/ib_srp.c                |   9 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c              | 188 ++++----
+ drivers/net/ethernet/mellanox/mlx4/cmd.c           |  42 +-
+ drivers/net/ethernet/mellanox/mlx4/eq.c            |   2 +
+ drivers/net/ethernet/mellanox/mlx4/main.c          |  31 ++
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |   1 +
+ .../net/ethernet/mellanox/mlx5/core/pagealloc.c    |  10 +-
+ include/linux/mlx4/device.h                        |   4 +
+ 28 files changed, 1513 insertions(+), 1134 deletions(-)
