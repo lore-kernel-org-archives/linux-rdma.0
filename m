@@ -1,7 +1,7 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 2/2 infiniband-diags] ibqueryerrors: Resource leak in path_record_query
-Date: Wed, 22 Apr 2015 10:56:57 -0400
-Message-ID: <20150422145656.GD28220@phlsvsds.ph.intel.com>
+Date: Wed, 22 Apr 2015 10:57:51 -0400
+Message-ID: <20150422145750.GE28220@phlsvsds.ph.intel.com>
 References: <55363F50.3050905@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -28,7 +28,6 @@ On Tue, Apr 21, 2015 at 08:15:12AM -0400, Hal Rosenstock wrote:
 Applied Thanks,
 Ira
 
->
 > ---
 >  src/ibqueryerrors.c |   34 +++++++++++++++++++++++++++-------
 >  1 files changed, 27 insertions(+), 7 deletions(-)
