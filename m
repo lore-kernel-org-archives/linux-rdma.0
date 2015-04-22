@@ -1,46 +1,40 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v5 22/27] IB/Verbs: Use management helper cap_ipoib()
-Date: Wed, 22 Apr 2015 11:24:55 -0600
-Message-ID: <20150422172455.GF19500@obsidianresearch.com>
-References: <5534B8C9.506@profitbricks.com>
- <5534BBC2.4010902@profitbricks.com>
- <20150422054058.GB29609@obsidianresearch.com>
- <553760A8.2090802@profitbricks.com>
+Subject: Re: [PATCH v2 01/11] RDMA/CMA: Mark IPv4 addresses correctly when
+ the listener is IPv6
+Date: Wed, 22 Apr 2015 11:29:29 -0600
+Message-ID: <20150422172929.GG19500@obsidianresearch.com>
+References: <1429520622-10303-1-git-send-email-haggaie@mellanox.com>
+ <1429520622-10303-2-git-send-email-haggaie@mellanox.com>
+ <20150420164140.GC7676@obsidianresearch.com>
+ <CAJ3xEMgKFdr68Qt0vNCaf1p4YjPK2KUSn2FdtQVP0SZQ+Y7atg@mail.gmail.com>
+ <20150420200111.GA32449@obsidianresearch.com>
+ <5536232F.3050707@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <553760A8.2090802-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <5536232F.3050707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 22, 2015 at 10:49:44AM +0200, Michael Wang wrote:
-> 
-> On 04/22/2015 07:40 AM, Jason Gunthorpe wrote:
-> > On Mon, Apr 20, 2015 at 10:41:38AM +0200, Michael Wang wrote:
-> >  
-> >> Introduce helper cap_ipoib() to help us check if the port of an
-> >> IB device support IP over Infiniband.
-> > 
-> > I thought we were dropping this in favor of listing the actual
-> > features the ULP required unconditionally? One of my messages had the
-> > start of a list..
-> 
-> Shall we drop it now or wait until the mechanism introduced?
-> 
-> Just wondering the requirement of ULP could be similar to the
-> requirement of management, isn't it? if the device can tell
-> which ULP it support, then may be a cap_XX() make sense in here?
+On Tue, Apr 21, 2015 at 01:15:11PM +0300, Haggai Eran wrote:
 
-You have to audit the ipoib dirver and see what core functions it
-calls that have cap requirements themselves.
+> That's correct. We didn't address it because it was part of the existing
+> code. Anyway, in a later patch in this series we move this code from the
+> CMA to the CM module.
 
-At least SA, multicast and CM. It also requires cap_ib_ah() or
-whatever we called that.
+Just so we are all on the same page in the future:
+ - Don't half fix bugs: 'part of the existing code' is not an excuse.
+ - Don't mix clearly independent bug fixes into a patch series.
 
-JAson
+> Fixes: e51060f08a61 ("IB: IP address based RDMA connection manager")
+> Tested-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
