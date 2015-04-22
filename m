@@ -1,83 +1,74 @@
-From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+From: Doug Ledford <dledford@redhat.com>
 Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Date: Wed, 22 Apr 2015 21:05:20 +0200
-Message-ID: <20150422190520.GL5622@wotan.suse.de>
+Date: Wed, 22 Apr 2015 15:10:41 -0400
+Message-ID: <1429729841.121496.15.camel@redhat.com>
 References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de>
- <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de>
- <20150422053939.GA29609@obsidianresearch.com>
- <20150422152328.GB5622@wotan.suse.de>
- <20150422161755.GA19500@obsidianresearch.com>
- <1429728791.121496.10.camel@redhat.com>
+	 <20150421224601.GY5622@wotan.suse.de>
+	 <20150421225732.GA17356@obsidianresearch.com>
+	 <20150421233907.GA5622@wotan.suse.de>
+	 <20150422053939.GA29609@obsidianresearch.com>
+	 <20150422152328.GB5622@wotan.suse.de>
+	 <20150422161755.GA19500@obsidianresearch.com>
+	 <1429728791.121496.10.camel@redhat.com>
+	 <20150422190520.GL5622@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1429728791.121496.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-dCjLMPsKMR7z2C2qa+3g"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150422190520.GL5622@wotan.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com, infinipath@intel.com, linux-rdma@vger.kernel.org, awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Suresh Siddha <sbsiddha@gmail.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Roland Dreier <roland@purestorage.com>, Juergen Gross <jgross@suse.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>, Davidlohr Bueso <dbueso@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 22, 2015 at 02:53:11PM -0400, Doug Ledford wrote:
-> On Wed, 2015-04-22 at 10:17 -0600, Jason Gunthorpe wrote:
-> > On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
-> > > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
-> > > > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
-> > > > > > Mike, do you think the time is right to just remove the iPath driver?
-> > > > > 
-> > > > > With PAT now being default the driver effectively won't work
-> > > > > with write-combining on modern kernels. Even if systems are old
-> > > > > they likely had PAT support, when upgrading kernels PAT will work
-> > > > > but write-combing won't on ipath.
-> > > > 
-> > > > Sorry, do you mean the driver already doesn't get WC? Or do you mean
-> > > > after some more pending patches are applied?
-> > > 
-> > > No, you have to consider the system used and the effects of calls used
-> > > on the driver in light of this table:
-> > 
-> > So, just to be clear:
-> > 
-> > At some point Linux started setting the PAT bits during
-> > ioremap_nocache, which overrides MTRR, and at that point the driver
-> > became broken on all PAT capable systems?
-> > 
-> > Not only that, but we've only just noticed it now, and no user ever
-> > complained?
-> > 
-> > So that means either no users exist, or all users are on non-PAT
-> > systems?
-> > 
-> > This driver only works on x86-64 systems. Are there any x86-64 systems
-> > that are not PAT capable? IIRC even the first Opteron had PAT, but my
-> > memory is fuzzy from back then :|
-> > 
-> > > Another option in order to enable this type of checks at run time
-> > > and still be able to build the driver on standard distributions and
-> > > just prevent if from loading on PAT systems is to have some code in
-> > > place which would prevent the driver from loading if PAT was
-> > > enabled, this would enable folks to disable PAT via a kernel command
-> > > line option, and if that was used then the driver probe would
-> > > complete.
-> > 
-> > This seems like a reasonble option to me. At the very least we might
-> > learn if anyone is still using these cards.
-> > 
-> > I'd also love to remove the driver if it turns out there are actually
-> > no users. qib substantially replaces it except for a few very old
-> > cards.
-> 
-> To be precise, the split is that ipath powers the old HTX bus cards that
-> only work in AMD systems,
 
-Do those systems have PAT support? CAn anyone check if PAT is enabled
-if booted on a recent kernel?
+--=-dCjLMPsKMR7z2C2qa+3g
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2015-04-22 at 21:05 +0200, Luis R. Rodriguez wrote:
+
+> > > I'd also love to remove the driver if it turns out there are actually
+> > > no users. qib substantially replaces it except for a few very old
+> > > cards.
+> >=20
+> > To be precise, the split is that ipath powers the old HTX bus cards tha=
+t
+> > only work in AMD systems,
+>=20
+> Do those systems have PAT support? CAn anyone check if PAT is enabled
+> if booted on a recent kernel?
+
+I don't have one of these systems any more.  The *only* one I ever had
+was a monster IBM box...I can't even find a reference to it any more.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
 
- Luis
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=-dCjLMPsKMR7z2C2qa+3g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVN/IxAAoJELgmozMOVy/du3IP/0Jpym1XlEaHbs8VPW5eIUeo
+nBmjI+u83HHMdlRCxRUmVK0gPTaenrb1DrJamOd7pLPJpUnjHkwtJXDWCwUabtws
+Thf2UfXuTto2vVsrAeTjh7F2d/rZALxpbkUFVtbD+gnXY+ahLNaR483X1YxUQJdW
+E6mm/C8HYt1ULIPO8b3I6yCzTZ9T6JLliSL0P5A5KTTbCM4jp6U58MHH/Bchsydr
+EtsEe22MViZGecr1vk/gXS0cFSGrQZDIExiNHlBPf+N1OlxXRCoub3yz9DcwTSAR
+Fe3poICUtYsy3TYUjYyj48AvrJr3bvgenAlwMYVmA2aqd3DEzDj9sQ6s+fMWjp/R
+vg5PAuxxqMvcv7hXi4mGfuB1Z9HnK9aP3Hp2sds6eK9rj2Gd2WQmqWlgMgVbHk/i
+3G/NIZJjg3dobC2kZJuphNUgh7Exp1v9pVHjSnf4yekcGXsLDqiX6XOJ38z7vmkO
+KtyMT//On8RxbCHB05pOf22zts5skuD8Z37kEAiV3taJt3r2Jh6tXXdv3LaR/E4o
+dXk8DDKoyht5lKTfPk8CcGqtwQZGNwaBk0qQQ2i4D8oPbMd7Pf/REDxZx1uMF0MS
+dEZolMpUfGkamtS/bmiY3vCwOKHWSeT8+MwVqbiue2MX8zO02o4c8sIElHDWJoSj
+q/f0BgRKCKwzM3R8zPr2
+=MKRB
+-----END PGP SIGNATURE-----
+
+--=-dCjLMPsKMR7z2C2qa+3g--
