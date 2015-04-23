@@ -1,61 +1,56 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v5 22/27] IB/Verbs: Use management helper cap_ipoib()
-Date: Thu, 23 Apr 2015 09:53:06 +0200
-Message-ID: <5538A4E2.5020900@profitbricks.com>
-References: <5534B8C9.506@profitbricks.com> <5534BBC2.4010902@profitbricks.com> <20150422054058.GB29609@obsidianresearch.com> <553760A8.2090802@profitbricks.com> <20150422172455.GF19500@obsidianresearch.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+Date: Thu, 23 Apr 2015 10:36:57 +0200
+Message-ID: <5538AF29.2080901@profitbricks.com>
+References: <5534B8C9.506@profitbricks.com> <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com> <1429714792.45956.110.camel@redhat.com> <20150422165724.GC19500@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150422172455.GF19500-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150422165724.GC19500@obsidianresearch.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Cc: Liran Liss <liranl@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hal@dev.mellanox.co.il" <hal@dev.mellanox.co.il>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 04/22/2015 07:24 PM, Jason Gunthorpe wrote:
-> On Wed, Apr 22, 2015 at 10:49:44AM +0200, Michael Wang wrote:
->>
->> On 04/22/2015 07:40 AM, Jason Gunthorpe wrote:
->>> On Mon, Apr 20, 2015 at 10:41:38AM +0200, Michael Wang wrote:
->>>  
->>>> Introduce helper cap_ipoib() to help us check if the port of an
->>>> IB device support IP over Infiniband.
->>>
->>> I thought we were dropping this in favor of listing the actual
->>> features the ULP required unconditionally? One of my messages had the
->>> start of a list..
->>
->> Shall we drop it now or wait until the mechanism introduced?
->>
->> Just wondering the requirement of ULP could be similar to the
->> requirement of management, isn't it? if the device can tell
->> which ULP it support, then may be a cap_XX() make sense in here?
+On 04/22/2015 06:57 PM, Jason Gunthorpe wrote:
+> On Wed, Apr 22, 2015 at 10:59:52AM -0400, Doug Ledford wrote:
 > 
-> You have to audit the ipoib dirver and see what core functions it
-> calls that have cap requirements themselves.
+>>> 2)The name rdma_tech_* is lame.
+>>> rdma_transport_*(), adhering to the above (*) remark, is much better.
+>>> For example, both IB and ROCE *do* use the same transport. 
+>>
+>> I especially want to second this.  I haven't really been happy with the
+>> rdma_tech_* names at all.
 > 
-> At least SA, multicast and CM. It also requires cap_ib_ah() or
-> whatever we called that.
+> I'm not excited about the names either..
+> 
+> cap_ is bad because it pollutes the global namespace.
+> 
+> rdma_tech_ .. as used, this is selecting the standard the port
+> implements. The word 'standard' is a better choice than 'transport',
+> and 'technology' is often synonymous with 'standard'. Meh.
+> 
+> I've said it already, but this patch set has probably gotten too
+> big. If we could just do the cap conversion without messing with other
+> stuff, or adding rdma_tech, that would really be the best.
+> 
+> Nobody seems to like the rdma_tech parts of this series.
+> 
+> I'd also drop '[PATCH v5 09/27] IB/Verbs: Reform IB-core
+> verbs/uverbs_cmd/sysfs' - that is UAPI stuff, it could be done as a
+> followup someday, not worth the risk right now.
 
-I get your point :-) I'd like to suggest we put these in different threads:
-
-1. bitmask reform
-2. ulp check mechanism
-3. naming (i think it'll be a really big discussion :-P)
-
-Separate them can help us focus on a particular topic at once, and the
-purpose of patches will be more clear ;-)
+There won't be risk... the logical is clear that they will return
+the same result, but I'll drop the modification on link_layer_show()
+and ib_uverbs_query_port() anyway, since they are just try to get the
+link-layer type and we are not going to erase that helper anymore.
 
 Regards,
 Michael Wang
 
 > 
-> JAson
+> Jason
 > 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
