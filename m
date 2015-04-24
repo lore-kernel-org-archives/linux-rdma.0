@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v6 17/26] IB/Verbs: Use management helper cap_ib_smi()
-Date: Fri, 24 Apr 2015 14:23:41 +0200
-Message-ID: <1429878230-11749-18-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v6 14/26] IB/Verbs: Reform cma_acquire_dev()
+Date: Fri, 24 Apr 2015 14:23:38 +0200
+Message-ID: <1429878230-11749-15-git-send-email-yun.wang@profitbricks.com>
 References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
@@ -10,8 +10,8 @@ To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Ro
 Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce helper cap_ib_smi() to help us check if the port of an
-IB device support Infiniband Subnet Management Interface.
+Reform cma_acquire_dev() with management helpers, introduce
+cma_validate_port() to make the code more clean.
 
 Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
 Cc: Steve Wise <swise@opengridcomputing.com>
@@ -22,62 +22,113 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/agent.c |  2 +-
- drivers/infiniband/core/mad.c   |  2 +-
- include/rdma/ib_verbs.h         | 15 +++++++++++++++
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cma.c | 68 +++++++++++++++++++++++++------------------
+ 1 file changed, 40 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
-index ffdef4d..61471ee 100644
---- a/drivers/infiniband/core/agent.c
-+++ b/drivers/infiniband/core/agent.c
-@@ -156,7 +156,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
- 		goto error1;
- 	}
- 
--	if (rdma_tech_ib(device, port_num)) {
-+	if (cap_ib_smi(device, port_num)) {
- 		/* Obtain send only MAD agent for SMI QP */
- 		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
- 							    IB_QPT_SMI, NULL, 0,
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 4315aeb6..ee3a05e 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -2938,7 +2938,7 @@ static int ib_mad_port_open(struct ib_device *device,
- 	init_mad_qp(port_priv, &port_priv->qp_info[1]);
- 
- 	cq_size = mad_sendq_size + mad_recvq_size;
--	has_smi = rdma_tech_ib(device, port_num);
-+	has_smi = cap_ib_smi(device, port_num);
- 	if (has_smi)
- 		cq_size *= 2;
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 624e963..873b9a6 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1788,6 +1788,21 @@ static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
- 	return rdma_ib_or_iboe(device, port_num);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index e47284e..b80495c 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -370,18 +370,35 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
+ 	return ret;
  }
  
-+/**
-+ * cap_ib_smi - Check if the port of device has the capability Infiniband
-+ * Subnet Management Interface.
-+ *
-+ * @device: Device to be checked
-+ * @port_num: Port number of the device
-+ *
-+ * Return 0 when port of the device don't support Infiniband
-+ * Subnet Management Interface.
-+ */
-+static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
++static inline int cma_validate_port(struct ib_device *device, u8 port,
++				      union ib_gid *gid, int dev_type)
 +{
-+	return rdma_tech_ib(device, port_num);
++	u8 found_port;
++	int ret = -ENODEV;
++
++	if ((dev_type == ARPHRD_INFINIBAND) && !rdma_tech_ib(device, port))
++		return ret;
++
++	if ((dev_type != ARPHRD_INFINIBAND) && rdma_tech_ib(device, port))
++		return ret;
++
++	ret = ib_find_cached_gid(device, gid, &found_port, NULL);
++	if (port != found_port)
++		return -ENODEV;
++
++	return ret;
 +}
 +
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid);
+ static int cma_acquire_dev(struct rdma_id_private *id_priv,
+ 			   struct rdma_id_private *listen_id_priv)
+ {
+ 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+ 	struct cma_device *cma_dev;
+-	union ib_gid gid, iboe_gid;
++	union ib_gid gid, iboe_gid, *gidp;
+ 	int ret = -ENODEV;
+-	u8 port, found_port;
+-	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
+-		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
++	u8 port;
  
+-	if (dev_ll != IB_LINK_LAYER_INFINIBAND &&
++	if (dev_addr->dev_type != ARPHRD_INFINIBAND &&
+ 	    id_priv->id.ps == RDMA_PS_IPOIB)
+ 		return -EINVAL;
+ 
+@@ -391,41 +408,36 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
+ 
+ 	memcpy(&gid, dev_addr->src_dev_addr +
+ 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
+-	if (listen_id_priv &&
+-	    rdma_port_get_link_layer(listen_id_priv->id.device,
+-				     listen_id_priv->id.port_num) == dev_ll) {
++
++	if (listen_id_priv) {
+ 		cma_dev = listen_id_priv->cma_dev;
+ 		port = listen_id_priv->id.port_num;
+-		if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
+-		    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
+-			ret = ib_find_cached_gid(cma_dev->device, &iboe_gid,
+-						 &found_port, NULL);
+-		else
+-			ret = ib_find_cached_gid(cma_dev->device, &gid,
+-						 &found_port, NULL);
++		gidp = rdma_tech_iboe(cma_dev->device, port) ?
++		       &iboe_gid : &gid;
+ 
+-		if (!ret && (port  == found_port)) {
+-			id_priv->id.port_num = found_port;
++		ret = cma_validate_port(cma_dev->device, port, gidp,
++					dev_addr->dev_type);
++		if (!ret) {
++			id_priv->id.port_num = port;
+ 			goto out;
+ 		}
+ 	}
++
+ 	list_for_each_entry(cma_dev, &dev_list, list) {
+ 		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port) {
+ 			if (listen_id_priv &&
+ 			    listen_id_priv->cma_dev == cma_dev &&
+ 			    listen_id_priv->id.port_num == port)
+ 				continue;
+-			if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
+-				if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
+-				    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
+-					ret = ib_find_cached_gid(cma_dev->device, &iboe_gid, &found_port, NULL);
+-				else
+-					ret = ib_find_cached_gid(cma_dev->device, &gid, &found_port, NULL);
+-
+-				if (!ret && (port == found_port)) {
+-					id_priv->id.port_num = found_port;
+-					goto out;
+-				}
++
++			gidp = rdma_tech_iboe(cma_dev->device, port) ?
++			       &iboe_gid : &gid;
++
++			ret = cma_validate_port(cma_dev->device, port, gidp,
++						dev_addr->dev_type);
++			if (!ret) {
++				id_priv->id.port_num = port;
++				goto out;
+ 			}
+ 		}
+ 	}
 -- 
 2.1.0
