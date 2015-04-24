@@ -1,76 +1,103 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v6 26/26] IB/Verbs: Cleanup rdma_node_get_transport()
-Date: Fri, 24 Apr 2015 14:23:50 +0200
-Message-ID: <1429878230-11749-27-git-send-email-yun.wang@profitbricks.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH v6 25/26] IB/Verbs: Clean up rdma_ib_or_iboe()
+Date: Fri, 24 Apr 2015 14:23:49 +0200
+Message-ID: <1429878230-11749-26-git-send-email-yun.wang@profitbricks.com>
 References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We have get rid of all the scene using legacy rdma_node_get_transport(),
-now clean it up.
+We have finished introducing the cap_XX(), and raw helper rdma_ib_or_iboe()
+is no longer necessary, thus clean it up.
 
-Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 21 ---------------------
- include/rdma/ib_verbs.h         |  3 ---
- 2 files changed, 24 deletions(-)
+ include/rdma/ib_verbs.h                  | 19 +++++++++----------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  6 ++++--
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 44e25c1..7dc08b1 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -107,27 +107,6 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate)
- }
- EXPORT_SYMBOL(ib_rate_to_mbps);
- 
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type)
--{
--	switch (node_type) {
--	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
--		return RDMA_TRANSPORT_IB;
--	case RDMA_NODE_RNIC:
--		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
--	case RDMA_NODE_USNIC_UDP:
--		return RDMA_TRANSPORT_USNIC_UDP;
--	default:
--		BUG();
--		return 0;
--	}
--}
--EXPORT_SYMBOL(rdma_node_get_transport);
--
- enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
- {
- 	if (device->get_link_layer)
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0def4e1..d051500 100644
+index f122df9..0def4e1 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -84,9 +84,6 @@ enum rdma_transport_type {
- 	RDMA_TRANSPORT_IBOE,
- };
+@@ -1766,13 +1766,6 @@ static inline int rdma_tech_iwarp(struct ib_device *device, u8 port_num)
+ 			== RDMA_TRANSPORT_IWARP;
+ }
  
--__attribute_const__ enum rdma_transport_type
--rdma_node_get_transport(enum rdma_node_type node_type);
+-static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
+-{
+-	enum rdma_transport_type tp = device->query_transport(device, port_num);
 -
- enum rdma_link_layer {
- 	IB_LINK_LAYER_UNSPECIFIED,
- 	IB_LINK_LAYER_INFINIBAND,
+-	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+-}
+-
+ /**
+  * cap_ib_mad - Check if the port of device has the capability Infiniband
+  * Management Datagrams.
+@@ -1785,7 +1778,9 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
+  */
+ static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
+ {
+-	return rdma_ib_or_iboe(device, port_num);
++	enum rdma_transport_type tp = device->query_transport(device, port_num);
++
++	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+ }
+ 
+ /**
+@@ -1815,7 +1810,9 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
+  */
+ static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
+ {
+-	return rdma_ib_or_iboe(device, port_num);
++	enum rdma_transport_type tp = device->query_transport(device, port_num);
++
++	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+ }
+ 
+ /**
+@@ -1875,7 +1872,9 @@ static inline int cap_ib_mcast(struct ib_device *device, u8 port_num)
+  */
+ static inline int cap_af_ib(struct ib_device *device, u8 port_num)
+ {
+-	return rdma_ib_or_iboe(device, port_num);
++	enum rdma_transport_type tp = device->query_transport(device, port_num);
++
++	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
+ }
+ 
+ /**
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index a09b7a1..8af6f92 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -987,8 +987,10 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	 */
+ 	if (!rdma_tech_iwarp(newxprt->sc_cm_id->device,
+ 			     newxprt->sc_cm_id->port_num) &&
+-	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
+-			     newxprt->sc_cm_id->port_num))
++	    !rdma_tech_ib(newxprt->sc_cm_id->device,
++			  newxprt->sc_cm_id->port_num) &&
++	    !rdma_tech_iboe(newxprt->sc_cm_id->device,
++			    newxprt->sc_cm_id->port_num))
+ 		goto errout;
+ 
+ 	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
 -- 
 2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
