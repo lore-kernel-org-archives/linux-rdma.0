@@ -1,125 +1,75 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v6 05/26] IB/Verbs: Reform IB-core sa_query
-Date: Fri, 24 Apr 2015 14:23:29 +0200
-Message-ID: <1429878230-11749-6-git-send-email-yun.wang@profitbricks.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: [PATCH v6 15/26] IB/Verbs: Reform rest part in IB-core cma
+Date: Fri, 24 Apr 2015 14:23:39 +0200
+Message-ID: <1429878230-11749-16-git-send-email-yun.wang@profitbricks.com>
 References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Use raw management helpers to reform IB-core sa_query.
+Use raw management helpers to reform rest part in IB-core cma.
 
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/sa_query.c | 30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/cma.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index c38f030..96adf8c 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
- 		struct ib_sa_port *port =
- 			&sa_dev->port[event->element.port_num - sa_dev->start_port];
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index b80495c..a20566e 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -468,10 +468,10 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	pkey = ntohs(addr->sib_pkey);
  
--		if (rdma_port_get_link_layer(handler->device, port->port_num) != IB_LINK_LAYER_INFINIBAND)
-+		if (WARN_ON(!rdma_tech_ib(handler->device, port->port_num)))
- 			return;
- 
- 		spin_lock_irqsave(&port->ah_lock, flags);
-@@ -540,7 +540,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 	ah_attr->port_num = port_num;
- 	ah_attr->static_rate = rec->rate;
- 
--	force_grh = rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_ETHERNET;
-+	force_grh = rdma_tech_iboe(device, port_num);
- 
- 	if (rec->hop_limit > 1 || force_grh) {
- 		ah_attr->ah_flags = IB_AH_GRH;
-@@ -1153,9 +1153,7 @@ static void ib_sa_add_one(struct ib_device *device)
- {
- 	struct ib_sa_device *sa_dev;
- 	int s, e, i;
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+-		if (rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
+-			continue;
 -
--	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
--		return;
-+	int count = 0;
- 
- 	if (device->node_type == RDMA_NODE_IB_SWITCH)
- 		s = e = 0;
-@@ -1175,7 +1173,7 @@ static void ib_sa_add_one(struct ib_device *device)
- 
- 	for (i = 0; i <= e - s; ++i) {
- 		spin_lock_init(&sa_dev->port[i].ah_lock);
--		if (rdma_port_get_link_layer(device, i + 1) != IB_LINK_LAYER_INFINIBAND)
-+		if (!rdma_tech_ib(device, i + 1))
- 			continue;
- 
- 		sa_dev->port[i].sm_ah    = NULL;
-@@ -1189,8 +1187,13 @@ static void ib_sa_add_one(struct ib_device *device)
- 			goto err;
- 
- 		INIT_WORK(&sa_dev->port[i].update_task, update_sm_ah);
+ 		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
++			if (!rdma_ib_or_iboe(cur_dev->device, p))
++				continue;
 +
-+		count++;
- 	}
+ 			if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
+ 				continue;
  
-+	if (!count)
-+		goto free;
+@@ -666,10 +666,9 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
+ 	if (ret)
+ 		goto out;
+ 
+-	if (rdma_node_get_transport(id_priv->cma_dev->device->node_type)
+-	    == RDMA_TRANSPORT_IB &&
+-	    rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num)
+-	    == IB_LINK_LAYER_ETHERNET) {
++	BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
 +
- 	ib_set_client_data(device, &sa_client, sa_dev);
++	if (rdma_tech_iboe(id_priv->id.device, id_priv->id.port_num)) {
+ 		ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
  
- 	/*
-@@ -1204,19 +1207,20 @@ static void ib_sa_add_one(struct ib_device *device)
- 	if (ib_register_event_handler(&sa_dev->event_handler))
- 		goto err;
+ 		if (ret)
+@@ -733,11 +732,10 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
+ 	int ret;
+ 	u16 pkey;
  
--	for (i = 0; i <= e - s; ++i)
--		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
-+	for (i = 0; i <= e - s; ++i) {
-+		if (rdma_tech_ib(device, i + 1))
- 			update_sm_ah(&sa_dev->port[i].update_task);
-+	}
+-	if (rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num) ==
+-	    IB_LINK_LAYER_INFINIBAND)
+-		pkey = ib_addr_get_pkey(dev_addr);
+-	else
++	if (rdma_tech_iboe(id_priv->id.device, id_priv->id.port_num))
+ 		pkey = 0xffff;
++	else
++		pkey = ib_addr_get_pkey(dev_addr);
  
- 	return;
- 
- err:
--	while (--i >= 0)
--		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
-+	while (--i >= 0) {
-+		if (rdma_tech_ib(device, i + 1))
- 			ib_unregister_mad_agent(sa_dev->port[i].agent);
--
-+	}
-+free:
- 	kfree(sa_dev);
--
- 	return;
- }
- 
-@@ -1233,7 +1237,7 @@ static void ib_sa_remove_one(struct ib_device *device)
- 	flush_workqueue(ib_wq);
- 
- 	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
--		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND) {
-+		if (rdma_tech_ib(device, i + 1)) {
- 			ib_unregister_mad_agent(sa_dev->port[i].agent);
- 			if (sa_dev->port[i].sm_ah)
- 				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
+ 	ret = ib_find_cached_pkey(id_priv->id.device, id_priv->id.port_num,
+ 				  pkey, &qp_attr->pkey_index);
 -- 
 2.1.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
