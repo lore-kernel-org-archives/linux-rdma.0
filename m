@@ -1,15 +1,14 @@
 From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v6 01/26] IB/Verbs: Implement new callback
- query_transport()
-Date: Fri, 24 Apr 2015 15:12:13 +0000
-Message-ID: <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+Subject: RE: [PATCH v6 02/26] IB/Verbs: Implement raw management helpers
+Date: Fri, 24 Apr 2015 15:15:54 +0000
+Message-ID: <DB4PR05MB0863D872E5C4F95C4E01145FB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
 References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
- <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>
+ <1429878230-11749-3-git-send-email-yun.wang@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429878230-11749-2-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1429878230-11749-3-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -18,36 +17,74 @@ List-Id: linux-rdma@vger.kernel.org
 
 > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
 > 
-[snip]
-> a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
-> 65994a1..d54f91e 100644
+> Add raw helpers:
+> 	rdma_tech_ib
+> 	rdma_tech_iboe
+> 	rdma_tech_iwarp
+> 	rdma_ib_or_iboe (transition, clean up later) To help us detect which
+> technology the port supported.
+> 
+
+Replace "rdma_tech_*" with "rdma_protocol_*".
+
+> Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> ---
+>  include/rdma/ib_verbs.h | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
+> d54f91e..a12e876 100644
 > --- a/include/rdma/ib_verbs.h
 > +++ b/include/rdma/ib_verbs.h
-> @@ -75,10 +75,13 @@ enum rdma_node_type {  };
+> @@ -1748,6 +1748,31 @@ int ib_query_port(struct ib_device *device,  enum
+> rdma_link_layer rdma_port_get_link_layer(struct ib_device *device,
+>  					       u8 port_num);
 > 
->  enum rdma_transport_type {
-> +	/* legacy for users */
->  	RDMA_TRANSPORT_IB,
->  	RDMA_TRANSPORT_IWARP,
->  	RDMA_TRANSPORT_USNIC,
-> -	RDMA_TRANSPORT_USNIC_UDP
-> +	RDMA_TRANSPORT_USNIC_UDP,
-> +	/* new transport */
-> +	RDMA_TRANSPORT_IBOE,
+> +static inline int rdma_tech_ib(struct ib_device *device, u8 port_num) {
+> +	return device->query_transport(device, port_num)
+> +			== RDMA_TRANSPORT_IB;
+> +}
+> +
+> +static inline int rdma_tech_iboe(struct ib_device *device, u8 port_num)
+> +{
+> +	return device->query_transport(device, port_num)
+> +			== RDMA_TRANSPORT_IBOE;
 
-Remove RDMA_TRANSPORT_IBOE - it is not a transport.
-ROCE uses IBTA transport.
+Remove RDMA_TRANSPORT_IBOE.
+In the current code, the test should be: (IB transport && Ethernet link layer).
 
-If any code should test for ROCE should invoke a specific helper, e.g., rdma_protocol_iboe().
-This is  what you currently call "rdma_tech_iboe" is patch 02/26.
+We can later consider each provider declaring the transports directly.
 
-I think that pretty much everybody agrees that rdma_protocol_*() is a better name than rdma_tech_*(), right?
-So, let's change this.
+> +}
+> +
+> +static inline int rdma_tech_iwarp(struct ib_device *device, u8
+> +port_num) {
+> +	return device->query_transport(device, port_num)
+> +			== RDMA_TRANSPORT_IWARP;
+> +}
+> +
+> +static inline int rdma_ib_or_iboe(struct ib_device *device, u8
+> +port_num) {
+> +	enum rdma_transport_type tp = device->query_transport(device,
+> +port_num);
+> +
+> +	return (tp == RDMA_TRANSPORT_IB || tp ==
+> RDMA_TRANSPORT_IBOE); }
 
-The semantics are: "check that a link supports a certain wire protocol, or a set of wire protocols", where 'certain'
-refers to the specific helper...
+Remove RDMA_TRANSPORT_IBOE.
+Just test against RDMA_TRANSPORT_IB.
 
-
+> +
+>  int ib_query_gid(struct ib_device *device,
+>  		 u8 port_num, int index, union ib_gid *gid);
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
