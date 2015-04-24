@@ -1,199 +1,152 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v6 03/26] IB/Verbs: Reform IB-core mad/agent/user_mad
-Date: Fri, 24 Apr 2015 14:23:27 +0200
-Message-ID: <1429878230-11749-4-git-send-email-yun.wang@profitbricks.com>
-References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v6 00/26] IB/Verbs: IB Management Helpers
+Date: Fri, 24 Apr 2015 14:23:24 +0200
+Message-ID: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use raw management helpers to reform IB-core mad/agent/user_mad.
+Since v5:
+  * Thanks to Ira, Devesh for the review and testing :-)
+  * Thanks for the comments from Steve, Tom, Jason, Hal, Devesh, Ira,
+    Liran, Jason, Dave :-) Please remind me if anything missed :-P
+  * Trivial fix for 4#
+  * Drop the reform on acquiring link-layer in 9#
+  * Drop cap_ipoib()
 
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/core/agent.c    |  2 +-
- drivers/infiniband/core/mad.c      | 43 +++++++++++++++++++-------------------
- drivers/infiniband/core/user_mad.c | 26 ++++++++++++++++-------
- 3 files changed, 41 insertions(+), 30 deletions(-)
+There are plenty of lengthy code to check the transport type of IB device,
+or the link layer type of it's port, but actually we are just speculating
+whether a particular management/feature is supported by the device/port.
 
-diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
-index f6d2961..ffdef4d 100644
---- a/drivers/infiniband/core/agent.c
-+++ b/drivers/infiniband/core/agent.c
-@@ -156,7 +156,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
- 		goto error1;
- 	}
- 
--	if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
-+	if (rdma_tech_ib(device, port_num)) {
- 		/* Obtain send only MAD agent for SMI QP */
- 		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
- 							    IB_QPT_SMI, NULL, 0,
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 74c30f4..1822932 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -2938,7 +2938,7 @@ static int ib_mad_port_open(struct ib_device *device,
- 	init_mad_qp(port_priv, &port_priv->qp_info[1]);
- 
- 	cq_size = mad_sendq_size + mad_recvq_size;
--	has_smi = rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND;
-+	has_smi = rdma_tech_ib(device, port_num);
- 	if (has_smi)
- 		cq_size *= 2;
- 
-@@ -3057,9 +3057,6 @@ static void ib_mad_init_device(struct ib_device *device)
- {
- 	int start, end, i;
- 
--	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
--		return;
--
- 	if (device->node_type == RDMA_NODE_IB_SWITCH) {
- 		start = 0;
- 		end   = 0;
-@@ -3069,6 +3066,9 @@ static void ib_mad_init_device(struct ib_device *device)
- 	}
- 
- 	for (i = start; i <= end; i++) {
-+		if (!rdma_ib_or_iboe(device, i))
-+			continue;
-+
- 		if (ib_mad_port_open(device, i)) {
- 			dev_err(&device->dev, "Couldn't open port %d\n", i);
- 			goto error;
-@@ -3086,40 +3086,39 @@ error_agent:
- 		dev_err(&device->dev, "Couldn't close port %d\n", i);
- 
- error:
--	i--;
-+	while (--i >= start) {
-+		if (!rdma_ib_or_iboe(device, i))
-+			continue;
- 
--	while (i >= start) {
- 		if (ib_agent_port_close(device, i))
- 			dev_err(&device->dev,
- 				"Couldn't close port %d for agents\n", i);
- 		if (ib_mad_port_close(device, i))
- 			dev_err(&device->dev, "Couldn't close port %d\n", i);
--		i--;
- 	}
- }
- 
- static void ib_mad_remove_device(struct ib_device *device)
- {
--	int i, num_ports, cur_port;
--
--	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
--		return;
-+	int start, end, i;
- 
- 	if (device->node_type == RDMA_NODE_IB_SWITCH) {
--		num_ports = 1;
--		cur_port = 0;
-+		start = 0;
-+		end   = 0;
- 	} else {
--		num_ports = device->phys_port_cnt;
--		cur_port = 1;
-+		start = 1;
-+		end   = device->phys_port_cnt;
- 	}
--	for (i = 0; i < num_ports; i++, cur_port++) {
--		if (ib_agent_port_close(device, cur_port))
-+
-+	for (i = start; i <= end; i++) {
-+		if (!rdma_ib_or_iboe(device, i))
-+			continue;
-+
-+		if (ib_agent_port_close(device, i))
- 			dev_err(&device->dev,
--				"Couldn't close port %d for agents\n",
--				cur_port);
--		if (ib_mad_port_close(device, cur_port))
--			dev_err(&device->dev, "Couldn't close port %d\n",
--				cur_port);
-+				"Couldn't close port %d for agents\n", i);
-+		if (ib_mad_port_close(device, i))
-+			dev_err(&device->dev, "Couldn't close port %d\n", i);
- 	}
- }
- 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 928cdd2..aa8b334 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1273,9 +1273,7 @@ static void ib_umad_add_one(struct ib_device *device)
- {
- 	struct ib_umad_device *umad_dev;
- 	int s, e, i;
--
--	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
--		return;
-+	int count = 0;
- 
- 	if (device->node_type == RDMA_NODE_IB_SWITCH)
- 		s = e = 0;
-@@ -1296,21 +1294,33 @@ static void ib_umad_add_one(struct ib_device *device)
- 	umad_dev->end_port   = e;
- 
- 	for (i = s; i <= e; ++i) {
-+		if (!rdma_ib_or_iboe(device, i))
-+			continue;
-+
- 		umad_dev->port[i - s].umad_dev = umad_dev;
- 
- 		if (ib_umad_init_port(device, i, umad_dev,
- 				      &umad_dev->port[i - s]))
- 			goto err;
-+
-+		count++;
- 	}
- 
-+	if (!count)
-+		goto free;
-+
- 	ib_set_client_data(device, &umad_client, umad_dev);
- 
- 	return;
- 
- err:
--	while (--i >= s)
--		ib_umad_kill_port(&umad_dev->port[i - s]);
-+	while (--i >= s) {
-+		if (!rdma_ib_or_iboe(device, i))
-+			continue;
- 
-+		ib_umad_kill_port(&umad_dev->port[i - s]);
-+	}
-+free:
- 	kobject_put(&umad_dev->kobj);
- }
- 
-@@ -1322,8 +1332,10 @@ static void ib_umad_remove_one(struct ib_device *device)
- 	if (!umad_dev)
- 		return;
- 
--	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i)
--		ib_umad_kill_port(&umad_dev->port[i]);
-+	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i) {
-+		if (rdma_ib_or_iboe(device, i))
-+			ib_umad_kill_port(&umad_dev->port[i]);
-+	}
- 
- 	kobject_put(&umad_dev->kobj);
- }
+Thus instead of inferring, we should have our own mechanism for IB management
+capability/protocol/feature checking, several proposals below.
+
+This patch set will reform the method of getting transport type, we will
+now using query_transport() instead of inferring from transport and link
+layer respectively, also we defined the new transport type to make the
+concept more reasonable.
+
+Mapping List:
+		node-type	link-layer	old-transport	new-transport
+nes		RNIC		ETH		IWARP		IWARP
+amso1100	RNIC		ETH		IWARP		IWARP
+cxgb3   	RNIC		ETH		IWARP		IWARP
+cxgb4   	RNIC		ETH		IWARP		IWARP
+usnic   	USNIC_UDP	ETH		USNIC_UDP	USNIC_UDP
+ocrdma  	IB_CA		ETH		IB		IBOE
+mlx4    	IB_CA		IB/ETH		IB		IB/IBOE
+mlx5    	IB_CA		IB		IB		IB
+ehca    	IB_CA		IB		IB		IB
+ipath   	IB_CA		IB		IB		IB
+mthca   	IB_CA		IB		IB		IB
+qib     	IB_CA		IB		IB		IB
+
+For example:
+	if (transport == IB) && (link-layer == ETH)
+will now become:
+	if (query_transport() == IBOE)
+
+Thus we will be able to get rid of the respective transport and link-layer
+checking, and it will help us to add new protocol/Technology (like OPA) more
+easier, also with the introduced management helpers, IB management logical
+will be more clear and easier for extending.
+
+Highlights:
+    The patch set covered a wide range of IB stuff, thus for those who are
+    familiar with the particular part, your suggestion would be invaluable ;-)
+
+    Patch 1#~15# included all the logical reform, 16#~25# introduced the
+    management helpers, 26#~27# do clean up.
+
+    we appreciate for those one who have the HW willing to provide Tested-by :-)
+
+    Doug suggested the bitmask mechanism:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23765.html
+    which could be the plan for future reforming, we prefer that to be another
+    series which focus on semantic and performance.
+
+    This patch-set is somewhat 'bloated' now and it may be a good timing for
+    staging, I'd like to suggest we focus on improving existed helpers and push
+    all the further reforms into next series ;-)
+
+    We now have a repository based on latest infiniband/for-next with this
+    series applied:
+        git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:ywang-pb/infiniband-wy.git
+
+Proposals:
+    Sean:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23339.html
+    Doug:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23418.html
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23765.html
+    Jason:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23425.html
+
+Michael Wang (26):
+  IB/Verbs: Implement new callback query_transport()
+  IB/Verbs: Implement raw management helpers
+  IB/Verbs: Reform IB-core mad/agent/user_mad
+  IB/Verbs: Reform IB-core cm
+  IB/Verbs: Reform IB-core sa_query
+  IB/Verbs: Reform IB-core multicast
+  IB/Verbs: Reform IB-ulp ipoib
+  IB/Verbs: Reform IB-ulp xprtrdma
+  IB/Verbs: Reform IB-core verbs
+  IB/Verbs: Reform cm related part in IB-core cma/ucm
+  IB/Verbs: Reform route related part in IB-core cma
+  IB/Verbs: Reform mcast related part in IB-core cma
+  IB/Verbs: Reserve legacy transport type in 'dev_addr'
+  IB/Verbs: Reform cma_acquire_dev()
+  IB/Verbs: Reform rest part in IB-core cma
+  IB/Verbs: Use management helper cap_ib_mad()
+  IB/Verbs: Use management helper cap_ib_smi()
+  IB/Verbs: Use management helper cap_ib_cm()
+  IB/Verbs: Use management helper cap_iw_cm()
+  IB/Verbs: Use management helper cap_ib_sa()
+  IB/Verbs: Use management helper cap_ib_mcast()
+  IB/Verbs: Use management helper cap_read_multi_sge()
+  IB/Verbs: Use management helper cap_af_ib()
+  IB/Verbs: Use management helper cap_eth_ah()
+  IB/Verbs: Clean up rdma_ib_or_iboe()
+  IB/Verbs: Cleanup rdma_node_get_transport()
+
+ drivers/infiniband/core/agent.c              |   2 +-
+ drivers/infiniband/core/cm.c                 |  20 +-
+ drivers/infiniband/core/cma.c                | 282 ++++++++++++---------------
+ drivers/infiniband/core/device.c             |   1 +
+ drivers/infiniband/core/mad.c                |  43 ++--
+ drivers/infiniband/core/multicast.c          |  12 +-
+ drivers/infiniband/core/sa_query.c           |  30 +--
+ drivers/infiniband/core/ucm.c                |   3 +-
+ drivers/infiniband/core/ucma.c               |  25 +--
+ drivers/infiniband/core/user_mad.c           |  26 ++-
+ drivers/infiniband/core/verbs.c              |  31 +--
+ drivers/infiniband/hw/amso1100/c2_provider.c |   7 +
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |   7 +
+ drivers/infiniband/hw/cxgb4/provider.c       |   7 +
+ drivers/infiniband/hw/ehca/ehca_hca.c        |   6 +
+ drivers/infiniband/hw/ehca/ehca_iverbs.h     |   3 +
+ drivers/infiniband/hw/ehca/ehca_main.c       |   1 +
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |   7 +
+ drivers/infiniband/hw/mlx4/main.c            |  10 +
+ drivers/infiniband/hw/mlx5/main.c            |   7 +
+ drivers/infiniband/hw/mthca/mthca_provider.c |   7 +
+ drivers/infiniband/hw/nes/nes_verbs.c        |   6 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |   1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   6 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |   3 +
+ drivers/infiniband/hw/qib/qib_verbs.c        |   7 +
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  |   1 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   6 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    |  15 +-
+ include/rdma/ib_verbs.h                      | 169 +++++++++++++++-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |   4 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c     |  47 ++---
+ 33 files changed, 503 insertions(+), 301 deletions(-)
+
 -- 
 2.1.0
 
