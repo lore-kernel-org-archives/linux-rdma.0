@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v6 18/26] IB/Verbs: Use management helper cap_ib_cm()
-Date: Fri, 24 Apr 2015 14:23:42 +0200
-Message-ID: <1429878230-11749-19-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v6 20/26] IB/Verbs: Use management helper cap_ib_sa()
+Date: Fri, 24 Apr 2015 14:23:44 +0200
+Message-ID: <1429878230-11749-21-git-send-email-yun.wang@profitbricks.com>
 References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
@@ -10,8 +10,8 @@ To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Ro
 Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce helper cap_ib_cm() to help us check if the port of an
-IB device support Infiniband Communication Manager.
+Introduce helper cap_ib_sa() to help us check if the port of an
+IB device support Infiniband Subnet Administration.
 
 Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
 Cc: Steve Wise <swise@opengridcomputing.com>
@@ -22,163 +22,117 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cm.c  |  6 +++---
- drivers/infiniband/core/cma.c | 19 +++++++++----------
- drivers/infiniband/core/ucm.c |  2 +-
- include/rdma/ib_verbs.h       | 15 +++++++++++++++
- 4 files changed, 28 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/cma.c      |  4 ++--
+ drivers/infiniband/core/sa_query.c | 10 +++++-----
+ drivers/infiniband/core/ucma.c     |  2 +-
+ include/rdma/ib_verbs.h            | 15 +++++++++++++++
+ 4 files changed, 23 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index add5e484..3ffaad3 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3781,7 +3781,7 @@ static void cm_add_one(struct ib_device *ib_device)
- 
- 	set_bit(IB_MGMT_METHOD_SEND, reg_req.method_mask);
- 	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
--		if (!rdma_ib_or_iboe(ib_device, i))
-+		if (!cap_ib_cm(ib_device, i))
- 			continue;
- 
- 		port = kzalloc(sizeof *port, GFP_KERNEL);
-@@ -3832,7 +3832,7 @@ error1:
- 	port_modify.set_port_cap_mask = 0;
- 	port_modify.clr_port_cap_mask = IB_PORT_CM_SUP;
- 	while (--i) {
--		if (!rdma_ib_or_iboe(ib_device, i))
-+		if (!cap_ib_cm(ib_device, i))
- 			continue;
- 
- 		port = cm_dev->port[i-1];
-@@ -3864,7 +3864,7 @@ static void cm_remove_one(struct ib_device *ib_device)
- 	write_unlock_irqrestore(&cm.device_lock, flags);
- 
- 	for (i = 1; i <= ib_device->phys_port_cnt; i++) {
--		if (!rdma_ib_or_iboe(ib_device, i))
-+		if (!cap_ib_cm(ib_device, i))
- 			continue;
- 
- 		port = cm_dev->port[i-1];
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index a20566e..08d2d78 100644
+index dc88aa5..8484ae3 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -766,7 +766,7 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
- 	int ret = 0;
+@@ -954,7 +954,7 @@ static inline int cma_user_data_offset(struct rdma_id_private *id_priv)
  
- 	id_priv = container_of(id, struct rdma_id_private, id);
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (!id_priv->cm_id.ib || (id_priv->id.qp_type == IB_QPT_UD))
- 			ret = cma_ib_init_qp_attr(id_priv, qp_attr, qp_attr_mask);
- 		else
-@@ -1054,7 +1054,7 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 	mutex_unlock(&id_priv->handler_mutex);
+ static void cma_cancel_route(struct rdma_id_private *id_priv)
+ {
+-	if (rdma_tech_ib(id_priv->id.device, id_priv->id.port_num)) {
++	if (cap_ib_sa(id_priv->id.device, id_priv->id.port_num)) {
+ 		if (id_priv->query)
+ 			ib_sa_cancel_query(id_priv->query_id, id_priv->query);
+ 	}
+@@ -1978,7 +1978,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
+ 		return -EINVAL;
  
- 	if (id_priv->cma_dev) {
--		if (rdma_ib_or_iboe(id_priv->id.device, 1)) {
-+		if (cap_ib_cm(id_priv->id.device, 1)) {
- 			if (id_priv->cm_id.ib)
- 				ib_destroy_cm_id(id_priv->cm_id.ib);
- 		} else if (rdma_tech_iwarp(id_priv->id.device, 1)) {
-@@ -1637,8 +1637,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- 	struct rdma_cm_id *id;
- 	int ret;
+ 	atomic_inc(&id_priv->refcount);
+-	if (rdma_tech_ib(id->device, id->port_num))
++	if (cap_ib_sa(id->device, id->port_num))
+ 		ret = cma_resolve_ib_route(id_priv, timeout_ms);
+ 	else if (rdma_tech_iboe(id->device, id->port_num))
+ 		ret = cma_resolve_iboe_route(id_priv);
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 96adf8c..f0acc9f 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 		struct ib_sa_port *port =
+ 			&sa_dev->port[event->element.port_num - sa_dev->start_port];
  
--	if (cma_family(id_priv) == AF_IB &&
--	    !rdma_ib_or_iboe(cma_dev->device, 1))
-+	if (cma_family(id_priv) == AF_IB && !cap_ib_cm(cma_dev->device, 1))
- 		return;
+-		if (WARN_ON(!rdma_tech_ib(handler->device, port->port_num)))
++		if (WARN_ON(!cap_ib_sa(handler->device, port->port_num)))
+ 			return;
  
- 	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
-@@ -2029,7 +2028,7 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
- 	mutex_lock(&lock);
- 	list_for_each_entry(cur_dev, &dev_list, list) {
- 		if (cma_family(id_priv) == AF_IB &&
--		    !rdma_ib_or_iboe(cur_dev->device, 1))
-+		    !cap_ib_cm(cur_dev->device, 1))
+ 		spin_lock_irqsave(&port->ah_lock, flags);
+@@ -1173,7 +1173,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 
+ 	for (i = 0; i <= e - s; ++i) {
+ 		spin_lock_init(&sa_dev->port[i].ah_lock);
+-		if (!rdma_tech_ib(device, i + 1))
++		if (!cap_ib_sa(device, i + 1))
  			continue;
  
- 		if (!cma_dev)
-@@ -2538,7 +2537,7 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+ 		sa_dev->port[i].sm_ah    = NULL;
+@@ -1208,7 +1208,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 		goto err;
  
- 	id_priv->backlog = backlog;
- 	if (id->device) {
--		if (rdma_ib_or_iboe(id->device, 1)) {
-+		if (cap_ib_cm(id->device, 1)) {
- 			ret = cma_ib_listen(id_priv);
- 			if (ret)
- 				goto err;
-@@ -2882,7 +2881,7 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 		id_priv->srq = conn_param->srq;
+ 	for (i = 0; i <= e - s; ++i) {
+-		if (rdma_tech_ib(device, i + 1))
++		if (cap_ib_sa(device, i + 1))
+ 			update_sm_ah(&sa_dev->port[i].update_task);
  	}
  
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD)
- 			ret = cma_resolve_ib_udp(id_priv, conn_param);
- 		else
-@@ -2993,7 +2992,7 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 		id_priv->srq = conn_param->srq;
+@@ -1216,7 +1216,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 
+ err:
+ 	while (--i >= 0) {
+-		if (rdma_tech_ib(device, i + 1))
++		if (cap_ib_sa(device, i + 1))
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
  	}
+ free:
+@@ -1237,7 +1237,7 @@ static void ib_sa_remove_one(struct ib_device *device)
+ 	flush_workqueue(ib_wq);
  
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD) {
- 			if (conn_param)
- 				ret = cma_send_sidr_rep(id_priv, IB_SIDR_SUCCESS,
-@@ -3056,7 +3055,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 	if (!id_priv->cm_id.ib)
- 		return -EINVAL;
+ 	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+-		if (rdma_tech_ib(device, i + 1)) {
++		if (cap_ib_sa(device, i + 1)) {
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 			if (sa_dev->port[i].sm_ah)
+ 				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 7331c6c..bed7957 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -723,7 +723,7 @@ static ssize_t ucma_query_route(struct ucma_file *file,
+ 	resp.node_guid = (__force __u64) ctx->cm_id->device->node_guid;
+ 	resp.port_num = ctx->cm_id->port_num;
  
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD)
- 			ret = cma_send_sidr_rep(id_priv, IB_SIDR_REJECT, 0,
- 						private_data, private_data_len);
-@@ -3083,7 +3082,7 @@ int rdma_disconnect(struct rdma_cm_id *id)
- 	if (!id_priv->cm_id.ib)
- 		return -EINVAL;
- 
--	if (rdma_ib_or_iboe(id->device, id->port_num)) {
-+	if (cap_ib_cm(id->device, id->port_num)) {
- 		ret = cma_modify_qp_err(id_priv);
- 		if (ret)
- 			goto out;
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 70e0ccb..f7290c8 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1253,7 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	dev_t base;
- 	struct ib_ucm_device *ucm_dev;
- 
--	if (!device->alloc_ucontext || !rdma_ib_or_iboe(device, 1))
-+	if (!device->alloc_ucontext || !cap_ib_cm(device, 1))
- 		return;
- 
- 	ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
+-	if (rdma_tech_ib(ctx->cm_id->device, ctx->cm_id->port_num))
++	if (cap_ib_sa(ctx->cm_id->device, ctx->cm_id->port_num))
+ 		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
+ 	else if (rdma_tech_iboe(ctx->cm_id->device, ctx->cm_id->port_num))
+ 		ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 873b9a6..6805e3e 100644
+index e4999f6..de3a168 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1803,6 +1803,21 @@ static inline int cap_ib_smi(struct ib_device *device, u8 port_num)
- 	return rdma_tech_ib(device, port_num);
+@@ -1833,6 +1833,21 @@ static inline int cap_iw_cm(struct ib_device *device, u8 port_num)
+ 	return rdma_tech_iwarp(device, port_num);
  }
  
 +/**
-+ * cap_ib_cm - Check if the port of device has the capability Infiniband
-+ * Communication Manager.
++ * cap_ib_sa - Check if the port of device has the capability Infiniband
++ * Subnet Administration.
 + *
 + * @device: Device to be checked
 + * @port_num: Port number of the device
 + *
 + * Return 0 when port of the device don't support Infiniband
-+ * Communication Manager.
++ * Subnet Administration.
 + */
-+static inline int cap_ib_cm(struct ib_device *device, u8 port_num)
++static inline int cap_ib_sa(struct ib_device *device, u8 port_num)
 +{
-+	return rdma_ib_or_iboe(device, port_num);
++	return rdma_tech_ib(device, port_num);
 +}
 +
  int ib_query_gid(struct ib_device *device,
