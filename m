@@ -1,119 +1,114 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v6 16/26] IB/Verbs: Use management helper cap_ib_mad()
-Date: Fri, 24 Apr 2015 14:23:40 +0200
-Message-ID: <1429878230-11749-17-git-send-email-yun.wang@profitbricks.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH v6 08/26] IB/Verbs: Reform IB-ulp xprtrdma
+Date: Fri, 24 Apr 2015 14:23:32 +0200
+Message-ID: <1429878230-11749-9-git-send-email-yun.wang@profitbricks.com>
 References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429878230-11749-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce helper cap_ib_mad() to help us check if the port of an
-IB device support Infiniband Management Datagrams.
+Use raw management helpers to reform IB-ulp xprtrdma.
 
-Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c      |  6 +++---
- drivers/infiniband/core/user_mad.c |  6 +++---
- include/rdma/ib_verbs.h            | 15 +++++++++++++++
- 3 files changed, 21 insertions(+), 6 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  3 +--
+ net/sunrpc/xprtrdma/svc_rdma_transport.c | 45 +++++++++++++-------------------
+ 2 files changed, 19 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 1822932..4315aeb6 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -3066,7 +3066,7 @@ static void ib_mad_init_device(struct ib_device *device)
- 	}
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index f9f13a3..a5bed5b 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -117,8 +117,7 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
  
- 	for (i = start; i <= end; i++) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
+ static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
+ {
+-	if (rdma_node_get_transport(xprt->sc_cm_id->device->node_type) ==
+-	     RDMA_TRANSPORT_IWARP)
++	if (rdma_tech_iwarp(xprt->sc_cm_id->device, xprt->sc_cm_id->port_num))
+ 		return 1;
+ 	else
+ 		return min_t(int, sge_count, xprt->sc_max_sge);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index f609c1c..a09b7a1 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -851,7 +851,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	struct ib_qp_init_attr qp_attr;
+ 	struct ib_device_attr devattr;
+ 	int uninitialized_var(dma_mr_acc);
+-	int need_dma_mr;
++	int need_dma_mr = 0;
+ 	int ret;
+ 	int i;
  
- 		if (ib_mad_port_open(device, i)) {
-@@ -3087,7 +3087,7 @@ error_agent:
- 
- error:
- 	while (--i >= start) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		if (ib_agent_port_close(device, i))
-@@ -3111,7 +3111,7 @@ static void ib_mad_remove_device(struct ib_device *device)
- 	}
- 
- 	for (i = start; i <= end; i++) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		if (ib_agent_port_close(device, i))
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index aa8b334..e3ccbf2 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1294,7 +1294,7 @@ static void ib_umad_add_one(struct ib_device *device)
- 	umad_dev->end_port   = e;
- 
- 	for (i = s; i <= e; ++i) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		umad_dev->port[i - s].umad_dev = umad_dev;
-@@ -1315,7 +1315,7 @@ static void ib_umad_add_one(struct ib_device *device)
- 
- err:
- 	while (--i >= s) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		ib_umad_kill_port(&umad_dev->port[i - s]);
-@@ -1333,7 +1333,7 @@ static void ib_umad_remove_one(struct ib_device *device)
- 		return;
- 
- 	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i) {
--		if (rdma_ib_or_iboe(device, i))
-+		if (cap_ib_mad(device, i))
- 			ib_umad_kill_port(&umad_dev->port[i]);
- 	}
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a12e876..624e963 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1773,6 +1773,21 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
- 	return (tp == RDMA_TRANSPORT_IB || tp == RDMA_TRANSPORT_IBOE);
- }
- 
-+/**
-+ * cap_ib_mad - Check if the port of device has the capability Infiniband
-+ * Management Datagrams.
-+ *
-+ * @device: Device to be checked
-+ * @port_num: Port number of the device
-+ *
-+ * Return 0 when port of the device don't support Infiniband
-+ * Management Datagrams.
-+ */
-+static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
-+{
-+	return rdma_ib_or_iboe(device, port_num);
-+}
+@@ -985,35 +985,26 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	/*
+ 	 * Determine if a DMA MR is required and if so, what privs are required
+ 	 */
+-	switch (rdma_node_get_transport(newxprt->sc_cm_id->device->node_type)) {
+-	case RDMA_TRANSPORT_IWARP:
+-		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
+-		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
+-			need_dma_mr = 1;
+-			dma_mr_acc =
+-				(IB_ACCESS_LOCAL_WRITE |
+-				 IB_ACCESS_REMOTE_WRITE);
+-		} else if (!(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
+-			need_dma_mr = 1;
+-			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+-		} else
+-			need_dma_mr = 0;
+-		break;
+-	case RDMA_TRANSPORT_IB:
+-		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
+-			need_dma_mr = 1;
+-			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+-		} else if (!(devattr.device_cap_flags &
+-			     IB_DEVICE_LOCAL_DMA_LKEY)) {
+-			need_dma_mr = 1;
+-			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+-		} else
+-			need_dma_mr = 0;
+-		break;
+-	default:
++	if (!rdma_tech_iwarp(newxprt->sc_cm_id->device,
++			     newxprt->sc_cm_id->port_num) &&
++	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
++			     newxprt->sc_cm_id->port_num))
+ 		goto errout;
 +
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid);
++	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
++	    !(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
++		need_dma_mr = 1;
++		dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
++		if (rdma_tech_iwarp(newxprt->sc_cm_id->device,
++				    newxprt->sc_cm_id->port_num) &&
++		    !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG))
++			dma_mr_acc |= IB_ACCESS_REMOTE_WRITE;
+ 	}
  
++	if (rdma_tech_iwarp(newxprt->sc_cm_id->device,
++			    newxprt->sc_cm_id->port_num))
++		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
++
+ 	/* Create the DMA MR if needed, otherwise, use the DMA LKEY */
+ 	if (need_dma_mr) {
+ 		/* Register all of physical memory */
 -- 
 2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
