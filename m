@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 1/4 infiniband-diags] ibqueryerrors: Fix crash when no SM
- is running
-Date: Sun, 26 Apr 2015 15:33:44 -0400
-Message-ID: <553D3D98.3040905@dev.mellanox.co.il>
+Subject: [PATCH v2 2/4 infiniband-diags] ibqueryerrors: Close global file
+ descriptor before running ibnd_discover_fabric
+Date: Sun, 26 Apr 2015 15:33:50 -0400
+Message-ID: <553D3D9E.3020804@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,34 +13,118 @@ Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linu
 List-Id: linux-rdma@vger.kernel.org
 
 From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Tue, 21 Apr 2015 17:12:05 +0300
+Date: Sun, 26 Apr 2015 12:24:06 +0300
 
-Handle sa_get_handle error in path_record_query
+Global file descriptor for SMPs and GMPs should be closed before running
+ibnd_discover_fabric() to avoid parallel usage of two SMP file descriptors
 
 Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
 Changes since v1:
-Added my signoff on this patch
-
- src/ibqueryerrors.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Fixed direct route (-D) option
 
 diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index 8fbb9d1..97a555d 100644
+index 06fcbac..80436d3 100644
 --- a/src/ibqueryerrors.c
 +++ b/src/ibqueryerrors.c
-@@ -326,7 +326,9 @@ static int path_record_query(ib_gid_t sgid,uint64_t dguid)
-      uint8_t reversible = 0;
-      struct sa_handle * h;
+@@ -1000,18 +1002,20 @@ int main(int argc, char **argv)
+ 	config.flags = ibd_ibnetdisc_flags;
+ 	config.mkey = ibd_mkey;
  
--     h = sa_get_handle();
-+     if (!(h = sa_get_handle()))
-+	return -1;
+-	node_name_map = open_node_name_map(node_name_map_file);
+-
+ 	if (dr_path && load_cache_file) {
++		mad_rpc_close_port(ibmad_port);
+ 		fprintf(stderr, "Cannot specify cache and direct route path\n");
+ 		exit(-1);
+ 	}
+ 
+ 	if (resolve_self(ibd_ca, ibd_ca_port, &self_portid, &port, &self_gid.raw) < 0) {
++		mad_rpc_close_port(ibmad_port);
+ 		IBEXIT("can't resolve self port %s", argv[0]);
+ 		goto close_port;
+ 	}
+ 
++	node_name_map = open_node_name_map(node_name_map_file);
 +
-      ibd_timeout = DEFAULT_HALF_WORLD_PR_TIMEOUT;
-      memset(&pr, 0, sizeof(pr));
+ 	/* limit the scan the fabric around the target */
+ 	if (dr_path) {
+ 		if ((resolved =
+@@ -1030,10 +1034,13 @@ int main(int argc, char **argv)
+ 			lid2sl_table[portid.lid] = portid.sl;
+ 	}
  
++	mad_rpc_close_port(ibmad_port);
++
+ 	if (load_cache_file) {
+ 		if ((fabric = ibnd_load_fabric(load_cache_file, 0)) == NULL) {
+ 			fprintf(stderr, "loading cached fabric failed\n");
+-			exit(-1);
++			rc = -1;
++			goto close_port;
+ 		}
+ 	} else {
+ 		if (resolved >= 0) {
+@@ -1057,6 +1064,21 @@ int main(int argc, char **argv)
+ 
+ 	set_thresholds(threshold_file);
+ 
++	/* reopen the global ibmad_port */
++	ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port,
++				       mgmt_classes, 4);
++	if (!ibmad_port) {
++		ibnd_destroy_fabric(fabric);
++		close_node_name_map(node_name_map);
++		IBEXIT("Failed to reopen port: %s:%d\n",
++			ibd_ca, ibd_ca_port);
++	}
++
++	smp_mkey_set(ibmad_port, ibd_mkey);
++
++	if (ibd_timeout)
++		mad_rpc_set_timeout(ibmad_port, ibd_timeout);
++
+ 	if (port_guid_str) {
+ 		ibnd_port_t *port = ibnd_find_port_guid(fabric, port_guid);
+ 		if (port)
+@@ -1067,12 +1089,12 @@ int main(int argc, char **argv)
+ 	} else if (dr_path) {
+ 		ibnd_port_t *port = ibnd_find_port_dr(fabric, dr_path);
+ 		uint8_t ni[IB_SMP_DATA_SIZE] = { 0 };
+-
+ 		if (!smp_query_via(ni, &portid, IB_ATTR_NODE_INFO, 0,
+-				   ibd_timeout, ibmad_port)) {
+-			rc = -1;
+-			goto destroy_fabric;
++			   ibd_timeout, ibmad_port)) {
++				fprintf(stderr, "Failed to query local Node Info\n");
++				goto destroy_fabric;
+ 		}
++
+ 		mad_decode_field(ni, IB_NODE_PORT_GUID_F, &(port_guid));
+ 
+ 		port = ibnd_find_port_guid(fabric, port_guid);
+@@ -1087,6 +1109,7 @@ int main(int argc, char **argv)
+ 		if(obtain_sl)
+ 			if(path_record_query(self_gid,0))
+ 				goto destroy_fabric;
++
+ 		ibnd_iter_nodes(fabric, print_node, NULL);
+ 	}
+ 
+@@ -1095,10 +1118,10 @@ int main(int argc, char **argv)
+ 		rc = 1;
+ 
+ destroy_fabric:
++	mad_rpc_close_port(ibmad_port);
+ 	ibnd_destroy_fabric(fabric);
+ 
+ close_port:
+-	mad_rpc_close_port(ibmad_port);
+ 	close_node_name_map(node_name_map);
+ 	exit(rc);
+ }
 -- 
 1.7.8.2
 
