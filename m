@@ -1,44 +1,38 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] ibqueryerrors: Fix crash when no SM is running
-Date: Sun, 26 Apr 2015 12:40:10 -0400
-Message-ID: <553D14EA.3080703@dev.mellanox.co.il>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Sun, 26 Apr 2015 20:20:50 +0300
+Message-ID: <CAJ3xEMgepRUQs+GiMWxzV_QFaRnfbX7TPOdB_sKgRhHj7x7NDg@mail.gmail.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+	<44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <44ab0dce-c7c9-400b-af24-10b8981358a7-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Tue, 21 Apr 2015 17:12:05 +0300
+On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
+<somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> In order to manage multiple types, vlans and MACs per GID, we
+> need to store them along the GID itself. We store the net device
+> as well, as sometimes GIDs should be handled according to the
+> net device they came from. Since populating the GID table should
+> be identical for every RoCE provider, the GIDs table should be
+> handled in ib_core.
+>
+> Adding a GID cache table that supports a lockless find, add and
+> delete gids. The lockless nature comes from using a unique
+> sequence number per table entry and detecting that while reading/
+> writing this sequence wasn't changed.
 
-Handle sa_get_handle error in path_record_query
+Matan, please use existing mechanism which fits the problem you are
+trying to solve, I guess one of RCU or seqlock should do the job.
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/ibqueryerrors.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index 8fbb9d1..97a555d 100644
---- a/src/ibqueryerrors.c
-+++ b/src/ibqueryerrors.c
-@@ -326,7 +326,9 @@ static int path_record_query(ib_gid_t sgid,uint64_t dguid)
-      uint8_t reversible = 0;
-      struct sa_handle * h;
- 
--     h = sa_get_handle();
-+     if (!(h = sa_get_handle()))
-+	return -1;
-+
-      ibd_timeout = DEFAULT_HALF_WORLD_PR_TIMEOUT;
-      memset(&pr, 0, sizeof(pr));
- 
--- 
-1.7.8.2
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
