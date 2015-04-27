@@ -1,61 +1,71 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
-Date: Mon, 27 Apr 2015 10:32:36 +0300
-Message-ID: <553DE614.7050508@mellanox.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
-	<44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMgepRUQs+GiMWxzV_QFaRnfbX7TPOdB_sKgRhHj7x7NDg@mail.gmail.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH v6 01/26] IB/Verbs: Implement new callback query_transport()
+Date: Mon, 27 Apr 2015 09:39:05 +0200
+Message-ID: <553DE799.5050608@profitbricks.com>
+References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com> <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com> <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgepRUQs+GiMWxzV_QFaRnfbX7TPOdB_sKgRhHj7x7NDg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Liran Liss <liranl@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 4/26/2015 8:20 PM, Or Gerlitz wrote:
-> On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
-> <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
->> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 04/24/2015 05:12 PM, Liran Liss wrote:
+>> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
 >>
->> In order to manage multiple types, vlans and MACs per GID, we
->> need to store them along the GID itself. We store the net device
->> as well, as sometimes GIDs should be handled according to the
->> net device they came from. Since populating the GID table should
->> be identical for every RoCE provider, the GIDs table should be
->> handled in ib_core.
+> [snip]
+>> a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
+>> 65994a1..d54f91e 100644
+>> --- a/include/rdma/ib_verbs.h
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -75,10 +75,13 @@ enum rdma_node_type {  };
 >>
->> Adding a GID cache table that supports a lockless find, add and
->> delete gids. The lockless nature comes from using a unique
->> sequence number per table entry and detecting that while reading/
->> writing this sequence wasn't changed.
->
-> Matan, please use existing mechanism which fits the problem you are
-> trying to solve, I guess one of RCU or seqlock should do the job.
->
+>>  enum rdma_transport_type {
+>> +	/* legacy for users */
+>>  	RDMA_TRANSPORT_IB,
+>>  	RDMA_TRANSPORT_IWARP,
+>>  	RDMA_TRANSPORT_USNIC,
+>> -	RDMA_TRANSPORT_USNIC_UDP
+>> +	RDMA_TRANSPORT_USNIC_UDP,
+>> +	/* new transport */
+>> +	RDMA_TRANSPORT_IBOE,
+> 
+> Remove RDMA_TRANSPORT_IBOE - it is not a transport.
+> ROCE uses IBTA transport.
+> 
+> If any code should test for ROCE should invoke a specific helper, e.g., rdma_protocol_iboe().
+> This is  what you currently call "rdma_tech_iboe" is patch 02/26.
+> 
+> I think that pretty much everybody agrees that rdma_protocol_*() is a better name than rdma_tech_*(), right?
+> So, let's change this.
 
-seqcount fits this problem better. Since if a write and read are done in 
-parallel, there's a good chance we read an out of date entry and we are 
-going to use a GID entry that's going to change in T+epsilon, so RCU 
-doesn't really have an advantage here.
+Sure, sounds reasonable now, about the IBOE, we still need it to
+separate the port support IB/ETH without the check on link-layer,
+So what about a new enum on protocol type?
 
-The current implementation is a bit more efficient than seqcount, as it 
-allows early termination of read-while-write (because the write puts a 
-known "currently updating" value that the read knows to ignore). AFAIK, 
-this doesn't exist in the current seqcount implementation. However, 
-since this isn't a crucial data-path, I'll change that to seqcount.
+Like:
 
-seqcount is preferred over seqlock, as I don't need the spinlock in seqlock.
+enum rdma_protocol {
+	RDMA_PROTOCOL_IB,
+	RDMA_PROTOCOL_IBOE,
+	RDMA_PROTOCOL_IWARP,
+	RDMA_PROTOCOL_USNIC_UDP
+};
 
-> Or.
->
+So we could use query_protocol() to ask device provide the protocol
+type, and there will be no mixing with the legacy transport type
+anymore :-)
 
-Matan
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Michael Wang
+
+> 
+> The semantics are: "check that a link supports a certain wire protocol, or a set of wire protocols", where 'certain'
+> refers to the specific helper...
+> 
+> 
