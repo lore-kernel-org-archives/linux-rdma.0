@@ -1,83 +1,63 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "ira.weiny" <ira.weiny@intel.com>
 Subject: Re: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
-Date: Mon, 27 Apr 2015 15:10:31 -0400
-Message-ID: <20150427191030.GA5347@phlsvsds.ph.intel.com>
-References: <5534B8C9.506@profitbricks.com> <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150422024123.GA18675@phlsvsds.ph.intel.com> <DB4PR05MB086335365371E756B789FE84B1EE0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150422164034.GB19500@obsidianresearch.com> <DB4PR05MB08633B2B2E3BA32752EE8098B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150424164226.GB9305@obsidianresearch.com>
+Date: Mon, 27 Apr 2015 15:22:42 -0400
+Message-ID: <20150427192241.GB5347@phlsvsds.ph.intel.com>
+References: <5534B8C9.506@profitbricks.com> <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com> <55375C10.8070901@profitbricks.com> <DB4PR05MB0863B84F5AF4F8203CFDAC36B1EE0@DB4PR05MB0863.eurprd05.prod.outlook.com> <5538A034.4030904@profitbricks.com> <DB4PR05MB08635737AF7A40F3F82B7628B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150424164226.GB9305-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <DB4PR05MB08635737AF7A40F3F82B7628B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Liran Liss <liranl@mellanox.com>
+Cc: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hal@dev.mellanox.co.il" <hal@dev.mellanox.co.il>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 24, 2015 at 10:42:26AM -0600, Jason Gunthorpe wrote:
-> On Fri, Apr 24, 2015 at 03:00:15PM +0000, Liran Liss wrote:
+On Fri, Apr 24, 2015 at 02:44:29PM +0000, Liran Liss wrote:
+> > From: Michael Wang [mailto:yun.wang@profitbricks.com]
 > 
-> > Currently, the only code in the kernel that has an SMI interface is IB.
-> > When OPA is introduced, add the proper helper.
 > 
-> We already have tests checking for SMI is supported so QP0 can be
-> created, this is to support ROCEE
->  
-> > All I am saying is that there will always be code paths that are
-> > technology- and standards-specific.  For example, the low-level MAD
-> > processing code *must* do stuff like:
+> > [snip]
+> > >
+> > > Depends on who is "we".
+> > > For ULPs, you are probably right.
+> > >
+> > > However, core services (e.g., mad management, CM, SA) do care about
+> > various details.
+> > > In some cases, where it doesn't matter, this code will use management
+> > helpers.
+> > > In other cases, this code will inspect link, transport, and node attributes of
+> > rdma devices.
+> > >
+> > > For example, the CM code has specific code paths for IB, RoCE, and iWARP.
+> > > There is no other CM code; there is no reason to abstract 'CM'. This
+> > > code will have code paths that depend on various specific details.
+> > 
+> > That's exactly what we want to stop, we have classified the CM to IB and
+> > IWARP now :-)
+> >
 > 
-> > if (rdma_is_transport_ib())
-> > 	/* IB-spec compliant stuff */
-> > else if (rdma_is_transport_opa())
-> > 	/* OPA stuff */
+> We don't want to stop code branches that are not abstractions but rather depend
+> on the specific technology!
+> There is no generic "iWARP CM" - only one.
+> There is no generic "ROCE CM" - only one.
+> There is no generic "IB CM" - only one.
 
-The issue is that opa is _not_ a new "transport".  It is just like RoCEE which
-supports the IB transport with some differences.
+How can you say this?  Or perhaps I don't understand what you mean.
 
-We need a way to explain what those differences are while keeping each section
-of code as clean and clear as possible.  Many of us have spent a lot of time
-trying to figure out what each section of the current code is doing when they
-call "get_transport" and/or "get_link_layer".
-
-> 
-> Why should we open code that? It is back to what I said - that doesn't
-> help the reader. Which of the few differences between OPA and IB MADs
-> is that code trying to deal with?
-> 
-> Heck, what are the differences? Do you know? Do I know?
-> 
-> If you don't know what the differences are, you can't realistically
-> work on the MAD layer anymore, because you might break OPA.
-> 
-> Whereas, If I see:
-> 
-> if (cap_2k_mad())
->  /* Special handling for OPA 2k mad support */
-
-FWIW we decided not to special case 2K and simply provide the max MAD size
-which a driver supports.  This is much more flexible.  I think the semantics
-are equivalent to your example here but I don't think we need a discussion
-around a "cap_2k_mad" helper.
-
-> if (cap_opa_mad_space() && mad->baseVersion == ... )
->  /* Decode OPA mads */
-> if (cap_ib_mad_space() && mad->baseVersion == ... )
->  /* Decode IB mads */
-
-Agreed.
+While conceptually one could say that each technology has its own "CM" we are
+trying to have the same module (and code) implement them all (ie a generic CM
+for a node).  Therefore, the CM code _is_ generic.  As is the MAD code.  This
+is the reason we have this problem.  We are trying to reuse those modules for
+multiple technologies.
 
 > 
-> The I *know* what to look for when writing new code.
+> At the CM high-level (i.e., whether an ib_dev port registers an IB client), you could consider
+> an rdma_has_cm() call, but this the only place in the code that this check will be called!
+> Hence, no need for a generic check.
 > 
-> That is the problem we are trying to address here. iWarp has already
-> created it, we addressed it using 'rdma_is_transport_iwarp' and I
-> don't think those results were very satisfying.
+> You want to stop abstract code that uses IB core infrastructure.
 
-No they are not and it is getting more complicated.
+Not sure what you mean here?
 
 Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
