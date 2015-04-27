@@ -1,92 +1,81 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipath: use arch_phys_wc_add() and require PAT
- disabled
-Date: Mon, 27 Apr 2015 14:38:52 -0400
-Message-ID: <1430159932.44548.20.camel@redhat.com>
-References: <1429730795-6721-1-git-send-email-mcgrof@do-not-panic.com>
-	 <CAB=NE6UHnEuMHfFaXBNr4F=RcDcEC3z6rX8-B_10Sbpr7kHkiA@mail.gmail.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
+Date: Mon, 27 Apr 2015 15:10:31 -0400
+Message-ID: <20150427191030.GA5347@phlsvsds.ph.intel.com>
+References: <5534B8C9.506@profitbricks.com> <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150422024123.GA18675@phlsvsds.ph.intel.com> <DB4PR05MB086335365371E756B789FE84B1EE0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150422164034.GB19500@obsidianresearch.com> <DB4PR05MB08633B2B2E3BA32752EE8098B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150424164226.GB9305@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-EsqiffAx5gd7MINrgaaO"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAB=NE6UHnEuMHfFaXBNr4F=RcDcEC3z6rX8-B_10Sbpr7kHkiA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150424164226.GB9305-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Apr 24, 2015 at 10:42:26AM -0600, Jason Gunthorpe wrote:
+> On Fri, Apr 24, 2015 at 03:00:15PM +0000, Liran Liss wrote:
+> 
+> > Currently, the only code in the kernel that has an SMI interface is IB.
+> > When OPA is introduced, add the proper helper.
+> 
+> We already have tests checking for SMI is supported so QP0 can be
+> created, this is to support ROCEE
+>  
+> > All I am saying is that there will always be code paths that are
+> > technology- and standards-specific.  For example, the low-level MAD
+> > processing code *must* do stuff like:
+> 
+> > if (rdma_is_transport_ib())
+> > 	/* IB-spec compliant stuff */
+> > else if (rdma_is_transport_opa())
+> > 	/* OPA stuff */
 
---=-EsqiffAx5gd7MINrgaaO
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The issue is that opa is _not_ a new "transport".  It is just like RoCEE which
+supports the IB transport with some differences.
 
-On Mon, 2015-04-27 at 09:46 -0700, Luis R. Rodriguez wrote:
-> On Wed, Apr 22, 2015 at 12:26 PM, Luis R. Rodriguez
-> <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
-> > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-> >
-> > We are burrying direct access to MTRR code support on
-> > x86 in order to take advantage of PAT. In the future we
-> > also want to make the default behaviour of ioremap_nocache()
-> > to use strong UC, use of mtrr_add() on those systems
-> > would make write-combining void.
-> >
-> > In order to help both enable us to later make strong
-> > UC default and in order to phase out direct MTRR access
-> > code port the driver over to arch_phys_wc_add() and
-> > annotate that the device driver requires systems to
-> > boot with PAT disabled, with the nopat kernel parameter.
-> >
-> > This is a worthy compromise given that the ipath device
-> > driver powers the old HTX bus cards that only work in
-> > AMD systems, while the newer IB/qib device driver
-> > powers all PCI-e cards. The ipath device driver is
-> > obsolete, hardware hard to find and because of this
-> > this its a reasonable compromise to make to require
-> > users of ipath to boot with nopat.
->=20
-> Hey folks, I realize its being discussed whether or not to remove the
-> driver entirely from the kernel but in the meantime, is this a
-> reasonable compromise ?
+We need a way to explain what those differences are while keeping each section
+of code as clean and clear as possible.  Many of us have spent a lot of time
+trying to figure out what each section of the current code is doing when they
+call "get_transport" and/or "get_link_layer".
 
-[ trimmed Cc: list to probably the only people that care ]
+> 
+> Why should we open code that? It is back to what I said - that doesn't
+> help the reader. Which of the few differences between OPA and IB MADs
+> is that code trying to deal with?
+> 
+> Heck, what are the differences? Do you know? Do I know?
+> 
+> If you don't know what the differences are, you can't realistically
+> work on the MAD layer anymore, because you might break OPA.
+> 
+> Whereas, If I see:
+> 
+> if (cap_2k_mad())
+>  /* Special handling for OPA 2k mad support */
 
-I would think so.  I think we might as well mark this driver as
-deprecated and put a tentative date on removal while we are at it.
+FWIW we decided not to special case 2K and simply provide the max MAD size
+which a driver supports.  This is much more flexible.  I think the semantics
+are equivalent to your example here but I don't think we need a discussion
+around a "cap_2k_mad" helper.
 
-Mike, any specific input here?  I would suggest mark it deprecated with
-a planned removal sometime in late 2015/early 2016.
+> if (cap_opa_mad_space() && mad->baseVersion == ... )
+>  /* Decode OPA mads */
+> if (cap_ib_mad_space() && mad->baseVersion == ... )
+>  /* Decode IB mads */
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Agreed.
 
+> 
+> The I *know* what to look for when writing new code.
+> 
+> That is the problem we are trying to address here. iWarp has already
+> created it, we addressed it using 'rdma_is_transport_iwarp' and I
+> don't think those results were very satisfying.
 
+No they are not and it is getting more complicated.
 
---=-EsqiffAx5gd7MINrgaaO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVPoI8AAoJELgmozMOVy/deCUQAJ+LDHINt6Hj3TiM3NAT8q9m
-IzO5sIIkwzr2zovuuqYeSPMqkflGAY8Sz9+pU/+k+TLCZ5CSfhRdBhAav6ubneOv
-6ng/omRtWcUp2FpAINQezECuSKBy4C5McL3k4EQgzRK0NqAKQcWAhfWy3WUpFOdW
-g2T6ECwo6JlViB9HbqdJ3BRftPp3hZnxL00qtqvKMLuRA0KzemnhqrEktg+Gfdnx
-trxbuZsk0Okcsz5CJGShZcGS6Fpdh8toyJLlKxr4bsdBnZsOGSoOAHNTyu7P3tLa
-5T1g4++2gwJjh6s+HkgJqIJMhj7oiQ8/3t27V638cpaH3o4yHX0xpGtesiK6BVWh
-Nc4RCfTmoUHZvzJWmE9DCRPkDujPnoZzUnn7S/Unz7m9eDE1oOGxF6H2hGcWJSbG
-bAfaNs4ClVrc+2QDP8CnN2M4nRRskKN0y1JOvZZ1DvWx8IJ93kJtFJy1nGC+zJUj
-w92bBuyqTTxKI2A4gL0reCFaVnMotWbo//LgNTcmjwnYIlObIGDXPofgrmGPj7w1
-ggX88iQ+k3ULFqlxwRJEZA2kSIxpm7m5Ty9ODUUIzZt94X/PswN1Tv7vGJhzdgVL
-TzYpj21ByPPHTMX1+0yBA+Z4Un65kB16iUGfdz4r8tDoQ1tEJBAzf7VCFoWpfqqF
-LuXamWtN8OhYJONrSQe7
-=gE1T
------END PGP SIGNATURE-----
-
---=-EsqiffAx5gd7MINrgaaO--
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
