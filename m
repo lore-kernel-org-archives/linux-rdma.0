@@ -1,71 +1,45 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v6 01/26] IB/Verbs: Implement new callback query_transport()
-Date: Mon, 27 Apr 2015 09:39:05 +0200
-Message-ID: <553DE799.5050608@profitbricks.com>
-References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com> <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com> <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH v6 02/26] IB/Verbs: Implement raw management helpers
+Date: Mon, 27 Apr 2015 09:41:43 +0200
+Message-ID: <553DE837.6010800@profitbricks.com>
+References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com> <1429878230-11749-3-git-send-email-yun.wang@profitbricks.com> <DB4PR05MB0863D872E5C4F95C4E01145FB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com> <20150424162914.GA9305@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+In-Reply-To: <20150424162914.GA9305@obsidianresearch.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Liran Liss <liranl@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Liran Liss <liranl@mellanox.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 04/24/2015 05:12 PM, Liran Liss wrote:
->> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+On 04/24/2015 06:29 PM, Jason Gunthorpe wrote:
+> On Fri, Apr 24, 2015 at 03:15:54PM +0000, Liran Liss wrote:
+>>> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> 
+>>> +static inline int rdma_tech_iboe(struct ib_device *device, u8 port_num)
+>>> +{
+>>> +	return device->query_transport(device, port_num)
+>>> +			== RDMA_TRANSPORT_IBOE;
 >>
-> [snip]
->> a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
->> 65994a1..d54f91e 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -75,10 +75,13 @@ enum rdma_node_type {  };
->>
->>  enum rdma_transport_type {
->> +	/* legacy for users */
->>  	RDMA_TRANSPORT_IB,
->>  	RDMA_TRANSPORT_IWARP,
->>  	RDMA_TRANSPORT_USNIC,
->> -	RDMA_TRANSPORT_USNIC_UDP
->> +	RDMA_TRANSPORT_USNIC_UDP,
->> +	/* new transport */
->> +	RDMA_TRANSPORT_IBOE,
+>> Remove RDMA_TRANSPORT_IBOE.
+>> In the current code, the test should be: (IB transport && Ethernet link layer).
 > 
-> Remove RDMA_TRANSPORT_IBOE - it is not a transport.
-> ROCE uses IBTA transport.
+> No, if this rmda_tech stuff is to reflect the specification the port
+> implements, then RoCEE is a valid specification (IBA Annex A16), as it
+> RoCEEv2 (A17).
 > 
-> If any code should test for ROCE should invoke a specific helper, e.g., rdma_protocol_iboe().
-> This is  what you currently call "rdma_tech_iboe" is patch 02/26.
-> 
-> I think that pretty much everybody agrees that rdma_protocol_*() is a better name than rdma_tech_*(), right?
-> So, let's change this.
+> This patch set is trying to drop then link layer concept entirely.
 
-Sure, sounds reasonable now, about the IBOE, we still need it to
-separate the port support IB/ETH without the check on link-layer,
-So what about a new enum on protocol type?
-
-Like:
-
-enum rdma_protocol {
-	RDMA_PROTOCOL_IB,
-	RDMA_PROTOCOL_IBOE,
-	RDMA_PROTOCOL_IWARP,
-	RDMA_PROTOCOL_USNIC_UDP
-};
-
-So we could use query_protocol() to ask device provide the protocol
-type, and there will be no mixing with the legacy transport type
-anymore :-)
+I think a new enum on protocol could help solve the conflict in here, we
+can still get rid of the link layer meanwhile leave the legacy
+transport type alone :-)
 
 Regards,
 Michael Wang
 
 > 
-> The semantics are: "check that a link supports a certain wire protocol, or a set of wire protocols", where 'certain'
-> refers to the specific helper...
-> 
+> Jason
 > 
