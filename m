@@ -1,61 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Mon, 27 Apr 2015 10:22:56 -0600
-Message-ID: <20150427162256.GA24316@obsidianresearch.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
- <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
- <553DF294.4070507@mellanox.com>
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: Re: [PATCH] IB/ipath: use arch_phys_wc_add() and require PAT disabled
+Date: Mon, 27 Apr 2015 09:46:21 -0700
+Message-ID: <CAB=NE6UHnEuMHfFaXBNr4F=RcDcEC3z6rX8-B_10Sbpr7kHkiA@mail.gmail.com>
+References: <1429730795-6721-1-git-send-email-mcgrof@do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <553DF294.4070507-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1429730795-6721-1-git-send-email-mcgrof@do-not-panic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <infinipath@intel.com>, roland@kernel.org, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: Andy Lutomirski <luto@amacapital.net>, "Michael S. Tsirkin" <mst@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Suresh Siddha <sbsiddha@gmail.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Roland Dreier <roland@purestorage.com>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Juergen Gross <jgross@suse.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Antonino Daplas <adaplas@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>, Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>, Bo
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 27, 2015 at 11:25:56AM +0300, Matan Barak wrote:
-> 
-> 
-> On 4/26/2015 11:10 PM, Or Gerlitz wrote:
-> >On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
-> ><somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> >>From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>
-> >>Previously. we used device_mutex lock in order to protect
-> >>the device's list. That means that in order to guarantee a
-> >>device isn't freed while we use it, we had to lock all
-> >>devices.
-> >
-> >Matan, looking on the cover letter, it says: "[...] Patch 0002 adds a
-> >reference count mechanism to IB devices. This mechanism is similar to
-> >dev_hold and dev_put available for net devices. This is mandatory for
-> >later patches [...]"
-> >
-> >So in that respect, saying here "Previously. we used device_mutex
-> >lock" is a bit cryptic, @ least one typo must exist in this sentence,
-> >right? did you want to say "Currently we use device_mutex lock for XXX
-> >[...] and this should be replaced as of a YYY change which is to be
-> >introduced [...]" please clarify
-> 
-> Correct, I'll change that into:
-> 
-> Currently we use device_mutex lock for protecting the device's list.
-> In the current approach, in order to guarantee a device isn't freed
-> we have to lock all devices.
-> 
-> Adding a kref per IB device. Before an IB device is unregistered, we
-> wait until it's not held anymore.
+On Wed, Apr 22, 2015 at 12:26 PM, Luis R. Rodriguez
+<mcgrof@do-not-panic.com> wrote:
+> From: "Luis R. Rodriguez" <mcgrof@suse.com>
+>
+> We are burrying direct access to MTRR code support on
+> x86 in order to take advantage of PAT. In the future we
+> also want to make the default behaviour of ioremap_nocache()
+> to use strong UC, use of mtrr_add() on those systems
+> would make write-combining void.
+>
+> In order to help both enable us to later make strong
+> UC default and in order to phase out direct MTRR access
+> code port the driver over to arch_phys_wc_add() and
+> annotate that the device driver requires systems to
+> boot with PAT disabled, with the nopat kernel parameter.
+>
+> This is a worthy compromise given that the ipath device
+> driver powers the old HTX bus cards that only work in
+> AMD systems, while the newer IB/qib device driver
+> powers all PCI-e cards. The ipath device driver is
+> obsolete, hardware hard to find and because of this
+> this its a reasonable compromise to make to require
+> users of ipath to boot with nopat.
 
-Why do we need two krefs for this structure? There is already a kref
-inside the embedded 'struct device dev'
+Hey folks, I realize its being discussed whether or not to remove the
+driver entirely from the kernel but in the meantime, is this a
+reasonable compromise ?
 
-Sounds wrong to me without a lot more explanation.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Luis
