@@ -1,63 +1,83 @@
-From: "ira.weiny" <ira.weiny@intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v5 00/27] IB/Verbs: IB Management Helpers
-Date: Mon, 27 Apr 2015 15:22:42 -0400
-Message-ID: <20150427192241.GB5347@phlsvsds.ph.intel.com>
-References: <5534B8C9.506@profitbricks.com> <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com> <55375C10.8070901@profitbricks.com> <DB4PR05MB0863B84F5AF4F8203CFDAC36B1EE0@DB4PR05MB0863.eurprd05.prod.outlook.com> <5538A034.4030904@profitbricks.com> <DB4PR05MB08635737AF7A40F3F82B7628B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+Date: Mon, 27 Apr 2015 16:58:33 -0400
+Message-ID: <20150427205832.GC5347@phlsvsds.ph.intel.com>
+References: <5534B8C9.506@profitbricks.com> <DB4PR05MB0863E9CCCD1BEA34F244EE2CB1EF0@DB4PR05MB0863.eurprd05.prod.outlook.com> <1429714792.45956.110.camel@redhat.com> <20150422171051.GE1494@phlsvsds.ph.intel.com> <DB4PR05MB08630282DEFFFB181A525B67B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <DB4PR05MB08635737AF7A40F3F82B7628B1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Liran Liss <liranl@mellanox.com>
-Cc: Michael Wang <yun.wang@profitbricks.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hal@dev.mellanox.co.il" <hal@dev.mellanox.co.il>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+In-Reply-To: <DB4PR05MB08630282DEFFFB181A525B67B1EC0-xsq7jzH2t6llkovD9u25SNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 24, 2015 at 02:44:29PM +0000, Liran Liss wrote:
-> > From: Michael Wang [mailto:yun.wang@profitbricks.com]
-> 
-> 
+On Fri, Apr 24, 2015 at 02:53:37PM +0000, Liran Liss wrote:
+> > From: ira.weiny [mailto:ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
 > > [snip]
-> > >
-> > > Depends on who is "we".
-> > > For ULPs, you are probably right.
-> > >
-> > > However, core services (e.g., mad management, CM, SA) do care about
-> > various details.
-> > > In some cases, where it doesn't matter, this code will use management
-> > helpers.
-> > > In other cases, this code will inspect link, transport, and node attributes of
-> > rdma devices.
-> > >
-> > > For example, the CM code has specific code paths for IB, RoCE, and iWARP.
-> > > There is no other CM code; there is no reason to abstract 'CM'. This
-> > > code will have code paths that depend on various specific details.
 > > 
-> > That's exactly what we want to stop, we have classified the CM to IB and
-> > IWARP now :-)
-> >
+> > > >
+> > > > 2)The name rdma_tech_* is lame.
+> > > > rdma_transport_*(), adhering to the above (*) remark, is much better.
+> > > > For example, both IB and ROCE *do* use the same transport.
+> > >
+> > > I especially want to second this.  I haven't really been happy with
+> > > the
+> > > rdma_tech_* names at all.
+> > >
+> > 
+> > I am sure Michael is open to alternative names.  I know I am.  The problem is
+> > that we can't figure out what "IBoE" is.  It is not a transport, even though
+> > query_transport is now returning it as one.  :-P
 > 
-> We don't want to stop code branches that are not abstractions but rather depend
-> on the specific technology!
-> There is no generic "iWARP CM" - only one.
-> There is no generic "ROCE CM" - only one.
-> There is no generic "IB CM" - only one.
+> IBOE is used in part of the kernel symbols that refer to RoCE. That's it.
+> ROCE HCA links have the following characteristics:
+> - Ethernet link layer
+> - IB transport
+> - CA node type
+> 
+> And, if needed in the future:
+> - ROCEv1 and ROCEv2 protocol stacks
 
-How can you say this?  Or perhaps I don't understand what you mean.
+Let me rephrase that[*].
 
-While conceptually one could say that each technology has its own "CM" we are
-trying to have the same module (and code) implement them all (ie a generic CM
-for a node).  Therefore, the CM code _is_ generic.  As is the MAD code.  This
-is the reason we have this problem.  We are trying to reuse those modules for
-multiple technologies.
+We don't know what to "call" "IBoE" vs "IBoIB" vs "iWarp Verbs over iWarp" vs
+"IBoOPA", etc.
+
+The problem with your argument (no matter what name we use, "Transport",
+"tech", "protocol") etc is that support for various features are implied rather
+than explicit.
+
+Your argument that RoCE is just "IB transport" over Ethernet (while technically
+correct) is not relevant for the problem we are trying to solve.
+
+The ib_mad, ib_cm, rdma_cm, and ib_sa modules are attempting to support many
+different device type (on a port basis).  The functionality they provide is
+dependent on so much more that the notion of "transport" and "link layer".
+
+The purpose of this patch series was to create the specific helper functions
+based on the support the core modules need to explicitly determine what they
+should do for a port.  Furthermore, the implementation of those features was to
+be based on the current implementation (which happens to use the transport and
+link layer) to ensure we don't break everything.
+
+Once we could agree on items like the feature set and the names of the helper
+calls we could then alter the implementation to remove the implied nature of
+this support.
 
 > 
-> At the CM high-level (i.e., whether an ib_dev port registers an IB client), you could consider
-> an rdma_has_cm() call, but this the only place in the code that this check will be called!
-> Hence, no need for a generic check.
-> 
-> You want to stop abstract code that uses IB core infrastructure.
+> > 
+> > I think the idea behind the "tech" name was that it is a technology "family".
+> > I can't think of a better name.
 
-Not sure what you mean here?
+I see "protocol" and "specification" being discussed.  Those are probably
+decent.
 
 Ira
+
+[*] We all know what RoCE (IBoE) _is_...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
