@@ -1,48 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v6 01/26] IB/Verbs: Implement new callback
- query_transport()
-Date: Tue, 28 Apr 2015 12:56:12 -0600
-Message-ID: <20150428185612.GA15216@obsidianresearch.com>
-References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
- <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>
- <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
- <553DE799.5050608@profitbricks.com>
- <20150427215229.GD5347@phlsvsds.ph.intel.com>
- <553ED159.2090006@talpey.com>
- <1430181360.44548.35.camel@redhat.com>
- <553EDA01.9040708@talpey.com>
- <1430184275.44548.44.camel@redhat.com>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH v7 04/23] IB/Verbs: Reform IB-core cm
+Date: Tue, 28 Apr 2015 22:02:21 +0300
+Message-ID: <CAJ3xEMhOg1xh5dXburjavqcy3crwWs6OoF2qEojiDxDhT-MCDw@mail.gmail.com>
+References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
+	<1430233823-7075-5-git-send-email-yun.wang@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1430184275.44548.44.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430233823-7075-5-git-send-email-yun.wang@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Devesh Sharma <Devesh.Sharma@emulex.com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 27, 2015 at 09:24:35PM -0400, Doug Ledford wrote:
-> On Mon, 2015-04-27 at 17:53 -0700, Tom Talpey wrote:
+On Tue, Apr 28, 2015 at 6:10 PM, Michael Wang <yun.wang@profitbricks.com> wrote:
+> Use raw management helpers to reform IB-core cm.
+>
+> Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
+> Cc: Steve Wise <swise@opengridcomputing.com>
+> Cc: Tom Talpey <tom@talpey.com>
+> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+> ---
+>  drivers/infiniband/core/cm.c | 20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
 
-> Having some of it refer to things as IBOE and some as ROCE would be
-> similarly confusing, and switching existing IBOE usage to ROCE would
-> cause pain to people with out of tree drivers (Lustre is the main one I
-> know of).  There's not a good answer here.  There's only less sucky
-> ones.
+Hi Michael,
 
-The tide has already turned, we should ditch iboe:
+I don't really see the benefit (e.g for someone doing bisection
+1/2/5/10 years from now and landing here) of listing all the group of
+reviewers for each of the ~30 patches that make this series, any
+special reason that caused you doing so?
 
-$git grep -i roce_ drivers/infiniband/ | wc -l
-91
-$git grep -i iboe_ drivers/infiniband/ | wc -l
-37
-
-It isn't really mainline's role to be too concerned about out of tree
-things like Lustre.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or.
