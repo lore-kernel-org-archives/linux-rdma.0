@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v7 15/23] IB/Verbs: Use management helper cap_ib_mad()
-Date: Tue, 28 Apr 2015 17:10:15 +0200
-Message-ID: <1430233823-7075-16-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v7 14/23] IB/Verbs: Reform rest part in IB-core cma
+Date: Tue, 28 Apr 2015 17:10:14 +0200
+Message-ID: <1430233823-7075-15-git-send-email-yun.wang@profitbricks.com>
 References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1430233823-7075-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
@@ -10,8 +10,7 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <
 Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce helper cap_ib_mad() to help us check if the port of an
-IB device support Infiniband Management Datagrams.
+Use raw management helpers to reform rest part in IB-core cma.
 
 Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -22,99 +21,56 @@ Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c      |  6 +++---
- drivers/infiniband/core/user_mad.c |  6 +++---
- include/rdma/ib_verbs.h            | 15 +++++++++++++++
- 3 files changed, 21 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cma.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 507eb67..59459e7 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -3066,7 +3066,7 @@ static void ib_mad_init_device(struct ib_device *device)
- 	}
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 3fb3458..d43f492f 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -447,10 +447,10 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	pkey = ntohs(addr->sib_pkey);
  
- 	for (i = start; i <= end; i++) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		if (ib_mad_port_open(device, i)) {
-@@ -3087,7 +3087,7 @@ error_agent:
- 
- error:
- 	while (--i >= start) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		if (ib_agent_port_close(device, i))
-@@ -3111,7 +3111,7 @@ static void ib_mad_remove_device(struct ib_device *device)
- 	}
- 
- 	for (i = start; i <= end; i++) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		if (ib_agent_port_close(device, i))
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index aa8b334..e3ccbf2 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1294,7 +1294,7 @@ static void ib_umad_add_one(struct ib_device *device)
- 	umad_dev->end_port   = e;
- 
- 	for (i = s; i <= e; ++i) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		umad_dev->port[i - s].umad_dev = umad_dev;
-@@ -1315,7 +1315,7 @@ static void ib_umad_add_one(struct ib_device *device)
- 
- err:
- 	while (--i >= s) {
--		if (!rdma_ib_or_iboe(device, i))
-+		if (!cap_ib_mad(device, i))
- 			continue;
- 
- 		ib_umad_kill_port(&umad_dev->port[i - s]);
-@@ -1333,7 +1333,7 @@ static void ib_umad_remove_one(struct ib_device *device)
- 		return;
- 
- 	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i) {
--		if (rdma_ib_or_iboe(device, i))
-+		if (cap_ib_mad(device, i))
- 			ib_umad_kill_port(&umad_dev->port[i]);
- 	}
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index acdba60..cb3ba2d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1774,6 +1774,21 @@ static inline int rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
- 	return (pt == RDMA_PROTOCOL_IB || pt == RDMA_PROTOCOL_IBOE);
- }
- 
-+/**
-+ * cap_ib_mad - Check if the port of device has the capability Infiniband
-+ * Management Datagrams.
-+ *
-+ * @device: Device to be checked
-+ * @port_num: Port number of the device
-+ *
-+ * Return 0 when port of the device don't support Infiniband
-+ * Management Datagrams.
-+ */
-+static inline int cap_ib_mad(struct ib_device *device, u8 port_num)
-+{
-+	return rdma_ib_or_iboe(device, port_num);
-+}
+ 	list_for_each_entry(cur_dev, &dev_list, list) {
+-		if (rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
+-			continue;
+-
+ 		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
++			if (!rdma_ib_or_iboe(cur_dev->device, p))
++				continue;
 +
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid);
+ 			if (ib_find_cached_pkey(cur_dev->device, p, pkey, &index))
+ 				continue;
  
+@@ -645,10 +645,9 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
+ 	if (ret)
+ 		goto out;
+ 
+-	if (rdma_node_get_transport(id_priv->cma_dev->device->node_type)
+-	    == RDMA_TRANSPORT_IB &&
+-	    rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num)
+-	    == IB_LINK_LAYER_ETHERNET) {
++	BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
++
++	if (rdma_protocol_iboe(id_priv->id.device, id_priv->id.port_num)) {
+ 		ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
+ 
+ 		if (ret)
+@@ -712,11 +711,10 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
+ 	int ret;
+ 	u16 pkey;
+ 
+-	if (rdma_port_get_link_layer(id_priv->id.device, id_priv->id.port_num) ==
+-	    IB_LINK_LAYER_INFINIBAND)
+-		pkey = ib_addr_get_pkey(dev_addr);
+-	else
++	if (rdma_protocol_iboe(id_priv->id.device, id_priv->id.port_num))
+ 		pkey = 0xffff;
++	else
++		pkey = ib_addr_get_pkey(dev_addr);
+ 
+ 	ret = ib_find_cached_pkey(id_priv->id.device, id_priv->id.port_num,
+ 				  pkey, &qp_attr->pkey_index);
 -- 
 2.1.0
 
