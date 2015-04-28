@@ -1,51 +1,52 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Tue, 28 Apr 2015 11:43:12 -0600
-Message-ID: <20150428174312.GB5497@obsidianresearch.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
- <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
- <553DF294.4070507@mellanox.com>
- <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
- <553F931F.6000302@mellanox.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: recent qib patch
+Date: Tue, 28 Apr 2015 18:32:25 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC256FE908@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <553F931F.6000302-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Al Viro (viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org)" <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 28, 2015 at 05:03:11PM +0300, Matan Barak wrote:
- 
-> The cleanup of roce_gid_cache is done in a different context, so we
-> need to make sure the device is still alive while doing so. 
+Al,
 
-This explanation doesn't look right to me. I don't see anything like
-that under roce_gid_cache_cleanup_one ?
+In commit=20
 
-Although, there must be a call to the driver's modify_gid to free
-context before freeing, and I don't see that obviously happening..
+commit 4961772560d2f19695c73ece943716033ad62ac2
+Author: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Date:=A0=A0 Sat Apr 4 00:11:32 2015 -0400
 
-However, all the other async work launched doesn't look safe at all.
+=A0=A0=A0 infinibad: weird APIs switched to ->write_iter()
 
-So, did you mean that the device must still be alive while all the
-other work is running? And the point of this scheme is to guarentee
-all the work is flushed? (at least I hope it is, otherwise there are
-bigger problems here)
+=A0=A0=A0=A0=A0=A0=A0 Things Not To Do When Writing A Driver, part 1001=
+st:
+=A0=A0=A0 have writev() and write() on the same file doing completely
+=A0=A0=A0 different things.=A0 As in, "interpret very different sets of
+=A0=A0=A0 commands".
 
-It is just fundamentally wrong to return from ib_client.remove while
-async work is still outstanding, the client is expected to deal with
-this internally and synchronously.
+=A0=A0=A0=A0=A0=A0=A0 We _can_ handle that, but it's a bloody bad idea.
+=A0=A0=A0 Don't do that in new drivers.=A0 Ever.
 
-You don't need IB core help to do this.
+=A0=A0=A0 Signed-off-by: Al Viro viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org
 
-Or: This should have been fixed after Haggai brought it up...
+You note an objection to qib's (and ipath's) use of the write overload =
+for control messages.
 
-Jason
+What would be an acceptable mechanism for control v.s. data path?
+
+It looks to me like this current implementation might have been to avoi=
+d using ioctl.
+
+Mike
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
