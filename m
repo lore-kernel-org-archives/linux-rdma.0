@@ -1,111 +1,54 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v7 23/23] IB/Verbs: Use management helper cap_eth_ah()
-Date: Tue, 28 Apr 2015 17:10:23 +0200
-Message-ID: <1430233823-7075-24-git-send-email-yun.wang@profitbricks.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: [PATCH v7 09/23] IB/Verbs: Reform IB-core verbs
+Date: Tue, 28 Apr 2015 17:10:09 +0200
+Message-ID: <1430233823-7075-10-git-send-email-yun.wang@profitbricks.com>
 References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430233823-7075-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce helper cap_eth_ah() to help us check if the port of an
-IB device support Ethernet Address Handler.
+Use raw management helpers to reform IB-core verbs
 
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/cma.c      |  2 +-
- drivers/infiniband/core/sa_query.c |  2 +-
- drivers/infiniband/core/verbs.c    |  4 ++--
- include/rdma/ib_verbs.h            | 15 +++++++++++++++
- 4 files changed, 19 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/verbs.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index c3dbcdd..2e96883 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -711,7 +711,7 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
- 	int ret;
- 	u16 pkey;
- 
--	if (rdma_protocol_iboe(id_priv->id.device, id_priv->id.port_num))
-+	if (cap_eth_ah(id_priv->id.device, id_priv->id.port_num))
- 		pkey = 0xffff;
- 	else
- 		pkey = ib_addr_get_pkey(dev_addr);
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index c82aa48..1f0d009 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -540,7 +540,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 	ah_attr->port_num = port_num;
- 	ah_attr->static_rate = rec->rate;
- 
--	force_grh = rdma_protocol_iboe(device, port_num);
-+	force_grh = cap_eth_ah(device, port_num);
- 
- 	if (rec->hop_limit > 1 || force_grh) {
- 		ah_attr->ah_flags = IB_AH_GRH;
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 7dd2f51..db1139f 100644
+index f93eb8d..7dd2f51 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -200,7 +200,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+@@ -198,11 +198,9 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
+ 	u32 flow_class;
+ 	u16 gid_index;
  	int ret;
+-	int is_eth = (rdma_port_get_link_layer(device, port_num) ==
+-			IB_LINK_LAYER_ETHERNET);
  
  	memset(ah_attr, 0, sizeof *ah_attr);
--	if (rdma_protocol_iboe(device, port_num)) {
-+	if (cap_eth_ah(device, port_num)) {
+-	if (is_eth) {
++	if (rdma_protocol_iboe(device, port_num)) {
  		if (!(wc->wc_flags & IB_WC_GRH))
  			return -EPROTOTYPE;
  
-@@ -869,7 +869,7 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
+@@ -871,7 +869,7 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
  	union ib_gid  sgid;
  
  	if ((*qp_attr_mask & IB_QP_AV)  &&
--	    (rdma_protocol_iboe(qp->device, qp_attr->ah_attr.port_num))) {
-+	    (cap_eth_ah(qp->device, qp_attr->ah_attr.port_num))) {
+-	    (rdma_port_get_link_layer(qp->device, qp_attr->ah_attr.port_num) == IB_LINK_LAYER_ETHERNET)) {
++	    (rdma_protocol_iboe(qp->device, qp_attr->ah_attr.port_num))) {
  		ret = ib_query_gid(qp->device, qp_attr->ah_attr.port_num,
  				   qp_attr->ah_attr.grh.sgid_index, &sgid);
  		if (ret)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index c045be1..c724114 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1880,6 +1880,21 @@ static inline int cap_af_ib(struct ib_device *device, u8 port_num)
- }
- 
- /**
-+ * cap_eth_ah - Check if the port of device has the capability
-+ * Ethernet Address Handler.
-+ *
-+ * @device: Device to be checked
-+ * @port_num: Port number of the device
-+ *
-+ * Return 0 when port of the device don't support
-+ * Ethernet Address Handler.
-+ */
-+static inline int cap_eth_ah(struct ib_device *device, u8 port_num)
-+{
-+	return rdma_protocol_iboe(device, port_num);
-+}
-+
-+/**
-  * cap_read_multi_sge - Check if the port of device has the capability
-  * RDMA Read Multiple Scatter-Gather Entries.
-  *
 -- 
 2.1.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
