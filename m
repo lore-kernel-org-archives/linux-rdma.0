@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v7 09/23] IB/Verbs: Reform IB-core verbs
-Date: Tue, 28 Apr 2015 17:10:09 +0200
-Message-ID: <1430233823-7075-10-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v7 07/23] IB/Verbs: Reform IB-ulp ipoib
+Date: Tue, 28 Apr 2015 17:10:07 +0200
+Message-ID: <1430233823-7075-8-git-send-email-yun.wang@profitbricks.com>
 References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
@@ -10,7 +10,7 @@ To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Ro
 Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Use raw management helpers to reform IB-core verbs
+Use raw management helpers to reform IB-ulp ipoib.
 
 Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
 Cc: Steve Wise <swise@opengridcomputing.com>
@@ -21,34 +21,56 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- drivers/infiniband/core/verbs.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index f93eb8d..7dd2f51 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -198,11 +198,9 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
- 	u32 flow_class;
- 	u16 gid_index;
- 	int ret;
--	int is_eth = (rdma_port_get_link_layer(device, port_num) ==
--			IB_LINK_LAYER_ETHERNET);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 7cad4dd..468fc2b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1680,9 +1680,7 @@ static void ipoib_add_one(struct ib_device *device)
+ 	struct net_device *dev;
+ 	struct ipoib_dev_priv *priv;
+ 	int s, e, p;
+-
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
++	int count = 0;
  
- 	memset(ah_attr, 0, sizeof *ah_attr);
--	if (is_eth) {
-+	if (rdma_protocol_iboe(device, port_num)) {
- 		if (!(wc->wc_flags & IB_WC_GRH))
- 			return -EPROTOTYPE;
+ 	dev_list = kmalloc(sizeof *dev_list, GFP_KERNEL);
+ 	if (!dev_list)
+@@ -1699,15 +1697,21 @@ static void ipoib_add_one(struct ib_device *device)
+ 	}
  
-@@ -871,7 +869,7 @@ int ib_resolve_eth_l2_attrs(struct ib_qp *qp,
- 	union ib_gid  sgid;
+ 	for (p = s; p <= e; ++p) {
+-		if (rdma_port_get_link_layer(device, p) != IB_LINK_LAYER_INFINIBAND)
++		if (!rdma_protocol_ib(device, p))
+ 			continue;
+ 		dev = ipoib_add_port("ib%d", device, p);
+ 		if (!IS_ERR(dev)) {
+ 			priv = netdev_priv(dev);
+ 			list_add_tail(&priv->list, dev_list);
++			count++;
+ 		}
+ 	}
  
- 	if ((*qp_attr_mask & IB_QP_AV)  &&
--	    (rdma_port_get_link_layer(qp->device, qp_attr->ah_attr.port_num) == IB_LINK_LAYER_ETHERNET)) {
-+	    (rdma_protocol_iboe(qp->device, qp_attr->ah_attr.port_num))) {
- 		ret = ib_query_gid(qp->device, qp_attr->ah_attr.port_num,
- 				   qp_attr->ah_attr.grh.sgid_index, &sgid);
- 		if (ret)
++	if (!count) {
++		kfree(dev_list);
++		return;
++	}
++
+ 	ib_set_client_data(device, &ipoib_client, dev_list);
+ }
+ 
+@@ -1716,9 +1720,6 @@ static void ipoib_remove_one(struct ib_device *device)
+ 	struct ipoib_dev_priv *priv, *tmp;
+ 	struct list_head *dev_list;
+ 
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
+-
+ 	dev_list = ib_get_client_data(device, &ipoib_client);
+ 	if (!dev_list)
+ 		return;
 -- 
 2.1.0
