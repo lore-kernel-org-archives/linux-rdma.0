@@ -1,111 +1,50 @@
-From: Tom Talpey <tom@talpey.com>
-Subject: Re: [PATCH v6 01/26] IB/Verbs: Implement new callback query_transport()
-Date: Mon, 27 Apr 2015 18:49:12 -0700
-Message-ID: <553EE718.1030502@talpey.com>
-References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>		 <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>		 <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>		 <553DE799.5050608@profitbricks.com>		 <20150427215229.GD5347@phlsvsds.ph.intel.com>	 <553ED159.2090006@talpey.com> <1430181360.44548.35.camel@redhat.com>	 <553EDA01.9040708@talpey.com> <1430184275.44548.44.camel@redhat.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v6 01/26] IB/Verbs: Implement new callback
+ query_transport()
+Date: Tue, 28 Apr 2015 06:14:15 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC819C@ORSMSX109.amr.corp.intel.com>
+References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
+		 <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>
+		 <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
+		 <553DE799.5050608@profitbricks.com>
+		 <20150427215229.GD5347@phlsvsds.ph.intel.com>
+	 <553ED159.2090006@talpey.com> <1430181360.44548.35.camel@redhat.com>
+	 <553EDA01.9040708@talpey.com> <1430184275.44548.44.camel@redhat.com>
+ <553EE718.1030502@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430184275.44548.44.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: "ira.weiny" <ira.weiny@intel.com>, Michael Wang <yun.wang@profitbricks.com>, Liran Liss <liranl@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, "raisch@de.ibm.com" <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <553EE718.1030502-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/27/2015 6:24 PM, Doug Ledford wrote:
-> On Mon, 2015-04-27 at 17:53 -0700, Tom Talpey wrote:
->> On 4/27/2015 5:36 PM, Doug Ledford wrote:
->>> On Mon, 2015-04-27 at 17:16 -0700, Tom Talpey wrote:
->>>> On 4/27/2015 2:52 PM, ira.weiny wrote:
->>>>> On Mon, Apr 27, 2015 at 09:39:05AM +0200, Michael Wang wrote:
->>>>>> On 04/24/2015 05:12 PM, Liran Liss wrote:
->>>>>>> [snip]
->>>>>>
->>>>>> Like:
->>>>>>
->>>>>> enum rdma_protocol {
->>>>>> 	RDMA_PROTOCOL_IB,
->>>>>> 	RDMA_PROTOCOL_IBOE,
->>>>>> 	RDMA_PROTOCOL_IWARP,
->>>>>> 	RDMA_PROTOCOL_USNIC_UDP
->>>>>> };
->>>>>>
->>>>>> So we could use query_protocol() to ask device provide the protocol
->>>>>> type, and there will be no mixing with the legacy transport type
->>>>>> anymore :-)
->>>>>
->>>>> I'm ok with that.  I like introducing a unique namespace which is clearly
->>>>> different from the previous "transport" one.
->>>>
->>>> I agree the word "transport" takes things into the weeds.
->>>>
->>>> But on the topic of naming protocols, I've been wondering, is there
->>>> some reason that "IBOE" is being used instead of "RoCE"?
->>>
->>> Because back in the day, when RoCE was accepted into the kernel, I'm
->>> pretty sure it was prior to the IBTA's final stamp of approval and
->>> before the name was set on RoCE, so IBoE was chosen upstream as the more
->>> "correct" name because it properly denoted what it was deemed to truly
->>> be: IB Verbs over Ethernet.
->>
->> Well history is all well and good, but it seems weird to not use the
->> current, standard name in new code. It confuses me, anyway, because
->> it seems like IBOE could easily mean something else.
->
-> Having some of it refer to things as IBOE and some as ROCE would be
-> similarly confusing, and switching existing IBOE usage to ROCE would
-> cause pain to people with out of tree drivers (Lustre is the main one I
-> know of).  There's not a good answer here.  There's only less sucky
-> ones.
-
-Hrm. Well, avoiding churn is good but legacies can wear ya down.
-MHO it is worth doing since these are new enums/new patches.
-
-
->
->>>> Also wondering, why add "UDP" to USNIC, is there a different USNIC?
->>>
->>> Yes, there are two transports, one a distinct ethertype and one that
->>> encapsulates USNIC in UDP.
->>
->> But this new enum isn't about transport, it's about protocol. So is
->> there one USNIC protocol, with a raw layering and a separate one with
->> UDP? Or is it one USNIC protocol with two different framings? Seems
->> there should be at least the USNIC protocol, without the _UDP
->> decoration, and I don't see it in the enum.
->
-> Keep in mind that this enum was Liran's response to Michael's original
-> patch.  In the enum in Michael's patch, there was both USNIC and
-> USNIC_UDP.
-
-Right! That's why I'm confused. Seems wrong to drop it, right?
-
->
->>>
->>>> Naming multiple layers together seems confusing and maybe in the end
->>>> will create more code to deal with the differences. For example, what
->>>> token will RoCEv2 take? RoCE_UDP, RoCE_v2 or ... ?
->>>
->>> Uncertain as of now.
->>
->> Ok, but it's imminent, right? What's the preference/guidance?
->
-> There is a patchset from Devesh Sharma at Emulex.  It added the RoCEv2
-> capability.  As I recall, it used a new flag added to the existing port
-> capabilities bitmask and notably did not modify either the node type or
-> link layer that are currently used to differentiate between the
-> different protocols.  That's from memory though, so I could be mistaken.
->
-> But that patchset was not written with this patchset in mind, and
-> merging the two may well change that.  In any case, there is a proposed
-> spec to follow, so for now that's the preference/guidance (unless this
-> rework means that we need to depart from the spec on internals for
-> implementation reasons).
-
-Well, if RoCEv2 uses the same protocol enum, that may introduce new
-confusion, for example there will be some new CM handling for UDP encap,
-source port selection, and of course vlan/tag assignment, etc. But if
-there is support under way, and everyone is clear, then, ok.
-
-Thanks.
+PiA+IEtlZXAgaW4gbWluZCB0aGF0IHRoaXMgZW51bSB3YXMgTGlyYW4ncyByZXNwb25zZSB0byBN
+aWNoYWVsJ3Mgb3JpZ2luYWwNCj4gPiBwYXRjaC4gIEluIHRoZSBlbnVtIGluIE1pY2hhZWwncyBw
+YXRjaCwgdGhlcmUgd2FzIGJvdGggVVNOSUMgYW5kDQo+ID4gVVNOSUNfVURQLg0KPiANCj4gUmln
+aHQhIFRoYXQncyB3aHkgSSdtIGNvbmZ1c2VkLiBTZWVtcyB3cm9uZyB0byBkcm9wIGl0LCByaWdo
+dD8NCg0KSSB0aGluayB0aGUgb3JpZ2luYWwgVVNOSUMgcHJvdG9jb2wgaXMgbGF5ZXJlZCBkaXJl
+Y3RseSBvdmVyIEV0aGVybmV0LiAgVGhlIHByb3RvY29sIGJhc2ljYWxseSBzdG9sZSBhbiBFdGhl
+cnR5cGUgKHRoZSBvbmUgdXNlZCBmb3IgSUJvRS9Sb0NFKSBhbmQgaW1wbGVtZW50ZWQgYSBwcm9w
+cmlldGFyeSBwcm90b2NvbCBpbnN0ZWFkLiAgSSBoYXZlIG5vIGlkZWEgaG93IHlvdSByZXNvbHZl
+IHRoYXQsIGJ1dCBJIGFsc28gZG9uJ3QgdGhpbmsgaXQncyB1c2VkIGFueW1vcmUuICBVU05JQ19V
+RFAgaXMganVzdCBVRFAuDQoNCj4gV2VsbCwgaWYgUm9DRXYyIHVzZXMgdGhlIHNhbWUgcHJvdG9j
+b2wgZW51bSwgdGhhdCBtYXkgaW50cm9kdWNlIG5ldw0KPiBjb25mdXNpb24sIGZvciBleGFtcGxl
+IHRoZXJlIHdpbGwgYmUgc29tZSBuZXcgQ00gaGFuZGxpbmcgZm9yIFVEUCBlbmNhcCwNCj4gc291
+cmNlIHBvcnQgc2VsZWN0aW9uLCBhbmQgb2YgY291cnNlIHZsYW4vdGFnIGFzc2lnbm1lbnQsIGV0
+Yy4gQnV0IGlmDQo+IHRoZXJlIGlzIHN1cHBvcnQgdW5kZXIgd2F5LCBhbmQgZXZlcnlvbmUgaXMg
+Y2xlYXIsIHRoZW4sIG9rLg0KDQpSb0NFdjIvSUJvVURQIHNoYXJlcyB0aGUgc2FtZSBwb3J0IHNw
+YWNlIGFzIFVEUC4gIEl0IGhhcyBhIHNpbWlsYXIgaXNzdWVzIGFzIGlXYXJwIGRvZXMgc2hhcmlu
+ZyBzdGF0ZSB3aXRoIHRoZSBtYWluIG5ldHdvcmsgc3RhY2suICBJJ20gbm90IGF3YXJlIG9mIGFu
+eSBwcm9wb3NhbCBmb3IgcmVzb2x2aW5nIHRoYXQuICBEb2VzIGl0IHJlcXVpcmUgdXNpbmcgYSBz
+ZXBhcmF0ZSBJUCBhZGRyZXNzPyAgRG9lcyBpdCB1c2UgYSBwb3J0IG1hcHBlciBmdW5jdGlvbj8g
+IERvZXMgbmV0ZGV2IGNhcmUgZm9yIFVEUD8gIEknbSBub3Qgc3VyZSB3aGF0IFVTTklDIGRvZXMg
+Zm9yIHRoaXMgZWl0aGVyLCBidXQgYSBjb21tb24gc29sdXRpb24gYmV0d2VlbiBVU05JQyBhbmQg
+SUJvVURQIHNlZW1zIHJlYXNvbmFibGUuDQoNCg0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
