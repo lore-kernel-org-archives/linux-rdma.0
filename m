@@ -1,57 +1,71 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Tue, 28 Apr 2015 17:03:11 +0300
-Message-ID: <553F931F.6000302@mellanox.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
-	<9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
-	<CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
-	<553DF294.4070507@mellanox.com>
- <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
+From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v6 01/26] IB/Verbs: Implement new callback query_transport()
+Date: Tue, 28 Apr 2015 16:29:14 +0200
+Message-ID: <553F993A.8030805@profitbricks.com>
+References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>		 <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>		 <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>		 <553DE799.5050608@profitbricks.com>		 <20150427215229.GD5347@phlsvsds.ph.intel.com>	 <553ED159.2090006@talpey.com> <1430181360.44548.35.camel@redhat.com>	 <553EDA01.9040708@talpey.com> <1430184275.44548.44.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1430184275.44548.44.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 4/28/2015 2:51 PM, Or Gerlitz wrote:
-> On Mon, Apr 27, 2015 at 11:25 AM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On 4/26/2015 11:10 PM, Or Gerlitz wrote:
->>> On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
->>> <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
->>>>
->>>> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>
->>>> Previously. we used device_mutex lock in order to protect
->>>> the device's list. That means that in order to guarantee a
->>>> device isn't freed while we use it, we had to lock all
->>>> devices.
+On 04/28/2015 03:24 AM, Doug Ledford wrote:
+[snip]
+>>>> Also wondering, why add "UDP" to USNIC, is there a different USNIC?
 >>>
->>>
->>> Matan, looking on the cover letter, it says: "[...] Patch 0002 adds a
->>> reference count mechanism to IB devices. This mechanism is similar to
->>> dev_hold and dev_put available for net devices. This is mandatory for
->>> later patches [...]"
->
->> Correct, I'll change that into:
->> Currently we use device_mutex lock for protecting the device's list. In the
->> current approach, in order to guarantee a device isn't freed we have to lock
->> all devices.
->> Adding a kref per IB device. Before an IB device is unregistered, we wait
->> until it's not held anymore.
->
-> Why is this change mandatory for the proposed design?
->
+>>> Yes, there are two transports, one a distinct ethertype and one that
+>>> encapsulates USNIC in UDP.
+>>
+>> But this new enum isn't about transport, it's about protocol. So is
+>> there one USNIC protocol, with a raw layering and a separate one with
+>> UDP? Or is it one USNIC protocol with two different framings? Seems
+>> there should be at least the USNIC protocol, without the _UDP
+>> decoration, and I don't see it in the enum.
+> 
+> Keep in mind that this enum was Liran's response to Michael's original
+> patch.  In the enum in Michael's patch, there was both USNIC and
+> USNIC_UDP.
 
-The cleanup of roce_gid_cache is done in a different context, so we need 
-to make sure the device is still alive while doing so. In addition, we 
-don't want that the unregistration process of ib_core will free our 
-context data.
+Yeah, I've not enum PROTOCOL_USNIC since currently there is no place
+need it...
+
+The only three cases currently are:
+1. trasnport IB, link layer IB		//PROTOCOL_IB
+2. transport IB, link layer ETH		//PROTOCOL_IBOE
+3. transport IWARP			//PROTOCOL_IWARP
+
+Regards,
+Michael Wang
+
+> 
+>>>
+>>>> Naming multiple layers together seems confusing and maybe in the end
+>>>> will create more code to deal with the differences. For example, what
+>>>> token will RoCEv2 take? RoCE_UDP, RoCE_v2 or ... ?
+>>>
+>>> Uncertain as of now.
+>>
+>> Ok, but it's imminent, right? What's the preference/guidance?
+> 
+> There is a patchset from Devesh Sharma at Emulex.  It added the RoCEv2
+> capability.  As I recall, it used a new flag added to the existing port
+> capabilities bitmask and notably did not modify either the node type or
+> link layer that are currently used to differentiate between the
+> different protocols.  That's from memory though, so I could be mistaken.
+> 
+> But that patchset was not written with this patchset in mind, and
+> merging the two may well change that.  In any case, there is a proposed
+> spec to follow, so for now that's the preference/guidance (unless this
+> rework means that we need to depart from the spec on internals for
+> implementation reasons).
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
