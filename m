@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH v7 08/23] IB/Verbs: Reform IB-ulp xprtrdma
-Date: Tue, 28 Apr 2015 17:10:08 +0200
-Message-ID: <1430233823-7075-9-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v7 05/23] IB/Verbs: Reform IB-core sa_query
+Date: Tue, 28 Apr 2015 17:10:05 +0200
+Message-ID: <1430233823-7075-6-git-send-email-yun.wang@profitbricks.com>
 References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
@@ -10,7 +10,7 @@ To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Ro
 Cc: Michael Wang <yun.wang@profitbricks.com>, Steve Wise <swise@opengridcomputing.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Tom Tucker <tom@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Use raw management helpers to reform IB-ulp xprtrdma.
+Use raw management helpers to reform IB-core sa_query.
 
 Cc: Hal Rosenstock <hal@dev.mellanox.co.il>
 Cc: Steve Wise <swise@opengridcomputing.com>
@@ -21,90 +21,100 @@ Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Sean Hefty <sean.hefty@intel.com>
 Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  4 +--
- net/sunrpc/xprtrdma/svc_rdma_transport.c | 45 +++++++++++++-------------------
- 2 files changed, 20 insertions(+), 29 deletions(-)
+ drivers/infiniband/core/sa_query.c | 30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index f9f13a3..2cc625d 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -117,8 +117,8 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index c38f030..b115c28 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -450,7 +450,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 		struct ib_sa_port *port =
+ 			&sa_dev->port[event->element.port_num - sa_dev->start_port];
  
- static int rdma_read_max_sge(struct svcxprt_rdma *xprt, int sge_count)
+-		if (rdma_port_get_link_layer(handler->device, port->port_num) != IB_LINK_LAYER_INFINIBAND)
++		if (WARN_ON(!rdma_protocol_ib(handler->device, port->port_num)))
+ 			return;
+ 
+ 		spin_lock_irqsave(&port->ah_lock, flags);
+@@ -540,7 +540,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+ 	ah_attr->port_num = port_num;
+ 	ah_attr->static_rate = rec->rate;
+ 
+-	force_grh = rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_ETHERNET;
++	force_grh = rdma_protocol_iboe(device, port_num);
+ 
+ 	if (rec->hop_limit > 1 || force_grh) {
+ 		ah_attr->ah_flags = IB_AH_GRH;
+@@ -1153,9 +1153,7 @@ static void ib_sa_add_one(struct ib_device *device)
  {
--	if (rdma_node_get_transport(xprt->sc_cm_id->device->node_type) ==
--	     RDMA_TRANSPORT_IWARP)
-+	if (rdma_protocol_iwarp(xprt->sc_cm_id->device,
-+				xprt->sc_cm_id->port_num))
- 		return 1;
- 	else
- 		return min_t(int, sge_count, xprt->sc_max_sge);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index f609c1c..3df8320 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -851,7 +851,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	struct ib_qp_init_attr qp_attr;
- 	struct ib_device_attr devattr;
- 	int uninitialized_var(dma_mr_acc);
--	int need_dma_mr;
-+	int need_dma_mr = 0;
- 	int ret;
- 	int i;
+ 	struct ib_sa_device *sa_dev;
+ 	int s, e, i;
+-
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
++	int count = 0;
  
-@@ -985,35 +985,26 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	/*
- 	 * Determine if a DMA MR is required and if so, what privs are required
- 	 */
--	switch (rdma_node_get_transport(newxprt->sc_cm_id->device->node_type)) {
--	case RDMA_TRANSPORT_IWARP:
--		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
--		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
--			need_dma_mr = 1;
--			dma_mr_acc =
--				(IB_ACCESS_LOCAL_WRITE |
--				 IB_ACCESS_REMOTE_WRITE);
--		} else if (!(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
--			need_dma_mr = 1;
--			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
--		} else
--			need_dma_mr = 0;
--		break;
--	case RDMA_TRANSPORT_IB:
--		if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG)) {
--			need_dma_mr = 1;
--			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
--		} else if (!(devattr.device_cap_flags &
--			     IB_DEVICE_LOCAL_DMA_LKEY)) {
--			need_dma_mr = 1;
--			dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
--		} else
--			need_dma_mr = 0;
--		break;
--	default:
-+	if (!rdma_protocol_iwarp(newxprt->sc_cm_id->device,
-+				 newxprt->sc_cm_id->port_num) &&
-+	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
-+			     newxprt->sc_cm_id->port_num))
- 		goto errout;
+ 	if (device->node_type == RDMA_NODE_IB_SWITCH)
+ 		s = e = 0;
+@@ -1175,7 +1173,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 
+ 	for (i = 0; i <= e - s; ++i) {
+ 		spin_lock_init(&sa_dev->port[i].ah_lock);
+-		if (rdma_port_get_link_layer(device, i + 1) != IB_LINK_LAYER_INFINIBAND)
++		if (!rdma_protocol_ib(device, i + 1))
+ 			continue;
+ 
+ 		sa_dev->port[i].sm_ah    = NULL;
+@@ -1189,8 +1187,13 @@ static void ib_sa_add_one(struct ib_device *device)
+ 			goto err;
+ 
+ 		INIT_WORK(&sa_dev->port[i].update_task, update_sm_ah);
 +
-+	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
-+	    !(devattr.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
-+		need_dma_mr = 1;
-+		dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
-+		if (rdma_protocol_iwarp(newxprt->sc_cm_id->device,
-+					newxprt->sc_cm_id->port_num) &&
-+		    !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG))
-+			dma_mr_acc |= IB_ACCESS_REMOTE_WRITE;
++		count++;
  	}
  
-+	if (rdma_protocol_iwarp(newxprt->sc_cm_id->device,
-+				newxprt->sc_cm_id->port_num))
-+		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
++	if (!count)
++		goto free;
 +
- 	/* Create the DMA MR if needed, otherwise, use the DMA LKEY */
- 	if (need_dma_mr) {
- 		/* Register all of physical memory */
+ 	ib_set_client_data(device, &sa_client, sa_dev);
+ 
+ 	/*
+@@ -1204,19 +1207,20 @@ static void ib_sa_add_one(struct ib_device *device)
+ 	if (ib_register_event_handler(&sa_dev->event_handler))
+ 		goto err;
+ 
+-	for (i = 0; i <= e - s; ++i)
+-		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
++	for (i = 0; i <= e - s; ++i) {
++		if (rdma_protocol_ib(device, i + 1))
+ 			update_sm_ah(&sa_dev->port[i].update_task);
++	}
+ 
+ 	return;
+ 
+ err:
+-	while (--i >= 0)
+-		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
++	while (--i >= 0) {
++		if (rdma_protocol_ib(device, i + 1))
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+-
++	}
++free:
+ 	kfree(sa_dev);
+-
+ 	return;
+ }
+ 
+@@ -1233,7 +1237,7 @@ static void ib_sa_remove_one(struct ib_device *device)
+ 	flush_workqueue(ib_wq);
+ 
+ 	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+-		if (rdma_port_get_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND) {
++		if (rdma_protocol_ib(device, i + 1)) {
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 			if (sa_dev->port[i].sm_ah)
+ 				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
 -- 
 2.1.0
