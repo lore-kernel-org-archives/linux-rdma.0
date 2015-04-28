@@ -1,71 +1,153 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v6 01/26] IB/Verbs: Implement new callback query_transport()
-Date: Tue, 28 Apr 2015 16:29:14 +0200
-Message-ID: <553F993A.8030805@profitbricks.com>
-References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>		 <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>		 <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>		 <553DE799.5050608@profitbricks.com>		 <20150427215229.GD5347@phlsvsds.ph.intel.com>	 <553ED159.2090006@talpey.com> <1430181360.44548.35.camel@redhat.com>	 <553EDA01.9040708@talpey.com> <1430184275.44548.44.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v7 00/23] IB/Verbs: IB Management Helpers
+Date: Tue, 28 Apr 2015 17:10:00 +0200
+Message-ID: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430184275.44548.44.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Since v6:
+  * Thanks to Ira, Devesh for the review and testing :-)
+  * Thanks for the comments from Sean, Tom, Jason, Doug, Devesh, Ira,
+    Liran :-) Please remind me if anything missed :-P
+  * Use query_protocol() and enum protocol type in 1#
+  * Use rdma_protocol_XX() in 2#
+  * Drop cma_set_legacy_transport()
+  * Reserve rdma_ib_or_iboe() and rdma_node_get_transport()
+  * Updated github repository to v7
+
+There are plenty of lengthy code to check the transport type of IB device,
+or the link layer type of it's port, but actually we are just speculating
+whether a particular management/feature is supported by the device/port.
+
+Thus instead of inferring, we should have our own mechanism for IB management
+capability/protocol/feature checking, several proposals below.
+
+This patch set will introduce query_protocol() to check management requirement
+instead of inferring from transport and link layer respectively, along with
+the new enum on protocol type.
+
+Mapping List:
+		node-type	link-layer	transport	protocol
+nes		RNIC		ETH		IWARP		IWARP
+amso1100	RNIC		ETH		IWARP		IWARP
+cxgb3   	RNIC		ETH		IWARP		IWARP
+cxgb4   	RNIC		ETH		IWARP		IWARP
+usnic   	USNIC_UDP	ETH		USNIC_UDP	USNIC_UDP
+ocrdma  	IB_CA		ETH		IB		IBOE
+mlx4    	IB_CA		IB/ETH		IB		IB/IBOE
+mlx5    	IB_CA		IB		IB		IB
+ehca    	IB_CA		IB		IB		IB
+ipath   	IB_CA		IB		IB		IB
+mthca   	IB_CA		IB		IB		IB
+qib     	IB_CA		IB		IB		IB
+
+For example:
+	if (transport == IB) && (link-layer == ETH)
+will now become:
+	if (query_protocol() == IBOE)
+
+Thus we will be able to get rid of the respective transport and link-layer
+checking, and it will help us to add new protocol/Technology (like OPA) more
+easier, also with the introduced management helpers, IB management logical
+will be more clear and easier for extending.
+
+Highlights:
+    The 'mgmt-helpers' branch of 'git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:ywang-pb/infiniband-wy.git'
+    contain this series based on the latest 'infiniband/for-next'
+
+    The patch set covered a wide range of IB stuff, thus for those who are
+    familiar with the particular part, your suggestion would be invaluable ;-)
+
+    Patch 1#~14# included all the logical reform, 15#~23# introduced the
+    management helpers.
+
+    we appreciate for those one who have the HW willing to provide Tested-by :-)
+
+    Doug suggested the bitmask mechanism:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23765.html
+    which could be the plan for future reforming, we prefer that to be another
+    series which focus on semantic and performance.
+
+    This patch-set is somewhat 'bloated' now and it may be a good timing for
+    staging, I'd like to suggest we focus on improving existed helpers and push
+    all the further reforms into next series ;-)
 
 
-On 04/28/2015 03:24 AM, Doug Ledford wrote:
-[snip]
->>>> Also wondering, why add "UDP" to USNIC, is there a different USNIC?
->>>
->>> Yes, there are two transports, one a distinct ethertype and one that
->>> encapsulates USNIC in UDP.
->>
->> But this new enum isn't about transport, it's about protocol. So is
->> there one USNIC protocol, with a raw layering and a separate one with
->> UDP? Or is it one USNIC protocol with two different framings? Seems
->> there should be at least the USNIC protocol, without the _UDP
->> decoration, and I don't see it in the enum.
-> 
-> Keep in mind that this enum was Liran's response to Michael's original
-> patch.  In the enum in Michael's patch, there was both USNIC and
-> USNIC_UDP.
+Proposals:
+    Sean:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23339.html
+    Doug:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23418.html
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23765.html
+    Jason:
+	https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg23425.html
 
-Yeah, I've not enum PROTOCOL_USNIC since currently there is no place
-need it...
+Michael Wang (23):
+  IB/Verbs: Implement new callback query_protocol()
+  IB/Verbs: Implement raw management helpers
+  IB/Verbs: Reform IB-core mad/agent/user_mad
+  IB/Verbs: Reform IB-core cm
+  IB/Verbs: Reform IB-core sa_query
+  IB/Verbs: Reform IB-core multicast
+  IB/Verbs: Reform IB-ulp ipoib
+  IB/Verbs: Reform IB-ulp xprtrdma
+  IB/Verbs: Reform IB-core verbs
+  IB/Verbs: Reform cm related part in IB-core cma/ucm
+  IB/Verbs: Reform route related part in IB-core cma
+  IB/Verbs: Reform mcast related part in IB-core cma
+  IB/Verbs: Reform cma_acquire_dev()
+  IB/Verbs: Reform rest part in IB-core cma
+  IB/Verbs: Use management helper cap_ib_mad()
+  IB/Verbs: Use management helper cap_ib_smi()
+  IB/Verbs: Use management helper cap_ib_cm()
+  IB/Verbs: Use management helper cap_iw_cm()
+  IB/Verbs: Use management helper cap_ib_sa()
+  IB/Verbs: Use management helper cap_ib_mcast()
+  IB/Verbs: Use management helper cap_read_multi_sge()
+  IB/Verbs: Use management helper cap_af_ib()
+  IB/Verbs: Use management helper cap_eth_ah()
 
-The only three cases currently are:
-1. trasnport IB, link layer IB		//PROTOCOL_IB
-2. transport IB, link layer ETH		//PROTOCOL_IBOE
-3. transport IWARP			//PROTOCOL_IWARP
+ drivers/infiniband/core/agent.c              |   2 +-
+ drivers/infiniband/core/cm.c                 |  20 ++-
+ drivers/infiniband/core/cma.c                | 257 +++++++++++----------------
+ drivers/infiniband/core/device.c             |   1 +
+ drivers/infiniband/core/mad.c                |  43 +++--
+ drivers/infiniband/core/multicast.c          |  12 +-
+ drivers/infiniband/core/sa_query.c           |  30 ++--
+ drivers/infiniband/core/ucm.c                |   3 +-
+ drivers/infiniband/core/ucma.c               |  25 +--
+ drivers/infiniband/core/user_mad.c           |  26 ++-
+ drivers/infiniband/core/verbs.c              |   6 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c |   7 +
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |   7 +
+ drivers/infiniband/hw/cxgb4/provider.c       |   7 +
+ drivers/infiniband/hw/ehca/ehca_hca.c        |   6 +
+ drivers/infiniband/hw/ehca/ehca_iverbs.h     |   3 +
+ drivers/infiniband/hw/ehca/ehca_main.c       |   1 +
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |   7 +
+ drivers/infiniband/hw/mlx4/main.c            |  10 ++
+ drivers/infiniband/hw/mlx5/main.c            |   7 +
+ drivers/infiniband/hw/mthca/mthca_provider.c |   7 +
+ drivers/infiniband/hw/nes/nes_verbs.c        |   6 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |   1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   6 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |   3 +
+ drivers/infiniband/hw/qib/qib_verbs.c        |   7 +
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  |   1 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   6 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    |  15 +-
+ include/rdma/ib_verbs.h                      | 166 +++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |   4 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c     |  45 ++---
+ 33 files changed, 476 insertions(+), 273 deletions(-)
 
-Regards,
-Michael Wang
+-- 
+2.1.0
 
-> 
->>>
->>>> Naming multiple layers together seems confusing and maybe in the end
->>>> will create more code to deal with the differences. For example, what
->>>> token will RoCEv2 take? RoCE_UDP, RoCE_v2 or ... ?
->>>
->>> Uncertain as of now.
->>
->> Ok, but it's imminent, right? What's the preference/guidance?
-> 
-> There is a patchset from Devesh Sharma at Emulex.  It added the RoCEv2
-> capability.  As I recall, it used a new flag added to the existing port
-> capabilities bitmask and notably did not modify either the node type or
-> link layer that are currently used to differentiate between the
-> different protocols.  That's from memory though, so I could be mistaken.
-> 
-> But that patchset was not written with this patchset in mind, and
-> merging the two may well change that.  In any case, there is a proposed
-> spec to follow, so for now that's the preference/guidance (unless this
-> rework means that we need to depart from the spec on internals for
-> implementation reasons).
-> 
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
