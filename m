@@ -1,77 +1,46 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Tue, 28 Apr 2015 11:32:08 +0300
-Message-ID: <553F4588.80301@mellanox.com>
+Date: Tue, 28 Apr 2015 14:51:50 +0300
+Message-ID: <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
 References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
- <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
- <553DF294.4070507@mellanox.com> <20150427162256.GA24316@obsidianresearch.com>
+	<9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
+	<CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
+	<553DF294.4070507@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150427162256.GA24316-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <553DF294.4070507-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 4/27/2015 7:22 PM, Jason Gunthorpe wrote:
-> On Mon, Apr 27, 2015 at 11:25:56AM +0300, Matan Barak wrote:
->>
->>
->> On 4/26/2015 11:10 PM, Or Gerlitz wrote:
->>> On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
->>> <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
->>>> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>
->>>> Previously. we used device_mutex lock in order to protect
->>>> the device's list. That means that in order to guarantee a
->>>> device isn't freed while we use it, we had to lock all
->>>> devices.
+On Mon, Apr 27, 2015 at 11:25 AM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 4/26/2015 11:10 PM, Or Gerlitz wrote:
+>> On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
+>> <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
 >>>
->>> Matan, looking on the cover letter, it says: "[...] Patch 0002 adds a
->>> reference count mechanism to IB devices. This mechanism is similar to
->>> dev_hold and dev_put available for net devices. This is mandatory for
->>> later patches [...]"
+>>> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >>>
->>> So in that respect, saying here "Previously. we used device_mutex
->>> lock" is a bit cryptic, @ least one typo must exist in this sentence,
->>> right? did you want to say "Currently we use device_mutex lock for XXX
->>> [...] and this should be replaced as of a YYY change which is to be
->>> introduced [...]" please clarify
+>>> Previously. we used device_mutex lock in order to protect
+>>> the device's list. That means that in order to guarantee a
+>>> device isn't freed while we use it, we had to lock all
+>>> devices.
 >>
->> Correct, I'll change that into:
 >>
->> Currently we use device_mutex lock for protecting the device's list.
->> In the current approach, in order to guarantee a device isn't freed
->> we have to lock all devices.
->>
->> Adding a kref per IB device. Before an IB device is unregistered, we
->> wait until it's not held anymore.
->
-> Why do we need two krefs for this structure? There is already a kref
-> inside the embedded 'struct device dev'
->
-> Sounds wrong to me without a lot more explanation.
->
+>> Matan, looking on the cover letter, it says: "[...] Patch 0002 adds a
+>> reference count mechanism to IB devices. This mechanism is similar to
+>> dev_hold and dev_put available for net devices. This is mandatory for
+>> later patches [...]"
 
-This was already asked by Haggai Eran awhile ago and was answered. 
-Anyway, in ib_unregister_device we delete all client's related data.
-We would like to ensure that all references were released before this
-data is being deleted. Meaning, we would like to ensure the device is 
-still functioning but isn't referenced rather than just to avoid freeing 
-the IB device's memory.
-ib_device_get and ib_device_hold are APIs for the clients, similar to
-dev_hold and dev_put.
+> Correct, I'll change that into:
+> Currently we use device_mutex lock for protecting the device's list. In the
+> current approach, in order to guarantee a device isn't freed we have to lock
+> all devices.
+> Adding a kref per IB device. Before an IB device is unregistered, we wait
+> until it's not held anymore.
 
-> Jason
->
-
-Regards,
-Matan
+Why is this change mandatory for the proposed design?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
