@@ -1,49 +1,77 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v6 01/26] IB/Verbs: Implement new callback
- query_transport()
-Date: Tue, 28 Apr 2015 06:14:15 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC819C@ORSMSX109.amr.corp.intel.com>
-References: <1429878230-11749-1-git-send-email-yun.wang@profitbricks.com>
-		 <1429878230-11749-2-git-send-email-yun.wang@profitbricks.com>
-		 <DB4PR05MB086367DF92CEE1977D8EB0AEB1EC0@DB4PR05MB0863.eurprd05.prod.outlook.com>
-		 <553DE799.5050608@profitbricks.com>
-		 <20150427215229.GD5347@phlsvsds.ph.intel.com>
-	 <553ED159.2090006@talpey.com> <1430181360.44548.35.camel@redhat.com>
-	 <553EDA01.9040708@talpey.com> <1430184275.44548.44.camel@redhat.com>
- <553EE718.1030502@talpey.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 for-next 01/33] IB/core: Add RoCE GID cache
+Date: Tue, 28 Apr 2015 10:17:49 +0300
+Message-ID: <553F341D.8000907@mellanox.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+	<44ab0dce-c7c9-400b-af24-10b8981358a7@CMEXHTCAS2.ad.emulex.com>
+	<CAJ3xEMgepRUQs+GiMWxzV_QFaRnfbX7TPOdB_sKgRhHj7x7NDg@mail.gmail.com>
+	<553DE614.7050508@mellanox.com>
+ <CAJ3xEMjEhv3Nm_EfFcBWLk1ChQXBM5KvPxh5DstCqxeMo0MGwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <553EE718.1030502-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAJ3xEMjEhv3Nm_EfFcBWLk1ChQXBM5KvPxh5DstCqxeMo0MGwA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEtlZXAgaW4gbWluZCB0aGF0IHRoaXMgZW51bSB3YXMgTGlyYW4ncyByZXNwb25zZSB0byBN
-aWNoYWVsJ3Mgb3JpZ2luYWwNCj4gPiBwYXRjaC4gIEluIHRoZSBlbnVtIGluIE1pY2hhZWwncyBw
-YXRjaCwgdGhlcmUgd2FzIGJvdGggVVNOSUMgYW5kDQo+ID4gVVNOSUNfVURQLg0KPiANCj4gUmln
-aHQhIFRoYXQncyB3aHkgSSdtIGNvbmZ1c2VkLiBTZWVtcyB3cm9uZyB0byBkcm9wIGl0LCByaWdo
-dD8NCg0KSSB0aGluayB0aGUgb3JpZ2luYWwgVVNOSUMgcHJvdG9jb2wgaXMgbGF5ZXJlZCBkaXJl
-Y3RseSBvdmVyIEV0aGVybmV0LiAgVGhlIHByb3RvY29sIGJhc2ljYWxseSBzdG9sZSBhbiBFdGhl
-cnR5cGUgKHRoZSBvbmUgdXNlZCBmb3IgSUJvRS9Sb0NFKSBhbmQgaW1wbGVtZW50ZWQgYSBwcm9w
-cmlldGFyeSBwcm90b2NvbCBpbnN0ZWFkLiAgSSBoYXZlIG5vIGlkZWEgaG93IHlvdSByZXNvbHZl
-IHRoYXQsIGJ1dCBJIGFsc28gZG9uJ3QgdGhpbmsgaXQncyB1c2VkIGFueW1vcmUuICBVU05JQ19V
-RFAgaXMganVzdCBVRFAuDQoNCj4gV2VsbCwgaWYgUm9DRXYyIHVzZXMgdGhlIHNhbWUgcHJvdG9j
-b2wgZW51bSwgdGhhdCBtYXkgaW50cm9kdWNlIG5ldw0KPiBjb25mdXNpb24sIGZvciBleGFtcGxl
-IHRoZXJlIHdpbGwgYmUgc29tZSBuZXcgQ00gaGFuZGxpbmcgZm9yIFVEUCBlbmNhcCwNCj4gc291
-cmNlIHBvcnQgc2VsZWN0aW9uLCBhbmQgb2YgY291cnNlIHZsYW4vdGFnIGFzc2lnbm1lbnQsIGV0
-Yy4gQnV0IGlmDQo+IHRoZXJlIGlzIHN1cHBvcnQgdW5kZXIgd2F5LCBhbmQgZXZlcnlvbmUgaXMg
-Y2xlYXIsIHRoZW4sIG9rLg0KDQpSb0NFdjIvSUJvVURQIHNoYXJlcyB0aGUgc2FtZSBwb3J0IHNw
-YWNlIGFzIFVEUC4gIEl0IGhhcyBhIHNpbWlsYXIgaXNzdWVzIGFzIGlXYXJwIGRvZXMgc2hhcmlu
-ZyBzdGF0ZSB3aXRoIHRoZSBtYWluIG5ldHdvcmsgc3RhY2suICBJJ20gbm90IGF3YXJlIG9mIGFu
-eSBwcm9wb3NhbCBmb3IgcmVzb2x2aW5nIHRoYXQuICBEb2VzIGl0IHJlcXVpcmUgdXNpbmcgYSBz
-ZXBhcmF0ZSBJUCBhZGRyZXNzPyAgRG9lcyBpdCB1c2UgYSBwb3J0IG1hcHBlciBmdW5jdGlvbj8g
-IERvZXMgbmV0ZGV2IGNhcmUgZm9yIFVEUD8gIEknbSBub3Qgc3VyZSB3aGF0IFVTTklDIGRvZXMg
-Zm9yIHRoaXMgZWl0aGVyLCBidXQgYSBjb21tb24gc29sdXRpb24gYmV0d2VlbiBVU05JQyBhbmQg
-SUJvVURQIHNlZW1zIHJlYXNvbmFibGUuDQoNCg0K
+
+
+On 4/27/2015 9:22 PM, Or Gerlitz wrote:
+> On Mon, Apr 27, 2015 at 10:32 AM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> On 4/26/2015 8:20 PM, Or Gerlitz wrote:
+>>> On Thu, Mar 26, 2015 at 12:19 AM, Somnath Kotur
+>>> <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+>>>> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+>>>> In order to manage multiple types, vlans and MACs per GID, we
+>>>> need to store them along the GID itself. We store the net device
+>>>> as well, as sometimes GIDs should be handled according to the
+>>>> net device they came from. Since populating the GID table should
+>>>> be identical for every RoCE provider, the GIDs table should be
+>>>> handled in ib_core.
+>>>>
+>>>> Adding a GID cache table that supports a lockless find, add and
+>>>> delete gids. The lockless nature comes from using a unique
+>>>> sequence number per table entry and detecting that while reading/
+>>>> writing this sequence wasn't changed.
+>
+>>> Matan, please use existing mechanism which fits the problem you are
+>>> trying to solve, I guess one of RCU or seqlock should do the job.
+>
+>> seqcount fits this problem better. Since if a write and read are done in
+>> parallel, there's a good chance we read an out of date entry and we are
+>> going to use a GID entry that's going to change in T+epsilon, so RCU doesn't
+>> really have an advantage here.
+>
+> So going back to the problem... we are talking on applications/drivers
+> that attempt to establish new connections doing reads and writes done
+> on behalf of IP stack changes, both are very much not critical path.
+> So this is kind of similar to the neighbour table maintained by ND
+> subsystem which is used by all IP based networking applications and
+> that code uses RCU. I don't see what's wrong with RCU for our sort
+> smaller scale subsystem and what is even wrong with simple rwlock
+> which is the mechanism used today by the IB core git cache, this goes
+> too complex and for no reason that I can think of.
+>
+
+I think the real question is why to deal with RCUs that will require 
+re-allocation of entries when it's not necessary or why do we want to 
+use rwlock if the kernel provides a mechanism (called seqcount) that 
+fits this problem better?
+I disagree about seqcount being complex - if you look at its API you'll 
+find it's a lot simpler than RCU.
+
+>
+>> The current implementation is a bit more efficient than seqcount, as it
+>> allows early termination of read-while-write (because the write puts a known
+>> "currently updating" value that the read knows to ignore). AFAIK, this
+>> doesn't exist in the current seqcount implementation. However, since this
+>> isn't a crucial data-path, I'll change that to seqcount.
+>>
+>> seqcount is preferred over seqlock, as I don't need the spinlock in seqlock.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
