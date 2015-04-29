@@ -1,68 +1,74 @@
-From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH] IB/ipath: use arch_phys_wc_add() and require PAT disabled
-Date: Wed, 29 Apr 2015 09:01:30 -0700
-Message-ID: <CAB=NE6Xe1GxDRdXHBu_rk6HScebNwFWoCPQe1CMH5gDC=ESfEg@mail.gmail.com>
-References: <1429730795-6721-1-git-send-email-mcgrof@do-not-panic.com>
- <CAB=NE6UHnEuMHfFaXBNr4F=RcDcEC3z6rX8-B_10Sbpr7kHkiA@mail.gmail.com> <1430159932.44548.20.camel@redhat.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v7 00/23] IB/Verbs: IB Management Helpers
+Date: Wed, 29 Apr 2015 12:28:15 -0400
+Message-ID: <1430324895.102408.23.camel@redhat.com>
+References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430159932.44548.20.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-YuHlLVnEU1YE/tEmMu6X"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 27, 2015 at 11:38 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Mon, 2015-04-27 at 09:46 -0700, Luis R. Rodriguez wrote:
->> On Wed, Apr 22, 2015 at 12:26 PM, Luis R. Rodriguez
->> <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
->> > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
->> >
->> > We are burrying direct access to MTRR code support on
->> > x86 in order to take advantage of PAT. In the future we
->> > also want to make the default behaviour of ioremap_nocache()
->> > to use strong UC, use of mtrr_add() on those systems
->> > would make write-combining void.
->> >
->> > In order to help both enable us to later make strong
->> > UC default and in order to phase out direct MTRR access
->> > code port the driver over to arch_phys_wc_add() and
->> > annotate that the device driver requires systems to
->> > boot with PAT disabled, with the nopat kernel parameter.
->> >
->> > This is a worthy compromise given that the ipath device
->> > driver powers the old HTX bus cards that only work in
->> > AMD systems, while the newer IB/qib device driver
->> > powers all PCI-e cards. The ipath device driver is
->> > obsolete, hardware hard to find and because of this
->> > this its a reasonable compromise to make to require
->> > users of ipath to boot with nopat.
->>
->> Hey folks, I realize its being discussed whether or not to remove the
->> driver entirely from the kernel but in the meantime, is this a
->> reasonable compromise ?
->
-> [ trimmed Cc: list to probably the only people that care ]
->
-> I would think so.
 
-OK great, can this be merged then? I am waiting for this patch to help
-move forward with deprecating MTRR upstream.
+--=-YuHlLVnEU1YE/tEmMu6X
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> I think we might as well mark this driver as
-> deprecated and put a tentative date on removal while we are at it.
+On Tue, 2015-04-28 at 17:10 +0200, Michael Wang wrote:
+> Since v6:
+>   * Thanks to Ira, Devesh for the review and testing :-)
+>   * Thanks for the comments from Sean, Tom, Jason, Doug, Devesh, Ira,
+>     Liran :-) Please remind me if anything missed :-P
+>   * Use query_protocol() and enum protocol type in 1#
+>   * Use rdma_protocol_XX() in 2#
+>   * Drop cma_set_legacy_transport()
+>   * Reserve rdma_ib_or_iboe() and rdma_node_get_transport()
+>   * Updated github repository to v7
 
-OK great, that can be done as a separate patch.
+I've taken your patchset and threw it into a for-4.2 branch in my repo.
+This will get it 0day testing.  I've also pulled it into my test cluster
+and done minimal testing (bootup, finds devices, gets IP address via
+dhcp).  Here are the hardware types it passed on:
 
-> Mike, any specific input here?  I would suggest mark it deprecated with
-> a planned removal sometime in late 2015/early 2016.
+mthca (yes, I still have these...only just barely, but I do)
+mlx4 (IB/RoCE, in both standalone and SRIOV usage)
+mlx5 (IB only, I don't have the Eth capable mlx5 hardware yet)
+cxgb3
+cxgb4
+qib
+ocrdma
 
-I will note that feature-removal file was removed from Linux so if we
-want to deprecate something now we just do it.
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
- Luis
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--=-YuHlLVnEU1YE/tEmMu6X
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVQQafAAoJELgmozMOVy/dYKUP/jI0z7y0SI17QSECgAya9ZjK
+lhYJzvp0W6HkmX+jHPIBmWKAbEOuBvS3LtixTk6v73R7utpIbL+yXpIhY6Vt3YyH
+YzxP5QkhmFzIjpvMGQvIUYF2CBoRvjJTnEe8dvsbUMJRKjHufM6zXzkz1JB5tc2H
+mfifaoBuDteFz32fLqMvmUa3QdBNAwVtHLnySPowJh2+8Jconfi1Ut8blNa1M9FG
+kr1uZ57Omzx+yhkTFzd4DwyQZTwJVih8ThtvDKAMRGeHLsUDNCTSSW7gfBzIBp59
+owx2myUUhrqoZYLYlps3gxTAclWqMX6FFmY9wZ9a1oVnBX+E/iq5AhXugt/bYtl5
+GD+2U18UlF5j+MUbtLRgERBKps+lomQnCXbOctdl5AEwDZky+rkk0IdRsNZ2KNaF
+oxeAuGL7Pc1rs333xhyde4eT+YonrBSsPhohUF2pLR70IwHcPjGU9p4KQofI+J1H
+nOECxQvk0NqVJHJ379DobQrKxba5VRGQXv4v7XPjoweKWfV0dcpinsbdqdH/vK2/
+mMkk0KlR5r+xgQG85qczunrfuHH7ccs8vo4JDWeePt0+qCWKSmQVdOPJywbYXxfv
+e3X4Mlp8oUfryjE0rojX2k9u+IaCJF6hemHalK5MZG8YG3hlMCLb1r8A9QJphPrm
+808aqDBKo7yxSrW/ORHJ
+=oCcf
+-----END PGP SIGNATURE-----
+
+--=-YuHlLVnEU1YE/tEmMu6X--
