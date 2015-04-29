@@ -1,48 +1,58 @@
-From: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix unaligned accesses
-Date: Wed, 29 Apr 2015 15:59:20 -0600
-Message-ID: <55415438.1040205@oracle.com>
-References: <1430340983-12538-1-git-send-email-david.ahern@oracle.com> <20150429211822.GA25951@obsidianresearch.com> <55414C03.40902@oracle.com> <20150429213042.GA28812@obsidianresearch.com> <55414F4E.5020209@oracle.com> <20150429215123.GA29809@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "Luis R. Rodriguez" <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
+Subject: [PATCH v4 7/8] IB/ipath: add counting for MTRR
+Date: Wed, 29 Apr 2015 14:44:26 -0700
+Message-ID: <1430343867-1001-8-git-send-email-mcgrof@do-not-panic.com>
+References: <1430343867-1001-1-git-send-email-mcgrof@do-not-panic.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150429215123.GA29809-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1430343867-1001-1-git-send-email-mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mingo-X9Un+BFzKDI@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, bp-l3A5Bk7waGM@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, daniel.vetter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, awalls-Xoej9cPu4Z+RGvkDC/A1pg@public.gmane.org, syrjala-ORSVBvAovxo@public.gmane.org, luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, cocci-/FJkirnvOdkvYVN+rsErww@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Antonino Daplas <adaplas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/29/15 3:51 PM, Jason Gunthorpe wrote:
-> On Wed, Apr 29, 2015 at 03:38:22PM -0600, David Ahern wrote:
->
->>> And dealing with the fairly few resulting changes..
->>
->> Confused. That does not deal with the alignment problem. Internal to
->> cm_mask_copy unsigned longs are used (8-bytes), so why change the
->> signature to u32?
->
-> You'd change the loop stride to by u32 as well.
->
-> This whole thing is just an attempted optimization, but doing copy and
-> mask 8 bytes at a time on unaligned data is not very efficient, even
-> on x86.
->
-> So either drop the optimization and use u8 as the stride.
->
-> Or keep the optimization and guarentee alignment, the best we can do
-> is u32.
->
-> Since this is an optimization, get_unaligned should be avoided,
-> looping over u8 would be faster.
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
 
-Sorry, to be dense on this but I still don't see how your proposal 
-addresses the underlying problem -- guarantee of 8 byte alignment. Be it 
-a u8 or u32 for the input arguments the cast to unsigned long says that 
-an extended load operation can be used for access. For that to work the 
-address (src, dst, mask) must all be 8-byte aligned.
+There is no good reason not to, we eventually delete it as well.
 
-David
+Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Suresh Siddha <sbsiddha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>
+Cc: Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>
+Cc: Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>
+Cc: Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Antonino Daplas <adaplas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Luis R. Rodriguez <mcgrof-IBi9RG/b67k@public.gmane.org>
+---
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+index 4ad0b93..70c1f3a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
++++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+@@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+ 			   "(addr %llx, len=0x%llx)\n",
+ 			   (unsigned long long) pioaddr,
+ 			   (unsigned long long) piolen);
+-		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
++		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
+ 		if (cookie < 0) {
+ 			{
+ 				dev_info(&dd->pcidev->dev,
+-- 
+2.3.2.209.gd67f9d5.dirty
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
