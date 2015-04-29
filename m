@@ -1,71 +1,66 @@
-From: Honggang Li <honli@redhat.com>
-Subject: [linux-next PATCH] IB/core: change rdma_gid2ip into void function as it always return zero
-Date: Wed, 29 Apr 2015 17:40:44 +0800
-Message-ID: <1430300444-29534-1-git-send-email-honli@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, ork@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Honggang Li <honli@redhat.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH libibmad] portid.c: Preserve routepath string in str2drpath
+Date: Wed, 29 Apr 2015 07:12:07 -0400
+Message-ID: <5540BC87.3020903@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Honggang Li <honli@redhat.com>
----
- drivers/infiniband/core/addr.c | 13 +++----------
- include/rdma/ib_addr.h         |  3 +--
- 2 files changed, 4 insertions(+), 12 deletions(-)
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Tue, 28 Apr 2015 18:35:28 +0300
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index f80da50..38339d2 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -472,13 +472,8 @@ int rdma_addr_find_dmac_by_grh(union ib_gid *sgid, union ib_gid *dgid, u8 *dmac,
- 	} sgid_addr, dgid_addr;
+In str2drpath, preserve routepath string rather than
+modifying it.
+
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/portid.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
+
+diff --git a/src/portid.c b/src/portid.c
+index ceb685e..40754fe 100644
+--- a/src/portid.c
++++ b/src/portid.c
+@@ -82,11 +82,18 @@ char *portid2str(ib_portid_t * portid)
  
- 
--	ret = rdma_gid2ip(&sgid_addr._sockaddr, sgid);
--	if (ret)
--		return ret;
--
--	ret = rdma_gid2ip(&dgid_addr._sockaddr, dgid);
--	if (ret)
--		return ret;
-+	rdma_gid2ip(&sgid_addr._sockaddr, sgid);
-+	rdma_gid2ip(&dgid_addr._sockaddr, dgid);
- 
- 	memset(&dev_addr, 0, sizeof(dev_addr));
- 
-@@ -512,10 +507,8 @@ int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id)
- 		struct sockaddr_in6 _sockaddr_in6;
- 	} gid_addr;
- 
--	ret = rdma_gid2ip(&gid_addr._sockaddr, sgid);
-+	rdma_gid2ip(&gid_addr._sockaddr, sgid);
- 
--	if (ret)
--		return ret;
- 	memset(&dev_addr, 0, sizeof(dev_addr));
- 	ret = rdma_translate_ip(&gid_addr._sockaddr, &dev_addr, vlan_id);
- 	if (ret)
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index ce55906..ac54c27 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -160,7 +160,7 @@ static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
- }
- 
- /* Important - sockaddr should be a union of sockaddr_in and sockaddr_in6 */
--static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
-+static inline void rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
+ int str2drpath(ib_dr_path_t * path, char *routepath, int drslid, int drdlid)
  {
- 	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
- 		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
-@@ -173,7 +173,6 @@ static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
- 		out_in->sin6_family = AF_INET6;
- 		memcpy(&out_in->sin6_addr.s6_addr, gid->raw, 16);
- 	}
--	return 0;
- }
+-	char *s, *str = routepath;
++	char *s, *str;
++	char *tmp;
  
- static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+ 	path->cnt = -1;
+ 
++	if (!routepath || !(tmp = strdup(routepath)))
++		goto Exit;
++
+ 	DEBUG("DR str: %s", routepath);
++
++	str = tmp;
++
+ 	while (str && *str) {
+ 		if ((s = strchr(str, ',')))
+ 			*s = 0;
+@@ -95,7 +102,9 @@ int str2drpath(ib_dr_path_t * path, char *routepath, int drslid, int drdlid)
+ 			break;
+ 		str = s + 1;
+ 	}
++	free(tmp);
+ 
++Exit:
+ 	path->drdlid = drdlid ? drdlid : 0xffff;
+ 	path->drslid = drslid ? drslid : 0xffff;
+ 
 -- 
-1.8.3.1
+1.7.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
