@@ -1,90 +1,69 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [linux-next PATCH] IB/core: change rdma_gid2ip into void
- function as it always return zero
-Date: Wed, 29 Apr 2015 16:57:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC8979@ORSMSX109.amr.corp.intel.com>
-References: <1430300444-29534-1-git-send-email-honli@redhat.com>
+From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH] IB/ipath: use arch_phys_wc_add() and require PAT disabled
+Date: Wed, 29 Apr 2015 10:25:09 -0700
+Message-ID: <CAB=NE6Uf-fO=iqvvdJ6QONZuMW_OWD-dUaqF2hcspYFg2zZiig@mail.gmail.com>
+References: <1429730795-6721-1-git-send-email-mcgrof@do-not-panic.com>
+ <CAB=NE6UHnEuMHfFaXBNr4F=RcDcEC3z6rX8-B_10Sbpr7kHkiA@mail.gmail.com>
+ <1430159932.44548.20.camel@redhat.com> <CAB=NE6Xe1GxDRdXHBu_rk6HScebNwFWoCPQe1CMH5gDC=ESfEg@mail.gmail.com>
+ <1430326665.102408.25.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430300444-29534-1-git-send-email-honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1430326665.102408.25.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ork-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On Wed, Apr 29, 2015 at 9:57 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Wed, 2015-04-29 at 09:01 -0700, Luis R. Rodriguez wrote:
+>> On Mon, Apr 27, 2015 at 11:38 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> > On Mon, 2015-04-27 at 09:46 -0700, Luis R. Rodriguez wrote:
+>> >> On Wed, Apr 22, 2015 at 12:26 PM, Luis R. Rodriguez
+>> >> <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
+>> >> > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+>> >> >
+>> >> > We are burrying direct access to MTRR code support on
+>> >> > x86 in order to take advantage of PAT. In the future we
+>> >> > also want to make the default behaviour of ioremap_nocache()
+>> >> > to use strong UC, use of mtrr_add() on those systems
+>> >> > would make write-combining void.
+>> >> >
+>> >> > In order to help both enable us to later make strong
+>> >> > UC default and in order to phase out direct MTRR access
+>> >> > code port the driver over to arch_phys_wc_add() and
+>> >> > annotate that the device driver requires systems to
+>> >> > boot with PAT disabled, with the nopat kernel parameter.
+>> >> >
+>> >> > This is a worthy compromise given that the ipath device
+>> >> > driver powers the old HTX bus cards that only work in
+>> >> > AMD systems, while the newer IB/qib device driver
+>> >> > powers all PCI-e cards. The ipath device driver is
+>> >> > obsolete, hardware hard to find and because of this
+>> >> > this its a reasonable compromise to make to require
+>> >> > users of ipath to boot with nopat.
+>> >>
+>> >> Hey folks, I realize its being discussed whether or not to remove the
+>> >> driver entirely from the kernel but in the meantime, is this a
+>> >> reasonable compromise ?
+>> >
+>> > [ trimmed Cc: list to probably the only people that care ]
+>> >
+>> > I would think so.
+>>
+>> OK great, can this be merged then? I am waiting for this patch to help
+>> move forward with deprecating MTRR upstream.
+>
+> I'm generally OK with picking this up and merging it in.  However, it
+> relies on pat_enabled being an exported symbol, and that isn't the case.
+> Are you submitting an additional patch via a different tree to make that
+> symbol exported to modules?
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Thanks for spotting that I had not but I will do so as it is also
+needed for ivtv. I'll submit that. This might need to go through
+another tree then, can I add your Acked-by ?
 
-> ---
->  drivers/infiniband/core/addr.c | 13 +++----------
->  include/rdma/ib_addr.h         |  3 +--
->  2 files changed, 4 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/addr.c
-> b/drivers/infiniband/core/addr.c
-> index f80da50..38339d2 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -472,13 +472,8 @@ int rdma_addr_find_dmac_by_grh(union ib_gid *sgid,
-> union ib_gid *dgid, u8 *dmac,
->  	} sgid_addr, dgid_addr;
-> 
-> 
-> -	ret = rdma_gid2ip(&sgid_addr._sockaddr, sgid);
-> -	if (ret)
-> -		return ret;
-> -
-> -	ret = rdma_gid2ip(&dgid_addr._sockaddr, dgid);
-> -	if (ret)
-> -		return ret;
-> +	rdma_gid2ip(&sgid_addr._sockaddr, sgid);
-> +	rdma_gid2ip(&dgid_addr._sockaddr, dgid);
-> 
->  	memset(&dev_addr, 0, sizeof(dev_addr));
-> 
-> @@ -512,10 +507,8 @@ int rdma_addr_find_smac_by_sgid(union ib_gid *sgid,
-> u8 *smac, u16 *vlan_id)
->  		struct sockaddr_in6 _sockaddr_in6;
->  	} gid_addr;
-> 
-> -	ret = rdma_gid2ip(&gid_addr._sockaddr, sgid);
-> +	rdma_gid2ip(&gid_addr._sockaddr, sgid);
-> 
-> -	if (ret)
-> -		return ret;
->  	memset(&dev_addr, 0, sizeof(dev_addr));
->  	ret = rdma_translate_ip(&gid_addr._sockaddr, &dev_addr, vlan_id);
->  	if (ret)
-> diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-> index ce55906..ac54c27 100644
-> --- a/include/rdma/ib_addr.h
-> +++ b/include/rdma/ib_addr.h
-> @@ -160,7 +160,7 @@ static inline int rdma_ip2gid(struct sockaddr *addr,
-> union ib_gid *gid)
->  }
-> 
->  /* Important - sockaddr should be a union of sockaddr_in and sockaddr_in6
-> */
-> -static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
-> +static inline void rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
->  {
->  	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
->  		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
-> @@ -173,7 +173,6 @@ static inline int rdma_gid2ip(struct sockaddr *out,
-> union ib_gid *gid)
->  		out_in->sin6_family = AF_INET6;
->  		memcpy(&out_in->sin6_addr.s6_addr, gid->raw, 16);
->  	}
-> -	return 0;
->  }
-> 
->  static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
-> --
-> 1.8.3.1
-
+ Luis
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
