@@ -1,93 +1,120 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Wed, 29 Apr 2015 10:48:47 -0600
-Message-ID: <20150429164847.GA12781@obsidianresearch.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
- <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
- <553DF294.4070507@mellanox.com>
- <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
- <553F931F.6000302@mellanox.com>
- <20150428174312.GB5497@obsidianresearch.com>
- <5540F8F4.5010906@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipath: use arch_phys_wc_add() and require PAT
+ disabled
+Date: Wed, 29 Apr 2015 12:57:45 -0400
+Message-ID: <1430326665.102408.25.camel@redhat.com>
+References: <1429730795-6721-1-git-send-email-mcgrof@do-not-panic.com>
+	 <CAB=NE6UHnEuMHfFaXBNr4F=RcDcEC3z6rX8-B_10Sbpr7kHkiA@mail.gmail.com>
+	 <1430159932.44548.20.camel@redhat.com>
+	 <CAB=NE6Xe1GxDRdXHBu_rk6HScebNwFWoCPQe1CMH5gDC=ESfEg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-/oZIuTgZqXwUTxQaC9AR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5540F8F4.5010906-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAB=NE6Xe1GxDRdXHBu_rk6HScebNwFWoCPQe1CMH5gDC=ESfEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> >Although, there must be a call to the driver's modify_gid to free
-> >context before freeing, and I don't see that obviously happening..
- 
-> Of course there is:
-> roce_gid_cache_client_cleanup_one ->
-> roce_gid_cache_client_cleanup_one_work -> *work* ->
-> roce_gid_cache_client_cleanup_work_handler ->
-> roce_gid_cache_cleanup_one -> free_roce_gid_cache -> write_gid ->
-> modify_gid
+--=-/oZIuTgZqXwUTxQaC9AR
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Ah, this wasn't there in the earlier versions. Good.
- 
-> >However, all the other async work launched doesn't look safe at all.
-
-> I think it's safe - roce_gid_cache_client_cleanup_one deactivates
-> the cache (no new events are handled on the cache). Ongoing events
-> are flushed in roce_gid_cache_client_cleanup_one_work
-
-Do you mean roce_gid_cache_client_cleanup_work_handler? 
-
-> It's not safe to free the client's context in ib_unregister_device
-> while the client isn't done. The obvious solution is to wait in
-> client->remove (like you suggested) until the client has finished
-> cleaning up things.
-
-This isn't just the obvious solution, it is the *expected* solution.
-In the kernel the add/remove style idiom always works like this.
-
-> This doesn't fit our case - since client->remove is called under
-> device_lock, but it's possible (for example) that
-> roce_rescan_device_work_handler is currently running and waits to
-> grab this exact mutex - DEAD LOCK.
-
-Uh, client->remove is most obviously called with
-drivers/infiniband/core/device.c:device_mutex held, is that what you
-mean? But that can't be right because only four functions hold that
-lock and none of them are obviously called from this patch?
-
-If these patches have a locking problem then breaking the add/remove
-idiom is not the way to solve it.
-
-Look, four people have asked about this patch, and I still have yet to
-see an accurate and convincing answer from you what is actually going
-on here. Please actually spend some time to properly research and
-describe why the remove callback can't be synchronous.
-
-> >It is just fundamentally wrong to return from ib_client.remove while
-> >async work is still outstanding, the client is expected to deal with
-> >this internally and synchronously.
+On Wed, 2015-04-29 at 09:01 -0700, Luis R. Rodriguez wrote:
+> On Mon, Apr 27, 2015 at 11:38 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrot=
+e:
+> > On Mon, 2015-04-27 at 09:46 -0700, Luis R. Rodriguez wrote:
+> >> On Wed, Apr 22, 2015 at 12:26 PM, Luis R. Rodriguez
+> >> <mcgrof-3uybbJdB1yH774rrrx3eTA@public.gmane.org> wrote:
+> >> > From: "Luis R. Rodriguez" <mcgrof-IBi9RG/b67k@public.gmane.org>
+> >> >
+> >> > We are burrying direct access to MTRR code support on
+> >> > x86 in order to take advantage of PAT. In the future we
+> >> > also want to make the default behaviour of ioremap_nocache()
+> >> > to use strong UC, use of mtrr_add() on those systems
+> >> > would make write-combining void.
+> >> >
+> >> > In order to help both enable us to later make strong
+> >> > UC default and in order to phase out direct MTRR access
+> >> > code port the driver over to arch_phys_wc_add() and
+> >> > annotate that the device driver requires systems to
+> >> > boot with PAT disabled, with the nopat kernel parameter.
+> >> >
+> >> > This is a worthy compromise given that the ipath device
+> >> > driver powers the old HTX bus cards that only work in
+> >> > AMD systems, while the newer IB/qib device driver
+> >> > powers all PCI-e cards. The ipath device driver is
+> >> > obsolete, hardware hard to find and because of this
+> >> > this its a reasonable compromise to make to require
+> >> > users of ipath to boot with nopat.
+> >>
+> >> Hey folks, I realize its being discussed whether or not to remove the
+> >> driver entirely from the kernel but in the meantime, is this a
+> >> reasonable compromise ?
 > >
-> >You don't need IB core help to do this.
-> 
-> netdev is taking a similar approach - please take a look at
-> netdev_wait_allrefs
+> > [ trimmed Cc: list to probably the only people that care ]
+> >
+> > I would think so.
+>=20
+> OK great, can this be merged then? I am waiting for this patch to help
+> move forward with deprecating MTRR upstream.
 
-No, it really isn't, from the attached drivers perspective after
-unregister_netdevice returns the driver is not allowed to operate the
-net device anymore. netdev_wait_allrefs is part of making
-unregister_netdevice synchronous.
+I'm generally OK with picking this up and merging it in.  However, it
+relies on pat_enabled being an exported symbol, and that isn't the case.
+Are you submitting an additional patch via a different tree to make that
+symbol exported to modules?
 
-The same is true of our IB client attaches, after a client returns
-from remove it is not allowed to operate the IB device anymore.
+> > I think we might as well mark this driver as
+> > deprecated and put a tentative date on removal while we are at it.
+>=20
+> OK great, that can be done as a separate patch.
+>=20
+> > Mike, any specific input here?  I would suggest mark it deprecated with
+> > a planned removal sometime in late 2015/early 2016.
+>=20
+> I will note that feature-removal file was removed from Linux so if we
+> want to deprecate something now we just do it.
+>=20
+>  Luis
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-That is a standard idiom, and we'd need a huge compelling reason to go
-away from that.
 
-Jason
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--=-/oZIuTgZqXwUTxQaC9AR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVQQ2JAAoJELgmozMOVy/dl8MP/jBv1OvFRByZ/eM+iY2KMBa7
+gDlv6NAHE2jgzAfLpjCsmSnwcggGbfhXTozZ2yETU6r+Z8Ak+atU4XMchceGoHxn
+vrsIsuT2a7sMtMhoxQDFpzD4hmUaO8oGVQP0r1izbeRFroeEBO12VzOtHZhONvIL
+4PGmwJ0t98sqKlOc3puemai1rktKG7rZviKGD9ptefXH28FifktW76yYLjgSxQmV
+3K86XI2gh3N0UfpoBEyGc5xmbccUPK3zCbeBhCOVtCRpNtt1gddjeJDCvPEqIgiJ
+bSMxD064kFJhxwEengrTP81pgFOgGUbH5lMnvLhZgsCm4Uxg3ciDyqbB8B0T/57U
+oMMgdwzljtYWX+DNqo9x9FbV9UBvzZUtypxpvtgccIGUIps9sSqFLJHlTGfg9t3m
+w4ICpU8uIWhSaSuxH8DZ3m2dMm93NT5vd8OVRJw5wAFwsXdylm3LKgZIptF7ZU7A
+dTqs2pA+9HCEx3id4ACSzXtdc4TjLm2zVYinz4JgfrNy6Rs6F4ANJw2vCRMVlQ8d
+yDsTR5NSnTY53g4y39tb9jj76NYNuHtX+D+5tbkqYgO6E+SQ1tYxTMUPbcP+J8s8
+mSyyll2O0q2Sjh5l4S8c4riJjDRQ65ZOdatOMt+0hO979lsmCRYduCakHTwajs9L
+FCq5k4vSHLv2Gbw721HH
+=YVak
+-----END PGP SIGNATURE-----
+
+--=-/oZIuTgZqXwUTxQaC9AR--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
