@@ -1,60 +1,28 @@
-From: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/core: Fix unaligned accesses
-Date: Wed, 29 Apr 2015 16:56:23 -0400
-Message-ID: <1430340983-12538-1-git-send-email-david.ahern@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix unaligned accesses
+Date: Wed, 29 Apr 2015 15:18:22 -0600
+Message-ID: <20150429211822.GA25951@obsidianresearch.com>
+References: <1430340983-12538-1-git-send-email-david.ahern@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1430340983-12538-1-git-send-email-david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Addresses the following kernel logs seen during boot of sparc systems:
+On Wed, Apr 29, 2015 at 04:56:23PM -0400, David Ahern wrote:
 
-Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
+>  static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
+>  {
 
-Signed-off-by: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/cm.c |   18 +++++++++++++++---
- 1 files changed, 15 insertions(+), 3 deletions(-)
+Do you know what call site is unaligned? A quick audit suggests that
+fixing a few possibly troublesome callers to be guaranteed 32 bit
+aligned should be fairly straight foward.
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index e28a494..5102cfe 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -439,11 +439,23 @@ static struct cm_id_private * cm_acquire_id(__be32 local_id, __be32 remote_id)
- 
- static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
- {
-+	unsigned long *plsrc, *plmask, *pldst;
- 	int i;
- 
--	for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++)
--		((unsigned long *) dst)[i] = ((unsigned long *) src)[i] &
--					     ((unsigned long *) mask)[i];
-+	/* unsigned longs can use extended load operations which
-+	 * can require 8-byte alignments. dst, src and mask are
-+	 * not guaranteed to be aligned.
-+	 */
-+	pldst = (unsigned long *) dst;
-+	plsrc = (unsigned long *) src;
-+	plmask = (unsigned long *) mask;
-+	for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++) {
-+		unsigned long lsrc, lmask;
-+
-+		lsrc = get_unaligned(&plsrc[i]);
-+		lmask = get_unaligned(&plmask[i]);
-+		put_unaligned(lsrc & lmask, &pldst[i]);
-+	}
- }
- 
- static int cm_compare_data(struct ib_cm_compare_data *src_data,
--- 
-1.7.1
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
