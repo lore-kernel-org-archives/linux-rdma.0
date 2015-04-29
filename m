@@ -1,76 +1,39 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH] IB/core: Fix unaligned accesses
-Date: Wed, 29 Apr 2015 16:15:37 -0600
-Message-ID: <20150429221537.GB31415@obsidianresearch.com>
-References: <1430340983-12538-1-git-send-email-david.ahern@oracle.com>
- <20150429211822.GA25951@obsidianresearch.com>
- <55414C03.40902@oracle.com>
- <20150429213042.GA28812@obsidianresearch.com>
- <55414F4E.5020209@oracle.com>
- <20150429215123.GA29809@obsidianresearch.com>
- <55415438.1040205@oracle.com>
+Date: Wed, 29 Apr 2015 16:34:25 -0600
+Message-ID: <55415C71.8010604@oracle.com>
+References: <1430340983-12538-1-git-send-email-david.ahern@oracle.com> <20150429211822.GA25951@obsidianresearch.com> <55414C03.40902@oracle.com> <20150429213042.GA28812@obsidianresearch.com> <55414F4E.5020209@oracle.com> <20150429215123.GA29809@obsidianresearch.com> <55415438.1040205@oracle.com> <20150429221537.GB31415@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55415438.1040205-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150429221537.GB31415-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 29, 2015 at 03:59:20PM -0600, David Ahern wrote:
-> On 4/29/15 3:51 PM, Jason Gunthorpe wrote:
-> >On Wed, Apr 29, 2015 at 03:38:22PM -0600, David Ahern wrote:
-> >
-> >>>And dealing with the fairly few resulting changes..
-> >>
-> >>Confused. That does not deal with the alignment problem. Internal to
-> >>cm_mask_copy unsigned longs are used (8-bytes), so why change the
-> >>signature to u32?
-> >
-> >You'd change the loop stride to by u32 as well.
-> >
-> >This whole thing is just an attempted optimization, but doing copy and
-> >mask 8 bytes at a time on unaligned data is not very efficient, even
-> >on x86.
-> >
-> >So either drop the optimization and use u8 as the stride.
-> >
-> >Or keep the optimization and guarentee alignment, the best we can do
-> >is u32.
-> >
-> >Since this is an optimization, get_unaligned should be avoided,
-> >looping over u8 would be faster.
-> 
-> Sorry, to be dense on this but I still don't see how your proposal
-> addresses the underlying problem -- guarantee of 8 byte alignment.
-> Be it a u8 or u32 for the input arguments the cast to unsigned long
-> says that an extended load operation can be used for access. For
-> that to work the address (src, dst, mask) must all be 8-byte
-> aligned.
+On 4/29/15 4:15 PM, Jason Gunthorpe wrote:
+> Read carefully:
+>
+>>> > >You'd change the loop stride to by u32 as well.
+> which means this:
+>
+> static void cm_mask_copy(u32 *dst, const u32 *src, const u32 *mask)
+> {
+> 	int i;
+>
+> 	for (i = 0; i < IB_CM_COMPARE_SIZE; i++)
+> 		dst[i] = src[i] & mask[i];
+> }
+>
+> Divide IB_CM_COMPARE_SIZE by 4, adjust all users.
+>
+> Make other related type changes the compiler tells you about.
+>
+> Do not add casts.
 
-Read carefully:
-
-> >You'd change the loop stride to by u32 as well.
-
-which means this:
-
-static void cm_mask_copy(u32 *dst, const u32 *src, const u32 *mask)
-{
-	int i;
-
-	for (i = 0; i < IB_CM_COMPARE_SIZE; i++)
-		dst[i] = src[i] & mask[i];
-}
-
-Divide IB_CM_COMPARE_SIZE by 4, adjust all users.
-
-Make other related type changes the compiler tells you about.
-
-Do not add casts.
-
-Jason
+got it. that was a lot clearer.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
