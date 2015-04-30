@@ -1,49 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Thu, 30 Apr 2015 16:56:13 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC929B@ORSMSX109.amr.corp.intel.com>
-References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
- <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
- <553DF294.4070507@mellanox.com>
- <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
- <553F931F.6000302@mellanox.com> <20150428174312.GB5497@obsidianresearch.com>
- <5540F8F4.5010906@dev.mellanox.co.il>
- <20150429164847.GA12781@obsidianresearch.com> <5541E5ED.7000606@mellanox.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 01/12] scsi_transport_srp: Introduce
+ srp_wait_for_queuecommand()
+Date: Thu, 30 Apr 2015 10:25:16 -0700
+Message-ID: <20150430172516.GA19200@infradead.org>
+References: <5541EE21.3050809@sandisk.com>
+ <5541EE4A.30803@sandisk.com>
+ <20150430093719.GA23486@infradead.org>
+ <5542034D.5010300@sandisk.com>
+ <554204D7.9050204@dev.mellanox.co.il>
+ <55420AEA.10108@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5541E5ED.7000606-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <55420AEA.10108-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, James Bottomley <jbottomley-wo1vFcy6AUs@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >> roce_gid_cache_client_cleanup_one ->
-> >> roce_gid_cache_client_cleanup_one_work -> *work* ->
-> >> roce_gid_cache_client_cleanup_work_handler ->
-> >> roce_gid_cache_cleanup_one -> free_roce_gid_cache -> write_gid ->
-> >> modify_gid
-> >
-> > Ah, this wasn't there in the earlier versions. Good.
-> >
-> >>> However, all the other async work launched doesn't look safe at all.
-> >
-> >> I think it's safe - roce_gid_cache_client_cleanup_one deactivates
-> >> the cache (no new events are handled on the cache). Ongoing events
-> >> are flushed in roce_gid_cache_client_cleanup_one_work
-> >
-> > Do you mean roce_gid_cache_client_cleanup_work_handler?
-> >
-> 
-> Yeah, the flush_workqueue is done in
-> roce_gid_cache_client_cleanup_work_handler
+On Thu, Apr 30, 2015 at 12:58:50PM +0200, Bart Van Assche wrote:
+> The only callers in upstream code of scsi_target_block() and
+> scsi_target_unblock() I am aware of are the FC, iSCSI and SRP transport
+> layers and the drivers that use these transport layers. As far as I can see
+> both functions are always called from thread context and without holding any
+> spinlocks. A possible alternative to what I proposed in my previous e-mail
+> could be to provide a new function that waits for active queuecommand()
+> calls and that has to be called explicitly.
 
-This entire cache seems completely over-architected.  Why is this complexity needed?  How frequently do we really expect these "GIDs" to change?
-
-I still don't even buy that a cache is needed at all.  The RDMA CM can accept as input UDP/IP addresses.  RoCEv2 puts UDP/IP addresses on the wire.  Why should there be a conversion from an IP address to a GID to get back to the same IP address?  Why aren't IP addresses passed directly to the drivers?  Just change how the RDMA CM associates an IP address with the RDMA device.
+A separate helper sounds fine for now, although I suspect we'll
+eventually migrate the call to it into scsi_target_block().
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
