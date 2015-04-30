@@ -1,41 +1,27 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 01/12] scsi_transport_srp: Introduce srp_wait_for_queuecommand()
-Date: Thu, 30 Apr 2015 13:32:55 +0300
-Message-ID: <554204D7.9050204@dev.mellanox.co.il>
-References: <5541EE21.3050809@sandisk.com> <5541EE4A.30803@sandisk.com> <20150430093719.GA23486@infradead.org> <5542034D.5010300@sandisk.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH 09/12] IB/srp: Remove a superfluous check from srp_free_req_data()
+Date: Thu, 30 Apr 2015 12:37:59 +0200
+Message-ID: <55420607.1060808@sandisk.com>
+References: <5541EE21.3050809@sandisk.com> <5541EF4F.6050200@sandisk.com>
+ <55420188.2020409@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <5542034D.5010300@sandisk.com>
+In-Reply-To: <55420188.2020409@dev.mellanox.co.il>
 Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>, Christoph Hellwig <hch@infradead.org>
-Cc: Doug Ledford <dledford@redhat.com>, James Bottomley <jbottomley@odin.com>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>
+Cc: James Bottomley <jbottomley@odin.com>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/30/2015 1:26 PM, Bart Van Assche wrote:
-> On 04/30/15 11:37, Christoph Hellwig wrote:
->> On Thu, Apr 30, 2015 at 10:56:42AM +0200, Bart Van Assche wrote:
->>> Introduce the helper function srp_wait_for_queuecommand().
->>> Move the definition of scsi_request_fn_active(). This patch
->>> does not change any functionality. A second call to
->>> scsi_wait_for_queuecommand() will be introduced in the next
->>> patch.
->>
->> Can we take a step back here?
->>
->> This isn;t something driver should be doing, so we really should take
->> care of this in the SCSI midlayer.
->>
->> Especially given that we don't maintain request_fn_active for blk-mq.
+On 04/30/15 12:18, Sagi Grimberg wrote:
+> On 4/30/2015 12:01 PM, Bart Van Assche wrote:
+>> All srp_free_req_data() callers guarantee that ch->target != NULL
+>> hence remove the ch->target test from srp_free_req_data().
 >
-> Hello Christoph,
->
-> How about the following:
-> * Modify scsi_target_block() and scsi_target_unblock(...,
->    SDEV_TRANSPORT_OFFLINE) such that these functions wait until
->    active queuecommand() calls have finished.
+> ch->target is not referenced anywhere in this routine. So why does
+> this guarantee matter?
 
-Won't this make scsi_target_unblock a sleeping function? It might
-not fit all the contexts scsi_target_unblock is called.
+I can shorten the description of this patch if you want.
 
+Bart.
