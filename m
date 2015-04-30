@@ -1,154 +1,50 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 04/12] IB/srp: Fix connection state tracking
-Date: Thu, 30 Apr 2015 12:08:14 -0400
-Message-ID: <1430410094.102408.71.camel@redhat.com>
-References: <5541EE21.3050809@sandisk.com> <5541EE9F.8090605@sandisk.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
+Date: Thu, 30 Apr 2015 16:56:13 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC929B@ORSMSX109.amr.corp.intel.com>
+References: <1427318422-12004-1-git-send-email-somnath.kotur@emulex.com>
+ <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
+ <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
+ <553DF294.4070507@mellanox.com>
+ <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
+ <553F931F.6000302@mellanox.com> <20150428174312.GB5497@obsidianresearch.com>
+ <5540F8F4.5010906@dev.mellanox.co.il>
+ <20150429164847.GA12781@obsidianresearch.com> <5541E5ED.7000606@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-DWP/l3xBLtSdJrORhY/2"
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <5541EE9F.8090605@sandisk.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: James Bottomley <jbottomley@odin.com>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5541E5ED.7000606-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> >> roce_gid_cache_client_cleanup_one ->
+> >> roce_gid_cache_client_cleanup_one_work -> *work* ->
+> >> roce_gid_cache_client_cleanup_work_handler ->
+> >> roce_gid_cache_cleanup_one -> free_roce_gid_cache -> write_gid ->
+> >> modify_gid
+> >
+> > Ah, this wasn't there in the earlier versions. Good.
+> >
+> >>> However, all the other async work launched doesn't look safe at all.
+> >
+> >> I think it's safe - roce_gid_cache_client_cleanup_one deactivates
+> >> the cache (no new events are handled on the cache). Ongoing events
+> >> are flushed in roce_gid_cache_client_cleanup_one_work
+> >
+> > Do you mean roce_gid_cache_client_cleanup_work_handler?
+> >
+> 
+> Yeah, the flush_workqueue is done in
+> roce_gid_cache_client_cleanup_work_handler
 
---=-DWP/l3xBLtSdJrORhY/2
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This entire cache seems completely over-architected.  Why is this complexity needed?  How frequently do we really expect these "GIDs" to change?
 
-On Thu, 2015-04-30 at 10:58 +0200, Bart Van Assche wrote:
-> Reception of a DREQ message only causes the state of a single
-> channel to change. Modify the SRP initiator such that channel
-> and target connection state are tracked separately. This patch
-> avoids that following false positive warning can be reported
-> by srp_destroy_qp():
->=20
-> WARNING: at drivers/infiniband/ulp/srp/ib_srp.c:617 srp_destroy_qp+0xa6/0=
-x120 [ib_srp]()
-> Call Trace:
-> [<ffffffff8106e10f>] warn_slowpath_common+0x7f/0xc0
-> [<ffffffff8106e16a>] warn_slowpath_null+0x1a/0x20
-> [<ffffffffa0440226>] srp_destroy_qp+0xa6/0x120 [ib_srp]
-> [<ffffffffa0440322>] srp_free_ch_ib+0x82/0x1e0 [ib_srp]
-> [<ffffffffa044408b>] srp_create_target+0x7ab/0x998 [ib_srp]
-> [<ffffffff81346f60>] dev_attr_store+0x20/0x30
-> [<ffffffff811dd90f>] sysfs_write_file+0xef/0x170
-> [<ffffffff8116d248>] vfs_write+0xc8/0x190
-> [<ffffffff8116d411>] sys_write+0x51/0x90
->=20
-> Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
-> Cc: Sagi Grimberg <sagig@mellanox.com>
-> Cc: Sebastian Parschauer <sebastian.riemer@profitbricks.com>
-> Cc: <stable@vger.kernel.org> #v3.19
-> ---
->  drivers/infiniband/ulp/srp/ib_srp.c | 7 ++++---
->  drivers/infiniband/ulp/srp/ib_srp.h | 1 +
->  2 files changed, 5 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp=
-/srp/ib_srp.c
-> index 5ce6cfd..0eb07d3 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -465,14 +465,13 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct=
- srp_target_port *target)
->   */
->  static void srp_destroy_qp(struct srp_rdma_ch *ch)
->  {
-> -	struct srp_target_port *target =3D ch->target;
->  	static struct ib_qp_attr attr =3D { .qp_state =3D IB_QPS_ERR };
->  	static struct ib_recv_wr wr =3D { .wr_id =3D SRP_LAST_WR_ID };
->  	struct ib_recv_wr *bad_wr;
->  	int ret;
-> =20
->  	/* Destroying a QP and reusing ch->done is only safe if not connected *=
-/
-> -	WARN_ON_ONCE(target->connected);
-> +	WARN_ON_ONCE(ch->connected);
-> =20
->  	ret =3D ib_modify_qp(ch->qp, &attr, IB_QP_STATE);
->  	WARN_ONCE(ret, "ib_cm_init_qp_attr() returned %d\n", ret);
-> @@ -836,6 +835,7 @@ static void srp_disconnect_target(struct srp_target_p=
-ort *target)
-> =20
->  		for (i =3D 0; i < target->ch_count; i++) {
->  			ch =3D &target->ch[i];
-> +			ch->connected =3D false;
->  			if (ch->cm_id && ib_send_cm_dreq(ch->cm_id, NULL, 0)) {
->  				shost_printk(KERN_DEBUG, target->scsi_host,
->  					     PFX "Sending CM DREQ failed\n");
-> @@ -1017,6 +1017,7 @@ static int srp_connect_ch(struct srp_rdma_ch *ch, b=
-ool multich)
->  		switch (ch->status) {
->  		case 0:
->  			srp_change_conn_state(target, true);
-> +			ch->connected =3D true;
->  			return 0;
-> =20
->  		case SRP_PORT_REDIRECT:
-> @@ -2367,7 +2368,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, s=
-truct ib_cm_event *event)
->  	case IB_CM_DREQ_RECEIVED:
->  		shost_printk(KERN_WARNING, target->scsi_host,
->  			     PFX "DREQ received - connection closed\n");
-> -		srp_change_conn_state(target, false);
-> +		ch->connected =3D false;
-
-So, in this patch, you modify disconnect to set srp_change_conn_state()
-to false for the target, then loop through all the channels sending
-cm_dreq's, and on the receiving side, you modify the cm_dreq handler to
-set each channel to false.  However, once you get to 0 channels open,
-shouldn't you then set the target state to false too just to keep things
-consistent?
-
->  		if (ib_send_cm_drep(cm_id, NULL, 0))
->  			shost_printk(KERN_ERR, target->scsi_host,
->  				     PFX "Sending CM DREP failed\n");
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp=
-/srp/ib_srp.h
-> index a611556..95a4471 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.h
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-> @@ -170,6 +170,7 @@ struct srp_rdma_ch {
-> =20
->  	struct completion	tsk_mgmt_done;
->  	u8			tsk_mgmt_status;
-> +	bool			connected;
->  };
-> =20
->  /**
-
-
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
-
-
-
---=-DWP/l3xBLtSdJrORhY/2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVQlNuAAoJELgmozMOVy/dMzgQALtDLXBJ5wZqhAfoeB19wz9d
-GTzmJmqYyGzDPJTYFN2I/KR9hLoB3q627cxeS9kr6NZyzETDGCvxwoDqvx1jr9Xj
-1ystrDxEQ4ehiJt8ldwjZ3bYuVemK4mygJ3XEeScdd1oSI8ExyxXBmXNr1ptDj0u
-fpq3THZezWWpOEij05Sf5b1TfnNGRxufGjRjzYiGD4X/OmScHqEAP28qgqgCSgr5
-ghL/+NYGuq8rfzyQBwz/4hQ8A7X6QH8bO2AqPV+6xcfxhEVXjq6YQruuvQEsFRz9
-sFwUDrDqB5PZWijhqrNT3N9stlKKjLPQV9VZBO9i2mBT4GFyJJO4TIS5f5/NYY5P
-5Es/0E6w6TTK1MPavRzQezvjZ+xLz8upihZ+/kfq9VZj8MmZtBNbBKZm55S5pPyf
-XYAT8shwC8OFRglGy6Kwkd+DEQv6APsnpzIncPOpkzfIf0xs6BYXeLlM1UrvB0xl
-sVzhQwe8qy+/9omhyfjCUkqSFIGHxeb+OHyFvNi4aQlx9v5RN8qMJbyHPSN+gBrP
-TCZng6ochYSy5l4L0L4O2U3P7J/WBOwP7vGQw7LLqVwhyLR4HHqWmrCtRmz6kXJY
-dBz7RE2NEvCn+kRHfyQ/+VTDdQYkQSG/zY8dXpZETlKwLRFkXub6R9mz9YZLgKqe
-to9g71Au8XdSD2IDiGup
-=TBBH
------END PGP SIGNATURE-----
-
---=-DWP/l3xBLtSdJrORhY/2--
-
+I still don't even buy that a cache is needed at all.  The RDMA CM can accept as input UDP/IP addresses.  RoCEv2 puts UDP/IP addresses on the wire.  Why should there be a conversion from an IP address to a GID to get back to the same IP address?  Why aren't IP addresses passed directly to the drivers?  Just change how the RDMA CM associates an IP address with the RDMA device.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
