@@ -1,7 +1,8 @@
 From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 09/12] IB/srp: Remove a superfluous check from srp_free_req_data()
-Date: Thu, 30 Apr 2015 11:01:03 +0200
-Message-ID: <5541EF4F.6050200@sandisk.com>
+Subject: [PATCH 10/12] IB/srp: Remove !ch->target tests from the reconnect
+ code
+Date: Thu, 30 Apr 2015 11:01:22 +0200
+Message-ID: <5541EF62.8050107@sandisk.com>
 References: <5541EE21.3050809@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,29 +14,49 @@ To: Doug Ledford <dledford@redhat.com>
 Cc: James Bottomley <jbottomley@odin.com>, Sagi Grimberg <sagig@mellanox.com>, Sebastian Parschauer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-All srp_free_req_data() callers guarantee that ch->target != NULL
-hence remove the ch->target test from srp_free_req_data().
+Remove the !ch->target tests from the reconnect code. These
+tests are not needed: upon entry of srp_rport_reconnect()
+it is guaranteed that all ch->target pointers are non-NULL.
+None of the functions srp_new_cm_id(), srp_finish_req(),
+srp_create_ch_ib() nor srp_connect_ch() modifies this pointer.
+srp_free_ch_ib() is never called concurrently with
+srp_rport_reconnect().
 
 Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Cc: Sagi Grimberg <sagig@mellanox.com>
 Cc: Sebastian Parschauer <sebastian.riemer@profitbricks.com>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 3727b90..a73eb1e5 100644
+index a73eb1e5..400ef7a 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -853,7 +853,7 @@ static void srp_free_req_data(struct srp_target_port *target,
- 	struct srp_request *req;
- 	int i;
+@@ -1216,14 +1216,10 @@ static int srp_rport_reconnect(struct srp_rport *rport)
+ 	 */
+ 	for (i = 0; i < target->ch_count; i++) {
+ 		ch = &target->ch[i];
+-		if (!ch->target)
+-			break;
+ 		ret += srp_new_cm_id(ch);
+ 	}
+ 	for (i = 0; i < target->ch_count; i++) {
+ 		ch = &target->ch[i];
+-		if (!ch->target)
+-			break;
+ 		for (j = 0; j < target->req_ring_size; ++j) {
+ 			struct srp_request *req = &ch->req_ring[j];
  
--	if (!ch->target || !ch->req_ring)
-+	if (!ch->req_ring)
- 		return;
- 
- 	for (i = 0; i < target->req_ring_size; ++i) {
+@@ -1232,8 +1228,6 @@ static int srp_rport_reconnect(struct srp_rport *rport)
+ 	}
+ 	for (i = 0; i < target->ch_count; i++) {
+ 		ch = &target->ch[i];
+-		if (!ch->target)
+-			break;
+ 		/*
+ 		 * Whether or not creating a new CM ID succeeded, create a new
+ 		 * QP. This guarantees that all completion callback function
 -- 
 2.1.4
 
