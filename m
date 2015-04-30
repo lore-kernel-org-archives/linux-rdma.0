@@ -1,64 +1,42 @@
-From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v7 00/23] IB/Verbs: IB Management Helpers
-Date: Thu, 30 Apr 2015 10:28:42 +0200
-Message-ID: <5541E7BA.6000105@profitbricks.com>
-References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>	 <1430324895.102408.23.camel@redhat.com> <5541C044.7090800@mellanox.com> <1430377216.102408.47.camel@redhat.com> <5541D8CB.8050305@mellanox.com> <5541E3BE.2080708@profitbricks.com> <5541E67E.4030906@mellanox.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/12] IB/srp patches for kernel v4.2
+Date: Thu, 30 Apr 2015 10:56:01 +0200
+Message-ID: <5541EE21.3050809@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5541E67E.4030906-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: James Bottomley <jbottomley-wo1vFcy6AUs@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Parschauer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Doug,
 
+My own testing and code review of the SRP initiator driver during the 
+past months resulted in a series of twelve patches with bug fixes, 
+source code simplifications and improvements. Patches 1..5 are bug fixes 
+and have been tagged for the stable kernel series. These patches have 
+been tested against kernel v4.1-rc1. Please consider these patches for 
+the v4.2 merge window.
 
-On 04/30/2015 10:23 AM, Or Gerlitz wrote:
-> On 4/30/2015 11:11 AM, Michael Wang wrote:
->> On 04/30/2015 09:24 AM, Or Gerlitz wrote:
->>> >On 4/30/2015 10:00 AM, Doug Ledford wrote:
->>>> >>So, short answer:
->>>> >>
->>>> >>--cc list options: include all interested parties
->>>> >>git log messages: include relevant parties
->>> >
->>> >makes sense. Michael, please address in your next reposting of the series.
->> I'm planning to merge 15~23 into one so the long CC could make more sense.
-> 
-> I disagree, but let's handle the 1~14 portion of the series 1st (see below)
-> 
->>
->> And these:
->>
->> Cc: Hal Rosenstock<hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> Cc: Steve Wise<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->> Cc: Tom Talpey<tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
->> Cc: Jason Gunthorpe<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Cc: Doug Ledford<dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: Ira Weiny<ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Cc: Sean Hefty<sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>
->> All seems like necessary to be included in the tag list for future trace, could we reserve them in the new 16 patches?
-> 
-> No, Doug will add his signature as he's the maintainer, so no need to have  him twice.  The other folks there acted as reviewers on this series and you are not supposed to add the reviewers as Cc to the commits. Just avoid this long listing and put your signature, when people send reviewed-by or acked-by it's handled by patchworks.
+The individual patches in this series are:
+0001-scsi_transport_srp-Introduce-srp_wait_for_queuecomma.patch
+0002-scsi_transport_srp-Fix-a-race-condition.patch
+0003-IB-srp-Remove-an-extraneous-scsi_host_put-from-an-er.patch
+0004-IB-srp-Fix-connection-state-tracking.patch
+0005-IB-srp-Fix-reconnection-failure-handling.patch
+0006-scsi_transport_srp-Reduce-failover-time.patch
+0007-IB-srp-Remove-superfluous-casts.patch
+0008-IB-srp-Rearrange-module-description.patch
+0009-IB-srp-Remove-a-superfluous-check-from-srp_free_req_.patch
+0010-IB-srp-Remove-ch-target-tests-from-the-reconnect-cod.patch
+0011-IB-srp-Add-64-bit-LUN-support.patch
+0012-IB-srp-Make-CM-timeout-dependent-on-subnet-timeout.patch
 
-That's make sense, we can just ask those who participated to provide
-their reviewed/acked-by instead :-)
+Thanks,
 
-So I'll reserve 15~23 separately while remove all the cc list, and
-ask folks to provide their reviewed/acked-by and tested-by in next version.
-
-Regards,
-Michael Wang
-
-> 
-> Patch #1 is the actual new enhancement, right?  maybe you can have long Cc list there, if you really want.
-> 
-> Or.
-> 
-> 
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
