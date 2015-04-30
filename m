@@ -1,39 +1,54 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Thu, 30 Apr 2015 19:21:08 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC9419@ORSMSX109.amr.corp.intel.com>
-References: <9f65de5e-ed5f-48d2-bff2-03ffbe4f4876@CMEXHTCAS2.ad.emulex.com>
- <CAJ3xEMhBNt-VNNds37sXnJi3nP9ZTMd6mC3s+qZWh0XsO1n_Nw@mail.gmail.com>
- <553DF294.4070507@mellanox.com>
- <CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
- <553F931F.6000302@mellanox.com> <20150428174312.GB5497@obsidianresearch.com>
- <5540F8F4.5010906@dev.mellanox.co.il>
- <20150429164847.GA12781@obsidianresearch.com>
- <5541E5ED.7000606@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FC929B@ORSMSX109.amr.corp.intel.com>
- <20150430175252.GB32666@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150430175252.GB32666-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: [PATCH v5 5/6] IB/ipath: add counting for MTRR
+Date: Thu, 30 Apr 2015 13:25:19 -0700
+Message-ID: <1430425520-22275-6-git-send-email-mcgrof@do-not-panic.com>
+References: <1430425520-22275-1-git-send-email-mcgrof@do-not-panic.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430425520-22275-1-git-send-email-mcgrof@do-not-panic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bp@suse.de, mingo@elte.hu, tglx@linutronix.de, hpa@zytor.com, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, daniel.vetter@intel.com, airlied@linux.ie
+Cc: dledford@redhat.com, awalls@md.metrocast.net, syrjala@sci.fi, luto@amacapital.net, mst@redhat.com, cocci@systeme.lip6.fr, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>, Toshi Kani <toshi.kani@hp.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Suresh Siddha <sbsiddha@gmail.com>, Juergen Gross <jgross@suse.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, Antonino Daplas <adaplas@gmail.com>, infinipath@intel.com, linux-rdma@vger.kernel.org, linux-fbdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> But, how could RDMA CM work? Inbound CM messages will be filtered if
-> the IP is not in the HW GID table?
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-I'm not understanding the issue.
+There is no good reason not to, we eventually delete it as well.
 
-If a device has some requirement to program its assigned IP addresses into some HW table, I don't see why upper layers should be made to care.  The IB CM is essentially handling 2 different type of CM messages -- one for IB and one for RoCE.  This just adds a third type.  All three types are similar, with some fields ignored and others formatted using different data.  The CM interface can be updated to better reflect reality, rather than pretending that RoCE has path records or anything other than IB-classic has LIDs.  The CM message definitions themselves could also be updated to indicate which fields matter.
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Suresh Siddha <sbsiddha@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: infinipath@intel.com
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+---
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> How could UD work?
-
-I haven't given much thought to UD, but since AV creation goes directly to the driver, I still don't see why GIDs need to be used.  The driver can encode whatever it needs to (e.g. GID/IP index) into the AV.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+index 4ad0b93..70c1f3a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
++++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+@@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+ 			   "(addr %llx, len=0x%llx)\n",
+ 			   (unsigned long long) pioaddr,
+ 			   (unsigned long long) piolen);
+-		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
++		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
+ 		if (cookie < 0) {
+ 			{
+ 				dev_info(&dd->pcidev->dev,
+-- 
+2.3.2.209.gd67f9d5.dirty
