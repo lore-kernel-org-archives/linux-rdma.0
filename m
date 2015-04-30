@@ -1,64 +1,45 @@
-From: "Daney, David" <David.Daney@caviumnetworks.com>
-Subject: RE: [PATCH RFC] net/mlx4: Remove improper usage of
- dma_alloc_coherent().
-Date: Thu, 30 Apr 2015 00:07:05 +0000
-Message-ID: <BN3PR0701MB1719B826CB12B1C6FD9E00989AD60@BN3PR0701MB1719.namprd07.prod.outlook.com>
-References: <1428361229-31542-1-git-send-email-ddaney.cavm@gmail.com>
- <55243362.5040207@dev.mellanox.co.il> <552AE4A4.30005@dev.mellanox.co.il>
- <5540E71E.2050200@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v7 00/23] IB/Verbs: IB Management Helpers
+Date: Thu, 30 Apr 2015 08:40:20 +0300
+Message-ID: <5541C044.7090800@mellanox.com>
+References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
+ <1430324895.102408.23.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5540E71E.2050200@dev.mellanox.co.il>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ido Shamay <idos@dev.mellanox.co.il>, David Daney <ddaney.cavm@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Amir Vadai <amirv@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Moni Shoua <monis@mellanox.com>, Eugenia Emantayev <eugenia@mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, Yuval Atias <yuvala@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, David Daney <david.daney@cavium.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1430324895.102408.23.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-First of all, let me apologize for top posting, but it is currently my only option.
+On 4/29/2015 7:28 PM, Doug Ledford wrote:
+> On Tue, 2015-04-28 at 17:10 +0200, Michael Wang wrote:
+>> >Since v6:
+>> >   * Thanks to Ira, Devesh for the review and testing:-)
+>> >   * Thanks for the comments from Sean, Tom, Jason, Doug, Devesh, Ira,
+>> >     Liran:-)  Please remind me if anything missed:-P
+>> >   * Use query_protocol() and enum protocol type in 1#
+>> >   * Use rdma_protocol_XX() in 2#
+>> >   * Drop cma_set_legacy_transport()
+>> >   * Reserve rdma_ib_or_iboe() and rdma_node_get_transport()
+>> >   * Updated github repository to v7
+> I've taken your patchset and threw it into a for-4.2 branch in my repo.
+> This will get it 0day testing.  I've also pulled it into my test cluster
+> and done minimal testing (bootup, finds devices, gets IP address via dhcp).
 
-I have been away from my office for the last couple of weeks, I was going to re-send on Monday, May 4.  If you would like to do it before then, please go ahead and do that.
+Doug,
 
-Thanks,
-David Daney
+As I wrote to Michael, this series carries way (way) over Cc: pointers 
+in each it's commits. We have never had something like this since this 
+stack was formed 10y ago and accepted into 2.6.12 --- and I didn't hear 
+any good reason for why doing so (see the thread  for "[PATCH v7 04/23] 
+IB/Verbs: Reform IB-core cm") -- can you please provide your opinion on 
+the matter?
 
------Original Message-----
-From: Ido Shamay [mailto:idos@dev.mellanox.co.il] 
-Sent: Wednesday, April 29, 2015 7:14 AM
-To: David Daney; linux-kernel@vger.kernel.org; netdev@vger.kernel.org; linux-rdma@vger.kernel.org; David S. Miller
-Cc: Roland Dreier; Sean Hefty; Hal Rosenstock; Amir Vadai; Or Gerlitz; Yishai Hadas; Matan Barak; Majd Dibbiny; Jack Morgenstein; Moni Shoua; Eugenia Emantayev; Saeed Mahameed; Yuval Atias; Maor Gottlieb; David Daney
-Subject: Re: [PATCH RFC] net/mlx4: Remove improper usage of dma_alloc_coherent().
-
-
-On 4/13/2015 12:33 AM, Ido Shamay wrote:
-> On 4/7/2015 10:43 PM, Ido Shamay wrote:
->> On 4/7/2015 2:00 AM, David Daney wrote:
->>> From: David Daney <david.daney@cavium.com>
->>>
->>> The dma_alloc_coherent() function returns a virtual address which 
->>> can be used for coherent access to the underlying memory.  On some 
->>> architectures, like arm64, undefined behavior results if this memory 
->>> is also accessed via virtual mappings that are not coherent. Because 
->>> of their undefined nature, operations like virt_to_page() return 
->>> garbage when passed virtual addresses obtained from 
->>> dma_alloc_coherent().  Any subsequent mappings via vmap() of the 
->>> garbage page values are unusable and result in bad things like bus 
->>> errors (synchronous aborts in ARM64 speak).
->>>
->>> The MLX4 driver contains code that does the equivalent of:
->>>
->>>    vmap(virt_to_page(dma_alloc_coherent))
->>>
->>> This results in an OOPs when the device is opened.
->>>
->>> To fix this...
->>>
->>> Always use result of dma_alloc_coherent() directly.
-> Acked-by: Ido Shamay <idos@mellanox.com> Thanks David, this is good 
-> for us
-
-Hi David,
-
-Are you resending this patch or you want us to do that?
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
