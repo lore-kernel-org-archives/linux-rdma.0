@@ -1,10 +1,10 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 2/2] IB/mad: Clean up comments in smi.c
-Date: Fri,  1 May 2015 00:07:21 -0400
-Message-ID: <1430453241-20869-3-git-send-email-ira.weiny@intel.com>
-References: <1430453241-20869-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 1/3] IB/mad: Change validate_mad signature to take ib_mad_hdr rather than ib_mad
+Date: Fri,  1 May 2015 01:42:06 -0400
+Message-ID: <1430458928-28465-2-git-send-email-ira.weiny@intel.com>
+References: <1430458928-28465-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430453241-20869-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1430458928-28465-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,36 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Return values of 0 do not make sense for functions which return enum
-smi_action
+validate_mad only needs access to the MAD header
 
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/smi.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/mad.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index 5855e44..e6c6810 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -41,7 +41,7 @@
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 7af6ca7..19cd91b 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1708,20 +1708,20 @@ out:
+ 	return mad_agent;
+ }
  
- /*
-  * Fixup a directed route SMP for sending
-- * Return 0 if the SMP should be discarded
-+ * Return IB_SMI_DISCARD if the SMP should be discarded
-  */
- enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
- 				       u8 node_type, int port_num)
-@@ -126,7 +126,7 @@ enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
+-static int validate_mad(struct ib_mad *mad, u32 qp_num)
++static int validate_mad(struct ib_mad_hdr *mad_hdr, u32 qp_num)
+ {
+ 	int valid = 0;
  
- /*
-  * Adjust information for a received SMP
-- * Return 0 if the SMP should be dropped
-+ * Return IB_SMI_DISCARD if the SMP should be dropped
-  */
- enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
- 				       int port_num, int phys_port_cnt)
+ 	/* Make sure MAD base version is understood */
+-	if (mad->mad_hdr.base_version != IB_MGMT_BASE_VERSION) {
++	if (mad_hdr->base_version != IB_MGMT_BASE_VERSION) {
+ 		pr_err("MAD received with unsupported base version %d\n",
+-			mad->mad_hdr.base_version);
++			mad_hdr->base_version);
+ 		goto out;
+ 	}
+ 
+ 	/* Filter SMI packets sent to other than QP0 */
+-	if ((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
+-	    (mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
++	if ((mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED) ||
++	    (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)) {
+ 		if (qp_num == 0)
+ 			valid = 1;
+ 	} else {
+@@ -1979,7 +1979,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 		snoop_recv(qp_info, &recv->header.recv_wc, IB_MAD_SNOOP_RECVS);
+ 
+ 	/* Validate MAD */
+-	if (!validate_mad(&recv->mad.mad, qp_info->qp->qp_num))
++	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
+ 		goto out;
+ 
+ 	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
 -- 
 1.8.2
 
