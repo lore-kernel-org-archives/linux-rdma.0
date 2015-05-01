@@ -1,74 +1,25 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2] IB/core: Fix unaligned accesses
-Date: Fri, 1 May 2015 10:24:13 -0600
-Message-ID: <20150501162413.GC8531@obsidianresearch.com>
-References: <1430448168-38479-1-git-send-email-david.ahern@oracle.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v7 00/23] IB/Verbs: IB Management Helpers
+Date: Fri, 1 May 2015 16:24:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FC991B@ORSMSX109.amr.corp.intel.com>
+References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
+ <20150501063428.GA30098@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1430448168-38479-1-git-send-email-david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150501063428.GA30098-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 30, 2015 at 10:42:48PM -0400, David Ahern wrote:
-> Addresses the following kernel logs seen during boot of sparc systems:
-> 
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> 
-> Changed signature of cm_mask_copy from u8 to u32 as suggested by Jason
-> Gunthorpe.
+> Does anyone have a link to the emails which proposed bitmasks?  I can't
+> find
+> them right now.
 
-+1 to everyone elses comments..
-
-> -static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
-> +static void cm_mask_copy(u32 *dst, u32 *src, u32 *mask)
-
-masy as well add the const while here
-
-> -	for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++)
-> -		((unsigned long *) dst)[i] = ((unsigned long *) src)[i] &
-> -					     ((unsigned long *) mask)[i];
-> +	for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(u32); i++)
-> +		dst[i] =  src[i] & mask[i];
-
-for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(*dst); i++)
-
-Is a little more idiomatic
-
-> -		data_cmp = cm_compare_private_data(private_data,
-> +		data_cmp = cm_compare_private_data((u32 *) private_data,
->  						   cm_id_priv->compare_data);
-
-I'd be happier without this cast, at the worst move it up one more
-layer, at the best, fix the two impacted structures as well.
-
-> I feel like I stepped into a tar pit... It's a bit odd that
-> IB_CM_COMPARE_SIZE is part of an enum rather than a #define.
-
-This is, again, idiomatic. '#define CONSTANT' is often frowned upon,
-the semantics of enum are much cleaner/safer, eg what you trivially
-posted:
-
-> #define IB_CM_COMPARE_SIZE 64/sizeof(u32)
-
-Is wrong, missing brackets.
-
->> Anyway, you might want to compile this part of the kernel with
->> -Wcast-align and ignore the false positive (in particular
->> every other use of container_of()).
-
-> Why?
-
-To look for more sketchy things that might impact SPARC, ARM, etc.
-
-Jason
+I think converting the caps functions into bits is a good place to start.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
