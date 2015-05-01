@@ -1,94 +1,140 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 02/33] IB/core: Add kref to IB devices
-Date: Fri, 1 May 2015 09:41:55 +0300
-Message-ID: <CAAKD3BDj8MWhOu0wK7hRWHWf3Q6PmwYzr7Yp3oc6jpGBTs28JA@mail.gmail.com>
-References: <553DF294.4070507@mellanox.com>
-	<CAJ3xEMjzgS_uR1VaeGzW+jcfG2oiVo4=fCctX6o4OVbKRX2n0Q@mail.gmail.com>
-	<553F931F.6000302@mellanox.com>
-	<20150428174312.GB5497@obsidianresearch.com>
-	<5540F8F4.5010906@dev.mellanox.co.il>
-	<20150429164847.GA12781@obsidianresearch.com>
-	<5541E5ED.7000606@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373A8FC929B@ORSMSX109.amr.corp.intel.com>
-	<20150430175252.GB32666@obsidianresearch.com>
-	<1828884A29C6694DAF28B7E6B8A82373A8FC9419@ORSMSX109.amr.corp.intel.com>
-	<20150430212842.GB7709@obsidianresearch.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] IB/core: Fix unaligned accesses
+Date: Fri, 01 May 2015 10:45:25 +0200
+Message-ID: <1430469925.2957.14.camel@opteya.com>
+References: <1430448168-38479-1-git-send-email-david.ahern@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150430212842.GB7709-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1430448168-38479-1-git-send-email-david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 1, 2015 at 12:28 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Apr 30, 2015 at 07:21:08PM +0000, Hefty, Sean wrote:
->> > But, how could RDMA CM work? Inbound CM messages will be filtered if
->> > the IP is not in the HW GID table?
->>
->> I'm not understanding the issue.
->>
->> If a device has some requirement to program its assigned IP
->> addresses into some HW table, I don't see why upper layers should be
->> made to care.
->
-> Okay, I was only thinking about the first couple patches in this
-> series.  Three drivers will have this HW gid table, so having a driver
-> helper library in the common code makes sense to me.
->
-> But then the series it just seems to go crazy - what is with all these
-> net dev patches? Now we are doing something with bonding? And a lot of
-> screwy looking rocev2 gid type stuff? And driver updates? And 33 patches worth?
->
+Hi,
 
-Actually, we're in the middle of splitting this series into two series
-- the first introduces
-the roce_gid_cache management and the second will introduce RoCE V2.
-The bonding changes are crucial - the mlx4 driver currently support bonding
-and changing to a new mechanism without supporting bonding will cause
-a regression.
+Le jeudi 30 avril 2015 =C3=A0 22:42 -0400, David Ahern a =C3=A9crit :
+> Addresses the following kernel logs seen during boot of sparc systems=
+:
+>=20
+> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib=
+_cm]
+> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib=
+_cm]
+> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib=
+_cm]
+> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib=
+_cm]
+> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib=
+_cm]
+>=20
+> Changed signature of cm_mask_copy from u8 to u32 as suggested by Jaso=
+n
+> Gunthorpe.
 
-> You are totally right, this GID index and GID type stuff is getting
-> *everywhere*, and it is hard to follow the *why* of all the changes
-> are really needed.
->
-> Matan, if you want to progress this, then split it up.  Make a patch
-> to library the existing roce GID table driver code and update the
-> drivers. Just that bit alone has already spawned a huge discussion.
->
+> Signed-off-by: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v2
+> - updated per Jason's comments
+>=20
+>  drivers/infiniband/core/cm.c | 17 ++++++++---------
+>  include/rdma/ib_cm.h         |  4 ++--
+>  2 files changed, 10 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/c=
+m.c
+> index e28a494e2a3a..cbbf741987b3 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -437,20 +437,19 @@ static struct cm_id_private * cm_acquire_id(__b=
+e32 local_id, __be32 remote_id)
+>  	return cm_id_priv;
+>  }
+> =20
+> -static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
+> +static void cm_mask_copy(u32 *dst, u32 *src, u32 *mask)
+>  {
+>  	int i;
+> =20
+> -	for (i =3D 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++)
+> -		((unsigned long *) dst)[i] =3D ((unsigned long *) src)[i] &
+> -					     ((unsigned long *) mask)[i];
+> +	for (i =3D 0; i < IB_CM_COMPARE_SIZE / sizeof(u32); i++)
+> +		dst[i] =3D  src[i] & mask[i];
+>  }
+> =20
+>  static int cm_compare_data(struct ib_cm_compare_data *src_data,
+>  			   struct ib_cm_compare_data *dst_data)
+>  {
+> -	u8 src[IB_CM_COMPARE_SIZE];
+> -	u8 dst[IB_CM_COMPARE_SIZE];
+> +	u32 src[IB_CM_COMPARE_SIZE];
+> +	u32 dst[IB_CM_COMPARE_SIZE];
+> =20
 
-It's already in progress. The new series is expected to be a lot smaller.
+You have to change IB_CM_COMPARE_SIZE, as it's going to allocate more
+bytes than necessary.
 
-> Work the other ancillary unrelated patches in small chuncks through
-> their trees.
->
+Perhaps renaming IB_CM_COMPARE_SIZE to IB_CM_COMPARE_COUNT would be
+good, then remove the division by sizeof(u32).
 
-The DRV patch was already sent to net. Regarding the bonding and ipv6
-patch - we can't change them without a good reason which relies in this
-patchset.
+>  	if (!src_data || !dst_data)
+>  		return 0;
+> @@ -460,10 +459,10 @@ static int cm_compare_data(struct ib_cm_compare=
+_data *src_data,
+>  	return memcmp(src, dst, IB_CM_COMPARE_SIZE);
+>  }
+> =20
+> -static int cm_compare_private_data(u8 *private_data,
+> +static int cm_compare_private_data(u32 *private_data,
+>  				   struct ib_cm_compare_data *dst_data)
+>  {
+> -	u8 src[IB_CM_COMPARE_SIZE];
+> +	u32 src[IB_CM_COMPARE_SIZE];
+> =20
+>  	if (!dst_data)
+>  		return 0;
+> @@ -546,7 +545,7 @@ static struct cm_id_private * cm_find_listen(stru=
+ct ib_device *device,
+> =20
+>  	while (node) {
+>  		cm_id_priv =3D rb_entry(node, struct cm_id_private, service_node);
+> -		data_cmp =3D cm_compare_private_data(private_data,
+> +		data_cmp =3D cm_compare_private_data((u32 *) private_data,
+>  						   cm_id_priv->compare_data);
+>  		if ((cm_id_priv->id.service_mask & service_id) =3D=3D
+>  		     cm_id_priv->id.service_id &&
+> diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+> index 0e3ff30647d5..0dd576f40c83 100644
+> --- a/include/rdma/ib_cm.h
+> +++ b/include/rdma/ib_cm.h
+> @@ -337,8 +337,8 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id);
+>  #define IB_SDP_SERVICE_ID_MASK	cpu_to_be64(0xFFFFFFFFFFFF0000ULL)
+> =20
+>  struct ib_cm_compare_data {
+> -	u8  data[IB_CM_COMPARE_SIZE];
+> -	u8  mask[IB_CM_COMPARE_SIZE];
+> +	u32  data[IB_CM_COMPARE_SIZE];
+> +	u32  mask[IB_CM_COMPARE_SIZE];
+>  };
+> =20
+>  /**
 
-> Then come back to rocev2 with an actual core API proposal patch set
-> that can be discussed.
->
-> Honestly, I'm not willing to even look at a patch set this big and
-> rambly.
+Anyway, you might want to compile this part of the kernel with
+-Wcast-align and ignore the false positive (in particular
+every other use of container_of()).
 
-Ok, hopefully we'll have something soon enough.
+Regards.
 
->
-> Jason
+--=20
+Yann Droneaud
+OPTEYA
 
-Thanks a lot for the review and your comments.
 
-Matan
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
