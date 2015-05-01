@@ -1,32 +1,27 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 0/2] General MAD clean up
-Date: Fri, 1 May 2015 10:27:11 -0600
-Message-ID: <20150501162711.GD8531@obsidianresearch.com>
-References: <1430453241-20869-1-git-send-email-ira.weiny@intel.com>
+From: "Weiny, Ira" <ira.weiny@intel.com>
+Subject: RE: [PATCH v7 00/23] IB/Verbs: IB Management Helpers
+Date: Fri, 1 May 2015 16:27:34 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E11068319@CRSMSX101.amr.corp.intel.com>
+References: <1430233823-7075-1-git-send-email-yun.wang@profitbricks.com>
+ <20150501063428.GA30098@phlsvsds.ph.intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FC991B@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1430453241-20869-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FC991B@ORSMSX109.amr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>, Michael Wang <yun.wang@profitbricks.com>
+Cc: Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, infinipath <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, "Latif, Faisal" <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 01, 2015 at 12:07:19AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> These 2 patches contain some clean ups to the MAD module.  One was reviewed
-> months ago by Sean and the other was suggested by Doug.
+> > Does anyone have a link to the emails which proposed bitmasks?  I
+> > can't find them right now.
 > 
-> These are based on Doug's for-4.2 branch
+> I think converting the caps functions into bits is a good place to start.
 
-Pretty trivial looks fine to me.
+That is where I am starting...
 
-Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ira
