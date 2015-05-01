@@ -1,8 +1,10 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 0/3] IB/mad: refactor functions based on the needs of those functions.
-Date: Fri,  1 May 2015 01:42:05 -0400
-Message-ID: <1430458928-28465-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 3/3] IB/mad: Change cast in rcv_has_same_class
+Date: Fri,  1 May 2015 01:42:08 -0400
+Message-ID: <1430458928-28465-4-git-send-email-ira.weiny@intel.com>
+References: <1430458928-28465-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1430458928-28465-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,19 +12,26 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-validate_mad, ib_response_mad, and rcv_has_same_class only need the IB header.
-Refactor these functions as appropriate.
+rcv_has_same_class only needs access to the MAD header
 
-Ira Weiny (3):
-  IB/mad: Change validate_mad signature to take ib_mad_hdr rather than ib_mad
-  IB/mad: Change ib_response_mad signature to take ib_mad_hdr rather than ib_mad
-  IB/mad: Change cast in rcv_has_same_class
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/core/mad.c      | 34 +++++++++++++++++-----------------
- drivers/infiniband/core/user_mad.c |  6 +++---
- include/rdma/ib_mad.h              |  2 +-
- 3 files changed, 21 insertions(+), 21 deletions(-)
-
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 2f5a4ab..0749d7b 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1750,7 +1750,7 @@ static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
+ static inline int rcv_has_same_class(struct ib_mad_send_wr_private *wr,
+ 				     struct ib_mad_recv_wc *rwc)
+ {
+-	return ((struct ib_mad *)(wr->send_buf.mad))->mad_hdr.mgmt_class ==
++	return ((struct ib_mad_hdr *)(wr->send_buf.mad))->mgmt_class ==
+ 		rwc->recv_buf.mad->mad_hdr.mgmt_class;
+ }
+ 
 -- 
 1.8.2
 
