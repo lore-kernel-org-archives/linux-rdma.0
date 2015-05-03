@@ -1,57 +1,161 @@
 From: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/core: Fix unaligned accesses
-Date: Sun, 03 May 2015 07:46:10 -0600
-Message-ID: <554626A2.20302@oracle.com>
-References: <1430515349-183903-1-git-send-email-david.ahern@oracle.com> <AM3PR05MB093528DFDBBA39DD7977CC85DCD30@AM3PR05MB0935.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v4] IB/core: Fix unaligned accesses
+Date: Sun,  3 May 2015 09:48:26 -0400
+Message-ID: <1430660906-215424-1-git-send-email-david.ahern@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM3PR05MB093528DFDBBA39DD7977CC85DCD30-LOZWmgKjnYgQouBfZGh8ttqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/3/15 4:20 AM, Shachar Raindel wrote:
-> Hi,
->
-> The patch is broken - you did not update
+Addresses the following kernel logs seen during boot of sparc systems:
 
---verbose. I did not update what?
->
->
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of David Ahern
->> Sent: Saturday, May 02, 2015 12:22 AM
+Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
+Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
+Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
+Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
+Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
 
-That is filled in by git and the time on the server is proper. So what 
-do you disagree with?
+Signed-off-by: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+v4
+- fix uses of IB_CM_COMPARE_SIZE in memcmp noticed by Shachar
 
->
-> <snipped>
->
->>
->>   static int cm_compare_data(struct ib_cm_compare_data *src_data,
->>   			   struct ib_cm_compare_data *dst_data)
->>   {
->> -	u8 src[IB_CM_COMPARE_SIZE];
->> -	u8 dst[IB_CM_COMPARE_SIZE];
->> +	u32 src[IB_CM_COMPARE_SIZE];
->> +	u32 dst[IB_CM_COMPARE_SIZE];
->>
->>   	if (!src_data || !dst_data)
->>   		return 0;
->> @@ -460,10 +459,10 @@ static int cm_compare_data(struct
->> ib_cm_compare_data *src_data,
->>   	return memcmp(src, dst, IB_CM_COMPARE_SIZE);
->
-> You added a BUG here - you should use (IB_CM_COMPARE_SIZE * sizeof(u32)).
+v3
+- updated definition of IB_CM_COMPARE_SIZE to account for u32 walking
+  per Yann's comment
+- added const to src/mask args to cm_mask_copy and removed extra whitespace
+  per Bart's comments
+- changed 2 private_data declarations to u32 as suggested by Jason
 
-Thank you for pointing that out. Changed those to sizeof(src) and 
-sizeof(compare_data->mask).
+v2
+- updated per Jason's comments
 
+ drivers/infiniband/core/cm.c      | 23 +++++++++++------------
+ drivers/infiniband/core/cm_msgs.h |  4 ++--
+ include/rdma/ib_cm.h              |  7 ++++---
+ 3 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index e28a494e2a3a..0c1419105ff0 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -437,39 +437,38 @@ static struct cm_id_private * cm_acquire_id(__be32 local_id, __be32 remote_id)
+ 	return cm_id_priv;
+ }
+ 
+-static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
++static void cm_mask_copy(u32 *dst, const u32 *src, const u32 *mask)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++)
+-		((unsigned long *) dst)[i] = ((unsigned long *) src)[i] &
+-					     ((unsigned long *) mask)[i];
++	for (i = 0; i < IB_CM_COMPARE_SIZE; i++)
++		dst[i] = src[i] & mask[i];
+ }
+ 
+ static int cm_compare_data(struct ib_cm_compare_data *src_data,
+ 			   struct ib_cm_compare_data *dst_data)
+ {
+-	u8 src[IB_CM_COMPARE_SIZE];
+-	u8 dst[IB_CM_COMPARE_SIZE];
++	u32 src[IB_CM_COMPARE_SIZE];
++	u32 dst[IB_CM_COMPARE_SIZE];
+ 
+ 	if (!src_data || !dst_data)
+ 		return 0;
+ 
+ 	cm_mask_copy(src, src_data->data, dst_data->mask);
+ 	cm_mask_copy(dst, dst_data->data, src_data->mask);
+-	return memcmp(src, dst, IB_CM_COMPARE_SIZE);
++	return memcmp(src, dst, sizeof(src));
+ }
+ 
+-static int cm_compare_private_data(u8 *private_data,
++static int cm_compare_private_data(u32 *private_data,
+ 				   struct ib_cm_compare_data *dst_data)
+ {
+-	u8 src[IB_CM_COMPARE_SIZE];
++	u32 src[IB_CM_COMPARE_SIZE];
+ 
+ 	if (!dst_data)
+ 		return 0;
+ 
+ 	cm_mask_copy(src, private_data, dst_data->mask);
+-	return memcmp(src, dst_data->data, IB_CM_COMPARE_SIZE);
++	return memcmp(src, dst_data->data, sizeof(src));
+ }
+ 
+ /*
+@@ -538,7 +537,7 @@ static struct cm_id_private * cm_insert_listen(struct cm_id_private *cm_id_priv)
+ 
+ static struct cm_id_private * cm_find_listen(struct ib_device *device,
+ 					     __be64 service_id,
+-					     u8 *private_data)
++					     u32 *private_data)
+ {
+ 	struct rb_node *node = cm.listen_service_table.rb_node;
+ 	struct cm_id_private *cm_id_priv;
+@@ -953,7 +952,7 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
+ 		cm_mask_copy(cm_id_priv->compare_data->data,
+ 			     compare_data->data, compare_data->mask);
+ 		memcpy(cm_id_priv->compare_data->mask, compare_data->mask,
+-		       IB_CM_COMPARE_SIZE);
++		       sizeof(compare_data->mask));
+ 	}
+ 
+ 	cm_id->state = IB_CM_LISTEN;
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index be068f47e47e..8b76f0ef965e 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -103,7 +103,7 @@ struct cm_req_msg {
+ 	/* local ACK timeout:5, rsvd:3 */
+ 	u8 alt_offset139;
+ 
+-	u8 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE];
++	u32 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
+ 
+ } __attribute__ ((packed));
+ 
+@@ -801,7 +801,7 @@ struct cm_sidr_req_msg {
+ 	__be16 rsvd;
+ 	__be64 service_id;
+ 
+-	u8 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE];
++	u32 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
+ } __attribute__ ((packed));
+ 
+ struct cm_sidr_rep_msg {
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 0e3ff30647d5..39ed2d2fbd51 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -105,7 +105,8 @@ enum ib_cm_data_size {
+ 	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE = 216,
+ 	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE = 136,
+ 	IB_CM_SIDR_REP_INFO_LENGTH	 = 72,
+-	IB_CM_COMPARE_SIZE		 = 64
++	/* compare done u32 at a time */
++	IB_CM_COMPARE_SIZE		 = (64 / sizeof(u32))
+ };
+ 
+ struct ib_cm_id;
+@@ -337,8 +338,8 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id);
+ #define IB_SDP_SERVICE_ID_MASK	cpu_to_be64(0xFFFFFFFFFFFF0000ULL)
+ 
+ struct ib_cm_compare_data {
+-	u8  data[IB_CM_COMPARE_SIZE];
+-	u8  mask[IB_CM_COMPARE_SIZE];
++	u32  data[IB_CM_COMPARE_SIZE];
++	u32  mask[IB_CM_COMPARE_SIZE];
+ };
+ 
+ /**
+-- 
+2.3.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
