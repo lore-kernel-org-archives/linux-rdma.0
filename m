@@ -1,95 +1,150 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
-Date: Mon, 04 May 2015 12:56:06 -0400
-Message-ID: <1430758566.2407.62.camel@redhat.com>
-References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
-	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FCA192@ORSMSX109.amr.corp.intel.com>
-	 <1430758097.2407.59.camel@redhat.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FCA1D9@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-dMNV1+Ef3vzHvPmsjd1+"
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-4.1] iw_cxgb4: Remove negative advice dmesg warnings
+Date: Tue,  5 May 2015 03:55:24 +0530
+Message-ID: <1430778324-17389-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCA1D9-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Remove these log messages in favor of per-endpoint counters as well as
+device-global counters that can be inspected via debugfs.
 
---=-dMNV1+Ef3vzHvPmsjd1+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c       | 27 ++++++++++++++++++---------
+ drivers/infiniband/hw/cxgb4/device.c   |  7 +++++++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  7 +++++++
+ 3 files changed, 32 insertions(+), 9 deletions(-)
 
-On Mon, 2015-05-04 at 16:53 +0000, Hefty, Sean wrote:
-> > > >  struct ib_port_attr {
-> > > >  	enum ib_port_state	state;
-> > > >  	enum ib_mtu		max_mtu;
-> > > >  	enum ib_mtu		active_mtu;
-> > > >  	int			gid_tbl_len;
-> > > > +	u64                     core_cap_flags;
-> > > >  	u32			port_cap_flags;
-> > > >  	u32			max_msg_sz;
-> > > >  	u32			bad_pkey_cntr;
-> > > > @@ -1684,6 +1705,7 @@ struct ib_device {
-> > > >  	u32			     local_dma_lkey;
-> > > >  	u8                           node_type;
-> > > >  	u8                           phys_port_cnt;
-> > > > +	u64                         *core_cap_flags; /* Per port core
-> > > > capability flags */
-> > >
-> > > Why are the core_cap_flags duplicated in the struct and in port
-> > attributes?
-> >=20
-> > Because the per port ib_port_attr struct is not visible to the core
-> > code, it must call ib_query_port each time it wants to see it.  In orde=
-r
-> > to make the helpers avoid a call, you have to stash the cap_flags into
-> > the ib_device struct.  In the past, the only thing there was the
-> > node_type, and it was per device and not per node.  In order to make al=
-l
-> > of this work and not require calls into the driver all the time, that
-> > has to change to a per-port array.  Eventually we could get rid of the
-> > node_type element once everything is in place.
->=20
-> I understand why they are in struct ib_device, but why are they duplicate=
-d in struct ib_port_attr?
-
-Because ib_query_port returns a struct, so this must be an element of
-that struct or it can't be returned (without adding a new, single use
-driver upcall).
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---=-dMNV1+Ef3vzHvPmsjd1+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVR6SmAAoJELgmozMOVy/dxAAP/11jiMj7RqY2xY35OTUwiseR
-e5fSrKkE6JZNCnpI2oa3C6Su/7oR+7I2aDN8XCqm/nWSPczDiJiO8qsqkmTcNrb0
-n2RYch9hkY6pl2UjHh/Vo36BetwB6/1YsijvQXhsLzpbhtElHBeVZllwxrfaDnLH
-x375uONOMaFY6vsmKv36kei6TanjBOf1AQl+Yr5cZ6R7bjqxdCT1+EEVnpaEJPjw
-3zulc7f3tluDwHYsEV6F8vZI1SKjxWDmI3P2WXodIN4g2c4Y4kdnZS6lPt9LsnJ7
-BNLny9HU+rwAWLCzr1VZc14qQiPzwu1gJfpKCvECm25+2LxXhhIyXBcE4gX4yFa3
-6eytHsDvU40M/FoXZgoYvQhwzDvRKqq6YxRMIgEoDkDyXoG41ojUEo0N5eTsYIzf
-S1Lfg/VmU2fKRbErXctTPE3Y8399KaTBHSF0dpkBTjL7Kn+QmSDlRD+RFkfvsjgr
-Acv4Ps0vBnieQPPasM6hWevuH8c+u9Vllrz5g8aoNeBVyQ+6daLAhjq9kvaA3fot
-itEFzFAI8VbrMf477MIjajBNgQQ/brreksg+nSXEha3G7yQwYhjo+GMyvZ1jgBOS
-OPzBfVrUxDHF4xj2U6jI6eps5dvYN4MRsLcniFiJcudLV41yuKp8oOzUClbQTYeo
-ygBXFxpyW8Oz4kTYuT1s
-=l5b+
------END PGP SIGNATURE-----
-
---=-dMNV1+Ef3vzHvPmsjd1+--
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 3c3b00e..bb95a6c 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -2058,9 +2058,12 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	     status, status2errno(status));
+ 
+ 	if (is_neg_adv(status)) {
+-		dev_warn(&dev->rdev.lldi.pdev->dev,
+-			 "Connection problems for atid %u status %u (%s)\n",
+-			 atid, status, neg_adv_str(status));
++		PDBG("%s Connection problems for atid %u status %u (%s)\n",
++		     __func__, atid, status, neg_adv_str(status));
++		ep->stats.connect_neg_adv++;
++		mutex_lock(&dev->rdev.stats.lock);
++		dev->rdev.stats.neg_adv++;
++		mutex_unlock(&dev->rdev.stats.lock);
+ 		return 0;
+ 	}
+ 
+@@ -2566,9 +2569,13 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	ep = lookup_tid(t, tid);
+ 	if (is_neg_adv(req->status)) {
+-		dev_warn(&dev->rdev.lldi.pdev->dev,
+-			 "Negative advice on abort - tid %u status %d (%s)\n",
+-			 ep->hwtid, req->status, neg_adv_str(req->status));
++		PDBG("%s Negative advice on abort- tid %u status %d (%s)\n",
++		     __func__, ep->hwtid, req->status,
++		     neg_adv_str(req->status));
++		ep->stats.abort_neg_adv++;
++		mutex_lock(&dev->rdev.stats.lock);
++		dev->rdev.stats.neg_adv++;
++		mutex_unlock(&dev->rdev.stats.lock);
+ 		return 0;
+ 	}
+ 	PDBG("%s ep %p tid %u state %u\n", __func__, ep, ep->hwtid,
+@@ -3977,9 +3984,11 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		return 0;
+ 	}
+ 	if (is_neg_adv(req->status)) {
+-		dev_warn(&dev->rdev.lldi.pdev->dev,
+-			 "Negative advice on abort - tid %u status %d (%s)\n",
+-			 ep->hwtid, req->status, neg_adv_str(req->status));
++		PDBG("%s Negative advice on abort- tid %u status %d (%s)\n",
++		     __func__, ep->hwtid, req->status,
++		     neg_adv_str(req->status));
++		ep->stats.abort_neg_adv++;
++		dev->rdev.stats.neg_adv++;
+ 		kfree_skb(skb);
+ 		return 0;
+ 	}
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 1ffbd03..cf54d69 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -490,6 +490,7 @@ static int stats_show(struct seq_file *seq, void *v)
+ 		   dev->rdev.stats.act_ofld_conn_fails);
+ 	seq_printf(seq, "PAS_OFLD_CONN_FAILS: %10llu\n",
+ 		   dev->rdev.stats.pas_ofld_conn_fails);
++	seq_printf(seq, "NEG_ADV_RCVD: %10llu\n", dev->rdev.stats.neg_adv);
+ 	seq_printf(seq, "AVAILABLE IRD: %10u\n", dev->avail_ird);
+ 	return 0;
+ }
+@@ -561,10 +562,13 @@ static int dump_ep(int id, void *p, void *data)
+ 		cc = snprintf(epd->buf + epd->pos, space,
+ 			      "ep %p cm_id %p qp %p state %d flags 0x%lx "
+ 			      "history 0x%lx hwtid %d atid %d "
++			      "conn_na %u abort_na %u "
+ 			      "%pI4:%d/%d <-> %pI4:%d/%d\n",
+ 			      ep, ep->com.cm_id, ep->com.qp,
+ 			      (int)ep->com.state, ep->com.flags,
+ 			      ep->com.history, ep->hwtid, ep->atid,
++			      ep->stats.connect_neg_adv,
++			      ep->stats.abort_neg_adv,
+ 			      &lsin->sin_addr, ntohs(lsin->sin_port),
+ 			      ntohs(mapped_lsin->sin_port),
+ 			      &rsin->sin_addr, ntohs(rsin->sin_port),
+@@ -582,10 +586,13 @@ static int dump_ep(int id, void *p, void *data)
+ 		cc = snprintf(epd->buf + epd->pos, space,
+ 			      "ep %p cm_id %p qp %p state %d flags 0x%lx "
+ 			      "history 0x%lx hwtid %d atid %d "
++			      "conn_na %u abort_na %u "
+ 			      "%pI6:%d/%d <-> %pI6:%d/%d\n",
+ 			      ep, ep->com.cm_id, ep->com.qp,
+ 			      (int)ep->com.state, ep->com.flags,
+ 			      ep->com.history, ep->hwtid, ep->atid,
++			      ep->stats.connect_neg_adv,
++			      ep->stats.abort_neg_adv,
+ 			      &lsin6->sin6_addr, ntohs(lsin6->sin6_port),
+ 			      ntohs(mapped_lsin6->sin6_port),
+ 			      &rsin6->sin6_addr, ntohs(rsin6->sin6_port),
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index d87e165..97bb555 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -137,6 +137,7 @@ struct c4iw_stats {
+ 	u64  tcam_full;
+ 	u64  act_ofld_conn_fails;
+ 	u64  pas_ofld_conn_fails;
++	u64  neg_adv;
+ };
+ 
+ struct c4iw_hw_queue {
+@@ -814,6 +815,11 @@ struct c4iw_listen_ep {
+ 	int backlog;
+ };
+ 
++struct c4iw_ep_stats {
++	unsigned connect_neg_adv;
++	unsigned abort_neg_adv;
++};
++
+ struct c4iw_ep {
+ 	struct c4iw_ep_common com;
+ 	struct c4iw_ep *parent_ep;
+@@ -846,6 +852,7 @@ struct c4iw_ep {
+ 	unsigned int retry_count;
+ 	int snd_win;
+ 	int rcv_win;
++	struct c4iw_ep_stats stats;
+ };
+ 
+ static inline void print_addr(struct c4iw_ep_common *epc, const char *func,
+-- 
+2.3.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
