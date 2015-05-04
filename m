@@ -1,115 +1,109 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
-Date: Mon, 04 May 2015 15:40:25 -0400
-Message-ID: <1430768425.2407.143.camel@redhat.com>
-References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
-	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
-	 <1430750492.2407.9.camel@redhat.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
-	 <1430761111.2407.85.camel@redhat.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv1 0/6] IB/uverbs: check request parameters
+Date: Mon, 04 May 2015 21:56:22 +0200
+Message-ID: <1430769382.19516.9.camel@opteya.com>
+References: <cover.1430743694.git.ydroneaud@opteya.com>
+	 <1430761519.2407.87.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-XOahaGFLLItQWJodWw3B"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1430761519.2407.87.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
---=-XOahaGFLLItQWJodWw3B
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 2015-05-04 at 18:26 +0000, Hefty, Sean wrote:
-
-> > Given that this is a per port thing, there is no assumption about a
-> > device only supporting a single protocol.
+Le lundi 04 mai 2015 =C3=A0 13:45 -0400, Doug Ledford a =C3=A9crit :
+> On Mon, 2015-05-04 at 15:00 +0200, Yann Droneaud wrote:
+> >=20
+> > Please find a patchset against uverbs to improve the checks done
+> > on uverbs request parameters. This patchset in an extract of a
+> > previous patchset sent some times ago[1].
 >=20
-> Device, no, but we are assuming this per port.
+> I reviewed those patches last time they came around.  In general, I'm=
+ on
+> board with the idea of cleaning up option checking, but in your origi=
+nal
+> patch submission you point out that the patches have a non-0 chance o=
+f
+> breaking user applications that pass in parameters that wouldn't pass
+> these checks but work anyway.  Have you done any looking into that
+> possibility?
+>=20
 
-At a high level, there are certain things that will be per port because
-they are tied to the link layer in question (you won't have a port with
-IB_SA that doesn't have IB_SA on all its queue pairs on that port).
+I believe applications using libibverbs are immune of any kind of
+regression.
 
->   I don't think this is
-> true for USNIC.
+But I cannot tell for sure for applications that access directly uverbs=
+:
+those could be doing broken things.
 
-I can't speak for USNIC, I haven't read the driver for it closely
-enough.
+Anyway, we should prevent such applications to broke into the kernel:
+integer over/under flow or buffer overflow are not acceptable.
 
->   For that matter, it's entirely possible for a RoCEv2
-> device to expose UDP directly to user space, same as USNIC.
+> > I've provided some explanation of the issues partialy addressed
+> > by this patchset in a previous message[2].
+> >=20
+> > As we're now addressing overflows, I think it's time to apply
+> > this patchset.
+> >=20
+> > Changes since v0 [3]
+> > - updated against v4.1-rc2
+> > - incorporated patches to add check on response buffer using
+> >   access_ok()
+> >=20
+> > [1] "[PATCH 00/22] infiniband: improve userspace input check"
+> >=20
+> > http://marc.info/?i=3Dcover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> > http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> >=20
+> > [2] "Re: [PATCHv4 for-3.13 00/10] create_flow/destroy_flow fixes fo=
+r v3.13"
+> >=20
+> > http://marc.info/?i=3D1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWdBPR1lH4CV8@public.gmane.org=
+ain
+> > http://mid.gmane.org/1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWbh0DlRQRlKF@public.gmane.org=
+in
+> >=20
+> > [3] "[PATCH 0/4] IB/uverbs: check request parameters"
+> >=20
+> > http://marc.info/?i=3Dcover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> > http://mid.gmane.org/cover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> >=20
+> > Yann Droneaud (6):
+> >   IB/uverbs: check userspace input buffer size
+> >   IB/uverbs: check userspace output buffer size
+> >   IB/uverbs: check userspace output buffer size in ib_uverbs_poll_c=
+q()
+> >   IB/uverbs: subtract command header from input size
+> >   IB/uverbs: move cast from u64 to void __user pointer to its own
+> >     variable
+> >   IB/uverbs: check access to userspace response buffer
+> >=20
+> >  drivers/infiniband/core/uverbs_cmd.c         | 449 +++++++++++++++=
+++++++------
+> >  drivers/infiniband/core/uverbs_main.c        |  29 +-
+> >  drivers/infiniband/hw/mlx5/cq.c              |   6 +-
+> >  drivers/infiniband/hw/mlx5/main.c            |   2 +-
+> >  drivers/infiniband/hw/mlx5/srq.c             |   6 +-
+> >  drivers/infiniband/hw/mthca/mthca_provider.c |   2 +-
+> >  6 files changed, 382 insertions(+), 112 deletions(-)
+> >=20
+>=20
+>=20
 
-I'm not sure I'm following what you are saying here.  USNIC is unique in
-that it presents a NIC to the application that it has exclusive control
-over.
-
->   (I'd
-> actually be surprised if no devices have this capability, if for
-> debugging capabilities, even if for nothing else.)  What are we going
-> to do if there's a device that supports both iWarp and RoCEv2?  That's
-> easily doable today through software.
-
-It's doable, but nobody is actually doing it.
-
-> Basically, I question how protocol is defined and what it means to
-> expose it as a device attribute.  Should it instead be negotiated (i.e.
-> more like sockets)?  If an app needs a specific "RDMA protocol" (IB or
-> iWarp) or "application protocol" (IB or iWarp or UDP or MADs?), they
-> can request it.  Otherwise, the app gets assigned some protocol.  And
-> the protocol should really be associated with a QP, rather than a
-> port.
-
-If you're going down to that level (which we will when the RoCEv2
-patches are integrated), then it doesn't quite map to QPs.  Since a UD
-QP may need to talk to both RoCEv1 and RoCEv2 hosts, it's at the AH
-level for RoCE.
-
-To a certain extent you are right.  RoCE, RoCEv2, iWARP, and USNIC could
-all reside on a single port by virtue of them all sharing an Ethernet
-link layer.  IB link layer (and associated attributes) and OPA link
-layer are the outliers in this method of thinking in that their ports
-will only support their own transport.  So if we were to actually be
-forward thinking about this, then the link layer is the important bit
-you need to capture on a per port basis, not the transport technology.
-We would have to modify lots of the stack to support per QP or per AH
-transport settings though.
+Regards.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Yann Droneaud
+OPTEYA
 
-
-
---=-XOahaGFLLItQWJodWw3B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVR8spAAoJELgmozMOVy/d9QMQALmytg26d+zJD0KmSc4iNA7Z
-THCcroJ3X9olroEac7OaTkZbw1zD0Cqfaqd2Z1y0JkDGnbfeV6t3NO6fOuwF2+3e
-Z3z4+xjpOwOjnypFD4bKcPFee0QtWJWw6trNLaK1dYTH3sBO7not05OVYJ2iuiLk
-xAs2Da4A3pug0FxxL9w2fjERS3XPnNmEuztSWPRUOL3FkuImeK/j/NlAkexzM6us
-ZZiOJ+Ubb3aG1VMPSpk/NypIEaBhRhGHOlZjtyHEXmRODYSXcIeE4QtJFLP77Bqv
-UtM9YUkse8xqiLdbD41GCGhft1p1QAY98sxqB8uUH+l301IAeSDuF76wfnIZDesh
-yT2pqGt7P05LmdEYZF/RxWsHShsJ/m26tEmqpaJzYJIMWkIqCD4zBVWKtT057e5k
-MBLdO1tLmiAMjKChO4pzPVv2SrRFQopANg2LMP+UqJBiDhDBVzk4n5XTGL63G9gp
-IZBjxYhz0AWM7gQVAnaYOtRFOeAy213K/eOZdtcDhP4an+azjNrQXqLr7VJu+EFh
-kRAY80JlXKXeraU0UIswWFdlt8IRHPPEFhLVEsTenJ7fHEWK18y70tbKJk+f+Kav
-2n4QWWXo2cBg3PPiZbG+bUd0NBw9GEPP0n4rVIxWytq1WUyfsplPGq8dIduGwyzh
-XG/oSxDP40YGsaIcWsnV
-=2aD6
------END PGP SIGNATURE-----
-
---=-XOahaGFLLItQWJodWw3B--
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
