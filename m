@@ -1,33 +1,46 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC PATCH 3/5] IB/core: Convert cap_ib_mad to core_cap_flags
- bit mask
-Date: Mon, 4 May 2015 16:49:43 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FCA1B5@ORSMSX109.amr.corp.intel.com>
+Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Mon, 4 May 2015 16:53:22 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FCA1D9@ORSMSX109.amr.corp.intel.com>
 References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
- <1430720099-32512-4-git-send-email-ira.weiny@intel.com>
+	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FCA192@ORSMSX109.amr.corp.intel.com>
+ <1430758097.2407.59.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430720099-32512-4-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1430758097.2407.59.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [RFC PATCH 3/5] IB/core: Convert cap_ib_mad to core_cap_flags bit
-> mask
-> 
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Use the new Core Capability bits instead of inferring this support from
-> the
-> protocol.
-
-It would help if the patch description defined what this bit meant.  E.g. why aren't more specific definitions (SMI, CM, GSI, PM, etc.) less desirable than just 'MAD'?
-
-
+PiA+ID4gIHN0cnVjdCBpYl9wb3J0X2F0dHIgew0KPiA+ID4gIAllbnVtIGliX3BvcnRfc3RhdGUJ
+c3RhdGU7DQo+ID4gPiAgCWVudW0gaWJfbXR1CQltYXhfbXR1Ow0KPiA+ID4gIAllbnVtIGliX210
+dQkJYWN0aXZlX210dTsNCj4gPiA+ICAJaW50CQkJZ2lkX3RibF9sZW47DQo+ID4gPiArCXU2NCAg
+ICAgICAgICAgICAgICAgICAgIGNvcmVfY2FwX2ZsYWdzOw0KPiA+ID4gIAl1MzIJCQlwb3J0X2Nh
+cF9mbGFnczsNCj4gPiA+ICAJdTMyCQkJbWF4X21zZ19zejsNCj4gPiA+ICAJdTMyCQkJYmFkX3Br
+ZXlfY250cjsNCj4gPiA+IEBAIC0xNjg0LDYgKzE3MDUsNyBAQCBzdHJ1Y3QgaWJfZGV2aWNlIHsN
+Cj4gPiA+ICAJdTMyCQkJICAgICBsb2NhbF9kbWFfbGtleTsNCj4gPiA+ICAJdTggICAgICAgICAg
+ICAgICAgICAgICAgICAgICBub2RlX3R5cGU7DQo+ID4gPiAgCXU4ICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgcGh5c19wb3J0X2NudDsNCj4gPiA+ICsJdTY0ICAgICAgICAgICAgICAgICAgICAg
+ICAgICpjb3JlX2NhcF9mbGFnczsgLyogUGVyIHBvcnQgY29yZQ0KPiA+ID4gY2FwYWJpbGl0eSBm
+bGFncyAqLw0KPiA+DQo+ID4gV2h5IGFyZSB0aGUgY29yZV9jYXBfZmxhZ3MgZHVwbGljYXRlZCBp
+biB0aGUgc3RydWN0IGFuZCBpbiBwb3J0DQo+IGF0dHJpYnV0ZXM/DQo+IA0KPiBCZWNhdXNlIHRo
+ZSBwZXIgcG9ydCBpYl9wb3J0X2F0dHIgc3RydWN0IGlzIG5vdCB2aXNpYmxlIHRvIHRoZSBjb3Jl
+DQo+IGNvZGUsIGl0IG11c3QgY2FsbCBpYl9xdWVyeV9wb3J0IGVhY2ggdGltZSBpdCB3YW50cyB0
+byBzZWUgaXQuICBJbiBvcmRlcg0KPiB0byBtYWtlIHRoZSBoZWxwZXJzIGF2b2lkIGEgY2FsbCwg
+eW91IGhhdmUgdG8gc3Rhc2ggdGhlIGNhcF9mbGFncyBpbnRvDQo+IHRoZSBpYl9kZXZpY2Ugc3Ry
+dWN0LiAgSW4gdGhlIHBhc3QsIHRoZSBvbmx5IHRoaW5nIHRoZXJlIHdhcyB0aGUNCj4gbm9kZV90
+eXBlLCBhbmQgaXQgd2FzIHBlciBkZXZpY2UgYW5kIG5vdCBwZXIgbm9kZS4gIEluIG9yZGVyIHRv
+IG1ha2UgYWxsDQo+IG9mIHRoaXMgd29yayBhbmQgbm90IHJlcXVpcmUgY2FsbHMgaW50byB0aGUg
+ZHJpdmVyIGFsbCB0aGUgdGltZSwgdGhhdA0KPiBoYXMgdG8gY2hhbmdlIHRvIGEgcGVyLXBvcnQg
+YXJyYXkuICBFdmVudHVhbGx5IHdlIGNvdWxkIGdldCByaWQgb2YgdGhlDQo+IG5vZGVfdHlwZSBl
+bGVtZW50IG9uY2UgZXZlcnl0aGluZyBpcyBpbiBwbGFjZS4NCg0KSSB1bmRlcnN0YW5kIHdoeSB0
+aGV5IGFyZSBpbiBzdHJ1Y3QgaWJfZGV2aWNlLCBidXQgd2h5IGFyZSB0aGV5IGR1cGxpY2F0ZWQg
+aW4gc3RydWN0IGliX3BvcnRfYXR0cj8NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
