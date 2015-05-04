@@ -1,109 +1,55 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv1 0/6] IB/uverbs: check request parameters
-Date: Mon, 04 May 2015 21:56:22 +0200
-Message-ID: <1430769382.19516.9.camel@opteya.com>
-References: <cover.1430743694.git.ydroneaud@opteya.com>
-	 <1430761519.2407.87.camel@redhat.com>
+From: "Dave Goodell (dgoodell)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Mon, 4 May 2015 20:21:57 +0000
+Message-ID: <AA01A81A-B2F9-4C96-AD23-2E755E05D9F8@cisco.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+ <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+ <1430750492.2407.9.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
+ <1430761111.2407.85.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430761519.2407.87.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <2A15610F33400040B62EDACF674509BC-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On May 4, 2015, at 1:26 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Le lundi 04 mai 2015 =C3=A0 13:45 -0400, Doug Ledford a =C3=A9crit :
-> On Mon, 2015-05-04 at 15:00 +0200, Yann Droneaud wrote:
-> >=20
-> > Please find a patchset against uverbs to improve the checks done
-> > on uverbs request parameters. This patchset in an extract of a
-> > previous patchset sent some times ago[1].
->=20
-> I reviewed those patches last time they came around.  In general, I'm=
- on
-> board with the idea of cleaning up option checking, but in your origi=
-nal
-> patch submission you point out that the patches have a non-0 chance o=
-f
-> breaking user applications that pass in parameters that wouldn't pass
-> these checks but work anyway.  Have you done any looking into that
-> possibility?
->=20
+>> I thought USNIC_UDP had an embedded USNIC protocol header inside the UDP
+>> header.  That would make it a UDP_ENCAP protocol.
+> 
+> Someone from Cisco can correct me, but USNIC supports 2 protocols.  Just plain UDP, and a proprietary protocol that runs over Ethernet, but uses the same EtherType as RoCE.  I thought these could both be active on the same port at the same time.
 
-I believe applications using libibverbs are immune of any kind of
-regression.
+Sean's statements above are correct.  "USNIC_UDP" in today's code really is plain-old-UDP (over IP over Ethernet).
 
-But I cannot tell for sure for applications that access directly uverbs=
-:
-those could be doing broken things.
+>>>  And the core layer
+>>> should not assume that a device is limited to supporting only one
+>>> protocol, especially at the network and transport levels.
+>> 
+>> Given that this is a per port thing, there is no assumption about a
+>> device only supporting a single protocol.
+> 
+> Device, no, but we are assuming this per port.  I don't think this is true for USNIC.  
 
-Anyway, we should prevent such applications to broke into the kernel:
-integer over/under flow or buffer overflow are not acceptable.
+Correct, usNIC devices and ports can speak either format concurrently, IIRC even for different QPs in the same context/PD/etc.
 
-> > I've provided some explanation of the issues partialy addressed
-> > by this patchset in a previous message[2].
-> >=20
-> > As we're now addressing overflows, I think it's time to apply
-> > this patchset.
-> >=20
-> > Changes since v0 [3]
-> > - updated against v4.1-rc2
-> > - incorporated patches to add check on response buffer using
-> >   access_ok()
-> >=20
-> > [1] "[PATCH 00/22] infiniband: improve userspace input check"
-> >=20
-> > http://marc.info/?i=3Dcover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> > http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> >=20
-> > [2] "Re: [PATCHv4 for-3.13 00/10] create_flow/destroy_flow fixes fo=
-r v3.13"
-> >=20
-> > http://marc.info/?i=3D1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWdBPR1lH4CV8@public.gmane.org=
-ain
-> > http://mid.gmane.org/1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWbh0DlRQRlKF@public.gmane.org=
-in
-> >=20
-> > [3] "[PATCH 0/4] IB/uverbs: check request parameters"
-> >=20
-> > http://marc.info/?i=3Dcover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> > http://mid.gmane.org/cover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> >=20
-> > Yann Droneaud (6):
-> >   IB/uverbs: check userspace input buffer size
-> >   IB/uverbs: check userspace output buffer size
-> >   IB/uverbs: check userspace output buffer size in ib_uverbs_poll_c=
-q()
-> >   IB/uverbs: subtract command header from input size
-> >   IB/uverbs: move cast from u64 to void __user pointer to its own
-> >     variable
-> >   IB/uverbs: check access to userspace response buffer
-> >=20
-> >  drivers/infiniband/core/uverbs_cmd.c         | 449 +++++++++++++++=
-++++++------
-> >  drivers/infiniband/core/uverbs_main.c        |  29 +-
-> >  drivers/infiniband/hw/mlx5/cq.c              |   6 +-
-> >  drivers/infiniband/hw/mlx5/main.c            |   2 +-
-> >  drivers/infiniband/hw/mlx5/srq.c             |   6 +-
-> >  drivers/infiniband/hw/mthca/mthca_provider.c |   2 +-
-> >  6 files changed, 382 insertions(+), 112 deletions(-)
-> >=20
->=20
->=20
+Incidentally, usNIC devices only ever have a single port right now, but there's no reason that has to remain true.
 
-Regards.
+> For that matter, it's entirely possible for a RoCEv2 device to expose UDP directly to user space, same as USNIC.  (I'd actually be surprised if no devices have this capability, if for debugging capabilities, even if for nothing else.)  What are we going to do if there's a device that supports both iWarp and RoCEv2?  That's easily doable today through software.
 
---=20
-Yann Droneaud
-OPTEYA
 
++1
+
+-Dave
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
