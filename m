@@ -1,50 +1,65 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
-Date: Mon, 4 May 2015 15:07:41 -0600
-Message-ID: <20150504210741.GA20839@obsidianresearch.com>
-References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
- <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
- <1430750492.2407.9.camel@redhat.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
- <1430761111.2407.85.camel@redhat.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
- <1430768425.2407.143.camel@redhat.com>
+Date: Mon, 4 May 2015 18:32:35 -0400
+Message-ID: <20150504223234.GB10115@phlsvsds.ph.intel.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com> <1430720099-32512-2-git-send-email-ira.weiny@intel.com> <20150504183657.GA20586@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1430768425.2407.143.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150504183657.GA20586-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 04, 2015 at 03:40:25PM -0400, Doug Ledford wrote:
+On Mon, May 04, 2015 at 12:36:57PM -0600, Jason Gunthorpe wrote:
+> On Mon, May 04, 2015 at 02:14:55AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > Add Core capability flags to each port attribute and read those into ib_device
+> > upon registration for each port.
+> 
+> +1 on adding it to read_port_table_lengths
+> 
+> But this whole thing is starting to get goofy,
+>
 
-> So if we were to actually be forward thinking about this, then the
-> link layer is the important bit you need to capture on a per port
-> basis, not the transport technology.  We would have to modify lots
-> of the stack to support per QP or per AH transport settings though.
+<quote>
+> 3rd add gets the work
+> to fix it up I guess.
+</quote>
 
-We are going to have to do this, at least in the kernel side, the idea
-that the port can imply the one and only address family of the QP is
-certainly antiquated now. I think the roceev2 patches will require
-this work.
+I don't understand this comment?
 
-As far as this patch series goes, I actually don't think the bits
-matter one bit - the intent is to optimize the cap tests, so a one
-cap test-one-bit method is fine. Don't add extra we don't need right
-now.
+> 
+> Pull pkey_tbl_len, gid_tbl_len and your new thing into a single struct
+> and allocate an array of them.
+> 
+> Actually, why not just allocate an array of ib_port_attrs and fill
+> that? Then you can use it for the mad size too.
 
-As an optimization, be aware of some of the restrictions, it is
-actually pretty expensive on some arch's to load large 32 or 64 bit
-numbers, smaller numbers are better, single bit test is better.
+That was debated before and I was hoping to leave that for another day.
 
-If this is combined with my thought to use a #define for all the
-common driver cases then we can trivially rework the bit-field to
-future needs. No reason to over architect something here.
+It does make some sense to roll it in here.
 
-Jason
+> 
+> Not in your patch, but why does read_port_table_lengths use a kmalloc
+> for what should be a stack allocation? Yuk.
+
+I don't know.  I almost submitted a separate patch for that.  I will clean it
+up when I combine the functions.
+
+I also don't like the way the arrays in read_port_table_lengths are handled.
+This requires a start_port call when comparing bits.  It is easier to just make
+the array 1 based with index 0 valid only for switches.
+
+This is part of the reason there is a separate function and array.
+
+Ira
+
+> 
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
