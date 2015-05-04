@@ -1,61 +1,81 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 14/14] xprtrmda: Reduce per-transport MR allocation
-Date: Mon, 04 May 2015 13:58:56 -0400
-Message-ID: <20150504175856.3483.57373.stgit@manet.1015granger.net>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Mon, 4 May 2015 18:26:46 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+	 <1430750492.2407.9.camel@redhat.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
+ <1430761111.2407.85.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150504174626.3483.97639.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <1430761111.2407.85.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reduce resource consumption per-transport to make way for increasing
-the credit limit and maximum r/wsize. Pre-allocate fewer MRs.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/fmr_ops.c  |    6 ++++--
- net/sunrpc/xprtrdma/frwr_ops.c |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 4a53ad5..f1e8daf 100644
---- a/net/sunrpc/xprtrdma/fmr_ops.c
-+++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -69,8 +69,10 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
- 	INIT_LIST_HEAD(&buf->rb_mws);
- 	INIT_LIST_HEAD(&buf->rb_all);
- 
--	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
--	dprintk("RPC:       %s: initializing %d FMRs\n", __func__, i);
-+	i = max_t(int, RPCRDMA_MAX_DATA_SEGS / RPCRDMA_MAX_FMR_SGES, 1);
-+	i += 2;				/* head + tail */
-+	i *= buf->rb_max_requests;	/* one set for each RPC slot */
-+	dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
- 
- 	rc = -ENOMEM;
- 	while (i--) {
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index edc10ba..fc2d0c6 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -270,8 +270,10 @@ frwr_op_init(struct rpcrdma_xprt *r_xprt)
- 	INIT_LIST_HEAD(&buf->rb_mws);
- 	INIT_LIST_HEAD(&buf->rb_all);
- 
--	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
--	dprintk("RPC:       %s: initializing %d FRMRs\n", __func__, i);
-+	i = max_t(int, RPCRDMA_MAX_DATA_SEGS / depth, 1);
-+	i += 2;				/* head + tail */
-+	i *= buf->rb_max_requests;	/* one set for each RPC slot */
-+	dprintk("RPC:       %s: initalizing %d FRMRs\n", __func__, i);
- 
- 	while (i--) {
- 		struct rpcrdma_mw *r;
-
+PiBJIHRob3VnaHQgVVNOSUNfVURQIGhhZCBhbiBlbWJlZGRlZCBVU05JQyBwcm90b2NvbCBoZWFk
+ZXIgaW5zaWRlIHRoZSBVRFANCj4gaGVhZGVyLiAgVGhhdCB3b3VsZCBtYWtlIGl0IGEgVURQX0VO
+Q0FQIHByb3RvY29sLg0KDQpTb21lb25lIGZyb20gQ2lzY28gY2FuIGNvcnJlY3QgbWUsIGJ1dCBV
+U05JQyBzdXBwb3J0cyAyIHByb3RvY29scy4gIEp1c3QgcGxhaW4gVURQLCBhbmQgYSBwcm9wcmll
+dGFyeSBwcm90b2NvbCB0aGF0IHJ1bnMgb3ZlciBFdGhlcm5ldCwgYnV0IHVzZXMgdGhlIHNhbWUg
+RXRoZXJUeXBlIGFzIFJvQ0UuICBJIHRob3VnaHQgdGhlc2UgY291bGQgYm90aCBiZSBhY3RpdmUg
+b24gdGhlIHNhbWUgcG9ydCBhdCB0aGUgc2FtZSB0aW1lLg0KDQo+ID4gUm9DRXYyIGlzIElCIHRy
+YW5zcG9ydCBvdmVyIFVEUC4NCj4gDQo+IFJpZ2h0LCBST0NFIChvciBJQiwgd2hpY2hldmVyIHlv
+dSBwcmVmZXIpIGVuY2Fwc3VsYXRlZCBpbiBVRFAuDQo+IA0KPiA+IEknbSBub3Qgc3VyZSB3aGF0
+IHRoZSBwcm90b2NvbCBmaWVsZCBpcyBpbnRlbmRlZCB0byBpbXBseS4NCj4gDQo+IFRoZXJlIGlz
+IHN0aWxsIGluZm9ybWF0aW9uIGluIHRob3NlIGJpdHMgdGhhdCB3ZSBjYW4ndCBnZXQgZWxzZXdo
+ZXJlLg0KPiBGb3IgaW5zdGFuY2UsIGV2ZW4gdGhvdWdoIHRoaXMgcGF0Y2ggcmVwbGFjZXMgdGhl
+IENBUF8qIHN0dWZmIHdpdGggYml0cywNCj4gaWYgeW91IHRvb2sgYXdheSB0aGUgQ0FQX1BST1Rf
+KiBlbnRyaWVzLCB0aGVuIHRoZXJlIHdvdWxkIGJlIG5vIGVudHJ5IHRvDQo+IGlkZW50aWZ5IFVT
+TklDIGF0IGFsbC4NCj4gDQo+IFJpZ2h0IG5vdywgeW91IGNvdWxkIGluZmVyIGlXQVJQIGZyb20g
+Q0FQX0lXX0NNLg0KPiBZb3UgY291bGQgaW5mZXIgSW5maW5pQmFuZCBmcm9tIGFueSBvZiB0aGUg
+Q0FQX0lCXyogKGJ1dCBsYXRlciB3aWxsIG5lZWQNCj4gYSB3YXkgdG8gZGlmZmVyZW50aWF0ZSBi
+ZXR3ZWVuIElCIGFuZCBPUEEpDQo+IFlvdSBjb3VsZCBpbmZlciBST0NFIGZyb20gQ0FQX0VUSF9B
+SCAoYnV0IGxhdGVyIHdpbGwgbmVlZCBhIHdheSB0bw0KPiBkaWZmZXJlbnRpYXRlIGJldHdlZW4g
+Uk9DRSBhbmQgUk9DRXYyKQ0KPiBUaGUgb25seSB3YXkgdG8gZGlmZmVyZW50aWF0ZSBVU05JQyBh
+dCB0aGUgbW9tZW50LCBpcyB0aGF0IHRoZSBDQVBTDQo+IHdvdWxkIGJlIGFsbCAwLiAgVGhhdCdz
+IG5vdCB0aGUgc29ydCBvZiBwb3NpdGl2ZSBpZGVudGlmaWNhdGlvbiBJIHdvdWxkDQo+IHByZWZl
+ci4NCj4gDQo+IFNvIHlvdSAqY291bGQqIHJlZHVjZSB0aGlzIHRvIGp1c3Qgb25lIGJpdCBmb3Ig
+VVNOSUMuDQo+IA0KPiBBbmQgaWYgeW91IHRoZW4gYWRkIGEgVURQX0VOQ0FQIGJpdCwgdGhlbiB0
+aGF0IHNpbmdsZSBiaXQgY2FuIGRvIGRvdWJsZQ0KPiBkdXR5IGluIHRlbGxpbmcgYXBhcnQgVVNO
+SUMgYW5kIFVTTklDX1VEUCBhbmQgUk9DRSBhbmQgUk9DRXYyLg0KDQpNeSBxdWVzdGlvbiBpcyB3
+aG8gbmVlZHMgdGhlc2UgYml0cyBhbmQgd2h5PyAgVGhlIHByaW1hcnkgcmVhc29uIGl0IHdhcyBl
+eHBvc2VkIHdhcyB0byBkbyB0aGUgam9iIHRoYXQgdGhlIG5ldyBjYXAgZmxhZ3MgYXJlIGFjY29t
+cGxpc2hpbmcuDQoNCkkgc3RpbGwgYmVsaWV2ZSB0aGF0IFJvQ0V2MiBpcyBjb25jZXB0dWFsbHkg
+dGhlIHNhbWUgYXMgaVdhcnAuICBBbiBSRE1BIHByb3RvY29sIGhhcyBiZWVuIGxheWVyZWQgb3Zl
+ciBzb21lIG90aGVyIHRyYW5zcG9ydC4gIEluIHRoZSBjYXNlIG9mIGlXYXJwLCBpdCdzIFRDUC4g
+IEluIHRoZSBjYXNlIG9mIFJvQ0V2MiwgaXQncyBVRFAuICBEbyB3ZSBkZWZpbmUgYSBUQ1BfRU5D
+QVAgYml0IHRoYXQgY29ycmVzcG9uZHMgd2l0aCBVRFBfRU5DQVA/ICBBbmQgd2h5IHNob3VsZCBh
+biBhcHAgY2FyZT8gIFdlIGRvbid0IHNwZWNpZnkgd2hldGhlciB0aGUgcG9ydCBpcyBydW5uaW5n
+IElQdjQgb3IgSVB2Ni4gIFdoeSBpcyB0aGUgdHJhbnNwb3J0IGxldmVsIGNhbGxlZCBvdXQsIGJ1
+dCBub3QgdGhlIG5ldHdvcmsgbGF5ZXI/ICBBcmNoaXRlY3R1cmFsbHksIG5laXRoZXIgaVdhcnAg
+b3IgUm9DRXYyIChkZXNwaXRlIGl0cyBuYW1lKSBjYXJlcyB3aGF0IHRoZSBsaW5rIGxheWVyIGlz
+Lg0KDQo+ID4gICBBbmQgdGhlIGNvcmUgbGF5ZXINCj4gPiBzaG91bGQgbm90IGFzc3VtZSB0aGF0
+IGEgZGV2aWNlIGlzIGxpbWl0ZWQgdG8gc3VwcG9ydGluZyBvbmx5IG9uZQ0KPiA+IHByb3RvY29s
+LCBlc3BlY2lhbGx5IGF0IHRoZSBuZXR3b3JrIGFuZCB0cmFuc3BvcnQgbGV2ZWxzLg0KPiANCj4g
+R2l2ZW4gdGhhdCB0aGlzIGlzIGEgcGVyIHBvcnQgdGhpbmcsIHRoZXJlIGlzIG5vIGFzc3VtcHRp
+b24gYWJvdXQgYQ0KPiBkZXZpY2Ugb25seSBzdXBwb3J0aW5nIGEgc2luZ2xlIHByb3RvY29sLg0K
+DQpEZXZpY2UsIG5vLCBidXQgd2UgYXJlIGFzc3VtaW5nIHRoaXMgcGVyIHBvcnQuICBJIGRvbid0
+IHRoaW5rIHRoaXMgaXMgdHJ1ZSBmb3IgVVNOSUMuICBGb3IgdGhhdCBtYXR0ZXIsIGl0J3MgZW50
+aXJlbHkgcG9zc2libGUgZm9yIGEgUm9DRXYyIGRldmljZSB0byBleHBvc2UgVURQIGRpcmVjdGx5
+IHRvIHVzZXIgc3BhY2UsIHNhbWUgYXMgVVNOSUMuICAoSSdkIGFjdHVhbGx5IGJlIHN1cnByaXNl
+ZCBpZiBubyBkZXZpY2VzIGhhdmUgdGhpcyBjYXBhYmlsaXR5LCBpZiBmb3IgZGVidWdnaW5nIGNh
+cGFiaWxpdGllcywgZXZlbiBpZiBmb3Igbm90aGluZyBlbHNlLikgIFdoYXQgYXJlIHdlIGdvaW5n
+IHRvIGRvIGlmIHRoZXJlJ3MgYSBkZXZpY2UgdGhhdCBzdXBwb3J0cyBib3RoIGlXYXJwIGFuZCBS
+b0NFdjI/ICBUaGF0J3MgZWFzaWx5IGRvYWJsZSB0b2RheSB0aHJvdWdoIHNvZnR3YXJlLg0KDQpC
+YXNpY2FsbHksIEkgcXVlc3Rpb24gaG93IHByb3RvY29sIGlzIGRlZmluZWQgYW5kIHdoYXQgaXQg
+bWVhbnMgdG8gZXhwb3NlIGl0IGFzIGEgZGV2aWNlIGF0dHJpYnV0ZS4gIFNob3VsZCBpdCBpbnN0
+ZWFkIGJlIG5lZ290aWF0ZWQgKGkuZS4gbW9yZSBsaWtlIHNvY2tldHMpPyAgSWYgYW4gYXBwIG5l
+ZWRzIGEgc3BlY2lmaWMgIlJETUEgcHJvdG9jb2wiIChJQiBvciBpV2FycCkgb3IgImFwcGxpY2F0
+aW9uIHByb3RvY29sIiAoSUIgb3IgaVdhcnAgb3IgVURQIG9yIE1BRHM/KSwgdGhleSBjYW4gcmVx
+dWVzdCBpdC4gIE90aGVyd2lzZSwgdGhlIGFwcCBnZXRzIGFzc2lnbmVkIHNvbWUgcHJvdG9jb2wu
+ICBBbmQgdGhlIHByb3RvY29sIHNob3VsZCByZWFsbHkgYmUgYXNzb2NpYXRlZCB3aXRoIGEgUVAs
+IHJhdGhlciB0aGFuIGEgcG9ydC4NCg0KLSBTZWFuIA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
