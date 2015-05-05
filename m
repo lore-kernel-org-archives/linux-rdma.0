@@ -1,121 +1,46 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv1 0/6] IB/uverbs: check request parameters
-Date: Tue, 05 May 2015 21:55:03 +0200
-Message-ID: <1430855703.25060.0.camel@opteya.com>
-References: <cover.1430743694.git.ydroneaud@opteya.com>
-	 <1430761519.2407.87.camel@redhat.com> <1430769382.19516.9.camel@opteya.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Tue, 5 May 2015 19:59:02 +0000
+Message-ID: <HE1PR05MB14187E4DD8F2E96AB6D391A1B1D10@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+ <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+ <1430750492.2407.9.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
+ <1430761111.2407.85.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
+ <1430768425.2407.143.camel@redhat.com>
+ <20150504210741.GA20839@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430769382.19516.9.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150504210741.GA20839-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
 
-Le lundi 04 mai 2015 =C3=A0 21:56 +0200, Yann Droneaud a =C3=A9crit :
-> Le lundi 04 mai 2015 =C3=A0 13:45 -0400, Doug Ledford a =C3=A9crit :
-> > On Mon, 2015-05-04 at 15:00 +0200, Yann Droneaud wrote:
-> > >=20
-> > > Please find a patchset against uverbs to improve the checks done
-> > > on uverbs request parameters. This patchset in an extract of a
-> > > previous patchset sent some times ago[1].
-> >=20
-> > I reviewed those patches last time they came around.  In general, I=
-'m on
-> > board with the idea of cleaning up option checking, but in your ori=
-ginal
-> > patch submission you point out that the patches have a non-0 chance=
- of
-> > breaking user applications that pass in parameters that wouldn't pa=
-ss
-> > these checks but work anyway.  Have you done any looking into that
-> > possibility?
-> >=20
->=20
-> I believe applications using libibverbs are immune of any kind of
-> regression.
->=20
-> But I cannot tell for sure for applications that access directly uver=
-bs:
-> those could be doing broken things.
->=20
-> Anyway, we should prevent such applications to broke into the kernel:
-> integer over/under flow or buffer overflow are not acceptable.
->=20
+> > So if we were to actually be forward thinking about this, then the
+> > link layer is the important bit you need to capture on a per port
+> > basis, not the transport technology.  We would have to modify lots of
+> > the stack to support per QP or per AH transport settings though.
+> 
+> We are going to have to do this, at least in the kernel side, the idea that the
+> port can imply the one and only address family of the QP is certainly
+> antiquated now. I think the roceev2 patches will require this work.
+> 
 
-I would also add, that, being stricter doesn't introduce a new,=20
-diverging behavior that newer applications could rely on, so if one=20
-existing application is found to be broken by the updated checks, those=
-=20
-patchs could simply be reverted without falling into a compatibility=20
-nightmare where we would have to support two different behaviors.
-
-> > > I've provided some explanation of the issues partialy addressed
-> > > by this patchset in a previous message[2].
-> > >=20
-> > > As we're now addressing overflows, I think it's time to apply
-> > > this patchset.
-> > >=20
-> > > Changes since v0 [3]
-> > > - updated against v4.1-rc2
-> > > - incorporated patches to add check on response buffer using
-> > >   access_ok()
-> > >=20
-> > > [1] "[PATCH 00/22] infiniband: improve userspace input check"
-> > >=20
-> > > http://marc.info/?i=3Dcover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> > > http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> > >=20
-> > > [2] "Re: [PATCHv4 for-3.13 00/10] create_flow/destroy_flow fixes =
-for v3.13"
-> > >=20
-> > > http://marc.info/?i=3D1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWQ@public.gmane.org=
-omain
-> > > http://mid.gmane.org/1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWWGXanvQGlWp@public.gmane.org=
-main
-> > >=20
-> > > [3] "[PATCH 0/4] IB/uverbs: check request parameters"
-> > >=20
-> > > http://marc.info/?i=3Dcover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> > > http://mid.gmane.org/cover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> > >=20
-> > > Yann Droneaud (6):
-> > >   IB/uverbs: check userspace input buffer size
-> > >   IB/uverbs: check userspace output buffer size
-> > >   IB/uverbs: check userspace output buffer size in ib_uverbs_poll=
-_cq()
-> > >   IB/uverbs: subtract command header from input size
-> > >   IB/uverbs: move cast from u64 to void __user pointer to its own
-> > >     variable
-> > >   IB/uverbs: check access to userspace response buffer
-> > >=20
-> > >  drivers/infiniband/core/uverbs_cmd.c         | 449 +++++++++++++=
-++++++++------
-> > >  drivers/infiniband/core/uverbs_main.c        |  29 +-
-> > >  drivers/infiniband/hw/mlx5/cq.c              |   6 +-
-> > >  drivers/infiniband/hw/mlx5/main.c            |   2 +-
-> > >  drivers/infiniband/hw/mlx5/srq.c             |   6 +-
-> > >  drivers/infiniband/hw/mthca/mthca_provider.c |   2 +-
-> > >  6 files changed, 382 insertions(+), 112 deletions(-)
-> > >=20
-> >=20
-> >=20
->=20
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+I second that the link layer should not be used for this purpose.
+RDMA devices can and will advertise multiple rdma 'protocols', such as
+ROCE devices that support both ROCE_V1 and ROCE_V2.
+ 
+--Liran
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
