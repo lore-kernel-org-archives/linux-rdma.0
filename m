@@ -1,80 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: linux-rdma repository url
-Date: Tue, 05 May 2015 13:47:40 -0400
-Message-ID: <1430848060.2407.246.camel@redhat.com>
-References: <EE7902D3F51F404C82415C4803930ACD5DC493FD@CMEXMB1.ad.emulex.com>
+Subject: Re: [ANNOUNCE] libfabric release 1.0
+Date: Tue, 05 May 2015 14:11:53 -0400
+Message-ID: <1430849513.2407.254.camel@redhat.com>
+References: <1828884A29C6694DAF28B7E6B8A82373A8FCA6CF@ORSMSX109.amr.corp.intel.com>
+	 <20150505144211.GA17097@infradead.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-VChups+ukJeEw0w9OzMY"
+	protocol="application/pgp-signature"; boundary="=-kxq04FKCrBpoURqbfns2"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EE7902D3F51F404C82415C4803930ACD5DC493FD-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <20150505144211.GA17097-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofiwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofiwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-VChups+ukJeEw0w9OzMY
+--=-kxq04FKCrBpoURqbfns2
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2015-05-05 at 07:01 +0000, Devesh Sharma wrote:
-> Hi Doug,
->=20
-> =20
->=20
-> Pardon me if it=E2=80=99s a repeated question for you, what is the git ur=
-l to
-> clone and cut patches for posting on linux-rdma community. Roland used
-> to maintain it on kernel.org.
+On Tue, 2015-05-05 at 07:42 -0700, Christoph Hellwig wrote:
+> Do you have a non-buzzword version of the announcement that says it
+> actually does as well?  Mught be better to send that one to development
+> lists and leave the BS for social media.
 
-I added linux-rdma to this email because this is a question I need to
-answer generally.
+It is a user space library and API for RDMA programming that isn't tied
+to any specific form of RDMA hardware.  It abstracts away the things
+that are different between, say, IB Verbs and USNIC and iWARP, and
+presents a single API that works on them all.
 
-I've been chatting with Linus and while he'll accept pull requests from
-github repos, because of the open nature of github and therefore the
-lower security, he does prefer kernel.org.  I've filed a ticket with
-kernel.org to get an account, so when they get around to creating it and
-giving me repo space there, I'll update the MAINTAINERS file to point to
-that url.  For now, I'll keep using github though.
-
-This brings up an issue I wanted to let people know about.  Good git
-hygiene is for a maintainer to never rebase a tree.  This is all well
-and good, but as people have seen by watching Michael's cleanup patch
-set, sometimes a rebase is inevitable.  So, in order to fullfill the
-role of both a maintainer with good git hygiene and the need of
-someplace for people to see forward looking state, I will be maintaining
-*both* the kernel.org and my personal github kernel repos with the
-understanding that nothing will appear in kernel.org until I am
-essentially ready to send the pull request for it (although that's an
-oversimplification, more accurate would be once it lands in kernel.org,
-no further changes to the existing patches will be possible, updates
-will need to be done as incremental patches on top of whatever is there,
-aka fast forward updates only to my branches on kernel.org), and things
-will appear in my github repo sooner, but may later change or get
-rebased (although I will try to keep that to a minimum, but sometimes it
-can't be avoided).
-
-With that in mind, I've put up a new push of the tree to the current
-github repo (git://github.com/dledford/linux.git).  It has the changes I
-have queued for the 4.1-rc cycle.  People can see what I have queued up
-by pulling either the for-linus tag, or the k.o-for-4.1-rc branch.
-
-I also want to take a minute and let people know that I plan on doing a
-standard for-<version>-rc branch on each release.  I'll create the
-branch once the <version>-rc2 kernel tag is available.  Unless the rc2
-tag is unstable, in which case I'll pick another one.  That will be
-where I put any patches for problems found during rc cycles and it will
-stay constant with only rdma related fix patches added until the end of
-the rc cycle.  So if people want to know when and what kernel to start
-rc phase testing on, that's going to be it on each release.
+To use an analogy I put forward at the Monterey developer conference, if
+libibverbs (and the various extensions) are more or less like assembly
+language programming, where the application has to make minor changes to
+accomodate all of the various hardware types and extensions, libfabric
+is more like the C programming language version of RDMA programming.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-VChups+ukJeEw0w9OzMY
+--=-kxq04FKCrBpoURqbfns2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -82,22 +48,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVSQI8AAoJELgmozMOVy/dEFEQAI/vnMKI/NOTZ34+E74AZoKq
-dSW/rEC/y7nCx9iF+Bw8RGem9Kr+Hhtw5k9LPrZLhUsVcEPKQZgLvMxGRj63L7Wq
-EEdv231x7yN1WXwIn3mSC2/5D/SoEF0o4BogHf61aXQpMfwAMKOHV88e+UoRmsG4
-4WYJIoEdzskwMRs6LMs1cCXp4sHTq31lLscEtLbKrehRZBcFAiJ1l7KXkvQrCPO+
-k24KnocoM8hrr7ExBwQK923efWFv6PpN7NyFzo2WU2eMwPNRICvhab2+8EhA9hT6
-QWXCYD5+y3RE/TCeeljfl/DUQ6YWTbRp+i4dNniF5W3EYSvx9vDhU86zssWXirAK
-iTrCl0u8si6hCRa7Hf9lcci9mn3NhuxCcNGxC0fehQx6i9tMMo8SMFuothmYmVID
-X9/mub50vLnqWHyk8jmnihwrgqgOjGG1Su4gXWZeHq5GqMdbksX/dAo/9o36LYL8
-Ks8sfxzP6yoWM1R0cvLurH2Z0rok58l3itLXwENlmfEcS4bj44QLefi8qClqOy6v
-n0HRxz4pYdnkU/qKOTnyRsnY8R9X1Rycd0YkCeKq8YJH/xrzLi6hWKffPGAC58rW
-v+R6RIBYhT8GxfGgztt7QsbRt+FX0iDHRvJjI8fGkPV3zPO5hIvQCGXAwj9mcqPX
-hIrMX9VSTBFwQtkzlTyO
-=V8m7
+iQIcBAABCAAGBQJVSQfpAAoJELgmozMOVy/dR1EP/1ebTiPF0CdHtT2CjIZGeE7O
+CT46i3sQOL+SLefqf7XIHI3WCXKAIopHNqUyQ4iAJHjFu1Pz0GPfgNgsQgdDvCqY
+6TRfRsFbjAqUAfHp1k33A+Lmr5gS+/kx7u0ny5dRd1yIP6eXUSBoXnY4H73pNCo+
+iPtIl+MGuCtqgDnZOHMRrvOZRQOxtADywsGoJ4Tbplme8CypRCfYKrnasvB9nWsi
+MJ1CiW3N2LyOmnFitIIvc/os18kWgbXmOMtjdgsHDVcUX0l5dqNDw7bYXILyAOIV
+LBo0O5WMvZmceSe9qhFW7R4bKV6DZTOgmNkIJ+GPWwc++6pznj05JGRCDuEDhLxE
+i0fBSIkPVL1fNkfssV9cCvE6kcGXWnOXe558dX3bO7ZTgOcf1rp0OypnMkllyHST
+Fe77RdGhK9ML6QBiCmwK1gJy7ZxxYJMGlw+lPBXnwAGQQRbKKfhdFL1rTQb1Ptwl
+CcopPjHFmL26m4n+1I9XmOEVnddhUIetVqb2W1+SnDqWZpeLMRSNUVw6k/d0bnVf
+XW8j1MioKFoJe6VMa4ulUuoecImrt2JAiWasOxWAqspuyrneLY0KBja/VV5QgP67
+uQvaNZvrBvabWhFXUVbWGFQAgkEeyc2convbhpfEaQ6ILLSqK2deuYzjFTSqJc4y
+1s/GC86OE17y8tD8Nq8q
+=6oCG
 -----END PGP SIGNATURE-----
 
---=-VChups+ukJeEw0w9OzMY--
+--=-kxq04FKCrBpoURqbfns2--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
