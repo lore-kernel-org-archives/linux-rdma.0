@@ -1,53 +1,54 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v1 00/16] NFS/RDMA patches proposed for 4.1
-Date: Tue, 5 May 2015 10:25:40 -0700
-Message-ID: <20150505172540.GA19442@infradead.org>
-References: <20150313211124.22471.14517.stgit@manet.1015granger.net>
- <20150505154411.GA16729@infradead.org>
- <5E1B32EA-9803-49AA-856D-BF0E1A5DFFF4@oracle.com>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH v8 00/23] IB/Verbs: IB Management Helpers
+Date: Tue, 05 May 2015 16:40:05 +0200
+Message-ID: <5548D645.5070707@profitbricks.com>
+References: <1430830240-32389-1-git-send-email-yun.wang@profitbricks.com> <5548D0CD.3080400@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5E1B32EA-9803-49AA-856D-BF0E1A5DFFF4-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5548D0CD.3080400@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 05, 2015 at 12:04:00PM -0400, Chuck Lever wrote:
-> > Just curious if you ever though of moving this into the generic
-> > rdma layer?
+
+
+On 05/05/2015 04:16 PM, Or Gerlitz wrote:
+> On 5/5/2015 3:50 PM, Michael Wang wrote:
+>> Since v7:
+>>    * Thanks to Doug, Ira, Devesh for the testing:-)
+>>    * Thanks for the comments from or, Doug, Ira, Jason:-)
+>>      Please remind me if anything missed:-P
+>>    * Use rdma_cap_XX() instead of cap_XX() for readability
+>>    * Remove CC list in git log for maintainability
+>>    * Use bool as return value
+>>    * Updated github repository to v8
 > 
-> Not really. The new files are really just shims that adapt the RPC/RDMA
-> transport to memory registration verbs. There?s only a few hundred lines
-> per registration mode, and it?s all fairly specific to RPC/RDMA.
+> Didn't you see that patches 15~23 will be squashed into one?
 
-While it's using RPC/RDMA specific data structures it basically
-abstracts out the action of mapping a number of pages onto the rdma
-hardware.   There isn't a whole lot of interaction with the actual
-sunrpc layer except for a few hardcoded limits.
+I missed the conversation on that, you mentioned to remove the
+CC list but don't want to merge the patches, correct?
 
-Btw, this is not a critique of the code, it's an obvious major
-improvement of what was there before, it justs seems like it would be
-nice to move it up to a higher layer.
-
-> > And from I see we litterly dont use them much different from the generic
-> > dma mapping API helpers (at a very high level) so it seems it should
-> > be easy to move a slightly expanded version of your API to the core
-> > code.
 > 
-> IMO FRWR is the only registration mode that has legs for the long term,
-> and is specifically designed for storage.
 > 
-> If you are not working on a legacy piece of code that has to support
-> older HCAs, why not stay with FRWR?
+> Also, when you post version N you need not only to list the changes since version N-1 but rather also to keep the full changes since Vx for x=1...N-2, reviewers needs not chase your previous cover letters and see if/whatwent wrong, specifically with a sensitive series like this one.
 
-The raw FRWR API seems like an absolute nightmare, and I'm bound to
-get it wrong at first :)  This is only half joking, but despite that
-it's the first target for sure.  It's just very frustrating that there
-is no usable common API.
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That maybe too long and with some outdated info, I can reserve
+the log since this version if it was preferred by folks.
+
+> 
+> So if/when there's V9, use that practice, and for the time being, reply on the V8 cover letter with the full listing of changes
+
+I'm using git send-mail which reply on the cover of each version,
+not sure how to reply on a prev cover? and that won't start a new
+thread for the new version, isn't it?
+
+Regards,
+Michael Wang
+
+> 
+> Or.
+> 
+> 
