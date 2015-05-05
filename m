@@ -1,42 +1,50 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v1 00/16] NFS/RDMA patches proposed for 4.1
-Date: Tue, 5 May 2015 12:10:12 -0700
-Message-ID: <20150505191012.GA21164@infradead.org>
-References: <20150313211124.22471.14517.stgit@manet.1015granger.net>
- <20150505154411.GA16729@infradead.org>
- <5E1B32EA-9803-49AA-856D-BF0E1A5DFFF4@oracle.com>
- <20150505172540.GA19442@infradead.org>
- <55490886.4070502@talpey.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Tue, 5 May 2015 19:27:58 +0000
+Message-ID: <HE1PR05MB1418E58A6EB92D92B78C76A0B1D10@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+ <1430750492.2407.9.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55490886.4070502-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCA17C-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 05, 2015 at 02:14:30PM -0400, Tom Talpey wrote:
-> As you might guess, I can go on at length about this. :-) But, if
-> you have a kernel service, the ability to pin memory, and you
-> want it to go fast, you want FRWR.
-
-Basically most in-kernel consumers seem to have the same requirements:
-
- - register a struct page, which can be kernel or user memory (it's
-   probably pinned in your Terms, but we don't really use that much in
-   kernelspace).
- - In many but not all cases we might need an offset/length for each
-   page (think struct bvec, paged sk_buffs, or scatterlists of some
-   sort), in other an offset/len for the whole set of pages is fine,
-   but that's a superset of the one above.
- - we usually want it to be as fast as possible
-
-While my grep skills aren't the best I can't really find an in-kernel
-user that doesn't fit the above, although I might have missed some
-long-term registrations where we don't really care about the fast
-part.
+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
+bWEtDQoNCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSGVmdHksIFNlYW4N
+Cj4gPg0KPiA+IEluIGFjY29yZGFuY2Ugd2l0aCB3aGF0IHdlJ3ZlIGJlZW4gdGFsa2luZyBhYm91
+dCwgZHJvcCBJQk9FIGZvciBST0NFLg0KPiA+DQo+ID4gRHJvcCB0aGUgVURQIG9mZiBvZiBVU05J
+QywgdGhlbiBkZWZpbmUgYSBiaXQgZm9yIENBUF9QUk9UX1VEUF9FTkNBUC4NCj4gPiBVU05JQyB3
+aWxsIGJlIGp1c3QgVVNOSUMsIFVTTklDX1VEUCB3aWxsIGJlIFVTTklDIHwgVURQX0VOQ0FQLCBS
+T0NFIHYxDQo+ID4gd2lsbCBiZSBST0NFLCBhbmQgUk9DRXYyIHdpbGwgYmUgUk9DRSB8IFVEUF9F
+TkNBUC4NCj4gDQo+IFVTTklDX1VEUCBpcyBqdXN0IFVEUC4gIEkgZG9uJ3QgdW5kZXJzdGFuZCB3
+aHkgd2Ugd291bGQgd2FudCAnVVNOSUMgfA0KPiBVRFBfRU5DQVAnLCBvciB3aGF0IFVEUF9FTkNB
+UCBpcyBpbnRlbmRlZCB0byBjb252ZXkuICBOb3RoaW5nIGlzIGJlaW5nDQo+IGVuY2Fwc3VsYXRl
+ZC4NCj4gDQoNCkkgYWdyZWUgdGhhdCB0aGUgVURQX0VOQ0FQIG5vdGlvbiBpcyBjb25mdXNpbmcu
+DQpXZSBzaG91bGQgc3RpY2sgdG8gUk9DRV9WMSBhbmQgUk9DRV9WMi4NCg0KPiBSb0NFdjIgaXMg
+SUIgdHJhbnNwb3J0IG92ZXIgVURQLg0KPiANCj4gSSdtIG5vdCBzdXJlIHdoYXQgdGhlIHByb3Rv
+Y29sIGZpZWxkIGlzIGludGVuZGVkIHRvIGltcGx5LiAgSWYgd2Ugd2FudCB0bw0KPiBleHBvc2Ug
+dGhlIGxpbmssIG5ldHdvcmssIHRyYW5zcG9ydCwgYW5kIFJETUEgcHJvdG9jb2xzIGluIHVzZSwg
+c2hvdWxkbid0DQo+IHRoZXNlIGJlIHNlcGFyYXRlIGZpZWxkcyBvciBiaXRzPyAgQW5kIGV2ZW4g
+dGhlbiwgSSdtIG5vdCBzdXJlIHdoYXQgdXNlIHRoaXMNCj4gaGFzIGZvciB0aGUgVUxQcy4gIGlX
+YXJwIGRvZXMgbm90IHJlcXVpcmUgRXRoZXJuZXQgb3IgVENQLiAgUm9DRXYyIHdvdWxkDQo+IHdv
+cmsgZmluZSBvdmVyIGFueSBsaW5rLiAgQW5kIHRoZSBjb3JlIGxheWVyIHNob3VsZCBub3QgYXNz
+dW1lIHRoYXQgYSBkZXZpY2UgaXMNCj4gbGltaXRlZCB0byBzdXBwb3J0aW5nIG9ubHkgb25lIHBy
+b3RvY29sLCBlc3BlY2lhbGx5IGF0IHRoZSBuZXR3b3JrIGFuZA0KPiB0cmFuc3BvcnQgbGV2ZWxz
+LiAgSSB2b3RlIGZvciBkZXByZWNhdGluZyB0aGUgcHJvdG9jb2wgZ29vZmluZXNzLg0KPiANCj4g
+LSBTZWFuDQoNClRoZSBwcm90b2NvbCBub3Rpb24gbWlnaHQgbm90IGhhdmUgYW55IHZhbHVlIGZv
+ciBVTFBzLCBidXQgaXQgaXMgdXNlZnVsIGZvciBjb3JlDQptYW5hZ2VtZW50IGNvZGUuIEFsc28s
+IHdoZW4gd2UgZXh0ZW5kIHRoZXNlIG5vdGlvbnMgdG8gdXNlci1zcGFjZSwgYWRtaW5zIHdpbGwN
+CmFjdHVhbGx5IHdhbnQgdG8ga25vdyB3aGF0IHdpcmUgcHJvdG9jb2xzIGEgY2VydGFpbiBkZXZp
+Y2UgY2FuIHN1cHBvcnQsIGV2ZW4NCmp1c3QgZm9yIHRoZSBzYWtlIG9mIGludGVyb3BlcmFiaWxp
+dHkuDQoNCi0tTGlyYW4NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
