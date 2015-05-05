@@ -1,7 +1,7 @@
 From: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH v8 10/23] IB/Verbs: Reform cm related part in IB-core cma/ucm
-Date: Tue,  5 May 2015 14:50:27 +0200
-Message-ID: <1430830240-32389-11-git-send-email-yun.wang@profitbricks.com>
+Subject: [PATCH v8 03/23] IB/Verbs: Reform IB-core mad/agent/user_mad
+Date: Tue,  5 May 2015 14:50:20 +0200
+Message-ID: <1430830240-32389-4-git-send-email-yun.wang@profitbricks.com>
 References: <1430830240-32389-1-git-send-email-yun.wang@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1430830240-32389-1-git-send-email-yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
@@ -10,244 +10,183 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <
 Cc: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use raw management helpers to reform cm related part in IB-core cma/ucm.
-
-Few checks focus on the device cm type rather than the port capability,
-directly pass port 1 works currently, but can't support mixing cm type
-device in future.
+Use raw management helpers to reform IB-core mad/agent/user_mad.
 
 Signed-off-by: Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 81 +++++++++++++------------------------------
- drivers/infiniband/core/ucm.c |  3 +-
- 2 files changed, 26 insertions(+), 58 deletions(-)
+ drivers/infiniband/core/agent.c    |  2 +-
+ drivers/infiniband/core/mad.c      | 43 +++++++++++++++++++-------------------
+ drivers/infiniband/core/user_mad.c | 26 ++++++++++++++++-------
+ 3 files changed, 41 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d570030..8a07e89 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -735,8 +735,7 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
- 	int ret = 0;
+diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
+index f6d2961..89d4fbc 100644
+--- a/drivers/infiniband/core/agent.c
++++ b/drivers/infiniband/core/agent.c
+@@ -156,7 +156,7 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
+ 		goto error1;
+ 	}
  
- 	id_priv = container_of(id, struct rdma_id_private, id);
--	switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	if (rdma_ib_or_iboe(id->device, id->port_num)) {
- 		if (!id_priv->cm_id.ib || (id_priv->id.qp_type == IB_QPT_UD))
- 			ret = cma_ib_init_qp_attr(id_priv, qp_attr, qp_attr_mask);
- 		else
-@@ -745,19 +744,15 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
+-	if (rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
++	if (rdma_protocol_ib(device, port_num)) {
+ 		/* Obtain send only MAD agent for SMI QP */
+ 		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
+ 							    IB_QPT_SMI, NULL, 0,
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 74c30f4..507eb67 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2938,7 +2938,7 @@ static int ib_mad_port_open(struct ib_device *device,
+ 	init_mad_qp(port_priv, &port_priv->qp_info[1]);
  
- 		if (qp_attr->qp_state == IB_QPS_RTR)
- 			qp_attr->rq_psn = id_priv->seq_num;
--		break;
--	case RDMA_TRANSPORT_IWARP:
-+	} else if (rdma_protocol_iwarp(id->device, id->port_num)) {
- 		if (!id_priv->cm_id.iw) {
- 			qp_attr->qp_access_flags = 0;
- 			*qp_attr_mask = IB_QP_STATE | IB_QP_ACCESS_FLAGS;
- 		} else
- 			ret = iw_cm_init_qp_attr(id_priv->cm_id.iw, qp_attr,
- 						 qp_attr_mask);
--		break;
--	default:
-+	} else
- 		ret = -ENOSYS;
--		break;
--	}
+ 	cq_size = mad_sendq_size + mad_recvq_size;
+-	has_smi = rdma_port_get_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND;
++	has_smi = rdma_protocol_ib(device, port_num);
+ 	if (has_smi)
+ 		cq_size *= 2;
  
- 	return ret;
+@@ -3057,9 +3057,6 @@ static void ib_mad_init_device(struct ib_device *device)
+ {
+ 	int start, end, i;
+ 
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
+-
+ 	if (device->node_type == RDMA_NODE_IB_SWITCH) {
+ 		start = 0;
+ 		end   = 0;
+@@ -3069,6 +3066,9 @@ static void ib_mad_init_device(struct ib_device *device)
+ 	}
+ 
+ 	for (i = start; i <= end; i++) {
++		if (!rdma_ib_or_iboe(device, i))
++			continue;
++
+ 		if (ib_mad_port_open(device, i)) {
+ 			dev_err(&device->dev, "Couldn't open port %d\n", i);
+ 			goto error;
+@@ -3086,40 +3086,39 @@ error_agent:
+ 		dev_err(&device->dev, "Couldn't close port %d\n", i);
+ 
+ error:
+-	i--;
++	while (--i >= start) {
++		if (!rdma_ib_or_iboe(device, i))
++			continue;
+ 
+-	while (i >= start) {
+ 		if (ib_agent_port_close(device, i))
+ 			dev_err(&device->dev,
+ 				"Couldn't close port %d for agents\n", i);
+ 		if (ib_mad_port_close(device, i))
+ 			dev_err(&device->dev, "Couldn't close port %d\n", i);
+-		i--;
+ 	}
  }
-@@ -1037,17 +1032,12 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 	mutex_unlock(&id_priv->handler_mutex);
  
- 	if (id_priv->cma_dev) {
--		switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
--		case RDMA_TRANSPORT_IB:
-+		if (rdma_ib_or_iboe(id_priv->id.device, 1)) {
- 			if (id_priv->cm_id.ib)
- 				ib_destroy_cm_id(id_priv->cm_id.ib);
--			break;
--		case RDMA_TRANSPORT_IWARP:
-+		} else if (rdma_protocol_iwarp(id_priv->id.device, 1)) {
- 			if (id_priv->cm_id.iw)
- 				iw_destroy_cm_id(id_priv->cm_id.iw);
--			break;
--		default:
--			break;
- 		}
- 		cma_leave_mc_groups(id_priv);
- 		cma_release_dev(id_priv);
-@@ -1626,7 +1616,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- 	int ret;
+ static void ib_mad_remove_device(struct ib_device *device)
+ {
+-	int i, num_ports, cur_port;
+-
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
++	int start, end, i;
  
- 	if (cma_family(id_priv) == AF_IB &&
--	    rdma_node_get_transport(cma_dev->device->node_type) != RDMA_TRANSPORT_IB)
-+	    !rdma_ib_or_iboe(cma_dev->device, 1))
- 		return;
+ 	if (device->node_type == RDMA_NODE_IB_SWITCH) {
+-		num_ports = 1;
+-		cur_port = 0;
++		start = 0;
++		end   = 0;
+ 	} else {
+-		num_ports = device->phys_port_cnt;
+-		cur_port = 1;
++		start = 1;
++		end   = device->phys_port_cnt;
+ 	}
+-	for (i = 0; i < num_ports; i++, cur_port++) {
+-		if (ib_agent_port_close(device, cur_port))
++
++	for (i = start; i <= end; i++) {
++		if (!rdma_ib_or_iboe(device, i))
++			continue;
++
++		if (ib_agent_port_close(device, i))
+ 			dev_err(&device->dev,
+-				"Couldn't close port %d for agents\n",
+-				cur_port);
+-		if (ib_mad_port_close(device, cur_port))
+-			dev_err(&device->dev, "Couldn't close port %d\n",
+-				cur_port);
++				"Couldn't close port %d for agents\n", i);
++		if (ib_mad_port_close(device, i))
++			dev_err(&device->dev, "Couldn't close port %d\n", i);
+ 	}
+ }
  
- 	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
-@@ -2028,7 +2018,7 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
- 	mutex_lock(&lock);
- 	list_for_each_entry(cur_dev, &dev_list, list) {
- 		if (cma_family(id_priv) == AF_IB &&
--		    rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
-+		    !rdma_ib_or_iboe(cur_dev->device, 1))
- 			continue;
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 928cdd2..aa8b334 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1273,9 +1273,7 @@ static void ib_umad_add_one(struct ib_device *device)
+ {
+ 	struct ib_umad_device *umad_dev;
+ 	int s, e, i;
+-
+-	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+-		return;
++	int count = 0;
  
- 		if (!cma_dev)
-@@ -2060,7 +2050,7 @@ port_found:
- 		goto out;
+ 	if (device->node_type == RDMA_NODE_IB_SWITCH)
+ 		s = e = 0;
+@@ -1296,21 +1294,33 @@ static void ib_umad_add_one(struct ib_device *device)
+ 	umad_dev->end_port   = e;
  
- 	id_priv->id.route.addr.dev_addr.dev_type =
--		(rdma_port_get_link_layer(cma_dev->device, p) == IB_LINK_LAYER_INFINIBAND) ?
-+		(rdma_protocol_ib(cma_dev->device, p)) ?
- 		ARPHRD_INFINIBAND : ARPHRD_ETHER;
+ 	for (i = s; i <= e; ++i) {
++		if (!rdma_ib_or_iboe(device, i))
++			continue;
++
+ 		umad_dev->port[i - s].umad_dev = umad_dev;
  
- 	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
-@@ -2537,18 +2527,15 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
- 
- 	id_priv->backlog = backlog;
- 	if (id->device) {
--		switch (rdma_node_get_transport(id->device->node_type)) {
--		case RDMA_TRANSPORT_IB:
-+		if (rdma_ib_or_iboe(id->device, 1)) {
- 			ret = cma_ib_listen(id_priv);
- 			if (ret)
- 				goto err;
--			break;
--		case RDMA_TRANSPORT_IWARP:
-+		} else if (rdma_protocol_iwarp(id->device, 1)) {
- 			ret = cma_iw_listen(id_priv, backlog);
- 			if (ret)
- 				goto err;
--			break;
--		default:
-+		} else {
- 			ret = -ENOSYS;
+ 		if (ib_umad_init_port(device, i, umad_dev,
+ 				      &umad_dev->port[i - s]))
  			goto err;
- 		}
-@@ -2884,20 +2871,15 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 		id_priv->srq = conn_param->srq;
++
++		count++;
  	}
  
--	switch (rdma_node_get_transport(id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	if (rdma_ib_or_iboe(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD)
- 			ret = cma_resolve_ib_udp(id_priv, conn_param);
- 		else
- 			ret = cma_connect_ib(id_priv, conn_param);
--		break;
--	case RDMA_TRANSPORT_IWARP:
-+	} else if (rdma_protocol_iwarp(id->device, id->port_num))
- 		ret = cma_connect_iw(id_priv, conn_param);
--		break;
--	default:
-+	else
- 		ret = -ENOSYS;
--		break;
--	}
- 	if (ret)
- 		goto err;
- 
-@@ -3000,8 +2982,7 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 		id_priv->srq = conn_param->srq;
- 	}
- 
--	switch (rdma_node_get_transport(id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	if (rdma_ib_or_iboe(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD) {
- 			if (conn_param)
- 				ret = cma_send_sidr_rep(id_priv, IB_SIDR_SUCCESS,
-@@ -3017,14 +2998,10 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 			else
- 				ret = cma_rep_recv(id_priv);
- 		}
--		break;
--	case RDMA_TRANSPORT_IWARP:
-+	} else if (rdma_protocol_iwarp(id->device, id->port_num))
- 		ret = cma_accept_iw(id_priv, conn_param);
--		break;
--	default:
-+	else
- 		ret = -ENOSYS;
--		break;
--	}
- 
- 	if (ret)
- 		goto reject;
-@@ -3068,8 +3045,7 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 	if (!id_priv->cm_id.ib)
- 		return -EINVAL;
- 
--	switch (rdma_node_get_transport(id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	if (rdma_ib_or_iboe(id->device, id->port_num)) {
- 		if (id->qp_type == IB_QPT_UD)
- 			ret = cma_send_sidr_rep(id_priv, IB_SIDR_REJECT, 0,
- 						private_data, private_data_len);
-@@ -3077,15 +3053,12 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 			ret = ib_send_cm_rej(id_priv->cm_id.ib,
- 					     IB_CM_REJ_CONSUMER_DEFINED, NULL,
- 					     0, private_data, private_data_len);
--		break;
--	case RDMA_TRANSPORT_IWARP:
-+	} else if (rdma_protocol_iwarp(id->device, id->port_num)) {
- 		ret = iw_cm_reject(id_priv->cm_id.iw,
- 				   private_data, private_data_len);
--		break;
--	default:
-+	} else
- 		ret = -ENOSYS;
--		break;
--	}
++	if (!count)
++		goto free;
 +
- 	return ret;
- }
- EXPORT_SYMBOL(rdma_reject);
-@@ -3099,22 +3072,18 @@ int rdma_disconnect(struct rdma_cm_id *id)
- 	if (!id_priv->cm_id.ib)
- 		return -EINVAL;
+ 	ib_set_client_data(device, &umad_client, umad_dev);
  
--	switch (rdma_node_get_transport(id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	if (rdma_ib_or_iboe(id->device, id->port_num)) {
- 		ret = cma_modify_qp_err(id_priv);
- 		if (ret)
- 			goto out;
- 		/* Initiate or respond to a disconnect. */
- 		if (ib_send_cm_dreq(id_priv->cm_id.ib, NULL, 0))
- 			ib_send_cm_drep(id_priv->cm_id.ib, NULL, 0);
--		break;
--	case RDMA_TRANSPORT_IWARP:
-+	} else if (rdma_protocol_iwarp(id->device, id->port_num)) {
- 		ret = iw_cm_disconnect(id_priv->cm_id.iw, 0);
--		break;
--	default:
-+	} else
- 		ret = -EINVAL;
--		break;
--	}
-+
- out:
- 	return ret;
- }
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index f2f6393..70e0ccb 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1253,8 +1253,7 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	dev_t base;
- 	struct ib_ucm_device *ucm_dev;
+ 	return;
  
--	if (!device->alloc_ucontext ||
--	    rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
-+	if (!device->alloc_ucontext || !rdma_ib_or_iboe(device, 1))
+ err:
+-	while (--i >= s)
+-		ib_umad_kill_port(&umad_dev->port[i - s]);
++	while (--i >= s) {
++		if (!rdma_ib_or_iboe(device, i))
++			continue;
+ 
++		ib_umad_kill_port(&umad_dev->port[i - s]);
++	}
++free:
+ 	kobject_put(&umad_dev->kobj);
+ }
+ 
+@@ -1322,8 +1332,10 @@ static void ib_umad_remove_one(struct ib_device *device)
+ 	if (!umad_dev)
  		return;
  
- 	ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
+-	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i)
+-		ib_umad_kill_port(&umad_dev->port[i]);
++	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i) {
++		if (rdma_ib_or_iboe(device, i))
++			ib_umad_kill_port(&umad_dev->port[i]);
++	}
+ 
+ 	kobject_put(&umad_dev->kobj);
+ }
 -- 
 2.1.0
 
