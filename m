@@ -1,105 +1,121 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
-Date: Tue, 5 May 2015 19:51:53 +0000
-Message-ID: <HE1PR05MB1418DF0669B6E6CABE1D9F1EB1D10@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
-	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
-	 <1430750492.2407.9.camel@redhat.com>
-	 <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
- <1430761111.2407.85.camel@redhat.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv1 0/6] IB/uverbs: check request parameters
+Date: Tue, 05 May 2015 21:55:03 +0200
+Message-ID: <1430855703.25060.0.camel@opteya.com>
+References: <cover.1430743694.git.ydroneaud@opteya.com>
+	 <1430761519.2407.87.camel@redhat.com> <1430769382.19516.9.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1430769382.19516.9.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJk
-bWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEhlZnR5LCBTZWFuDQoN
-Cj4gPiBJIHRob3VnaHQgVVNOSUNfVURQIGhhZCBhbiBlbWJlZGRlZCBVU05JQyBwcm90b2NvbCBo
-ZWFkZXIgaW5zaWRlIHRoZQ0KPiA+IFVEUCBoZWFkZXIuICBUaGF0IHdvdWxkIG1ha2UgaXQgYSBV
-RFBfRU5DQVAgcHJvdG9jb2wuDQo+IA0KPiBTb21lb25lIGZyb20gQ2lzY28gY2FuIGNvcnJlY3Qg
-bWUsIGJ1dCBVU05JQyBzdXBwb3J0cyAyIHByb3RvY29scy4gIEp1c3QNCj4gcGxhaW4gVURQLCBh
-bmQgYSBwcm9wcmlldGFyeSBwcm90b2NvbCB0aGF0IHJ1bnMgb3ZlciBFdGhlcm5ldCwgYnV0IHVz
-ZXMgdGhlDQo+IHNhbWUgRXRoZXJUeXBlIGFzIFJvQ0UuICBJIHRob3VnaHQgdGhlc2UgY291bGQg
-Ym90aCBiZSBhY3RpdmUgb24gdGhlIHNhbWUNCj4gcG9ydCBhdCB0aGUgc2FtZSB0aW1lLg0KPiAN
-Cg0KJ3Byb3RvY29sJyByZWZlcnMgdG8gd2hhdCB5b3VyIGRldmljZSBnZW5lcmF0ZXMgd2hlbiB5
-b3UgZG8gYSBwb3N0X3NlbmQoKSBvbiANCnNvbWUgUVAuDQpJbiB0aGUgUm9DRSBjYXNlLCBpdCBp
-cyBJQlRBIHRyYW5zcG9ydCBoZWFkZXJzICsgcGF5bG9hZCBvdmVyIFVEUCBlbmNhcHN1bGF0aW9u
-DQpvdmVyIElQLiBJbiB0aGUgVVNOSUMgY2FzZSwgeW91IG1pZ2h0IHdhbnQgdGhlIHByb3RvY29s
-IHRvIHJlZmVyIHRvIGFkZGl0aW9uDQppbmZvcm1hdGlvbiB0aGUgZGlzdGluZ3Vpc2hlcyB0aGlz
-IHdpcmUgcHJvdG9jb2wgcmF0aGVyIHRoYW4ganVzdCAiSSBhbSBzZW5kaW5nDQpVRFAgcGFja2V0
-cyIuLi4NCkluIG90aGVyIHdvcmRzLCBJIHRoaW5rIHRoYXQgJ3Byb3RvY29sJyBzaG91bGQgdW5p
-cXVlbHkgZGlzdGluZ3Vpc2ggaW50ZXJvcGVyYWJsZQ0KcGVlcnMgYXQgdGhlIFZlcmJzIEFQSSBs
-ZXZlbC4gV2UgYXJlICpub3QqIHRyeWluZyB0byBkZXNjcmliZSBhIGNlcnRhaW4gaGVhZGVyLA0K
-YnV0IHJhdGhlciBhIHN0YWNrIG9mIHByb3RvY29scy4NCg0KPiA+ID4gUm9DRXYyIGlzIElCIHRy
-YW5zcG9ydCBvdmVyIFVEUC4NCj4gPg0KPiA+IFJpZ2h0LCBST0NFIChvciBJQiwgd2hpY2hldmVy
-IHlvdSBwcmVmZXIpIGVuY2Fwc3VsYXRlZCBpbiBVRFAuDQo+ID4NCj4gPiA+IEknbSBub3Qgc3Vy
-ZSB3aGF0IHRoZSBwcm90b2NvbCBmaWVsZCBpcyBpbnRlbmRlZCB0byBpbXBseS4NCj4gPg0KPiA+
-IFRoZXJlIGlzIHN0aWxsIGluZm9ybWF0aW9uIGluIHRob3NlIGJpdHMgdGhhdCB3ZSBjYW4ndCBn
-ZXQgZWxzZXdoZXJlLg0KPiA+IEZvciBpbnN0YW5jZSwgZXZlbiB0aG91Z2ggdGhpcyBwYXRjaCBy
-ZXBsYWNlcyB0aGUgQ0FQXyogc3R1ZmYgd2l0aA0KPiA+IGJpdHMsIGlmIHlvdSB0b29rIGF3YXkg
-dGhlIENBUF9QUk9UXyogZW50cmllcywgdGhlbiB0aGVyZSB3b3VsZCBiZSBubw0KPiA+IGVudHJ5
-IHRvIGlkZW50aWZ5IFVTTklDIGF0IGFsbC4NCj4gPg0KPiA+IFJpZ2h0IG5vdywgeW91IGNvdWxk
-IGluZmVyIGlXQVJQIGZyb20gQ0FQX0lXX0NNLg0KPiA+IFlvdSBjb3VsZCBpbmZlciBJbmZpbmlC
-YW5kIGZyb20gYW55IG9mIHRoZSBDQVBfSUJfKiAoYnV0IGxhdGVyIHdpbGwNCj4gPiBuZWVkIGEg
-d2F5IHRvIGRpZmZlcmVudGlhdGUgYmV0d2VlbiBJQiBhbmQgT1BBKSBZb3UgY291bGQgaW5mZXIg
-Uk9DRQ0KPiA+IGZyb20gQ0FQX0VUSF9BSCAoYnV0IGxhdGVyIHdpbGwgbmVlZCBhIHdheSB0byBk
-aWZmZXJlbnRpYXRlIGJldHdlZW4NCj4gPiBST0NFIGFuZCBST0NFdjIpIFRoZSBvbmx5IHdheSB0
-byBkaWZmZXJlbnRpYXRlIFVTTklDIGF0IHRoZSBtb21lbnQsIGlzDQo+ID4gdGhhdCB0aGUgQ0FQ
-UyB3b3VsZCBiZSBhbGwgMC4gIFRoYXQncyBub3QgdGhlIHNvcnQgb2YgcG9zaXRpdmUNCj4gPiBp
-ZGVudGlmaWNhdGlvbiBJIHdvdWxkIHByZWZlci4NCj4gPg0KPiA+IFNvIHlvdSAqY291bGQqIHJl
-ZHVjZSB0aGlzIHRvIGp1c3Qgb25lIGJpdCBmb3IgVVNOSUMuDQo+ID4NCj4gPiBBbmQgaWYgeW91
-IHRoZW4gYWRkIGEgVURQX0VOQ0FQIGJpdCwgdGhlbiB0aGF0IHNpbmdsZSBiaXQgY2FuIGRvDQo+
-ID4gZG91YmxlIGR1dHkgaW4gdGVsbGluZyBhcGFydCBVU05JQyBhbmQgVVNOSUNfVURQIGFuZCBS
-T0NFIGFuZCBST0NFdjIuDQo+IA0KPiBNeSBxdWVzdGlvbiBpcyB3aG8gbmVlZHMgdGhlc2UgYml0
-cyBhbmQgd2h5PyAgVGhlIHByaW1hcnkgcmVhc29uIGl0IHdhcw0KPiBleHBvc2VkIHdhcyB0byBk
-byB0aGUgam9iIHRoYXQgdGhlIG5ldyBjYXAgZmxhZ3MgYXJlIGFjY29tcGxpc2hpbmcuDQo+IA0K
-PiBJIHN0aWxsIGJlbGlldmUgdGhhdCBSb0NFdjIgaXMgY29uY2VwdHVhbGx5IHRoZSBzYW1lIGFz
-IGlXYXJwLiAgQW4gUkRNQQ0KPiBwcm90b2NvbCBoYXMgYmVlbiBsYXllcmVkIG92ZXIgc29tZSBv
-dGhlciB0cmFuc3BvcnQuICBJbiB0aGUgY2FzZSBvZiBpV2FycCwNCj4gaXQncyBUQ1AuICBJbiB0
-aGUgY2FzZSBvZiBSb0NFdjIsIGl0J3MgVURQLiAgRG8gd2UgZGVmaW5lIGEgVENQX0VOQ0FQIGJp
-dCB0aGF0DQo+IGNvcnJlc3BvbmRzIHdpdGggVURQX0VOQ0FQPyAgQW5kIHdoeSBzaG91bGQgYW4g
-YXBwIGNhcmU/ICBXZSBkb24ndA0KPiBzcGVjaWZ5IHdoZXRoZXIgdGhlIHBvcnQgaXMgcnVubmlu
-ZyBJUHY0IG9yIElQdjYuICBXaHkgaXMgdGhlIHRyYW5zcG9ydCBsZXZlbA0KPiBjYWxsZWQgb3V0
-LCBidXQgbm90IHRoZSBuZXR3b3JrIGxheWVyPyAgQXJjaGl0ZWN0dXJhbGx5LCBuZWl0aGVyIGlX
-YXJwIG9yDQo+IFJvQ0V2MiAoZGVzcGl0ZSBpdHMgbmFtZSkgY2FyZXMgd2hhdCB0aGUgbGluayBs
-YXllciBpcy4NCg0KV2UgZG9uJ3QgY2FsbCBvdXQgdGhlIHRyYW5zcG9ydCBsYXllci4NClRoYXQn
-cyB3aHkgd2UgY2FsbCBpdCAncHJvdG9jb2wnIGFuZCBub3QgJ3RyYW5zcG9ydCcgIQ0KDQo+IA0K
-PiA+ID4gICBBbmQgdGhlIGNvcmUgbGF5ZXINCj4gPiA+IHNob3VsZCBub3QgYXNzdW1lIHRoYXQg
-YSBkZXZpY2UgaXMgbGltaXRlZCB0byBzdXBwb3J0aW5nIG9ubHkgb25lDQo+ID4gPiBwcm90b2Nv
-bCwgZXNwZWNpYWxseSBhdCB0aGUgbmV0d29yayBhbmQgdHJhbnNwb3J0IGxldmVscy4NCj4gPg0K
-PiA+IEdpdmVuIHRoYXQgdGhpcyBpcyBhIHBlciBwb3J0IHRoaW5nLCB0aGVyZSBpcyBubyBhc3N1
-bXB0aW9uIGFib3V0IGENCj4gPiBkZXZpY2Ugb25seSBzdXBwb3J0aW5nIGEgc2luZ2xlIHByb3Rv
-Y29sLg0KPiANCj4gRGV2aWNlLCBubywgYnV0IHdlIGFyZSBhc3N1bWluZyB0aGlzIHBlciBwb3J0
-LiAgSSBkb24ndCB0aGluayB0aGlzIGlzIHRydWUgZm9yDQo+IFVTTklDLiAgRm9yIHRoYXQgbWF0
-dGVyLCBpdCdzIGVudGlyZWx5IHBvc3NpYmxlIGZvciBhIFJvQ0V2MiBkZXZpY2UgdG8gZXhwb3Nl
-DQo+IFVEUCBkaXJlY3RseSB0byB1c2VyIHNwYWNlLCBzYW1lIGFzIFVTTklDLiAgKEknZCBhY3R1
-YWxseSBiZSBzdXJwcmlzZWQgaWYgbm8NCj4gZGV2aWNlcyBoYXZlIHRoaXMgY2FwYWJpbGl0eSwg
-aWYgZm9yIGRlYnVnZ2luZyBjYXBhYmlsaXRpZXMsIGV2ZW4gaWYgZm9yIG5vdGhpbmcNCj4gZWxz
-ZS4pICBXaGF0IGFyZSB3ZSBnb2luZyB0byBkbyBpZiB0aGVyZSdzIGEgZGV2aWNlIHRoYXQgc3Vw
-cG9ydHMgYm90aCBpV2FycA0KPiBhbmQgUm9DRXYyPyAgVGhhdCdzIGVhc2lseSBkb2FibGUgdG9k
-YXkgdGhyb3VnaCBzb2Z0d2FyZS4NCg0KSWYgYW5kIHdoZW4gdGhlcmUgYXJlIHN1Y2ggZGV2aWNl
-cywgdGhleSBjYW4gYWR2ZXJ0aXNlIG11bHRpcGxlIHByb3RvY29scy4NCg0KPiANCj4gQmFzaWNh
-bGx5LCBJIHF1ZXN0aW9uIGhvdyBwcm90b2NvbCBpcyBkZWZpbmVkIGFuZCB3aGF0IGl0IG1lYW5z
-IHRvIGV4cG9zZSBpdA0KPiBhcyBhIGRldmljZSBhdHRyaWJ1dGUuICBTaG91bGQgaXQgaW5zdGVh
-ZCBiZSBuZWdvdGlhdGVkIChpLmUuIG1vcmUgbGlrZSBzb2NrZXRzKT8NCj4gSWYgYW4gYXBwIG5l
-ZWRzIGEgc3BlY2lmaWMgIlJETUEgcHJvdG9jb2wiIChJQiBvciBpV2FycCkgb3IgImFwcGxpY2F0
-aW9uDQo+IHByb3RvY29sIiAoSUIgb3IgaVdhcnAgb3IgVURQIG9yIE1BRHM/KSwgdGhleSBjYW4g
-cmVxdWVzdCBpdC4gIE90aGVyd2lzZSwgdGhlDQo+IGFwcCBnZXRzIGFzc2lnbmVkIHNvbWUgcHJv
-dG9jb2wuICBBbmQgdGhlIHByb3RvY29sIHNob3VsZCByZWFsbHkgYmUNCj4gYXNzb2NpYXRlZCB3
-aXRoIGEgUVAsIHJhdGhlciB0aGFuIGEgcG9ydC4NCj4gDQo+IC0gU2Vhbg0KDQpUaGUgcG9ydCBj
-YXBhYmlsaXRpZXMgZG8ganVzdCB0aGF0OiBhZHZlcnRpc2UgY2FwYWJpbGl0aWVzLg0KVGhlIGFj
-dHVhbCBwcm90b2NvbCBzZWxlY3Rpb24gZm9yIGVhY2ggdHJhbnNwb3J0IGVudGl0eSBoYXBwZW5z
-IGxhdGVyLg0KDQpGb3IgUk9DRSBSQyBRUHMsIGZvciBleGFtcGxlLCB0aGlzIG9jY3VycyB3aGls
-ZSBtb2RpZnlpbmcgdGhlIFFQIHRvIHJlZmVyDQp0byB0aGUgZGVzaXJlZCBHSUQgaW5kZXguDQoN
-Ci0tTGlyYW4NCg==
+Hi,
+
+Le lundi 04 mai 2015 =C3=A0 21:56 +0200, Yann Droneaud a =C3=A9crit :
+> Le lundi 04 mai 2015 =C3=A0 13:45 -0400, Doug Ledford a =C3=A9crit :
+> > On Mon, 2015-05-04 at 15:00 +0200, Yann Droneaud wrote:
+> > >=20
+> > > Please find a patchset against uverbs to improve the checks done
+> > > on uverbs request parameters. This patchset in an extract of a
+> > > previous patchset sent some times ago[1].
+> >=20
+> > I reviewed those patches last time they came around.  In general, I=
+'m on
+> > board with the idea of cleaning up option checking, but in your ori=
+ginal
+> > patch submission you point out that the patches have a non-0 chance=
+ of
+> > breaking user applications that pass in parameters that wouldn't pa=
+ss
+> > these checks but work anyway.  Have you done any looking into that
+> > possibility?
+> >=20
+>=20
+> I believe applications using libibverbs are immune of any kind of
+> regression.
+>=20
+> But I cannot tell for sure for applications that access directly uver=
+bs:
+> those could be doing broken things.
+>=20
+> Anyway, we should prevent such applications to broke into the kernel:
+> integer over/under flow or buffer overflow are not acceptable.
+>=20
+
+I would also add, that, being stricter doesn't introduce a new,=20
+diverging behavior that newer applications could rely on, so if one=20
+existing application is found to be broken by the updated checks, those=
+=20
+patchs could simply be reverted without falling into a compatibility=20
+nightmare where we would have to support two different behaviors.
+
+> > > I've provided some explanation of the issues partialy addressed
+> > > by this patchset in a previous message[2].
+> > >=20
+> > > As we're now addressing overflows, I think it's time to apply
+> > > this patchset.
+> > >=20
+> > > Changes since v0 [3]
+> > > - updated against v4.1-rc2
+> > > - incorporated patches to add check on response buffer using
+> > >   access_ok()
+> > >=20
+> > > [1] "[PATCH 00/22] infiniband: improve userspace input check"
+> > >=20
+> > > http://marc.info/?i=3Dcover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> > > http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> > >=20
+> > > [2] "Re: [PATCHv4 for-3.13 00/10] create_flow/destroy_flow fixes =
+for v3.13"
+> > >=20
+> > > http://marc.info/?i=3D1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWQ@public.gmane.org=
+omain
+> > > http://mid.gmane.org/1387493822.11925.217.camel-bi+AKbBUZKY6gyzm1THtWWGXanvQGlWp@public.gmane.org=
+main
+> > >=20
+> > > [3] "[PATCH 0/4] IB/uverbs: check request parameters"
+> > >=20
+> > > http://marc.info/?i=3Dcover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> > > http://mid.gmane.org/cover.1405884453.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> > >=20
+> > > Yann Droneaud (6):
+> > >   IB/uverbs: check userspace input buffer size
+> > >   IB/uverbs: check userspace output buffer size
+> > >   IB/uverbs: check userspace output buffer size in ib_uverbs_poll=
+_cq()
+> > >   IB/uverbs: subtract command header from input size
+> > >   IB/uverbs: move cast from u64 to void __user pointer to its own
+> > >     variable
+> > >   IB/uverbs: check access to userspace response buffer
+> > >=20
+> > >  drivers/infiniband/core/uverbs_cmd.c         | 449 +++++++++++++=
+++++++++------
+> > >  drivers/infiniband/core/uverbs_main.c        |  29 +-
+> > >  drivers/infiniband/hw/mlx5/cq.c              |   6 +-
+> > >  drivers/infiniband/hw/mlx5/main.c            |   2 +-
+> > >  drivers/infiniband/hw/mlx5/srq.c             |   6 +-
+> > >  drivers/infiniband/hw/mthca/mthca_provider.c |   2 +-
+> > >  6 files changed, 382 insertions(+), 112 deletions(-)
+> > >=20
+> >=20
+> >=20
+>=20
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
