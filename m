@@ -1,20 +1,23 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Subject: Re: [PATCH v1 02/14] xprtrdma: Warn when there are orphaned IB objects
-Date: Wed, 06 May 2015 17:05:51 +0300
-Message-ID: <554A1FBF.2080504@dev.mellanox.co.il>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175700.3483.57728.stgit@manet.1015granger.net> <CANjDDBicLDb7K=RZB5Gqv+oACaAG8DANJX3ML971jnXd_5KEuQ@mail.gmail.com> <963F9850-38D0-4434-88E8-14BC42F74499@oracle.com>
+Date: Wed, 6 May 2015 19:52:03 +0530
+Message-ID: <CANjDDBg3Ey0DEM3n9PY9VLW+chF0=AJPghYOopo1a9vL3CKzKg@mail.gmail.com>
+References: <20150504174626.3483.97639.stgit@manet.1015granger.net>
+	<20150504175700.3483.57728.stgit@manet.1015granger.net>
+	<CANjDDBicLDb7K=RZB5Gqv+oACaAG8DANJX3ML971jnXd_5KEuQ@mail.gmail.com>
+	<963F9850-38D0-4434-88E8-14BC42F74499@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <963F9850-38D0-4434-88E8-14BC42F74499-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/6/2015 4:24 PM, Chuck Lever wrote:
+On Wed, May 6, 2015 at 6:54 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wr=
+ote:
 > Hi Devesh-
 >
 > On May 6, 2015, at 7:37 AM, Devesh Sharma <devesh.sharma-1wcpHE2jlwOV7V7JEmyr7g@public.gmane.org=
@@ -39,9 +42,9 @@ s.c
 >>> --- a/net/sunrpc/xprtrdma/verbs.c
 >>> +++ b/net/sunrpc/xprtrdma/verbs.c
 >>> @@ -710,8 +710,8 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
->>>         }
->>>         if (ia->ri_pd !=3D NULL && !IS_ERR(ia->ri_pd)) {
->>>                 rc =3D ib_dealloc_pd(ia->ri_pd);
+>>>        }
+>>>        if (ia->ri_pd !=3D NULL && !IS_ERR(ia->ri_pd)) {
+>>>                rc =3D ib_dealloc_pd(ia->ri_pd);
 >>> -               dprintk("RPC:       %s: ib_dealloc_pd returned %i\n=
 ",
 >>> -                       __func__, rc);
@@ -49,16 +52,37 @@ s.c
 >> Should we check for EBUSY explicitly? other then this is an error in
 >> vendor specific ib_dealloc_pd()
 >
-> Any error return means ib_dealloc_pd() has failed, right? Doesn=92t t=
-hat
+> Any error return means ib_dealloc_pd() has failed, right? Doesn=E2=80=
+=99t that
 > mean the PD is still allocated, and could cause problems later?
 
-AFAICT, the only non-zero rc that ib_dealloc_pd should return is EBUSY.
-So I don't see value in verifying it at all.
+Yes, you are correct, I was thinking ib_dealloc_pd() has a refcount
+implemented in the core layer, thus if the PD is used by any resource,
+it will always fail with -EBUSY.
+=2EWith emulex adapter it is possible to fail dealloc_pd with ENOMEM or
+EIO in cases where device f/w is not responding etc. this situation do
+not represent PD is actually in use.
 
-So, Looks Good
+>
+>
+>>> +               if (rc)
+>>> +                       pr_warn("rpcrdma: ib_dealloc_pd status %i\n=
+", rc);
+>>>        }
+>>> }
+>
+> --
+> Chuck Lever
+> chuck[dot]lever[at]oracle[dot]com
+>
+>
+>
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+
+--=20
+-Regards
+Devesh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
