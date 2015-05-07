@@ -1,145 +1,106 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 04/14] xprtrdma: Use ib_device pointer safely
-Date: Thu, 7 May 2015 10:12:39 -0400
-Message-ID: <BDE22240-DC37-4C54-B71E-D88EF54D3119@oracle.com>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175720.3483.80356.stgit@manet.1015granger.net> <554B37CF.2070206@dev.mellanox.co.il> <E1ADA91B-45DA-46B6-A114-E2600613969A@oracle.com> <554B6F2A.6000608@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <554B6F2A.6000608-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ib_ipoib: Scatter-Gather support in connected mode
+Date: Thu, 07 May 2015 10:45:05 -0400
+Message-ID: <1431009905.2407.371.camel@redhat.com>
+References: <1422357682-8934-1-git-send-email-yuval.shaia@oracle.com>
+	 <1422444987.3133.81.camel@opteya.com> <20150201070941.GA4778@yuval-lab>
+	 <20150315151616.GA3546@yuval-lab> <20150322092149.GA5229@yuval-lab>
+	 <20150323171749.GA3580@obsidianresearch.com>
+	 <20150401203314.GF8024@yuval-lab>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-qGkw3+loE/KdxqoYbt9m"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150401203314.GF8024@yuval-lab>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On May 7, 2015, at 9:56 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wr=
-ote:
+--=-qGkw3+loE/KdxqoYbt9m
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> On 5/7/2015 4:39 PM, Chuck Lever wrote:
->>=20
->> On May 7, 2015, at 6:00 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>=
- wrote:
->>=20
->>> On 5/4/2015 8:57 PM, Chuck Lever wrote:
->>>> The connect worker can replace ri_id, but prevents ri_id->device
->>>> from changing during the lifetime of a transport instance.
->>>>=20
->>>> Cache a copy of ri_id->device in rpcrdma_ia and in rpcrdma_rep.
->>>> The cached copy can be used safely in code that does not serialize
->>>> with the connect worker.
->>>>=20
->>>> Other code can use it to save an extra address generation (one
->>>> pointer dereference instead of two).
->>>>=20
->>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>>  net/sunrpc/xprtrdma/fmr_ops.c      |    8 +----
->>>>  net/sunrpc/xprtrdma/frwr_ops.c     |   12 +++----
->>>>  net/sunrpc/xprtrdma/physical_ops.c |    8 +----
->>>>  net/sunrpc/xprtrdma/verbs.c        |   61 +++++++++++++++++++----=
--------------
->>>>  net/sunrpc/xprtrdma/xprt_rdma.h    |    2 +
->>>>  5 files changed, 43 insertions(+), 48 deletions(-)
->>>>=20
->>>> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/f=
-mr_ops.c
->>>> index 302d4eb..0a96155 100644
->>>> --- a/net/sunrpc/xprtrdma/fmr_ops.c
->>>> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
->>>> @@ -85,7 +85,7 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct r=
-pcrdma_mr_seg *seg,
->>>>  	   int nsegs, bool writing)
->>>>  {
->>>>  	struct rpcrdma_ia *ia =3D &r_xprt->rx_ia;
->>>> -	struct ib_device *device =3D ia->ri_id->device;
->>>> +	struct ib_device *device =3D ia->ri_device;
->>>>  	enum dma_data_direction direction =3D rpcrdma_data_dir(writing);
->>>>  	struct rpcrdma_mr_seg *seg1 =3D seg;
->>>>  	struct rpcrdma_mw *mw =3D seg1->rl_mw;
->>>> @@ -137,17 +137,13 @@ fmr_op_unmap(struct rpcrdma_xprt *r_xprt, st=
-ruct rpcrdma_mr_seg *seg)
->>>>  {
->>>>  	struct rpcrdma_ia *ia =3D &r_xprt->rx_ia;
->>>>  	struct rpcrdma_mr_seg *seg1 =3D seg;
->>>> -	struct ib_device *device;
->>>>  	int rc, nsegs =3D seg->mr_nsegs;
->>>>  	LIST_HEAD(l);
->>>>=20
->>>>  	list_add(&seg1->rl_mw->r.fmr->list, &l);
->>>>  	rc =3D ib_unmap_fmr(&l);
->>>> -	read_lock(&ia->ri_qplock);
->>>> -	device =3D ia->ri_id->device;
->>>>  	while (seg1->mr_nsegs--)
->>>> -		rpcrdma_unmap_one(device, seg++);
->>>> -	read_unlock(&ia->ri_qplock);
->>>> +		rpcrdma_unmap_one(ia->ri_device, seg++);
->>>=20
->>> Umm, I'm wandering if this is guaranteed to be the same device as
->>> ri_id->device?
->>>=20
->>> Imagine you are working on a bond device where each slave belongs t=
-o
->>> a different adapter. When the active port toggles, you will see a
->>> ADDR_CHANGED event (that the current code does not handle...), what
->>> you'd want to do is just reconnect and rdma_cm will resolve the new
->>> address for you (via the backup slave). I suspect that in case this
->>> flow is concurrent with the reconnects you may end up with a stale
->>> device handle.
->>=20
->> I=92m not sure what you mean by =93stale=94 : freed memory?
->>=20
->> I=92m looking at this code in rpcrdma_ep_connect() :
->>=20
->>  916                 if (ia->ri_id->device !=3D id->device) {
->>  917                         printk("RPC:       %s: can't reconnect =
-on "
->>  918                                 "different device!\n", __func__=
-);
->>  919                         rdma_destroy_id(id);
->>  920                         rc =3D -ENETUNREACH;
->>  921                         goto out;
->>  922                 }
->>=20
->> After reconnecting, if the ri_id has changed, the connect fails. Tod=
-ay,
->> xprtrdma does not support the device changing out from under it.
->>=20
->> Note also that our receive completion upcall uses ri_id->device for
->> DMA map syncing. Would that also be a problem during a bond failover=
-?
->>=20
->=20
-> I'm not talking about ri_id->device, this will be consistent. I'm
-> wandering about ia->ri_device, which might not have been updated yet.
+On Wed, 2015-04-01 at 23:33 +0300, Yuval Shaia wrote:
+> On Mon, Mar 23, 2015 at 11:17:49AM -0600, Jason Gunthorpe wrote:
+> > On Sun, Mar 22, 2015 at 11:21:50AM +0200, Yuval Shaia wrote:
+> > > On Sun, Mar 15, 2015 at 05:16:16PM +0200, Yuval Shaia wrote:
+> > > > Hi,
+> > > > I didn't got any further comments on this one.
+> > > > Any idea why SG in CM is un-welcome?
+> > > By mistake I sent a private mail only.
+> > > Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > >=20
+> > > Your advice would be very appreciated.
+> >=20
+> > I haven't looked in detail at the patch, but in principle, using S/G
+> > when ever possible should be the default, even if this creates a
+> > performance regression.
+> Per my testings - no impact on performance.
+> >=20
+> > It is well known that high order allocations are problematic in Linux
+> > and should be avoided, and I also have seen systems blow up because of
+> > high order IPoIB allocations.
+> Yes, snapshot from oops:
+> Call Trace:
+>  [<ffffffff810ddf74>] __alloc_pages_nodemask+0x524/0x595
+>  [<ffffffff8110da3f>] kmem_getpages+0x4f/0xf4
+>  [<ffffffff8110dc12>] fallback_alloc+0x12e/0x1ce
+>  [<ffffffff8110ddd3>] ____cache_alloc_node+0x121/0x134
+>  [<ffffffff8110e3f3>] kmem_cache_alloc_node_notrace+0x84/0xb9
+>  [<ffffffff8110e46e>] __kmalloc_node+0x46/0x73
+>  [<ffffffff813b9aa8>] ? __alloc_skb+0x72/0x13d
+> >=20
+> > That said, there may be cases where S/G is not possible, you should
+> > try and get Mellanox to comment if all their offloads work on all
+> > their cards when S/G is used. Work may be required to resolve any of
+> > these constraints. I'd like to belive there is some reason why we've
+> > been doing high order allocations for so many years.
+> Old kernels (2.6.39) restrict the usage of S/G only to H/W which supports=
+ CSUM offload.
+> Mellanox HCA supports CSUM offload only for UD and this is why we can fin=
+d S/G support for UD but not for CM.
+> With the introduction of commit ec5f061 this limitation is no longer ther=
+e so no reason not to add this support.
 
-ia->ri_device is never updated. The only place it is set is in
-rpcrdma_ia_open().
+Can you repost the patch with a cleaned up commit message that includes
+a reference to this prior restriction and the fact that it no longer
+exists please?
 
-> Just asking, assuming your transport device can change between consec=
-utive reconnects (the new cm_id will contain another device), is
-> it safe to rely on ri_device being updated?
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-My reading of the above logic is that ia->ri_id->device is guaranteed t=
-o
-be the same address during the lifetime of the transport instance. If i=
-t
-changes during a reconnect, rpcrdma_ep_connect() will fail the connect.
 
-In the case of a bonded device, why are the physical slave devices expo=
-sed
-to consumers? It might be saner to construct a virtual ib_device in thi=
-s
-case that consumers can depend on.
+--=-qGkw3+loE/KdxqoYbt9m
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVS3pxAAoJELgmozMOVy/dOKQQAIvGaOZrqhAnNzjRN6my9ETM
+4s2qFZJX4k8ezalg/oGostwWOTMPDffQ0OBa6hyn/wHChgfLJw7c3v5rOz4M37gO
+JtXaniWv4cFeQpdfIm1pEP7UuazCx7ROmFfLBmDlZzN18oWUn1z5Z523gN8y1qqN
+vrglllsfo9Fhybiu8kAD6zJGEDxv3dJoAcVM8yefXLlqDmfcM9tl/O+OhSfG3qu8
+6wcTwjYSwd2fmV4sUedSIo8+8aiPNQTOcro+l9QQ1PStlj8yvQ9IzPVao0CD+SPO
+nGLCAGdHxjZmF9nEqMmYHGbJrQG0otXQclY/Albmdh8BM0NQdtVLBTCHueCER7cj
+rB6yLAcxMX6bWWJuAFYZlH2KWnv7MFkc6UGyUQzh/8NI+jSRSZCUdkcC3ivGzDMN
+nJpSMQS1Qra7FAZwinh2LgKbTQSu0gQaYBs4ORcv+NTP3aG/wmcV9csAqTLfT9SM
+9yvbv+xN1+3pzQ3Cikvlv3UB9XSm4qhs4Asukk2zcfqPNPEBSfAaNQcVyJUtsVq8
+o7Y4cMhce4vyTBwhpKY80Of5QLBxIxmYMH89agvs/x+d6AX7XiKjzNLUiONxzLFo
+gRSoWmq6wwyjPmlupNwKnJ44alL/TLlgxsDkmDOurPLeMVvCsu95yg1UwTbaoghK
+EH3YflD08IM/nJ8uhHPW
+=2ewg
+-----END PGP SIGNATURE-----
+
+--=-qGkw3+loE/KdxqoYbt9m--
 
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
