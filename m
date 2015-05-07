@@ -1,63 +1,75 @@
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] iw_cxgb4: use wildcard mapping for getting remote addr
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: use wildcard mapping for getting remote addr
  info
-Date: Thu, 7 May 2015 15:43:31 +0000
-Message-ID: <13AA599688F47243B14FCFCCC2C803BB0DA9CB5A@fmsmsx104.amr.corp.intel.com>
+Date: Thu, 7 May 2015 15:23:44 -0500
+Message-ID: <20150507202344.GA3972@TENIKOLO-MOBL2>
 References: <20150507145224.28735.97977.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20150507145224.28735.97977.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-UmV2aWV3ZWQtYnk6IFRhdHlhbmEgTmlrb2xvdmEgPFRhdHlhbmEuRS5OaWtvbG92YUBpbnRlbC5j
-b20+IA0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGludXgtcmRtYS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mIFN0ZXZlIFdpc2UNClNlbnQ6IFRodXJzZGF5LCBNYXkgMDcsIDIwMTUg
-OTo1MiBBTQ0KVG86IGRsZWRmb3JkQHJlZGhhdC5jb20NCkNjOiBsaW51eC1yZG1hQHZnZXIua2Vy
-bmVsLm9yZw0KU3ViamVjdDogW1BBVENIXSBpd19jeGdiNDogdXNlIHdpbGRjYXJkIG1hcHBpbmcg
-Zm9yIGdldHRpbmcgcmVtb3RlIGFkZHIgaW5mbw0KDQpGb3IgbGlzdGVuaW5nIGVuZHBvaW50cyBi
-b3VuZCB0byB0aGUgd2lsZGNhcmQgYWRkcmVzcywgd2UgbmVlZCB0byBwYXNzIHRoZSB3aWxkY2Fy
-ZCBhZGRyZXNzIG1hcHBpbmcgdG8gaXdwbV9nZXRfcmVtb3RlX2luZm8oKSBpbnN0ZWFkIG9mIHRo
-ZSBtYXBwZWQgYWRkcmVzcyBvZiB0aGUgbmV3IGNoaWxkIGNvbm5lY3Rpb24uDQoNClNpZ25lZC1v
-ZmYtYnk6IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbT4NCi0tLQ0KIGRy
-aXZlcnMvaW5maW5pYmFuZC9ody9jeGdiNC9jbS5jIHwgICAxNiArKysrKysrKy0tLS0tLS0tDQog
-MSBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pDQoNCmRpZmYg
-LS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvY3hnYjQvY20uYyBiL2RyaXZlcnMvaW5maW5p
-YmFuZC9ody9jeGdiNC9jbS5jDQppbmRleCBiYjk1YTZjLi4zYWQ4ZGM3IDEwMDY0NA0KLS0tIGEv
-ZHJpdmVycy9pbmZpbmliYW5kL2h3L2N4Z2I0L2NtLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFu
-ZC9ody9jeGdiNC9jbS5jDQpAQCAtNTgzLDE4ICs1ODMsMTggQEAgc3RhdGljIHZvaWQgYzRpd19y
-ZWNvcmRfcG1fbXNnKHN0cnVjdCBjNGl3X2VwICplcCwNCiAJCXNpemVvZihlcC0+Y29tLm1hcHBl
-ZF9yZW1vdGVfYWRkcikpOw0KIH0NCiANCi1zdGF0aWMgaW50IGdldF9yZW1vdGVfYWRkcihzdHJ1
-Y3QgYzRpd19lcCAqZXApDQorc3RhdGljIGludCBnZXRfcmVtb3RlX2FkZHIoc3RydWN0IGM0aXdf
-ZXAgKnBhcmVudF9lcCwgc3RydWN0IGM0aXdfZXAgDQorKmNoaWxkX2VwKQ0KIHsNCiAJaW50IHJl
-dDsNCiANCi0JcHJpbnRfYWRkcigmZXAtPmNvbSwgX19mdW5jX18sICJnZXRfcmVtb3RlX2FkZHIi
-KTsNCisJcHJpbnRfYWRkcigmcGFyZW50X2VwLT5jb20sIF9fZnVuY19fLCAiZ2V0X3JlbW90ZV9h
-ZGRyIHBhcmVudF9lcCAiKTsNCisJcHJpbnRfYWRkcigmY2hpbGRfZXAtPmNvbSwgX19mdW5jX18s
-ICJnZXRfcmVtb3RlX2FkZHIgY2hpbGRfZXAgIik7DQogDQotCXJldCA9IGl3cG1fZ2V0X3JlbW90
-ZV9pbmZvKCZlcC0+Y29tLm1hcHBlZF9sb2NhbF9hZGRyLA0KLQkJCQkgICAmZXAtPmNvbS5tYXBw
-ZWRfcmVtb3RlX2FkZHIsDQotCQkJCSAgICZlcC0+Y29tLnJlbW90ZV9hZGRyLCBSRE1BX05MX0M0
-SVcpOw0KKwlyZXQgPSBpd3BtX2dldF9yZW1vdGVfaW5mbygmcGFyZW50X2VwLT5jb20ubWFwcGVk
-X2xvY2FsX2FkZHIsDQorCQkJCSAgICZjaGlsZF9lcC0+Y29tLm1hcHBlZF9yZW1vdGVfYWRkciwN
-CisJCQkJICAgJmNoaWxkX2VwLT5jb20ucmVtb3RlX2FkZHIsIFJETUFfTkxfQzRJVyk7DQogCWlm
-IChyZXQpDQotCQlwcl9pbmZvKE1PRCAiVW5hYmxlIHRvIGZpbmQgcmVtb3RlIHBlZXIgYWRkciBp
-bmZvIC0gZXJyICVkXG4iLA0KLQkJCXJldCk7DQorCQlQREJHKCJVbmFibGUgdG8gZmluZCByZW1v
-dGUgcGVlciBhZGRyIGluZm8gLSBlcnIgJWRcbiIsIHJldCk7DQogDQogCXJldHVybiByZXQ7DQog
-fQ0KQEAgLTI0MjAsNyArMjQyMCw3IEBAIHN0YXRpYyBpbnQgcGFzc19hY2NlcHRfcmVxKHN0cnVj
-dCBjNGl3X2RldiAqZGV2LCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiKQ0KIAl9DQogCW1lbWNweSgmY2hp
-bGRfZXAtPmNvbS5yZW1vdGVfYWRkciwgJmNoaWxkX2VwLT5jb20ubWFwcGVkX3JlbW90ZV9hZGRy
-LA0KIAkgICAgICAgc2l6ZW9mKGNoaWxkX2VwLT5jb20ucmVtb3RlX2FkZHIpKTsNCi0JZ2V0X3Jl
-bW90ZV9hZGRyKGNoaWxkX2VwKTsNCisJZ2V0X3JlbW90ZV9hZGRyKHBhcmVudF9lcCwgY2hpbGRf
-ZXApOw0KIA0KIAljNGl3X2dldF9lcCgmcGFyZW50X2VwLT5jb20pOw0KIAljaGlsZF9lcC0+cGFy
-ZW50X2VwID0gcGFyZW50X2VwOw0KDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5IG9mIGEg
-bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8g
-YXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+Reviewed-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+On Thu, May 07, 2015 at 09:52:24AM -0500, Steve Wise wrote:
+> For listening endpoints bound to the wildcard address, we need to pass
+> the wildcard address mapping to iwpm_get_remote_info() instead of the
+> mapped address of the new child connection.
+> 
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/cxgb4/cm.c |   16 ++++++++--------
+>  1 files changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> index bb95a6c..3ad8dc7 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -583,18 +583,18 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
+>  		sizeof(ep->com.mapped_remote_addr));
+>  }
+>  
+> -static int get_remote_addr(struct c4iw_ep *ep)
+> +static int get_remote_addr(struct c4iw_ep *parent_ep, struct c4iw_ep *child_ep)
+>  {
+>  	int ret;
+>  
+> -	print_addr(&ep->com, __func__, "get_remote_addr");
+> +	print_addr(&parent_ep->com, __func__, "get_remote_addr parent_ep ");
+> +	print_addr(&child_ep->com, __func__, "get_remote_addr child_ep ");
+>  
+> -	ret = iwpm_get_remote_info(&ep->com.mapped_local_addr,
+> -				   &ep->com.mapped_remote_addr,
+> -				   &ep->com.remote_addr, RDMA_NL_C4IW);
+> +	ret = iwpm_get_remote_info(&parent_ep->com.mapped_local_addr,
+> +				   &child_ep->com.mapped_remote_addr,
+> +				   &child_ep->com.remote_addr, RDMA_NL_C4IW);
+>  	if (ret)
+> -		pr_info(MOD "Unable to find remote peer addr info - err %d\n",
+> -			ret);
+> +		PDBG("Unable to find remote peer addr info - err %d\n", ret);
+>  
+>  	return ret;
+>  }
+> @@ -2420,7 +2420,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+>  	}
+>  	memcpy(&child_ep->com.remote_addr, &child_ep->com.mapped_remote_addr,
+>  	       sizeof(child_ep->com.remote_addr));
+> -	get_remote_addr(child_ep);
+> +	get_remote_addr(parent_ep, child_ep);
+>  
+>  	c4iw_get_ep(&parent_ep->com);
+>  	child_ep->parent_ep = parent_ep;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
