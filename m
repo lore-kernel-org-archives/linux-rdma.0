@@ -1,76 +1,169 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Patchworks
-Date: Thu, 07 May 2015 10:59:05 -0400
-Message-ID: <1431010745.2407.380.camel@redhat.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 04/14] xprtrdma: Use ib_device pointer safely
+Date: Thu, 07 May 2015 18:11:51 +0300
+Message-ID: <554B80B7.8090900@dev.mellanox.co.il>
+References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175720.3483.80356.stgit@manet.1015granger.net> <554B37CF.2070206@dev.mellanox.co.il> <E1ADA91B-45DA-46B6-A114-E2600613969A@oracle.com> <554B6F2A.6000608@dev.mellanox.co.il> <BDE22240-DC37-4C54-B71E-D88EF54D3119@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-aIMwvRC+p/Jw0ZUCvdw8"
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BDE22240-DC37-4C54-B71E-D88EF54D3119-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/7/2015 5:12 PM, Chuck Lever wrote:
+>
+> On May 7, 2015, at 9:56 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> =
+wrote:
+>
+>> On 5/7/2015 4:39 PM, Chuck Lever wrote:
+>>>
+>>> On May 7, 2015, at 6:00 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org=
+> wrote:
+>>>
+>>>> On 5/4/2015 8:57 PM, Chuck Lever wrote:
+>>>>> The connect worker can replace ri_id, but prevents ri_id->device
+>>>>> from changing during the lifetime of a transport instance.
+>>>>>
+>>>>> Cache a copy of ri_id->device in rpcrdma_ia and in rpcrdma_rep.
+>>>>> The cached copy can be used safely in code that does not serializ=
+e
+>>>>> with the connect worker.
+>>>>>
+>>>>> Other code can use it to save an extra address generation (one
+>>>>> pointer dereference instead of two).
+>>>>>
+>>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>> ---
+>>>>>   net/sunrpc/xprtrdma/fmr_ops.c      |    8 +----
+>>>>>   net/sunrpc/xprtrdma/frwr_ops.c     |   12 +++----
+>>>>>   net/sunrpc/xprtrdma/physical_ops.c |    8 +----
+>>>>>   net/sunrpc/xprtrdma/verbs.c        |   61 +++++++++++++++++++--=
+---------------
+>>>>>   net/sunrpc/xprtrdma/xprt_rdma.h    |    2 +
+>>>>>   5 files changed, 43 insertions(+), 48 deletions(-)
+>>>>>
+>>>>> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/=
+fmr_ops.c
+>>>>> index 302d4eb..0a96155 100644
+>>>>> --- a/net/sunrpc/xprtrdma/fmr_ops.c
+>>>>> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
+>>>>> @@ -85,7 +85,7 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct =
+rpcrdma_mr_seg *seg,
+>>>>>   	   int nsegs, bool writing)
+>>>>>   {
+>>>>>   	struct rpcrdma_ia *ia =3D &r_xprt->rx_ia;
+>>>>> -	struct ib_device *device =3D ia->ri_id->device;
+>>>>> +	struct ib_device *device =3D ia->ri_device;
+>>>>>   	enum dma_data_direction direction =3D rpcrdma_data_dir(writing=
+);
+>>>>>   	struct rpcrdma_mr_seg *seg1 =3D seg;
+>>>>>   	struct rpcrdma_mw *mw =3D seg1->rl_mw;
+>>>>> @@ -137,17 +137,13 @@ fmr_op_unmap(struct rpcrdma_xprt *r_xprt, s=
+truct rpcrdma_mr_seg *seg)
+>>>>>   {
+>>>>>   	struct rpcrdma_ia *ia =3D &r_xprt->rx_ia;
+>>>>>   	struct rpcrdma_mr_seg *seg1 =3D seg;
+>>>>> -	struct ib_device *device;
+>>>>>   	int rc, nsegs =3D seg->mr_nsegs;
+>>>>>   	LIST_HEAD(l);
+>>>>>
+>>>>>   	list_add(&seg1->rl_mw->r.fmr->list, &l);
+>>>>>   	rc =3D ib_unmap_fmr(&l);
+>>>>> -	read_lock(&ia->ri_qplock);
+>>>>> -	device =3D ia->ri_id->device;
+>>>>>   	while (seg1->mr_nsegs--)
+>>>>> -		rpcrdma_unmap_one(device, seg++);
+>>>>> -	read_unlock(&ia->ri_qplock);
+>>>>> +		rpcrdma_unmap_one(ia->ri_device, seg++);
+>>>>
+>>>> Umm, I'm wandering if this is guaranteed to be the same device as
+>>>> ri_id->device?
+>>>>
+>>>> Imagine you are working on a bond device where each slave belongs =
+to
+>>>> a different adapter. When the active port toggles, you will see a
+>>>> ADDR_CHANGED event (that the current code does not handle...), wha=
+t
+>>>> you'd want to do is just reconnect and rdma_cm will resolve the ne=
+w
+>>>> address for you (via the backup slave). I suspect that in case thi=
+s
+>>>> flow is concurrent with the reconnects you may end up with a stale
+>>>> device handle.
+>>>
+>>> I=92m not sure what you mean by =93stale=94 : freed memory?
+>>>
+>>> I=92m looking at this code in rpcrdma_ep_connect() :
+>>>
+>>>   916                 if (ia->ri_id->device !=3D id->device) {
+>>>   917                         printk("RPC:       %s: can't reconnec=
+t on "
+>>>   918                                 "different device!\n", __func=
+__);
+>>>   919                         rdma_destroy_id(id);
+>>>   920                         rc =3D -ENETUNREACH;
+>>>   921                         goto out;
+>>>   922                 }
+>>>
+>>> After reconnecting, if the ri_id has changed, the connect fails. To=
+day,
+>>> xprtrdma does not support the device changing out from under it.
+>>>
+>>> Note also that our receive completion upcall uses ri_id->device for
+>>> DMA map syncing. Would that also be a problem during a bond failove=
+r?
+>>>
+>>
+>> I'm not talking about ri_id->device, this will be consistent. I'm
+>> wandering about ia->ri_device, which might not have been updated yet=
+=2E
+>
+> ia->ri_device is never updated. The only place it is set is in
+> rpcrdma_ia_open().
 
---=-aIMwvRC+p/Jw0ZUCvdw8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+So you assume that each ri_id that you will recreate contains the
+same device handle?
 
-For those of you that don't know, there is a patchworks set up for the
-linux-rdma mailing list.  That patchworks is horribly out of date.  It
-has not been maintained since, well, probably forever.  I intend to make
-use of this as it's a valuable tool for getting maintainer work done.
-As such, this is a quick note to let people know that I'm going to reset
-patchworks for the linux-rdma list.  It's too much to go through and
-categorize 1000+ backlogged patch entries, so I'm simply going to mark
-all of them Rejected which will clear them out of the list.
+I think that for ADDR_CHANGE event when the slave belongs to another
+device you will hit a mismatch. CC'ing Sean for more info...
 
-What this means to patch submitters:  If I don't have your patch already
-in my most recent pull request to Linus, then it will need to be
-reposted so that it is re-entered in patchworks (except for your last
-one Steve, it came through after I had cleared out the list).
+>
+>> Just asking, assuming your transport device can change between conse=
+cutive reconnects (the new cm_id will contain another device), is
+>> it safe to rely on ri_device being updated?
+>
+> My reading of the above logic is that ia->ri_id->device is guaranteed=
+ to
+> be the same address during the lifetime of the transport instance. If=
+ it
+> changes during a reconnect, rpcrdma_ep_connect() will fail the connec=
+t.
 
-Exceptions: I kept around the patches that were Under Review by
-maintainers (Hal and Ira, although I accidentally rejected one of yours
-Ira, my apologies, I didn't see it in the list until just as I hit the
-submit button).
+It is the same address - the bond0 IP...
 
-In the future, if people want to know the status of things, patchworks
-can actually be used for that purpose.  For those that don't know, here
-is the patchworks address:
+>
+> In the case of a bonded device, why are the physical slave devices ex=
+posed
+> to consumers?
 
-https://patchwork.kernel.org/project/linux-rdma/list/
+You mean ib_device handle? you need it to create PD/CQ/QP/MRs...
+How else can you allocate the device resources without the device
+handle?
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+rdma_cm simply gives you the device handle by the IP route. From there
+you own the resources you create.
 
+> It might be saner to construct a virtual ib_device in this
+> case that consumers can depend on.
 
---=-aIMwvRC+p/Jw0ZUCvdw8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVS325AAoJELgmozMOVy/dqmEP/Ry2kjeEtYla3Wsyi1iyWXj/
-OsAHDrKad/CeP3XnF4wwfEiPgKb0yLajTk6/L46gFrU6k9SSV7lM16Slqosyhrx+
-Jsn559+i8/qiqv3DgrBgd7usIAkw3cTB9bVU+OIWPvuvaCDuXH3YC8SKkxqdTaSP
-zkgqbtSE4/SpQxyfboPeDp55nOBsl68TDNsRH67o+0OdVugmpiHOyYI/vLdCTkmk
-McPGPxg0VrkLa0t6aicS9AdQvau4tk/14Jo4QSs+l+EoYW/P4QozgkXYlrOb5t6p
-obSQ1KmlR7Qk8/Bw8fiQifkuVrlXUI/N347vNIil9ix8QCQulVTKlNvSQ25pqWIZ
-DyEGnCVZTmD6FfCGM6saU33A3TLqjV67mXWdczWAg36+A8JrbxcwKCzobAfbYLK5
-dVg9igtbnzOGh6QFzpCPfahYZUwC0nXUQVINIe2RjUtEqbxk9/PjYsqDlzl0u676
-xMAFq8BFuuWNmnMZwtoeCTHooXvR9wd2Zvhe1SCNKsso9XXK2MxhwDPC7WpizBOo
-bJvDQgmcFicwck8NnsICBWBKws7VuS5lQwv2mXLtrWW2Uzr6DseNhKRyDwCY1+BY
-C1mhM8irOAo3nARGsnW4qWZyynHGukCO/6Kr2UTgRK+gWE0xuPENZuarHE2FQwDd
-pEA26TfWVBkGebRC4FTe
-=0Mze
------END PGP SIGNATURE-----
-
---=-aIMwvRC+p/Jw0ZUCvdw8--
-
+I'm not sure how does a virtual ib_device can work - that goes
+to the verbs themselves... Seems like a layering mis-match to me...
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
