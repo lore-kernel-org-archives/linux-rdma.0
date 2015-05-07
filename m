@@ -1,156 +1,63 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 13/14] xprtrdma: Stack relief in fmr_op_map()
-Date: Thu, 07 May 2015 13:50:19 +0300
-Message-ID: <554B436B.5040108@dev.mellanox.co.il>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175846.3483.32959.stgit@manet.1015granger.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibdiag_sa.c: In sa_get_handle, handle umad_open_port
+ and umad_register failures
+Date: Thu, 07 May 2015 13:54:52 +0300
+Message-ID: <554B447C.1040003@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150504175846.3483.32959.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/4/2015 8:58 PM, Chuck Lever wrote:
-> fmr_op_map() declares a 64 element array of u64 in automatic
-> storage. This is 512 bytes (8 * 64) on the stack.
->
-> Instead, when FMR memory registration is in use, pre-allocate a
-> physaddr array for each rpcrdma_mw.
->
-> This is a pre-requisite for increasing the r/wsize maximum for
-> FMR on platforms with 4KB pages.
->
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->   net/sunrpc/xprtrdma/fmr_ops.c   |   32 ++++++++++++++++++++++----------
->   net/sunrpc/xprtrdma/xprt_rdma.h |    7 ++++++-
->   2 files changed, 28 insertions(+), 11 deletions(-)
->
-> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-> index 52f9ad5..4a53ad5 100644
-> --- a/net/sunrpc/xprtrdma/fmr_ops.c
-> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-> @@ -72,13 +72,19 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
->   	i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
->   	dprintk("RPC:       %s: initializing %d FMRs\n", __func__, i);
->
-> +	rc = -ENOMEM;
->   	while (i--) {
->   		r = kzalloc(sizeof(*r), GFP_KERNEL);
->   		if (!r)
-> -			return -ENOMEM;
-> +			goto out;
-> +
-> +		r->r.fmr.physaddrs = kmalloc(RPCRDMA_MAX_FMR_SGES *
-> +					     sizeof(u64), GFP_KERNEL);
-> +		if (!r->r.fmr.physaddrs)
-> +			goto out_free;
->
-> -		r->r.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
-> -		if (IS_ERR(r->r.fmr))
-> +		r->r.fmr.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
-> +		if (IS_ERR(r->r.fmr.fmr))
->   			goto out_fmr_err;
->
->   		list_add(&r->mw_list, &buf->rb_mws);
-> @@ -87,9 +93,12 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
->   	return 0;
->
->   out_fmr_err:
-> -	rc = PTR_ERR(r->r.fmr);
-> +	rc = PTR_ERR(r->r.fmr.fmr);
->   	dprintk("RPC:       %s: ib_alloc_fmr status %i\n", __func__, rc);
-> +	kfree(r->r.fmr.physaddrs);
-> +out_free:
->   	kfree(r);
-> +out:
->   	return rc;
->   }
->
-> @@ -98,7 +107,7 @@ __fmr_unmap(struct rpcrdma_mw *r)
->   {
->   	LIST_HEAD(l);
->
-> -	list_add(&r->r.fmr->list, &l);
-> +	list_add(&r->r.fmr.fmr->list, &l);
->   	return ib_unmap_fmr(&l);
->   }
->
-> @@ -113,7 +122,6 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->   	struct ib_device *device = ia->ri_device;
->   	enum dma_data_direction direction = rpcrdma_data_dir(writing);
->   	struct rpcrdma_mr_seg *seg1 = seg;
-> -	u64 physaddrs[RPCRDMA_MAX_DATA_SEGS];
->   	int len, pageoff, i, rc;
->   	struct rpcrdma_mw *mw;
->
-> @@ -138,7 +146,7 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->   		nsegs = RPCRDMA_MAX_FMR_SGES;
->   	for (i = 0; i < nsegs;) {
->   		rpcrdma_map_one(device, seg, direction);
-> -		physaddrs[i] = seg->mr_dma;
-> +		mw->r.fmr.physaddrs[i] = seg->mr_dma;
->   		len += seg->mr_len;
->   		++seg;
->   		++i;
-> @@ -148,12 +156,13 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->   			break;
->   	}
->
-> -	rc = ib_map_phys_fmr(mw->r.fmr, physaddrs, i, seg1->mr_dma);
-> +	rc = ib_map_phys_fmr(mw->r.fmr.fmr, mw->r.fmr.physaddrs,
-> +			     i, seg1->mr_dma);
->   	if (rc)
->   		goto out_maperr;
->
->   	seg1->rl_mw = mw;
-> -	seg1->mr_rkey = mw->r.fmr->rkey;
-> +	seg1->mr_rkey = mw->r.fmr.fmr->rkey;
->   	seg1->mr_base = seg1->mr_dma + pageoff;
->   	seg1->mr_nsegs = i;
->   	seg1->mr_len = len;
-> @@ -207,10 +216,13 @@ fmr_op_destroy(struct rpcrdma_buffer *buf)
->   	while (!list_empty(&buf->rb_all)) {
->   		r = list_entry(buf->rb_all.next, struct rpcrdma_mw, mw_all);
->   		list_del(&r->mw_all);
-> -		rc = ib_dealloc_fmr(r->r.fmr);
-> +		kfree(r->r.fmr.physaddrs);
-> +
-> +		rc = ib_dealloc_fmr(r->r.fmr.fmr);
->   		if (rc)
->   			dprintk("RPC:       %s: ib_dealloc_fmr failed %i\n",
->   				__func__, rc);
-> +
->   		kfree(r);
->   	}
->   }
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index ae31fc7..e176bae 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -207,9 +207,14 @@ struct rpcrdma_frmr {
->   	struct rpcrdma_xprt		*fr_xprt;
->   };
->
-> +struct rpcrdma_fmr {
-> +	struct ib_fmr		*fmr;
-> +	u64			*physaddrs;
-> +};
-> +
->   struct rpcrdma_mw {
->   	union {
-> -		struct ib_fmr		*fmr;
-> +		struct rpcrdma_fmr	fmr;
->   		struct rpcrdma_frmr	frmr;
->   	} r;
->   	void			(*mw_sendcompletion)(struct ib_wc *);
->
 
-Looks good
+Treat umad_open_port and umad_register errors as failures for sa_get_handle
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/ibdiag_sa.c b/src/ibdiag_sa.c
+index 018a428..a089aee 100644
+--- a/src/ibdiag_sa.c
++++ b/src/ibdiag_sa.c
+@@ -60,18 +60,32 @@ struct sa_handle * sa_get_handle(void)
+ 		IBWARN("No SM/SA found on port %s:%d",
+ 			ibd_ca ? "" : ibd_ca,
+ 			ibd_ca_port);
+-		free(handle);
+-		return (NULL);
++		goto err;
+ 	}
+ 
+ 	handle->dport.qp = 1;
+ 	if (!handle->dport.qkey)
+ 		handle->dport.qkey = IB_DEFAULT_QP1_QKEY;
+ 
+-	handle->fd = umad_open_port(ibd_ca, ibd_ca_port);
+-	handle->agent = umad_register(handle->fd, IB_SA_CLASS, 2, 1, NULL);
++	if ((handle->fd = umad_open_port(ibd_ca, ibd_ca_port)) < 0) {
++		IBWARN("umad_open_port on port %s:%d failed",
++			ibd_ca ? "" : ibd_ca,
++			ibd_ca_port);
++		goto err;
++	}
++	if ((handle->agent = umad_register(handle->fd, IB_SA_CLASS, 2, 1, NULL)) < 0) {
++		umad_close_port(handle->fd);
++		IBWARN("umad_register for SA class failed on port %s:%d",
++		       ibd_ca ? "" : ibd_ca,
++		       ibd_ca_port);
++		goto err;
++	}
+ 
+ 	return handle;
++
++err:
++	free(handle);
++	return (NULL);
+ }
+ 
+ void sa_free_handle(struct sa_handle * h)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
