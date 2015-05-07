@@ -1,64 +1,74 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: use wildcard mapping for getting remote addr info
-Date: Thu, 07 May 2015 09:52:24 -0500
-Message-ID: <20150507145224.28735.97977.stgit@build.ogc.int>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Patchworks
+Date: Thu, 07 May 2015 10:59:05 -0400
+Message-ID: <1431010745.2407.380.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-aIMwvRC+p/Jw0ZUCvdw8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For listening endpoints bound to the wildcard address, we need to pass
-the wildcard address mapping to iwpm_get_remote_info() instead of the
-mapped address of the new child connection.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+--=-aIMwvRC+p/Jw0ZUCvdw8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index bb95a6c..3ad8dc7 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -583,18 +583,18 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
- 		sizeof(ep->com.mapped_remote_addr));
- }
- 
--static int get_remote_addr(struct c4iw_ep *ep)
-+static int get_remote_addr(struct c4iw_ep *parent_ep, struct c4iw_ep *child_ep)
- {
- 	int ret;
- 
--	print_addr(&ep->com, __func__, "get_remote_addr");
-+	print_addr(&parent_ep->com, __func__, "get_remote_addr parent_ep ");
-+	print_addr(&child_ep->com, __func__, "get_remote_addr child_ep ");
- 
--	ret = iwpm_get_remote_info(&ep->com.mapped_local_addr,
--				   &ep->com.mapped_remote_addr,
--				   &ep->com.remote_addr, RDMA_NL_C4IW);
-+	ret = iwpm_get_remote_info(&parent_ep->com.mapped_local_addr,
-+				   &child_ep->com.mapped_remote_addr,
-+				   &child_ep->com.remote_addr, RDMA_NL_C4IW);
- 	if (ret)
--		pr_info(MOD "Unable to find remote peer addr info - err %d\n",
--			ret);
-+		PDBG("Unable to find remote peer addr info - err %d\n", ret);
- 
- 	return ret;
- }
-@@ -2420,7 +2420,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	}
- 	memcpy(&child_ep->com.remote_addr, &child_ep->com.mapped_remote_addr,
- 	       sizeof(child_ep->com.remote_addr));
--	get_remote_addr(child_ep);
-+	get_remote_addr(parent_ep, child_ep);
- 
- 	c4iw_get_ep(&parent_ep->com);
- 	child_ep->parent_ep = parent_ep;
+For those of you that don't know, there is a patchworks set up for the
+linux-rdma mailing list.  That patchworks is horribly out of date.  It
+has not been maintained since, well, probably forever.  I intend to make
+use of this as it's a valuable tool for getting maintainer work done.
+As such, this is a quick note to let people know that I'm going to reset
+patchworks for the linux-rdma list.  It's too much to go through and
+categorize 1000+ backlogged patch entries, so I'm simply going to mark
+all of them Rejected which will clear them out of the list.
+
+What this means to patch submitters:  If I don't have your patch already
+in my most recent pull request to Linus, then it will need to be
+reposted so that it is re-entered in patchworks (except for your last
+one Steve, it came through after I had cleared out the list).
+
+Exceptions: I kept around the patches that were Under Review by
+maintainers (Hal and Ira, although I accidentally rejected one of yours
+Ira, my apologies, I didn't see it in the list until just as I hit the
+submit button).
+
+In the future, if people want to know the status of things, patchworks
+can actually be used for that purpose.  For those that don't know, here
+is the patchworks address:
+
+https://patchwork.kernel.org/project/linux-rdma/list/
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+--=-aIMwvRC+p/Jw0ZUCvdw8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVS325AAoJELgmozMOVy/dqmEP/Ry2kjeEtYla3Wsyi1iyWXj/
+OsAHDrKad/CeP3XnF4wwfEiPgKb0yLajTk6/L46gFrU6k9SSV7lM16Slqosyhrx+
+Jsn559+i8/qiqv3DgrBgd7usIAkw3cTB9bVU+OIWPvuvaCDuXH3YC8SKkxqdTaSP
+zkgqbtSE4/SpQxyfboPeDp55nOBsl68TDNsRH67o+0OdVugmpiHOyYI/vLdCTkmk
+McPGPxg0VrkLa0t6aicS9AdQvau4tk/14Jo4QSs+l+EoYW/P4QozgkXYlrOb5t6p
+obSQ1KmlR7Qk8/Bw8fiQifkuVrlXUI/N347vNIil9ix8QCQulVTKlNvSQ25pqWIZ
+DyEGnCVZTmD6FfCGM6saU33A3TLqjV67mXWdczWAg36+A8JrbxcwKCzobAfbYLK5
+dVg9igtbnzOGh6QFzpCPfahYZUwC0nXUQVINIe2RjUtEqbxk9/PjYsqDlzl0u676
+xMAFq8BFuuWNmnMZwtoeCTHooXvR9wd2Zvhe1SCNKsso9XXK2MxhwDPC7WpizBOo
+bJvDQgmcFicwck8NnsICBWBKws7VuS5lQwv2mXLtrWW2Uzr6DseNhKRyDwCY1+BY
+C1mhM8irOAo3nARGsnW4qWZyynHGukCO/6Kr2UTgRK+gWE0xuPENZuarHE2FQwDd
+pEA26TfWVBkGebRC4FTe
+=0Mze
+-----END PGP SIGNATURE-----
+
+--=-aIMwvRC+p/Jw0ZUCvdw8--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
