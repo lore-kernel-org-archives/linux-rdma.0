@@ -1,8 +1,10 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 0/2][RESEND] General MAD clean up
-Date: Fri,  8 May 2015 13:10:02 -0400
-Message-ID: <1431105004-23585-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 1/2][RESEND] IB/mad: Rename is_data_mad to is_rmpp_data_mad
+Date: Fri,  8 May 2015 13:10:03 -0400
+Message-ID: <1431105004-23585-2-git-send-email-ira.weiny@intel.com>
+References: <1431105004-23585-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431105004-23585-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,22 +12,47 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Resend due to Patchwork being reset.  Also added Jason's Reviewed-By and Sean's
-Acked-By lines.
+is_rmpp_data_mad is more descriptive for this function.
 
-These 2 patches contain some clean ups to the MAD module.  One was reviewed
-months ago by Sean and the other was suggested by Doug.
-
-These are based on Doug's for-4.2 branch
-
-Ira Weiny (2):
-  IB/mad: Rename is_data_mad to is_rmpp_data_mad
-  IB/mad: Clean up comments in smi.c
-
+Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
  drivers/infiniband/core/mad.c | 7 ++++---
- drivers/infiniband/core/smi.c | 4 ++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index ee3a05e..7af6ca7 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1734,7 +1734,7 @@ out:
+ 	return valid;
+ }
+ 
+-static int is_data_mad(struct ib_mad_agent_private *mad_agent_priv,
++static int is_rmpp_data_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 		       struct ib_mad_hdr *mad_hdr)
+ {
+ 	struct ib_rmpp_mad *rmpp_mad;
+@@ -1836,7 +1836,7 @@ ib_find_send_mad(struct ib_mad_agent_private *mad_agent_priv,
+ 	 * been notified that the send has completed
+ 	 */
+ 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
+-		if (is_data_mad(mad_agent_priv, wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
+ 		    wr->tid == mad->mad_hdr.tid &&
+ 		    wr->timeout &&
+ 		    rcv_has_same_class(wr, wc) &&
+@@ -2411,7 +2411,8 @@ find_send_wr(struct ib_mad_agent_private *mad_agent_priv,
+ 
+ 	list_for_each_entry(mad_send_wr, &mad_agent_priv->send_list,
+ 			    agent_list) {
+-		if (is_data_mad(mad_agent_priv, mad_send_wr->send_buf.mad) &&
++		if (is_rmpp_data_mad(mad_agent_priv,
++				     mad_send_wr->send_buf.mad) &&
+ 		    &mad_send_wr->send_buf == send_buf)
+ 			return mad_send_wr;
+ 	}
 -- 
 1.8.2
 
