@@ -1,169 +1,47 @@
-From: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4] IB/core: Fix unaligned accesses
-Date: Fri, 08 May 2015 13:34:20 -0600
-Message-ID: <554D0FBC.9090408@oracle.com>
-References: <1430660906-215424-1-git-send-email-david.ahern@oracle.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Fri, 8 May 2015 20:06:08 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FCD719@ORSMSX109.amr.corp.intel.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+	 <1430750492.2407.9.camel@redhat.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
+	 <HE1PR05MB1418E58A6EB92D92B78C76A0B1D10@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <1431111412.2407.463.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1430660906-215424-1-git-send-email-david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1431111412.2407.463.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ping? I have addressed all of the comments; anything else holding up a 
-commit?
-
-On 5/3/15 7:48 AM, David Ahern wrote:
-> Addresses the following kernel logs seen during boot of sparc systems:
->
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
-> Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_cm]
->
-> Signed-off-by: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> v4
-> - fix uses of IB_CM_COMPARE_SIZE in memcmp noticed by Shachar
->
-> v3
-> - updated definition of IB_CM_COMPARE_SIZE to account for u32 walking
->    per Yann's comment
-> - added const to src/mask args to cm_mask_copy and removed extra whitespace
->    per Bart's comments
-> - changed 2 private_data declarations to u32 as suggested by Jason
->
-> v2
-> - updated per Jason's comments
->
->   drivers/infiniband/core/cm.c      | 23 +++++++++++------------
->   drivers/infiniband/core/cm_msgs.h |  4 ++--
->   include/rdma/ib_cm.h              |  7 ++++---
->   3 files changed, 17 insertions(+), 17 deletions(-)
->
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index e28a494e2a3a..0c1419105ff0 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -437,39 +437,38 @@ static struct cm_id_private * cm_acquire_id(__be32 local_id, __be32 remote_id)
->   	return cm_id_priv;
->   }
->
-> -static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
-> +static void cm_mask_copy(u32 *dst, const u32 *src, const u32 *mask)
->   {
->   	int i;
->
-> -	for (i = 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++)
-> -		((unsigned long *) dst)[i] = ((unsigned long *) src)[i] &
-> -					     ((unsigned long *) mask)[i];
-> +	for (i = 0; i < IB_CM_COMPARE_SIZE; i++)
-> +		dst[i] = src[i] & mask[i];
->   }
->
->   static int cm_compare_data(struct ib_cm_compare_data *src_data,
->   			   struct ib_cm_compare_data *dst_data)
->   {
-> -	u8 src[IB_CM_COMPARE_SIZE];
-> -	u8 dst[IB_CM_COMPARE_SIZE];
-> +	u32 src[IB_CM_COMPARE_SIZE];
-> +	u32 dst[IB_CM_COMPARE_SIZE];
->
->   	if (!src_data || !dst_data)
->   		return 0;
->
->   	cm_mask_copy(src, src_data->data, dst_data->mask);
->   	cm_mask_copy(dst, dst_data->data, src_data->mask);
-> -	return memcmp(src, dst, IB_CM_COMPARE_SIZE);
-> +	return memcmp(src, dst, sizeof(src));
->   }
->
-> -static int cm_compare_private_data(u8 *private_data,
-> +static int cm_compare_private_data(u32 *private_data,
->   				   struct ib_cm_compare_data *dst_data)
->   {
-> -	u8 src[IB_CM_COMPARE_SIZE];
-> +	u32 src[IB_CM_COMPARE_SIZE];
->
->   	if (!dst_data)
->   		return 0;
->
->   	cm_mask_copy(src, private_data, dst_data->mask);
-> -	return memcmp(src, dst_data->data, IB_CM_COMPARE_SIZE);
-> +	return memcmp(src, dst_data->data, sizeof(src));
->   }
->
->   /*
-> @@ -538,7 +537,7 @@ static struct cm_id_private * cm_insert_listen(struct cm_id_private *cm_id_priv)
->
->   static struct cm_id_private * cm_find_listen(struct ib_device *device,
->   					     __be64 service_id,
-> -					     u8 *private_data)
-> +					     u32 *private_data)
->   {
->   	struct rb_node *node = cm.listen_service_table.rb_node;
->   	struct cm_id_private *cm_id_priv;
-> @@ -953,7 +952,7 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id, __be64 service_mask,
->   		cm_mask_copy(cm_id_priv->compare_data->data,
->   			     compare_data->data, compare_data->mask);
->   		memcpy(cm_id_priv->compare_data->mask, compare_data->mask,
-> -		       IB_CM_COMPARE_SIZE);
-> +		       sizeof(compare_data->mask));
->   	}
->
->   	cm_id->state = IB_CM_LISTEN;
-> diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-> index be068f47e47e..8b76f0ef965e 100644
-> --- a/drivers/infiniband/core/cm_msgs.h
-> +++ b/drivers/infiniband/core/cm_msgs.h
-> @@ -103,7 +103,7 @@ struct cm_req_msg {
->   	/* local ACK timeout:5, rsvd:3 */
->   	u8 alt_offset139;
->
-> -	u8 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE];
-> +	u32 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
->
->   } __attribute__ ((packed));
->
-> @@ -801,7 +801,7 @@ struct cm_sidr_req_msg {
->   	__be16 rsvd;
->   	__be64 service_id;
->
-> -	u8 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE];
-> +	u32 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
->   } __attribute__ ((packed));
->
->   struct cm_sidr_rep_msg {
-> diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-> index 0e3ff30647d5..39ed2d2fbd51 100644
-> --- a/include/rdma/ib_cm.h
-> +++ b/include/rdma/ib_cm.h
-> @@ -105,7 +105,8 @@ enum ib_cm_data_size {
->   	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE = 216,
->   	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE = 136,
->   	IB_CM_SIDR_REP_INFO_LENGTH	 = 72,
-> -	IB_CM_COMPARE_SIZE		 = 64
-> +	/* compare done u32 at a time */
-> +	IB_CM_COMPARE_SIZE		 = (64 / sizeof(u32))
->   };
->
->   struct ib_cm_id;
-> @@ -337,8 +338,8 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id);
->   #define IB_SDP_SERVICE_ID_MASK	cpu_to_be64(0xFFFFFFFFFFFF0000ULL)
->
->   struct ib_cm_compare_data {
-> -	u8  data[IB_CM_COMPARE_SIZE];
-> -	u8  mask[IB_CM_COMPARE_SIZE];
-> +	u32  data[IB_CM_COMPARE_SIZE];
-> +	u32  mask[IB_CM_COMPARE_SIZE];
->   };
->
->   /**
->
-
+PiBUaGlzIGlzIHdoYXQgSSBoYXZlIHNvIGZhcjoNCj4gDQo+IE9uIGEgcGVyIGRldmljZSBiYXNp
+czogbm90IG11Y2ggdG8gYmUgaG9uZXN0LCBub2RlX3R5cGUgSUJfQ0EvUk5JQyBmb3INCj4gYmFj
+ayBjb21wYXRpYmlsaXR5IGFuZCB0aGF0J3MgcHJldHR5IG11Y2ggaXQNCj4gDQo+IE9uIGEgcGVy
+IHBvcnQgYmFzaXM6IGxpbmsgbGF5ZXIgKEV0aGVybmV0LCBJQiwgb3IgT1BBKS4gIE5vdGljZSB0
+aGF0IEkNCj4gZGlkbid0IGluY2x1ZGUgdGhlIHRyYW5zcG9ydCBoZXJlLiAgVHdvIG9mIHRoZSBh
+Ym92ZSBsaW5rIGxheWVycw0KPiBzdHJpY3RseSBpbXBseSB0aGVpciB0cmFuc3BvcnQuICBUaGUg
+dGhpcmQgbGluayBsYXllciBjb3VsZCBoYXZlDQo+IG11bHRpcGxlIHRyYW5zcG9ydHMuICBXaGlj
+aCBicmluZ3MgbWUgdG8gbXkgbmV4dCBsZXZlbC4uLg0KPiANCj4gT24gYSBwZXIgcXVldWUgcGFp
+ciBiYXNpczogaWYgKGxpbmtfbGF5ZXIgPT0gRXRoZXJuZXQpIGlXQVJQL1JvQ0UvVVNOSUMNCj4g
+ICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChxcF90eXBlID09IFJvQ0UgJiYgcXAgIT0gVUQp
+IFJvQ0V2MS9Sb0NFdjINCj4gDQo+IE9uIGEgcGVyIGFoIGJhc2lzOiBpZiAocXBfdHlwZSA9PSBS
+b0NFICYmIHFwID0gVUQpIFJvQ0V2MS9Sb0NFdjINCj4gDQo+IE1pY2hhZWwncyBwYXRjaCBzZXQg
+d2FzIGludGVuZGVkIHRvIGdpdmUgdXMgYSBmcmFtZXdvcmsgd2l0aGluIHdoaWNoIHdlDQo+IGNh
+biBzdGFydCBjbGVhbmluZyB0aGluZ3MgdXAuICBPbmNlIHdlIGdldCB0byBjbGVhbmluZyB0aGlu
+Z3MgdXAsIEkNCj4gdGhpbmsgdGhlIGFib3ZlIGlzIHdoZXJlIHdlIHNob3VsZCB0YXJnZXQgc3Rv
+cmluZyB0aGUgcmVsZXZhbnQNCj4gaW5mb3JtYXRpb24uDQo+IA0KPiBUaG91Z2h0cz8NCg0KSSdt
+IG5vdCBmb2xsb3dpbmcgeW91ciBpbnRlbnQgaGVyZS4NCg0KVGhlIHFwX3R5cGUgdmFsdWVzIGFy
+ZSBjdXJyZW50bHkgZGVmaW5lZCBhcyBSQywgVUMsIFVELCBYUkMsIHBsdXMgc29tZSB3ZWlyZG5l
+c3MgbGlrZSBTTUksIEdTSS4gIEFyZSB5b3Ugc3VnZ2VzdGluZyB0aGF0IHdlIHN0b3JlIHRoZSBy
+ZWxldmFudCBpbmZvcm1hdGlvbiBhcyBwYXJ0IG9mIHRoZSBxcF90eXBlLCBvciB0aGF0IHdlIGtl
+ZXAgdGhlIHFwX3R5cGUgYXMtaXM/DQogDQpPbmNlIE1pY2hhZWwncyBwYXRjaGVzIGFyZSBpbnRl
+Z3JhdGVkLCBkbyBhcHBzIG5lZWQgYW55dGhpbmcgZWxzZSBiZXlvbmQgdGhlIHFwIHR5cGUgYXMg
+Y3VycmVudGx5IGRlZmluZWQ/DQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
