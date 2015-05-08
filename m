@@ -1,10 +1,8 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 2/2] IB/mad: Clean up comments in smi.c
-Date: Fri,  8 May 2015 13:10:04 -0400
-Message-ID: <1431105004-23585-3-git-send-email-ira.weiny@intel.com>
-References: <1431105004-23585-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 0/4][RESEND] IB/mad: refactor functions based on the needs of those functions.
+Date: Fri,  8 May 2015 14:27:20 -0400
+Message-ID: <1431109644-27226-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431105004-23585-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,38 +10,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Return values of 0 do not make sense for functions which return enum
-smi_action
+Resent due to patchworks being reset.
 
-Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/smi.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+validate_mad, ib_response_mad, and rcv_has_same_class only need the IB header.
+Refactor these functions as appropriate.
 
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index 5855e44..e6c6810 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -41,7 +41,7 @@
- 
- /*
-  * Fixup a directed route SMP for sending
-- * Return 0 if the SMP should be discarded
-+ * Return IB_SMI_DISCARD if the SMP should be discarded
-  */
- enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
- 				       u8 node_type, int port_num)
-@@ -126,7 +126,7 @@ enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
- 
- /*
-  * Adjust information for a received SMP
-- * Return 0 if the SMP should be dropped
-+ * Return IB_SMI_DISCARD if the SMP should be dropped
-  */
- enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
- 				       int port_num, int phys_port_cnt)
+In addition set const for functions which take read only structures.
+
+Added Jason and Sean's Review by.
+
+
+Ira Weiny (4):
+  IB/mad: Change validate_mad signature to take const ib_mad_hdr rather
+    than ib_mad
+  IB/mad: Change ib_response_mad signature to take const ib_mad_hdr
+    rather than ib_mad
+  IB/mad: Clean up rcv_has_same_class
+  IB/mad: Add const qualifiers to query only functions
+
+ drivers/infiniband/core/mad.c      | 54 +++++++++++++++++++-------------------
+ drivers/infiniband/core/mad_priv.h |  4 +--
+ drivers/infiniband/core/user_mad.c |  6 ++---
+ include/rdma/ib_mad.h              |  4 +--
+ 4 files changed, 34 insertions(+), 34 deletions(-)
+
 -- 
 1.8.2
 
