@@ -1,77 +1,65 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: [PATCH v1 14/14] xprtrmda: Reduce per-transport MR allocation
-Date: Fri, 8 May 2015 21:23:46 +0530
-Message-ID: <CANjDDBj8PGbQQJEteo-CoNXKsh9CpYM48iqycrxiJkJEUQwrMA@mail.gmail.com>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net>
-	<20150504175856.3483.57373.stgit@manet.1015granger.net>
-	<554B45E7.4040902@dev.mellanox.co.il>
+From: Devesh Sharma <devesh.sharma@avagotech.com>
+Subject: Re: [PATCH v8 00/23] IB/Verbs: IB Management Helpers
+Date: Fri, 8 May 2015 21:58:47 +0530
+Message-ID: <CANjDDBjAYLW2sYyw0+-PrXhG+mXGZgvbpZ7P74mwKKPJNeUTzA@mail.gmail.com>
+References: <1430830240-32389-1-git-send-email-yun.wang@profitbricks.com>
+	<5548D0CD.3080400@mellanox.com>
+	<5548D645.5070707@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <554B45E7.4040902-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5548D645.5070707@profitbricks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Haggai Eran <haggaie@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Devesh Sharma <Devesh.Sharma@emulex.com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Reviewed-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Reviewed-by: Devesh Sharma <devesh.sharma@avagotech.com>
 
-On Thu, May 7, 2015 at 4:30 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 5/4/2015 8:58 PM, Chuck Lever wrote:
->>
->> Reduce resource consumption per-transport to make way for increasing
->> the credit limit and maximum r/wsize. Pre-allocate fewer MRs.
->>
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->>   net/sunrpc/xprtrdma/fmr_ops.c  |    6 ++++--
->>   net/sunrpc/xprtrdma/frwr_ops.c |    6 ++++--
->>   2 files changed, 8 insertions(+), 4 deletions(-)
->>
->> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
->> index 4a53ad5..f1e8daf 100644
->> --- a/net/sunrpc/xprtrdma/fmr_ops.c
->> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
->> @@ -69,8 +69,10 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
->>         INIT_LIST_HEAD(&buf->rb_mws);
->>         INIT_LIST_HEAD(&buf->rb_all);
->>
->> -       i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
->> -       dprintk("RPC:       %s: initializing %d FMRs\n", __func__, i);
->> +       i = max_t(int, RPCRDMA_MAX_DATA_SEGS / RPCRDMA_MAX_FMR_SGES, 1);
->> +       i += 2;                         /* head + tail */
->> +       i *= buf->rb_max_requests;      /* one set for each RPC slot */
->> +       dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
->>
->>         rc = -ENOMEM;
->>         while (i--) {
->> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c
->> b/net/sunrpc/xprtrdma/frwr_ops.c
->> index edc10ba..fc2d0c6 100644
->> --- a/net/sunrpc/xprtrdma/frwr_ops.c
->> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
->> @@ -270,8 +270,10 @@ frwr_op_init(struct rpcrdma_xprt *r_xprt)
->>         INIT_LIST_HEAD(&buf->rb_mws);
->>         INIT_LIST_HEAD(&buf->rb_all);
->>
->> -       i = (buf->rb_max_requests + 1) * RPCRDMA_MAX_SEGS;
->> -       dprintk("RPC:       %s: initializing %d FRMRs\n", __func__, i);
->> +       i = max_t(int, RPCRDMA_MAX_DATA_SEGS / depth, 1);
->> +       i += 2;                         /* head + tail */
->> +       i *= buf->rb_max_requests;      /* one set for each RPC slot */
->> +       dprintk("RPC:       %s: initalizing %d FRMRs\n", __func__, i);
->>
->>         while (i--) {
->>                 struct rpcrdma_mw *r;
->>
+On Tue, May 5, 2015 at 8:10 PM, Michael Wang <yun.wang@profitbricks.com> wrote:
 >
-> Looks good.
 >
-> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> On 05/05/2015 04:16 PM, Or Gerlitz wrote:
+>> On 5/5/2015 3:50 PM, Michael Wang wrote:
+>>> Since v7:
+>>>    * Thanks to Doug, Ira, Devesh for the testing:-)
+>>>    * Thanks for the comments from or, Doug, Ira, Jason:-)
+>>>      Please remind me if anything missed:-P
+>>>    * Use rdma_cap_XX() instead of cap_XX() for readability
+>>>    * Remove CC list in git log for maintainability
+>>>    * Use bool as return value
+>>>    * Updated github repository to v8
+>>
+>> Didn't you see that patches 15~23 will be squashed into one?
 >
+> I missed the conversation on that, you mentioned to remove the
+> CC list but don't want to merge the patches, correct?
+>
+>>
+>>
+>> Also, when you post version N you need not only to list the changes since version N-1 but rather also to keep the full changes since Vx for x=1...N-2, reviewers needs not chase your previous cover letters and see if/whatwent wrong, specifically with a sensitive series like this one.
+>
+> That maybe too long and with some outdated info, I can reserve
+> the log since this version if it was preferred by folks.
+>
+>>
+>> So if/when there's V9, use that practice, and for the time being, reply on the V8 cover letter with the full listing of changes
+>
+> I'm using git send-mail which reply on the cover of each version,
+> not sure how to reply on a prev cover? and that won't start a new
+> thread for the new version, isn't it?
+>
+> Regards,
+> Michael Wang
+>
+>>
+>> Or.
+>>
+>>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
@@ -79,7 +67,3 @@ On Thu, May 7, 2015 at 4:30 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8
 -- 
 -Regards
 Devesh
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
