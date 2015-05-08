@@ -1,80 +1,364 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v2] iw_cxgb4: use wildcard mapping for getting remote addr
- info
-Date: Thu, 07 May 2015 16:34:23 -0500
-Message-ID: <20150507213423.30446.25092.stgit@build.ogc.int>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH v1 08/14] xprtrdma: Acquire MRs in rpcrdma_register_external()
+Date: Fri, 8 May 2015 20:54:07 +0530
+Message-ID: <CANjDDBiGLcaAofGwz6OGEXUUE_b2rcZepv0ebvTc-XNVEBq5Mw@mail.gmail.com>
+References: <20150504174626.3483.97639.stgit@manet.1015granger.net>
+	<20150504175758.3483.44890.stgit@manet.1015granger.net>
+	<554B3EEB.7070302@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <554B3EEB.7070302-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For listening endpoints bound to the wildcard address, we need to pass
-the wildcard address mapping to iwpm_get_remote_info() instead of the
-mapped address of the new child connection.
+On Thu, May 7, 2015 at 4:01 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On 5/4/2015 8:57 PM, Chuck Lever wrote:
+>>
+>> Acquiring 64 MRs in rpcrdma_buffer_get() while holding the buffer
+>> pool lock is expensive, and unnecessary because most modern adapters
+>> can transfer 100s of KBs of payload using just a single MR.
+>>
+>> Instead, acquire MRs one-at-a-time as chunks are registered, and
+>> return them to rb_mws immediately during deregistration.
+>>
+>> Note: commit 539431a437d2 ("xprtrdma: Don't invalidate FRMRs if
+>> registration fails") is reverted: There is now a valid case where
+>> registration can fail (with -ENOMEM) but the QP is still in RTS.
+>>
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>   net/sunrpc/xprtrdma/frwr_ops.c |  120
+>> ++++++++++++++++++++++++++++------------
+>>   net/sunrpc/xprtrdma/rpc_rdma.c |    3 -
+>>   net/sunrpc/xprtrdma/verbs.c    |   21 -------
+>>   3 files changed, 86 insertions(+), 58 deletions(-)
+>>
+>> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c
+>> b/net/sunrpc/xprtrdma/frwr_ops.c
+>> index a06d9a3..6f93a89 100644
+>> --- a/net/sunrpc/xprtrdma/frwr_ops.c
+>> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
+>> @@ -11,6 +11,62 @@
+>>    * but most complex memory registration mode.
+>>    */
+>>
+>> +/* Normal operation
+>> + *
+>> + * A Memory Region is prepared for RDMA READ or WRITE using a FAST_REG
+>> + * Work Request (frmr_op_map). When the RDMA operation is finished, this
+>> + * Memory Region is invalidated using a LOCAL_INV Work Request
+>> + * (frmr_op_unmap).
+>> + *
+>> + * Typically these Work Requests are not signaled, and neither are RDMA
+>> + * SEND Work Requests (with the exception of signaling occasionally to
+>> + * prevent provider work queue overflows). This greatly reduces HCA
+>> + * interrupt workload.
+>> + *
+>> + * As an optimization, frwr_op_unmap marks MRs INVALID before the
+>> + * LOCAL_INV WR is posted. If posting succeeds, the MR is placed on
+>> + * rb_mws immediately so that no work (like managing a linked list
+>> + * under a spinlock) is needed in the completion upcall.
+>> + *
+>> + * But this means that frwr_op_map() can occasionally encounter an MR
+>> + * that is INVALID but the LOCAL_INV WR has not completed. Work Queue
+>> + * ordering prevents a subsequent FAST_REG WR from executing against
+>> + * that MR while it is still being invalidated.
+>> + */
+>> +
+>> +/* Transport recovery
+>> + *
+>> + * ->op_map and the transport connect worker cannot run at the same
+>> + * time, but ->op_unmap can fire while the transport connect worker
+>> + * is running. Thus MR recovery is handled in ->op_map, to guarantee
+>> + * that recovered MRs are owned by a sending RPC, and not one where
+>> + * ->op_unmap could fire at the same time transport reconnect is
+>> + * being done.
+>> + *
+>> + * When the underlying transport disconnects, MRs are left in one of
+>> + * three states:
+>> + *
+>> + * INVALID:    The MR was not in use before the QP entered ERROR state.
+>> + *             (Or, the LOCAL_INV WR has not completed or flushed yet).
+>> + *
+>> + * STALE:      The MR was being registered or unregistered when the QP
+>> + *             entered ERROR state, and the pending WR was flushed.
+>> + *
+>> + * VALID:      The MR was registered before the QP entered ERROR state.
+>> + *
+>> + * When frwr_op_map encounters STALE and VALID MRs, they are recovered
+>> + * with ib_dereg_mr and then are re-initialized. Beause MR recovery
+>> + * allocates fresh resources, it is deferred to a workqueue, and the
+>> + * recovered MRs are placed back on the rb_mws list when recovery is
+>> + * complete. frwr_op_map allocates another MR for the current RPC while
+>> + * the broken MR is reset.
+>> + *
+>> + * To ensure that frwr_op_map doesn't encounter an MR that is marked
+>> + * INVALID but that is about to be flushed due to a previous transport
+>> + * disconnect, the transport connect worker attempts to drain all
+>> + * pending send queue WRs before the transport is reconnected.
+>> + */
+>> +
+>>   #include "xprt_rdma.h"
+>>
+>>   #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+>> @@ -250,9 +306,9 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>>         struct ib_device *device = ia->ri_device;
+>>         enum dma_data_direction direction = rpcrdma_data_dir(writing);
+>>         struct rpcrdma_mr_seg *seg1 = seg;
+>> -       struct rpcrdma_mw *mw = seg1->rl_mw;
+>> -       struct rpcrdma_frmr *frmr = &mw->r.frmr;
+>> -       struct ib_mr *mr = frmr->fr_mr;
+>> +       struct rpcrdma_mw *mw;
+>> +       struct rpcrdma_frmr *frmr;
+>> +       struct ib_mr *mr;
+>>         struct ib_send_wr fastreg_wr, *bad_wr;
+>>         u8 key;
+>>         int len, pageoff;
+>> @@ -261,12 +317,25 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>>         u64 pa;
+>>         int page_no;
+>>
+>> +       mw = seg1->rl_mw;
+>> +       seg1->rl_mw = NULL;
+>> +       do {
+>> +               if (mw)
+>> +                       __frwr_queue_recovery(mw);
+>> +               mw = rpcrdma_get_mw(r_xprt);
+>> +               if (!mw)
+>> +                       return -ENOMEM;
+>> +       } while (mw->r.frmr.fr_state != FRMR_IS_INVALID);
+>> +       frmr = &mw->r.frmr;
+>> +       frmr->fr_state = FRMR_IS_VALID;
+>> +
+>>         pageoff = offset_in_page(seg1->mr_offset);
+>>         seg1->mr_offset -= pageoff;     /* start of page */
+>>         seg1->mr_len += pageoff;
+>>         len = -pageoff;
+>>         if (nsegs > ia->ri_max_frmr_depth)
+>>                 nsegs = ia->ri_max_frmr_depth;
+>> +
+>>         for (page_no = i = 0; i < nsegs;) {
+>>                 rpcrdma_map_one(device, seg, direction);
+>>                 pa = seg->mr_dma;
+>> @@ -285,8 +354,6 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>>         dprintk("RPC:       %s: Using frmr %p to map %d segments (%d
+>> bytes)\n",
+>>                 __func__, mw, i, len);
+>>
+>> -       frmr->fr_state = FRMR_IS_VALID;
+>> -
+>>         memset(&fastreg_wr, 0, sizeof(fastreg_wr));
+>>         fastreg_wr.wr_id = (unsigned long)(void *)mw;
+>>         fastreg_wr.opcode = IB_WR_FAST_REG_MR;
+>> @@ -298,6 +365,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>>         fastreg_wr.wr.fast_reg.access_flags = writing ?
+>>                                 IB_ACCESS_REMOTE_WRITE |
+>> IB_ACCESS_LOCAL_WRITE :
+>>                                 IB_ACCESS_REMOTE_READ;
+>> +       mr = frmr->fr_mr;
+>>         key = (u8)(mr->rkey & 0x000000FF);
+>>         ib_update_fast_reg_key(mr, ++key);
+>>         fastreg_wr.wr.fast_reg.rkey = mr->rkey;
+>> @@ -307,6 +375,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>>         if (rc)
+>>                 goto out_senderr;
+>>
+>> +       seg1->rl_mw = mw;
+>>         seg1->mr_rkey = mr->rkey;
+>>         seg1->mr_base = seg1->mr_dma + pageoff;
+>>         seg1->mr_nsegs = i;
+>> @@ -315,10 +384,9 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg,
+>>
+>>   out_senderr:
+>>         dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
+>> -       ib_update_fast_reg_key(mr, --key);
+>> -       frmr->fr_state = FRMR_IS_INVALID;
+>>         while (i--)
+>>                 rpcrdma_unmap_one(device, --seg);
+>> +       __frwr_queue_recovery(mw);
+>>         return rc;
+>>   }
+>>
+>> @@ -330,15 +398,19 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg)
+>>   {
+>>         struct rpcrdma_mr_seg *seg1 = seg;
+>>         struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+>> +       struct rpcrdma_mw *mw = seg1->rl_mw;
+>>         struct ib_send_wr invalidate_wr, *bad_wr;
+>>         int rc, nsegs = seg->mr_nsegs;
+>>
+>> -       seg1->rl_mw->r.frmr.fr_state = FRMR_IS_INVALID;
+>> +       dprintk("RPC:       %s: FRMR %p\n", __func__, mw);
+>> +
+>> +       seg1->rl_mw = NULL;
+>> +       mw->r.frmr.fr_state = FRMR_IS_INVALID;
+>>
+>>         memset(&invalidate_wr, 0, sizeof(invalidate_wr));
+>> -       invalidate_wr.wr_id = (unsigned long)(void *)seg1->rl_mw;
+>> +       invalidate_wr.wr_id = (unsigned long)(void *)mw;
+>>         invalidate_wr.opcode = IB_WR_LOCAL_INV;
+>> -       invalidate_wr.ex.invalidate_rkey =
+>> seg1->rl_mw->r.frmr.fr_mr->rkey;
+>> +       invalidate_wr.ex.invalidate_rkey = mw->r.frmr.fr_mr->rkey;
+>>         DECR_CQCOUNT(&r_xprt->rx_ep);
+>>
+>>         while (seg1->mr_nsegs--)
+>> @@ -348,12 +420,13 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct
+>> rpcrdma_mr_seg *seg)
+>>         read_unlock(&ia->ri_qplock);
+>>         if (rc)
+>>                 goto out_err;
+>> +
+>> +       rpcrdma_put_mw(r_xprt, mw);
+>>         return nsegs;
+>>
+>>   out_err:
+>> -       /* Force rpcrdma_buffer_get() to retry */
+>> -       seg1->rl_mw->r.frmr.fr_state = FRMR_IS_STALE;
+>>         dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
+>> +       __frwr_queue_recovery(mw);
+>>         return nsegs;
+>>   }
+>>
+>> @@ -370,29 +443,6 @@ out_err:
+>>   static void
+>>   frwr_op_reset(struct rpcrdma_xprt *r_xprt)
+>>   {
+>> -       struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+>> -       struct ib_device *device = r_xprt->rx_ia.ri_device;
+>> -       unsigned int depth = r_xprt->rx_ia.ri_max_frmr_depth;
+>> -       struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
+>> -       struct rpcrdma_mw *r;
+>> -       int rc;
+>> -
+>> -       list_for_each_entry(r, &buf->rb_all, mw_all) {
+>> -               if (r->r.frmr.fr_state == FRMR_IS_INVALID)
+>> -                       continue;
+>> -
+>> -               __frwr_release(r);
+>> -               rc = __frwr_init(r, pd, device, depth);
+>> -               if (rc) {
+>> -                       dprintk("RPC:       %s: mw %p left %s\n",
+>> -                               __func__, r,
+>> -                               (r->r.frmr.fr_state == FRMR_IS_STALE ?
+>> -                                       "stale" : "valid"));
+>> -                       continue;
+>> -               }
+>> -
+>> -               r->r.frmr.fr_state = FRMR_IS_INVALID;
+>> -       }
+>>   }
+>>
+>>   static void
+>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> b/net/sunrpc/xprtrdma/rpc_rdma.c
+>> index 98a3b95..35ead0b 100644
+>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+>> @@ -284,9 +284,6 @@ rpcrdma_create_chunks(struct rpc_rqst *rqst, struct
+>> xdr_buf *target,
+>>         return (unsigned char *)iptr - (unsigned char *)headerp;
+>>
+>>   out:
+>> -       if (r_xprt->rx_ia.ri_memreg_strategy == RPCRDMA_FRMR)
+>> -               return n;
+>> -
+>>         for (pos = 0; nchunks--;)
+>>                 pos += r_xprt->rx_ia.ri_ops->ro_unmap(r_xprt,
+>>
+>> &req->rl_segments[pos]);
+>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+>> index 8a43c7ef..5226161 100644
+>> --- a/net/sunrpc/xprtrdma/verbs.c
+>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>> @@ -1343,12 +1343,11 @@ rpcrdma_buffer_get_frmrs(struct rpcrdma_req *req,
+>> struct rpcrdma_buffer *buf,
+>>   struct rpcrdma_req *
+>>   rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+>>   {
+>> -       struct rpcrdma_ia *ia = rdmab_to_ia(buffers);
+>> -       struct list_head stale;
+>>         struct rpcrdma_req *req;
+>>         unsigned long flags;
+>>
+>>         spin_lock_irqsave(&buffers->rb_lock, flags);
+>> +
+>>         if (buffers->rb_send_index == buffers->rb_max_requests) {
+>>                 spin_unlock_irqrestore(&buffers->rb_lock, flags);
+>>                 dprintk("RPC:       %s: out of request buffers\n",
+>> __func__);
+>> @@ -1367,17 +1366,7 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+>>         }
+>>         buffers->rb_send_bufs[buffers->rb_send_index++] = NULL;
+>>
+>> -       INIT_LIST_HEAD(&stale);
+>> -       switch (ia->ri_memreg_strategy) {
+>> -       case RPCRDMA_FRMR:
+>> -               req = rpcrdma_buffer_get_frmrs(req, buffers, &stale);
+>> -               break;
+>> -       default:
+>> -               break;
+>> -       }
+>>         spin_unlock_irqrestore(&buffers->rb_lock, flags);
+>> -       if (!list_empty(&stale))
+>> -               rpcrdma_retry_flushed_linv(&stale, buffers);
+>>         return req;
+>>   }
+>>
+>> @@ -1389,18 +1378,10 @@ void
+>>   rpcrdma_buffer_put(struct rpcrdma_req *req)
+>>   {
+>>         struct rpcrdma_buffer *buffers = req->rl_buffer;
+>> -       struct rpcrdma_ia *ia = rdmab_to_ia(buffers);
+>>         unsigned long flags;
+>>
+>>         spin_lock_irqsave(&buffers->rb_lock, flags);
+>>         rpcrdma_buffer_put_sendbuf(req, buffers);
+>> -       switch (ia->ri_memreg_strategy) {
+>> -       case RPCRDMA_FRMR:
+>> -               rpcrdma_buffer_put_mrs(req, buffers);
+>> -               break;
+>> -       default:
+>> -               break;
+>> -       }
+>>         spin_unlock_irqrestore(&buffers->rb_lock, flags);
+>>   }
+>>
+>>
+>
+> Don't you need a call to flush_workqueue(frwr_recovery_wq) when you're
+> about to destroy the endpoint (and the buffers and the MRs...)?
 
-Without this fix, and with iwarp port mapping enabled, each iw_cxgb4
-connection that is spawned from a listening endpoint bound to the wildcard
-address, will generate an annoying dmesg entry about failing to find
-the remote address mapping info, and the connection state displayed in
-debugfs under /sys/kernel/debug/iw_cxgb4/<pci-slot-no>/eps  will not have
-the peer's address/port mapping info.  The connection still works though.
+I agree with Sagi here, in xprt_rdma_destroy() before calling
+rpcrdma_destroy_buffer(), flush_workqueue and cancelling any pending
+work seems required.
+With the optimization, is it possible that before completion of
+REG-FRMR sever starts traffic on a yet-to-be-reg-complete rkey, this
+will cause access-error async event on client side and server will see
+flush errors.
 
-Fixes: 5b6b8fe ("RDMA/cxgb4: Report the actual address of the remote connecting peer")
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
----
 
-This should be included in 4.1-rc which is where 5b6b8fe was introduced.
----
- drivers/infiniband/hw/cxgb4/cm.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index bb95a6c..3ad8dc7 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -583,18 +583,18 @@ static void c4iw_record_pm_msg(struct c4iw_ep *ep,
- 		sizeof(ep->com.mapped_remote_addr));
- }
- 
--static int get_remote_addr(struct c4iw_ep *ep)
-+static int get_remote_addr(struct c4iw_ep *parent_ep, struct c4iw_ep *child_ep)
- {
- 	int ret;
- 
--	print_addr(&ep->com, __func__, "get_remote_addr");
-+	print_addr(&parent_ep->com, __func__, "get_remote_addr parent_ep ");
-+	print_addr(&child_ep->com, __func__, "get_remote_addr child_ep ");
- 
--	ret = iwpm_get_remote_info(&ep->com.mapped_local_addr,
--				   &ep->com.mapped_remote_addr,
--				   &ep->com.remote_addr, RDMA_NL_C4IW);
-+	ret = iwpm_get_remote_info(&parent_ep->com.mapped_local_addr,
-+				   &child_ep->com.mapped_remote_addr,
-+				   &child_ep->com.remote_addr, RDMA_NL_C4IW);
- 	if (ret)
--		pr_info(MOD "Unable to find remote peer addr info - err %d\n",
--			ret);
-+		PDBG("Unable to find remote peer addr info - err %d\n", ret);
- 
- 	return ret;
- }
-@@ -2420,7 +2420,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	}
- 	memcpy(&child_ep->com.remote_addr, &child_ep->com.mapped_remote_addr,
- 	       sizeof(child_ep->com.remote_addr));
--	get_remote_addr(child_ep);
-+	get_remote_addr(parent_ep, child_ep);
- 
- 	c4iw_get_ep(&parent_ep->com);
- 	child_ep->parent_ep = parent_ep;
-
+-- 
+-Regards
+Devesh
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
