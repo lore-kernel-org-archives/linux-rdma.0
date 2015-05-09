@@ -1,42 +1,62 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4] IB/core: Fix unaligned accesses
-Date: Sat, 09 May 2015 16:01:13 +0200
-Message-ID: <1431180073.3617.3.camel@dworkin>
-References: <1430660906-215424-1-git-send-email-david.ahern@oracle.com>
-	 <554D0FBC.9090408@oracle.com> <1431141243.2407.481.camel@redhat.com>
-	 <554D8856.5050201@oracle.com> <1431145138.2407.507.camel@redhat.com>
+Subject: Re: [PATCH] libibverbs init.c: remove stderr warnings if no
+ userspace driver found
+Date: Sat, 09 May 2015 16:04:27 +0200
+Message-ID: <1431180267.3617.5.camel@dworkin>
+References: <1431109314-31662-1-git-send-email-jsquyres@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431145138.2407.507.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1431109314-31662-1-git-send-email-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
-Le samedi 09 mai 2015 =C3=A0 00:18 -0400, Doug Ledford a =C3=A9crit :
+Le vendredi 08 mai 2015 =C3=A0 11:21 -0700, Jeff Squyres a =C3=A9crit :
+> Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
+This is a little short for an explanation: what was the issue with the
+error messages ?
+
+
+> ---
+>  src/init.c | 14 --------------
+>  1 file changed, 14 deletions(-)
 >=20
-> To the people on list reading this:  For the next couple of months, I=
-'m
-> going to be overworked as I take over this position while also
-> fulfilling my internal Red Hat responsibilities.  Red Hat has offered=
- to
-> make this my full time position, but that doesn't mean I got to drop =
-my
-> internal responsibilities immediately.  Until my replacement is
-> scheduled to start (July 1st), I'm working two jobs.  Please don't ad=
-d
-> to that workload if you don't have to.
->=20
+> diff --git a/src/init.c b/src/init.c
+> index d0e4b1c..9c21768 100644
+> --- a/src/init.c
+> +++ b/src/init.c
+> @@ -557,19 +557,5 @@ HIDDEN int ibverbs_init(struct ibv_device ***lis=
+t)
+>  	}
+> =20
+>  out:
+> -	for (sysfs_dev =3D sysfs_dev_list,
+> -		     next_dev =3D sysfs_dev ? sysfs_dev->next : NULL;
+> -	     sysfs_dev;
+> -	     sysfs_dev =3D next_dev, next_dev =3D sysfs_dev ? sysfs_dev->ne=
+xt : NULL) {
+> -		if (!sysfs_dev->have_driver) {
+> -			fprintf(stderr, PFX "Warning: no userspace device-specific "
+> -				"driver found for %s\n", sysfs_dev->sysfs_path);
+> -			if (statically_linked)
+> -				fprintf(stderr, "	When linking libibverbs statically, "
+> -					"driver must be statically linked too.\n");
+> -		}
+> -		free(sysfs_dev);
 
-OK.
+I believe this free() was necessary to not leak some memory.
 
-What can we do to help you, except not sending too many patches, during
-that ramp up ?
+> -	}
+> -
+>  	return num_devices;
+>  }
+
 
 Regards.
 
