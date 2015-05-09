@@ -1,211 +1,83 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4] IB/core: Fix unaligned accesses
-Date: Fri, 08 May 2015 23:14:03 -0400
-Message-ID: <1431141243.2407.481.camel@redhat.com>
-References: <1430660906-215424-1-git-send-email-david.ahern@oracle.com>
-	 <554D0FBC.9090408@oracle.com>
+Subject: Re: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Fri, 08 May 2015 23:32:08 -0400
+Message-ID: <1431142328.2407.488.camel@redhat.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+	 <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+	 <1430750492.2407.9.camel@redhat.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
+	 <1430761111.2407.85.camel@redhat.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FCA2F1@ORSMSX109.amr.corp.intel.com>
+	 <HE1PR05MB1418DF0669B6E6CABE1D9F1EB1D10@HE1PR05MB1418.eurprd05.prod.outlook.com>
+	 <20BA79B2-9DA5-49B3-8455-BD4021CB882C@cisco.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-FHjvDTwXXn798wydFlCo"
+	protocol="application/pgp-signature"; boundary="=-yn4JHrmlHlONUismra3s"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <554D0FBC.9090408-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20BA79B2-9DA5-49B3-8455-BD4021CB882C-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Dave Goodell (dgoodell)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-FHjvDTwXXn798wydFlCo
+--=-yn4JHrmlHlONUismra3s
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2015-05-08 at 13:34 -0600, David Ahern wrote:
-> ping? I have addressed all of the comments; anything else holding up a=
-=20
-> commit?
-
-Please check Linus' latest kernel, this patch should be present.
-
-For that matter, check my pull request, this patch was listed there.
-
-Although I admit that there were reviewed by tags not added to it now
-that I checked.  People reviewed v1/v2/v3 before you put out v4, but
-that didn't get captured by patchworks and I forgot to add it.  Sorry
-about that to the reviewers :-(
-
-> On 5/3/15 7:48 AM, David Ahern wrote:
-> > Addresses the following kernel logs seen during boot of sparc systems:
-> >
-> > Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_c=
-m]
-> > Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_c=
-m]
-> > Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_c=
-m]
-> > Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_c=
-m]
-> > Kernel unaligned access at TPC[103bce50] cm_find_listen+0x34/0xf8 [ib_c=
-m]
-> >
-> > Signed-off-by: David Ahern <david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > v4
-> > - fix uses of IB_CM_COMPARE_SIZE in memcmp noticed by Shachar
-> >
-> > v3
-> > - updated definition of IB_CM_COMPARE_SIZE to account for u32 walking
-> >    per Yann's comment
-> > - added const to src/mask args to cm_mask_copy and removed extra whites=
-pace
-> >    per Bart's comments
-> > - changed 2 private_data declarations to u32 as suggested by Jason
-> >
-> > v2
-> > - updated per Jason's comments
-> >
-> >   drivers/infiniband/core/cm.c      | 23 +++++++++++------------
-> >   drivers/infiniband/core/cm_msgs.h |  4 ++--
-> >   include/rdma/ib_cm.h              |  7 ++++---
-> >   3 files changed, 17 insertions(+), 17 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.=
-c
-> > index e28a494e2a3a..0c1419105ff0 100644
-> > --- a/drivers/infiniband/core/cm.c
-> > +++ b/drivers/infiniband/core/cm.c
-> > @@ -437,39 +437,38 @@ static struct cm_id_private * cm_acquire_id(__be3=
-2 local_id, __be32 remote_id)
-> >   	return cm_id_priv;
-> >   }
-> >
-> > -static void cm_mask_copy(u8 *dst, u8 *src, u8 *mask)
-> > +static void cm_mask_copy(u32 *dst, const u32 *src, const u32 *mask)
-> >   {
-> >   	int i;
-> >
-> > -	for (i =3D 0; i < IB_CM_COMPARE_SIZE / sizeof(unsigned long); i++)
-> > -		((unsigned long *) dst)[i] =3D ((unsigned long *) src)[i] &
-> > -					     ((unsigned long *) mask)[i];
-> > +	for (i =3D 0; i < IB_CM_COMPARE_SIZE; i++)
-> > +		dst[i] =3D src[i] & mask[i];
-> >   }
-> >
-> >   static int cm_compare_data(struct ib_cm_compare_data *src_data,
-> >   			   struct ib_cm_compare_data *dst_data)
-> >   {
-> > -	u8 src[IB_CM_COMPARE_SIZE];
-> > -	u8 dst[IB_CM_COMPARE_SIZE];
-> > +	u32 src[IB_CM_COMPARE_SIZE];
-> > +	u32 dst[IB_CM_COMPARE_SIZE];
-> >
-> >   	if (!src_data || !dst_data)
-> >   		return 0;
-> >
-> >   	cm_mask_copy(src, src_data->data, dst_data->mask);
-> >   	cm_mask_copy(dst, dst_data->data, src_data->mask);
-> > -	return memcmp(src, dst, IB_CM_COMPARE_SIZE);
-> > +	return memcmp(src, dst, sizeof(src));
-> >   }
-> >
-> > -static int cm_compare_private_data(u8 *private_data,
-> > +static int cm_compare_private_data(u32 *private_data,
-> >   				   struct ib_cm_compare_data *dst_data)
-> >   {
-> > -	u8 src[IB_CM_COMPARE_SIZE];
-> > +	u32 src[IB_CM_COMPARE_SIZE];
-> >
-> >   	if (!dst_data)
-> >   		return 0;
-> >
-> >   	cm_mask_copy(src, private_data, dst_data->mask);
-> > -	return memcmp(src, dst_data->data, IB_CM_COMPARE_SIZE);
-> > +	return memcmp(src, dst_data->data, sizeof(src));
-> >   }
-> >
-> >   /*
-> > @@ -538,7 +537,7 @@ static struct cm_id_private * cm_insert_listen(stru=
-ct cm_id_private *cm_id_priv)
-> >
-> >   static struct cm_id_private * cm_find_listen(struct ib_device *device=
-,
-> >   					     __be64 service_id,
-> > -					     u8 *private_data)
-> > +					     u32 *private_data)
-> >   {
-> >   	struct rb_node *node =3D cm.listen_service_table.rb_node;
-> >   	struct cm_id_private *cm_id_priv;
-> > @@ -953,7 +952,7 @@ int ib_cm_listen(struct ib_cm_id *cm_id, __be64 ser=
-vice_id, __be64 service_mask,
-> >   		cm_mask_copy(cm_id_priv->compare_data->data,
-> >   			     compare_data->data, compare_data->mask);
-> >   		memcpy(cm_id_priv->compare_data->mask, compare_data->mask,
-> > -		       IB_CM_COMPARE_SIZE);
-> > +		       sizeof(compare_data->mask));
-> >   	}
-> >
-> >   	cm_id->state =3D IB_CM_LISTEN;
-> > diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/cor=
-e/cm_msgs.h
-> > index be068f47e47e..8b76f0ef965e 100644
-> > --- a/drivers/infiniband/core/cm_msgs.h
-> > +++ b/drivers/infiniband/core/cm_msgs.h
-> > @@ -103,7 +103,7 @@ struct cm_req_msg {
-> >   	/* local ACK timeout:5, rsvd:3 */
-> >   	u8 alt_offset139;
-> >
-> > -	u8 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE];
-> > +	u32 private_data[IB_CM_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
-> >
-> >   } __attribute__ ((packed));
-> >
-> > @@ -801,7 +801,7 @@ struct cm_sidr_req_msg {
-> >   	__be16 rsvd;
-> >   	__be64 service_id;
-> >
-> > -	u8 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE];
-> > +	u32 private_data[IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE / sizeof(u32)];
-> >   } __attribute__ ((packed));
-> >
-> >   struct cm_sidr_rep_msg {
-> > diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-> > index 0e3ff30647d5..39ed2d2fbd51 100644
-> > --- a/include/rdma/ib_cm.h
-> > +++ b/include/rdma/ib_cm.h
-> > @@ -105,7 +105,8 @@ enum ib_cm_data_size {
-> >   	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE =3D 216,
-> >   	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE =3D 136,
-> >   	IB_CM_SIDR_REP_INFO_LENGTH	 =3D 72,
-> > -	IB_CM_COMPARE_SIZE		 =3D 64
-> > +	/* compare done u32 at a time */
-> > +	IB_CM_COMPARE_SIZE		 =3D (64 / sizeof(u32))
-> >   };
-> >
-> >   struct ib_cm_id;
-> > @@ -337,8 +338,8 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id);
-> >   #define IB_SDP_SERVICE_ID_MASK	cpu_to_be64(0xFFFFFFFFFFFF0000ULL)
-> >
-> >   struct ib_cm_compare_data {
-> > -	u8  data[IB_CM_COMPARE_SIZE];
-> > -	u8  mask[IB_CM_COMPARE_SIZE];
-> > +	u32  data[IB_CM_COMPARE_SIZE];
-> > +	u32  mask[IB_CM_COMPARE_SIZE];
-> >   };
-> >
-> >   /**
-> >
+On Tue, 2015-05-05 at 20:22 +0000, Dave Goodell (dgoodell) wrote:
+> On May 5, 2015, at 2:51 PM, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 >=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> >> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
+> >=20
+> >>> I thought USNIC_UDP had an embedded USNIC protocol header inside the
+> >>> UDP header.  That would make it a UDP_ENCAP protocol.
+> >>=20
+> >> Someone from Cisco can correct me, but USNIC supports 2 protocols.  Ju=
+st
+> >> plain UDP, and a proprietary protocol that runs over Ethernet, but use=
+s the
+> >> same EtherType as RoCE.  I thought these could both be active on the s=
+ame
+> >> port at the same time.
+> >>=20
+> >=20
+> > 'protocol' refers to what your device generates when you do a post_send=
+() on=20
+> > some QP.
+> > In the RoCE case, it is IBTA transport headers + payload over UDP encap=
+sulation
+> > over IP. In the USNIC case, you might want the protocol to refer to add=
+ition
+> > information the distinguishes this wire protocol rather than just "I am=
+ sending
+> > UDP packets"...
+>=20
+> In the case that usNIC is operating in UDP mode (which is the
+> overwhelming majority of the cases), there is absolutely no additional
+> protocol that ends up on the wire or headers in the user buffers
+> besides UDP/IP/Ethernet.  They are 100% plain UDP packets, they just
+> happen to be sent via OS-bypass queues instead of traveling through the
+> kernel networking stack. =20
+>=20
+> [^^^^^ there continues to be confusion about this for some reason, but
+> I don't know why]
 
+I really need to just sit down and read your driver front to back.  The
+confusion probably comes from people (such as myself) that first think
+about this and go "Well, if you have multiple queue pairs, and UDP, then
+you need a header to tell what QP a packet goes to" (which assumes a
+RoCE like usage of UDP where all packets go to the same UDP address)
+where your actual usage is probably more iWARP like in that the IP/UDP
+SRC/DST combo maps to a specific QP, right?
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-FHjvDTwXXn798wydFlCo
+--=-yn4JHrmlHlONUismra3s
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -213,22 +85,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVTXt7AAoJELgmozMOVy/dxr4P/07KhKlPf9qUEr+FSwqFs+TR
-DrxkZ7INmRlJu+oEamgUyVRSKI/8g+tz65cBEq2AHaF0GCZ2VPjPokYf0tbBkEFZ
-7EiqdWCbZfLv+9qt80HwJuIOgu3TuNKzqev4np87AfWFBSFfxyF1rfz320lA2Hho
-qOtNjMAV15uugj6jgw4zBaXQkStehGk/BW09suW/FZHtSeTWfDuOJ+ZaPCk1y8a/
-16Pogn8LPsOEWc6N68E9RjmMsroSm+D/gjKTBKX0HxfQnnT9HQZOXRvBGPw01xKm
-c8cFNGX/+870cY4D76i4kTGnV7E6sssorCmeeb7WA+8zJIw4FDRcIXE/mI0qR84K
-SEavJNb4UMZXEEDHFWmcfaNOsoFwvyjsF9EAu8h1U65MRHRJuu9qgXrPbaLU/shg
-pbV5gZtI9yNQIsPzg3e/EWupZVFT31mY0uabDhyIVMfvKkWKcl3SFl+Xg2iWB/sp
-8wDB2/w8uBfyLxVbm1OTxfkWRGh9abUMCuCFTNnJMMj9yhawT6X3QoMzAIKoeuba
-ddaUud6qWWyCbTOdqk1spiU9Zd2JpOCMj1AGOIRZDONkIFAp4u1SNKh0Yc7JR0ha
-C3W4bYLYOPRgXFhkt5tkdNwjirPpGGQ7N0daRA0I/nGQTkua6m/IDCQuvXcBzwTw
-ewpc4G+gGZunqzKK5xIQ
-=y/lt
+iQIcBAABCAAGBQJVTX+4AAoJELgmozMOVy/dQ3wP/RzBKi4c2W5ndHz5+TarbopO
+7cohILcPKDzsSdpYic7GlliDKy0LUfRzTkGNYBlyX3yWryyoMBj5ZPoktfWcMd45
+yIqU7fNOQJHfyEH5EZHK7SBiB5zG1KfmfMCcX54rlfuMSOkYELeQc2txMkUliVCt
+Lmq1UzPWoddkz3igmKjvOS0gQlrZmx7H8OGlXyZFFGU1X5RoYlSiUQsZdnM9X8zK
+91SQOMuZnRq1N6ozMgR+Oi9plNNoGCBnnmsoVFpMUGyiIQ7rw67vfhqPWltpMEp6
+eE5epohTnNjpGfKGf0kBa2soh0L6sQTj65l0ItLTHyFPyvPQAuSQ8qlaRKKnu/7V
+c4SNlTNPgZBXwS4x5AUxNQG11fCBaOpBBcjqOGciCZMlzyajdFIpOAMisD58jCME
+zYf/9wwIGSC3LWwpGAPjoTb/NVornCYPXDkqGDGGy7za7wNgVopZ6IJYqtutzP1P
+uusnmU4v2xMtALO9bUb0t3kkBc3tQZVrbOHgYSujEQ/yqEJFpj5APCksZ9wADCCx
+5Q7aH2PbkCOkjYiOZ3Nb02DQBw/gHgxsVw50h/XOvuMbo+7fKQKCTsaKwQpuRuhf
+xbgZUuQX39/fOPB8Fqf5fEgftqwEb5dGozjmSdU+IY2f2ZED+GJ4z+w82zJAZqtw
+CxArD9t6XaIirpqsv1H/
+=QWzw
 -----END PGP SIGNATURE-----
 
---=-FHjvDTwXXn798wydFlCo--
+--=-yn4JHrmlHlONUismra3s--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
