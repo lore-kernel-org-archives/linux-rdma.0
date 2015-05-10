@@ -1,79 +1,42 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH RFC] IB/core, cma: Nice log-friendly string helpers
-Date: Sun, 10 May 2015 13:45:16 +0300
-Message-ID: <554F36BC.5070009@dev.mellanox.co.il>
-References: <1431252274-27739-1-git-send-email-sagig@mellanox.com> <554F32F3.1070308@sandisk.com>
+Date: Sun, 10 May 2015 15:04:21 +0300
+Message-ID: <554F4945.8080000@mellanox.com>
+References: <1431252274-27739-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <554F32F3.1070308-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1431252274-27739-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/10/2015 1:29 PM, Bart Van Assche wrote:
-> On 05/10/15 12:04, Sagi Grimberg wrote:
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 65994a1..d615e63 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -412,6 +412,32 @@ enum ib_event_type {
->>       IB_EVENT_GID_CHANGE,
->>   };
->>
->> +static const char * const ib_events[] = {
->> +    "CQ_ERR",
->> +    "QP_FATAL",
->> +    "QP_REQ_ERR",
->> +    "QP_ACCESS_ERR",
->> +    "COMM_EST",
->> +    "SQ_DRAINED",
->> +    "PATH_MIG",
->> +    "PATH_MIG_ERR",
->> +    "DEVICE_FATAL",
->> +    "PORT_ACTIVE",
->> +    "PORT_ERR",
->> +    "LID_CHANGE",
->> +    "PKEY_CHANGE",
->> +    "SM_CHANGE",
->> +    "SRQ_ERR",
->> +    "SRQ_LIMIT_REACHED",
->> +    "QP_LAST_WQE_REACHED",
->> +    "CLIENT_REREGISTER",
->> +    "GID_CHANGE",
->> +};
+On 5/10/2015 1:04 PM, Sagi Grimberg wrote:
+> Some of us keep revisiting the code to decode IB/RDMA_CM enumerations
+> that appear in our logs. Let's borrow the nice logging helpers xprtrdma
+> has for CMA events, IB events and WC statuses. Also, have srp, iser and
+> isert be early adopters.
 >
-
-Hey Bart,
-
-> Array definitions should occur in a .c file instead of in a .h file to
-> avoid duplication of the array.
-
-OK, I'll move to verbs.c (and cma.c) thanks.
-
-> Additionally, please consider to use
-> designated initializers since that would make the correspondence between
-> enum label and text string easier to verify.
-
-Sure.
-
+> Signed-off-by: Sagi Grimberg<sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> I have been using this patch for some time now so I thought
+> it would be nice to get it out.
 >
->> +#define IB_EVENT(event)                        \
->> +    ((event) < ARRAY_SIZE(ib_events) ?            \
->> +        ib_events[(event)] : "UNRECOGNIZED_EVENT")
->> +
->
-> Since a compiler is allowed to use a signed type to implement an enum,
-> please cast "event" to an unsigned type before comparing it with the
-> array size. Additionally, please consider to define IB_EVENT() as an
-> inline function instead of a preprocessor macro.
->
+>   drivers/infiniband/ulp/iser/iser_verbs.c |   25 +++++---
+>   drivers/infiniband/ulp/srp/ib_srp.c      |   15 +++--
+>   include/rdma/ib_verbs.h                  |   55 ++++++++++++++++++
+>   include/rdma/rdma_cm.h                   |   23 ++++++++
+>   net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
+>   5 files changed, 106 insertions(+), 102 deletions(-)
 
-I can do that, any specific reason why to use inline over macro here?
+Nice initiative (was on my Q for years...), please make sure to plug 
+into the RDS code into this party, that isre-use their 
+RDS_IB_EVENT_STRING, RDS_CM_EVENT_STRING and such to avoid us declaring 
+the same strings over and over.
 
-Sagi.
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
