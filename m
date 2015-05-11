@@ -1,27 +1,58 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC] IB/core, cma: Nice log-friendly string helpers
-Date: Sun, 10 May 2015 23:22:14 +0300
-Message-ID: <CAJ3xEMj8XwCFt0YTT36Ty50+FYJeVVaB0mQkkV2ig24PAx6jtA@mail.gmail.com>
-References: <1431254186-23554-1-git-send-email-sagig@mellanox.com>
+From: Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org>
+Subject: Re: [PATCH v2] IB/ipoib: Scatter-Gather support in connecte
+Date: Mon, 11 May 2015 12:30:52 +1000
+Message-ID: <20150511023052.GC23806@cucumber.bridge.anchor.net.au>
+References: <1431244297-16371-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="9Ek0hoCL9XbhcSqy"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431254186-23554-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1431244297-16371-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 10, 2015 at 1:36 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Some of us keep revisiting the code to decode IB/RDMA_CM enumerations
-> that appear in our logs. Let's borrow the nice logging helpers xprtrdma
-> has for CMA events, IB events and WC statuses.
 
-cool,  but as I wrote you earlier today, align RDS too.
+--9Ek0hoCL9XbhcSqy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Also, have srp, iser and isert be early adopters.
+Yuval Shaia wrote:
+> --- 8< ---
+>
+> I'd like to thank John Sobecki <john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> and Christian Marie
+> <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org> for helping me with reviewing this patch.  I will be
+> glad if you can ACK it.
+>
+> --- 8< ---
 
-cool (again), but in a separate patch which follows on the cleanup one
+ACK. I haven't been able to test, though. Lack of hardware at the moment.
+
+I'd be interested to know how you've tested this.
+
+--9Ek0hoCL9XbhcSqy
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVUBRaAAoJEMHZnoZn5OSh3HgP/24lQzs6LA+LZWfERQ4R3OHM
+T3rcGJbX7Z+tonDoiOEic1EISwnsxyD8ecQ02v8okP90dYU1sIZWCs4EhxoIUeYp
+lKWQGRZ6CKuzvVEz41aAzR7fTX8Q7QUe0IILSmiHatb/LUAtQ6DZz7XYNYwKZUEJ
+PgyV7CygEkNNilgTVgNmnFxPjLVS2kuhuNxzwqoflpEET0XBD6xzvuCkDd116E3V
+vCW614sbaCup+K6NAR55W0uLumUWwbqXIx+rECb6UegP3b5FfuR5YbL0tkd8AMsT
+gLD8YCzWw/XushBrhISyUXoyOmuLFLAlKbDWcGVijSN+MLhYQLLgDZ9qYK1eA/UW
+1EdTmiDWiLkm7F48WSNNN+o5xKpAQYX9gKxXNor7yQYdxvibQo4g3OSuVKcJy6oU
+6kFRrGQxt1RU6P7Atz4XBZaVwH/msp/eZYc+ET9zxOyH/LCj0WjwY6Vi9VE3as/7
+snQRixTLbvNRjG9ozN5+AeHjwPt51csXIfo/AZDq7u7PydBHkiEQKUr7Qn++MxQ+
+EKSLcEQd2emEhBNJANKUf/bRNJycIWYicRMMJLpZNcDnI1PSvZ6rAd6v1WU0RqLn
+WV88LXaLgiK6xBylTtWVOOSPeiqdgoreRj1RgulVfnsxiPAIVf3zx4kyoogQO1w7
+0HUkMee+fWNJMhy4ihlT
+=lq7n
+-----END PGP SIGNATURE-----
+
+--9Ek0hoCL9XbhcSqy--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
