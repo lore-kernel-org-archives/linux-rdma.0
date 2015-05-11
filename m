@@ -1,67 +1,47 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.1] iw_cxgb4: Remove negative advice dmesg warnings
-Date: Mon, 11 May 2015 16:25:13 -0400
-Message-ID: <1431375913.2407.524.camel@redhat.com>
-References: <1431389346-27880-1-git-send-email-hariprasad@chelsio.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs init.c: remove stderr warnings if no
+ userspace driver found
+Date: Mon, 11 May 2015 20:32:41 +0000
+Message-ID: <91CD4206-FE67-45DF-BFFD-3AFBC4DE30E3@cisco.com>
+References: <1431109314-31662-1-git-send-email-jsquyres@cisco.com>
+ <1431180267.3617.5.camel@dworkin>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-N2uP507EOAlZW5iULn03"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431389346-27880-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1431180267.3617.5.camel@dworkin>
+Content-Language: en-US
+Content-ID: <196081A25FC8DB4EB7E8AA9C46283E5F-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-N2uP507EOAlZW5iULn03
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2015-05-12 at 05:39 +0530, Hariprasad Shenai wrote:
-> Remove these log messages in favor of per-endpoint counters as well as
-> device-global counters that can be inspected via debugfs.
->=20
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/hw/cxgb4/cm.c       | 27 ++++++++++++++++++---------
->  drivers/infiniband/hw/cxgb4/device.c   |  7 +++++++
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  7 +++++++
->  3 files changed, 32 insertions(+), 9 deletions(-)
-
-This patch has already been accepted into Linus' kernel.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-N2uP507EOAlZW5iULn03
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVURApAAoJELgmozMOVy/deacP/iqY5rCmmoOws0Ef/L0izwpj
-lp4qUHOTqS0ka4aONU2nGKKPKs1sU43UWJ7UNTCpJ20lB2zLDwcCVXBZ/lzJs+E8
-ia8lYcBz067+ZluKpeFlQ8vKJoNOWseSQMd3mH6/AKADepRcMdef1WRtfX5eTgqT
-A5AoP/6p0x2DVsn7WKV8l3iBUWLDR2bg5OZ5nXIp01i72v5yITPDPSwe6vDGf9Bw
-4h58VKcp9Nsw92J6UvVI7x1nagxAUedGm+3iAOMupuRuvaTJmIWa+KXsUy/LCyQ/
-lMOqgCckQHan0IzO8P9j3DtKGHqhv5hwx/ok4ED4XZKh7k8Y1jVItlPSW5Cy+rF1
-J4h5anPDNDQVySnkKsSgEa/1YdGu0SN69LmO7CsqS99EngeqN69lNjuik/jB1nQL
-9819RAeMuA+y/pKPYcueMwN2JUbW4n2TBLtuKJTonIw/m3WyXUUjTTHzf+QB4os3
-BF4HtGyyRr5WY2g8EO4FspuJ/CYPo/xzKWTwJ6+IckJrJ5mjn3Hu2/A+V1rgVAn9
-gVu/8YaEsSUa0dTkKPLJCgWLSD0ANFKzXz+XMg+QlMDu8Ecm8MEKaCuBhtQorl/4
-3MEnmqoDeUb8GPmUhAqBVIExqavOq5+w1pzEfgG4YJPAkw19O3WdtHo7Rs9dhCwK
-AI9HUzVGHxnM1BbsA57w
-=C8ro
------END PGP SIGNATURE-----
-
---=-N2uP507EOAlZW5iULn03--
-
+T24gTWF5IDksIDIwMTUsIGF0IDg6MDQgQU0sIFlhbm4gRHJvbmVhdWQgPHlkcm9uZWF1ZEBvcHRl
+eWEuY29tPiB3cm90ZToNCj4gDQo+IExlIHZlbmRyZWRpIDA4IG1haSAyMDE1IMOgIDExOjIxIC0w
+NzAwLCBKZWZmIFNxdXlyZXMgYSDDqWNyaXQgOg0KPj4gU2lnbmVkLW9mZi1ieTogSmVmZiBTcXV5
+cmVzIDxqc3F1eXJlc0BjaXNjby5jb20+DQo+IA0KPiBUaGlzIGlzIGEgbGl0dGxlIHNob3J0IGZv
+ciBhbiBleHBsYW5hdGlvbjogd2hhdCB3YXMgdGhlIGlzc3VlIHdpdGggdGhlDQo+IGVycm9yIG1l
+c3NhZ2VzID8NCg0KQ2lzY28gaGFzIHN0b3BwZWQgc2hpcHBpbmcgaXRzIGxpYmlidmVyYnMgdXNu
+aWMgZHJpdmVyLCBhbHRob3VnaCB3ZSBhcmUgc3RpbGwgdXNpbmcgdGhlIGtlcm5lbCBkcml2ZXIg
+aW4gdGhlIC9zeXMvY2xhc3MvaW5maW5pYmFuZCBzcGFjZSAoc2luY2UgaXQncyB0aGUgb25seSB3
+YXkgdG8gYmUgdXBzdHJlYW0pLiAgU3BlY2lmaWNhbGx5OiBpbnN0ZWFkIG9mIHVzaW5nIGxpYmli
+dmVyYnMgZm9yIHVzZXJzcGFjZSBhY2Nlc3MsIHdlIGFyZSBub3cgdXNpbmcgbGliZmFicmljLg0K
+DQpUaGF0IGlzOiBpdCdzIG5vdCBhIHdhcm5pbmcgb3IgYW4gZXJyb3IgaWYgbGliaWJ2ZXJicyBj
+YW5ub3QgZmluZCBhIHVzZXJzcGFjZSBkcml2ZXIgZm9yIGtlcm5lbCBkZXZpY2VzLiAgSW5kZWVk
+LCByZXR1cm5pbmcgYSBudW1fZGV2aWNlcyBvZiAwIGlzIHN1ZmZpY2llbnQgLS0gdGhlIG1pZGRs
+ZXdhcmUgc2hvdWxkbid0IGJlIHVuY29uZGl0aW9uYWxseSBwcmludGluZyBvdXQgc3RkZXJyIG1l
+c3NhZ2U7IGxldCB0aGUgdXBwZXIgbGF5ZXIgYXBwbGljYXRpb24gZG8gdGhhdCAoaWYgaXQgd2Fu
+dHMgdG8pLg0KDQpGV0lXLCBTZWFuIGp1c3QgcmVtb3ZlZCBhIHNpbWlsYXIgc2V0IG9mIHN0ZGVy
+ciB3YXJuaW5ncyBmcm9tIGxpYnJkbWFjbToNCg0KICAgaHR0cDovL2dpdC5vcGVuZmFicmljcy5v
+cmcvP3A9fnNoZWZ0eS9saWJyZG1hY20uZ2l0O2E9Y29tbWl0ZGlmZjtoPTJiMmFhZDgwOWFmYzU2
+ZmEzMTU3ZjVjZjk5MDM2ZjkyYjljOTBmMTYNCg0KPj4gLQkJZnJlZShzeXNmc19kZXYpOw0KPiAN
+Cj4gSSBiZWxpZXZlIHRoaXMgZnJlZSgpIHdhcyBuZWNlc3NhcnkgdG8gbm90IGxlYWsgc29tZSBt
+ZW1vcnkuDQoNCkFoIC0tIEkgbWlzLXJlYWQgdGhlIGxvb3AuICBJJ2xsIHJlLXN1Ym1pdCB3aXRo
+IHRoZSBsb29wIHN0aWxsIHRoZXJlLCBidXQganVzdCByZW1vdmluZyB0aGUgZnByaW50ZiBibG9j
+ay4NCg0KLS0gDQpKZWZmIFNxdXlyZXMNCmpzcXV5cmVzQGNpc2NvLmNvbQ0KRm9yIGNvcnBvcmF0
+ZSBsZWdhbCBpbmZvcm1hdGlvbiBnbyB0bzogaHR0cDovL3d3dy5jaXNjby5jb20vd2ViL2Fib3V0
+L2RvaW5nX2J1c2luZXNzL2xlZ2FsL2NyaS8NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
