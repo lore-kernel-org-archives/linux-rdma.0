@@ -1,71 +1,189 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 12/16] xprtrdma: Remove rpcrdma_ia::ri_memreg_strategy
-Date: Mon, 11 May 2015 14:04:12 -0400
-Message-ID: <20150511180412.31263.53368.stgit@manet.1015granger.net>
+Subject: [PATCH v2 11/16] xprtrdma: Remove ->ro_reset
+Date: Mon, 11 May 2015 14:04:01 -0400
+Message-ID: <20150511180401.31263.9823.stgit@manet.1015granger.net>
 References: <20150511174401.31263.79596.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20150511174401.31263.79596.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: This field is no longer used.
+An RPC can exit at any time. When it does so, xprt_rdma_free() is
+called, and it calls ->op_unmap().
+
+If ->ro_reset() is running due to a transport disconnect, the two
+methods can race while processing the same rpcrdma_mw. The results
+are unpredictable.
+
+Because of this, in previous patches I've altered ->ro_map() to
+handle MR reset. ->ro_reset() is no longer needed and can be
+removed.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- include/linux/sunrpc/xprtrdma.h |    3 ++-
- net/sunrpc/xprtrdma/verbs.c     |    3 ---
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 -
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c      |   23 ---------------------
+ net/sunrpc/xprtrdma/frwr_ops.c     |   39 ------------------------------------
+ net/sunrpc/xprtrdma/physical_ops.c |    6 ------
+ net/sunrpc/xprtrdma/verbs.c        |    2 --
+ net/sunrpc/xprtrdma/xprt_rdma.h    |    1 -
+ 5 files changed, 71 deletions(-)
 
-diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
-index c984c85..b176130 100644
---- a/include/linux/sunrpc/xprtrdma.h
-+++ b/include/linux/sunrpc/xprtrdma.h
-@@ -56,7 +56,8 @@
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 53fb649..5dd77da 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -197,28 +197,6 @@ out_err:
+ 	return nsegs;
+ }
  
- #define RPCRDMA_INLINE_PAD_THRESH  (512)/* payload threshold to pad (bytes) */
+-/* After a disconnect, unmap all FMRs.
+- *
+- * This is invoked only in the transport connect worker in order
+- * to serialize with rpcrdma_register_fmr_external().
+- */
+-static void
+-fmr_op_reset(struct rpcrdma_xprt *r_xprt)
+-{
+-	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+-	struct rpcrdma_mw *r;
+-	LIST_HEAD(list);
+-	int rc;
+-
+-	list_for_each_entry(r, &buf->rb_all, mw_all)
+-		list_add(&r->r.fmr->list, &list);
+-
+-	rc = ib_unmap_fmr(&list);
+-	if (rc)
+-		dprintk("RPC:       %s: ib_unmap_fmr failed %i\n",
+-			__func__, rc);
+-}
+-
+ static void
+ fmr_op_destroy(struct rpcrdma_buffer *buf)
+ {
+@@ -242,7 +220,6 @@ const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+ 	.ro_open			= fmr_op_open,
+ 	.ro_maxpages			= fmr_op_maxpages,
+ 	.ro_init			= fmr_op_init,
+-	.ro_reset			= fmr_op_reset,
+ 	.ro_destroy			= fmr_op_destroy,
+ 	.ro_displayname			= "fmr",
+ };
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 133edf6..8622792 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -430,44 +430,6 @@ out_err:
+ 	return nsegs;
+ }
  
--/* memory registration strategies */
-+/* Memory registration strategies, by number.
-+ * This is part of a kernel / user space API. Do not remove. */
- enum rpcrdma_memreg {
- 	RPCRDMA_BOUNCEBUFFERS = 0,
- 	RPCRDMA_REGISTER,
+-/* After a disconnect, a flushed FAST_REG_MR can leave an FRMR in
+- * an unusable state. Find FRMRs in this state and dereg / reg
+- * each.  FRMRs that are VALID and attached to an rpcrdma_req are
+- * also torn down.
+- *
+- * This gives all in-use FRMRs a fresh rkey and leaves them INVALID.
+- *
+- * This is invoked only in the transport connect worker in order
+- * to serialize with rpcrdma_register_frmr_external().
+- */
+-static void
+-frwr_op_reset(struct rpcrdma_xprt *r_xprt)
+-{
+-	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+-	struct ib_device *device = r_xprt->rx_ia.ri_device;
+-	unsigned int depth = r_xprt->rx_ia.ri_max_frmr_depth;
+-	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
+-	struct rpcrdma_mw *r;
+-	int rc;
+-
+-	list_for_each_entry(r, &buf->rb_all, mw_all) {
+-		if (r->r.frmr.fr_state == FRMR_IS_INVALID)
+-			continue;
+-
+-		__frwr_release(r);
+-		rc = __frwr_init(r, pd, device, depth);
+-		if (rc) {
+-			dprintk("RPC:       %s: mw %p left %s\n",
+-				__func__, r,
+-				(r->r.frmr.fr_state == FRMR_IS_STALE ?
+-					"stale" : "valid"));
+-			continue;
+-		}
+-
+-		r->r.frmr.fr_state = FRMR_IS_INVALID;
+-	}
+-}
+-
+ static void
+ frwr_op_destroy(struct rpcrdma_buffer *buf)
+ {
+@@ -490,7 +452,6 @@ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+ 	.ro_open			= frwr_op_open,
+ 	.ro_maxpages			= frwr_op_maxpages,
+ 	.ro_init			= frwr_op_init,
+-	.ro_reset			= frwr_op_reset,
+ 	.ro_destroy			= frwr_op_destroy,
+ 	.ro_displayname			= "frwr",
+ };
+diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+index da149e8..41985d0 100644
+--- a/net/sunrpc/xprtrdma/physical_ops.c
++++ b/net/sunrpc/xprtrdma/physical_ops.c
+@@ -69,11 +69,6 @@ physical_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
+ }
+ 
+ static void
+-physical_op_reset(struct rpcrdma_xprt *r_xprt)
+-{
+-}
+-
+-static void
+ physical_op_destroy(struct rpcrdma_buffer *buf)
+ {
+ }
+@@ -84,7 +79,6 @@ const struct rpcrdma_memreg_ops rpcrdma_physical_memreg_ops = {
+ 	.ro_open			= physical_op_open,
+ 	.ro_maxpages			= physical_op_maxpages,
+ 	.ro_init			= physical_op_init,
+-	.ro_reset			= physical_op_reset,
+ 	.ro_destroy			= physical_op_destroy,
+ 	.ro_displayname			= "physical",
+ };
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index db9303a..cc1a526 100644
+index a891cf7..db9303a 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -665,9 +665,6 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
- 	dprintk("RPC:       %s: memory registration strategy is '%s'\n",
- 		__func__, ia->ri_ops->ro_displayname);
+@@ -891,8 +891,6 @@ retry:
+ 		rpcrdma_flush_cqs(ep);
  
--	/* Else will do memory reg/dereg for each chunk */
--	ia->ri_memreg_strategy = memreg;
+ 		xprt = container_of(ia, struct rpcrdma_xprt, rx_ia);
+-		ia->ri_ops->ro_reset(xprt);
 -
- 	rwlock_init(&ia->ri_qplock);
- 	return 0;
- 
+ 		id = rpcrdma_create_id(xprt, ia,
+ 				(struct sockaddr *)&xprt->rx_data.addr);
+ 		if (IS_ERR(id)) {
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index f19376d..3ecee38 100644
+index c5862a4..f19376d 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -70,7 +70,6 @@ struct rpcrdma_ia {
- 	int			ri_have_dma_lkey;
- 	struct completion	ri_done;
- 	int			ri_async_rc;
--	enum rpcrdma_memreg	ri_memreg_strategy;
- 	unsigned int		ri_max_frmr_depth;
- 	struct ib_device_attr	ri_devattr;
- 	struct ib_qp_attr	ri_qp_attr;
+@@ -352,7 +352,6 @@ struct rpcrdma_memreg_ops {
+ 				   struct rpcrdma_create_data_internal *);
+ 	size_t		(*ro_maxpages)(struct rpcrdma_xprt *);
+ 	int		(*ro_init)(struct rpcrdma_xprt *);
+-	void		(*ro_reset)(struct rpcrdma_xprt *);
+ 	void		(*ro_destroy)(struct rpcrdma_buffer *);
+ 	const char	*ro_displayname;
+ };
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
