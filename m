@@ -1,45 +1,48 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] iw_cxgb4: use wildcard mapping for getting remote
- addr info
-Date: Mon, 11 May 2015 17:06:47 -0400
-Message-ID: <1431378407.2407.527.camel@redhat.com>
-References: <20150507213423.30446.25092.stgit@build.ogc.int>
+Subject: Re: [PATCH] IB/ehca: use correct destination for memcpy
+Date: Mon, 11 May 2015 17:09:40 -0400
+Message-ID: <1431378580.2407.528.camel@redhat.com>
+References: <1431355082-29290-1-git-send-email-hofrat@osadl.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-JA8Zf8GMt8zdnfxroNy7"
+	protocol="application/pgp-signature"; boundary="=-URQORkTtxU0MNoDlv/TM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150507213423.30446.25092.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <1431355082-29290-1-git-send-email-hofrat-Q945KHDl0DbYtjvyW6yDsg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicholas Mc Guire <hofrat-Q945KHDl0DbYtjvyW6yDsg@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-JA8Zf8GMt8zdnfxroNy7
+--=-URQORkTtxU0MNoDlv/TM
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2015-05-07 at 16:34 -0500, Steve Wise wrote:
-> For listening endpoints bound to the wildcard address, we need to pass
-> the wildcard address mapping to iwpm_get_remote_info() instead of the
-> mapped address of the new child connection.
+On Mon, 2015-05-11 at 16:38 +0200, Nicholas Mc Guire wrote:
+> Using an element of a struct as the address for the memcpy of the whole
+> struct may introduce a buffer overflow and does not help readability eith=
+er
+> simply pass the real thing as first argument to memcpy.
 >=20
-> Without this fix, and with iwarp port mapping enabled, each iw_cxgb4
-> connection that is spawned from a listening endpoint bound to the wildcar=
-d
-> address, will generate an annoying dmesg entry about failing to find
-> the remote address mapping info, and the connection state displayed in
-> debugfs under /sys/kernel/debug/iw_cxgb4/<pci-slot-no>/eps  will not have
-> the peer's address/port mapping info.  The connection still works though.
->=20
-> Fixes: 5b6b8fe ("RDMA/cxgb4: Report the actual address of the remote conn=
-ecting peer")
->=20
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->=20
+> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Nicholas Mc Guire <hofrat-Q945KHDl0DbYtjvyW6yDsg@public.gmane.org>
 > ---
 >=20
-> This should be included in 4.1-rc which is where 5b6b8fe was introduced.
+> passing the first element of a struct as destination triggers buffer=20
+> overflows warnings in tools like Smatch.=20
+> ./drivers/infiniband/hw/ehca/ehca_mcast.c:ehca_attach_mcast.80 WARNING:
+> memcpy copying entire struct to first element
+> ./drivers/infiniband/hw/ehca/ehca_mcast.c:ehca_detach_mcast.117 WARNING:
+> memcpy copying entire struct to first element
+>=20
+> Simply use the structure rather than the first element (which could chang=
+e)
+> which also help readability.
+>=20
+> Patch was only compile tested with ppc64_defconfig (implies
+> CONFIG_INFINIBAND_EHCA=3Dm)
+>=20
+> Patch is against 4.1-rc3 (localversion-next is -next-20150511)
 
 Applied, thanks.
 
@@ -48,7 +51,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-JA8Zf8GMt8zdnfxroNy7
+--=-URQORkTtxU0MNoDlv/TM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -56,22 +59,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVURnnAAoJELgmozMOVy/dZIEQAMPwlWu6ORUkGtja1+7gIL0p
-9MS7GbdyRFLe1aHkJ74EuRl1ilqmn7xUQSFKEXSL4luTyrChaRKHUgNv1xDOIyCA
-oxPEkYa6PoF2nO8e880UY5Bp1b2y95SPK0iGXdSiancBK85HGH+crleN2Gd0OLLz
-5BnJIk4HjQ/9UhE7dy2jEHn8J38Q+B+yz6dE84GdQAvdkesIyepm0XJcmy5+rFEJ
-VNedg+3uoZLvjJmbdzbtC8BPfCsMMWX11di4vHwUp3KLGMDi5ubQBLNucRxXuPLe
-zIQBBzpK6LjGflroJSkKnVWEDlwGeojrcg5ARY8u7qi6hoHfkZ1UN+PzyV682TO4
-bzWjy0HHT+MLQ/euY2acQVNzI+9HEiEhpGoyuRPPjE17d+yAGpeGbnnzOq7AVJuB
-KjpguCWPbCBAvPaGMTh+szeRHq0ala1n1mVaV5tt/Nh23QC2zP/A1xOgt5B/Xelo
-PCEGqSHt8EfqztAr0HXpyEs3QA7yvO02Ipls5DmKsrZJkV3CT2so30sA+0WrO1RP
-N/4BoyVg/h7/Y1ir0jFOTDRbn5MR4b5+YP6QX4ekQirveP6t7AI9PRWOTIInOfHH
-UMnBS9q6/h8JYztQx+ggZ1KfZe7YguaHnygHqoOyIYEfac5WWqQNBWHjRpSpNtCO
-DXs083McQxEfsfq0n90v
-=z9we
+iQIcBAABCAAGBQJVURqUAAoJELgmozMOVy/dcVEQAKZ2lsW+KePcS7G1nWsl2X6o
+IiEZ6M1UT0XHxEPNrxnBpFhMdRG6dlTWxVHaOEtjY1p1aESJG9If6x0Xz06wzGSH
+koPzcUxVDSPjI/91KpwZp5JN/fQLaSU1ukqpkeKcexKIJ8Wv9yJuVcEzxbe9sQSn
+TUSNq9lIN4DGrIDw4Qn9a74qSc4pThvuwblNaTyxJRG2s1oTVn6f+UgGvyfFVtBR
+NhfJYOPffmSt0rG8LnWIBaaEz98UuFJg29AlI7xQK1VFkShEXbGSGyZgOU0K0xOP
+gnVh9hVAzZyX8eySujMIqjsiXJmw960DaffYuBeifu9HwYt0CtvNFZgZW2qPn6QZ
+X8ZEWDgCcUtefK97CTRw6qRLPOuAbN5R2sdTrbYTcrm0UQ6V43uDgxGbyhwk6vz6
+osMRvvUtlnxCFT2RqCOPe4IRrTtGbRGZ6pdCxjX1Wr029wtZVu0EJVUDLuETaWYv
+buWR81v3mqLJyf3+BlGayTYasi8WlQ26CJ9GyabCM+FYHKJO12kcrki9wC4L4IJF
+UuHY7EZMPffQwPVIy5FN6cf6vo0y+lovMi93g+hkOgFWzIJfsDXgCzZmZ/36SxLq
+cRR/Xl7c5HrgXROZuuTYd2JoouJvs+RL2M4nv+zurbULrVb5kw8RX5iGa6hq1+xP
+FhZrXEtYfG8tuNCR1H/E
+=OqHi
 -----END PGP SIGNATURE-----
 
---=-JA8Zf8GMt8zdnfxroNy7--
+--=-URQORkTtxU0MNoDlv/TM--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
