@@ -1,196 +1,71 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 08/16] xprtrdma: Introduce an FRMR recovery workqueue
-Date: Mon, 11 May 2015 14:03:33 -0400
-Message-ID: <20150511180333.31263.60827.stgit@manet.1015granger.net>
-References: <20150511174401.31263.79596.stgit@manet.1015granger.net>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading
+ client_list or device_list
+Date: Mon, 11 May 2015 12:18:24 -0600
+Message-ID: <20150511181824.GA25405@obsidianresearch.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150511174401.31263.79596.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Matan Barak <matanb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-After a transport disconnect, FRMRs can be left in an undetermined
-state. In particular, the MR's rkey is no good.
+On Sun, May 10, 2015 at 01:26:32PM +0300, Haggai Eran wrote:
+> Currently the RDMA subsystem's device list and client list are protected by
+> a single mutex. This prevents adding user-facing APIs that iterate these
+> lists, since using them may cause a deadlock. The patch attempts to solve
+> this problem by adding an SRCU to protect the lists. Readers now don't need
+> the mutex, and are safe just by using srcu_read_lock/unlock.
+> 
+> The ib_register_device, ib_register_client, and ib_unregister_client
+> functions are modified to only lock the device_mutex during their
+> respective list modification, and use the SRCU for iteration on the other
+> list. In ib_unregister_device, the client list iteration remains in the
+> mutex critical section as it is done in reverse order.
+> 
+> This patch attempts to solve a similar need [1] that was seen in the RoCE
+> v2 patch series.
+> 
+> [1] http://www.spinics.net/lists/linux-rdma/msg24733.html
 
-Currently, FRMRs are fixed up by the transport connect worker, but
-that can race with ->ro_unmap if an RPC happens to exit while the
-transport connect worker is running.
+So at first blush this looked reasonable, but, no it is racy:
 
-A better way of dealing with broken FRMRs is to detect them before
-they are re-used by ->ro_map. Such FRMRs are either already invalid
-or are owned by the sending RPC, and thus no race with ->ro_unmap
-is possible.
+ib_register_client:
+ mutex_lock(&device_mutex);
+ list_add_tail_rcu(&client->list, &client_list);
+ mutex_unlock(&device_mutex);
 
-Introduce a mechanism for handing broken FRMRs to a workqueue to be
-reset in a context that is appropriate for allocating resources
-(ie. an ib_alloc_fast_reg_mr() API call).
+ id = srcu_read_lock(&device_srcu);
+ list_for_each_entry_rcu(device, &device_list, core_list)
+                        client->add(device);
 
-This mechanism is not yet used, but will be in subsequent patches.
+ib_register_device:
+  mutex_lock(&device_mutex);
+  list_add_tail(&device->core_list, &device_list);
+  mutex_unlock(&device_mutex);
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Reviewed-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
----
- net/sunrpc/xprtrdma/frwr_ops.c  |   71 ++++++++++++++++++++++++++++++++++++++-
- net/sunrpc/xprtrdma/transport.c |   11 +++++-
- net/sunrpc/xprtrdma/xprt_rdma.h |    5 +++
- 3 files changed, 84 insertions(+), 3 deletions(-)
+  id = srcu_read_lock(&device_srcu);
+  list_for_each_entry_rcu(client, &client_list, list)
+       client->add(device);
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 66a85fa..a06d9a3 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -17,6 +17,74 @@
- # define RPCDBG_FACILITY	RPCDBG_TRANS
- #endif
- 
-+static struct workqueue_struct *frwr_recovery_wq;
-+
-+#define FRWR_RECOVERY_WQ_FLAGS		(WQ_UNBOUND | WQ_MEM_RECLAIM)
-+
-+int
-+frwr_alloc_recovery_wq(void)
-+{
-+	frwr_recovery_wq = alloc_workqueue("frwr_recovery",
-+					   FRWR_RECOVERY_WQ_FLAGS, 0);
-+	return !frwr_recovery_wq ? -ENOMEM : 0;
-+}
-+
-+void
-+frwr_destroy_recovery_wq(void)
-+{
-+	struct workqueue_struct *wq;
-+
-+	if (!frwr_recovery_wq)
-+		return;
-+
-+	wq = frwr_recovery_wq;
-+	frwr_recovery_wq = NULL;
-+	destroy_workqueue(wq);
-+}
-+
-+/* Deferred reset of a single FRMR. Generate a fresh rkey by
-+ * replacing the MR.
-+ *
-+ * There's no recovery if this fails. The FRMR is abandoned, but
-+ * remains in rb_all. It will be cleaned up when the transport is
-+ * destroyed.
-+ */
-+static void
-+__frwr_recovery_worker(struct work_struct *work)
-+{
-+	struct rpcrdma_mw *r = container_of(work, struct rpcrdma_mw,
-+					    r.frmr.fr_work);
-+	struct rpcrdma_xprt *r_xprt = r->r.frmr.fr_xprt;
-+	unsigned int depth = r_xprt->rx_ia.ri_max_frmr_depth;
-+	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
-+
-+	if (ib_dereg_mr(r->r.frmr.fr_mr))
-+		goto out_fail;
-+
-+	r->r.frmr.fr_mr = ib_alloc_fast_reg_mr(pd, depth);
-+	if (IS_ERR(r->r.frmr.fr_mr))
-+		goto out_fail;
-+
-+	dprintk("RPC:       %s: recovered FRMR %p\n", __func__, r);
-+	r->r.frmr.fr_state = FRMR_IS_INVALID;
-+	rpcrdma_put_mw(r_xprt, r);
-+	return;
-+
-+out_fail:
-+	pr_warn("RPC:       %s: FRMR %p unrecovered\n",
-+		__func__, r);
-+}
-+
-+/* A broken MR was discovered in a context that can't sleep.
-+ * Defer recovery to the recovery worker.
-+ */
-+static void
-+__frwr_queue_recovery(struct rpcrdma_mw *r)
-+{
-+	INIT_WORK(&r->r.frmr.fr_work, __frwr_recovery_worker);
-+	queue_work(frwr_recovery_wq, &r->r.frmr.fr_work);
-+}
-+
- static int
- __frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, struct ib_device *device,
- 	    unsigned int depth)
-@@ -128,7 +196,7 @@ frwr_sendcompletion(struct ib_wc *wc)
- 
- 	/* WARNING: Only wr_id and status are reliable at this point */
- 	r = (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
--	dprintk("RPC:       %s: frmr %p (stale), status %d\n",
-+	pr_warn("RPC:       %s: frmr %p flushed, status %d\n",
- 		__func__, r, wc->status);
- 	r->r.frmr.fr_state = FRMR_IS_STALE;
- }
-@@ -165,6 +233,7 @@ frwr_op_init(struct rpcrdma_xprt *r_xprt)
- 		list_add(&r->mw_list, &buf->rb_mws);
- 		list_add(&r->mw_all, &buf->rb_all);
- 		r->mw_sendcompletion = frwr_sendcompletion;
-+		r->r.frmr.fr_xprt = r_xprt;
- 	}
- 
- 	return 0;
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 7c12556..6f8943c 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -731,17 +731,24 @@ static void __exit xprt_rdma_cleanup(void)
- 	if (rc)
- 		dprintk("RPC:       %s: xprt_unregister returned %i\n",
- 			__func__, rc);
-+
-+	frwr_destroy_recovery_wq();
- }
- 
- static int __init xprt_rdma_init(void)
- {
- 	int rc;
- 
--	rc = xprt_register_transport(&xprt_rdma);
--
-+	rc = frwr_alloc_recovery_wq();
- 	if (rc)
- 		return rc;
- 
-+	rc = xprt_register_transport(&xprt_rdma);
-+	if (rc) {
-+		frwr_destroy_recovery_wq();
-+		return rc;
-+	}
-+
- 	dprintk("RPCRDMA Module Init, register RPC RDMA transport\n");
- 
- 	dprintk("Defaults:\n");
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 5b801d5..c5862a4 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -203,6 +203,8 @@ struct rpcrdma_frmr {
- 	struct ib_fast_reg_page_list	*fr_pgl;
- 	struct ib_mr			*fr_mr;
- 	enum rpcrdma_frmr_state		fr_state;
-+	struct work_struct		fr_work;
-+	struct rpcrdma_xprt		*fr_xprt;
- };
- 
- struct rpcrdma_mw {
-@@ -427,6 +429,9 @@ void rpcrdma_free_regbuf(struct rpcrdma_ia *,
- 
- unsigned int rpcrdma_max_segments(struct rpcrdma_xprt *);
- 
-+int frwr_alloc_recovery_wq(void);
-+void frwr_destroy_recovery_wq(void);
-+
- /*
-  * Wrappers for chunk registration, shared by read/write chunk code.
-  */
+So, if two threads call the two registers then the new client will
+have it's add called twice on the same device.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There are similar problems with removal.
+
+I'm not sure RCU is the right way to approach this. The driver core
+has the same basic task to perform, maybe review it's locking
+arrangment between the device list and driver list.
+
+[Actually we probably should be using the driver core here, with IB
+ clients as device drivers, but that is way beyond scope of this..]
+
+I had a bunch of other comments, but they are not relevant,
+considering the above.
+
+Jason
