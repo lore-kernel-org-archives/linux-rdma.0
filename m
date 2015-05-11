@@ -1,65 +1,68 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 04/14] xprtrdma: Use ib_device pointer safely
-Date: Mon, 11 May 2015 14:57:36 -0400
-Message-ID: <46C61716-AF81-41D9-BC21-141A5F70C637@oracle.com>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175720.3483.80356.stgit@manet.1015granger.net> <554B37CF.2070206@dev.mellanox.co.il> <E1ADA91B-45DA-46B6-A114-E2600613969A@oracle.com> <554B6F2A.6000608@dev.mellanox.co.il> <BDE22240-DC37-4C54-B71E-D88EF54D3119@oracle.com> <554B80B7.8090900@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FCE01F@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-4.1] iw_cxgb4: Remove negative advice dmesg warnings
+Date: Mon, 11 May 2015 16:25:13 -0400
+Message-ID: <1431375913.2407.524.camel@redhat.com>
+References: <1431389346-27880-1-git-send-email-hariprasad@chelsio.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-N2uP507EOAlZW5iULn03"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCE01F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1431389346-27880-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On May 11, 2015, at 2:26 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+--=-N2uP507EOAlZW5iULn03
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->>> ia->ri_device is never updated. The only place it is set is in
->>> rpcrdma_ia_open().
->>=20
->> So you assume that each ri_id that you will recreate contains the
->> same device handle?
->>=20
->> I think that for ADDR_CHANGE event when the slave belongs to another
->> device you will hit a mismatch. CC'ing Sean for more info...
+On Tue, 2015-05-12 at 05:39 +0530, Hariprasad Shenai wrote:
+> Remove these log messages in favor of per-endpoint counters as well as
+> device-global counters that can be inspected via debugfs.
 >=20
-> I'm not familiar with the xprtrdma code.  From the perspective of the=
- rdma_cm, if a listen is associated with a specific IP address, then it=
- will also be associated with a specific device.  If an address change =
-occurs, and the address moves to another device, then the app is essent=
-ially left with an unusable listen.  Received connection requests will =
-not find a matching listen and be dropped.
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/cxgb4/cm.c       | 27 ++++++++++++++++++---------
+>  drivers/infiniband/hw/cxgb4/device.c   |  7 +++++++
+>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  7 +++++++
+>  3 files changed, 32 insertions(+), 9 deletions(-)
 
-Thanks Sean.
+This patch has already been accepted into Linus' kernel.
 
-xprtrdma is the client-side (initiator), so it drives transport connect=
-s. The
-server-side (target) does the listens. My proposed change is only on th=
-e client.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-> If the address moves ports on the same device, then I think this work=
-s out fine in the case where the app ignores the ADDR_CHANGE event.
 
-xprtrdma currently doesn=92t explicitly handle ADDR_CHANGE events (and =
-neither
-does the server-side, looks like).
+--=-N2uP507EOAlZW5iULn03
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-In the deployment scenarios I=92m aware of, a single HCA with two ports=
- is
-used to form the bonded pair. I=92m sure that=92s not the only way this=
- can
-be done, though.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVURApAAoJELgmozMOVy/deacP/iqY5rCmmoOws0Ef/L0izwpj
+lp4qUHOTqS0ka4aONU2nGKKPKs1sU43UWJ7UNTCpJ20lB2zLDwcCVXBZ/lzJs+E8
+ia8lYcBz067+ZluKpeFlQ8vKJoNOWseSQMd3mH6/AKADepRcMdef1WRtfX5eTgqT
+A5AoP/6p0x2DVsn7WKV8l3iBUWLDR2bg5OZ5nXIp01i72v5yITPDPSwe6vDGf9Bw
+4h58VKcp9Nsw92J6UvVI7x1nagxAUedGm+3iAOMupuRuvaTJmIWa+KXsUy/LCyQ/
+lMOqgCckQHan0IzO8P9j3DtKGHqhv5hwx/ok4ED4XZKh7k8Y1jVItlPSW5Cy+rF1
+J4h5anPDNDQVySnkKsSgEa/1YdGu0SN69LmO7CsqS99EngeqN69lNjuik/jB1nQL
+9819RAeMuA+y/pKPYcueMwN2JUbW4n2TBLtuKJTonIw/m3WyXUUjTTHzf+QB4os3
+BF4HtGyyRr5WY2g8EO4FspuJ/CYPo/xzKWTwJ6+IckJrJ5mjn3Hu2/A+V1rgVAn9
+gVu/8YaEsSUa0dTkKPLJCgWLSD0ANFKzXz+XMg+QlMDu8Ecm8MEKaCuBhtQorl/4
+3MEnmqoDeUb8GPmUhAqBVIExqavOq5+w1pzEfgG4YJPAkw19O3WdtHo7Rs9dhCwK
+AI9HUzVGHxnM1BbsA57w
+=C8ro
+-----END PGP SIGNATURE-----
+
+--=-N2uP507EOAlZW5iULn03--
 
 --
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
