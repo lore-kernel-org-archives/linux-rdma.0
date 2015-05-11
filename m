@@ -1,47 +1,58 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs init.c: remove stderr warnings if no
- userspace driver found
-Date: Mon, 11 May 2015 20:32:41 +0000
-Message-ID: <91CD4206-FE67-45DF-BFFD-3AFBC4DE30E3@cisco.com>
-References: <1431109314-31662-1-git-send-email-jsquyres@cisco.com>
- <1431180267.3617.5.camel@dworkin>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] libibverbs init.c: remove stderr warnings if no userspace driver found
+Date: Mon, 11 May 2015 13:43:40 -0700
+Message-ID: <1431377021-27932-1-git-send-email-jsquyres@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431180267.3617.5.camel@dworkin>
-Content-Language: en-US
-Content-ID: <196081A25FC8DB4EB7E8AA9C46283E5F-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTWF5IDksIDIwMTUsIGF0IDg6MDQgQU0sIFlhbm4gRHJvbmVhdWQgPHlkcm9uZWF1ZEBvcHRl
-eWEuY29tPiB3cm90ZToNCj4gDQo+IExlIHZlbmRyZWRpIDA4IG1haSAyMDE1IMOgIDExOjIxIC0w
-NzAwLCBKZWZmIFNxdXlyZXMgYSDDqWNyaXQgOg0KPj4gU2lnbmVkLW9mZi1ieTogSmVmZiBTcXV5
-cmVzIDxqc3F1eXJlc0BjaXNjby5jb20+DQo+IA0KPiBUaGlzIGlzIGEgbGl0dGxlIHNob3J0IGZv
-ciBhbiBleHBsYW5hdGlvbjogd2hhdCB3YXMgdGhlIGlzc3VlIHdpdGggdGhlDQo+IGVycm9yIG1l
-c3NhZ2VzID8NCg0KQ2lzY28gaGFzIHN0b3BwZWQgc2hpcHBpbmcgaXRzIGxpYmlidmVyYnMgdXNu
-aWMgZHJpdmVyLCBhbHRob3VnaCB3ZSBhcmUgc3RpbGwgdXNpbmcgdGhlIGtlcm5lbCBkcml2ZXIg
-aW4gdGhlIC9zeXMvY2xhc3MvaW5maW5pYmFuZCBzcGFjZSAoc2luY2UgaXQncyB0aGUgb25seSB3
-YXkgdG8gYmUgdXBzdHJlYW0pLiAgU3BlY2lmaWNhbGx5OiBpbnN0ZWFkIG9mIHVzaW5nIGxpYmli
-dmVyYnMgZm9yIHVzZXJzcGFjZSBhY2Nlc3MsIHdlIGFyZSBub3cgdXNpbmcgbGliZmFicmljLg0K
-DQpUaGF0IGlzOiBpdCdzIG5vdCBhIHdhcm5pbmcgb3IgYW4gZXJyb3IgaWYgbGliaWJ2ZXJicyBj
-YW5ub3QgZmluZCBhIHVzZXJzcGFjZSBkcml2ZXIgZm9yIGtlcm5lbCBkZXZpY2VzLiAgSW5kZWVk
-LCByZXR1cm5pbmcgYSBudW1fZGV2aWNlcyBvZiAwIGlzIHN1ZmZpY2llbnQgLS0gdGhlIG1pZGRs
-ZXdhcmUgc2hvdWxkbid0IGJlIHVuY29uZGl0aW9uYWxseSBwcmludGluZyBvdXQgc3RkZXJyIG1l
-c3NhZ2U7IGxldCB0aGUgdXBwZXIgbGF5ZXIgYXBwbGljYXRpb24gZG8gdGhhdCAoaWYgaXQgd2Fu
-dHMgdG8pLg0KDQpGV0lXLCBTZWFuIGp1c3QgcmVtb3ZlZCBhIHNpbWlsYXIgc2V0IG9mIHN0ZGVy
-ciB3YXJuaW5ncyBmcm9tIGxpYnJkbWFjbToNCg0KICAgaHR0cDovL2dpdC5vcGVuZmFicmljcy5v
-cmcvP3A9fnNoZWZ0eS9saWJyZG1hY20uZ2l0O2E9Y29tbWl0ZGlmZjtoPTJiMmFhZDgwOWFmYzU2
-ZmEzMTU3ZjVjZjk5MDM2ZjkyYjljOTBmMTYNCg0KPj4gLQkJZnJlZShzeXNmc19kZXYpOw0KPiAN
-Cj4gSSBiZWxpZXZlIHRoaXMgZnJlZSgpIHdhcyBuZWNlc3NhcnkgdG8gbm90IGxlYWsgc29tZSBt
-ZW1vcnkuDQoNCkFoIC0tIEkgbWlzLXJlYWQgdGhlIGxvb3AuICBJJ2xsIHJlLXN1Ym1pdCB3aXRo
-IHRoZSBsb29wIHN0aWxsIHRoZXJlLCBidXQganVzdCByZW1vdmluZyB0aGUgZnByaW50ZiBibG9j
-ay4NCg0KLS0gDQpKZWZmIFNxdXlyZXMNCmpzcXV5cmVzQGNpc2NvLmNvbQ0KRm9yIGNvcnBvcmF0
-ZSBsZWdhbCBpbmZvcm1hdGlvbiBnbyB0bzogaHR0cDovL3d3dy5jaXNjby5jb20vd2ViL2Fib3V0
-L2RvaW5nX2J1c2luZXNzL2xlZ2FsL2NyaS8NCg0K
+Also the statically_linked variable, since it was only used when
+printing the stderr warning.
+
+Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ src/init.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/src/init.c b/src/init.c
+index d0e4b1c..190608a 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -484,7 +484,6 @@ HIDDEN int ibverbs_init(struct ibv_device ***list)
+ 	struct ibv_device *device;
+ 	int num_devices = 0;
+ 	int list_size = 0;
+-	int statically_linked = 0;
+ 	int no_driver = 0;
+ 	int ret;
+ 
+@@ -537,7 +536,6 @@ HIDDEN int ibverbs_init(struct ibv_device ***list)
+ 		if (!hand) {
+ 			fprintf(stderr, PFX "Warning: dlopen(NULL) failed, "
+ 				"assuming static linking.\n");
+-			statically_linked = 1;
+ 			goto out;
+ 		}
+ 		dlclose(hand);
+@@ -561,13 +559,6 @@ out:
+ 		     next_dev = sysfs_dev ? sysfs_dev->next : NULL;
+ 	     sysfs_dev;
+ 	     sysfs_dev = next_dev, next_dev = sysfs_dev ? sysfs_dev->next : NULL) {
+-		if (!sysfs_dev->have_driver) {
+-			fprintf(stderr, PFX "Warning: no userspace device-specific "
+-				"driver found for %s\n", sysfs_dev->sysfs_path);
+-			if (statically_linked)
+-				fprintf(stderr, "	When linking libibverbs statically, "
+-					"driver must be statically linked too.\n");
+-		}
+ 		free(sysfs_dev);
+ 	}
+ 
+-- 
+2.2.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
