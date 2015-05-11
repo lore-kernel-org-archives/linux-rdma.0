@@ -1,35 +1,44 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] IB/ipoib: Scatter-Gather support in connecte
-Date: Mon, 11 May 2015 12:55:08 +0300
-Message-ID: <20150511095507.GA7099@yuval-lab>
-References: <1431244297-16371-1-git-send-email-yuval.shaia@oracle.com>
- <20150511023052.GC23806@cucumber.bridge.anchor.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Generic logging helpers
+Date: Mon, 11 May 2015 13:00:41 +0300
+Message-ID: <1431338443-13216-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150511023052.GC23806-ZVKTuMS7OOyXivEjC3tOQq8arWZNjzh+cd8/XO2csNs@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 11, 2015 at 12:30:52PM +1000, Christian Marie wrote:
-> Yuval Shaia wrote:
-> > --- 8< ---
-> >
-> > I'd like to thank John Sobecki <john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> and Christian Marie
-> > <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org> for helping me with reviewing this patch.  I will be
-> > glad if you can ACK it.
-> >
-> > --- 8< ---
-> 
-> ACK. I haven't been able to test, though. Lack of hardware at the moment.
-> 
-> I'd be interested to know how you've tested this.
-Simply added debug printouts to see that SG is actually used then check that nothing breaks, i.e. i ran some (long) perf tests and some other network utilities (such as scp).
-Any other ideas are welcome.
+This small set adds some meaningful verbosity to some
+of the core/rdma_cm enumerated events. Its useful to
+see the meaning of the opcodes instead of revisiting the
+code for every new status/event that left the cache in our
+brain.
 
+Changes from v0 (RFC):
+- Moved string arrays to .c files
+- Changed string helpers from macros to exported functions
+- Aligned rds to generic helpers as well
+
+Sagi Grimberg (2):
+  IB/core, cma: Nice log-friendly string helpers
+  ulps: Align several ULPs to use core/rdma_cm logging helpers
+
+ drivers/infiniband/core/cma.c            |   26 +++++++++
+ drivers/infiniband/core/verbs.c          |   61 ++++++++++++++++++++
+ drivers/infiniband/ulp/iser/iser_verbs.c |   26 +++++---
+ drivers/infiniband/ulp/isert/ib_isert.c  |   19 ++++--
+ drivers/infiniband/ulp/srp/ib_srp.c      |   15 +++--
+ include/rdma/ib_verbs.h                  |    4 +
+ include/rdma/rdma_cm.h                   |    2 +
+ net/rds/af_rds.c                         |    9 ---
+ net/rds/ib.h                             |    1 -
+ net/rds/ib_cm.c                          |   36 +-----------
+ net/rds/ib_recv.c                        |    4 +-
+ net/rds/ib_send.c                        |   38 +------------
+ net/rds/rdma_transport.c                 |   34 +----------
+ net/rds/rds.h                            |    1 -
+ net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
+ 15 files changed, 145 insertions(+), 221 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
