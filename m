@@ -1,71 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading
- client_list or device_list
-Date: Mon, 11 May 2015 12:18:24 -0600
-Message-ID: <20150511181824.GA25405@obsidianresearch.com>
-References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
- <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v1 04/14] xprtrdma: Use ib_device pointer safely
+Date: Mon, 11 May 2015 18:26:08 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FCE01F@ORSMSX109.amr.corp.intel.com>
+References: <20150504174626.3483.97639.stgit@manet.1015granger.net>
+ <20150504175720.3483.80356.stgit@manet.1015granger.net>
+ <554B37CF.2070206@dev.mellanox.co.il>
+ <E1ADA91B-45DA-46B6-A114-E2600613969A@oracle.com>
+ <554B6F2A.6000608@dev.mellanox.co.il>
+ <BDE22240-DC37-4C54-B71E-D88EF54D3119@oracle.com>
+ <554B80B7.8090900@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Matan Barak <matanb@mellanox.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <554B80B7.8090900-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 10, 2015 at 01:26:32PM +0300, Haggai Eran wrote:
-> Currently the RDMA subsystem's device list and client list are protected by
-> a single mutex. This prevents adding user-facing APIs that iterate these
-> lists, since using them may cause a deadlock. The patch attempts to solve
-> this problem by adding an SRCU to protect the lists. Readers now don't need
-> the mutex, and are safe just by using srcu_read_lock/unlock.
+> > ia->ri_device is never updated. The only place it is set is in
+> > rpcrdma_ia_open().
 > 
-> The ib_register_device, ib_register_client, and ib_unregister_client
-> functions are modified to only lock the device_mutex during their
-> respective list modification, and use the SRCU for iteration on the other
-> list. In ib_unregister_device, the client list iteration remains in the
-> mutex critical section as it is done in reverse order.
+> So you assume that each ri_id that you will recreate contains the
+> same device handle?
 > 
-> This patch attempts to solve a similar need [1] that was seen in the RoCE
-> v2 patch series.
+> I think that for ADDR_CHANGE event when the slave belongs to another
+> device you will hit a mismatch. CC'ing Sean for more info...
+
+I'm not familiar with the xprtrdma code.  From the perspective of the rdma_cm, if a listen is associated with a specific IP address, then it will also be associated with a specific device.  If an address change occurs, and the address moves to another device, then the app is essentially left with an unusable listen.  Received connection requests will not find a matching listen and be dropped.
+
+If the address moves ports on the same device, then I think this works out fine in the case where the app ignores the ADDR_CHANGE event.
+
+> > It might be saner to construct a virtual ib_device in this
+> > case that consumers can depend on.
 > 
-> [1] http://www.spinics.net/lists/linux-rdma/msg24733.html
+> I'm not sure how does a virtual ib_device can work - that goes
+> to the verbs themselves... Seems like a layering mis-match to me...
 
-So at first blush this looked reasonable, but, no it is racy:
+I interpreted Chuck as asking for some lower-level way of handling this, so that all ULPs don't need to re-implement this.  I agree that this would be hard (impossible?) without ULPs operating at a slightly higher level of abstraction.  Maybe the rdma_cm could be extended for this purpose, for example, by exposing its own devices, which either map directly to a verbs device, or handle a virtual mapping.
 
-ib_register_client:
- mutex_lock(&device_mutex);
- list_add_tail_rcu(&client->list, &client_list);
- mutex_unlock(&device_mutex);
-
- id = srcu_read_lock(&device_srcu);
- list_for_each_entry_rcu(device, &device_list, core_list)
-                        client->add(device);
-
-ib_register_device:
-  mutex_lock(&device_mutex);
-  list_add_tail(&device->core_list, &device_list);
-  mutex_unlock(&device_mutex);
-
-  id = srcu_read_lock(&device_srcu);
-  list_for_each_entry_rcu(client, &client_list, list)
-       client->add(device);
-
-So, if two threads call the two registers then the new client will
-have it's add called twice on the same device.
-
-There are similar problems with removal.
-
-I'm not sure RCU is the right way to approach this. The driver core
-has the same basic task to perform, maybe review it's locking
-arrangment between the device list and driver list.
-
-[Actually we probably should be using the driver core here, with IB
- clients as device drivers, but that is way beyond scope of this..]
-
-I had a bunch of other comments, but they are not relevant,
-considering the above.
-
-Jason
+- Sean 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
