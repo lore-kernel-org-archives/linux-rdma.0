@@ -1,423 +1,503 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC] IB/core, cma: Nice log-friendly string helpers
-Date: Mon, 11 May 2015 09:44:12 -0400
-Message-ID: <B219CB1E-C046-40B2-BD10-DFCA1BC50087@oracle.com>
-References: <1431253542-14933-1-git-send-email-sagig@mellanox.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH RFC] Verbs RSS.
+Date: Mon, 11 May 2015 17:04:08 +0300
+Message-ID: <1431353048-2410-1-git-send-email-alexv@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431253542-14933-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Purpose and Motivation
+-----------------------
+RSS (Receive Side Scaling) technology allows to spread incoming traffic between
+different receive descriptor queues.
+Assigning each queue to different CPU cores allows to better load balance the
+incoming traffic and improve performance.
+This RFC introduces RSS arch and libibverbs API, in order to allow verbs based
+solutions to utilize the RSS offload capability, widely supported today by many
+modern cards cards.
 
-On May 10, 2015, at 6:25 AM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+Overview of the Proposed Changes
+-----------------
+- Add new verbs objects: Work Queue and Receive Work Queues Indirection Table.
+- Add new verbs that are required to handle the new objects:
+  ibv_create_wq(), ibv_modify_wq(), ibv_destory_wq(),
+  ibv_create_rwq_ind_table(), ibv_modify_rwq_ind_table(),
+  ibv_destroy_rwq_ind_table(), ibv_post_wq_recv().
+- Add support for QP that spreads incoming traffic between different Receive
+  Work Queues. We call this QP "RX Hash QP" since it applies hash function
+  in order to spread the received traffic.
+- Reflect RSS capabilities in ibv_device_attr_ex and add new query device verb:
+  ibv_query_device_ex().
 
-> Some of us keep revisiting the code to decode IB/RDMA_CM enumerations
-> that appear in our logs. Let's borrow the nice logging helpers xprtrdma
-> has for CMA events, IB events and WC statuses. Also, have srp, iser and
-> isert be early adopters.
-> 
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> I have been using this patch for some time now so I thought
-> it would be nice to get it out.
-> 
-> drivers/infiniband/ulp/iser/iser_verbs.c |   25 +++++---
-> drivers/infiniband/ulp/srp/ib_srp.c      |   15 +++--
-> include/rdma/ib_verbs.h                  |   55 ++++++++++++++++++
-> include/rdma/rdma_cm.h                   |   23 ++++++++
-> net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
-> 5 files changed, 106 insertions(+), 102 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-> index cc2dd35..764f9f9 100644
-> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
-> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-> @@ -51,19 +51,20 @@ static void iser_cq_callback(struct ib_cq *cq, void *cq_context);
-> 
-> static void iser_cq_event_callback(struct ib_event *cause, void *context)
-> {
-> -	iser_err("got cq event %d \n", cause->event);
-> +	iser_err("cq event %s(%d)\n", IB_EVENT(cause->event), cause->event);
-> }
-> 
-> static void iser_qp_event_callback(struct ib_event *cause, void *context)
-> {
-> -	iser_err("got qp event %d\n",cause->event);
-> +	iser_err("qp event %s(%d)\n", IB_EVENT(cause->event), cause->event);
-> }
-> 
-> static void iser_event_handler(struct ib_event_handler *handler,
-> 				struct ib_event *event)
-> {
-> -	iser_err("async event %d on device %s port %d\n", event->event,
-> -		event->device->name, event->element.port_num);
-> +	iser_err("async event %s(%d) on device %s port %d\n",
-> +		 IB_EVENT(event->event), event->event,
-> +		 event->device->name, event->element.port_num);
-> }
-> 
-> /**
-> @@ -873,8 +874,9 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
-> 	int ret = 0;
-> 
-> 	iser_conn = (struct iser_conn *)cma_id->context;
-> -	iser_info("event %d status %d conn %p id %p\n",
-> -		  event->event, event->status, cma_id->context, cma_id);
-> +	iser_info("event %s(%d) status %d conn %p id %p\n",
-> +		  CMA_EVENT(event->event), event->event,
-> +		  event->status, cma_id->context, cma_id);
-> 
-> 	mutex_lock(&iser_conn->state_mutex);
-> 	switch (event->event) {
-> @@ -913,7 +915,8 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
-> 		}
-> 		break;
-> 	default:
-> -		iser_err("Unexpected RDMA CM event (%d)\n", event->event);
-> +		iser_err("Unexpected RDMA CM event %s(%d)\n",
-> +			 CMA_EVENT(event->event), event->event);
-> 		break;
-> 	}
-> 	mutex_unlock(&iser_conn->state_mutex);
-> @@ -1173,10 +1176,12 @@ static void iser_handle_wc(struct ib_wc *wc)
-> 		}
-> 	} else {
-> 		if (wc->status != IB_WC_WR_FLUSH_ERR)
-> -			iser_err("wr id %llx status %d vend_err %x\n",
-> -				 wc->wr_id, wc->status, wc->vendor_err);
-> +			iser_err("%s(%d): wr id %llx vend_err %x\n",
-> +				 WC_STATUS(wc->status), wc->status, wc->wr_id,
-> +				 wc->vendor_err);
-> 		else
-> -			iser_dbg("flush error: wr id %llx\n", wc->wr_id);
-> +			iser_dbg("%s(%d): wr id %llx\n",
-> +				 WC_STATUS(wc->status), wc->status, wc->wr_id);
-> 
-> 		if (wc->wr_id == ISER_BEACON_WRID)
-> 			/* all flush errors were consumed */
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 918814c..6b211c4 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -253,7 +253,7 @@ static void srp_free_iu(struct srp_host *host, struct srp_iu *iu)
-> 
-> static void srp_qp_event(struct ib_event *event, void *context)
-> {
-> -	pr_debug("QP event %d\n", event->event);
-> +	pr_debug("QP event %s(%d)\n", IB_EVENT(event->event), event->event);
-> }
-> 
-> static int srp_init_qp(struct srp_target_port *target,
-> @@ -1932,17 +1932,18 @@ static void srp_handle_qp_err(u64 wr_id, enum ib_wc_status wc_status,
-> 	if (target->connected && !target->qp_in_error) {
-> 		if (wr_id & LOCAL_INV_WR_ID_MASK) {
-> 			shost_printk(KERN_ERR, target->scsi_host, PFX
-> -				     "LOCAL_INV failed with status %d\n",
-> -				     wc_status);
-> +				     "LOCAL_INV failed with status %s(%d)\n",
-> +				     WC_STATUS(wc_status), wc_status);
-> 		} else if (wr_id & FAST_REG_WR_ID_MASK) {
-> 			shost_printk(KERN_ERR, target->scsi_host, PFX
-> -				     "FAST_REG_MR failed status %d\n",
-> -				     wc_status);
-> +				     "FAST_REG_MR failed status %s(%d)\n",
-> +				     WC_STATUS(wc_status), wc_status);
-> 		} else {
-> 			shost_printk(KERN_ERR, target->scsi_host,
-> -				     PFX "failed %s status %d for iu %p\n",
-> +				     PFX "failed %s status %s(%d) for iu %p\n",
-> 				     send_err ? "send" : "receive",
-> -				     wc_status, (void *)(uintptr_t)wr_id);
-> +				     WC_STATUS(wc_status), wc_status,
-> +				     (void *)(uintptr_t)wr_id);
-> 		}
-> 		queue_work(system_long_wq, &target->tl_err_work);
-> 	}
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 65994a1..d615e63 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -412,6 +412,32 @@ enum ib_event_type {
-> 	IB_EVENT_GID_CHANGE,
-> };
-> 
-> +static const char * const ib_events[] = {
-> +	"CQ_ERR",
-> +	"QP_FATAL",
-> +	"QP_REQ_ERR",
-> +	"QP_ACCESS_ERR",
-> +	"COMM_EST",
-> +	"SQ_DRAINED",
-> +	"PATH_MIG",
-> +	"PATH_MIG_ERR",
-> +	"DEVICE_FATAL",
-> +	"PORT_ACTIVE",
-> +	"PORT_ERR",
-> +	"LID_CHANGE",
-> +	"PKEY_CHANGE",
-> +	"SM_CHANGE",
-> +	"SRQ_ERR",
-> +	"SRQ_LIMIT_REACHED",
-> +	"QP_LAST_WQE_REACHED",
-> +	"CLIENT_REREGISTER",
-> +	"GID_CHANGE",
-> +};
-> +
-> +#define IB_EVENT(event)						\
-> +	((event) < ARRAY_SIZE(ib_events) ?			\
-> +		ib_events[(event)] : "UNRECOGNIZED_EVENT")
-> +
-> struct ib_event {
-> 	struct ib_device	*device;
-> 	union {
-> @@ -663,6 +689,35 @@ enum ib_wc_status {
-> 	IB_WC_GENERAL_ERR
-> };
-> 
-> +static const char * const wc_statuses[] = {
-> +	"SUCCESS",
-> +	"LOC_LEN_ERR",
-> +	"LOC_QP_OP_ERR",
-> +	"LOC_EEC_OP_ERR",
-> +	"LOC_PROT_ERR",
-> +	"WR_FLUSH_ERR",
-> +	"MW_BIND_ERR",
-> +	"BAD_RESP_ERR",
-> +	"LOC_ACCESS_ERR",
-> +	"REM_INV_REQ_ERR",
-> +	"REM_ACCESS_ERR",
-> +	"REM_OP_ERR",
-> +	"RETRY_EXC_ERR",
-> +	"RNR_RETRY_EXC_ERR",
-> +	"LOC_RDD_VIOL_ERR",
-> +	"REM_INV_RD_REQ_ERR",
-> +	"REM_ABORT_ERR",
-> +	"INV_EECN_ERR",
-> +	"INV_EEC_STATE_ERR",
-> +	"FATAL_ERR",
-> +	"RESP_TIMEOUT_ERR",
-> +	"GENERAL_ERR",
-> +};
-> +
-> +#define WC_STATUS(status)					\
-> +	((status) < ARRAY_SIZE(wc_statuses) ?			\
-> +		wc_statuses[(status)] : "UNRECOGNIZED_STATUS")
-> +
-> enum ib_wc_opcode {
-> 	IB_WC_SEND,
-> 	IB_WC_RDMA_WRITE,
-> diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-> index 1ed2088..4eec92c 100644
-> --- a/include/rdma/rdma_cm.h
-> +++ b/include/rdma/rdma_cm.h
-> @@ -62,6 +62,29 @@ enum rdma_cm_event_type {
-> 	RDMA_CM_EVENT_TIMEWAIT_EXIT
-> };
-> 
-> +static const char * const cma_events[] = {
-> +	"ADDR_RESOLVED",
-> +	"ADDR_ERROR",
-> +	"ROUTE_RESOLVED",
-> +	"ROUTE_ERROR",
-> +	"CONNECT_REQUEST",
-> +	"CONNECT_RESPONSE",
-> +	"CONNECT_ERROR",
-> +	"UNREACHABLE",
-> +	"REJECTED",
-> +	"ESTABLISHED",
-> +	"DISCONNECTED",
-> +	"DEVICE_REMOVAL",
-> +	"MULTICAST_JOIN",
-> +	"MULTICAST_ERROR",
-> +	"ADDR_CHANGE",
-> +	"TIMEWAIT_EXIT",
-> +};
-> +
-> +#define CMA_EVENT(event)					\
-> +	((event) < ARRAY_SIZE(cma_events) ?			\
-> +		cma_events[(event)] : "UNRECOGNIZED_EVENT")
-> +
-> enum rdma_port_space {
-> 	RDMA_PS_SDP   = 0x0001,
-> 	RDMA_PS_IPOIB = 0x0002,
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 4870d27..8423dd2 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -105,32 +105,6 @@ rpcrdma_run_tasklet(unsigned long data)
-> 
-> static DECLARE_TASKLET(rpcrdma_tasklet_g, rpcrdma_run_tasklet, 0UL);
-> 
-> -static const char * const async_event[] = {
-> -	"CQ error",
-> -	"QP fatal error",
-> -	"QP request error",
-> -	"QP access error",
-> -	"communication established",
-> -	"send queue drained",
-> -	"path migration successful",
-> -	"path mig error",
-> -	"device fatal error",
-> -	"port active",
-> -	"port error",
-> -	"LID change",
-> -	"P_key change",
-> -	"SM change",
-> -	"SRQ error",
-> -	"SRQ limit reached",
-> -	"last WQE reached",
-> -	"client reregister",
-> -	"GID change",
-> -};
-> -
-> -#define ASYNC_MSG(status)					\
-> -	((status) < ARRAY_SIZE(async_event) ?			\
-> -		async_event[(status)] : "unknown async error")
-> -
-> static void
-> rpcrdma_schedule_tasklet(struct list_head *sched_list)
-> {
-> @@ -148,7 +122,7 @@ rpcrdma_qp_async_error_upcall(struct ib_event *event, void *context)
-> 	struct rpcrdma_ep *ep = context;
-> 
-> 	pr_err("RPC:       %s: %s on device %s ep %p\n",
-> -	       __func__, ASYNC_MSG(event->event),
-> +	       __func__, IB_EVENT(event->event),
-> 		event->device->name, context);
-> 	if (ep->rep_connected == 1) {
-> 		ep->rep_connected = -EIO;
-> @@ -163,7 +137,7 @@ rpcrdma_cq_async_error_upcall(struct ib_event *event, void *context)
-> 	struct rpcrdma_ep *ep = context;
-> 
-> 	pr_err("RPC:       %s: %s on device %s ep %p\n",
-> -	       __func__, ASYNC_MSG(event->event),
-> +	       __func__, IB_EVENT(event->event),
-> 		event->device->name, context);
-> 	if (ep->rep_connected == 1) {
-> 		ep->rep_connected = -EIO;
-> @@ -172,35 +146,6 @@ rpcrdma_cq_async_error_upcall(struct ib_event *event, void *context)
-> 	}
-> }
-> 
-> -static const char * const wc_status[] = {
-> -	"success",
-> -	"local length error",
-> -	"local QP operation error",
-> -	"local EE context operation error",
-> -	"local protection error",
-> -	"WR flushed",
-> -	"memory management operation error",
-> -	"bad response error",
-> -	"local access error",
-> -	"remote invalid request error",
-> -	"remote access error",
-> -	"remote operation error",
-> -	"transport retry counter exceeded",
-> -	"RNR retry counter exceeded",
-> -	"local RDD violation error",
-> -	"remove invalid RD request",
-> -	"operation aborted",
-> -	"invalid EE context number",
-> -	"invalid EE context state",
-> -	"fatal error",
-> -	"response timeout error",
-> -	"general error",
-> -};
-> -
-> -#define COMPLETION_MSG(status)					\
-> -	((status) < ARRAY_SIZE(wc_status) ?			\
-> -		wc_status[(status)] : "unexpected completion error")
-> -
-> static void
-> rpcrdma_sendcq_process_wc(struct ib_wc *wc)
-> {
-> @@ -209,7 +154,7 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
-> 		if (wc->status != IB_WC_SUCCESS &&
-> 		    wc->status != IB_WC_WR_FLUSH_ERR)
-> 			pr_err("RPC:       %s: SEND: %s\n",
-> -			       __func__, COMPLETION_MSG(wc->status));
-> +			       __func__, WC_STATUS(wc->status));
-> 	} else {
-> 		struct rpcrdma_mw *r;
+The changes are described in more details below.
 
-There is also a pr_warn() in frwr_sendcompletion() that should be
-converted from displaying a numeric error code to a status string.
+RSS Flow Overview
+-----------------
+Steering rules classify incoming packets and deliver a specific traffic types
+(e.g. TCP/UDP, IP only) or spesific flows to "RX Hash" QP.
+"RX Hash" QP is responsible to spread the traffic it handles between
+Receive Work Queues using RX hash and Indirection Table.
+Receive Work Queue can point to different CQs that can be associated
+with different CPU cores.
 
-And, consider updating the NFS/RDMA server-side as well. See
-cq_event_handler(), qp_event_handler(), and sq_cq_reap().
+"RX Hash" QP
+-------------
+"RX Hash" QPs don't have internal Receive/Send Work Queues
+packaged" inside them.
+"RX Hash" QPs are associated with Indirection Table of Receive Work Queues.
+On packet reception the QP chooses to which Receive Work Queue to deliver
+an incoming packet using RX hash value that points to an Indirection
+Table entry that points to Receive Work Queue.
+RX hash function and packet fields to use in RX hash calculation are initialized
+on QP creation.
+"RX Hash" QPs are created by enabling a new init attribute flag:
+IBV_QP_INIT_ATTR_RX_HASH.
+Device capabilities flags must report which QP types support the "RX Hash" mode.
 
-For the RPC/RDMA changes:
+Additional properties of "RX Hash" QP:
+- The QP is stateless
+- Receive/Send Work Queues parameters are invalid for it:
+  send/recv_cq, qp_cap, srq, etc...
+- ibv_post_recv() and ibv_post_send() can't be done on that QP
+- The QP is assosiated (many to one) with Receive Work Queue Indirection Table.
+- Flow rules can point to that QP
+- QP is created and manipulated via existing verbs
+- QP's transport properties can be set via ibv_create_qp_ex() verb and can be
+  modified via ibv_modify_qp() verb.
+  Notice:
+  1. The list of supported properties is depended on QP's transport type.
+  2. WQ properties can't be set via ibv_create_qp_ex() or modified via
+     ibv_modify_qp().
 
-  Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+New Verbs Objects:
+------------------
+- ibv_rwq_ind_tbl: Receive Work Queue Indirection Table.
+  Its size must be power of two, hoverwer the number of Receive WQs it contains
+  doesn't have to be power of two.
 
-IMO you will need to get an Ack or Signed-off-by from Anna
-Schumaker as well for the RPC/RDMA changes.
+- ibv_wq: Work Queue.
+  Work Queue is associated (many to one) with  Completion Queue
+  it owns Work Queue properties (PD, WQ size etc).
+  Currently two WQ types are supported: IBV_RQ and IBV_SRQ.
+  IBV_RQ WQ contains receive WQEs.
+  IBV_SRQ WQ is associated (many to one) with IB_SRQT_BASIC SRQ,
+  in which case it does not hold receive WQEs.
+  QPs are connected to IBV_RQ/IBV_SRQ WQ (many to many) via Indirection Table.
+  WQEs are posted to IBV_RQ WQ via ibv_post_wq_recv().
+  For IBV_SRQ WQ WQE are posted via ibv_post_srq_recv().
+  WQ context is subject to a well-defined state transitions as illustrated
+  in the following table:
 
+   Next State|Initial|RESET|RDY|ERR|Final
+Current State
+--------------------------------------------
+Initial|NA|create|NA|NA|NA
+RESET|NA|modify|modify|NA|destroy
+RDY|NA|modify|modify|modify/HW error|destroy
+ERR|NA|modify|NA|NA|destroy
+Final|NA|NA|NA|NA|NA
 
-> @@ -302,7 +247,7 @@ out_schedule:
-> out_fail:
-> 	if (wc->status != IB_WC_WR_FLUSH_ERR)
-> 		pr_err("RPC:       %s: rep %p: %s\n",
-> -		       __func__, rep, COMPLETION_MSG(wc->status));
-> +		       __func__, rep, WC_STATUS(wc->status));
-> 	rep->rr_len = ~0U;
-> 	goto out_schedule;
-> }
-> @@ -386,31 +331,6 @@ rpcrdma_flush_cqs(struct rpcrdma_ep *ep)
-> 		rpcrdma_sendcq_process_wc(&wc);
-> }
-> 
-> -#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-> -static const char * const conn[] = {
-> -	"address resolved",
-> -	"address error",
-> -	"route resolved",
-> -	"route error",
-> -	"connect request",
-> -	"connect response",
-> -	"connect error",
-> -	"unreachable",
-> -	"rejected",
-> -	"established",
-> -	"disconnected",
-> -	"device removal",
-> -	"multicast join",
-> -	"multicast error",
-> -	"address change",
-> -	"timewait exit",
-> -};
-> -
-> -#define CONNECTION_MSG(status)						\
-> -	((status) < ARRAY_SIZE(conn) ?					\
-> -		conn[(status)] : "unrecognized connection error")
-> -#endif
-> -
-> static int
-> rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
-> {
-> @@ -476,7 +396,7 @@ connected:
-> 	default:
-> 		dprintk("RPC:       %s: %pIS:%u (ep 0x%p): %s\n",
-> 			__func__, sap, rpc_get_port(sap), ep,
-> -			CONNECTION_MSG(event->event));
-> +			CMA_EVENT(event->event));
-> 		break;
-> 	}
-> 
-> -- 
-> 1.7.1
-> 
+RSS Capabilities
+----------------
+RSS capabilities must be added to ibv_device_attr_ex and queried via
+ibv_query_device_ex() verb.
+The capabilities should cover:
+- QP types that supports "RX Hash" mode.
+- Supported hash functions and packet fields that can participate in RX hash.
+- Max Indirection table size.
+- Max number of supported IBV_S/RQ WQs .
+- Max number of supported Indirection tables.
 
---
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+Initialization Flow Example
+---------------------------
+- N X Create CQ.
+- N X Create IBV_RQ WQ, using ibv_create_wq() verb.
+- Create and populate Receive Work Queue Indirection Table with previously
+  created Receive WQs, using ibv_create_rwq_ind_table() verb.
+- Create 2 X IB_QPT_RAW_PACKET QPs with enabled IBV_DEVICE_RAW_PACKET_RX_HASH
+  capability flag with the following RX hash configuration:
+  QP1:
+      - Hash function: XOR.
+      - Enabled hash bits: TCP source port, TCP destination port,
+                           IPv4 source address, IPv4 destination address.
+  QP2
+      - Hash function: XOR.
+      - Enabled hash bits: UDP source port, UDP destination port,
+                           IPv4 source address, IPv4 destination address.
+  Both QPs are assosiated with previously created Indirection Table.
+- N X post receive to Receive WQ, using ibv_post_wq_recv() verb.
+- Create appropriate flow rules:
+      - Configure steering to deliver TCP/IPv4 packets to QP1.
+      - Configure steering to deliver UDP/IPv4 packets to QP2.
 
+Signed-off-by: Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/infiniband/verbs.h | 292 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 290 insertions(+), 2 deletions(-)
 
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index cfa1156..624e1fc 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -116,7 +116,13 @@ enum ibv_device_cap_flags {
+ 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
+ 	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
+ 	IBV_DEVICE_XRC			= 1 << 20,
+-	IBV_DEVICE_MANAGED_FLOW_STEERING = 1 << 29
++	IBV_DEVICE_MANAGED_FLOW_STEERING = 1 << 29,
++	/* Devices should set IBV_DEVICE_RAW_PACKET_RX_HASH if they
++	* support IBV_QPT_RAW_PACKET QPs that can spread incoming traffic
++	* to different Receive Work Queues, by applying hash function
++	* on selected packet fields.
++	*/
++	IBV_DEVICE_RAW_PACKET_RX_HASH	= 1 << 30
+ };
+ 
+ enum ibv_atomic_cap {
+@@ -241,6 +247,7 @@ struct ibv_async_event {
+ 	union {
+ 		struct ibv_cq  *cq;
+ 		struct ibv_qp  *qp;
++		struct ibv_wq  *wq;
+ 		struct ibv_srq *srq;
+ 		int		port_num;
+ 	} element;
+@@ -300,6 +307,7 @@ struct ibv_wc {
+ 	uint32_t		vendor_err;
+ 	uint32_t		byte_len;
+ 	uint32_t		imm_data;	/* in network byte order */
++	/* WQ number for WC generated by WQ */
+ 	uint32_t		qp_num;
+ 	uint32_t		src_qp;
+ 	int			wc_flags;
+@@ -481,6 +489,83 @@ struct ibv_srq_init_attr_ex {
+ 	struct ibv_cq	       *cq;
+ };
+ 
++enum ibv_wq_type {
++	IBV_WQT_RQ,
++	IBV_WQT_SRQ
++};
++
++struct ibv_wq_init_attr {
++	/* Associated Context of the WQ */
++	void		       *wq_context;
++	enum ibv_wq_type	wq_type;
++	/* Valid for non IBV_WQT_SRQ WQ */
++	uint32_t		max_wr;
++	/* Valid for non IBV_WQT_SRQ WQ */
++	uint32_t		max_sge;
++	/* Protection domain WQ should be associated with */
++	struct	ibv_pd	       *pd;
++	/* CQ to be associated with the WQ */
++	struct	ibv_cq	       *cq;
++	/* SRQ handle if WQ is of type IBV_WQT_SRQ, otherwise NULL */
++	struct	ibv_srq	       *srq;
++	uint32_t		comp_mask;
++};
++
++enum ibv_wq_state {
++	IBV_WQS_RESET,
++	IBV_WQS_RDY,
++	IBV_WQS_ERR,
++	IBV_WQS_UNKNOWN
++};
++
++enum ibv_wq_attr_mask {
++	IBV_WQ_ATTR_STATE	= 1 << 0,
++	IBV_WQ_ATTR_CURR_STATE	= 1 << 1,
++	IBV_WQ_ATTR_RESERVED	= 1 << 2
++};
++
++struct ibv_wq_attr {
++	/* enum ibv_wq_attr_mask */
++	uint32_t		attr_mask;
++	/* Move the RQ to this state */
++	enum	ibv_wq_state	wq_state;
++	/* Assume this is the current RQ state */
++	enum	ibv_wq_state	curr_wq_state;
++};
++
++/*
++ * Receive Work Queue Indirection Table attributes
++*/
++struct ibv_rwq_ind_table_init_attr {
++	struct ibv_pd	       *pd;
++	/* Log, base 2, of Indirection table size */
++	uint32_t		log_rwq_ind_tbl_size;
++	/* Each entry is a pointer to Receive Work Queue */
++	struct ibv_wq	      **rwq_ind_tbl;
++	uint32_t		comp_mask;
++};
++
++/*
++ * Receive Work Queue Indirection Table attributes mask
++*/
++enum ibv_rwq_ind_table_attr_mask {
++	IBV_RWQ_IND_TABLE_ATTR_TABLE		= 1 << 0,
++	IBV_RWQ_IND_TABLE_ATTR_TABLE_SIZE	= 1 << 1,
++	IBV_RWQ_IND_TABLE_ATTR_RESERVED		= 1 << 2
++};
++
++/*
++ * Receive Work Queue Indirection Table attributes
++*/
++struct ibv_rwq_ind_table_attr {
++	/* enum ibv_rwq_ind_table_attr_mask */
++	uint32_t		attr_mask;
++	/* Log, base 2, of Indirection table size */
++	uint32_t		log_rwq_ind_tbl_size;
++	/* Each entry is a pointer to Receive Work Queue */
++	struct ibv_wq	      **rwq_ind_tbl;
++};
++
+ enum ibv_qp_type {
+ 	IBV_QPT_RC = 2,
+ 	IBV_QPT_UC,
+@@ -511,7 +596,50 @@ struct ibv_qp_init_attr {
+ enum ibv_qp_init_attr_mask {
+ 	IBV_QP_INIT_ATTR_PD		= 1 << 0,
+ 	IBV_QP_INIT_ATTR_XRCD		= 1 << 1,
+-	IBV_QP_INIT_ATTR_RESERVED	= 1 << 2
++	IBV_QP_INIT_ATTR_RX_HASH	= 1 << 2,
++	IBV_QP_INIT_ATTR_PORT		= 1 << 3,
++	IBV_QP_INIT_ATTR_RESERVED	= 1 << 4
++};
++
++/*
++ * RX Hash Function flags.
++*/
++enum ibv_rx_hash_function_flags {
++	IBV_EX_RX_HASH_FUNC_TOEPLTIZ	= 1 << 0,
++	IBV_EX_RX_HASH_FUNC_XOR		= 1 << 1
++};
++
++/*
++ * RX Hash flags, these flags allows to set which incoming packet field should
++ * participates in RX Hash. Each flag represent certain packet's field,
++ * when the flag is set the field that is represented by the flag will
++ * participate in RX Hash calculation.
++ * Notice: *IPV4 and *IPV6 flags can't be enabled together on the same QP
++ * and *TCP and *UDP flags can't be enabled together on the same QP.
++*/
++enum ibv_rx_hash_fields {
++	IBV_RX_HASH_SRC_IPV4		= 1 << 0,
++	IBV_RX_HASH_DST_IPV4		= 1 << 1,
++	IBV_RX_HASH_SRC_IPV6		= 1 << 2,
++	IBV_RX_HASH_DST_IPV6		= 1 << 3,
++	IBV_RX_HASH_SRC_PORT_TCP	= 1 << 4,
++	IBV_RX_HASH_DST_PORT_TCP	= 1 << 5,
++	IBV_RX_HASH_SRC_PORT_UDP	= 1 << 6,
++	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7
++};
++
++/*
++ * RX Hash QP configuration. Sets hash function, hash types and
++ * Indirection table for QPs with enabled IBV_QP_INIT_ATTR_RX_HASH flag.
++*/
++struct ibv_rx_hash_conf {
++	/* enum ib_rx_hash_fnction */
++	uint8_t				rx_hash_function;
++	/* valid only for Toeplitz */
++	uint8_t                        *rx_hash_key;
++	/* enum ib_rx_hash_fields */
++	uint64_t			rx_hash_fields_mask;
++	struct ibv_rwq_ind_table       *rwq_ind_tbl;
+ };
+ 
+ struct ibv_qp_init_attr_ex {
+@@ -526,6 +654,8 @@ struct ibv_qp_init_attr_ex {
+ 	uint32_t		comp_mask;
+ 	struct ibv_pd	       *pd;
+ 	struct ibv_xrcd	       *xrcd;
++	struct ibv_rx_hash_conf	       *rx_hash_conf;
++	uint8_t			port_num;
+ };
+ 
+ enum ibv_qp_open_attr_mask {
+@@ -695,6 +825,51 @@ struct ibv_srq {
+ 	uint32_t		events_completed;
+ };
+ 
++/*
++ * Work Queue. QP can be created without internal WQs "packaged" inside it,
++ * this QPs can be configured to use "external" WQ object as its
++ * receive/send queue.
++ * WQ associated (many to one) with Completion Queue it owns WQ properties
++ * (PD, WQ size etc).
++ * WQ of type IBV_RQ contains receive WQEs, in which case its PD serves
++ * scatter as well.
++ * WQ of type IBV_SRQ is associated (many to one) with IB_SRQT_BASIC SRQ,
++ * in which case it does not hold receive WQEs.
++ * QPs can be associated with IBV_S/RQ WQs via WQ Indirection Table
++ * (many to many).
++ */
++struct ibv_wq {
++	struct ibv_context     *context;
++	void		       *wq_context; /* Associated Context of the WQ */
++	uint32_t		handle;
++	/* Protection domain WQ should be associated with */
++	struct	ibv_pd	       *pd;
++	/* CQ to be associated with the Receive Queue (WQ) */
++	struct	ibv_cq	       *cq;
++	/* SRQ handle if WQ is to be associated with an SRQ, otherwise NULL */
++	struct	ibv_srq	       *srq;
++	uint32_t		wq_num;
++	enum ibv_wq_state       state;
++	enum ibv_wq_type	wq_type;
++	uint32_t		comp_mask;
++};
++
++/*
++ * Receive Work Queue Indirection Table.
++ * QPs with IBV_QP_INIT_ATTR_RX_HASH flag enabled use Indirection Table
++ * in order to distribute incoming packets between different
++ * Receive Work Queues. Associating Receive WQs with different CPU cores
++ * allows to workload the traffic between different CPU cores.
++ * The Indirection Table can contain only WQs of type IBV_RQ/IBV_SRQ.
++ * Notice: Multiple QP can point to the same Indirection Table.
++*/
++struct ibv_rwq_ind_table {
++	struct ibv_context     *context;
++	struct ibv_pd	       *pd;
++	int			ind_tbl_num;
++	uint32_t		comp_mask;
++};
++
+ struct ibv_qp {
+ 	struct ibv_context     *context;
+ 	void		       *qp_context;
+@@ -1355,6 +1530,11 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
+ struct ibv_qp *ibv_create_qp(struct ibv_pd *pd,
+ 			     struct ibv_qp_init_attr *qp_init_attr);
+ 
++/*
++* The following QP init attributes are supported and required for
++* IBV_QPT_RAW_PACKET QP that supports packet spreading using RX Hash:
++* IBV_QP_INIT_ATTR_PD, IBV_QP_INIT_ATTR_RX_HASH, IBV_QP_INIT_ATTR_PORT
++*/
+ static inline struct ibv_qp *
+ ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_init_attr_ex)
+ {
+@@ -1413,6 +1593,114 @@ int ibv_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+  */
+ int ibv_destroy_qp(struct ibv_qp *qp);
+ 
++/*
++ * ibv_create_wq - Creates a WQ associated with the specified protection
++ * domain.
++ * @context: ibv_context.
++ * @wq_init_attr: A list of initial attributes required to create the
++ * WQ. If WQ creation succeeds, then the attributes are updated to
++ * the actual capabilities of the created WQ.
++ *
++ * wq_init_attr->wq_cap.max_wr and wq_init_attr->max_sge determine
++ * the requested size of the RQ's WQ, and set to the actual values allocated
++ * on return.
++ * If ibv_create_wq() succeeds, then max_wr and max_sge will always be
++ * at least as large as the requested values.
++ *
++ * Return Value
++ * ibv_create_wq() returns a pointer to the created WQ, or NULL if the request
++ * fails.
++ */
++struct ibv_wq *ibv_create_wq(struct ibv_context *context,
++				struct ibv_wq_init_attr *wq_init_attr);
++
++/*
++ * ib_modify_wq - Modifies the attributes for the specified WQ.
++ * @wq: The WQ to modify.
++ * @wq_init_attr: On input, specifies the WQ attributes to modify.
++ * On output, the current values of selected WQ attributes are returned.
++ * @wq_attr_mask: A bit-mask used to specify which attributes of the WQ
++ * are being modified.
++ *
++ * Return Value
++ * ibv_modify_wq() returns 0 on success, or the value of errno
++ * on failure (which indicates the failure reason).
++ *
++ * WQ States Transition Properties
++ * -------------------------------
++ * IB_RQ WQ Type:
++ * Transition    Required Attributes    Optional Attributes
++ * ----------    --------------------   -------------------
++ * RESET2RDY     IBV_WQ_ATTR_STATE	IBV_WQ_ATTR_CURR_STATE
++ * RDY2RDY       IBV_WQ_ATTR_STATE	IBV_WQ_ATTR_CURR_STATE
++ *
++ * IB_SRQ WQ  Type:
++ * Transition    Required Attributes    Optional Attributes
++ * ----------    --------------------   -------------------
++ * RESET2RDY     IBV_WQ_ATTR_STATE	IBV_WQ_ATTR_CURR_STATE
++ * RESET2RDY     IBV_WQ_ATTR_STATE	IBV_WQ_ATTR_CURR_STATE
++ *
++*/
++int ibv_modify_wq(struct ibv_wq *wq, struct ibv_wq_attr *wq_attr);
++
++/*
++ * ibv_destroy_wq - Destroys the specified WQ.
++ * @ibv_wq: The WQ to destroy.
++ * Return Value
++ * ibv_destroy_wq() returns 0 on success, or the value of errno
++ * on failure (which indicates the failure reason).
++*/
++int ibv_destroy_wq(struct ibv_wq *wq);
++
++/*
++ * ib_post_rq_recv - Posts a list of work requests to the specified WQ
++ * of type IBV_RQ.
++ * @wq: The WQ to post the work request on.
++ * @recv_wr: A list of work requests to post on the receive queue.
++ * @bad_recv_wr: On an immediate failure, this parameter will reference
++ * the work request that failed to be posted on the WQ.
++ * Return Value
++ * ibv_post_wq_recv() returns 0 on success, or the value of errno
++ * on failure (which indicates the failure reason).
++*/
++static inline int ibv_post_wq_recv(struct ibv_wq *wq,
++				  struct ibv_recv_wr *recv_wr,
++				  struct ibv_recv_wr **bad_recv_wr);
++
++/*
++ * ibv_create_rwq_ind_table - Creates a RQ Indirection Table associated
++ * with the specified protection domain.
++ * @pd: The protection domain associated with the Indirection Table.
++ * @ibv_rwq_ind_table_init_attr: A list of initial attributes required to
++ * create the Indirection Table.
++ * If Indirection Table creation succeeds, then the attributes are updated to
++ * the actual capabilities of the created Indirection Table.
++ *
++ * Return Value
++ * ibv_create_rwq_ind_table returns a pointer to the created
++ * Indirection Table, or NULL if the request fails.
++ */
++struct ibv_wq_ind_tbl *ibv_create_rwq_ind_table(struct ibv_context *context,
++					struct ibv_rwq_ind_table_init_attr*
++					wq_ind_table_init_attr);
++/*
++ * ibv_modify_rwq_ind_table - Modify the specified Indirection Table.
++ * @wq_ind_table: The Indirection Table to modify.
++ * Return Value
++ * ibv_modify_rwq_ind_table() returns 0 on success, or the value of errno
++ * on failure (which indicates the failure reason).
++*/
++int ibv_modify_rwq_ind_table(struct ibv_rwq_ind_table *wq_ind_table);
++
++/*
++ * ibv_destroy_rwq_ind_table - Destroys the specified Indirection Table.
++ * @wq_ind_table: The Indirection Table to destroy.
++ * Return Value
++ * ibv_destroy_rwq_ind_table() returns 0 on success, or the value of errno
++ * on failure (which indicates the failure reason).
++*/
++int ibv_destroy_rwq_ind_table(struct ibv_rwq_ind_table *wq_ind_table);
++
+ /**
+  * ibv_post_send - Post a list of work requests to a send queue.
+  *
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
