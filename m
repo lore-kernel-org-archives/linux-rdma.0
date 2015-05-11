@@ -1,284 +1,147 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3] IB/ipoib: Scatter-Gather support in connected mode
-Date: Mon, 11 May 2015 03:04:02 -0700
-Message-ID: <1431338642-22812-1-git-send-email-yuval.shaia@oracle.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 1/2] IB/core, cma: Nice log-friendly string helpers
+Date: Mon, 11 May 2015 13:32:13 +0300
+Message-ID: <CAJ3xEMgaFTcSeMj7eY9Y1BfLJpaBSZGSg0BDAHHLwv7unNGgmQ@mail.gmail.com>
+References: <1431338443-13216-1-git-send-email-sagig@mellanox.com>
+	<1431338443-13216-2-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431338443-13216-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better performance.
-This MTU plus overhead puts the memory allocation for IP based packets at 32
-4k pages (order 5), which have to be contiguous.
-When the system memory under pressure, it was observed that allocating 128k
-contiguous physical memory is difficult and causes serious errors (such as
-system becomes unusable).
+On Mon, May 11, 2015 at 1:00 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Some of us keep revisiting the code to decode enumerations that
+> appear in our logs. Let's borrow the nice logging helpers that
+> exists in xprtrdma and rds for CMA events, IB events and WC statuses.
+>
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cma.c   |   26 ++++++++++++++++
+>  drivers/infiniband/core/verbs.c |   61 +++++++++++++++++++++++++++++++++++++++
+>  include/rdma/ib_verbs.h         |    4 ++
+>  include/rdma/rdma_cm.h          |    2 +
+>  4 files changed, 93 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index d570030..1438dde 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -65,6 +65,32 @@ MODULE_LICENSE("Dual BSD/GPL");
+>  #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+>  #define CMA_IBOE_PACKET_LIFETIME 18
+>
+> +static const char *cma_events[] = {
+> +       [RDMA_CM_EVENT_ADDR_RESOLVED]   = "ADDR_RESOLVED",
+> +       [RDMA_CM_EVENT_ADDR_ERROR]      = "ADDR_ERROR",
+> +       [RDMA_CM_EVENT_ROUTE_RESOLVED]  = "ROUTE_RESOLVED",
+> +       [RDMA_CM_EVENT_ROUTE_ERROR]     = "ROUTE_ERROR",
+> +       [RDMA_CM_EVENT_CONNECT_REQUEST] = "CONNECT_REQUEST",
+> +       [RDMA_CM_EVENT_CONNECT_RESPONSE]= "CONNECT_RESPONSE",
+> +       [RDMA_CM_EVENT_CONNECT_ERROR]   = "CONNECT_ERROR",
+> +       [RDMA_CM_EVENT_UNREACHABLE]     = "UNREACHABLE",
+> +       [RDMA_CM_EVENT_REJECTED]        = "REJECTED",
+> +       [RDMA_CM_EVENT_ESTABLISHED]     = "ESTABLISHED",
+> +       [RDMA_CM_EVENT_DISCONNECTED]    = "DISCONNECTED",
+> +       [RDMA_CM_EVENT_DEVICE_REMOVAL]  = "DEVICE_REMOVAL",
+> +       [RDMA_CM_EVENT_MULTICAST_JOIN]  = "MULTICAST_JOIN",
+> +       [RDMA_CM_EVENT_MULTICAST_ERROR] = "MULTICAST_ERROR",
+> +       [RDMA_CM_EVENT_ADDR_CHANGE]     = "ADDR_CHANGE",
+> +       [RDMA_CM_EVENT_TIMEWAIT_EXIT]   = "TIMEWAIT_EXIT",
+> +};
+> +
+> +__attribute_const__ const char *cma_event_msg(enum rdma_cm_event_type event)
+> +{
+> +       return event < ARRAY_SIZE(cma_events) ?
+> +                       cma_events[event] : "UNRECOGNIZED_EVENT";
+> +}
+> +EXPORT_SYMBOL(cma_event_msg);
 
-This enhancement resolve the issue by removing the physically contiguous memory
-requirement using Scatter/Gather feature that exists in Linux stack.
+I think rdma_ prefix has better fit here, e.g aligns with the rest of
+the rdma_cm API
+so rdma_event_msg
 
-With this fix Scatter-Gather will be supported also in connected mode.
+> +
+>  static void cma_add_one(struct ib_device *device);
+>  static void cma_remove_one(struct ib_device *device);
+>
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index f93eb8d..0cdf1b6 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -48,6 +48,67 @@
+>
+>  #include "core_priv.h"
+>
+> +static const char *ib_events[] = {
+> +       [IB_EVENT_CQ_ERR]               = "CQ_ERR",
+> +       [IB_EVENT_QP_FATAL]             = "QP_FATAL",
+> +       [IB_EVENT_QP_REQ_ERR]           = "QP_REQ_ERR",
+> +       [IB_EVENT_QP_ACCESS_ERR]        = "QP_ACCESS_ERR",
+> +       [IB_EVENT_COMM_EST]             = "COMM_EST",
+> +       [IB_EVENT_SQ_DRAINED]           = "SQ_DRAINED",
+> +       [IB_EVENT_PATH_MIG]             = "PATH_MIG",
+> +       [IB_EVENT_PATH_MIG_ERR]         = "PATH_MIG_ERR",
+> +       [IB_EVENT_DEVICE_FATAL]         = "DEVICE_FATAL",
+> +       [IB_EVENT_PORT_ACTIVE]          = "PORT_ACTIVE",
+> +       [IB_EVENT_PORT_ERR]             = "PORT_ERR",
+> +       [IB_EVENT_LID_CHANGE]           = "LID_CHANGE",
+> +       [IB_EVENT_PKEY_CHANGE]          = "PKEY_CHANGE",
+> +       [IB_EVENT_SM_CHANGE]            = "SM_CHANGE",
+> +       [IB_EVENT_SRQ_ERR]              = "SRQ_ERR",
+> +       [IB_EVENT_SRQ_LIMIT_REACHED]    = "SRQ_LIMIT_REACHED",
+> +       [IB_EVENT_QP_LAST_WQE_REACHED]  = "QP_LAST_WQE_REACHED",
+> +       [IB_EVENT_CLIENT_REREGISTER]    = "CLIENT_REREGISTER",
+> +       [IB_EVENT_GID_CHANGE]           = "GID_CHANGE",
+> +};
+> +
+> +__attribute_const__ const char *ib_event_msg(enum ib_event_type event)
+> +{
+> +       return event < ARRAY_SIZE(ib_events) ?
+> +                       ib_events[event] : "UNRECOGNIZED_EVENT";
+> +}
+> +EXPORT_SYMBOL(ib_event_msg);
 
-This change reverts the some of the change made in commit
-e112373fd6aa280bd2cbc0d5cc3809115325a1be
-("IPoIB/cm: Reduce connected mode TX object size)".
 
-The ability to use SG in IPoIB CM is possible because the coupling
-between NETIF_F_SG and NETIF_F_CSUM was removed in commit
-ec5f061564238892005257c83565a0b58ec79295
-("net: Kill link between CSUM and SG features.")
+> +
+> +static const char *wc_statuses[] = {
+> +       [IB_WC_SUCCESS]                 = "SUCCESS",
+> +       [IB_WC_LOC_LEN_ERR]             = "LOC_LEN_ERR",
+> +       [IB_WC_LOC_QP_OP_ERR]           = "LOC_QP_OP_ERR",
+> +       [IB_WC_LOC_EEC_OP_ERR]          = "LOC_EEC_OP_ERR",
+> +       [IB_WC_LOC_PROT_ERR]            = "LOC_PROT_ERR",
+> +       [IB_WC_WR_FLUSH_ERR]            = "WR_FLUSH_ERR",
+> +       [IB_WC_MW_BIND_ERR]             = "MW_BIND_ERR",
+> +       [IB_WC_BAD_RESP_ERR]            = "BAD_RESP_ERR",
+> +       [IB_WC_LOC_ACCESS_ERR]          = "LOC_ACCESS_ERR",
+> +       [IB_WC_REM_INV_REQ_ERR]         = "REM_INV_REQ_ERR",
+> +       [IB_WC_REM_ACCESS_ERR]          = "REM_ACCESS_ERR",
+> +       [IB_WC_REM_OP_ERR]              = "REM_OP_ERR",
+> +       [IB_WC_RETRY_EXC_ERR]           = "RETRY_EXC_ERR",
+> +       [IB_WC_RNR_RETRY_EXC_ERR]       = "RNR_RETRY_EXC_ERR",
+> +       [IB_WC_LOC_RDD_VIOL_ERR]        = "LOC_RDD_VIOL_ERR",
+> +       [IB_WC_REM_INV_RD_REQ_ERR]      = "REM_INV_RD_REQ_ERR",
+> +       [IB_WC_REM_ABORT_ERR]           = "REM_ABORT_ERR",
+> +       [IB_WC_INV_EECN_ERR]            = "INV_EECN_ERR",
+> +       [IB_WC_INV_EEC_STATE_ERR]       = "INV_EEC_STATE_ERR",
+> +       [IB_WC_FATAL_ERR]               = "FATAL_ERR",
+> +       [IB_WC_RESP_TIMEOUT_ERR]        = "RESP_TIMEOUT_ERR",
+> +       [IB_WC_GENERAL_ERR]             = "GENERAL_ERR",
+> +};
+> +
+> +__attribute_const__ const char *wc_status_msg(enum ib_wc_status status)
+> +{
+> +       return status < ARRAY_SIZE(wc_statuses) ?
+> +                       wc_statuses[status] : "UNRECOGNIZED_STATUS";
+> +}
+> +EXPORT_SYMBOL(wc_status_msg);
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v2: Enhance commit log message
-
-I'd like to thank John Sobecki <john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> and
-Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org> for helping me with reviewing this patch.
-I will be glad if you can ACK it.
-
-v3: Add an empty line to start a new paragraph and use 12 hex-digits identifier
----
- drivers/infiniband/ulp/ipoib/ipoib.h      |    4 +-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   |  107 +++++++++++++++++++++++------
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   |    3 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
- 4 files changed, 92 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index bd94b0a..372c8a2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -239,7 +239,7 @@ struct ipoib_cm_tx {
- 	struct net_device   *dev;
- 	struct ipoib_neigh  *neigh;
- 	struct ipoib_path   *path;
--	struct ipoib_cm_tx_buf *tx_ring;
-+	struct ipoib_tx_buf *tx_ring;
- 	unsigned	     tx_head;
- 	unsigned	     tx_tail;
- 	unsigned long	     flags;
-@@ -504,6 +504,8 @@ int ipoib_mcast_stop_thread(struct net_device *dev);
- void ipoib_mcast_dev_down(struct net_device *dev);
- void ipoib_mcast_dev_flush(struct net_device *dev);
- 
-+int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req);
-+
- #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
- struct ipoib_mcast_iter *ipoib_mcast_iter_init(struct net_device *dev);
- int ipoib_mcast_iter_next(struct ipoib_mcast_iter *iter);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 56959ad..eae106e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -88,6 +88,31 @@ static void ipoib_cm_dma_unmap_rx(struct ipoib_dev_priv *priv, int frags,
- 		ib_dma_unmap_page(priv->ca, mapping[i + 1], PAGE_SIZE, DMA_FROM_DEVICE);
- }
- 
-+static void ipoib_cm_dma_unmap_tx(struct ipoib_dev_priv *priv,
-+				  struct ipoib_tx_buf *tx_req)
-+{
-+	struct sk_buff *skb;
-+	int i, offs;
-+
-+	skb = tx_req->skb;
-+	if (skb_shinfo(skb)->nr_frags) {
-+		offs = 0;
-+		if (skb_headlen(skb)) {
-+			ib_dma_unmap_single(priv->ca, tx_req->mapping[0],
-+					    skb_headlen(skb), DMA_TO_DEVICE);
-+			offs = 1;
-+		}
-+		for (i = 0; i < skb_shinfo(skb)->nr_frags; ++i) {
-+			const skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
-+
-+			ib_dma_unmap_page(priv->ca, tx_req->mapping[i + offs],
-+					  skb_frag_size(frag), DMA_TO_DEVICE);
-+		}
-+	} else
-+		ib_dma_unmap_single(priv->ca, tx_req->mapping[0], skb->len,
-+				    DMA_TO_DEVICE);
-+}
-+
- static int ipoib_cm_post_receive_srq(struct net_device *dev, int id)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-@@ -707,11 +732,39 @@ static inline int post_send(struct ipoib_dev_priv *priv,
- 	return ib_post_send(tx->qp, &priv->tx_wr, &bad_wr);
- }
- 
-+static inline int post_send_sg(struct ipoib_dev_priv *priv,
-+			       struct ipoib_cm_tx *tx,
-+			       unsigned int wr_id,
-+			       struct sk_buff *skb,
-+			       u64 mapping[MAX_SKB_FRAGS + 1])
-+{
-+	struct ib_send_wr *bad_wr;
-+	int i, off;
-+	skb_frag_t *frags = skb_shinfo(skb)->frags;
-+	int nr_frags = skb_shinfo(skb)->nr_frags;
-+
-+	if (skb_headlen(skb)) {
-+		priv->tx_sge[0].addr = mapping[0];
-+		priv->tx_sge[0].length = skb_headlen(skb);
-+		off = 1;
-+	} else
-+		off = 0;
-+
-+	for (i = 0; i < nr_frags; ++i) {
-+		priv->tx_sge[i + off].addr = mapping[i + off];
-+		priv->tx_sge[i + off].length = frags[i].size;
-+	}
-+	priv->tx_wr.num_sge = nr_frags + off;
-+	priv->tx_wr.wr_id = wr_id | IPOIB_OP_CM;
-+
-+	return ib_post_send(tx->qp, &priv->tx_wr, &bad_wr);
-+}
-+
- void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_tx *tx)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	struct ipoib_cm_tx_buf *tx_req;
--	u64 addr;
-+	struct ipoib_tx_buf *tx_req;
-+	u64 addr = 0;
- 	int rc;
- 
- 	if (unlikely(skb->len > tx->mtu)) {
-@@ -735,24 +788,37 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
- 	 */
- 	tx_req = &tx->tx_ring[tx->tx_head & (ipoib_sendq_size - 1)];
- 	tx_req->skb = skb;
--	addr = ib_dma_map_single(priv->ca, skb->data, skb->len, DMA_TO_DEVICE);
--	if (unlikely(ib_dma_mapping_error(priv->ca, addr))) {
--		++dev->stats.tx_errors;
--		dev_kfree_skb_any(skb);
--		return;
--	}
- 
--	tx_req->mapping = addr;
-+	if (skb_shinfo(skb)->nr_frags) {
-+		if (unlikely(ipoib_dma_map_tx(priv->ca, tx_req))) {
-+			++dev->stats.tx_errors;
-+			dev_kfree_skb_any(skb);
-+			return;
-+		}
-+		rc = post_send_sg(priv, tx, tx->tx_head &
-+				  (ipoib_sendq_size - 1),
-+				  skb, tx_req->mapping);
-+	} else {
-+		addr = ib_dma_map_single(priv->ca, skb->data, skb->len,
-+					 DMA_TO_DEVICE);
-+		if (unlikely(ib_dma_mapping_error(priv->ca, addr))) {
-+			++dev->stats.tx_errors;
-+			dev_kfree_skb_any(skb);
-+			return;
-+		}
-+
-+		tx_req->mapping[0] = addr;
- 
--	skb_orphan(skb);
--	skb_dst_drop(skb);
-+		skb_orphan(skb);
-+		skb_dst_drop(skb);
- 
--	rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
--		       addr, skb->len);
-+		rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1),
-+			       addr, skb->len);
-+	}
- 	if (unlikely(rc)) {
- 		ipoib_warn(priv, "post_send failed, error %d\n", rc);
- 		++dev->stats.tx_errors;
--		ib_dma_unmap_single(priv->ca, addr, skb->len, DMA_TO_DEVICE);
-+		ipoib_cm_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(skb);
- 	} else {
- 		dev->trans_start = jiffies;
-@@ -777,7 +843,7 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ipoib_cm_tx *tx = wc->qp->qp_context;
- 	unsigned int wr_id = wc->wr_id & ~IPOIB_OP_CM;
--	struct ipoib_cm_tx_buf *tx_req;
-+	struct ipoib_tx_buf *tx_req;
- 	unsigned long flags;
- 
- 	ipoib_dbg_data(priv, "cm send completion: id %d, status: %d\n",
-@@ -791,7 +857,7 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 
- 	tx_req = &tx->tx_ring[wr_id];
- 
--	ib_dma_unmap_single(priv->ca, tx_req->mapping, tx_req->skb->len, DMA_TO_DEVICE);
-+	ipoib_cm_dma_unmap_tx(priv, tx_req);
- 
- 	/* FIXME: is this right? Shouldn't we only increment on success? */
- 	++dev->stats.tx_packets;
-@@ -1036,6 +1102,9 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
- 
- 	struct ib_qp *tx_qp;
- 
-+	if (dev->features & NETIF_F_SG)
-+		attr.cap.max_send_sge = MAX_SKB_FRAGS + 1;
-+
- 	tx_qp = ib_create_qp(priv->pd, &attr);
- 	if (PTR_ERR(tx_qp) == -EINVAL) {
- 		ipoib_warn(priv, "can't use GFP_NOIO for QPs on device %s, using GFP_KERNEL\n",
-@@ -1170,7 +1239,7 @@ err_tx:
- static void ipoib_cm_tx_destroy(struct ipoib_cm_tx *p)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(p->dev);
--	struct ipoib_cm_tx_buf *tx_req;
-+	struct ipoib_tx_buf *tx_req;
- 	unsigned long begin;
- 
- 	ipoib_dbg(priv, "Destroy active connection 0x%x head 0x%x tail 0x%x\n",
-@@ -1197,8 +1266,7 @@ timeout:
- 
- 	while ((int) p->tx_tail - (int) p->tx_head < 0) {
- 		tx_req = &p->tx_ring[p->tx_tail & (ipoib_sendq_size - 1)];
--		ib_dma_unmap_single(priv->ca, tx_req->mapping, tx_req->skb->len,
--				    DMA_TO_DEVICE);
-+		ipoib_cm_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(tx_req->skb);
- 		++p->tx_tail;
- 		netif_tx_lock_bh(p->dev);
-@@ -1455,7 +1523,6 @@ static void ipoib_cm_stale_task(struct work_struct *work)
- 	spin_unlock_irq(&priv->lock);
- }
- 
--
- static ssize_t show_mode(struct device *d, struct device_attribute *attr,
- 			 char *buf)
- {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 63b92cb..f886055 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -263,8 +263,7 @@ repost:
- 			   "for buf %d\n", wr_id);
- }
- 
--static int ipoib_dma_map_tx(struct ib_device *ca,
--			    struct ipoib_tx_buf *tx_req)
-+int ipoib_dma_map_tx(struct ib_device *ca, struct ipoib_tx_buf *tx_req)
- {
- 	struct sk_buff *skb = tx_req->skb;
- 	u64 *mapping = tx_req->mapping;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 9e1b203..4ee2784 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -190,7 +190,7 @@ static netdev_features_t ipoib_fix_features(struct net_device *dev, netdev_featu
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
- 	if (test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags))
--		features &= ~(NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_TSO);
-+		features &= ~(NETIF_F_IP_CSUM | NETIF_F_TSO);
- 
- 	return features;
- }
--- 
-1.7.1
-
+same here, ib_ prefix has nice fit here, e.g aligns with the rest of
+the verbs API
+so ib_wc_status_msg
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
