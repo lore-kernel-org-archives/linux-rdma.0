@@ -1,65 +1,94 @@
-From: Nicholas Mc Guire <hofrat-Q945KHDl0DbYtjvyW6yDsg@public.gmane.org>
-Subject: [PATCH] IB/ehca: use correct destination for memcpy
-Date: Mon, 11 May 2015 16:38:02 +0200
-Message-ID: <1431355082-29290-1-git-send-email-hofrat@osadl.org>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] IB/core, cma: Nice log-friendly string helpers
+Date: Mon, 11 May 2015 17:50:09 +0300
+Message-ID: <5550C1A1.4060503@dev.mellanox.co.il>
+References: <1431353456-3862-1-git-send-email-sagig@mellanox.com>	 <1431353456-3862-2-git-send-email-sagig@mellanox.com> <1431355084.25060.36.camel@opteya.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431355084.25060.36.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicholas Mc Guire <hofrat-Q945KHDl0DbYtjvyW6yDsg@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chien Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Using an element of a struct as the address for the memcpy of the whole
-struct may introduce a buffer overflow and does not help readability either
-simply pass the real thing as first argument to memcpy.
+On 5/11/2015 5:38 PM, Yann Droneaud wrote:
+> Hi,
+>
+> Le lundi 11 mai 2015 =C3=A0 17:10 +0300, Sagi Grimberg a =C3=A9crit :
+>> Some of us keep revisiting the code to decode enumerations that
+>> appear in out logs. Let's borrow the nice logging helpers that
+>> exists in xprtrdma and rds for CMA events, IB events and WC statuses=
+=2E
+>>
+>> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>   drivers/infiniband/core/cma.c   |   26 ++++++++++++++++
+>>   drivers/infiniband/core/verbs.c |   61 +++++++++++++++++++++++++++=
+++++++++++++
+>>   include/rdma/ib_verbs.h         |    4 ++
+>>   include/rdma/rdma_cm.h          |    2 +
+>>   4 files changed, 93 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core=
+/cma.c
+>> index d570030..fb5a815 100644
+>> --- a/drivers/infiniband/core/cma.c
+>> +++ b/drivers/infiniband/core/cma.c
+>> @@ -65,6 +65,32 @@ MODULE_LICENSE("Dual BSD/GPL");
+>>   #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+>>   #define CMA_IBOE_PACKET_LIFETIME 18
+>>
+>> +static const char *cma_events[] =3D {
+>
+> Go for .rodata:
+>
+> static const char * const cma_events[] =3D {
+>
+>> +	[RDMA_CM_EVENT_ADDR_RESOLVED]	=3D "ADDR_RESOLVED",
+>> +	[RDMA_CM_EVENT_ADDR_ERROR]	=3D "ADDR_ERROR",
+>> +	[RDMA_CM_EVENT_ROUTE_RESOLVED]	=3D "ROUTE_RESOLVED",
+>> +	[RDMA_CM_EVENT_ROUTE_ERROR]	=3D "ROUTE_ERROR",
+>> +	[RDMA_CM_EVENT_CONNECT_REQUEST]	=3D "CONNECT_REQUEST",
+>> +	[RDMA_CM_EVENT_CONNECT_RESPONSE]=3D "CONNECT_RESPONSE",
+>> +	[RDMA_CM_EVENT_CONNECT_ERROR]	=3D "CONNECT_ERROR",
+>> +	[RDMA_CM_EVENT_UNREACHABLE]	=3D "UNREACHABLE",
+>> +	[RDMA_CM_EVENT_REJECTED]	=3D "REJECTED",
+>> +	[RDMA_CM_EVENT_ESTABLISHED]	=3D "ESTABLISHED",
+>> +	[RDMA_CM_EVENT_DISCONNECTED]	=3D "DISCONNECTED",
+>> +	[RDMA_CM_EVENT_DEVICE_REMOVAL]	=3D "DEVICE_REMOVAL",
+>> +	[RDMA_CM_EVENT_MULTICAST_JOIN]	=3D "MULTICAST_JOIN",
+>> +	[RDMA_CM_EVENT_MULTICAST_ERROR]	=3D "MULTICAST_ERROR",
+>> +	[RDMA_CM_EVENT_ADDR_CHANGE]	=3D "ADDR_CHANGE",
+>> +	[RDMA_CM_EVENT_TIMEWAIT_EXIT]	=3D "TIMEWAIT_EXIT",
+>> +};
+>> +
+>> +__attribute_const__ const char *rdma_event_msg(enum rdma_cm_event_t=
+ype event)
+>
+> __attribute_const__ is useless here.
 
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Nicholas Mc Guire <hofrat-Q945KHDl0DbYtjvyW6yDsg@public.gmane.org>
----
+Yeh.. either that or const, I'll remove it...
 
-passing the first element of a struct as destination triggers buffer 
-overflows warnings in tools like Smatch. 
-./drivers/infiniband/hw/ehca/ehca_mcast.c:ehca_attach_mcast.80 WARNING:
-memcpy copying entire struct to first element
-./drivers/infiniband/hw/ehca/ehca_mcast.c:ehca_detach_mcast.117 WARNING:
-memcpy copying entire struct to first element
+>
+>> +{
+>> +	return (unsigned)event < ARRAY_SIZE(cma_events) ?
+>> +			cma_events[(unsigned)event] : "UNRECOGNIZED_EVENT";
+>
+> You could be a bit more paranoid here:
+>
+>            size_t index =3D event;
+>
+>            return (index < ARRAY_SIZE(cmd_events) && cma_events[index=
+]) ?
+> 			cma_events[index] : "UNRECOGNIZED_EVENT";
+>
 
-Simply use the structure rather than the first element (which could change)
-which also help readability.
-
-Patch was only compile tested with ppc64_defconfig (implies
-CONFIG_INFINIBAND_EHCA=m)
-
-Patch is against 4.1-rc3 (localversion-next is -next-20150511)
-
- drivers/infiniband/hw/ehca/ehca_mcast.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ehca/ehca_mcast.c b/drivers/infiniband/hw/ehca/ehca_mcast.c
-index 120aedf..cec1815 100644
---- a/drivers/infiniband/hw/ehca/ehca_mcast.c
-+++ b/drivers/infiniband/hw/ehca/ehca_mcast.c
-@@ -77,7 +77,7 @@ int ehca_attach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 		return -EINVAL;
- 	}
- 
--	memcpy(&my_gid.raw, gid->raw, sizeof(union ib_gid));
-+	memcpy(&my_gid, gid->raw, sizeof(union ib_gid));
- 
- 	subnet_prefix = be64_to_cpu(my_gid.global.subnet_prefix);
- 	interface_id = be64_to_cpu(my_gid.global.interface_id);
-@@ -114,7 +114,7 @@ int ehca_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 		return -EINVAL;
- 	}
- 
--	memcpy(&my_gid.raw, gid->raw, sizeof(union ib_gid));
-+	memcpy(&my_gid, gid->raw, sizeof(union ib_gid));
- 
- 	subnet_prefix = be64_to_cpu(my_gid.global.subnet_prefix);
- 	interface_id = be64_to_cpu(my_gid.global.interface_id);
--- 
-1.7.10.4
-
+I'm fine with that too...
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
