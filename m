@@ -1,73 +1,73 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v8 00/23] IB/Verbs: IB Management Helpers
-Date: Tue, 12 May 2015 16:09:22 -0400
-Message-ID: <1431461362.43876.81.camel@redhat.com>
-References: <1430830240-32389-1-git-send-email-yun.wang@profitbricks.com>
-	 <20150511234910.GA20027@phlsvsds.ph.intel.com>
-	 <1431390420.43876.4.camel@redhat.com>
-	 <20150512180942.GC15891@obsidianresearch.com>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Tue, 12 May 2015 16:24:31 -0400
+Message-ID: <1431462271.43876.85.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-jdNDAJfcfpvQ5xXeprIs"
+	protocol="application/pgp-signature"; boundary="=-VGKor7S6wNVoHauenyl9"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150512180942.GC15891-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-jdNDAJfcfpvQ5xXeprIs
+--=-VGKor7S6wNVoHauenyl9
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2015-05-12 at 12:09 -0600, Jason Gunthorpe wrote:
-> On Mon, May 11, 2015 at 08:27:00PM -0400, Doug Ledford wrote:
-> > On Mon, 2015-05-11 at 19:49 -0400, ira.weiny wrote:
-> > > I have run with this series and the only issue I have found is not wi=
-th this
-> > > patch set directly.
-> > >=20
-> > > This patch:
-> > >=20
-> > > >   IB/Verbs: Use management helper rdma_cap_ib_mad()
-> > >=20
-> > > causes an error when you actually use the port passed from the ib_uma=
-d module.
-> > > I have a patch to fix that which I found while trying to build on thi=
-s series
-> > > for the use of a bit mask.
-> > >=20
-> > > Doug, I don't know what you would like to do for this fix.  I am subm=
-itting it
-> > > shortly with a new version of the core capability bit patches.  If yo=
-u want to
-> > > just add it after this series or force Michael to respin with the fix=
-?
-> >=20
-> > As I recall, there was a comment from Or requesting to squash some of
-> > the individual patches down, but I no longer have that email in my Inbo=
-x
-> > to double check.  And it seemed like there was one other review comment
-> > not yet addressed.  Do I have that right Michael?  And if so, are you
-> > working on a v9?
->=20
-> I had asked for better kdocs for the new helpers so new people can
-> understand when and where to use them.
->=20
-> I've not looked at the series at all for the past few postings.
+Hi Linus,
 
-Michael, please work up an incremental patch to address the kdocs issue.
-I've picked up the v8 patchset, and there is no need to respin it, but I
-would like to have that kdoc patch before the 4.2 merge window opens.
+Please pull these -rc fixes from:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
+
+----------------------------------------------------------------
+Changes for 4.1-rc3
+
+  Update MAINTAINERS git repo pointer
+  printk garbage fix
+  Fix for qib and iw_cxgb4 bugs introduced in 4.1 window
+  Fix for an older iWARP netlink bug
+  Fix a memcpy issue in ehca driver
+
+----------------------------------------------------------------
+Doug Ledford (1):
+      MAINTAINERS: update the official rdma git repo
+
+Joe Perches (1):
+      infiniband: Remove duplicated KERN_<LEVEL> from pr_<level> uses
+
+Mike Marciniszyn (1):
+      IB/qib: fix test of unsigned variable
+
+Nicholas Mc Guire (1):
+      IB/ehca: use correct destination for memcpy
+
+Steve Wise (1):
+      iw_cxgb4: use wildcard mapping for getting remote addr info
+
+Tatyana Nikolova (1):
+      RDMA/core: Fix for parsing netlink string attribute
+
+ MAINTAINERS                               |  2 +-
+ drivers/infiniband/core/iwpm_msg.c        |  2 +-
+ drivers/infiniband/hw/cxgb4/cm.c          | 16 ++++++++--------
+ drivers/infiniband/hw/cxgb4/device.c      |  4 ++--
+ drivers/infiniband/hw/ehca/ehca_mcast.c   |  4 ++--
+ drivers/infiniband/hw/mlx4/main.c         |  3 +--
+ drivers/infiniband/hw/mlx5/qp.c           |  2 +-
+ drivers/infiniband/hw/qib/qib.h           |  2 +-
+ drivers/infiniband/hw/qib/qib_wc_x86_64.c |  3 ++-
+ 9 files changed, 19 insertions(+), 19 deletions(-)
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-jdNDAJfcfpvQ5xXeprIs
+--=-VGKor7S6wNVoHauenyl9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -75,22 +75,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVUl3yAAoJELgmozMOVy/dgw4QAJXTOlLpcFQCF4x/Pk5ywafN
-LWHUana7EdWBKFZpSblB+Wneka3OWONckBji5fOFlb0MZaMV9jVChJmcr2GoY6jl
-53b+QMnXScvz1B6xTbMo6GJpOOUo0QeAjD7cnZkbWwRjAdmZbsJQ9PFqlxRUoMwn
-NeXU+IZMeiZwXM/g3/leWZdEKpnZK2pvdsA6Q1IWXz64iHpkjqKn5dFZbOa9LbYd
-7WIzg9RWDdU50NFucvfwtdJSAW4oA81V6Z1oO7hES4LAPKHjbvii/VFhr10/E4wN
-QPMpDm3kCbH6wjbAikb+saAgJX7k+6rWb5sqlCCpbqP4UD5fGTKrOxd7OkxjkQhq
-pyJh3A/Dsge42r45nr+i+oAX9lzmDKzJuFBfcfFjE38wUbUcEYAj48ZOR+1E6vTb
-rTEmU7mDxzTK1/Llrx7hKoSc4asTL+JwSpjLpZrsx+DoF01VWt0GQicLFYtzNRVT
-nsQ/qfaJ1L82DSSzvyqSvVbW+8PllrCPWEXJlIY+8DbZGY85HCCPuhesu5sESU9j
-lapadD0Tw7MJHbuAq41JfpjtCMVBhWEUsFjEBlawvz896XeBVX2LDSr3F18ITAsv
-eDE14gnL+lqTZYso4wWvz9bzC8XUTeynxk2Xqre2ppTdQ9AE6BqjdwxzN/eI0y9n
-pC2lIQBuiojwDq+hr1s3
-=6+4E
+iQIcBAABCAAGBQJVUmF/AAoJELgmozMOVy/d5F0QAJaLub2zeYwecUEJo1cssyEr
+dqstnNcs+pffBNKVuBcAuYeDQb0l50/14mjsql9IMcygR4PsOxjJnZgIv8lK9RfF
+zpsKuqrwH56eMPLq+Ozqr272VRyM4Q0iMVwYi/cwW17EPPNYE+E+lr0stCG2Mejo
+18Sv0yM/IHU4sMXMt/LKgVU+WBubkfG1bAacuKaul1hYorEXGhsSuDAFQn+AUVnK
+Ec77Q8c3YxhRo+YCTSTOVv1sRFQiqlaKW67+kAT+kPkfan7uPTeei+cWYymX59Gz
+l2u65gEHrBmlVJ7b4sv1fAx1PE/gUqbD0d3ttGOsGoZqOY2z8rTXKoRor7Zcn2Ij
+noBzr30Ye6jd3Yeah6G5OQBJM/blDo9Mj+SYiudFw31c9SQe6gGbEANFU/MVrwJl
+Tcxyj3WxmptSgKzNeo/RFsY6xGNqpL2iyZfKY8Sfa9ZqZc87Ol7PcH4U7NAzS8dP
+VSpBz5VJ4RagsNOaYYo4MdFXOFZTkEgmG1ii+mz64b62jpdWBDJM/RQWS7Zaej2X
+I0QT2T9YuccLZjkciuKEAeG81GKx6aTFIEWeu1ydYkM0vW3obUK/Y5+0yut+3mq1
+/qIgeifyGxytrPjCaq3SerPqsCTp1Fh9WRSQpskChhw/AHAw3DqW1dAxMgoccfkK
+f0yEmqDV7pZYb8ie11RX
+=i/Ae
 -----END PGP SIGNATURE-----
 
---=-jdNDAJfcfpvQ5xXeprIs--
+--=-VGKor7S6wNVoHauenyl9--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
