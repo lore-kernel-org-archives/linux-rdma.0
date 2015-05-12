@@ -1,67 +1,90 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Generic logging helpers [v5]
-Date: Tue, 12 May 2015 15:05:23 +0300
-Message-ID: <1431432329-859-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v5 3/6] IB/iser: Align to generic logging helpers
+Date: Tue, 12 May 2015 15:05:26 +0300
+Message-ID: <1431432329-859-4-git-send-email-sagig@mellanox.com>
+References: <1431432329-859-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431432329-859-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This small set adds some meaningful verbosity to some
-of the core/rdma_cm enumerated events. Its useful to
-see the meaning of the opcodes instead of revisiting the
-code for every new status/event that left our brain cache.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iser_verbs.c |   26 ++++++++++++++++----------
+ 1 files changed, 16 insertions(+), 10 deletions(-)
 
-Changes from v4:
-- Split up ULP changes to separate patches
-
-Changes from v3:
-- Protect against "holes" in string arrays
-- Restored __attribute_const__ to functions prototype
-- Made string arrays rodata
-
-Changes from v2:
-- Cast to size_t instead of unsigned
-- Style fix in string arrays declaration
-- Removed redundant __attribute_const__
-
-Changes from v1:
-- Changed helper names ib_wc_status_msg and rdma_event_msg
-- Cast input arguments to protect string buffer access
-- Add svcrdma to the party
-
-Changes from v0 (RFC):
-- Moved string arrays to .c files
-- Changed string helpers from macros to exported functions
-- Aligned rds to generic helpers as well
-
-Sagi Grimberg (6):
-  IB/core, cma: Nice log-friendly string helpers
-  IB/srp: Align to generic logging helpers
-  IB/iser: Align to generic logging helpers
-  iser-target: Align to generic logging helpers
-  xprtrdma: Switch to generic logging helpers
-  RDS: Switch to generic logging helpers
-
- drivers/infiniband/core/cma.c            |   28 +++++++++
- drivers/infiniband/core/verbs.c          |   65 +++++++++++++++++++++
- drivers/infiniband/ulp/iser/iser_verbs.c |   26 +++++---
- drivers/infiniband/ulp/isert/ib_isert.c  |   19 ++++--
- drivers/infiniband/ulp/srp/ib_srp.c      |   15 +++--
- include/rdma/ib_verbs.h                  |    4 +
- include/rdma/rdma_cm.h                   |    2 +
- net/rds/af_rds.c                         |    9 ---
- net/rds/ib.h                             |    1 -
- net/rds/ib_cm.c                          |   36 +-----------
- net/rds/ib_recv.c                        |    4 +-
- net/rds/ib_send.c                        |   38 +------------
- net/rds/rdma_transport.c                 |   34 +----------
- net/rds/rds.h                            |    1 -
- net/sunrpc/xprtrdma/frwr_ops.c           |    4 +-
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   29 ++++++----
- net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
- 17 files changed, 171 insertions(+), 234 deletions(-)
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index cc2dd35..7b4d105 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -51,19 +51,20 @@ static void iser_cq_callback(struct ib_cq *cq, void *cq_context);
+ 
+ static void iser_cq_event_callback(struct ib_event *cause, void *context)
+ {
+-	iser_err("got cq event %d \n", cause->event);
++	iser_err("cq event %s(%d)\n", ib_event_msg(cause->event), cause->event);
+ }
+ 
+ static void iser_qp_event_callback(struct ib_event *cause, void *context)
+ {
+-	iser_err("got qp event %d\n",cause->event);
++	iser_err("qp event %s(%d)\n", ib_event_msg(cause->event), cause->event);
+ }
+ 
+ static void iser_event_handler(struct ib_event_handler *handler,
+ 				struct ib_event *event)
+ {
+-	iser_err("async event %d on device %s port %d\n", event->event,
+-		event->device->name, event->element.port_num);
++	iser_err("async event %s(%d) on device %s port %d\n",
++		 ib_event_msg(event->event), event->event,
++		 event->device->name, event->element.port_num);
+ }
+ 
+ /**
+@@ -873,8 +874,9 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
+ 	int ret = 0;
+ 
+ 	iser_conn = (struct iser_conn *)cma_id->context;
+-	iser_info("event %d status %d conn %p id %p\n",
+-		  event->event, event->status, cma_id->context, cma_id);
++	iser_info("event %s(%d) status %d conn %p id %p\n",
++		  rdma_event_msg(event->event), event->event,
++		  event->status, cma_id->context, cma_id);
+ 
+ 	mutex_lock(&iser_conn->state_mutex);
+ 	switch (event->event) {
+@@ -913,7 +915,8 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
+ 		}
+ 		break;
+ 	default:
+-		iser_err("Unexpected RDMA CM event (%d)\n", event->event);
++		iser_err("Unexpected RDMA CM event %s(%d)\n",
++			 rdma_event_msg(event->event), event->event);
+ 		break;
+ 	}
+ 	mutex_unlock(&iser_conn->state_mutex);
+@@ -1173,10 +1176,13 @@ static void iser_handle_wc(struct ib_wc *wc)
+ 		}
+ 	} else {
+ 		if (wc->status != IB_WC_WR_FLUSH_ERR)
+-			iser_err("wr id %llx status %d vend_err %x\n",
+-				 wc->wr_id, wc->status, wc->vendor_err);
++			iser_err("%s(%d): wr id %llx vend_err %x\n",
++				 ib_wc_status_msg(wc->status), wc->status,
++				 wc->wr_id, wc->vendor_err);
+ 		else
+-			iser_dbg("flush error: wr id %llx\n", wc->wr_id);
++			iser_dbg("%s(%d): wr id %llx\n",
++				 ib_wc_status_msg(wc->status), wc->status,
++				 wc->wr_id);
+ 
+ 		if (wc->wr_id == ISER_BEACON_WRID)
+ 			/* all flush errors were consumed */
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
