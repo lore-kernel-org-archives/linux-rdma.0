@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 3/5] IB/core: Convert management helpers to core capability bits
-Date: Mon, 11 May 2015 21:46:56 -0400
-Message-ID: <1431395218-27693-4-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 2/5] IB/core: Formalize the creation of immutable per port data within the ib_device object
+Date: Mon, 11 May 2015 21:46:55 -0400
+Message-ID: <1431395218-27693-3-git-send-email-ira.weiny@intel.com>
 References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1431395218-27693-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,636 +12,661 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Remove query_protocol callback
+As of commit 5eb620c81ce3 "IB/core: Add helpers for uncached GID and P_Key
+searches"; pkey_tbl_len and gid_tbl_len are immutable data which are stored in
+the ib_device.
 
-Use the new Core Capability bits for:
+The per port core capability flags to be added later are also immutable data to
+be stored in the ib_device object.
 
-rdma_protocol_*
-rdma_cap_ib_mad
-rdma_cap_ib_smi
-rdma_cap_ib_cm
-rdma_cap_iw_cm
-rdma_cap_ib_sa
-rdma_cap_ib_mcast
-rdma_cap_af_ib
-rdma_cap_eth_ah
+In preparation for this create a structure for per port immutable data and
+place the pkey and gid table lengths within this structure.
+
+This type of data requires a new call back "port_immutable" parameter to
+ib_register_device to allow each driver to create this data as appropriate.
+This callback is added to ib_register_device rather than as a new device
+function because the callback should only be used when devices are first
+registered.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c             |  1 -
- drivers/infiniband/hw/amso1100/c2_provider.c |  8 +--
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |  8 +--
- drivers/infiniband/hw/cxgb4/provider.c       |  8 +--
- drivers/infiniband/hw/ehca/ehca_hca.c        |  6 ---
- drivers/infiniband/hw/ehca/ehca_main.c       |  2 +-
- drivers/infiniband/hw/ipath/ipath_verbs.c    |  8 +--
- drivers/infiniband/hw/mlx4/main.c            | 15 ++----
- drivers/infiniband/hw/mlx5/main.c            |  8 +--
- drivers/infiniband/hw/mthca/mthca_provider.c |  8 +--
- drivers/infiniband/hw/nes/nes_verbs.c        |  8 +--
- drivers/infiniband/hw/ocrdma/ocrdma_main.c   |  2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  6 ---
- drivers/infiniband/hw/qib/qib_verbs.c        |  8 +--
- drivers/infiniband/hw/usnic/usnic_ib_main.c  |  1 -
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  6 ---
- include/rdma/ib_verbs.h                      | 75 ++++++++++++++++++++++------
- 17 files changed, 75 insertions(+), 103 deletions(-)
+ drivers/infiniband/core/device.c             | 56 ++++++++++++++--------------
+ drivers/infiniband/hw/amso1100/c2_provider.c | 20 +++++++++-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  | 20 +++++++++-
+ drivers/infiniband/hw/cxgb4/provider.c       | 20 +++++++++-
+ drivers/infiniband/hw/ehca/ehca_main.c       | 20 +++++++++-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    | 20 +++++++++-
+ drivers/infiniband/hw/mlx4/main.c            | 20 +++++++++-
+ drivers/infiniband/hw/mlx5/main.c            | 20 +++++++++-
+ drivers/infiniband/hw/mthca/mthca_provider.c | 20 +++++++++-
+ drivers/infiniband/hw/nes/nes_verbs.c        | 21 ++++++++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   | 20 +++++++++-
+ drivers/infiniband/hw/qib/qib_verbs.c        | 21 ++++++++++-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  | 20 +++++++++-
+ include/rdma/ib_verbs.h                      | 13 +++++--
+ 14 files changed, 268 insertions(+), 43 deletions(-)
 
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index e1e5c8d..cc035bf 100644
+index b360350..e1e5c8d 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -76,7 +76,6 @@ static int ib_device_check_mandatory(struct ib_device *device)
- 	} mandatory_table[] = {
- 		IB_MANDATORY_FUNC(query_device),
- 		IB_MANDATORY_FUNC(query_port),
--		IB_MANDATORY_FUNC(query_protocol),
- 		IB_MANDATORY_FUNC(query_pkey),
- 		IB_MANDATORY_FUNC(query_gid),
- 		IB_MANDATORY_FUNC(alloc_pd),
-diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-index a29c37f..e3e0dda 100644
---- a/drivers/infiniband/hw/amso1100/c2_provider.c
-+++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -99,12 +99,6 @@ static int c2_query_port(struct ib_device *ibdev,
+@@ -223,42 +223,42 @@ static int add_client_context(struct ib_device *device, struct ib_client *client
  	return 0;
  }
  
--static enum rdma_protocol_type
--c2_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IWARP;
--}
--
- static int c2_query_pkey(struct ib_device *ibdev,
- 			 u8 port, u16 index, u16 * pkey)
+-static int read_port_table_lengths(struct ib_device *device)
++static int read_port_immutable(struct ib_device *device,
++			       int (*port_immutable)(struct ib_device *,
++						     u8,
++						     struct ib_port_immutable *))
  {
-@@ -777,6 +771,7 @@ static int c2_port_immutable(struct ib_device *ibdev, u8 port_num,
- 
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
- 
- 	return 0;
- }
-@@ -825,7 +820,6 @@ int c2_register_device(struct c2_dev *dev)
- 	dev->ibdev.dma_device = &dev->pcidev->dev;
- 	dev->ibdev.query_device = c2_query_device;
- 	dev->ibdev.query_port = c2_query_port;
--	dev->ibdev.query_protocol = c2_query_protocol;
- 	dev->ibdev.query_pkey = c2_query_pkey;
- 	dev->ibdev.query_gid = c2_query_gid;
- 	dev->ibdev.alloc_ucontext = c2_alloc_ucontext;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index a1635e5..437e20e 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1232,12 +1232,6 @@ static int iwch_query_port(struct ib_device *ibdev,
- 	return 0;
- }
- 
--static enum rdma_protocol_type
--iwch_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IWARP;
--}
+-	struct ib_port_attr *tprops = NULL;
+ 	int num_ports, ret = -ENOMEM;
+-	u8 port_index;
 -
- static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
- 			char *buf)
- {
-@@ -1363,6 +1357,7 @@ static int iwch_port_immutable(struct ib_device *ibdev, u8 port_num,
+-	tprops = kmalloc(sizeof *tprops, GFP_KERNEL);
+-	if (!tprops)
+-		goto out;
++	u8 port;
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+ 	num_ports = end_port(device) - start_port(device) + 1;
  
- 	return 0;
- }
-@@ -1409,7 +1404,6 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.dma_device = &(dev->rdev.rnic_info.pdev->dev);
- 	dev->ibdev.query_device = iwch_query_device;
- 	dev->ibdev.query_port = iwch_query_port;
--	dev->ibdev.query_protocol = iwch_query_protocol;
- 	dev->ibdev.query_pkey = iwch_query_pkey;
- 	dev->ibdev.query_gid = iwch_query_gid;
- 	dev->ibdev.alloc_ucontext = iwch_alloc_ucontext;
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 2281726..f29f9ac 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -390,12 +390,6 @@ static int c4iw_query_port(struct ib_device *ibdev, u8 port,
- 	return 0;
- }
+-	device->pkey_tbl_len = kmalloc(sizeof *device->pkey_tbl_len * num_ports,
+-				       GFP_KERNEL);
+-	device->gid_tbl_len = kmalloc(sizeof *device->gid_tbl_len * num_ports,
+-				      GFP_KERNEL);
+-	if (!device->pkey_tbl_len || !device->gid_tbl_len)
++	device->port_immutable = kmalloc(sizeof(*device->port_immutable)
++						* (num_ports+1),
++					 GFP_KERNEL);
++	if (!device->port_immutable)
+ 		goto err;
  
--static enum rdma_protocol_type
--c4iw_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IWARP;
--}
--
- static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
- 			char *buf)
- {
-@@ -485,6 +479,7 @@ static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
+-	for (port_index = 0; port_index < num_ports; ++port_index) {
+-		ret = ib_query_port(device, port_index + start_port(device),
+-					tprops);
++	for (port = 0; port <= num_ports; ++port) {
++
++		if (port == 0 && device->node_type != RDMA_NODE_IB_SWITCH)
++			continue;
++
++		if (port > 0 && device->node_type == RDMA_NODE_IB_SWITCH)
++			break;
++
++		ret = port_immutable(device, port,
++				     &device->port_immutable[port]);
+ 		if (ret)
+ 			goto err;
+-		device->pkey_tbl_len[port_index] = tprops->pkey_tbl_len;
+-		device->gid_tbl_len[port_index]  = tprops->gid_tbl_len;
+ 	}
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+ 	ret = 0;
+ 	goto out;
  
- 	return 0;
- }
-@@ -530,7 +525,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.dma_device = &(dev->rdev.lldi.pdev->dev);
- 	dev->ibdev.query_device = c4iw_query_device;
- 	dev->ibdev.query_port = c4iw_query_port;
--	dev->ibdev.query_protocol = c4iw_query_protocol;
- 	dev->ibdev.query_pkey = c4iw_query_pkey;
- 	dev->ibdev.query_gid = c4iw_query_gid;
- 	dev->ibdev.alloc_ucontext = c4iw_alloc_ucontext;
-diff --git a/drivers/infiniband/hw/ehca/ehca_hca.c b/drivers/infiniband/hw/ehca/ehca_hca.c
-index 1f4dc9c..9ed4d25 100644
---- a/drivers/infiniband/hw/ehca/ehca_hca.c
-+++ b/drivers/infiniband/hw/ehca/ehca_hca.c
-@@ -242,12 +242,6 @@ query_port1:
+ err:
+-	kfree(device->gid_tbl_len);
+-	kfree(device->pkey_tbl_len);
++	kfree(device->port_immutable);
+ out:
+-	kfree(tprops);
  	return ret;
  }
  
--enum rdma_protocol_type
--ehca_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IB;
--}
--
- int ehca_query_sma_attr(struct ehca_shca *shca,
- 			u8 port, struct ehca_sma_attr *attr)
+@@ -273,7 +273,9 @@ out:
+  */
+ int ib_register_device(struct ib_device *device,
+ 		       int (*port_callback)(struct ib_device *,
+-					    u8, struct kobject *))
++					    u8, struct kobject *),
++		       int (*port_immutable)(struct ib_device *, u8,
++					     struct ib_port_immutable *))
  {
+ 	int ret;
+ 
+@@ -295,7 +297,7 @@ int ib_register_device(struct ib_device *device,
+ 	spin_lock_init(&device->event_handler_lock);
+ 	spin_lock_init(&device->client_data_lock);
+ 
+-	ret = read_port_table_lengths(device);
++	ret = read_port_immutable(device, port_immutable);
+ 	if (ret) {
+ 		printk(KERN_WARNING "Couldn't create table lengths cache for device %s\n",
+ 		       device->name);
+@@ -306,8 +308,7 @@ int ib_register_device(struct ib_device *device,
+ 	if (ret) {
+ 		printk(KERN_WARNING "Couldn't register device %s with driver model\n",
+ 		       device->name);
+-		kfree(device->gid_tbl_len);
+-		kfree(device->pkey_tbl_len);
++		kfree(device->port_immutable);
+ 		goto out;
+ 	}
+ 
+@@ -349,8 +350,7 @@ void ib_unregister_device(struct ib_device *device)
+ 
+ 	list_del(&device->core_list);
+ 
+-	kfree(device->gid_tbl_len);
+-	kfree(device->pkey_tbl_len);
++	kfree(device->port_immutable);
+ 
+ 	mutex_unlock(&device_mutex);
+ 
+@@ -678,7 +678,7 @@ int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+ 	int ret, port, i;
+ 
+ 	for (port = start_port(device); port <= end_port(device); ++port) {
+-		for (i = 0; i < device->gid_tbl_len[port - start_port(device)]; ++i) {
++		for (i = 0; i < device->port_immutable[port].gid_tbl_len; ++i) {
+ 			ret = ib_query_gid(device, port, i, &tmp_gid);
+ 			if (ret)
+ 				return ret;
+@@ -710,7 +710,7 @@ int ib_find_pkey(struct ib_device *device,
+ 	u16 tmp_pkey;
+ 	int partial_ix = -1;
+ 
+-	for (i = 0; i < device->pkey_tbl_len[port_num - start_port(device)]; ++i) {
++	for (i = 0; i < device->port_immutable[port_num].pkey_tbl_len; ++i) {
+ 		ret = ib_query_pkey(device, port_num, i, &tmp_pkey);
+ 		if (ret)
+ 			return ret;
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+index 6fe329a..a29c37f 100644
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c
++++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -763,6 +763,24 @@ static struct net_device *c2_pseudo_netdev_init(struct c2_dev *c2dev)
+ 	return netdev;
+ }
+ 
++static int c2_port_immutable(struct ib_device *ibdev, u8 port_num,
++			     struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = c2_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ int c2_register_device(struct c2_dev *dev)
+ {
+ 	int ret = -ENOMEM;
+@@ -855,7 +873,7 @@ int c2_register_device(struct c2_dev *dev)
+ 	dev->ibdev.iwcm->create_listen = c2_service_create;
+ 	dev->ibdev.iwcm->destroy_listen = c2_service_destroy;
+ 
+-	ret = ib_register_device(&dev->ibdev, NULL);
++	ret = ib_register_device(&dev->ibdev, NULL, c2_port_immutable);
+ 	if (ret)
+ 		goto out_free_iwcm;
+ 
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 298d1ca..a1635e5 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1349,6 +1349,24 @@ static struct device_attribute *iwch_class_attributes[] = {
+ 	&dev_attr_board_id,
+ };
+ 
++static int iwch_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = iwch_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ int iwch_register_device(struct iwch_dev *dev)
+ {
+ 	int ret;
+@@ -1441,7 +1459,7 @@ int iwch_register_device(struct iwch_dev *dev)
+ 	dev->ibdev.iwcm->rem_ref = iwch_qp_rem_ref;
+ 	dev->ibdev.iwcm->get_qp = iwch_get_qp;
+ 
+-	ret = ib_register_device(&dev->ibdev, NULL);
++	ret = ib_register_device(&dev->ibdev, NULL, iwch_port_immutable);
+ 	if (ret)
+ 		goto bail1;
+ 
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index f52ee63..2281726 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -471,6 +471,24 @@ static struct device_attribute *c4iw_class_attributes[] = {
+ 	&dev_attr_board_id,
+ };
+ 
++static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = c4iw_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ int c4iw_register_device(struct c4iw_dev *dev)
+ {
+ 	int ret;
+@@ -563,7 +581,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
+ 	dev->ibdev.iwcm->rem_ref = c4iw_qp_rem_ref;
+ 	dev->ibdev.iwcm->get_qp = c4iw_get_qp;
+ 
+-	ret = ib_register_device(&dev->ibdev, NULL);
++	ret = ib_register_device(&dev->ibdev, NULL, c4iw_port_immutable);
+ 	if (ret)
+ 		goto bail1;
+ 
 diff --git a/drivers/infiniband/hw/ehca/ehca_main.c b/drivers/infiniband/hw/ehca/ehca_main.c
-index 0ad9307..527ae60 100644
+index 321545b..0ad9307 100644
 --- a/drivers/infiniband/hw/ehca/ehca_main.c
 +++ b/drivers/infiniband/hw/ehca/ehca_main.c
-@@ -445,6 +445,7 @@ static int ehca_port_immutable(struct ib_device *ibdev, u8 port_num,
- 
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
- 
- 	return 0;
+@@ -431,6 +431,24 @@ init_node_guid1:
+ 	return ret;
  }
-@@ -485,7 +486,6 @@ static int ehca_init_device(struct ehca_shca *shca)
- 	shca->ib_device.dma_device          = &shca->ofdev->dev;
- 	shca->ib_device.query_device        = ehca_query_device;
- 	shca->ib_device.query_port          = ehca_query_port;
--	shca->ib_device.query_protocol      = ehca_query_protocol;
- 	shca->ib_device.query_gid           = ehca_query_gid;
- 	shca->ib_device.query_pkey          = ehca_query_pkey;
- 	/* shca->in_device.modify_device    = ehca_modify_device    */
+ 
++static int ehca_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = ehca_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ static int ehca_init_device(struct ehca_shca *shca)
+ {
+ 	int ret;
+@@ -801,7 +819,7 @@ static int ehca_probe(struct platform_device *dev)
+ 		goto probe5;
+ 	}
+ 
+-	ret = ib_register_device(&shca->ib_device, NULL);
++	ret = ib_register_device(&shca->ib_device, NULL, ehca_port_immutable);
+ 	if (ret) {
+ 		ehca_err(&shca->ib_device,
+ 			 "ib_register_device() failed ret=%i", ret);
 diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-index 2f81cf2..662ebf3 100644
+index 34b94c3a..2f81cf2 100644
 --- a/drivers/infiniband/hw/ipath/ipath_verbs.c
 +++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -1638,12 +1638,6 @@ static int ipath_query_port(struct ib_device *ibdev,
+@@ -1986,6 +1986,24 @@ static int disable_timer(struct ipath_devdata *dd)
  	return 0;
  }
  
--static enum rdma_protocol_type
--ipath_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IB;
--}
--
- static int ipath_modify_device(struct ib_device *device,
- 			       int device_modify_mask,
- 			       struct ib_device_modify *device_modify)
-@@ -2000,6 +1994,7 @@ static int ipath_port_immutable(struct ib_device *ibdev, u8 port_num,
++static int ipath_port_immutable(struct ib_device *ibdev, u8 port_num,
++			        struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = ipath_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ /**
+  * ipath_register_ib_device - register our device with the infiniband core
+  * @dd: the device data structure
+@@ -2190,7 +2208,7 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
+ 	snprintf(dev->node_desc, sizeof(dev->node_desc),
+ 		 IPATH_IDSTR " %s", init_utsname()->nodename);
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+-	ret = ib_register_device(dev, NULL);
++	ret = ib_register_device(dev, NULL, ipath_port_immutable);
+ 	if (ret)
+ 		goto err_reg;
  
- 	return 0;
- }
-@@ -2164,7 +2159,6 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
- 	dev->query_device = ipath_query_device;
- 	dev->modify_device = ipath_modify_device;
- 	dev->query_port = ipath_query_port;
--	dev->query_protocol = ipath_query_protocol;
- 	dev->modify_port = ipath_modify_port;
- 	dev->query_pkey = ipath_query_pkey;
- 	dev->query_gid = ipath_query_gid;
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 57e1a5c..6ec018b 100644
+index 26678d2..57e1a5c 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -420,15 +420,6 @@ static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
- 	return __mlx4_ib_query_port(ibdev, port, props, 0);
+@@ -2124,6 +2124,24 @@ static void mlx4_ib_free_eqs(struct mlx4_dev *dev, struct mlx4_ib_dev *ibdev)
+ 	kfree(ibdev->eq_table);
  }
  
--static enum rdma_protocol_type
--mlx4_ib_query_protocol(struct ib_device *device, u8 port_num)
--{
--	struct mlx4_dev *dev = to_mdev(device)->dev;
--
--	return dev->caps.port_mask[port_num] == MLX4_PORT_TYPE_IB ?
--		RDMA_PROTOCOL_IB : RDMA_PROTOCOL_IBOE;
--}
--
- int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 			union ib_gid *gid, int netw_view)
- {
-@@ -2139,6 +2130,11 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
- 
-+	if (mlx4_ib_port_link_layer(ibdev, port_num) == IB_LINK_LAYER_INFINIBAND)
-+		immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
-+	else
-+		immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCEE;
++static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
 +
- 	return 0;
- }
++	err = mlx4_ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_ib_dev *ibdev;
+@@ -2353,7 +2371,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	for (j = 1; j <= ibdev->dev->caps.num_ports; j++)
+ 		atomic64_set(&iboe->mac[j - 1], ibdev->dev->caps.def_mac[j]);
  
-@@ -2229,7 +2225,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+-	if (ib_register_device(&ibdev->ib_dev, NULL))
++	if (ib_register_device(&ibdev->ib_dev, NULL, mlx4_port_immutable))
+ 		goto err_steer_free_bitmap;
  
- 	ibdev->ib_dev.query_device	= mlx4_ib_query_device;
- 	ibdev->ib_dev.query_port	= mlx4_ib_query_port;
--	ibdev->ib_dev.query_protocol	= mlx4_ib_query_protocol;
- 	ibdev->ib_dev.get_link_layer	= mlx4_ib_port_link_layer;
- 	ibdev->ib_dev.query_gid		= mlx4_ib_query_gid;
- 	ibdev->ib_dev.query_pkey	= mlx4_ib_query_pkey;
+ 	if (mlx4_ib_mad_init(ibdev))
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9bf2564..d789052 100644
+index 8dec380..9bf2564 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -262,12 +262,6 @@ out:
- 	return err;
+@@ -1188,6 +1188,24 @@ static void destroy_dev_resources(struct mlx5_ib_resources *devr)
+ 	mlx5_ib_dealloc_pd(devr->p0);
  }
  
--static enum rdma_protocol_type
--mlx5_ib_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IB;
--}
--
- static int mlx5_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 			     union ib_gid *gid)
++static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
++			       struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = mlx5_ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
  {
-@@ -1202,6 +1196,7 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	struct mlx5_ib_dev *dev;
+@@ -1317,7 +1335,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	if (err)
+ 		goto err_rsrc;
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+-	err = ib_register_device(&dev->ib_dev, NULL);
++	err = ib_register_device(&dev->ib_dev, NULL, mlx5_port_immutable);
+ 	if (err)
+ 		goto err_odp;
  
- 	return 0;
- }
-@@ -1268,7 +1263,6 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
--	dev->ib_dev.query_protocol	= mlx5_ib_query_protocol;
- 	dev->ib_dev.query_gid		= mlx5_ib_query_gid;
- 	dev->ib_dev.query_pkey		= mlx5_ib_query_pkey;
- 	dev->ib_dev.modify_device	= mlx5_ib_modify_device;
 diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index fc59611..b890376 100644
+index ad1cca3..fc59611 100644
 --- a/drivers/infiniband/hw/mthca/mthca_provider.c
 +++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -179,12 +179,6 @@ static int mthca_query_port(struct ib_device *ibdev,
+@@ -1250,6 +1250,24 @@ out:
  	return err;
  }
  
--static enum rdma_protocol_type
--mthca_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IB;
--}
--
- static int mthca_modify_device(struct ib_device *ibdev,
- 			       int mask,
- 			       struct ib_device_modify *props)
-@@ -1264,6 +1258,7 @@ static int mthca_port_immutable(struct ib_device *ibdev, u8 port_num,
++static int mthca_port_immutable(struct ib_device *ibdev, u8 port_num,
++			        struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = mthca_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ int mthca_register_device(struct mthca_dev *dev)
+ {
+ 	int ret;
+@@ -1357,7 +1375,7 @@ int mthca_register_device(struct mthca_dev *dev)
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+ 	mutex_init(&dev->cap_mask_mutex);
  
- 	return 0;
- }
-@@ -1305,7 +1300,6 @@ int mthca_register_device(struct mthca_dev *dev)
- 	dev->ib_dev.dma_device           = &dev->pdev->dev;
- 	dev->ib_dev.query_device         = mthca_query_device;
- 	dev->ib_dev.query_port           = mthca_query_port;
--	dev->ib_dev.query_protocol       = mthca_query_protocol;
- 	dev->ib_dev.modify_device        = mthca_modify_device;
- 	dev->ib_dev.modify_port          = mthca_modify_port;
- 	dev->ib_dev.query_pkey           = mthca_query_pkey;
+-	ret = ib_register_device(&dev->ib_dev, NULL);
++	ret = ib_register_device(&dev->ib_dev, NULL, mthca_port_immutable);
+ 	if (ret)
+ 		return ret;
+ 
 diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 7cd3c1d..2127477 100644
+index 027f6d1..7cd3c1d 100644
 --- a/drivers/infiniband/hw/nes/nes_verbs.c
 +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -606,12 +606,6 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
- 	return 0;
+@@ -4000,6 +4000,24 @@ void nes_destroy_ofa_device(struct nes_ib_device *nesibdev)
  }
  
--static enum rdma_protocol_type
--nes_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IWARP;
--}
--
+ 
++static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
++			      struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = nes_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
  /**
-  * nes_query_pkey
+  * nes_register_ofa_device
   */
-@@ -3884,7 +3878,6 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
- 	nesibdev->ibdev.dev.parent = &nesdev->pcidev->dev;
- 	nesibdev->ibdev.query_device = nes_query_device;
- 	nesibdev->ibdev.query_port = nes_query_port;
--	nesibdev->ibdev.query_protocol = nes_query_protocol;
- 	nesibdev->ibdev.query_pkey = nes_query_pkey;
- 	nesibdev->ibdev.query_gid = nes_query_gid;
- 	nesibdev->ibdev.alloc_ucontext = nes_alloc_ucontext;
-@@ -4014,6 +4007,7 @@ static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
+@@ -4010,7 +4028,8 @@ int nes_register_ofa_device(struct nes_ib_device *nesibdev)
+ 	struct nes_adapter *nesadapter = nesdev->nesadapter;
+ 	int i, ret;
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
- 
- 	return 0;
- }
+-	ret = ib_register_device(&nesvnic->nesibdev->ibdev, NULL);
++	ret = ib_register_device(&nesvnic->nesibdev->ibdev, NULL,
++				 nes_port_immutable);
+ 	if (ret) {
+ 		return ret;
+ 	}
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 11f2e32..3b93df8 100644
+index 85d99e9..11f2e32 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -216,6 +216,7 @@ static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
- 
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCEE;
- 
- 	return 0;
- }
-@@ -262,7 +263,6 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
- 	/* mandatory verbs. */
- 	dev->ibdev.query_device = ocrdma_query_device;
- 	dev->ibdev.query_port = ocrdma_query_port;
--	dev->ibdev.query_protocol = ocrdma_query_protocol;
- 	dev->ibdev.modify_port = ocrdma_modify_port;
- 	dev->ibdev.query_gid = ocrdma_query_gid;
- 	dev->ibdev.get_link_layer = ocrdma_link_layer;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 3e98360..8771755 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -187,12 +187,6 @@ int ocrdma_query_port(struct ib_device *ibdev,
- 	return 0;
+@@ -202,6 +202,24 @@ static enum rdma_link_layer ocrdma_link_layer(struct ib_device *device,
+ 	return IB_LINK_LAYER_ETHERNET;
  }
  
--enum rdma_protocol_type
--ocrdma_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IBOE;
--}
--
- int ocrdma_modify_port(struct ib_device *ibdev, u8 port, int mask,
- 		       struct ib_port_modify *props)
++static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
++			         struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = ocrdma_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ static int ocrdma_register_device(struct ocrdma_dev *dev)
  {
+ 	strlcpy(dev->ibdev.name, "ocrdma%d", IB_DEVICE_NAME_MAX);
+@@ -302,7 +320,7 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ 		dev->ibdev.destroy_srq = ocrdma_destroy_srq;
+ 		dev->ibdev.post_srq_recv = ocrdma_post_srq_recv;
+ 	}
+-	return ib_register_device(&dev->ibdev, NULL);
++	return ib_register_device(&dev->ibdev, NULL, ocrdma_port_immutable);
+ }
+ 
+ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 1c60eb2..4c8dd3a 100644
+index 9fd4b28..1c60eb2 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1650,12 +1650,6 @@ static int qib_query_port(struct ib_device *ibdev, u8 port,
- 	return 0;
+@@ -2046,6 +2046,24 @@ static void init_ibport(struct qib_pportdata *ppd)
+ 	RCU_INIT_POINTER(ibp->qp1, NULL);
  }
  
--static enum rdma_protocol_type
--qib_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_IB;
--}
--
- static int qib_modify_device(struct ib_device *device,
- 			     int device_modify_mask,
- 			     struct ib_device_modify *device_modify)
-@@ -2060,6 +2054,7 @@ static int qib_port_immutable(struct ib_device *ibdev, u8 port_num,
++static int qib_port_immutable(struct ib_device *ibdev, u8 port_num,
++			      struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = qib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ /**
+  * qib_register_ib_device - register our device with the infiniband core
+  * @dd: the device data structure
+@@ -2238,7 +2256,8 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
+ 		 "Intel Infiniband HCA %s", init_utsname()->nodename);
  
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
-+	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_IB;
+-	ret = ib_register_device(ibdev, qib_create_port_files);
++	ret = ib_register_device(ibdev, qib_create_port_files,
++				 qib_port_immutable);
+ 	if (ret)
+ 		goto err_reg;
  
- 	return 0;
- }
-@@ -2208,7 +2203,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->query_device = qib_query_device;
- 	ibdev->modify_device = qib_modify_device;
- 	ibdev->query_port = qib_query_port;
--	ibdev->query_protocol = qib_query_protocol;
- 	ibdev->modify_port = qib_modify_port;
- 	ibdev->query_pkey = qib_query_pkey;
- 	ibdev->query_gid = qib_query_gid;
 diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 848ba1b..f851ff8 100644
+index bd9f364..848ba1b 100644
 --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
 +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -378,7 +378,6 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+@@ -300,6 +300,24 @@ static struct notifier_block usnic_ib_inetaddr_notifier = {
+ };
+ /* End of inet section*/
  
- 	us_ibdev->ib_dev.query_device = usnic_ib_query_device;
- 	us_ibdev->ib_dev.query_port = usnic_ib_query_port;
--	us_ibdev->ib_dev.query_protocol = usnic_ib_query_protocol;
- 	us_ibdev->ib_dev.query_pkey = usnic_ib_query_pkey;
- 	us_ibdev->ib_dev.query_gid = usnic_ib_query_gid;
- 	us_ibdev->ib_dev.get_link_layer = usnic_ib_port_link_layer;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 732b5c5..53bd6a2 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -348,12 +348,6 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
- 	return 0;
- }
++static int usnic_port_immutable(struct ib_device *ibdev, u8 port_num,
++			        struct ib_port_immutable *immutable)
++{
++	struct ib_port_attr attr;
++	int err;
++
++	err = usnic_ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	memset(immutable, 0, sizeof(*immutable));
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
++}
++
+ /* Start of PF discovery section */
+ static void *usnic_ib_device_add(struct pci_dev *dev)
+ {
+@@ -386,7 +404,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ 	us_ibdev->ib_dev.get_dma_mr = usnic_ib_get_dma_mr;
  
--enum rdma_protocol_type
--usnic_ib_query_protocol(struct ib_device *device, u8 port_num)
--{
--	return RDMA_PROTOCOL_USNIC_UDP;
--}
--
- int usnic_ib_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
- 				int qp_attr_mask,
- 				struct ib_qp_init_attr *qp_init_attr)
+ 
+-	if (ib_register_device(&us_ibdev->ib_dev, NULL))
++	if (ib_register_device(&us_ibdev->ib_dev, NULL, usnic_port_immutable))
+ 		goto err_fwd_dealloc;
+ 
+ 	usnic_fwd_set_mtu(us_ibdev->ufdev, us_ibdev->netdev->mtu);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index fe7efbe..f93694f 100644
+index 8d59479..fe7efbe 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -353,6 +353,40 @@ union rdma_protocol_stats {
- 	struct iw_protocol_stats	iw;
- };
+@@ -1481,6 +1481,12 @@ struct ib_dma_mapping_ops {
  
-+/* Define bits for the various functionality this port needs to be supported by
-+ * the core.
-+ */
-+/* Management                           0x00000FFF */
-+#define RDMA_CORE_CAP_IB_MAD            0x00000001
-+#define RDMA_CORE_CAP_IB_SMI            0x00000002
-+#define RDMA_CORE_CAP_IB_CM             0x00000004
-+#define RDMA_CORE_CAP_IW_CM             0x00000008
-+#define RDMA_CORE_CAP_IB_SA             0x00000010
-+
-+/* Address format                       0x000FF000 */
-+#define RDMA_CORE_CAP_AF_IB             0x00001000
-+#define RDMA_CORE_CAP_ETH_AH            0x00002000
-+
-+/* Protocol                             0xFFF00000 */
-+#define RDMA_CORE_CAP_PROT_IB           0x00100000
-+#define RDMA_CORE_CAP_PROT_IBOE         0x00200000
-+#define RDMA_CORE_CAP_PROT_IWARP        0x00400000
-+
-+#define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
-+					| RDMA_CORE_CAP_IB_MAD \
-+					| RDMA_CORE_CAP_IB_SMI \
-+					| RDMA_CORE_CAP_IB_CM  \
-+					| RDMA_CORE_CAP_IB_SA  \
-+					| RDMA_CORE_CAP_AF_IB)
-+#define RDMA_CORE_PORT_IBA_ROCEE       (RDMA_CORE_CAP_PROT_IBOE \
-+					| RDMA_CORE_CAP_IB_MAD  \
-+					| RDMA_CORE_CAP_IB_CM   \
-+					| RDMA_CORE_CAP_IB_SA   \
-+					| RDMA_CORE_CAP_AF_IB   \
-+					| RDMA_CORE_CAP_ETH_AH)
-+#define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
-+					| RDMA_CORE_CAP_IW_CM)
-+
- struct ib_port_attr {
- 	enum ib_port_state	state;
- 	enum ib_mtu		max_mtu;
-@@ -1485,6 +1519,7 @@ struct iw_cm_verbs;
- struct ib_port_immutable {
- 	int                           pkey_tbl_len;
- 	int                           gid_tbl_len;
-+	u32                           core_cap_flags;
- };
+ struct iw_cm_verbs;
  
++/* Per port immutable data */
++struct ib_port_immutable {
++	int                           pkey_tbl_len;
++	int                           gid_tbl_len;
++};
++
  struct ib_device {
-@@ -1513,8 +1548,6 @@ struct ib_device {
- 	int		           (*query_port)(struct ib_device *device,
- 						 u8 port_num,
- 						 struct ib_port_attr *port_attr);
--	enum rdma_protocol_type    (*query_protocol)(struct ib_device *device,
--						     u8 port_num);
- 	enum rdma_link_layer	   (*get_link_layer)(struct ib_device *device,
- 						     u8 port_num);
- 	int		           (*query_gid)(struct ib_device *device,
-@@ -1761,24 +1794,28 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device,
+ 	struct device                *dma_device;
  
- static inline bool rdma_protocol_ib(struct ib_device *device, u8 port_num)
- {
--	return device->query_protocol(device, port_num) == RDMA_PROTOCOL_IB;
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IB)
-+		== RDMA_CORE_CAP_PROT_IB;
- }
+@@ -1494,8 +1500,7 @@ struct ib_device {
+ 	struct list_head              client_data_list;
  
- static inline bool rdma_protocol_iboe(struct ib_device *device, u8 port_num)
- {
--	return device->query_protocol(device, port_num) == RDMA_PROTOCOL_IBOE;
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IBOE)
-+		== RDMA_CORE_CAP_PROT_IBOE;
- }
+ 	struct ib_cache               cache;
+-	int                          *pkey_tbl_len;
+-	int                          *gid_tbl_len;
++	struct ib_port_immutable     *port_immutable;
  
- static inline bool rdma_protocol_iwarp(struct ib_device *device, u8 port_num)
- {
--	return device->query_protocol(device, port_num) == RDMA_PROTOCOL_IWARP;
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IWARP)
-+		== RDMA_CORE_CAP_PROT_IWARP;
- }
+ 	int			      num_comp_vectors;
  
- static inline bool rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
- {
--	enum rdma_protocol_type pt = device->query_protocol(device, port_num);
-+	u64 flags = device->port_immutable[port_num].core_cap_flags;
+@@ -1699,7 +1704,9 @@ void ib_dealloc_device(struct ib_device *device);
  
--	return (pt == RDMA_PROTOCOL_IB || pt == RDMA_PROTOCOL_IBOE);
-+	return ((flags & RDMA_CORE_CAP_PROT_IB) == RDMA_CORE_CAP_PROT_IB ||
-+		(flags & RDMA_CORE_CAP_PROT_IBOE) == RDMA_CORE_CAP_PROT_IBOE);
- }
+ int ib_register_device(struct ib_device *device,
+ 		       int (*port_callback)(struct ib_device *,
+-					    u8, struct kobject *));
++					    u8, struct kobject *),
++		       int (*port_immutable)(struct ib_device *, u8,
++					     struct ib_port_immutable *));
+ void ib_unregister_device(struct ib_device *device);
  
- /**
-@@ -1793,7 +1830,8 @@ static inline bool rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
- {
--	return rdma_ib_or_iboe(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_MAD)
-+		== RDMA_CORE_CAP_IB_MAD;
- }
- 
- /**
-@@ -1808,7 +1846,8 @@ static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_ib_smi(struct ib_device *device, u8 port_num)
- {
--	return rdma_protocol_ib(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_SMI)
-+		== RDMA_CORE_CAP_IB_SMI;
- }
- 
- /**
-@@ -1823,7 +1862,8 @@ static inline bool rdma_cap_ib_smi(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_ib_cm(struct ib_device *device, u8 port_num)
- {
--	return rdma_ib_or_iboe(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_CM)
-+		== RDMA_CORE_CAP_IB_CM;
- }
- 
- /**
-@@ -1838,7 +1878,8 @@ static inline bool rdma_cap_ib_cm(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_iw_cm(struct ib_device *device, u8 port_num)
- {
--	return rdma_protocol_iwarp(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IW_CM)
-+		== RDMA_CORE_CAP_IW_CM;
- }
- 
- /**
-@@ -1853,7 +1894,8 @@ static inline bool rdma_cap_iw_cm(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_ib_sa(struct ib_device *device, u8 port_num)
- {
--	return rdma_protocol_ib(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_SA)
-+		== RDMA_CORE_CAP_IB_SA;
- }
- 
- /**
-@@ -1883,7 +1925,8 @@ static inline bool rdma_cap_ib_mcast(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_af_ib(struct ib_device *device, u8 port_num)
- {
--	return rdma_ib_or_iboe(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_AF_IB)
-+		== RDMA_CORE_CAP_AF_IB;
- }
- 
- /**
-@@ -1898,7 +1941,8 @@ static inline bool rdma_cap_af_ib(struct ib_device *device, u8 port_num)
-  */
- static inline bool rdma_cap_eth_ah(struct ib_device *device, u8 port_num)
- {
--	return rdma_protocol_iboe(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_ETH_AH)
-+		== RDMA_CORE_CAP_ETH_AH;
- }
- 
- /**
-@@ -1914,7 +1958,8 @@ static inline bool rdma_cap_eth_ah(struct ib_device *device, u8 port_num)
- static inline bool rdma_cap_read_multi_sge(struct ib_device *device,
- 					   u8 port_num)
- {
--	return !rdma_protocol_iwarp(device, port_num);
-+	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IWARP)
-+		!= RDMA_CORE_CAP_PROT_IWARP;
- }
- 
- int ib_query_gid(struct ib_device *device,
+ int ib_register_client   (struct ib_client *client);
 -- 
 1.8.2
 
