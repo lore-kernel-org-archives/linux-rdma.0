@@ -1,7 +1,7 @@
 From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v2 02/16] xprtrdma: Warn when there are orphaned IB objects
-Date: Tue, 12 May 2015 14:12:55 -0400
-Message-ID: <555242A7.8020607@Netapp.com>
+Date: Tue, 12 May 2015 14:14:00 -0400
+Message-ID: <555242E8.4050007@Netapp.com>
 References: <20150511174401.31263.79596.stgit@manet.1015granger.net> <20150511180235.31263.71754.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -20,7 +20,7 @@ On 05/11/2015 02:02 PM, Chuck Lever wrote:
 > point, which can pin lower layer kernel modules and cause shutdown
 > to hang.
 
-I'm curious, what would cause an RDMA object to get orphaned in the first place?  Is there any way to prevent that?
+I'm curious, what would cause the API objects to get orphaned in the first place?  Is there any way to prevent it?
 
 Anna
 
