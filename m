@@ -1,62 +1,89 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/core: Fix for parsing netlink string attribute
-Date: Tue, 12 May 2015 13:14:26 -0400
-Message-ID: <1431450866.43876.65.camel@redhat.com>
-References: <20150508213633.GA13012@TENIKOLO-MOBL2>
-	 <20150508215328.GB3917@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v5 1/6] IB/core, cma: Nice log-friendly string helpers
+Date: Tue, 12 May 2015 13:21:47 -0400
+Message-ID: <1431451307.43876.67.camel@redhat.com>
+References: <1431432329-859-1-git-send-email-sagig@mellanox.com>
+	 <1431432329-859-2-git-send-email-sagig@mellanox.com>
+	 <CAJ3xEMhOnrZJrUfwtMs7Tod7YeGy_Be6yF543+xds_05hO-F-A@mail.gmail.com>
+	 <E27932C3-BDF3-4FED-ABD6-416454EFA5C0@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-D/o87EYH8glbPgWlpu1W"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20150508215328.GB3917@obsidianresearch.com>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, swise@opengridcomputing.com, john.s.lacombe@intel.com, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="=-BKiQit7qdLXpPfAe+jqL"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E27932C3-BDF3-4FED-ABD6-416454EFA5C0-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-D/o87EYH8glbPgWlpu1W
+--=-BKiQit7qdLXpPfAe+jqL
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2015-05-08 at 15:53 -0600, Jason Gunthorpe wrote:
-> On Fri, May 08, 2015 at 04:36:33PM -0500, Tatyana Nikolova wrote:
-> > The string iwpm_ulib_name is recorded in a nlmsg as a netlink attribute=
-.
-> > Without this fix parsing of the nlmsg by the userspace port mapper serv=
-ice fails
-> > because of unknown attribute length, causing the port mapper service no=
-t to
-> > register the client, which has sent the nlmsg.
+On Tue, 2015-05-12 at 09:56 -0400, Chuck Lever wrote:
+> On May 12, 2015, at 8:59 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 >=20
-> Reviewed-By: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> > On Tue, May 12, 2015 at 3:05 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
+te:
+> >> Some of us keep revisiting the code to decode enumerations that
+> >> appear in out logs. Let's borrow the nice logging helpers that
+> >> exists in xprtrdma and rds for CMA events, IB events and WC statuses.
+> >=20
+> > [...]
+> >=20
+> >> +static const char * const cma_events[] =3D {
+> >> +       [RDMA_CM_EVENT_ADDR_RESOLVED]   =3D "ADDR_RESOLVED",
+> >> +       [RDMA_CM_EVENT_ADDR_ERROR]      =3D "ADDR_ERROR",
+> >> +       [RDMA_CM_EVENT_ROUTE_RESOLVED]  =3D "ROUTE_RESOLVED",
+> >> +       [RDMA_CM_EVENT_ROUTE_ERROR]     =3D "ROUTE_ERROR",
+> >> +       [RDMA_CM_EVENT_CONNECT_REQUEST] =3D "CONNECT_REQUEST",
+> >> +       [RDMA_CM_EVENT_CONNECT_RESPONSE]=3D "CONNECT_RESPONSE",
+> >> +       [RDMA_CM_EVENT_CONNECT_ERROR]   =3D "CONNECT_ERROR",
+> >> +       [RDMA_CM_EVENT_UNREACHABLE]     =3D "UNREACHABLE",
+> >> +       [RDMA_CM_EVENT_REJECTED]        =3D "REJECTED",
+> >> +       [RDMA_CM_EVENT_ESTABLISHED]     =3D "ESTABLISHED",
+> >> +       [RDMA_CM_EVENT_DISCONNECTED]    =3D "DISCONNECTED",
+> >> +       [RDMA_CM_EVENT_DEVICE_REMOVAL]  =3D "DEVICE_REMOVAL",
+> >> +       [RDMA_CM_EVENT_MULTICAST_JOIN]  =3D "MULTICAST_JOIN",
+> >> +       [RDMA_CM_EVENT_MULTICAST_ERROR] =3D "MULTICAST_ERROR",
+> >> +       [RDMA_CM_EVENT_ADDR_CHANGE]     =3D "ADDR_CHANGE",
+> >> +       [RDMA_CM_EVENT_TIMEWAIT_EXIT]   =3D "TIMEWAIT_EXIT",
+> >> +};
+> >=20
+> > Sagi,
+> >=20
+> > My vote goes to using easy-to-digest human-readable non-capital
+> > letters strings here and
+> > elsewhere (IB events, etc),  as done today by the NFS code and
+> > generally by errno based
+> > helpers such as strerror, e.g
+> >=20
+> > "address resolved"
+> > "address error"
+> > "route resolved"
+> >=20
+> > Will be happy to hear what others think
 >=20
-> This actually will copy some kernel memory to userspace. I think the
-> overflow is in .text, so probably not a security issue..
+> I generally prefer spelled-out strings over symbol names.
+>=20
+> For the strings in xprtrdma, I looked up the symbols in the IBTA spec,
+> and used part of the description of each error. It=E2=80=99s obvious in m=
+ost
+> cases, but there are one or two that are a little odd (eg. MW_BIND_ERR
+> is =E2=80=9Cmemory management operation error=E2=80=9D).
 
-It shouldn't be in the .text section.  This is defined as static const
-char array, so it should be in one of the data sections.  And since we
-are using an initializer smaller than the specific size of the array, I
-would expect all of the unitialized bits to be 0.  But, the proof is in
-the pudding.  A quick compile and check show us:
-
-Contents of section .rodata:
- ...
- 01e0 69576172 70506f72 744d6170 70657255  iWarpPortMapperU
- 01f0 73657200 00000000 00000000 00000000  ser.............
-
-Yep, just right.  It created a 32byte ro element, initialized it to 0,
-then put our text in it.  This is exactly what will get copied in the nl
-message and is precisely what we want.
-
-Applied, thanks.
+Likewise, I prefer the more complete description to a simple
+regurgitation of C preprocessor symbols.  Aside from that, I'm glad to
+see this patchset come along because I hate looking up error numbers
+too.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-D/o87EYH8glbPgWlpu1W
+--=-BKiQit7qdLXpPfAe+jqL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -64,19 +91,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVUjTyAAoJELgmozMOVy/dHwsQAJ2i0iD6SRWxKaPTXhDHaZ3K
-hHYDpmS+ZLKdke79YD39ntSMTZ858GVx6BkI5aLttADF9d2yvTj1cp2UI+/CrYb7
-Lx6FTdqcPHmerpRitMYbNWhz8mYsOmkuWvVX7nzT0FajDip7t3eAN8VhLc2lRDx6
-2KufHRUyOHOSN9oegXVopfKeaa8zmQRhY7ISpRbpfLlf4h9iSmZKoV0/bJ0zD3Fk
-xP74Gz2fBgLEVlepuODEMhu9wdXHaK+oldnL/Vs7HgFHW7g/yNr4aFsjuvyjZlAH
-ZHFvVT6BrG1FSvDUG5JeP5Mfc3kLEpnEGOpB37rd1a7P8nJA5Bs6f6qWo3HWb5Na
-y3I/L/dwO2mEpsR8kaaiuHrLmUXNS6oElT5lV61k4Xj3eKvaBNJS2jX9VGRJmQUg
-M4rX9zEyr8RGbdUlLXVemNvqgOnbLtQRav+XIHsWS5V9C784IvegapX1EsJ2JG/S
-o8BLF1tsXyf9ZXQE9/R545N5qo1b9VNVr8k4n05J9PNDLt4cmLOIvzjjr/OY2hvr
-s0TY/JVzBLkLb0nxKJX0mJ2Z0rLKXNFdvKLlgJ+zr27I+Q4vPLBaF/qrAgXDm24e
-9jN9hk++2CO7ohPLuiaLWI7Bxay8i3ttDcuieOoQsn2uMMomYtV2HY8ORt4hPKRM
-IxSwDLVGA+uHv/WT309A
-=lWzY
+iQIcBAABCAAGBQJVUjarAAoJELgmozMOVy/drtoP/3/z8SN9IAuqtTWzEpClIQ0N
+Xc1CDILV1iR86JZEBo/PV6Xzue93GWU361OcYjj+9TM8Vz8xP5FlK8IDaWq00SFe
+UIMjS0B4mCMffjxEIXv80HiaDWuGc8NZai6w38Nz21DplTJZQ9TZxr4XTi+ikEPo
+LoU114EVj9qelC9IC3vcZmJd8ZdYLl61YePP8mForbsqnKbWkSSqrQ4VlbI0+X4H
+rmG6vJM08JEAkrxXShQed3fP8fTtj1OIC64OsLk2rBQ5ZpmmKI4WRjAX1eT31Cec
+sLp2OVY+obDK4XKyinktGVsiEOM0zuOBbugix20dhRameOM3aHkKG9gW4qb7aGKM
+p9YjLAzuRb9kYttlc5HixooQCzsbyOuvqNOEUhggBa7jjQpO23gsMBplCXvfe9t1
+dYi5QJADlwDycVGFnR7e/j2ZesHhm27q8oLMSTp04X95VMZ90iFidVJh1Xt0Q7vw
+kDmKUePw2vzIpKkzkAgUdf8I5v9dAWyL81ShJwqTZMquWTUqDvZVt7vIsqv1G/lQ
+F31JExWQ3up8DfDj/oIUOUTUf/cf0R45m7v1uyAQYDw+TN+wkIk3dI3nx2+ceULq
+hkNcWLvNeZzUQCgDh1fkcdmmDgN6YXIcG26ZKo25qBelf/PRLUk2ZMRVU0X5NlPr
+GTFDy+/gecUyF6ogklsr
+=A6wb
 -----END PGP SIGNATURE-----
 
---=-D/o87EYH8glbPgWlpu1W--
+--=-BKiQit7qdLXpPfAe+jqL--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
