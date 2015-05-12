@@ -1,8 +1,10 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 0/5] Convert management helpers to Core Capability bits
-Date: Mon, 11 May 2015 21:46:53 -0400
-Message-ID: <1431395218-27693-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 1/5] IB/user_mad: Fix bug in ib_umad_remove_one when rdma_cap_ib_mad implementation changed
+Date: Mon, 11 May 2015 21:46:54 -0400
+Message-ID: <1431395218-27693-2-git-send-email-ira.weiny@intel.com>
+References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431395218-27693-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,61 +12,54 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The following 5 patches complete the conversion of Michaels management helpers
-to use new Core Capability bits to signal core capabilities rather than
-inferring these capabilities from the device protocols.
+The addition of the rdma_cap_ib_mad is technically broken in ib_umad_remove_one
+because the loop "i" value is not a port value.
 
-The first fixes a bug which was uncovered after I changed the implementation of
-rdma_cap_ib_mad
+This bug resulted in the ib_umad failing to properly remove its resources when
+the core capability functions were converted to bit fields.
 
-The second formalizes the creation of immutable per port data which is stored
-in the ib_device structure for use by the core code.  This is accomplished by a
-call back specified to ib_device_register.
+NOTE: This original patch did not result in broken behavior on its own.  It was
+only an issue when the implementation of rdma_cap_ib_mad was changed.
 
-The third converts the management helpers to use a new bit mask which is stored
-in the immutable per port device data.  Comments to the RFC version of these
-patches included using only 32 bits for this data although I am worried that
-will quickly fill up with some of the proposed further cleanups.
+Change "i" to correspond to the port and alter the index to the private port
+array.
 
-The final 2 patches implement the OPA management helper additions which spurred
-these architectural changes.  They are reworked versions of previous patches
-submitted under the OPA MAD change series.
+Fixes: e17371d73908 ("IB/Verbs: Use management helper rdma_cap_ib_mad()")
 
-These all apply on top of Dougs for-4.1 with Michaels v8 management helper
-patches.
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/user_mad.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-
-Ira Weiny (5):
-  IB/user_mad: Fix bug in ib_umad_remove_one when rdma_cap_ib_mad
-    implementation changed
-  IB/core: Formalize the creation of immutable per port data within the
-    ib_device object
-  IB/core: Convert management helpers to core capability bits
-  IB/core: Add rdma_dev_max_mad_size helper call
-  IB/core: Add rdma_cap_opa_mad helper using RDMA_CORE_CAP_OPA_MAD flag
-
- drivers/infiniband/core/device.c             |  57 ++++++-------
- drivers/infiniband/core/mad.c                |   4 +
- drivers/infiniband/core/user_mad.c           |  13 ++-
- drivers/infiniband/hw/amso1100/c2_provider.c |  29 +++++--
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |  29 +++++--
- drivers/infiniband/hw/cxgb4/provider.c       |  29 +++++--
- drivers/infiniband/hw/ehca/ehca_hca.c        |   9 +-
- drivers/infiniband/hw/ehca/ehca_main.c       |  22 ++++-
- drivers/infiniband/hw/ipath/ipath_verbs.c    |  29 +++++--
- drivers/infiniband/hw/mlx4/main.c            |  37 +++++---
- drivers/infiniband/hw/mlx5/main.c            |  29 +++++--
- drivers/infiniband/hw/mthca/mthca_provider.c |  29 +++++--
- drivers/infiniband/hw/nes/nes_verbs.c        |  30 +++++--
- drivers/infiniband/hw/ocrdma/ocrdma_main.c   |  24 +++++-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   6 --
- drivers/infiniband/hw/qib/qib_verbs.c        |  30 +++++--
- drivers/infiniband/hw/usnic/usnic_ib_main.c  |  23 ++++-
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   7 +-
- include/rdma/ib_mad.h                        |   1 +
- include/rdma/ib_verbs.h                      | 122 +++++++++++++++++++++++----
- 20 files changed, 410 insertions(+), 149 deletions(-)
-
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 2ff66bc..36ce192 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -1327,14 +1327,21 @@ free:
+ static void ib_umad_remove_one(struct ib_device *device)
+ {
+ 	struct ib_umad_device *umad_dev = ib_get_client_data(device, &umad_client);
+-	int i;
++	int s, e, i;
+ 
+ 	if (!umad_dev)
+ 		return;
+ 
+-	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i) {
++	if (device->node_type == RDMA_NODE_IB_SWITCH)
++		s = e = 0;
++	else {
++		s = 1;
++		e = device->phys_port_cnt;
++	}
++
++	for (i = s; i <= e; ++i) {
+ 		if (rdma_cap_ib_mad(device, i))
+-			ib_umad_kill_port(&umad_dev->port[i]);
++			ib_umad_kill_port(&umad_dev->port[i - s]);
+ 	}
+ 
+ 	kobject_put(&umad_dev->kobj);
 -- 
 1.8.2
 
