@@ -1,43 +1,52 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2][RESEND] General MAD clean up
-Date: Tue, 12 May 2015 16:06:32 -0400
-Message-ID: <1431461192.43876.79.camel@redhat.com>
-References: <1431105004-23585-1-git-send-email-ira.weiny@intel.com>
+Subject: Re: [PATCH 0/4][RESEND] IB/mad: refactor functions based on the
+ needs of those functions.
+Date: Tue, 12 May 2015 16:07:02 -0400
+Message-ID: <1431461222.43876.80.camel@redhat.com>
+References: <1431109644-27226-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-KvsjJn76EdLAZr4Df3zv"
+	protocol="application/pgp-signature"; boundary="=-NU0Zukb7NVoE1MFGGawz"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431105004-23585-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1431109644-27226-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-KvsjJn76EdLAZr4Df3zv
+--=-NU0Zukb7NVoE1MFGGawz
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2015-05-08 at 13:10 -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+On Fri, 2015-05-08 at 14:27 -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
 > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> Resend due to Patchwork being reset.  Also added Jason's Reviewed-By and =
-Sean's
-> Acked-By lines.
+> Resent due to patchworks being reset.
 >=20
-> These 2 patches contain some clean ups to the MAD module.  One was review=
-ed
-> months ago by Sean and the other was suggested by Doug.
+> validate_mad, ib_response_mad, and rcv_has_same_class only need the IB he=
+ader.
+> Refactor these functions as appropriate.
 >=20
-> These are based on Doug's for-4.2 branch
+> In addition set const for functions which take read only structures.
 >=20
-> Ira Weiny (2):
->   IB/mad: Rename is_data_mad to is_rmpp_data_mad
->   IB/mad: Clean up comments in smi.c
+> Added Jason and Sean's Review by.
 >=20
->  drivers/infiniband/core/mad.c | 7 ++++---
->  drivers/infiniband/core/smi.c | 4 ++--
->  2 files changed, 6 insertions(+), 5 deletions(-)
+>=20
+> Ira Weiny (4):
+>   IB/mad: Change validate_mad signature to take const ib_mad_hdr rather
+>     than ib_mad
+>   IB/mad: Change ib_response_mad signature to take const ib_mad_hdr
+>     rather than ib_mad
+>   IB/mad: Clean up rcv_has_same_class
+>   IB/mad: Add const qualifiers to query only functions
+>=20
+>  drivers/infiniband/core/mad.c      | 54 +++++++++++++++++++-------------=
+------
+>  drivers/infiniband/core/mad_priv.h |  4 +--
+>  drivers/infiniband/core/user_mad.c |  6 ++---
+>  include/rdma/ib_mad.h              |  4 +--
+>  4 files changed, 34 insertions(+), 34 deletions(-)
 >=20
 
 These have been picked up for 4.2.
@@ -47,7 +56,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-KvsjJn76EdLAZr4Df3zv
+--=-NU0Zukb7NVoE1MFGGawz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -55,22 +64,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVUl1IAAoJELgmozMOVy/d+5YQAKntJUGVWDsPG1znb1AGG53B
-/0UgA7xx5fQOzgtFtRfncAr7HB0lsjSEjp5BriAfFzpGFJTvmZMvlNHSs/wAVHoA
-sSD3ScTWFUALONAc8gpWeD5h+PW6jIQEhp4OvvMLrg7u5/l2fQQsc2nDalNz+wiX
-9VZ3c2pYkwkOYGGPKAOc2ElYyH2wU0ePkcefcaGTsE60ij60wNdR2BiUv+4V4isM
-Qoqp/u6MERilC/RG96VzWnpG5KTcOYetUN40MbDgdsV2Vf4YBVHnm4xgZiOLunDQ
-f2tZ1MOKidwM+CI70i65PF9QCdb/fNxRmQEfQ531C0UZ3L8DU4iWNJISNzufZgHO
-O9Pqlhj4zXlmRyvI9zNXmvcKu9qgqC4ulElDNKIeey7RU7B+Ez73APgmjHQ3GzXa
-mvt0euECoehx4v6gmAB30d+AEWSB5Ho9fBU6klt324M0fpd1xE73UyiBovPtHmCA
-2oZRPMYxzeq+qNgnVF9WSQJDI9IxfxTH16PTPU8CnqUHSPaql7ss4qzYnDB9qIEt
-/FiHKPj6l0zrfhO28hB/CmWAhBLnaTz/ZUOs71HUS4nMvbVnw0xWY/YIRxaX3tWj
-2VYuzhapt77s7R5yt7wGKkr75YGVtoxdmmgR4lreNeOxIPxDcMzIctYRjBU5+fTN
-7ii76GNZDF1TKO4M4eM2
-=Ajw5
+iQIcBAABCAAGBQJVUl1nAAoJELgmozMOVy/d7VgQAKlUYMVuBFh2qEmPDDxdsXbQ
+elxL77BRb1yimCfCh/jofouvgImKDEag0kLVKZOkB7CPZqB2/IsrHJ1mMh5FkOTv
+5gzHTKF44sdwMubKcCHo0R8lNOI5z6O3p2vl0de/OMjSckt73yNd4WtX4AFUbxXv
+B8RbQHj4yGOElRwWphhRLQMJjMkbUqHizKu6gdJdhoZVfsl5S46uFCA4sSVjEA21
+n+qZHn8c/YpSMyG555hEVGD5uBGsoyFiYFu8rryJogwEf3iFDy3YcYPWo8Ac/1k6
+8W8jvwfdkcFyjkhT9eihrxcBSETnIAYIMBxRxyMb3UWz63iz+/LWP38kksGc3FK7
+sPxkTfTh8Fic2MdruTnd8FI+GpHxwhK3vic5QSOL4OHRSBqZ6QYKpnKPuG5adxjj
+qPSfk1AKYQGvsSxPE76EP5c2x13wBw00QOzqfXIEDP1H3hMDVxA8E7lyyKo3MurC
+Ppc4vGMo0mAVbK++wrstGPS7UqS7J3ZUi6fprQGyYWs3qr9aAN8Qf4rPhgRIyL4s
+M9uuMyNqn+nB/OKCMTUnjbkDUZr0Xoh2NHtqzuP2v/R9bxDWlCorD2yYSl7k/we4
+/T1vYeTeAjd0FJGHGIWuN5ccx+1YMxG2O3YiYoSkbEA1yhX6N10rD0LM0Kf97jTc
+snaOx3O9XLtAVbZz2cqR
+=h6jM
 -----END PGP SIGNATURE-----
 
---=-KvsjJn76EdLAZr4Df3zv--
+--=-NU0Zukb7NVoE1MFGGawz--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
