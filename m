@@ -1,53 +1,66 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/5] IB/core: Formalize the creation of immutable per
- port data within the ib_device object
-Date: Tue, 12 May 2015 17:48:55 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1107CBB6@CRSMSX101.amr.corp.intel.com>
-References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com>
-	 <1431395218-27693-3-git-send-email-ira.weiny@intel.com>
- <1431444301.43876.34.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V4] IB/qib: fix test of unsigned variable
+Date: Tue, 12 May 2015 13:49:30 -0400
+Message-ID: <1431452970.43876.68.camel@redhat.com>
+References: <20150512174242.9547.82789.stgit@phlsvslse11.ph.intel.com>
+	 <32E1700B9017364D9B60AED9960492BC2570FF8A@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-v3WIG2P6YlHn6/AE9Z23"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431444301.43876.34.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC2570FF8A-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEluIHByZXBhcmF0aW9uIGZvciB0aGlzIGNyZWF0ZSBhIHN0cnVjdHVyZSBmb3IgcGVyIHBv
-cnQgaW1tdXRhYmxlIGRhdGENCj4gPiBhbmQgcGxhY2UgdGhlIHBrZXkgYW5kIGdpZCB0YWJsZSBs
-ZW5ndGhzIHdpdGhpbiB0aGlzIHN0cnVjdHVyZS4NCj4gPg0KPiA+IFRoaXMgdHlwZSBvZiBkYXRh
-IHJlcXVpcmVzIGEgbmV3IGNhbGwgYmFjayAicG9ydF9pbW11dGFibGUiIHBhcmFtZXRlcg0KPiA+
-IHRvIGliX3JlZ2lzdGVyX2RldmljZSB0byBhbGxvdyBlYWNoIGRyaXZlciB0byBjcmVhdGUgdGhp
-cyBkYXRhIGFzIGFwcHJvcHJpYXRlLg0KPiA+IFRoaXMgY2FsbGJhY2sgaXMgYWRkZWQgdG8gaWJf
-cmVnaXN0ZXJfZGV2aWNlIHJhdGhlciB0aGFuIGFzIGEgbmV3DQo+ID4gZGV2aWNlIGZ1bmN0aW9u
-IGJlY2F1c2UgdGhlIGNhbGxiYWNrIHNob3VsZCBvbmx5IGJlIHVzZWQgd2hlbiBkZXZpY2VzDQo+
-ID4gYXJlIGZpcnN0IHJlZ2lzdGVyZWQuDQo+ID4NCg0KSSB0cmllZCB0byBleHBsYWluIG15IGRl
-Y2lzaW9uIGhlcmUuLi4NCg0KPiA+IEBAIC0yNzMsNyArMjczLDkgQEAgb3V0Og0KPiA+ICAgKi8N
-Cj4gPiAgaW50IGliX3JlZ2lzdGVyX2RldmljZShzdHJ1Y3QgaWJfZGV2aWNlICpkZXZpY2UsDQo+
-ID4gIAkJICAgICAgIGludCAoKnBvcnRfY2FsbGJhY2spKHN0cnVjdCBpYl9kZXZpY2UgKiwNCj4g
-PiAtCQkJCQkgICAgdTgsIHN0cnVjdCBrb2JqZWN0ICopKQ0KPiA+ICsJCQkJCSAgICB1OCwgc3Ry
-dWN0IGtvYmplY3QgKiksDQo+ID4gKwkJICAgICAgIGludCAoKnBvcnRfaW1tdXRhYmxlKShzdHJ1
-Y3QgaWJfZGV2aWNlICosIHU4LA0KPiA+ICsJCQkJCSAgICAgc3RydWN0IGliX3BvcnRfaW1tdXRh
-YmxlICopKQ0KPiANCj4gSSdtIGhhdmluZyBhIGhhcmQgdGltZSBnZXR0aW5nIHBhc3QgaG93IHVn
-bHkgdGhpcyBpcy4gIFBhc3NpbmcgY2FsbGJhY2tzIGFzDQo+IGFyZ3VtZW50cyB0byBhIHJlZ2lz
-dHJhdGlvbiBmdW5jdGlvbiBzaG91bGQgYmUgYSBsYXN0IHJlc29ydC4gIEkgd291bGQgcmF0aGVy
-IHNlZQ0KPiB0aGlzIGFkZGVkIHRvIHRoZSBkZXZpY2UgbWFuZGF0b3J5IGxpc3QgKGFuZCBpdCAq
-aXMqIG1hbmRhdG9yeSwgd2UgdXNlIGl0DQo+IHdpdGhvdXQgY2hlY2tpbmcgZm9yIE5VTEwpLiAg
-DQoNCllvdXIgY29ycmVjdCBJIHNob3VsZCBoYXZlIGNoZWNrZWQgZm9yIE5VTEwgYW5kIHJldHVy
-bmVkIGFuIGVycm9yIGlmIG5vdCBzdXBwbGllZC4NCg0KPiBJbiB0cnV0aCwgSSdkIHJhdGhlciBz
-ZWUgYm90aCBvZiB0aG9zZSBtb3ZlZCB0byB0aGUNCj4gZHJpdmVyIGNhbGxiYWNrIHN0cnVjdC4g
-IFRoZXkgY2FuIGJlIHBsYWNlZCBhdCB0aGUgZW5kLCBhZnRlciBhIGNvbW1lbnQgdGhhdA0KPiBz
-YXlzIHNvbWV0aGluZyBsaWtlICJUaGVzZSBhcmUgc2luZ2xlIHVzZSBlbnRyeSBwb2ludHMgZm9y
-IGluaXRpYWxpemF0aW9uLCBrZWVwDQo+IHRoZW0gYXdheSBmcm9tIHRoZSByZXN0IG9mIHRoZSBl
-bnRyeSBwb2ludHMgdG8gaGVscCBwcmV2ZW50IGdyb3dpbmcgdGhlIGVudHJ5DQo+IHBvaW50IGxp
-c3QgYmV5b25kIGFueSBtb3JlIGNhY2hlbGluZXMgdGhhdCBuZWVkZWQgZm9yIHRoZSBtb3JlIGNv
-bW1vbmx5DQo+IHVzZWQgZW50cnkgcG9pbnRzIi4gIEkgd291bGQgZmluZCB0aGF0IG11Y2ggcHJl
-ZmVyYWJsZSB0byB0aGlzLg0KPiANCg0KSSdsbCBjaGFuZ2UgdG8gdGhpcyBtZXRob2QgaW4gdGhl
-IG5leHQgdmVyc2lvbi4NCg0KSXJhDQoNCg==
+
+--=-v3WIG2P6YlHn6/AE9Z23
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, 2015-05-12 at 17:44 +0000, Marciniszyn, Mike wrote:
+> > Fix the issue by changing the type of wc_cookie to int.  For the succes=
+s case the
+> > ret left at zero to avoid a warning from the caller.  For failure wc_co=
+okie is used
+> > as the ret.
+> >=20
+>=20
+> Just commit message change.
+
+Thanks, applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+--=-v3WIG2P6YlHn6/AE9Z23
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVUj0qAAoJELgmozMOVy/dF+AP/imoQ5mRqPHNcYQiEXSD5OnG
+jiY7UuITHcZzuWTWUFPSLevwGmXz0ACqGn4ZyCYf5PUM22W46SSz+Ktj/ynXHIH+
+4eeLjqjm1bHOjiYiagubOQ1oIt6mxTncMarLLOi1paL2fOqyvb1yRjc+tCKOo2qL
+ZmzsioMOngd6BoWeAKaQPWCzXL4kXDc8FnFAqVJB3N3YVNzm1ahGAV62i0fw9vNp
+p201TIGO6nsxWkHJTrbf9NrDzygB93DqW3FzPQq6bE/HivLgPqfAH8SeHZSkbbK2
+6MuE+2e7c9v0ajURImLQm0yy4K4o6QQBmU+ies5553LRx3KTKZNy4JkXGBZilv2k
+xvvQs5Ulo7tMtztMfIoU12uCQu/Wp+T/W5LnsqISLebJsgKPHnjy7m9e7q4GUyNx
+Loh+21F7HtWfhITxuvdy5nzNO3qdNMxoZSVlX1MnpAmf2TPl4ix08kWl4H1ZnfHH
+rXGxCCW4FLASy9aw257C7TRtsBE9YsbG/cMmjCHt7xxvNJi5iTdP0/EwdHJyl+BC
+rhwYsgc/E6Jm8NPKrrhZhmBJSEyCAyd4LpDyst7JHcpWC9ONcuZTy0s8xc3kO9iQ
+sdn+mSXkVcapSdNgmypPOVlPWHzpTjaIjXz+t+8+N79Wmk9DSmgJ+ytSrpG2TFha
+M58zgLKUcVpDCtbhfaD7
+=gm8V
+-----END PGP SIGNATURE-----
+
+--=-v3WIG2P6YlHn6/AE9Z23--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
