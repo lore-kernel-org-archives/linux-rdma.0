@@ -1,102 +1,72 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/16] xprtrdma: Warn when there are orphaned IB objects
-Date: Tue, 12 May 2015 14:20:00 -0400
-Message-ID: <D9E151CC-AC68-42BF-9025-AEB77201611D@oracle.com>
-References: <20150511174401.31263.79596.stgit@manet.1015granger.net> <20150511180235.31263.71754.stgit@manet.1015granger.net> <5552428D.7010907@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5552428D.7010907-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading
+ client_list or device_list
+Date: Tue, 12 May 2015 12:23:32 -0600
+Message-ID: <20150512182332.GD15891@obsidianresearch.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
+ <20150511181824.GA25405@obsidianresearch.com>
+ <555198B7.40302@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <555198B7.40302@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Matan Barak <matanb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 12, 2015 at 09:07:51AM +0300, Haggai Eran wrote:
+> > I'm not sure RCU is the right way to approach this. The driver core
+> > has the same basic task to perform, maybe review it's locking
+> > arrangment between the device list and driver list.
+> > 
+> > [Actually we probably should be using the driver core here, with IB
+> >  clients as device drivers, but that is way beyond scope of this..]
+> 
+> So, I'm not very familiar with that code, but it seems that the main
+> difference is that in the core a single driver can be attached to a
+> device. 
 
-On May 12, 2015, at 2:12 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>=
- wrote:
+Roughly, a bus (IB would be a bus) has devices attached to it, and
+devices have drivers attached to them. Bus:Device is 1:N,
+Device:Drvier is 1:1. 
 
-> Hi Chuck,
->=20
-> On 05/11/2015 02:02 PM, Chuck Lever wrote:
->> WARN during transport destruction if ib_dealloc_pd() fails. This is
->> a sign that xprtrdma orphaned one or more RDMA API objects at some
->> point, which can pin lower layer kernel modules and cause shutdown
->> to hang.
->=20
-> I'm curious, what would cause an RDMA object to get orphaned in the f=
-irst place?
+There a a couple of reasons to be interested in re-using the driver
+core, perhaps the best is that it has all the infrastructure to let us
+auto-load client modules...
 
-A leaked object means there=92s a software bug in the API consumer, whi=
-ch
-is xprtrdma in this case. xprtrdma is supposed to track and clean up
-every object it creates.
+> I guess a similar thing we can do is to rely on the context we associate
+> with a pair of a client and a device. If such a context exist, we don't
+> need to call client->add again. What do you think?
 
-> Is there any way to prevent that?
+I didn't look closely, isn't this enough?
 
-The usual thing to do is find and fix the bug that allowed the leak.
+device_register:
+ mutex_lock(client_mutex);
+ down_write(devices_rwsem);
+ list_add(device_list,dev,..);
+ up_write(devices_rwsem);
 
-> Anna
->=20
->>=20
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Reviewed-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/verbs.c |   10 +++++-----
->> 1 file changed, 5 insertions(+), 5 deletions(-)
->>=20
->> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs=
-=2Ec
->> index 4870d27..51900e6 100644
->> --- a/net/sunrpc/xprtrdma/verbs.c
->> +++ b/net/sunrpc/xprtrdma/verbs.c
->> @@ -702,17 +702,17 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
->> 		dprintk("RPC:       %s: ib_dereg_mr returned %i\n",
->> 			__func__, rc);
->> 	}
->> +
->> 	if (ia->ri_id !=3D NULL && !IS_ERR(ia->ri_id)) {
->> 		if (ia->ri_id->qp)
->> 			rdma_destroy_qp(ia->ri_id);
->> 		rdma_destroy_id(ia->ri_id);
->> 		ia->ri_id =3D NULL;
->> 	}
->> -	if (ia->ri_pd !=3D NULL && !IS_ERR(ia->ri_pd)) {
->> -		rc =3D ib_dealloc_pd(ia->ri_pd);
->> -		dprintk("RPC:       %s: ib_dealloc_pd returned %i\n",
->> -			__func__, rc);
->> -	}
->> +
->> +	/* If the pd is still busy, xprtrdma missed freeing a resource */
->> +	if (ia->ri_pd && !IS_ERR(ia->ri_pd))
->> +		WARN_ON(ib_dealloc_pd(ia->ri_pd));
->> }
->>=20
->> /*
->>=20
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs"=
- in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ /* Caller must prevent device_register/unregister concurrancy on the
+    same dev */
 
---
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+ foreach(client_list)
+   .. client->add(dev,...) .. 
 
+ mutex_unlock(client_mutex)
 
+client_register:
+ mutex_lock(client_mutex)
+ list_add(client_list,new_client..)
+ down_read(devices_rwsem);
+ foreach(device_list)
+   .. client->add(dev,new_client,..) ..
+ up_read(devices_rwsem);
+ mutex_unlock(client_mutex)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[Note, I didn't check this carefully, just intuitively seems like a
+ sane starting point]
+
+Jason
