@@ -1,46 +1,41 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/5] IB/user_mad: Fix bug in ib_umad_remove_one when rdma_cap_ib_mad implementation changed
-Date: Tue, 12 May 2015 17:53:28 -0400
-Message-ID: <20150512215327.GB7341@phlsvsds.ph.intel.com>
-References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com> <1431395218-27693-2-git-send-email-ira.weiny@intel.com> <20150512191505.GB3503@obsidianresearch.com>
+Subject: Re: [PATCH 3/5] IB/core: Convert management helpers to core capability bits
+Date: Tue, 12 May 2015 17:54:57 -0400
+Message-ID: <20150512215456.GA13105@phlsvsds.ph.intel.com>
+References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com> <1431395218-27693-4-git-send-email-ira.weiny@intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FCE4DE@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150512191505.GB3503-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCE4DE-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 12, 2015 at 01:15:05PM -0600, Jason Gunthorpe wrote:
-> On Mon, May 11, 2015 at 09:46:54PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > The addition of the rdma_cap_ib_mad is technically broken in ib_umad_remove_one
-> > because the loop "i" value is not a port value.
-> > 
-> > This bug resulted in the ib_umad failing to properly remove its resources when
-> > the core capability functions were converted to bit fields.
-> > 
-> > NOTE: This original patch did not result in broken behavior on its own.  It was
-> > only an issue when the implementation of rdma_cap_ib_mad was changed.
+> > +
+> > +/* Protocol                             0xFFF00000 */
+> > +#define RDMA_CORE_CAP_PROT_IB           0x00100000
+> > +#define RDMA_CORE_CAP_PROT_IBOE         0x00200000
 > 
-> Didn't cause a bug, but is certainly wrong..
+> Use ROCE in place of IBOE for consistency with the definition below.
+
+Done.
+
 > 
-> >+  		if (rdma_cap_ib_mad(device, i))
-> >-  		if (rdma_cap_ib_mad(device, i + start_port(device)))
+> > +#define RDMA_CORE_CAP_PROT_IWARP        0x00400000
+> > +
+> > +#define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
+> > +					| RDMA_CORE_CAP_IB_MAD \
+> > +					| RDMA_CORE_CAP_IB_SMI \
+> > +					| RDMA_CORE_CAP_IB_CM  \
+> > +					| RDMA_CORE_CAP_IB_SA  \
+> > +					| RDMA_CORE_CAP_AF_IB)
+> > +#define RDMA_CORE_PORT_IBA_ROCEE       (RDMA_CORE_CAP_PROT_IBOE \
 > 
-> Is alot simpler. At the very least, use start_port/end_port to compute
-> those ranges...
+> Rename ROCEE to ROCE.
 
-I was really hoping to avoid making start/end port public.  But you are
-correct...
-
-Additional patches on the way.
-
-Ira
-
+Done.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
