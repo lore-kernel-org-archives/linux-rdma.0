@@ -1,96 +1,118 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Tue, 12 May 2015 16:24:31 -0400
-Message-ID: <1431462271.43876.85.camel@redhat.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/5] IB/core: Formalize the creation of immutable per port data within the ib_device object
+Date: Tue, 12 May 2015 17:02:25 -0400
+Message-ID: <20150512210225.GA7341@phlsvsds.ph.intel.com>
+References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com> <1431395218-27693-3-git-send-email-ira.weiny@intel.com> <20150512192109.GC3503@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-VGKor7S6wNVoHauenyl9"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150512192109.GC3503-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 12, 2015 at 01:21:09PM -0600, Jason Gunthorpe wrote:
+> On Mon, May 11, 2015 at 09:46:55PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > As of commit 5eb620c81ce3 "IB/core: Add helpers for uncached GID and P_Key
+> > searches"; pkey_tbl_len and gid_tbl_len are immutable data which are stored in
+> > the ib_device.
+> > 
+> > The per port core capability flags to be added later are also immutable data to
+> > be stored in the ib_device object.
+> > 
+> > In preparation for this create a structure for per port immutable data and
+> > place the pkey and gid table lengths within this structure.
+> > 
+> > This type of data requires a new call back "port_immutable" parameter to
+> > ib_register_device to allow each driver to create this data as appropriate.
+> > This callback is added to ib_register_device rather than as a new device
+> > function because the callback should only be used when devices are first
+> > registered.
+> 
+> Ugh, gross, it should just be a normal callback, the existing argument call back
+> shouldn't have been ever added, IMHO.
 
---=-VGKor7S6wNVoHauenyl9
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Changing based on Dougs feedback.
 
-Hi Linus,
+> 
+> > +	device->port_immutable = kmalloc(sizeof(*device->port_immutable)
+> > +						* (num_ports+1),
+> > +					 GFP_KERNEL);
+> 
+> kzalloc?
 
-Please pull these -rc fixes from:
+Yea
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-tags/for-linus
+> 
+> > +	if (!device->port_immutable)
+> >  		goto err;
+> >  
+> > -	for (port_index = 0; port_index < num_ports; ++port_index) {
+> > -		ret = ib_query_port(device, port_index + start_port(device),
+> > -					tprops);
+> > +	for (port = 0; port <= num_ports; ++port) {
+> > +
+> > +		if (port == 0 && device->node_type != RDMA_NODE_IB_SWITCH)
+> > +			continue;
+> > +
+> > +		if (port > 0 && device->node_type == RDMA_NODE_IB_SWITCH)
+> > +			break;
+> 
+> This is confusing, we are iterating over the range of the array, but
+> some values don't fill anything, leaving garbage? So, is the array
+> size wrong, or what is going on here?
 
-----------------------------------------------------------------
-Changes for 4.1-rc3
+The port_immutable array is indexed based on the port number.  So on an HCA 0
+is invalid.  On a switch 1 is invalid.
 
-  Update MAINTAINERS git repo pointer
-  printk garbage fix
-  Fix for qib and iw_cxgb4 bugs introduced in 4.1 window
-  Fix for an older iWARP netlink bug
-  Fix a memcpy issue in ehca driver
+This is done to optimize the helper functions as much as possible.
 
-----------------------------------------------------------------
-Doug Ledford (1):
-      MAINTAINERS: update the official rdma git repo
+I'll special case the switch to not allocate the additional entry.
 
-Joe Perches (1):
-      infiniband: Remove duplicated KERN_<LEVEL> from pr_<level> uses
+But for an HCA 0 is just invalid.
 
-Mike Marciniszyn (1):
-      IB/qib: fix test of unsigned variable
+> 
+> > @@ -349,8 +350,7 @@ void ib_unregister_device(struct ib_device *device)
+> >  
+> >  	list_del(&device->core_list);
+> >  
+> > -	kfree(device->gid_tbl_len);
+> > -	kfree(device->pkey_tbl_len);
+> > +	kfree(device->port_immutable);
+> 
+> The kfree should be in the ib_device_release function.
 
-Nicholas Mc Guire (1):
-      IB/ehca: use correct destination for memcpy
+ok.
 
-Steve Wise (1):
-      iw_cxgb4: use wildcard mapping for getting remote addr info
+> 
+> > +static int c2_port_immutable(struct ib_device *ibdev, u8 port_num,
+> > +			     struct ib_port_immutable *immutable)
+> > +{
+> 
+> Lets just have the core swap in this generic function if it detects
+> the port_immutable function pointer is null. Then this patch doesn't
+> have to update drivers.
 
-Tatyana Nikolova (1):
-      RDMA/core: Fix for parsing netlink string attribute
+Ignoring based on other comment.
 
- MAINTAINERS                               |  2 +-
- drivers/infiniband/core/iwpm_msg.c        |  2 +-
- drivers/infiniband/hw/cxgb4/cm.c          | 16 ++++++++--------
- drivers/infiniband/hw/cxgb4/device.c      |  4 ++--
- drivers/infiniband/hw/ehca/ehca_mcast.c   |  4 ++--
- drivers/infiniband/hw/mlx4/main.c         |  3 +--
- drivers/infiniband/hw/mlx5/qp.c           |  2 +-
- drivers/infiniband/hw/qib/qib.h           |  2 +-
- drivers/infiniband/hw/qib/qib_wc_x86_64.c |  3 ++-
- 9 files changed, 19 insertions(+), 19 deletions(-)
+> 
+> > @@ -1494,8 +1500,7 @@ struct ib_device {
+> >  	struct list_head              client_data_list;
+> >  
+> >  	struct ib_cache               cache;
+> > -	int                          *pkey_tbl_len;
+> > -	int                          *gid_tbl_len;
+> > +	struct ib_port_immutable     *port_immutable;
+> 
+> Add const
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Agreed.
 
-
---=-VGKor7S6wNVoHauenyl9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVUmF/AAoJELgmozMOVy/d5F0QAJaLub2zeYwecUEJo1cssyEr
-dqstnNcs+pffBNKVuBcAuYeDQb0l50/14mjsql9IMcygR4PsOxjJnZgIv8lK9RfF
-zpsKuqrwH56eMPLq+Ozqr272VRyM4Q0iMVwYi/cwW17EPPNYE+E+lr0stCG2Mejo
-18Sv0yM/IHU4sMXMt/LKgVU+WBubkfG1bAacuKaul1hYorEXGhsSuDAFQn+AUVnK
-Ec77Q8c3YxhRo+YCTSTOVv1sRFQiqlaKW67+kAT+kPkfan7uPTeei+cWYymX59Gz
-l2u65gEHrBmlVJ7b4sv1fAx1PE/gUqbD0d3ttGOsGoZqOY2z8rTXKoRor7Zcn2Ij
-noBzr30Ye6jd3Yeah6G5OQBJM/blDo9Mj+SYiudFw31c9SQe6gGbEANFU/MVrwJl
-Tcxyj3WxmptSgKzNeo/RFsY6xGNqpL2iyZfKY8Sfa9ZqZc87Ol7PcH4U7NAzS8dP
-VSpBz5VJ4RagsNOaYYo4MdFXOFZTkEgmG1ii+mz64b62jpdWBDJM/RQWS7Zaej2X
-I0QT2T9YuccLZjkciuKEAeG81GKx6aTFIEWeu1ydYkM0vW3obUK/Y5+0yut+3mq1
-/qIgeifyGxytrPjCaq3SerPqsCTp1Fh9WRSQpskChhw/AHAw3DqW1dAxMgoccfkK
-f0yEmqDV7pZYb8ie11RX
-=i/Ae
------END PGP SIGNATURE-----
-
---=-VGKor7S6wNVoHauenyl9--
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
