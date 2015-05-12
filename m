@@ -1,55 +1,179 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v1 04/14] xprtrdma: Use ib_device pointer safely
-Date: Tue, 12 May 2015 13:01:55 +0300
-Message-ID: <5551CF93.4070501@dev.mellanox.co.il>
-References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175720.3483.80356.stgit@manet.1015granger.net> <554B37CF.2070206@dev.mellanox.co.il> <E1ADA91B-45DA-46B6-A114-E2600613969A@oracle.com> <554B6F2A.6000608@dev.mellanox.co.il> <BDE22240-DC37-4C54-B71E-D88EF54D3119@oracle.com> <554B80B7.8090900@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FCE01F@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v4 1/2] IB/core, cma: Nice log-friendly string helpers
+Date: Tue, 12 May 2015 13:12:06 +0300
+Message-ID: <1431425527-30114-2-git-send-email-sagig@mellanox.com>
+References: <1431425527-30114-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCE01F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1431425527-30114-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/11/2015 9:26 PM, Hefty, Sean wrote:
->>> ia->ri_device is never updated. The only place it is set is in
->>> rpcrdma_ia_open().
->>
->> So you assume that each ri_id that you will recreate contains the
->> same device handle?
->>
->> I think that for ADDR_CHANGE event when the slave belongs to another
->> device you will hit a mismatch. CC'ing Sean for more info...
->
-> I'm not familiar with the xprtrdma code.  From the perspective of the rdma_cm, if a listen is associated with a specific IP address, then it will also be associated with a specific device.  If an address change occurs, and the address moves to another device, then the app is essentially left with an unusable listen.  Received connection requests will not find a matching listen and be dropped.
->
-> If the address moves ports on the same device, then I think this works out fine in the case where the app ignores the ADDR_CHANGE event.
->
->>> It might be saner to construct a virtual ib_device in this
->>> case that consumers can depend on.
->>
->> I'm not sure how does a virtual ib_device can work - that goes
->> to the verbs themselves... Seems like a layering mis-match to me...
->
-> I interpreted Chuck as asking for some lower-level way of handling this, so that all ULPs don't need to re-implement this.
+Some of us keep revisiting the code to decode enumerations that
+appear in out logs. Let's borrow the nice logging helpers that
+exists in xprtrdma and rds for CMA events, IB events and WC statuses.
 
-It's not really a re-implementation, address resolution attaches the
-the ib device. The assumption that for the same address the same ib
-device will be attached is wrong for bonding over more than one device.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c   |   28 +++++++++++++++++
+ drivers/infiniband/core/verbs.c |   65 +++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |    4 ++
+ include/rdma/rdma_cm.h          |    2 +
+ 4 files changed, 99 insertions(+), 0 deletions(-)
 
-It's just something that rdma_cm user needs to be aware of if/when
-trying to cache the device handle.
-
-> I agree that this would be hard (impossible?) without ULPs operating at a slightly higher level of abstraction.
-> Maybe the rdma_cm could be extended for this purpose, for example, by exposing its own devices, which either map directly to a verbs device, or handle a virtual mapping.
-
-I guess it can be done, but it will require port all the ULPs to
-use some sort of abstraction layer. Something that I'm not very 
-enthusiastic about...
-
-Sagi.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d570030..ef9f277 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -65,6 +65,34 @@ MODULE_LICENSE("Dual BSD/GPL");
+ #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+ #define CMA_IBOE_PACKET_LIFETIME 18
+ 
++static const char * const cma_events[] = {
++	[RDMA_CM_EVENT_ADDR_RESOLVED]	= "ADDR_RESOLVED",
++	[RDMA_CM_EVENT_ADDR_ERROR]	= "ADDR_ERROR",
++	[RDMA_CM_EVENT_ROUTE_RESOLVED]	= "ROUTE_RESOLVED",
++	[RDMA_CM_EVENT_ROUTE_ERROR]	= "ROUTE_ERROR",
++	[RDMA_CM_EVENT_CONNECT_REQUEST]	= "CONNECT_REQUEST",
++	[RDMA_CM_EVENT_CONNECT_RESPONSE]= "CONNECT_RESPONSE",
++	[RDMA_CM_EVENT_CONNECT_ERROR]	= "CONNECT_ERROR",
++	[RDMA_CM_EVENT_UNREACHABLE]	= "UNREACHABLE",
++	[RDMA_CM_EVENT_REJECTED]	= "REJECTED",
++	[RDMA_CM_EVENT_ESTABLISHED]	= "ESTABLISHED",
++	[RDMA_CM_EVENT_DISCONNECTED]	= "DISCONNECTED",
++	[RDMA_CM_EVENT_DEVICE_REMOVAL]	= "DEVICE_REMOVAL",
++	[RDMA_CM_EVENT_MULTICAST_JOIN]	= "MULTICAST_JOIN",
++	[RDMA_CM_EVENT_MULTICAST_ERROR]	= "MULTICAST_ERROR",
++	[RDMA_CM_EVENT_ADDR_CHANGE]	= "ADDR_CHANGE",
++	[RDMA_CM_EVENT_TIMEWAIT_EXIT]	= "TIMEWAIT_EXIT",
++};
++
++const char *rdma_event_msg(enum rdma_cm_event_type event)
++{
++	size_t index = event;
++
++	return (index < ARRAY_SIZE(cma_events) && cma_events[index]) ?
++			cma_events[index] : "UNRECOGNIZED_EVENT";
++}
++EXPORT_SYMBOL(rdma_event_msg);
++
+ static void cma_add_one(struct ib_device *device);
+ static void cma_remove_one(struct ib_device *device);
+ 
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f93eb8d..e366a52 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -48,6 +48,71 @@
+ 
+ #include "core_priv.h"
+ 
++static const char * const ib_events[] = {
++	[IB_EVENT_CQ_ERR]		= "CQ_ERR",
++	[IB_EVENT_QP_FATAL]		= "QP_FATAL",
++	[IB_EVENT_QP_REQ_ERR]		= "QP_REQ_ERR",
++	[IB_EVENT_QP_ACCESS_ERR]	= "QP_ACCESS_ERR",
++	[IB_EVENT_COMM_EST]		= "COMM_EST",
++	[IB_EVENT_SQ_DRAINED]		= "SQ_DRAINED",
++	[IB_EVENT_PATH_MIG]		= "PATH_MIG",
++	[IB_EVENT_PATH_MIG_ERR]		= "PATH_MIG_ERR",
++	[IB_EVENT_DEVICE_FATAL]		= "DEVICE_FATAL",
++	[IB_EVENT_PORT_ACTIVE]		= "PORT_ACTIVE",
++	[IB_EVENT_PORT_ERR]		= "PORT_ERR",
++	[IB_EVENT_LID_CHANGE]		= "LID_CHANGE",
++	[IB_EVENT_PKEY_CHANGE]		= "PKEY_CHANGE",
++	[IB_EVENT_SM_CHANGE]		= "SM_CHANGE",
++	[IB_EVENT_SRQ_ERR]		= "SRQ_ERR",
++	[IB_EVENT_SRQ_LIMIT_REACHED]	= "SRQ_LIMIT_REACHED",
++	[IB_EVENT_QP_LAST_WQE_REACHED]	= "QP_LAST_WQE_REACHED",
++	[IB_EVENT_CLIENT_REREGISTER]	= "CLIENT_REREGISTER",
++	[IB_EVENT_GID_CHANGE]		= "GID_CHANGE",
++};
++
++const char *ib_event_msg(enum ib_event_type event)
++{
++	size_t index = event;
++
++	return (index < ARRAY_SIZE(ib_events) && ib_events[index]) ?
++			ib_events[index] : "UNRECOGNIZED_EVENT";
++}
++EXPORT_SYMBOL(ib_event_msg);
++
++static const char * const wc_statuses[] = {
++	[IB_WC_SUCCESS]			= "SUCCESS",
++	[IB_WC_LOC_LEN_ERR]		= "LOC_LEN_ERR",
++	[IB_WC_LOC_QP_OP_ERR]		= "LOC_QP_OP_ERR",
++	[IB_WC_LOC_EEC_OP_ERR]		= "LOC_EEC_OP_ERR",
++	[IB_WC_LOC_PROT_ERR]		= "LOC_PROT_ERR",
++	[IB_WC_WR_FLUSH_ERR]		= "WR_FLUSH_ERR",
++	[IB_WC_MW_BIND_ERR]		= "MW_BIND_ERR",
++	[IB_WC_BAD_RESP_ERR]		= "BAD_RESP_ERR",
++	[IB_WC_LOC_ACCESS_ERR]		= "LOC_ACCESS_ERR",
++	[IB_WC_REM_INV_REQ_ERR]		= "REM_INV_REQ_ERR",
++	[IB_WC_REM_ACCESS_ERR]		= "REM_ACCESS_ERR",
++	[IB_WC_REM_OP_ERR]		= "REM_OP_ERR",
++	[IB_WC_RETRY_EXC_ERR]		= "RETRY_EXC_ERR",
++	[IB_WC_RNR_RETRY_EXC_ERR]	= "RNR_RETRY_EXC_ERR",
++	[IB_WC_LOC_RDD_VIOL_ERR]	= "LOC_RDD_VIOL_ERR",
++	[IB_WC_REM_INV_RD_REQ_ERR]	= "REM_INV_RD_REQ_ERR",
++	[IB_WC_REM_ABORT_ERR]		= "REM_ABORT_ERR",
++	[IB_WC_INV_EECN_ERR]		= "INV_EECN_ERR",
++	[IB_WC_INV_EEC_STATE_ERR]	= "INV_EEC_STATE_ERR",
++	[IB_WC_FATAL_ERR]		= "FATAL_ERR",
++	[IB_WC_RESP_TIMEOUT_ERR]	= "RESP_TIMEOUT_ERR",
++	[IB_WC_GENERAL_ERR]		= "GENERAL_ERR",
++};
++
++const char *ib_wc_status_msg(enum ib_wc_status status)
++{
++	size_t index = status;
++
++	return (index < ARRAY_SIZE(wc_statuses) && wc_statuses[index]) ?
++			wc_statuses[index] : "UNRECOGNIZED_STATUS";
++}
++EXPORT_SYMBOL(ib_wc_status_msg);
++
+ __attribute_const__ int ib_rate_to_mult(enum ib_rate rate)
+ {
+ 	switch (rate) {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 65994a1..672fc8f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -412,6 +412,8 @@ enum ib_event_type {
+ 	IB_EVENT_GID_CHANGE,
+ };
+ 
++__attribute_const__ const char *ib_event_msg(enum ib_event_type event);
++
+ struct ib_event {
+ 	struct ib_device	*device;
+ 	union {
+@@ -663,6 +665,8 @@ enum ib_wc_status {
+ 	IB_WC_GENERAL_ERR
+ };
+ 
++__attribute_const__ const char *ib_wc_status_msg(enum ib_wc_status status);
++
+ enum ib_wc_opcode {
+ 	IB_WC_SEND,
+ 	IB_WC_RDMA_WRITE,
+diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+index 1ed2088..c92522c 100644
+--- a/include/rdma/rdma_cm.h
++++ b/include/rdma/rdma_cm.h
+@@ -62,6 +62,8 @@ enum rdma_cm_event_type {
+ 	RDMA_CM_EVENT_TIMEWAIT_EXIT
+ };
+ 
++__attribute_const__ const char *rdma_event_msg(enum rdma_cm_event_type event);
++
+ enum rdma_port_space {
+ 	RDMA_PS_SDP   = 0x0001,
+ 	RDMA_PS_IPOIB = 0x0002,
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
