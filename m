@@ -1,25 +1,37 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 1/2] IB/core, cma: Nice log-friendly string helpers
-Date: Tue, 12 May 2015 13:24:27 +0200
-Message-ID: <5551E2EB.2070509@sandisk.com>
-References: <1431425527-30114-1-git-send-email-sagig@mellanox.com>
- <1431425527-30114-2-git-send-email-sagig@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: linux-rdma patchwork maintainers
+Date: Tue, 12 May 2015 13:24:38 +0200
+Message-ID: <1431429878.25060.53.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431425527-30114-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/12/15 12:12, Sagi Grimberg wrote:
-> Some of us keep revisiting the code to decode enumerations that
-> appear in out logs. Let's borrow the nice logging helpers that
-> exists in xprtrdma and rds for CMA events, IB events and WC statuses.
+Hi,
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+linux-rdma project info page[1] list multiple maintainers
+which, AFAICT, are no more actives on the linux-rdma mailing list[2]:
+
+ - David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> 
+ - Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>     
+
+I believe these people should be removed from the project maintainers
+list.
+
+[1] https://patchwork.kernel.org/project/linux-rdma/
+[2] <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+
+Regards.
+
+-- 
+Yann Droneaud
+OPTEYA
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
