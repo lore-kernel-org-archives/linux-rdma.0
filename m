@@ -1,73 +1,87 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading client_list
- or device_list
-Date: Tue, 12 May 2015 09:07:51 +0300
-Message-ID: <555198B7.40302@mellanox.com>
-References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
- <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
- <20150511181824.GA25405@obsidianresearch.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3] IB/ipoib: Scatter-Gather support in connected mode
+Date: Tue, 12 May 2015 09:08:16 +0300
+Message-ID: <20150512060815.GA2668@yuval-lab>
+References: <1431338642-22812-1-git-send-email-yuval.shaia@oracle.com>
+ <1431344407.25060.29.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150511181824.GA25405@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Matan Barak <matanb@mellanox.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1431344407.25060.29.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/05/2015 21:18, Jason Gunthorpe wrote:
-> So at first blush this looked reasonable, but, no it is racy:
-> 
-> ib_register_client:
->  mutex_lock(&device_mutex);
->  list_add_tail_rcu(&client->list, &client_list);
->  mutex_unlock(&device_mutex);
-> 
->  id = srcu_read_lock(&device_srcu);
->  list_for_each_entry_rcu(device, &device_list, core_list)
->                         client->add(device);
-> 
-> ib_register_device:
->   mutex_lock(&device_mutex);
->   list_add_tail(&device->core_list, &device_list);
->   mutex_unlock(&device_mutex);
-> 
->   id = srcu_read_lock(&device_srcu);
->   list_for_each_entry_rcu(client, &client_list, list)
->        client->add(device);
-> 
-> So, if two threads call the two registers then the new client will
-> have it's add called twice on the same device.
-> 
-> There are similar problems with removal.
-
-Right. Sorry I missed that. Our first draft just kept the addition and
-removal of elements to the device or client list under the mutex,
-thinking that only the new code in this patchset that does traversal of
-the lists would use the SRCU read lock. We then changed it thinking that
-it would be better to make some use of this SRCU in this patch as well.
-
-> 
-> I'm not sure RCU is the right way to approach this. The driver core
-> has the same basic task to perform, maybe review it's locking
-> arrangment between the device list and driver list.
-> 
-> [Actually we probably should be using the driver core here, with IB
->  clients as device drivers, but that is way beyond scope of this..]
-
-So, I'm not very familiar with that code, but it seems that the main
-difference is that in the core a single driver can be attached to a
-device. The device_add function calls bus_add_device to add it to the
-bus's list, and and later calls bus_probe_device to find a driver,
-without any lock between these calls. And bus_add_driver adds a new
-driver to the bus's driver list and then calls driver_attach without any
-lock between them. The only thing I see that makes sure a driver won't
-be attached twice to a device is the dev->driver field which is updated
-under the device lock during the probing process.
-
-I guess a similar thing we can do is to rely on the context we associate
-with a pair of a client and a device. If such a context exist, we don't
-need to call client->add again. What do you think?
-
-Haggai
+On Mon, May 11, 2015 at 01:40:07PM +0200, Yann Droneaud wrote:
+> Hi,
+>=20
+> Le lundi 11 mai 2015 =E0 03:04 -0700, Yuval Shaia a =E9crit :
+> > By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better p=
+erformance.
+> > This MTU plus overhead puts the memory allocation for IP based pack=
+ets at 32
+> > 4k pages (order 5), which have to be contiguous.
+> > When the system memory under pressure, it was observed that allocat=
+ing 128k
+> > contiguous physical memory is difficult and causes serious errors (=
+such as
+> > system becomes unusable).
+> >=20
+> > This enhancement resolve the issue by removing the physically conti=
+guous memory
+> > requirement using Scatter/Gather feature that exists in Linux stack=
+=2E
+> >=20
+> > With this fix Scatter-Gather will be supported also in connected mo=
+de.
+> >=20
+> > This change reverts the some of the change made in commit
+> > e112373fd6aa280bd2cbc0d5cc3809115325a1be
+> > ("IPoIB/cm: Reduce connected mode TX object size)".
+> >=20
+> > The ability to use SG in IPoIB CM is possible because the coupling
+> > between NETIF_F_SG and NETIF_F_CSUM was removed in commit
+> > ec5f061564238892005257c83565a0b58ec79295
+> > ("net: Kill link between CSUM and SG features.")
+> >=20
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > v2: Enhance commit log message
+> >=20
+> > I'd like to thank John Sobecki <john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> and
+> > Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org> for helping me with reviewing=
+ this patch.
+> > I will be glad if you can ACK it.
+> >=20
+> > v3: Add an empty line to start a new paragraph and use 12 hex-digit=
+s identifier
+>=20
+> Thanks, but you don't have to use the full commit identifier, 12
+> characters were enough.
+Will do.
+>=20
+> Anyway, you haven't addressed the comments embedded in the patch in m=
+y
+> reply [1] to your v2 patch.
+Changing comments was quite easy, the rest will take a bit more, v4 wil=
+l address it.
+>=20
+> [1]
+> http://marc.info/?i=3D1431335754.25060.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+> http://mid.gmane.org/1431335754.25060.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+>=20
+> Regards.
+>=20
+> --=20
+> Yann Droneaud
+> OPTEYA
+>=20
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
