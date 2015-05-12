@@ -1,191 +1,57 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH v8 00/23] IB/Verbs: IB Management Helpers
-Date: Tue, 12 May 2015 10:04:57 +0200
-Message-ID: <5551B429.4090508@profitbricks.com>
-References: <1430830240-32389-1-git-send-email-yun.wang@profitbricks.com> <20150511234910.GA20027@phlsvsds.ph.intel.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v1 04/14] xprtrdma: Use ib_device pointer safely
+Date: Tue, 12 May 2015 13:01:55 +0300
+Message-ID: <5551CF93.4070501@dev.mellanox.co.il>
+References: <20150504174626.3483.97639.stgit@manet.1015granger.net> <20150504175720.3483.80356.stgit@manet.1015granger.net> <554B37CF.2070206@dev.mellanox.co.il> <E1ADA91B-45DA-46B6-A114-E2600613969A@oracle.com> <554B6F2A.6000608@dev.mellanox.co.il> <BDE22240-DC37-4C54-B71E-D88EF54D3119@oracle.com> <554B80B7.8090900@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FCE01F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150511234910.GA20027@phlsvsds.ph.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "ira.weiny" <ira.weiny@intel.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Mike Marciniszyn <infinipath@intel.com>, Eli Cohen <eli@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Devesh Sharma <Devesh.Sharma@Emulex.Com>, Liran Liss <liranl@mellanox.com>, Dave Goodell <dgoodell@cisco.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FCE01F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/12/2015 01:49 AM, ira.weiny wrote:
-> I have run with this series and the only issue I have found is not with this
-> patch set directly.
-> 
-> This patch:
-> 
->>   IB/Verbs: Use management helper rdma_cap_ib_mad()
-> 
-> causes an error when you actually use the port passed from the ib_umad module.
-> I have a patch to fix that which I found while trying to build on this series
-> for the use of a bit mask.
-> 
-> Doug, I don't know what you would like to do for this fix.  I am submitting it
-> shortly with a new version of the core capability bit patches.  If you want to
-> just add it after this series or force Michael to respin with the fix?  Frankly
-> I vote for the former because as it stands this series does not break directly.
-> It was only after I changed the implementation of rdma_cap_ib_mad that it
-> broke.
+On 5/11/2015 9:26 PM, Hefty, Sean wrote:
+>>> ia->ri_device is never updated. The only place it is set is in
+>>> rpcrdma_ia_open().
+>>
+>> So you assume that each ri_id that you will recreate contains the
+>> same device handle?
+>>
+>> I think that for ADDR_CHANGE event when the slave belongs to another
+>> device you will hit a mismatch. CC'ing Sean for more info...
+>
+> I'm not familiar with the xprtrdma code.  From the perspective of the rdma_cm, if a listen is associated with a specific IP address, then it will also be associated with a specific device.  If an address change occurs, and the address moves to another device, then the app is essentially left with an unusable listen.  Received connection requests will not find a matching listen and be dropped.
+>
+> If the address moves ports on the same device, then I think this works out fine in the case where the app ignores the ADDR_CHANGE event.
+>
+>>> It might be saner to construct a virtual ib_device in this
+>>> case that consumers can depend on.
+>>
+>> I'm not sure how does a virtual ib_device can work - that goes
+>> to the verbs themselves... Seems like a layering mis-match to me...
+>
+> I interpreted Chuck as asking for some lower-level way of handling this, so that all ULPs don't need to re-implement this.
 
-Agree, it sounds more reasonable to include the fix in the series introduced
-it :-P
+It's not really a re-implementation, address resolution attaches the
+the ib device. The assumption that for the same address the same ib
+device will be attached is wrong for bonding over more than one device.
 
-> 
-> 
-> For the rest of the series.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-> Tested-by: Ira Weiny <ira.weiny@intel.com>
-> 	-- Limited to mlx4, qib, and OPA (with additional patches.)
+It's just something that rdma_cm user needs to be aware of if/when
+trying to cache the device handle.
 
-Thanks for the review and testing :-)
+> I agree that this would be hard (impossible?) without ULPs operating at a slightly higher level of abstraction.
+> Maybe the rdma_cm could be extended for this purpose, for example, by exposing its own devices, which either map directly to a verbs device, or handle a virtual mapping.
 
-Regards,
-Michael Wang
+I guess it can be done, but it will require port all the ULPs to
+use some sort of abstraction layer. Something that I'm not very 
+enthusiastic about...
 
-> 
-> 
-> On Tue, May 05, 2015 at 02:50:17PM +0200, Michael Wang wrote:
->> Since v7:
->>   * Thanks to Doug, Ira, Devesh for the testing :-)
->>   * Thanks for the comments from or, Doug, Ira, Jason :-)
->>     Please remind me if anything missed :-P
->>   * Use rdma_cap_XX() instead of cap_XX() for readability
->>   * Remove CC list in git log for maintainability
->>   * Use bool as return value
->>   * Updated github repository to v8
->>
->> There are plenty of lengthy code to check the transport type of IB device,
->> or the link layer type of it's port, but actually we are just speculating
->> whether a particular management/feature is supported by the device/port.
->>
->> Thus instead of inferring, we should have our own mechanism for IB management
->> capability/protocol/feature checking, several proposals below.
->>
->> This patch set will introduce query_protocol() to check management requirement
->> instead of inferring from transport and link layer respectively, along with
->> the new enum on protocol type.
->>
->> Mapping List:
->> 		node-type	link-layer	transport	protocol
->> nes		RNIC		ETH		IWARP		IWARP
->> amso1100	RNIC		ETH		IWARP		IWARP
->> cxgb3   	RNIC		ETH		IWARP		IWARP
->> cxgb4   	RNIC		ETH		IWARP		IWARP
->> usnic   	USNIC_UDP	ETH		USNIC_UDP	USNIC_UDP
->> ocrdma  	IB_CA		ETH		IB		IBOE
->> mlx4    	IB_CA		IB/ETH		IB		IB/IBOE
->> mlx5    	IB_CA		IB		IB		IB
->> ehca    	IB_CA		IB		IB		IB
->> ipath   	IB_CA		IB		IB		IB
->> mthca   	IB_CA		IB		IB		IB
->> qib     	IB_CA		IB		IB		IB
->>
->> For example:
->> 	if (transport == IB) && (link-layer == ETH)
->> will now become:
->> 	if (query_protocol() == IBOE)
->>
->> Thus we will be able to get rid of the respective transport and link-layer
->> checking, and it will help us to add new protocol/Technology (like OPA) more
->> easier, also with the introduced management helpers, IB management logical
->> will be more clear and easier for extending.
->>
->> Highlights:
->>     The long CC list in each patches was complained consider about the
->>     maintainability, it was suggested folks to provide their reviewed-by or
->>     Acked-by instead, so for those who used to be on the CC list, please
->>     provide your signature voluntarily :-)
->>
->>     The 'mgmt-helpers' branch of 'git@github.com:ywang-pb/infiniband-wy.git'
->>     contain this series based on the latest 'infiniband/for-next'
->>
->>     Patch 1#~14# included all the logical reform, 15#~23# introduced the
->>     management helpers.
->>
->>     Doug suggested the bitmask mechanism:
->> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23765.html
->>     which could be the plan for future reforming, we prefer that to be another
->>     series which focus on semantic and performance.
->>
->>     This patch-set is somewhat 'bloated' now and it may be a good timing for
->>     staging, I'd like to suggest we focus on improving existed helpers and push
->>     all the further reforms into next series ;-)
->>
->> Proposals:
->>     Sean:
->> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23339.html
->>     Doug:
->> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23418.html
->> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23765.html
->>     Jason:
->> 	https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg23425.html
->>
->> Michael Wang (23):
->>   IB/Verbs: Implement new callback query_protocol()
->>   IB/Verbs: Implement raw management helpers
->>   IB/Verbs: Reform IB-core mad/agent/user_mad
->>   IB/Verbs: Reform IB-core cm
->>   IB/Verbs: Reform IB-core sa_query
->>   IB/Verbs: Reform IB-core multicast
->>   IB/Verbs: Reform IB-ulp ipoib
->>   IB/Verbs: Reform IB-ulp xprtrdma
->>   IB/Verbs: Reform IB-core verbs
->>   IB/Verbs: Reform cm related part in IB-core cma/ucm
->>   IB/Verbs: Reform route related part in IB-core cma
->>   IB/Verbs: Reform mcast related part in IB-core cma
->>   IB/Verbs: Reform cma_acquire_dev()
->>   IB/Verbs: Reform rest part in IB-core cma
->>   IB/Verbs: Use management helper rdma_cap_ib_mad()
->>   IB/Verbs: Use management helper rdma_cap_ib_smi()
->>   IB/Verbs: Use management helper rdma_cap_ib_cm()
->>   IB/Verbs: Use management helper rdma_cap_iw_cm()
->>   IB/Verbs: Use management helper rdma_cap_ib_sa()
->>   IB/Verbs: Use management helper rdma_cap_ib_mcast()
->>   IB/Verbs: Use management helper rdma_cap_read_multi_sge()
->>   IB/Verbs: Use management helper rdma_cap_af_ib()
->>   IB/Verbs: Use management helper rdma_cap_eth_ah()
->>
->>  drivers/infiniband/core/agent.c              |   2 +-
->>  drivers/infiniband/core/cm.c                 |  20 ++-
->>  drivers/infiniband/core/cma.c                | 257 +++++++++++----------------
->>  drivers/infiniband/core/device.c             |   1 +
->>  drivers/infiniband/core/mad.c                |  43 +++--
->>  drivers/infiniband/core/multicast.c          |  12 +-
->>  drivers/infiniband/core/sa_query.c           |  30 ++--
->>  drivers/infiniband/core/ucm.c                |   3 +-
->>  drivers/infiniband/core/ucma.c               |  25 +--
->>  drivers/infiniband/core/user_mad.c           |  26 ++-
->>  drivers/infiniband/core/verbs.c              |   6 +-
->>  drivers/infiniband/hw/amso1100/c2_provider.c |   7 +
->>  drivers/infiniband/hw/cxgb3/iwch_provider.c  |   7 +
->>  drivers/infiniband/hw/cxgb4/provider.c       |   7 +
->>  drivers/infiniband/hw/ehca/ehca_hca.c        |   6 +
->>  drivers/infiniband/hw/ehca/ehca_iverbs.h     |   3 +
->>  drivers/infiniband/hw/ehca/ehca_main.c       |   1 +
->>  drivers/infiniband/hw/ipath/ipath_verbs.c    |   7 +
->>  drivers/infiniband/hw/mlx4/main.c            |  10 ++
->>  drivers/infiniband/hw/mlx5/main.c            |   7 +
->>  drivers/infiniband/hw/mthca/mthca_provider.c |   7 +
->>  drivers/infiniband/hw/nes/nes_verbs.c        |   6 +
->>  drivers/infiniband/hw/ocrdma/ocrdma_main.c   |   1 +
->>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   6 +
->>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |   3 +
->>  drivers/infiniband/hw/qib/qib_verbs.c        |   7 +
->>  drivers/infiniband/hw/usnic/usnic_ib_main.c  |   1 +
->>  drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   6 +
->>  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |   2 +
->>  drivers/infiniband/ulp/ipoib/ipoib_main.c    |  15 +-
->>  include/rdma/ib_verbs.h                      | 167 +++++++++++++++++
->>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c      |   4 +-
->>  net/sunrpc/xprtrdma/svc_rdma_transport.c     |  45 ++---
->>  33 files changed, 477 insertions(+), 273 deletions(-)
->>
->> -- 
->> 2.1.0
->>
+Sagi.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
