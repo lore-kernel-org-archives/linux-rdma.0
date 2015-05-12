@@ -1,61 +1,23 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V4] IB/qib: fix test of unsigned variable
-Date: Tue, 12 May 2015 13:42:42 -0400
-Message-ID: <20150512174242.9547.82789.stgit@phlsvslse11.ph.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V4] IB/qib: fix test of unsigned variable
+Date: Tue, 12 May 2015 17:44:52 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2570FF8A@fmsmsx120.amr.corp.intel.com>
+References: <20150512174242.9547.82789.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150512174242.9547.82789.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit d4988623cc60 ("IB/qib: use arch_phys_wc_add()")
-adjusted mtrr inititialization to use the new interface.
-
-Unfortunately, the new interface returns a signed
-value and the patch tested the unsigned wc_cookie.
-
-Fix the issue by changing the type of wc_cookie to int.  For
-the success case the ret left at zero to avoid
-a warning from the caller.  For failure wc_cookie
-is used as the ret.
-
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib.h           |    2 +-
- drivers/infiniband/hw/qib/qib_wc_x86_64.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index ba5173e2..7df16f7 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -903,7 +903,7 @@ struct qib_devdata {
- 	/* PCI Device ID (here for NodeInfo) */
- 	u16 deviceid;
- 	/* for write combining settings */
--	unsigned long wc_cookie;
-+	int wc_cookie;
- 	unsigned long wc_base;
- 	unsigned long wc_len;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_wc_x86_64.c b/drivers/infiniband/hw/qib/qib_wc_x86_64.c
-index 6d61ef9..edd0ddb 100644
---- a/drivers/infiniband/hw/qib/qib_wc_x86_64.c
-+++ b/drivers/infiniband/hw/qib/qib_wc_x86_64.c
-@@ -118,7 +118,8 @@ int qib_enable_wc(struct qib_devdata *dd)
- 	if (!ret) {
- 		dd->wc_cookie = arch_phys_wc_add(pioaddr, piolen);
- 		if (dd->wc_cookie < 0)
--			ret = -EINVAL;
-+			/* use error from routine */
-+			ret = dd->wc_cookie;
- 	}
- 
- 	return ret;
-
+PiBGaXggdGhlIGlzc3VlIGJ5IGNoYW5naW5nIHRoZSB0eXBlIG9mIHdjX2Nvb2tpZSB0byBpbnQu
+ICBGb3IgdGhlIHN1Y2Nlc3MgY2FzZSB0aGUNCj4gcmV0IGxlZnQgYXQgemVybyB0byBhdm9pZCBh
+IHdhcm5pbmcgZnJvbSB0aGUgY2FsbGVyLiAgRm9yIGZhaWx1cmUgd2NfY29va2llIGlzIHVzZWQN
+Cj4gYXMgdGhlIHJldC4NCj4gDQoNCkp1c3QgY29tbWl0IG1lc3NhZ2UgY2hhbmdlLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
