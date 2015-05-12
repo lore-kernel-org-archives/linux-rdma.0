@@ -1,61 +1,67 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 2/6] IB/srp: Align to generic logging helpers
-Date: Tue, 12 May 2015 15:05:25 +0300
-Message-ID: <1431432329-859-3-git-send-email-sagig@mellanox.com>
-References: <1431432329-859-1-git-send-email-sagig@mellanox.com>
+Subject: Generic logging helpers [v5]
+Date: Tue, 12 May 2015 15:05:23 +0300
+Message-ID: <1431432329-859-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431432329-859-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+This small set adds some meaningful verbosity to some
+of the core/rdma_cm enumerated events. Its useful to
+see the meaning of the opcodes instead of revisiting the
+code for every new status/event that left our brain cache.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 918814c..86b8097 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -253,7 +253,7 @@ static void srp_free_iu(struct srp_host *host, struct srp_iu *iu)
- 
- static void srp_qp_event(struct ib_event *event, void *context)
- {
--	pr_debug("QP event %d\n", event->event);
-+	pr_debug("QP event %s(%d)\n", ib_event_msg(event->event), event->event);
- }
- 
- static int srp_init_qp(struct srp_target_port *target,
-@@ -1932,17 +1932,18 @@ static void srp_handle_qp_err(u64 wr_id, enum ib_wc_status wc_status,
- 	if (target->connected && !target->qp_in_error) {
- 		if (wr_id & LOCAL_INV_WR_ID_MASK) {
- 			shost_printk(KERN_ERR, target->scsi_host, PFX
--				     "LOCAL_INV failed with status %d\n",
--				     wc_status);
-+				     "LOCAL_INV failed with status %s(%d)\n",
-+				     ib_wc_status_msg(wc_status), wc_status);
- 		} else if (wr_id & FAST_REG_WR_ID_MASK) {
- 			shost_printk(KERN_ERR, target->scsi_host, PFX
--				     "FAST_REG_MR failed status %d\n",
--				     wc_status);
-+				     "FAST_REG_MR failed status %s(%d)\n",
-+				     ib_wc_status_msg(wc_status), wc_status);
- 		} else {
- 			shost_printk(KERN_ERR, target->scsi_host,
--				     PFX "failed %s status %d for iu %p\n",
-+				     PFX "failed %s status %s(%d) for iu %p\n",
- 				     send_err ? "send" : "receive",
--				     wc_status, (void *)(uintptr_t)wr_id);
-+				     ib_wc_status_msg(wc_status), wc_status,
-+				     (void *)(uintptr_t)wr_id);
- 		}
- 		queue_work(system_long_wq, &target->tl_err_work);
- 	}
--- 
-1.7.1
+Changes from v4:
+- Split up ULP changes to separate patches
+
+Changes from v3:
+- Protect against "holes" in string arrays
+- Restored __attribute_const__ to functions prototype
+- Made string arrays rodata
+
+Changes from v2:
+- Cast to size_t instead of unsigned
+- Style fix in string arrays declaration
+- Removed redundant __attribute_const__
+
+Changes from v1:
+- Changed helper names ib_wc_status_msg and rdma_event_msg
+- Cast input arguments to protect string buffer access
+- Add svcrdma to the party
+
+Changes from v0 (RFC):
+- Moved string arrays to .c files
+- Changed string helpers from macros to exported functions
+- Aligned rds to generic helpers as well
+
+Sagi Grimberg (6):
+  IB/core, cma: Nice log-friendly string helpers
+  IB/srp: Align to generic logging helpers
+  IB/iser: Align to generic logging helpers
+  iser-target: Align to generic logging helpers
+  xprtrdma: Switch to generic logging helpers
+  RDS: Switch to generic logging helpers
+
+ drivers/infiniband/core/cma.c            |   28 +++++++++
+ drivers/infiniband/core/verbs.c          |   65 +++++++++++++++++++++
+ drivers/infiniband/ulp/iser/iser_verbs.c |   26 +++++---
+ drivers/infiniband/ulp/isert/ib_isert.c  |   19 ++++--
+ drivers/infiniband/ulp/srp/ib_srp.c      |   15 +++--
+ include/rdma/ib_verbs.h                  |    4 +
+ include/rdma/rdma_cm.h                   |    2 +
+ net/rds/af_rds.c                         |    9 ---
+ net/rds/ib.h                             |    1 -
+ net/rds/ib_cm.c                          |   36 +-----------
+ net/rds/ib_recv.c                        |    4 +-
+ net/rds/ib_send.c                        |   38 +------------
+ net/rds/rdma_transport.c                 |   34 +----------
+ net/rds/rds.h                            |    1 -
+ net/sunrpc/xprtrdma/frwr_ops.c           |    4 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   29 ++++++----
+ net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
+ 17 files changed, 171 insertions(+), 234 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
