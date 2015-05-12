@@ -1,314 +1,192 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 5/6] xprtrdma: Switch to generic logging helpers
-Date: Tue, 12 May 2015 14:40:25 +0200
-Message-ID: <1431434425.25060.65.camel@opteya.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 1/6] IB/core, cma: Nice log-friendly string helpers
+Date: Tue, 12 May 2015 15:59:05 +0300
+Message-ID: <CAJ3xEMhOnrZJrUfwtMs7Tod7YeGy_Be6yF543+xds_05hO-F-A@mail.gmail.com>
 References: <1431432329-859-1-git-send-email-sagig@mellanox.com>
-	 <1431432329-859-6-git-send-email-sagig@mellanox.com>
+	<1431432329-859-2-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431432329-859-6-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1431432329-859-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Tue, May 12, 2015 at 3:05 PM, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Some of us keep revisiting the code to decode enumerations that
+> appear in out logs. Let's borrow the nice logging helpers that
+> exists in xprtrdma and rds for CMA events, IB events and WC statuses.
 
-Le mardi 12 mai 2015 =C3=A0 15:05 +0300, Sagi Grimberg a =C3=A9crit :
-> Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-> ---
->  net/sunrpc/xprtrdma/frwr_ops.c           |    4 +-
->  net/sunrpc/xprtrdma/svc_rdma_transport.c |   29 ++++++----
->  net/sunrpc/xprtrdma/verbs.c              |   90 ++------------------=
-----------
->  3 files changed, 25 insertions(+), 98 deletions(-)
->=20
-> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frw=
-r_ops.c
-> index dff0481..b3fda09 100644
-> --- a/net/sunrpc/xprtrdma/frwr_ops.c
-> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-> @@ -128,8 +128,8 @@ frwr_sendcompletion(struct ib_wc *wc)
-> =20
->  	/* WARNING: Only wr_id and status are reliable at this point */
->  	r =3D (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
-> -	dprintk("RPC:       %s: frmr %p (stale), status %d\n",
-> -		__func__, r, wc->status);
-> +	dprintk("RPC:       %s: frmr %p (stale), status %s(%d)\n",
-> +		__func__, r, ib_wc_status_msg(wc->status), wc->status);
->  	r->r.frmr.fr_state =3D FRMR_IS_STALE;
->  }
-> =20
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xp=
-rtrdma/svc_rdma_transport.c
-> index f609c1c..abd2d51 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-> @@ -175,8 +175,8 @@ void svc_rdma_put_req_map(struct svc_rdma_req_map=
- *map)
->  static void cq_event_handler(struct ib_event *event, void *context)
+[...]
+
+> +static const char * const cma_events[] = {
+> +       [RDMA_CM_EVENT_ADDR_RESOLVED]   = "ADDR_RESOLVED",
+> +       [RDMA_CM_EVENT_ADDR_ERROR]      = "ADDR_ERROR",
+> +       [RDMA_CM_EVENT_ROUTE_RESOLVED]  = "ROUTE_RESOLVED",
+> +       [RDMA_CM_EVENT_ROUTE_ERROR]     = "ROUTE_ERROR",
+> +       [RDMA_CM_EVENT_CONNECT_REQUEST] = "CONNECT_REQUEST",
+> +       [RDMA_CM_EVENT_CONNECT_RESPONSE]= "CONNECT_RESPONSE",
+> +       [RDMA_CM_EVENT_CONNECT_ERROR]   = "CONNECT_ERROR",
+> +       [RDMA_CM_EVENT_UNREACHABLE]     = "UNREACHABLE",
+> +       [RDMA_CM_EVENT_REJECTED]        = "REJECTED",
+> +       [RDMA_CM_EVENT_ESTABLISHED]     = "ESTABLISHED",
+> +       [RDMA_CM_EVENT_DISCONNECTED]    = "DISCONNECTED",
+> +       [RDMA_CM_EVENT_DEVICE_REMOVAL]  = "DEVICE_REMOVAL",
+> +       [RDMA_CM_EVENT_MULTICAST_JOIN]  = "MULTICAST_JOIN",
+> +       [RDMA_CM_EVENT_MULTICAST_ERROR] = "MULTICAST_ERROR",
+> +       [RDMA_CM_EVENT_ADDR_CHANGE]     = "ADDR_CHANGE",
+> +       [RDMA_CM_EVENT_TIMEWAIT_EXIT]   = "TIMEWAIT_EXIT",
+> +};
+
+Sagi,
+
+My vote goes to using easy-to-digest human-readable non-capital
+letters strings here and
+elsewhere (IB events, etc),  as done today by the NFS code and
+generally by errno based
+helpers such as strerror, e.g
+
+"address resolved"
+"address error"
+"route resolved"
+
+Will be happy to hear what others think
+
+Or.
+
+> +
+> +const char *rdma_event_msg(enum rdma_cm_event_type event)
+> +{
+> +       size_t index = event;
+> +
+> +       return (index < ARRAY_SIZE(cma_events) && cma_events[index]) ?
+> +                       cma_events[index] : "UNRECOGNIZED_EVENT";
+> +}
+> +EXPORT_SYMBOL(rdma_event_msg);
+> +
+>  static void cma_add_one(struct ib_device *device);
+>  static void cma_remove_one(struct ib_device *device);
+>
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index f93eb8d..e366a52 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -48,6 +48,71 @@
+>
+>  #include "core_priv.h"
+>
+> +static const char * const ib_events[] = {
+> +       [IB_EVENT_CQ_ERR]               = "CQ_ERR",
+> +       [IB_EVENT_QP_FATAL]             = "QP_FATAL",
+> +       [IB_EVENT_QP_REQ_ERR]           = "QP_REQ_ERR",
+> +       [IB_EVENT_QP_ACCESS_ERR]        = "QP_ACCESS_ERR",
+> +       [IB_EVENT_COMM_EST]             = "COMM_EST",
+> +       [IB_EVENT_SQ_DRAINED]           = "SQ_DRAINED",
+> +       [IB_EVENT_PATH_MIG]             = "PATH_MIG",
+> +       [IB_EVENT_PATH_MIG_ERR]         = "PATH_MIG_ERR",
+> +       [IB_EVENT_DEVICE_FATAL]         = "DEVICE_FATAL",
+> +       [IB_EVENT_PORT_ACTIVE]          = "PORT_ACTIVE",
+> +       [IB_EVENT_PORT_ERR]             = "PORT_ERR",
+> +       [IB_EVENT_LID_CHANGE]           = "LID_CHANGE",
+> +       [IB_EVENT_PKEY_CHANGE]          = "PKEY_CHANGE",
+> +       [IB_EVENT_SM_CHANGE]            = "SM_CHANGE",
+> +       [IB_EVENT_SRQ_ERR]              = "SRQ_ERR",
+> +       [IB_EVENT_SRQ_LIMIT_REACHED]    = "SRQ_LIMIT_REACHED",
+> +       [IB_EVENT_QP_LAST_WQE_REACHED]  = "QP_LAST_WQE_REACHED",
+> +       [IB_EVENT_CLIENT_REREGISTER]    = "CLIENT_REREGISTER",
+> +       [IB_EVENT_GID_CHANGE]           = "GID_CHANGE",
+> +};
+> +
+> +const char *ib_event_msg(enum ib_event_type event)
+> +{
+> +       size_t index = event;
+> +
+> +       return (index < ARRAY_SIZE(ib_events) && ib_events[index]) ?
+> +                       ib_events[index] : "UNRECOGNIZED_EVENT";
+> +}
+> +EXPORT_SYMBOL(ib_event_msg);
+> +
+> +static const char * const wc_statuses[] = {
+> +       [IB_WC_SUCCESS]                 = "SUCCESS",
+> +       [IB_WC_LOC_LEN_ERR]             = "LOC_LEN_ERR",
+> +       [IB_WC_LOC_QP_OP_ERR]           = "LOC_QP_OP_ERR",
+> +       [IB_WC_LOC_EEC_OP_ERR]          = "LOC_EEC_OP_ERR",
+> +       [IB_WC_LOC_PROT_ERR]            = "LOC_PROT_ERR",
+> +       [IB_WC_WR_FLUSH_ERR]            = "WR_FLUSH_ERR",
+> +       [IB_WC_MW_BIND_ERR]             = "MW_BIND_ERR",
+> +       [IB_WC_BAD_RESP_ERR]            = "BAD_RESP_ERR",
+> +       [IB_WC_LOC_ACCESS_ERR]          = "LOC_ACCESS_ERR",
+> +       [IB_WC_REM_INV_REQ_ERR]         = "REM_INV_REQ_ERR",
+> +       [IB_WC_REM_ACCESS_ERR]          = "REM_ACCESS_ERR",
+> +       [IB_WC_REM_OP_ERR]              = "REM_OP_ERR",
+> +       [IB_WC_RETRY_EXC_ERR]           = "RETRY_EXC_ERR",
+> +       [IB_WC_RNR_RETRY_EXC_ERR]       = "RNR_RETRY_EXC_ERR",
+> +       [IB_WC_LOC_RDD_VIOL_ERR]        = "LOC_RDD_VIOL_ERR",
+> +       [IB_WC_REM_INV_RD_REQ_ERR]      = "REM_INV_RD_REQ_ERR",
+> +       [IB_WC_REM_ABORT_ERR]           = "REM_ABORT_ERR",
+> +       [IB_WC_INV_EECN_ERR]            = "INV_EECN_ERR",
+> +       [IB_WC_INV_EEC_STATE_ERR]       = "INV_EEC_STATE_ERR",
+> +       [IB_WC_FATAL_ERR]               = "FATAL_ERR",
+> +       [IB_WC_RESP_TIMEOUT_ERR]        = "RESP_TIMEOUT_ERR",
+> +       [IB_WC_GENERAL_ERR]             = "GENERAL_ERR",
+> +};
+> +
+> +const char *ib_wc_status_msg(enum ib_wc_status status)
+> +{
+> +       size_t index = status;
+> +
+> +       return (index < ARRAY_SIZE(wc_statuses) && wc_statuses[index]) ?
+> +                       wc_statuses[index] : "UNRECOGNIZED_STATUS";
+> +}
+> +EXPORT_SYMBOL(ib_wc_status_msg);
+> +
+>  __attribute_const__ int ib_rate_to_mult(enum ib_rate rate)
 >  {
->  	struct svc_xprt *xprt =3D context;
-> -	dprintk("svcrdma: received CQ event id=3D%d, context=3D%p\n",
-> -		event->event, context);
-> +	dprintk("svcrdma: received CQ event %s(%d), context=3D%p\n",
-> +		ib_event_msg(event->event), event->event, context);
->  	set_bit(XPT_CLOSE, &xprt->xpt_flags);
->  }
-> =20
-> @@ -191,8 +191,9 @@ static void qp_event_handler(struct ib_event *eve=
-nt, void *context)
->  	case IB_EVENT_COMM_EST:
->  	case IB_EVENT_SQ_DRAINED:
->  	case IB_EVENT_QP_LAST_WQE_REACHED:
-> -		dprintk("svcrdma: QP event %d received for QP=3D%p\n",
-> -			event->event, event->element.qp);
-> +		dprintk("svcrdma: QP event %s(%d) received for QP=3D%p\n",
-> +			ib_event_msg(event->event), event->event,
-> +			event->element.qp);
->  		break;
->  	/* These are considered fatal events */
->  	case IB_EVENT_PATH_MIG_ERR:
-> @@ -201,9 +202,10 @@ static void qp_event_handler(struct ib_event *ev=
-ent, void *context)
->  	case IB_EVENT_QP_ACCESS_ERR:
->  	case IB_EVENT_DEVICE_FATAL:
->  	default:
-> -		dprintk("svcrdma: QP ERROR event %d received for QP=3D%p, "
-> +		dprintk("svcrdma: QP ERROR event %s(%d) received for QP=3D%p, "
->  			"closing transport\n",
-> -			event->event, event->element.qp);
-> +			ib_event_msg(event->event), event->event,
-> +			event->element.qp);
->  		set_bit(XPT_CLOSE, &xprt->xpt_flags);
->  		break;
->  	}
-> @@ -402,7 +404,8 @@ static void sq_cq_reap(struct svcxprt_rdma *xprt)
->  		for (i =3D 0; i < ret; i++) {
->  			wc =3D &wc_a[i];
->  			if (wc->status !=3D IB_WC_SUCCESS) {
-> -				dprintk("svcrdma: sq wc err status %d\n",
-> +				dprintk("svcrdma: sq wc err status %s(%d)\n",
-> +					ib_wc_status_msg(wc->status),
->  					wc->status);
-> =20
->  				/* Close the transport */
-> @@ -616,7 +619,8 @@ static int rdma_listen_handler(struct rdma_cm_id =
-*cma_id,
->  	switch (event->event) {
->  	case RDMA_CM_EVENT_CONNECT_REQUEST:
->  		dprintk("svcrdma: Connect request on cma_id=3D%p, xprt =3D %p, "
-> -			"event=3D%d\n", cma_id, cma_id->context, event->event);
-> +			"event=3D%s(%d)\n", cma_id, cma_id->context,
-> +			rdma_event_msg(event->event), event->event);
->  		handle_connect_req(cma_id,
->  				   event->param.conn.initiator_depth);
->  		break;
-> @@ -636,7 +640,8 @@ static int rdma_listen_handler(struct rdma_cm_id =
-*cma_id,
-> =20
->  	default:
->  		dprintk("svcrdma: Unexpected event on listening endpoint %p, "
-> -			"event=3D%d\n", cma_id, event->event);
-> +			"event=3D%s(%d)\n", cma_id, rdma_event_msg(event->event),
-> +			event->event);
->  		break;
->  	}
-> =20
-> @@ -669,7 +674,8 @@ static int rdma_cma_handler(struct rdma_cm_id *cm=
-a_id,
->  		break;
->  	case RDMA_CM_EVENT_DEVICE_REMOVAL:
->  		dprintk("svcrdma: Device removal cma_id=3D%p, xprt =3D %p, "
-> -			"event=3D%d\n", cma_id, xprt, event->event);
-> +			"event=3D%s(%d)\n", cma_id, xprt,
-> +			rdma_event_msg(event->event), event->event);
->  		if (xprt) {
->  			set_bit(XPT_CLOSE, &xprt->xpt_flags);
->  			svc_xprt_enqueue(xprt);
-> @@ -677,7 +683,8 @@ static int rdma_cma_handler(struct rdma_cm_id *cm=
-a_id,
->  		break;
->  	default:
->  		dprintk("svcrdma: Unexpected event on DTO endpoint %p, "
-> -			"event=3D%d\n", cma_id, event->event);
-> +			"event=3D%d\n", cma_id, rdma_event_msg(event->event),
-> +			event->event);
-
-There's something wrong here, %s is missing.
-
->  		break;
->  	}
->  	return 0;
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.=
-c
-> index 4870d27..6f6b8a5 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -105,32 +105,6 @@ rpcrdma_run_tasklet(unsigned long data)
-> =20
->  static DECLARE_TASKLET(rpcrdma_tasklet_g, rpcrdma_run_tasklet, 0UL);
-> =20
-> -static const char * const async_event[] =3D {
-> -	"CQ error",
-> -	"QP fatal error",
-> -	"QP request error",
-> -	"QP access error",
-> -	"communication established",
-> -	"send queue drained",
-> -	"path migration successful",
-> -	"path mig error",
-> -	"device fatal error",
-> -	"port active",
-> -	"port error",
-> -	"LID change",
-> -	"P_key change",
-> -	"SM change",
-> -	"SRQ error",
-> -	"SRQ limit reached",
-> -	"last WQE reached",
-> -	"client reregister",
-> -	"GID change",
-> -};
-> -
-> -#define ASYNC_MSG(status)					\
-> -	((status) < ARRAY_SIZE(async_event) ?			\
-> -		async_event[(status)] : "unknown async error")
-> -
->  static void
->  rpcrdma_schedule_tasklet(struct list_head *sched_list)
->  {
-> @@ -148,7 +122,7 @@ rpcrdma_qp_async_error_upcall(struct ib_event *ev=
-ent, void *context)
->  	struct rpcrdma_ep *ep =3D context;
-> =20
->  	pr_err("RPC:       %s: %s on device %s ep %p\n",
-> -	       __func__, ASYNC_MSG(event->event),
-> +	       __func__, ib_event_msg(event->event),
->  		event->device->name, context);
->  	if (ep->rep_connected =3D=3D 1) {
->  		ep->rep_connected =3D -EIO;
-> @@ -163,7 +137,7 @@ rpcrdma_cq_async_error_upcall(struct ib_event *ev=
-ent, void *context)
->  	struct rpcrdma_ep *ep =3D context;
-> =20
->  	pr_err("RPC:       %s: %s on device %s ep %p\n",
-> -	       __func__, ASYNC_MSG(event->event),
-> +	       __func__, ib_event_msg(event->event),
->  		event->device->name, context);
->  	if (ep->rep_connected =3D=3D 1) {
->  		ep->rep_connected =3D -EIO;
-> @@ -172,35 +146,6 @@ rpcrdma_cq_async_error_upcall(struct ib_event *e=
-vent, void *context)
->  	}
->  }
-> =20
-> -static const char * const wc_status[] =3D {
-> -	"success",
-> -	"local length error",
-> -	"local QP operation error",
-> -	"local EE context operation error",
-> -	"local protection error",
-> -	"WR flushed",
-> -	"memory management operation error",
-> -	"bad response error",
-> -	"local access error",
-> -	"remote invalid request error",
-> -	"remote access error",
-> -	"remote operation error",
-> -	"transport retry counter exceeded",
-> -	"RNR retry counter exceeded",
-> -	"local RDD violation error",
-> -	"remove invalid RD request",
-> -	"operation aborted",
-> -	"invalid EE context number",
-> -	"invalid EE context state",
-> -	"fatal error",
-> -	"response timeout error",
-> -	"general error",
-> -};
-> -
-> -#define COMPLETION_MSG(status)					\
-> -	((status) < ARRAY_SIZE(wc_status) ?			\
-> -		wc_status[(status)] : "unexpected completion error")
-> -
->  static void
->  rpcrdma_sendcq_process_wc(struct ib_wc *wc)
->  {
-> @@ -209,7 +154,7 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
->  		if (wc->status !=3D IB_WC_SUCCESS &&
->  		    wc->status !=3D IB_WC_WR_FLUSH_ERR)
->  			pr_err("RPC:       %s: SEND: %s\n",
-> -			       __func__, COMPLETION_MSG(wc->status));
-> +			       __func__, ib_wc_status_msg(wc->status));
->  	} else {
->  		struct rpcrdma_mw *r;
-> =20
-> @@ -302,7 +247,7 @@ out_schedule:
->  out_fail:
->  	if (wc->status !=3D IB_WC_WR_FLUSH_ERR)
->  		pr_err("RPC:       %s: rep %p: %s\n",
-> -		       __func__, rep, COMPLETION_MSG(wc->status));
-> +		       __func__, rep, ib_wc_status_msg(wc->status));
->  	rep->rr_len =3D ~0U;
->  	goto out_schedule;
->  }
-> @@ -386,31 +331,6 @@ rpcrdma_flush_cqs(struct rpcrdma_ep *ep)
->  		rpcrdma_sendcq_process_wc(&wc);
->  }
-> =20
-> -#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-> -static const char * const conn[] =3D {
-> -	"address resolved",
-> -	"address error",
-> -	"route resolved",
-> -	"route error",
-> -	"connect request",
-> -	"connect response",
-> -	"connect error",
-> -	"unreachable",
-> -	"rejected",
-> -	"established",
-> -	"disconnected",
-> -	"device removal",
-> -	"multicast join",
-> -	"multicast error",
-> -	"address change",
-> -	"timewait exit",
-> -};
-> -
-> -#define CONNECTION_MSG(status)						\
-> -	((status) < ARRAY_SIZE(conn) ?					\
-> -		conn[(status)] : "unrecognized connection error")
-> -#endif
-> -
->  static int
->  rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *eve=
-nt)
->  {
-> @@ -476,7 +396,7 @@ connected:
->  	default:
->  		dprintk("RPC:       %s: %pIS:%u (ep 0x%p): %s\n",
->  			__func__, sap, rpc_get_port(sap), ep,
-> -			CONNECTION_MSG(event->event));
-> +			rdma_event_msg(event->event));
->  		break;
->  	}
-> =20
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+>         switch (rate) {
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 65994a1..672fc8f 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -412,6 +412,8 @@ enum ib_event_type {
+>         IB_EVENT_GID_CHANGE,
+>  };
+>
+> +__attribute_const__ const char *ib_event_msg(enum ib_event_type event);
+> +
+>  struct ib_event {
+>         struct ib_device        *device;
+>         union {
+> @@ -663,6 +665,8 @@ enum ib_wc_status {
+>         IB_WC_GENERAL_ERR
+>  };
+>
+> +__attribute_const__ const char *ib_wc_status_msg(enum ib_wc_status status);
+> +
+>  enum ib_wc_opcode {
+>         IB_WC_SEND,
+>         IB_WC_RDMA_WRITE,
+> diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+> index 1ed2088..c92522c 100644
+> --- a/include/rdma/rdma_cm.h
+> +++ b/include/rdma/rdma_cm.h
+> @@ -62,6 +62,8 @@ enum rdma_cm_event_type {
+>         RDMA_CM_EVENT_TIMEWAIT_EXIT
+>  };
+>
+> +__attribute_const__ const char *rdma_event_msg(enum rdma_cm_event_type event);
+> +
+>  enum rdma_port_space {
+>         RDMA_PS_SDP   = 0x0001,
+>         RDMA_PS_IPOIB = 0x0002,
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
