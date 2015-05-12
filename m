@@ -1,87 +1,79 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/ipoib: Scatter-Gather support in connected mode
-Date: Tue, 12 May 2015 09:08:16 +0300
-Message-ID: <20150512060815.GA2668@yuval-lab>
-References: <1431338642-22812-1-git-send-email-yuval.shaia@oracle.com>
- <1431344407.25060.29.camel@opteya.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH v3 for-next 05/13] IB/cm: Reference count ib_cm_ids
+Date: Tue, 12 May 2015 09:50:51 +0300
+Message-ID: <5551A2CB.1010407@mellanox.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1431253604-9214-6-git-send-email-haggaie@mellanox.com>
+ <20150511183459.GB25405@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1431344407.25060.29.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150511183459.GB25405@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 11, 2015 at 01:40:07PM +0200, Yann Droneaud wrote:
-> Hi,
->=20
-> Le lundi 11 mai 2015 =E0 03:04 -0700, Yuval Shaia a =E9crit :
-> > By default, IPoIB-CM driver uses 64k MTU. Larger MTU gives better p=
-erformance.
-> > This MTU plus overhead puts the memory allocation for IP based pack=
-ets at 32
-> > 4k pages (order 5), which have to be contiguous.
-> > When the system memory under pressure, it was observed that allocat=
-ing 128k
-> > contiguous physical memory is difficult and causes serious errors (=
-such as
-> > system becomes unusable).
-> >=20
-> > This enhancement resolve the issue by removing the physically conti=
-guous memory
-> > requirement using Scatter/Gather feature that exists in Linux stack=
-=2E
-> >=20
-> > With this fix Scatter-Gather will be supported also in connected mo=
-de.
-> >=20
-> > This change reverts the some of the change made in commit
-> > e112373fd6aa280bd2cbc0d5cc3809115325a1be
-> > ("IPoIB/cm: Reduce connected mode TX object size)".
-> >=20
-> > The ability to use SG in IPoIB CM is possible because the coupling
-> > between NETIF_F_SG and NETIF_F_CSUM was removed in commit
-> > ec5f061564238892005257c83565a0b58ec79295
-> > ("net: Kill link between CSUM and SG features.")
-> >=20
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > v2: Enhance commit log message
-> >=20
-> > I'd like to thank John Sobecki <john.sobecki-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> and
-> > Christian Marie <christian-x8YiTEMPTCFhl2p70BpVqQ@public.gmane.org> for helping me with reviewing=
- this patch.
-> > I will be glad if you can ACK it.
-> >=20
-> > v3: Add an empty line to start a new paragraph and use 12 hex-digit=
-s identifier
->=20
-> Thanks, but you don't have to use the full commit identifier, 12
-> characters were enough.
-Will do.
->=20
-> Anyway, you haven't addressed the comments embedded in the patch in m=
-y
-> reply [1] to your v2 patch.
-Changing comments was quite easy, the rest will take a bit more, v4 wil=
-l address it.
->=20
-> [1]
-> http://marc.info/?i=3D1431335754.25060.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-> http://mid.gmane.org/1431335754.25060.26.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
->=20
-> Regards.
->=20
-> --=20
-> Yann Droneaud
-> OPTEYA
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 11/05/2015 21:34, Jason Gunthorpe wrote:
+> On Sun, May 10, 2015 at 01:26:36PM +0300, Haggai Eran wrote:
+>> Add reference count (kref) to the ib_cm_id to allow automatic destruction
+>> of an ib_cm_id. This will allow multiple RDMA CM IDs to use a single
+>> ib_cm_id when they are on different network namespaces.
+>>
+>> Signed-off-by: Haggai Eran <haggaie@mellanox.com>
+>>  drivers/infiniband/core/cm.c | 41 +++++++++++++++++++++++++++++++++++++----
+>>  include/rdma/ib_cm.h         | 10 +++++++---
+>>  2 files changed, 44 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+>> index 08b18044552a..6b68402fd6df 100644
+>> +++ b/drivers/infiniband/core/cm.c
+>> @@ -711,6 +711,7 @@ struct ib_cm_id *ib_create_cm_id(struct ib_device *device,
+>>  	cm_id_priv->id.cm_handler = cm_handler;
+>>  	cm_id_priv->id.context = context;
+>>  	cm_id_priv->id.remote_cm_qpn = 1;
+>> +	kref_init(&cm_id_priv->id.ref);
+>>  	ret = cm_alloc_id(cm_id_priv);
+>>  	if (ret)
+>>  		goto error;
+> 
+> Idiomatically, once kref_init is called, kfree should not be used, you
+> have to kref_put to destroy it, this error path calls kfree directly.
+> 
+> Probably best to just move the kref_init to after the failable call.
+
+Sure.
+
+> 
+>> -void ib_destroy_cm_id(struct ib_cm_id *cm_id)
+>> +static void __ib_destroy_cm_id(struct kref *ref)
+>>  {
+>> +	struct ib_cm_id *cm_id = container_of(ref, struct ib_cm_id, ref);
+>> +
+>>  	cm_destroy_id(cm_id, 0);
+>>  }
+> 
+> Hum, this is quite a heavy free function. Did you check that this is
+> safe to do asynchronously, that there are no implicit kref's being
+> held by the caller?
+
+I'm not sure what you mean. The function is called by the last kref_put,
+and destroys the ID synchronously.
+
+Looking at the code though, I now notice that the other call site to
+cm_destroy_id, from within the error path of cm_process_work could now
+theoretically destroy an ID with existing references. Is that what you
+meant?
+
+Since only listening CM IDs are now shared in RDMA CM, this should not
+happen in this patch-set, but perhaps the code can be changed to make
+sure it is safe even if that changes. How about if we decrease the
+reference count in cm_process_work instead of calling cm_destroy_id
+directly? The error code could be stored in the ID.
+
+Alternatively, I can add a WARN macro similar to the one I added in
+ib_destroy_cm_id, to verify the reference count is zero when reaching
+cm_destroy_id.
+
+Haggai
