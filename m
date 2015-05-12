@@ -1,50 +1,73 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v8 00/23] IB/Verbs: IB Management Helpers
-Date: Tue, 12 May 2015 12:09:42 -0600
-Message-ID: <20150512180942.GC15891@obsidianresearch.com>
-References: <1430830240-32389-1-git-send-email-yun.wang@profitbricks.com>
- <20150511234910.GA20027@phlsvsds.ph.intel.com>
- <1431390420.43876.4.camel@redhat.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 02/16] xprtrdma: Warn when there are orphaned IB objects
+Date: Tue, 12 May 2015 14:12:29 -0400
+Message-ID: <5552428D.7010907@Netapp.com>
+References: <20150511174401.31263.79596.stgit@manet.1015granger.net> <20150511180235.31263.71754.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1431390420.43876.4.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150511180235.31263.71754.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 11, 2015 at 08:27:00PM -0400, Doug Ledford wrote:
-> On Mon, 2015-05-11 at 19:49 -0400, ira.weiny wrote:
-> > I have run with this series and the only issue I have found is not with this
-> > patch set directly.
-> > 
-> > This patch:
-> > 
-> > >   IB/Verbs: Use management helper rdma_cap_ib_mad()
-> > 
-> > causes an error when you actually use the port passed from the ib_umad module.
-> > I have a patch to fix that which I found while trying to build on this series
-> > for the use of a bit mask.
-> > 
-> > Doug, I don't know what you would like to do for this fix.  I am submitting it
-> > shortly with a new version of the core capability bit patches.  If you want to
-> > just add it after this series or force Michael to respin with the fix?
+Hi Chuck,
+
+On 05/11/2015 02:02 PM, Chuck Lever wrote:
+> WARN during transport destruction if ib_dealloc_pd() fails. This is
+> a sign that xprtrdma orphaned one or more RDMA API objects at some
+> point, which can pin lower layer kernel modules and cause shutdown
+> to hang.
+
+I'm curious, what would cause an RDMA object to get orphaned in the first place?  Is there any way to prevent that?
+
+Anna
+
 > 
-> As I recall, there was a comment from Or requesting to squash some of
-> the individual patches down, but I no longer have that email in my Inbox
-> to double check.  And it seemed like there was one other review comment
-> not yet addressed.  Do I have that right Michael?  And if so, are you
-> working on a v9?
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/verbs.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 4870d27..51900e6 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -702,17 +702,17 @@ rpcrdma_ia_close(struct rpcrdma_ia *ia)
+>  		dprintk("RPC:       %s: ib_dereg_mr returned %i\n",
+>  			__func__, rc);
+>  	}
+> +
+>  	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+>  		if (ia->ri_id->qp)
+>  			rdma_destroy_qp(ia->ri_id);
+>  		rdma_destroy_id(ia->ri_id);
+>  		ia->ri_id = NULL;
+>  	}
+> -	if (ia->ri_pd != NULL && !IS_ERR(ia->ri_pd)) {
+> -		rc = ib_dealloc_pd(ia->ri_pd);
+> -		dprintk("RPC:       %s: ib_dealloc_pd returned %i\n",
+> -			__func__, rc);
+> -	}
+> +
+> +	/* If the pd is still busy, xprtrdma missed freeing a resource */
+> +	if (ia->ri_pd && !IS_ERR(ia->ri_pd))
+> +		WARN_ON(ib_dealloc_pd(ia->ri_pd));
+>  }
+>  
+>  /*
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-I had asked for better kdocs for the new helpers so new people can
-understand when and where to use them.
-
-I've not looked at the series at all for the past few postings.
-
-Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
