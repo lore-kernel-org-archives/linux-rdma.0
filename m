@@ -1,72 +1,73 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 3/5] IB/core: Convert management helpers to core
- capability bits
-Date: Tue, 12 May 2015 02:38:33 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FCE4DE@ORSMSX109.amr.corp.intel.com>
-References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com>
- <1431395218-27693-4-git-send-email-ira.weiny@intel.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading client_list
+ or device_list
+Date: Tue, 12 May 2015 09:07:51 +0300
+Message-ID: <555198B7.40302@mellanox.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
+ <20150511181824.GA25405@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431395218-27693-4-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150511181824.GA25405@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Matan Barak <matanb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index fe7efbe..f93694f 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -353,6 +353,40 @@ union rdma_protocol_stats {
->  	struct iw_protocol_stats	iw;
->  };
+On 11/05/2015 21:18, Jason Gunthorpe wrote:
+> So at first blush this looked reasonable, but, no it is racy:
 > 
-> +/* Define bits for the various functionality this port needs to be
-> supported by
-> + * the core.
-> + */
-> +/* Management                           0x00000FFF */
-> +#define RDMA_CORE_CAP_IB_MAD            0x00000001
-> +#define RDMA_CORE_CAP_IB_SMI            0x00000002
-> +#define RDMA_CORE_CAP_IB_CM             0x00000004
-> +#define RDMA_CORE_CAP_IW_CM             0x00000008
-> +#define RDMA_CORE_CAP_IB_SA             0x00000010
-> +
-> +/* Address format                       0x000FF000 */
-> +#define RDMA_CORE_CAP_AF_IB             0x00001000
-> +#define RDMA_CORE_CAP_ETH_AH            0x00002000
-> +
-> +/* Protocol                             0xFFF00000 */
-> +#define RDMA_CORE_CAP_PROT_IB           0x00100000
-> +#define RDMA_CORE_CAP_PROT_IBOE         0x00200000
+> ib_register_client:
+>  mutex_lock(&device_mutex);
+>  list_add_tail_rcu(&client->list, &client_list);
+>  mutex_unlock(&device_mutex);
+> 
+>  id = srcu_read_lock(&device_srcu);
+>  list_for_each_entry_rcu(device, &device_list, core_list)
+>                         client->add(device);
+> 
+> ib_register_device:
+>   mutex_lock(&device_mutex);
+>   list_add_tail(&device->core_list, &device_list);
+>   mutex_unlock(&device_mutex);
+> 
+>   id = srcu_read_lock(&device_srcu);
+>   list_for_each_entry_rcu(client, &client_list, list)
+>        client->add(device);
+> 
+> So, if two threads call the two registers then the new client will
+> have it's add called twice on the same device.
+> 
+> There are similar problems with removal.
 
-Use ROCE in place of IBOE for consistency with the definition below.
+Right. Sorry I missed that. Our first draft just kept the addition and
+removal of elements to the device or client list under the mutex,
+thinking that only the new code in this patchset that does traversal of
+the lists would use the SRCU read lock. We then changed it thinking that
+it would be better to make some use of this SRCU in this patch as well.
 
-> +#define RDMA_CORE_CAP_PROT_IWARP        0x00400000
-> +
-> +#define RDMA_CORE_PORT_IBA_IB          (RDMA_CORE_CAP_PROT_IB  \
-> +					| RDMA_CORE_CAP_IB_MAD \
-> +					| RDMA_CORE_CAP_IB_SMI \
-> +					| RDMA_CORE_CAP_IB_CM  \
-> +					| RDMA_CORE_CAP_IB_SA  \
-> +					| RDMA_CORE_CAP_AF_IB)
-> +#define RDMA_CORE_PORT_IBA_ROCEE       (RDMA_CORE_CAP_PROT_IBOE \
+> 
+> I'm not sure RCU is the right way to approach this. The driver core
+> has the same basic task to perform, maybe review it's locking
+> arrangment between the device list and driver list.
+> 
+> [Actually we probably should be using the driver core here, with IB
+>  clients as device drivers, but that is way beyond scope of this..]
 
-Rename ROCEE to ROCE.
+So, I'm not very familiar with that code, but it seems that the main
+difference is that in the core a single driver can be attached to a
+device. The device_add function calls bus_add_device to add it to the
+bus's list, and and later calls bus_probe_device to find a driver,
+without any lock between these calls. And bus_add_driver adds a new
+driver to the bus's driver list and then calls driver_attach without any
+lock between them. The only thing I see that makes sure a driver won't
+be attached twice to a device is the dev->driver field which is updated
+under the device lock during the probing process.
 
-> +					| RDMA_CORE_CAP_IB_MAD  \
-> +					| RDMA_CORE_CAP_IB_CM   \
-> +					| RDMA_CORE_CAP_IB_SA   \
-> +					| RDMA_CORE_CAP_AF_IB   \
-> +					| RDMA_CORE_CAP_ETH_AH)
-> +#define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
-> +					| RDMA_CORE_CAP_IW_CM)
+I guess a similar thing we can do is to rely on the context we associate
+with a pair of a client and a device. If such a context exist, we don't
+need to call client->add again. What do you think?
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Haggai
