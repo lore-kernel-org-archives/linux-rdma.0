@@ -1,55 +1,61 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs init.c: remove stderr warnings if no
- userspace driver found
-Date: Tue, 12 May 2015 14:10:35 +0000
-Message-ID: <7E1C0E26-E71D-4939-BCBB-A5FC666DE381@cisco.com>
-References: <1431109314-31662-1-git-send-email-jsquyres@cisco.com>
- <1431180267.3617.5.camel@dworkin>
- <91CD4206-FE67-45DF-BFFD-3AFBC4DE30E3@cisco.com>
- <1431379962.4969.7.camel@dworkin>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3] libibverbs init.c: conditionally emit warning if no userspace driver found
+Date: Tue, 12 May 2015 07:14:28 -0700
+Message-ID: <1431440068-19037-1-git-send-email-jsquyres@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431379962.4969.7.camel@dworkin>
-Content-Language: en-US
-Content-ID: <EFC379C00BEBA24EA01EAAC6AF5DE86E-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On May 11, 2015, at 2:32 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> (I have to find some information about this libfabric which is already
-> released as 1.0.0 version).
+It's not a warning or an error if libibverbs cannot find a userspace
+driver for kernel devices.  Indeed, returning a num_devices of is
+sufficient -- the middleware shouldn't be unconditionally printing out
+stderr message; let the upper layer application do that (if it wants
+to).
 
-See http://ofiwg.github.io/libfabric/ (and the corresponding code https://github.com/ofiwg/libfabric).
+For debugging purposes, if the environment variable IBV_SHOW_WARNINGS
+is set (to any value), warnings will be emitted to stderr if a
+corresponding userspace driver cannot be found for a kernel device.
 
->> That is: it's not a warning or an error if libibverbs cannot find a
->> userspace driver for kernel devices.  Indeed, returning a num_devices
->> of 0 is sufficient -- the middleware shouldn't be unconditionally
->> printing out stderr message; let the upper layer application do that
->> (if it wants to).
-> 
-> This paragraph should definitively be part of your commit message.
+Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ man/ibv_get_device_list.3 | 6 ++++++
+ src/init.c                | 2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-Ok.
-
->> FWIW, Sean just removed a similar set of stderr warnings from librdmacm:
->> 
->>   http://git.openfabrics.org/?p=~shefty/librdmacm.git;a=commitdiff;h=2b2aad809afc56fa3157f5cf99036f92b9c90f16
-> 
-> I don't think this a good thing to remove all the error messages
-> unconditionally. It could have been made a build option + an environment
-> variable option to help mere mortals to debug their setups.
-
-Ok.  v3 coming shortly.
-
+diff --git a/man/ibv_get_device_list.3 b/man/ibv_get_device_list.3
+index 16cc1a0..96de554 100644
+--- a/man/ibv_get_device_list.3
++++ b/man/ibv_get_device_list.3
+@@ -50,6 +50,12 @@ Client code should open all the devices it intends to use with
+ Once it frees the array with
+ .B ibv_free_device_list()\fR,
+ it will be able to use only the open devices; pointers to unopened devices will no longer be valid.
++.P
++Setting the environment variable
++.BR IBV_SHOW_WARNINGS
++will cause warnings to be emitted to stderr if a kernel verbs device
++is discovered, but no corresponding userspace driver can be found for
++it.
+ .SH "SEE ALSO"
+ .BR ibv_fork_init (3),
+ .BR ibv_get_device_name (3),
+diff --git a/src/init.c b/src/init.c
+index d0e4b1c..dbdd795 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -561,7 +561,7 @@ out:
+ 		     next_dev = sysfs_dev ? sysfs_dev->next : NULL;
+ 	     sysfs_dev;
+ 	     sysfs_dev = next_dev, next_dev = sysfs_dev ? sysfs_dev->next : NULL) {
+-		if (!sysfs_dev->have_driver) {
++		if (!sysfs_dev->have_driver && getenv("IBV_SHOW_WARNINGS")) {
+ 			fprintf(stderr, PFX "Warning: no userspace device-specific "
+ 				"driver found for %s\n", sysfs_dev->sysfs_path);
+ 			if (statically_linked)
 -- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+2.2.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
