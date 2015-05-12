@@ -1,23 +1,53 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V4] IB/qib: fix test of unsigned variable
-Date: Tue, 12 May 2015 17:44:52 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC2570FF8A@fmsmsx120.amr.corp.intel.com>
-References: <20150512174242.9547.82789.stgit@phlsvslse11.ph.intel.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/5] IB/core: Formalize the creation of immutable per
+ port data within the ib_device object
+Date: Tue, 12 May 2015 17:48:55 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E1107CBB6@CRSMSX101.amr.corp.intel.com>
+References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com>
+	 <1431395218-27693-3-git-send-email-ira.weiny@intel.com>
+ <1431444301.43876.34.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150512174242.9547.82789.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <1431444301.43876.34.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGaXggdGhlIGlzc3VlIGJ5IGNoYW5naW5nIHRoZSB0eXBlIG9mIHdjX2Nvb2tpZSB0byBpbnQu
-ICBGb3IgdGhlIHN1Y2Nlc3MgY2FzZSB0aGUNCj4gcmV0IGxlZnQgYXQgemVybyB0byBhdm9pZCBh
-IHdhcm5pbmcgZnJvbSB0aGUgY2FsbGVyLiAgRm9yIGZhaWx1cmUgd2NfY29va2llIGlzIHVzZWQN
-Cj4gYXMgdGhlIHJldC4NCj4gDQoNCkp1c3QgY29tbWl0IG1lc3NhZ2UgY2hhbmdlLg0K
+PiA+IEluIHByZXBhcmF0aW9uIGZvciB0aGlzIGNyZWF0ZSBhIHN0cnVjdHVyZSBmb3IgcGVyIHBv
+cnQgaW1tdXRhYmxlIGRhdGENCj4gPiBhbmQgcGxhY2UgdGhlIHBrZXkgYW5kIGdpZCB0YWJsZSBs
+ZW5ndGhzIHdpdGhpbiB0aGlzIHN0cnVjdHVyZS4NCj4gPg0KPiA+IFRoaXMgdHlwZSBvZiBkYXRh
+IHJlcXVpcmVzIGEgbmV3IGNhbGwgYmFjayAicG9ydF9pbW11dGFibGUiIHBhcmFtZXRlcg0KPiA+
+IHRvIGliX3JlZ2lzdGVyX2RldmljZSB0byBhbGxvdyBlYWNoIGRyaXZlciB0byBjcmVhdGUgdGhp
+cyBkYXRhIGFzIGFwcHJvcHJpYXRlLg0KPiA+IFRoaXMgY2FsbGJhY2sgaXMgYWRkZWQgdG8gaWJf
+cmVnaXN0ZXJfZGV2aWNlIHJhdGhlciB0aGFuIGFzIGEgbmV3DQo+ID4gZGV2aWNlIGZ1bmN0aW9u
+IGJlY2F1c2UgdGhlIGNhbGxiYWNrIHNob3VsZCBvbmx5IGJlIHVzZWQgd2hlbiBkZXZpY2VzDQo+
+ID4gYXJlIGZpcnN0IHJlZ2lzdGVyZWQuDQo+ID4NCg0KSSB0cmllZCB0byBleHBsYWluIG15IGRl
+Y2lzaW9uIGhlcmUuLi4NCg0KPiA+IEBAIC0yNzMsNyArMjczLDkgQEAgb3V0Og0KPiA+ICAgKi8N
+Cj4gPiAgaW50IGliX3JlZ2lzdGVyX2RldmljZShzdHJ1Y3QgaWJfZGV2aWNlICpkZXZpY2UsDQo+
+ID4gIAkJICAgICAgIGludCAoKnBvcnRfY2FsbGJhY2spKHN0cnVjdCBpYl9kZXZpY2UgKiwNCj4g
+PiAtCQkJCQkgICAgdTgsIHN0cnVjdCBrb2JqZWN0ICopKQ0KPiA+ICsJCQkJCSAgICB1OCwgc3Ry
+dWN0IGtvYmplY3QgKiksDQo+ID4gKwkJICAgICAgIGludCAoKnBvcnRfaW1tdXRhYmxlKShzdHJ1
+Y3QgaWJfZGV2aWNlICosIHU4LA0KPiA+ICsJCQkJCSAgICAgc3RydWN0IGliX3BvcnRfaW1tdXRh
+YmxlICopKQ0KPiANCj4gSSdtIGhhdmluZyBhIGhhcmQgdGltZSBnZXR0aW5nIHBhc3QgaG93IHVn
+bHkgdGhpcyBpcy4gIFBhc3NpbmcgY2FsbGJhY2tzIGFzDQo+IGFyZ3VtZW50cyB0byBhIHJlZ2lz
+dHJhdGlvbiBmdW5jdGlvbiBzaG91bGQgYmUgYSBsYXN0IHJlc29ydC4gIEkgd291bGQgcmF0aGVy
+IHNlZQ0KPiB0aGlzIGFkZGVkIHRvIHRoZSBkZXZpY2UgbWFuZGF0b3J5IGxpc3QgKGFuZCBpdCAq
+aXMqIG1hbmRhdG9yeSwgd2UgdXNlIGl0DQo+IHdpdGhvdXQgY2hlY2tpbmcgZm9yIE5VTEwpLiAg
+DQoNCllvdXIgY29ycmVjdCBJIHNob3VsZCBoYXZlIGNoZWNrZWQgZm9yIE5VTEwgYW5kIHJldHVy
+bmVkIGFuIGVycm9yIGlmIG5vdCBzdXBwbGllZC4NCg0KPiBJbiB0cnV0aCwgSSdkIHJhdGhlciBz
+ZWUgYm90aCBvZiB0aG9zZSBtb3ZlZCB0byB0aGUNCj4gZHJpdmVyIGNhbGxiYWNrIHN0cnVjdC4g
+IFRoZXkgY2FuIGJlIHBsYWNlZCBhdCB0aGUgZW5kLCBhZnRlciBhIGNvbW1lbnQgdGhhdA0KPiBz
+YXlzIHNvbWV0aGluZyBsaWtlICJUaGVzZSBhcmUgc2luZ2xlIHVzZSBlbnRyeSBwb2ludHMgZm9y
+IGluaXRpYWxpemF0aW9uLCBrZWVwDQo+IHRoZW0gYXdheSBmcm9tIHRoZSByZXN0IG9mIHRoZSBl
+bnRyeSBwb2ludHMgdG8gaGVscCBwcmV2ZW50IGdyb3dpbmcgdGhlIGVudHJ5DQo+IHBvaW50IGxp
+c3QgYmV5b25kIGFueSBtb3JlIGNhY2hlbGluZXMgdGhhdCBuZWVkZWQgZm9yIHRoZSBtb3JlIGNv
+bW1vbmx5DQo+IHVzZWQgZW50cnkgcG9pbnRzIi4gIEkgd291bGQgZmluZCB0aGF0IG11Y2ggcHJl
+ZmVyYWJsZSB0byB0aGlzLg0KPiANCg0KSSdsbCBjaGFuZ2UgdG8gdGhpcyBtZXRob2QgaW4gdGhl
+IG5leHQgdmVyc2lvbi4NCg0KSXJhDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
