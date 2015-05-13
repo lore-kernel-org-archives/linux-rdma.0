@@ -1,111 +1,118 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma kernel tree
-Date: Wed, 13 May 2015 11:27:25 -0400
-Message-ID: <1431530845.2377.30.camel@redhat.com>
-References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
-	 <1431485563.43876.93.camel@redhat.com>
-	 <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading
+ client_list or device_list
+Date: Wed, 13 May 2015 09:57:37 -0600
+Message-ID: <20150513155737.GA16941@obsidianresearch.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
+ <20150511181824.GA25405@obsidianresearch.com>
+ <555198B7.40302@mellanox.com>
+ <20150512182332.GD15891@obsidianresearch.com>
+ <555306E7.9020000@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-zEBoM1Zm2whSodS8PX1u"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <555306E7.9020000-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, May 13, 2015 at 11:10:15AM +0300, Haggai Eran wrote:
 
---=-zEBoM1Zm2whSodS8PX1u
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> >> I guess a similar thing we can do is to rely on the context we associate
+> >> with a pair of a client and a device. If such a context exist, we don't
+> >> need to call client->add again. What do you think?
+> > 
+> > I didn't look closely, isn't this enough?
+> > 
+> > device_register:
+> >  mutex_lock(client_mutex);
+> >  down_write(devices_rwsem);
+> >  list_add(device_list,dev,..);
+> >  up_write(devices_rwsem);
+> > 
+> >  /* Caller must prevent device_register/unregister concurrancy on the
+> >     same dev */
+> > 
+> >  foreach(client_list)
+> >    .. client->add(dev,...) .. 
+> > 
+> >  mutex_unlock(client_mutex)
+> > 
+> > client_register:
+> >  mutex_lock(client_mutex)
+> >  list_add(client_list,new_client..)
+> >  down_read(devices_rwsem);
+> >  foreach(device_list)
+> >    .. client->add(dev,new_client,..) ..
+> >  up_read(devices_rwsem);
+> >  mutex_unlock(client_mutex)
+> > 
+> > [Note, I didn't check this carefully, just intuitively seems like a
+> >  sane starting point]
+> 
+> That could perhaps work for the RoCEv2 patch-set, as their deadlock
+> relates to iterating the device list. This patch set however does an
+> iteration on the client list (patch 3). Because a client remove could
+> block on this iteration, you can still get a deadlock.
 
-On Wed, 2015-05-13 at 17:46 +0300, Or Gerlitz wrote:
-> On Wed, May 13, 2015 at 5:52 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote=
-:
-> > On Tue, 2015-05-12 at 21:31 +0000, Hefty, Sean wrote:
-> >> Doug,
-> >>
-> >> Do you plan on only using your kernel.org tree going forward, or will =
-you maintain your github tree as well?
-> >
-> > I plan to keep both repos.  The one on github will have stuff sooner,
-> > but it is likely that portions of it will see rebases.  I've taken to a
-> > very obvious branch naming scheme if I think that I'm going to rebase a
-> > branch.  I'm also keeping the github repo as the one I have in the 0day
-> > testing framework so that more of the stuff gets tested sooner.
-> >
-> > When I'm satisfied that a branch has passed all of the 0day testing and
-> > I'm no longer going to consider any changes to the patches in that
-> > branch, then I'll make a k.o/<branchname> branch and I only push those
-> > branches to the kernel.org repo.  Once a branch lands there, it is a
-> > fast-forward only branch and will not see any rebases or edits of
-> > patches.
-> >
-> > I'm doing this because of the large number of interrelated patches that
-> > different people are working on right now.  This makes it easier for
-> > people to be able to base their work off of the latest interrelated
-> > patches from other people.  Once this backlog clears out, it might be
-> > possible for me to drop the github repo.  Right now it's the only way I
-> > have to provide the sort of early access sandbox that people need to ge=
-t
-> > their patches in without taking too many consecutive release cycles.
->=20
-> Doug,
->=20
-> Still, as things are now, you've already accepted patches for 4.2
-> which are dependent on other patches which you've accepted too (e.g
-> Ira's patches on top of Michael's patches)
+Really? Gross.
 
-Actually, no, this isn't true.  I accepted Ira's cleanup patches, and
-they applied cleanly without Michael's patches.  The follow-on patches
-to Michael's v8 patchset have not yet been posted since the last round
-of review and requested changes.
+Still, I think you got it right in your analysis, but we don't need RCU:
 
->  --> @ this point (post
-> 4.1-rc3) **something** has to be in your kernel.org branch for 4.2 --
-> else the chain of dependencies can become really non-traceable.
+device_register:
+ mutex_lock(modify_mutex);
+ down_write(lists_rwsem);
+ list_add(device_list,dev,..);
+ up_write(lists_rwsem);
 
-They will land at kernel.org when I know they won't change again (which
-really means when I have the final kdoc patch and Ira's dependent
-patches and everything there is merged properly).  For now, they are
-present at the github repo as:
+ // implied by modify_mutex: down_read(lists_rwsem)
+ foreach(client_list)
+    .. client->add(dev,...) ..
+ mutex_unlock(modify_mutex)
 
-mwang-v8
-ira-cleanups
-to-be-rebased/for-4.2 (which is nothing but a merge of the two above
-branches)
+client_register:
+ mutex_lock(modify_mutex);
+ // implied by modify_mutex: down_read(lists_rwsem)
+ foreach(device_list)
+    .. client->add(dev,new_client...) ..
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+ down_write(lists_rwsem);
+ list_add(client_list,new_client..);
+ up_write(lists_rwsem);
 
+ mutex_unlock(modify_mutex)
 
---=-zEBoM1Zm2whSodS8PX1u
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+client_unregister:
+ mutex_lock(modify_mutex);
+ down_write(lists_rwsem);
+ list_cut(client_list,..rm_client..);
+ up_write(lists_rwsem);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+ // implied by modify_mutex: down_read(lists_rwsem)
+ foreach(device_list)
+    .. client->remove(dev,rm_client...) ..
 
-iQIcBAABCAAGBQJVU21dAAoJELgmozMOVy/dZgcQAI1TkFGFmoRZaq76GSVh8iyb
-1bP2ETeAXR2JnfFshzvhMDNy/K6miYjavUw7UhJoRvbpJLaFSgkTRjYV/cW0D+le
-DiLszrFB6c1lP7Zzdsv7lKTuJgYN8mDat1JXTjHGPKUvrwp5bCDmdub/bCydv5v6
-3Zq8psUSJ5mJ3miI2onO1SF9BCirYlYlrD5DYBWJQtfqG0qkGEE/baKmO8wCFBPn
-6XLw1OgChjqQIUuOP1xgR3BDZIJKL1UUr9nLPQeUo6UNvfhIfSs0f2w0sNnq5ejX
-BcG+RXGOXlWRyYoLn3O3xVeEsSDBjCIjL5ldEr/X+LuWDc/ie9wXprbZ0OZ6CTQf
-TmgiWYlIvGOAMxPPyyyNU81HgfI7rQKZD16p4BsldOynmsYP754fCVam9b2+umF1
-QN4lYdlbOU+PYv47v2W8a9B8ZxQSaujZh9kLqm3cQEesbmDa8O5uVmFETf4jJ43/
-bbWFJ9iwrQrTsVpsK0xmG9bNz1jH3GgMcH0xON+kwZYZNV07FBrX0j7eYn0mMpv2
-OZ+e6PzOE51FWk2M4KC8wM2cyDuCXtBY9IAKYqu8YkBIEe9fxJnAARkMp3Vxzw2N
-cXD9DGMzDenjyHIXta18y/pHhJbXMUzbUMCW1O24GG5nAadlA8uRqoMmyOWx/tuL
-jQPKdu/TWvz6WKsg5d7E
-=r0F1
------END PGP SIGNATURE-----
+ mutex_unlock(modify_mutex)
 
---=-zEBoM1Zm2whSodS8PX1u--
+etc. Notice the ordering.
 
+> I think I prefer keeping the single device_mutex and the SRCU, but
+> keeping the device_mutex locked as it is today, covering all of the
+> registration and unregistration code. Only the new code that reads the
+> client list or the device list without modification to the other list
+> will use the SRCU read lock.
+
+In this case, I don't see a justification to use RCU, we'd need a
+high read load before optimizing the rwsem into RCU would make
+sense.
+
+I'm not sure you should ever use RCU until you've designed the locking
+using traditional means.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
