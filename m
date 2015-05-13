@@ -1,86 +1,79 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 5/5] IB/core: Add rdma_cap_opa_mad helper using RDMA_CORE_CAP_OPA_MAD
- flag
-Date: Wed, 13 May 2015 15:23:22 -0400
-Message-ID: <5553A4AA.4050005@dev.mellanox.co.il>
-References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com> <1431395218-27693-6-git-send-email-ira.weiny@intel.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RFC PATCH 1/5] IB/core: Add Core Capability flags to ib_device
+Date: Wed, 13 May 2015 20:41:57 +0000
+Message-ID: <HE1PR05MB1418BFAF1310893F2F2E1CF6B1D90@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1430720099-32512-1-git-send-email-ira.weiny@intel.com>
+ <1430720099-32512-2-git-send-email-ira.weiny@intel.com>
+ <1430750492.2407.9.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCA17C@ORSMSX109.amr.corp.intel.com>
+ <HE1PR05MB1418E58A6EB92D92B78C76A0B1D10@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <1431111412.2407.463.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCD719@ORSMSX109.amr.corp.intel.com>
+ <1431117051.2407.468.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FCD78C@ORSMSX109.amr.corp.intel.com>
+ <20150508214855.GA3917@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431395218-27693-6-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20150508214855.GA3917-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/11/2015 9:46 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> OPA MADs share a common header with IBTA MADs but with a different base version
-> and an extended length.  These MADs increase the performance of management
-> traffic on OPA devices.
-> 
-> Sharing a common header with IBTA MADs allows us to share most of the MAD
-> processing code when dealing with OPA MADs in addition to supporting some IBTA
-> MADs on OPA devices.
-> 
-> This patch adds the Core Capability flag for OPA MADs.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> ---
->  include/rdma/ib_verbs.h | 18 ++++++++++++++++++
->  1 file changed, 18 insertions(+)
-> 
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 162a831..c4b37b3 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -362,6 +362,7 @@ union rdma_protocol_stats {
->  #define RDMA_CORE_CAP_IB_CM             0x00000004
->  #define RDMA_CORE_CAP_IW_CM             0x00000008
->  #define RDMA_CORE_CAP_IB_SA             0x00000010
-> +#define RDMA_CORE_CAP_OPA_MAD           0x00000020
->  
->  /* Address format                       0x000FF000 */
->  #define RDMA_CORE_CAP_AF_IB             0x00001000
-> @@ -386,6 +387,8 @@ union rdma_protocol_stats {
->  					| RDMA_CORE_CAP_ETH_AH)
->  #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
->  					| RDMA_CORE_CAP_IW_CM)
-> +#define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
-> +					| RDMA_CORE_CAP_OPA_MAD)
->  
->  struct ib_port_attr {
->  	enum ib_port_state	state;
-> @@ -1836,6 +1839,21 @@ static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
->  }
->  
->  /**
-> + * rdma_cap_opa_mad - Check if the port of device supports OPA defined
-> + * Management Datagrams.
-> + *
-> + * @device: Device to be checked
-> + * @port_num: Port number of the device
-> + *
-> + * Return 0 when port of the device does not support OPA
-> + * Management Datagrams.
-> + */
-> +static inline int rdma_cap_opa_mad(struct ib_device *device, u8 port_num)
-> +{
-> +	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_OPA_MAD);
-> +}
-> +
-> +/**
->   * rdma_cap_ib_smi - Check if the port of device has the capability Infiniband
->   * Subnet Management Interface.
->   *
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
 
-This patch should be part of an OPA patch series where the helper is
-actually used.
+> > > If you had a device that supported iWARP and RoCE on the same
+> > > physical link layer, then yes, the app would need a means of saying
+> > > which transport to use in addition to the type of QP to establish.
+> >
+> > Ah - got it now.  And I agree, there should be some way to specify
+> > this at the QP level.
 
--- Hal
+Supporting iWARP and RoCE over the same RDMA device makes no sense.
+First of all, it is confusing to the user. It's like supporting SRP and iSCSI
+using the same SCSI device instance...
+
+Second, different technologies affect much more than the QP. 
+A technology determines the format and semantics of the whole interface.
+For example, AHs, memory windows, atomics, CQE formats are different as well.
+Just thinking of how to abstract all these in  single device is mind-boggling.
+
+Finally, there is no sane way to describe device capabilities. There is no
+single set of capabilities that applies to all of these technologies consistently.
+
+> 
+> Yes, the only way out is to specify on a per QP basis the addressing and
+> protocol/transport/whatever thing. Socket uses the AF,SOCK,PROTO tuple to
+> specify this information. We can probably productively use a similar
+> breakdown:
+
+We might consider such abstractions at the CMA layer, not at the device level.
+Essentially, this is what the CMA was intended for.
+
+> 
+> AF_IB,SOCK_RC,PROTO_IBA  // InfiniBand
+> AF_OPA,SOCK_RC,PROTO_IBA // Future 32 bit LID OPB 'InfiniBand'
+
+This is not PROTO_IBA.
+
+> AF_ETH,SOCK_RC,PROTO_IBA // RoCEv1
+> AF_INET,SOCK_RC,PROTO_IBA // InfiniBand or RoCEv2, depending on the Link
+> Layer AF_ETH,SOCK_RC,PROTO_USNIC AF_INET,SOCK_RC,PROTO_USNIC
+> AF_INET,SOCK_RC,PROTO_IWARP
+> 
+
+[snip]
+> 
+> 
+> Realistically, today, if a RoCE/iWarp driver appeared then it would have to
+> present to the system as two RDMA devices.
+> 
+
+Exactly!
+--Liran
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
