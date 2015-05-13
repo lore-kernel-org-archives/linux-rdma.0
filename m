@@ -1,29 +1,30 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: RE: [PATCH RFC] Documentation/infiniband: Add docs for rdma-helpers
-Date: Wed, 13 May 2015 16:42:31 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDA105@ORSMSX109.amr.corp.intel.com>
-References: <1431523472-10888-1-git-send-email-yun.wang@profitbricks.com>
- <1431529914.2377.22.camel@redhat.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 for-next 00/13] Add network namespace support in the
+ RDMA-CM
+Date: Wed, 13 May 2015 16:45:59 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDA13B@ORSMSX109.amr.corp.intel.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FD7B85@ORSMSX109.amr.corp.intel.com>
+ <55531073.1000305@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1431529914.2377.22.camel@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55531073.1000305-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Michael Wang <yun.wang@profitbricks.com>
-Cc: Roland Dreier <roland@kernel.org>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, "Weiny, Ira" <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+ICsgIHJkbWFfY2FwX2liX2NtDQo+ID4gKyAgLS0tLS0tLS0tLS0tLS0tDQo+ID4gKyAgICBD
-b21tdW5pY2F0aW9uIE1hbmFnZXIgKENNKSB3aWxsIGhhbmRsZSB0aGUgY29ubmVjdGlvbnMgYmV0
-d2Vlbg0KPiAgICAgICAgXkNvbm5lY3Rpb24gTWFuYWdlciAoQ00pIHNlcnZpY2UsIHVzZWQgdG8g
-ZWFzZSB0aGUgcHJvY2VzcyBvZg0KDQpJbiBJQiB0ZXJtcywgdGhpcyBpcyBjb21tdW5pY2F0aW9u
-IG1hbmFnZXIuICBJdCBhbHNvIGhhbmRsZXMgdHJhbnNwb3J0IGxldmVsIGFkZHJlc3MgcmVzb2x1
-dGlvbiBmb3IgVUQgUVBzLg0KDQo+ID4gKyAgcmRtYV9jYXBfZXRoX2FoDQo+ID4gKyAgLS0tLS0t
-LS0tLS0tLS0tDQo+ID4gKyAgICBJbmZpbmliYW5kIGFkZHJlc3MgaGFuZGxlciBmb3JtYXQgaXMg
-c3BlY2lhbCBpbiBldGhlcm5ldCBmYWJyaWMsDQo+IHVzZQ0KPiA+ICsgICAgdGhlIGhlbHBlciB0
-byB2ZXJpZnkgd2hldGhlciB0aGUgcG9ydCBpcyB1c2luZyBldGhlcm5ldCBmb3JtYXQgb3INCj4g
-bm90Lg0KPiANCj4gVGhpcyBoZWxwZXIgaXMgdHJ1ZSB3aGVuIHRoZSBhZGRyZXNzIG9mIHRoZSBz
-cGVjaWZpYyBjb25uZWN0aW9uIGlzIG9mDQo+IHRoZSBFdGhlcm5ldCAoUm9DRSkgdmFyaWV0eS4N
-Cg0KVGhpcyBpcyB1c2VkIGZvciBjb25uZWN0aW9ubGVzcyBjb21tdW5pY2F0aW9uLg0K
+> > How does network namespace support work with iWarp?
+> 
+> We did not implement network namespace support for iWarp. Only for
+> InfiniBand. The iWarp code continues to use &init_net whenever a network
+> namespace is needed, as it does today.
+
+We need a solution that supports both.  It's odd for the RDMA CM to support a feature only for some devices, when the solution should be general.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
