@@ -1,71 +1,74 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Generic logging helpers [v6]
-Date: Wed, 13 May 2015 12:34:59 +0300
-Message-ID: <1431509705-16337-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v6 4/6] iser-target: Align to generic logging helpers
+Date: Wed, 13 May 2015 12:35:03 +0300
+Message-ID: <1431509705-16337-5-git-send-email-sagig@mellanox.com>
+References: <1431509705-16337-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431509705-16337-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This small set adds some meaningful verbosity to some
-of the core/rdma_cm enumerated events. Its useful to
-see the meaning of the opcodes instead of revisiting the
-code for every new status/event that left our brain cache.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
 
-Chages from v5:
-- Changed message strings to match the xprtrdma style
-- checkpatch nit
-
-Changes from v4:
-- Split up ULP changes to separate patches
-
-Changes from v3:
-- Protect against "holes" in string arrays
-- Restored __attribute_const__ to functions prototype
-- Made string arrays rodata
-
-Changes from v2:
-- Cast to size_t instead of unsigned
-- Style fix in string arrays declaration
-- Removed redundant __attribute_const__
-
-Changes from v1:
-- Changed helper names ib_wc_status_msg and rdma_event_msg
-- Cast input arguments to protect string buffer access
-- Add svcrdma to the party
-
-Changes from v0 (RFC):
-- Moved string arrays to .c files
-- Changed string helpers from macros to exported functions
-- Aligned rds to generic helpers as well
-
-Sagi Grimberg (6):
-  IB/core, cma: Nice log-friendly string helpers
-  IB/srp: Align to generic logging helpers
-  IB/iser: Align to generic logging helpers
-  iser-target: Align to generic logging helpers
-  xprtrdma, svcrdma: Switch to generic logging helpers
-  RDS: Switch to generic logging helpers
-
- drivers/infiniband/core/cma.c            |   28 +++++++++
- drivers/infiniband/core/verbs.c          |   65 +++++++++++++++++++++
- drivers/infiniband/ulp/iser/iser_verbs.c |   28 ++++++---
- drivers/infiniband/ulp/isert/ib_isert.c  |   19 ++++--
- drivers/infiniband/ulp/srp/ib_srp.c      |   16 +++--
- include/rdma/ib_verbs.h                  |    4 +
- include/rdma/rdma_cm.h                   |    2 +
- net/rds/af_rds.c                         |    9 ---
- net/rds/ib.h                             |    1 -
- net/rds/ib_cm.c                          |   36 +-----------
- net/rds/ib_recv.c                        |    4 +-
- net/rds/ib_send.c                        |   38 +------------
- net/rds/rdma_transport.c                 |   34 +----------
- net/rds/rds.h                            |    1 -
- net/sunrpc/xprtrdma/frwr_ops.c           |    4 +-
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   29 ++++++----
- net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
- 17 files changed, 174 insertions(+), 234 deletions(-)
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 327529e..d99a0c8 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -78,7 +78,9 @@ isert_qp_event_callback(struct ib_event *e, void *context)
+ {
+ 	struct isert_conn *isert_conn = context;
+ 
+-	isert_err("conn %p event: %d\n", isert_conn, e->event);
++	isert_err("%s (%d): conn %p\n",
++		  ib_event_msg(e->event), e->event, isert_conn);
++
+ 	switch (e->event) {
+ 	case IB_EVENT_COMM_EST:
+ 		rdma_notify(isert_conn->cm_id, IB_EVENT_COMM_EST);
+@@ -897,7 +899,8 @@ static int
+ isert_np_cma_handler(struct isert_np *isert_np,
+ 		     enum rdma_cm_event_type event)
+ {
+-	isert_dbg("isert np %p, handling event %d\n", isert_np, event);
++	isert_dbg("%s (%d): isert np %p\n",
++		  rdma_event_msg(event), event, isert_np);
+ 
+ 	switch (event) {
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+@@ -957,7 +960,8 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ {
+ 	int ret = 0;
+ 
+-	isert_info("event %d status %d id %p np %p\n", event->event,
++	isert_info("%s (%d): status %d id %p np %p\n",
++		   rdma_event_msg(event->event), event->event,
+ 		   event->status, cma_id, cma_id->context);
+ 
+ 	switch (event->event) {
+@@ -2091,10 +2095,13 @@ isert_handle_wc(struct ib_wc *wc)
+ 		}
+ 	} else {
+ 		if (wc->status != IB_WC_WR_FLUSH_ERR)
+-			isert_err("wr id %llx status %d vend_err %x\n",
+-				  wc->wr_id, wc->status, wc->vendor_err);
++			isert_err("%s (%d): wr id %llx vend_err %x\n",
++				  ib_wc_status_msg(wc->status), wc->status,
++				  wc->wr_id, wc->vendor_err);
+ 		else
+-			isert_dbg("flush error: wr id %llx\n", wc->wr_id);
++			isert_dbg("%s (%d): wr id %llx\n",
++				  ib_wc_status_msg(wc->status), wc->status,
++				  wc->wr_id);
+ 
+ 		if (wc->wr_id != ISER_FASTREG_LI_WRID)
+ 			isert_cq_comp_err(isert_conn, wc);
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
