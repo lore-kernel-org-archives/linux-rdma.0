@@ -1,110 +1,53 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: [PATCH RFC] Documentation/infiniband: Add docs for rdma-helpers
-Date: Wed, 13 May 2015 15:24:32 +0200
-Message-ID: <1431523472-10888-1-git-send-email-yun.wang@profitbricks.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: Michael Wang <yun.wang@profitbricks.com>, Or Gerlitz <ogerlitz@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: rdma kernel tree
+Date: Wed, 13 May 2015 17:46:04 +0300
+Message-ID: <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
+	<1431485563.43876.93.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431485563.43876.93.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the following patch for:
-  https://lkml.org/lkml/2015/5/5/417
-which try to document the settled rdma_cap_XX().
+On Wed, May 13, 2015 at 5:52 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Tue, 2015-05-12 at 21:31 +0000, Hefty, Sean wrote:
+>> Doug,
+>>
+>> Do you plan on only using your kernel.org tree going forward, or will you maintain your github tree as well?
+>
+> I plan to keep both repos.  The one on github will have stuff sooner,
+> but it is likely that portions of it will see rebases.  I've taken to a
+> very obvious branch naming scheme if I think that I'm going to rebase a
+> branch.  I'm also keeping the github repo as the one I have in the 0day
+> testing framework so that more of the stuff gets tested sooner.
+>
+> When I'm satisfied that a branch has passed all of the 0day testing and
+> I'm no longer going to consider any changes to the patches in that
+> branch, then I'll make a k.o/<branchname> branch and I only push those
+> branches to the kernel.org repo.  Once a branch lands there, it is a
+> fast-forward only branch and will not see any rebases or edits of
+> patches.
+>
+> I'm doing this because of the large number of interrelated patches that
+> different people are working on right now.  This makes it easier for
+> people to be able to base their work off of the latest interrelated
+> patches from other people.  Once this backlog clears out, it might be
+> possible for me to drop the github repo.  Right now it's the only way I
+> have to provide the sort of early access sandbox that people need to get
+> their patches in without taking too many consecutive release cycles.
 
-Highlights:
-  There could be many missing/mistakes/misunderstanding, please don't
-  be hesitate to point out the issues, any suggestions to improve or
-  complete the description are very welcomed ;-)
+Doug,
 
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
----
- Documentation/infiniband/rdma_helpers.txt | 76 +++++++++++++++++++++++++++++++
- 1 file changed, 76 insertions(+)
- create mode 100644 Documentation/infiniband/rdma_helpers.txt
-
-diff --git a/Documentation/infiniband/rdma_helpers.txt b/Documentation/infiniband/rdma_helpers.txt
-new file mode 100644
-index 0000000..abc75ec
---- /dev/null
-+++ b/Documentation/infiniband/rdma_helpers.txt
-@@ -0,0 +1,76 @@
-+RDMA HELPERS
-+
-+  For core layer, below helpers are used to check if a paticular capability
-+  is supported by the port.
-+
-+    rdma_cap_ib_mad		- Infiniband Management Datagrams.
-+    rdma_cap_ib_smi		- Infiniband Subnet Management Interface.
-+    rdma_cap_ib_cm		- Infiniband Communication Manager.
-+    rdma_cap_iw_cm		- IWARP Communication Manager.
-+    rdma_cap_ib_sa		- Infiniband Subnet Administration.
-+    rdma_cap_ib_mcast		- Infiniband Multicast.
-+    rdma_cap_read_multi_sge	- RDMA Read Multiple Scatter-Gather Entries.
-+    rdma_cap_af_ib		- Native Infiniband Address.
-+    rdma_cap_eth_ah		- Ethernet Address Handler.
-+
-+USAGE
-+
-+  if (rdma_cap_XX(device, i)) {
-+	/* The port i of device support XX */
-+	...
-+  } else {
-+	/* The port i of device don't support XX */
-+	...
-+  }
-+
-+  rdma_cap_ib_mad
-+  ---------------
-+    Management Datagrams (MAD) is the prototype of management packet
-+    to be used by all the kinds of infiniband managers, use the helper
-+    to verify the port before utilize related features.
-+
-+  rdma_cap_ib_smi
-+  ---------------
-+    Subnet Management Interface (SMI) will handle SMP packet from SM
-+    in an infiniband fabric, use the helper to verify the port before
-+    utilize related features.
-+
-+  rdma_cap_ib_cm
-+  ---------------
-+    Communication Manager (CM) will handle the connections between
-+    adaptors, currently there are two different implementation,
-+    IB or IWARP, use the helper to verify whether the port using
-+    IB-CM or not
-+
-+  rdma_cap_iw_cm
-+  ---------------
-+    IWARP has it's own implemented CM which is different from infiniband,
-+    use the helper to check whether the port using IWARP-CM or not.
-+
-+  rdma_cap_ib_sa
-+  ---------------
-+    Subnet Administration (SA) is the database built by SM in an
-+    infiniband fabric, use the helper to verify the port before
-+    utilize related features.
-+
-+  rdma_cap_ib_mcast
-+  ---------------
-+    Multicast is the feature for one QP to send messages to multiple
-+    QP in an infiniband fabric, use the helper to verify the port before
-+    utilize related features.
-+
-+  rdma_cap_read_multi_sge
-+  ---------------
-+    RDMA read operation could support multiple scatter-gather entries,
-+    use the helper to verify wthether the port support this feature
-+    or not.
-+
-+  rdma_cap_af_ib
-+  ---------------
-+    RDMA address format could be ethernet or infiniband, use the helper
-+    to verify whether the port support infiniband format or not.
-+
-+  rdma_cap_eth_ah
-+  ---------------
-+    Infiniband address handler format is special in ethernet fabric, use
-+    the helper to verify whether the port is using ethernet format or not.
--- 
-2.1.0
-
+Still, as things are now, you've already accepted patches for 4.2
+which are dependent on other patches which you've accepted too (e.g
+Ira's patches on top of Michael's patches) --> @ this point (post
+4.1-rc3) **something** has to be in your kernel.org branch for 4.2 --
+else the chain of dependencies can become really non-traceable.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
