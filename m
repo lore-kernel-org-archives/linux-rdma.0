@@ -1,45 +1,65 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 for-next 00/13] Add network namespace support in the
- RDMA-CM
-Date: Wed, 13 May 2015 17:30:01 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDA1AB@ORSMSX109.amr.corp.intel.com>
-References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FD7B85@ORSMSX109.amr.corp.intel.com>
- <55531073.1000305@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDA13B@ORSMSX109.amr.corp.intel.com>
- <20150513171823.GB20343@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] dapl: aarch64 support for linux
+Date: Wed, 13 May 2015 15:05:33 -0400
+Message-ID: <1431543933-27781-1-git-send-email-msalter@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150513171823.GB20343-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > > > How does network namespace support work with iWarp?
-> > >
-> > > We did not implement network namespace support for iWarp. Only for
-> > > InfiniBand. The iWarp code continues to use &init_net whenever a
-> network
-> > > namespace is needed, as it does today.
-> >
-> > We need a solution that supports both.  It's odd for the RDMA CM to
-> > support a feature only for some devices, when the solution should be
-> > general.
-> 
-> Yes, it is not optimal, but given that every protocol uses a
-> completely different scheme to interact with netdev, I'm not sure
-> there is another option but to do them piecemeal?
+Add atomic ops to fix builds for aarch64 Linux.
 
-Piecemeal isn't necessarily the problem.  No thought appears to have been given to how this scheme supports iWarp at all.  My concern is around whether any changes should be made to the ib_cm, versus keeping everything contained in the rdma_cm.  I.e. do we want the same kref schemed added to the iw_cm, or keep reference counts only in the rdma_cm?
+Signed-off-by: Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ dapl/udapl/linux/dapl_osd.h | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-> I'm happy to see this patch much smaller and without the vestigial
-> half-roce support that the prior version included.
-
-agreed
+diff --git a/dapl/udapl/linux/dapl_osd.h b/dapl/udapl/linux/dapl_osd.h
+index 10f71b0..2b255d0 100644
+--- a/dapl/udapl/linux/dapl_osd.h
++++ b/dapl/udapl/linux/dapl_osd.h
+@@ -50,7 +50,8 @@
+ #endif /* __linux__ */
+ 
+ #if !defined (__i386__) && !defined (__ia64__) && !defined(__x86_64__) && \
+-    !defined(__PPC__) && !defined(__PPC64__) && !defined(__s390x__)
++    !defined(__PPC__) && !defined(__PPC64__) && !defined(__s390x__) && \
++    !defined(__aarch64__)
+ #error UNDEFINED ARCH
+ #endif
+ 
+@@ -214,6 +215,8 @@ dapl_os_atomic_inc (
+ 	: "=&r" (tmp), "+m" (v)
+ 	: "b" (v)
+ 	: "cc");
++#elif defined(__aarch64__)
++    __atomic_fetch_add(v, 1, __ATOMIC_ACQ_REL);
+ #else  /* !__ia64__ */
+     __asm__ __volatile__ (
+ 	"lock;" "incl %0"
+@@ -258,6 +261,8 @@ dapl_os_atomic_dec (
+ 	: "=&r" (tmp), "+m" (v)
+ 	: "b" (v)
+ 	: "cc");
++#elif defined(__aarch64__)
++    __atomic_fetch_add(v, -1, __ATOMIC_ACQ_REL);
+ #else  /* !__ia64__ */
+     __asm__ __volatile__ (
+ 	"lock;" "decl %0"
+@@ -322,6 +327,10 @@ dapl_os_atomic_assign (
+         : "=&r" (current_value), "=m" (*v)
+         : "r" (v), "r" (match_value), "r" (new_value), "m" (*v)
+         : "cc", "memory");
++#elif defined(__aarch64__)
++    current_value = match_value;
++    __atomic_compare_exchange_n(v, &current_value, new_value, 1,
++				__ATOMIC_ACQ_REL, __ATOMIC_RELAXED);
+ #else
+     __asm__ __volatile__ (
+         "lock; cmpxchgl %1, %2"
+-- 
+1.9.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
