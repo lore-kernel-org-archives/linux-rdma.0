@@ -1,66 +1,86 @@
-From: Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] dapl: aarch64 support for linux
-Date: Wed, 13 May 2015 15:05:33 -0400
-Message-ID: <1431543933-27781-1-git-send-email-msalter@redhat.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 5/5] IB/core: Add rdma_cap_opa_mad helper using RDMA_CORE_CAP_OPA_MAD
+ flag
+Date: Wed, 13 May 2015 15:23:22 -0400
+Message-ID: <5553A4AA.4050005@dev.mellanox.co.il>
+References: <1431395218-27693-1-git-send-email-ira.weiny@intel.com> <1431395218-27693-6-git-send-email-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431395218-27693-6-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add atomic ops to fix builds for aarch64 Linux.
+On 5/11/2015 9:46 PM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> OPA MADs share a common header with IBTA MADs but with a different base version
+> and an extended length.  These MADs increase the performance of management
+> traffic on OPA devices.
+> 
+> Sharing a common header with IBTA MADs allows us to share most of the MAD
+> processing code when dealing with OPA MADs in addition to supporting some IBTA
+> MADs on OPA devices.
+> 
+> This patch adds the Core Capability flag for OPA MADs.
+> 
+> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> ---
+>  include/rdma/ib_verbs.h | 18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
+> 
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 162a831..c4b37b3 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -362,6 +362,7 @@ union rdma_protocol_stats {
+>  #define RDMA_CORE_CAP_IB_CM             0x00000004
+>  #define RDMA_CORE_CAP_IW_CM             0x00000008
+>  #define RDMA_CORE_CAP_IB_SA             0x00000010
+> +#define RDMA_CORE_CAP_OPA_MAD           0x00000020
+>  
+>  /* Address format                       0x000FF000 */
+>  #define RDMA_CORE_CAP_AF_IB             0x00001000
+> @@ -386,6 +387,8 @@ union rdma_protocol_stats {
+>  					| RDMA_CORE_CAP_ETH_AH)
+>  #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
+>  					| RDMA_CORE_CAP_IW_CM)
+> +#define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
+> +					| RDMA_CORE_CAP_OPA_MAD)
+>  
+>  struct ib_port_attr {
+>  	enum ib_port_state	state;
+> @@ -1836,6 +1839,21 @@ static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
+>  }
+>  
+>  /**
+> + * rdma_cap_opa_mad - Check if the port of device supports OPA defined
+> + * Management Datagrams.
+> + *
+> + * @device: Device to be checked
+> + * @port_num: Port number of the device
+> + *
+> + * Return 0 when port of the device does not support OPA
+> + * Management Datagrams.
+> + */
+> +static inline int rdma_cap_opa_mad(struct ib_device *device, u8 port_num)
+> +{
+> +	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_OPA_MAD);
+> +}
+> +
+> +/**
+>   * rdma_cap_ib_smi - Check if the port of device has the capability Infiniband
+>   * Subnet Management Interface.
+>   *
 
-Signed-off-by: Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- dapl/udapl/linux/dapl_osd.h | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+This patch should be part of an OPA patch series where the helper is
+actually used.
 
-diff --git a/dapl/udapl/linux/dapl_osd.h b/dapl/udapl/linux/dapl_osd.h
-index 10f71b0..2b255d0 100644
---- a/dapl/udapl/linux/dapl_osd.h
-+++ b/dapl/udapl/linux/dapl_osd.h
-@@ -50,7 +50,8 @@
- #endif /* __linux__ */
- 
- #if !defined (__i386__) && !defined (__ia64__) && !defined(__x86_64__) && \
--    !defined(__PPC__) && !defined(__PPC64__) && !defined(__s390x__)
-+    !defined(__PPC__) && !defined(__PPC64__) && !defined(__s390x__) && \
-+    !defined(__aarch64__)
- #error UNDEFINED ARCH
- #endif
- 
-@@ -214,6 +215,8 @@ dapl_os_atomic_inc (
- 	: "=&r" (tmp), "+m" (v)
- 	: "b" (v)
- 	: "cc");
-+#elif defined(__aarch64__)
-+    __atomic_fetch_add(v, 1, __ATOMIC_ACQ_REL);
- #else  /* !__ia64__ */
-     __asm__ __volatile__ (
- 	"lock;" "incl %0"
-@@ -258,6 +261,8 @@ dapl_os_atomic_dec (
- 	: "=&r" (tmp), "+m" (v)
- 	: "b" (v)
- 	: "cc");
-+#elif defined(__aarch64__)
-+    __atomic_fetch_add(v, -1, __ATOMIC_ACQ_REL);
- #else  /* !__ia64__ */
-     __asm__ __volatile__ (
- 	"lock;" "decl %0"
-@@ -322,6 +327,10 @@ dapl_os_atomic_assign (
-         : "=&r" (current_value), "=m" (*v)
-         : "r" (v), "r" (match_value), "r" (new_value), "m" (*v)
-         : "cc", "memory");
-+#elif defined(__aarch64__)
-+    current_value = match_value;
-+    __atomic_compare_exchange_n(v, &current_value, new_value, 1,
-+				__ATOMIC_ACQ_REL, __ATOMIC_RELAXED);
- #else
-     __asm__ __volatile__ (
-         "lock; cmpxchgl %1, %2"
--- 
-1.9.3
-
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
