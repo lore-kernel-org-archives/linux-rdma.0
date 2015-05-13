@@ -1,105 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v3 for-next 05/13] IB/cm: Reference count ib_cm_ids
-Date: Wed, 13 May 2015 10:58:23 -0600
-Message-ID: <20150513165823.GA20343@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v3 for-next 00/13] Add network namespace support in the
+ RDMA-CM
+Date: Wed, 13 May 2015 11:18:23 -0600
+Message-ID: <20150513171823.GB20343@obsidianresearch.com>
 References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
- <1431253604-9214-6-git-send-email-haggaie@mellanox.com>
- <20150511183459.GB25405@obsidianresearch.com>
- <5551A2CB.1010407@mellanox.com>
- <20150512185447.GA3503@obsidianresearch.com>
- <55532566.9040105@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FD7B85@ORSMSX109.amr.corp.intel.com>
+ <55531073.1000305@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FDA13B@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55532566.9040105@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDA13B-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 13, 2015 at 01:20:22PM +0300, Haggai Eran wrote:
-
-> > If you want to share listening CM IDs, then do exactly and only
-> > that. Use the existing ref count scheme for keeping track of the
-> > kfree/etc,
-
-> The existing reference count scheme is for synchronization in
-> cm_destroy_id. The function waits for active handlers to complete
-> before
-
-Pedantically, this is true
-
-> destroying the id. Decrementing ref_count to zero doesn't cause the id
-> to be freed.
-
-Think it through. cm_destroy_id does this:
-
-	cm_deref_id(cm_id_priv);
-	wait_for_completion(&cm_id_priv->comp);
-
-The cm_create_cm_id/cm_destroy_id pair holds a value in refcount.
-
-The only way refcount can go zero is if cm_destroy_id is waiting in
-wait_for_completion. So setting the refcount to zero always triggers a
-(possibly async) kfree.
-
-> > and add some kind of sharable listen ref count.
-> That's basically what the patch does. I can change it from a kref to a
-> direct reference count if you prefer.
-
-As I've said, idiomatically I prefer to see kref used to manage object
-life time exclusively, not as a general purpose counter.
-
-In this case the share count should be protected by the existing spin
-lock.
-
-> > Early exit
-> > from cm_destroy_id when the there are still people listening.
+On Wed, May 13, 2015 at 04:45:59PM +0000, Hefty, Sean wrote:
+> > > How does network namespace support work with iWarp?
 > > 
-> > That sounds like it keeps the basic rule of cm_destroy_id being
-> > properly paired with the alloc, and allows listen sharing without the
-> > confusion of what does multiple destroy mean.
+> > We did not implement network namespace support for iWarp. Only for
+> > InfiniBand. The iWarp code continues to use &init_net whenever a network
+> > namespace is needed, as it does today.
 > 
-> Won't you find it confusing if a call to ib_destroy_cm_id is successful
-> but the id actually continues to live?
+> We need a solution that supports both.  It's odd for the RDMA CM to
+> support a feature only for some devices, when the solution should be
+> general.
 
-No.. As the caller, I don't care what the cm layer is doing behind the scenes.
+Yes, it is not optimal, but given that every protocol uses a
+completely different scheme to interact with netdev, I'm not sure
+there is another option but to do them piecemeal?
 
-The lifetime if each cm_id is clearly defined:
+I'm happy to see this patch much smaller and without the vestigial
+half-roce support that the prior version included.
 
-cm_create_cm_id()
-cm_ref_id() / cm_deref_id()
-cm_destroy_id()
+This should be a good starting point for someone to do iWarp, it is
+pretty simple since there is no UD component. roce will be much
+harder, I think.
 
-The fact the CM might share a listen (and only a listen) ID behind the
-scenes is not the caller's problem. That is an implementation choice,
-each caller stands alone and uses the API properly, assuming it is the
-only user of the returned cm_id.
-
-The caller relies on cm_destroy_id being synchronous.
-
-> I prefer the API to explicitly show that you are only decreasing the
-> reference count and that the id might not be destroyed immediately.
-
-No, that is fuzzy thinking, and lead to this patch that tried to have
-both a ib_cm_id_put and cm_destroy_id being used at once. That is broken.
-
-As discussed, we can't easily convert all call sites of cm_destroy_id
-to ib_cm_id_put because 1) We loose the error code and 2) The put_X
-idiom is async while cm_destory_id users expect sync.
-
-So the best choice is to retain the cm_create_cm_id()/cm_destroy_id()
-pairing, and have cm_destroy_id 'do the right thing' when presented
-with a shared listen to destroy -> decrease the share count and free
-the underlying listen when no more shares are left.
-
-That said: Are you sure this is going to work? Are all the listen
-specific cases of cm_destroy_id OK with not doing the
-wait_for_completion and cm_dqueue_work *for stuff related to that
-client* ?
-
-If not you'll have to change the patch to create multiple cm_id's for
-the same listen and iterate over all of them.
+Should we inhibit the RDMA uapi on non-init namespaces? At least
+that way iWarp/etc won't work at all, instead of leaking through the
+container.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
