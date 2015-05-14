@@ -1,34 +1,44 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RESEND PATCH V3 for-next 0/3] HW Device hot-removal support
-Date: Thu, 14 May 2015 16:50:21 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDA931@ORSMSX109.amr.corp.intel.com>
-References: <1431515438-24042-1-git-send-email-yishaih@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDA36D@ORSMSX109.amr.corp.intel.com>
- <555486CA.8080409@dev.mellanox.co.il>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/mad: Clean up ib_find_send_mad to use only the ib_mad_hdr
+Date: Thu, 14 May 2015 13:35:58 -0400
+Message-ID: <20150514173557.GB10941@phlsvsds.ph.intel.com>
+References: <CAJ3xEMjtndfHJOh-JSTzaXuXTNrx2wzDkBcS67T6AwFztcckgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <555486CA.8080409-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMjtndfHJOh-JSTzaXuXTNrx2wzDkBcS67T6AwFztcckgQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The ib_uverbs code does follow the same model in the sense that the
-> context (uverbs_device) associated with the fd remains open until the
-> app closes it, while all references to the HW device are removed
-> immediately. However, in contrast to the umad API, which does *not*
-> expose direct HW access and thus can be managed in a device-independent
-> manner, ib_uverbs does provide user-space direct HW access.
-> Therefore, detaching a ib_uverbs context from a HW device does require
-> device-specific logic.
-> The amount of code depends on the specific driver. The proposed
-> framework provides any driver a chance to do proper cleanup when devices
-> are removed.
+On Thu, May 14, 2015 at 10:28:45AM +0300, Or Gerlitz wrote:
+> On Thu, May 14, 2015 at 2:20 AM,  <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > ib_find_send_mad only needs access to the MAD header.  Change the MAD cast.
+> >
+> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> shorter and clearer subject line please, e.g
 
-Why can't uverbs simply cleanup all resources associated with the open device, similar to what it does when an app closes unexpectedly (just limited to the device in question)?
+Sorry, I'll try to keep them brief.
+
+> 
+> IB/mad: Clean up ib_find_send_mad to use only the MAD header
+> 
+> Also, please try to send patches in series and not as both singles and
+> series with multiple series flowing in the same time and touching the
+> same module. It's hard for both reviewers and maintainers to follow.
+
+I don't understand this statement.
+
+This stands on its own based on Dougs "doug/to-be-rebased/for-4.2"
+branch.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
