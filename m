@@ -1,103 +1,37 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH v3 for-next 01/13] IB/core: Use SRCU when reading client_list
- or device_list
-Date: Thu, 14 May 2015 13:35:36 +0300
-Message-ID: <55547A78.5080404@mellanox.com>
-References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
- <1431253604-9214-2-git-send-email-haggaie@mellanox.com>
- <20150511181824.GA25405@obsidianresearch.com> <555198B7.40302@mellanox.com>
- <20150512182332.GD15891@obsidianresearch.com> <555306E7.9020000@mellanox.com>
- <20150513155737.GA16941@obsidianresearch.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RESEND PATCH V3 for-next 0/3] HW Device hot-removal support
+Date: Thu, 14 May 2015 14:28:10 +0300
+Message-ID: <555486CA.8080409@dev.mellanox.co.il>
+References: <1431515438-24042-1-git-send-email-yishaih@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373A8FDA36D@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150513155737.GA16941@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>, Matan Barak <matanb@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDA36D-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/05/2015 18:57, Jason Gunthorpe wrote:
-> On Wed, May 13, 2015 at 11:10:15AM +0300, Haggai Eran wrote:
-> 
->>>> I guess a similar thing we can do is to rely on the context we associate
->>>> with a pair of a client and a device. If such a context exist, we don't
->>>> need to call client->add again. What do you think?
->>>
->>> I didn't look closely, isn't this enough?
->>>
->>> device_register:
->>>  mutex_lock(client_mutex);
->>>  down_write(devices_rwsem);
->>>  list_add(device_list,dev,..);
->>>  up_write(devices_rwsem);
->>>
->>>  /* Caller must prevent device_register/unregister concurrancy on the
->>>     same dev */
->>>
->>>  foreach(client_list)
->>>    .. client->add(dev,...) .. 
->>>
->>>  mutex_unlock(client_mutex)
->>>
->>> client_register:
->>>  mutex_lock(client_mutex)
->>>  list_add(client_list,new_client..)
->>>  down_read(devices_rwsem);
->>>  foreach(device_list)
->>>    .. client->add(dev,new_client,..) ..
->>>  up_read(devices_rwsem);
->>>  mutex_unlock(client_mutex)
->>>
->>> [Note, I didn't check this carefully, just intuitively seems like a
->>>  sane starting point]
->>
->> That could perhaps work for the RoCEv2 patch-set, as their deadlock
->> relates to iterating the device list. This patch set however does an
->> iteration on the client list (patch 3). Because a client remove could
->> block on this iteration, you can still get a deadlock.
-> 
-> Really? Gross.
-> 
-> Still, I think you got it right in your analysis, but we don't need RCU:
-> 
-> device_register:
->  mutex_lock(modify_mutex);
->  down_write(lists_rwsem);
->  list_add(device_list,dev,..);
->  up_write(lists_rwsem);
-> 
->  // implied by modify_mutex: down_read(lists_rwsem)
->  foreach(client_list)
->     .. client->add(dev,...) ..
->  mutex_unlock(modify_mutex)
-> 
-> client_register:
->  mutex_lock(modify_mutex);
->  // implied by modify_mutex: down_read(lists_rwsem)
->  foreach(device_list)
->     .. client->add(dev,new_client...) ..
-> 
->  down_write(lists_rwsem);
->  list_add(client_list,new_client..);
->  up_write(lists_rwsem);
-> 
->  mutex_unlock(modify_mutex)
-> 
-> client_unregister:
->  mutex_lock(modify_mutex);
->  down_write(lists_rwsem);
->  list_cut(client_list,..rm_client..);
->  up_write(lists_rwsem);
-> 
->  // implied by modify_mutex: down_read(lists_rwsem)
->  foreach(device_list)
->     .. client->remove(dev,rm_client...) ..
-> 
->  mutex_unlock(modify_mutex)
-> 
-> etc. Notice the ordering.
-> 
+On 5/13/2015 11:55 PM, Hefty, Sean wrote:
+> Please look at ib_user_mad and how it handles device removal with active clients.  We should be able to follow the same model that doesn't require driving changes down into every driver.
+>
 
-Looks good. I'll use it in the next version of the patch.
+The ib_uverbs code does follow the same model in the sense that the 
+context (uverbs_device) associated with the fd remains open until the 
+app closes it, while all references to the HW device are removed 
+immediately. However, in contrast to the umad API, which does *not* 
+expose direct HW access and thus can be managed in a device-independent 
+manner, ib_uverbs does provide user-space direct HW access.
+Therefore, detaching a ib_uverbs context from a HW device does require 
+device-specific logic.
+The amount of code depends on the specific driver. The proposed 
+framework provides any driver a chance to do proper cleanup when devices 
+are removed.
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
