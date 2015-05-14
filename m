@@ -1,134 +1,77 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] IB/core: Change rdma_protcol_iboe to roce
-Date: Thu, 14 May 2015 15:01:46 -0400
-Message-ID: <1431630106-28829-1-git-send-email-ira.weiny@intel.com>
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH] ib/cm: Change reject message type when destroying cm_id
+Date: Thu, 14 May 2015 12:49:01 -0700
+Message-ID: <1431632941-3430-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-It has been decided that ROCE should be used within the kernel rather than IBOE
-as we used before.  Change iboe to roce on the new rdma_protocol_* functions.
+Problem reported by: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>:
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+We have a case where a Linux system and a non-Linux system are
+trying to interoperate.  The Linux host is the active side and
+starts the connection establishment, but later decides to not go
+through with the connection setup and does rdma_destroy_id().
+
+The rdma_destroy_id() eventually works its way down to cm_destroy_id()
+in core/cm.c, where a REJ is sent. The non-Linux system
+has some trouble recognizing the REJ because of:
+
+A. CM states which can't receive the REJ
+B. Some issues about REJ formatting (missing comm ID)
+
+ISSUE A: That part of the spec says, a Consumer Reject REJ can be
+sent for a connection abort, but it goes further
+and says: can send a REJ message with a "Consumer Reject"
+Reason code if they are in a CM state (i.e. REP
+Rcvd, MRA(REP) Sent, REQ Rcvd, MRA Sent) that allows
+a REJ to be sent (lines 35-38).
+
+Of the states listed there in that sentence, it would
+seem to limit the active side to using the Consumer Reject
+(for the abort case) in just the REP-Rcvd and MRA-REP-Sent
+states. That is basically only after the active side
+sees a REP (or alternatively goes down the state transitions
+to timeout in which case a Timeout REJ is sent).
+
+As a fix, in cm-destroy-id() move the IB-CM-MRA-REQ-RCVD case
+to the same as REQ-SENT.  Essentially, make a REJ sent after
+getting an MRA on active side a timeout rather than Consumer-
+Reject, which is arguably more correct with the CM state
+diagrams previous to getting a REP.
+
+Signed-off-by: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c            | 12 ++++++------
- drivers/infiniband/core/ucma.c           |  2 +-
- include/rdma/ib_verbs.h                  |  4 ++--
- net/sunrpc/xprtrdma/svc_rdma_transport.c |  2 +-
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 1977f601a1ec..ea92a0daa61c 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -391,7 +391,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 	if (listen_id_priv) {
- 		cma_dev = listen_id_priv->cma_dev;
- 		port = listen_id_priv->id.port_num;
--		gidp = rdma_protocol_iboe(cma_dev->device, port) ?
-+		gidp = rdma_protocol_roce(cma_dev->device, port) ?
- 		       &iboe_gid : &gid;
- 
- 		ret = cma_validate_port(cma_dev->device, port, gidp,
-@@ -409,7 +409,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 			    listen_id_priv->id.port_num == port)
- 				continue;
- 
--			gidp = rdma_protocol_iboe(cma_dev->device, port) ?
-+			gidp = rdma_protocol_roce(cma_dev->device, port) ?
- 			       &iboe_gid : &gid;
- 
- 			ret = cma_validate_port(cma_dev->device, port, gidp,
-@@ -647,7 +647,7 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
- 
- 	BUG_ON(id_priv->cma_dev->device != id_priv->id.device);
- 
--	if (rdma_protocol_iboe(id_priv->id.device, id_priv->id.port_num)) {
-+	if (rdma_protocol_roce(id_priv->id.device, id_priv->id.port_num)) {
- 		ret = rdma_addr_find_smac_by_sgid(&sgid, qp_attr.smac, NULL);
- 
- 		if (ret)
-@@ -1966,7 +1966,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
- 	atomic_inc(&id_priv->refcount);
- 	if (rdma_cap_ib_sa(id->device, id->port_num))
- 		ret = cma_resolve_ib_route(id_priv, timeout_ms);
--	else if (rdma_protocol_iboe(id->device, id->port_num))
-+	else if (rdma_protocol_roce(id->device, id->port_num))
- 		ret = cma_resolve_iboe_route(id_priv);
- 	else if (rdma_protocol_iwarp(id->device, id->port_num))
- 		ret = cma_resolve_iw_route(id_priv, timeout_ms);
-@@ -3325,7 +3325,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	list_add(&mc->list, &id_priv->mc_list);
- 	spin_unlock(&id_priv->lock);
- 
--	if (rdma_protocol_iboe(id->device, id->port_num)) {
-+	if (rdma_protocol_roce(id->device, id->port_num)) {
- 		kref_init(&mc->mcref);
- 		ret = cma_iboe_join_multicast(id_priv, mc);
- 	} else if (rdma_cap_ib_mcast(id->device, id->port_num))
-@@ -3365,7 +3365,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 			if (rdma_cap_ib_mcast(id->device, id->port_num)) {
- 				ib_sa_free_multicast(mc->multicast.ib);
- 				kfree(mc);
--			} else if (rdma_protocol_iboe(id->device, id->port_num))
-+			} else if (rdma_protocol_roce(id->device, id->port_num))
- 				kref_put(&mc->mcref, release_mc);
- 
- 			return;
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index d42b816c781f..ad45469f7582 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -725,7 +725,7 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 
- 	if (rdma_cap_ib_sa(ctx->cm_id->device, ctx->cm_id->port_num))
- 		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
--	else if (rdma_protocol_iboe(ctx->cm_id->device, ctx->cm_id->port_num))
-+	else if (rdma_protocol_roce(ctx->cm_id->device, ctx->cm_id->port_num))
- 		ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
- 	else if (rdma_protocol_iwarp(ctx->cm_id->device, ctx->cm_id->port_num))
- 		ucma_copy_iw_route(&resp, &ctx->cm_id->route);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 29095fb6db5c..bcb87bf168c3 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1832,7 +1832,7 @@ static inline bool rdma_protocol_ib(struct ib_device *device, u8 port_num)
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IB;
- }
- 
--static inline bool rdma_protocol_iboe(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_roce(struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
- }
-@@ -1842,7 +1842,7 @@ static inline bool rdma_protocol_iwarp(struct ib_device *device, u8 port_num)
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IWARP;
- }
- 
--static inline bool rdma_ib_or_iboe(struct ib_device *device, u8 port_num)
-+static inline bool rdma_ib_or_roce(struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags &
- 		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 3df8320c6efe..3f5750cf187e 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -987,7 +987,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	 */
- 	if (!rdma_protocol_iwarp(newxprt->sc_cm_id->device,
- 				 newxprt->sc_cm_id->port_num) &&
--	    !rdma_ib_or_iboe(newxprt->sc_cm_id->device,
-+	    !rdma_ib_or_roce(newxprt->sc_cm_id->device,
- 			     newxprt->sc_cm_id->port_num))
- 		goto errout;
- 
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index e28a494..346243e 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -862,6 +862,7 @@ retest:
+ 		cm_reject_sidr_req(cm_id_priv, IB_SIDR_REJECT);
+ 		break;
+ 	case IB_CM_REQ_SENT:
++	case IB_CM_MRA_REQ_RCVD:
+ 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
+ 		spin_unlock_irq(&cm_id_priv->lock);
+ 		ib_send_cm_rej(cm_id, IB_CM_REJ_TIMEOUT,
+@@ -880,7 +881,6 @@ retest:
+ 				       NULL, 0, NULL, 0);
+ 		}
+ 		break;
+-	case IB_CM_MRA_REQ_RCVD:
+ 	case IB_CM_REP_SENT:
+ 	case IB_CM_MRA_REP_RCVD:
+ 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
 -- 
-1.8.2
+1.7.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
