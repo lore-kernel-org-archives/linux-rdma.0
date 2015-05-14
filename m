@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] IB/mad: Clean up ib_find_send_mad to use only the ib_mad_hdr
-Date: Wed, 13 May 2015 19:20:14 -0400
-Message-ID: <1431559214-12474-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 0/5] Convert management helpers to Core Capability bits
+Date: Wed, 13 May 2015 20:02:54 -0400
+Message-ID: <1431561779-13714-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
@@ -10,57 +10,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-ib_find_send_mad only needs access to the MAD header.  Change the MAD cast.
+The following 5 patches complete the conversion of Michaels management helpers
+to use new Core Capability bits to signal core capabilities rather than
+inferring these capabilities from the device protocols.
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/mad.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+The first makes the start_port and end_port functions common rather than being
+declared in 2 places.
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 600af266838c..deefe5df9697 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1815,18 +1815,18 @@ ib_find_send_mad(const struct ib_mad_agent_private *mad_agent_priv,
- 		 const struct ib_mad_recv_wc *wc)
- {
- 	struct ib_mad_send_wr_private *wr;
--	struct ib_mad *mad;
-+	struct ib_mad_hdr *mad_hdr;
- 
--	mad = (struct ib_mad *)wc->recv_buf.mad;
-+	mad_hdr = (struct ib_mad_hdr *)wc->recv_buf.mad;
- 
- 	list_for_each_entry(wr, &mad_agent_priv->wait_list, agent_list) {
--		if ((wr->tid == mad->mad_hdr.tid) &&
-+		if ((wr->tid == mad_hdr->tid) &&
- 		    rcv_has_same_class(wr, wc) &&
- 		    /*
- 		     * Don't check GID for direct routed MADs.
- 		     * These might have permissive LIDs.
- 		     */
--		    (is_direct(wc->recv_buf.mad->mad_hdr.mgmt_class) ||
-+		    (is_direct(mad_hdr->mgmt_class) ||
- 		     rcv_has_same_gid(mad_agent_priv, wr, wc)))
- 			return (wr->status == IB_WC_SUCCESS) ? wr : NULL;
- 	}
-@@ -1837,14 +1837,14 @@ ib_find_send_mad(const struct ib_mad_agent_private *mad_agent_priv,
- 	 */
- 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
- 		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
--		    wr->tid == mad->mad_hdr.tid &&
-+		    wr->tid == mad_hdr->tid &&
- 		    wr->timeout &&
- 		    rcv_has_same_class(wr, wc) &&
- 		    /*
- 		     * Don't check GID for direct routed MADs.
- 		     * These might have permissive LIDs.
- 		     */
--		    (is_direct(wc->recv_buf.mad->mad_hdr.mgmt_class) ||
-+		    (is_direct(mad_hdr->mgmt_class) ||
- 		     rcv_has_same_gid(mad_agent_priv, wr, wc)))
- 			/* Verify request has not been canceled */
- 			return (wr->status == IB_WC_SUCCESS) ? wr : NULL;
+The second uses the start and end port common functions (rather than declaring
+yet another copy of them) in the user_mad code.
+
+The third fixes a bug which was uncovered after I changed the implementation of
+rdma_cap_ib_mad and utilizes the first 2 patches.
+
+The forth formalizes the creation of immutable per port data which is stored
+in the ib_device structure for use by the core code.  This is now accomplished by a
+new mandatory device function.
+
+The fifth converts the management helpers to use a new bit mask which is stored
+in the immutable per port device data.
+
+The 2 OPA patches have been removed at Hals request and will be submitted as
+part of a new OPA MAD series.
+
+
+Ira Weiny (5):
+  IB/core: Create common start/end port functions
+  IB/user_mad: Remove local start/end port variable and use the new
+    common functions
+  IB/user_mad: Fix bug in ib_umad_remove_one when rdma_cap_ib_mad
+    implementation changed
+  IB/core: Formalize the creation of immutable per port data within the
+    ib_device object
+  IB/core: Convert management helpers to core capability bits
+
+ drivers/infiniband/core/cache.c              |  61 ++++++---------
+ drivers/infiniband/core/device.c             |  82 ++++++++------------
+ drivers/infiniband/core/sysfs.c              |   1 +
+ drivers/infiniband/core/user_mad.c           |  16 +---
+ drivers/infiniband/hw/amso1100/c2_provider.c |  25 ++++--
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |  25 ++++--
+ drivers/infiniband/hw/cxgb4/provider.c       |  25 ++++--
+ drivers/infiniband/hw/ehca/ehca_hca.c        |   6 --
+ drivers/infiniband/hw/ehca/ehca_main.c       |  19 ++++-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |  25 ++++--
+ drivers/infiniband/hw/mlx4/main.c            |  32 +++++---
+ drivers/infiniband/hw/mlx5/main.c            |  25 ++++--
+ drivers/infiniband/hw/mthca/mthca_provider.c |  25 ++++--
+ drivers/infiniband/hw/nes/nes_verbs.c        |  24 ++++--
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |  19 ++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   6 --
+ drivers/infiniband/hw/qib/qib_verbs.c        |  25 ++++--
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  |  18 ++++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   6 --
+ include/rdma/ib_verbs.h                      | 110 ++++++++++++++++++++++-----
+ 20 files changed, 371 insertions(+), 204 deletions(-)
+
 -- 
 1.8.2
 
