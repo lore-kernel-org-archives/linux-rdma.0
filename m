@@ -1,79 +1,43 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] ib/cm: Change reject message type when destroying cm_id
-Date: Thu, 14 May 2015 12:49:01 -0700
-Message-ID: <1431632941-3430-1-git-send-email-sean.hefty@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH RFC] Documentation/infiniband: Add docs for rdma-helpers
+Date: Fri, 15 May 2015 09:51:50 +0200
+Message-ID: <5555A596.5050709@profitbricks.com>
+References: <1431523472-10888-1-git-send-email-yun.wang@profitbricks.com> <20150513155915.GB16941@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20150513155915.GB16941@obsidianresearch.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Problem reported by: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>:
 
-We have a case where a Linux system and a non-Linux system are
-trying to interoperate.  The Linux host is the active side and
-starts the connection establishment, but later decides to not go
-through with the connection setup and does rdma_destroy_id().
+On 05/13/2015 05:59 PM, Jason Gunthorpe wrote:
+> On Wed, May 13, 2015 at 03:24:32PM +0200, Michael Wang wrote:
+>> This is the following patch for:
+>>   https://lkml.org/lkml/2015/5/5/417
+>> which try to document the settled rdma_cap_XX().
+>>
+>> Highlights:
+>>   There could be many missing/mistakes/misunderstanding, please don't
+>>   be hesitate to point out the issues, any suggestions to improve or
+>>   complete the description are very welcomed ;-)
+> 
+> I'd rather see this in the kdoc for each function.
 
-The rdma_destroy_id() eventually works its way down to cm_destroy_id()
-in core/cm.c, where a REJ is sent. The non-Linux system
-has some trouble recognizing the REJ because of:
+I used to thought you mean the kernel documentation like
+this... my misunderstanding but this is the usual way to
+document kernel stuff, isn't it?
 
-A. CM states which can't receive the REJ
-B. Some issues about REJ formatting (missing comm ID)
+BTW, could you give more details on the kdoc?
 
-ISSUE A: That part of the spec says, a Consumer Reject REJ can be
-sent for a connection abort, but it goes further
-and says: can send a REJ message with a "Consumer Reject"
-Reason code if they are in a CM state (i.e. REP
-Rcvd, MRA(REP) Sent, REQ Rcvd, MRA Sent) that allows
-a REJ to be sent (lines 35-38).
+Regards,
+Michael Wang
 
-Of the states listed there in that sentence, it would
-seem to limit the active side to using the Consumer Reject
-(for the abort case) in just the REP-Rcvd and MRA-REP-Sent
-states. That is basically only after the active side
-sees a REP (or alternatively goes down the state transitions
-to timeout in which case a Timeout REJ is sent).
-
-As a fix, in cm-destroy-id() move the IB-CM-MRA-REQ-RCVD case
-to the same as REQ-SENT.  Essentially, make a REJ sent after
-getting an MRA on active side a timeout rather than Consumer-
-Reject, which is arguably more correct with the CM state
-diagrams previous to getting a REP.
-
-Signed-off-by: Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/cm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index e28a494..346243e 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -862,6 +862,7 @@ retest:
- 		cm_reject_sidr_req(cm_id_priv, IB_SIDR_REJECT);
- 		break;
- 	case IB_CM_REQ_SENT:
-+	case IB_CM_MRA_REQ_RCVD:
- 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
- 		spin_unlock_irq(&cm_id_priv->lock);
- 		ib_send_cm_rej(cm_id, IB_CM_REJ_TIMEOUT,
-@@ -880,7 +881,6 @@ retest:
- 				       NULL, 0, NULL, 0);
- 		}
- 		break;
--	case IB_CM_MRA_REQ_RCVD:
- 	case IB_CM_REP_SENT:
- 	case IB_CM_MRA_REP_RCVD:
- 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
--- 
-1.7.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Thanks,
+> Jason
+> 
