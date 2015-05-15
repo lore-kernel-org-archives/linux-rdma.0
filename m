@@ -1,55 +1,122 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.1 06/11] RDMA/ocrdma: Prevent allocation of DPP
- PDs if FW doesnt support it
-Date: Fri, 15 May 2015 11:43:02 -0400
-Message-ID: <1431704582.29187.2.camel@redhat.com>
+Subject: Re: [PATCH for-4.1 10/11] RDMA/ocrdma: Prevent returning failures
+ in the resource destroy path
+Date: Fri, 15 May 2015 11:56:12 -0400
+Message-ID: <1431705372.29187.6.camel@redhat.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
-	 <1431762709-20740-7-git-send-email-selvin.xavier@avagotech.com>
+	 <1431762709-20740-11-git-send-email-selvin.xavier@avagotech.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-hWMe8hQXlTn2iQjSwOSV"
+	protocol="application/pgp-signature"; boundary="=-FOL4JbZsd/iVPlXpEBfa"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431762709-20740-7-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <1431762709-20740-11-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-hWMe8hQXlTn2iQjSwOSV
+--=-FOL4JbZsd/iVPlXpEBfa
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Sat, 2015-05-16 at 13:21 +0530, Selvin Xavier wrote:
+> Avoid returning FW failures in the resource destroy verbs.
 
-> @@ -1468,10 +1471,8 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma=
-_dev *dev)
+This patch looks extremely unsafe to someone that doesn't have the
+benefit of being able to look at your firmware code.  What firmware
+errors are you ignoring?  What state is the card in whenever these
+errors are returned?  Is there even a remote possibility that the
+firmware being in this state and returning these errors will either A)
+cause erroneous attempts to write to user memory or B) interfere with
+future attempts to create PDs or other contexts on the card?
+
+> Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 17 +++++++----------
+>  1 file changed, 7 insertions(+), 10 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infini=
+band/hw/ocrdma/ocrdma_verbs.c
+> index 48ec56f..b1f9d7d 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -531,13 +531,12 @@ map_err:
 > =20
->  	cmd->pd_count =3D dev->attr.max_pd - dev->attr.max_dpp_pds;
->  	status =3D ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
-> -	if (status)
-> -		goto mbx_err;
->  	rsp =3D (struct ocrdma_alloc_pd_range_rsp *)cmd;
-> -	if (rsp->pd_count) {
-> +	if (!status && rsp->pd_count) {
->  		dev->pd_mgr->pd_norm_start =3D rsp->dpp_page_pdid &
->  					OCRDMA_ALLOC_PD_RNG_RSP_START_PDID_MASK;
->  		dev->pd_mgr->max_normal_pd =3D rsp->pd_count;
-> @@ -1486,7 +1487,6 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma_=
-dev *dev)
->  	} else {
->  		return -ENOMEM;
+>  int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
+>  {
+> -	int status =3D 0;
+>  	struct ocrdma_mm *mm, *tmp;
+>  	struct ocrdma_ucontext *uctx =3D get_ocrdma_ucontext(ibctx);
+>  	struct ocrdma_dev *dev =3D get_ocrdma_dev(ibctx->device);
+>  	struct pci_dev *pdev =3D dev->nic_info.pdev;
+> =20
+> -	status =3D ocrdma_dealloc_ucontext_pd(uctx);
+> +	(void)ocrdma_dealloc_ucontext_pd(uctx);
+> =20
+>  	ocrdma_del_mmap(uctx, uctx->ah_tbl.pa, uctx->ah_tbl.len);
+>  	dma_free_coherent(&pdev->dev, uctx->ah_tbl.len, uctx->ah_tbl.va,
+> @@ -548,7 +547,7 @@ int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx=
+)
+>  		kfree(mm);
 >  	}
-> -mbx_err:
->  	kfree(cmd);
->  	return status;
+>  	kfree(uctx);
+> -	return status;
+> +	return 0;
 >  }
-
-I didn't go into the file to make sure, but this looks like a memory
-leak (in fact, it looks like a leak that always existed, specifically if
-rsp->pd_count =3D=3D 0 then the else causes you to leave before the
-kfree(cmd) and therefore you leak).  It's now been made worse because it
-would now happen both when status !=3D 0 and when pd_count =3D=3D 0.
+> =20
+>  int ocrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+> @@ -690,7 +689,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+>  	struct ocrdma_pd *pd =3D get_ocrdma_pd(ibpd);
+>  	struct ocrdma_dev *dev =3D get_ocrdma_dev(ibpd->device);
+>  	struct ocrdma_ucontext *uctx =3D NULL;
+> -	int status =3D 0;
+>  	u64 usr_db;
+> =20
+>  	uctx =3D pd->uctx;
+> @@ -704,11 +702,11 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+> =20
+>  		if (is_ucontext_pd(uctx, pd)) {
+>  			ocrdma_release_ucontext_pd(uctx);
+> -			return status;
+> +			return 0;
+>  		}
+>  	}
+> -	status =3D _ocrdma_dealloc_pd(dev, pd);
+> -	return status;
+> +	(void)_ocrdma_dealloc_pd(dev, pd);
+> +	return 0;
+>  }
+> =20
+>  static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *m=
+r,
+> @@ -1905,13 +1903,12 @@ int ocrdma_query_srq(struct ib_srq *ibsrq, struct=
+ ib_srq_attr *srq_attr)
+> =20
+>  int ocrdma_destroy_srq(struct ib_srq *ibsrq)
+>  {
+> -	int status;
+>  	struct ocrdma_srq *srq;
+>  	struct ocrdma_dev *dev =3D get_ocrdma_dev(ibsrq->device);
+> =20
+>  	srq =3D get_ocrdma_srq(ibsrq);
+> =20
+> -	status =3D ocrdma_mbx_destroy_srq(dev, srq);
+> +	(void)ocrdma_mbx_destroy_srq(dev, srq);
+> =20
+>  	if (srq->pd->uctx)
+>  		ocrdma_del_mmap(srq->pd->uctx, (u64) srq->rq.pa,
+> @@ -1920,7 +1917,7 @@ int ocrdma_destroy_srq(struct ib_srq *ibsrq)
+>  	kfree(srq->idx_bit_fields);
+>  	kfree(srq->rqe_wr_id_tbl);
+>  	kfree(srq);
+> -	return status;
+> +	return 0;
+>  }
+> =20
+>  /* unprivileged verbs and their support functions. */
 
 
 --=20
@@ -57,7 +124,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-hWMe8hQXlTn2iQjSwOSV
+--=-FOL4JbZsd/iVPlXpEBfa
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -65,22 +132,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVVhQGAAoJELgmozMOVy/dVfYP/R+pd8XFJxnwfQ+t42Ri8lZp
-W8wC+uPy/3/TB+cswFh9XiDHYr2k9AYHfeKsqrbBKEGUbtHNqWN+jUtkmj/2uSEm
-FDgp204nCxTDzEXI8DyyqRfYgD3nNy/HEpnmlUrwoRcU33/MMKEdF06bBqqqKnzt
-p+VG7CstSBpMfwDLb+FeLWbYocNrh9WRUNMiuVNVgqs4hGH7CmzxnFhULe0kS5PI
-jlOo93rHegNhaY7vfUy+0H7xdQRaf0isxXU6G/QCRZx/t0jstCFSid2PMQUJzCUW
-EyuDl8EiSURn5YTcjbZLJK0+pyVb74eNL9BIXQ+fLBxHd3WjwKa5X7JoAvFrRFaU
-emsvq3MvXfKeSlFr+xPkat7Io6XsdVnmb5hOQ/TEK9XFIXydMsWMNttRmo/86TEk
-TS31VaAuph8T0XVyhXFYapLe+2brnM5b3L9gE81Bqkt1Mir/2ZW4IbFyLTYnF6Ip
-sy1O8CYRbBG6Y0a5iTRH0ED1TekAFQopMkJPX0GmlLDcbB9vV8FMWBZFx9F8Tnsw
-DIT49ihbWTP4FZ4+HaxS4mEKyCQ6iPHSPfCI9gS1epimVIx82jZM4zvdqXYd8WVY
-9lwXo4OWWYnGDVYXLDnwV/riI2w/g5BmNg7xRzxqCg2BN4VFeym2XdO2M7i2Tq95
-6XjL78MVOUUTpXWQbnIg
-=FTf8
+iQIcBAABCAAGBQJVVhccAAoJELgmozMOVy/ddi4P/jMA1dqjVXqPKw3QnVW1ntIV
+n4PrYbtle9aDpy5riZAiTYPadRymg5sHao01/Fe+dxYKAZdZQvrM0hhQKWUBhG8k
+7fIOrXQwwjJ7Gwt3+4euxCDPIFk/7VfFj/waN1ZFlFbrSHyMjnR5ON8v+6yPdbDS
+6QxcKXwmBluplUUcx1hJ4UvMDk7eBBo27hg2amBBtw54AmfoFfga+LEACPMXEBF4
+eT7FoQUJSHjMIyeG4pX+2bKQmT1epiEdIOFW2lFZj8paOjV4LoJkSzp3TfZkAtWi
+j5wt+uMKPcF7sgjDObNYgF/NTeBil3qU/t3Z7xYbDeML5BXYzBiyoN7gQnepSj12
++XGf+nJo+S02T+r0p6kHiigdrSS9eZrQdPQSCUvY0vFKIXr56yAR1wbKwN1ZKwge
+Q/2vgUUsBB/7packqO9Q30gGKSqCPVzjga115G0ojtEX3FwJCxgyiizDOwC6g3ye
+xcDV8NdvXxR0hVO2TB5F+jI6G23skBTf0y4orPSgUQXmFiaTDwhkYk1cdP0zIio/
+1yaniEiQ08MXGZbO2md9kQo98QhFLY8osAdq16LcIlucT2Qc/Ud/7IXHA1ZanzPt
+s4nQKs0wYJ/5MS6FUtxKrxtzYSRM2fneB//gBmxmg0Dj8TQ2+UoGnqcfR6Zb5ROt
+spN7Kii5mleqiXsgWzA1
+=7Ntq
 -----END PGP SIGNATURE-----
 
---=-hWMe8hQXlTn2iQjSwOSV--
+--=-FOL4JbZsd/iVPlXpEBfa--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
