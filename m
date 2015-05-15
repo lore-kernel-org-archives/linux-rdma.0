@@ -1,69 +1,36 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: RE: [PATCH for-4.1 06/11] RDMA/ocrdma: Prevent allocation of DPP PDs
- if FW doesnt support it
-Date: Fri, 15 May 2015 22:23:57 +0530
-Message-ID: <05aed249972ea2914a6a22b9db5ada55@mail.gmail.com>
+Subject: RE: [PATCH for-4.1 09/11] RDMA/ocrdma: Add CQ usage statistics counters
+Date: Fri, 15 May 2015 22:25:54 +0530
+Message-ID: <e4f15ebbac4b5a65995c0894dfa6408c@mail.gmail.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
-	 <1431762709-20740-7-git-send-email-selvin.xavier@avagotech.com> <1431704582.29187.2.camel@redhat.com>
+	 <1431762709-20740-10-git-send-email-selvin.xavier@avagotech.com> <1431705465.29187.8.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431704582.29187.2.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1431705465.29187.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Doug for the review.  We will fix this memory leak in V2.
-
-Thanks,
-Selvin Xavier
-
 > -----Original Message-----
 > From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Friday, May 15, 2015 9:13 PM
+> Sent: Friday, May 15, 2015 9:28 PM
 > To: Selvin Xavier
 > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH for-4.1 06/11] RDMA/ocrdma: Prevent allocation of DPP
-> PDs if FW doesnt support it
+> Subject: Re: [PATCH for-4.1 09/11] RDMA/ocrdma: Add CQ usage statistics
+> counters
 >
 > On Sat, 2015-05-16 at 13:21 +0530, Selvin Xavier wrote:
->
-> > @@ -1468,10 +1471,8 @@ static int ocrdma_mbx_alloc_pd_range(struct
-> > ocrdma_dev *dev)
+> > From: Meghana Cheripady <meghana.cheripady-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 > >
-> >  	cmd->pd_count = dev->attr.max_pd - dev->attr.max_dpp_pds;
-> >  	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
-> > -	if (status)
-> > -		goto mbx_err;
-> >  	rsp = (struct ocrdma_alloc_pd_range_rsp *)cmd;
-> > -	if (rsp->pd_count) {
-> > +	if (!status && rsp->pd_count) {
-> >  		dev->pd_mgr->pd_norm_start = rsp->dpp_page_pdid &
-> >
-> 	OCRDMA_ALLOC_PD_RNG_RSP_START_PDID_MASK;
-> >  		dev->pd_mgr->max_normal_pd = rsp->pd_count; @@ -
-> 1486,7 +1487,6 @@
-> > static int ocrdma_mbx_alloc_pd_range(struct ocrdma_dev *dev)
-> >  	} else {
-> >  		return -ENOMEM;
-> >  	}
-> > -mbx_err:
-> >  	kfree(cmd);
-> >  	return status;
-> >  }
+> > Add counters for tracking the CQ usage by applications.
 >
-> I didn't go into the file to make sure, but this looks like a memory leak
-> (in fact,
-> it looks like a leak that always existed, specifically if
-> rsp->pd_count == 0 then the else causes you to leave before the
-> kfree(cmd) and therefore you leak).  It's now been made worse because it
-> would now happen both when status != 0 and when pd_count == 0.
+> This isn't a bug fix, it's an enhancement.  We are already in the 4.1-rc3+
+> phase, enhancements aren't really appropriate (even if they seem minor).
+> Please drop this one from the patchset.
 >
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
+Sure.. I will drop this patch from this patch set.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
