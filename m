@@ -1,101 +1,86 @@
-From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH for-4.1 10/11] RDMA/ocrdma: Prevent returning failures in the resource destroy path
-Date: Sat, 16 May 2015 13:21:48 +0530
-Message-ID: <1431762709-20740-11-git-send-email-selvin.xavier@avagotech.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-4.1 06/11] RDMA/ocrdma: Prevent allocation of DPP
+ PDs if FW doesnt support it
+Date: Fri, 15 May 2015 11:43:02 -0400
+Message-ID: <1431704582.29187.2.camel@redhat.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
+	 <1431762709-20740-7-git-send-email-selvin.xavier@avagotech.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-hWMe8hQXlTn2iQjSwOSV"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431762709-20740-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <1431762709-20740-7-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid returning FW failures in the resource destroy verbs.
 
-Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+--=-hWMe8hQXlTn2iQjSwOSV
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 48ec56f..b1f9d7d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -531,13 +531,12 @@ map_err:
- 
- int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
- {
--	int status = 0;
- 	struct ocrdma_mm *mm, *tmp;
- 	struct ocrdma_ucontext *uctx = get_ocrdma_ucontext(ibctx);
- 	struct ocrdma_dev *dev = get_ocrdma_dev(ibctx->device);
- 	struct pci_dev *pdev = dev->nic_info.pdev;
- 
--	status = ocrdma_dealloc_ucontext_pd(uctx);
-+	(void)ocrdma_dealloc_ucontext_pd(uctx);
- 
- 	ocrdma_del_mmap(uctx, uctx->ah_tbl.pa, uctx->ah_tbl.len);
- 	dma_free_coherent(&pdev->dev, uctx->ah_tbl.len, uctx->ah_tbl.va,
-@@ -548,7 +547,7 @@ int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
- 		kfree(mm);
- 	}
- 	kfree(uctx);
--	return status;
-+	return 0;
- }
- 
- int ocrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
-@@ -690,7 +689,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
- 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
- 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
- 	struct ocrdma_ucontext *uctx = NULL;
--	int status = 0;
- 	u64 usr_db;
- 
- 	uctx = pd->uctx;
-@@ -704,11 +702,11 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
- 
- 		if (is_ucontext_pd(uctx, pd)) {
- 			ocrdma_release_ucontext_pd(uctx);
--			return status;
-+			return 0;
- 		}
- 	}
--	status = _ocrdma_dealloc_pd(dev, pd);
--	return status;
-+	(void)_ocrdma_dealloc_pd(dev, pd);
-+	return 0;
- }
- 
- static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
-@@ -1905,13 +1903,12 @@ int ocrdma_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
- 
- int ocrdma_destroy_srq(struct ib_srq *ibsrq)
- {
--	int status;
- 	struct ocrdma_srq *srq;
- 	struct ocrdma_dev *dev = get_ocrdma_dev(ibsrq->device);
- 
- 	srq = get_ocrdma_srq(ibsrq);
- 
--	status = ocrdma_mbx_destroy_srq(dev, srq);
-+	(void)ocrdma_mbx_destroy_srq(dev, srq);
- 
- 	if (srq->pd->uctx)
- 		ocrdma_del_mmap(srq->pd->uctx, (u64) srq->rq.pa,
-@@ -1920,7 +1917,7 @@ int ocrdma_destroy_srq(struct ib_srq *ibsrq)
- 	kfree(srq->idx_bit_fields);
- 	kfree(srq->rqe_wr_id_tbl);
- 	kfree(srq);
--	return status;
-+	return 0;
- }
- 
- /* unprivileged verbs and their support functions. */
--- 
-2.2.0
+On Sat, 2015-05-16 at 13:21 +0530, Selvin Xavier wrote:
+
+> @@ -1468,10 +1471,8 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma=
+_dev *dev)
+> =20
+>  	cmd->pd_count =3D dev->attr.max_pd - dev->attr.max_dpp_pds;
+>  	status =3D ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
+> -	if (status)
+> -		goto mbx_err;
+>  	rsp =3D (struct ocrdma_alloc_pd_range_rsp *)cmd;
+> -	if (rsp->pd_count) {
+> +	if (!status && rsp->pd_count) {
+>  		dev->pd_mgr->pd_norm_start =3D rsp->dpp_page_pdid &
+>  					OCRDMA_ALLOC_PD_RNG_RSP_START_PDID_MASK;
+>  		dev->pd_mgr->max_normal_pd =3D rsp->pd_count;
+> @@ -1486,7 +1487,6 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma_=
+dev *dev)
+>  	} else {
+>  		return -ENOMEM;
+>  	}
+> -mbx_err:
+>  	kfree(cmd);
+>  	return status;
+>  }
+
+I didn't go into the file to make sure, but this looks like a memory
+leak (in fact, it looks like a leak that always existed, specifically if
+rsp->pd_count =3D=3D 0 then the else causes you to leave before the
+kfree(cmd) and therefore you leak).  It's now been made worse because it
+would now happen both when status !=3D 0 and when pd_count =3D=3D 0.
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+--=-hWMe8hQXlTn2iQjSwOSV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVVhQGAAoJELgmozMOVy/dVfYP/R+pd8XFJxnwfQ+t42Ri8lZp
+W8wC+uPy/3/TB+cswFh9XiDHYr2k9AYHfeKsqrbBKEGUbtHNqWN+jUtkmj/2uSEm
+FDgp204nCxTDzEXI8DyyqRfYgD3nNy/HEpnmlUrwoRcU33/MMKEdF06bBqqqKnzt
+p+VG7CstSBpMfwDLb+FeLWbYocNrh9WRUNMiuVNVgqs4hGH7CmzxnFhULe0kS5PI
+jlOo93rHegNhaY7vfUy+0H7xdQRaf0isxXU6G/QCRZx/t0jstCFSid2PMQUJzCUW
+EyuDl8EiSURn5YTcjbZLJK0+pyVb74eNL9BIXQ+fLBxHd3WjwKa5X7JoAvFrRFaU
+emsvq3MvXfKeSlFr+xPkat7Io6XsdVnmb5hOQ/TEK9XFIXydMsWMNttRmo/86TEk
+TS31VaAuph8T0XVyhXFYapLe+2brnM5b3L9gE81Bqkt1Mir/2ZW4IbFyLTYnF6Ip
+sy1O8CYRbBG6Y0a5iTRH0ED1TekAFQopMkJPX0GmlLDcbB9vV8FMWBZFx9F8Tnsw
+DIT49ihbWTP4FZ4+HaxS4mEKyCQ6iPHSPfCI9gS1epimVIx82jZM4zvdqXYd8WVY
+9lwXo4OWWYnGDVYXLDnwV/riI2w/g5BmNg7xRzxqCg2BN4VFeym2XdO2M7i2Tq95
+6XjL78MVOUUTpXWQbnIg
+=FTf8
+-----END PGP SIGNATURE-----
+
+--=-hWMe8hQXlTn2iQjSwOSV--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
