@@ -1,122 +1,152 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-4.1 10/11] RDMA/ocrdma: Prevent returning failures
- in the resource destroy path
-Date: Fri, 15 May 2015 11:56:12 -0400
-Message-ID: <1431705372.29187.6.camel@redhat.com>
+Subject: Re: [PATCH for-4.1 09/11] RDMA/ocrdma: Add CQ usage statistics
+ counters
+Date: Fri, 15 May 2015 11:57:45 -0400
+Message-ID: <1431705465.29187.8.camel@redhat.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
-	 <1431762709-20740-11-git-send-email-selvin.xavier@avagotech.com>
+	 <1431762709-20740-10-git-send-email-selvin.xavier@avagotech.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-FOL4JbZsd/iVPlXpEBfa"
+	protocol="application/pgp-signature"; boundary="=-aSN17AdM+a0OuC3U62yk"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431762709-20740-11-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <1431762709-20740-10-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-FOL4JbZsd/iVPlXpEBfa
+--=-aSN17AdM+a0OuC3U62yk
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Sat, 2015-05-16 at 13:21 +0530, Selvin Xavier wrote:
-> Avoid returning FW failures in the resource destroy verbs.
+> From: Meghana Cheripady <meghana.cheripady-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+>=20
+> Add counters for tracking the CQ usage by applications.
 
-This patch looks extremely unsafe to someone that doesn't have the
-benefit of being able to look at your firmware code.  What firmware
-errors are you ignoring?  What state is the card in whenever these
-errors are returned?  Is there even a remote possibility that the
-firmware being in this state and returning these errors will either A)
-cause erroneous attempts to write to user memory or B) interfere with
-future attempts to create PDs or other contexts on the card?
+This isn't a bug fix, it's an enhancement.  We are already in the
+4.1-rc3+ phase, enhancements aren't really appropriate (even if they
+seem minor).  Please drop this one from the patchset.
 
-> Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-> Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+>=20
+> Signed-off-by: Meghana Cheripady <meghana.cheripady-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 > Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 > ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 17 +++++++----------
->  1 file changed, 7 insertions(+), 10 deletions(-)
+>  drivers/infiniband/hw/ocrdma/ocrdma.h       |  2 ++
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  8 ++++++++
+>  drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 15 +++++++++++++++
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  2 ++
+>  4 files changed, 27 insertions(+)
 >=20
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/h=
+w/ocrdma/ocrdma.h
+> index ee9e335..8782e1f 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma.h
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+> @@ -290,6 +290,8 @@ struct ocrdma_dev {
+>  	struct dentry *dir;
+>  	atomic_t async_err_stats[OCRDMA_MAX_ASYNC_ERRORS];
+>  	atomic_t cqe_err_stats[OCRDMA_MAX_CQE_ERR];
+> +	atomic_t act_cq_stats;
+> +	atomic_t th_cq_stats;
+>  	struct ocrdma_pd_resource_mgr *pd_mgr;
+>  };
+> =20
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniban=
+d/hw/ocrdma/ocrdma_hw.c
+> index 319675c..596d8c9 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> @@ -1720,6 +1720,7 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, st=
+ruct ocrdma_cq *cq,
+>  	struct ocrdma_create_cq *cmd;
+>  	struct ocrdma_create_cq_rsp *rsp;
+>  	u32 hw_pages, cqe_size, page_size, cqe_count;
+> +	int act_cq_cnt, th_cq_cnt;
+> =20
+>  	if (entries > dev->attr.max_cqe) {
+>  		pr_err("%s(%d) max_cqe=3D0x%x, requester_cqe=3D0x%x\n",
+> @@ -1808,6 +1809,13 @@ int ocrdma_mbx_create_cq(struct ocrdma_dev *dev, s=
+truct ocrdma_cq *cq,
+> =20
+>  	rsp =3D (struct ocrdma_create_cq_rsp *)cmd;
+>  	cq->id =3D (u16) (rsp->rsp.cq_id & OCRDMA_CREATE_CQ_RSP_CQ_ID_MASK);
+> +
+> +	atomic_inc(&dev->act_cq_stats);
+> +	act_cq_cnt =3D atomic_read(&dev->act_cq_stats);
+> +	th_cq_cnt =3D atomic_read(&dev->th_cq_stats);
+> +	if (th_cq_cnt < act_cq_cnt)
+> +		atomic_set(&dev->th_cq_stats, act_cq_cnt);
+> +
+>  	kfree(cmd);
+>  	return 0;
+>  mbx_err:
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infini=
+band/hw/ocrdma/ocrdma_stats.c
+> index 48d7ef5..47fef14 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+> @@ -146,6 +146,8 @@ static char *ocrdma_resource_stats(struct ocrdma_dev =
+*dev)
+>  				(u64)rsrc_stats->phy_mr);
+>  	pcur +=3D ocrdma_add_stat(stats, pcur, "active_mw",
+>  				(u64)rsrc_stats->mw);
+> +	pcur +=3D ocrdma_add_stat(stats, pcur, "active_cq_usage_stats",
+> +				(u64)atomic_read(&dev->act_cq_stats));
+> =20
+>  	/* Print the threshold stats */
+>  	rsrc_stats =3D &rdma_stats->th_rsrc_stats;
+> @@ -200,6 +202,8 @@ static char *ocrdma_resource_stats(struct ocrdma_dev =
+*dev)
+>  				(u64)rsrc_stats->phy_mr);
+>  	pcur +=3D ocrdma_add_stat(stats, pcur, "threshold_mw",
+>  				(u64)rsrc_stats->mw);
+> +	pcur +=3D ocrdma_add_stat(stats, pcur, "threshold_cq_usage_stats",
+> +				(u64)atomic_read(&dev->th_cq_stats));
+>  	return stats;
+>  }
+> =20
+> @@ -745,6 +749,16 @@ static const struct file_operations ocrdma_dbg_ops =
+=3D {
+>  	.write =3D ocrdma_dbgfs_ops_write,
+>  };
+> =20
+> +static void ocrdma_init_cq_stats(struct ocrdma_dev *dev)
+> +{
+> +	int i, cq_cnt =3D 0;
+> +
+> +	for (i =3D 0; i < dev->eq_cnt; i++)
+> +		cq_cnt +=3D dev->eq_tbl[i].cq_cnt;
+> +	atomic_set(&dev->act_cq_stats, cq_cnt);
+> +	atomic_set(&dev->th_cq_stats, cq_cnt);
+> +}
+> +
+>  void ocrdma_add_port_stats(struct ocrdma_dev *dev)
+>  {
+>  	if (!ocrdma_dbgfs_dir)
+> @@ -828,6 +842,7 @@ void ocrdma_add_port_stats(struct ocrdma_dev *dev)
+>  		goto err;
+> =20
+>  	mutex_init(&dev->stats_lock);
+> +	ocrdma_init_cq_stats(dev);
+> =20
+>  	return;
+>  err:
 > diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infini=
 band/hw/ocrdma/ocrdma_verbs.c
-> index 48ec56f..b1f9d7d 100644
+> index 9dcb660..48ec56f 100644
 > --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 > +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -531,13 +531,12 @@ map_err:
-> =20
->  int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
->  {
-> -	int status =3D 0;
->  	struct ocrdma_mm *mm, *tmp;
->  	struct ocrdma_ucontext *uctx =3D get_ocrdma_ucontext(ibctx);
->  	struct ocrdma_dev *dev =3D get_ocrdma_dev(ibctx->device);
->  	struct pci_dev *pdev =3D dev->nic_info.pdev;
-> =20
-> -	status =3D ocrdma_dealloc_ucontext_pd(uctx);
-> +	(void)ocrdma_dealloc_ucontext_pd(uctx);
-> =20
->  	ocrdma_del_mmap(uctx, uctx->ah_tbl.pa, uctx->ah_tbl.len);
->  	dma_free_coherent(&pdev->dev, uctx->ah_tbl.len, uctx->ah_tbl.va,
-> @@ -548,7 +547,7 @@ int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx=
-)
->  		kfree(mm);
+> @@ -1119,6 +1119,8 @@ int ocrdma_destroy_cq(struct ib_cq *ibcq)
+>  				dev->nic_info.db_page_size);
 >  	}
->  	kfree(uctx);
-> -	return status;
-> +	return 0;
+> =20
+> +	atomic_dec(&dev->act_cq_stats);
+> +
+>  	kfree(cq);
+>  	return 0;
 >  }
-> =20
->  int ocrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
-> @@ -690,7 +689,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
->  	struct ocrdma_pd *pd =3D get_ocrdma_pd(ibpd);
->  	struct ocrdma_dev *dev =3D get_ocrdma_dev(ibpd->device);
->  	struct ocrdma_ucontext *uctx =3D NULL;
-> -	int status =3D 0;
->  	u64 usr_db;
-> =20
->  	uctx =3D pd->uctx;
-> @@ -704,11 +702,11 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
-> =20
->  		if (is_ucontext_pd(uctx, pd)) {
->  			ocrdma_release_ucontext_pd(uctx);
-> -			return status;
-> +			return 0;
->  		}
->  	}
-> -	status =3D _ocrdma_dealloc_pd(dev, pd);
-> -	return status;
-> +	(void)_ocrdma_dealloc_pd(dev, pd);
-> +	return 0;
->  }
-> =20
->  static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *m=
-r,
-> @@ -1905,13 +1903,12 @@ int ocrdma_query_srq(struct ib_srq *ibsrq, struct=
- ib_srq_attr *srq_attr)
-> =20
->  int ocrdma_destroy_srq(struct ib_srq *ibsrq)
->  {
-> -	int status;
->  	struct ocrdma_srq *srq;
->  	struct ocrdma_dev *dev =3D get_ocrdma_dev(ibsrq->device);
-> =20
->  	srq =3D get_ocrdma_srq(ibsrq);
-> =20
-> -	status =3D ocrdma_mbx_destroy_srq(dev, srq);
-> +	(void)ocrdma_mbx_destroy_srq(dev, srq);
-> =20
->  	if (srq->pd->uctx)
->  		ocrdma_del_mmap(srq->pd->uctx, (u64) srq->rq.pa,
-> @@ -1920,7 +1917,7 @@ int ocrdma_destroy_srq(struct ib_srq *ibsrq)
->  	kfree(srq->idx_bit_fields);
->  	kfree(srq->rqe_wr_id_tbl);
->  	kfree(srq);
-> -	return status;
-> +	return 0;
->  }
-> =20
->  /* unprivileged verbs and their support functions. */
 
 
 --=20
@@ -124,7 +154,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-FOL4JbZsd/iVPlXpEBfa
+--=-aSN17AdM+a0OuC3U62yk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -132,22 +162,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVVhccAAoJELgmozMOVy/ddi4P/jMA1dqjVXqPKw3QnVW1ntIV
-n4PrYbtle9aDpy5riZAiTYPadRymg5sHao01/Fe+dxYKAZdZQvrM0hhQKWUBhG8k
-7fIOrXQwwjJ7Gwt3+4euxCDPIFk/7VfFj/waN1ZFlFbrSHyMjnR5ON8v+6yPdbDS
-6QxcKXwmBluplUUcx1hJ4UvMDk7eBBo27hg2amBBtw54AmfoFfga+LEACPMXEBF4
-eT7FoQUJSHjMIyeG4pX+2bKQmT1epiEdIOFW2lFZj8paOjV4LoJkSzp3TfZkAtWi
-j5wt+uMKPcF7sgjDObNYgF/NTeBil3qU/t3Z7xYbDeML5BXYzBiyoN7gQnepSj12
-+XGf+nJo+S02T+r0p6kHiigdrSS9eZrQdPQSCUvY0vFKIXr56yAR1wbKwN1ZKwge
-Q/2vgUUsBB/7packqO9Q30gGKSqCPVzjga115G0ojtEX3FwJCxgyiizDOwC6g3ye
-xcDV8NdvXxR0hVO2TB5F+jI6G23skBTf0y4orPSgUQXmFiaTDwhkYk1cdP0zIio/
-1yaniEiQ08MXGZbO2md9kQo98QhFLY8osAdq16LcIlucT2Qc/Ud/7IXHA1ZanzPt
-s4nQKs0wYJ/5MS6FUtxKrxtzYSRM2fneB//gBmxmg0Dj8TQ2+UoGnqcfR6Zb5ROt
-spN7Kii5mleqiXsgWzA1
-=7Ntq
+iQIcBAABCAAGBQJVVhd5AAoJELgmozMOVy/dBQcP/1ePssDIvfgi3uuBWNxHLiXB
+I0rnCt/MGRIuSkMtiftukAbVHNzgbhai/Co/SzQLkGKKaCUK+0O8oJFEU0QHN2sk
+ySMYBwhDmb6eveR2PiBIOk+VmFxZwc8PSJzTAuh7C3mOubnfG8PP1bNsmHe8mlkp
+hl3Sw0OX/33ROjXBr5JreLot1ZrvrWc9EpBgGZ/069caSnYCsxudvefGrgWWW026
+NwHEkzpwzyVtt8eXOO1xVfFIN+lxLna1le3mYynnsw7U40HFRC6h+l6IhUmrmumh
+u16jvw+/twT2rkbalY1tpByHeDHM13fYfSko+r6fP45oUBQOTXjwqrSpiaUFSWd8
+sClA33pcl3UPhO/Yd9CRBFlQI/RUoW1J8YICOTEZ9KBDs0lNq97aTJO0/BjM++dL
+z1T2jBSkbZx2g+KlJT7X3u1DCJoI4IhTL4ZNCgh65nTdnIC0n/7vp/oPlG86LDpa
+oYQj6cr3IjnyjQopNJ3DkYOjQ/7sVobxJFHYST4N8vU4I7UjS+nB3G9fzzXeC3wl
+5Ee2ORVEYnfRq2gMOTd9GJAgoBdrbqNJXrOqD/9JfAIVjRaqyD/0pA9XfxCBt8O0
+OLSZJWbBNntmuls3i7dwXie3o+Z6WCLQFNmBujWimqZPAXPoQYciLnazJAWRagh3
+xMIOB47a8Z+4gJ3t76iD
+=RtAC
 -----END PGP SIGNATURE-----
 
---=-FOL4JbZsd/iVPlXpEBfa--
+--=-aSN17AdM+a0OuC3U62yk--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
