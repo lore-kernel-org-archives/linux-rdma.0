@@ -1,36 +1,41 @@
-From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: RE: [PATCH for-4.1 09/11] RDMA/ocrdma: Add CQ usage statistics counters
-Date: Fri, 15 May 2015 22:25:54 +0530
-Message-ID: <e4f15ebbac4b5a65995c0894dfa6408c@mail.gmail.com>
-References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
-	 <1431762709-20740-10-git-send-email-selvin.xavier@avagotech.com> <1431705465.29187.8.camel@redhat.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ib/cm: Change reject message type when destroying cm_id
+Date: Fri, 15 May 2015 17:06:52 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDBF8D@ORSMSX109.amr.corp.intel.com>
+References: <1431632941-3430-1-git-send-email-sean.hefty@intel.com>
+ <1431708034.29187.14.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431705465.29187.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1431708034.29187.14.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Friday, May 15, 2015 9:28 PM
-> To: Selvin Xavier
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH for-4.1 09/11] RDMA/ocrdma: Add CQ usage statistics
-> counters
->
-> On Sat, 2015-05-16 at 13:21 +0530, Selvin Xavier wrote:
-> > From: Meghana Cheripady <meghana.cheripady-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-> >
-> > Add counters for tracking the CQ usage by applications.
->
-> This isn't a bug fix, it's an enhancement.  We are already in the 4.1-rc3+
-> phase, enhancements aren't really appropriate (even if they seem minor).
-> Please drop this one from the patchset.
->
-Sure.. I will drop this patch from this patch set.
+PiBBcmUgeW91IHByb3Bvc2luZyBmb3IgNC4xLXJjPw0KDQpUaGUgY29kZSBoYXMgYmVlbiB0aGlz
+IHdheSBmb3JldmVyLCBzbyBJTU8gNC4yIHNob3VsZCBiZSBmaW5lLg0KDQo+IEkgYXNzdW1lIHRo
+aXMgcGFzc2VkIHRlc3Rpbmcgb24gdGhlIGxpbnV4L25vbi1saW51eCBzZXR1cD8NCg0KVGhlIHBh
+dGNoIGNhbWUgZnJvbSBUZWQuICBJJ20gYXNzdW1pbmcgdGhhdCBoZSB0ZXN0ZWQgd2l0aCB0aGlz
+Lg0KDQo+IFdhcyBpdCB0ZXN0ZWQgaW4gYSBzaW1pbGFyIHNpdHVhdGlvbiBvbiBsaW51eC9saW51
+eCBzZXR1cD8gIEhvdyBkbyB3ZQ0KPiBoYW5kbGUgdGhpcyBzcGVjaWZpYyByZWogc2NlbmFyaW8/
+DQoNClRoaXMgY2hhbmdlIGVmZmVjdGl2ZWx5IGNoYW5nZXMgdGhlIHJlamVjdCBjb2RlIHRoYXQg
+aXMgcmVwb3J0ZWQgaW4gdGhlIHJlamVjdCBtZXNzYWdlIGZyb20gJ2NvbnN1bWVyIHJlamVjdCcg
+dG8gJ3RpbWVvdXQnLiAgVGhlIGNvZGUgYWxyZWFkeSBoYW5kbGVzIHRoaXMuDQoNCj4gRGlkIHlv
+dSBpbnRlbmQgdG8gYWRkIGFuIElTU1VFIEI6IHNlY3Rpb24gdG8gdGhlIGNvbW1pdCBtZXNzYWdl
+Pw0KDQpUaGUgaXNzdWUgaXMgbGlzdGVkIGFzIHRoZSBtaXNzaW5nIGNvbW0gaWQuICBUaG91Z2gs
+IHRoaW5raW5nIGFib3V0IGl0IGFnYWluLCB0aGUgaXNzdWUgbWF5IGhhdmUgYmVlbiBhIG1pc3Np
+bmcgbm9kZSBHVUlELiAgSSBjYW4ndCByZWNhbGwgbm93LiAgTWF5YmUgVGVkIGRvZXMuDQoNClRo
+ZSBJQiBzcGVjIGlzIGdvb2Z5IGhlcmUgaW4gdGhhdCBpdCBvbmx5IGFsbG93cyBhIENNIFJFUSwg
+b25jZSBzZW50LCB0byB0aW1lb3V0LiAgSXQgZG9lc24ndCBkZWZpbmUgYW4gJ2Fib3J0JyBjYXNl
+LiAgVGhlIHNwZWMgYWxzbyB0cmVhdHMgdGhlIGNvbm5lY3Rpb24gaXMgYmVpbmcgaW4gYSBzaW5n
+bGUgJ1JFUCB3YWl0JyBzdGF0ZSwgcmVnYXJkbGVzcyBvZiB3aGV0aGVyIGFuIE1SQSBoYXMgYmVl
+biByZWNlaXZlZCBvciBub3QuICBUaGlzIGNoYW5nZSByZXN1bHRzIGluIHRoZSAnSSBnb3QgYW4g
+TVJBIGJ1dCBJJ20gd2FpdGluZyBmb3IgYSBSRVAnIHRvIGJlIGhhbmRsZWQgdGhlIHNhbWUgYXMg
+J0knbSB3YWl0aW5nIGZvciBhIFJFUCcsIGF0IGxlYXN0IGZvciB0aGUgZGVzdHJ1Y3Rpb24gY2Fz
+ZS4NCg0KLSBTZWFuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
