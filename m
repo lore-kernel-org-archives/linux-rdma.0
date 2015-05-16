@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH for-4.1 08/11] RDMA/ocrdma: Fail connection for MTU lesser than 512
-Date: Sat, 16 May 2015 13:21:46 +0530
-Message-ID: <1431762709-20740-9-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH for-4.1 03/11] RDMA/ocrdma: Fix QP state transition in destroy_qp
+Date: Sat, 16 May 2015 13:21:41 +0530
+Message-ID: <1431762709-20740-4-git-send-email-selvin.xavier@avagotech.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1431762709-20740-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
@@ -10,33 +10,46 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Naga Irrinki <naga.irrinki-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
-HW currently restricts the IB MTU range between 512 and 4096.
-Fail connection for MTUs lesser than 512.
+Don't move QP to error state, if QP is in reset state during QP
+destroy operation.
 
-Signed-off-by: Naga Irrinki <naga.irrinki-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 4b77f34..319675c 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2535,8 +2535,10 @@ static int ocrdma_set_qp_params(struct ocrdma_qp *qp,
- 		cmd->flags |= OCRDMA_QP_PARA_DST_QPN_VALID;
- 	}
- 	if (attr_mask & IB_QP_PATH_MTU) {
--		if (attrs->path_mtu < IB_MTU_256 ||
-+		if (attrs->path_mtu < IB_MTU_512 ||
- 		    attrs->path_mtu > IB_MTU_4096) {
-+			pr_err("ocrdma%d: IB MTU %d is not supported\n",
-+			       dev->id, ib_mtu_enum_to_int(attrs->path_mtu));
- 			status = -EINVAL;
- 			goto pmtu_err;
- 		}
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 8771755..06e8ab7 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1721,18 +1721,20 @@ int ocrdma_destroy_qp(struct ib_qp *ibqp)
+ 	struct ocrdma_qp *qp;
+ 	struct ocrdma_dev *dev;
+ 	struct ib_qp_attr attrs;
+-	int attr_mask = IB_QP_STATE;
++	int attr_mask;
+ 	unsigned long flags;
+ 
+ 	qp = get_ocrdma_qp(ibqp);
+ 	dev = get_ocrdma_dev(ibqp->device);
+ 
+-	attrs.qp_state = IB_QPS_ERR;
+ 	pd = qp->pd;
+ 
+ 	/* change the QP state to ERROR */
+-	_ocrdma_modify_qp(ibqp, &attrs, attr_mask);
+-
++	if (qp->state != OCRDMA_QPS_RST) {
++		attrs.qp_state = IB_QPS_ERR;
++		attr_mask = IB_QP_STATE;
++		_ocrdma_modify_qp(ibqp, &attrs, attr_mask);
++	}
+ 	/* ensure that CQEs for newly created QP (whose id may be same with
+ 	 * one which just getting destroyed are same), dont get
+ 	 * discarded until the old CQEs are discarded.
 -- 
 2.2.0
 
