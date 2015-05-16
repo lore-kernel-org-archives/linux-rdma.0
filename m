@@ -1,50 +1,52 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH for-4.1 00/11] ocrdma bug fixes
-Date: Sat, 16 May 2015 13:21:38 +0530
-Message-ID: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH for-4.1 05/11] RDMA/ocrdma: Fix the request length for RDMA_QUERY_QP mailbox command to FW.
+Date: Sat, 16 May 2015 13:21:43 +0530
+Message-ID: <1431762709-20740-6-git-send-email-selvin.xavier@avagotech.com>
+References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431762709-20740-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series includes fixes for few issues found in 
-testing and added few info messages for debugging.
-Also, added some debug statistics counters and
-updated the driver version.
+From: Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
-Please apply.
+Fix ocrdma_query_qp to pass correct mailbox request length to FW.
 
-Devesh Sharma (3):
-  RDMA/ocrdma: Report EQ full fatal error
-  RDMA/ocrdma: Fix QP state transition in destroy_qp
-  RDMA/ocrdma: Use VID 0 if PFC is enabled and vlan is not configured
+Signed-off-by: Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c  | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-Meghana Cheripady (1):
-  RDMA/ocrdma: Add CQ usage statistics counters
-
-Mitesh Ahuja (3):
-  RDMA/ocrdma: Fix the request length for RDMA_QUERY_QP mailbox command
-    to FW.
-  RDMA/ocrdma: Prevent allocation of DPP PDs if FW doesnt support it
-  RDMA/ocrdma: Fix dmac resolution for link local address
-
-Naga Irrinki (1):
-  RDMA/ocrdma: Fail connection for MTU lesser than 512
-
-Selvin Xavier (3):
-  RDMA/ocrdma: Fix EQ destroy failure during driver unload
-  RDMA/ocrdma: Prevent returning failures in the resource destroy path
-  RDMA/ocrdma: Update ocrdma version number
-
- drivers/infiniband/hw/ocrdma/ocrdma.h       |  6 +-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 12 +++-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 86 +++++++++++++++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  9 +++
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 15 +++++
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 31 ++++++-----
- 6 files changed, 111 insertions(+), 48 deletions(-)
-
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index da688d7..5636eb6 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -2412,7 +2412,7 @@ int ocrdma_mbx_query_qp(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
+ 	struct ocrdma_query_qp *cmd;
+ 	struct ocrdma_query_qp_rsp *rsp;
+ 
+-	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_QP, sizeof(*cmd));
++	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_QP, sizeof(*rsp));
+ 	if (!cmd)
+ 		return status;
+ 	cmd->qp_id = qp->id;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index baf9b8a..02ad0ae 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -1176,6 +1176,8 @@ struct ocrdma_query_qp_rsp {
+ 	struct ocrdma_mqe_hdr hdr;
+ 	struct ocrdma_mbx_rsp rsp;
+ 	struct ocrdma_qp_params params;
++	u32 dpp_credits_cqid;
++	u32 rbq_id;
+ };
+ 
+ enum {
 -- 
 2.2.0
 
