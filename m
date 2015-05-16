@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH for-4.1 11/11] RDMA/ocrdma: Update ocrdma version number
-Date: Sat, 16 May 2015 13:21:49 +0530
-Message-ID: <1431762709-20740-12-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH for-4.1 08/11] RDMA/ocrdma: Fail connection for MTU lesser than 512
+Date: Sat, 16 May 2015 13:21:46 +0530
+Message-ID: <1431762709-20740-9-git-send-email-selvin.xavier@avagotech.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1431762709-20740-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
@@ -10,26 +10,33 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Updating the driver version to 10.6.0.0
+From: Naga Irrinki <naga.irrinki-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
+HW currently restricts the IB MTU range between 512 and 4096.
+Fail connection for MTUs lesser than 512.
+
+Signed-off-by: Naga Irrinki <naga.irrinki-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 8782e1f..5ea13f2 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -40,7 +40,7 @@
- #include <be_roce.h>
- #include "ocrdma_sli.h"
- 
--#define OCRDMA_ROCE_DRV_VERSION "10.4.205.0u"
-+#define OCRDMA_ROCE_DRV_VERSION "10.6.0.0"
- 
- #define OCRDMA_ROCE_DRV_DESC "Emulex OneConnect RoCE Driver"
- #define OCRDMA_NODE_DESC "Emulex OneConnect RoCE HCA"
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 4b77f34..319675c 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -2535,8 +2535,10 @@ static int ocrdma_set_qp_params(struct ocrdma_qp *qp,
+ 		cmd->flags |= OCRDMA_QP_PARA_DST_QPN_VALID;
+ 	}
+ 	if (attr_mask & IB_QP_PATH_MTU) {
+-		if (attrs->path_mtu < IB_MTU_256 ||
++		if (attrs->path_mtu < IB_MTU_512 ||
+ 		    attrs->path_mtu > IB_MTU_4096) {
++			pr_err("ocrdma%d: IB MTU %d is not supported\n",
++			       dev->id, ib_mtu_enum_to_int(attrs->path_mtu));
+ 			status = -EINVAL;
+ 			goto pmtu_err;
+ 		}
 -- 
 2.2.0
 
