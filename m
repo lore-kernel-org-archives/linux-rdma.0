@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH for-4.1 04/11] RDMA/ocrdma: Use VID 0 if PFC is enabled and vlan is not configured
-Date: Sat, 16 May 2015 13:21:42 +0530
-Message-ID: <1431762709-20740-5-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH for-4.1 10/11] RDMA/ocrdma: Prevent returning failures in the resource destroy path
+Date: Sat, 16 May 2015 13:21:48 +0530
+Message-ID: <1431762709-20740-11-git-send-email-selvin.xavier@avagotech.com>
 References: <1431762709-20740-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1431762709-20740-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
@@ -10,75 +10,90 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-
-If the adapter ports are in PFC mode and VLAN is not configured,
-use vlan tag 0 for RoCE traffic. Also, log an advisory message
-in system logs.
+Avoid returning FW failures in the resource destroy verbs.
 
 Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c |  8 +++++++-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 12 +++++++++++-
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index d812904..2a5993b 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -56,7 +56,13 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 	vlan_tag = attr->vlan_id;
- 	if (!vlan_tag || (vlan_tag > 0xFFF))
- 		vlan_tag = dev->pvid;
--	if (vlan_tag && (vlan_tag < 0x1000)) {
-+	if (vlan_tag || dev->pfc_state) {
-+		if (!vlan_tag) {
-+			pr_err("ocrdma%d:Using VLAN with PFC is recommended\n",
-+				dev->id);
-+			pr_err("ocrdma%d:Using VLAN 0 for this connection\n",
-+				dev->id);
-+		}
- 		eth.eth_type = cpu_to_be16(0x8100);
- 		eth.roce_eth_type = cpu_to_be16(OCRDMA_ROCE_ETH_TYPE);
- 		vlan_tag |= (dev->sl & 0x07) << OCRDMA_VID_PCP_SHIFT;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 65759ac..da688d7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2434,7 +2434,7 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 	int status;
- 	struct ib_ah_attr *ah_attr = &attrs->ah_attr;
- 	union ib_gid sgid, zgid;
--	u32 vlan_id;
-+	u32 vlan_id = 0xFFFF;
- 	u8 mac_addr[6];
- 	struct ocrdma_dev *dev = get_ocrdma_dev(qp->ibqp.device);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 48ec56f..b1f9d7d 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -531,13 +531,12 @@ map_err:
  
-@@ -2474,12 +2474,22 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 	cmd->params.vlan_dmac_b4_to_b5 = mac_addr[4] | (mac_addr[5] << 8);
- 	if (attr_mask & IB_QP_VID) {
- 		vlan_id = attrs->vlan_id;
-+	} else if (dev->pfc_state) {
-+		vlan_id = 0;
-+		pr_err("ocrdma%d:Using VLAN with PFC is recommended\n",
-+			dev->id);
-+		pr_err("ocrdma%d:Using VLAN 0 for this connection\n",
-+			dev->id);
-+	}
-+
-+	if (vlan_id < 0x1000) {
- 		cmd->params.vlan_dmac_b4_to_b5 |=
- 		    vlan_id << OCRDMA_QP_PARAMS_VLAN_SHIFT;
- 		cmd->flags |= OCRDMA_QP_PARA_VLAN_EN_VALID;
- 		cmd->params.rnt_rc_sl_fl |=
- 			(dev->sl & 0x07) << OCRDMA_QP_PARAMS_SL_SHIFT;
+ int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
+ {
+-	int status = 0;
+ 	struct ocrdma_mm *mm, *tmp;
+ 	struct ocrdma_ucontext *uctx = get_ocrdma_ucontext(ibctx);
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibctx->device);
+ 	struct pci_dev *pdev = dev->nic_info.pdev;
+ 
+-	status = ocrdma_dealloc_ucontext_pd(uctx);
++	(void)ocrdma_dealloc_ucontext_pd(uctx);
+ 
+ 	ocrdma_del_mmap(uctx, uctx->ah_tbl.pa, uctx->ah_tbl.len);
+ 	dma_free_coherent(&pdev->dev, uctx->ah_tbl.len, uctx->ah_tbl.va,
+@@ -548,7 +547,7 @@ int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
+ 		kfree(mm);
  	}
-+
- 	return 0;
+ 	kfree(uctx);
+-	return status;
++	return 0;
  }
  
+ int ocrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+@@ -690,7 +689,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
+ 	struct ocrdma_ucontext *uctx = NULL;
+-	int status = 0;
+ 	u64 usr_db;
+ 
+ 	uctx = pd->uctx;
+@@ -704,11 +702,11 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 
+ 		if (is_ucontext_pd(uctx, pd)) {
+ 			ocrdma_release_ucontext_pd(uctx);
+-			return status;
++			return 0;
+ 		}
+ 	}
+-	status = _ocrdma_dealloc_pd(dev, pd);
+-	return status;
++	(void)_ocrdma_dealloc_pd(dev, pd);
++	return 0;
+ }
+ 
+ static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
+@@ -1905,13 +1903,12 @@ int ocrdma_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
+ 
+ int ocrdma_destroy_srq(struct ib_srq *ibsrq)
+ {
+-	int status;
+ 	struct ocrdma_srq *srq;
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibsrq->device);
+ 
+ 	srq = get_ocrdma_srq(ibsrq);
+ 
+-	status = ocrdma_mbx_destroy_srq(dev, srq);
++	(void)ocrdma_mbx_destroy_srq(dev, srq);
+ 
+ 	if (srq->pd->uctx)
+ 		ocrdma_del_mmap(srq->pd->uctx, (u64) srq->rq.pa,
+@@ -1920,7 +1917,7 @@ int ocrdma_destroy_srq(struct ib_srq *ibsrq)
+ 	kfree(srq->idx_bit_fields);
+ 	kfree(srq->rqe_wr_id_tbl);
+ 	kfree(srq);
+-	return status;
++	return 0;
+ }
+ 
+ /* unprivileged verbs and their support functions. */
 -- 
 2.2.0
 
