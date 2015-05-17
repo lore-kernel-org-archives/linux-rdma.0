@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 10/10] IB/mlx4: Return hca core clock's offset in query_device vendor's data
-Date: Sun, 17 May 2015 16:36:26 +0300
-Message-ID: <1431869786-6308-11-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 06/10] IB/mlx4: Add mmap call to map the hardware clock
+Date: Sun, 17 May 2015 16:36:22 +0300
+Message-ID: <1431869786-6308-7-git-send-email-ogerlitz@mellanox.com>
 References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1431869786-6308-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,99 +12,103 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to read the HCA's core clock, the user-space needs to query
-the correct offset in the mapped page. This offset is passed
-through query_device's vendor specific data.
+In order to read the HCA's cycle counter efficiently in
+user space, we need to map the HCA's register.
+This is done through mmap call.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    |   36 ++++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   15 ++++++++++++++
- 2 files changed, 49 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c         |   18 +++++++++++++++++-
+ drivers/net/ethernet/mellanox/mlx4/main.c |   19 +++++++++++++++++++
+ include/linux/mlx4/device.h               |    9 +++++++++
+ 3 files changed, 45 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index b77dd77..c0e830c 100644
+index fe697ec..1b60687 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -140,10 +140,27 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
- 	int have_ib_ports;
-+	struct mlx4_uverbs_ex_query_device cmd;
-+	struct mlx4_uverbs_ex_query_device_resp resp = {.comp_mask = 0};
-+	struct mlx4_clock_params clock_params;
- 
--	if (uhw->inlen || uhw->outlen)
--		return -EINVAL;
-+	if (uhw->inlen) {
-+		if (uhw->inlen < sizeof(cmd))
-+			return -EINVAL;
+@@ -725,8 +725,24 @@ static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ 				       dev->dev->caps.num_uars,
+ 				       PAGE_SIZE, vma->vm_page_prot))
+ 			return -EAGAIN;
+-	} else
++	} else if (vma->vm_pgoff == 3) {
++		struct mlx4_clock_params params;
++		int ret = mlx4_get_internal_clock_params(dev->dev, &params);
 +
-+		err = ib_copy_from_udata(&cmd, uhw, sizeof(cmd));
-+		if (err)
-+			return err;
++		if (ret)
++			return ret;
 +
-+		if (cmd.comp_mask)
-+			return -EINVAL;
-+
-+		if (cmd.reserved)
-+			return -EINVAL;
++		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++		if (io_remap_pfn_range(vma, vma->vm_start,
++				       (pci_resource_start(dev->dev->persist->pdev,
++							   params.bar) +
++					params.offset)
++				       >> PAGE_SHIFT,
++				       PAGE_SIZE, vma->vm_page_prot))
++			return -EAGAIN;
++	} else {
+ 		return -EINVAL;
 +	}
  
-+	resp.response_length = offsetof(typeof(resp), response_length) +
-+		sizeof(resp.response_length);
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
- 	if (!in_mad || !out_mad)
-@@ -236,6 +253,21 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	props->hca_core_clock = dev->dev->caps.hca_core_clock;
- 	props->timestamp_mask = 0xFFFFFFFFFFFFULL;
+ 	return 0;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index ced5eca..70de39c 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -1674,6 +1674,25 @@ static int map_internal_clock(struct mlx4_dev *dev)
+ 	return 0;
+ }
  
-+	err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
-+	if (err)
-+		goto out;
++int mlx4_get_internal_clock_params(struct mlx4_dev *dev,
++				   struct mlx4_clock_params *params)
++{
++	struct mlx4_priv *priv = mlx4_priv(dev);
 +
-+	if (uhw->outlen >= resp.response_length + sizeof(resp.hca_core_clock_offset)) {
-+		resp.hca_core_clock_offset = clock_params.offset % PAGE_SIZE;
-+		resp.response_length += sizeof(resp.hca_core_clock_offset);
-+		resp.comp_mask |= QUERY_DEVICE_RESP_MASK_TIMESTAMP;
-+	}
++	if (mlx4_is_slave(dev))
++		return -ENOTSUPP;
 +
-+	if (uhw->outlen) {
-+		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
-+		if (err)
-+			goto out;
-+	}
- out:
- 	kfree(in_mad);
- 	kfree(out_mad);
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 3afd3c5..f15754c 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -556,6 +556,21 @@ struct mlx4_ib_qp_tunnel_init_attr {
- 	u8 port;
++	if (!params)
++		return -EINVAL;
++
++	params->bar = priv->fw.clock_bar;
++	params->offset = priv->fw.clock_offset;
++	params->size = MLX4_CLOCK_SIZE;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mlx4_get_internal_clock_params);
++
+ static void unmap_internal_clock(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 83e80ab..f94984f 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -829,6 +829,12 @@ struct mlx4_dev {
+ 	struct mlx4_vf_dev     *dev_vfs;
  };
  
-+struct mlx4_uverbs_ex_query_device {
-+	__u32 comp_mask;
-+	__u32 reserved;
++struct mlx4_clock_params {
++	u64 offset;
++	u8 bar;
++	u8 size;
 +};
 +
-+enum query_device_resp_mask {
-+	QUERY_DEVICE_RESP_MASK_TIMESTAMP = 1UL << 0,
-+};
+ struct mlx4_eqe {
+ 	u8			reserved1;
+ 	u8			type;
+@@ -1485,4 +1491,7 @@ int mlx4_ACCESS_PTYS_REG(struct mlx4_dev *dev,
+ 			 enum mlx4_access_reg_method method,
+ 			 struct mlx4_ptys_reg *ptys_reg);
+ 
++int mlx4_get_internal_clock_params(struct mlx4_dev *dev,
++				   struct mlx4_clock_params *params);
 +
-+struct mlx4_uverbs_ex_query_device_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u64 hca_core_clock_offset;
-+};
-+
- static inline struct mlx4_ib_dev *to_mdev(struct ib_device *ibdev)
- {
- 	return container_of(ibdev, struct mlx4_ib_dev, ib_dev);
+ #endif /* MLX4_DEVICE_H */
 -- 
 1.7.1
 
