@@ -1,48 +1,34 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 05/13] IB/cm: Reference count ib_cm_ids
-Date: Sun, 17 May 2015 09:27:35 +0300
-Message-ID: <555834D7.5040807@mellanox.com>
-References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
- <1431253604-9214-6-git-send-email-haggaie@mellanox.com>
- <20150511183459.GB25405@obsidianresearch.com> <5551A2CB.1010407@mellanox.com>
- <20150512185447.GA3503@obsidianresearch.com> <55532566.9040105@mellanox.com>
- <20150513165823.GA20343@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDC0C3@ORSMSX109.amr.corp.intel.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RESEND PATCH V3 for-next 0/3] HW Device hot-removal support
+Date: Sun, 17 May 2015 13:33:01 +0300
+Message-ID: <55586E5D.1030801@dev.mellanox.co.il>
+References: <1431515438-24042-1-git-send-email-yishaih@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373A8FDA36D@ORSMSX109.amr.corp.intel.com> <555486CA.8080409@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373A8FDA931@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDC0C3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDA931-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 15/05/2015 22:11, Hefty, Sean wrote:
->> The lifetime if each cm_id is clearly defined:
->>
->> cm_create_cm_id()
->> cm_ref_id() / cm_deref_id()
->> cm_destroy_id()
->>
->> The fact the CM might share a listen (and only a listen) ID behind the
->> scenes is not the caller's problem. That is an implementation choice,
->> each caller stands alone and uses the API properly, assuming it is the
->> only user of the returned cm_id.
-> 
-> Actually, I seriously question why the ib_cm should be modified at all for any of this.
+On 5/14/2015 7:50 PM, Hefty, Sean wrote:
+> Why can't uverbs simply cleanup all resources associated with the open device, similar to what it does when an app closes unexpectedly (just limited to the device in question)?
 
-At first I thought of doing all the changes in the rdma_cm module. After
-a little thought though, I saw that this would require having a data
-structure in rdma_cm that could tell which ib_cm_id to use when
-listening on a new rdma_cm_id. That data structure would be indexed by a
-service ID. This is exactly what the listen_service_table rb_tree in
-ib_cm does, so instead of duplicating the rb_tree's data in another
-module, I prefer to make a small change to ib_cm and let it continue
-manage that tree.
+When an application closes un-expectedly, the application does not 
+attempt to make use of open resources, such as FDs and memory mappings.
+In the hot-removal case, the application must *continue* to operate 
+without crashing.
+For example, the application may want to use other RDMA devices.
 
-Haggai
-
+In this case, all FDs and memory mappings remain open. The semantics of 
+these remaining resources may be device-specific.
+The proposed framework first of all allows a provider to indicate 
+whether hot-removal is supported (i.e., the presence of the 
+'disassociate_ucontext' callback), and if so, allow the provider to 
+perform the proper cleanup so that the corresponding user-space driver 
+will continue to function.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
