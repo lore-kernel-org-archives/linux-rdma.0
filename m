@@ -1,113 +1,133 @@
-From: =?UTF-8?B?U8OpYmFzdGllbiBEdWd1w6k=?= <sebastien.dugue-BUmcmmAb0Fc@public.gmane.org>
-Subject: [PATCH] libmlx5: Implement missing open_qp verb
-Date: Mon, 18 May 2015 11:02:49 +0200
-Message-ID: <20150518110249.33fb161d@dingo>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH RFC v2] Documentation/infiniband: Add docs for rdma-helpers
+Date: Mon, 18 May 2015 12:47:06 +0300
+Message-ID: <CAJ3xEMgkrUgSvRV7m_M9CE4w66Wyk-Svnfejvavj38iTNyH9HQ@mail.gmail.com>
+References: <1431938505-31779-1-git-send-email-yun.wang@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OF EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1431938505-31779-1-git-send-email-yun.wang@profitbricks.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Michael Wang <yun.wang@profitbricks.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, May 18, 2015 at 11:41 AM, Michael Wang
+<yun.wang@profitbricks.com> wrote:
+> Since v1:
+>   * Merge the descriptions from Doug:
+>     http://www.spinics.net/lists/linux-rdma/msg25172.html
+>
+> This is the following patch for:
+>   https://lkml.org/lkml/2015/5/5/417
+> which try to document the settled rdma_cap_XX().
+>
+> Highlights:
+>   There could be many missing/mistakes/misunderstanding, please don't
+>   be hesitate to point out the issues, any suggestions to improve or
+>   complete the description are very welcomed ;-)
 
-  Commit 0c7ac1083831 added XRC support for mlx5, however this is missi=
-ng
-the open_qp verb.
+Michael, none of what you wrote above belongs to the change-log which
+is going to stay for-ever in the upstream git repo. You should put it
+all belong the --- line after your S.O.B and add proper change log
+telling what this patch is about
 
-Signed-off-by: S=C3=A9bastien Dugu=C3=A9 <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
----
- src/mlx5.c  |  1 +
- src/mlx5.h  |  2 ++
- src/verbs.c | 38 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 41 insertions(+)
-
-diff --git a/src/mlx5.c b/src/mlx5.c
-index d02328881992..39f59975d3d2 100644
---- a/src/mlx5.c
-+++ b/src/mlx5.c
-@@ -579,6 +579,7 @@ static int mlx5_init_context(struct verbs_device *v=
-dev,
- 	context->ibv_ctx.ops =3D mlx5_ctx_ops;
-=20
- 	verbs_set_ctx_op(v_ctx, create_qp_ex, mlx5_create_qp_ex);
-+	verbs_set_ctx_op(v_ctx, open_qp, mlx5_open_qp);
- 	verbs_set_ctx_op(v_ctx, open_xrcd, mlx5_open_xrcd);
- 	verbs_set_ctx_op(v_ctx, close_xrcd, mlx5_close_xrcd);
- 	verbs_set_ctx_op(v_ctx, create_srq_ex, mlx5_create_srq_ex);
-diff --git a/src/mlx5.h b/src/mlx5.h
-index 6ad79fe324d3..f548e51ee338 100644
---- a/src/mlx5.h
-+++ b/src/mlx5.h
-@@ -613,6 +613,8 @@ void *mlx5_get_send_wqe(struct mlx5_qp *qp, int n);
- int mlx5_copy_to_recv_wqe(struct mlx5_qp *qp, int idx, void *buf, int =
-size);
- int mlx5_copy_to_send_wqe(struct mlx5_qp *qp, int idx, void *buf, int =
-size);
- int mlx5_copy_to_recv_srq(struct mlx5_srq *srq, int idx, void *buf, in=
-t size);
-+struct ibv_qp *mlx5_open_qp(struct ibv_context *context,
-+			    struct ibv_qp_open_attr *attr);
- struct ibv_xrcd *mlx5_open_xrcd(struct ibv_context *context,
- 				struct ibv_xrcd_init_attr *xrcd_init_attr);
- int mlx5_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num);
-diff --git a/src/verbs.c b/src/verbs.c
-index 8ddf4e631c9f..dc899bce4e00 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -1122,6 +1122,44 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv=
-_qp_attr *attr,
- 	return ret;
- }
-=20
-+struct ibv_qp *mlx5_open_qp(struct ibv_context *context,
-+			    struct ibv_qp_open_attr *attr)
-+{
-+	struct ibv_open_qp cmd;
-+	struct ibv_create_qp_resp resp;
-+	struct mlx5_qp *qp;
-+	int ret;
-+	struct mlx5_context *ctx =3D to_mctx(context);
-+
-+	qp =3D calloc(1, sizeof(*qp));
-+
-+	if (!qp)
-+		return NULL;
-+
-+	ret =3D ibv_cmd_open_qp(context, &qp->verbs_qp, sizeof(qp->verbs_qp),
-+			      attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
-+	if (ret)
-+		goto err;
-+
-+	pthread_mutex_lock(&ctx->qp_table_mutex);
-+	ret =3D mlx5_store_qp(ctx, qp->verbs_qp.qp.qp_num, qp);
-+
-+	if (ret) {
-+		pthread_mutex_unlock(&ctx->qp_table_mutex);
-+		fprintf(stderr, "mlx5_store_qp failed ret=3D%d\n", ret);
-+		goto destroy;
-+	}
-+	pthread_mutex_unlock(&ctx->qp_table_mutex);
-+
-+	return (struct ibv_qp *)&qp->verbs_qp;
-+
-+destroy:
-+	ibv_cmd_destroy_qp(&qp->verbs_qp.qp);
-+err:
-+	free(qp);
-+	return NULL;
-+}
-+
- struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *a=
-ttr)
- {
- 	struct mlx5_ah *ah;
---=20
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
+> ---
+>  Documentation/infiniband/rdma_helpers.txt | 79 +++++++++++++++++++++++++++++++
+>  1 file changed, 79 insertions(+)
+>  create mode 100644 Documentation/infiniband/rdma_helpers.txt
+>
+> diff --git a/Documentation/infiniband/rdma_helpers.txt b/Documentation/infiniband/rdma_helpers.txt
+> new file mode 100644
+> index 0000000..be9416d
+> --- /dev/null
+> +++ b/Documentation/infiniband/rdma_helpers.txt
+> @@ -0,0 +1,79 @@
+> +RDMA HELPERS
+> +
+> +  The following helpers are used to check the specific capabilities of a
+> +  particular port before utilizing those capabilities.
+> +
+> +    rdma_cap_ib_mad            - Infiniband Management Datagrams.
+> +    rdma_cap_ib_smi            - Infiniband Subnet Management Interface.
+> +    rdma_cap_ib_cm             - Infiniband Communication Manager.
+> +    rdma_cap_iw_cm             - IWARP Communication Manager.
+> +    rdma_cap_ib_sa             - Infiniband Subnet Administration.
+> +    rdma_cap_ib_mcast          - Infiniband Multicast Join/Leave Protocol.
+> +    rdma_cap_read_multi_sge    - RDMA Read Work Request Support Multiple SGE.
+> +    rdma_cap_af_ib             - Native Infiniband Address.
+> +    rdma_cap_eth_ah            - InfiniBand Transport With Ethernet Address.
+> +
+> +USAGE
+> +
+> +  if (rdma_cap_XX(device, i)) {
+> +       /* The port i of device support XX */
+> +       ...
+> +  } else {
+> +       /* The port i of device don't support XX */
+> +       ...
+> +  }
+> +
+> +  rdma_cap_ib_mad
+> +  ---------------
+> +    Management Datagrams (MAD) are a required part of the InfiniBand
+> +    specification and are supported on all InfiniBand devices.  A slightly
+> +    extended version are also supported on OPA interfaces.
+> +
+> +  rdma_cap_ib_smi
+> +  ---------------
+> +    Subnet Management Interface (SMI) will handle SMP packet from SM
+> +    in an infiniband fabric.
+> +
+> +  rdma_cap_ib_cm
+> +  ---------------
+> +    Communication Manager (CM) service, used to ease the process of connecting
+> +    to a remote host.  The IB-CM can be used to connect to remote hosts using
+> +    either InfiniBand or RoCE connections, iWARP has its own CM.
+> +
+> +  rdma_cap_iw_cm
+> +  ---------------
+> +    iWARP Communication Manager (CM), Similar to the IB-CM, but only used on
+> +    iWARP devices.
+> +
+> +  rdma_cap_ib_sa
+> +  ---------------
+> +    Subnet Administration (SA) is the database built by SM in an
+> +    infiniband fabric.
+> +
+> +  rdma_cap_ib_mcast
+> +  ---------------
+> +    InfiniBand (and OPA) use a different multicast mechanism rather than
+> +    traditional IP multicast found on Ethernet devices.  If this is true, then
+> +    traditional IPv4/IPv6 multicast is handled by the IPoIB layer and direct
+> +    multicast joins and leaves are handled per the InfiniBand specifications.
+> +
+> +  rdma_cap_read_multi_sge
+> +  ---------------
+> +    Certain devices (iWARP in particular) have restrictions on the number of
+> +    scatter gather elements that can be present in an RDMA READ work request,
+> +    this is true if the device does not have that restriction.
+> +
+> +  rdma_cap_af_ib
+> +  ---------------
+> +    Many code paths for traditional InfiniBand and RoCE links are the same,
+> +    but need minor differences to accommodate the different addresses on the
+> +    two types of connections.  This helper is true when the address of the
+> +    specific connection is of the InfiniBand native variety.
+> +
+> +  rdma_cap_eth_ah
+> +  ---------------
+> +    Queue Pair is InfiniBand transport, but uses Ethernet address instead
+> +    of native InfiniBand address (aka, this is a RoCE QP, and that means
+> +    ethertype 0x8915 + GRH for RoCEv1 and IP/UDP to well known UDP port for
+> +    RoCEv2), this is true when the address family of the specific queue pair
+> +    is of the Ethernet (RoCE) variety.
+> --
+> 2.1.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
