@@ -1,137 +1,91 @@
-From: Parav Pandit <parav.pandit-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: RE: [PATCH] IB/core: Change rdma_protcol_iboe to roce
-Date: Mon, 18 May 2015 21:45:49 +0530
-Message-ID: <cdc5efd8a350e6a98c98f5f8169fe487@mail.gmail.com>
-References: <1431630106-28829-1-git-send-email-ira.weiny@intel.com>
-	 <1431702851.4214.3.camel@opteya.com>	 <2807E5FD2F6FDA4886F6618EAC48510E1107F5B2@CRSMSX101.amr.corp.intel.com>
- <1431725566.11477.15.camel@opteya.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v7 1/6] IB/core, cma: Nice log-friendly string helpers
+Date: Mon, 18 May 2015 16:25:46 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDC8A8@ORSMSX109.amr.corp.intel.com>
+References: <1431945633-18401-1-git-send-email-sagig@mellanox.com>
+ <1431945633-18401-2-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431725566.11477.15.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1431945633-18401-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+> diff --git a/drivers/infiniband/core/verbs.c
+> b/drivers/infiniband/core/verbs.c
+> index f93eb8d..961c47a 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -48,6 +48,71 @@
+> 
+>  #include "core_priv.h"
+> 
+> +static const char * const ib_events[] = {
+> +	[IB_EVENT_CQ_ERR]		= "CQ error",
+> +	[IB_EVENT_QP_FATAL]		= "QP fatal error",
+> +	[IB_EVENT_QP_REQ_ERR]		= "QP request error",
+> +	[IB_EVENT_QP_ACCESS_ERR]	= "QP access error",
+> +	[IB_EVENT_COMM_EST]		= "communication established",
+> +	[IB_EVENT_SQ_DRAINED]		= "send queue drained",
+> +	[IB_EVENT_PATH_MIG]		= "path migration successful",
+> +	[IB_EVENT_PATH_MIG_ERR]		= "path migration error",
+> +	[IB_EVENT_DEVICE_FATAL]		= "device fatal error",
+> +	[IB_EVENT_PORT_ACTIVE]		= "port active",
+> +	[IB_EVENT_PORT_ERR]		= "port error",
+> +	[IB_EVENT_LID_CHANGE]		= "LID change",
+> +	[IB_EVENT_PKEY_CHANGE]		= "P_key change",
+> +	[IB_EVENT_SM_CHANGE]		= "SM change",
+> +	[IB_EVENT_SRQ_ERR]		= "SRQ error",
+> +	[IB_EVENT_SRQ_LIMIT_REACHED]	= "SRQ limit reached",
+> +	[IB_EVENT_QP_LAST_WQE_REACHED]	= "last WQE reached",
+> +	[IB_EVENT_CLIENT_REREGISTER]	= "client reregister",
+> +	[IB_EVENT_GID_CHANGE]		= "GID changed",
+> +};
+> +
+> +const char *ib_event_msg(enum ib_event_type event)
+> +{
+> +	size_t index = event;
+> +
+> +	return (index < ARRAY_SIZE(ib_events) && ib_events[index]) ?
+> +			ib_events[index] : "unrecognized event";
+> +}
+> +EXPORT_SYMBOL(ib_event_msg);
+> +
+> +static const char * const wc_statuses[] = {
+> +	[IB_WC_SUCCESS]			= "success",
+> +	[IB_WC_LOC_LEN_ERR]		= "local length error",
+> +	[IB_WC_LOC_QP_OP_ERR]		= "local QP operation error",
+> +	[IB_WC_LOC_EEC_OP_ERR]		= "local EE context operation error",
+> +	[IB_WC_LOC_PROT_ERR]		= "local protection error",
+> +	[IB_WC_WR_FLUSH_ERR]		= "WR flushed",
+> +	[IB_WC_MW_BIND_ERR]		= "memory management operation error",
+> +	[IB_WC_BAD_RESP_ERR]		= "bad response error",
+> +	[IB_WC_LOC_ACCESS_ERR]		= "local access error",
+> +	[IB_WC_REM_INV_REQ_ERR]		= "invalid request error",
+> +	[IB_WC_REM_ACCESS_ERR]		= "remote access error",
+> +	[IB_WC_REM_OP_ERR]		= "remote operation error",
+> +	[IB_WC_RETRY_EXC_ERR]		= "transport retry counter exceeded",
+> +	[IB_WC_RNR_RETRY_EXC_ERR]	= "RNR retry counter exceeded",
+> +	[IB_WC_LOC_RDD_VIOL_ERR]	= "local RDD violation error",
+> +	[IB_WC_REM_INV_RD_REQ_ERR]	= "remove invalid RD request",
 
-At present we have chosen to call it RoCE. However I believe IBoE is mo=
-re
-generic for the reason where,
-If the future RoCE versions may work on non-converged Ethernet, IBoE wo=
-uld
-be more appropriate name in long haul.
+Remove -> remote
 
-Parav
+> +	[IB_WC_REM_ABORT_ERR]		= "operation aborted",
+> +	[IB_WC_INV_EECN_ERR]		= "invalid EE context number",
+> +	[IB_WC_INV_EEC_STATE_ERR]	= "invalid EE context state",
+> +	[IB_WC_FATAL_ERR]		= "fatal error",
+> +	[IB_WC_RESP_TIMEOUT_ERR]	= "response timeout error",
+> +	[IB_WC_GENERAL_ERR]		= "general error",
 
------Original Message-----
-=46rom: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-[mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Yann Droneaud
-Sent: Saturday, May 16, 2015 3:03 AM
-To: Weiny, Ira
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH] IB/core: Change rdma_protcol_iboe to roce
+Otherwise:
 
-Hi,
-
-Le vendredi 15 mai 2015 =C3=A0 16:29 +0000, Weiny, Ira a =C3=A9crit :
-> > Le jeudi 14 mai 2015 =C3=A0 15:01 -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org a =C3=A9=
-crit :
-> > > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > >
-> > > It has been decided that ROCE should be used within the kernel
-> > > rather than IBOE as we used before.  Change iboe to roce on the
-> > > new
-> > rdma_protocol_* functions.
-> > >
-> >
-> > Erk ... What's the usefulness of such patch
->
-> Currently there is inconsistency in the naming of the RoCE technology=
-=2E
->
-> 12:27:35 > grep -r roce drivers/infiniband | grep -v Binary | grep -i
-> -v proce | wc -l
-> 85
->
-> All in the driver code.
->
-> 12:27:48 > grep -r iboe drivers/infiniband | grep -v Binary | wc -l
-> 130
->
-> Mainly in the core and mlx4 driver.
->
-
-I see thing a bit differently:
-
-$ grep -ri 'roce' include/rdma/ \
-                  include/uapi/rdma \
-                  include/uapi/linux/if_infiniband.h \
-                  drivers/infiniband/core | grep -vi proce | wc -l
-0
-
-$ grep -ri 'iboe' include/rdma/ \
-                  include/uapi/rdma \
-                  include/uapi/linux/if_infiniband.h \
-                  drivers/infiniband/core | grep -vi proce | wc -l
-30
-
-(On next-20150515).
-
-I believe the drivers can have the names they want, especially ocrdma,
-Emulex OneConnect RoCE.
-
-> This patch was to clean up the management helper function as a genera=
-l
-> move toward standardizing on roce rather than iboe.  Most people in
-> the community refer to this as "RoCE" so that name was chosen to move
-> to.
->
-
-It's not the first time Linux use a name not matching the "vendor" one,
-amd64, arm64, etc.
-
-> >
-> > IBoE is used throughout the IB/RDMA subsystem.
-> >
-> > Changing only these occurences is rather inconsistent.
-> >
->
-> I asked about changing all the references and Doug mentioned he would
-> make a patch to change the other references.  Personally I don't want
-> to see a massive rename patch but this could be done.
->
-
-That's my main concern: I dislike patch that change such large portion =
-of
-code, for not well defined purpose.
-
-I think "It has been decided that ROCE should be used within" is not en=
-ough
-to justify the change.
-
-But "Most people in the community refer to this as "RoCE" so that name =
-was
-chosen to move to." sound a bit better as an explanation.
-
-And now, I'm stopping bikeshedding :)
-
-Regards.
-
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
-Yann Droneaud
-OPTEYA
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
