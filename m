@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v7 2/6] IB/srp: Align to generic logging helpers
-Date: Mon, 18 May 2015 13:40:29 +0300
-Message-ID: <1431945633-18401-3-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v7 4/6] iser-target: Align to generic logging helpers
+Date: Mon, 18 May 2015 13:40:31 +0300
+Message-ID: <1431945633-18401-5-git-send-email-sagig@mellanox.com>
 References: <1431945633-18401-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1431945633-18401-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,51 +10,63 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 918814c..667df9d 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -253,7 +253,8 @@ static void srp_free_iu(struct srp_host *host, struct srp_iu *iu)
- 
- static void srp_qp_event(struct ib_event *event, void *context)
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 327529e..d99a0c8 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -78,7 +78,9 @@ isert_qp_event_callback(struct ib_event *e, void *context)
  {
--	pr_debug("QP event %d\n", event->event);
-+	pr_debug("QP event %s (%d)\n",
-+		 ib_event_msg(event->event), event->event);
- }
+ 	struct isert_conn *isert_conn = context;
  
- static int srp_init_qp(struct srp_target_port *target,
-@@ -1932,17 +1933,18 @@ static void srp_handle_qp_err(u64 wr_id, enum ib_wc_status wc_status,
- 	if (target->connected && !target->qp_in_error) {
- 		if (wr_id & LOCAL_INV_WR_ID_MASK) {
- 			shost_printk(KERN_ERR, target->scsi_host, PFX
--				     "LOCAL_INV failed with status %d\n",
--				     wc_status);
-+				     "LOCAL_INV failed with status %s (%d)\n",
-+				     ib_wc_status_msg(wc_status), wc_status);
- 		} else if (wr_id & FAST_REG_WR_ID_MASK) {
- 			shost_printk(KERN_ERR, target->scsi_host, PFX
--				     "FAST_REG_MR failed status %d\n",
--				     wc_status);
-+				     "FAST_REG_MR failed status %s (%d)\n",
-+				     ib_wc_status_msg(wc_status), wc_status);
- 		} else {
- 			shost_printk(KERN_ERR, target->scsi_host,
--				     PFX "failed %s status %d for iu %p\n",
-+				     PFX "failed %s status %s (%d) for iu %p\n",
- 				     send_err ? "send" : "receive",
--				     wc_status, (void *)(uintptr_t)wr_id);
-+				     ib_wc_status_msg(wc_status), wc_status,
-+				     (void *)(uintptr_t)wr_id);
+-	isert_err("conn %p event: %d\n", isert_conn, e->event);
++	isert_err("%s (%d): conn %p\n",
++		  ib_event_msg(e->event), e->event, isert_conn);
++
+ 	switch (e->event) {
+ 	case IB_EVENT_COMM_EST:
+ 		rdma_notify(isert_conn->cm_id, IB_EVENT_COMM_EST);
+@@ -897,7 +899,8 @@ static int
+ isert_np_cma_handler(struct isert_np *isert_np,
+ 		     enum rdma_cm_event_type event)
+ {
+-	isert_dbg("isert np %p, handling event %d\n", isert_np, event);
++	isert_dbg("%s (%d): isert np %p\n",
++		  rdma_event_msg(event), event, isert_np);
+ 
+ 	switch (event) {
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+@@ -957,7 +960,8 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ {
+ 	int ret = 0;
+ 
+-	isert_info("event %d status %d id %p np %p\n", event->event,
++	isert_info("%s (%d): status %d id %p np %p\n",
++		   rdma_event_msg(event->event), event->event,
+ 		   event->status, cma_id, cma_id->context);
+ 
+ 	switch (event->event) {
+@@ -2091,10 +2095,13 @@ isert_handle_wc(struct ib_wc *wc)
  		}
- 		queue_work(system_long_wq, &target->tl_err_work);
- 	}
+ 	} else {
+ 		if (wc->status != IB_WC_WR_FLUSH_ERR)
+-			isert_err("wr id %llx status %d vend_err %x\n",
+-				  wc->wr_id, wc->status, wc->vendor_err);
++			isert_err("%s (%d): wr id %llx vend_err %x\n",
++				  ib_wc_status_msg(wc->status), wc->status,
++				  wc->wr_id, wc->vendor_err);
+ 		else
+-			isert_dbg("flush error: wr id %llx\n", wc->wr_id);
++			isert_dbg("%s (%d): wr id %llx\n",
++				  ib_wc_status_msg(wc->status), wc->status,
++				  wc->wr_id);
+ 
+ 		if (wc->wr_id != ISER_FASTREG_LI_WRID)
+ 			isert_cq_comp_err(isert_conn, wc);
 -- 
 1.7.1
 
