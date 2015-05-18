@@ -1,90 +1,59 @@
-From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/2] RDMA/nes: Enable the use of the tos field in
- the nes driver
-Date: Mon, 18 May 2015 15:28:14 -0500
-Message-ID: <20150518202814.GA9896@TENIKOLO-MOBL2>
+From: "Ted H. Kim" <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ib/cm: Change reject message type when destroying cm_id
+Date: Mon, 18 May 2015 14:27:51 -0700
+Message-ID: <555A5957.7080508@oracle.com>
+References: <1431632941-3430-1-git-send-email-sean.hefty@intel.com> <1431708034.29187.14.camel@redhat.com> <1828884A29C6694DAF28B7E6B8A82373A8FDBF8D@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDBF8D-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Faisal Latif <Faisal.Latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 05/15/15 10:06 AM, Hefty, Sean wrote:
+>> Did you intend to add an ISSUE B: section to the commit message?
+>
+> The issue is listed as the missing comm id.  Though, thinking about it
+> again, the issue may have been a missing node GUID.  I can't recall now.
+> Maybe Ted does.
 
-RDMA/nes: Enable the use of the tos field in the nes driver
+Imagine the case of the Linux active side sending REQ with it's CM communication
+id. When it gets the REP back, the other side's communication ID
+will be received and internal CM state updated. So any REJ from this
+point on can send both communication IDs.
 
-Signed-off-by: Faisal Latif <Faisal.Latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/nes/nes_cm.c |    7 +++++++
- drivers/infiniband/hw/nes/nes_cm.h |    2 ++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+Now imagine a slightly different case. The active side sends the REQ,
+and the passive side responds with MRA. At this point the CM should
+update the state with the second communication ID coming in the
+MRA. But it does not do so. This is "ISSUE B". This is will require
+a different fix from the patch in question to add the communication ID
+updating when getting an MRA.
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 6f09a72..adeea3f 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1586,6 +1586,8 @@ static struct nes_cm_node *make_cm_node(struct nes_cm_core *cm_core,
- 		  &cm_node->loc_addr, cm_node->loc_port,
- 		  &cm_node->rem_addr, cm_node->rem_port);
- 	cm_node->listener = listener;
-+	if (listener)
-+		cm_node->tos = listener->tos;
- 	cm_node->netdev = nesvnic->netdev;
- 	cm_node->cm_id = cm_info->cm_id;
- 	memcpy(cm_node->loc_mac, nesvnic->netdev->dev_addr, ETH_ALEN);
-@@ -2907,6 +2909,9 @@ static int nes_cm_init_tsa_conn(struct nes_qp *nesqp, struct nes_cm_node *cm_nod
- 
- 	nesqp->nesqp_context->misc2 |= cpu_to_le32(64 << NES_QPCONTEXT_MISC2_TTL_SHIFT);
- 
-+	nesqp->nesqp_context->misc2 |= cpu_to_le32(
-+		cm_node->tos << NES_QPCONTEXT_MISC2_TOS_SHIFT);
-+
- 	nesqp->nesqp_context->mss |= cpu_to_le32(((u32)cm_node->tcp_cntxt.mss) << 16);
- 
- 	nesqp->nesqp_context->tcp_state_flow_label |= cpu_to_le32(
-@@ -3581,6 +3586,7 @@ int nes_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		cm_node->ord_size = 1;
- 
- 	cm_node->apbvt_set = apbvt_set;
-+	cm_node->tos = cm_id->tos;
- 	nesqp->cm_node = cm_node;
- 	cm_node->nesqp = nesqp;
- 	nes_add_ref(&nesqp->ibqp);
-@@ -3635,6 +3641,7 @@ int nes_create_listen(struct iw_cm_id *cm_id, int backlog)
- 	}
- 
- 	cm_id->provider_data = cm_node;
-+	cm_node->tos = cm_id->tos;
- 
- 	if (!cm_node->reused_node) {
- 		if (nes_create_mapinfo(&cm_info))
-diff --git a/drivers/infiniband/hw/nes/nes_cm.h b/drivers/infiniband/hw/nes/nes_cm.h
-index f522cf6..32a6420 100644
---- a/drivers/infiniband/hw/nes/nes_cm.h
-+++ b/drivers/infiniband/hw/nes/nes_cm.h
-@@ -303,6 +303,7 @@ struct nes_cm_listener {
- 	int                        backlog;
- 	enum nes_cm_listener_state listener_state;
- 	u32                        reused_node;
-+	u8			   tos;
- };
- 
- /* per connection node and node state information */
-@@ -352,6 +353,7 @@ struct nes_cm_node {
- 	struct list_head	reset_entry;
- 	struct nes_qp		*nesqp;
- 	atomic_t 		passive_state;
-+	u8			tos;
- };
- 
- /* structure for client or CM to fill when making CM api calls. */
+So as a side effect, a REJ issued at this point by the active side
+has only its own communication ID. The problem with only one communication ID
+REJs is that they are all generated by remote systems from the one being
+sent the REJ and therefore might not be unique. The way that TIMEOUT
+REJ addresses this is to have a GUID in the ARI to make it unique.
+But other REJ codes don't have this.
+
+-ted
+
+> The IB spec is goofy here in that it only allows a CM REQ, once sent,
+> to timeout.  It doesn't define an 'abort' case.  The spec also treats
+> the connection is being in a single 'REP wait' state, regardless of
+> whether an MRA has been received or not.  This change results in
+> the 'I got an MRA but I'm waiting for a REP' to be handled the
+> same as 'I'm waiting for a REP', at least for the destruction case.
+
+
 -- 
-1.7.1
-
+Ted H. Kim, PhD
+Sun/Oracle America             ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+5750 Hannum Drive, #200        +1 310-258-7536
+Culver City, CA 90230
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
