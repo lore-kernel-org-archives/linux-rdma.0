@@ -1,89 +1,282 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: rdma kernel tree
-Date: Mon, 18 May 2015 13:16:59 +0300
-Message-ID: <CAJ3xEMhOTYKKthGHjrrw-+bc0Ndi0Rz8S8Tg4hbhFQd8MPAtZQ@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
-	<1431485563.43876.93.camel@redhat.com>
-	<CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
-	<1431530845.2377.30.camel@redhat.com>
-	<55549D33.1000208@mellanox.com>
-	<1431616073.3276.17.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v7 5/6] xprtrdma, svcrdma: Switch to generic logging helpers
+Date: Mon, 18 May 2015 13:40:32 +0300
+Message-ID: <1431945633-18401-6-git-send-email-sagig@mellanox.com>
+References: <1431945633-18401-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431616073.3276.17.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1431945633-18401-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 14, 2015 at 6:07 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/frwr_ops.c           |    4 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   29 ++++++----
+ net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
+ 3 files changed, 25 insertions(+), 98 deletions(-)
 
->> Lets find a way to get things in that direction, for everyone's benefit.
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index dff0481..d234521 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -128,8 +128,8 @@ frwr_sendcompletion(struct ib_wc *wc)
+ 
+ 	/* WARNING: Only wr_id and status are reliable at this point */
+ 	r = (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
+-	dprintk("RPC:       %s: frmr %p (stale), status %d\n",
+-		__func__, r, wc->status);
++	dprintk("RPC:       %s: frmr %p (stale), status %s (%d)\n",
++		__func__, r, ib_wc_status_msg(wc->status), wc->status);
+ 	r->r.frmr.fr_state = FRMR_IS_STALE;
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index f609c1c..13ee04f 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -175,8 +175,8 @@ void svc_rdma_put_req_map(struct svc_rdma_req_map *map)
+ static void cq_event_handler(struct ib_event *event, void *context)
+ {
+ 	struct svc_xprt *xprt = context;
+-	dprintk("svcrdma: received CQ event id=%d, context=%p\n",
+-		event->event, context);
++	dprintk("svcrdma: received CQ event %s (%d), context=%p\n",
++		ib_event_msg(event->event), event->event, context);
+ 	set_bit(XPT_CLOSE, &xprt->xpt_flags);
+ }
+ 
+@@ -191,8 +191,9 @@ static void qp_event_handler(struct ib_event *event, void *context)
+ 	case IB_EVENT_COMM_EST:
+ 	case IB_EVENT_SQ_DRAINED:
+ 	case IB_EVENT_QP_LAST_WQE_REACHED:
+-		dprintk("svcrdma: QP event %d received for QP=%p\n",
+-			event->event, event->element.qp);
++		dprintk("svcrdma: QP event %s (%d) received for QP=%p\n",
++			ib_event_msg(event->event), event->event,
++			event->element.qp);
+ 		break;
+ 	/* These are considered fatal events */
+ 	case IB_EVENT_PATH_MIG_ERR:
+@@ -201,9 +202,10 @@ static void qp_event_handler(struct ib_event *event, void *context)
+ 	case IB_EVENT_QP_ACCESS_ERR:
+ 	case IB_EVENT_DEVICE_FATAL:
+ 	default:
+-		dprintk("svcrdma: QP ERROR event %d received for QP=%p, "
++		dprintk("svcrdma: QP ERROR event %s (%d) received for QP=%p, "
+ 			"closing transport\n",
+-			event->event, event->element.qp);
++			ib_event_msg(event->event), event->event,
++			event->element.qp);
+ 		set_bit(XPT_CLOSE, &xprt->xpt_flags);
+ 		break;
+ 	}
+@@ -402,7 +404,8 @@ static void sq_cq_reap(struct svcxprt_rdma *xprt)
+ 		for (i = 0; i < ret; i++) {
+ 			wc = &wc_a[i];
+ 			if (wc->status != IB_WC_SUCCESS) {
+-				dprintk("svcrdma: sq wc err status %d\n",
++				dprintk("svcrdma: sq wc err status %s (%d)\n",
++					ib_wc_status_msg(wc->status),
+ 					wc->status);
+ 
+ 				/* Close the transport */
+@@ -616,7 +619,8 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
+ 	switch (event->event) {
+ 	case RDMA_CM_EVENT_CONNECT_REQUEST:
+ 		dprintk("svcrdma: Connect request on cma_id=%p, xprt = %p, "
+-			"event=%d\n", cma_id, cma_id->context, event->event);
++			"event = %s (%d)\n", cma_id, cma_id->context,
++			rdma_event_msg(event->event), event->event);
+ 		handle_connect_req(cma_id,
+ 				   event->param.conn.initiator_depth);
+ 		break;
+@@ -636,7 +640,8 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
+ 
+ 	default:
+ 		dprintk("svcrdma: Unexpected event on listening endpoint %p, "
+-			"event=%d\n", cma_id, event->event);
++			"event = %s (%d)\n", cma_id,
++			rdma_event_msg(event->event), event->event);
+ 		break;
+ 	}
+ 
+@@ -669,7 +674,8 @@ static int rdma_cma_handler(struct rdma_cm_id *cma_id,
+ 		break;
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 		dprintk("svcrdma: Device removal cma_id=%p, xprt = %p, "
+-			"event=%d\n", cma_id, xprt, event->event);
++			"event = %s (%d)\n", cma_id, xprt,
++			rdma_event_msg(event->event), event->event);
+ 		if (xprt) {
+ 			set_bit(XPT_CLOSE, &xprt->xpt_flags);
+ 			svc_xprt_enqueue(xprt);
+@@ -677,7 +683,8 @@ static int rdma_cma_handler(struct rdma_cm_id *cma_id,
+ 		break;
+ 	default:
+ 		dprintk("svcrdma: Unexpected event on DTO endpoint %p, "
+-			"event=%d\n", cma_id, event->event);
++			"event = %s (%d)\n", cma_id,
++			rdma_event_msg(event->event), event->event);
+ 		break;
+ 	}
+ 	return 0;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 4870d27..6f6b8a5 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -105,32 +105,6 @@ rpcrdma_run_tasklet(unsigned long data)
+ 
+ static DECLARE_TASKLET(rpcrdma_tasklet_g, rpcrdma_run_tasklet, 0UL);
+ 
+-static const char * const async_event[] = {
+-	"CQ error",
+-	"QP fatal error",
+-	"QP request error",
+-	"QP access error",
+-	"communication established",
+-	"send queue drained",
+-	"path migration successful",
+-	"path mig error",
+-	"device fatal error",
+-	"port active",
+-	"port error",
+-	"LID change",
+-	"P_key change",
+-	"SM change",
+-	"SRQ error",
+-	"SRQ limit reached",
+-	"last WQE reached",
+-	"client reregister",
+-	"GID change",
+-};
+-
+-#define ASYNC_MSG(status)					\
+-	((status) < ARRAY_SIZE(async_event) ?			\
+-		async_event[(status)] : "unknown async error")
+-
+ static void
+ rpcrdma_schedule_tasklet(struct list_head *sched_list)
+ {
+@@ -148,7 +122,7 @@ rpcrdma_qp_async_error_upcall(struct ib_event *event, void *context)
+ 	struct rpcrdma_ep *ep = context;
+ 
+ 	pr_err("RPC:       %s: %s on device %s ep %p\n",
+-	       __func__, ASYNC_MSG(event->event),
++	       __func__, ib_event_msg(event->event),
+ 		event->device->name, context);
+ 	if (ep->rep_connected == 1) {
+ 		ep->rep_connected = -EIO;
+@@ -163,7 +137,7 @@ rpcrdma_cq_async_error_upcall(struct ib_event *event, void *context)
+ 	struct rpcrdma_ep *ep = context;
+ 
+ 	pr_err("RPC:       %s: %s on device %s ep %p\n",
+-	       __func__, ASYNC_MSG(event->event),
++	       __func__, ib_event_msg(event->event),
+ 		event->device->name, context);
+ 	if (ep->rep_connected == 1) {
+ 		ep->rep_connected = -EIO;
+@@ -172,35 +146,6 @@ rpcrdma_cq_async_error_upcall(struct ib_event *event, void *context)
+ 	}
+ }
+ 
+-static const char * const wc_status[] = {
+-	"success",
+-	"local length error",
+-	"local QP operation error",
+-	"local EE context operation error",
+-	"local protection error",
+-	"WR flushed",
+-	"memory management operation error",
+-	"bad response error",
+-	"local access error",
+-	"remote invalid request error",
+-	"remote access error",
+-	"remote operation error",
+-	"transport retry counter exceeded",
+-	"RNR retry counter exceeded",
+-	"local RDD violation error",
+-	"remove invalid RD request",
+-	"operation aborted",
+-	"invalid EE context number",
+-	"invalid EE context state",
+-	"fatal error",
+-	"response timeout error",
+-	"general error",
+-};
+-
+-#define COMPLETION_MSG(status)					\
+-	((status) < ARRAY_SIZE(wc_status) ?			\
+-		wc_status[(status)] : "unexpected completion error")
+-
+ static void
+ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+ {
+@@ -209,7 +154,7 @@ rpcrdma_sendcq_process_wc(struct ib_wc *wc)
+ 		if (wc->status != IB_WC_SUCCESS &&
+ 		    wc->status != IB_WC_WR_FLUSH_ERR)
+ 			pr_err("RPC:       %s: SEND: %s\n",
+-			       __func__, COMPLETION_MSG(wc->status));
++			       __func__, ib_wc_status_msg(wc->status));
+ 	} else {
+ 		struct rpcrdma_mw *r;
+ 
+@@ -302,7 +247,7 @@ out_schedule:
+ out_fail:
+ 	if (wc->status != IB_WC_WR_FLUSH_ERR)
+ 		pr_err("RPC:       %s: rep %p: %s\n",
+-		       __func__, rep, COMPLETION_MSG(wc->status));
++		       __func__, rep, ib_wc_status_msg(wc->status));
+ 	rep->rr_len = ~0U;
+ 	goto out_schedule;
+ }
+@@ -386,31 +331,6 @@ rpcrdma_flush_cqs(struct rpcrdma_ep *ep)
+ 		rpcrdma_sendcq_process_wc(&wc);
+ }
+ 
+-#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+-static const char * const conn[] = {
+-	"address resolved",
+-	"address error",
+-	"route resolved",
+-	"route error",
+-	"connect request",
+-	"connect response",
+-	"connect error",
+-	"unreachable",
+-	"rejected",
+-	"established",
+-	"disconnected",
+-	"device removal",
+-	"multicast join",
+-	"multicast error",
+-	"address change",
+-	"timewait exit",
+-};
+-
+-#define CONNECTION_MSG(status)						\
+-	((status) < ARRAY_SIZE(conn) ?					\
+-		conn[(status)] : "unrecognized connection error")
+-#endif
+-
+ static int
+ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
+ {
+@@ -476,7 +396,7 @@ connected:
+ 	default:
+ 		dprintk("RPC:       %s: %pIS:%u (ep 0x%p): %s\n",
+ 			__func__, sap, rpc_get_port(sap), ep,
+-			CONNECTION_MSG(event->event));
++			rdma_event_msg(event->event));
+ 		break;
+ 	}
+ 
+-- 
+1.7.1
 
-> I'm fine with that.  What I'll propose is the following:
-
-> Kernel.org tree: never rebases, will use a topic branch per release, I
-> will coordinate tags on the different branches because Linus prefers to
-> pull from signed tags anyway.  So, for-linus tag will always be the
-> current code I wish Linus to pull, for-next will be the official next
-> tag and it won't rebase, it will only move forward.
-
-The official for-linus / for-next tag branding sounds OK, conditioned
-on the git mechanics for the day-to-day developers use case to be
-really simple (no need for checkouts? only pulls? maybe give few
-examples on how people are expected to use that).
-
-Personally, I am terribly sold out for the ultra simple practice of
-two trees (e.g the netdev case) or two branches of the same tree (e.g
-for-next, for-rc) which I always know where to get and what would they
-contain. So I am a bit annoyed from the per-release topic branches.
-But if everyone else are OK with your proposal we can go there (Amir -
-is this OK for our automated systems?)
-
-
-> github.com tree: will have my various topic branches (these will come
-> and go as code is taken, merged into mainline, and then branch deleted),
-> will have copies of the official k.o/ branches (which won't rebase), and
-> will have to-be-rebase/* branches where I pull things together until I
-> am happy with the overall branch and then I will move it over to k.o/*
-> and it will no longer rebase.  It will also contain the most recent
-> for-linus tag, and it will contain a for-next that.  The only special
-> thing about the tags is if the for-next tag on k.o and here don't match,
-> it means that this tag points to a branch that might be rebased and has
-> not been blessed as official yet.  Once the tags between the two repos
-> are identical again, you will know I've made the last rebase and moved
-> the branch to the official status.
-
-Sort of too complex for me to follow. I am on upstream for coupled of
-years and worked with few maintainers, didn't had to go into that
-level. I would prefer just to use your kernel.org and for-next things
-need to be there before rc4 (today).
-
-> So, under that scheme, your automated stuff can be pointed at k.o
-> for-next, or if it is able to deal with rebases (meaning that your
-> automated system blows away the last kernel and performs the merges all
-> over again each time it runs) then you could point it at github
-> for-next.  Is that acceptable?
-
-Again, for the automated Amir needs to reply. For the day-to-day I
-replied how I personally see things.
-
-Another thing to nail down is patch subject line tagging. Currently it
-seems no agreed practice. Under Roland we had for-next or nothing
-(mostly the latter...)
-
-I would suggest one of:
-
-for-next (next release) and for-rc (current release)
-
-or
-
-rdma-next (next release) and rdma-rc (current release)
-
-or
-
-something else? RFCs are exception.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
