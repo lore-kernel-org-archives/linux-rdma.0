@@ -1,168 +1,90 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH RFC v2] Documentation/infiniband: Add docs for rdma-helpers
-Date: Mon, 18 May 2015 12:06:15 +0200
-Message-ID: <5559B997.1030502@profitbricks.com>
-References: <1431938505-31779-1-git-send-email-yun.wang@profitbricks.com> <CAJ3xEMgkrUgSvRV7m_M9CE4w66Wyk-Svnfejvavj38iTNyH9HQ@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: rdma kernel tree
+Date: Mon, 18 May 2015 13:16:59 +0300
+Message-ID: <CAJ3xEMhOTYKKthGHjrrw-+bc0Ndi0Rz8S8Tg4hbhFQd8MPAtZQ@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
+	<1431485563.43876.93.camel@redhat.com>
+	<CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
+	<1431530845.2377.30.camel@redhat.com>
+	<55549D33.1000208@mellanox.com>
+	<1431616073.3276.17.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMgkrUgSvRV7m_M9CE4w66Wyk-Svnfejvavj38iTNyH9HQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1431616073.3276.17.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Or
+On Thu, May 14, 2015 at 6:07 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
-On 05/18/2015 11:47 AM, Or Gerlitz wrote:
-[snip]
->> Highlights:
->>   There could be many missing/mistakes/misunderstanding, please don't
->>   be hesitate to point out the issues, any suggestions to improve or
->>   complete the description are very welcomed ;-)
-> 
-> Michael, none of what you wrote above belongs to the change-log which
-> is going to stay for-ever in the upstream git repo. You should put it
-> all belong the --- line after your S.O.B and add proper change log
-> telling what this patch is about
+>> Lets find a way to get things in that direction, for everyone's benefit.
 
-Thanks for point out this for me :-)
+> I'm fine with that.  What I'll propose is the following:
 
-I'll put the highlights and changelog under '---' in next version, is it
-looks like this?
+> Kernel.org tree: never rebases, will use a topic branch per release, I
+> will coordinate tags on the different branches because Linus prefers to
+> pull from signed tags anyway.  So, for-linus tag will always be the
+> current code I wish Linus to pull, for-next will be the official next
+> tag and it won't rebase, it will only move forward.
+
+The official for-linus / for-next tag branding sounds OK, conditioned
+on the git mechanics for the day-to-day developers use case to be
+really simple (no need for checkouts? only pulls? maybe give few
+examples on how people are expected to use that).
+
+Personally, I am terribly sold out for the ultra simple practice of
+two trees (e.g the netdev case) or two branches of the same tree (e.g
+for-next, for-rc) which I always know where to get and what would they
+contain. So I am a bit annoyed from the per-release topic branches.
+But if everyone else are OK with your proposal we can go there (Amir -
+is this OK for our automated systems?)
 
 
-Subject: [PATCH RFC v3] Documentation/infiniband: Add docs for rdma-helpers
+> github.com tree: will have my various topic branches (these will come
+> and go as code is taken, merged into mainline, and then branch deleted),
+> will have copies of the official k.o/ branches (which won't rebase), and
+> will have to-be-rebase/* branches where I pull things together until I
+> am happy with the overall branch and then I will move it over to k.o/*
+> and it will no longer rebase.  It will also contain the most recent
+> for-linus tag, and it will contain a for-next that.  The only special
+> thing about the tags is if the for-next tag on k.o and here don't match,
+> it means that this tag points to a branch that might be rebased and has
+> not been blessed as official yet.  Once the tags between the two repos
+> are identical again, you will know I've made the last rebase and moved
+> the branch to the official status.
 
-This is the following patch for:
-  https://lkml.org/lkml/2015/5/5/417
-which try to document the settled rdma_cap_XX().
+Sort of too complex for me to follow. I am on upstream for coupled of
+years and worked with few maintainers, didn't had to go into that
+level. I would prefer just to use your kernel.org and for-next things
+need to be there before rc4 (today).
 
-Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
----
-Highlights:
-  There could be many missing/mistakes/misunderstanding, please don't
-  be hesitate to point out the issues, any suggestions to improve or
-  complete the description are very welcomed ;-)
+> So, under that scheme, your automated stuff can be pointed at k.o
+> for-next, or if it is able to deal with rebases (meaning that your
+> automated system blows away the last kernel and performs the merges all
+> over again each time it runs) then you could point it at github
+> for-next.  Is that acceptable?
 
-v2:
-  * Merge the descriptions from Doug:
-    http://www.spinics.net/lists/linux-rdma/msg25172.html
+Again, for the automated Amir needs to reply. For the day-to-day I
+replied how I personally see things.
 
-v3:
-  ...
+Another thing to nail down is patch subject line tagging. Currently it
+seems no agreed practice. Under Roland we had for-next or nothing
+(mostly the latter...)
 
- Documentation/infiniband/rdma_helpers.txt | 79 +++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
- create mode 100644 Documentation/infiniband/rdma_helpers.txt
+I would suggest one of:
 
-diff --git a/Documentation/infiniband/rdma_helpers.txt b/Documentation/infiniband/rdma_helpers.txt
-new file mode 100644
-index 0000000..be9416d
---- /dev/null
-+++ b/Documentation/infiniband/rdma_helpers.txt
+for-next (next release) and for-rc (current release)
 
-Regards,
-Michael Wang
+or
 
-> 
->>
->> Signed-off-by: Michael Wang <yun.wang@profitbricks.com>
->> ---
->>  Documentation/infiniband/rdma_helpers.txt | 79 +++++++++++++++++++++++++++++++
->>  1 file changed, 79 insertions(+)
->>  create mode 100644 Documentation/infiniband/rdma_helpers.txt
->>
->> diff --git a/Documentation/infiniband/rdma_helpers.txt b/Documentation/infiniband/rdma_helpers.txt
->> new file mode 100644
->> index 0000000..be9416d
->> --- /dev/null
->> +++ b/Documentation/infiniband/rdma_helpers.txt
->> @@ -0,0 +1,79 @@
->> +RDMA HELPERS
->> +
->> +  The following helpers are used to check the specific capabilities of a
->> +  particular port before utilizing those capabilities.
->> +
->> +    rdma_cap_ib_mad            - Infiniband Management Datagrams.
->> +    rdma_cap_ib_smi            - Infiniband Subnet Management Interface.
->> +    rdma_cap_ib_cm             - Infiniband Communication Manager.
->> +    rdma_cap_iw_cm             - IWARP Communication Manager.
->> +    rdma_cap_ib_sa             - Infiniband Subnet Administration.
->> +    rdma_cap_ib_mcast          - Infiniband Multicast Join/Leave Protocol.
->> +    rdma_cap_read_multi_sge    - RDMA Read Work Request Support Multiple SGE.
->> +    rdma_cap_af_ib             - Native Infiniband Address.
->> +    rdma_cap_eth_ah            - InfiniBand Transport With Ethernet Address.
->> +
->> +USAGE
->> +
->> +  if (rdma_cap_XX(device, i)) {
->> +       /* The port i of device support XX */
->> +       ...
->> +  } else {
->> +       /* The port i of device don't support XX */
->> +       ...
->> +  }
->> +
->> +  rdma_cap_ib_mad
->> +  ---------------
->> +    Management Datagrams (MAD) are a required part of the InfiniBand
->> +    specification and are supported on all InfiniBand devices.  A slightly
->> +    extended version are also supported on OPA interfaces.
->> +
->> +  rdma_cap_ib_smi
->> +  ---------------
->> +    Subnet Management Interface (SMI) will handle SMP packet from SM
->> +    in an infiniband fabric.
->> +
->> +  rdma_cap_ib_cm
->> +  ---------------
->> +    Communication Manager (CM) service, used to ease the process of connecting
->> +    to a remote host.  The IB-CM can be used to connect to remote hosts using
->> +    either InfiniBand or RoCE connections, iWARP has its own CM.
->> +
->> +  rdma_cap_iw_cm
->> +  ---------------
->> +    iWARP Communication Manager (CM), Similar to the IB-CM, but only used on
->> +    iWARP devices.
->> +
->> +  rdma_cap_ib_sa
->> +  ---------------
->> +    Subnet Administration (SA) is the database built by SM in an
->> +    infiniband fabric.
->> +
->> +  rdma_cap_ib_mcast
->> +  ---------------
->> +    InfiniBand (and OPA) use a different multicast mechanism rather than
->> +    traditional IP multicast found on Ethernet devices.  If this is true, then
->> +    traditional IPv4/IPv6 multicast is handled by the IPoIB layer and direct
->> +    multicast joins and leaves are handled per the InfiniBand specifications.
->> +
->> +  rdma_cap_read_multi_sge
->> +  ---------------
->> +    Certain devices (iWARP in particular) have restrictions on the number of
->> +    scatter gather elements that can be present in an RDMA READ work request,
->> +    this is true if the device does not have that restriction.
->> +
->> +  rdma_cap_af_ib
->> +  ---------------
->> +    Many code paths for traditional InfiniBand and RoCE links are the same,
->> +    but need minor differences to accommodate the different addresses on the
->> +    two types of connections.  This helper is true when the address of the
->> +    specific connection is of the InfiniBand native variety.
->> +
->> +  rdma_cap_eth_ah
->> +  ---------------
->> +    Queue Pair is InfiniBand transport, but uses Ethernet address instead
->> +    of native InfiniBand address (aka, this is a RoCE QP, and that means
->> +    ethertype 0x8915 + GRH for RoCEv1 and IP/UDP to well known UDP port for
->> +    RoCEv2), this is true when the address family of the specific queue pair
->> +    is of the Ethernet (RoCE) variety.
->> --
->> 2.1.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+rdma-next (next release) and rdma-rc (current release)
+
+or
+
+something else? RFCs are exception.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
