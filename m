@@ -1,7 +1,7 @@
 From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 0/2] Export tos field to iwarp providers
-Date: Mon, 18 May 2015 15:24:53 -0500
-Message-ID: <20150518202453.GA17572@TENIKOLO-MOBL2>
+Subject: [PATCH for-next 1/2] RDMA/iw_cm: Export tos field to iwarp providers
+Date: Mon, 18 May 2015 15:27:10 -0500
+Message-ID: <20150518202710.GA3048@TENIKOLO-MOBL2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,26 +11,51 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty 
 Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Subject: [PATCH 0/2] Enable iwarp providers to use the tos field
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-The first patch "RDMA/iw_cm: Export tos field to iwarp providers" is
-resubmitted, following the original submission from Steve Wise.
-The patch was deferred until the tos field is being used by iwarp drivers.
-You could see the email thread about the original patch here:
-http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20140.html
+rdma-cma/iw_cm: Export tos field to iwarp providers
 
-The second patch "RDMA/nes: Enable the use of the tos field in the nes driver"
-is introducing changes to the nes driver to use the provided tos field.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c |    2 ++
+ include/rdma/iw_cm.h          |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-Tatyana Nikolova (2):
-  RDMA/iw_cm: Export tos field to iwarp providers
-  RDMA/nes: Enable the use of the tos field in the nes driver
-
- drivers/infiniband/core/cma.c      |    2 ++
- drivers/infiniband/hw/nes/nes_cm.c |    7 +++++++
- drivers/infiniband/hw/nes/nes_cm.h |    2 ++
- include/rdma/iw_cm.h               |    1 +
- 4 files changed, 12 insertions(+), 0 deletions(-)
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d570030..beda319 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1593,6 +1593,7 @@ static int cma_iw_listen(struct rdma_id_private *id_priv, int backlog)
+ 	if (IS_ERR(id))
+ 		return PTR_ERR(id);
+ 
++	id->tos = id_priv->tos;
+ 	id_priv->cm_id.iw = id;
+ 
+ 	memcpy(&id_priv->cm_id.iw->local_addr, cma_src_addr(id_priv),
+@@ -2840,6 +2841,7 @@ static int cma_connect_iw(struct rdma_id_private *id_priv,
+ 	if (IS_ERR(cm_id))
+ 		return PTR_ERR(cm_id);
+ 
++	cm_id->tos = id_priv->tos;
+ 	id_priv->cm_id.iw = cm_id;
+ 
+ 	memcpy(&cm_id->local_addr, cma_src_addr(id_priv),
+diff --git a/include/rdma/iw_cm.h b/include/rdma/iw_cm.h
+index 1017e0b..036bd27 100644
+--- a/include/rdma/iw_cm.h
++++ b/include/rdma/iw_cm.h
+@@ -91,6 +91,7 @@ struct iw_cm_id {
+ 	/* Used by provider to add and remove refs on IW cm_id */
+ 	void (*add_ref)(struct iw_cm_id *);
+ 	void (*rem_ref)(struct iw_cm_id *);
++	u8  tos;
+ };
+ 
+ struct iw_cm_conn_param {
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
