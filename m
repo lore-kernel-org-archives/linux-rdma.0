@@ -1,33 +1,36 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/1] ibacm: Add support for pathrecord query through
- netlink
-Date: Mon, 18 May 2015 20:00:05 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDCA60@ORSMSX109.amr.corp.intel.com>
-References: <1431975674-23602-1-git-send-email-kaike.wan@intel.com>
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 0/2] Export tos field to iwarp providers
+Date: Mon, 18 May 2015 15:24:53 -0500
+Message-ID: <20150518202453.GA17572@TENIKOLO-MOBL2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1431975674-23602-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> +static inline int acm_nl_supported_sa_mad(struct ib_sa_mad *sa_mad)
-> +{
-> +	return (sa_mad->rmpp_version == 0 &&
+Subject: [PATCH 0/2] Enable iwarp providers to use the tos field
 
-I think you want something like:
+The first patch "RDMA/iw_cm: Export tos field to iwarp providers" is
+resubmitted, following the original submission from Steve Wise.
+The patch was deferred until the tos field is being used by iwarp drivers.
+You could see the email thread about the original patch here:
+http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20140.html
 
-!(rmpp_flags & RMPP_ACTIVE) 
+The second patch "RDMA/nes: Enable the use of the tos field in the nes driver"
+is introducing changes to the nes driver to use the provided tos field.
 
-Instead of checking for version = 0.
+Tatyana Nikolova (2):
+  RDMA/iw_cm: Export tos field to iwarp providers
+  RDMA/nes: Enable the use of the tos field in the nes driver
 
-> +		sa_mad->method == UMAD_METHOD_GET &&
-> +		sa_mad->attr_id == htons(UMAD_SA_ATTR_PATH_REC));
-> +}
+ drivers/infiniband/core/cma.c      |    2 ++
+ drivers/infiniband/hw/nes/nes_cm.c |    7 +++++++
+ drivers/infiniband/hw/nes/nes_cm.h |    2 ++
+ include/rdma/iw_cm.h               |    1 +
+ 4 files changed, 12 insertions(+), 0 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
