@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH V2 for-4.1 2/9] RDMA/ocrdma: Report EQ full fatal error
-Date: Tue, 19 May 2015 11:32:33 +0530
-Message-ID: <1432015360-15447-3-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH V2 for-4.1 3/9] RDMA/ocrdma: Fix QP state transition in destroy_qp
+Date: Tue, 19 May 2015 11:32:34 +0530
+Message-ID: <1432015360-15447-4-git-send-email-selvin.xavier@avagotech.com>
 References: <1432015360-15447-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432015360-15447-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
@@ -12,62 +12,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
-Detect when Event Queue (EQ) becomes full and print a warning message.
+Don't move QP to error state, if QP is in reset state during QP
+destroy operation.
 
 Signed-off-by: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c  | 6 ++++++
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h | 7 +++++++
- 2 files changed, 13 insertions(+)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 3a5ea5af..65759ac 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -933,12 +933,18 @@ static irqreturn_t ocrdma_irq_handler(int irq, void *handle)
- 	struct ocrdma_eqe eqe;
- 	struct ocrdma_eqe *ptr;
- 	u16 cq_id;
-+	u8 mcode;
- 	int budget = eq->cq_cnt;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 8771755..06e8ab7 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1721,18 +1721,20 @@ int ocrdma_destroy_qp(struct ib_qp *ibqp)
+ 	struct ocrdma_qp *qp;
+ 	struct ocrdma_dev *dev;
+ 	struct ib_qp_attr attrs;
+-	int attr_mask = IB_QP_STATE;
++	int attr_mask;
+ 	unsigned long flags;
  
- 	do {
- 		ptr = ocrdma_get_eqe(eq);
- 		eqe = *ptr;
- 		ocrdma_le32_to_cpu(&eqe, sizeof(eqe));
-+		mcode = (eqe.id_valid & OCRDMA_EQE_MAJOR_CODE_MASK)
-+				>> OCRDMA_EQE_MAJOR_CODE_SHIFT;
-+		if (mcode == OCRDMA_MAJOR_CODE_SENTINAL)
-+			pr_err("EQ full on eqid = 0x%x, eqe = 0x%x\n",
-+			       eq->q.id, eqe.id_valid);
- 		if ((eqe.id_valid & OCRDMA_EQE_VALID_MASK) == 0)
- 			break;
+ 	qp = get_ocrdma_qp(ibqp);
+ 	dev = get_ocrdma_dev(ibqp->device);
  
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 243c87c..baf9b8a 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -1624,12 +1624,19 @@ struct ocrdma_delete_ah_tbl_rsp {
- enum {
- 	OCRDMA_EQE_VALID_SHIFT		= 0,
- 	OCRDMA_EQE_VALID_MASK		= BIT(0),
-+	OCRDMA_EQE_MAJOR_CODE_MASK      = 0x0E,
-+	OCRDMA_EQE_MAJOR_CODE_SHIFT     = 0x01,
- 	OCRDMA_EQE_FOR_CQE_MASK		= 0xFFFE,
- 	OCRDMA_EQE_RESOURCE_ID_SHIFT	= 16,
- 	OCRDMA_EQE_RESOURCE_ID_MASK	= 0xFFFF <<
- 				OCRDMA_EQE_RESOURCE_ID_SHIFT,
- };
+-	attrs.qp_state = IB_QPS_ERR;
+ 	pd = qp->pd;
  
-+enum major_code {
-+	OCRDMA_MAJOR_CODE_COMPLETION    = 0x00,
-+	OCRDMA_MAJOR_CODE_SENTINAL      = 0x01
-+};
-+
- struct ocrdma_eqe {
- 	u32 id_valid;
- };
+ 	/* change the QP state to ERROR */
+-	_ocrdma_modify_qp(ibqp, &attrs, attr_mask);
+-
++	if (qp->state != OCRDMA_QPS_RST) {
++		attrs.qp_state = IB_QPS_ERR;
++		attr_mask = IB_QP_STATE;
++		_ocrdma_modify_qp(ibqp, &attrs, attr_mask);
++	}
+ 	/* ensure that CQEs for newly created QP (whose id may be same with
+ 	 * one which just getting destroyed are same), dont get
+ 	 * discarded until the old CQEs are discarded.
 -- 
 2.2.0
 
