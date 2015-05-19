@@ -1,57 +1,38 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
-Date: Tue, 19 May 2015 19:17:49 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E11082B44@CRSMSX101.amr.corp.intel.com>
-References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
-	<1431975616-23529-4-git-send-email-kaike.wan@intel.com>
-	<555AC36D.5050904@mellanox.com>
-	<3F128C9216C9B84BB6ED23EF16290AFB0CAB243E@CRSMSX101.amr.corp.intel.com>
-	<CAJ3xEMhkpYYtzrsOw=8JQOekpVT6xQC9P2itH3H3oAjjPfWrng@mail.gmail.com>
-	<3F128C9216C9B84BB6ED23EF16290AFB0CAB2677@CRSMSX101.amr.corp.intel.com>
- <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma kernel tree
+Date: Tue, 19 May 2015 13:18:42 -0600
+Message-ID: <20150519191842.GQ18675@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
+ <1431485563.43876.93.camel@redhat.com>
+ <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
+ <1431530845.2377.30.camel@redhat.com>
+ <5554B7E8.4020902@mellanox.com>
+ <1431615776.3276.14.camel@redhat.com>
+ <CAJ3xEMjgpegf+D2BBZ8RPERkdUO3yH4U1LjiK+i4iF=_PtpQkA@mail.gmail.com>
+ <555ABD9D.3080303@mellanox.com>
+ <1432038160.3114.16.camel@redhat.com>
+ <CAJ3xEMjkECDrbCFksSMMTSUusOhrU+qvMnXjkg=OuFaeYKoT0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMjkECDrbCFksSMMTSUusOhrU+qvMnXjkg=OuFaeYKoT0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gT24gVHVlLCBNYXkgMTksIDIwMTUgYXQgOTo0MiBQTSwgV2FuLCBLYWlrZSA8a2Fpa2Uu
-d2FuQGludGVsLmNvbT4gd3JvdGU6DQo+ID4+DQo+ID4+ID4+IHdoYXQncyBhY3R1YWxseSB0aGUg
-cm9sZSBvZiB0aGUgbW9kdWxlIHBhcmFtPyB3aHkgaXQgYmVsb25ncyBoZXJlPw0KPiA+PiA+PiBp
-cyB0aGF0IHJlYWxseSB1bmF2b2lkYWJsZSB0byBoYXZlIGl0Pw0KPiA+Pg0KPiA+PiA+IEl0J3Mg
-bmljZSB0byBwcm92aWRlIHRoZSBjYXBhYmlsaXR5IGZvciB0aGUgdXNlciB0byBhZGp1c3QgdGhl
-DQo+ID4+ID4gbmV0bGluayB0aW1lb3V0DQo+ID4+IGJhc2VkIGhpcy9oZXIgZmFicmljIHNldHVw
-Lg0KPiA+Pg0KPiA+PiBOTywgYWRkaW5nIG1vZHVsZSBwYXJhbXMgc2hvdWxkIGJlIHJlYWxseSB5
-b3VyIGxhc3QgcmVzb3J0IHdoZW4NCj4gPj4gZXZlcnl0aGluZyBlbHNlIHdvdWxkbid0IHdvcmss
-IGRlZmluaXRlbHkgbm90IHRoZSBjYXNlIGhlcmUsIHJlbW92ZSBpdC4NCj4gPg0KPiA+IEFyZSB5
-b3Ugc3VnZ2VzdGluZyB0aGF0IHdlIHVzZSB0aGUgdGltZW91dCB0aGUgY2FsbGVyIHByb3ZpZGVz
-PyBPciBpZiB0aGVyZSBpcw0KPiBubyB0aW1lb3V0ICgwKSBwcm92aWRlZCwgdXNlIGEgZGVmYXVs
-dCBvbmU/DQo+IA0KPiBOb3Qgc3VyZSwgcGljayBvbmUgb2YgdGhlc2UsIHdoYXRldmVyIHdvcmtz
-IGZvciB5b3UgdGhlIGJlc3QuDQoNCk5vIHRoaXMgd2lsbCBub3Qgd29yay4gIFdlIGRvbid0IHdh
-bnQgdG8gdXNlIHRoZSB0aW1lb3V0IHRoZSBjYWxsZXIgcHJvdmlkZXMuICBUaGUgdGltZW91dCBm
-b3IgbmV0bGluayBtYXkgKGFuZCBzaG91bGQgYmUpIGRpZmZlcmVudCBmcm9tIHRoZSB0aW1lb3V0
-IG5lZWRlZCB3aGVuIHNlbmRpbmcgdG8gdGhlIFNBIGRpcmVjdGx5Lg0KDQo+IA0KPiA+IExvb2tp
-bmcgdGhyb3VnaCB0aGUgSUIgZHJpdmVycywgSSBkbyBmaW5kIG1hbnkgbW9kdWxlIHBhcmFtZXRl
-cnMuDQo+IA0KPiBPbmUgb2YgdGhlIG1vc3QgYmFzaWMgcnVsZXMgaW4ga2VybmVsIHByb2dyYW1t
-aW5nIChhbmQgc3VnZ2VzdGVkIGZvciBsaWZlIHRvbyksDQo+IGlzIHRoYXQgaWYgeW91IHNvbWV0
-aGluZyBkb25lIGJ5IG90aGVyIGRyaXZlcnMsIHRoaXMgZG9lc24ndCBuZWNlc3NhcmlseSBtZWFu
-cw0KPiBpdCdzIHRoZSByaWdodCB0aGluZyB0byBkbyBbMV0NCg0KVGhpcyBtYXkgYmUgdHJ1ZS4u
-Lg0KDQo+IA0KPiBNb2R1bGUgcGFyYW1zIGFyZSBwcm9ibGVtYXRpYywgYW5kIHNvbWV0aW1lcyBj
-YXVzZSB3YXkgbW9yZSBkYW1hZ2UgdGhlbg0KPiBiZW5lZml0LCBzb21lIHN1YnN5c3RlbSBrZXJu
-ZWwgbWFpbnRhaW5lcnMga2luZCBvZiBkaXNhbGxvdyB0aGVtIHRvdGFsbHkNCj4gKG5ldHdvcmtp
-bmcpLCBtYXliZSBkbyBzb21lIHJlYWRpbmcgYW5kIHRhbGtpbmcgd2l0aCBrZXJuZWwgZGV2ZWxv
-cGVycyBADQo+IHlvdXIgZmlybSB0byBsZWFybiBtb3JlLg0KDQpJIGhhdmUgc2VhcmNoZWQgaGln
-aCBhbmQgbG93IGZvciB0aGUgcHJvYmxlbXMgd2l0aCBtb2R1bGUgcGFyYW1ldGVycyAgYW5kIGhh
-dmUgZm91bmQgbm8gZG9jdW1lbnRhdGlvbiB3aGljaCBkaXNhbGxvd3MgdGhlaXIgdXNlLiAgRG8g
-eW91IGhhdmUgYSByZWZlcmVuY2Ugd2hpY2ggc2hvd3Mgd2h5IHRoZXkgc2hvdWxkIGJlIGRpc2Fs
-bG93ZWQ/ICBXaGlsZSBvdGhlciBtZWNoYW5pc21zIGNhbiBiZSB1c2VkIHRoZSB1c2Ugb2YgdGhp
-cyBwYXJhbWV0ZXIgaXMgdmVyeSBzaW1wbGUgYW5kIHRoZSBhZGRpdGlvbiBvZiBhIG1vZHVsZSBw
-YXJhbWV0ZXIgc2VlbXMgYXBwcm9wcmlhdGUgaW4gdGhpcyBjYXNlLg0KDQpJcmENCg0K
+On Tue, May 19, 2015 at 09:47:06PM +0300, Or Gerlitz wrote:
+
+> Doug, I have never ever seen a patch set (specifically the 15~23 part
+> of it) with that level of simplicity and
+> signature/reviewers/tested-by/etc inflation. It's just eye burner.
+> Maybe that long list is OK for patch #1 but very much not to these
+> bunch of 1-2 liner downstream patches.
+
+The work was done, credit is due.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
