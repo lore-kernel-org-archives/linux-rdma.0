@@ -1,40 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
-Date: Tue, 19 May 2015 13:28:42 -0600
-Message-ID: <20150519192842.GB23612@obsidianresearch.com>
-References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
- <1431975616-23529-4-git-send-email-kaike.wan@intel.com>
- <555AC36D.5050904@mellanox.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CAB243E@CRSMSX101.amr.corp.intel.com>
- <CAJ3xEMhkpYYtzrsOw=8JQOekpVT6xQC9P2itH3H3oAjjPfWrng@mail.gmail.com>
- <3F128C9216C9B84BB6ED23EF16290AFB0CAB2677@CRSMSX101.amr.corp.intel.com>
- <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ@mail.gmail.com>
- <2807E5FD2F6FDA4886F6618EAC48510E11082B44@CRSMSX101.amr.corp.intel.com>
- <20150519192141.GS18675@obsidianresearch.com>
- <20150519192614.GA31717@phlsvsds.ph.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Tue, 19 May 2015 22:30:00 +0300
+Message-ID: <CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
+References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
+	<1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
+	<20150519185801.GM18675@obsidianresearch.com>
+	<20150519190031.GN18675@obsidianresearch.com>
+	<CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
+	<20150519191553.GP18675@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150519192614.GA31717-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20150519191553.GP18675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 03:26:15PM -0400, ira.weiny wrote:
+On Tue, May 19, 2015 at 10:15 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, May 19, 2015 at 10:11:43PM +0300, Or Gerlitz wrote:
+>> > Sorry, direct this toward the page offset in the next patch.
+>>
+>> We see this as a piece of detail related to the specific vendor
+>> driver. I don't see the point of overloading the user space verbs
+>> library or app with an API to get the offset of the clock within the
+>> mmap page and such, do you?
+>
+> Can't you find a better place for this than overloading the
+> query_device call? I'd rather see you add some kind of driver-specific
+> command than this.
 
-> The best use case is the desire to have the user space cache issue the query to
-> the SA on behalf of this request, cache the data, and return the response.
+Let's be precise --
 
-> This means the Netlink timeout needs to be longer than the SA direct timeout.
+Are you objecting adding the clock frequency and mask to the qeury device verb?
+why?
 
-By how much?
-
-The SA timeout is already huge and has lots of slack, adding another
-timeout without an actual need seems premature..
-
-Jason
+If not, are objecting using the vendor specific track of the verb to
+pass from the vendor driver to the vendor library this or that detail
+which is needed for proper operation? why?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
