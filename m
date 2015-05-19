@@ -1,74 +1,126 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
-Date: Tue, 19 May 2015 14:49:36 -0600
-Message-ID: <20150519204936.GB24622@obsidianresearch.com>
-References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
- <1431975616-23529-4-git-send-email-kaike.wan@intel.com>
- <20150519190742.GO18675@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDD2D8@ORSMSX109.amr.corp.intel.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: rdma kernel tree
+Date: Tue, 19 May 2015 23:04:15 +0200
+Message-ID: <1432069455.3476.12.camel@dworkin>
+References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
+	 <1431485563.43876.93.camel@redhat.com>
+	 <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
+	 <1431530845.2377.30.camel@redhat.com> <5554B7E8.4020902@mellanox.com>
+	 <1431615776.3276.14.camel@redhat.com>
+	 <CAJ3xEMjgpegf+D2BBZ8RPERkdUO3yH4U1LjiK+i4iF=_PtpQkA@mail.gmail.com>
+	 <555ABD9D.3080303@mellanox.com> <1432038160.3114.16.camel@redhat.com>
+	 <CAJ3xEMjkECDrbCFksSMMTSUusOhrU+qvMnXjkg=OuFaeYKoT0Q@mail.gmail.com>
+	 <1432064993.3114.80.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDD2D8-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1432064993.3114.80.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 08:27:22PM +0000, Hefty, Sean wrote:
-> > I have mixed feelings about using the SA message format for this.
-> > 
-> > In-kernel we don't use that format, and many of the newer APIs were
-> > designed around passing the GMP,Forward,Return path tuple, not just a
-> > naked GMP.
-> 
-> I think the choice of the netlink protocol is a largely matter of
-> taste.  In the internal review of these patches, the netlink hook
-> was previously in the mad layer, which would have allowed
-> redirecting any mad to user space.  (The code only attempted to
-> redirect SA queries.)  Trying to hook from within ib_mad added a
-> fair amount of complexity, that moving up into sa_query avoided.
-> The proposed interface would allow moving the changes back down,
-> versus limiting this only to the SA query calls.  (And I'm not
-> meaning to imply that limiting this only to SA queries is a bad
-> choice.)
+Hi,
 
-I'm not sure there is much use case for letting user space get
-involved in arbitary MAD traffic..
+Le mardi 19 mai 2015 =C3=A0 15:49 -0400, Doug Ledford a =C3=A9crit :
+> On Tue, 2015-05-19 at 21:47 +0300, Or Gerlitz wrote:
+> > On Tue, May 19, 2015 at 3:22 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>=
+ wrote:
+> > > On Tue, 2015-05-19 at 07:35 +0300, Or Gerlitz wrote:
+> > >> >> I pulled that via a bundle from patchworks.  I'll double chec=
+k it.
+> > >> > Did  you check it out? fixed it out?
+> > >>
+> > >> I took a look now, you've rebased to-be-rebased/for-4.2 to 4.1-r=
+c4 and
+> > >
+> > > Correct.
+> > >
+> > >> it seems this is what you are going to push into the kernel.org =
+treem
+> > >
+> > > Correct.
+> > >
+> > >> but this series is still there with the zillion tested/reviewed/=
+etc
+> > >> signature per one 2-3 patch, I think we've agreed this needs to =
+be
+> > >> addressed prior to the upstream push, right?
+> > >
+> > > Incorrect.  What you objected to before was the large Cc: list in=
+ the
+> > > patches.  That is gone.  What is there now is just the reviewed-b=
+y: list
+> > > of three people, and the tested-by list of two people.  As the en=
+tire
+> > > patch set as a whole was reviewed and tested by those people, it =
+seems
+> > > accurate to me.
+> >=20
+> > Doug, I have never ever seen a patch set (specifically the 15~23 pa=
+rt
+> > of it) with that level of simplicity
+>=20
+> That portion of the patchset didn't start out with that level of
+> simplicity per patch, it evolved to that because it made review
+> *significantly* easier.  It's very simple to review a patch that does=
+:
+>=20
+> Add 1 helper
+> Replace tests in code with just that 1 helper
+>=20
+> because you can scroll through that patch and know that every line be=
+ing
+> replaced is related to that one helper.  If you want to know every li=
+ne
+> that was replaced with rdma_cap_iw_cm, you go to that one patch and i=
+t's
+> all listed very easy to read.
+>=20
+> On the other hand, when you squash all those patches together, review
+> becomes much harder because if you want to see what a single helper
+> does, you have to sift through all of the other helper changes and ho=
+pe
+> you find the right ones, and that you found all of the right ones.
+>=20
+> >  and
+> > signature/reviewers/tested-by/etc inflation.
+>=20
+> I added those myself as part of an automated addition.  It applied to
+> the entire series, so it was put on each patch.  The people that
+> tested/reviewed the series did not do so to individual patches, they =
+hit
+> all of them.  And as was pointed out a couple of weeks ago on an earl=
+ier
+> patchset I picked up, it is generally good behavior to give attributi=
+on
+> where it is due to encourage people to participate.
+>=20
 
-Over generalizing feels like over design and doesn't let us add
-valuable information that could help push policy decisions into user
-space, like passing the IP and TOS, QP type, etc when available, to
-userspace.
+I agree with all the above replies from Doug:
 
-If there is a use case for that, it still cleanly layers, the cache NL
-query goes first, if that fails then the MAD-based NL query goes next.
+- small patches are easier to read and review: I prefer reviewing 10
+littles patches than one big patch.
 
-> > I'd rather see the netlink data ask for what the kernel needs (eg UD
-> > path to X, RC path to X) and return the new format we've already
-> > established for AF_IB
-> 
-> Does anyone else have input on the netlink protocol?  Hal/Ira?  MADs
-> seem more flexible, but higher-level structures more efficient and
-> natural.
+- Signed-off-by:, Reviewed-by:, Tested-by: and Cc: are required too
+so that when it come to modifying existing code, we can contact people
+previously involved for reviews, tests, advice, etc.
 
-MADs are not more flexible, they are fixed and controlled by something
-outside the kernel. Their upside is we can track certain limited
-changes to the standard without too much effort.
+(I usually add Link: with a reference to the e-mail so that one commit
+ can be traced back to the related patch submission and discussions =20
+ (cover-letter !), and, to be able to trace back all patch iterations,
+ I add a link to the previous patchset submission, and so on).
 
-But the same reasons we didn't use them for AF_IB holds here too:
- - Routers are not supported
- - Asymmetric (non-reversible) mesh networks are not supported
+Regards.
 
-We should't bake in the already known limitations of PathRecord when
-adding a new scheme.
+--=20
+Yann Droneaud
+OPTEYA
 
-Userspace should provide the same kind of information as AF_IB, in a
-netlink container that could be extended in future.
 
-Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
