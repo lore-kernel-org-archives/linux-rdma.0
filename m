@@ -1,42 +1,42 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/mad: Clean up ib_find_send_mad to use only the ib_mad_hdr
-Date: Tue, 19 May 2015 21:41:09 +0300
-Message-ID: <CAJ3xEMgjC23tcidh2pYrQMSeSzqGG3XztzDEf0eLz8dtYhHTEA@mail.gmail.com>
-References: <CAJ3xEMjtndfHJOh-JSTzaXuXTNrx2wzDkBcS67T6AwFztcckgQ@mail.gmail.com>
-	<20150514173557.GB10941@phlsvsds.ph.intel.com>
-	<555ABF9E.6010502@mellanox.com>
-	<1432054868.3114.67.camel@redhat.com>
+From: Parav Pandit <parav.pandit-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the RDMA-CM
+Date: Wed, 20 May 2015 00:12:09 +0530
+Message-ID: <CAGgvQNQk7ZeK72SPE4zjNQkD783G+tTXsM0jpnD9_4tNaLxFbg@mail.gmail.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+	<1432045826.5304.6.camel@opteya.com>
+	<555B4EBE.7010900@mellanox.com>
+	<CAGgvQNRjSVcOfQB3bhXTdPoa04Hs7jc1+hXvL99EqDjbaaOw=A@mail.gmail.com>
+	<1432058488417.98688@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432054868.3114.67.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1432058488417.98688-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 8:01 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-
-> I try to stick within the recommended length of git log subject as
-> indicated to me by vim when I'm editing my commit messages.  Whatever
-> happens to fit inside that limit (or at least close to it, I'm not a
-> real stickler on it) I go with unless you really need to capture some
-> important detail in the subject.
+On Tue, May 19, 2015 at 11:31 PM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On Tuesday, May 19, 2015 7:39 PM, Parav Pandit <parav.pandit-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> wrote:
+>> This has come up during our first round of patch set for RoCEv2.
+>> However due to last set of changes in this patch set, we decided to
+>> move in for later submission.
+>>
+>> Current high design approach to support this is:
+>>
+>> A callback function registered to IP stack for IP address
+>> assignment/removal. (it could be done possibly done for GID entry
+>> update, instead of IP)
+>> For each such namespace, for device supporting RoCEv2, one UDP socket
+>> with RoCEv2 UDP port would be created and destroyed.
 >
-> However, there's no need to resubmit these.  I can always edit the
-> subjects in place.  Ira are you OK with the changes I made above?
+> This needs to be done to take ownership of the RoCEv2 UDP port of course, but there is more to RoCE namespace support then that. You will need to de-multiplex rdma_cm_id requests from a shared ib_cm_id similarly to what is done in the InfiniBand patch-set here. Using the new RoCE GID cache should make it relatively easy. In addition, in order to support link-layer address resolution in the verbs layer as it is done today, we may need to add namespace support to the modify QP verb and the create AH verb.
+>
 
-Doug,
+Yes. We talked sometime back with Liran and Matan on same topic.
 
-Thanks for fixing these commit titles, looks much better.
-
-The issue I have tried to put on the table goes way beyond this or
-that limitation on commit titles lengths. It's about being short,
-clear and strict, avoid lengthy names of variables and functions which
-add nothing to proper maintenance. Ira, in your next commits, maybe
-look a bit around, e.g on commit titles of patches made by Sean to
-similar areas (mad, sa client, cm, cma and such), and try to get the
-spirit, happy upstreaming...
+> Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
