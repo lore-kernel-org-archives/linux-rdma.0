@@ -1,36 +1,61 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
-Date: Tue, 19 May 2015 21:30:03 +0300
-Message-ID: <CAJ3xEMhkpYYtzrsOw=8JQOekpVT6xQC9P2itH3H3oAjjPfWrng@mail.gmail.com>
-References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
-	<1431975616-23529-4-git-send-email-kaike.wan@intel.com>
-	<555AC36D.5050904@mellanox.com>
-	<3F128C9216C9B84BB6ED23EF16290AFB0CAB243E@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v4 for-next 05/12] IB/cm: Share listening CM IDs
+Date: Tue, 19 May 2015 12:35:45 -0600
+Message-ID: <20150519183545.GH18675@obsidianresearch.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+ <1431841868-28063-6-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB0CAB243E-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1431841868-28063-6-git-send-email-haggaie@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 3:24 PM, Wan, Kaike <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> On 5/18/2015 10:00 PM, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+On Sun, May 17, 2015 at 08:51:01AM +0300, Haggai Eran wrote:
+> @@ -212,6 +212,8 @@ struct cm_id_private {
+>  	spinlock_t lock;	/* Do not acquire inside cm.lock */
+>  	struct completion comp;
+>  	atomic_t refcount;
+> +	/* Number of clients sharing this ib_cm_id. Only valid for listeners. */
+> +	atomic_t sharecount;
 
->> > --- a/drivers/infiniband/core/sa_query.c
->> > +++ b/drivers/infiniband/core/sa_query.c
->> > @@ -45,12 +45,22 @@
+No need for this atomic, hold the lock
 
->> what's actually the role of the module param? why it belongs here? is that
->> really unavoidable to have it?
+The use of the atomic looks racy:
 
-> It's nice to provide the capability for the user to adjust the netlink timeout based his/her fabric setup.
+> +	if (!atomic_dec_and_test(&cm_id_priv->sharecount)) {
+> +		/* The id is still shared. */
+> +		return;
+> +	}
 
-NO, adding module params should be really your last resort when
-everything else wouldn't work, definitely not the case here, remove
-it.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Might race with this:
+
+> +		if (atomic_inc_return(&cm_id_priv->sharecount) == 1) {
+> +			/* This ID is already being destroyed */
+> +			atomic_dec(&cm_id_priv->sharecount);
+> +			goto new_id;
+> +		}
+> +
+
+Resulting in use-after-free of cm_id_priv->sharecount
+
+Don't try and be clever with atomics, it is almost always wrong.
+
+The share count should be 'listen_sharecount' because it *only* works
+for listen.
+
+The above test in cm_destroy_id should only be in the listen branch of
+the if.
+
+> + * Create a new listening ib_cm_id and listen on the given service ID.
+> + *
+> + * If there's an existing ID listening on that same device and service ID,
+> + * return it.
+> + *
+
+.. Callers should call cm_destroy_id when done with the listen ..
+
+Jason
