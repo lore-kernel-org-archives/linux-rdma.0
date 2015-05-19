@@ -1,46 +1,83 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: [PATCH RFC v2] Documentation/infiniband: Add docs for rdma-helpers
-Date: Tue, 19 May 2015 09:56:50 +0200
-Message-ID: <555AECC2.70502@profitbricks.com>
-References: <1431938505-31779-1-git-send-email-yun.wang@profitbricks.com>		 <CAJ3xEMgkrUgSvRV7m_M9CE4w66Wyk-Svnfejvavj38iTNyH9HQ@mail.gmail.com>		 <5559B997.1030502@profitbricks.com> <1431962485.3114.8.camel@redhat.com>	 <555A04C8.10802@profitbricks.com> <1431968291.3114.13.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1431968291.3114.13.camel@redhat.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Or Gerlitz <gerlitz.or@gmail.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v8 0/6] Generic logging helpers
+Date: Tue, 19 May 2015 12:48:13 +0300
+Message-ID: <1432028899-15211-1-git-send-email-sagig@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This small set adds some meaningful verbosity to some
+of the core/rdma_cm enumerated events. Its useful to
+see the meaning of the opcodes instead of revisiting the
+code for every new status/event that left the cache in
+our brain.
 
+Many thanks to all the reviewers!
 
-On 05/18/2015 06:58 PM, Doug Ledford wrote:
-[snip]
->> I see :-) I've not work with the kdoc yet, not sure if there is any
->> guidelines on how to write the header of inline func for kdoc?
-> 
-> It's an automated tool thing.  Any comment section that starts with /**
-> is automatically included as a kdoc.  Then there is an expected format
-> after that.  See Documentation/kernel-doc-nano-HOWTO.txt.
+Changes from v7:
+- Fixed typo for IB_WC_REM_INV_RD_REQ_ERR wc status
 
-Got it :-)
+Changes from v6:
+- Lowered case for unrecognised event/status print
+- Fixed typo in IB_WC_REM_INV_REQ_ERR string
 
-> 
->>>
->>> Just because I want to move this along versus waiting for another
->>> respin, I'm going to copy and paste these into those locations and clean
->>> up the changelog when I integrate this patch.
->>
->> Got it, if there is anything I could help, please let me know ;-)
-> 
-> I'm sending the patch for review, please let me know if you are OK with
-> how I handled the attribution.
+Changes from v5:
+- Changed message strings to match the xprtrdma style
+- checkpatch nit
 
-The definition is far more detailed and accurate, it's already good enough
-according to my understanding, should benefit the developer a lot ;-)
+Changes from v4:
+- Split up ULP changes to separate patches
 
-Regards,
-Michael Wang
+Changes from v3:
+- Protect against "holes" in string arrays
+- Restored __attribute_const__ to functions prototype
+- Made string arrays rodata
 
-> 
+Changes from v2:
+- Cast to size_t instead of unsigned
+- Style fix in string arrays declaration
+- Removed redundant __attribute_const__
+
+Changes from v1:
+- Changed helper names ib_wc_status_msg and rdma_event_msg
+- Cast input arguments to protect string buffer access
+- Add svcrdma to the party
+
+Changes from v0 (RFC):
+- Moved string arrays to .c files
+- Changed string helpers from macros to exported functions
+- Aligned rds to generic helpers as well
+
+Sagi Grimberg (6):
+  IB/core, cma: Nice log-friendly string helpers
+  IB/srp: Align to generic logging helpers
+  IB/iser: Align to generic logging helpers
+  iser-target: Align to generic logging helpers
+  xprtrdma, svcrdma: Switch to generic logging helpers
+  RDS: Switch to generic logging helpers
+
+ drivers/infiniband/core/cma.c            |   28 +++++++++
+ drivers/infiniband/core/verbs.c          |   65 +++++++++++++++++++++
+ drivers/infiniband/ulp/iser/iser_verbs.c |   28 ++++++---
+ drivers/infiniband/ulp/isert/ib_isert.c  |   19 ++++--
+ drivers/infiniband/ulp/srp/ib_srp.c      |   16 +++--
+ include/rdma/ib_verbs.h                  |    4 +
+ include/rdma/rdma_cm.h                   |    2 +
+ net/rds/af_rds.c                         |    9 ---
+ net/rds/ib.h                             |    1 -
+ net/rds/ib_cm.c                          |   36 +-----------
+ net/rds/ib_recv.c                        |    4 +-
+ net/rds/ib_send.c                        |   38 +------------
+ net/rds/rdma_transport.c                 |   34 +----------
+ net/rds/rds.h                            |    1 -
+ net/sunrpc/xprtrdma/frwr_ops.c           |    4 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   29 ++++++----
+ net/sunrpc/xprtrdma/verbs.c              |   90 ++----------------------------
+ 17 files changed, 174 insertions(+), 234 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
