@@ -1,7 +1,7 @@
 From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v2 3/4] IB/sa: Allocate SA query with kzalloc
-Date: Tue, 19 May 2015 14:12:05 -0400
-Message-ID: <1432059126-4137-4-git-send-email-kaike.wan@intel.com>
+Subject: [PATCH v2 1/4] IB/netlink: Add defines for MAD requests through netlink
+Date: Tue, 19 May 2015 14:12:03 -0400
+Message-ID: <1432059126-4137-2-git-send-email-kaike.wan@intel.com>
 References: <1432059126-4137-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432059126-4137-1-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,58 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Replace kmalloc with kzalloc so that all uninitialized fields in SA query
-will be zero-ed out to avoid unintentional consequence. This prepares the
-SA query structure to accept new fields in the future.
+This patch adds netlink defines for MAD client, MAD group, and MAD
+operation.
 
 Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ include/uapi/rdma/rdma_netlink.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index c38f030..17e1cf7 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -739,7 +739,7 @@ int ib_sa_path_rec_get(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 6e4bb42..c747453 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -7,12 +7,14 @@ enum {
+ 	RDMA_NL_RDMA_CM = 1,
+ 	RDMA_NL_NES,
+ 	RDMA_NL_C4IW,
++	RDMA_NL_MAD,
+ 	RDMA_NL_NUM_CLIENTS
+ };
  
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
+ enum {
+ 	RDMA_NL_GROUP_CM = 1,
+ 	RDMA_NL_GROUP_IWPM,
++	RDMA_NL_GROUP_MAD,
+ 	RDMA_NL_NUM_GROUPS
+ };
  
-@@ -861,7 +861,7 @@ int ib_sa_service_rec_query(struct ib_sa_client *client,
- 	    method != IB_SA_METHOD_DELETE)
- 		return -EINVAL;
+@@ -44,6 +46,11 @@ enum {
+ 	RDMA_NL_IWPM_NUM_OPS
+ };
  
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -953,7 +953,7 @@ int ib_sa_mcmember_rec_query(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
-@@ -1050,7 +1050,7 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
- 	port  = &sa_dev->port[port_num - sa_dev->start_port];
- 	agent = port->agent;
- 
--	query = kmalloc(sizeof *query, gfp_mask);
-+	query = kzalloc(sizeof(*query), gfp_mask);
- 	if (!query)
- 		return -ENOMEM;
- 
++enum {
++	RDMA_NL_MAD_REQUEST = 0,
++	RDMA_NL_MAD_NUM_OPS
++};
++
+ struct rdma_cm_id_stats {
+ 	__u32	qp_num;
+ 	__u32	bound_dev_if;
 -- 
 1.7.1
 
