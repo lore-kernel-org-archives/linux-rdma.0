@@ -1,36 +1,57 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Tue, 19 May 2015 13:15:53 -0600
-Message-ID: <20150519191553.GP18675@obsidianresearch.com>
-References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
- <1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
- <20150519185801.GM18675@obsidianresearch.com>
- <20150519190031.GN18675@obsidianresearch.com>
- <CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
+Date: Tue, 19 May 2015 19:17:49 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E11082B44@CRSMSX101.amr.corp.intel.com>
+References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
+	<1431975616-23529-4-git-send-email-kaike.wan@intel.com>
+	<555AC36D.5050904@mellanox.com>
+	<3F128C9216C9B84BB6ED23EF16290AFB0CAB243E@CRSMSX101.amr.corp.intel.com>
+	<CAJ3xEMhkpYYtzrsOw=8JQOekpVT6xQC9P2itH3H3oAjjPfWrng@mail.gmail.com>
+	<3F128C9216C9B84BB6ED23EF16290AFB0CAB2677@CRSMSX101.amr.corp.intel.com>
+ <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 10:11:43PM +0300, Or Gerlitz wrote:
-> > Sorry, direct this toward the page offset in the next patch.
-> 
-> We see this as a piece of detail related to the specific vendor
-> driver. I don't see the point of overloading the user space verbs
-> library or app with an API to get the offset of the clock within the
-> mmap page and such, do you?
-
-Can't you find a better place for this than overloading the
-query_device call? I'd rather see you add some kind of driver-specific
-command than this.
-
-Jason
+PiANCj4gT24gVHVlLCBNYXkgMTksIDIwMTUgYXQgOTo0MiBQTSwgV2FuLCBLYWlrZSA8a2Fpa2Uu
+d2FuQGludGVsLmNvbT4gd3JvdGU6DQo+ID4+DQo+ID4+ID4+IHdoYXQncyBhY3R1YWxseSB0aGUg
+cm9sZSBvZiB0aGUgbW9kdWxlIHBhcmFtPyB3aHkgaXQgYmVsb25ncyBoZXJlPw0KPiA+PiA+PiBp
+cyB0aGF0IHJlYWxseSB1bmF2b2lkYWJsZSB0byBoYXZlIGl0Pw0KPiA+Pg0KPiA+PiA+IEl0J3Mg
+bmljZSB0byBwcm92aWRlIHRoZSBjYXBhYmlsaXR5IGZvciB0aGUgdXNlciB0byBhZGp1c3QgdGhl
+DQo+ID4+ID4gbmV0bGluayB0aW1lb3V0DQo+ID4+IGJhc2VkIGhpcy9oZXIgZmFicmljIHNldHVw
+Lg0KPiA+Pg0KPiA+PiBOTywgYWRkaW5nIG1vZHVsZSBwYXJhbXMgc2hvdWxkIGJlIHJlYWxseSB5
+b3VyIGxhc3QgcmVzb3J0IHdoZW4NCj4gPj4gZXZlcnl0aGluZyBlbHNlIHdvdWxkbid0IHdvcmss
+IGRlZmluaXRlbHkgbm90IHRoZSBjYXNlIGhlcmUsIHJlbW92ZSBpdC4NCj4gPg0KPiA+IEFyZSB5
+b3Ugc3VnZ2VzdGluZyB0aGF0IHdlIHVzZSB0aGUgdGltZW91dCB0aGUgY2FsbGVyIHByb3ZpZGVz
+PyBPciBpZiB0aGVyZSBpcw0KPiBubyB0aW1lb3V0ICgwKSBwcm92aWRlZCwgdXNlIGEgZGVmYXVs
+dCBvbmU/DQo+IA0KPiBOb3Qgc3VyZSwgcGljayBvbmUgb2YgdGhlc2UsIHdoYXRldmVyIHdvcmtz
+IGZvciB5b3UgdGhlIGJlc3QuDQoNCk5vIHRoaXMgd2lsbCBub3Qgd29yay4gIFdlIGRvbid0IHdh
+bnQgdG8gdXNlIHRoZSB0aW1lb3V0IHRoZSBjYWxsZXIgcHJvdmlkZXMuICBUaGUgdGltZW91dCBm
+b3IgbmV0bGluayBtYXkgKGFuZCBzaG91bGQgYmUpIGRpZmZlcmVudCBmcm9tIHRoZSB0aW1lb3V0
+IG5lZWRlZCB3aGVuIHNlbmRpbmcgdG8gdGhlIFNBIGRpcmVjdGx5Lg0KDQo+IA0KPiA+IExvb2tp
+bmcgdGhyb3VnaCB0aGUgSUIgZHJpdmVycywgSSBkbyBmaW5kIG1hbnkgbW9kdWxlIHBhcmFtZXRl
+cnMuDQo+IA0KPiBPbmUgb2YgdGhlIG1vc3QgYmFzaWMgcnVsZXMgaW4ga2VybmVsIHByb2dyYW1t
+aW5nIChhbmQgc3VnZ2VzdGVkIGZvciBsaWZlIHRvbyksDQo+IGlzIHRoYXQgaWYgeW91IHNvbWV0
+aGluZyBkb25lIGJ5IG90aGVyIGRyaXZlcnMsIHRoaXMgZG9lc24ndCBuZWNlc3NhcmlseSBtZWFu
+cw0KPiBpdCdzIHRoZSByaWdodCB0aGluZyB0byBkbyBbMV0NCg0KVGhpcyBtYXkgYmUgdHJ1ZS4u
+Lg0KDQo+IA0KPiBNb2R1bGUgcGFyYW1zIGFyZSBwcm9ibGVtYXRpYywgYW5kIHNvbWV0aW1lcyBj
+YXVzZSB3YXkgbW9yZSBkYW1hZ2UgdGhlbg0KPiBiZW5lZml0LCBzb21lIHN1YnN5c3RlbSBrZXJu
+ZWwgbWFpbnRhaW5lcnMga2luZCBvZiBkaXNhbGxvdyB0aGVtIHRvdGFsbHkNCj4gKG5ldHdvcmtp
+bmcpLCBtYXliZSBkbyBzb21lIHJlYWRpbmcgYW5kIHRhbGtpbmcgd2l0aCBrZXJuZWwgZGV2ZWxv
+cGVycyBADQo+IHlvdXIgZmlybSB0byBsZWFybiBtb3JlLg0KDQpJIGhhdmUgc2VhcmNoZWQgaGln
+aCBhbmQgbG93IGZvciB0aGUgcHJvYmxlbXMgd2l0aCBtb2R1bGUgcGFyYW1ldGVycyAgYW5kIGhh
+dmUgZm91bmQgbm8gZG9jdW1lbnRhdGlvbiB3aGljaCBkaXNhbGxvd3MgdGhlaXIgdXNlLiAgRG8g
+eW91IGhhdmUgYSByZWZlcmVuY2Ugd2hpY2ggc2hvd3Mgd2h5IHRoZXkgc2hvdWxkIGJlIGRpc2Fs
+bG93ZWQ/ICBXaGlsZSBvdGhlciBtZWNoYW5pc21zIGNhbiBiZSB1c2VkIHRoZSB1c2Ugb2YgdGhp
+cyBwYXJhbWV0ZXIgaXMgdmVyeSBzaW1wbGUgYW5kIHRoZSBhZGRpdGlvbiBvZiBhIG1vZHVsZSBw
+YXJhbWV0ZXIgc2VlbXMgYXBwcm9wcmlhdGUgaW4gdGhpcyBjYXNlLg0KDQpJcmENCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
