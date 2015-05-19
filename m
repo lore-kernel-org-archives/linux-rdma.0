@@ -1,51 +1,28 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
-Date: Tue, 19 May 2015 21:51:53 +0300
-Message-ID: <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ@mail.gmail.com>
-References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
-	<1431975616-23529-4-git-send-email-kaike.wan@intel.com>
-	<555AC36D.5050904@mellanox.com>
-	<3F128C9216C9B84BB6ED23EF16290AFB0CAB243E@CRSMSX101.amr.corp.intel.com>
-	<CAJ3xEMhkpYYtzrsOw=8JQOekpVT6xQC9P2itH3H3oAjjPfWrng@mail.gmail.com>
-	<3F128C9216C9B84BB6ED23EF16290AFB0CAB2677@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next 08/10] IB/mlx4: Add support for timestamp in cq
+ creation
+Date: Tue, 19 May 2015 12:55:27 -0600
+Message-ID: <20150519185527.GL18675@obsidianresearch.com>
+References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
+ <1431869786-6308-9-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2677-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1431869786-6308-9-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 9:42 PM, Wan, Kaike <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->>
->> >> what's actually the role of the module param? why it belongs here? is
->> >> that really unavoidable to have it?
->>
->> > It's nice to provide the capability for the user to adjust the netlink timeout
->> based his/her fabric setup.
->>
->> NO, adding module params should be really your last resort when everything
->> else wouldn't work, definitely not the case here, remove it.
->
-> Are you suggesting that we use the timeout the caller provides? Or if there is no timeout (0) provided, use a default one?
+On Sun, May 17, 2015 at 04:36:24PM +0300, Or Gerlitz wrote:
+> @@ -110,6 +110,7 @@ struct mlx4_ib_cq {
+>  	struct mutex		resize_mutex;
+>  	struct ib_umem	       *umem;
+>  	struct ib_umem	       *resize_umem;
+> +	int			create_flags;
 
-Not sure, pick one of these, whatever works for you the best.
-
-> Looking through the IB drivers, I do find many module parameters.
-
-One of the most basic rules in kernel programming (and suggested for
-life too), is that if you something done by other drivers, this
-doesn't necessarily means it's the right thing to do [1]
-
-Module params are problematic, and sometimes cause way more damage
-then benefit, some subsystem kernel maintainers kind of disallow them
-totally (networking), maybe do some reading and talking with kernel
-developers @ your firm to learn more.
-
-Or.
-
-[1] many times the most nasty bugs originates from cut-and-paste
+flags is u32
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
