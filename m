@@ -1,25 +1,28 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH][RESEND] IB/cma: Resolve AF_IB UD support
-Date: Tue, 19 May 2015 21:23:06 +0300
-Message-ID: <CAJ3xEMifqWM1fgS1yKVqgvOnmRhFFSRvhpP_OFVRDOokUdsxDw@mail.gmail.com>
-References: <1432019508-95824-1-git-send-email-matt@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373A8FDCFC6@ORSMSX109.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ib/cm: Change reject message type when destroying cm_id
+Date: Tue, 19 May 2015 18:25:13 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDD131@ORSMSX109.amr.corp.intel.com>
+References: <1431632941-3430-1-git-send-email-sean.hefty@intel.com>
+ <1431708034.29187.14.camel@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FDBF8D@ORSMSX109.amr.corp.intel.com>
+ <20150519181457.GD18675@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDCFC6-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20150519181457.GD18675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ted Kim <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 8:06 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> Resent due to mailer issues
->
-> Next time, please put this comment under the '---', so that it doesn't end up in the patch description.
+> Yes, but surely we want this backported to -stable and distros? It
+> isn't tagged for that..
 
-As long as Doug is OK to remove this manually before applying the
-patch... Doug? if not, Matt, please re-send again.
+I don't think that the problem justifies backporting the patch.  The passive side drops the reject, which could have happened anyway, and gets a reject message when sending a REP.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
