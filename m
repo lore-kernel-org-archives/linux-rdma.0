@@ -1,33 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v4 for-next 04/14] IB/core: Add default GID for RoCE GID
- table
-Date: Tue, 19 May 2015 11:41:59 -0600
-Message-ID: <20150519174159.GB18675@obsidianresearch.com>
-References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
- <1432045637-9090-5-git-send-email-matanb@mellanox.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Tue, 19 May 2015 18:01:17 +0000
+Message-ID: <1432058488417.98688@mellanox.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+	<1432045826.5304.6.camel@opteya.com>
+	<555B4EBE.7010900@mellanox.com>,<CAGgvQNRjSVcOfQB3bhXTdPoa04Hs7jc1+hXvL99EqDjbaaOw=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1432045637-9090-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAGgvQNRjSVcOfQB3bhXTdPoa04Hs7jc1+hXvL99EqDjbaaOw=A@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Parav Pandit <parav.pandit-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 05:27:07PM +0300, Matan Barak wrote:
-> When RoCE is used, a default GID address should be generated
-> for every supported RoCE type. These default GID addresses are
-> generated based on the IPv6 link-local address, but in contrast
-> to the GID based on the regular IPv6 link-local (as we generate
-> GID per IP address), these GIDs are also available if the net
-> device is down (in order to support loopback).
-> Moreover, these default GID addresses can't be deleted.
+On Tuesday, May 19, 2015 7:39 PM, Parav Pandit <parav.pandit-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> wrote:
+> This has come up during our first round of patch set for RoCEv2.
+> However due to last set of changes in this patch set, we decided to
+> move in for later submission.
+> 
+> Current high design approach to support this is:
+> 
+> A callback function registered to IP stack for IP address
+> assignment/removal. (it could be done possibly done for GID entry
+> update, instead of IP)
+> For each such namespace, for device supporting RoCEv2, one UDP socket
+> with RoCEv2 UDP port would be created and destroyed.
 
-That addrconf stuff needs to be in a dedicated patch
+This needs to be done to take ownership of the RoCEv2 UDP port of course, but there is more to RoCE namespace support then that. You will need to de-multiplex rdma_cm_id requests from a shared ib_cm_id similarly to what is done in the InfiniBand patch-set here. Using the new RoCE GID cache should make it relatively easy. In addition, in order to support link-layer address resolution in the verbs layer as it is done today, we may need to add namespace support to the modify QP verb and the create AH verb.
 
-Jason
---
+Haggai--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
