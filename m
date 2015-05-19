@@ -1,32 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Tue, 19 May 2015 13:00:31 -0600
-Message-ID: <20150519190031.GN18675@obsidianresearch.com>
-References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
- <1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
- <20150519185801.GM18675@obsidianresearch.com>
+Subject: Re: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
+Date: Tue, 19 May 2015 13:07:42 -0600
+Message-ID: <20150519190742.GO18675@obsidianresearch.com>
+References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
+ <1431975616-23529-4-git-send-email-kaike.wan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150519185801.GM18675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1431975616-23529-4-git-send-email-kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 12:58:01PM -0600, Jason Gunthorpe wrote:
-> On Sun, May 17, 2015 at 04:36:25PM +0300, Or Gerlitz wrote:
-> > From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > 
-> > mlx4 needs to report the number of supported timestamp
-> > bits (mask) and the hca_core_clock frequency.
+On Mon, May 18, 2015 at 03:00:16PM -0400, kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> This is critical information to parse the timestamp, why is it hidden
-> in vendor specific land?
+> This patch routes a SA pathrecord query to netlink first and processes the
+> response appropriately. If a failure is returned, the request will be sent
+> through IB. The decision whether to route the request to netlink first is
+> determined by the presence of a listener for the MAD netlink multicast
+> group. If the user-space MAD netlink multicast group listener is not
+> present, the request will be sent through IB, just like what is currently
+> being done.
 
-Sorry, direct this toward the page offset in the next patch.
+I have mixed feelings about using the SA message format for this.
+
+In-kernel we don't use that format, and many of the newer APIs were
+designed around passing the GMP,Forward,Return path tuple, not just a
+naked GMP.
+
+I've argued for this in the past.
+
+I'd rather see the netlink data ask for what the kernel needs (eg UD
+path to X, RC path to X) and return the new format we've already
+established for AF_IB
 
 Jason
 --
