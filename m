@@ -1,36 +1,44 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma kernel tree
-Date: Tue, 19 May 2015 13:18:42 -0600
-Message-ID: <20150519191842.GQ18675@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
- <1431485563.43876.93.camel@redhat.com>
- <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
- <1431530845.2377.30.camel@redhat.com>
- <5554B7E8.4020902@mellanox.com>
- <1431615776.3276.14.camel@redhat.com>
- <CAJ3xEMjgpegf+D2BBZ8RPERkdUO3yH4U1LjiK+i4iF=_PtpQkA@mail.gmail.com>
- <555ABD9D.3080303@mellanox.com>
- <1432038160.3114.16.camel@redhat.com>
- <CAJ3xEMjkECDrbCFksSMMTSUusOhrU+qvMnXjkg=OuFaeYKoT0Q@mail.gmail.com>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Tue, 19 May 2015 13:20:34 -0600
+Message-ID: <20150519192034.GR18675@obsidianresearch.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+ <1432045826.5304.6.camel@opteya.com>
+ <555B4EBE.7010900@mellanox.com>
+ <CAGgvQNRjSVcOfQB3bhXTdPoa04Hs7jc1+hXvL99EqDjbaaOw=A@mail.gmail.com>
+ <20150519183843.GI18675@obsidianresearch.com>
+ <CAGgvQNTXAWkQWzBBrQfk39GaCQ2ck63AhgURpYFFBPTbkpx4kg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjkECDrbCFksSMMTSUusOhrU+qvMnXjkg=OuFaeYKoT0Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAGgvQNTXAWkQWzBBrQfk39GaCQ2ck63AhgURpYFFBPTbkpx4kg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav Pandit <parav.pandit-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 09:47:06PM +0300, Or Gerlitz wrote:
+On Wed, May 20, 2015 at 12:14:10AM +0530, Parav Pandit wrote:
+> On Wed, May 20, 2015 at 12:08 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > On Tue, May 19, 2015 at 10:09:14PM +0530, Parav Pandit wrote:
+> >
+> >> A callback function registered to IP stack for IP address
+> >> assignment/removal. (it could be done possibly done for GID entry
+> >> update, instead of IP)
+> >> For each such namespace, for device supporting RoCEv2, one UDP socket
+> >> with RoCEv2 UDP port would be created and destroyed.
+> >
+> > You need to consult netdev for whatever scheme you come up with.
+> >
+> 
+> Yes. However it won't be an issue for netdev as its going to use
+> register_inetaddr_notifier and friend functions which are standard
+> set
 
-> Doug, I have never ever seen a patch set (specifically the 15~23 part
-> of it) with that level of simplicity and
-> signature/reviewers/tested-by/etc inflation. It's just eye burner.
-> Maybe that long list is OK for patch #1 but very much not to these
-> bunch of 1-2 liner downstream patches.
-
-The work was done, credit is due.
+I was talking about your scheme to reserve a UDP port number. Make it
+clear, and ask specifically about that.
 
 Jason
 --
