@@ -1,40 +1,29 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/3] IB/core: Check the presence of netlink multicast
- group listeners
-Date: Tue, 19 May 2015 17:16:07 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDD039@ORSMSX109.amr.corp.intel.com>
-References: <1431975616-23529-1-git-send-email-kaike.wan@intel.com>
- <1431975616-23529-3-git-send-email-kaike.wan@intel.com>
- <555AC156.7070106@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 02/14] IB/core: Replace device_mutex with
+ rwsem
+Date: Tue, 19 May 2015 11:36:47 -0600
+Message-ID: <20150519173647.GA18675@obsidianresearch.com>
+References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
+ <1432045637-9090-3-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <555AC156.7070106-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1432045637-9090-3-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > --- a/drivers/infiniband/core/netlink.c
-> > +++ b/drivers/infiniband/core/netlink.c
-> > @@ -49,6 +49,14 @@ static DEFINE_MUTEX(ibnl_mutex);
-> >   static struct sock *nls;
-> >   static LIST_HEAD(client_list);
-> >
-> > +int ibnl_chk_listeners(unsigned int group)
-> > +{
-> > +	if (netlink_has_listeners(nls, group) == 0)
-> > +		return -1;
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL(ibnl_chk_listeners);
-> 
-> I don't see anything here which is special to the IB subsystem, please
-> make it generic helper residing in more of a common place.
+On Tue, May 19, 2015 at 05:27:05PM +0300, Matan Barak wrote:
+> device_mutex is replaced rwsem in order to allow
+> clients' work to run concurrently with register_device,
+> unregister_device, register_client and unregister_client.
 
-I asked a similar question in an internal review.  The alternative to defining this function is to export the nls variable.
+Can you guys work together? Why are there two different versions of
+these patches now?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
