@@ -1,85 +1,46 @@
-From: Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH][RESEND] IB/cma: Resolve AF_IB UD support
-Date: Tue, 19 May 2015 00:11:48 -0700
-Message-ID: <1432019508-95824-1-git-send-email-matt@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hari Shankar <Hari.Shankar-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Matt Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Michael Wang <yun.wang@profitbricks.com>
+Subject: Re: [PATCH RFC v2] Documentation/infiniband: Add docs for rdma-helpers
+Date: Tue, 19 May 2015 09:56:50 +0200
+Message-ID: <555AECC2.70502@profitbricks.com>
+References: <1431938505-31779-1-git-send-email-yun.wang@profitbricks.com>		 <CAJ3xEMgkrUgSvRV7m_M9CE4w66Wyk-Svnfejvavj38iTNyH9HQ@mail.gmail.com>		 <5559B997.1030502@profitbricks.com> <1431962485.3114.8.camel@redhat.com>	 <555A04C8.10802@profitbricks.com> <1431968291.3114.13.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1431968291.3114.13.camel@redhat.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Or Gerlitz <gerlitz.or@gmail.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Resent due to mailer issues
 
-Support for using UD and AF_IB is currently broken.  The IB_CM_SIDR_REQ_RECEIVED
-message is not handled properly in cma_save_net_info() and we end up falling
-into code that will try and process the request as ipv4/ipv6, which will end
-up failing.
 
-The resolution is to add a check for the SIDR_REQ and call cma_save_ib_info()
-with a NULL path record.  Change cma_save_ib_info() to copy the src sib info 
-from the listen_id when the path record is NULL.
+On 05/18/2015 06:58 PM, Doug Ledford wrote:
+[snip]
+>> I see :-) I've not work with the kdoc yet, not sure if there is any
+>> guidelines on how to write the header of inline func for kdoc?
+> 
+> It's an automated tool thing.  Any comment section that starts with /**
+> is automatically included as a kdoc.  Then there is an expected format
+> after that.  See Documentation/kernel-doc-nano-HOWTO.txt.
 
-Reported-by: Hari Shankar <Hari.Shankar-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Matt Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-drivers/infiniband/core/cma.c | 32 +++++++++++++++++++++-----------
-1 file changed, 21 insertions(+), 11 deletions(-)
+Got it :-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 06441a4..38ffe09 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -845,18 +845,26 @@ static void cma_save_ib_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_id
- 	listen_ib = (struct sockaddr_ib *) &listen_id->route.addr.src_addr;
- 	ib = (struct sockaddr_ib *) &id->route.addr.src_addr;
- 	ib->sib_family = listen_ib->sib_family;
--	ib->sib_pkey = path->pkey;
--	ib->sib_flowinfo = path->flow_label;
--	memcpy(&ib->sib_addr, &path->sgid, 16);
-+	if (path) {
-+		ib->sib_pkey = path->pkey;
-+		ib->sib_flowinfo = path->flow_label;
-+		memcpy(&ib->sib_addr, &path->sgid, 16);
-+	} else {
-+		ib->sib_pkey = listen_ib->sib_pkey;
-+		ib->sib_flowinfo = listen_ib->sib_flowinfo;
-+		ib->sib_addr = listen_ib->sib_addr;
-+	}
- 	ib->sib_sid = listen_ib->sib_sid;
- 	ib->sib_sid_mask = cpu_to_be64(0xffffffffffffffffULL);
- 	ib->sib_scope_id = listen_ib->sib_scope_id;
- 
--	ib = (struct sockaddr_ib *) &id->route.addr.dst_addr;
--	ib->sib_family = listen_ib->sib_family;
--	ib->sib_pkey = path->pkey;
--	ib->sib_flowinfo = path->flow_label;
--	memcpy(&ib->sib_addr, &path->dgid, 16);
-+	if (path) {
-+		ib = (struct sockaddr_ib *) &id->route.addr.dst_addr;
-+		ib->sib_family = listen_ib->sib_family;
-+		ib->sib_pkey = path->pkey;
-+		ib->sib_flowinfo = path->flow_label;
-+		memcpy(&ib->sib_addr, &path->dgid, 16);
-+	}
- }
- 
- static __be16 ss_get_port(const struct sockaddr_storage *ss)
-@@ -905,9 +913,11 @@ static int cma_save_net_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_id
- {
- 	struct cma_hdr *hdr;
- 
--	if ((listen_id->route.addr.src_addr.ss_family == AF_IB) &&
--	    (ib_event->event == IB_CM_REQ_RECEIVED)) {
--		cma_save_ib_info(id, listen_id, ib_event->param.req_rcvd.primary_path);
-+	if (listen_id->route.addr.src_addr.ss_family == AF_IB) {
-+		if (ib_event->event == IB_CM_REQ_RECEIVED)
-+			cma_save_ib_info(id, listen_id, ib_event->param.req_rcvd.primary_path);
-+		else if (ib_event->event == IB_CM_SIDR_REQ_RECEIVED)
-+			cma_save_ib_info(id, listen_id, NULL);
- 		return 0;
- 	}
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>>>
+>>> Just because I want to move this along versus waiting for another
+>>> respin, I'm going to copy and paste these into those locations and clean
+>>> up the changelog when I integrate this patch.
+>>
+>> Got it, if there is anything I could help, please let me know ;-)
+> 
+> I'm sending the patch for review, please let me know if you are OK with
+> how I handled the attribution.
+
+The definition is far more detailed and accurate, it's already good enough
+according to my understanding, should benefit the developer a lot ;-)
+
+Regards,
+Michael Wang
+
+> 
