@@ -1,125 +1,52 @@
 From: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: [PATCH V2 for-4.1 6/9] RDMA/ocrdma: Prevent allocation of DPP PDs if FW doesnt support it
-Date: Tue, 19 May 2015 11:32:37 +0530
-Message-ID: <1432015360-15447-7-git-send-email-selvin.xavier@avagotech.com>
+Subject: [PATCH V2 for-4.1 5/9] RDMA/ocrdma: Fix the request length for RDMA_QUERY_QP mailbox command to FW.
+Date: Tue, 19 May 2015 11:32:36 +0530
+Message-ID: <1432015360-15447-6-git-send-email-selvin.xavier@avagotech.com>
 References: <1432015360-15447-1-git-send-email-selvin.xavier@avagotech.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432015360-15447-1-git-send-email-selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 
-If DPP PDs are not supported by the FW, allocate only normal PDs.
+Fix ocrdma_query_qp to pass correct mailbox request length to FW.
 
 Signed-off-by: Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Signed-off-by: Padmanabh Ratnakar <padmanabh.ratnakar-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 53 ++++++++++++++---------------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  2 +-
- 2 files changed, 27 insertions(+), 28 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c  | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 5636eb6..ac7347a 100644
+index da688d7..5636eb6 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1440,27 +1440,30 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma_dev *dev)
- 	struct ocrdma_alloc_pd_range_rsp *rsp;
+@@ -2412,7 +2412,7 @@ int ocrdma_mbx_query_qp(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
+ 	struct ocrdma_query_qp *cmd;
+ 	struct ocrdma_query_qp_rsp *rsp;
  
- 	/* Pre allocate the DPP PDs */
--	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_ALLOC_PD_RANGE, sizeof(*cmd));
--	if (!cmd)
--		return -ENOMEM;
--	cmd->pd_count = dev->attr.max_dpp_pds;
--	cmd->enable_dpp_rsvd |= OCRDMA_ALLOC_PD_ENABLE_DPP;
--	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
--	if (status)
--		goto mbx_err;
--	rsp = (struct ocrdma_alloc_pd_range_rsp *)cmd;
--
--	if ((rsp->dpp_page_pdid & OCRDMA_ALLOC_PD_RSP_DPP) && rsp->pd_count) {
--		dev->pd_mgr->dpp_page_index = rsp->dpp_page_pdid >>
--				OCRDMA_ALLOC_PD_RSP_DPP_PAGE_SHIFT;
--		dev->pd_mgr->pd_dpp_start = rsp->dpp_page_pdid &
--				OCRDMA_ALLOC_PD_RNG_RSP_START_PDID_MASK;
--		dev->pd_mgr->max_dpp_pd = rsp->pd_count;
--		pd_bitmap_size = BITS_TO_LONGS(rsp->pd_count) * sizeof(long);
--		dev->pd_mgr->pd_dpp_bitmap = kzalloc(pd_bitmap_size,
--						     GFP_KERNEL);
-+	if (dev->attr.max_dpp_pds) {
-+		cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_ALLOC_PD_RANGE,
-+					  sizeof(*cmd));
-+		if (!cmd)
-+			return -ENOMEM;
-+		cmd->pd_count = dev->attr.max_dpp_pds;
-+		cmd->enable_dpp_rsvd |= OCRDMA_ALLOC_PD_ENABLE_DPP;
-+		status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
-+		rsp = (struct ocrdma_alloc_pd_range_rsp *)cmd;
-+
-+		if (!status && (rsp->dpp_page_pdid & OCRDMA_ALLOC_PD_RSP_DPP) &&
-+		    rsp->pd_count) {
-+			dev->pd_mgr->dpp_page_index = rsp->dpp_page_pdid >>
-+					OCRDMA_ALLOC_PD_RSP_DPP_PAGE_SHIFT;
-+			dev->pd_mgr->pd_dpp_start = rsp->dpp_page_pdid &
-+					OCRDMA_ALLOC_PD_RNG_RSP_START_PDID_MASK;
-+			dev->pd_mgr->max_dpp_pd = rsp->pd_count;
-+			pd_bitmap_size =
-+				BITS_TO_LONGS(rsp->pd_count) * sizeof(long);
-+			dev->pd_mgr->pd_dpp_bitmap = kzalloc(pd_bitmap_size,
-+							     GFP_KERNEL);
-+		}
-+		kfree(cmd);
- 	}
--	kfree(cmd);
- 
- 	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_ALLOC_PD_RANGE, sizeof(*cmd));
+-	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_QP, sizeof(*cmd));
++	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_QP, sizeof(*rsp));
  	if (!cmd)
-@@ -1468,10 +1471,8 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma_dev *dev)
+ 		return status;
+ 	cmd->qp_id = qp->id;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+index baf9b8a..02ad0ae 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+@@ -1176,6 +1176,8 @@ struct ocrdma_query_qp_rsp {
+ 	struct ocrdma_mqe_hdr hdr;
+ 	struct ocrdma_mbx_rsp rsp;
+ 	struct ocrdma_qp_params params;
++	u32 dpp_credits_cqid;
++	u32 rbq_id;
+ };
  
- 	cmd->pd_count = dev->attr.max_pd - dev->attr.max_dpp_pds;
- 	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
--	if (status)
--		goto mbx_err;
- 	rsp = (struct ocrdma_alloc_pd_range_rsp *)cmd;
--	if (rsp->pd_count) {
-+	if (!status && rsp->pd_count) {
- 		dev->pd_mgr->pd_norm_start = rsp->dpp_page_pdid &
- 					OCRDMA_ALLOC_PD_RNG_RSP_START_PDID_MASK;
- 		dev->pd_mgr->max_normal_pd = rsp->pd_count;
-@@ -1479,15 +1480,13 @@ static int ocrdma_mbx_alloc_pd_range(struct ocrdma_dev *dev)
- 		dev->pd_mgr->pd_norm_bitmap = kzalloc(pd_bitmap_size,
- 						      GFP_KERNEL);
- 	}
-+	kfree(cmd);
- 
- 	if (dev->pd_mgr->pd_norm_bitmap || dev->pd_mgr->pd_dpp_bitmap) {
- 		/* Enable PD resource manager */
- 		dev->pd_mgr->pd_prealloc_valid = true;
--	} else {
--		return -ENOMEM;
-+		return 0;
- 	}
--mbx_err:
--	kfree(cmd);
- 	return status;
- }
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 06e8ab7..9dcb660 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -365,7 +365,7 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
- 	if (!pd)
- 		return ERR_PTR(-ENOMEM);
- 
--	if (udata && uctx) {
-+	if (udata && uctx && dev->attr.max_dpp_pds) {
- 		pd->dpp_enabled =
- 			ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R;
- 		pd->num_dpp_qp =
+ enum {
 -- 
 2.2.0
 
