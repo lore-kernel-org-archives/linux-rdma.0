@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 05/14] IB/mad: Add helper function for smi_handle_dr_smp_recv
-Date: Wed, 20 May 2015 04:13:26 -0400
-Message-ID: <1432109615-19564-6-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 09/14] IB/mad: Convert allocations from kmem_cache to kmalloc
+Date: Wed, 20 May 2015 04:13:30 -0400
+Message-ID: <1432109615-19564-10-git-send-email-ira.weiny@intel.com>
 References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432109615-19564-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,157 +12,251 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This helper function will be used later for processing both IB and OPA SMP
-recvs.
+kmalloc is more flexible to support devices with different sized MADs and
+research and testing showed that the current use of kmem_cache does not provide
+performance benefits over kmalloc.
+
+Use the new max_mad_size specified by devices for the allocations and DMA maps.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/smi.c | 80 +++++++++++++++++++++++++------------------
- 1 file changed, 47 insertions(+), 33 deletions(-)
+ drivers/infiniband/core/mad.c | 82 +++++++++++++++++++------------------------
+ 1 file changed, 37 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index 4115b0979377..b09fa1dec865 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -137,91 +137,105 @@ enum smi_action smi_handle_dr_smp_send(struct ib_smp *smp,
- 					smp->dr_slid == IB_LID_PERMISSIVE);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index ea25e9467cb5..cb5c1e484901 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -59,8 +59,6 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests
+ module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+ MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+ 
+-static struct kmem_cache *ib_mad_cache;
+-
+ static struct list_head ib_mad_port_list;
+ static u32 ib_mad_client_id = 0;
+ 
+@@ -717,6 +715,17 @@ static void build_smp_wc(struct ib_qp *qp,
+ 	wc->port_num = port_num;
  }
  
--/*
-- * Adjust information for a received SMP
-- * Return IB_SMI_DISCARD if the SMP should be dropped
-- */
--enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
--				       int port_num, int phys_port_cnt)
-+static inline
-+enum smi_action __smi_handle_dr_smp_recv(u8 node_type, int port_num,
-+					 int phys_port_cnt,
-+					 u8 *hop_ptr, u8 hop_cnt,
-+					 u8 *initial_path,
-+					 u8 *return_path,
-+					 u8 direction,
-+					 int dr_dlid_is_permissive,
-+					 int dr_slid_is_permissive)
- {
--	u8 hop_ptr, hop_cnt;
--
--	hop_ptr = smp->hop_ptr;
--	hop_cnt = smp->hop_cnt;
--
- 	/* See section 14.2.2.2, Vol 1 IB spec */
- 	/* C14-6 -- valid hop_cnt values are from 0 to 63 */
- 	if (hop_cnt >= IB_SMP_MAX_PATH_HOPS)
- 		return IB_SMI_DISCARD;
- 
--	if (!ib_get_smp_direction(smp)) {
-+	if (!direction) {
- 		/* C14-9:1 -- sender should have incremented hop_ptr */
--		if (hop_cnt && hop_ptr == 0)
-+		if (hop_cnt && *hop_ptr == 0)
- 			return IB_SMI_DISCARD;
- 
- 		/* C14-9:2 -- intermediate hop */
--		if (hop_ptr && hop_ptr < hop_cnt) {
-+		if (*hop_ptr && *hop_ptr < hop_cnt) {
- 			if (node_type != RDMA_NODE_IB_SWITCH)
- 				return IB_SMI_DISCARD;
- 
--			smp->return_path[hop_ptr] = port_num;
--			/* smp->hop_ptr updated when sending */
--			return (smp->initial_path[hop_ptr+1] <= phys_port_cnt ?
-+			return_path[*hop_ptr] = port_num;
-+			/* hop_ptr updated when sending */
-+			return (initial_path[*hop_ptr+1] <= phys_port_cnt ?
- 				IB_SMI_HANDLE : IB_SMI_DISCARD);
- 		}
- 
- 		/* C14-9:3 -- We're at the end of the DR segment of path */
--		if (hop_ptr == hop_cnt) {
-+		if (*hop_ptr == hop_cnt) {
- 			if (hop_cnt)
--				smp->return_path[hop_ptr] = port_num;
--			/* smp->hop_ptr updated when sending */
-+				return_path[*hop_ptr] = port_num;
-+			/* hop_ptr updated when sending */
- 
- 			return (node_type == RDMA_NODE_IB_SWITCH ||
--				smp->dr_dlid == IB_LID_PERMISSIVE ?
-+				dr_dlid_is_permissive ?
- 				IB_SMI_HANDLE : IB_SMI_DISCARD);
- 		}
- 
- 		/* C14-9:4 -- hop_ptr = hop_cnt + 1 -> give to SMA/SM */
- 		/* C14-9:5 -- fail unreasonable hop pointer */
--		return (hop_ptr == hop_cnt + 1 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
-+		return (*hop_ptr == hop_cnt + 1 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
- 
- 	} else {
- 
- 		/* C14-13:1 */
--		if (hop_cnt && hop_ptr == hop_cnt + 1) {
--			smp->hop_ptr--;
--			return (smp->return_path[smp->hop_ptr] ==
-+		if (hop_cnt && *hop_ptr == hop_cnt + 1) {
-+			(*hop_ptr)--;
-+			return (return_path[*hop_ptr] ==
- 				port_num ? IB_SMI_HANDLE : IB_SMI_DISCARD);
- 		}
- 
- 		/* C14-13:2 */
--		if (2 <= hop_ptr && hop_ptr <= hop_cnt) {
-+		if (2 <= *hop_ptr && *hop_ptr <= hop_cnt) {
- 			if (node_type != RDMA_NODE_IB_SWITCH)
- 				return IB_SMI_DISCARD;
- 
--			/* smp->hop_ptr updated when sending */
--			return (smp->return_path[hop_ptr-1] <= phys_port_cnt ?
-+			/* hop_ptr updated when sending */
-+			return (return_path[*hop_ptr-1] <= phys_port_cnt ?
- 				IB_SMI_HANDLE : IB_SMI_DISCARD);
- 		}
- 
- 		/* C14-13:3 -- We're at the end of the DR segment of path */
--		if (hop_ptr == 1) {
--			if (smp->dr_slid == IB_LID_PERMISSIVE) {
-+		if (*hop_ptr == 1) {
-+			if (dr_slid_is_permissive) {
- 				/* giving SMP to SM - update hop_ptr */
--				smp->hop_ptr--;
-+				(*hop_ptr)--;
- 				return IB_SMI_HANDLE;
- 			}
--			/* smp->hop_ptr updated when sending */
-+			/* hop_ptr updated when sending */
- 			return (node_type == RDMA_NODE_IB_SWITCH ?
- 				IB_SMI_HANDLE : IB_SMI_DISCARD);
- 		}
- 
- 		/* C14-13:4 -- hop_ptr = 0 -> give to SM */
- 		/* C14-13:5 -- Check for unreasonable hop pointer */
--		return (hop_ptr == 0 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
-+		return (*hop_ptr == 0 ? IB_SMI_HANDLE : IB_SMI_DISCARD);
- 	}
- }
- 
-+/*
-+ * Adjust information for a received SMP
-+ * Return IB_SMI_DISCARD if the SMP should be dropped
-+ */
-+enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
-+				       int port_num, int phys_port_cnt)
++static struct ib_mad_private *alloc_mad_priv(size_t mad_size, gfp_t flags)
 +{
-+	return __smi_handle_dr_smp_recv(node_type, port_num, phys_port_cnt,
-+					&smp->hop_ptr, smp->hop_cnt,
-+					smp->initial_path,
-+					smp->return_path,
-+					ib_get_smp_direction(smp),
-+					smp->dr_dlid == IB_LID_PERMISSIVE,
-+					smp->dr_slid == IB_LID_PERMISSIVE);
++	return (kmalloc(sizeof(struct ib_mad_private_header) +
++			sizeof(struct ib_grh) + mad_size, flags));
 +}
 +
- enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
++static size_t max_mad_size(struct ib_mad_port_private *port_priv)
++{
++	return rdma_max_mad_size(port_priv->device, port_priv->port_num);
++}
++
+ /*
+  * Return 0 if SMP is to be sent
+  * Return 1 if SMP was consumed locally (whether or not solicited)
+@@ -771,7 +780,9 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 	}
+ 	local->mad_priv = NULL;
+ 	local->recv_mad_agent = NULL;
+-	mad_priv = kmem_cache_alloc(ib_mad_cache, GFP_ATOMIC);
++
++	mad_priv = alloc_mad_priv(max_mad_size(mad_agent_priv->qp_info->port_priv),
++				  GFP_ATOMIC);
+ 	if (!mad_priv) {
+ 		ret = -ENOMEM;
+ 		dev_err(&device->dev, "No memory for local response MAD\n");
+@@ -801,10 +812,10 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 			 */
+ 			atomic_inc(&mad_agent_priv->refcount);
+ 		} else
+-			kmem_cache_free(ib_mad_cache, mad_priv);
++			kfree(mad_priv);
+ 		break;
+ 	case IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED:
+-		kmem_cache_free(ib_mad_cache, mad_priv);
++		kfree(mad_priv);
+ 		break;
+ 	case IB_MAD_RESULT_SUCCESS:
+ 		/* Treat like an incoming receive MAD */
+@@ -820,14 +831,14 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 			 * No receiving agent so drop packet and
+ 			 * generate send completion.
+ 			 */
+-			kmem_cache_free(ib_mad_cache, mad_priv);
++			kfree(mad_priv);
+ 			break;
+ 		}
+ 		local->mad_priv = mad_priv;
+ 		local->recv_mad_agent = recv_mad_agent;
+ 		break;
+ 	default:
+-		kmem_cache_free(ib_mad_cache, mad_priv);
++		kfree(mad_priv);
+ 		kfree(local);
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -1238,7 +1249,7 @@ void ib_free_recv_mad(struct ib_mad_recv_wc *mad_recv_wc)
+ 					    recv_wc);
+ 		priv = container_of(mad_priv_hdr, struct ib_mad_private,
+ 				    header);
+-		kmem_cache_free(ib_mad_cache, priv);
++		kfree(priv);
+ 	}
+ }
+ EXPORT_SYMBOL(ib_free_recv_mad);
+@@ -1971,6 +1982,11 @@ enum smi_action handle_ib_smi(struct ib_mad_port_private *port_priv,
+ 	return IB_SMI_HANDLE;
+ }
+ 
++static size_t mad_recv_buf_size(struct ib_mad_port_private *port_priv)
++{
++	return(sizeof(struct ib_grh) + max_mad_size(port_priv));
++}
++
+ static bool generate_unmatched_resp(struct ib_mad_private *recv,
+ 				    struct ib_mad_private *response)
  {
- 	u8 hop_ptr, hop_cnt;
+@@ -2011,8 +2027,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 	recv = container_of(mad_priv_hdr, struct ib_mad_private, header);
+ 	ib_dma_unmap_single(port_priv->device,
+ 			    recv->header.mapping,
+-			    sizeof(struct ib_mad_private) -
+-			      sizeof(struct ib_mad_private_header),
++			    mad_recv_buf_size(port_priv),
+ 			    DMA_FROM_DEVICE);
+ 
+ 	/* Setup MAD receive work completion from "normal" work completion */
+@@ -2029,7 +2044,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
+ 		goto out;
+ 
+-	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
++	response = alloc_mad_priv(max_mad_size(port_priv), GFP_KERNEL);
+ 	if (!response) {
+ 		dev_err(&port_priv->device->dev,
+ 			"ib_mad_recv_done_handler no memory for response buffer\n");
+@@ -2089,7 +2104,7 @@ out:
+ 	if (response) {
+ 		ib_mad_post_receive_mads(qp_info, response);
+ 		if (recv)
+-			kmem_cache_free(ib_mad_cache, recv);
++			kfree(recv);
+ 	} else
+ 		ib_mad_post_receive_mads(qp_info, recv);
+ }
+@@ -2549,7 +2564,7 @@ local_send_completion:
+ 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
+ 		atomic_dec(&mad_agent_priv->refcount);
+ 		if (free_mad)
+-			kmem_cache_free(ib_mad_cache, local->mad_priv);
++			kfree(local->mad_priv);
+ 		kfree(local);
+ 	}
+ 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+@@ -2678,7 +2693,8 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 			mad_priv = mad;
+ 			mad = NULL;
+ 		} else {
+-			mad_priv = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
++			mad_priv =
++			alloc_mad_priv(max_mad_size(qp_info->port_priv), GFP_KERNEL);
+ 			if (!mad_priv) {
+ 				dev_err(&qp_info->port_priv->device->dev,
+ 					"No memory for receive buffer\n");
+@@ -2688,8 +2704,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 		}
+ 		sg_list.addr = ib_dma_map_single(qp_info->port_priv->device,
+ 						 &mad_priv->grh,
+-						 sizeof *mad_priv -
+-						   sizeof mad_priv->header,
++						 mad_recv_buf_size(qp_info->port_priv),
+ 						 DMA_FROM_DEVICE);
+ 		if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
+ 						  sg_list.addr))) {
+@@ -2713,10 +2728,9 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 			spin_unlock_irqrestore(&recv_queue->lock, flags);
+ 			ib_dma_unmap_single(qp_info->port_priv->device,
+ 					    mad_priv->header.mapping,
+-					    sizeof *mad_priv -
+-					      sizeof mad_priv->header,
++					    mad_recv_buf_size(qp_info->port_priv),
+ 					    DMA_FROM_DEVICE);
+-			kmem_cache_free(ib_mad_cache, mad_priv);
++			kfree(mad_priv);
+ 			dev_err(&qp_info->port_priv->device->dev,
+ 				"ib_post_recv failed: %d\n", ret);
+ 			break;
+@@ -2753,10 +2767,9 @@ static void cleanup_recv_queue(struct ib_mad_qp_info *qp_info)
+ 
+ 		ib_dma_unmap_single(qp_info->port_priv->device,
+ 				    recv->header.mapping,
+-				    sizeof(struct ib_mad_private) -
+-				      sizeof(struct ib_mad_private_header),
++				    mad_recv_buf_size(qp_info->port_priv),
+ 				    DMA_FROM_DEVICE);
+-		kmem_cache_free(ib_mad_cache, recv);
++		kfree(recv);
+ 	}
+ 
+ 	qp_info->recv_queue.count = 0;
+@@ -2937,9 +2950,8 @@ static int ib_mad_port_open(struct ib_device *device,
+ 	unsigned long flags;
+ 	char name[sizeof "ib_mad123"];
+ 	int has_smi;
+-	size_t max_mad_size = rdma_max_mad_size(device, port_num);
+ 
+-	if (WARN_ON(max_mad_size < IB_MGMT_MAD_SIZE))
++	if (WARN_ON(rdma_max_mad_size(device, port_num) < IB_MGMT_MAD_SIZE))
+ 		return -EFAULT;
+ 
+ 	/* Create new device info */
+@@ -3149,45 +3161,25 @@ static struct ib_client mad_client = {
+ 
+ static int __init ib_mad_init_module(void)
+ {
+-	int ret;
+-
+ 	mad_recvq_size = min(mad_recvq_size, IB_MAD_QP_MAX_SIZE);
+ 	mad_recvq_size = max(mad_recvq_size, IB_MAD_QP_MIN_SIZE);
+ 
+ 	mad_sendq_size = min(mad_sendq_size, IB_MAD_QP_MAX_SIZE);
+ 	mad_sendq_size = max(mad_sendq_size, IB_MAD_QP_MIN_SIZE);
+ 
+-	ib_mad_cache = kmem_cache_create("ib_mad",
+-					 sizeof(struct ib_mad_private),
+-					 0,
+-					 SLAB_HWCACHE_ALIGN,
+-					 NULL);
+-	if (!ib_mad_cache) {
+-		pr_err("Couldn't create ib_mad cache\n");
+-		ret = -ENOMEM;
+-		goto error1;
+-	}
+-
+ 	INIT_LIST_HEAD(&ib_mad_port_list);
+ 
+ 	if (ib_register_client(&mad_client)) {
+ 		pr_err("Couldn't register ib_mad client\n");
+-		ret = -EINVAL;
+-		goto error2;
++		return(-EINVAL);
+ 	}
+ 
+ 	return 0;
+-
+-error2:
+-	kmem_cache_destroy(ib_mad_cache);
+-error1:
+-	return ret;
+ }
+ 
+ static void __exit ib_mad_cleanup_module(void)
+ {
+ 	ib_unregister_client(&mad_client);
+-	kmem_cache_destroy(ib_mad_cache);
+ }
+ 
+ module_init(ib_mad_init_module);
 -- 
 1.8.2
 
