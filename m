@@ -1,81 +1,54 @@
-From: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: RE: [PATCH 14/14] IB/mad: Add final OPA MAD processing
-Date: Wed, 20 May 2015 21:11:14 +0000
-Message-ID: <CY1PR03MB1440B98A7FE0A82E1BE53D75DEC20@CY1PR03MB1440.namprd03.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 02/14] IB/mad: Create an RMPP Base header
+Date: Wed, 20 May 2015 16:03:33 -0600
+Message-ID: <20150520220333.GA5970@obsidianresearch.com>
 References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
- <1432109615-19564-15-git-send-email-ira.weiny@intel.com>
+ <1432109615-19564-3-git-send-email-ira.weiny@intel.com>
+ <20150520182735.GG28496@obsidianresearch.com>
+ <20150520212344.GB22981@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432109615-19564-15-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20150520212344.GB22981-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Can you please clarify:
+On Wed, May 20, 2015 at 05:23:45PM -0400, ira.weiny wrote:
+> On Wed, May 20, 2015 at 12:27:35PM -0600, Jason Gunthorpe wrote:
+> > On Wed, May 20, 2015 at 04:13:23AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > -struct ib_rmpp_mad {
+> > > +struct ib_rmpp_base {
+> > >  	struct ib_mad_hdr	mad_hdr;
+> > >  	struct ib_rmpp_hdr	rmpp_hdr;
+> > > +} __packed;
+> > > +
+> > > +struct ib_rmpp_mad {
+> > > +	struct ib_rmpp_base	base;
+> > >  	u8			data[IB_MGMT_RMPP_DATA];
+> > >  };
+> > 
+> > Why can't we just use:
+> > 
+> >  u8 data[];
+> > 
+> > And replace various sizeof(ib_rmpp_mad) with a rmpp_payload_size()
+> > call?
+> 
+> I don't think it makes much difference.  I think there is just 1 place we use
+> that.
 
-+static enum smi_action
-+handle_opa_smi(struct ib_mad_port_private *port_priv,
-+       struct ib_mad_qp_info *qp_info,
-+       struct ib_wc *wc,
-+       int port_num,
-+       struct ib_mad_private *recv,
-+       struct ib_mad_private *response) {
-+enum smi_forward_action retsmi;
-+
-+if (opa_smi_handle_dr_smp_recv(&recv->mad.opa_smp,
-+   port_priv->device->node_type,
-+   port_num,
-+   port_priv->device->phys_port_cnt) ==
-+   IB_SMI_DISCARD)
-+return IB_SMI_DISCARD;
-+
-+retsmi = opa_smi_check_forward_dr_smp(&recv->mad.opa_smp);
-+if (retsmi == IB_SMI_LOCAL)
-+return IB_SMI_HANDLE;
-+
-+if (retsmi == IB_SMI_SEND) { /* don't forward */
-+if (opa_smi_handle_dr_smp_send(&recv->mad.opa_smp,
-+   port_priv->device->node_type,
-+   port_num) == IB_SMI_DISCARD)
-+return IB_SMI_DISCARD;
-+
-+if (opa_smi_check_local_smp(&recv->mad.opa_smp, port_priv->device) == IB_SMI_DISCARD)
-+return IB_SMI_DISCARD;
-+
-+} else if (port_priv->device->node_type == RDMA_NODE_IB_SWITCH) {
-+/* forward case for switches */
-+memcpy(response, recv, sizeof(*response));
-+response->header.recv_wc.wc = &response->header.wc;
-+response->header.recv_wc.recv_buf.opa_mad = &response->mad.opa_mad;
-+response->header.recv_wc.recv_buf.grh = &response->grh;
-+
-+agent_send_response((struct ib_mad *)&response->mad.mad,
-+    &response->grh, wc,
-+    port_priv->device,
-+    opa_smi_get_fwd_port(&recv->mad.opa_smp),
-+    qp_info->qp->qp_num,
-+    recv->header.wc.byte_len,
-+    1);
-+
-+return IB_SMI_DISCARD;
-+}
-+
-+return IB_SMI_HANDLE;
-+}
-+
+There are many lines that are just churning rmpp_mad to
+rmpp_base, using a flex array avoids that entirely.
 
-Why do you have RDMA_NODE_IB_SWITCH related stuff inside the handle_opa_smi() function?
-Is there a node type of "switch" in OPA similar to IB?
+Similarly patch 12 doesn't have to introduce a opa specific structure anymore.
 
+The same sort of comment probably applies to the mad_hdr/etc as well,
+but I didn't look very closely.
 
-Thanks,
-Suri
-
-This correspondence, and any attachments or files transmitted with this correspondence, contains information which may be confidential and privileged and is intended solely for the use of the addressee. Unless you are the addressee or are authorized to receive messages for the addressee, you may not use, copy, disseminate, or disclose this correspondence or any information contained in this correspondence to any third party. If you have received this correspondence in error, please notify the sender immediately and delete this correspondence and any attachments or files transmitted with this correspondence from your system, and destroy any and all copies thereof, electronic or otherwise. Your cooperation and understanding are greatly appreciated.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
