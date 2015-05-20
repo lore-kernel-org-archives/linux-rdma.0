@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 09/14] IB/mad: Convert allocations from kmem_cache to kmalloc
-Date: Wed, 20 May 2015 04:13:30 -0400
-Message-ID: <1432109615-19564-10-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 07/14] IB/mad: Add base version to ib_create_send_mad
+Date: Wed, 20 May 2015 04:13:28 -0400
+Message-ID: <1432109615-19564-8-git-send-email-ira.weiny@intel.com>
 References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432109615-19564-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,251 +12,225 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-kmalloc is more flexible to support devices with different sized MADs and
-research and testing showed that the current use of kmem_cache does not provide
-performance benefits over kmalloc.
+In preparation to support the new OPA MAD Base version, add a base version
+parameter to ib_create_send_mad and set it to IB_MGMT_BASE_VERSION for current
+users.
 
-Use the new max_mad_size specified by devices for the allocations and DMA maps.
+Definition of the new base version and it's processing will occur in later
+patches.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c | 82 +++++++++++++++++++------------------------
- 1 file changed, 37 insertions(+), 45 deletions(-)
+ drivers/infiniband/core/agent.c         | 3 ++-
+ drivers/infiniband/core/cm.c            | 6 ++++--
+ drivers/infiniband/core/mad.c           | 3 ++-
+ drivers/infiniband/core/mad_rmpp.c      | 6 ++++--
+ drivers/infiniband/core/sa_query.c      | 3 ++-
+ drivers/infiniband/core/user_mad.c      | 3 ++-
+ drivers/infiniband/hw/mlx4/mad.c        | 3 ++-
+ drivers/infiniband/hw/mthca/mthca_mad.c | 3 ++-
+ drivers/infiniband/hw/qib/qib_iba7322.c | 3 ++-
+ drivers/infiniband/hw/qib/qib_mad.c     | 3 ++-
+ drivers/infiniband/ulp/srpt/ib_srpt.c   | 3 ++-
+ include/rdma/ib_mad.h                   | 4 +++-
+ 12 files changed, 29 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
+index a6fc4d6dc7d7..5c7627c3278c 100644
+--- a/drivers/infiniband/core/agent.c
++++ b/drivers/infiniband/core/agent.c
+@@ -108,7 +108,8 @@ void agent_send_response(struct ib_mad *mad, struct ib_grh *grh,
+ 
+ 	send_buf = ib_create_send_mad(agent, wc->src_qp, wc->pkey_index, 0,
+ 				      IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
+-				      GFP_KERNEL);
++				      GFP_KERNEL,
++				      IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(send_buf)) {
+ 		dev_err(&device->dev, "ib_create_send_mad error\n");
+ 		goto err1;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index c3be6663f4f5..dbddddd6fb5d 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -267,7 +267,8 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+ 	m = ib_create_send_mad(mad_agent, cm_id_priv->id.remote_cm_qpn,
+ 			       cm_id_priv->av.pkey_index,
+ 			       0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
+-			       GFP_ATOMIC);
++			       GFP_ATOMIC,
++			       IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(m)) {
+ 		ib_destroy_ah(ah);
+ 		return PTR_ERR(m);
+@@ -297,7 +298,8 @@ static int cm_alloc_response_msg(struct cm_port *port,
+ 
+ 	m = ib_create_send_mad(port->mad_agent, 1, mad_recv_wc->wc->pkey_index,
+ 			       0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
+-			       GFP_ATOMIC);
++			       GFP_ATOMIC,
++			       IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(m)) {
+ 		ib_destroy_ah(ah);
+ 		return PTR_ERR(m);
 diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index ea25e9467cb5..cb5c1e484901 100644
+index 96daba58afad..8055195b5d60 100644
 --- a/drivers/infiniband/core/mad.c
 +++ b/drivers/infiniband/core/mad.c
-@@ -59,8 +59,6 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests
- module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
- MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
- 
--static struct kmem_cache *ib_mad_cache;
--
- static struct list_head ib_mad_port_list;
- static u32 ib_mad_client_id = 0;
- 
-@@ -717,6 +715,17 @@ static void build_smp_wc(struct ib_qp *qp,
- 	wc->port_num = port_num;
- }
- 
-+static struct ib_mad_private *alloc_mad_priv(size_t mad_size, gfp_t flags)
-+{
-+	return (kmalloc(sizeof(struct ib_mad_private_header) +
-+			sizeof(struct ib_grh) + mad_size, flags));
-+}
-+
-+static size_t max_mad_size(struct ib_mad_port_private *port_priv)
-+{
-+	return rdma_max_mad_size(port_priv->device, port_priv->port_num);
-+}
-+
- /*
-  * Return 0 if SMP is to be sent
-  * Return 1 if SMP was consumed locally (whether or not solicited)
-@@ -771,7 +780,9 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 	}
- 	local->mad_priv = NULL;
- 	local->recv_mad_agent = NULL;
--	mad_priv = kmem_cache_alloc(ib_mad_cache, GFP_ATOMIC);
-+
-+	mad_priv = alloc_mad_priv(max_mad_size(mad_agent_priv->qp_info->port_priv),
-+				  GFP_ATOMIC);
- 	if (!mad_priv) {
- 		ret = -ENOMEM;
- 		dev_err(&device->dev, "No memory for local response MAD\n");
-@@ -801,10 +812,10 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 			 */
- 			atomic_inc(&mad_agent_priv->refcount);
- 		} else
--			kmem_cache_free(ib_mad_cache, mad_priv);
-+			kfree(mad_priv);
- 		break;
- 	case IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED:
--		kmem_cache_free(ib_mad_cache, mad_priv);
-+		kfree(mad_priv);
- 		break;
- 	case IB_MAD_RESULT_SUCCESS:
- 		/* Treat like an incoming receive MAD */
-@@ -820,14 +831,14 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 			 * No receiving agent so drop packet and
- 			 * generate send completion.
- 			 */
--			kmem_cache_free(ib_mad_cache, mad_priv);
-+			kfree(mad_priv);
- 			break;
- 		}
- 		local->mad_priv = mad_priv;
- 		local->recv_mad_agent = recv_mad_agent;
- 		break;
- 	default:
--		kmem_cache_free(ib_mad_cache, mad_priv);
-+		kfree(mad_priv);
- 		kfree(local);
- 		ret = -EINVAL;
- 		goto out;
-@@ -1238,7 +1249,7 @@ void ib_free_recv_mad(struct ib_mad_recv_wc *mad_recv_wc)
- 					    recv_wc);
- 		priv = container_of(mad_priv_hdr, struct ib_mad_private,
- 				    header);
--		kmem_cache_free(ib_mad_cache, priv);
-+		kfree(priv);
- 	}
- }
- EXPORT_SYMBOL(ib_free_recv_mad);
-@@ -1971,6 +1982,11 @@ enum smi_action handle_ib_smi(struct ib_mad_port_private *port_priv,
- 	return IB_SMI_HANDLE;
- }
- 
-+static size_t mad_recv_buf_size(struct ib_mad_port_private *port_priv)
-+{
-+	return(sizeof(struct ib_grh) + max_mad_size(port_priv));
-+}
-+
- static bool generate_unmatched_resp(struct ib_mad_private *recv,
- 				    struct ib_mad_private *response)
+@@ -920,7 +920,8 @@ struct ib_mad_send_buf * ib_create_send_mad(struct ib_mad_agent *mad_agent,
+ 					    u32 remote_qpn, u16 pkey_index,
+ 					    int rmpp_active,
+ 					    int hdr_len, int data_len,
+-					    gfp_t gfp_mask)
++					    gfp_t gfp_mask,
++					    u8 base_version)
  {
-@@ -2011,8 +2027,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 	recv = container_of(mad_priv_hdr, struct ib_mad_private, header);
- 	ib_dma_unmap_single(port_priv->device,
- 			    recv->header.mapping,
--			    sizeof(struct ib_mad_private) -
--			      sizeof(struct ib_mad_private_header),
-+			    mad_recv_buf_size(port_priv),
- 			    DMA_FROM_DEVICE);
+ 	struct ib_mad_agent_private *mad_agent_priv;
+ 	struct ib_mad_send_wr_private *mad_send_wr;
+diff --git a/drivers/infiniband/core/mad_rmpp.c b/drivers/infiniband/core/mad_rmpp.c
+index 13279826342f..9c284d9b4fa9 100644
+--- a/drivers/infiniband/core/mad_rmpp.c
++++ b/drivers/infiniband/core/mad_rmpp.c
+@@ -139,7 +139,8 @@ static void ack_recv(struct mad_rmpp_recv *rmpp_recv,
+ 	hdr_len = ib_get_mad_data_offset(recv_wc->recv_buf.mad->mad_hdr.mgmt_class);
+ 	msg = ib_create_send_mad(&rmpp_recv->agent->agent, recv_wc->wc->src_qp,
+ 				 recv_wc->wc->pkey_index, 1, hdr_len,
+-				 0, GFP_KERNEL);
++				 0, GFP_KERNEL,
++				 IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(msg))
+ 		return;
  
- 	/* Setup MAD receive work completion from "normal" work completion */
-@@ -2029,7 +2044,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 	if (!validate_mad(&recv->mad.mad.mad_hdr, qp_info->qp->qp_num))
- 		goto out;
+@@ -165,7 +166,8 @@ static struct ib_mad_send_buf *alloc_response_msg(struct ib_mad_agent *agent,
+ 	hdr_len = ib_get_mad_data_offset(recv_wc->recv_buf.mad->mad_hdr.mgmt_class);
+ 	msg = ib_create_send_mad(agent, recv_wc->wc->src_qp,
+ 				 recv_wc->wc->pkey_index, 1,
+-				 hdr_len, 0, GFP_KERNEL);
++				 hdr_len, 0, GFP_KERNEL,
++				 IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(msg))
+ 		ib_destroy_ah(ah);
+ 	else {
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 7f7c8c9fa92c..78fbedd8d013 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -583,7 +583,8 @@ static int alloc_mad(struct ib_sa_query *query, gfp_t gfp_mask)
+ 	query->mad_buf = ib_create_send_mad(query->port->agent, 1,
+ 					    query->sm_ah->pkey_index,
+ 					    0, IB_MGMT_SA_HDR, IB_MGMT_SA_DATA,
+-					    gfp_mask);
++					    gfp_mask,
++					    IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(query->mad_buf)) {
+ 		kref_put(&query->sm_ah->ref, free_sm_ah);
+ 		return -ENOMEM;
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index acff2f4bb6dd..6be72a563c61 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -520,7 +520,8 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 	packet->msg = ib_create_send_mad(agent,
+ 					 be32_to_cpu(packet->mad.hdr.qpn),
+ 					 packet->mad.hdr.pkey_index, rmpp_active,
+-					 hdr_len, data_len, GFP_KERNEL);
++					 hdr_len, data_len, GFP_KERNEL,
++					 IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(packet->msg)) {
+ 		ret = PTR_ERR(packet->msg);
+ 		goto err_ah;
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 9cd2b002d7ae..d44614f9da49 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -366,7 +366,8 @@ static void forward_trap(struct mlx4_ib_dev *dev, u8 port_num, struct ib_mad *ma
  
--	response = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
-+	response = alloc_mad_priv(max_mad_size(port_priv), GFP_KERNEL);
- 	if (!response) {
- 		dev_err(&port_priv->device->dev,
- 			"ib_mad_recv_done_handler no memory for response buffer\n");
-@@ -2089,7 +2104,7 @@ out:
- 	if (response) {
- 		ib_mad_post_receive_mads(qp_info, response);
- 		if (recv)
--			kmem_cache_free(ib_mad_cache, recv);
-+			kfree(recv);
- 	} else
- 		ib_mad_post_receive_mads(qp_info, recv);
- }
-@@ -2549,7 +2564,7 @@ local_send_completion:
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 		atomic_dec(&mad_agent_priv->refcount);
- 		if (free_mad)
--			kmem_cache_free(ib_mad_cache, local->mad_priv);
-+			kfree(local->mad_priv);
- 		kfree(local);
- 	}
- 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
-@@ -2678,7 +2693,8 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 			mad_priv = mad;
- 			mad = NULL;
- 		} else {
--			mad_priv = kmem_cache_alloc(ib_mad_cache, GFP_KERNEL);
-+			mad_priv =
-+			alloc_mad_priv(max_mad_size(qp_info->port_priv), GFP_KERNEL);
- 			if (!mad_priv) {
- 				dev_err(&qp_info->port_priv->device->dev,
- 					"No memory for receive buffer\n");
-@@ -2688,8 +2704,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 		}
- 		sg_list.addr = ib_dma_map_single(qp_info->port_priv->device,
- 						 &mad_priv->grh,
--						 sizeof *mad_priv -
--						   sizeof mad_priv->header,
-+						 mad_recv_buf_size(qp_info->port_priv),
- 						 DMA_FROM_DEVICE);
- 		if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
- 						  sg_list.addr))) {
-@@ -2713,10 +2728,9 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
- 			spin_unlock_irqrestore(&recv_queue->lock, flags);
- 			ib_dma_unmap_single(qp_info->port_priv->device,
- 					    mad_priv->header.mapping,
--					    sizeof *mad_priv -
--					      sizeof mad_priv->header,
-+					    mad_recv_buf_size(qp_info->port_priv),
- 					    DMA_FROM_DEVICE);
--			kmem_cache_free(ib_mad_cache, mad_priv);
-+			kfree(mad_priv);
- 			dev_err(&qp_info->port_priv->device->dev,
- 				"ib_post_recv failed: %d\n", ret);
- 			break;
-@@ -2753,10 +2767,9 @@ static void cleanup_recv_queue(struct ib_mad_qp_info *qp_info)
+ 	if (agent) {
+ 		send_buf = ib_create_send_mad(agent, qpn, 0, 0, IB_MGMT_MAD_HDR,
+-					      IB_MGMT_MAD_DATA, GFP_ATOMIC);
++					      IB_MGMT_MAD_DATA, GFP_ATOMIC,
++					      IB_MGMT_BASE_VERSION);
+ 		if (IS_ERR(send_buf))
+ 			return;
+ 		/*
+diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+index 8881fa376e06..2a34cd2f92b7 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mad.c
++++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+@@ -170,7 +170,8 @@ static void forward_trap(struct mthca_dev *dev,
  
- 		ib_dma_unmap_single(qp_info->port_priv->device,
- 				    recv->header.mapping,
--				    sizeof(struct ib_mad_private) -
--				      sizeof(struct ib_mad_private_header),
-+				    mad_recv_buf_size(qp_info->port_priv),
- 				    DMA_FROM_DEVICE);
--		kmem_cache_free(ib_mad_cache, recv);
-+		kfree(recv);
- 	}
+ 	if (agent) {
+ 		send_buf = ib_create_send_mad(agent, qpn, 0, 0, IB_MGMT_MAD_HDR,
+-					      IB_MGMT_MAD_DATA, GFP_ATOMIC);
++					      IB_MGMT_MAD_DATA, GFP_ATOMIC,
++					      IB_MGMT_BASE_VERSION);
+ 		if (IS_ERR(send_buf))
+ 			return;
+ 		/*
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index f32b4628e991..6c8ff10101c0 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -5502,7 +5502,8 @@ static void try_7322_ipg(struct qib_pportdata *ppd)
+ 		goto retry;
  
- 	qp_info->recv_queue.count = 0;
-@@ -2937,9 +2950,8 @@ static int ib_mad_port_open(struct ib_device *device,
- 	unsigned long flags;
- 	char name[sizeof "ib_mad123"];
- 	int has_smi;
--	size_t max_mad_size = rdma_max_mad_size(device, port_num);
+ 	send_buf = ib_create_send_mad(agent, 0, 0, 0, IB_MGMT_MAD_HDR,
+-				      IB_MGMT_MAD_DATA, GFP_ATOMIC);
++				      IB_MGMT_MAD_DATA, GFP_ATOMIC,
++				      IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(send_buf))
+ 		goto retry;
  
--	if (WARN_ON(max_mad_size < IB_MGMT_MAD_SIZE))
-+	if (WARN_ON(rdma_max_mad_size(device, port_num) < IB_MGMT_MAD_SIZE))
- 		return -EFAULT;
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 395f4046dba2..8dc3bc213845 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -83,7 +83,8 @@ static void qib_send_trap(struct qib_ibport *ibp, void *data, unsigned len)
+ 		return;
  
- 	/* Create new device info */
-@@ -3149,45 +3161,25 @@ static struct ib_client mad_client = {
+ 	send_buf = ib_create_send_mad(agent, 0, 0, 0, IB_MGMT_MAD_HDR,
+-				      IB_MGMT_MAD_DATA, GFP_ATOMIC);
++				      IB_MGMT_MAD_DATA, GFP_ATOMIC,
++				      IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(send_buf))
+ 		return;
  
- static int __init ib_mad_init_module(void)
- {
--	int ret;
--
- 	mad_recvq_size = min(mad_recvq_size, IB_MAD_QP_MAX_SIZE);
- 	mad_recvq_size = max(mad_recvq_size, IB_MAD_QP_MIN_SIZE);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 9b84b4c0a000..68201d69d99e 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -476,7 +476,8 @@ static void srpt_mad_recv_handler(struct ib_mad_agent *mad_agent,
+ 	rsp = ib_create_send_mad(mad_agent, mad_wc->wc->src_qp,
+ 				 mad_wc->wc->pkey_index, 0,
+ 				 IB_MGMT_DEVICE_HDR, IB_MGMT_DEVICE_DATA,
+-				 GFP_KERNEL);
++				 GFP_KERNEL,
++				 IB_MGMT_BASE_VERSION);
+ 	if (IS_ERR(rsp))
+ 		goto err_rsp;
  
- 	mad_sendq_size = min(mad_sendq_size, IB_MAD_QP_MAX_SIZE);
- 	mad_sendq_size = max(mad_sendq_size, IB_MAD_QP_MIN_SIZE);
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index 1b37b493b2b4..ddc82d65a9e5 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -622,6 +622,7 @@ int ib_process_mad_wc(struct ib_mad_agent *mad_agent,
+  *   automatically adjust the allocated buffer size to account for any
+  *   additional padding that may be necessary.
+  * @gfp_mask: GFP mask used for the memory allocation.
++ * @base_version: Base Version of this MAD
+  *
+  * This routine allocates a MAD for sending.  The returned MAD send buffer
+  * will reference a data buffer usable for sending a MAD, along
+@@ -637,7 +638,8 @@ struct ib_mad_send_buf *ib_create_send_mad(struct ib_mad_agent *mad_agent,
+ 					   u32 remote_qpn, u16 pkey_index,
+ 					   int rmpp_active,
+ 					   int hdr_len, int data_len,
+-					   gfp_t gfp_mask);
++					   gfp_t gfp_mask,
++					   u8 base_version);
  
--	ib_mad_cache = kmem_cache_create("ib_mad",
--					 sizeof(struct ib_mad_private),
--					 0,
--					 SLAB_HWCACHE_ALIGN,
--					 NULL);
--	if (!ib_mad_cache) {
--		pr_err("Couldn't create ib_mad cache\n");
--		ret = -ENOMEM;
--		goto error1;
--	}
--
- 	INIT_LIST_HEAD(&ib_mad_port_list);
- 
- 	if (ib_register_client(&mad_client)) {
- 		pr_err("Couldn't register ib_mad client\n");
--		ret = -EINVAL;
--		goto error2;
-+		return(-EINVAL);
- 	}
- 
- 	return 0;
--
--error2:
--	kmem_cache_destroy(ib_mad_cache);
--error1:
--	return ret;
- }
- 
- static void __exit ib_mad_cleanup_module(void)
- {
- 	ib_unregister_client(&mad_client);
--	kmem_cache_destroy(ib_mad_cache);
- }
- 
- module_init(ib_mad_init_module);
+ /**
+  * ib_is_mad_class_rmpp - returns whether given management class
 -- 
 1.8.2
 
