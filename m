@@ -1,47 +1,44 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] libibverbs init.c: conditionally emit warning if no
- userspace driver found
-Date: Wed, 20 May 2015 16:48:21 +0200
-Message-ID: <1432133301.5304.10.camel@opteya.com>
-References: <1431440068-19037-1-git-send-email-jsquyres@cisco.com>
-	 <BED0001D-0051-4ACD-8506-8FA07E625694@cisco.com>
-	 <1432044878.5304.1.camel@opteya.com> <1432049804.3114.41.camel@redhat.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 03/12] IB/core: Find the network namespace
+ matching connection parameters
+Date: Wed, 20 May 2015 17:48:36 +0300
+Message-ID: <555C9EC4.3010802@mellanox.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+ <1431841868-28063-4-git-send-email-haggaie@mellanox.com>
+ <20150519182616.GF18675@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432049804.3114.41.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150519182616.GF18675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 19/05/2015 21:26, Jason Gunthorpe wrote:
+>> +	list_for_each_entry_rcu(client, &client_list, list)
+>> +		if (client->get_net_device_by_port_pkey_ip) {
+>> +			ret = client->get_net_device_by_port_pkey_ip(dev, port,
+>> +								     pkey,
+>> +
+>> addr);
+> 
+> Considering the patch that introduced the rwsem, this doesn't look
+> right.
+> 
+> We can't call a client call back on a device that is unregistered, we
+> can't call a client call back on a client that is unregistering.
+> 
+> So the ordering of the list_del/add vs call back calls in device.c is
+> not right, please audit everything with an eye toward maintaing sane
+> invarients.
 
-Le mardi 19 mai 2015 =C3=A0 11:36 -0400, Doug Ledford a =C3=A9crit :
-> On Tue, 2015-05-19 at 16:14 +0200, Yann Droneaud wrote:
-> >=20
-> > Is Doug the maintainer of the userspace library ?
->=20
-> Libibverbs and the kernel verbs interface are very closely tied, so I
-> did ask Roland if he was OK with me taking over that as well.  It=20
-> would
-> make it easier to keep the two in sync.  Roland was fine with that.=20
->  If
-> anyone has any objections, please speak now.
->=20
+Thanks for pointing that out. I'll do that.
 
-
-OK, I think I've missed the memo :)
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+Haggai
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
