@@ -1,42 +1,47 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 08/10] IB/mlx4: Add support for timestamp in
- cq creation
-Date: Wed, 20 May 2015 17:43:57 +0300
-Message-ID: <555C9DAD.3010808@mellanox.com>
-References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
- <1431869786-6308-9-git-send-email-ogerlitz@mellanox.com>
- <20150519185527.GL18675@obsidianresearch.com>
- <555C4C45.7010300@dev.mellanox.co.il>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3] libibverbs init.c: conditionally emit warning if no
+ userspace driver found
+Date: Wed, 20 May 2015 16:48:21 +0200
+Message-ID: <1432133301.5304.10.camel@opteya.com>
+References: <1431440068-19037-1-git-send-email-jsquyres@cisco.com>
+	 <BED0001D-0051-4ACD-8506-8FA07E625694@cisco.com>
+	 <1432044878.5304.1.camel@opteya.com> <1432049804.3114.41.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <555C4C45.7010300-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1432049804.3114.41.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/20/2015 11:56 AM, Sagi Grimberg wrote:
-> On 5/19/2015 9:55 PM, Jason Gunthorpe wrote:
->> On Sun, May 17, 2015 at 04:36:24PM +0300, Or Gerlitz wrote:
->>> @@ -110,6 +110,7 @@ struct mlx4_ib_cq {
->>>       struct mutex        resize_mutex;
->>>       struct ib_umem           *umem;
->>>       struct ib_umem           *resize_umem;
->>> +    int            create_flags;
->>
->> flags is u32
->
-> Maybe even u64 so we wont run out of bits like we did in 
-> device_cap_flags. 
+Hi,
 
-Horses hold, you are comparing the volume of the whole feature set 
-exposed by the RDMA subsystem to user-space vs  the number of future CQ 
-creation flags? I bet we will not have > 8 of them till 2020 and the 
-framework used for this uverb command is extendable...
+Le mardi 19 mai 2015 =C3=A0 11:36 -0400, Doug Ledford a =C3=A9crit :
+> On Tue, 2015-05-19 at 16:14 +0200, Yann Droneaud wrote:
+> >=20
+> > Is Doug the maintainer of the userspace library ?
+>=20
+> Libibverbs and the kernel verbs interface are very closely tied, so I
+> did ask Roland if he was OK with me taking over that as well.  It=20
+> would
+> make it easier to keep the two in sync.  Roland was fine with that.=20
+>  If
+> anyone has any objections, please speak now.
+>=20
+
+
+OK, I think I've missed the memo :)
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
