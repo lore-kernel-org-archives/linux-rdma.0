@@ -1,58 +1,84 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] IB/sa: route SA pathrecord query through netlink
-Date: Wed, 20 May 2015 12:25:25 -0400
-Message-ID: <20150520162524.GA29118@phlsvsds.ph.intel.com>
-References: <3F128C9216C9B84BB6ED23EF16290AFB0CAB243E@CRSMSX101.amr.corp.intel.com> <CAJ3xEMhkpYYtzrsOw=8JQOekpVT6xQC9P2itH3H3oAjjPfWrng@mail.gmail.com> <3F128C9216C9B84BB6ED23EF16290AFB0CAB2677@CRSMSX101.amr.corp.intel.com> <CAJ3xEMj8zmqj_3=ms9CXxrFVmmk7ZHHtcPXGJcAO24n1U_MSiQ@mail.gmail.com> <2807E5FD2F6FDA4886F6618EAC48510E11082B44@CRSMSX101.amr.corp.intel.com> <20150519192141.GS18675@obsidianresearch.com> <20150519192614.GA31717@phlsvsds.ph.intel.com> <20150519192842.GB23612@obsidianresearch.com> <20150520090505.GA19896@phlsvsds.ph.intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FDD971@ORSMSX109.amr.corp.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3] libibverbs init.c: conditionally emit warning if no
+ userspace driver found
+Date: Wed, 20 May 2015 12:27:06 -0400
+Message-ID: <1432139226.3114.83.camel@redhat.com>
+References: <1431440068-19037-1-git-send-email-jsquyres@cisco.com>
+	 <BED0001D-0051-4ACD-8506-8FA07E625694@cisco.com>
+	 <1432044878.5304.1.camel@opteya.com> <1432049804.3114.41.camel@redhat.com>
+	 <1432133301.5304.10.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-RBrh1OjXO0AxidWJ14ra"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDD971-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1432133301.5304.10.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Fleck, John" <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 10:13:59AM -0600, Hefty, Sean wrote:
-> > The other issue is that each caller in the kernel specifies a different
-> > timeout.  Defining this in 1 central place and allowing user space to
-> > control
-> > the policy of that timeout is much better than allowing the kernel clients
-> > to
-> > specify the timeout as they do now.
-> 
-> Everything has been randomly hard-coded.  IMO, the sa_query module should use
-> its own timeout value, which it updates based on how fast it actually gets
-> responses.  But that takes too much work, and no one is ever going to write
-> the code to do this.
 
-I agree.  So lets not do this again.
+--=-RBrh1OjXO0AxidWJ14ra
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> For the netlink specific problem, I'll propose using a different randomly
-> hard-coded value as a timeout.
+On Wed, 2015-05-20 at 16:48 +0200, Yann Droneaud wrote:
+> Hi,
+>=20
+> Le mardi 19 mai 2015 =C3=A0 11:36 -0400, Doug Ledford a =C3=A9crit :
+> > On Tue, 2015-05-19 at 16:14 +0200, Yann Droneaud wrote:
+> > >=20
+> > > Is Doug the maintainer of the userspace library ?
+> >=20
+> > Libibverbs and the kernel verbs interface are very closely tied, so I
+> > did ask Roland if he was OK with me taking over that as well.  It=20
+> > would
+> > make it easier to keep the two in sync.  Roland was fine with that.=20
+> >  If
+> > anyone has any objections, please speak now.
+> >=20
+>=20
+>=20
+> OK, I think I've missed the memo :)
 
-Isn't this what we have as the start default to the module parameter?
+No, there wasn't a memo yet.  But, Jeff's question followed by your
+question was the perfect introduction to bring the issue up.
 
-> Then define an 'MRA' type of message that
-> user space can send to the kernel in order to ask it to wait longer.  The
-> 'set timeout' message could apply to a single request or all future requests.
-> If we only wanted to the 'all future requests' option, the data value could
-> be written into a file.
+As I mentioned, I think there is a pretty strong tie between the kernel
+stack the libibverbs.  Especially when you consider that things like
+verbs extensions need to be synced between the two.  That's why I'm
+offering/suggesting that it would be a good idea that I handle it along
+with the kernel.
 
-This is effectively what we have with the module parameter.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-> In any case, this pushes the policy of the timeout
-> value into the hands of the responding daemon.
-> 
 
-I'm flexible on the mechanism used.  In addition to the module parameter, we
-discussed sysctl as well as an additional control protocol for configuring the
-communication.  We avoided these to keep the mechanism simple.  But since we
-are going down the path of designing a new protocol I think it is reasonable to
-have some "control" packets there.
+--=-RBrh1OjXO0AxidWJ14ra
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Ira
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVXLXaAAoJELgmozMOVy/dIPAP/1l2Kb/1oxwmuydDWwA9HAeA
+B/ppmaixqzkkf72PpxC0JLulZNLOke4r2OQRJQQvNouBXfTyvHR3RY5RLt8IceuI
+GTJB+EppnKnG4veN99yTOhphSTd2u0kMg4gMWYuRm9NJFJBDUUrpPQLwzVDYnL0y
+wxvGzRMLQwYXFoNkUbfkobMF9mCEzNE2DWZ8tCO7IxGG4nTT6GMu5w17yZUR3R/g
+EyhU6FwJGp8Ni48zgoedB/Ce+YCI3roJKZWKVpHfQvzxcz9jUlw6LFcwF4IF3y6B
+oMASU24vbwCjowWDvzfynHC0jnmkomOtB4uN/uO2C6/790LmNHL7QK/GeJGpEs2Z
+4p4xyLj/78LXbkkiOUck24D6LTCcpj/FbpqIBGaoWpKOMdhStJUINom/d/Jmda42
+jXTL5p9KVZlDieuQkbT1fsbxufE1wMKcydxyKnAMsDORo1T5m+kdNl0/+CD5snU0
+Qc80aMjd+WInmkqklA0zmu8eFjkYesDJCi56Eqon3Xgd2q+uTSWRt/SZtdYTmDPd
+sPd+gH/08dmy33gDKQmluLW0bopnyLvFdK7FbupYYOGoYfvvLC2WSFcCvwvQi2xv
+uHQHgyOXcQN20iadiSGln2fB8B8PJey/wTdnPvmwLNBkiKg1QoEPdPG8dXlXAaCw
+aOmhU1SQMXCs9/SL3f/F
+=pEI4
+-----END PGP SIGNATURE-----
+
+--=-RBrh1OjXO0AxidWJ14ra--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
