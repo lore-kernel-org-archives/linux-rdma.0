@@ -1,74 +1,56 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 08/14] IB/core: Add rdma_max_mad_size helper
-Date: Wed, 20 May 2015 13:43:14 -0600
-Message-ID: <20150520194314.GA3344@obsidianresearch.com>
-References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
- <1432109615-19564-9-git-send-email-ira.weiny@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDDACE@ORSMSX109.amr.corp.intel.com>
- <20150520180226.GC14309@phlsvsds.ph.intel.com>
- <20150520181928.GE28496@obsidianresearch.com>
- <20150520190352.GA22981@phlsvsds.ph.intel.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/14] IB/mad: Create an RMPP Base header
+Date: Wed, 20 May 2015 17:23:45 -0400
+Message-ID: <20150520212344.GB22981@phlsvsds.ph.intel.com>
+References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com> <1432109615-19564-3-git-send-email-ira.weiny@intel.com> <20150520182735.GG28496@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150520190352.GA22981-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20150520182735.GG28496-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 03:03:52PM -0400, ira.weiny wrote:
-> On Wed, May 20, 2015 at 12:19:28PM -0600, Jason Gunthorpe wrote:
-> > On Wed, May 20, 2015 at 02:02:27PM -0400, ira.weiny wrote:
-> > > On Wed, May 20, 2015 at 11:37:47AM -0600, Hefty, Sean wrote:
-> > > > > +/**
-> > > > > + * rdma_max_mad_size - Return the max MAD size required by this RDMA
-> > > > > Port.
-> > > > > + *
-> > > > > + * @device: Device
-> > > > > + * @port_num: Port number
-> > > > > + *
-> > > > > + * Return the max MAD size required by the Port.  Should return 0 if the
-> > > > > port
-> > > > > + * does not support MADs
-> > > > > + */
-> > > > > +static inline size_t rdma_max_mad_size(struct ib_device *device, u8
-> > > > > port_num)
-> > > > > +{
-> > > > > +	return device->port_immutable[port_num].max_mad_size;
-> > > > > +}
-> > > > 
-> > > > Should this function check the mad_cap bit and return 0 if not set?  If not,
-> > > > I would remove the 'should return 0...' statement from the comment above and
-> > > > state that the caller should check the mad_cap bit first.
-> > > 
-> > > I'll change the comment.
-> > 
-> > If there is no mad support the port_immutable.max_mad_size should be
-> > 0, force it during registration, then the comment is right.
-> > 
-> > Force to 0 is better than 'some random value'
+On Wed, May 20, 2015 at 12:27:35PM -0600, Jason Gunthorpe wrote:
+> On Wed, May 20, 2015 at 04:13:23AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > -struct ib_rmpp_mad {
+> > +struct ib_rmpp_base {
+> >  	struct ib_mad_hdr	mad_hdr;
+> >  	struct ib_rmpp_hdr	rmpp_hdr;
+> > +} __packed;
+> > +
+> > +struct ib_rmpp_mad {
+> > +	struct ib_rmpp_base	base;
+> >  	u8			data[IB_MGMT_RMPP_DATA];
+> >  };
 > 
-> When you say "force" do you mean have the drivers which don't support MAD
-> explicitly set it to 0?
+> Why can't we just use:
+> 
+>  u8 data[];
+> 
+> And replace various sizeof(ib_rmpp_mad) with a rmpp_payload_size()
+> call?
 
-I'm not really sure it makes sense to have the drivers set this, since
-the value is fixed based on the existing caps. The core could fill it
-in, then we don't have to check the driver's work.
+I don't think it makes much difference.  I think there is just 1 place we use
+that.
 
-If the driver fills it then the core should do
+> 
+> That would make patch 12 alot cleaner
 
- BUG_ON(!mad_cap && max_mad_size != 0)
+How would this make patch 12 cleaner?
 
-After calling the driver to fill the values.
+I do see 1 remaining place where the sizeof is used in patch 12 which I can
+probably remove.
 
-The comment seems OK (change Should => Will), it is describing the
-function, and the function should be the only accessor for this value,
-so it also describes the value. Maybe clarify what mad size is .. Is
-it just the payload?
 
-Jason
+The other purpose of this patch is to make those functions which used to
+process ib_rmpp_mad's generic for both IB and OPA, I'll make that clear
+directly in this patches comment.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
