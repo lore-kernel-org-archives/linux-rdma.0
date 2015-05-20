@@ -1,50 +1,45 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 08/14] IB/core: Add rdma_max_mad_size helper
-Date: Wed, 20 May 2015 12:19:28 -0600
-Message-ID: <20150520181928.GE28496@obsidianresearch.com>
+Subject: Re: [PATCH 01/14] IB/mad: Clean up ib_find_send_mad
+Date: Wed, 20 May 2015 12:22:21 -0600
+Message-ID: <20150520182221.GF28496@obsidianresearch.com>
 References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
- <1432109615-19564-9-git-send-email-ira.weiny@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373A8FDDACE@ORSMSX109.amr.corp.intel.com>
- <20150520180226.GC14309@phlsvsds.ph.intel.com>
+ <1432109615-19564-2-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150520180226.GC14309-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1432109615-19564-2-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 02:02:27PM -0400, ira.weiny wrote:
-> On Wed, May 20, 2015 at 11:37:47AM -0600, Hefty, Sean wrote:
-> > > +/**
-> > > + * rdma_max_mad_size - Return the max MAD size required by this RDMA
-> > > Port.
-> > > + *
-> > > + * @device: Device
-> > > + * @port_num: Port number
-> > > + *
-> > > + * Return the max MAD size required by the Port.  Should return 0 if the
-> > > port
-> > > + * does not support MADs
-> > > + */
-> > > +static inline size_t rdma_max_mad_size(struct ib_device *device, u8
-> > > port_num)
-> > > +{
-> > > +	return device->port_immutable[port_num].max_mad_size;
-> > > +}
-> > 
-> > Should this function check the mad_cap bit and return 0 if not set?  If not,
-> > I would remove the 'should return 0...' statement from the comment above and
-> > state that the caller should check the mad_cap bit first.
+On Wed, May 20, 2015 at 04:13:22AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> I'll change the comment.
+> ib_find_send_mad only needs access to the MAD header.  Change the local
+> variable to ib_mad_hdr and change the corresponding cast.
+> 
+> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>  drivers/infiniband/core/mad.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 600af266838c..deefe5df9697 100644
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -1815,18 +1815,18 @@ ib_find_send_mad(const struct ib_mad_agent_private *mad_agent_priv,
+>  		 const struct ib_mad_recv_wc *wc)
+>  {
+>  	struct ib_mad_send_wr_private *wr;
+> -	struct ib_mad *mad;
+> +	struct ib_mad_hdr *mad_hdr;
 
-If there is no mad support the port_immutable.max_mad_size should be
-0, force it during registration, then the comment is right.
+const
 
-Force to 0 is better than 'some random value'
+> -	mad = (struct ib_mad *)wc->recv_buf.mad;
+> +	mad_hdr = (struct ib_mad_hdr *)wc->recv_buf.mad;
+
+This casts away const.
 
 Jason
 --
