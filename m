@@ -1,34 +1,73 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 05/12] IB/ehca: Use DECLARE_BITMAP
-Date: Tue, 19 May 2015 18:37:53 -0700
-Message-ID: <cd2eb3a07f039222fcd266b793a03d3439b07588.1432085659.git.joe@perches.com>
-References: <cover.1432085659.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1432085659.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 01/14] IB/mad: Clean up ib_find_send_mad
+Date: Wed, 20 May 2015 04:13:22 -0400
+Message-ID: <1432109615-19564-2-git-send-email-ira.weiny@intel.com>
+References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1432109615-19564-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the generic mechanism to declare a bitmap instead of unsigned long.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
+ib_find_send_mad only needs access to the MAD header.  Change the local
+variable to ib_mad_hdr and change the corresponding cast.
+
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/ehca/ipz_pt_fn.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/mad.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ehca/ipz_pt_fn.h b/drivers/infiniband/hw/ehca/ipz_pt_fn.h
-index a801274..19bc344 100644
---- a/drivers/infiniband/hw/ehca/ipz_pt_fn.h
-+++ b/drivers/infiniband/hw/ehca/ipz_pt_fn.h
-@@ -65,7 +65,7 @@ struct ipz_page {
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 600af266838c..deefe5df9697 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1815,18 +1815,18 @@ ib_find_send_mad(const struct ib_mad_agent_private *mad_agent_priv,
+ 		 const struct ib_mad_recv_wc *wc)
+ {
+ 	struct ib_mad_send_wr_private *wr;
+-	struct ib_mad *mad;
++	struct ib_mad_hdr *mad_hdr;
  
- struct ipz_small_queue_page {
- 	unsigned long page;
--	unsigned long bitmap[IPZ_SPAGE_PER_KPAGE / BITS_PER_LONG];
-+	DECLARE_BITMAP(bitmap, IPZ_SPAGE_PER_KPAGE);
- 	int fill;
- 	void *mapped_addr;
- 	u32 mmap_count;
+-	mad = (struct ib_mad *)wc->recv_buf.mad;
++	mad_hdr = (struct ib_mad_hdr *)wc->recv_buf.mad;
+ 
+ 	list_for_each_entry(wr, &mad_agent_priv->wait_list, agent_list) {
+-		if ((wr->tid == mad->mad_hdr.tid) &&
++		if ((wr->tid == mad_hdr->tid) &&
+ 		    rcv_has_same_class(wr, wc) &&
+ 		    /*
+ 		     * Don't check GID for direct routed MADs.
+ 		     * These might have permissive LIDs.
+ 		     */
+-		    (is_direct(wc->recv_buf.mad->mad_hdr.mgmt_class) ||
++		    (is_direct(mad_hdr->mgmt_class) ||
+ 		     rcv_has_same_gid(mad_agent_priv, wr, wc)))
+ 			return (wr->status == IB_WC_SUCCESS) ? wr : NULL;
+ 	}
+@@ -1837,14 +1837,14 @@ ib_find_send_mad(const struct ib_mad_agent_private *mad_agent_priv,
+ 	 */
+ 	list_for_each_entry(wr, &mad_agent_priv->send_list, agent_list) {
+ 		if (is_rmpp_data_mad(mad_agent_priv, wr->send_buf.mad) &&
+-		    wr->tid == mad->mad_hdr.tid &&
++		    wr->tid == mad_hdr->tid &&
+ 		    wr->timeout &&
+ 		    rcv_has_same_class(wr, wc) &&
+ 		    /*
+ 		     * Don't check GID for direct routed MADs.
+ 		     * These might have permissive LIDs.
+ 		     */
+-		    (is_direct(wc->recv_buf.mad->mad_hdr.mgmt_class) ||
++		    (is_direct(mad_hdr->mgmt_class) ||
+ 		     rcv_has_same_gid(mad_agent_priv, wr, wc)))
+ 			/* Verify request has not been canceled */
+ 			return (wr->status == IB_WC_SUCCESS) ? wr : NULL;
 -- 
-2.1.2
+1.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
