@@ -1,38 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 03/14] IB/mad: Create handle_ib_smi
-Date: Wed, 20 May 2015 17:24:22 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDDA89@ORSMSX109.amr.corp.intel.com>
-References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
- <1432109615-19564-4-git-send-email-ira.weiny@intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next 08/10] IB/mlx4: Add support for timestamp in cq
+ creation
+Date: Wed, 20 May 2015 11:27:09 -0600
+Message-ID: <20150520172709.GA28496@obsidianresearch.com>
+References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
+ <1431869786-6308-9-git-send-email-ogerlitz@mellanox.com>
+ <20150519185527.GL18675@obsidianresearch.com>
+ <555C4C45.7010300@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432109615-19564-4-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <555C4C45.7010300-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index 9cd4ce8dfbd0..96daba58afad 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -1924,6 +1924,52 @@ static void ib_mad_complete_recv(struct
-> ib_mad_agent_private *mad_agent_priv,
->  	}
->  }
+On Wed, May 20, 2015 at 11:56:37AM +0300, Sagi Grimberg wrote:
+> On 5/19/2015 9:55 PM, Jason Gunthorpe wrote:
+> >On Sun, May 17, 2015 at 04:36:24PM +0300, Or Gerlitz wrote:
+> >>@@ -110,6 +110,7 @@ struct mlx4_ib_cq {
+> >>  	struct mutex		resize_mutex;
+> >>  	struct ib_umem	       *umem;
+> >>  	struct ib_umem	       *resize_umem;
+> >>+	int			create_flags;
+> >
+> >flags is u32
 > 
-> +enum smi_action handle_ib_smi(struct ib_mad_port_private *port_priv,
-> +			      struct ib_mad_qp_info *qp_info,
-> +			      struct ib_wc *wc,
-> +			      int port_num,
-> +			      struct ib_mad_private *recv,
-> +			      struct ib_mad_private *response)
+> Maybe even u64 so we wont run out of bits like we did in
+> device_cap_flags.
 
-Make static
+It is all internal so the bitwidth doesn't matter, we can change
+it. My remark was because the definitions of flags in the other
+structure is u32, and copying u32 to int is sloppy.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
