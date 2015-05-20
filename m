@@ -1,85 +1,137 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] libibverbs init.c: conditionally emit warning if no
- userspace driver found
-Date: Wed, 20 May 2015 12:27:06 -0400
-Message-ID: <1432139226.3114.83.camel@redhat.com>
-References: <1431440068-19037-1-git-send-email-jsquyres@cisco.com>
-	 <BED0001D-0051-4ACD-8506-8FA07E625694@cisco.com>
-	 <1432044878.5304.1.camel@opteya.com> <1432049804.3114.41.camel@redhat.com>
-	 <1432133301.5304.10.camel@opteya.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 07/14] IB/core: GID attribute should be
+ returned from verbs API and cache API
+Date: Wed, 20 May 2015 19:27:15 +0300
+Message-ID: <CAAKD3BAifeMcHbDwcaK7F6cjj=mAn3W0Ms2mOmoXDhaquFqKTA@mail.gmail.com>
+References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
+	<1432045637-9090-8-git-send-email-matanb@mellanox.com>
+	<20150519180649.GC18675@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-RBrh1OjXO0AxidWJ14ra"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432133301.5304.10.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150519180649.GC18675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 19, 2015 at 9:06 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, May 19, 2015 at 05:27:10PM +0300, Matan Barak wrote:
+>
+>> +#define __IB_ONLY
+>
+> What is this?
+>
 
---=-RBrh1OjXO0AxidWJ14ra
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I annotated functions that should be called with IB link layer only as
+__IB_ONLY. I think it's make the code more readable and it could be
+verified by tools/scripts (like coccinelle) that we're calling those
+functions under an IB link layer if statement.
 
-On Wed, 2015-05-20 at 16:48 +0200, Yann Droneaud wrote:
-> Hi,
->=20
-> Le mardi 19 mai 2015 =C3=A0 11:36 -0400, Doug Ledford a =C3=A9crit :
-> > On Tue, 2015-05-19 at 16:14 +0200, Yann Droneaud wrote:
-> > >=20
-> > > Is Doug the maintainer of the userspace library ?
-> >=20
-> > Libibverbs and the kernel verbs interface are very closely tied, so I
-> > did ask Roland if he was OK with me taking over that as well.  It=20
-> > would
-> > make it easier to keep the two in sync.  Roland was fine with that.=20
-> >  If
-> > anyone has any objections, please speak now.
-> >=20
->=20
->=20
-> OK, I think I've missed the memo :)
+>> +/**
+>> + * ib_cache_use_roce_gid_table - Returns whether the device uses roce gid table
+>> + * @device: The device to query
+>> + * @port_num: The port number of the device to query.
+>> + *
+>> + * ib_cache_use_roce_gid_table() returns 0 if this port uses the roce_gid_table
+>> + * to store GIDs and error otherwise.
+>> + */
+>> +int ib_cache_use_roce_gid_table(struct ib_device *device, u8 port_num);
+>
+> This needs to be in the same place and format as the new items from
+> Michael's patch set. In fact this whole thing will need to be rebased
+> ontop of it.
+>
 
-No, there wasn't a memo yet.  But, Jeff's question followed by your
-question was the perfect introduction to bring the issue up.
+I'll take a look Michael's patch set more carefully and change that accordingly.
 
-As I mentioned, I think there is a pretty strong tie between the kernel
-stack the libibverbs.  Especially when you consider that things like
-verbs extensions need to be synced between the two.  That's why I'm
-offering/suggesting that it would be a good idea that I handle it along
-with the kernel.
+>>  /**
+>>   * ib_find_cached_gid - Returns the port number and GID table index where
+>>   *   a specified GID value occurs.
+>>   * @device: The device to query.
+>>   * @gid: The GID value to search for.
+>> + * @gid_type: The GID type to search for.
+>> + * @net: In RoCE, the namespace of the device.
+>> + * @if_index: In RoCE, the if_index of the device. Zero means ignore.
+>>   * @port_num: The port number of the device where the GID value was found.
+>>   * @index: The index into the cached GID table where the GID was found.  This
+>>   *   parameter may be NULL.
+>> @@ -66,10 +82,36 @@ int ib_get_cached_gid(struct ib_device    *device,
+>>   */
+>>  int ib_find_cached_gid(struct ib_device *device,
+>>                      union ib_gid     *gid,
+>> +                    enum ib_gid_type gid_type,
+>> +                    struct net         *net,
+>> +                    int                 if_index,
+>>                      u8               *port_num,
+>>                      u16              *index);
+>
+> Why are we adding net namespace stuff here? We don't even have a
+> proposal for roce net namespaces. Same comment for all net adds.
+>
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+In order to get a netdev, you need to have if_index and namespace.
+I prefer to introduce a correct API from the beginning than to assume
+we only use &init_net and changing the API afterwards.
+roce_gid_table and ib_cache should present a clean API no matter
+if their consumers use a custom namespace or init_net.
 
+> This patch is similarly muddled with the gid_type, we don't have
+> rocev2 in this series, so why do we have gid_type being introduced
+> *at all*?
+>
+> I'm not certain you should be changing these existing APIs like this,
+> it doesn't make alot of sense to change a signature then go around to
+> all callers and not make any use of the additional parameters.
+>
 
---=-RBrh1OjXO0AxidWJ14ra
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+The alternative is to change this API all over again when RoCE v2 support
+is added. In addition, roce_gid_table as an infrastructure is able to manage
+multiple GID types, so the API should encapsulate the type you want to
+search for.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> Adding a roce specific call might make more sense, I'm assuming it is
+> rarely needed?
+>
 
-iQIcBAABCAAGBQJVXLXaAAoJELgmozMOVy/dIPAP/1l2Kb/1oxwmuydDWwA9HAeA
-B/ppmaixqzkkf72PpxC0JLulZNLOke4r2OQRJQQvNouBXfTyvHR3RY5RLt8IceuI
-GTJB+EppnKnG4veN99yTOhphSTd2u0kMg4gMWYuRm9NJFJBDUUrpPQLwzVDYnL0y
-wxvGzRMLQwYXFoNkUbfkobMF9mCEzNE2DWZ8tCO7IxGG4nTT6GMu5w17yZUR3R/g
-EyhU6FwJGp8Ni48zgoedB/Ce+YCI3roJKZWKVpHfQvzxcz9jUlw6LFcwF4IF3y6B
-oMASU24vbwCjowWDvzfynHC0jnmkomOtB4uN/uO2C6/790LmNHL7QK/GeJGpEs2Z
-4p4xyLj/78LXbkkiOUck24D6LTCcpj/FbpqIBGaoWpKOMdhStJUINom/d/Jmda42
-jXTL5p9KVZlDieuQkbT1fsbxufE1wMKcydxyKnAMsDORo1T5m+kdNl0/+CD5snU0
-Qc80aMjd+WInmkqklA0zmu8eFjkYesDJCi56Eqon3Xgd2q+uTSWRt/SZtdYTmDPd
-sPd+gH/08dmy33gDKQmluLW0bopnyLvFdK7FbupYYOGoYfvvLC2WSFcCvwvQi2xv
-uHQHgyOXcQN20iadiSGln2fB8B8PJey/wTdnPvmwLNBkiKg1QoEPdPG8dXlXAaCw
-aOmhU1SQMXCs9/SL3f/F
-=pEI4
------END PGP SIGNATURE-----
+I don't think so. Consumers of this API usually don't care which link layer is
+used. Asking them to query the link layer and choose the right function
+just breaks the abstraction.
 
---=-RBrh1OjXO0AxidWJ14ra--
+>>  int ib_query_gid(struct ib_device *device,
+>> -              u8 port_num, int index, union ib_gid *gid);
+>> +              u8 port_num, int index, union ib_gid *gid,
+>> +              struct ib_gid_attr *attr);
+>>
+>>  int ib_query_pkey(struct ib_device *device,
+>>                 u8 port_num, u16 index, u16 *pkey);
+>> @@ -1819,7 +1821,8 @@ int ib_modify_port(struct ib_device *device,
+>>                  struct ib_port_modify *port_modify);
+>>
+>>  int ib_find_gid(struct ib_device *device, union ib_gid *gid,
+>> -             u8 *port_num, u16 *index);
+>> +             enum ib_gid_type gid_type, struct net *net,
+>> +             int if_index, u8 *port_num, u16 *index);
+>
+> None of this makes sense unless the device is roce, again, it probably
+> should have a roce specific call.
+>
 
+The key point here is abstraction. In IB, the path will contain NULL
+in the namespace field and 0 in the if_index field, but the rest of
+the consumers
+code will remain the same. The path and the API is a superset of IB and RoCE.
+
+Thanks for your comments.
+
+Matan
+
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
