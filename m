@@ -1,39 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Tue, 19 May 2015 18:29:15 -0600
-Message-ID: <20150520002915.GD16941@obsidianresearch.com>
-References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
- <1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
- <20150519185801.GM18675@obsidianresearch.com>
- <20150519190031.GN18675@obsidianresearch.com>
- <CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
- <20150519191553.GP18675@obsidianresearch.com>
- <CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 for-next 05/13] IB/cm: Reference count ib_cm_ids
+Date: Wed, 20 May 2015 00:49:44 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FDD565@ORSMSX109.amr.corp.intel.com>
+References: <1431253604-9214-1-git-send-email-haggaie@mellanox.com>
+ <1431253604-9214-6-git-send-email-haggaie@mellanox.com>
+ <20150511183459.GB25405@obsidianresearch.com>
+ <5551A2CB.1010407@mellanox.com> <20150512185447.GA3503@obsidianresearch.com>
+ <55532566.9040105@mellanox.com>
+ <20150513165823.GA20343@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FDC0C3@ORSMSX109.amr.corp.intel.com>
+ <20150519192353.GA23612@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373A8FDD412@ORSMSX109.amr.corp.intel.com>
+ <20150519234654.GA26634@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20150519234654.GA26634-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 19, 2015 at 10:30:00PM +0300, Or Gerlitz wrote:
-> Are you objecting adding the clock frequency and mask to the qeury device verb?
-> why?
+> > I wonder if the existing ib_cm interface is even what we want.
+> > Currently, the rdma_cm pushes the private data (i.e. IP address)
+> > comparison into the ib_cm.  This is only used by the rdma_cm.
+> > Should that instead be moved out of the ib_cm and handled in the
+> > rdma_cm?  And then update the ib_cm to support multiple listens on
+> > the same service id.
+> 
+> Well, that really is the problem here, the private data compare
+> doesn't really do enough because rdma cm wildcard's the IP address and
+> does it's own check anyhow. So I see all of this as different
+> proposals on how to fix that. rdma_cm basically already does most of
+> the private data compare itself.
 
-Lets see the verbs side and I'll let you know.
+Maybe the first thing to fix is this.  Since the private data compare is no longer sufficient, remove it and update the rdma_cm to handle the change.  Regardless of how the code ends up structured, the namespace support should then easily fit into that solution.
 
-> If not, are objecting using the vendor specific track of the verb to
-> pass from the vendor driver to the vendor library this or that detail
-> which is needed for proper operation? why?
-
-I'm uncomfortable seeing otherwise vendor-neutral calls gain vendor
-extensions.
-
-Jason
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
