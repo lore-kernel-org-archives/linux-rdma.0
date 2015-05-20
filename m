@@ -1,170 +1,123 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 02/10] IB/core: Add flags parameter for ib_create_cq
-Date: Wed, 20 May 2015 19:46:11 +0300
-Message-ID: <CAAKD3BA8DKLCA8C2KH+TkgCx1RjoDQMDg2rRFpC9ps8htyLTjA@mail.gmail.com>
-References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
-	<1431869786-6308-3-git-send-email-ogerlitz@mellanox.com>
-	<1432135457.5304.33.camel@opteya.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/mad: Clean up ib_find_send_mad to use only the
+ ib_mad_hdr
+Date: Wed, 20 May 2015 12:50:09 -0400
+Message-ID: <1432140609.3114.87.camel@redhat.com>
+References: <CAJ3xEMjtndfHJOh-JSTzaXuXTNrx2wzDkBcS67T6AwFztcckgQ@mail.gmail.com>
+	 <20150514173557.GB10941@phlsvsds.ph.intel.com>
+	 <555ABF9E.6010502@mellanox.com> <1432054868.3114.67.camel@redhat.com>
+	 <20150519182730.GA6737@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-jSyFc8MHU5gQfu3kohhp"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432135457.5304.33.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20150519182730.GA6737-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 6:24 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> w=
-rote:
-> Hi,
->
-> Le dimanche 17 mai 2015 =E0 16:36 +0300, Or Gerlitz a =E9crit :
->> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c
->> b/drivers/infiniband/ulp/iser/iser_verbs.c
->> index cc2dd35..922d322 100644
->> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
->> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
->> @@ -126,11 +126,9 @@ static int iser_create_device_ib_res(struct
->> iser_device *device)
->>                 struct iser_comp *comp =3D &device->comps[i];
->>
->>                 comp->device =3D device;
->> -               comp->cq =3D ib_create_cq(device->ib_device,
->> -                                       iser_cq_callback,
->> -                                       iser_cq_event_callback,
->> -                                       (void *)comp,
->> -                                       max_cqe, i);
->> +               comp->cq =3D ib_create_cq(device->ib_device, iser_cq=
-_callback,
->> +                                       iser_cq_event_callback, (voi=
-d *)comp,
->> +                                       max_cqe, i, 0);
->
-> Don't change indentation needlessly.
->
->
->>                 if (IS_ERR(comp->cq)) {
->>                         comp->cq =3D NULL;
->>                         goto cq_err;
->
->
->> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c
->> b/drivers/infiniband/ulp/isert/ib_isert.c
->> index 327529e..f7d9ae0 100644
->> --- a/drivers/infiniband/ulp/isert/ib_isert.c
->> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
->> @@ -320,11 +320,12 @@ isert_alloc_comps(struct isert_device *device,
->>
->>                 comp->device =3D device;
->>                 INIT_WORK(&comp->work, isert_cq_work);
->> -               comp->cq =3D ib_create_cq(device->ib_device,
->> -                                       isert_cq_callback,
->> +               comp->cq =3D ib_create_cq(device->ib_device, isert_c=
-q_callback,
->
-> Don't change indentation.
->
->>                                         isert_cq_event_callback,
->>                                         (void *)comp,
->> -                                       max_cqe, i);
->> +                                       max_cqe,
->> +                                       i,
->> +                                       0);
->>                 if (IS_ERR(comp-&gt;cq)) {
->>                         isert_err("Unable to allocate cq\n");
->>                         ret =3D PTR_ERR(comp-&gt;cq);
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index ad0e2ea..1bbe4a4 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -173,6 +173,10 @@ struct ib_odp_caps {
->>         } per_transport_caps;
->>  };
->>
->> +enum ib_cq_creation_flags {
->> +       IB_CQ_FLAGS_TIMESTAMP   =3D 1 << 0,
->> +};
->> +
->
-> That's must be part of a different patch, otherwise the commit messag=
-e
-> is not true.
->
->>  struct ib_cq_init_attr {
->>         int cqe;
->>         int comp_vector;
->
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> index 3df8320..cfb5915 100644
->> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> @@ -901,21 +901,16 @@ static struct svc_xprt *svc_rdma_accept(struct
->> svc_xprt *xprt)
->>                 goto errout;
->>         }
->>         newxprt->sc_sq_cq =3D ib_create_cq(newxprt->sc_cm_id->device=
-,
->> -                                        sq_comp_handler,
->> -                                        cq_event_handler,
->> -                                        newxprt,
->> -                                        newxprt->sc_sq_depth,
->> -                                        0);
->> +                                        sq_comp_handler, cq_event_h=
-andler,
->> +                                        newxprt, newxprt->sc_sq_dep=
-th, 0, 0);
->
-> Don't change indentation.
->
->>         if (IS_ERR(newxprt->sc_sq_cq)) {
->>                 dprintk("svcrdma: error creating SQ CQ for connect
->> request\n");
->>                 goto errout;
->>         }
->>         newxprt->sc_rq_cq =3D ib_create_cq(newxprt->sc_cm_id->device=
-,
->> -                                        rq_comp_handler,
->> -                                        cq_event_handler,
->> -                                        newxprt,
->> -                                        newxprt->sc_max_requests,
->> -                                        0);
->> +                                        rq_comp_handler, cq_event_h=
-andler,
->> +                                        newxprt, newxprt->sc_max_re=
-quests,
->> +                                        0, 0);
->
-> Don't change indentation.
->
->>         if (IS_ERR(newxprt->sc_rq_cq)) {
->>                 dprintk("svcrdma: error creating RQ CQ for connect
->> request\n");
->>                 goto errout;
->
 
-Nice catches, I'll fix that for the next version.
+--=-jSyFc8MHU5gQfu3kohhp
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks.
+On Tue, 2015-05-19 at 14:27 -0400, ira.weiny wrote:
+> > >=20
+> > > 6f430b IB/mad: Add const qualifiers to query only functions
+> > Ok
+> > > 67b3b05 IB/mad: Clean up rcv_has_same_class
+> > Ok
+> > > fcd6ebf IB/mad: Change ib_response_mad signature to take const=20
+> > > ib_mad_hdr rather than ib_mad
+> > IB/mad: Change ib_response_mad signature arguments
+> > > 3b53339 IB/mad: Change validate_mad signature to take const ib_mad_hd=
+r=20
+> > > rather than ib_mad
+> > IB/mad: Change validate_mad signature arguments
+> > > b78d28a IB/mad: Clean up comments in smi.c
+> > Ok
+> > > c597eee IB/mad: Rename is_data_mad to is_rmpp_data_mad
+> > Ok
+> > > 81836bc IB/core: Change rdma_protcol_iboe to roce
+> > Ok
+> > > 6f9ab33 IB/core: Convert management helpers to core capability bits
+> > IB/core: Convert core to use bitfield for caps
+> > > 23ceb15 IB/core: Formalize the creation of immutable per port data=
+=20
+> > > within the ib_device object
+> > IB/core: Add per port immutable struct to ib_device
+> > > cb3ed7b IB/user_mad: Fix bug in ib_umad_remove_one when rdma_cap_ib_m=
+ad=20
+> > > implementation changed
+> > IB/user_mad: Fix buggy usage of port index
+> > > 42997f2 IB/user_mad: Remove local start/end port variable and use the=
+=20
+> > > new common functions
+> > IB/user_mad: Use new start/end port functions
+> > > 0cf18d7 IB/core: Create common start/end port functions
+> > Ok
+> > >=20
+> > > Maybe submit them all again with more proper commit titles? it's not =
+too=20
+> > > late, Doug, what's your
+> > > thinking here?
+> >=20
+> > I try to stick within the recommended length of git log subject as
+> > indicated to me by vim when I'm editing my commit messages.  Whatever
+> > happens to fit inside that limit (or at least close to it, I'm not a
+> > real stickler on it) I go with unless you really need to capture some
+> > important detail in the subject.
+> >=20
+> > However, there's no need to resubmit these.  I can always edit the
+> > subjects in place.  Ira are you OK with the changes I made above?
+>=20
+> Yes thank you.  I will do better in the future.
 
-Matan
+No worries.  They're all edited.  I changed just a couple of the more
+detailed descriptions too, just because once the subject was simplified
+the body deserved a little more explanation.
 
->
-> Regards
->
+>=20
+> Ira
+>=20
 > --
-> Yann Droneaud
-> OPTEYA
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+--=-jSyFc8MHU5gQfu3kohhp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVXLtBAAoJELgmozMOVy/dXWUP+wdtxHcXy72Za3afZPMLP97+
+tEVo4g2WuLgaRGfwUxCT74LsC2rQAeJW7E+c12v0GDIPlZE1IUY0SGbEX7J9I3pK
+X+YUZm2y2/LHsLn9xf0uVlExhSnFIJxqq5ZR6I95p7D2h4KLOdS8bEO+N2MEZ7Ju
+0OPBQX5pYOO8TGVXDRLCyb3wbkMFSbnxVAvGRHOUHHsZYeoBmHiNqKwN8F7XM7Hp
+lYb3nEKmuAZh09wzER5TGaTgGEEA7d0G4bFrZc4R/Ikv6DxN5xedXgw50UMAkV/W
+Rl0s92JsywU0s38OUzbswaVfZAxg8GnHSJV0wg5yTp1vAlrdLJm+sj3SPHf26NnC
+zqXbZ+RXn0wDbepfhcIm9PPaLyrHfiZC74qWog3Byi8Qeg75eUAeCr93CL2Dd918
+58p1wKR2TzLP55EGPQgDDpoVxS6oLT8H9nCt5StCGQxsOJGhE1YXFQJ9VfaU9M8A
+7OORxMgpVPWlwrKEprQXM+qn5VBN+BG4Q8HyZzonU+odltJVjM/kNKoY/Phe/c24
+pkcn406AiHQHk5v/voMKAC8e+Sht8eo2UCYW7He2Jz5r4kl1Hz6y3X8BK5Gr88CE
+xNczGL0SP8SHiRsUjy2AU7/tCmccNgAhk03Ju/4fPpUBo+d+0tD5l5YjQeIgJSCC
+UWcunefUZwJGLdHQ8W2+
+=fSAK
+-----END PGP SIGNATURE-----
+
+--=-jSyFc8MHU5gQfu3kohhp--
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
