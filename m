@@ -1,43 +1,45 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 03/14] IB/mad: Create handle_ib_smi
-Date: Wed, 20 May 2015 13:52:31 -0400
-Message-ID: <20150520175230.GA14309@phlsvsds.ph.intel.com>
-References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com> <1432109615-19564-4-git-send-email-ira.weiny@intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FDDA89@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Wed, 20 May 2015 20:53:02 +0300
+Message-ID: <CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
+References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
+	<1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
+	<20150519185801.GM18675@obsidianresearch.com>
+	<20150519190031.GN18675@obsidianresearch.com>
+	<CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
+	<20150519191553.GP18675@obsidianresearch.com>
+	<CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
+	<20150520002915.GD16941@obsidianresearch.com>
+	<555C9D00.2090609@mellanox.com>
+	<1432134677.5304.23.camel@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FDDA89-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1432134677.5304.23.camel-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 11:24:22AM -0600, Hefty, Sean wrote:
-> > diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> > index 9cd4ce8dfbd0..96daba58afad 100644
-> > --- a/drivers/infiniband/core/mad.c
-> > +++ b/drivers/infiniband/core/mad.c
-> > @@ -1924,6 +1924,52 @@ static void ib_mad_complete_recv(struct
-> > ib_mad_agent_private *mad_agent_priv,
-> >  	}
-> >  }
-> > 
-> > +enum smi_action handle_ib_smi(struct ib_mad_port_private *port_priv,
-> > +			      struct ib_mad_qp_info *qp_info,
-> > +			      struct ib_wc *wc,
-> > +			      int port_num,
-> > +			      struct ib_mad_private *recv,
-> > +			      struct ib_mad_private *response)
-> 
-> Make static
+On Wed, May 20, 2015 at 6:11 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
 
-done.
+>> But this is whole purpose of the udata framework in uverbs, right? for
+>> each uverb command the vendor user-space library has a well defined
+>> channel to communicate directly with the low level vendor driver
+>> throughout the uverbs channels.
 
-Can I add your reviewed by after this change?
+> Uverbs convey information between kernel and userspace drivers to
+> implement verbs for userspace application. I don't think it's designed
+> to allow vendor to add random extensions in the best way with regard to
+> backward/forward compability.
 
-Ira
+Disagree that this is random extension. The people that designed this
+stack 10y ago (Roland and Co.) looked very nicely forward and realized
+that not all the HW are the same nor can be put 101% under the same
+API with no way out, and hence they came up with udata.
 
+Please state how you see the role of the uverbs udata mechanism.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
