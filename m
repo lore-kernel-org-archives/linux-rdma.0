@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
  to query_device
-Date: Wed, 20 May 2015 17:41:04 +0300
-Message-ID: <555C9D00.2090609@mellanox.com>
+Date: Wed, 20 May 2015 17:40:57 +0300
+Message-ID: <555C9CF9.9000202@mellanox.com>
 References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
  <1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
  <20150519185801.GM18675@obsidianresearch.com>
