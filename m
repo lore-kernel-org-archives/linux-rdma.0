@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 06/14] IB/mad: Add helper function for smi_check_forward_dr_smp
-Date: Wed, 20 May 2015 04:13:27 -0400
-Message-ID: <1432109615-19564-7-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 11/14] IB/core: Add rdma_cap_opa_mad helper
+Date: Wed, 20 May 2015 04:13:32 -0400
+Message-ID: <1432109615-19564-12-git-send-email-ira.weiny@intel.com>
 References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432109615-19564-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,67 +12,68 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This helper function will be used later for processing both IB and OPA SMPs.
+OPA MADs share a common header with IBTA MADs but with a different base version
+and an extended length.  These MADs increase the performance of management
+traffic on OPA devices.
+
+Sharing a common header with IBTA MADs allows us to share most of the MAD
+processing code when dealing with OPA MADs in addition to supporting some IBTA
+MADs on OPA devices.
+
+This patch adds the Core Capability flag for OPA MADs as well as a helper
+function for testing that flag both of which are used in future patches.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/smi.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ include/rdma/ib_verbs.h | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/infiniband/core/smi.c b/drivers/infiniband/core/smi.c
-index b09fa1dec865..4969ce3338fb 100644
---- a/drivers/infiniband/core/smi.c
-+++ b/drivers/infiniband/core/smi.c
-@@ -236,21 +236,20 @@ enum smi_action smi_handle_dr_smp_recv(struct ib_smp *smp, u8 node_type,
- 					smp->dr_slid == IB_LID_PERMISSIVE);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 7b1dcb380987..6d729651901c 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -362,6 +362,7 @@ union rdma_protocol_stats {
+ #define RDMA_CORE_CAP_IB_CM             0x00000004
+ #define RDMA_CORE_CAP_IW_CM             0x00000008
+ #define RDMA_CORE_CAP_IB_SA             0x00000010
++#define RDMA_CORE_CAP_OPA_MAD           0x00000020
+ 
+ /* Address format                       0x000FF000 */
+ #define RDMA_CORE_CAP_AF_IB             0x00001000
+@@ -386,6 +387,8 @@ union rdma_protocol_stats {
+ 					| RDMA_CORE_CAP_ETH_AH)
+ #define RDMA_CORE_PORT_IWARP           (RDMA_CORE_CAP_PROT_IWARP \
+ 					| RDMA_CORE_CAP_IW_CM)
++#define RDMA_CORE_PORT_INTEL_OPA       (RDMA_CORE_PORT_IBA_IB  \
++					| RDMA_CORE_CAP_OPA_MAD)
+ 
+ struct ib_port_attr {
+ 	enum ib_port_state	state;
+@@ -1873,6 +1876,24 @@ static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
  }
  
--enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
-+static inline
-+enum smi_forward_action __smi_check_forward_dr_smp(u8 hop_ptr, u8 hop_cnt,
-+						   u8 direction,
-+						   int dr_dlid_is_permissive,
-+						   int dr_slid_is_permissive)
- {
--	u8 hop_ptr, hop_cnt;
--
--	hop_ptr = smp->hop_ptr;
--	hop_cnt = smp->hop_cnt;
--
--	if (!ib_get_smp_direction(smp)) {
-+	if (!direction) {
- 		/* C14-9:2 -- intermediate hop */
- 		if (hop_ptr && hop_ptr < hop_cnt)
- 			return IB_SMI_FORWARD;
- 
- 		/* C14-9:3 -- at the end of the DR segment of path */
- 		if (hop_ptr == hop_cnt)
--			return (smp->dr_dlid == IB_LID_PERMISSIVE ?
-+			return (dr_dlid_is_permissive ?
- 				IB_SMI_SEND : IB_SMI_LOCAL);
- 
- 		/* C14-9:4 -- hop_ptr = hop_cnt + 1 -> give to SMA/SM */
-@@ -263,10 +262,19 @@ enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
- 
- 		/* C14-13:3 -- at the end of the DR segment of path */
- 		if (hop_ptr == 1)
--			return (smp->dr_slid != IB_LID_PERMISSIVE ?
-+			return (dr_slid_is_permissive ?
- 				IB_SMI_SEND : IB_SMI_LOCAL);
- 	}
- 	return IB_SMI_LOCAL;
-+
+ /**
++ * rdma_cap_opa_mad - Check if the port of device provides support for OPA
++ * Management Datagrams.
++ * @device: Device to check
++ * @port_num: Port number to check
++ *
++ * Intel OmniPath devices extend and/or replace the InfiniBand Management
++ * datagrams with their own versions.  These OPA MADs share many but not all of
++ * the characteristics of InfiniBand MADs.
++ *
++ * Return: true if the port supports OPA MAD packet formats.
++ */
++static inline bool rdma_cap_opa_mad(struct ib_device *device, u8 port_num)
++{
++	return (device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_OPA_MAD)
++		== RDMA_CORE_CAP_OPA_MAD;
 +}
 +
-+enum smi_forward_action smi_check_forward_dr_smp(struct ib_smp *smp)
-+{
-+	return __smi_check_forward_dr_smp(smp->hop_ptr, smp->hop_cnt,
-+					  ib_get_smp_direction(smp),
-+					  smp->dr_dlid == IB_LID_PERMISSIVE,
-+					  smp->dr_slid != IB_LID_PERMISSIVE);
- }
- 
- /*
++/**
+  * rdma_cap_ib_smi - Check if the port of a device provides an Infiniband
+  * Subnet Management Agent (SMA) on the Subnet Management Interface (SMI).
+  * @device: Device to check
 -- 
 1.8.2
 
