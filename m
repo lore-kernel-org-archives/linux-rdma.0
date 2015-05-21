@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 07/11] IB/mlx4: Add mmap call to map the hardware clock
-Date: Thu, 21 May 2015 17:56:38 +0300
-Message-ID: <1432220202-9834-8-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V1 09/11] IB/mlx4: Add support for timestamp in cq creation
+Date: Thu, 21 May 2015 17:56:40 +0300
+Message-ID: <1432220202-9834-10-git-send-email-ogerlitz@mellanox.com>
 References: <1432220202-9834-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432220202-9834-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,103 +12,71 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to read the HCA's cycle counter efficiently in
-user space, we need to map the HCA's register.
-This is done through mmap call.
+Support allocation of CQ with IB_CQ_FLAGS_TIMESTAMP
+creation flag.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c         |   18 +++++++++++++++++-
- drivers/net/ethernet/mellanox/mlx4/main.c |   19 +++++++++++++++++++
- include/linux/mlx4/device.h               |    9 +++++++++
- 3 files changed, 45 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mlx4/cq.c      |    9 ++++++---
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |    1 +
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 2200cf9..d87401e 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -716,8 +716,24 @@ static int mlx4_ib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
- 				       dev->dev->caps.num_uars,
- 				       PAGE_SIZE, vma->vm_page_prot))
- 			return -EAGAIN;
--	} else
-+	} else if (vma->vm_pgoff == 3) {
-+		struct mlx4_clock_params params;
-+		int ret = mlx4_get_internal_clock_params(dev->dev, &params);
-+
-+		if (ret)
-+			return ret;
-+
-+		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+		if (io_remap_pfn_range(vma, vma->vm_start,
-+				       (pci_resource_start(dev->dev->persist->pdev,
-+							   params.bar) +
-+					params.offset)
-+				       >> PAGE_SHIFT,
-+				       PAGE_SIZE, vma->vm_page_prot))
-+			return -EAGAIN;
-+	} else {
- 		return -EINVAL;
-+	}
- 
- 	return 0;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index ced5eca..70de39c 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1674,6 +1674,25 @@ static int map_internal_clock(struct mlx4_dev *dev)
- 	return 0;
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 8e44aaa..a1f50e1 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -166,6 +166,7 @@ err_buf:
+ 	return err;
  }
  
-+int mlx4_get_internal_clock_params(struct mlx4_dev *dev,
-+				   struct mlx4_clock_params *params)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+
-+	if (mlx4_is_slave(dev))
-+		return -ENOTSUPP;
-+
-+	if (!params)
-+		return -EINVAL;
-+
-+	params->bar = priv->fw.clock_bar;
-+	params->offset = priv->fw.clock_offset;
-+	params->size = MLX4_CLOCK_SIZE;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_get_internal_clock_params);
-+
- static void unmap_internal_clock(struct mlx4_dev *dev)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 83e80ab..f94984f 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -829,6 +829,12 @@ struct mlx4_dev {
- 	struct mlx4_vf_dev     *dev_vfs;
- };
++#define CQ_CREATE_FLAGS_SUPPORTED IB_CQ_FLAGS_TIMESTAMP
+ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 				const struct ib_cq_init_attr *attr,
+ 				struct ib_ucontext *context,
+@@ -178,10 +179,10 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 	struct mlx4_uar *uar;
+ 	int err;
  
-+struct mlx4_clock_params {
-+	u64 offset;
-+	u8 bar;
-+	u8 size;
-+};
-+
- struct mlx4_eqe {
- 	u8			reserved1;
- 	u8			type;
-@@ -1485,4 +1491,7 @@ int mlx4_ACCESS_PTYS_REG(struct mlx4_dev *dev,
- 			 enum mlx4_access_reg_method method,
- 			 struct mlx4_ptys_reg *ptys_reg);
+-	if (attr->flags)
++	if (entries < 1 || entries > dev->dev->caps.max_cqes)
+ 		return ERR_PTR(-EINVAL);
  
-+int mlx4_get_internal_clock_params(struct mlx4_dev *dev,
-+				   struct mlx4_clock_params *params);
-+
- #endif /* MLX4_DEVICE_H */
+-	if (entries < 1 || entries > dev->dev->caps.max_cqes)
++	if (attr->flags & ~CQ_CREATE_FLAGS_SUPPORTED)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	cq = kmalloc(sizeof *cq, GFP_KERNEL);
+@@ -194,6 +195,7 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 	spin_lock_init(&cq->lock);
+ 	cq->resize_buf = NULL;
+ 	cq->resize_umem = NULL;
++	cq->create_flags = attr->flags;
+ 	INIT_LIST_HEAD(&cq->send_qp_list);
+ 	INIT_LIST_HEAD(&cq->recv_qp_list);
+ 
+@@ -237,7 +239,8 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 		vector = dev->eq_table[vector % ibdev->num_comp_vectors];
+ 
+ 	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, uar,
+-			    cq->db.dma, &cq->mcq, vector, 0, 0);
++			    cq->db.dma, &cq->mcq, vector, 0,
++			    !!(cq->create_flags & IB_CQ_FLAGS_TIMESTAMP));
+ 	if (err)
+ 		goto err_dbmap;
+ 
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index f127efc..ae04dad 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -110,6 +110,7 @@ struct mlx4_ib_cq {
+ 	struct mutex		resize_mutex;
+ 	struct ib_umem	       *umem;
+ 	struct ib_umem	       *resize_umem;
++	int			create_flags;
+ 	/* List of qps that it serves.*/
+ 	struct list_head		send_qp_list;
+ 	struct list_head		recv_qp_list;
 -- 
 1.7.1
 
