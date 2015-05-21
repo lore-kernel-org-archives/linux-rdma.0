@@ -1,112 +1,136 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] IB/sa: Route SA pathrecord query through netlink
-Date: Thu, 21 May 2015 13:52:36 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2E96@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next V1 00/11] Add completion timestamping support
+Date: Thu, 21 May 2015 17:56:31 +0300
+Message-ID: <1432220202-9834-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,
 
-In our previous posting to the mailing list, we proposed to send a MAD request from kernel (more
-specifically, from ib_sa module) to a user space application (ibacm in this case) through netlink.
-The user space application will send back the response. This simple scheme can achieve the goal 
-of a local SA cache in user space.
+This patchset adds completion timestamping supports for verbs consumers. 
 
-The format of the request and response is diagrammed below:
+Timestamping is used by applications in order to know when a WQE was 
+received/transmitted by the HW. The value is given is HCA hardware cycles,
+but could be easily converted as the hardware's core clock frequecny is 
+available through extension of query device. 
 
-  ------------------
-  | netlink header |
-  ------------------
-  |     MAD        |
-  ------------------
+Moreover, we add an ability to read the HCA's current clock. This could be 
+useful on order to synchronize events to the wall clock.
 
-The kernel requests for a pathrecord, and the user application finds it in its local cache and sends
-it to the kernel. If the netlink request fails, the kernel will send the request to SA through the
-normal IB path (ib_mad -> hca driver -> wire).
+This functionality is achieved by adding/extending the following verbs:
 
-Jason pointed out that this message format was limited to lower stack format (MAD) and its use
-could not be readily extended to upper layer modules like rdma_cm. After lengthy discussions, we 
-come up with a new and modified scheme, as described below.
+create_cq - create_cq is extended in order to allow passing creation flags
+to the CQ creation function. We change IB/core --> vendors API
+to be easily extendible by passing a struct which contains
+comp_vectors, cqe and the new flags parameter. In order to create
+CQ which supports timestamping, IB_CQ_FLAGS_TIMESTAMP should be given.
 
-The general format of the request and response will be the same:
+query_device - We extend query_device uverb further by giving the hardware's
+clock frequency and the timestamp mask (the number of timestamp
+bits which are supported). If timestamp isn't supported, 0 is returned.
 
-  ------------------
-  | netlink header |
-  ------------------
-  |  Data header   |
-  ------------------
-  |      Data      |
-  ------------------
+In order to read the timestamp in the WQE, the user needs to query the device 
+for support, create an appropriate CQ (using the extanded uverb with
+IB_CQ_FLAGS_TIMESTAMP) and poll the CQ with an extended poll_cq verb (currently,
+only implemented in user-space).
 
-The data header contains information about the type of request/response, the status (for response),
-the type (format) of the data, the total length of the data header + data, and a flags field about
-the request/response or data.
+In mlx4, allowing the user to read the core clock efficiently involves mapping
+this area of the hardware to user-space (being done by using a mmap command)
+and reading the clock from the correct offset of the page. 
 
-Based on the type of the data, the data section may be in different format: a string about the host
-name to resolve, an IP4/IP6 address, a pathrecord, a user pathrecord (struct ib_user_path_rec),
-or simply a MAD (like our posted patches), etc. Essentially it can be of any format based on the 
-data type. The key is to document the format so that the kernel and user space can communicate 
-correctly.
+This offset is returned in the vendor's specific data from mlx4's kernel driver 
+to the mlx4's user-space driver. query_device is modified in order to support
+passing this vendor specific data. A user-space application could use a new
+verb in order to read the hardware's clock.
 
-The details are described below:
+Translating the hardware's clock into ms could be done by dividing this
+value by hca_core_clock (which is returned by the extended version of
+query_device uverb).
 
-#define IB_NL_VERSION		0x01
+A user-space application could get the current HW's clock by executing
 
-#define IB_NL_OP_MASK		0x0F
-#define IB_NL_OP_RESOLVE	0x01
-#define IB_NL_OP_QUERY_PATH	0x02
-#define IB_NL_OP_SET_TIMEOUT	0x03
-#define IB_NL_OP_ACK		0x80
+ibv_query_values_ex(struct ibv_context *context, uint32_t q_values,
+                    struct ibv_values_ex *values)
 
-#define IB_NL_STATUS_SUCCESS	0x0000
-#define IB_NL_STATUS_ENODATA	0x0001
+The function gets a mask of the values to query and return their values.
+Vendors could either implement this as a uverb command or use their 
+user-space driver to return those values directly from the HW (the mlx4 way).
 
-#define IB_NL_DATA_TYPE_INVALID			0x0000
-#define IB_NL_DATA_TYPE_NAME			0x0001
-#define IB_NL_DATA_TYPE_ADDRESS_IP		0x0002
-#define IB_NL_DATA_TYPE_ADDRESS_IP6		0x0003
-#define IB_NL_DATA_TYPE_PATH_RECORD		0x0004
-#define IB_NL_DATA_TYPE_USER_PATH_REC		0x0005
-#define IB_NL_DATA_TYPE_MAD			0x0006
+Changes from V0:
 
-#define IB_NL_FLAGS_PATH_GMP			1
-#define IB_NL_FLAGS_PATH_PRIMARY		(1<<1)
-#define IB_NL_FLAGS_PATH_ALTERNATE		(1<<2)
-#define IB_NL_FLAGS_PATH_OUTBOUND		(1<<3)
-#define IB_NL_FLAGS_PATH_INBOUND		(1<<4)
-#define IB_NL_FLAGS_PATH_INBOUND_REVERSE 	(1<<5)
-#define IB_NL_FLAGS_PATH_BIDIRECTIONAL		(IB_PATH_OUTBOUND | IB_PATH_INBOUND_REVERSE)
-#define IB_NL_FLAGS_QUERY_SA			(1<<31)
-#define IB_NL_FLAGS_NODELAY			(1<<30)
+(1) Pass ib_cq_init_attr instead of cqe and comp_vector.
+(2) Fix unneeded indentation.
+(3) Change flags to u32.
+(4) Add const to create_cq's ib_cq_init_attr argument in vendor implementation.
 
-struct ib_nl_data_hdr {
-	__u8	version;
-	__u8	opcode;
-	__u16	status;
-	__u16	type;
-	__u16	reserved;
-	__u32	flags;
-	__u32	length;
-};
+Matan and Or.
 
-struct ib_nl_data {
-	struct ib_nl_data_hdr		hdr;
-	__u8				data[0];
-};
+Matan Barak (11):
+  IB/core: Change provider's API of create_cq to be extendible
+  IB/core: Change ib_create_cq to use struct ib_cq_init_attr
+  IB/core: Add CQ creation time-stamping flag
+  IB/core: Extend ib_uverbs_create_cq
+  IB/core: Add timestamp_mask and hca_core_clock to query_device
+  IB/core: Pass hardware specific data in query_device
+  IB/mlx4: Add mmap call to map the hardware clock
+  IB/mlx4: Support extended create_cq and query_device uverbs
+  IB/mlx4: Add support for timestamp in cq creation
+  IB/mlx4: Add timestamp_mask and hca_core_clock to query_device
+  IB/mlx4: Return hca core clock's offset in query_device vendor's data
 
+ drivers/infiniband/core/device.c             |    6 +-
+ drivers/infiniband/core/mad.c                |    5 +-
+ drivers/infiniband/core/uverbs.h             |    1 +
+ drivers/infiniband/core/uverbs_cmd.c         |  188 +++++++++++++++++++++-----
+ drivers/infiniband/core/uverbs_main.c        |    1 +
+ drivers/infiniband/core/verbs.c              |    4 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c |   14 ++-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |   19 ++-
+ drivers/infiniband/hw/cxgb4/cq.c             |    9 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h       |    8 +-
+ drivers/infiniband/hw/cxgb4/provider.c       |    8 +-
+ drivers/infiniband/hw/ehca/ehca_cq.c         |    7 +-
+ drivers/infiniband/hw/ehca/ehca_hca.c        |    6 +-
+ drivers/infiniband/hw/ehca/ehca_iverbs.h     |    6 +-
+ drivers/infiniband/hw/ehca/ehca_main.c       |    6 +-
+ drivers/infiniband/hw/ipath/ipath_cq.c       |    9 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |    7 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.h    |    3 +-
+ drivers/infiniband/hw/mlx4/cq.c              |   13 ++-
+ drivers/infiniband/hw/mlx4/mad.c             |    5 +-
+ drivers/infiniband/hw/mlx4/main.c            |   67 +++++++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |   19 +++-
+ drivers/infiniband/hw/mlx5/cq.c              |   10 +-
+ drivers/infiniband/hw/mlx5/main.c            |   19 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |    5 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |   15 ++-
+ drivers/infiniband/hw/nes/nes_verbs.c        |   17 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |   13 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    9 +-
+ drivers/infiniband/hw/qib/qib_cq.c           |   11 +-
+ drivers/infiniband/hw/qib/qib_verbs.c        |    6 +-
+ drivers/infiniband/hw/qib/qib_verbs.h        |    5 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |   16 ++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |   10 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c   |    9 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c     |    6 +-
+ drivers/infiniband/ulp/isert/ib_isert.c      |    6 +-
+ drivers/infiniband/ulp/srp/ib_srp.c          |   10 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c        |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c    |   19 +++
+ include/linux/mlx4/device.h                  |    9 ++
+ include/rdma/ib_verbs.h                      |   25 +++-
+ include/uapi/rdma/ib_user_verbs.h            |   19 +++
+ net/9p/trans_rdma.c                          |    5 +-
+ net/rds/ib_cm.c                              |    8 +-
+ net/rds/iw_cm.c                              |    8 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c     |   10 +-
+ net/sunrpc/xprtrdma/verbs.c                  |   10 +-
+ 48 files changed, 559 insertions(+), 137 deletions(-)
 
-These defines and structures can be added to file include/upai/rdma/rdma_netlink.h (replace with
-RDMA_NL prefix) or contained in a seperate file (include/upai/rdma/ib_netlink.h ???). 
-
-Please share your thoughts.
-
-Kaike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
