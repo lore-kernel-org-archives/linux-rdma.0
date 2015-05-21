@@ -1,50 +1,86 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 10/14] IB/mad: Add MAD size parameters to process_mad
-Date: Thu, 21 May 2015 16:44:11 -0400
-Message-ID: <20150521204410.GA5594@phlsvsds.ph.intel.com>
-References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com> <1432109615-19564-11-git-send-email-ira.weiny@intel.com> <20150520184914.GI28496@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RFC 1/3] IB/IPoIB: Support SRIOV standard configuration
+Date: Thu, 21 May 2015 15:01:45 -0600
+Message-ID: <20150521210145.GA20175@obsidianresearch.com>
+References: <1432225447-6536-1-git-send-email-ogerlitz@mellanox.com>
+ <1432225447-6536-2-git-send-email-ogerlitz@mellanox.com>
+ <20150521184613.GD6771@obsidianresearch.com>
+ <CAJ3xEMgJvXjg3aFbTNEudj9QWMfP4==eBq0ccuhjuVJsv9mRmQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150520184914.GI28496-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAJ3xEMgJvXjg3aFbTNEudj9QWMfP4==eBq0ccuhjuVJsv9mRmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 12:49:14PM -0600, Jason Gunthorpe wrote:
-> On Wed, May 20, 2015 at 04:13:31AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+On Thu, May 21, 2015 at 11:05:32PM +0300, Or Gerlitz wrote:
+> On Thu, May 21, 2015, Jason Gunthorpe  wrote:
 > 
-> > +
-> > +	if (WARN_ON(in_mad_size != sizeof(*in_mad) ||
-> > +		    *out_mad_size != sizeof(*out_mad)))
-> > +		return IB_MAD_RESULT_FAILURE;
+> >> +static int ipoib_set_vf_mac(struct net_device *dev, int queue, u8 *mac)
+> >> +{
+> >> +     char *raw_guid;
+> >> +     u64 guid = 0;
+> >
+> > This doesn't seem right at all.
+> >
+> > It makes no sense that a IPoIB interface with a 20 byte LLADDR would
+> > accept an 8 byte LLADDR only for 'ip link set vf mac'
+> >
+> > The definition of the netlink struct seems to confirm this:
+> >
+> > struct ifla_vf_mac {
+> >         __u32 vf;
+> >         __u8 mac[32]; /* MAX_ADDR_LEN */
+> > };
+> >
+> > If it was really just ever a mac it would really only be 6 bytes.
+> > [Honestly, this whole feature seems very inconistent with the rest of
+> >  the design of ip net link, so who knows]
+> >
+> > If the ifla_vf_mac had been variable-sized (like every other address
+> > related attribute) then sure, auto detect the length and do the right
+> > thing.
+> >
+> > But with this API, I think you have no choice, 'ip set vf mac LLADDR'
+> > can only be the 20 byte address.
 > 
-> This is really a BUG_ON scenario..
+> You can't enforce 20 byte address on ipoib instance b/c the driver
+> can't dictate the QPN of their UD QP.
 
-Done.
+I can think of several ways off the top of my head to deal with
+that. Don't see it as a problem.
 
-> 
-> > @@ -1693,8 +1693,10 @@ struct ib_device {
-> >  						  u8 port_num,
-> >  						  struct ib_wc *in_wc,
-> >  						  struct ib_grh *in_grh,
-> > -						  struct ib_mad *in_mad,
-> > -						  struct ib_mad *out_mad);
-> > +						  struct ib_mad_hdr *in_mad,
-> > +						  size_t in_mad_size,
-> > +						  struct ib_mad_hdr *out_mad,
-> > +						  size_t
-> >  						  *out_mad_size);
-> 
-> const for input parameters. You should look at all the patches for
-> this, I noticed a few more smaller ones I didn't comment on.
+> Also, you don't need to force that, b/c what the virtualization
+> system want to provision relates to a VM ID which is their mac (-->
+> guid).
 
-Done, but depends on the new patches I just sent.
+No, I do need to force that because that is how netlink works: each
+device has a defined hw address length, and all netlink messages
+dealing with LLADDR must use an identical format for the hw
+address. For IPoIB that is 20 byte.
 
-Ira
+It is a simple matter of UAPI sanity, it is not the kernel's problem
+that some userspace tools assume a 6 byte LLADDR for all devices -
+they are broken.
 
+> (mac), 64bits (guid) or even 128bits (whole gid), but it doesn't and I
+> would like to either use the lowest common denominator (48bits) or
+> just take always 64bits which could have two zero bytes (e.g when
+> libvirt calls into that api through netlink).
+
+Then get the iproute and netdev people to sign off on using
+ifla_vf_mac with something other than the defined 20 byte IPoIB HW
+address. Maybe you can work out some scheme with them. Making the
+IFLA_VF_MAC properly variable sized might be a good angle.
+
+NACK otherwise.
+
+The rest of the series's idea seems sound.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
