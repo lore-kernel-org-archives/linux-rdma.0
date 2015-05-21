@@ -1,85 +1,122 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC 1/3] IB/IPoIB: Support SRIOV standard configuration
-Date: Thu, 21 May 2015 17:05:31 -0400
-Message-ID: <1432242331.28905.67.camel@redhat.com>
+Subject: Re: [PATCH RFC 0/3] Support standard SRIOV configuration for IB VFs
+Date: Thu, 21 May 2015 17:11:48 -0400
+Message-ID: <1432242708.28905.73.camel@redhat.com>
 References: <1432225447-6536-1-git-send-email-ogerlitz@mellanox.com>
-	 <1432225447-6536-2-git-send-email-ogerlitz@mellanox.com>
-	 <20150521184613.GD6771@obsidianresearch.com>
+	 <1432226406.28905.22.camel@redhat.com>
+	 <CAJ3xEMjzpqnQuA=0HQaN8noVq04d9BkVvEWGY7Lq5ZntVTKm4w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-4PnHCEVlZ5G0d6mlsio1"
+	protocol="application/pgp-signature"; boundary="=-IsaA8Y5v29fZjhd7OB/x"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150521184613.GD6771-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAJ3xEMjzpqnQuA=0HQaN8noVq04d9BkVvEWGY7Lq5ZntVTKm4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-4PnHCEVlZ5G0d6mlsio1
+--=-IsaA8Y5v29fZjhd7OB/x
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2015-05-21 at 12:46 -0600, Jason Gunthorpe wrote:
-> On Thu, May 21, 2015 at 07:24:05PM +0300, Or Gerlitz wrote:
-> > Standard configuration of SRIOV VFs through the host is done over the
-> > following chain of calls: libvirt --> netlink --> PF netdevice
-> >=20
-> > When this comes to IB/IPoIB we should normalize this into the verbs
-> > framework so we further go: PF IPoIB --> verbs API --> PF HW driver
-> >=20
-> > Virtualization systems assign VMs 48 bits mac, to allow working with
-> > non-modified SW layers (open-stack, libvirt, etc), we can safely
-> > extend this mac to unique 64 bits GUID. Hence the IPoIB ndo_set_vf_mac
-> > entry calls the set_vf_guid verb.
-> >=20
-> > Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >  drivers/infiniband/ulp/ipoib/ipoib_main.c |   39 +++++++++++++++++++++=
-++++++++
-> >  include/rdma/ib_verbs.h                   |    4 +++
-> >  2 files changed, 43 insertions(+), 0 deletions(-)
-> >=20
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infini=
-band/ulp/ipoib/ipoib_main.c
-> > index 9e1b203..8f82870 100644
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -1357,6 +1357,43 @@ void ipoib_dev_cleanup(struct net_device *dev)
-> >  	priv->tx_ring =3D NULL;
-> >  }
-> > =20
-> > +static int ipoib_get_vf_config(struct net_device *dev, int vf, struct =
-ifla_vf_info *ivf)
-> > +{
-> > +	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
-> > +
-> > +	if (priv->ca->get_vf_config)
-> > +		return priv->ca->get_vf_config(priv->ca, priv->port, vf, ivf);
-> > +	else
-> > +		return -EINVAL;
-> > +}
-> > +
-> > +static int ipoib_set_vf_mac(struct net_device *dev, int queue, u8 *mac=
-)
-> > +{
-> > +	char *raw_guid;
-> > +	u64 guid =3D 0;
+On Thu, 2015-05-21 at 22:55 +0300, Or Gerlitz wrote:
+> On Thu, May 21, 2015 at 7:40 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote=
+:
 >=20
-> This doesn't seem right at all.
+> > The MAC/GUID mapping isn't the only thing that has to be faked here
 >=20
-> It makes no sense that a IPoIB interface with a 20 byte LLADDR would
-> accept an 8 byte LLADDR only for 'ip link set vf mac'
+> Exactly nothing is faked here, Virtualization systems such as
+> open-stack provision unique 48 bit mac values to VMs, and it's
+> perfectly legitimate and viable to derive 64 bit guid value from that
+> mac.
 
-It has to be the 8byte guid, the next 8bytes are the subnet prefix which
-is set by the SM and not under driver control, and the final 4bytes are
-specific to the IPoIB connection.  You could pass in all 20bytes, but
-you would only be able to set 8 of them.
+OK, faked wasn't the best use of words.  How's converted behind the
+software's back?  And if the management software set the MAC, then tried
+to check it via ARP after the guest is up and running, it would never
+find the guest.  I don't know if Open-Stack or any other controller
+would both A) attempt to set the MAC of the device in libvirt and start
+the guest and B) enter the MAC into a dhcp.conf file for static IP
+assignment, but they could, and this sort of manipulation would directly
+break that.
+
+> > Why are we suggesting to make this work with unmodified software?  Why
+> > aren't we doing this right and adding a new ndo entry point for the GUI=
+D?
+>=20
+> Because rome wasn't built in a day and nor will be the support for IB
+> in today's/tomorrow's virtualization systems, e.g if you follow on
+> this layering
+>=20
+> [1] Open-Stack / ODL controller
+> [2] Open-Stack neutron / ODL agent
+> [3] libvirt
+> [4] user/kernel netlink API
+> [5] kernel ndo API
+> [6] ipoib
+> [7] kernel verbs API
+> [8] PF IB driver
+>=20
+> with the approach presented here,  we only simply (yeah, simplicity
+> could turn to be critical criteria in engineering) to few kernel only
+> patches that deal with layers 6-8 and we are ready for all sorts of
+> bring-ups, testing and even production!
+
+You're ready to pretend that your IB device is a regular ethernet
+device.  Not even a RoCE or iWARP device.  You totally obscured that the
+device is RDMA capable and made the entire stack above 6 unawares of
+what you are doing.  If your guest actually intends to use any RDMA
+capabilities, then this is, at best, a quick and dirty workaround to get
+you up and running while you work through the process of doing things
+right, which includes making libvirt aware of the difference between
+RDMA capable devices and not and how to select those devices and how to
+mark certain guests as RDMA device needy.
+
+> For reasons which I don't really see the practical / real life use
+> case where there's a must to get them to work (but I will happy to
+> hear on) one can go & change the world, namely patch layers 5 ---> 1
+> too and deal with all sort of dependencies for setting up a system.
+> But guess what, this can be perfectly done in parallel with this small
+> change.
+>=20
+> > you would also have to fake the vlan/pkey mapping.  This just
+> > seems the wrong thing to do.
+>=20
+> Repeating the above argument --- virt systems provision 12bit vlan-id
+> to be set for VM traffic, which can be nicely map to 16 bit IB pkey
+> doing the same job.
+>=20
+> I understand that you have sort of  desire to see IB ala the full spec
+> going into libvirt and from there up to the whole virtualization
+> management space, but this doesn't need as an argument to not enable
+> doing thing in the right direction. The upstream kernel supports SRIOV
+> for IB over mlx4 for 3 years now, but this can't work with libvirt as
+> is. Using these patches can make the thing.
+
+It's a workaround.  It comes with limitations, and if we get around to
+adding an ndo later for really setting the guid, then it would be
+possible to call the set_guid ndo with a complete guid that didn't use
+fffe in the middle 2 bytes, and then when we call get vf_info, we get a
+MAC back that removes those 2 bytes and generates an inconsistency
+between what we *think* our constructed guid should be and what the set
+guid actually is.
+
+> Couple of months ago, we both attended a call with the libvirt
+> developers / maintainers from red-hat and they really liked this
+> staged approach.
+
+My recollection of that call was they said "Oh, you guys don't have an
+API for us to set the GUIDs yet.  Ok, we'll close all the bugs and wait
+until you do."  And they promptly closed the bugs and moved on.  But
+that didn't specify the API to use.  That's what we are doing here.  But
+I'm not finding this an entirely convincing solution.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-4PnHCEVlZ5G0d6mlsio1
+--=-IsaA8Y5v29fZjhd7OB/x
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -87,22 +124,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVXkibAAoJELgmozMOVy/dEf4P/3omoEjDr+dQqACeMwLOYUGd
-vealIAxekCS2ga0tAPgUebbxlOW7+OYgUL6l+ooFn2fAabbF+Bgb0NMo6Hbf2Tz6
-Zlf06lUyDviE4HPcf7okyGbkx5zMHtNKQW/PswNoVxoVJRfAk7axSEcVYWMQfpTK
-28cT6ajAd5eMlxWGhfThTboP0LRXoxDW4DxHzZyv2lsQXkNjUYoDIZJeC3ESEizZ
-ZuoxO/kqdpYQ7wgDbZszBmVi/PX6h5J7z1GqAxws7Ujl5FzNkt1Ec2ajf3q4mtI/
-d7X85o/TAXEk+uutkfVfv86yILz4kNLubMgjiBoAxCSYanSjJvBXRZnQHwFc4wVZ
-Hw7Gujt15ANsYcsQ5dwfeO/Ved+mvM05DVQnngByfFgWD/pydlNb5/QJL72pDp+Z
-N5C1CohVjq8y6rVplUJUyZxMQvYMqS0UFtmvHq+HXe7A5vMRrAQeHxG/jTO9jsep
-0uB2LdDmoNz9qII9xtSX7hn/y7tISTJ/bXdGmgzTNjxEIKt8yAXa7YGJOr6If2lH
-kr3P7Ah7dtroDYgB1Azg2feBo6B04Tnfv7Q11CjfDxUfPomHpiuQjCFnLtCsLIQs
-ee2EZ2QCujJxa0zU3KbaEStswJgc70uo1Zx1HUobf0pjwvFeEQCshBaP2WB7BOwS
-UmjlCk9JUtodXZrnKqAX
-=JcWR
+iQIcBAABCAAGBQJVXkoUAAoJELgmozMOVy/ddIAP/2rMRip8dn2cQqXv3NJDCZ1O
+VsBlR/OWO1Ga9Zhwr6gLijIWczW+jbBOawoKIqciqJ/z//qSxchDmMi+Eu1nYKBA
+/o7OZhatKIinPFZRY5ibqFtK3LjPDcsaOaCI65DR7o4rU8xxtdRvcNXefAy4N+Zm
+rINQ0oIGyo2gKLY8Hl5x0A58voE/vlzMkgVX24RxkCE/Ndkd6W+zXeVrYWXUj8xk
+VVZN/Or0TVnLYat//dTaz2dFMrY0O0iEij+MC0klbr+tpxAQrpfQfiFUVpwCBBmw
+mkob+4ocR4ExW3hrLizwJp4X7yrtB9yP6Wkg7SEoToY/kf3FQmuWUqweSaBd7dVD
+GcU14bor0dQ43176IribK0fPxAhY4YiR/tWS5BVl+VO0cWBiK7xDlKqrxVXbajKe
+pKSniqAwJM28FPdcLUgZIDOsauWvy1WcidRN5nGL6t7AEtkIMSP4BJ3ooWCYS8/Z
+oyaMQEi+SQXYbfrSs6CFSur3vlhtrPoA3wJjmmyi6+/kB4s9F6SHIDYy+YcUCjcf
+4QTZ1Ybxzs5334TZ7x2zg9A1zmajdH/Bwm33mBIKy7irBNGlhckiNEMEuR591LRQ
+GQg+kvZKW3tOXyPB+ziLZs4QKKkPgAb6vOJaRsvX6uN5P6vNMKA3zsP8zNBbzbt7
+/tOlUb9Dnx7ov00llsAh
+=9tE5
 -----END PGP SIGNATURE-----
 
---=-4PnHCEVlZ5G0d6mlsio1--
+--=-IsaA8Y5v29fZjhd7OB/x--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
