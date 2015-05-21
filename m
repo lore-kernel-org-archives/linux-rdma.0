@@ -1,10 +1,8 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/3] IB/core: Add const to RDMA helpers
-Date: Thu, 21 May 2015 16:40:22 -0400
-Message-ID: <1432240824-3277-2-git-send-email-ira.weiny@intel.com>
-References: <1432240824-3277-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 0/3] Add const to various core functions
+Date: Thu, 21 May 2015 16:40:21 -0400
+Message-ID: <1432240824-3277-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432240824-3277-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,116 +10,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The ib_device passed to the new RDMA helpers is constant.
+In order to support some of Jason's comments to add const to the functions I am
+adding for OPA the following patches clean up the call trees of the currently
+defined functions.
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- include/rdma/ib_verbs.h | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+They stand on their own as clean up patches.  Therefore, I am submitting them
+separately from the OPA patches.
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ad499bda62a4..f19739adf80d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1831,22 +1831,22 @@ static inline u8 rdma_end_port(const struct ib_device *device)
- 		0 : device->phys_port_cnt;
- }
- 
--static inline bool rdma_protocol_ib(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_ib(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IB;
- }
- 
--static inline bool rdma_protocol_roce(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_roce(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_ROCE;
- }
- 
--static inline bool rdma_protocol_iwarp(struct ib_device *device, u8 port_num)
-+static inline bool rdma_protocol_iwarp(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_PROT_IWARP;
- }
- 
--static inline bool rdma_ib_or_roce(struct ib_device *device, u8 port_num)
-+static inline bool rdma_ib_or_roce(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags &
- 		(RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_PROT_ROCE);
-@@ -1864,7 +1864,7 @@ static inline bool rdma_ib_or_roce(struct ib_device *device, u8 port_num)
-  *
-  * Return: true if the port supports sending/receiving of MAD packets.
-  */
--static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_mad(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_MAD;
- }
-@@ -1889,7 +1889,7 @@ static inline bool rdma_cap_ib_mad(struct ib_device *device, u8 port_num)
-  *
-  * Return: true if the port provides an SMI.
-  */
--static inline bool rdma_cap_ib_smi(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_smi(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_SMI;
- }
-@@ -1909,7 +1909,7 @@ static inline bool rdma_cap_ib_smi(struct ib_device *device, u8 port_num)
-  * Return: true if the port supports an IB CM (this does not guarantee that
-  * a CM is actually running however).
-  */
--static inline bool rdma_cap_ib_cm(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_cm(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_CM;
- }
-@@ -1926,7 +1926,7 @@ static inline bool rdma_cap_ib_cm(struct ib_device *device, u8 port_num)
-  * Return: true if the port supports an iWARP CM (this does not guarantee that
-  * a CM is actually running however).
-  */
--static inline bool rdma_cap_iw_cm(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_iw_cm(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IW_CM;
- }
-@@ -1946,7 +1946,7 @@ static inline bool rdma_cap_iw_cm(struct ib_device *device, u8 port_num)
-  * Administration interface.  This does not imply that the SA service is
-  * running locally.
-  */
--static inline bool rdma_cap_ib_sa(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_sa(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_IB_SA;
- }
-@@ -1968,7 +1968,7 @@ static inline bool rdma_cap_ib_sa(struct ib_device *device, u8 port_num)
-  * overhead of registering/unregistering with the SM and tracking of the
-  * total number of queue pairs attached to the multicast group.
-  */
--static inline bool rdma_cap_ib_mcast(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_ib_mcast(const struct ib_device *device, u8 port_num)
- {
- 	return rdma_cap_ib_sa(device, port_num);
- }
-@@ -1986,7 +1986,7 @@ static inline bool rdma_cap_ib_mcast(struct ib_device *device, u8 port_num)
-  * Return: true if the port uses a GID address to identify devices on the
-  * network.
-  */
--static inline bool rdma_cap_af_ib(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_af_ib(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_AF_IB;
- }
-@@ -2007,7 +2007,7 @@ static inline bool rdma_cap_af_ib(struct ib_device *device, u8 port_num)
-  * addition of a Global Route Header built from our Ethernet Address
-  * Handle into our header list for connectionless packets.
-  */
--static inline bool rdma_cap_eth_ah(struct ib_device *device, u8 port_num)
-+static inline bool rdma_cap_eth_ah(const struct ib_device *device, u8 port_num)
- {
- 	return device->port_immutable[port_num].core_cap_flags & RDMA_CORE_CAP_ETH_AH;
- }
+Ira Weiny (3):
+  IB/core: Add const to RDMA helpers
+  IB/core: Add const to device process_mad
+  IB/core: Add const to agent_send_response
+
+ drivers/infiniband/core/addr.c                |  4 +--
+ drivers/infiniband/core/agent.c               |  8 +++---
+ drivers/infiniband/core/agent.h               |  4 +--
+ drivers/infiniband/core/cache.c               |  8 +++---
+ drivers/infiniband/core/verbs.c               |  9 ++++---
+ drivers/infiniband/hw/amso1100/c2_provider.c  |  6 ++---
+ drivers/infiniband/hw/cxgb3/iwch_provider.c   |  6 ++---
+ drivers/infiniband/hw/cxgb4/provider.c        |  5 ++--
+ drivers/infiniband/hw/ehca/ehca_iverbs.h      |  4 +--
+ drivers/infiniband/hw/ehca/ehca_sqp.c         |  4 +--
+ drivers/infiniband/hw/ipath/ipath_mad.c       |  8 +++---
+ drivers/infiniband/hw/ipath/ipath_verbs.h     |  6 ++---
+ drivers/infiniband/hw/mlx4/mad.c              | 21 ++++++++-------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h          |  8 +++---
+ drivers/infiniband/hw/mlx5/mad.c              |  8 +++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  8 +++---
+ drivers/infiniband/hw/mthca/mthca_cmd.c       |  4 +--
+ drivers/infiniband/hw/mthca/mthca_cmd.h       |  4 +--
+ drivers/infiniband/hw/mthca/mthca_dev.h       |  6 ++---
+ drivers/infiniband/hw/mthca/mthca_mad.c       | 10 +++----
+ drivers/infiniband/hw/nes/nes_verbs.c         |  4 +--
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c      |  6 ++---
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h      |  6 ++---
+ drivers/infiniband/hw/qib/qib_mad.c           | 10 +++----
+ drivers/infiniband/hw/qib/qib_verbs.h         |  4 +--
+ drivers/net/ethernet/mellanox/mlx5/core/mad.c |  2 +-
+ include/linux/mlx5/driver.h                   |  2 +-
+ include/rdma/ib_addr.h                        |  6 ++---
+ include/rdma/ib_cache.h                       |  8 +++---
+ include/rdma/ib_verbs.h                       | 39 ++++++++++++++-------------
+ 30 files changed, 116 insertions(+), 112 deletions(-)
+
 -- 
 1.8.2
 
