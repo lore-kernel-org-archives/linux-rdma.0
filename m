@@ -1,7 +1,7 @@
 From: j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 32/36] IB/odp/hmm: add new kernel option to use HMM for ODP.
-Date: Thu, 21 May 2015 15:23:49 -0400
-Message-ID: <1432236233-4035-33-git-send-email-j.glisse@gmail.com>
+Subject: [PATCH 33/36] IB/odp/hmm: add core infiniband structure and helper for ODP with HMM.
+Date: Thu, 21 May 2015 15:23:50 -0400
+Message-ID: <1432236233-4035-34-git-send-email-j.glisse@gmail.com>
 References: <1432236233-4035-1-git-send-email-j.glisse@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -15,662 +15,345 @@ List-Id: linux-rdma@vger.kernel.org
 
 =46rom: J=C3=A9r=C3=B4me Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-This is a preparatory patch for HMM implementation of ODP (on demand
-paging). It introduce a new configure option and add proper build
-time conditional code section. Enabling INFINIBAND_ON_DEMAND_PAGING_HMM
-will result in build error with this patch.
+This add new core infiniband structure and helper to implement ODP (on
+demand paging) on top of HMM. We need to retain the tree of ib_umem as
+some hardware associate unique identifiant with each umem (or mr) and
+only allow hardware page table to be updated using this unique id.
 
 Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 cc: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 ---
- drivers/infiniband/Kconfig                   |  10 ++
- drivers/infiniband/core/umem_odp.c           |   4 +
- drivers/infiniband/core/uverbs_cmd.c         |  17 +++-
- drivers/infiniband/hw/mlx5/main.c            |  10 +-
- drivers/infiniband/hw/mlx5/mem.c             |   8 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |   9 +-
- drivers/infiniband/hw/mlx5/mr.c              |  10 +-
- drivers/infiniband/hw/mlx5/odp.c             | 135 ++++++++++++++-----=
---------
- drivers/infiniband/hw/mlx5/qp.c              |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/qp.c |   4 +-
- include/rdma/ib_umem_odp.h                   |  52 +++++++----
- include/rdma/ib_verbs.h                      |   4 +-
- 12 files changed, 164 insertions(+), 101 deletions(-)
+ drivers/infiniband/core/umem_odp.c    | 148 ++++++++++++++++++++++++++=
++++++++-
+ drivers/infiniband/core/uverbs_cmd.c  |   6 +-
+ drivers/infiniband/core/uverbs_main.c |   6 ++
+ include/rdma/ib_umem_odp.h            |  28 ++++++-
+ include/rdma/ib_verbs.h               |  17 +++-
+ 5 files changed, 199 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index b899531..764f524 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -49,6 +49,16 @@ config INFINIBAND_ON_DEMAND_PAGING
- 	  memory regions without pinning their pages, fetching the
- 	  pages on demand instead.
-=20
-+config INFINIBAND_ON_DEMAND_PAGING_HMM
-+	bool "InfiniBand on-demand paging support using HMM."
-+	depends on HMM
-+	depends on INFINIBAND_ON_DEMAND_PAGING
-+	default n
-+	---help---
-+	  Use HMM (heterogeneous memory management) kernel API for
-+	  on demand paging. No userspace difference, this is just
-+	  an alternative implementation of the feature.
-+
- config INFINIBAND_ADDR_TRANS
- 	bool
- 	depends on INFINIBAND
 diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/co=
 re/umem_odp.c
-index d10dd88..e55e124 100644
+index e55e124..d5d57a8 100644
 --- a/drivers/infiniband/core/umem_odp.c
 +++ b/drivers/infiniband/core/umem_odp.c
-@@ -41,6 +41,9 @@
+@@ -41,9 +41,155 @@
  #include <rdma/ib_umem.h>
  #include <rdma/ib_umem_odp.h>
 =20
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
++
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
+-#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
 tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
++
++
++static void ib_mirror_destroy(struct kref *kref)
++{
++	struct ib_mirror *ib_mirror;
++	struct ib_device *ib_device;
++
++	ib_mirror =3D container_of(kref, struct ib_mirror, kref);
++	hmm_mirror_unregister(&ib_mirror->base);
++
++	ib_device =3D ib_mirror->ib_device;
++	mutex_lock(&ib_device->hmm_mutex);
++	list_del_init(&ib_mirror->list);
++	mutex_unlock(&ib_device->hmm_mutex);
++	kfree(ib_mirror);
++}
++
++void ib_mirror_unref(struct ib_mirror *ib_mirror)
++{
++	if (ib_mirror =3D=3D NULL)
++		return;
++
++	kref_put(&ib_mirror->kref, ib_mirror_destroy);
++}
++EXPORT_SYMBOL(ib_mirror_unref);
++
++static inline struct ib_mirror *ib_mirror_ref(struct ib_mirror *ib_mir=
+ror)
++{
++	if (!ib_mirror || !kref_get_unless_zero(&ib_mirror->kref))
++		return NULL;
++	return ib_mirror;
++}
++
++int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
++{
++	struct mm_struct *mm =3D get_task_mm(current);
++	struct ib_device *ib_device =3D context->device;
++	struct ib_mirror *ib_mirror;
++	struct pid *our_pid;
++	int ret;
++
++	if (!mm || !ib_device->hmm_ready)
++		return -EINVAL;
++
++	/* FIXME can this really happen ? */
++	if (unlikely(ib_umem_start(umem) =3D=3D ib_umem_end(umem)))
++		return -EINVAL;
++
++	/* Prevent creating ODP MRs in child processes */
++	rcu_read_lock();
++	our_pid =3D get_task_pid(current->group_leader, PIDTYPE_PID);
++	rcu_read_unlock();
++	put_pid(our_pid);
++	if (context->tgid !=3D our_pid) {
++		mmput(mm);
++		return -EINVAL;
++	}
++
++	umem->hugetlb =3D 0;
++	umem->odp_data =3D kmalloc(sizeof(*umem->odp_data), GFP_KERNEL);
++	if (umem->odp_data =3D=3D NULL) {
++		mmput(mm);
++		return -ENOMEM;
++	}
++	umem->odp_data->private =3D NULL;
++	umem->odp_data->umem =3D umem;
++
++	mutex_lock(&ib_device->hmm_mutex);
++	/* Is there an existing mirror for this process mm ? */
++	ib_mirror =3D ib_mirror_ref(context->ib_mirror);
++	if (!ib_mirror)
++		list_for_each_entry(ib_mirror, &ib_device->ib_mirrors, list) {
++			if (ib_mirror->base.hmm->mm !=3D mm)
++				continue;
++			ib_mirror =3D ib_mirror_ref(ib_mirror);
++			break;
++		}
++
++	if (ib_mirror =3D=3D NULL ||
++	    ib_mirror =3D=3D list_first_entry(&ib_device->ib_mirrors,
++					  struct ib_mirror, list)) {
++		/* We need to create a new mirror. */
++		ib_mirror =3D kmalloc(sizeof(*ib_mirror), GFP_KERNEL);
++		if (ib_mirror =3D=3D NULL) {
++			mutex_unlock(&ib_device->hmm_mutex);
++			mmput(mm);
++			return -ENOMEM;
++		}
++		kref_init(&ib_mirror->kref);
++		init_rwsem(&ib_mirror->hmm_mr_rwsem);
++		ib_mirror->umem_tree =3D RB_ROOT;
++		ib_mirror->ib_device =3D ib_device;
++
++		ib_mirror->base.device =3D &ib_device->hmm_dev;
++		ret =3D hmm_mirror_register(&ib_mirror->base);
++		if (ret) {
++			mutex_unlock(&ib_device->hmm_mutex);
++			kfree(ib_mirror);
++			mmput(mm);
++			return ret;
++		}
++
++		list_add(&ib_mirror->list, &ib_device->ib_mirrors);
++		context->ib_mirror =3D ib_mirror_ref(ib_mirror);
++	}
++	mutex_unlock(&ib_device->hmm_mutex);
++	umem->odp_data.ib_mirror =3D ib_mirror;
++
++	down_write(&ib_mirror->umem_rwsem);
++	rbt_ib_umem_insert(&umem->odp_data->interval_tree, &mirror->umem_tree=
+);
++	up_write(&ib_mirror->umem_rwsem);
++
++	mmput(mm);
++	return 0;
++}
++
++void ib_umem_odp_release(struct ib_umem *umem)
++{
++	struct ib_mirror *ib_mirror =3D umem->odp_data;
++
++	/*
++	 * Ensure that no more pages are mapped in the umem.
++	 *
++	 * It is the driver's responsibility to ensure, before calling us,
++	 * that the hardware will not attempt to access the MR any more.
++	 */
++
++	/* One optimization to release resources early here would be to call =
+:
++	 *	hmm_mirror_range_discard(&ib_mirror->base,
++	 *			 ib_umem_start(umem),
++	 *			 ib_umem_end(umem));
++	 * But we can have overlapping umem so we would need to only discard
++	 * range covered by one and only one umem while holding the umem rwse=
+m.
++	 */
++	down_write(&ib_mirror->umem_rwsem);
++	rbt_ib_umem_remove(&umem->odp_data->interval_tree, &mirror->umem_tree=
+);
++	up_write(&ib_mirror->umem_rwsem);
++
++	ib_mirror_unref(ib_mirror);
++	kfree(umem->odp_data);
++	kfree(umem);
++}
++
++
+ #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
++
++
  static void ib_umem_notifier_start_account(struct ib_umem *item)
  {
  	mutex_lock(&item->odp_data->umem_mutex);
-@@ -667,3 +670,4 @@ void ib_umem_odp_unmap_dma_pages(struct ib_umem *um=
-em, u64 virt,
- 	mutex_unlock(&umem->odp_data->umem_mutex);
- }
- EXPORT_SYMBOL(ib_umem_odp_unmap_dma_pages);
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/=
 core/uverbs_cmd.c
-index a9f0489..ccd6bbe 100644
+index ccd6bbe..3225ab5 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -290,8 +290,10 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_fil=
-e *file,
- 	struct ib_udata                   udata;
- 	struct ib_device                 *ibdev =3D file->device->ib_dev;
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+#ifndef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
- 	struct ib_device_attr		  dev_attr;
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- 	struct ib_ucontext		 *ucontext;
- 	struct file			 *filp;
- 	int ret;
-@@ -335,6 +337,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file=
+@@ -337,7 +337,9 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file=
  *file,
  	ucontext->closing =3D 0;
 =20
  #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+#ifndef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
+-#ifndef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++	ucontext->ib_mirror =3D NULL;
++#else  /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
  	ucontext->umem_tree =3D RB_ROOT;
  	init_rwsem(&ucontext->umem_rwsem);
  	ucontext->odp_mrs_count =3D 0;
-@@ -345,8 +348,8 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file=
+@@ -348,7 +350,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file=
  *file,
  		goto err_free;
  	if (!(dev_attr.device_cap_flags & IB_DEVICE_ON_DEMAND_PAGING))
  		ucontext->invalidate_range =3D NULL;
--
--#endif
-+#endif /* !CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+-#endif /* !CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
++#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
+ #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
 =20
  	resp.num_comp_vectors =3D file->device->num_comp_vectors;
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband=
+/core/uverbs_main.c
+index 88cce9b..3f069d7 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -45,6 +45,7 @@
+ #include <linux/cdev.h>
+ #include <linux/anon_inodes.h>
+ #include <linux/slab.h>
++#include <rdma/ib_umem_odp.h>
 =20
-@@ -3335,6 +3338,9 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_fi=
-le *file,
- 		goto end;
+ #include <asm/uaccess.h>
 =20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 	resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
- 	resp.odp_caps.per_transport_caps.rc_odp_caps =3D
- 		attr.odp_caps.per_transport_caps.rc_odp_caps;
-@@ -3343,9 +3349,10 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_f=
-ile *file,
- 	resp.odp_caps.per_transport_caps.ud_odp_caps =3D
- 		attr.odp_caps.per_transport_caps.ud_odp_caps;
- 	resp.odp_caps.reserved =3D 0;
--#else
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- 	memset(&resp.odp_caps, 0, sizeof(resp.odp_caps));
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- 	resp.response_length +=3D sizeof(resp.odp_caps);
-=20
- end:
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/=
-mlx5/main.c
-index 57c9809..d553f90 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -156,10 +156,14 @@ static int mlx5_ib_query_device(struct ib_device =
-*ibdev,
- 	props->max_map_per_fmr =3D INT_MAX; /* no limit in ConnectIB */
-=20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 	if (dev->mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG)
- 		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
- 	props->odp_caps =3D dev->odp_caps;
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- out:
- 	kfree(in_mad);
-@@ -486,8 +490,10 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(=
-struct ib_device *ibdev,
+@@ -297,6 +298,11 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uv=
+erbs_file *file,
+ 		kfree(uobj);
  	}
 =20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+#ifndef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
- 	context->ibucontext.invalidate_range =3D &mlx5_ib_invalidate_range;
--#endif
-+#endif /* !CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- 	INIT_LIST_HEAD(&context->db_page_list);
- 	mutex_init(&context->db_page_mutex);
-diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/m=
-lx5/mem.c
-index df56b7d..21084c7 100644
---- a/drivers/infiniband/hw/mlx5/mem.c
-+++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -132,7 +132,7 @@ static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
-=20
- 	return mtt_entry;
- }
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- /*
-  * Populate the given array with bus addresses from the umem.
-@@ -163,6 +163,9 @@ void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev=
-, struct ib_umem *umem,
- 	struct scatterlist *sg;
- 	int entry;
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
 +#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 	const bool odp =3D umem->odp_data !=3D NULL;
-=20
- 	if (odp) {
-@@ -176,7 +179,8 @@ void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev=
-, struct ib_umem *umem,
- 		}
- 		return;
- 	}
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- 	i =3D 0;
- 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/=
-hw/mlx5/mlx5_ib.h
-index ec629f2..a6d62be 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -231,7 +231,7 @@ struct mlx5_ib_qp {
- 	 */
- 	spinlock_t              disable_page_faults_lock;
- 	struct mlx5_ib_pfault	pagefaults[MLX5_IB_PAGEFAULT_CONTEXTS];
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- };
-=20
- struct mlx5_ib_cq_buf {
-@@ -440,7 +440,7 @@ struct mlx5_ib_dev {
- 	 * being used by a page fault handler.
- 	 */
- 	struct srcu_struct      mr_srcu;
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- };
-=20
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-@@ -627,8 +627,13 @@ int __init mlx5_ib_odp_init(void);
- void mlx5_ib_odp_cleanup(void);
- void mlx5_ib_qp_disable_pagefaults(struct mlx5_ib_qp *qp);
- void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp);
-+
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- void mlx5_ib_invalidate_range(struct ib_umem *umem, unsigned long star=
-t,
- 			      unsigned long end);
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-=20
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- static inline int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *=
-dev)
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/ml=
-x5/mr.c
-index 759ed15..23cd123 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -62,7 +62,7 @@ static int destroy_mkey(struct mlx5_ib_dev *dev, stru=
-ct mlx5_ib_mr *mr)
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	/* Wait until all page fault handlers using the mr complete. */
- 	synchronize_srcu(&dev->mr_srcu);
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- 	return err;
- }
-@@ -1114,7 +1114,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *p=
-d, u64 start, u64 length,
- 		 */
- 		smp_wmb();
- 	}
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- 	return &mr->ibmr;
-=20
-@@ -1209,9 +1209,13 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
- 		mr->live =3D 0;
- 		/* Wait for all running page-fault handlers to finish. */
- 		synchronize_srcu(&dev->mr_srcu);
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 		/* Destroy all page mappings */
- 		mlx5_ib_invalidate_range(umem, ib_umem_start(umem),
- 					 ib_umem_end(umem));
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 		/*
- 		 * We kill the umem before the MR for ODP,
- 		 * so that there will not be any invalidations in
-@@ -1223,7 +1227,7 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
- 		/* Avoid double-freeing the umem. */
- 		umem =3D NULL;
- 	}
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- 	clean_mr(mr);
-=20
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/m=
-lx5/odp.c
-index 5171959..1de4d13 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -37,12 +37,30 @@
-=20
- #define MAX_PREFETCH_LEN (4*1024*1024U)
-=20
-+struct workqueue_struct *mlx5_ib_page_fault_wq;
-+
-+static struct mlx5_ib_mr *mlx5_ib_odp_find_mr_lkey(struct mlx5_ib_dev =
-*dev,
-+						   u32 key)
-+{
-+	u32 base_key =3D mlx5_base_mkey(key);
-+	struct mlx5_core_mr *mmr =3D __mlx5_mr_lookup(dev->mdev, base_key);
-+	struct mlx5_ib_mr *mr =3D container_of(mmr, struct mlx5_ib_mr, mmr);
-+
-+	if (!mmr || mmr->key !=3D key || !mr->live)
-+		return NULL;
-+
-+	return container_of(mmr, struct mlx5_ib_mr, mmr);
-+}
-+
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+
-+
- /* Timeout in ms to wait for an active mmu notifier to complete when h=
-andling
-  * a pagefault. */
- #define MMU_NOTIFIER_TIMEOUT 1000
-=20
--struct workqueue_struct *mlx5_ib_page_fault_wq;
--
- void mlx5_ib_invalidate_range(struct ib_umem *umem, unsigned long star=
-t,
- 			      unsigned long end)
- {
-@@ -110,67 +128,6 @@ void mlx5_ib_invalidate_range(struct ib_umem *umem=
-, unsigned long start,
- 	ib_umem_odp_unmap_dma_pages(umem, start, end);
- }
-=20
--#define COPY_ODP_BIT_MLX_TO_IB(reg, ib_caps, field_name, bit_name) do =
-{	\
--	if (be32_to_cpu(reg.field_name) & MLX5_ODP_SUPPORT_##bit_name)	\
--		ib_caps->field_name |=3D IB_ODP_SUPPORT_##bit_name;	\
--} while (0)
--
--int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev)
--{
--	int err;
--	struct mlx5_odp_caps hw_caps;
--	struct ib_odp_caps *caps =3D &dev->odp_caps;
--
--	memset(caps, 0, sizeof(*caps));
--
--	if (!(dev->mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG))
--		return 0;
--
--	err =3D mlx5_query_odp_caps(dev->mdev, &hw_caps);
--	if (err)
--		goto out;
--
--	caps->general_caps =3D IB_ODP_SUPPORT;
--	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.ud_odp_caps,
--			       SEND);
--	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
--			       SEND);
--	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
--			       RECV);
--	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
--			       WRITE);
--	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
--			       READ);
--
--out:
--	return err;
--}
--
--static struct mlx5_ib_mr *mlx5_ib_odp_find_mr_lkey(struct mlx5_ib_dev =
-*dev,
--						   u32 key)
--{
--	u32 base_key =3D mlx5_base_mkey(key);
--	struct mlx5_core_mr *mmr =3D __mlx5_mr_lookup(dev->mdev, base_key);
--	struct mlx5_ib_mr *mr =3D container_of(mmr, struct mlx5_ib_mr, mmr);
--
--	if (!mmr || mmr->key !=3D key || !mr->live)
--		return NULL;
--
--	return container_of(mmr, struct mlx5_ib_mr, mmr);
--}
--
--static void mlx5_ib_page_fault_resume(struct mlx5_ib_qp *qp,
--				      struct mlx5_ib_pfault *pfault,
--				      int error) {
--	struct mlx5_ib_dev *dev =3D to_mdev(qp->ibqp.pd->device);
--	int ret =3D mlx5_core_page_fault_resume(dev->mdev, qp->mqp.qpn,
--					      pfault->mpfault.flags,
--					      error);
--	if (ret)
--		pr_err("Failed to resolve the page fault on QP 0x%x\n",
--		       qp->mqp.qpn);
--}
--
- /*
-  * Handle a single data segment in a page-fault WQE.
-  *
-@@ -298,6 +255,58 @@ srcu_unlock:
- 	return ret ? ret : npages;
- }
-=20
-+
++	ib_mirror_unref(context->ib_mirror);
++	context->ib_mirror =3D NULL;
 +#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
 +
-+
-+#define COPY_ODP_BIT_MLX_TO_IB(reg, ib_caps, field_name, bit_name) do =
-{	\
-+	if (be32_to_cpu(reg.field_name) & MLX5_ODP_SUPPORT_##bit_name)	\
-+		ib_caps->field_name |=3D IB_ODP_SUPPORT_##bit_name;	\
-+} while (0)
-+
-+int mlx5_ib_internal_query_odp_caps(struct mlx5_ib_dev *dev)
-+{
-+	int err;
-+	struct mlx5_odp_caps hw_caps;
-+	struct ib_odp_caps *caps =3D &dev->odp_caps;
-+
-+	memset(caps, 0, sizeof(*caps));
-+
-+	if (!(dev->mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG))
-+		return 0;
-+
-+	err =3D mlx5_query_odp_caps(dev->mdev, &hw_caps);
-+	if (err)
-+		goto out;
-+
-+	caps->general_caps =3D IB_ODP_SUPPORT;
-+	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.ud_odp_caps,
-+			       SEND);
-+	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
-+			       SEND);
-+	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
-+			       RECV);
-+	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
-+			       WRITE);
-+	COPY_ODP_BIT_MLX_TO_IB(hw_caps, caps, per_transport_caps.rc_odp_caps,
-+			       READ);
-+
-+out:
-+	return err;
-+}
-+
-+static void mlx5_ib_page_fault_resume(struct mlx5_ib_qp *qp,
-+				      struct mlx5_ib_pfault *pfault,
-+				      int error) {
-+	struct mlx5_ib_dev *dev =3D to_mdev(qp->ibqp.pd->device);
-+	int ret =3D mlx5_core_page_fault_resume(dev->mdev, qp->mqp.qpn,
-+					      pfault->mpfault.flags,
-+					      error);
-+	if (ret)
-+		pr_err("Failed to resolve the page fault on QP 0x%x\n",
-+		       qp->mqp.qpn);
-+}
-+
- /**
-  * Parse a series of data segments for page fault handling.
-  *
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/ml=
-x5/qp.c
-index d35f62d..e5dec1e 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3046,7 +3046,7 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct i=
-b_qp_attr *qp_attr, int qp_attr
- 	 * based upon this query's result.
- 	 */
- 	flush_workqueue(mlx5_ib_page_fault_wq);
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+ 	put_pid(context->tgid);
 =20
- 	mutex_lock(&qp->mutex);
- 	outb =3D kzalloc(sizeof(*outb), GFP_KERNEL);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net=
-/ethernet/mellanox/mlx5/core/qp.c
-index dc7dbf7..a437a14 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-@@ -175,7 +175,7 @@ void mlx5_eq_pagefault(struct mlx5_core_dev *dev, s=
-truct mlx5_eqe *eqe)
-=20
- 	mlx5_core_put_rsc(common);
- }
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
- int mlx5_core_create_qp(struct mlx5_core_dev *dev,
- 			struct mlx5_core_qp *qp,
-@@ -440,4 +440,4 @@ int mlx5_core_page_fault_resume(struct mlx5_core_de=
-v *dev, u32 qpn,
- 	return err;
- }
- EXPORT_SYMBOL_GPL(mlx5_core_page_fault_resume);
--#endif
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+ 	return context->device->dealloc_ucontext(context);
 diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-index 3da0b16..765aeb3 100644
+index 765aeb3..c7c2670 100644
 --- a/include/rdma/ib_umem_odp.h
 +++ b/include/rdma/ib_umem_odp.h
-@@ -43,6 +43,9 @@ struct umem_odp_node {
- };
+@@ -37,6 +37,32 @@
+ #include <rdma/ib_verbs.h>
+ #include <linux/interval_tree.h>
+=20
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++/* struct ib_mirror - per process mirror structure for infiniband driv=
+er.
++ *
++ * @ib_device: Infiniband device this mirror is associated with.
++ * @base: The hmm base mirror struct.
++ * @kref: Refcount for the structure.
++ * @list: For the list of ib_mirror of a given ib_device.
++ * @umem_tree: Red black tree of ib_umem ordered by virtual address.
++ * @umem_rwsem: Semaphore protecting the reb black tree.
++ *
++ * Because ib_ucontext struct is tie to file descriptor there can be s=
+everal of
++ * them for a same process, which violate HMM requirement. Hence we cr=
+eate only
++ * one ib_mirror struct per process and have each ib_umem struct refer=
+ence it.
++ */
++struct ib_mirror {
++	struct ib_device	*ib_device;
++	struct hmm_mirror	base;
++	struct kref		kref;
++	struct list_head	list;
++	struct rb_root		umem_tree;
++	struct rw_semaphore	umem_rwsem;
++};
++
++void ib_mirror_unref(struct ib_mirror *ib_mirror);
++#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
++
+ struct umem_odp_node {
+ 	u64 __subtree_last;
+ 	struct rb_node rb;
+@@ -44,7 +70,7 @@ struct umem_odp_node {
 =20
  struct ib_umem_odp {
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
+-#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
 tage !"
-+#else
++	struct ib_mirror	*ib_mirror;
+ #else
  	/*
  	 * An array of the pages included in the on-demand paging umem.
- 	 * Indices of pages that are currently not mapped into the device wil=
-l
-@@ -62,8 +65,6 @@ struct ib_umem_odp {
- 	 * also protects access to the mmu notifier counters.
- 	 */
- 	struct mutex		umem_mutex;
--	void			*private; /* for the HW driver to use. */
--
- 	/* When false, use the notifier counter in the ucontext struct. */
- 	bool mn_counters_active;
- 	int notifiers_seq;
-@@ -72,12 +73,13 @@ struct ib_umem_odp {
- 	/* A linked list of umems that don't have private mmu notifier
- 	 * counters yet. */
- 	struct list_head no_private_counters;
-+	struct completion	notifier_completion;
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+	void			*private; /* for the HW driver to use. */
- 	struct ib_umem		*umem;
-=20
- 	/* Tree tracking */
- 	struct umem_odp_node	interval_tree;
--
--	struct completion	notifier_completion;
- 	int			dying;
- };
-=20
-@@ -87,6 +89,28 @@ int ib_umem_odp_get(struct ib_ucontext *context, str=
-uct ib_umem *umem);
-=20
- void ib_umem_odp_release(struct ib_umem *umem);
-=20
-+void rbt_ib_umem_insert(struct umem_odp_node *node, struct rb_root *ro=
-ot);
-+void rbt_ib_umem_remove(struct umem_odp_node *node, struct rb_root *ro=
-ot);
-+typedef int (*umem_call_back)(struct ib_umem *item, u64 start, u64 end=
-,
-+			      void *cookie);
-+/*
-+ * Call the callback on each ib_umem in the range. Returns the logical=
- or of
-+ * the return values of the functions called.
-+ */
-+int rbt_ib_umem_for_each_in_range(struct rb_root *root, u64 start, u64=
- end,
-+				  umem_call_back cb, void *cookie);
-+
-+struct umem_odp_node *rbt_ib_umem_iter_first(struct rb_root *root,
-+					     u64 start, u64 last);
-+struct umem_odp_node *rbt_ib_umem_iter_next(struct umem_odp_node *node=
-,
-+					    u64 start, u64 last);
-+
-+
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
-+#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this s=
-tage !"
-+#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+
-+
- /*
-  * The lower 2 bits of the DMA address signal the R/W permissions for
-  * the entry. To upgrade the permissions, provide the appropriate
-@@ -100,28 +124,13 @@ void ib_umem_odp_release(struct ib_umem *umem);
-=20
- #define ODP_DMA_ADDR_MASK (~(ODP_READ_ALLOWED_BIT | ODP_WRITE_ALLOWED_=
-BIT))
-=20
-+
- int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 start_offset, =
-u64 bcnt,
- 			      u64 access_mask, unsigned long current_seq);
-=20
- void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 start_offse=
-t,
- 				 u64 bound);
-=20
--void rbt_ib_umem_insert(struct umem_odp_node *node, struct rb_root *ro=
-ot);
--void rbt_ib_umem_remove(struct umem_odp_node *node, struct rb_root *ro=
-ot);
--typedef int (*umem_call_back)(struct ib_umem *item, u64 start, u64 end=
-,
--			      void *cookie);
--/*
-- * Call the callback on each ib_umem in the range. Returns the logical=
- or of
-- * the return values of the functions called.
-- */
--int rbt_ib_umem_for_each_in_range(struct rb_root *root, u64 start, u64=
- end,
--				  umem_call_back cb, void *cookie);
--
--struct umem_odp_node *rbt_ib_umem_iter_first(struct rb_root *root,
--					     u64 start, u64 last);
--struct umem_odp_node *rbt_ib_umem_iter_next(struct umem_odp_node *node=
-,
--					    u64 start, u64 last);
--
- static inline int ib_umem_mmu_notifier_retry(struct ib_umem *item,
- 					     unsigned long mmu_seq)
- {
-@@ -145,8 +154,11 @@ static inline int ib_umem_mmu_notifier_retry(struc=
-t ib_umem *item,
- 	return 0;
- }
-=20
-+
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-=20
-+
- static inline int ib_umem_odp_get(struct ib_ucontext *context,
- 				  struct ib_umem *umem)
- {
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 65994a1..7b00d30 100644
+index 7b00d30..83da1bd 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1157,6 +1157,7 @@ struct ib_ucontext {
+@@ -49,6 +49,9 @@
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
+ #include <uapi/linux/if_ether.h>
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++#include <linux/hmm.h>
++#endif
+=20
+ #include <linux/atomic.h>
+ #include <linux/mmu_notifier.h>
+@@ -1157,7 +1160,9 @@ struct ib_ucontext {
 =20
  	struct pid             *tgid;
  #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+#ifndef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
+-#ifndef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++	struct ib_mirror	*ib_mirror;
++#else  /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
  	struct rb_root      umem_tree;
  	/*
  	 * Protects .umem_rbroot and tree, as well as odp_mrs_count and
-@@ -1171,7 +1172,8 @@ struct ib_ucontext {
+@@ -1172,7 +1177,7 @@ struct ib_ucontext {
  	/* A list of umems that don't have private mmu notifier counters yet.=
  */
  	struct list_head	no_private_counters;
  	int                     odp_mrs_count;
--#endif
-+#endif /* !CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-+#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+-#endif /* !CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
++#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
+ #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
  };
 =20
- struct ib_uobject {
+@@ -1657,6 +1662,14 @@ struct ib_device {
+=20
+ 	struct ib_dma_mapping_ops   *dma_ops;
+=20
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
++	/* For ODP using HMM. */
++	struct hmm_device	     hmm_dev;
++	struct list_head	     ib_mirrors;
++	struct mutex		     hmm_mutex;
++	bool			     hmm_ready;
++#endif
++
+ 	struct module               *owner;
+ 	struct device                dev;
+ 	struct kobject               *ports_parent;
 --=20
 1.9.3
 
