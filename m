@@ -1,86 +1,109 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH RFC 1/3] IB/IPoIB: Support SRIOV standard configuration
-Date: Thu, 21 May 2015 15:01:45 -0600
-Message-ID: <20150521210145.GA20175@obsidianresearch.com>
+Date: Thu, 21 May 2015 17:05:31 -0400
+Message-ID: <1432242331.28905.67.camel@redhat.com>
 References: <1432225447-6536-1-git-send-email-ogerlitz@mellanox.com>
- <1432225447-6536-2-git-send-email-ogerlitz@mellanox.com>
- <20150521184613.GD6771@obsidianresearch.com>
- <CAJ3xEMgJvXjg3aFbTNEudj9QWMfP4==eBq0ccuhjuVJsv9mRmQ@mail.gmail.com>
+	 <1432225447-6536-2-git-send-email-ogerlitz@mellanox.com>
+	 <20150521184613.GD6771@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-4PnHCEVlZ5G0d6mlsio1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMgJvXjg3aFbTNEudj9QWMfP4==eBq0ccuhjuVJsv9mRmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20150521184613.GD6771-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 21, 2015 at 11:05:32PM +0300, Or Gerlitz wrote:
-> On Thu, May 21, 2015, Jason Gunthorpe  wrote:
-> 
-> >> +static int ipoib_set_vf_mac(struct net_device *dev, int queue, u8 *mac)
-> >> +{
-> >> +     char *raw_guid;
-> >> +     u64 guid = 0;
-> >
-> > This doesn't seem right at all.
-> >
-> > It makes no sense that a IPoIB interface with a 20 byte LLADDR would
-> > accept an 8 byte LLADDR only for 'ip link set vf mac'
-> >
-> > The definition of the netlink struct seems to confirm this:
-> >
-> > struct ifla_vf_mac {
-> >         __u32 vf;
-> >         __u8 mac[32]; /* MAX_ADDR_LEN */
-> > };
-> >
-> > If it was really just ever a mac it would really only be 6 bytes.
-> > [Honestly, this whole feature seems very inconistent with the rest of
-> >  the design of ip net link, so who knows]
-> >
-> > If the ifla_vf_mac had been variable-sized (like every other address
-> > related attribute) then sure, auto detect the length and do the right
-> > thing.
-> >
-> > But with this API, I think you have no choice, 'ip set vf mac LLADDR'
-> > can only be the 20 byte address.
-> 
-> You can't enforce 20 byte address on ipoib instance b/c the driver
-> can't dictate the QPN of their UD QP.
 
-I can think of several ways off the top of my head to deal with
-that. Don't see it as a problem.
+--=-4PnHCEVlZ5G0d6mlsio1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Also, you don't need to force that, b/c what the virtualization
-> system want to provision relates to a VM ID which is their mac (-->
-> guid).
+On Thu, 2015-05-21 at 12:46 -0600, Jason Gunthorpe wrote:
+> On Thu, May 21, 2015 at 07:24:05PM +0300, Or Gerlitz wrote:
+> > Standard configuration of SRIOV VFs through the host is done over the
+> > following chain of calls: libvirt --> netlink --> PF netdevice
+> >=20
+> > When this comes to IB/IPoIB we should normalize this into the verbs
+> > framework so we further go: PF IPoIB --> verbs API --> PF HW driver
+> >=20
+> > Virtualization systems assign VMs 48 bits mac, to allow working with
+> > non-modified SW layers (open-stack, libvirt, etc), we can safely
+> > extend this mac to unique 64 bits GUID. Hence the IPoIB ndo_set_vf_mac
+> > entry calls the set_vf_guid verb.
+> >=20
+> > Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >  drivers/infiniband/ulp/ipoib/ipoib_main.c |   39 +++++++++++++++++++++=
+++++++++
+> >  include/rdma/ib_verbs.h                   |    4 +++
+> >  2 files changed, 43 insertions(+), 0 deletions(-)
+> >=20
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infini=
+band/ulp/ipoib/ipoib_main.c
+> > index 9e1b203..8f82870 100644
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -1357,6 +1357,43 @@ void ipoib_dev_cleanup(struct net_device *dev)
+> >  	priv->tx_ring =3D NULL;
+> >  }
+> > =20
+> > +static int ipoib_get_vf_config(struct net_device *dev, int vf, struct =
+ifla_vf_info *ivf)
+> > +{
+> > +	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+> > +
+> > +	if (priv->ca->get_vf_config)
+> > +		return priv->ca->get_vf_config(priv->ca, priv->port, vf, ivf);
+> > +	else
+> > +		return -EINVAL;
+> > +}
+> > +
+> > +static int ipoib_set_vf_mac(struct net_device *dev, int queue, u8 *mac=
+)
+> > +{
+> > +	char *raw_guid;
+> > +	u64 guid =3D 0;
+>=20
+> This doesn't seem right at all.
+>=20
+> It makes no sense that a IPoIB interface with a 20 byte LLADDR would
+> accept an 8 byte LLADDR only for 'ip link set vf mac'
 
-No, I do need to force that because that is how netlink works: each
-device has a defined hw address length, and all netlink messages
-dealing with LLADDR must use an identical format for the hw
-address. For IPoIB that is 20 byte.
+It has to be the 8byte guid, the next 8bytes are the subnet prefix which
+is set by the SM and not under driver control, and the final 4bytes are
+specific to the IPoIB connection.  You could pass in all 20bytes, but
+you would only be able to set 8 of them.
 
-It is a simple matter of UAPI sanity, it is not the kernel's problem
-that some userspace tools assume a 6 byte LLADDR for all devices -
-they are broken.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-> (mac), 64bits (guid) or even 128bits (whole gid), but it doesn't and I
-> would like to either use the lowest common denominator (48bits) or
-> just take always 64bits which could have two zero bytes (e.g when
-> libvirt calls into that api through netlink).
 
-Then get the iproute and netdev people to sign off on using
-ifla_vf_mac with something other than the defined 20 byte IPoIB HW
-address. Maybe you can work out some scheme with them. Making the
-IFLA_VF_MAC properly variable sized might be a good angle.
+--=-4PnHCEVlZ5G0d6mlsio1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-NACK otherwise.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-The rest of the series's idea seems sound.
+iQIcBAABCAAGBQJVXkibAAoJELgmozMOVy/dEf4P/3omoEjDr+dQqACeMwLOYUGd
+vealIAxekCS2ga0tAPgUebbxlOW7+OYgUL6l+ooFn2fAabbF+Bgb0NMo6Hbf2Tz6
+Zlf06lUyDviE4HPcf7okyGbkx5zMHtNKQW/PswNoVxoVJRfAk7axSEcVYWMQfpTK
+28cT6ajAd5eMlxWGhfThTboP0LRXoxDW4DxHzZyv2lsQXkNjUYoDIZJeC3ESEizZ
+ZuoxO/kqdpYQ7wgDbZszBmVi/PX6h5J7z1GqAxws7Ujl5FzNkt1Ec2ajf3q4mtI/
+d7X85o/TAXEk+uutkfVfv86yILz4kNLubMgjiBoAxCSYanSjJvBXRZnQHwFc4wVZ
+Hw7Gujt15ANsYcsQ5dwfeO/Ved+mvM05DVQnngByfFgWD/pydlNb5/QJL72pDp+Z
+N5C1CohVjq8y6rVplUJUyZxMQvYMqS0UFtmvHq+HXe7A5vMRrAQeHxG/jTO9jsep
+0uB2LdDmoNz9qII9xtSX7hn/y7tISTJ/bXdGmgzTNjxEIKt8yAXa7YGJOr6If2lH
+kr3P7Ah7dtroDYgB1Azg2feBo6B04Tnfv7Q11CjfDxUfPomHpiuQjCFnLtCsLIQs
+ee2EZ2QCujJxa0zU3KbaEStswJgc70uo1Zx1HUobf0pjwvFeEQCshBaP2WB7BOwS
+UmjlCk9JUtodXZrnKqAX
+=JcWR
+-----END PGP SIGNATURE-----
 
-Jason
+--=-4PnHCEVlZ5G0d6mlsio1--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
