@@ -1,222 +1,780 @@
-From: j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 35/36] IB/mlx5/hmm: add page fault support for ODP on HMM.
-Date: Thu, 21 May 2015 15:23:52 -0400
-Message-ID: <1432236233-4035-36-git-send-email-j.glisse@gmail.com>
-References: <1432236233-4035-1-git-send-email-j.glisse@gmail.com>
+From: j.glisse@gmail.com
+Subject: [PATCH 05/36] HMM: introduce heterogeneous memory management v3.
+Date: Thu, 21 May 2015 15:31:14 -0400
+Message-ID: <1432236705-4209-6-git-send-email-j.glisse@gmail.com>
+References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432236233-4035-1-git-send-email-j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Johannes Weiner <jweiner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Larry Woodman <lwoodman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Brendan Conoboy <blc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Joe Donohue <jdonohue-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Duncan Poole <dpoole-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Sherry Cheung <SCheung-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Subhash Gutti <sgutti-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Hairgrove <mhairgrove-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Lucien Dunning <ldunning-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Cameron Buschardt <cabuschardt-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Arvind Gopalakrishnan <arvindg-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1432236705-4209-1-git-send-email-j.glisse@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, joro@8bytes.org, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <jweiner@redhat.com>, Larry Woodman <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, Dave Airlie <airlied@redhat.com>, Brendan Conoboy <blc@redhat.com>, Joe Donohue <jdonohue@redhat.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Liran Liss <liran>
 List-Id: linux-rdma@vger.kernel.org
 
-=46rom: J=C3=A9r=C3=B4me Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 
-This patch add HMM specific support for hardware page faulting of
-user memory region.
+This patch only introduce core HMM functions for registering a new
+mirror and stopping a mirror as well as HMM device registering and
+unregistering.
 
-Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-cc: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+The lifecycle of HMM object is handled differently then the one of
+mmu_notifier because unlike mmu_notifier there can be concurrent
+call from both mm code to HMM code and/or from device driver code
+to HMM code. Moreover lifetime of HMM can be uncorrelated from the
+lifetime of the process that is being mirror (GPU might take longer
+time to cleanup).
+
+Changed since v1:
+  - Updated comment of hmm_device_register().
+
+Changed since v2:
+  - Expose struct hmm for easy access to mm struct.
+  - Simplify hmm_mirror_register() arguments.
+  - Removed the device name.
+  - Refcount the mirror struct internaly to HMM allowing to get
+    rid of the srcu and making the device driver callback error
+    handling simpler.
+  - Safe to call several time hmm_mirror_unregister().
+  - Rework the mmu_notifier unregistration and release callback.
+
+Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Signed-off-by: Sherry Cheung <SCheung@nvidia.com>
+Signed-off-by: Subhash Gutti <sgutti@nvidia.com>
+Signed-off-by: Mark Hairgrove <mhairgrove@nvidia.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Jatin Kumar <jakumar@nvidia.com>
+cc: <linux-rdma@vger.kernel.org>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 147 +++++++++++++++++++++++++++++++=
-+++++++-
- 1 file changed, 146 insertions(+), 1 deletion(-)
+ MAINTAINERS              |   7 +
+ include/linux/hmm.h      | 164 +++++++++++++++++++++
+ include/linux/mm.h       |  11 ++
+ include/linux/mm_types.h |  14 ++
+ kernel/fork.c            |   2 +
+ mm/Kconfig               |  15 ++
+ mm/Makefile              |   1 +
+ mm/hmm.c                 | 370 +++++++++++++++++++++++++++++++++++++++++=
+++++++
+ 8 files changed, 584 insertions(+)
+ create mode 100644 include/linux/hmm.h
+ create mode 100644 mm/hmm.c
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/m=
-lx5/odp.c
-index bd29155..093f5b8 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -56,6 +56,55 @@ static struct mlx5_ib_mr *mlx5_ib_odp_find_mr_lkey(s=
-truct mlx5_ib_dev *dev,
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 78ea7b6..2f2a2be 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4730,6 +4730,13 @@ F:	include/uapi/linux/if_hippi.h
+ F:	net/802/hippi.c
+ F:	drivers/net/hippi/
 =20
-=20
-+struct mlx5_hmm_pfault {
-+	struct mlx5_ib_mr	*mlx5_ib_mr;
-+	u64			start_idx;
-+	dma_addr_t		access_mask;
-+	unsigned		npages;
-+	struct hmm_event	event;
++HMM - Heterogeneous Memory Management
++M:	J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	mm/hmm.c
++F:	include/linux/hmm.h
++
+ HOST AP DRIVER
+ M:	Jouni Malinen <j@w1.fi>
+ L:	hostap@shmoo.com (subscribers-only)
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+new file mode 100644
+index 0000000..175a757
+--- /dev/null
++++ b/include/linux/hmm.h
+@@ -0,0 +1,164 @@
++/*
++ * Copyright 2013 Red Hat Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Authors: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
++ */
++/* This is a heterogeneous memory management (hmm). In a nutshell this p=
+rovide
++ * an API to mirror a process address on a device which has its own mmu =
+using
++ * its own page table for the process. It supports everything except spe=
+cial
++ * vma.
++ *
++ * Mandatory hardware features :
++ *   - An mmu with pagetable.
++ *   - Read only flag per cpu page.
++ *   - Page fault ie hardware must stop and wait for kernel to service f=
+ault.
++ *
++ * Optional hardware features :
++ *   - Dirty bit per cpu page.
++ *   - Access bit per cpu page.
++ *
++ * The hmm code handle all the interfacing with the core kernel mm code =
+and
++ * provide a simple API. It does support migrating system memory to devi=
+ce
++ * memory and handle migration back to system memory on cpu page fault.
++ *
++ * Migrated memory is considered as swaped from cpu and core mm code poi=
+nt of
++ * view.
++ */
++#ifndef _HMM_H
++#define _HMM_H
++
++#ifdef CONFIG_HMM
++
++#include <linux/list.h>
++#include <linux/spinlock.h>
++#include <linux/atomic.h>
++#include <linux/mm_types.h>
++#include <linux/mmu_notifier.h>
++#include <linux/workqueue.h>
++#include <linux/mman.h>
++
++
++struct hmm_device;
++struct hmm_mirror;
++struct hmm;
++
++
++/* hmm_device - Each device must register one and only one hmm_device.
++ *
++ * The hmm_device is the link btw HMM and each device driver.
++ */
++
++/* struct hmm_device_operations - HMM device operation callback
++ */
++struct hmm_device_ops {
++	/* release() - mirror must stop using the address space.
++	 *
++	 * @mirror: The mirror that link process address space with the device.
++	 *
++	 * When this is call, device driver must kill all device thread using
++	 * this mirror. Also, this callback is the last thing call by HMM and
++	 * HMM will not access the mirror struct after this call (ie no more
++	 * dereference of it so it is safe for the device driver to free it).
++	 * It is call either from :
++	 *   - mm dying (all process using this mm exiting).
++	 *   - hmm_mirror_unregister() (if no other thread holds a reference)
++	 *   - outcome of some device error reported by any of the device
++	 *     callback against that mirror.
++	 */
++	void (*release)(struct hmm_mirror *mirror);
 +};
 +
-+static int mlx5_hmm_pfault(struct mlx5_ib_dev *mlx5_ib_dev,
-+			   struct hmm_mirror *mirror,
-+			   const struct hmm_event *event)
++
++/* struct hmm - per mm_struct HMM states.
++ *
++ * @mm: The mm struct this hmm is associated with.
++ * @mirrors: List of all mirror for this mm (one per device).
++ * @vm_end: Last valid address for this mm (exclusive).
++ * @kref: Reference counter.
++ * @rwsem: Serialize the mirror list modifications.
++ * @mmu_notifier: The mmu_notifier of this mm.
++ * @rcu: For delayed cleanup call from mmu_notifier.release() callback.
++ *
++ * For each process address space (mm_struct) there is one and only one =
+hmm
++ * struct. hmm functions will redispatch to each devices the change made=
+ to
++ * the process address space.
++ *
++ * Device driver must not access this structure other than for getting t=
+he
++ * mm pointer.
++ */
++struct hmm {
++	struct mm_struct	*mm;
++	struct hlist_head	mirrors;
++	unsigned long		vm_end;
++	struct kref		kref;
++	struct rw_semaphore	rwsem;
++	struct mmu_notifier	mmu_notifier;
++	struct rcu_head		rcu;
++};
++
++
++/* struct hmm_device - per device HMM structure
++ *
++ * @dev: Linux device structure pointer.
++ * @ops: The hmm operations callback.
++ * @mirrors: List of all active mirrors for the device.
++ * @mutex: Mutex protecting mirrors list.
++ *
++ * Each device that want to mirror an address space must register one of=
+ this
++ * struct (only once per linux device).
++ */
++struct hmm_device {
++	struct device			*dev;
++	const struct hmm_device_ops	*ops;
++	struct list_head		mirrors;
++	struct mutex			mutex;
++};
++
++int hmm_device_register(struct hmm_device *device);
++int hmm_device_unregister(struct hmm_device *device);
++
++
++/* hmm_mirror - device specific mirroring functions.
++ *
++ * Each device that mirror a process has a uniq hmm_mirror struct associ=
+ating
++ * the process address space with the device. Same process can be mirror=
+ed by
++ * several different devices at the same time.
++ */
++
++/* struct hmm_mirror - per device and per mm HMM structure
++ *
++ * @device: The hmm_device struct this hmm_mirror is associated to.
++ * @hmm: The hmm struct this hmm_mirror is associated to.
++ * @kref: Reference counter (private to HMM do not use).
++ * @dlist: List of all hmm_mirror for same device.
++ * @mlist: List of all hmm_mirror for same process.
++ *
++ * Each device that want to mirror an address space must register one of=
+ this
++ * struct for each of the address space it wants to mirror. Same device =
+can
++ * mirror several different address space. As well same address space ca=
+n be
++ * mirror by different devices.
++ */
++struct hmm_mirror {
++	struct hmm_device	*device;
++	struct hmm		*hmm;
++	struct kref		kref;
++	struct list_head	dlist;
++	struct hlist_node	mlist;
++};
++
++int hmm_mirror_register(struct hmm_mirror *mirror);
++void hmm_mirror_unregister(struct hmm_mirror *mirror);
++
++
++#endif /* CONFIG_HMM */
++#endif
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 2923a51..cf642d9 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2199,5 +2199,16 @@ void __init setup_nr_node_ids(void);
+ static inline void setup_nr_node_ids(void) {}
+ #endif
+=20
++#ifdef CONFIG_HMM
++static inline void hmm_mm_init(struct mm_struct *mm)
 +{
-+	struct mlx5_hmm_pfault *pfault;
-+	struct hmm_pt_iter iter;
-+	unsigned long addr, cnt;
-+	int ret;
++	mm->hmm =3D NULL;
++}
++#else /* !CONFIG_HMM */
++static inline void hmm_mm_init(struct mm_struct *mm)
++{
++}
++#endif /* !CONFIG_HMM */
 +
-+	pfault =3D container_of(event, struct mlx5_hmm_pfault, event);
-+	hmm_pt_iter_init(&iter);
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_MM_H */
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 0038ac7..4494f7f 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -15,6 +15,10 @@
+ #include <asm/page.h>
+ #include <asm/mmu.h>
+=20
++#ifdef CONFIG_HMM
++struct hmm;
++#endif
 +
-+	for (addr =3D event->start, cnt =3D 0; addr < event->end;
-+	     addr +=3D PAGE_SIZE, ++cnt) {
-+		dma_addr_t *ptep;
+ #ifndef AT_VECTOR_SIZE_ARCH
+ #define AT_VECTOR_SIZE_ARCH 0
+ #endif
+@@ -451,6 +455,16 @@ struct mm_struct {
+ #ifdef CONFIG_MMU_NOTIFIER
+ 	struct mmu_notifier_mm *mmu_notifier_mm;
+ #endif
++#ifdef CONFIG_HMM
++	/*
++	 * hmm always register an mmu_notifier we rely on mmu notifier to keep
++	 * refcount on mm struct as well as forbiding registering hmm on a
++	 * dying mm
++	 *
++	 * This field is set with mmap_sem old in write mode.
++	 */
++	struct hmm *hmm;
++#endif
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+ 	pgtable_t pmd_huge_pte; /* protected by page_table_lock */
+ #endif
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 0e0ae9a..4083be7 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -27,6 +27,7 @@
+ #include <linux/binfmts.h>
+ #include <linux/mman.h>
+ #include <linux/mmu_notifier.h>
++#include <linux/hmm.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/vmacache.h>
+@@ -597,6 +598,7 @@ static struct mm_struct *mm_init(struct mm_struct *mm=
+, struct task_struct *p)
+ 	mm_init_aio(mm);
+ 	mm_init_owner(mm, p);
+ 	mmu_notifier_mm_init(mm);
++	hmm_mm_init(mm);
+ 	clear_tlb_flush_pending(mm);
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
+ 	mm->pmd_huge_pte =3D NULL;
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 52ffb86..189e48f 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -653,3 +653,18 @@ config DEFERRED_STRUCT_PAGE_INIT
+ 	  when kswapd starts. This has a potential performance impact on
+ 	  processes running early in the lifetime of the systemm until kswapd
+ 	  finishes the initialisation.
 +
-+		/* Get and lock pointer to mirror page table. */
-+		ptep =3D hmm_pt_iter_update(&iter, &mirror->pt, addr);
-+		/* This could be BUG_ON() as it can not happen. */
-+		if (!ptep || !hmm_pte_test_valid_dma(ptep)) {
-+			pr_warn("got empty mirror page table on pagefault.\n");
++if STAGING
++config HMM
++	bool "Enable heterogeneous memory management (HMM)"
++	depends on MMU
++	select MMU_NOTIFIER
++	select GENERIC_PAGE_TABLE
++	default n
++	help
++	  Heterogeneous memory management provide infrastructure for a device
++	  to mirror a process address space into an hardware mmu or into any
++	  things supporting pagefault like event.
++
++	  If unsure, say N to disable hmm.
++endif # STAGING
+diff --git a/mm/Makefile b/mm/Makefile
+index 98c4eae..90ca9c4 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -78,3 +78,4 @@ obj-$(CONFIG_CMA)	+=3D cma.o
+ obj-$(CONFIG_MEMORY_BALLOON) +=3D balloon_compaction.o
+ obj-$(CONFIG_PAGE_EXTENSION) +=3D page_ext.o
+ obj-$(CONFIG_CMA_DEBUGFS) +=3D cma_debug.o
++obj-$(CONFIG_HMM) +=3D hmm.o
+diff --git a/mm/hmm.c b/mm/hmm.c
+new file mode 100644
+index 0000000..e684dd0
+--- /dev/null
++++ b/mm/hmm.c
+@@ -0,0 +1,370 @@
++/*
++ * Copyright 2013 Red Hat Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Authors: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
++ */
++/* This is the core code for heterogeneous memory management (HMM). HMM =
+intend
++ * to provide helper for mirroring a process address space on a device a=
+s well
++ * as allowing migration of data between system memory and device memory=
+ refer
++ * as remote memory from here on out.
++ *
++ * Refer to include/linux/hmm.h for further information on general desig=
+n.
++ */
++#include <linux/export.h>
++#include <linux/bitmap.h>
++#include <linux/list.h>
++#include <linux/rculist.h>
++#include <linux/slab.h>
++#include <linux/mmu_notifier.h>
++#include <linux/mm.h>
++#include <linux/hugetlb.h>
++#include <linux/fs.h>
++#include <linux/file.h>
++#include <linux/ksm.h>
++#include <linux/rmap.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
++#include <linux/mmu_context.h>
++#include <linux/memcontrol.h>
++#include <linux/hmm.h>
++#include <linux/wait.h>
++#include <linux/mman.h>
++#include <linux/delay.h>
++#include <linux/workqueue.h>
++
++#include "internal.h"
++
++static struct mmu_notifier_ops hmm_notifier_ops;
++
++static inline struct hmm_mirror *hmm_mirror_ref(struct hmm_mirror *mirro=
+r);
++static inline void hmm_mirror_unref(struct hmm_mirror **mirror);
++
++
++/* hmm - core HMM functions.
++ *
++ * Core HMM functions that deal with all the process mm activities.
++ */
++
++static int hmm_init(struct hmm *hmm)
++{
++	hmm->mm =3D current->mm;
++	hmm->vm_end =3D TASK_SIZE;
++	kref_init(&hmm->kref);
++	INIT_HLIST_HEAD(&hmm->mirrors);
++	init_rwsem(&hmm->rwsem);
++
++	/* register notifier */
++	hmm->mmu_notifier.ops =3D &hmm_notifier_ops;
++	return __mmu_notifier_register(&hmm->mmu_notifier, current->mm);
++}
++
++static int hmm_add_mirror(struct hmm *hmm, struct hmm_mirror *mirror)
++{
++	struct hmm_mirror *tmp;
++
++	down_write(&hmm->rwsem);
++	hlist_for_each_entry(tmp, &hmm->mirrors, mlist)
++		if (tmp->device =3D=3D mirror->device) {
++			/* Same device can mirror only once. */
++			up_write(&hmm->rwsem);
 +			return -EINVAL;
 +		}
-+		if ((pfault->access_mask & ODP_WRITE_ALLOWED_BIT)) {
-+			if (!hmm_pte_test_write(ptep)) {
-+				pr_warn("got wrong protection permission on "
-+					"pagefault.\n");
-+				return -EINVAL;
-+			}
-+			hmm_pte_set_bit(ptep, ODP_WRITE_ALLOWED_SHIFT);
-+		}
-+		hmm_pte_set_bit(ptep, ODP_READ_ALLOWED_SHIFT);
-+		pfault->npages++;
-+	}
-+	ret =3D mlx5_ib_update_mtt(pfault->mlx5_ib_mr,
-+				 pfault->start_idx,
-+				 cnt, 0, &iter);
-+	hmm_pt_iter_fini(&iter, &mirror->pt);
-+	return ret;
++	hlist_add_head(&mirror->mlist, &hmm->mirrors);
++	hmm_mirror_ref(mirror);
++	up_write(&hmm->rwsem);
++
++	return 0;
 +}
 +
- int mlx5_ib_umem_invalidate(struct ib_umem *umem, u64 start,
- 			    u64 end, void *cookie)
- {
-@@ -178,12 +227,19 @@ static int mlx5_hmm_update(struct hmm_mirror *mir=
-ror,
- 			   const struct hmm_event *event)
- {
- 	struct device *device =3D mirror->device->dev;
-+	struct mlx5_ib_dev *mlx5_ib_dev;
-+	struct ib_device *ib_device;
- 	int ret =3D 0;
-=20
-+	ib_device =3D container_of(mirror->device, struct ib_device, hmm_dev)=
-;
-+	mlx5_ib_dev =3D to_mdev(ib_device);
-+
- 	switch (event->etype) {
- 	case HMM_DEVICE_RFAULT:
- 	case HMM_DEVICE_WFAULT:
--		/* FIXME implement. */
-+		ret =3D mlx5_hmm_pfault(mlx5_ib_dev, mirror, event);
-+		if (ret)
-+			return ret;
- 		break;
- 	case HMM_ISDIRTY:
- 		hmm_mirror_range_dirty(mirror, event->start, event->end);
-@@ -228,6 +284,95 @@ void mlx5_dev_fini_odp_hmm(struct ib_device *ib_de=
-vice)
- 	hmm_device_unregister(&ib_device->hmm_dev);
- }
-=20
-+/*
-+ * Handle a single data segment in a page-fault WQE.
-+ *
-+ * Returns number of pages retrieved on success. The caller will conti=
-nue to
-+ * the next data segment.
-+ * Can return the following error codes:
-+ * -EAGAIN to designate a temporary error. The caller will abort handl=
-ing the
-+ *  page fault and resolve it.
-+ * -EFAULT when there's an error mapping the requested pages. The call=
-er will
-+ *  abort the page fault handling and possibly move the QP to an error=
- state.
-+ * On other errors the QP should also be closed with an error.
-+ */
-+static int pagefault_single_data_segment(struct mlx5_ib_qp *qp,
-+					 struct mlx5_ib_pfault *pfault,
-+					 u32 key, u64 io_virt, size_t bcnt,
-+					 u32 *bytes_mapped)
++static inline struct hmm *hmm_ref(struct hmm *hmm)
 +{
-+	struct mlx5_ib_dev *mlx5_ib_dev =3D to_mdev(qp->ibqp.pd->device);
-+	struct ib_mirror *ib_mirror;
-+	struct mlx5_hmm_pfault hmm_pfault;
-+	int srcu_key;
++	if (!hmm || !kref_get_unless_zero(&hmm->kref))
++		return NULL;
++	return hmm;
++}
++
++static void hmm_destroy_delayed(struct rcu_head *rcu)
++{
++	struct hmm *hmm;
++
++	hmm =3D container_of(rcu, struct hmm, rcu);
++	kfree(hmm);
++}
++
++static void hmm_destroy(struct kref *kref)
++{
++	struct hmm *hmm;
++
++	hmm =3D container_of(kref, struct hmm, kref);
++	BUG_ON(!hlist_empty(&hmm->mirrors));
++
++	down_write(&hmm->mm->mmap_sem);
++	/* A new hmm might have been register before reaching that point. */
++	if (hmm->mm->hmm =3D=3D hmm)
++		hmm->mm->hmm =3D NULL;
++	up_write(&hmm->mm->mmap_sem);
++
++	mmu_notifier_unregister_no_release(&hmm->mmu_notifier, hmm->mm);
++
++	mmu_notifier_call_srcu(&hmm->rcu, &hmm_destroy_delayed);
++}
++
++static inline struct hmm *hmm_unref(struct hmm *hmm)
++{
++	if (hmm)
++		kref_put(&hmm->kref, hmm_destroy);
++	return NULL;
++}
++
++
++/* hmm_notifier - HMM callback for mmu_notifier tracking change to proce=
+ss mm.
++ *
++ * HMM use use mmu notifier to track change made to process address spac=
+e.
++ */
++static void hmm_notifier_release(struct mmu_notifier *mn, struct mm_stru=
+ct *mm)
++{
++	struct hmm *hmm;
++
++	hmm =3D hmm_ref(container_of(mn, struct hmm, mmu_notifier));
++	if (!hmm)
++		return;
++
++	down_write(&hmm->rwsem);
++	while (hmm->mirrors.first) {
++		struct hmm_mirror *mirror;
++
++		/*
++		 * Here we are holding the mirror reference from the mirror
++		 * list. As list removal is synchronized through spinlock, no
++		 * other thread can assume it holds that reference.
++		 */
++		mirror =3D hlist_entry(hmm->mirrors.first,
++				     struct hmm_mirror,
++				     mlist);
++		hlist_del_init(&mirror->mlist);
++		up_write(&hmm->rwsem);
++
++		hmm_mirror_unref(&mirror);
++
++		down_write(&hmm->rwsem);
++	}
++	up_write(&hmm->rwsem);
++
++	hmm_unref(hmm);
++}
++
++static struct mmu_notifier_ops hmm_notifier_ops =3D {
++	.release		=3D hmm_notifier_release,
++};
++
++
++/* hmm_mirror - per device mirroring functions.
++ *
++ * Each device that mirror a process has a uniq hmm_mirror struct. A pro=
+cess
++ * can be mirror by several devices at the same time.
++ *
++ * Below are all the functions and their helpers use by device driver to=
+ mirror
++ * the process address space. Those functions either deals with updating=
+ the
++ * device page table (through hmm callback). Or provide helper functions=
+ use by
++ * the device driver to fault in range of memory in the device page tabl=
+e.
++ */
++static inline struct hmm_mirror *hmm_mirror_ref(struct hmm_mirror *mirro=
+r)
++{
++	if (!mirror || !kref_get_unless_zero(&mirror->kref))
++		return NULL;
++	return mirror;
++}
++
++static void hmm_mirror_destroy(struct kref *kref)
++{
++	struct hmm_device *device;
++	struct hmm_mirror *mirror;
++	struct hmm *hmm;
++
++	mirror =3D container_of(kref, struct hmm_mirror, kref);
++	device =3D mirror->device;
++	hmm =3D mirror->hmm;
++
++	mutex_lock(&device->mutex);
++	list_del_init(&mirror->dlist);
++	device->ops->release(mirror);
++	mutex_unlock(&device->mutex);
++}
++
++static inline void hmm_mirror_unref(struct hmm_mirror **mirror)
++{
++	struct hmm_mirror *tmp =3D mirror ? *mirror : NULL;
++
++	if (tmp) {
++		*mirror =3D NULL;
++		kref_put(&tmp->kref, hmm_mirror_destroy);
++	}
++}
++
++/* hmm_mirror_register() - register mirror against current process for a=
+ device.
++ *
++ * @mirror: The mirror struct being registered.
++ * Returns: 0 on success or -ENOMEM, -EINVAL on error.
++ *
++ * Call when device driver want to start mirroring a process address spa=
+ce. The
++ * HMM shim will register mmu_notifier and start monitoring process addr=
+ess
++ * space changes. Hence callback to device driver might happen even befo=
+re this
++ * function return.
++ *
++ * The task device driver want to mirror must be current !
++ *
++ * Only one mirror per mm and hmm_device can be created, it will return =
+NULL if
++ * the hmm_device already has an hmm_mirror for the the mm.
++ */
++int hmm_mirror_register(struct hmm_mirror *mirror)
++{
++	struct mm_struct *mm =3D current->mm;
++	struct hmm *hmm =3D NULL;
 +	int ret =3D 0;
 +
-+	srcu_key =3D srcu_read_lock(&mlx5_ib_dev->mr_srcu);
-+	hmm_pfault.mlx5_ib_mr =3D mlx5_ib_odp_find_mr_lkey(mlx5_ib_dev, key);
-+	/*
-+	 * If we didn't find the MR, it means the MR was closed while we were
-+	 * handling the ODP event. In this case we return -EFAULT so that the
-+	 * QP will be closed.
-+	 */
-+	if (!hmm_pfault.mlx5_ib_mr || !hmm_pfault.mlx5_ib_mr->ibmr.pd) {
-+		pr_err("Failed to find relevant mr for lkey=3D0x%06x, probably "
-+		       "the MR was destroyed\n", key);
-+		ret =3D -EFAULT;
-+		goto srcu_unlock;
-+	}
-+	if (!hmm_pfault.mlx5_ib_mr->umem->odp_data) {
-+		pr_debug("skipping non ODP MR (lkey=3D0x%06x) in page fault "
-+		         "handler.\n", key);
-+		if (bytes_mapped)
-+			*bytes_mapped +=3D
-+				(bcnt - pfault->mpfault.bytes_committed);
-+		goto srcu_unlock;
-+	}
-+	if (hmm_pfault.mlx5_ib_mr->ibmr.pd !=3D qp->ibqp.pd) {
-+		pr_err("Page-fault with different PDs for QP and MR.\n");
-+		ret =3D -EFAULT;
-+		goto srcu_unlock;
-+	}
-+
-+	ib_mirror =3D hmm_pfault.mlx5_ib_mr->umem->odp_data->ib_mirror;
-+	if (ib_mirror->base.hmm =3D=3D NULL) {
-+		/* Somehow the mirror was kill from under us. */
-+		ret =3D -EFAULT;
-+		goto srcu_unlock;
-+	}
++	/* Sanity checks. */
++	BUG_ON(!mirror);
++	BUG_ON(!mirror->device);
++	BUG_ON(!mm);
 +
 +	/*
-+	 * Avoid branches - this code will perform correctly
-+	 * in all iterations (in iteration 2 and above,
-+	 * bytes_committed =3D=3D 0).
++	 * Initialize the mirror struct fields, the mlist init and del dance is
++	 * necessary to make the error path easier for driver and for hmm.
 +	 */
-+	io_virt +=3D pfault->mpfault.bytes_committed;
-+	bcnt -=3D pfault->mpfault.bytes_committed;
++	kref_init(&mirror->kref);
++	INIT_HLIST_NODE(&mirror->mlist);
++	INIT_LIST_HEAD(&mirror->dlist);
++	mutex_lock(&mirror->device->mutex);
++	list_add(&mirror->dlist, &mirror->device->mirrors);
++	mutex_unlock(&mirror->device->mutex);
 +
-+	hmm_pfault.npages =3D 0;
-+	hmm_pfault.start_idx =3D (io_virt - (hmm_pfault.mlx5_ib_mr->mmr.iova =
-&
-+					   PAGE_MASK)) >> PAGE_SHIFT;
-+	hmm_pfault.access_mask =3D ODP_READ_ALLOWED_BIT;
-+	hmm_pfault.access_mask |=3D hmm_pfault.mlx5_ib_mr->umem->writable ?
-+				  ODP_WRITE_ALLOWED_BIT : 0;
-+	hmm_pfault.event.start =3D io_virt & PAGE_MASK;
-+	hmm_pfault.event.end =3D PAGE_ALIGN(io_virt + bcnt);
-+	hmm_pfault.event.etype =3D hmm_pfault.mlx5_ib_mr->umem->writable ?
-+				 HMM_DEVICE_WFAULT : HMM_DEVICE_RFAULT;
-+	ret =3D hmm_mirror_fault(&ib_mirror->base, &hmm_pfault.event);
++	down_write(&mm->mmap_sem);
 +
-+	if (!ret && hmm_pfault.npages && bytes_mapped) {
-+		u32 new_mappings =3D hmm_pfault.npages * PAGE_SIZE -
-+				   (io_virt - round_down(io_virt, PAGE_SIZE));
-+		*bytes_mapped +=3D min_t(u32, new_mappings, bcnt);
++	hmm =3D mm->hmm ? hmm_ref(hmm) : NULL;
++	if (hmm =3D=3D NULL) {
++		/* no hmm registered yet so register one */
++		hmm =3D kzalloc(sizeof(*mm->hmm), GFP_KERNEL);
++		if (hmm =3D=3D NULL) {
++			up_write(&mm->mmap_sem);
++			ret =3D -ENOMEM;
++			goto error;
++		}
++
++		ret =3D hmm_init(hmm);
++		if (ret) {
++			up_write(&mm->mmap_sem);
++			kfree(hmm);
++			goto error;
++		}
++
++		mm->hmm =3D hmm;
 +	}
 +
-+srcu_unlock:
-+	srcu_read_unlock(&mlx5_ib_dev->mr_srcu, srcu_key);
-+	pfault->mpfault.bytes_committed =3D 0;
-+	return ret ? ret : hmm_pfault.npages;
++	mirror->hmm =3D hmm;
++	ret =3D hmm_add_mirror(hmm, mirror);
++	up_write(&mm->mmap_sem);
++	if (ret) {
++		mirror->hmm =3D NULL;
++		hmm_unref(hmm);
++		goto error;
++	}
++	return 0;
++
++error:
++	mutex_lock(&mirror->device->mutex);
++	list_del_init(&mirror->dlist);
++	mutex_unlock(&mirror->device->mutex);
++	return ret;
++}
++EXPORT_SYMBOL(hmm_mirror_register);
++
++static void hmm_mirror_kill(struct hmm_mirror *mirror)
++{
++	down_write(&mirror->hmm->rwsem);
++	if (!hlist_unhashed(&mirror->mlist)) {
++		hlist_del_init(&mirror->mlist);
++		up_write(&mirror->hmm->rwsem);
++
++		hmm_mirror_unref(&mirror);
++	} else
++		up_write(&mirror->hmm->rwsem);
 +}
 +
-=20
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
-=20
++/* hmm_mirror_unregister() - unregister a mirror.
++ *
++ * @mirror: The mirror that link process address space with the device.
++ *
++ * Driver can call this function when it wants to stop mirroring a proce=
+ss.
++ * This will trigger a call to the ->release() callback if it did not al=
+eady
++ * happen.
++ *
++ * Note that caller must hold a reference on the mirror.
++ */
++void hmm_mirror_unregister(struct hmm_mirror *mirror)
++{
++	if (mirror =3D=3D NULL)
++		return;
++
++	hmm_mirror_kill(mirror);
++	hmm_mirror_unref(&mirror);
++}
++EXPORT_SYMBOL(hmm_mirror_unregister);
++
++
++/* hmm_device - Each device driver must register one and only one hmm_de=
+vice
++ *
++ * The hmm_device is the link btw HMM and each device driver.
++ */
++
++/* hmm_device_register() - register a device with HMM.
++ *
++ * @device: The hmm_device struct.
++ * Returns: 0 on success or -EINVAL otherwise.
++ *
++ *
++ * Call when device driver want to register itself with HMM. Device driv=
+er must
++ * only register once.
++ */
++int hmm_device_register(struct hmm_device *device)
++{
++	/* sanity check */
++	BUG_ON(!device);
++	BUG_ON(!device->ops);
++	BUG_ON(!device->ops->release);
++
++	mutex_init(&device->mutex);
++	INIT_LIST_HEAD(&device->mirrors);
++
++	return 0;
++}
++EXPORT_SYMBOL(hmm_device_register);
++
++/* hmm_device_unregister() - unregister a device with HMM.
++ *
++ * @device: The hmm_device struct.
++ * Returns: 0 on success or -EBUSY otherwise.
++ *
++ * Call when device driver want to unregister itself with HMM. This will=
+ check
++ * that there is no any active mirror and returns -EBUSY if so.
++ */
++int hmm_device_unregister(struct hmm_device *device)
++{
++	mutex_lock(&device->mutex);
++	if (!list_empty(&device->mirrors)) {
++		mutex_unlock(&device->mutex);
++		return -EBUSY;
++	}
++	mutex_unlock(&device->mutex);
++	return 0;
++}
++EXPORT_SYMBOL(hmm_device_unregister);
 --=20
 1.9.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
