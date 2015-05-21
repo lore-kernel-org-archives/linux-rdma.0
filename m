@@ -1,7 +1,7 @@
 From: jglisse@redhat.com
-Subject: [PATCH 36/36] IB/mlx5/hmm: enable ODP using HMM.
-Date: Thu, 21 May 2015 16:23:12 -0400
-Message-ID: <1432239792-5002-17-git-send-email-jglisse@redhat.com>
+Subject: [PATCH 35/36] IB/mlx5/hmm: add page fault support for ODP on HMM.
+Date: Thu, 21 May 2015 16:23:11 -0400
+Message-ID: <1432239792-5002-16-git-send-email-jglisse@redhat.com>
 References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com>
  <1432239792-5002-1-git-send-email-jglisse@redhat.com>
 Mime-Version: 1.0
@@ -16,61 +16,201 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 
-All pieces are in place for ODP (on demand paging) to work using HMM.
+This patch add HMM specific support for hardware page faulting of
+user memory region.
 
 Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 cc: <linux-rdma@vger.kernel.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 4 ----
- drivers/infiniband/hw/mlx5/main.c    | 6 +++++-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 147 +++++++++++++++++++++++++++++++++=
++++++-
+ 1 file changed, 146 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/co=
-re/uverbs_cmd.c
-index 3225ab5..16520bd 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3340,9 +3340,6 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file=
- *file,
- 		goto end;
-=20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
--#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this sta=
-ge !"
--#else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 	resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
- 	resp.odp_caps.per_transport_caps.rc_odp_caps =3D
- 		attr.odp_caps.per_transport_caps.rc_odp_caps;
-@@ -3351,7 +3348,6 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file=
- *file,
- 	resp.odp_caps.per_transport_caps.ud_odp_caps =3D
- 		attr.odp_caps.per_transport_caps.ud_odp_caps;
- 	resp.odp_caps.reserved =3D 0;
--#endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- 	memset(&resp.odp_caps, 0, sizeof(resp.odp_caps));
- #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/ml=
-x5/main.c
-index eddabf0..cff70a2 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -157,7 +157,11 @@ static int mlx5_ib_query_device(struct ib_device *ib=
-dev,
-=20
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx=
+5/odp.c
+index bd29155..093f5b8 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -56,6 +56,55 @@ static struct mlx5_ib_mr *mlx5_ib_odp_find_mr_lkey(str=
+uct mlx5_ib_dev *dev,
  #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM
--#error "CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM not supported at this sta=
-ge !"
-+	if ((dev->mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG) &&
-+	     ibdev->hmm_ready) {
-+		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
-+		props->odp_caps =3D dev->odp_caps;
+=20
+=20
++struct mlx5_hmm_pfault {
++	struct mlx5_ib_mr	*mlx5_ib_mr;
++	u64			start_idx;
++	dma_addr_t		access_mask;
++	unsigned		npages;
++	struct hmm_event	event;
++};
++
++static int mlx5_hmm_pfault(struct mlx5_ib_dev *mlx5_ib_dev,
++			   struct hmm_mirror *mirror,
++			   const struct hmm_event *event)
++{
++	struct mlx5_hmm_pfault *pfault;
++	struct hmm_pt_iter iter;
++	unsigned long addr, cnt;
++	int ret;
++
++	pfault =3D container_of(event, struct mlx5_hmm_pfault, event);
++	hmm_pt_iter_init(&iter);
++
++	for (addr =3D event->start, cnt =3D 0; addr < event->end;
++	     addr +=3D PAGE_SIZE, ++cnt) {
++		dma_addr_t *ptep;
++
++		/* Get and lock pointer to mirror page table. */
++		ptep =3D hmm_pt_iter_update(&iter, &mirror->pt, addr);
++		/* This could be BUG_ON() as it can not happen. */
++		if (!ptep || !hmm_pte_test_valid_dma(ptep)) {
++			pr_warn("got empty mirror page table on pagefault.\n");
++			return -EINVAL;
++		}
++		if ((pfault->access_mask & ODP_WRITE_ALLOWED_BIT)) {
++			if (!hmm_pte_test_write(ptep)) {
++				pr_warn("got wrong protection permission on "
++					"pagefault.\n");
++				return -EINVAL;
++			}
++			hmm_pte_set_bit(ptep, ODP_WRITE_ALLOWED_SHIFT);
++		}
++		hmm_pte_set_bit(ptep, ODP_READ_ALLOWED_SHIFT);
++		pfault->npages++;
 +	}
++	ret =3D mlx5_ib_update_mtt(pfault->mlx5_ib_mr,
++				 pfault->start_idx,
++				 cnt, 0, &iter);
++	hmm_pt_iter_fini(&iter, &mirror->pt);
++	return ret;
++}
++
+ int mlx5_ib_umem_invalidate(struct ib_umem *umem, u64 start,
+ 			    u64 end, void *cookie)
+ {
+@@ -178,12 +227,19 @@ static int mlx5_hmm_update(struct hmm_mirror *mirro=
+r,
+ 			   const struct hmm_event *event)
+ {
+ 	struct device *device =3D mirror->device->dev;
++	struct mlx5_ib_dev *mlx5_ib_dev;
++	struct ib_device *ib_device;
+ 	int ret =3D 0;
+=20
++	ib_device =3D container_of(mirror->device, struct ib_device, hmm_dev);
++	mlx5_ib_dev =3D to_mdev(ib_device);
++
+ 	switch (event->etype) {
+ 	case HMM_DEVICE_RFAULT:
+ 	case HMM_DEVICE_WFAULT:
+-		/* FIXME implement. */
++		ret =3D mlx5_hmm_pfault(mlx5_ib_dev, mirror, event);
++		if (ret)
++			return ret;
+ 		break;
+ 	case HMM_ISDIRTY:
+ 		hmm_mirror_range_dirty(mirror, event->start, event->end);
+@@ -228,6 +284,95 @@ void mlx5_dev_fini_odp_hmm(struct ib_device *ib_devi=
+ce)
+ 	hmm_device_unregister(&ib_device->hmm_dev);
+ }
+=20
++/*
++ * Handle a single data segment in a page-fault WQE.
++ *
++ * Returns number of pages retrieved on success. The caller will continu=
+e to
++ * the next data segment.
++ * Can return the following error codes:
++ * -EAGAIN to designate a temporary error. The caller will abort handlin=
+g the
++ *  page fault and resolve it.
++ * -EFAULT when there's an error mapping the requested pages. The caller=
+ will
++ *  abort the page fault handling and possibly move the QP to an error s=
+tate.
++ * On other errors the QP should also be closed with an error.
++ */
++static int pagefault_single_data_segment(struct mlx5_ib_qp *qp,
++					 struct mlx5_ib_pfault *pfault,
++					 u32 key, u64 io_virt, size_t bcnt,
++					 u32 *bytes_mapped)
++{
++	struct mlx5_ib_dev *mlx5_ib_dev =3D to_mdev(qp->ibqp.pd->device);
++	struct ib_mirror *ib_mirror;
++	struct mlx5_hmm_pfault hmm_pfault;
++	int srcu_key;
++	int ret =3D 0;
++
++	srcu_key =3D srcu_read_lock(&mlx5_ib_dev->mr_srcu);
++	hmm_pfault.mlx5_ib_mr =3D mlx5_ib_odp_find_mr_lkey(mlx5_ib_dev, key);
++	/*
++	 * If we didn't find the MR, it means the MR was closed while we were
++	 * handling the ODP event. In this case we return -EFAULT so that the
++	 * QP will be closed.
++	 */
++	if (!hmm_pfault.mlx5_ib_mr || !hmm_pfault.mlx5_ib_mr->ibmr.pd) {
++		pr_err("Failed to find relevant mr for lkey=3D0x%06x, probably "
++		       "the MR was destroyed\n", key);
++		ret =3D -EFAULT;
++		goto srcu_unlock;
++	}
++	if (!hmm_pfault.mlx5_ib_mr->umem->odp_data) {
++		pr_debug("skipping non ODP MR (lkey=3D0x%06x) in page fault "
++		         "handler.\n", key);
++		if (bytes_mapped)
++			*bytes_mapped +=3D
++				(bcnt - pfault->mpfault.bytes_committed);
++		goto srcu_unlock;
++	}
++	if (hmm_pfault.mlx5_ib_mr->ibmr.pd !=3D qp->ibqp.pd) {
++		pr_err("Page-fault with different PDs for QP and MR.\n");
++		ret =3D -EFAULT;
++		goto srcu_unlock;
++	}
++
++	ib_mirror =3D hmm_pfault.mlx5_ib_mr->umem->odp_data->ib_mirror;
++	if (ib_mirror->base.hmm =3D=3D NULL) {
++		/* Somehow the mirror was kill from under us. */
++		ret =3D -EFAULT;
++		goto srcu_unlock;
++	}
++
++	/*
++	 * Avoid branches - this code will perform correctly
++	 * in all iterations (in iteration 2 and above,
++	 * bytes_committed =3D=3D 0).
++	 */
++	io_virt +=3D pfault->mpfault.bytes_committed;
++	bcnt -=3D pfault->mpfault.bytes_committed;
++
++	hmm_pfault.npages =3D 0;
++	hmm_pfault.start_idx =3D (io_virt - (hmm_pfault.mlx5_ib_mr->mmr.iova &
++					   PAGE_MASK)) >> PAGE_SHIFT;
++	hmm_pfault.access_mask =3D ODP_READ_ALLOWED_BIT;
++	hmm_pfault.access_mask |=3D hmm_pfault.mlx5_ib_mr->umem->writable ?
++				  ODP_WRITE_ALLOWED_BIT : 0;
++	hmm_pfault.event.start =3D io_virt & PAGE_MASK;
++	hmm_pfault.event.end =3D PAGE_ALIGN(io_virt + bcnt);
++	hmm_pfault.event.etype =3D hmm_pfault.mlx5_ib_mr->umem->writable ?
++				 HMM_DEVICE_WFAULT : HMM_DEVICE_RFAULT;
++	ret =3D hmm_mirror_fault(&ib_mirror->base, &hmm_pfault.event);
++
++	if (!ret && hmm_pfault.npages && bytes_mapped) {
++		u32 new_mappings =3D hmm_pfault.npages * PAGE_SIZE -
++				   (io_virt - round_down(io_virt, PAGE_SIZE));
++		*bytes_mapped +=3D min_t(u32, new_mappings, bcnt);
++	}
++
++srcu_unlock:
++	srcu_read_unlock(&mlx5_ib_dev->mr_srcu, srcu_key);
++	pfault->mpfault.bytes_committed =3D 0;
++	return ret ? ret : hmm_pfault.npages;
++}
++
+=20
  #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING_HMM */
- 	if (dev->mdev->caps.gen.flags & MLX5_DEV_CAP_FLAG_ON_DMND_PG)
- 		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
+=20
 --=20
 1.9.3
 
