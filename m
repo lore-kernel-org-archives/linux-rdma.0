@@ -1,195 +1,121 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC] IB/sa: Route SA pathrecord query through netlink
-Date: Thu, 21 May 2015 13:35:23 -0400
-Message-ID: <1432229723.28905.40.camel@redhat.com>
+From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] IB/sa: Route SA pathrecord query through netlink
+Date: Thu, 21 May 2015 17:43:13 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2F93@CRSMSX101.amr.corp.intel.com>
 References: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2E96@CRSMSX101.amr.corp.intel.com>
-	 <1432228874.28905.35.camel@redhat.com>
+ <1432228874.28905.35.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-aoDumVZyl8GHpthh7k1g"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432228874.28905.35.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-aoDumVZyl8GHpthh7k1g
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2015-05-21 at 13:21 -0400, Doug Ledford wrote:
-> On Thu, 2015-05-21 at 13:52 +0000, Wan, Kaike wrote:
-> > In our previous posting to the mailing list, we proposed to send a MAD =
-request from kernel (more
-> > specifically, from ib_sa module) to a user space application (ibacm in =
-this case) through netlink.
-> > The user space application will send back the response. This simple sch=
-eme can achieve the goal=20
-> > of a local SA cache in user space.
-> >=20
-> > The format of the request and response is diagrammed below:
-> >=20
-> >   ------------------
-> >   | netlink header |
-> >   ------------------
-> >   |     MAD        |
-> >   ------------------
-> >=20
-> > The kernel requests for a pathrecord, and the user application finds it=
- in its local cache and sends
-> > it to the kernel. If the netlink request fails, the kernel will send th=
-e request to SA through the
-> > normal IB path (ib_mad -> hca driver -> wire).
-> >=20
-> > Jason pointed out that this message format was limited to lower stack f=
-ormat (MAD) and its use
-> > could not be readily extended to upper layer modules like rdma_cm. Afte=
-r lengthy discussions, we=20
-> > come up with a new and modified scheme, as described below.
-> >=20
-> > The general format of the request and response will be the same:
-> >=20
-> >   ------------------
-> >   | netlink header |
-> >   ------------------
-> >   |  Data header   |
-> >   ------------------
-> >   |      Data      |
-> >   ------------------
-> >=20
-> > The data header contains information about the type of request/response=
-, the status (for response),
-> > the type (format) of the data, the total length of the data header + da=
-ta, and a flags field about
-> > the request/response or data.
-> >=20
-> > Based on the type of the data, the data section may be in different for=
-mat: a string about the host
-> > name to resolve, an IP4/IP6 address, a pathrecord, a user pathrecord (s=
-truct ib_user_path_rec),
-> > or simply a MAD (like our posted patches), etc. Essentially it can be o=
-f any format based on the=20
-> > data type. The key is to document the format so that the kernel and use=
-r space can communicate=20
-> > correctly.
-> >=20
-> > The details are described below:
-> >=20
-> > #define IB_NL_VERSION		0x01
-> >=20
-> > #define IB_NL_OP_MASK		0x0F
-> > #define IB_NL_OP_RESOLVE	0x01
-> > #define IB_NL_OP_QUERY_PATH	0x02
-> > #define IB_NL_OP_SET_TIMEOUT	0x03
-> > #define IB_NL_OP_ACK		0x80
->=20
-> If OP_ACK is one bit, why isn't the OP_MASK 0x7f?
->=20
-> > #define IB_NL_STATUS_SUCCESS	0x0000
-> > #define IB_NL_STATUS_ENODATA	0x0001
->=20
-> Do we need 16 bits for a bool?  In fact, couldn't this actually be
-> switched so that the return of the message uses OP_SUCCESS instead of
-> OP_ACK?
->=20
-> In other words, instead of two items here, couldn't the ACK bit be
-> dropped entirely and replaced with SUCCESS so that when the user app
-> returns the netlink packet, if the op on return =3D=3D to the op on send,=
- it
-> failed, if it's op | SUCCESS, it succeeded?
->=20
-> > #define IB_NL_DATA_TYPE_INVALID			0x0000
-> > #define IB_NL_DATA_TYPE_NAME			0x0001
-> > #define IB_NL_DATA_TYPE_ADDRESS_IP		0x0002
-> > #define IB_NL_DATA_TYPE_ADDRESS_IP6		0x0003
-> > #define IB_NL_DATA_TYPE_PATH_RECORD		0x0004
-> > #define IB_NL_DATA_TYPE_USER_PATH_REC		0x0005
-> > #define IB_NL_DATA_TYPE_MAD			0x0006
-> >=20
-> > #define IB_NL_FLAGS_PATH_GMP			1
-> > #define IB_NL_FLAGS_PATH_PRIMARY		(1<<1)
-> > #define IB_NL_FLAGS_PATH_ALTERNATE		(1<<2)
-> > #define IB_NL_FLAGS_PATH_OUTBOUND		(1<<3)
-> > #define IB_NL_FLAGS_PATH_INBOUND		(1<<4)
-> > #define IB_NL_FLAGS_PATH_INBOUND_REVERSE 	(1<<5)
-> > #define IB_NL_FLAGS_PATH_BIDIRECTIONAL		(IB_PATH_OUTBOUND | IB_PATH_INB=
-OUND_REVERSE)
-> > #define IB_NL_FLAGS_QUERY_SA			(1<<31)
-> > #define IB_NL_FLAGS_NODELAY			(1<<30)
->=20
-> Please keep these in numerical order, don't put <<31 and below it <<30
->=20
-> > struct ib_nl_data_hdr {
-> > 	__u8	version;
-> > 	__u8	opcode;
-> > 	__u16	status;
-> Drop status because we fold it into opcode
-> > 	__u16	type;
-> > 	__u16	reserved;
-> Drop reserved because we don't need alignment any more
-> > 	__u32	flags;
-> Flags is the only thing using bits fast, and we would want to make this
-> header an even 128bits in length, so add a __u32 reserved; here.  That's
-> more likely to be useful than the current layout since we are likely to
-> run out of flags before anything else.
-> > 	__u32	length;
-> > };
-> >=20
-> > struct ib_nl_data {
-> > 	struct ib_nl_data_hdr		hdr;
-> > 	__u8				data[0];
-> > };
-> >=20
-> >=20
-> > These defines and structures can be added to file include/upai/rdma/rdm=
-a_netlink.h (replace with
-> > RDMA_NL prefix) or contained in a seperate file (include/upai/rdma/ib_n=
-etlink.h ???).=20
-> >=20
-> > Please share your thoughts.
->=20
-> I think an extensible netlink framework here is the right way to go,
-> certainly better than the one shot method you had first.
-
-The one thing I left out of the above that might be worth changing is
-the fact that you bury your sequence number down in your mad header.  If
-there is a generic mechanism that multiple modules can use to send
-customized data via nl, then it might be worthwhile to have the sequence
-moved to the generic level.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-aoDumVZyl8GHpthh7k1g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVXhdbAAoJELgmozMOVy/d0lgP/iRR6/AkXBb2JD5TLKfMJXpX
-4KO8rxqfhHz7g9rqLWZXZBzGKcHia9Ki5s9shcxHGIxFN4lGa2QXotkkvjv3BZku
-Ee1T/cL9wuDIHu61c767NY1uKT8oYm2dXRSEZ/tMLbkVYsBhg4zvUCV2VRppGbzG
-3amCG5Gw+s4yt7vrbLZTi9BbTMLtLg51unEmXnwPgL0OCt6ngD0jbvjcyjHjCddP
-x5a1bUiQBOHG513z9FiMrlA3eTscQErYV5eiyq1Qj2Bt5JAkdC8xYxG0mOUagxpq
-iVH9W2ulc/XCTOEBQxUs1BdWl+bSFdmHPgj4hwp9ix8sADf2ojJmwn/LAvbLvcl2
-ouo6oLq6ePLEguCPZZNs1wsF8VHl3aUdzebWdNc2Oh2F6j9XAs2rPEnIr4a7BxrN
-dC4VgABwomT6DsXLkLcQRKke0eOacmsuxt0GguiXkRHzmMmiyhaj87rPyS50vXR+
-5A4rtbNdSTaDwlCbdDYTx6ttAATCNBhKl2yxE9tKA2oSZz9rGEA3BGWqjeUoekFb
-OFpLCf4bAkzVcOEBiEuEgym+EJZHlto5yfMD02In2C6NMRKNP2MJ/mxHVEs8Lhlc
-I5lLCUPvvRphzP7Lwis1axOUAyjvvDmEejux9Tf9Vi5bHzDJ757RmBFabEs/4VUw
-wrEnj5i2AB0P7IHCHakc
-=paaW
------END PGP SIGNATURE-----
-
---=-aoDumVZyl8GHpthh7k1g--
-
+DQo+IE9uIFRodSwgMjAxNS0wNS0yMSBhdCAxMzo1MiArMDAwMCwgV2FuLCBLYWlrZSB3cm90ZToN
+Cj4gPiBJbiBvdXIgcHJldmlvdXMgcG9zdGluZyB0byB0aGUgbWFpbGluZyBsaXN0LCB3ZSBwcm9w
+b3NlZCB0byBzZW5kIGEgTUFEDQo+ID4gcmVxdWVzdCBmcm9tIGtlcm5lbCAobW9yZSBzcGVjaWZp
+Y2FsbHksIGZyb20gaWJfc2EgbW9kdWxlKSB0byBhIHVzZXIgc3BhY2UNCj4gYXBwbGljYXRpb24g
+KGliYWNtIGluIHRoaXMgY2FzZSkgdGhyb3VnaCBuZXRsaW5rLg0KPiA+IFRoZSB1c2VyIHNwYWNl
+IGFwcGxpY2F0aW9uIHdpbGwgc2VuZCBiYWNrIHRoZSByZXNwb25zZS4gVGhpcyBzaW1wbGUNCj4g
+PiBzY2hlbWUgY2FuIGFjaGlldmUgdGhlIGdvYWwgb2YgYSBsb2NhbCBTQSBjYWNoZSBpbiB1c2Vy
+IHNwYWNlLg0KPiA+DQo+ID4gVGhlIGZvcm1hdCBvZiB0aGUgcmVxdWVzdCBhbmQgcmVzcG9uc2Ug
+aXMgZGlhZ3JhbW1lZCBiZWxvdzoNCj4gPg0KPiA+ICAgLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4g
+ICB8IG5ldGxpbmsgaGVhZGVyIHwNCj4gPiAgIC0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAgfCAg
+ICAgTUFEICAgICAgICB8DQo+ID4gICAtLS0tLS0tLS0tLS0tLS0tLS0NCj4gPg0KPiA+IFRoZSBr
+ZXJuZWwgcmVxdWVzdHMgZm9yIGEgcGF0aHJlY29yZCwgYW5kIHRoZSB1c2VyIGFwcGxpY2F0aW9u
+IGZpbmRzDQo+ID4gaXQgaW4gaXRzIGxvY2FsIGNhY2hlIGFuZCBzZW5kcyBpdCB0byB0aGUga2Vy
+bmVsLiBJZiB0aGUgbmV0bGluaw0KPiA+IHJlcXVlc3QgZmFpbHMsIHRoZSBrZXJuZWwgd2lsbCBz
+ZW5kIHRoZSByZXF1ZXN0IHRvIFNBIHRocm91Z2ggdGhlIG5vcm1hbCBJQg0KPiBwYXRoIChpYl9t
+YWQgLT4gaGNhIGRyaXZlciAtPiB3aXJlKS4NCj4gPg0KPiA+IEphc29uIHBvaW50ZWQgb3V0IHRo
+YXQgdGhpcyBtZXNzYWdlIGZvcm1hdCB3YXMgbGltaXRlZCB0byBsb3dlciBzdGFjaw0KPiA+IGZv
+cm1hdCAoTUFEKSBhbmQgaXRzIHVzZSBjb3VsZCBub3QgYmUgcmVhZGlseSBleHRlbmRlZCB0byB1
+cHBlciBsYXllcg0KPiA+IG1vZHVsZXMgbGlrZSByZG1hX2NtLiBBZnRlciBsZW5ndGh5IGRpc2N1
+c3Npb25zLCB3ZSBjb21lIHVwIHdpdGggYSBuZXcNCj4gYW5kIG1vZGlmaWVkIHNjaGVtZSwgYXMg
+ZGVzY3JpYmVkIGJlbG93Lg0KPiA+DQo+ID4gVGhlIGdlbmVyYWwgZm9ybWF0IG9mIHRoZSByZXF1
+ZXN0IGFuZCByZXNwb25zZSB3aWxsIGJlIHRoZSBzYW1lOg0KPiA+DQo+ID4gICAtLS0tLS0tLS0t
+LS0tLS0tLS0NCj4gPiAgIHwgbmV0bGluayBoZWFkZXIgfA0KPiA+ICAgLS0tLS0tLS0tLS0tLS0t
+LS0tDQo+ID4gICB8ICBEYXRhIGhlYWRlciAgIHwNCj4gPiAgIC0tLS0tLS0tLS0tLS0tLS0tLQ0K
+PiA+ICAgfCAgICAgIERhdGEgICAgICB8DQo+ID4gICAtLS0tLS0tLS0tLS0tLS0tLS0NCj4gPg0K
+PiA+IFRoZSBkYXRhIGhlYWRlciBjb250YWlucyBpbmZvcm1hdGlvbiBhYm91dCB0aGUgdHlwZSBv
+Zg0KPiA+IHJlcXVlc3QvcmVzcG9uc2UsIHRoZSBzdGF0dXMgKGZvciByZXNwb25zZSksIHRoZSB0
+eXBlIChmb3JtYXQpIG9mIHRoZQ0KPiA+IGRhdGEsIHRoZSB0b3RhbCBsZW5ndGggb2YgdGhlIGRh
+dGEgaGVhZGVyICsgZGF0YSwgYW5kIGEgZmxhZ3MgZmllbGQgYWJvdXQgdGhlDQo+IHJlcXVlc3Qv
+cmVzcG9uc2Ugb3IgZGF0YS4NCj4gPg0KPiA+IEJhc2VkIG9uIHRoZSB0eXBlIG9mIHRoZSBkYXRh
+LCB0aGUgZGF0YSBzZWN0aW9uIG1heSBiZSBpbiBkaWZmZXJlbnQNCj4gPiBmb3JtYXQ6IGEgc3Ry
+aW5nIGFib3V0IHRoZSBob3N0IG5hbWUgdG8gcmVzb2x2ZSwgYW4gSVA0L0lQNiBhZGRyZXNzLCBh
+DQo+ID4gcGF0aHJlY29yZCwgYSB1c2VyIHBhdGhyZWNvcmQgKHN0cnVjdCBpYl91c2VyX3BhdGhf
+cmVjKSwgb3Igc2ltcGx5IGENCj4gPiBNQUQgKGxpa2Ugb3VyIHBvc3RlZCBwYXRjaGVzKSwgZXRj
+LiBFc3NlbnRpYWxseSBpdCBjYW4gYmUgb2YgYW55DQo+ID4gZm9ybWF0IGJhc2VkIG9uIHRoZSBk
+YXRhIHR5cGUuIFRoZSBrZXkgaXMgdG8gZG9jdW1lbnQgdGhlIGZvcm1hdCBzbyB0aGF0DQo+IHRo
+ZSBrZXJuZWwgYW5kIHVzZXIgc3BhY2UgY2FuIGNvbW11bmljYXRlIGNvcnJlY3RseS4NCj4gPg0K
+PiA+IFRoZSBkZXRhaWxzIGFyZSBkZXNjcmliZWQgYmVsb3c6DQo+ID4NCj4gPiAjZGVmaW5lIElC
+X05MX1ZFUlNJT04JCTB4MDENCj4gPg0KPiA+ICNkZWZpbmUgSUJfTkxfT1BfTUFTSwkJMHgwRg0K
+PiA+ICNkZWZpbmUgSUJfTkxfT1BfUkVTT0xWRQkweDAxDQo+ID4gI2RlZmluZSBJQl9OTF9PUF9R
+VUVSWV9QQVRICTB4MDINCj4gPiAjZGVmaW5lIElCX05MX09QX1NFVF9USU1FT1VUCTB4MDMNCj4g
+PiAjZGVmaW5lIElCX05MX09QX0FDSwkJMHg4MA0KPiANCj4gSWYgT1BfQUNLIGlzIG9uZSBiaXQs
+IHdoeSBpc24ndCB0aGUgT1BfTUFTSyAweDdmPw0KDQpZb3UgYXJlIHJpZ2h0LiBUaGUgbWFzayBz
+aG91bGQgYmUgMHg3Zg0KDQo+IA0KPiA+ICNkZWZpbmUgSUJfTkxfU1RBVFVTX1NVQ0NFU1MJMHgw
+MDAwDQo+ID4gI2RlZmluZSBJQl9OTF9TVEFUVVNfRU5PREFUQQkweDAwMDENCj4gDQo+IERvIHdl
+IG5lZWQgMTYgYml0cyBmb3IgYSBib29sPyAgSW4gZmFjdCwgY291bGRuJ3QgdGhpcyBhY3R1YWxs
+eSBiZSBzd2l0Y2hlZCBzbw0KPiB0aGF0IHRoZSByZXR1cm4gb2YgdGhlIG1lc3NhZ2UgdXNlcyBP
+UF9TVUNDRVNTIGluc3RlYWQgb2YgT1BfQUNLPw0KDQpQb3RlbnRpYWxseSwgeW91IG1heSB3YW50
+IHRvIHJldHVybiBkaWZmZXJlbnQgc3RhdGlpIGZvciBkaWFnbm9zdGljIHB1cnBvc2UuICggT1Bf
+QUNLIHwgb3JpZ2luYWwgT1ApIGluZGljYXRlcyB0aGF0IHRoaXMgaXMgYSByZXNwb25zZSB0byBP
+UCwganVzdCBsaWtlIHdoYXQgaXMgZG9uZSBpbiBNQUQgcmVzcG9uc2UuDQoNCj4gDQo+IEluIG90
+aGVyIHdvcmRzLCBpbnN0ZWFkIG9mIHR3byBpdGVtcyBoZXJlLCBjb3VsZG4ndCB0aGUgQUNLIGJp
+dCBiZSBkcm9wcGVkDQo+IGVudGlyZWx5IGFuZCByZXBsYWNlZCB3aXRoIFNVQ0NFU1Mgc28gdGhh
+dCB3aGVuIHRoZSB1c2VyIGFwcCByZXR1cm5zIHRoZQ0KPiBuZXRsaW5rIHBhY2tldCwgaWYgdGhl
+IG9wIG9uIHJldHVybiA9PSB0byB0aGUgb3Agb24gc2VuZCwgaXQgZmFpbGVkLCBpZiBpdCdzIG9w
+IHwNCj4gU1VDQ0VTUywgaXQgc3VjY2VlZGVkPw0KPiANCj4gPiAjZGVmaW5lIElCX05MX0RBVEFf
+VFlQRV9JTlZBTElECQkJMHgwMDAwDQo+ID4gI2RlZmluZSBJQl9OTF9EQVRBX1RZUEVfTkFNRQkJ
+CTB4MDAwMQ0KPiA+ICNkZWZpbmUgSUJfTkxfREFUQV9UWVBFX0FERFJFU1NfSVAJCTB4MDAwMg0K
+PiA+ICNkZWZpbmUgSUJfTkxfREFUQV9UWVBFX0FERFJFU1NfSVA2CQkweDAwMDMNCj4gPiAjZGVm
+aW5lIElCX05MX0RBVEFfVFlQRV9QQVRIX1JFQ09SRAkJMHgwMDA0DQo+ID4gI2RlZmluZSBJQl9O
+TF9EQVRBX1RZUEVfVVNFUl9QQVRIX1JFQwkJMHgwMDA1DQo+ID4gI2RlZmluZSBJQl9OTF9EQVRB
+X1RZUEVfTUFECQkJMHgwMDA2DQo+ID4NCj4gPiAjZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfR01Q
+CQkJMQ0KPiA+ICNkZWZpbmUgSUJfTkxfRkxBR1NfUEFUSF9QUklNQVJZCQkoMTw8MSkNCj4gPiAj
+ZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfQUxURVJOQVRFCQkoMTw8MikNCj4gPiAjZGVmaW5lIElC
+X05MX0ZMQUdTX1BBVEhfT1VUQk9VTkQJCSgxPDwzKQ0KPiA+ICNkZWZpbmUgSUJfTkxfRkxBR1Nf
+UEFUSF9JTkJPVU5ECQkoMTw8NCkNCj4gPiAjZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfSU5CT1VO
+RF9SRVZFUlNFIAkoMTw8NSkNCj4gPiAjZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfQklESVJFQ1RJ
+T05BTA0KPiAJKElCX1BBVEhfT1VUQk9VTkQgfCBJQl9QQVRIX0lOQk9VTkRfUkVWRVJTRSkNCj4g
+PiAjZGVmaW5lIElCX05MX0ZMQUdTX1FVRVJZX1NBCQkJKDE8PDMxKQ0KPiA+ICNkZWZpbmUgSUJf
+TkxfRkxBR1NfTk9ERUxBWQkJCSgxPDwzMCkNCj4gDQo+IFBsZWFzZSBrZWVwIHRoZXNlIGluIG51
+bWVyaWNhbCBvcmRlciwgZG9uJ3QgcHV0IDw8MzEgYW5kIGJlbG93IGl0IDw8MzANCg0KSW5kZWVk
+LCB0aGUgZmxhZ3Mgc2hvdWxkIGJlIGRlZmluZWQgd2l0aCBjYXJlLiBJIHNpbXBseSBjb3BpZWQg
+ZnJvbSBpbmNsdWRlL3VhcGkvcmRtYS9pYl91c2VyX3NhLmggYW5kIGFjbS5oIGZyb20gaWJhY20g
+Zm9yIGRlbW9uc3RyYXRpb24uIEkgd2lsbCByZW1vdmUgdGhlbSBmcm9tIG15IHBhdGNoZXMgbGF0
+ZXIuDQoNCj4gDQo+ID4gc3RydWN0IGliX25sX2RhdGFfaGRyIHsNCj4gPiAJX191OAl2ZXJzaW9u
+Ow0KPiA+IAlfX3U4CW9wY29kZTsNCj4gPiAJX191MTYJc3RhdHVzOw0KPiBEcm9wIHN0YXR1cyBi
+ZWNhdXNlIHdlIGZvbGQgaXQgaW50byBvcGNvZGUNCg0KT25seSBpZiB3ZSBkb24ndCBuZWVkIHN0
+YXR1cy4gQnV0IHdlIG1heSBuZWVkIG1vcmUgc3RhdHVzLg0KDQoNCj4gPiAJX191MTYJdHlwZTsN
+Cj4gPiAJX191MTYJcmVzZXJ2ZWQ7DQo+IERyb3AgcmVzZXJ2ZWQgYmVjYXVzZSB3ZSBkb24ndCBu
+ZWVkIGFsaWdubWVudCBhbnkgbW9yZQ0KDQpEZXBlbmRzIG9uIGFib3ZlLg0KDQo+ID4gCV9fdTMy
+CWZsYWdzOw0KPiBGbGFncyBpcyB0aGUgb25seSB0aGluZyB1c2luZyBiaXRzIGZhc3QsIGFuZCB3
+ZSB3b3VsZCB3YW50IHRvIG1ha2UgdGhpcyBoZWFkZXINCj4gYW4gZXZlbiAxMjhiaXRzIGluIGxl
+bmd0aCwgc28gYWRkIGEgX191MzIgcmVzZXJ2ZWQ7IGhlcmUuICBUaGF0J3MgbW9yZSBsaWtlbHkN
+Cj4gdG8gYmUgdXNlZnVsIHRoYW4gdGhlIGN1cnJlbnQgbGF5b3V0IHNpbmNlIHdlIGFyZSBsaWtl
+bHkgdG8gcnVuIG91dCBvZiBmbGFncw0KPiBiZWZvcmUgYW55dGhpbmcgZWxzZS4NCg0KVGhhdCBp
+cyBhIHZlcnkgcmVhc29uYWJsZSBhc3N1bXB0aW9uLiBJIHdpbGwga2VlcCBhbiBleWUgb24gaXQu
+DQoNCj4gPiAJX191MzIJbGVuZ3RoOw0KPiA+IH07DQo+ID4NCj4gPiBzdHJ1Y3QgaWJfbmxfZGF0
+YSB7DQo+ID4gCXN0cnVjdCBpYl9ubF9kYXRhX2hkcgkJaGRyOw0KPiA+IAlfX3U4CQkJCWRhdGFb
+MF07DQo+ID4gfTsNCj4gPg0KPiA+DQo+ID4gVGhlc2UgZGVmaW5lcyBhbmQgc3RydWN0dXJlcyBj
+YW4gYmUgYWRkZWQgdG8gZmlsZQ0KPiA+IGluY2x1ZGUvdXBhaS9yZG1hL3JkbWFfbmV0bGluay5o
+IChyZXBsYWNlIHdpdGggUkRNQV9OTCBwcmVmaXgpIG9yDQo+IGNvbnRhaW5lZCBpbiBhIHNlcGVy
+YXRlIGZpbGUgKGluY2x1ZGUvdXBhaS9yZG1hL2liX25ldGxpbmsuaCA/Pz8pLg0KPiA+DQo+ID4g
+UGxlYXNlIHNoYXJlIHlvdXIgdGhvdWdodHMuDQo+IA0KPiBJIHRoaW5rIGFuIGV4dGVuc2libGUg
+bmV0bGluayBmcmFtZXdvcmsgaGVyZSBpcyB0aGUgcmlnaHQgd2F5IHRvIGdvLCBjZXJ0YWlubHkN
+Cj4gYmV0dGVyIHRoYW4gdGhlIG9uZSBzaG90IG1ldGhvZCB5b3UgaGFkIGZpcnN0Lg0KDQpUaGFu
+ayB5b3UuDQoNCkthaWtlDQo+IA0KPiA+IEthaWtlDQo+ID4gLS0NCj4gPiBUbyB1bnN1YnNjcmli
+ZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIN
+Cj4gPiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9y
+ZyBNb3JlDQo+IG1ham9yZG9tbw0KPiA+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
+bWFqb3Jkb21vLWluZm8uaHRtbA0KPiANCj4gDQo+IC0tDQo+IERvdWcgTGVkZm9yZCA8ZGxlZGZv
+cmRAcmVkaGF0LmNvbT4NCj4gICAgICAgICAgICAgICBHUEcgS2V5SUQ6IDBFNTcyRkREDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
