@@ -1,61 +1,107 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC 1/3] IB/IPoIB: Support SRIOV standard configuration
-Date: Thu, 21 May 2015 23:05:32 +0300
-Message-ID: <CAJ3xEMgJvXjg3aFbTNEudj9QWMfP4==eBq0ccuhjuVJsv9mRmQ@mail.gmail.com>
-References: <1432225447-6536-1-git-send-email-ogerlitz@mellanox.com>
-	<1432225447-6536-2-git-send-email-ogerlitz@mellanox.com>
-	<20150521184613.GD6771@obsidianresearch.com>
+From: jglisse@redhat.com
+Subject: [PATCH 30/36] IB/mlx5: add a new paramter to mlx5_ib_update_mtt() for ODP with HMM.
+Date: Thu, 21 May 2015 16:23:06 -0400
+Message-ID: <1432239792-5002-11-git-send-email-jglisse@redhat.com>
+References: <1432236705-4209-1-git-send-email-j.glisse@gmail.com>
+ <1432239792-5002-1-git-send-email-jglisse@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150521184613.GD6771-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432239792-5002-1-git-send-email-jglisse@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>, joro@8bytes.org, Mel Gorman <mgorman@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Andrea Arcangeli <aarcange@redhat.com>, Johannes Weiner <jweiner@redhat.com>, Larry Woodman <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, Dave Airlie <airlied@redhat.com>, Brendan Conoboy <blc@redhat.com>, Joe Donohue <jdonohue@redhat.com>, Duncan Poole <dpoole@nvidia.com>, Sherry Cheung <SCheung@nvidia.com>, Subhash Gutti <sgutti@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, Mark Hairgrove <mhairgrove@nvidia.com>, Lucien Dunning <ldunning@nvidia.com>, Cameron Buschardt <cabuschardt@nvidia.com>, Arvind Gopalakrishnan <arvindg@nvidia.com>, Haggai Eran <haggaie@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Liran Liss <liranl@>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 21, 2015, Jason Gunthorpe  wrote:
+=46rom: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 
->> +static int ipoib_set_vf_mac(struct net_device *dev, int queue, u8 *mac)
->> +{
->> +     char *raw_guid;
->> +     u64 guid = 0;
->
-> This doesn't seem right at all.
->
-> It makes no sense that a IPoIB interface with a 20 byte LLADDR would
-> accept an 8 byte LLADDR only for 'ip link set vf mac'
->
-> The definition of the netlink struct seems to confirm this:
->
-> struct ifla_vf_mac {
->         __u32 vf;
->         __u8 mac[32]; /* MAX_ADDR_LEN */
-> };
->
-> If it was really just ever a mac it would really only be 6 bytes.
-> [Honestly, this whole feature seems very inconistent with the rest of
->  the design of ip net link, so who knows]
->
-> If the ifla_vf_mac had been variable-sized (like every other address
-> related attribute) then sure, auto detect the length and do the right
-> thing.
->
-> But with this API, I think you have no choice, 'ip set vf mac LLADDR'
-> can only be the 20 byte address.
+When using HMM for ODP it will be usefull to pass the current mirror
+page table iterator for mlx5_ib_update_mtt() function benefit. Add
+void parameter for this.
 
-You can't enforce 20 byte address on ipoib instance b/c the driver
-can't dictate the QPN of their UD QP. Also, you don't need to force
-that, b/c what the virtualization system want to provision relates to
-a VM ID which is their mac (--> guid).
+Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+cc: <linux-rdma@vger.kernel.org>
+---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
+ drivers/infiniband/hw/mlx5/mr.c      | 4 ++--
+ drivers/infiniband/hw/mlx5/odp.c     | 8 +++++---
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-If the ifla_vf_mac had been variable-sized we could have the ipoib
-set_vf_mac implementation to check if user-space provided 48 bits
-(mac), 64bits (guid) or even 128bits (whole gid), but it doesn't and I
-would like to either use the lowest common denominator (48bits) or
-just take always 64bits which could have two zero bytes (e.g when
-libvirt calls into that api through netlink).
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/=
+hw/mlx5/mlx5_ib.h
+index ec532f0..ec629f2 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -569,7 +569,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd,=
+ u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
+ 				  struct ib_udata *udata);
+ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index,
+-		       int npages, int zap);
++		       int npages, int zap, void *data);
+ int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
+ int mlx5_ib_destroy_mr(struct ib_mr *ibmr);
+ struct ib_mr *mlx5_ib_create_mr(struct ib_pd *pd,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/ml=
+x5/mr.c
+index 51a7775..759ed15 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -845,7 +845,7 @@ free_mr:
+=20
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, in=
+t npages,
+-		       int zap)
++		       int zap, void *data)
+ {
+ 	struct mlx5_ib_dev *dev =3D mr->dev;
+ 	struct device *ddev =3D dev->ib_dev.dma_device;
+@@ -912,7 +912,7 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 s=
+tart_page_index, int npages,
+ 		if (!zap) {
+ 			__mlx5_ib_populate_pas(dev, umem, PAGE_SHIFT,
+ 					       start_page_index, npages, pas,
+-					       MLX5_IB_MTT_PRESENT, NULL);
++					       MLX5_IB_MTT_PRESENT, data);
+ 			/* Clear padding after the pages brought from the
+ 			 * umem. */
+ 			memset(pas + npages, 0, size - npages * sizeof(u64));
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/m=
+lx5/odp.c
+index 5099db0..5171959 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -91,14 +91,15 @@ void mlx5_ib_invalidate_range(struct ib_umem *umem,=
+ unsigned long start,
+=20
+ 			if (in_block && umr_offset =3D=3D 0) {
+ 				mlx5_ib_update_mtt(mr, blk_start_idx,
+-						   idx - blk_start_idx, 1);
++						   idx - blk_start_idx, 1,
++						   NULL);
+ 				in_block =3D 0;
+ 			}
+ 		}
+ 	}
+ 	if (in_block)
+ 		mlx5_ib_update_mtt(mr, blk_start_idx, idx - blk_start_idx + 1,
+-				   1);
++				   1, NULL);
+=20
+ 	/*
+ 	 * We are now sure that the device will not access the
+@@ -256,7 +257,8 @@ static int pagefault_single_data_segment(struct mlx=
+5_ib_qp *qp,
+ 			 * this MR, since ib_umem_odp_map_dma_pages already
+ 			 * checks this.
+ 			 */
+-			ret =3D mlx5_ib_update_mtt(mr, start_idx, npages, 0);
++			ret =3D mlx5_ib_update_mtt(mr, start_idx,
++						 npages, 0, NULL);
+ 		} else {
+ 			ret =3D -EAGAIN;
+ 		}
+--=20
+1.9.3
