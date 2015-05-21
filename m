@@ -1,7 +1,7 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 01/14] IB/mad: Clean up ib_find_send_mad
-Date: Wed, 20 May 2015 20:28:48 -0400
-Message-ID: <20150521002847.GH22981@phlsvsds.ph.intel.com>
+Date: Wed, 20 May 2015 21:32:46 -0400
+Message-ID: <20150521013245.GI22981@phlsvsds.ph.intel.com>
 References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com> <1432109615-19564-2-git-send-email-ira.weiny@intel.com> <20150520182221.GF28496@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -41,7 +41,7 @@ On Wed, May 20, 2015 at 12:22:21PM -0600, Jason Gunthorpe wrote:
 > 
 > This casts away const.
 
-Fixed.
+Fixed
 
 Ira
 
