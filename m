@@ -1,32 +1,74 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] IB/sa: Route SA pathrecord query through netlink
-Date: Thu, 21 May 2015 13:49:13 -0600
-Message-ID: <20150521194913.GA19931@obsidianresearch.com>
-References: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2E96@CRSMSX101.amr.corp.intel.com>
- <20150521194439.GA6389@phlsvsds.ph.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC 0/3] Support standard SRIOV configuration for IB VFs
+Date: Thu, 21 May 2015 22:55:20 +0300
+Message-ID: <CAJ3xEMjzpqnQuA=0HQaN8noVq04d9BkVvEWGY7Lq5ZntVTKm4w@mail.gmail.com>
+References: <1432225447-6536-1-git-send-email-ogerlitz@mellanox.com>
+	<1432226406.28905.22.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150521194439.GA6389-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1432226406.28905.22.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 21, 2015 at 03:44:40PM -0400, ira.weiny wrote:
+On Thu, May 21, 2015 at 7:40 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
-> The overall message length is in the netlink header.  So keeping in mind Jasons
-> comments regarding returning multiple data records.
+> The MAC/GUID mapping isn't the only thing that has to be faked here
 
-There is already an existing idiom and macro set for nesting netlink
-records, use it.
+Exactly nothing is faked here, Virtualization systems such as
+open-stack provision unique 48 bit mac values to VMs, and it's
+perfectly legitimate and viable to derive 64 bit guid value from that
+mac.
 
-Someone needs to describe exactly what NL request packet each of the
-interesting query points in the kernel will produce to meaningfully
-continue discussion.
+> Why are we suggesting to make this work with unmodified software?  Why
+> aren't we doing this right and adding a new ndo entry point for the GUID?
 
-Jason
+Because rome wasn't built in a day and nor will be the support for IB
+in today's/tomorrow's virtualization systems, e.g if you follow on
+this layering
+
+[1] Open-Stack / ODL controller
+[2] Open-Stack neutron / ODL agent
+[3] libvirt
+[4] user/kernel netlink API
+[5] kernel ndo API
+[6] ipoib
+[7] kernel verbs API
+[8] PF IB driver
+
+with the approach presented here,  we only simply (yeah, simplicity
+could turn to be critical criteria in engineering) to few kernel only
+patches that deal with layers 6-8 and we are ready for all sorts of
+bring-ups, testing and even production!
+
+For reasons which I don't really see the practical / real life use
+case where there's a must to get them to work (but I will happy to
+hear on) one can go & change the world, namely patch layers 5 ---> 1
+too and deal with all sort of dependencies for setting up a system.
+But guess what, this can be perfectly done in parallel with this small
+change.
+
+> you would also have to fake the vlan/pkey mapping.  This just
+> seems the wrong thing to do.
+
+Repeating the above argument --- virt systems provision 12bit vlan-id
+to be set for VM traffic, which can be nicely map to 16 bit IB pkey
+doing the same job.
+
+I understand that you have sort of  desire to see IB ala the full spec
+going into libvirt and from there up to the whole virtualization
+management space, but this doesn't need as an argument to not enable
+doing thing in the right direction. The upstream kernel supports SRIOV
+for IB over mlx4 for 3 years now, but this can't work with libvirt as
+is. Using these patches can make the thing.
+
+Couple of months ago, we both attended a call with the libvirt
+developers / maintainers from red-hat and they really liked this
+staged approach.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
