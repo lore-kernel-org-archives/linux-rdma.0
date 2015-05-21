@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 2/3] IB/mlx4: Refactor Alias GUID storing
-Date: Thu, 21 May 2015 19:24:06 +0300
-Message-ID: <1432225447-6536-3-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RFC 3/3] IB/mlx4: Add support for SRIOV VF management
+Date: Thu, 21 May 2015 19:24:07 +0300
+Message-ID: <1432225447-6536-4-git-send-email-ogerlitz@mellanox.com>
 References: <1432225447-6536-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1432225447-6536-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,115 +10,123 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Move the code that actually set the alias GUID provided by the admin
-into a function which isn't tied to the mlx4 SRIOV sysfs constructs.
-
-So we can use for the verbs which deal with guid setting too.
-
-This commit does not change any functionality.
+Add support for the set_vf_guid and get_vf_config verbs.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mlx4_ib.h |    4 ++
- drivers/infiniband/hw/mlx4/sysfs.c   |   54 ++++++++++++++++++++++------------
- 2 files changed, 39 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c        |   26 ++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/cmd.c |   26 ++++++++++++++++++--------
+ include/linux/mlx4/device.h              |    2 ++
+ 3 files changed, 46 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index fce3934..a13a814 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -807,6 +807,10 @@ void mlx4_ib_device_unregister_sysfs(struct mlx4_ib_dev *device);
- 
- __be64 mlx4_ib_gen_node_guid(void);
- 
-+
-+void mlx4_store_admin_alias_guid(struct mlx4_ib_dev *mdev, int port, int slave,
-+				 __be64 guid);
-+
- int mlx4_ib_steer_qp_alloc(struct mlx4_ib_dev *dev, int count, int *qpn);
- void mlx4_ib_steer_qp_free(struct mlx4_ib_dev *dev, u32 qpn, int count);
- int mlx4_ib_steer_qp_reg(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index 6797108..705e3b8 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -59,6 +59,38 @@ static ssize_t show_admin_alias_guid(struct device *dev,
- 	return sprintf(buf, "%llx\n", be64_to_cpu(sysadmin_ag_val));
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 57070c5..17b6fa7 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1325,6 +1325,27 @@ err_malloc:
+ 	return err;
  }
  
-+
-+void mlx4_store_admin_alias_guid(struct mlx4_ib_dev *mdev, int port, int slave,
-+				 __be64 guid)
++static int mlx4_ib_set_vf_guid(struct ib_device *ibdev, int port, int vf, u64 guid)
 +{
-+	unsigned long flags;
-+	int record_num;/*0-15*/
-+	int guid_index_in_rec; /*0 - 7*/
++	int slave;
++	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
 +
-+	record_num        = slave / 8;
-+	guid_index_in_rec = slave % 8;
++	slave = mlx4_get_slave_indx(mdev->dev, vf);
++	if (slave < 0)
++		return -EINVAL;
 +
-+	spin_lock_irqsave(&mdev->sriov.alias_guid.ag_work_lock, flags);
++	mlx4_store_admin_alias_guid(mdev, port, slave, cpu_to_be64(guid));
 +
-+	*(__be64 *)&mdev->sriov.alias_guid.ports_guid[port - 1].
-+		all_rec_per_port[record_num].
-+		all_recs[GUID_REC_SIZE * guid_index_in_rec] = guid;
-+
-+	/* Change the state to be pending for update */
-+	mdev->sriov.alias_guid.ports_guid[port - 1].all_rec_per_port[record_num].status
-+		= MLX4_GUID_INFO_STATUS_IDLE ;
-+
-+	mlx4_set_admin_guid(mdev->dev, guid, slave, port);
-+
-+	/* set the record index */
-+	mdev->sriov.alias_guid.ports_guid[port - 1].all_rec_per_port[record_num].guid_indexes
-+		|= mlx4_ib_get_aguid_comp_mask_from_ix(guid_index_in_rec);
-+
-+	spin_unlock_irqrestore(&mdev->sriov.alias_guid.ag_work_lock, flags);
-+
-+	mlx4_ib_init_alias_guid_work(mdev, port - 1);
++	return 0;
 +}
 +
- /* store_admin_alias_guid stores the (new) administratively assigned value of that GUID.
-  * Values in buf parameter string:
-  *	0			- requests opensm to assign a value.
-@@ -76,7 +108,6 @@ static ssize_t store_admin_alias_guid(struct device *dev,
- 	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
- 	struct mlx4_ib_dev *mdev = port->dev;
- 	u64 sysadmin_ag_val;
--	unsigned long flags;
- 
- 	record_num = mlx4_ib_iov_dentry->entry_num / 8;
- 	guid_index_in_rec = mlx4_ib_iov_dentry->entry_num % 8;
-@@ -84,26 +115,11 @@ static ssize_t store_admin_alias_guid(struct device *dev,
- 		pr_err("GUID 0 block 0 is RO\n");
- 		return count;
++static int mlx4_ib_get_vf_config(struct ib_device *ibdev, int port, int vf, struct ifla_vf_info *ivf)
++{
++	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
++
++	return mlx4_get_vf_config(mdev->dev, port, vf, ivf);
++}
++
+ static struct mlx4_ib_gid_entry *find_gid_entry(struct mlx4_ib_qp *qp, u8 *raw)
+ {
+ 	struct mlx4_ib_gid_entry *ge;
+@@ -2250,6 +2271,11 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		ibdev->ib_dev.dealloc_fmr	= mlx4_ib_fmr_dealloc;
  	}
--	spin_lock_irqsave(&mdev->sriov.alias_guid.ag_work_lock, flags);
- 	sscanf(buf, "%llx", &sysadmin_ag_val);
--	*(__be64 *)&mdev->sriov.alias_guid.ports_guid[port->num - 1].
--		all_rec_per_port[record_num].
--		all_recs[GUID_REC_SIZE * guid_index_in_rec] =
--			cpu_to_be64(sysadmin_ag_val);
--
--	/* Change the state to be pending for update */
--	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].status
--		= MLX4_GUID_INFO_STATUS_IDLE ;
--	mlx4_set_admin_guid(mdev->dev, cpu_to_be64(sysadmin_ag_val),
--			    mlx4_ib_iov_dentry->entry_num,
--			    port->num);
  
--	/* set the record index */
--	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].guid_indexes
--		|= mlx4_ib_get_aguid_comp_mask_from_ix(guid_index_in_rec);
--
--	spin_unlock_irqrestore(&mdev->sriov.alias_guid.ag_work_lock, flags);
--	mlx4_ib_init_alias_guid_work(mdev, port->num - 1);
-+	mlx4_store_admin_alias_guid(mdev, port->num,
-+				    mlx4_ib_iov_dentry->entry_num,
-+				    cpu_to_be64(sysadmin_ag_val));
- 
- 	return count;
++	if (mlx4_is_master(ibdev->dev)) {
++		ibdev->ib_dev.set_vf_guid   = mlx4_ib_set_vf_guid;
++		ibdev->ib_dev.get_vf_config = mlx4_ib_get_vf_config;
++	}
++
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
+ 	    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN) {
+ 		ibdev->ib_dev.alloc_mw = mlx4_ib_alloc_mw;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index 7761045..a544650 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -2647,7 +2647,7 @@ u32 mlx4_comm_get_version(void)
+ 	 return ((u32) CMD_CHAN_IF_REV << 8) | (u32) CMD_CHAN_VER;
  }
+ 
+-static int mlx4_get_slave_indx(struct mlx4_dev *dev, int vf)
++int mlx4_get_slave_indx(struct mlx4_dev *dev, int vf)
+ {
+ 	if ((vf < 0) || (vf >= dev->persist->num_vfs)) {
+ 		mlx4_err(dev, "Bad vf number:%d (number of activated vf: %d)\n",
+@@ -2657,6 +2657,7 @@ static int mlx4_get_slave_indx(struct mlx4_dev *dev, int vf)
+ 
+ 	return vf+1;
+ }
++EXPORT_SYMBOL_GPL(mlx4_get_slave_indx);
+ 
+ int mlx4_get_vf_indx(struct mlx4_dev *dev, int slave)
+ {
+@@ -3089,13 +3090,22 @@ int mlx4_get_vf_config(struct mlx4_dev *dev, int port, int vf, struct ifla_vf_in
+ 	s_info = &priv->mfunc.master.vf_admin[slave].vport[port];
+ 	ivf->vf = vf;
+ 
+-	/* need to convert it to a func */
+-	ivf->mac[0] = ((s_info->mac >> (5*8)) & 0xff);
+-	ivf->mac[1] = ((s_info->mac >> (4*8)) & 0xff);
+-	ivf->mac[2] = ((s_info->mac >> (3*8)) & 0xff);
+-	ivf->mac[3] = ((s_info->mac >> (2*8)) & 0xff);
+-	ivf->mac[4] = ((s_info->mac >> (1*8)) & 0xff);
+-	ivf->mac[5] = ((s_info->mac)  & 0xff);
++	if (dev->caps.port_mask[port] == MLX4_PORT_TYPE_ETH) {
++		ivf->mac[0] = ((s_info->mac >> (5*8)) & 0xff);
++		ivf->mac[1] = ((s_info->mac >> (4*8)) & 0xff);
++		ivf->mac[2] = ((s_info->mac >> (3*8)) & 0xff);
++		ivf->mac[3] = ((s_info->mac >> (2*8)) & 0xff);
++		ivf->mac[4] = ((s_info->mac >> (1*8)) & 0xff);
++		ivf->mac[5] = ((s_info->mac)  & 0xff);
++	} else {
++		u64 guid = be64_to_cpu(s_info->guid);
++		ivf->mac[0] = ((guid >> (7*8)) & 0xff);
++		ivf->mac[1] = ((guid >> (6*8)) & 0xff);
++		ivf->mac[2] = ((guid >> (5*8)) & 0xff);
++		ivf->mac[3] = ((guid >> (2*8)) & 0xff);
++		ivf->mac[4] = ((guid >> (1*8)) & 0xff);
++		ivf->mac[5] = ((guid)  & 0xff);
++	}
+ 
+ 	ivf->vlan		= s_info->default_vlan;
+ 	ivf->qos		= s_info->default_qos;
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 83e80ab..e5a70bd 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -1382,6 +1382,8 @@ int mlx4_get_slave_from_roce_gid(struct mlx4_dev *dev, int port, u8 *gid,
+ int mlx4_get_roce_gid_from_slave(struct mlx4_dev *dev, int port, int slave_id,
+ 				 u8 *gid);
+ 
++int mlx4_get_slave_indx(struct mlx4_dev *dev, int vf);
++
+ int mlx4_FLOW_STEERING_IB_UC_QP_RANGE(struct mlx4_dev *dev, u32 min_range_qpn,
+ 				      u32 max_range_qpn);
+ 
 -- 
 1.7.1
 
