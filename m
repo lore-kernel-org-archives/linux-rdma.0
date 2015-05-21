@@ -1,103 +1,58 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Wed, 20 May 2015 18:35:21 -0400
-Message-ID: <1432161321.28905.11.camel@redhat.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 08/14] IB/core: Add rdma_max_mad_size helper
+Date: Wed, 20 May 2015 20:12:52 -0400
+Message-ID: <20150521001251.GF22981@phlsvsds.ph.intel.com>
+References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com> <1432109615-19564-9-git-send-email-ira.weiny@intel.com> <1828884A29C6694DAF28B7E6B8A82373A8FDDACE@ORSMSX109.amr.corp.intel.com> <20150520180226.GC14309@phlsvsds.ph.intel.com> <20150520181928.GE28496@obsidianresearch.com> <20150520190352.GA22981@phlsvsds.ph.intel.com> <20150520194314.GA3344@obsidianresearch.com> <20150520213128.GD22981@phlsvsds.ph.intel.com> <20150520213404.GA6293@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-H4t3o1mkSzfyNji0M9Tu"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150520213404.GA6293-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, May 20, 2015 at 03:34:04PM -0600, Jason Gunthorpe wrote:
+> On Wed, May 20, 2015 at 05:31:28PM -0400, ira.weiny wrote:
+> > > I'm not really sure it makes sense to have the drivers set this, since
+> > > the value is fixed based on the existing caps. The core could fill it
+> > > in, then we don't have to check the driver's work.
+> > > 
+> > > If the driver fills it then the core should do
+> > > 
+> > >  BUG_ON(!mad_cap && max_mad_size != 0)
+> > 
+> > The driver does fill this in, and the core check this as part of this patch.
+> > 
+> > diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c 
+> > index 8055195b5d60..ea25e9467cb5 100644 
+> > +++ b/drivers/infiniband/core/mad.c 
+> > @@ -2937,6 +2937,10 @@ static int ib_mad_port_open(struct ib_device *device, 
+> >         unsigned long flags; 
+> >         char name[sizeof "ib_mad123"]; 
+> >         int has_smi; 
+> > +       size_t max_mad_size = rdma_max_mad_size(device, port_num); 
+> > +
+> > +       if (WARN_ON(max_mad_size < IB_MGMT_MAD_SIZE))
+> > +               return -EFAULT;
+> 
+> Should be BUG_ON
 
---=-H4t3o1mkSzfyNji0M9Tu
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I think that is a bit strong.  There is nothing in this condition which
+warrants a kernel panic.  The WARN_ON allows someone to unload their driver and
+fix the problem.
 
-Hi Linus,
+> In the wrong place
+> Not the test I asked for.
 
-This should hopefully be the last request for 4.1-rc for the RDMA stack.
-It contains some late ocrdma fixes that I'm including because they are
-small and self contained.  It also contains two bug fixes that are
-simple and easily verified.
+Right, sorry I missread your comment because I was more concerned about the
+case where a driver specifies they want MAD support but then report 0 for the
+MAD size.  That is much more dangerous.
 
+I'll add verification to the immutable data with your check.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git tags/for-=
-linus
-
-----------------------------------------------------------------
-Changes for 4.1-rc4
-
-  A number of small, well contained bug fixes for ocrdma driver
-  A simple fix for the connection negotiation sequence on IB
-  Fix for broken AF_IB address on UD queue pair support
-
-----------------------------------------------------------------
-Devesh Sharma (3):
-      RDMA/ocrdma: Report EQ full fatal error
-      RDMA/ocrdma: Fix QP state transition in destroy_qp
-      RDMA/ocrdma: Use VID 0 if PFC is enabled and vlan is not configured
-
-Matthew Finlay (1):
-      IB/cma: Fix broken AF_IB UD support
-
-Mitesh Ahuja (3):
-      RDMA/ocrdma: Fix the request length for RDMA_QUERY_QP mailbox command=
- to FW.
-      RDMA/ocrdma: Prevent allocation of DPP PDs if FW doesnt support it
-      RDMA/ocrdma: Fix dmac resolution for link local address
-
-Naga Irrinki (1):
-      RDMA/ocrdma: Fail connection for MTU lesser than 512
-
-Selvin Xavier (2):
-      RDMA/ocrdma: Fix EQ destroy failure during driver unload
-      RDMA/ocrdma: Update ocrdma version number
-
-Ted Kim (1):
-      ib/cm: Change reject message type when destroying cm_id
-
- drivers/infiniband/core/cm.c                |  2 +-
- drivers/infiniband/core/cma.c               | 32 +++++++----
- drivers/infiniband/hw/ocrdma/ocrdma.h       |  4 +-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 12 ++++-
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 83 +++++++++++++++++--------=
-----
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |  9 ++++
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 12 +++--
- 7 files changed, 101 insertions(+), 53 deletions(-)
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-H4t3o1mkSzfyNji0M9Tu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVXQwpAAoJELgmozMOVy/dUNMP/ii3cgGmydl8a4kFD41UyJgJ
-t6h5uAn3VoibTyM4TZNLee07PDzee56zLLl0uIQsjmkKAXjr6uh1u1EBQIGo6II0
-VI7FAH7kBRpCw3KSmMElBSYWN6Kw+wwzV2P+0b5WC+lSLWSHuJL13aSwijPsHvjJ
-joCstKLbbptg7GD00Fyq8QbpOjWvTouw98kC9j5nnG/rSQHC03HZGfhZal1JgZSv
-aL1y8v8eD8f95Fezq3szM2QuLlXWWT6RInl07DMhV2KeUWWki1fBOh0MwU2XX5JH
-Sq7w3vF86SIGdEMyWIvk8ordCCp3ZMLS278izKmNY3CrMl1Q7YRmtUf7bfSblMbQ
-45XqOuSB29pmkhGLi1xCDm+WD07ijaXeUrF1tSf03cpXw1BuJ24tFf5W5TYQRsoz
-BSR8NDvkUkMfoQXUwY08LvOwk2+n6f8xOZwy6qqiSJ4pdnuDsox9+KWHX5ToWQwJ
-uf74H1fI32Y8QW33o17wNZbtgQiH4LnURKk+DplVe/UjYrGC8g6KTBd6h28dDnZk
-VEFeh0go1vFVKNgXbWhnlJUKQJ+tnYNqw3t0vwhT5M1zipf9D3myC5HdYUtOE6TV
-pex0+EgPviCF4v02eFy6pdOYfWsaRmMddT/YA9YTHakRZ7BZEaVVN76Y3b5iOOMJ
-5Kaqo0OvrNFVJSM9oFuW
-=dRHk
------END PGP SIGNATURE-----
-
---=-H4t3o1mkSzfyNji0M9Tu--
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
