@@ -1,121 +1,137 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] IB/sa: Route SA pathrecord query through netlink
-Date: Thu, 21 May 2015 17:43:13 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2F93@CRSMSX101.amr.corp.intel.com>
-References: <3F128C9216C9B84BB6ED23EF16290AFB0CAB2E96@CRSMSX101.amr.corp.intel.com>
- <1432228874.28905.35.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 04/12] IB/ipoib: Return IPoIB devices
+ matching connection parameters
+Date: Thu, 21 May 2015 11:43:36 -0600
+Message-ID: <20150521174336.GA6771@obsidianresearch.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+ <1431841868-28063-5-git-send-email-haggaie@mellanox.com>
+ <20150519235502.GB26634@obsidianresearch.com>
+ <555D6E41.10606@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432228874.28905.35.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <555D6E41.10606-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IE9uIFRodSwgMjAxNS0wNS0yMSBhdCAxMzo1MiArMDAwMCwgV2FuLCBLYWlrZSB3cm90ZToN
-Cj4gPiBJbiBvdXIgcHJldmlvdXMgcG9zdGluZyB0byB0aGUgbWFpbGluZyBsaXN0LCB3ZSBwcm9w
-b3NlZCB0byBzZW5kIGEgTUFEDQo+ID4gcmVxdWVzdCBmcm9tIGtlcm5lbCAobW9yZSBzcGVjaWZp
-Y2FsbHksIGZyb20gaWJfc2EgbW9kdWxlKSB0byBhIHVzZXIgc3BhY2UNCj4gYXBwbGljYXRpb24g
-KGliYWNtIGluIHRoaXMgY2FzZSkgdGhyb3VnaCBuZXRsaW5rLg0KPiA+IFRoZSB1c2VyIHNwYWNl
-IGFwcGxpY2F0aW9uIHdpbGwgc2VuZCBiYWNrIHRoZSByZXNwb25zZS4gVGhpcyBzaW1wbGUNCj4g
-PiBzY2hlbWUgY2FuIGFjaGlldmUgdGhlIGdvYWwgb2YgYSBsb2NhbCBTQSBjYWNoZSBpbiB1c2Vy
-IHNwYWNlLg0KPiA+DQo+ID4gVGhlIGZvcm1hdCBvZiB0aGUgcmVxdWVzdCBhbmQgcmVzcG9uc2Ug
-aXMgZGlhZ3JhbW1lZCBiZWxvdzoNCj4gPg0KPiA+ICAgLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4g
-ICB8IG5ldGxpbmsgaGVhZGVyIHwNCj4gPiAgIC0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAgfCAg
-ICAgTUFEICAgICAgICB8DQo+ID4gICAtLS0tLS0tLS0tLS0tLS0tLS0NCj4gPg0KPiA+IFRoZSBr
-ZXJuZWwgcmVxdWVzdHMgZm9yIGEgcGF0aHJlY29yZCwgYW5kIHRoZSB1c2VyIGFwcGxpY2F0aW9u
-IGZpbmRzDQo+ID4gaXQgaW4gaXRzIGxvY2FsIGNhY2hlIGFuZCBzZW5kcyBpdCB0byB0aGUga2Vy
-bmVsLiBJZiB0aGUgbmV0bGluaw0KPiA+IHJlcXVlc3QgZmFpbHMsIHRoZSBrZXJuZWwgd2lsbCBz
-ZW5kIHRoZSByZXF1ZXN0IHRvIFNBIHRocm91Z2ggdGhlIG5vcm1hbCBJQg0KPiBwYXRoIChpYl9t
-YWQgLT4gaGNhIGRyaXZlciAtPiB3aXJlKS4NCj4gPg0KPiA+IEphc29uIHBvaW50ZWQgb3V0IHRo
-YXQgdGhpcyBtZXNzYWdlIGZvcm1hdCB3YXMgbGltaXRlZCB0byBsb3dlciBzdGFjaw0KPiA+IGZv
-cm1hdCAoTUFEKSBhbmQgaXRzIHVzZSBjb3VsZCBub3QgYmUgcmVhZGlseSBleHRlbmRlZCB0byB1
-cHBlciBsYXllcg0KPiA+IG1vZHVsZXMgbGlrZSByZG1hX2NtLiBBZnRlciBsZW5ndGh5IGRpc2N1
-c3Npb25zLCB3ZSBjb21lIHVwIHdpdGggYSBuZXcNCj4gYW5kIG1vZGlmaWVkIHNjaGVtZSwgYXMg
-ZGVzY3JpYmVkIGJlbG93Lg0KPiA+DQo+ID4gVGhlIGdlbmVyYWwgZm9ybWF0IG9mIHRoZSByZXF1
-ZXN0IGFuZCByZXNwb25zZSB3aWxsIGJlIHRoZSBzYW1lOg0KPiA+DQo+ID4gICAtLS0tLS0tLS0t
-LS0tLS0tLS0NCj4gPiAgIHwgbmV0bGluayBoZWFkZXIgfA0KPiA+ICAgLS0tLS0tLS0tLS0tLS0t
-LS0tDQo+ID4gICB8ICBEYXRhIGhlYWRlciAgIHwNCj4gPiAgIC0tLS0tLS0tLS0tLS0tLS0tLQ0K
-PiA+ICAgfCAgICAgIERhdGEgICAgICB8DQo+ID4gICAtLS0tLS0tLS0tLS0tLS0tLS0NCj4gPg0K
-PiA+IFRoZSBkYXRhIGhlYWRlciBjb250YWlucyBpbmZvcm1hdGlvbiBhYm91dCB0aGUgdHlwZSBv
-Zg0KPiA+IHJlcXVlc3QvcmVzcG9uc2UsIHRoZSBzdGF0dXMgKGZvciByZXNwb25zZSksIHRoZSB0
-eXBlIChmb3JtYXQpIG9mIHRoZQ0KPiA+IGRhdGEsIHRoZSB0b3RhbCBsZW5ndGggb2YgdGhlIGRh
-dGEgaGVhZGVyICsgZGF0YSwgYW5kIGEgZmxhZ3MgZmllbGQgYWJvdXQgdGhlDQo+IHJlcXVlc3Qv
-cmVzcG9uc2Ugb3IgZGF0YS4NCj4gPg0KPiA+IEJhc2VkIG9uIHRoZSB0eXBlIG9mIHRoZSBkYXRh
-LCB0aGUgZGF0YSBzZWN0aW9uIG1heSBiZSBpbiBkaWZmZXJlbnQNCj4gPiBmb3JtYXQ6IGEgc3Ry
-aW5nIGFib3V0IHRoZSBob3N0IG5hbWUgdG8gcmVzb2x2ZSwgYW4gSVA0L0lQNiBhZGRyZXNzLCBh
-DQo+ID4gcGF0aHJlY29yZCwgYSB1c2VyIHBhdGhyZWNvcmQgKHN0cnVjdCBpYl91c2VyX3BhdGhf
-cmVjKSwgb3Igc2ltcGx5IGENCj4gPiBNQUQgKGxpa2Ugb3VyIHBvc3RlZCBwYXRjaGVzKSwgZXRj
-LiBFc3NlbnRpYWxseSBpdCBjYW4gYmUgb2YgYW55DQo+ID4gZm9ybWF0IGJhc2VkIG9uIHRoZSBk
-YXRhIHR5cGUuIFRoZSBrZXkgaXMgdG8gZG9jdW1lbnQgdGhlIGZvcm1hdCBzbyB0aGF0DQo+IHRo
-ZSBrZXJuZWwgYW5kIHVzZXIgc3BhY2UgY2FuIGNvbW11bmljYXRlIGNvcnJlY3RseS4NCj4gPg0K
-PiA+IFRoZSBkZXRhaWxzIGFyZSBkZXNjcmliZWQgYmVsb3c6DQo+ID4NCj4gPiAjZGVmaW5lIElC
-X05MX1ZFUlNJT04JCTB4MDENCj4gPg0KPiA+ICNkZWZpbmUgSUJfTkxfT1BfTUFTSwkJMHgwRg0K
-PiA+ICNkZWZpbmUgSUJfTkxfT1BfUkVTT0xWRQkweDAxDQo+ID4gI2RlZmluZSBJQl9OTF9PUF9R
-VUVSWV9QQVRICTB4MDINCj4gPiAjZGVmaW5lIElCX05MX09QX1NFVF9USU1FT1VUCTB4MDMNCj4g
-PiAjZGVmaW5lIElCX05MX09QX0FDSwkJMHg4MA0KPiANCj4gSWYgT1BfQUNLIGlzIG9uZSBiaXQs
-IHdoeSBpc24ndCB0aGUgT1BfTUFTSyAweDdmPw0KDQpZb3UgYXJlIHJpZ2h0LiBUaGUgbWFzayBz
-aG91bGQgYmUgMHg3Zg0KDQo+IA0KPiA+ICNkZWZpbmUgSUJfTkxfU1RBVFVTX1NVQ0NFU1MJMHgw
-MDAwDQo+ID4gI2RlZmluZSBJQl9OTF9TVEFUVVNfRU5PREFUQQkweDAwMDENCj4gDQo+IERvIHdl
-IG5lZWQgMTYgYml0cyBmb3IgYSBib29sPyAgSW4gZmFjdCwgY291bGRuJ3QgdGhpcyBhY3R1YWxs
-eSBiZSBzd2l0Y2hlZCBzbw0KPiB0aGF0IHRoZSByZXR1cm4gb2YgdGhlIG1lc3NhZ2UgdXNlcyBP
-UF9TVUNDRVNTIGluc3RlYWQgb2YgT1BfQUNLPw0KDQpQb3RlbnRpYWxseSwgeW91IG1heSB3YW50
-IHRvIHJldHVybiBkaWZmZXJlbnQgc3RhdGlpIGZvciBkaWFnbm9zdGljIHB1cnBvc2UuICggT1Bf
-QUNLIHwgb3JpZ2luYWwgT1ApIGluZGljYXRlcyB0aGF0IHRoaXMgaXMgYSByZXNwb25zZSB0byBP
-UCwganVzdCBsaWtlIHdoYXQgaXMgZG9uZSBpbiBNQUQgcmVzcG9uc2UuDQoNCj4gDQo+IEluIG90
-aGVyIHdvcmRzLCBpbnN0ZWFkIG9mIHR3byBpdGVtcyBoZXJlLCBjb3VsZG4ndCB0aGUgQUNLIGJp
-dCBiZSBkcm9wcGVkDQo+IGVudGlyZWx5IGFuZCByZXBsYWNlZCB3aXRoIFNVQ0NFU1Mgc28gdGhh
-dCB3aGVuIHRoZSB1c2VyIGFwcCByZXR1cm5zIHRoZQ0KPiBuZXRsaW5rIHBhY2tldCwgaWYgdGhl
-IG9wIG9uIHJldHVybiA9PSB0byB0aGUgb3Agb24gc2VuZCwgaXQgZmFpbGVkLCBpZiBpdCdzIG9w
-IHwNCj4gU1VDQ0VTUywgaXQgc3VjY2VlZGVkPw0KPiANCj4gPiAjZGVmaW5lIElCX05MX0RBVEFf
-VFlQRV9JTlZBTElECQkJMHgwMDAwDQo+ID4gI2RlZmluZSBJQl9OTF9EQVRBX1RZUEVfTkFNRQkJ
-CTB4MDAwMQ0KPiA+ICNkZWZpbmUgSUJfTkxfREFUQV9UWVBFX0FERFJFU1NfSVAJCTB4MDAwMg0K
-PiA+ICNkZWZpbmUgSUJfTkxfREFUQV9UWVBFX0FERFJFU1NfSVA2CQkweDAwMDMNCj4gPiAjZGVm
-aW5lIElCX05MX0RBVEFfVFlQRV9QQVRIX1JFQ09SRAkJMHgwMDA0DQo+ID4gI2RlZmluZSBJQl9O
-TF9EQVRBX1RZUEVfVVNFUl9QQVRIX1JFQwkJMHgwMDA1DQo+ID4gI2RlZmluZSBJQl9OTF9EQVRB
-X1RZUEVfTUFECQkJMHgwMDA2DQo+ID4NCj4gPiAjZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfR01Q
-CQkJMQ0KPiA+ICNkZWZpbmUgSUJfTkxfRkxBR1NfUEFUSF9QUklNQVJZCQkoMTw8MSkNCj4gPiAj
-ZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfQUxURVJOQVRFCQkoMTw8MikNCj4gPiAjZGVmaW5lIElC
-X05MX0ZMQUdTX1BBVEhfT1VUQk9VTkQJCSgxPDwzKQ0KPiA+ICNkZWZpbmUgSUJfTkxfRkxBR1Nf
-UEFUSF9JTkJPVU5ECQkoMTw8NCkNCj4gPiAjZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfSU5CT1VO
-RF9SRVZFUlNFIAkoMTw8NSkNCj4gPiAjZGVmaW5lIElCX05MX0ZMQUdTX1BBVEhfQklESVJFQ1RJ
-T05BTA0KPiAJKElCX1BBVEhfT1VUQk9VTkQgfCBJQl9QQVRIX0lOQk9VTkRfUkVWRVJTRSkNCj4g
-PiAjZGVmaW5lIElCX05MX0ZMQUdTX1FVRVJZX1NBCQkJKDE8PDMxKQ0KPiA+ICNkZWZpbmUgSUJf
-TkxfRkxBR1NfTk9ERUxBWQkJCSgxPDwzMCkNCj4gDQo+IFBsZWFzZSBrZWVwIHRoZXNlIGluIG51
-bWVyaWNhbCBvcmRlciwgZG9uJ3QgcHV0IDw8MzEgYW5kIGJlbG93IGl0IDw8MzANCg0KSW5kZWVk
-LCB0aGUgZmxhZ3Mgc2hvdWxkIGJlIGRlZmluZWQgd2l0aCBjYXJlLiBJIHNpbXBseSBjb3BpZWQg
-ZnJvbSBpbmNsdWRlL3VhcGkvcmRtYS9pYl91c2VyX3NhLmggYW5kIGFjbS5oIGZyb20gaWJhY20g
-Zm9yIGRlbW9uc3RyYXRpb24uIEkgd2lsbCByZW1vdmUgdGhlbSBmcm9tIG15IHBhdGNoZXMgbGF0
-ZXIuDQoNCj4gDQo+ID4gc3RydWN0IGliX25sX2RhdGFfaGRyIHsNCj4gPiAJX191OAl2ZXJzaW9u
-Ow0KPiA+IAlfX3U4CW9wY29kZTsNCj4gPiAJX191MTYJc3RhdHVzOw0KPiBEcm9wIHN0YXR1cyBi
-ZWNhdXNlIHdlIGZvbGQgaXQgaW50byBvcGNvZGUNCg0KT25seSBpZiB3ZSBkb24ndCBuZWVkIHN0
-YXR1cy4gQnV0IHdlIG1heSBuZWVkIG1vcmUgc3RhdHVzLg0KDQoNCj4gPiAJX191MTYJdHlwZTsN
-Cj4gPiAJX191MTYJcmVzZXJ2ZWQ7DQo+IERyb3AgcmVzZXJ2ZWQgYmVjYXVzZSB3ZSBkb24ndCBu
-ZWVkIGFsaWdubWVudCBhbnkgbW9yZQ0KDQpEZXBlbmRzIG9uIGFib3ZlLg0KDQo+ID4gCV9fdTMy
-CWZsYWdzOw0KPiBGbGFncyBpcyB0aGUgb25seSB0aGluZyB1c2luZyBiaXRzIGZhc3QsIGFuZCB3
-ZSB3b3VsZCB3YW50IHRvIG1ha2UgdGhpcyBoZWFkZXINCj4gYW4gZXZlbiAxMjhiaXRzIGluIGxl
-bmd0aCwgc28gYWRkIGEgX191MzIgcmVzZXJ2ZWQ7IGhlcmUuICBUaGF0J3MgbW9yZSBsaWtlbHkN
-Cj4gdG8gYmUgdXNlZnVsIHRoYW4gdGhlIGN1cnJlbnQgbGF5b3V0IHNpbmNlIHdlIGFyZSBsaWtl
-bHkgdG8gcnVuIG91dCBvZiBmbGFncw0KPiBiZWZvcmUgYW55dGhpbmcgZWxzZS4NCg0KVGhhdCBp
-cyBhIHZlcnkgcmVhc29uYWJsZSBhc3N1bXB0aW9uLiBJIHdpbGwga2VlcCBhbiBleWUgb24gaXQu
-DQoNCj4gPiAJX191MzIJbGVuZ3RoOw0KPiA+IH07DQo+ID4NCj4gPiBzdHJ1Y3QgaWJfbmxfZGF0
-YSB7DQo+ID4gCXN0cnVjdCBpYl9ubF9kYXRhX2hkcgkJaGRyOw0KPiA+IAlfX3U4CQkJCWRhdGFb
-MF07DQo+ID4gfTsNCj4gPg0KPiA+DQo+ID4gVGhlc2UgZGVmaW5lcyBhbmQgc3RydWN0dXJlcyBj
-YW4gYmUgYWRkZWQgdG8gZmlsZQ0KPiA+IGluY2x1ZGUvdXBhaS9yZG1hL3JkbWFfbmV0bGluay5o
-IChyZXBsYWNlIHdpdGggUkRNQV9OTCBwcmVmaXgpIG9yDQo+IGNvbnRhaW5lZCBpbiBhIHNlcGVy
-YXRlIGZpbGUgKGluY2x1ZGUvdXBhaS9yZG1hL2liX25ldGxpbmsuaCA/Pz8pLg0KPiA+DQo+ID4g
-UGxlYXNlIHNoYXJlIHlvdXIgdGhvdWdodHMuDQo+IA0KPiBJIHRoaW5rIGFuIGV4dGVuc2libGUg
-bmV0bGluayBmcmFtZXdvcmsgaGVyZSBpcyB0aGUgcmlnaHQgd2F5IHRvIGdvLCBjZXJ0YWlubHkN
-Cj4gYmV0dGVyIHRoYW4gdGhlIG9uZSBzaG90IG1ldGhvZCB5b3UgaGFkIGZpcnN0Lg0KDQpUaGFu
-ayB5b3UuDQoNCkthaWtlDQo+IA0KPiA+IEthaWtlDQo+ID4gLS0NCj4gPiBUbyB1bnN1YnNjcmli
-ZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIN
-Cj4gPiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9y
-ZyBNb3JlDQo+IG1ham9yZG9tbw0KPiA+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
-bWFqb3Jkb21vLWluZm8uaHRtbA0KPiANCj4gDQo+IC0tDQo+IERvdWcgTGVkZm9yZCA8ZGxlZGZv
-cmRAcmVkaGF0LmNvbT4NCj4gICAgICAgICAgICAgICBHUEcgS2V5SUQ6IDBFNTcyRkREDQoNCg==
+On Thu, May 21, 2015 at 08:33:53AM +0300, Haggai Eran wrote:
+
+> To create a new child interface on the default P_Key, its possible to
+> use iproute:
+> # ip link add link ib0 name ib0.1 type ipoib
+
+Uh..
+
+A key invariant of the IP stack is that is it possible to uniquely
+identify the ingress device.
+
+So the above scheme is fine for IPoIB, because it uses the interface
+unique QPN to uniquely ID the netdevice: (Device,Port,Pkey,QPN)
+is the unique ID tuple. The world is happy.
+
+But RDMA CM doesn't provide the QPN. So when RDMA CM searches the
+netdevs for an address it cannot *uniquely* map to a IPoIB interface.
+
+This is bad, and *completely wrong*, but today, nobody is going to
+really notice or care. The cases where it does something you don't
+want are not very significant.
+
+But with containers.. Think this through for a minute: 'In some cases
+the RDMA CM selecs the wrong child' - that goes from being a minor
+annoyance to a violation of containment! Worse the criteria for
+'selects the wrong child' can be triggered by the contained users. Eg
+the contained user adds a IP to their child that duplicates another
+container. Now we've lost control.
+
+The very idea of ib_get_net_dev_by_port_pkey_ip is broken.
+
+So, I don't know what to say here.. Ideas?
+
+1) Forbid creating more than one pkey per ipoib interface?
+2) Somehow extend the RDMA CM to send the IPoIB qpn too?
+3) ??
+
+Right now the only case that comes to mind is duplicating IPs, that is
+already going to cause an ARP collision, so maybe having the RDMA CM
+randomly select an IP is not the end of the world... But with
+containers and security, who knows? I'm not confident I've
+exhaustively thought of all possibilities here.
+
+----------
+
+Anyhow.. looking again through this series and the existing code, the
+flow is wrong, and really needs to be changed before this starts to
+make sense to anyone, and is no doubt part of how we got here..
+
+When a REQ arrives RDMA CM needs to run down these steps (this is identical
+to what ip_input.c does)
+
+ 1) Locate the netdev associated with the ingress of the packet,
+    in a sane world this is done by only checking the
+    unique (Device,Port,Pkey,QPN) tuple.
+    If we keep our brokeness, we'd do this based on
+    (Device,Port,Pkey,IP) - if there are IP collisions then randomly
+    select a netdev (similar to how ARP collision is handled).
+ 2) Then we do the ip_route_input_noref step, this will set skb_dst to
+    the netdev that will handle the packet, or tell us to drop it.
+    This is not always the same as the netdev that accepts the
+    packet!!!
+
+    NOTE: This route step is missing today, it does critical things
+    like check that the node is actually listening on the dest IP!
+
+ 3) Now we can use skb_dst to iterate over the set of all RDMA CM listens:
+     1) Bound to the skb_dst netdev
+     2) Unbound in the same namespace as skb_dst netdev
+    The first to match the dst IP + port is the listen that will accept the
+    connection, now we go into the cma_new_conn_id path, and we don't
+    need rdma_translate_ip because we already have the handling netdev.
+
+The backwards operation of the current code is part of why this is all
+so strange looking, and I think is strongly connected to the private
+data compare issues Sean is talking about. It is very much the wrong
+flow to look for the RDMA CM listen first, and then try to work
+backwards to the netdev.
+
+The above 3 steps hard require that the ib_cm and rdma_cm
+maintain different listening lists, because we need the 2nd search in
+#3. So this gets the ib_cm completely out of looking at the private
+data. [And now we can think carefully about the best way to refcount
+the listens in RDMA CM]
+
+Once the above is cleaned up dropping in namespaces should just
+happen naturally.
+
+So.. I'm going to suggest you make a cleanup series to fix this:
+ - Introduce the ib_get_net_dev_by_port_pkey_ip and document the
+   breakage it represents
+ - Rework rdma_cm to do steps 1,2,3 above, using
+   ib_get_net_dev_by_port_pkey_ip to drive #1, your patch set is
+   already doing about 50% of this change.
+ - Fix the collateral damage
+
+As I said to Matan, clean up series like this should not introduce
+major functional changes, so stack the few remaining net namespace
+things in another series after it.
+
+** The same comments apply to RoCE too, but for RoCE step #1 works
+   properly based on the (Device,Port,VLAN) unique tuple
+   Ditto for iWarp **
+
+I think this also moves to address Sean's concern about generality, at
+least for listen. All three protocols will run down the same common
+code to locate the netdev and find the correct RDMA CM listen. The
+only difference is the 'ib_get_net_dev_by_port_pkey_ip' call varies.
+
+.. I also wouldn't mind seeing the giant cma.c split, if it makes
+   sense to have a cma_listen.c, for instance, wouldn't that be nice?
+
+Sorry Haggi, this is a big change to your patchset :(
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
