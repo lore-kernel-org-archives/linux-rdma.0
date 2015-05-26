@@ -1,52 +1,45 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Tue, 26 May 2015 21:33:18 +0300
-Message-ID: <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com>
-References: <20150519190031.GN18675@obsidianresearch.com>
-	<CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
-	<20150519191553.GP18675@obsidianresearch.com>
-	<CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
-	<20150520002915.GD16941@obsidianresearch.com>
-	<555C9D00.2090609@mellanox.com>
-	<1432134677.5304.23.camel@opteya.com>
-	<CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
-	<CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
-	<CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
-	<20150526160624.GA11800@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Tue, 26 May 2015 12:47:34 -0600
+Message-ID: <20150526184734.GE11800@obsidianresearch.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+ <1432647280.28905.107.camel@redhat.com>
+ <20150526165928.GC11800@obsidianresearch.com>
+ <1432662396.28905.157.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150526160624.GA11800-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1432662396.28905.157.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 26, 2015 at 7:06 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Tue, May 26, 2015 at 11:10:45AM +0300, Or Gerlitz wrote:
->
->> Jason, ping, it's fair to require that if you made a review argument against
->> the design done here and we've responded about a week ago, saying why
->> this design is valid (e.g goes along the 10y old IB stack udata mechanism and
->> such) -- you would comment on the response and not  leave it in the air.
->
-> Was it not clear? Yann and I asked to see the user space side before
-> reviewing this series further.
+On Tue, May 26, 2015 at 01:46:36PM -0400, Doug Ledford wrote:
 
-Jason, you (U2 BTW) play really, really hard - refusing to say **one**
-word on your approach towards the built-in udata mechanism for uverbs
-which I asked you to comment on.
+> > Remember, this isn't RDMA namespaces, this is netdev namespace support
+> > for RDMA-CM -> very different things.
+> 
+> That was the point of my email.  This is a very myopic view of the
+> feature.  It *should* at least have an idea of these other things too.
 
-On top of that, as happens **all** the **time** in netdev and possibly
-other subsystems, user space facing kernel patches were reviewed and
-accepted in this list over the last ten years with-out seeing their
-user-space counter parts @ the time of the kernel submission. There's
-no reason to impose this as hard requirement just b/c two reviewers
-ask that. You don't own this place.
+Everything you talked about seems covered: iwarp/roce/ib now have a
+fairly clear uniform story for CM. usNIC doesn't use core code.
 
-Or.
+I doubt a larger discussion about a 'rdma namespace' is going to
+substantially change these patches, they are really netdev focused.
+Anyhow, I've been saving that discussion for when the roce and
+umad/uverbs namespace stuff is re-sent. It seems more appropriate at
+that point.
+
+I don't know about you, but I am exhausted looking at these huge patch
+sets, and narrowing the focus is the only way I see to get through.
+This series has hopefully narrowed to: 'fix the flow in netdev
+handling for rdma-cm'.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
