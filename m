@@ -1,74 +1,39 @@
-From: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Subject: RE: [PATCH] RDMA/ocrdma: remove unneeded tests
-Date: Tue, 26 May 2015 21:30:03 +0530
-Message-ID: <fc65b86cff5dc0ca24bc90c3dab7c205@mail.gmail.com>
-References: <1432238824-16953-1-git-send-email-laurent.navet@gmail.com> <1432644310.28905.95.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Tue, 26 May 2015 10:06:24 -0600
+Message-ID: <20150526160624.GA11800@obsidianresearch.com>
+References: <20150519190031.GN18675@obsidianresearch.com>
+ <CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
+ <20150519191553.GP18675@obsidianresearch.com>
+ <CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
+ <20150520002915.GD16941@obsidianresearch.com>
+ <555C9D00.2090609@mellanox.com>
+ <1432134677.5304.23.camel@opteya.com>
+ <CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
+ <CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
+ <CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432644310.28905.95.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Laurent Navet <laurent.navet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Although already applied, Thanks Laurent and Doug.
+On Tue, May 26, 2015 at 11:10:45AM +0300, Or Gerlitz wrote:
 
-Acked-By: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+> Jason, ping, it's fair to require that if you made a review argument against
+> the design done here and we've responded about a week ago, saying why
+> this design is valid (e.g goes along the 10y old IB stack udata mechanism and
+> such) -- you would comment on the response and not  leave it in the air.
 
-> -----Original Message-----
-> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Tuesday, May 26, 2015 6:15 PM
-> To: Laurent Navet
-> Cc: selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org; devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org;
-> mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org;
-> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH] RDMA/ocrdma: remove unneeded tests
->
-> On Thu, 2015-05-21 at 22:07 +0200, Laurent Navet wrote:
-> > The same code is executed regardless status value, so these tests can
-> > be removed.
-> > Fix Coverity CID 1271151 and 1268788
->
-> Thanks, applied for 4.2.
->
-> > Signed-off-by: Laurent Navet <laurent.navet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 6 ------
-> >  1 file changed, 6 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > index 0c9e959..e748090 100644
-> > --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > @@ -1960,9 +1960,6 @@ static int ocrdma_mbx_reg_mr_cont(struct
-> ocrdma_dev *dev,
-> >  		    upper_32_bits(hwmr->pbl_table[i + pbl_offset].pa);
-> >  	}
-> >  	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
-> > -	if (status)
-> > -		goto mbx_err;
-> > -mbx_err:
-> >  	kfree(cmd);
-> >  	return status;
-> >  }
-> > @@ -3044,9 +3041,6 @@ static int ocrdma_mbx_modify_eqd(struct
-> ocrdma_dev *dev, struct ocrdma_eq *eq,
-> >  				(eq[i].aic_obj.prev_eqd * 65)/100;
-> >  	}
-> >  	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
-> > -	if (status)
-> > -		goto mbx_err;
-> > -mbx_err:
-> >  	kfree(cmd);
-> >  	return status;
-> >  }
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
+Was it not clear? Yann and I asked to see the user space side before
+reviewing this series further.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
