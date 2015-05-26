@@ -1,78 +1,55 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
- RDMA-CM
-Date: Tue, 26 May 2015 09:34:40 -0400
-Message-ID: <1432647280.28905.107.camel@redhat.com>
-References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] Export tos field to iwarp providers
+Date: Tue, 26 May 2015 08:42:25 -0400
+Message-ID: <1432644145.28905.94.camel@redhat.com>
+References: <20150518202453.GA17572@TENIKOLO-MOBL2>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-Gtqb0YCKA9I3HBpDsAq1"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Liran Liss <liranl@mellanox.com>, Guy Shapiro <guysh@mellanox.com>, Shachar Raindel <raindel@mellanox.com>, Yotam Kenneth <yotamke@mellanox.com>
+	protocol="application/pgp-signature"; boundary="=-GkTtbE1MVh/6EoudUJjB"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150518202453.GA17572@TENIKOLO-MOBL2>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-Gtqb0YCKA9I3HBpDsAq1
+--=-GkTtbE1MVh/6EoudUJjB
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2015-05-17 at 08:50 +0300, Haggai Eran wrote:
-> Thanks again everyone for the review comments. I've updated the patch set
-> accordingly. The main changes are in the first patch to use a read-write
-> semaphore instead of an SRCU, and with the reference counting of shared
-> ib_cm_ids.
-> Please let me know if I missed anything, or if there are other issues wit=
-h
-> the series.
+On Mon, 2015-05-18 at 15:24 -0500, Tatyana Nikolova wrote:
+> Subject: [PATCH 0/2] Enable iwarp providers to use the tos field
+>=20
+> The first patch "RDMA/iw_cm: Export tos field to iwarp providers" is
+> resubmitted, following the original submission from Steve Wise.
+> The patch was deferred until the tos field is being used by iwarp drivers=
+.
+> You could see the email thread about the original patch here:
+> http://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg20140.html
+>=20
+> The second patch "RDMA/nes: Enable the use of the tos field in the nes dr=
+iver"
+> is introducing changes to the nes driver to use the provided tos field.
+>=20
+> Tatyana Nikolova (2):
+>   RDMA/iw_cm: Export tos field to iwarp providers
+>   RDMA/nes: Enable the use of the tos field in the nes driver
+>=20
+>  drivers/infiniband/core/cma.c      |    2 ++
+>  drivers/infiniband/hw/nes/nes_cm.c |    7 +++++++
+>  drivers/infiniband/hw/nes/nes_cm.h |    2 ++
+>  include/rdma/iw_cm.h               |    1 +
+>  4 files changed, 12 insertions(+), 0 deletions(-)
 
-Hi Haggai,
-
-I know you are probably busy reworking this right now on the basis of
-Jason's comments.  However, my biggest issue with this patch set right
-now is not technical (well, it is, but it's only partially technical).
-
-This is a core feature more than anything else.  Namespaces for RDMA
-devices is not unique to IB or RoCE in any way.  Yet no thought has been
-given to how this will work universally across all of the RDMA capable
-devices (mainly I'm talking about iWARP here...I don't think this is an
-issue for usNIC as if you want namespace support there, you just start
-the user space app in a given namespace and you are probably 90% of the
-way there since the user space application gets its own device and so
-its own MAC/IP and all of the RDMA transfers are UDP, so the
-application's namespace should get inherited by all the rest, but Cisco
-would need to confirm that, hence why I say 90% of the way there, it
-needs confirmed).
-
-So, while you are reworking things right now, you would ideally contact
-Steve Wise and/or Tatyana Nikolova and discuss the iWARP story on this.
-I know there won't be a lot of overlap between IB and iWARP, but last
-time you were asked you didn't even know if this setup could be extended
-to iWARP.
-
-For this next statement, I know I'm directing this to you Haggai, but
-please don't take it that way.  I'm really using your patch set to make
-a broader point to everyone on the list.
-
-When I look at patches for support for a given feature, one of the
-things I'm going to look at is whether or not that feature is specific
-to a given hardware type, or if it's a generic feature.  If it's a
-generic feature, then I'm going to want to know that the person
-submitting it has designed it well.  A pre-requisite of designing a
-generic feature well is that it considers all hardware types, not just
-your specific hardware type.  So when you come back with the next
-version of this patch set, please have an answer for how it should work
-on each hardware type even if you don't have implementation patches for
-each hardware type.
+Thanks, applied for 4.2.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-Gtqb0YCKA9I3HBpDsAq1
+--=-GkTtbE1MVh/6EoudUJjB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -80,19 +57,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVZHZwAAoJELgmozMOVy/d0t8P/ixPSCoqBr69vPdS/7liLaIb
-c196vUK3N7c3Mht6btbzmKskJKoh7SE8s507+rjpmoHJnZ5xpqwEkIS32HRgEAqt
-C9iuliruhntHr/a+Fg39842v8RC0v4w/cnJKiudKQ8FxWXYTSUsHHMlKABqFxiFh
-lQtsUr72qJ3mBLvzbpIyvpDUWsXJ4o7/d4/fxNjuTPjqStZGVBh6yzEPm9Wkjdy4
-Q9bibAXgZcLVbHEIc0XUZpfnMW8GO6YZ4GngPpxPXqVY9Z+egbmD+41jwyqG+l9k
-1iDSYgEvZ/NkAkWCohSGg/IatmKaIPVTcZKfDo++txhWt/GUav3ueEhyZogFKgnx
-Kadwm00nmIi0i0HwjM3It3GvMttMWywEDe8SiHO0B9Nmi+jq2GDZryP/Cmo6eMt/
-GOTEKGsL+eBgKak8nKEkAaL7V5ZVYlVlV+Dx1yj9aWe5IhxIheJGu8IBS7MbzDXj
-nKNOZMweOA/ClwYkxb709/cooSoBlUbfVekbxPZT9tzFW62YNfpkG/v5SeE6DGSX
-C9LqLFzZb5WtA18Uar2MZLJp/GfexVTluXIJLYu0X/9tRbLYZyiv+sjlxIkZihGt
-X1n/LIhnVytiQ5GdaK+vTrvUCVwcUZmaJYR3lhNCtbmEF4IVnJgd2q4gx1+8+/HP
-AD6gvxxcVhNTKnThw4ft
-=NfcI
+iQIcBAABCAAGBQJVZGoxAAoJELgmozMOVy/dC8QQAKzONELHSfeYboJWqpfi7vxH
+oIt8hT31fJCpSKVX1w45gnnvCnAWoEgq5pwjGYgFRCK2V9HnDsGXEzf9x1Tm7P9r
+lJ+mtQ13twjx++9wDIGOU+LWvmEJhhcR3NYetHkytmIXLgD46OyBYwH3V6VZYPCD
+URKqDTfQDN00cBZ9BKdf1XvSz7d4uATefTt5friV+TmoefukDbQrLXDbYEU5EOG5
+VrIQgBMOK0zd9Kp1I0GZSZuQRywVLGGsbFHUW2FgUI1txMiKgUSF1Dq67od+aY5g
+ieiv4SZb9+g8HaJLoY2w01pZm0vutBDj7Pie6UQJJznVjnUpXzRjh1A5vRA2tK8Q
+YdzGjmhPF7Q+susAx3ugNV+DcS18yoiz0HdKU+9TWb8cGjnj6I8nGUxPHpiBipDW
+8MoX3LpXXlGiH0fL/6IOZ5A7hOop/1c2YIabcAiaJZdpvkzzp7Gq2PMC0z574C1v
+5SW8HtpkPQdWURFiv4yaa1MSc3WPTplQxjpPf6YBtolPkU/ndORqSSC5Kjhli+nL
+kcaV4H2P9uIL7kRxA7pfbfSnp1q1FnnLNqgCHb59YoiE1LvJCHDa4q5xBXNNbe6C
+dTX+J0xrKlp/LMLjcUV3EXjULpkx+0aORLK4vKKOpTgjAFJREQSAWVVSHjXiHd1V
+SzMMZkAcb9NHCy8OMC+l
+=OcWN
 -----END PGP SIGNATURE-----
 
---=-Gtqb0YCKA9I3HBpDsAq1--
+--=-GkTtbE1MVh/6EoudUJjB--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
