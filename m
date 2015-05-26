@@ -1,62 +1,90 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Tue, 26 May 2015 11:10:45 +0300
-Message-ID: <CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
-References: <1431869786-6308-1-git-send-email-ogerlitz@mellanox.com>
-	<1431869786-6308-10-git-send-email-ogerlitz@mellanox.com>
-	<20150519185801.GM18675@obsidianresearch.com>
-	<20150519190031.GN18675@obsidianresearch.com>
-	<CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
-	<20150519191553.GP18675@obsidianresearch.com>
-	<CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
-	<20150520002915.GD16941@obsidianresearch.com>
-	<555C9D00.2090609@mellanox.com>
-	<1432134677.5304.23.camel@opteya.com>
-	<CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
-	<CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] RDMA/ocrdma: remove unneeded tests
+Date: Tue, 26 May 2015 08:45:10 -0400
+Message-ID: <1432644310.28905.95.camel@redhat.com>
+References: <1432238824-16953-1-git-send-email-laurent.navet@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-guVLw+MpmkEV8l6qHTEd"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432238824-16953-1-git-send-email-laurent.navet@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Navet <laurent.navet@gmail.com>
+Cc: selvin.xavier@emulex.com, devesh.sharma@emulex.com, mitesh.ahuja@emulex.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, May 23, 2015 at 7:26 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Wed, May 20, 2015 at 8:53 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> On Wed, May 20, 2015 at 6:11 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
->>
->>>> But this is whole purpose of the udata framework in uverbs, right? for
->>>> each uverb command the vendor user-space library has a well defined
->>>> channel to communicate directly with the low level vendor driver
->>>> throughout the uverbs channels.
->>
->>> Uverbs convey information between kernel and userspace drivers to
->>> implement verbs for userspace application. I don't think it's designed
->>> to allow vendor to add random extensions in the best way with regard to
->>> backward/forward compability.
->>
->> Disagree that this is random extension. The people that designed this
->> stack 10y ago (Roland and Co.) looked very nicely forward and realized
->> that not all the HW are the same nor can be put 101% under the same
->> API with no way out, and hence they came up with udata.
->>
->> Please state how you see the role of the uverbs udata mechanism.
->
-> Guys, still waiting to hear why you think it's wrong here to use the
-> mechanism which was built from day-1 for the purpose of allowing the
-> user-space driver library to communicate with the kernel driver and
-> pass values in both directions.
 
-Jason, ping, it's fair to require that if you made a review argument against
-the design done here and we've responded about a week ago, saying why
-this design is valid (e.g goes along the 10y old IB stack udata mechanism and
-such) -- you would comment on the response and not  leave it in the air.
+--=-guVLw+MpmkEV8l6qHTEd
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, 2015-05-21 at 22:07 +0200, Laurent Navet wrote:
+> The same code is executed regardless status value, so these tests can
+> be removed.
+> Fix Coverity CID 1271151 and 1268788
+
+Thanks, applied for 4.2.
+
+> Signed-off-by: Laurent Navet <laurent.navet@gmail.com>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 6 ------
+>  1 file changed, 6 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniban=
+d/hw/ocrdma/ocrdma_hw.c
+> index 0c9e959..e748090 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> @@ -1960,9 +1960,6 @@ static int ocrdma_mbx_reg_mr_cont(struct ocrdma_dev=
+ *dev,
+>  		    upper_32_bits(hwmr->pbl_table[i + pbl_offset].pa);
+>  	}
+>  	status =3D ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
+> -	if (status)
+> -		goto mbx_err;
+> -mbx_err:
+>  	kfree(cmd);
+>  	return status;
+>  }
+> @@ -3044,9 +3041,6 @@ static int ocrdma_mbx_modify_eqd(struct ocrdma_dev =
+*dev, struct ocrdma_eq *eq,
+>  				(eq[i].aic_obj.prev_eqd * 65)/100;
+>  	}
+>  	status =3D ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
+> -	if (status)
+> -		goto mbx_err;
+> -mbx_err:
+>  	kfree(cmd);
+>  	return status;
+>  }
+
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+--=-guVLw+MpmkEV8l6qHTEd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVZGrWAAoJELgmozMOVy/dIJ0P/RT34ydpnG10RbTfcuB6b1H8
+noFvm0lwnTttWI7yjSCTSUULTJL65zQDaK+U4+Wjn0NS1Livl1rZDR100oqtSy09
+khUfxevl32cY6WPZbmmVPMThc7kP7pqKlkuKQY6jG4TLvaKd7lZQZZaVzFRb4rou
+gfpSUrhdWXez5Nt3oRqJ88IkbXx2lyfS4tsKw+0ck6AkRZwWaKN2aNiGhXyr7g74
+eJNy8pD6tn2WeDcNpVTGXUek/Bqa37Akmy1XRTvqX/5r3j4KL1nXYURzmlcDXpXD
+alENIe+1L65RGpS1/Tr/Ay+Bf6Yopttd8t/onrHBf+vGVHApGR/70rd27+vrNl/L
+faTsI01BrJp9ze6+Rx+ejVwCmN3QLDAehckyrWgd5Auq9tdyzr1fkVYVsv+KqOTA
+Vxwgxd+sO/oQnwZ/sfwhiBiuasN6PuVbldafeKCn73zwwjyYPCrdtU6Gr5m+V5kk
+tZYZxL76rnT7DgqPNYmp3qW/lQ1HNQ16hpPS9xrZJYVdVRJMspxf0LlEI9pxdFGF
+KdGyxvhl3XG93nQRDkiK7KHGAftIMzR4SJ7/canFDCQHNljOU9Qe5ngTS5fv4JoU
+sXnxAIFAUPfJeq+C5lmypZ+iQaSF8pYrSYw8w3mRNyFA4fp34iiD8GLTv3zswuLS
+F8zw+dbmXkERDLfzNpPH
+=oB3g
+-----END PGP SIGNATURE-----
+
+--=-guVLw+MpmkEV8l6qHTEd--
