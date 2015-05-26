@@ -1,57 +1,52 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.1.5-1 release
-Date: Tue, 26 May 2015 18:25:30 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F977D772B6@ORSMSX101.amr.corp.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Tue, 26 May 2015 21:33:18 +0300
+Message-ID: <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com>
+References: <20150519190031.GN18675@obsidianresearch.com>
+	<CAJ3xEMiO2y6G5YzzkGC1M=XB6yrtNJ7jj13pTUAee1TssiYwkQ@mail.gmail.com>
+	<20150519191553.GP18675@obsidianresearch.com>
+	<CAJ3xEMjj31SpZmYXORCePVCQfMOWVKEhtNay-v59FcnCOQWm9w@mail.gmail.com>
+	<20150520002915.GD16941@obsidianresearch.com>
+	<555C9D00.2090609@mellanox.com>
+	<1432134677.5304.23.camel@opteya.com>
+	<CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
+	<CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
+	<CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
+	<20150526160624.GA11800@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20150526160624.GA11800-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New release for uDAPL (2.1.5) is available at http://downloads.openfabrics.org/dapl/dapl-2.1.5.tar.gz
+On Tue, May 26, 2015 at 7:06 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, May 26, 2015 at 11:10:45AM +0300, Or Gerlitz wrote:
+>
+>> Jason, ping, it's fair to require that if you made a review argument against
+>> the design done here and we've responded about a week ago, saying why
+>> this design is valid (e.g goes along the 10y old IB stack udata mechanism and
+>> such) -- you would comment on the response and not  leave it in the air.
+>
+> Was it not clear? Yann and I asked to see the user space side before
+> reviewing this series further.
 
-Vlad, please pull into OFED 3.18 RC3
+Jason, you (U2 BTW) play really, really hard - refusing to say **one**
+word on your approach towards the built-in udata mechanism for uverbs
+which I asked you to comment on.
 
-md5sum: 8a7735bfe24dd7c446aec38db3577728 dapl-2.1.5.tar.gz
+On top of that, as happens **all** the **time** in netdev and possibly
+other subsystems, user space facing kernel patches were reviewed and
+accepted in this list over the last ten years with-out seeing their
+user-space counter parts @ the time of the kernel submission. There's
+no reason to impose this as hard requirement just b/c two reviewers
+ask that. You don't own this place.
 
-For v2.1 package install RPM packages as follow:
-
-dapl-2.1.5-1
-dapl-utils-2.1.5-1
-dapl-devel-2.1.5-1
-dapl-debuginfo-2.1.5-1
-
-Summary of changes:
-
-Release 2.1.5
-update release notes, readme files
-dat.conf: update comments regarding versions
-dtest: add logging of provider private data size with -v
-scm: remove use of msg.resv field for process id logging
-cma: report correct CM req private data size on query
-mpxyd: memset ib_wr structure before post_send on WC and WR requests
-mcm: add HST side provider support for device without inline data capability
-ucm: CM changes for UD extended port space and indexer
-ucm: add device support for new port space hash table
-ucm: allocate/free AH hash table for UD endpoint types
-ucm: check for AH caching when destroying via UD extension
-ucm: optimizations for large scale UD communication management
-mpxyd: use wr opcode instead of wc opcode to support logging on error cases
-mcm: HST->MXS mode, using RDMA_WRITE_WITH_IMM, fails with dtest -w
-dapl: aarch64 support for linux
-dapltest: add scripts to dist, set default device to IPoIB
-mpxyd: add wc_flags to proxy work completions
-
-Release commit:  http://git.openfabrics.org/?p=~ardavis/dapl.git;a=commit;h=facfb793374e4030ebf2ed539d77270a3e90d26e
-
-Regards,
-
-Arlin
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
