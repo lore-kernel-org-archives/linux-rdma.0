@@ -1,68 +1,61 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 02/14] IB/mad: Create an RMPP Base header
-Date: Wed, 27 May 2015 14:13:03 -0400
-Message-ID: <20150527181302.GA6713@phlsvsds.ph.intel.com>
-References: <1432109615-19564-1-git-send-email-ira.weiny@intel.com> <1432109615-19564-3-git-send-email-ira.weiny@intel.com> <20150520182735.GG28496@obsidianresearch.com> <20150520212344.GB22981@phlsvsds.ph.intel.com> <20150520220333.GA5970@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RFC 0/3] Support standard SRIOV configuration for IB VFs
+Date: Wed, 27 May 2015 12:29:31 -0600
+Message-ID: <20150527182931.GA16246@obsidianresearch.com>
+References: <20150525211433.GA9186@obsidianresearch.com>
+ <CAJ3xEMhG2W6WzxC4Kc2CFmdMwTRUF5ppBgcDZ6SMA=kgJowUpQ@mail.gmail.com>
+ <20150525223235.GA9858@obsidianresearch.com>
+ <1432659226.28905.151.camel@redhat.com>
+ <20150526181336.GD11800@obsidianresearch.com>
+ <1432672378.28905.178.camel@redhat.com>
+ <20150526211114.GB4502@obsidianresearch.com>
+ <1432736046.28905.215.camel@redhat.com>
+ <20150527171143.GB9909@obsidianresearch.com>
+ <1432749191.28905.243.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150520220333.GA5970-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1432749191.28905.243.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 04:03:33PM -0600, Jason Gunthorpe wrote:
-> On Wed, May 20, 2015 at 05:23:45PM -0400, ira.weiny wrote:
-> > On Wed, May 20, 2015 at 12:27:35PM -0600, Jason Gunthorpe wrote:
-> > > On Wed, May 20, 2015 at 04:13:23AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > > > -struct ib_rmpp_mad {
-> > > > +struct ib_rmpp_base {
-> > > >  	struct ib_mad_hdr	mad_hdr;
-> > > >  	struct ib_rmpp_hdr	rmpp_hdr;
-> > > > +} __packed;
-> > > > +
-> > > > +struct ib_rmpp_mad {
-> > > > +	struct ib_rmpp_base	base;
-> > > >  	u8			data[IB_MGMT_RMPP_DATA];
-> > > >  };
-> > > 
-> > > Why can't we just use:
-> > > 
-> > >  u8 data[];
-> > > 
-> > > And replace various sizeof(ib_rmpp_mad) with a rmpp_payload_size()
-> > > call?
+On Wed, May 27, 2015 at 01:53:11PM -0400, Doug Ledford wrote:
+
+> > This basic idea is exactly why I think we should stick with the 20
+> > byte LLADDR for ILFA_VF_MAC. It gives a route for the PF to tell the
+> > VF what QPN to use for IPoIB (if we ever see HW support to implement that)
 > > 
-> > I don't think it makes much difference.  I think there is just 1 place we use
-> > that.
+> > If we use 8 bytes then that route is closed off forever.
 > 
-> There are many lines that are just churning rmpp_mad to
-> rmpp_base, using a flex array avoids that entirely.
+> And that's exactly as it should be.  If we allow setting all 20 bytes
+> via the VF_MAC calls, then we violate the "guests should behave like
+> they are on bare metal as much as possible" rule.  As a host, we get a
+> GUID and if we want to control the QPNs for IPoIB (and indeed if we
+> want
 
-Ok.
+No, that doesn't really work. The PF's QPN pool is shared between all
+VF guests. The VF HCA does a call to the PF driver to get a free QPN
+to use. The VM cannot unilaterally select a QPN without global
+coordination.
 
-> 
-> Similarly patch 12 doesn't have to introduce a opa specific structure anymore.
+In other words, if a QPN is to be forced for IPoIB then it must come
+from the PF, which must get it from the orchestration software, which
+must globally coordinate to ensure the QPN is available on every PF
+the VM may want to run on. Similar to how the MAC must be globally
+unique.
 
-Ok.
+Will this ever be done? Probably not. But if it was, this interface
+would be the sanest way to go.
 
-> 
-> The same sort of comment probably applies to the mad_hdr/etc as well,
-> but I didn't look very closely.
+Anyhow - as far as I'm concerned, fixing the IFLA_VF_MAC to have a
+proper length nullifies my concern. If we really needed we can switch
+to a 20 byte format with good compatability options in the future once
+we have a proper length.
 
-This would mean changing all the existing drivers which I'm not really keen on
-doing.  Existing drivers using IBTA MADs expect the MADs to be exactly 256
-bytes and that is exactly how struct ib_mad is defined.  So I think we need to
-keep the definitions for drivers to use.
-
-However, I think we can clean up the use of sizeof(ib_mad) in the MAD code such
-that it is agnostic to the device/port type once the MAD size patch is in
-place.  I'll look at doing that early in the series.
-
-Ira
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
