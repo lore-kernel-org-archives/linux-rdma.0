@@ -1,87 +1,48 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC 0/3] Support standard SRIOV configuration for IB VFs
-Date: Thu, 28 May 2015 00:58:59 +0300
-Message-ID: <CAJ3xEMjXXKy=DSeksTFEX-GAN=nYm_6nn5msvsYOwnp0roEHJQ@mail.gmail.com>
-References: <1432242708.28905.73.camel@redhat.com>
-	<CAJ3xEMh3BaxJzCu9mV9m6ZMwgrDaO2UvTyS1i=DEPq9nuLX3oA@mail.gmail.com>
-	<20150525211433.GA9186@obsidianresearch.com>
-	<CAJ3xEMhG2W6WzxC4Kc2CFmdMwTRUF5ppBgcDZ6SMA=kgJowUpQ@mail.gmail.com>
-	<20150525223235.GA9858@obsidianresearch.com>
-	<1432659226.28905.151.camel@redhat.com>
-	<20150526181336.GD11800@obsidianresearch.com>
-	<1432672378.28905.178.camel@redhat.com>
-	<20150526211114.GB4502@obsidianresearch.com>
-	<1432736046.28905.215.camel@redhat.com>
-	<20150527171143.GB9909@obsidianresearch.com>
-	<1432749191.28905.243.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Wed, 27 May 2015 16:21:08 -0600
+Message-ID: <20150527222108.GA7855@obsidianresearch.com>
+References: <CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
+ <CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
+ <20150526160624.GA11800@obsidianresearch.com>
+ <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com>
+ <20150526185315.GF11800@obsidianresearch.com>
+ <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com>
+ <20150526220724.GC4502@obsidianresearch.com>
+ <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA@mail.gmail.com>
+ <20150527184856.GA16059@obsidianresearch.com>
+ <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432749191.28905.243.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 27, 2015 at 8:53 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+On Thu, May 28, 2015 at 12:33:58AM +0300, Or Gerlitz wrote:
 
-> On Wed, 2015-05-27 at 11:11 -0600, Jason Gunthorpe wrote:
-> Well, let's just be clear: netlink/iproute2 screwed the pooch on their
-> implementation of this stuff.  Any solution that doesn't include fixing
-> this up in some way is not really a good solution.
+> (2) instantly rejecting a usage of a mechanism existing just for that
+> use case since the first year of our life (2005)
 
->>  For instance iproute2 would need IB specific code to format
->> the 'ip link show' (review print_vfinfo in iproute2) and to length
->> check 'ip link set vf mac'
+I didn't reject anything, I said I wanted to see the user side to
+continue my review.
 
->> If we do use 8, then it would be ideal (and my strong preference) to
->> also fix the IFLA_VF_MAC message to have a working length. I think
->> that could be done compatibly with a bit of work. At least that way
->> iproute2 can be kept clean when it learns to do IB, and we could have
->> the option again of using 20 someday if we need.
->>
+> This series is (1) simple compared to other stuff being reviewed here
+> nowadays,
 
-> Sounds like a reasonable plan.
-> Or, this is your patch set, are you going to pick up these action items?
+What? It is 11 patches, long, introduces several UAPI changes, does
+not implement a standardized feature, adds new uses of latent kernel
+functions and exists to support a unique feature of a single hardware
+vendor that few understand the usecase for.
 
-Let see
+I would describe this as one of the toughest to review series on
+patchworks right now.
 
->> So to be clear, to go with the 8 byte option I suggest:
-
->>  - Engage netdev/iproute and confirm they are philosophically OK
->>    with IFLA_VF_MAC != IFLA_ADDRESS
-
-the last thing netdev are is having philosophical views, they are very
-practical (and non-perfect and happy and lively community), the one
-thing before the last  netdev are is caring for the rdma subsystem. If
-something has to change @ their direct part, we should come with
-patches.
-
->>  - Make a kernel patch to properly size the IFLA_VF_MAC message
-
-You mean the below structure which is expected by the kernel after
-they see the IFLA_VF_MAC NL attribute
-
-struct ifla_vf_mac {
-         __u32 vf;
-         __u8 mac[32]; /* MAX_ADDR_LEN */
- };
-
-How you thought to patch things such that the size of the address
-provided by user-space will propagate into the kernel w.o breaking the
-NL ABI here?
-
-Why not just take the eight lower bytes and set them NL --> ipoib -->  PF driver
-
->>  - Make a iproute patch to use the IFLA_VF_MAC size in print_vfinfo
->>    instead of hardcoded ETH_ALEN (using len == 32 mean len 6 for compat)
-
-I was thinking to patch iproute to sense the link type: if eth print
-six bytes, if ipoib print 8 bytes, simple.
-
->>  - Drop in the IB patch
-
-sounds good.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
