@@ -1,108 +1,88 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 1/3] IB/uverbs: Enable device removal when
- there are active user space applications
-Date: Wed, 27 May 2015 12:04:29 -0400
-Message-ID: <1432742669.28905.228.camel@redhat.com>
+Subject: Re: [RESEND PATCH V3 for-next 0/3] HW Device hot-removal support
+Date: Wed, 27 May 2015 12:12:54 -0400
+Message-ID: <1432743174.28905.231.camel@redhat.com>
 References: <1431515438-24042-1-git-send-email-yishaih@mellanox.com>
-	 <1431515438-24042-2-git-send-email-yishaih@mellanox.com>
-	 <20150525165449.GA4379@obsidianresearch.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FDA36D@ORSMSX109.amr.corp.intel.com>
+	 <555486CA.8080409@dev.mellanox.co.il>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FDA931@ORSMSX109.amr.corp.intel.com>
+	 <55586E5D.1030801@dev.mellanox.co.il>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FDC9A4@ORSMSX109.amr.corp.intel.com>
+	 <HE1PR05MB1418D0CE0E031DA35E3DDEBAB1C30@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-sFXBKh8oP6PxqAgYSdAR"
+	protocol="application/pgp-signature"; boundary="=-VIdf18fUm4ZAKO+HSVOA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150525165449.GA4379-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <HE1PR05MB1418D0CE0E031DA35E3DDEBAB1C30-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-sFXBKh8oP6PxqAgYSdAR
+--=-VIdf18fUm4ZAKO+HSVOA
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2015-05-25 at 10:54 -0600, Jason Gunthorpe wrote:
-> On Wed, May 13, 2015 at 02:10:36PM +0300, Yishai Hadas wrote:
+On Tue, 2015-05-19 at 16:17 +0000, Liran Liss wrote:
+> > From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
 >=20
-> > +	struct srcu_struct			disassociate_srcu;
+> > > these remaining resources may be device-specific.
+> > > The proposed framework first of all allows a provider to indicate
+> > > whether hot-removal is supported (i.e., the presence of the
+> > > 'disassociate_ucontext' callback), and if so, allow the provider to
+> > > perform the proper cleanup so that the corresponding user-space drive=
+r
+> > > will continue to function.
+> >=20
+> > The approach seems strange.  The driver knows that it is being removed.=
+  It
+> > was informed up front which open contexts were associated with user spa=
+ce
+> > processes.  But the driver calls up to indicate that it is being remove=
+d, so that
+> > the upper layer can call back down to tell the driver to process the re=
+moval.
+> >=20
+> > I wasn't asking what this series did.  I was asking why the uverbs driv=
+er just
+> > can't delete the underlying resources.  That's the natural thing to exp=
+ect.
 >=20
-> There is no need for rcu for this, use a rw sem.
+> I suppose that the main issue would be handling existing user memory mapp=
+ings,
+> which cannot be just invalidated -- the user-space driver may not be awar=
+e of the
+> device removal and may access this memory concurrently, and we don't want=
+ it
+> to crash.
 
-The rcu was used becuase it's on the hot path I assume.  Do we have
-numbers on whether a rwsem vs. an rcu matters performance wise?  If the
-rcu actually helps performance, then I'm inclined to leave it, but if it
-doesn't, then I'd agree that a rwsem is simpler and easier to deal with.
+In this case, you are mapping it out of the device BAR space and into a
+random kernel page, yes?  So, if the driver doesn't catch the
+DRIVER_FATAL event and process that to mean "don't bother touching this
+RDMA device any more", it's going to write to a mailbox that no longer
+responds and have infinite timeouts, yes?  Essentially meaning all
+mailbox type operations just go into lala land from here on out, right?
 
-> > @@ -1326,6 +1327,13 @@ ssize_t ib_uverbs_create_comp_channel(struct ib_=
-uverbs_file *file,
-> >  		return -EFAULT;
-> >  	}
-> > =20
-> > +	/* Taking ref count on uverbs_file to make sure that file won't be
-> > +	 * freed till that event file is closed. It will enable accessing the
-> > +	 * uverbs_device fields as part of closing the events file and making
-> > +	 * sure that uverbs device is available by that time as well.
-> > +	 * Note: similar is already done for the async event file.
-> > +	*/
-> > +	kref_get(&file->ref);
+> The meaning of these mappings is device specific: some devices only write=
+ them,
+> while others read them, expecting some specific format. That's why we nee=
+d
+> device-specific code for this.
 >=20
-> Is this a bug today? It doesn't look like it, but this stuff does look wr=
-ong.
+> While it is true that the device initiates the removal process, the curre=
+nt flow is
+> to let every ib_client first detach itself before device-specific cleanup=
+s. In this regard,
+> ib_uverbs is just another client.
+> In addition, the "per-open" (fd) state is held in ib_ucontext, which is m=
+aintained by
+> ib_uverbs. The device driver doesn't hold a duplicate list of open HCA ha=
+ndles, so
+> it relies on ib_uverbs to iterate the relevant contexts and trigger the d=
+evice-specific
+> stuff.
 >=20
-> Woulnd't this would make more sense for ib_uverbs_alloc_event_file to
-> unconditionally grab the kref and unconditionally release it on
-> release?=20
->=20
-> The existing code for this looks broken, in ib_uverbs_get_context all
-> the error paths between ib_uverbs_alloc_event_file and the
-> kref_get(file->ref) are wrong - the will result in fput() which will
-> call ib_uverbs_event_close, which will try to do kref_put and
-> ib_unregister_event_handler - which are no longer paired.
->=20
-> [I recommend moving the kref_get and ib_register_event_handler into
->  ib_uverbs_alloc_event_file, so the 'create' and 'destroy' code paths
->  are clearly paired instead of being partially open coded in call
->  sites]
->=20
-> Fix all this in a seperate patch to add the needed change in kref
-> semantics please.
-
-Seconded.
-
-> > -	if (!try_module_get(dev->ib_dev->owner)) {
-> > -		ret =3D -ENODEV;
-> > +	mutex_lock(&dev->disassociate_mutex);
-> > +	if (dev->disassociated) {
-> > +		ret =3D -EIO;
-> >  		goto err;
-> >  	}
-> > =20
-> > -	file =3D kmalloc(sizeof *file, GFP_KERNEL);
-> > +	/* In case IB device supports disassociate ucontext, there is no hard
-> > +	 * dependency between uverbs device and its low level device.
-> > +	 */
-> > +	module_dependent =3D !(dev->flags & UVERBS_FLAG_DISASSOCIATE);
-> > +
-> > +	if (module_dependent) {
-> > +		if (!try_module_get(dev->ib_dev->owner)) {
-> > +			ret =3D -ENODEV;
-> > +			goto err;
->=20
-> Again? Why I do I keep pointing this same basic thing to Mellanox
-> people:
->=20
->  If you hold a X then you hold the ref to X as well.
->=20
-> So, if the core code is holding function pointers to module code, then
-> the core code holds a module ref. When the core code null's those
-> function pointers, then it can release the module ref.
-
-Seconded.
-
-> This might work today like this (I'm not entirely sure), but it makes
-> no sense at all.
->=20
-> I'll look more closely in a few weeks once the rwsem change is done.
 
 
 --=20
@@ -110,7 +90,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-sFXBKh8oP6PxqAgYSdAR
+--=-VIdf18fUm4ZAKO+HSVOA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -118,22 +98,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVZesNAAoJELgmozMOVy/dj+YQAK6WbZb4wNJ/bgj4leVtLAtb
-xl+F6P1Uc+GJTlngxy6SEB03G3InQSrcSc2F83U/RL1PPf3wt4b5zRPhjfvxFH8p
-xqz44JOdVrHveAW/DANwTrUw36hDrQaL4bkSKtvylecgwKIv79hsdRpiXAaToJW2
-VbUe+TZxz7v+DQh98oeeBl9JOZL+HBTuDhQ5aFvUGiu0FPZdP7K5REPlVpBxGV1H
-OeI4MbcIMhGU/sW9i1j1tQ1nMkOK1GhBmK7EeFR2K3ZyuqWhxDQzI0Om724UzBHW
-MV2+BqpYHhnqzmShaz795Phq4eaMt+CkuqoCr3ou6wjhD75DSwIbbaCKGKCRUtQa
-90MD1ljN/puBwHonCpBMhNInVxV+q0YzHD94rjAijlMTcV5P8fbMTVsyOjR7jjSE
-5LOFGKnzcPaKJpGgquABRP2zkZzhCSt1bYF7ZgPSwhKouzSK3loxIT4uumRZe23R
-AqFbdSy0sRoqJQWaRnkTxPc+YDe/4wbG7AxUBbRyitoiHK8bLvmTD9DHvYp/4jIv
-oOfUtf2LfCO/zyaxrhN/Jc/KQvyZe6Jnv0eLZgiIdyAcBoQ0YZhjRqfr4ph9e8kD
-5EDyzYR+sAvempLp6epW2+LrDSznAkAZK0gTmjXvrrwzGiCZBmWt4NacWlZjJLrE
-WrgtUWd5SX58NsiMDWg+
-=FaTk
+iQIcBAABCAAGBQJVZe0GAAoJELgmozMOVy/d8I4QAIGcVELwfz7GQECF8aYEX13v
+YvKpNBml+YHY7lqpVlex5V1Her6oC1mBNagwhpBBCUV/bykJJfEH6P1vXQg7UVVh
+fGSQzfsZJXPmwNYUm+mfAFm/JrZi7KNCnI8MPL6av/oP4Akb9Vz16sUJzcfUQ2Tk
+y6vHQk1keDkfoHZU9Ynj+lNM5rRxu6iRB90odMwpdDxSWcTFOXWjZIctnlkLP0ol
+M+d7NyaXjwyeXZw40RHbCJNKH5wA4KXX1BSVpG6RaeT3tGuYyOQI7xUvhjXWt/j0
+ZuL4U6PNUu6TGbXdlzDKS+tmfpRIKjwES2GtkTVxh3GThhnnPfSGhOl9dVoFDCuv
+i3yZXRGZvgH+2OjcZIrdZICz3wtKH/YaGbvpd0I89x1QPuYKyeu3OJ437ZJLN+xu
+215yAO5h2hK4pQekJUnzgqOuMIfUwuUWh/g5X09CaCcH4F1JOiIHwWw7N1Igz3Q2
+eyak/Lc5CmXeFjGgJiJmmYk11YoNglKIn9rN+Zdevcgs039ShlPGn/57ELC3uOl2
+OasQZdyQ6Ww1P5RRXo2Yf8QKNVpHvNTVXGvL0UT2UvDdfvn+8zB3VtwcFfwii9va
+pGL289Q+dTZwgJnpJ7FMbrS4AbMdPpb+Rk1IXKPQcm5emdUVxrhTNMYKFxV/QIBX
+3k6EVZYC3TFCJeJ+JSij
+=G5fg
 -----END PGP SIGNATURE-----
 
---=-sFXBKh8oP6PxqAgYSdAR--
+--=-VIdf18fUm4ZAKO+HSVOA--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
