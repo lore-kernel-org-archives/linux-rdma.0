@@ -1,59 +1,86 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC 0/3] Support standard SRIOV configuration for IB VFs
-Date: Wed, 27 May 2015 12:29:31 -0600
-Message-ID: <20150527182931.GA16246@obsidianresearch.com>
-References: <20150525211433.GA9186@obsidianresearch.com>
- <CAJ3xEMhG2W6WzxC4Kc2CFmdMwTRUF5ppBgcDZ6SMA=kgJowUpQ@mail.gmail.com>
- <20150525223235.GA9858@obsidianresearch.com>
- <1432659226.28905.151.camel@redhat.com>
- <20150526181336.GD11800@obsidianresearch.com>
- <1432672378.28905.178.camel@redhat.com>
- <20150526211114.GB4502@obsidianresearch.com>
- <1432736046.28905.215.camel@redhat.com>
- <20150527171143.GB9909@obsidianresearch.com>
- <1432749191.28905.243.camel@redhat.com>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Wed, 27 May 2015 12:48:56 -0600
+Message-ID: <20150527184856.GA16059@obsidianresearch.com>
+References: <1432134677.5304.23.camel@opteya.com>
+ <CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
+ <CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
+ <CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
+ <20150526160624.GA11800@obsidianresearch.com>
+ <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com>
+ <20150526185315.GF11800@obsidianresearch.com>
+ <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com>
+ <20150526220724.GC4502@obsidianresearch.com>
+ <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1432749191.28905.243.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 27, 2015 at 01:53:11PM -0400, Doug Ledford wrote:
-
-> > This basic idea is exactly why I think we should stick with the 20
-> > byte LLADDR for ILFA_VF_MAC. It gives a route for the PF to tell the
-> > VF what QPN to use for IPoIB (if we ever see HW support to implement that)
-> > 
-> > If we use 8 bytes then that route is closed off forever.
+On Wed, May 27, 2015 at 02:54:12PM +0300, Or Gerlitz wrote:
+> On Wed, May 27, 2015 at 1:07 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > On Tue, May 26, 2015 at 11:39:04PM +0300, Or Gerlitz wrote:
+> >> >> Jason, you (U2 BTW) play really, really hard - refusing to say **one**
+> >> >> word on your approach towards the built-in udata mechanism for uverbs
+> >> >> which I asked you to comment on.
+> >>
+> >> > And I asked to see the user space side and you have angrily refused
+> >> > every time.
+> >>
+> >> AFAIR I never ever refused to show any piece of code which went under
+> >> my hands towards Linux to any-one.
 > 
-> And that's exactly as it should be.  If we allow setting all 20 bytes
-> via the VF_MAC calls, then we violate the "guests should behave like
-> they are on bare metal as much as possible" rule.  As a host, we get a
-> GUID and if we want to control the QPNs for IPoIB (and indeed if we
-> want
+> > For future reference, when someone asks a question and you go off on
+> > an tangental rant and ignore the question, then that process repeats,
+> > still without answering the question - most english speakers would
+> > call that refusing to answer the question. It is not looked upon kindly.
+> 
+> Jason,
+> 
+> It's not that you asked to see the code ala "hey, do you happen to
+> have a git with the user space code for people to inspect while
+> doing the review on the kernel part", but rather U2 saying in a
+> definitive manner that posting the user space code should be imposed
+> as pre-requirement to acceptance of the kernel parts.
 
-No, that doesn't really work. The PF's QPN pool is shared between all
-VF guests. The VF HCA does a call to the PF driver to get a free QPN
-to use. The VM cannot unilaterally select a QPN without global
-coordination.
+I really didn't Or:
 
-In other words, if a QPN is to be forced for IPoIB then it must come
-from the PF, which must get it from the orchestration software, which
-must globally coordinate to ensure the QPN is available on every PF
-the VM may want to run on. Similar to how the MAC must be globally
-unique.
+First ask:
+ 'We can't really look at the uapi changes here without also seeing the
+  verbs side changes.'
+ (I know others on the list feel the same, so I use 'we')
 
-Will this ever be done? Probably not. But if it was, this interface
-would be the sanest way to go.
+Second ask:
+ 'Lets see the verbs side and I'll let you know.'
+(.. to your questions based on my review comments ..)
 
-Anyhow - as far as I'm concerned, fixing the IFLA_VF_MAC to have a
-proper length nullifies my concern. If we really needed we can switch
-to a 20 byte format with good compatability options in the future once
-we have a proper length.
+Third ask:
+ 'I think we need to have the same policy.'
+(.. To Yann's point that other kernel communities have a mandatory
+  UAPI policy)
+
+Fourth (exasperated) ask:
+ 'Was it not clear? Yann and I asked to see the user space side before
+  reviewing this series further.'
+
+I know you are ESL, and I cut you alot of slack, but *come on* - that
+is incredibly soft language, and certainly not bossing and imposing in
+a definitive manner a blanket requirement on all patches.
+
+Advice: You would be well served to spend a bit more time on your
+emails. I have no idea what 'but rather U2 saying' means, for
+instance. Sometimes I just guess at what you are trying to say :|
+
+That is the price we pay for an inclusive international community, but
+everyone needs to be careful before starting a flame war based on
+percived slight in the text and phrasing of a message. email is hard.
 
 Jason
 --
