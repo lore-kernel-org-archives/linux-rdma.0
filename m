@@ -1,76 +1,60 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Tue, 26 May 2015 16:07:24 -0600
-Message-ID: <20150526220724.GC4502@obsidianresearch.com>
-References: <20150520002915.GD16941@obsidianresearch.com>
- <555C9D00.2090609@mellanox.com>
- <1432134677.5304.23.camel@opteya.com>
- <CAJ3xEMjO2HqFePAwXnoCt0rCzRLfYbqdP+883v4LaMovj7Y-FA@mail.gmail.com>
- <CAJ3xEMgppUPqOFm7L0+fR3z_N2ALZFb+GpSAGvyyNROZoFCUPA@mail.gmail.com>
- <CAJ3xEMinNsQrmQ7atAVkshefBDBQ1HRuGbOT_cJ4RxEj4dWUPA@mail.gmail.com>
- <20150526160624.GA11800@obsidianresearch.com>
- <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com>
- <20150526185315.GF11800@obsidianresearch.com>
- <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com>
+From: Devesh Sharma <devesh.sharma@avagotech.com>
+Subject: RE: [PATCH] MAINTAINERS: update Emulex ocrdma email addresses
+Date: Wed, 27 May 2015 10:43:04 +0530
+Message-ID: <893ad499272a93c80cdc78f62a21e417@mail.gmail.com>
+References: <1432667749-3575-1-git-send-email-laurent.navet@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432667749-3575-1-git-send-email-laurent.navet@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Navet <laurent.navet@gmail.com>, akpm@linux-foundation.org, gregkh@linuxfoundation.org, davem@davemloft.net, mchehab@osg.samsung.com, arnd@arndb.de, joe@perches.com, jingoohan1@gmail.com, Selvin Xavier <selvin.xavier@avagotech.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>
+Cc: linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 26, 2015 at 11:39:04PM +0300, Or Gerlitz wrote:
-> >> Jason, you (U2 BTW) play really, really hard - refusing to say **one**
-> >> word on your approach towards the built-in udata mechanism for uverbs
-> >> which I asked you to comment on.
-> 
-> > And I asked to see the user space side and you have angrily refused
-> > every time.
-> 
-> AFAIR I never ever refused to show any piece of code which went under
-> my hands towards Linux to any-one.
+Thanks Laurent,
 
-For future reference, when someone asks a question and you go off on
-an tangental rant and ignore the question, then that process repeats,
-still without answering the question - most english speakers would
-call that refusing to answer the question. It is not looked upon
-kindly.
+My earlier mail bounced back from Linux-kernel mailing list, thus
+resending.
 
-I'm really confused why you didn't just post the github links last
-week, the patches are all a month old on there. Was it really so
-offensive to you that we wanted to review the kernel UAPI patches and
-verbs patches together?
+CC'ing Doug.
 
-> > So I guess we are both playing hard.
-> 
-> I disagree, you act as sort of being the boss here, stating every now
-> and then your preferences and way of engineering things as the
-> ultimate guidelines for Linux and/or RDMA engineering.
+Acked-By: Devesh Sharma <devesh.sharma@avagotech.com>
 
-Lets be clear Or, I have given you (and others) some very pointed
-comments and advice, privately and publicly. That is not 'being the
-boss' that is contributing to fix our community.
 
-When it comes to my patch comments, I give direction on what I want to
-see to provide my Reviewed-By.
-
-If you don't like it, then find someone else to review your code.
-
-I'm busy, and I don't work for you. If I don't want to review some
-patches because my questions have been ignored, then that is entirely
-my perogative.
-
-Pinging me *three times this week* on this stupid timestamp thing, is
-somewhere between annoying and offensive.
-
-Chill out Or.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Laurent Navet [mailto:laurent.navet@gmail.com]
+> Sent: Wednesday, May 27, 2015 12:46 AM
+> To: akpm@linux-foundation.org; gregkh@linuxfoundation.org;
+> davem@davemloft.net; mchehab@osg.samsung.com; arnd@arndb.de;
+> joe@perches.com; jingoohan1@gmail.com; selvin.xavier@avagotech.com;
+> devesh.sharma@avagotech.com; mitesh.ahuja@avagotech.com
+> Cc: linux-kernel@vger.kernel.org; Laurent Navet
+> Subject: [PATCH] MAINTAINERS: update Emulex ocrdma email addresses
+>
+> @emulex.com addresses respond to use @avagotech.com.
+>
+> Signed-off-by: Laurent Navet <laurent.navet@gmail.com>
+> ---
+>  MAINTAINERS | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index f8e0afb..05766f7 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -8846,9 +8846,9 @@ S:	Supported
+>  F:	drivers/net/ethernet/emulex/benet/
+>
+>  EMULEX ONECONNECT ROCE DRIVER
+> -M:	Selvin Xavier <selvin.xavier@emulex.com>
+> -M:	Devesh Sharma <devesh.sharma@emulex.com>
+> -M:	Mitesh Ahuja <mitesh.ahuja@emulex.com>
+> +M:	Selvin Xavier <selvin.xavier@avagotech.com>
+> +M:	Devesh Sharma <devesh.sharma@avagotech.com>
+> +M:	Mitesh Ahuja <mitesh.ahuja@avagotech.com>
+>  L:	linux-rdma@vger.kernel.org
+>  W:	http://www.emulex.com
+>  S:	Supported
+> --
+> 2.1.4
