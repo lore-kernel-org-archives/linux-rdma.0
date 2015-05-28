@@ -1,57 +1,88 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Thu, 28 May 2015 11:50:43 -0600
-Message-ID: <20150528175043.GA10966@obsidianresearch.com>
-References: <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com>
- <20150526220724.GC4502@obsidianresearch.com>
- <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA@mail.gmail.com>
- <20150527184856.GA16059@obsidianresearch.com>
- <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com>
- <20150527222108.GA7855@obsidianresearch.com>
- <5566BDE4.50709@mellanox.com>
- <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org>
- <20150528162416.GA6515@obsidianresearch.com>
- <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: NFSoRDMA bi-weekly developers meeting minutes (5/28/15)
+Date: Thu, 28 May 2015 11:11:30 -0700
+Message-ID: <55675A52.1010700@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1505281212330.1711-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Charles EDWARD Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org" <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, "devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org" <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dominique.martinet-KCE40YydGKI@public.gmane.org" <dominique.martinet-KCE40YydGKI@public.gmane.org>, "jeffrey.c.becker-NSQ8wuThN14@public.gmane.org" <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "skc-YOWKrPYUwWM@public.gmane.org" <skc-YOWKrPYUwWM@public.gmane.org>, "sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <sprabhu-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <wendy.cheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 28, 2015 at 12:14:15PM -0500, Christoph Lameter wrote:
-> On Thu, 28 May 2015, Jason Gunthorpe wrote:
-> 
-> > After a quick look through, the biggest question in my mind is what
-> > should the timestamp value in the wc be?
-> >
-> > Right now it is some coded thing in clock cycles.
-> 
-> This is sufficient since it can be converted to ns or whatever one wants.
+Attendees:
 
-Sure it is sufficient, but is it a robust UAPI, will it support
-multiple hardware vendors?
+Jeff Becker (NASA)
+Yan Burman (Mellanox)
+Chuck Lever (Oracle)
+Rupert Dance (Soft Forge)
+Steve Dickson (Red Hat)
+Shirley Ma (Oracle)
+Anna Schumaker (Net App)
+Devesh Sharma (Avago Tech)
 
-Is anyone else in ethernet using verbs to deliver IP packets?
+Today's meeting notes:
 
-Having a conversion function, or doing it in the wc generation is more
-'obviously safe' for future proofing the UAPI.
+NFSoRDMA deployment (Jeff)
+-------------------
+NASA is interested in deployment NFS/RDMA, it's on the table.
 
-> > Should we require the driver to convert to ns before passing the wc
-> > back to the app? (Looks like the socket implementation uniformly uses
-> > us or ns)
+NFSoRDMA RFC update (Chuck)
+--------------------
+Updating IETF specifications for RPC/RDMA (RGFC5666) and NFS/RDMA (RFC5=
+667) to close the holes that might cause confusion. We=E2=80=99d like t=
+o replace RFC 5666 with a new document that fixes problems with the RPC=
+/RDMA version 1 protocol; and replace RFC 5667 with a new document that=
+ fills in missing or
+incorrect items with regard to NFSv4.0 and NFSv4.1 (and pNFS). There wi=
+ll be no protocol changes that would break backwards compatibility.
 
-> But that requires additional processing.
+Chuck has published an experimental draft describing the conventions ne=
+eded for bi-directional RPC/RDMA:
+https://datatracker.ietf.org/doc/draft-cel-nfsv4-rpcrdma-bidirection/
 
-Well, it is only additional if the app is going to ignore the time
-stamp or not convert it to ns right away. Is that the common use case?
+NFSoRDMA bi-directional implementation (Chuck)
+---------------------------------------
+Chuck has done an experimental implementation, which has been tested am=
+ong Linux client, Linux server, Solaris client and Solaris server. NFS/=
+RDMA bi-directional support is targeted in Linux 4.3 or 4.4, which migh=
+t be available 6 months later.
 
-Jason
+Wireshark dissectors support RPC/RDMA, NFS/RDMA (Yan)
+-----------------------------------------------
+Yan and his team have been working on wireshark dissectors to support R=
+PC/RDMA, NFS/RDMA. The patches will be submitted next week for review. =
+This is a good news for debugging NFS/RDMA problems.
+
+NFS/RDMA client and server shutdown issue (Nevesh, Shirley)
+-----------------------------------------
+Any outstanding mounts will prevent both client and server from shut do=
+wn properly. The right fix is to handle CM_DEVICE_REMOVAL properly so t=
+he resources being allocated can be gracefully clean up. We can suggest=
+ umount before shutdown the client to avoid this issue, but on server s=
+ide, we need to add a handler to handle outstanding cm_ids, which is no=
+t presented in current implementation.
+
+NFSD workqueue mode vs. threading mode performance impacts: (Shirley)
+---------------------------------------------------------------------
+Shirley has spent sometime test/fix/evaluating NFSD workqueue mode orig=
+inally implemented by Jeff Layton. NFSD workqueue patchset NFSD workque=
+ue modes benefit some workloads while global threading mode benefits so=
+me other workloads. workqueue mode is better than per-cpu threading mod=
+e in general. workqueue is per-cpu workqueue while global threading mod=
+e is not per-cpu based. There might be some room to make NFSD workqueue=
+ not worse than global threading mode, but this requires to do more in =
+depth performance investigation work.
+
+=46eel free to reply here for anything missing or incorrect. Thanks eve=
+ryone for joining the call and providing valuable inputs/work to the co=
+mmunity to make NFSoRDMA better.
+
+Cheers,
+Shirley
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
