@@ -1,77 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v4 for-next 07/14] IB/core: GID attribute should be
- returned from verbs API and cache API
-Date: Thu, 28 May 2015 10:07:48 -0600
-Message-ID: <20150528160748.GC2962@obsidianresearch.com>
-References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
- <1432045637-9090-8-git-send-email-matanb@mellanox.com>
- <20150519180649.GC18675@obsidianresearch.com>
- <CAAKD3BAifeMcHbDwcaK7F6cjj=mAn3W0Ms2mOmoXDhaquFqKTA@mail.gmail.com>
- <20150520181718.GD28496@obsidianresearch.com>
- <CAAKD3BDJtpEhfhsB=o4hc=ARWMt7JgpqvbjXJVvsL_vLZRn8yQ@mail.gmail.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RESEND PATCH V3 for-next 0/3] HW Device hot-removal support
+Date: Thu, 28 May 2015 16:08:02 +0000
+Message-ID: <HE1PR05MB1418A4C13EAF03DC47925595B1CA0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1431515438-24042-1-git-send-email-yishaih@mellanox.com>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FDA36D@ORSMSX109.amr.corp.intel.com>
+	 <555486CA.8080409@dev.mellanox.co.il>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FDA931@ORSMSX109.amr.corp.intel.com>
+	 <55586E5D.1030801@dev.mellanox.co.il>
+	 <1828884A29C6694DAF28B7E6B8A82373A8FDC9A4@ORSMSX109.amr.corp.intel.com>
+	 <HE1PR05MB1418D0CE0E031DA35E3DDEBAB1C30@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <1432743174.28905.231.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BDJtpEhfhsB=o4hc=ARWMt7JgpqvbjXJVvsL_vLZRn8yQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1432743174.28905.231.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 28, 2015 at 04:50:09PM +0300, Matan Barak wrote:
-
-> The argument for removing the gid_type seems reasonable to me.
-> However, I don't think we should be removing net.
-> if_index should always come with net - passing only if_index makes
-> roce_gid_table's API a bit broken.
-
-Well, get rid of if_index too? Isn't all of that rocev2 stuff? Todays
-roce drivers do not need if_index at this point to do gid index lookup.
-
-It isn't clear to me why that should change in a refactoring exercise.
-
-> Patch 8 (the ndev part) is relevant. GID is now related to a ndev and
-> we would like
-> to expose this information to the user.
-> In non rdma-cm applications, how would a user select the gid_index he wants?
-
-I don't mean drop forever, I mean, concentrate on getting this clean
-up done, then start discussing UAPI changes separately. Please don't
-bury UAPI changes, new features, etc in a cleanup patch series.
-
-> > I'm also not sure about patch 10, that looks like a functional
-> > change? It should not be in a cleanup series.
-> 
-> We drop smac and vlan_id from path and av. Instead, it's taken
-> from the netdev in roce_gid_table. That's a crucial part of the new
-> architecture.
-
-Again, I didn't say drop it forever, these patches belong in a later
-series, perhaps as a precursor series to rocev2.
-
-> It's not worth adding roce_gid_table and not taking the parameters
-> based on its information.
-
-It should be worth adding roce_gid_table because it factors duplicate
-existing code out of several drivers. Get that merged, then deal with
-adding rocev2, adding new UAPIs, etc.
-
-If that isn't true then we have a problem :)
-
-You started with a giagantic series that added new UAPIs, refactored
-code, clean ups, added rocev2, and maybe more I haven't noticed. That
-is too big to review. Make it smaller:
-
-- Refactor the gid table code from the drivers - as is. Minimize
-  changes elsewhere
-- Add rocev2 in stages
-- New UAPIs for rocev2
-- Anything else I missed.
-
-Don't try and do so much at once.
-
-Jason
+PiBGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KPiA+IEkg
+c3VwcG9zZSB0aGF0IHRoZSBtYWluIGlzc3VlIHdvdWxkIGJlIGhhbmRsaW5nIGV4aXN0aW5nIHVz
+ZXIgbWVtb3J5DQo+IG1hcHBpbmdzLA0KPiA+IHdoaWNoIGNhbm5vdCBiZSBqdXN0IGludmFsaWRh
+dGVkIC0tIHRoZSB1c2VyLXNwYWNlIGRyaXZlciBtYXkgbm90IGJlIGF3YXJlDQo+IG9mIHRoZQ0K
+PiA+IGRldmljZSByZW1vdmFsIGFuZCBtYXkgYWNjZXNzIHRoaXMgbWVtb3J5IGNvbmN1cnJlbnRs
+eSwgYW5kIHdlIGRvbid0DQo+IHdhbnQgaXQNCj4gPiB0byBjcmFzaC4NCj4gDQo+IEluIHRoaXMg
+Y2FzZSwgeW91IGFyZSBtYXBwaW5nIGl0IG91dCBvZiB0aGUgZGV2aWNlIEJBUiBzcGFjZSBhbmQg
+aW50byBhDQo+IHJhbmRvbSBrZXJuZWwgcGFnZSwgeWVzPyAgU28sIGlmIHRoZSBkcml2ZXIgZG9l
+c24ndCBjYXRjaCB0aGUNCj4gRFJJVkVSX0ZBVEFMIGV2ZW50IGFuZCBwcm9jZXNzIHRoYXQgdG8g
+bWVhbiAiZG9uJ3QgYm90aGVyIHRvdWNoaW5nIHRoaXMNCj4gUkRNQSBkZXZpY2UgYW55IG1vcmUi
+LCBpdCdzIGdvaW5nIHRvIHdyaXRlIHRvIGEgbWFpbGJveCB0aGF0IG5vIGxvbmdlcg0KPiByZXNw
+b25kcyBhbmQgaGF2ZSBpbmZpbml0ZSB0aW1lb3V0cywgeWVzPyAgRXNzZW50aWFsbHkgbWVhbmlu
+ZyBhbGwNCj4gbWFpbGJveCB0eXBlIG9wZXJhdGlvbnMganVzdCBnbyBpbnRvIGxhbGEgbGFuZCBm
+cm9tIGhlcmUgb24gb3V0LCByaWdodD8NCj4gDQoNClByZXNzZWQgJ3NlbmQnIHRvbyBlYXJseS4u
+Lg0KDQpUaGUga2VybmVsIGFjdGl2aXR5IGlzIGFzeW5jaHJvbm91cyB0byB1c2VyLXNwYWNlLg0K
+VGhlIGRldmljZSBtYXkgYmUgdW4tcGx1Z2dlZCBiZWZvcmUgdGhlIHVzZXItc3BhY2UgZHJpdmVy
+IGhhcyBhIGNoYW5jZSB0byBsZWFybiB0aGF0IGEgREVWSUNFX0ZBVEFMIGV2ZW50IGhhcyBvY2N1
+cnJlZC4gSW4gZmFjdCwgaW4gdGhlIGN1cnJlbnQgdXNlci1zcGFjZSBzdGFjayBkZXNpZ24sIGRl
+dmljZSBkcml2ZXJzIGRvbid0IGhhdmUgYSBjb250ZXh0IG9mIHRoZWlyIG93biB0byByZWFkKCkg
+ZnJvbSBmaWxlIGRlc2NyaXB0b3JzIGFuZCByZWx5IG9uIHRoZSBhcHBsaWNhdGlvbiBmb3IgdGhh
+dC4NCkJ1dCBldmVuIHNvLCB5b3UgcHJvYmFibHkgZG9uJ3Qgd2FudCBhIGRyaXZlciB0byBpbnZv
+a2UgYSBzeXN0ZW0gY2FsbCBkdXJpbmcgdGhlIGZhc3QgcGF0aCBqdXN0IHRvIGNoZWNrIHRoaXMg
+Y29uZGl0aW9uLg0KDQpGb3IgZGV2aWNlcyB0aGF0IGp1c3Qgd3JpdGUgdGhlIEJBUiBzcGFjZSwg
+YW4gYXJiaXRyYXJ5IGtlcm5lbCBwYWdlIHdvdWxkIGRvLg0KT3RoZXIgZGV2aWNlcyBtaWdodCB3
+aXNoIHRvIGZpcnN0IHBvcHVsYXRlIHRoaXMgcGFnZSBzbyB0aGF0IHRoZSB1c2VyLXNwYWNlIGRy
+aXZlciBjYW4gZGV0ZWN0IHRoaXMgc2l0dWF0aW9uIGVmZmljaWVudGx5Lg0KDQotLUxpcmFuDQoN
+Cg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
