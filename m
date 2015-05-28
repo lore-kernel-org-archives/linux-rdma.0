@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: rdma kernel tree
-Date: Wed, 27 May 2015 21:14:03 -0400
-Message-ID: <1432775643.114391.9.camel@redhat.com>
+Date: Wed, 27 May 2015 23:53:47 -0400
+Message-ID: <1432785227.114391.13.camel@redhat.com>
 References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.com>
 	 <1431485563.43876.93.camel@redhat.com>
 	 <CAJ3xEMhRY6nLPFR8qT8S7KJvxRDmw6JwhsSKw7pTvFc5PpnrhQ@mail.gmail.com>
@@ -14,72 +14,54 @@ References: <1828884A29C6694DAF28B7E6B8A82373A8FD8CF5@ORSMSX109.amr.corp.intel.c
 	 <CAJ3xEMjk5JyY14ySXQsLRAMewxtqfJBDint6K=wGwnp6SOf9Pw@mail.gmail.com>
 	 <1432732409.28905.181.camel@redhat.com>
 	 <20150528110203.5cc1e9ce@canb.auug.org.au>
+	 <1432775643.114391.9.camel@redhat.com>
+	 <20150528114035.0bb0da82@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-mRufnlU948yT3SL3Vrfp"
+	protocol="application/pgp-signature"; boundary="=-nEDx4qX3haAITDxB0TUd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150528110203.5cc1e9ce-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+In-Reply-To: <20150528114035.0bb0da82-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-mRufnlU948yT3SL3Vrfp
+--=-nEDx4qX3haAITDxB0TUd
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2015-05-28 at 11:02 +1000, Stephen Rothwell wrote:
-> Hi Doug,
+On Thu, 2015-05-28 at 11:40 +1000, Stephen Rothwell wrote:
+> Hi Doug, Roland,
 >=20
-> On Wed, 27 May 2015 09:13:29 -0400 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
+> On Wed, 27 May 2015 21:14:03 -0400 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
 te:
 > >
-> > Stephen, can you set it up so that the linux-next tag from
-> > git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git is adde=
-d
-> > to the linux-next testing please?
+> > > Also, how does this relate to Roland's infiniband tree
+> > > (git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git#=
+for-next)
+> > > that is already in linux-next?
+> >=20
+> > Roland has stepped down as maintainer.  The community selected me to tr=
+y
+> > to pick up where he has left off.
 >=20
-> I haven't fetched tags in the past, only branches (it is a little
-> tricky, but I can work on it) and there is no linux-next tag in that
-> tree anyway (I assume that you mean for-next).
+> So, I assume that I should remove the infiniband tree from linux-next?
 
-Sorry, you are correct, for-next is the right tag.
+Here's the link to Roland's announcement:
 
-> Also, how does this relate to Roland's infiniband tree
-> (git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git#for-=
-next)
-> that is already in linux-next?
+http://marc.info/?l=3Dlinux-rdma&m=3D142860130010529&w=3D2
 
-Roland has stepped down as maintainer.  The community selected me to try
-to pick up where he has left off.
-
-> Added from today.
-> Thanks for adding your subsystem tree as a participant of linux-next.  As
-> you may know, this is not a judgment of your code.  The purpose of
-> linux-next is for integration testing and to lower the impact of
-> conflicts between subsystems in the next merge window.=20
->=20
-> You will need to ensure that the patches/commits in your tree/series have
-> been:
->      * submitted under GPL v2 (or later) and include the Contributor's
->         Signed-off-by,
->      * posted to the relevant mailing list,
->      * reviewed by you (or another maintainer of your subsystem tree),
->      * successfully unit tested, and=20
->      * destined for the current or next Linux merge window.
->=20
-> Basically, this should be just what you would send to Linus (or ask him
-> to fetch).  It is allowed to be rebased if you deem it necessary.
->=20
-
+Based upon his comments there, I would say it's a good bet that he
+doesn't plan to continue hosting his own tree now that the switch over
+has happened.  But, of course, he can speak for himself.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
---=-mRufnlU948yT3SL3Vrfp
+--=-nEDx4qX3haAITDxB0TUd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -87,22 +69,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJVZmvbAAoJELgmozMOVy/dYKUP/0MYhtl61Gz/8vCwUrU8++jm
-4txUmb8r9/ELHvFlWI3Y8sFHuXdwJA27uGbW/fclyHCRfUsB4j1DO9ujejhIXS9i
-jim41qc7mWtAOs61Kwvron+fT3oSjOGsmFPjGZAgltm7O5oUC2HGqRZheS18rmuh
-Ry6c0pNnZDLJZhvaAeQvcg3H/GSMJyZDZ0kofpb60Yq2jMJW/1tWoosAvMPmy0TG
-5UJQXazlLTTA3UpYIV8cDWwht5xNAKrXgkeiJuh91emR6Uzw130ow3QJCtFhwLC5
-vUnC+x0ezywn39kRwybbiIzWJ1G6EPC65GHY5bvlTbjA7jItaf+Uf+E3kTFJLz3v
-KFIGj9cUfYyl/hhlHL0SNyoMj1HNu1Tyws5K0dDCYcOZc1yL+rYeWizB1XUtHPMk
-hUPLdb9CPpupcB5Rxpo5jmJysq9OhT29G/aorBZLxTIjz7rQKtX9AgRcDtvCG/o5
-owCGajfNqfBqRByDWCuFi2modJIj5MXt6XNmB6QHMi2Ro8SGD0+7Pwd4CJyIaTXK
-uz5pDKrxq78++PdmOCHBqxRij732F8ldkg5kT7kxk3Dq6+b+KRcFZlhjLLErHBph
-qBGdQPcdWRTEQs/i7Nhi21YR5multUnkPiwektzSA+vVEI/Lnkwlo9XZhUnZUl61
-cVxtJdP13v1SeUkGcpgC
-=XVsF
+iQIcBAABCAAGBQJVZpFLAAoJELgmozMOVy/dLp0QALe4XlW/z2i+F7qJcHefVBOB
+hDxP0+wB0AzVMI8gKydHRZTM4FVdRTJHmL/ll5f5sLIBjFq9kg7RyRyv4NLh0PZ3
+Vcvi6wCjHZjcQYTO9XA5Gkv3qKtOCx1XGJ0pJxrQeGxpkPG+nWv0QEH/7Wd5t3Kj
+Nwh0yop3leeSAOmzTs1uSl0tT7JttQbAiB3+Y3G4frg0O2nCh6iYK17WI1q16JFa
+mx4O8NC2xkaxn+wdGjtdSGXQG/BH+ZDg8cd4zuYfKcbch3ZkGlubo4fdudsDS6//
++I/6L5qesgA/ZspG/h4SGTfYaPrNPrCGIc6QyJraMiNMVzKoSr90bXo0SQ/QMj8E
+tRUqNchTArJomR/Cn0OsOYnvNIWf50s6s2PY/ObtbHJK35/d+EnibnU/dC3+uLlv
+JlKAvZJsTZVgXeFRDmIMzTALKN1qaIKZB4+RTeOHquOdaccTL97Z47358Fxqa2Zx
+2I2vSj/ZpkfcS4SJlIio0I2bxpCzdaR2woaVxqE6IRAw5FbYOOTDwHuWirXQsgzo
+ITnVZZcXflnj6RhHUu9EQkK9zLROzNdu+wjjlLwXhhnM4kgVwKCwfGGvxImCW8ma
+3FTKpOINnMhZsChHPutKaDf7KhtOrZkigsfJX182Tjs9KZ0mbO3tAiaDQbqIpRrk
+5h23LY4nc9QtCPct7MkO
+=TNlQ
 -----END PGP SIGNATURE-----
 
---=-mRufnlU948yT3SL3Vrfp--
+--=-nEDx4qX3haAITDxB0TUd--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
