@@ -1,42 +1,42 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
- to query_device
-Date: Thu, 28 May 2015 12:14:15 -0500 (CDT)
-Message-ID: <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org>
-References: <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com> <20150526185315.GF11800@obsidianresearch.com> <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com> <20150526220724.GC4502@obsidianresearch.com>
- <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA@mail.gmail.com> <20150527184856.GA16059@obsidianresearch.com> <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com> <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com>
- <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org> <20150528162416.GA6515@obsidianresearch.com>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Thu, 28 May 2015 11:43:37 -0600
+Message-ID: <20150528174337.GA10448@obsidianresearch.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+ <1432647280.28905.107.camel@redhat.com>
+ <55671309.6080303@mellanox.com>
+ <1432822057.114391.26.camel@redhat.com>
+ <55674077.5040707@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150528162416.GA6515-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55674077.5040707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 28 May 2015, Jason Gunthorpe wrote:
+On Thu, May 28, 2015 at 07:21:11PM +0300, Or Gerlitz wrote:
 
-> After a quick look through, the biggest question in my mind is what
-> should the timestamp value in the wc be?
->
-> Right now it is some coded thing in clock cycles.
+> Anything else except for that (you said "reworking of the network scripts
+> and NetworkManager assumptions to make it work")??
 
-This is sufficient since it can be converted to ns or whatever one wants.
+IPv6 becomes very broken, child interfaces will generate the same IPv6
+addreses for radv and link local resulting in duplicate address
+scenarios.
 
-> Should we require the driver to convert to ns before passing the wc
-> back to the app? (Looks like the socket implementation uniformly uses
-> us or ns)
+About the only thing that will work properly is statically assigned
+IPv4 addresses.
 
-But that requires additional processing.
+> I don't see why we should stop the whole RDMA containers support train just
+> b/c we found out the IPoIB DHCP bug which was there for few years before
+> this effort started.
 
-> Should the app open code the conversion from clock cycles to ns, or
-> vfunc down to the driver?
+I don't think that is what Doug said.
 
-The API provides the abilty to retrieve the clock freq which is
-sufficient for the user to convert the value to meaningful time values.
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
