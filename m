@@ -1,54 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v4 for-next 07/14] IB/core: GID attribute should be
- returned from verbs API and cache API
-Date: Thu, 28 May 2015 11:07:11 -0600
-Message-ID: <20150528170711.GA4345@obsidianresearch.com>
-References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
- <1432045637-9090-8-git-send-email-matanb@mellanox.com>
- <20150519180649.GC18675@obsidianresearch.com>
- <CAAKD3BAifeMcHbDwcaK7F6cjj=mAn3W0Ms2mOmoXDhaquFqKTA@mail.gmail.com>
- <20150520181718.GD28496@obsidianresearch.com>
- <CAAKD3BDJtpEhfhsB=o4hc=ARWMt7JgpqvbjXJVvsL_vLZRn8yQ@mail.gmail.com>
- <20150528160748.GC2962@obsidianresearch.com>
- <5567439C.7080700@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
+ to query_device
+Date: Thu, 28 May 2015 12:14:15 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org>
+References: <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com> <20150526185315.GF11800@obsidianresearch.com> <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com> <20150526220724.GC4502@obsidianresearch.com>
+ <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA@mail.gmail.com> <20150527184856.GA16059@obsidianresearch.com> <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com> <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com>
+ <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org> <20150528162416.GA6515@obsidianresearch.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5567439C.7080700-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150528162416.GA6515-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 28, 2015 at 07:34:36PM +0300, Or Gerlitz wrote:
+On Thu, 28 May 2015, Jason Gunthorpe wrote:
 
-> As for the RoCE GID table itself, adding in properly net-devices in their
-> native Linux kernel form, namely with if_index and name-space -- seems to me
-> the correct way to go.
+> After a quick look through, the biggest question in my mind is what
+> should the timestamp value in the wc be?
+>
+> Right now it is some coded thing in clock cycles.
 
-Well, no, it is goofy. Callers with a path have a if_index/net pair.
-Several other callers have an actual struct netdevice.
+This is sufficient since it can be converted to ns or whatever one wants.
 
-The first thing roce_gid_table_find_gid_by_port does is convert the
-if_index/net pair back to a netdevice. This tells me the API is wrong,
-callers that already have a netdevice should just pass it in, and path
-is one that should be special cased to search.
+> Should we require the driver to convert to ns before passing the wc
+> back to the app? (Looks like the socket implementation uniformly uses
+> us or ns)
 
-But I don't even want to talk about that for a clean up series.
+But that requires additional processing.
 
-I want to know that the behavior of ib_find_cached_gid does not
-change. If it hasn't changed then we don't need to change call
-sites to pass in the optional netdev, because it must work as it does
-today. Otherwise the cleanup is broken.
+> Should the app open code the conversion from clock cycles to ns, or
+> vfunc down to the driver?
 
-So, my specific advice is:
+The API provides the abilty to retrieve the clock freq which is
+sufficient for the user to convert the value to meaningful time values.
 
-- roce_gid_table_find_gid_by_port should accept a netdevice or null
-- Always pass null for the netdevice for all call sites
-- Do not change the ib_* APIs during the clean up.
 
-Jason
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
