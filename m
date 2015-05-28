@@ -1,139 +1,101 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v4 for-next 07/14] IB/core: GID attribute should be
- returned from verbs API and cache API
-Date: Thu, 28 May 2015 16:50:09 +0300
-Message-ID: <CAAKD3BDJtpEhfhsB=o4hc=ARWMt7JgpqvbjXJVvsL_vLZRn8yQ@mail.gmail.com>
-References: <1432045637-9090-1-git-send-email-matanb@mellanox.com>
-	<1432045637-9090-8-git-send-email-matanb@mellanox.com>
-	<20150519180649.GC18675@obsidianresearch.com>
-	<CAAKD3BAifeMcHbDwcaK7F6cjj=mAn3W0Ms2mOmoXDhaquFqKTA@mail.gmail.com>
-	<20150520181718.GD28496@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 for-next 00/12] Add network namespace support in the
+ RDMA-CM
+Date: Thu, 28 May 2015 10:07:37 -0400
+Message-ID: <1432822057.114391.26.camel@redhat.com>
+References: <1431841868-28063-1-git-send-email-haggaie@mellanox.com>
+	 <1432647280.28905.107.camel@redhat.com> <55671309.6080303@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-NGxrxuBHky+zmbklT4H8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150520181718.GD28496-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <55671309.6080303-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2015 at 9:17 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, May 20, 2015 at 07:27:15PM +0300, Matan Barak wrote:
->> On Tue, May 19, 2015 at 9:06 PM, Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> > On Tue, May 19, 2015 at 05:27:10PM +0300, Matan Barak wrote:
->> >
->> >> +#define __IB_ONLY
->> >
->> > What is this?
->> >
->>
->> I annotated functions that should be called with IB link layer only as
->> __IB_ONLY. I think it's make the code more readable and it could be
->> verified by tools/scripts (like coccinelle) that we're calling those
->> functions under an IB link layer if statement.
->
-> Why not add:
->
-> BUG_ON(!rdma_is_ib(...))
->
-> [or whatever the name ended up as]
->
-> To the function prolog?
->
-> Then it actually does something..
->
 
-I think static checks suffice here - they have a clear advantage by
-forcing users to call these functions under rdma_is_ib if statement.
-However, since static checks (still) aren't widely used by all
-developers, I can change that to BUG_ON like you suggested.
+--=-NGxrxuBHky+zmbklT4H8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->> >> + * @gid_type: The GID type to search for.
->> >> + * @net: In RoCE, the namespace of the device.
->> >> + * @if_index: In RoCE, the if_index of the device. Zero means ignore.
->> >>   * @port_num: The port number of the device where the GID value was found.
->> >>   * @index: The index into the cached GID table where the GID was found.  This
->> >>   *   parameter may be NULL.
->> >> @@ -66,10 +82,36 @@ int ib_get_cached_gid(struct ib_device    *device,
->> >>   */
->> >>  int ib_find_cached_gid(struct ib_device *device,
->> >>                      union ib_gid     *gid,
->> >> +                    enum ib_gid_type gid_type,
->> >> +                    struct net         *net,
->> >> +                    int                 if_index,
->> >>                      u8               *port_num,
->> >>                      u16              *index);
->> >
->> > Why are we adding net namespace stuff here? We don't even have a
->> > proposal for roce net namespaces. Same comment for all net adds.
->> >
->>
->> In order to get a netdev, you need to have if_index and namespace.
->> I prefer to introduce a correct API from the beginning than to assume
->> we only use &init_net and changing the API afterwards.
->> roce_gid_table and ib_cache should present a clean API no matter
->> if their consumers use a custom namespace or init_net.
->
-> No, this needs to be a cleanup series - get to the point where we are
-> sharing the gid table code between the drivers that need it.
->
-> Don't change the APIs speculatively for rocev2 or namespaces, those
-> series can deal with it on their own.
->
+On Thu, 2015-05-28 at 16:07 +0300, Haggai Eran wrote:
+> On 26/05/2015 16:34, Doug Ledford wrote:
+> > On Sun, 2015-05-17 at 08:50 +0300, Haggai Eran wrote:
+> > This is a core feature more than anything else.  Namespaces for RDMA
+> > devices is not unique to IB or RoCE in any way.  Yet no thought has bee=
+n
+> > given to how this will work universally across all of the RDMA capable
+> > devices (mainly I'm talking about iWARP here...
+> I don't agree. It is true we have are not planning to provide an iWarp
+> implementation for network namespaces, as we lack the capacity and the
+> expertise. However, I think that the changes we proposed to the rdma_cm
+> module will work with iWarp too. Perhaps with some of Jason's
+> suggestions it will be smoother, but even in the current design, I think
+> that if iWarp drivers can provide iw_cm with the network device on which
+> a request is received, then it should be simple to modify it for
+> namespace support without significant change to rdma_cm.
 
-The argument for removing the gid_type seems reasonable to me.
-However, I don't think we should be removing net.
-if_index should always come with net - passing only if_index makes
-roce_gid_table's API a bit broken.
+My request wasn't for a functional implementation, just a statement that
+you had in fact thought about it and, as you say here, would expect it
+to work (and preferably why as well).
 
-> To be more clear, the goal of this series should only be to get
-> patches 11,12,13,14 merged, and the minimum set of other patches to
-> get there.
->
-> That means we don't need these API changes. We don't need ib_gid_attr.
-> Drop patch 8 and 9.
->
+> Well, because the RDMA subsystem supports a very diverse set of devices,
+> I think there are few people who know the details of all hardware types
+> well. If we are going to evolve the generic parts of the stack, we have
+> to cooperate. We have to rely on the knowledge of people on the mailing
+> list to say whether the feature is well designed for all hardware types,
+> or whether changes are warranted. In this specific case, the patches has
+> been on the list since February. I think it is enough time to allow
+> anyone who is interested in network namespace support to chime in.
 
-Patch 8 (the ndev part) is relevant. GID is now related to a ndev and
-we would like
-to expose this information to the user.
-In non rdma-cm applications, how would a user select the gid_index he wants?
+You would think that, but sometimes important information comes from
+totally different places.  See mine and Jason's comments back and forth
+in the SRIOV thread started by Or.
 
-Patch 9 is used by 10, so if we don't drop 10 - we need 9.
+Long story short:
 
-> I'm also not sure about patch 10, that looks like a functional
-> change? It should not be in a cleanup series.
->
+ip link add dev ib0 name ib0.1 type ipoib
 
-We drop smac and vlan_id from path and av. Instead, it's taken
-from the netdev in roce_gid_table. That's a crucial part of the new
-architecture.
-It's not worth adding roce_gid_table and not taking the parameters
-based on its information.
+is totally broken on at least all Red Hat OSes.  It will require
+reworking of the network scripts and NetworkManager assumptions to make
+it work.  It will also break DHCP on the interface as pkey/guid are the
+only items that uniquely identify DHCP clients.  The net result of our
+talks was that it is likely that each interface on the same pkey will
+require an alias GUID per child interface in order to keep things
+workable.
 
-> Is 6 new functionality? Are drivers already handling bonding?
->
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-The mlx4 driver currently supports bonding - dropping this patch means
-functionality regression.
 
-> A cleanup series should have *no functional change*.
->
-> So, it looks roughly like 7,8,9,10 can be dropped?
->
+--=-NGxrxuBHky+zmbklT4H8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-So if we sum everything up -
-do you agree with:
-Patch 7 - Change to BUG_ON, delete gid_type from API
-Patch 8 - delete gid_type from sysfs
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-> Jason
+iQIcBAABCAAGBQJVZyEpAAoJELgmozMOVy/dkFEQAKxcUKeseMVSVkHu9ttMOG9a
+P076MiG5+vN4GowdoMCK6BGQMfZvUW6Ao4f9v/dRYsQlJVk6JcRPyVw/GMkQwf4K
+2rneRg4DtCpf672sFFaxfyT1z8pmb+l91J1jN9o/tCzbW9x/ulwCylcg2xaJSLJv
+IrnS3uLhU+KoRYV8QIy/dQRV6Sz+GzkD5r40VkCdMNI3jqc5bo2JqSVZ9cLRrbnb
+YITp5sqj7HPSmeI067JYBrTzlJDrNOCUksybL7IM1rVjyyDpsim6nLIaNpcTiyGE
+9vfsyxuyCym/3Ykcv3n9XAhKBCrSxeCAFERw0T/cBaFwNExgIeHLD5IaGjljaQjg
+pizoCYcnQUtn6pKHgZxPq5d7+IFVh7IEJdV5FYqg6yPGVX9uu85dpp4TwTVryAaG
+3fQRO3JCewYdzwpTcGgW3pb+mYSAY8SM9e0F6kobSNMQxO2BIN0EZbA7hKDlscFd
+PyHKDDOXTzCDlZt0Q4VEi1Zj3+7rV8IUJsU7tP+nrWD0wBjhPhm/ik9+AJsVVJrz
+g87le46MCZLEBiZrIaEr84ND9zLDB2VTkyXRLkhdvXnUCEikJEYqlQ/woTZ3ySFp
+Q+wthBEczu549FhxLZQDxQ83+Xto2zpVKJGXOM2LGUIWI51PR0IxmSs+QuMa1SGn
+hhwmaJidHNPz51K7Ymd6
+=Jb3q
+-----END PGP SIGNATURE-----
 
-Thanks for looking at this patch.
+--=-NGxrxuBHky+zmbklT4H8--
 
-Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
