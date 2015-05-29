@@ -1,78 +1,51 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/3] Add const to various core functions
-Date: Fri, 29 May 2015 00:13:14 -0400
-Message-ID: <20150529041313.GA1603@phlsvsds.ph.intel.com>
-References: <1432240824-3277-1-git-send-email-ira.weiny@intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
+ hca_core_clock to query_device
+Date: Fri, 29 May 2015 07:59:38 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373A8FE1F36@ORSMSX109.amr.corp.intel.com>
+References: <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com>
+ <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com>
+ <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org>
+ <20150528162416.GA6515@obsidianresearch.com>
+ <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org>
+ <20150528175043.GA10966@obsidianresearch.com>
+ <alpine.DEB.2.11.1505281325150.1794@east.gentwo.org>
+ <20150528195034.GA11182@obsidianresearch.com>
+ <alpine.DEB.2.11.1505281522020.2703@east.gentwo.org>
+ <20150528204749.GA12780@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1432240824-3277-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20150528204749.GA12780-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 21, 2015 at 04:40:21PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Second: What about wrap around? Does it even make sense to expose less
+> > > than 64 bits to userspace? Should the driver manage wrap around to
+> > > create a flat 64 bit space?
+> >
+> > The wrap around is given by the mask. Cycle registers are often shorter
+> > than 64 bits.
+> 
+> I am aware of how cycle counters work.
+> 
+> My point was exposing raw wrapping counters is a horrible UAPI.
+> 
+> Shouldn't the driver software extend smaller counters to 64 bits?
+> That would take a single or and an unlikely branch, so don't say
+> 'performance' :)
 
-Doug, Jason,
+It's one thing to time stamp a frame or packet.  But this is assigning a time stamp to a work completion.  I don't even know what that's supposed to mean when considering 2 GB (or larger) transfers, RDMA read operations, XRC, dynamic connections, out of order retransmissions, shared receive queues, and other exotic features.  IMO, this is currently vendor specific functionality, and not obviously applicable as a generic feature.  It is certainly poorly defined and exposed in a very implementation specific way.
 
-Were there any issues with these clean ups?
+The use case given by Christoph only speaks of packet level time stamps.  One could argue that such a use case would place the stamp near the packet (similar to the GRH), rather than embedded into a work completion.  This would allow time stamps even in the absence of a work completion.
 
-I think they stand on their own but I can add them to the OPA series if you
-prefer.
+IMO, vendors already have ways to expose vendor specific features to user space.  I would mark this as vendor specific and keep it out of the core.
 
-Ira
-
-> 
-> In order to support some of Jason's comments to add const to the functions I am
-> adding for OPA the following patches clean up the call trees of the currently
-> defined functions.
-> 
-> They stand on their own as clean up patches.  Therefore, I am submitting them
-> separately from the OPA patches.
-> 
-> Ira Weiny (3):
->   IB/core: Add const to RDMA helpers
->   IB/core: Add const to device process_mad
->   IB/core: Add const to agent_send_response
-> 
->  drivers/infiniband/core/addr.c                |  4 +--
->  drivers/infiniband/core/agent.c               |  8 +++---
->  drivers/infiniband/core/agent.h               |  4 +--
->  drivers/infiniband/core/cache.c               |  8 +++---
->  drivers/infiniband/core/verbs.c               |  9 ++++---
->  drivers/infiniband/hw/amso1100/c2_provider.c  |  6 ++---
->  drivers/infiniband/hw/cxgb3/iwch_provider.c   |  6 ++---
->  drivers/infiniband/hw/cxgb4/provider.c        |  5 ++--
->  drivers/infiniband/hw/ehca/ehca_iverbs.h      |  4 +--
->  drivers/infiniband/hw/ehca/ehca_sqp.c         |  4 +--
->  drivers/infiniband/hw/ipath/ipath_mad.c       |  8 +++---
->  drivers/infiniband/hw/ipath/ipath_verbs.h     |  6 ++---
->  drivers/infiniband/hw/mlx4/mad.c              | 21 ++++++++-------
->  drivers/infiniband/hw/mlx4/mlx4_ib.h          |  8 +++---
->  drivers/infiniband/hw/mlx5/mad.c              |  8 +++---
->  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  8 +++---
->  drivers/infiniband/hw/mthca/mthca_cmd.c       |  4 +--
->  drivers/infiniband/hw/mthca/mthca_cmd.h       |  4 +--
->  drivers/infiniband/hw/mthca/mthca_dev.h       |  6 ++---
->  drivers/infiniband/hw/mthca/mthca_mad.c       | 10 +++----
->  drivers/infiniband/hw/nes/nes_verbs.c         |  4 +--
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c      |  6 ++---
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.h      |  6 ++---
->  drivers/infiniband/hw/qib/qib_mad.c           | 10 +++----
->  drivers/infiniband/hw/qib/qib_verbs.h         |  4 +--
->  drivers/net/ethernet/mellanox/mlx5/core/mad.c |  2 +-
->  include/linux/mlx5/driver.h                   |  2 +-
->  include/rdma/ib_addr.h                        |  6 ++---
->  include/rdma/ib_cache.h                       |  8 +++---
->  include/rdma/ib_verbs.h                       | 39 ++++++++++++++-------------
->  30 files changed, 116 insertions(+), 112 deletions(-)
-> 
-> -- 
-> 1.8.2
-> 
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
