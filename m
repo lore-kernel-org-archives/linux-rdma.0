@@ -1,107 +1,78 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and
- hca_core_clock to query_device
-Date: Fri, 29 May 2015 12:59:27 -0400
-Message-ID: <1432918767.114391.110.camel@redhat.com>
-References: <CAJ3xEMj5qphSq5QQHKPsihuK6StmJ+NHiPbkY-ZVGmpViB1AXA@mail.gmail.com>
-	 <20150526185315.GF11800@obsidianresearch.com>
-	 <CAJ3xEMh7JYN8sP5MYdVjH=tqPFURwvD7jVvV0=PBiEn1qEFi2A@mail.gmail.com>
-	 <20150526220724.GC4502@obsidianresearch.com>
-	 <CAJ3xEMgdqBnn6hobRJFut6Nyu2pKt40rb46Z3dYx3MaohR2urA@mail.gmail.com>
-	 <20150527184856.GA16059@obsidianresearch.com>
-	 <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com>
-	 <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com>
-	 <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org>
-	 <20150528162416.GA6515@obsidianresearch.com>
-	 <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-bcAlm51vzXvGaS/tgTPu"
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
+ to query_device
+Date: Fri, 29 May 2015 11:59:21 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1505291153180.9179@east.gentwo.org>
+References: <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com> <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com> <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org> <20150528162416.GA6515@obsidianresearch.com>
+ <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org> <20150528175043.GA10966@obsidianresearch.com> <alpine.DEB.2.11.1505281325150.1794@east.gentwo.org> <20150528195034.GA11182@obsidianresearch.com> <alpine.DEB.2.11.1505281522020.2703@east.gentwo.org>
+ <20150528204749.GA12780@obsidianresearch.com> <alpine.DEB.2.11.1505290845040.8178@east.gentwo.org> <1432918170.114391.104.camel@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1505281212330.1711-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <1432918170.114391.104.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 29 May 2015, Doug Ledford wrote:
 
---=-bcAlm51vzXvGaS/tgTPu
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> > Well this is a kernel bypass API and a lot of raw hardware issues will
+> > have to be handled since you do go directly to the device.
+>
+> No, that's not entirely true, and it *certainly* is not the correct way
+> to think about verbs extensions.  Is it kernel bypass?  Yes.  Does it go
+> direct to the hardware?  Not as far as the user application is
+> concerned.  The direct hardware access is abstracted away in the verbs
 
-On Thu, 2015-05-28 at 12:14 -0500, Christoph Lameter wrote:
-> On Thu, 28 May 2015, Jason Gunthorpe wrote:
->=20
-> > After a quick look through, the biggest question in my mind is what
-> > should the timestamp value in the wc be?
-> >
-> > Right now it is some coded thing in clock cycles.
->=20
-> This is sufficient since it can be converted to ns or whatever one wants.
+There is a compromise here by using the kernel as a administrative
+function (setup and configuration of QPs) but using bare metal for the
+data path. The structures modified for send/receive are structures that
+are directly understood and handled by the hardware. That is the core
+benefit of the RDMA API which results in the wanted performance and
+latency.
 
-It is sufficient for your use.  It is not, however, a good API.
+The administrative function / bare metal separation is also reflected in
+this patchset. The admin function allows the determination of the cycle
+counter freq and size. The bare metal cycle counter exists in the
+fastpath.
 
-> > Should we require the driver to convert to ns before passing the wc
-> > back to the app? (Looks like the socket implementation uniformly uses
-> > us or ns)
->=20
-> But that requires additional processing.
+> library.  Because the verbs library is a hardware abstraction layer, any
+> extensions to it need to be well thought out.  And by that I mean if it
+> is of general use, then it should be added in a general, abstract way
+> that any hardware can implement.  If it is specific to just one vendor's
+> hardware, then it can be added in a means that is specific to that
+> vendor's hardware.
 
-Yes.
+What is particular here to the vendor?
 
-> > Should the app open code the conversion from clock cycles to ns, or
-> > vfunc down to the driver?
->=20
-> The API provides the abilty to retrieve the clock freq which is
-> sufficient for the user to convert the value to meaningful time values.
+> Now, as a general rule, I would call timestamps general.  They should be
+> added in a fashion that anyone can implement.  They should also be well
+> defined.  Sean's questions raise a very valid point.  Exactly what is
+> being timestamped, and do we care about different timestamp options?  Is
+> it completion of message, start of message, transfer from HCA to main
+> system memory completion, etc.  The 00/10 header to this patch series
+> was probably answering Sean's question, but just based on the name of
+> the TIMESTAMP flag to the CQ creation attr struct it isn't clear that
+> this is the case.
 
-I would prefer if the access to the timestamp were implemented via a
-function in libibverbs (I haven't looked at the git repo, too little
-time, I'll get to it).  Something like ibv_get_cqe_timestamp().  That
-function should be general and return a suitable, normalized value (ns
-probably).  If you just want a simple comparator without the overhead of
-normalizing to time, and are willing to accept the consequences of that,
-then I would expect you to use something like
-ibv_get_raw_cqe_timestamp() to get the unadulterated cycle counter.  For
-the most part, the user space application should not know details like
-"we are using a cycle counter in the HCA processor for timestamping",
-that's below the level of abstraction we attempt to maintain at the
-verbs level.  Libmlx4 should be the only thing aware of that fact, and
-it talks to the mlx4 driver in the kernel to get the details it needs.
-And by putting it into a function that libmlx4 implements, if libcxgb4
-decides to implement timestamps and does it in a different way, the app
-doesn't care, it just uses the same call.
+Ok then lets answer that.
 
+> > Right but then we are not at the comfortable sockets API here but at the
+> > bare metal level.
+>
+> That's not entirely true.  We still hold to our abstrations, they are
+> just intentionally kept very thin and high performing.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+Well there is a distinction here.
 
+We provide the comfort of setup and administrative functions through the
+kernel API. We still try to isolate the application as much as possible
+when we go to the data paths but we need to hit bare metal in the fastpath
+in order to accomplish our mission of maximum performance and minimum
+latency. This cannot be accomplished with kernel calls and therefore it is
+an examplle of kernel bypass. We want this as comfy as possible of course
+and well defined.
 
---=-bcAlm51vzXvGaS/tgTPu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVaJrvAAoJELgmozMOVy/dVBcQAJtKMW7zMAdnWl/zSLspL03e
-Vw6U661bC+4OxWFTbTFditWu+9xUvhuLgMmr0fpRE+wBIVGbn3308MoN935reaD6
-TQuAJhDWDw6LgP6J9AATKDQX+1ieT/lqkfOaBjRaagxC3bKYIh3BFch9kqVXqKKk
-78OIwKiN5QwYDxUQHrvbmssW/qYG5vXAvRJ5IDz9lKcPwb3zJFmbg0X+JF39oUW6
-WhQESsbZr0YTbNJDzjHMDa+2H6ijvaalYsIyGqhBlQuhT12/jx/heAweG1+2RzEu
-KrItitQbuPMOs8ELD8Zm1nMtKod6Ty8EhLxluzbf3IUNzkbcZpyM47K9zSkEKy5V
-j2Uu/JGtpH89vv4aVnp+niFlKr+p14UsmqelBh0Tq3+v2cHhiE6BP+8CsCORjTSR
-IuKp2RWNp8ToIXnJiQnuy0XZo932mbKT5aHukMHtIPD2Yl5p3Rc8nK6T87M8mUQR
-9K7FowYMPaBU0CF7VmyI4ePdRQ8K/1ImzbKEydRviKHNZnNA60KrFYRaAqMe4hcL
-Be31RuO5phuBw02cz5h4vMpVopTONIG168pYWizOzpJkUUz+Iv+V8sncgm08UClf
-Sq2c8XsX5y1Jz7hBS9PFcHaLB/hQhURGWXxwgWeER2V0WUm6dpo8j6W2+JJ1qNdO
-iUYsMk2Opeh0WlDFiMoS
-=2KJZ
------END PGP SIGNATURE-----
-
---=-bcAlm51vzXvGaS/tgTPu--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
