@@ -1,52 +1,99 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH for-next 09/10] IB/mlx4: Add timestamp_mask and hca_core_clock
- to query_device
-Date: Fri, 29 May 2015 14:21:46 -0500
-Message-ID: <5568BC4A.3070502@opengridcomputing.com>
-References: <CAJ3xEMh_g0zBza5HoVZTy9cTRbXqatzvBMAJcRjQhH7Zi=cHAg@mail.gmail.com> <20150527222108.GA7855@obsidianresearch.com> <5566BDE4.50709@mellanox.com> <alpine.DEB.2.11.1505280908001.16142@east.gentwo.org> <20150528162416.GA6515@obsidianresearch.com> <alpine.DEB.2.11.1505281212330.1711@east.gentwo.org> <20150528175043.GA10966@obsidianresearch.com> <alpine.DEB.2.11.1505281325150.1794@east.gentwo.org> <20150528195034.GA11182@obsidianresearch.com> <alpine.DEB.2.11.1505281522020.2703@east.gentwo.org> <20150528204749.GA12780@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373A8FE1F36@ORSMSX109.amr.corp.intel.com> <alpine.DEB.2.11.1505290846480.8178@east.gentwo.org> <1828884A29C6694DAF28B7E6B8A82373A8FE2069@ORSMSX109.amr.corp.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Current patch statuses
+Date: Fri, 29 May 2015 17:57:25 -0400
+Message-ID: <1432936645.114391.156.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-JssrcUMm9qV1s1RBkOGP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373A8FE2069-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/29/2015 11:52 AM, Hefty, Sean wrote:
->> What is the issue here? The timestamp is created when the processing is
->> finished by the nic and the completion entry becomes available.
-> The timestamp is generated when a work completion entry is written.  If there's a clear use case for this, it hasn't been described.  The use case you mentioned only works if there is a 1:1 relationship between a packet and a work completion.  That is not what is being defined here.
->
->> It is exactly defined like any other cycle counters in hardware and it is
->> exposed using an API that allows multiple vendors to use these cycle
->> counters without regard to a particular vendors implementation.
-> I disagree.  This is associated with a specific implementation.  It assumes that the counter is part of a CQ entry, and that the counter is written when the completion is written.  There's nothing that requires other vendors to follow that model, nor is it clear that this is a generic or useful enough operation that other vendors would want to follow this model.  Why not have the time stamp record the start of the transaction?  The end?  Have two stamps, once for the first packet, and one for the last?  Limit this to single packet operations only?
 
-FWIW: cxgb4 hardware includes a hw timestamp in its CQE as well. It is 
-used by SW for CQ overflow detection and debug timing analysis...
+--=-JssrcUMm9qV1s1RBkOGP
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->>> The use case given by Christoph only speaks of packet level time stamps.
->> O=
->>> ne could argue that such a use case would place the stamp near the
->> packet (=
->>> similar to the GRH), rather than embedded into a work completion.  This
->> wou=
->>> ld allow time stamps even in the absence of a work completion.
->>>
->>> IMO, vendors already have ways to expose vendor specific features to
->> user s=
->>> pace.  I would mark this as vendor specific and keep it out of the core.
->> How exactly would that work? How can we attach vendor specific extension
->> to a completion structure?
-> I'm just stating that there is at other ways of exposing this sort of feature.  A time stamp could just as easily be written with the data, similar to the grh.  One of the points of defining the verbs extensions was exactly so that a vendor could export their own functionality.
->
-> - Sean
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+* Ira's 3 patch const cleanup: generally approved, waiting latest
+version
+* Ira's 14 patch OPA set: I haven't reviewed yet, waiting for next
+version
+* Matan's 14 patch RoCE GID set: Changes were requested, awaiting next
+version
+* Or's 11 patch timestamp set: The general idea is OK, creating an
+extension is OK, but I think the actual uAPI needs nailed down a little
+more.  Right now it's too vendor/model/driver specific for a general
+uAPI.
+* Haggai's 12 patch cma namespace set: Serious concerns over the
+suitability of creating more than one link per unique guid/pkey.
+Requesting that Haggai investigate using alias GUIDs for containers
+instead.
+* Or's 3 patch SRIOV set: both changes and coordination with
+netdev/iproute2 folks requested, awaiting results of that interaction
+and update for 8byte GUID management
+* Yishai's 3 patch hot removal set: changes in locking requested
+* Alex's Verbs RSS RFC: I read through the proposal, but I didn't
+research it in enough detail to provide high quality feedback.  But I
+will give a little low quality feedback.  First the good: I'm generally
+receptive to anything that improves our NUMA operation.  While I didn't
+see that the RSS necessarily took NUMA into consideration, the overall
+framework looked like a good starting point for doing exactly that.  The
+ability to have RSS via hashed receives and multiple flows is a start,
+now you just need to add pinning the flows to specific sockets that are
+adjacent to the PCI bus the controller is on and populating the number
+of threads to use for RSS based upon the number of cores/threads per
+socket.  Next the questionable: I'm not sure I like the specific
+implementation.  It puts a lot of new, complex configuration on the
+application.  But the benefits of this could have a default setting
+without requiring application interaction.  I'm not sure I wouldn't
+prefer something that, by default, creates all new QPs and CQs so that
+they go through a default hashing and redirection without any user
+interaction at all.  Or maybe the user simply sets a flag to signal that
+they are OK with multithread completion handling and they get it.  Or
+something like that.  On other words, I would like to see an application
+get the benefit of this without having to be recoded.  Maybe they only
+get a default benefit and not an optimized benefit, and maybe the user
+has to set an environment variable for libibverbs before it gets enabled
+by default, but I would still like to see a non-recompiled app benefit
+from this.  The proposal I see here might be able to do that if the
+changes to libibverbs are done properly.  And if the implementation is
+right it might be able to help the kernel consumers too.  So, please
+keep these things in mind as you continue to work on this.
+
+And with that, I've got to do some Red Hat work for a bit.  I won't be
+as responsive the early part of next week as a result.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+--=-JssrcUMm9qV1s1RBkOGP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVaODFAAoJELgmozMOVy/dqcUQAJYT9ZwF/BPuqyfJuPD6fKMw
+f7ggWmd/oJyT99/E6lFc4mHg+K3Klj0Vifjt1O0NqcZs11SIv02E4RZ77VyvNIUv
+m1YEs5klNiNmDbOkKOneRtpt/1kpQeIJ0aJ6nRlpf2FJ9KmwYUT9E8dxBGcWZp4p
+kyxjNbebDgN/1jYCCmV+S9nDasCo6Ril+vCu8H6WssIOOV0aTRI6UXXvAmHCthbr
+htHddWcW/aT4Mxk4fF/kK1FhVCeNSnFAT2urkWMb9qzQUu7JwJFjAYRsbk5MO+GJ
+k/nkdsKeWW2yc4EIF5DSXgFYmI0XpP4LXznpak/l6JfWliR+iwVGYLU7z7VopOKf
+aIun7tg7g7zJzJE9R+hF0bD/5SsJh6PguTmAXeGDMjnG0wOh2zcavk5y2di5kWT7
+tF4fou3GEv0j/8kSzNmiXe2C2WedMj+S1JjaH9Og5dekVR1fTP70itQ4YLNBfkdj
+GStWp7XSJ4sqg/ezVZEU1OJnW2WU62ycJEQEFqd3p0HRpTbO4UXePUNNVbDGPfsz
+VOHNbiftEg+hiU/LBzpne9m2WoZL5ibD8JBANZE/midR/rrRjHDuvV0EWMUcjenW
+vl2RwCwXDZ9sznVinJ6MySIINVFVo4tAxQr0QkDpytg3p2gip/nIEk0qdP+0TZAZ
+r0IigLIqJSzMQkYg93kq
+=iVrF
+-----END PGP SIGNATURE-----
+
+--=-JssrcUMm9qV1s1RBkOGP--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
