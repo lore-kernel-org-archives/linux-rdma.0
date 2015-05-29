@@ -1,68 +1,81 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 00/11] Add completion timestamping support
-Date: Fri, 29 May 2015 18:47:08 +0300
-Message-ID: <CAJ3xEMj-N7JjasWfpP+H+tMyGpbeWQKxnN_SWQngPpGW5YywRg@mail.gmail.com>
-References: <1432220202-9834-1-git-send-email-ogerlitz@mellanox.com>
-	<55678BA6.4050503@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/3] Add const to various core functions
+Date: Fri, 29 May 2015 11:48:53 -0400
+Message-ID: <1432914533.114391.88.camel@redhat.com>
+References: <1432240824-3277-1-git-send-email-ira.weiny@intel.com>
+	 <20150529041313.GA1603@phlsvsds.ph.intel.com>
+	 <1432904099.114391.61.camel@redhat.com>
+	 <20150529151735.GA5372@phlsvsds.ph.intel.com>
+	 <20150529153231.GA10432@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-WF9Gka93VJurw8v/afCY"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55678BA6.4050503-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20150529153231.GA10432-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 29, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> On 5/21/2015 9:56 AM, Or Gerlitz wrote:
 
->> A user-space application could get the current HW's clock by executing
->>
->> ibv_query_values_ex(struct ibv_context *context, uint32_t q_values,
->>                      struct ibv_values_ex *values)
->>
->> The function gets a mask of the values to query and return their values.
->> Vendors could either implement this as a uverb command or use their
->> user-space driver to return those values directly from the HW (the mlx4
->> way).
+--=-WF9Gka93VJurw8v/afCY
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Fri, 2015-05-29 at 11:32 -0400, ira.weiny wrote:
+> > >=20
+> > > Double check that they stand on their own.  If they do, I'll review t=
+hem
+> > > separately.
+> >=20
+> > They do stand on their own and they are improvements even without the O=
+PA code.
+>=20
+> After responding to this email I found a 0-day build email which shows a
+> build warnings on this patch building ehca on PPC:
+>=20
+> IB/core: Add const to device process_mad
+>=20
+> I'm not sure why but sometimes my 0-day build results are delayed for qui=
+te
+> some time?  I'm guessing the servers prioritize kernel.org over github
+> accounts???  Or I'm just doing something wrong...  :-/
 
-> I'm just reviewing this now, and I haven't looked at the user side, but it
-> appears the CQE timestamp is available for all devices to support or not in
-> a generic manner.  IE it is part of the extended CQ UAPI.  But the task of
-> fetching the current timestamp value/mask seems to be device-specific.
+I've seen that too.  I can't tell you what the issue is.
 
-Steve,
+However, I should take this to mean there is a both a v2 of this series,
+and a new OPA series on the way?
 
-Since there are no kernel consumers at this point, the series only
-implemented the IB core kernel parts which are needed for proper usage
-@ user-space, namely: CQ creation with a time-stamping flag, and
-extension of the query device verb which returns the clock mask and
-frequency, etc.
-
-In user-space, applications would work against libibverbs, all
-standard. They would query the device, create their CQs, get the
-completion time-stamp from the CQE (ibv_wc) and the current clock
-sample from a new verb ibv_query_values_ex which was mentioned above,
-the user-space code is still in internal review, but here's a ref to
-early drop I posted here couple of days ago
-
-
-https://github.com/matanb10/libibverbs timestamp-v0
-https://github.com/matanb10/libmlx4 timestamp-v0
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
 
-> Shouldn't that also be a standard operation that devices can choose to
-> support or not?    IE an application can generically setup a CQ and get
-> timestamps on CQEs, but it seems the application would have to have
-> device-specific code to get the current timestamp/mask.  Perhaps I'm not
-> understanding the design?
+--=-WF9Gka93VJurw8v/afCY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-No, nothing device specific from the application POV
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-see the ibv_query_values_ex introduction
+iQIcBAABCAAGBQJVaIplAAoJELgmozMOVy/dB2QP/1hZX8XMEkXygA5+zC8GhKt1
++KQ8gURw0/HTIr7T9vCLYOiECcHh2Ylx+fXBRNJsvdAPFpPU6pgmWjgI3rgs6wHk
+M/+Ik00EzTkepI7FnUfyf3zAukaCZ1D0eb3cbqwkn4wHXR3MUVrJNxhDahoCm9s0
+5X3XneIvpAhHDs83MkRdxkIC6N5/KmE3UUpETjm9nbP/m5wkXHA0nA9qb+W50NiI
+FwkSHgrYWEcmt9T8Sic3UtOCqNP4DpiEJVowDJpQcmRsgmcn1+VKUsNNZSA0CR1o
+M3LkUM/gjTeU2wLWMBhqiVBj0957fj/UXChZxzxSCB6EPp+9aPUDdNEBhRE4QNUa
+3hzO6+egtoCxHYOa9BTZxM9YIynAkmsNUHMK2fnVzcRSA2aD8u5Fzwo8SLR5Q9yB
+Epj1aDrdT1JgKPxiYTgqGDa+tHnBNeQ/JmPw0XiUbSaR75ilk9ldTMu1aJm0QfQb
+E30thBV88C6ZVgap4oic5n1WCZ/rqnEEyCk4k5nNwm/zEhjn7XbHyGOrtHLIRgui
+N8XtOLUEcOKG1Aa1i3VgvyJmrdijMQA7N33lkKitnGoD8OJBJygURn4hFcEUFy8A
+jE1ioCsko6FDWJULFNhWQARqYfth+mpfgpAmvs5P9kuoxAzvzZxNgjhDRlXKYDAF
+bteWY7gciZpfGj37myHO
+=AYmz
+-----END PGP SIGNATURE-----
 
-https://github.com/matanb10/libibverbs/commit/89c439e34ab234d5d58bd92804829a0aa6efb3ca
+--=-WF9Gka93VJurw8v/afCY--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
