@@ -1,44 +1,46 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [PATCH 3/3] iser-target: Fix error path in isert_create_pi_ctx()
-Date: Fri, 29 May 2015 23:12:10 -0700
-Message-ID: <1432966330-12230-1-git-send-email-roland@kernel.org>
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Doug Ledford <dledford@redhat.com>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 1/3] RDMA/ocrdma: Fix memory leak in _ocrdma_alloc_pd()
+Date: Fri, 29 May 2015 23:10:31 -0700
+Message-ID: <1432966231-12125-1-git-send-email-roland@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland@purestorage.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-We don't assign pi_ctx to desc->pi_ctx until we're certain to succeed
-in the function.  That means the cleanup path should use the local
-pi_ctx variable, not desc->pi_ctx.
+If ocrdma_get_pd_num() fails, then we need to free the pd struct we allocated.
 
-This was detected by Coverity (CID 1260062).
+This was detected by Coverity (CID 1271245).
 
-Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 327529ee85eb..3f40319a55da 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -547,11 +547,11 @@ isert_create_pi_ctx(struct fast_reg_descriptor *desc,
- 	return 0;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 9dcb66077d6c..fcb86749efc9 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -375,7 +375,12 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
  
- err_prot_mr:
--	ib_dereg_mr(desc->pi_ctx->prot_mr);
-+	ib_dereg_mr(pi_ctx->prot_mr);
- err_prot_frpl:
--	ib_free_fast_reg_page_list(desc->pi_ctx->prot_frpl);
-+	ib_free_fast_reg_page_list(pi_ctx->prot_frpl);
- err_pi_ctx:
--	kfree(desc->pi_ctx);
-+	kfree(pi_ctx);
+ 	if (dev->pd_mgr->pd_prealloc_valid) {
+ 		status = ocrdma_get_pd_num(dev, pd);
+-		return (status == 0) ? pd : ERR_PTR(status);
++		if (status == 0) {
++			return pd;
++		} else {
++			kfree(pd);
++			return ERR_PTR(status);
++		}
+ 	}
  
- 	return ret;
- }
+ retry:
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
