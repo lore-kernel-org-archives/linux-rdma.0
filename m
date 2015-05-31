@@ -1,270 +1,578 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 0/9] Add completion timestamping support
-Date: Sun, 31 May 2015 15:00:27 -0400
-Message-ID: <1433098827.114391.179.camel@redhat.com>
-References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-uzG0N8neJNEpRxV9eP84"
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 2/3] IB/core cleanup: Add const on args - device->process_mad
+Date: Sun, 31 May 2015 17:15:30 -0400
+Message-ID: <1433106931-5215-3-git-send-email-ira.weiny@intel.com>
+References: <1433106931-5215-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433074457-26437-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1433106931-5215-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---=-uzG0N8neJNEpRxV9eP84
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The process_mad device function declares some parameters as "in".  Make those
+parameters const and adjust the call tree under process_mad in the various
+drivers accordingly.
 
-On Sun, 2015-05-31 at 15:14 +0300, Or Gerlitz wrote:
-> Hi Doug,
->=20
-> This patchset adds completion timestamping supports for verbs consumers.=
-=20
->=20
-> Reviewing the weekend threads, we've changed the flag time to reflect
-> that this is completion time-stamp and folded the mlx4 actual support=20
-> into one patch.
->=20
-> Regarding the related user-space support, it's possible to add what you
-> were suggesting, ibv_get_raw_cqe_timestamp() -- returns ts in cycles and=
-=20
-> ibv_get_cqe_timestamp() -- returns ts in ns, this makes the value returne=
-d
-> by the poll cq verb an opaque one that must go through one of  the conver=
-tors.
->=20
-> We would to go for one helper ibv_get_timestamp(uint64_t raw_time, flag) =
-which=20
-> could get the raw time-stamp and one of the following flags: RAW_TIME, RA=
-W_NS_TIME.
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I'm theoretically OK with something similar to the above.  However, the
-NS time should not be raw.  It should be cooked and should be able to be
-valid to compare between different adapters.  Right now, the cycle
-counter that you are exposing is only useful for ordering between
-packets received on a single adapter where the cycle counter is the same
-on all packets.  Throw in a different vendor's card, or two of your own
-cards, and the issue gets much more complex.  The cooked value should be
-an actual, real time that can be used across these more complex
-environments.  Because of that, it really shouldn't be called RAW.
+---
+Changes from V1:
+	Fix 0-day build warnings on ehca
+	Update commit message
 
-So, if you want a single entry point, I would suggest something like
-this:
+ drivers/infiniband/hw/amso1100/c2_provider.c  |    6 +++---
+ drivers/infiniband/hw/cxgb3/iwch_provider.c   |    6 +++---
+ drivers/infiniband/hw/cxgb4/provider.c        |    5 +++--
+ drivers/infiniband/hw/ehca/ehca_iverbs.h      |    4 ++--
+ drivers/infiniband/hw/ehca/ehca_sqp.c         |   14 +++++++-------
+ drivers/infiniband/hw/ipath/ipath_mad.c       |    8 ++++----
+ drivers/infiniband/hw/ipath/ipath_verbs.h     |    6 +++---
+ drivers/infiniband/hw/mlx4/mad.c              |   21 +++++++++++----------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h          |    8 ++++----
+ drivers/infiniband/hw/mlx5/mad.c              |    8 ++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |    8 ++++----
+ drivers/infiniband/hw/mthca/mthca_cmd.c       |    4 ++--
+ drivers/infiniband/hw/mthca/mthca_cmd.h       |    4 ++--
+ drivers/infiniband/hw/mthca/mthca_dev.h       |    6 +++---
+ drivers/infiniband/hw/mthca/mthca_mad.c       |   10 +++++-----
+ drivers/infiniband/hw/nes/nes_verbs.c         |    4 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c      |    6 +++---
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h      |    6 +++---
+ drivers/infiniband/hw/qib/qib_mad.c           |   10 +++++-----
+ drivers/infiniband/hw/qib/qib_verbs.h         |    4 ++--
+ drivers/net/ethernet/mellanox/mlx5/core/mad.c |    2 +-
+ include/linux/mlx5/driver.h                   |    2 +-
+ include/rdma/ib_verbs.h                       |    6 +++---
+ 23 files changed, 80 insertions(+), 78 deletions(-)
 
-enum ib_timestamp_flags {
-	IB_TIMESTAMP_COMPLETION =3D (1 << 0), // specify on create_cq
-	IB_TIMESTAMP_WQE_BEGIN =3D  (1 << 1), // specify on create qp?
-	IB_TIMESTAMP_WQE_END =3D    (1 << 2), // specify on create qp?
-	IB_TIMESTAMP_RAW =3D        (1 << 31)
-};
-
-enum ib_cq_creation_flags {
-	IB_CQ_FLAGS_TIMESTAMP_COMPLETION =3D (1 << 0)
-};
-
-/**
- * ibv_get_timestamp - Return the requested timestamp for the given wc
- * @wc - work completion to get timestamp results from
- * @ts - struct timespec to return timestamp in
- * @flags - which timestamp to return and in what form
- *
- * Depending on the flags used to create the queue pair/completion
- * queue, different timestamps might be available.  Callers should
- * specify which timestamp they are interested in using the flags
- * element, and if they wish either a cooked or raw timestamp.  A
- * raw timestamp is implementation defined and will be passed back
- * in the tv_nsec portion of the struct timespec.  A raw timestamp
- * can not be relied upon to have any ordering value between more
- * than one HCA or driver.  A cooked timestamp will return a valid
- * struct timespec normalized as closely as possible to the return
- * value for CLOCK_MONOTONIC of clock_gettime at the time of the
- * timestamp.
- */
-int ibv_get_timestamp(struct ibv_wc *wc, struct timespec *ts, int
-flags);
-
-> We think this would address the reviewer comments for the kernel submissi=
-on.
->=20
-> The user-space code is in (still uses IB_CQ_FLAGS_TIMESTAMP and miss the=
-=20
-> conversion functions)=20
->=20
->  https://github.com/matanb10/libibverbs timestamp-v1
->  https://github.com/matanb10/libmlx4 timestamp-v1
->=20
-> Timestamping is used by applications in order to know when a WQE was=20
-> received/transmitted by the HW. The value is given is HCA hardware cycles=
-,
-> but could be easily converted as the hardware's core clock frequecny is=
-=20
-> available through extension of query device.=20
->=20
-> Moreover, we add an ability to read the HCA's current clock. This could b=
-e=20
-> useful on order to synchronize events to the wall clock.
->=20
-> This functionality is achieved by adding/extending the following verbs:
->=20
-> create_cq - create_cq is extended in order to allow passing creation flag=
-s
-> to the CQ creation function. We change IB/core --> vendors API
-> to be easily extendible by passing a struct which contains
-> comp_vectors, cqe and the new flags parameter. In order to create
-> CQ which supports timestamping, IB_CQ_FLAGS_TIMESTAMP_COMPLETION should b=
-e given.
->=20
-> query_device - We extend query_device uverb further by giving the hardwar=
-e's
-> clock frequency and the timestamp mask (the number of timestamp
-> bits which are supported). If timestamp isn't supported, 0 is returned.
->=20
-> In order to read the timestamp in the WQE, the user needs to query the de=
-vice=20
-> for support, create an appropriate CQ (using the extanded uverb with
-> IB_CQ_FLAGS_TIMESTAMP_COMPLETION) and poll the CQ with an extended poll_c=
-q verb (currently,
-> only implemented in user-space).
->=20
-> In mlx4, allowing the user to read the core clock efficiently involves ma=
-pping
-> this area of the hardware to user-space (being done by using a mmap comma=
-nd)
-> and reading the clock from the correct offset of the page.=20
->=20
-> This offset is returned in the vendor's specific data from mlx4's kernel =
-driver=20
-> to the mlx4's user-space driver. query_device is modified in order to sup=
-port
-> passing this vendor specific data. A user-space application could use a n=
-ew
-> verb in order to read the hardware's clock.
->=20
-> Translating the hardware's clock into ms could be done by dividing this
-> value by hca_core_clock (which is returned by the extended version of
-> query_device uverb).
->=20
-> A user-space application could get the current HW's clock by executing
->=20
-> ibv_query_values_ex(struct ibv_context *context, uint32_t q_values,
->                     struct ibv_values_ex *values)
->=20
-> The function gets a mask of the values to query and return their values.
-> Vendors could either implement this as a uverb command or use their=20
-> user-space driver to return those values directly from the HW (the mlx4 w=
-ay).
->=20
-> Matan and Or.
->=20
-> Changes from V1:
->  (1) fixed lustre IB's code build
->  (2) squashed mlx4 V1 9-11 patches into one
->  (3) changed IB_CQ_FLAGS_TIMESTAMP --> IB_CQ_FLAGS_TIMESTAMP_COMPLETION
->=20
-> Changes from V0:
-> (1) Pass ib_cq_init_attr instead of cqe and comp_vector.
-> (2) Fix unneeded indentation.
-> (3) Change flags to u32.
-> (4) Add const to create_cq's ib_cq_init_attr argument in vendor implement=
-ation.
->=20
-> Matan Barak (9):
->   IB/core: Change provider's API of create_cq to be extendible
->   IB/core: Change ib_create_cq to use struct ib_cq_init_attr
->   IB/core: Add CQ creation time-stamping flag
->   IB/core: Extend ib_uverbs_create_cq
->   IB/core: Add timestamp_mask and hca_core_clock to query_device
->   IB/core: Pass hardware specific data in query_device
->   IB/mlx4: Add mmap call to map the hardware clock
->   IB/mlx4: Support extended create_cq and query_device uverbs
->   IB/mlx4: Add support for CQ time-stamping
->=20
->  drivers/infiniband/core/device.c                   |    6 +-
->  drivers/infiniband/core/mad.c                      |    5 +-
->  drivers/infiniband/core/uverbs.h                   |    1 +
->  drivers/infiniband/core/uverbs_cmd.c               |  188 ++++++++++++++=
-++----
->  drivers/infiniband/core/uverbs_main.c              |    1 +
->  drivers/infiniband/core/verbs.c                    |    4 +-
->  drivers/infiniband/hw/amso1100/c2_provider.c       |   14 ++-
->  drivers/infiniband/hw/cxgb3/iwch_provider.c        |   19 ++-
->  drivers/infiniband/hw/cxgb4/cq.c                   |    9 +-
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h             |    8 +-
->  drivers/infiniband/hw/cxgb4/provider.c             |    8 +-
->  drivers/infiniband/hw/ehca/ehca_cq.c               |    7 +-
->  drivers/infiniband/hw/ehca/ehca_hca.c              |    6 +-
->  drivers/infiniband/hw/ehca/ehca_iverbs.h           |    6 +-
->  drivers/infiniband/hw/ehca/ehca_main.c             |    6 +-
->  drivers/infiniband/hw/ipath/ipath_cq.c             |    9 +-
->  drivers/infiniband/hw/ipath/ipath_verbs.c          |    7 +-
->  drivers/infiniband/hw/ipath/ipath_verbs.h          |    3 +-
->  drivers/infiniband/hw/mlx4/cq.c                    |   13 ++-
->  drivers/infiniband/hw/mlx4/mad.c                   |    5 +-
->  drivers/infiniband/hw/mlx4/main.c                  |   67 +++++++-
->  drivers/infiniband/hw/mlx4/mlx4_ib.h               |   19 ++-
->  drivers/infiniband/hw/mlx5/cq.c                    |   10 +-
->  drivers/infiniband/hw/mlx5/main.c                  |   19 ++-
->  drivers/infiniband/hw/mlx5/mlx5_ib.h               |    5 +-
->  drivers/infiniband/hw/mthca/mthca_provider.c       |   15 ++-
->  drivers/infiniband/hw/nes/nes_verbs.c              |   17 ++-
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c        |   13 ++-
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.h        |    9 +-
->  drivers/infiniband/hw/qib/qib_cq.c                 |   11 +-
->  drivers/infiniband/hw/qib/qib_verbs.c              |    6 +-
->  drivers/infiniband/hw/qib/qib_verbs.h              |    5 +-
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |   16 ++-
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   10 +-
->  drivers/infiniband/ulp/ipoib/ipoib_verbs.c         |    9 +-
->  drivers/infiniband/ulp/iser/iser_verbs.c           |    6 +-
->  drivers/infiniband/ulp/isert/ib_isert.c            |    6 +-
->  drivers/infiniband/ulp/srp/ib_srp.c                |   10 +-
->  drivers/infiniband/ulp/srpt/ib_srpt.c              |    5 +-
->  drivers/net/ethernet/mellanox/mlx4/main.c          |   19 ++
->  .../staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c    |    7 +-
->  include/linux/mlx4/device.h                        |    9 +
->  include/rdma/ib_verbs.h                            |   25 ++-
->  include/uapi/rdma/ib_user_verbs.h                  |   19 ++
->  net/9p/trans_rdma.c                                |    5 +-
->  net/rds/ib_cm.c                                    |    8 +-
->  net/rds/iw_cm.c                                    |    8 +-
->  net/sunrpc/xprtrdma/svc_rdma_transport.c           |   10 +-
->  net/sunrpc/xprtrdma/verbs.c                        |   10 +-
->  49 files changed, 564 insertions(+), 139 deletions(-)
->=20
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
---=-uzG0N8neJNEpRxV9eP84
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJVa1pLAAoJELgmozMOVy/d6CQP/RVW/hnsNrTLMMa/cEJ12vx1
-NT1jr54KkPLNl6H0UtK4KecOMIAa9T0sc9aVqiMUpVhjGEQwdBE05Dkm/mevYdMC
-lNK9x54she0iRGNvNAyZotqypAVDyJO0w2FGbg13VDcquvgiP3T6d4ieQZCdwssp
-78aKP9VqGF0BDpQPJVFypOPCivhESBsEBKmPOHQvVNFW1rBb1YULooGPP3y8i+kZ
-iXgNJgWinD78f9aPDjsg0xcoLQRp1VdYk/tuSZFsNprO4CHOgxxjBjg0t8TuET0u
-maJXkgqQ+9EiXsT5uz8HtJcO6mc+P8FMV6EfRe/O9vLJmde9S30G/zG82P1TgOng
-7hZGZadtU2uQ6/oerM37c47T4DaBCpOYP15hhiTrpWKc4aIx3TKzaeMT6uVfrUrs
-cbDLuUSgE7CIL4uKGb5n87l5eTMZzv6cLx7UJkw0mTfPVr1KIGxu4C1EzZTDn+fC
-uf8Ew3GUUcAQiRuOxxmQB0tDW3V6v98GdVA91JfCURb2VSx5GcbYm7W/KIfK2MQd
-BtezN1Q78xmIxwSd9JMjBSZQiHDWTy+TZo9CbeaYZ7Km8pPmKYSJgKOwQq0WUEl+
-3Zo9D230ImSNZfhoj5ha5Bgzq+/orImQHUObTDcxRgaorCAxRSst8Klmifs9g+gW
-PWWu3cA83ExPOZUabvMk
-=MR6V
------END PGP SIGNATURE-----
-
---=-uzG0N8neJNEpRxV9eP84--
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+index d396c39..0f007a6 100644
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c
++++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -582,9 +582,9 @@ static int c2_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ static int c2_process_mad(struct ib_device *ibdev,
+ 			  int mad_flags,
+ 			  u8 port_num,
+-			  struct ib_wc *in_wc,
+-			  struct ib_grh *in_grh,
+-			  struct ib_mad *in_mad, struct ib_mad *out_mad)
++			  const struct ib_wc *in_wc,
++			  const struct ib_grh *in_grh,
++			  const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	pr_debug("%s:%u\n", __func__, __LINE__);
+ 	return -ENOSYS;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 061ef08..19c830e 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -85,9 +85,9 @@ static int iwch_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ static int iwch_process_mad(struct ib_device *ibdev,
+ 			    int mad_flags,
+ 			    u8 port_num,
+-			    struct ib_wc *in_wc,
+-			    struct ib_grh *in_grh,
+-			    struct ib_mad *in_mad, struct ib_mad *out_mad)
++			    const struct ib_wc *in_wc,
++			    const struct ib_grh *in_grh,
++			    const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	return -ENOSYS;
+ }
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index ef08a9f..75ea26a 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -80,8 +80,9 @@ static int c4iw_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ }
+ 
+ static int c4iw_process_mad(struct ib_device *ibdev, int mad_flags,
+-			    u8 port_num, struct ib_wc *in_wc,
+-			    struct ib_grh *in_grh, struct ib_mad *in_mad,
++			    u8 port_num, const struct ib_wc *in_wc,
++			    const struct ib_grh *in_grh,
++			    const struct ib_mad *in_mad,
+ 			    struct ib_mad *out_mad)
+ {
+ 	return -ENOSYS;
+diff --git a/drivers/infiniband/hw/ehca/ehca_iverbs.h b/drivers/infiniband/hw/ehca/ehca_iverbs.h
+index 077185b..582fc71 100644
+--- a/drivers/infiniband/hw/ehca/ehca_iverbs.h
++++ b/drivers/infiniband/hw/ehca/ehca_iverbs.h
+@@ -191,8 +191,8 @@ int ehca_dealloc_ucontext(struct ib_ucontext *context);
+ int ehca_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
+ 
+ int ehca_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-		     struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		     struct ib_mad *in_mad,
++		     const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		     const struct ib_mad *in_mad,
+ 		     struct ib_mad *out_mad);
+ 
+ void ehca_poll_eqs(unsigned long data);
+diff --git a/drivers/infiniband/hw/ehca/ehca_sqp.c b/drivers/infiniband/hw/ehca/ehca_sqp.c
+index dba8f9f..889ccfd 100644
+--- a/drivers/infiniband/hw/ehca/ehca_sqp.c
++++ b/drivers/infiniband/hw/ehca/ehca_sqp.c
+@@ -140,10 +140,10 @@ struct vertcfl {
+ } __attribute__ ((packed));
+ 
+ static int ehca_process_perf(struct ib_device *ibdev, u8 port_num,
+-			     struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			     struct ib_mad *in_mad, struct ib_mad *out_mad)
++			     const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			     const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+-	struct ib_perf *in_perf = (struct ib_perf *)in_mad;
++	const struct ib_perf *in_perf = (const struct ib_perf *)in_mad;
+ 	struct ib_perf *out_perf = (struct ib_perf *)out_mad;
+ 	struct ib_class_port_info *poi =
+ 		(struct ib_class_port_info *)out_perf->data;
+@@ -187,8 +187,8 @@ static int ehca_process_perf(struct ib_device *ibdev, u8 port_num,
+ 
+ 		/* if request was globally routed, copy route info */
+ 		if (in_grh) {
+-			struct vertcfl *vertcfl =
+-				(struct vertcfl *)&in_grh->version_tclass_flow;
++			const struct vertcfl *vertcfl =
++				(const struct vertcfl *)&in_grh->version_tclass_flow;
+ 			memcpy(poi->redirect_gid, in_grh->dgid.raw,
+ 			       sizeof(poi->redirect_gid));
+ 			tcslfl->tc        = vertcfl->tc;
+@@ -217,8 +217,8 @@ perf_reply:
+ }
+ 
+ int ehca_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-		     struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		     struct ib_mad *in_mad, struct ib_mad *out_mad)
++		     const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		     const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	int ret;
+ 
+diff --git a/drivers/infiniband/hw/ipath/ipath_mad.c b/drivers/infiniband/hw/ipath/ipath_mad.c
+index e890e5b..9e8929e 100644
+--- a/drivers/infiniband/hw/ipath/ipath_mad.c
++++ b/drivers/infiniband/hw/ipath/ipath_mad.c
+@@ -1257,7 +1257,7 @@ static int recv_pma_set_portcounters_ext(struct ib_pma_mad *pmp,
+ }
+ 
+ static int process_subn(struct ib_device *ibdev, int mad_flags,
+-			u8 port_num, struct ib_mad *in_mad,
++			u8 port_num, const struct ib_mad *in_mad,
+ 			struct ib_mad *out_mad)
+ {
+ 	struct ib_smp *smp = (struct ib_smp *)out_mad;
+@@ -1389,7 +1389,7 @@ bail:
+ }
+ 
+ static int process_perf(struct ib_device *ibdev, u8 port_num,
+-			struct ib_mad *in_mad,
++			const struct ib_mad *in_mad,
+ 			struct ib_mad *out_mad)
+ {
+ 	struct ib_pma_mad *pmp = (struct ib_pma_mad *)out_mad;
+@@ -1490,8 +1490,8 @@ bail:
+  * This is called by the ib_mad module.
+  */
+ int ipath_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-		      struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		      struct ib_mad *in_mad, struct ib_mad *out_mad)
++		      const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		      const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	int ret;
+ 
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.h b/drivers/infiniband/hw/ipath/ipath_verbs.h
+index ae6cff4..7a2b6a1 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.h
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.h
+@@ -701,9 +701,9 @@ static inline void ipath_schedule_send(struct ipath_qp *qp)
+ int ipath_process_mad(struct ib_device *ibdev,
+ 		      int mad_flags,
+ 		      u8 port_num,
+-		      struct ib_wc *in_wc,
+-		      struct ib_grh *in_grh,
+-		      struct ib_mad *in_mad, struct ib_mad *out_mad);
++		      const struct ib_wc *in_wc,
++		      const struct ib_grh *in_grh,
++		      const struct ib_mad *in_mad, struct ib_mad *out_mad);
+ 
+ /*
+  * Compare the lower 24 bits of the two values.
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 9cd2b00..614ac6f 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -111,8 +111,9 @@ __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
+ }
+ 
+ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+-		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		 void *in_mad, void *response_mad)
++		 int port, const struct ib_wc *in_wc,
++		 const struct ib_grh *in_grh,
++		 const void *in_mad, void *response_mad)
+ {
+ 	struct mlx4_cmd_mailbox *inmailbox, *outmailbox;
+ 	void *inbox;
+@@ -220,7 +221,7 @@ static void update_sm_ah(struct mlx4_ib_dev *dev, u8 port_num, u16 lid, u8 sl)
+  * Snoop SM MADs for port info, GUID info, and  P_Key table sets, so we can
+  * synthesize LID change, Client-Rereg, GID change, and P_Key change events.
+  */
+-static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
++static void smp_snoop(struct ib_device *ibdev, u8 port_num, const struct ib_mad *mad,
+ 		      u16 prev_lid)
+ {
+ 	struct ib_port_info *pinfo;
+@@ -356,7 +357,7 @@ static void node_desc_override(struct ib_device *dev,
+ 	}
+ }
+ 
+-static void forward_trap(struct mlx4_ib_dev *dev, u8 port_num, struct ib_mad *mad)
++static void forward_trap(struct mlx4_ib_dev *dev, u8 port_num, const struct ib_mad *mad)
+ {
+ 	int qpn = mad->mad_hdr.mgmt_class != IB_MGMT_CLASS_SUBN_LID_ROUTED;
+ 	struct ib_mad_send_buf *send_buf;
+@@ -722,8 +723,8 @@ static int mlx4_ib_demux_mad(struct ib_device *ibdev, u8 port,
+ }
+ 
+ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-			struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			struct ib_mad *in_mad, struct ib_mad *out_mad)
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	u16 slid, prev_lid = 0;
+ 	int err;
+@@ -825,8 +826,8 @@ static void edit_counter(struct mlx4_counter *cnt,
+ }
+ 
+ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-			struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			struct ib_mad *in_mad, struct ib_mad *out_mad)
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+ 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+@@ -866,8 +867,8 @@ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ }
+ 
+ int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-			struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			struct ib_mad *in_mad, struct ib_mad *out_mad)
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	switch (rdma_port_get_link_layer(ibdev, port_num)) {
+ 	case IB_LINK_LAYER_INFINIBAND:
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index fce3934..645d55e 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -706,11 +706,11 @@ int mlx4_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		      struct ib_recv_wr **bad_wr);
+ 
+ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+-		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		 void *in_mad, void *response_mad);
++		 int port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		 const void *in_mad, void *response_mad);
+ int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags,	u8 port_num,
+-			struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			struct ib_mad *in_mad, struct ib_mad *out_mad);
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad);
+ int mlx4_ib_mad_init(struct mlx4_ib_dev *dev);
+ void mlx4_ib_mad_cleanup(struct mlx4_ib_dev *dev);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index 9cf9a37..34e519c 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -41,8 +41,8 @@ enum {
+ };
+ 
+ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+-		 u8 port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		 void *in_mad, void *response_mad)
++		 u8 port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		 const void *in_mad, void *response_mad)
+ {
+ 	u8 op_modifier = 0;
+ 
+@@ -58,8 +58,8 @@ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ }
+ 
+ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-			struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			struct ib_mad *in_mad, struct ib_mad *out_mad)
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	u16 slid;
+ 	int err;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index dff1cfc..c621903 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -525,8 +525,8 @@ void __mlx5_ib_cq_clean(struct mlx5_ib_cq *cq, u32 qpn, struct mlx5_ib_srq *srq)
+ void mlx5_ib_cq_clean(struct mlx5_ib_cq *cq, u32 qpn, struct mlx5_ib_srq *srq);
+ void mlx5_ib_free_srq_wqe(struct mlx5_ib_srq *srq, int wqe_index);
+ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+-		 u8 port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		 void *in_mad, void *response_mad);
++		 u8 port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		 const void *in_mad, void *response_mad);
+ struct ib_ah *create_ib_ah(struct ib_ah_attr *ah_attr,
+ 			   struct mlx5_ib_ah *ah);
+ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr);
+@@ -586,8 +586,8 @@ int mlx5_ib_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
+ int mlx5_ib_unmap_fmr(struct list_head *fmr_list);
+ int mlx5_ib_fmr_dealloc(struct ib_fmr *ibfmr);
+ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-			struct ib_wc *in_wc, struct ib_grh *in_grh,
+-			struct ib_mad *in_mad, struct ib_mad *out_mad);
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad);
+ struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
+ 					  struct ib_ucontext *context,
+ 					  struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index 9d3e5c1..c7f49bb 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -1858,8 +1858,8 @@ int mthca_CONF_SPECIAL_QP(struct mthca_dev *dev, int type, u32 qpn)
+ }
+ 
+ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+-		  int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		  void *in_mad, void *response_mad)
++		  int port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		  const void *in_mad, void *response_mad)
+ {
+ 	struct mthca_mailbox *inmailbox, *outmailbox;
+ 	void *inbox;
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.h b/drivers/infiniband/hw/mthca/mthca_cmd.h
+index f952244..d2e5b19 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.h
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.h
+@@ -312,8 +312,8 @@ int mthca_QUERY_QP(struct mthca_dev *dev, u32 num, int is_ee,
+ 		   struct mthca_mailbox *mailbox);
+ int mthca_CONF_SPECIAL_QP(struct mthca_dev *dev, int type, u32 qpn);
+ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+-		  int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		  void *in_mad, void *response_mad);
++		  int port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		  const void *in_mad, void *response_mad);
+ int mthca_READ_MGM(struct mthca_dev *dev, int index,
+ 		   struct mthca_mailbox *mailbox);
+ int mthca_WRITE_MGM(struct mthca_dev *dev, int index,
+diff --git a/drivers/infiniband/hw/mthca/mthca_dev.h b/drivers/infiniband/hw/mthca/mthca_dev.h
+index 7e6a6d6..b70f9ff 100644
+--- a/drivers/infiniband/hw/mthca/mthca_dev.h
++++ b/drivers/infiniband/hw/mthca/mthca_dev.h
+@@ -576,9 +576,9 @@ int mthca_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid);
+ int mthca_process_mad(struct ib_device *ibdev,
+ 		      int mad_flags,
+ 		      u8 port_num,
+-		      struct ib_wc *in_wc,
+-		      struct ib_grh *in_grh,
+-		      struct ib_mad *in_mad,
++		      const struct ib_wc *in_wc,
++		      const struct ib_grh *in_grh,
++		      const struct ib_mad *in_mad,
+ 		      struct ib_mad *out_mad);
+ int mthca_create_agents(struct mthca_dev *dev);
+ void mthca_free_agents(struct mthca_dev *dev);
+diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+index 8881fa3..d54608c 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mad.c
++++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+@@ -104,7 +104,7 @@ static void update_sm_ah(struct mthca_dev *dev,
+  */
+ static void smp_snoop(struct ib_device *ibdev,
+ 		      u8 port_num,
+-		      struct ib_mad *mad,
++		      const struct ib_mad *mad,
+ 		      u16 prev_lid)
+ {
+ 	struct ib_event event;
+@@ -160,7 +160,7 @@ static void node_desc_override(struct ib_device *dev,
+ 
+ static void forward_trap(struct mthca_dev *dev,
+ 			 u8 port_num,
+-			 struct ib_mad *mad)
++			 const struct ib_mad *mad)
+ {
+ 	int qpn = mad->mad_hdr.mgmt_class != IB_MGMT_CLASS_SUBN_LID_ROUTED;
+ 	struct ib_mad_send_buf *send_buf;
+@@ -195,9 +195,9 @@ static void forward_trap(struct mthca_dev *dev,
+ int mthca_process_mad(struct ib_device *ibdev,
+ 		      int mad_flags,
+ 		      u8 port_num,
+-		      struct ib_wc *in_wc,
+-		      struct ib_grh *in_grh,
+-		      struct ib_mad *in_mad,
++		      const struct ib_wc *in_wc,
++		      const struct ib_grh *in_grh,
++		      const struct ib_mad *in_mad,
+ 		      struct ib_mad *out_mad)
+ {
+ 	int err;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 05530e3..0099e41 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -3221,8 +3221,8 @@ static int nes_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+  * nes_process_mad
+  */
+ static int nes_process_mad(struct ib_device *ibdev, int mad_flags,
+-		u8 port_num, struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		struct ib_mad *in_mad, struct ib_mad *out_mad)
++		u8 port_num, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	nes_debug(NES_DBG_INIT, "\n");
+ 	return -ENOSYS;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index d812904..3216bce 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -196,9 +196,9 @@ int ocrdma_modify_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
+ int ocrdma_process_mad(struct ib_device *ibdev,
+ 		       int process_mad_flags,
+ 		       u8 port_num,
+-		       struct ib_wc *in_wc,
+-		       struct ib_grh *in_grh,
+-		       struct ib_mad *in_mad, struct ib_mad *out_mad)
++		       const struct ib_wc *in_wc,
++		       const struct ib_grh *in_grh,
++		       const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	int status;
+ 	struct ocrdma_dev *dev;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+index 726a87c..5c4ae3e 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+@@ -42,7 +42,7 @@ int ocrdma_modify_ah(struct ib_ah *, struct ib_ah_attr *);
+ int ocrdma_process_mad(struct ib_device *,
+ 		       int process_mad_flags,
+ 		       u8 port_num,
+-		       struct ib_wc *in_wc,
+-		       struct ib_grh *in_grh,
+-		       struct ib_mad *in_mad, struct ib_mad *out_mad);
++		       const struct ib_wc *in_wc,
++		       const struct ib_grh *in_grh,
++		       const struct ib_mad *in_mad, struct ib_mad *out_mad);
+ #endif				/* __OCRDMA_AH_H__ */
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 395f404..6ab8ab8 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -1854,7 +1854,7 @@ static int pma_set_portcounters_ext(struct ib_pma_mad *pmp,
+ }
+ 
+ static int process_subn(struct ib_device *ibdev, int mad_flags,
+-			u8 port, struct ib_mad *in_mad,
++			u8 port, const struct ib_mad *in_mad,
+ 			struct ib_mad *out_mad)
+ {
+ 	struct ib_smp *smp = (struct ib_smp *)out_mad;
+@@ -2006,7 +2006,7 @@ bail:
+ }
+ 
+ static int process_perf(struct ib_device *ibdev, u8 port,
+-			struct ib_mad *in_mad,
++			const struct ib_mad *in_mad,
+ 			struct ib_mad *out_mad)
+ {
+ 	struct ib_pma_mad *pmp = (struct ib_pma_mad *)out_mad;
+@@ -2299,7 +2299,7 @@ static int check_cc_key(struct qib_ibport *ibp,
+ }
+ 
+ static int process_cc(struct ib_device *ibdev, int mad_flags,
+-			u8 port, struct ib_mad *in_mad,
++			u8 port, const struct ib_mad *in_mad,
+ 			struct ib_mad *out_mad)
+ {
+ 	struct ib_cc_mad *ccp = (struct ib_cc_mad *)out_mad;
+@@ -2400,8 +2400,8 @@ bail:
+  * This is called by the ib_mad module.
+  */
+ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
+-		    struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		    struct ib_mad *in_mad, struct ib_mad *out_mad)
++		    const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		    const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	int ret;
+ 	struct qib_ibport *ibp = to_iport(ibdev, port);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index bfc8948..f2f5774 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -872,8 +872,8 @@ void qib_cap_mask_chg(struct qib_ibport *ibp);
+ void qib_sys_guid_chg(struct qib_ibport *ibp);
+ void qib_node_desc_chg(struct qib_ibport *ibp);
+ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-		    struct ib_wc *in_wc, struct ib_grh *in_grh,
+-		    struct ib_mad *in_mad, struct ib_mad *out_mad);
++		    const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		    const struct ib_mad *in_mad, struct ib_mad *out_mad);
+ int qib_create_agents(struct qib_ibdev *dev);
+ void qib_free_agents(struct qib_ibdev *dev);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mad.c b/drivers/net/ethernet/mellanox/mlx5/core/mad.c
+index ee1b0b9..1368dac 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mad.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mad.c
+@@ -36,7 +36,7 @@
+ #include <linux/mlx5/cmd.h>
+ #include "mlx5_core.h"
+ 
+-int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, void *inb, void *outb,
++int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+ 		      u16 opmod, u8 port)
+ {
+ 	struct mlx5_mad_ifc_mbox_in *in = NULL;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 9a90e75..9ec7c93 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -696,7 +696,7 @@ int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
+ 			     u32 *mkey);
+ int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn);
+ int mlx5_core_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn);
+-int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, void *inb, void *outb,
++int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+ 		      u16 opmod, u8 port);
+ void mlx5_pagealloc_init(struct mlx5_core_dev *dev);
+ void mlx5_pagealloc_cleanup(struct mlx5_core_dev *dev);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index f19739a..48c9acb 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1690,9 +1690,9 @@ struct ib_device {
+ 	int                        (*process_mad)(struct ib_device *device,
+ 						  int process_mad_flags,
+ 						  u8 port_num,
+-						  struct ib_wc *in_wc,
+-						  struct ib_grh *in_grh,
+-						  struct ib_mad *in_mad,
++						  const struct ib_wc *in_wc,
++						  const struct ib_grh *in_grh,
++						  const struct ib_mad *in_mad,
+ 						  struct ib_mad *out_mad);
+ 	struct ib_xrcd *	   (*alloc_xrcd)(struct ib_device *device,
+ 						 struct ib_ucontext *ucontext,
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
