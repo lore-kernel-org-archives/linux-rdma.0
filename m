@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 4/9] IB/core: Extend ib_uverbs_create_cq
-Date: Sun, 31 May 2015 15:14:12 +0300
-Message-ID: <1433074457-26437-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V2 6/9] IB/core: Pass hardware specific data in query_device
+Date: Sun, 31 May 2015 15:14:14 +0300
+Message-ID: <1433074457-26437-7-git-send-email-ogerlitz@mellanox.com>
 References: <1433074457-26437-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1433074457-26437-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,308 +12,411 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-ib_uverbs_ex_create_cq follows the extension verbs
-mechanism. New features (for example, CQ creation flags
-field which is added in a downstream patch) could used
-via user-space libraries without breaking the ABI.
+Vendors should be able to pass vendor specific data to/from
+user-space via query_device uverb. In order to do this,
+we need to pass the vendors' specific udata.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |    1 +
- drivers/infiniband/core/uverbs_cmd.c  |  170 ++++++++++++++++++++++++++-------
- drivers/infiniband/core/uverbs_main.c |    1 +
- include/uapi/rdma/ib_user_verbs.h     |   17 ++++
- 4 files changed, 154 insertions(+), 35 deletions(-)
+ drivers/infiniband/core/device.c             |    4 +++-
+ drivers/infiniband/core/uverbs_cmd.c         |    2 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c |    7 +++++--
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |    8 ++++++--
+ drivers/infiniband/hw/cxgb4/provider.c       |    8 ++++++--
+ drivers/infiniband/hw/ehca/ehca_hca.c        |    6 +++++-
+ drivers/infiniband/hw/ehca/ehca_iverbs.h     |    3 ++-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |    7 +++++--
+ drivers/infiniband/hw/mlx4/main.c            |    6 +++++-
+ drivers/infiniband/hw/mlx5/main.c            |    9 +++++++--
+ drivers/infiniband/hw/mthca/mthca_provider.c |    7 +++++--
+ drivers/infiniband/hw/nes/nes_verbs.c        |    6 +++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    6 +++++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  |    3 ++-
+ drivers/infiniband/hw/qib/qib_verbs.c        |    6 ++++--
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |    6 +++++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h |    3 ++-
+ include/rdma/ib_verbs.h                      |    3 ++-
+ 18 files changed, 75 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index b716b08..ba365b6 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -259,5 +259,6 @@ IB_UVERBS_DECLARE_CMD(close_xrcd);
- IB_UVERBS_DECLARE_EX_CMD(create_flow);
- IB_UVERBS_DECLARE_EX_CMD(destroy_flow);
- IB_UVERBS_DECLARE_EX_CMD(query_device);
-+IB_UVERBS_DECLARE_EX_CMD(create_cq);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 568cb41..694bd66 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -539,9 +539,11 @@ EXPORT_SYMBOL(ib_dispatch_event);
+ int ib_query_device(struct ib_device *device,
+ 		    struct ib_device_attr *device_attr)
+ {
++	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
++
+ 	memset(device_attr, 0, sizeof(*device_attr));
  
- #endif /* UVERBS_H */
+-	return device->query_device(device, device_attr);
++	return device->query_device(device, device_attr, &uhw);
+ }
+ EXPORT_SYMBOL(ib_query_device);
+ 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 1954ebb..51311b1 100644
+index 11ee298..bbb02ff 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1330,41 +1330,37 @@ ssize_t ib_uverbs_create_comp_channel(struct ib_uverbs_file *file,
- 	return in_len;
- }
+@@ -3428,7 +3428,7 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
  
--ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
--			    const char __user *buf, int in_len,
--			    int out_len)
-+static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
-+				       struct ib_udata *ucore,
-+				       struct ib_udata *uhw,
-+				       struct ib_uverbs_ex_create_cq *cmd,
-+				       size_t cmd_sz,
-+				       int (*cb)(struct ib_uverbs_file *file,
-+						 struct ib_ucq_object *obj,
-+						 struct ib_uverbs_ex_create_cq_resp *resp,
-+						 struct ib_udata *udata,
-+						 void *context),
-+				       void *context)
- {
--	struct ib_uverbs_create_cq      cmd;
--	struct ib_uverbs_create_cq_resp resp;
--	struct ib_udata                 udata;
- 	struct ib_ucq_object           *obj;
- 	struct ib_uverbs_event_file    *ev_file = NULL;
- 	struct ib_cq                   *cq;
- 	int                             ret;
-+	struct ib_uverbs_ex_create_cq_resp resp;
- 	struct ib_cq_init_attr attr = {};
+ 	memset(&attr, 0, sizeof(attr));
  
--	if (out_len < sizeof resp)
--		return -ENOSPC;
--
--	if (copy_from_user(&cmd, buf, sizeof cmd))
--		return -EFAULT;
--
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
--
--	if (cmd.comp_vector >= file->device->num_comp_vectors)
--		return -EINVAL;
-+	if (cmd->comp_vector >= file->device->num_comp_vectors)
-+		return ERR_PTR(-EINVAL);
+-	err = device->query_device(device, &attr);
++	err = device->query_device(device, &attr, uhw);
+ 	if (err)
+ 		return err;
  
- 	obj = kmalloc(sizeof *obj, GFP_KERNEL);
- 	if (!obj)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+index a43e022..382f109 100644
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c
++++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -63,13 +63,16 @@
+ #include "c2_provider.h"
+ #include "c2_user.h"
  
--	init_uobj(&obj->uobject, cmd.user_handle, file->ucontext, &cq_lock_class);
-+	init_uobj(&obj->uobject, cmd->user_handle, file->ucontext, &cq_lock_class);
- 	down_write(&obj->uobject.mutex);
- 
--	if (cmd.comp_channel >= 0) {
--		ev_file = ib_uverbs_lookup_comp_file(cmd.comp_channel);
-+	if (cmd->comp_channel >= 0) {
-+		ev_file = ib_uverbs_lookup_comp_file(cmd->comp_channel);
- 		if (!ev_file) {
- 			ret = -EINVAL;
- 			goto err;
-@@ -1377,10 +1373,14 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&obj->comp_list);
- 	INIT_LIST_HEAD(&obj->async_list);
- 
--	attr.cqe = cmd.cqe;
--	attr.comp_vector = cmd.comp_vector;
-+	attr.cqe = cmd->cqe;
-+	attr.comp_vector = cmd->comp_vector;
-+
-+	if (cmd_sz > offsetof(typeof(*cmd), flags) + sizeof(cmd->flags))
-+		attr.flags = cmd->flags;
-+
- 	cq = file->device->ib_dev->create_cq(file->device->ib_dev, &attr,
--					     file->ucontext, &udata);
-+					     file->ucontext, uhw);
- 	if (IS_ERR(cq)) {
- 		ret = PTR_ERR(cq);
- 		goto err_file;
-@@ -1399,14 +1399,15 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
- 		goto err_free;
- 
- 	memset(&resp, 0, sizeof resp);
--	resp.cq_handle = obj->uobject.id;
--	resp.cqe       = cq->cqe;
-+	resp.base.cq_handle = obj->uobject.id;
-+	resp.base.cqe       = cq->cqe;
- 
--	if (copy_to_user((void __user *) (unsigned long) cmd.response,
--			 &resp, sizeof resp)) {
--		ret = -EFAULT;
--		goto err_copy;
--	}
-+	resp.response_length = offsetof(typeof(resp), response_length) +
-+		sizeof(resp.response_length);
-+
-+	ret = cb(file, obj, &resp, ucore, context);
-+	if (ret)
-+		goto err_cb;
- 
- 	mutex_lock(&file->mutex);
- 	list_add_tail(&obj->uobject.list, &file->ucontext->cq_list);
-@@ -1416,9 +1417,9 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
- 
- 	up_write(&obj->uobject.mutex);
- 
--	return in_len;
-+	return obj;
- 
--err_copy:
-+err_cb:
- 	idr_remove_uobj(&ib_uverbs_cq_idr, &obj->uobject);
- 
- err_free:
-@@ -1430,7 +1431,106 @@ err_file:
- 
- err:
- 	put_uobj_write(&obj->uobject);
--	return ret;
-+
-+	return ERR_PTR(ret);
-+}
-+
-+static int ib_uverbs_create_cq_cb(struct ib_uverbs_file *file,
-+				  struct ib_ucq_object *obj,
-+				  struct ib_uverbs_ex_create_cq_resp *resp,
-+				  struct ib_udata *ucore, void *context)
-+{
-+	if (ib_copy_to_udata(ucore, &resp->base, sizeof(resp->base)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
-+			    const char __user *buf, int in_len,
-+			    int out_len)
-+{
-+	struct ib_uverbs_create_cq      cmd;
-+	struct ib_uverbs_ex_create_cq	cmd_ex;
-+	struct ib_uverbs_create_cq_resp resp;
-+	struct ib_udata                 ucore;
-+	struct ib_udata                 uhw;
-+	struct ib_ucq_object           *obj;
-+
-+	if (out_len < sizeof(resp))
-+		return -ENOSPC;
-+
-+	if (copy_from_user(&cmd, buf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	INIT_UDATA(&ucore, buf, cmd.response, sizeof(cmd), sizeof(resp));
-+
-+	INIT_UDATA(&uhw, buf + sizeof(cmd),
-+		   (unsigned long)cmd.response + sizeof(resp),
-+		   in_len - sizeof(cmd), out_len - sizeof(resp));
-+
-+	memset(&cmd_ex, 0, sizeof(cmd_ex));
-+	cmd_ex.user_handle = cmd.user_handle;
-+	cmd_ex.cqe = cmd.cqe;
-+	cmd_ex.comp_vector = cmd.comp_vector;
-+	cmd_ex.comp_channel = cmd.comp_channel;
-+
-+	obj = create_cq(file, &ucore, &uhw, &cmd_ex,
-+			offsetof(typeof(cmd_ex), comp_channel) +
-+			sizeof(cmd.comp_channel), ib_uverbs_create_cq_cb,
-+			NULL);
-+
-+	if (IS_ERR(obj))
-+		return PTR_ERR(obj);
-+
-+	return in_len;
-+}
-+
-+static int ib_uverbs_ex_create_cq_cb(struct ib_uverbs_file *file,
-+				     struct ib_ucq_object *obj,
-+				     struct ib_uverbs_ex_create_cq_resp *resp,
-+				     struct ib_udata *ucore, void *context)
-+{
-+	if (ib_copy_to_udata(ucore, resp, resp->response_length))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+int ib_uverbs_ex_create_cq(struct ib_uverbs_file *file,
-+			   struct ib_udata *ucore,
+-static int c2_query_device(struct ib_device *ibdev,
+-			   struct ib_device_attr *props)
++static int c2_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
 +			   struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_create_cq_resp resp;
-+	struct ib_uverbs_ex_create_cq  cmd;
-+	struct ib_ucq_object           *obj;
-+	int err;
-+
-+	if (ucore->inlen < sizeof(cmd))
+ {
+ 	struct c2_dev *c2dev = to_c2dev(ibdev);
+ 
+ 	pr_debug("%s:%u\n", __func__, __LINE__);
+ 
++	if (uhw->inlen || uhw->outlen)
 +		return -EINVAL;
 +
-+	err = ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
-+	if (err)
-+		return err;
-+
-+	if (cmd.comp_mask)
-+		return -EINVAL;
-+
-+	if (cmd.reserved)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < (offsetof(typeof(resp), response_length) +
-+			     sizeof(resp.response_length)))
-+		return -ENOSPC;
-+
-+	obj = create_cq(file, ucore, uhw, &cmd,
-+			min(ucore->inlen, sizeof(cmd)),
-+			ib_uverbs_ex_create_cq_cb, NULL);
-+
-+	if (IS_ERR(obj))
-+		return PTR_ERR(obj);
-+
-+	return 0;
+ 	*props = c2dev->props;
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 2eaf7e8..c4b5936 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1150,13 +1150,17 @@ static u64 fw_vers_string_to_u64(struct iwch_dev *iwch_dev)
+ 	       (fw_mic & 0xffff);
  }
  
- ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 88cce9b..f6eef2d 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -124,6 +124,7 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_CREATE_FLOW]	= ib_uverbs_ex_create_flow,
- 	[IB_USER_VERBS_EX_CMD_DESTROY_FLOW]	= ib_uverbs_ex_destroy_flow,
- 	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	= ib_uverbs_ex_query_device,
-+	[IB_USER_VERBS_EX_CMD_CREATE_CQ]	= ib_uverbs_ex_create_cq,
- };
+-static int iwch_query_device(struct ib_device *ibdev,
+-			     struct ib_device_attr *props)
++static int iwch_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++			     struct ib_udata *uhw)
+ {
  
- static void ib_uverbs_add_one(struct ib_device *device);
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index b513e66..19f0256 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -91,6 +91,7 @@ enum {
- 
- enum {
- 	IB_USER_VERBS_EX_CMD_QUERY_DEVICE = IB_USER_VERBS_CMD_QUERY_DEVICE,
-+	IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ,
- 	IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
- 	IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
- };
-@@ -353,11 +354,27 @@ struct ib_uverbs_create_cq {
- 	__u64 driver_data[0];
- };
- 
-+struct ib_uverbs_ex_create_cq {
-+	__u64 user_handle;
-+	__u32 cqe;
-+	__u32 comp_vector;
-+	__s32 comp_channel;
-+	__u32 comp_mask;
-+	__u32 flags;
-+	__u32 reserved;
-+};
+ 	struct iwch_dev *dev;
 +
- struct ib_uverbs_create_cq_resp {
- 	__u32 cq_handle;
- 	__u32 cqe;
- };
+ 	PDBG("%s ibdev %p\n", __func__, ibdev);
  
-+struct ib_uverbs_ex_create_cq_resp {
-+	struct ib_uverbs_create_cq_resp base;
-+	__u32 comp_mask;
-+	__u32 response_length;
-+};
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
 +
- struct ib_uverbs_resize_cq {
- 	__u64 response;
- 	__u32 cq_handle;
+ 	dev = to_iwch_dev(ibdev);
+ 	memset(props, 0, sizeof *props);
+ 	memcpy(&props->sys_image_guid, dev->rdev.t3cdev_p->lldev->dev_addr, 6);
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index ef08a9f..05a96a5 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -301,13 +301,17 @@ static int c4iw_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	return 0;
+ }
+ 
+-static int c4iw_query_device(struct ib_device *ibdev,
+-			     struct ib_device_attr *props)
++static int c4iw_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++			     struct ib_udata *uhw)
+ {
+ 
+ 	struct c4iw_dev *dev;
++
+ 	PDBG("%s ibdev %p\n", __func__, ibdev);
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	dev = to_c4iw_dev(ibdev);
+ 	memset(props, 0, sizeof *props);
+ 	memcpy(&props->sys_image_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
+diff --git a/drivers/infiniband/hw/ehca/ehca_hca.c b/drivers/infiniband/hw/ehca/ehca_hca.c
+index 9ed4d25..e8b1bb6 100644
+--- a/drivers/infiniband/hw/ehca/ehca_hca.c
++++ b/drivers/infiniband/hw/ehca/ehca_hca.c
+@@ -50,7 +50,8 @@ static unsigned int limit_uint(unsigned int value)
+ 	return min_t(unsigned int, value, INT_MAX);
+ }
+ 
+-int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
++int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++		      struct ib_udata *uhw)
+ {
+ 	int i, ret = 0;
+ 	struct ehca_shca *shca = container_of(ibdev, struct ehca_shca,
+@@ -71,6 +72,9 @@ int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
+ 		IB_DEVICE_PORT_ACTIVE_EVENT,  HCA_CAP_PORT_ACTIVE_EVENT,
+ 	};
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	rblock = ehca_alloc_fw_ctrlblock(GFP_KERNEL);
+ 	if (!rblock) {
+ 		ehca_err(&shca->ib_device, "Can't allocate rblock memory.");
+diff --git a/drivers/infiniband/hw/ehca/ehca_iverbs.h b/drivers/infiniband/hw/ehca/ehca_iverbs.h
+index 952f2fb..192eef1 100644
+--- a/drivers/infiniband/hw/ehca/ehca_iverbs.h
++++ b/drivers/infiniband/hw/ehca/ehca_iverbs.h
+@@ -44,7 +44,8 @@
+ 
+ #include "ehca_classes.h"
+ 
+-int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props);
++int ehca_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++		      struct ib_udata *uhw);
+ 
+ int ehca_query_port(struct ib_device *ibdev, u8 port,
+ 		    struct ib_port_attr *props);
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
+index 764081d..78af73c 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -1495,11 +1495,14 @@ bail:
+ 	return 0;
+ }
+ 
+-static int ipath_query_device(struct ib_device *ibdev,
+-			      struct ib_device_attr *props)
++static int ipath_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++			      struct ib_udata *uhw)
+ {
+ 	struct ipath_ibdev *dev = to_idev(ibdev);
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	memset(props, 0, sizeof(*props));
+ 
+ 	props->device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 3b90df0..914beae 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -132,7 +132,8 @@ static int num_ib_ports(struct mlx4_dev *dev)
+ }
+ 
+ static int mlx4_ib_query_device(struct ib_device *ibdev,
+-				struct ib_device_attr *props)
++				struct ib_device_attr *props,
++				struct ib_udata *uhw)
+ {
+ 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+ 	struct ib_smp *in_mad  = NULL;
+@@ -140,6 +141,9 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 	int err = -ENOMEM;
+ 	int have_ib_ports;
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b9976a0..5a8486c 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -63,7 +63,8 @@ static char mlx5_version[] =
+ 	DRIVER_VERSION " (" DRIVER_RELDATE ")\n";
+ 
+ static int mlx5_ib_query_device(struct ib_device *ibdev,
+-				struct ib_device_attr *props)
++				struct ib_device_attr *props,
++				struct ib_udata *uhw)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 	struct ib_smp *in_mad  = NULL;
+@@ -74,6 +75,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	int max_sq_sg;
+ 	u64 flags;
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	gen = &dev->mdev->caps.gen;
+ 	in_mad  = kzalloc(sizeof(*in_mad), GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof(*out_mad), GFP_KERNEL);
+@@ -910,6 +914,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
+ 	struct mlx5_general_caps *gen;
+ 	int err = -ENOMEM;
+ 	int port;
++	struct ib_udata uhw = {.inlen = 0, .outlen = 0};
+ 
+ 	gen = &dev->mdev->caps.gen;
+ 	pprops = kmalloc(sizeof(*pprops), GFP_KERNEL);
+@@ -920,7 +925,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
+ 	if (!dprops)
+ 		goto out;
+ 
+-	err = mlx5_ib_query_device(&dev->ib_dev, dprops);
++	err = mlx5_ib_query_device(&dev->ib_dev, dprops, &uhw);
+ 	if (err) {
+ 		mlx5_ib_warn(dev, "query_device failed %d\n", err);
+ 		goto out;
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index f1b04bd..d6d7c16 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -57,14 +57,17 @@ static void init_query_mad(struct ib_smp *mad)
+ 	mad->method    	   = IB_MGMT_METHOD_GET;
+ }
+ 
+-static int mthca_query_device(struct ib_device *ibdev,
+-			      struct ib_device_attr *props)
++static int mthca_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++			      struct ib_udata *uhw)
+ {
+ 	struct ib_smp *in_mad  = NULL;
+ 	struct ib_smp *out_mad = NULL;
+ 	int err = -ENOMEM;
+ 	struct mthca_dev *mdev = to_mdev(ibdev);
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+ 	if (!in_mad || !out_mad)
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index a9d62c5..0c2fb7a 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -512,12 +512,16 @@ static void nes_free_fast_reg_page_list(struct ib_fast_reg_page_list *pifrpl)
+ /**
+  * nes_query_device
+  */
+-static int nes_query_device(struct ib_device *ibdev, struct ib_device_attr *props)
++static int nes_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++			    struct ib_udata *uhw)
+ {
+ 	struct nes_vnic *nesvnic = to_nesvnic(ibdev);
+ 	struct nes_device *nesdev = nesvnic->nesdev;
+ 	struct nes_ib_device *nesibdev = nesvnic->nesibdev;
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	memset(props, 0, sizeof(*props));
+ 	memcpy(&props->sys_image_guid, nesvnic->netdev->dev_addr, 6);
+ 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index f441df6..fce11ec 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -61,10 +61,14 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
+ 	return 0;
+ }
+ 
+-int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
++int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
++			struct ib_udata *uhw)
+ {
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibdev);
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	memset(attr, 0, sizeof *attr);
+ 	memcpy(&attr->fw_ver, &dev->attr.fw_ver[0],
+ 	       min(sizeof(dev->attr.fw_ver), sizeof(attr->fw_ver)));
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index e853195..b15c608 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -36,7 +36,8 @@ int ocrdma_post_recv(struct ib_qp *, struct ib_recv_wr *,
+ int ocrdma_poll_cq(struct ib_cq *, int num_entries, struct ib_wc *wc);
+ int ocrdma_arm_cq(struct ib_cq *, enum ib_cq_notify_flags flags);
+ 
+-int ocrdma_query_device(struct ib_device *, struct ib_device_attr *props);
++int ocrdma_query_device(struct ib_device *, struct ib_device_attr *props,
++			struct ib_udata *uhw);
+ int ocrdma_query_port(struct ib_device *, u8 port, struct ib_port_attr *props);
+ int ocrdma_modify_port(struct ib_device *, u8 port, int mask,
+ 		       struct ib_port_modify *props);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index dba1c92..e1dad45 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1550,12 +1550,14 @@ full:
+ 	}
+ }
+ 
+-static int qib_query_device(struct ib_device *ibdev,
+-			    struct ib_device_attr *props)
++static int qib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
++			    struct ib_udata *uhw)
+ {
+ 	struct qib_devdata *dd = dd_from_ibdev(ibdev);
+ 	struct qib_ibdev *dev = to_idev(ibdev);
+ 
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
+ 	memset(props, 0, sizeof(*props));
+ 
+ 	props->device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index 2b3f7e3..7df4382 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -248,7 +248,8 @@ enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
+ }
+ 
+ int usnic_ib_query_device(struct ib_device *ibdev,
+-				struct ib_device_attr *props)
++			  struct ib_device_attr *props,
++			  struct ib_udata *uhw)
+ {
+ 	struct usnic_ib_dev *us_ibdev = to_usdev(ibdev);
+ 	union ib_gid gid;
+@@ -257,6 +258,9 @@ int usnic_ib_query_device(struct ib_device *ibdev,
+ 	int qp_per_vf;
+ 
+ 	usnic_dbg("\n");
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
++
+ 	mutex_lock(&us_ibdev->usdev_lock);
+ 	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
+ 	us_ibdev->netdev->ethtool_ops->get_settings(us_ibdev->netdev, &cmd);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+index 2ab8427..0bd04ef 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+@@ -24,7 +24,8 @@
+ enum rdma_link_layer usnic_ib_port_link_layer(struct ib_device *device,
+ 						u8 port_num);
+ int usnic_ib_query_device(struct ib_device *ibdev,
+-				struct ib_device_attr *props);
++				struct ib_device_attr *props,
++			  struct ib_udata *uhw);
+ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+ 				struct ib_port_attr *props);
+ enum rdma_protocol_type
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index a45f674..045b5b2 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1562,7 +1562,8 @@ struct ib_device {
+ 	int		           (*get_protocol_stats)(struct ib_device *device,
+ 							 union rdma_protocol_stats *stats);
+ 	int		           (*query_device)(struct ib_device *device,
+-						   struct ib_device_attr *device_attr);
++						   struct ib_device_attr *device_attr,
++						   struct ib_udata *udata);
+ 	int		           (*query_port)(struct ib_device *device,
+ 						 u8 port_num,
+ 						 struct ib_port_attr *port_attr);
 -- 
 1.7.1
 
